@@ -1,0 +1,89 @@
+version: 3
+
+branches:
+  base: dev
+  protected: [main]          # no agent may merge into these; the human opens dev -> main
+
+# THE AUTONOMY DIAL (section 14). Uncomment to preset; leave commented and
+# `dispatch.py onboard` will ask the owner in plain language and write it here.
+#   manual  - you write the issues; the Planner only files `proposed` issues when you
+#             explicitly run onboarding/revision; no backlog audits.
+#   propose - when the pipeline drains, the Planner audits and files `proposed` issues;
+#             you promote the ones you want to `ready`.
+#   auto    - the Planner files `ready` issues; the loop closes itself (v0.1.1 behaviour).
+# autonomy: propose
+
+dispatcher:
+  poll_interval_seconds: 60
+  max_active_issues: 3               # concurrent headless Implementer runs. These are real
+                                     # local processes doing real work; 3 keeps a laptop
+                                     # usable. Raise it on a workstation if you like --
+                                     # idle hoarding is gone, this only bounds LIVE work.
+  max_run_minutes: 30                # hard wall-clock ceiling per run; then kill + breaker
+  retry_empty_run: true              # one fresh retry when a run exits without a PR
+  cleanup_worktrees_on_merge: true
+  claude_cmd: claude                 # absolute path if the scheduled task cannot find it
+  permission_args: ["--dangerously-skip-permissions"]   # see "How a headless run works"
+  extra_args: []                     # e.g. ["--model", "claude-sonnet-4-6"]
+  interactive_agent: claude          # Orca agent id for the interview sessions only
+  notify:
+    # Ships EMPTY on purpose (v0.2.1): no instant pings; everything that needs you
+    # reaches you in the daily digest (section 11). Put "@YourHandle" here only if you
+    # WANT to be @-mentioned (and therefore e-mailed by GitHub) the moment something
+    # needs a human.
+    github_mention: ""
+
+gates:
+  core_document:                     # nothing is dispatched until the Planner's core document is on `dev`
+    path: docs/CORE_DOCUMENT.md
+    empty_marker: "Status: EMPTY"
+    achieved_marker: "Status: ACHIEVED"
+
+# A label is a claim about the work. It earns the skills that work needs; the dispatcher
+# writes the matching names into the run's brief. All skills are available to every run
+# (they are committed in .claude/skills/); this map is the explicit pointer.
+labels:
+  ui:
+    skills: [frontend-design, web-design-guidelines, high-end-visual-design, webapp-testing]
+  seo:
+    skills: [seo-audit]
+  scraper:
+    skills: [just-scrape]
+  bug:
+    skills: [diagnosing-bugs]
+  data:
+    skills: [codebase-design]
+  research:
+    skills: [just-scrape]
+  architecture:
+    skills: [improve-codebase-architecture, codebase-design]
+
+# Baseline skills named in every brief, per role; labels add to these.
+roles:
+  planner:
+    skills: [handoff, grill-with-docs, domain-modeling]
+  architect:
+    skills: [handoff, improve-codebase-architecture, codebase-design]
+  implementer:
+    skills: [handoff, tdd]
+
+circuit_breaker:
+  max_cycles: 3                      # runs + send-backs per issue before `escalated`
+
+# Enforced by the CI Reviewer (section 8 embeds the same rules in its prompt); kept here
+# as the single written source both the Implementer and the Reviewer are pointed at.
+evidence_gates:
+  - id: counts-reconciled
+    applies_to: [data, pipeline]
+    requires: >-
+      A count from the run reconciled against a count from an independent source, both quoted
+      in the pull request. "It completed" is not a count.
+  - id: output-sampled
+    applies_to: [data, ui]
+    requires: >-
+      A sample of the actual output pasted into the pull request. Enough rows that a wrong
+      one would be visible.
+  - id: cost-measured
+    applies_to: [pipeline]
+    requires: >-
+      The measured cost of the change against its budget, where one is documented.
