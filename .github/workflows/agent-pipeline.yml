@@ -13,6 +13,8 @@ permissions:
   contents: write        # merge into dev
   pull-requests: write   # labels, comments, merge
   issues: write          # read/label linked issues
+  id-token: write        # claude-code-action@v1 exchanges an OIDC token; without this it
+                         # fails with "Could not fetch an OIDC token" before the agent starts
 
 # A new push makes the previous run obsolete: cancel it. This is the cost brake.
 concurrency:
