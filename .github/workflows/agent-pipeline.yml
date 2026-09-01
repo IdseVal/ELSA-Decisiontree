@@ -113,6 +113,10 @@ jobs:
           # you are on rejects an empty input, delete the unused line.
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # The built-in token, passed explicitly: without it the action tries to exchange
+          # an OIDC token for the Claude Code GitHub App's token and fails unless that app
+          # is installed on the repository. The built-in token is all this design needs.
+          github_token: ${{ github.token }}
           claude_args: "--max-turns 80"
           prompt: |
             You are the VERIFIER for pull request #${{ github.event.pull_request.number }}
@@ -184,6 +188,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}   # see the Verifier step's note
           claude_args: "--max-turns 60"
           prompt: |
             You are the REVIEWER for pull request #${{ github.event.pull_request.number }}
