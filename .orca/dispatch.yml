@@ -11,7 +11,7 @@ branches:
 #   propose - when the pipeline drains, the Planner audits and files `proposed` issues;
 #             you promote the ones you want to `ready`.
 #   auto    - the Planner files `ready` issues; the loop closes itself (v0.1.1 behaviour).
-# autonomy: propose
+autonomy: propose
 
 dispatcher:
   poll_interval_seconds: 60
