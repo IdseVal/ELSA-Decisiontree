@@ -1,0 +1,78 @@
+title:
+  en: Law enforcement
+  nl: Rechtshandhaving
+description:
+  en: |
+    Annex III, area 6, applies **in so far as the use of these systems is permitted under
+    relevant Union or national law**, and lists five types. All five are defined by who uses
+    the system: law enforcement authorities, someone acting on their behalf, or Union
+    institutions, bodies, offices or agencies supporting them.
+
+    - **(a)** systems to assess the risk of a natural person **becoming the victim** of
+      criminal offences;
+    - **(b)** systems used as **polygraphs or similar tools**;
+    - **(c)** systems to **evaluate the reliability of evidence** in the course of the
+      investigation or prosecution of criminal offences;
+    - **(d)** systems for assessing the risk of a natural person **offending or
+      re-offending**, not solely on the basis of profiling as referred to in Article 3(4) of
+      Directive (EU) 2016/680, or to assess personality traits and characteristics or past
+      criminal behaviour;
+    - **(e)** systems for the **profiling** of natural persons as referred to in Article
+      3(4) of Directive (EU) 2016/680 in the course of the detection, investigation or
+      prosecution of criminal offences.
+
+    Check point (d) against step 3. Where a system assesses the risk of committing a
+    criminal offence **solely** on profiling or personality traits, Article 5(1)(d)
+    prohibits it outright rather than making it high-risk.
+
+    This area is unlikely to be reached by an agrifood system unless it is built for or sold
+    to an enforcement body - for example a system used in food fraud or environmental crime
+    investigations by an authority acting in a law enforcement capacity.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage III, gebied 6, geldt **voor zover het gebruik van deze systemen is toegestaan op
+    grond van het toepasselijke Unierecht of nationale recht**, en noemt vijf types. Alle
+    vijf zijn omschreven aan de hand van wie het systeem gebruikt: rechtshandhavingsinstanties,
+    iemand die namens hen handelt, of instellingen, organen of instanties van de Unie die hen
+    ondersteunen.
+
+    - **a)** systemen om het risico te beoordelen dat een natuurlijke persoon **slachtoffer
+      wordt** van strafbare feiten;
+    - **b)** systemen die worden gebruikt als **leugendetector of soortgelijke
+      instrumenten**;
+    - **c)** systemen om **de betrouwbaarheid van bewijsmateriaal te beoordelen** tijdens
+      het onderzoek naar of de vervolging van strafbare feiten;
+    - **d)** systemen om te beoordelen hoe groot het risico is dat een natuurlijke persoon
+      **(opnieuw) een strafbaar feit zal plegen**, niet uitsluitend op basis van profilering
+      als bedoeld in artikel 3, punt 4, van Richtlijn (EU) 2016/680, of om
+      persoonlijkheidskenmerken en eigenschappen of eerder crimineel gedrag te beoordelen;
+    - **e)** systemen om natuurlijke personen te **profileren** als bedoeld in artikel 3,
+      punt 4, van Richtlijn (EU) 2016/680, tijdens het opsporen, onderzoeken of vervolgen
+      van strafbare feiten.
+
+    Toets punt d) aan stap 3. Wanneer een systeem het risico op het plegen van een strafbaar
+    feit **uitsluitend** op basis van profilering of persoonlijkheidskenmerken beoordeelt,
+    verbiedt artikel 5, lid 1, punt d), dat zonder meer in plaats van het als hoog risico
+    aan te merken.
+
+    Dit gebied zal een agrifood-systeem zelden raken, tenzij het is gebouwd voor of verkocht
+    aan een handhavingsinstantie - bijvoorbeeld een systeem dat door een instantie in een
+    rechtshandhavingsrol wordt gebruikt bij onderzoek naar voedselfraude of milieucriminaliteit.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-iii-area: 6
+  listed-system-types: 5
+sources:
+  - kind: legal
+    label:
+      en: Annex III, point 6 AI Act (law enforcement)
+      nl: Bijlage III, punt 6, AI-verordening (rechtshandhaving)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
+  - kind: legal
+    label:
+      en: Article 5(1)(d) AI Act (predicting criminal offences from profiling alone, prohibited)
+      nl: Artikel 5, lid 1, punt d), AI-verordening (voorspellen van strafbare feiten uitsluitend op basis van profilering, verboden)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5

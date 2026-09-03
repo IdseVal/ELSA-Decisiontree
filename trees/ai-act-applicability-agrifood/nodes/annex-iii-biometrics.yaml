@@ -1,0 +1,73 @@
+title:
+  en: Biometrics
+  nl: Biometrie
+description:
+  en: |
+    Annex III, area 1, applies **in so far as the use of these systems is permitted under
+    relevant Union or national law**, and lists three types:
+
+    - **(a)** remote biometric identification systems. This does **not** include AI systems
+      intended to be used for **biometric verification** whose sole purpose is to confirm
+      that a specific natural person is who they claim to be;
+    - **(b)** AI systems intended to be used for **biometric categorisation according to
+      sensitive or protected attributes or characteristics**, based on the inference of
+      those attributes or characteristics;
+    - **(c)** AI systems intended to be used for **emotion recognition**.
+
+    The line between (a) and the verification carve-out is the one to get right:
+    identifying someone from a population is covered, confirming a claimed identity is not.
+
+    Check this area against step 3 as well. Some of the same systems are outright
+    prohibited: biometric categorisation to infer the characteristics listed in Article
+    5(1)(g), emotion recognition in the workplace or in education under Article 5(1)(f),
+    and real-time remote biometric identification for law enforcement under Article
+    5(1)(h). A prohibited practice is not merely high-risk.
+
+    In agrifood this reaches worker access control and time registration, and emotion
+    recognition anywhere outside the workplace and education settings that Article 5
+    already covers.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage III, gebied 1, geldt **voor zover het gebruik van deze systemen is toegestaan
+    op grond van het toepasselijke Unierecht of nationale recht**, en noemt drie types:
+
+    - **a)** systemen voor biometrische identificatie op afstand. Dit geldt **niet** voor
+      AI-systemen die bedoeld zijn om te worden gebruikt voor **biometrische verificatie**
+      met als enig doel te bevestigen dat een specifieke natuurlijke persoon de persoon is
+      die hij of zij beweert te zijn;
+    - **b)** AI-systemen die bedoeld zijn om te worden gebruikt voor **biometrische
+      categorisering op basis van gevoelige of beschermde eigenschappen of kenmerken**, of
+      op basis van wat uit die eigenschappen of kenmerken wordt afgeleid;
+    - **c)** AI-systemen die bedoeld zijn om te worden gebruikt voor **emotieherkenning**.
+
+    De grens tussen a) en de uitzondering voor verificatie is de grens die u goed moet
+    trekken: iemand identificeren uit een populatie valt eronder, een geclaimde identiteit
+    bevestigen niet.
+
+    Toets dit gebied ook aan stap 3. Sommige van deze systemen zijn zonder meer verboden:
+    biometrische categorisering om de in artikel 5, lid 1, punt g), genoemde kenmerken af
+    te leiden, emotieherkenning op de werkplek of in het onderwijs op grond van artikel 5,
+    lid 1, punt f), en biometrische identificatie op afstand in real time met het oog op de
+    rechtshandhaving op grond van artikel 5, lid 1, punt h). Een verboden praktijk is meer
+    dan alleen een hoog risico.
+
+    In agrifood raakt dit toegangscontrole en tijdregistratie van werknemers, en
+    emotieherkenning overal buiten de werkplek en het onderwijs die artikel 5 al bestrijkt.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-iii-area: 1
+  listed-system-types: 3
+sources:
+  - kind: legal
+    label:
+      en: Annex III, point 1 AI Act (biometrics)
+      nl: Bijlage III, punt 1, AI-verordening (biometrie)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
+  - kind: legal
+    label:
+      en: Article 5(1)(f), (g) and (h) AI Act (the same systems where they are prohibited outright)
+      nl: Artikel 5, lid 1, punten f), g) en h), AI-verordening (dezelfde systemen voor zover zonder meer verboden)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5

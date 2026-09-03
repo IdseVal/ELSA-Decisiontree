@@ -1,0 +1,74 @@
+title:
+  en: Access to and enjoyment of essential private and public services and benefits
+  nl: Toegang tot en gebruik van essentiële particuliere en publieke diensten en uitkeringen
+description:
+  en: |
+    Annex III, area 5, lists four types of AI system:
+
+    - **(a)** systems intended to be used **by or on behalf of public authorities to
+      evaluate eligibility for essential public assistance benefits and services**,
+      including healthcare services, and to grant, reduce, revoke or reclaim them;
+    - **(b)** systems intended to be used to **evaluate the creditworthiness** of natural
+      persons or establish their credit score, **with the exception of** systems used for
+      the purpose of detecting financial fraud;
+    - **(c)** systems intended to be used for **risk assessment and pricing** in relation to
+      natural persons in the case of **life and health insurance**;
+    - **(d)** systems intended to **evaluate and classify emergency calls**, or to dispatch
+      or prioritise the dispatching of emergency first response services, including police,
+      firefighters and medical aid, and emergency healthcare patient triage.
+
+    Points (b) and (c) are limited to **natural persons**. Assessing the creditworthiness of
+    a company is not covered by (b), and (c) is limited to life and health insurance -
+    crop, livestock or property insurance is not named.
+
+    For agrifood the entry to watch is (b) where the borrower is a natural person: many
+    farmers are sole traders, so a credit-scoring or lending model aimed at them can fall
+    within this area even though the loan is a business loan. Point (a) can be reached by
+    systems used by or on behalf of a public authority to decide on agricultural support to
+    a natural person, where those payments are essential public assistance benefits - a
+    question the owner should test, because the Act does not define the phrase.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage III, gebied 5, noemt vier types AI-systeem:
+
+    - **a)** systemen die bedoeld zijn om **door of namens overheidsinstanties te worden
+      gebruikt om te beoordelen of natuurlijke personen in aanmerking komen voor essentiële
+      overheidsuitkeringen en -diensten**, waaronder gezondheidsdiensten, of om die te
+      verlenen, te beperken, in te trekken of terug te vorderen;
+    - **b)** systemen die bedoeld zijn om te worden gebruikt voor het **beoordelen van de
+      kredietwaardigheid** van natuurlijke personen of voor het vaststellen van hun
+      kredietscore, **met uitzondering van** systemen die worden gebruikt om financiële
+      fraude op te sporen;
+    - **c)** systemen die bedoeld zijn om te worden gebruikt voor **risicobeoordeling en
+      prijsstelling** met betrekking tot natuurlijke personen in het geval van **levens- en
+      ziektekostenverzekeringen**;
+    - **d)** systemen die bedoeld zijn om **noodoproepen te evalueren en te classificeren**,
+      of om te worden gebruikt voor het inzetten of het bepalen van prioriteiten voor de
+      inzet van hulpdiensten, onder meer politie, brandweer en ambulance, en voor de triage
+      van patiënten die dringend medische zorg behoeven.
+
+    De punten b) en c) zijn beperkt tot **natuurlijke personen**. Het beoordelen van de
+    kredietwaardigheid van een onderneming valt niet onder b), en c) is beperkt tot levens-
+    en ziektekostenverzekeringen - gewas-, vee- of opstalverzekeringen worden niet genoemd.
+
+    Voor agrifood is punt b) het onderdeel om op te letten wanneer de kredietnemer een
+    natuurlijke persoon is: veel boeren zijn eenmanszaak, zodat een kredietscore- of
+    kredietmodel dat op hen is gericht binnen dit gebied kan vallen, ook al gaat het om een
+    zakelijke lening. Punt a) kan worden bereikt door systemen die door of namens een
+    overheidsinstantie worden gebruikt om te beslissen over landbouwsteun aan een
+    natuurlijke persoon, voor zover die betalingen essentiële overheidsuitkeringen zijn -
+    een vraag die de eigenaar moet toetsen, omdat de verordening die uitdrukking niet
+    definieert.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-iii-area: 5
+  listed-system-types: 4
+sources:
+  - kind: legal
+    label:
+      en: Annex III, point 5 AI Act (essential private and public services and benefits)
+      nl: Bijlage III, punt 5, AI-verordening (essentiële particuliere en publieke diensten en uitkeringen)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III

@@ -1,0 +1,58 @@
+title:
+  en: Education and vocational training
+  nl: Onderwijs en beroepsopleiding
+description:
+  en: |
+    Annex III, area 3, lists four types of AI system, all of them tied to educational and
+    vocational training institutions **at all levels**:
+
+    - **(a)** systems used to **determine access or admission**, or to assign natural
+      persons to such institutions;
+    - **(b)** systems used to **evaluate learning outcomes**, including where those
+      outcomes are used to steer a person's learning process;
+    - **(c)** systems used to **assess the appropriate level of education** an individual
+      will receive or be able to access;
+    - **(d)** systems used for **monitoring and detecting prohibited behaviour of students
+      during tests**.
+
+    Note that all four turn on the institutional setting. Training given by an employer
+    outside an educational or vocational training institution is more likely to be read
+    against area 4 (employment) than against this area.
+
+    In agrifood this reaches the agricultural colleges and vocational training routes of
+    the sector, and any proctoring or assessment system used in certification courses run
+    by such an institution.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage III, gebied 3, noemt vier types AI-systeem, alle gebonden aan instellingen voor
+    onderwijs en beroepsonderwijs **op alle niveaus**:
+
+    - **a)** systemen voor het **bepalen van toegang of toelating** tot dergelijke
+      instellingen, of voor het toewijzen van natuurlijke personen daaraan;
+    - **b)** systemen voor het **evalueren van leerresultaten**, ook wanneer die resultaten
+      worden gebruikt voor het sturen van het leerproces;
+    - **c)** systemen voor het **beoordelen van het passende onderwijsniveau** dat een
+      persoon zal ontvangen of waartoe hij toegang zal hebben;
+    - **d)** systemen voor het **monitoren en detecteren van ongeoorloofd gedrag van
+      studenten tijdens toetsen**.
+
+    Let op: alle vier draaien om de institutionele setting. Opleiding die een werkgever
+    geeft buiten een instelling voor onderwijs of beroepsonderwijs wordt eerder aan gebied 4
+    (werkgelegenheid) getoetst dan aan dit gebied.
+
+    In agrifood raakt dit de groene onderwijsinstellingen en de beroepsopleidingsroutes van
+    de sector, en elk surveillance- of beoordelingssysteem dat wordt gebruikt bij
+    certificeringscursussen van zo’n instelling.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-iii-area: 3
+  listed-system-types: 4
+sources:
+  - kind: legal
+    label:
+      en: Annex III, point 3 AI Act (education and vocational training)
+      nl: Bijlage III, punt 3, AI-verordening (onderwijs en beroepsopleiding)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
