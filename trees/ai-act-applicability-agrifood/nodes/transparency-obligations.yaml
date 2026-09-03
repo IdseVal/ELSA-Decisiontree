@@ -1,0 +1,88 @@
+title:
+  en: Does your system carry transparency obligations?
+  nl: Gelden er transparantieverplichtingen voor uw systeem?
+description:
+  en: |
+    Article 50 attaches **transparency obligations** to certain AI systems, whatever their
+    risk classification. A system can be high-risk and carry Article 50 obligations at the
+    same time: Article 50(6) says paragraphs 1 to 4 do not affect the requirements and
+    obligations of Chapter III, and are without prejudice to other transparency obligations
+    in Union or national law.
+
+    The Article contains **five distinct situations** with **two different addressees**:
+    situations 1 and 2 are obligations on the **provider**, situations 3, 4 and 5 on the
+    **deployer**. Open each entry to read what it requires, then come back here and answer.
+
+    **A common rule for all of them, Article 50(5):** the information must be provided to the
+    natural persons concerned **in a clear and distinguishable manner at the latest at the
+    time of the first interaction or exposure**, and must conform to the applicable
+    accessibility requirements.
+
+    Article 50 applies from **2 August 2026**. For systems under Article 50(2) placed on the
+    market before that date, Article 111(4) allows until **2 December 2026**.
+
+    Answer **yes** if any of the five situations describes your system, **no** if none does.
+    Either answer ends this walk: the Tree goes no further than this step.
+  nl: |
+    Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde AI-systemen, ongeacht hun
+    risicoclassificatie. Een systeem kan tegelijk een hoog risico hebben en verplichtingen uit
+    artikel 50 dragen: artikel 50, lid 6, bepaalt dat de leden 1 tot en met 4 de voorschriften
+    en verplichtingen van hoofdstuk III onverlet laten en geen afbreuk doen aan andere
+    transparantieverplichtingen in het Unierecht of het nationale recht.
+
+    Het artikel bevat **vijf afzonderlijke situaties** met **twee verschillende
+    adressaten**: de situaties 1 en 2 leggen verplichtingen op aan de **aanbieder**, de
+    situaties 3, 4 en 5 aan de **gebruiksverantwoordelijke**. Open elk onderdeel om te lezen
+    wat het vereist en kom daarna hier terug om te antwoorden.
+
+    **Een gemeenschappelijke regel voor alle vijf, artikel 50, lid 5:** de informatie wordt
+    **uiterlijk op het moment van de eerste interactie of blootstelling op duidelijke en te
+    onderscheiden wijze** aan de betrokken natuurlijke personen verstrekt, en moet voldoen aan
+    de toepasselijke toegankelijkheidseisen.
+
+    Artikel 50 geldt vanaf **2 augustus 2026**. Voor systemen onder artikel 50, lid 2, die
+    vóór die datum in de handel zijn gebracht, geeft artikel 111, lid 4, de tijd tot **2
+    december 2026**.
+
+    Antwoord **ja** als een van de vijf situaties op uw systeem van toepassing is, **nee** als
+    geen ervan dat is. Beide antwoorden beëindigen deze doorloop: de boom gaat niet verder dan
+    deze stap.
+metadata:
+  version: "0.1"
+  step: 6 - transparency obligations
+  article-50-situations: 5 (paragraphs 1, 2, 3, 4 first subparagraph, 4 second subparagraph)
+sources:
+  - kind: legal
+    label:
+      en: Article 50 AI Act (transparency obligations for providers and deployers of certain AI systems)
+      nl: Artikel 50 AI-verordening (transparantieverplichtingen voor aanbieders en gebruiksverantwoordelijken van bepaalde AI-systemen)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_50
+  - kind: legal
+    label:
+      en: Article 113 AI Act as amended (application dates)
+      nl: Artikel 113 AI-verordening zoals gewijzigd (toepassingsdata)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_113
+options:
+  - title:
+      en: 1. Systems that interact directly with people (provider)
+      nl: 1. Systemen die rechtstreeks met mensen interageren (aanbieder)
+    target: article-50-direct-interaction
+  - title:
+      en: 2. Systems generating synthetic audio, image, video or text (provider)
+      nl: 2. Systemen die synthetische audio, beelden, video of tekst genereren (aanbieder)
+    target: article-50-synthetic-content
+  - title:
+      en: 3. Emotion recognition or biometric categorisation systems (deployer)
+      nl: 3. Systemen voor emotieherkenning of biometrische categorisering (gebruiksverantwoordelijke)
+    target: article-50-emotion-and-biometric
+  - title:
+      en: 4. Deep fakes (deployer)
+      nl: 4. Deepfakes (gebruiksverantwoordelijke)
+    target: article-50-deep-fakes
+  - title:
+      en: 5. AI-generated text published to inform the public (deployer)
+      nl: 5. Door AI gegenereerde tekst die wordt gepubliceerd om het publiek te informeren (gebruiksverantwoordelijke)
+    target: article-50-generated-text
+answers:
+  yes: end-of-walk
+  no: end-of-walk
