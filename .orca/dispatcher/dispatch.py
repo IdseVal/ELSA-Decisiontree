@@ -356,7 +356,7 @@ def read_pause() -> Optional[Pause]:
     if not PAUSE_FILE.exists():
         return None
     try:
-        raw = json.loads(PAUSE_FILE.read_text(encoding="utf-8"))
+        raw = json.loads(PAUSE_FILE.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as exc:
         log.warning("pause marker unreadable (%s); treating this project as paused", exc)
         return Pause("soft", "unreadable pause marker", now_ms())
@@ -592,7 +592,9 @@ class State:
         if not STATE_FILE.exists():
             return cls()
         try:
-            raw = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+            # utf-8-sig: a hand edit from PowerShell 5 or Notepad adds a BOM, and losing
+            # the whole state over it costs a duplicate page and a lost audit epoch
+            raw = json.loads(STATE_FILE.read_text(encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError) as exc:
             log.warning("state unreadable (%s); starting fresh", exc)
             return cls()
