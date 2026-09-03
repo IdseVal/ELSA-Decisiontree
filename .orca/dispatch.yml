@@ -72,6 +72,15 @@ roles:
 circuit_breaker:
   max_cycles: 3                      # runs + send-backs per issue before `escalated`
 
+# THE DIAL, ENFORCED (v0.2.4). In `manual`/`propose` mode the `ready` label is the
+# human's signature, so before dispatching the dispatcher asks GitHub's timeline WHO
+# last applied it; applied by an account not listed here -> demoted back to `proposed`
+# with a comment. Empty list = enforcement off (prompt-only, the pre-v0.2.4 behaviour).
+# List the HUMANS who may release work. Only meaningful when the agents' gh account
+# (here: DeKnecht) is a DIFFERENT account than the humans'.
+promotion:
+  trusted_promoters: ["IdseVal"]
+
 # Enforced by the CI Reviewer (section 8 embeds the same rules in its prompt); kept here
 # as the single written source both the Implementer and the Reviewer are pointed at.
 evidence_gates:

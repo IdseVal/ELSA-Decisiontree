@@ -42,7 +42,10 @@ powershell -ExecutionPolicy Bypass -File .orca\dispatcher\install-task.ps1   # r
 ## What it does each tick
 
 Gate on the core document being on `dev`. Dispatch `ready` issues whose `Depends on:`
-are closed, up to `max_active_issues` LIVE runs: worktree (no terminal), brief file,
+are closed, up to `max_active_issues` LIVE runs -- but first, in manual/propose mode,
+verify WHO applied `ready` (GitHub timeline): not in `promotion.trusted_promoters` ->
+demote back to `proposed` with a comment (v0.2.4; empty list = enforcement off).
+Dispatch means: worktree (no terminal), brief file,
 headless `claude -p` in that directory logging to `runs/`. The issue's labels pick the
 role the run loads (`research` -> Planner, `architecture` -> Architect, else the
 Implementer). Kill any run past

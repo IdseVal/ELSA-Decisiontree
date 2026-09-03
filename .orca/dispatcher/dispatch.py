@@ -35,7 +35,10 @@ WHAT IT DOES EACH TICK
         PR gets one fresh retry, then the issue is labelled `needs-human`. Every start
         spends a breaker cycle.
       - `proposed` issues are invisible to dispatch: promoting them to `ready` is the
-        human's move (or the Planner's, in `auto` mode).
+        human's move (or the Planner's, in `auto` mode). Since v0.2.4 that rule is
+        ENFORCED: in manual/propose mode the dispatcher asks GitHub's timeline who last
+        applied `ready`, and demotes the issue back to `proposed` when the promoter is
+        not in `promotion.trusted_promoters` (empty list = enforcement off).
     PRs (base `dev`; the CI pipeline owns testing and review)
       - `state:blocked` -> spend a cycle; under the breaker, spawn a fresh headless fix
         run in the PR's worktree whose brief embeds the blocker's comments; over it,
@@ -388,6 +391,7 @@ def load_config() -> dict[str, Any]:
     g.setdefault("achieved_marker", "Status: ACHIEVED")
     cfg.setdefault("branches", {}).setdefault("base", "dev")
     cfg.setdefault("circuit_breaker", {}).setdefault("max_cycles", 3)
+    cfg.setdefault("promotion", {}).setdefault("trusted_promoters", [])
     cfg.setdefault("labels", {})
     r = cfg.setdefault("roles", {})
     for role, base in (("planner", ["handoff", "grill-with-docs", "domain-modeling"]),
@@ -875,6 +879,19 @@ def gh_recent_comments(pr_number: int, limit: int = 6) -> str:
     return "\n\n".join(out) or "(no comments found; read the PR conversation)"
 
 
+def ready_label_actor(issue_number: int) -> Optional[str]:
+    """The login that LAST added the `ready` label to the issue, from GitHub's timeline;
+    None when it cannot be established (API failure, or no such event)."""
+    pages = gh_json(["api", f"repos/{{owner}}/{{repo}}/issues/{issue_number}/timeline",
+                     "--paginate", "--slurp"]) or []
+    actor: Optional[str] = None
+    for page in pages:
+        for e in page or []:
+            if e.get("event") == "labeled" and (e.get("label") or {}).get("name") == LABEL_READY:
+                actor = (e.get("actor") or {}).get("login") or actor
+    return actor
+
+
 def notify_human(cfg: dict[str, Any], state: State, key: str, subject: str, body: str,
                  kind: str, number: Optional[int]) -> None:
     """Flag the item on GitHub, once per key. The dispatcher itself NEVER e-mails: the
@@ -1095,6 +1112,36 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         if not obs.gate_open:
             log.debug("issue #%s held: %s", issue.number, obs.gate_reason)
             continue
+        # THE DIAL, ENFORCED (v0.2.4): in manual/propose mode `ready` is the human's
+        # signature. Verify WHO last applied it before acting on it; an untrusted
+        # promoter (an agent overstepping its brief, typically) is demoted back to
+        # `proposed` with an explanation. Empty trusted_promoters = enforcement off
+        # (prompt-only, the pre-v0.2.4 behaviour). An API failure defers to the next
+        # tick rather than demoting: a transient error must never undo a human's
+        # promotion. Only meaningful when the agents' gh account differs from the
+        # humans' accounts.
+        promoters = {p.lower() for p in (cfg.get("promotion", {}).get("trusted_promoters") or [])}
+        mode_now = autonomy_of(cfg) or "propose"
+        if mode_now != "auto" and promoters and not s.get("promoter_ok"):
+            actor = ready_label_actor(issue.number)
+            if actor is None:
+                log.warning("issue #%s: cannot establish who applied `ready`; retrying next tick",
+                            issue.number)
+                continue
+            if actor.lower() in promoters:
+                s["promoter_ok"] = True
+                state.save()
+            else:
+                act(f"issue #{issue.number}: `ready` applied by untrusted `{actor}` -> demote to proposed",
+                    lambda n=issue.number, a=actor, m=mode_now: (
+                        gh_label("issue", n, add=[LABEL_PROPOSED], remove=[LABEL_READY]),
+                        gh_comment("issue", n,
+                                   f"Autonomy mode is `{m}`: only a trusted promoter may apply `ready`, "
+                                   f"and this label was added by `{a}`. Demoted back to `proposed`. If "
+                                   "that account is actually the owner, add its login to "
+                                   "`promotion.trusted_promoters` in `.orca/dispatch.yml` and re-apply "
+                                   "the label.")))
+                continue
         unmet = [n for n in issue.depends_on if n not in obs.issues or obs.issues[n].state != "CLOSED"]
         if unmet:
             log.debug("issue #%s waits on %s", issue.number, unmet)
@@ -1651,6 +1698,15 @@ def cmd_doctor(cfg: dict[str, Any], fix: bool) -> int:
     mode = autonomy_of(cfg)
     ok(f"autonomy: {mode}") if mode else \
         ok("autonomy unset -- `dispatch.py onboard` will ask the owner (defaults to propose meanwhile)")
+    print("promotion (the dial, enforced -- v0.2.4)")
+    promoters = (cfg.get("promotion", {}) or {}).get("trusted_promoters") or []
+    if (mode or "propose") == "auto":
+        ok("autonomy auto -- promoter enforcement not applicable")
+    elif promoters:
+        ok(f"trusted promoters: {', '.join(promoters)} (a `ready` applied by anyone else is demoted)")
+    else:
+        ok("trusted_promoters EMPTY -- the dial is enforced by prompt only; set the owner's "
+           "GitHub login in promotion.trusted_promoters to enforce it mechanically")
     print("gate")
     g_ok, g_why, g_achieved = core_document_gate(cfg)
     if g_achieved:
