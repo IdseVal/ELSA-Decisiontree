@@ -79,6 +79,10 @@ test('clicking a thumbnail shows the image larger with its description and credi
   await page.locator('.thumbnail').first().click()
 
   await expect(enlarged).toBeVisible()
+  // The overlay is announced by the image it shows, not as a bare "dialog".
+  await expect(
+    page.getByRole('dialog', { name: 'Map of the European Union member states' }),
+  ).toBeVisible()
   await expect(enlarged).toContainText('Map of the European Union member states')
   await expect(enlarged).toContainText('Map: Example Cartography, CC BY 4.0')
   const enlargedImage = enlarged.locator('img')
@@ -194,6 +198,37 @@ test('the address of the Tree redirects to its root Node', async ({ page }) => {
 
   await page.goto('/ai-act-example')
   await expect(page).toHaveURL(START)
+})
+
+test('the image route serves a Tree image with the headers that make it safe', async ({ page }) => {
+  const response = await page.request.get('/images/eu-map.png')
+  const headers = response.headers()
+  const body = await response.body()
+
+  expect(response.status()).toBe(200)
+  expect(headers['content-type']).toBe('image/png')
+  expect(headers['cache-control']).toBe('public, max-age=3600')
+  // A Tree's images come from third-party authors: an SVG opened on its own must be able to
+  // run nothing on this origin, and no browser may guess a different type than the route says.
+  expect(headers['content-security-policy']).toBe("default-src 'none'; sandbox")
+  expect(headers['x-content-type-options']).toBe('nosniff')
+  // The bytes are the file, not an error page: the PNG signature.
+  expect([...body.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+})
+
+test('the image route answers 404 for a name the Tree does not have', async ({ page }) => {
+  for (const name of [
+    'nope.png',
+    'eu-map.PNG',
+    '..%2F..%2Fpackage.json',
+    '%2e%2e%2f%2e%2e%2fpackage.json',
+    'eu-map.png%00.txt',
+  ]) {
+    const response = await page.request.get(`/images/${name}`)
+
+    expect(response.status(), name).toBe(404)
+    expect(response.headers()['content-type'] ?? '', name).not.toContain('image')
+  }
 })
 
 test('nothing about the reader is stored', async ({ page, context }) => {

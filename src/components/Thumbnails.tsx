@@ -60,6 +60,9 @@ export function Thumbnails({
 
       <dialog
         className="enlarged"
+        // The image's own description names the dialog; without it the overlay is announced
+        // as a bare "dialog".
+        aria-labelledby="enlarged-description"
         ref={dialog}
         onClose={() => setShown(null)}
         onClick={(event) => {
@@ -70,7 +73,7 @@ export function Thumbnails({
           <figure>
             <img src={imageHref(shown.file)} alt={text(shown.description, lang)} />
             <figcaption>
-              <p>{text(shown.description, lang)}</p>
+              <p id="enlarged-description">{text(shown.description, lang)}</p>
               <p className="credit">
                 <span className="kind" lang={uiLang}>
                   {ui.credit}
