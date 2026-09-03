@@ -15,3 +15,7 @@ node_modules/
 .next/
 next-env.d.ts
 *.tsbuildinfo
+
+# Playwright
+tests/browser/.results/
+playwright-report/
