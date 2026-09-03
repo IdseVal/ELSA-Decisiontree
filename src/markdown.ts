@@ -6,11 +6,17 @@
  * The converter never passes a character of the Tree through unescaped: it escapes every
  * run of text and then emits only the tags of the subset, so raw HTML in a Tree file --
  * which rule V-HTML already rejects at load -- cannot reach the page even if a Tree were
- * loaded some other way. Only `http:` and `https:` links become links.
+ * loaded some other way. Only `http:` and `https:` links with text become links.
  */
 
-/** A link target, its text, or a run of plain text; `**strong**` before `*emphasis*`. */
-const INLINE = /\[([^\]\n]*)\]\(([^\s)]+)\)|\*\*([^*\n]+)\*\*|\*([^*\n]+)\*/g
+/**
+ * A link target, its text, or a run of plain text; `**strong**` before `*emphasis*`.
+ *
+ * An emphasis mark next to another `*` opens nothing, so nesting the format does not
+ * promise (`**a *b* c**`) keeps its outer marks on screen as the author wrote them
+ * instead of being torn apart mid-word.
+ */
+const INLINE = /\[([^\]\n]*)\]\(([^\s)]+)\)|\*\*([^*\n]+)\*\*|(?<!\*)\*([^*\n]+)\*(?!\*)/g
 
 const BULLET = /^\s{0,3}[-*]\s+(.*)$/
 const NUMBER = /^\s{0,3}\d{1,9}[.)]\s+(.*)$/
@@ -34,7 +40,8 @@ function inline(text: string): string {
     html += escape(text.slice(last, match.index))
     last = match.index + whole.length
     if (url !== undefined) {
-      html += /^https?:\/\//i.test(url)
+      // A link with no text would be a link with no accessible name, so it stays text.
+      html += /^https?:\/\//i.test(url) && (linkText ?? '').trim() !== ''
         ? `<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${inline(linkText ?? '')}</a>`
         : escape(whole) // Any other scheme is not a link of this format; show it as written.
     } else if (strong !== undefined) {

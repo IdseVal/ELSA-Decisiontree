@@ -41,6 +41,20 @@ describe('the subset the format promises', () => {
     )
   })
 
+  test('a mark the subset does not nest is left on screen, not torn apart mid-word', () => {
+    // tree-format.md 3.4 promises no nesting. Showing the author their own marks back is
+    // kinder than emitting them as stray asterisks around fragments of the word.
+    expect(richTextToHtml('**a *b* c**')).toBe('<p>**a <em>b</em> c**</p>')
+    expect(richTextToHtml('A *soft* and a **hard** word.')).toContain('<em>soft</em>')
+  })
+
+  test('a link with no text is not a link, because it would have no accessible name', () => {
+    expect(richTextToHtml('[](https://example.org/)')).toBe(
+      '<p>[](https://example.org/)</p>',
+    )
+    expect(richTextToHtml('[ ](https://example.org/)')).not.toContain('<a')
+  })
+
   test('text with no blocks gives no markup', () => {
     expect(richTextToHtml('')).toBe('')
     expect(richTextToHtml('\n  \n')).toBe('')
