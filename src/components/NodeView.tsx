@@ -126,6 +126,7 @@ function Entry({ option, address, lang }: { option: Option; address: PageAddress
   return (
     <li>
       <a className="option" href={followHref(address, option.target)}>
+        <span>{text(option.title, lang)}</span>
         {option.images.map((image) => (
           <img
             key={image.file}
@@ -135,7 +136,6 @@ function Entry({ option, address, lang }: { option: Option; address: PageAddress
             loading="lazy"
           />
         ))}
-        <span>{text(option.title, lang)}</span>
       </a>
     </li>
   )

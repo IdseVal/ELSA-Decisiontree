@@ -36,7 +36,8 @@ export function Thumbnails({
   }, [shown])
 
   return (
-    <section className="images" aria-label={ui.images}>
+    <section className="images">
+      <h2 lang={uiLang}>{ui.images}</h2>
       <ul>
         {images.map((image) => (
           <li key={image.file}>
