@@ -42,15 +42,29 @@ export function parseUrl(path: string, query: URLSearchParams, tree: Tree): Page
   if (ids.length < 1 || ids.length > MAX_PATH_IDS) return null
   if (ids.some((id) => tree.getTitle(id) === null)) return null
 
-  const defaultLang = tree.manifest.defaultLanguage
-  const asked = query.get('lang')
   return {
     treeId,
     trail: ids.slice(0, -1),
     nodeId: ids[ids.length - 1]!,
-    lang: asked !== null && tree.manifest.languages.includes(asked) ? asked : defaultLang,
-    defaultLang,
+    lang: contentLanguage(tree, query.get('lang')),
+    defaultLang: tree.manifest.defaultLanguage,
   }
+}
+
+/** The language a page shows: the one asked for when the Tree declares it, else its default. */
+function contentLanguage(tree: Tree, asked: string | null): string {
+  return asked !== null && tree.manifest.languages.includes(asked) ? asked : tree.manifest.defaultLanguage
+}
+
+/** The URL of the Tree's root Node: where `/` and `/<tree-id>` lead (4.1). */
+export function rootHref(tree: Tree, lang: string | null): string {
+  return nodeHref({
+    treeId: tree.id,
+    trail: [],
+    nodeId: tree.manifest.root,
+    lang: contentLanguage(tree, lang),
+    defaultLang: tree.manifest.defaultLanguage,
+  })
 }
 
 /** The page `a` itself: its Trail, its Node and its language. This is the share link. */

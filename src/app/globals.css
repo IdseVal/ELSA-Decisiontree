@@ -1,0 +1,465 @@
+/*
+ * The stylesheet. One idea carries the design: a hairline SPINE down the left of the
+ * column, from which every part of the Node hangs by a short tick. It is the walk drawn as
+ * a line -- the same line the Trail will rise along in issue #8 -- and it is why the page
+ * needs no boxes, cards or dividers to be readable.
+ *
+ * The owner asked for a light, uncluttered interface with nothing heavy on screen, and the
+ * application fetches nothing from a third party at run time (application.md section 1),
+ * so the type is the reader's own system face: there is no web font, icon set or framework
+ * here. Colours, one spacing step and one easing curve are the whole token set.
+ */
+
+:root {
+  --paper: #fbfaf6;
+  --card: #ffffff;
+  --ink: #14181c;
+  --ink-soft: #5a6470;
+  --rule: #dedbd2;
+  --accent: #33553e;          /* the ELSA lab's field green; the one saturated colour */
+  --accent-wash: #edf1ea;
+  --accent-ink: #ffffff;
+  --focus: #1d4ed8;
+
+  --outcome-not-applicable: #4c5560;
+  --outcome-applicable: #33553e;
+  --outcome-prohibited: #8a2f26;
+  --outcome-refer: #7c5a17;
+
+  --font: ui-sans-serif, system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  --step: 1.75rem;            /* gap between the spine and the text, and the length of a tick */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14171a;
+    --card: #1b1f23;
+    --ink: #eceae4;
+    --ink-soft: #9aa3ad;
+    --rule: #333a40;
+    --accent: #8fbf9c;
+    --accent-wash: #1f2a23;
+    --accent-ink: #10140f;
+    --focus: #7ea6ff;
+
+    --outcome-not-applicable: #a3adb8;
+    --outcome-applicable: #8fbf9c;
+    --outcome-prohibited: #e2887c;
+    --outcome-refer: #d3b268;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+main {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 7vw, 4.5rem) clamp(1rem, 5vw, 2.5rem) 3rem;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- the spine ------------------------------------------------------------------- */
+
+.node {
+  border-left: 1px solid var(--rule);
+  padding-left: var(--step);
+}
+
+.node > section > h2,
+.node > .outcome,
+.node > .back {
+  position: relative;
+}
+
+/* Every part of the Node hangs off the spine by a tick at the height of its heading. */
+.node > section > h2::before,
+.node > .outcome::before,
+.node > .back::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--step));
+  top: 0.75em;
+  width: calc(var(--step) - 0.55rem);
+  border-top: 1px solid var(--rule);
+}
+
+/* --- text ------------------------------------------------------------------------ */
+
+.node h1 {
+  margin: 0 0 1.25rem;
+  font-size: clamp(1.6rem, 4.6vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.node h2 {
+  margin: 2.75rem 0 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+}
+
+.prose {
+  max-width: 34rem;
+}
+
+.prose p,
+.prose li {
+  margin: 0 0 1rem;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 1rem;
+  padding-left: 1.15rem;
+}
+
+.prose a {
+  text-decoration-color: var(--accent);
+  text-underline-offset: 0.18em;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.75rem;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 160ms var(--ease);
+}
+
+.back::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.back:hover {
+  color: var(--accent);
+}
+
+.hint {
+  margin: 2.5rem 0 0;
+  padding: 0.85rem 1rem;
+  background: var(--accent-wash);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.version {
+  margin: 3.5rem 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  opacity: 0.75;
+}
+
+/* --- Sources --------------------------------------------------------------------- */
+
+.sources ul,
+.options ul,
+.images ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sources li {
+  display: flex;
+  gap: 0.85rem;
+  align-items: baseline;
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.kind {
+  flex: none;
+  min-width: 6.5rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--ink-soft);
+}
+
+.sources a {
+  text-decoration-color: var(--rule);
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 160ms var(--ease);
+}
+
+.sources a:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* --- Images ---------------------------------------------------------------------- */
+
+/* Plain thumbnails: no frame, no arrows, no dots (core document 10.6). */
+.images ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.thumbnail {
+  display: block;
+  line-height: 0;
+}
+
+.thumbnail img {
+  width: 8.5rem;
+  height: 6rem;
+  object-fit: cover;
+  background: var(--card);
+  transition: opacity 160ms var(--ease);
+}
+
+.thumbnail:hover img {
+  opacity: 0.82;
+}
+
+.enlarged {
+  max-width: min(56rem, 92vw);
+  max-height: 92vh;
+  padding: 0;
+  border: none;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.enlarged::backdrop {
+  background: rgb(10 12 14 / 0.72);
+}
+
+.enlarged figure {
+  margin: 0;
+}
+
+.enlarged img {
+  display: block;
+  max-width: 100%;
+  max-height: 66vh;
+  margin: 0 auto;
+}
+
+.enlarged figcaption {
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+}
+
+.enlarged figcaption p {
+  margin: 0;
+}
+
+.enlarged .credit {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.enlarged form {
+  padding: 0 1.25rem 1.25rem;
+}
+
+.close {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.4rem 1rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  transition: border-color 160ms var(--ease);
+}
+
+.close:hover {
+  border-color: var(--accent);
+}
+
+/* --- Options --------------------------------------------------------------------- */
+
+.option {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 0.7rem 0.6rem 0.7rem 0;
+  border-top: 1px solid var(--rule);
+  text-decoration: none;
+  transition: color 160ms var(--ease), background-color 160ms var(--ease);
+}
+
+.options li:last-child .option {
+  border-bottom: 1px solid var(--rule);
+}
+
+.option:hover {
+  color: var(--accent);
+  background: var(--accent-wash);
+}
+
+.option-image {
+  flex: none;
+  width: 3.25rem;
+  height: 2.4rem;
+  object-fit: cover;
+}
+
+.option span {
+  flex: 1;
+}
+
+/* The arrow is the affordance; it moves a hair on hover, and nothing else does. */
+.option::after {
+  content: "\2192";
+  flex: none;
+  color: var(--ink-soft);
+  transition: transform 160ms var(--ease);
+}
+
+.option:hover::after {
+  transform: translateX(3px);
+  color: var(--accent);
+}
+
+/* --- Answers --------------------------------------------------------------------- */
+
+.answers {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 3rem;
+}
+
+.answer {
+  flex: 1 1 0;
+  padding: 0.95rem 1.5rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: transform 160ms var(--ease), background-color 160ms var(--ease);
+}
+
+.answer--yes {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.answer--no {
+  background: transparent;
+  color: var(--accent);
+}
+
+.answer:hover {
+  transform: translateY(-1px);
+}
+
+.answer--no:hover {
+  background: var(--accent-wash);
+}
+
+/* --- Terminal -------------------------------------------------------------------- */
+
+.outcome {
+  margin: 0 0 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--outcome-not-applicable);
+}
+
+.outcome--applicable {
+  color: var(--outcome-applicable);
+}
+
+.outcome--prohibited {
+  color: var(--outcome-prohibited);
+}
+
+.outcome--refer {
+  color: var(--outcome-refer);
+}
+
+/* The walk ends here, so the spine fades out instead of running on. */
+.node:has(> .outcome) {
+  border-image: linear-gradient(var(--rule) 45%, transparent) 1;
+}
+
+/* --- the permanent disclaimer ---------------------------------------------------- */
+
+.disclaimer {
+  border-top: 1px solid var(--rule);
+  padding: 1.1rem clamp(1rem, 5vw, 2.5rem);
+}
+
+.disclaimer p {
+  max-width: 46rem;
+  margin: 0 auto;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 30rem) {
+  .answers {
+    flex-direction: column;
+  }
+
+  .sources li {
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
