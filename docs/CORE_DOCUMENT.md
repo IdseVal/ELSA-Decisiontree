@@ -1,7 +1,8 @@
 # Core document
 
 > Populated by deep interview with the project owner. Nothing here is inferred.
-> Status: EMPTY -- run the onboarding interview.
+> Status: AGREED -- 2026-09-03
+> The owner noted the document may change in future; changes go through a revision round and a PR.
 
 Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
@@ -148,12 +149,14 @@ task; the owner's recollections below are starting points, NOT verified facts):
       kind of product it covers, and a child Node;
    b. the AI system falls in a high-risk area of application listed in the Act's
       annexes -- each area is an Option with an image and a child Node.
-5. **Later, not in the first iteration** (owner's outline): a step checking whether the
-   system is **general-purpose AI**, then whether it is an AI system with **special
-   transparency requirements** (owner cites Article 50 AI Act). What the tree says when
-   a system is neither prohibited nor high-risk, and whether the walk ends at
-   "high-risk" or continues into obligations, remains **OPEN 10.7** (deferred by the
-   owner until they have seen the tool).
+5. **General-purpose AI.** A step checking whether the system is a general-purpose AI
+   model/system (owner's outline; to be populated from the Act).
+6. **Special transparency requirements.** A step checking whether the system is one
+   with special transparency requirements (owner cites Article 50 AI Act).
+7. The tree goes **no further than step 6 for now**. Steps 5--6 are placeholders the
+   owner will make sound themselves; what the tree says when a system is neither
+   prohibited nor high-risk, and whether obligations follow a "high-risk" outcome, is
+   left to the owner's later authoring, not to this iteration.
 
 The owner will author and refine the data structure themselves and expects to refine
 the traversal details once they have visual feedback from the working tool. For the
@@ -173,12 +176,12 @@ Confirmed by the owner on 2026-09-03:
 - No database.
 - No editorial-review workflow in code (see 3.3, last paragraph).
 - Cross-links between Trees: designed for, not built in the first iteration.
-- The general-purpose-AI and Article 50 transparency steps: later iteration.
+- Anything in the first Tree beyond the Article 50 transparency step (obligations per role, conformity assessment, ...): later, by the owner.
 
 ## 5. Domain model and vocabulary
 
 One name per concept. The owner used several words for the same things; the names below
-are canonical once confirmed. Items still marked PROPOSED await the owner's word.
+are canonical once confirmed. PROPOSED items were accepted by the owner's silence on agreement (2026-09-03).
 
 | Term | Meaning | Words the owner used |
 |---|---|---|
@@ -248,17 +251,17 @@ Confirmed by the owner on 2026-09-03:
 | 10.4 | Languages. | -- | answered: per-language text inside each Node; languages optional and open-ended |
 | 10.5 | Metadata. | -- | answered: version + free-form; Sources carry URLs |
 | 10.6 | Carousel. | -- | answered: thumbnails only, no chrome |
-| 10.7 | What the tree says after the high-risk step (neither/nor; obligations). | Idse | open, deferred by owner until the tool can be seen |
+| 10.7 | After the high-risk step. | -- | answered: general-purpose AI step, then Article 50 transparency step; nothing further for now (section 3.3) |
 | 10.8 | NON-scope. | -- | answered (section 4) |
 | 10.9 | Traversal after an Option's child Node. | -- | answered: explanation only; back via Trail; may be refined later |
 | 10.10 | Terminal marker. | -- | decided by Planner: explicit marker with outcome |
 | 10.11 | Sources inline vs shared. | -- | inline (PROPOSED, from owner's "source parameter") |
 | 10.12 | Image credits. | -- | answered: required |
 | 10.13 | Hosting. | -- | answered: undecided between university server and Hetzner; plain Linux, no vendor lock-in |
-| 10.14 | Which open-source licence for code, and which for content? | Idse | open -- must be chosen before publishing the repo |
+| 10.14 | Which open-source licence for code, and which for content? | Idse | open (confirmed undecided 2026-09-03) -- must be chosen before publishing the repo |
 | 10.15 | What must never happen. | -- | answered (section 9) |
 | 10.16 | Storage technology. | -- | answered: files in the repo, no database |
 | 10.17 | Trail click. | -- | answered: jump back, discard later Trail |
 | 10.18 | Disclaimer. | -- | answered: permanent footer |
-| 10.19 | One Tree per deployment, or a choice of Trees in the UI? | Idse | open |
-| 10.20 | UI chrome languages, and fallback when the Tree's language has no chrome translation. | Idse | open |
+| 10.19 | One Tree per deployment, or a choice of Trees in the UI? Owner did not answer; the Architect decides, default *one Tree per deployment, chosen by configuration* (does not preclude a landing page later). | Architect | open |
+| 10.20 | UI chrome languages, and fallback when the Tree's language has no chrome translation. Architect decides; Planner's expectation: chrome in English and Dutch, fall back to English. | Architect | open |
