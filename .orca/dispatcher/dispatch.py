@@ -45,9 +45,11 @@ WHAT IT DOES EACH TICK
         @mention only if configured; the dispatcher itself NEVER e-mails -- the daily
         digest is the mail channel) and touch nothing until the label is gone.
       - Merged -> close the linked issue (merges into `dev` do NOT auto-close; only the
-        default branch does), remove the worktree, kill any lingering run.
+        default branch does), remove the worktree (never an INTERVIEW worktree: the
+        Planner keeps working there until `finish-interview`), kill any lingering run.
     Backlog (closing the loop; honours the autonomy dial)
-      - Drained (no open issues, no open PRs into `dev`, no live runs, no worktrees),
+      - Drained (no open issues, no open PRs into `dev`, no live runs, no worktrees the
+        dispatcher OWNS -- unmanaged worktrees are invisible; an open interview counts),
         gate open, autonomy != manual -> spawn a headless Planner backlog audit. Its
         outcome is read from GitHub: new issues (`proposed` or `ready` per the dial), or
         a PR flipping the core document to ACHIEVED. An audit that produces neither while
@@ -138,6 +140,14 @@ _ISSUE_RE = re.compile(r"issue-(\d+)")
 _DEPENDS_RE = re.compile(r"(?i)\b(?:depends\s+on|blocked\s+by)\b[^\n]*")
 _HASH_RE = re.compile(r"#(\d+)")
 _CLOSES_RE = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|refs?)\s+#(\d+)")
+
+# v0.2.3 ownership rule: the dispatcher reasons ONLY about worktrees it created,
+# recognised by its own naming scheme (matched on the worktree name or branch -- Orca
+# may prefix branches with the git user). Anything else -- a meta-oversight session, a
+# human's scratch worktree -- is invisible to it: never counted, never removed.
+_OWNED_WT_RE = re.compile(r"(?i)(?:^|/)(?:issue-\d+|backlog-audit-\d+|onboarding|revision-\d{8}-\d{4})$")
+_INTERVIEW_WT_RE = re.compile(r"(?i)(?:^|/)(?:onboarding|revision-\d{8}-\d{4})$")
+INTERVIEW_DONE_FILE = "interview-done.json"  # written by `finish-interview` inside the worktree
 
 log = logging.getLogger("dispatcher")
 _stop = False
@@ -518,6 +528,16 @@ class Worktree:
         return int(m.group(1)) if m else None
 
 
+def wt_owned(wt: "Worktree") -> bool:
+    """True for worktrees this dispatcher created (issue runs, audits, interviews)."""
+    return bool(_OWNED_WT_RE.search(wt.name or "") or _OWNED_WT_RE.search(wt.branch or ""))
+
+
+def wt_interview(wt: "Worktree") -> bool:
+    """True for the interactive Planner worktrees (onboarding / revision rounds)."""
+    return bool(_INTERVIEW_WT_RE.search(wt.name or "") or _INTERVIEW_WT_RE.search(wt.branch or ""))
+
+
 @dataclass
 class Observed:
     issues: dict[int, Issue]
@@ -774,11 +794,22 @@ Phase 1 -- the core document:
   The CI pipeline reviews and merges it; nothing can be dispatched before it is on `{base}`.
 
 Phase 2 -- specs, ADRs, issues (after that PR is merged):
+- This worktree SURVIVES the core-document PR's merge; continue Phase 2 right here.
+  While this interview is open the dispatcher holds all backlog audits -- an open
+  interview means planning is in progress.
 - Derive `docs/specs/*.md` and ADRs as `docs/adrs/ADR-<issue#>-<slug>.md`, freeze the
   contracts feature work will depend on.
 - Write the GitHub issues per your role's writing standard: self-contained plain-language
   context (what and why), testable acceptance criteria, type and skill labels,
   `Depends on:` lines for ordering. Per the autonomy mode: {label_rule}.
+
+Phase 3 -- conclude, on the human's word:
+- When the specs/ADR PRs are open and the issues are filed: read the plan back to the
+  human and ASK whether to conclude the planning session. If they want changes, keep
+  working. Only on their explicit yes, run:
+      python .orca/dispatcher/dispatch.py finish-interview
+  then tell them the dispatcher will archive this worktree within a minute or two and
+  the pipeline takes over.
 {COMMON_RULES}
 """
 
@@ -802,7 +833,12 @@ new features, changes, fixes, feedback from using the result. Autonomy mode: `{a
    into `{base}`. Merging that PR reopens the dispatch gate by itself.
 5. After that PR merges: update specs and ADRs and file the new issues per your role's
    writing standard (self-contained plain-language context, testable done-when).
-   Per the autonomy mode: {label_rule}.
+   Per the autonomy mode: {label_rule}. This worktree survives the PR's merge; while it
+   is open the dispatcher holds all backlog audits.
+6. Conclude on the human's word: when the new issues are filed, read the plan back and
+   ASK whether to conclude. Only on their explicit yes, run
+   `python .orca/dispatcher/dispatch.py finish-interview` and tell them the dispatcher
+   will archive this worktree within a minute or two.
 {COMMON_RULES}
 """
 
@@ -1235,7 +1271,9 @@ def reconcile_merged(obs: Observed, cfg: dict[str, Any], state: State) -> None:
             state.closed_issues.append(n)
             state.save()
         wt = wt_by_branch.get(pr.head)
-        if wt and d.get("cleanup_worktrees_on_merge", True):
+        # Interview worktrees survive their PR's merge (v0.2.3): the Planner continues
+        # into Phase 2 there, and `finish-interview` hands the worktree back later.
+        if wt and d.get("cleanup_worktrees_on_merge", True) and not wt_interview(wt):
             act(f"PR #{pr.number} merged -> remove worktree {wt.name}",
                 lambda wt=wt: orca_json(["worktree", "rm", "--worktree", f"id:{wt.id}", "--force"]))
         if n and str(n) in state.issues:
@@ -1244,6 +1282,30 @@ def reconcile_merged(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         if str(pr.number) in state.prs:
             state.prs.pop(str(pr.number), None)
             state.save()
+
+
+# --------------------------------------------------------------------------- reconcile: interviews
+
+
+def reconcile_interviews(obs: Observed, cfg: dict[str, Any]) -> None:
+    """Archive interview worktrees the Planner has handed back (v0.2.3).
+
+    An interactive interview (onboarding / revision) is concluded by the HUMAN saying so
+    in the session: the Planner then runs `dispatch.py finish-interview`, which drops a
+    marker file inside the worktree's own dispatcher directory. The dispatcher observes
+    the marker and removes the worktree; until then an open interview counts as planning
+    in progress and holds every backlog audit (see reconcile_backlog)."""
+    for wt in obs.worktrees:
+        if not wt_interview(wt) or not wt.path:
+            continue
+        marker = Path(wt.path) / ".orca" / "dispatcher" / INTERVIEW_DONE_FILE
+        try:
+            done = marker.exists()
+        except OSError:
+            done = False
+        if done:
+            act(f"interview {wt.name} finished -> remove worktree",
+                lambda wt=wt: orca_json(["worktree", "rm", "--worktree", f"id:{wt.id}", "--force"]))
 
 
 # --------------------------------------------------------------------------- reconcile: backlog
@@ -1338,8 +1400,12 @@ def reconcile_backlog(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                      "issue", None)
         return
 
-    # No audit running: spawn one when the pipeline is fully drained.
-    if open_issues or obs.prs or obs.worktrees:
+    # No audit running: spawn one when the pipeline is fully drained. Only worktrees the
+    # dispatcher itself created count (v0.2.3): an unmanaged worktree -- a meta-oversight
+    # session, a human's scratch checkout -- must never hold the loop. An open INTERVIEW
+    # worktree does count: an interview still open means planning is in progress, and an
+    # audit spawned alongside it would file duplicate issues.
+    if open_issues or obs.prs or any(wt_owned(w) for w in obs.worktrees):
         return
     if any(r.get("run") and run_alive(int(r["run"].get("pid", 0))) for r in state.issues.values()):
         return
@@ -1390,6 +1456,7 @@ def tick(cfg: dict[str, Any], state: State) -> None:
             log.info("resumed: dispatching again")
         _pause_logged = pause_key
     reconcile_merged(obs, cfg, state)
+    reconcile_interviews(obs, cfg)
     reconcile_prs(obs, cfg, state)
     reconcile_issues(obs, cfg, state)
     reconcile_backlog(obs, cfg, state)
@@ -1404,6 +1471,8 @@ def cmd_run(cfg: dict[str, Any], state: State, interval: int) -> int:
         while not _stop:
             started = time.time()
             try:
+                cfg = load_config()  # re-read every tick (v0.2.3): the autonomy dial and
+                                     # dispatcher knobs take effect without a restart
                 tick(cfg, state)
             except Exception:  # noqa: BLE001 -- the loop must never die
                 log.exception("tick failed")
@@ -1503,7 +1572,8 @@ def cmd_status(cfg: dict[str, Any], state: State) -> int:
         print(f"  #{pr.number:<4} {stage:<24} {pr.head:<32} {pr.title[:45]}")
     print("\nWORKTREES")
     for wt in obs.worktrees:
-        print(f"  {wt.name:<24} {wt.branch:<40} {wt.path}")
+        tag = "" if wt_owned(wt) else "  (unmanaged -- ignored by the dispatcher)"
+        print(f"  {wt.name:<24} {wt.branch:<40} {wt.path}{tag}")
     return 0
 
 
@@ -1670,6 +1740,22 @@ def cmd_onboard(cfg: dict[str, Any]) -> int:
     return 0
 
 
+def cmd_finish_interview() -> int:
+    """Mark THIS worktree's interview as concluded. The Planner runs it from inside the
+    interview worktree, only on the human's explicit go-ahead; the dispatcher observes
+    the marker on a following tick, archives the worktree, and the loop (backlog audits
+    included) resumes."""
+    if DRY_RUN:
+        print(f"[dry-run] would write {(HERE / INTERVIEW_DONE_FILE).as_posix()}")
+        return 0
+    HERE.mkdir(parents=True, exist_ok=True)
+    (HERE / INTERVIEW_DONE_FILE).write_text(
+        json.dumps({"finished": now_ms()}, indent=2), encoding="utf-8")
+    print("interview marked finished -- the dispatcher will archive this worktree on its "
+          "next tick and the pipeline takes over (backlog audits included).")
+    return 0
+
+
 def setup_logging(verbose: bool) -> None:
     log.setLevel(logging.DEBUG if verbose else logging.INFO)
     fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
@@ -1687,7 +1773,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     global DRY_RUN
     p = argparse.ArgumentParser(description="ORCA ADE dispatcher v3 (reconciler, headless workers).")
     p.add_argument("command", nargs="?", default="run",
-                   choices=["run", "once", "status", "doctor", "onboard", "pause", "resume"])
+                   choices=["run", "once", "status", "doctor", "onboard", "finish-interview",
+                            "pause", "resume"])
     p.add_argument("--once", action="store_true", help="alias for the `once` command")
     p.add_argument("--interval", type=int, default=None)
     p.add_argument("--dry-run", action="store_true")
@@ -1706,6 +1793,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         return cmd_doctor(cfg, a.fix)
     if cmd == "onboard":
         return cmd_onboard(cfg)
+    if cmd == "finish-interview":
+        return cmd_finish_interview()
     if cmd == "pause":
         return cmd_pause(a.reason)
     if cmd == "resume":

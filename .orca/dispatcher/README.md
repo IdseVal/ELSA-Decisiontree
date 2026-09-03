@@ -22,6 +22,7 @@ headless `claude -p` processes that start, do one job, and exit. Nothing waits.
 | `dispatcher.log` | rotating log. Gitignored. |
 | `dispatcher.lock` | one dispatcher per repo. |
 | `paused.json` | the soft-pause marker for THIS project. Gitignored. Present = paused. |
+| `interview-done.json` | written by `finish-interview` inside an interview worktree; the dispatcher sees it and archives that worktree. Gitignored. |
 | `dispatcher-pause.cmd` / `-resume.cmd` | the button: double-click, or pin to the taskbar. |
 
 ## Commands
@@ -29,6 +30,7 @@ headless `claude -p` processes that start, do one job, and exit. Nothing waits.
 ```powershell
 python .orca\dispatcher\dispatch.py doctor --fix   # prerequisites; creates missing labels
 python .orca\dispatcher\dispatch.py onboard        # Planner interview (asks the autonomy question first)
+python .orca\dispatcher\dispatch.py finish-interview # run BY THE PLANNER inside an interview worktree, on the human's go-ahead
 python .orca\dispatcher\dispatch.py status         # the board: issues, runs, PRs
 python .orca\dispatcher\dispatch.py once --dry-run # what one tick would do
 python .orca\dispatcher\dispatch.py run            # foreground loop (Ctrl+C to stop)
@@ -49,8 +51,13 @@ Implementer). Kill any run past
 (`.github/workflows/agent-pipeline.yml`); the dispatcher only reacts: `state:blocked` ->
 a fresh headless fix run whose brief embeds the blocker's comments (breaker at 3 total
 starts per issue -> `escalated`); `needs-human` -> page once and touch nothing until the
-label is gone; merged -> close the issue, remove the worktree, kill any lingering run.
-Pipeline fully drained -> per the autonomy dial, a headless Planner audit files
+label is gone; merged -> close the issue, remove the worktree (never an interview
+worktree: the Planner keeps working there until `finish-interview` hands it back), kill
+any lingering run. The dispatcher only counts and removes worktrees IT created
+(`issue-*`, `backlog-audit-*`, `onboarding`, `revision-*`); any other worktree -- a
+meta-oversight session, a scratch checkout -- is invisible to it.
+Pipeline fully drained (an open interview counts as not drained) -> per the autonomy
+dial, a headless Planner audit files
 `proposed`/`ready` issues or opens the ACHIEVED PR; an audit that produces nothing while
 nothing has merged since pages the human instead of looping.
 
