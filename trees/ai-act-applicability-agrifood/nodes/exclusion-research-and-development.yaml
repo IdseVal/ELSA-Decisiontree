@@ -1,0 +1,45 @@
+title:
+  en: Research, testing or development before the system is placed on the market
+  nl: Onderzoeks-, test- of ontwikkelingsactiviteiten voordat het systeem in de handel wordt gebracht
+description:
+  en: |
+    Article 2(8) excludes **any research, testing or development activity** regarding AI
+    systems or AI models **prior to their being placed on the market or put into
+    service**. Such activities must still be conducted in accordance with applicable
+    Union law.
+
+    Two limits sit in the text itself:
+
+    - the exclusion covers the *activity*, not the system: once the system is placed on
+      the market or put into service, the Act applies to it;
+    - **testing in real world conditions is expressly not covered** by the exclusion.
+
+    Field trials on a working farm are therefore the case to watch: they are testing in
+    real world conditions and stay inside the Act.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 2, lid 8, sluit **onderzoeks-, test- of ontwikkelingsactiviteiten** met
+    betrekking tot AI-systemen of AI-modellen uit **voordat zij in de handel worden
+    gebracht of in gebruik worden gesteld**. Dergelijke activiteiten moeten nog steeds
+    worden uitgevoerd in overeenstemming met het toepasselijke Unierecht.
+
+    Twee grenzen staan in de tekst zelf:
+
+    - de uitsluiting betreft de *activiteit*, niet het systeem: zodra het systeem in de
+      handel wordt gebracht of in gebruik wordt gesteld, is de verordening erop van
+      toepassing;
+    - **testen onder reële omstandigheden valt uitdrukkelijk niet onder** de uitsluiting.
+
+    Praktijkproeven op een werkend bedrijf zijn daarom het geval om op te letten: dat is
+    testen onder reële omstandigheden en blijft binnen de verordening.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 2(8) AI Act
+      nl: Artikel 2, lid 8, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
