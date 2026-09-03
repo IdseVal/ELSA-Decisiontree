@@ -40,6 +40,50 @@ async function view(url: string): Promise<string> {
   )
 }
 
+/**
+ * A whole page: the shell `src/app/layout.tsx` renders around the Node view and the footer.
+ * `<html lang>` is the Tree's default language there, which is why what the footer inherits
+ * is not the language of the page (issue #19).
+ */
+async function shell(url: string): Promise<string> {
+  const { pathname, searchParams } = new URL(url, 'https://example.org')
+  const tree = trees.get(pathname.split('/')[1]!)!
+  const address = parseUrl(pathname, searchParams, tree)!
+  const node = (await tree.getNode(address.nodeId))!
+  return renderToStaticMarkup(
+    <html lang={tree.manifest.defaultLanguage}>
+      <body>
+        <main>
+          <NodeView node={node} address={address} rootId={tree.manifest.root} />
+        </main>
+        <Disclaimer lang={address.lang} />
+      </body>
+    </html>,
+  )
+}
+
+/** Elements that close themselves, so they never become an ancestor. */
+const VOID_ELEMENTS = new Set(['br', 'hr', 'img', 'input', 'link', 'meta', 'source'])
+
+/**
+ * The language a screen reader announces the element whose start tag contains `marker` in:
+ * its own `lang`, or the nearest ancestor's. The suite has no DOM, and the markup here is
+ * React's own output, so scanning the start tags is enough.
+ */
+function effectiveLang(html: string, marker: string): string | undefined {
+  const ancestors: Array<string | undefined> = []
+  for (const [, closing, name, attributes = ''] of html.matchAll(/<(\/?)([a-z0-9]+)([^>]*)>/g)) {
+    if (closing) {
+      ancestors.pop()
+      continue
+    }
+    const own = /\slang="([^"]*)"/.exec(attributes)?.[1]
+    if (attributes.includes(marker)) return own ?? ancestors.findLast((lang) => lang !== undefined)
+    if (!VOID_ELEMENTS.has(name!) && !attributes.endsWith('/')) ancestors.push(own)
+  }
+  throw new Error(`no element matching ${marker}`)
+}
+
 describe('a question Node', () => {
   test('shows its title and its description as paragraphs', async () => {
     const html = await view('/ai-act-example/start')
@@ -203,6 +247,28 @@ describe('the permanent disclaimer', () => {
 
     expect(html).toContain('This is not legal advice.')
     expect(html).toContain('lang="de"'.replace('de', 'en'))
+  })
+
+  test('names its own language every time, including when it equals the content language', () => {
+    // The footer is a sibling of <main>: the only language it can inherit is <html>'s, which
+    // is the Tree's default and says nothing about this page (application.md 3.1, issue #19).
+    expect(renderToStaticMarkup(<Disclaimer lang="nl" />)).toContain('lang="nl"')
+    expect(renderToStaticMarkup(<Disclaimer lang="en" />)).toContain('lang="en"')
+  })
+
+  test('is announced in Dutch on a Dutch page of a Tree whose default is English', async () => {
+    const html = await shell('/ai-act-example/start?lang=nl')
+
+    expect(html).toContain('Dit is geen juridisch advies.')
+    expect(effectiveLang(html, 'class="node"')).toBe('nl')
+    expect(effectiveLang(html, 'class="disclaimer"')).toBe('nl')
+  })
+
+  test('is announced in English beside German content, which stays German', async () => {
+    const html = await shell('/other-languages/start?lang=de')
+
+    expect(effectiveLang(html, 'class="node"')).toBe('de')
+    expect(effectiveLang(html, 'class="disclaimer"')).toBe('en')
   })
 })
 
