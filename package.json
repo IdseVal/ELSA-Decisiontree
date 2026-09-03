@@ -2,6 +2,7 @@
   "name": "elsa-decisiontree",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "ELSA decision-tree frontend: shows one Node of an elsa-tree/1 Tree at a time",
   "engines": {
     "node": ">=22.18"
