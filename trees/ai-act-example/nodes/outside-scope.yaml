@@ -1,0 +1,14 @@
+title:
+  en: The AI Act does not apply
+  nl: De AI-verordening is niet van toepassing
+description:
+  en: |
+    Your system is outside the territorial scope of the AI Act. Other rules may still
+    apply to it; this Tree does not cover them.
+  nl: |
+    Uw systeem valt buiten het territoriale toepassingsgebied van de AI-verordening.
+    Andere regels kunnen nog steeds van toepassing zijn; deze boom behandelt die niet.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable

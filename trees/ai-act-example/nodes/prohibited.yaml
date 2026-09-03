@@ -1,0 +1,14 @@
+title:
+  en: This is a prohibited practice
+  nl: Dit is een verboden praktijk
+description:
+  en: |
+    The AI Act prohibits placing on the market, putting into service or using a system
+    for this practice. The walk ends here.
+  nl: |
+    De AI-verordening verbiedt het in de handel brengen, in gebruik stellen of
+    gebruiken van een systeem voor deze praktijk. De doorloop eindigt hier.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: prohibited
