@@ -1,0 +1,12 @@
+title:
+  en: It applies
+description:
+  en: |
+    The walk ends here -- or does it?
+metadata:
+  version: "1.0"
+answers:
+  yes: no-end
+  no: no-end
+terminal:
+  outcome: applicable

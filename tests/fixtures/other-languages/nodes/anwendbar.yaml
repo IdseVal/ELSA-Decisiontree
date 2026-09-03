@@ -1,0 +1,12 @@
+title:
+  de: Die Verordnung ist anwendbar
+  fr: Le règlement s'applique
+description:
+  de: |
+    Der Durchlauf endet hier.
+  fr: |
+    Le parcours s'arrête ici.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable

@@ -1,0 +1,10 @@
+title:
+  en: It does not apply
+  nl: Niet van toepassing
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable

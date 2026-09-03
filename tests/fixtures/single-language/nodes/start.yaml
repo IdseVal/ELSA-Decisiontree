@@ -1,0 +1,26 @@
+title:
+  nl: Valt uw systeem binnen het bereik?
+description:
+  nl: |
+    De eerste vraag. Lees de toelichting hieronder en antwoord dan.
+metadata:
+  version: "1.0"
+sources:
+  - id: art-2
+    kind: legal
+    label:
+      nl: Artikel 2 AI-verordening
+    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+images:
+  - file: kaart.png
+    description:
+      nl: Kaart van de EU-lidstaten
+    credit: "Kaart: Voorbeeld Cartografie, CC BY 4.0"
+    source: art-2
+options:
+  - title:
+      nl: Wat betekent "in de handel brengen"?
+    target: in-de-handel-brengen
+answers:
+  yes: van-toepassing
+  no: niet-van-toepassing
