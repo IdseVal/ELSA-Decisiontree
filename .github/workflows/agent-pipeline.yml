@@ -91,17 +91,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # --- Project toolchain (ADAPT THIS BLOCK to the project, or delete it) -----------
-      # The Verifier runs the project's own tests, so the runner needs the project's
-      # toolchain. Uncomment / adjust what applies. If the project has no automated
-      # tests yet, the Verifier will say so and judge the diff on its own.
-      #
-      # - uses: actions/setup-node@v4
-      #   with: { node-version: '22' }
-      # - run: npm ci
-      # - uses: actions/setup-python@v5
-      #   with: { python-version: '3.12' }
-      # - run: pip install -e ".[dev]"
+      # --- Project toolchain -----------------------------------------------------------
+      # The Verifier runs the project's own tests, so the runner needs Node 22 and the
+      # dependencies: `npm ci && npm test && npm run build` (docs/specs/application.md 7).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
       # ---------------------------------------------------------------------------------
 
       - name: Verifier agent

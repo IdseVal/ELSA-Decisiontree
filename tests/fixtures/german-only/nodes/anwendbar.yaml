@@ -1,0 +1,9 @@
+title:
+  de: Die Verordnung ist anwendbar
+description:
+  de: |
+    Der Durchlauf endet hier.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable

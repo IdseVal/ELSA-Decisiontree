@@ -1,0 +1,17 @@
+title:
+  en: Does it apply?
+description:
+  en: |
+    The first question.
+metadata:
+  version: "1.0"
+options:
+  - title:
+      en: What does it mean?
+    target: detail
+  - title:
+      en: Say that again?
+    target: detail
+answers:
+  yes: yes-end
+  no: no-end

@@ -1,0 +1,42 @@
+title:
+  en: Does your system do any of the prohibited practices?
+  nl: Verricht uw systeem een van de verboden praktijken?
+description:
+  en: |
+    Article 5 lists practices that are **prohibited** outright. Open each entry below
+    to read what it covers, then come back here and answer.
+
+    Answer **yes** if your system does any of them, **no** if it does none.
+  nl: |
+    Artikel 5 noemt praktijken die zonder meer **verboden** zijn. Open elk onderdeel
+    hieronder om te lezen wat het inhoudt, en kom dan hier terug om te antwoorden.
+
+    Antwoord **ja** als uw systeem een van deze praktijken verricht, **nee** als geen
+    ervan van toepassing is.
+metadata:
+  version: "1.0"
+  reviewed: 2026-09-03
+sources:
+  - kind: legal
+    label:
+      en: Article 5 AI Act (prohibited AI practices)
+      nl: Artikel 5 AI-verordening (verboden AI-praktijken)
+    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+options:
+  - title:
+      en: Social scoring
+      nl: Sociale scoring
+    target: social-scoring
+    images:
+      - file: scoreboard.png
+        description:
+          en: A scoreboard ranking people
+          nl: Een scorebord dat mensen rangschikt
+        credit: "Illustration: Example Studio, CC0 1.0"
+  - title:
+      en: Emotion recognition at work or in education
+      nl: Emotieherkenning op het werk of in het onderwijs
+    target: emotion-recognition-at-work
+answers:
+  yes: prohibited
+  no: covered

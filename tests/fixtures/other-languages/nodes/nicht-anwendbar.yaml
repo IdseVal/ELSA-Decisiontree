@@ -1,0 +1,12 @@
+title:
+  de: Die Verordnung ist nicht anwendbar
+  fr: Le règlement ne s'applique pas
+description:
+  de: |
+    Der Durchlauf endet hier.
+  fr: |
+    Le parcours s'arrête ici.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable

@@ -1,0 +1,10 @@
+title:
+  en: Does it apply?
+description:
+  en: |
+    The first question.
+metadata:
+  version: "1.0"
+answers:
+  yes: yes-end
+  no: no-end

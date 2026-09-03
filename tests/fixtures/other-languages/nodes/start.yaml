@@ -1,0 +1,32 @@
+title:
+  de: Fällt Ihr System in den Anwendungsbereich?
+  fr: Votre système entre-t-il dans le champ d'application ?
+description:
+  de: |
+    Die erste Frage. Lesen Sie die Erläuterung und antworten Sie dann.
+  fr: |
+    La première question. Lisez l'explication, puis répondez.
+metadata:
+  version: "1.0"
+sources:
+  - id: art-2
+    kind: legal
+    label:
+      de: Artikel 2 KI-Verordnung
+      fr: Article 2 du règlement IA
+    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+images:
+  - file: karte.png
+    description:
+      de: Karte der EU-Mitgliedstaaten
+      fr: Carte des États membres de l'UE
+    credit: "Karte: Beispiel Kartografie, CC BY 4.0"
+    source: art-2
+options:
+  - title:
+      de: Was heißt "Inverkehrbringen"?
+      fr: Que signifie « mise sur le marché » ?
+    target: inverkehrbringen
+answers:
+  yes: anwendbar
+  no: nicht-anwendbar

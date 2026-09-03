@@ -1,0 +1,31 @@
+title:
+  en: Does it apply?
+description:
+  en: |
+    The first question.
+metadata:
+  version: "1.0"
+sources:
+  - id: art-2
+    kind: legal
+    label:
+      en: Article 2 (scope)
+    url: https://example.org/article-2
+  - id: art-2
+    kind: legal
+    label:
+      en: Article 3 (definitions)
+    url: https://example.org/article-3
+images:
+  - file: pic.png
+    description:
+      en: An illustration
+    credit: "Illustration: Example Studio, CC0 1.0"
+    source: no-such-source
+options:
+  - title:
+      en: What does it mean?
+    target: yes-end
+answers:
+  yes: yes-end
+  no: no-end

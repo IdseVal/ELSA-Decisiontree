@@ -1,0 +1,36 @@
+title:
+  en: Social scoring
+  nl: Sociale scoring
+description:
+  en: |
+    Evaluating or classifying people over time on the basis of their social behaviour
+    or personal characteristics, where the resulting score leads to detrimental
+    treatment that is unrelated to the context in which the data was collected, or
+    that is disproportionate.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Het beoordelen of indelen van mensen gedurende een periode op basis van hun
+    sociale gedrag of persoonlijke kenmerken, waarbij de score leidt tot nadelige
+    behandeling die losstaat van de context waarin de gegevens zijn verzameld, of die
+    onevenredig is.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "1.0"
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(c) AI Act
+      nl: Artikel 5, lid 1, onder c, AI-verordening
+    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+  - kind: case-law
+    label:
+      en: CJEU, Case C-634/21 SCHUFA Holding (Scoring), 7 December 2023
+      nl: HvJ EU, zaak C-634/21 SCHUFA Holding (Scoring), 7 december 2023
+    url: https://curia.europa.eu/juris/liste.jsf?num=C-634/21
+  - kind: literature
+    label:
+      en: Veale & Zuiderveen Borgesius, "Demystifying the Draft EU Artificial Intelligence Act" (2021)
+      nl: Veale & Zuiderveen Borgesius, "Demystifying the Draft EU Artificial Intelligence Act" (2021)
+    url: https://arxiv.org/abs/2107.03721

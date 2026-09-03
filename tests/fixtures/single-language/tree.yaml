@@ -1,0 +1,12 @@
+# A Tree in one language, and not the frontend's default one: the interoperability
+# requirement of docs/CORE_DOCUMENT.md section 9, as a fixture.
+format: elsa-tree/1
+languages: [nl]
+root: start
+title:
+  nl: Is de AI-verordening van toepassing?
+description:
+  nl: |
+    Een kleine Nederlandstalige boom voor de tests.
+metadata:
+  version: "1.0"
