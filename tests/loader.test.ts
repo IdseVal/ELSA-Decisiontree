@@ -8,6 +8,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, test, vi } from 'vitest'
+import type { Violation } from '../src/tree/types.ts'
 
 // Counting the reads is how the lazy-loading contract is measured, so the real module is
 // wrapped rather than replaced. `vi.hoisted` gives the factory, which runs first, its array.
@@ -259,5 +260,66 @@ describe('an invalid Tree is rejected, naming the file and the rule', () => {
 
   test('a folder that is not a Tree at all is rejected, not crashed on', async () => {
     await expect(openTree(fixture('no-such-folder'))).rejects.toBeInstanceOf(TreeInvalid)
+  })
+})
+
+describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
+  // These fixtures are named after the defect rather than after a rule: the defects the
+  // issue names cannot be isolated one rule per fixture, which is what `invalid/<rule>/`
+  // above requires. A dangling Answer, for one, also strands the Node it used to reach.
+  const cases: Array<[string, Violation[]]> = [
+    [
+      // The Link to a missing Node the issue asks for by name.
+      'answer-to-missing-node',
+      [
+        { file: 'nodes/start.yaml', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"no-such-node" is not a Node of this Tree' },
+        { file: 'nodes/yes-end.yaml', keyPath: '', rule: 'V-REACH', message: 'not reachable from root "start" by following Answers and Options' },
+      ],
+    ],
+    [
+      'answer-to-explanation',
+      [
+        { file: 'nodes/start.yaml', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"detail" is an explanation Node; an Answer must lead to a question Node or a Terminal' },
+      ],
+    ],
+    [
+      'option-to-missing-node',
+      [
+        { file: 'nodes/start.yaml', keyPath: 'options[0].target', rule: 'V-OPTIONS', message: '"no-such-node" is not a Node of this Tree' },
+      ],
+    ],
+    [
+      // Three independent rules on one Node, so their reports do not hide each other.
+      'option-to-terminal',
+      [
+        { file: 'nodes/start.yaml', keyPath: 'sources[1].id', rule: 'V-SOURCE', message: 'Source id "art-2" is used twice on this Node' },
+        { file: 'nodes/start.yaml', keyPath: 'images[0].source', rule: 'V-IMAGE', message: 'source must name the id of a Source on this Node' },
+        { file: 'nodes/start.yaml', keyPath: 'options[0].target', rule: 'V-OPTIONS', message: '"yes-end" is a terminal Node; an Option must lead to an explanation Node' },
+      ],
+    ],
+    [
+      // The half of V-TERMINAL that `invalid/v-terminal/` (a bad outcome) does not reach.
+      'terminal-with-options',
+      [
+        { file: 'nodes/yes-end.yaml', keyPath: 'options', rule: 'V-TERMINAL', message: 'a Terminal cannot have options' },
+      ],
+    ],
+  ]
+
+  test.each(cases)('%s', async (name, expected) => {
+    const error = await openTree(fixture('broken', name)).then(
+      () => null,
+      (reason: unknown) => reason,
+    )
+
+    expect(error, `${name} loaded without error`).toBeInstanceOf(TreeInvalid)
+    const invalid = error as InstanceType<typeof TreeInvalid>
+    // Exactly these, and nothing else: an extra violation means the fixture proves
+    // something other than what it is named for.
+    expect(invalid.violations).toEqual(expected)
+    for (const violation of expected) {
+      expect(invalid.message).toContain(violation.file)
+      expect(invalid.message).toContain(violation.rule)
+    }
   })
 })
