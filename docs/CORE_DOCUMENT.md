@@ -12,76 +12,101 @@ Items marked **PROPOSED** are the Planner's wording, waiting for the owner to co
 **What it is.** A small web application -- essentially a single interactive component
 (React or Next.js) -- that walks people who develop AI systems through a decision tree
 about the ethical, legal and social aspects (ELSA) of their AI system. The name "ELSA"
-carries no further meaning; it is not a product, a person, or an external system.
+refers to the Dutch ELSA-lab funding programme (see Stakeholders); it is not a product,
+a person, or an external system.
 
 **First tree.** The first and only tree at launch is the applicability of the EU AI Act
 to agrifood AI systems. The owner is the domain expert on this tree and authors its
 content.
 
 **Why.** The owner wants an interactive, click-based way to present a decision tree,
-instead of a static document. (Nothing more specific was said about the cost of not
-having it -- see OPEN 10.1.)
+instead of a static document, so that a user can quickly and accurately work out how
+the AI Act applies to their AI system. (Owner to confirm this is the problem being
+solved -- OPEN 10.1.)
 
-**Success criteria.** **OPEN 10.2** -- the owner has not yet said how they will judge
-success or failure (audience reached, usage, feedback, accuracy, time-to-answer, ...).
+**Success criterion (owner's words).** "If a user can quickly and accurately qualify
+how the AI Act applies to their AI system, the tool has worked." No numeric target was
+given and the owner did not ask for one.
 
-**Stakeholders.** **OPEN 10.3** -- the owner referred to "we"; who else has a say is not
-yet recorded.
+**Stakeholders.** The project belongs to the **ELSA-Lab for sustainable food systems**
+at **Wageningen University**, funded by **NWO** as part of the Dutch ELSA funding
+strategy. The interoperability requirement (section 3.1) exists so that *other* ELSA
+labs -- the owner named the ELSA lab on defence AI and the one on healthcare -- can load
+their own tree into the same frontend. No other person or body whose sign-off is
+required was named.
 
 ## 2. Target users
 
-- People developing AI systems, who use the tree to find out how ELSA aspects apply to
-  their system. The first tree targets people developing AI for agrifood.
-- **OPEN 10.4** -- expected expertise of these users (lawyers? engineers? founders with no
-  legal background?), and whether the language of the UI and content is English, Dutch,
-  or both.
-- The owner themselves, as *author* of tree content: the tree data must be easy for a
-  human -- the owner in particular -- to create and maintain by hand.
-- Third parties who author *other* trees (e.g. an ethics tree) in the same shape, to be
-  loaded by the same frontend.
+- **End users**: people developing AI systems -- mostly AI developers who are not
+  lawyers, but also lawyers; a broad audience. The owner considers the audience's
+  expertise a concern for whoever authors the tree content, not for the code.
+- **Languages**: English and Dutch. How the two languages are held in the data and
+  switched in the UI is **OPEN 10.4**.
+- **The owner**, as *author* of tree content: the tree data must be easy for a human --
+  the owner in particular -- to create and maintain by hand, in a text editor.
+- **Other ELSA labs / third parties**, as authors of *other* trees in the same shape
+  (e.g. an ethics tree, a defence-AI tree, a healthcare tree), loaded by the same
+  frontend without code changes.
 
 ## 3. Scope
 
 ### 3.1 The decision tree data
 
-- One loadable dataset is a **Tree** (PROPOSED name, see section 5). It is a set of
-  **Nodes** connected by links. The owner wants a graph-shaped structure, because in
-  future (a) different trees may be linked to each other and (b) nodes may cross-link to
-  other nodes.
+- One loadable dataset is a **Tree**. It is a set of **Nodes** connected by **Links**
+  (vocabulary in section 5). The structure is graph-shaped: in future (a) different
+  trees may be linked to each other and (b) nodes may cross-link to other nodes.
+- **Storage decision (agreed 2026-09-03):** Trees are stored as **plain files in the
+  repository, not in a database**. Every Node has an id; a Link holds the id of its
+  target Node; a future cross-link holds `tree-id:node-id`. The file format (one file
+  per Tree vs. one file per Node; YAML / JSON / Markdown-with-frontmatter) and the
+  exact schema are contracts for the Architect to freeze; the published schema *is* the
+  interoperability contract. The owner confirmed nothing in their future plans (no
+  concurrent multi-author editing, no live editing without redeploy) changes this.
 - Every Node carries at minimum:
   - a **title**;
-  - a **description**;
-  - a **legal reference** to its legal source;
+  - a **description** (explanatory text; may be several paragraphs);
+  - **Sources** -- references, of three kinds that are labelled differently in the
+    data: **legal** (an article/annex of a regulation), **case law**, and
+    **literature**;
   - optional **metadata** (contents **OPEN 10.5**);
-  - **images**: a list of images, each with its own **description** and an optional
-    pointer to a **source** elsewhere in the data structure.
-- A Node either gives a **definition** or gives a series of **conditions**. Each
-  condition is clickable and may have its own images.
-- Each Node presents a **yes** and a **no** choice; each choice leads to exactly one
-  other Node, which is then shown.
-- Children of a Node are pulled from the data structure only when that Node is opened
-  (lazy). Images are loaded only for the Node currently rendered.
-- The storage technology (graph database vs. file-based structure vs. other) is NOT yet
-  decided. The owner wants to discuss options before deciding. Constraints the owner
-  has stated and the decision must honour:
-  1. graph-shaped (links between trees and between nodes must be possible later);
-  2. easily editable by hand by the owner;
-  3. lightweight -- the app must stay quick and snappy;
-  4. the *shape* of a Tree is a public contract: any third-party tree with the same
-     shape must load in this frontend unchanged.
+  - **Images**: a list, each with its own **description** and an optional pointer to
+    a Source.
+- A Node's outgoing Links are of two kinds:
+  - **Answers**: a **yes** and a **no**, each leading to exactly one target Node.
+  - **Options** (PROPOSED name; the owner said "conditions"): a list of clickable
+    entries, each with its own title and optional images, each leading to a **child
+    Node** that explains that entry in more depth (e.g. the "prohibited practices" Node
+    lists "social scoring"; clicking it moves the view to the "social scoring" Node,
+    which carries explanation and literature). The high-risk lists work the same way:
+    every Annex area is an Option in the top Node and has its own child Node. The user
+    traverses the tree by clicking through it to reach a conclusion.
+  - How the walk continues after a child Node (does the child carry its own yes/no?
+    where does "no" lead -- back to the list, or on to the next Option?) is
+    **OPEN 10.9**.
+- A Node with no outgoing Links ends the walk (a **terminal** Node, e.g. "the AI Act
+  does not apply"). Whether terminals need a distinct marker is **OPEN 10.10**.
+- Children of a Node are fetched only when that Node is opened (lazy). Images are
+  loaded only for the Node currently rendered.
+- The Tree may grow large (the owner mentioned "a thousand images" as a plausible
+  size); nothing may load the whole Tree or all images on first visit.
+- Constraints on the format, stated by the owner: graph-shaped; hand-editable;
+  lightweight; the shape is a public contract for third-party Trees.
 
 ### 3.2 The frontend
 
-- Shows one Node at a time: its title, description, and a small **carousel** of the
-  Node's images. Clicking an image raises it and shows it larger on screen. The owner
-  said "the carousel itself is invisible" -- exact meaning **OPEN 10.6**.
-- The Node offers **yes** / **no**; clicking one navigates to the linked Node.
+- Shows one Node at a time: title, description, Sources, and the Node's Images as
+  plain **thumbnails** -- no carousel chrome (no frame, arrows or dots). Clicking a
+  thumbnail raises the image and shows it larger on screen.
+- The Node offers its Answers (yes / no) and, if it has them, its Options as a
+  clickable list; clicking any of these navigates to the linked Node.
 - Navigation through the tree must be intuitive and click-based.
-- The way back must be clearly visible: a **line to previous Nodes**, which leaves the
-  screen at the top (the trail of visited Nodes is drawn upward and scrolls off the
-  top).
-- Interoperable: the same frontend loads any Tree in the agreed shape (e.g. a future
-  ethics tree) with no code change.
+- The way back must be clearly visible: the **Trail** of visited Nodes is drawn as a
+  line upward from the current Node and leaves the screen at the top. What clicking a
+  Trail entry does is **OPEN 10.17**.
+- A **"not legal advice" disclaimer** is required. Placement/wording **OPEN 10.18**.
+- Interoperable: the same frontend loads any Tree in the agreed shape with no code
+  change. Whether one deployment serves exactly one Tree or offers a choice of Trees
+  is **OPEN 10.19**.
 - Technical qualities the owner requires: lightweight component, lazy loading,
   server-side rendering, nothing heavy on screen; prefer slightly more network traffic
   over a clunky app. Simple code: not many files, no long files -- it is a small app.
@@ -94,94 +119,118 @@ task; the owner's recollections below are starting points, NOT verified facts):
 1. **Jurisdictional scope.** Owner's recollection: applies to (1) people making AI in
    the EU, (2) people serving AI in the EU, (3) people making AI outside the EU and
    serving people outside the EU, where the AI's outputs are used in the EU. If no: the
-   AI Act does not apply (terminal message).
+   AI Act does not apply (terminal).
 2. **Material scope.** Gated by the AI Act's own definition of "AI system". If no: show a
    message that other regulations apply instead (examples the owner gave: product
    safety regulation, product liability directive, etc.).
-3. **Risk categorisation, step 1 -- prohibited systems.** List the practices prohibited
-   under the AI Act as conditions. If all are "no": continue to step 4.
+3. **Risk categorisation, step 1 -- prohibited practices.** A Node listing the practices
+   prohibited under the AI Act as Options, each with a child Node explaining it (text,
+   literature). If none applies: continue to step 4.
 4. **Risk categorisation, step 2 -- high-risk.** Two flavours:
    a. the AI system is a safety component in a product covered by Union harmonisation
-      legislation -- list each piece of legislation, each with an image showing what
-      kind of product it covers;
+      legislation -- each piece of legislation is an Option with an image showing what
+      kind of product it covers, and a child Node;
    b. the AI system falls in a high-risk area of application listed in the Act's
-      annexes -- list each area, each with an image.
-5. What follows after step 4 (e.g. limited-risk / transparency obligations, minimal
-   risk, obligations per role) is **OPEN 10.7**.
+      annexes -- each area is an Option with an image and a child Node.
+5. **Later, not in the first iteration** (owner's outline): a step checking whether the
+   system is **general-purpose AI**, then whether it is an AI system with **special
+   transparency requirements** (owner cites Article 50 AI Act). What the tree says when
+   a system is neither prohibited nor high-risk, and whether the walk ends at
+   "high-risk" or continues into obligations, remains **OPEN 10.7**.
 
-The owner wants this content researched properly against the AI Act, and wants to be
-able to keep working on the content themselves afterwards.
+For the first version the frontend will display content prepared by the agents so the
+owner can inspect what the app looks like; the owner alone is responsible for reviewing
+legal content before it is published, and this is NOT enforced by code.
 
 ## 4. Explicit NON-scope
 
-**OPEN 10.8** -- not yet discussed. Candidates the owner must confirm or reject: user
-accounts; saving a user's progress; a graphical editor for tree content; multi-language
-UI; analytics; a backend API beyond serving the tree; anything beyond presenting a tree.
+Confirmed by the owner on 2026-09-03:
+
+- No user accounts.
+- No saving of a user's progress across visits.
+- No graphical editor for tree content -- content is edited as files.
+- No analytics, no tracking.
+- No database.
+- No editorial-review workflow in code (see 3.3, last paragraph).
+- Cross-links between Trees: designed for, not built in the first iteration.
 
 ## 5. Domain model and vocabulary
 
-One name per concept. The owner used several words for the same things ("item", "step",
-"object", "bubble", "data item"); the names below are PROPOSED and become canonical once
-the owner confirms them.
+One name per concept. The owner used several words for the same things; the names below
+are canonical once confirmed. Items still marked PROPOSED await the owner's word.
 
-| Term (PROPOSED) | Meaning | Words the owner used |
+| Term | Meaning | Words the owner used |
 |---|---|---|
 | **Tree** | One loadable dataset (e.g. "AI Act applicability, agrifood"; a future "ethics" tree). Graph-shaped internally, presented as a decision tree. | decision-tree, datastructure, graph |
-| **Node** | One step in a Tree. Has title, description, legal reference, metadata, images; gives either a definition or a list of conditions; offers a yes and a no. | item, step, object, bubble, data item, reasoning step |
-| **Condition** | One clickable statement inside a Node, with optional images of its own. Whether a Condition is itself a Node or a part of a Node is **OPEN 10.9**. | condition |
-| **Answer** | The yes or no choice on a Node; each Answer links to exactly one target Node. | yes/no |
-| **Terminal message** | A Node with no Answers that ends the walk (e.g. "the AI Act does not apply"). Whether this is a distinct kind of Node is **OPEN 10.10**. | message |
-| **Image** | A picture attached to a Node or Condition; has a description and an optional pointer to a Source. | image, picture |
-| **Source** | A legal or documentary reference (e.g. an article of the AI Act). Nodes carry one as their "legal reference"; Images may point to one. Whether Sources are first-class entries in the Tree or plain text is **OPEN 10.11**. | legal reference, legal source, source |
-| **Trail** | The ordered list of Nodes the user has visited to reach the current Node; drawn as a line upward from the current Node. | the way back, line to previous items |
-| **Cross-link** | A link from a Node to a Node in another Tree, or to a non-child Node in the same Tree. Future capability; not in the first iteration. | link different graphs, cross-link between graph items |
+| **Node** | One step in a Tree. Has title, description, Sources, metadata, Images, and outgoing Links (Answers and/or Options). | item, step, object, bubble, data item, reasoning step |
+| **Link** | Any clickable connection from one Node to another. Two kinds: Answer and Option. | -- |
+| **Answer** | The yes or no Link on a Node; each leads to exactly one target Node. | yes/no |
+| **Option** (PROPOSED) | A named entry in a Node's list, with its own title and optional Images, leading to a child Node that explains it in depth. | condition, area, listed item |
+| **Terminal** | A Node with no outgoing Links; ends the walk. | message |
+| **Image** | A picture attached to a Node or an Option; has a description and an optional pointer to a Source. Stored server-side in a dedicated images folder. | image, picture |
+| **Source** | A reference attached to a Node or Image. Kinds: **legal**, **case law**, **literature**, labelled distinctly in the data. Whether Sources are first-class entries or plain text on each Node is **OPEN 10.11**. | legal reference, caselaw reference, literature reference |
+| **Trail** | The ordered list of Nodes the user visited to reach the current Node; drawn as a line upward from the current Node. | the way back, line to previous items |
+| **Cross-link** | A Link from a Node to a Node in another Tree, or to a non-child Node in the same Tree. Future capability. | link different graphs, cross-link between graph items |
 
 ## 6. Data sources and their constraints
 
 - **The AI Act** (Regulation (EU) 2024/1689) -- the legal source for the first Tree.
   Content must be derived from the actual text, with each Node citing its article /
-  annex. Verification of the owner's recollections is a research task.
-- **Tree content is authored by the owner** and must remain hand-editable.
-- **Images**: **OPEN 10.12** -- where do they come from (owner-supplied, stock, generated),
-  where are they stored, and who holds the rights.
+  annex as a legal Source. Verification of the owner's recollections is a research task.
+- **Tree content is authored by the owner** as files and must remain hand-editable.
+- **Images**: the owner downloads them and places them in a **dedicated images folder**
+  in the repository. They are served from the server and loaded only for the Node on
+  screen -- never all at once. Rights/attribution per image: **OPEN 10.12**.
 
 ## 7. External systems
 
-- **OPEN 10.13** -- hosting / deployment target (Vercel, own server, ...), domain, and
-  whether the tree data lives in the repository or in an external store (this depends on
-  the storage decision in 3.1).
-- No integrations with other systems were mentioned.
+- **Hosting**: undecided -- either a Wageningen University server or a Hetzner box.
+  Development is local for now. Consequence the owner should confirm (PROPOSED): the
+  app must run on a plain Linux server and must not depend on features of a specific
+  hosting vendor.
+- No integrations with other systems.
 
 ## 8. Legal, privacy and compliance limits
 
-**OPEN 10.14** -- not yet discussed. Questions the owner must answer: is anything about
-the user collected or stored (answers given, analytics, cookies)? Must the tool carry a
-"this is not legal advice" disclaimer? Licence of the tree content and of the code?
+- **Nothing about the user is collected or stored**: no accounts, no cookies, no
+  tracking, no analytics.
+- The app **must display a "not legal advice" disclaimer**.
+- **Licence**: the project is an academic research project funded by NWO; the owner
+  wants it **open source** but has not chosen a licence for the code or for the tree
+  content -- **OPEN 10.14**.
+- Content review before publication is the owner's responsibility, outside the code.
 
 ## 9. What must never happen
 
-**OPEN 10.15** -- not yet discussed. Candidates for the owner to confirm: the frontend
-must never display legal content that the owner has not reviewed; the frontend must
-never break when loaded with a third-party Tree that follows the agreed shape; the app
-must never become heavy (large bundles, all images loaded up front).
+Confirmed by the owner on 2026-09-03:
+
+- The frontend must never break when loaded with a third-party Tree that follows the
+  agreed shape.
+- The app must never load all images -- or the whole Tree -- up front; only what the
+  current Node needs.
+- (Struck by the owner: "never show unreviewed legal content" -- that is an editorial
+  duty of the owner, not a property of the code.)
 
 ## 10. Open questions
 
-| # | Question | Owner |
-|---|---|---|
-| 10.1 | What is the concrete cost/problem today that this removes? | Idse |
-| 10.2 | Success and failure criteria, with numbers where possible. | Idse |
-| 10.3 | Who besides the owner has a say ("we")? | Idse |
-| 10.4 | Expertise level of target users; UI/content language(s). | Idse |
-| 10.5 | What goes in a Node's "metadata"? | Idse |
-| 10.6 | What does "the carousel itself is invisible" mean exactly? | Idse |
-| 10.7 | What comes after the high-risk step in the first Tree? | Idse |
-| 10.8 | Explicit NON-scope. | Idse |
-| 10.9 | Is a Condition its own Node (clicking navigates) or part of a Node (clicking expands in place)? | Idse |
-| 10.10 | Are terminal messages a distinct kind of Node? | Idse |
-| 10.11 | Are Sources first-class entries or plain text on each Node/Image? | Idse |
-| 10.12 | Image provenance, storage and rights. | Idse |
-| 10.13 | Hosting/deployment target; where tree data lives. | Idse |
-| 10.14 | Privacy: is anything collected? Disclaimer? Licences? | Idse |
-| 10.15 | What must never happen. | Idse |
-| 10.16 | Storage technology for Trees (graph DB / files / other) -- to be discussed with the owner, then decided by the Architect within the constraints in 3.1. | Idse + Architect |
+| # | Question | Owner | Status |
+|---|---|---|---|
+| 10.1 | Confirm the problem statement in section 1 ("Why"). | Idse | open |
+| 10.2 | Success criterion. | -- | answered (section 1) |
+| 10.3 | Stakeholders. | -- | answered (section 1) |
+| 10.4 | English and Dutch: both languages inside each Node, or one Tree per language? Is the UI chrome bilingual with a switch? | Idse | open |
+| 10.5 | What goes in a Node's "metadata"? | Idse | open |
+| 10.6 | Carousel. | -- | answered: thumbnails only, no chrome |
+| 10.7 | What the tree says after the high-risk step (neither/nor; obligations). | Idse | open, deferred by owner |
+| 10.8 | NON-scope. | -- | answered (section 4) |
+| 10.9 | After clicking an Option and reading its child Node: does the child have its own yes/no? where does "no" lead -- back to the list, or to the next Option? | Idse | open |
+| 10.10 | Do terminal Nodes need a distinct marker, or is "no outgoing Links" enough? | Idse | open |
+| 10.11 | Are Sources first-class entries (referenced by id) or plain text on each Node/Image? | Idse | open |
+| 10.12 | Image rights/attribution -- must each Image carry a credit? | Idse | open |
+| 10.13 | Hosting. | -- | answered: undecided between university server and Hetzner; local for now |
+| 10.14 | Which open-source licence for code, and which for content? | Idse | open |
+| 10.15 | What must never happen. | -- | answered (section 9) |
+| 10.16 | Storage technology. | -- | answered: files in the repo, no database |
+| 10.17 | Clicking an entry in the Trail: jump back to that Node and discard the later part of the Trail? | Idse | open |
+| 10.18 | Disclaimer placement and wording. | Idse | open |
+| 10.19 | One Tree per deployment, or a choice of Trees in the UI? Should a Node be reachable by URL (shareable deep link)? | Idse | open |
