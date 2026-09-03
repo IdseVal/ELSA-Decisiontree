@@ -454,6 +454,14 @@ def run_log_path(log_name: str) -> Path:
     return RUNS_DIR / f"{log_name}.log"
 
 
+def stamped(log_name: str) -> str:
+    """A log name unique to ONE spawn. Cycle numbers repeat (a refunded or reset cycle
+    comes round again) and the log is opened for append, so without the stamp a new run
+    would start on top of a dead run's output -- and its last line, if it was the
+    session-limit message, would get a working run killed as a limit death."""
+    return f"{log_name}-{datetime.now().strftime('%Y%m%dT%H%M%S')}"
+
+
 def run_hit_limit(log_name: Optional[str]) -> Optional[str]:
     """If the run's log is the subscription-limit message, return the human-readable
     reset phrase (possibly empty); None when the run ended for any other reason. Only
@@ -1270,7 +1278,7 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                 brief = write_brief(f"issue-{issue.number}-retry-c{cycle}",
                                     retry_brief(issue, s.get("role", "implementer"), base))
                 model = model_for(issue.labels, cfg)
-                log_name = f"issue-{issue.number}-retry-c{cycle}"
+                log_name = stamped(f"issue-{issue.number}-retry-c{cycle}")
                 def _retry(wt=wt, brief=brief, log_name=log_name, model=model):
                     return spawn_headless(wt.path, brief, log_name, cfg, model)
                 pid2 = act(f"issue #{issue.number}: run ended without a PR -> one retry "
@@ -1364,7 +1372,7 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         role = role_for(issue)
         skills = skills_for(role, issue.labels, cfg)
         model = model_for(issue.labels, cfg)
-        log_name = f"issue-{issue.number}-cycle{cycle}"
+        log_name = stamped(f"issue-{issue.number}-cycle{cycle}")
         brief = write_brief(log_name, issue_brief(issue, role, cycle, max_cycles, skills, base))
         def _dispatch(path=path, brief=brief, log_name=log_name, model=model):
             return spawn_headless(path, brief, log_name, cfg, model)
@@ -1440,7 +1448,7 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                         role = role_for(issue) if issue else "implementer"
                         model = model_for(issue.labels if issue else set(), cfg)
                         comments = gh_recent_comments(pr.number)
-                        log_name = f"pr-{pr.number}-fix-c{cycle}"
+                        log_name = stamped(f"pr-{pr.number}-fix-c{cycle}")
                         brief = write_brief(log_name,
                                             fix_brief(pr, issue, role, cycle, max_cycles, comments))
                         def _fix(wt=wt, brief=brief, log_name=log_name, model=model):
