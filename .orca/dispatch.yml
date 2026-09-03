@@ -26,8 +26,11 @@ dispatcher:
                                      # .cmd shim Python subprocess cannot resolve, and the
                                      # scheduled task runs with a minimal PATH anyway
   permission_args: ["--dangerously-skip-permissions"]   # see "How a headless run works"
-  extra_args: []                     # e.g. ["--model", "claude-sonnet-4-6"]
-  interactive_agent: claude          # Orca agent id for the interview sessions only
+  extra_args: []                     # appended to EVERY headless run, after the policy's
+                                     # --model flag (v0.2.5: the model comes from `models:`
+                                     # below; a --model here would override it -- don't)
+  interactive_agent: claude          # Orca agent id for interviews launched WITHOUT a
+                                     # chosen model (models.interview empty)
   notify:
     # Ships EMPTY on purpose (v0.2.1): no instant pings; everything that needs you
     # reaches you in the daily digest (section 11). Put "@YourHandle" here only if you
@@ -80,6 +83,25 @@ circuit_breaker:
 # (here: DeKnecht) is a DIFFERENT account than the humans'.
 promotion:
   trusted_promoters: ["IdseVal"]
+
+# THE MODEL POLICY (v0.2.5). Before this block every headless run inherited whatever
+# model the Claude app happened to default to -- i.e. whatever the human last picked in
+# their own session -- so a day on the most expensive model silently ran the whole
+# fleet on it. Now every run is started with an explicit `--model`:
+#   default   every headless run (dispatch, retry, fix, backlog audit)
+#   complex   every run of an issue carrying `complex_label` -- the highly complex jobs
+#   interview the interactive Planner sessions (onboarding / revision). CHOSEN BY THE
+#             OWNER together with the setup agent before the first onboarding; if the
+#             line is missing, `dispatch.py onboard` asks in a terminal.
+# Values are Claude CLI model names. The ALIASES `opus` / `fable` / `sonnet` mean "the
+# newest model of that family at launch time" (today: claude-opus-5, claude-fable-5-1),
+# so this block does not go stale when a generation ships; a full id (claude-opus-5)
+# pins one. Empty = no --model flag = the app's floating default (the old behaviour).
+models:
+  default: opus
+  complex: fable
+  complex_label: complex
+  interview: opus
 
 # Enforced by the CI Reviewer (section 8 embeds the same rules in its prompt); kept here
 # as the single written source both the Implementer and the Reviewer are pointed at.

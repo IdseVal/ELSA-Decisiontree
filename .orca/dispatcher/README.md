@@ -16,7 +16,7 @@ headless `claude -p` processes that start, do one job, and exit. Nothing waits.
 | --- | --- |
 | `dispatch.py` | the reconciler; `run` / `once` / `status` / `doctor` / `onboard` / `pause` / `resume` |
 | `install-task.ps1` | installs it as a Windows scheduled task (at logon, auto-restart) |
-| `state.json` | de-dup memory only (cycles, pages, run PIDs). Gitignored. Safe to delete. |
+| `state.json` | de-dup memory only (cycles, pages, run PIDs, the session-limit hold). Gitignored. Safe to delete. |
 | `prompts/` | the brief files runs are pointed at. Gitignored. Read them to triage. |
 | `runs/` | one log per headless run: your window into what an agent did. Gitignored. |
 | `dispatcher.log` | rotating log. Gitignored. |
@@ -29,7 +29,7 @@ headless `claude -p` processes that start, do one job, and exit. Nothing waits.
 
 ```powershell
 python .orca\dispatcher\dispatch.py doctor --fix   # prerequisites; creates missing labels
-python .orca\dispatcher\dispatch.py onboard        # Planner interview (asks the autonomy question first)
+python .orca\dispatcher\dispatch.py onboard        # Planner interview (asks autonomy + interview model first, if unset)
 python .orca\dispatcher\dispatch.py finish-interview # run BY THE PLANNER inside an interview worktree, on the human's go-ahead
 python .orca\dispatcher\dispatch.py status         # the board: issues, runs, PRs
 python .orca\dispatcher\dispatch.py once --dry-run # what one tick would do
@@ -48,9 +48,15 @@ demote back to `proposed` with a comment (v0.2.4; empty list = enforcement off).
 Dispatch means: worktree (no terminal), brief file,
 headless `claude -p` in that directory logging to `runs/`. The issue's labels pick the
 role the run loads (`research` -> Planner, `architecture` -> Architect, else the
-Implementer). Kill any run past
+Implementer) and the MODEL (v0.2.5, `models:` in `dispatch.yml`): `models.default`
+(`opus`, the newest Opus) for everything, `models.complex` (`fable`, the most capable)
+for every run of an issue labelled `complex`; always an explicit `--model`, never the
+app's floating default. Kill any run past
 `max_run_minutes` (whole tree); one fresh retry for a run that exits without a PR, then
-`needs-human`. PRs are verified, reviewed and merged by the CI pipeline
+`needs-human` -- unless the run's log is the "hit your session limit ... resets HH:MM"
+line (v0.2.5): then the cycle is refunded and NOTHING new starts (dispatch, retry, fix,
+audit) until the stated reset time; the hold lives in `state.json` under `limit` and
+lifts by itself. PRs are verified, reviewed and merged by the CI pipeline
 (`.github/workflows/agent-pipeline.yml`); the dispatcher only reacts: `state:blocked` ->
 a fresh headless fix run whose brief embeds the blocker's comments (breaker at 3 total
 starts per issue -> `escalated`); `needs-human` -> page once and touch nothing until the
@@ -83,6 +89,7 @@ A corrupt marker counts as paused: a bad file must never quietly restart the spe
 | State file deleted | at most a duplicate comment; PIDs are re-checked against the OS, so nothing orphans. |
 | Run exceeds `max_run_minutes` | killed (whole tree); breaker counts it. |
 | Run exits without a PR | one fresh retry, then `needs-human` with a pointer at its log. |
+| Run dies on the Claude session limit | not counted; a comment says so; every new start holds until the reset time in the message (+2 min), then resumes by itself. Runs already going are unaffected (they die the same way and get the same treatment). |
 | CI blocks a PR | fresh fix run with the comments in its brief; breaker at 3. |
 | Agent sets `needs-human` | the item is flagged and appears in the daily digest's "Waiting on you"; nothing moves on it until you remove the label. |
 | CI pipeline never ran on a PR | check the repo's Actions tab; usually OWNER STEP 1 or 2 was skipped. |
@@ -93,5 +100,14 @@ A corrupt marker counts as paused: a bad file must never quietly restart the spe
 
 Remove `escalated`/`needs-human` as appropriate; the dispatcher re-dispatches on the next
 tick (cycle continues counting). To reset the cycle count, delete the issue's entry from
-`state.json`. To watch a live run: `tail -f .orca/dispatcher/runs/<name>.log` (or just
-open the file; PowerShell: `Get-Content -Wait`).
+`state.json`. To lift a session-limit hold early, delete the `limit` key in `state.json`
+(pointless before the limit actually resets). To watch a live run:
+`tail -f .orca/dispatcher/runs/<name>.log` (or just open the file; PowerShell:
+`Get-Content -Wait`).
+
+## Which model runs
+
+`dispatch.py status` prints the policy on its second line. Per run, the dispatch comment
+on the issue and `dispatcher.log` name the model. To send one issue to the most capable
+model, add the `complex` label BEFORE `ready`. To change the fleet, edit `models:` in
+`dispatch.yml`; it takes effect on the next start (the config is re-read every tick).

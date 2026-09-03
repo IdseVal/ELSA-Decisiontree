@@ -120,7 +120,9 @@ jobs:
           # --allowedTools: the action denies Bash by default; without this the agent is
           # refused every `gh`/`git`/test command (observed: 16 denials, silent no-op run).
           # Deliberately NO Edit/Write: the Verifier judges, it does not patch.
-          claude_args: "--max-turns 80 --allowedTools Bash,Read,Glob,Grep,Skill"
+          # --model opus: the model policy (v0.2.5) -- the newest Opus, explicitly, so the
+          # cloud agents never drift with the action's default (observed: sonnet).
+          claude_args: "--max-turns 80 --allowedTools Bash,Read,Glob,Grep,Skill --model opus"
           prompt: |
             You are the VERIFIER for pull request #${{ github.event.pull_request.number }}
             into `dev`. You are a fresh, independent, adversarial check on an
@@ -192,7 +194,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}   # see the Verifier step's note
-          claude_args: "--max-turns 60 --allowedTools Bash,Read,Glob,Grep,Skill"   # see the Verifier step's note
+          claude_args: "--max-turns 60 --allowedTools Bash,Read,Glob,Grep,Skill --model opus"   # see the Verifier step's notes
           prompt: |
             You are the REVIEWER for pull request #${{ github.event.pull_request.number }}
             into `dev`. You are the last gate before integration. Fresh context, headless,

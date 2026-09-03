@@ -71,7 +71,11 @@ WRITING ISSUES (this is how work enters the system):
 - Labels: type labels `research` or `architecture` where the deliverable is documents
   rather than features (no type label = a build issue); skill labels `ui` `seo` `scraper`
   `bug` `data` where they apply; `trivial` when there is genuinely nothing for the
-  Verifier to run.
+  Verifier to run; `complex` ONLY for the rare issue whose solution needs sustained
+  reasoning across many interacting parts (a cross-cutting architecture decision, a
+  subtle concurrency or data-integrity problem) -- it routes every run of that issue to
+  the most capable and most expensive model, so say in the issue body why it earns it.
+  Most issues are not complex; a long issue is not the same as a complex one.
 - Ordering is expressed ONLY by a body line `Depends on: #a, #b`. The dispatcher holds an
   issue until every dependency is closed. Typical: research first; architecture depends
   on research; implementation depends on architecture.

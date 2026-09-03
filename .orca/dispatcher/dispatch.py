@@ -30,10 +30,17 @@ WHAT IT DOES EACH TICK
         `dev` with NO terminal, a brief file, and a headless `claude -p` process in that
         directory whose stdout goes to `.orca/dispatcher/runs/`. The issue's labels pick
         the role the run loads: `architecture` -> the Architect, `research` -> the
-        Planner, otherwise the Implementer.
+        Planner, otherwise the Implementer -- and the MODEL (v0.2.5, `models:` in
+        dispatch.yml): `models.default` (alias `opus` = the newest Opus) for every run,
+        `models.complex` (alias `fable` = the most capable model) for every run of an
+        issue labelled `complex`. Passed as `--model`; never the CLI's floating default.
       - A run past `max_run_minutes` is killed (process tree). A run that exits without a
         PR gets one fresh retry, then the issue is labelled `needs-human`. Every start
-        spends a breaker cycle.
+        spends a breaker cycle -- EXCEPT a run whose log is the subscription's "hit your
+        session limit ... resets HH:MM" line (v0.2.5): that cycle is refunded, and no new
+        run of any kind starts until the stated reset (+2 min; 60 min if unreadable).
+        Fix runs and backlog audits get the same treatment. The hold lives in
+        `state.json` under `limit` and lifts by itself.
       - `proposed` issues are invisible to dispatch: promoting them to `ready` is the
         human's move (or the Planner's, in `auto` mode). Since v0.2.4 that rule is
         ENFORCED: in manual/propose mode the dispatcher asks GitHub's timeline who last
@@ -84,7 +91,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Callable, Optional
@@ -116,6 +123,7 @@ LABEL_NEEDS_HUMAN = "needs-human"
 LABEL_TESTED = "state:tested"
 LABEL_BLOCKED = "state:blocked"
 LABEL_TRIVIAL = "trivial"
+LABEL_COMPLEX = "complex"     # default name; `models.complex_label` may rename it
 
 # Every label the workflow uses. `doctor --fix` creates the missing ones.
 REQUIRED_LABELS: dict[str, tuple[str, str]] = {
@@ -133,7 +141,18 @@ REQUIRED_LABELS: dict[str, tuple[str, str]] = {
     "scraper": ("External data acquisition; brief points at just-scrape", "E99695"),
     "bug": ("Defect; brief points at diagnosing-bugs", "D73A4A"),
     "data": ("Data or pipeline; evidence gate applies", "C5DEF5"),
+    LABEL_COMPLEX: ("Highly complex: every run for this issue uses models.complex (the most capable model)", "8B0000"),
 }
+
+# v0.2.5 session-limit awareness. A headless run that dies on the subscription's usage
+# limit prints exactly one line and exits within a second; that is not the issue's
+# fault, so it must not spend a breaker cycle, and starting another run before the
+# limit resets would only produce the same line again.
+_LIMIT_RE = re.compile(r"(?i)hit your (?:session|usage|weekly|rate)? ?limit")
+_LIMIT_RESET_RE = re.compile(
+    r"(?i)resets?\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap]m)?(?:\s*\(([^)]+)\))?")
+LIMIT_FALLBACK_MINUTES = 60   # hold this long when the reset time cannot be read
+LIMIT_MARGIN_MINUTES = 2      # start a little after the stated reset, not on it
 
 SUBPROCESS_TIMEOUT = 180
 STILL_ACTIVE = 259
@@ -392,6 +411,12 @@ def load_config() -> dict[str, Any]:
     cfg.setdefault("branches", {}).setdefault("base", "dev")
     cfg.setdefault("circuit_breaker", {}).setdefault("max_cycles", 3)
     cfg.setdefault("promotion", {}).setdefault("trusted_promoters", [])
+    m = cfg.setdefault("models", {}) or {}
+    cfg["models"] = m
+    m.setdefault("default", "opus")
+    m.setdefault("complex", "fable")
+    m.setdefault("complex_label", LABEL_COMPLEX)
+    # `models.interview` deliberately has NO default: absence means "ask the owner at onboard".
     cfg.setdefault("labels", {})
     r = cfg.setdefault("roles", {})
     for role, base in (("planner", ["handoff", "grill-with-docs", "domain-modeling"]),
@@ -405,6 +430,97 @@ def load_config() -> dict[str, Any]:
 def autonomy_of(cfg: dict[str, Any]) -> Optional[str]:
     mode = cfg.get("autonomy")
     return mode if mode in AUTONOMY_MODES else None
+
+
+def complex_label(cfg: dict[str, Any]) -> str:
+    return str(cfg["models"].get("complex_label") or LABEL_COMPLEX)
+
+
+def model_for(labels: set[str], cfg: dict[str, Any]) -> str:
+    """THE MODEL POLICY (v0.2.5). Every headless run gets `models.default` -- meant to be
+    the alias `opus`, i.e. the newest Opus at launch time -- unless the issue carries the
+    complex label, which routes ALL of its runs (dispatch, retry, fix) to `models.complex`
+    (alias `fable`, the most capable model at its price). An empty value means "no --model
+    flag": whatever the CLI defaults to on this machine, which is the pre-v0.2.5 behaviour
+    and the thing this policy exists to stop, since that default follows whatever the
+    human last picked in their own interactive session."""
+    m = cfg["models"]
+    if complex_label(cfg) in labels:
+        return str(m.get("complex") or "")
+    return str(m.get("default") or "")
+
+
+def run_log_path(log_name: str) -> Path:
+    return RUNS_DIR / f"{log_name}.log"
+
+
+def run_hit_limit(log_name: Optional[str]) -> Optional[str]:
+    """If the run's log is the subscription-limit message, return the human-readable
+    reset phrase (possibly empty); None when the run ended for any other reason. Only
+    the tail is read: a run that worked for twenty minutes and THEN hit the limit still
+    counts as a limit death, but the file may be large."""
+    if not log_name:
+        return None
+    path = run_log_path(log_name)
+    try:
+        with path.open("rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            size = fh.tell()
+            fh.seek(max(0, size - 4096))
+            tail = fh.read().decode("utf-8", errors="replace")
+    except OSError:
+        return None
+    if not _LIMIT_RE.search(tail):
+        return None
+    m = _LIMIT_RESET_RE.search(tail)
+    return m.group(0) if m else ""
+
+
+def limit_until_ms(reset_phrase: str) -> int:
+    """Turn "resets 7:10pm (Europe/Amsterdam)" into an epoch-ms hold deadline, in that
+    zone if it can be resolved, else the machine's local zone; anything unreadable
+    holds LIMIT_FALLBACK_MINUTES. The reset is assumed to be within the next 24 h."""
+    now = datetime.now().astimezone()
+    m = _LIMIT_RESET_RE.search(reset_phrase or "")
+    if not m:
+        return now_ms() + LIMIT_FALLBACK_MINUTES * 60_000
+    hour, minute, ampm, zone = int(m.group(1)), int(m.group(2) or 0), m.group(3), m.group(4)
+    if ampm:
+        hour = hour % 12 + (12 if ampm.lower() == "pm" else 0)
+    tz = now.tzinfo
+    if zone:
+        try:
+            from zoneinfo import ZoneInfo
+            tz = ZoneInfo(zone.strip())
+        except Exception:  # noqa: BLE001 -- unknown zone name or no tzdata: local zone is close enough
+            pass
+    local_now = now.astimezone(tz)
+    target = local_now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if target <= local_now:
+        target += timedelta(days=1)
+    target += timedelta(minutes=LIMIT_MARGIN_MINUTES)
+    return int(target.timestamp() * 1000)
+
+
+def limit_hold(state: "State") -> Optional[str]:
+    """Describe the active session-limit hold, or None when runs may start."""
+    lim = state.limit or {}
+    until = int(lim.get("until", 0) or 0)
+    if until <= now_ms():
+        return None
+    when = datetime.fromtimestamp(until / 1000).astimezone().strftime("%H:%M")
+    return f"session limit hit ({lim.get('reason') or 'no reset time given'}); holding new runs until {when}"
+
+
+def set_limit_hold(state: "State", reset_phrase: str, seen_in: str) -> str:
+    until = limit_until_ms(reset_phrase)
+    lim = state.limit or {}
+    if int(lim.get("until", 0) or 0) < until:
+        state.limit = {"until": until, "reason": reset_phrase or "no reset time given",
+                       "seen": now_ms(), "run": seen_in}
+        state.save()
+        log.warning("%s", limit_hold(state))
+    return limit_hold(state) or ""
 
 
 def write_autonomy(mode: str) -> None:
@@ -432,6 +548,36 @@ def write_autonomy(mode: str) -> None:
     CONFIG_FILE.write_text("\n".join(out) + "\n", encoding="utf-8")
 
 
+def write_interview_model(model: str) -> None:
+    """Persist `models.interview` into dispatch.yml with a targeted text edit (same
+    approach as write_autonomy: comments and layout survive). Replaces an existing
+    `interview:` line under `models:`, uncommenting it if need be; otherwise inserts one
+    right after the `models:` line; otherwise appends a minimal block."""
+    text = CONFIG_FILE.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    out: list[str] = []
+    in_models = False
+    models_at: Optional[int] = None
+    replaced = False
+    for line in lines:
+        bare = line.strip()
+        if not line.startswith((" ", "\t", "#")) and bare:
+            in_models = bare.startswith("models:")
+            if in_models:
+                models_at = len(out)
+        elif in_models and not replaced and re.match(r"^\s*#?\s*interview:", line):
+            out.append(f"  interview: {model}")
+            replaced = True
+            continue
+        out.append(line)
+    if not replaced:
+        if models_at is not None:
+            out.insert(models_at + 1, f"  interview: {model}")
+        else:
+            out += ["", "models:", f"  interview: {model}"]
+    CONFIG_FILE.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+
 @dataclass
 class State:
     issues: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -439,6 +585,7 @@ class State:
     notified: dict[str, int] = field(default_factory=dict)
     closed_issues: list[int] = field(default_factory=list)
     backlog: dict[str, Any] = field(default_factory=dict)
+    limit: dict[str, Any] = field(default_factory=dict)   # session-limit hold (v0.2.5)
 
     @classmethod
     def load(cls) -> "State":
@@ -452,7 +599,7 @@ class State:
         return cls(
             issues=raw.get("issues", {}), prs=raw.get("prs", {}),
             notified=raw.get("notified", {}), closed_issues=raw.get("closed_issues", []),
-            backlog=raw.get("backlog", {}),
+            backlog=raw.get("backlog", {}), limit=raw.get("limit", {}) or {},
         )
 
     def save(self) -> None:
@@ -463,7 +610,7 @@ class State:
         tmp.write_text(json.dumps({
             "issues": self.issues, "prs": self.prs,
             "notified": self.notified, "closed_issues": self.closed_issues,
-            "backlog": self.backlog,
+            "backlog": self.backlog, "limit": self.limit,
         }, indent=2), encoding="utf-8")
         tmp.replace(STATE_FILE)
 
@@ -943,15 +1090,21 @@ def worktree_path(name: str, res: Optional[dict[str, Any]]) -> Optional[str]:
     return None
 
 
-def spawn_headless(workdir: str, brief: Path, log_name: str, cfg: dict[str, Any]) -> Optional[int]:
+def spawn_headless(workdir: str, brief: Path, log_name: str, cfg: dict[str, Any],
+                   model: str = "") -> Optional[int]:
     """Start a run-to-completion `claude -p` process in the worktree. Returns the PID.
 
     The process is its own group/tree so kill_tree() can take everything with it, and its
-    output goes to a per-run log -- the human's window into a headless run."""
+    output goes to a per-run log -- the human's window into a headless run. `model` comes
+    from model_for() (v0.2.5): the policy's flag goes BEFORE `extra_args`, so a deliberate
+    `--model` in extra_args still wins (the CLI takes the last one)."""
     d = cfg["dispatcher"]
-    cmd = [d["claude_cmd"], "-p", one_liner(brief), *d["permission_args"], *d["extra_args"]]
+    cmd = [d["claude_cmd"], "-p", one_liner(brief), *d["permission_args"]]
+    if model:
+        cmd += ["--model", model]
+    cmd += list(d["extra_args"])
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
-    log_path = RUNS_DIR / f"{log_name}.log"
+    log_path = run_log_path(log_name)
     try:
         logf = open(log_path, "ab")
     except OSError as exc:
@@ -1067,7 +1220,22 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                                      f"issue #{issue.number} escalated", issue.url, "issue", issue.number)
                     state.save()
                 continue
-            # run exited without a PR
+            # run exited without a PR. First: did it die on the subscription's session
+            # limit? Then the ISSUE did nothing wrong -- refund the cycle, hold every new
+            # run until the limit resets, and let the issue come back as a plain candidate.
+            reset = run_hit_limit(r.get("log"))
+            if reset is not None:
+                s.pop("run", None)
+                s["cycle"] = max(0, int(s.get("cycle", 0)) - 1)
+                s.pop("retried", None)
+                state.save()
+                hold = set_limit_hold(state, reset, str(r.get("log") or ""))
+                act(f"issue #{issue.number}: run died on the session limit -> cycle refunded; {hold}",
+                    lambda n=issue.number, h=hold: gh_comment("issue", n,
+                        f"The headless run died on the Claude session limit, not on this issue: "
+                        f"{h}. The attempt is not counted against the circuit breaker; the "
+                        f"dispatcher restarts it by itself when the limit lifts."))
+                continue
             s.pop("run", None)
             if bool(d["retry_empty_run"]) and not s.get("retried"):
                 cycle = int(s.get("cycle", 0)) + 1
@@ -1084,16 +1252,23 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                     s["retried"] = True
                     state.save()
                     continue
+                if limit_hold(state):
+                    log.debug("issue #%s: retry held: %s", issue.number, limit_hold(state))
+                    continue
                 brief = write_brief(f"issue-{issue.number}-retry-c{cycle}",
                                     retry_brief(issue, s.get("role", "implementer"), base))
-                def _retry(wt=wt, brief=brief, issue=issue, cycle=cycle):
-                    return spawn_headless(wt.path, brief, f"issue-{issue.number}-retry-c{cycle}", cfg)
-                pid2 = act(f"issue #{issue.number}: run ended without a PR -> one retry (cycle {cycle}/{max_cycles})", _retry)
+                model = model_for(issue.labels, cfg)
+                log_name = f"issue-{issue.number}-retry-c{cycle}"
+                def _retry(wt=wt, brief=brief, log_name=log_name, model=model):
+                    return spawn_headless(wt.path, brief, log_name, cfg, model)
+                pid2 = act(f"issue #{issue.number}: run ended without a PR -> one retry "
+                           f"(cycle {cycle}/{max_cycles}, model {model or 'CLI default'})", _retry)
                 if DRY_RUN or pid2:
                     s["cycle"] = cycle
                     s["retried"] = True
                     if pid2:
-                        s["run"] = {"pid": pid2, "started": now_ms(), "kind": "retry"}
+                        s["run"] = {"pid": pid2, "started": now_ms(), "kind": "retry",
+                                    "log": log_name, "model": model}
                     state.save()
                 continue
             act(f"issue #{issue.number}: run ended without a PR (after retry) -> needs-human",
@@ -1108,6 +1283,9 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         # --- candidate for dispatch -------------------------------------------------------
         if obs.pause:
             log.debug("issue #%s held: %s", issue.number, obs.pause.describe())
+            continue
+        if limit_hold(state):
+            log.debug("issue #%s held: %s", issue.number, limit_hold(state))
             continue
         if not obs.gate_open:
             log.debug("issue #%s held: %s", issue.number, obs.gate_reason)
@@ -1173,22 +1351,25 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
 
         role = role_for(issue)
         skills = skills_for(role, issue.labels, cfg)
-        brief = write_brief(f"issue-{issue.number}-cycle{cycle}",
-                            issue_brief(issue, role, cycle, max_cycles, skills, base))
-        def _dispatch(path=path, brief=brief, issue=issue, cycle=cycle):
-            return spawn_headless(path, brief, f"issue-{issue.number}-cycle{cycle}", cfg)
-        pid = act(f"issue #{issue.number}: dispatch {role} (cycle {cycle}/{max_cycles})", _dispatch)
+        model = model_for(issue.labels, cfg)
+        log_name = f"issue-{issue.number}-cycle{cycle}"
+        brief = write_brief(log_name, issue_brief(issue, role, cycle, max_cycles, skills, base))
+        def _dispatch(path=path, brief=brief, log_name=log_name, model=model):
+            return spawn_headless(path, brief, log_name, cfg, model)
+        pid = act(f"issue #{issue.number}: dispatch {role} (cycle {cycle}/{max_cycles}, "
+                  f"model {model or 'CLI default'})", _dispatch)
         if DRY_RUN or pid:
             s["cycle"] = cycle
             s["role"] = role
             s.pop("retried", None)
             if pid:
-                s["run"] = {"pid": pid, "started": now_ms(), "kind": "implement"}
+                s["run"] = {"pid": pid, "started": now_ms(), "kind": "implement",
+                            "log": log_name, "model": model}
             state.save()
             act(f"issue #{issue.number}: comment dispatched",
-                lambda n=issue.number, c=cycle, r=role: gh_comment("issue", n,
-                    f"Dispatched a headless {r} run (cycle {c}/{max_cycles}). "
-                    f"Log: .orca/dispatcher/runs/issue-{n}-cycle{c}.log"))
+                lambda n=issue.number, c=cycle, r=role, m=model: gh_comment("issue", n,
+                    f"Dispatched a headless {r} run (cycle {c}/{max_cycles}, model "
+                    f"`{m or 'CLI default'}`). Log: .orca/dispatcher/runs/issue-{n}-cycle{c}.log"))
             slots -= 1
 
 
@@ -1217,6 +1398,9 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         if LABEL_BLOCKED in pr.labels:
             fix = s.get("fix")
             if not s.get("blocked_handled"):
+                if limit_hold(state):
+                    log.debug("PR #%s: fix run held: %s", pr.number, limit_hold(state))
+                    continue
                 cycle = 1
                 if issue:
                     si = state.issue(issue.number)
@@ -1242,14 +1426,17 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                                                             "Recreate it in Orca (or fix by hand), then remove `needs-human`.")))
                     else:
                         role = role_for(issue) if issue else "implementer"
+                        model = model_for(issue.labels if issue else set(), cfg)
                         comments = gh_recent_comments(pr.number)
-                        brief = write_brief(f"pr-{pr.number}-fix-c{cycle}",
+                        log_name = f"pr-{pr.number}-fix-c{cycle}"
+                        brief = write_brief(log_name,
                                             fix_brief(pr, issue, role, cycle, max_cycles, comments))
-                        def _fix(wt=wt, brief=brief, pr=pr, cycle=cycle):
-                            return spawn_headless(wt.path, brief, f"pr-{pr.number}-fix-c{cycle}", cfg)
-                        pid = act(f"PR #{pr.number}: blocked -> dispatch fix run (cycle {cycle}/{max_cycles})", _fix)
+                        def _fix(wt=wt, brief=brief, log_name=log_name, model=model):
+                            return spawn_headless(wt.path, brief, log_name, cfg, model)
+                        pid = act(f"PR #{pr.number}: blocked -> dispatch fix run (cycle {cycle}/{max_cycles}, "
+                                  f"model {model or 'CLI default'})", _fix)
                         if pid:
-                            s["fix"] = {"pid": pid, "started": now_ms()}
+                            s["fix"] = {"pid": pid, "started": now_ms(), "log": log_name, "model": model}
                         act(f"PR #{pr.number}: comment fix dispatched",
                             lambda n=pr.number, c=cycle: gh_comment("pr", n,
                                 f"Sent back; a fresh fix run is on it (cycle {c}/{max_cycles})."))
@@ -1268,6 +1455,23 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                         s.pop("fix", None)
                         state.save()
                 else:
+                    reset = run_hit_limit(fix.get("log"))
+                    if reset is not None:
+                        # Died on the session limit: refund the cycle and forget that the
+                        # block was handled, so a fresh fix run starts once the hold lifts.
+                        s.pop("fix", None)
+                        s.pop("blocked_handled", None)
+                        if issue:
+                            si = state.issue(issue.number)
+                            si["cycle"] = max(0, int(si.get("cycle", 0)) - 1)
+                        state.save()
+                        hold = set_limit_hold(state, reset, str(fix.get("log") or ""))
+                        act(f"PR #{pr.number}: fix run died on the session limit -> cycle refunded; {hold}",
+                            lambda n=pr.number, h=hold: gh_comment("pr", n,
+                                f"The fix run died on the Claude session limit, not on this PR: {h}. "
+                                f"Not counted against the circuit breaker; a fresh fix run starts "
+                                f"by itself when the limit lifts."))
+                        continue
                     act(f"PR #{pr.number}: fix run ended but the PR is still blocked -> needs-human",
                         lambda n=pr.number: (gh_label("pr", n, add=[LABEL_NEEDS_HUMAN]),
                                              gh_comment("pr", n,
@@ -1438,6 +1642,15 @@ def reconcile_backlog(obs: Observed, cfg: dict[str, Any], state: State) -> None:
             return
         # run ended with no visible outcome
         b.pop("audit", None)
+        reset = run_hit_limit(audit.get("name"))
+        if reset is not None:
+            # Session limit, not an empty audit: forget this epoch so the audit is
+            # re-spawned once the hold lifts, and do not page anyone.
+            b.pop("audit_epoch", None)
+            state.save()
+            hold = set_limit_hold(state, reset, str(audit.get("name") or ""))
+            log.info("backlog audit died on the session limit; %s", hold)
+            return
         state.save()
         notify_human(cfg, state, f"backlog:empty-audit:{audit.get('epoch')}",
                      "backlog audit produced nothing",
@@ -1459,6 +1672,9 @@ def reconcile_backlog(obs: Observed, cfg: dict[str, Any], state: State) -> None:
     if obs.pause:
         log.debug("backlog audit held: %s", obs.pause.describe())
         return
+    if limit_hold(state):
+        log.debug("backlog audit held: %s", limit_hold(state))
+        return
     epoch = max((p.number for p in obs.merged), default=0)  # merged-PR high-water mark
     if b.get("audit_epoch") == epoch:
         notify_human(cfg, state, f"backlog:empty-audit:{epoch}", "backlog audit produced nothing",
@@ -1477,8 +1693,10 @@ def reconcile_backlog(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         log.warning("backlog audit: no worktree path; will retry next tick")
         return
     brief = write_brief(name, audit_brief(base, g["achieved_marker"], mode))
-    pid = act(f"spawn headless Planner backlog audit (epoch {epoch}, autonomy {mode})",
-              lambda: spawn_headless(path, brief, name, cfg))
+    model = model_for(set(), cfg)
+    pid = act(f"spawn headless Planner backlog audit (epoch {epoch}, autonomy {mode}, "
+              f"model {model or 'CLI default'})",
+              lambda: spawn_headless(path, brief, name, cfg, model))
     if pid:
         b["audit"] = {"pid": pid, "started": now_ms(), "epoch": epoch, "name": name}
         b["audit_epoch"] = epoch
@@ -1578,9 +1796,16 @@ def cmd_status(cfg: dict[str, Any], state: State) -> int:
     obs = observe(cfg)
     mode = autonomy_of(cfg) or "(unset -> propose)"
     print(f"autonomy: {mode}")
+    m = cfg["models"]
+    print(f"models: default {m.get('default') or 'CLI default'} | `{complex_label(cfg)}` label -> "
+          f"{m.get('complex') or 'CLI default'} | interview {m.get('interview') or '(unset -> asked at onboard)'}")
     if obs.pause:
         print(obs.pause.describe())
         print("  nothing new starts; fixes and merges still land.  resume with: dispatch.py resume")
+    hold = limit_hold(state)
+    if hold:
+        print(hold)
+        print("  lifts by itself; to lift early delete the `limit` key in state.json")
     print(f"gate: {'OPEN' if obs.gate_open else 'CLOSED'} -- {obs.gate_reason}")
     pr_by_issue = {pr.issue_number: pr for pr in obs.prs if pr.issue_number}
     print("\nISSUES")
@@ -1654,7 +1879,10 @@ def cmd_doctor(cfg: dict[str, Any], fix: bool) -> int:
     ok(f"branch {base} exists on origin") if okk else bad(f"branch {base} missing on origin: git push -u origin {base}")
     print("labels")
     have = {l["name"] for l in gh_json(["label", "list", "--limit", "200", "--json", "name"]) or []}
-    for name, (desc, color) in REQUIRED_LABELS.items():
+    required = dict(REQUIRED_LABELS)
+    if complex_label(cfg) != LABEL_COMPLEX:   # renamed in dispatch.yml: that name is the real one
+        required[complex_label(cfg)] = required.pop(LABEL_COMPLEX)
+    for name, (desc, color) in required.items():
         if name in have:
             continue
         if fix:
@@ -1662,7 +1890,7 @@ def cmd_doctor(cfg: dict[str, Any], fix: bool) -> int:
             ok(f"created label {name}") if okk else bad(f"could not create label {name}: {err.strip()[:120]}")
         else:
             bad(f"label missing: {name}  (run: doctor --fix)")
-    if all(n in have for n in REQUIRED_LABELS):
+    if all(n in have for n in required):
         ok("all workflow labels present")
     print("orca")
     st = orca_json(["status"])
@@ -1707,6 +1935,17 @@ def cmd_doctor(cfg: dict[str, Any], fix: bool) -> int:
     else:
         ok("trusted_promoters EMPTY -- the dial is enforced by prompt only; set the owner's "
            "GitHub login in promotion.trusted_promoters to enforce it mechanically")
+    print("models (the model policy -- v0.2.5)")
+    m = cfg["models"]
+    for key, what in (("default", "every headless run"),
+                      ("complex", f"runs of issues labelled `{complex_label(cfg)}`")):
+        val = m.get(key)
+        ok(f"{key}: {val} -- {what}") if val else \
+            ok(f"{key}: EMPTY -- {what} use the CLI's default model (whatever /model last set!)")
+    if m.get("interview"):
+        ok(f"interview: {m['interview']} -- the interactive Planner sessions")
+    else:
+        ok("interview unset -- `dispatch.py onboard` will ask the owner (chosen WITH the setup agent)")
     print("gate")
     g_ok, g_why, g_achieved = core_document_gate(cfg)
     if g_achieved:
@@ -1768,8 +2007,60 @@ def ensure_autonomy(cfg: dict[str, Any]) -> str:
     return "propose"
 
 
+INTERVIEW_MODEL_QUESTION = """
+Which Claude model should the interview session run on? (`models.interview` in
+.orca/dispatch.yml; change it any time. The headless workers are NOT affected by this --
+they follow `models.default` / `models.complex`.)
+
+  1) opus   - the newest Opus. The regular choice: strong, and the cheapest way to spend
+              an hour talking.
+  2) fable  - the newest Fable, the most capable model. For interviews where the plan
+              itself is the hard part; it draws down the subscription's limit fastest.
+  3) sonnet - the newest Sonnet. Fast and frugal; fine for a short revision round.
+  4) (empty) - no --model flag: whatever the Claude app currently defaults to.
+"""
+
+
+def ensure_interview_model(cfg: dict[str, Any]) -> str:
+    """The interview model is CHOSEN BY THE OWNER, with the setup agent, before the first
+    onboarding (v0.2.5). Set -> use it. Unset with a terminal -> ask and persist. Unset
+    without a terminal (a setup agent running this from a tool) -> fall back to
+    `models.default` for this session and say so: the agent should have asked first."""
+    m = cfg["models"]
+    if "interview" in m:
+        return str(m.get("interview") or "")
+    if sys.stdin is not None and sys.stdin.isatty():
+        print(INTERVIEW_MODEL_QUESTION)
+        choices = {"1": "opus", "2": "fable", "3": "sonnet", "4": "",
+                   "opus": "opus", "fable": "fable", "sonnet": "sonnet", "": ""}
+        while True:
+            answer = input("Choose 1-4, or type a full model id [1]: ").strip()
+            if answer == "":
+                model = "opus"
+                break
+            if answer.lower() in choices:
+                model = choices[answer.lower()]
+                break
+            if re.fullmatch(r"[A-Za-z0-9._-]+", answer):
+                model = answer   # a full id such as claude-opus-5: taken verbatim
+                break
+            print("Please answer 1-4 or a model id.")
+        if not DRY_RUN:
+            write_interview_model(model)
+            print(f"written to {CONFIG_FILE.as_posix()}: models.interview: {model or '(empty)'}")
+        m["interview"] = model
+        return model
+    fallback = str(m.get("default") or "")
+    print(f"models.interview not set and no terminal to ask in; using models.default "
+          f"({fallback or 'CLI default'}) for this session. The owner chooses this value: "
+          f"ask them and set `interview:` under `models:` in .orca/dispatch.yml.")
+    m["interview"] = fallback
+    return fallback
+
+
 def cmd_onboard(cfg: dict[str, Any]) -> int:
     mode = ensure_autonomy(cfg)
+    interview_model = ensure_interview_model(cfg)
     base = cfg["branches"]["base"]
     g = cfg["gates"]["core_document"]
     run(["git", "-C", str(REPO_ROOT), "fetch", "-q", "origin", base], timeout=60)
@@ -1784,15 +2075,42 @@ def cmd_onboard(cfg: dict[str, Any]) -> int:
         brief = write_brief("onboarding", onboarding_brief(base, mode))
         what = "onboarding"
     agent = cfg["dispatcher"]["interactive_agent"]
-    res = act(f"create {what} worktree with the Planner (interactive)",
-              lambda: orca_create_worktree(name, base, None, agent=agent,
-                                           prompt=one_liner(brief), activate=True))
+    if not interview_model:
+        # No model chosen: Orca's own agent launch, on the Claude app's default model.
+        res = act(f"create {what} worktree with the Planner (interactive, {agent}, CLI default model)",
+                  lambda: orca_create_worktree(name, base, None, agent=agent,
+                                               prompt=one_liner(brief), activate=True))
+        if DRY_RUN:
+            return 0
+        if not res:
+            print("failed: is Orca open and the repo registered? run: dispatch.py doctor")
+            return 1
+        print(f"{what} worktree created; switch to Orca and talk to the Planner.")
+        return 0
+    # A chosen model: Orca's `--agent` launch takes no flags, so create the worktree bare
+    # and start the agent ourselves in a terminal there (`orca terminal create --command`,
+    # the route Orca documents for "a fresh agent in an existing worktree"). The command
+    # runs in the user's shell, where the bare `claude` shim resolves.
+    res = act(f"create {what} worktree (interactive Planner on model {interview_model})",
+              lambda: orca_create_worktree(name, base, None, activate=True))
     if DRY_RUN:
         return 0
     if not res:
         print("failed: is Orca open and the repo registered? run: dispatch.py doctor")
         return 1
-    print(f"{what} worktree created; switch to Orca and talk to the Planner.")
+    path = worktree_path(name, res)
+    if not path:
+        print(f"worktree {name} created but its path is unknown; start the Planner by hand there:\n"
+              f"  claude --model {interview_model} \"{one_liner(brief)}\"")
+        return 1
+    command = f'claude --model {interview_model} "{one_liner(brief)}"'
+    term = orca_json(["terminal", "create", "--worktree", f"path:{path}",
+                      "--title", f"Planner ({what})", "--command", command, "--focus"])
+    if not term:
+        print(f"worktree {name} created but the terminal did not start; run this inside it:\n  {command}")
+        return 1
+    print(f"{what} worktree created; the Planner is starting on `{interview_model}` -- "
+          f"switch to Orca and talk to it.")
     return 0
 
 
