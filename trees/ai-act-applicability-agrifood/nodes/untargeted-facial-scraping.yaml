@@ -1,0 +1,39 @@
+title:
+  en: Untargeted scraping of facial images to build facial recognition databases
+  nl: Ongerichte scraping van gezichtsafbeeldingen om databanken voor gezichtsherkenning aan te leggen
+description:
+  en: |
+    Article 5(1)(e) prohibits placing on the market, putting into service for this specific
+    purpose, or using AI systems that **create or expand facial recognition databases
+    through the untargeted scraping of facial images from the internet or CCTV footage**.
+
+    Three things to check: the purpose is a facial recognition database; the database is
+    created or expanded; and the images are gathered by *untargeted* scraping from the
+    internet or from CCTV footage.
+
+    There is no harm threshold and no exception in this point. Building the database is
+    enough.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 5, lid 1, punt e), verbiedt het in de handel brengen, het voor dit specifieke
+    doel in gebruik stellen of het gebruiken van AI-systemen **die databanken voor
+    gezichtsherkenning aanleggen of aanvullen door ongerichte scraping van
+    gezichtsafbeeldingen van internet of CCTV-beelden**.
+
+    Drie dingen om na te gaan: het doel is een databank voor gezichtsherkenning; de databank
+    wordt aangelegd of aangevuld; en de afbeeldingen worden verzameld door *ongerichte*
+    scraping van internet of van CCTV-beelden.
+
+    Dit punt kent geen schadedrempel en geen uitzondering. Het aanleggen van de databank
+    volstaat.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(e) AI Act
+      nl: Artikel 5, lid 1, punt e), AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
