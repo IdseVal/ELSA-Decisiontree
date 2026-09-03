@@ -1974,7 +1974,9 @@ def run_hit_limit(log_name: Optional[str]) -> Optional[str]:
     """If the run's log is the subscription-limit message, return the human-readable
     reset phrase (possibly empty); None when the run ended for any other reason. Only
     the tail is read: a run that worked for twenty minutes and THEN hit the limit still
-    counts as a limit death, but the file may be large."""
+    counts as a limit death, but the file may be large. The message must be the run's
+    LAST output (the final non-empty lines): an agent that merely mentions the phrase
+    while working -- say, editing this file -- prints more afterwards."""
     if not log_name:
         return None
     path = run_log_path(log_name)
@@ -1986,9 +1988,10 @@ def run_hit_limit(log_name: Optional[str]) -> Optional[str]:
             tail = fh.read().decode("utf-8", errors="replace")
     except OSError:
         return None
-    if not _LIMIT_RE.search(tail):
+    last_lines = "\n".join([ln for ln in tail.splitlines() if ln.strip()][-3:])
+    if not _LIMIT_RE.search(last_lines):
         return None
-    m = _LIMIT_RESET_RE.search(tail)
+    m = _LIMIT_RESET_RE.search(last_lines)
     return m.group(0) if m else ""
 
 
@@ -2725,7 +2728,15 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         # --- a run is in flight -----------------------------------------------------------
         if r:
             pid = int(r.get("pid", 0))
-            if run_alive(pid):
+            alive = run_alive(pid)
+            reset = run_hit_limit(r.get("log"))
+            # Some CLI versions print the limit line and then idle instead of exiting;
+            # waiting for max_run_minutes would count that idle as a failed attempt.
+            if alive and reset is not None:
+                act(f"issue #{issue.number}: live run {pid} printed the session-limit line -> kill",
+                    lambda p=pid: kill_tree(p))
+                alive = False
+            if alive:
                 if minutes_since(int(r.get("started", 0))) >= max_minutes:
                     act(f"issue #{issue.number}: run {pid} exceeded {max_minutes:.0f} min -> kill",
                         lambda p=pid: kill_tree(p))
@@ -2741,7 +2752,6 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
             # run exited without a PR. First: did it die on the subscription's session
             # limit? Then the ISSUE did nothing wrong -- refund the cycle, hold every new
             # run until the limit resets, and let the issue come back as a plain candidate.
-            reset = run_hit_limit(r.get("log"))
             if reset is not None:
                 s.pop("run", None)
                 s["cycle"] = max(0, int(s.get("cycle", 0)) - 1)
@@ -2964,7 +2974,13 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
             # blocked_handled: watch the fix run.
             if fix:
                 pid = int(fix.get("pid", 0))
-                if run_alive(pid):
+                alive = run_alive(pid)
+                reset = run_hit_limit(fix.get("log"))
+                if alive and reset is not None:
+                    act(f"PR #{pr.number}: live fix run {pid} printed the session-limit line -> kill",
+                        lambda p=pid: kill_tree(p))
+                    alive = False
+                if alive:
                     if minutes_since(int(fix.get("started", 0))) >= max_minutes:
                         act(f"PR #{pr.number}: fix run {pid} exceeded {max_minutes:.0f} min -> kill + needs-human",
                             lambda p=pid, n=pr.number: (kill_tree(p),
@@ -2973,7 +2989,6 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                         s.pop("fix", None)
                         state.save()
                 else:
-                    reset = run_hit_limit(fix.get("log"))
                     if reset is not None:
                         # Died on the session limit: refund the cycle and forget that the
                         # block was handled, so a fresh fix run starts once the hold lifts.
@@ -3147,7 +3162,12 @@ def reconcile_backlog(obs: Observed, cfg: dict[str, Any], state: State) -> None:
             b.pop("audit_done_seen", None)
             state.save()
             return
-        if run_alive(pid):
+        reset = run_hit_limit(audit.get("name"))
+        alive = run_alive(pid)
+        if alive and reset is not None:
+            act("live backlog audit printed the session-limit line -> kill", lambda p=pid: kill_tree(p))
+            alive = False
+        if alive:
             if minutes_since(int(audit.get("started", 0))) >= float(d["max_run_minutes"]):
                 act("backlog audit exceeded max_run_minutes -> kill", lambda p=pid: kill_tree(p))
                 b.pop("audit", None)
@@ -3160,7 +3180,6 @@ def reconcile_backlog(obs: Observed, cfg: dict[str, Any], state: State) -> None:
             return
         # run ended with no visible outcome
         b.pop("audit", None)
-        reset = run_hit_limit(audit.get("name"))
         if reset is not None:
             # Session limit, not an empty audit: forget this epoch so the audit is
             # re-spawned once the hold lifts, and do not page anyone.
@@ -3907,7 +3926,7 @@ A corrupt marker counts as paused: a bad file must never quietly restart the spe
 | State file deleted | at most a duplicate comment; PIDs are re-checked against the OS, so nothing orphans. |
 | Run exceeds `max_run_minutes` | killed (whole tree); breaker counts it. |
 | Run exits without a PR | one fresh retry, then `needs-human` with a pointer at its log. |
-| Run dies on the Claude session limit | not counted; a comment says so; every new start holds until the reset time in the message (+2 min), then resumes by itself. Runs already going are unaffected (they die the same way and get the same treatment). |
+| Run dies on the Claude session limit | not counted; a comment says so; every new start holds until the reset time in the message (+2 min), then resumes by itself. Runs already going are unaffected (they die the same way and get the same treatment). A run that prints the line and then idles instead of exiting (some CLI versions do) is killed on the next tick and treated the same. |
 | CI blocks a PR | fresh fix run with the comments in its brief; breaker at 3. |
 | Agent sets `needs-human` | the item is flagged and appears in the daily digest's "Waiting on you"; nothing moves on it until you remove the label. |
 | CI pipeline never ran on a PR | check the repo's Actions tab; usually OWNER STEP 1 or 2 was skipped. |

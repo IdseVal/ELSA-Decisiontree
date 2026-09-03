@@ -89,7 +89,7 @@ A corrupt marker counts as paused: a bad file must never quietly restart the spe
 | State file deleted | at most a duplicate comment; PIDs are re-checked against the OS, so nothing orphans. |
 | Run exceeds `max_run_minutes` | killed (whole tree); breaker counts it. |
 | Run exits without a PR | one fresh retry, then `needs-human` with a pointer at its log. |
-| Run dies on the Claude session limit | not counted; a comment says so; every new start holds until the reset time in the message (+2 min), then resumes by itself. Runs already going are unaffected (they die the same way and get the same treatment). |
+| Run dies on the Claude session limit | not counted; a comment says so; every new start holds until the reset time in the message (+2 min), then resumes by itself. Runs already going are unaffected (they die the same way and get the same treatment). A run that prints the line and then idles instead of exiting (some CLI versions do) is killed on the next tick and treated the same. |
 | CI blocks a PR | fresh fix run with the comments in its brief; breaker at 3. |
 | Agent sets `needs-human` | the item is flagged and appears in the daily digest's "Waiting on you"; nothing moves on it until you remove the label. |
 | CI pipeline never ran on a PR | check the repo's Actions tab; usually OWNER STEP 1 or 2 was skipped. |
