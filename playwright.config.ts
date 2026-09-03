@@ -5,8 +5,9 @@ import { defineConfig, devices } from '@playwright/test'
  * to a later issue; issue #7 is that issue, because what a thumbnail does when it is
  * clicked and which files a browser actually asks for cannot be checked from markup alone.
  *
- * The server under test is a production build serving the example Tree, so what the tests
- * see is what a deployment serves. `npm test` (Vitest) stays the unit suite.
+ * The server under test is the standalone server a deployment runs (`npm run build` then
+ * `node .next/standalone/server.js`), serving the example Tree, so what the tests see is
+ * what a deployment serves. `npm test` (Vitest) stays the unit suite.
  */
 const PORT = Number(process.env.ELSA_TEST_PORT ?? 3117)
 
@@ -23,10 +24,16 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `npx next build && npx next start --port ${PORT}`,
+    command: 'npm run build && node .next/standalone/server.js',
     url: `http://127.0.0.1:${PORT}/ai-act-example/start`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
-    env: { ELSA_TREE: 'ai-act-example', NEXT_TELEMETRY_DISABLED: '1' },
+    env: {
+      ELSA_TREE: 'ai-act-example',
+      NEXT_TELEMETRY_DISABLED: '1',
+      // The standalone server reads where to listen from the environment, not from flags.
+      PORT: String(PORT),
+      HOSTNAME: '127.0.0.1',
+    },
   },
 })

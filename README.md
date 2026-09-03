@@ -27,7 +27,8 @@ npm run build && ELSA_TREE=ai-act-example npm start
 ```
 
 Then open `http://localhost:3000/ai-act-example/start` -- the URL of a Node is
-`/<tree-id>/<node-id>`.
+`/<tree-id>/<node-id>`. `npm run build` also copies the client bundle and the stylesheet
+into `.next/standalone/`, so that folder plus `trees/` is the whole deployment.
 
 ## Point the app at a Tree
 
@@ -51,8 +52,8 @@ npx playwright install chromium         # once
 npm run test:browser                    # the same app in a real browser
 ```
 
-`npm run test:browser` builds the app, starts it on port 3117 with `ELSA_TREE=ai-act-example`
-and drives it with Playwright. It covers what markup cannot show: what a click on a
+`npm run test:browser` builds the app, starts the standalone server on port 3117 with
+`ELSA_TREE=ai-act-example` -- the same command a deployment runs -- and drives it with Playwright. It covers what markup cannot show: what a click on a
 thumbnail does, which image files the browser actually asks for, and whether a keyboard
 reaches everything.
 

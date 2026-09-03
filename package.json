@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/collect-standalone.ts",
     "start": "node .next/standalone/server.js",
     "test": "vitest run",
     "test:browser": "playwright test",
