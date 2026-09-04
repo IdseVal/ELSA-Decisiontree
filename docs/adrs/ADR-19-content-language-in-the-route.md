@@ -2,9 +2,10 @@
 
 - Status: ACCEPTED (frozen) -- 2026-09-04
 - Issue: #19 -- Decide what `<html lang>` says
-- Spec: `docs/specs/application.md`, sections 3.1, 4.1, 4.3, 4.4, 6
-- Amends: `ADR-5-url-scheme.md` (the 4.3 error table only; the public grammar is untouched)
-  and `ADR-5-repository-layout.md` (the shape of `src/app/`)
+- Spec: `docs/specs/application.md`, sections 3.1, 4.1, 4.3, 4.4, 6, 7
+- Amends: `ADR-5-repository-layout.md` (the shape of `src/app/`), `ADR-5-url-scheme.md`
+  (how `parseUrl` is reached; its public grammar and every answer of its error table are
+  unchanged) and `ADR-5-testing-approach.md` (one test file added)
 
 ## Context
 
@@ -35,8 +36,8 @@ voice, and so does any other consumer that trusts the document language.
 
 The issue offered three ways out. The owner chose to put the language in the path (comment
 on #19, 2026-09-04). This ADR records that decision, the exact mechanism, and what it
-costs -- because it changes the module layout frozen in section 6 and one row of the error
-table frozen in 4.3.
+costs -- because it changes the module layout frozen in section 6, and nothing else about
+what a reader may ask for or what they get back.
 
 ## Decision
 
@@ -47,24 +48,36 @@ canonical link and every link the application emits is exactly what it was.
 stands: it would lengthen every URL and invalidate every link already shared.
 
 **2. A rewrite restates the query as a leading path segment, before the file system.**
-`next.config.ts` gains two mutually exclusive rules:
+`next.config.ts` gains two rules that partition every request between them:
 
 ```ts
+const LANGUAGE_TAG = '[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*'   // 4.1, well-formed
+
 async rewrites() {
   return {
     beforeFiles: [
-      // ?lang=<well-formed tag>  ->  /<tag>/...   so the root layout gets it as a param
+      // a well-formed ?lang  ->  /<tag>/...   so the root layout gets it as a param
       {
         source: '/:path*',
-        has: [{ type: 'query', key: 'lang', value: '(?<lang>[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*)' }],
+        has: [{ type: 'query', key: 'lang', value: `(?<lang>${LANGUAGE_TAG})` }],
         destination: '/:lang/:path*',
       },
-      // no ?lang at all  ->  /_/...   `_` is not a language tag, so it reads as "the default"
-      { source: '/:path*', missing: [{ type: 'query', key: 'lang' }], destination: '/_/:path*' },
+      // anything else -- no `lang`, an empty one, or a value that is not a tag  ->  /_/...
+      {
+        source: '/:path*',
+        missing: [{ type: 'query', key: 'lang', value: LANGUAGE_TAG }],
+        destination: '/_/:path*',
+      },
     ],
   }
 }
 ```
+
+The two rules test the same grammar, and `missing` holds exactly when `has` does not, so
+they are **exhaustive and mutually exclusive**: every request is rewritten exactly once,
+whether or not `beforeFiles` stops at the first rule it matches -- behaviour the
+documentation does not promise either way, and which the experiment below found does *not*
+stop at the first match. Nothing reaches the file system with its public path.
 
 A rewrite is internal: the address bar, the share link and the canonical link keep the
 query. This is plain Next.js configuration on the Node.js runtime -- no edge runtime, no
@@ -78,26 +91,26 @@ for it; the route ignores the segment, and the public image URL stays `/images/<
 
 **4. `_` is the segment for "no language asked for".** It cannot collide with anything: an
 id is `[a-z0-9-]` (`ADR-4-identifiers-and-cross-links.md`), so no Tree and no Node can be
-called `_`, and `_` is not a well-formed language tag, so the ordinary resolution rule --
-a language the Tree does not declare means the Tree's default -- already gives the right
-answer for it. No special case is needed anywhere in `src/`.
+called `_`, and `_` is not a well-formed language tag, so the second rule is the only way
+it can ever appear. It needs no special case: the ordinary resolution rule of 4.3 -- a
+language the Tree does not declare means the Tree's default -- already gives the right
+answer for it. The literal is written in `next.config.ts` and nowhere else; `src/url.ts`
+has no branch for it.
 
-**5. Only a well-formed language tag ever becomes a path segment.** The value must match
-`[a-zA-Z]{2,8}(-[a-zA-Z0-9]{1,8})*`. This whitelist is the reason the rewrite is safe:
-nothing a caller writes into `?lang` can introduce a path separator, a traversal or markup
-into the route. It costs one amendment to 4.3, which previously said that every undeclared
-`lang` is ignored:
+**5. Only a well-formed language tag ever becomes a path segment, and a value that is not
+one is *ignored*, not rejected.** The whitelist is the reason the rewrite is safe: nothing
+a caller writes into `?lang` can introduce a path separator, a traversal or markup into the
+route, and the grammar is applied to the decoded value, so `%2e%2e%2f` is refused for the
+same reason `../` is. A value that fails the grammar takes the second rule -- the same
+route an absent `lang` takes -- so the answer is the one 4.3 has said since it was frozen:
+the Tree's default language, and whatever status the URL would have had anyway.
 
-| `?lang=` | Before | Now |
-|---|---|---|
-| a well-formed tag the Tree declares (`nl`) | that language, 200 | unchanged |
-| a well-formed tag the Tree does not declare (`de`, `pt-BR`, `nl-be`) | ignored, default, 200 | unchanged |
-| absent, or present and empty (`?lang=`) | default, 200 | unchanged |
-| not a well-formed tag (`../../etc/passwd`, `%2e%2e%2f`, `<script>`, `toolongalanguagetag`) | ignored, default, 200 | **404** |
-
-The new row applies the judgement 4.3 already makes about ids: malformed is 404. No reader
-produces such a URL; a crawler or a prober does, and 404 is both the correct answer and the
-cheapest one.
+**This costs no amendment to 4.3's error table.** That is the point of the second rule
+carrying the grammar. An earlier version of this ADR let a malformed value match neither
+rule, which made it 404, and amended 4.3 to say so; measuring that pair showed the promise
+was false for one URL shape (below, under *alternatives rejected*). The rule that shipped
+is the one that can be stated without an exception: **the language never decides which page
+is served or what its status is.**
 
 **6. The language is decided in exactly one place.** After the rewrite no server component
 reads `searchParams` for the language: the layout, the page and its `generateMetadata` all
@@ -105,64 +118,123 @@ take it from the `[lang]` segment. `src/url.ts` keeps the resolution rule, and `
 takes the language value instead of the whole query:
 
 ```ts
-parseUrl(path: string, lang: string | null, tree: Tree): PageAddress | NotFound
+parseUrl(path: string, lang: string, tree: Tree): PageAddress | NotFound
 ```
 
-That is narrower than the `URLSearchParams` it replaces -- `parseUrl` never read any other
-key -- and it removes a class of bug rather than a line of code. Measured on the probe
-before this change: `?lang=nl&lang=en` made the routing layer take the last value and
-`query.get('lang')` in the page take the first, producing `<html lang="en">` around Dutch
-content -- this issue's own bug, reintroduced in an edge case. With one source there is
-nothing left to disagree.
+Not `string | null`: 4.4 guarantees the segment always exists -- `_` when no language was
+asked for -- so a null would be unreachable by construction and would give "none asked for"
+two encodings. The signature is narrower than the `URLSearchParams` it replaces --
+`parseUrl` never read any other key -- and it removes a class of bug rather than a line of
+code. Measured on the probe before this change: `?lang=nl&lang=en` made the routing layer
+take the last value and `query.get('lang')` in the page take the first, producing
+`<html lang="en">` around Dutch content -- this issue's own bug, reintroduced in an edge
+case. With one source there is nothing left to disagree.
 
-**7. The 404 page speaks the Tree's default language, and says so on its own elements.**
-Next.js renders `not-found.tsx` without params, so it cannot know the language, and it
-renders *inside* the `[lang]` layout: on `/<tree-id>/<unknown>?lang=nl` the document is
-`<html lang="nl">` while its chrome is English. Every element the 404 page renders
-therefore carries `lang={tree.manifest.defaultLanguage}` explicitly. That is 3.1's second
-half -- chrome in another language carries its own `lang` -- applied to the one page that
-cannot follow the content language, and it needs no new mechanism.
+**7. The 404 page speaks the chrome language 3.1 resolves from the Tree's default
+language, and says so on its own elements.** Next.js renders `not-found.tsx` without
+params, so it cannot know the content language; `notFoundTitle` and `notFoundText` are
+chrome keys (3.2), and chrome exists only in `en` and `nl`. The language of this page is
+therefore the chrome language of the Tree's default -- `en` or `nl`, **never an arbitrary
+tag** -- and every element it renders carries exactly that as its own `lang`. On a Tree
+whose languages are `de` and `fr` the page is English and marked `lang="en"`; on an `nl`
+Tree it is Dutch and marked `lang="nl"`. Marking it with the Tree's default language
+instead would put `lang="de"` on English text: the same false attribute this ADR exists to
+remove, which is why the row in 4.3 keeps its original wording. The page renders *inside*
+the `[lang]` layout, so `<html lang>` around it is still the language that was asked for;
+decision 7 is 3.1's second half -- chrome in another language carries its own `lang` --
+applied to the one page that cannot follow the content language, and it needs no new
+mechanism.
 
 ## What was measured
 
-A copy of `DeKnecht/issue-7` (Next.js 16.3.4, Node 22.18, Tree `ai-act-example`, languages
-`en` and `nl`, default `en`) restructured exactly as above, served both by `next dev` and
-by `next build` + `next start`. The two agreed on every row.
+A copy of `DeKnecht/issue-7` (Next.js 16.3.4, Node 22.18) restructured exactly as above,
+served both by `next dev` and by `next build` + `node .next/standalone/server.js` -- the
+production shape of section 1, not `next start`. **The two agreed on every row below.** The
+Tree is `ai-act-example` (`en`, `nl`, default `en`) unless another is named. The baseline
+first reproduced the reported symptom, `<html lang="en">` on a `?lang=nl` page.
 
 | Request | `<html lang>` | Status |
 |---|---|---|
-| `/ai-act-example/start` | `en` | 200 |
-| `/ai-act-example/start?lang=nl` | `nl` | 200; Dutch `<title>`, `<article lang="nl">`, `<footer lang="nl">` |
-| `/ai-act-example/start?lang=de` | `en` | 200 |
-| `/ai-act-example/start?lang=pt-BR` | `en` | 200 |
-| `/ai-act-example/start?lang=` (empty) | `en` | 200 (Next.js reads an empty value as absent) |
-| `/ai-act-example/start?foo=bar&lang=nl` | `nl` | 200 |
-| `/ai-act-example/start?lang=../../etc/passwd` | -- | 404 |
-| `/ai-act-example/start?lang=%2e%2e%2f` | -- | 404 |
-| `/ai-act-example/start?lang=<script>` | -- | 404 |
+| `/ai-act-example/start` | `en` | 200; `<article lang="en">`, `<footer lang="en">` |
+| `/ai-act-example/start?lang=nl` | `nl` | 200; Dutch `<title>`, `<article lang="nl">`, `<footer lang="nl">`, canonical `?lang=nl` |
+| `?lang=de`, `?lang=pt-BR`, `?lang=nl-BE`, `?lang=NL` (well-formed, undeclared) | `en` | 200 |
+| `?lang=` (empty) | `en` | 200 |
+| `?lang=<script>`, `?lang=../../etc/passwd`, `?lang=%2e%2e%2f` | `en` | 200 |
+| `?lang=toolongalanguagetag`, `?lang=nl2` (fail the grammar) | `en` | 200 |
+| `?lang=script` (well-formed; the grammar is anchored, so `<script>` above is not this) | `en` | 200 |
+| `?lang=%6el` (encoded `nl`; the grammar sees the decoded value) | `nl` | 200 |
+| `?foo=bar&lang=nl` | `nl` | 200 |
 | `/ai-act-example/start/prohibited-practices?lang=nl` | `nl` | 200; canonical `/ai-act-example/prohibited-practices?lang=nl` |
-| `/?lang=nl` and `/ai-act-example?lang=nl` | -- | 307 to `/ai-act-example/start?lang=nl` |
-| `/images/eu-map.png`, with and without `?lang=nl` | -- | 200 `image/png`, `Cache-Control: public, max-age=3600` |
+| `/?lang=nl`, `/ai-act-example?lang=nl` | -- | 307 to `/ai-act-example/start?lang=nl` |
+| `/`, `/?lang=<script>`, `/ai-act-example?lang=<script>` | -- | 307 to `/ai-act-example/start` |
+| `/images/eu-map.png`, with `?lang=nl` and with `?lang=<script>` | -- | 200 `image/png`, `Cache-Control: public, max-age=3600` |
 | `/images/nope.png` | -- | 404 |
-| `/other-tree/start` | -- | 404 |
+| `/other-tree/start`, `/other-tree?lang=<script>` | -- | 404 |
+| `/ai-act-example/nope?lang=nl` | -- | 404 |
 | `/ai-act-example/start?lang=nl` sent with `RSC: 1` | `nl` in the payload | 200 `text/x-component` |
 | `/_next/static/...` | -- | served; Next.js excludes its own paths from rewrites |
 
-Two things were established by experiment rather than assumed, and both are why the rules
-are shaped the way they are.
+**A repeated `lang`.** 4.1 freezes "the last occurrence is the one that counts". These are
+the rows behind that sentence, taken on the restructured build rather than on the old code
+path; every one of them is the answer the single-occurrence rules give for the last value.
 
-- **`beforeFiles` rewrites do not stop at the first match.** A first attempt used an
-  unconditional catch-all as the last rule; it fired *in addition to* the language rule and
-  turned `/ai-act-example/start?lang=nl` into `/_/nl/ai-act-example/start`, a 404. The two
-  rules above are mutually exclusive by their `has`/`missing` conditions, so they give the
-  same answer whether the pipeline stops at the first match or applies every match.
+| Request | `<html lang>` | Status |
+|---|---|---|
+| `?lang=nl&lang=en` | `en` | 200 |
+| `?lang=en&lang=nl` | `nl` | 200 |
+| `?lang=nl&lang=en&lang=nl` | `nl` | 200 |
+| `?lang=nl&lang=de` (last undeclared) | `en` | 200 |
+| `?lang=nl&lang=../../etc/passwd` (last fails the grammar) | `en` | 200 |
+| `?lang=../../etc/passwd&lang=nl` | `nl` | 200 |
+| `?lang=nl&lang=`, `?lang=&lang=` (last empty) | `en` | 200 |
+
+Whether the router sees the last value, or a joined one that only the last value can make
+match, is a Next.js internal and is not frozen. What is frozen is the answer, and the
+answer is the same in `next dev` and in the standalone build. No link the application emits
+ever repeats `lang`.
+
+**The 404 page.** Served from the same build with `ELSA_TREE` pointed at two fixtures,
+`tests/fixtures/other-languages/` (`de`, `fr`, default `de`) and
+`tests/fixtures/single-language/` (`nl`).
+
+| Request | Text | `lang` on its elements | `<html lang>` |
+|---|---|---|---|
+| `/other-languages/nope` | English | `en` | `de` |
+| `/other-languages/nope?lang=fr` | English | `en` | `fr` |
+| `/single-language/nope` | Dutch | `nl` | `nl` |
+
+The `de` Tree is the case that decides decision 7: the page's text is English, so `en` is
+the only attribute that is true of it. (`<html lang>` here is read out of the React payload,
+because of the defect below.)
+
+Three things were established by experiment rather than assumed, and all three changed a
+rule rather than confirming one.
+
+- **`beforeFiles` rewrites do not stop at the first match.** A first rule set used an
+  unconditional catch-all last; it fired *in addition to* the language rule and turned
+  `/ai-act-example/start?lang=nl` into `/_/nl/ai-act-example/start`, a 404. Hence a pair
+  that is exclusive by construction, and correct under either behaviour.
+- **A pair that leaves a request unmatched cannot promise a 404.** The first rejected
+  alternative below; it is why the grammar is written twice.
 - **The image route cannot stay outside the segment.** An identity rewrite meant to shield
-  `/images/:file` did not shield it, for the same reason. Moving the route under `[lang]`
-  removes the need: the static segment `images` wins over the dynamic `[tree]`, and the
-  route never looks at the language.
+  `/images/:file` did not shield it, for the same reason as the first finding. Moving the
+  route under `[lang]` removes the need: the static segment `images` wins over the dynamic
+  `[tree]`, and the route never looks at the language.
 
 ## Alternatives rejected
 
+- **The same pair with a bare `missing: [{ type: 'query', key: 'lang' }]`,** so that a
+  value failing the grammar matches neither rule and falls through to a path with no
+  language segment. It looks tidier -- the whitelist appears once -- and it answers 404 for
+  a malformed `lang` on any Node or image URL, which reads like the judgement 4.3 already
+  makes about malformed ids. Rejected on measurement: a path of exactly one segment has no
+  language segment to miss, so `/ai-act-example?lang=<script>` matched `/[lang]` and
+  answered **307 to the root Node**, not the 404 the amended table promised, while
+  `/other-tree?lang=<script>` went from 404 to 307 -- a malformed language turning a
+  not-found into a redirect. The rule could not be written down without an exception per
+  URL shape, and it bought that exception by amending a frozen error table. Carrying the
+  grammar in `missing` costs one repeated constant and makes the language irrelevant to the
+  status, which is a rule with no exceptions at all.
 - **`src/proxy.ts` (Next.js 16's renamed middleware), option 1 on the issue.** Ten lines,
   and it works: read `?lang`, set a request header, read it in the layout with `headers()`.
   Rejected because it buys the same result through a hidden channel -- a header that exists
@@ -191,8 +263,7 @@ are shaped the way they are.
 - **One unconditional rewrite to `/_/:path*` first, then a second rule matching
   `/_/:path*` with `?lang` present.** Two rules, no whitelist needed, and it works today.
   Rejected because it depends on `beforeFiles` chaining every matching rule -- the
-  behaviour measured above, which the documentation does not promise. The `has`/`missing`
-  pair is correct under either behaviour.
+  behaviour measured above, which the documentation does not promise.
 - **`Accept-Language`, or a cookie.** Ruled out by the core document (no cookies, section
   8) and by 4.1: a shared link must reproduce the sender's screen, so the language belongs
   inside the link.
@@ -204,9 +275,18 @@ are shaped the way they are.
   `src/app/` and `next.config.ts` moves: `src/components/`, `src/tree/`, `src/chrome.ts`,
   `src/config.ts` and `src/markdown.ts` are untouched.
 - `next.config.ts` stops being purely deployment configuration and holds one routing rule.
-  Section 6 names it as owning that rule and nothing else. The literal `_` lives there and
-  is understood by the resolution rule in `src/url.ts`; the two are tied together only by
-  4.4, which is why 4.4 states it once and both files point at it.
+  Section 6 names it as owning that rule and nothing else. It is also the one file that
+  spells `_`; `src/url.ts` resolves it by the ordinary rule and never names it, and 4.3
+  states that split as a rule rather than as a comment on a signature.
+- **Section 7 gains `routing.test.ts`.** 4.4 is the first contract whose subject lives in
+  `next.config.ts`, and browser tests are deliberately out of the contract, so the rules
+  are asserted where they are written: the test reads `config.rewrites()` and checks that
+  the grammar accepts exactly the well-formed tags of 4.1 and that the second rule fires
+  for exactly the values the first rejects. No server, no browser. The end-to-end table
+  above is the acceptance criteria of #20, not a frozen test.
+- `url.test.ts`'s promise -- every 404 case of 4.3 -- still holds unchanged, because 4.3
+  gains no 404 case: every one of them is still a judgement `parseUrl` makes about the
+  path. This is the second reason decision 5 ignores rather than rejects.
 - The application no longer reads `searchParams` anywhere. If a later issue needs a second
   query parameter it arrives through the page, not through the layout, and 4.1's "other
   query parameters are ignored" still holds.
@@ -214,14 +294,11 @@ are shaped the way they are.
   requests. It was checked against React Server Component requests as well -- the shape a
   `next/link` navigation sends -- and those resolve to the same language, so a later issue
   may adopt `next/link` without revisiting this.
-- The 404 page renders inside the `[lang]` layout, so its document language is the one that
-  was asked for while its text is the Tree's default language; decision 7 keeps that
-  honest. Making the 404 page itself follow the content language is not solved here and is
-  not needed for 3.1.
 - Separately, and **not** caused by this decision: on `DeKnecht/issue-7` the 404 page's
   markup reaches the browser only inside the embedded React payload -- the first HTML
   document is Next.js's built-in error shell, `<html id="__next_error__">`, with the status
-  correctly 404. It reproduces identically before and after this restructure, in `next dev`
-  and in a production build, so it is a defect of the Node view and not of the language
-  route. It is reported on PR #17 and filed as its own issue; it must not be mistaken for a
-  consequence of this ADR.
+  correctly 404 and no `lang` at all. It reproduces identically before and after this
+  restructure, in `next dev` and in the standalone build, so it is a defect of the Node
+  view and not of the language route. It is reported on PR #17 and filed as #21; until it
+  is fixed, decision 7's attributes and the `<html lang>` of a 404 page are observable only
+  in the payload. It must not be mistaken for a consequence of this ADR.
