@@ -1,6 +1,8 @@
 # ADR-5-chrome-languages: chrome in English and Dutch as typed strings in the code; follows the content language, falls back to English
 
-- Status: ACCEPTED (frozen) -- 2026-09-03; decides core document OPEN 10.20
+- Status: ACCEPTED (frozen) -- 2026-09-03
+- How `<html lang>` is actually set is `ADR-19-content-language-in-the-route.md`
+  (application.md 4.4); the rule of 3.1 recorded here is unchanged.; decides core document OPEN 10.20
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 3
 

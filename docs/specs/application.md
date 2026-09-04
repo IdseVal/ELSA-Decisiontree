@@ -2,7 +2,12 @@
 
 > Status: FROZEN -- 2026-09-03 (issue #5). These are the contracts the build issues
 > (loader, Node view, Trail and sharing, language switch, deployment) are built against.
-> Changing one requires a new `architecture` issue. The Tree file format they consume is
+> Changing one requires a new `architecture` issue.
+>
+> Amended 2026-09-04 by issue #19 (`docs/adrs/ADR-19-content-language-in-the-route.md`):
+> sections 4.1, 4.3, 4.4 and 6. The content language reaches `<html lang>` through a
+> `[lang]` route segment that a rewrite fills from `?lang`. The public URL scheme of 4.1
+> and the rule of 3.1 are unchanged; what changed is how the application meets them. The Tree file format they consume is
 > frozen separately in `docs/specs/tree-format.md` (issue #4).
 >
 > Vocabulary: the canonical names from `docs/CORE_DOCUMENT.md` section 5 -- **Tree**,
@@ -65,7 +70,8 @@ Recorded in `docs/adrs/ADR-5-tree-selection.md`.
   (`nl-be` gives `nl`) is a chrome language; **otherwise chrome is English.** The
   content language is never changed by this rule.
 - `<html lang>` is the content language; chrome elements in another language carry
-  their own `lang` attribute.
+  their own `lang` attribute. How the root layout learns the content language is 4.4;
+  the one page that cannot follow it, the 404 page, is 4.3.
 
 | Tree languages | User picks | Content | Chrome |
 |---|---|---|---|
@@ -113,7 +119,11 @@ Redirects   /            ->  /<tree-id>/<root-id>[?lang=...]      307
 - **The share link is the page's own URL.** The share button copies it to the
   clipboard; without JavaScript the address bar is the share link.
 - `lang` is one of the Tree's declared languages. Absent means the Tree's default
-  language; the app omits it for the default language. An undeclared value is ignored.
+  language; the app omits it for the default language. A **well-formed** language tag the
+  Tree does not declare is ignored and the default language is used; a value that is not a
+  well-formed language tag answers 404 (4.3). Well-formed means
+  `[a-zA-Z]{2,8}(-[a-zA-Z0-9]{1,8})*`, and an empty `?lang=` counts as absent. When `lang`
+  appears more than once in one URL the last occurrence is the one that counts.
 - Other query parameters are ignored. No trailing slash (the framework redirects).
 - Clicking Trail entry `k` links to `/<tree-id>/<id-1>/.../<id-k>` with the same
   `lang`: the Trail after it is discarded (core document 10.17).
@@ -154,15 +164,19 @@ The first Image of `start`:
 | An id is malformed (not the id grammar) | 404. Nothing is looked up on disk for it. |
 | An id is well-formed but not a Node of the Tree | 404. |
 | Trail adjacency | Not checked: any sequence of existing Node ids is accepted. |
-| `lang` not declared by the Tree | Ignored; default language used; 200. |
+| `lang` is a well-formed tag the Tree does not declare | Ignored; default language used; 200. |
+| `lang` is not a well-formed language tag | 404. Only a well-formed tag may become a path segment (4.4), so nothing else is routable. |
 | Image name malformed or not in the Tree's `images/` | 404. |
 | Reserved Tree ids | `images`. A deployment with `ELSA_TREE=images` refuses to start. |
-| The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. |
+| The 404 page | A small page in the **Tree's default** language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. Next.js renders `not-found.tsx` without params, so it cannot know the content language, and it renders inside the `[lang]` layout: on `?lang=nl` the document says `<html lang="nl">` while this page's text is English. Every element it renders therefore carries `lang="<defaultLanguage>"` of its own, which is 3.1's second half. |
 
 The grammar is implemented once, in `src/url.ts`:
 
 ```ts
-parseUrl(path: string, query: URLSearchParams, tree: Tree): PageAddress | NotFound
+parseUrl(path: string, lang: string | null, tree: Tree): PageAddress | NotFound
+// `lang` is the value of the [lang] route segment (4.4), not a query: after the rewrite
+// nothing in the application reads `searchParams`. A value the Tree does not declare --
+// including the `_` segment that stands for "none asked for" -- means the default language.
 interface PageAddress { treeId: string; trail: string[]; nodeId: string; lang: string }
 nodeHref(a: PageAddress): string                   // the page for `a`
 followHref(a: PageAddress, targetId: string): string  // push nodeId onto trail, go to target; drops oldest beyond 50
@@ -172,7 +186,59 @@ imageHref(file: string): string
 canonicalHref(a: PageAddress): string
 ```
 
-Recorded in `docs/adrs/ADR-5-url-scheme.md`.
+Recorded in `docs/adrs/ADR-5-url-scheme.md`, amended by
+`docs/adrs/ADR-19-content-language-in-the-route.md`.
+
+### 4.4 How the content language reaches `<html lang>`
+
+Only the owner of the `<html>` element -- the root layout -- can set `lang`, and Next.js
+does not give a layout `searchParams`. The query is therefore restated as a leading path
+segment **inside** the server, before the file system is consulted. Nothing about the
+public URL changes: a rewrite is invisible to the browser, so the address bar, the share
+link and the canonical link all keep `?lang=`.
+
+`next.config.ts` holds exactly two rules, and nothing else about routing:
+
+```ts
+async rewrites() {
+  return {
+    beforeFiles: [
+      // ?lang=<well-formed tag>  ->  /<tag>/...   (4.1 defines well-formed)
+      {
+        source: '/:path*',
+        has: [{ type: 'query', key: 'lang', value: '(?<lang>[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*)' }],
+        destination: '/:lang/:path*',
+      },
+      // no ?lang  ->  /_/...
+      { source: '/:path*', missing: [{ type: 'query', key: 'lang' }], destination: '/_/:path*' },
+    ],
+  }
+}
+```
+
+| Public URL | Route the server matches | `<html lang>` |
+|---|---|---|
+| `/ai-act-example/start` | `/_/ai-act-example/start` | the Tree's default |
+| `/ai-act-example/start?lang=nl` | `/nl/ai-act-example/start` | `nl` |
+| `/ai-act-example/start?lang=de` (undeclared) | `/de/ai-act-example/start` | the Tree's default |
+| `/ai-act-example/start?lang=../x` (malformed) | no rule matches; no route matches | 404 |
+| `/images/eu-map.png` | `/_/images/eu-map.png` | -- (a route handler; no layout) |
+
+- **`_` means "no language was asked for".** It is safe as a literal because an id is
+  `[a-z0-9-]` (`tree-format.md` 3.1), so no Tree and no Node can be called `_`, and `_` is
+  not a well-formed language tag. It needs no special case: the ordinary rule -- a language
+  the Tree does not declare means the Tree's default -- already resolves it correctly. The
+  literal appears only in `next.config.ts`; `src/url.ts` never names it.
+- **The whitelist is the safety property.** Only a well-formed language tag can be copied
+  into a path, so no value of `?lang` can introduce a path separator, a `..` traversal or
+  markup into the route.
+- **The language is resolved once,** by `src/url.ts` (4.3). The root layout, the Node page
+  and its `generateMetadata` all take it from the `[lang]` segment; after the rewrite no
+  server component reads `searchParams`. Two readers of the same URL cannot disagree about
+  its language, which is what made a repeated `?lang=nl&lang=en` render an English document
+  around Dutch content before this section existed.
+
+Recorded in `docs/adrs/ADR-19-content-language-in-the-route.md`.
 
 ## 5. Lazy loading contract
 
@@ -262,14 +328,16 @@ Recorded in `docs/adrs/ADR-5-lazy-loading.md`.
 ├── trees/                   Tree data: one folder per Tree (elsa-tree/1)
 │   └── ai-act-example/      the spec's example Tree; development default
 ├── src/
-│   ├── app/                 Next.js routes (thin)
-│   │   ├── layout.tsx       html shell, language switch, footer with disclaimer
-│   │   ├── page.tsx         `/` -> redirect to the root Node
-│   │   ├── not-found.tsx    the 404 page
-│   │   ├── globals.css      the stylesheet
-│   │   ├── [tree]/page.tsx                `/<tree-id>` -> redirect to the root Node
-│   │   ├── [tree]/[...path]/page.tsx      the Node page
-│   │   └── images/[file]/route.ts         streams one image file
+│   ├── app/                 Next.js routes (thin); everything sits under [lang] (4.4)
+│   │   └── [lang]/
+│   │       ├── layout.tsx   the ROOT layout: html shell with `lang`, language switch,
+│   │       │                footer with disclaimer. There is no src/app/layout.tsx.
+│   │       ├── page.tsx     `/` -> redirect to the root Node
+│   │       ├── not-found.tsx  the 404 page
+│   │       ├── globals.css  the stylesheet
+│   │       ├── [tree]/page.tsx             `/<tree-id>` -> redirect to the root Node
+│   │       ├── [tree]/[...path]/page.tsx   the Node page
+│   │       └── images/[file]/route.ts      streams one image file (ignores [lang])
 │   ├── components/          synchronous React views
 │   ├── tree/                the Tree loader module
 │   │   ├── loader.ts        openTree and the Tree interface (5.1)
@@ -295,15 +363,19 @@ Recorded in `docs/adrs/ADR-5-lazy-loading.md`.
 | `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. | Parse Trees or URLs. |
 | `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab. | Accept raw HTML. |
 | `src/components/` | Views: Node view, Trail, thumbnails (client), share button (client), language switch, footer. Synchronous; take data, return markup. | Touch the file system, environment or request. |
-| `src/app/` | Routes: parse, load, hand to a view; redirects; the image route; 404. | Hold logic. |
+| `src/app/` | Routes: parse, load, hand to a view; redirects; the image route; 404. The `[lang]` layout sets `<html lang>` from its own segment. | Hold logic. Read `searchParams`. |
+| `next.config.ts` | The two rewrites of 4.4 that put `?lang` into the route, plus the build settings of section 1. | Know which languages a Tree declares, or anything else about the application. |
 | `scripts/validate.ts` | The validator command line. | Duplicate rules: it calls `openTree`. |
 
 Dependencies point inward: `app` uses `components`, `url`, `chrome`, `config`,
 `markdown`; `config` uses `tree`; `components` use `chrome`, `url`, `markdown` and the
-types of `tree`. `src/tree/` imports nothing from the rest of the app. Styling
+types of `tree`. `src/tree/` imports nothing from the rest of the app. `next.config.ts`
+imports nothing from `src/`: it is loaded before the application and only moves a query
+value into a path. Styling
 mechanism and visual design are the UI issue's, within these files.
 
-Recorded in `docs/adrs/ADR-5-repository-layout.md`.
+Recorded in `docs/adrs/ADR-5-repository-layout.md`, amended by
+`docs/adrs/ADR-19-content-language-in-the-route.md`.
 
 ## 7. Testing approach
 
@@ -347,4 +419,5 @@ Recorded in `docs/adrs/ADR-5-testing-approach.md`.
 | Path is the Trail; `lang` query; 50-id limit; 404 rules | `docs/adrs/ADR-5-url-scheme.md` |
 | The loader seam; one Node per request; images by route; startup validation | `docs/adrs/ADR-5-lazy-loading.md` |
 | `src/` modules, `trees/`, `tests/`; dependency direction | `docs/adrs/ADR-5-repository-layout.md` |
+| `?lang` restated as a `[lang]` route segment so `<html lang>` is the content language | `docs/adrs/ADR-19-content-language-in-the-route.md` |
 | Vitest; fixtures through the loader; the interoperability test | `docs/adrs/ADR-5-testing-approach.md` |

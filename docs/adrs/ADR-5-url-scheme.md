@@ -3,6 +3,11 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 4
+- Amended 2026-09-04 by `ADR-19-content-language-in-the-route.md`: the public grammar
+  below is unchanged, but a `lang` value that is not a well-formed language tag now
+  answers 404, and inside the server the query is restated as a `[lang]` path segment so
+  that the root layout can set `<html lang>` (application.md 4.4). The rejection of a
+  *public* language prefix, below, stands.
 
 ## Context
 
