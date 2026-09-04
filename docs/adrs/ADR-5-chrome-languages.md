@@ -3,6 +3,10 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03; decides core document OPEN 10.20
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 3
+- Pointer, not an amendment: the rule of 3.1 recorded here is unchanged by issue #19.
+  How the root layout learns the content language it follows, and which language the 404
+  page falls back to, are in `ADR-19-content-language-in-the-route.md` (application.md
+  4.3, 4.4).
 
 ## Context
 
