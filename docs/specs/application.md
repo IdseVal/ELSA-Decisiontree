@@ -6,10 +6,10 @@
 > frozen separately in `docs/specs/tree-format.md` (issue #4).
 >
 > Amended 2026-09-04 by issue #19 (`docs/adrs/ADR-19-content-language-in-the-route.md`):
-> sections 4.1, 4.3, 4.4, 6 and 7. The content language reaches `<html lang>` through a
-> `[lang]` route segment that a rewrite fills from `?lang`. The public URL scheme of 4.1,
-> the answers of 4.3 and the rule of 3.1 are unchanged; what changed is how the
-> application meets them.
+> sections 4.1, 4.3, 4.4, 6 and 7, plus a pointer in 3.1 whose rule is unchanged. The
+> content language reaches `<html lang>` through a `[lang]` route segment that a rewrite
+> fills from `?lang`. The public URL scheme of 4.1 and the answers of 4.3 are unchanged;
+> what changed is how the application meets them.
 >
 > Vocabulary: the canonical names from `docs/CORE_DOCUMENT.md` section 5 -- **Tree**,
 > **Node**, **Link**, **Answer**, **Option**, **Terminal**, **Image**, **Source**,
@@ -174,7 +174,7 @@ The first Image of `start`:
 | `lang` not declared by the Tree | Ignored; default language used; 200. This holds for every value, including one that is not a language tag at all: 4.4 keeps such a value out of the route rather than answering an error for it. |
 | Image name malformed or not in the Tree's `images/` | 404. |
 | Reserved Tree ids | `images`. A deployment with `ELSA_TREE=images` refuses to start. |
-| The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. Next.js renders `not-found.tsx` without params, so it cannot know the content language; it therefore takes the chrome language 3.1 resolves from the **Tree's default** language, which is `en` or `nl` and never an arbitrary tag. Because the page renders inside the `[lang]` layout, `<html lang>` around it is still the language that was asked for, so every element this page renders carries that chrome language as its own `lang` -- 3.1's second half, and the reason the attribute is never a false statement about the text under it. |
+| The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. Next.js renders `not-found.tsx` without params, so it cannot know the content language; it therefore takes the chrome language 3.1 resolves from the **Tree's default** language, which is `en` or `nl` and never an arbitrary tag. Because the page renders inside the `[lang]` layout, `<html lang>` around it is the resolved content language of the request -- what `src/url.ts` makes of the segment (4.4): a language the Tree declares, or the Tree's default -- exactly as on every other page. Every element this page renders carries the chrome language above as its own `lang`: that is 3.1's second half, and the reason each element's own `lang` is never a false statement about the text under it. |
 
 Two rules divide this work, and neither file needs to know the other's:
 
@@ -259,7 +259,8 @@ async rewrites() {
   second segment is not the served Tree's id.
 - **The language is resolved once,** by `src/url.ts`. The root layout, the Node page and
   its `generateMetadata` all take it from the `[lang]` segment; after the rewrite no server
-  component reads `searchParams`. Two readers of the same URL cannot disagree about its
+  component reads the *language* from `searchParams` -- the one thing `searchParams` may
+  never be used for (section 6). Two readers of the same URL cannot disagree about its
   language, which is what made a repeated `?lang=nl&lang=en` render an English document
   around Dutch content before this section existed.
 
@@ -404,7 +405,7 @@ Recorded in `docs/adrs/ADR-5-lazy-loading.md`.
 | `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. | Parse Trees or URLs. |
 | `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab. | Accept raw HTML. |
 | `src/components/` | Views: Node view, Trail, thumbnails (client), share button (client), language switch, footer. Synchronous; take data, return markup. | Touch the file system, environment or request. |
-| `src/app/` | Routes: parse, load, hand to a view; redirects; the image route; 404. The `[lang]` layout sets `<html lang>` from its own segment. | Hold logic. Read `searchParams`. |
+| `src/app/` | Routes: parse, load, hand to a view; redirects; the image route; 404. The `[lang]` layout sets `<html lang>` from its own segment. | Hold logic. Take the language from `searchParams`: the language is the `[lang]` segment (4.4), and nothing in the application reads it from anywhere else. |
 | `next.config.ts` | The two rewrites of 4.4 that put `?lang` into the route, plus the build settings of section 1. | Know which languages a Tree declares, or anything else about the application. |
 | `scripts/validate.ts` | The validator command line. | Duplicate rules: it calls `openTree`. |
 
@@ -427,7 +428,7 @@ Recorded in `docs/adrs/ADR-5-repository-layout.md`, amended by
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; never YAML read by a test. |
 | Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`); `tests/fixtures/single-language/` (`nl`); `tests/fixtures/other-languages/` (`de`, `fr`); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, breaking exactly that rule). |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
-| Test files | `loader.test.ts` (every V-rule via `invalid/<rule>/`; `getNode` returns one Node; malformed ids give `null`), `url.test.ts` (parse and build are inverses; every 404 case of 4.3, all of which `parseUrl` decides; the 50-id limit; a segment the Tree does not declare gives the default language), `routing.test.ts` (the two rewrites of 4.4, read out of `next.config.ts` itself: the grammar accepts exactly the well-formed tags of 4.1, and the second rule fires for exactly the values the first rejects), `chrome.test.ts` (the table in 3.1), `views.test.tsx`, `interop.test.tsx`. |
+| Test files | `loader.test.ts` (every V-rule via `invalid/<rule>/`; `getNode` returns one Node; malformed ids give `null`), `url.test.ts` (parse and build are inverses; every 404 case of 4.3; the 50-id limit; a segment the Tree does not declare gives the default language), `routing.test.ts` (the two rewrites of 4.4, read out of `next.config.ts` itself: the grammar accepts exactly the well-formed tags of 4.1, and the second rule fires for exactly the values the first rejects), `chrome.test.ts` (the table in 3.1), `views.test.tsx`, `interop.test.tsx`. |
 | The interoperability test | For `single-language/` and `other-languages/`, for every declared language, every Node of the fixture, with an empty and a full Trail: renders without exception; the Node title in that language is present; the disclaimer is Dutch for `nl`, English for `de` and `fr`; the language switch lists exactly the manifest's languages; the markup contains neither `undefined` nor `[object Object]`. This is core document section 9, first bullet, as a test. |
 | Not in the contract | Browser (Playwright) tests; may be added by a later issue. Nothing in these contracts depends on one: 4.4 is asserted against the rewrite rules in `routing.test.ts`, which needs no server, and the end-to-end table it produces is the acceptance criteria of the build issue rather than a frozen test. |
 

@@ -48,36 +48,21 @@ canonical link and every link the application emits is exactly what it was.
 stands: it would lengthen every URL and invalidate every link already shared.
 
 **2. A rewrite restates the query as a leading path segment, before the file system.**
-`next.config.ts` gains two rules that partition every request between them:
+`next.config.ts` gains two `beforeFiles` rewrite rules that partition every request between
+them. Both test the same grammar -- 4.1's well-formed language tag, written once as a
+constant. A request whose `lang` query `has` a well-formed value is rewritten to
+`/<that tag>/:path*`, so the root layout gets it as a param; a request `missing` one -- no
+`lang`, an empty one, or a value that is not a tag -- is rewritten to `/_/:path*`.
 
-```ts
-const LANGUAGE_TAG = '[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*'   // 4.1, well-formed
+The rules as frozen, with their exact `source`, `has`, `missing` and `destination`, are in
+`docs/specs/application.md` 4.4. They are written out in that one place, not here as well,
+so that the contract and this record cannot drift apart.
 
-async rewrites() {
-  return {
-    beforeFiles: [
-      // a well-formed ?lang  ->  /<tag>/...   so the root layout gets it as a param
-      {
-        source: '/:path*',
-        has: [{ type: 'query', key: 'lang', value: `(?<lang>${LANGUAGE_TAG})` }],
-        destination: '/:lang/:path*',
-      },
-      // anything else -- no `lang`, an empty one, or a value that is not a tag  ->  /_/...
-      {
-        source: '/:path*',
-        missing: [{ type: 'query', key: 'lang', value: LANGUAGE_TAG }],
-        destination: '/_/:path*',
-      },
-    ],
-  }
-}
-```
-
-The two rules test the same grammar, and `missing` holds exactly when `has` does not, so
-they are **exhaustive and mutually exclusive**: every request is rewritten exactly once,
-whether or not `beforeFiles` stops at the first rule it matches -- behaviour the
-documentation does not promise either way, and which the experiment below found does *not*
-stop at the first match. Nothing reaches the file system with its public path.
+Because `missing` holds exactly when `has` does not, over the same grammar, the pair is
+**exhaustive and mutually exclusive**: every request is rewritten exactly once, whether or
+not `beforeFiles` stops at the first rule it matches -- behaviour the documentation does
+not promise either way, and which the experiment below found does *not* stop at the first
+match. Nothing reaches the file system with its public path.
 
 A rewrite is internal: the address bar, the share link and the canonical link keep the
 query. This is plain Next.js configuration on the Node.js runtime -- no edge runtime, no
@@ -140,10 +125,11 @@ whose languages are `de` and `fr` the page is English and marked `lang="en"`; on
 Tree it is Dutch and marked `lang="nl"`. Marking it with the Tree's default language
 instead would put `lang="de"` on English text: the same false attribute this ADR exists to
 remove, which is why the row in 4.3 keeps its original wording. The page renders *inside*
-the `[lang]` layout, so `<html lang>` around it is still the language that was asked for;
-decision 7 is 3.1's second half -- chrome in another language carries its own `lang` --
-applied to the one page that cannot follow the content language, and it needs no new
-mechanism.
+the `[lang]` layout, so `<html lang>` around it is the resolved content language of the
+request -- a language the Tree declares, or the Tree's default -- exactly as on every
+other page; decision 7 is 3.1's second half -- chrome in another language carries its own
+`lang` -- applied to the one page that cannot follow the content language, and it needs no
+new mechanism.
 
 ## What was measured
 
@@ -204,8 +190,10 @@ ever repeats `lang`.
 | `/single-language/nope` | Dutch | `nl` | `nl` |
 
 The `de` Tree is the case that decides decision 7: the page's text is English, so `en` is
-the only attribute that is true of it. (`<html lang>` here is read out of the React payload,
-because of the defect below.)
+the only attribute that is true of it. The last column is the resolved content language of
+the request, by the same rule as every other page -- `de` because that fixture declares it
+as its default, `fr` because that fixture declares it as well. (`<html lang>` here is read
+out of the React payload, because of the defect below.)
 
 Three things were established by experiment rather than assumed, and all three changed a
 rule rather than confirming one.
@@ -284,12 +272,15 @@ rule rather than confirming one.
   the grammar accepts exactly the well-formed tags of 4.1 and that the second rule fires
   for exactly the values the first rejects. No server, no browser. The end-to-end table
   above is the acceptance criteria of #20, not a frozen test.
-- `url.test.ts`'s promise -- every 404 case of 4.3 -- still holds unchanged, because 4.3
-  gains no 404 case: every one of them is still a judgement `parseUrl` makes about the
-  path. This is the second reason decision 5 ignores rather than rejects.
-- The application no longer reads `searchParams` anywhere. If a later issue needs a second
-  query parameter it arrives through the page, not through the layout, and 4.1's "other
-  query parameters are ignored" still holds.
+- `url.test.ts`'s promise -- every 404 case of 4.3 -- still holds exactly as frozen and is
+  not touched by this ADR, because 4.3 gains no 404 case: no answer in that table moved,
+  and not one of them became the router's to make. This is the second reason decision 5
+  ignores rather than rejects.
+- The application never reads the *language* from `searchParams` again. That is the rule
+  section 6 freezes, and it is what makes 4.4 true; `searchParams` itself is not forbidden,
+  or a later query parameter could never be read at all. If a later issue needs one it
+  arrives through the page, not through the layout -- a layout is not given `searchParams`
+  -- and 4.1's "other query parameters are ignored" still holds today.
 - Navigation is plain `<a href>` today, so the rewrite only ever sees full document
   requests. It was checked against React Server Component requests as well -- the shape a
   `next/link` navigation sends -- and those resolve to the same language, so a later issue
