@@ -7,6 +7,19 @@ import type { NextConfig } from 'next'
  */
 const LANGUAGE_TAG = '[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*'
 
+/**
+ * Every path except Next.js's own. 4.4 writes `'/:path*'` here, on ADR-19's measurement
+ * that "Next.js excludes its own paths from rewrites". It does not, on Next.js 16.3.4:
+ * `/:path*` matches `/_next/static/<chunk>` as well, the second rule sends it to
+ * `/_/_next/static/<chunk>`, and every stylesheet and client chunk answers 404 -- pages
+ * arrive unstyled and no client component runs. This one exclusion is the whole difference,
+ * and it changes no answer in 4.4's table (both measured; the numbers are in the PR of
+ * issue #20, which asks the Architect to amend 4.4 and the ADR row it rests on). A Tree id
+ * cannot begin with `_` (tree-format.md 3.1), so nothing of this application is excluded
+ * with it.
+ */
+const EVERY_PATH_BUT_NEXTS_OWN = '/:path((?!_next/).*)'
+
 // docs/specs/application.md section 1: a self-contained folder run with `node server.js`,
 // no vendor features, no X-Powered-By header.
 const config: NextConfig = {
@@ -26,15 +39,15 @@ const config: NextConfig = {
       beforeFiles: [
         // a well-formed ?lang  ->  /<tag>/...
         {
-          source: '/:path*',
+          source: EVERY_PATH_BUT_NEXTS_OWN,
           has: [{ type: 'query', key: 'lang', value: `(?<lang>${LANGUAGE_TAG})` }],
-          destination: '/:lang/:path*',
+          destination: '/:lang/:path',
         },
         // anything else -- no `lang`, an empty one, or a value that is not a tag  ->  /_/...
         {
-          source: '/:path*',
+          source: EVERY_PATH_BUT_NEXTS_OWN,
           missing: [{ type: 'query', key: 'lang', value: LANGUAGE_TAG }],
-          destination: '/_/:path*',
+          destination: '/_/:path',
         },
       ],
     }

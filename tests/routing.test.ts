@@ -37,14 +37,36 @@ function accepts(grammar: string, value: string): boolean {
   return new RegExp(`^${grammar}$`).test(value)
 }
 
+/** The regular expression inside a source written as one named path parameter, `/:name(...)`. */
+function pathPattern(source: string): string {
+  const pattern = /^\/:[a-zA-Z]+\((.*)\)$/.exec(source)?.[1]
+  if (!pattern) throw new Error(`a source of one named path parameter is expected: ${source}`)
+  return pattern
+}
+
 describe('the rewrites that restate ?lang as a route segment', () => {
   test('a well-formed lang leads the path; anything else takes the sentinel', async () => {
     const { withTag, withoutTag } = await beforeFiles()
 
-    expect(withTag).toMatchObject({ source: '/:path*', destination: '/:lang/:path*' })
+    expect(withTag).toMatchObject({ destination: '/:lang/:path' })
     expect(withTag.has).toMatchObject([{ type: 'query', key: 'lang' }])
-    expect(withoutTag).toMatchObject({ source: '/:path*', destination: '/_/:path*' })
+    expect(withoutTag).toMatchObject({ destination: '/_/:path' })
     expect(withoutTag.missing).toMatchObject([{ type: 'query', key: 'lang' }])
+  })
+
+  test("the rules take every path but Next.js's own, so the client bundle is served", async () => {
+    // The one place this implementation departs from the frozen text of 4.4, which writes
+    // `/:path*`: these rules run before the file system, and with no exclusion they send
+    // `/_next/static/<chunk>` to the sentinel route, so every stylesheet and client chunk
+    // answers 404. Measured on Next.js 16.3.4; the PR of issue #20 asks for the amendment.
+    const { withTag, withoutTag } = await beforeFiles()
+    expect(withTag.source).toBe(withoutTag.source)
+    const path = new RegExp(`^${pathPattern(withTag.source)}$`)
+
+    expect(path.test('ai-act-example/start'), 'a Node page').toBe(true)
+    expect(path.test('images/eu-map.png'), 'an image').toBe(true)
+    expect(path.test(''), 'the bare root').toBe(true)
+    expect(path.test('_next/static/chunk.css'), "Next.js's own").toBe(false)
   })
 
   test('the grammar accepts exactly the well-formed tags of 4.1', async () => {
