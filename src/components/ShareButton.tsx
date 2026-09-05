@@ -46,15 +46,19 @@ export function ShareButton({
       >
         {ui.share}
       </button>
-      {/* On the page from the first paint, so a screen reader announces what appears in it. */}
-      <span className="share-said" role="status" lang={uiLang}>
-        {copied ? ui.copied : ''}
-      </span>
-      {byHand !== null && (
-        <p className="share-by-hand">
-          <span lang={uiLang}>{ui.copyFailed}</span> <code>{byHand}</code>
-        </p>
-      )}
+      {/*
+        On the page from the first paint, so a screen reader announces what appears in it --
+        and everything the button has to say goes in here, the refusal included: a reader who
+        cannot see the link offered by hand is the reader who most needs to be told about it.
+      */}
+      <div className="share-said" role="status" lang={uiLang}>
+        {copied && ui.copied}
+        {byHand !== null && (
+          <p className="share-by-hand">
+            {ui.copyFailed} <code>{byHand}</code>
+          </p>
+        )}
+      </div>
     </div>
   )
 }

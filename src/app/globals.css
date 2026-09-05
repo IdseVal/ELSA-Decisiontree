@@ -270,11 +270,14 @@ a {
   color: var(--accent);
 }
 
+/* A refused clipboard says more than a confirmation does: give it the whole width. */
+.share-said:has(.share-by-hand) {
+  flex-basis: 100%;
+}
+
 /* Shown only when the browser refused the clipboard, so the reader can still take the link. */
 .share-by-hand {
-  flex-basis: 100%;
   margin: 0;
-  font-size: 0.74rem;
   color: var(--ink-soft);
 }
 

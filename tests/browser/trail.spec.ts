@@ -77,6 +77,43 @@ test('the share button copies the page it is on, and says so', async ({ page, co
   expect(copied).toBe(new URL(CHILD, page.url()).toString())
 })
 
+/**
+ * Replaces the page's clipboard before any of its script runs: `refused` is a clipboard that
+ * denies the write (an insecure context, a withheld permission), `absent` is a browser that
+ * has no clipboard API at all. Neither can be produced by a permission grant.
+ */
+async function breakClipboard(page: Page, how: 'refused' | 'absent'): Promise<void> {
+  await page.addInitScript((how) => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: how === 'refused' ? { writeText: () => Promise.reject(new Error('denied')) } : undefined,
+    })
+  }, how)
+}
+
+for (const how of ['refused', 'absent'] as const) {
+  test(`the link is offered by hand, not claimed copied, when the clipboard is ${how}`, async ({
+    page,
+  }) => {
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(String(error)))
+    await breakClipboard(page, how)
+    await walkToChild(page)
+
+    await page.getByRole('button', { name: 'Copy link' }).click()
+
+    // The offer is announced, not just drawn: it is inside the live region the button owns,
+    // which is where a reader who cannot see it will be told about it.
+    const said = page.locator('.share-said')
+    await expect(said).toHaveAttribute('role', 'status')
+    await expect(said).toContainText('Copy this link yourself:')
+    await expect(said.locator('.share-by-hand code')).toHaveText(page.url())
+    // And the button never claims a copy that did not happen.
+    await expect(said).not.toContainText('Link copied')
+    expect(errors).toEqual([])
+  })
+}
+
 test('a shared link shows the recipient the same Node and the same Trail', async ({
   page,
   context,
