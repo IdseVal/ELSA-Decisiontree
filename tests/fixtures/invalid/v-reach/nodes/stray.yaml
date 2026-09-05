@@ -1,0 +1,9 @@
+title:
+  en: Nobody links here
+description:
+  en: |
+    A Terminal that no Answer targets.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: refer

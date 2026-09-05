@@ -1,0 +1,36 @@
+title:
+  en: Third-country authorities and international organisations in law enforcement cooperation
+  nl: Autoriteiten van derde landen en internationale organisaties bij samenwerking op het gebied van rechtshandhaving
+description:
+  en: |
+    Article 2(4) excludes public authorities in a third country and international
+    organisations that would otherwise fall within the scope under Article 2(1), **where
+    they use AI systems in the framework of international cooperation or agreements for
+    law enforcement and judicial cooperation** with the Union or with one or more Member
+    States.
+
+    The exclusion is conditional: the third country or international organisation must
+    provide adequate safeguards with respect to the protection of fundamental rights and
+    freedoms of individuals.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 2, lid 4, sluit overheidsinstanties in derde landen en internationale
+    organisaties uit die anders op grond van artikel 2, lid 1, binnen het
+    toepassingsgebied zouden vallen, **wanneer deze instanties of organisaties
+    AI-systemen gebruiken in het kader van internationale samenwerking of overeenkomsten
+    met de Unie of een of meer lidstaten op het gebied van rechtshandhaving en justitie**.
+
+    De uitsluiting is voorwaardelijk: het derde land of de internationale organisatie moet
+    passende waarborgen bieden met betrekking tot de bescherming van de grondrechten en
+    fundamentele vrijheden van natuurlijke personen.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 2(4) AI Act
+      nl: Artikel 2, lid 4, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2

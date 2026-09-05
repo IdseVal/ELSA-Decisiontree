@@ -3,6 +3,10 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 6
+- Amended 2026-09-04 by `ADR-19-content-language-in-the-route.md`: every file of
+  `src/app/` listed below moves one level down, under `[lang]/`, whose `layout.tsx` is the
+  root layout and owns `<html lang>`; `next.config.ts` gains the two rewrites of
+  application.md 4.4. No other module moves.
 
 ## Context
 

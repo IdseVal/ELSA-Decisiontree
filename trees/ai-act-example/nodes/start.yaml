@@ -1,0 +1,43 @@
+title:
+  en: Is your AI system within the reach of the AI Act?
+  nl: Valt uw AI-systeem binnen het bereik van de AI-verordening?
+description:
+  en: |
+    The AI Act reaches AI systems that are **placed on the market or put into service
+    in the EU**, and systems whose *output is used in the EU*, wherever the provider
+    or deployer is established.
+
+    Answer **yes** if any of these applies to your system:
+
+    - you place it on the EU market or put it into service in the EU;
+    - you use it in the EU;
+    - it is used outside the EU but its output is used in the EU.
+  nl: |
+    De AI-verordening bestrijkt AI-systemen die **in de EU in de handel worden gebracht
+    of in gebruik worden gesteld**, en systemen waarvan de *output in de EU wordt
+    gebruikt*, ongeacht waar de aanbieder of gebruiksverantwoordelijke is gevestigd.
+
+    Antwoord **ja** als een van deze situaties op uw systeem van toepassing is:
+
+    - u brengt het in de EU in de handel of stelt het in de EU in gebruik;
+    - u gebruikt het in de EU;
+    - het wordt buiten de EU gebruikt, maar de output wordt in de EU gebruikt.
+metadata:
+  version: "1.0"
+sources:
+  - id: art-2
+    kind: legal
+    label:
+      en: Article 2 AI Act (scope)
+      nl: Artikel 2 AI-verordening (toepassingsgebied)
+    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+images:
+  - file: eu-map.png
+    description:
+      en: Map of the European Union member states
+      nl: Kaart van de lidstaten van de Europese Unie
+    credit: "Map: Example Cartography, CC BY 4.0"
+    source: art-2
+answers:
+  yes: prohibited-practices
+  no: outside-scope

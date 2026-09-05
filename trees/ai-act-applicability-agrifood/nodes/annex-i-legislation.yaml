@@ -1,0 +1,203 @@
+title:
+  en: Is your system a safety component, or a product, under Annex I legislation?
+  nl: Is uw systeem een veiligheidscomponent, of een product, onder wetgeving uit bijlage I?
+description:
+  en: |
+    This is the first of the two routes to a **high-risk** classification. Article 6(1)
+    makes an AI system high-risk when **both** of these conditions are met:
+
+    - **(a)** the AI system is intended to be used as a **safety component of a product**,
+      or the AI system **is itself a product**, covered by the Union harmonisation
+      legislation listed in **Annex I**; **and**
+    - **(b)** that product is required to undergo a **third-party conformity assessment**
+      under that legislation before it is placed on the market or put into service.
+
+    Both conditions. Being covered by Annex I legislation is not enough on its own, and
+    this is the most common mistake at this step.
+
+    "Safety component" means a component of a product or of an AI system that fulfils a
+    safety function for it, or whose failure or malfunctioning endangers the health and
+    safety of persons or property. A component fulfils a safety function where its intended
+    purpose is to prevent or mitigate risks to health and safety. Three rules added by
+    Regulation (EU) 2026/1744 sharpen this:
+
+    - **Article 6(1a)**: systems used **solely** for non-safety-related aspects of user
+      assistance, performance optimisation, service efficiency, automation, convenience or
+      quality control **do not qualify** as safety components;
+    - **Article 6(1b)**: notwithstanding that, systems whose failure or malfunctioning
+      **would endanger health and safety do qualify**;
+    - **Article 6(1c)**: a product required to undergo a third-party conformity assessment
+      **solely** because of risks other than to health and safety - in particular radio
+      spectrum or electromagnetic interference risks - does **not** meet condition (b).
+
+    Annex I has **20** entries in two sections. **Section A** (points 2 to 12) is the New
+    Legislative Framework legislation. **Section B** (points 13 to 21) is other Union
+    harmonisation legislation, and Article 2(2) limits what applies to a Section B system:
+    only Article 6(1), Article 60a and Articles 102 to 112. The entries most often reached
+    by agrifood systems are agricultural and forestry vehicles, unmanned aircraft and
+    machinery - all three in Section B.
+
+    Note that the Machinery Directive 2006/42/EC, which was point 1 of Section A, was
+    **deleted** by Regulation (EU) 2026/1744; machinery is now point 21 of Section B under
+    Regulation (EU) 2023/1230.
+
+    Open each entry to read what it covers, then come back here and answer. Answer **yes**
+    only if **both** conditions of Article 6(1) are met.
+  nl: |
+    Dit is de eerste van de twee routes naar een classificatie als systeem met een **hoog
+    risico**. Artikel 6, lid 1, merkt een AI-systeem als systeem met een hoog risico aan
+    wanneer aan **beide** voorwaarden is voldaan:
+
+    - **a)** het AI-systeem is bedoeld om te worden gebruikt als **veiligheidscomponent van
+      een product**, of het AI-systeem **is zelf een product**, dat valt onder de in
+      **bijlage I** opgenomen harmonisatiewetgeving van de Unie; **en**
+    - **b)** voor dat product moet op grond van die wetgeving een
+      **conformiteitsbeoordeling door een derde partij** worden uitgevoerd voordat het in
+      de handel wordt gebracht of in gebruik wordt gesteld.
+
+    Beide voorwaarden. Dat wetgeving uit bijlage I van toepassing is, volstaat op zichzelf
+    niet, en dat is bij deze stap de meest gemaakte fout.
+
+    "Veiligheidscomponent" betekent een component van een product of van een AI-systeem die
+    daarvoor een veiligheidsfunctie vervult, of waarvan het falen of gebrekkig functioneren
+    de gezondheid en veiligheid van personen of eigendom in gevaar brengt. Een component
+    vervult een veiligheidsfunctie wanneer het beoogde doel ervan is risico’s voor de
+    gezondheid en veiligheid te voorkomen of te beperken. Drie bij Verordening (EU)
+    2026/1744 toegevoegde regels scherpen dit aan:
+
+    - **artikel 6, lid 1 bis**: systemen die **uitsluitend** worden gebruikt voor
+      niet-veiligheidsgerelateerde aspecten van bijstand aan gebruikers, optimalisering van
+      de prestaties, efficiëntie van de dienstverlening, automatisering, gemak of
+      kwaliteitscontrole worden **niet** als veiligheidscomponent aangemerkt;
+    - **artikel 6, lid 1 ter**: niettegenstaande het voorgaande worden systemen waarvan het
+      falen of gebrekkig functioneren de gezondheid en veiligheid in gevaar **zou brengen,
+      wel** als veiligheidscomponent beschouwd;
+    - **artikel 6, lid 1 quater**: een product dat **uitsluitend** vanwege andere risico’s
+      dan die voor de gezondheid en veiligheid - met name risico’s in verband met het
+      radiospectrum of elektromagnetische interferentie - aan een conformiteitsbeoordeling
+      door een derde partij moet worden onderworpen, voldoet **niet** aan voorwaarde b).
+
+    Bijlage I bevat **20** onderdelen in twee afdelingen. **Afdeling A** (punten 2 tot en
+    met 12) is de wetgeving op basis van het nieuwe wetgevingskader. **Afdeling B** (punten
+    13 tot en met 21) is andere harmonisatiewetgeving van de Unie, en artikel 2, lid 2,
+    beperkt wat op een systeem uit afdeling B van toepassing is: uitsluitend artikel 6, lid
+    1, artikel 60 bis, en de artikelen 102 tot en met 112. De onderdelen die
+    agrifood-systemen het vaakst raken zijn landbouw- en bosbouwvoertuigen, onbemande
+    luchtvaartuigen en machines - alle drie in afdeling B.
+
+    Let op: de machinerichtlijn 2006/42/EG, punt 1 van afdeling A, is bij Verordening (EU)
+    2026/1744 **geschrapt**; machines vallen nu onder punt 21 van afdeling B, Verordening
+    (EU) 2023/1230.
+
+    Open elk onderdeel om te lezen wat het inhoudt en kom daarna hier terug om te
+    antwoorden. Antwoord **ja** alleen als aan **beide** voorwaarden van artikel 6, lid 1,
+    is voldaan.
+metadata:
+  version: "0.1"
+  step: 4a - high-risk, Annex I route
+  annex-i-entries: 20 (Section A points 2-12, Section B points 13-21)
+sources:
+  - kind: legal
+    label:
+      en: Article 6(1) and 6(1a) to 6(1c) AI Act (classification rules for high-risk AI systems)
+      nl: Artikel 6, lid 1, en artikel 6, leden 1 bis tot en met 1 quater, AI-verordening (classificatieregels)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+  - kind: legal
+    label:
+      en: Annex I AI Act (list of Union harmonisation legislation)
+      nl: Bijlage I AI-verordening (lijst van harmonisatiewetgeving van de Unie)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_I
+  - kind: legal
+    label:
+      en: Article 3(14) AI Act (safety component)
+      nl: Artikel 3, punt 14, AI-verordening (veiligheidscomponent)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+  - kind: legal
+    label:
+      en: Article 2(2) AI Act (what applies to a Section B system)
+      nl: Artikel 2, lid 2, AI-verordening (wat op een systeem uit afdeling B van toepassing is)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+options:
+  - title:
+      en: Safety of toys
+      nl: Veiligheid van speelgoed
+    target: annex-i-toys
+  - title:
+      en: Recreational craft and personal watercraft
+      nl: Pleziervaartuigen en waterscooters
+    target: annex-i-recreational-craft
+  - title:
+      en: Lifts and safety components for lifts
+      nl: Liften en veiligheidscomponenten voor liften
+    target: annex-i-lifts
+  - title:
+      en: Equipment and protective systems for potentially explosive atmospheres
+      nl: Apparaten en beveiligingssystemen voor plaatsen waar ontploffingsgevaar kan heersen
+    target: annex-i-explosive-atmospheres
+  - title:
+      en: Radio equipment
+      nl: Radioapparatuur
+    target: annex-i-radio-equipment
+  - title:
+      en: Pressure equipment
+      nl: Drukapparatuur
+    target: annex-i-pressure-equipment
+  - title:
+      en: Cableway installations
+      nl: Kabelbaaninstallaties
+    target: annex-i-cableway-installations
+  - title:
+      en: Personal protective equipment
+      nl: Persoonlijke beschermingsmiddelen
+    target: annex-i-personal-protective-equipment
+  - title:
+      en: Appliances burning gaseous fuels
+      nl: Gasverbrandingstoestellen
+    target: annex-i-gas-appliances
+  - title:
+      en: Medical devices
+      nl: Medische hulpmiddelen
+    target: annex-i-medical-devices
+  - title:
+      en: In vitro diagnostic medical devices
+      nl: Medische hulpmiddelen voor in-vitrodiagnostiek
+    target: annex-i-ivd-medical-devices
+  - title:
+      en: Civil aviation security
+      nl: Beveiliging van de burgerluchtvaart
+    target: annex-i-civil-aviation-security
+  - title:
+      en: Two- or three-wheel vehicles and quadricycles
+      nl: Twee- of driewielige voertuigen en vierwielers
+    target: annex-i-two-or-three-wheel-vehicles
+  - title:
+      en: Agricultural and forestry vehicles
+      nl: Landbouw- en bosbouwvoertuigen
+    target: annex-i-agricultural-vehicles
+  - title:
+      en: Marine equipment
+      nl: Uitrusting van zeeschepen
+    target: annex-i-marine-equipment
+  - title:
+      en: Interoperability of the rail system
+      nl: Interoperabiliteit van het spoorwegsysteem
+    target: annex-i-rail-interoperability
+  - title:
+      en: Approval of motor vehicles and their trailers
+      nl: Goedkeuring van motorvoertuigen en aanhangwagens daarvan
+    target: annex-i-motor-vehicle-approval
+  - title:
+      en: Type-approval of motor vehicles as regards general safety
+      nl: Typegoedkeuring van motorvoertuigen wat de algemene veiligheid betreft
+    target: annex-i-motor-vehicle-general-safety
+  - title:
+      en: Civil aviation, as regards unmanned aircraft
+      nl: Burgerluchtvaart, wat onbemande luchtvaartuigen betreft
+    target: annex-i-unmanned-aircraft
+  - title:
+      en: Machinery
+      nl: Machines
+    target: annex-i-machinery
+answers:
+  yes: high-risk
+  no: annex-iii-areas

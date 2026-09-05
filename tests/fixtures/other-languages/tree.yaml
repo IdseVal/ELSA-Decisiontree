@@ -1,0 +1,15 @@
+# A Tree in two languages the chrome does not speak (docs/specs/application.md 3.1,
+# fourth row): the frontend must show it and fall back to English chrome.
+format: elsa-tree/1
+languages: [de, fr]
+root: start
+title:
+  de: Gilt die KI-Verordnung?
+  fr: Le règlement IA s'applique-t-il ?
+description:
+  de: |
+    Ein kleiner Baum für die Tests.
+  fr: |
+    Un petit arbre pour les tests.
+metadata:
+  version: "1.0"

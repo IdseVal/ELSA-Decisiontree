@@ -1,0 +1,9 @@
+title:
+  en: It applies
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable

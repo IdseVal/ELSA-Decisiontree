@@ -1,0 +1,22 @@
+title:
+  en: Emotion recognition at work or in education
+  nl: Emotieherkenning op het werk of in het onderwijs
+description:
+  en: |
+    Inferring the emotions of a person in the workplace or in an education
+    institution, except for medical or safety reasons.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Het afleiden van emoties van een persoon op de werkplek of in een
+    onderwijsinstelling, behalve om medische of veiligheidsredenen.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "1.0"
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(f) AI Act
+      nl: Artikel 5, lid 1, onder f, AI-verordening
+    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj

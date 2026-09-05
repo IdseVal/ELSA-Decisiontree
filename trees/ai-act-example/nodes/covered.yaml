@@ -1,0 +1,14 @@
+title:
+  en: The AI Act applies to your system
+  nl: De AI-verordening is van toepassing op uw systeem
+description:
+  en: |
+    Your system is within scope and is not a prohibited practice. The real Tree
+    continues with the high-risk categorisation; this example stops here.
+  nl: |
+    Uw systeem valt binnen het toepassingsgebied en is geen verboden praktijk. De echte
+    boom gaat verder met de hoog-risico-indeling; dit voorbeeld eindigt hier.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable

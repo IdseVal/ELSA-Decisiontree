@@ -3,6 +3,11 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 4
+- Amended 2026-09-04 by `ADR-19-content-language-in-the-route.md`: the public grammar
+  below and every answer of the error table are unchanged; what is new is that inside the
+  server the query is restated as a `[lang]` path segment, so that the root layout can set
+  `<html lang>` (application.md 4.4). `parseUrl` takes that segment instead of the whole
+  query. The rejection of a *public* language prefix, below, stands.
 
 ## Context
 

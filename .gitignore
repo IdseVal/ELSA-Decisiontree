@@ -9,3 +9,9 @@ mail/__pycache__/
 .orca/dispatcher/runs/
 .orca/dispatcher/dispatcher.lock
 .orca/dispatcher/dispatcher.log*
+
+# Next.js application
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo

@@ -1,0 +1,44 @@
+title:
+  en: The AI Act does not apply
+  nl: De AI-verordening is niet van toepassing
+description:
+  en: |
+    On the answer you gave, none of the seven categories of Article 2(1) describes you, or
+    one of the exclusions in Article 2 covers your system entirely. The AI Act does not
+    apply, and this walk ends here.
+
+    Two cautions:
+
+    - the exclusions are narrow, and several of them turn on the word *exclusively*. A
+      system placed on the market for both an excluded and a non-excluded purpose stays
+      inside the Act;
+    - other Union and national law may still apply to your system. This Tree does not
+      cover it.
+
+    If your circumstances change - you place the system on the Union market, or its output
+    starts being used in the Union - the answer changes with them.
+  nl: |
+    Op grond van uw antwoord is geen van de zeven categorieën van artikel 2, lid 1, op u
+    van toepassing, of valt uw systeem volledig onder een van de uitsluitingen van
+    artikel 2. De AI-verordening is niet van toepassing en deze doorloop eindigt hier.
+
+    Twee waarschuwingen:
+
+    - de uitsluitingen zijn eng geformuleerd en verschillende ervan hangen af van het
+      woord *uitsluitend*. Een systeem dat zowel voor een uitgesloten als voor een
+      niet-uitgesloten doel in de handel wordt gebracht, blijft binnen de verordening;
+    - ander Unierecht en nationaal recht kunnen nog steeds op uw systeem van toepassing
+      zijn. Deze boom behandelt dat niet.
+
+    Als uw omstandigheden veranderen - u brengt het systeem in de Unie in de handel, of de
+    output ervan wordt in de Unie gebruikt - verandert het antwoord mee.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 2 AI Act (scope)
+      nl: Artikel 2 AI-verordening (toepassingsgebied)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+terminal:
+  outcome: not-applicable

@@ -1,0 +1,26 @@
+title:
+  en: Does it apply?
+description:
+  en: |
+    The first question.
+metadata:
+  version: "1.0"
+sources:
+  - id: art-1
+    kind: legal
+    label:
+      en: Article 1
+    url: https://example.org/article-1
+images:
+  - file: pic.png
+    description:
+      en: A picture
+    credit: "Picture: Example, CC0"
+    source: art-1
+options:
+  - title:
+      en: What does it mean?
+    target: detail
+answers:
+  yes: yes-end
+  no: no-end

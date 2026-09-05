@@ -1,0 +1,19 @@
+# The example Tree of docs/specs/tree-format.md section 8. Its legal content is a
+# simplified sketch that exercises every element of elsa-tree/1; it is not to be relied on.
+format: elsa-tree/1
+languages: [en, nl]
+root: start
+title:
+  en: Does the EU AI Act apply to my AI system? (example)
+  nl: Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)
+description:
+  en: |
+    A small example Tree that exercises every element of the `elsa-tree/1` format.
+    Its legal content is simplified and not to be relied on.
+  nl: |
+    Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/1`-formaat gebruikt.
+    De juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen.
+metadata:
+  version: "1.0"
+  author: ELSA-Lab for sustainable food systems, Wageningen University
+  licence: to be decided (core document OPEN 10.14)

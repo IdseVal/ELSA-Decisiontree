@@ -1,0 +1,10 @@
+title:
+  de: Fällt Ihr System in den Anwendungsbereich?
+description:
+  de: |
+    Die erste Frage.
+metadata:
+  version: "1.0"
+answers:
+  yes: anwendbar
+  no: nicht-anwendbar

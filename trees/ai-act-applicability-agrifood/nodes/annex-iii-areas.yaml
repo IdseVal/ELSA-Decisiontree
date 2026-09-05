@@ -1,0 +1,139 @@
+title:
+  en: Does your system fall in one of the high-risk areas of Annex III?
+  nl: Valt uw systeem in een van de gebieden met een hoog risico van bijlage III?
+description:
+  en: |
+    This is the second route to a **high-risk** classification. Article 6(2) says that, in
+    addition to the systems caught by Article 6(1), the AI systems referred to in **Annex
+    III** are high-risk.
+
+    Annex III lists **8 areas**, containing 25 listed system types in total. Open each area
+    to read the types it names, then come back here and answer. For an agrifood system the
+    areas most often reached are **employment and workers management** (area 4) and
+    **essential services** (area 5), with **biometrics** (area 1) and **critical
+    infrastructure** (area 2) close behind.
+
+    **Article 6(3): when an Annex III system is nevertheless not high-risk.** By derogation
+    from Article 6(2), a system referred to in Annex III is **not** high-risk where it does
+    not pose a significant risk of harm to the health, safety or fundamental rights of
+    natural persons, including by not materially influencing the outcome of decision
+    making. That first subparagraph applies where **any** of these four conditions is met:
+
+    - **(a)** the system is intended to perform a **narrow procedural task**;
+    - **(b)** the system is intended to **improve the result of a previously completed human
+      activity**;
+    - **(c)** the system is intended to **detect decision-making patterns or deviations**
+      from prior patterns and is not meant to replace or influence the previously completed
+      human assessment without proper human review; or
+    - **(d)** the system is intended to perform a **preparatory task** to an assessment
+      relevant for the Annex III use cases.
+
+    **The override:** notwithstanding all of that, a system referred to in Annex III is
+    **always** high-risk where it **performs profiling of natural persons**.
+
+    **Article 6(4):** a provider who considers that an Annex III system is not high-risk
+    must **document that assessment before** the system is placed on the market or put into
+    service, is subject to the registration obligation of Article 49(2), and must provide
+    the documentation to national competent authorities on request. Relying on Article 6(3)
+    is therefore not a way of avoiding paperwork; it is a different, documented, obligation.
+
+    Answer **yes** if your system falls in one of the eight areas and none of the Article
+    6(3) conditions takes it out again - or if it performs profiling of natural persons,
+    whatever else applies. Answer **no** if no area covers it, or if you have assessed and
+    documented that Article 6(3) applies.
+  nl: |
+    Dit is de tweede route naar een classificatie als systeem met een **hoog risico**.
+    Artikel 6, lid 2, bepaalt dat naast de systemen die onder artikel 6, lid 1, vallen, ook
+    de in **bijlage III** bedoelde AI-systemen als systemen met een hoog risico worden
+    beschouwd.
+
+    Bijlage III noemt **8 gebieden**, met in totaal 25 vermelde types systemen. Open elk
+    gebied om te lezen welke types het noemt en kom daarna hier terug om te antwoorden. Voor
+    een agrifood-systeem worden de gebieden **werkgelegenheid en personeelsbeheer** (gebied
+    4) en **essentiële diensten** (gebied 5) het vaakst geraakt, met **biometrie** (gebied
+    1) en **kritieke infrastructuur** (gebied 2) daar vlak achter.
+
+    **Artikel 6, lid 3: wanneer een systeem uit bijlage III toch geen hoog risico heeft.**
+    In afwijking van artikel 6, lid 2, wordt een in bijlage III bedoeld systeem **niet** als
+    systeem met een hoog risico beschouwd wanneer het geen significant risico op schade voor
+    de gezondheid, veiligheid of de grondrechten van natuurlijke personen inhoudt, onder
+    meer doordat het de uitkomst van de besluitvorming niet wezenlijk beïnvloedt. Die eerste
+    alinea is van toepassing wanneer aan **een** van deze vier voorwaarden is voldaan:
+
+    - **a)** het systeem is bedoeld om een **beperkte procedurele taak** uit te voeren;
+    - **b)** het systeem is bedoeld om **het resultaat van een eerder voltooide menselijke
+      activiteit te verbeteren**;
+    - **c)** het systeem is bedoeld om **besluitvormingspatronen of afwijkingen** daarvan op
+      te sporen en is niet bedoeld om de eerder voltooide menselijke beoordeling zonder
+      behoorlijke menselijke toetsing te vervangen of te beïnvloeden; of
+    - **d)** het systeem is bedoeld om een **voorbereidende taak** uit te voeren voor een
+      beoordeling die relevant is voor de in bijlage III vermelde gebruiksgevallen.
+
+    **De doorbreking:** niettegenstaande het voorgaande wordt een in bijlage III bedoeld
+    systeem **altijd** als systeem met een hoog risico beschouwd indien het **profilering
+    van natuurlijke personen uitvoert**.
+
+    **Artikel 6, lid 4:** een aanbieder die van mening is dat een systeem uit bijlage III
+    geen hoog risico inhoudt, **documenteert die beoordeling voordat** het systeem in de
+    handel wordt gebracht of in gebruik wordt gesteld, is onderworpen aan de
+    registratieverplichting van artikel 49, lid 2, en verstrekt de documentatie op verzoek
+    aan de nationale bevoegde autoriteiten. Een beroep op artikel 6, lid 3, is dus geen
+    manier om papierwerk te vermijden; het is een andere, gedocumenteerde verplichting.
+
+    Antwoord **ja** als uw systeem in een van de acht gebieden valt en geen van de
+    voorwaarden van artikel 6, lid 3, het er weer uit haalt - of als het profilering van
+    natuurlijke personen uitvoert, wat er verder ook geldt. Antwoord **nee** als geen gebied
+    erop ziet, of als u hebt beoordeeld en gedocumenteerd dat artikel 6, lid 3, van
+    toepassing is.
+metadata:
+  version: "0.1"
+  step: 4b - high-risk, Annex III route
+  annex-iii-areas: 8
+  annex-iii-listed-system-types: 25
+sources:
+  - kind: legal
+    label:
+      en: Article 6(2), 6(3) and 6(4) AI Act (Annex III route and the derogation)
+      nl: Artikel 6, leden 2, 3 en 4, AI-verordening (route via bijlage III en de afwijking)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+  - kind: legal
+    label:
+      en: Annex III AI Act (high-risk AI systems referred to in Article 6(2))
+      nl: Bijlage III AI-verordening (in artikel 6, lid 2, bedoelde AI-systemen met een hoog risico)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
+options:
+  - title:
+      en: 1. Biometrics
+      nl: 1. Biometrie
+    target: annex-iii-biometrics
+  - title:
+      en: 2. Critical infrastructure
+      nl: 2. Kritieke infrastructuur
+    target: annex-iii-critical-infrastructure
+  - title:
+      en: 3. Education and vocational training
+      nl: 3. Onderwijs en beroepsopleiding
+    target: annex-iii-education
+  - title:
+      en: 4. Employment, workers management and access to self-employment
+      nl: 4. Werkgelegenheid, personeelsbeheer en toegang tot zelfstandige arbeid
+    target: annex-iii-employment
+  - title:
+      en: 5. Access to and enjoyment of essential private and public services and benefits
+      nl: 5. Toegang tot en gebruik van essentiële particuliere en publieke diensten en uitkeringen
+    target: annex-iii-essential-services
+  - title:
+      en: 6. Law enforcement
+      nl: 6. Rechtshandhaving
+    target: annex-iii-law-enforcement
+  - title:
+      en: 7. Migration, asylum and border control management
+      nl: 7. Migratie-, asiel- en grenstoezichtsbeheer
+    target: annex-iii-migration-and-borders
+  - title:
+      en: 8. Administration of justice and democratic processes
+      nl: 8. Rechtsbedeling en democratische processen
+    target: annex-iii-justice-and-democracy
+answers:
+  yes: high-risk
+  no: general-purpose-ai

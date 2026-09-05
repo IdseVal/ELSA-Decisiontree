@@ -1,0 +1,60 @@
+title:
+  en: Administration of justice and democratic processes
+  nl: Rechtsbedeling en democratische processen
+description:
+  en: |
+    Annex III, area 8, lists two types of AI system:
+
+    - **(a)** systems intended to be used **by a judicial authority or on its behalf to
+      assist a judicial authority in researching and interpreting facts and the law** and in
+      applying the law to a concrete set of facts, or to be used in a similar way in
+      **alternative dispute resolution**;
+    - **(b)** systems intended to be used for **influencing the outcome of an election or
+      referendum**, or the voting behaviour of natural persons. This does **not** include
+      systems to whose output natural persons are not directly exposed, such as tools used
+      to organise, optimise or structure political campaigns from an administrative or
+      logistical point of view.
+
+    Point (a) extends beyond courts: alternative dispute resolution is named expressly, so a
+    system that assists in arbitration or mediation on the same terms falls within it.
+
+    An agrifood system reaches this area only if it is built for judicial or dispute
+    resolution use, or is aimed at voting behaviour. A system that assists in resolving
+    contractual disputes in a supply chain is worth testing against point (a).
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage III, gebied 8, noemt twee types AI-systeem:
+
+    - **a)** systemen die bedoeld zijn om **door of namens een gerechtelijke instantie te
+      worden gebruikt om die instantie te ondersteunen bij het onderzoeken en uitleggen van
+      feiten of de wet** en bij de toepassing van het recht op een concrete reeks feiten, of
+      om op soortgelijke wijze te worden gebruikt in het kader van **alternatieve
+      geschillenbeslechting**;
+    - **b)** systemen die bedoeld zijn om te worden gebruikt voor het **beïnvloeden van de
+      uitslag van een verkiezing of referendum**, of van het stemgedrag van natuurlijke
+      personen. Dit geldt **niet** voor systemen aan de output waarvan natuurlijke personen
+      niet rechtstreeks worden blootgesteld, zoals instrumenten om politieke campagnes
+      vanuit administratief of logistiek oogpunt te organiseren, te optimaliseren of te
+      structureren.
+
+    Punt a) reikt verder dan de rechter: alternatieve geschillenbeslechting wordt
+    uitdrukkelijk genoemd, zodat een systeem dat op dezelfde wijze ondersteunt bij
+    arbitrage of mediation eronder valt.
+
+    Een agrifood-systeem raakt dit gebied alleen als het is gebouwd voor gebruik in de
+    rechtspraak of geschillenbeslechting, of is gericht op stemgedrag. Een systeem dat helpt
+    bij het beslechten van contractuele geschillen in een keten is het toetsen aan punt a)
+    waard.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-iii-area: 8
+  listed-system-types: 2
+sources:
+  - kind: legal
+    label:
+      en: Annex III, point 8 AI Act (administration of justice and democratic processes)
+      nl: Bijlage III, punt 8, AI-verordening (rechtsbedeling en democratische processen)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III

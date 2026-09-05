@@ -1,0 +1,9 @@
+# A Tree in one language that is neither of the chrome languages (docs/CORE_DOCUMENT.md
+# section 9): it must load and render without a code change, and offers no language switch.
+format: elsa-tree/1
+languages: [de]
+root: start
+title:
+  de: Gilt die KI-Verordnung?
+metadata:
+  version: "1.0"

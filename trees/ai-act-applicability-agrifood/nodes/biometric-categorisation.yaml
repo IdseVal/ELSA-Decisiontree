@@ -1,0 +1,67 @@
+title:
+  en: Biometric categorisation to infer race, opinions, beliefs, sex life or sexual orientation
+  nl: Biometrische categorisering om ras, opvattingen, overtuigingen, seksleven of seksuele gerichtheid af te leiden
+description:
+  en: |
+    Article 5(1)(g) prohibits placing on the market, putting into service for this specific
+    purpose, or using **biometric categorisation systems that categorise individually
+    natural persons based on their biometric data to deduce or infer** their race,
+    political opinions, trade union membership, religious or philosophical beliefs, sex
+    life or sexual orientation.
+
+    The text excludes two things from this prohibition:
+
+    - **labelling or filtering of lawfully acquired biometric datasets**, such as images,
+      based on biometric data;
+    - **categorising of biometric data in the area of law enforcement**.
+
+    Article 3(40) defines a biometric categorisation system as an AI system for assigning
+    natural persons to specific categories on the basis of their biometric data, "unless it
+    is ancillary to another commercial service and strictly necessary for objective
+    technical reasons".
+
+    Note the two limits in the operative text: the categorisation must be of individuals,
+    and the inferred attribute must be one of the listed ones. Sorting people by an
+    attribute outside that list is not caught here, though it may be high-risk under
+    Annex III, area 1.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 5, lid 1, punt g), verbiedt het in de handel brengen, het voor dit specifieke
+    doel in gebruik stellen of het gebruiken van **systemen voor biometrische categorisering
+    die natuurlijke personen individueel in categorieën indelen op basis van biometrische
+    gegevens om** hun ras, politieke opvattingen, lidmaatschap van een vakbond, religieuze
+    of levensbeschouwelijke overtuigingen, seksleven of seksuele gerichtheid **af te
+    leiden**.
+
+    De tekst haalt twee zaken uit dit verbod:
+
+    - het **labelen of filteren van rechtmatig verkregen biometrische datasets**, zoals
+      afbeeldingen, op basis van biometrische gegevens;
+    - het **categoriseren van biometrische gegevens op het gebied van rechtshandhaving**.
+
+    Artikel 3, punt 40, omschrijft een systeem voor biometrische categorisering als een
+    AI-systeem dat is bedoeld voor het indelen van natuurlijke personen in specifieke
+    categorieën op basis van hun biometrische gegevens, "tenzij dit een aanvulling vormt op
+    een andere commerciële dienst en om objectieve technische redenen strikt noodzakelijk
+    is".
+
+    Let op de twee grenzen in de tekst: de categorisering moet individuen betreffen, en het
+    afgeleide kenmerk moet een van de genoemde kenmerken zijn. Mensen indelen op een kenmerk
+    buiten die lijst valt hier niet onder, maar kan wel een hoog risico vormen op grond van
+    bijlage III, gebied 1.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(g) AI Act
+      nl: Artikel 5, lid 1, punt g), AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+  - kind: legal
+    label:
+      en: Article 3(40) AI Act (biometric categorisation system)
+      nl: Artikel 3, punt 40, AI-verordening (systeem voor biometrische categorisering)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3

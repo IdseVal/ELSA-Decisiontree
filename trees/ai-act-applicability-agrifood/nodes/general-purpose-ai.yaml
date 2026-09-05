@@ -1,0 +1,119 @@
+title:
+  en: Is general-purpose AI involved?
+  nl: Is er sprake van AI voor algemene doeleinden?
+description:
+  en: |
+    The Act treats general-purpose AI separately, and it uses two different terms. Both are
+    defined in Article 3:
+
+    - **general-purpose AI model** (Article 3(63)): *"an AI model, including where such an AI
+      model is trained with a large amount of data using self-supervision at scale, that
+      displays significant generality and is capable of competently performing a wide range
+      of distinct tasks regardless of the way the model is placed on the market and that can
+      be integrated into a variety of downstream systems or applications, except AI models
+      that are used for research, development or prototyping activities before they are
+      placed on the market"*;
+    - **general-purpose AI system** (Article 3(66)): *"an AI system which is based on a
+      general-purpose AI model and which has the capability to serve a variety of purposes,
+      both for direct use as well as for integration in other AI systems"*.
+
+    Two more definitions matter here. **Systemic risk** (Article 3(65)) is a risk specific to
+    the high-impact capabilities of general-purpose AI models. A **downstream provider**
+    (Article 3(68)) is a provider of an AI system, including a general-purpose AI system,
+    that integrates an AI model, whether or not the model is its own.
+
+    **Where the obligations sit.** Chapter V places its obligations on **providers of
+    general-purpose AI models** (Article 53, and Article 55 for models with systemic risk).
+    There is no Chapter V obligation addressed to a general-purpose AI *system* as such: such
+    a system is treated like any other AI system under the rest of the Act, and is named
+    expressly in Article 50(2), the next step.
+
+    **Systemic risk, in short.** Article 51(1) classifies a general-purpose AI model as one
+    with systemic risk if it has high impact capabilities, or on a Commission decision that
+    its capabilities or impact are equivalent. Article 51(2) presumes high impact
+    capabilities where the cumulative compute used for training, measured in floating point
+    operations, is greater than 10 to the power of 25. Chapter V has applied since 2 August
+    2025; models placed on the market before then have until 2 August 2027 (Article 111(3)).
+
+    Answer **yes** if you provide a general-purpose AI model that you place on the Union
+    market, or if your AI system is based on such a model and can serve a variety of
+    purposes. Answer **no** if neither is the case.
+
+    Either answer continues to the transparency step. Both routes lead on, because being
+    general-purpose AI neither ends the walk nor removes any of the obligations the earlier
+    steps found.
+  nl: |
+    De verordening behandelt AI voor algemene doeleinden apart, en gebruikt daarbij twee
+    verschillende begrippen. Beide zijn omschreven in artikel 3:
+
+    - **AI-model voor algemene doeleinden** (artikel 3, punt 63): *"een AI-model, ook wanneer
+      het is getraind met een grote hoeveelheid data met behulp van self-supervision op grote
+      schaal, dat een aanzienlijk algemeen karakter vertoont en in staat is op competente
+      wijze een breed scala aan verschillende taken uit te voeren, ongeacht de wijze waarop
+      het model in de handel wordt gebracht, en dat kan worden geïntegreerd in een
+      verscheidenheid aan systemen verder in de AI-waardeketen of toepassingen verder in de
+      AI-waardeketen, met uitzondering van AI-modellen die worden gebruikt voor onderzoek,
+      ontwikkeling of prototypingactiviteiten alvorens zij in de handel worden gebracht"*;
+    - **AI-systeem voor algemene doeleinden** (artikel 3, punt 66): *"een AI-systeem dat is
+      gebaseerd op een AI-model voor algemene doeleinden en dat verschillende doeleinden kan
+      dienen, zowel voor direct gebruik als voor integratie in andere AI-systemen"*.
+
+    Nog twee definities zijn hier van belang. **Systeemrisico** (artikel 3, punt 65) is een
+    risico dat specifiek is voor de capaciteiten met een grote impact van AI-modellen voor
+    algemene doeleinden. Een **aanbieder verder in de AI-waardeketen** (artikel 3, punt 68)
+    is een aanbieder van een AI-systeem, met inbegrip van een AI-systeem voor algemene
+    doeleinden, waarin een AI-model is geïntegreerd, ongeacht of dat model van hemzelf is.
+
+    **Waar de verplichtingen liggen.** Hoofdstuk V legt zijn verplichtingen op aan
+    **aanbieders van AI-modellen voor algemene doeleinden** (artikel 53, en artikel 55 voor
+    modellen met een systeemrisico). Er is geen verplichting uit hoofdstuk V die zich richt
+    tot een AI-*systeem* voor algemene doeleinden als zodanig: zo’n systeem wordt onder de
+    rest van de verordening behandeld als elk ander AI-systeem, en wordt uitdrukkelijk
+    genoemd in artikel 50, lid 2, de volgende stap.
+
+    **Systeemrisico, kort.** Artikel 51, lid 1, merkt een AI-model voor algemene doeleinden
+    aan als een model met een systeemrisico als het beschikt over capaciteiten met een grote
+    impact, of op grond van een besluit van de Commissie dat de capaciteiten of de impact
+    vergelijkbaar zijn. Artikel 51, lid 2, veronderstelt capaciteiten met een grote impact
+    wanneer de cumulatieve hoeveelheid berekeningen voor de training, gemeten in
+    zwevendekommabewerkingen, groter is dan 10 tot de macht 25. Hoofdstuk V geldt sinds 2
+    augustus 2025; modellen die vóór die datum in de handel zijn gebracht, hebben tot 2
+    augustus 2027 (artikel 111, lid 3).
+
+    Antwoord **ja** als u een AI-model voor algemene doeleinden aanbiedt dat u in de Unie in
+    de handel brengt, of als uw AI-systeem op zo’n model is gebaseerd en verschillende
+    doeleinden kan dienen. Antwoord **nee** als geen van beide het geval is.
+
+    Beide antwoorden gaan door naar de transparantiestap. Beide routes lopen door, omdat AI
+    voor algemene doeleinden de doorloop niet beëindigt en evenmin verplichtingen wegneemt
+    die de eerdere stappen hebben gevonden.
+metadata:
+  version: "0.1"
+  step: 5 - general-purpose AI
+  placeholder: true
+  owner-action: |
+    Placeholder for the owner to refine (core document 3.3, items 5 and 7). The research
+    shows this step is really two questions with different consequences - "do you provide a
+    general-purpose AI model?" (Chapter V obligations) and "is your system based on such a
+    model?" (relevant to Article 50(2) and to the downstream-provider definition) - which one
+    yes/no cannot separate. Splitting it into two Nodes, or adding a role question, is an
+    authoring decision the owner should make after seeing the tool.
+sources:
+  - kind: legal
+    label:
+      en: Article 3(63), (65), (66) and (68) AI Act (general-purpose AI definitions)
+      nl: Artikel 3, punten 63, 65, 66 en 68, AI-verordening (definities rond AI voor algemene doeleinden)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+  - kind: legal
+    label:
+      en: Article 51 AI Act (classification of general-purpose AI models with systemic risk)
+      nl: Artikel 51 AI-verordening (classificatie van AI-modellen voor algemene doeleinden met een systeemrisico)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_51
+  - kind: legal
+    label:
+      en: Article 53 AI Act (obligations for providers of general-purpose AI models)
+      nl: Artikel 53 AI-verordening (verplichtingen voor aanbieders van AI-modellen voor algemene doeleinden)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_53
+answers:
+  yes: transparency-obligations
+  no: transparency-obligations

@@ -1,0 +1,7 @@
+format: elsa-tree/1
+languages: [en]
+root: start
+title:
+  en: A minimal Tree
+metadata:
+  version: 1.0
