@@ -1,0 +1,44 @@
+title:
+  en: Developed and put into service for the sole purpose of scientific research and development
+  nl: Ontwikkeld en in gebruik gesteld met wetenschappelijk onderzoek en wetenschappelijke ontwikkeling als enig doel
+description:
+  en: |
+    Article 2(6) excludes AI systems and AI models, including their output, that are
+    **specifically developed and put into service for the sole purpose of scientific
+    research and development**.
+
+    This excludes the *system* itself, not merely an activity. Recital 25 adds that any
+    other AI system that may be used for the conduct of research and development activity
+    remains subject to the Regulation, so the exclusion does not extend to a system built
+    for another purpose that happens to be used in research.
+
+    For an agrifood research project this is often the relevant entry: a system built and
+    used only to answer a research question is outside the Act, while the same system
+    offered to growers as a product is not.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 2, lid 6, sluit AI-systemen en AI-modellen uit, met inbegrip van hun output,
+    die **specifiek zijn ontwikkeld en in gebruik gesteld met wetenschappelijk onderzoek
+    en wetenschappelijke ontwikkeling als enig doel**.
+
+    Dit sluit het *systeem* zelf uit, niet slechts een activiteit. Overweging 25 voegt
+    daaraan toe dat elk ander AI-systeem dat voor onderzoek en ontwikkeling kan worden
+    gebruikt, onderworpen blijft aan de verordening; de uitsluiting strekt zich dus niet
+    uit tot een systeem dat voor een ander doel is gebouwd en toevallig in onderzoek wordt
+    gebruikt.
+
+    Voor een agrifood-onderzoeksproject is dit vaak het relevante onderdeel: een systeem
+    dat alleen is gebouwd en gebruikt om een onderzoeksvraag te beantwoorden valt buiten
+    de verordening, terwijl hetzelfde systeem dat aan telers wordt aangeboden dat niet
+    doet.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 2(6) AI Act
+      nl: Artikel 2, lid 6, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2

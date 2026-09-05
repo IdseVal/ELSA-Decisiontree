@@ -1,0 +1,71 @@
+title:
+  en: AI-generated text published to inform the public (obligation on the deployer)
+  nl: Door AI gegenereerde tekst die wordt gepubliceerd om het publiek te informeren (verplichting voor de gebruiksverantwoordelijke)
+description:
+  en: |
+    **Article 50(4), second subparagraph.** Deployers of an AI system that generates or
+    manipulates **text which is published with the purpose of informing the public on matters
+    of public interest** must **disclose that the text has been artificially generated or
+    manipulated**.
+
+    The obligation does not apply:
+
+    - where the use is authorised by law to detect, prevent, investigate or prosecute
+      criminal offences; **or**
+    - where the AI-generated content **has undergone a process of human review or editorial
+      control** and a natural or legal person **holds editorial responsibility** for the
+      publication of the content.
+
+    The second exception is the practical one, and it has two limbs that both have to be
+    satisfied: an actual review or editorial control process, and a named person or body
+    carrying editorial responsibility.
+
+    Two conditions narrow this situation compared with Article 50(2): the content must be
+    **published**, and it must be **on matters of public interest**. Text generated for
+    internal use, or for one customer, is not caught here - though Article 50(2) may still
+    require the provider to mark it as artificially generated.
+
+    In agrifood, food safety notices, sustainability and residue reporting, market and price
+    commentary, and public advisories on plant or animal disease are the kind of publication
+    that raises this question.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    **Artikel 50, lid 4, tweede alinea.** Gebruiksverantwoordelijken van een AI-systeem dat
+    **tekst genereert of bewerkt die wordt gepubliceerd om het publiek te informeren over
+    aangelegenheden van algemeen belang**, **maken bekend dat de tekst kunstmatig is
+    gegenereerd of bewerkt**.
+
+    De verplichting geldt niet:
+
+    - wanneer het gebruik bij wet is toegestaan om strafbare feiten op te sporen, te
+      voorkomen, te onderzoeken of te vervolgen; **of**
+    - wanneer de door AI gegenereerde content **een proces van menselijke toetsing of
+      redactionele controle heeft ondergaan** en een natuurlijke of rechtspersoon
+      **redactionele verantwoordelijkheid draagt** voor de bekendmaking van de content.
+
+    De tweede uitzondering is de praktische, en zij bestaat uit twee onderdelen waaraan beide
+    moet zijn voldaan: een daadwerkelijk proces van toetsing of redactionele controle, en een
+    aangewezen persoon of orgaan dat de redactionele verantwoordelijkheid draagt.
+
+    Twee voorwaarden maken deze situatie enger dan artikel 50, lid 2: de content moet worden
+    **gepubliceerd** en moet **aangelegenheden van algemeen belang** betreffen. Tekst die voor
+    intern gebruik of voor één klant wordt gegenereerd valt hier niet onder - al kan artikel
+    50, lid 2, de aanbieder nog steeds verplichten die tekst als kunstmatig gegenereerd te
+    markeren.
+
+    In agrifood zijn voedselveiligheidsmeldingen, duurzaamheids- en residurapportages, markt-
+    en prijscommentaar en publieke waarschuwingen over plant- of dierziekten het soort
+    publicatie dat deze vraag oproept.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  article-50-situation: 5
+  addressee: deployer
+sources:
+  - kind: legal
+    label:
+      en: Article 50(4), second subparagraph, AI Act
+      nl: Artikel 50, lid 4, tweede alinea, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_50

@@ -51,9 +51,18 @@ WHAT IT DOES EACH TICK
         run in the PR's worktree whose brief embeds the blocker's comments; over it,
         label the issue `escalated` and page the human. The fix run pushes and removes
         the label; the push re-triggers CI.
+      - CONFLICTING with `dev` (v0.2.6) -> GitHub starts no CI run for such a PR and
+        nothing would ever merge it, so an unblocked conflicting PR gets `state:blocked`
+        with a comment saying why; the fix run's first step is merging `dev` into the
+        branch and resolving the conflicts. The breaker bounds it like any send-back.
       - `needs-human` on an issue or PR -> flag it once with a GitHub comment (an
         @mention only if configured; the dispatcher itself NEVER e-mails -- the daily
         digest is the mail channel) and touch nothing until the label is gone.
+      - The human's answer restarts the work (v0.2.6). When `needs-human` disappears,
+        the breaker is reset -- attempts made without the answer are not held against
+        the item -- and on a PR where nothing was pushed since the page, `state:blocked`
+        is re-applied so a fix run reads the answer (CI re-runs only on a push, never on
+        a comment). Removing `escalated` from an issue resets the breaker the same way.
       - Merged -> close the linked issue (merges into `dev` do NOT auto-close; only the
         default branch does), remove the worktree (never an INTERVIEW worktree: the
         Planner keeps working there until `finish-interview`), kill any lingering run.
@@ -665,6 +674,13 @@ class PR:
     is_draft: bool
     state: str
     merged_at: Optional[str] = None
+    mergeable: str = ""       # GitHub's verdict: MERGEABLE / CONFLICTING / UNKNOWN (v0.2.6)
+    head_oid: str = ""        # the branch tip, to tell "answered" from "pushed" (v0.2.6)
+
+    @property
+    def conflicting(self) -> bool:
+        """True only on GitHub's definite verdict; UNKNOWN (still computing) is not."""
+        return self.mergeable.upper() == "CONFLICTING"
 
     @property
     def issue_number(self) -> Optional[int]:
@@ -730,12 +746,14 @@ def observe(cfg: dict[str, Any]) -> Observed:
     def _prs(state: str, limit: int) -> list[PR]:
         out: list[PR] = []
         for raw in gh_json(["pr", "list", "--base", base, "--state", state, "--limit", str(limit),
-                            "--json", "number,title,body,labels,url,headRefName,isDraft,state,mergedAt"]) or []:
+                            "--json", "number,title,body,labels,url,headRefName,isDraft,state,mergedAt,"
+                                      "mergeable,headRefOid"]) or []:
             out.append(PR(
                 number=int(raw["number"]), title=raw.get("title", ""), body=raw.get("body") or "",
                 labels={l["name"] for l in raw.get("labels", [])}, url=raw.get("url", ""),
                 head=raw.get("headRefName", ""), is_draft=bool(raw.get("isDraft")),
                 state=raw.get("state", state.upper()), merged_at=raw.get("mergedAt"),
+                mergeable=raw.get("mergeable") or "", head_oid=raw.get("headRefOid") or "",
             ))
         return out
 
@@ -880,26 +898,39 @@ committed work -- inspect `git log` and `git status` first.
 """
 
 
-def fix_brief(pr: PR, issue: Optional[Issue], role: str, cycle: int, max_cycles: int, comments: str) -> str:
+def fix_brief(pr: PR, issue: Optional[Issue], role: str, cycle: int, max_cycles: int,
+              comments: str, base: str) -> str:
     n = pr.number
+    conflict_note = (f"\nGitHub reports this PR as CONFLICTING with `{base}`: no CI run can start for it "
+                     f"and nothing would ever merge it. Step 0 below is NOT optional here.\n"
+                     if pr.conflicting else "")
     return f"""# Fix run -- PR #{n} was sent back -- cycle {cycle}/{max_cycles}
 
-PR #{n} ({pr.title}) received `state:blocked` from the CI pipeline. You are a FRESH
-{role} run; your memory is the pull request. The blocker's comments:
+PR #{n} ({pr.title}) carries `state:blocked` -- from the CI pipeline, or from the
+dispatcher because the PR cannot be merged. You are a FRESH {role} run; your memory is
+the pull request. The comments that sent it back:
 
 {comments}
-
+{conflict_note}
 Do this, in this worktree (the PR's branch is checked out here):
-1. `gh pr view {n} --comments` and `git diff origin/dev...HEAD` for full context, plus
+0. `git fetch origin` and `gh pr view {n} --json mergeable`. If it says CONFLICTING (or
+   `git merge-tree` shows conflicts), first `git merge origin/{base}` and resolve every
+   conflict keeping BOTH sides' intent -- `{base}` moved under this branch; the other
+   PRs' decisions stand, this PR's work must fit them. Run the tests. Commit the merge.
+1. `gh pr view {n} --comments` and `git diff origin/{base}...HEAD` for full context, plus
    `cat .orca/roles/{role}.md`.
 2. Address EVERY point. Commit and `git push` on this branch. If the human answered an
    FMEA table or a `needs-human` question in the comments, their answers are
-   requirements now.
+   requirements now. If the human's answer means nothing is left to change, say so in
+   step 3 and still do step 4.
 3. Reply on the PR with what you changed: `gh pr comment {n} --body "..."`.
 4. Hand it back: `gh pr edit {n} --remove-label state:blocked`. The push re-triggers the
-   CI pipeline automatically.
+   CI pipeline automatically (a label change or a comment never does -- if you changed
+   nothing, an empty commit `git commit --allow-empty -m "Re-run CI"` and a push is the
+   way to make CI look again).
 5. If a point is wrong or impossible, say so on the PR, add `needs-human`, and END YOUR
-   RUN -- do not argue in circles. After cycle {max_cycles} the circuit breaker escalates
+   RUN -- do not argue in circles. Leave `state:blocked` on; the human's answer
+   dispatches the next fix run. After cycle {max_cycles} the circuit breaker escalates
    to the human.
 6. END YOUR RUN.
 {COMMON_RULES}
@@ -1069,6 +1100,25 @@ def notify_human(cfg: dict[str, Any], state: State, key: str, subject: str, body
     state.save()
 
 
+def reset_breaker(state: State, issue_number: int, why: str) -> None:
+    """Give an issue a fresh circuit breaker (v0.2.6). Called when the human has acted:
+    answered a `needs-human` page, or removed `escalated`. The attempts made before that
+    were made without the human's information, so they are not held against the item."""
+    s = state.issue(issue_number)
+    before = int(s.get("cycle", 0))
+    s["cycle"] = 0
+    s.pop("retried", None)
+    log.info("%s -> circuit breaker reset (was at cycle %s)", why, before)
+
+
+def escalate_issue(state: State, issue_number: int, reason: str) -> None:
+    """Label the issue `escalated`, say why, and remember that WE did it, so that the
+    human removing the label is recognised as a decision (v0.2.6) and not re-escalated."""
+    gh_label("issue", issue_number, add=[LABEL_ESCALATED])
+    gh_comment("issue", issue_number, reason)
+    state.issue(issue_number)["escalated"] = True
+
+
 # --------------------------------------------------------------------------- orca + spawning
 
 
@@ -1194,8 +1244,25 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                          f"issue #{issue.number} needs you",
                          f"{issue.title}\nAnswer in the issue comments, then remove the "
                          f"`needs-human` label.\n{issue.url}", "issue", issue.number)
+            if not s.get("paged"):
+                s["paged"] = True
+                state.save()
             continue
         state.notified.pop(f"issue:{issue.number}:needs-human", None)
+        # The human answered (v0.2.6): the attempts made without the answer are not
+        # held against the issue -- fresh breaker, fresh run.
+        if s.get("paged"):
+            reset_breaker(state, issue.number, f"issue #{issue.number}: `needs-human` removed")
+            s.pop("paged", None)
+            state.save()
+
+        # `escalated` removed by the human (v0.2.6): same rule. Without this the cycle
+        # count is still over the breaker and the issue re-escalates on the same tick.
+        if s.get("escalated") and LABEL_ESCALATED not in issue.labels:
+            reset_breaker(state, issue.number, f"issue #{issue.number}: `escalated` removed")
+            s.pop("escalated", None)
+            state.notified.pop(f"issue:{issue.number}:escalated", None)
+            state.save()
 
         # --- a PR exists: the CI pipeline owns it; let the run finish talking, then reap.
         if pr is not None:
@@ -1235,8 +1302,8 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                     s.pop("run", None)
                     if int(s.get("cycle", 0)) >= max_cycles:
                         act(f"issue #{issue.number}: breaker after timeout -> escalate",
-                            lambda n=issue.number: (gh_label("issue", n, add=[LABEL_ESCALATED]),
-                                                    gh_comment("issue", n, f"Circuit breaker tripped: {max_cycles} failed attempts (last run timed out).")))
+                            lambda n=issue.number: escalate_issue(state, n,
+                                f"Circuit breaker tripped: {max_cycles} failed attempts (last run timed out)."))
                         notify_human(cfg, state, f"issue:{issue.number}:escalated",
                                      f"issue #{issue.number} escalated", issue.url, "issue", issue.number)
                     state.save()
@@ -1261,8 +1328,8 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                 cycle = int(s.get("cycle", 0)) + 1
                 if cycle > max_cycles:
                     act(f"issue #{issue.number}: breaker -> escalate",
-                        lambda n=issue.number: (gh_label("issue", n, add=[LABEL_ESCALATED]),
-                                                gh_comment("issue", n, f"Circuit breaker tripped: {max_cycles} failed attempts.")))
+                        lambda n=issue.number: escalate_issue(state, n,
+                            f"Circuit breaker tripped: {max_cycles} failed attempts."))
                     notify_human(cfg, state, f"issue:{issue.number}:escalated",
                                  f"issue #{issue.number} escalated", issue.url, "issue", issue.number)
                     state.save()
@@ -1347,10 +1414,11 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         cycle = int(s.get("cycle", 0)) + 1
         if cycle > max_cycles:
             act(f"issue #{issue.number}: cycle {cycle} > {max_cycles} -> escalate",
-                lambda n=issue.number: (gh_label("issue", n, add=[LABEL_ESCALATED]),
-                                        gh_comment("issue", n, f"Circuit breaker tripped: {max_cycles} failed attempts.")))
+                lambda n=issue.number: escalate_issue(state, n,
+                    f"Circuit breaker tripped: {max_cycles} failed attempts."))
             notify_human(cfg, state, f"issue:{issue.number}:escalated",
                          f"issue #{issue.number} escalated", issue.url, "issue", issue.number)
+            state.save()
             continue
         if slots <= 0:
             log.debug("issue #%s waits for a slot", issue.number)
@@ -1387,9 +1455,9 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                             "log": log_name, "model": model}
             state.save()
             act(f"issue #{issue.number}: comment dispatched",
-                lambda n=issue.number, c=cycle, r=role, m=model: gh_comment("issue", n,
+                lambda n=issue.number, c=cycle, r=role, m=model, l=log_name: gh_comment("issue", n,
                     f"Dispatched a headless {r} run (cycle {c}/{max_cycles}, model "
-                    f"`{m or 'CLI default'}`). Log: .orca/dispatcher/runs/issue-{n}-cycle{c}.log"))
+                    f"`{m or 'CLI default'}`). Log: .orca/dispatcher/runs/{l}.log"))
             slots -= 1
 
 
@@ -1411,9 +1479,73 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         if LABEL_NEEDS_HUMAN in pr.labels:
             notify_human(cfg, state, f"pr:{pr.number}:needs-human", f"PR #{pr.number} needs you",
                          f"{pr.title}\nAnswer in the PR comments, then remove the "
-                         f"`needs-human` label.\n{pr.url}", "pr", pr.number)
+                         f"`needs-human` label -- only that one; a fresh fix run then reads "
+                         f"your answer.\n{pr.url}", "pr", pr.number)
+            # Remember the branch tip at page time: when the label goes and the tip is
+            # unchanged, the human ANSWERED rather than pushed a fix themselves.
+            if "paged_oid" not in s:
+                s["paged_oid"] = pr.head_oid or "?"
+                state.save()
             continue  # a fix run is NOT dispatched while the human is being waited on
         state.notified.pop(f"pr:{pr.number}:needs-human", None)
+
+        # --- the human answered a page on this PR (v0.2.6) -------------------------------
+        # Before: if the page came from a fix run, its dead record made the next tick say
+        # "fix run ended, still blocked" and page AGAIN; and a human who removed both
+        # labels left a PR nothing could pick up (CI re-runs on a push, never on a comment
+        # or a label). Now the answer restarts the work with a fresh breaker.
+        if "paged_oid" in s:
+            fix = s.get("fix")
+            if fix and run_alive(int(fix.get("pid", 0))):
+                log.debug("PR #%s: answered, waiting for the run that paged to exit", pr.number)
+                continue
+            paged_oid = s.pop("paged_oid")
+            for k in ("fix", "fix_done_seen", "blocked_handled", "escalated"):
+                s.pop(k, None)
+            if issue:
+                reset_breaker(state, issue.number, f"PR #{pr.number}: `needs-human` removed")
+            state.save()
+            if LABEL_BLOCKED not in pr.labels and pr.head_oid == paged_oid:
+                act(f"PR #{pr.number}: answered with nothing pushed and no `state:blocked` -> re-apply it",
+                    lambda n=pr.number: (gh_label("pr", n, add=[LABEL_BLOCKED]),
+                                         gh_comment("pr", n,
+                                                    "Answer received. Nothing was pushed since the question, and "
+                                                    "CI only re-runs on a push, so `state:blocked` is re-applied: "
+                                                    "a fresh fix run reads your answer and hands the PR back.")))
+                continue  # the blocked branch dispatches on the next tick
+
+        # --- `escalated` removed from the issue by the human (v0.2.6) -------------------
+        if issue and s.get("escalated") and LABEL_ESCALATED not in issue.labels:
+            s.pop("escalated", None)
+            s.pop("blocked_handled", None)
+            s.pop("fix", None)
+            state.notified.pop(f"pr:{pr.number}:escalated", None)
+            reset_breaker(state, issue.number, f"PR #{pr.number}: `escalated` removed from issue #{issue.number}")
+            state.save()
+
+        # --- conflicting with the base branch (v0.2.6) ------------------------------------
+        # GitHub creates NO workflow run for a PR whose merge commit it cannot compute, so
+        # a conflicting PR without `state:blocked` would sit "in CI" forever. Label it, so
+        # the ordinary fix path runs a merge of the base branch; the breaker bounds it.
+        if pr.conflicting and LABEL_BLOCKED not in pr.labels:
+            fix = s.get("fix")
+            if fix and run_alive(int(fix.get("pid", 0))):
+                # a lingering fix run may be pushing the merge right now; the tidy branch
+                # below reaps it after the grace period if it never finishes
+                log.debug("PR #%s: conflicting, but a fix run is still going", pr.number)
+            else:
+                base = cfg["branches"]["base"]
+                act(f"PR #{pr.number}: CONFLICTING with {base} and unblocked -> state:blocked",
+                    lambda n=pr.number, b=base: (gh_label("pr", n, add=[LABEL_BLOCKED]),
+                                                 gh_comment("pr", n,
+                                                            f"This PR conflicts with `{b}` (GitHub: CONFLICTING). No CI "
+                                                            f"run can start for it and nothing would ever merge it, so "
+                                                            f"`state:blocked` is applied: a fix run merges `{b}` into the "
+                                                            f"branch, resolves the conflicts, and pushes.")))
+                for k in ("fix", "fix_done_seen", "blocked_handled"):
+                    s.pop(k, None)
+                state.save()
+                continue  # the blocked branch dispatches on the next tick
 
         if LABEL_BLOCKED in pr.labels:
             fix = s.get("fix")
@@ -1428,12 +1560,14 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                     si["cycle"] = cycle
                 if cycle > max_cycles:
                     def _esc(pr=pr, issue=issue):
-                        gh_comment("pr", pr.number, f"Circuit breaker tripped: {max_cycles} failed attempts.")
+                        gh_comment("pr", pr.number,
+                                   f"Circuit breaker tripped: {max_cycles} failed attempts. To retry with a "
+                                   f"fresh breaker, answer here and remove `escalated` from the issue.")
                         if issue:
-                            gh_label("issue", issue.number, add=[LABEL_ESCALATED])
-                            gh_comment("issue", issue.number,
-                                       f"Circuit breaker tripped on PR #{pr.number}: {max_cycles} failed attempts.")
+                            escalate_issue(state, issue.number,
+                                           f"Circuit breaker tripped on PR #{pr.number}: {max_cycles} failed attempts.")
                     act(f"PR #{pr.number}: blocked beyond breaker -> escalate", _esc)
+                    s["escalated"] = True
                     notify_human(cfg, state, f"pr:{pr.number}:escalated", f"PR #{pr.number} escalated",
                                  pr.url, "pr", pr.number)
                 else:
@@ -1450,7 +1584,8 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                         comments = gh_recent_comments(pr.number)
                         log_name = stamped(f"pr-{pr.number}-fix-c{cycle}")
                         brief = write_brief(log_name,
-                                            fix_brief(pr, issue, role, cycle, max_cycles, comments))
+                                            fix_brief(pr, issue, role, cycle, max_cycles, comments,
+                                                      cfg["branches"]["base"]))
                         def _fix(wt=wt, brief=brief, log_name=log_name, model=model):
                             return spawn_headless(wt.path, brief, log_name, cfg, model)
                         pid = act(f"PR #{pr.number}: blocked -> dispatch fix run (cycle {cycle}/{max_cycles}, "
@@ -1866,6 +2001,8 @@ def cmd_status(cfg: dict[str, Any], state: State) -> int:
         elif LABEL_BLOCKED in pr.labels:
             fix = s.get("fix")
             stage = "blocked (fix run live)" if fix and run_alive(int(fix.get("pid", 0))) else "blocked"
+        elif pr.conflicting:
+            stage = "CONFLICTING -> blocked"   # labelled on the next tick; no CI can run
         elif LABEL_TESTED in pr.labels:
             stage = "tested -> review"
         else:

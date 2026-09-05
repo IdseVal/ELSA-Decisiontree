@@ -1,0 +1,74 @@
+title:
+  en: The AI Act applies to your system - this walk ends here
+  nl: De AI-verordening is van toepassing op uw systeem - deze doorloop eindigt hier
+description:
+  en: |
+    You have worked through all six steps. What you have established is this: the AI Act
+    reaches you (step 1), your system is an AI system within the meaning of Article 3(1)
+    (step 2), it is not a prohibited practice (step 3), and you have answered the high-risk
+    (step 4), general-purpose AI (step 5) and transparency (step 6) questions.
+
+    **The Tree stops here for now.** It was built to establish *whether and how* the Act
+    applies, not what to do about it. Whichever answer you gave at the transparency step,
+    this is where the walk ends in this version.
+
+    What is **not** in this Tree, and where you will have to look further:
+
+    - the **obligations** that follow from what you found: the Chapter III requirements for
+      high-risk systems, the duties of providers, deployers, importers and distributors, the
+      Chapter V obligations for providers of general-purpose AI models, and what Article 50
+      requires you to do in each situation you recognised;
+    - **conformity assessment, registration and the CE marking**;
+    - **which role you are in.** The Act attaches different duties to providers and to
+      deployers, and this Tree has not asked you which one you are. Step 3 and step 6 both
+      depend on that answer;
+    - **enforcement and penalties**.
+
+    Two things to carry away. First, the answers change with the system: adaptiveness,
+    a new intended purpose or a new market can move you to a different branch, so it is worth
+    walking this again after a significant change. Second, **this Tree is not legal advice**
+    and its content has not been through legal review.
+  nl: |
+    U hebt alle zes stappen doorlopen. Wat u daarmee hebt vastgesteld: de AI-verordening
+    bereikt u (stap 1), uw systeem is een AI-systeem in de zin van artikel 3, punt 1 (stap 2),
+    het is geen verboden praktijk (stap 3), en u hebt de vragen over hoog risico (stap 4), AI
+    voor algemene doeleinden (stap 5) en transparantie (stap 6) beantwoord.
+
+    **De boom stopt hier voorlopig.** Hij is gebouwd om vast te stellen *of en hoe* de
+    verordening van toepassing is, niet wat u vervolgens moet doen. Welk antwoord u bij de
+    transparantiestap ook hebt gegeven, hier eindigt de doorloop in deze versie.
+
+    Wat **niet** in deze boom zit, en waar u verder moet kijken:
+
+    - de **verplichtingen** die volgen uit wat u hebt gevonden: de eisen van hoofdstuk III
+      voor systemen met een hoog risico, de plichten van aanbieders, gebruiksverantwoordelijken,
+      importeurs en distributeurs, de verplichtingen van hoofdstuk V voor aanbieders van
+      AI-modellen voor algemene doeleinden, en wat artikel 50 in elke door u herkende situatie
+      van u verlangt;
+    - **conformiteitsbeoordeling, registratie en de CE-markering**;
+    - **in welke rol u zit.** De verordening verbindt verschillende plichten aan aanbieders en
+      aan gebruiksverantwoordelijken, en deze boom heeft u niet gevraagd welke van beide u
+      bent. Stap 3 en stap 6 hangen allebei van dat antwoord af;
+    - **handhaving en sancties**.
+
+    Twee dingen om mee te nemen. Ten eerste veranderen de antwoorden mee met het systeem:
+    aanpassingsvermogen, een nieuw beoogd doel of een nieuwe markt kunnen u in een andere tak
+    doen belanden, zodat het de moeite waard is deze doorloop na een belangrijke wijziging
+    opnieuw te maken. Ten tweede: **deze boom is geen juridisch advies** en de inhoud ervan
+    heeft geen juridische toetsing ondergaan.
+metadata:
+  version: "0.1"
+  owner-action: what follows after Article 50 is out of scope for this version (core document 3.3, item 7, and section 4)
+sources:
+  - kind: legal
+    label:
+      en: Article 50 AI Act (transparency obligations)
+      nl: Artikel 50 AI-verordening (transparantieverplichtingen)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_50
+  - kind: legal
+    label:
+      en: Regulation (EU) 2024/1689 (AI Act), consolidated text of 27 July 2026
+      nl: Verordening (EU) 2024/1689 (AI-verordening), geconsolideerde tekst van 27 juli 2026
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727
+terminal:
+  outcome: applicable

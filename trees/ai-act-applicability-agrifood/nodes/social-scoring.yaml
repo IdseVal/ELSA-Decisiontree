@@ -1,0 +1,57 @@
+title:
+  en: Social scoring
+  nl: Sociale scoring
+description:
+  en: |
+    Article 5(1)(c) prohibits placing on the market, putting into service or using AI
+    systems **for the evaluation or classification of natural persons or groups over a
+    certain period of time**, based on their social behaviour or known, inferred or
+    predicted personal or personality characteristics, where the resulting **social score**
+    leads to either or both of:
+
+    - **detrimental or unfavourable treatment** in social contexts **unrelated** to the
+      contexts in which the data was originally generated or collected;
+    - detrimental or unfavourable treatment that is **unjustified or disproportionate** to
+      the social behaviour or its gravity.
+
+    Three elements to check: evaluation or classification of people, over a period of time,
+    on social behaviour or personal characteristics; a resulting score; and unfavourable
+    treatment that is either context-unrelated or disproportionate.
+
+    In an agrifood setting this reaches further than it first appears. Scoring farmers or
+    workers on behaviour recorded for one purpose - deliveries, compliance checks,
+    cooperative membership - and then using that score against them somewhere else is the
+    pattern the text describes.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 5, lid 1, punt c), verbiedt het in de handel brengen, het in gebruik stellen of
+    het gebruiken van AI-systemen **voor de evaluatie of classificatie van natuurlijke
+    personen of groepen personen gedurende een bepaalde periode** op basis van hun sociale
+    gedrag of bekende, afgeleide of voorspelde persoonlijke of persoonlijkheidskenmerken,
+    waarbij de **sociale score** een of beide van de volgende gevolgen heeft:
+
+    - **nadelige of ongunstige behandeling** in een sociale context die **geen verband
+      houdt** met de context waarin de data oorspronkelijk werden gegenereerd of verzameld;
+    - nadelige of ongunstige behandeling die **ongerechtvaardigd of onevenredig** is met
+      het sociale gedrag of de ernst hiervan.
+
+    Drie elementen om na te gaan: evaluatie of classificatie van personen, gedurende een
+    periode, op basis van sociaal gedrag of persoonlijke kenmerken; een daaruit volgende
+    score; en een ongunstige behandeling die ofwel losstaat van de context ofwel onevenredig
+    is.
+
+    In een agrifood-context reikt dit verder dan het op het eerste gezicht lijkt. Het
+    scoren van boeren of werknemers op gedrag dat voor één doel is vastgelegd - leveringen,
+    controles, lidmaatschap van een coöperatie - en die score daarna elders tegen hen
+    gebruiken, is precies het patroon dat de tekst beschrijft.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(c) AI Act
+      nl: Artikel 5, lid 1, punt c), AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5

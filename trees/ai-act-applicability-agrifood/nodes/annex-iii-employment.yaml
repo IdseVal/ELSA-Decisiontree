@@ -1,0 +1,75 @@
+title:
+  en: Employment, workers management and access to self-employment
+  nl: Werkgelegenheid, personeelsbeheer en toegang tot zelfstandige arbeid
+description:
+  en: |
+    Annex III, area 4, lists two types of AI system:
+
+    - **(a)** systems intended to be used for the **recruitment or selection** of natural
+      persons, in particular to place targeted job advertisements, to analyse and filter
+      job applications, and to evaluate candidates;
+    - **(b)** systems intended to be used **to make decisions affecting the terms of
+      work-related relationships**, the promotion or termination of work-related
+      contractual relationships, **to allocate tasks** based on individual behaviour or
+      personal traits or characteristics, or **to monitor and evaluate the performance and
+      behaviour** of persons in such relationships.
+
+    Point (b) is wider than it first reads. Task allocation based on individual behaviour or
+    personal characteristics is named expressly, and so is performance and behaviour
+    monitoring. The relationship need not be an employment contract: the area covers
+    work-related relationships and access to self-employment.
+
+    For agrifood this is one of the two areas that catch systems the sector actually builds.
+    Rostering and task allocation for seasonal harvest crews, productivity tracking on
+    picking and packing lines, and screening of applicants through a labour intermediary all
+    fall to be tested against this entry.
+
+    Where such a system also infers emotions in the workplace, step 3 comes first: Article
+    5(1)(f) prohibits that outright, subject to the medical or safety exception.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage III, gebied 4, noemt twee types AI-systeem:
+
+    - **a)** systemen die bedoeld zijn om te worden gebruikt voor het **werven of
+      selecteren** van natuurlijke personen, met name voor het plaatsen van gerichte
+      vacatures, het analyseren en filteren van sollicitaties, en het beoordelen van
+      kandidaten;
+    - **b)** systemen die bedoeld zijn om te worden gebruikt voor het **nemen van besluiten
+      die van invloed zijn op de voorwaarden van arbeidsgerelateerde betrekkingen**, de
+      bevordering of beëindiging van arbeidsgerelateerde contractuele betrekkingen, voor het
+      **toewijzen van taken** op basis van individueel gedrag of persoonlijke eigenschappen
+      of kenmerken, of voor het **monitoren en evalueren van prestaties en gedrag** van
+      personen in dergelijke betrekkingen.
+
+    Punt b) is ruimer dan het op het eerste gezicht lijkt. Het toewijzen van taken op basis
+    van individueel gedrag of persoonlijke kenmerken wordt uitdrukkelijk genoemd, en het
+    monitoren en evalueren van prestaties en gedrag eveneens. De betrekking hoeft geen
+    arbeidsovereenkomst te zijn: het gebied bestrijkt arbeidsgerelateerde betrekkingen en de
+    toegang tot zelfstandige arbeid.
+
+    Voor agrifood is dit een van de twee gebieden die systemen raken die de sector
+    daadwerkelijk bouwt. Roosters en taaktoewijzing voor seizoensploegen, prestatiemeting
+    aan pluk- en verpakkingslijnen, en de screening van sollicitanten via een
+    uitzendbureau moeten alle aan dit onderdeel worden getoetst.
+
+    Wanneer zo’n systeem ook emoties op de werkplek afleidt, gaat stap 3 voor: artikel 5,
+    lid 1, punt f), verbiedt dat zonder meer, behoudens de uitzondering voor medische of
+    veiligheidsoverwegingen.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-iii-area: 4
+  listed-system-types: 2
+sources:
+  - kind: legal
+    label:
+      en: Annex III, point 4 AI Act (employment, workers management and access to self-employment)
+      nl: Bijlage III, punt 4, AI-verordening (werkgelegenheid, personeelsbeheer en toegang tot zelfstandige arbeid)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
+  - kind: legal
+    label:
+      en: Article 5(1)(f) AI Act (emotion recognition in the workplace, prohibited)
+      nl: Artikel 5, lid 1, punt f), AI-verordening (emotieherkenning op de werkplek, verboden)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5

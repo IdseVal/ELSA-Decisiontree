@@ -1,0 +1,108 @@
+title:
+  en: Does the AI Act reach you and your system?
+  nl: Bereikt de AI-verordening u en uw systeem?
+description:
+  en: |
+    The AI Act addresses people and organisations, not systems in the abstract. Article
+    2(1) lists **seven** categories. Answer **yes** if any one of them describes you:
+
+    1. a **provider** who places an AI system on the Union market or puts it into service
+       in the Union, or who places a general-purpose AI model on the Union market -
+       irrespective of whether you are established in the Union or in a third country;
+    2. a **deployer** of an AI system who is established or located in the Union;
+    3. a provider or deployer established or located in a **third country**, where the
+       output produced by the AI system **is used in the Union**;
+    4. an **importer** or **distributor** of AI systems;
+    5. a **product manufacturer** placing an AI system on the market or putting it into
+       service together with your product and under your own name or trademark;
+    6. an **authorised representative** of a provider not established in the Union;
+    7. an **affected person** located in the Union.
+
+    Category 1 turns on where the system reaches the Union market, not on where it was
+    built. A "provider" develops a system, or has one developed, and places it on the
+    market or puts it into service under its own name or trademark. A "deployer" uses a
+    system under its own authority, other than in a purely personal, non-professional
+    activity.
+
+    Article 2 also takes some systems and activities back out of the Act. The entries
+    below are those exclusions. Open each one to read what it covers, then come back here
+    to answer. Read the free and open-source entry before relying on it: that exclusion
+    is only partial and does not end this walk.
+
+    Answer **no** only if none of the seven categories describes you, or if one of the
+    full exclusions below covers your system.
+  nl: |
+    De AI-verordening richt zich tot personen en organisaties, niet tot systemen in het
+    abstracte. Artikel 2, lid 1, noemt **zeven** categorieën. Antwoord **ja** als een
+    daarvan op u van toepassing is:
+
+    1. een **aanbieder** die een AI-systeem in de Unie in de handel brengt of in gebruik
+       stelt, of die een AI-model voor algemene doeleinden in de Unie in de handel
+       brengt - ongeacht of u in de Unie of in een derde land bent gevestigd;
+    2. een **gebruiksverantwoordelijke** van een AI-systeem die in de Unie is gevestigd
+       of zich er bevindt;
+    3. een aanbieder of gebruiksverantwoordelijke die in een **derde land** is gevestigd
+       of zich er bevindt, indien de output van het AI-systeem **in de Unie wordt
+       gebruikt**;
+    4. een **importeur** of **distributeur** van AI-systemen;
+    5. een **fabrikant van producten** die samen met uw product en onder uw eigen naam of
+       merk een AI-systeem in de handel brengt of in gebruik stelt;
+    6. een **gemachtigde** van een aanbieder die niet in de Unie is gevestigd;
+    7. een **getroffen persoon** die zich in de Unie bevindt.
+
+    Categorie 1 hangt af van waar het systeem de markt van de Unie bereikt, niet van waar
+    het is gemaakt. Een "aanbieder" ontwikkelt een systeem of laat het ontwikkelen en
+    brengt het onder eigen naam of merk in de handel of stelt het in gebruik. Een
+    "gebruiksverantwoordelijke" gebruikt een systeem onder eigen verantwoordelijkheid,
+    behalve in het kader van een louter persoonlijke niet-beroepsactiviteit.
+
+    Artikel 2 haalt ook een aantal systemen en activiteiten weer buiten de verordening.
+    De onderdelen hieronder zijn die uitsluitingen. Open elk onderdeel om te lezen wat het
+    inhoudt en kom daarna hier terug om te antwoorden. Lees het onderdeel over vrije en
+    opensourcelicenties voordat u erop vertrouwt: die uitsluiting is slechts gedeeltelijk
+    en beëindigt deze doorloop niet.
+
+    Antwoord **nee** alleen als geen van de zeven categorieën op u van toepassing is, of
+    als een van de volledige uitsluitingen hieronder op uw systeem van toepassing is.
+metadata:
+  version: "0.1"
+  step: 1 - jurisdictional scope
+sources:
+  - kind: legal
+    label:
+      en: Article 2 AI Act (scope)
+      nl: Artikel 2 AI-verordening (toepassingsgebied)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+  - kind: legal
+    label:
+      en: Article 3(3), (4), (9), (11) AI Act (provider, deployer, placing on the market, putting into service)
+      nl: Artikel 3, punten 3, 4, 9 en 11, AI-verordening (aanbieder, gebruiksverantwoordelijke, in de handel brengen, in gebruik stellen)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+options:
+  - title:
+      en: Military, defence or national security purposes, and areas outside Union law
+      nl: Militaire, defensie- of nationale veiligheidsdoeleinden, en gebieden buiten het Unierecht
+    target: exclusion-national-security
+  - title:
+      en: Third-country authorities and international organisations in law enforcement cooperation
+      nl: Autoriteiten van derde landen en internationale organisaties bij samenwerking op het gebied van rechtshandhaving
+    target: exclusion-third-country-authorities
+  - title:
+      en: Developed and put into service for the sole purpose of scientific research and development
+      nl: Ontwikkeld en in gebruik gesteld met wetenschappelijk onderzoek en wetenschappelijke ontwikkeling als enig doel
+    target: exclusion-scientific-research
+  - title:
+      en: Research, testing or development before the system is placed on the market
+      nl: Onderzoeks-, test- of ontwikkelingsactiviteiten voordat het systeem in de handel wordt gebracht
+    target: exclusion-research-and-development
+  - title:
+      en: Deployers who are natural persons using a system in a purely personal, non-professional activity
+      nl: Gebruiksverantwoordelijken die natuurlijke personen zijn en een systeem in een louter persoonlijke niet-beroepsactiviteit gebruiken
+    target: exclusion-personal-use
+  - title:
+      en: Systems released under free and open-source licences (partial exclusion only)
+      nl: Systemen die worden vrijgegeven onder vrije en opensourcelicenties (slechts gedeeltelijke uitsluiting)
+    target: exclusion-open-source
+answers:
+  yes: ai-system-definition
+  no: ai-act-does-not-apply

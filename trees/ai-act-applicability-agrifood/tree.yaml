@@ -1,0 +1,45 @@
+# The first Tree: does the EU AI Act apply to an agrifood AI system, and how far?
+# Authored from docs/research/issue-3-ai-act-applicability.md (issue #3), which quotes the
+# consolidated text of 27 July 2026 (CELEX 02024R1689-20260727). The Dutch text uses the
+# official terminology of the Dutch-language consolidated text. Version 0.1: content
+# prepared for the owner to review and refine; see NOTES.md.
+format: elsa-tree/1
+languages: [en, nl]
+root: start
+title:
+  en: Does the EU AI Act apply to my agrifood AI system?
+  nl: Is de EU AI-verordening van toepassing op mijn agrifood-AI-systeem?
+description:
+  en: |
+    An interactive walk through the applicability of Regulation (EU) 2024/1689 (the AI
+    Act) to an AI system in the agrifood domain, in six steps: does the Act reach you,
+    is your system an AI system, is it a prohibited practice, is it high-risk, is it
+    general-purpose AI, and does it carry transparency obligations.
+
+    The walk stops after the transparency step. What obligations follow from a
+    "high-risk" outcome, and what applies when a system is neither prohibited nor
+    high-risk, is not yet part of this Tree.
+
+    This Tree is authored from the consolidated text of 27 July 2026, which integrates
+    the amendments made by Regulation (EU) 2026/1744 (Digital Omnibus on AI).
+  nl: |
+    Een interactieve doorloop van de toepasselijkheid van Verordening (EU) 2024/1689 (de
+    AI-verordening) op een AI-systeem in het agrifood-domein, in zes stappen: bereikt de
+    verordening u, is uw systeem een AI-systeem, gaat het om een verboden praktijk, is
+    het een systeem met een hoog risico, gaat het om AI voor algemene doeleinden, en
+    gelden er transparantieverplichtingen.
+
+    De doorloop stopt na de transparantiestap. Welke verplichtingen volgen uit een
+    uitkomst "hoog risico", en wat geldt wanneer een systeem noch verboden is noch een
+    hoog risico heeft, maakt nog geen deel uit van deze boom.
+
+    Deze boom is geschreven op basis van de geconsolideerde tekst van 27 juli 2026,
+    waarin de wijzigingen van Verordening (EU) 2026/1744 (Digital Omnibus on AI) zijn
+    verwerkt.
+metadata:
+  version: "0.1"
+  author: prepared by the ELSA-Decisiontree agents for the owner's review
+  status: draft, not legally reviewed
+  legal-text: consolidated AI Act of 27 July 2026, CELEX 02024R1689-20260727
+  amended-by: Regulation (EU) 2026/1744 (Digital Omnibus on AI)
+  research: docs/research/issue-3-ai-act-applicability.md

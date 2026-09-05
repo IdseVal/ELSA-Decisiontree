@@ -1,0 +1,63 @@
+title:
+  en: Civil aviation security
+  nl: Beveiliging van de burgerluchtvaart
+description:
+  en: |
+    Annex I, Section B, point 13 lists **Regulation (EC) No 300/2008 on common rules in the
+    field of civil aviation security**.
+
+    Being covered by this legislation is not on its own enough. Article 6(1) makes an AI
+    system high-risk only when **both** of its conditions are met: (a) the system is
+    intended to be used as a **safety component** of a product covered by Annex I, or is
+    itself such a product; **and** (b) that product must undergo a **third-party conformity
+    assessment** under that legislation before it is placed on the market or put into
+    service.
+
+    This is **Section B** legislation, and that changes the consequences. Article 2(2)
+    provides that for an AI system classified as high-risk under Article 6(1) in relation to
+    a product covered by Section B, **only Article 6(1), Article 60a and Articles 102 to 112
+    apply**; Articles 57, 58 and 59 apply only in so far as the high-risk requirements of
+    this Regulation have been incorporated in that legislation.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage I, afdeling B, punt 13, noemt **Verordening (EG) nr. 300/2008 inzake
+    gemeenschappelijke regels op het gebied van de beveiliging van de burgerluchtvaart**.
+
+    Dat deze wetgeving van toepassing is, volstaat op zichzelf niet. Artikel 6, lid 1, merkt
+    een AI-systeem pas als systeem met een hoog risico aan wanneer aan **beide** voorwaarden
+    is voldaan: a) het systeem is bedoeld om te worden gebruikt als **veiligheidscomponent**
+    van een product dat onder bijlage I valt, of is zelf zo’n product; **en** b) voor dat
+    product moet op grond van die wetgeving een **conformiteitsbeoordeling door een derde
+    partij** worden uitgevoerd voordat het in de handel wordt gebracht of in gebruik wordt
+    gesteld.
+
+    Dit is wetgeving uit **afdeling B**, en dat verandert de gevolgen. Artikel 2, lid 2,
+    bepaalt dat op een AI-systeem dat op grond van artikel 6, lid 1, als systeem met een
+    hoog risico wordt aangemerkt en verband houdt met een product dat onder afdeling B valt,
+    **uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met 112 van
+    toepassing zijn**; de artikelen 57, 58 en 59 zijn alleen van toepassing voor zover de
+    eisen voor systemen met een hoog risico van deze verordening in die wetgeving zijn
+    opgenomen.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-i-point: 13
+  annex-i-section: B
+sources:
+  - kind: legal
+    label:
+      en: Annex I, Section B, point 13 AI Act
+      nl: Bijlage I, afdeling B, punt 13, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_I
+  - kind: legal
+    label:
+      en: Regulation (EC) No 300/2008 on common rules in the field of civil aviation security
+      nl: Verordening (EG) nr. 300/2008 inzake gemeenschappelijke regels op het gebied van de beveiliging van de burgerluchtvaart
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32008R0300
+  - kind: legal
+    label:
+      en: Article 6(1) AI Act (classification rules for high-risk AI systems)
+      nl: Artikel 6, lid 1, AI-verordening (classificatieregels voor AI-systemen met een hoog risico)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6

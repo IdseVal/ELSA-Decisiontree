@@ -1,0 +1,71 @@
+title:
+  en: Deep fakes (obligation on the deployer)
+  nl: Deepfakes (verplichting voor de gebruiksverantwoordelijke)
+description:
+  en: |
+    **Article 50(4), first subparagraph.** Deployers of an AI system that generates or
+    manipulates image, audio or video content constituting a **deep fake** must **disclose
+    that the content has been artificially generated or manipulated**.
+
+    **Deep fake** is defined in Article 3(60) as *"AI-generated or manipulated image, audio or
+    video content that resembles existing persons, objects, places, entities or events and
+    would falsely appear to a person to be authentic or truthful"*. Note that the definition
+    is not limited to people: objects, places, entities and events are named too.
+
+    Two qualifications in the text:
+
+    - the obligation does not apply where the use is authorised by law to detect, prevent,
+      investigate or prosecute criminal offences;
+    - where the content forms part of an **evidently artistic, creative, satirical, fictional
+      or analogous work or programme**, the obligation is limited to disclosing the existence
+      of such generated or manipulated content in an appropriate manner that does not hamper
+      the display or enjoyment of the work.
+
+    Because the definition covers objects, places and events, an agrifood case is easy to
+    reach: a generated image of a field, a herd or a facility that would pass for a
+    photograph - in marketing, in a certification file, or in a damage claim - is a deep fake
+    on these terms.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    **Artikel 50, lid 4, eerste alinea.** Gebruiksverantwoordelijken van een AI-systeem dat
+    beeld-, audio- of videocontent genereert of bewerkt die een **deepfake** vormt, **maken
+    bekend dat de content kunstmatig is gegenereerd of gemanipuleerd**.
+
+    **Deepfake** is in artikel 3, punt 60, omschreven als *"door AI gegenereerd of
+    gemanipuleerd beeld-, audio- of videomateriaal dat een gelijkenis vertoont met bestaande
+    personen, voorwerpen, plaatsen, entiteiten of gebeurtenissen, en door een persoon ten
+    onrechte voor authentiek of waarheidsgetrouw zou worden aangezien"*. Let op: de definitie
+    is niet beperkt tot personen; voorwerpen, plaatsen, entiteiten en gebeurtenissen worden
+    ook genoemd.
+
+    Twee nuanceringen in de tekst:
+
+    - de verplichting geldt niet wanneer het gebruik bij wet is toegestaan om strafbare feiten
+      op te sporen, te voorkomen, te onderzoeken of te vervolgen;
+    - wanneer de content deel uitmaakt van een **kennelijk artistiek, creatief, satirisch,
+      fictief of analoog werk of programma**, is de verplichting beperkt tot het openbaar
+      maken van het bestaan van dergelijke gegenereerde of bewerkte content op een passende
+      wijze die de weergave of het genot van het werk niet belemmert.
+
+    Doordat de definitie ook voorwerpen, plaatsen en gebeurtenissen bestrijkt, is een
+    agrifood-geval snel bereikt: een gegenereerd beeld van een perceel, een veestapel of een
+    installatie dat voor een foto zou doorgaan - in marketing, in een certificeringsdossier of
+    bij een schadeclaim - is op deze voorwaarden een deepfake.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  article-50-situation: 4
+  addressee: deployer
+sources:
+  - kind: legal
+    label:
+      en: Article 50(4), first subparagraph, AI Act
+      nl: Artikel 50, lid 4, eerste alinea, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_50
+  - kind: legal
+    label:
+      en: Article 3(60) AI Act (deep fake)
+      nl: Artikel 3, punt 60, AI-verordening (deepfake)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3

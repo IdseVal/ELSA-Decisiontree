@@ -1,0 +1,42 @@
+title:
+  en: Systems released under free and open-source licences (partial exclusion only)
+  nl: Systemen die worden vrijgegeven onder vrije en opensourcelicenties (slechts gedeeltelijke uitsluiting)
+description:
+  en: |
+    Article 2(12) says the Regulation does not apply to AI systems released under free and
+    open-source licences, **unless they are placed on the market or put into service as
+    high-risk AI systems or as an AI system that falls under Article 5 or Article 50**.
+
+    This is not a full exclusion, and that is why this entry cannot end the walk. Steps 3,
+    4 and 6 of this Tree ask exactly the questions the exception names: is it a prohibited
+    practice (Article 5), is it high-risk, does it carry transparency obligations
+    (Article 50). An open-source system must still go through them.
+
+    Answer the previous step on the seven categories and the full exclusions, and keep
+    walking.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 2, lid 12, bepaalt dat de verordening niet van toepassing is op AI-systemen
+    die worden vrijgegeven onder vrije en opensourcelicenties, **tenzij zij in de handel
+    worden gebracht of in gebruik worden gesteld als AI-systemen met een hoog risico of
+    als een AI-systeem dat onder artikel 5 of artikel 50 valt**.
+
+    Dit is geen volledige uitsluiting, en daarom kan dit onderdeel de doorloop niet
+    beëindigen. De stappen 3, 4 en 6 van deze boom stellen precies de vragen die de
+    uitzondering noemt: gaat het om een verboden praktijk (artikel 5), is het een systeem
+    met een hoog risico, gelden er transparantieverplichtingen (artikel 50)? Een
+    opensourcesysteem moet die stappen nog steeds doorlopen.
+
+    Beantwoord de vorige stap op basis van de zeven categorieën en de volledige
+    uitsluitingen, en loop verder.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 2(12) AI Act
+      nl: Artikel 2, lid 12, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2

@@ -1,0 +1,53 @@
+title:
+  en: Subliminal, purposefully manipulative or deceptive techniques
+  nl: Subliminale, doelbewust manipulatieve of misleidende technieken
+description:
+  en: |
+    Article 5(1)(a) prohibits placing on the market, putting into service or using an AI
+    system that deploys **subliminal techniques beyond a person's consciousness**, or
+    **purposefully manipulative or deceptive techniques**, with the objective or the
+    effect of materially distorting the behaviour of a person or a group.
+
+    Every element has to be present:
+
+    1. the technique is subliminal, or purposefully manipulative, or deceptive;
+    2. it has the objective **or the effect** of materially distorting behaviour;
+    3. it does so by appreciably impairing the ability to make an informed decision;
+    4. the person therefore takes a decision they would not otherwise have taken;
+    5. in a manner that causes, or is reasonably likely to cause, that person, another
+       person or a group **significant harm**.
+
+    Note that intent is not required: the effect is enough. Note also that persuasion as
+    such is not the target - the text asks whether the ability to decide is appreciably
+    impaired and whether significant harm follows.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 5, lid 1, punt a), verbiedt het in de handel brengen, het in gebruik stellen of
+    het gebruiken van een AI-systeem dat **subliminale technieken waarvan personen zich
+    niet bewust zijn** of **doelbewust manipulatieve of misleidende technieken** gebruikt,
+    met als doel of effect het gedrag van een persoon of groep wezenlijk te verstoren.
+
+    Alle elementen moeten aanwezig zijn:
+
+    1. de techniek is subliminaal, of doelbewust manipulatief, of misleidend;
+    2. zij heeft als doel **of effect** het gedrag wezenlijk te verstoren;
+    3. zij doet dat door het vermogen om een geïnformeerd besluit te nemen merkbaar te
+       belemmeren;
+    4. de persoon neemt daardoor een besluit dat hij anders niet had genomen;
+    5. op een wijze die ertoe leidt of er redelijkerwijs waarschijnlijk toe zal leiden dat
+       deze of andere personen, of een groep personen, **aanzienlijke schade** oplopen.
+
+    Opzet is dus niet vereist: het effect volstaat. Overtuigen als zodanig is evenmin het
+    doelwit - de tekst vraagt of het vermogen om te beslissen merkbaar wordt belemmerd en
+    of daaruit aanzienlijke schade volgt.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(a) AI Act
+      nl: Artikel 5, lid 1, punt a), AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5

@@ -1,0 +1,77 @@
+title:
+  en: Systems generating synthetic audio, image, video or text (obligation on the provider)
+  nl: Systemen die synthetische audio, beelden, video of tekst genereren (verplichting voor de aanbieder)
+description:
+  en: |
+    **Article 50(2).** Providers of AI systems - **including general-purpose AI systems** -
+    that generate **synthetic audio, image, video or text content** must ensure the outputs
+    are **marked in a machine-readable format and detectable as artificially generated or
+    manipulated**.
+
+    The technical solutions must be effective, interoperable, robust and reliable as far as
+    is technically feasible, taking into account the specificities and limitations of
+    different content types, the costs of implementation and the generally acknowledged state
+    of the art, as may be reflected in technical standards.
+
+    The obligation does **not** apply to the extent that the system:
+
+    - performs an **assistive function for standard editing**; or
+    - does **not substantially alter** the input data provided by the deployer, or its
+      semantics; or
+    - is authorised by law to detect, prevent, investigate or prosecute criminal offences.
+
+    **Transitional rule.** Article 111(4), added by Regulation (EU) 2026/1744, requires
+    providers of such systems placed on the market **before 2 August 2026** to take the
+    necessary steps to comply with Article 50(2) **by 2 December 2026**.
+
+    This situation is the one an agrifood system reaches most easily. Any product that
+    generates text - advisory reports, label copy, marketing content - or images falls to be
+    checked here, and it applies to the provider even where the system is bought in and
+    rebadged.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    **Artikel 50, lid 2.** Aanbieders van AI-systemen - **met inbegrip van AI-systemen voor
+    algemene doeleinden** - die **synthetische audio-, beeld-, video- of tekstinhoud**
+    genereren, zorgen ervoor dat de outputs worden **gemarkeerd in een machineleesbaar
+    formaat en detecteerbaar zijn als kunstmatig gegenereerd of gemanipuleerd**.
+
+    De technische oplossingen moeten doeltreffend, interoperabel, robuust en betrouwbaar zijn
+    voor zover dat technisch haalbaar is, rekening houdend met de specifieke kenmerken en
+    beperkingen van de verschillende soorten content, de uitvoeringskosten en de algemeen
+    erkende stand van de techniek, zoals die tot uiting kan komen in technische normen.
+
+    De verplichting geldt **niet** voor zover het systeem:
+
+    - een **ondersteunende functie voor standaardbewerking** vervult; of
+    - de door de gebruiksverantwoordelijke verstrekte inputdata of de semantiek daarvan
+      **niet substantieel wijzigt**; of
+    - bij wet is toegestaan om strafbare feiten op te sporen, te voorkomen, te onderzoeken of
+      te vervolgen.
+
+    **Overgangsregel.** Artikel 111, lid 4, toegevoegd bij Verordening (EU) 2026/1744,
+    verplicht aanbieders van dergelijke systemen die **vóór 2 augustus 2026** in de handel
+    zijn gebracht, de nodige stappen te nemen om **uiterlijk op 2 december 2026** aan artikel
+    50, lid 2, te voldoen.
+
+    Dit is de situatie die een agrifood-systeem het gemakkelijkst raakt. Elk product dat tekst
+    genereert - adviesrapporten, etiketteksten, marketingcontent - of beelden moet hier worden
+    getoetst, en de verplichting geldt voor de aanbieder ook wanneer het systeem is ingekocht
+    en onder eigen naam wordt aangeboden.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  article-50-situation: 2
+  addressee: provider
+sources:
+  - kind: legal
+    label:
+      en: Article 50(2) AI Act
+      nl: Artikel 50, lid 2, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_50
+  - kind: legal
+    label:
+      en: Article 111(4) AI Act as amended (systems on the market before 2 August 2026)
+      nl: Artikel 111, lid 4, AI-verordening zoals gewijzigd (systemen die vóór 2 augustus 2026 in de handel zijn)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_111

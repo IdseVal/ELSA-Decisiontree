@@ -1,0 +1,60 @@
+title:
+  en: Safety of toys
+  nl: Veiligheid van speelgoed
+description:
+  en: |
+    Annex I, Section A, point 2 lists **Directive 2009/48/EC on the safety of toys**.
+
+    Being covered by this legislation is not on its own enough. Article 6(1) makes an AI
+    system high-risk only when **both** of its conditions are met: (a) the system is
+    intended to be used as a **safety component** of a product covered by Annex I, or is
+    itself such a product; **and** (b) that product must undergo a **third-party conformity
+    assessment** under that legislation before it is placed on the market or put into
+    service.
+
+    This is **Section A** legislation: the Union harmonisation legislation based on the New
+    Legislative Framework. An AI system that is high-risk through Section A is subject to
+    the full high-risk regime of Chapter III, subject to the possible limitation of Articles
+    9 to 15 and 17 to 25 that Article 2(13) allows the Commission to make by delegated act.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage I, afdeling A, punt 2, noemt **Richtlijn 2009/48/EG betreffende de veiligheid
+    van speelgoed**.
+
+    Dat deze wetgeving van toepassing is, volstaat op zichzelf niet. Artikel 6, lid 1, merkt
+    een AI-systeem pas als systeem met een hoog risico aan wanneer aan **beide** voorwaarden
+    is voldaan: a) het systeem is bedoeld om te worden gebruikt als **veiligheidscomponent**
+    van een product dat onder bijlage I valt, of is zelf zo’n product; **en** b) voor dat
+    product moet op grond van die wetgeving een **conformiteitsbeoordeling door een derde
+    partij** worden uitgevoerd voordat het in de handel wordt gebracht of in gebruik wordt
+    gesteld.
+
+    Dit is wetgeving uit **afdeling A**: de harmonisatiewetgeving van de Unie op basis van
+    het nieuwe wetgevingskader. Een AI-systeem dat via afdeling A een hoog risico vormt,
+    valt onder het volledige regime voor systemen met een hoog risico van hoofdstuk III,
+    behoudens de mogelijke beperking van de artikelen 9 tot en met 15 en 17 tot en met 25
+    die de Commissie op grond van artikel 2, lid 13, bij gedelegeerde handeling kan
+    aanbrengen.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-i-point: 2
+  annex-i-section: A
+sources:
+  - kind: legal
+    label:
+      en: Annex I, Section A, point 2 AI Act
+      nl: Bijlage I, afdeling A, punt 2, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_I
+  - kind: legal
+    label:
+      en: Directive 2009/48/EC on the safety of toys
+      nl: Richtlijn 2009/48/EG betreffende de veiligheid van speelgoed
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32009L0048
+  - kind: legal
+    label:
+      en: Article 6(1) AI Act (classification rules for high-risk AI systems)
+      nl: Artikel 6, lid 1, AI-verordening (classificatieregels voor AI-systemen met een hoog risico)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6

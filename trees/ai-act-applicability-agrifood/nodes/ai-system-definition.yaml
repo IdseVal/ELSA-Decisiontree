@@ -1,0 +1,99 @@
+title:
+  en: Is your system an AI system within the meaning of the Act?
+  nl: Is uw systeem een AI-systeem in de zin van de verordening?
+description:
+  en: |
+    The Act applies only to what it calls an AI system. Article 3(1) defines it:
+
+    *"AI system means a machine-based system that is designed to operate with varying
+    levels of autonomy and that may exhibit adaptiveness after deployment, and that, for
+    explicit or implicit objectives, infers, from the input it receives, how to generate
+    outputs such as predictions, content, recommendations, or decisions that can influence
+    physical or virtual environments."*
+
+    Recital 12 explains each element. Check them one by one against your system:
+
+    - **machine-based**: the system runs on machines;
+    - **varying levels of autonomy**: it has some degree of independence of action from
+      human involvement;
+    - **may exhibit adaptiveness after deployment**: self-learning capabilities that let
+      it change while in use. This one *may* be present; it is not required;
+    - **explicit or implicit objectives**: which may differ from the intended purpose;
+    - **infers from the input how to generate outputs**: this is the distinguishing
+      element. The capability to infer covers machine learning as well as logic- and
+      knowledge-based approaches, and it "transcends basic data processing". Recital 12
+      says the definition should **not** cover systems "based on the rules defined solely
+      by natural persons to automatically execute operations";
+    - **outputs**: predictions, content, recommendations or decisions;
+    - which **can influence physical or virtual environments**.
+
+    For agrifood this is where a yield-prediction model, a disease-detection vision model
+    or a robotic weeder separates from a fixed-rule irrigation timer or a spreadsheet of
+    thresholds written by an agronomist: the first group infers, the second executes rules
+    a person wrote.
+
+    A system may be used on a stand-alone basis or as a component of a product, whether or
+    not it is physically embedded in that product.
+
+    Answer **yes** if your system meets the definition, **no** if it does not.
+  nl: |
+    De verordening is alleen van toepassing op wat zij een AI-systeem noemt. Artikel 3,
+    punt 1, definieert dat als volgt:
+
+    *"AI-systeem: een op een machine gebaseerd systeem dat is ontworpen om met
+    verschillende niveaus van autonomie te werken en dat na het inzetten ervan
+    aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete
+    doelstellingen, uit de ontvangen input afleidt hoe output te genereren zoals
+    voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op
+    fysieke of virtuele omgevingen."*
+
+    Overweging 12 licht elk element toe. Loop ze een voor een langs uw systeem:
+
+    - **op een machine gebaseerd**: het systeem draait op machines;
+    - **verschillende niveaus van autonomie**: het heeft een zekere mate van
+      onafhankelijkheid van handelen ten opzichte van menselijke betrokkenheid;
+    - **kan na het inzetten aanpassingsvermogen vertonen**: zelflerende capaciteiten
+      waardoor het systeem tijdens gebruik verandert. Dit *kan* aanwezig zijn; het is niet
+      vereist;
+    - **expliciete of impliciete doelstellingen**: die kunnen verschillen van het beoogde
+      doel;
+    - **leidt uit de input af hoe output te genereren**: dit is het onderscheidende
+      element. Het vermogen om af te leiden omvat machinaal leren en ook op logica en
+      kennis gebaseerde benaderingen, en gaat verder dan eenvoudige gegevensverwerking.
+      Overweging 12 stelt dat de definitie **geen** systemen omvat "die gebaseerd zijn op
+      regels die uitsluitend door natuurlijke personen zijn vastgesteld om automatisch
+      handelingen uit te voeren";
+    - **output**: voorspellingen, inhoud, aanbevelingen of beslissingen;
+    - die **van invloed kan zijn op fysieke of virtuele omgevingen**.
+
+    Voor agrifood scheidt dit een opbrengstvoorspellingsmodel, een model voor
+    ziekteherkenning op beeld of een wiedrobot van een irrigatietimer met vaste regels of
+    een rekenblad met drempelwaarden dat een teeltadviseur heeft opgesteld: de eerste
+    groep leidt af, de tweede voert regels uit die een mens heeft geschreven.
+
+    Een systeem kan zelfstandig worden gebruikt of als component van een product, ongeacht
+    of het fysiek in dat product is ingebed.
+
+    Antwoord **ja** als uw systeem aan de definitie voldoet, **nee** als dat niet zo is.
+metadata:
+  version: "0.1"
+  step: 2 - material scope
+sources:
+  - kind: legal
+    label:
+      en: Article 3(1) AI Act (definition of an AI system)
+      nl: Artikel 3, punt 1, AI-verordening (definitie van AI-systeem)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+  - kind: legal
+    label:
+      en: Recital 12 AI Act (what each element of the definition means)
+      nl: Overweging 12 AI-verordening (wat elk element van de definitie betekent)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727
+  - kind: legal
+    label:
+      en: Article 3(12) AI Act (intended purpose)
+      nl: Artikel 3, punt 12, AI-verordening (beoogd doel)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+answers:
+  yes: prohibited-practices
+  no: not-an-ai-system

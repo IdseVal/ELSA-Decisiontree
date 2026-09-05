@@ -1,0 +1,66 @@
+title:
+  en: Migration, asylum and border control management
+  nl: Migratie-, asiel- en grenstoezichtsbeheer
+description:
+  en: |
+    Annex III, area 7, applies **in so far as the use of these systems is permitted under
+    relevant Union or national law**, and lists four types. All four are defined by who uses
+    the system: competent public authorities, someone acting on their behalf, or Union
+    institutions, bodies, offices or agencies.
+
+    - **(a)** systems used as **polygraphs or similar tools**;
+    - **(b)** systems to **assess a risk** - including a security risk, a risk of irregular
+      migration, or a health risk - posed by a natural person who intends to enter or has
+      entered the territory of a Member State;
+    - **(c)** systems to **assist in the examination of applications** for asylum, visa or
+      residence permits and associated complaints regarding eligibility, including related
+      assessments of the reliability of evidence;
+    - **(d)** systems used in the context of migration, asylum or border control management
+      for **detecting, recognising or identifying natural persons**, with the exception of
+      the verification of travel documents.
+
+    An agrifood system reaches this area only if it is built for or used by such an
+    authority. Note, though, that seasonal and migrant labour is a real part of the sector:
+    a system that assesses or identifies workers **on behalf of** a competent public
+    authority in a migration or border context falls here, while the same system used by an
+    employer for its own workforce is tested against area 4 instead.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage III, gebied 7, geldt **voor zover het gebruik van deze systemen is toegestaan op
+    grond van het toepasselijke Unierecht of nationale recht**, en noemt vier types. Alle
+    vier zijn omschreven aan de hand van wie het systeem gebruikt: bevoegde
+    overheidsinstanties, iemand die namens hen handelt, of instellingen, organen of
+    instanties van de Unie.
+
+    - **a)** systemen die worden gebruikt als **leugendetector of soortgelijke
+      hulpmiddelen**;
+    - **b)** systemen om **een risico te beoordelen** - waaronder een veiligheidsrisico, een
+      risico op illegale migratie of een gezondheidsrisico - dat uitgaat van een natuurlijke
+      persoon die voornemens is het grondgebied van een lidstaat te betreden of dat heeft
+      gedaan;
+    - **c)** systemen om **bij te staan bij de behandeling van aanvragen** voor asiel, visa
+      of verblijfsvergunningen en aanverwante klachten over het al dan niet in aanmerking
+      komen, met inbegrip van beoordelingen van de betrouwbaarheid van bewijsmateriaal;
+    - **d)** systemen die in het kader van migratie-, asiel- of grenstoezichtsbeheer worden
+      gebruikt met het oog op het **opsporen, herkennen of identificeren van natuurlijke
+      personen**, met uitzondering van de verificatie van reisdocumenten.
+
+    Een agrifood-systeem raakt dit gebied alleen als het voor zo’n instantie is gebouwd of
+    door zo’n instantie wordt gebruikt. Let er wel op dat seizoens- en migrantenarbeid een
+    reëel onderdeel van de sector is: een systeem dat werknemers beoordeelt of identificeert
+    **namens** een bevoegde overheidsinstantie in een migratie- of grenscontext valt
+    hieronder, terwijl hetzelfde systeem dat een werkgever voor het eigen personeel gebruikt
+    aan gebied 4 wordt getoetst.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-iii-area: 7
+  listed-system-types: 4
+sources:
+  - kind: legal
+    label:
+      en: Annex III, point 7 AI Act (migration, asylum and border control management)
+      nl: Bijlage III, punt 7, AI-verordening (migratie-, asiel- en grenstoezichtsbeheer)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III

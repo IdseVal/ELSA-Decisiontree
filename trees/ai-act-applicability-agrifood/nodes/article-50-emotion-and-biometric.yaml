@@ -1,0 +1,82 @@
+title:
+  en: Emotion recognition or biometric categorisation systems (obligation on the deployer)
+  nl: Systemen voor emotieherkenning of biometrische categorisering (verplichting voor de gebruiksverantwoordelijke)
+description:
+  en: |
+    **Article 50(3).** Deployers of an **emotion recognition system** or a **biometric
+    categorisation system** must **inform the natural persons exposed to it of the operation
+    of the system**, and must process the personal data in accordance with Regulation (EU)
+    2016/679, Regulation (EU) 2018/1725 and Directive (EU) 2016/680, as applicable.
+
+    The obligation does not apply to systems used for biometric categorisation and emotion
+    recognition that are permitted by law to detect, prevent or investigate criminal
+    offences, subject to appropriate safeguards for the rights and freedoms of third parties
+    and in accordance with Union law.
+
+    The definitions that decide whether you are here:
+
+    - **emotion recognition system** (Article 3(39)): an AI system for the purpose of
+      identifying or inferring emotions or intentions of natural persons on the basis of
+      their **biometric data**;
+    - **biometric categorisation system** (Article 3(40)): an AI system for assigning natural
+      persons to specific categories on the basis of their biometric data, **unless** it is
+      ancillary to another commercial service and strictly necessary for objective technical
+      reasons.
+
+    This obligation is on the **deployer**, not the provider - the one difference that
+    matters most in practice, because the duty to inform falls on whoever runs the system in
+    front of people.
+
+    Check step 3 first. Emotion recognition in the workplace or in education is **prohibited**
+    by Article 5(1)(f) except for medical or safety reasons, and biometric categorisation to
+    infer the characteristics listed in Article 5(1)(g) is prohibited outright. Article 50(3)
+    applies to what remains.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    **Artikel 50, lid 3.** Gebruiksverantwoordelijken van een **systeem voor het herkennen van
+    emoties** of een **systeem voor biometrische categorisering** **informeren de daaraan
+    blootgestelde natuurlijke personen over de werking van het systeem** en verwerken de
+    persoonsgegevens in overeenstemming met Verordening (EU) 2016/679, Verordening (EU)
+    2018/1725 en Richtlijn (EU) 2016/680, indien van toepassing.
+
+    De verplichting geldt niet voor systemen voor biometrische categorisering en
+    emotieherkenning die bij wet zijn toegestaan om strafbare feiten op te sporen, te
+    voorkomen of te onderzoeken, met inachtneming van passende waarborgen voor de rechten en
+    vrijheden van derden en overeenkomstig het Unierecht.
+
+    De definities die bepalen of u hier bent:
+
+    - **systeem voor het herkennen van emoties** (artikel 3, punt 39): een AI-systeem dat is
+      bedoeld voor het vaststellen of afleiden van de emoties of intenties van natuurlijke
+      personen op basis van hun **biometrische gegevens**;
+    - **systeem voor biometrische categorisering** (artikel 3, punt 40): een AI-systeem dat is
+      bedoeld voor het indelen van natuurlijke personen in specifieke categorieën op basis van
+      hun biometrische gegevens, **tenzij** dit een aanvulling vormt op een andere commerciële
+      dienst en om objectieve technische redenen strikt noodzakelijk is.
+
+    Deze verplichting rust op de **gebruiksverantwoordelijke**, niet op de aanbieder - het
+    verschil dat in de praktijk het meeste uitmaakt, omdat de informatieplicht ligt bij degene
+    die het systeem tegenover mensen laat draaien.
+
+    Toets eerst stap 3. Emotieherkenning op de werkplek of in het onderwijs is **verboden** op
+    grond van artikel 5, lid 1, punt f), behoudens medische of veiligheidsoverwegingen, en
+    biometrische categorisering om de in artikel 5, lid 1, punt g), genoemde kenmerken af te
+    leiden is zonder meer verboden. Artikel 50, lid 3, geldt voor wat overblijft.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  article-50-situation: 3
+  addressee: deployer
+sources:
+  - kind: legal
+    label:
+      en: Article 50(3) AI Act
+      nl: Artikel 50, lid 3, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_50
+  - kind: legal
+    label:
+      en: Article 3(39) and (40) AI Act (emotion recognition and biometric categorisation systems)
+      nl: Artikel 3, punten 39 en 40, AI-verordening (systemen voor emotieherkenning en biometrische categorisering)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3

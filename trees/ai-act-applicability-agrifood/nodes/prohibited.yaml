@@ -1,0 +1,59 @@
+title:
+  en: This is a prohibited practice
+  nl: Dit is een verboden praktijk
+description:
+  en: |
+    On the answer you gave, your system falls under one of the practices prohibited by
+    Article 5(1). There is no compliance route: the system may not be placed on the market,
+    put into service or used, depending on which point applies.
+
+    Before relying on this outcome, check three things in the entry you selected:
+
+    - **which acts are prohibited.** Most points cover placing on the market, putting into
+      service and use. Point (h) covers only the use, and only by law enforcement;
+    - **whether an exception applies.** Points (d), (f) and (g) each carve out cases, and
+      points (ba) and (bb) are narrowed by Article 5(1a) and (1b);
+    - **from when.** Points (ba) and (bb) apply from 2 December 2026. The other eight have
+      applied since 2 February 2025.
+
+    Article 5(8) adds that this Article does not affect prohibitions that apply where an AI
+    practice infringes other Union law: a practice can be unlawful on more than one ground.
+
+    This walk ends here. The Tree does not cover enforcement or penalties.
+  nl: |
+    Op grond van uw antwoord valt uw systeem onder een van de praktijken die door artikel 5,
+    lid 1, worden verboden. Er is geen route naar naleving: het systeem mag niet in de handel
+    worden gebracht, in gebruik worden gesteld of worden gebruikt, afhankelijk van welk punt
+    van toepassing is.
+
+    Ga voordat u op deze uitkomst vertrouwt drie dingen na in het onderdeel dat u hebt
+    gekozen:
+
+    - **welke handelingen verboden zijn.** De meeste punten bestrijken het in de handel
+      brengen, het in gebruik stellen en het gebruiken. Punt h) bestrijkt alleen het
+      gebruik, en alleen met het oog op de rechtshandhaving;
+    - **of een uitzondering geldt.** De punten d), f) en g) kennen elk uitzonderingen, en de
+      punten b bis) en b ter) worden beperkt door artikel 5, leden 1 bis en 1 ter;
+    - **vanaf wanneer.** De punten b bis) en b ter) gelden vanaf 2 december 2026. De andere
+      acht gelden sinds 2 februari 2025.
+
+    Artikel 5, lid 8, voegt daaraan toe dat dit artikel geen afbreuk doet aan de
+    verbodsbepalingen die van toepassing zijn wanneer een AI-praktijk een inbreuk vormt op
+    het Unierecht: een praktijk kan op meer dan één grond onrechtmatig zijn.
+
+    Deze doorloop eindigt hier. De boom behandelt handhaving en sancties niet.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 5 AI Act (prohibited AI practices)
+      nl: Artikel 5 AI-verordening (verboden AI-praktijken)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+  - kind: legal
+    label:
+      en: Article 113(3)(a) AI Act as amended (when points (ba) and (bb) apply)
+      nl: Artikel 113, lid 3, punt a), AI-verordening zoals gewijzigd (vanaf wanneer de punten b bis) en b ter) gelden)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_113
+terminal:
+  outcome: prohibited

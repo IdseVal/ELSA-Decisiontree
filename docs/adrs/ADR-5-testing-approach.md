@@ -3,6 +3,10 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 7
+- Amended 2026-09-04 by `ADR-19-content-language-in-the-route.md`: one test file is added,
+  `routing.test.ts`, which asserts the two rewrites of application.md 4.4 by reading them
+  out of `next.config.ts`. It needs no server and no browser, so the row below that keeps
+  browser tests out of the contract is unchanged.
 
 ## Context
 

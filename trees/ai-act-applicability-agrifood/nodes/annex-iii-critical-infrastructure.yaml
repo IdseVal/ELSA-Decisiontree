@@ -1,0 +1,69 @@
+title:
+  en: Critical infrastructure
+  nl: Kritieke infrastructuur
+description:
+  en: |
+    Annex III, area 2, is a single entry:
+
+    *"AI systems intended to be used as safety components in the management and operation
+    of critical digital infrastructure, road traffic, or in the supply of water, gas,
+    heating or electricity."*
+
+    Three elements have to line up: the system is a **safety component**; it is used in the
+    **management and operation** of the listed infrastructure; and the infrastructure is one
+    of critical digital infrastructure, road traffic, or the supply of water, gas, heating
+    or electricity.
+
+    The definition of "safety component" in Article 3(14) and the rules in Article 6(1a) to
+    (1c) apply here too: a system used solely for performance optimisation, service
+    efficiency or convenience is not a safety component, but one whose failure would
+    endanger health and safety is.
+
+    For agrifood the entry to weigh is **the supply of water**. A system that manages
+    abstraction, distribution or treatment in a public water supply can fall here; a system
+    that schedules irrigation on a single holding is not managing the supply of water in
+    that sense. Where a horticultural operation runs its own heat and power installation,
+    the heating and electricity limbs deserve the same reading.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Bijlage III, gebied 2, bestaat uit één onderdeel:
+
+    *"AI-systemen die bedoeld zijn om te worden gebruikt als veiligheidscomponent bij het
+    beheer of de exploitatie van kritieke digitale infrastructuur, wegverkeer of bij de
+    levering van water, gas, verwarming en elektriciteit."*
+
+    Drie elementen moeten samenvallen: het systeem is een **veiligheidscomponent**; het
+    wordt gebruikt bij het **beheer of de exploitatie** van de genoemde infrastructuur; en
+    die infrastructuur is kritieke digitale infrastructuur, wegverkeer, of de levering van
+    water, gas, verwarming of elektriciteit.
+
+    De definitie van "veiligheidscomponent" in artikel 3, punt 14, en de regels van artikel
+    6, leden 1 bis tot en met 1 quater, gelden ook hier: een systeem dat uitsluitend wordt
+    gebruikt voor optimalisering van de prestaties, efficiëntie van de dienstverlening of
+    gemak is geen veiligheidscomponent, maar een systeem waarvan het falen de gezondheid en
+    veiligheid in gevaar zou brengen wel.
+
+    Voor agrifood is het onderdeel om te wegen **de levering van water**. Een systeem dat
+    onttrekking, distributie of zuivering in een openbare watervoorziening beheert, kan
+    hieronder vallen; een systeem dat de beregening op één bedrijf inplant, beheert de
+    levering van water niet in die zin. Waar een tuinbouwbedrijf een eigen warmte- en
+    krachtinstallatie heeft, verdienen de onderdelen verwarming en elektriciteit dezelfde
+    lezing.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  annex-iii-area: 2
+  listed-system-types: 1
+sources:
+  - kind: legal
+    label:
+      en: Annex III, point 2 AI Act (critical infrastructure)
+      nl: Bijlage III, punt 2, AI-verordening (kritieke infrastructuur)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
+  - kind: legal
+    label:
+      en: Article 3(14) and Article 6(1a) to (1c) AI Act (safety component)
+      nl: Artikel 3, punt 14, en artikel 6, leden 1 bis tot en met 1 quater, AI-verordening (veiligheidscomponent)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6

@@ -1,0 +1,103 @@
+title:
+  en: Does your system do any of the prohibited practices?
+  nl: Verricht uw systeem een van de verboden praktijken?
+description:
+  en: |
+    Article 5(1) lists AI practices that are **prohibited** outright. There is no
+    compliance route for them: a system that does one of these may not be placed on the
+    market, put into service or used at all.
+
+    The list below has **ten** entries. Points (ba) and (bb) were inserted by Regulation
+    (EU) 2026/1744 and apply from **2 December 2026**; the other eight have applied since
+    2 February 2025.
+
+    Open each entry to read what it covers and which conditions the text attaches, then
+    come back here and answer. Most points cover placing on the market, putting into
+    service *and* use, so they can catch you whether you build the system or only use it.
+    Point (h) is different: it covers only the use, and only by law enforcement.
+
+    Article 5(8) adds that this Article does not affect prohibitions that apply where an
+    AI practice infringes other Union law.
+
+    Answer **yes** if any entry describes your system, **no** if none of them does.
+  nl: |
+    Artikel 5, lid 1, noemt AI-praktijken die zonder meer **verboden** zijn. Er is voor
+    deze praktijken geen route naar naleving: een systeem dat een daarvan verricht, mag
+    helemaal niet in de handel worden gebracht, in gebruik worden gesteld of worden
+    gebruikt.
+
+    De lijst hieronder bevat **tien** onderdelen. De punten b bis) en b ter) zijn ingevoegd
+    bij Verordening (EU) 2026/1744 en gelden vanaf **2 december 2026**; de andere acht
+    gelden sinds 2 februari 2025.
+
+    Open elk onderdeel om te lezen wat het inhoudt en welke voorwaarden de tekst eraan
+    verbindt, en kom daarna hier terug om te antwoorden. De meeste punten bestrijken het in
+    de handel brengen, het in gebruik stellen *en* het gebruiken, en kunnen u dus raken of
+    u het systeem nu bouwt of alleen gebruikt. Punt h) is anders: dat bestrijkt alleen het
+    gebruik, en alleen met het oog op de rechtshandhaving.
+
+    Artikel 5, lid 8, voegt daaraan toe dat dit artikel geen afbreuk doet aan de
+    verbodsbepalingen die van toepassing zijn wanneer een AI-praktijk een inbreuk vormt op
+    het Unierecht.
+
+    Antwoord **ja** als een van de onderdelen op uw systeem van toepassing is, **nee** als
+    geen ervan dat is.
+metadata:
+  version: "0.1"
+  step: 3 - prohibited practices
+  practices: 10 (Article 5(1) points (a), (b), (ba), (bb), (c), (d), (e), (f), (g), (h))
+sources:
+  - kind: legal
+    label:
+      en: Article 5 AI Act (prohibited AI practices)
+      nl: Artikel 5 AI-verordening (verboden AI-praktijken)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+  - kind: legal
+    label:
+      en: Regulation (EU) 2026/1744 (Digital Omnibus on AI), which inserted points (ba) and (bb)
+      nl: Verordening (EU) 2026/1744 (Digital Omnibus on AI), waarbij de punten b bis) en b ter) zijn ingevoegd
+    url: https://eur-lex.europa.eu/eli/reg/2026/1744/oj
+options:
+  - title:
+      en: Subliminal, purposefully manipulative or deceptive techniques
+      nl: Subliminale, doelbewust manipulatieve of misleidende technieken
+    target: subliminal-or-manipulative-techniques
+  - title:
+      en: Exploiting vulnerabilities of age, disability or a social or economic situation
+      nl: Misbruik van kwetsbaarheden door leeftijd, handicap of een sociale of economische omstandigheid
+    target: exploiting-vulnerabilities
+  - title:
+      en: Non-consensual sexual imagery of an identifiable person (applies from 2 December 2026)
+      nl: Seksueel beeldmateriaal van een identificeerbare persoon zonder toestemming (geldt vanaf 2 december 2026)
+    target: non-consensual-sexual-imagery
+  - title:
+      en: Child sexual abuse material (applies from 2 December 2026)
+      nl: Materiaal van seksueel misbruik van kinderen (geldt vanaf 2 december 2026)
+    target: child-sexual-abuse-material
+  - title:
+      en: Social scoring
+      nl: Sociale scoring
+    target: social-scoring
+  - title:
+      en: Predicting criminal offences from profiling or personality traits alone
+      nl: Het voorspellen van strafbare feiten uitsluitend op basis van profilering of persoonlijkheidskenmerken
+    target: predicting-criminal-offences
+  - title:
+      en: Untargeted scraping of facial images to build facial recognition databases
+      nl: Ongerichte scraping van gezichtsafbeeldingen om databanken voor gezichtsherkenning aan te leggen
+    target: untargeted-facial-scraping
+  - title:
+      en: Inferring emotions in the workplace or in education
+      nl: Het afleiden van emoties op de werkplek of in het onderwijs
+    target: emotion-recognition-at-work
+  - title:
+      en: Biometric categorisation to infer race, opinions, beliefs, sex life or sexual orientation
+      nl: Biometrische categorisering om ras, opvattingen, overtuigingen, seksleven of seksuele gerichtheid af te leiden
+    target: biometric-categorisation
+  - title:
+      en: Real-time remote biometric identification in publicly accessible spaces for law enforcement
+      nl: Biometrische identificatie op afstand in real time in openbare ruimten met het oog op de rechtshandhaving
+    target: real-time-biometric-identification
+answers:
+  yes: prohibited
+  no: annex-i-legislation

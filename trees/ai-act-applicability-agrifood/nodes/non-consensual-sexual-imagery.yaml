@@ -1,0 +1,75 @@
+title:
+  en: Non-consensual sexual imagery of an identifiable person (applies from 2 December 2026)
+  nl: Seksueel beeldmateriaal van een identificeerbare persoon zonder toestemming (geldt vanaf 2 december 2026)
+description:
+  en: |
+    Article 5(1)(ba), inserted by Regulation (EU) 2026/1744, prohibits placing on the
+    market, putting into service or using an AI system that **generates or manipulates
+    realistic images, videos, audio or similar material** of an identifiable natural
+    person's intimate parts, or of an identifiable natural person engaged in sexually
+    explicit activities, **without that person's freely-given, specific, informed,
+    unambiguous and explicit consent** for that generation or manipulation.
+
+    Article 5(1a) narrows who is caught:
+
+    - a **provider** is caught only where that generation or manipulation is the intended
+      purpose of the system, **or** where the system's design, training, architecture,
+      capabilities or user-facing functionalities make it a reasonably foreseeable and
+      reproducible outcome without significant technical modification, **and** the system
+      lacks reasonable and adequate technical safety measures and other safeguards to
+      reliably prevent it and to correct observed or reported misuse;
+    - a **deployer** is caught only where they use the system for that purpose.
+
+    Article 5(1b) adds that manipulating material in a way that does not increase the
+    exposure of any depicted intimate parts, or alter the nature of any depicted sexually
+    explicit activities, does not count as manipulation.
+
+    This point applies from **2 December 2026**. It is unlikely to be the operative
+    question for an agrifood system, but it applies to any general image or video
+    generation capability, whatever the domain.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 5, lid 1, punt b bis), ingevoegd bij Verordening (EU) 2026/1744, verbiedt het
+    in de handel brengen, het in gebruik stellen of het gebruiken van een AI-systeem dat
+    **realistische beelden, video's, audio of soortgelijk materiaal genereert of
+    manipuleert** van de intieme delen van een identificeerbare natuurlijke persoon, of van
+    een identificeerbare natuurlijke persoon die expliciete seksuele gedragingen verricht,
+    **zonder de vrijelijk gegeven, specifieke, geïnformeerde, ondubbelzinnige en
+    uitdrukkelijke toestemming van die persoon** voor die generatie of manipulatie.
+
+    Artikel 5, lid 1 bis, beperkt wie hieronder valt:
+
+    - een **aanbieder** valt er alleen onder wanneer die generatie of manipulatie het
+      beoogde doel van het systeem is, **of** wanneer het ontwerp, de training, de
+      architectuur, de capaciteiten of de gebruikersgerichte functionaliteiten van het
+      systeem maken dat het een redelijkerwijs te voorzien en reproduceerbaar resultaat is
+      zonder aanzienlijke technische wijzigingen, **en** het systeem niet beschikt over
+      redelijke en adequate technische veiligheidsmaatregelen en andere waarborgen om dat
+      betrouwbaar te voorkomen en waargenomen of gemeld misbruik te corrigeren;
+    - een **gebruiksverantwoordelijke** valt er alleen onder wanneer die het systeem voor
+      dat doel gebruikt.
+
+    Artikel 5, lid 1 ter, voegt daaraan toe dat het zodanig manipuleren van materiaal dat
+    de blootstelling aan afgebeelde intieme delen niet toeneemt en de aard van afgebeelde
+    seksueel expliciete gedragingen niet wordt gewijzigd, geen manipulatie vormt.
+
+    Dit punt geldt vanaf **2 december 2026**. Het zal zelden de beslissende vraag zijn voor
+    een agrifood-systeem, maar het geldt voor elke algemene beeld- of videogeneratie,
+    ongeacht het domein.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  applies-from: 2 December 2026 (Article 113(3)(a) as amended)
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(ba), 5(1a) and 5(1b) AI Act
+      nl: Artikel 5, lid 1, punt b bis), en artikel 5, leden 1 bis en 1 ter, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+  - kind: legal
+    label:
+      en: Regulation (EU) 2026/1744 (Digital Omnibus on AI), which inserted this point
+      nl: Verordening (EU) 2026/1744 (Digital Omnibus on AI), waarbij dit punt is ingevoegd
+    url: https://eur-lex.europa.eu/eli/reg/2026/1744/oj

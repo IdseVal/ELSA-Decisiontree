@@ -1,0 +1,49 @@
+title:
+  en: Military, defence or national security purposes, and areas outside Union law
+  nl: Militaire, defensie- of nationale veiligheidsdoeleinden, en gebieden buiten het Unierecht
+description:
+  en: |
+    Article 2(3) contains three exclusions in one paragraph:
+
+    - the Act does not apply to areas outside the scope of Union law, and does not affect
+      the Member States' competences concerning **national security**, whatever kind of
+      entity carries out those tasks;
+    - it does not apply to AI systems where and in so far as they are placed on the
+      market, put into service, or used - with or without modification - **exclusively**
+      for military, defence or national security purposes;
+    - it does not apply to AI systems that are not placed on the market or put into
+      service in the Union, where the output is used in the Union **exclusively** for
+      those purposes.
+
+    The word "exclusively" carries the exclusion. Recital 24 states that a system placed
+    on the market for both an excluded purpose and a non-excluded purpose falls within the
+    scope of the Regulation.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 2, lid 3, bevat drie uitsluitingen in één lid:
+
+    - de verordening is niet van toepassing op gebieden die buiten het toepassingsgebied
+      van het Unierecht vallen en doet geen afbreuk aan de bevoegdheden van de lidstaten
+      op het gebied van de **nationale veiligheid**, ongeacht het soort entiteit dat die
+      taken uitvoert;
+    - zij is niet van toepassing op AI-systemen wanneer en in zover die **uitsluitend**
+      in de handel worden gebracht, in gebruik worden gesteld of, al dan niet gewijzigd,
+      worden gebruikt voor militaire, defensie- of nationale veiligheidsdoeleinden;
+    - zij is niet van toepassing op AI-systemen die niet in de Unie in de handel worden
+      gebracht of in gebruik worden gesteld en waarvan de output in de Unie
+      **uitsluitend** voor die doeleinden wordt gebruikt.
+
+    Het woord "uitsluitend" draagt de uitsluiting. Overweging 24 stelt dat een systeem dat
+    zowel voor een uitgesloten als voor een niet-uitgesloten doel in de handel wordt
+    gebracht, binnen het toepassingsgebied van de verordening valt.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 2(3) AI Act
+      nl: Artikel 2, lid 3, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2

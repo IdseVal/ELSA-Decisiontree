@@ -1,0 +1,47 @@
+title:
+  en: Predicting criminal offences from profiling or personality traits alone
+  nl: Het voorspellen van strafbare feiten uitsluitend op basis van profilering of persoonlijkheidskenmerken
+description:
+  en: |
+    Article 5(1)(d) prohibits placing on the market, putting into service for this specific
+    purpose, or using an AI system for **making risk assessments of natural persons in
+    order to assess or predict the risk of a natural person committing a criminal
+    offence**, based **solely** on the profiling of a natural person or on assessing their
+    personality traits and characteristics.
+
+    The text carves out one case: the prohibition **does not apply** to AI systems used to
+    **support the human assessment** of the involvement of a person in a criminal activity
+    where that assessment is **already based on objective and verifiable facts directly
+    linked to a criminal activity**.
+
+    The word "solely" is doing the work. A system that draws on objective, verifiable facts
+    tied to an actual criminal activity, and supports rather than replaces a human
+    assessment, is outside this point.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 5, lid 1, punt d), verbiedt het in de handel brengen, het voor dit specifieke
+    doel in gebruik stellen of het gebruiken van een AI-systeem **voor risicobeoordelingen
+    van natuurlijke personen om het risico dat een natuurlijke persoon een strafbaar feit
+    pleegt te beoordelen of te voorspellen**, **uitsluitend** op basis van de profilering
+    van een natuurlijke persoon of op basis van de beoordeling van diens
+    persoonlijkheidseigenschappen en -kenmerken.
+
+    De tekst maakt één uitzondering: het verbod **geldt niet** voor AI-systemen die worden
+    gebruikt **ter ondersteuning van de menselijke beoordeling** van de betrokkenheid van
+    een persoon bij een criminele activiteit, die **reeds op rechtstreeks met de criminele
+    activiteit verband houdende objectieve en verifieerbare feiten is gebaseerd**.
+
+    Het woord "uitsluitend" is hier doorslaggevend. Een systeem dat put uit objectieve,
+    verifieerbare feiten die verband houden met een werkelijke criminele activiteit, en dat
+    een menselijke beoordeling ondersteunt in plaats van vervangt, valt buiten dit punt.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(d) AI Act
+      nl: Artikel 5, lid 1, punt d), AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5

@@ -1,0 +1,59 @@
+title:
+  en: Child sexual abuse material (applies from 2 December 2026)
+  nl: Materiaal van seksueel misbruik van kinderen (geldt vanaf 2 december 2026)
+description:
+  en: |
+    Article 5(1)(bb), inserted by Regulation (EU) 2026/1744, prohibits placing on the
+    market, putting into service or using an AI system that **generates or manipulates
+    material or performance within the meaning of Article 2, points (c) and (e), of
+    Directive 2011/93/EU**, except where a "without right" defence applies under national
+    law.
+
+    The conditions of Article 5(1a) apply here in the same way as for point (ba):
+
+    - a **provider** is caught only where that generation or manipulation is the intended
+      purpose of the system, or where it is a reasonably foreseeable and reproducible
+      outcome without significant technical modification and the system lacks reasonable
+      and adequate safeguards to prevent and correct it;
+    - a **deployer** is caught only where they use the system for that purpose.
+
+    This point applies from **2 December 2026**. Like point (ba), it reaches any general
+    image or video generation capability, whatever the domain the system is sold into.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 5, lid 1, punt b ter), ingevoegd bij Verordening (EU) 2026/1744, verbiedt het
+    in de handel brengen, het in gebruik stellen of het gebruiken van een AI-systeem dat
+    **materiaal of een voorstelling genereert of manipuleert in de zin van artikel 2,
+    punten c) en e), van Richtlijn 2011/93/EU**, behalve wanneer krachtens het nationale
+    recht een "wederrechtelijke" verdediging van toepassing is.
+
+    De voorwaarden van artikel 5, lid 1 bis, gelden hier op dezelfde wijze als voor punt
+    b bis):
+
+    - een **aanbieder** valt er alleen onder wanneer die generatie of manipulatie het
+      beoogde doel van het systeem is, of wanneer het een redelijkerwijs te voorzien en
+      reproduceerbaar resultaat is zonder aanzienlijke technische wijzigingen en het
+      systeem niet beschikt over redelijke en adequate waarborgen om dat te voorkomen en te
+      corrigeren;
+    - een **gebruiksverantwoordelijke** valt er alleen onder wanneer die het systeem voor
+      dat doel gebruikt.
+
+    Dit punt geldt vanaf **2 december 2026**. Net als punt b bis) raakt het elke algemene
+    beeld- of videogeneratie, ongeacht het domein waarvoor het systeem wordt verkocht.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  applies-from: 2 December 2026 (Article 113(3)(a) as amended)
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(bb) and 5(1a) AI Act
+      nl: Artikel 5, lid 1, punt b ter), en artikel 5, lid 1 bis, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+  - kind: legal
+    label:
+      en: Regulation (EU) 2026/1744 (Digital Omnibus on AI), which inserted this point
+      nl: Verordening (EU) 2026/1744 (Digital Omnibus on AI), waarbij dit punt is ingevoegd
+    url: https://eur-lex.europa.eu/eli/reg/2026/1744/oj
