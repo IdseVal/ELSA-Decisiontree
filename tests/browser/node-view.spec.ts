@@ -58,17 +58,44 @@ test('a Terminal Node shows its outcome and offers no yes or no', async ({ page 
   await expect(page.getByRole('link', { name: 'No', exact: true })).toHaveCount(0)
 })
 
-test('the disclaimer is on every page', async ({ page }) => {
+test('the disclaimer is in the HTML the server sends for every Node page', async ({ page }) => {
+  // The response body, not the rendered DOM: the promise is that the disclaimer is in the
+  // document, so a reader without JavaScript and a reader of the source both see it.
   for (const url of [
     START,
     '/ai-act-example/start/prohibited-practices',
     '/ai-act-example/start/prohibited-practices/social-scoring',
     '/ai-act-example/start/outside-scope',
-    '/ai-act-example/no-such-node',
   ]) {
-    await page.goto(url)
-    await expect(page.locator('.disclaimer'), url).toContainText('This is not legal advice.')
+    const response = await page.request.get(url)
+    const html = await response.text()
+
+    expect(response.status(), url).toBe(200)
+    expect(html, url).toContain('<footer class="disclaimer"')
+    expect(html, url).toContain('This is not legal advice.')
   }
+})
+
+test('the 404 sends its status in the response and its body in the client payload', async ({ page }) => {
+  // The one exception to "complete HTML", amended into docs/specs/application.md 4.3 by the
+  // owner on PR #17: Next.js answers a notFound() from a dynamically rendered route with its
+  // own error shell plus an RSC payload. This pins both halves of what is actually served, so
+  // the day a Next.js release renders the boundary into the document, this fails loudly and
+  // the exception can be taken back out of the spec.
+  const response = await page.request.get('/ai-act-example/no-such-node')
+  const html = await response.text()
+
+  expect(response.status()).toBe(404)
+  expect(html).toContain('<html id="__next_error__">')
+  expect(html).not.toContain('<h1')
+  expect(html).not.toContain('<footer class="disclaimer"')
+  // The page did render on the server -- it travels as data next to the shell, not as markup.
+  expect(html).toContain('This step does not exist')
+
+  // With JavaScript, the client bundle paints the page the spec describes.
+  await page.goto('/ai-act-example/no-such-node')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('This step does not exist')
+  await expect(page.locator('.disclaimer')).toContainText('This is not legal advice.')
 })
 
 test('clicking a thumbnail shows the image larger with its description and credit', async ({ page }) => {
@@ -229,6 +256,37 @@ test('the image route answers 404 for a name the Tree does not have', async ({ p
     expect(response.status(), name).toBe(404)
     expect(response.headers()['content-type'] ?? '', name).not.toContain('image')
   }
+})
+
+test.describe('with JavaScript switched off', () => {
+  test.use({ javaScriptEnabled: false })
+
+  test('a Node page is whole: its Answers, its thumbnail and its disclaimer all work', async ({ page }) => {
+    await page.goto(START)
+
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Is your AI system within the reach of the AI Act?',
+    )
+    await expect(page.locator('.disclaimer')).toContainText('This is not legal advice.')
+    await expect(page.getByRole('link', { name: 'Yes', exact: true })).toHaveAttribute(
+      'href',
+      '/ai-act-example/start/prohibited-practices',
+    )
+    await expect(page.getByRole('link', { name: 'No', exact: true })).toHaveAttribute(
+      'href',
+      '/ai-act-example/start/outside-scope',
+    )
+    // The enlarge is a client component; without it the thumbnail is still a link to the file.
+    await expect(page.locator('.thumbnail').first()).toHaveAttribute('href', '/images/eu-map.png')
+
+    await page.getByRole('link', { name: 'Yes', exact: true }).click()
+    await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+
+    // With the enlarge unavailable the click is not intercepted, so it opens the file.
+    await page.goto(START)
+    await page.locator('.thumbnail').first().click()
+    await expect(page).toHaveURL('/images/eu-map.png')
+  })
 })
 
 test('nothing about the reader is stored', async ({ page, context }) => {
