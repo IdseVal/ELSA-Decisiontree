@@ -63,6 +63,10 @@ function answerOnlyReach(from: Map<string, Node>, root: string): Set<string> {
 
 const optionCount = (id: string): number => nodes.get(id)!.options.length
 
+/** The Terminals a walk starting at `id` can end at, by Answers alone, sorted. */
+const terminalsFrom = (id: string): string[] =>
+  [...answerOnlyReach(nodes, id)].filter((reached) => nodes.get(reached)!.kind === 'terminal').sort()
+
 beforeAll(async () => {
   tree = await openTree(treeDir)
   nodes = await walkFromRoot(tree)
@@ -89,16 +93,21 @@ describe('the Tree loads and is shaped like the six steps of the core document',
     expect(step('prohibited-practices').answers).toEqual({ yes: 'prohibited', no: 'annex-i-legislation' })
     expect(step('annex-i-legislation').answers).toEqual({ yes: 'high-risk', no: 'annex-iii-areas' })
     expect(step('annex-iii-areas').answers).toEqual({ yes: 'high-risk', no: 'general-purpose-ai' })
-    // Steps 5 and 6 do not branch: general-purpose AI never ends the walk, and the Tree
-    // goes no further than Article 50 (core document 3.3, item 7).
+    // Issue #24: the high-risk finding does not end the walk. A high-risk system can carry
+    // Article 50 obligations at the same time (Article 50(6)), and the core document's
+    // OPEN 10.7 answers that the general-purpose AI and transparency steps come after the
+    // high-risk step -- so both Answers carry the finding on into step 5.
+    expect(step('high-risk').answers).toEqual({ yes: 'general-purpose-ai', no: 'general-purpose-ai' })
+    // Steps 5 and 6 do not branch either: general-purpose AI never ends the walk, and the
+    // Tree goes no further than Article 50 (core document 3.3, item 7).
     expect(step('general-purpose-ai').answers).toEqual({ yes: 'transparency-obligations', no: 'transparency-obligations' })
     expect(step('transparency-obligations').answers).toEqual({ yes: 'end-of-walk', no: 'end-of-walk' })
   })
 
-  test('it holds 7 question Nodes, 5 Terminals and 49 explanation Nodes', () => {
+  test('it holds 8 question Nodes, 4 Terminals and 49 explanation Nodes', () => {
     const kinds = [...nodes.values()].map((node) => node.kind)
-    expect(kinds.filter((kind) => kind === 'question')).toHaveLength(7)
-    expect(kinds.filter((kind) => kind === 'terminal')).toHaveLength(5)
+    expect(kinds.filter((kind) => kind === 'question')).toHaveLength(8)
+    expect(kinds.filter((kind) => kind === 'terminal')).toHaveLength(4)
     expect(kinds.filter((kind) => kind === 'explanation')).toHaveLength(49)
     expect(nodes.size).toBe(61)
   })
@@ -198,14 +207,13 @@ describe('the walk', () => {
     expect(terminals.sort()).toEqual([
       'ai-act-does-not-apply',
       'end-of-walk',
-      'high-risk',
       'not-an-ai-system',
       'prohibited',
     ])
     for (const id of terminals) expect(reached.has(id), `${id} cannot be reached by answering`).toBe(true)
   })
 
-  test('the five Terminals carry the outcomes the walk earns', () => {
+  test('the four Terminals carry the outcomes the walk earns', () => {
     const outcome = (id: string): string => {
       const node = nodes.get(id)!
       expect(node.kind, `${id} is not a Terminal`).toBe('terminal')
@@ -214,8 +222,40 @@ describe('the walk', () => {
     expect(outcome('ai-act-does-not-apply')).toBe('not-applicable')
     expect(outcome('not-an-ai-system')).toBe('refer')
     expect(outcome('prohibited')).toBe('prohibited')
-    expect(outcome('high-risk')).toBe('applicable')
     expect(outcome('end-of-walk')).toBe('applicable')
+  })
+
+  test('a high-risk finding carries on into the general-purpose AI and transparency steps', () => {
+    // Issue #24: the high-risk Node used to be a Terminal while its own text told the reader
+    // to continue with steps 5 and 6, which the Tree could not do. It is now a question Node
+    // that leads on whichever way it is answered, so a high-risk system reaches Article 50 --
+    // the two regimes bite at once (Article 50(6)).
+    expect(nodes.get('high-risk')!.kind).toBe('question')
+    expect([...answerOnlyReach(nodes, 'high-risk')].sort()).toEqual([
+      'end-of-walk',
+      'general-purpose-ai',
+      'high-risk',
+      'transparency-obligations',
+    ])
+    // Both high-risk routes therefore end at `end-of-walk`, and nowhere else.
+    expect(terminalsFrom('annex-i-legislation')).toEqual(['end-of-walk'])
+    expect(terminalsFrom('annex-iii-areas')).toEqual(['end-of-walk'])
+  })
+
+  test('the walk stops early only where the Act itself stops', () => {
+    // The counterpart decision of issue #24: three Terminals do end the walk before step 6,
+    // deliberately. `ai-act-does-not-apply` and `not-an-ai-system` stop because the Act does
+    // not reach the system; `prohibited` stops because Article 5 leaves no route to
+    // compliance, so the questions "which obligations attach?" have nothing to add.
+    expect(terminalsFrom('start')).toEqual([
+      'ai-act-does-not-apply',
+      'end-of-walk',
+      'not-an-ai-system',
+      'prohibited',
+    ])
+    // Past step 3 the prohibition is the only early stop left, and past step 4 there is none.
+    expect(terminalsFrom('prohibited-practices')).toEqual(['end-of-walk', 'prohibited'])
+    expect(terminalsFrom('annex-i-legislation')).toEqual(['end-of-walk'])
   })
 
   test('every Option leads to an explanation Node, so no Option can end the walk', () => {
