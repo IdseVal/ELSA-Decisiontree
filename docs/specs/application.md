@@ -5,6 +5,10 @@
 > Changing one requires a new `architecture` issue. The Tree file format they consume is
 > frozen separately in `docs/specs/tree-format.md` (issue #4).
 >
+> Amended 2026-09-05 by the owner, on PR #17: the 404 page's *body* may require
+> JavaScript. Section 4.3's 404 row says what holds and why; the two rows of section 1
+> it touches point at it. Nothing else in this document changed.
+>
 > Vocabulary: the canonical names from `docs/CORE_DOCUMENT.md` section 5 -- **Tree**,
 > **Node**, **Link**, **Answer**, **Option**, **Terminal**, **Image**, **Source**,
 > **Trail** -- are used with exactly that meaning. **Chrome** is the interface text the
@@ -27,8 +31,8 @@ and nothing the app does depends on a hosting vendor.
 | Item | Contract |
 |---|---|
 | Framework | Next.js, App Router, React, TypeScript (strict). Exact versions are pinned in `package.json` by the scaffold issue; the current stable major at that time. |
-| Server-side rendering | React Server Components. The Node page is an `async` server component; the first response to every URL is complete HTML. |
-| Client-side JavaScript | React plus two client components: the thumbnail enlarge and the share button. Everything else (navigation, Trail, language switch) is links and works without JavaScript. |
+| Server-side rendering | React Server Components. The Node page is an `async` server component; the first response to every URL is complete HTML, with the single exception named in 4.3 (the 404 page). |
+| Client-side JavaScript | React plus two client components: the thumbnail enlarge and the share button. Everything else (navigation, Trail, language switch) is links and works without JavaScript. The 404 page's body is the single exception (4.3). |
 | Runtime | Node.js 22 (LTS), in `.nvmrc` and `package.json` `engines`. |
 | Package manager | npm; `package-lock.json` committed; `npm ci` in CI and deployment. |
 | Build output | `output: 'standalone'`: `next build` yields a folder that runs with `node server.js`. |
@@ -157,7 +161,19 @@ The first Image of `start`:
 | `lang` not declared by the Tree | Ignored; default language used; 200. |
 | Image name malformed or not in the Tree's `images/` | 404. |
 | Reserved Tree ids | `images`. A deployment with `ELSA_TREE=images` refuses to start. |
-| The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. |
+| The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. The status is always in the response; the **body** may require JavaScript -- see below. |
+
+**The 404 body may require JavaScript** (amended 2026-09-05, PR #17). Next.js answers a
+`notFound()` raised inside a dynamically rendered route with its own error shell
+(`<html id="__next_error__">`) plus the page as an RSC payload, so the 404 markup this
+application renders on the server travels as data and is painted by the client bundle.
+Given the choice between the honest status code and a server-rendered body, the owner
+kept the status code: it is what crawlers, proxies and link checkers read, and a reader
+without JavaScript who reaches a 404 has followed a link that was already broken. Every
+other page keeps the section 1 guarantee in full. If a later Next.js renders the boundary
+into the document, this exception goes away and the sentence above it stands alone; the
+browser test in `tests/browser/node-view.spec.ts` asserts the current shape, so it fails
+on that day rather than passing quietly.
 
 The grammar is implemented once, in `src/url.ts`:
 

@@ -1,6 +1,6 @@
 # ADR-5-framework-and-rendering: Next.js (App Router) rendered on the server, shipped as a standalone Node.js server
 
-- Status: ACCEPTED (frozen) -- 2026-09-03
+- Status: ACCEPTED (frozen) -- 2026-09-03; amended 2026-09-05 (see Amendments)
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, sections 1 and 5
 
@@ -68,3 +68,10 @@ uses npm; the CI pipeline template expects Node 22 and `npm ci`.
 - The app is one Node.js process reading files from disk; moving between the
   university server and a Hetzner box is copying a folder and setting three
   environment variables.
+
+## Amendments
+
+- **2026-09-05 (owner, on PR #17).** "The first response to any URL is complete HTML"
+  above holds for every page except the 404, whose body Next.js delivers as an RSC
+  payload for the client bundle to paint. The status code stays 404 in the response.
+  The reasoning and the exact wording are in `docs/specs/application.md` 4.3.
