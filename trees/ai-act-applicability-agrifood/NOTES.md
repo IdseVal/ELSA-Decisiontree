@@ -190,9 +190,12 @@ established later, it becomes its own issue; nothing in this Tree changes until 
   all** - found while deciding issue #24, not fixed. `high-risk`'s own text says that for
   such a system Article 2(2) makes only Article 6(1), Article 60a and Articles 102 to 112
   apply, and Article 50 is not among them. The Tree now sends every high-risk reader into
-  the Article 50 step without telling them this. Splitting step 4c by Annex I Section is
-  legal authoring and a new branch, which issue #24 put out of scope; it is worth its own
-  issue.
+  the Article 50 step without telling them this, and step 6 tells that reader Article 50
+  attaches whatever their risk classification. Splitting step 4c by Annex I Section is legal
+  authoring and a new branch, which issue #24 put out of scope. It was raised again on PR
+  #25; the owner's answer was to ship this version as it stands, so it is now **issue #26**
+  and yours to decide there. It matters for this audience: 9 of the 20 Annex I entries are
+  Section B, `annex-i-agricultural-vehicles` among them.
 - **The Tree cannot be walked by clicking yet.** Every Node is reachable at its own URL and
   the test walks the whole graph, but the page that ships today renders a Node's title and
   description only - no Answers, no Options, no language switch. That is issue #7's work,
