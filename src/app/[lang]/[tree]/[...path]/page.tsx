@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Disclaimer } from '../../../components/Disclaimer.tsx'
-import { NodeView, text } from '../../../components/NodeView.tsx'
-import { servedTree } from '../../../config.ts'
-import type { Tree } from '../../../tree/loader.ts'
-import { canonicalHref, parseUrl, type PageAddress } from '../../../url.ts'
+import { Disclaimer } from '../../../../components/Disclaimer.tsx'
+import { NodeView, text } from '../../../../components/NodeView.tsx'
+import { servedTree } from '../../../../config.ts'
+import type { Tree } from '../../../../tree/loader.ts'
+import { canonicalHref, parseUrl, type PageAddress } from '../../../../url.ts'
 
 /**
  * The Node page, `/<tree-id>/<...trail>/<node-id>` (docs/specs/application.md 4.1). The
@@ -12,8 +12,7 @@ import { canonicalHref, parseUrl, type PageAddress } from '../../../url.ts'
  * everything else about how a Node looks is in `src/components/`.
  */
 interface Props {
-  params: Promise<{ tree: string; path: string[] }>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
+  params: Promise<{ lang: string; tree: string; path: string[] }>
 }
 
 export default async function NodePage(props: Props) {
@@ -47,20 +46,13 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   }
 }
 
-/** The served Tree and the address the request names, or null for every 404 case of 4.3. */
+/**
+ * The served Tree and the address the request names, or null for every 404 case of 4.3.
+ * The language is the `[lang]` segment, the one place it is read from (4.4, section 6).
+ */
 async function addressOf(props: Props): Promise<{ tree: Tree; address: PageAddress } | null> {
-  const [{ tree: treeId, path }, searchParams] = await Promise.all([props.params, props.searchParams])
+  const { lang, tree: treeId, path } = await props.params
   const tree = await servedTree()
-  const address = parseUrl(`/${[treeId, ...path].join('/')}`, query(searchParams), tree)
+  const address = parseUrl(`/${[treeId, ...path].join('/')}`, lang, tree)
   return address && { tree, address }
-}
-
-/** The request's query as the standard type `parseUrl` reads; a repeated key keeps its first value. */
-function query(searchParams: Record<string, string | string[] | undefined>): URLSearchParams {
-  const parameters = new URLSearchParams()
-  for (const [key, value] of Object.entries(searchParams)) {
-    const first = Array.isArray(value) ? value[0] : value
-    if (first !== undefined) parameters.set(key, first)
-  }
-  return parameters
 }

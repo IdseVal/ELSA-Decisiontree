@@ -1,7 +1,8 @@
 /**
  * The URL scheme (docs/specs/application.md section 4, ADR-5-url-scheme): the path is the
- * Trail, `/<tree-id>/<id-1>/.../<id-n>`, and the language is the query parameter `lang`.
- * Nothing else in the application concatenates path segments.
+ * Trail, `/<tree-id>/<id-1>/.../<id-n>`, and the content language arrives as one value, the
+ * `[lang]` route segment a rewrite fills from `?lang` (4.4). Nothing else in the
+ * application concatenates path segments or decides what a language segment means.
  *
  * An id is accepted only when the Tree's title index knows it, which is also how a
  * malformed id is rejected: the index holds none, and consulting it reads no file.
@@ -18,7 +19,7 @@ export interface PageAddress {
   trail: string[]
   /** The Node shown: the last id of the path. */
   nodeId: string
-  /** The content language: the `lang` of the query when the Tree declares it, else `defaultLang`. */
+  /** The content language: the `[lang]` segment when the Tree declares it, else `defaultLang`. */
   lang: string
   /**
    * The Tree's default language. Carried in the address because every link must leave
@@ -31,11 +32,12 @@ export interface PageAddress {
 export type NotFound = null
 
 /**
- * Reads a request path and query into a `PageAddress`, or `NotFound` for every 404 case of
- * application.md 4.3: another Tree's id, no id at all, more than fifty ids, or an id that
- * is malformed or is not a Node of this Tree. The Trail is not checked for adjacency.
+ * Reads a request path and its language segment into a `PageAddress`, or `NotFound` for
+ * every 404 case of application.md 4.3: another Tree's id, no id at all, more than fifty
+ * ids, or an id that is malformed or is not a Node of this Tree. The Trail is not checked
+ * for adjacency. `lang` is a segment, never a query: 4.4 guarantees one always exists.
  */
-export function parseUrl(path: string, query: URLSearchParams, tree: Tree): PageAddress | NotFound {
+export function parseUrl(path: string, lang: string, tree: Tree): PageAddress | NotFound {
   const segments = path.split('/').filter((segment) => segment !== '')
   const [treeId, ...ids] = segments
   if (treeId !== tree.id) return null
@@ -46,18 +48,22 @@ export function parseUrl(path: string, query: URLSearchParams, tree: Tree): Page
     treeId,
     trail: ids.slice(0, -1),
     nodeId: ids[ids.length - 1]!,
-    lang: contentLanguage(tree, query.get('lang')),
+    lang: contentLanguage(tree, lang),
     defaultLang: tree.manifest.defaultLanguage,
   }
 }
 
-/** The language a page shows: the one asked for when the Tree declares it, else its default. */
-function contentLanguage(tree: Tree, asked: string | null): string {
-  return asked !== null && tree.manifest.languages.includes(asked) ? asked : tree.manifest.defaultLanguage
+/**
+ * The language a page shows: the one the segment names when the Tree declares it, else the
+ * Tree's default (4.3). The segment the router writes when no language was asked for needs
+ * no branch of its own -- no Tree declares it, so this rule already answers for it.
+ */
+export function contentLanguage(tree: Tree, lang: string): string {
+  return tree.manifest.languages.includes(lang) ? lang : tree.manifest.defaultLanguage
 }
 
 /** The URL of the Tree's root Node: where `/` and `/<tree-id>` lead (4.1). */
-export function rootHref(tree: Tree, lang: string | null): string {
+export function rootHref(tree: Tree, lang: string): string {
   return nodeHref({
     treeId: tree.id,
     trail: [],

@@ -58,6 +58,22 @@ test('a Terminal Node shows its outcome and offers no yes or no', async ({ page 
   await expect(page.getByRole('link', { name: 'No', exact: true })).toHaveCount(0)
 })
 
+test('the document declares the language of the content it shows', async ({ page }) => {
+  // What the `[lang]` route segment is for: `<html lang>` is the content language, not the
+  // Tree's default (docs/specs/application.md 3.1, 4.4). Read out of the response body as
+  // well as the DOM, so it is the document the server sent and not a client repair.
+  expect(await (await page.request.get(`${START}?lang=nl`)).text()).toContain('<html lang="nl">')
+  expect(await (await page.request.get(START)).text()).toContain('<html lang="en">')
+
+  await page.goto(`${START}?lang=nl`)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'nl')
+  // The public URL is untouched by the rewrite: the language is still a query parameter.
+  await expect(page).toHaveURL(`${START}?lang=nl`)
+
+  await page.goto(START)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+})
+
 test('the disclaimer is in the HTML the server sends for every Node page', async ({ page }) => {
   // The response body, not the rendered DOM: the promise is that the disclaimer is in the
   // document, so a reader without JavaScript and a reader of the source both see it.
