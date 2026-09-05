@@ -63,6 +63,9 @@ function answerOnlyReach(from: Map<string, Node>, root: string): Set<string> {
 
 const optionCount = (id: string): number => nodes.get(id)!.options.length
 
+/** A Node's description in one language, unwrapped, so an assertion does not depend on where it wraps. */
+const unwrapped = (id: string, lang: string): string => nodes.get(id)!.description[lang]!.replace(/\s+/g, ' ')
+
 /** The Terminals a walk starting at `id` can end at, by Answers alone, sorted. */
 const terminalsFrom = (id: string): string[] =>
   [...answerOnlyReach(nodes, id)].filter((reached) => nodes.get(reached)!.kind === 'terminal').sort()
@@ -256,6 +259,27 @@ describe('the walk', () => {
     // Past step 3 the prohibition is the only early stop left, and past step 4 there is none.
     expect(terminalsFrom('prohibited-practices')).toEqual(['end-of-walk', 'prohibited'])
     expect(terminalsFrom('annex-i-legislation')).toEqual(['end-of-walk'])
+  })
+
+  test('the three Nodes whose text issue #24 changed say what the traversal now does', () => {
+    // The traversal is pinned above, but the wording issue #24 asked for is not, and prose
+    // is what a reader of this Tree actually gets. One assertion per changed Node, in both
+    // languages, so reverting any of these sentences fails here and not only in review.
+
+    // `high-risk` no longer sends the reader on by hand: the sentence #24 quotes is gone.
+    expect(unwrapped('high-risk', 'en')).not.toContain('Continue with the general-purpose AI and transparency steps as well')
+    expect(unwrapped('high-risk', 'nl')).not.toContain('Loop ook de stappen over AI voor algemene doeleinden en transparantie door')
+    expect(unwrapped('high-risk', 'en')).toContain('**This step does not end the walk.**')
+    expect(unwrapped('high-risk', 'nl')).toContain('**Deze stap beëindigt de doorloop niet.**')
+
+    // Issue #24 task item 2: `prohibited` says its stop is deliberate instead of leaving it
+    // to be inferred from the absence of an Answer.
+    expect(unwrapped('prohibited', 'en')).toContain('**This walk ends here, and that is deliberate.**')
+    expect(unwrapped('prohibited', 'nl')).toContain('**Deze doorloop eindigt hier, en dat is een bewuste keuze.**')
+
+    // The high-risk finding is no longer an outcome of its own, so `end-of-walk` carries it.
+    expect(unwrapped('end-of-walk', 'en')).toContain('**If step 4 found your system to be high-risk, that finding stands.**')
+    expect(unwrapped('end-of-walk', 'nl')).toContain('hoog risico heeft, blijft die bevinding staan.**')
   })
 
   test('every Option leads to an explanation Node, so no Option can end the walk', () => {
