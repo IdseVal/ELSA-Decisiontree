@@ -36,7 +36,12 @@ async function view(url: string): Promise<string> {
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)
   return renderToStaticMarkup(
-    <NodeView node={node} address={address} rootId={tree.manifest.root} />,
+    <NodeView
+      node={node}
+      address={address}
+      rootId={tree.manifest.root}
+      trailTitles={address.trail.map((id) => tree.getTitle(id)!)}
+    />,
   )
 }
 
@@ -54,7 +59,12 @@ async function shell(url: string): Promise<string> {
     <html lang={tree.manifest.defaultLanguage}>
       <body>
         <main>
-          <NodeView node={node} address={address} rootId={tree.manifest.root} />
+          <NodeView
+            node={node}
+            address={address}
+            rootId={tree.manifest.root}
+            trailTitles={address.trail.map((id) => tree.getTitle(id)!)}
+          />
         </main>
         <Disclaimer lang={address.lang} />
       </body>
@@ -217,22 +227,26 @@ describe('an explanation-only Node', () => {
     expect(html).not.toContain('class="answers"')
   })
 
-  test('offers a way back to the Node it was opened from', async () => {
+  // The three tests below pinned issue #7's interim "back" control. Issue #8 replaces it
+  // with the Trail, so they now ask the Trail for the same three promises; what the Trail
+  // itself draws is `tests/trail.test.tsx`.
+  test('offers a way back to the Node it was opened from: the newest Trail entry', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
 
-    expect(html).toContain('<a class="back" href="/ai-act-example/start/prohibited-practices"')
-    expect(html).toContain('>Back</a>')
+    expect(html).toContain(
+      '<a class="trail-entry" href="/ai-act-example/start/prohibited-practices" rel="prev">',
+    )
   })
 
   test('opened by its own URL, the way back is the start of the walk', async () => {
     const html = await view('/ai-act-example/social-scoring')
 
-    expect(html).toContain('<a class="back" href="/ai-act-example/start"')
+    expect(html).toContain('<a class="trail-entry" href="/ai-act-example/start"')
     expect(html).toContain('>Start</a>')
   })
 
   test('the root Node has nothing to go back to', async () => {
-    expect(await view('/ai-act-example/start')).not.toContain('class="back"')
+    expect(await view('/ai-act-example/start')).not.toContain('class="trail"')
   })
 })
 
