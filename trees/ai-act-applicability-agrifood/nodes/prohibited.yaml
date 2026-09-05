@@ -19,7 +19,13 @@ description:
     Article 5(8) adds that this Article does not affect prohibitions that apply where an AI
     practice infringes other Union law: a practice can be unlawful on more than one ground.
 
-    This walk ends here. The Tree does not cover enforcement or penalties.
+    **This walk ends here, and that is deliberate.** The steps that follow - high-risk,
+    general-purpose AI, transparency - all ask which obligations attach to a system that may
+    be placed on the market, put into service or used. A practice prohibited by Article 5 has
+    no such route, so those steps have nothing to add to this outcome. If one of the three
+    checks above shows that the prohibition does not in fact bite, go back to the previous
+    step and answer "no": the walk then continues with the high-risk question. The Tree does not cover
+    enforcement or penalties.
   nl: |
     Op grond van uw antwoord valt uw systeem onder een van de praktijken die door artikel 5,
     lid 1, worden verboden. Er is geen route naar naleving: het systeem mag niet in de handel
@@ -41,7 +47,15 @@ description:
     verbodsbepalingen die van toepassing zijn wanneer een AI-praktijk een inbreuk vormt op
     het Unierecht: een praktijk kan op meer dan één grond onrechtmatig zijn.
 
-    Deze doorloop eindigt hier. De boom behandelt handhaving en sancties niet.
+    **Deze doorloop eindigt hier, en dat is een bewuste keuze.** De stappen die volgen - hoog
+    risico, AI voor algemene doeleinden, transparantie - gaan alle over de vraag welke
+    verplichtingen gelden voor een systeem dat in de handel mag worden gebracht, in gebruik
+    mag worden gesteld of mag worden gebruikt. Een door artikel 5 verboden praktijk heeft die
+    route niet, zodat die stappen aan deze uitkomst niets toevoegen. Blijkt uit een van de
+    drie controles hierboven dat het verbod hier toch niet opgaat, ga dan terug naar de
+    vorige stap en antwoord "nee": de doorloop gaat dan verder met de vraag over hoog
+    risico. De
+    boom behandelt handhaving en sancties niet.
 metadata:
   version: "0.1"
 sources:
