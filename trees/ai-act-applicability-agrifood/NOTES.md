@@ -23,26 +23,32 @@ this Tree in particular; the spec is the contract.
 
 ## 2. The six steps, and which file is which
 
-The walk starts at `nodes/start.yaml` (the manifest's `root`) and runs through seven
-question Nodes to one of five Terminals.
+The walk starts at `nodes/start.yaml` (the manifest's `root`) and runs through eight
+question Nodes to one of four Terminals.
 
 | Step | Question Node | yes | no |
 |---|---|---|---|
 | 1. Jurisdictional scope (Art. 2) | `start` | step 2 | `ai-act-does-not-apply` |
 | 2. Material scope (Art. 3(1)) | `ai-system-definition` | step 3 | `not-an-ai-system` |
 | 3. Prohibited practices (Art. 5) | `prohibited-practices` | `prohibited` | step 4a |
-| 4a. High-risk, Annex I (Art. 6(1)) | `annex-i-legislation` | `high-risk` | step 4b |
-| 4b. High-risk, Annex III (Art. 6(2)) | `annex-iii-areas` | `high-risk` | step 5 |
+| 4a. High-risk, Annex I (Art. 6(1)) | `annex-i-legislation` | step 4c | step 4b |
+| 4b. High-risk, Annex III (Art. 6(2)) | `annex-iii-areas` | step 4c | step 5 |
+| 4c. The high-risk finding | `high-risk` | step 5 | step 5 |
 | 5. General-purpose AI (Ch. V) | `general-purpose-ai` | step 6 | step 6 |
 | 6. Transparency (Art. 50) | `transparency-obligations` | `end-of-walk` | `end-of-walk` |
 
-Steps 5 and 6 do not branch: both Answers lead on. That is deliberate and matches the
-outline - being general-purpose AI neither ends the walk nor removes an earlier finding,
-and the Tree goes no further than Article 50 (core document 3.3, item 7).
+Steps 4c, 5 and 6 do not branch: both Answers lead on. That is deliberate and matches the
+outline - a high-risk finding and being general-purpose AI neither end the walk nor remove
+an earlier finding, and the Tree goes no further than Article 50 (core document 3.3, item
+7). Step 4c is a **finding**, not a question: it reports that the system is high-risk and
+carries that on. Its yes/no buttons therefore both do the same thing; see section 8.
 
-The five Terminals are `ai-act-does-not-apply` (`not-applicable`), `not-an-ai-system`
-(`refer`), `prohibited` (`prohibited`), `high-risk` (`applicable`) and `end-of-walk`
-(`applicable`).
+The four Terminals are `ai-act-does-not-apply` (`not-applicable`), `not-an-ai-system`
+(`refer`), `prohibited` (`prohibited`) and `end-of-walk` (`applicable`). Three of them end
+the walk before step 6, deliberately: the first two because the Act does not reach the
+system at all, `prohibited` because Article 5 leaves no route to compliance, so the
+question "which obligations attach?" has nothing to add. The `prohibited` Node's own text
+now says so, rather than leaving it to be inferred.
 
 ## 3. The lists, and how many entries each has
 
@@ -163,11 +169,33 @@ established later, it becomes its own issue; nothing in this Tree changes until 
   the largest single improvement available, and it is your call.
 - **Nothing after Article 50.** Obligations per role, conformity assessment, registration
   and penalties are out of scope for this version (core document, section 4).
-- **The `high-risk` Terminal ends the walk before steps 5 and 6**, yet its own text tells
-  the reader to continue with the general-purpose AI and transparency steps, because
-  Article 50 can apply to a high-risk system at the same time (Article 50(6)). The text is
-  right in law and the Terminal is what issue #10 asked for, so nothing was reworded here.
-  Which way the walk should go is yours to decide, in **issue #24**.
+- **`high-risk` is no longer a Terminal** (decided in **issue #24**). It used to end the
+  walk while its own text told the reader to continue with steps 5 and 6, which the Tree
+  could not do. It is now a question Node whose two Answers both lead to
+  `general-purpose-ai`, so a high-risk system reaches the Article 50 step. The reasons: a
+  high-risk system can carry Article 50 obligations at the same time (Article 50(6)); the
+  core document answers OPEN 10.7 that the general-purpose AI and transparency steps come
+  after the high-risk step; and the third option the issue offered - linking `high-risk` to
+  step 5 as an Option - is not possible in `elsa-tree/1`, where a Terminal may have no
+  Options and an Option must target an explanation Node (rules V-TERMINAL, V-OPTIONS).
+  Two consequences you may want to change once you have seen the tool:
+  - the high-risk finding is no longer a styled **outcome**. The walk for that branch ends
+    at `end-of-walk` (`applicable`), whose text now says the high-risk finding stands
+    alongside whatever step 6 found. If you would rather the reader see a high-risk
+    *outcome*, the format has no way to do both, and the choice is between the two;
+  - `high-risk` shows the frontend's **yes/no buttons under a statement**, because a Node
+    that leads on must be a question Node and "yes"/"no" are UI chrome the Tree cannot
+    rename. Its text says plainly that either answer continues.
+- **A high-risk system under Annex I, Section B may not carry Article 50 obligations at
+  all** - found while deciding issue #24, not fixed. `high-risk`'s own text says that for
+  such a system Article 2(2) makes only Article 6(1), Article 60a and Articles 102 to 112
+  apply, and Article 50 is not among them. The Tree now sends every high-risk reader into
+  the Article 50 step without telling them this, and step 6 tells that reader Article 50
+  attaches whatever their risk classification. Splitting step 4c by Annex I Section is legal
+  authoring and a new branch, which issue #24 put out of scope. It was raised again on PR
+  #25; the owner's answer was to ship this version as it stands, so it is now **issue #26**
+  and yours to decide there. It matters for this audience: 9 of the 20 Annex I entries are
+  Section B, `annex-i-agricultural-vehicles` among them.
 - **The Tree cannot be walked by clicking yet.** Every Node is reachable at its own URL and
   the test walks the whole graph, but the page that ships today renders a Node's title and
   description only - no Answers, no Options, no language switch. That is issue #7's work,
