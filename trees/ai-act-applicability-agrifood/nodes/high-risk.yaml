@@ -1,0 +1,95 @@
+title:
+  en: Your system is high-risk under the AI Act
+  nl: Uw systeem heeft een hoog risico onder de AI-verordening
+description:
+  en: |
+    On the answer you gave, your system is a **high-risk AI system**: either through Article
+    6(1) (a safety component of, or itself, a product covered by Annex I that needs a
+    third-party conformity assessment) or through Article 6(2) and Annex III.
+
+    **This Tree does not yet say what follows.** The obligations that attach to a high-risk
+    system - the requirements of Chapter III, the duties of providers and deployers,
+    conformity assessment, registration, the CE marking - are outside the scope of this
+    version. Section 3.3, item 7 of the project's core document leaves them to the owner's
+    later authoring.
+
+    What the Act does settle, and is worth carrying away from this step:
+
+    - **which route you came by matters.** For a system that is high-risk under Article 6(1)
+      in relation to a product covered by **Annex I, Section B**, Article 2(2) provides that
+      only Article 6(1), Article 60a and Articles 102 to 112 apply. For Section A and for
+      Annex III systems the full Chapter III regime applies;
+    - **from when.** Chapter III, Sections 1 to 3, applies from **2 December 2027** for
+      systems high-risk under Article 6(2) and Annex III, and from **2 August 2028** for
+      systems high-risk under Article 6(1) and Annex I;
+    - **systems already on the market.** Article 111(2) applies this Regulation to operators
+      of high-risk systems placed on the market before the date of application of Chapter III
+      only if those systems are then subject to significant changes in their designs. Where
+      such a system is intended to be used by public authorities, providers and deployers
+      must comply by **2 August 2030** in any case;
+    - **if you relied on Article 6(3)** to conclude that an Annex III system is not
+      high-risk, that assessment must be documented before the system is placed on the
+      market or put into service, and the registration obligation of Article 49(2) applies.
+
+    Continue with the general-purpose AI and transparency steps as well: a high-risk system
+    can carry Article 50 obligations at the same time. Article 50(6) says those paragraphs
+    do not affect the requirements and obligations of Chapter III.
+  nl: |
+    Op grond van uw antwoord is uw systeem een **AI-systeem met een hoog risico**: hetzij via
+    artikel 6, lid 1 (veiligheidscomponent van, of zelf, een product dat onder bijlage I valt
+    en waarvoor een conformiteitsbeoordeling door een derde partij nodig is), hetzij via
+    artikel 6, lid 2, en bijlage III.
+
+    **Deze boom zegt nog niet wat daaruit volgt.** De verplichtingen die aan een systeem met
+    een hoog risico zijn verbonden - de eisen van hoofdstuk III, de plichten van aanbieders
+    en gebruiksverantwoordelijken, de conformiteitsbeoordeling, de registratie, de
+    CE-markering - vallen buiten het bestek van deze versie. Punt 7 van paragraaf 3.3 van het
+    kerndocument van dit project laat die over aan het latere werk van de eigenaar.
+
+    Wat de verordening wel vastlegt, en de moeite waard is om uit deze stap mee te nemen:
+
+    - **welke route u hebt gevolgd doet ertoe.** Voor een systeem dat op grond van artikel 6,
+      lid 1, een hoog risico heeft in verband met een product dat onder **bijlage I, afdeling
+      B**, valt, bepaalt artikel 2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis,
+      en de artikelen 102 tot en met 112 van toepassing zijn. Voor afdeling A en voor
+      systemen uit bijlage III geldt het volledige regime van hoofdstuk III;
+    - **vanaf wanneer.** Hoofdstuk III, afdelingen 1 tot en met 3, geldt vanaf **2 december
+      2027** voor systemen met een hoog risico op grond van artikel 6, lid 2, en bijlage III,
+      en vanaf **2 augustus 2028** voor systemen met een hoog risico op grond van artikel 6,
+      lid 1, en bijlage I;
+    - **systemen die al in de handel zijn.** Artikel 111, lid 2, past deze verordening op
+      operatoren van systemen met een hoog risico die vóór de toepassingsdatum van hoofdstuk
+      III in de handel zijn gebracht alleen toe indien die systemen daarna aanzienlijke
+      wijzigingen in hun ontwerp ondergaan. Waar zo’n systeem bedoeld is voor gebruik door
+      overheidsinstanties, moeten aanbieders en gebruiksverantwoordelijken in ieder geval
+      uiterlijk op **2 augustus 2030** voldoen;
+    - **als u zich op artikel 6, lid 3, hebt beroepen** om te concluderen dat een systeem uit
+      bijlage III geen hoog risico heeft, moet die beoordeling worden gedocumenteerd voordat
+      het systeem in de handel wordt gebracht of in gebruik wordt gesteld, en geldt de
+      registratieverplichting van artikel 49, lid 2.
+
+    Loop ook de stappen over AI voor algemene doeleinden en transparantie door: een systeem
+    met een hoog risico kan tegelijk verplichtingen uit artikel 50 dragen. Artikel 50, lid 6,
+    bepaalt dat die leden de voorschriften en verplichtingen van hoofdstuk III onverlet
+    laten.
+metadata:
+  version: "0.1"
+  owner-action: what follows from a high-risk outcome is the owner's later authoring (core document 3.3, item 7)
+sources:
+  - kind: legal
+    label:
+      en: Article 6 AI Act (classification rules for high-risk AI systems)
+      nl: Artikel 6 AI-verordening (classificatieregels voor AI-systemen met een hoog risico)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+  - kind: legal
+    label:
+      en: Article 113(3)(c) AI Act as amended (when the high-risk rules apply)
+      nl: Artikel 113, lid 3, punt c), AI-verordening zoals gewijzigd (vanaf wanneer de regels voor hoog risico gelden)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_113
+  - kind: legal
+    label:
+      en: Article 111(2) AI Act as amended (systems already on the market)
+      nl: Artikel 111, lid 2, AI-verordening zoals gewijzigd (systemen die al in de handel zijn)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_111
+terminal:
+  outcome: applicable

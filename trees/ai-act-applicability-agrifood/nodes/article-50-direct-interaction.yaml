@@ -1,0 +1,59 @@
+title:
+  en: Systems that interact directly with people (obligation on the provider)
+  nl: Systemen die rechtstreeks met mensen interageren (verplichting voor de aanbieder)
+description:
+  en: |
+    **Article 50(1).** Providers must ensure that AI systems **intended to interact directly
+    with natural persons** are designed and developed so that the persons concerned **are
+    informed that they are interacting with an AI system**.
+
+    Two limits are in the text:
+
+    - the obligation does not apply where this is **obvious** from the point of view of a
+      natural person who is reasonably well-informed, observant and circumspect, taking into
+      account the circumstances and the context of use;
+    - it does not apply to AI systems authorised by law to detect, prevent, investigate or
+      prosecute criminal offences, subject to appropriate safeguards for the rights and
+      freedoms of third parties - **unless** those systems are available for the public to
+      report a criminal offence.
+
+    The obligation is on the **provider**, and it is a design obligation: the disclosure has
+    to be built into the system, not left to whoever deploys it.
+
+    In agrifood this reaches advisory chatbots for growers, voice assistants in the cab or
+    the barn, and customer-facing assistants in food retail and supply.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    **Artikel 50, lid 1.** Aanbieders zorgen ervoor dat AI-systemen die **voor directe
+    interactie met natuurlijke personen zijn bedoeld** zodanig worden ontworpen en ontwikkeld
+    dat de betrokken natuurlijke personen **worden geïnformeerd dat zij interageren met een
+    AI-systeem**.
+
+    Twee grenzen staan in de tekst:
+
+    - de verplichting geldt niet wanneer dit **duidelijk** is vanuit het oogpunt van een
+      normaal geïnformeerde en redelijk omzichtige en oplettende natuurlijke persoon, rekening
+      houdend met de omstandigheden en de gebruikscontext;
+    - zij geldt niet voor bij wet toegestane AI-systemen voor het opsporen, voorkomen,
+      onderzoeken of vervolgen van strafbare feiten, met inachtneming van passende waarborgen
+      voor de rechten en vrijheden van derden - **tenzij** die systemen voor het publiek
+      beschikbaar zijn om een strafbaar feit te melden.
+
+    De verplichting rust op de **aanbieder** en is een ontwerpverplichting: de mededeling moet
+    in het systeem worden ingebouwd, niet worden overgelaten aan degene die het inzet.
+
+    In agrifood raakt dit advieschatbots voor telers, spraakassistenten in de cabine of de
+    stal, en klantgerichte assistenten in de voedingsdetailhandel en -levering.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+  article-50-situation: 1
+  addressee: provider
+sources:
+  - kind: legal
+    label:
+      en: Article 50(1) AI Act
+      nl: Artikel 50, lid 1, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_50

@@ -1,0 +1,39 @@
+title:
+  en: Deployers who are natural persons using a system in a purely personal, non-professional activity
+  nl: Gebruiksverantwoordelijken die natuurlijke personen zijn en een systeem in een louter persoonlijke niet-beroepsactiviteit gebruiken
+description:
+  en: |
+    Article 2(10) excludes the **obligations of deployers who are natural persons** using
+    AI systems in the course of a purely personal non-professional activity.
+
+    Read the limits carefully:
+
+    - it excludes obligations of *deployers*, not of the provider of the system they use.
+      If you supply the system, this entry does not exclude you;
+    - the activity must be purely personal and non-professional. Anything done in the
+      course of a farm business, a cooperative or a research institute is not.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 2, lid 10, sluit de **verplichtingen uit van gebruiksverantwoordelijken die
+    natuurlijke personen zijn** en AI-systemen gebruiken in het kader van een louter
+    persoonlijke niet-beroepsactiviteit.
+
+    Let goed op de grenzen:
+
+    - het sluit verplichtingen van *gebruiksverantwoordelijken* uit, niet die van de
+      aanbieder van het systeem dat zij gebruiken. Als u het systeem levert, sluit dit
+      onderdeel u niet uit;
+    - de activiteit moet louter persoonlijk en niet-beroepsmatig zijn. Alles wat gebeurt
+      in het kader van een landbouwbedrijf, een coöperatie of een onderzoeksinstituut is
+      dat niet.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 2(10) AI Act
+      nl: Artikel 2, lid 10, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2

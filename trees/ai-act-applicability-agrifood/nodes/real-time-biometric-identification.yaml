@@ -1,0 +1,82 @@
+title:
+  en: Real-time remote biometric identification in publicly accessible spaces for law enforcement
+  nl: Biometrische identificatie op afstand in real time in openbare ruimten met het oog op de rechtshandhaving
+description:
+  en: |
+    Article 5(1)(h) prohibits **the use** of real-time remote biometric identification
+    systems **in publicly accessible spaces for the purposes of law enforcement**, unless
+    and in so far as such use is strictly necessary for one of three objectives:
+
+    1. the targeted search for specific victims of abduction, trafficking in human beings
+       or sexual exploitation of human beings, and the search for missing persons;
+    2. the prevention of a specific, substantial and imminent threat to the life or
+       physical safety of natural persons, or a genuine and present or genuine and
+       foreseeable threat of a terrorist attack;
+    3. the localisation or identification of a person suspected of having committed a
+       criminal offence listed in Annex II, for the purpose of a criminal investigation,
+       prosecution or the execution of a criminal penalty, punishable in the Member State
+       concerned by at least four years of custody.
+
+    Even then, Article 5(2) to (7) apply: a necessity and proportionality assessment, prior
+    authorisation by a judicial or independent administrative authority, a fundamental
+    rights impact assessment, registration in the EU database, national implementing rules,
+    notification and annual reporting.
+
+    Two features set this point apart from the others: it covers only the **use**, not the
+    placing on the market, and only **law enforcement** purposes. Article 5(1)(h) is
+    without prejudice to Article 9 of Regulation (EU) 2016/679 for processing biometric
+    data for other purposes.
+
+    Definitions to check against your system: Article 3(41) remote biometric identification
+    system, Article 3(42) real-time, and Article 3(44) publicly accessible space - "any
+    publicly or privately owned physical place accessible to an undetermined number of
+    natural persons".
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 5, lid 1, punt h), verbiedt **het gebruik** van systemen voor biometrische
+    identificatie op afstand in real time **in openbare ruimten met het oog op de
+    rechtshandhaving**, tenzij en voor zover dat gebruik strikt noodzakelijk is voor een van
+    drie doelstellingen:
+
+    1. het gericht zoeken naar specifieke slachtoffers van ontvoering, mensenhandel of
+       seksuele uitbuiting van mensen, en het zoeken naar vermiste personen;
+    2. het voorkomen van een specifieke, aanzienlijke en imminente dreiging voor het leven
+       of de fysieke veiligheid van natuurlijke personen, of een reële en actuele of reële
+       en voorspelbare dreiging van een terroristische aanslag;
+    3. de lokalisatie of identificatie van een persoon die ervan wordt verdacht een in
+       bijlage II genoemd strafbaar feit te hebben gepleegd, ten behoeve van een
+       strafrechtelijk onderzoek of vervolging of de tenuitvoerlegging van een straf,
+       waarop in de betrokken lidstaat ten minste vier jaar vrijheidsstraf staat.
+
+    Ook dan gelden artikel 5, leden 2 tot en met 7: een beoordeling van noodzaak en
+    evenredigheid, voorafgaande toestemming van een gerechtelijke of onafhankelijke
+    administratieve instantie, een effectbeoordeling op het gebied van de grondrechten,
+    registratie in de EU-databank, nationale uitvoeringsregels, melding en jaarlijkse
+    verslaglegging.
+
+    Twee kenmerken onderscheiden dit punt van de andere: het bestrijkt alleen het
+    **gebruik**, niet het in de handel brengen, en alleen doeleinden van
+    **rechtshandhaving**. Artikel 5, lid 1, punt h), doet geen afbreuk aan artikel 9 van
+    Verordening (EU) 2016/679 voor de verwerking van biometrische gegevens voor andere
+    doeleinden.
+
+    Definities om uw systeem aan te toetsen: artikel 3, punt 41, systeem voor biometrische
+    identificatie op afstand; artikel 3, punt 42, in real time; en artikel 3, punt 44,
+    openbare ruimte - "een fysieke plek die in publieke of private handen is en toegankelijk
+    is voor een onbepaald aantal natuurlijke personen".
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(h) and Article 5(2) to (7) AI Act
+      nl: Artikel 5, lid 1, punt h), en artikel 5, leden 2 tot en met 7, AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+  - kind: legal
+    label:
+      en: Article 3(41), (42) and (44) AI Act (remote biometric identification, real-time, publicly accessible space)
+      nl: Artikel 3, punten 41, 42 en 44, AI-verordening (biometrische identificatie op afstand, real time, openbare ruimte)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3

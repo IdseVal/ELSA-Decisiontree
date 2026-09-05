@@ -1,0 +1,72 @@
+title:
+  en: Not an AI system - other regulation may apply instead
+  nl: Geen AI-systeem - andere regelgeving kan in plaats daarvan gelden
+description:
+  en: |
+    Your system does not meet the definition in Article 3(1), so the AI Act does not apply
+    to it and this walk ends here.
+
+    **The AI Act does not say what applies instead.** Article 2(9) only records that the
+    Regulation is without prejudice to other Union law on consumer protection and product
+    safety, and that clause is about systems *inside* the Act. Any list of other
+    regulations is therefore editorial content, not a reading of the AI Act.
+
+    The examples the owner of this Tree names as worth checking are:
+
+    - **product safety regulation** - the general product safety rules that apply to a
+      product placed on the Union market, and any sector-specific safety legislation for
+      the machine or product your software is part of;
+    - the **product liability directive** - liability for damage caused by a defective
+      product.
+
+    Depending on what your system does, data protection law, food and feed law, plant
+    protection product law, machinery law and contract law may all be relevant. None of
+    them is covered by this Tree.
+
+    Two reasons to come back to this step later: the definition turns on inference, and a
+    system that today executes rules a person wrote may tomorrow learn from data; and a
+    system that is not an AI system may still be a component of a product that is one.
+  nl: |
+    Uw systeem voldoet niet aan de definitie van artikel 3, punt 1. De AI-verordening is
+    er dus niet op van toepassing en deze doorloop eindigt hier.
+
+    **De AI-verordening zegt niet wat in plaats daarvan geldt.** Artikel 2, lid 9, bepaalt
+    alleen dat de verordening geen afbreuk doet aan ander Unierecht inzake
+    consumentenbescherming en productveiligheid, en die bepaling gaat over systemen *die
+    wel* onder de verordening vallen. Elke opsomming van andere regelgeving is daarom
+    redactionele inhoud en geen lezing van de AI-verordening.
+
+    De voorbeelden die de eigenaar van deze boom noemt als het nagaan waard:
+
+    - **productveiligheidsregelgeving** - de algemene productveiligheidsregels die gelden
+      voor een product dat in de Unie in de handel wordt gebracht, en eventuele
+      sectorspecifieke veiligheidswetgeving voor de machine of het product waarvan uw
+      software deel uitmaakt;
+    - de **richtlijn productaansprakelijkheid** - aansprakelijkheid voor schade
+      veroorzaakt door een gebrekkig product.
+
+    Afhankelijk van wat uw systeem doet, kunnen ook het gegevensbeschermingsrecht, de
+    levensmiddelen- en diervoederwetgeving, de wetgeving over gewasbeschermingsmiddelen,
+    de machinewetgeving en het verbintenissenrecht van belang zijn. Geen daarvan wordt in
+    deze boom behandeld.
+
+    Twee redenen om later op deze stap terug te komen: de definitie draait om het afleiden,
+    en een systeem dat vandaag regels uitvoert die een mens heeft geschreven, kan morgen
+    uit data leren; en een systeem dat zelf geen AI-systeem is, kan wel een component zijn
+    van een product dat dat wel is.
+metadata:
+  version: "0.1"
+  owner-action: the two named acts have no Source yet; the owner adds the references they want to cite
+sources:
+  - kind: legal
+    label:
+      en: Article 3(1) AI Act (definition of an AI system)
+      nl: Artikel 3, punt 1, AI-verordening (definitie van AI-systeem)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+  - kind: legal
+    label:
+      en: Article 2(9) AI Act (without prejudice to consumer protection and product safety law)
+      nl: Artikel 2, lid 9, AI-verordening (doet geen afbreuk aan consumentenbescherming en productveiligheid)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+terminal:
+  outcome: refer

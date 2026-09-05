@@ -1,0 +1,65 @@
+title:
+  en: Inferring emotions in the workplace or in education
+  nl: Het afleiden van emoties op de werkplek of in het onderwijs
+description:
+  en: |
+    Article 5(1)(f) prohibits placing on the market, putting into service for this specific
+    purpose, or using AI systems **to infer emotions of a natural person in the areas of
+    workplace and education institutions**, except where the system is intended to be put
+    in place or on the market **for medical or safety reasons**.
+
+    Article 3(39) defines an emotion recognition system as "an AI system for the purpose of
+    identifying or inferring emotions or intentions of natural persons on the basis of
+    their biometric data".
+
+    Two boundaries matter:
+
+    - the prohibition is tied to two places: the workplace and educational institutions.
+      Inferring emotions elsewhere is not prohibited by this point, though it may fall
+      under Annex III (high-risk) or Article 50(3) (transparency);
+    - the exception is narrow: medical or safety reasons, as the intended purpose.
+
+    For agrifood this reaches monitoring of farm, greenhouse and processing-plant workers -
+    including systems sold for wellbeing or productivity. A fatigue-detection system
+    justified as a safety measure is exactly the case where the medical-or-safety exception
+    has to be argued on the facts.
+
+    This is an explanation only. Go back to the previous step to answer.
+  nl: |
+    Artikel 5, lid 1, punt f), verbiedt het in de handel brengen, het voor dit specifieke
+    doel in gebruik stellen of het gebruiken van AI-systemen **om emoties van een
+    natuurlijke persoon op de werkplek en in het onderwijs af te leiden**, behalve wanneer
+    het gebruik van het AI-systeem is bedoeld om **uit medische of veiligheidsoverwegingen**
+    te worden ingevoerd of in de handel te worden gebracht.
+
+    Artikel 3, punt 39, omschrijft een systeem voor het herkennen van emoties als "een
+    AI-systeem dat is bedoeld voor het vaststellen of afleiden van de emoties of intenties
+    van natuurlijke personen op basis van hun biometrische gegevens".
+
+    Twee grenzen zijn van belang:
+
+    - het verbod is gebonden aan twee plaatsen: de werkplek en instellingen voor onderwijs.
+      Emoties elders afleiden is door dit punt niet verboden, maar kan wel onder bijlage III
+      (hoog risico) of artikel 50, lid 3 (transparantie), vallen;
+    - de uitzondering is eng: medische of veiligheidsoverwegingen, als beoogd doel.
+
+    Voor agrifood raakt dit het monitoren van werknemers op het bedrijf, in de kas en in de
+    verwerkende industrie - ook systemen die worden verkocht voor welzijn of productiviteit.
+    Een systeem voor vermoeidheidsdetectie dat als veiligheidsmaatregel wordt gepresenteerd,
+    is precies het geval waarin de medische-of-veiligheidsuitzondering feitelijk moet worden
+    onderbouwd.
+
+    Dit is alleen uitleg. Ga terug naar de vorige stap om te antwoorden.
+metadata:
+  version: "0.1"
+sources:
+  - kind: legal
+    label:
+      en: Article 5(1)(f) AI Act
+      nl: Artikel 5, lid 1, punt f), AI-verordening
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+  - kind: legal
+    label:
+      en: Article 3(39) AI Act (emotion recognition system)
+      nl: Artikel 3, punt 39, AI-verordening (systeem voor het herkennen van emoties)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
