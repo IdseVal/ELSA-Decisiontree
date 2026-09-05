@@ -121,7 +121,7 @@ alternative text. The natural places for them are the Options of `annex-i-legisl
 (what kind of product each piece of legislation covers) and of `annex-iii-areas`, which is
 what the core document has in mind.
 
-## 7. The Sources, and one URL decision to review
+## 7. The Sources, and the URL language decision
 
 Every Node cites at least one **legal** Source. There are no case-law or literature
 Sources anywhere: the research document does not provide any, and this Tree does not cite
@@ -135,12 +135,15 @@ Two URL shapes are used, both from the research document:
 - another act named in Annex I, by its CELEX number:
   `https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32013R0167`.
 
-**A decision for you.** These URLs contain `/EN/`, so they open the English rendering
-whatever language the reader is using. The format allows only one URL per Source, and the
-spec prefers language-neutral addresses. Replacing `/EN/` with `/NL/` flips it the other
-way; an `/eli/` address negotiates the language but does not address the consolidated
-version. The research (section 2.1) recommends citing the consolidated CELEX URL, which is
-what was done. Change it if you prefer.
+**You have decided this one: the `/EN/` addresses stay.** These URLs contain `/EN/`, so
+they open the English rendering whatever language the reader is using. The format allows
+only one URL per Source, and the spec prefers language-neutral addresses. Replacing `/EN/`
+with `/NL/` flips it the other way; an `/eli/` address negotiates the language but does not
+address the consolidated version. The research (section 2.1) recommends citing the
+consolidated CELEX URL, which is what was done. Asked about this on PR #18, you answered:
+*"we can link to EU legal texts that are in English, that is not an issue and can be solved
+in the future if determined that it is an issue."* If a Dutch-language source requirement is
+established later, it becomes its own issue; nothing in this Tree changes until then.
 
 ## 8. What is deliberately unfinished
 
@@ -160,6 +163,16 @@ what was done. Change it if you prefer.
   the largest single improvement available, and it is your call.
 - **Nothing after Article 50.** Obligations per role, conformity assessment, registration
   and penalties are out of scope for this version (core document, section 4).
+- **The `high-risk` Terminal ends the walk before steps 5 and 6**, yet its own text tells
+  the reader to continue with the general-purpose AI and transparency steps, because
+  Article 50 can apply to a high-risk system at the same time (Article 50(6)). The text is
+  right in law and the Terminal is what issue #10 asked for, so nothing was reworded here.
+  Which way the walk should go is yours to decide, in **issue #24**.
+- **The Tree cannot be walked by clicking yet.** Every Node is reachable at its own URL and
+  the test walks the whole graph, but the page that ships today renders a Node's title and
+  description only - no Answers, no Options, no language switch. That is issue #7's work,
+  which issue #10 put out of scope. **Issue #23** walks the Tree in the app and re-takes the
+  screenshots once #7 has merged.
 
 ## 9. The legal text this was written from
 
