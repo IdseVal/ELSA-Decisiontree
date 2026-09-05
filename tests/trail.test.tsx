@@ -115,6 +115,20 @@ describe('the Trail', () => {
     expect(trailTitles(html)).toEqual(['Start'])
   })
 
+  test('offers it on every kind of Node, not just the explanation Nodes #7 covered', async () => {
+    // The way in depends on the Trail being empty, never on the kind of Node: a question
+    // and an outcome are the likeliest things to share, and neither may strand its reader.
+    for (const [kind, url] of [
+      ['question', '/ai-act-example/prohibited-practices'],
+      ['terminal', '/ai-act-example/covered'],
+    ] as const) {
+      const html = await view(url)
+
+      expect(trailLinks(html), kind).toEqual(['/ai-act-example/start'])
+      expect(trailTitles(html), kind).toEqual(['Start'])
+    }
+  })
+
   test('the root Node with no Trail draws none: there is nothing to go back to', async () => {
     expect(await view('/ai-act-example/start')).not.toContain('class="trail"')
   })
