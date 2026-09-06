@@ -33,6 +33,8 @@ export interface Chrome {
   copyFailed: string
   language: string
   version: string
+  /** Stands in for a text the Tree does not have in the language on screen (issue #9). */
+  missingText: string
   outcomeNotApplicable: string
   outcomeApplicable: string
   outcomeProhibited: string
@@ -65,6 +67,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     copyFailed: 'Copy this link yourself:',
     language: 'Language',
     version: 'Version',
+    missingText: 'Text missing in this language',
     outcomeNotApplicable: 'Does not apply',
     outcomeApplicable: 'Applies',
     outcomeProhibited: 'Prohibited',
@@ -95,6 +98,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     copyFailed: 'Kopieer deze link zelf:',
     language: 'Taal',
     version: 'Versie',
+    missingText: 'Tekst ontbreekt in deze taal',
     outcomeNotApplicable: 'Niet van toepassing',
     outcomeApplicable: 'Van toepassing',
     outcomeProhibited: 'Verboden',

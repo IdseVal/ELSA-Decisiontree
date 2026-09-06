@@ -29,9 +29,20 @@ const OUTCOME_LABEL: Record<Outcome, keyof Chrome> = {
   refer: 'outcomeRefer',
 }
 
-/** The text of a localised field. Rule V-L10N guarantees every declared language is there. */
-export function text(localised: LocalisedText, lang: string): string {
-  return localised[lang] ?? ''
+/**
+ * The text of a localised field, or a visible placeholder when the Tree does not have it in
+ * `lang`. Rule V-L10N guarantees every declared language is there, so a miss means the Tree
+ * changed under the running server (`getNode` re-reads the file and does not re-validate) --
+ * an authoring error. The reader is told, honestly, rather than shown an empty element, and
+ * the server says which Node and which field, so the author can find it.
+ *
+ * `where` names the field: `start.title`, `start.options[1].title`.
+ */
+export function text(localised: LocalisedText, lang: string, where: string): string {
+  const value = localised[lang]
+  if (value !== undefined) return value
+  console.warn(`Tree text missing: ${where} has no text for the language "${lang}"`)
+  return `[${chrome(lang).missingText}]`
 }
 
 /**
@@ -69,7 +80,7 @@ export function NodeView({
       <Trail
         entries={trailTitles.map((title, index) => ({
           href: trailHref(address, index),
-          title: text(title, lang),
+          title: text(title, lang, `${address.trail[index]}.title`),
         }))}
         start={
           address.trail.length === 0 && address.nodeId !== rootId
@@ -86,23 +97,35 @@ export function NodeView({
         </p>
       )}
 
-      <h1 id="node-title">{text(node.title, lang)}</h1>
+      <h1 id="node-title">{text(node.title, lang, `${node.id}.title`)}</h1>
 
       <div
         className="prose"
-        dangerouslySetInnerHTML={{ __html: richTextToHtml(text(node.description, lang)) }}
+        dangerouslySetInnerHTML={{
+          __html: richTextToHtml(text(node.description, lang, `${node.id}.description`)),
+        }}
       />
 
-      {node.sources.length > 0 && <Sources sources={node.sources} lang={lang} ui={ui} uiLang={uiLang} />}
+      {node.sources.length > 0 && (
+        <Sources sources={node.sources} nodeId={node.id} lang={lang} ui={ui} uiLang={uiLang} />
+      )}
 
-      {node.images.length > 0 && <Thumbnails images={node.images} lang={lang} ui={ui} uiLang={uiLang} />}
+      {node.images.length > 0 && (
+        <Thumbnails images={node.images} nodeId={node.id} lang={lang} ui={ui} uiLang={uiLang} />
+      )}
 
       {node.options.length > 0 && (
         <section className="options">
           <h2 lang={uiLang}>{ui.options}</h2>
           <ul>
-            {node.options.map((option) => (
-              <Entry key={option.target} option={option} address={address} lang={lang} />
+            {node.options.map((option, index) => (
+              <Entry
+                key={option.target}
+                option={option}
+                where={`${node.id}.options[${index}]`}
+                address={address}
+                lang={lang}
+              />
             ))}
           </ul>
         </section>
@@ -136,17 +159,28 @@ export function NodeView({
 }
 
 /** One Option: the whole entry is the link to the child Node that explains it. */
-function Entry({ option, address, lang }: { option: Option; address: PageAddress; lang: string }) {
+function Entry({
+  option,
+  where,
+  address,
+  lang,
+}: {
+  option: Option
+  /** Where this Option sits in its Node, for the warning `text` logs: `start.options[1]`. */
+  where: string
+  address: PageAddress
+  lang: string
+}) {
   return (
     <li>
       <a className="option" href={followHref(address, option.target)}>
-        <span>{text(option.title, lang)}</span>
+        <span>{text(option.title, lang, `${where}.title`)}</span>
         {option.images.map((image) => (
           <img
             key={image.file}
             className="option-image"
             src={imageHref(image.file)}
-            alt={text(image.description, lang)}
+            alt={text(image.description, lang, `${where}.images[${image.file}].description`)}
             loading="lazy"
           />
         ))}
@@ -158,11 +192,14 @@ function Entry({ option, address, lang }: { option: Option; address: PageAddress
 /** The Node's Sources, each labelled by its kind, each opening in a new tab. */
 function Sources({
   sources,
+  nodeId,
   lang,
   ui,
   uiLang,
 }: {
   sources: Source[]
+  /** The Node these Sources belong to, for the warning `text` logs. */
+  nodeId: string
   lang: string
   ui: Chrome
   uiLang: string | undefined
@@ -171,13 +208,13 @@ function Sources({
     <section className="sources">
       <h2 lang={uiLang}>{ui.sources}</h2>
       <ul>
-        {sources.map((source) => (
+        {sources.map((source, index) => (
           <li key={`${source.kind}:${source.url}`}>
             <span className="kind" lang={uiLang}>
               {ui[SOURCE_LABEL[source.kind]]}
             </span>
             <a href={source.url} target="_blank" rel="noopener noreferrer">
-              {text(source.label, lang)}
+              {text(source.label, lang, `${nodeId}.sources[${index}].label`)}
               <span className="visually-hidden" lang={uiLang}>
                 {` (${ui.opensInNewTab})`}
               </span>
