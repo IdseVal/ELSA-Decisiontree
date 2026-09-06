@@ -11,7 +11,8 @@ import { beforeAll, describe, expect, test } from 'vitest'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
 import { NodeView } from '../src/components/NodeView.tsx'
 import { openTree, type Tree } from '../src/tree/loader.ts'
-import { parseUrl } from '../src/url.ts'
+import { contentLanguage, parseUrl } from '../src/url.ts'
+import { effectiveLang } from './effective-lang.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const trees = new Map<string, Tree>()
@@ -27,11 +28,20 @@ beforeAll(async () => {
   }
 })
 
+/**
+ * The `[lang]` segment the rewrite of 4.4 makes of a public URL. Every `lang` written in
+ * this file is a well-formed tag, which that rule passes through unchanged; an absent one
+ * becomes the sentinel.
+ */
+function langSegment(url: URL): string {
+  return url.searchParams.get('lang') ?? '_'
+}
+
 /** The markup of the Node the URL names, rendered the way the page renders it. */
 async function view(url: string): Promise<string> {
-  const { pathname, searchParams } = new URL(url, 'https://example.org')
-  const tree = trees.get(pathname.split('/')[1]!)!
-  const address = parseUrl(pathname, searchParams, tree)
+  const target = new URL(url, 'https://example.org')
+  const tree = trees.get(target.pathname.split('/')[1]!)!
+  const address = parseUrl(target.pathname, langSegment(target), tree)
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)
@@ -46,17 +56,17 @@ async function view(url: string): Promise<string> {
 }
 
 /**
- * A whole page: the shell `src/app/layout.tsx` renders around the Node view and the footer.
- * `<html lang>` is the Tree's default language there, which is why what the footer inherits
- * is not the language of the page (issue #19).
+ * A whole page: the shell `src/app/[lang]/layout.tsx` renders around the Node view and the
+ * footer, resolving its own segment exactly as that layout does. `<html lang>` is therefore
+ * the content language of the page (application.md 3.1, 4.4).
  */
 async function shell(url: string): Promise<string> {
-  const { pathname, searchParams } = new URL(url, 'https://example.org')
-  const tree = trees.get(pathname.split('/')[1]!)!
-  const address = parseUrl(pathname, searchParams, tree)!
+  const target = new URL(url, 'https://example.org')
+  const tree = trees.get(target.pathname.split('/')[1]!)!
+  const address = parseUrl(target.pathname, langSegment(target), tree)!
   const node = (await tree.getNode(address.nodeId))!
   return renderToStaticMarkup(
-    <html lang={tree.manifest.defaultLanguage}>
+    <html lang={contentLanguage(tree, langSegment(target))}>
       <body>
         <main>
           <NodeView
@@ -70,28 +80,6 @@ async function shell(url: string): Promise<string> {
       </body>
     </html>,
   )
-}
-
-/** Elements that close themselves, so they never become an ancestor. */
-const VOID_ELEMENTS = new Set(['br', 'hr', 'img', 'input', 'link', 'meta', 'source'])
-
-/**
- * The language a screen reader announces the element whose start tag contains `marker` in:
- * its own `lang`, or the nearest ancestor's. The suite has no DOM, and the markup here is
- * React's own output, so scanning the start tags is enough.
- */
-function effectiveLang(html: string, marker: string): string | undefined {
-  const ancestors: Array<string | undefined> = []
-  for (const [, closing, name, attributes = ''] of html.matchAll(/<(\/?)([a-z0-9]+)([^>]*)>/g)) {
-    if (closing) {
-      ancestors.pop()
-      continue
-    }
-    const own = /\slang="([^"]*)"/.exec(attributes)?.[1]
-    if (attributes.includes(marker)) return own ?? ancestors.findLast((lang) => lang !== undefined)
-    if (!VOID_ELEMENTS.has(name!) && !attributes.endsWith('/')) ancestors.push(own)
-  }
-  throw new Error(`no element matching ${marker}`)
 }
 
 describe('a question Node', () => {
@@ -250,6 +238,18 @@ describe('an explanation-only Node', () => {
   })
 })
 
+describe('the document language', () => {
+  test('is the language of the content, not the Tree default (application.md 3.1)', async () => {
+    expect(await shell('/ai-act-example/start?lang=nl')).toContain('<html lang="nl">')
+    expect(await shell('/ai-act-example/start')).toContain('<html lang="en">')
+  })
+
+  test('is the Tree default when the segment names a language it does not declare', async () => {
+    expect(await shell('/ai-act-example/start?lang=de')).toContain('<html lang="en">')
+    expect(await shell('/other-languages/start?lang=de')).toContain('<html lang="de">')
+  })
+})
+
 describe('the permanent disclaimer', () => {
   test('says the tool is not legal advice, in the chrome language', async () => {
     expect(renderToStaticMarkup(<Disclaimer lang="en" />)).toContain('This is not legal advice.')
@@ -264,8 +264,9 @@ describe('the permanent disclaimer', () => {
   })
 
   test('names its own language every time, including when it equals the content language', () => {
-    // The footer is a sibling of <main>: the only language it can inherit is <html>'s, which
-    // is the Tree's default and says nothing about this page (application.md 3.1, issue #19).
+    // The footer is a sibling of <main>, so the only language it can inherit is <html>'s.
+    // That is the content language now (4.4), which the chrome follows only when it speaks
+    // it; saying so unconditionally keeps the attribute true of the text under it.
     expect(renderToStaticMarkup(<Disclaimer lang="nl" />)).toContain('lang="nl"')
     expect(renderToStaticMarkup(<Disclaimer lang="en" />)).toContain('lang="en"')
   })
