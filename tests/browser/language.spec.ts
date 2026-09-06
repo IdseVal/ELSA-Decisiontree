@@ -39,10 +39,14 @@ test('switching language changes every text of the Node, and the switch says whe
     await expect(page.locator('body'), row.what).toContainText(row.en)
   }
   expect(await optionImageAlt(page)).toBe('A scoreboard ranking people')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
 
   await page.getByRole('link', { name: 'Nederlands' }).click()
 
   await expect(page).toHaveURL(`${STEP}?lang=nl`)
+  // The document follows the switch too: the `[lang]` segment of issue #20 reaches the root
+  // layout through the rewrite, so a screen reader is told the page changed language.
+  await expect(page.locator('html')).toHaveAttribute('lang', 'nl')
   for (const row of BOTH_LANGUAGES) {
     await expect(page.locator('body'), row.what).toContainText(row.nl)
     await expect(page.locator('body'), row.what).not.toContainText(row.en)
