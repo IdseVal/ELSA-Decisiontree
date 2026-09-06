@@ -57,7 +57,9 @@ function switchLanguages(html: string): string[] {
 /** A whole page: the chrome, the Node view and the permanent disclaimer, as the route composes them. */
 async function page(tree: Tree, url: string): Promise<string> {
   const { pathname, searchParams } = new URL(url, 'https://example.org')
-  const address = parseUrl(pathname, searchParams, tree)
+  // The `[lang]` segment the rewrite of 4.4 makes of the URL: these languages are all
+  // well-formed tags, which it passes through unchanged.
+  const address = parseUrl(pathname, searchParams.get('lang') ?? '_', tree)
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)

@@ -37,7 +37,9 @@ beforeAll(async () => {
 function addressOf(url: string): { tree: Tree; address: ReturnType<typeof parseUrl> } {
   const { pathname, searchParams } = new URL(url, 'https://example.org')
   const tree = trees.get(pathname.split('/')[1]!)!
-  return { tree, address: parseUrl(pathname, searchParams, tree) }
+  // The `[lang]` segment the rewrite of 4.4 makes of the URL: these languages are all
+  // well-formed tags, which it passes through unchanged.
+  return { tree, address: parseUrl(pathname, searchParams.get('lang') ?? '_', tree) }
 }
 
 /** The switch as the page renders it, for the page `url` names. */
@@ -191,7 +193,7 @@ describe('a Node that lacks a text in a language the Tree declares', () => {
   test('shows a placeholder the reader can see, and warns on the server', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const node = (await tree.getNode('start'))!
-    const address = parseUrl('/damaged/start', new URLSearchParams('lang=nl'), tree)!
+    const address = parseUrl('/damaged/start', 'nl', tree)!
 
     const html = renderToStaticMarkup(
       <NodeView node={node} address={address} rootId={tree.manifest.root} trailTitles={[]} />,
@@ -207,7 +209,7 @@ describe('a Node that lacks a text in a language the Tree declares', () => {
   test('the language it does have is untouched', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const node = (await tree.getNode('start'))!
-    const address = parseUrl('/damaged/start', new URLSearchParams(), tree)!
+    const address = parseUrl('/damaged/start', '_', tree)!
 
     const html = renderToStaticMarkup(
       <NodeView node={node} address={address} rootId={tree.manifest.root} trailTitles={[]} />,
