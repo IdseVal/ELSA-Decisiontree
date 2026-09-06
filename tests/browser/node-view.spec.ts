@@ -39,7 +39,9 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices/social-scoring')
   await expect(page.getByText('This step only explains.')).toBeVisible()
 
-  await page.getByRole('link', { name: 'Back' }).click()
+  // Issue #8 replaced the interim "back" control this test used with the Trail; the walk
+  // it checks is unchanged. What the Trail itself does is `tests/browser/trail.spec.ts`.
+  await page.locator('.trail-entry').last().click()
   await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
 })
 
@@ -56,6 +58,22 @@ test('a Terminal Node shows its outcome and offers no yes or no', async ({ page 
   await expect(page.locator('.outcome')).toHaveText('Does not apply')
   await expect(page.getByRole('link', { name: 'Yes', exact: true })).toHaveCount(0)
   await expect(page.getByRole('link', { name: 'No', exact: true })).toHaveCount(0)
+})
+
+test('the document declares the language of the content it shows', async ({ page }) => {
+  // What the `[lang]` route segment is for: `<html lang>` is the content language, not the
+  // Tree's default (docs/specs/application.md 3.1, 4.4). Read out of the response body as
+  // well as the DOM, so it is the document the server sent and not a client repair.
+  expect(await (await page.request.get(`${START}?lang=nl`)).text()).toContain('<html lang="nl">')
+  expect(await (await page.request.get(START)).text()).toContain('<html lang="en">')
+
+  await page.goto(`${START}?lang=nl`)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'nl')
+  // The public URL is untouched by the rewrite: the language is still a query parameter.
+  await expect(page).toHaveURL(`${START}?lang=nl`)
+
+  await page.goto(START)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
 })
 
 test('the disclaimer is in the HTML the server sends for every Node page', async ({ page }) => {

@@ -15,6 +15,14 @@
 > JavaScript. Section 4.3's 404 row says what holds and why; the two rows of section 1
 > it touches point at it. Nothing else in this document changed.
 >
+> Amended 2026-09-06 by the owner, on PR #29: 4.4's rewrite `source` excludes Next.js's
+> own `/_next/` paths, because the framework does not exclude them itself and the rules as
+> first written 404 every stylesheet and client chunk (measured twice, on 16.3.4). This is
+> a correction to a measurement the mechanism rested on, not a new decision: every answer
+> of 4.1, 4.3 and 4.4's table is unchanged. Section 7's list of test files gains
+> `not-found.test.tsx`, which pins the 404 page's own language rule (4.3). Nothing else in
+> this document changed.
+>
 > Amended 2026-09-06 by issue #27: section 1 gains one row, `agentRules: false`. It adds a
 > setting; no contract already in this document changes.
 >
@@ -234,27 +242,39 @@ link and the canonical link all keep `?lang=`.
 
 ```ts
 const LANGUAGE_TAG = '[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*'   // 4.1, well-formed
+const EVERY_PATH_BUT_NEXTS_OWN = '/:path((?!_next/).*)'      // see the bullet below
 
 async rewrites() {
   return {
     beforeFiles: [
       // a well-formed ?lang  ->  /<tag>/...
       {
-        source: '/:path*',
+        source: EVERY_PATH_BUT_NEXTS_OWN,
         has: [{ type: 'query', key: 'lang', value: `(?<lang>${LANGUAGE_TAG})` }],
-        destination: '/:lang/:path*',
+        destination: '/:lang/:path',
       },
       // anything else -- no `lang`, an empty one, or a value that is not a tag  ->  /_/...
       {
-        source: '/:path*',
+        source: EVERY_PATH_BUT_NEXTS_OWN,
         missing: [{ type: 'query', key: 'lang', value: LANGUAGE_TAG }],
-        destination: '/_/:path*',
+        destination: '/_/:path',
       },
     ],
   }
 }
 ```
 
+- **The source excludes Next.js's own paths.** Next.js does **not** exclude them from
+  `beforeFiles` rewrites (measured on 16.3.4): with a bare `'/:path*'` source,
+  `/_next/static/<chunk>` takes the second rule, is rewritten to `/_/_next/static/<chunk>`
+  and answers 404, so every stylesheet and client chunk is lost. The rule therefore takes
+  every path except that one prefix; if the framework ever serves its own paths outside
+  `/_next/`, the exclusion must be widened. A `/_next/` path is the one request neither rule
+  rewrites, and the exhaustiveness of the pair below is over the paths they take. Nothing of
+  this application is excluded with them -- a Tree id cannot begin with `_`
+  (`tree-format.md` 3.1) -- and no row of the table below changes. The source is one named
+  path parameter rather than a repeated one, which is why the destinations interpolate
+  `:path` and not `:path*`.
 - **The two rules are exhaustive and mutually exclusive.** They test the same grammar, and
   `missing` holds exactly when `has` does not, so every request is rewritten once and only
   once -- whether or not `beforeFiles` stops at the first rule it matches, which the
@@ -448,7 +468,7 @@ Recorded in `docs/adrs/ADR-5-repository-layout.md`, amended by
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; never YAML read by a test. |
 | Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`); `tests/fixtures/single-language/` (`nl`); `tests/fixtures/other-languages/` (`de`, `fr`); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, breaking exactly that rule). |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
-| Test files | `loader.test.ts` (every V-rule via `invalid/<rule>/`; `getNode` returns one Node; malformed ids give `null`), `url.test.ts` (parse and build are inverses; every 404 case of 4.3; the 50-id limit; a segment the Tree does not declare gives the default language), `routing.test.ts` (the two rewrites of 4.4, read out of `next.config.ts` itself: the grammar accepts exactly the well-formed tags of 4.1, and the second rule fires for exactly the values the first rejects), `chrome.test.ts` (the table in 3.1), `views.test.tsx`, `interop.test.tsx`. |
+| Test files | `loader.test.ts` (every V-rule via `invalid/<rule>/`; `getNode` returns one Node; malformed ids give `null`), `url.test.ts` (parse and build are inverses; every 404 case of 4.3; the 50-id limit; a segment the Tree does not declare gives the default language), `routing.test.ts` (the two rewrites of 4.4, read out of `next.config.ts` itself: the grammar accepts exactly the well-formed tags of 4.1, and the second rule fires for exactly the values the first rejects), `chrome.test.ts` (the table in 3.1), `not-found.test.tsx` (the 404 page of 4.3, rendered as it ships, on a Tree whose default language the chrome does not speak and on a Dutch one: its text and every element's own `lang` are the chrome language of the Tree's default), `views.test.tsx`, `interop.test.tsx`. |
 | The interoperability test | For `single-language/` and `other-languages/`, for every declared language, every Node of the fixture, with an empty and a full Trail: renders without exception; the Node title in that language is present; the disclaimer is Dutch for `nl`, English for `de` and `fr`; the language switch lists exactly the manifest's languages; the markup contains neither `undefined` nor `[object Object]`. This is core document section 9, first bullet, as a test. |
 | Not in the contract | Browser (Playwright) tests; may be added by a later issue. Nothing in these contracts depends on one: 4.4 is asserted against the rewrite rules in `routing.test.ts`, which needs no server, and the end-to-end table it produces is the acceptance criteria of the build issue rather than a frozen test. |
 

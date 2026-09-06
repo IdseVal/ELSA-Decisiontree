@@ -10,6 +10,7 @@ import { beforeAll, describe, expect, test } from 'vitest'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import {
   canonicalHref,
+  contentLanguage,
   followHref,
   imageHref,
   MAX_PATH_IDS,
@@ -28,10 +29,15 @@ beforeAll(async () => {
   dutchTree = await openTree(path.join(here, 'fixtures', 'single-language'))
 })
 
-/** `parseUrl` on a whole URL, the way a request arrives. */
+/**
+ * `parseUrl` on a whole public URL, the way a request arrives. The `[lang]` segment is what
+ * the rewrite of 4.4 makes of the query: every `lang` here is a well-formed tag, which that
+ * rule passes through unchanged, and an absent one becomes the sentinel. What the router
+ * accepts as a tag is `routing.test.ts`'s subject; what a segment means is this file's.
+ */
 function parse(url: string, on: Tree = tree): PageAddress | null {
   const { pathname, searchParams } = new URL(url, 'https://example.org')
-  return parseUrl(pathname, searchParams, on)
+  return parseUrl(pathname, searchParams.get('lang') ?? '_', on)
 }
 
 describe('reading an address', () => {
@@ -75,6 +81,33 @@ describe('reading an address', () => {
 
     expect(parse(`/ai-act-example/${ids(MAX_PATH_IDS)}`)?.trail).toHaveLength(MAX_PATH_IDS - 1)
     expect(parse(`/ai-act-example/${ids(MAX_PATH_IDS + 1)}`)).toBeNull()
+  })
+})
+
+describe('the language a segment means', () => {
+  // The rule of 4.3, second bullet: `src/url.ts` receives a segment, never a query. It is
+  // read twice per page -- by the root layout for `<html lang>` and by the page through
+  // `parseUrl` -- and the two may never disagree.
+  test('a language the Tree declares is that language', () => {
+    expect(contentLanguage(tree, 'nl')).toBe('nl')
+    expect(contentLanguage(dutchTree, 'nl')).toBe('nl')
+  })
+
+  test('any other segment is the Tree default, the router sentinel included', () => {
+    // `_` is how 4.4 spells "no language was asked for"; it needs no branch here, because
+    // no Tree declares it and an undeclared language already means the default one.
+    for (const segment of ['_', 'de', 'pt-BR', 'NL']) {
+      expect(contentLanguage(tree, segment), segment).toBe('en')
+      expect(contentLanguage(dutchTree, segment), segment).toBe('nl')
+    }
+  })
+
+  test('`parseUrl` resolves the segment by that same rule', () => {
+    for (const segment of ['nl', 'de', '_']) {
+      expect(parseUrl('/ai-act-example/start', segment, tree)?.lang, segment).toBe(
+        contentLanguage(tree, segment),
+      )
+    }
   })
 })
 
