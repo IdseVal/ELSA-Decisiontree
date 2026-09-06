@@ -23,6 +23,11 @@ const EVERY_PATH_BUT_NEXTS_OWN = '/:path((?!_next/).*)'
 const config: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
+  // `next dev` otherwise scaffolds AGENTS.md and CLAUDE.md in the repository root when it
+  // detects an AI coding agent (#27). The root CLAUDE.md is what the agents in .orca/ read
+  // as project instructions, so a generated `@AGENTS.md` would quietly become this
+  // project's instructions; the untracked pair also dirties every contributor's tree.
+  agentRules: false,
 
   /**
    * The two rules of 4.4. Only the root layout can set `<html lang>` and Next.js does not

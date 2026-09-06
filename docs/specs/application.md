@@ -23,6 +23,9 @@
 > `not-found.test.tsx`, which pins the 404 page's own language rule (4.3). Nothing else in
 > this document changed.
 >
+> Amended 2026-09-06 by issue #27: section 1 gains one row, `agentRules: false`. It adds a
+> setting; no contract already in this document changes.
+>
 > Vocabulary: the canonical names from `docs/CORE_DOCUMENT.md` section 5 -- **Tree**,
 > **Node**, **Link**, **Answer**, **Option**, **Terminal**, **Image**, **Source**,
 > **Trail** -- are used with exactly that meaning. **Chrome** is the interface text the
@@ -53,6 +56,7 @@ and nothing the app does depends on a hosting vendor.
 | Configuration | Environment variables only: `PORT`, `HOSTNAME` (Next.js), `ELSA_TREE`, `ELSA_TREES_DIR` (section 2), `NEXT_TELEMETRY_DISABLED=1`. |
 | Vendor neutrality | No edge runtime, no Incremental Static Regeneration, no hosted image optimisation, no fonts or scripts fetched from third parties at run time. Anything fetched at build time is vendored into the repository. |
 | Headers | `poweredByHeader: false`. The app sets no cookie, ever. |
+| Repository root | `agentRules: false`: `next dev` does not scaffold `AGENTS.md` and `CLAUDE.md`. The root `CLAUDE.md` is the project instructions the agents in `.orca/` read, not build output. |
 | Deployment (later issue) | A systemd unit running `node server.js` behind a reverse proxy for TLS. The app does not know the proxy exists. |
 
 Recorded in `docs/adrs/ADR-5-framework-and-rendering.md`.
