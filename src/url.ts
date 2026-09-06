@@ -86,6 +86,15 @@ export function trailHref(a: PageAddress, index: number): string {
   return href(a, a.trail.slice(0, index + 1))
 }
 
+/**
+ * The page `a` in another language: the same Trail and the same Node, said in `lang`. This
+ * is what the language switch links to (application.md 4.1), and it is why choosing a
+ * language never costs the reader their place in the walk.
+ */
+export function withLang(a: PageAddress, lang: string): string {
+  return nodeHref({ ...a, lang })
+}
+
 /** The Trail-less URL of the Node shown: what `<link rel="canonical">` points at. */
 export function canonicalHref(a: PageAddress): string {
   return href(a, [a.nodeId])
