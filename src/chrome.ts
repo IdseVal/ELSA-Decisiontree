@@ -27,9 +27,10 @@ export interface Chrome {
   credit: string
   trail: string
   start: string
-  back: string
   share: string
   copied: string
+  /** Shown instead of a confirmation when the browser refused the clipboard. */
+  copyFailed: string
   language: string
   version: string
   outcomeNotApplicable: string
@@ -59,9 +60,9 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     credit: 'Credit',
     trail: 'Your path',
     start: 'Start',
-    back: 'Back',
     share: 'Copy link',
     copied: 'Link copied',
+    copyFailed: 'Copy this link yourself:',
     language: 'Language',
     version: 'Version',
     outcomeNotApplicable: 'Does not apply',
@@ -89,9 +90,9 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     credit: 'Bronvermelding',
     trail: 'Uw pad',
     start: 'Begin',
-    back: 'Terug',
     share: 'Kopieer link',
     copied: 'Link gekopieerd',
+    copyFailed: 'Kopieer deze link zelf:',
     language: 'Taal',
     version: 'Versie',
     outcomeNotApplicable: 'Niet van toepassing',
