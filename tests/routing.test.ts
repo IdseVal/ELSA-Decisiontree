@@ -55,10 +55,9 @@ describe('the rewrites that restate ?lang as a route segment', () => {
   })
 
   test("the rules take every path but Next.js's own, so the client bundle is served", async () => {
-    // The one place this implementation departs from the frozen text of 4.4, which writes
-    // `/:path*`: these rules run before the file system, and with no exclusion they send
-    // `/_next/static/<chunk>` to the sentinel route, so every stylesheet and client chunk
-    // answers 404. Measured on Next.js 16.3.4; the PR of issue #20 asks for the amendment.
+    // 4.4's source excludes Next.js's own paths: these rules run before the file system,
+    // and with no exclusion they send `/_next/static/<chunk>` to the sentinel route, so
+    // every stylesheet and client chunk answers 404.
     const { withTag, withoutTag } = await beforeFiles()
     expect(withTag.source).toBe(withoutTag.source)
     const path = new RegExp(`^${pathPattern(withTag.source)}$`)

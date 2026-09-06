@@ -8,15 +8,13 @@ import type { NextConfig } from 'next'
 const LANGUAGE_TAG = '[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*'
 
 /**
- * Every path except Next.js's own. 4.4 writes `'/:path*'` here, on ADR-19's measurement
- * that "Next.js excludes its own paths from rewrites". It does not, on Next.js 16.3.4:
- * `/:path*` matches `/_next/static/<chunk>` as well, the second rule sends it to
- * `/_/_next/static/<chunk>`, and every stylesheet and client chunk answers 404 -- pages
- * arrive unstyled and no client component runs. This one exclusion is the whole difference,
- * and it changes no answer in 4.4's table (both measured; the numbers are in the PR of
- * issue #20, which asks the Architect to amend 4.4 and the ADR row it rests on). A Tree id
+ * Every path except Next.js's own, as docs/specs/application.md 4.4 writes it. Next.js does
+ * not exclude its own paths from `beforeFiles` rewrites: without this exclusion the second
+ * rule sends `/_next/static/<chunk>` to `/_/_next/static/<chunk>`, and every stylesheet and
+ * client chunk answers 404 -- pages arrive unstyled and no client component runs. A Tree id
  * cannot begin with `_` (tree-format.md 3.1), so nothing of this application is excluded
- * with it.
+ * with it. It is one named path parameter, which is why the destinations below interpolate
+ * `:path` and not `:path*`.
  */
 const EVERY_PATH_BUT_NEXTS_OWN = '/:path((?!_next/).*)'
 
