@@ -3,14 +3,16 @@
  * Node and the address it was reached by and returns markup; it never touches the file
  * system, the environment or the request (docs/specs/application.md section 6).
  *
- * The "back" control here is the interim one this issue asks for; issue #8 replaces it
- * with the Trail.
+ * The way back is the Trail above the title, and nothing else (issue #8, which took out
+ * the interim "back" control of issue #7).
  */
 import { chrome, chromeLanguage, type Chrome } from '../chrome.ts'
 import { richTextToHtml } from '../markdown.ts'
 import type { LocalisedText, Node, Option, Outcome, Source } from '../tree/types.ts'
 import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
+import { ShareButton } from './ShareButton.tsx'
 import { Thumbnails } from './Thumbnails.tsx'
+import { Trail } from './Trail.tsx'
 
 /** The chrome key that labels each kind of Source (tree-format.md 5.1). */
 const SOURCE_LABEL: Record<Source['kind'], keyof Chrome> = {
@@ -45,29 +47,38 @@ export function NodeView({
   node,
   address,
   rootId,
+  trailTitles,
 }: {
   node: Node
   address: PageAddress
-  /** The Tree's root Node: where "back" leads when the address carries no Trail. */
+  /** The Tree's root Node: where the Trail leads when the address carries none. */
   rootId: string
+  /**
+   * The title of each Node of `address.trail`, in that order and of that length. The page
+   * takes them from the loader's index, so drawing the Trail reads no second Node file
+   * (docs/specs/application.md 5.1).
+   */
+  trailTitles: LocalisedText[]
 }) {
   const lang = address.lang
   const ui = chrome(lang)
   const uiLang = chromeLang(lang)
-  const back =
-    address.trail.length > 0
-      ? { href: trailHref(address, address.trail.length - 1), label: ui.back }
-      : node.kind === 'explanation'
-        ? { href: nodeHref({ ...address, trail: [], nodeId: rootId }), label: ui.start }
-        : null
 
   return (
     <article className="node" lang={lang}>
-      {back && (
-        <a className="back" href={back.href} lang={uiLang} rel="prev">
-          {back.label}
-        </a>
-      )}
+      <Trail
+        entries={trailTitles.map((title, index) => ({
+          href: trailHref(address, index),
+          title: text(title, lang),
+        }))}
+        start={
+          address.trail.length === 0 && address.nodeId !== rootId
+            ? nodeHref({ ...address, trail: [], nodeId: rootId })
+            : undefined
+        }
+        ui={ui}
+        uiLang={uiLang}
+      />
 
       {node.kind === 'terminal' && (
         <p className={`outcome outcome--${node.outcome}`} lang={uiLang}>
@@ -114,9 +125,12 @@ export function NodeView({
         </p>
       )}
 
-      <p className="version" lang={uiLang}>
-        {ui.version} {node.metadata.version}
-      </p>
+      <div className="node-footer">
+        <ShareButton ui={ui} uiLang={uiLang} />
+        <p className="version" lang={uiLang}>
+          {ui.version} {node.metadata.version}
+        </p>
+      </div>
     </article>
   )
 }

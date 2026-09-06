@@ -28,6 +28,7 @@
 
   --font: ui-sans-serif, system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif;
   --step: 1.75rem;            /* gap between the spine and the text, and the length of a tick */
+  --page-top: clamp(2rem, 7vw, 4.5rem);  /* also how far the Trail's line rises off screen */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -77,7 +78,7 @@ main {
   width: 100%;
   max-width: 46rem;
   margin: 0 auto;
-  padding: clamp(2rem, 7vw, 4.5rem) clamp(1rem, 5vw, 2.5rem) 3rem;
+  padding: var(--page-top) clamp(1rem, 5vw, 2.5rem) 3rem;
 }
 
 a {
@@ -109,19 +110,63 @@ a {
 }
 
 .node > section > h2,
-.node > .back {
+.trail li {
   position: relative;
 }
 
 /* Every part of the Node hangs off the spine by a tick at the height of its heading. */
 .node > section > h2::before,
-.node > .back::before {
+.trail li::before {
   content: "";
   position: absolute;
   left: calc(-1 * var(--step));
   top: 0.75em;
   width: calc(var(--step) - 0.55rem);
   border-top: 1px solid var(--rule);
+}
+
+/* --- the Trail ------------------------------------------------------------------- */
+
+/*
+ * The way back is the spine continued upward: the Nodes already visited hang off the same
+ * line as the current one, oldest at the top, and the line runs on past them and leaves the
+ * screen (core document 3.2). Nothing frames it -- it is one hairline and some quiet text.
+ */
+.trail {
+  position: relative;
+  margin: 0 0 2.25rem;
+  font-size: 0.82rem;
+}
+
+/* `.node` draws the spine beside its own content; this carries it up through the page's
+   top padding, so the line has no visible beginning. */
+.trail::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--step) - 1px);
+  top: calc(-1 * var(--page-top));
+  height: var(--page-top);
+  border-left: 1px solid var(--rule);
+}
+
+.trail ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trail-entry {
+  display: inline-block;
+  padding: 0.1rem 0;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 160ms var(--ease);
+}
+
+.trail-entry:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 /* --- text ------------------------------------------------------------------------ */
@@ -167,28 +212,6 @@ a {
   text-underline-offset: 0.18em;
 }
 
-.back {
-  display: block;
-  width: fit-content;
-  margin-bottom: 1.75rem;
-  font-size: 0.82rem;
-  color: var(--ink-soft);
-  text-decoration: none;
-  transition: color 160ms var(--ease);
-}
-
-.back::after {
-  content: "";
-  display: block;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.35;
-}
-
-.back:hover {
-  color: var(--accent);
-}
-
 .hint {
   margin: 2.5rem 0 0;
   padding: 0.85rem 1rem;
@@ -197,12 +220,70 @@ a {
   font-size: 0.9rem;
 }
 
+/* --- the foot of the Node: sharing, and which version of it this is --------------- */
+
+.node-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-top: 3.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
 .version {
-  margin: 3.5rem 0 0;
+  margin: 0;
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   color: var(--ink-soft);
   opacity: 0.75;
+}
+
+.share-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.share {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.9rem;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 160ms var(--ease), border-color 160ms var(--ease);
+}
+
+.share:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.share-said {
+  font-size: 0.74rem;
+  color: var(--accent);
+}
+
+/* A refused clipboard says more than a confirmation does: give it the whole width. */
+.share-said:has(.share-by-hand) {
+  flex-basis: 100%;
+}
+
+/* Shown only when the browser refused the clipboard, so the reader can still take the link. */
+.share-by-hand {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.share-by-hand code {
+  user-select: all;
+  word-break: break-all;
 }
 
 /* --- Sources --------------------------------------------------------------------- */

@@ -39,7 +39,9 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices/social-scoring')
   await expect(page.getByText('This step only explains.')).toBeVisible()
 
-  await page.getByRole('link', { name: 'Back' }).click()
+  // Issue #8 replaced the interim "back" control this test used with the Trail; the walk
+  // it checks is unchanged. What the Trail itself does is `tests/browser/trail.spec.ts`.
+  await page.locator('.trail-entry').last().click()
   await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
 })
 

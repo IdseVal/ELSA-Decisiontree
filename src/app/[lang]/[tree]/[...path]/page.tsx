@@ -24,7 +24,14 @@ export default async function NodePage(props: Props) {
   return (
     <>
       <main>
-        <NodeView node={node} address={found.address} rootId={found.tree.manifest.root} />
+        <NodeView
+          node={node}
+          address={found.address}
+          rootId={found.tree.manifest.root}
+          // From the in-memory index, so the Trail costs no second file read (5.1). Every
+          // id is there: `parseUrl` accepted the address only because the index knew them.
+          trailTitles={found.address.trail.map((id) => found.tree.getTitle(id)!)}
+        />
       </main>
       <Disclaimer lang={found.address.lang} />
     </>

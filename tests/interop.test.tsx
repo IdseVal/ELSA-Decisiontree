@@ -57,7 +57,12 @@ async function page(tree: Tree, url: string): Promise<string> {
   return renderToStaticMarkup(
     <>
       <main>
-        <NodeView node={node} address={address} rootId={tree.manifest.root} />
+        <NodeView
+          node={node}
+          address={address}
+          rootId={tree.manifest.root}
+          trailTitles={address.trail.map((id) => tree.getTitle(id)!)}
+        />
       </main>
       <Disclaimer lang={address.lang} />
     </>,
