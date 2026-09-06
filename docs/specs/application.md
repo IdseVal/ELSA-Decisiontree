@@ -11,6 +11,10 @@
 > fills from `?lang`. The public URL scheme of 4.1 and the answers of 4.3 are unchanged;
 > what changed is how the application meets them.
 >
+> Amended 2026-09-05 by the owner, on PR #17: the 404 page's *body* may require
+> JavaScript. Section 4.3's 404 row says what holds and why; the two rows of section 1
+> it touches point at it. Nothing else in this document changed.
+>
 > Amended 2026-09-06 by issue #27: section 1 gains one row, `agentRules: false`. It adds a
 > setting; no contract already in this document changes.
 >
@@ -36,8 +40,8 @@ and nothing the app does depends on a hosting vendor.
 | Item | Contract |
 |---|---|
 | Framework | Next.js, App Router, React, TypeScript (strict). Exact versions are pinned in `package.json` by the scaffold issue; the current stable major at that time. |
-| Server-side rendering | React Server Components. The Node page is an `async` server component; the first response to every URL is complete HTML. |
-| Client-side JavaScript | React plus two client components: the thumbnail enlarge and the share button. Everything else (navigation, Trail, language switch) is links and works without JavaScript. |
+| Server-side rendering | React Server Components. The Node page is an `async` server component; the first response to every URL is complete HTML, with the single exception named in 4.3 (the 404 page). |
+| Client-side JavaScript | React plus two client components: the thumbnail enlarge and the share button. Everything else (navigation, Trail, language switch) is links and works without JavaScript. The 404 page's body is the single exception (4.3). |
 | Runtime | Node.js 22 (LTS), in `.nvmrc` and `package.json` `engines`. |
 | Package manager | npm; `package-lock.json` committed; `npm ci` in CI and deployment. |
 | Build output | `output: 'standalone'`: `next build` yields a folder that runs with `node server.js`. |
@@ -178,7 +182,19 @@ The first Image of `start`:
 | `lang` not declared by the Tree | Ignored; default language used; 200. This holds for every value, including one that is not a language tag at all: 4.4 keeps such a value out of the route rather than answering an error for it. |
 | Image name malformed or not in the Tree's `images/` | 404. |
 | Reserved Tree ids | `images`. A deployment with `ELSA_TREE=images` refuses to start. |
-| The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. Next.js renders `not-found.tsx` without params, so it cannot know the content language; it therefore takes the chrome language 3.1 resolves from the **Tree's default** language, which is `en` or `nl` and never an arbitrary tag. Because the page renders inside the `[lang]` layout, `<html lang>` around it is the resolved content language of the request -- what `src/url.ts` makes of the segment (4.4): a language the Tree declares, or the Tree's default -- exactly as on every other page. Every element this page renders carries the chrome language above as its own `lang`: that is 3.1's second half, and the reason each element's own `lang` is never a false statement about the text under it. |
+| The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. The status is always in the response; the **body** may require JavaScript -- see below. Next.js renders `not-found.tsx` without params, so it cannot know the content language; it therefore takes the chrome language 3.1 resolves from the **Tree's default** language, which is `en` or `nl` and never an arbitrary tag. Because the page renders inside the `[lang]` layout, `<html lang>` around it is the resolved content language of the request -- what `src/url.ts` makes of the segment (4.4): a language the Tree declares, or the Tree's default -- exactly as on every other page, in the document the reader ends up with (for this one page that is the painted document, see below). Every element this page renders carries the chrome language above as its own `lang`: that is 3.1's second half, and the reason each element's own `lang` is never a false statement about the text under it. |
+
+**The 404 body may require JavaScript** (amended 2026-09-05, PR #17). Next.js answers a
+`notFound()` raised inside a dynamically rendered route with its own error shell
+(`<html id="__next_error__">`) plus the page as an RSC payload, so the 404 markup this
+application renders on the server -- the row above, `<html lang>` included -- travels as
+data and is painted by the client bundle. Given the choice between the honest status code
+and a server-rendered body, the owner kept the status code: it is what crawlers, proxies
+and link checkers read, and a reader without JavaScript who reaches a 404 has followed a
+link that was already broken. Every other page keeps the section 1 guarantee in full. If a
+later Next.js renders the boundary into the document, this exception goes away and the row
+above stands alone; the browser test in `tests/browser/node-view.spec.ts` asserts the
+current shape, so it fails on that day rather than passing quietly.
 
 Two rules divide this work, and neither file needs to know the other's:
 
