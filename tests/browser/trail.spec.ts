@@ -55,8 +55,10 @@ test('clicking a Trail entry jumps back and discards the Trail after it', async 
 test('a Trail entry is reached and followed by the keyboard alone', async ({ page }) => {
   await walkToChild(page)
 
-  // The Trail is the first thing on the page, so it is the first thing the tab key reaches.
-  await page.keyboard.press('Tab')
+  // Issue #9 put the language switch above the content as the page chrome, so the tab key
+  // reaches that first; the Trail is still the first thing in the content itself.
+  const languages = await page.locator('.language-switch a').count()
+  for (let i = 0; i < languages + 1; i++) await page.keyboard.press('Tab')
   await expect(page.locator('.trail-entry').first()).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.locator('.trail-entry').nth(1)).toBeFocused()
