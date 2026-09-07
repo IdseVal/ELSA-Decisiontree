@@ -1,6 +1,7 @@
 /**
- * Tree selection (docs/specs/application.md section 2, ADR-5-tree-selection): one
- * deployment serves exactly one Tree, named by ELSA_TREE inside ELSA_TREES_DIR.
+ * What a deployment configures (docs/specs/application.md section 2, ADR-5-tree-selection,
+ * docs/deployment.md): the one Tree it serves, named by ELSA_TREE inside ELSA_TREES_DIR,
+ * and the public base URL its readers reach it at.
  */
 import { readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
@@ -9,7 +10,7 @@ import { openTree, type Tree } from './tree/loader.ts'
 /** Tree ids that would collide with a route (application.md 4.3). */
 const RESERVED_TREE_IDS = ['images']
 
-/** Only the two variables of section 2 are read, so any string map will do. */
+/** Only the three variables below are read, so any string map will do. */
 export type Environment = Readonly<Record<string, string | undefined>>
 
 let served: Promise<Tree> | undefined
@@ -29,8 +30,12 @@ export function servedTree(): Promise<Tree> {
  */
 export async function startServedTree(): Promise<void> {
   try {
+    // Before the Tree, because a typo here is the cheapest failure to report and the
+    // server would otherwise carry it until the first page asked for a canonical link.
+    const base = publicBaseUrl()
     const tree = await servedTree()
-    console.log(`Serving Tree "${tree.id}" (${tree.manifest.languages.join(', ')})`)
+    const at = base ? ` at ${base.origin}` : ''
+    console.log(`Serving Tree "${tree.id}" (${tree.manifest.languages.join(', ')})${at}`)
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error))
     process.exit(1)
@@ -59,6 +64,39 @@ export async function openConfiguredTree(env: Environment = process.env): Promis
   } catch (error) {
     throw new Error(`${(error as Error).message}\n${await found()}`)
   }
+}
+
+/**
+ * The public base URL this deployment is reached at (ELSA_BASE_URL), or undefined when the
+ * deployment names none. It is the origin the server writes into the one absolute link it
+ * emits about itself, the canonical link of a Node page; naming none leaves that link a
+ * path, which is a valid deployment and what every reader follows anyway.
+ *
+ * A share link never needs it: the share button copies the browser's own address, so it is
+ * the public URL whatever the reverse proxy in front of the server is called.
+ *
+ * Refused, so that a mistake is a server that does not start rather than a wrong address on
+ * every page: anything that is not an absolute http(s) URL, and any URL carrying a path,
+ * query or fragment -- the application has no basePath and is served at the root of its
+ * host, so a base URL with a path would name pages that answer 404.
+ */
+export function publicBaseUrl(env: Environment = process.env): URL | undefined {
+  const raw = env.ELSA_BASE_URL?.trim()
+  if (!raw) return undefined
+  const example = 'e.g. https://elsa.example.org'
+  let url: URL
+  try {
+    url = new URL(raw)
+  } catch {
+    throw new Error(`ELSA_BASE_URL=${raw} is not an absolute URL (${example})`)
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error(`ELSA_BASE_URL=${raw}: only http and https are served (${example})`)
+  }
+  if (url.pathname !== '/' || url.search !== '' || url.hash !== '') {
+    throw new Error(`ELSA_BASE_URL=${raw} must be a bare origin, with no path, query or fragment (${example})`)
+  }
+  return url
 }
 
 async function listFolders(dir: string): Promise<string[]> {

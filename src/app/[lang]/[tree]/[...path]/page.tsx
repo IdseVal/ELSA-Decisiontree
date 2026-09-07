@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Disclaimer } from '../../../../components/Disclaimer.tsx'
 import { LanguageSwitch } from '../../../../components/LanguageSwitch.tsx'
 import { NodeView, text } from '../../../../components/NodeView.tsx'
-import { servedTree } from '../../../../config.ts'
+import { publicBaseUrl, servedTree } from '../../../../config.ts'
 import type { Tree } from '../../../../tree/loader.ts'
 import { canonicalHref, parseUrl, type PageAddress } from '../../../../url.ts'
 
@@ -51,6 +51,11 @@ export default async function NodePage(props: Props) {
 /**
  * The page title and the canonical link (4.1). The Node's title comes from the loader's
  * in-memory index, so describing the page costs no second read of the Node file.
+ *
+ * `metadataBase` is the deployment's own address (`ELSA_BASE_URL`, docs/deployment.md):
+ * with it the canonical link is the absolute URL of this Node, without it the path 4.1
+ * gives. It is read here, per request, rather than baked into the build, because where the
+ * app is reached is a run-time setting like the Tree it serves.
  */
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const found = await addressOf(props)
@@ -58,6 +63,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const { tree, address } = found
   const title = tree.getTitle(address.nodeId)
   return {
+    metadataBase: publicBaseUrl(),
     title: title
       ? `${text(title, address.lang, `${address.nodeId}.title`)} - ${text(tree.manifest.title, address.lang, 'tree.title')}`
       : undefined,
