@@ -245,6 +245,38 @@ describe('the walk', () => {
     expect(terminalsFrom('annex-iii-areas')).toEqual(['end-of-walk'])
   })
 
+  test('the Annex I Section B tension is left standing, and both sentences that disagree stay put', () => {
+    // Issue #26. Since #24 every high-risk reader walks on into step 6, and step 6 says
+    // Article 50 attaches whatever the risk classification -- which is not what Article 2(2)
+    // provides for a system that is high-risk through Annex I, Section B. Resolving that is
+    // legal authoring either way, and the owner's answer on the issue was to leave the
+    // Tree's content to a later iteration and insert the wording by hand. So what ships is
+    // pinned here rather than fixed: NOTES.md section 8 records the decision, and the first
+    // edit that resolves the tension fails this test, which is the signal to rewrite it.
+    const sections = nodes
+      .get('annex-i-legislation')!
+      .options.map((option) => nodes.get(option.target)!.metadata['annex-i-section'])
+    expect(sections.filter((section) => section === 'B')).toHaveLength(9)
+
+    // The route: answering yes at step 4a reaches step 6, for Section A and Section B alike.
+    expect(answerOnlyReach(nodes, 'annex-i-legislation').has('transparency-obligations')).toBe(true)
+
+    // `high-risk` carries the caveat the Act gives, and is the only place the reader meets it.
+    expect(unwrapped('high-risk', 'en')).toContain(
+      '**Annex I, Section B**, Article 2(2) provides that only Article 6(1), Article 60a and Articles 102 to 112 apply',
+    )
+    expect(unwrapped('high-risk', 'nl')).toContain(
+      '**bijlage I, afdeling B**, valt, bepaalt artikel 2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met 112 van toepassing zijn',
+    )
+    // Step 6 states the general rule, unqualified, to that same reader.
+    expect(unwrapped('transparency-obligations', 'en')).toContain(
+      'Article 50 attaches **transparency obligations** to certain AI systems, whatever their risk classification.',
+    )
+    expect(unwrapped('transparency-obligations', 'nl')).toContain(
+      'Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde AI-systemen, ongeacht hun risicoclassificatie.',
+    )
+  })
+
   test('the walk stops early only where the Act itself stops', () => {
     // The counterpart decision of issue #24: three Terminals do end the walk before step 6,
     // deliberately. `ai-act-does-not-apply` and `not-an-ai-system` stop because the Act does
