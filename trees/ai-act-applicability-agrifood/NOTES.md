@@ -200,8 +200,10 @@ established later, it becomes its own issue; nothing in this Tree changes until 
   shipped, the page rendered a Node's title and description only - no Answers, no Options,
   no language switch - so the Tree could be read at its URLs but not walked. #7, #8 and #9
   have merged since. `npm run test:first-tree` now walks this Tree in a browser as a reader
-  does and takes the screenshots in `docs/screenshots/issue-10/` along the way; every
-  Terminal is reached from the root by clicking Answers alone.
+  does; every Terminal is reached from the root by clicking Answers alone. The screenshots
+  in `docs/screenshots/issue-10/` come from that same walk, re-taken with
+  `ELSA_SHOTS=1 npm run test:first-tree` - they record one machine's rendering, because the
+  app uses whatever fonts the machine has, so a plain run leaves them untouched.
 
 ## 9. The legal text this was written from
 

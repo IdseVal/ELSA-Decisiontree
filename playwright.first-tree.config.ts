@@ -10,8 +10,11 @@ import { defineConfig, devices } from '@playwright/test'
  * server a deployment runs, so what the tests see -- and what the screenshots show -- is
  * what a deployment serves.
  *
- * The screenshots this suite writes into `docs/screenshots/issue-10/` are its output, not
- * a side effect: a run leaves them changed on disk when the app's rendering changes.
+ * The suite also takes the eight screenshots issue #10 owes, but only when `ELSA_SHOTS=1`
+ * asks for them: the app renders in whatever fonts the machine has, so the PNGs record one
+ * machine's rendering and any other machine re-renders them differently. A plain run writes
+ * its shots to the gitignored results directory and leaves the tracked files alone -- see
+ * the note at the top of `tests/first-tree/walk.spec.ts`.
  */
 const PORT = Number(process.env.ELSA_TEST_PORT ?? 3118)
 

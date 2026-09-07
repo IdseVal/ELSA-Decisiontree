@@ -10,8 +10,14 @@
  * along the way. The Dutch set is reached by clicking the app's own language switch, which
  * is the point: the #10 Dutch set was taken with an uncommitted `const lang = 'nl'`.
  *
- * The screenshots in `docs/screenshots/issue-10/` are this suite's output, not a side
- * effect, so a run leaves them changed on disk when the app's rendering changes.
+ * The eight screenshots are a record of ONE machine's rendering, not a detector of
+ * rendering changes. The app ships no web font on purpose (`--font: ui-sans-serif,
+ * system-ui, ...` in `src/app/[lang]/globals.css`), so text metrics, wrapping and the
+ * full-page height follow whichever fonts the machine running the browser has, and another
+ * machine re-renders every PNG differently. Writing into `docs/screenshots/issue-10/` is
+ * therefore opt-in: `ELSA_SHOTS=1 npm run test:first-tree` re-takes the tracked set, and a
+ * plain run puts its shots in the gitignored results directory, leaving the repository
+ * clean for whoever is only checking that the walk still works.
  *
  * The server serves `trees/ai-act-applicability-agrifood` (see playwright.first-tree.config.ts).
  */
@@ -21,8 +27,12 @@ import { expect, test, type Page } from '@playwright/test'
 
 const TREE = 'ai-act-applicability-agrifood'
 
-/** Where the screenshots this suite owes issue #10 are written. */
-const SHOTS = fileURLToPath(new URL('../../docs/screenshots/issue-10/', import.meta.url))
+/** Where the screenshots go: issue #10's tracked directory only when asked for. */
+const SHOTS = fileURLToPath(
+  process.env.ELSA_SHOTS === '1'
+    ? new URL('../../docs/screenshots/issue-10/', import.meta.url)
+    : new URL('.results/shots/', import.meta.url),
+)
 
 /** The two Answer labels and the language's own name, per language (src/chrome.ts). */
 const CHROME = {
