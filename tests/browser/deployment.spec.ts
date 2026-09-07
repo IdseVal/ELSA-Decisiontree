@@ -6,12 +6,14 @@
  * - nothing about the reader is stored or sent anywhere (docs/CORE_DOCUMENT.md section 8):
  *   no cookie, and no request to any host but this one;
  * - the public base URL the deployment is configured with is the one the server writes
- *   into the absolute link it emits about a page.
+ *   into the absolute link it emits about a page, and a deployment that names none gets
+ *   the path instead (a second server, started without the variable).
  *
  * A browser is the only place these can be measured: a cookie a client script sets and a
  * font a stylesheet fetches are both invisible in the markup the server sends.
  */
 import { expect, test, type Page, type Request, type Response } from '@playwright/test'
+import { NO_BASE_URL_ORIGIN } from '../../playwright.config.ts'
 
 const START = '/ai-act-example/start'
 
@@ -86,5 +88,19 @@ test('the canonical link is the deployment its public base URL names', async ({ 
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
     `${BASE_URL}/ai-act-example/prohibited-practices?lang=nl`,
+  )
+})
+
+test('without a public base URL the canonical link is the path', async ({ page }) => {
+  // The default deployment of docs/deployment.md: ELSA_BASE_URL unset. What keeps the link
+  // relative is the framework's handling of `metadataBase: undefined`, so it is asserted
+  // here, on a served page, and not on `publicBaseUrl({})` -- a version bump can change it.
+  await page.goto(`${NO_BASE_URL_ORIGIN}${START}`)
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', START)
+
+  await page.goto(`${NO_BASE_URL_ORIGIN}/ai-act-example/start/prohibited-practices?lang=nl`)
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href',
+    '/ai-act-example/prohibited-practices?lang=nl',
   )
 })
