@@ -1,6 +1,11 @@
 # ADR-19-content-language-in-the-route: a rewrite copies `?lang` into a `[lang]` route segment, so the root layout can set `<html lang>`
 
 - Status: ACCEPTED (frozen) -- 2026-09-04
+- Corrected 2026-09-06 by the owner, on PR #29: the measurement row `/_next/static/...`
+  below said Next.js excludes its own paths from rewrites. It does not (re-measured twice
+  on 16.3.4, both ways round); those paths are served because `docs/specs/application.md`
+  4.4's rewrite `source` now excludes the `_next/` prefix explicitly. The decision stands
+  unchanged -- this corrects a measurement it rested on, not a decision.
 - Issue: #19 -- Decide what `<html lang>` says
 - Spec: `docs/specs/application.md`, sections 3.1, 4.1, 4.3, 4.4, 6, 7
 - Amends: `ADR-5-repository-layout.md` (the shape of `src/app/`), `ADR-5-url-scheme.md`
@@ -51,8 +56,10 @@ stands: it would lengthen every URL and invalidate every link already shared.
 `next.config.ts` gains two `beforeFiles` rewrite rules that partition every request between
 them. Both test the same grammar -- 4.1's well-formed language tag, written once as a
 constant. A request whose `lang` query `has` a well-formed value is rewritten to
-`/<that tag>/:path*`, so the root layout gets it as a param; a request `missing` one -- no
-`lang`, an empty one, or a value that is not a tag -- is rewritten to `/_/:path*`.
+`/<that tag>/<the path>`, so the root layout gets it as a param; a request `missing` one --
+no `lang`, an empty one, or a value that is not a tag -- is rewritten to `/_/<the path>`.
+Next.js's own `/_next/` paths are excluded from both rules, and are the one request the
+pair does not rewrite (4.4).
 
 The rules as frozen, with their exact `source`, `has`, `missing` and `destination`, are in
 `docs/specs/application.md` 4.4. They are written out in that one place, not here as well,
@@ -62,7 +69,7 @@ Because `missing` holds exactly when `has` does not, over the same grammar, the 
 **exhaustive and mutually exclusive**: every request is rewritten exactly once, whether or
 not `beforeFiles` stops at the first rule it matches -- behaviour the documentation does
 not promise either way, and which the experiment below found does *not* stop at the first
-match. Nothing reaches the file system with its public path.
+match. Nothing but a `/_next/` path reaches the file system with its public path.
 
 A rewrite is internal: the address bar, the share link and the canonical link keep the
 query. This is plain Next.js configuration on the Node.js runtime -- no edge runtime, no
@@ -158,7 +165,7 @@ first reproduced the reported symptom, `<html lang="en">` on a `?lang=nl` page.
 | `/other-tree/start`, `/other-tree?lang=<script>` | -- | 404 |
 | `/ai-act-example/nope?lang=nl` | -- | 404 |
 | `/ai-act-example/start?lang=nl` sent with `RSC: 1` | `nl` in the payload | 200 `text/x-component` |
-| `/_next/static/...` | -- | served; Next.js excludes its own paths from rewrites |
+| `/_next/static/...` | -- | served, but only because the rewrite `source` excludes `_next/`: Next.js does not exclude its own paths (corrected 2026-09-06, see the status note above) |
 
 **A repeated `lang`.** 4.1 freezes "the last occurrence is the one that counts". These are
 the rows behind that sentence, taken on the restructured build rather than on the old code
