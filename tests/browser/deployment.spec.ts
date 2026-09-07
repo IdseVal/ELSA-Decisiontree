@@ -18,16 +18,33 @@ const START = '/ai-act-example/start'
 /** What playwright.config.ts starts the server with, so the test knows what to expect. */
 const BASE_URL = 'https://elsa.example.org'
 
-/** Every host the page asked for something from, and every Set-Cookie it was answered. */
-function watch(page: Page): { hosts: Set<string>; setCookie: string[] } {
+/**
+ * Every host the page asked for something from, and every Set-Cookie it was answered.
+ *
+ * The cookie half has to be read with `allHeaders()`: `response.headers()` leaves the
+ * cookie-related headers out by design, so reading it would make this test pass whatever
+ * the server answers. `allHeaders()` is a round trip, so the reads are collected and
+ * `settled()` awaits them -- an `async` response handler would race the assertions.
+ */
+function watch(page: Page): { hosts: Set<string>; setCookie: string[]; settled: () => Promise<void> } {
   const hosts = new Set<string>()
   const setCookie: string[] = []
+  const reads: Promise<void>[] = []
   page.on('request', (request: Request) => hosts.add(new URL(request.url()).host))
   page.on('response', (response: Response) => {
-    const header = response.headers()['set-cookie']
-    if (header !== undefined) setCookie.push(`${response.url()}: ${header}`)
+    reads.push(
+      response.allHeaders().then((headers) => {
+        const header = headers['set-cookie']
+        if (header !== undefined) setCookie.push(`${response.url()}: ${header}`)
+      }),
+    )
   })
-  return { hosts, setCookie }
+  // Draining rather than awaiting once: a response that arrives while the first batch is
+  // being read would otherwise never be looked at.
+  const settled = async (): Promise<void> => {
+    while (reads.length > 0) await Promise.all(reads.splice(0))
+  }
+  return { hosts, setCookie, settled }
 }
 
 test('a walk sets no cookie and asks no host but the one serving the app', async ({ page, context, baseURL }) => {
@@ -47,9 +64,12 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   await page.locator('.thumbnail').first().click()
   await page.waitForLoadState('networkidle')
 
-  // Not one Set-Cookie was answered, and the browser holds no cookie. What a client script
-  // put in local or session storage is asserted by the walks in node-view.spec.ts and
-  // trail.spec.ts; what is new here is the host list.
+  // Not one Set-Cookie was answered, and the browser holds no cookie -- both, because a
+  // cookie the browser declines to store (a Domain it does not match, SameSite=None
+  // without Secure) leaves the second assertion green while every reader is answered one.
+  // What a client script put in local or session storage is asserted by the walks in
+  // node-view.spec.ts and trail.spec.ts; what is new here is the host list.
+  await seen.settled()
   expect(seen.setCookie).toEqual([])
   expect(await context.cookies()).toEqual([])
   expect([...seen.hosts]).toEqual([ownHost])
