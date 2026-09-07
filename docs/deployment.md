@@ -275,6 +275,7 @@ cd /tmp/elsa-src && git pull
 npm run validate trees/ai-act-applicability-agrifood
 
 # Copy the folder, then restart. --delete so a Node the author removed is removed here too.
+sudo apt-get install -y rsync
 sudo rsync -a --delete \
   /tmp/elsa-src/trees/ai-act-applicability-agrifood/ \
   /opt/elsa-decisiontree/trees/ai-act-applicability-agrifood/
