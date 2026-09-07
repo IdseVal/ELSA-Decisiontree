@@ -186,16 +186,20 @@ established later, it becomes its own issue; nothing in this Tree changes until 
   - `high-risk` shows the frontend's **yes/no buttons under a statement**, because a Node
     that leads on must be a question Node and "yes"/"no" are UI chrome the Tree cannot
     rename. Its text says plainly that either answer continues.
-- **A high-risk system under Annex I, Section B may not carry Article 50 obligations at
-  all** - found while deciding issue #24, not fixed. `high-risk`'s own text says that for
-  such a system Article 2(2) makes only Article 6(1), Article 60a and Articles 102 to 112
-  apply, and Article 50 is not among them. The Tree now sends every high-risk reader into
-  the Article 50 step without telling them this, and step 6 tells that reader Article 50
-  attaches whatever their risk classification. Splitting step 4c by Annex I Section is legal
-  authoring and a new branch, which issue #24 put out of scope. It was raised again on PR
-  #25; the owner's answer was to ship this version as it stands, so it is now **issue #26**
-  and yours to decide there. It matters for this audience: 9 of the 20 Annex I entries are
-  Section B, `annex-i-agricultural-vehicles` among them.
+- **A high-risk system under Annex I, Section B is sent into the Article 50 step anyway, and
+  this version leaves it that way** (decided in **issue #26**). `high-risk`'s own text says
+  that for such a system Article 2(2) makes only Article 6(1), Article 60a and Articles 102
+  to 112 apply, and Article 50 is not among them; step 6 nonetheless tells every reader that
+  Article 50 attaches whatever their risk classification. On that one route the Tree
+  contradicts itself. Both ways out - a caveat sentence on `high-risk`, or splitting step 4c
+  by Annex I Section - are legal authoring, and on issue #26 you answered: *"we are at this
+  stage not going to worry about the contents of the Decision-tree, that is for a next
+  iteration ... don't extend the decision-tree's contents, that will be a manual insert on my
+  end."* So no Node was reworded and no branch was added here. What ships is pinned instead:
+  the test *"the Annex I Section B tension is left standing"* in `tests/ai-act-tree.test.ts`
+  asserts the route and both of the sentences that disagree, so the first edit that resolves
+  this fails there and brings you back to this entry. It matters for this audience: 9 of the
+  20 Annex I entries are Section B, `annex-i-agricultural-vehicles` among them.
 - **The Tree cannot be walked by clicking yet.** Every Node is reachable at its own URL and
   the test walks the whole graph, but the page that ships today renders a Node's title and
   description only - no Answers, no Options, no language switch. That is issue #7's work,
