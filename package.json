@@ -10,8 +10,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/collect-standalone.ts",
     "start": "node .next/standalone/server.js",
     "test": "vitest run",
+    "test:browser": "playwright test",
     "typecheck": "tsc --noEmit",
     "validate": "node scripts/validate.ts"
   },
@@ -22,6 +24,7 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.20.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

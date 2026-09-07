@@ -99,6 +99,9 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      # The browser suite (`npm run test:browser`) drives a real Chromium: the package is a
+      # devDependency, the browser binary is not, so the runner fetches it here.
+      - run: npx playwright install --with-deps chromium
       # ---------------------------------------------------------------------------------
 
       - name: Verifier agent

@@ -1,5 +1,6 @@
 # A Tree in one language that is neither of the chrome languages (docs/CORE_DOCUMENT.md
-# section 9): it must load and render without a code change, and offers no language switch.
+# section 9): it must load and render without a code change. Its language switch offers
+# that one language and nothing else (docs/specs/application.md section 7, issue #9).
 format: elsa-tree/1
 languages: [de]
 root: start
