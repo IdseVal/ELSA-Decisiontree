@@ -195,11 +195,24 @@ established later, it becomes its own issue; nothing in this Tree changes until 
   by Annex I Section - are legal authoring, and on issue #26 you answered: *"we are at this
   stage not going to worry about the contents of the Decision-tree, that is for a next
   iteration ... don't extend the decision-tree's contents, that will be a manual insert on my
-  end."* So no Node was reworded and no branch was added here. What ships is pinned instead:
-  the test *"the Annex I Section B tension is left standing"* in `tests/ai-act-tree.test.ts`
-  asserts the route and both of the sentences that disagree, so the first edit that resolves
-  this fails there and brings you back to this entry. It matters for this audience: 9 of the
-  20 Annex I entries are Section B, `annex-i-agricultural-vehicles` among them.
+  end."* So no Node was reworded and no branch was added here. What ships is pinned instead,
+  in `tests/ai-act-tree.test.ts`, and it is worth knowing exactly what the pin catches before
+  you make that insert:
+  - **the wording.** The test *"the Annex I Section B tension is left standing, and nothing
+    on the route reconciles it"* keeps both sentences that disagree verbatim in en and nl, so
+    a reword fails. It also fails if any paragraph of steps 4c, 5 or 6 names the Section B
+    carve-out and Article 50 together in either language - which is what a caveat resolving
+    this has to do. **An added sentence therefore fails it too**, wherever on the route you
+    add it; the failure message points back here;
+  - **the branch.** Splitting step 4c by Annex I Section needs a new question Node and a new
+    Terminal, which fails five older tests (the six-step chain, the 8/4/49 kind counts,
+    Terminal reachability, *"a high-risk finding carries on ..."* and *"the walk stops early
+    only where the Act itself stops"*). That is issue #24's traversal, pinned there rather
+    than repeated here.
+
+  Either way you land back on this entry, which is the point: rewrite the pin deliberately
+  when you resolve this, do not delete it to get green. It matters for this audience: 9 of
+  the 20 Annex I entries are Section B, `annex-i-agricultural-vehicles` among them.
 - **The Tree cannot be walked by clicking yet.** Every Node is reachable at its own URL and
   the test walks the whole graph, but the page that ships today renders a Node's title and
   description only - no Answers, no Options, no language switch. That is issue #7's work,
