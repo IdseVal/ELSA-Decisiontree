@@ -4,8 +4,8 @@
  * speak, must render every Node without a code change.
  *
  * Every Node of every fixture is rendered in every language the fixture declares, with an
- * empty Trail and with a full one. The language switch, which section 7 also names, is
- * issue #9; this file will grow that assertion when the switch exists.
+ * empty Trail and with a full one, and the language switch section 7 also names is checked
+ * to offer exactly the languages the manifest declares -- no more, and never fewer.
  */
 import { readdir } from 'node:fs/promises'
 import path from 'node:path'
@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, test } from 'vitest'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
+import { endonym, LanguageSwitch } from '../src/components/LanguageSwitch.tsx'
 import { NodeView, text } from '../src/components/NodeView.tsx'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { parseUrl } from '../src/url.ts'
@@ -45,7 +46,15 @@ function asRead(html: string): string {
     .replace(/&amp;/g, '&')
 }
 
-/** A whole page: the Node view and the permanent disclaimer, as the route composes them. */
+/**
+ * The languages the switch offers, in the order it offers them: the label of each entry,
+ * whether it is a link to another language or the one the page is already in.
+ */
+function switchLanguages(html: string): string[] {
+  return [...html.matchAll(/class="language(?: [^"]*)?"[^>]*>([^<]*)</g)].map((match) => match[1]!)
+}
+
+/** A whole page: the chrome, the Node view and the permanent disclaimer, as the route composes them. */
 async function page(tree: Tree, url: string): Promise<string> {
   const { pathname, searchParams } = new URL(url, 'https://example.org')
   // The `[lang]` segment the rewrite of 4.4 makes of the URL: these languages are all
@@ -56,6 +65,9 @@ async function page(tree: Tree, url: string): Promise<string> {
   if (!node) throw new Error(`${url} names no Node`)
   return renderToStaticMarkup(
     <>
+      <header className="page-chrome">
+        <LanguageSwitch address={address} languages={tree.manifest.languages} />
+      </header>
       <main>
         <NodeView
           node={node}
@@ -87,7 +99,8 @@ describe.for(FIXTURES)('a Tree in $name', ({ name, disclaimerIn }) => {
           const html = await page(tree, url)
           const where = `${url} in ${language}`
 
-          expect(asRead(html), where).toContain(text(tree.getTitle(id)!, language))
+          expect(asRead(html), where).toContain(text(tree.getTitle(id)!, language, `${id}.title`))
+          expect(switchLanguages(html), where).toEqual(tree.manifest.languages.map(endonym))
           expect(html, where).toContain(disclaimerIn[language as keyof typeof disclaimerIn])
           expect(html, where).not.toContain('undefined')
           expect(html, where).not.toContain('[object Object]')

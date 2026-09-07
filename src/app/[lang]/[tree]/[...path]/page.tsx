@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Disclaimer } from '../../../../components/Disclaimer.tsx'
+import { LanguageSwitch } from '../../../../components/LanguageSwitch.tsx'
 import { NodeView, text } from '../../../../components/NodeView.tsx'
 import { servedTree } from '../../../../config.ts'
 import type { Tree } from '../../../../tree/loader.ts'
@@ -23,6 +24,15 @@ export default async function NodePage(props: Props) {
 
   return (
     <>
+      {/*
+        The page chrome. It sits in the page rather than in the root layout, where
+        docs/specs/application.md section 6 sketches it, for the reason the Disclaimer does:
+        the layout is given its own `[lang]` segment and nothing else, and a link to this
+        page in another language is built from the whole address -- this Trail, this Node.
+      */}
+      <header className="page-chrome">
+        <LanguageSwitch address={found.address} languages={found.tree.manifest.languages} />
+      </header>
       <main>
         <NodeView
           node={node}
@@ -48,7 +58,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const { tree, address } = found
   const title = tree.getTitle(address.nodeId)
   return {
-    title: title ? `${text(title, address.lang)} - ${text(tree.manifest.title, address.lang)}` : undefined,
+    title: title
+      ? `${text(title, address.lang, `${address.nodeId}.title`)} - ${text(tree.manifest.title, address.lang, 'tree.title')}`
+      : undefined,
     alternates: { canonical: canonicalHref(address) },
   }
 }

@@ -15,13 +15,21 @@ import type { Image } from '../tree/types.ts'
 import { imageHref } from '../url.ts'
 import { text } from './NodeView.tsx'
 
+/** Which field a missing description would be, for the warning `text` logs. */
+function where(nodeId: string, image: Image): string {
+  return `${nodeId}.images[${image.file}].description`
+}
+
 export function Thumbnails({
   images,
+  nodeId,
   lang,
   ui,
   uiLang,
 }: {
   images: Image[]
+  /** The Node these Images belong to, for the warning `text` logs. */
+  nodeId: string
   lang: string
   ui: Chrome
   /** Set when the chrome speaks another language than the content. */
@@ -44,7 +52,7 @@ export function Thumbnails({
             <a
               className="thumbnail"
               href={imageHref(image.file)}
-              aria-label={`${ui.enlarge}: ${text(image.description, lang)}`}
+              aria-label={`${ui.enlarge}: ${text(image.description, lang, where(nodeId, image))}`}
               onClick={(event) => {
                 // A modified click still opens the file the way the reader asked for.
                 if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
@@ -52,7 +60,11 @@ export function Thumbnails({
                 setShown(image)
               }}
             >
-              <img src={imageHref(image.file)} alt={text(image.description, lang)} loading="lazy" />
+              <img
+                src={imageHref(image.file)}
+                alt={text(image.description, lang, where(nodeId, image))}
+                loading="lazy"
+              />
             </a>
           </li>
         ))}
@@ -71,9 +83,9 @@ export function Thumbnails({
       >
         {shown && (
           <figure>
-            <img src={imageHref(shown.file)} alt={text(shown.description, lang)} />
+            <img src={imageHref(shown.file)} alt={text(shown.description, lang, where(nodeId, shown))} />
             <figcaption>
-              <p id="enlarged-description">{text(shown.description, lang)}</p>
+              <p id="enlarged-description">{text(shown.description, lang, where(nodeId, shown))}</p>
               <p className="credit">
                 <span className="kind" lang={uiLang}>
                   {ui.credit}

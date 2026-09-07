@@ -17,6 +17,7 @@ import {
   nodeHref,
   parseUrl,
   trailHref,
+  withLang,
   type PageAddress,
 } from '../src/url.ts'
 
@@ -175,5 +176,31 @@ describe('building an address', () => {
 
   test('an Image is fetched from the images route', () => {
     expect(imageHref('eu-map.png')).toBe('/images/eu-map.png')
+  })
+
+  test('the same page in another language keeps its Trail and its Node', () => {
+    const address = parse('/ai-act-example/start/prohibited-practices/social-scoring')!
+
+    expect(withLang(address, 'nl')).toBe(
+      '/ai-act-example/start/prohibited-practices/social-scoring?lang=nl',
+    )
+  })
+
+  test('the same page in the default language carries no lang at all', () => {
+    const address = parse('/ai-act-example/start/prohibited-practices?lang=nl')!
+
+    expect(withLang(address, 'en')).toBe('/ai-act-example/start/prohibited-practices')
+  })
+
+  test('the same page in the language it already shows is the page itself', () => {
+    const address = parse('/ai-act-example/start?lang=nl')!
+
+    expect(withLang(address, 'nl')).toBe(nodeHref(address))
+  })
+
+  test('the only language of a one-language Tree is its default, so no link carries lang', () => {
+    const address = parse('/single-language/start', dutchTree)!
+
+    expect(withLang(address, 'nl')).toBe('/single-language/start')
   })
 })
