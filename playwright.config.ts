@@ -34,6 +34,10 @@ export default defineConfig({
       // The standalone server reads where to listen from the environment, not from flags.
       PORT: String(PORT),
       HOSTNAME: '127.0.0.1',
+      // The address a deployment is reached at, which is not the address it listens on
+      // (docs/deployment.md). tests/browser/deployment.spec.ts reads it back out of the
+      // canonical link.
+      ELSA_BASE_URL: 'https://elsa.example.org',
     },
   },
 })
