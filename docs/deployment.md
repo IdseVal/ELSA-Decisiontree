@@ -101,6 +101,11 @@ sudo apt-get install -y git
 git clone https://github.com/IdseVal/ELSA-Decisiontree.git /tmp/elsa-src
 cd /tmp/elsa-src
 
+# The build, not only the server, must phone nobody: without this the framework's build
+# reports anonymous usage to its own service. The systemd unit and the Dockerfile set it
+# for what they run; a build by hand is the one place it has to be typed.
+export NEXT_TELEMETRY_DISABLED=1
+
 npm ci
 npm run build
 ```
@@ -295,6 +300,7 @@ To serve a Tree that is not in the repository -- another lab's -- put its folder
 
 ```sh
 cd /tmp/elsa-src && git pull
+export NEXT_TELEMETRY_DISABLED=1     # as in step 2: a build by hand must phone nobody
 npm ci && npm run build
 
 sudo rm -rf /opt/elsa-decisiontree/app
