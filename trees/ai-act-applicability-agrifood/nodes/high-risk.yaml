@@ -31,9 +31,11 @@ description:
       high-risk, that assessment must be documented before the system is placed on the
       market or put into service, and the registration obligation of Article 49(2) applies.
 
-    Continue with the general-purpose AI and transparency steps as well: a high-risk system
-    can carry Article 50 obligations at the same time. Article 50(6) says those paragraphs
-    do not affect the requirements and obligations of Chapter III.
+    **This step does not end the walk.** A high-risk system can carry Article 50 obligations
+    at the same time: Article 50(6) says those paragraphs do not affect the requirements and
+    obligations of Chapter III. Either answer therefore continues to the general-purpose AI
+    step and from there to the transparency step, where this walk ends. Carry the high-risk
+    finding with you; nothing in the steps that follow takes it away.
   nl: |
     Op grond van uw antwoord is uw systeem een **AI-systeem met een hoog risico**: hetzij via
     artikel 6, lid 1 (veiligheidscomponent van, of zelf, een product dat onder bijlage I valt
@@ -68,12 +70,19 @@ description:
       het systeem in de handel wordt gebracht of in gebruik wordt gesteld, en geldt de
       registratieverplichting van artikel 49, lid 2.
 
-    Loop ook de stappen over AI voor algemene doeleinden en transparantie door: een systeem
-    met een hoog risico kan tegelijk verplichtingen uit artikel 50 dragen. Artikel 50, lid 6,
-    bepaalt dat die leden de voorschriften en verplichtingen van hoofdstuk III onverlet
-    laten.
+    **Deze stap beëindigt de doorloop niet.** Een systeem met een hoog risico kan tegelijk
+    verplichtingen uit artikel 50 dragen: artikel 50, lid 6, bepaalt dat die leden de
+    voorschriften en verplichtingen van hoofdstuk III onverlet laten. Beide antwoorden gaan
+    daarom door naar de stap over AI voor algemene doeleinden en vandaar naar de
+    transparantiestap, waar deze doorloop eindigt. Neem de bevinding "hoog risico" mee; niets
+    in de volgende stappen neemt die weg.
 metadata:
   version: "0.1"
+  step: 4c - the high-risk finding
+  traversal: |
+    Not a Terminal (issue #24). The walk continues into steps 5 and 6 because a high-risk
+    system can carry Article 50 obligations at the same time (Article 50(6)), and because
+    the core document answers OPEN 10.7 that way. Neither Answer branches.
   owner-action: what follows from a high-risk outcome is the owner's later authoring (core document 3.3, item 7)
 sources:
   - kind: legal
@@ -91,5 +100,6 @@ sources:
       en: Article 111(2) AI Act as amended (systems already on the market)
       nl: Artikel 111, lid 2, AI-verordening zoals gewijzigd (systemen die al in de handel zijn)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_111
-terminal:
-  outcome: applicable
+answers:
+  yes: general-purpose-ai
+  no: general-purpose-ai
