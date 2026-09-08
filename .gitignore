@@ -18,4 +18,5 @@ next-env.d.ts
 
 # Playwright
 tests/browser/.results/
+tests/first-tree/.results/
 playwright-report/

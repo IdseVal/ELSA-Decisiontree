@@ -213,11 +213,14 @@ established later, it becomes its own issue; nothing in this Tree changes until 
   Either way you land back on this entry, which is the point: rewrite the pin deliberately
   when you resolve this, do not delete it to get green. It matters for this audience: 9 of
   the 20 Annex I entries are Section B, `annex-i-agricultural-vehicles` among them.
-- **The Tree cannot be walked by clicking yet.** Every Node is reachable at its own URL and
-  the test walks the whole graph, but the page that ships today renders a Node's title and
-  description only - no Answers, no Options, no language switch. That is issue #7's work,
-  which issue #10 put out of scope. **Issue #23** walks the Tree in the app and re-takes the
-  screenshots once #7 has merged.
+- ~~**The Tree cannot be walked by clicking yet.**~~ **Closed by issue #23.** When #10
+  shipped, the page rendered a Node's title and description only - no Answers, no Options,
+  no language switch - so the Tree could be read at its URLs but not walked. #7, #8 and #9
+  have merged since. `npm run test:first-tree` now walks this Tree in a browser as a reader
+  does; every Terminal is reached from the root by clicking Answers alone. The screenshots
+  in `docs/screenshots/issue-10/` come from that same walk, re-taken with
+  `ELSA_SHOTS=1 npm run test:first-tree` - they record one machine's rendering, because the
+  app uses whatever fonts the machine has, so a plain run leaves them untouched.
 
 ## 9. The legal text this was written from
 
