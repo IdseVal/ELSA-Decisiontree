@@ -74,6 +74,7 @@ roles:
 
 circuit_breaker:
   max_cycles: 3                      # runs + send-backs per issue before `escalated`
+  max_ci_reruns: 2                   # CI re-runs per finished run that decided nothing (v0.2.8)
 
 # THE DIAL, ENFORCED (v0.2.4). In `manual`/`propose` mode the `ready` label is the
 # human's signature, so before dispatching the dispatcher asks GitHub's timeline WHO

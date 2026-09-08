@@ -16,7 +16,7 @@ headless `claude -p` processes that start, do one job, and exit. Nothing waits.
 | --- | --- |
 | `dispatch.py` | the reconciler; `run` / `once` / `status` / `doctor` / `onboard` / `pause` / `resume` |
 | `install-task.ps1` | installs it as a Windows scheduled task (at logon, auto-restart) |
-| `state.json` | de-dup memory only (cycles, pages and the branch tip at page time, run PIDs, the CI run last re-run per PR, the session-limit hold). Gitignored. Safe to delete. |
+| `state.json` | de-dup memory only (cycles, pages and the branch tip at page time, run PIDs and the tip a fix run started from, the CI run last re-run per PR and how often, the session-limit hold). Gitignored. Safe to delete. |
 | `prompts/` | the brief files runs are pointed at. Gitignored. Read them to triage. |
 | `runs/` | one log per headless run: your window into what an agent did. Gitignored. |
 | `dispatcher.log` | rotating log. Gitignored. |
@@ -69,8 +69,11 @@ removing `escalated` resets the breaker the same way; CI run FINISHED for the PR
 current head with nothing decided (v0.2.7: no label from the Verifier, no merge and no
 `state:blocked` from the Reviewer, or a job that died on the session limit) -> re-run
 the job that owes the verdict with `gh run rerun` (`review` when `state:tested` is on,
-else `verify`), one breaker cycle per attempt -- none when the job died on the limit --
-and `escalated` past the breaker; merged -> close the issue, remove the worktree (never an interview
+else `verify`), up to `max_ci_reruns` (2) times per finished run -- a re-run after a
+limit death is not counted, and no re-run spends the issue's breaker (v0.2.8) -- then
+`escalated`; a fix run that ends with `state:blocked` back on AFTER IT PUSHED is CI's
+fresh verdict on the push, so the next fix run starts on it instead of a page (v0.2.8);
+merged -> close the issue, remove the worktree (never an interview
 worktree: the Planner keeps working there until `finish-interview` hands it back), kill
 any lingering run. The dispatcher only counts and removes worktrees IT created
 (`issue-*`, `backlog-audit-*`, `onboarding`, `revision-*`); any other worktree -- a
@@ -105,8 +108,10 @@ A corrupt marker counts as paused: a bad file must never quietly restart the spe
 | Agent sets `needs-human` | the item is flagged and appears in the daily digest's "Waiting on you"; nothing moves on it until you remove the label. |
 | You answer and remove `needs-human` | the breaker is reset and a fresh run starts. On a PR, remove ONLY `needs-human`: if `state:blocked` went too and nothing was pushed since, the dispatcher puts it back (v0.2.6) -- before, that PR was stuck, and one paged by its own fix run was paged again the moment you answered. |
 | You remove `escalated` | the breaker is reset and the issue (or its blocked PR) is retried with a fresh count (v0.2.6; before, it re-escalated on the same tick because the count was still over the limit). |
-| CI ends without a verdict | a green `review` job with 30-40 turns and nothing on the PR was seen in 3 of 5 runs: the Reviewer reasons to a decision and never runs the `gh` command that IS the decision. CI re-runs only on a push, so the PR sat at `state:tested` for a day. Now (v0.2.7) the pipeline retries a silent Reviewer once inside the same run and FAILS the run if it is still silent (a Verifier that leaves no label fails it too), and the dispatcher re-runs the job that owes the verdict (`gh run rerun`), 3 minutes after the run finished, one breaker cycle per attempt, `escalated` past the breaker. If `gh run rerun` is refused -> `needs-human`; re-run from the Actions tab or push an empty commit. |
-| CI job dies on the session limit | the CI agents run on the same subscription as the local ones, so they fail at the same moment the local runs do. A run that failed inside the hold window is re-run once the hold lifts, and that attempt is not counted against the breaker (v0.2.7). |
+| CI ends without a verdict | a green `review` job with 30-40 turns and nothing on the PR was seen in 3 of 5 runs: the Reviewer reasons to a decision and never runs the `gh` command that IS the decision. CI re-runs only on a push, so the PR sat at `state:tested` for a day. Now (v0.2.7) the pipeline retries a silent Reviewer once inside the same run and FAILS the run if it is still silent (a Verifier that leaves no label fails it too), and the dispatcher re-runs the job that owes the verdict (`gh run rerun`), 3 minutes after the run finished, up to `max_ci_reruns` (2) times per finished run, then `escalated`. A re-run does not spend the issue's breaker (v0.2.8; in v0.2.7 it did, and a PR that had needed one fix run and one re-run escalated on its next send-back with the re-run's own verdict unworked). If `gh run rerun` is refused -> `needs-human`; re-run from the Actions tab or push an empty commit, then remove the label: the count restarts, no fix run starts. |
+| CI job dies on the session limit | the CI agents run on the same subscription as the local ones, so they fail at the same moment the local runs do. A run that failed inside the hold window is re-run once the hold lifts, and that attempt is not counted (v0.2.7). |
+| Fix run pushed, and CI blocked the PR again before the run exited | not a failed run: CI clears `state:blocked` on the push and its Verifier put it back, a fresh verdict on the new tip. The next fix run starts on it (a cycle, like any send-back) instead of a `needs-human` page (v0.2.8; before, PR #33 was paged 20 seconds after the Verifier sent its own push back). The brief now tells a fix run to edit the PR body BEFORE the push, since the Verifier reads the body as it is at the push. |
+| The log says `escalated` and "circuit breaker reset" six seconds apart | fixed in v0.2.8: the escalation marks the tick's own observation, so the issue loop (which runs after the PR loop on the same observation) no longer reads the pre-escalation labels as "the human removed `escalated`". |
 | CI pipeline never ran on a PR | check the repo's Actions tab; usually OWNER STEP 1 or 2 was skipped -- or the PR is CONFLICTING (see above). |
 | Two dispatchers | the lock file refuses the second. |
 | Human pauses the project | no new dispatches or audits; in-flight work still lands. |
