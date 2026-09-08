@@ -125,11 +125,17 @@ npm run validate trees/ai-act-applicability-agrifood
 
 ```sh
 sudo useradd --system --home-dir /opt/elsa-decisiontree --shell /usr/sbin/nologin elsa
-sudo mkdir -p /opt/elsa-decisiontree
+sudo mkdir -p /opt/elsa-decisiontree/trees
 
 sudo rm -rf /opt/elsa-decisiontree/app
 sudo cp -r /tmp/elsa-src/.next/standalone /opt/elsa-decisiontree/app
-sudo cp -r /tmp/elsa-src/trees /opt/elsa-decisiontree/trees
+
+# The contents of trees/, not the folder: `cp -r .../trees /opt/elsa-decisiontree/trees`
+# copies the folder *into* the target on a second run and leaves a trees/trees that
+# ELSA_TREES_DIR does not point at. This line may be re-run, and a reinstall is a re-run.
+# It is not guarded by `rm -rf` the way app is, because a Tree that is not in the
+# repository lives in this folder too.
+sudo cp -r /tmp/elsa-src/trees/. /opt/elsa-decisiontree/trees/
 
 # The service reads these files and writes none of them.
 sudo chown -R root:root /opt/elsa-decisiontree
@@ -345,7 +351,9 @@ reader's local or session storage is asserted by the walks in `tests/browser/`.
 | `ELSA_TREE=x: ... is not a folder. Tree ids found in ...` | `ELSA_TREES_DIR` points somewhere else, or the Tree was not copied. |
 | `ELSA_TREE=images is a reserved word` | `images` is the image route's path segment; a Tree cannot be called that. |
 | `<tree>  nodes/x.yaml  key  V-RULE  message`, one line per broken rule | The Tree is broken. `npm run validate <folder>` prints the same list from the checkout. |
-| `ELSA_BASE_URL=... must be a bare origin` | The base URL carries a path or a query, or is not `http`/`https`. |
+| `ELSA_BASE_URL=... is not an absolute URL` | The base URL has no scheme -- `elsa.example.org` rather than `https://elsa.example.org`. |
+| `ELSA_BASE_URL=...: only http and https are served` | The base URL names another scheme. |
+| `ELSA_BASE_URL=... must be a bare origin` | The base URL carries a path, a query or a fragment. |
 | `EADDRINUSE` | Another process holds `PORT`. |
 
 Everything else is in the same journal: the process logs to standard output, which systemd
