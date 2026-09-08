@@ -18,6 +18,13 @@ const PORT = Number(process.env.ELSA_TEST_PORT ?? 3117)
  */
 export const NO_BASE_URL_ORIGIN = `http://127.0.0.1:${PORT + 1}`
 
+/**
+ * The public address the first server is configured to be reached at, which is not the
+ * address it listens on (docs/deployment.md). tests/browser/deployment.spec.ts reads it
+ * back out of the canonical link, so it is exported rather than written down twice.
+ */
+export const PUBLIC_BASE_URL = 'https://elsa.example.org'
+
 export default defineConfig({
   testDir: './tests/browser',
   outputDir: './tests/browser/.results',
@@ -44,10 +51,7 @@ export default defineConfig({
         // The standalone server reads where to listen from the environment, not from flags.
         PORT: String(PORT),
         HOSTNAME: '127.0.0.1',
-        // The address a deployment is reached at, which is not the address it listens on
-        // (docs/deployment.md). tests/browser/deployment.spec.ts reads it back out of the
-        // canonical link.
-        ELSA_BASE_URL: 'https://elsa.example.org',
+        ELSA_BASE_URL: PUBLIC_BASE_URL,
       },
     },
     {

@@ -79,7 +79,7 @@ describe('a deployment that names no usable Tree refuses to start', () => {
 
 describe('the public base URL', () => {
   /** The error message, or '' when the value was accepted. */
-  async function refusedBaseUrl(value: string | undefined): Promise<string> {
+  function refusedBaseUrl(value: string): string {
     try {
       publicBaseUrl({ ELSA_BASE_URL: value })
       return ''
@@ -102,12 +102,16 @@ describe('the public base URL', () => {
     expect(publicBaseUrl({ ELSA_BASE_URL: 'http://127.0.0.1:3000' })?.href).toBe('http://127.0.0.1:3000/')
   })
 
-  test('a value that is not an http(s) origin is refused', async () => {
-    expect(await refusedBaseUrl('elsa.example.org')).toContain('absolute')
-    expect(await refusedBaseUrl('file:///opt/elsa')).toContain('http')
+  // Three distinct refusals, pinned by the words that tell them apart, because
+  // docs/deployment.md gives each one its own row for an operator to grep the journal
+  // against: a table that promised one message for three failures would match one case in
+  // three.
+  test('a value that is not an http(s) origin is refused', () => {
+    expect(refusedBaseUrl('elsa.example.org')).toContain('is not an absolute URL')
+    expect(refusedBaseUrl('file:///opt/elsa')).toContain('only http and https are served')
     // The application has no basePath, so it cannot be served under a path. A base URL
     // that carries one would put an address in the canonical link that answers 404.
-    expect(await refusedBaseUrl('https://elsa.example.org/tool')).toContain('path')
-    expect(await refusedBaseUrl('https://elsa.example.org/?a=1')).toContain('path')
+    expect(refusedBaseUrl('https://elsa.example.org/tool')).toContain('must be a bare origin')
+    expect(refusedBaseUrl('https://elsa.example.org/?a=1')).toContain('must be a bare origin')
   })
 })

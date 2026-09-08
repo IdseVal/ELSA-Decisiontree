@@ -13,12 +13,9 @@
  * font a stylesheet fetches are both invisible in the markup the server sends.
  */
 import { expect, test, type Page, type Request, type Response } from '@playwright/test'
-import { NO_BASE_URL_ORIGIN } from '../../playwright.config.ts'
+import { NO_BASE_URL_ORIGIN, PUBLIC_BASE_URL } from '../../playwright.config.ts'
 
 const START = '/ai-act-example/start'
-
-/** What playwright.config.ts starts the server with, so the test knows what to expect. */
-const BASE_URL = 'https://elsa.example.org'
 
 /**
  * Every host the page asked for something from, and every Set-Cookie it was answered.
@@ -81,13 +78,13 @@ test('the canonical link is the deployment its public base URL names', async ({ 
   // ELSA_BASE_URL is what a deployment behind a reverse proxy sets: the server answers on
   // 127.0.0.1, and this is the address the readers of the page actually use.
   await page.goto(START)
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `${BASE_URL}${START}`)
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `${PUBLIC_BASE_URL}${START}`)
 
   // The canonical link drops the Trail and keeps the language (docs/specs/application.md 4.1).
   await page.goto(`/ai-act-example/start/prohibited-practices?lang=nl`)
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
-    `${BASE_URL}/ai-act-example/prohibited-practices?lang=nl`,
+    `${PUBLIC_BASE_URL}/ai-act-example/prohibited-practices?lang=nl`,
   )
 })
 
