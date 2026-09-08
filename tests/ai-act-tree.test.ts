@@ -66,6 +66,14 @@ const optionCount = (id: string): number => nodes.get(id)!.options.length
 /** A Node's description in one language, unwrapped, so an assertion does not depend on where it wraps. */
 const unwrapped = (id: string, lang: string): string => nodes.get(id)!.description[lang]!.replace(/\s+/g, ' ')
 
+/** The same description as its Markdown blocks, blank-line separated, each one unwrapped. */
+const paragraphs = (id: string, lang: string): string[] =>
+  nodes
+    .get(id)!
+    .description[lang]!.split(/\n[ \t]*\n/)
+    .map((block) => block.replace(/\s+/g, ' ').trim())
+    .filter((block) => block.length > 0)
+
 /** The Terminals a walk starting at `id` can end at, by Answers alone, sorted. */
 const terminalsFrom = (id: string): string[] =>
   [...answerOnlyReach(nodes, id)].filter((reached) => nodes.get(reached)!.kind === 'terminal').sort()
@@ -243,6 +251,60 @@ describe('the walk', () => {
     // Both high-risk routes therefore end at `end-of-walk`, and nowhere else.
     expect(terminalsFrom('annex-i-legislation')).toEqual(['end-of-walk'])
     expect(terminalsFrom('annex-iii-areas')).toEqual(['end-of-walk'])
+  })
+
+  test('the Annex I Section B tension is left standing, and nothing on the route reconciles it', () => {
+    // Issue #26. Since #24 every high-risk reader walks on into step 6, and step 6 says
+    // Article 50 attaches whatever the risk classification -- which is not what Article 2(2)
+    // provides for a system that is high-risk through Annex I, Section B. Resolving that is
+    // legal authoring either way, and the owner's answer on the issue was to leave the
+    // Tree's content to a later iteration and insert the wording by hand. So what ships is
+    // pinned here rather than fixed, and the pin has to survive that insert: an *added*
+    // caveat is the likeliest way this gets resolved, and no `toContain` ever sees an
+    // addition. Hence the two halves below. The other way out - splitting step 4c by Annex
+    // I Section - is deliberately not re-asserted here, because it cannot be done without a
+    // new question Node and a new Terminal, and five tests earlier in this file already fail
+    // on that: "the six steps are question Nodes chained in the order of core document 3.3",
+    // "it holds 8 question Nodes, 4 Terminals and 49 explanation Nodes", "every Terminal is
+    // reached from the root by answering questions alone", "a high-risk finding carries on
+    // into the general-purpose AI and transparency steps" and "the walk stops early only
+    // where the Act itself stops". Repeating them here would pin nothing new. NOTES.md
+    // section 8 records the decision and points at both sets.
+
+    // `high-risk` carries the caveat the Act gives, and is the only place the reader meets it.
+    expect(unwrapped('high-risk', 'en')).toContain(
+      '**Annex I, Section B**, Article 2(2) provides that only Article 6(1), Article 60a and Articles 102 to 112 apply',
+    )
+    expect(unwrapped('high-risk', 'nl')).toContain(
+      '**bijlage I, afdeling B**, valt, bepaalt artikel 2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met 112 van toepassing zijn',
+    )
+    // Step 6 states the general rule, unqualified, to that same reader.
+    expect(unwrapped('transparency-obligations', 'en')).toContain(
+      'Article 50 attaches **transparency obligations** to certain AI systems, whatever their risk classification.',
+    )
+    expect(unwrapped('transparency-obligations', 'nl')).toContain(
+      'Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde AI-systemen, ongeacht hun risicoclassificatie.',
+    )
+
+    // The other half, and the one that bites on an addition: the reconciliation is absent.
+    // Telling this reader that Article 50 may not attach on a Section B route means naming
+    // the carve-out and Article 50 in one breath, and no single block of the three Nodes
+    // past step 4a does that today - step 4c keeps them in separate paragraphs, steps 5 and
+    // 6 never mention Annex I at all. A caveat added anywhere on the route, in either
+    // language and however worded, has to, so it fails here instead of shipping green.
+    for (const id of ['high-risk', 'general-purpose-ai', 'transparency-obligations']) {
+      for (const lang of ['en', 'nl']) {
+        for (const block of paragraphs(id, lang)) {
+          const reconciles = /Section B|afdeling B/i.test(block) && /Article 50|artikel 50/i.test(block)
+          expect(
+            reconciles,
+            `${id} (${lang}) now answers Article 50 for the Annex I Section B route: "${block.slice(0, 160)}...". ` +
+              'That resolves the tension issue #26 decided to leave standing - read section 8 of ' +
+              "the Tree's NOTES.md and rewrite this test to pin what the Tree says instead.",
+          ).toBe(false)
+        }
+      }
+    }
   })
 
   test('the walk stops early only where the Act itself stops', () => {
