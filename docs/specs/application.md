@@ -5,11 +5,15 @@
 > Changing one requires a new `architecture` issue. The Tree file format they consume is
 > frozen separately in `docs/specs/tree-format.md` (issue #4).
 >
-> Amended 2026-09-07 by issue #11 (deployment): section 1 gains one configuration
-> variable, `ELSA_BASE_URL`, the public origin a deployment is reached at, and the
-> `<link rel="canonical">` of 4.1 becomes an absolute URL when it is set. No contract of
-> section 4 changes: the public URL scheme, the links the app emits and every answer of
-> 4.3 are what they were. `docs/deployment.md` is the procedure.
+> Amended 2026-09-08 by issue #11 (deployment,
+> `docs/adrs/ADR-11-public-base-url.md`): section 1 gains one configuration variable,
+> `ELSA_BASE_URL`, the public origin a deployment is reached at, and **4.1's canonical
+> bullet changes with it**. `<link rel="canonical">` is no longer always the path
+> `/<tree-id>/<id-n>`: a deployment that sets the variable makes it the absolute URL of
+> that same page on that origin, and one that does not gets the path as before. It is the
+> only contract of section 4 that moves -- the public URL scheme, the Trail, the share
+> link, every other link the app emits and every answer of 4.3 are what they were.
+> `docs/deployment.md` is the procedure.
 >
 > Amended 2026-09-04 by issue #19 (`docs/adrs/ADR-19-content-language-in-the-route.md`):
 > sections 4.1, 4.3, 4.4, 6 and 7, plus a pointer in 3.1 whose rule is unchanged. The
@@ -158,7 +162,8 @@ Redirects   /            ->  /<tree-id>/<root-id>[?lang=...]      307
   `lang`: the Trail after it is discarded (core document 10.17).
 - Every Node page carries `<link rel="canonical">` to `/<tree-id>/<id-n>` (with `lang`
   when not the default). A deployment that sets `ELSA_BASE_URL` (section 1) makes that
-  link the absolute URL of the same page; without it the link is the path.
+  link the absolute URL of the same page; without it the link is the path. Recorded in
+  `docs/adrs/ADR-11-public-base-url.md`.
 
 ### 4.2 Worked examples
 
@@ -510,4 +515,5 @@ Recorded in `docs/adrs/ADR-5-testing-approach.md`, amended by
 | The loader seam; one Node per request; images by route; startup validation | `docs/adrs/ADR-5-lazy-loading.md` |
 | `src/` modules, `trees/`, `tests/`; dependency direction | `docs/adrs/ADR-5-repository-layout.md` |
 | `?lang` restated as a `[lang]` route segment so `<html lang>` is the content language | `docs/adrs/ADR-19-content-language-in-the-route.md` |
+| `ELSA_BASE_URL` optional, read by the canonical link only, refused when malformed | `docs/adrs/ADR-11-public-base-url.md` |
 | Vitest; fixtures through the loader; the interoperability test | `docs/adrs/ADR-5-testing-approach.md` |

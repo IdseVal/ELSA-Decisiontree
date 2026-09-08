@@ -8,6 +8,10 @@
   server the query is restated as a `[lang]` path segment, so that the root layout can set
   `<html lang>` (application.md 4.4). `parseUrl` takes that segment instead of the whole
   query. The rejection of a *public* language prefix, below, stands.
+- Amended 2026-09-08 by `ADR-11-public-base-url.md`: the canonical link below is the
+  absolute URL of the same Trail-less Node page when a deployment sets `ELSA_BASE_URL`,
+  and the path it has always been when it does not. Which page it points at, and the
+  grammar of that page's URL, are unchanged; so is every other link the app emits.
 
 ## Context
 
