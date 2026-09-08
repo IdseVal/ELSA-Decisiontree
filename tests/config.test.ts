@@ -1,12 +1,13 @@
 /**
- * Tree selection (docs/specs/application.md section 2): one deployment serves exactly one
- * Tree, there is no default, and a deployment that names no usable Tree refuses to start
- * with a message that says what it did find.
+ * What a deployment configures (docs/specs/application.md section 2, docs/deployment.md):
+ * the Tree it serves -- exactly one, no default, and a deployment that names no usable Tree
+ * refuses to start with a message that says what it did find -- and the public base URL its
+ * readers reach it at.
  */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
-import { openConfiguredTree, servedTree, type Environment } from '../src/config.ts'
+import { openConfiguredTree, publicBaseUrl, servedTree, type Environment } from '../src/config.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const treesDir = path.join(here, '..', 'trees')
@@ -73,5 +74,44 @@ describe('a deployment that names no usable Tree refuses to start', () => {
 
     expect(message).toContain('V-TERMINAL')
     expect(message).toContain('nodes/yes-end.yaml')
+  })
+})
+
+describe('the public base URL', () => {
+  /** The error message, or '' when the value was accepted. */
+  function refusedBaseUrl(value: string): string {
+    try {
+      publicBaseUrl({ ELSA_BASE_URL: value })
+      return ''
+    } catch (error) {
+      return (error as Error).message
+    }
+  }
+
+  test('a deployment that names none is a valid deployment', () => {
+    // Then the canonical link stays a path, which is right for every reader and short of
+    // one address only for a crawler (docs/deployment.md).
+    expect(publicBaseUrl({})).toBeUndefined()
+    expect(publicBaseUrl({ ELSA_BASE_URL: '' })).toBeUndefined()
+    expect(publicBaseUrl({ ELSA_BASE_URL: '   ' })).toBeUndefined()
+  })
+
+  test('an origin is read, with or without a trailing slash', () => {
+    expect(publicBaseUrl({ ELSA_BASE_URL: 'https://elsa.example.org' })?.href).toBe('https://elsa.example.org/')
+    expect(publicBaseUrl({ ELSA_BASE_URL: ' https://elsa.example.org/ ' })?.href).toBe('https://elsa.example.org/')
+    expect(publicBaseUrl({ ELSA_BASE_URL: 'http://127.0.0.1:3000' })?.href).toBe('http://127.0.0.1:3000/')
+  })
+
+  // Three distinct refusals, pinned by the words that tell them apart, because
+  // docs/deployment.md gives each one its own row for an operator to grep the journal
+  // against: a table that promised one message for three failures would match one case in
+  // three.
+  test('a value that is not an http(s) origin is refused', () => {
+    expect(refusedBaseUrl('elsa.example.org')).toContain('is not an absolute URL')
+    expect(refusedBaseUrl('file:///opt/elsa')).toContain('only http and https are served')
+    // The application has no basePath, so it cannot be served under a path. A base URL
+    // that carries one would put an address in the canonical link that answers 404.
+    expect(refusedBaseUrl('https://elsa.example.org/tool')).toContain('must be a bare origin')
+    expect(refusedBaseUrl('https://elsa.example.org/?a=1')).toContain('must be a bare origin')
   })
 })

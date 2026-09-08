@@ -5,6 +5,16 @@
 > Changing one requires a new `architecture` issue. The Tree file format they consume is
 > frozen separately in `docs/specs/tree-format.md` (issue #4).
 >
+> Amended 2026-09-08 by issue #11 (deployment,
+> `docs/adrs/ADR-11-public-base-url.md`): section 1 gains one configuration variable,
+> `ELSA_BASE_URL`, the public origin a deployment is reached at, and **4.1's canonical
+> bullet changes with it**. `<link rel="canonical">` is no longer always the path
+> `/<tree-id>/<id-n>`: a deployment that sets the variable makes it the absolute URL of
+> that same page on that origin, and one that does not gets the path as before. It is the
+> only contract of section 4 that moves -- the public URL scheme, the Trail, the share
+> link, every other link the app emits and every answer of 4.3 are what they were.
+> `docs/deployment.md` is the procedure.
+>
 > Amended 2026-09-04 by issue #19 (`docs/adrs/ADR-19-content-language-in-the-route.md`):
 > sections 4.1, 4.3, 4.4, 6 and 7, plus a pointer in 3.1 whose rule is unchanged. The
 > content language reaches `<html lang>` through a `[lang]` route segment that a rewrite
@@ -53,11 +63,11 @@ and nothing the app does depends on a hosting vendor.
 | Runtime | Node.js 22 (LTS), in `.nvmrc` and `package.json` `engines`. |
 | Package manager | npm; `package-lock.json` committed; `npm ci` in CI and deployment. |
 | Build output | `output: 'standalone'`: `next build` yields a folder that runs with `node server.js`. |
-| Configuration | Environment variables only: `PORT`, `HOSTNAME` (Next.js), `ELSA_TREE`, `ELSA_TREES_DIR` (section 2), `NEXT_TELEMETRY_DISABLED=1`. |
+| Configuration | Environment variables only: `PORT`, `HOSTNAME` (Next.js), `ELSA_TREE`, `ELSA_TREES_DIR` (section 2), `ELSA_BASE_URL` (the public origin; a bare `http`/`https` origin or the server refuses to start), `NEXT_TELEMETRY_DISABLED=1`. |
 | Vendor neutrality | No edge runtime, no Incremental Static Regeneration, no hosted image optimisation, no fonts or scripts fetched from third parties at run time. Anything fetched at build time is vendored into the repository. |
 | Headers | `poweredByHeader: false`. The app sets no cookie, ever. |
 | Repository root | `agentRules: false`: `next dev` does not scaffold `AGENTS.md` and `CLAUDE.md`. The root `CLAUDE.md` is the project instructions the agents in `.orca/` read, not build output. |
-| Deployment (later issue) | A systemd unit running `node server.js` behind a reverse proxy for TLS. The app does not know the proxy exists. |
+| Deployment | A systemd unit running `node server.js` behind a reverse proxy for TLS, or the repository's `Dockerfile`. The app does not know the proxy exists. `docs/deployment.md` (issue #11). |
 
 Recorded in `docs/adrs/ADR-5-framework-and-rendering.md`.
 
@@ -151,7 +161,9 @@ Redirects   /            ->  /<tree-id>/<root-id>[?lang=...]      307
 - Clicking Trail entry `k` links to `/<tree-id>/<id-1>/.../<id-k>` with the same
   `lang`: the Trail after it is discarded (core document 10.17).
 - Every Node page carries `<link rel="canonical">` to `/<tree-id>/<id-n>` (with `lang`
-  when not the default).
+  when not the default). A deployment that sets `ELSA_BASE_URL` (section 1) makes that
+  link the absolute URL of the same page; without it the link is the path. Recorded in
+  `docs/adrs/ADR-11-public-base-url.md`.
 
 ### 4.2 Worked examples
 
@@ -485,7 +497,7 @@ Recorded in `docs/adrs/ADR-5-testing-approach.md`, amended by
 | 3.2 permanent disclaimer | 3.2 `disclaimer`, rendered in `layout.tsx` |
 | 3.2 server-side rendering, lightweight, lazy | 1; 5.2 |
 | 4 / 8 no accounts, cookies, tracking, analytics, database | 1 (no cookie, no telemetry), 2 (files only), 5 |
-| 7 plain Linux server, no vendor features | 1: standalone `node server.js`, environment variables |
+| 7 plain Linux server, no vendor features | 1: standalone `node server.js`, environment variables; the procedure is `docs/deployment.md` |
 | 9 third-party Tree never breaks the frontend | 3 (chrome fallback); 5.1 (strict loader); 7 (interoperability test) |
 | 9 never load the whole Tree or all images | 5.2 |
 | 9 nothing about the user stored or transmitted | 1, 5.3 (no third-party requests, no cookies, no logging of visitors required) |
@@ -503,4 +515,5 @@ Recorded in `docs/adrs/ADR-5-testing-approach.md`, amended by
 | The loader seam; one Node per request; images by route; startup validation | `docs/adrs/ADR-5-lazy-loading.md` |
 | `src/` modules, `trees/`, `tests/`; dependency direction | `docs/adrs/ADR-5-repository-layout.md` |
 | `?lang` restated as a `[lang]` route segment so `<html lang>` is the content language | `docs/adrs/ADR-19-content-language-in-the-route.md` |
+| `ELSA_BASE_URL` optional, read by the canonical link only, refused when malformed | `docs/adrs/ADR-11-public-base-url.md` |
 | Vitest; fixtures through the loader; the interoperability test | `docs/adrs/ADR-5-testing-approach.md` |
