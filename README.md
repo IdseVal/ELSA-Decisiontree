@@ -54,10 +54,12 @@ npx playwright install chromium         # once
 npm run test:browser                    # the same app in a real browser
 ```
 
-`npm run test:browser` builds the app, starts the standalone server on port 3117 with
-`ELSA_TREE=ai-act-example` -- the same command a deployment runs -- and drives it with Playwright. It covers what markup cannot show: what a click on a
-thumbnail does, which image files the browser actually asks for, and whether a keyboard
-reaches everything.
+`npm run test:browser` builds the app and starts two standalone servers on that build with
+`ELSA_TREE=ai-act-example` -- the same command a deployment runs -- then drives them with
+Playwright: port 3117 with a public base URL configured, and port 3118 with none, the
+default `docs/deployment.md` leaves a deployment at. It covers what markup cannot show:
+what a click on a thumbnail does, which image files the browser actually asks for, and
+whether a keyboard reaches everything.
 
 `npm run validate` prints one line per broken rule -- `tree-id  file  key.path  RULE
 message` -- and exits 1 if there is any. Run it before pushing a Tree.
