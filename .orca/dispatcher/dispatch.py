@@ -55,6 +55,15 @@ WHAT IT DOES EACH TICK
         nothing would ever merge it, so an unblocked conflicting PR gets `state:blocked`
         with a comment saying why; the fix run's first step is merging `dev` into the
         branch and resolving the conflicts. The breaker bounds it like any send-back.
+      - CI finished without a verdict (v0.2.7) -> an open, unblocked PR whose pipeline
+        run for its current head has COMPLETED was dropped by CI: a Reviewer that ended
+        its turn without merging or sending back (observed repeatedly: a green job, 30-40
+        turns, nothing posted), a Verifier that ended without a label, or a job that died
+        on the session limit -- CI agents share the subscription. CI re-runs only on a
+        push, so the dispatcher re-runs the job that owes the verdict (`gh run rerun`),
+        one breaker cycle per attempt (none when it died on the limit), and escalates
+        past the breaker. The pipeline itself retries a verdict-less Reviewer once and
+        FAILS the job when the verdict is still missing, so the failure is visible.
       - `needs-human` on an issue or PR -> flag it once with a GitHub comment (an
         @mention only if configured; the dispatcher itself NEVER e-mails -- the daily
         digest is the mail channel) and touch nothing until the label is gone.
@@ -166,6 +175,8 @@ LIMIT_MARGIN_MINUTES = 2      # start a little after the stated reset, not on it
 SUBPROCESS_TIMEOUT = 180
 STILL_ACTIVE = 259
 PR_GRACE_MINUTES = 5          # a run whose PR already exists gets this long to finish talking
+CI_VERDICT_GRACE_MINUTES = 3  # v0.2.7: a finished CI run gets this long before "no verdict" counts
+CI_RERUN_SETTLE_MINUTES = 10  # ... and a re-run this long to show up as in progress
 
 _ISSUE_RE = re.compile(r"issue-(\d+)")
 _DEPENDS_RE = re.compile(r"(?i)\b(?:depends\s+on|blocked\s+by)\b[^\n]*")
@@ -1070,6 +1081,46 @@ def gh_recent_comments(pr_number: int, limit: int = 6) -> str:
     return "\n\n".join(out) or "(no comments found; read the PR conversation)"
 
 
+def iso_ms(text: Optional[str]) -> int:
+    """GitHub's ISO-8601 timestamp -> epoch ms; 0 when absent or unreadable."""
+    if not text:
+        return 0
+    try:
+        return int(datetime.fromisoformat(text.replace("Z", "+00:00")).timestamp() * 1000)
+    except ValueError:
+        return 0
+
+
+def ci_run_for(pr: PR) -> Optional[dict[str, Any]]:
+    """The latest agent-pipeline run for the PR's CURRENT head commit (v0.2.7), as
+    {"id", "status", "conclusion", "updated"} -- or None when GitHub has started none
+    (a fresh push, or a CONFLICTING PR). Runs for earlier commits are ignored: the
+    concurrency group cancels them and a cancelled run for an old tip says nothing."""
+    if not pr.head_oid:
+        return None
+    runs = gh_json(["run", "list", "--workflow", PIPELINE_FILE.name, "--branch", pr.head,
+                    "--limit", "10", "--json", "databaseId,headSha,status,conclusion,createdAt,updatedAt"]) or []
+    for raw in sorted(runs, key=lambda r: r.get("createdAt") or "", reverse=True):
+        if raw.get("headSha") == pr.head_oid:
+            return {"id": int(raw["databaseId"]), "status": raw.get("status") or "",
+                    "conclusion": raw.get("conclusion") or "", "updated": iso_ms(raw.get("updatedAt"))}
+    return None
+
+
+def gh_rerun(run_id: int, job_name: str) -> bool:
+    """Re-run one named job of a workflow run; GitHub re-runs the jobs that depend on it
+    too. False when `gh` refused (the run is still going, or is too old to re-run)."""
+    jobs = (gh_json(["run", "view", str(run_id), "--json", "jobs"]) or {}).get("jobs") or []
+    job = next((j for j in jobs if j.get("name") == job_name), None)
+    if job is None:
+        log.warning("run %s has no job named %s", run_id, job_name)
+        return False
+    ok, _, err = run(["gh", "run", "rerun", str(run_id), "--job", str(job["databaseId"])])
+    if not ok:
+        log.warning("gh run rerun %s failed: %s", run_id, err.strip()[:200])
+    return ok
+
+
 def ready_label_actor(issue_number: int) -> Optional[str]:
     """The login that LAST added the `ready` label to the issue, from GitHub's timeline;
     None when it cannot be established (API failure, or no such event)."""
@@ -1464,6 +1515,81 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
 # --------------------------------------------------------------------------- reconcile: PRs
 
 
+def ci_without_verdict(pr: PR, s: dict[str, Any], issue: Optional[Issue], cfg: dict[str, Any],
+                       state: State, max_cycles: int) -> bool:
+    """v0.2.7. An open, unblocked PR whose CI run for its current head has FINISHED is a
+    PR the pipeline dropped: a Verifier that ended without a label, a Reviewer that
+    ended without merging or sending back (observed: green job, 30-40 turns, nothing
+    posted), or a job that died on the session limit. Nothing else would ever touch it
+    -- CI re-runs only on a push. Re-run the job that owes the verdict (the Reviewer
+    when `state:tested` is on, else the Verifier; `review` follows `verify` either way),
+    one breaker cycle each, escalate past the breaker. Returns True when it acted."""
+    if s.get("escalated"):
+        return False  # the human's move; removing `escalated` from the issue restarts this
+    ci = ci_run_for(pr)
+    if ci is None or ci["status"] != "completed":
+        return False
+    rerun = s.get("ci_rerun") or {}
+    if rerun.get("run") == ci["id"] and ci["updated"] <= int(rerun.get("at", 0)):
+        # our re-run has not shown up yet (GitHub re-queues within a minute or two)
+        if minutes_since(int(rerun.get("at", 0))) < CI_RERUN_SETTLE_MINUTES:
+            return False
+    if minutes_since(ci["updated"]) < CI_VERDICT_GRACE_MINUTES:
+        return False  # the merge/label the run posted may still be propagating
+    hold = limit_hold(state)
+    if hold:
+        log.debug("PR #%s: CI ended without a verdict; re-run held: %s", pr.number, hold)
+        return False
+
+    lim = state.limit or {}
+    # CI agents run on the same subscription as the local ones: a job that FAILED while
+    # a local run was reporting the session limit died of the limit, not of the PR.
+    on_limit = bool(ci["conclusion"] == "failure" and lim
+                    and int(lim.get("seen", 0)) - 10 * 60_000 <= ci["updated"] <= int(lim.get("until", 0)))
+    # `state:tested` on means the Verifier decided and the Reviewer did not; off means
+    # the Verifier owes the verdict (the `review` job follows it either way).
+    job = "review" if LABEL_TESTED in pr.labels else "verify"
+    what = f"CI run {ci['id']} ended ({ci['conclusion'] or 'no conclusion'}) without a verdict"
+
+    cycle = int(rerun.get("count", 0)) + 1
+    if issue and not on_limit:
+        si = state.issue(issue.number)
+        si["cycle"] = int(si.get("cycle", 0)) + 1
+        if si["cycle"] > max_cycles:
+            def _esc(pr=pr, issue=issue):
+                gh_comment("pr", pr.number,
+                           f"{what}, and the circuit breaker is tripped after {max_cycles} attempts. "
+                           f"Re-run the workflow by hand from the Actions tab, or remove `escalated` "
+                           f"from issue #{issue.number} for a fresh breaker.")
+                escalate_issue(state, issue.number,
+                               f"Circuit breaker tripped on PR #{pr.number}: CI keeps ending without a verdict.")
+            act(f"PR #{pr.number}: {what}; beyond breaker -> escalate", _esc)
+            s["escalated"] = True   # `ci_rerun` stays as it is: nothing was re-run
+            state.save()
+            notify_human(cfg, state, f"pr:{pr.number}:escalated", f"PR #{pr.number} escalated", pr.url,
+                         "pr", pr.number)
+            return True
+
+    def _rerun(run_id=ci["id"], job=job):
+        if not gh_rerun(run_id, job):
+            return False
+        gh_comment("pr", pr.number,
+                   f"{what}. Re-running the `{job}` job (attempt {cycle}; "
+                   f"{'not counted: it died on the session limit' if on_limit else 'counted against the circuit breaker'}).")
+        return True
+    if act(f"PR #{pr.number}: {what} -> re-run `{job}` (attempt {cycle})", _rerun) is False:
+        # gh refused (the run is not finished after all, or it is too old to re-run):
+        # hand the PR to the human rather than loop on a refusal
+        act(f"PR #{pr.number}: re-run refused -> needs-human",
+            lambda n=pr.number: (gh_label("pr", n, add=[LABEL_NEEDS_HUMAN]),
+                                 gh_comment("pr", n, f"{what}, and `gh run rerun` was refused. Re-run "
+                                                     f"the workflow from the Actions tab (or push an empty "
+                                                     f"commit), then remove `needs-human`.")))
+    s["ci_rerun"] = {"run": ci["id"], "at": now_ms(), "count": cycle}
+    state.save()
+    return True
+
+
 def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
     d = cfg["dispatcher"]
     max_cycles = int(cfg["circuit_breaker"]["max_cycles"])
@@ -1546,6 +1672,11 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                     s.pop(k, None)
                 state.save()
                 continue  # the blocked branch dispatches on the next tick
+
+        # --- CI finished without a verdict (v0.2.7) ---------------------------------------
+        if LABEL_BLOCKED not in pr.labels and not pr.conflicting:
+            if ci_without_verdict(pr, s, issue, cfg, state, max_cycles):
+                continue
 
         if LABEL_BLOCKED in pr.labels:
             fix = s.get("fix")
@@ -2003,10 +2134,14 @@ def cmd_status(cfg: dict[str, Any], state: State) -> int:
             stage = "blocked (fix run live)" if fix and run_alive(int(fix.get("pid", 0))) else "blocked"
         elif pr.conflicting:
             stage = "CONFLICTING -> blocked"   # labelled on the next tick; no CI can run
-        elif LABEL_TESTED in pr.labels:
-            stage = "tested -> review"
         else:
-            stage = "in CI"
+            ci = ci_run_for(pr)
+            if ci and ci["status"] == "completed":
+                stage = "CI done, NO VERDICT -> re-run"   # v0.2.7: the next tick re-runs the job
+            elif LABEL_TESTED in pr.labels:
+                stage = "tested -> review"
+            else:
+                stage = "in CI"
         print(f"  #{pr.number:<4} {stage:<24} {pr.head:<32} {pr.title[:45]}")
     print("\nWORKTREES")
     for wt in obs.worktrees:

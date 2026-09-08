@@ -158,7 +158,9 @@ jobs:
                - FAIL:  `gh pr edit ${{ github.event.pull_request.number }} --add-label state:blocked`
                  then a comment: exactly what failed and what the Implementer must change,
                  as a numbered list.
-               A run that ends without a label stalls the pipeline. Never merge anything.
+               A run that ends without a label stalls the pipeline: your verdict exists
+               ONLY once that `gh` command has run. Nobody reads your final message and
+               nobody is there to confirm. Never merge anything.
 
   review:
     needs: [classify, verify]
@@ -173,20 +175,84 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Stand down if the Verifier blocked the PR
+      # v0.2.7: the Verifier's verdict is one of the two labels. Neither means the
+      # Verifier ended without deciding (or died on the session limit): FAIL the job so
+      # the run is red -- a green run with nothing posted is indistinguishable from a
+      # reviewed one, and that silence cost a day. The dispatcher re-runs the job.
+      - name: Read the Verifier's verdict
         id: gate
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: |
-          if gh pr view "$PR" --json labels --jq '.labels[].name' | grep -qx 'state:blocked'; then
-            echo "blocked=true" >> "$GITHUB_OUTPUT"
+          labels=$(gh pr view "$PR" --json labels --jq '.labels[].name')
+          if grep -qx 'state:blocked' <<< "$labels"; then
+            echo "verdict=blocked" >> "$GITHUB_OUTPUT"
+          elif grep -qx 'state:tested' <<< "$labels"; then
+            echo "verdict=tested" >> "$GITHUB_OUTPUT"
           else
-            echo "blocked=false" >> "$GITHUB_OUTPUT"
+            echo "verdict=none" >> "$GITHUB_OUTPUT"
+            gh pr comment "$PR" --body "The Verifier ended without a verdict (neither \`state:tested\` nor \`state:blocked\`). Failing this run so it is visible; the dispatcher re-runs the \`verify\` job." || true
+            exit 1
           fi
 
+      # One source for the Reviewer's brief: the two agent steps below share it. A quoted
+      # heredoc keeps the backticks literal; the PR number is substituted afterwards.
+      - name: Compose the Reviewer's brief
+        id: brief
+        if: steps.gate.outputs.verdict == 'tested'
+        env:
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo 'prompt<<__END_OF_BRIEF__'
+            sed "s/__PR__/$PR/g" <<'BRIEF'
+          You are the REVIEWER for pull request #__PR__
+          into `dev`. You are the last gate before integration. Fresh context, headless,
+          in CI; everything you decide goes on the pull request via `gh`.
+
+          Do these in order:
+          1. `gh pr view __PR__ --comments`,
+             `git diff origin/dev...HEAD`, the linked issue (branch is issue-<n>), the
+             relevant `docs/specs/*.md`, `docs/adrs/*.md` and `docs/CORE_DOCUMENT.md`.
+             Use the `code-review` skill in `.claude/skills/`.
+          2. Verify the change strictly fulfils the specification and does not
+             contradict the core document. Enforce the code standard: easily readable,
+             minimalist code -- reject unnecessary abstraction, premature
+             generalisation, and design patterns the problem did not ask for.
+          3. Evidence gates (for PRs labelled `data`, `ui` or `pipeline` -- read
+             `evidence_gates` in `.orca/dispatch.yml`): the PR body must contain a
+             count reconciled against an independent source, real output sampled in,
+             and cost against a documented budget where one exists. Green tests alone
+             are not evidence. "It completed" is not a count.
+          4. For docs-only PRs (ADRs, specs, research): file names follow
+             `docs/adrs/ADR-<issue#>-<slug>.md` / `docs/specs/<topic>.md` /
+             `docs/research/issue-<issue#>-<slug>.md`; links resolve; numbering does
+             not collide with ADRs already on `dev`; one decision per ADR with
+             rejected alternatives.
+          5. If the Verifier was skipped for `trivial` but the change touches
+             behaviour: that label was a request, not a permission -- send it back for
+             tests.
+          6. Decide, with EXACTLY ONE of:
+             - APPROVE: `gh pr merge __PR__ --squash --delete-branch`
+               (this merges into `dev`), then one paragraph of review as a comment.
+               If the merge fails on conflicts, treat it as CHANGES and ask for a
+               rebase.
+             - CHANGES: `gh pr edit __PR__ --add-label state:blocked --remove-label state:tested`
+               then a NUMBERED comment of required changes.
+          Your decision exists ONLY once that `gh` command has run and succeeded. Nobody
+          reads your final message and nobody is there to confirm: a turn that ends with
+          text and no `gh` command is a stalled pipeline, and this step is then re-run at
+          full cost. If a previous Reviewer run on this PR left no decision, that is what
+          happened -- decide now.
+          You may merge into `dev` and only `dev`; never `main`. You never close
+          issues; the dispatcher does that on merge.
+          BRIEF
+            echo '__END_OF_BRIEF__'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Reviewer agent
-        if: steps.gate.outputs.blocked != 'true'
+        if: steps.gate.outputs.verdict == 'tested'
         uses: anthropics/claude-code-action@v1
         env:
           GH_TOKEN: ${{ github.token }}
@@ -195,39 +261,47 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}   # see the Verifier step's note
           claude_args: "--max-turns 60 --allowedTools Bash,Read,Glob,Grep,Skill --model opus"   # see the Verifier step's notes
-          prompt: |
-            You are the REVIEWER for pull request #${{ github.event.pull_request.number }}
-            into `dev`. You are the last gate before integration. Fresh context, headless,
-            in CI; everything you decide goes on the pull request via `gh`.
+          # v0.2.7: the transcript is the only way to learn WHY a run posted nothing.
+          # Actions masks the secrets; what the agent reads is the repository.
+          show_full_output: true
+          prompt: ${{ steps.brief.outputs.prompt }}
 
-            Do these in order:
-            1. `gh pr view ${{ github.event.pull_request.number }} --comments`,
-               `git diff origin/dev...HEAD`, the linked issue (branch is issue-<n>), the
-               relevant `docs/specs/*.md`, `docs/adrs/*.md` and `docs/CORE_DOCUMENT.md`.
-               Use the `code-review` skill in `.claude/skills/`.
-            2. Verify the change strictly fulfils the specification and does not
-               contradict the core document. Enforce the code standard: easily readable,
-               minimalist code -- reject unnecessary abstraction, premature
-               generalisation, and design patterns the problem did not ask for.
-            3. Evidence gates (for PRs labelled `data`, `ui` or `pipeline` -- read
-               `evidence_gates` in `.orca/dispatch.yml`): the PR body must contain a
-               count reconciled against an independent source, real output sampled in,
-               and cost against a documented budget where one exists. Green tests alone
-               are not evidence. "It completed" is not a count.
-            4. For docs-only PRs (ADRs, specs, research): file names follow
-               `docs/adrs/ADR-<issue#>-<slug>.md` / `docs/specs/<topic>.md` /
-               `docs/research/issue-<issue#>-<slug>.md`; links resolve; numbering does
-               not collide with ADRs already on `dev`; one decision per ADR with
-               rejected alternatives.
-            5. If the Verifier was skipped for `trivial` but the change touches
-               behaviour: that label was a request, not a permission -- send it back for
-               tests.
-            6. Decide, with EXACTLY ONE of:
-               - APPROVE: `gh pr merge ${{ github.event.pull_request.number }} --squash --delete-branch`
-                 (this merges into `dev`), then one paragraph of review as a comment.
-                 If the merge fails on conflicts, treat it as CHANGES and ask for a
-                 rebase.
-               - CHANGES: `gh pr edit ${{ github.event.pull_request.number }} --add-label state:blocked --remove-label state:tested`
-                 then a NUMBERED comment of required changes.
-            You may merge into `dev` and only `dev`; never `main`. You never close
-            issues; the dispatcher does that on merge.
+      - name: Did the Reviewer decide?
+        id: check1
+        if: steps.gate.outputs.verdict == 'tested'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          v=$(gh pr view "$PR" --json state,labels --jq 'if .state != "OPEN" then .state elif ([.labels[].name] | index("state:blocked")) then "blocked" elif ([.labels[].name] | index("needs-human")) then "needs-human" else "none" end')
+          echo "verdict=$v" >> "$GITHUB_OUTPUT"
+          echo "Reviewer verdict: $v"
+
+      # v0.2.7: observed 3 times in 5 runs -- a green Reviewer step, 30-40 turns, and
+      # nothing on the PR. One retry in the same run is the cheap path (no push, no
+      # dispatcher round-trip); a second silence fails the run below.
+      - name: Reviewer agent (second attempt -- the first left no decision)
+        if: steps.gate.outputs.verdict == 'tested' && steps.check1.outputs.verdict == 'none'
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          claude_args: "--max-turns 60 --allowedTools Bash,Read,Glob,Grep,Skill --model opus"
+          show_full_output: true
+          prompt: ${{ steps.brief.outputs.prompt }}
+
+      - name: Fail the run if there is still no decision
+        if: steps.gate.outputs.verdict == 'tested'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          v=$(gh pr view "$PR" --json state,labels --jq 'if .state != "OPEN" then .state elif ([.labels[].name] | index("state:blocked")) then "blocked" elif ([.labels[].name] | index("needs-human")) then "needs-human" else "none" end')
+          echo "Reviewer verdict after all attempts: $v"
+          if [ "$v" = "none" ]; then
+            gh pr comment "$PR" --body "The Reviewer ended twice without a decision (no merge, no \`state:blocked\`). Failing this run so it is visible; the dispatcher re-runs the \`review\` job, bounded by the circuit breaker." || true
+            exit 1
+          fi
