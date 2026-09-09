@@ -49,7 +49,11 @@
 > one Tree file instead of one Node file); section 5.3's thumbnails (a carousel below the
 > Bubble); section 6's component list and stylesheet (the tree view: Bubble, Branches,
 > Carousel; colours and fonts from the Tree's theme, served by a theme route); section 7's
-> testing rows insofar as the no-scroll rule needs a browser test. Unchanged by the
+> testing rows insofar as the no-scroll rule needs a browser test; section 8's table (its
+> rows "3.2 server-side rendering, lightweight, lazy" and "9 never load the whole Tree or
+> all images" point at 5.2, which is superseded above, and it has no row for the core
+> document's new guarantees: the page never scrolls, the Theme comes from the Tree, the
+> Carousel, one file per Tree -- #38 rebuilds the table). Unchanged by the
 > owner's instruction and kept as they stand: sections 1 (all other rows), 2, 3, 4 (the
 > URL scheme, the Trail in the path, the share link, `?lang` and the `[lang]` route), 4.4,
 > and the deployment path of `docs/deployment.md`.

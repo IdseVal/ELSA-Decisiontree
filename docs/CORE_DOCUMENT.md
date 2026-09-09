@@ -267,10 +267,10 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 | **Source** | A reference attached to a Node or Image, with a URL. Kinds: **legal**, **case law**, **literature**, labelled distinctly in the data. | legal reference, caselaw reference, literature reference, source parameter |
 | **Trail** | The ordered list of Nodes the user visited to reach the current Node; clickable to jump back. Carried in a shared link. **[v0.2]** Drawn as the Branches above the Bubble (was: a line upward). | the way back, line to previous items, path, the branches above |
 | **Cross-link** | A Link from a Node to a Node in another Tree, or to a non-child Node in the same Tree. Future capability. | link different graphs, cross-link between graph items |
-| **[v0.2] Bubble** | The round view of the Node that is open: its title, description, Sources, outcome. Everything in it fits on screen without scrolling. | bubble, opened node |
-| **[v0.2] Branch** | A Link as drawn on screen: a line from the Bubble to a Trail entry above it, or out to a child or side child, labelled with the target's title, clickable. | branches above, branches going out |
-| **[v0.2] Carousel** | The strip of the open Node's Images below the Bubble, with controls to move between them. | image carrousell |
-| **[v0.2] Theme** | The logo, colours and fonts a Tree carries so the frontend shows that Tree's lab's identity. Files in the Tree's folder; nothing external. | styles and logo, their logo is displayed |
+| **Bubble** | **[v0.2]** The round view of the Node that is open: its title, description, Sources, outcome. Everything in it fits on screen without scrolling. | bubble, opened node |
+| **Branch** | **[v0.2]** A Link as drawn on screen: a line from the Bubble to a Trail entry above it, or out to a child or side child, labelled with the target's title, clickable. | branches above, branches going out |
+| **Carousel** | **[v0.2]** The strip of the open Node's Images below the Bubble, with controls to move between them. | image carrousell |
+| **Theme** | **[v0.2]** The logo, colours and fonts a Tree carries so the frontend shows that Tree's lab's identity. Files in the Tree's folder; nothing external. | styles and logo, their logo is displayed |
 
 ## 6. Data sources and their constraints
 
@@ -318,7 +318,10 @@ Confirmed by the owner on 2026-09-03:
   agreed shape -- including a Tree that provides only one language, or languages other
   than English and Dutch.
 - The app must never load all images -- or the whole Tree -- up front; only what the
-  current Node needs.
+  current Node needs. **[v0.2]** Refined by the owner in #35 ("still lazy loading"),
+  in step with 3.1: never the whole Tree, never all images; a **bounded set of
+  neighbouring Nodes** may be fetched and rendered ahead of a click; images are still
+  loaded only for the Node on screen.
 - The app must never store or transmit anything about the user (section 8).
 - (Struck by the owner: "never show unreviewed legal content" -- that is an editorial
   duty of the owner, not a property of the code.)

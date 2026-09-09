@@ -9,11 +9,16 @@
 > The owner has changed three requirements it rests on (`docs/CORE_DOCUMENT.md`, revised
 > 2026-09-09; `docs/adrs/ADR-35-version-0-2-rework.md`), and issue #37 freezes the
 > successor `elsa-tree/2` in this file. Until #37 merges, the following conflict with the
-> core document and must not be built against: section 1 and 2 and `ADR-4-file-layout.md`
-> (one file per Node: the owner wants one file per Tree); the absence of length limits on
-> text (section 5, 7: the page may never scroll, so every text field gets a maximum); the
-> manifest of section 4 (it gains a `theme` block: logo, colours, fonts carried by the
-> Tree). Unchanged and to be kept by `elsa-tree/2`: ids and Node references (3.1, 3.2),
+> core document and must not be built against: sections 1, 2 and 6 and
+> `ADR-4-file-layout.md` (one file per Node: the owner wants one file per Tree; section
+> 6's "loading one Node without reading the Tree" -- one small file per request, the
+> children's files not opened until a Link is followed -- ends with it and with the
+> pre-rendered neighbours of core document 3.1, and #38 states what replaces it); the
+> example Trees of sections 8 and 9 (written one file per Node; #37's migration rewrites
+> them in the new form); the absence of length limits on text (section 5, 7: the page may
+> never scroll, so every text field gets a maximum); the manifest of section 4 (it gains a
+> `theme` block: logo, colours, fonts carried by the Tree). Unchanged and to be kept by
+> `elsa-tree/2`: ids and Node references (3.1, 3.2),
 > localised text (3.3), rich text (3.4), image file names and the images folder (3.5,
 > `ADR-4-image-reference.md`), Sources, Images, Answers, Options, the terminal marker and
 > the three kinds of Node (5.1 to 5.6), strict validation (7), cross-links reserved (10).

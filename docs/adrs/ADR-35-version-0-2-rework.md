@@ -120,4 +120,5 @@ and file the issues for the rework so the dispatcher can pick them up.
   images), 10.25 (the logo and fonts may be vendored).
 - `docs/pipeline-smoke.md`, `docs/deployment.md`, the ADRs of #4, #5 and #19 are
   unchanged; the ADRs that #37 and #38 supersede are named in the spec banners and get
-  their own "superseded by" line when those issues merge.
+  their own "superseded by" line when those issues merge (`ADR-4-file-layout.md` is in
+  the DONE WHEN of #37, `ADR-5-lazy-loading.md` in that of #38).
