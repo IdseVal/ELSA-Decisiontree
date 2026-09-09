@@ -3,7 +3,9 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Amended by `ADR-37-serialisation.md` (2026-09-10, issue #37): YAML 1.2 and the
   Markdown subset stay; "manifest and Node files" becomes one YAML stream, `tree.yaml`,
-  with one document per Node. The text below is the 0.1 record and is unchanged.
+  with one document per Node. The text below is the 0.1 record and is unchanged; its
+  section pointer is to the 0.1 spec on `version-0.1` (in elsa-tree/2 the YAML rules
+  moved to section 3.7).
 - Issue: #4 -- Architecture: freeze the Tree file format and schema
 - Spec: `docs/specs/tree-format.md`, sections 3.4 and 3.6
 

@@ -235,7 +235,8 @@ files are served is `docs/specs/application.md`, issue #38.)
 - **The order of Node documents is free.** The loader indexes Nodes by `id`, not by
   position. Put them in the order that reads best: the root first, then the walk, with
   each question Node followed by its explanation Nodes, is the recommendation; the
-  migration writes the root first and the rest alphabetically.
+  migration writes the root first and the rest by file name in byte order (section
+  12.1).
 - **Quote version numbers**: `version: "1.0"`. Unquoted, `1.0` is a number and is
   rejected (rule V-META). **Quote colours**: `background: "#ffffff"`; unquoted, `#`
   starts a comment and the value is lost. **Quote font weights**: `weight: "400"`.
@@ -617,7 +618,7 @@ new format number. `docs/adrs/ADR-37-length-limits.md` has the reasoning.
 | Node title | 22 px, line height 28 px, about 55 characters per line: 80 characters is at most **2 lines** (56 px) |
 | Sources | 13 px, line height 20 px, about 90 characters per line: 3 labels of 60 characters with separators is at most **2 lines** (40 px) |
 | Description | what remains: 304 - 56 - 8 - 40 - 8 = 192 px = **8 lines** of 24 px, at 75 characters = 600 characters |
-| Branch labels | 13 px in a label at most 150 px wide, about 21 characters per line: an Option title of 60 characters is at most 3 lines; 8 Option Branches plus 2 Answer Branches fit 1280 px side by side |
+| Branch labels | 13 px in a label at most 150 px wide, about 21 characters per line: an Option title of 60 characters is at most 3 lines; 8 Option Branches fit 1280 px side by side (1200 px). A question Node that carries both `answers` and `options` (section 5.6) shows 10 Branches, which need 1500 px at that width: #38 decides whether they narrow or wrap |
 | Carousel | one picture at a time, 80 px strip; a caption of 120 characters fits one line at 13 px under the enlarged view, two in the strip |
 
 What these numbers do **not** promise: that a description written at the maximum in a
@@ -1099,7 +1100,8 @@ Input: the folder `<in>/`. Output: the folder `<out>/` (which may be the same fo
    Absent: no root (the result will fail V-ROOT).
 3. **List the Node files**: every regular file `<in>/nodes/*.yaml`, non-recursive, and
    nothing else. Order them: the file named `<root>.yaml` first if it exists, then the
-   others by file name in byte order (`sort -C` order, the order `ls` shows on Linux).
+   others by file name in byte order (`LC_ALL=C sort` order; the order `ls` shows
+   depends on the locale and is not it).
    No `nodes/` folder or no files: no Node documents (the result will fail V-NODE).
 4. **For each Node file, in that order**, append to the output text:
    - a blank line;
@@ -1153,10 +1155,10 @@ Input: the folder `<in>/`. Output: the folder `<out>/` (which may be the same fo
   with the procedure above: every one of the 61 Nodes, and the manifest, has a
   description over 600 characters or 8 lines in at least one language; the Annex I
   Node has 20 Options and 4 Sources and the prohibited-practices Node 10 Options; and
-  21 Node titles, 41 Option titles and 136 Source labels exceed their maxima (the
-  figures count each language separately). The migration reports each of them; #44
-  makes the cut the owner described, including cutting the two long Option lists into
-  steps of at most 8.
+  27 Node titles (across 19 Nodes), 41 Option titles and 136 Source labels exceed
+  their maxima (the figures count each language separately). The migration reports
+  each of them; #44 makes the cut the owner described, including cutting the two long
+  Option lists into steps of at most 8.
 - `tests/fixtures/single-language`, `other-languages`, `german-only`: convert and
   validate as they are with no violation; #39 gives one of them a Theme so both paths
   are tested.

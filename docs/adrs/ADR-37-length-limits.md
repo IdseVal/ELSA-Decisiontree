@@ -46,7 +46,8 @@ Options and 4 Sources on a Node. The owner's own example of the new size -- a ti
    22 px title (2 lines for 80 characters); 13 px Sources (2 lines for 3 labels of 60).
    The description gets what remains: 192 px, 8 lines, 600 characters. Branch labels at
    13 px in 150 px give 8 Option Branches side by side across 1280 px, with a 60-character
-   title on at most 3 lines.
+   title on at most 3 lines; a Node that shows its 2 Answer Branches as well needs
+   1500 px at that width, which #38 resolves.
 5. **The rules report actual against maximum** (`description.nl: 9 lines > 8`,
    `title.en: 96 > 80`), so an author knows how much to cut, and the migration's report
    is the content issue's work list.
