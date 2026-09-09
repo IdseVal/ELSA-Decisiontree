@@ -9,6 +9,12 @@ and holds its whole state in the URL: no database, no account, no cookie, no tra
 - The application contracts: [`docs/specs/application.md`](docs/specs/application.md)
 - How to run it on a server: [`docs/deployment.md`](docs/deployment.md)
 
+Version 0.1 -- the state described by those two specs -- is preserved on the branch
+`version-0.1`. `dev` carries the plan for the version 0.2 rework the owner asked for in
+issue #35 (a tree on screen, no scrolling, a carousel, branding from the Tree, one file
+per Tree): the 0.1 code, the two specs marked superseded in part, and the issues that do
+the work. See `docs/adrs/ADR-35-version-0-2-rework.md` for what changes and in which issue.
+
 ## Install
 
 Node.js 22 (see `.nvmrc`) and npm.
