@@ -4,6 +4,20 @@
 > contract: any Tree that follows it loads in the ELSA decision-tree frontend without a
 > code change. Changing it requires a new `architecture` issue and a new format number.
 >
+> **Superseded in part -- 2026-09-09 (issue #35).** This is still the format the code on
+> `dev` reads, and it stays valid as `elsa-tree/1` (preserved on branch `version-0.1`).
+> The owner has changed three requirements it rests on (`docs/CORE_DOCUMENT.md`, revised
+> 2026-09-09; `docs/adrs/ADR-35-version-0-2-rework.md`), and issue #37 freezes the
+> successor `elsa-tree/2` in this file. Until #37 merges, the following conflict with the
+> core document and must not be built against: section 1 and 2 and `ADR-4-file-layout.md`
+> (one file per Node: the owner wants one file per Tree); the absence of length limits on
+> text (section 5, 7: the page may never scroll, so every text field gets a maximum); the
+> manifest of section 4 (it gains a `theme` block: logo, colours, fonts carried by the
+> Tree). Unchanged and to be kept by `elsa-tree/2`: ids and Node references (3.1, 3.2),
+> localised text (3.3), rich text (3.4), image file names and the images folder (3.5,
+> `ADR-4-image-reference.md`), Sources, Images, Answers, Options, the terminal marker and
+> the three kinds of Node (5.1 to 5.6), strict validation (7), cross-links reserved (10).
+>
 > Vocabulary: the canonical names from `docs/CORE_DOCUMENT.md` section 5 -- **Tree**,
 > **Node**, **Link**, **Answer**, **Option**, **Terminal**, **Image**, **Source**,
 > **Trail**, **Cross-link** -- are used here with exactly that meaning. The decisions

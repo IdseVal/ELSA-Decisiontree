@@ -36,6 +36,24 @@
 > Amended 2026-09-06 by issue #27: section 1 gains one row, `agentRules: false`. It adds a
 > setting; no contract already in this document changes.
 >
+> **Superseded in part -- 2026-09-09 (issue #35).** This is still the contract the code
+> on `dev` implements, preserved as version 0.1 on branch `version-0.1`. The owner has
+> changed the presentation (`docs/CORE_DOCUMENT.md` section 3.2, revised 2026-09-09;
+> `docs/adrs/ADR-35-version-0-2-rework.md`), and issue #38 re-freezes the affected
+> sections in this file after #37 has frozen `elsa-tree/2`. Until #38 merges, the
+> following conflict with the core document and must not be built against: section 1's
+> row "Client-side JavaScript" (sliding transitions and pre-rendered neighbours need
+> client code; #38 states what still holds without it); section 5 (`ADR-5-lazy-loading.md`:
+> "never reading a second Node to render a page" gives way to a bounded set of
+> pre-rendered neighbours, never the whole Tree, never off-screen images; the loader reads
+> one Tree file instead of one Node file); section 5.3's thumbnails (a carousel below the
+> Bubble); section 6's component list and stylesheet (the tree view: Bubble, Branches,
+> Carousel; colours and fonts from the Tree's theme, served by a theme route); section 7's
+> testing rows insofar as the no-scroll rule needs a browser test. Unchanged by the
+> owner's instruction and kept as they stand: sections 1 (all other rows), 2, 3, 4 (the
+> URL scheme, the Trail in the path, the share link, `?lang` and the `[lang]` route), 4.4,
+> and the deployment path of `docs/deployment.md`.
+>
 > Vocabulary: the canonical names from `docs/CORE_DOCUMENT.md` section 5 -- **Tree**,
 > **Node**, **Link**, **Answer**, **Option**, **Terminal**, **Image**, **Source**,
 > **Trail** -- are used with exactly that meaning. **Chrome** is the interface text the

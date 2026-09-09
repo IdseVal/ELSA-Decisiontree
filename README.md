@@ -7,6 +7,11 @@ and holds its whole state in the URL: no database, no account, no cookie, no tra
 - What the project is for: [`docs/CORE_DOCUMENT.md`](docs/CORE_DOCUMENT.md)
 - The Tree file format, for anyone authoring a Tree: [`docs/specs/tree-format.md`](docs/specs/tree-format.md)
 - The application contracts: [`docs/specs/application.md`](docs/specs/application.md)
+
+Version 0.1 -- the state described by those two specs -- is preserved on the branch
+`version-0.1`. `dev` carries the version 0.2 rework the owner asked for in issue #35 (a
+tree on screen, no scrolling, a carousel, branding from the Tree, one file per Tree); see
+`docs/adrs/ADR-35-version-0-2-rework.md` for what changes and in which issue.
 - How to run it on a server: [`docs/deployment.md`](docs/deployment.md)
 
 ## Install
