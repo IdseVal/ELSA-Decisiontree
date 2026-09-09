@@ -1,6 +1,9 @@
 # ADR-4-file-layout: a Tree is a folder with one file per Node
 
 - Status: ACCEPTED (frozen) -- 2026-09-03
+- Superseded by `ADR-37-single-file-layout.md` (2026-09-10, issue #37): a Tree is one
+  file, `tree.yaml`, holding the manifest and every Node; the owner rejected one file
+  per Node in issue #35. The text below is the 0.1 record and is unchanged.
 - Issue: #4 -- Architecture: freeze the Tree file format and schema
 - Spec: `docs/specs/tree-format.md`, sections 1, 2 and 6
 
