@@ -12,11 +12,14 @@ logo is displayed". The core document (3.1, 3.2, 6, 9, revised 2026-09-09): a Tr
 carries its Theme -- logo, colours and fonts; theme assets are files in the Tree's
 folder; nothing is fetched from a third party at run time; the frontend never carries a
 lab's branding in its code; a Tree without a Theme gets a plain default look. Research
-issue #36 measures the identity of https://ai4sfs.org and has not merged; its first look
-found two logo variants (colour, and white for dark backgrounds), two font families
-(Open Sans for body text, Nova Square for display headings, self-hosted as woff2), and
-about ten colours of which six or seven have distinct roles. Fonts and logos carry
-licences (core document open item 10.25).
+issue #36 measured the identity of https://ai4sfs.org
+(`docs/research/issue-36-ai4sfs-visual-identity.md`, merged to `dev` 2026-09-09): two
+raster logo files, each with an opaque background baked in and no transparent or vector
+master; Open Sans for body text and headings (weights 400 to 800) and Nova Square for
+one oversized display heading, self-hosted as woff2 under the SIL Open Font License; and
+a role -> value table (its section 7) of fourteen colour roles, three font roles, radii,
+spacing, a content width and breakpoints. Fonts and logos carry licences (core document
+open item 10.25).
 
 The frontend must style any third-party Tree without a code change (core document 9),
 so what it reads from the Theme must be finite and known in advance -- the same
@@ -60,13 +63,17 @@ constraint that made the terminal outcome set closed (`ADR-4-terminal-marker.md`
   render in the default look and its author would not know why. A closed set makes the
   frontend's styling table complete by construction; a Tree that needs an eighth role
   needs a new format number, visibly.
-- **More colour roles now (`link`, `border`, `on-accent`, `heading`).** Each is
-  derivable from the seven with a contrast rule or a shade, and each extra required
-  role is one more thing every third-party author must choose correctly. The seven
-  cover the measured ai4sfs.org roles and every surface the tree view has (page,
-  Bubble, text, muted text, two Branch kinds, the prohibited outcome). Adding a role
-  later is a format bump, which is the right cost for widening a contract three labs
-  may depend on.
+- **More colour roles now: the ones #36 measures beyond the seven (`surfaceMuted`,
+  `heading`, `link`, `border`, `warning`, `success`, `display`), or an `on-accent`.**
+  Each is derivable from the seven with a contrast rule or a shade (a muted surface
+  between `background` and `surface`, a heading or link colour from `accent-secondary`,
+  a border from `text` at low opacity, text on an accent by contrast), or names a state
+  the tree view never shows (`warning`, `success`, an oversized `display` numeral); and
+  each extra required role is one more thing every third-party author must choose
+  correctly. The seven cover every surface the tree view has (page, Bubble, text, muted
+  text, two Branch kinds, the prohibited outcome), which is the set the frontend must
+  style, not the set a website uses. Adding a role later is a format bump, which is the
+  right cost for widening a contract three labs may depend on.
 - **Partial palettes allowed, defaults filled in per key.** A palette is designed as a
   set: a lab's `accent` on the frontend's default `background` may be unreadable, and
   the author would not see it because the validator passed. All-or-nothing per part
@@ -92,9 +99,22 @@ constraint that made the terminal outcome set closed (`ADR-4-terminal-marker.md`
 
 ## Consequences
 
-- Research issue #36's "role -> value" table maps one-to-one onto this block: the seven
-  colour roles, body and heading fonts, light and dark logos. If #36 finds a role the
-  block cannot hold, that is a new architecture issue, not a silent extension.
+- Research issue #36's "role -> value" table (its section 7) does **not** map one-to-one
+  onto this block, by decision. The block holds `background`, `surface`, `text`,
+  `textMuted`, `accent`, `accentSecondary` and `danger`; `bodyFont` and `headingFont`
+  (both Open Sans, so one family whose `files` carry the weights the site serves; the
+  weight a heading gets is #38's); `logoOnLight` as `light` and `favicon` as `icon`. It
+  deliberately does not hold, and #40 does not write: the colour roles `surfaceMuted`,
+  `heading`, `link`, `border`, `warning`, `success` and `display`, which the frontend
+  derives from the seven or never shows (`Alternatives rejected`, "More colour roles
+  now"); `displayFont` (Nova Square), because the tree view has no oversized display
+  heading and the closed role set is `body`, `heading` -- a Tree may still ship Nova
+  Square as its `heading` family, as the section 8 example does, but that is a choice,
+  not the measured role; `buttonRadius`, `pillRadius`, `cardRadius`, `sectionPadding`,
+  `contentWidth` and `breakpoints`, which are layout and #38's; and `logoOnDark`, which
+  the research could not find (the `dark` variant stays absent until the owner supplies
+  a master). A lab whose Theme needs one of these raises a new architecture issue and a
+  format bump, not a silent extension.
 - Core document open item 10.25 (may the ai4sfs.org logo and fonts be copied, under
   what licence line) is answered on the format side -- every font carries its licence
   line, and the logo its alternative text -- and remains the owner's on the substance.

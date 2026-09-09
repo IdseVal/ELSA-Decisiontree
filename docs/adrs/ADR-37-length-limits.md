@@ -44,10 +44,14 @@ Options and 4 Sources on a Node. The owner's own example of the new size -- a ti
    64, Carousel 80, disclaimer 28; a 640 x 304 text area inside the Bubble; 16 px body
    text at 24 px line height and 8.5 px average advance (75 characters per line); a
    22 px title (2 lines for 80 characters); 13 px Sources (2 lines for 3 labels of 60).
-   The description gets what remains: 192 px, 8 lines, 600 characters. Branch labels at
-   13 px in 150 px give 8 Option Branches side by side across 1280 px, with a 60-character
-   title on at most 3 lines; a Node that shows its 2 Answer Branches as well needs
-   1500 px at that width, which #38 resolves.
+   The description gets what remains: 192 px, 8 lines, 600 characters. Option Branch
+   labels at 13 px on 20 px lines in 150 px give 8 Option Branches side by side across
+   1280 px, with a 60-character title on at most 3 lines (60 px, inside the 64 px row);
+   a Node that shows its 2 Answer Branches as well needs 1500 px at that width, which
+   #38 resolves. Answer and Trail Branches carry a Node title of up to 80 characters:
+   the 2 Answer Branches have 640 px each, so 1 line; a Trail of up to 6 Nodes fits at
+   213 px each (at most 3 lines, 60 px); a longer Trail, which the format does not
+   bound, is #38's to truncate, wrap or collapse.
 5. **The rules report actual against maximum** (`description.nl: 9 lines > 8`,
    `title.en: 96 > 80`), so an author knows how much to cut, and the migration's report
    is the content issue's work list.

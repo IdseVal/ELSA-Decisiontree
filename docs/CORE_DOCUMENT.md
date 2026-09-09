@@ -73,9 +73,11 @@ required was named.
   from a single file, this .yaml way not easy to work with or navigate for a human
   working with this." All text and structure of a Tree live in **one file**; image
   files and theme assets (logo, fonts) stay separate files in the Tree's folder. The
-  serialisation of that one file is the Architect's to freeze (**OPEN 10.21**, issue
-  #37). The owner's alternative -- "an interface that makes the nodes editable in view
-  (a lot of work, but we might have to do that)" -- stays out of scope (section 4).
+  serialisation of that one file is frozen as `elsa-tree/2` (item 10.21, decided by the
+  Architect on issue #37): one `tree.yaml` per Tree, a YAML stream of the manifest and
+  one document per Node; `docs/specs/tree-format.md` and `docs/adrs/ADR-37-*.md`. The
+  owner's alternative -- "an interface that makes the nodes editable in view (a lot of
+  work, but we might have to do that)" -- stays out of scope (section 4).
 - **[v0.2] The look travels with the Tree (owner, #35).** A Tree carries its own
   **Theme**: logo, colours and fonts, "hosted in the datastructure and not in the
   frontend itself, so a different ELSA-lab can load in their own datastructures and

@@ -618,7 +618,8 @@ new format number. `docs/adrs/ADR-37-length-limits.md` has the reasoning.
 | Node title | 22 px, line height 28 px, about 55 characters per line: 80 characters is at most **2 lines** (56 px) |
 | Sources | 13 px, line height 20 px, about 90 characters per line: 3 labels of 60 characters with separators is at most **2 lines** (40 px) |
 | Description | what remains: 304 - 56 - 8 - 40 - 8 = 192 px = **8 lines** of 24 px, at 75 characters = 600 characters |
-| Branch labels | 13 px in a label at most 150 px wide, about 21 characters per line: an Option title of 60 characters is at most 3 lines; 8 Option Branches fit 1280 px side by side (1200 px). A question Node that carries both `answers` and `options` (section 5.6) shows 10 Branches, which need 1500 px at that width: #38 decides whether they narrow or wrap |
+| Option Branch labels | 13 px, line height 20 px, in a label at most 150 px wide, about 21 characters per line: an Option title of 60 characters is at most **3 lines** (60 px, inside the 64 px row); 8 Option Branches fit 1280 px side by side (1200 px). A question Node that carries both `answers` and `options` (section 5.6) shows 10 Branches, which need 1500 px at that width: #38 decides whether they narrow or wrap |
+| Answer and Trail Branch labels | the same 13 px on 20 px lines, but the label is a Node `title` of up to 80 characters (5.3, section 6), which at 150 px would be 4 lines = 80 px and not fit a 64 px row. The 2 Answer Branches have 640 px each (about 90 characters per line): 80 characters is **1 line**. A Trail of n Nodes has n Branches in the 64 px Trail row: up to 6 fit, at 213 px each (about 30 characters per line: 80 characters is at most **3 lines**, 60 px); the format does not bound a Trail's length, so a longer Trail is real, and #38 decides whether its labels truncate, its row wraps or its middle collapses to a count |
 | Carousel | one picture at a time, 80 px strip; a caption of 120 characters fits one line at 13 px under the enlarged view, two in the strip |
 
 What these numbers do **not** promise: that a description written at the maximum in a
@@ -748,9 +749,13 @@ Answer ends at the Terminal `outside-scope`; its `yes` Answer leads to
 `prohibited-practices`, a question Node with two Options, each opening an explanation
 Node (`social-scoring`, with a case-law and a literature Source and an Image on the
 Option; `emotion-recognition-at-work`). Answering `yes` there reaches the Terminal
-`prohibited`, `no` reaches the Terminal `covered`. The Theme's colours are the values
-issue #36 set out to verify for https://ai4sfs.org; the font and logo files are
-whatever valid files the repository carries under that name.
+`prohibited`, `no` reaches the Terminal `covered`. The Theme adapts what issue #36
+measured on https://ai4sfs.org (`docs/research/issue-36-ai4sfs-visual-identity.md`,
+section 7) to the Bubble rather than copying it: six of the seven colours are the
+measured values, `surface` is the site's quiet-control tint `#f0f3f7` (its cards are
+white with a shadow, which the Bubble does not have), and Nova Square, which the site
+uses only for one oversized display heading, is the example's `heading` family; the
+font and logo files are whatever valid files the repository carries under that name.
 
 ### `trees/ai-act-example/tree.yaml`
 
