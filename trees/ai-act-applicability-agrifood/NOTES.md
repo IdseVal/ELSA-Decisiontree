@@ -11,19 +11,26 @@ The loader ignores this file, so you can write anything in it.
 
 ```
 trees/ai-act-applicability-agrifood/
-  tree.yaml          the manifest: languages, root Node, title, metadata
+  tree.yaml          the WHOLE Tree: the manifest, then one document per Node
   NOTES.md           this file (ignored by the loader)
-  nodes/             61 files, one per Node; the file name IS the Node's id
 ```
 
-There is no `images/` folder yet. See section 6.
+There is no `images/` folder yet. See section 6. There is no `nodes/` folder any more:
+`elsa-tree/2` (issue #37) puts the whole Tree in one file, and issue #39 converted it.
+Inside `tree.yaml` a Node begins at a line `--- # <node-id>` followed by `id: <node-id>`,
+so searching for `--- #` lists every Node in order, and searching for `# social-scoring`
+lands on that Node. Everything else about a Node is exactly what its old file held.
+
+**This Tree does not load yet.** Its text is longer than `elsa-tree/2` allows, so the
+validator rejects it; section 10 is the list of what has to be cut, which is issue #44's
+work. The application's development default is `trees/ai-act-example` until then.
 
 The full file format is `docs/specs/tree-format.md`. Everything below is a short guide to
 this Tree in particular; the spec is the contract.
 
-## 2. The six steps, and which file is which
+## 2. The six steps, and which Node is which
 
-The walk starts at `nodes/start.yaml` (the manifest's `root`) and runs through eight
+The walk starts at the Node `start` (the manifest's `root`) and runs through eight
 question Nodes to one of four Terminals.
 
 | Step | Question Node | yes | no |
@@ -52,11 +59,11 @@ now says so, rather than leaving it to be inferred.
 
 ## 3. The lists, and how many entries each has
 
-The other 49 files are **explanation Nodes**: one per entry in a list. They have no
+The other 49 Nodes are **explanation Nodes**: one per entry in a list. They have no
 Answers. A reader opens one, reads it, and goes back through the Trail to answer the
 question it hangs under.
 
-| List | Node holding the list | Entries | File name prefix |
+| List | Node holding the list | Entries | Id prefix |
 |---|---|---|---|
 | Article 2 exclusions | `start` | 6 | `exclusion-` |
 | Article 5(1) prohibited practices | `prohibited-practices` | 10 | (named per practice) |
@@ -76,9 +83,9 @@ Open the file, change the text, save. Then run:
 npm run validate trees/ai-act-applicability-agrifood
 ```
 
-It prints `valid` or one line per problem: file, key path, rule id, and what is wrong.
-The application refuses to start on an invalid Tree, so this is the same check the server
-does. `npm test` additionally checks the counts and the shape described above.
+It prints `valid` or one line per problem: the Node, the key path, the rule id, and what
+is wrong. The application refuses to start on an invalid Tree, so this is the same check
+the server does. `npm test` additionally checks the counts and the shape described above.
 
 Things that will trip you up, in rough order of likelihood:
 
@@ -88,13 +95,17 @@ Things that will trip you up, in rough order of likelihood:
 - **Quote the version.** `version: "0.1"`, with the quotes. Unquoted it is a number and is
   rejected.
 - **Titles are one line.** `title`, Option titles and Source labels take no line breaks.
-  Descriptions can be as long as you like.
+- **Everything has a maximum length now**, because nothing on the page may scroll: 80
+  characters for a title, 600 for a description (and at most 8 rendered lines), 60 for an
+  Option title or a Source label, 3 Sources, 8 Options. The validator names the actual
+  length and the maximum. Section 10 lists every place this Tree is over.
 - **No unknown keys.** A typo like `anwsers:` is an error, not a silently ignored key. The
   one place you may invent keys is under `metadata:`.
 - **`yes` and `no` are the only Answer keys**, and both are required on a question Node.
-- **Renaming a file renames the Node.** The file name is the id. If you rename
-  `social-scoring.yaml`, every `target:` and Answer pointing at `social-scoring` has to
-  change too, and any link anyone has shared to that Node breaks.
+- **Renaming a Node renames its id.** The id is the `id:` line under the `--- #` separator.
+  If you rename `social-scoring`, every `target:` and Answer pointing at it has to change
+  too -- change the `--- # social-scoring` comment with it -- and any link anyone has
+  shared to that Node breaks.
 
 ## 5. What the description may contain
 
@@ -240,3 +251,612 @@ The Dutch text uses the official terminology of the Dutch-language consolidated 
 `aanbieder`, `gebruiksverantwoordelijke`, `in de handel brengen`, `in gebruik stellen`,
 `veiligheidscomponent`, `AI-systeem met een hoog risico`. Keep those words if you rewrite a
 passage; they are the Regulation's own.
+
+## 10. What has to be cut to fit `elsa-tree/2` (issue #44's work list)
+
+`elsa-tree/2` gives every text a maximum length, because nothing on the page may scroll
+(`docs/specs/tree-format.md` 5.7). This Tree was written before those limits existed, so
+issue #39 converted it faithfully -- not one word was shortened -- and recorded here what
+the validator says. **454 violations**, and nothing but these three rules:
+
+| Rule | What it means | Count |
+|---|---|---|
+| V-LENGTH | a text longer than its maximum | 327 |
+| V-LINES | a description that lays out over more than 8 lines | 124 |
+| V-COUNT | a list with more entries than allowed | 3 |
+
+Where the 327 V-LENGTH violations sit: 123 descriptions (over 600 characters), 136 Source
+labels (over 60), 41 Option titles (over 60) and 27 Node titles (over 80, across 19
+Nodes). All 124 V-LINES are descriptions: every one of the 61 Nodes and the manifest is
+over 8 lines in both languages. The three V-COUNT are the two long Option lists and one
+Node with four Sources -- `annex-i-legislation` (20 Options, 4 Sources) and
+`prohibited-practices` (10 Options) -- which #44 cuts into steps of at most 8, titled
+`(1/3)`, `(2/3)` and so on (5.8).
+
+Each figure counts one language at a time: a Node whose English and Dutch titles are both
+too long is two violations. Reproduce the list at any time with:
+
+```
+npm run validate trees/ai-act-applicability-agrifood
+```
+
+The list below is that output, grouped by Node, with the count per Node in brackets.
+
+```manifest  (4)
+  description.en              V-LINES   13 estimated lines; at most 8
+  description.en              V-LENGTH  663 characters; at most 600
+  description.nl              V-LINES   13 estimated lines; at most 8
+  description.nl              V-LENGTH  766 characters; at most 600
+
+start  (18)
+  description.en              V-LINES   33 estimated lines; at most 8
+  description.en              V-LENGTH  1744 characters; at most 600
+  description.nl              V-LINES   35 estimated lines; at most 8
+  description.nl              V-LENGTH  2008 characters; at most 600
+  sources[1].label.en         V-LENGTH  101 characters; at most 60
+  sources[1].label.nl         V-LENGTH  128 characters; at most 60
+  options[0].title.en         V-LENGTH  76 characters; at most 60
+  options[0].title.nl         V-LENGTH  89 characters; at most 60
+  options[1].title.en         V-LENGTH  88 characters; at most 60
+  options[1].title.nl         V-LENGTH  112 characters; at most 60
+  options[2].title.en         V-LENGTH  90 characters; at most 60
+  options[2].title.nl         V-LENGTH  111 characters; at most 60
+  options[3].title.en         V-LENGTH  74 characters; at most 60
+  options[3].title.nl         V-LENGTH  95 characters; at most 60
+  options[4].title.en         V-LENGTH  96 characters; at most 60
+  options[4].title.nl         V-LENGTH  131 characters; at most 60
+  options[5].title.en         V-LENGTH  77 characters; at most 60
+  options[5].title.nl         V-LENGTH  102 characters; at most 60
+
+ai-act-does-not-apply  (4)
+  description.en              V-LINES   14 estimated lines; at most 8
+  description.en              V-LENGTH  648 characters; at most 600
+  description.nl              V-LINES   17 estimated lines; at most 8
+  description.nl              V-LENGTH  792 characters; at most 600
+
+ai-system-definition  (6)
+  description.en              V-LINES   38 estimated lines; at most 8
+  description.en              V-LENGTH  1930 characters; at most 600
+  description.nl              V-LINES   40 estimated lines; at most 8
+  description.nl              V-LENGTH  2212 characters; at most 600
+  sources[1].label.en         V-LENGTH  61 characters; at most 60
+  sources[1].label.nl         V-LENGTH  72 characters; at most 60
+
+annex-i-agricultural-vehicles  (8)
+  description.en              V-LINES   23 estimated lines; at most 8
+  description.en              V-LENGTH  1311 characters; at most 600
+  description.nl              V-LINES   28 estimated lines; at most 8
+  description.nl              V-LENGTH  1590 characters; at most 600
+  sources[1].label.en         V-LENGTH  105 characters; at most 60
+  sources[1].label.nl         V-LENGTH  110 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-cableway-installations  (6)
+  description.en              V-LINES   17 estimated lines; at most 8
+  description.en              V-LENGTH  942 characters; at most 600
+  description.nl              V-LINES   20 estimated lines; at most 8
+  description.nl              V-LENGTH  1143 characters; at most 600
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-civil-aviation-security  (8)
+  description.en              V-LINES   18 estimated lines; at most 8
+  description.en              V-LENGTH  1032 characters; at most 600
+  description.nl              V-LINES   22 estimated lines; at most 8
+  description.nl              V-LENGTH  1295 characters; at most 600
+  sources[1].label.en         V-LENGTH  83 characters; at most 60
+  sources[1].label.nl         V-LENGTH  119 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-explosive-atmospheres  (9)
+  title.nl                    V-LENGTH  83 characters; at most 80
+  description.en              V-LINES   21 estimated lines; at most 8
+  description.en              V-LENGTH  1124 characters; at most 600
+  description.nl              V-LINES   24 estimated lines; at most 8
+  description.nl              V-LENGTH  1336 characters; at most 600
+  sources[1].label.en         V-LENGTH  119 characters; at most 60
+  sources[1].label.nl         V-LENGTH  130 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-gas-appliances  (7)
+  description.en              V-LINES   20 estimated lines; at most 8
+  description.en              V-LENGTH  1066 characters; at most 600
+  description.nl              V-LINES   23 estimated lines; at most 8
+  description.nl              V-LENGTH  1248 characters; at most 600
+  sources[1].label.nl         V-LENGTH  63 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-ivd-medical-devices  (8)
+  description.en              V-LINES   20 estimated lines; at most 8
+  description.en              V-LENGTH  1071 characters; at most 600
+  description.nl              V-LINES   23 estimated lines; at most 8
+  description.nl              V-LENGTH  1316 characters; at most 600
+  sources[1].label.en         V-LENGTH  63 characters; at most 60
+  sources[1].label.nl         V-LENGTH  84 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-legislation  (14)
+  title.nl                    V-LENGTH  86 characters; at most 80
+  description.en              V-LINES   45 estimated lines; at most 8
+  description.en              V-LENGTH  2463 characters; at most 600
+  description.nl              V-LINES   53 estimated lines; at most 8
+  description.nl              V-LENGTH  3075 characters; at most 600
+  sources                     V-COUNT   4 entries; at most 3
+  sources[0].label.en         V-LENGTH  86 characters; at most 60
+  sources[0].label.nl         V-LENGTH  101 characters; at most 60
+  sources[1].label.nl         V-LENGTH  70 characters; at most 60
+  sources[3].label.nl         V-LENGTH  86 characters; at most 60
+  options                     V-COUNT   20 entries; at most 8
+  options[3].title.en         V-LENGTH  70 characters; at most 60
+  options[3].title.nl         V-LENGTH  83 characters; at most 60
+  options[17].title.nl        V-LENGTH  70 characters; at most 60
+
+annex-i-lifts  (8)
+  description.en              V-LINES   17 estimated lines; at most 8
+  description.en              V-LENGTH  962 characters; at most 600
+  description.nl              V-LINES   20 estimated lines; at most 8
+  description.nl              V-LENGTH  1156 characters; at most 600
+  sources[1].label.en         V-LENGTH  70 characters; at most 60
+  sources[1].label.nl         V-LENGTH  72 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-machinery  (6)
+  description.en              V-LINES   25 estimated lines; at most 8
+  description.en              V-LENGTH  1410 characters; at most 600
+  description.nl              V-LINES   28 estimated lines; at most 8
+  description.nl              V-LENGTH  1666 characters; at most 600
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-marine-equipment  (6)
+  description.en              V-LINES   21 estimated lines; at most 8
+  description.en              V-LENGTH  1087 characters; at most 600
+  description.nl              V-LINES   24 estimated lines; at most 8
+  description.nl              V-LENGTH  1342 characters; at most 600
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-medical-devices  (6)
+  description.en              V-LINES   17 estimated lines; at most 8
+  description.en              V-LENGTH  936 characters; at most 600
+  description.nl              V-LINES   20 estimated lines; at most 8
+  description.nl              V-LENGTH  1144 characters; at most 600
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-motor-vehicle-approval  (8)
+  description.en              V-LINES   22 estimated lines; at most 8
+  description.en              V-LENGTH  1234 characters; at most 600
+  description.nl              V-LINES   26 estimated lines; at most 8
+  description.nl              V-LENGTH  1491 characters; at most 600
+  sources[1].label.en         V-LENGTH  185 characters; at most 60
+  sources[1].label.nl         V-LENGTH  212 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-motor-vehicle-general-safety  (8)
+  description.en              V-LINES   20 estimated lines; at most 8
+  description.en              V-LENGTH  1140 characters; at most 600
+  description.nl              V-LINES   23 estimated lines; at most 8
+  description.nl              V-LENGTH  1405 characters; at most 600
+  sources[1].label.en         V-LENGTH  191 characters; at most 60
+  sources[1].label.nl         V-LENGTH  229 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-personal-protective-equipment  (7)
+  description.en              V-LINES   20 estimated lines; at most 8
+  description.en              V-LENGTH  1082 characters; at most 600
+  description.nl              V-LINES   24 estimated lines; at most 8
+  description.nl              V-LENGTH  1311 characters; at most 600
+  sources[1].label.nl         V-LENGTH  71 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-pressure-equipment  (8)
+  description.en              V-LINES   20 estimated lines; at most 8
+  description.en              V-LENGTH  1093 characters; at most 600
+  description.nl              V-LINES   23 estimated lines; at most 8
+  description.nl              V-LENGTH  1268 characters; at most 600
+  sources[1].label.en         V-LENGTH  89 characters; at most 60
+  sources[1].label.nl         V-LENGTH  72 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-radio-equipment  (8)
+  description.en              V-LINES   21 estimated lines; at most 8
+  description.en              V-LENGTH  1201 characters; at most 600
+  description.nl              V-LINES   26 estimated lines; at most 8
+  description.nl              V-LENGTH  1487 characters; at most 600
+  sources[1].label.en         V-LENGTH  86 characters; at most 60
+  sources[1].label.nl         V-LENGTH  73 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-rail-interoperability  (8)
+  description.en              V-LINES   18 estimated lines; at most 8
+  description.en              V-LENGTH  1041 characters; at most 600
+  description.nl              V-LINES   21 estimated lines; at most 8
+  description.nl              V-LENGTH  1277 characters; at most 600
+  sources[1].label.en         V-LENGTH  92 characters; at most 60
+  sources[1].label.nl         V-LENGTH  101 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-recreational-craft  (8)
+  description.en              V-LINES   17 estimated lines; at most 8
+  description.en              V-LENGTH  958 characters; at most 600
+  description.nl              V-LINES   20 estimated lines; at most 8
+  description.nl              V-LENGTH  1151 characters; at most 600
+  sources[1].label.en         V-LENGTH  66 characters; at most 60
+  sources[1].label.nl         V-LENGTH  67 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-toys  (6)
+  description.en              V-LINES   17 estimated lines; at most 8
+  description.en              V-LENGTH  934 characters; at most 600
+  description.nl              V-LINES   20 estimated lines; at most 8
+  description.nl              V-LENGTH  1144 characters; at most 600
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-two-or-three-wheel-vehicles  (8)
+  description.en              V-LINES   23 estimated lines; at most 8
+  description.en              V-LENGTH  1260 characters; at most 600
+  description.nl              V-LINES   27 estimated lines; at most 8
+  description.nl              V-LENGTH  1537 characters; at most 600
+  sources[1].label.en         V-LENGTH  116 characters; at most 60
+  sources[1].label.nl         V-LENGTH  131 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-i-unmanned-aircraft  (8)
+  description.en              V-LINES   24 estimated lines; at most 8
+  description.en              V-LENGTH  1355 characters; at most 600
+  description.nl              V-LINES   28 estimated lines; at most 8
+  description.nl              V-LENGTH  1655 characters; at most 600
+  sources[1].label.en         V-LENGTH  72 characters; at most 60
+  sources[1].label.nl         V-LENGTH  94 characters; at most 60
+  sources[2].label.en         V-LENGTH  67 characters; at most 60
+  sources[2].label.nl         V-LENGTH  91 characters; at most 60
+
+annex-iii-areas  (12)
+  description.en              V-LINES   41 estimated lines; at most 8
+  description.en              V-LENGTH  2413 characters; at most 600
+  description.nl              V-LINES   49 estimated lines; at most 8
+  description.nl              V-LENGTH  2868 characters; at most 600
+  sources[0].label.en         V-LENGTH  71 characters; at most 60
+  sources[0].label.nl         V-LENGTH  82 characters; at most 60
+  sources[1].label.en         V-LENGTH  67 characters; at most 60
+  sources[1].label.nl         V-LENGTH  90 characters; at most 60
+  options[3].title.en         V-LENGTH  63 characters; at most 60
+  options[3].title.nl         V-LENGTH  71 characters; at most 60
+  options[4].title.en         V-LENGTH  80 characters; at most 60
+  options[4].title.nl         V-LENGTH  89 characters; at most 60
+
+annex-iii-biometrics  (6)
+  description.en              V-LINES   28 estimated lines; at most 8
+  description.en              V-LENGTH  1453 characters; at most 600
+  description.nl              V-LINES   32 estimated lines; at most 8
+  description.nl              V-LENGTH  1675 characters; at most 600
+  sources[1].label.en         V-LENGTH  89 characters; at most 60
+  sources[1].label.nl         V-LENGTH  105 characters; at most 60
+
+annex-iii-critical-infrastructure  (7)
+  description.en              V-LINES   24 estimated lines; at most 8
+  description.en              V-LENGTH  1266 characters; at most 600
+  description.nl              V-LINES   26 estimated lines; at most 8
+  description.nl              V-LENGTH  1464 characters; at most 600
+  sources[0].label.nl         V-LENGTH  61 characters; at most 60
+  sources[1].label.en         V-LENGTH  65 characters; at most 60
+  sources[1].label.nl         V-LENGTH  104 characters; at most 60
+
+annex-iii-education  (6)
+  description.en              V-LINES   21 estimated lines; at most 8
+  description.en              V-LENGTH  1105 characters; at most 600
+  description.nl              V-LINES   21 estimated lines; at most 8
+  description.nl              V-LENGTH  1189 characters; at most 600
+  sources[0].label.en         V-LENGTH  61 characters; at most 60
+  sources[0].label.nl         V-LENGTH  67 characters; at most 60
+
+annex-iii-employment  (8)
+  description.en              V-LINES   27 estimated lines; at most 8
+  description.en              V-LENGTH  1490 characters; at most 600
+  description.nl              V-LINES   31 estimated lines; at most 8
+  description.nl              V-LENGTH  1725 characters; at most 600
+  sources[0].label.en         V-LENGTH  88 characters; at most 60
+  sources[0].label.nl         V-LENGTH  106 characters; at most 60
+  sources[1].label.en         V-LENGTH  73 characters; at most 60
+  sources[1].label.nl         V-LENGTH  85 characters; at most 60
+
+annex-iii-essential-services  (7)
+  title.nl                    V-LENGTH  86 characters; at most 80
+  description.en              V-LINES   29 estimated lines; at most 8
+  description.en              V-LENGTH  1708 characters; at most 600
+  description.nl              V-LINES   35 estimated lines; at most 8
+  description.nl              V-LENGTH  2085 characters; at most 600
+  sources[0].label.en         V-LENGTH  78 characters; at most 60
+  sources[0].label.nl         V-LENGTH  97 characters; at most 60
+
+annex-iii-justice-and-democracy  (6)
+  description.en              V-LINES   22 estimated lines; at most 8
+  description.en              V-LENGTH  1195 characters; at most 600
+  description.nl              V-LINES   24 estimated lines; at most 8
+  description.nl              V-LENGTH  1394 characters; at most 600
+  sources[0].label.en         V-LENGTH  78 characters; at most 60
+  sources[0].label.nl         V-LENGTH  79 characters; at most 60
+
+annex-iii-law-enforcement  (6)
+  description.en              V-LINES   29 estimated lines; at most 8
+  description.en              V-LENGTH  1628 characters; at most 600
+  description.nl              V-LINES   32 estimated lines; at most 8
+  description.nl              V-LENGTH  1877 characters; at most 600
+  sources[1].label.en         V-LENGTH  86 characters; at most 60
+  sources[1].label.nl         V-LENGTH  123 characters; at most 60
+
+annex-iii-migration-and-borders  (6)
+  description.en              V-LINES   24 estimated lines; at most 8
+  description.en              V-LENGTH  1485 characters; at most 600
+  description.nl              V-LINES   30 estimated lines; at most 8
+  description.nl              V-LENGTH  1752 characters; at most 600
+  sources[0].label.en         V-LENGTH  75 characters; at most 60
+  sources[0].label.nl         V-LENGTH  79 characters; at most 60
+
+article-50-deep-fakes  (4)
+  description.en              V-LINES   27 estimated lines; at most 8
+  description.en              V-LENGTH  1401 characters; at most 600
+  description.nl              V-LINES   29 estimated lines; at most 8
+  description.nl              V-LENGTH  1594 characters; at most 600
+
+article-50-direct-interaction  (5)
+  title.nl                    V-LENGTH  81 characters; at most 80
+  description.en              V-LINES   23 estimated lines; at most 8
+  description.en              V-LENGTH  1151 characters; at most 600
+  description.nl              V-LINES   26 estimated lines; at most 8
+  description.nl              V-LENGTH  1258 characters; at most 600
+
+article-50-emotion-and-biometric  (8)
+  title.en                    V-LENGTH  84 characters; at most 80
+  title.nl                    V-LENGTH  110 characters; at most 80
+  description.en              V-LINES   31 estimated lines; at most 8
+  description.en              V-LENGTH  1711 characters; at most 600
+  description.nl              V-LINES   36 estimated lines; at most 8
+  description.nl              V-LENGTH  1968 characters; at most 600
+  sources[1].label.en         V-LENGTH  88 characters; at most 60
+  sources[1].label.nl         V-LENGTH  106 characters; at most 60
+
+article-50-generated-text  (5)
+  title.nl                    V-LENGTH  127 characters; at most 80
+  description.en              V-LINES   28 estimated lines; at most 8
+  description.en              V-LENGTH  1419 characters; at most 600
+  description.nl              V-LINES   30 estimated lines; at most 8
+  description.nl              V-LENGTH  1592 characters; at most 600
+
+article-50-synthetic-content  (8)
+  title.en                    V-LENGTH  85 characters; at most 80
+  title.nl                    V-LENGTH  99 characters; at most 80
+  description.en              V-LINES   30 estimated lines; at most 8
+  description.en              V-LENGTH  1483 characters; at most 600
+  description.nl              V-LINES   32 estimated lines; at most 8
+  description.nl              V-LENGTH  1694 characters; at most 600
+  sources[1].label.en         V-LENGTH  77 characters; at most 60
+  sources[1].label.nl         V-LENGTH  104 characters; at most 60
+
+biometric-categorisation  (7)
+  title.en                    V-LENGTH  89 characters; at most 80
+  title.nl                    V-LENGTH  110 characters; at most 80
+  description.en              V-LINES   23 estimated lines; at most 8
+  description.en              V-LENGTH  1208 characters; at most 600
+  description.nl              V-LINES   26 estimated lines; at most 8
+  description.nl              V-LENGTH  1409 characters; at most 600
+  sources[1].label.nl         V-LENGTH  77 characters; at most 60
+
+child-sexual-abuse-material  (7)
+  description.en              V-LINES   20 estimated lines; at most 8
+  description.en              V-LENGTH  1036 characters; at most 600
+  description.nl              V-LINES   23 estimated lines; at most 8
+  description.nl              V-LENGTH  1188 characters; at most 600
+  sources[0].label.nl         V-LENGTH  70 characters; at most 60
+  sources[1].label.en         V-LENGTH  76 characters; at most 60
+  sources[1].label.nl         V-LENGTH  81 characters; at most 60
+
+emotion-recognition-at-work  (5)
+  description.en              V-LINES   25 estimated lines; at most 8
+  description.en              V-LENGTH  1208 characters; at most 600
+  description.nl              V-LINES   28 estimated lines; at most 8
+  description.nl              V-LENGTH  1421 characters; at most 600
+  sources[1].label.nl         V-LENGTH  75 characters; at most 60
+
+end-of-walk  (6)
+  description.en              V-LINES   34 estimated lines; at most 8
+  description.en              V-LENGTH  1866 characters; at most 600
+  description.nl              V-LINES   38 estimated lines; at most 8
+  description.nl              V-LENGTH  2132 characters; at most 600
+  sources[1].label.en         V-LENGTH  69 characters; at most 60
+  sources[1].label.nl         V-LENGTH  83 characters; at most 60
+
+exclusion-national-security  (5)
+  title.nl                    V-LENGTH  89 characters; at most 80
+  description.en              V-LINES   17 estimated lines; at most 8
+  description.en              V-LENGTH  929 characters; at most 600
+  description.nl              V-LINES   20 estimated lines; at most 8
+  description.nl              V-LENGTH  1090 characters; at most 600
+
+exclusion-open-source  (5)
+  title.nl                    V-LENGTH  102 characters; at most 80
+  description.en              V-LINES   15 estimated lines; at most 8
+  description.en              V-LENGTH  734 characters; at most 600
+  description.nl              V-LINES   17 estimated lines; at most 8
+  description.nl              V-LENGTH  872 characters; at most 600
+
+exclusion-personal-use  (5)
+  title.en                    V-LENGTH  96 characters; at most 80
+  title.nl                    V-LENGTH  131 characters; at most 80
+  description.en              V-LINES   13 estimated lines; at most 8
+  description.nl              V-LINES   14 estimated lines; at most 8
+  description.nl              V-LENGTH  667 characters; at most 600
+
+exclusion-research-and-development  (5)
+  title.nl                    V-LENGTH  95 characters; at most 80
+  description.en              V-LINES   16 estimated lines; at most 8
+  description.en              V-LENGTH  715 characters; at most 600
+  description.nl              V-LINES   19 estimated lines; at most 8
+  description.nl              V-LENGTH  838 characters; at most 600
+
+exclusion-scientific-research  (6)
+  title.en                    V-LENGTH  90 characters; at most 80
+  title.nl                    V-LENGTH  111 characters; at most 80
+  description.en              V-LINES   15 estimated lines; at most 8
+  description.en              V-LENGTH  782 characters; at most 600
+  description.nl              V-LINES   16 estimated lines; at most 8
+  description.nl              V-LENGTH  899 characters; at most 600
+
+exclusion-third-country-authorities  (6)
+  title.en                    V-LENGTH  88 characters; at most 80
+  title.nl                    V-LENGTH  112 characters; at most 80
+  description.en              V-LINES   11 estimated lines; at most 8
+  description.en              V-LENGTH  603 characters; at most 600
+  description.nl              V-LINES   12 estimated lines; at most 8
+  description.nl              V-LENGTH  685 characters; at most 600
+
+exploiting-vulnerabilities  (5)
+  title.nl                    V-LENGTH  95 characters; at most 80
+  description.en              V-LINES   21 estimated lines; at most 8
+  description.en              V-LENGTH  1044 characters; at most 600
+  description.nl              V-LINES   23 estimated lines; at most 8
+  description.nl              V-LENGTH  1220 characters; at most 600
+
+general-purpose-ai  (10)
+  description.en              V-LINES   44 estimated lines; at most 8
+  description.en              V-LENGTH  2542 characters; at most 600
+  description.nl              V-LINES   51 estimated lines; at most 8
+  description.nl              V-LENGTH  3103 characters; at most 600
+  sources[0].label.en         V-LENGTH  74 characters; at most 60
+  sources[0].label.nl         V-LENGTH  96 characters; at most 60
+  sources[1].label.en         V-LENGTH  82 characters; at most 60
+  sources[1].label.nl         V-LENGTH  104 characters; at most 60
+  sources[2].label.en         V-LENGTH  74 characters; at most 60
+  sources[2].label.nl         V-LENGTH  99 characters; at most 60
+
+high-risk  (10)
+  description.en              V-LINES   38 estimated lines; at most 8
+  description.en              V-LENGTH  2288 characters; at most 600
+  description.nl              V-LINES   45 estimated lines; at most 8
+  description.nl              V-LENGTH  2777 characters; at most 600
+  sources[0].label.en         V-LENGTH  64 characters; at most 60
+  sources[0].label.nl         V-LENGTH  83 characters; at most 60
+  sources[1].label.en         V-LENGTH  68 characters; at most 60
+  sources[1].label.nl         V-LENGTH  109 characters; at most 60
+  sources[2].label.en         V-LENGTH  64 characters; at most 60
+  sources[2].label.nl         V-LENGTH  86 characters; at most 60
+
+non-consensual-sexual-imagery  (9)
+  title.en                    V-LENGTH  86 characters; at most 80
+  title.nl                    V-LENGTH  105 characters; at most 80
+  description.en              V-LINES   28 estimated lines; at most 8
+  description.en              V-LENGTH  1574 characters; at most 600
+  description.nl              V-LINES   32 estimated lines; at most 8
+  description.nl              V-LENGTH  1828 characters; at most 600
+  sources[0].label.nl         V-LENGTH  81 characters; at most 60
+  sources[1].label.en         V-LENGTH  76 characters; at most 60
+  sources[1].label.nl         V-LENGTH  81 characters; at most 60
+
+not-an-ai-system  (6)
+  description.en              V-LINES   25 estimated lines; at most 8
+  description.en              V-LENGTH  1270 characters; at most 600
+  description.nl              V-LINES   28 estimated lines; at most 8
+  description.nl              V-LENGTH  1560 characters; at most 600
+  sources[1].label.en         V-LENGTH  85 characters; at most 60
+  sources[1].label.nl         V-LENGTH  100 characters; at most 60
+
+predicting-criminal-offences  (5)
+  title.nl                    V-LENGTH  102 characters; at most 80
+  description.en              V-LINES   16 estimated lines; at most 8
+  description.en              V-LENGTH  940 characters; at most 600
+  description.nl              V-LINES   20 estimated lines; at most 8
+  description.nl              V-LENGTH  1126 characters; at most 600
+
+prohibited-practices  (22)
+  description.en              V-LINES   19 estimated lines; at most 8
+  description.en              V-LENGTH  926 characters; at most 600
+  description.nl              V-LINES   22 estimated lines; at most 8
+  description.nl              V-LENGTH  1147 characters; at most 600
+  sources[1].label.en         V-LENGTH  86 characters; at most 60
+  sources[1].label.nl         V-LENGTH  101 characters; at most 60
+  options                     V-COUNT   10 entries; at most 8
+  options[0].title.en         V-LENGTH  61 characters; at most 60
+  options[0].title.nl         V-LENGTH  63 characters; at most 60
+  options[1].title.en         V-LENGTH  79 characters; at most 60
+  options[1].title.nl         V-LENGTH  95 characters; at most 60
+  options[2].title.en         V-LENGTH  86 characters; at most 60
+  options[2].title.nl         V-LENGTH  105 characters; at most 60
+  options[3].title.nl         V-LENGTH  74 characters; at most 60
+  options[5].title.en         V-LENGTH  71 characters; at most 60
+  options[5].title.nl         V-LENGTH  102 characters; at most 60
+  options[6].title.en         V-LENGTH  74 characters; at most 60
+  options[6].title.nl         V-LENGTH  96 characters; at most 60
+  options[8].title.en         V-LENGTH  89 characters; at most 60
+  options[8].title.nl         V-LENGTH  110 characters; at most 60
+  options[9].title.en         V-LENGTH  91 characters; at most 60
+  options[9].title.nl         V-LENGTH  105 characters; at most 60
+
+prohibited  (6)
+  description.en              V-LINES   28 estimated lines; at most 8
+  description.en              V-LENGTH  1485 characters; at most 600
+  description.nl              V-LINES   31 estimated lines; at most 8
+  description.nl              V-LENGTH  1793 characters; at most 600
+  sources[1].label.en         V-LENGTH  69 characters; at most 60
+  sources[1].label.nl         V-LENGTH  109 characters; at most 60
+
+real-time-biometric-identification  (9)
+  title.en                    V-LENGTH  91 characters; at most 80
+  title.nl                    V-LENGTH  105 characters; at most 80
+  description.en              V-LINES   32 estimated lines; at most 8
+  description.en              V-LENGTH  1833 characters; at most 600
+  description.nl              V-LINES   37 estimated lines; at most 8
+  description.nl              V-LENGTH  2034 characters; at most 600
+  sources[0].label.nl         V-LENGTH  77 characters; at most 60
+  sources[1].label.en         V-LENGTH  107 characters; at most 60
+  sources[1].label.nl         V-LENGTH  114 characters; at most 60
+
+social-scoring  (4)
+  description.en              V-LINES   22 estimated lines; at most 8
+  description.en              V-LENGTH  1227 characters; at most 600
+  description.nl              V-LINES   25 estimated lines; at most 8
+  description.nl              V-LENGTH  1362 characters; at most 600
+
+subliminal-or-manipulative-techniques  (4)
+  description.en              V-LINES   23 estimated lines; at most 8
+  description.en              V-LENGTH  1078 characters; at most 600
+  description.nl              V-LINES   22 estimated lines; at most 8
+  description.nl              V-LENGTH  1149 characters; at most 600
+
+transparency-obligations  (13)
+  description.en              V-LINES   23 estimated lines; at most 8
+  description.en              V-LENGTH  1240 characters; at most 600
+  description.nl              V-LINES   26 estimated lines; at most 8
+  description.nl              V-LENGTH  1426 characters; at most 600
+  sources[0].label.en         V-LENGTH  94 characters; at most 60
+  sources[0].label.nl         V-LENGTH  126 characters; at most 60
+  options[0].title.nl         V-LENGTH  63 characters; at most 60
+  options[1].title.en         V-LENGTH  70 characters; at most 60
+  options[1].title.nl         V-LENGTH  81 characters; at most 60
+  options[2].title.en         V-LENGTH  69 characters; at most 60
+  options[2].title.nl         V-LENGTH  92 characters; at most 60
+  options[4].title.en         V-LENGTH  62 characters; at most 60
+  options[4].title.nl         V-LENGTH  109 characters; at most 60
+
+untargeted-facial-scraping  (5)
+  title.nl                    V-LENGTH  96 characters; at most 80
+  description.en              V-LINES   13 estimated lines; at most 8
+  description.en              V-LENGTH  618 characters; at most 600
+  description.nl              V-LINES   13 estimated lines; at most 8
+  description.nl              V-LENGTH  671 characters; at most 600
+```
