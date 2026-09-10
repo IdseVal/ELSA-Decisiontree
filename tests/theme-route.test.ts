@@ -8,13 +8,17 @@
  * whether the page actually asks for these files, and from which origin -- is
  * `tests/browser/theme.spec.ts`.
  */
-import { readFile } from 'node:fs/promises'
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
+import { IMAGE_TYPES, THEME_TYPES } from '../src/assets.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
-const themeDir = path.join(here, '..', 'trees', 'ai-act-example', 'theme')
+const trees = path.join(here, '..', 'trees')
+const themeDir = path.join(trees, 'ai-act-example', 'theme')
+const firstTree = path.join(trees, 'ai-act-applicability-agrifood')
 
 // The served Tree is a run-time setting the route reads through `servedTree()`, so it is
 // set before the route module is imported, exactly as a deployment sets it before start.
@@ -89,6 +93,89 @@ describe('everything else answers 404, and the same 404', () => {
     const response = await ask(() => themeRoute, 'open-sans-400.woff2')
 
     expect(response.status).toBe(404)
+  })
+})
+
+/**
+ * The first Tree's own logo and tab icon are `.png`, and no `.png` reaches the theme route
+ * above: the example Tree's Theme is two SVGs and a font. A `png` missing from
+ * `THEME_TYPES` would be served as `application/octet-stream`, and `nosniff` then stops the
+ * browser painting it -- silently, on the Tree this issue exists to theme, with the whole
+ * suite green.
+ *
+ * The first Tree cannot be opened yet: it is over the format's length limits in 454 places
+ * until issue #44 cuts its text, so `openTree` refuses it. Its Theme is finished, and a
+ * Theme is independent of the content it dresses, so its `theme:` block and its whole
+ * `theme/` folder are served over the example Tree's Nodes -- the same assembly
+ * `tests/browser/theme.spec.ts` makes, and the bytes served are the first Tree's own.
+ */
+describe('the first Tree logo and tab icon are PNG, and arrive as PNG', () => {
+  let firstRoute: typeof themeRoute
+  let scratch: string
+
+  beforeAll(async () => {
+    scratch = await mkdtemp(path.join(tmpdir(), 'elsa-theme-route-'))
+    const dir = path.join(scratch, 'ai-act-example')
+    await cp(path.join(trees, 'ai-act-example'), dir, { recursive: true })
+    await rm(path.join(dir, 'theme'), { recursive: true })
+    await cp(path.join(firstTree, 'theme'), path.join(dir, 'theme'), { recursive: true })
+
+    // The manifest is the first document of the stream (tree-format.md 4.1) and `theme:`
+    // is last in it in both Trees, so one block swaps for the other by two searches.
+    const first = await readFile(path.join(firstTree, 'tree.yaml'), 'utf8')
+    const example = await readFile(path.join(dir, 'tree.yaml'), 'utf8')
+    const nodesAt = (stream: string): number => stream.indexOf('\n---')
+    const themeAt = (stream: string): number => stream.search(/^theme:$/m)
+    const theme = first.slice(themeAt(first), nodesAt(first))
+    const manifest = example.slice(0, themeAt(example))
+    await writeFile(path.join(dir, 'tree.yaml'), manifest + theme + example.slice(nodesAt(example)))
+
+    // A second served Tree needs a second module registry: `config.ts` memoises the Tree it
+    // opened, and the route above closed over that one.
+    vi.resetModules()
+    process.env.ELSA_TREES_DIR = scratch
+    firstRoute = (await import('../src/app/[lang]/theme/[file]/route.ts')).GET
+  })
+
+  afterAll(async () => {
+    process.env.ELSA_TREES_DIR = path.join(here, '..', 'trees')
+    await rm(scratch, { recursive: true, force: true })
+  })
+
+  test.for([
+    ['elsa-lab-logo.png', 'the chrome bar logo'],
+    ['favicon.png', 'the tab icon'],
+  ])('%s (%s) is sent as image/png, with the first Tree bytes', async ([file]) => {
+    const response = await ask(() => firstRoute, file!)
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('Content-Type')).toBe('image/png')
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
+    const served = Buffer.from(await response.arrayBuffer())
+    expect(served.equals(await readFile(path.join(firstTree, 'theme', file!)))).toBe(true)
+  })
+
+  test('the fonts of the first Tree travel with it', async () => {
+    const response = await ask(() => firstRoute, 'open-sans-600.woff2')
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('Content-Type')).toBe('font/woff2')
+  })
+})
+
+/*
+ * The two `.png` cases above are the ones a Tree in this repository exercises; `webp` and
+ * `ico` are in the grammar and in no Tree. Rather than invent a fixture for each, the two
+ * tables are checked against the grammars they serve: an extension the format admits and
+ * the table does not is the same `application/octet-stream` defect, found without a file.
+ */
+describe('every extension the format admits has a type', () => {
+  test.for([
+    ['theme files (3.6)', THEME_TYPES, ['svg', 'png', 'webp', 'ico', 'woff2']],
+    ['image files (3.5)', IMAGE_TYPES, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg']],
+  ] as const)('%s', ([, types, extensions]) => {
+    expect(Object.keys(types).sort()).toEqual([...extensions].sort())
+    for (const type of Object.values(types)) expect(type).not.toBe('application/octet-stream')
   })
 })
 
