@@ -1271,22 +1271,36 @@ application writes a colour or a font name.
   --elsa-accent: #ffc600;      --elsa-accent-secondary: #41ab64;
   --elsa-danger: #e44e56;
   --elsa-on-accent: #2d2e33;   --elsa-on-accent-secondary: #ffffff;  --elsa-on-danger: #ffffff;
+  --elsa-scrim: #2d2e33;
   --elsa-font-body: 'Open Sans', <the default stack>;
   --elsa-font-heading: 'Nova Square', var(--elsa-font-body);
+  color-scheme: light;
 }
 ```
 
 - **The seven colour roles become `--elsa-<role>` verbatim.** They are the seven of
   `tree-format.md` 4.3.3 and there is no eighth.
-- **Three colours are derived at render time**, because CSS cannot compute contrast:
-  `--elsa-on-accent`, `--elsa-on-accent-secondary` and `--elsa-on-danger` are whichever
-  of `text` and `background` has the higher WCAG relative-luminance contrast against
-  that accent. Everything else the stylesheet wants -- a hover shade, a disabled
-  control, a border -- it derives in CSS with `color-mix()` from the seven. `theme.ts`
-  computes three values; it is not a colour system.
+- **Four values are derived at render time**, and each is one CSS cannot compute.
+  Everything else the stylesheet wants -- a hover shade, a disabled control, a border --
+  it derives in CSS with `color-mix()` from the seven. `theme.ts` computes four values;
+  it is not a colour system.
+  - **Three because CSS cannot compute contrast:** `--elsa-on-accent`,
+    `--elsa-on-accent-secondary` and `--elsa-on-danger` are whichever of `text` and
+    `background` has the higher WCAG relative-luminance contrast against that accent.
+  - **One because CSS cannot compare luminance:** `--elsa-scrim` is whichever of `text`
+    and `background` is the darker. It is the colour the stylesheet lays over the page
+    behind the enlarged Image, and a backdrop that is not told which way the palette
+    runs recedes on a light Theme and advances on a dark one. It names no new colour --
+    it is one of the seven, picked -- and `color-mix()` cannot reach past the darkest
+    colour a Theme owns, so on a dark palette the backdrop meets the page rather than
+    dimming it further and the dialog's `surface` is what lifts it.
 - **Whether the Theme is dark is derived, not declared:** if the relative luminance of
   `background` is below 0.5 the page is dark, and `logo.dark` is used where it exists.
-  The format needs no key for it and a Theme author cannot get it wrong.
+  The format needs no key for it and a Theme author cannot get it wrong. The same test
+  writes the block's one non-custom declaration, `color-scheme`, which is the UA hint
+  for form controls and scrollbars and not an eighth role: the stylesheet has no
+  `prefers-color-scheme` block, because dark is the Tree's property and not the
+  reader's machine's.
 - **Fonts:** one `@font-face` per file, with `font-weight` and `font-style` reproduced
   verbatim from the Theme and `src` pointing at `/theme/<file>` (5.5). `font-display:
   swap` so a slow font never blanks the text. The `body` family becomes

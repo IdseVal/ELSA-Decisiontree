@@ -8,8 +8,10 @@
  * 13.3 is therefore here and nowhere else, and `tests/stylesheet.test.ts` holds the other
  * half of that bargain: `globals.css` names no colour and no font family of its own.
  *
- * It computes three colours and nothing more. Hover shades, borders and disabled states
- * are derived in CSS with `color-mix()` from the seven roles; this is not a colour system.
+ * It computes four values and nothing more, and each is one CSS cannot: three readable-on
+ * colours, because CSS cannot compare contrast, and the dark end of the palette, because
+ * it cannot compare luminance either. Hover shades, borders, washes and the backdrop's
+ * opacity are derived in CSS with `color-mix()` from those; this is not a colour system.
  */
 import { themeHref } from './url.ts'
 import type { Colours, LocalisedText, Theme } from './tree/types.ts'
@@ -125,6 +127,11 @@ function rootBlock(colours: Colours, theme: Theme | undefined): string {
     `--elsa-on-accent:${readableOn(colours.accent, colours)}`,
     `--elsa-on-accent-secondary:${readableOn(colours['accent-secondary'], colours)}`,
     `--elsa-on-danger:${readableOn(colours.danger, colours)}`,
+    // Nor can CSS ask which end of the palette is the dark one, and a backdrop that is not
+    // told brightens the page it is meant to push back: keyed to `text` it is a near-white
+    // sheet on a dark Theme. This invents no colour -- it is `text` or `background`, picked
+    // -- and it is what makes `--veil` recede whichever way the palette runs (13.1).
+    `--elsa-scrim:${darkerOf(colours.text, colours.background)}`,
     `--elsa-font-body:${body ? `${body}, ${DEFAULT_FONT_STACK}` : DEFAULT_FONT_STACK}`,
     // A Tree that gives only `body` has its headings in the body family (4.3.2).
     `--elsa-font-heading:${heading ? `${heading}, var(--elsa-font-body)` : 'var(--elsa-font-body)'}`,
@@ -164,6 +171,11 @@ function quoteFamily(family: string): string | null {
 /** Whichever of `text` and `background` reads better on `colour` (13.1). */
 function readableOn(colour: string, colours: Colours): string {
   return contrast(colours.text, colour) >= contrast(colours.background, colour) ? colours.text : colours.background
+}
+
+/** Whichever of two `#rrggbb` colours is the darker; `a` when they are equally light. */
+function darkerOf(a: string, b: string): string {
+  return luminance(a) <= luminance(b) ? a : b
 }
 
 /** The WCAG 2 relative luminance of `#rrggbb`. */

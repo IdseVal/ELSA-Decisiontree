@@ -97,6 +97,7 @@ describe('the roles the stylesheet reads are the ones the Theme emits', () => {
       '--elsa-on-accent',
       '--elsa-on-accent-secondary',
       '--elsa-on-danger',
+      '--elsa-scrim',
       '--elsa-font-body',
       '--elsa-font-heading',
     ])

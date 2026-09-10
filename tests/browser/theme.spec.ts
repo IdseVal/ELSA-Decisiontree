@@ -182,6 +182,79 @@ test('changing a colour in tree.yaml and restarting changes the page, with no co
   expect(await property(page, '--elsa-danger')).toBe('#ff8a7a')
 })
 
+/**
+ * The one derived shade whose correctness depends on which direction the palette runs. A
+ * backdrop is there to push the page back; keyed to `--elsa-text` it did the opposite on a
+ * dark Theme -- a near-white sheet with the dialog floating on it -- and the only palette
+ * this repository ships dark is the example Tree, whose `start` Node carries a thumbnail.
+ * Nothing measured it, which is why it got through, so it is measured here: on the dark
+ * Theme as served, and on the same Tree with its two ends swapped.
+ */
+test('the enlarged image never brightens the page behind it, whichever way the palette runs', async ({ page }) => {
+  /** The painted backdrop and page, with the dialog open, as luminance (WCAG 2). */
+  async function scrimAndPage(origin: string): Promise<{ scrim: number; page: number; veil: string }> {
+    await page.goto(`${origin}/ai-act-example/start`)
+    await page.locator('.thumbnail').first().click()
+    await expect(page.locator('dialog.enlarged')).toBeVisible()
+
+    return page.evaluate(() => {
+      /** A computed colour as `[r, g, b, a]`, from either spelling a browser may return. */
+      const parse = (colour: string): [number, number, number, number] => {
+        const parts = (colour.match(/-?[\d.]+(?:e-?\d+)?/g) ?? []).map(Number)
+        // `color(srgb r g b / a)` gives its channels as fractions; `rgb()` gives 0-255.
+        const scale = colour.startsWith('color(') ? 255 : 1
+        return [parts[0]! * scale, parts[1]! * scale, parts[2]! * scale, parts[3] ?? 1]
+      }
+      const relative = ([r, g, b]: number[]): number => {
+        const channel = (value: number): number => {
+          const part = value! / 255
+          return part <= 0.03928 ? part / 12.92 : ((part + 0.055) / 1.055) ** 2.4
+        }
+        return 0.2126 * channel(r!) + 0.7152 * channel(g!) + 0.0722 * channel(b!)
+      }
+      const dialog = document.querySelector('dialog.enlarged')!
+      const painted = getComputedStyle(dialog, '::backdrop').backgroundColor
+      const behind = parse(getComputedStyle(document.body).backgroundColor)
+      const veil = parse(painted)
+      // The scrim is translucent, so what the reader sees is the composite, not the value.
+      const alpha = veil[3]!
+      const over = [0, 1, 2].map((i) => alpha * veil[i]! + (1 - alpha) * behind[i]!)
+
+      return { scrim: relative(over), page: relative(behind), veil: painted }
+    })
+  }
+
+  // The dark Theme, exactly as the repository ships it.
+  const dark = await scrimAndPage('')
+  expect(dark.page).toBeLessThan(0.1)
+  expect(dark.scrim).toBeLessThanOrEqual(dark.page + 0.001)
+
+  // The same Tree with `text` and `background` exchanged: a light palette, one line each.
+  const { treesDir, dir } = await copyTree(path.join(trees, 'ai-act-example'), 'ai-act-example')
+  const file = path.join(dir, 'tree.yaml')
+  const before = await readFile(file, 'utf8')
+  const changed = before
+    .replace('background: "#161a1d"', 'background: "#eef1f2"')
+    .replace('text: "#eef1f2"', 'text: "#161a1d"')
+  expect(changed, 'the two palette lines the Tree is edited at').not.toBe(before)
+  await writeFile(file, changed)
+
+  const light = await scrimAndPage(await serve(treesDir, 'ai-act-example', FIRST_PORT + 3))
+
+  // Printed so the pull request can paste what was measured rather than describe it.
+  console.log(
+    `enlarged dialog, backdrop over page (WCAG relative luminance):
+` +
+      `  dark Theme  page ${dark.page.toFixed(4)}  seen ${dark.scrim.toFixed(4)}  ${dark.veil}
+` +
+      `  light Theme page ${light.page.toFixed(4)}  seen ${light.scrim.toFixed(4)}  ${light.veil}`,
+  )
+
+  expect(light.page).toBeGreaterThan(0.7)
+  // On a light Theme the scrim has somewhere to go, and it goes there: the page is dimmed.
+  expect(light.scrim).toBeLessThan(light.page / 2)
+})
+
 test('the same build, three looks: the AI4SFS Theme, the example Tree, and no Theme at all', async ({ page }) => {
   /*
    * The first Tree cannot be served yet: it is over the format's length limits in 454

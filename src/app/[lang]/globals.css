@@ -20,7 +20,15 @@
   --rule: color-mix(in srgb, var(--elsa-text) 16%, transparent);
   --wash: color-mix(in srgb, var(--elsa-accent) 16%, var(--elsa-background));
   --wash-secondary: color-mix(in srgb, var(--elsa-accent-secondary) 14%, var(--elsa-background));
-  --veil: color-mix(in srgb, var(--elsa-text) 78%, transparent);
+  /*
+   * The backdrop behind the enlarged Image. It is keyed to `--elsa-scrim` -- the dark end
+   * of the palette, chosen in theme.ts because CSS cannot compare luminance -- and not to
+   * `--elsa-text`: a scrim's whole job is to recede, and on a dark Theme a text-coloured
+   * one is a near-white sheet with the dialog floating on top of it. Mixing cannot reach
+   * past the darkest colour the Theme owns, so on a dark palette the veil meets the page
+   * rather than dimming it further; the dialog's `--elsa-surface` is what lifts it.
+   */
+  --veil: color-mix(in srgb, var(--elsa-scrim) 78%, transparent);
 
   /*
    * An accent as a READING colour. A Theme's accents are chosen to be seen as a fill and

@@ -1,7 +1,7 @@
 /**
  * The Theme as it reaches the page (docs/specs/application.md section 13,
- * ADR-38-theme-delivery): the one `<style>` string the root layout emits, the three
- * colours that cannot be derived in CSS, and the escaping of the one place in this
+ * ADR-38-theme-delivery): the one `<style>` string the root layout emits, the four
+ * values that cannot be derived in CSS, and the escaping of the one place in this
  * application where third-party text becomes code.
  *
  * Most cases load a real Tree through the loader, as section 7 asks. The escaping cases
@@ -72,13 +72,14 @@ describe('the seven roles become the seven properties', () => {
     const { css } = themeStyle(themedTree.manifest.theme)
     const emitted = [...css.matchAll(/--elsa-([a-z-]+):/g)].map((match) => match[1]!)
 
-    // The seven of tree-format.md 4.3.3, the three derived of 13.1, and the two font roles.
+    // The seven of tree-format.md 4.3.3, the four derived of 13.1, and the two font roles.
     expect(new Set(emitted)).toEqual(
       new Set([
         ...Object.keys(DEFAULT_COLOURS),
         'on-accent',
         'on-accent-secondary',
         'on-danger',
+        'scrim',
         'font-body',
         'font-heading',
       ]),
@@ -93,7 +94,7 @@ describe('the seven roles become the seven properties', () => {
   })
 })
 
-describe('the three colours CSS cannot compute', () => {
+describe('the four values CSS cannot compute', () => {
   test.for([
     ['accent', 'on-accent'],
     ['accent-secondary', 'on-accent-secondary'],
@@ -116,6 +117,32 @@ describe('the three colours CSS cannot compute', () => {
 
     expect(property(themeStyle({ colours: light }).css, 'on-accent')).toBe('#2d2e33')
     expect(property(themeStyle({ colours: dark }).css, 'on-accent')).toBe('#161a1d')
+  })
+
+  test.for([
+    ['a light palette', { ...DEFAULT_COLOURS, background: '#ffffff', text: '#2d2e33' }, '#2d2e33'],
+    ['a dark palette', { ...DEFAULT_COLOURS, background: '#161a1d', text: '#eef1f2' }, '#161a1d'],
+  ] as const)('the scrim is the dark end of %s', ([, colours, expected]) => {
+    expect(property(themeStyle({ colours }).css, 'scrim')).toBe(expected)
+  })
+
+  test('the scrim is never lighter than the page it lies over, whichever Theme is served', () => {
+    // The invariant the backdrop of `.enlarged` rests on (globals.css `--veil`): a scrim
+    // keyed to `text` is a near-white sheet on a dark Theme, which is the opposite of what
+    // a backdrop is for. Measured on both Themes this repository ships, and on the default.
+    const first = themedTree.manifest.theme!.colours!
+    const palettes: Colours[] = [
+      DEFAULT_COLOURS,
+      first,
+      { ...DEFAULT_COLOURS, background: '#ffffff', text: '#2d2e33' },
+    ]
+
+    for (const colours of palettes) {
+      const scrim = property(themeStyle({ colours }).css, 'scrim')!
+
+      expect(luminance(scrim)).toBeLessThanOrEqual(luminance(colours.background))
+      expect(luminance(scrim)).toBeLessThanOrEqual(luminance(colours.text))
+    }
   })
 })
 
