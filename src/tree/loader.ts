@@ -113,9 +113,10 @@ async function readTree(root: string, id: string, violations: Violation[]): Prom
   const text = await readText(path.join(root, 'tree.yaml'))
   if (!isId(id)) fail('', 'V-DIR', `folder name "${id}" is not an id: lowercase letters, digits and single hyphens`)
   if (text === null) fail('tree.yaml', 'V-DIR', 'tree.yaml is missing')
-  for (const folder of ['images', 'theme']) {
-    if (await isFile(path.join(root, folder))) fail(folder, 'V-DIR', `${folder} must be a folder, not a file`)
-  }
+  // The two names are spelled out rather than looped over: a `path.join` whose last segment
+  // is a variable makes Turbopack trace the whole project into the standalone build.
+  if (await isFile(path.join(root, 'images'))) fail('images', 'V-DIR', 'images must be a folder, not a file')
+  if (await isFile(path.join(root, 'theme'))) fail('theme', 'V-DIR', 'theme must be a folder, not a file')
   if (violations.length > 0) return null
 
   const { manifest, nodes } = readStream(text!, violations)
