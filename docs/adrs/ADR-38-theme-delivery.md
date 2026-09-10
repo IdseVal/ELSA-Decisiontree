@@ -5,6 +5,17 @@
 - Spec: `docs/specs/application.md`, sections 4.1, 4.3, 5.5, 13
 - Core document: 3.1, 3.2, section 9 ("the frontend must never carry a lab's branding in
   its code"), open item 10.25
+- Amended 2026-09-10 by issue #40 (PR #52): decision 3's count. A **fourth** value is
+  derived at render time, `--elsa-scrim` -- whichever of `text` and `background` has the
+  lower relative luminance -- because CSS cannot compare luminance any more than it can
+  compute contrast, and the backdrop behind the enlarged Image is the one derived shade
+  whose correctness depends on which way the palette runs: keyed to `text` it is a
+  near-white sheet on a dark Theme, and it advances where a backdrop must recede.
+  Decision 2 still holds, because the scrim names no new colour -- it is one of the seven,
+  picked. The `:root` block also carries one non-custom declaration, `color-scheme`,
+  written by decision 4's own dark test; it is the UA hint for form controls and
+  scrollbars, not an eighth role. The argument is in `application.md` 13.1 and in the
+  declaration's own comment. Decisions 1, 2 and 4-11 stand unchanged.
 
 ## Context
 
