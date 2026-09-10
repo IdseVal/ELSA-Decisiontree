@@ -142,9 +142,12 @@ test('the switch is in the HTML the server sends, and is reached by the keyboard
   expect(html).toContain('class="language-switch"')
   expect(html).toContain('>Nederlands</a>')
 
-  // It is the page chrome above the content, so it is the first thing the tab key reaches.
+  // It is the page chrome above the content, so the tab key reaches it before anything in
+  // the walk. Issue #40 put the Tree's logo first in that bar, so the switch is the tab
+  // after the logo's link when the Tree has one.
   await page.goto(STEP)
-  await page.keyboard.press('Tab')
+  const logos = await page.locator('.page-chrome a.logo-link').count()
+  for (let i = 0; i < logos + 1; i++) await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Nederlands' })).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(`${STEP}?lang=nl`)

@@ -588,11 +588,15 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── Sheet.tsx        [v0.2] client: the one overlay -- enlarged Image, full
 │   │   │                    Trail, collapsed Options, collapsed Sources (10.5, 12)
 │   │   ├── Slider.tsx       [v0.2] client: the slide transition (11)
+│   │   ├── Logo.tsx         [v0.2] server: the Tree's logo in the chrome bar, or its
+│   │   │                    title as text when the Theme names none (13.2)
 │   │   ├── ShareButton.tsx  client, unchanged
 │   │   ├── LanguageSwitch.tsx  unchanged
 │   │   └── Disclaimer.tsx   unchanged
 │   ├── neighbourhood.ts     [v0.2] which Nodes surround this one, and in which direction (11)
 │   ├── theme.ts             [v0.2] a Theme -> CSS custom properties and @font-face; the default (13)
+│   ├── assets.ts            [v0.2] one file of the Tree as a response: the headers and the
+│   │                        streaming the image and theme routes share (5.3, 5.5)
 │   ├── url.ts               the URL scheme (4)
 │   ├── chrome.ts            chrome strings and fallback (3)
 │   ├── config.ts            ELSA_TREE / ELSA_TREES_DIR; the one opened Tree
@@ -618,12 +622,13 @@ Their work is `TreeView` + `Bubble`, `Branch`, and `Carousel` + `Sheet`.
 |---|---|---|
 | `src/tree/` (loader) | Reading, validating and indexing a Tree; handing out one Node, one title, one image path, one theme path. | Know URLs, chrome, React, or that a Bubble exists. |
 | `src/neighbourhood.ts` **[v0.2]** | Which Nodes surround the Node on screen, in which direction and in which slot, and the bound on how many (11). One function. | Read files, render, or know what a Branch looks like. |
-| `src/theme.ts` **[v0.2]** | A `Theme` (or its absence) turned into the exact CSS custom properties and `@font-face` rules the page emits, including the derived colours and every escape (13). | Know React, routes, or which element uses which property. |
+| `src/theme.ts` **[v0.2]** | A `Theme` (or its absence) turned into the exact CSS custom properties and `@font-face` rules the page emits, including the derived values and every escape (13), and which logo variant the palette calls for. | Know React, or which element uses which property. Write a URL: the `src` of an `@font-face` is `url.ts`'s `themeHref`. |
+| `src/assets.ts` **[v0.2]** | One file of the served Tree as an HTTP response: the `Content-Type` its extension names, the four headers that make third-party bytes inert, and the one 404 that covers every refusal (5.3, 5.5). | Resolve a path -- `imagePath` and `themePath` do, inside the Tree's folder. Know which Tree is served. |
 | `src/url.ts` | Parsing a request into `{ treeId, trail, nodeId, lang }` and building every link. | Read files or render. |
 | `src/chrome.ts` | The chrome strings and the language fallback rule. | Contain Tree content. |
 | `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. | Parse Trees or URLs. |
 | `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab. | Accept raw HTML. |
-| `src/components/` | Views. Server components take data and return markup; the four client components own exactly one interaction each (section 1). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
+| `src/components/` | Views. Server components take data and return markup -- `Logo.tsx` **[v0.2]** is one: it asks `theme.ts` which logo variant this palette calls for and renders it, or the Tree's title when there is none (13.2). The four client components own exactly one interaction each (section 1). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
 | `src/app/` | Routes: parse, load, hand to a view; redirects; the image and theme routes; 404. The `[lang]` layout sets `<html lang>` and emits the Theme. | Hold logic. Take the language from `searchParams` (4.4). |
 | `next.config.ts` | The two rewrites of 4.4, plus the build settings of section 1. | Know which languages a Tree declares, or anything else about the application. |
 
@@ -632,7 +637,9 @@ Dependencies point inward, and the client components are leaves:
 ```
 app  ->  components  ->  chrome, url, markdown, theme, tree/types
 app  ->  neighbourhood  ->  tree (getNode, getTitle), url
-app  ->  theme, url, chrome, config, markdown
+app  ->  theme  ->  url (themeHref)
+app  ->  assets  ->  nothing in src/
+app  ->  url, chrome, config, markdown
 config  ->  tree
 tree/  ->  nothing in src/
 next.config.ts  ->  nothing in src/
@@ -756,9 +763,9 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | **[v0.2]** The slide transition: the tree layer moves, the URL is the plain link's | `docs/adrs/ADR-38-transitions.md` |
 | **[v0.2]** The guaranteed viewport, the no-scroll rule, the degradation order, the test | `docs/adrs/ADR-38-no-scroll.md` |
 | **[v0.2]** The Carousel: a scroll-snap strip of this Node's Images, enlarged in a Sheet | `docs/adrs/ADR-38-carousel.md` |
-| **[v0.2]** The Theme: custom properties and `@font-face` emitted at render time, files from a route | `docs/adrs/ADR-38-theme-delivery.md` |
+| **[v0.2]** The Theme: custom properties and `@font-face` emitted at render time, files from a route | `docs/adrs/ADR-38-theme-delivery.md`, amended by issue #40 (PR #52) |
 | **[v0.2]** What holds without JavaScript | `docs/adrs/ADR-38-without-javascript.md` |
-| **[v0.2]** Modules, dependency direction and which tests need a browser | `docs/adrs/ADR-38-modules-and-tests.md` |
+| **[v0.2]** Modules, dependency direction and which tests need a browser | `docs/adrs/ADR-38-modules-and-tests.md`, amended by issue #40 (PR #52) |
 
 ## 10. The tree view
 
@@ -1271,22 +1278,39 @@ application writes a colour or a font name.
   --elsa-accent: #ffc600;      --elsa-accent-secondary: #41ab64;
   --elsa-danger: #e44e56;
   --elsa-on-accent: #2d2e33;   --elsa-on-accent-secondary: #ffffff;  --elsa-on-danger: #ffffff;
+  --elsa-scrim: #2d2e33;
   --elsa-font-body: 'Open Sans', <the default stack>;
   --elsa-font-heading: 'Nova Square', var(--elsa-font-body);
+  color-scheme: light;
 }
 ```
 
 - **The seven colour roles become `--elsa-<role>` verbatim.** They are the seven of
   `tree-format.md` 4.3.3 and there is no eighth.
-- **Three colours are derived at render time**, because CSS cannot compute contrast:
-  `--elsa-on-accent`, `--elsa-on-accent-secondary` and `--elsa-on-danger` are whichever
-  of `text` and `background` has the higher WCAG relative-luminance contrast against
-  that accent. Everything else the stylesheet wants -- a hover shade, a disabled
-  control, a border -- it derives in CSS with `color-mix()` from the seven. `theme.ts`
-  computes three values; it is not a colour system.
+- **Four values are derived at render time** (amended 2026-09-10, PR #52: the fourth,
+  `--elsa-scrim`, replaced a backdrop keyed to `text`, which advanced instead of receding
+  on a dark Theme; `ADR-38-theme-delivery.md` decision 3 and `ADR-38-modules-and-tests.md`
+  decision 1 carry the amendment), and each is one CSS cannot compute.
+  Everything else the stylesheet wants -- a hover shade, a disabled control, a border --
+  it derives in CSS with `color-mix()` from the seven. `theme.ts` computes four values;
+  it is not a colour system.
+  - **Three because CSS cannot compute contrast:** `--elsa-on-accent`,
+    `--elsa-on-accent-secondary` and `--elsa-on-danger` are whichever of `text` and
+    `background` has the higher WCAG relative-luminance contrast against that accent.
+  - **One because CSS cannot compare luminance:** `--elsa-scrim` is whichever of `text`
+    and `background` is the darker. It is the colour the stylesheet lays over the page
+    behind the enlarged Image, and a backdrop that is not told which way the palette
+    runs recedes on a light Theme and advances on a dark one. It names no new colour --
+    it is one of the seven, picked -- and `color-mix()` cannot reach past the darkest
+    colour a Theme owns, so on a dark palette the backdrop meets the page rather than
+    dimming it further and the dialog's `surface` is what lifts it.
 - **Whether the Theme is dark is derived, not declared:** if the relative luminance of
   `background` is below 0.5 the page is dark, and `logo.dark` is used where it exists.
-  The format needs no key for it and a Theme author cannot get it wrong.
+  The format needs no key for it and a Theme author cannot get it wrong. The same test
+  writes the block's one non-custom declaration, `color-scheme`, which is the UA hint
+  for form controls and scrollbars and not an eighth role: the stylesheet has no
+  `prefers-color-scheme` block, because dark is the Tree's property and not the
+  reader's machine's.
 - **Fonts:** one `@font-face` per file, with `font-weight` and `font-style` reproduced
   verbatim from the Theme and `src` pointing at `/theme/<file>` (5.5). `font-display:
   swap` so a slow font never blanks the text. The `body` family becomes
