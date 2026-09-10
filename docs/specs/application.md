@@ -1075,6 +1075,14 @@ Following a Branch, with JavaScript:
    copy-link keep working, because the address bar is not a story the transition tells;
    it is the same address the link had.
 
+**A Branch whose target is not in the neighbourhood navigates without a slide.** The
+only Branches this can be are Trail Branches older than the grandparent -- the `start`
+Branch of a long Trail, or an entry reached from the Trail Sheet (10.2). They are
+ordinary links and they behave like ordinary links: the target's page loads and the tree
+is redrawn around it. `Slider` does not animate toward a Bubble that is not there, and it
+does not fetch one to be able to; a jump five steps back is not a slide in the first
+place.
+
 Back and forward are the browser's, and reverse the slide when the payload is in the
 framework's cache. `prefers-reduced-motion: reduce` removes the motion and keeps the
 navigation: the target replaces the current view without a transform. Nothing about
@@ -1313,7 +1321,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | Needs JavaScript | What a reader without it gets instead |
 |---|---|
 | The slide transition | A normal page load. Same URL, same Node, no motion. |
-| The pre-rendered neighbour Bubbles | They are not rendered at all: `Slider` reveals them, and without it the tree layer shows the centre Bubble and its Branches. Nothing is hidden that the reader needed, and no image of another Node is requested (11.4). |
+| The pre-rendered neighbour Bubbles | They are in the HTML -- the server rendered them -- but hidden, and `Slider` is what reveals them. Without it the tree layer shows the centre Bubble and its Branches, which is everything the reader needs; off-centre Bubbles that can never move would be clutter, and they are `aria-hidden` besides. No image of another Node is requested either way, because a neighbour Bubble carries no image URL (11.4). |
 | The enlarged view in place | The image file, opened by the link. |
 | The Carousel's previous/next buttons | The strip itself scrolls; the buttons are an enhancement of a control that already works. |
 | The Sheets of 10.2 and 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. |

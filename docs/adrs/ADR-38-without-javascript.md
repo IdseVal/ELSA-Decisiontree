@@ -39,9 +39,11 @@ line. In summary:
    `no-js.spec.ts` runs the measurement of `application.md` 10.6 with JavaScript
    disabled.
 6. **The language switch and the share link work**: links, and the address bar.
-7. **The neighbour Bubbles are not rendered at all** without `Slider`. Nothing the reader
-   needed is hidden, and no image of another Node is requested, because a neighbour
-   Bubble never carries an image URL (`ADR-38-neighbourhood.md`).
+7. **The neighbour Bubbles stay hidden** without `Slider`, which is what reveals them.
+   They are in the HTML, `aria-hidden` and out of the tab order; nothing the reader
+   needed is hidden with them, and no image of another Node is requested either way,
+   because a neighbour Bubble never carries an image URL
+   (`ADR-38-neighbourhood.md`).
 8. **What is lost is motion and convenience**: the slide becomes a page load, the
    enlarged view becomes the file, the Carousel's buttons become a strip the reader
    scrolls, the share button is not shown when it cannot work.
