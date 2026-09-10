@@ -102,7 +102,7 @@ the app does depends on a hosting vendor.
 |---|---|
 | Framework | Next.js, App Router, React, TypeScript (strict). Exact versions are pinned in `package.json` by the scaffold issue; the current stable major at that time. |
 | Server-side rendering | React Server Components. The Node page is an `async` server component; the first response to every URL is complete HTML, with the single exception named in 4.3 (the 404 page). |
-| Client-side JavaScript | React plus **four** client components: `Slider` (the slide transition and the pre-rendered neighbours, section 11), `Carousel` (its previous/next buttons, section 12), `Sheet` (the enlarged Image and the full Trail, sections 10 and 12) and `ShareButton`. Everything else -- navigation, the Trail, the Branches, the language switch, the Carousel's strip -- is links, CSS and ordinary form-free markup. **Section 14 states exactly what a reader without JavaScript gets**, and it is a working application, not a degraded one. The 404 page's body is the single exception (4.3). |
+| Client-side JavaScript | React plus **four** client components: `Slider` (the slide transition and the pre-rendered neighbours, section 11), `CarouselButtons` (the Carousel's previous and next buttons, section 12 -- the Carousel itself is a server component), `Sheet` (the one overlay: the enlarged Image, the full Trail, and the collapsed Options and Sources of 10.5) and `ShareButton`. Everything else -- navigation, the Trail, the Branches, the language switch, the Carousel's strip -- is links, CSS and ordinary form-free markup. **Section 14 states exactly what a reader without JavaScript gets**, and it is a working application, not a degraded one. The 404 page's body is the single exception (4.3). |
 | Runtime | Node.js 22 (LTS), in `.nvmrc` and `package.json` `engines`. |
 | Package manager | npm; `package-lock.json` committed; `npm ci` in CI and deployment. |
 | Build output | `output: 'standalone'`: `next build` yields a folder that runs with `node server.js`. |
@@ -583,8 +583,10 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   │                    centre Bubble, out-Branches, neighbour Bubbles (10, 11)
 │   │   ├── Bubble.tsx       [v0.2] server: one Node as a Bubble, centre or neighbour
 │   │   ├── Branch.tsx       [v0.2] server: one Link as a Branch (link, label, thumbnail)
-│   │   ├── Carousel.tsx     [v0.2] the Images strip; buttons are the client part (12)
-│   │   ├── Sheet.tsx        [v0.2] client: the one overlay -- enlarged Image, full Trail
+│   │   ├── Carousel.tsx     [v0.2] server: the Images strip and its caption line (12)
+│   │   ├── CarouselButtons.tsx  [v0.2] client: the strip's previous/next buttons (12)
+│   │   ├── Sheet.tsx        [v0.2] client: the one overlay -- enlarged Image, full
+│   │   │                    Trail, collapsed Options, collapsed Sources (10.5, 12)
 │   │   ├── Slider.tsx       [v0.2] client: the slide transition (11)
 │   │   ├── ShareButton.tsx  client, unchanged
 │   │   ├── LanguageSwitch.tsx  unchanged
@@ -641,8 +643,8 @@ next.config.ts  ->  nothing in src/
   the bound lives.
 - **The four client components import no server module.** `Slider` receives the
   positions it needs as props from `TreeView`; it never computes a neighbourhood, never
-  fetches a Node, and never reads the Tree. `Sheet`, `Carousel` and `ShareButton` take
-  strings. This is what keeps the client bundle small and what makes section 14
+  fetches a Node, and never reads the Tree. `Sheet`, `CarouselButtons` and `ShareButton`
+  take strings. This is what keeps the client bundle small and what makes section 14
   statable: everything a client component does is an enhancement of markup that is
   already correct without it.
 - Styling mechanism and visual design are the build issues' (#40, #41, #43), within
@@ -657,7 +659,7 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | Item | Contract |
 |---|---|
 | Runner | Vitest, `npm test` = `vitest run`, Node environment; files `tests/**/*.test.ts(x)`. |
-| Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.5) is a statement about a laid-out document and cannot be asserted any other way. |
+| Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. |
 | Also in CI | `tsc --noEmit`, `next build`, `npm run validate trees/<each Tree>`, `npm run test:browser`. Command: `npm ci && npm test && npm run build && npm run test:browser`. |
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; never YAML read by a test. |
 | Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description, 3 Sources, 8 Options, 10 Images, and a 49-entry Trail to reach it). |
@@ -671,12 +673,12 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | `loader.test.ts` | Every validity rule via `invalid/<rule>/`; `getNode` returns one Node; malformed ids give `null`; **[v0.2]** `themePath` gives `null` for a file the Theme does not name, even when it exists. |
 | `url.test.ts` | Parse and build are inverses; every 404 case of 4.3; the 50-id limit. |
 | `routing.test.ts` | The two rewrites of 4.4, read out of `next.config.ts` itself. |
-| `chrome.test.ts` | The table in 3.1; every key of 3.2 exists in both languages. |
+| `chrome.test.ts` | The table in 3.1; every key of 3.2 exists in both languages; **[v0.2]** `explanationOnly` fits the Bubble's rim in every language -- at most 80 characters (10.1). |
 | `not-found.test.tsx` | The 404 page of 4.3. |
 | `neighbourhood.test.ts` **[v0.2]** | The set for each Node kind; **never more than 16**; no id twice; a Link to an unknown id is dropped, not thrown; the Trail supplies `up`, the Answers `down`, the Options `side`; an empty Trail has no `up`. |
 | `theme.test.ts` **[v0.2]** | The emitted properties equal the manifest's values; a Tree with no Theme, and one with only `colours`, get the documented defaults for the rest; the three derived `--elsa-on-*` colours; a `family` containing `'`, `\` or `</style>` is escaped or refused; a colour that is not `#rrggbb` is refused rather than emitted. |
 | `stylesheet.test.ts` **[v0.2]** | `globals.css` contains no colour literal (`#rgb`, `#rrggbb`, `rgb(`, `hsl(`, a CSS colour keyword) and no `font-family` value that is not `var(--elsa-font-*)`. This is core document section 9's "the frontend must never carry a lab's branding in its code", as a test that cannot be argued with. |
-| `views.test.tsx` | Each Node kind's structure (10.3): what the Bubble holds, which Branches exist, where they link. |
+| `views.test.tsx` | Each Node kind's structure (10.3): what the Bubble holds, which Branches exist, where they link; **[v0.2]** the Carousel's caption is at most 170 characters with the `credit` whole and the `description` shortened to fit (12.2). |
 | `interop.test.tsx` | Below. |
 
 | Browser (Playwright) | Asserts |
@@ -796,7 +798,8 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
 |              ( yes: Annex III areas )      ( no: General-purpose AI )           |  64  the ANSWERS:
 |                       \                            /                            |      Branches BELOW
 +--------------------------------------------------------------------------------+      (children)
-|   [img] [img] [img] [img] [img]   < >     Map of the EU member states -- CC BY   |  80  the CAROUSEL
+|   [img] [img] [img] [img] [img]   < >                                          |  80  the CAROUSEL
+|   Map of the EU member states -- European Commission, CC BY 4.0                |      (60 strip + 20 caption)
 +--------------------------------------------------------------------------------+
 |                    This tool is not legal advice.                               |  28  disclaimer
 +--------------------------------------------------------------------------------+
@@ -816,6 +819,17 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
   Theme's `surface` colour and outlined in `accent`; its text area is inset from the
   curve, which is why 760 x 360 of Bubble gives 640 x 304 of text (`tree-format.md`
   5.7 derives the length limits from exactly this).
+- **The rim is chrome; the text area is authored text.** The 640 x 304 text area sits
+  inside the curve, and the band between it and the edge -- 60 pixels each side, 28
+  above, 28 below -- is the **rim**. The rim is where the two chrome elements a Node kind
+  adds to the Bubble sit (10.3): a Terminal's **outcome badge**, a 24-pixel pill in the
+  band above, and an explanation Node's **`explanationOnly` hint**, one 20-pixel line of
+  13-pixel muted text in the band below. At the corner radius the Bubble is drawn with,
+  the rim is about 590 pixels wide 28 pixels in, which holds a badge and a hint of at
+  most 80 characters; both are chrome, so their length is `src/chrome.ts`'s and not an
+  author's (3.2, section 7). **Neither takes a pixel from the text area**, which is why
+  the description keeps its 192 pixels and its eight lines on every kind of Node and
+  `tree-format.md` 5.7's derivation stands exactly as written (10.7).
 - **The Bubble never shrinks.** At or above the guaranteed viewport its text area is at
   least 640 x 304 at every size. Extra width goes to the Option columns and the page
   margins; extra height goes to the Bubble and the gaps. A limit that holds at
@@ -832,15 +846,20 @@ URL (4.1) -- the same list, drawn. Each entry is a Branch: a link to
 which discards the Trail after it (core document 10.17). They read left to right,
 oldest first, the current Node's parent nearest the Bubble.
 
-- **At most five Branches are drawn**, in a 64-pixel row. Five at 256 pixels each hold
-  a title of 80 characters on at most three 20-pixel lines, so no label is truncated at
-  the guaranteed viewport.
+- **At most five Branches carrying a title are drawn**, in a 64-pixel row: **200 pixels
+  each**, 8-pixel gaps, the row centred on the Bubble's centre. At 200 pixels a 13-pixel
+  label holds about 28 characters per line, so a title of 80 characters is at most three
+  20-pixel lines, and no label is truncated at the guaranteed viewport.
 - **A longer Trail collapses in the middle.** The `start` Branch stays, the last four
   entries stay, and everything between them becomes one Branch labelled with
-  `trailMore(n)` -- "n earlier steps". It is a button that opens the **Trail Sheet**:
-  the whole Trail as a list of links, newest first, as many as fit, with `previous` and
-  `next` if there are more. The Trail Sheet is the same `Sheet` component as the
-  enlarged Image (section 12), and like it, it never scrolls.
+  `trailMore(n)` -- "n earlier steps". That Branch carries chrome, not a title, and is
+  **120 pixels** wide. The collapsed Trail is the row at its widest -- five title
+  Branches, the collapsed middle and five gaps, 5 x 200 + 120 + 5 x 8 = **1160 of the
+  1280 pixels** -- so the row still has a margin at the guarantee and it never wraps.
+  `trailMore(n)` is a button that opens the **Trail Sheet**: the whole Trail as a list of
+  links, newest first, as many as fit, with `previous` and `next` if there are more. The
+  Trail Sheet is the same `Sheet` component as the enlarged Image (section 12), and like
+  it, it never scrolls.
 - **The middle collapses; labels never truncate and the row never wraps.** Truncating
   would hide which step a reader is going back to, which is the one thing the Trail is
   for; wrapping would take height the no-scroll budget does not have.
@@ -857,8 +876,8 @@ and disclaimer are unchanged.
 |---|---|---|---|
 | **question Node, with Options** | Title (heading), description (rich text), Sources | **Two Answer Branches**: `yes` and `no` as a small chrome label above the target's title, 480 px each, side by side | **The Option Branches**, in the two columns, at most 4 per side |
 | **question Node, no Options** | The same | The same two Answer Branches | Empty columns; the Bubble keeps its size and place |
-| **explanation Node** | Title, description, Sources, and the `explanationOnly` hint, which says the answer is given on the step above | **One `back` Branch** to the Trail entry directly above, labelled with that Node's title. An explanation Node has no Answers by the format's rule, and the way on is up | Its Options, if it has any, in the same two columns |
-| **Terminal** | Title, description, Sources, and the **outcome badge** -- `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited` or `outcomeRefer`, coloured `danger` for `prohibited` and `accent` otherwise | **Two Branches**: `back` to the Trail entry above, and `startAgain` to the root Node with an empty Trail | Nothing: a Terminal may not carry Options (`tree-format.md` 5.6) |
+| **explanation Node** | Title, description, Sources, and -- on the Bubble's rim, not in its text area (10.1) -- the `explanationOnly` hint, which says the answer is given on the step above | **One `back` Branch** to the Trail entry directly above, labelled with that Node's title. An explanation Node has no Answers by the format's rule, and the way on is up: the control is drawn below, its target is the Bubble above, and following it slides up (11.1) | Its Options, if it has any, in the same two columns |
+| **Terminal** | Title, description, Sources, and -- on the Bubble's rim, not in its text area (10.1) -- the **outcome badge**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited` or `outcomeRefer`, coloured `danger` for `prohibited` and `accent` otherwise | **Two Branches**: `back` to the Trail entry above, which slides up like the explanation Node's, and `startAgain` to the root Node with an empty Trail, which has no direction and does not slide (11.1). A Terminal that is itself the root Node has no Trail entry above it, so it shows `startAgain` alone | Nothing: a Terminal may not carry Options (`tree-format.md` 5.6) |
 
 - **Every Branch shows its target's title**, taken from the title index (`getTitle`),
   never from a second Node read. An Answer Branch shows the chrome word `yes` or `no`
@@ -915,8 +934,9 @@ Whichever step first makes the arrangement fit is where it stops.
   list, the Sources are a citation, and the **Node's own title, description and
   Answer Branches are never given up** -- they are the step the reader is on. The notice
   appears only when even those do not fit.
-- Every collapse opens the same `Sheet`. One concept, four uses, one set of keyboard
-  rules (Escape closes, focus returns to the control that opened it).
+- Every collapse opens the same `Sheet`. One concept, four uses -- the enlarged Image,
+  the full Trail, the collapsed Options and the collapsed Sources -- and one set of
+  keyboard rules (Escape closes, focus returns to the control that opened it).
 - Nothing in this order is a media query the build issue may invent: #41 implements
   these seven steps, in this order, and the browser test of 10.6 runs at sizes that
   exercise them.
@@ -976,15 +996,17 @@ confirm or correct them. **The limits are confirmed unchanged** -- 80-character 
 Source labels, 3 Sources, 8 Options, 10 Images, 3 Images per Option. `elsa-tree/2`
 therefore needs no new format number, and no Tree written against it has to change.
 
-Two assumptions behind those numbers are re-derived by this layout. Neither moves a
-limit:
+Six assumptions behind those numbers are re-derived by this layout. None of them moves
+a limit:
 
 | `tree-format.md` 5.7 assumed | This layout | Effect on the limits |
 |---|---|---|
 | The vertical budget's "outgoing Branches 64" carries the Answer *and* Option Branches, and noted that 10 Branches would need 1500 px across a 1280 px screen, leaving #38 to decide whether they narrow or wrap. | Answers go **below** (2 Branches, 480 px each) and Options go **beside** (two columns of at most 4, 240 px each). Neither row ever holds 10 Branches, so nothing narrows and nothing wraps. | None. The 64 px row and the 360 px middle are unchanged; the budget still sums to 640. |
 | An Option Branch label is 150 px wide, giving about 21 characters per line, so a 60-character title takes 3 lines. | An Option Branch label is 240 px wide, or 168 px when the Option carries a thumbnail: about 34 or 24 characters per line, so 60 characters take 2 or 3 lines, in a 90 px row. | None: more room than assumed. |
 | An Answer Branch has 640 px and a Node title of 80 characters is 1 line. | 480 px, about 65 characters per line: 80 characters take 2 lines of 20 px, plus the 16 px chrome label, 56 px inside the 64 px row. | None. |
-| A Trail of up to 6 Nodes fits at 213 px each; a longer Trail was left to #38. | 5 Branches at 256 px, plus a collapsed middle for a longer Trail (10.2). | None; the Trail is chrome, not authored text. |
+| A Trail of up to 6 Nodes fits at 213 px each; a longer Trail was left to #38. | 5 title Branches at 200 px; a longer Trail collapses to those five plus a 120 px `trailMore` in the middle, which is the row at its widest: 5 x 200 + 120 + 5 x 8 = 1160 px of 1280 (10.2). | None; a Trail label is a Node title, already bounded. |
+| The Bubble's text area is 640 x 304 inside the curve and padding of a 760 x 360 Bubble -- and 5.7 divides that 304 px exactly, leaving nothing over. | Unchanged, and nothing is added to it: a Terminal's outcome badge and an explanation Node's `explanationOnly` hint are chrome and sit on the Bubble's **rim**, outside the text area (10.1). | None. The description keeps 192 px and 8 lines on every one of the four situations of 10.3. |
+| The Carousel is "one picture at a time, 80 px strip; a caption of 120 characters fits one line at 13 px under the enlarged view, two in the strip". | Five pictures at a time at 60 px, and **one** 20 px caption line under them rather than two: 60 + 20 is the 80 px row. That line holds about 170 characters and a `description` plus a `credit` may be 240, so the credit is laid out whole and the description is shortened to what is left, at least 47 characters (12.2). | None. What is shortened is repeated in full in the thumbnail's alternative text and in the enlarged view, where 5.7's "one line at 13 px" is exactly what it assumed. |
 
 This is recorded on issue #37 as a comment, as that issue's spec asks.
 
@@ -1007,11 +1029,26 @@ around the current Bubble. A transition is a `transform: translate` on that one 
 and nothing else moves. This is the structural requirement issue #41 leaves for #42:
 one element, one transform.
 
-Each **Branch has a direction and a slot**: `up` for a Trail Branch, `down` for an
-Answer or a `back`/`startAgain` Branch, `side` for an Option Branch. The neighbour Node
-a Branch leads to is rendered as a full Bubble, one viewport away from the centre in
-that direction, offset by the slot. Following the Branch translates the layer by exactly
-that offset, so the target Bubble arrives in the centre.
+Each **Branch has a direction and a slot**, and the direction is where its *target* is
+drawn, which is not always where the control the reader clicks is drawn: `up` for a
+Trail Branch **and for a `back` Branch**, `down` for an Answer Branch, `side` for an
+Option Branch. The neighbour Node a Branch leads to is rendered as a full Bubble, one
+viewport away from the centre in that direction, offset by the slot. Following the
+Branch translates the layer by exactly that offset, so the target Bubble arrives in the
+centre.
+
+- **A `back` Branch is a second control on a Link the Trail already draws.** On an
+  explanation Node and on a Terminal, `back` leads to the parent -- the Node 11.2 has
+  already placed `up`, and the Node the nearest Trail Branch links to. The control sits
+  below the Bubble, with the other ways on (10.3); the target sits above, because that is
+  where the reader came from and because one Node cannot be drawn in two directions at
+  once. Following it slides **up**. It adds no Node to the neighbourhood and no entry to
+  the count of 11.2.
+- **`startAgain` has no direction and does not slide.** It leads to the root Node with an
+  empty Trail, which is a restart rather than a step through the tree: the root is in the
+  neighbourhood only by coincidence (a Trail of two), and a root Bubble placed one
+  viewport away in some direction would draw a tree that is not there. It is an ordinary
+  link (11.3).
 
 ### 11.2 The neighbourhood: which Nodes are pre-rendered
 
@@ -1020,7 +1057,7 @@ else:
 
 ```ts
 export type Direction = 'up' | 'down' | 'side'
-export interface Placed { node: Node; href: string; direction: Direction; slot: number; depth: 1 | 2 }
+export interface Placed { node: Node; href: string; direction: Direction; slot: number }
 export function neighbourhood(tree: Tree, at: PageAddress): Promise<Placed[]>   // at most 16
 ```
 
@@ -1033,6 +1070,10 @@ Given the Node on screen and the Trail that reached it:
 | `side` | The current Node's Option targets. | 8 |
 | | **Total** | **16** |
 
+- **`up` serves the `back` Branch too, and nothing is added for it.** The parent is
+  placed once; both the nearest Trail Branch and an explanation Node's or a Terminal's
+  `back` Branch lead to that one placement (11.1). `down` is the Answer targets and
+  theirs, and nothing else; `startAgain` has no placement at all.
 - **This is "the next two nodes in each direction", read as directions of the screen.**
   Two up the Trail; two deep down the answer path; the Options one out, because they
   fan (a Node may have eight) and because an Option leads to an explanation Node, whose
@@ -1075,11 +1116,11 @@ Following a Branch, with JavaScript:
    copy-link keep working, because the address bar is not a story the transition tells;
    it is the same address the link had.
 
-**A Branch whose target is not in the neighbourhood navigates without a slide.** The
-only Branches this can be are Trail Branches older than the grandparent -- the `start`
-Branch of a long Trail, or an entry reached from the Trail Sheet (10.2). They are
-ordinary links and they behave like ordinary links: the target's page loads and the tree
-is redrawn around it. `Slider` does not animate toward a Bubble that is not there, and it
+**A Branch whose target is not in the neighbourhood navigates without a slide.** There
+are exactly two kinds: a Trail Branch older than the grandparent -- the `start` Branch of
+a long Trail, or an entry reached from the Trail Sheet (10.2) -- and a Terminal's
+`startAgain` (11.1). They are ordinary links and they behave like ordinary links: the
+target's page loads and the tree is redrawn around it. `Slider` does not animate toward a Bubble that is not there, and it
 does not fetch one to be able to; a jump five steps back is not a slide in the first
 place.
 
@@ -1147,27 +1188,45 @@ place on every Node and the transition of section 11 has nothing to reflow.
 ### 12.2 The strip, and its one exemption from the no-scroll rule
 
 The strip is a horizontal row of the Node's Images as 60-pixel thumbnails with
-`scroll-snap-type: x mandatory`, followed by a 16-pixel caption line. It is the **one
-element in the document allowed to scroll**, and only horizontally, and only within its
-own row (10.6). That exemption buys a great deal:
+`scroll-snap-type: x mandatory`, and under it a caption line of 20 pixels: 60 + 20 is the
+row's 80 pixels exactly (10.1). The strip is the **one element in the document allowed to
+scroll**, and only horizontally, and only within its own row (10.6). That exemption buys
+a great deal:
 
 - it works **without JavaScript** -- the strip is a native scroll container, and a
   keyboard user can move through it with the arrow keys because it is focusable;
-- the previous/next buttons are then a small client component that scrolls the strip by
-  one page, not a state machine that owns which Image is "current";
+- the previous/next buttons are then `CarouselButtons`, a small client component that
+  scrolls the strip by one page, not a state machine that owns which Image is "current";
 - nothing about it can make the *page* scroll, which is the rule the owner stated.
 
 The caption line shows the `description` and the `credit` of the **selected** Image, in
-`text-muted`. Every Image's credit is therefore visible without leaving the Carousel,
-and always visible in the enlarged view (12.3): `tree-format.md` requires the credit for
-every Image without exception, and this is where the application keeps that promise.
+`text-muted`, on **one 13-pixel line that never wraps** -- the 80-pixel row has no second
+line to give it. The line is about 1230 pixels wide, which is about 170 characters at
+`tree-format.md` 5.7's 13-pixel advance, and a description plus a credit may be 240. So
+the two are given the line in a fixed order of priority:
+
+- **the `credit` is never cut.** `tree-format.md` 5.2 requires it for every Image without
+  exception and core document 8 is why; a credit visible only when the description
+  happens to be short is not that promise. At 120 characters it takes about 850 pixels of
+  the line at most.
+- **the `description` takes what is left** -- at least 47 characters -- shortened to fit,
+  with a trailing ellipsis when it is shortened. Nothing is lost by it: the whole
+  description is the thumbnail's alternative text, and both fields are shown in full in
+  the enlarged view (12.3), one Enter away.
+
+**The shortening is computed, not painted.** `text-overflow: ellipsis` would leave the
+caption's content wider than the caption, and 10.6's test measures `scrollWidth` against
+`clientWidth` on every element that is not the strip: an ellipsis painted over content
+that still overflows is precisely what the no-scroll rule forbids. So the Carousel
+shortens the string it renders. That is a fact about markup, and `views.test.tsx` asserts
+it (section 7), not a browser.
 
 ### 12.3 Controls, keyboard and the enlarged view
 
 | Control | Behaviour | Chrome key |
 |---|---|---|
 | The strip | Focusable region, named for assistive technology. Left/Right move the selection, Home/End jump to the first/last, Enter or Space enlarges the selected Image. | `images` |
-| Previous / next | Buttons; scroll the strip by one page. Disabled at the ends. Client component. | `previous`, `next` |
+| Previous / next | Buttons; scroll the strip by one page. Disabled at the ends. `CarouselButtons`, one of the four client components of section 1. | `previous`, `next` |
 | Position | "Image 3 of 7", updated as the selection moves, announced politely. | `imageCount` |
 | A thumbnail | An `<a href="/images/<file>">` around the `<img>`. With JavaScript the click is intercepted and opens the enlarged view; without it, the link opens the file. | `enlarge` |
 | The enlarged view | A `Sheet`: the full image bounded to the viewport so that it never scrolls, with the `description` and the `credit` beneath it. Closed by Escape, by the close button, or by clicking outside; focus returns to the thumbnail. | `close` |
@@ -1310,7 +1369,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | The whole current Node | The server returns complete HTML: the tree view of section 10 with the centre Bubble, its title, description, Sources, outcome or hint. |
 | Every Branch | Ordinary `<a href>`. Following one loads the target's page. The tree is redrawn around the new Node instead of sliding to it. |
 | Going back up the Trail | The Trail Branches are links that discard the later Trail, exactly as 4.1 says: the URL *is* the Trail. |
-| The Carousel | A native scroll-snap strip (12.2): every Image is reachable, with its description and credit in the caption line. |
+| The Carousel | A native scroll-snap strip (12.2): every Image is reachable, with its credit whole in the caption line, its description there as far as the line allows, and both in full when the thumbnail's link opens the file. |
 | Enlarging an Image | Each thumbnail is a link to `/images/<file>`; the browser opens the file, with the description and credit still on the page behind it. |
 | The language switch | Links with `?lang=` (4.1). |
 | The share link | The address bar: the page's own URL is the share link (4.1). |

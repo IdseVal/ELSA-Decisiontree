@@ -70,7 +70,7 @@ line. In summary:
   clutter to a reader who cannot slide, they would be read out by a screen reader as
   content of this page, and they would make the no-scroll rule much harder at the
   degraded viewports of `application.md` 10.5.
-- **A `<noscript>` variant of the view.** A second view to build, test at eleven
+- **A `<noscript>` variant of the view.** A second view to build, test at ten
   viewports and keep in step with the first, to replace one that already works.
 
 ## Consequences

@@ -52,12 +52,22 @@ The owner has not yet said what "children" and "side children" mean (core docume
    (`ADR-38-carousel.md`).
 7. **A long Trail collapses in its middle** (`application.md` 10.2): `start`, a
    `trailMore(n)` Branch that opens the Trail Sheet, then the last four entries. At most
-   five Branches are drawn, at 256 pixels each, where an 80-character title fits three
-   lines without truncation.
+   five Branches carry a title, at 200 pixels each, where an 80-character title fits
+   three lines without truncation; `trailMore(n)` carries chrome and is 120 pixels. The
+   collapsed row is the widest the Trail ever is: 5 x 200 + 120 + 5 x 8 = 1160 of the
+   1280 pixels.
 8. **Four situations, spelled out** (`application.md` 10.3): a question Node with
    Options, a question Node without, an explanation Node (a `back` Branch below, because
-   the format gives it no Answers), and a Terminal (its outcome badge in the Bubble, and
-   `back` and `startAgain` below).
+   the format gives it no Answers), and a Terminal (`back` and `startAgain` below).
+9. **The two chrome elements a Node kind adds to the Bubble sit on its rim**, not in its
+   text area: a Terminal's outcome badge in the 28-pixel band above, an explanation
+   Node's `explanationOnly` hint in the band below. `tree-format.md` 5.7 divides the
+   304-pixel text area exactly, so anything placed inside it would have to come out of
+   the 600-character description; on the rim, the format's limits hold on all four
+   situations unchanged.
+10. **A `back` Branch is drawn below the Bubble but its target is the Bubble above**, so
+    it slides up; `startAgain` has no direction and is an ordinary link
+    (`ADR-38-transitions.md`, `application.md` 11.1).
 
 ## Alternatives rejected
 

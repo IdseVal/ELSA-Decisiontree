@@ -1,4 +1,4 @@
-# ADR-38-no-scroll: the layout is guaranteed at 1280 x 640, below that it gives things up in a fixed order rather than handing out a scrollbar, and a browser test measures scrollHeight at eleven viewports on every kind of Node
+# ADR-38-no-scroll: the layout is guaranteed at 1280 x 640, below that it gives things up in a fixed order rather than handing out a scrollbar, and a browser test measures scrollHeight at ten viewports on every kind of Node
 
 - Status: ACCEPTED (frozen) -- 2026-09-10
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
@@ -44,14 +44,14 @@ a browser can.
    `scrollWidth <= innerWidth`, and **every element** in the document except
    `[data-carousel-strip]` has `scrollHeight <= clientHeight` and
    `scrollWidth <= clientWidth`, with a one-pixel tolerance for sub-pixel rounding. It
-   runs at eleven viewports (1280 x 640, 1366 x 768, 1920 x 1080, 2560 x 1440,
+   runs at ten viewports (1280 x 640, 1366 x 768, 1920 x 1080, 2560 x 1440,
    1280 x 800, 1024 x 768, 768 x 1024, 390 x 844, 360 x 640, 320 x 480) over every kind
    of Node, in both languages, including a fixture Node at every maximum the format
    allows with a 49-entry Trail, and including a Sheet open and mid-transition.
 6. **`tree-format.md`'s limits are confirmed unchanged**, so `elsa-tree/2` needs no new
-   format number. Two of its assumptions are re-derived by this layout and neither moves
-   a number (`application.md` 10.7); that is recorded as a comment on issue #37, as that
-   spec asks.
+   format number. Six of its assumptions are re-derived by this layout and none of them
+   moves a number (`application.md` 10.7); that is recorded as a comment on issue #37, as
+   that spec asks.
 
 ## Alternatives rejected
 
@@ -65,7 +65,7 @@ a browser can.
   tool, and because the degradation order costs #41 seven CSS steps rather than a second
   layout.
 - **A second, independently designed layout below a breakpoint.** The usual answer, and
-  the most work: two arrangements to design, to test at eleven viewports and to keep in
+  the most work: two arrangements to design, to test at ten viewports and to keep in
   step as #42 and #43 build on them, and `tree-format.md`'s limits derived for only one
   of them. The degradation order is one arrangement that sheds parts, so there is one
   thing to reason about and every limit keeps holding.
@@ -85,7 +85,7 @@ a browser can.
 
 - Core document 10.22 is answered and recorded there.
 - CI gets slower: `npm run test:browser` is now required, and `no-scroll.spec.ts` alone
-  is eleven viewports times seven pages times two languages. It is the price of the
+  is ten viewports times six pages times two languages. It is the price of the
   owner's one absolute rule being checkable rather than asserted.
 - A Tree that validates fits. If one ever does not, the failing test names the viewport,
   the Node and the language, and the answer is either a layout fix or a corrected limit

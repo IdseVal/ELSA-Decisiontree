@@ -32,15 +32,17 @@ leaves this origin. None of them can be asserted against a string of markup.
    need it, where it would be re-derived per caller and untestable except through
    rendered HTML.
 2. **The view is four server components and four client components.** `TreeView`,
-   `Bubble`, `Branch` and `Carousel` render; `Slider`, `Sheet`, `Carousel`'s buttons and
-   `ShareButton` enhance. 0.1's `NodeView`, `Trail` and `Thumbnails` go.
+   `Bubble`, `Branch` and `Carousel` render; `Slider`, `Sheet`, `CarouselButtons` and
+   `ShareButton` enhance. The Carousel is a server component and the client part is its
+   two buttons, so that part has a name and the count of four is a count of files. 0.1's
+   `NodeView`, `Trail` and `Thumbnails` go.
 3. **The client components are leaves.** They import no server module, compute no
    neighbourhood, fetch no Node and read no Tree; `Slider` receives its positions as
    props. That is what keeps the bundle small and what makes
    `ADR-38-without-javascript.md` statable.
-4. **One overlay concept.** `Sheet` serves the enlarged Image, the full Trail and every
-   collapsed group of `application.md` 10.5 -- one set of focus and Escape rules instead
-   of three.
+4. **One overlay concept.** `Sheet` serves the enlarged Image, the full Trail, the
+   collapsed Options and the collapsed Sources of `application.md` 10.5 -- four uses, one
+   set of focus and Escape rules instead of four.
 5. **`src/tree/` still imports nothing from the rest of the application**, and
    `neighbourhood` is the only module that calls `getNode` more than once, which is where
    the bound lives.

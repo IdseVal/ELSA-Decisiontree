@@ -36,13 +36,19 @@ document 9).
 4. **The buttons are an enhancement, not the mechanism.** `previous` and `next` scroll
    the strip by a page. They do not own "which Image is current"; the scroll position
    does.
-5. **The credit is always reachable**: the 16-pixel caption line under the thumbnails
-   shows the selected Image's description and credit, and the enlarged view always shows
-   both in full.
+5. **The credit is never cut; the description gives way.** The caption line under the
+   thumbnails is 20 pixels -- 60 + 20 is the row's 80 -- and holds one 13-pixel line of
+   about 170 characters, while a `description` and a `credit` may be 240 together. So the
+   credit is laid out whole and the description is shortened to what is left, at least 47
+   characters; the whole description is the thumbnail's alternative text and the enlarged
+   view shows both fields in full. The shortening is computed on the server rather than
+   done with `text-overflow`, because an ellipsis painted over content that still
+   overflows its box is exactly what `ADR-38-no-scroll.md`'s test measures and forbids.
 6. **The enlarged view is the same `Sheet`** as the Trail Sheet and the collapsed groups
    of `application.md` 10.5: bounded to the viewport so it never scrolls, closed by
    Escape, by its close button or by a click outside, focus returned to the thumbnail.
-   One overlay concept, three uses, one set of keyboard rules.
+   One overlay concept, four uses -- the enlarged Image, the full Trail, the collapsed
+   Options and the collapsed Sources -- one set of keyboard rules.
 7. **Without JavaScript** each thumbnail is an `<a href="/images/<file>">`: the browser
    opens the file. This is 0.1's behaviour, kept.
 8. **The row exists even when the Node has no Images**, empty and the same height, so the
@@ -80,9 +86,9 @@ document 9).
   parameter to a URL scheme the owner told us not to touch (`application.md` 4.1 ignores
   every other parameter), and it makes looking at a picture a navigation.
 - **`<dialog>` for the enlarged view and something else for the other overlays.** 0.1
-  used a native `<dialog>` for enlarging, and it was right for one overlay. With three
+  used a native `<dialog>` for enlarging, and it was right for one overlay. With four
   overlays, one `Sheet` -- which may well be built on `<dialog>` inside -- is one set of
-  focus and Escape rules instead of three.
+  focus and Escape rules instead of four.
 
 ## Consequences
 

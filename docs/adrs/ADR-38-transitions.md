@@ -28,7 +28,12 @@ moves, and what the address bar does while it moves.
 2. **A Branch has a direction and a slot, and the neighbour is rendered one viewport
    away in that direction.** Following the Branch translates the layer by exactly that
    offset, so the target arrives in the centre. The reader sees a complete Bubble
-   arriving, with its own Branch labels, not a placeholder.
+   arriving, with its own Branch labels, not a placeholder. The direction is where the
+   *target* is drawn, not where the control is: a `back` Branch sits below the Bubble
+   with the other ways on, and its target is the parent Bubble above, so following it
+   slides **up**. `startAgain` has no direction at all -- a restart is not a step through
+   the tree -- and is an ordinary link, like a Trail Branch older than the grandparent
+   (`application.md` 11.1, 11.3).
 3. **The click is intercepted on an ordinary `<a href>`.** `Slider` starts the
    translation and, in parallel, the client navigation to the same `href`. When the
    payload arrives the tree layer is replaced by the target's own layout and the
@@ -59,7 +64,7 @@ moves, and what the address bar does while it moves.
 - **Animating each Bubble separately.** More expressive, and it would let a Bubble fade
   as it leaves. Rejected: it is many elements' worth of state to keep in step with one
   navigation, and the no-scroll test has to hold mid-transition, which is far easier to
-  guarantee about one transform than about eleven.
+  guarantee about one transform than about seventeen.
 - **Replacing history with the framework's shallow routing, or updating the URL only
   after the slide.** Both make the address bar lag the view. A reader who copies a link
   mid-slide would share the previous Node, and the share link is the owner's, not ours to
