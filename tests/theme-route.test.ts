@@ -165,9 +165,13 @@ describe('the first Tree logo and tab icon are PNG, and arrive as PNG', () => {
 
 /*
  * The two `.png` cases above are the ones a Tree in this repository exercises; `webp` and
- * `ico` are in the grammar and in no Tree. Rather than invent a fixture for each, the two
- * tables are checked against the grammars they serve: an extension the format admits and
- * the table does not is the same `application/octet-stream` defect, found without a file.
+ * `ico` are in the grammar and in no Tree. Rather than invent a fixture for each, each
+ * table is pinned to a list transcribed here from the grammar it serves (`tree-format.md`
+ * 3.6 and 3.5). That catches an entry leaving a table -- the `application/octet-stream`
+ * defect, found without a file. It does not catch the format growing an extension:
+ * `THEME_FILE` and `IMAGE_FILE` in `src/tree/validate.ts` are not exported, and the
+ * grammars are frozen, so the list is transcribed rather than derived and this comment
+ * says so.
  */
 describe('every extension the format admits has a type', () => {
   test.for([
