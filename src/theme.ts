@@ -90,7 +90,7 @@ export function themeStyle(theme: Theme | undefined): ThemeStyle {
 export function themeLogo(theme: Theme | undefined): ResolvedLogo | undefined {
   const logo = theme?.logo
   if (!logo) return undefined
-  const dark = luminance(paletteOf(theme?.colours).background) < 0.5
+  const dark = isDark(paletteOf(theme?.colours))
   return { file: (dark && logo.dark) || logo.light, alt: logo.alt, url: logo.url }
 }
 
@@ -135,8 +135,9 @@ function rootBlock(colours: Colours, theme: Theme | undefined): string {
     `--elsa-font-body:${body ? `${body}, ${DEFAULT_FONT_STACK}` : DEFAULT_FONT_STACK}`,
     // A Tree that gives only `body` has its headings in the body family (4.3.2).
     `--elsa-font-heading:${heading ? `${heading}, var(--elsa-font-body)` : 'var(--elsa-font-body)'}`,
-    // Derived like the logo variant, so a dark Theme gets dark form controls and scrollbars.
-    `color-scheme:${luminance(colours.background) < 0.5 ? 'dark' : 'light'}`,
+    // The same test that picks the logo variant, so a dark Theme gets dark form controls
+    // and scrollbars.
+    `color-scheme:${isDark(colours) ? 'dark' : 'light'}`,
   ]
   return `:root{\n  ${declarations.join(';\n  ')}\n}`
 }
@@ -166,6 +167,15 @@ function fontFaces(theme: Theme | undefined): string[] {
 function quoteFamily(family: string): string | null {
   if (UNQUOTABLE_FAMILY.test(family)) return null
   return `'${family.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
+}
+
+/**
+ * Whether the palette runs dark. One test, asked in two places -- the logo variant and
+ * `color-scheme` -- because 13.1 says it is one rule and the threshold should not be able
+ * to drift between them.
+ */
+function isDark(colours: Colours): boolean {
+  return luminance(colours.background) < 0.5
 }
 
 /** Whichever of `text` and `background` reads better on `colour` (13.1). */
