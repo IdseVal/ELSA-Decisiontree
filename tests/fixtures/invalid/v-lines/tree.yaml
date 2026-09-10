@@ -1,0 +1,57 @@
+# The fixture for V-LINES: a description well inside the 600 characters of
+# docs/specs/tree-format.md 5.7 that still lays out over more than 8 lines, because a
+# list of short entries takes a line each (3.8). Height, not length, is what the Bubble
+# runs out of.
+format: elsa-tree/2
+languages: [en]
+root: start
+title:
+  en: A minimal Tree
+metadata:
+  version: "1.0"
+
+--- # start
+id: start
+title:
+  en: Does it apply?
+description:
+  en: |
+    The first question. It applies to any of these:
+
+    - the first case
+    - the second case
+    - the third case
+    - the fourth case
+    - the fifth case
+    - the sixth case
+    - the seventh case
+    - the eighth case
+metadata:
+  version: "1.0"
+answers:
+  yes: yes-end
+  no: no-end
+
+--- # no-end
+id: no-end
+title:
+  en: It does not apply
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable
+
+--- # yes-end
+id: yes-end
+title:
+  en: It applies
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable

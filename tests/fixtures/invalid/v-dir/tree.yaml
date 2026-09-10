@@ -1,7 +1,49 @@
-format: elsa-tree/1
+# The fixture for V-DIR. The Tree itself is valid; what is wrong is the folder around it,
+# where `images` is a FILE and not the folder the format says it is
+# (docs/specs/tree-format.md section 2). In elsa-tree/1 this fixture was a folder without
+# a nodes/ folder, which in elsa-tree/2 is a stream without Node documents -- V-NODE, not
+# V-DIR (12.3).
+format: elsa-tree/2
 languages: [en]
 root: start
 title:
   en: A minimal Tree
 metadata:
   version: "1.0"
+
+--- # start
+id: start
+title:
+  en: Does it apply?
+description:
+  en: |
+    The first question.
+metadata:
+  version: "1.0"
+answers:
+  yes: yes-end
+  no: no-end
+
+--- # no-end
+id: no-end
+title:
+  en: It does not apply
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable
+
+--- # yes-end
+id: yes-end
+title:
+  en: It applies
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable

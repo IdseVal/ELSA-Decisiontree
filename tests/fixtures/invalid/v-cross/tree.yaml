@@ -1,7 +1,46 @@
-format: elsa-tree/1
+format: elsa-tree/2
 languages: [en]
 root: start
 title:
   en: A minimal Tree
 metadata:
   version: "1.0"
+
+--- # start
+id: start
+title:
+  en: Does it apply?
+description:
+  en: |
+    The first question.
+metadata:
+  version: "1.0"
+options:
+  - title:
+      en: What does it mean?
+    target: detail
+answers:
+  yes: other-tree:yes-end
+  no: no-end
+
+--- # detail
+id: detail
+title:
+  en: What it means
+description:
+  en: |
+    This is explanation only. Go back to the previous step to answer.
+metadata:
+  version: "1.0"
+
+--- # no-end
+id: no-end
+title:
+  en: It does not apply
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable

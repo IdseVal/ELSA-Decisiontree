@@ -1,16 +1,30 @@
 /**
  * The Tree loader: the one seam between Tree data on disk and what a page renders
- * (docs/specs/application.md section 5.1, ADR-5-lazy-loading). `openTree` reads and
- * validates a whole folder once; afterwards `getNode` reads exactly one file.
+ * (docs/specs/application.md section 5.1, ADR-38-neighbourhood). `openTree` reads and
+ * validates the Tree's one file once and indexes it; afterwards `getNode` is a lookup and
+ * reads nothing. A page still receives one Node, never the Tree.
  *
  * Imports carry `.ts` extensions because scripts/validate.ts runs this module with plain
  * Node, which does not resolve extensionless TypeScript imports.
  */
-import { readdir, readFile } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
-import { parse } from 'yaml'
-import type { Image, LocalisedText, Manifest, Node, Option, Outcome, Source, Violation } from './types.ts'
-import { isId, isImageFile, isMapping, nodeKind, validateTree, type Mapping, type RawTree } from './validate.ts'
+import { LineCounter, parseAllDocuments } from 'yaml'
+import type { Image, LocalisedText, Manifest, Node, Option, Outcome, Source, Theme, Violation } from './types.ts'
+import {
+  isId,
+  isImageFile,
+  isMapping,
+  isThemeFile,
+  nodeKind,
+  validateTree,
+  type Mapping,
+  type RawNode,
+  type RawTree,
+} from './validate.ts'
+
+/** The id line the migration writes first in every Node document (tree-format.md 3.7). */
+const ID_LINE = /^id:[ \t]*(\S+)/m
 
 /**
  * Thrown by `openTree` for a Tree that breaks any validity rule; carries every violation.
@@ -31,8 +45,9 @@ export class TreeInvalid extends Error {
 }
 
 /**
- * One violation as one line: `tree-id  file  key.path  RULE  message`. The message is
- * folded onto that line because a YAML parser error arrives with its own line breaks.
+ * One violation as one line: `tree-id  where  key.path  RULE  message`, where `where` is
+ * `manifest` or the Node's id. The message is folded onto that line because a YAML parser
+ * error arrives with its own line breaks.
  */
 export function formatViolation(treeId: string, v: Violation): string {
   const message = v.message.replace(/\s+/g, ' ').trim()
@@ -44,85 +59,123 @@ export interface Tree {
   readonly id: string
   readonly manifest: Manifest
   /**
-   * Reads exactly one Node file. Null for a malformed or unknown id, without touching the
-   * file system. Rejects only if a validated file has disappeared since `openTree`.
+   * One Node from the index built at `openTree`; no file read. Null for a malformed or
+   * unknown id. A page may ask for at most seventeen (ADR-38-neighbourhood).
    */
   getNode(id: string): Promise<Node | null>
-  /** From the in-memory index built at `openTree`; no file read. */
+  /** From the in-memory title index; no file read. */
   getTitle(id: string): LocalisedText | null
   /** Absolute path inside this Tree's `images/`; null for a malformed or missing name. */
   imagePath(file: string): string | null
+  /**
+   * Absolute path inside this Tree's `theme/`, and only for a file the Theme names: a
+   * licence text sitting beside the fonts is not served (application.md 5.1).
+   */
+  themePath(file: string): string | null
 }
 
 /**
  * Reads and validates the Tree folder `dir` once (tree-format.md section 7) and builds the
- * title index. Rejects with `TreeInvalid` listing every violation.
+ * Node and title indexes. Rejects with `TreeInvalid` listing every violation.
  */
 export async function openTree(dir: string): Promise<Tree> {
   const root = path.resolve(dir)
   const id = path.basename(root)
   const violations: Violation[] = []
-  const raw = await readFolder(root, id, violations)
+  const raw = await readTree(root, id, violations)
   if (raw) violations.push(...validateTree(raw))
   if (!raw || violations.length > 0) throw new TreeInvalid(id, violations)
 
   // Every cast below is backed by the validation that just passed.
-  const titles = new Map<string, LocalisedText>()
-  for (const [nodeId, node] of raw.nodes) titles.set(nodeId, node!.title as LocalisedText)
   const manifest = toManifest(raw.manifest!)
+  const nodes = new Map<string, Node>()
+  for (const node of raw.nodes) nodes.set(node.id!, toNode(node.id!, node.document!))
+  const themeReferences = referencedThemeFiles(manifest.theme)
 
   return {
     id,
     manifest,
-    async getNode(nodeId) {
-      if (!isId(nodeId) || !titles.has(nodeId)) return null
-      const text = await readFile(path.join(root, 'nodes', `${nodeId}.yaml`), 'utf8')
-      return toNode(nodeId, parse(text) as Mapping)
-    },
-    getTitle: (nodeId) => titles.get(nodeId) ?? null,
+    getNode: async (nodeId) => (isId(nodeId) ? (nodes.get(nodeId) ?? null) : null),
+    getTitle: (nodeId) => nodes.get(nodeId)?.title ?? null,
     imagePath: (file) => (isImageFile(file) && raw.images.has(file) ? path.join(root, 'images', file) : null),
+    themePath: (file) =>
+      isThemeFile(file) && themeReferences.has(file) && raw.themeFiles.has(file)
+        ? path.join(root, 'theme', file)
+        : null,
   }
 }
 
-/** Reads the folder into parsed mappings, reporting V-DIR, V-YAML and bad Node file names. */
-async function readFolder(root: string, id: string, violations: Violation[]): Promise<RawTree | null> {
-  const fail = (file: string, rule: string, message: string): void => {
-    violations.push({ file, keyPath: '', rule, message })
+/** Reads and parses the Tree folder, reporting V-DIR and V-YAML. */
+async function readTree(root: string, id: string, violations: Violation[]): Promise<RawTree | null> {
+  const fail = (where: string, rule: string, message: string): void => {
+    violations.push({ file: where, keyPath: '', rule, message })
   }
-  const manifestText = await readText(path.join(root, 'tree.yaml'))
-  const nodeFiles = (await listFiles(path.join(root, 'nodes'))).filter((name) => name.endsWith('.yaml'))
+  const text = await readText(path.join(root, 'tree.yaml'))
   if (!isId(id)) fail('', 'V-DIR', `folder name "${id}" is not an id: lowercase letters, digits and single hyphens`)
-  if (manifestText === null) fail('tree.yaml', 'V-DIR', 'tree.yaml is missing')
-  if (nodeFiles.length === 0) fail('nodes/', 'V-DIR', 'nodes/ must contain at least one Node file')
+  if (text === null) fail('tree.yaml', 'V-DIR', 'tree.yaml is missing')
+  // The two names are spelled out rather than looped over: a `path.join` whose last segment
+  // is a variable makes Turbopack trace the whole project into the standalone build.
+  if (await isFile(path.join(root, 'images'))) fail('images', 'V-DIR', 'images must be a folder, not a file')
+  if (await isFile(path.join(root, 'theme'))) fail('theme', 'V-DIR', 'theme must be a folder, not a file')
   if (violations.length > 0) return null
 
-  const nodes = new Map<string, Mapping | null>()
-  for (const name of nodeFiles) {
-    const nodeId = name.slice(0, -'.yaml'.length)
-    if (!isId(nodeId)) {
-      fail(`nodes/${name}`, 'V-NODE', `file name must be <id>.yaml; "${nodeId}" is not an id`)
-      continue
-    }
-    nodes.set(nodeId, parseMapping((await readText(path.join(root, 'nodes', name))) ?? '', `nodes/${name}`, violations))
-  }
+  const { manifest, nodes } = readStream(text!, violations)
   return {
     id,
-    manifest: parseMapping(manifestText!, 'tree.yaml', violations),
+    manifest,
     nodes,
     images: new Set(await listFiles(path.join(root, 'images'))),
+    themeFiles: new Set(await listFiles(path.join(root, 'theme'))),
   }
 }
 
-/** V-YAML: parses as YAML 1.2 into a mapping at the top level. */
-function parseMapping(text: string, file: string, violations: Violation[]): Mapping | null {
-  try {
-    const value: unknown = parse(text)
-    if (isMapping(value)) return value
-    violations.push({ file, keyPath: '', rule: 'V-YAML', message: 'the top level must be a mapping' })
-  } catch (error) {
-    violations.push({ file, keyPath: '', rule: 'V-YAML', message: (error as Error).message })
+/**
+ * V-YAML: `tree.yaml` as a YAML 1.2 stream whose first document is the manifest and whose
+ * others are Nodes. A document that fails to parse is reported with its line number and
+ * skipped; the rest are still read (tree-format.md 3.7).
+ */
+function readStream(text: string, violations: Violation[]): { manifest: Mapping | null; nodes: RawNode[] } {
+  const lineCounter = new LineCounter()
+  const documents = parseAllDocuments(text, { lineCounter })
+  if (documents.length === 0) {
+    violations.push({ file: 'manifest', keyPath: '', rule: 'V-YAML', message: 'tree.yaml holds no YAML document' })
+    return { manifest: null, nodes: [] }
   }
-  return null
+
+  const nodes: RawNode[] = []
+  let manifest: Mapping | null = null
+  documents.forEach((document, index) => {
+    const parsed = toMapping(document)
+    const id = index === 0 ? null : documentId(parsed, text.slice(document.range[0], document.range[2]))
+    const where = index === 0 ? 'manifest' : (id ?? `document at line ${lineCounter.linePos(document.range[0]).line}`)
+
+    if (document.errors.length > 0) {
+      violations.push({ file: where, keyPath: '', rule: 'V-YAML', message: document.errors[0]!.message })
+    } else if (!parsed) {
+      violations.push({ file: where, keyPath: '', rule: 'V-YAML', message: 'the top level of a document must be a mapping' })
+    }
+    if (index === 0) manifest = parsed
+    else nodes.push({ id, where, document: parsed })
+  })
+  return { manifest, nodes }
+}
+
+/** The document as a mapping, or null when it did not parse or is not one. */
+function toMapping(document: ReturnType<typeof parseAllDocuments>[number]): Mapping | null {
+  if (document.errors.length > 0) return null
+  const value: unknown = document.toJS()
+  return isMapping(value) ? value : null
+}
+
+/**
+ * A Node document's id: the `id` key, or -- when the document did not parse -- the `id:`
+ * line read out of its text, so that its violations still name the Node rather than a
+ * line number (tree-format.md 3.7). Null when neither gives a valid id; V-NODE says so.
+ */
+function documentId(parsed: Mapping | null, source: string): string | null {
+  if (parsed) return isId(parsed.id) ? parsed.id : null
+  const match = ID_LINE.exec(source)
+  return match && isId(match[1]) ? match[1] : null
 }
 
 async function readText(file: string): Promise<string | null> {
@@ -143,16 +196,38 @@ async function listFiles(dir: string): Promise<string[]> {
   }
 }
 
+async function isFile(file: string): Promise<boolean> {
+  try {
+    return (await stat(file)).isFile()
+  } catch {
+    return false
+  }
+}
+
+/** The theme files the Theme names: what `themePath` may resolve (application.md 5.1). */
+function referencedThemeFiles(theme: Theme | undefined): Set<string> {
+  const files = new Set<string>()
+  if (!theme) return files
+  for (const file of [theme.logo?.light, theme.logo?.dark, theme.logo?.icon]) {
+    if (file) files.add(file)
+  }
+  for (const family of theme.fonts ?? []) {
+    for (const face of family.files) files.add(face.file)
+  }
+  return files
+}
+
 function toManifest(raw: Mapping): Manifest {
   const languages = raw.languages as string[]
   return {
-    format: 'elsa-tree/1',
+    format: 'elsa-tree/2',
     languages,
     defaultLanguage: languages[0]!,
     root: raw.root as string,
     title: raw.title as LocalisedText,
     description: raw.description as LocalisedText | undefined,
     metadata: raw.metadata as Manifest['metadata'],
+    theme: raw.theme as Theme | undefined,
   }
 }
 

@@ -3,6 +3,14 @@ import { defineConfig, devices } from '@playwright/test'
 /**
  * The browser walk of the FIRST Tree (`npm run test:first-tree`), issue #23.
  *
+ * **It cannot run until issue #44 has cut that Tree's content.** `elsa-tree/2` gives
+ * every text a maximum length (`docs/specs/tree-format.md` 5.7) and
+ * `trees/ai-act-applicability-agrifood` is over it in 454 places, so the server this
+ * config starts refuses to start at all -- as it should, and as
+ * `tests/ai-act-tree.test.ts` asserts. Nothing else about the suite changes; #44 makes
+ * the Tree load and this walks again. `npm run test:browser`, which serves the example
+ * Tree, is unaffected.
+ *
  * It is a second configuration rather than a second project inside
  * `playwright.config.ts` because a Playwright server serves one Tree at a time: the
  * default config serves `trees/ai-act-example`, which is what `tests/browser/` asserts

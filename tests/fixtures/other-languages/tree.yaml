@@ -1,6 +1,11 @@
 # A Tree in two languages the chrome does not speak (docs/specs/application.md 3.1,
 # fourth row): the frontend must show it and fall back to English chrome.
-format: elsa-tree/1
+#
+# It is also the interoperability fixture WITH a Theme, against single-language/ without
+# one (application.md section 7). The Theme carries two of its three parts, so a Tree
+# with fonts absent is covered too; theme/unused.svg is a file the Theme does not name,
+# which themePath must refuse even though it exists (5.1).
+format: elsa-tree/2
 languages: [de, fr]
 root: start
 title:
@@ -13,3 +18,100 @@ description:
     Un petit arbre pour les tests.
 metadata:
   version: "1.0"
+theme:
+  logo:
+    light: logo.svg
+    alt:
+      de: Beispiel-Labor
+      fr: Laboratoire d'exemple
+    url: https://example.org
+  colours:
+    background: "#ffffff"
+    surface: "#eef1f5"
+    text: "#1b1c1f"
+    text-muted: "#6b6d72"
+    accent: "#1b3a6b"
+    accent-secondary: "#3f8f5f"
+    danger: "#b3261e"
+
+--- # start
+id: start
+title:
+  de: Fällt Ihr System in den Anwendungsbereich?
+  fr: Votre système entre-t-il dans le champ d'application ?
+description:
+  de: |
+    Die erste Frage. Lesen Sie die Erläuterung und antworten Sie dann.
+  fr: |
+    La première question. Lisez l'explication, puis répondez.
+metadata:
+  version: "1.0"
+sources:
+  - id: art-2
+    kind: legal
+    label:
+      de: Artikel 2 KI-Verordnung
+      fr: Article 2 du règlement IA
+    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+images:
+  - file: karte.png
+    description:
+      de: Karte der EU-Mitgliedstaaten
+      fr: Carte des États membres de l'UE
+    credit: "Karte: Beispiel Kartografie, CC BY 4.0"
+    source: art-2
+options:
+  - title:
+      de: Was heißt "Inverkehrbringen"?
+      fr: Que signifie « mise sur le marché » ?
+    target: inverkehrbringen
+answers:
+  yes: anwendbar
+  no: nicht-anwendbar
+
+--- # anwendbar
+id: anwendbar
+title:
+  de: Die Verordnung ist anwendbar
+  fr: Le règlement s'applique
+description:
+  de: |
+    Der Durchlauf endet hier.
+  fr: |
+    Le parcours s'arrête ici.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable
+
+--- # inverkehrbringen
+id: inverkehrbringen
+title:
+  de: Inverkehrbringen
+  fr: Mise sur le marché
+description:
+  de: |
+    Die erstmalige Bereitstellung eines Systems auf dem Unionsmarkt.
+
+    Dies ist nur eine Erläuterung. Gehen Sie zurück, um zu antworten.
+  fr: |
+    La première mise à disposition d'un système sur le marché de l'Union.
+
+    Ceci n'est qu'une explication. Revenez en arrière pour répondre.
+metadata:
+  version: "1.0"
+
+--- # nicht-anwendbar
+id: nicht-anwendbar
+title:
+  de: Die Verordnung ist nicht anwendbar
+  fr: Le règlement ne s'applique pas
+description:
+  de: |
+    Der Durchlauf endet hier.
+  fr: |
+    Le parcours s'arrête ici.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable

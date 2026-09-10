@@ -1,0 +1,61 @@
+# One Node document with a mis-indented key, to show what elsa-tree/2 promises about a
+# YAML error: it is reported for THAT document, with its line number, and the other
+# documents are still read and checked (docs/specs/tree-format.md 3.7).
+format: elsa-tree/2
+languages: [en]
+root: start
+title:
+  en: A minimal Tree
+metadata:
+  version: "1.0"
+
+--- # start
+id: start
+title:
+  en: Does it apply?
+description:
+  en: |
+    The first question.
+metadata:
+  version: "1.0"
+options:
+  - title:
+      en: What does it mean?
+    target: detail
+answers:
+  yes: yes-end
+  no: no-end
+
+--- # detail
+id: detail
+title:
+  en: What it means
+ description:
+  en: |
+    One space too many in front of "description" breaks this document, and only this one.
+metadata:
+  version: "1.0"
+
+--- # no-end
+id: no-end
+title:
+  en: It does not apply
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable
+
+--- # yes-end
+id: yes-end
+title:
+  en: It applies
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable

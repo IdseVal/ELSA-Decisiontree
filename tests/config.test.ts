@@ -73,7 +73,7 @@ describe('a deployment that names no usable Tree refuses to start', () => {
     const message = await refusal({ ELSA_TREE: 'v-terminal', ELSA_TREES_DIR: path.join(fixturesDir, 'invalid') })
 
     expect(message).toContain('V-TERMINAL')
-    expect(message).toContain('nodes/yes-end.yaml')
+    expect(message).toContain('yes-end')
   })
 })
 

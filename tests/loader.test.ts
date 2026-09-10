@@ -1,16 +1,17 @@
 /**
  * The Tree loader (docs/specs/application.md section 5.1): what `openTree` accepts, what
- * it rejects, and the promise that rendering a Node reads exactly one Node file.
+ * it rejects, and the promise that a page is served from the index without touching a file.
  *
  * Fixtures are always loaded through `openTree`; no test builds a `Node` by hand or reads
  * YAML itself (docs/specs/application.md section 7).
  */
+import { readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import type { Violation } from '../src/tree/types.ts'
 
-// Counting the reads is how the lazy-loading contract is measured, so the real module is
+// Counting the reads is how "the Tree is read once" is measured, so the real module is
 // wrapped rather than replaced. `vi.hoisted` gives the factory, which runs first, its array.
 const { reads } = vi.hoisted(() => ({ reads: [] as string[] }))
 vi.mock('node:fs/promises', async (importOriginal) => {
@@ -25,6 +26,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
 })
 
 const { openTree, TreeInvalid } = await import('../src/tree/loader.ts')
+const { countedLength, estimatedLines } = await import('../src/tree/validate.ts')
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const fixture = (...parts: string[]): string => path.join(here, 'fixtures', ...parts)
@@ -39,11 +41,11 @@ describe('a Tree in two languages', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/1')
+    expect(tree.manifest.format).toBe('elsa-tree/2')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
-    expect(tree.manifest.metadata.version).toBe('1.0')
+    expect(tree.manifest.metadata.version).toBe('2.0')
   })
 
   test('every Node of the Tree is returned by its own id', async () => {
@@ -161,14 +163,75 @@ describe('a Tree in two languages', () => {
   })
 })
 
-describe('getNode reads one file and never throws for bad input', () => {
-  test('one Node page costs exactly one file read', async () => {
+describe('the Theme the Tree carries', () => {
+  test('the manifest hands out the logo, the fonts and the seven colours', async () => {
+    const tree = await openTree(exampleTree)
+    const theme = tree.manifest.theme!
+
+    expect(theme.logo).toEqual({
+      light: 'elsa-lab-logo.svg',
+      dark: 'elsa-lab-logo-white.svg',
+      alt: { en: 'ELSA-Lab for sustainable food systems', nl: 'ELSA-Lab voor duurzame voedselsystemen' },
+      url: 'https://ai4sfs.org',
+    })
+    expect(theme.fonts!.map((family) => [family.family, family.role])).toEqual([
+      ['Open Sans', 'body'],
+      ['Nova Square', 'heading'],
+    ])
+    expect(theme.fonts![0]!.files[0]).toEqual({ file: 'open-sans-400.woff2', weight: '400', style: 'normal' })
+    expect(Object.keys(theme.colours!)).toEqual([
+      'background',
+      'surface',
+      'text',
+      'text-muted',
+      'accent',
+      'accent-secondary',
+      'danger',
+    ])
+    expect(theme.colours!.accent).toBe('#ffc600')
+  })
+
+  test('themePath resolves a file the Theme names, and nothing else', async () => {
+    const tree = await openTree(exampleTree)
+
+    expect(tree.themePath('elsa-lab-logo.svg')).toBe(path.join(exampleTree, 'theme', 'elsa-lab-logo.svg'))
+    expect(tree.themePath('open-sans-400.woff2')).toBe(path.join(exampleTree, 'theme', 'open-sans-400.woff2'))
+    // The licence text sits in theme/ and the Theme does not reference it (4.3.2).
+    expect(tree.themePath('ofl-open-sans.txt')).toBeNull()
+    expect(tree.themePath('no-such-logo.svg')).toBeNull()
+    expect(tree.themePath('../../../etc/passwd')).toBeNull()
+    expect(tree.themePath('ELSA-Lab-Logo.SVG')).toBeNull()
+  })
+
+  test('a file the Theme does not name is refused although it exists', async () => {
+    const tree = await openTree(fixture('other-languages'))
+
+    expect(tree.themePath('logo.svg')).toBe(path.join(fixture('other-languages'), 'theme', 'logo.svg'))
+    expect(tree.themePath('unused.svg')).toBeNull()
+  })
+
+  test('a Tree without a Theme has none, and resolves no theme file', async () => {
+    const tree = await openTree(fixture('single-language'))
+
+    expect(tree.manifest.theme).toBeUndefined()
+    expect(tree.themePath('logo.svg')).toBeNull()
+  })
+})
+
+describe('the Tree is read once and a page reads nothing', () => {
+  test('openTree reads one file: the Tree', async () => {
+    await openTree(exampleTree)
+
+    expect(reads).toEqual([path.join(exampleTree, 'tree.yaml')])
+  })
+
+  test('a Node page costs no file read at all', async () => {
     const tree = await openTree(exampleTree)
     reads.length = 0
 
     const node = await tree.getNode('prohibited-practices')
 
-    expect(reads).toEqual([path.join(exampleTree, 'nodes', 'prohibited-practices.yaml')])
+    expect(reads).toEqual([])
     // The Node names its Links by id only; no neighbouring Node came along with it.
     expect(node!.options.map((option) => option.target)).toEqual([
       'social-scoring',
@@ -177,14 +240,14 @@ describe('getNode reads one file and never throws for bad input', () => {
     expect(JSON.stringify(node)).not.toContain('Evaluating or classifying people')
   })
 
-  test('following a Link costs one more file read, and only that one', async () => {
+  test('the seventeen Nodes a page may ask for cost no read either', async () => {
+    // The bound of ADR-38-neighbourhood: one Node plus at most sixteen neighbours.
     const tree = await openTree(exampleTree)
-    await tree.getNode('start')
     reads.length = 0
 
-    await tree.getNode('prohibited-practices')
+    for (let i = 0; i < 17; i += 1) await tree.getNode('start')
 
-    expect(reads).toHaveLength(1)
+    expect(reads).toEqual([])
   })
 
   test('an unknown or malformed id is null, and touches no file', async () => {
@@ -214,14 +277,21 @@ describe('a Tree in languages the frontend does not know', () => {
   })
 })
 
-describe('an invalid Tree is rejected, naming the file and the rule', () => {
+describe('an invalid Tree is rejected, naming the Node and the rule', () => {
   // One fixture per validity rule of tree-format.md section 7, each breaking exactly that
   // rule (docs/specs/application.md section 7).
   const rules = [
     'V-DIR', 'V-YAML', 'V-FORMAT', 'V-LANG', 'V-ROOT', 'V-TITLE', 'V-META', 'V-KEYS',
-    'V-REACH', 'V-L10N', 'V-PLAIN', 'V-HTML', 'V-NODE', 'V-KIND', 'V-ANSWERS',
-    'V-OPTIONS', 'V-ORPHAN', 'V-TERMINAL', 'V-SOURCE', 'V-IMAGE', 'V-CROSS',
+    'V-REACH', 'V-THEME', 'V-L10N', 'V-PLAIN', 'V-HTML', 'V-LENGTH', 'V-LINES', 'V-COUNT',
+    'V-NODE', 'V-KIND', 'V-ANSWERS', 'V-OPTIONS', 'V-ORPHAN', 'V-TERMINAL', 'V-SOURCE',
+    'V-IMAGE', 'V-CROSS',
   ]
+
+  test('every rule of section 7 has a fixture, and every fixture a rule', async () => {
+    const folders = await readdir(fixture('invalid'))
+
+    expect(folders.sort()).toEqual(rules.map((rule) => rule.toLowerCase()).sort())
+  })
 
   test.each(rules)('%s', async (rule) => {
     const dir = fixture('invalid', rule.toLowerCase())
@@ -238,10 +308,21 @@ describe('an invalid Tree is rejected, naming the file and the rule', () => {
     expect([...new Set(invalid.violations.map((v) => v.rule))]).toEqual([rule])
     for (const violation of invalid.violations) {
       expect(violation.message).not.toBe('')
-      // The message a person reads names the file and the rule (tree-format.md section 7).
+      // The message a person reads names where it is and the rule (tree-format.md section 7).
       expect(invalid.message).toContain(violation.file || rule.toLowerCase())
       expect(invalid.message).toContain(rule)
     }
+  })
+
+  test('a length violation names the field, the language, the actual length and the maximum', async () => {
+    const error = await openTree(fixture('invalid', 'v-length')).then(
+      () => null,
+      (reason: unknown) => reason as InstanceType<typeof TreeInvalid>,
+    )
+
+    expect(error!.violations).toEqual([
+      { file: 'start', keyPath: 'title.en', rule: 'V-LENGTH', message: '81 characters; at most 80' },
+    ])
   })
 
   test('every violation is reported, not just the first', async () => {
@@ -252,7 +333,7 @@ describe('an invalid Tree is rejected, naming the file and the rule', () => {
 
     expect(error!.violations).toHaveLength(1)
     expect(error!.violations[0]).toMatchObject({
-      file: 'nodes/start.yaml',
+      file: 'start',
       keyPath: 'options[1].target',
       rule: 'V-OPTIONS',
     })
@@ -272,36 +353,36 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
       // The Link to a missing Node the issue asks for by name.
       'answer-to-missing-node',
       [
-        { file: 'nodes/start.yaml', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"no-such-node" is not a Node of this Tree' },
-        { file: 'nodes/yes-end.yaml', keyPath: '', rule: 'V-REACH', message: 'not reachable from root "start" by following Answers and Options' },
+        { file: 'start', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"no-such-node" is not a Node of this Tree' },
+        { file: 'yes-end', keyPath: '', rule: 'V-REACH', message: 'not reachable from root "start" by following Answers and Options' },
       ],
     ],
     [
       'answer-to-explanation',
       [
-        { file: 'nodes/start.yaml', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"detail" is an explanation Node; an Answer must lead to a question Node or a Terminal' },
+        { file: 'start', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"detail" is an explanation Node; an Answer must lead to a question Node or a Terminal' },
       ],
     ],
     [
       'option-to-missing-node',
       [
-        { file: 'nodes/start.yaml', keyPath: 'options[0].target', rule: 'V-OPTIONS', message: '"no-such-node" is not a Node of this Tree' },
+        { file: 'start', keyPath: 'options[0].target', rule: 'V-OPTIONS', message: '"no-such-node" is not a Node of this Tree' },
       ],
     ],
     [
       // Three independent rules on one Node, so their reports do not hide each other.
       'option-to-terminal',
       [
-        { file: 'nodes/start.yaml', keyPath: 'sources[1].id', rule: 'V-SOURCE', message: 'Source id "art-2" is used twice on this Node' },
-        { file: 'nodes/start.yaml', keyPath: 'images[0].source', rule: 'V-IMAGE', message: 'source must name the id of a Source on this Node' },
-        { file: 'nodes/start.yaml', keyPath: 'options[0].target', rule: 'V-OPTIONS', message: '"yes-end" is a terminal Node; an Option must lead to an explanation Node' },
+        { file: 'start', keyPath: 'sources[1].id', rule: 'V-SOURCE', message: 'Source id "art-2" is used twice on this Node' },
+        { file: 'start', keyPath: 'images[0].source', rule: 'V-IMAGE', message: 'source must name the id of a Source on this Node' },
+        { file: 'start', keyPath: 'options[0].target', rule: 'V-OPTIONS', message: '"yes-end" is a terminal Node; an Option must lead to an explanation Node' },
       ],
     ],
     [
       // The half of V-TERMINAL that `invalid/v-terminal/` (a bad outcome) does not reach.
       'terminal-with-options',
       [
-        { file: 'nodes/yes-end.yaml', keyPath: 'options', rule: 'V-TERMINAL', message: 'a Terminal cannot have options' },
+        { file: 'yes-end', keyPath: 'options', rule: 'V-TERMINAL', message: 'a Terminal cannot have options' },
       ],
     ],
   ]
@@ -321,5 +402,47 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
       expect(invalid.message).toContain(violation.file)
       expect(invalid.message).toContain(violation.rule)
     }
+  })
+
+  test('a Node document that does not parse breaks that Node and no other', async () => {
+    // tree-format.md 3.7: the error is reported for its own document, with its line
+    // number, and the other documents are still read and checked.
+    const error = await openTree(fixture('broken', 'node-document-does-not-parse')).then(
+      () => null,
+      (reason: unknown) => reason as InstanceType<typeof TreeInvalid>,
+    )
+
+    expect(error!.violations).toHaveLength(1)
+    expect(error!.violations[0]).toMatchObject({ file: 'detail', keyPath: '', rule: 'V-YAML' })
+    expect(error!.violations[0]!.message).toContain('at line 33')
+  })
+})
+
+describe('how text is measured (tree-format.md 3.8)', () => {
+  test('a link counts as the words the reader sees, not as its URL', () => {
+    const written = 'See [the Act](https://eur-lex.europa.eu/eli/reg/2024/1689/oj).'
+
+    expect(countedLength(written)).toBe('See the Act.'.length)
+  })
+
+  test('length is counted in characters, not in bytes', () => {
+    expect(countedLength('  café  ')).toBe(4)
+  })
+
+  test("the spec's worked example lays out over exactly eight lines", async () => {
+    // Section 3.8: three blocks of 163, 135 and 61 characters and two breaks, which is
+    // 3 + 2 + 1 + 2 = 8 -- exactly the maximum. The text is the root Node of section 8.
+    const tree = await openTree(exampleTree)
+    const start = (await tree.getNode('start'))!
+
+    expect(estimatedLines(start.description.en!)).toBe(8)
+    expect(countedLength(start.description.en!)).toBe(363)
+  })
+
+  test('a list of short entries takes a line each, however short the text is', () => {
+    const text = 'One paragraph.\n\n- one\n- two\n- three'
+
+    expect(countedLength(text)).toBe(35)
+    expect(estimatedLines(text)).toBe(5)
   })
 })
