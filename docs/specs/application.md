@@ -588,11 +588,15 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── Sheet.tsx        [v0.2] client: the one overlay -- enlarged Image, full
 │   │   │                    Trail, collapsed Options, collapsed Sources (10.5, 12)
 │   │   ├── Slider.tsx       [v0.2] client: the slide transition (11)
+│   │   ├── Logo.tsx         [v0.2] server: the Tree's logo in the chrome bar, or its
+│   │   │                    title as text when the Theme names none (13.2)
 │   │   ├── ShareButton.tsx  client, unchanged
 │   │   ├── LanguageSwitch.tsx  unchanged
 │   │   └── Disclaimer.tsx   unchanged
 │   ├── neighbourhood.ts     [v0.2] which Nodes surround this one, and in which direction (11)
 │   ├── theme.ts             [v0.2] a Theme -> CSS custom properties and @font-face; the default (13)
+│   ├── assets.ts            [v0.2] one file of the Tree as a response: the headers and the
+│   │                        streaming the image and theme routes share (5.3, 5.5)
 │   ├── url.ts               the URL scheme (4)
 │   ├── chrome.ts            chrome strings and fallback (3)
 │   ├── config.ts            ELSA_TREE / ELSA_TREES_DIR; the one opened Tree
@@ -618,12 +622,13 @@ Their work is `TreeView` + `Bubble`, `Branch`, and `Carousel` + `Sheet`.
 |---|---|---|
 | `src/tree/` (loader) | Reading, validating and indexing a Tree; handing out one Node, one title, one image path, one theme path. | Know URLs, chrome, React, or that a Bubble exists. |
 | `src/neighbourhood.ts` **[v0.2]** | Which Nodes surround the Node on screen, in which direction and in which slot, and the bound on how many (11). One function. | Read files, render, or know what a Branch looks like. |
-| `src/theme.ts` **[v0.2]** | A `Theme` (or its absence) turned into the exact CSS custom properties and `@font-face` rules the page emits, including the derived colours and every escape (13). | Know React, routes, or which element uses which property. |
+| `src/theme.ts` **[v0.2]** | A `Theme` (or its absence) turned into the exact CSS custom properties and `@font-face` rules the page emits, including the derived values and every escape (13), and which logo variant the palette calls for. | Know React, or which element uses which property. Write a URL: the `src` of an `@font-face` is `url.ts`'s `themeHref`. |
+| `src/assets.ts` **[v0.2]** | One file of the served Tree as an HTTP response: the `Content-Type` its extension names, the four headers that make third-party bytes inert, and the one 404 that covers every refusal (5.3, 5.5). | Resolve a path -- `imagePath` and `themePath` do, inside the Tree's folder. Know which Tree is served. |
 | `src/url.ts` | Parsing a request into `{ treeId, trail, nodeId, lang }` and building every link. | Read files or render. |
 | `src/chrome.ts` | The chrome strings and the language fallback rule. | Contain Tree content. |
 | `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. | Parse Trees or URLs. |
 | `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab. | Accept raw HTML. |
-| `src/components/` | Views. Server components take data and return markup; the four client components own exactly one interaction each (section 1). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
+| `src/components/` | Views. Server components take data and return markup -- `Logo.tsx` **[v0.2]** is one: it asks `theme.ts` which logo variant this palette calls for and renders it, or the Tree's title when there is none (13.2). The four client components own exactly one interaction each (section 1). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
 | `src/app/` | Routes: parse, load, hand to a view; redirects; the image and theme routes; 404. The `[lang]` layout sets `<html lang>` and emits the Theme. | Hold logic. Take the language from `searchParams` (4.4). |
 | `next.config.ts` | The two rewrites of 4.4, plus the build settings of section 1. | Know which languages a Tree declares, or anything else about the application. |
 
@@ -632,7 +637,9 @@ Dependencies point inward, and the client components are leaves:
 ```
 app  ->  components  ->  chrome, url, markdown, theme, tree/types
 app  ->  neighbourhood  ->  tree (getNode, getTitle), url
-app  ->  theme, url, chrome, config, markdown
+app  ->  theme  ->  url (themeHref)
+app  ->  assets  ->  nothing in src/
+app  ->  url, chrome, config, markdown
 config  ->  tree
 tree/  ->  nothing in src/
 next.config.ts  ->  nothing in src/
