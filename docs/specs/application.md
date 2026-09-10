@@ -763,9 +763,9 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | **[v0.2]** The slide transition: the tree layer moves, the URL is the plain link's | `docs/adrs/ADR-38-transitions.md` |
 | **[v0.2]** The guaranteed viewport, the no-scroll rule, the degradation order, the test | `docs/adrs/ADR-38-no-scroll.md` |
 | **[v0.2]** The Carousel: a scroll-snap strip of this Node's Images, enlarged in a Sheet | `docs/adrs/ADR-38-carousel.md` |
-| **[v0.2]** The Theme: custom properties and `@font-face` emitted at render time, files from a route | `docs/adrs/ADR-38-theme-delivery.md` |
+| **[v0.2]** The Theme: custom properties and `@font-face` emitted at render time, files from a route | `docs/adrs/ADR-38-theme-delivery.md`, amended by issue #40 (PR #52) |
 | **[v0.2]** What holds without JavaScript | `docs/adrs/ADR-38-without-javascript.md` |
-| **[v0.2]** Modules, dependency direction and which tests need a browser | `docs/adrs/ADR-38-modules-and-tests.md` |
+| **[v0.2]** Modules, dependency direction and which tests need a browser | `docs/adrs/ADR-38-modules-and-tests.md`, amended by issue #40 (PR #52) |
 
 ## 10. The tree view
 
@@ -1287,7 +1287,10 @@ application writes a colour or a font name.
 
 - **The seven colour roles become `--elsa-<role>` verbatim.** They are the seven of
   `tree-format.md` 4.3.3 and there is no eighth.
-- **Four values are derived at render time**, and each is one CSS cannot compute.
+- **Four values are derived at render time** (amended 2026-09-10, PR #52: the fourth,
+  `--elsa-scrim`, replaced a backdrop keyed to `text`, which advanced instead of receding
+  on a dark Theme; `ADR-38-theme-delivery.md` decision 3 and `ADR-38-modules-and-tests.md`
+  decision 1 carry the amendment), and each is one CSS cannot compute.
   Everything else the stylesheet wants -- a hover shade, a disabled control, a border --
   it derives in CSS with `color-mix()` from the seven. `theme.ts` computes four values;
   it is not a colour system.
