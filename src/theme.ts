@@ -68,19 +68,31 @@ export interface ThemeStyle {
  * Theme is never merged with half a default (13.4).
  */
 export function themeStyle(theme: Theme | undefined): ThemeStyle {
-  const colours = paletteOf(theme?.colours)
-  const dark = luminance(colours.background) < 0.5
-  const logo = theme?.logo
-  const css = build(theme, colours)
+  const css = build(theme, paletteOf(theme?.colours))
 
   return {
     // Every part above is escaped, so this can only fire if one of them stops escaping.
     // The default look is then emitted whole rather than nothing: a page with no custom
     // properties at all would have no colour left to fall back on.
     css: css.toLowerCase().includes('</style') ? build(undefined, DEFAULT_COLOURS) : css,
-    logo: logo && { file: (dark && logo.dark) || logo.light, alt: logo.alt, url: logo.url },
-    icon: logo?.icon,
+    logo: themeLogo(theme),
+    icon: theme?.logo?.icon,
   }
+}
+
+/**
+ * The logo the page shows, or undefined when the Theme names none. Which variant is
+ * derived, never declared: `dark` is used when the palette's `background` is dark, so the
+ * format needs no key for it and an author cannot get it wrong (13.1).
+ *
+ * Separate from `themeStyle` because the chrome bar asks only for this, and building the
+ * stylesheet again to get it would be work the page throws away.
+ */
+export function themeLogo(theme: Theme | undefined): ResolvedLogo | undefined {
+  const logo = theme?.logo
+  if (!logo) return undefined
+  const dark = luminance(paletteOf(theme?.colours).background) < 0.5
+  return { file: (dark && logo.dark) || logo.light, alt: logo.alt, url: logo.url }
 }
 
 /** The `@font-face` rules and the `:root` block, in that order. */
