@@ -5,6 +5,14 @@
 - Spec: `docs/specs/application.md`, sections 6 and 7
 - Amends `docs/adrs/ADR-5-repository-layout.md` and `docs/adrs/ADR-5-testing-approach.md`
 - Core document: 3.2 ("Simple code: not many files, no long files -- it is a small app")
+- Amended 2026-09-10 by issue #40 (PR #52): decision 1's count for `src/theme.ts`. The
+  module emits **four** derived values, not three: `--elsa-scrim` joins the three
+  readable-on colours, because CSS cannot compare luminance either and a backdrop that is
+  not told which end of the palette is dark advances instead of receding on a dark Theme.
+  The `:root` block also carries `color-scheme`, the UA hint written by the same dark
+  test that picks the logo variant. See `ADR-38-theme-delivery.md`, amended likewise, and
+  `application.md` 13.1. The module's interface, its depth and everything else below are
+  unchanged.
 
 ## Context
 
