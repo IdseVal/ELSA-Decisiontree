@@ -145,10 +145,7 @@ function readStream(text: string, violations: Violation[]): { manifest: Mapping 
   let manifest: Mapping | null = null
   documents.forEach((document, index) => {
     const parsed = toMapping(document)
-    // The id is what a violation is reported under, so it is recovered from the text when
-    // the document did not parse -- the migration writes it on its own line (3.7).
-    const source = text.slice(document.range[0], document.range[2])
-    const id = index === 0 ? null : ((parsed && isId(parsed.id) ? parsed.id : recoverId(source)))
+    const id = index === 0 ? null : documentId(parsed, text.slice(document.range[0], document.range[2]))
     const where = index === 0 ? 'manifest' : (id ?? `document at line ${lineCounter.linePos(document.range[0]).line}`)
 
     if (document.errors.length > 0) {
@@ -169,8 +166,13 @@ function toMapping(document: ReturnType<typeof parseAllDocuments>[number]): Mapp
   return isMapping(value) ? value : null
 }
 
-/** The `id:` line of a document that did not parse, so its violations still name the Node. */
-function recoverId(source: string): string | null {
+/**
+ * A Node document's id: the `id` key, or -- when the document did not parse -- the `id:`
+ * line read out of its text, so that its violations still name the Node rather than a
+ * line number (tree-format.md 3.7). Null when neither gives a valid id; V-NODE says so.
+ */
+function documentId(parsed: Mapping | null, source: string): string | null {
+  if (parsed) return isId(parsed.id) ? parsed.id : null
   const match = ID_LINE.exec(source)
   return match && isId(match[1]) ? match[1] : null
 }

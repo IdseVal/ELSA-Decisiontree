@@ -1,5 +1,6 @@
-# The fixture for V-LENGTH: one Node title over the 80 characters of
-# docs/specs/tree-format.md 5.7. Everything else is within its maximum.
+# The fixture for V-LENGTH: one Node title of 81 characters, where docs/specs/tree-format.md
+# 5.7 allows 80. The Terminal below carries a title of exactly 80, so this fixture holds
+# both sides of the boundary: only the Node one character over is reported.
 format: elsa-tree/2
 languages: [en]
 root: start
@@ -24,7 +25,7 @@ answers:
 --- # no-end
 id: no-end
 title:
-  en: It does not apply
+  en: It does not apply to a system placed on the market before the date in Article 13
 description:
   en: |
     The walk ends here.
