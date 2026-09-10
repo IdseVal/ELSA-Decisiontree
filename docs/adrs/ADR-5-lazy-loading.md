@@ -1,6 +1,11 @@
 # ADR-5-lazy-loading: the Tree loader is the one seam between disk and page; a request reads one Node file and the browser fetches only that Node's images
 
-- Status: ACCEPTED (frozen) -- 2026-09-03
+- Status: ACCEPTED (frozen) -- 2026-09-03. **Superseded by `ADR-38-neighbourhood.md`**
+  (2026-09-10, issue #38): `elsa-tree/2` has no Node files, and "never reading a second
+  Node to render a page" gives way to a stated bound -- a page carries the current Node
+  and at most sixteen pre-rendered neighbours, never the whole Tree, never an image of a
+  Node that is not on screen. Everything below stands as the exact record of version 0.1,
+  which is preserved on branch `version-0.1`.
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 5
 

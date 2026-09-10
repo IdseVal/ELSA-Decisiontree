@@ -3,6 +3,11 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 6
+- Amended 2026-09-10 by `ADR-38-modules-and-tests.md` (issue #38): `src/` gains
+  `neighbourhood.ts` and `theme.ts`; `src/components/` loses `NodeView.tsx`, `Trail.tsx`
+  and `Thumbnails.tsx` and gains the tree view's components; a theme route joins the
+  image route. The dependency direction below is unchanged, and the client components
+  are leaves of it.
 - Amended 2026-09-04 by `ADR-19-content-language-in-the-route.md`: every file of
   `src/app/` listed below moves one level down, under `[lang]/`, whose `layout.tsx` is the
   root layout and owns `<html lang>`; `next.config.ts` gains the two rewrites of
