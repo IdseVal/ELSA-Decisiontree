@@ -4,19 +4,17 @@
  *
  * Every fixture is loaded through `openTree` and every address through `parseUrl`, as
  * docs/specs/application.md section 7 requires; nothing here builds a Node by hand -- not
- * even the damaged one at the end, which is a fixture the loader read after its file
- * changed.
+ * even the damaged one at the end, which is a Node the loader handed out with one
+ * language taken off it.
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
-import { parse, stringify } from 'yaml'
+import { beforeAll, describe, expect, test, vi } from 'vitest'
 import { endonym, LanguageSwitch } from '../src/components/LanguageSwitch.tsx'
 import { NodeView } from '../src/components/NodeView.tsx'
 import { openTree, type Tree } from '../src/tree/loader.ts'
+import type { Node } from '../src/tree/types.ts'
 import { parseUrl } from '../src/url.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -169,31 +167,24 @@ describe('choosing a language', () => {
 })
 
 describe('a Node that lacks a text in a language the Tree declares', () => {
-  let dir: string
   let tree: Tree
+  let damaged: Node
 
   beforeAll(async () => {
-    // The one way this can happen at run time: `openTree` validated the folder (V-L10N), and
-    // then the file changed under the running server -- `getNode` re-reads it and does not
-    // re-validate. Anything else would need a hand-built Node, which section 7 forbids.
-    dir = await mkdtemp(path.join(tmpdir(), 'elsa-language-'))
-    await cp(path.join(here, '..', 'trees', 'ai-act-example'), path.join(dir, 'damaged'), { recursive: true })
-    tree = await openTree(path.join(dir, 'damaged'))
-
-    const file = path.join(dir, 'damaged', 'nodes', 'start.yaml')
-    const raw = parse(await readFile(file, 'utf8')) as { title: Record<string, string> }
-    delete raw.title.nl
-    await writeFile(file, stringify(raw), 'utf8')
-  })
-
-  afterAll(async () => {
-    await rm(dir, { recursive: true, force: true })
+    // V-L10N means `openTree` never hands out such a Node, and in `elsa-tree/2` there is
+    // no second read to catch a file that changed under the running server: the Tree is
+    // parsed once and held in memory. So the Node the loader gave us loses one language
+    // here, which is the state the view's guard exists for -- still a Node the loader
+    // built, not one this test invented (docs/specs/application.md section 7).
+    tree = await openTree(path.join(here, '..', 'trees', 'ai-act-example'))
+    const start = (await tree.getNode('start'))!
+    damaged = { ...start, title: { en: start.title.en! } }
   })
 
   test('shows a placeholder the reader can see, and warns on the server', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const node = (await tree.getNode('start'))!
-    const address = parseUrl('/damaged/start', 'nl', tree)!
+    const node = damaged
+    const address = parseUrl('/ai-act-example/start', 'nl', tree)!
 
     const html = renderToStaticMarkup(
       <NodeView node={node} address={address} rootId={tree.manifest.root} trailTitles={[]} />,
@@ -208,8 +199,8 @@ describe('a Node that lacks a text in a language the Tree declares', () => {
 
   test('the language it does have is untouched', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const node = (await tree.getNode('start'))!
-    const address = parseUrl('/damaged/start', '_', tree)!
+    const node = damaged
+    const address = parseUrl('/ai-act-example/start', '_', tree)!
 
     const html = renderToStaticMarkup(
       <NodeView node={node} address={address} rootId={tree.manifest.root} trailTitles={[]} />,

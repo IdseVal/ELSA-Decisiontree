@@ -7,7 +7,6 @@
  * empty Trail and with a full one, and the language switch section 7 also names is checked
  * to offer exactly the languages the manifest declares -- no more, and never fewer.
  */
-import { readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -20,16 +19,31 @@ import { parseUrl } from '../src/url.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 
+// `themed` says which of the two paths of application.md section 7 the fixture covers: a
+// Tree that carries a Theme and a Tree that carries none must both render.
 const FIXTURES = [
-  { name: 'single-language', disclaimerIn: { nl: 'Dit is geen juridisch advies' } },
-  { name: 'other-languages', disclaimerIn: { de: 'This is not legal advice', fr: 'This is not legal advice' } },
-  { name: 'german-only', disclaimerIn: { de: 'This is not legal advice' } },
+  { name: 'single-language', themed: false, disclaimerIn: { nl: 'Dit is geen juridisch advies' } },
+  { name: 'other-languages', themed: true, disclaimerIn: { de: 'This is not legal advice', fr: 'This is not legal advice' } },
+  { name: 'german-only', themed: false, disclaimerIn: { de: 'This is not legal advice' } },
 ] as const
 
-/** The Node ids of a fixture, from its file names: the Tree interface hands out no list. */
-async function nodeIds(dir: string): Promise<string[]> {
-  const files = await readdir(path.join(dir, 'nodes'))
-  return files.filter((file) => file.endsWith('.yaml')).map((file) => file.slice(0, -'.yaml'.length))
+/**
+ * The Node ids of a fixture, by walking it from its root through the loader: the Tree
+ * interface hands out no list, and in `elsa-tree/2` there are no Node files to list
+ * either. V-REACH means the walk reaches every Node.
+ */
+async function nodeIds(tree: Tree): Promise<string[]> {
+  const found: string[] = []
+  const queue = [tree.manifest.root]
+  for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
+    if (found.includes(id)) continue
+    const node = await tree.getNode(id)
+    if (!node) throw new Error(`${tree.id} links to "${id}", which it does not contain`)
+    found.push(id)
+    if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+    queue.push(...node.options.map((option) => option.target))
+  }
+  return found
 }
 
 /**
@@ -81,14 +95,16 @@ async function page(tree: Tree, url: string): Promise<string> {
   )
 }
 
-describe.for(FIXTURES)('a Tree in $name', ({ name, disclaimerIn }) => {
+describe.for(FIXTURES)('a Tree in $name', ({ name, themed, disclaimerIn }) => {
   test('every Node renders in every declared language, with and without a Trail', async () => {
     const dir = path.join(here, 'fixtures', name)
     const tree = await openTree(dir)
-    const ids = await nodeIds(dir)
+    const ids = await nodeIds(tree)
 
     expect(ids.length).toBeGreaterThan(0)
     expect(tree.manifest.languages).toEqual(Object.keys(disclaimerIn))
+    // Both paths of section 7 are covered by these fixtures, and stay covered.
+    expect(tree.manifest.theme === undefined, `${name} carries a Theme`).toBe(!themed)
 
     for (const language of tree.manifest.languages) {
       const query = language === tree.manifest.defaultLanguage ? '' : `?lang=${language}`
