@@ -69,5 +69,5 @@ default `docs/deployment.md` leaves a deployment at. It covers what markup canno
 what a click on a thumbnail does, which image files the browser actually asks for, and
 whether a keyboard reaches everything.
 
-`npm run validate` prints one line per broken rule -- `tree-id  file  key.path  RULE
+`npm run validate` prints one line per broken rule -- `tree-id  node-id  key.path  RULE
 message` -- and exits 1 if there is any. Run it before pushing a Tree.
