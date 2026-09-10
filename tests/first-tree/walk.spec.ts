@@ -54,7 +54,19 @@ interface Step {
  * which is how this suite shows that the high-risk finding no longer ends the walk.
  */
 const WALKS: Record<string, Step[]> = {
-  'ai-act-does-not-apply': [{ answer: 'no', lands: 'ai-act-does-not-apply' }],
+  // Issue #44 cut step 1 into the seven "(n/7)" jurisdiction Nodes plus the exclusions Node,
+  // step 3 into two Nodes and step 4a into three, so the click paths below are longer than
+  // the ones this suite walked when every step was a single Node. Nothing else moved.
+  'ai-act-does-not-apply': [
+    { answer: 'no', lands: 'jurisdiction-deployer' },
+    { answer: 'no', lands: 'jurisdiction-third-country-output' },
+    { answer: 'no', lands: 'jurisdiction-importer-distributor' },
+    { answer: 'no', lands: 'jurisdiction-product-manufacturer' },
+    { answer: 'no', lands: 'jurisdiction-authorised-representative' },
+    { answer: 'no', lands: 'jurisdiction-affected-person' },
+    { answer: 'no', lands: 'article-2-exclusions' },
+    { answer: 'no', lands: 'ai-act-does-not-apply' },
+  ],
   'not-an-ai-system': [
     { answer: 'yes', lands: 'ai-system-definition' },
     { answer: 'no', lands: 'not-an-ai-system' },
@@ -67,13 +79,17 @@ const WALKS: Record<string, Step[]> = {
   'high-risk': [
     { answer: 'yes', lands: 'ai-system-definition' },
     { answer: 'yes', lands: 'prohibited-practices' },
+    { answer: 'no', lands: 'prohibited-practices-2' },
     { answer: 'no', lands: 'annex-i-legislation' },
     { answer: 'yes', lands: 'high-risk' },
   ],
   'end-of-walk': [
     { answer: 'yes', lands: 'ai-system-definition' },
     { answer: 'yes', lands: 'prohibited-practices' },
+    { answer: 'no', lands: 'prohibited-practices-2' },
     { answer: 'no', lands: 'annex-i-legislation' },
+    { answer: 'no', lands: 'annex-i-legislation-2' },
+    { answer: 'no', lands: 'annex-i-legislation-3' },
     { answer: 'no', lands: 'annex-iii-areas' },
     { answer: 'no', lands: 'general-purpose-ai' },
     { answer: 'yes', lands: 'transparency-obligations' },
@@ -141,7 +157,7 @@ test('an Option leads to an explanation-only child that offers a visible way bac
   // The way back is the Trail, and its last entry is the parent this child explains.
   const back = page.locator('.trail-entry').last()
   await expect(back).toBeVisible()
-  await expect(back).toHaveText('Does your system do any of the prohibited practices?')
+  await expect(back).toHaveText('Does your system do a prohibited practice? (1/2)')
   await back.click()
   await expect(page).toHaveURL(`/${TREE}/start/ai-system-definition/prohibited-practices`)
 })
@@ -154,7 +170,8 @@ test('the high-risk finding does not end the walk', async ({ page }) => {
   await expect(page.locator('.outcome')).toHaveCount(0)
   await clickAnswer(page, 'en', 'no')
   await expect(page).toHaveURL(
-    `/${TREE}/start/ai-system-definition/prohibited-practices/annex-i-legislation/high-risk/general-purpose-ai`,
+    `/${TREE}/start/ai-system-definition/prohibited-practices/prohibited-practices-2/` +
+      'annex-i-legislation/high-risk/general-purpose-ai',
   )
 })
 
