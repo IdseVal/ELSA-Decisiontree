@@ -1,55 +1,40 @@
 /*
  * The stylesheet. One idea carries the design: a hairline SPINE down the left of the
  * column, from which every part of the Node hangs by a short tick. It is the walk drawn as
- * a line -- the same line the Trail will rise along in issue #8 -- and it is why the page
- * needs no boxes, cards or dividers to be readable.
+ * a line -- the same line the Trail rises along -- and it is why the page needs no boxes,
+ * cards or dividers to be readable.
  *
- * The owner asked for a light, uncluttered interface with nothing heavy on screen, and the
- * application fetches nothing from a third party at run time (application.md section 1),
- * so the type is the reader's own system face: there is no web font, icon set or framework
- * here. Colours, one spacing step and one easing curve are the whole token set.
+ * NOTHING HERE NAMES A COLOUR OR A FONT. Both come from the Tree, as the seven `--elsa-*`
+ * roles and the two `--elsa-font-*` stacks that `src/theme.ts` emits into the document
+ * (docs/specs/application.md 13; ADR-38-theme-delivery). That is core document section 9's
+ * "the frontend must never carry a lab's branding in its code", and `stylesheet.test.ts`
+ * is what keeps it true. Every shade this design wants beyond the seven -- a rule, a wash,
+ * a backdrop -- is mixed from them here, in CSS, with `color-mix()`.
  */
 
 :root {
-  --paper: #fbfaf6;
-  --card: #ffffff;
-  --ink: #14181c;
-  --ink-soft: #5a6470;
-  --rule: #dedbd2;
-  --accent: #33553e;          /* the ELSA lab's field green; the one saturated colour */
-  --accent-wash: #edf1ea;
-  --accent-ink: #ffffff;
-  --focus: #1d4ed8;
+  /*
+   * The derived shades. A hairline and a wash are a proportion of colours the Theme
+   * already chose, so a Tree that changes its palette changes these with it.
+   */
+  --rule: color-mix(in srgb, var(--elsa-text) 16%, transparent);
+  --wash: color-mix(in srgb, var(--elsa-accent) 16%, var(--elsa-background));
+  --wash-secondary: color-mix(in srgb, var(--elsa-accent-secondary) 14%, var(--elsa-background));
+  --veil: color-mix(in srgb, var(--elsa-text) 78%, transparent);
 
-  --outcome-not-applicable: #4c5560;
-  --outcome-applicable: #33553e;
-  --outcome-prohibited: #8a2f26;
-  --outcome-refer: #7c5a17;
+  /*
+   * An accent as a READING colour. A Theme's accents are chosen to be seen as a fill and
+   * may be far too light to read as text on the page -- the first Tree's yellow is 1.6:1
+   * on its own white background. Mixing an accent towards the palette's own text colour
+   * keeps its hue and buys the contrast back, in whichever direction the palette runs.
+   */
+  --accent-read: color-mix(in srgb, var(--elsa-accent) 45%, var(--elsa-text));
+  --accent-secondary-read: color-mix(in srgb, var(--elsa-accent-secondary) 65%, var(--elsa-text));
 
-  --font: ui-sans-serif, system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif;
   --step: 1.75rem;            /* gap between the spine and the text, and the length of a tick */
   --page-top: clamp(2rem, 7vw, 4.5rem);  /* how far the Trail's line rises above the Trail */
-  --chrome-row: 3rem;         /* the language switch above the column; the line rises past it too */
+  --chrome-row: 3.5rem;       /* the logo and the language switch above the column */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #14171a;
-    --card: #1b1f23;
-    --ink: #eceae4;
-    --ink-soft: #9aa3ad;
-    --rule: #333a40;
-    --accent: #8fbf9c;
-    --accent-wash: #1f2a23;
-    --accent-ink: #10140f;
-    --focus: #7ea6ff;
-
-    --outcome-not-applicable: #a3adb8;
-    --outcome-applicable: #8fbf9c;
-    --outcome-prohibited: #e2887c;
-    --outcome-refer: #d3b268;
-  }
 }
 
 *,
@@ -58,18 +43,14 @@
   box-sizing: border-box;
 }
 
-html {
-  color-scheme: light dark;
-}
-
 body {
   margin: 0;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font);
+  background: var(--elsa-background);
+  color: var(--elsa-text);
+  font-family: var(--elsa-font-body);
   line-height: 1.6;
   -webkit-text-size-adjust: 100%;
 }
@@ -87,7 +68,7 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--accent-secondary-read);
   outline-offset: 3px;
   border-radius: 2px;
 }
@@ -103,22 +84,47 @@ a {
   white-space: nowrap;
 }
 
-/* --- the language switch --------------------------------------------------------- */
+/* --- the chrome bar: the Tree's mark, and its languages --------------------------- */
 
 /*
- * The Tree's own languages, quiet and small at the top right, clear of the spine on the
- * left: chrome above the walk rather than a part of it. It is the same pill the share
- * button already uses, so the interface keeps one vocabulary of controls.
+ * The lab's logo on the left, the Tree's own languages quiet and small on the right, both
+ * clear of the spine below: chrome above the walk rather than a part of it.
  */
 .page-chrome {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
   min-height: var(--chrome-row);
   width: 100%;
   max-width: 46rem;
   margin: 0 auto;
   padding: 0 clamp(1rem, 5vw, 2.5rem);
+}
+
+/*
+ * A height and no width: a Theme's logo may be any shape, and this is the one measurement
+ * the frontend is entitled to make about a file it has never seen.
+ */
+.logo {
+  display: block;
+  height: 2.25rem;
+  width: auto;
+  max-width: min(18rem, 55vw);
+  object-fit: contain;
+}
+
+.logo-link {
+  display: inline-block;
+  line-height: 0;
+}
+
+/* What a Tree with no logo shows in the same place (application.md 13.4). */
+.tree-title {
+  font-family: var(--elsa-font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .language-switch ul {
@@ -136,20 +142,20 @@ a {
   border: 1px solid transparent;
   border-radius: 999px;
   font-size: 0.78rem;
-  color: var(--ink-soft);
+  color: var(--elsa-text-muted);
   text-decoration: none;
   transition: color 160ms var(--ease), border-color 160ms var(--ease);
 }
 
 a.language:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
 }
 
 /* The language on screen: named, so the reader can see it, but not a link to where they are. */
 .language--current {
-  color: var(--accent);
-  background: var(--accent-wash);
+  color: var(--elsa-text);
+  background: var(--wash);
 }
 
 /* --- the spine ------------------------------------------------------------------- */
@@ -208,13 +214,13 @@ a.language:hover {
 .trail-entry {
   display: inline-block;
   padding: 0.1rem 0;
-  color: var(--ink-soft);
+  color: var(--elsa-text-muted);
   text-decoration: none;
   transition: color 160ms var(--ease);
 }
 
 .trail-entry:hover {
-  color: var(--accent);
+  color: var(--accent-secondary-read);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -223,8 +229,9 @@ a.language:hover {
 
 .node h1 {
   margin: 0 0 1.25rem;
+  font-family: var(--elsa-font-heading);
   font-size: clamp(1.6rem, 4.6vw, 2.2rem);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.18;
   letter-spacing: -0.02em;
   text-wrap: balance;
@@ -232,11 +239,12 @@ a.language:hover {
 
 .node h2 {
   margin: 2.75rem 0 0.9rem;
+  font-family: var(--elsa-font-heading);
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--ink-soft);
+  color: var(--elsa-text-muted);
 }
 
 .prose {
@@ -258,15 +266,14 @@ a.language:hover {
 }
 
 .prose a {
-  text-decoration-color: var(--accent);
+  text-decoration-color: var(--accent-secondary-read);
   text-underline-offset: 0.18em;
 }
 
 .hint {
   margin: 2.5rem 0 0;
   padding: 0.85rem 1rem;
-  background: var(--accent-wash);
-  color: var(--ink-soft);
+  background: var(--wash-secondary);
   font-size: 0.9rem;
 }
 
@@ -287,8 +294,7 @@ a.language:hover {
   margin: 0;
   font-size: 0.72rem;
   letter-spacing: 0.06em;
-  color: var(--ink-soft);
-  opacity: 0.75;
+  color: var(--elsa-text-muted);
 }
 
 .share-control {
@@ -302,7 +308,7 @@ a.language:hover {
   font: inherit;
   font-size: 0.78rem;
   padding: 0.35rem 0.9rem;
-  color: var(--ink-soft);
+  color: var(--elsa-text-muted);
   background: transparent;
   border: 1px solid var(--rule);
   border-radius: 999px;
@@ -311,13 +317,13 @@ a.language:hover {
 }
 
 .share:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
 }
 
 .share-said {
   font-size: 0.74rem;
-  color: var(--accent);
+  color: var(--accent-secondary-read);
 }
 
 /* A refused clipboard says more than a confirmation does: give it the whole width. */
@@ -328,7 +334,7 @@ a.language:hover {
 /* Shown only when the browser refused the clipboard, so the reader can still take the link. */
 .share-by-hand {
   margin: 0;
-  color: var(--ink-soft);
+  color: var(--elsa-text-muted);
 }
 
 .share-by-hand code {
@@ -361,7 +367,7 @@ a.language:hover {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.13em;
-  color: var(--ink-soft);
+  color: var(--elsa-text-muted);
 }
 
 .sources a {
@@ -371,7 +377,7 @@ a.language:hover {
 }
 
 .sources a:hover {
-  text-decoration-color: var(--accent);
+  text-decoration-color: var(--accent-secondary-read);
 }
 
 /* --- Images ---------------------------------------------------------------------- */
@@ -392,7 +398,7 @@ a.language:hover {
   width: 8.5rem;
   height: 6rem;
   object-fit: cover;
-  background: var(--card);
+  background: var(--elsa-surface);
   transition: opacity 160ms var(--ease);
 }
 
@@ -405,12 +411,12 @@ a.language:hover {
   max-height: 92vh;
   padding: 0;
   border: none;
-  background: var(--card);
-  color: var(--ink);
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
 }
 
 .enlarged::backdrop {
-  background: rgb(10 12 14 / 0.72);
+  background: var(--veil);
 }
 
 .enlarged figure {
@@ -436,7 +442,7 @@ a.language:hover {
 .enlarged .credit {
   margin-top: 0.4rem;
   font-size: 0.78rem;
-  color: var(--ink-soft);
+  color: var(--elsa-text-muted);
 }
 
 .enlarged form {
@@ -447,7 +453,7 @@ a.language:hover {
   font: inherit;
   font-size: 0.82rem;
   padding: 0.4rem 1rem;
-  color: var(--ink);
+  color: var(--elsa-text);
   background: transparent;
   border: 1px solid var(--rule);
   cursor: pointer;
@@ -455,7 +461,7 @@ a.language:hover {
 }
 
 .close:hover {
-  border-color: var(--accent);
+  border-color: var(--accent-secondary-read);
 }
 
 /* --- Options --------------------------------------------------------------------- */
@@ -474,9 +480,10 @@ a.language:hover {
   border-bottom: 1px solid var(--rule);
 }
 
+/* The Options are the secondary accent's: the Answers below own the primary one. */
 .option:hover {
-  color: var(--accent);
-  background: var(--accent-wash);
+  color: var(--accent-secondary-read);
+  background: var(--wash-secondary);
 }
 
 .option-image {
@@ -494,13 +501,13 @@ a.language:hover {
 .option::after {
   content: "\2192";
   flex: none;
-  color: var(--ink-soft);
+  color: var(--elsa-text-muted);
   transition: transform 160ms var(--ease);
 }
 
 .option:hover::after {
   transform: translateX(3px);
-  color: var(--accent);
+  color: var(--accent-secondary-read);
 }
 
 /* --- Answers --------------------------------------------------------------------- */
@@ -514,22 +521,28 @@ a.language:hover {
 .answer {
   flex: 1 1 0;
   padding: 0.95rem 1.5rem;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--elsa-accent);
   border-radius: 999px;
+  font-family: var(--elsa-font-heading);
   font-weight: 600;
   text-align: center;
   text-decoration: none;
   transition: transform 160ms var(--ease), background-color 160ms var(--ease);
 }
 
+/*
+ * The filled Answer is the one place the Theme's primary accent is painted whole, and the
+ * one place a label sits on it -- which is why `--elsa-on-accent` is computed for contrast
+ * in TypeScript rather than guessed here (13.1).
+ */
 .answer--yes {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--elsa-accent);
+  color: var(--elsa-on-accent);
 }
 
 .answer--no {
   background: transparent;
-  color: var(--accent);
+  color: var(--elsa-text);
 }
 
 .answer:hover {
@@ -537,11 +550,16 @@ a.language:hover {
 }
 
 .answer--no:hover {
-  background: var(--accent-wash);
+  background: var(--wash);
 }
 
 /* --- Terminal -------------------------------------------------------------------- */
 
+/*
+ * The four outcomes, derived from the seven roles: `prohibited` is what `danger` is for,
+ * and the other three are a muted, a secondary-accent and a primary-accent reading of the
+ * end of a walk. Each is a small pill of text, so each is mixed to read on the page.
+ */
 .outcome {
   display: inline-block;
   margin: 0 0 1.15rem;
@@ -552,19 +570,19 @@ a.language:hover {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--outcome-not-applicable);
+  color: var(--elsa-text-muted);
 }
 
 .outcome--applicable {
-  color: var(--outcome-applicable);
+  color: var(--accent-secondary-read);
 }
 
 .outcome--prohibited {
-  color: var(--outcome-prohibited);
+  color: color-mix(in srgb, var(--elsa-danger) 70%, var(--elsa-text));
 }
 
 .outcome--refer {
-  color: var(--outcome-refer);
+  color: var(--accent-read);
 }
 
 /* The walk ends here, so the spine fades out instead of running on. */
@@ -584,7 +602,7 @@ a.language:hover {
   padding: 1.1rem clamp(1rem, 5vw, 2.5rem);
   padding-left: calc(clamp(1rem, 5vw, 2.5rem) + var(--step));
   font-size: 0.78rem;
-  color: var(--ink-soft);
+  color: var(--elsa-text-muted);
 }
 
 @media (max-width: 30rem) {
@@ -595,6 +613,10 @@ a.language:hover {
   .sources li {
     flex-direction: column;
     gap: 0.1rem;
+  }
+
+  .logo {
+    height: 1.9rem;
   }
 }
 
