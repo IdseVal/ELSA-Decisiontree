@@ -15,7 +15,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, test } from 'vitest'
-import { openTree, TreeInvalid, type Tree } from '../src/tree/loader.ts'
+import { openTree, type Tree } from '../src/tree/loader.ts'
 import type { Node } from '../src/tree/types.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -63,6 +63,25 @@ function answerOnlyReach(from: Map<string, Node>, root: string): Set<string> {
 
 const optionCount = (id: string): number => nodes.get(id)!.options.length
 
+/** The Option targets of a list that runs over several steps, in order (format 5.8). */
+const listedBy = (ids: readonly string[]): string[] =>
+  ids.flatMap((id) => nodes.get(id)!.options.map((option) => option.target))
+
+/** Step 1 as #44 cut it: one Node per category of Article 2(1), in the Act's order. */
+const JURISDICTION_STEPS = [
+  'start',
+  'jurisdiction-deployer',
+  'jurisdiction-third-country-output',
+  'jurisdiction-importer-distributor',
+  'jurisdiction-product-manufacturer',
+  'jurisdiction-authorised-representative',
+  'jurisdiction-affected-person',
+] as const
+
+/** The steps a list too long for one Node is spread over (format 5.7: at most 8 Options). */
+const PROHIBITED_STEPS = ['prohibited-practices', 'prohibited-practices-2'] as const
+const ANNEX_I_STEPS = ['annex-i-legislation', 'annex-i-legislation-2', 'annex-i-legislation-3'] as const
+
 /** A Node's description in one language, unwrapped, so an assertion does not depend on where it wraps. */
 const unwrapped = (id: string, lang: string): string => nodes.get(id)!.description[lang]!.replace(/\s+/g, ' ')
 
@@ -79,40 +98,11 @@ const terminalsFrom = (id: string): string[] =>
   [...answerOnlyReach(nodes, id)].filter((reached) => nodes.get(reached)!.kind === 'terminal').sort()
 
 /**
- * What is true today: the Tree was converted to elsa-tree/2 by `npm run migrate` (#39)
- * and is refused by the loader until #44 cuts its text to the new length limits. This
- * suite is also the guard on the suite below: when #44 lands, this test fails, and
- * whoever fixes it removes the `.skip` and gets the content walk back.
- */
-describe('the converted Tree, until #44 has cut its content', () => {
-  test('the loader refuses it for its length, and for nothing else', async () => {
-    const error = await openTree(treeDir).then(
-      () => null,
-      (reason: unknown) => reason,
-    )
-
-    expect(error, 'the first Tree loads again: remove the .skip below (#44)').toBeInstanceOf(TreeInvalid)
-    const invalid = error as InstanceType<typeof TreeInvalid>
-    // Only the three rules the length limits added: anything else would mean the textual
-    // conversion of tree-format.md section 12 lost or changed something.
-    expect([...new Set(invalid.violations.map((violation) => violation.rule))].sort()).toEqual([
-      'V-COUNT',
-      'V-LENGTH',
-      'V-LINES',
-    ])
-    // The count NOTES.md section 10 records as #44's work list.
-    expect(invalid.violations).toHaveLength(454)
-  })
-})
-
-/**
  * The content of the first Tree. Every test below walks the Tree from its root through
- * the loader, so none of them can run while the loader refuses the Tree -- which it does
- * until #44 has cut the text (see the suite above). The tests are kept exactly as they
- * were, and #44 removes the `.skip` in the commit that makes the Tree load again; the
- * suite above fails until it does.
+ * the loader, so all of them depend on the Tree loading -- which it does again since #44
+ * cut its text to the length limits of `elsa-tree/2`.
  */
-describe.skip('the content of the first Tree (waiting for #44)', () => {
+describe('the content of the first Tree', () => {
 
   beforeAll(async () => {
     tree = await openTree(treeDir)
@@ -135,10 +125,18 @@ describe.skip('the content of the first Tree (waiting for #44)', () => {
         return node as Node & { kind: 'question' }
       }
 
-      expect(step('start').answers).toEqual({ yes: 'ai-system-definition', no: 'ai-act-does-not-apply' })
+      // Issue #44 cut three of the six steps into several Nodes, because their Options or
+      // their text did not fit the limits of elsa-tree/2. The six steps and their order are
+      // unchanged; what changed is how many Nodes a step spans. Step 1 is seven sub-steps
+      // and an exclusions Node (the test below), step 3 is two Nodes and step 4a is three,
+      // and the last Node of each reaches what the single Node it replaced reached.
+      expect(step('start').answers).toEqual({ yes: 'ai-system-definition', no: 'jurisdiction-deployer' })
       expect(step('ai-system-definition').answers).toEqual({ yes: 'prohibited-practices', no: 'not-an-ai-system' })
-      expect(step('prohibited-practices').answers).toEqual({ yes: 'prohibited', no: 'annex-i-legislation' })
-      expect(step('annex-i-legislation').answers).toEqual({ yes: 'high-risk', no: 'annex-iii-areas' })
+      expect(step('prohibited-practices').answers).toEqual({ yes: 'prohibited', no: 'prohibited-practices-2' })
+      expect(step('prohibited-practices-2').answers).toEqual({ yes: 'prohibited', no: 'annex-i-legislation' })
+      expect(step('annex-i-legislation').answers).toEqual({ yes: 'high-risk', no: 'annex-i-legislation-2' })
+      expect(step('annex-i-legislation-2').answers).toEqual({ yes: 'high-risk', no: 'annex-i-legislation-3' })
+      expect(step('annex-i-legislation-3').answers).toEqual({ yes: 'high-risk', no: 'annex-iii-areas' })
       expect(step('annex-iii-areas').answers).toEqual({ yes: 'high-risk', no: 'general-purpose-ai' })
       // Issue #24: the high-risk finding does not end the walk. A high-risk system can carry
       // Article 50 obligations at the same time (Article 50(6)), and the core document's
@@ -151,12 +149,40 @@ describe.skip('the content of the first Tree (waiting for #44)', () => {
       expect(step('transparency-obligations').answers).toEqual({ yes: 'end-of-walk', no: 'end-of-walk' })
     })
 
-    test('it holds 8 question Nodes, 4 Terminals and 49 explanation Nodes', () => {
+    test('the jurisdiction step spans seven question Nodes, each numbered in its title', () => {
+      // The owner's cut (#35, #44): "the seven potential options for what is currently the
+      // first node in the tree can each be their own step that receives a yes and a no".
+      JURISDICTION_STEPS.forEach((id, index) => {
+        const node = nodes.get(id)
+        expect(node, `${id} is missing`).toBeDefined()
+        expect(node!.kind, `${id} is not a question Node`).toBe('question')
+        for (const lang of ['en', 'nl']) {
+          expect(node!.title[lang], `${id}: ${lang} title`).toContain(`(${index + 1}/7)`)
+        }
+        // A yes on any one of the seven reaches step 2; a no goes on to the next category,
+        // and a no on the seventh to the exclusions.
+        expect((node as Node & { kind: 'question' }).answers).toEqual({
+          yes: 'ai-system-definition',
+          no: JURISDICTION_STEPS[index + 1] ?? 'article-2-exclusions',
+        })
+      })
+      // Either answer on the exclusions Node ends the walk: none of the seven categories
+      // described the reader, so the Act does not reach them whichever exclusion they read.
+      expect(nodes.get('article-2-exclusions')).toMatchObject({
+        kind: 'question',
+        answers: { yes: 'ai-act-does-not-apply', no: 'ai-act-does-not-apply' },
+      })
+    })
+
+    test('it holds 18 question Nodes, 4 Terminals and 49 explanation Nodes', () => {
+      // 8 question Nodes before #44: the seven jurisdiction sub-steps and their exclusions
+      // Node, one more prohibited-practices step and two more Annex I steps make 18. The
+      // explanation Nodes are the same 49 entries, spread differently over their steps.
       const kinds = [...nodes.values()].map((node) => node.kind)
-      expect(kinds.filter((kind) => kind === 'question')).toHaveLength(8)
+      expect(kinds.filter((kind) => kind === 'question')).toHaveLength(18)
       expect(kinds.filter((kind) => kind === 'terminal')).toHaveLength(4)
       expect(kinds.filter((kind) => kind === 'explanation')).toHaveLength(49)
-      expect(nodes.size).toBe(61)
+      expect(nodes.size).toBe(71)
     })
 
     test('the general-purpose AI step is marked as a placeholder for the owner', () => {
@@ -165,19 +191,22 @@ describe.skip('the content of the first Tree (waiting for #44)', () => {
   })
 
   describe('every list holds as many entries as issue #3 counted in the Act', () => {
-    test(`the root lists the ${RESEARCH_COUNTS.articleTwoExclusions} exclusions of Article 2`, () => {
-      expect(optionCount('start')).toBe(RESEARCH_COUNTS.articleTwoExclusions)
+    test(`the exclusions Node lists the ${RESEARCH_COUNTS.articleTwoExclusions} exclusions of Article 2`, () => {
+      expect(optionCount('article-2-exclusions')).toBe(RESEARCH_COUNTS.articleTwoExclusions)
     })
 
     test(`prohibited practices lists the ${RESEARCH_COUNTS.prohibitedPractices} practices of Article 5(1)`, () => {
-      expect(optionCount('prohibited-practices')).toBe(RESEARCH_COUNTS.prohibitedPractices)
+      // Since #44 a list longer than 8 Options runs over several steps (format 5.7), so the
+      // count issue #3 measured in the Act is the sum across the steps of that list.
+      expect(PROHIBITED_STEPS.map(optionCount)).toEqual([5, 5])
+      expect(listedBy(PROHIBITED_STEPS)).toHaveLength(RESEARCH_COUNTS.prohibitedPractices)
     })
 
-    test(`the Annex I step lists all ${RESEARCH_COUNTS.annexIEntries} pieces of Union harmonisation legislation`, () => {
-      expect(optionCount('annex-i-legislation')).toBe(RESEARCH_COUNTS.annexIEntries)
-      const sections = nodes
-        .get('annex-i-legislation')!
-        .options.map((option) => nodes.get(option.target)!.metadata['annex-i-section'])
+    test(`the Annex I steps list all ${RESEARCH_COUNTS.annexIEntries} pieces of Union harmonisation legislation`, () => {
+      expect(ANNEX_I_STEPS.map(optionCount)).toEqual([8, 7, 5])
+      const entries = listedBy(ANNEX_I_STEPS)
+      expect(entries).toHaveLength(RESEARCH_COUNTS.annexIEntries)
+      const sections = entries.map((target) => nodes.get(target)!.metadata['annex-i-section'])
       expect(sections.filter((section) => section === 'A')).toHaveLength(11)
       expect(sections.filter((section) => section === 'B')).toHaveLength(9)
     })
@@ -200,7 +229,7 @@ describe.skip('the content of the first Tree (waiting for #44)', () => {
     })
   })
 
-  describe('every Node carries both languages, a Source with a URL, and version 0.1', () => {
+  describe('every Node carries both languages, a Source with a URL, and version 0.2', () => {
     test('every Node has a non-empty English and Dutch title and description', () => {
       for (const [id, node] of nodes) {
         for (const lang of ['en', 'nl']) {
@@ -235,8 +264,10 @@ describe.skip('the content of the first Tree (waiting for #44)', () => {
       }
     })
 
-    test('every Node is at metadata version 0.1', () => {
-      for (const [id, node] of nodes) expect(node.metadata.version, id).toBe('0.1')
+    test('every Node is at metadata version 0.2', () => {
+      // #44 re-cut every Node's text and bumped the Tree to 0.2; the Nodes follow the Tree.
+      expect(tree.manifest.metadata.version).toBe('0.2')
+      for (const [id, node] of nodes) expect(node.metadata.version, id).toBe('0.2')
     })
 
     test('no Node carries an Image: the owner adds them (core document section 6)', () => {
