@@ -1,3 +1,6 @@
+# One Node document with a mis-indented key, to show what elsa-tree/2 promises about a
+# YAML error: it is reported for THAT document, with its line number, and the other
+# documents are still read and checked (docs/specs/tree-format.md 3.7).
 format: elsa-tree/2
 languages: [en]
 root: start
@@ -15,18 +18,6 @@ description:
     The first question.
 metadata:
   version: "1.0"
-sources:
-  - id: art-1
-    kind: legal
-    label:
-      en: Article 1
-    url: https://example.org/article-1
-images:
-  - file: pic.png
-    description:
-      en: A picture
-    credit: "Picture: Example, CC0"
-    source: art-1
 options:
   - title:
       en: What does it mean?
@@ -39,9 +30,9 @@ answers:
 id: detail
 title:
   en: What it means
-description:
+ description:
   en: |
-    This is explanation only. Go back to the previous step to answer.
+    One space too many in front of "description" breaks this document, and only this one.
 metadata:
   version: "1.0"
 
@@ -60,9 +51,7 @@ terminal:
 --- # yes-end
 id: yes-end
 title:
-  en: |
-    It applies
-    and the walk ends here
+  en: It applies
 description:
   en: |
     The walk ends here.

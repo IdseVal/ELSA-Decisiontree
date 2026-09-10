@@ -1,3 +1,7 @@
+# The fixture for V-LINES: a description well inside the 600 characters of
+# docs/specs/tree-format.md 5.7 that still lays out over more than 8 lines, because a
+# list of short entries takes a line each (3.8). Height, not length, is what the Bubble
+# runs out of.
 format: elsa-tree/2
 languages: [en]
 root: start
@@ -12,38 +16,21 @@ title:
   en: Does it apply?
 description:
   en: |
-    The first question.
+    The first question. It applies to any of these:
+
+    - the first case
+    - the second case
+    - the third case
+    - the fourth case
+    - the fifth case
+    - the sixth case
+    - the seventh case
+    - the eighth case
 metadata:
   version: "1.0"
-sources:
-  - id: art-1
-    kind: legal
-    label:
-      en: Article 1
-    url: https://example.org/article-1
-images:
-  - file: pic.png
-    description:
-      en: A picture
-    credit: "Picture: Example, CC0"
-    source: art-1
-options:
-  - title:
-      en: What does it mean?
-    target: detail
 answers:
   yes: yes-end
   no: no-end
-
---- # detail
-id: detail
-title:
-  en: What it means
-description:
-  en: |
-    This is explanation only. Go back to the previous step to answer.
-metadata:
-  version: "1.0"
 
 --- # no-end
 id: no-end
@@ -60,9 +47,7 @@ terminal:
 --- # yes-end
 id: yes-end
 title:
-  en: |
-    It applies
-    and the walk ends here
+  en: It applies
 description:
   en: |
     The walk ends here.

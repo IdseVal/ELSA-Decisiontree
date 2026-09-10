@@ -1,10 +1,47 @@
 # A Tree in one language that is neither of the chrome languages (docs/CORE_DOCUMENT.md
 # section 9): it must load and render without a code change. Its language switch offers
 # that one language and nothing else (docs/specs/application.md section 7, issue #9).
-format: elsa-tree/1
+format: elsa-tree/2
 languages: [de]
 root: start
 title:
   de: Gilt die KI-Verordnung?
 metadata:
   version: "1.0"
+
+--- # start
+id: start
+title:
+  de: Fällt Ihr System in den Anwendungsbereich?
+description:
+  de: |
+    Die erste Frage.
+metadata:
+  version: "1.0"
+answers:
+  yes: anwendbar
+  no: nicht-anwendbar
+
+--- # anwendbar
+id: anwendbar
+title:
+  de: Die Verordnung ist anwendbar
+description:
+  de: |
+    Der Durchlauf endet hier.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable
+
+--- # nicht-anwendbar
+id: nicht-anwendbar
+title:
+  de: Die Verordnung ist nicht anwendbar
+description:
+  de: |
+    Der Durchlauf endet hier.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable

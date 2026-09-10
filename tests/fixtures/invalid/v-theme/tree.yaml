@@ -1,3 +1,6 @@
+# The fixture for V-THEME: a colours block with six of the seven roles of
+# docs/specs/tree-format.md 4.3.3. The set is closed, so half a palette is not a choice;
+# `danger` is missing.
 format: elsa-tree/2
 languages: [en]
 root: start
@@ -5,6 +8,14 @@ title:
   en: A minimal Tree
 metadata:
   version: "1.0"
+theme:
+  colours:
+    background: "#ffffff"
+    surface: "#f0f3f7"
+    text: "#2d2e33"
+    text-muted: "#a3a4a8"
+    accent: "#ffc600"
+    accent-secondary: "#41ab64"
 
 --- # start
 id: start
@@ -15,35 +26,9 @@ description:
     The first question.
 metadata:
   version: "1.0"
-sources:
-  - id: art-1
-    kind: legal
-    label:
-      en: Article 1
-    url: https://example.org/article-1
-images:
-  - file: pic.png
-    description:
-      en: A picture
-    credit: "Picture: Example, CC0"
-    source: art-1
-options:
-  - title:
-      en: What does it mean?
-    target: detail
 answers:
   yes: yes-end
   no: no-end
-
---- # detail
-id: detail
-title:
-  en: What it means
-description:
-  en: |
-    This is explanation only. Go back to the previous step to answer.
-metadata:
-  version: "1.0"
 
 --- # no-end
 id: no-end
@@ -60,9 +45,7 @@ terminal:
 --- # yes-end
 id: yes-end
 title:
-  en: |
-    It applies
-    and the walk ends here
+  en: It applies
 description:
   en: |
     The walk ends here.
