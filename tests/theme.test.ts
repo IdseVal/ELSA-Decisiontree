@@ -12,7 +12,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
-import { DEFAULT_COLOURS, DEFAULT_FONT_STACK, themeStyle } from '../src/theme.ts'
+import { DEFAULT_COLOURS, DEFAULT_FONT_STACK, themeLogo, themeStyle } from '../src/theme.ts'
 import { openTree } from '../src/tree/loader.ts'
 import type { Colours, Theme } from '../src/tree/types.ts'
 
@@ -211,11 +211,11 @@ describe('the parts are independent (13.4)', () => {
   const theme = (): Theme => structuredClone(themedTree.manifest.theme!)
 
   test('colours only: those colours, the default stack, no logo', () => {
-    const { css, logo } = themeStyle({ colours: theme().colours })
+    const { css } = themeStyle({ colours: theme().colours })
 
     expect(property(css, 'accent')).toBe(themedTree.manifest.theme!.colours!.accent)
     expect(property(css, 'font-body')).toBe(DEFAULT_FONT_STACK)
-    expect(logo).toBeUndefined()
+    expect(themeLogo({ colours: theme().colours })).toBeUndefined()
   })
 
   test('fonts only: the default palette, those families', () => {
@@ -226,11 +226,11 @@ describe('the parts are independent (13.4)', () => {
   })
 
   test('logo only: the default palette and stack, that logo', () => {
-    const { css, logo } = themeStyle({ logo: theme().logo })
+    const { css } = themeStyle({ logo: theme().logo })
 
     expect(property(css, 'background')).toBe(DEFAULT_COLOURS.background)
     expect(property(css, 'font-body')).toBe(DEFAULT_FONT_STACK)
-    expect(logo?.file).toBe(themedTree.manifest.theme!.logo!.light)
+    expect(themeLogo({ logo: theme().logo })?.file).toBe(themedTree.manifest.theme!.logo!.light)
   })
 })
 
@@ -245,27 +245,25 @@ describe('the logo variant is derived from the palette, never declared (13.1)', 
   const dark: Colours = { ...DEFAULT_COLOURS, background: '#101418', surface: '#1b2026', text: '#f2f4f6' }
 
   test('a light palette shows the light variant', () => {
-    expect(themeStyle({ logo, colours: { ...DEFAULT_COLOURS } }).logo?.file).toBe('light.svg')
+    expect(themeLogo({ logo, colours: { ...DEFAULT_COLOURS } })?.file).toBe('light.svg')
   })
 
   test('a dark palette shows the dark variant, and says so to the browser', () => {
-    const { css, logo: shown } = themeStyle({ logo, colours: dark })
-
-    expect(shown?.file).toBe('dark.svg')
-    expect(css).toContain('color-scheme:dark')
+    expect(themeLogo({ logo, colours: dark })?.file).toBe('dark.svg')
+    expect(themeStyle({ logo, colours: dark }).css).toContain('color-scheme:dark')
   })
 
   test('a dark palette with no dark variant still shows the light one', () => {
     const { light, alt } = logo
-    expect(themeStyle({ logo: { light, alt }, colours: dark }).logo?.file).toBe('light.svg')
+    expect(themeLogo({ logo: { light, alt }, colours: dark })?.file).toBe('light.svg')
   })
 
-  test('the alt text, the link and the tab icon travel with it', () => {
-    const style = themeStyle({ logo })
+  test('the alt text and the link travel with it, and the tab icon with the style', () => {
+    const shown = themeLogo({ logo })
 
-    expect(style.logo?.alt).toEqual(logo.alt)
-    expect(style.logo?.url).toBe(logo.url)
-    expect(style.icon).toBe('icon.png')
+    expect(shown?.alt).toEqual(logo.alt)
+    expect(shown?.url).toBe(logo.url)
+    expect(themeStyle({ logo }).icon).toBe('icon.png')
   })
 })
 

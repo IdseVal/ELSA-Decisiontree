@@ -54,20 +54,18 @@ export interface ResolvedLogo {
   url?: string
 }
 
-/** Everything the root layout needs of a Theme, in one value. */
+/** What the root layout puts in `<head>`. The logo is `themeLogo`'s, for the chrome bar. */
 export interface ThemeStyle {
   /** The CSS of the one `<style>` element: `@font-face` rules and the `:root` block. */
   css: string
-  /** Absent when the Theme names no logo: the layout shows the Tree's title instead. */
-  logo?: ResolvedLogo
   /** The tab icon's theme file name, when the Theme names one. */
   icon?: string
 }
 
 /**
- * The Theme of the served Tree, or its absence, as the page's style and logo. Each of the
- * three parts is taken whole or not at all: a palette is designed as a set, so half a
- * Theme is never merged with half a default (13.4).
+ * The Theme of the served Tree, or its absence, as the page's style. Each of the three
+ * parts is taken whole or not at all: a palette is designed as a set, so half a Theme is
+ * never merged with half a default (13.4).
  */
 export function themeStyle(theme: Theme | undefined): ThemeStyle {
   const css = build(theme, paletteOf(theme?.colours))
@@ -77,7 +75,6 @@ export function themeStyle(theme: Theme | undefined): ThemeStyle {
     // The default look is then emitted whole rather than nothing: a page with no custom
     // properties at all would have no colour left to fall back on.
     css: css.toLowerCase().includes('</style') ? build(undefined, DEFAULT_COLOURS) : css,
-    logo: themeLogo(theme),
     icon: theme?.logo?.icon,
   }
 }

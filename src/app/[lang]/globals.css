@@ -31,13 +31,15 @@
   --veil: color-mix(in srgb, var(--elsa-scrim) 78%, transparent);
 
   /*
-   * An accent as a READING colour. A Theme's accents are chosen to be seen as a fill and
-   * may be far too light to read as text on the page -- the first Tree's yellow is 1.6:1
-   * on its own white background. Mixing an accent towards the palette's own text colour
-   * keeps its hue and buys the contrast back, in whichever direction the palette runs.
+   * A fill colour as a READING colour. `accent`, `accent-secondary` and `danger` are
+   * chosen to be seen as a fill and may be far too light to read as text on the page --
+   * the first Tree's yellow is 1.6:1 on its own white background. Mixing one towards the
+   * palette's own text colour keeps its hue and buys the contrast back, in whichever
+   * direction the palette runs.
    */
   --accent-read: color-mix(in srgb, var(--elsa-accent) 45%, var(--elsa-text));
   --accent-secondary-read: color-mix(in srgb, var(--elsa-accent-secondary) 65%, var(--elsa-text));
+  --danger-read: color-mix(in srgb, var(--elsa-danger) 70%, var(--elsa-text));
 
   --step: 1.75rem;            /* gap between the spine and the text, and the length of a tick */
   --page-top: clamp(2rem, 7vw, 4.5rem);  /* how far the Trail's line rises above the Trail */
@@ -586,7 +588,7 @@ a.language:hover {
 }
 
 .outcome--prohibited {
-  color: color-mix(in srgb, var(--elsa-danger) 70%, var(--elsa-text));
+  color: var(--danger-read);
 }
 
 .outcome--refer {

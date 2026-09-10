@@ -34,10 +34,12 @@ export const THEME_TYPES: Record<string, string> = {
  * refused the name. A `null` path is every refusal at once -- malformed, not referenced,
  * not there -- with no difference a caller can measure (5.5).
  */
-export function assetResponse(absolute: string | null, file: string, types: Record<string, string>): Response {
+export function assetResponse(absolute: string | null, types: Record<string, string>): Response {
   if (!absolute) return new Response(null, { status: 404 })
 
-  const extension = file.slice(file.lastIndexOf('.') + 1).toLowerCase()
+  // The extension is read off the resolved path, not off the requested name: the two are
+  // the same string by construction, and the resolved one is the file actually opened.
+  const extension = absolute.slice(absolute.lastIndexOf('.') + 1).toLowerCase()
   const body = Readable.toWeb(createReadStream(absolute)) as ReadableStream<Uint8Array>
   return new Response(body, {
     headers: {

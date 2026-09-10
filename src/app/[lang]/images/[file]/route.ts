@@ -15,5 +15,5 @@ export async function GET(
 ) {
   const { file } = await params
   const tree = await servedTree()
-  return assetResponse(tree.imagePath(file), file, IMAGE_TYPES)
+  return assetResponse(tree.imagePath(file), IMAGE_TYPES)
 }

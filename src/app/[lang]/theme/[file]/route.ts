@@ -20,5 +20,5 @@ export async function GET(
 ) {
   const { file } = await params
   const tree = await servedTree()
-  return assetResponse(tree.themePath(file), file, THEME_TYPES)
+  return assetResponse(tree.themePath(file), THEME_TYPES)
 }
