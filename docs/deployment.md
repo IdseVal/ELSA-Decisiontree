@@ -350,7 +350,7 @@ reader's local or session storage is asserted by the walks in `tests/browser/`.
 | `ELSA_TREE is not set. Tree ids found in ...` | The environment file was not read, or the variable is missing. |
 | `ELSA_TREE=x: ... is not a folder. Tree ids found in ...` | `ELSA_TREES_DIR` points somewhere else, or the Tree was not copied. |
 | `ELSA_TREE=images is a reserved word` | `images` is the image route's path segment; a Tree cannot be called that. |
-| `<tree>  nodes/x.yaml  key  V-RULE  message`, one line per broken rule | The Tree is broken. `npm run validate <folder>` prints the same list from the checkout. |
+| `<tree>  <node-id>  key  V-RULE  message`, one line per broken rule | The Tree is broken. `npm run validate <folder>` prints the same list from the checkout. |
 | `ELSA_BASE_URL=... is not an absolute URL` | The base URL has no scheme -- `elsa.example.org` rather than `https://elsa.example.org`. |
 | `ELSA_BASE_URL=...: only http and https are served` | The base URL names another scheme. |
 | `ELSA_BASE_URL=... must be a bare origin` | The base URL carries a path, a query or a fragment. |
