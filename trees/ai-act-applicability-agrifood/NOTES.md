@@ -13,9 +13,15 @@ The loader ignores this file, so you can write anything in it.
 trees/ai-act-applicability-agrifood/
   tree.yaml          the WHOLE Tree: the manifest, then one document per Node
   NOTES.md           this file (ignored by the loader)
+  theme/             the lab's look: the logo, the tab icon, the fonts and their licence
 ```
 
-There is no `images/` folder yet. See section 6. There is no `nodes/` folder any more:
+There is no `images/` folder yet. See section 6. The `theme/` folder holds what the
+manifest's `theme:` block names -- the ELSA-Lab logo, the favicon and three Open Sans
+files, downloaded from ai4sfs.org by issue #40 -- plus `LICENCE.md`, which states the
+terms of each and carries the three questions about the logo that only the owner can
+answer. Changing a colour in `theme:` and restarting the server changes the page; no code
+knows any of these values. There is no `nodes/` folder any more:
 `elsa-tree/2` (issue #37) puts the whole Tree in one file, and issue #39 converted it.
 Inside `tree.yaml` a Node begins at a line `--- # <node-id>` followed by `id: <node-id>`,
 so searching for `--- #` lists every Node in order, and searching for `# social-scoring`
