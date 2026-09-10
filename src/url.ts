@@ -111,6 +111,11 @@ export function imageHref(file: string): string {
   return `/images/${encodeURIComponent(file)}`
 }
 
+/** Where the browser fetches one file of the served Tree's Theme -- a logo or a font (5.5). */
+export function themeHref(file: string): string {
+  return `/theme/${encodeURIComponent(file)}`
+}
+
 /** `/<tree-id>/<ids...>`, with `lang` only when it is not the Tree's default (4.1). */
 function href(a: PageAddress, ids: string[]): string {
   const path = [a.treeId, ...ids].join('/')
