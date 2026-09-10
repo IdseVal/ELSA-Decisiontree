@@ -113,7 +113,10 @@ function paletteOf(colours: Colours | undefined): Colours {
   return palette
 }
 
-/** The `:root` block: the seven roles, the three derived colours and the two font stacks. */
+/**
+ * The `:root` block: the seven roles, the four derived values, the two font stacks and
+ * `color-scheme`.
+ */
 function rootBlock(colours: Colours, theme: Theme | undefined): string {
   const families = new Map((theme?.fonts ?? []).map((family) => [family.role, quoteFamily(family.family)]))
   const body = families.get('body')
