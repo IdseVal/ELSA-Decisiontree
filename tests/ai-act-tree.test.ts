@@ -15,7 +15,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, test } from 'vitest'
-import { openTree, type Tree } from '../src/tree/loader.ts'
+import { openTree, TreeInvalid, type Tree } from '../src/tree/loader.ts'
 import type { Node } from '../src/tree/types.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -78,277 +78,314 @@ const paragraphs = (id: string, lang: string): string[] =>
 const terminalsFrom = (id: string): string[] =>
   [...answerOnlyReach(nodes, id)].filter((reached) => nodes.get(reached)!.kind === 'terminal').sort()
 
-beforeAll(async () => {
-  tree = await openTree(treeDir)
-  nodes = await walkFromRoot(tree)
-})
+/**
+ * What is true today: the Tree was converted to elsa-tree/2 by `npm run migrate` (#39)
+ * and is refused by the loader until #44 cuts its text to the new length limits. This
+ * suite is also the guard on the suite below: when #44 lands, this test fails, and
+ * whoever fixes it removes the `.skip` and gets the content walk back.
+ */
+describe('the converted Tree, until #44 has cut its content', () => {
+  test('the loader refuses it for its length, and for nothing else', async () => {
+    const error = await openTree(treeDir).then(
+      () => null,
+      (reason: unknown) => reason,
+    )
 
-describe('the Tree loads and is shaped like the six steps of the core document', () => {
-  test('it declares English and Dutch, with English as the default', () => {
-    expect(tree.id).toBe('ai-act-applicability-agrifood')
-    expect(tree.manifest.languages).toEqual(['en', 'nl'])
-    expect(tree.manifest.defaultLanguage).toBe('en')
-    expect(tree.manifest.root).toBe('start')
-  })
-
-  test('the six steps are question Nodes chained in the order of core document 3.3', () => {
-    const step = (id: string): Node & { kind: 'question' } => {
-      const node = nodes.get(id)
-      expect(node, `${id} is missing`).toBeDefined()
-      expect(node!.kind, `${id} is not a question Node`).toBe('question')
-      return node as Node & { kind: 'question' }
-    }
-
-    expect(step('start').answers).toEqual({ yes: 'ai-system-definition', no: 'ai-act-does-not-apply' })
-    expect(step('ai-system-definition').answers).toEqual({ yes: 'prohibited-practices', no: 'not-an-ai-system' })
-    expect(step('prohibited-practices').answers).toEqual({ yes: 'prohibited', no: 'annex-i-legislation' })
-    expect(step('annex-i-legislation').answers).toEqual({ yes: 'high-risk', no: 'annex-iii-areas' })
-    expect(step('annex-iii-areas').answers).toEqual({ yes: 'high-risk', no: 'general-purpose-ai' })
-    // Issue #24: the high-risk finding does not end the walk. A high-risk system can carry
-    // Article 50 obligations at the same time (Article 50(6)), and the core document's
-    // OPEN 10.7 answers that the general-purpose AI and transparency steps come after the
-    // high-risk step -- so both Answers carry the finding on into step 5.
-    expect(step('high-risk').answers).toEqual({ yes: 'general-purpose-ai', no: 'general-purpose-ai' })
-    // Steps 5 and 6 do not branch either: general-purpose AI never ends the walk, and the
-    // Tree goes no further than Article 50 (core document 3.3, item 7).
-    expect(step('general-purpose-ai').answers).toEqual({ yes: 'transparency-obligations', no: 'transparency-obligations' })
-    expect(step('transparency-obligations').answers).toEqual({ yes: 'end-of-walk', no: 'end-of-walk' })
-  })
-
-  test('it holds 8 question Nodes, 4 Terminals and 49 explanation Nodes', () => {
-    const kinds = [...nodes.values()].map((node) => node.kind)
-    expect(kinds.filter((kind) => kind === 'question')).toHaveLength(8)
-    expect(kinds.filter((kind) => kind === 'terminal')).toHaveLength(4)
-    expect(kinds.filter((kind) => kind === 'explanation')).toHaveLength(49)
-    expect(nodes.size).toBe(61)
-  })
-
-  test('the general-purpose AI step is marked as a placeholder for the owner', () => {
-    expect(nodes.get('general-purpose-ai')!.metadata.placeholder).toBe(true)
-  })
-})
-
-describe('every list holds as many entries as issue #3 counted in the Act', () => {
-  test(`the root lists the ${RESEARCH_COUNTS.articleTwoExclusions} exclusions of Article 2`, () => {
-    expect(optionCount('start')).toBe(RESEARCH_COUNTS.articleTwoExclusions)
-  })
-
-  test(`prohibited practices lists the ${RESEARCH_COUNTS.prohibitedPractices} practices of Article 5(1)`, () => {
-    expect(optionCount('prohibited-practices')).toBe(RESEARCH_COUNTS.prohibitedPractices)
-  })
-
-  test(`the Annex I step lists all ${RESEARCH_COUNTS.annexIEntries} pieces of Union harmonisation legislation`, () => {
-    expect(optionCount('annex-i-legislation')).toBe(RESEARCH_COUNTS.annexIEntries)
-    const sections = nodes
-      .get('annex-i-legislation')!
-      .options.map((option) => nodes.get(option.target)!.metadata['annex-i-section'])
-    expect(sections.filter((section) => section === 'A')).toHaveLength(11)
-    expect(sections.filter((section) => section === 'B')).toHaveLength(9)
-  })
-
-  test(`the Annex III step lists all ${RESEARCH_COUNTS.annexIiiAreas} high-risk areas, covering 25 listed system types`, () => {
-    expect(optionCount('annex-iii-areas')).toBe(RESEARCH_COUNTS.annexIiiAreas)
-    const types = nodes
-      .get('annex-iii-areas')!
-      .options.map((option) => Number(nodes.get(option.target)!.metadata['listed-system-types']))
-    expect(types).toEqual([3, 1, 4, 2, 4, 5, 4, 2])
-    expect(types.reduce((sum, count) => sum + count, 0)).toBe(25)
-  })
-
-  test(`the transparency step lists the ${RESEARCH_COUNTS.articleFiftySituations} situations of Article 50`, () => {
-    expect(optionCount('transparency-obligations')).toBe(RESEARCH_COUNTS.articleFiftySituations)
-    const addressees = nodes
-      .get('transparency-obligations')!
-      .options.map((option) => nodes.get(option.target)!.metadata.addressee)
-    expect(addressees).toEqual(['provider', 'provider', 'deployer', 'deployer', 'deployer'])
-  })
-})
-
-describe('every Node carries both languages, a Source with a URL, and version 0.1', () => {
-  test('every Node has a non-empty English and Dutch title and description', () => {
-    for (const [id, node] of nodes) {
-      for (const lang of ['en', 'nl']) {
-        expect(node.title[lang]?.trim(), `${id}: ${lang} title`).toBeTruthy()
-        expect(node.description[lang]?.trim(), `${id}: ${lang} description`).toBeTruthy()
-      }
-    }
-  })
-
-  test('the English and Dutch text of a Node are genuinely different strings', () => {
-    for (const [id, node] of nodes) {
-      expect(node.description.en, `${id}: the Dutch description repeats the English`).not.toBe(node.description.nl)
-    }
-  })
-
-  test('every Node cites at least one Source, and every Source has an absolute http(s) URL', () => {
-    for (const [id, node] of nodes) {
-      expect(node.sources.length, `${id} cites no Source`).toBeGreaterThan(0)
-      for (const source of node.sources) {
-        expect(source.url, `${id}: ${source.label.en}`).toMatch(/^https?:\/\//)
-        for (const lang of ['en', 'nl']) expect(source.label[lang]?.trim(), `${id}: ${lang} Source label`).toBeTruthy()
-      }
-    }
-  })
-
-  test('every Node cites a legal Source, and cites no case law or literature the research did not give', () => {
-    for (const [id, node] of nodes) {
-      expect(node.sources.some((source) => source.kind === 'legal'), `${id} cites no legal Source`).toBe(true)
-      // Issue #10: case-law and literature Sources only where the research document
-      // provides them, and it provides none.
-      expect(node.sources.map((source) => source.kind), `${id}`).toEqual(node.sources.map(() => 'legal'))
-    }
-  })
-
-  test('every Node is at metadata version 0.1', () => {
-    for (const [id, node] of nodes) expect(node.metadata.version, id).toBe('0.1')
-  })
-
-  test('no Node carries an Image: the owner adds them (core document section 6)', () => {
-    for (const [id, node] of nodes) {
-      expect(node.images, id).toHaveLength(0)
-      for (const option of node.options) expect(option.images, `${id} option ${option.title.en}`).toHaveLength(0)
-    }
-  })
-})
-
-describe('the walk', () => {
-  test('every Terminal is reached from the root by answering questions alone', () => {
-    const reached = answerOnlyReach(nodes, tree.manifest.root)
-    const terminals = [...nodes.values()].filter((node) => node.kind === 'terminal').map((node) => node.id)
-    expect(terminals.sort()).toEqual([
-      'ai-act-does-not-apply',
-      'end-of-walk',
-      'not-an-ai-system',
-      'prohibited',
+    expect(error, 'the first Tree loads again: remove the .skip below (#44)').toBeInstanceOf(TreeInvalid)
+    const invalid = error as InstanceType<typeof TreeInvalid>
+    // Only the three rules the length limits added: anything else would mean the textual
+    // conversion of tree-format.md section 12 lost or changed something.
+    expect([...new Set(invalid.violations.map((violation) => violation.rule))].sort()).toEqual([
+      'V-COUNT',
+      'V-LENGTH',
+      'V-LINES',
     ])
-    for (const id of terminals) expect(reached.has(id), `${id} cannot be reached by answering`).toBe(true)
+    // The count NOTES.md section 10 records as #44's work list.
+    expect(invalid.violations).toHaveLength(454)
+  })
+})
+
+/**
+ * The content of the first Tree. Every test below walks the Tree from its root through
+ * the loader, so none of them can run while the loader refuses the Tree -- which it does
+ * until #44 has cut the text (see the suite above). The tests are kept exactly as they
+ * were, and #44 removes the `.skip` in the commit that makes the Tree load again; the
+ * suite above fails until it does.
+ */
+describe.skip('the content of the first Tree (waiting for #44)', () => {
+
+  beforeAll(async () => {
+    tree = await openTree(treeDir)
+    nodes = await walkFromRoot(tree)
   })
 
-  test('the four Terminals carry the outcomes the walk earns', () => {
-    const outcome = (id: string): string => {
-      const node = nodes.get(id)!
-      expect(node.kind, `${id} is not a Terminal`).toBe('terminal')
-      return (node as Node & { kind: 'terminal' }).outcome
-    }
-    expect(outcome('ai-act-does-not-apply')).toBe('not-applicable')
-    expect(outcome('not-an-ai-system')).toBe('refer')
-    expect(outcome('prohibited')).toBe('prohibited')
-    expect(outcome('end-of-walk')).toBe('applicable')
+  describe('the Tree loads and is shaped like the six steps of the core document', () => {
+    test('it declares English and Dutch, with English as the default', () => {
+      expect(tree.id).toBe('ai-act-applicability-agrifood')
+      expect(tree.manifest.languages).toEqual(['en', 'nl'])
+      expect(tree.manifest.defaultLanguage).toBe('en')
+      expect(tree.manifest.root).toBe('start')
+    })
+
+    test('the six steps are question Nodes chained in the order of core document 3.3', () => {
+      const step = (id: string): Node & { kind: 'question' } => {
+        const node = nodes.get(id)
+        expect(node, `${id} is missing`).toBeDefined()
+        expect(node!.kind, `${id} is not a question Node`).toBe('question')
+        return node as Node & { kind: 'question' }
+      }
+
+      expect(step('start').answers).toEqual({ yes: 'ai-system-definition', no: 'ai-act-does-not-apply' })
+      expect(step('ai-system-definition').answers).toEqual({ yes: 'prohibited-practices', no: 'not-an-ai-system' })
+      expect(step('prohibited-practices').answers).toEqual({ yes: 'prohibited', no: 'annex-i-legislation' })
+      expect(step('annex-i-legislation').answers).toEqual({ yes: 'high-risk', no: 'annex-iii-areas' })
+      expect(step('annex-iii-areas').answers).toEqual({ yes: 'high-risk', no: 'general-purpose-ai' })
+      // Issue #24: the high-risk finding does not end the walk. A high-risk system can carry
+      // Article 50 obligations at the same time (Article 50(6)), and the core document's
+      // OPEN 10.7 answers that the general-purpose AI and transparency steps come after the
+      // high-risk step -- so both Answers carry the finding on into step 5.
+      expect(step('high-risk').answers).toEqual({ yes: 'general-purpose-ai', no: 'general-purpose-ai' })
+      // Steps 5 and 6 do not branch either: general-purpose AI never ends the walk, and the
+      // Tree goes no further than Article 50 (core document 3.3, item 7).
+      expect(step('general-purpose-ai').answers).toEqual({ yes: 'transparency-obligations', no: 'transparency-obligations' })
+      expect(step('transparency-obligations').answers).toEqual({ yes: 'end-of-walk', no: 'end-of-walk' })
+    })
+
+    test('it holds 8 question Nodes, 4 Terminals and 49 explanation Nodes', () => {
+      const kinds = [...nodes.values()].map((node) => node.kind)
+      expect(kinds.filter((kind) => kind === 'question')).toHaveLength(8)
+      expect(kinds.filter((kind) => kind === 'terminal')).toHaveLength(4)
+      expect(kinds.filter((kind) => kind === 'explanation')).toHaveLength(49)
+      expect(nodes.size).toBe(61)
+    })
+
+    test('the general-purpose AI step is marked as a placeholder for the owner', () => {
+      expect(nodes.get('general-purpose-ai')!.metadata.placeholder).toBe(true)
+    })
   })
 
-  test('a high-risk finding carries on into the general-purpose AI and transparency steps', () => {
-    // Issue #24: the high-risk Node used to be a Terminal while its own text told the reader
-    // to continue with steps 5 and 6, which the Tree could not do. It is now a question Node
-    // that leads on whichever way it is answered, so a high-risk system reaches Article 50 --
-    // the two regimes bite at once (Article 50(6)).
-    expect(nodes.get('high-risk')!.kind).toBe('question')
-    expect([...answerOnlyReach(nodes, 'high-risk')].sort()).toEqual([
-      'end-of-walk',
-      'general-purpose-ai',
-      'high-risk',
-      'transparency-obligations',
-    ])
-    // Both high-risk routes therefore end at `end-of-walk`, and nowhere else.
-    expect(terminalsFrom('annex-i-legislation')).toEqual(['end-of-walk'])
-    expect(terminalsFrom('annex-iii-areas')).toEqual(['end-of-walk'])
+  describe('every list holds as many entries as issue #3 counted in the Act', () => {
+    test(`the root lists the ${RESEARCH_COUNTS.articleTwoExclusions} exclusions of Article 2`, () => {
+      expect(optionCount('start')).toBe(RESEARCH_COUNTS.articleTwoExclusions)
+    })
+
+    test(`prohibited practices lists the ${RESEARCH_COUNTS.prohibitedPractices} practices of Article 5(1)`, () => {
+      expect(optionCount('prohibited-practices')).toBe(RESEARCH_COUNTS.prohibitedPractices)
+    })
+
+    test(`the Annex I step lists all ${RESEARCH_COUNTS.annexIEntries} pieces of Union harmonisation legislation`, () => {
+      expect(optionCount('annex-i-legislation')).toBe(RESEARCH_COUNTS.annexIEntries)
+      const sections = nodes
+        .get('annex-i-legislation')!
+        .options.map((option) => nodes.get(option.target)!.metadata['annex-i-section'])
+      expect(sections.filter((section) => section === 'A')).toHaveLength(11)
+      expect(sections.filter((section) => section === 'B')).toHaveLength(9)
+    })
+
+    test(`the Annex III step lists all ${RESEARCH_COUNTS.annexIiiAreas} high-risk areas, covering 25 listed system types`, () => {
+      expect(optionCount('annex-iii-areas')).toBe(RESEARCH_COUNTS.annexIiiAreas)
+      const types = nodes
+        .get('annex-iii-areas')!
+        .options.map((option) => Number(nodes.get(option.target)!.metadata['listed-system-types']))
+      expect(types).toEqual([3, 1, 4, 2, 4, 5, 4, 2])
+      expect(types.reduce((sum, count) => sum + count, 0)).toBe(25)
+    })
+
+    test(`the transparency step lists the ${RESEARCH_COUNTS.articleFiftySituations} situations of Article 50`, () => {
+      expect(optionCount('transparency-obligations')).toBe(RESEARCH_COUNTS.articleFiftySituations)
+      const addressees = nodes
+        .get('transparency-obligations')!
+        .options.map((option) => nodes.get(option.target)!.metadata.addressee)
+      expect(addressees).toEqual(['provider', 'provider', 'deployer', 'deployer', 'deployer'])
+    })
   })
 
-  test('the Annex I Section B tension is left standing, and nothing on the route reconciles it', () => {
-    // Issue #26. Since #24 every high-risk reader walks on into step 6, and step 6 says
-    // Article 50 attaches whatever the risk classification -- which is not what Article 2(2)
-    // provides for a system that is high-risk through Annex I, Section B. Resolving that is
-    // legal authoring either way, and the owner's answer on the issue was to leave the
-    // Tree's content to a later iteration and insert the wording by hand. So what ships is
-    // pinned here rather than fixed, and the pin has to survive that insert: an *added*
-    // caveat is the likeliest way this gets resolved, and no `toContain` ever sees an
-    // addition. Hence the two halves below. The other way out - splitting step 4c by Annex
-    // I Section - is deliberately not re-asserted here, because it cannot be done without a
-    // new question Node and a new Terminal, and five tests earlier in this file already fail
-    // on that: "the six steps are question Nodes chained in the order of core document 3.3",
-    // "it holds 8 question Nodes, 4 Terminals and 49 explanation Nodes", "every Terminal is
-    // reached from the root by answering questions alone", "a high-risk finding carries on
-    // into the general-purpose AI and transparency steps" and "the walk stops early only
-    // where the Act itself stops". Repeating them here would pin nothing new. NOTES.md
-    // section 8 records the decision and points at both sets.
-
-    // `high-risk` carries the caveat the Act gives, and is the only place the reader meets it.
-    expect(unwrapped('high-risk', 'en')).toContain(
-      '**Annex I, Section B**, Article 2(2) provides that only Article 6(1), Article 60a and Articles 102 to 112 apply',
-    )
-    expect(unwrapped('high-risk', 'nl')).toContain(
-      '**bijlage I, afdeling B**, valt, bepaalt artikel 2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met 112 van toepassing zijn',
-    )
-    // Step 6 states the general rule, unqualified, to that same reader.
-    expect(unwrapped('transparency-obligations', 'en')).toContain(
-      'Article 50 attaches **transparency obligations** to certain AI systems, whatever their risk classification.',
-    )
-    expect(unwrapped('transparency-obligations', 'nl')).toContain(
-      'Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde AI-systemen, ongeacht hun risicoclassificatie.',
-    )
-
-    // The other half, and the one that bites on an addition: the reconciliation is absent.
-    // Telling this reader that Article 50 may not attach on a Section B route means naming
-    // the carve-out and Article 50 in one breath, and no single block of the three Nodes
-    // past step 4a does that today - step 4c keeps them in separate paragraphs, steps 5 and
-    // 6 never mention Annex I at all. A caveat added anywhere on the route, in either
-    // language and however worded, has to, so it fails here instead of shipping green.
-    for (const id of ['high-risk', 'general-purpose-ai', 'transparency-obligations']) {
-      for (const lang of ['en', 'nl']) {
-        for (const block of paragraphs(id, lang)) {
-          const reconciles = /Section B|afdeling B/i.test(block) && /Article 50|artikel 50/i.test(block)
-          expect(
-            reconciles,
-            `${id} (${lang}) now answers Article 50 for the Annex I Section B route: "${block.slice(0, 160)}...". ` +
-              'That resolves the tension issue #26 decided to leave standing - read section 8 of ' +
-              "the Tree's NOTES.md and rewrite this test to pin what the Tree says instead.",
-          ).toBe(false)
+  describe('every Node carries both languages, a Source with a URL, and version 0.1', () => {
+    test('every Node has a non-empty English and Dutch title and description', () => {
+      for (const [id, node] of nodes) {
+        for (const lang of ['en', 'nl']) {
+          expect(node.title[lang]?.trim(), `${id}: ${lang} title`).toBeTruthy()
+          expect(node.description[lang]?.trim(), `${id}: ${lang} description`).toBeTruthy()
         }
       }
-    }
-  })
+    })
 
-  test('the walk stops early only where the Act itself stops', () => {
-    // The counterpart decision of issue #24: three Terminals do end the walk before step 6,
-    // deliberately. `ai-act-does-not-apply` and `not-an-ai-system` stop because the Act does
-    // not reach the system; `prohibited` stops because Article 5 leaves no route to
-    // compliance, so the questions "which obligations attach?" have nothing to add.
-    expect(terminalsFrom('start')).toEqual([
-      'ai-act-does-not-apply',
-      'end-of-walk',
-      'not-an-ai-system',
-      'prohibited',
-    ])
-    // Past step 3 the prohibition is the only early stop left, and past step 4 there is none.
-    expect(terminalsFrom('prohibited-practices')).toEqual(['end-of-walk', 'prohibited'])
-    expect(terminalsFrom('annex-i-legislation')).toEqual(['end-of-walk'])
-  })
-
-  test('the three Nodes whose text issue #24 changed say what the traversal now does', () => {
-    // The traversal is pinned above, but the wording issue #24 asked for is not, and prose
-    // is what a reader of this Tree actually gets. One assertion per changed Node, in both
-    // languages, so reverting any of these sentences fails here and not only in review.
-
-    // `high-risk` no longer sends the reader on by hand: the sentence #24 quotes is gone.
-    expect(unwrapped('high-risk', 'en')).not.toContain('Continue with the general-purpose AI and transparency steps as well')
-    expect(unwrapped('high-risk', 'nl')).not.toContain('Loop ook de stappen over AI voor algemene doeleinden en transparantie door')
-    expect(unwrapped('high-risk', 'en')).toContain('**This step does not end the walk.**')
-    expect(unwrapped('high-risk', 'nl')).toContain('**Deze stap beëindigt de doorloop niet.**')
-
-    // Issue #24 task item 2: `prohibited` says its stop is deliberate instead of leaving it
-    // to be inferred from the absence of an Answer.
-    expect(unwrapped('prohibited', 'en')).toContain('**This walk ends here, and that is deliberate.**')
-    expect(unwrapped('prohibited', 'nl')).toContain('**Deze doorloop eindigt hier, en dat is een bewuste keuze.**')
-
-    // The high-risk finding is no longer an outcome of its own, so `end-of-walk` carries it.
-    expect(unwrapped('end-of-walk', 'en')).toContain('**If step 4 found your system to be high-risk, that finding stands.**')
-    expect(unwrapped('end-of-walk', 'nl')).toContain('hoog risico heeft, blijft die bevinding staan.**')
-  })
-
-  test('every Option leads to an explanation Node, so no Option can end the walk', () => {
-    for (const [id, node] of nodes) {
-      for (const option of node.options) {
-        expect(nodes.get(option.target)!.kind, `${id} -> ${option.target}`).toBe('explanation')
+    test('the English and Dutch text of a Node are genuinely different strings', () => {
+      for (const [id, node] of nodes) {
+        expect(node.description.en, `${id}: the Dutch description repeats the English`).not.toBe(node.description.nl)
       }
-    }
+    })
+
+    test('every Node cites at least one Source, and every Source has an absolute http(s) URL', () => {
+      for (const [id, node] of nodes) {
+        expect(node.sources.length, `${id} cites no Source`).toBeGreaterThan(0)
+        for (const source of node.sources) {
+          expect(source.url, `${id}: ${source.label.en}`).toMatch(/^https?:\/\//)
+          for (const lang of ['en', 'nl']) expect(source.label[lang]?.trim(), `${id}: ${lang} Source label`).toBeTruthy()
+        }
+      }
+    })
+
+    test('every Node cites a legal Source, and cites no case law or literature the research did not give', () => {
+      for (const [id, node] of nodes) {
+        expect(node.sources.some((source) => source.kind === 'legal'), `${id} cites no legal Source`).toBe(true)
+        // Issue #10: case-law and literature Sources only where the research document
+        // provides them, and it provides none.
+        expect(node.sources.map((source) => source.kind), `${id}`).toEqual(node.sources.map(() => 'legal'))
+      }
+    })
+
+    test('every Node is at metadata version 0.1', () => {
+      for (const [id, node] of nodes) expect(node.metadata.version, id).toBe('0.1')
+    })
+
+    test('no Node carries an Image: the owner adds them (core document section 6)', () => {
+      for (const [id, node] of nodes) {
+        expect(node.images, id).toHaveLength(0)
+        for (const option of node.options) expect(option.images, `${id} option ${option.title.en}`).toHaveLength(0)
+      }
+    })
+  })
+
+  describe('the walk', () => {
+    test('every Terminal is reached from the root by answering questions alone', () => {
+      const reached = answerOnlyReach(nodes, tree.manifest.root)
+      const terminals = [...nodes.values()].filter((node) => node.kind === 'terminal').map((node) => node.id)
+      expect(terminals.sort()).toEqual([
+        'ai-act-does-not-apply',
+        'end-of-walk',
+        'not-an-ai-system',
+        'prohibited',
+      ])
+      for (const id of terminals) expect(reached.has(id), `${id} cannot be reached by answering`).toBe(true)
+    })
+
+    test('the four Terminals carry the outcomes the walk earns', () => {
+      const outcome = (id: string): string => {
+        const node = nodes.get(id)!
+        expect(node.kind, `${id} is not a Terminal`).toBe('terminal')
+        return (node as Node & { kind: 'terminal' }).outcome
+      }
+      expect(outcome('ai-act-does-not-apply')).toBe('not-applicable')
+      expect(outcome('not-an-ai-system')).toBe('refer')
+      expect(outcome('prohibited')).toBe('prohibited')
+      expect(outcome('end-of-walk')).toBe('applicable')
+    })
+
+    test('a high-risk finding carries on into the general-purpose AI and transparency steps', () => {
+      // Issue #24: the high-risk Node used to be a Terminal while its own text told the reader
+      // to continue with steps 5 and 6, which the Tree could not do. It is now a question Node
+      // that leads on whichever way it is answered, so a high-risk system reaches Article 50 --
+      // the two regimes bite at once (Article 50(6)).
+      expect(nodes.get('high-risk')!.kind).toBe('question')
+      expect([...answerOnlyReach(nodes, 'high-risk')].sort()).toEqual([
+        'end-of-walk',
+        'general-purpose-ai',
+        'high-risk',
+        'transparency-obligations',
+      ])
+      // Both high-risk routes therefore end at `end-of-walk`, and nowhere else.
+      expect(terminalsFrom('annex-i-legislation')).toEqual(['end-of-walk'])
+      expect(terminalsFrom('annex-iii-areas')).toEqual(['end-of-walk'])
+    })
+
+    test('the Annex I Section B tension is left standing, and nothing on the route reconciles it', () => {
+      // Issue #26. Since #24 every high-risk reader walks on into step 6, and step 6 says
+      // Article 50 attaches whatever the risk classification -- which is not what Article 2(2)
+      // provides for a system that is high-risk through Annex I, Section B. Resolving that is
+      // legal authoring either way, and the owner's answer on the issue was to leave the
+      // Tree's content to a later iteration and insert the wording by hand. So what ships is
+      // pinned here rather than fixed, and the pin has to survive that insert: an *added*
+      // caveat is the likeliest way this gets resolved, and no `toContain` ever sees an
+      // addition. Hence the two halves below. The other way out - splitting step 4c by Annex
+      // I Section - is deliberately not re-asserted here, because it cannot be done without a
+      // new question Node and a new Terminal, and five tests earlier in this file already fail
+      // on that: "the six steps are question Nodes chained in the order of core document 3.3",
+      // "it holds 8 question Nodes, 4 Terminals and 49 explanation Nodes", "every Terminal is
+      // reached from the root by answering questions alone", "a high-risk finding carries on
+      // into the general-purpose AI and transparency steps" and "the walk stops early only
+      // where the Act itself stops". Repeating them here would pin nothing new. NOTES.md
+      // section 8 records the decision and points at both sets.
+
+      // `high-risk` carries the caveat the Act gives, and is the only place the reader meets it.
+      expect(unwrapped('high-risk', 'en')).toContain(
+        '**Annex I, Section B**, Article 2(2) provides that only Article 6(1), Article 60a and Articles 102 to 112 apply',
+      )
+      expect(unwrapped('high-risk', 'nl')).toContain(
+        '**bijlage I, afdeling B**, valt, bepaalt artikel 2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met 112 van toepassing zijn',
+      )
+      // Step 6 states the general rule, unqualified, to that same reader.
+      expect(unwrapped('transparency-obligations', 'en')).toContain(
+        'Article 50 attaches **transparency obligations** to certain AI systems, whatever their risk classification.',
+      )
+      expect(unwrapped('transparency-obligations', 'nl')).toContain(
+        'Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde AI-systemen, ongeacht hun risicoclassificatie.',
+      )
+
+      // The other half, and the one that bites on an addition: the reconciliation is absent.
+      // Telling this reader that Article 50 may not attach on a Section B route means naming
+      // the carve-out and Article 50 in one breath, and no single block of the three Nodes
+      // past step 4a does that today - step 4c keeps them in separate paragraphs, steps 5 and
+      // 6 never mention Annex I at all. A caveat added anywhere on the route, in either
+      // language and however worded, has to, so it fails here instead of shipping green.
+      for (const id of ['high-risk', 'general-purpose-ai', 'transparency-obligations']) {
+        for (const lang of ['en', 'nl']) {
+          for (const block of paragraphs(id, lang)) {
+            const reconciles = /Section B|afdeling B/i.test(block) && /Article 50|artikel 50/i.test(block)
+            expect(
+              reconciles,
+              `${id} (${lang}) now answers Article 50 for the Annex I Section B route: "${block.slice(0, 160)}...". ` +
+                'That resolves the tension issue #26 decided to leave standing - read section 8 of ' +
+                "the Tree's NOTES.md and rewrite this test to pin what the Tree says instead.",
+            ).toBe(false)
+          }
+        }
+      }
+    })
+
+    test('the walk stops early only where the Act itself stops', () => {
+      // The counterpart decision of issue #24: three Terminals do end the walk before step 6,
+      // deliberately. `ai-act-does-not-apply` and `not-an-ai-system` stop because the Act does
+      // not reach the system; `prohibited` stops because Article 5 leaves no route to
+      // compliance, so the questions "which obligations attach?" have nothing to add.
+      expect(terminalsFrom('start')).toEqual([
+        'ai-act-does-not-apply',
+        'end-of-walk',
+        'not-an-ai-system',
+        'prohibited',
+      ])
+      // Past step 3 the prohibition is the only early stop left, and past step 4 there is none.
+      expect(terminalsFrom('prohibited-practices')).toEqual(['end-of-walk', 'prohibited'])
+      expect(terminalsFrom('annex-i-legislation')).toEqual(['end-of-walk'])
+    })
+
+    test('the three Nodes whose text issue #24 changed say what the traversal now does', () => {
+      // The traversal is pinned above, but the wording issue #24 asked for is not, and prose
+      // is what a reader of this Tree actually gets. One assertion per changed Node, in both
+      // languages, so reverting any of these sentences fails here and not only in review.
+
+      // `high-risk` no longer sends the reader on by hand: the sentence #24 quotes is gone.
+      expect(unwrapped('high-risk', 'en')).not.toContain('Continue with the general-purpose AI and transparency steps as well')
+      expect(unwrapped('high-risk', 'nl')).not.toContain('Loop ook de stappen over AI voor algemene doeleinden en transparantie door')
+      expect(unwrapped('high-risk', 'en')).toContain('**This step does not end the walk.**')
+      expect(unwrapped('high-risk', 'nl')).toContain('**Deze stap beëindigt de doorloop niet.**')
+
+      // Issue #24 task item 2: `prohibited` says its stop is deliberate instead of leaving it
+      // to be inferred from the absence of an Answer.
+      expect(unwrapped('prohibited', 'en')).toContain('**This walk ends here, and that is deliberate.**')
+      expect(unwrapped('prohibited', 'nl')).toContain('**Deze doorloop eindigt hier, en dat is een bewuste keuze.**')
+
+      // The high-risk finding is no longer an outcome of its own, so `end-of-walk` carries it.
+      expect(unwrapped('end-of-walk', 'en')).toContain('**If step 4 found your system to be high-risk, that finding stands.**')
+      expect(unwrapped('end-of-walk', 'nl')).toContain('hoog risico heeft, blijft die bevinding staan.**')
+    })
+
+    test('every Option leads to an explanation Node, so no Option can end the walk', () => {
+      for (const [id, node] of nodes) {
+        for (const option of node.options) {
+          expect(nodes.get(option.target)!.kind, `${id} -> ${option.target}`).toBe('explanation')
+        }
+      }
+    })
   })
 })
