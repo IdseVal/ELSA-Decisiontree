@@ -7,10 +7,15 @@
  * asks for and what a message-file library would not give.
  */
 
+import type { LocalisedText } from './tree/types.ts'
+
 /** The languages the chrome is written in. Adding one is a code change, not an ADR. */
 export const CHROME_LANGUAGES = ['en', 'nl'] as const
 
 export type ChromeLanguage = (typeof CHROME_LANGUAGES)[number]
+
+/** The keys of `Chrome` that are plain strings: what a label record may point at. */
+export type ChromeString = { [K in keyof Chrome]: Chrome[K] extends string ? K : never }[keyof Chrome]
 
 /** Every string the interface says. Tree content never comes from here. */
 export interface Chrome {
@@ -156,4 +161,29 @@ export function chromeLanguage(contentLanguage: string): ChromeLanguage {
 /** The chrome strings to show beside content in `contentLanguage`. */
 export function chrome(contentLanguage: string): Chrome {
   return CHROME[chromeLanguage(contentLanguage)]
+}
+
+/**
+ * `lang` for a chrome element: set only where the chrome speaks another language than the
+ * content around it, so a screen reader pronounces both (docs/specs/application.md 3.1).
+ */
+export function chromeLang(contentLanguage: string): string | undefined {
+  const language = chromeLanguage(contentLanguage)
+  return language === contentLanguage ? undefined : language
+}
+
+/**
+ * The text of a localised field, or a visible placeholder when the Tree does not have it in
+ * `lang`. Rule V-L10N guarantees every declared language is there, so a miss means the Tree
+ * changed under the running server (`getNode` re-reads the file and does not re-validate) --
+ * an authoring error. The reader is told, honestly, rather than shown an empty element, and
+ * the server says which Node and which field, so the author can find it.
+ *
+ * `where` names the field: `start.title`, `start.options[1].title`.
+ */
+export function text(localised: LocalisedText, lang: string, where: string): string {
+  const value = localised[lang]
+  if (value !== undefined) return value
+  console.warn(`Tree text missing: ${where} has no text for the language "${lang}"`)
+  return `[${chrome(lang).missingText}]`
 }

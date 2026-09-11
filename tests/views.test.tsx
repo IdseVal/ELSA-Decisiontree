@@ -1,5 +1,7 @@
 /**
- * The Node view (docs/CORE_DOCUMENT.md 3.2): what each kind of Node puts on the page.
+ * The tree view (docs/specs/application.md section 10): what each kind of Node puts on the
+ * page -- what the Bubble holds, which Branches exist and where they link (10.3) -- as the
+ * server sends it. What the layout does with it is `tests/browser/no-scroll.spec.ts`.
  *
  * Every fixture is loaded through `openTree` and every address through `parseUrl`, as
  * docs/specs/application.md section 7 requires; nothing here builds a Node by hand.
@@ -9,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeAll, describe, expect, test } from 'vitest'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
-import { NodeView } from '../src/components/NodeView.tsx'
+import { TreeView } from '../src/components/TreeView.tsx'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { contentLanguage, parseUrl } from '../src/url.ts'
 import { effectiveLang } from './effective-lang.ts'
@@ -21,8 +23,8 @@ beforeAll(async () => {
   for (const [id, dir] of [
     ['ai-act-example', path.join(here, '..', 'trees', 'ai-act-example')],
     ['single-language', path.join(here, 'fixtures', 'single-language')],
-    ['german-only', path.join(here, 'fixtures', 'german-only')],
     ['other-languages', path.join(here, 'fixtures', 'other-languages')],
+    ['full-node', path.join(here, 'fixtures', 'full-node')],
   ] as const) {
     trees.set(id, await openTree(dir))
   }
@@ -45,18 +47,11 @@ async function view(url: string): Promise<string> {
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)
-  return renderToStaticMarkup(
-    <NodeView
-      node={node}
-      address={address}
-      rootId={tree.manifest.root}
-      trailTitles={address.trail.map((id) => tree.getTitle(id)!)}
-    />,
-  )
+  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} />)
 }
 
 /**
- * A whole page: the shell `src/app/[lang]/layout.tsx` renders around the Node view and the
+ * A whole page: the shell `src/app/[lang]/layout.tsx` renders around the tree view and the
  * footer, resolving its own segment exactly as that layout does. `<html lang>` is therefore
  * the content language of the page (application.md 3.1, 4.4).
  */
@@ -69,12 +64,7 @@ async function shell(url: string): Promise<string> {
     <html lang={contentLanguage(tree, langSegment(target))}>
       <body>
         <main>
-          <NodeView
-            node={node}
-            address={address}
-            rootId={tree.manifest.root}
-            trailTitles={address.trail.map((id) => tree.getTitle(id)!)}
-          />
+          <TreeView node={node} address={address} tree={tree} />
         </main>
         <Disclaimer lang={address.lang} />
       </body>
@@ -82,34 +72,89 @@ async function shell(url: string): Promise<string> {
   )
 }
 
-describe('a question Node', () => {
-  test('shows its title and its description as paragraphs', async () => {
-    const html = await view('/ai-act-example/start')
+/**
+ * One element's markup, from its opening tag to its own closing one -- counting the nested
+ * elements of the same tag, so a `div` holding `div`s is cut where it ends; '' when it is
+ * not there.
+ */
+function part(html: string, tag: string, className: string): string {
+  const open = new RegExp(`<${tag} class="${className}[^"]*"`).exec(html)
+  if (!open) return ''
+  const tags = new RegExp(`<(/?)${tag}(?=[\\s>])`, 'g')
+  tags.lastIndex = open.index
+  for (let depth = 0, match = tags.exec(html); match; match = tags.exec(html)) {
+    depth += match[1] === '/' ? -1 : 1
+    if (depth === 0) return html.slice(open.index, match.index + tag.length + 3)
+  }
+  throw new Error(`<${tag} class="${className}"> is never closed`)
+}
 
-    expect(html).toContain('<h1 id="node-title">Is your AI system within the reach of the AI Act?</h1>')
-    expect(html).toContain('<p>The AI Act reaches AI systems')
-    expect(html).toContain('<strong>placed on the market')
-    expect(html).toContain('<li>Answer <strong>no</strong> only if none of these applies to your system.</li>')
-  })
+/** The Branches of a class: `[href, title]` for each, in page order. */
+function branches(html: string, className: string): Array<[href: string, title: string]> {
+  return [
+    ...html.matchAll(
+      new RegExp(
+        `<a class="branch ${className}[^"]*" href="([^"]*)"[^>]*>(?:<img [^>]*>)?<span class="branch-label">(?:<span class="branch-word"[^>]*>[^<]*</span>)?<span class="branch-title">(?:<span[^>]*>)?([^<]*)`,
+        'g',
+      ),
+    ),
+  ].map((match) => [match[1]!, match[2]!])
+}
 
-  test('offers yes and no as two controls that lead to the two Answer targets', async () => {
-    const html = await view('/ai-act-example/start')
-
-    expect(html).toContain('href="/ai-act-example/start/prohibited-practices"')
-    expect(html).toContain('href="/ai-act-example/start/outside-scope"')
-    expect(html).toMatch(/class="answer answer--yes"[^>]*>Yes</)
-    expect(html).toMatch(/class="answer answer--no"[^>]*>No</)
-  })
-
-  test('an Answer keeps the Trail taken so far and adds the Node just left', async () => {
+describe('the tree layer', () => {
+  test('is one element holding the Trail, the Bubble, the Branches and the Carousel row, in that order (11.1)', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
+    const layer = part(html, 'div', 'tree-layer')
 
-    expect(html).toContain('href="/ai-act-example/start/prohibited-practices/prohibited"')
-    expect(html).toContain('href="/ai-act-example/start/prohibited-practices/covered"')
+    const order = ['class="trail', 'class="bubble', 'class="options', 'class="answers"', 'class="carousel"'].map((marker) =>
+      layer.indexOf(marker),
+    )
+    expect(order.every((at) => at >= 0), layer.slice(0, 200)).toBe(true)
+    expect(order).toEqual([...order].sort((a, b) => a - b))
   })
 
-  test('shows the metadata version unobtrusively', async () => {
-    expect(await view('/ai-act-example/start')).toContain('<p class="version">Version 2.0</p>')
+  test('the Carousel row is present and empty on every Node, so the Bubble never moves (12.1)', async () => {
+    for (const url of ['/ai-act-example/start', '/ai-act-example/covered', '/ai-act-example/social-scoring']) {
+      expect(await view(url), url).toContain('<div class="carousel"></div>')
+    }
+  })
+
+  test("the Node's own Images are not on the page until #43 draws the Carousel; an Option's thumbnail is", async () => {
+    // `start` carries eu-map.png as its Image; `prohibited-practices` carries scoreboard.png
+    // on an Option. Only the second is a picture of this Node's Branches (10.3).
+    expect(await view('/ai-act-example/start')).not.toContain('/images/')
+    expect(await view('/ai-act-example/prohibited-practices')).toContain(
+      '<img class="branch-image" src="/images/scoreboard.png" alt="A scoreboard ranking people"',
+    )
+  })
+
+  test('carries the notice for a window below the floor, for the stylesheet to show (10.4)', async () => {
+    expect(await view('/ai-act-example/start')).toContain(
+      '<p class="minimum-size">This tool needs a window of at least 320 by 480 pixels.</p>',
+    )
+    expect(await view('/ai-act-example/start?lang=nl')).toContain('minimaal 320 bij 480 pixels')
+  })
+})
+
+describe('the Bubble', () => {
+  test('holds the title as the page heading, the description as rich text, and the Sources', async () => {
+    const html = await view('/ai-act-example/start')
+    const bubble = part(html, 'article', 'bubble')
+
+    expect(bubble).toContain('<h1 id="node-title">Is your AI system within the reach of the AI Act?</h1>')
+    expect(bubble).toContain('<p>The AI Act reaches AI systems')
+    expect(bubble).toContain('<strong>placed on the market')
+    expect(bubble).toContain('<li>Answer <strong>no</strong> only if none of these applies to your system.</li>')
+    expect(bubble).toContain('<section class="sources"')
+    expect(html.match(/<h1 /g)).toHaveLength(1)
+  })
+
+  test('is the article the content language is declared on', async () => {
+    expect(await view('/ai-act-example/start?lang=nl')).toContain('<article class="bubble bubble--question" lang="nl">')
+  })
+
+  test('shows no metadata: nothing but what 10.3 lists is inside it', async () => {
+    expect(await view('/ai-act-example/start')).not.toContain('Version 2.0')
   })
 })
 
@@ -122,119 +167,195 @@ describe('Sources', () => {
       'https://curia.europa.eu/juris/liste.jsf?num=C-634/21',
       'https://arxiv.org/abs/2107.03721',
     ]) {
-      expect(html).toContain(`<a href="${url}" target="_blank" rel="noopener noreferrer">`)
+      expect(part(html, 'section', 'sources')).toContain(
+        `<a href="${url}" target="_blank" rel="noopener noreferrer" aria-describedby="sources-new-tab">`,
+      )
     }
   })
 
-  test('are labelled by their kind', async () => {
+  test('are labelled by their kind, and say that the link leaves the page', async () => {
     const html = await view('/ai-act-example/social-scoring')
 
     expect(html).toContain('>Legal</span>')
     expect(html).toContain('>Case law</span>')
     expect(html).toContain('>Literature</span>')
+    expect(html).toContain('<span hidden="" id="sources-new-tab">opens in a new tab</span>')
   })
 
-  test('say that the link leaves the page, for a reader who cannot see it happen', async () => {
-    expect(await view('/ai-act-example/social-scoring')).toContain('opens in a new tab')
+  test('are also in the Sheet they collapse to below the guarantee, as the same links (10.5, 14)', async () => {
+    const html = await view('/ai-act-example/social-scoring')
+    const sheet = part(html, 'div', 'sources-collapsed')
+
+    expect(sheet).toContain('<summary class="sheet-open"><span>Sources (3)</span></summary>')
+    expect(sheet.match(/target="_blank"/g)).toHaveLength(3)
+    expect(sheet).toContain('href="https://arxiv.org/abs/2107.03721"')
   })
 
-  test('a Node without Sources renders no Sources section', async () => {
-    expect(await view('/ai-act-example/covered')).not.toContain('class="sources"')
-  })
-})
+  test('a Node without Sources renders neither the list nor the Sheet', async () => {
+    const html = await view('/ai-act-example/covered')
 
-describe('Images', () => {
-  test('are plain thumbnails: an image per file, no carousel chrome around them', async () => {
-    const html = await view('/ai-act-example/start')
-
-    expect(html).toContain('<img src="/images/eu-map.png"')
-    expect(html).toContain('alt="Map of the European Union member states"')
-    expect(html).toContain('loading="lazy"')
-    // No frame, arrows or dots (core document 10.6).
-    expect(html).not.toMatch(/prev|next|carousel|slide|dots/i)
-  })
-
-  test('a thumbnail is a link to the file, so it works without JavaScript', async () => {
-    expect(await view('/ai-act-example/start')).toContain('href="/images/eu-map.png"')
-  })
-
-  test('only the Images of this Node are named in its markup', async () => {
-    const files = [...(await view('/ai-act-example/start')).matchAll(/\/images\/([\w.-]+)/g)].map(
-      (match) => match[1],
-    )
-
-    expect(new Set(files)).toEqual(new Set(['eu-map.png']))
-  })
-
-  test('a Node without Images renders no Images section', async () => {
-    expect(await view('/ai-act-example/social-scoring')).not.toContain('class="images"')
+    expect(html).not.toContain('class="sources"')
+    expect(html).not.toContain('class="sources-collapsed"')
   })
 })
 
-describe('Options', () => {
-  test('are a clickable list, each entry leading to its child Node', async () => {
+describe('a question Node with Options', () => {
+  test('offers yes and no as two Branches below, each showing its chrome word and its target title', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
 
-    expect(html).toContain('href="/ai-act-example/start/prohibited-practices/social-scoring"')
-    expect(html).toContain('>Social scoring</span>')
-    expect(html).toContain(
-      'href="/ai-act-example/start/prohibited-practices/emotion-recognition-at-work"',
-    )
+    expect(branches(html, 'answer answer--yes')).toEqual([
+      ['/ai-act-example/start/prohibited-practices/prohibited', 'This is a prohibited practice'],
+    ])
+    expect(branches(html, 'answer answer--no')).toEqual([
+      ['/ai-act-example/start/prohibited-practices/covered', 'The AI Act applies to your system'],
+    ])
+    expect(html).toContain('<span class="branch-word">Yes</span>')
+    expect(html).toContain('<span class="branch-word">No</span>')
   })
 
-  test('carry the thumbnail of the entry when it has one', async () => {
-    const html = await view('/ai-act-example/prohibited-practices')
+  test('draws its Options beside the Bubble, one Branch per Option, each to its target with the current Node appended', async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices')
 
-    expect(html).toContain('<img class="option-image" src="/images/scoreboard.png"')
-    expect(html).toContain('alt="A scoreboard ranking people"')
+    expect(branches(html, 'option')).toEqual([
+      ['/ai-act-example/start/prohibited-practices/social-scoring', 'Social scoring'],
+      ['/ai-act-example/start/prohibited-practices/emotion-recognition-at-work', 'Emotion recognition at work or in education'],
+    ])
+  })
+
+  test('splits the Options over two columns, at most four a side, and says how many there are', async () => {
+    const two = await view('/ai-act-example/prohibited-practices')
+    expect(two).toContain('<div class="options-columns" data-count="2">')
+    expect(part(two, 'ul', 'options options--left').match(/<li>/g)).toHaveLength(1)
+    expect(part(two, 'ul', 'options options--right').match(/<li>/g)).toHaveLength(1)
+
+    const eight = await view('/full-node/full')
+    expect(eight).toContain('data-count="8"')
+    expect(part(eight, 'ul', 'options options--left').match(/<li>/g)).toHaveLength(4)
+    expect(part(eight, 'ul', 'options options--right').match(/<li>/g)).toHaveLength(4)
+  })
+
+  test('an Option with Images carries the first of them as a thumbnail, and only the first', async () => {
+    const html = await view('/full-node/full')
+    const first = part(html, 'ul', 'options options--left')
+
+    expect(first).toContain('<img class="branch-image" src="/images/one.png" alt="Option one, first picture" width="64" height="64" loading="lazy"/>')
+    expect(first).not.toContain('/images/two.png')
+  })
+
+  test('the Options are named as a group, and are also in the Sheet they collapse to (10.5, 14)', async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices')
+
+    expect(html).toContain('<span hidden="" id="options-label">What this covers</span>')
+    expect(html).toContain('<ul class="options options--left" aria-labelledby="options-label">')
+    const sheet = part(html, 'div', 'options-collapsed')
+    expect(sheet).toContain('<summary class="sheet-open"><span>What this covers (2)</span></summary>')
+    expect(sheet).toContain('href="/ai-act-example/start/prohibited-practices/social-scoring"')
+    expect(sheet).toContain('href="/ai-act-example/start/prohibited-practices/emotion-recognition-at-work"')
   })
 })
 
-describe('a Terminal Node', () => {
-  test('shows its outcome and offers no yes or no', async () => {
+describe('a question Node without Options', () => {
+  test('has the same two Answer Branches and no Option columns at all', async () => {
+    const html = await view('/ai-act-example/start')
+
+    expect(branches(html, 'answer answer--yes')).toEqual([
+      ['/ai-act-example/start/prohibited-practices', 'Does your system do any of the prohibited practices?'],
+    ])
+    expect(branches(html, 'answer answer--no')).toEqual([['/ai-act-example/start/outside-scope', 'The AI Act does not apply']])
+    expect(html).not.toContain('class="options')
+    expect(html).not.toContain('options-collapsed')
+  })
+})
+
+describe('an explanation Node', () => {
+  test('says the answer is given on the step above, on the rim and outside the text area (10.1)', async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
+    const textArea = part(html, 'div', 'bubble-text')
+
+    expect(part(html, 'article', 'bubble')).toContain('<p class="hint">This step only explains. Go back to answer the question.</p>')
+    expect(textArea).not.toContain('class="hint"')
+  })
+
+  test('offers no yes or no, and one back Branch below to the Trail entry directly above, with its title', async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
+
+    expect(html).not.toContain('answer--yes')
+    expect(html).not.toContain('answer--no')
+    expect(branches(html, 'answer answer--back')).toEqual([
+      ['/ai-act-example/start/prohibited-practices', 'Does your system do any of the prohibited practices?'],
+    ])
+    expect(html).toContain('<span class="branch-word">Back</span>')
+  })
+
+  test('opened by its own URL it has no entry above, so no back Branch: the Trail row offers the start', async () => {
+    const html = await view('/ai-act-example/social-scoring')
+
+    expect(branches(html, 'answer')).toEqual([])
+    expect(branches(html, 'trail-entry')).toEqual([['/ai-act-example/start', 'Start']])
+  })
+
+  test('draws its own Options beside it, when it has any', async () => {
+    const html = await view('/full-node/full/opt-one')
+
+    expect(branches(html, 'option')).toEqual([['/full-node/full/opt-one/opt-two', 'Option two: a title of sixty characters, the most it may be.']])
+  })
+})
+
+describe('a Terminal', () => {
+  test('shows its outcome as a badge on the rim, outside the text area, and offers no yes or no', async () => {
     const html = await view('/ai-act-example/start/outside-scope')
 
-    expect(html).toContain('class="outcome outcome--not-applicable"')
-    expect(html).toContain('>Does not apply</p>')
-    expect(html).not.toContain('class="answers"')
+    expect(part(html, 'article', 'bubble')).toContain('<p class="outcome outcome--not-applicable">Does not apply</p>')
+    expect(part(html, 'div', 'bubble-text')).not.toContain('class="outcome')
     expect(html).not.toContain('answer--yes')
+    expect(html).not.toContain('answer--no')
   })
 
   test('each outcome gets its own name and style', async () => {
-    expect(await view('/ai-act-example/prohibited')).toContain('outcome--prohibited')
-    expect(await view('/ai-act-example/prohibited')).toContain('>Prohibited</p>')
-    expect(await view('/ai-act-example/covered')).toContain('>Applies</p>')
+    expect(await view('/ai-act-example/prohibited')).toContain('class="outcome outcome--prohibited">Prohibited</p>')
+    expect(await view('/ai-act-example/covered')).toContain('class="outcome outcome--applicable">Applies</p>')
+  })
+
+  test('offers back to the Trail entry above and startAgain to the root with an empty Trail', async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices/prohibited?lang=nl')
+
+    expect(branches(html, 'answer answer--back')).toEqual([
+      ['/ai-act-example/start/prohibited-practices?lang=nl', 'Verricht uw systeem een van de verboden praktijken?'],
+    ])
+    expect(branches(html, 'answer answer--start-again')).toEqual([
+      ['/ai-act-example/start?lang=nl', 'Valt uw AI-systeem binnen het bereik van de AI-verordening?'],
+    ])
+    expect(html).toContain('<span class="branch-word">Terug</span>')
+    expect(html).toContain('<span class="branch-word">Opnieuw beginnen</span>')
+  })
+
+  test('with no Trail entry above it shows startAgain alone', async () => {
+    const html = await view('/ai-act-example/covered')
+
+    expect(branches(html, 'answer answer--back')).toEqual([])
+    expect(branches(html, 'answer answer--start-again')).toHaveLength(1)
+  })
+
+  test('never draws Options', async () => {
+    expect(await view('/ai-act-example/start/outside-scope')).not.toContain('class="options')
   })
 })
 
-describe('an explanation-only Node', () => {
-  test('says the answer is given on the previous step and offers no yes or no', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
+describe('the chrome speaks its own language beside content it does not speak', () => {
+  test('the Branch words, the group names and the badge carry lang="en" on a German page', async () => {
+    const html = await view('/other-languages/inverkehrbringen/start?lang=de')
 
-    expect(html).toContain('This step only explains.')
-    expect(html).not.toContain('class="answers"')
+    expect(html).toContain('<span class="branch-word" lang="en">Yes</span>')
+    expect(html).toContain('<span hidden="" id="trail-label" lang="en">Your path</span>')
+    expect(html).toContain('id="options-label" lang="en">')
+    expect(html).toContain('<p class="minimum-size" lang="en">')
   })
 
-  // The three tests below pinned issue #7's interim "back" control. Issue #8 replaces it
-  // with the Trail, so they now ask the Trail for the same three promises; what the Trail
-  // itself draws is `tests/trail.test.tsx`.
-  test('offers a way back to the Node it was opened from: the newest Trail entry', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
+  test('and stays silent about it where the chrome and the content agree', async () => {
+    const html = await view('/ai-act-example/start/outside-scope?lang=nl')
 
-    expect(html).toContain(
-      '<a class="trail-entry" href="/ai-act-example/start/prohibited-practices" rel="prev">',
-    )
-  })
-
-  test('opened by its own URL, the way back is the start of the walk', async () => {
-    const html = await view('/ai-act-example/social-scoring')
-
-    expect(html).toContain('<a class="trail-entry" href="/ai-act-example/start"')
-    expect(html).toContain('>Start</a>')
-  })
-
-  test('the root Node has nothing to go back to', async () => {
-    expect(await view('/ai-act-example/start')).not.toContain('class="trail"')
+    expect(html).toContain('<p class="outcome outcome--not-applicable">Niet van toepassing</p>')
+    expect(html).toContain('<span class="branch-word">Terug</span>')
   })
 })
 
@@ -260,13 +381,10 @@ describe('the permanent disclaimer', () => {
     const html = renderToStaticMarkup(<Disclaimer lang="de" />)
 
     expect(html).toContain('This is not legal advice.')
-    expect(html).toContain('lang="de"'.replace('de', 'en'))
+    expect(html).toContain('lang="en"')
   })
 
   test('names its own language every time, including when it equals the content language', () => {
-    // The footer is a sibling of <main>, so the only language it can inherit is <html>'s.
-    // That is the content language now (4.4), which the chrome follows only when it speaks
-    // it; saying so unconditionally keeps the attribute true of the text under it.
     expect(renderToStaticMarkup(<Disclaimer lang="nl" />)).toContain('lang="nl"')
     expect(renderToStaticMarkup(<Disclaimer lang="en" />)).toContain('lang="en"')
   })
@@ -275,25 +393,26 @@ describe('the permanent disclaimer', () => {
     const html = await shell('/ai-act-example/start?lang=nl')
 
     expect(html).toContain('Dit is geen juridisch advies.')
-    expect(effectiveLang(html, 'class="node"')).toBe('nl')
+    expect(effectiveLang(html, 'class="bubble bubble--question"')).toBe('nl')
     expect(effectiveLang(html, 'class="disclaimer"')).toBe('nl')
   })
 
   test('is announced in English beside German content, which stays German', async () => {
     const html = await shell('/other-languages/start?lang=de')
 
-    expect(effectiveLang(html, 'class="node"')).toBe('de')
+    expect(effectiveLang(html, 'class="bubble bubble--question"')).toBe('de')
     expect(effectiveLang(html, 'class="disclaimer"')).toBe('en')
   })
 })
 
 describe('everything on the page is reachable by keyboard', () => {
-  test('every control is a link with a target or a button, and none is taken out of the tab order', async () => {
+  test('every control is a link with a target, a button or a summary, and none is taken out of the tab order', async () => {
     for (const url of [
       '/ai-act-example/start',
       '/ai-act-example/start/prohibited-practices',
       '/ai-act-example/start/prohibited-practices/social-scoring',
       '/ai-act-example/start/outside-scope',
+      '/full-node/full/full/full/full/full/full/full',
     ]) {
       const html = await view(url)
 
@@ -301,5 +420,12 @@ describe('everything on the page is reachable by keyboard', () => {
       expect(html, url).not.toContain('tabindex="-1"')
       expect(html, url).not.toMatch(/<(div|span)[^>]*role="button"/)
     }
+  })
+
+  test('nothing is clipped off screen to be read: a hidden name is hidden, not one pixel wide (10.6)', async () => {
+    // A `.visually-hidden` element is by construction wider than itself, which the no-scroll
+    // test measures on every element; `hidden` elements are read as names and descriptions
+    // all the same and have no box.
+    expect(await view('/ai-act-example/start/prohibited-practices/social-scoring')).not.toContain('visually-hidden')
   })
 })

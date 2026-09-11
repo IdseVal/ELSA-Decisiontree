@@ -14,7 +14,8 @@ import { describe, expect, test } from 'vitest'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
 import { endonym, LanguageSwitch } from '../src/components/LanguageSwitch.tsx'
 import { Logo } from '../src/components/Logo.tsx'
-import { NodeView, text } from '../src/components/NodeView.tsx'
+import { TreeView } from '../src/components/TreeView.tsx'
+import { text } from '../src/chrome.ts'
 import { DEFAULT_COLOURS, themeStyle } from '../src/theme.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { parseUrl } from '../src/url.ts'
@@ -91,12 +92,7 @@ async function page(tree: Tree, url: string, theme = tree.manifest.theme): Promi
         <LanguageSwitch address={address} languages={tree.manifest.languages} />
       </header>
       <main>
-        <NodeView
-          node={node}
-          address={address}
-          rootId={tree.manifest.root}
-          trailTitles={address.trail.map((id) => tree.getTitle(id)!)}
-        />
+        <TreeView node={node} address={address} tree={tree} />
       </main>
       <Disclaimer lang={address.lang} />
     </>,

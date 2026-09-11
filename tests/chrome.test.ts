@@ -49,10 +49,10 @@ describe('the chrome strings', () => {
   test('a key that takes a number is a function of it, in both languages (application.md 3.2)', () => {
     for (const language of CHROME_LANGUAGES) {
       const ui = chrome(language)
-      expect(ui.trailMore(1), language).toMatch(/1/)
-      expect(ui.trailMore(7), language).toMatch(/7/)
+      expect(ui.trailMore(1), language).toMatch(/\b1\b/)
+      expect(ui.trailMore(7), language).toMatch(/\b7\b/)
       expect(ui.trailMore(7), language).not.toBe(ui.trailMore(1))
-      expect(ui.imageCount(3, 7), language).toMatch(/3.*7/)
+      expect(ui.imageCount(3, 7), language).toMatch(/\b3\b.*\b7\b/)
     }
   })
 

@@ -7,9 +7,8 @@
  * It is links, not a form or a menu: the switch works with JavaScript switched off, which
  * is what application.md section 1 promises for everything but the thumbnails and sharing.
  */
-import { chrome } from '../chrome.ts'
+import { chrome, chromeLang } from '../chrome.ts'
 import { withLang, type PageAddress } from '../url.ts'
-import { chromeLang } from './NodeView.tsx'
 
 /**
  * The name of a language in that language itself -- `nl` reads "Nederlands", not "Dutch" --
@@ -39,7 +38,7 @@ export function LanguageSwitch({
     <nav className="language-switch" aria-labelledby="language-label">
       {/* The name of the region is chrome and may be in another language than the language
           names under it, each of which is in its own. Only a referenced element can say so. */}
-      <span className="visually-hidden" id="language-label" lang={chromeLang(address.lang)}>
+      <span hidden id="language-label" lang={chromeLang(address.lang)}>
         {ui.language}
       </span>
       <ul>

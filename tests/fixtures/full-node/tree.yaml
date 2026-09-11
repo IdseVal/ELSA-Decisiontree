@@ -1,0 +1,297 @@
+# One Node at every maximum docs/specs/tree-format.md 5.7 allows (application.md 10.6):
+# an 80-character title, a 600-character description of eight estimated lines, 3 Sources,
+# 8 Options, 10 Images, and Options that carry their own Images. If this fits inside the
+# Bubble at the guaranteed viewport, every valid Tree fits. A Trail of 49 entries is made
+# by visiting `full` 49 times: adjacency is not checked (application.md 4.3).
+format: elsa-tree/2
+languages: [en, nl]
+root: full
+title:
+  en: The full Node fixture
+  nl: De volle-stap-fixture
+metadata:
+  version: "1.0"
+
+--- # full
+id: full
+title:
+  en: "The full Node: a title of exactly eighty characters, the most it may be The ful."
+  nl: "De volle stap: een titel van precies tachtig tekens, het meeste dat mag De voll."
+description:
+  en: |
+    Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is a.
+  nl: |
+    Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat..
+metadata:
+  version: "1.0"
+sources:
+  - id: s1
+    kind: legal
+    label:
+      en: "Source 1 (legal): a label of sixty characters at most Sourc."
+      nl: "Bron 1 (legal): een label van ten hoogste zestig tekens Bro."
+    url: https://example.org/source-1
+  - id: s2
+    kind: case-law
+    label:
+      en: "Source 2 (case law): a label of sixty characters at most So."
+      nl: "Bron 2 (case law): een label van ten hoogste zestig tekens.."
+    url: https://example.org/source-2
+  - id: s3
+    kind: literature
+    label:
+      en: "Source 3 (literature): a label of sixty characters at most.."
+      nl: "Bron 3 (literature): een label van ten hoogste zestig teken."
+    url: https://example.org/source-3
+images:
+  - file: one.png
+    description:
+      en: "Picture 1 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 1 of."
+      nl: "Afbeelding 1 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+    credit: "Credit for picture 1: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.."
+    source: s1
+  - file: two.png
+    description:
+      en: "Picture 2 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 2 of."
+      nl: "Afbeelding 2 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+    credit: "Credit for picture 2: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.."
+    source: s2
+  - file: three.png
+    description:
+      en: "Picture 3 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 3 of."
+      nl: "Afbeelding 3 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+    credit: "Credit for picture 3: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.."
+    source: s3
+  - file: four.png
+    description:
+      en: "Picture 4 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 4 of."
+      nl: "Afbeelding 4 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+    credit: "Credit for picture 4: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.."
+    source: s1
+  - file: five.png
+    description:
+      en: "Picture 5 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 5 of."
+      nl: "Afbeelding 5 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+    credit: "Credit for picture 5: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.."
+    source: s2
+  - file: six.png
+    description:
+      en: "Picture 6 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 6 of."
+      nl: "Afbeelding 6 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+    credit: "Credit for picture 6: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.."
+    source: s3
+  - file: seven.png
+    description:
+      en: "Picture 7 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 7 of."
+      nl: "Afbeelding 7 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+    credit: "Credit for picture 7: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.."
+    source: s1
+  - file: eight.png
+    description:
+      en: "Picture 8 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 8 of."
+      nl: "Afbeelding 8 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+    credit: "Credit for picture 8: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.."
+    source: s2
+  - file: nine.png
+    description:
+      en: "Picture 9 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 9 of."
+      nl: "Afbeelding 9 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+    credit: "Credit for picture 9: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.."
+    source: s3
+  - file: ten.png
+    description:
+      en: "Picture 10 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 10.."
+      nl: "Afbeelding 10 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding."
+    credit: "Credit for picture 10: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit."
+    source: s1
+options:
+  - title:
+      en: "Option one: a title of sixty characters, the most it may be."
+      nl: "Optie een: een titel van zestig tekens, het meeste dat mag.."
+    target: opt-one
+    images:
+      - file: one.png
+        description:
+          en: "Option one, first picture"
+          nl: "Optie een, eerste afbeelding"
+        credit: "Example Studio, CC0 1.0"
+      - file: two.png
+        description:
+          en: "Option one, second picture"
+          nl: "Optie een, tweede afbeelding"
+        credit: "Example Studio, CC0 1.0"
+      - file: three.png
+        description:
+          en: "Option one, third picture"
+          nl: "Optie een, derde afbeelding"
+        credit: "Example Studio, CC0 1.0"
+  - title:
+      en: "Option two: a title of sixty characters, the most it may be."
+      nl: "Optie twee: een titel van zestig tekens, het meeste dat mag."
+    target: opt-two
+  - title:
+      en: "Option three: a title of sixty characters, the most it may.."
+      nl: "Optie drie: een titel van zestig tekens, het meeste dat mag."
+    target: opt-three
+  - title:
+      en: "Option four: a title of sixty characters, the most it may b."
+      nl: "Optie vier: een titel van zestig tekens, het meeste dat mag."
+    target: opt-four
+  - title:
+      en: "Option five: a title of sixty characters, the most it may b."
+      nl: "Optie vijf: een titel van zestig tekens, het meeste dat mag."
+    target: opt-five
+  - title:
+      en: "Option six: a title of sixty characters, the most it may be."
+      nl: "Optie zes: een titel van zestig tekens, het meeste dat mag.."
+    target: opt-six
+  - title:
+      en: "Option seven: a title of sixty characters, the most it may.."
+      nl: "Optie zeven: een titel van zestig tekens, het meeste dat ma."
+    target: opt-seven
+  - title:
+      en: "Option eight: a title of sixty characters, the most it may.."
+      nl: "Optie acht: een titel van zestig tekens, het meeste dat mag."
+    target: opt-eight
+answers:
+  yes: applies
+  no: does-not-apply
+
+--- # opt-one
+id: opt-one
+title:
+  en: "Option one: a title of sixty characters, the most it may be."
+  nl: "Optie een: een titel van zestig tekens, het meeste dat mag.."
+description:
+  en: |
+    What Option one explains.
+  nl: |
+    Wat optie one uitlegt.
+metadata:
+  version: "1.0"
+options:
+  - title:
+      en: "Option two: a title of sixty characters, the most it may be."
+      nl: "Optie twee: een titel van zestig tekens, het meeste dat mag."
+    target: opt-two
+
+--- # opt-two
+id: opt-two
+title:
+  en: "Option two: a title of sixty characters, the most it may be."
+  nl: "Optie twee: een titel van zestig tekens, het meeste dat mag."
+description:
+  en: |
+    What Option two explains.
+  nl: |
+    Wat optie two uitlegt.
+metadata:
+  version: "1.0"
+
+--- # opt-three
+id: opt-three
+title:
+  en: "Option three: a title of sixty characters, the most it may.."
+  nl: "Optie drie: een titel van zestig tekens, het meeste dat mag."
+description:
+  en: |
+    What Option three explains.
+  nl: |
+    Wat optie three uitlegt.
+metadata:
+  version: "1.0"
+
+--- # opt-four
+id: opt-four
+title:
+  en: "Option four: a title of sixty characters, the most it may b."
+  nl: "Optie vier: een titel van zestig tekens, het meeste dat mag."
+description:
+  en: |
+    What Option four explains.
+  nl: |
+    Wat optie four uitlegt.
+metadata:
+  version: "1.0"
+
+--- # opt-five
+id: opt-five
+title:
+  en: "Option five: a title of sixty characters, the most it may b."
+  nl: "Optie vijf: een titel van zestig tekens, het meeste dat mag."
+description:
+  en: |
+    What Option five explains.
+  nl: |
+    Wat optie five uitlegt.
+metadata:
+  version: "1.0"
+
+--- # opt-six
+id: opt-six
+title:
+  en: "Option six: a title of sixty characters, the most it may be."
+  nl: "Optie zes: een titel van zestig tekens, het meeste dat mag.."
+description:
+  en: |
+    What Option six explains.
+  nl: |
+    Wat optie six uitlegt.
+metadata:
+  version: "1.0"
+
+--- # opt-seven
+id: opt-seven
+title:
+  en: "Option seven: a title of sixty characters, the most it may.."
+  nl: "Optie zeven: een titel van zestig tekens, het meeste dat ma."
+description:
+  en: |
+    What Option seven explains.
+  nl: |
+    Wat optie seven uitlegt.
+metadata:
+  version: "1.0"
+
+--- # opt-eight
+id: opt-eight
+title:
+  en: "Option eight: a title of sixty characters, the most it may.."
+  nl: "Optie acht: een titel van zestig tekens, het meeste dat mag."
+description:
+  en: |
+    What Option eight explains.
+  nl: |
+    Wat optie eight uitlegt.
+metadata:
+  version: "1.0"
+
+--- # applies
+id: applies
+title:
+  en: "The rules apply: a Terminal whose title is also eighty characters long The rule."
+  nl: "De regels gelden: een eindstap waarvan de titel ook tachtig tekens lang is De r."
+description:
+  en: |
+    The walk ends here.
+  nl: |
+    De doorloop eindigt hier.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable
+
+--- # does-not-apply
+id: does-not-apply
+title:
+  en: "The rules do not apply: a Terminal whose title is eighty characters long The ru."
+  nl: "De regels gelden niet: een eindstap waarvan de titel tachtig tekens lang is De.."
+description:
+  en: |
+    The walk ends here.
+  nl: |
+    De doorloop eindigt hier.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable
