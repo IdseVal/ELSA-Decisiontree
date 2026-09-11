@@ -129,8 +129,10 @@ describe('the content of the first Tree', () => {
       // their text did not fit the limits of elsa-tree/2. The six steps and their order are
       // unchanged; what changed is how many Nodes a step spans. Step 1 is seven sub-steps
       // and an exclusions Node (the test below), step 3 is two Nodes and step 4a is three,
-      // and the last Node of each reaches what the single Node it replaced reached.
-      expect(step('start').answers).toEqual({ yes: 'ai-system-definition', no: 'jurisdiction-deployer' })
+      // and the last Node of each reaches what the single Node it replaced reached. Since PR
+      // #53 a yes on step 1 passes the exclusions Node on its way to step 2.
+      expect(step('start').answers).toEqual({ yes: 'article-2-exclusions', no: 'jurisdiction-deployer' })
+      expect(step('article-2-exclusions').answers).toEqual({ yes: 'ai-act-does-not-apply', no: 'ai-system-definition' })
       expect(step('ai-system-definition').answers).toEqual({ yes: 'prohibited-practices', no: 'not-an-ai-system' })
       expect(step('prohibited-practices').answers).toEqual({ yes: 'prohibited', no: 'prohibited-practices-2' })
       expect(step('prohibited-practices-2').answers).toEqual({ yes: 'prohibited', no: 'annex-i-legislation' })
@@ -159,24 +161,26 @@ describe('the content of the first Tree', () => {
         for (const lang of ['en', 'nl']) {
           expect(node!.title[lang], `${id}: ${lang} title`).toContain(`(${index + 1}/7)`)
         }
-        // A yes on any one of the seven reaches step 2; a no goes on to the next category,
-        // and a no on the seventh to the exclusions.
+        // A yes on any one of the seven means the Act reaches the reader, so it goes to the
+        // exclusions; a no goes on to the next category, and a no on the seventh ends the walk.
         expect((node as Node & { kind: 'question' }).answers).toEqual({
-          yes: 'ai-system-definition',
-          no: JURISDICTION_STEPS[index + 1] ?? 'article-2-exclusions',
+          yes: 'article-2-exclusions',
+          no: JURISDICTION_STEPS[index + 1] ?? 'ai-act-does-not-apply',
         })
       })
-      // Either answer on the exclusions Node ends the walk: none of the seven categories
-      // described the reader, so the Act does not reach them whichever exclusion they read.
+      // The owner's answer on PR #53: the exclusions are asked of every reader the Act reaches,
+      // because a defence or sole-research provider must not be walked on to a high-risk or
+      // Article 50 finding. A full exclusion ends the walk; otherwise step 2 follows. A reader
+      // with no jurisdictional link never meets them: for that reader they are moot.
       expect(nodes.get('article-2-exclusions')).toMatchObject({
         kind: 'question',
-        answers: { yes: 'ai-act-does-not-apply', no: 'ai-act-does-not-apply' },
+        answers: { yes: 'ai-act-does-not-apply', no: 'ai-system-definition' },
       })
     })
 
     test('it holds 18 question Nodes, 4 Terminals and 49 explanation Nodes', () => {
-      // 8 question Nodes before #44: the seven jurisdiction sub-steps and their exclusions
-      // Node, one more prohibited-practices step and two more Annex I steps make 18. The
+      // 8 question Nodes before #44: the seven jurisdiction sub-steps and the exclusions Node
+      // after them, one more prohibited-practices step and two more Annex I steps make 18. The
       // explanation Nodes are the same 49 entries, spread differently over their steps.
       const kinds = [...nodes.values()].map((node) => node.kind)
       expect(kinds.filter((kind) => kind === 'question')).toHaveLength(18)
