@@ -8,8 +8,7 @@
  * whether the page actually asks for these files, and from which origin -- is
  * `tests/browser/theme.spec.ts`.
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
@@ -101,45 +100,21 @@ describe('everything else answers 404, and the same 404', () => {
  * above: the example Tree's Theme is two SVGs and a font. A `png` missing from
  * `THEME_TYPES` would be served as `application/octet-stream`, and `nosniff` then stops the
  * browser painting it -- silently, on the Tree this issue exists to theme, with the whole
- * suite green.
- *
- * The first Tree cannot be opened yet: it is over the format's length limits in 454 places
- * until issue #44 cuts its text, so `openTree` refuses it. Its Theme is finished, and a
- * Theme is independent of the content it dresses, so its `theme:` block and its whole
- * `theme/` folder are served over the example Tree's Nodes -- the same assembly
- * `tests/browser/theme.spec.ts` makes, and the bytes served are the first Tree's own.
+ * suite green. So the first Tree is served here as itself, straight from the repository.
  */
 describe('the first Tree logo and tab icon are PNG, and arrive as PNG', () => {
   let firstRoute: typeof themeRoute
-  let scratch: string
 
   beforeAll(async () => {
-    scratch = await mkdtemp(path.join(tmpdir(), 'elsa-theme-route-'))
-    const dir = path.join(scratch, 'ai-act-example')
-    await cp(path.join(trees, 'ai-act-example'), dir, { recursive: true })
-    await rm(path.join(dir, 'theme'), { recursive: true })
-    await cp(path.join(firstTree, 'theme'), path.join(dir, 'theme'), { recursive: true })
-
-    // The manifest is the first document of the stream (tree-format.md 4.1) and `theme:`
-    // is last in it in both Trees, so one block swaps for the other by two searches.
-    const first = await readFile(path.join(firstTree, 'tree.yaml'), 'utf8')
-    const example = await readFile(path.join(dir, 'tree.yaml'), 'utf8')
-    const nodesAt = (stream: string): number => stream.indexOf('\n---')
-    const themeAt = (stream: string): number => stream.search(/^theme:$/m)
-    const theme = first.slice(themeAt(first), nodesAt(first))
-    const manifest = example.slice(0, themeAt(example))
-    await writeFile(path.join(dir, 'tree.yaml'), manifest + theme + example.slice(nodesAt(example)))
-
     // A second served Tree needs a second module registry: `config.ts` memoises the Tree it
     // opened, and the route above closed over that one.
     vi.resetModules()
-    process.env.ELSA_TREES_DIR = scratch
+    process.env.ELSA_TREE = 'ai-act-applicability-agrifood'
     firstRoute = (await import('../src/app/[lang]/theme/[file]/route.ts')).GET
   })
 
-  afterAll(async () => {
-    process.env.ELSA_TREES_DIR = path.join(here, '..', 'trees')
-    await rm(scratch, { recursive: true, force: true })
+  afterAll(() => {
+    process.env.ELSA_TREE = 'ai-act-example'
   })
 
   test.for([
