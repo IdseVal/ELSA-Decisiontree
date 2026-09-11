@@ -13,7 +13,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, test } from 'vitest'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
 import { endonym, LanguageSwitch } from '../src/components/LanguageSwitch.tsx'
+import { Logo } from '../src/components/Logo.tsx'
 import { NodeView, text } from '../src/components/NodeView.tsx'
+import { DEFAULT_COLOURS, themeStyle } from '../src/theme.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { parseUrl } from '../src/url.ts'
 
@@ -68,8 +70,13 @@ function switchLanguages(html: string): string[] {
   return [...html.matchAll(/class="language(?: [^"]*)?"[^>]*>([^<]*)</g)].map((match) => match[1]!)
 }
 
-/** A whole page: the chrome, the Node view and the permanent disclaimer, as the route composes them. */
-async function page(tree: Tree, url: string): Promise<string> {
+/**
+ * A whole page: the chrome, the Node view and the permanent disclaimer, as the route
+ * composes them. `theme` is the Tree's own unless a case wants to see it with one part of
+ * it, which is how the independence of the three parts (application.md 13.4) is checked
+ * against real Theme data rather than against a Theme written in a test.
+ */
+async function page(tree: Tree, url: string, theme = tree.manifest.theme): Promise<string> {
   const { pathname, searchParams } = new URL(url, 'https://example.org')
   // The `[lang]` segment the rewrite of 4.4 makes of the URL: these languages are all
   // well-formed tags, which it passes through unchanged.
@@ -80,6 +87,7 @@ async function page(tree: Tree, url: string): Promise<string> {
   return renderToStaticMarkup(
     <>
       <header className="page-chrome">
+        <Logo theme={theme} title={tree.manifest.title} lang={address.lang} />
         <LanguageSwitch address={address} languages={tree.manifest.languages} />
       </header>
       <main>
@@ -123,6 +131,48 @@ describe.for(FIXTURES)('a Tree in $name', ({ name, themed, disclaimerIn }) => {
           expect(html, where).toContain(`lang="${language}"`)
         }
       }
+    }
+  })
+
+  test('its Theme, or its absence, becomes a full set of custom properties', async () => {
+    const tree = await openTree(path.join(here, 'fixtures', name))
+    const { css } = themeStyle(tree.manifest.theme)
+
+    // Never an empty block and never a missing one: a Tree with no Theme is a first-class
+    // case, not an error path (application.md 13.4).
+    for (const role of Object.keys(DEFAULT_COLOURS)) {
+      expect(css, role).toMatch(new RegExp(`--elsa-${role}:#[0-9a-f]{6}`))
+    }
+    expect(css).toContain('--elsa-font-body:')
+
+    const colours = tree.manifest.theme?.colours
+    for (const [role, value] of Object.entries(colours ?? DEFAULT_COLOURS)) {
+      expect(css, `${name}: ${role}`).toContain(`--elsa-${role}:${value}`)
+    }
+  })
+
+  test('every part of a Theme is optional, and the page renders with any one of them', async () => {
+    const tree = await openTree(path.join(here, 'fixtures', name))
+    const url = `/${name}/${tree.manifest.root}`
+    // The parts of a real Theme, taken one at a time. A fixture that carries none stands
+    // in the other Trees' Themes here, so both fixtures cover all four shapes.
+    const source = tree.manifest.theme ?? (await openTree(path.join(here, '..', 'trees', 'ai-act-example'))).manifest.theme!
+    const parts = [
+      { what: 'colours only', theme: { colours: source.colours } },
+      { what: 'fonts only', theme: { fonts: source.fonts } },
+      { what: 'logo only', theme: { logo: source.logo } },
+    ]
+    // A Theme with no logo, and a Tree with no Theme at all, both show the Tree's title in
+    // the logo's place (13.4). The unthemed fixtures render exactly that in the test above.
+    const title = text(tree.manifest.title, tree.manifest.defaultLanguage, 'tree.title')
+
+    for (const { what, theme } of parts) {
+      const html = await page(tree, url, theme)
+
+      expect(html, what).not.toContain('undefined')
+      expect(html, what).not.toContain('[object Object]')
+      if (theme.logo) expect(asRead(html), what).toContain(`src="/theme/${theme.logo.light}"`)
+      else expect(asRead(html), what).toContain(title)
     }
   })
 })

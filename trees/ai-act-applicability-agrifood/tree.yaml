@@ -35,6 +35,46 @@ metadata:
   amended-by: Regulation (EU) 2026/1744 (Digital Omnibus on AI)
   research: docs/research/issue-3-ai-act-applicability.md
 
+# The look of the ELSA-Lab for sustainable food systems, https://ai4sfs.org, as issue #36
+# measured it (docs/research/issue-36-ai4sfs-visual-identity.md, section 7). Every file
+# named here is in theme/, downloaded from that site and checked against the SHA-256 the
+# research recorded; theme/LICENCE.md states the terms of each one.
+theme:
+  logo:
+    # The desktop header logo. It has an opaque white background baked into the pixels
+    # (research 2.2), which is why `background` below is white and why there is no `dark`
+    # variant: the lab publishes no transparent or vector master (research 2.4).
+    light: elsa-lab-logo.png
+    icon: favicon.png
+    alt:
+      en: ELSA-Lab for sustainable food systems
+      nl: ELSA-Lab voor duurzame voedselsystemen
+    url: https://ai4sfs.org
+  fonts:
+    # Open Sans in both roles, which is what the site itself uses: research 3.1 found
+    # Nova Square on one oversized display heading the frontend does not have. Only the
+    # latin subset ships -- English and Dutch are all below U+0100 (theme/LICENCE.md).
+    - family: Open Sans
+      role: body
+      files:
+        - { file: open-sans-400.woff2, weight: "400", style: normal }
+        - { file: open-sans-600.woff2, weight: "600", style: normal }
+      licence: SIL Open Font License 1.1 (theme/ofl-open-sans.txt)
+    - family: Open Sans
+      role: heading
+      files:
+        - { file: open-sans-700.woff2, weight: "700", style: normal }
+      licence: SIL Open Font License 1.1 (theme/ofl-open-sans.txt)
+  # The seven roles of tree-format.md 4.3.3, filled from research 7's role -> value table.
+  colours:
+    background: "#ffffff"        # html { background:#fff }
+    surface: "#f0f3f7"           # .uk-button-default, .uk-progress
+    text: "#2d2e33"              # html { color:#2d2e33 }
+    text-muted: "#a3a4a8"        # .uk-text-muted
+    accent: "#ffc600"            # the navbar and primary button yellow
+    accent-secondary: "#41ab64"  # the green sections and secondary button
+    danger: "#e44e56"            # .uk-button-danger, .uk-text-danger
+
 --- # start
 id: start
 title:

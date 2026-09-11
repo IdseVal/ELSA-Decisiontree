@@ -52,11 +52,14 @@ describe('a deployment that names no usable Tree refuses to start', () => {
     expect(message).toContain('ai-act-example')
   })
 
-  test('a reserved word is refused before anything is read', async () => {
-    // `images` is the image route's path segment (application.md 4.3).
-    const message = await refusal({ ELSA_TREE: 'images', ELSA_TREES_DIR: treesDir })
+  // Both words are a route's own path segment under /[lang]/, so /[lang]/images/... and
+  // /[lang]/theme/... outrank /[lang]/[tree] in the router: a deployment named after either
+  // would boot and then be permanently unreachable (application.md 4.3).
+  test.for(['images', 'theme'])('the reserved word %s is refused before anything is read', async (id) => {
+    const message = await refusal({ ELSA_TREE: id, ELSA_TREES_DIR: treesDir })
 
     expect(message).toContain('reserved')
+    expect(message).toContain(id)
     expect(message).toContain('ai-act-example')
   })
 

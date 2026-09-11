@@ -735,13 +735,11 @@ trees/
       eu-map.png
       scoreboard.png
     theme/
-      elsa-lab-logo.svg
-      elsa-lab-logo-white.svg
-      open-sans-400.woff2
-      open-sans-700.woff2
+      example-lab-logo.svg
+      example-lab-logo-white.svg
       nova-square-400.woff2
-      ofl-open-sans.txt              licence text; not referenced, ignored by the loader
-      ofl-nova-square.txt
+      ofl-nova-square.txt            licence text; not referenced, ignored by the loader
+      LICENCE.md                     ownership of the logo; likewise ignored
 ```
 
 Shape: `start` is the root question Node with an Image and a legal Source. Its `no`
@@ -749,13 +747,17 @@ Answer ends at the Terminal `outside-scope`; its `yes` Answer leads to
 `prohibited-practices`, a question Node with two Options, each opening an explanation
 Node (`social-scoring`, with a case-law and a literature Source and an Image on the
 Option; `emotion-recognition-at-work`). Answering `yes` there reaches the Terminal
-`prohibited`, `no` reaches the Terminal `covered`. The Theme adapts what issue #36
-measured on https://ai4sfs.org (`docs/research/issue-36-ai4sfs-visual-identity.md`,
-section 7) to the Bubble rather than copying it: six of the seven colours are the
-measured values, `surface` is the site's quiet-control tint `#f0f3f7` (its cards are
-white with a shadow, which the Bubble does not have), and Nova Square, which the site
-uses only for one oversized display heading, is the example's `heading` family; the
-font and logo files are whatever valid files the repository carries under that name.
+`prohibited`, `no` reaches the Terminal `covered`.
+
+The Theme is **deliberately unlike the first Tree's** (issue #40; `ADR-38-theme-delivery`,
+Consequences: "the example Tree and the first Tree can ship deliberately different Themes
+on the same build, which is what makes the interoperability requirement visible rather
+than claimed"). It carries a mark that is no real laboratory's, a dark palette -- so the
+frontend derives that `logo.dark` is the variant to show -- and one font family in the
+`heading` role only, which leaves its running text in the frontend's own type stack. That
+last choice makes this Tree the one that exercises the `fonts` fallback of 4.3.2 as well
+as `@font-face` itself. The Theme of the first Tree, `trees/ai-act-applicability-agrifood`,
+is the identity issue #36 measured on https://ai4sfs.org.
 
 ### `trees/ai-act-example/tree.yaml`
 
@@ -779,34 +781,34 @@ metadata:
   version: "2.0"
   author: ELSA-Lab for sustainable food systems, Wageningen University
   licence: to be decided (core document OPEN 10.14)
+# A Theme deliberately unlike the first Tree's (issue #40): its own mark, a dark palette
+# and no `body` family, so running text falls back to the frontend's own type stack
+# (tree-format.md 4.3.2). The same build serves this and the AI4SFS look with no code
+# change, which is what makes the interoperability requirement visible rather than claimed.
+# It is also the only servable Tree that exercises `logo.dark`: `background` below is dark,
+# so the frontend derives that the dark variant is the one to show (application.md 13.1).
 theme:
   logo:
-    light: elsa-lab-logo.svg
-    dark: elsa-lab-logo-white.svg
+    light: example-lab-logo.svg
+    dark: example-lab-logo-white.svg
     alt:
-      en: ELSA-Lab for sustainable food systems
-      nl: ELSA-Lab voor duurzame voedselsystemen
-    url: https://ai4sfs.org
+      en: Example Lab
+      nl: Voorbeeldlab
+    url: https://example.org
   fonts:
-    - family: Open Sans
-      role: body
-      files:
-        - { file: open-sans-400.woff2, weight: "400", style: normal }
-        - { file: open-sans-700.woff2, weight: "700", style: normal }
-      licence: SIL Open Font License 1.1 (theme/ofl-open-sans.txt)
     - family: Nova Square
       role: heading
       files:
         - { file: nova-square-400.woff2, weight: "400", style: normal }
       licence: SIL Open Font License 1.1 (theme/ofl-nova-square.txt)
   colours:
-    background: "#ffffff"
-    surface: "#f0f3f7"
-    text: "#2d2e33"
-    text-muted: "#a3a4a8"
-    accent: "#ffc600"
-    accent-secondary: "#41ab64"
-    danger: "#e44e56"
+    background: "#161a1d"
+    surface: "#212729"
+    text: "#eef1f2"
+    text-muted: "#9aa5aa"
+    accent: "#e2604a"
+    accent-secondary: "#5aa9c9"
+    danger: "#ff8a7a"
 
 --- # start
 id: start

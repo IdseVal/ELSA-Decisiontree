@@ -169,16 +169,15 @@ describe('the Theme the Tree carries', () => {
     const theme = tree.manifest.theme!
 
     expect(theme.logo).toEqual({
-      light: 'elsa-lab-logo.svg',
-      dark: 'elsa-lab-logo-white.svg',
-      alt: { en: 'ELSA-Lab for sustainable food systems', nl: 'ELSA-Lab voor duurzame voedselsystemen' },
-      url: 'https://ai4sfs.org',
+      light: 'example-lab-logo.svg',
+      dark: 'example-lab-logo-white.svg',
+      alt: { en: 'Example Lab', nl: 'Voorbeeldlab' },
+      url: 'https://example.org',
     })
-    expect(theme.fonts!.map((family) => [family.family, family.role])).toEqual([
-      ['Open Sans', 'body'],
-      ['Nova Square', 'heading'],
-    ])
-    expect(theme.fonts![0]!.files[0]).toEqual({ file: 'open-sans-400.woff2', weight: '400', style: 'normal' })
+    // One family, in the `heading` role: the example Tree gives no `body` family, so its
+    // running text falls back to the frontend's own stack (tree-format.md 4.3.2).
+    expect(theme.fonts!.map((family) => [family.family, family.role])).toEqual([['Nova Square', 'heading']])
+    expect(theme.fonts![0]!.files[0]).toEqual({ file: 'nova-square-400.woff2', weight: '400', style: 'normal' })
     expect(Object.keys(theme.colours!)).toEqual([
       'background',
       'surface',
@@ -188,19 +187,19 @@ describe('the Theme the Tree carries', () => {
       'accent-secondary',
       'danger',
     ])
-    expect(theme.colours!.accent).toBe('#ffc600')
+    expect(theme.colours!.accent).toBe('#e2604a')
   })
 
   test('themePath resolves a file the Theme names, and nothing else', async () => {
     const tree = await openTree(exampleTree)
 
-    expect(tree.themePath('elsa-lab-logo.svg')).toBe(path.join(exampleTree, 'theme', 'elsa-lab-logo.svg'))
-    expect(tree.themePath('open-sans-400.woff2')).toBe(path.join(exampleTree, 'theme', 'open-sans-400.woff2'))
+    expect(tree.themePath('example-lab-logo.svg')).toBe(path.join(exampleTree, 'theme', 'example-lab-logo.svg'))
+    expect(tree.themePath('nova-square-400.woff2')).toBe(path.join(exampleTree, 'theme', 'nova-square-400.woff2'))
     // The licence text sits in theme/ and the Theme does not reference it (4.3.2).
-    expect(tree.themePath('ofl-open-sans.txt')).toBeNull()
+    expect(tree.themePath('ofl-nova-square.txt')).toBeNull()
     expect(tree.themePath('no-such-logo.svg')).toBeNull()
     expect(tree.themePath('../../../etc/passwd')).toBeNull()
-    expect(tree.themePath('ELSA-Lab-Logo.SVG')).toBeNull()
+    expect(tree.themePath('Example-Lab-Logo.SVG')).toBeNull()
   })
 
   test('a file the Theme does not name is refused although it exists', async () => {

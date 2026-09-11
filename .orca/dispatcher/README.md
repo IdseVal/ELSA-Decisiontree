@@ -16,7 +16,7 @@ headless `claude -p` processes that start, do one job, and exit. Nothing waits.
 | --- | --- |
 | `dispatch.py` | the reconciler; `run` / `once` / `status` / `doctor` / `onboard` / `pause` / `resume` |
 | `install-task.ps1` | installs it as a Windows scheduled task (at logon, auto-restart) |
-| `state.json` | de-dup memory only (cycles, pages and the branch tip at page time, run PIDs and the tip a fix run started from, the CI run last re-run per PR and how often, the session-limit hold). Gitignored. Safe to delete. |
+| `state.json` | de-dup memory only (cycles, pages and the branch tip at page time, run PIDs and the tip a fix run started from, the CI run last re-run per PR and how often, the session-limit hold, the per-model usage-cap holds). Gitignored. Safe to delete. |
 | `prompts/` | the brief files runs are pointed at. Gitignored. Read them to triage. |
 | `runs/` | one log per headless run: your window into what an agent did. Gitignored. |
 | `dispatcher.log` | rotating log. Gitignored. |
@@ -56,7 +56,11 @@ app's floating default. Kill any run past
 `needs-human` -- unless the run's log is the "hit your session limit ... resets HH:MM"
 line (v0.2.5): then the cycle is refunded and NOTHING new starts (dispatch, retry, fix,
 audit) until the stated reset time; the hold lives in `state.json` under `limit` and
-lifts by itself. PRs are verified, reviewed and merged by the CI pipeline
+lifts by itself. A run whose log is "You're out of usage credits" (v0.2.9) hit the
+MODEL's cap (Fable's weekly allowance, typically), not the session limit: the cycle is
+refunded and only runs that would use that model are held (`state.json` under
+`model_holds`, re-tried every `models.capped_hold_minutes`); the rest keep flowing.
+PRs are verified, reviewed and merged by the CI pipeline
 (`.github/workflows/agent-pipeline.yml`); the dispatcher only reacts: `state:blocked` ->
 a fresh headless fix run whose brief embeds the blocker's comments (breaker at 3 total
 starts per issue -> `escalated`); CONFLICTING with `dev` (v0.2.6) -> `state:blocked` with
@@ -103,6 +107,7 @@ A corrupt marker counts as paused: a bad file must never quietly restart the spe
 | Run exceeds `max_run_minutes` | killed (whole tree); breaker counts it. |
 | Run exits without a PR | one fresh retry, then `needs-human` with a pointer at its log. |
 | Run dies on the Claude session limit | not counted; a comment says so; every new start holds until the reset time in the message (+2 min), then resumes by itself. Runs already going are unaffected (they die the same way and get the same treatment). A run that prints the line and then idles instead of exiting (some CLI versions do) is killed on the next tick and treated the same. |
+| Run dies on a model's usage cap ("You're out of usage credits") | that model's own allowance is spent (Fable's weekly cap, typically). Not counted; a comment says so once per episode; only runs that would use that model are held and re-tried every `models.capped_hold_minutes` (360) until one gets through; issues on the default model continue (v0.2.9 -- before, it looked like an empty run: a retry into the same wall, then `needs-human` with nothing to answer, as on issue #41). To run a held issue on the default model now, remove its `complex` label. |
 | CI blocks a PR | fresh fix run with the comments in its brief; breaker at 3. |
 | PR conflicts with `dev` | GitHub cannot compute the merge, so it starts NO workflow run -- the PR would sit "in CI" forever. The dispatcher labels it `state:blocked` with a comment; the fix run merges `dev` into the branch, resolves, pushes (v0.2.6). A run that hands the label back without fixing it is relabelled; the breaker bounds the loop. |
 | Agent sets `needs-human` | the item is flagged and appears in the daily digest's "Waiting on you"; nothing moves on it until you remove the label. |
@@ -135,3 +140,7 @@ empty commit -- a comment does not trigger it. To lift a session-limit hold earl
 on the issue and `dispatcher.log` name the model. To send one issue to the most capable
 model, add the `complex` label BEFORE `ready`. To change the fleet, edit `models:` in
 `dispatch.yml`; it takes effect on the next start (the config is re-read every tick).
+
+A model that is out of usage credits (v0.2.9) shows in `status` as a hold on that model
+alone; the others run. Remove `complex` from an issue to run it on the default model
+meanwhile; to lift the hold early, delete `model_holds.<model>` in `state.json`.

@@ -41,6 +41,12 @@ WHAT IT DOES EACH TICK
         run of any kind starts until the stated reset (+2 min; 60 min if unreadable).
         Fix runs and backlog audits get the same treatment. The hold lives in
         `state.json` under `limit` and lifts by itself.
+      - A run that dies with "You're out of usage credits" (v0.2.9) hit the MODEL's
+        usage cap -- Fable's weekly allowance, typically -- not the session limit. The
+        cycle is refunded and only the runs that would use that model are held
+        (`state.json` under `model_holds`, re-tried every `models.capped_hold_minutes`);
+        issues on the default model keep flowing. To run a held issue on the default
+        model now, remove its `complex` label.
       - `proposed` issues are invisible to dispatch: promoting them to `ready` is the
         human's move (or the Planner's, in `auto` mode). Since v0.2.4 that rule is
         ENFORCED: in manual/propose mode the dispatcher asks GitHub's timeline who last
@@ -180,6 +186,8 @@ _LIMIT_RESET_RE = re.compile(
     r"(?i)resets?\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap]m)?(?:\s*\(([^)]+)\))?")
 LIMIT_FALLBACK_MINUTES = 60   # hold this long when the reset time cannot be read
 LIMIT_MARGIN_MINUTES = 2      # start a little after the stated reset, not on it
+_CREDITS_RE = re.compile(r"(?i)out of usage credits")   # v0.2.9: a MODEL's cap, not the session limit
+MODEL_HOLD_MINUTES = 360      # ... re-try a capped model this often (models.capped_hold_minutes)
 
 SUBPROCESS_TIMEOUT = 180
 STILL_ACTIVE = 259
@@ -446,6 +454,7 @@ def load_config() -> dict[str, Any]:
     m.setdefault("default", "opus")
     m.setdefault("complex", "fable")
     m.setdefault("complex_label", LABEL_COMPLEX)
+    m.setdefault("capped_hold_minutes", MODEL_HOLD_MINUTES)   # v0.2.9
     # `models.interview` deliberately has NO default: absence means "ask the owner at onboard".
     cfg.setdefault("labels", {})
     r = cfg.setdefault("roles", {})
@@ -499,8 +508,17 @@ def run_hit_limit(log_name: Optional[str]) -> Optional[str]:
     counts as a limit death, but the file may be large. The message must be the run's
     LAST output (the final non-empty lines): an agent that merely mentions the phrase
     while working -- say, editing this file -- prints more afterwards."""
-    if not log_name:
+    last_lines = _log_last_lines(log_name)
+    if not last_lines or not _LIMIT_RE.search(last_lines):
         return None
+    m = _LIMIT_RESET_RE.search(last_lines)
+    return m.group(0) if m else ""
+
+
+def _log_last_lines(log_name: Optional[str], n: int = 3) -> str:
+    """The last `n` non-empty lines of a run log (from its 4 KB tail); "" if unreadable."""
+    if not log_name:
+        return ""
     path = run_log_path(log_name)
     try:
         with path.open("rb") as fh:
@@ -509,12 +527,17 @@ def run_hit_limit(log_name: Optional[str]) -> Optional[str]:
             fh.seek(max(0, size - 4096))
             tail = fh.read().decode("utf-8", errors="replace")
     except OSError:
-        return None
-    last_lines = "\n".join([ln for ln in tail.splitlines() if ln.strip()][-3:])
-    if not _LIMIT_RE.search(last_lines):
-        return None
-    m = _LIMIT_RESET_RE.search(last_lines)
-    return m.group(0) if m else ""
+        return ""
+    return "\n".join([ln for ln in tail.splitlines() if ln.strip()][-n:])
+
+
+def run_out_of_credits(log_name: Optional[str]) -> bool:
+    """True when the run's last output is the CLI's "You're out of usage credits. Switch
+    to another model ..." message (v0.2.9): the MODEL's usage cap -- Fable's weekly
+    allowance, typically -- not the subscription's session limit. It exits at once with
+    that one line, so before v0.2.9 it looked like an empty run: retry into the same
+    wall, then `needs-human` with nothing to answer."""
+    return bool(_CREDITS_RE.search(_log_last_lines(log_name)))
 
 
 def limit_until_ms(reset_phrase: str) -> int:
@@ -562,6 +585,47 @@ def set_limit_hold(state: "State", reset_phrase: str, seen_in: str) -> str:
         state.save()
         log.warning("%s", limit_hold(state))
     return limit_hold(state) or ""
+
+
+def model_hold(state: "State", model: str) -> Optional[str]:
+    """Describe the active usage-cap hold on `model` (v0.2.9), or None when its runs may
+    start. Only runs that would use this model are held; the others flow."""
+    h = (state.model_holds or {}).get(model or "(CLI default)") or {}
+    until = int(h.get("until", 0) or 0)
+    if until <= now_ms():
+        return None
+    when = datetime.fromtimestamp(until / 1000).astimezone().strftime("%H:%M")
+    return f"`{model or 'CLI default'}` is out of usage credits; holding its runs until {when}"
+
+
+def set_model_hold(state: "State", model: str, cfg: dict[str, Any], seen_in: str) -> tuple[str, bool]:
+    """Hold `model` for `models.capped_hold_minutes` (the message names no reset time; a
+    re-try after the hold costs nothing, the run exits at once). Returns the description
+    and whether this is the FIRST hold of a cap episode: a re-hold right after a hold
+    expired is the same episode, and gets a log line instead of another comment."""
+    key = model or "(CLI default)"
+    minutes = int(cfg["models"].get("capped_hold_minutes") or MODEL_HOLD_MINUTES)
+    prev = (state.model_holds or {}).get(key) or {}
+    prev_until = int(prev.get("until", 0) or 0)
+    same_episode = bool(prev_until) and now_ms() - prev_until < 2 * minutes * 60_000
+    state.model_holds[key] = {"until": now_ms() + minutes * 60_000, "seen": now_ms(), "run": seen_in,
+                              "episode": prev.get("episode") if same_episode else now_ms()}
+    state.save()
+    desc = model_hold(state, model) or ""
+    log.warning("%s (re-try every %s min)", desc, minutes)
+    return desc, not same_episode
+
+
+def capped_comment(model: str, hold: str, cfg: dict[str, Any]) -> str:
+    m = cfg["models"]
+    default = str(m.get("default") or "the CLI default")
+    return (f"The headless run died because the `{model or 'CLI default'}` model is out of usage "
+            f"credits (the subscription's cap for that model, which resets on its own schedule), "
+            f"not on this issue. Not counted against the circuit breaker. The dispatcher holds "
+            f"every run that would use `{model}` and re-tries every "
+            f"{int(m.get('capped_hold_minutes') or MODEL_HOLD_MINUTES)} minutes until it is back "
+            f"({hold}); runs on `{default}` continue. To run this on `{default}` now, remove the "
+            f"`{complex_label(cfg)}` label.")
 
 
 def write_autonomy(mode: str) -> None:
@@ -627,6 +691,7 @@ class State:
     closed_issues: list[int] = field(default_factory=list)
     backlog: dict[str, Any] = field(default_factory=dict)
     limit: dict[str, Any] = field(default_factory=dict)   # session-limit hold (v0.2.5)
+    model_holds: dict[str, Any] = field(default_factory=dict)   # per-model usage-cap holds (v0.2.9)
 
     @classmethod
     def load(cls) -> "State":
@@ -643,6 +708,7 @@ class State:
             issues=raw.get("issues", {}), prs=raw.get("prs", {}),
             notified=raw.get("notified", {}), closed_issues=raw.get("closed_issues", []),
             backlog=raw.get("backlog", {}), limit=raw.get("limit", {}) or {},
+            model_holds=raw.get("model_holds", {}) or {},
         )
 
     def save(self) -> None:
@@ -653,7 +719,7 @@ class State:
         tmp.write_text(json.dumps({
             "issues": self.issues, "prs": self.prs,
             "notified": self.notified, "closed_issues": self.closed_issues,
-            "backlog": self.backlog, "limit": self.limit,
+            "backlog": self.backlog, "limit": self.limit, "model_holds": self.model_holds,
         }, indent=2), encoding="utf-8")
         tmp.replace(STATE_FILE)
 
@@ -1392,6 +1458,22 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                         f"{h}. The attempt is not counted against the circuit breaker; the "
                         f"dispatcher restarts it by itself when the limit lifts."))
                 continue
+            if run_out_of_credits(r.get("log")):
+                # v0.2.9: the MODEL's usage cap, not the session limit. Refund, hold only
+                # the runs that would use this model, and keep the rest of the fleet going.
+                model = model_for(issue.labels, cfg)
+                s.pop("run", None)
+                s["cycle"] = max(0, int(s.get("cycle", 0)) - 1)
+                s.pop("retried", None)
+                state.save()
+                hold, first = set_model_hold(state, model, cfg, str(r.get("log") or ""))
+                if first:
+                    act(f"issue #{issue.number}: run died on the `{model}` usage cap -> cycle refunded; {hold}",
+                        lambda n=issue.number, h=hold, m=model: gh_comment("issue", n, capped_comment(m, h, cfg)))
+                else:
+                    log.info("issue #%s: run died on the `%s` usage cap again -> cycle refunded; %s",
+                             issue.number, model, hold)
+                continue
             s.pop("run", None)
             if bool(d["retry_empty_run"]) and not s.get("retried"):
                 cycle = int(s.get("cycle", 0)) + 1
@@ -1410,6 +1492,10 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                     continue
                 if limit_hold(state):
                     log.debug("issue #%s: retry held: %s", issue.number, limit_hold(state))
+                    continue
+                mh = model_hold(state, model_for(issue.labels, cfg))
+                if mh:
+                    log.debug("issue #%s: retry held: %s", issue.number, mh)
                     continue
                 brief = write_brief(f"issue-{issue.number}-retry-c{cycle}",
                                     retry_brief(issue, s.get("role", "implementer"), base))
@@ -1442,6 +1528,10 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
             continue
         if limit_hold(state):
             log.debug("issue #%s held: %s", issue.number, limit_hold(state))
+            continue
+        mh = model_hold(state, model_for(issue.labels, cfg))
+        if mh:
+            log.debug("issue #%s held: %s", issue.number, mh)   # v0.2.9: this model only
             continue
         if not obs.gate_open:
             log.debug("issue #%s held: %s", issue.number, obs.gate_reason)
@@ -1718,6 +1808,10 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                 if limit_hold(state):
                     log.debug("PR #%s: fix run held: %s", pr.number, limit_hold(state))
                     continue
+                mh = model_hold(state, model_for(issue.labels if issue else set(), cfg))
+                if mh:
+                    log.debug("PR #%s: fix run held: %s", pr.number, mh)
+                    continue
                 cycle = 1
                 if issue:
                     si = state.issue(issue.number)
@@ -1798,6 +1892,23 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                                 f"The fix run died on the Claude session limit, not on this PR: {h}. "
                                 f"Not counted against the circuit breaker; a fresh fix run starts "
                                 f"by itself when the limit lifts."))
+                        continue
+                    if run_out_of_credits(fix.get("log")):
+                        # v0.2.9: the model's usage cap. Refund; hold this model's runs only.
+                        model = model_for(issue.labels if issue else set(), cfg)
+                        s.pop("fix", None)
+                        s.pop("blocked_handled", None)
+                        if issue:
+                            si = state.issue(issue.number)
+                            si["cycle"] = max(0, int(si.get("cycle", 0)) - 1)
+                        state.save()
+                        hold, first = set_model_hold(state, model, cfg, str(fix.get("log") or ""))
+                        if first:
+                            act(f"PR #{pr.number}: fix run died on the `{model}` usage cap -> cycle refunded; {hold}",
+                                lambda n=pr.number, h=hold, m=model: gh_comment("pr", n, capped_comment(m, h, cfg)))
+                        else:
+                            log.info("PR #%s: fix run died on the `%s` usage cap again -> cycle refunded; %s",
+                                     pr.number, model, hold)
                         continue
                     if pr.head_oid and fix.get("head_oid") and pr.head_oid != fix.get("head_oid"):
                         # v0.2.8: the run DID push. CI clears `state:blocked` on a push and its
@@ -1994,6 +2105,13 @@ def reconcile_backlog(obs: Observed, cfg: dict[str, Any], state: State) -> None:
             hold = set_limit_hold(state, reset, str(audit.get("name") or ""))
             log.info("backlog audit died on the session limit; %s", hold)
             return
+        if run_out_of_credits(audit.get("name")):
+            b.pop("audit_epoch", None)
+            state.save()
+            hold, _ = set_model_hold(state, str(cfg["models"].get("default") or ""), cfg,
+                                     str(audit.get("name") or ""))
+            log.info("backlog audit died on the model's usage cap; %s", hold)
+            return
         state.save()
         notify_human(cfg, state, f"backlog:empty-audit:{audit.get('epoch')}",
                      "backlog audit produced nothing",
@@ -2017,6 +2135,10 @@ def reconcile_backlog(obs: Observed, cfg: dict[str, Any], state: State) -> None:
         return
     if limit_hold(state):
         log.debug("backlog audit held: %s", limit_hold(state))
+        return
+    mh = model_hold(state, str(cfg["models"].get("default") or ""))
+    if mh:
+        log.debug("backlog audit held: %s", mh)
         return
     epoch = max((p.number for p in obs.merged), default=0)  # merged-PR high-water mark
     if b.get("audit_epoch") == epoch:
@@ -2149,6 +2271,11 @@ def cmd_status(cfg: dict[str, Any], state: State) -> int:
     if hold:
         print(hold)
         print("  lifts by itself; to lift early delete the `limit` key in state.json")
+    for key in sorted(state.model_holds or {}):
+        mh = model_hold(state, "" if key == "(CLI default)" else key)
+        if mh:
+            print(mh)
+            print(f"  runs on other models continue; to lift early delete `model_holds.{key}` in state.json")
     print(f"gate: {'OPEN' if obs.gate_open else 'CLOSED'} -- {obs.gate_reason}")
     pr_by_issue = {pr.issue_number: pr for pr in obs.prs if pr.issue_number}
     print("\nISSUES")
