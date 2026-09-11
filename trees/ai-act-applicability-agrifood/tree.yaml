@@ -47,9 +47,9 @@ description:
     on the Union market or puts it into service in the Union, or who places a
     general-purpose AI model on the Union market?
 
-    Whether you are established in the Union or in a third country makes no
-    difference. A provider develops a system, or has one developed, and places it under
-    its own name or trademark. The Article 2 exclusions follow step 7.
+    Being established in the Union or in a third country makes no difference. A
+    provider develops a system, or has one developed, and places it under its own name
+    or trademark. A **yes** leads to the Article 2 exclusions.
   nl: |
     Artikel 2, lid 1, noemt **zeven** categorieën die de verordening bereikt; elke stap
     behandelt er één. Bent u een **aanbieder** die een AI-systeem in de Unie in de handel
@@ -57,8 +57,8 @@ description:
     handel brengt?
 
     Waar u gevestigd bent, maakt niet uit. Een aanbieder ontwikkelt een systeem of laat
-    het ontwikkelen en brengt het onder eigen naam of merk in de handel. De uitsluitingen
-    van artikel 2 volgen na stap 7.
+    het ontwikkelen en brengt het onder eigen naam of merk in de handel. Na elk **ja**
+    volgen de uitsluitingen van artikel 2.
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -74,7 +74,7 @@ sources:
       nl: Artikel 3, punten 3, 9 en 11, AI-verordening (definities)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
 answers:
-  yes: ai-system-definition
+  yes: article-2-exclusions
   no: jurisdiction-deployer
 
 --- # ai-act-does-not-apply
@@ -124,15 +124,16 @@ description:
     for explicit or implicit objectives, **infers from the input it receives how to
     generate outputs** - predictions, content, recommendations or decisions - that can
     influence physical or virtual environments. Inferring is the distinguishing element:
-    Recital 12 does not cover systems based on rules defined solely by natural persons.
+    as Recital 12 says, the definition does not cover systems based on rules defined
+    solely by natural persons.
   nl: |
     Artikel 3, punt 1: een *AI-systeem* is een op een machine gebaseerd systeem dat met
     verschillende niveaus van autonomie werkt, dat na het inzetten aanpassingsvermogen
     kan vertonen en dat, voor expliciete of impliciete doelstellingen, **uit de ontvangen
     input afleidt hoe output te genereren** die van invloed kan zijn op fysieke of
-    virtuele omgevingen. Het afleiden is het onderscheidende element: overweging 12 omvat
-    geen systemen op basis van regels die uitsluitend door natuurlijke personen zijn
-    vastgesteld.
+    virtuele omgevingen. Het afleiden is het onderscheidende element: volgens overweging
+    12 omvat de definitie geen systemen op basis van regels die uitsluitend door
+    natuurlijke personen zijn vastgesteld.
 metadata:
   version: "0.2"
   step: 2 - material scope
@@ -408,22 +409,23 @@ title:
   nl: "Is uw systeem een veiligheidscomponent of product onder bijlage I? (1/3)"
 description:
   en: |
-    The first route to **high-risk**. Article 6(1) applies when **both** conditions are
-    met: **(a)** the system is intended as a **safety component of a product**, or is
-    itself a product, covered by the legislation listed in **Annex I**; **and (b)** that
-    product must undergo a **third-party conformity assessment** first.
+    The first route to **high-risk**. Article 6(1) applies when **both** are met:
+    **(a)** the system is intended as a **safety component of a product**, or is itself
+    a product, covered by **Annex I** legislation; **and (b)** that product must undergo
+    a **third-party conformity assessment** first.
 
-    Being covered by Annex I legislation is not enough on its own. The 20 entries run
-    over three steps; these are points 2 to 9.
+    Annex I legislation alone is not enough. These are points 2 to 9 of the 20, all
+    **Section A**: for Section A, Article 2(13) lets the Commission limit Articles 9 to
+    15 and 17 to 25 by delegated act.
   nl: |
-    De eerste route naar een **hoog risico**. Artikel 6, lid 1, geldt wanneer aan
-    **beide** voorwaarden is voldaan: **a)** het systeem is bedoeld als
-    **veiligheidscomponent van een product**, of is zelf zo'n product, dat onder de in
-    **bijlage I** genoemde harmonisatiewetgeving valt; **en b)** voor dat product is een
-    **conformiteitsbeoordeling door een derde partij** vereist.
+    De eerste route naar een **hoog risico**. Artikel 6, lid 1, vereist **beide**: **a)**
+    het systeem is bedoeld als **veiligheidscomponent van een product**, of is zelf zo'n
+    product, dat onder **bijlage I** valt; **en b)** dat product vereist een
+    **conformiteitsbeoordeling door een derde partij**.
 
-    Beide voorwaarden: dat bijlage I-wetgeving geldt, volstaat niet. De 20 onderdelen
-    staan in drie stappen; dit zijn de punten 2 tot en met 9.
+    Alleen bijlage I-wetgeving volstaat niet. De punten 2 tot en met 9 zijn alle
+    **afdeling A**: artikel 2, lid 13, laat de Commissie daarvoor de artikelen 9 tot en
+    met 15 en 17 tot en met 25 bij gedelegeerde handeling beperken.
 metadata:
   version: "0.2"
   step: 4a - high-risk, Annex I route
@@ -439,6 +441,11 @@ sources:
       en: Annex I AI Act (Union harmonisation legislation)
       nl: Bijlage I AI-verordening (harmonisatiewetgeving)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_I
+  - kind: legal
+    label:
+      en: Article 2(13) AI Act (limitation for Section A)
+      nl: Artikel 2, lid 13, AI-verordening (beperking afdeling A)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
 options:
   - title:
       en: Safety of toys
@@ -1194,18 +1201,18 @@ title:
   nl: Valt uw systeem in een gebied met een hoog risico van bijlage III?
 description:
   en: |
-    The second route to **high-risk**. Article 6(2): besides the systems caught by
-    Article 6(1), the systems referred to in **Annex III** are high-risk. It lists **8
-    areas** covering 25 system types. Article 6(3): such a system is **not** high-risk
-    where it poses no significant risk of harm - a narrow procedural task, improving a
-    completed human activity, detecting decision patterns, or a preparatory task - but
+    The second route to **high-risk**. Article 6(2): the systems referred to in **Annex
+    III** are high-risk. It lists **8 areas** covering 25 system types. Article 6(3):
+    such a system is **not** high-risk where it poses no significant risk of harm, which
+    applies where **any** of four conditions is met - a narrow procedural task, improving
+    a completed human activity, detecting decision patterns, or a preparatory task - but
     it always is where it **performs profiling of natural persons**. Article 6(4): that
     assessment must be documented before the system is placed on the market.
   nl: |
-    De tweede route naar een **hoog risico**. Artikel 6, lid 2: naast de systemen van
-    artikel 6, lid 1, zijn ook de in **bijlage III** bedoelde systemen een hoog risico.
-    Bijlage III noemt **8 gebieden** met 25 types systemen. Artikel 6, lid 3: zo'n
-    systeem is **geen** hoog risico als het geen significant risico op schade inhoudt -
+    De tweede route naar een **hoog risico**. Artikel 6, lid 2: ook de in **bijlage III**
+    bedoelde systemen zijn een hoog risico. Bijlage III noemt **8 gebieden** met 25 types
+    systemen. Artikel 6, lid 3: zo'n systeem is **geen** hoog risico als het geen
+    significant risico op schade inhoudt, wat geldt bij **één** van vier voorwaarden -
     een beperkte procedurele taak, verbetering van een voltooide menselijke activiteit,
     het opsporen van besluitvormingspatronen of een voorbereidende taak - maar altijd wel
     bij **profilering van natuurlijke personen**. Lid 4 vereist documentatie vooraf.
@@ -1544,25 +1551,25 @@ sources:
 --- # article-2-exclusions
 id: article-2-exclusions
 title:
-  en: Does an exclusion in Article 2 cover your system?
-  nl: Valt uw systeem onder een uitsluiting van artikel 2?
+  en: Does a full exclusion in Article 2 cover your system?
+  nl: Valt uw systeem onder een volledige uitsluiting van artikel 2?
 description:
   en: |
-    None of the seven categories describes you, so the Act does not reach you. Article 2
-    also takes some systems and activities back out of the Act; the entries below are
-    those exclusions. Open one to read what it covers.
+    One of the seven categories of Article 2(1) describes you, so the Act reaches you.
+    Article 2 also takes some systems and activities back out of the Act; the entries
+    below are those exclusions. Open one to read what it covers.
 
-    **Either answer ends the walk here**, because the Act did not reach you in the first
-    place. Read the free and open-source entry before relying on it: that exclusion is
-    only partial.
+    Answer **yes** only if a **full** exclusion covers your system: the Act then does
+    not apply to it, and the walk ends. The free and open-source exclusion is only
+    partial, so it is no reason to answer yes.
   nl: |
-    Geen van de zeven categorieën is op u van toepassing, dus de verordening bereikt u
-    niet. Artikel 2 haalt daarnaast systemen en activiteiten weer buiten de verordening;
+    Een van de zeven categorieën van artikel 2, lid 1, geldt voor u, dus de verordening
+    bereikt u. Artikel 2 haalt ook systemen en activiteiten weer buiten de verordening;
     de onderdelen hieronder zijn die uitsluitingen.
 
-    **Beide antwoorden beëindigen de doorloop hier**, omdat de verordening u sowieso niet
-    bereikte. Lees het onderdeel over opensourcelicenties voordat u erop vertrouwt: die
-    uitsluiting is slechts gedeeltelijk.
+    Antwoord **ja** alleen als een **volledige** uitsluiting uw systeem dekt: de
+    verordening geldt dan niet en de doorloop eindigt. De uitsluiting voor
+    opensourcelicenties is slechts gedeeltelijk en dus geen reden voor ja.
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -1599,7 +1606,7 @@ options:
     target: exclusion-open-source
 answers:
   yes: ai-act-does-not-apply
-  no: ai-act-does-not-apply
+  no: ai-system-definition
 
 --- # article-50-deep-fakes
 id: article-50-deep-fakes
@@ -1968,17 +1975,18 @@ description:
     open-source licences, **unless** they are placed on the market or put into service
     as high-risk AI systems or as a system that falls under Article 5 or Article 50.
 
-    This is not a full exclusion, which is why this entry cannot end the walk. Steps 3,
-    4 and 6 ask exactly the questions the exception names; an open-source system must
-    still go through them.
+    This is not a full exclusion, so answer **no** on the exclusions step: it does not
+    end the walk. Steps 3, 4 and 6 ask exactly the questions the exception names; an
+    open-source system must still go through them.
   nl: |
     Artikel 2, lid 12: de verordening is niet van toepassing op AI-systemen die worden
     vrijgegeven onder vrije en opensourcelicenties, **tenzij** zij in de handel worden
     gebracht of in gebruik worden gesteld als systeem met een hoog risico of als systeem
     dat onder artikel 5 of artikel 50 valt.
 
-    Dit is geen volledige uitsluiting en kan de doorloop dus niet beëindigen. De stappen
-    3, 4 en 6 stellen precies de vragen die de uitzondering noemt.
+    Dit is geen volledige uitsluiting: antwoord bij de uitsluitingen dus **nee**, want de
+    doorloop eindigt hier niet. De stappen 3, 4 en 6 stellen precies de vragen die de
+    uitzondering noemt.
 metadata:
   version: "0.2"
 sources:
@@ -2259,14 +2267,14 @@ description:
     The last category of Article 2(1). Are you an **affected person** located in the
     Union?
 
-    A **no** here means that none of the seven categories describes you. The next step
-    lists the exclusions Article 2 makes, and the walk ends there.
+    A **no** here means that none of the seven categories describes you: the Act does
+    not reach you, and the walk ends.
   nl: |
     De laatste categorie van artikel 2, lid 1. Bent u een **getroffen persoon** die zich
     in de Unie bevindt?
 
-    **Nee** betekent hier dat geen van de zeven categorieën op u van toepassing is. De
-    volgende stap noemt de uitsluitingen van artikel 2 en daar eindigt de doorloop.
+    **Nee** betekent hier dat geen van de zeven categorieën op u van toepassing is: de
+    verordening bereikt u niet en de doorloop eindigt.
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -2277,8 +2285,8 @@ sources:
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
 answers:
-  yes: ai-system-definition
-  no: article-2-exclusions
+  yes: article-2-exclusions
+  no: ai-act-does-not-apply
 
 --- # jurisdiction-authorised-representative
 id: jurisdiction-authorised-representative
@@ -2302,7 +2310,7 @@ sources:
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
 answers:
-  yes: ai-system-definition
+  yes: article-2-exclusions
   no: jurisdiction-affected-person
 
 --- # jurisdiction-deployer
@@ -2340,7 +2348,7 @@ sources:
       nl: Artikel 3, punt 4, AI-verordening (definitie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
 answers:
-  yes: ai-system-definition
+  yes: article-2-exclusions
   no: jurisdiction-third-country-output
 
 --- # jurisdiction-importer-distributor
@@ -2365,7 +2373,7 @@ sources:
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
 answers:
-  yes: ai-system-definition
+  yes: article-2-exclusions
   no: jurisdiction-product-manufacturer
 
 --- # jurisdiction-product-manufacturer
@@ -2392,7 +2400,7 @@ sources:
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
 answers:
-  yes: ai-system-definition
+  yes: article-2-exclusions
   no: jurisdiction-authorised-representative
 
 --- # jurisdiction-third-country-output
@@ -2419,7 +2427,7 @@ sources:
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
 answers:
-  yes: ai-system-definition
+  yes: article-2-exclusions
   no: jurisdiction-importer-distributor
 
 --- # non-consensual-sexual-imagery
@@ -2681,8 +2689,8 @@ options:
       nl: Biometrische categorisering (ras, overtuiging, seksleven)
     target: biometric-categorisation
   - title:
-      en: Real-time remote biometric identification in public
-      nl: Biometrische identificatie op afstand in real time
+      en: Real-time biometric ID in public for law enforcement
+      nl: Live biometrische ID in het openbaar voor rechtshandhaving
     target: real-time-biometric-identification
 answers:
   yes: prohibited
