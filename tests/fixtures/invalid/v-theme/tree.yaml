@@ -1,0 +1,55 @@
+# The fixture for V-THEME: a colours block with six of the seven roles of
+# docs/specs/tree-format.md 4.3.3. The set is closed, so half a palette is not a choice;
+# `danger` is missing.
+format: elsa-tree/2
+languages: [en]
+root: start
+title:
+  en: A minimal Tree
+metadata:
+  version: "1.0"
+theme:
+  colours:
+    background: "#ffffff"
+    surface: "#f0f3f7"
+    text: "#2d2e33"
+    text-muted: "#a3a4a8"
+    accent: "#ffc600"
+    accent-secondary: "#41ab64"
+
+--- # start
+id: start
+title:
+  en: Does it apply?
+description:
+  en: |
+    The first question.
+metadata:
+  version: "1.0"
+answers:
+  yes: yes-end
+  no: no-end
+
+--- # no-end
+id: no-end
+title:
+  en: It does not apply
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable
+
+--- # yes-end
+id: yes-end
+title:
+  en: It applies
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable

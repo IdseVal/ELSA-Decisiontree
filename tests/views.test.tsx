@@ -89,7 +89,7 @@ describe('a question Node', () => {
     expect(html).toContain('<h1 id="node-title">Is your AI system within the reach of the AI Act?</h1>')
     expect(html).toContain('<p>The AI Act reaches AI systems')
     expect(html).toContain('<strong>placed on the market')
-    expect(html).toContain('<li>you use it in the EU;</li>')
+    expect(html).toContain('<li>Answer <strong>no</strong> only if none of these applies to your system.</li>')
   })
 
   test('offers yes and no as two controls that lead to the two Answer targets', async () => {
@@ -109,7 +109,7 @@ describe('a question Node', () => {
   })
 
   test('shows the metadata version unobtrusively', async () => {
-    expect(await view('/ai-act-example/start')).toContain('<p class="version">Version 1.0</p>')
+    expect(await view('/ai-act-example/start')).toContain('<p class="version">Version 2.0</p>')
   })
 })
 

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "ELSA decision-tree frontend: shows one Node of an elsa-tree/1 Tree at a time",
+  "description": "ELSA decision-tree frontend: shows one Node of an elsa-tree/2 Tree at a time",
   "engines": {
     "node": ">=22.18"
   },
@@ -16,7 +16,8 @@
     "test:browser": "playwright test",
     "test:first-tree": "playwright test --config=playwright.first-tree.config.ts",
     "typecheck": "tsc --noEmit",
-    "validate": "node scripts/validate.ts"
+    "validate": "node scripts/validate.ts",
+    "migrate": "node scripts/migrate-tree.ts"
   },
   "dependencies": {
     "next": "^16.3.4",

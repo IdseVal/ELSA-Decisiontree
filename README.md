@@ -1,13 +1,21 @@
 # ELSA decision tree
 
 A small web application that walks a reader through a legal decision tree, one **Node**
-at a time. It serves one **Tree** -- a folder of YAML files in the `elsa-tree/1` format --
-and holds its whole state in the URL: no database, no account, no cookie, no tracking.
+at a time. It serves one **Tree** -- one `tree.yaml` file in the `elsa-tree/2` format
+([`docs/specs/tree-format.md`](docs/specs/tree-format.md)), with its images and its theme
+beside it -- and holds its whole state in the URL: no database, no account, no cookie, no
+tracking.
 
 - What the project is for: [`docs/CORE_DOCUMENT.md`](docs/CORE_DOCUMENT.md)
 - The Tree file format, for anyone authoring a Tree: [`docs/specs/tree-format.md`](docs/specs/tree-format.md)
 - The application contracts: [`docs/specs/application.md`](docs/specs/application.md)
 - How to run it on a server: [`docs/deployment.md`](docs/deployment.md)
+
+Version 0.1 -- the state described by those two specs -- is preserved on the branch
+`version-0.1`. `dev` carries the plan for the version 0.2 rework the owner asked for in
+issue #35 (a tree on screen, no scrolling, a carousel, branding from the Tree, one file
+per Tree): the 0.1 code, the two specs marked superseded in part, and the issues that do
+the work. See `docs/adrs/ADR-35-version-0-2-rework.md` for what changes and in which issue.
 
 ## Install
 
@@ -61,5 +69,5 @@ default `docs/deployment.md` leaves a deployment at. It covers what markup canno
 what a click on a thumbnail does, which image files the browser actually asks for, and
 whether a keyboard reaches everything.
 
-`npm run validate` prints one line per broken rule -- `tree-id  file  key.path  RULE
+`npm run validate` prints one line per broken rule -- `tree-id  node-id  key.path  RULE
 message` -- and exits 1 if there is any. Run it before pushing a Tree.

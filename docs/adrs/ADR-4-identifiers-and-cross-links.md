@@ -1,6 +1,10 @@
 # ADR-4-identifiers-and-cross-links: kebab-case ids taken from file names; colon reserved
 
 - Status: ACCEPTED (frozen) -- 2026-09-03
+- Amended by `ADR-37-serialisation.md` (2026-09-10, issue #37): the id grammar, the
+  colon reservation and V-CROSS stand; "the file name is the id" ends with the file per
+  Node, and a Node's id is the `id` key of its document in `tree.yaml`. The text below
+  is the 0.1 record and is unchanged.
 - Issue: #4 -- Architecture: freeze the Tree file format and schema
 - Spec: `docs/specs/tree-format.md`, sections 3.1, 3.2, 10; rule V-CROSS
 

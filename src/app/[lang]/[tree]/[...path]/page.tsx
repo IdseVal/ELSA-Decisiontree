@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Disclaimer } from '../../../../components/Disclaimer.tsx'
 import { LanguageSwitch } from '../../../../components/LanguageSwitch.tsx'
+import { Logo } from '../../../../components/Logo.tsx'
 import { NodeView, text } from '../../../../components/NodeView.tsx'
 import { publicBaseUrl, servedTree } from '../../../../config.ts'
 import type { Tree } from '../../../../tree/loader.ts'
@@ -31,6 +32,11 @@ export default async function NodePage(props: Props) {
         page in another language is built from the whole address -- this Trail, this Node.
       */}
       <header className="page-chrome">
+        <Logo
+          theme={found.tree.manifest.theme}
+          title={found.tree.manifest.title}
+          lang={found.address.lang}
+        />
         <LanguageSwitch address={found.address} languages={found.tree.manifest.languages} />
       </header>
       <main>

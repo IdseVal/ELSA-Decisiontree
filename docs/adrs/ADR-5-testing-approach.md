@@ -3,6 +3,11 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 7
+- Amended 2026-09-10 by `ADR-38-modules-and-tests.md` (issue #38): this ADR's decision to
+  leave browser tests **out** of the contract is reversed, because three 0.2 contracts --
+  the page never scrolls, one payload per navigation, no request to another origin --
+  are facts about a laid-out document and cannot be asserted any other way.
+  `npm run test:browser` joins the CI command. Everything else below stands.
 - Amended 2026-09-04 by `ADR-19-content-language-in-the-route.md`: one test file is added,
   `routing.test.ts`, which asserts the two rewrites of application.md 4.4 by reading them
   out of `next.config.ts`. It needs no server and no browser, so the row below that keeps
