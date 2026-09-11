@@ -103,6 +103,7 @@ models:
   complex: fable
   complex_label: complex
   interview: opus
+  capped_hold_minutes: 360           # v0.2.9: a model that is out of usage credits is re-tried this often
 
 # Enforced by the CI Reviewer (section 8 embeds the same rules in its prompt); kept here
 # as the single written source both the Implementer and the Reviewer are pointed at.
