@@ -44,14 +44,14 @@ Nodes; step 4a is three. The six steps and their order are unchanged.
 
 | Step | Question Node | yes | no |
 |---|---|---|---|
-| 1. Scope, provider (Art. 2(1)) | `start` | step 2 | step 1 (2/7) |
-| 1. Scope, deployer | `jurisdiction-deployer` | step 2 | step 1 (3/7) |
-| 1. Scope, third-country output | `jurisdiction-third-country-output` | step 2 | step 1 (4/7) |
-| 1. Scope, importer or distributor | `jurisdiction-importer-distributor` | step 2 | step 1 (5/7) |
-| 1. Scope, product manufacturer | `jurisdiction-product-manufacturer` | step 2 | step 1 (6/7) |
-| 1. Scope, authorised representative | `jurisdiction-authorised-representative` | step 2 | step 1 (7/7) |
-| 1. Scope, affected person | `jurisdiction-affected-person` | step 2 | the exclusions |
-| 1. The Article 2 exclusions | `article-2-exclusions` | `ai-act-does-not-apply` | `ai-act-does-not-apply` |
+| 1. Scope, provider (Art. 2(1)) | `start` | the exclusions | step 1 (2/7) |
+| 1. Scope, deployer | `jurisdiction-deployer` | the exclusions | step 1 (3/7) |
+| 1. Scope, third-country output | `jurisdiction-third-country-output` | the exclusions | step 1 (4/7) |
+| 1. Scope, importer or distributor | `jurisdiction-importer-distributor` | the exclusions | step 1 (5/7) |
+| 1. Scope, product manufacturer | `jurisdiction-product-manufacturer` | the exclusions | step 1 (6/7) |
+| 1. Scope, authorised representative | `jurisdiction-authorised-representative` | the exclusions | step 1 (7/7) |
+| 1. Scope, affected person | `jurisdiction-affected-person` | the exclusions | `ai-act-does-not-apply` |
+| 1. The Article 2 exclusions | `article-2-exclusions` | `ai-act-does-not-apply` | step 2 |
 | 2. Material scope (Art. 3(1)) | `ai-system-definition` | step 3 | `not-an-ai-system` |
 | 3. Prohibited practices (Art. 5), 1/2 | `prohibited-practices` | `prohibited` | step 3 (2/2) |
 | 3. Prohibited practices, 2/2 | `prohibited-practices-2` | `prohibited` | step 4a |
@@ -63,13 +63,18 @@ Nodes; step 4a is three. The six steps and their order are unchanged.
 | 5. General-purpose AI (Ch. V) | `general-purpose-ai` | step 6 | step 6 |
 | 6. Transparency (Art. 50) | `transparency-obligations` | `end-of-walk` | `end-of-walk` |
 
-**Step 1 is one question asked seven times.** A **yes** on any of the seven means the Act
-reaches you, and goes straight to step 2; a **no** asks about the next category. A **no**
-on the seventh means none of the seven describes you, and the walk goes to the exclusions
-Node -- which is where the six Article 2 exclusions now live, as Options -- and from there
-to `ai-act-does-not-apply` whichever way it is answered. The counter in each title
-("(1/7)" ... "(7/7)") is what the format asks for on a step spread over several Nodes
-(`docs/specs/tree-format.md` 5.8); the same counter marks steps 3 and 4a.
+**Step 1 is one question asked seven times, then the exclusions.** A **yes** on any of the
+seven means the Act reaches you, and goes to the exclusions Node, where the six Article 2
+exclusions live as Options; a **no** asks about the next category. On the exclusions Node
+a **yes** -- a *full* exclusion covers your system -- ends at `ai-act-does-not-apply`, and
+a **no** goes on to step 2. A **no** on the seventh category means none of the seven
+describes you, and ends at `ai-act-does-not-apply` without showing the exclusions: for a
+reader the Act does not reach they change nothing. (Your answer on PR #53: in the first
+cut the exclusions sat only behind that seventh **no**, so a defence or sole-research
+provider in scope never met them and was walked on to a high-risk or Article 50 finding.)
+The exclusions Node carries no counter: it is not an eighth category. The counter in the
+other titles ("(1/7)" ... "(7/7)") is what the format asks for on a step spread over
+several Nodes (`docs/specs/tree-format.md` 5.8); the same counter marks steps 3 and 4a.
 
 Steps 4c, 5 and 6 do not branch: both Answers lead on. That is deliberate and matches the
 outline - a high-risk finding and being general-purpose AI neither end the walk nor remove
@@ -307,8 +312,8 @@ npm run validate trees/ai-act-applicability-agrifood
 | validator violations | 454 | 0 |
 | Nodes | 61 | 71 |
 | question / Terminal / explanation Nodes | 8 / 4 / 49 | 18 / 4 / 49 |
-| description characters, en and nl together | 169,342 | 60,726 |
-| longest single description | 3,104 (`general-purpose-ai`, nl) | 580 (`annex-iii-areas`, nl) |
+| description characters, en and nl together | 169,342 | 60,885 |
+| longest single description | 3,104 (`general-purpose-ai`, nl) | 584 (`annex-iii-areas`, nl) |
 | distinct legal Sources cited | 33 | 33 |
 
 Ten Nodes were added and none was removed: the six jurisdiction Nodes after `start` and
@@ -333,7 +338,9 @@ third Annex I steps.
 Shortening prose by two thirds does not happen by tightening sentences alone. These are
 the places where a statement went, rather than a phrase -- each traces to the same Source
 as before, and none says anything the 0.1 text did not, but you are the one who decides
-whether the remainder is still the right thing to tell a reader:
+whether the remainder is still the right thing to tell a reader. Measured against 0.1, 45
+of its 61 Nodes lost 60% or more of their English text; the list names every Node where
+that took a statement with it, as far as a side-by-side reading of the two versions shows.
 
 - **`general-purpose-ai`** (2,543 to 508 characters of English, 80% off). The verbatim
   Article 3(63) and 3(66) definitions are paraphrases now. Gone: the systemic-risk
@@ -348,22 +355,57 @@ whether the remainder is still the right thing to tell a reader:
   (section 8 says it here instead). Its third Source is Article 2(2), the article the
   surviving Section B sentence quotes; Article 111(2) is still cited on
   `article-50-synthetic-content`.
-- **`annex-iii-areas`** (2,414 to 568, 76% off). The four Article 6(3) conditions are four
-  phrases in one sentence rather than four bullets with their qualifiers; the profiling
+- **`annex-iii-areas`** (2,414 to 579, 76% off). The four Article 6(3) conditions are four
+  phrases in one sentence rather than four bullets with their qualifiers, and the sentence
+  says that **any** one of them is enough, as 0.1 did (restored on PR #53); the profiling
   override and the Article 6(4) duty to document keep their own sentences, but the duty to
   provide that documentation to national competent authorities on request is gone.
-- **`ai-system-definition`** (1,931 to 497, 74% off). The verbatim Article 3(1) definition
+- **`ai-system-definition`** (1,931 to 521, 73% off). The verbatim Article 3(1) definition
   is a paraphrase, and the element-by-element reading of Recital 12 is one sentence naming
-  the distinguishing element.
-- **`annex-i-legislation`** (2,464 to 445, 82% off) is the one that only looks severe: its
+  the distinguishing element: as Recital 12 says, the *definition* does not cover systems
+  based on rules defined solely by natural persons.
+- **`annex-i-legislation`** (2,464 to 493, 80% off) is the one that only looks severe: its
   content moved along the list rather than going. The safety-component definition and
   Articles 6(1a) to (1c) are on step 2/3, and the Section A / Section B split, the Article
   2(2) limit and the deletion of the Machinery Directive on step 3/3.
 - **The 20 Annex I entry Nodes** each lost about three quarters of their text (for example
-  `annex-i-toys`, 935 to 231) for one reason: every one of them repeated the two
-  conditions of Article 6(1). That test is now stated once, on the Annex I steps that ask
-  the question, and each entry says what its legislation covers and what it means for
-  agrifood.
+  `annex-i-toys`, 935 to 231) for two reasons. Every one of them repeated the two
+  conditions of Article 6(1), and the 11 Section A entries each repeated that Article
+  2(13) lets the Commission limit Articles 9 to 15 and 17 to 25 for them by delegated act.
+  Both are now said once, on `annex-i-legislation`, the step that lists the Section A
+  entries: the two conditions, and Article 2(13) with its own Source. (The first cut of
+  #44 dropped Article 2(13) from the Tree altogether; your answer on PR #53 brought it back
+  there.) Each entry says what its legislation covers and what it means for agrifood.
+- **`transparency-obligations`** (1,241 to 452, 64% off). Gone: the Article 111(4)
+  transitional period, until 2 December 2026, for Article 50(2) systems placed on the
+  market before 2 August 2026; the applicable accessibility requirements Article 50(5) sets
+  for the information; and that Article 50(6) is without prejudice to other transparency
+  obligations in Union or national law.
+- **`prohibited`** (1,486 to 483, 68% off). The three checks before relying on the outcome
+  are one sentence without their content: the carve-outs of points (d), (f) and (g) and the
+  narrowing of points (ba) and (bb) by Article 5(1a) and (1b) are gone, and so are the
+  application dates and Article 5(8). The dates are still on `prohibited-practices`, and
+  Article 5(8) on `prohibited-practices-2`.
+- **`end-of-walk`** (1,867 to 497, 73% off). Gone: *"its content has not been through
+  legal review"* (the page still says "not legal advice" on every Node, and section 1 of
+  this file says there was no legal review); the advice to walk the Tree again after a
+  significant change to the system; and the named list of what the Tree does not cover,
+  which is one phrase now.
+- **`not-an-ai-system`** (1,271 to 503, 60% off). Gone: that Article 2(9) is about systems
+  *inside* the Act; plant protection product law and contract law from the list of other
+  law worth checking; and the two reasons to come back to this step later (a rule-based
+  system may start learning from data, and a system that is not an AI system may be a
+  component of a product that is one).
+- **Seven Option titles** were narrowed past their entry to fit 60 characters. The Article
+  5(1)(h) one has its qualifier back since PR #53 ("Real-time biometric ID in public for
+  law enforcement"), because a Branch label must not read as a blanket prohibition. Six
+  stay narrowed, and each child Node still carries what its label lost:
+  `biometric-categorisation` (political opinions, trade union membership and sexual
+  orientation),
+  `predicting-criminal-offences` ("or personality traits"), `exclusion-national-security`
+  (areas outside the scope of Union law), `exclusion-third-country-authorities` (and
+  international organisations), `annex-iii-employment` (access to self-employment) and
+  `annex-i-explosive-atmospheres` (and protective systems).
 - **Every explanation Node lost its closing line** "This is an explanation only. Go back to
   the previous step to answer." The frontend already says exactly that under a Node with no
   Answers (`src/chrome.ts`, and `docs/adrs/ADR-37-length-limits.md`), so it was the same
@@ -371,7 +413,7 @@ whether the remainder is still the right thing to tell a reader:
 
 ### If you want a sentence back
 
-There is little room left: the longest description is 580 characters of the 600 allowed,
+There is little room left: the longest description is 584 characters of the 600 allowed,
 and every Node is inside the 8-line limit. So adding a sentence means taking one out --
 or, better, doing what this cut did to the three steps that would not fit: give the step
 another numbered Node and carry the counter, `(1/2)`, `(2/2)`, as the format describes
