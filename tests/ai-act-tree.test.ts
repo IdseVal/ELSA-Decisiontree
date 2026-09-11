@@ -178,6 +178,19 @@ describe('the content of the first Tree', () => {
       })
     })
 
+    test('the prohibited-practices and Annex I steps are numbered in their titles too', () => {
+      // Format 5.8: a step cut into several Nodes says so at the end of its title, in every
+      // language. The jurisdiction counters are pinned above; these are the other two steps.
+      for (const steps of [PROHIBITED_STEPS, ANNEX_I_STEPS]) {
+        steps.forEach((id, index) => {
+          const counter = `(${index + 1}/${steps.length})`
+          for (const lang of ['en', 'nl']) {
+            expect(nodes.get(id)!.title[lang]!.endsWith(counter), `${id}: ${lang} title ends with ${counter}`).toBe(true)
+          }
+        })
+      }
+    })
+
     test('it holds 18 question Nodes, 4 Terminals and 49 explanation Nodes', () => {
       // 8 question Nodes before #44: the seven jurisdiction sub-steps and the exclusions Node
       // after them, one more prohibited-practices step and two more Annex I steps make 18. The
@@ -230,6 +243,49 @@ describe('the content of the first Tree', () => {
         .get('transparency-obligations')!
         .options.map((option) => nodes.get(option.target)!.metadata.addressee)
       expect(addressees).toEqual(['provider', 'provider', 'deployer', 'deployer', 'deployer'])
+    })
+  })
+
+  describe('what #44 cut as repetition is still said once, where the question is asked', () => {
+    test('no explanation Node repeats the hint the frontend shows under it', () => {
+      // #44 took this closing line out of all 49 explanation Nodes, because `src/chrome.ts`
+      // already shows the same hint under every Node without Answers. Putting it back on a
+      // short Node still validates, so only this catches it.
+      const explanations = [...nodes.values()].filter((node) => node.kind === 'explanation')
+      expect(explanations).toHaveLength(49)
+      for (const { id } of explanations) {
+        expect(unwrapped(id, 'en'), id).not.toMatch(/This is an explanation only|Go back to the previous step/i)
+        expect(unwrapped(id, 'nl'), id).not.toMatch(/Dit is alleen uitleg|Ga terug naar de vorige stap/i)
+      }
+    })
+
+    test('the first Annex I step states the two conditions of Article 6(1) and Article 2(13)', () => {
+      // #44 cut both from the Annex I entries on the grounds that every entry repeated them.
+      // That holds only while the step says them instead: if these sentences go, no Node
+      // states the Article 6(1) test at all. Article 2(13) came back here on PR #53, with its
+      // own Source.
+      expect(unwrapped('annex-i-legislation', 'en')).toContain(
+        'Article 6(1) applies when **both** are met: **(a)** the system is intended as a **safety component of a product**',
+      )
+      expect(unwrapped('annex-i-legislation', 'en')).toContain(
+        '**and (b)** that product must undergo a **third-party conformity assessment**',
+      )
+      expect(unwrapped('annex-i-legislation', 'nl')).toContain(
+        'Artikel 6, lid 1, vereist **beide**: **a)** het systeem is bedoeld als **veiligheidscomponent van een product**',
+      )
+      expect(unwrapped('annex-i-legislation', 'nl')).toContain(
+        '**en b)** dat product vereist een **conformiteitsbeoordeling door een derde partij**',
+      )
+
+      expect(unwrapped('annex-i-legislation', 'en')).toContain(
+        'Article 2(13) lets the Commission limit Articles 9 to 15 and 17 to 25 by delegated act',
+      )
+      expect(unwrapped('annex-i-legislation', 'nl')).toContain(
+        'artikel 2, lid 13, laat de Commissie daarvoor de artikelen 9 tot en met 15 en 17 tot en met 25 bij gedelegeerde handeling beperken',
+      )
+      expect(nodes.get('annex-i-legislation')!.sources.map((source) => source.label.en)).toContain(
+        'Article 2(13) AI Act (limitation for Section A)',
+      )
     })
   })
 
@@ -336,7 +392,7 @@ describe('the content of the first Tree', () => {
       // I Section - is deliberately not re-asserted here, because it cannot be done without a
       // new question Node and a new Terminal, and five tests earlier in this file already fail
       // on that: "the six steps are question Nodes chained in the order of core document 3.3",
-      // "it holds 8 question Nodes, 4 Terminals and 49 explanation Nodes", "every Terminal is
+      // "it holds 18 question Nodes, 4 Terminals and 49 explanation Nodes", "every Terminal is
       // reached from the root by answering questions alone", "a high-risk finding carries on
       // into the general-purpose AI and transparency steps" and "the walk stops early only
       // where the Act itself stops". Repeating them here would pin nothing new. NOTES.md
