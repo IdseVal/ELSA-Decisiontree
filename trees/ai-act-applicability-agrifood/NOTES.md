@@ -304,8 +304,7 @@ passage; they are the Regulation's own.
 issue #39 converted it faithfully -- not one word was shortened -- and the validator
 counted **454 violations**: 327 texts over their maximum, 124 descriptions over 8 rendered
 lines, and 3 lists over their maximum -- two lists of Options and one Node citing four
-Sources. Issue #44 is that cut, and the
-count is now **0**. Reproduce it at any time with:
+Sources. Issue #44 is that cut, and the count is now **0**. Reproduce it at any time with:
 
 ```
 npm run validate trees/ai-act-applicability-agrifood
