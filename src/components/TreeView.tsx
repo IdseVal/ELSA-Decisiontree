@@ -18,6 +18,7 @@
  * The view takes a Node, the address it was reached by and the Tree's index, and returns
  * markup; it never touches the file system, the environment or the request (section 6).
  */
+import { Fragment } from 'react'
 import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
 import type { Tree } from '../tree/loader.ts'
 import type { Node, Option } from '../tree/types.ts'
@@ -75,8 +76,11 @@ export function TreeView({ node, address, tree }: { node: Node; address: PageAdd
  * The Trail as the Branches above (10.2): oldest first, the parent nearest the Bubble. A
  * Trail longer than five collapses in the middle to `trailMore(n)`, which opens the whole
  * Trail as a Sheet; below the guaranteed height it collapses to the parent alone plus that
- * control (10.5, step 1). The root Node has no Trail and shows the Tree's title instead; a
- * Node opened by its own URL offers the `start` Branch, so no reader is stranded.
+ * control (10.5, step 1), and on a phone-width screen, where a 200-pixel parent Branch
+ * cannot hold three lines of title in its row, to that control alone. The control says how
+ * many entries it hides in each of the three cases; the stylesheet shows one. The root Node
+ * has no Trail and shows the Tree's title instead; a Node opened by its own URL offers the
+ * `start` Branch, so no reader is stranded.
  */
 function Trail({ node, treeTitle, view }: { node: Node; treeTitle: string; view: View }) {
   const { address, ui, uiLang, titleOf, root } = view
@@ -121,40 +125,41 @@ function Trail({ node, treeTitle, view }: { node: Node; treeTitle: string; view:
           // `start` and the last four stay when the middle collapses (10.2).
           const kept = index === 0 || index >= entries.length - 4
           return (
-            <li
-              key={entry.href}
-              className="trail-step"
-              data-kept={kept ? '' : undefined}
-              data-parent={parent ? '' : undefined}
-            >
-              {/* The entry just above the current Node is the page the reader came from. */}
-              <Branch className="trail-entry" href={entry.href} title={entry.title} rel={parent ? 'prev' : undefined} />
-            </li>
+            <Fragment key={entry.href}>
+              <li className="trail-step" data-kept={kept ? '' : undefined} data-parent={parent ? '' : undefined}>
+                {/* The entry just above the current Node is the page the reader came from. */}
+                <Branch className="trail-entry" href={entry.href} title={entry.title} rel={parent ? 'prev' : undefined} />
+              </li>
+              {/* The collapsed middle sits where the middle is: after `start`, before what stays. */}
+              {index === 0 && (
+                <li className="trail-more">
+                  <Sheet
+                    className="trail-sheet"
+                    summary={
+                      <>
+                        {long && (
+                          <span className="trail-more-wide" lang={uiLang}>
+                            {ui.trailMore(entries.length - TRAIL_SHOWN)}
+                          </span>
+                        )}
+                        <span className="trail-more-short" lang={uiLang}>
+                          {ui.trailMore(entries.length - 1)}
+                        </span>
+                        <span className="trail-more-all" lang={uiLang}>
+                          {ui.trailMore(entries.length)}
+                        </span>
+                      </>
+                    }
+                    // The whole Trail, newest first (10.2).
+                    items={entries.map((e) => ({ href: e.href, label: e.title })).reverse()}
+                    words={sheetWords(ui)}
+                    uiLang={uiLang}
+                  />
+                </li>
+              )}
+            </Fragment>
           )
         })}
-        {collapsible && (
-          <li className="trail-more">
-            <Sheet
-              className="trail-sheet"
-              summary={
-                <>
-                  {long && (
-                    <span className="trail-more-wide" lang={uiLang}>
-                      {ui.trailMore(entries.length - TRAIL_SHOWN)}
-                    </span>
-                  )}
-                  <span className="trail-more-short" lang={uiLang}>
-                    {ui.trailMore(entries.length - 1)}
-                  </span>
-                </>
-              }
-              // The whole Trail, newest first (10.2).
-              items={entries.map((entry) => ({ href: entry.href, label: entry.title })).reverse()}
-              words={sheetWords(ui)}
-              uiLang={uiLang}
-            />
-          </li>
-        )}
       </ol>
     </nav>
   )

@@ -356,18 +356,29 @@ a.language:hover,
   text-align: center;
 }
 
-/* The collapsed middle of a long Trail: chrome, 120 pixels, the Trail Sheet behind it. */
+/*
+ * The collapsed middle of a long Trail: chrome, the Trail Sheet behind it. 120 pixels is
+ * its budget in 10.2's sum; `trailMore(n)` in Dutch, or with two digits, runs a little
+ * past it, and the row's 120-pixel margin is where that goes -- never a truncated word.
+ */
 .trail-more {
   position: relative;
   display: none;
-  width: 120px;
+  flex: none;
+  min-width: 120px;
 }
 
+/* Six entries or more: `start`, the collapsed middle, the last four (10.2). */
 .trail--long .trail-more {
   display: block;
 }
 
-.trail-more-short {
+.trail--long .trail-step:not([data-kept]) {
+  display: none;
+}
+
+.trail-more-short,
+.trail-more-all {
   display: none;
 }
 
@@ -702,6 +713,16 @@ a.language:hover,
   display: none;
 }
 
+/*
+ * The control stays above the open panel. Without the script there is no close button and
+ * no backdrop, and the panel is laid over the middle of the page -- over the very control
+ * that opened it, were it not for this; a second click on it closes the disclosure (14).
+ */
+.sheet[open] > .sheet-open {
+  position: relative;
+  z-index: 11;
+}
+
 /* Laid over the page, bounded to the viewport: it never scrolls either (10.6). */
 .sheet-panel {
   position: fixed;
@@ -864,9 +885,6 @@ a.language:hover,
     min-width: 0;
   }
 
-  .trail-more {
-    flex: none;
-  }
 }
 
 /*
@@ -1022,19 +1040,80 @@ a.language:hover,
   }
 }
 
+/*
+ * A phone-width screen. The full Node of 10.6 at 360 x 640 needs every pixel the rows
+ * around the Bubble can spare, so each gives up what it does not use: the chrome bar and
+ * the Trail row narrow to their content, the rim to 10 pixels, the margins inside the
+ * Bubble to 4. Two Answers of four lines each still stand side by side.
+ */
 @media (max-width: 479px) {
   :root {
     --rim-x: 22px;
-    --rim-y: 20px;
+    --rim-y: 10px;
     --bubble-radius: 48px;
     --answers-row: auto;
-    --chrome-row: 40px;
+    --chrome-row: 36px;
+    --trail-row: 30px;
     --disclaimer-row: auto;
+  }
+
+  /* Each collapsed group's control: 24 pixels, so the rows that hold one are 24 too. */
+  .sheet-open {
+    padding: 1px 12px;
+  }
+
+  /*
+   * The Trail is its control alone: a 200-pixel parent Branch holds an 80-character title
+   * in three lines, which the row no longer has, and a clipped title would break 10.6. The
+   * parent is the first entry of the Trail Sheet, and the `back` Branch where there is one.
+   */
+  .trail:has(.trail-more) .trail-step {
+    display: none;
+  }
+
+  .trail .trail-more {
+    display: block;
+  }
+
+  .trail-more-wide,
+  .trail-more-short {
+    display: none;
+  }
+
+  .trail-more-all {
+    display: inline;
+  }
+
+  .tree-name {
+    padding: 0 8px;
+    font-size: 11px;
+    line-height: 14px;
+  }
+
+  /* The rim keeps room for the one chrome element a Node kind puts on it (10.1). */
+  .bubble--terminal {
+    padding-top: 28px;
+  }
+
+  .bubble--explanation {
+    padding-bottom: 48px;
+  }
+
+  .hint {
+    max-width: calc(100% - 24px);
+  }
+
+  .bubble h1 {
+    margin-bottom: 4px;
+  }
+
+  .sources-collapsed {
+    margin-top: 4px;
   }
 
   .answers {
     gap: 8px;
-    padding: 4px 0;
+    padding: 0;
   }
 
   .answer {
@@ -1063,6 +1142,13 @@ a.language:hover,
 
   .logo {
     max-width: 26vw;
+  }
+
+  /* A Tree without a logo names itself in two short lines rather than one long one. */
+  .tree-title {
+    min-width: 0;
+    font-size: 11px;
+    line-height: 14px;
   }
 }
 
