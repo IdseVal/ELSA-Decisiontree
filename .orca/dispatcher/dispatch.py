@@ -34,7 +34,8 @@ WHAT IT DOES EACH TICK
         dispatch.yml): `models.default` (alias `opus` = the newest Opus) for every run,
         `models.complex` (alias `fable` = the most capable model) for every run of an
         issue labelled `complex`. Passed as `--model`; never the CLI's floating default.
-      - A run past `max_run_minutes` is killed (process tree). A run that exits without a
+      - A run past `max_run_minutes` is killed (process tree; `max_run_minutes_complex`
+        for an issue labelled `complex`, v0.2.10). A run that exits without a
         PR gets one fresh retry, then the issue is labelled `needs-human`. Every start
         spends a breaker cycle -- EXCEPT a run whose log is the subscription's "hit your
         session limit ... resets HH:MM" line (v0.2.5): that cycle is refunded, and no new
@@ -434,6 +435,7 @@ def load_config() -> dict[str, Any]:
     d.setdefault("poll_interval_seconds", 60)
     d.setdefault("max_active_issues", 3)
     d.setdefault("max_run_minutes", 30)
+    d.setdefault("max_run_minutes_complex", 60)   # v0.2.10
     d.setdefault("retry_empty_run", True)
     d.setdefault("cleanup_worktrees_on_merge", True)
     d.setdefault("claude_cmd", "claude")
@@ -487,6 +489,16 @@ def model_for(labels: set[str], cfg: dict[str, Any]) -> str:
     if complex_label(cfg) in labels:
         return str(m.get("complex") or "")
     return str(m.get("default") or "")
+
+
+def run_ceiling_minutes(labels: set[str], cfg: dict[str, Any]) -> float:
+    """v0.2.10: `dispatcher.max_run_minutes`, or `max_run_minutes_complex` for an issue
+    carrying the complex label -- the most capable model on the largest work gets longer
+    before the kill (issue #41's first run was killed at 30 min with nothing to show)."""
+    d = cfg["dispatcher"]
+    if complex_label(cfg) in labels:
+        return float(d.get("max_run_minutes_complex") or d["max_run_minutes"])
+    return float(d["max_run_minutes"])
 
 
 def run_log_path(log_name: str) -> Path:
@@ -933,6 +945,7 @@ Rules that apply to every run:
 - If you need the human (a decision, a credential, a missing skill): comment on the issue or PR with exactly what you need and what you will do with the answer, add the label `needs-human`, push any work worth keeping, and END YOUR RUN. A fresh run will later read those comments -- write for that reader.
 - Skills live in `.claude/skills/` of this repository. If one your brief names is missing, say so in a comment and continue with plain tools if you can; otherwise use `needs-human`.
 - Never leave work uncommitted when you end. Never force-push. Never wait for anything.
+- Never start a command in the background, and never end your turn to wait for one: this is a headless `-p` run, and ending the turn ENDS THE RUN -- nothing re-invokes you, and the work is lost. Run tests and builds in the foreground with a timeout, read the result, then go on.
 """
 
 
@@ -1431,8 +1444,9 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                     lambda p=pid: kill_tree(p))
                 alive = False
             if alive:
-                if minutes_since(int(r.get("started", 0))) >= max_minutes:
-                    act(f"issue #{issue.number}: run {pid} exceeded {max_minutes:.0f} min -> kill",
+                ceiling = run_ceiling_minutes(issue.labels, cfg)
+                if minutes_since(int(r.get("started", 0))) >= ceiling:
+                    act(f"issue #{issue.number}: run {pid} exceeded {ceiling:.0f} min -> kill",
                         lambda p=pid: kill_tree(p))
                     s.pop("run", None)
                     if int(s.get("cycle", 0)) >= max_cycles:
@@ -1869,8 +1883,9 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                         lambda p=pid: kill_tree(p))
                     alive = False
                 if alive:
-                    if minutes_since(int(fix.get("started", 0))) >= max_minutes:
-                        act(f"PR #{pr.number}: fix run {pid} exceeded {max_minutes:.0f} min -> kill + needs-human",
+                    ceiling = run_ceiling_minutes(issue.labels if issue else set(), cfg)
+                    if minutes_since(int(fix.get("started", 0))) >= ceiling:
+                        act(f"PR #{pr.number}: fix run {pid} exceeded {ceiling:.0f} min -> kill + needs-human",
                             lambda p=pid, n=pr.number: (kill_tree(p),
                                                         gh_label("pr", n, add=[LABEL_NEEDS_HUMAN]),
                                                         gh_comment("pr", n, "Fix run timed out. See .orca/dispatcher/runs/.")))

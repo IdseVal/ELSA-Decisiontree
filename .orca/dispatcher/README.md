@@ -52,7 +52,8 @@ Implementer) and the MODEL (v0.2.5, `models:` in `dispatch.yml`): `models.defaul
 (`opus`, the newest Opus) for everything, `models.complex` (`fable`, the most capable)
 for every run of an issue labelled `complex`; always an explicit `--model`, never the
 app's floating default. Kill any run past
-`max_run_minutes` (whole tree); one fresh retry for a run that exits without a PR, then
+`max_run_minutes` (whole tree; `max_run_minutes_complex` for a `complex` issue, v0.2.10);
+one fresh retry for a run that exits without a PR, then
 `needs-human` -- unless the run's log is the "hit your session limit ... resets HH:MM"
 line (v0.2.5): then the cycle is refunded and NOTHING new starts (dispatch, retry, fix,
 audit) until the stated reset time; the hold lives in `state.json` under `limit` and
@@ -104,8 +105,8 @@ A corrupt marker counts as paused: a bad file must never quietly restart the spe
 | Orca not open | worktree calls fail; the tick logs it and retries. Nothing is lost. |
 | `gh` unauthenticated | the tick sees no issues/PRs and does nothing. `doctor` says so. |
 | State file deleted | at most a duplicate comment; PIDs are re-checked against the OS, so nothing orphans. |
-| Run exceeds `max_run_minutes` | killed (whole tree); breaker counts it. |
-| Run exits without a PR | one fresh retry, then `needs-human` with a pointer at its log. |
+| Run exceeds `max_run_minutes` | killed (whole tree); breaker counts it. A `complex` issue's runs get `max_run_minutes_complex` (60) instead (v0.2.10). |
+| Run exits without a PR | one fresh retry, then `needs-human` with a pointer at its log. If the log ends with "the background run will re-invoke me": the agent backgrounded its tests and ended the turn to wait, which in a `-p` run ends the process. Every brief now forbids background waits (v0.2.10). |
 | Run dies on the Claude session limit | not counted; a comment says so; every new start holds until the reset time in the message (+2 min), then resumes by itself. Runs already going are unaffected (they die the same way and get the same treatment). A run that prints the line and then idles instead of exiting (some CLI versions do) is killed on the next tick and treated the same. |
 | Run dies on a model's usage cap ("You're out of usage credits") | that model's own allowance is spent (Fable's weekly cap, typically). Not counted; a comment says so once per episode; only runs that would use that model are held and re-tried every `models.capped_hold_minutes` (360) until one gets through; issues on the default model continue (v0.2.9 -- before, it looked like an empty run: a retry into the same wall, then `needs-human` with nothing to answer, as on issue #41). To run a held issue on the default model now, remove its `complex` label. |
 | CI blocks a PR | fresh fix run with the comments in its brief; breaker at 3. |
