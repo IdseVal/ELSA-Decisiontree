@@ -11,9 +11,10 @@
  *   (ADR-38-theme-delivery, Consequences), and it is one thing a unit test cannot show.
  *
  * The last one, and the screenshots, need servers this file starts itself: Playwright's own
- * server serves one Tree, and these want three more. Each is the same standalone build a
- * deployment runs, pointed at a copy of a Tree under a temporary folder -- no copy is
- * written inside the repository and every one is removed afterwards.
+ * server serves one Tree, and these want four more. Each is the same standalone build a
+ * deployment runs, pointed at a Tree in the repository, or at a copy under a temporary
+ * folder where a test edits it -- no copy is written inside the repository and every one
+ * is removed afterwards.
  *
  * Screenshots go to the gitignored results folder unless `ELSA_SHOTS=1` asks for the
  * tracked set in `docs/screenshots/issue-40/`, which is the convention
@@ -92,22 +93,6 @@ async function copyTree(from: string, id: string): Promise<{ treesDir: string; d
   const dir = path.join(treesDir, id)
   await cp(from, dir, { recursive: true })
   return { treesDir, dir }
-}
-
-/**
- * A Tree's manifest split from its Nodes. The manifest is the first document of the stream
- * (tree-format.md 4.1), so the split is the first document separator.
- */
-function split(stream: string): { manifest: string; nodes: string } {
-  const at = stream.indexOf('\n---')
-  return { manifest: stream.slice(0, at), nodes: stream.slice(at) }
-}
-
-/** A manifest's `theme:` block, which the format puts last in both of this repo's Trees. */
-function themeBlock(manifest: string): string {
-  const at = manifest.search(/^theme:$/m)
-  expect(at, 'the manifest carries a theme block').toBeGreaterThan(-1)
-  return manifest.slice(at)
 }
 
 /** Every URL the page asked for while `act` ran, in the order it asked. */
@@ -256,24 +241,12 @@ test('the enlarged image never brightens the page behind it, whichever way the p
 })
 
 test('the same build, three looks: the AI4SFS Theme, the example Tree, and no Theme at all', async ({ page }) => {
-  /*
-   * The first Tree cannot be served yet: it is over the format's length limits in 454
-   * places until issue #44 cuts it, so `openTree` refuses it and the server exits. Its
-   * THEME is finished, though, and a Theme is independent of the content it dresses -- so
-   * this serves the first Tree's theme block and its theme/ folder over the example Tree's
-   * Nodes. What the screenshot shows is the first Tree's look, file for file and colour for
-   * colour; only the words under it belong to another Tree.
-   */
-  const { treesDir, dir } = await copyTree(path.join(trees, 'ai-act-example'), 'ai-act-example')
-  const first = split(await readFile(path.join(trees, 'ai-act-applicability-agrifood', 'tree.yaml'), 'utf8')).manifest
-  const example = split(await readFile(path.join(dir, 'tree.yaml'), 'utf8'))
-  const manifest = example.manifest.slice(0, example.manifest.search(/^theme:$/m))
-  await writeFile(path.join(dir, 'tree.yaml'), `${manifest}${themeBlock(first)}${example.nodes}`)
-  await rm(path.join(dir, 'theme'), { recursive: true })
-  await cp(path.join(trees, 'ai-act-applicability-agrifood', 'theme'), path.join(dir, 'theme'), { recursive: true })
-
   const looks = [
-    { shot: 'first-tree-theme', origin: await serve(treesDir, 'ai-act-example', FIRST_PORT + 1), url: '/ai-act-example/start' },
+    {
+      shot: 'first-tree-theme',
+      origin: await serve(trees, 'ai-act-applicability-agrifood', FIRST_PORT + 1),
+      url: '/ai-act-applicability-agrifood/start',
+    },
     { shot: 'example-tree-theme', origin: '', url: '/ai-act-example/start' },
     { shot: 'no-theme-default', origin: await serve(fixtures, 'single-language', FIRST_PORT + 2), url: '/single-language/start' },
   ]

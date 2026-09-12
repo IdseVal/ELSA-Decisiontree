@@ -54,26 +54,46 @@ interface Step {
  * which is how this suite shows that the high-risk finding no longer ends the walk.
  */
 const WALKS: Record<string, Step[]> = {
-  'ai-act-does-not-apply': [{ answer: 'no', lands: 'ai-act-does-not-apply' }],
+  // Issue #44 cut step 1 into the seven "(n/7)" jurisdiction Nodes, a yes on any of which
+  // leads to the Article 2 exclusions, step 3 into two Nodes and step 4a into three, so the
+  // click paths below are longer than the ones this suite walked when every step was a
+  // single Node. Nothing else moved.
+  'ai-act-does-not-apply': [
+    { answer: 'no', lands: 'jurisdiction-deployer' },
+    { answer: 'no', lands: 'jurisdiction-third-country-output' },
+    { answer: 'no', lands: 'jurisdiction-importer-distributor' },
+    { answer: 'no', lands: 'jurisdiction-product-manufacturer' },
+    { answer: 'no', lands: 'jurisdiction-authorised-representative' },
+    { answer: 'no', lands: 'jurisdiction-affected-person' },
+    { answer: 'no', lands: 'ai-act-does-not-apply' },
+  ],
   'not-an-ai-system': [
-    { answer: 'yes', lands: 'ai-system-definition' },
+    { answer: 'yes', lands: 'article-2-exclusions' },
+    { answer: 'no', lands: 'ai-system-definition' },
     { answer: 'no', lands: 'not-an-ai-system' },
   ],
   prohibited: [
-    { answer: 'yes', lands: 'ai-system-definition' },
+    { answer: 'yes', lands: 'article-2-exclusions' },
+    { answer: 'no', lands: 'ai-system-definition' },
     { answer: 'yes', lands: 'prohibited-practices' },
     { answer: 'yes', lands: 'prohibited' },
   ],
   'high-risk': [
-    { answer: 'yes', lands: 'ai-system-definition' },
+    { answer: 'yes', lands: 'article-2-exclusions' },
+    { answer: 'no', lands: 'ai-system-definition' },
     { answer: 'yes', lands: 'prohibited-practices' },
+    { answer: 'no', lands: 'prohibited-practices-2' },
     { answer: 'no', lands: 'annex-i-legislation' },
     { answer: 'yes', lands: 'high-risk' },
   ],
   'end-of-walk': [
-    { answer: 'yes', lands: 'ai-system-definition' },
+    { answer: 'yes', lands: 'article-2-exclusions' },
+    { answer: 'no', lands: 'ai-system-definition' },
     { answer: 'yes', lands: 'prohibited-practices' },
+    { answer: 'no', lands: 'prohibited-practices-2' },
     { answer: 'no', lands: 'annex-i-legislation' },
+    { answer: 'no', lands: 'annex-i-legislation-2' },
+    { answer: 'no', lands: 'annex-i-legislation-3' },
     { answer: 'no', lands: 'annex-iii-areas' },
     { answer: 'no', lands: 'general-purpose-ai' },
     { answer: 'yes', lands: 'transparency-obligations' },
@@ -123,12 +143,22 @@ for (const [target, steps] of Object.entries(WALKS)) {
   })
 }
 
+test('a full Article 2 exclusion ends the walk for a reader the Act reaches', async ({ page }) => {
+  // PR #53, the owner's answer: the exclusions are asked after a yes on step 1, so a reader
+  // in scope whose system is excluded is not walked on to a high-risk or Article 50 finding.
+  await walk(page, [
+    { answer: 'yes', lands: 'article-2-exclusions' },
+    { answer: 'yes', lands: 'ai-act-does-not-apply' },
+  ])
+  await expect(page.locator('.outcome')).toHaveCount(1)
+})
+
 test('an Option leads to an explanation-only child that offers a visible way back', async ({ page }) => {
-  await walk(page, WALKS.prohibited!.slice(0, 2))
+  await walk(page, WALKS.prohibited!.slice(0, 3))
 
   await page.getByRole('link', { name: 'Social scoring' }).click()
   await expect(page).toHaveURL(
-    `/${TREE}/start/ai-system-definition/prohibited-practices/social-scoring`,
+    `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/social-scoring`,
   )
 
   // Explanation only: no Answers of its own, and it says so (core document 3.2, 10.9).
@@ -141,9 +171,9 @@ test('an Option leads to an explanation-only child that offers a visible way bac
   // The way back is the Trail, and its last entry is the parent this child explains.
   const back = page.locator('.trail-entry').last()
   await expect(back).toBeVisible()
-  await expect(back).toHaveText('Does your system do any of the prohibited practices?')
+  await expect(back).toHaveText('Does your system do a prohibited practice? (1/2)')
   await back.click()
-  await expect(page).toHaveURL(`/${TREE}/start/ai-system-definition/prohibited-practices`)
+  await expect(page).toHaveURL(`/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices`)
 })
 
 test('the high-risk finding does not end the walk', async ({ page }) => {
@@ -154,7 +184,8 @@ test('the high-risk finding does not end the walk', async ({ page }) => {
   await expect(page.locator('.outcome')).toHaveCount(0)
   await clickAnswer(page, 'en', 'no')
   await expect(page).toHaveURL(
-    `/${TREE}/start/ai-system-definition/prohibited-practices/annex-i-legislation/high-risk/general-purpose-ai`,
+    `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/` +
+      'annex-i-legislation/high-risk/general-purpose-ai',
   )
 })
 
@@ -177,22 +208,20 @@ async function screenshotWalk(page: Page, lang: Lang): Promise<void> {
   await expect(page.locator('html')).toHaveAttribute('lang', lang)
   await shot('root-question')
 
+  const toProhibitedPractices = ['start', 'article-2-exclusions', 'ai-system-definition', 'prohibited-practices']
   await clickAnswer(page, lang, 'yes')
+  await clickAnswer(page, lang, 'no')
   await clickAnswer(page, lang, 'yes')
-  await expect(page).toHaveURL(pageUrl(['start', 'ai-system-definition', 'prohibited-practices'], lang))
+  await expect(page).toHaveURL(pageUrl(toProhibitedPractices, lang))
   await shot('prohibited-practices')
 
   await page.getByRole('link', { name: lang === 'en' ? 'Social scoring' : 'Sociale scoring' }).click()
-  await expect(page).toHaveURL(
-    pageUrl(['start', 'ai-system-definition', 'prohibited-practices', 'social-scoring'], lang),
-  )
+  await expect(page).toHaveURL(pageUrl([...toProhibitedPractices, 'social-scoring'], lang))
   await shot('explanation-child')
 
   await page.locator('.trail-entry').last().click()
   await clickAnswer(page, lang, 'yes')
-  await expect(page).toHaveURL(
-    pageUrl(['start', 'ai-system-definition', 'prohibited-practices', 'prohibited'], lang),
-  )
+  await expect(page).toHaveURL(pageUrl([...toProhibitedPractices, 'prohibited'], lang))
   await shot('terminal-prohibited')
 }
 
