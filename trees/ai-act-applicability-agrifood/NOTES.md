@@ -187,8 +187,11 @@ worse fit, and a Terminal reads better without one.
 Commons serves of the original, downloaded once and committed; nothing is fetched from
 Commons, or from anywhere else, while the app runs (core document 7 and 9). 500 pixels
 because the Carousel shows a thumbnail 136 pixels wide and the enlarged view is bounded by
-the viewport, so a wider file would cost the reader bytes it never shows. The result is
-**35 files, 1.9 MB in total, none over 120 KB**; the heaviest Node in the Tree
+the viewport, so a wider file would cost the reader bytes it never shows. One file is
+narrower: `motor-vehicle-general-safety.jpg` is 396 pixels, because the original on
+Commons is 396 pixels and Commons serves the original rather than upscale it. It is the
+only picture that will look soft when enlarged; replace it if that bothers you. The result
+is **35 files, 1.9 MB in total, none over 120 KB**; the heaviest Node in the Tree
 (`annex-i-legislation`: its own picture and eight Options) asks for **9 files, 457 KB**.
 
 **To replace one**, put your file in `images/` with a lowercase name and no spaces and
@@ -222,7 +225,18 @@ been a content change this issue was not asked to make.
 ### Where every picture came from
 
 Author, licence and page as Wikimedia Commons states them. The credit in `tree.yaml` is
-`<author>, via Wikimedia Commons, <licence>`.
+`<author>, via Wikimedia Commons, <licence>`. Seven licences occur; these are their texts,
+which is what the licence names in the table and in every credit refer to:
+
+| Licence | Its text | Pictures |
+|---|---|---|
+| CC0 1.0 | https://creativecommons.org/publicdomain/zero/1.0/ | 5 |
+| public domain (a work of the US federal government) | https://commons.wikimedia.org/wiki/Template:PD-USGov | 2 |
+| CC BY 2.0 | https://creativecommons.org/licenses/by/2.0/ | 2 |
+| CC BY 4.0 | https://creativecommons.org/licenses/by/4.0/ | 2 |
+| CC BY-SA 2.0 | https://creativecommons.org/licenses/by-sa/2.0/ | 4 |
+| CC BY-SA 3.0 | https://creativecommons.org/licenses/by-sa/3.0/ | 4 |
+| CC BY-SA 4.0 | https://creativecommons.org/licenses/by-sa/4.0/ | 16 |
 
 | File | What it illustrates | Author | Licence | Source page |
 |---|---|---|---|---|
