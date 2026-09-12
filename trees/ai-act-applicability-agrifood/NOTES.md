@@ -18,10 +18,11 @@ The loader ignores this file, so you can write anything in it.
 trees/ai-act-applicability-agrifood/
   tree.yaml          the WHOLE Tree: the manifest, then one document per Node
   NOTES.md           this file (ignored by the loader)
+  images/            the 35 pictures the Nodes and Options show, with their credits
   theme/             the lab's look: the logo, the tab icon, the fonts and their licence
 ```
 
-There is no `images/` folder yet. See section 6. The `theme/` folder holds what the
+The `images/` folder holds the 35 pictures of section 6. The `theme/` folder holds what the
 manifest's `theme:` block names -- the ELSA-Lab logo, the favicon and three Open Sans
 files, downloaded from ai4sfs.org by issue #40 -- plus `LICENCE.md`, which states the
 terms of each and carries the three questions about the logo that only the owner can
@@ -159,29 +160,144 @@ numbered lists, and `[text](https://...)` links. Nothing else: no headings, no t
 raw HTML, no inline images. Write it as a YAML block scalar, which is the `|` you see
 after `en:` and `nl:`, and indent the text under it.
 
-## 6. Adding images
+## 6. The images, and how to replace one
 
-There are **no images in this Tree**. Every `images:` list is absent, which is how the
-format says "none". You add them, with their credits, as the core document (section 6)
-says you would:
+This Tree carries **35 pictures**, in `images/`. The core document (section 6) says you
+download them and place them yourself; you asked in issue #35 where they were, so issue
+#45 sourced them instead, under the rule recorded as open item **10.24**: every picture is
+**openly licensed** -- public domain, CC0, CC BY or CC BY-SA -- and **you may replace any
+of them at any time**. Nothing about them is legal content; they are there so the tool
+looks like a tool.
 
-1. create the folder `trees/ai-act-applicability-agrifood/images/`;
-2. put the file in it, with a lowercase name and no spaces, e.g. `annex-i-tractor.png`;
-3. add an `images:` list to the Node, or to the Option that should carry the picture:
+Where they hang:
+
+- **20** on the Options of the three `annex-i-legislation` steps -- one per piece of
+  Annex I legislation, showing what kind of product it covers (core document 3.3, 4a);
+- **8** on the Options of `annex-iii-areas` -- one per high-risk area (3.3, 4b);
+- **7** on the step Nodes themselves: `start`, `ai-system-definition`,
+  `prohibited-practices`, `annex-i-legislation`, `annex-iii-areas`, `general-purpose-ai`
+  and `transparency-obligations`. That is seven pictures for six steps because step 4 is
+  asked twice, once down each route, and each entry Node carries its own.
+
+Nothing else has a picture. The explanation Nodes, the Terminals and the seven
+jurisdiction sub-steps have none: 49 more pictures would be a second sourcing job with a
+worse fit, and a Terminal reads better without one.
+
+**How they were prepared.** Each file is the **500-pixel-wide rendering** Wikimedia
+Commons serves of the original, downloaded once and committed; nothing is fetched from
+Commons, or from anywhere else, while the app runs (core document 7 and 9). 500 pixels
+because the Carousel shows a thumbnail 136 pixels wide and the enlarged view is bounded by
+the viewport, so a wider file would cost the reader bytes it never shows. One file is
+narrower: `motor-vehicle-general-safety.jpg` is 396 pixels, because the original on
+Commons is 396 pixels and Commons serves the original rather than upscale it. It is the
+only picture that will look soft when enlarged; replace it if that bothers you. The result
+is **35 files, 1.9 MB in total, none over 120 KB**; the heaviest Node in the Tree
+(`annex-i-legislation`: its own picture and eight Options) asks for **9 files, 457 KB**.
+
+**To replace one**, put your file in `images/` with a lowercase name and no spaces and
+point the `images:` entry at it:
 
 ```yaml
 images:
-  - file: annex-i-tractor.png
-    description:
+  - file: annex-i-tractor.jpg
+    description:                        # at most 120 characters, both languages
       en: A tractor with an automated steering system
       nl: Een trekker met een automatisch stuursysteem
-    credit: "Photo: Name, CC BY 4.0"
+    credit: "Name, via where you got it, CC BY 4.0"
+    source: anx-i                       # optional: the id of a Source on the same Node
 ```
 
-`credit` is required on every image without exception, and the description is used as the
-alternative text. The natural places for them are the Options of `annex-i-legislation`
-(what kind of product each piece of legislation covers) and of `annex-iii-areas`, which is
-what the core document has in mind.
+`credit` is required on every image without exception, and it is reproduced as you write
+it. The `description` is the Carousel's caption and the alternative text a screen reader
+speaks, so write what the picture *shows*. Delete the whole `images:` list to leave a Node
+or an Option without a picture; an unused file in `images/` is not an error.
+
+**What a reader is shown of a credit today**, which is less than the format promises:
+
+- the **7 pictures on step Nodes**: the credit is in the enlarged view, so a reader sees it
+  only **after clicking** the thumbnail;
+- the **28 pictures on Options**: the credit is shown **nowhere on the page**. An Option's
+  picture sits inside the link that walks to its explanation, so clicking it walks on
+  rather than enlarging, and no part of the frontend draws an Option's credit.
+
+`docs/specs/tree-format.md` 5.2 promises more -- the credit "shown with it, in the Carousel
+and in the enlarged view" -- and the Carousel is issue #43, which is not built yet. Issue
+**#55** is the whole of this gap, Node thumbnails included, with a browser test that every
+picture's author, source and licence can be seen without a click. Until #55 is done,
+`docs/deployment.md` says this app must not be put in front of the public: 23 of the 28
+Option pictures are CC BY or CC BY-SA, and those licences ask for the attribution to be
+given where the work is shared. Inside this repository it **is** given -- in `tree.yaml`
+beside every picture, and in the table at the end of this section.
+
+**On CC BY-SA (24 of the 35: 16 at 4.0, 4 at 3.0, 4 at 2.0).** The owner accepted the
+family on 2026-09-12. Each picture is a separable work under its own licence; the
+resized copies in `images/` are adaptations and stay under that same licence, which the
+table below records per file. That does not decide the licence of this repository's code or
+of this Tree's text -- issue **#12** does -- and whatever is chosen there does not, and must
+not, claim these pictures.
+
+**The `source:` pointer.** Where a picture illustrates a legal Source the Node already
+cites, it names that Source's id: the step pictures point at the provision the step asks
+about (`art-2-1`, `art-3-1`, `art-5`, `art-6-1`, `art-6-2`, `art-3-63`, `art-50`), the
+Annex III pictures at `anx-iii`, and the Annex I pictures at `anx-i` -- except on step
+**2/3** of the Annex I list, which cites Article 3(14) and Article 6(1a) to (1c) rather
+than Annex I itself. Those seven Options carry no `source`, because the format only allows
+an Image to point at a Source on its own Node, and adding a Source to that Node would have
+been a content change this issue was not asked to make.
+
+### Where every picture came from
+
+Author, licence and page as Wikimedia Commons states them. The credit in `tree.yaml` is
+`<author>, via Wikimedia Commons, <licence>`. Seven licences occur; these are their texts,
+which is what the licence names in the table and in every credit refer to:
+
+| Licence | Its text | Pictures |
+|---|---|---|
+| CC0 1.0 | https://creativecommons.org/publicdomain/zero/1.0/ | 5 |
+| public domain (a work of the US federal government) | https://commons.wikimedia.org/wiki/Template:PD-USGov | 2 |
+| CC BY 2.0 | https://creativecommons.org/licenses/by/2.0/ | 2 |
+| CC BY 4.0 | https://creativecommons.org/licenses/by/4.0/ | 2 |
+| CC BY-SA 2.0 | https://creativecommons.org/licenses/by-sa/2.0/ | 4 |
+| CC BY-SA 3.0 | https://creativecommons.org/licenses/by-sa/3.0/ | 4 |
+| CC BY-SA 4.0 | https://creativecommons.org/licenses/by-sa/4.0/ | 16 |
+
+| File | What it illustrates | Author | Licence | Source page |
+|---|---|---|---|---|
+| `toys.jpg` | Annex I: safety of toys | Gausanchennai | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Wooden_toy_models.jpg |
+| `recreational-craft.jpg` | Annex I: recreational craft | Pjotr Mahhonin | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Akka_Sailing_Yacht_leaving_Old_City_Marina_Tallinn_24_July_2017.jpg |
+| `lifts.jpg` | Annex I: lifts | Edward Orde | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Destination_control_elevator_interior_2.jpg |
+| `explosive-atmospheres.jpg` | Annex I: equipment for explosive atmospheres | TheTechnician27 | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Gifford,_IL_silo_and_grain_elevator.jpg |
+| `radio-equipment.jpg` | Annex I: radio equipment | USDAgov | public domain | https://commons.wikimedia.org/wiki/File:Drought_Mitigation_-_Reiter_Berry_Farms_-_Wireless_Irrigation_monitoring_Network_(20150827-NRCS-LSC-0258).jpg |
+| `pressure-equipment.jpg` | Annex I: pressure equipment | Exit2dos2000 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Pressure_Vessel.jpg |
+| `cableway-installations.jpg` | Annex I: cableway installations | Yamen | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:First_cable_Car_to_Vogel_Ski_Resort.jpg |
+| `personal-protective-equipment.jpg` | Annex I: personal protective equipment | Protectepi | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Standard_PPE.jpg |
+| `gas-appliances.jpg` | Annex I: appliances burning gaseous fuels | Oleg Bor | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Gas_boiler_at_school._Buryatia,_Russia.jpg |
+| `medical-devices.jpg` | Annex I: medical devices | DiverDave | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:PCA-01.JPG |
+| `ivd-medical-devices.jpg` | Annex I: in vitro diagnostic medical devices | Goleisureintl | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Clinical_Pathology_Blood_Testing_Laboratory_in_Navi_Mumbai,_India.jpg |
+| `civil-aviation-security.jpg` | Annex I: civil aviation security | Michael Ball | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Transportation_Security_Administration_Checkpoint_at_John_Glenn_Columbus_International_Airport.jpg |
+| `two-or-three-wheel-vehicles.jpg` | Annex I: two- or three-wheel vehicles and quadricycles | Norbert Nagel | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:ATV_-_Quad_-_SYM_Quadlander_200_-_Santorini_-_Greece_-_01.jpg |
+| `agricultural-vehicles.jpg` | Annex I: agricultural and forestry vehicles | Petar Milošević | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Tractor_New_Holland_T6.165_plowing_(Zadobrova,_Ljubljana).jpg |
+| `marine-equipment.jpg` | Annex I: marine equipment | Christian Ferrer | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Gulls_over_a_fishing_trawler,_S%C3%A8te_01.jpg |
+| `rail-interoperability.jpg` | Annex I: interoperability of the rail system | Philip Mallis | CC BY-SA 2.0 | https://commons.wikimedia.org/wiki/File:Siemens_train_772M_departing_Platform_2_at_Sunshine_Railway_Station_running_a_Down_service_to_Sunbury.jpg |
+| `motor-vehicle-approval.jpg` | Annex I: approval of motor vehicles and their trailers | TCExplorer | CC BY-SA 2.0 | https://commons.wikimedia.org/wiki/File:M%C3%BCller_milk_tanker_in_Longnor_-_geograph.org.uk_-_7919111.jpg |
+| `motor-vehicle-general-safety.jpg` | Annex I: type-approval of motor vehicles, general safety | Hans Haase | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Verkehrszeichenerkennung_IMG_6859.JPG |
+| `unmanned-aircraft.jpg` | Annex I: civil aviation, unmanned aircraft | Shreesha Sharma | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Agricultural_drone_spraying_on_paddy_field.jpg |
+| `machinery.jpg` | Annex I: machinery | .Anja. | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Cow_in_milking_robot_01.jpg |
+| `biometrics.jpg` | Annex III 1: biometrics | Patrick H~ | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Fraunhofer_-_Face_Detection_-_4406340595.jpg |
+| `critical-infrastructure.jpg` | Annex III 2: critical infrastructure | Matthew T Rader | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Transmission_towers_at_sunset_in_East_Texas.jpg |
+| `education.jpg` | Annex III 3: education and vocational training | Michael Surran | CC BY-SA 2.0 | https://commons.wikimedia.org/wiki/File:Students_taking_computerized_exam.jpg |
+| `employment.jpg` | Annex III 4: employment and workers management | USDAgov | public domain | https://commons.wikimedia.org/wiki/File:Lewis_Taylor_Farms_seven_months_after_Hurricane_Michael_(20190507-OSEC-LSC-0555).jpg |
+| `essential-services.jpg` | Annex III 5: essential private and public services | Raymond Wambsgans | CC BY-SA 2.0 | https://commons.wikimedia.org/wiki/File:Cleveland_Ohio_Emergency_medical_Service_International_Ambulance_(14014739819).jpg |
+| `law-enforcement.jpg` | Annex III 6: law enforcement | Maksim Sokolov | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Three_Toronto_police_officers.jpg |
+| `migration-and-borders.jpg` | Annex III 7: migration, asylum and border control | PESP / Bonus bon | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Zurich_International_Airport_e-Passport_control_gates.jpg |
+| `justice-and-democracy.jpg` | Annex III 8: administration of justice and democratic processes | Michael D Beckwith | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Beverley_Guildhall_Courtroom.jpg |
+| `step-jurisdiction.jpg` | Step 1: jurisdictional scope | Ssolbergj and Moonraker | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Member_States_of_the_European_Union_(polar_stereographic_projection)_2020_EN.jpg |
+| `step-ai-system.jpg` | Step 2: is it an AI system | Max Gruber | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Ceci_n%27est_pas_une_banane_by_Max_Gruber.jpg |
+| `step-prohibited-practices.jpg` | Step 3: prohibited practices | Tiia Monto | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Prohibition_signs_in_Prague.jpg |
+| `step-annex-i.jpg` | Step 4a: the Annex I route | Shixart1985 | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Emergency_stop_button_on_a_control_panel_in_a_factory.jpg |
+| `step-annex-iii.jpg` | Step 4b: the Annex III route | Olga Ernst | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:High_Risk_Accident_Zone,_B2_road_Namibia.jpg |
+| `step-general-purpose-ai.jpg` | Step 5: general-purpose AI | Derrick Coetzee | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Technician_with_laptop_working_on_server_rack_at_NERSC.jpg |
+| `step-transparency.jpg` | Step 6: transparency obligations | piqsels | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Piqsels.com-id-zbxec.jpg |
 
 ## 7. The Sources, and the URL language decision
 

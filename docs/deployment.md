@@ -26,6 +26,16 @@ The shape on disk, for both:
 
 ---
 
+## Before it goes public
+
+**Precondition, owner's decision on PR #54:** this application must not be put in front of
+the public until every picture shows its credit where it appears -- the Option pictures in
+the Carousel (issue #43) and the Node thumbnails on the page itself (issue #55) -- because
+most of the first Tree's pictures are licensed on the condition that the attribution is
+shown wherever the picture is.
+
+---
+
 ## Configuration
 
 Everything a deployment decides is an environment variable. There is no configuration file
