@@ -16,7 +16,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, test } from 'vitest'
 import { openTree, type Tree } from '../src/tree/loader.ts'
-import type { Node } from '../src/tree/types.ts'
+import type { Image, Node } from '../src/tree/types.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const treeDir = path.join(here, '..', 'trees', 'ai-act-applicability-agrifood')
@@ -81,6 +81,30 @@ const JURISDICTION_STEPS = [
 /** The steps a list too long for one Node is spread over (format 5.7: at most 8 Options). */
 const PROHIBITED_STEPS = ['prohibited-practices', 'prohibited-practices-2'] as const
 const ANNEX_I_STEPS = ['annex-i-legislation', 'annex-i-legislation-2', 'annex-i-legislation-3'] as const
+
+/** The Node a reader meets each step at; step 4 has one per route (#45 puts a picture on each). */
+const STEP_NODES = [
+  'start',
+  'ai-system-definition',
+  'prohibited-practices',
+  'annex-i-legislation',
+  'annex-iii-areas',
+  'general-purpose-ai',
+  'transparency-obligations',
+] as const
+
+/** The licences issue #45 sourced under: public domain, CC0, CC BY and CC BY-SA. */
+const OPEN_LICENCE = /CC0 1\.0|CC BY(-SA)? [0-9.]+|public domain/
+
+/** Every Image in the Tree, on a Node or on an Option, each with where it hangs. */
+function everyImage(): { where: string; image: Image }[] {
+  return [...nodes.values()].flatMap((node) => [
+    ...node.images.map((image) => ({ where: `${node.id}.images[${image.file}]`, image })),
+    ...node.options.flatMap((option) =>
+      option.images.map((image) => ({ where: `${node.id} -> ${option.target} [${image.file}]`, image })),
+    ),
+  ])
+}
 
 /** A Node's description in one language, unwrapped, so an assertion does not depend on where it wraps. */
 const unwrapped = (id: string, lang: string): string => nodes.get(id)!.description[lang]!.replace(/\s+/g, ' ')
@@ -330,10 +354,43 @@ describe('the content of the first Tree', () => {
       for (const [id, node] of nodes) expect(node.metadata.version, id).toBe('0.2')
     })
 
-    test('no Node carries an Image: the owner adds them (core document section 6)', () => {
-      for (const [id, node] of nodes) {
-        expect(node.images, id).toHaveLength(0)
-        for (const option of node.options) expect(option.images, `${id} option ${option.title.en}`).toHaveLength(0)
+  })
+
+  describe('the pictures: every list entry shows what it covers, every credit names a licence', () => {
+    // Issue #45 replaces the assertion that this Tree carries no Image at all. That was true
+    // of the Tree issue #10 authored and was written when the core document still had the
+    // owner placing every picture by hand (section 6); the owner asked in #35 where the
+    // images were, and open item 10.24 answers that the agents source them and the owner
+    // replaces any of them at will. The three tests below are what the old one becomes.
+
+    test('every Annex I and Annex III Option carries at least one Image', () => {
+      // Core document 3.3, items 4a and 4b: each piece of Annex I legislation is an Option
+      // "with an image showing what kind of product it covers", and each Annex III area is
+      // "an Option with an image". The Annex I list spans three Nodes since #44.
+      for (const id of [...ANNEX_I_STEPS, 'annex-iii-areas']) {
+        for (const option of nodes.get(id)!.options) {
+          expect(option.images.length, `${id} -> ${option.target} carries no Image`).toBeGreaterThan(0)
+        }
+      }
+    })
+
+    test('every step Node carries an Image of what the step asks about', () => {
+      // Seven Nodes for six steps: step 4 asks its question twice, once down the Annex I
+      // route and once down the Annex III route, and each entry Node carries its own picture.
+      for (const id of STEP_NODES) {
+        expect(nodes.get(id)!.images.length, `${id} carries no Image`).toBeGreaterThan(0)
+      }
+    })
+
+    test("every Image's credit names an open licence, and an attribution besides it", () => {
+      // The rule the sourcing of #45 worked under: openly licensed only, and the credit says
+      // which licence, next to the author and where the picture came from. `credit` is
+      // required by the format (tree-format.md 5.2); what it must SAY is this issue's rule,
+      // so it is checked here and not in the loader, which serves every Tree.
+      for (const { where, image } of everyImage()) {
+        expect(image.credit, `${where}: credit names no licence`).toMatch(OPEN_LICENCE)
+        const attribution = image.credit.replace(OPEN_LICENCE, '').replace(/[,\s]+/g, ' ').trim()
+        expect(attribution, `${where}: credit is a licence and nothing else`).not.toBe('')
       }
     })
   })
