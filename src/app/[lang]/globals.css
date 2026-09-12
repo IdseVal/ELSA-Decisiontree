@@ -243,9 +243,115 @@ a.language:hover,
     "carousel carousel carousel carousel carousel carousel carousel";
 }
 
-/* The Carousel's row (#43): empty, and the same height, so the Bubble never moves. */
+/* The Carousel's row (#43): on every Node, and the same height, so the Bubble never moves. */
 .carousel {
   grid-area: carousel;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+/*
+ * Until #43 draws the Carousel, the Node's Images are plain thumbnails where its strip will
+ * be: 60 pixels, the strip's own size (12.2), ten of them 672 wide in the 80-pixel row. Each
+ * opens the enlarged view with the Image's description and credit, so no credit is out of
+ * reach before the Carousel lands (the owner, PR #56). Where step 2 shrinks the row to 28,
+ * they shrink to 24, still ten in 276 pixels: reachable at every size, never a control.
+ */
+.images ul {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.thumbnail {
+  display: block;
+  line-height: 0;
+  border-radius: 8px;
+}
+
+.thumbnail img {
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--elsa-surface);
+  transition: opacity 160ms var(--ease);
+}
+
+.thumbnail:hover img {
+  opacity: 0.82;
+}
+
+/* The enlarged view: bounded to the viewport, so it never scrolls either (10.6, 12.3). */
+.enlarged {
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 24px;
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
+  overflow: hidden;
+}
+
+.enlarged::backdrop {
+  background: var(--veil);
+}
+
+.enlarged figure {
+  margin: 0;
+}
+
+.enlarged img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 50vh;
+  margin: 0 auto;
+}
+
+.enlarged figcaption {
+  padding: 12px 24px 0;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  text-align: center;
+}
+
+.enlarged figcaption p {
+  margin: 0;
+}
+
+.enlarged .credit {
+  margin-top: 4px;
+  color: var(--elsa-text-muted);
+}
+
+.enlarged form {
+  margin: 0;
+  padding: 12px 24px 16px;
+  text-align: center;
+}
+
+.close {
+  padding: 3px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font: inherit;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.close:hover {
+  border-color: var(--accent-secondary-read);
 }
 
 /* --- the Branches ------------------------------------------------------------------ */
@@ -923,6 +1029,20 @@ a.language:hover,
 @media (max-height: 619px), (max-width: 791px) {
   :root {
     --carousel-row: 28px;
+  }
+
+  .images ul {
+    gap: 4px;
+  }
+
+  .thumbnail,
+  .thumbnail img {
+    border-radius: 4px;
+  }
+
+  .thumbnail img {
+    width: 24px;
+    height: 24px;
   }
 }
 

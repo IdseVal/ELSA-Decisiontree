@@ -33,8 +33,10 @@ export function Branch({
   return (
     <a className={`branch ${className}`} href={href} rel={rel}>
       {image && (
+        // `option-image` is the name the first Tree's walk (tests/first-tree/walk.spec.ts,
+        // PR #54) finds an Option's picture by; the Branch is the only one that carries one.
         <img
-          className="branch-image"
+          className="branch-image option-image"
           src={image.src}
           alt={image.alt}
           width={64}

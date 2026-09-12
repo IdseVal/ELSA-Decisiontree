@@ -113,19 +113,37 @@ describe('the tree layer', () => {
     expect(order).toEqual([...order].sort((a, b) => a - b))
   })
 
-  test('the Carousel row is present and empty on every Node, so the Bubble never moves (12.1)', async () => {
-    for (const url of ['/ai-act-example/start', '/ai-act-example/covered', '/ai-act-example/social-scoring']) {
+  test('the Carousel row is present on every Node, empty where the Node has no Images, so the Bubble never moves (12.1)', async () => {
+    for (const url of ['/ai-act-example/covered', '/ai-act-example/social-scoring']) {
       expect(await view(url), url).toContain('<div class="carousel"></div>')
     }
+    expect(await view('/ai-act-example/start')).toContain('<div class="carousel"><section class="images"')
   })
 
-  test("the Node's own Images are not on the page until #43 draws the Carousel; an Option's thumbnail is", async () => {
-    // `start` carries eu-map.png as its Image; `prohibited-practices` carries scoreboard.png
-    // on an Option. Only the second is a picture of this Node's Branches (10.3).
-    expect(await view('/ai-act-example/start')).not.toContain('/images/')
-    expect(await view('/ai-act-example/prohibited-practices')).toContain(
-      '<img class="branch-image" src="/images/scoreboard.png" alt="A scoreboard ranking people"',
+  test("the Node's own Images are thumbnails in the Carousel row until #43 draws the Carousel, each a link to its file with the enlarged view behind it", async () => {
+    // `start` carries eu-map.png as its Image. The owner (PR #56): what 0.1 showed stays
+    // reachable, picture and credit, until the Carousel lands.
+    const html = await view('/ai-act-example/start')
+    const row = part(html, 'div', 'carousel')
+
+    expect(row).toContain('<span hidden="" id="images-label">Images</span>')
+    expect(row).toContain(
+      '<a class="thumbnail" href="/images/eu-map.png" aria-label="Enlarge: Map of the European Union member states">' +
+        '<img src="/images/eu-map.png" alt="Map of the European Union member states" width="60" height="60" loading="lazy"/></a>',
     )
+    // The enlarged view is on the page, closed and empty: the credit is drawn when it opens.
+    expect(row).toContain('<dialog class="enlarged" aria-labelledby="enlarged-description">')
+    expect(row).toContain('<button class="close">Close</button>')
+    expect(row).not.toContain('Example Cartography')
+  })
+
+  test("an Option's thumbnail is on its Branch, not in the Carousel row (10.3, 12.1)", async () => {
+    // `prohibited-practices` carries scoreboard.png on an Option and no Image of its own.
+    const html = await view('/ai-act-example/prohibited-practices')
+    expect(html).toContain(
+      '<img class="branch-image option-image" src="/images/scoreboard.png" alt="A scoreboard ranking people"',
+    )
+    expect(html).toContain('<div class="carousel"></div>')
   })
 
   test('carries the notice for a window below the floor, for the stylesheet to show (10.4)', async () => {
@@ -238,7 +256,7 @@ describe('a question Node with Options', () => {
     const html = await view('/full-node/full')
     const first = part(html, 'ul', 'options options--left')
 
-    expect(first).toContain('<img class="branch-image" src="/images/one.png" alt="Option one, first picture" width="64" height="64" loading="lazy"/>')
+    expect(first).toContain('<img class="branch-image option-image" src="/images/one.png" alt="Option one, first picture" width="64" height="64" loading="lazy"/>')
     expect(first).not.toContain('/images/two.png')
   })
 

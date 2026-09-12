@@ -7,8 +7,8 @@
  *
  * Everything between the chrome bar and the disclaimer is one element, the tree layer, so
  * that the transitions of section 11 (#42) can move the whole tree with one transform. The
- * Carousel's row (#43) is present and empty, so the Bubble sits in the same place on every
- * Node.
+ * Carousel's row (#43) is present on every Node, so the Bubble sits in the same place; until
+ * #43 draws the Carousel it holds the Node's Images as plain thumbnails (`Thumbnails.tsx`).
  *
  * Below the guaranteed viewport the layout gives things up in the order of 10.5, and each
  * thing it gives up stays reachable behind one control that opens a Sheet. The full group
@@ -26,6 +26,7 @@ import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '..
 import { Branch } from './Branch.tsx'
 import { Bubble, sheetWords } from './Bubble.tsx'
 import { Sheet } from './Sheet.tsx'
+import { Thumbnails } from './Thumbnails.tsx'
 
 /** How many Trail Branches carry a title at the guaranteed viewport (10.2). */
 const TRAIL_SHOWN = 5
@@ -61,8 +62,20 @@ export function TreeView({ node, address, tree }: { node: Node; address: PageAdd
         <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
         {node.options.length > 0 && <Options node={node} view={view} />}
         <Answers node={node} view={view} />
-        {/* The Carousel's row (section 12, issue #43): empty, so the Bubble never moves. */}
-        <div className="carousel" />
+        {/* The Carousel's row (section 12, issue #43), on every Node, so the Bubble never moves. */}
+        <div className="carousel">
+          {node.images.length > 0 && (
+            <Thumbnails
+              images={node.images.map((image) => ({
+                href: imageHref(image.file),
+                description: text(image.description, lang, `${node.id}.images[${image.file}].description`),
+                credit: image.credit,
+              }))}
+              words={{ images: view.ui.images, enlarge: view.ui.enlarge, close: view.ui.close, credit: view.ui.credit }}
+              uiLang={view.uiLang}
+            />
+          )}
+        </div>
       </div>
       {/* Shown instead of the tree view below the floor of 10.4; the stylesheet decides. */}
       <p className="minimum-size" lang={view.uiLang}>

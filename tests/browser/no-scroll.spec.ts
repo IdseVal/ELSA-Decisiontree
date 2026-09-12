@@ -186,9 +186,11 @@ function assertFits(m: Measured, where: string): void {
 
 /**
  * Measures `url` at every viewport, plain and then with each Sheet the page offers there
- * open, and records every measurement. `what` and `lang` name the rows.
+ * open -- and, where the Node has Images and the script runs, with the enlarged view open --
+ * and records every measurement. `what` and `lang` name the rows. `script` is false in the
+ * no-JavaScript runs, where a thumbnail is a link to the file and opens nothing in place.
  */
-async function measureEverywhere(page: Page, url: string, what: string, lang: string): Promise<void> {
+async function measureEverywhere(page: Page, url: string, what: string, lang: string, script = true): Promise<void> {
   for (const [width, height] of VIEWPORTS) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
@@ -212,7 +214,30 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
       const open = await measure(page)
       rows.push({ page: what, lang, viewport, sheet: kind, measured: open })
       assertFits(open, `${what} (${lang}) at ${viewport} with the ${kind} open`)
+
+      // Without the script a long list is pages of native disclosures (section 14): each
+      // page turned in its turn, and measured.
+      const more = sheet.locator('.sheet-more:not([open]) > summary')
+      for (let turned = 1; (await more.count()) > 0; turned += 1) {
+        await more.first().click()
+        const turned_ = await measure(page)
+        rows.push({ page: what, lang, viewport, sheet: `${kind}, page ${turned + 1}`, measured: turned_ })
+        assertFits(turned_, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
+      }
       await closeSheet(sheet)
+    }
+
+    // The enlarged view of the Node's first Image (12.3), where there is one to open.
+    const thumbnail = page.locator('.thumbnail').first()
+    if (script && (await thumbnail.isVisible())) {
+      await thumbnail.click()
+      const enlarged = page.locator('dialog.enlarged')
+      await expect(enlarged).toBeVisible()
+      const open = await measure(page)
+      rows.push({ page: what, lang, viewport, sheet: 'enlarged', measured: open })
+      assertFits(open, `${what} (${lang}) at ${viewport} with the enlarged view open`)
+      await page.keyboard.press('Escape')
+      await expect(enlarged).toBeHidden()
     }
   }
 }
@@ -290,7 +315,24 @@ test.describe('with JavaScript switched off', () => {
   for (const { what, url } of EXAMPLE_PAGES) {
     test(`${what} never scrolls without JavaScript`, async ({ page }) => {
       test.slow()
-      await measureEverywhere(page, url, `${what}, no JavaScript`, 'en')
+      await measureEverywhere(page, url, `${what}, no JavaScript`, 'en', false)
+    })
+  }
+
+  // The one Sheet the script pages: without it the 49 entries are pages of disclosures,
+  // and each page has to fit the narrowest viewport above the floor (10.2, 10.6, 14).
+  for (const lang of LANGUAGES) {
+    test(`the full Node at a 49-entry Trail, ${lang}, never scrolls without JavaScript`, async ({ page }) => {
+      test.slow()
+      const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 2)
+      expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+      await measureEverywhere(
+        page,
+        `${origin}${inLang(FULL_NODE_URL, lang)}`,
+        'full Node, 49-entry Trail, no JavaScript',
+        lang,
+        false,
+      )
     })
   }
 })
