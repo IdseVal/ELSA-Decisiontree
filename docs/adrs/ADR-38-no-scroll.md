@@ -1,6 +1,6 @@
 # ADR-38-no-scroll: the layout is guaranteed at 1280 x 640, below that it gives things up in a fixed order rather than handing out a scrollbar, and a browser test measures scrollHeight at ten viewports on every kind of Node
 
-- Status: ACCEPTED (frozen) -- 2026-09-10
+- Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 by issue #41 (below)
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 10.4, 10.5, 10.6, 10.7
 - Core document: 3.2, section 9 ("the page must never scroll"), open item **10.22**
@@ -92,3 +92,36 @@ a browser can.
   on issue #37 with a new format number -- not a scrollbar.
 - Issue #41 implements seven named degradation steps in order, not media queries of its
   own choosing.
+
+## Amendment, 2026-09-12 (issue #41, the build)
+
+Four things the build had to decide in a stylesheet are recorded here so that they are
+the contract and not an implementation detail (`application.md` 10.4, 10.5, 10.7, 14).
+
+- **Decision 2, the floor.** The floor itself shows the notice: a viewport **320 pixels
+  wide or 480 pixels tall shows `minimumSize` whatever its other dimension** -- a
+  1280 x 480 window as much as a 320 x 900 one -- because the order of decision 3 has
+  nothing left to give up at that height or width. 10.4 read "down to 320 x 480" for the
+  tree view and 10.6 "the floor: the notice"; 10.6's reading is the one built and
+  measured, and 10.4 now says so.
+- **Decision 3, step 1 at phone width.** Below 480 pixels of width the Trail row is 30
+  pixels and gives up the parent's title as well: the row is `trailMore(n)` alone, `n`
+  the whole Trail, the parent the first entry of the Trail Sheet and, below an
+  explanation Node or a Terminal, the `back` Branch. A parent Branch holding an
+  80-character title needs three lines of 20, which the row cannot hold and 10.2 does
+  not let it truncate; on a question Node at that width the parent's title is one
+  control away. At the same width the rim narrows to 22 by 10 pixels with the badge's
+  and the hint's band kept per kind of Node. It is the one addition to the seven steps.
+- **Decision 4, the Sheet without JavaScript.** A Sheet's list longer than one page of
+  eight -- the 49-entry Trail -- is pages of nested native disclosures when no script
+  runs: `next` opens the next page and the stylesheet hides the page before it, so no
+  panel is ever asked to hold 49 links in a 360-pixel window. With the script the pages
+  are the `previous` and `next` buttons of 10.2. Decision 5's test measures the
+  no-script Trail Sheet page by page at every viewport, and the enlarged view of the
+  interim thumbnails (`ADR-38-tree-view.md`, amendment) wherever a Node has an Image.
+- **Decision 6, the face.** The widths of `application.md` 10.7 are re-derived in DejaVu
+  Sans, the widest fallback body face, and hold there for every row but the Bubble's text
+  area, which is 20 pixels short of the format's maximum in that face -- `tree-format.md`
+  5.7's own caveat for a wide body font. So the default type stack (13.4, `src/theme.ts`)
+  names Arial-metric faces before `sans-serif`, and a machine with no desktop face gets
+  Liberation Sans, in which the maximum fits with 4 pixels to spare in Dutch.

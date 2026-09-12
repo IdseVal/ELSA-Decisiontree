@@ -113,7 +113,11 @@ function pageUrl(visited: string[], lang: Lang): string {
 }
 
 async function clickAnswer(page: Page, lang: Lang, which: 'yes' | 'no'): Promise<void> {
-  await page.getByRole('link', { name: CHROME[lang][which], exact: true }).click()
+  // An Answer Branch is named by its chrome word and its target's title (application.md
+  // 10.3), so the word is checked and the class is what is clicked.
+  const answer = page.locator(`.answer--${which}`)
+  await expect(answer.locator('.branch-word')).toHaveText(CHROME[lang][which])
+  await answer.click()
 }
 
 /**
@@ -140,8 +144,8 @@ for (const [target, steps] of Object.entries(WALKS)) {
     // Answers, or the walk would be stuck at a Node that is not marked as an ending.
     const isTerminal = TERMINALS.includes(target)
     await expect(page.locator('.outcome')).toHaveCount(isTerminal ? 1 : 0)
-    await expect(page.getByRole('link', { name: CHROME.en.yes, exact: true })).toHaveCount(isTerminal ? 0 : 1)
-    await expect(page.getByRole('link', { name: CHROME.en.no, exact: true })).toHaveCount(isTerminal ? 0 : 1)
+    await expect(page.locator('.answer--yes')).toHaveCount(isTerminal ? 0 : 1)
+    await expect(page.locator('.answer--no')).toHaveCount(isTerminal ? 0 : 1)
   })
 }
 

@@ -1,5 +1,6 @@
 import { chrome, chromeLanguage } from '../../chrome.ts'
 import { Disclaimer } from '../../components/Disclaimer.tsx'
+import { Logo } from '../../components/Logo.tsx'
 import { servedTree } from '../../config.ts'
 import { rootHref } from '../../url.ts'
 
@@ -27,16 +28,25 @@ export default async function NotFound() {
   const ui = chrome(lang)
   return (
     <>
+      {/* The chrome bar of the Node page, less its controls: the body's first grid row is
+          its height (10.1), and a page without one would be laid out from the wrong row. */}
+      <header className="page-chrome">
+        <Logo theme={tree.manifest.theme} title={tree.manifest.title} lang={tree.manifest.defaultLanguage} />
+      </header>
       <main lang={lang}>
-        <article className="node">
-          <h1>{ui.notFoundTitle}</h1>
-          <p className="prose">{ui.notFoundText}</p>
-          <div className="answers">
-            <a className="answer answer--yes" href={rootHref(tree, tree.manifest.defaultLanguage)}>
-              {ui.start}
-            </a>
+        <article className="bubble bubble--notice">
+          <div className="bubble-text">
+            <h1>{ui.notFoundTitle}</h1>
+            <p className="prose">{ui.notFoundText}</p>
           </div>
         </article>
+        <div className="answers">
+          <a className="branch answer answer--yes" href={rootHref(tree, tree.manifest.defaultLanguage)}>
+            <span className="branch-label">
+              <span className="branch-title">{ui.start}</span>
+            </span>
+          </a>
+        </div>
       </main>
       <Disclaimer lang={lang} />
     </>

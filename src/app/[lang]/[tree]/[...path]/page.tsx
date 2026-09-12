@@ -1,17 +1,19 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { chrome, chromeLang, text } from '../../../../chrome.ts'
 import { Disclaimer } from '../../../../components/Disclaimer.tsx'
 import { LanguageSwitch } from '../../../../components/LanguageSwitch.tsx'
 import { Logo } from '../../../../components/Logo.tsx'
-import { NodeView, text } from '../../../../components/NodeView.tsx'
+import { ShareButton, type ShareWords } from '../../../../components/ShareButton.tsx'
+import { TreeView } from '../../../../components/TreeView.tsx'
 import { publicBaseUrl, servedTree } from '../../../../config.ts'
 import type { Tree } from '../../../../tree/loader.ts'
 import { canonicalHref, parseUrl, type PageAddress } from '../../../../url.ts'
 
 /**
  * The Node page, `/<tree-id>/<...trail>/<node-id>` (docs/specs/application.md 4.1). The
- * route parses the address, reads exactly one Node file and hands both to the view;
- * everything else about how a Node looks is in `src/components/`.
+ * route parses the address, reads exactly one Node and hands it to the tree view with the
+ * Tree's index; everything else about how a Node looks is in `src/components/`.
  */
 interface Props {
   params: Promise<{ lang: string; tree: string; path: string[] }>
@@ -37,21 +39,23 @@ export default async function NodePage(props: Props) {
           title={found.tree.manifest.title}
           lang={found.address.lang}
         />
-        <LanguageSwitch address={found.address} languages={found.tree.manifest.languages} />
+        <div className="page-controls">
+          <LanguageSwitch address={found.address} languages={found.tree.manifest.languages} />
+          <ShareButton ui={shareWords(found.address.lang)} uiLang={chromeLang(found.address.lang)} />
+        </div>
       </header>
       <main>
-        <NodeView
-          node={node}
-          address={found.address}
-          rootId={found.tree.manifest.root}
-          // From the in-memory index, so the Trail costs no second file read (5.1). Every
-          // id is there: `parseUrl` accepted the address only because the index knew them.
-          trailTitles={found.address.trail.map((id) => found.tree.getTitle(id)!)}
-        />
+        <TreeView node={node} address={found.address} tree={found.tree} />
       </main>
       <Disclaimer lang={found.address.lang} />
     </>
   )
+}
+
+/** What the share button says, in the chrome language of the page. */
+function shareWords(lang: string): ShareWords {
+  const { share, copied, copyFailed } = chrome(lang)
+  return { share, copied, copyFailed }
 }
 
 /**

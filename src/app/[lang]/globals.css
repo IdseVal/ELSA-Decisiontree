@@ -1,49 +1,73 @@
 /*
- * The stylesheet. One idea carries the design: a hairline SPINE down the left of the
- * column, from which every part of the Node hangs by a short tick. It is the walk drawn as
- * a line -- the same line the Trail rises along -- and it is why the page needs no boxes,
- * cards or dividers to be readable.
+ * The stylesheet: the tree view of docs/specs/application.md section 10, drawn.
+ *
+ * ONE SCREEN, SIX ROWS, NOTHING OUTSIDE THEM. The page is a grid whose rows are known before
+ * any content is measured: chrome bar 44, Trail 64, the middle 360, Answers 64, Carousel 80,
+ * disclaimer 28 -- the vertical budget of tree-format.md 5.7, which is where every length
+ * limit of the format comes from. `html` and `body` are the viewport with `overflow: hidden`
+ * (10.6); nothing here may be taller or wider than the box it is in, and
+ * tests/browser/no-scroll.spec.ts measures every element to make sure.
+ *
+ * The Bubble is the one idea. It is round, it holds the Node, and everything else is a
+ * Branch drawn relative to it: the Trail above on one hairline, the Options beside on short
+ * ticks, the Answers below. Below the guaranteed viewport of 1280 x 640 the layout gives
+ * things up in the fixed order of 10.5 -- the Trail, the Carousel, the Option columns, the
+ * Options, the Sources, the type size, and only then the whole view -- each step a media
+ * query at the bottom of this file, in that order, and never a scrollbar.
  *
  * NOTHING HERE NAMES A COLOUR OR A FONT. Both come from the Tree, as the seven `--elsa-*`
  * roles and the two `--elsa-font-*` stacks that `src/theme.ts` emits into the document
- * (docs/specs/application.md 13; ADR-38-theme-delivery). That is core document section 9's
- * "the frontend must never carry a lab's branding in its code", and `stylesheet.test.ts`
- * is what keeps it true. Every shade this design wants beyond the seven -- a rule, a wash,
- * a backdrop -- is mixed from them here, in CSS, with `color-mix()`.
+ * (section 13). Every shade this design wants beyond the seven -- a rule, a wash -- is
+ * mixed from them here with `color-mix()`, and `stylesheet.test.ts` keeps it that way.
  */
 
 :root {
-  /*
-   * The derived shades. A hairline and a wash are a proportion of colours the Theme
-   * already chose, so a Tree that changes its palette changes these with it.
-   */
-  --rule: color-mix(in srgb, var(--elsa-text) 16%, transparent);
-  --wash: color-mix(in srgb, var(--elsa-accent) 16%, var(--elsa-background));
+  /* The derived shades: a proportion of colours the Theme chose, so they follow its palette. */
+  --rule: color-mix(in srgb, var(--elsa-text) 18%, transparent);
+  --rule-soft: color-mix(in srgb, var(--elsa-text) 9%, transparent);
+  --wash: color-mix(in srgb, var(--elsa-accent) 14%, var(--elsa-background));
   --wash-secondary: color-mix(in srgb, var(--elsa-accent-secondary) 14%, var(--elsa-background));
+  --veil: color-mix(in srgb, var(--elsa-scrim) 72%, transparent);
   /*
-   * The backdrop behind the enlarged Image. It is keyed to `--elsa-scrim` -- the dark end
-   * of the palette, chosen in theme.ts because CSS cannot compare luminance -- and not to
-   * `--elsa-text`: a scrim's whole job is to recede, and on a dark Theme a text-coloured
-   * one is a near-white sheet with the dialog floating on top of it. Mixing cannot reach
-   * past the darkest colour the Theme owns, so on a dark palette the veil meets the page
-   * rather than dimming it further; the dialog's `--elsa-surface` is what lifts it.
-   */
-  --veil: color-mix(in srgb, var(--elsa-scrim) 78%, transparent);
-
-  /*
-   * A fill colour as a READING colour. `accent`, `accent-secondary` and `danger` are
-   * chosen to be seen as a fill and may be far too light to read as text on the page --
-   * the first Tree's yellow is 1.6:1 on its own white background. Mixing one towards the
-   * palette's own text colour keeps its hue and buys the contrast back, in whichever
-   * direction the palette runs.
+   * A fill colour as a READING colour: an accent chosen to be seen as a fill may be far too
+   * light to read as text. Mixing it towards the palette's own text colour keeps the hue
+   * and buys the contrast back, whichever way the palette runs.
    */
   --accent-read: color-mix(in srgb, var(--elsa-accent) 45%, var(--elsa-text));
   --accent-secondary-read: color-mix(in srgb, var(--elsa-accent-secondary) 65%, var(--elsa-text));
   --danger-read: color-mix(in srgb, var(--elsa-danger) 70%, var(--elsa-text));
 
-  --step: 1.75rem;            /* gap between the spine and the text, and the length of a tick */
-  --page-top: clamp(2rem, 7vw, 4.5rem);  /* how far the Trail's line rises above the Trail */
-  --chrome-row: 3.5rem;       /* the logo and the language switch above the column */
+  /* The six rows of 10.1, at the guaranteed viewport. The middle row is what is left. */
+  --chrome-row: 44px;
+  --trail-row: 64px;
+  --answers-row: 64px;
+  --carousel-row: 80px;
+  --disclaimer-row: 28px;
+
+  /* The middle row across: an Option column, a gap, the Bubble, a gap, an Option column. */
+  --column: 240px;
+  --gap: 20px;
+  --bubble-width: 760px;
+  /*
+   * The rim: the band between the text area (640 x 304) and the curve, 60 across and 28
+   * down (10.1). The Bubble's 2-pixel outline is part of that band, so the padding inside
+   * it is 2 less, and the text area measures exactly 640 x 304.
+   */
+  --rim-x: 58px;
+  --rim-y: 26px;
+  --bubble-radius: 180px;
+  --page-inset: 0px;
+  /* The tick from an Option to the Bubble: inside the Option's own box, short of the gap. */
+  --tick: 12px;
+
+  /* The type scale tree-format.md 5.7 measured the limits with. */
+  --body: 16px;
+  --body-line: 24px;
+  --title: 22px;
+  --title-line: 28px;
+  --small: 13px;
+  --small-line: 20px;
+
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -53,24 +77,28 @@
   box-sizing: border-box;
 }
 
+/* The rule of 10.6: the document is the viewport and never scrolls. */
+html,
 body {
+  height: 100%;
   margin: 0;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
+}
+
+body {
+  display: grid;
+  grid-template-rows: var(--chrome-row) minmax(0, 1fr) var(--disclaimer-row);
   background: var(--elsa-background);
   color: var(--elsa-text);
   font-family: var(--elsa-font-body);
-  line-height: 1.6;
+  font-size: var(--body);
+  line-height: var(--body-line);
   -webkit-text-size-adjust: 100%;
 }
 
 main {
-  flex: 1;
-  width: 100%;
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: var(--page-top) clamp(1rem, 5vw, 2.5rem) 3rem;
+  min-height: 0;
+  padding: 0 var(--page-inset);
 }
 
 a {
@@ -79,48 +107,27 @@ a {
 
 :focus-visible {
   outline: 2px solid var(--accent-secondary-read);
-  outline-offset: 3px;
-  border-radius: 2px;
+  outline-offset: 2px;
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
+/* --- the chrome bar: the Tree's mark, its languages, the share button ------------- */
 
-/* --- the chrome bar: the Tree's mark, and its languages --------------------------- */
-
-/*
- * The lab's logo on the left, the Tree's own languages quiet and small on the right, both
- * clear of the spine below: chrome above the walk rather than a part of it.
- */
 .page-chrome {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: var(--chrome-row);
-  width: 100%;
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 0 clamp(1rem, 5vw, 2.5rem);
+  height: var(--chrome-row);
+  padding: 0 16px;
+  border-bottom: 1px solid var(--rule-soft);
 }
 
-/*
- * A height and no width: a Theme's logo may be any shape, and this is the one measurement
- * the frontend is entitled to make about a file it has never seen.
- */
+/* A height and no width: a Theme's logo may be any shape. */
 .logo {
   display: block;
-  height: 2.25rem;
+  height: 30px;
   width: auto;
-  max-width: min(18rem, 55vw);
+  max-width: min(18rem, 45vw);
   object-fit: contain;
 }
 
@@ -132,32 +139,44 @@ a {
 /* What a Tree with no logo shows in the same place (application.md 13.4). */
 .tree-title {
   font-family: var(--elsa-font-heading);
-  font-size: 0.95rem;
+  font-size: var(--small);
+  line-height: var(--small-line);
   font-weight: 600;
-  line-height: 1.2;
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .language-switch ul {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.language {
+.language,
+.share {
   display: inline-block;
-  padding: 0.3rem 0.85rem;
+  padding: 3px 12px;
+  white-space: nowrap;
   border: 1px solid transparent;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font: inherit;
+  font-size: 12px;
+  line-height: 18px;
   color: var(--elsa-text-muted);
+  background: transparent;
   text-decoration: none;
+  cursor: pointer;
   transition: color 160ms var(--ease), border-color 160ms var(--ease);
 }
 
-a.language:hover {
+a.language:hover,
+.share:hover {
   color: var(--elsa-text);
   border-color: var(--accent-secondary-read);
 }
@@ -166,182 +185,37 @@ a.language:hover {
 .language--current {
   color: var(--elsa-text);
   background: var(--wash);
-}
-
-/* --- the spine ------------------------------------------------------------------- */
-
-.node {
-  border-left: 1px solid var(--rule);
-  padding-left: var(--step);
-}
-
-.node > section > h2,
-.trail li {
-  position: relative;
-}
-
-/* Every part of the Node hangs off the spine by a tick at the height of its heading. */
-.node > section > h2::before,
-.trail li::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--step));
-  top: 0.75em;
-  width: calc(var(--step) - 0.55rem);
-  border-top: 1px solid var(--rule);
-}
-
-/* --- the Trail ------------------------------------------------------------------- */
-
-/*
- * The way back is the spine continued upward: the Nodes already visited hang off the same
- * line as the current one, oldest at the top, and the line runs on past them and leaves the
- * screen (core document 3.2). Nothing frames it -- it is one hairline and some quiet text.
- */
-.trail {
-  position: relative;
-  margin: 0 0 2.25rem;
-  font-size: 0.82rem;
-}
-
-/* `.node` draws the spine beside its own content; this carries it up through the page's
-   top padding, so the line has no visible beginning. */
-.trail::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--step) - 1px);
-  top: calc(-1 * (var(--page-top) + var(--chrome-row)));
-  height: calc(var(--page-top) + var(--chrome-row));
-  border-left: 1px solid var(--rule);
-}
-
-.trail ol {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.trail-entry {
-  display: inline-block;
-  padding: 0.1rem 0;
-  color: var(--elsa-text-muted);
-  text-decoration: none;
-  transition: color 160ms var(--ease);
-}
-
-.trail-entry:hover {
-  color: var(--accent-secondary-read);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-}
-
-/* --- text ------------------------------------------------------------------------ */
-
-.node h1 {
-  margin: 0 0 1.25rem;
-  font-family: var(--elsa-font-heading);
-  font-size: clamp(1.6rem, 4.6vw, 2.2rem);
-  font-weight: 700;
-  line-height: 1.18;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-
-.node h2 {
-  margin: 2.75rem 0 0.9rem;
-  font-family: var(--elsa-font-heading);
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--elsa-text-muted);
-}
-
-.prose {
-  max-width: 34rem;
-}
-
-.prose p {
-  margin: 0 0 1rem;
-}
-
-.prose li {
-  margin: 0 0 0.3rem;
-}
-
-.prose ul,
-.prose ol {
-  margin: 0 0 1rem;
-  padding-left: 1.15rem;
-}
-
-.prose a {
-  text-decoration-color: var(--accent-secondary-read);
-  text-underline-offset: 0.18em;
-}
-
-.hint {
-  margin: 2.5rem 0 0;
-  padding: 0.85rem 1rem;
-  background: var(--wash-secondary);
-  font-size: 0.9rem;
-}
-
-/* --- the foot of the Node: sharing, and which version of it this is --------------- */
-
-.node-footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem 1.5rem;
-  margin-top: 3.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--rule);
-}
-
-.version {
-  margin: 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  color: var(--elsa-text-muted);
-}
-
-.share-control {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.7rem;
+  cursor: default;
 }
 
 .share {
-  font: inherit;
-  font-size: 0.78rem;
-  padding: 0.35rem 0.9rem;
-  color: var(--elsa-text-muted);
-  background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 160ms var(--ease), border-color 160ms var(--ease);
+  border-color: var(--rule);
 }
 
-.share:hover {
-  color: var(--elsa-text);
-  border-color: var(--accent-secondary-read);
+/* What the share button says lands under the bar, out of the flow, so the rows never move. */
+.share-control {
+  position: relative;
 }
 
 .share-said {
-  font-size: 0.74rem;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 2;
+  max-width: min(60vw, 40rem);
+  font-size: 12px;
+  line-height: 18px;
   color: var(--accent-secondary-read);
+  white-space: nowrap;
 }
 
-/* A refused clipboard says more than a confirmation does: give it the whole width. */
 .share-said:has(.share-by-hand) {
-  flex-basis: 100%;
+  padding: 8px 12px;
+  background: var(--elsa-surface);
+  border: 1px solid var(--rule);
+  white-space: normal;
 }
 
-/* Shown only when the browser refused the clipboard, so the reader can still take the link. */
 .share-by-hand {
   margin: 0;
   color: var(--elsa-text-muted);
@@ -349,64 +223,61 @@ a.language:hover {
 
 .share-by-hand code {
   user-select: all;
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
-/* --- Sources --------------------------------------------------------------------- */
+/* --- the tree layer: one element, one transform (11.1) --------------------------- */
 
-.sources ul,
-.options ul,
+.tree-layer {
+  display: grid;
+  height: 100%;
+  grid-template-columns:
+    minmax(0, 1fr) var(--column) var(--gap) minmax(0, var(--bubble-width)) var(--gap) var(--column)
+    minmax(0, 1fr);
+  grid-template-rows: var(--trail-row) minmax(0, 1fr) var(--answers-row) auto var(--carousel-row);
+  grid-template-areas:
+    "trail trail trail trail trail trail trail"
+    ". left . bubble . right ."
+    "answers answers answers answers answers answers answers"
+    "options options options options options options options"
+    "carousel carousel carousel carousel carousel carousel carousel";
+}
+
+/* The Carousel's row (#43): on every Node, and the same height, so the Bubble never moves. */
+.carousel {
+  grid-area: carousel;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+/*
+ * Until #43 draws the Carousel, the Node's Images are plain thumbnails where its strip will
+ * be: 60 pixels, the strip's own size (12.2), ten of them 672 wide in the 80-pixel row. Each
+ * opens the enlarged view with the Image's description and credit, so no credit is out of
+ * reach before the Carousel lands (the owner, PR #56). Where step 2 shrinks the row to 28,
+ * they shrink to 24, still ten in 276 pixels: reachable at every size, never a control.
+ */
 .images ul {
+  display: flex;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.sources li {
-  display: flex;
-  gap: 0.85rem;
-  align-items: baseline;
-  padding: 0.45rem 0;
-  border-top: 1px solid var(--rule);
-}
-
-.kind {
-  flex: none;
-  min-width: 6.5rem;
-  font-size: 0.62rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.13em;
-  color: var(--elsa-text-muted);
-}
-
-.sources a {
-  text-decoration-color: var(--rule);
-  text-underline-offset: 0.18em;
-  transition: text-decoration-color 160ms var(--ease);
-}
-
-.sources a:hover {
-  text-decoration-color: var(--accent-secondary-read);
-}
-
-/* --- Images ---------------------------------------------------------------------- */
-
-/* Plain thumbnails: no frame, no arrows, no dots (core document 10.6). */
-.images ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
 .thumbnail {
   display: block;
   line-height: 0;
+  border-radius: 8px;
 }
 
 .thumbnail img {
-  width: 8.5rem;
-  height: 6rem;
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
   object-fit: cover;
   background: var(--elsa-surface);
   transition: opacity 160ms var(--ease);
@@ -416,13 +287,16 @@ a.language:hover {
   opacity: 0.82;
 }
 
+/* The enlarged view: bounded to the viewport, so it never scrolls either (10.6, 12.3). */
 .enlarged {
-  max-width: min(56rem, 92vw);
-  max-height: 92vh;
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
   padding: 0;
-  border: none;
+  border: 1px solid var(--rule);
+  border-radius: 24px;
   background: var(--elsa-surface);
   color: var(--elsa-text);
+  overflow: hidden;
 }
 
 .enlarged::backdrop {
@@ -435,14 +309,18 @@ a.language:hover {
 
 .enlarged img {
   display: block;
+  width: auto;
+  height: auto;
   max-width: 100%;
-  max-height: 66vh;
+  max-height: 50vh;
   margin: 0 auto;
 }
 
 .enlarged figcaption {
-  padding: 1rem 1.25rem;
-  font-size: 0.9rem;
+  padding: 12px 24px 0;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  text-align: center;
 }
 
 .enlarged figcaption p {
@@ -450,136 +328,265 @@ a.language:hover {
 }
 
 .enlarged .credit {
-  margin-top: 0.4rem;
-  font-size: 0.78rem;
+  margin-top: 4px;
   color: var(--elsa-text-muted);
 }
 
 .enlarged form {
-  padding: 0 1.25rem 1.25rem;
+  margin: 0;
+  padding: 12px 24px 16px;
+  text-align: center;
 }
 
 .close {
+  padding: 3px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
   font: inherit;
-  font-size: 0.82rem;
-  padding: 0.4rem 1rem;
+  font-size: var(--small);
+  line-height: var(--small-line);
   color: var(--elsa-text);
   background: transparent;
-  border: 1px solid var(--rule);
   cursor: pointer;
-  transition: border-color 160ms var(--ease);
 }
 
 .close:hover {
   border-color: var(--accent-secondary-read);
 }
 
-/* --- Options --------------------------------------------------------------------- */
+/* --- the Branches ------------------------------------------------------------------ */
 
-.option {
+.branch {
   display: flex;
-  gap: 0.9rem;
   align-items: center;
-  padding: 0.7rem 0.6rem 0.7rem 0;
-  border-top: 1px solid var(--rule);
-  text-decoration: none;
-  transition: color 160ms var(--ease), background-color 160ms var(--ease);
-}
-
-.options li:last-child .option {
-  border-bottom: 1px solid var(--rule);
-}
-
-/* The Options are the secondary accent's: the Answers below own the primary one. */
-.option:hover {
-  color: var(--accent-secondary-read);
-  background: var(--wash-secondary);
-}
-
-.option-image {
-  flex: none;
-  width: 3.25rem;
-  height: 2.4rem;
-  object-fit: cover;
-}
-
-.option span {
-  flex: 1;
-}
-
-/* The arrow is the affordance; it moves a hair on hover, and nothing else does. */
-.option::after {
-  content: "\2192";
-  flex: none;
-  color: var(--elsa-text-muted);
-  transition: transform 160ms var(--ease);
-}
-
-.option:hover::after {
-  transform: translateX(3px);
-  color: var(--accent-secondary-read);
-}
-
-/* --- Answers --------------------------------------------------------------------- */
-
-.answers {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 3rem;
-}
-
-.answer {
-  flex: 1 1 0;
-  padding: 0.95rem 1.5rem;
-  border: 1px solid var(--elsa-accent);
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid var(--rule);
   border-radius: 999px;
-  font-family: var(--elsa-font-heading);
-  font-weight: 600;
-  text-align: center;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text);
   text-decoration: none;
-  transition: transform 160ms var(--ease), background-color 160ms var(--ease);
+  background: var(--elsa-background);
+  transition: border-color 160ms var(--ease), background-color 160ms var(--ease), color 160ms var(--ease);
+}
+
+.branch:hover {
+  border-color: var(--accent-secondary-read);
+}
+
+.branch-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* The chrome word above a target's title: `yes`, `no`, `back`, `startAgain`. */
+.branch-word {
+  font-family: var(--elsa-font-heading);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.branch-image {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--elsa-surface);
+}
+
+/* --- the Trail: the Branches above (10.2) ------------------------------------------ */
+
+.trail {
+  position: relative;
+  grid-area: trail;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* The line the Trail is: one hairline through the row, and one down to the Bubble. */
+.trail::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  bottom: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.trail ol {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trail ol::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px solid var(--rule);
 }
 
 /*
- * The filled Answer is the one place the Theme's primary accent is painted whole, and the
- * one place a label sits on it -- which is why `--elsa-on-accent` is computed for contrast
- * in TypeScript rather than guessed here (13.1).
+ * A title Branch: 212 pixels, 196 of them label. 10.2 budgets 200 and its arithmetic gives
+ * an 80-character title three 20-pixel lines at 13 pixels, which holds in the humanist
+ * faces the limits were measured with and not in a wider fallback such as DejaVu Sans,
+ * where 176 pixels of label wrap it into four lines and the row's 64 pixels are 20 short.
+ * The extra 12 come out of the row's margin: 5 x 212 + 120 + 5 x 8 = 1220 of 1280, and
+ * the collapsed middle may still grow to 180 before the row is full.
  */
-.answer--yes {
-  background: var(--elsa-accent);
-  color: var(--elsa-on-accent);
+.trail-step {
+  position: relative;
+  width: 212px;
 }
 
-.answer--no {
-  background: transparent;
+.trail-entry {
+  padding: 1px 8px;
+  color: var(--elsa-text-muted);
+}
+
+.trail-entry:hover {
   color: var(--elsa-text);
 }
 
-.answer:hover {
-  transform: translateY(-1px);
+/* The root Node: no Trail, the Tree's title in its place, so nothing moves when the walk starts. */
+.tree-name {
+  margin: 0;
+  padding: 0 16px;
+  font-family: var(--elsa-font-heading);
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text-muted);
+  text-align: center;
 }
-
-.answer--no:hover {
-  background: var(--wash);
-}
-
-/* --- Terminal -------------------------------------------------------------------- */
 
 /*
- * The four outcomes, derived from the seven roles: `prohibited` is what `danger` is for,
- * and the other three are a muted, a secondary-accent and a primary-accent reading of the
- * end of a walk. Each is a small pill of text, so each is mixed to read on the page.
+ * The collapsed middle of a long Trail: chrome, the Trail Sheet behind it. 120 pixels is
+ * its budget in 10.2's sum; `trailMore(n)` in Dutch, or with two digits, runs a little
+ * past it, and the 60 pixels the row has left after five 212-pixel Branches is where that
+ * goes -- never a truncated word.
  */
+.trail-more {
+  position: relative;
+  display: none;
+  flex: none;
+  min-width: 120px;
+}
+
+/* Six entries or more: `start`, the collapsed middle, the last four (10.2). */
+.trail--long .trail-more {
+  display: block;
+}
+
+.trail--long .trail-step:not([data-kept]) {
+  display: none;
+}
+
+.trail-more-short,
+.trail-more-all {
+  display: none;
+}
+
+/* --- the Bubble (10.1) ------------------------------------------------------------- */
+
+.bubble {
+  position: relative;
+  grid-area: bubble;
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  height: 100%;
+  max-height: 520px;
+  padding: var(--rim-y) var(--rim-x);
+  border: 2px solid var(--elsa-accent);
+  border-radius: var(--bubble-radius);
+  background: var(--elsa-surface);
+}
+
+.bubble-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  min-height: 0;
+}
+
+.bubble h1 {
+  margin: 0 0 8px;
+  font-family: var(--elsa-font-heading);
+  font-size: var(--title);
+  line-height: var(--title-line);
+  font-weight: 700;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.prose {
+  font-size: var(--body);
+  line-height: var(--body-line);
+}
+
+/* A paragraph break is one line of the estimate (tree-format.md 3.8); list items have none. */
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 0 0 var(--body-line);
+}
+
+.prose > :last-child {
+  margin-bottom: 0;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.25em;
+}
+
+.prose a {
+  text-decoration-color: var(--accent-secondary-read);
+  text-underline-offset: 0.18em;
+}
+
+/* --- the rim: the outcome badge above, the explanation hint below (10.1) ----------- */
+
 .outcome {
-  display: inline-block;
-  margin: 0 0 1.15rem;
-  padding: 0.28rem 0.85rem;
+  position: absolute;
+  top: 2px;
+  left: 0;
+  right: 0;
+  width: fit-content;
+  max-width: 70%;
+  margin: 0 auto;
+  padding: 0 14px;
   border: 1px solid currentColor;
   border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 600;
+  background: var(--elsa-background);
+  font-family: var(--elsa-font-heading);
+  font-size: 11px;
+  line-height: 22px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  color: var(--accent-read);
+}
+
+.outcome--not-applicable {
   color: var(--elsa-text-muted);
 }
 
@@ -591,42 +598,756 @@ a.language:hover {
   color: var(--danger-read);
 }
 
-.outcome--refer {
-  color: var(--accent-read);
+.bubble--terminal {
+  border-color: var(--accent-read);
 }
 
-/* The walk ends here, so the spine fades out instead of running on. */
-.node:has(> .outcome) {
-  border-image: linear-gradient(var(--rule) 45%, transparent) 1;
+.bubble--terminal:has(.outcome--prohibited) {
+  border-color: var(--elsa-danger);
+}
+
+.hint {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  right: 0;
+  width: fit-content;
+  max-width: 70%;
+  margin: 0 auto;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text-muted);
+  text-align: center;
+}
+
+/* --- Sources: two lines inside the text area, or one control (10.5, step 5) -------- */
+
+.sources {
+  margin-top: 8px;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  text-align: center;
+}
+
+.sources ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sources li {
+  display: inline;
+}
+
+.sources li + li::before {
+  content: "\00B7";
+  margin: 0 8px;
+  color: var(--elsa-text-muted);
+}
+
+/*
+ * Its own line height, not the line's: a smaller inline box that inherits the 20-pixel
+ * line height sits lower on the baseline than the line's strut and stretches the line by
+ * a pixel or two, which over three lines of Sources is the budget of 10.7 missed.
+ */
+.kind {
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--elsa-text-muted);
+}
+
+.sources a {
+  text-decoration-color: var(--rule);
+  text-underline-offset: 0.18em;
+}
+
+.sources a:hover {
+  text-decoration-color: var(--accent-secondary-read);
+}
+
+.sources-collapsed {
+  display: none;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* --- Options: the Branches beside (10.3) ------------------------------------------- */
+
+.options-columns {
+  display: contents;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each column spans its gap too, so the tick to the Bubble is inside the entry's own box. */
+.options--left {
+  grid-column: 2 / 4;
+  grid-row: 2;
+}
+
+.options--right {
+  grid-column: 5 / 7;
+  grid-row: 2;
+}
+
+.options li {
+  position: relative;
+}
+
+.options--left li {
+  padding-right: var(--tick);
+}
+
+.options--right li {
+  padding-left: var(--tick);
+}
+
+/* The tick from each Option to the Bubble, across the gap. */
+.options li::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: var(--tick);
+  border-top: 1px solid var(--rule);
+}
+
+.options--left li::after {
+  right: 0;
+}
+
+.options--right li::after {
+  left: 0;
+}
+
+/*
+ * 248 wide beside the Bubble: 24 of padding, a 64-pixel thumbnail and its 8-pixel gap leave
+ * 152 for the label, which is what a 60-character Option title needs for three lines of
+ * 13-pixel text in a wide fallback face -- at 136 a Dutch one took four, and 96 pixels of
+ * Branch in the 90 the column gives each. Four Branches and three gaps are 352 of the 360.
+ */
+.option {
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 82px;
+  padding: 8px 12px;
+  border-radius: 41px;
+  text-align: left;
+}
+
+.option .branch-label {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.option:hover {
+  background: var(--wash-secondary);
+}
+
+.options-collapsed {
+  display: none;
+  grid-area: options;
+  justify-self: center;
+}
+
+/* --- Answers: the Branches below (10.3) -------------------------------------------- */
+
+.answers {
+  grid-area: answers;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 0 16px;
+}
+
+.answer {
+  width: 480px;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 3px 20px;
+}
+
+/* The filled Answer is the one place the accent is painted whole (13.1: `--elsa-on-accent`). */
+.answer--yes {
+  border-color: var(--elsa-accent);
+  background: var(--elsa-accent);
+  color: var(--elsa-on-accent);
+}
+
+.answer--yes:hover {
+  border-color: var(--accent-read);
+}
+
+.answer--no {
+  border-color: var(--elsa-accent);
+}
+
+.answer--no:hover {
+  background: var(--wash);
+}
+
+.answer--back,
+.answer--start-again {
+  color: var(--elsa-text-muted);
+}
+
+.answer--back:hover,
+.answer--start-again:hover {
+  color: var(--elsa-text);
+}
+
+/* --- the Sheet: the one overlay (10.2, 10.5) --------------------------------------- */
+
+.sheet-open {
+  display: inline-block;
+  padding: 3px 14px;
+  white-space: nowrap;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text-muted);
+  background: var(--elsa-background);
+  cursor: pointer;
+  list-style: none;
+  transition: color 160ms var(--ease), border-color 160ms var(--ease);
+}
+
+.sheet-open::-webkit-details-marker {
+  display: none;
+}
+
+.sheet-open:hover {
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  background: var(--veil);
+}
+
+/* A closed Sheet has no panel on the page at all, not a panel laid out and then hidden. */
+.sheet:not([open]) > .sheet-panel,
+.sheet:not([open]) > .sheet-backdrop {
+  display: none;
+}
+
+/*
+ * The control stays above the open panel. Without the script there is no close button and
+ * no backdrop, and the panel is laid over the middle of the page -- over the very control
+ * that opened it, were it not for this; a second click on it closes the disclosure (14).
+ */
+.sheet[open] > .sheet-open {
+  position: relative;
+  z-index: 11;
+}
+
+/* Laid over the page, bounded to the viewport: it never scrolls either (10.6). */
+.sheet-panel {
+  position: fixed;
+  inset: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  height: fit-content;
+  max-width: min(960px, 100% - 32px);
+  max-height: calc(100% - 32px);
+  margin: auto;
+  padding: 16px 24px;
+  border: 1px solid var(--rule);
+  border-radius: 24px;
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
+  font-size: var(--small);
+  line-height: var(--small-line);
+  overflow: hidden;
+}
+
+.sheet-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-height: 0;
+  max-width: 100%;
+}
+
+.sheet-list li {
+  padding: 2px 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+/*
+ * Without the script, every page after the first is a nested disclosure (section 14). Its
+ * summary is the `next` button while it is closed and the `previous` button once it is
+ * open; the page before an open one leaves the panel, and so does the summary of a page
+ * whose next page is open -- so the panel shows `previous`, one page of eight, `next`.
+ */
+.sheet-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 0;
+  max-width: 100%;
+}
+
+.sheet-more > summary {
+  padding: 3px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--elsa-text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.sheet-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sheet-more > summary:hover {
+  border-color: var(--accent-secondary-read);
+}
+
+/* A closed page has no boxes on the page at all, as a closed Sheet has none (10.6 measures every element). */
+.sheet-more:not([open]) > :not(summary),
+.sheet-more:not([open]) > summary > .sheet-more-previous,
+.sheet-more[open] > summary > .sheet-more-next,
+.sheet-list:has(+ .sheet-more[open]),
+.sheet-more[open]:has(> .sheet-more[open]) > summary {
+  display: none;
+}
+
+.sheet-list .kind {
+  margin-right: 6px;
+}
+
+.sheet-list a {
+  text-decoration: none;
+}
+
+.sheet-list a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent-secondary-read);
+  text-underline-offset: 0.18em;
+}
+
+.sheet-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.sheet-controls button {
+  padding: 3px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font: inherit;
+  color: var(--elsa-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.sheet-controls button:disabled {
+  color: var(--elsa-text-muted);
+  cursor: default;
+}
+
+.sheet-controls button:not(:disabled):hover {
+  border-color: var(--accent-secondary-read);
 }
 
 /* --- the permanent disclaimer ---------------------------------------------------- */
 
 .disclaimer {
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--rule-soft);
 }
 
 .disclaimer p {
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 1.1rem clamp(1rem, 5vw, 2.5rem);
-  padding-left: calc(clamp(1rem, 5vw, 2.5rem) + var(--step));
-  font-size: 0.78rem;
+  margin: 0;
+  padding: 3px 16px;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text-muted);
+  text-align: center;
+}
+
+/* --- the 404 page (4.3) ------------------------------------------------------------ */
+
+.bubble--notice {
+  max-width: var(--bubble-width);
+  margin: 40px auto 20px;
+  height: auto;
+}
+
+.bubble--notice + .answers {
+  height: var(--answers-row);
+}
+
+/* --- below the floor: the notice (10.4, 10.5 step 7) ------------------------------- */
+
+.minimum-size {
+  display: none;
+  margin: 0;
+  padding: 24px 16px;
+  text-align: center;
   color: var(--elsa-text-muted);
 }
 
-@media (max-width: 30rem) {
-  .answers {
-    flex-direction: column;
+/* ==================================================================================
+ * Below the guaranteed viewport: the degradation order of 10.5, step by step.
+ * Each step is a media query on the dimension that ran short; a viewport that is short
+ * in both dimensions takes the steps of both.
+ * ================================================================================== */
+
+/*
+ * Step 1 -- the Trail collapses to the parent plus trailMore(n) (Trail Sheet behind it).
+ * By height, as 10.5 orders it, and also by width: five 200-pixel Branches and the 120-pixel
+ * control need 1160 pixels, so a narrower row could only truncate or wrap, and 10.2 allows
+ * neither.
+ */
+@media (max-height: 639px), (max-width: 1199px) {
+  :root {
+    --trail-row: 44px;
   }
 
-  .sources li {
-    flex-direction: column;
-    gap: 0.1rem;
+  .trail--collapsible .trail-step:not([data-parent]) {
+    display: none;
+  }
+
+  .trail--collapsible .trail-more {
+    display: block;
+  }
+
+  .trail-more-wide {
+    display: none;
+  }
+
+  .trail-more-short {
+    display: inline;
+  }
+
+  .trail-step[data-parent] {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 480px;
+    min-width: 0;
+  }
+
+}
+
+/*
+ * Step 2 -- the Carousel collapses to one control (#43 draws it; the row shrinks). Also
+ * where the Bubble narrows (below 792 pixels): the same text takes more lines there, and
+ * the height the row gives up is what keeps it inside the Bubble.
+ */
+@media (max-height: 619px), (max-width: 791px) {
+  :root {
+    --carousel-row: 28px;
+  }
+
+  .images ul {
+    gap: 4px;
+  }
+
+  .thumbnail,
+  .thumbnail img {
+    border-radius: 4px;
+  }
+
+  .thumbnail img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Step 3 -- the Option columns move below the Answers as one row. */
+@media (max-width: 1279px) {
+  :root {
+    --column: 0px;
+    --gap: 0px;
+    --page-inset: 16px;
+  }
+
+  .options-columns {
+    display: flex;
+    grid-area: options;
+    justify-content: center;
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  .options {
+    flex-direction: row;
+  }
+
+  .options li {
+    width: 240px;
+  }
+
+  .options li::after {
+    display: none;
+  }
+
+  .options li {
+    padding: 0;
+  }
+}
+
+/*
+ * Step 4 -- the Options collapse to one Branch labelled with their count, and a Sheet.
+ * When: the columns beside the Bubble no longer fit its row (below 568 pixels), the row of
+ * step 3 has no height to take (a short viewport), or that row would not hold this many
+ * Options at 240 pixels each -- which the markup says as `data-count`. The control and the
+ * columns are switched by the same conditions, so exactly one of them is on the page.
+ */
+@media (max-height: 567px), (max-width: 1279px) and (max-height: 739px) {
+  .options-columns {
+    display: none;
+  }
+
+  .options-collapsed {
+    display: block;
+  }
+}
+
+@media (max-width: 1279px) {
+  .options-columns[data-count="5"],
+  .options-columns[data-count="6"],
+  .options-columns[data-count="7"],
+  .options-columns[data-count="8"] {
+    display: none;
+  }
+
+  .options-columns[data-count="5"] ~ .options-collapsed,
+  .options-columns[data-count="6"] ~ .options-collapsed,
+  .options-columns[data-count="7"] ~ .options-collapsed,
+  .options-columns[data-count="8"] ~ .options-collapsed {
+    display: block;
+  }
+}
+
+@media (max-width: 999px) {
+  .options-columns[data-count="4"] {
+    display: none;
+  }
+
+  .options-columns[data-count="4"] ~ .options-collapsed {
+    display: block;
+  }
+}
+
+@media (max-width: 769px) {
+  .options-columns[data-count="3"] {
+    display: none;
+  }
+
+  .options-columns[data-count="3"] ~ .options-collapsed {
+    display: block;
+  }
+}
+
+@media (max-width: 519px) {
+  .options-columns[data-count="2"] {
+    display: none;
+  }
+
+  .options-columns[data-count="2"] ~ .options-collapsed {
+    display: block;
+  }
+}
+
+/* Step 5 -- the Sources collapse to one control showing their count. */
+@media (max-height: 547px), (max-width: 639px) {
+  .sources {
+    display: none;
+  }
+
+  .sources-collapsed {
+    display: block;
+  }
+}
+
+/* Step 6 -- the type scale steps down, 16 -> 15 -> 14 -> 13, never below 13. */
+@media (max-height: 531px), (max-width: 791px) {
+  :root {
+    --body: 15px;
+    --body-line: 22.5px;
+    --title: 20px;
+    --title-line: 26px;
+  }
+}
+
+@media (max-height: 515px), (max-width: 639px) {
+  :root {
+    --body: 14px;
+    --body-line: 21px;
+    --title: 18px;
+    --title-line: 24px;
+  }
+}
+
+@media (max-height: 499px), (max-width: 479px) {
+  :root {
+    --body: 13px;
+    --body-line: 19.5px;
+  }
+}
+
+/* The Bubble narrows with the page; its rim and its curve narrow with it. */
+@media (max-width: 791px) {
+  :root {
+    --rim-x: 36px;
+    --rim-y: 24px;
+    --bubble-radius: 120px;
+  }
+}
+
+/*
+ * A phone-width screen. The full Node of 10.6 at 360 x 640 needs every pixel the rows
+ * around the Bubble can spare, so each gives up what it does not use: the chrome bar and
+ * the Trail row narrow to their content, the rim to 10 pixels, the margins inside the
+ * Bubble to 4. Two Answers of four lines each still stand side by side.
+ */
+@media (max-width: 479px) {
+  :root {
+    --rim-x: 22px;
+    --rim-y: 10px;
+    --bubble-radius: 48px;
+    --answers-row: auto;
+    --chrome-row: 36px;
+    --trail-row: 30px;
+    --disclaimer-row: auto;
+  }
+
+  /* Each collapsed group's control: 24 pixels, so the rows that hold one are 24 too. */
+  .sheet-open {
+    padding: 1px 12px;
+  }
+
+  /*
+   * The Trail is its control alone: a 200-pixel parent Branch holds an 80-character title
+   * in three lines, which the row no longer has, and a clipped title would break 10.6. The
+   * parent is the first entry of the Trail Sheet, and the `back` Branch where there is one.
+   */
+  .trail:has(.trail-more) .trail-step {
+    display: none;
+  }
+
+  .trail .trail-more {
+    display: block;
+  }
+
+  .trail-more-wide,
+  .trail-more-short {
+    display: none;
+  }
+
+  .trail-more-all {
+    display: inline;
+  }
+
+  .tree-name {
+    padding: 0 8px;
+    font-size: 11px;
+    line-height: 14px;
+  }
+
+  /* The rim keeps room for the one chrome element a Node kind puts on it (10.1). */
+  .bubble--terminal {
+    padding-top: 28px;
+  }
+
+  .bubble--explanation {
+    padding-bottom: 48px;
+  }
+
+  .hint {
+    max-width: calc(100% - 24px);
+  }
+
+  .bubble h1 {
+    margin-bottom: 4px;
+  }
+
+  .sources-collapsed {
+    margin-top: 4px;
+  }
+
+  .answers {
+    gap: 8px;
+    padding: 0;
+  }
+
+  .answer {
+    padding-inline: 12px;
+  }
+
+  .disclaimer p {
+    font-size: 11px;
+    line-height: 14px;
+  }
+
+  .page-chrome {
+    padding: 0 8px;
+    gap: 8px;
+  }
+
+  .page-controls {
+    gap: 4px;
+  }
+
+  /*
+   * At the floor the bar holds two language names, the share button and the logo in 320
+   * pixels: `English`, `Nederlands` and `Kopieer link` at 11 pixels are 200 or more in a
+   * wide face, so the pills keep 5 pixels of padding and the logo at most 70 (22vw).
+   */
+  .language,
+  .share {
+    padding: 3px 5px;
+    font-size: 11px;
   }
 
   .logo {
-    height: 1.9rem;
+    max-width: 22vw;
+  }
+
+  /* A Tree without a logo names itself in two short lines rather than one long one. */
+  .tree-title {
+    min-width: 0;
+    font-size: 11px;
+    line-height: 14px;
+  }
+}
+
+/* Step 7 -- below the floor of 320 x 480, the notice replaces the tree view. */
+@media (max-width: 320px), (max-height: 480px) {
+  .tree-layer {
+    display: none;
+  }
+
+  .minimum-size {
+    display: block;
   }
 }
 

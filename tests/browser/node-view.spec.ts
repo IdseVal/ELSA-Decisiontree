@@ -2,6 +2,12 @@
  * The Node view in a real browser: what markup alone cannot show -- what a click does,
  * which files the browser asks for, and whether a keyboard reaches everything.
  *
+ * Issue #41 turned the Node view into the tree view of docs/specs/application.md section
+ * 10: the Answers are Branches whose accessible name is the chrome word and the target's
+ * title, so they are found by class here. The thumbnails and the enlarged view are what
+ * 0.1 showed, kept in the Carousel's row until issue #43 draws the Carousel (the owner,
+ * PR #56); the tree view's own clicks, keyboard and Sheets are `tree-view.spec.ts`.
+ *
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */
 import { expect, test, type Page } from '@playwright/test'
@@ -32,12 +38,12 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
     'Is your AI system within the reach of the AI Act?',
   )
 
-  await page.getByRole('link', { name: 'Yes', exact: true }).click()
+  await page.locator('.answer--yes').click()
   await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
 
   await page.getByRole('link', { name: 'Social scoring' }).click()
   await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices/social-scoring')
-  await expect(page.getByText('This step only explains.')).toBeVisible()
+  await expect(page.locator('.hint')).toBeVisible()
 
   // Issue #8 replaced the interim "back" control this test used with the Trail; the walk
   // it checks is unchanged. What the Trail itself does is `tests/browser/trail.spec.ts`.
@@ -47,7 +53,7 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
 
 test('no answers a different Node than yes', async ({ page }) => {
   await page.goto(START)
-  await page.getByRole('link', { name: 'No', exact: true }).click()
+  await page.locator('.answer--no').click()
 
   await expect(page).toHaveURL('/ai-act-example/start/outside-scope')
 })
@@ -56,8 +62,8 @@ test('a Terminal Node shows its outcome and offers no yes or no', async ({ page 
   await page.goto('/ai-act-example/start/outside-scope')
 
   await expect(page.locator('.outcome')).toHaveText('Does not apply')
-  await expect(page.getByRole('link', { name: 'Yes', exact: true })).toHaveCount(0)
-  await expect(page.getByRole('link', { name: 'No', exact: true })).toHaveCount(0)
+  await expect(page.locator('.answer--yes')).toHaveCount(0)
+  await expect(page.locator('.answer--no')).toHaveCount(0)
 })
 
 test('the document declares the language of the content it shows', async ({ page }) => {
@@ -125,25 +131,18 @@ test('clicking a thumbnail shows the image larger with its description and credi
 
   await expect(enlarged).toBeVisible()
   // The overlay is announced by the image it shows, not as a bare "dialog".
-  await expect(
-    page.getByRole('dialog', { name: 'Map of the European Union member states' }),
-  ).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Map of the European Union member states' })).toBeVisible()
   await expect(enlarged).toContainText('Map of the European Union member states')
-  await expect(enlarged).toContainText('Map: Example Cartography, CC BY 4.0')
+  await expect(enlarged.locator('.credit')).toContainText('Map: Example Cartography, CC BY 4.0')
   const enlargedImage = enlarged.locator('img')
   await expect(enlargedImage).toHaveAttribute('src', '/images/eu-map.png')
 
-  // The example Tree's images are 8x8 placeholders, so "larger" cannot be measured from
-  // this fixture. What the view promises is that the enlarged image is not cropped into
-  // the thumbnail's fixed box but may grow to two thirds of the window.
-  const thumbnailBox = await page.locator('.thumbnail img').first().evaluate((image) => {
-    const style = getComputedStyle(image)
-    return { width: style.width, height: style.height, fit: style.objectFit }
-  })
-  const room = await enlargedImage.evaluate((image) => getComputedStyle(image).maxHeight)
-
-  expect(thumbnailBox).toEqual({ width: '136px', height: '96px', fit: 'cover' })
-  expect(parseFloat(room)).toBeGreaterThan(parseFloat(thumbnailBox.height))
+  // Larger than the 60-pixel thumbnail of the row, and bounded to the viewport (10.6).
+  const thumbnail = await page.locator('.thumbnail img').first().boundingBox()
+  const shown = await enlargedImage.boundingBox()
+  expect(thumbnail!.height).toBe(60)
+  expect(shown!.height).toBeGreaterThan(thumbnail!.height)
+  expect(shown!.height).toBeLessThan(page.viewportSize()!.height)
 })
 
 test('Escape closes the enlarged image, and so does a click outside it', async ({ page }) => {
@@ -163,19 +162,12 @@ test('Escape closes the enlarged image, and so does a click outside it', async (
 })
 
 test('the browser asks for the images of the Node on screen and no others', async ({ page }) => {
-  const onStart = await imageRequests(page, async () => {
-    await page.goto(START)
-    await page.mouse.wheel(0, 2000)
-  })
-
+  // The root Node's own Image is in the Carousel's row (12.1); an Option's first Image is
+  // on its Branch (10.3). Neither page asks for the other's.
+  const onStart = await imageRequests(page, () => page.goto(START))
   expect(new Set(onStart)).toEqual(new Set(['eu-map.png']))
 
-  const onOptions = await imageRequests(page, async () => {
-    await page.goto('/ai-act-example/prohibited-practices')
-    await page.mouse.wheel(0, 2000)
-  })
-
-  // The Options of this Node carry one image; the previous Node's image is not asked for.
+  const onOptions = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices'))
   expect(new Set(onOptions)).toEqual(new Set(['scoreboard.png']))
 })
 
@@ -191,7 +183,31 @@ test('enlarging a thumbnail fetches nothing new', async ({ page }) => {
   expect(whileEnlarging).toEqual([])
 })
 
-test('a keyboard reaches the thumbnail, the enlarged view and the Answers', async ({ page }) => {
+test('a keyboard reaches the thumbnail, opens the enlarged view and closes it, and the focus comes back', async ({ page }) => {
+  await page.goto(START)
+
+  const stops: string[] = []
+  for (let step = 0; step < 12; step += 1) {
+    await page.keyboard.press('Tab')
+    stops.push(
+      await page.evaluate(() => {
+        const active = document.activeElement
+        return active ? `${active.tagName.toLowerCase()}.${active.className}`.trim() : ''
+      }),
+    )
+  }
+  expect(stops).toContain('a.thumbnail')
+
+  await page.locator('.thumbnail').first().focus()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('dialog.enlarged')).toBeVisible()
+  await expect(page.locator('button.close')).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('dialog.enlarged')).toBeHidden()
+  await expect(page.locator('.thumbnail').first()).toBeFocused()
+})
+
+test('a keyboard reaches the Answers and follows one', async ({ page }) => {
   await page.goto(START)
 
   // Tab through the page and collect what the browser stops at.
@@ -206,18 +222,12 @@ test('a keyboard reaches the thumbnail, the enlarged view and the Answers', asyn
     )
   }
 
-  expect(stops).toContain('a.thumbnail')
-  expect(stops).toContain('a.answer answer--yes')
-  expect(stops).toContain('a.answer answer--no')
+  expect(stops).toContain('a.branch answer answer--yes')
+  expect(stops).toContain('a.branch answer answer--no')
 
-  // The thumbnail opens with the keyboard, and the enlarged view closes with it.
-  await page.locator('.thumbnail').first().focus()
+  await page.locator('.answer--yes').focus()
   await page.keyboard.press('Enter')
-  await expect(page.locator('dialog.enlarged')).toBeVisible()
-  await expect(page.locator('button.close')).toBeFocused()
-  await page.keyboard.press('Enter')
-  await expect(page.locator('dialog.enlarged')).toBeHidden()
-  await expect(page.locator('.thumbnail').first()).toBeFocused()
+  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
 })
 
 test('the Options of a Node are reachable by keyboard', async ({ page }) => {
@@ -286,21 +296,15 @@ test.describe('with JavaScript switched off', () => {
       'Is your AI system within the reach of the AI Act?',
     )
     await expect(page.locator('.disclaimer')).toContainText('This is not legal advice.')
-    await expect(page.getByRole('link', { name: 'Yes', exact: true })).toHaveAttribute(
-      'href',
-      '/ai-act-example/start/prohibited-practices',
-    )
-    await expect(page.getByRole('link', { name: 'No', exact: true })).toHaveAttribute(
-      'href',
-      '/ai-act-example/start/outside-scope',
-    )
+    await expect(page.locator('.answer--yes')).toHaveAttribute('href', '/ai-act-example/start/prohibited-practices')
+    await expect(page.locator('.answer--no')).toHaveAttribute('href', '/ai-act-example/start/outside-scope')
     // The enlarge is a client component; without it the thumbnail is still a link to the file.
     await expect(page.locator('.thumbnail').first()).toHaveAttribute('href', '/images/eu-map.png')
 
-    await page.getByRole('link', { name: 'Yes', exact: true }).click()
+    await page.locator('.answer--yes').click()
     await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
 
-    // With the enlarge unavailable the click is not intercepted, so it opens the file.
+    // With the enlarge unavailable the click is not intercepted, so it opens the file (14).
     await page.goto(START)
     await page.locator('.thumbnail').first().click()
     await expect(page).toHaveURL('/images/eu-map.png')
@@ -309,7 +313,8 @@ test.describe('with JavaScript switched off', () => {
 
 test('nothing about the reader is stored', async ({ page, context }) => {
   await page.goto(START)
-  await page.locator('.thumbnail').first().click()
+  await page.locator('.answer--yes').click()
+  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
 
   expect(await context.cookies()).toEqual([])
   expect(

@@ -13,7 +13,7 @@ const CHILD = '/ai-act-example/start/prohibited-practices/social-scoring'
 /** Walks root -> yes -> an Option -> its child, the way a reader reaches an explanation. */
 async function walkToChild(page: Page): Promise<void> {
   await page.goto(START)
-  await page.getByRole('link', { name: 'Yes', exact: true }).click()
+  await page.locator('.answer--yes').click()
   await page.getByRole('link', { name: 'Social scoring' }).click()
   await expect(page).toHaveURL(CHILD)
 }
@@ -55,11 +55,12 @@ test('clicking a Trail entry jumps back and discards the Trail after it', async 
 test('a Trail entry is reached and followed by the keyboard alone', async ({ page }) => {
   await walkToChild(page)
 
-  // Issue #9 put the language switch above the content as the page chrome and issue #40
-  // put the Tree's logo beside it, so the tab key reaches the whole bar first; the Trail is
-  // still the first thing in the content itself. The bar is counted rather than written
-  // down, so a Tree with no logo and a Tree with one both walk the same way here.
-  const chrome = await page.locator('.page-chrome a').count()
+  // Issue #9 put the language switch above the content as the page chrome, issue #40 put
+  // the Tree's logo beside it and issue #41 the share button, so the tab key reaches the
+  // whole bar first; the Trail is still the first thing in the content itself. The bar is
+  // counted rather than written down, so a Tree with no logo and a Tree with one both walk
+  // the same way here.
+  const chrome = await page.locator('.page-chrome a, .page-chrome button').count()
   for (let i = 0; i < chrome + 1; i++) await page.keyboard.press('Tab')
   await expect(page.locator('.trail-entry').first()).toBeFocused()
   await page.keyboard.press('Tab')

@@ -7,10 +7,15 @@
  * asks for and what a message-file library would not give.
  */
 
+import type { LocalisedText } from './tree/types.ts'
+
 /** The languages the chrome is written in. Adding one is a code change, not an ADR. */
 export const CHROME_LANGUAGES = ['en', 'nl'] as const
 
 export type ChromeLanguage = (typeof CHROME_LANGUAGES)[number]
+
+/** The keys of `Chrome` that are plain strings: what a label record may point at. */
+export type ChromeString = { [K in keyof Chrome]: Chrome[K] extends string ? K : never }[keyof Chrome]
 
 /** Every string the interface says. Tree content never comes from here. */
 export interface Chrome {
@@ -45,6 +50,23 @@ export interface Chrome {
   notFoundText: string
   /** Read out after a link that leaves the app, so the new tab is not a surprise. */
   opensInNewTab: string
+  /** The Branch below an explanation Node or a Terminal, back to the Trail entry above (10.3). */
+  back: string
+  /** The second Branch below a Terminal: the root Node with an empty Trail (10.3). */
+  startAgain: string
+  /**
+   * The collapsed middle of a long Trail (10.2). A function of the count, not a string with
+   * a placeholder, so a language that orders the sentence differently is not forced into
+   * English word order (application.md 3.2).
+   */
+  trailMore: (hidden: number) => string
+  /** The two buttons of a paged Sheet, and of the Carousel (section 12). */
+  previous: string
+  next: string
+  /** The Carousel's position: which Image of how many is selected (section 12). */
+  imageCount: (index: number, total: number) => string
+  /** The notice shown below the smallest viewport the tree view works at (10.4, 10.5). */
+  minimumSize: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -78,6 +100,13 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notFoundTitle: 'This step does not exist',
     notFoundText: 'The address does not name a step of this tree.',
     opensInNewTab: 'opens in a new tab',
+    back: 'Back',
+    startAgain: 'Start again',
+    trailMore: (hidden) => (hidden === 1 ? '1 earlier step' : `${hidden} earlier steps`),
+    previous: 'Previous',
+    next: 'Next',
+    imageCount: (index, total) => `Image ${index} of ${total}`,
+    minimumSize: 'This tool needs a window of at least 320 by 480 pixels.',
   },
   nl: {
     yes: 'Ja',
@@ -109,6 +138,13 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notFoundTitle: 'Deze stap bestaat niet',
     notFoundText: 'Het adres verwijst niet naar een stap van deze boom.',
     opensInNewTab: 'opent in een nieuw tabblad',
+    back: 'Terug',
+    startAgain: 'Opnieuw beginnen',
+    trailMore: (hidden) => (hidden === 1 ? '1 eerdere stap' : `${hidden} eerdere stappen`),
+    previous: 'Vorige',
+    next: 'Volgende',
+    imageCount: (index, total) => `Afbeelding ${index} van ${total}`,
+    minimumSize: 'Dit hulpmiddel heeft een venster van minimaal 320 bij 480 pixels nodig.',
   },
 }
 
@@ -125,4 +161,29 @@ export function chromeLanguage(contentLanguage: string): ChromeLanguage {
 /** The chrome strings to show beside content in `contentLanguage`. */
 export function chrome(contentLanguage: string): Chrome {
   return CHROME[chromeLanguage(contentLanguage)]
+}
+
+/**
+ * `lang` for a chrome element: set only where the chrome speaks another language than the
+ * content around it, so a screen reader pronounces both (docs/specs/application.md 3.1).
+ */
+export function chromeLang(contentLanguage: string): string | undefined {
+  const language = chromeLanguage(contentLanguage)
+  return language === contentLanguage ? undefined : language
+}
+
+/**
+ * The text of a localised field, or a visible placeholder when the Tree does not have it in
+ * `lang`. Rule V-L10N guarantees every declared language is there, so a miss means the Tree
+ * changed under the running server (`getNode` re-reads the file and does not re-validate) --
+ * an authoring error. The reader is told, honestly, rather than shown an empty element, and
+ * the server says which Node and which field, so the author can find it.
+ *
+ * `where` names the field: `start.title`, `start.options[1].title`.
+ */
+export function text(localised: LocalisedText, lang: string, where: string): string {
+  const value = localised[lang]
+  if (value !== undefined) return value
+  console.warn(`Tree text missing: ${where} has no text for the language "${lang}"`)
+  return `[${chrome(lang).missingText}]`
 }

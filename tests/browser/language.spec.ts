@@ -28,7 +28,7 @@ const BOTH_LANGUAGES = [
 
 /** The alt text of the Option's image: an Image description, which is content, not chrome. */
 async function optionImageAlt(page: Page): Promise<string | null> {
-  return page.locator('.option-image').first().getAttribute('alt')
+  return page.locator('.option .branch-image').first().getAttribute('alt')
 }
 
 test('switching language changes every text of the Node, and the switch says where you are', async ({
@@ -64,7 +64,7 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await page.getByRole('link', { name: 'Nederlands' }).click()
   await expect(page).toHaveURL(`${START}?lang=nl`)
 
-  await page.getByRole('link', { name: 'Ja', exact: true }).click()
+  await page.locator('.answer--yes').click()
   await expect(page).toHaveURL(`${STEP}?lang=nl`)
 
   await page.getByRole('link', { name: 'Sociale scoring' }).click()
@@ -105,7 +105,7 @@ test('the language is kept in the URL and nowhere else on the reader machine', a
 }) => {
   await page.goto(START)
   await page.getByRole('link', { name: 'Nederlands' }).click()
-  await page.getByRole('link', { name: 'Ja', exact: true }).click()
+  await page.locator('.answer--yes').click()
   await expect(page).toHaveURL(`${STEP}?lang=nl`)
 
   expect(await context.cookies()).toEqual([])

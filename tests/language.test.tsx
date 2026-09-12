@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeAll, describe, expect, test, vi } from 'vitest'
 import { endonym, LanguageSwitch } from '../src/components/LanguageSwitch.tsx'
-import { NodeView } from '../src/components/NodeView.tsx'
+import { TreeView } from '../src/components/TreeView.tsx'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import type { Node } from '../src/tree/types.ts'
 import { parseUrl } from '../src/url.ts'
@@ -54,12 +54,7 @@ async function view(url: string): Promise<string> {
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)
   return renderToStaticMarkup(
-    <NodeView
-      node={node}
-      address={address}
-      rootId={tree.manifest.root}
-      trailTitles={address.trail.map((id) => tree.getTitle(id)!)}
-    />,
+    <TreeView node={node} address={address} tree={tree} />,
   )
 }
 
@@ -187,7 +182,7 @@ describe('a Node that lacks a text in a language the Tree declares', () => {
     const address = parseUrl('/ai-act-example/start', 'nl', tree)!
 
     const html = renderToStaticMarkup(
-      <NodeView node={node} address={address} rootId={tree.manifest.root} trailTitles={[]} />,
+      <TreeView node={node} address={address} tree={tree} />,
     )
 
     expect(html).toContain('[Tekst ontbreekt in deze taal]')
@@ -203,7 +198,7 @@ describe('a Node that lacks a text in a language the Tree declares', () => {
     const address = parseUrl('/ai-act-example/start', '_', tree)!
 
     const html = renderToStaticMarkup(
-      <NodeView node={node} address={address} rootId={tree.manifest.root} trailTitles={[]} />,
+      <TreeView node={node} address={address} tree={tree} />,
     )
 
     expect(html).toContain('Is your AI system within the reach of the AI Act?')
