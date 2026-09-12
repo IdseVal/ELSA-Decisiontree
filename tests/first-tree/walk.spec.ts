@@ -230,3 +230,54 @@ for (const lang of ['en', 'nl'] as const) {
     await screenshotWalk(page, lang)
   })
 }
+
+/**
+ * Where issue #45's pictures go, on the same opt-in terms as the set above: `ELSA_SHOTS=1`
+ * writes the tracked pair, a plain run leaves the repository alone.
+ */
+const PICTURE_SHOTS = fileURLToPath(
+  process.env.ELSA_SHOTS === '1'
+    ? new URL('../../docs/screenshots/issue-45/', import.meta.url)
+    : new URL('.results/shots/', import.meta.url),
+)
+
+/** The two Nodes issue #45 put a picture on every Option of, and the walk that reaches each. */
+const PICTURE_NODES = {
+  'annex-i-legislation': WALKS['end-of-walk']!.slice(0, 5),
+  'annex-iii-areas': WALKS['end-of-walk']!.slice(0, 8),
+} as const
+
+for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
+  test(`${nodeId} shows its own picture and one per Option, all from this server`, async ({ page, baseURL }) => {
+    // Issue #45: the Annex I and Annex III lists are the two the core document (3.3, items
+    // 4a and 4b) asks for a picture on every entry of. The count is asserted against the
+    // Options actually on screen, so an Option added later without a picture fails here.
+    // The requests are recorded over the LAST click only, so what is counted is what this
+    // one Node costs a reader, not what the whole walk to it did.
+    const visited = await walk(page, steps.slice(0, -1))
+    const asked: string[] = []
+    page.on('request', (request) => asked.push(request.url()))
+    const last = steps[steps.length - 1]!
+    await clickAnswer(page, 'en', last.answer)
+    visited.push(last.lands)
+    await expect(page).toHaveURL(pageUrl(visited, 'en'))
+
+    const options = await page.locator('.option').count()
+    expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)
+    await expect(page.locator('.option-image')).toHaveCount(options)
+    await expect(page.locator('.images .thumbnail img')).toHaveCount(1)
+
+    // The description is the alternative text (tree-format.md 5.2), in the reader's language.
+    for (const image of await page.locator('.option-image, .images img').all()) {
+      expect((await image.getAttribute('alt'))?.trim(), 'an Image with no alternative text').toBeTruthy()
+    }
+
+    // Core document 7 and 9: nothing is fetched from anywhere but this server, pictures
+    // included. The analogue of the #40 check, on the Tree that now carries the pictures.
+    const own = new URL(baseURL!).host
+    expect(asked.filter((url) => new URL(url).host !== own)).toEqual([])
+    expect(asked.filter((url) => new URL(url).pathname.startsWith('/images/')).length).toBe(options + 1)
+
+    await page.screenshot({ path: path.join(PICTURE_SHOTS, `${nodeId}.png`), fullPage: true })
+  })
+}
