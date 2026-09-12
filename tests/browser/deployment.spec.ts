@@ -51,16 +51,17 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   const ownHost = new URL(baseURL!).host
 
   // A walk that touches everything the app can put on a page: a Node with Options and
-  // images, an explanation child, a Terminal, the other language, and the enlarged image
-  // (the one client component that runs on load) -- the places a third-party asset or a
+  // an Option image, an explanation child, a Terminal, the other language, and a Sheet
+  // (the client component that runs on load) -- the places a third-party asset or a
   // cookie would hide.
   await page.goto(START)
-  await page.getByRole('link', { name: 'Yes', exact: true }).click()
+  await page.locator('.answer--yes').click()
   await page.getByRole('link', { name: 'Social scoring' }).click()
   await page.locator('.trail-entry').last().click()
-  await page.getByRole('link', { name: 'No', exact: true }).click()
+  await page.locator('.answer--no').click()
   await page.goto(`${START}?lang=nl`)
-  await page.locator('.thumbnail').first().click()
+  await page.setViewportSize({ width: 1280, height: 540 })
+  await page.locator('.sources-sheet summary').click()
   await page.waitForLoadState('networkidle')
 
   // Not one Set-Cookie was answered, and the browser holds no cookie -- both, because a

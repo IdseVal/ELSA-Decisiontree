@@ -186,16 +186,19 @@ test('changing a colour in tree.yaml and restarting changes the page, with no co
  * The one derived shade whose correctness depends on which direction the palette runs. A
  * backdrop is there to push the page back; keyed to `--elsa-text` it did the opposite on a
  * dark Theme -- a near-white sheet with the dialog floating on it -- and the only palette
- * this repository ships dark is the example Tree, whose `start` Node carries a thumbnail.
- * Nothing measured it, which is why it got through, so it is measured here: on the dark
- * Theme as served, and on the same Tree with its two ends swapped.
+ * this repository ships dark is the example Tree. Nothing measured it, which is why it got
+ * through, so it is measured here: on the dark Theme as served, and on the same Tree with
+ * its two ends swapped. The overlay is the Sheet of application.md 10.5 since issue #41
+ * (the enlarged Image is the same Sheet, drawn by #43), opened here on the Sources, which
+ * collapse to one control below the guaranteed height.
  */
-test('the enlarged image never brightens the page behind it, whichever way the palette runs', async ({ page }) => {
-  /** The painted backdrop and page, with the dialog open, as luminance (WCAG 2). */
+test('the Sheet never brightens the page behind it, whichever way the palette runs', async ({ page }) => {
+  /** The painted backdrop and page, with the Sheet open, as luminance (WCAG 2). */
   async function scrimAndPage(origin: string): Promise<{ scrim: number; page: number; veil: string }> {
+    await page.setViewportSize({ width: 1280, height: 540 })
     await page.goto(`${origin}/ai-act-example/start`)
-    await page.locator('.thumbnail').first().click()
-    await expect(page.locator('dialog.enlarged')).toBeVisible()
+    await page.locator('.sources-sheet summary').click()
+    await expect(page.locator('.sources-sheet .sheet-backdrop')).toBeVisible()
 
     return page.evaluate(() => {
       /** A computed colour as `[r, g, b, a]`, from either spelling a browser may return. */
@@ -212,8 +215,8 @@ test('the enlarged image never brightens the page behind it, whichever way the p
         }
         return 0.2126 * channel(r!) + 0.7152 * channel(g!) + 0.0722 * channel(b!)
       }
-      const dialog = document.querySelector('dialog.enlarged')!
-      const painted = getComputedStyle(dialog, '::backdrop').backgroundColor
+      const backdrop = document.querySelector('.sources-sheet .sheet-backdrop')!
+      const painted = getComputedStyle(backdrop).backgroundColor
       const behind = parse(getComputedStyle(document.body).backgroundColor)
       const veil = parse(painted)
       // The scrim is translucent, so what the reader sees is the composite, not the value.
@@ -243,7 +246,7 @@ test('the enlarged image never brightens the page behind it, whichever way the p
 
   // Printed so the pull request can paste what was measured rather than describe it.
   console.log(
-    `enlarged dialog, backdrop over page (WCAG relative luminance):
+    `Sheet open, backdrop over page (WCAG relative luminance):
 ` +
       `  dark Theme  page ${dark.page.toFixed(4)}  seen ${dark.scrim.toFixed(4)}  ${dark.veil}
 ` +
