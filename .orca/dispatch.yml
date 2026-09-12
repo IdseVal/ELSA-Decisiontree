@@ -20,6 +20,7 @@ dispatcher:
                                      # usable. Raise it on a workstation if you like --
                                      # idle hoarding is gone, this only bounds LIVE work.
   max_run_minutes: 30                # hard wall-clock ceiling per run; then kill + breaker
+  max_run_minutes_complex: 60        # v0.2.10: the ceiling for runs of a `complex` issue
   retry_empty_run: true              # one fresh retry when a run exits without a PR
   cleanup_worktrees_on_merge: true
   claude_cmd: C:\Users\idse_\.npm-global\claude.cmd   # absolute path: bare `claude` is a
@@ -104,6 +105,8 @@ models:
   complex_label: complex
   interview: opus
   capped_hold_minutes: 360           # v0.2.9: a model that is out of usage credits is re-tried this often
+  # CI (agent-pipeline.yml, not read from here): the Verifier runs on `sonnet` since v0.2.11 --
+  # its work is mechanical (run, compare, count); the Reviewer, the last gate, stays on `opus`.
 
 # Enforced by the CI Reviewer (section 8 embeds the same rules in its prompt); kept here
 # as the single written source both the Implementer and the Reviewer are pointed at.

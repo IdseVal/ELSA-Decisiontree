@@ -28,6 +28,10 @@ jobs:
     timeout-minutes: 10
     outputs:
       skip_verify: ${{ steps.decide.outputs.skip_verify }}
+      verify_mode: ${{ steps.modes.outputs.verify_mode }}     # full | delta   (v0.2.11)
+      review_mode: ${{ steps.modes.outputs.review_mode }}     # full | delta
+      verified_head: ${{ steps.modes.outputs.verified_head }} # sha the last Verifier report was written against
+      reviewed_head: ${{ steps.modes.outputs.reviewed_head }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -81,6 +85,32 @@ jobs:
           fi
           echo "skip_verify=$skip" >> "$GITHUB_OUTPUT"
 
+      # v0.2.11: a push that answers a send-back does not need a full round. Each agent
+      # begins its comment with `Verified head <sha>` / `Reviewed head <sha>`; when such a
+      # report exists and nothing under src/ changed since that sha, the agent runs in
+      # DELTA mode: check its own list, run the suites once, decide. Anything else is full.
+      - name: Decide full or delta modes
+        id: modes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -uo pipefail
+          comments=$(gh pr view "$PR" --json comments --jq '.comments[] | select(.author.login == "github-actions") | .body' || true)
+          vh=$(grep -oE 'Verified head [0-9a-f]{7,40}' <<< "$comments" | tail -n1 | awk '{print $3}' || true)
+          rh=$(grep -oE 'Reviewed head [0-9a-f]{7,40}' <<< "$comments" | tail -n1 | awk '{print $3}' || true)
+          mode_for() {   # $1 = sha of the previous report; prints full|delta
+            local sha="$1"
+            if [ -z "$sha" ] || ! git cat-file -e "$sha^{commit}" 2>/dev/null; then echo full; return; fi
+            if git diff --name-only "$sha..HEAD" | grep -qvE '^(docs/|tests/|.*\.md$|.*\.txt$|trees/)'; then echo full; else echo delta; fi
+          }
+          vm=$(mode_for "$vh"); rm=$(mode_for "$rh")
+          echo "verify_mode=$vm" >> "$GITHUB_OUTPUT"
+          echo "review_mode=$rm" >> "$GITHUB_OUTPUT"
+          echo "verified_head=$vh" >> "$GITHUB_OUTPUT"
+          echo "reviewed_head=$rh" >> "$GITHUB_OUTPUT"
+          echo "verify: $vm (last report at ${vh:-none}); review: $rm (last report at ${rh:-none})"
+
   verify:
     needs: classify
     if: needs.classify.outputs.skip_verify != 'true'
@@ -104,6 +134,74 @@ jobs:
       - run: npx playwright install --with-deps chromium
       # ---------------------------------------------------------------------------------
 
+      # v0.2.11: one brief, composed here (a quoted heredoc keeps the backticks literal),
+      # with the mode text appended: DELTA when the classify job found a previous
+      # Verifier report and no src/ change since, FULL otherwise.
+      - name: Compose the Verifier's brief
+        id: vbrief
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          MODE: ${{ needs.classify.outputs.verify_mode }}
+          PREV: ${{ needs.classify.outputs.verified_head }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          {
+            echo 'prompt<<__END_OF_BRIEF__'
+            sed -e "s/__PR__/$PR/g" -e "s/__HEAD__/${HEAD_SHA:0:7}/g" -e "s/__PREV__/$PREV/g" <<'BRIEF'
+          You are the VERIFIER for pull request #__PR__
+          into `dev`. You are a fresh, independent, adversarial check on an
+          Implementer's work. You run headless in CI; everything you want a human or
+          the next agent to know goes on the pull request via `gh`. The first line of
+          every comment you post is `Verified head __HEAD__` (the commit you checked).
+
+          Do these in order:
+          1. `gh pr view __PR__ --comments` and
+             `git diff origin/dev...HEAD`. Read the linked issue
+             (`gh issue view <n> --comments` -- the branch is named issue-<n>) and what
+             its `Read:` line names in `docs/specs/*.md` and `docs/CORE_DOCUMENT.md`
+             (by heading; grep the rest -- do not read the specs end to end).
+          2. Run everything that exists: test suite, linters, type checks, builds.
+             Use the `tdd` and `webapp-testing` skills in `.claude/skills/` to judge
+             test quality. Then probe the change yourself against the issue's
+             acceptance criteria -- execute it, poke its edges, try to break it.
+          3. Check that new behaviour has tests. Missing or cosmetic tests are a
+             failure: name exactly which behaviours are untested. Remember: a fake
+             that behaves better than the real thing proves nothing. DO NOT edit or
+             commit code yourself -- weak work is a message to the Implementer, not
+             something you patch.
+          4. FMEA (only for changes labelled `data`, `ui` or `pipeline`, or that touch
+             data fetching, storage or core frontend): before judging, write a failure
+             matrix as a PR comment -- | Component | Failure Mode | Default Recovery |
+             Human Confirmation Needed? |. If any row genuinely needs the human's
+             judgement, post the table, add BOTH labels `needs-human` and
+             `state:blocked` (`gh pr edit N --add-label needs-human --add-label state:blocked`),
+             comment that the owner should answer each flagged row in a PR comment and
+             then remove the `needs-human` label, and STOP -- that is a valid, complete
+             outcome. Otherwise include the table in your final comment.
+          5. Finish with EXACTLY ONE of:
+             - PASS:  `gh pr edit __PR__ --add-label state:tested`
+               then a comment: what ran, counts, what you probed.
+             - FAIL:  `gh pr edit __PR__ --add-label state:blocked`
+               then a comment: exactly what failed and what the Implementer must change,
+               as a numbered list.
+             A run that ends without a label stalls the pipeline: your verdict exists
+             ONLY once that `gh` command has run. Nobody reads your final message and
+             nobody is there to confirm. Never merge anything.
+          BRIEF
+            if [ "$MODE" = "delta" ]; then
+              sed -e "s/__PREV__/$PREV/g" <<'DELTA'
+
+          DELTA MODE. Your previous report on this pull request begins `Verified head __PREV__`,
+          and nothing under src/ changed since (`git diff __PREV__..HEAD` is docs, tests,
+          Tree data or the PR body). So: take your numbered list from that report, check each
+          item against the diff since __PREV__, run the suites once, and decide. PASS when every
+          item is fixed and the suites are green; FAIL with the items still open. No new FMEA,
+          no fresh full probe: this round should take a third of a full one.
+          DELTA
+            fi
+            echo '__END_OF_BRIEF__'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Verifier agent
         uses: anthropics/claude-code-action@v1
         env:
@@ -120,47 +218,13 @@ jobs:
           # --allowedTools: the action denies Bash by default; without this the agent is
           # refused every `gh`/`git`/test command (observed: 16 denials, silent no-op run).
           # Deliberately NO Edit/Write: the Verifier judges, it does not patch.
-          # --model opus: the model policy (v0.2.5) -- the newest Opus, explicitly, so the
-          # cloud agents never drift with the action's default (observed: sonnet).
-          claude_args: "--max-turns 80 --allowedTools Bash,Read,Glob,Grep,Skill --model opus"
-          prompt: |
-            You are the VERIFIER for pull request #${{ github.event.pull_request.number }}
-            into `dev`. You are a fresh, independent, adversarial check on an
-            Implementer's work. You run headless in CI; everything you want a human or
-            the next agent to know goes on the pull request via `gh`.
-
-            Do these in order:
-            1. `gh pr view ${{ github.event.pull_request.number }} --comments` and
-               `git diff origin/dev...HEAD`. Read the linked issue
-               (`gh issue view <n> --comments` -- the branch is named issue-<n>), the
-               relevant `docs/specs/*.md` and `docs/CORE_DOCUMENT.md`.
-            2. Run everything that exists: test suite, linters, type checks, builds.
-               Use the `tdd` and `webapp-testing` skills in `.claude/skills/` to judge
-               test quality. Then probe the change yourself against the issue's
-               acceptance criteria -- execute it, poke its edges, try to break it.
-            3. Check that new behaviour has tests. Missing or cosmetic tests are a
-               failure: name exactly which behaviours are untested. Remember: a fake
-               that behaves better than the real thing proves nothing. DO NOT edit or
-               commit code yourself -- weak work is a message to the Implementer, not
-               something you patch.
-            4. FMEA (only for changes labelled `data`, `ui` or `pipeline`, or that touch
-               data fetching, storage or core frontend): before judging, write a failure
-               matrix as a PR comment -- | Component | Failure Mode | Default Recovery |
-               Human Confirmation Needed? |. If any row genuinely needs the human's
-               judgement, post the table, add BOTH labels `needs-human` and
-               `state:blocked` (`gh pr edit N --add-label needs-human --add-label state:blocked`),
-               comment that the owner should answer each flagged row in a PR comment and
-               then remove the `needs-human` label, and STOP -- that is a valid, complete
-               outcome. Otherwise include the table in your final comment.
-            5. Finish with EXACTLY ONE of:
-               - PASS:  `gh pr edit ${{ github.event.pull_request.number }} --add-label state:tested`
-                 then a comment: what ran, counts, what you probed.
-               - FAIL:  `gh pr edit ${{ github.event.pull_request.number }} --add-label state:blocked`
-                 then a comment: exactly what failed and what the Implementer must change,
-                 as a numbered list.
-               A run that ends without a label stalls the pipeline: your verdict exists
-               ONLY once that `gh` command has run. Nobody reads your final message and
-               nobody is there to confirm. Never merge anything.
+          # --model sonnet (v0.2.11; opus before): the Verifier's work is mechanical -- run,
+          # compare, count -- and a full Opus Verifier round measured 65 turns and $4.57.
+          # The Reviewer, the last gate, stays on Opus. Explicit, so the cloud agents
+          # never drift with the action's default.
+          claude_args: "--max-turns 80 --allowedTools Bash,Read,Glob,Grep,Skill --model sonnet"
+          show_full_output: true
+          prompt: ${{ steps.vbrief.outputs.prompt }}
 
   review:
     needs: [classify, verify]
@@ -200,21 +264,27 @@ jobs:
       # heredoc keeps the backticks literal; the PR number is substituted afterwards.
       - name: Compose the Reviewer's brief
         id: brief
-        if: steps.gate.outputs.verdict == 'tested'
+        if: steps.gate.outputs.verdict == 'tested' || steps.gate.outputs.verdict == 'blocked'
         env:
           PR: ${{ github.event.pull_request.number }}
+          MODE: ${{ needs.classify.outputs.review_mode }}
+          PREV: ${{ needs.classify.outputs.reviewed_head }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          VERDICT: ${{ steps.gate.outputs.verdict }}
         run: |
           {
             echo 'prompt<<__END_OF_BRIEF__'
-            sed "s/__PR__/$PR/g" <<'BRIEF'
+            sed -e "s/__PR__/$PR/g" -e "s/__HEAD__/${HEAD_SHA:0:7}/g" <<'BRIEF'
           You are the REVIEWER for pull request #__PR__
           into `dev`. You are the last gate before integration. Fresh context, headless,
-          in CI; everything you decide goes on the pull request via `gh`.
+          in CI; everything you decide goes on the pull request via `gh`. The first line
+          of every comment you post is `Reviewed head __HEAD__` (the commit you read).
 
           Do these in order:
           1. `gh pr view __PR__ --comments`,
-             `git diff origin/dev...HEAD`, the linked issue (branch is issue-<n>), the
-             relevant `docs/specs/*.md`, `docs/adrs/*.md` and `docs/CORE_DOCUMENT.md`.
+             `git diff origin/dev...HEAD`, the linked issue (branch is issue-<n>) and what
+             its `Read:` line names in `docs/specs/*.md`, `docs/adrs/*.md` and
+             `docs/CORE_DOCUMENT.md` (by heading; grep the rest -- not the specs end to end).
              Use the `code-review` skill in `.claude/skills/`.
           2. Verify the change strictly fulfils the specification and does not
              contradict the core document. Enforce the code standard: easily readable,
@@ -248,11 +318,49 @@ jobs:
           You may merge into `dev` and only `dev`; never `main`. You never close
           issues; the dispatcher does that on merge.
           BRIEF
+            if [ "$VERDICT" = "blocked" ]; then
+              cat <<'ADVISORY'
+
+          ADVISORY MODE (v0.2.11). The Verifier has just sent this pull request back; its
+          numbered list is on the PR. Review anyway, now, so that ONE fix run answers the
+          Verifier and you together instead of two rounds: read the diff as above and post
+          ONE comment beginning `Reviewed head __HEAD__` with your own numbered CHANGES (or
+          "No further changes from the Reviewer" if you have none). Do NOT merge, do NOT
+          touch any label, do NOT repeat the Verifier's items. Keep it to the points that
+          would make you send the next push back; aim for a third of a full review.
+          ADVISORY
+            elif [ "$MODE" = "delta" ]; then
+              sed -e "s/__PREV__/$PREV/g" <<'DELTA'
+
+          DELTA MODE (v0.2.11). Your previous comment on this pull request begins `Reviewed
+          head __PREV__`, and nothing under src/ changed since. Check each item of that
+          comment against `git diff __PREV__..HEAD`, read what changed, and decide: merge
+          when every item is answered, CHANGES with the items still open. No fresh full
+          review of the unchanged code.
+          DELTA
+            fi
             echo '__END_OF_BRIEF__'
           } >> "$GITHUB_OUTPUT"
 
+      # v0.2.11: the Verifier failed -> the Reviewer still reads the PR and posts its list,
+      # so the fix run (which the dispatcher holds until this run completes) answers both.
+      # No verdict is expected from this step and nothing is re-tried or failed on it.
+      - name: Reviewer agent (advisory -- the Verifier sent the PR back)
+        if: steps.gate.outputs.verdict == 'blocked'
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          claude_args: "--max-turns 40 --allowedTools Bash,Read,Glob,Grep,Skill --model opus"
+          show_full_output: true
+          prompt: ${{ steps.brief.outputs.prompt }}
+
       - name: Reviewer agent
         if: steps.gate.outputs.verdict == 'tested'
+        # full or delta: the brief carries the mode (classify decided it)
         uses: anthropics/claude-code-action@v1
         env:
           GH_TOKEN: ${{ github.token }}

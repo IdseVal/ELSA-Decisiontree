@@ -76,6 +76,10 @@ WRITING ISSUES (this is how work enters the system):
   subtle concurrency or data-integrity problem) -- it routes every run of that issue to
   the most capable and most expensive model, so say in the issue body why it earns it.
   Most issues are not complex; a long issue is not the same as a complex one.
+- A body line `Read: docs/specs/<file>.md § <heading>, docs/adrs/ADR-<n>-<slug>.md, ...`
+  names the spec sections and ADRs the run needs -- the minimum. Every run reads what
+  this line names and greps the rest; without it a run reads every spec, at ~50k tokens
+  a time. Name sections, not files, wherever a section is enough.
 - Ordering is expressed ONLY by a body line `Depends on: #a, #b`. The dispatcher holds an
   issue until every dependency is closed. Typical: research first; architecture depends
   on research; implementation depends on architecture.
