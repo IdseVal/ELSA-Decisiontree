@@ -24,6 +24,8 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
+import { openTree, type Tree } from '../../src/tree/loader.ts'
+import { imageHref } from '../../src/url.ts'
 
 const TREE = 'ai-act-applicability-agrifood'
 
@@ -281,3 +283,125 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     await page.screenshot({ path: path.join(PICTURE_SHOTS, `${nodeId}.png`), fullPage: true })
   })
 }
+
+/**
+ * What a reader can actually SEE of a picture's credit -- the one behaviour issue #45
+ * introduced that nothing tested.
+ *
+ * 23 of the 28 Option pictures and 5 of the 7 Node pictures are CC BY or CC BY-SA, and
+ * those licences ask for the attribution to be given where the work is shared. So "the
+ * credit is in `tree.yaml`" is not the behaviour that matters to them; "a reader is shown
+ * it" is. The owner's answer on PR #54 (2026-09-12) was to merge the pictures now and make
+ * the display a release blocker (`docs/deployment.md`), tracked as issue #55.
+ *
+ * The three tests below therefore assert what is true TODAY, not what the format promises:
+ * the Node pictures reach their credit through the enlarged view, every Option picture on
+ * screen has a credit in the Tree the server is serving, and no Option credit reaches the
+ * page. The last one is a DECLARED FAILING test: Playwright runs it and requires it to
+ * fail, so the day #55 puts the credit on the page it reports "expected to fail, but
+ * passed" and whoever fixed it is sent back here to replace it. `test.fixme` would have
+ * been the quieter marker, but it does not run the body at all and so cannot fail the day
+ * the gap closes, which is the whole point of writing it down.
+ */
+const TREE_DIR = fileURLToPath(new URL('../../trees/ai-act-applicability-agrifood', import.meta.url))
+
+/** The Node a reader meets each step at; each carries one picture (#45, NOTES.md 6). */
+const STEP_NODES = [
+  'start',
+  'ai-system-definition',
+  'prohibited-practices',
+  'annex-i-legislation',
+  'annex-iii-areas',
+  'general-purpose-ai',
+  'transparency-obligations',
+] as const
+
+/** The four Nodes whose Options carry the 28 Annex I and Annex III pictures. */
+const ANNEX_NODES = [
+  'annex-i-legislation',
+  'annex-i-legislation-2',
+  'annex-i-legislation-3',
+  'annex-iii-areas',
+] as const
+
+/** The licences issue #45 sourced under, as `tests/ai-act-tree.test.ts` spells them. */
+const OPEN_LICENCE = /CC0 1\.0|CC BY(-SA)? [0-9.]+|public domain/
+
+let tree: Tree
+
+test.beforeAll(async () => {
+  // The same Tree folder the server under test is serving (playwright.first-tree.config.ts),
+  // read through the loader: what a credit should say comes from the Tree, not from a copy
+  // of it in this file that could drift.
+  tree = await openTree(TREE_DIR)
+})
+
+test("every step Node's picture gives its credit in the enlarged view", async ({ page }) => {
+  for (const nodeId of STEP_NODES) {
+    const node = await tree.getNode(nodeId)
+    expect(node, `${nodeId} cannot be read`).not.toBeNull()
+    await page.goto(`/${TREE}/${nodeId}`)
+
+    const thumbnails = page.locator('.thumbnail')
+    await expect(thumbnails).toHaveCount(node!.images.length)
+    for (const [index, image] of node!.images.entries()) {
+      await thumbnails.nth(index).click()
+      const enlarged = page.locator('dialog.enlarged')
+      await expect(enlarged).toBeVisible()
+      // Author, where it came from and the licence, as `tree.yaml` writes it -- after a
+      // click, which is the gap issue #55 closes.
+      await expect(enlarged.locator('.credit')).toContainText(image.credit)
+      await page.keyboard.press('Escape')
+      await expect(enlarged).toBeHidden()
+    }
+  }
+})
+
+test('every Option picture on screen has a credit in the Tree this server is serving', async ({ page }) => {
+  let checked = 0
+  for (const nodeId of ANNEX_NODES) {
+    const node = await tree.getNode(nodeId)
+    expect(node, `${nodeId} cannot be read`).not.toBeNull()
+    await page.goto(`/${TREE}/${nodeId}`)
+
+    const credits = new Map(
+      node!.options.flatMap((option) => option.images.map((image) => [imageHref(image.file), image.credit])),
+    )
+    const shown = await page
+      .locator('.option-image')
+      .evaluateAll((images) => images.map((image) => new URL((image as HTMLImageElement).src).pathname))
+    expect(shown.length, `${nodeId}: pictures on screen`).toBe(credits.size)
+
+    for (const src of shown) {
+      const credit = credits.get(src)
+      expect(credit, `${nodeId}: ${src} is on screen but is no Option Image of this Node`).toBeDefined()
+      expect(credit!, `${nodeId}: ${src} has no licence in its credit`).toMatch(OPEN_LICENCE)
+      checked += 1
+    }
+  }
+  // The 20 Annex I entries and the 8 Annex III areas: nothing a reader is shown is missing
+  // its attribution in the data, so issue #55 is a display job and not a sourcing one.
+  expect(checked, 'Annex Option pictures checked').toBe(28)
+})
+
+test.fail(
+  'KNOWN GAP, issue #55 (accepted by the owner 2026-09-12): an Option picture shows its credit to a reader',
+  async ({ page }) => {
+    // Expected to FAIL today: an Option's `<img>` sits inside the link that walks to its
+    // explanation, so a click navigates and no code path draws an Option's credit. When
+    // #55 (or the Carousel, #43) puts it on the page, Playwright reports "expected to fail,
+    // but passed" -- replace this test then with the one #55 asks for, over all 35 pictures.
+    const nodeId = 'annex-iii-areas'
+    const node = await tree.getNode(nodeId)
+    await page.goto(`/${TREE}/${nodeId}`)
+
+    for (const option of node!.options) {
+      for (const image of option.images) {
+        // `useInnerText`: what a reader can read on the page, not what is in the markup.
+        await expect(page.locator('body'), `${nodeId} -> ${image.file}`).toContainText(image.credit, {
+          useInnerText: true,
+        })
+      }
+    }
+  },
+)
