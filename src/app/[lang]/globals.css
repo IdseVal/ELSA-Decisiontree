@@ -48,11 +48,17 @@
   --column: 240px;
   --gap: 20px;
   --bubble-width: 760px;
-  /* The rim: the band between the text area (640 x 304) and the curve (10.1). */
-  --rim-x: 60px;
-  --rim-y: 28px;
+  /*
+   * The rim: the band between the text area (640 x 304) and the curve, 60 across and 28
+   * down (10.1). The Bubble's 2-pixel outline is part of that band, so the padding inside
+   * it is 2 less, and the text area measures exactly 640 x 304.
+   */
+  --rim-x: 58px;
+  --rim-y: 26px;
   --bubble-radius: 180px;
   --page-inset: 0px;
+  /* The tick from an Option to the Bubble: inside the Option's own box, short of the gap. */
+  --tick: 12px;
 
   /* The type scale tree-format.md 5.7 measured the limits with. */
   --body: 16px;
@@ -331,13 +337,21 @@ a.language:hover,
   border-top: 1px solid var(--rule);
 }
 
+/*
+ * A title Branch: 212 pixels, 196 of them label. 10.2 budgets 200 and its arithmetic gives
+ * an 80-character title three 20-pixel lines at 13 pixels, which holds in the humanist
+ * faces the limits were measured with and not in a wider fallback such as DejaVu Sans,
+ * where 176 pixels of label wrap it into four lines and the row's 64 pixels are 20 short.
+ * The extra 12 come out of the row's margin: 5 x 212 + 120 + 5 x 8 = 1220 of 1280, and
+ * the collapsed middle may still grow to 180 before the row is full.
+ */
 .trail-step {
   position: relative;
-  width: 200px;
+  width: 212px;
 }
 
 .trail-entry {
-  padding: 1px 12px;
+  padding: 1px 8px;
   color: var(--elsa-text-muted);
 }
 
@@ -359,7 +373,8 @@ a.language:hover,
 /*
  * The collapsed middle of a long Trail: chrome, the Trail Sheet behind it. 120 pixels is
  * its budget in 10.2's sum; `trailMore(n)` in Dutch, or with two digits, runs a little
- * past it, and the row's 120-pixel margin is where that goes -- never a truncated word.
+ * past it, and the 60 pixels the row has left after five 212-pixel Branches is where that
+ * goes -- never a truncated word.
  */
 .trail-more {
   position: relative;
@@ -524,8 +539,14 @@ a.language:hover,
   color: var(--elsa-text-muted);
 }
 
+/*
+ * Its own line height, not the line's: a smaller inline box that inherits the 20-pixel
+ * line height sits lower on the baseline than the line's strut and stretches the line by
+ * a pixel or two, which over three lines of Sources is the budget of 10.7 missed.
+ */
 .kind {
   font-size: 10px;
+  line-height: 1;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -580,11 +601,11 @@ a.language:hover,
 }
 
 .options--left li {
-  padding-right: var(--gap);
+  padding-right: var(--tick);
 }
 
 .options--right li {
-  padding-left: var(--gap);
+  padding-left: var(--tick);
 }
 
 /* The tick from each Option to the Bubble, across the gap. */
@@ -592,7 +613,7 @@ a.language:hover,
   content: "";
   position: absolute;
   top: 50%;
-  width: var(--gap);
+  width: var(--tick);
   border-top: 1px solid var(--rule);
 }
 
@@ -604,10 +625,17 @@ a.language:hover,
   left: 0;
 }
 
+/*
+ * 248 wide beside the Bubble: 24 of padding, a 64-pixel thumbnail and its 8-pixel gap leave
+ * 152 for the label, which is what a 60-character Option title needs for three lines of
+ * 13-pixel text in a wide fallback face -- at 136 a Dutch one took four, and 96 pixels of
+ * Branch in the 90 the column gives each. Four Branches and three gaps are 352 of the 360.
+ */
 .option {
   justify-content: flex-start;
+  gap: 8px;
   min-height: 82px;
-  padding: 8px 14px;
+  padding: 8px 12px;
   border-radius: 41px;
   text-align: left;
 }
@@ -1134,14 +1162,19 @@ a.language:hover,
     gap: 4px;
   }
 
+  /*
+   * At the floor the bar holds two language names, the share button and the logo in 320
+   * pixels: `English`, `Nederlands` and `Kopieer link` at 11 pixels are 200 or more in a
+   * wide face, so the pills keep 5 pixels of padding and the logo at most 70 (22vw).
+   */
   .language,
   .share {
-    padding: 3px 7px;
+    padding: 3px 5px;
     font-size: 11px;
   }
 
   .logo {
-    max-width: 26vw;
+    max-width: 22vw;
   }
 
   /* A Tree without a logo names itself in two short lines rather than one long one. */
