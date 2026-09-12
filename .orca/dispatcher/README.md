@@ -16,7 +16,7 @@ headless `claude -p` processes that start, do one job, and exit. Nothing waits.
 | --- | --- |
 | `dispatch.py` | the reconciler; `run` / `once` / `status` / `doctor` / `onboard` / `pause` / `resume` |
 | `install-task.ps1` | installs it as a Windows scheduled task (at logon, auto-restart) |
-| `state.json` | de-dup memory only (cycles, pages and the branch tip at page time, run PIDs and the tip a fix run started from, the CI run last re-run per PR and how often, the session-limit hold, the per-model usage-cap holds). Gitignored. Safe to delete. |
+| `state.json` | de-dup memory only (cycles, pages and the branch tip at page time, run PIDs and the tip a fix run started from, the CI run last re-run per PR and how often, the session-limit hold, the per-model usage-cap holds, and the turns/tokens/cost of every finished run and CI job since v0.2.11). Gitignored. Safe to delete (the usage record goes with it). |
 | `prompts/` | the brief files runs are pointed at. Gitignored. Read them to triage. |
 | `runs/` | one log per headless run: your window into what an agent did. Gitignored. |
 | `dispatcher.log` | rotating log. Gitignored. |
@@ -64,7 +64,9 @@ refunded and only runs that would use that model are held (`state.json` under
 PRs are verified, reviewed and merged by the CI pipeline
 (`.github/workflows/agent-pipeline.yml`); the dispatcher only reacts: `state:blocked` ->
 a fresh headless fix run whose brief embeds the blocker's comments (breaker at 3 total
-starts per issue -> `escalated`); CONFLICTING with `dev` (v0.2.6) -> `state:blocked` with
+starts per issue -> `escalated`) -- started only once the CI run for that head has
+completed, because since v0.2.11 the Reviewer posts its list even when the Verifier
+failed, so one fix run answers both; CONFLICTING with `dev` (v0.2.6) -> `state:blocked` with
 a comment, because GitHub starts no CI run for a PR it cannot merge, and the fix run's
 first step is merging `dev` into the branch; `needs-human` -> page once and touch nothing
 until the label is gone -- and when it goes, the breaker is reset (the attempts before the
@@ -134,6 +136,39 @@ empty commit -- a comment does not trigger it. To lift a session-limit hold earl
 (pointless before the limit actually resets). To watch a live run:
 `tail -f .orca/dispatcher/runs/<name>.log` (or just open the file; PowerShell:
 `Get-Content -Wait`).
+
+## Token use (v0.2.11)
+
+Every headless run prints a JSON result (`--output-format json`) whose turns, tokens and
+cost the dispatcher records under `usage` in `state.json` (one line per run in
+`dispatcher.log`, prefixed `usage:`); once a CI run completes, its job log is read once
+and the Verifier's and Reviewer's figures are recorded the same way. `status` ends with a
+USAGE block: totals by kind (issue, fix, audit, `ci:verify`, `ci:review`) and the five
+costliest items. The cost is at API list prices, whatever the subscription charges;
+it is the number to compare between weeks and between levers.
+
+The levers in place, all measurable by that block:
+
+- **Reading lists.** An issue's `Read:` line names the spec sections and ADRs a run
+  needs; every brief says read those by heading and grep the rest. Before, every run
+  read the core document and every spec end to end (~50k tokens a run, nine runs a PR).
+- **Delta rounds in CI.** The Verifier and the Reviewer begin each comment with
+  `Verified head <sha>` / `Reviewed head <sha>`. On a push that changed nothing under
+  `src/` since that sha, they run in DELTA mode: check their own list, run the suites
+  once, decide. A push that touches code gets a full round.
+- **One send-back round.** When the Verifier fails a PR, the Reviewer still reads it and
+  posts its list (advisory, no labels, no merge), and the dispatcher waits for that CI
+  run to complete before starting the fix run -- so one fix run answers both.
+- **Sonnet for the Verifier.** Its work is mechanical; a full Opus Verifier round
+  measured 65 turns and $4.57. The Reviewer, the last gate, stays on Opus.
+- **The pre-PR self-check.** The implement brief ends with the Verifier's checklist
+  (claims with output pasted, counts reconciled, screenshots embedded, tests that fail
+  without the change, the not-done list). Most send-backs were exactly those.
+- **Commit as you go.** Every brief says so, and every fresh run first reads `git log`
+  of its worktree and continues: a run killed at minute 29 leaves work, not nothing.
+
+To turn a lever off, edit the brief or the pipeline step; to see whether it paid, compare
+the USAGE block before and after.
 
 ## Which model runs
 

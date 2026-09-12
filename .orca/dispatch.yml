@@ -105,6 +105,8 @@ models:
   complex_label: complex
   interview: opus
   capped_hold_minutes: 360           # v0.2.9: a model that is out of usage credits is re-tried this often
+  # CI (agent-pipeline.yml, not read from here): the Verifier runs on `sonnet` since v0.2.11 --
+  # its work is mechanical (run, compare, count); the Reviewer, the last gate, stays on `opus`.
 
 # Enforced by the CI Reviewer (section 8 embeds the same rules in its prompt); kept here
 # as the single written source both the Implementer and the Reviewer are pointed at.

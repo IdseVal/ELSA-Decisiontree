@@ -42,6 +42,10 @@ WHAT IT DOES EACH TICK
         run of any kind starts until the stated reset (+2 min; 60 min if unreadable).
         Fix runs and backlog audits get the same treatment. The hold lives in
         `state.json` under `limit` and lifts by itself.
+      - Every run is measured (v0.2.11): headless runs print a JSON result
+        (`--output-format json`) whose turns, tokens and cost are recorded per run in
+        `state.json` under `usage`; CI job logs are parsed the same way once a run
+        completes. `status` prints the totals by kind and the most expensive items.
       - A run that dies with "You're out of usage credits" (v0.2.9) hit the MODEL's
         usage cap -- Fable's weekly allowance, typically -- not the session limit. The
         cycle is refunded and only the runs that would use that model are held
@@ -55,7 +59,9 @@ WHAT IT DOES EACH TICK
         not in `promotion.trusted_promoters` (empty list = enforcement off).
     PRs (base `dev`; the CI pipeline owns testing and review)
       - `state:blocked` -> spend a cycle; under the breaker, spawn a fresh headless fix
-        run in the PR's worktree whose brief embeds the blocker's comments; over it,
+        run in the PR's worktree whose brief embeds the blocker's comments -- but not
+        while the CI run for the PR's head is still going (v0.2.11): the Reviewer now
+        posts its list even when the Verifier failed, so one fix run answers both; over it,
         label the issue `escalated` and page the human. The fix run pushes and removes
         the label; the push re-triggers CI. A fix run that ends with the label back on
         AFTER IT PUSHED is not a failed run (v0.2.8): CI cleared the label on the push
@@ -188,6 +194,9 @@ _LIMIT_RESET_RE = re.compile(
 LIMIT_FALLBACK_MINUTES = 60   # hold this long when the reset time cannot be read
 LIMIT_MARGIN_MINUTES = 2      # start a little after the stated reset, not on it
 _CREDITS_RE = re.compile(r"(?i)out of usage credits")   # v0.2.9: a MODEL's cap, not the session limit
+USAGE_TAIL_BYTES = 65536      # v0.2.11: a run's JSON result is its last line; this much tail finds it
+_CI_USAGE_RE = re.compile(r'^([^\t]+)\t[^\t]*\t\S+\s+"(num_turns|total_cost_usd|input_tokens|output_tokens|'
+                          r'cache_read_input_tokens|cache_creation_input_tokens)":\s*([\d.]+)', re.M)
 MODEL_HOLD_MINUTES = 360      # ... re-try a capped model this often (models.capped_hold_minutes)
 
 SUBPROCESS_TIMEOUT = 180
@@ -520,7 +529,7 @@ def run_hit_limit(log_name: Optional[str]) -> Optional[str]:
     counts as a limit death, but the file may be large. The message must be the run's
     LAST output (the final non-empty lines): an agent that merely mentions the phrase
     while working -- say, editing this file -- prints more afterwards."""
-    last_lines = _log_last_lines(log_name)
+    last_lines = _death_text(log_name)
     if not last_lines or not _LIMIT_RE.search(last_lines):
         return None
     m = _LIMIT_RESET_RE.search(last_lines)
@@ -549,7 +558,50 @@ def run_out_of_credits(log_name: Optional[str]) -> bool:
     allowance, typically -- not the subscription's session limit. It exits at once with
     that one line, so before v0.2.9 it looked like an empty run: retry into the same
     wall, then `needs-human` with nothing to answer."""
-    return bool(_CREDITS_RE.search(_log_last_lines(log_name)))
+    return bool(_CREDITS_RE.search(_death_text(log_name)))
+
+
+def run_result(log_name: Optional[str]) -> Optional[dict[str, Any]]:
+    """The JSON result a v0.2.11 run prints as its last line (`--output-format json`):
+    {"type": "result", "is_error", "num_turns", "duration_ms", "total_cost_usd",
+    "usage": {...}, "result": <final text>}. None for a run still going (empty log), a
+    pre-v0.2.11 plain-text log, or anything unparseable."""
+    if not log_name:
+        return None
+    path = run_log_path(log_name)
+    try:
+        with path.open("rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            size = fh.tell()
+            fh.seek(max(0, size - USAGE_TAIL_BYTES))
+            tail = fh.read().decode("utf-8", errors="replace")
+    except OSError:
+        return None
+    for line in reversed(tail.splitlines()):
+        line = line.strip()
+        if not line:
+            continue
+        if not line.startswith("{"):
+            return None
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError:
+            return None
+        return data if isinstance(data, dict) and data.get("type") == "result" else None
+    return None
+
+
+def _death_text(log_name: Optional[str]) -> str:
+    """What the limit / credits detectors look at. For a JSON result (v0.2.11), the
+    `result` text -- and only when the run errored or made at most one turn: a healthy
+    thirty-turn run whose final message merely mentions the limit (an agent editing this
+    file, say) is not a death. For a plain log, the last three non-empty lines."""
+    res = run_result(log_name)
+    if res is not None:
+        if res.get("is_error") or int(res.get("num_turns") or 0) <= 1:
+            return str(res.get("result") or "")
+        return ""
+    return _log_last_lines(log_name)
 
 
 def limit_until_ms(reset_phrase: str) -> int:
@@ -640,6 +692,134 @@ def capped_comment(model: str, hold: str, cfg: dict[str, Any]) -> str:
             f"`{complex_label(cfg)}` label.")
 
 
+# --------------------------------------------------------------------------- usage (v0.2.11)
+
+_RUN_KIND_RE = re.compile(r"^(?:(issue)-(\d+)-(?:cycle|retry-c)\d+|(pr)-(\d+)-fix-c\d+|(backlog)-audit)")
+
+
+def _usage_fields(res: dict[str, Any]) -> dict[str, Any]:
+    u = res.get("usage") or {}
+    return {"turns": int(res.get("num_turns") or 0), "cost": float(res.get("total_cost_usd") or 0.0),
+            "in": int(u.get("input_tokens") or 0), "out": int(u.get("output_tokens") or 0),
+            "cache_read": int(u.get("cache_read_input_tokens") or 0),
+            "cache_create": int(u.get("cache_creation_input_tokens") or 0),
+            "minutes": round(float(res.get("duration_ms") or 0) / 60_000, 1),
+            "error": bool(res.get("is_error"))}
+
+
+def collect_run_usage(state: "State") -> None:
+    """Record every finished headless run's turns, tokens and cost (v0.2.11), from the
+    JSON result at the end of its log. Idempotent: a log is read once; a run still going
+    (empty log) or a pre-v0.2.11 plain log is skipped. `usage.since` bounds the scan."""
+    u = state.usage
+    runs = u.setdefault("runs", {})
+    since = int(u.setdefault("since", now_ms()))
+    try:
+        paths = list(RUNS_DIR.glob("*.log"))
+    except OSError:
+        return
+    changed = False
+    for path in paths:
+        name = path.stem
+        if name in runs:
+            continue
+        try:
+            if int(path.stat().st_mtime * 1000) < since:
+                continue
+        except OSError:
+            continue
+        res = run_result(name)
+        if res is None:
+            continue
+        m = _RUN_KIND_RE.match(name)
+        kind = "audit" if m and m.group(5) else "fix" if m and m.group(3) else "issue" if m else "other"
+        ref = (m.group(2) or m.group(4)) if m else None
+        rec = {"kind": kind, "ref": int(ref) if ref else None, "at": now_ms(), **_usage_fields(res)}
+        runs[name] = rec
+        changed = True
+        log.info("usage: %s -> %s turns, %s in / %s out (+%s cached), $%.2f, %s min%s", name, rec["turns"],
+                 rec["in"], rec["out"], rec["cache_read"], rec["cost"], rec["minutes"],
+                 " (error)" if rec["error"] else "")
+    if changed:
+        state.save()
+
+
+def parse_ci_log(text: str) -> dict[str, dict[str, Any]]:
+    """Per-job usage from a `gh run view --log` dump: the action prints the agent's JSON
+    result into the job log, one field per line. The last value per job wins."""
+    jobs: dict[str, dict[str, Any]] = {}
+    key = {"num_turns": "turns", "total_cost_usd": "cost", "input_tokens": "in", "output_tokens": "out",
+           "cache_read_input_tokens": "cache_read", "cache_creation_input_tokens": "cache_create"}
+    for m in _CI_USAGE_RE.finditer(text):
+        job, field_, val = m.group(1).strip(), m.group(2), m.group(3)
+        rec = jobs.setdefault(job, {})
+        rec[key[field_]] = float(val) if field_ == "total_cost_usd" else int(float(val))
+    return jobs
+
+
+def collect_ci_usage(state: "State") -> None:
+    """Record the Verifier's and Reviewer's usage per completed CI run (v0.2.11), read
+    once from the run's log. Bounded to runs created after `usage.since`."""
+    u = state.usage
+    ci = u.setdefault("ci", {})
+    since = int(u.setdefault("since", now_ms()))
+    runs = gh_json(["run", "list", "--workflow", PIPELINE_FILE.name, "--limit", "10",
+                    "--json", "databaseId,status,conclusion,createdAt,headBranch"]) or []
+    changed = False
+    for raw in runs:
+        rid = str(raw.get("databaseId"))
+        if rid in ci or raw.get("status") != "completed" or iso_ms(raw.get("createdAt")) < since:
+            continue
+        ok, out, _ = run(["gh", "run", "view", rid, "--log"], timeout=SUBPROCESS_TIMEOUT)
+        if not ok:
+            continue
+        jobs = parse_ci_log(out)
+        ci[rid] = {"branch": raw.get("headBranch"), "conclusion": raw.get("conclusion"), "at": now_ms(),
+                   "jobs": jobs}
+        changed = True
+        for job, rec in jobs.items():
+            log.info("usage: CI run %s job %s -> %s turns, $%.2f", rid, job, rec.get("turns", 0), rec.get("cost", 0.0))
+    if changed:
+        state.save()
+
+
+def usage_summary(state: "State") -> str:
+    """The board's usage block: totals by kind, then the costliest items."""
+    u = state.usage or {}
+    runs = u.get("runs") or {}
+    ci = u.get("ci") or {}
+    if not runs and not ci:
+        return "USAGE: nothing measured yet (runs started before v0.2.11 are not counted)"
+    by_kind: dict[str, dict[str, float]] = {}
+    by_ref: dict[str, dict[str, float]] = {}
+
+    def add(bucket: dict[str, dict[str, float]], k: str, rec: dict[str, Any]) -> None:
+        b = bucket.setdefault(k, {"runs": 0, "turns": 0, "cost": 0.0, "tokens": 0})
+        b["runs"] += 1
+        b["turns"] += int(rec.get("turns") or 0)
+        b["cost"] += float(rec.get("cost") or 0.0)
+        b["tokens"] += int(rec.get("in") or 0) + int(rec.get("out") or 0) + int(rec.get("cache_read") or 0)
+
+    for name, rec in runs.items():
+        add(by_kind, rec.get("kind", "other"), rec)
+        if rec.get("ref"):
+            add(by_ref, f"{'PR' if rec.get('kind') == 'fix' else 'issue'} #{rec['ref']}", rec)
+    for rid, rec in ci.items():
+        for job, jr in (rec.get("jobs") or {}).items():
+            add(by_kind, f"ci:{job}", jr)
+            add(by_ref, f"CI {rec.get('branch') or rid}", jr)
+    since = datetime.fromtimestamp(int(u.get("since", 0)) / 1000).strftime("%Y-%m-%d %H:%M")
+    lines = [f"USAGE since {since} (turns, tokens incl. cache reads, cost at API prices)"]
+    for k, b in sorted(by_kind.items(), key=lambda kv: -kv[1]["cost"]):
+        lines.append(f"  {k:<12} runs={int(b['runs']):<3} turns={int(b['turns']):<5} tokens={int(b['tokens']):>10,}  ${b['cost']:.2f}")
+    top = sorted(by_ref.items(), key=lambda kv: -kv[1]["cost"])[:5]
+    if top:
+        lines.append("  costliest:")
+        for k, b in top:
+            lines.append(f"    {k:<28} runs={int(b['runs']):<3} turns={int(b['turns']):<5} ${b['cost']:.2f}")
+    return "\n".join(lines)
+
+
 def write_autonomy(mode: str) -> None:
     """Persist the chosen mode into dispatch.yml with a targeted text edit, so the
     file's comments and layout survive."""
@@ -704,6 +884,7 @@ class State:
     backlog: dict[str, Any] = field(default_factory=dict)
     limit: dict[str, Any] = field(default_factory=dict)   # session-limit hold (v0.2.5)
     model_holds: dict[str, Any] = field(default_factory=dict)   # per-model usage-cap holds (v0.2.9)
+    usage: dict[str, Any] = field(default_factory=dict)   # tokens/turns/cost per run and CI job (v0.2.11)
 
     @classmethod
     def load(cls) -> "State":
@@ -721,6 +902,7 @@ class State:
             notified=raw.get("notified", {}), closed_issues=raw.get("closed_issues", []),
             backlog=raw.get("backlog", {}), limit=raw.get("limit", {}) or {},
             model_holds=raw.get("model_holds", {}) or {},
+            usage=raw.get("usage", {}) or {},
         )
 
     def save(self) -> None:
@@ -732,6 +914,7 @@ class State:
             "issues": self.issues, "prs": self.prs,
             "notified": self.notified, "closed_issues": self.closed_issues,
             "backlog": self.backlog, "limit": self.limit, "model_holds": self.model_holds,
+            "usage": self.usage,
         }, indent=2), encoding="utf-8")
         tmp.replace(STATE_FILE)
 
@@ -945,6 +1128,8 @@ Rules that apply to every run:
 - If you need the human (a decision, a credential, a missing skill): comment on the issue or PR with exactly what you need and what you will do with the answer, add the label `needs-human`, push any work worth keeping, and END YOUR RUN. A fresh run will later read those comments -- write for that reader.
 - Skills live in `.claude/skills/` of this repository. If one your brief names is missing, say so in a comment and continue with plain tools if you can; otherwise use `needs-human`.
 - Never leave work uncommitted when you end. Never force-push. Never wait for anything.
+- Commit after every logical step, not at the end: a run can be killed at any minute (a time ceiling, a usage limit), and only committed work survives to the next run, which is told to continue from `git log`.
+- Read what you need, not everything: the issue's `Read:` line names the spec sections and ADRs the work depends on -- read those by heading, `grep` the rest of `docs/` for the terms you meet, and do not read the specs end to end.
 - Never start a command in the background, and never end your turn to wait for one: this is a headless `-p` run, and ending the turn ENDS THE RUN -- nothing re-invokes you, and the work is lost. Run tests and builds in the foreground with a timeout, read the result, then go on.
 """
 
@@ -962,16 +1147,32 @@ Do these in order:
    you enough context to know what is wanted and WHY -- without guessing -- do not build
    your best guess: comment on the issue naming exactly what is missing, add the label
    `needs-human`, and END YOUR RUN.
-3. Read `docs/CORE_DOCUMENT.md`, then the relevant `docs/specs/*.md` and `docs/adrs/*.md`.
-4. Do ONLY what the issue asks, in this worktree. If your role builds code, its tests
+3. Read the sections of `docs/CORE_DOCUMENT.md` that concern this task and what the
+   issue's `Read:` line names in `docs/specs/*.md` and `docs/adrs/*.md` (by heading).
+   No `Read:` line: grep the specs for the issue's terms and read those sections only.
+4. `git log origin/{base}..HEAD --oneline` and `git status`: a previous run for this
+   issue may have left committed work in this worktree. Continue from it; do not redo it.
+5. Do ONLY what the issue asks, in this worktree. If your role builds code, its tests
    ship in the same PR and you run everything that exists before publishing; if your
    role produces documents, they land under `docs/` per your role file. Commit in
-   small, clear commits.
-5. Finish by publishing a pull request into `{base}`:
+   small, clear commits, as you go.
+6. Before you publish, check your own work the way the Verifier will (it runs on every
+   push, and a send-back costs a full fix run plus a full CI round):
+   - every claim in the PR body is something you ran, with its output pasted;
+   - for `data`/`ui`/`pipeline` work, the evidence the issue's labels demand
+     (`evidence_gates` in `.orca/dispatch.yml`): a count reconciled against an
+     independent source, real output sampled in;
+   - screenshots the issue asks for are embedded (`![...](raw.githubusercontent.com/...)`,
+     pinned to a commit on this branch), not named;
+   - every behaviour you added has a test that fails without it; the full suites,
+     type checks and builds ran green in this worktree after your last commit;
+   - the body names what you did NOT do and every defect you found but did not fix;
+   - the body is written in the past tense, about what IS, not what you planned.
+7. Publish a pull request into `{base}`:
        git push -u origin HEAD
        gh pr create --base {base} --title "<what you did> (#{issue.number})" --body "<summary, evidence, decisions>. Refs #{issue.number}"
    The CI pipeline verifies and reviews it; the dispatcher closes the issue on merge.
-6. Say DONE in one line and END YOUR RUN. Do not wait. Do not merge.
+8. Say DONE in one line and END YOUR RUN. Do not wait. Do not merge.
 
 Skills earned by this issue's labels: {', '.join(skills) if skills else '(baseline only)'}
 Labels: {', '.join(sorted(issue.labels)) or '(none)'}
@@ -990,8 +1191,9 @@ committed work -- inspect `git log` and `git status` first.
 - If the work is essentially done: finish it, `git push -u origin HEAD`,
   `gh pr create --base {base} --title "... (#{issue.number})" --body "... Refs #{issue.number}"`, END YOUR RUN.
 - Otherwise: do the task from the top. `cat .orca/roles/{role}.md`,
-  `gh issue view {issue.number} --comments`, the core document and specs; do the work
-  per your role; push; open the PR into `{base}`; END YOUR RUN.
+  `gh issue view {issue.number} --comments`, the core document's relevant sections and
+  what the issue's `Read:` line names; do the work per your role, committing as you go;
+  push; open the PR into `{base}`; END YOUR RUN.
 - If you can see WHY the previous run failed (a missing credential, an impossible
   instruction), do not repeat it: comment on the issue, add `needs-human`, END YOUR RUN.
 {COMMON_RULES}
@@ -1018,7 +1220,10 @@ Do this, in this worktree (the PR's branch is checked out here):
    conflict keeping BOTH sides' intent -- `{base}` moved under this branch; the other
    PRs' decisions stand, this PR's work must fit them. Run the tests. Commit the merge.
 1. `gh pr view {n} --comments` and `git diff origin/{base}...HEAD` for full context, plus
-   `cat .orca/roles/{role}.md`.
+   `cat .orca/roles/{role}.md`. Then `git log origin/{base}..HEAD --oneline` and
+   `git status`: a previous fix run may have left committed work here -- continue from
+   it. The Verifier's AND the Reviewer's lists are both on the PR (the Reviewer posts
+   its list even when the Verifier failed): address both in this one run.
 2. Address EVERY point. A point about the PR BODY is fixed BEFORE the push
    (`gh pr edit {n} --body-file <file>`): the push starts CI, and the Verifier reads the
    body as it is at that moment. Then commit and `git push` on this branch. If the human
@@ -1053,15 +1258,18 @@ Decide what happens next. Exactly ONE of two outcomes, and it must be visible on
 -- a run that ends with neither stalls the whole project. Autonomy mode: `{autonomy}`.
 
 1. `cat .orca/roles/planner.md` -- you are the Planner.
-2. Re-read `docs/CORE_DOCUMENT.md`, every `docs/specs/*.md` and `docs/adrs/*.md`, and the
+2. Re-read `docs/CORE_DOCUMENT.md`; skim `docs/specs/*.md` and `docs/adrs/*.md` by
+   heading and read in full only the sections the gaps you find depend on; list the
    closed issues (`gh issue list --state closed --limit 200`). Compare what the core
    document promises against what is actually merged on `{base}`.
 3. OUTCOME A -- gaps remain: file the missing GitHub issues, written to the standard in
    your role: self-contained plain-language CONTEXT (what the problem is and why it
    exists), TASK, DONE WHEN (testable), OUT OF SCOPE -- no jargon the core document does
    not define. Type labels (`research`, `architecture`) and skill labels where they
-   apply; `trivial` where honest; ordering ONLY via a body line `Depends on: #a, #b`.
-   Per the autonomy mode: {label_rule}.
+   apply; `trivial` where honest; ordering ONLY via a body line `Depends on: #a, #b`;
+   and a body line `Read: <file> § <heading>, ...` naming the spec sections and ADRs
+   the run needs -- the minimum, since a run reads what this line names and greps the
+   rest. Per the autonomy mode: {label_rule}.
 4. OUTCOME B -- everything the core document promises is merged AND the document contains
    no OPEN item: edit its status line to `{achieved_marker} -- <date>`, commit on this
    branch, `git push -u origin HEAD`, and open a PR into `{base}` titled
@@ -1310,7 +1518,7 @@ def spawn_headless(workdir: str, brief: Path, log_name: str, cfg: dict[str, Any]
     from model_for() (v0.2.5): the policy's flag goes BEFORE `extra_args`, so a deliberate
     `--model` in extra_args still wins (the CLI takes the last one)."""
     d = cfg["dispatcher"]
-    cmd = [d["claude_cmd"], "-p", one_liner(brief), *d["permission_args"]]
+    cmd = [d["claude_cmd"], "-p", one_liner(brief), "--output-format", "json", *d["permission_args"]]
     if model:
         cmd += ["--model", model]
     cmd += list(d["extra_args"])
@@ -1826,6 +2034,13 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                 if mh:
                     log.debug("PR #%s: fix run held: %s", pr.number, mh)
                     continue
+                # v0.2.11: the Reviewer posts its list even when the Verifier failed, so
+                # one fix run answers both -- wait for the run on this head to finish.
+                ci = ci_run_for(pr) if not pr.conflicting else None
+                if ci and ci["status"] != "completed":
+                    log.debug("PR #%s: blocked; CI run %s still going -> fix run waits for the Reviewer's list",
+                              pr.number, ci["id"])
+                    continue
                 cycle = 1
                 if issue:
                     si = state.issue(issue.number)
@@ -2201,6 +2416,11 @@ def tick(cfg: dict[str, Any], state: State) -> None:
             log.info("resumed: dispatching again")
         _pause_logged = pause_key
     reconcile_merged(obs, cfg, state)
+    try:
+        collect_run_usage(state)
+        collect_ci_usage(state)
+    except Exception as exc:  # noqa: BLE001 -- measuring must never stop the reconcile
+        log.warning("usage collection failed: %s", exc)
     reconcile_interviews(obs, cfg)
     reconcile_prs(obs, cfg, state)
     reconcile_issues(obs, cfg, state)
@@ -2337,6 +2557,8 @@ def cmd_status(cfg: dict[str, Any], state: State) -> int:
     for wt in obs.worktrees:
         tag = "" if wt_owned(wt) else "  (unmanaged -- ignored by the dispatcher)"
         print(f"  {wt.name:<24} {wt.branch:<40} {wt.path}{tag}")
+    print()
+    print(usage_summary(state))
     return 0
 
 

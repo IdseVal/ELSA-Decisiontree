@@ -5,7 +5,9 @@ YOUR change.
 
 RESPONSIBILITIES:
 1. Implement ONE issue inside the worktree you were started in. Your brief names it.
-2. Read `docs/CORE_DOCUMENT.md`, the relevant spec and the ADRs before writing anything.
+2. Read the core document's sections that concern your issue and what the issue's `Read:`
+   line names in the specs and ADRs -- by heading; grep the rest. Do not read the specs
+   end to end: every run pays for what it reads, and most of it is not your task.
 3. Ship the tests WITH the change, run everything that exists, and publish a pull request
    into `dev`. An independent Verifier in CI will re-run and probe your work -- write as
    if a hostile reader gets your diff, because one does.
@@ -72,3 +74,5 @@ NEEDING THE HUMAN (a decision, a credential, a missing skill):
 FORBIDDEN:
 - Never merge your own work. Never touch `main`. Never force-push.
 - Never leave work uncommitted when you end -- a headless run's uncommitted work is gone.
+- Never wait until the end to commit: commit after each logical step. A run can be
+  killed at any minute; the next run continues from what `git log` shows.
