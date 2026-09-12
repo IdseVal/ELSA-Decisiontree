@@ -207,11 +207,34 @@ images:
     source: anx-i                       # optional: the id of a Source on the same Node
 ```
 
-`credit` is required on every image without exception, and it is shown to the reader as
-you write it. The `description` is the Carousel's caption and the alternative text a
-screen reader speaks, so write what the picture *shows*. Delete the whole `images:` list
-to leave a Node or an Option without a picture; an unused file in `images/` is not an
-error.
+`credit` is required on every image without exception, and it is reproduced as you write
+it. The `description` is the Carousel's caption and the alternative text a screen reader
+speaks, so write what the picture *shows*. Delete the whole `images:` list to leave a Node
+or an Option without a picture; an unused file in `images/` is not an error.
+
+**What a reader is shown of a credit today**, which is less than the format promises:
+
+- the **7 pictures on step Nodes**: the credit is in the enlarged view, so a reader sees it
+  only **after clicking** the thumbnail;
+- the **28 pictures on Options**: the credit is shown **nowhere on the page**. An Option's
+  picture sits inside the link that walks to its explanation, so clicking it walks on
+  rather than enlarging, and no part of the frontend draws an Option's credit.
+
+`docs/specs/tree-format.md` 5.2 promises more -- the credit "shown with it, in the Carousel
+and in the enlarged view" -- and the Carousel is issue #43, which is not built yet. Issue
+**#55** is the whole of this gap, Node thumbnails included, with a browser test that every
+picture's author, source and licence can be seen without a click. Until #55 is done,
+`docs/deployment.md` says this app must not be put in front of the public: 23 of the 28
+Option pictures are CC BY or CC BY-SA, and those licences ask for the attribution to be
+given where the work is shared. Inside this repository it **is** given -- in `tree.yaml`
+beside every picture, and in the table at the end of this section.
+
+**On CC BY-SA (24 of the 35: 16 at 4.0, 4 at 3.0, 4 at 2.0).** The owner accepted the
+family on 2026-09-12. Each picture is a separable work under its own licence; the
+resized copies in `images/` are adaptations and stay under that same licence, which the
+table below records per file. That does not decide the licence of this repository's code or
+of this Tree's text -- issue **#12** does -- and whatever is chosen there does not, and must
+not, claim these pictures.
 
 **The `source:` pointer.** Where a picture illustrates a legal Source the Node already
 cites, it names that Source's id: the step pictures point at the provision the step asks
