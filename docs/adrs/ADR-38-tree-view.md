@@ -1,6 +1,6 @@
 # ADR-38-tree-view: the open Node is a round Bubble in the centre of the screen, the Trail is the Branches above it, the Answer targets are Branches below and the Option targets Branches beside, so that direction on screen carries the meaning of a Link
 
-- Status: ACCEPTED (frozen) -- 2026-09-10
+- Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 by issue #41 (the numbers as built, below)
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, section 10 (10.1 to 10.3)
 - Core document: 3.2, section 5 (Bubble, Branch, Trail), open item 10.23
@@ -108,3 +108,31 @@ The owner has not yet said what "children" and "side children" mean (core docume
 - Issue #41 builds one grid and four situations, not a responsive column.
 - If the owner corrects 10.23, the change is a direction table in
   `src/neighbourhood.ts`; the Bubble, the rows and the tests do not move.
+
+## Amendment, 2026-09-12 (issue #41, the build)
+
+The build measured the layout in a real browser on a machine whose fallback body face is
+DejaVu Sans, the widest a reader is likely to meet, and three of the widths above were
+short there. The decisions stand; the numbers are corrected to what is built, so that the
+spec (`application.md` 10.2, 10.7) and this record say what the layout is.
+
+- **Decision 4.** An Option Branch is **248 x 82** in its 90-pixel slot: the 240-pixel
+  column plus the 12-pixel tick into the gap. With 12 pixels of padding each side its
+  label is 224 pixels, or **152 with the 64-pixel thumbnail and its 8-pixel gap**. At the
+  136 a 240-pixel Branch left, a 60-character Dutch title took four lines and the column
+  364 pixels of its 360. An Answer Branch is 480 pixels with 20 of padding each side:
+  440 of label.
+- **Decision 7.** A title Branch of the Trail is **212 pixels, 196 of them label**, not
+  200: at 176 an 80-character title wrapped into four lines in DejaVu Sans, 84 pixels in
+  the 64-pixel row. The collapsed row is 5 x 212 + 120 + 5 x 8 = **1220 of 1280**, and
+  the collapsed middle may grow to 180 before the row is full.
+- **Decision 9.** The Bubble's 2-pixel outline is part of the rim, so the padding inside
+  it is 58 and 26 and the text area measures exactly 640 x 304.
+- **Decision 6, and `ADR-38-carousel.md`.** Until #43 draws the Carousel, the row holds
+  the Node's own Images as plain thumbnails opening the enlarged view with the credit --
+  version 0.1's display, kept alive by the owner's decision on PR #56 after PR #54 made
+  visible credits a release blocker. Option Images are still not merged into it.
+
+The face the limits hold in is `application.md` 10.7's last paragraph: the default type
+stack names Arial-metric faces before `sans-serif`, because the Bubble's text area holds
+the format's maximum in those and not in DejaVu Sans, as `tree-format.md` 5.7 warns.
