@@ -353,7 +353,6 @@ describe('the content of the first Tree', () => {
       expect(tree.manifest.metadata.version).toBe('0.2')
       for (const [id, node] of nodes) expect(node.metadata.version, id).toBe('0.2')
     })
-
   })
 
   describe('the pictures: every list entry shows what it covers, every credit names a licence', () => {
