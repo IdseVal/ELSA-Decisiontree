@@ -202,6 +202,71 @@ test.describe('the keyboard', () => {
   })
 })
 
+/**
+ * A Trail of 49 entries on the example Tree: `start` visited 48 times, then the question
+ * Node. A URL's Trail is not checked for adjacency (4.3), which is what makes the longest
+ * Trail a URL carries reachable without a Tree of 49 Nodes.
+ */
+const LONG_TRAIL = `${TREE}/${Array.from({ length: 49 }, () => 'start').join('/')}/prohibited-practices`
+
+test.describe('the Trail Sheet', () => {
+  test('pages the whole Trail eight at a time, newest first, and starts over each time it opens', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
+    await page.goto(LONG_TRAIL)
+    const sheet = page.locator('.trail-sheet')
+    const control = sheet.locator('summary')
+    // Six entries or more: `start`, the collapsed middle, the last four (10.2).
+    await expect(page.locator('.trail-entry:visible')).toHaveCount(5)
+    await expect(control).toHaveText('44 earlier steps', { useInnerText: true })
+
+    await control.click()
+    const links = sheet.locator('.sheet-list a')
+    const previous = sheet.locator('.sheet-controls button', { hasText: 'Previous' })
+    const next = sheet.locator('.sheet-controls button', { hasText: 'Next' })
+    await expect(links).toHaveCount(8)
+    // Newest first: the parent, whose Trail is the 48 entries before it.
+    await expect(links.first()).toHaveAttribute('href', `${TREE}/${Array.from({ length: 48 }, () => 'start').join('/')}/start`)
+    await expect(previous).toBeDisabled()
+    await expect(next).toBeEnabled()
+
+    // 49 entries are six pages of eight and one of one.
+    for (let turned = 1; turned <= 6; turned += 1) await next.click()
+    await expect(links).toHaveCount(1)
+    await expect(links.first()).toHaveAttribute('href', ROOT)
+    await expect(next).toBeDisabled()
+    await expect(previous).toBeEnabled()
+
+    await previous.click()
+    await expect(links).toHaveCount(8)
+    await expect(links.first()).toHaveAttribute('href', `${TREE}/${Array.from({ length: 8 }, () => 'start').join('/')}/start`)
+
+    // Closed and opened again, the Sheet is back at its first page.
+    await page.keyboard.press('Escape')
+    await expect(sheet.locator('.sheet-panel')).toBeHidden()
+    await control.click()
+    await expect(links).toHaveCount(8)
+    await expect(previous).toBeDisabled()
+  })
+
+  test('a link out of the Trail Sheet jumps to that entry and discards everything after it', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
+    await page.goto(LONG_TRAIL)
+    const sheet = page.locator('.trail-sheet')
+    await sheet.locator('summary').click()
+    // The fourth-newest entry: `start` reached by a Trail of 45.
+    await sheet.locator('.sheet-list a').nth(3).click()
+    await expect(page).toHaveURL(`${TREE}/${Array.from({ length: 46 }, () => 'start').join('/')}`)
+    await expect(page.locator('.trail-sheet summary')).toHaveText('40 earlier steps', { useInnerText: true })
+  })
+
+  test('below the guaranteed height it is the parent and the control, and the control says how many it hides', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 600 })
+    await page.goto(LONG_TRAIL)
+    await expect(page.locator('.trail-entry:visible')).toHaveCount(1)
+    await expect(page.locator('.trail-sheet summary')).toHaveText('48 earlier steps', { useInnerText: true })
+  })
+})
+
 /** The four pages the issue asks screenshots of, at the two ends of the guarantee (10.4). */
 const SHOT_PAGES = [
   ['root-question-no-options', ROOT],
@@ -247,5 +312,16 @@ test.describe('with JavaScript switched off', () => {
     await expect(sheet.locator('.sheet-close')).toHaveCount(0)
     await sheet.locator('.sheet-list a').last().click()
     await expect(page).toHaveURL(`${QUESTION}/emotion-recognition-at-work`)
+  })
+
+  test('the Trail Sheet holds the whole Trail on one page, with no buttons to turn it', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
+    await page.goto(LONG_TRAIL)
+    const sheet = page.locator('.trail-sheet')
+    await sheet.locator('summary').click()
+    await expect(sheet.locator('.sheet-list a')).toHaveCount(49)
+    await expect(sheet.locator('.sheet-controls')).toHaveCount(0)
+    await sheet.locator('.sheet-list a').first().click()
+    await expect(page).toHaveURL(`${TREE}/${Array.from({ length: 48 }, () => 'start').join('/')}/start`)
   })
 })
