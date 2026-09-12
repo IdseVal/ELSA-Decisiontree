@@ -121,11 +121,9 @@ refuses to start on a Tree that does not validate, so an unchecked Tree is an ou
 npm run validate trees/ai-act-applicability-agrifood
 ```
 
-**This Tree does not validate yet.** `elsa-tree/2` limits how long every text may be, and
-this Tree was written before the limits existed, so the command above prints its violations
-and the server refuses to serve it until issue #44 has cut the content
-(`trees/ai-act-applicability-agrifood/NOTES.md` section 10). Until then set
-`ELSA_TREE=ai-act-example`, which validates, wherever this guide says the first Tree's id.
+It prints `valid`. This Tree was written before `elsa-tree/2` limited how long every text
+may be, and did not validate until issue #44 cut it to those limits; what that cut changed
+is recorded in `trees/ai-act-applicability-agrifood/NOTES.md` section 10.
 
 ### 3. Put it on the server
 

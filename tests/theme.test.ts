@@ -19,11 +19,10 @@ import type { Colours, Theme } from '../src/tree/types.ts'
 const here = path.dirname(fileURLToPath(import.meta.url))
 
 /**
- * The Tree with a Theme is the example Tree, not the first one: the first Tree is over the
- * format's length limits in 454 places until issue #44 cuts it, so `openTree` refuses it
- * (`tests/ai-act-tree.test.ts` asserts exactly that, and that none of the 454 is a V-THEME).
- * Its Theme block therefore reaches a browser here only through the copy
- * `tests/browser/theme.spec.ts` assembles.
+ * The Tree with a Theme is the example Tree: its palette runs dark and it gives a `heading`
+ * family only, so the dark branch of 13.1 and the body fallback of tree-format.md 4.3.2 are
+ * both exercised on a real Tree. The first Tree's Theme, light and with both families, is
+ * served as itself in `tests/theme-route.test.ts` and `tests/browser/theme.spec.ts`.
  */
 const themedTree = await openTree(path.join(here, '..', 'trees', 'ai-act-example'))
 /** The interoperability fixture that carries no Theme at all (application.md 13.4). */
