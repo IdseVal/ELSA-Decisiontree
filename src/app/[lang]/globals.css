@@ -891,17 +891,52 @@ a.language:hover,
   list-style: none;
   min-height: 0;
   max-width: 100%;
-  /* Without the script the panel holds the whole list: columns lay it out to fit. */
-  column-width: 260px;
-  column-gap: 24px;
-  column-fill: auto;
-  max-height: 100%;
 }
 
 .sheet-list li {
-  break-inside: avoid;
   padding: 2px 0;
   border-bottom: 1px solid var(--rule-soft);
+}
+
+/*
+ * Without the script, every page after the first is a nested disclosure (section 14). Its
+ * summary is the `next` button while it is closed and the `previous` button once it is
+ * open; the page before an open one leaves the panel, and so does the summary of a page
+ * whose next page is open -- so the panel shows `previous`, one page of eight, `next`.
+ */
+.sheet-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 0;
+  max-width: 100%;
+}
+
+.sheet-more > summary {
+  padding: 3px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--elsa-text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.sheet-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sheet-more > summary:hover {
+  border-color: var(--accent-secondary-read);
+}
+
+/* A closed page has no boxes on the page at all, as a closed Sheet has none (10.6 measures every element). */
+.sheet-more:not([open]) > :not(summary),
+.sheet-more:not([open]) > summary > .sheet-more-previous,
+.sheet-more[open] > summary > .sheet-more-next,
+.sheet-list:has(+ .sheet-more[open]),
+.sheet-more[open]:has(> .sheet-more[open]) > summary {
+  display: none;
 }
 
 .sheet-list .kind {

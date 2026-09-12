@@ -169,7 +169,7 @@ test.describe('the keyboard', () => {
     await page.setViewportSize({ width: 1280, height: 540 })
     await page.goto(EXPLANATION)
     const sheet = page.locator('.sources-sheet')
-    const control = sheet.locator('summary')
+    const control = sheet.locator('.sheet-open')
     await expect(control).toBeVisible()
     await expect(control).toHaveText('Sources (3)')
 
@@ -192,9 +192,9 @@ test.describe('the keyboard', () => {
     await page.goto(QUESTION)
     const sheet = page.locator('.options-sheet')
     await expect(page.locator('.options-columns')).toBeHidden()
-    await expect(sheet.locator('summary')).toHaveText('What this covers (2)')
+    await expect(sheet.locator('.sheet-open')).toHaveText('What this covers (2)')
 
-    await sheet.locator('summary').click()
+    await sheet.locator('.sheet-open').click()
     const links = sheet.locator('.sheet-list a')
     await expect(links).toHaveText(['Social scoring', 'Emotion recognition at work or in education'])
     await links.first().click()
@@ -214,7 +214,7 @@ test.describe('the Trail Sheet', () => {
     await page.setViewportSize({ width: 1280, height: 640 })
     await page.goto(LONG_TRAIL)
     const sheet = page.locator('.trail-sheet')
-    const control = sheet.locator('summary')
+    const control = sheet.locator('.sheet-open')
     // Six entries or more: `start`, the collapsed middle, the last four (10.2).
     await expect(page.locator('.trail-entry:visible')).toHaveCount(5)
     await expect(control).toHaveText('44 earlier steps', { useInnerText: true })
@@ -252,18 +252,18 @@ test.describe('the Trail Sheet', () => {
     await page.setViewportSize({ width: 1280, height: 640 })
     await page.goto(LONG_TRAIL)
     const sheet = page.locator('.trail-sheet')
-    await sheet.locator('summary').click()
+    await sheet.locator('.sheet-open').click()
     // The fourth-newest entry: `start` reached by a Trail of 45.
     await sheet.locator('.sheet-list a').nth(3).click()
     await expect(page).toHaveURL(`${TREE}/${Array.from({ length: 46 }, () => 'start').join('/')}`)
-    await expect(page.locator('.trail-sheet summary')).toHaveText('40 earlier steps', { useInnerText: true })
+    await expect(page.locator('.trail-sheet .sheet-open')).toHaveText('40 earlier steps', { useInnerText: true })
   })
 
   test('below the guaranteed height it is the parent and the control, and the control says how many it hides', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 600 })
     await page.goto(LONG_TRAIL)
     await expect(page.locator('.trail-entry:visible')).toHaveCount(1)
-    await expect(page.locator('.trail-sheet summary')).toHaveText('48 earlier steps', { useInnerText: true })
+    await expect(page.locator('.trail-sheet .sheet-open')).toHaveText('48 earlier steps', { useInnerText: true })
   })
 })
 
@@ -307,21 +307,49 @@ test.describe('with JavaScript switched off', () => {
     await page.setViewportSize({ width: 1024, height: 640 })
     await page.goto(QUESTION)
     const sheet = page.locator('.options-sheet')
-    await sheet.locator('summary').click()
+    await sheet.locator('.sheet-open').click()
     await expect(sheet.locator('.sheet-list a')).toHaveCount(2)
     await expect(sheet.locator('.sheet-close')).toHaveCount(0)
     await sheet.locator('.sheet-list a').last().click()
     await expect(page).toHaveURL(`${QUESTION}/emotion-recognition-at-work`)
   })
 
-  test('the Trail Sheet holds the whole Trail on one page, with no buttons to turn it', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 640 })
+  test('the Trail Sheet holds the whole Trail as pages of disclosures, one page on the panel at a time', async ({ page }) => {
+    // The narrowest viewport above the floor: where 49 links on one page could never fit.
+    await page.setViewportSize({ width: 360, height: 640 })
     await page.goto(LONG_TRAIL)
     const sheet = page.locator('.trail-sheet')
-    await sheet.locator('summary').click()
-    await expect(sheet.locator('.sheet-list a')).toHaveCount(49)
+    await sheet.locator('.sheet-open').click()
+    const links = sheet.locator('.sheet-list a')
+    await expect(links).toHaveCount(49)
     await expect(sheet.locator('.sheet-controls')).toHaveCount(0)
-    await sheet.locator('.sheet-list a').first().click()
-    await expect(page).toHaveURL(`${TREE}/${Array.from({ length: 48 }, () => 'start').join('/')}/start`)
+
+    // Page one: the newest eight, and `next` -- a disclosure, not a button.
+    await expect(links.locator('visible=true')).toHaveCount(8)
+    await expect(links.first()).toBeVisible()
+    const next = sheet.locator('.sheet-more:not([open]) > summary:visible')
+    await expect(next).toHaveCount(1)
+    await expect(next).toHaveText('Next', { useInnerText: true })
+
+    // Turning it hides page one and shows the next eight, behind one `previous`.
+    await next.click()
+    await expect(links.locator('visible=true')).toHaveCount(8)
+    await expect(links.first()).toBeHidden()
+    await expect(links.nth(8)).toBeVisible()
+    await expect(sheet.locator('.sheet-more[open] > summary:visible')).toHaveText('Previous', { useInnerText: true })
+
+    // Six turns reach the last page: the root alone, and no `next`.
+    for (let turned = 2; turned <= 6; turned += 1) await sheet.locator('.sheet-more:not([open]) > summary:visible').click()
+    await expect(links.locator('visible=true')).toHaveCount(1)
+    await expect(links.last()).toBeVisible()
+    await expect(sheet.locator('.sheet-more:not([open])')).toHaveCount(0)
+
+    // `previous` is the same disclosure closed again.
+    await sheet.locator('.sheet-more[open] > summary:visible').click()
+    await expect(links.locator('visible=true')).toHaveCount(8)
+    await expect(links.last()).toBeHidden()
+
+    await links.nth(40).click()
+    await expect(page).toHaveURL(`${TREE}/${Array.from({ length: 8 }, () => 'start').join('/')}/start`)
   })
 })

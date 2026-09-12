@@ -7,10 +7,13 @@
  * never scrolling. The enlarged Image of the Carousel (#43) is the same component.
  *
  * It is a native `<details>`, so it is correct without JavaScript (section 14): the summary
- * is a real disclosure button and opening it shows the whole list, laid out to fit. What
- * the script adds is what a disclosure does not do on its own -- Escape closes it and
- * returns focus to the control, a click outside closes it, and a long list is paged with
- * `previous` and `next` so that the panel holds as many entries as fit (10.2).
+ * is a real disclosure button and opening it shows the list, as many entries as fit. A
+ * longer list is paged either way. With the script, `previous` and `next` turn the page
+ * (10.2); without it, every page after the first is a nested disclosure whose summary is
+ * `next`, and the stylesheet shows one page at a time -- a reader with no script turns the
+ * pages by opening disclosures, and the panel is never asked to hold a 49-entry Trail on a
+ * phone. What else the script adds is what a disclosure does not do on its own: Escape
+ * closes it and returns focus to the control, and a click outside closes it.
  */
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 
@@ -52,13 +55,12 @@ export function Sheet({
 }) {
   const details = useRef<HTMLDetailsElement>(null)
   const [page, setPage] = useState(0)
-  // Paging and the close button exist only once the script runs: before that the panel
-  // shows every entry, which is the fallback section 14 promises.
+  // Paging by button and the close button exist only once the script runs: before that the
+  // panel holds every page as nested disclosures, which is the fallback section 14 promises.
   const [enhanced, setEnhanced] = useState(false)
   useEffect(() => setEnhanced(true), [])
 
   const pages = Math.max(1, Math.ceil(items.length / PAGE))
-  const shown = enhanced ? items.slice(page * PAGE, (page + 1) * PAGE) : items
 
   const close = (): void => {
     const element = details.current
@@ -70,6 +72,46 @@ export function Sheet({
   const onKeyDown = (event: KeyboardEvent<HTMLDetailsElement>): void => {
     if (event.key === 'Escape') close()
   }
+
+  const list = (entries: SheetItem[]): ReactNode => (
+    <ul className="sheet-list">
+      {entries.map((item) => (
+        <li key={`${item.href} ${item.label}`}>
+          {item.kind !== undefined && (
+            <span className="kind" lang={uiLang}>
+              {item.kind}
+            </span>
+          )}
+          <a
+            href={item.href}
+            target={item.newTab ? '_blank' : undefined}
+            rel={item.newTab ? 'noopener noreferrer' : undefined}
+            aria-describedby={item.newTab ? `${className}-new-tab` : undefined}
+          >
+            {item.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+
+  // Page `from` and, nested, every page after it: the no-script panel. The summary says
+  // `next` while its page is closed and `previous` once it is open, and the stylesheet
+  // hides the page before an open one, so exactly one page is on the panel at a time.
+  const pagesFrom = (from: number): ReactNode => (
+    <>
+      {list(items.slice(from * PAGE, (from + 1) * PAGE))}
+      {from + 1 < pages && (
+        <details className="sheet-more">
+          <summary lang={uiLang}>
+            <span className="sheet-more-next">{words.next}</span>
+            <span className="sheet-more-previous">{words.previous}</span>
+          </summary>
+          {pagesFrom(from + 1)}
+        </details>
+      )}
+    </>
+  )
 
   return (
     <details
@@ -85,25 +127,7 @@ export function Sheet({
         <span hidden id={`${className}-new-tab`} lang={uiLang}>
           {words.opensInNewTab}
         </span>
-        <ul className="sheet-list">
-          {shown.map((item) => (
-            <li key={`${item.href} ${item.label}`}>
-              {item.kind !== undefined && (
-                <span className="kind" lang={uiLang}>
-                  {item.kind}
-                </span>
-              )}
-              <a
-                href={item.href}
-                target={item.newTab ? '_blank' : undefined}
-                rel={item.newTab ? 'noopener noreferrer' : undefined}
-                aria-describedby={item.newTab ? `${className}-new-tab` : undefined}
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
+        {enhanced ? list(items.slice(page * PAGE, (page + 1) * PAGE)) : pagesFrom(0)}
         {enhanced && (
           <div className="sheet-controls" lang={uiLang}>
             {pages > 1 && (

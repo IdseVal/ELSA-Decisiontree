@@ -205,7 +205,7 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
     const sheets = page.locator('details.sheet')
     for (let i = 0; i < (await sheets.count()); i += 1) {
       const sheet = sheets.nth(i)
-      const control = sheet.locator('summary')
+      const control = sheet.locator('.sheet-open')
       if (!(await control.isVisible())) continue
       const kind = (await sheet.getAttribute('class'))!.replace('sheet ', '')
 
@@ -250,7 +250,7 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
 async function closeSheet(sheet: Locator): Promise<void> {
   const backdrop = sheet.locator('.sheet-backdrop')
   if (await backdrop.isVisible()) await backdrop.click({ position: { x: 4, y: 4 } })
-  else await sheet.locator('summary').click()
+  else await sheet.locator('.sheet-open').click()
   await expect(sheet.locator('.sheet-panel')).toBeHidden()
 }
 
