@@ -5,7 +5,9 @@
  * `startAgain`) or the Option's first Image beside it as a thumbnail.
  *
  * Every Branch is a plain link so that following one works without JavaScript (section 14);
- * the slide of section 11 (#42) is an enhancement layered on the same element.
+ * the slide of section 11 is an enhancement layered on the same element. A Branch with a
+ * direction is marked `data-slide`; `start` and `startAgain` have none and are only links
+ * (11.1).
  */
 import type { ReactNode } from 'react'
 
@@ -17,6 +19,7 @@ export function Branch({
   image,
   className,
   rel,
+  slides = false,
 }: {
   href: string
   /** The target's title, in the content language. */
@@ -25,14 +28,20 @@ export function Branch({
   word?: string
   /** Set when the chrome word speaks another language than the title under it. */
   wordLang?: string | undefined
-  /** An Option's first Image, shown at 64 pixels beside the label (10.3). */
-  image?: { src: string; alt: string }
+  /**
+   * An Option's first Image, shown at 64 pixels beside the label (10.3). `withheld` in a
+   * neighbour frame: the same 64 pixels, and no image URL (11.4).
+   */
+  image?: { src: string; alt: string } | 'withheld'
   className: string
   rel?: string
+  /** Its target is drawn in a direction, so following it may slide there (11.1). */
+  slides?: boolean
 }) {
   return (
-    <a className={`branch ${className}`} href={href} rel={rel}>
-      {image && (
+    <a className={`branch ${className}`} href={href} rel={rel} data-slide={slides ? '' : undefined}>
+      {image === 'withheld' && <span className="branch-image" />}
+      {image && image !== 'withheld' && (
         // `option-image` is the name the first Tree's walk (tests/first-tree/walk.spec.ts,
         // PR #54) finds an Option's picture by; the Branch is the only one that carries one.
         <img

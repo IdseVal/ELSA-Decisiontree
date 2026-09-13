@@ -228,7 +228,37 @@ a.language:hover,
 
 /* --- the tree layer: one element, one transform (11.1) --------------------------- */
 
+/*
+ * The layer is what a slide moves; the frame inside it is one Node laid out. At rest the
+ * layer holds the centre frame and nothing else, exactly the page without JavaScript.
+ */
 .tree-layer {
+  height: 100%;
+}
+
+/*
+ * While a slide runs (src/components/Slider.tsx) the layer is fixed, at its own box at rest
+ * grown to hold the neighbour frame too, and both frames are placed in it in pixels. Fixed,
+ * it is in no element's scrollable area; that large, nothing in it overflows (10.6).
+ */
+.tree-layer[data-sliding] {
+  position: fixed;
+  z-index: 0;
+}
+
+.tree-layer[data-sliding] > .tree-frame {
+  position: absolute;
+}
+
+/* The chrome bar and the disclaimer stay put, and the tree slides under them. */
+.page-chrome,
+.disclaimer {
+  position: relative;
+  z-index: 1;
+  background: var(--elsa-background);
+}
+
+.tree-frame {
   display: grid;
   height: 100%;
   grid-template-columns:

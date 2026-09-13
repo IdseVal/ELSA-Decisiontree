@@ -12,6 +12,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeAll, describe, expect, test } from 'vitest'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
 import { TreeView } from '../src/components/TreeView.tsx'
+import { neighbourhood } from '../src/neighbourhood.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { contentLanguage, parseUrl } from '../src/url.ts'
 import { effectiveLang } from './effective-lang.ts'
@@ -47,7 +48,7 @@ async function view(url: string): Promise<string> {
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)
-  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} />)
+  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} neighbours={await neighbourhood(tree, address, node)} />)
 }
 
 /**
@@ -64,7 +65,7 @@ async function shell(url: string): Promise<string> {
     <html lang={contentLanguage(tree, langSegment(target))}>
       <body>
         <main>
-          <TreeView node={node} address={address} tree={tree} />
+          <TreeView node={node} address={address} tree={tree} neighbours={await neighbourhood(tree, address, node)} />
         </main>
         <Disclaimer lang={address.lang} />
       </body>
@@ -175,7 +176,7 @@ describe('the Bubble', () => {
   })
 
   test('is the article the content language is declared on', async () => {
-    expect(await view('/ai-act-example/start?lang=nl')).toContain('<article class="bubble bubble--question" lang="nl">')
+    expect(await view('/ai-act-example/start?lang=nl')).toContain('<article class="bubble bubble--question" lang="nl" data-node="start">')
   })
 
   test('shows no metadata: nothing but what 10.3 lists is inside it', async () => {

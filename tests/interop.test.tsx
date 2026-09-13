@@ -15,6 +15,7 @@ import { Disclaimer } from '../src/components/Disclaimer.tsx'
 import { endonym, LanguageSwitch } from '../src/components/LanguageSwitch.tsx'
 import { Logo } from '../src/components/Logo.tsx'
 import { TreeView } from '../src/components/TreeView.tsx'
+import { neighbourhood } from '../src/neighbourhood.ts'
 import { text } from '../src/chrome.ts'
 import { DEFAULT_COLOURS, themeStyle } from '../src/theme.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
@@ -92,7 +93,7 @@ async function page(tree: Tree, url: string, theme = tree.manifest.theme): Promi
         <LanguageSwitch address={address} languages={tree.manifest.languages} />
       </header>
       <main>
-        <TreeView node={node} address={address} tree={tree} />
+        <TreeView node={node} address={address} tree={tree} neighbours={await neighbourhood(tree, address, node)} />
       </main>
       <Disclaimer lang={address.lang} />
     </>,

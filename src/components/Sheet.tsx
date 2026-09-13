@@ -44,6 +44,7 @@ export function Sheet({
   words,
   uiLang,
   className,
+  idPrefix = '',
 }: {
   /** What the control says: chrome, already in its own `lang` where it needs one. */
   summary: ReactNode
@@ -52,6 +53,8 @@ export function Sheet({
   /** Set when the chrome speaks another language than the content around it. */
   uiLang: string | undefined
   className: string
+  /** Prepended to the one `id` the Sheet writes, for a copy of it in a neighbour frame. */
+  idPrefix?: string
 }) {
   const details = useRef<HTMLDetailsElement>(null)
   const [page, setPage] = useState(0)
@@ -86,7 +89,7 @@ export function Sheet({
             href={item.href}
             target={item.newTab ? '_blank' : undefined}
             rel={item.newTab ? 'noopener noreferrer' : undefined}
-            aria-describedby={item.newTab ? `${className}-new-tab` : undefined}
+            aria-describedby={item.newTab ? `${idPrefix}${className}-new-tab` : undefined}
           >
             {item.label}
           </a>
@@ -124,7 +127,7 @@ export function Sheet({
       {enhanced && <div className="sheet-backdrop" onClick={close} />}
       <div className="sheet-panel">
         {/* Hidden, not clipped: read as a description all the same, and never wider than itself (10.6). */}
-        <span hidden id={`${className}-new-tab`} lang={uiLang}>
+        <span hidden id={`${idPrefix}${className}-new-tab`} lang={uiLang}>
           {words.opensInNewTab}
         </span>
         {enhanced ? list(items.slice(page * PAGE, (page + 1) * PAGE)) : pagesFrom(0)}
