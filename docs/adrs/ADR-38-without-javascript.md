@@ -1,6 +1,10 @@
 # ADR-38-without-javascript: a client component may only enhance markup that is already correct without it, so the tool still works with JavaScript off and every guarantee of core document section 9 still holds
 
-- Status: ACCEPTED (frozen) -- 2026-09-10
+- Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-13 by issue #41 (PR #56):
+  the `no-js.spec.ts` named below was not written as one file. The no-script
+  measurement of `application.md` 10.6 is in `tests/browser/no-scroll.spec.ts`, which
+  runs every page with JavaScript disabled as well; the no-script walk of the Branches
+  and the Sheets is in `tests/browser/tree-view.spec.ts` (`application.md` section 7).
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 1 and 14
 - Core document: 3.2 (server-side rendering, lightweight, lazy), section 9
