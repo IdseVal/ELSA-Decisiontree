@@ -924,7 +924,12 @@ The floor itself shows the notice, and so does any viewport that is at the floor
 either dimension -- a 1280 x 480 window as much as a 320 x 900 one -- because the order
 of 10.5 has nothing left to give up at that height or that width. 10.6 measures the
 floor as the notice. (#38's table read "down to 320 x 480" for the tree view and 10.6's
-"the floor: the notice"; #41 settled it this way, in `ADR-38-no-scroll.md`.)
+"the floor: the notice"; #41 settled it this way, in `ADR-38-no-scroll.md`, and the
+owner confirmed it on PR #56 on 2026-09-13 --
+<https://github.com/IdseVal/ELSA-Decisiontree/pull/56#issuecomment-5652953012> -- with
+the sentence core document 10.22 now carries: "At or below a floor of 320 pixels of
+width or 480 pixels of height, a minimum-size notice replaces the view and names the
+dimension that is short.")
 
 1280 x 640 is `tree-format.md` 5.7's assumption, confirmed here (10.7): a 1366 x 768
 laptop display, or a 1920 x 1080 one at 150 % scaling, minus browser tabs, address bar
