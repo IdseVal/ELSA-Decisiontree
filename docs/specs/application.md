@@ -586,6 +586,8 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── Branch.tsx       [v0.2] server: one Link as a Branch (link, label, thumbnail)
 │   │   ├── Carousel.tsx     [v0.2] server: the Images strip and its caption line (12)
 │   │   ├── CarouselButtons.tsx  [v0.2] client: the strip's previous/next buttons (12)
+│   │   ├── Thumbnails.tsx   client: 0.1's thumbnails in the Carousel's row until #43
+│   │   │                    draws the Carousel (12.1); #43 removes it
 │   │   ├── Sheet.tsx        [v0.2] client: the one overlay -- enlarged Image, full
 │   │   │                    Trail, collapsed Options, collapsed Sources (10.5, 12)
 │   │   ├── Slider.tsx       [v0.2] client: the slide transition (11)
@@ -616,8 +618,13 @@ deploy; an hour of a stale font is the same trade the images make.
 └── .orca/ .claude/ .github/ .devcontainer/   agent workflow (unchanged)
 ```
 
-Gone with 0.1's view: `src/components/NodeView.tsx`, `Trail.tsx` and `Thumbnails.tsx`.
-Their work is `TreeView` + `Bubble`, `Branch`, and `Carousel` + `Sheet`.
+Gone with 0.1's view: `src/components/NodeView.tsx` and `Trail.tsx`. Their work is
+`TreeView` + `Bubble`, `Branch`, and `Carousel` + `Sheet`. `Thumbnails.tsx` **stays until
+#43** (amended 2026-09-13, #41, PR #56): the Node's Images as plain thumbnails in the
+Carousel's row, each opening the enlarged view with the credit (12.1), so that no credit
+is out of a reader's reach between #41 and #43. It is a client component in the interim
+-- a fifth, owning the one interaction of the enlarged view -- and #43 removes it when
+`Carousel.tsx` and `CarouselButtons.tsx` take the row.
 
 | Module | Owns | Does not |
 |---|---|---|

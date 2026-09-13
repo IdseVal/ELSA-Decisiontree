@@ -43,7 +43,11 @@ leaves this origin. None of them can be asserted against a string of markup.
    `Bubble`, `Branch` and `Carousel` render; `Slider`, `Sheet`, `CarouselButtons` and
    `ShareButton` enhance. The Carousel is a server component and the client part is its
    two buttons, so that part has a name and the count of four is a count of files. 0.1's
-   `NodeView`, `Trail` and `Thumbnails` go.
+   `NodeView`, `Trail` and `Thumbnails` go. *Amended 2026-09-13 (issue #41, PR #56):*
+   `Thumbnails` stays until #43 draws the Carousel, as the interim content of the
+   Carousel's row (`application.md` 12.1, `ADR-38-tree-view.md` amendment) -- a fifth
+   client component for the interim, owning the one interaction of the enlarged view.
+   #43 removes it with `Carousel` and `CarouselButtons`, and the count is four again.
 3. **The client components are leaves.** They import no server module, compute no
    neighbourhood, fetch no Node and read no Tree; `Slider` receives its positions as
    props. That is what keeps the bundle small and what makes
