@@ -698,10 +698,10 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 
 | Browser (Playwright) | Asserts |
 |---|---|
-| `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind. |
+| `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind, with every Sheet open, and again with JavaScript disabled. |
 | `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, no image of an off-centre Node, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation. |
 | `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.yaml` and restarting changes the page with no code change. |
-| `no-js.spec.ts` **[v0.2]** | With JavaScript disabled, every promise of section 14 holds: the Branches navigate, a Trail Branch discards the later Trail, the language switch works, an Image opens, and the page still does not scroll. |
+| `tree-view.spec.ts` **[v0.2]** | The tree view in a browser (#41): what a click on each kind of Branch does to the URL (10.3); Tab reaches every control in document order and Enter follows each Branch; a Sheet opens, lists its links, closes on Escape and returns the focus; the Trail Sheet pages eight at a time, newest first (10.2); the minimum-size notice names the dimension that is short (10.4); the screenshots of #41. **With JavaScript disabled**, section 14: every Branch is a link that navigates, a collapsed group is its plain list, and the Trail Sheet is pages of disclosures. There is no `no-js.spec.ts`: the no-script assertions live here and in `no-scroll.spec.ts`, which measures every page without script as well (amended 2026-09-13, #41, PR #56). |
 | `node-view.spec.ts`, `trail.spec.ts`, `language.spec.ts`, `deployment.spec.ts` | The 0.1 browser specs, kept: the URL scheme, the Trail, the language mechanism and the deployment shape are unchanged contracts and keep their tests. |
 
 **The interoperability test** (`interop.test.tsx`) is core document section 9, first
@@ -1468,7 +1468,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | The language switch | Links with `?lang=` (4.1). |
 | The share link | The address bar: the page's own URL is the share link (4.1). |
 | The Theme | Colours, fonts and logo are server-rendered CSS and plain `<img>`; a Tree's identity does not depend on a script. |
-| The no-scroll rule | CSS, and the length limits of the format. 10.6's test runs with JavaScript disabled too (`no-js.spec.ts`). |
+| The no-scroll rule | CSS, and the length limits of the format. 10.6's test runs with JavaScript disabled too (`no-scroll.spec.ts`; the no-script walk of the Branches and the Sheets is in `tree-view.spec.ts`, section 7). |
 | The disclaimer | Rendered in the layout, on every page. |
 
 | Needs JavaScript | What a reader without it gets instead |

@@ -60,7 +60,11 @@ leaves this origin. None of them can be asserted against a string of markup.
    the bound lives.
 6. **Browser tests are in the contract**: `npm run test:browser` joins the CI command,
    and `no-scroll.spec.ts`, `transition.spec.ts`, `theme.spec.ts` and `no-js.spec.ts`
-   join the 0.1 specs that already existed outside it.
+   join the 0.1 specs that already existed outside it. *Amended 2026-09-13 (issue #41,
+   PR #56):* there is no `no-js.spec.ts`; #41 put the no-script assertions in
+   `tree-view.spec.ts` (the walk of the Branches and the Sheets) and `no-scroll.spec.ts`
+   (the measurement), and `tree-view.spec.ts` is the build's own spec, listed in
+   `application.md` section 7.
 7. **The dividing line is stated so nobody has to guess:** a claim about *markup* is a
    unit test; a claim about *layout, motion or network* needs a browser.
    `application.md` section 7 lists every file on both sides of it.
