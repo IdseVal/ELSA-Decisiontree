@@ -972,8 +972,24 @@ Whichever step first makes the arrangement fit is where it stops.
   Node (10.1), so the two chrome elements still take nothing from the text area.
 - Nothing in this order is a media query the build issue may invent: #41 implements
   these seven steps, in this order, and the browser test of 10.6 runs at sizes that
-  exercise them. The phone-width form of step 1 above is the one addition, recorded here
-  and in the ADR rather than in a stylesheet alone.
+  exercise them. The phone-width form of step 1 above, and the width triggers below,
+  are the additions, recorded here and in the ADR rather than in a stylesheet alone.
+- **The height-keyed steps 1, 2, 5 and 6 also fire by width** (#41, PR #56,
+  `ADR-38-no-scroll.md`), because a narrower page narrows the row or the Bubble the
+  same content sits in, so the content needs more height there and the step that frees
+  it is the same step. Step 1 fires below 1200 pixels of width, where the collapsed row
+  of 10.2 (1220 pixels) no longer fits and could only truncate or wrap; steps 2, 5 and
+  6 fire together below 792, where the Bubble narrows (its rim to 36 by 24) and its text
+  takes more lines; step 6's further sizes follow at 640 and 480. By height the
+  triggers keep the order of the table: below 640, 620, 568, 548, 532 then 516 then
+  500, and the notice at 480. By width the order as built is steps 3 and 4 first (below
+  1280; 4 also by count, at 1000, 770 and 520 for four, three and two Options), then
+  step 1 (1200), then 2, 5 and 6 at once (792), then the notice (at 320): the two width
+  steps of the table lead, because the Option columns are the widest thing beside the
+  Bubble, and no height-keyed step fires by width before the height-keyed step above it.
+  (Until 2026-09-13 step 5 fired by width only at 640 and step 6 at 792, so between them
+  the type had stepped down while the citation was still inline; the Reviewer of PR #56
+  caught it.)
 
 ### 10.6 The no-scroll rule, and the exact test
 

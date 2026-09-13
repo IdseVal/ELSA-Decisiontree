@@ -1022,7 +1022,9 @@ a.language:hover,
 /* ==================================================================================
  * Below the guaranteed viewport: the degradation order of 10.5, step by step.
  * Each step is a media query on the dimension that ran short; a viewport that is short
- * in both dimensions takes the steps of both.
+ * in both dimensions takes the steps of both. The height-keyed steps 1, 2, 5 and 6 also
+ * fire by width, at the width where the row or the Bubble they save height in narrows:
+ * 10.5 records those triggers and the order they fire in.
  * ================================================================================== */
 
 /*
@@ -1182,8 +1184,12 @@ a.language:hover,
   }
 }
 
-/* Step 5 -- the Sources collapse to one control showing their count. */
-@media (max-height: 547px), (max-width: 639px) {
+/*
+ * Step 5 -- the Sources collapse to one control showing their count. Also below 792 pixels
+ * of width, where the Bubble narrows: step 6 fires there, and 10.5's order has the
+ * citation give way before the type does.
+ */
+@media (max-height: 547px), (max-width: 791px) {
   .sources {
     display: none;
   }

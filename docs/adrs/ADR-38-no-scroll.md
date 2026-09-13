@@ -1,6 +1,6 @@
 # ADR-38-no-scroll: the layout is guaranteed at 1280 x 640, below that it gives things up in a fixed order rather than handing out a scrollbar, and a browser test measures scrollHeight at ten viewports on every kind of Node
 
-- Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 by issue #41 (below)
+- Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 and 2026-09-13 by issue #41 (below)
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 10.4, 10.5, 10.6, 10.7
 - Core document: 3.2, section 9 ("the page must never scroll"), open item **10.22**
@@ -125,3 +125,26 @@ the contract and not an implementation detail (`application.md` 10.4, 10.5, 10.7
   5.7's own caveat for a wide body font. So the default type stack (13.4, `src/theme.ts`)
   names Arial-metric faces before `sans-serif`, and a machine with no desktop face gets
   Liberation Sans, in which the maximum fits with 4 pixels to spare in Dutch.
+
+## Amendment, 2026-09-13 (issue #41, the review of PR #56)
+
+- **Decision 2, the floor, confirmed by the owner.** The owner's answer on PR #56
+  (<https://github.com/IdseVal/ELSA-Decisiontree/pull/56#issuecomment-5652953012>) is
+  the reading of the amendment above: a window short in either dimension gets the
+  notice, because the rows need 568 pixels of height and the rule that the view never
+  scrolls is absolute. Core document 10.22 now carries the owner's sentence. The notice
+  **names the dimension that is short**: three chrome keys, `minimumSize` and then
+  `minimumWidth` or `minimumHeight` (both at the corner), shown by the stylesheet on each
+  dimension's own query, so a 1280 x 480 window is told to grow taller and not that it
+  needs 320 by 480 (`application.md` 3.2, 10.4).
+- **Decision 3, the width triggers.** The height-keyed steps 1, 2, 5 and 6 also fire by
+  width -- step 1 below 1200 pixels, where the collapsed Trail row no longer fits; 2, 5
+  and 6 together below 792, where the Bubble narrows and its text takes more lines --
+  because a narrower page costs the same height the step frees. They are recorded in
+  `application.md` 10.5 with the order they fire in. Step 5's width trigger was 640 until
+  this amendment, one step behind 6's 792; it is 792 now, so the citation gives way
+  before the type steps down, by width as by height.
+- **Decision 3, step 2 deferred.** The Carousel control of step 2, showing `imageCount`,
+  is #43's, with the Carousel; the interim thumbnail row of `application.md` 12.1 shrinks
+  to 24-pixel thumbnails where step 2 fires, and `imageCount` is in `src/chrome.ts` with
+  no caller until #43.
