@@ -920,11 +920,13 @@ a.language:hover,
 }
 
 /*
- * The control stays above the open panel. Without the script there is no close button and
- * no backdrop, and the panel is laid over the middle of the page -- over the very control
- * that opened it, were it not for this; a second click on it closes the disclosure (14).
+ * Without the script the control stays above the open panel. There is no close button and
+ * no backdrop then, and the panel is laid over the middle of the page -- over the very
+ * control that opened it, were it not for this; a second click on it closes the disclosure
+ * (14). With the script the backdrop and the close button do that, and a control left above
+ * the panel would lie over the panel's own buttons.
  */
-.sheet[open] > .sheet-open {
+.sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-open {
   position: relative;
   z-index: 11;
 }
@@ -951,6 +953,17 @@ a.language:hover,
   font-size: var(--small);
   line-height: var(--small-line);
   overflow: hidden;
+}
+
+/*
+ * The collapsed Carousel's control is at the foot of the page, where a centred panel would
+ * cover it, and without the script it is the only way to close the panel. So the enlarged
+ * view keeps clear of the Carousel's row and of the disclaimer under it, which wraps to at
+ * most 64 pixels; `--carousel-clearance` is set where the control is shown (10.5, step 2).
+ */
+.carousel-sheet > .sheet-panel {
+  bottom: calc(16px + var(--carousel-clearance, 0px));
+  max-height: calc(100% - 32px - var(--carousel-clearance, 0px));
 }
 
 .sheet-list {
@@ -1041,7 +1054,7 @@ a.language:hover,
   width: auto;
   height: auto;
   max-width: min(100%, 880px);
-  max-height: calc(100vh - 280px);
+  max-height: calc(100vh - 280px - var(--carousel-clearance, 0px));
   border-radius: 12px;
   object-fit: contain;
 }
@@ -1193,6 +1206,7 @@ a.language:hover,
 
   .carousel {
     align-items: center;
+    --carousel-clearance: calc(var(--carousel-row) + 64px);
   }
 
   .carousel-strip,
@@ -1221,6 +1235,7 @@ a.language:hover,
 
   .carousel[data-long-credit] {
     align-items: center;
+    --carousel-clearance: calc(var(--carousel-row) + 64px);
   }
 
   .carousel[data-long-credit] .carousel-strip,

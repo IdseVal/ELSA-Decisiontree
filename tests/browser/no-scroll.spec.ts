@@ -177,6 +177,11 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
       const open = await measure(page)
       rows.push({ page: what, lang, viewport, sheet: kind, measured: open })
       assertFits(open, `${what} (${lang}) at ${viewport} with the ${kind} open`)
+      // Without the script, a control in the middle of the page -- the Sources' in the Bubble
+      // -- can still lie over a link of its own centred panel at 768 x 1024. That is #41's
+      // layout, not the Carousel's, and is reported on #43's pull request rather than fixed.
+      const reachable = script || kind === 'carousel-sheet'
+      if (reachable) await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open`)
 
       // Without the script a long list is pages of native disclosures (section 14): each
       // page turned in its turn, and measured.
@@ -186,6 +191,7 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
         const turned_ = await measure(page)
         rows.push({ page: what, lang, viewport, sheet: `${kind}, page ${turned + 1}`, measured: turned_ })
         assertFits(turned_, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
+        if (reachable) await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
       }
       await closeSheet(sheet)
     }
@@ -201,6 +207,7 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
       const open = await measure(page)
       rows.push({ page: what, lang, viewport, sheet: `enlarged Image ${i + 1}`, measured: open })
       assertFits(open, `${what} (${lang}) at ${viewport} with Image ${i + 1} enlarged`)
+      await assertReachable(page.locator('details.carousel-sheet'), `${what} (${lang}) at ${viewport} with Image ${i + 1} enlarged`)
       await page.keyboard.press('Escape')
       await expect(enlarged).toBeHidden()
     }
@@ -217,6 +224,27 @@ async function closeSheet(sheet: Locator): Promise<void> {
   if (await backdrop.isVisible()) await backdrop.click({ position: { x: 4, y: 4 } })
   else await sheet.locator('.sheet-open').click()
   await expect(sheet.locator('.sheet-panel')).toBeHidden()
+}
+
+/**
+ * Every control on an open Sheet's panel is the element a click at its centre lands on. The
+ * control that opened the Sheet stays above the panel (14), so a panel laid over it --
+ * the collapsed Carousel's, at the bottom of the page -- would swallow the click meant for
+ * `next` or `close` and shut the Sheet instead.
+ */
+async function assertReachable(sheet: Locator, where: string): Promise<void> {
+  const covered = await sheet.locator('.sheet-panel').evaluate((panel) =>
+    [...panel.querySelectorAll('summary, button, a')].flatMap((control) => {
+      // The first line box: the middle of a link wrapped over lines may be beside its text.
+      const box = control.getClientRects()[0]
+      if (!box || box.width === 0 || box.height === 0) return []
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+      return hit && control.contains(hit)
+        ? []
+        : [`${control.textContent?.trim()} at ${Math.round(box.left)},${Math.round(box.top)} under ${hit?.closest('[class]')?.className ?? 'nothing'}`]
+    }),
+  )
+  expect(covered, `${where}: a control on the panel is covered`).toEqual([])
 }
 
 
