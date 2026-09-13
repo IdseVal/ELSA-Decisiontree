@@ -63,7 +63,10 @@ export interface Chrome {
   /** The two buttons of a paged Sheet, and of the Carousel (section 12). */
   previous: string
   next: string
-  /** The Carousel's position: which Image of how many is selected (section 12). */
+  /**
+   * The Carousel's position: which Image of how many is selected (section 12). No caller
+   * until #43 draws the Carousel and the collapsed control of 10.5 step 2 (12.1).
+   */
   imageCount: (index: number, total: number) => string
   /**
    * The notice shown at and below the floor of 10.4: the sentence that says the window is

@@ -954,7 +954,7 @@ Whichever step first makes the arrangement fit is where it stops.
 | # | When space runs short | What happens | What is still reachable |
 |---|---|---|---|
 | 1 | height | The Trail collapses to one Branch: the parent, plus `trailMore(n)`. | The Trail Sheet (10.2). |
-| 2 | height | The Carousel collapses to one control showing `imageCount`. | The Sheet, which is the enlarged view (section 12). |
+| 2 | height | The Carousel collapses to one control showing `imageCount`. (#43's, with the Carousel; until then the interim row of 12.1 shrinks its thumbnails instead.) | The Sheet, which is the enlarged view (section 12). |
 | 3 | width | The Option columns move below the Answer Branches as one row. | Unchanged: they are still Branches, still links. |
 | 4 | either | The Option Branches collapse to one Branch labelled `options` with their count. | A Sheet listing the Options, each a link to its target. |
 | 5 | height | The Sources collapse to one control showing their count. | A Sheet listing them, each a link that opens in a new tab. |
@@ -1260,7 +1260,10 @@ the enlarged view of 12.3 with the description and the credit -- what version 0.
 showed, kept so that no picture and no credit is out of a reader's reach in between (the
 owner on PR #56, after PR #54 made visible credits a release blocker). No paging, no
 caption line, no transitions; where 10.5's step 2 shrinks the row to 28 pixels they
-shrink to 24. #43 replaces them.
+shrink to 24. #43 replaces them. **Step 2's control is deferred with them** (amended
+2026-09-13, #41, PR #56): the one control showing `imageCount` is the Carousel's, so
+#43 builds it; until then the row below step 2 is the 24-pixel thumbnails, and
+`imageCount` is in `src/chrome.ts`, in both languages, with no caller.
 
 ### 12.2 The strip, and its one exemption from the no-scroll rule
 
