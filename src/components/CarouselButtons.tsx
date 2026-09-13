@@ -62,6 +62,13 @@ export function CarouselButtons({
     return element ? { element, thumbnails: [...element.querySelectorAll<HTMLAnchorElement>('.thumbnail')] } : null
   }
 
+  /** Whether the strip is at its start and at its end, where previous and next are disabled. */
+  const measureEnds = (element: HTMLElement): void =>
+    setEnds({
+      start: element.scrollLeft <= 1,
+      end: element.scrollLeft + element.clientWidth >= element.scrollWidth - 1,
+    })
+
   useEffect(() => {
     setEnhanced(true)
     const found = strip()
@@ -72,11 +79,7 @@ export function CarouselButtons({
       return thumbnail ? thumbnails.indexOf(thumbnail) : -1
     }
 
-    const measureEnds = (): void =>
-      setEnds({
-        start: element.scrollLeft <= 1,
-        end: element.scrollLeft + element.clientWidth >= element.scrollWidth - 1,
-      })
+    const onScroll = (): void => measureEnds(element)
 
     const onClick = (event: MouseEvent): void => {
       const index = indexOf(event.target)
@@ -113,16 +116,16 @@ export function CarouselButtons({
       if (index >= 0) setSelected(index)
     }
 
-    measureEnds()
-    const resized = new ResizeObserver(measureEnds)
+    onScroll()
+    const resized = new ResizeObserver(onScroll)
     resized.observe(element)
-    element.addEventListener('scroll', measureEnds, { passive: true })
+    element.addEventListener('scroll', onScroll, { passive: true })
     element.addEventListener('click', onClick)
     element.addEventListener('keydown', onKeyDown)
     element.addEventListener('focusin', onFocusIn)
     return () => {
       resized.disconnect()
-      element.removeEventListener('scroll', measureEnds)
+      element.removeEventListener('scroll', onScroll)
       element.removeEventListener('click', onClick)
       element.removeEventListener('keydown', onKeyDown)
       element.removeEventListener('focusin', onFocusIn)
@@ -167,6 +170,8 @@ export function CarouselButtons({
     // At once, not smoothly: a second press during an animation would measure a strip still
     // on its way and turn from the wrong place.
     element.scrollBy({ left: direction * element.clientWidth, behavior: 'instant' })
+    // Now, not at the scroll event: a button disabled a frame late still takes a second press.
+    measureEnds(element)
     if (next >= 0 && next !== selected) {
       turning.current = true
       setSelected(next)
