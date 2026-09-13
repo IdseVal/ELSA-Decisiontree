@@ -983,7 +983,8 @@ Whichever step first makes the arrangement fit is where it stops.
   takes more lines; step 6's further sizes follow at 640 and 480. By height the
   triggers keep the order of the table: below 640, 620, 568, 548, 532 then 516 then
   500, and the notice at 480. By width the order as built is steps 3 and 4 first (below
-  1280; 4 also by count, at 1000, 770 and 520 for four, three and two Options), then
+  1280; 4 there for five Options or more, or when the height is also below 740, and by
+  count at 1000, 770 and 520 for four, three and two Options), then
   step 1 (1200), then 2, 5 and 6 at once (792), then the notice (at 320): the two width
   steps of the table lead, because the Option columns are the widest thing beside the
   Bubble, and no height-keyed step fires by width before the height-keyed step above it.
