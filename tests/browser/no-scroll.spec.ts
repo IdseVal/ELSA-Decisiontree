@@ -177,10 +177,10 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
       const open = await measure(page)
       rows.push({ page: what, lang, viewport, sheet: kind, measured: open })
       assertFits(open, `${what} (${lang}) at ${viewport} with the ${kind} open`)
-      // Without the script, a control in the middle of the page -- the Sources' in the Bubble
-      // -- can still lie over a link of its own centred panel at 768 x 1024. That is #41's
-      // layout, not the Carousel's, and is reported on #43's pull request rather than fixed.
-      const reachable = script || kind === 'carousel-sheet'
+      // Without the script the Sources control in the Bubble can lie over a link of its own
+      // panel: issue #59, pinned by the `test.fixme` of that number below, which is where
+      // that Sheet's reachability is asserted until it is fixed.
+      const reachable = script || kind !== 'sources-sheet'
       if (reachable) await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open`)
 
       // Without the script a long list is pages of native disclosures (section 14): each
@@ -336,6 +336,24 @@ test.describe('with JavaScript switched off', () => {
       await measureEverywhere(page, url, `${what}, no JavaScript`, 'en', false)
     })
   }
+
+  // Known defect, issue #59: at 768 x 1024 (and, on the explanation Node, at 390 x 844 and
+  // 360 x 640) the open Sources panel lies under its own control, so one Source link takes
+  // no click. `measureEverywhere` leaves this one Sheet out without the script; this is the
+  // assertion it would make, marked `fixme` so the run shows it until #59 is fixed.
+  test.fixme('the Sources Sheet keeps every link clear of its own control without JavaScript (#59)', async ({ page }) => {
+    for (const [width, height] of VIEWPORTS) {
+      await page.setViewportSize({ width, height })
+      for (const { what, url } of EXAMPLE_PAGES) {
+        await page.goto(url)
+        const sheet = page.locator('details.sources-sheet')
+        if (!(await sheet.locator('.sheet-open').isVisible())) continue
+        await sheet.locator('.sheet-open').click()
+        await expect(sheet.locator('.sheet-panel')).toBeVisible()
+        await assertReachable(sheet, `${what} at ${width}x${height} with the Sources open`)
+      }
+    }
+  })
 
   // The Carousel without the script: the strip, its caption line, and below step 2 its
   // control, whose Sheet is a page of disclosures per Image (12.2, 14).
