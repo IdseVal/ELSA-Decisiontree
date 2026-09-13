@@ -586,8 +586,6 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── Branch.tsx       [v0.2] server: one Link as a Branch (link, label, thumbnail)
 │   │   ├── Carousel.tsx     [v0.2] server: the Images strip and its caption line (12)
 │   │   ├── CarouselButtons.tsx  [v0.2] client: the strip's previous/next buttons (12)
-│   │   ├── Thumbnails.tsx   client: 0.1's thumbnails in the Carousel's row until #43
-│   │   │                    draws the Carousel (12.1); #43 removes it
 │   │   ├── Sheet.tsx        [v0.2] client: the one overlay -- enlarged Image, full
 │   │   │                    Trail, collapsed Options, collapsed Sources (10.5, 12)
 │   │   ├── Slider.tsx       [v0.2] client: the slide transition (11)
@@ -624,7 +622,8 @@ Gone with 0.1's view: `src/components/NodeView.tsx` and `Trail.tsx`. Their work 
 Carousel's row, each opening the enlarged view with the credit (12.1), so that no credit
 is out of a reader's reach between #41 and #43. It is a client component in the interim
 -- a fifth, owning the one interaction of the enlarged view -- and #43 removes it when
-`Carousel.tsx` and `CarouselButtons.tsx` take the row.
+`Carousel.tsx` and `CarouselButtons.tsx` take the row. **Removed by #43** (2026-09-13):
+the client components are four again.
 
 | Module | Owns | Does not |
 |---|---|---|
@@ -1264,7 +1263,8 @@ caption line, no transitions; where 10.5's step 2 shrinks the row to 28 pixels t
 shrink to 24. #43 replaces them. **Step 2's control is deferred with them** (amended
 2026-09-13, #41, PR #56): the one control showing `imageCount` is the Carousel's, so
 #43 builds it; until then the row below step 2 is the 24-pixel thumbnails, and
-`imageCount` is in `src/chrome.ts`, in both languages, with no caller.
+`imageCount` is in `src/chrome.ts`, in both languages, with no caller. **#43 replaced
+them** (2026-09-13): `Thumbnails.tsx` is gone, and step 2's control is the Carousel's.
 
 ### 12.2 The strip, and its one exemption from the no-scroll rule
 
@@ -1301,6 +1301,16 @@ caption's content wider than the caption, and 10.6's test measures `scrollWidth`
 that still overflows is precisely what the no-scroll rule forbids. So the Carousel
 shortens the string it renders. That is a fact about markup, and `views.test.tsx` asserts
 it (section 7), not a browser.
+
+**Below the guaranteed width** (amended 2026-09-13, #43): the line is narrower than 1230
+pixels, down to the 728 left at 792 pixels of width, below which step 2 has collapsed the
+row anyway. The Carousel therefore renders a second, shorter caption of **100 characters**
+for each Image, and the stylesheet shows it below 1280 pixels of width. A Node with a
+`credit` longer than 97 characters -- which that line cannot hold whole beside the
+separator -- gives its row up to step 2's control below 1280 pixels of width, rather than
+cut the credit. The enlarged view keeps clear of that control wherever it is shown: the
+control is at the foot of the page and, without JavaScript, is the only way to close the
+Sheet.
 
 ### 12.3 Controls, keyboard and the enlarged view
 
