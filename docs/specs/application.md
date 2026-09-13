@@ -102,7 +102,7 @@ the app does depends on a hosting vendor.
 |---|---|
 | Framework | Next.js, App Router, React, TypeScript (strict). Exact versions are pinned in `package.json` by the scaffold issue; the current stable major at that time. |
 | Server-side rendering | React Server Components. The Node page is an `async` server component; the first response to every URL is complete HTML, with the single exception named in 4.3 (the 404 page). |
-| Client-side JavaScript | React plus **four** client components: `Slider` (the slide transition and the pre-rendered neighbours, section 11), `CarouselButtons` (the Carousel's previous and next buttons, section 12 -- the Carousel itself is a server component), `Sheet` (the one overlay: the enlarged Image, the full Trail, and the collapsed Options and Sources of 10.5) and `ShareButton`. Everything else -- navigation, the Trail, the Branches, the language switch, the Carousel's strip -- is links, CSS and ordinary form-free markup. **Section 14 states exactly what a reader without JavaScript gets**, and it is a working application, not a degraded one. The 404 page's body is the single exception (4.3). |
+| Client-side JavaScript | React plus **four** client components: `Slider` (the slide transition and the pre-rendered neighbours, section 11), `CarouselButtons` (the Carousel's previous and next buttons, section 12 -- the Carousel itself is a server component), `Sheet` (the one overlay: the enlarged Image, the full Trail, and the collapsed Options and Sources of 10.5) and `ShareButton`. **A fifth ships in the interim** (amended 2026-09-13, #41, PR #56): `Thumbnails`, 0.1's thumbnails in the Carousel's row until #43 draws the Carousel (section 6, 12.1); #43 removes it and returns the count to four. Everything else -- navigation, the Trail, the Branches, the language switch, the Carousel's strip -- is links, CSS and ordinary form-free markup. **Section 14 states exactly what a reader without JavaScript gets**, and it is a working application, not a degraded one. The 404 page's body is the single exception (4.3). |
 | Runtime | Node.js 22 (LTS), in `.nvmrc` and `package.json` `engines`. |
 | Package manager | npm; `package-lock.json` committed; `npm ci` in CI and deployment. |
 | Build output | `output: 'standalone'`: `next build` yields a folder that runs with `node server.js`. |
@@ -175,10 +175,11 @@ add keys; every key exists in both languages or the build fails.
 | **`trailMore`** | The collapsed middle of a long Trail; takes the number of hidden entries (10.2). |
 | **`previous`**, **`next`** | The Carousel's two buttons (section 12); also the two buttons of a paged Sheet. |
 | **`imageCount`** | The Carousel's position indicator: which Image of how many is selected. |
-| **`minimumSize`** | The notice shown below the smallest supported viewport (10.5). |
+| **`minimumSize`** | The notice shown at and below the floor (10.4, 10.5 step 7): the sentence that says the window is too small. |
+| **`minimumWidth`**, **`minimumHeight`** | The notice's second sentence, one per dimension: the stylesheet shows the one for the dimension that is short, both at the floor's corner, so a 1280 x 480 window is told to grow taller (#41, PR #56). |
 
 New in 0.2: `back`, `startAgain`, `trailMore`, `previous`, `next`, `imageCount`,
-`minimumSize`. Keys that take a number (`trailMore`, `imageCount`) are functions of that
+`minimumSize`, `minimumWidth`, `minimumHeight`. Keys that take a number (`trailMore`, `imageCount`) are functions of that
 number in `src/chrome.ts`, not strings with a placeholder, so that a language which
 orders the sentence differently is not forced into English word order.
 
@@ -585,6 +586,8 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── Branch.tsx       [v0.2] server: one Link as a Branch (link, label, thumbnail)
 │   │   ├── Carousel.tsx     [v0.2] server: the Images strip and its caption line (12)
 │   │   ├── CarouselButtons.tsx  [v0.2] client: the strip's previous/next buttons (12)
+│   │   ├── Thumbnails.tsx   client: 0.1's thumbnails in the Carousel's row until #43
+│   │   │                    draws the Carousel (12.1); #43 removes it
 │   │   ├── Sheet.tsx        [v0.2] client: the one overlay -- enlarged Image, full
 │   │   │                    Trail, collapsed Options, collapsed Sources (10.5, 12)
 │   │   ├── Slider.tsx       [v0.2] client: the slide transition (11)
@@ -615,8 +618,13 @@ deploy; an hour of a stale font is the same trade the images make.
 └── .orca/ .claude/ .github/ .devcontainer/   agent workflow (unchanged)
 ```
 
-Gone with 0.1's view: `src/components/NodeView.tsx`, `Trail.tsx` and `Thumbnails.tsx`.
-Their work is `TreeView` + `Bubble`, `Branch`, and `Carousel` + `Sheet`.
+Gone with 0.1's view: `src/components/NodeView.tsx` and `Trail.tsx`. Their work is
+`TreeView` + `Bubble`, `Branch`, and `Carousel` + `Sheet`. `Thumbnails.tsx` **stays until
+#43** (amended 2026-09-13, #41, PR #56): the Node's Images as plain thumbnails in the
+Carousel's row, each opening the enlarged view with the credit (12.1), so that no credit
+is out of a reader's reach between #41 and #43. It is a client component in the interim
+-- a fifth, owning the one interaction of the enlarged view -- and #43 removes it when
+`Carousel.tsx` and `CarouselButtons.tsx` take the row.
 
 | Module | Owns | Does not |
 |---|---|---|
@@ -628,7 +636,7 @@ Their work is `TreeView` + `Bubble`, `Branch`, and `Carousel` + `Sheet`.
 | `src/chrome.ts` | The chrome strings and the language fallback rule. | Contain Tree content. |
 | `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. | Parse Trees or URLs. |
 | `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab. | Accept raw HTML. |
-| `src/components/` | Views. Server components take data and return markup -- `Logo.tsx` **[v0.2]** is one: it asks `theme.ts` which logo variant this palette calls for and renders it, or the Tree's title when there is none (13.2). The four client components own exactly one interaction each (section 1). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
+| `src/components/` | Views. Server components take data and return markup -- `Logo.tsx` **[v0.2]** is one: it asks `theme.ts` which logo variant this palette calls for and renders it, or the Tree's title when there is none (13.2). The four client components own exactly one interaction each (section 1) -- and so does the interim fifth, `Thumbnails.tsx`, until #43 removes it (amended 2026-09-13, #41, PR #56). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
 | `src/app/` | Routes: parse, load, hand to a view; redirects; the image and theme routes; 404. The `[lang]` layout sets `<html lang>` and emits the Theme. | Hold logic. Take the language from `searchParams` (4.4). |
 | `next.config.ts` | The two rewrites of 4.4, plus the build settings of section 1. | Know which languages a Tree declares, or anything else about the application. |
 
@@ -651,7 +659,8 @@ next.config.ts  ->  nothing in src/
 - **The four client components import no server module.** `Slider` receives the
   positions it needs as props from `TreeView`; it never computes a neighbourhood, never
   fetches a Node, and never reads the Tree. `Sheet`, `CarouselButtons` and `ShareButton`
-  take strings. This is what keeps the client bundle small and what makes section 14
+  take strings, and so does the interim fifth, `Thumbnails`, until #43 removes it (amended
+  2026-09-13, #41, PR #56). This is what keeps the client bundle small and what makes section 14
   statable: everything a client component does is an enhancement of markup that is
   already correct without it.
 - Styling mechanism and visual design are the build issues' (#40, #41, #43), within
@@ -690,10 +699,10 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 
 | Browser (Playwright) | Asserts |
 |---|---|
-| `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind. |
+| `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind, with every Sheet open, and again with JavaScript disabled. |
 | `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, no image of an off-centre Node, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation. |
 | `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.yaml` and restarting changes the page with no code change. |
-| `no-js.spec.ts` **[v0.2]** | With JavaScript disabled, every promise of section 14 holds: the Branches navigate, a Trail Branch discards the later Trail, the language switch works, an Image opens, and the page still does not scroll. |
+| `tree-view.spec.ts` **[v0.2]** | The tree view in a browser (#41): what a click on each kind of Branch does to the URL (10.3); Tab reaches every control in document order and Enter follows each Branch; a Sheet opens, lists its links, closes on Escape and returns the focus; the Trail Sheet pages eight at a time, newest first (10.2); the minimum-size notice names the dimension that is short (10.4); the screenshots of #41. **With JavaScript disabled**, section 14: every Branch is a link that navigates, a collapsed group is its plain list, and the Trail Sheet is pages of disclosures. There is no `no-js.spec.ts`: the no-script assertions live here and in `no-scroll.spec.ts`, which measures every page without script as well (amended 2026-09-13, #41, PR #56). |
 | `node-view.spec.ts`, `trail.spec.ts`, `language.spec.ts`, `deployment.spec.ts` | The 0.1 browser specs, kept: the URL scheme, the Trail, the language mechanism and the deployment shape are unchanged contracts and keep their tests. |
 
 **The interoperability test** (`interop.test.tsx`) is core document section 9, first
@@ -836,7 +845,9 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
   most 80 characters; both are chrome, so their length is `src/chrome.ts`'s and not an
   author's (3.2, section 7). **Neither takes a pixel from the text area**, which is why
   the description keeps its 192 pixels and its eight lines on every kind of Node and
-  `tree-format.md` 5.7's derivation stands exactly as written (10.7).
+  `tree-format.md` 5.7's derivation stands exactly as written (10.7). The Bubble's
+  2-pixel outline is part of the rim, not of the text area: the padding inside the
+  outline is 58 and 26, and the text area measures exactly 640 x 304 (#41).
 - **The Bubble never shrinks.** At or above the guaranteed viewport its text area is at
   least 640 x 304 at every size. Extra width goes to the Option columns and the page
   margins; extra height goes to the Bubble and the gaps. A limit that holds at
@@ -853,20 +864,23 @@ URL (4.1) -- the same list, drawn. Each entry is a Branch: a link to
 which discards the Trail after it (core document 10.17). They read left to right,
 oldest first, the current Node's parent nearest the Bubble.
 
-- **At most five Branches carrying a title are drawn**, in a 64-pixel row: **200 pixels
-  each**, 8-pixel gaps, the row centred on the Bubble's centre. At 200 pixels a 13-pixel
-  label holds about 28 characters per line, so a title of 80 characters is at most three
-  20-pixel lines, and no label is truncated at the guaranteed viewport.
+- **At most five Branches carrying a title are drawn**, in a 64-pixel row: **212 pixels
+  each**, 196 of them label, 8-pixel gaps, the row centred on the Bubble's centre. At
+  196 pixels a 13-pixel label holds an 80-character title in at most three 20-pixel
+  lines **in a wide fallback face too** (DejaVu Sans wraps it into four at the 176 pixels
+  a 200-pixel Branch leaves, and 10.5's row has no fourth line), and no label is
+  truncated at the guaranteed viewport. (#38 wrote 200 here; #41 measured and widened it.)
 - **A longer Trail collapses in the middle.** The `start` Branch stays, the last four
   entries stay, and everything between them becomes one Branch labelled with
   `trailMore(n)` -- "n earlier steps". That Branch carries chrome, not a title, and is
   **120 pixels** wide. The collapsed Trail is the row at its widest -- five title
-  Branches, the collapsed middle and five gaps, 5 x 200 + 120 + 5 x 8 = **1160 of the
-  1280 pixels** -- so the row still has a margin at the guarantee and it never wraps.
-  `trailMore(n)` is a button that opens the **Trail Sheet**: the whole Trail as a list of
-  links, newest first, as many as fit, with `previous` and `next` if there are more. The
-  Trail Sheet is the same `Sheet` component as the enlarged Image (section 12), and like
-  it, it never scrolls.
+  Branches, the collapsed middle and five gaps, 5 x 212 + 120 + 5 x 8 = **1220 of the
+  1280 pixels** -- so the row still has a margin at the guarantee, into which the
+  collapsed middle may grow to 180 pixels, and it never wraps. `trailMore(n)` is a button
+  that opens the **Trail Sheet**: the whole Trail as a list of links, newest first, as
+  many as fit, with `previous` and `next` if there are more (without JavaScript, `next`
+  is a disclosure that turns the page: section 14). The Trail Sheet is the same `Sheet`
+  component as the enlarged Image (section 12), and like it, it never scrolls.
 - **The middle collapses; labels never truncate and the row never wraps.** Truncating
   would hide which step a reader is going back to, which is the one thing the Trail is
   for; wrapping would take height the no-scroll budget does not have.
@@ -911,8 +925,19 @@ and disclaimer are unchanged.
 |---|---|---|
 | **The guaranteed viewport** | **1280 x 640** | The full arrangement of 10.1, every text at its designed size, no label truncated, nothing collapsed. The document does not scroll. |
 | Above it | anything larger | The same, with the extra space going to margins, the Option columns and the Bubble. The document does not scroll. |
-| Between the floor and the guarantee | down to **320 x 480** | The tree view, degraded in the stated order of 10.5. The document does not scroll. |
-| Below the floor | under 320 x 480 | The `minimumSize` notice, which itself fits and does not scroll. |
+| Between the floor and the guarantee | down to, but not including, **320 x 480** | The tree view, degraded in the stated order of 10.5. The document does not scroll. |
+| At and below the floor | **320 pixels wide or 480 pixels tall**, whatever the other dimension | The `minimumSize` notice, which names the dimension that is short (`minimumWidth`, `minimumHeight`; both at the corner), and which itself fits and does not scroll. |
+
+The floor itself shows the notice, and so does any viewport that is at the floor in
+either dimension -- a 1280 x 480 window as much as a 320 x 900 one -- because the order
+of 10.5 has nothing left to give up at that height or that width. 10.6 measures the
+floor as the notice. (#38's table read "down to 320 x 480" for the tree view and 10.6's
+"the floor: the notice"; #41 settled it this way, in `ADR-38-no-scroll.md`, and the
+owner confirmed it on PR #56 on 2026-09-13 --
+<https://github.com/IdseVal/ELSA-Decisiontree/pull/56#issuecomment-5652953012> -- with
+the sentence core document 10.22 now carries: "At or below a floor of 320 pixels of
+width or 480 pixels of height, a minimum-size notice replaces the view and names the
+dimension that is short.")
 
 1280 x 640 is `tree-format.md` 5.7's assumption, confirmed here (10.7): a 1366 x 768
 laptop display, or a 1920 x 1080 one at 150 % scaling, minus browser tabs, address bar
@@ -930,12 +955,12 @@ Whichever step first makes the arrangement fit is where it stops.
 | # | When space runs short | What happens | What is still reachable |
 |---|---|---|---|
 | 1 | height | The Trail collapses to one Branch: the parent, plus `trailMore(n)`. | The Trail Sheet (10.2). |
-| 2 | height | The Carousel collapses to one control showing `imageCount`. | The Sheet, which is the enlarged view (section 12). |
+| 2 | height | The Carousel collapses to one control showing `imageCount`. (#43's, with the Carousel; until then the interim row of 12.1 shrinks its thumbnails instead.) | The Sheet, which is the enlarged view (section 12). |
 | 3 | width | The Option columns move below the Answer Branches as one row. | Unchanged: they are still Branches, still links. |
 | 4 | either | The Option Branches collapse to one Branch labelled `options` with their count. | A Sheet listing the Options, each a link to its target. |
 | 5 | height | The Sources collapse to one control showing their count. | A Sheet listing them, each a link that opens in a new tab. |
 | 6 | height | Body text steps down 16 -> 15 -> 14 -> 13 px, line height 1.5, and **never below 13 px**; the title steps 22 -> 20 -> 18 px. | Unchanged. |
-| 7 | anything left | The `minimumSize` notice replaces the tree view. | The notice names the smallest size the tool works at. |
+| 7 | anything left | The `minimumSize` notice replaces the tree view. | The notice says which dimension is short and the size it must exceed (3.2). |
 
 - The order is deliberate: the Trail and the Carousel are context, the Options are a
   list, the Sources are a citation, and the **Node's own title, description and
@@ -944,9 +969,36 @@ Whichever step first makes the arrangement fit is where it stops.
 - Every collapse opens the same `Sheet`. One concept, four uses -- the enlarged Image,
   the full Trail, the collapsed Options and the collapsed Sources -- and one set of
   keyboard rules (Escape closes, focus returns to the control that opened it).
+- **Below 480 pixels of width, step 1 gives up the parent's title too** (#41,
+  `ADR-38-no-scroll.md`). The Trail row is 30 pixels there, and a parent Branch holding
+  an 80-character title needs three lines of 20, which the row cannot hold and 10.2 does
+  not let it truncate. So the row is `trailMore(n)` alone, `n` the whole Trail; the
+  parent is the first entry of the Trail Sheet, and below an explanation Node or a
+  Terminal it is also the `back` Branch. On a question Node at that width the parent's
+  title is one control away. At the same width the rim narrows to 22 by 10 pixels, and
+  the band a Terminal's badge or an explanation Node's hint sits in is kept per kind of
+  Node (10.1), so the two chrome elements still take nothing from the text area.
 - Nothing in this order is a media query the build issue may invent: #41 implements
   these seven steps, in this order, and the browser test of 10.6 runs at sizes that
-  exercise them.
+  exercise them. The phone-width form of step 1 above, and the width triggers below,
+  are the additions, recorded here and in the ADR rather than in a stylesheet alone.
+- **The height-keyed steps 1, 2, 5 and 6 also fire by width** (#41, PR #56,
+  `ADR-38-no-scroll.md`), because a narrower page narrows the row or the Bubble the
+  same content sits in, so the content needs more height there and the step that frees
+  it is the same step. Step 1 fires below 1200 pixels of width, where the collapsed row
+  of 10.2 (1220 pixels) no longer fits and could only truncate or wrap; steps 2, 5 and
+  6 fire together below 792, where the Bubble narrows (its rim to 36 by 24) and its text
+  takes more lines; step 6's further sizes follow at 640 and 480. By height the
+  triggers keep the order of the table: below 640, 620, 568, 548, 532 then 516 then
+  500, and the notice at 480. By width the order as built is steps 3 and 4 first (below
+  1280; 4 there for five Options or more, or when the height is also below 740, and by
+  count at 1000, 770 and 520 for four, three and two Options), then
+  step 1 (1200), then 2, 5 and 6 at once (792), then the notice (at 320): the two width
+  steps of the table lead, because the Option columns are the widest thing beside the
+  Bubble, and no height-keyed step fires by width before the height-keyed step above it.
+  (Until 2026-09-13 step 5 fired by width only at 640 and step 6 at 792, so between them
+  the type had stepped down while the citation was still inline; the Reviewer of PR #56
+  caught it.)
 
 ### 10.6 The no-scroll rule, and the exact test
 
@@ -990,7 +1042,7 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 | `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 600-character 8-line description, 3 Sources, 8 Options, 10 Images, the longest Trail. If this fits, every valid Tree fits. |
 | The longest Node of the first Tree that validates | The real content, once #44 has cut it. |
 | Each of the above in **both** `en` and `nl` | Dutch runs longer than English; the limits are per language and so is the fit. |
-| Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. |
+| Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. **Mid-transition is deferred with the transition** (amended 2026-09-13, #41, PR #56): #42 builds it, and adds the mid-transition rows to `no-scroll.spec.ts`; #41's test measures every page with every Sheet open. |
 
 The build issue (#41) pastes the measured numbers in its pull request; the test is what
 keeps them true afterwards.
@@ -1008,12 +1060,23 @@ a limit:
 
 | `tree-format.md` 5.7 assumed | This layout | Effect on the limits |
 |---|---|---|
-| The vertical budget's "outgoing Branches 64" carries the Answer *and* Option Branches, and noted that 10 Branches would need 1500 px across a 1280 px screen, leaving #38 to decide whether they narrow or wrap. | Answers go **below** (2 Branches, 480 px each) and Options go **beside** (two columns of at most 4, 240 px each). Neither row ever holds 10 Branches, so nothing narrows and nothing wraps. | None. The 64 px row and the 360 px middle are unchanged; the budget still sums to 640. |
-| An Option Branch label is 150 px wide, giving about 21 characters per line, so a 60-character title takes 3 lines. | An Option Branch label is 240 px wide, or 168 px when the Option carries a thumbnail: about 34 or 24 characters per line, so 60 characters take 2 or 3 lines, in a 90 px row. | None: more room than assumed. |
-| An Answer Branch has 640 px and a Node title of 80 characters is 1 line. | 480 px, about 65 characters per line: 80 characters take 2 lines of 20 px, plus the 16 px chrome label, 56 px inside the 64 px row. | None. |
-| A Trail of up to 6 Nodes fits at 213 px each; a longer Trail was left to #38. | 5 title Branches at 200 px; a longer Trail collapses to those five plus a 120 px `trailMore` in the middle, which is the row at its widest: 5 x 200 + 120 + 5 x 8 = 1160 px of 1280 (10.2). | None; a Trail label is a Node title, already bounded. |
-| The Bubble's text area is 640 x 304 inside the curve and padding of a 760 x 360 Bubble -- and 5.7 divides that 304 px exactly, leaving nothing over. | Unchanged, and nothing is added to it: a Terminal's outcome badge and an explanation Node's `explanationOnly` hint are chrome and sit on the Bubble's **rim**, outside the text area (10.1). | None. The description keeps 192 px and 8 lines on every one of the four situations of 10.3. |
+| The vertical budget's "outgoing Branches 64" carries the Answer *and* Option Branches, and noted that 10 Branches would need 1500 px across a 1280 px screen, leaving #38 to decide whether they narrow or wrap. | Answers go **below** (2 Branches, 480 px each) and Options go **beside** (two columns of at most 4, 248 px each in a 240 px column plus the 12 px tick into the gap). Neither row ever holds 10 Branches, so nothing narrows and nothing wraps. | None. The 64 px row and the 360 px middle are unchanged; the budget still sums to 640. |
+| An Option Branch label is 150 px wide, giving about 21 characters per line, so a 60-character title takes 3 lines. | An Option Branch is 248 px wide with 12 px of padding each side: **224 px of label, or 152 px when the Option carries its 64 px thumbnail and the 8 px gap** -- about 33 or 22 characters per line, so 60 characters take 2 or 3 lines, in an 82 px Branch; four Branches and three 8 px gaps are 352 of the 360 px middle. Three lines hold in a wide fallback face too, which is what 152 rather than the 136 of a 240 px Branch buys: a Dutch title took four lines there, 364 px in 360 (#41). | None: 152 px is more than the 150 assumed, and three lines are what it assumed. |
+| An Answer Branch has 640 px and a Node title of 80 characters is 1 line. | A 480 px Branch with 20 px of padding each side, so 440 px of label, about 60 characters per line: 80 characters take 2 lines of 20 px, plus the 16 px chrome word, 56 px inside the 64 px row. | None. |
+| A Trail of up to 6 Nodes fits at 213 px each; a longer Trail was left to #38. | 5 title Branches at 212 px, 196 of them label; a longer Trail collapses to those five plus a 120 px `trailMore` in the middle, which is the row at its widest: 5 x 212 + 120 + 5 x 8 = 1220 px of 1280 (10.2). 196 px holds an 80-character title in three lines in a wide fallback face; the 200 px #38 first wrote (176 of label) did so only in the humanist faces 5.7 measured with, and was four lines, 84 px in 64, in DejaVu Sans (#41). | None; a Trail label is a Node title, already bounded. |
+| The Bubble's text area is 640 x 304 inside the curve and padding of a 760 x 360 Bubble -- and 5.7 divides that 304 px exactly, leaving nothing over. | Unchanged, and nothing is added to it: a Terminal's outcome badge and an explanation Node's `explanationOnly` hint are chrome and sit on the Bubble's **rim**, outside the text area (10.1); the 2 px outline is part of the rim, so the padding inside it is 58 and 26 and the text area measures exactly 640 x 304. | None. The description keeps 192 px and 8 lines on every one of the four situations of 10.3. |
 | The Carousel is "one picture at a time, 80 px strip; a caption of 120 characters fits one line at 13 px under the enlarged view, two in the strip". | Five pictures at a time at 60 px, and **one** 20 px caption line under them rather than two: 60 + 20 is the 80 px row. That line holds about 170 characters and a `description` plus a `credit` may be 240, so the credit is laid out whole and the description is shortened to what is left, at least 47 characters (12.2). | None. What is shortened is repeated in full in the thumbnail's alternative text and in the enlarged view, where 5.7's "one line at 13 px" is exactly what it assumed. |
+
+**The face the numbers hold in.** `tree-format.md` 5.7 measured its limits in a
+humanist sans, and #41 re-derived the widths above in the widest fallback a reader is
+likely to meet, DejaVu Sans, which is what `system-ui` resolves to on a Linux machine
+with no desktop. The Trail step, the Option label, the Answer label and the chrome bar
+at the floor hold there, at the widths in the table. The Bubble's text area does not:
+the format's maximum -- a 600-character description of 8 lines and three Sources with
+their kind labels -- is 324 px there against 304, which is the caveat 5.7 states for a
+wide body font. The default type stack of 13.4 therefore names Arial-metric faces
+before `sans-serif` (`src/theme.ts`), so a machine without a desktop face gets Liberation
+Sans, whose metrics are Arial's, and a Tree that ships a body font is unaffected.
 
 This is recorded on issue #37 as a comment, as that issue's spec asks.
 
@@ -1192,6 +1255,17 @@ a reader unable to tell which entry a caption belongs to.
 A Node with no Images gets the row anyway, empty, so that the Bubble sits in the same
 place on every Node and the transition of section 11 has nothing to reflow.
 
+**Until #43 draws the Carousel**, the row holds the Node's Images as plain 60-pixel
+thumbnails in the strip's place, each a link to its file that, with JavaScript, opens
+the enlarged view of 12.3 with the description and the credit -- what version 0.1
+showed, kept so that no picture and no credit is out of a reader's reach in between (the
+owner on PR #56, after PR #54 made visible credits a release blocker). No paging, no
+caption line, no transitions; where 10.5's step 2 shrinks the row to 28 pixels they
+shrink to 24. #43 replaces them. **Step 2's control is deferred with them** (amended
+2026-09-13, #41, PR #56): the one control showing `imageCount` is the Carousel's, so
+#43 builds it; until then the row below step 2 is the 24-pixel thumbnails, and
+`imageCount` is in `src/chrome.ts`, in both languages, with no caller.
+
 ### 12.2 The strip, and its one exemption from the no-scroll rule
 
 The strip is a horizontal row of the Node's Images as 60-pixel thumbnails with
@@ -1233,7 +1307,7 @@ it (section 7), not a browser.
 | Control | Behaviour | Chrome key |
 |---|---|---|
 | The strip | Focusable region, named for assistive technology. Left/Right move the selection, Home/End jump to the first/last, Enter or Space enlarges the selected Image. | `images` |
-| Previous / next | Buttons; scroll the strip by one page. Disabled at the ends. `CarouselButtons`, one of the four client components of section 1. | `previous`, `next` |
+| Previous / next | Buttons; scroll the strip by one page. Disabled at the ends. `CarouselButtons`, one of the four client components of section 1 (five until #43 replaces the interim `Thumbnails` with it; amended 2026-09-13, #41, PR #56). | `previous`, `next` |
 | Position | "Image 3 of 7", updated as the selection moves, announced politely. | `imageCount` |
 | A thumbnail | An `<a href="/images/<file>">` around the `<img>`. With JavaScript the click is intercepted and opens the enlarged view; without it, the link opens the file. | `enlarge` |
 | The enlarged view | A `Sheet`: the full image bounded to the viewport so that it never scrolls, with the `description` and the `credit` beneath it. Closed by Escape, by the close button, or by clicking outside; focus returns to the thumbnail. | `close` |
@@ -1398,7 +1472,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | The language switch | Links with `?lang=` (4.1). |
 | The share link | The address bar: the page's own URL is the share link (4.1). |
 | The Theme | Colours, fonts and logo are server-rendered CSS and plain `<img>`; a Tree's identity does not depend on a script. |
-| The no-scroll rule | CSS, and the length limits of the format. 10.6's test runs with JavaScript disabled too (`no-js.spec.ts`). |
+| The no-scroll rule | CSS, and the length limits of the format. 10.6's test runs with JavaScript disabled too (`no-scroll.spec.ts`; the no-script walk of the Branches and the Sheets is in `tree-view.spec.ts`, section 7). |
 | The disclaimer | Rendered in the layout, on every page. |
 
 | Needs JavaScript | What a reader without it gets instead |
@@ -1407,7 +1481,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | The pre-rendered neighbour Bubbles | They are in the HTML -- the server rendered them -- but hidden, and `Slider` is what reveals them. Without it the tree layer shows the centre Bubble and its Branches, which is everything the reader needs; off-centre Bubbles that can never move would be clutter, and they are `aria-hidden` besides. No image of another Node is requested either way, because a neighbour Bubble carries no image URL (11.4). |
 | The enlarged view in place | The image file, opened by the link. |
 | The Carousel's previous/next buttons | The strip itself scrolls; the buttons are an enhancement of a control that already works. |
-| The Sheets of 10.2 and 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. |
+| The Sheets of 10.2 and 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. A list longer than one page of eight -- the 49-entry Trail -- is pages of nested native disclosures: `next` opens the next page and the stylesheet hides the one before it, so no panel is ever asked to hold more than fits, at any viewport of 10.6 (#41). |
 | The share button's copy | The address bar. The button is not shown when it cannot work. |
 | The 404 page's body | The single framework exception, 4.3, unchanged. |
 

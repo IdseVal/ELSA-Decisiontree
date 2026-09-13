@@ -1,7 +1,7 @@
 /**
- * The Trail (docs/CORE_DOCUMENT.md 3.2, 10.17) and the share button: the way back, and the
- * link that carries it. What a click does is `tests/browser/trail.spec.ts`; this file is
- * what the server sends.
+ * The Trail as the Branches above the Bubble (docs/specs/application.md 10.2, core document
+ * 3.2 and 10.17), and the share button: the way back, and the link that carries it. What a
+ * click does is `tests/browser/trail.spec.ts`; this file is what the server sends.
  *
  * Every fixture is loaded through `openTree` and every address through `parseUrl`, as
  * docs/specs/application.md section 7 requires; nothing here builds a Node by hand.
@@ -10,9 +10,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeAll, describe, expect, test } from 'vitest'
-import { chrome } from '../src/chrome.ts'
-import { chromeLang, NodeView } from '../src/components/NodeView.tsx'
+import { chrome, chromeLang } from '../src/chrome.ts'
 import { ShareButton } from '../src/components/ShareButton.tsx'
+import { TreeView } from '../src/components/TreeView.tsx'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { parseUrl } from '../src/url.ts'
 
@@ -23,6 +23,7 @@ beforeAll(async () => {
   for (const [id, dir] of [
     ['ai-act-example', path.join(here, '..', 'trees', 'ai-act-example')],
     ['other-languages', path.join(here, 'fixtures', 'other-languages')],
+    ['full-node', path.join(here, 'fixtures', 'full-node')],
   ] as const) {
     trees.set(id, await openTree(dir))
   }
@@ -38,112 +39,137 @@ async function view(url: string): Promise<string> {
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)
-  return renderToStaticMarkup(
-    <NodeView
-      node={node}
-      address={address}
-      rootId={tree.manifest.root}
-      trailTitles={address.trail.map((id) => tree.getTitle(id)!)}
-    />,
-  )
+  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} />)
 }
 
 /** The Trail's markup on its own, or the empty string when the page draws no Trail. */
 function trail(html: string): string {
-  return /<nav class="trail"[\s\S]*?<\/nav>/.exec(html)?.[0] ?? ''
+  return /<nav class="trail[^"]*"[\s\S]*?<\/nav>/.exec(html)?.[0] ?? ''
 }
 
-/** The `href` of every Trail entry, in the order they are on the page. */
-function trailLinks(html: string): string[] {
-  return [...trail(html).matchAll(/href="([^"]*)"/g)].map((match) => match[1]!)
+/** Every Trail Branch: its `href` and its title, in the order they are on the page. */
+function trailBranches(html: string): Array<[href: string, title: string]> {
+  return [
+    ...trail(html).matchAll(
+      /<a class="branch trail-entry" href="([^"]*)"[^>]*><span class="branch-label"><span class="branch-title">(?:<span[^>]*>)?([^<]*)/g,
+    ),
+  ].map((match) => [match[1]!, match[2]!])
 }
 
-/** The text of every Trail entry, in the order they are on the page. */
-function trailTitles(html: string): string[] {
-  return [...trail(html).matchAll(/<a [^>]*>([^<]*)<\/a>/g)].map((match) => match[1]!)
+/** The Trail Sheet's markup: the whole Trail as a list, behind the collapsed control. */
+function sheet(html: string): string {
+  return /<li class="trail-more">[\s\S]*?<\/details>/.exec(html)?.[0] ?? ''
+}
+
+/** The `start` Node of the full-node fixture, reached by a Trail of `length` visits to itself. */
+function walkOf(length: number): string {
+  return `/full-node/${Array.from({ length: length + 1 }, () => 'full').join('/')}`
 }
 
 describe('the Trail', () => {
-  test('lists the Nodes visited to reach this one, by their titles, in the order visited', async () => {
+  test('is the Nodes visited to reach this one, as Branches, by their titles, oldest first', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
 
-    expect(trailTitles(html)).toEqual([
-      'Is your AI system within the reach of the AI Act?',
-      'Does your system do any of the prohibited practices?',
+    expect(trailBranches(html)).toEqual([
+      ['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?'],
+      ['/ai-act-example/start/prohibited-practices', 'Does your system do any of the prohibited practices?'],
     ])
   })
 
-  test('rises above the current Node: it comes before the title on the page', async () => {
+  test('is above the Bubble: it comes before the title on the page', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
 
-    expect(html.indexOf('<nav class="trail"')).toBeLessThan(html.indexOf('<h1'))
+    expect(html.indexOf('<nav class="trail')).toBeLessThan(html.indexOf('<h1'))
   })
 
-  test('each entry jumps back to that Node with everything after it discarded (10.17)', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
-
-    expect(trailLinks(html)).toEqual([
-      '/ai-act-example/start',
-      '/ai-act-example/start/prohibited-practices',
-    ])
-  })
-
-  test('shows the titles in the language the page is in', async () => {
+  test('each Branch jumps back to that Node with everything after it discarded (10.17)', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices/social-scoring?lang=nl')
 
-    expect(trailTitles(html)).toEqual([
-      'Valt uw AI-systeem binnen het bereik van de AI-verordening?',
-      'Verricht uw systeem een van de verboden praktijken?',
-    ])
-    expect(trailLinks(html)).toEqual([
+    expect(trailBranches(html).map(([href]) => href)).toEqual([
       '/ai-act-example/start?lang=nl',
       '/ai-act-example/start/prohibited-practices?lang=nl',
     ])
+    expect(trailBranches(html).map(([, title]) => title)).toEqual([
+      'Valt uw AI-systeem binnen het bereik van de AI-verordening?',
+      'Verricht uw systeem een van de verboden praktijken?',
+    ])
   })
 
-  test('is as long as the walk: a three-entry Trail draws three entries', async () => {
-    // Any sequence of Node ids is a Trail; adjacency is not checked (application.md 4.3).
-    const html = await view('/ai-act-example/start/prohibited-practices/covered/social-scoring')
+  test('the parent -- the entry nearest the Bubble -- is the page the reader came from', async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
 
-    expect(trailLinks(html)).toHaveLength(3)
-    expect(trailLinks(html)[2]).toBe('/ai-act-example/start/prohibited-practices/covered')
+    expect(trail(html)).toContain('<a class="branch trail-entry" href="/ai-act-example/start/prohibited-practices" rel="prev">')
+    expect(trail(html).match(/rel="prev"/g)).toHaveLength(1)
   })
 
-  test('offers the way into the walk on a Node opened by its own URL', async () => {
-    // A shared link to a Node on its own carries no Trail; the reader still gets a way in.
-    const html = await view('/ai-act-example/social-scoring')
+  test('at the root Node there is no Trail: the row holds the Tree title instead (10.2)', async () => {
+    const html = await view('/ai-act-example/start')
 
-    expect(trailLinks(html)).toEqual(['/ai-act-example/start'])
-    expect(trailTitles(html)).toEqual(['Start'])
+    expect(html).not.toContain('<nav class="trail')
+    expect(html).toContain('<div class="trail trail--root"><p class="tree-name">Does the EU AI Act apply to my AI system? (example)</p></div>')
   })
 
-  test('offers it on every kind of Node, not just the explanation Nodes #7 covered', async () => {
-    // The way in depends on the Trail being empty, never on the kind of Node: a question
-    // and an outcome are the likeliest things to share, and neither may strand its reader.
-    for (const [kind, url] of [
-      ['question', '/ai-act-example/prohibited-practices'],
-      ['terminal', '/ai-act-example/covered'],
-    ] as const) {
+  test('offers the way into the walk on a Node opened by its own URL, whatever its kind', async () => {
+    // A shared link to a Node on its own carries no Trail; the reader still gets a way in,
+    // and a question and an outcome are the likeliest things to share.
+    for (const url of ['/ai-act-example/social-scoring', '/ai-act-example/prohibited-practices', '/ai-act-example/covered']) {
       const html = await view(url)
 
-      expect(trailLinks(html), kind).toEqual(['/ai-act-example/start'])
-      expect(trailTitles(html), kind).toEqual(['Start'])
+      expect(trailBranches(html), url).toEqual([['/ai-act-example/start', 'Start']])
+      expect(sheet(html), url).toBe('')
     }
   })
 
-  test('the root Node with no Trail draws none: there is nothing to go back to', async () => {
-    expect(await view('/ai-act-example/start')).not.toContain('class="trail"')
+  test('a Trail of one to five entries draws exactly those, with no collapsed middle', async () => {
+    for (const length of [1, 2, 5]) {
+      const html = await view(walkOf(length))
+
+      expect(trailBranches(html), `${length}`).toHaveLength(length)
+      expect(trail(html), `${length}`).not.toContain('trail--long')
+      expect(trail(html), `${length}`).not.toContain('trail-more-wide')
+    }
   })
 
-  test('is named for a reader who cannot see it, in the language that name is written in', async () => {
+  test('a longer Trail keeps every entry in the markup and marks start and the last four as kept (10.2)', async () => {
+    const html = await view(walkOf(9))
+    const steps = [...trail(html).matchAll(/<li class="trail-step"([^>]*)>/g)].map((match) => match[1]!)
+
+    expect(trail(html)).toContain('class="trail trail--long trail--collapsible"')
+    expect(steps).toHaveLength(9)
+    expect(steps.map((attributes) => attributes.includes('data-kept'))).toEqual([
+      true, false, false, false, false, true, true, true, true,
+    ])
+    // The collapsed middle says how many it hides: nine minus the five that stay.
+    expect(trail(html)).toContain('<span class="trail-more-wide">4 earlier steps</span>')
+    // The one-Branch collapse of the short viewport (10.5, step 1) hides all but the parent.
+    expect(trail(html)).toContain('<span class="trail-more-short">8 earlier steps</span>')
+  })
+
+  test('the Trail Sheet lists the whole Trail as links, newest first', async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
+    const links = [...sheet(html).matchAll(/<a href="([^"]*)"/g)].map((match) => match[1])
+
+    expect(links).toEqual(['/ai-act-example/start/prohibited-practices', '/ai-act-example/start'])
+    expect(sheet(html)).toContain('<span class="trail-more-short">1 earlier step</span>')
+  })
+
+  test('a Trail of forty-nine entries -- the most a URL carries -- renders every one of them', async () => {
+    const html = await view(walkOf(49))
+
+    expect(trailBranches(html)).toHaveLength(49)
+    expect(sheet(html).match(/<a href="/g)).toHaveLength(49)
+    expect(trail(html)).toContain('44 earlier steps')
+  })
+
+  test('is a navigation landmark named for a reader who cannot see it, in the language that name is written in', async () => {
     const english = await view('/ai-act-example/start/prohibited-practices')
     const dutch = await view('/ai-act-example/start/prohibited-practices?lang=nl')
     const german = await view('/other-languages/start/inverkehrbringen')
 
     expect(english).toContain('<nav class="trail" aria-labelledby="trail-label">')
     expect(english).toContain('id="trail-label">Your path</span>')
-    // Dutch chrome beside Dutch content inherits `nl` from the article; only chrome in
-    // another language than the content around it marks itself (application.md 3.1).
+    // Dutch chrome beside Dutch content inherits `nl` from the page; only chrome in another
+    // language than the content around it marks itself (application.md 3.1).
     expect(dutch).toContain('id="trail-label">Uw pad</span>')
     expect(german).toContain('id="trail-label" lang="en">Your path</span>')
   })
@@ -155,32 +181,22 @@ describe('the Trail', () => {
     expect(trail(html)).not.toContain('tabindex="-1"')
     // Every anchor of the Trail has a target: none of them is a dead control.
     expect(trail(html)).not.toMatch(/<a(?=[\s>])(?![^>]*\shref=)/)
-    expect(trailLinks(html)).toHaveLength(trailTitles(html).length)
-  })
-
-  test('the interim "back" control of issue #7 is gone: the Trail is the one way back', async () => {
-    for (const url of [
-      '/ai-act-example/start',
-      '/ai-act-example/social-scoring',
-      '/ai-act-example/start/prohibited-practices/social-scoring',
-    ]) {
-      expect(await view(url), url).not.toContain('class="back"')
-    }
   })
 })
 
 describe('the share button', () => {
+  const words = (lang: string) => {
+    const { share, copied, copyFailed } = chrome(lang)
+    return { share, copied, copyFailed }
+  }
+
   test('is a button labelled in the chrome language', () => {
-    expect(renderToStaticMarkup(<ShareButton ui={chrome('en')} uiLang={undefined} />)).toContain(
-      '>Copy link</button>',
-    )
-    expect(renderToStaticMarkup(<ShareButton ui={chrome('nl')} uiLang={undefined} />)).toContain(
-      '>Kopieer link</button>',
-    )
+    expect(renderToStaticMarkup(<ShareButton ui={words('en')} uiLang={undefined} />)).toContain('>Copy link</button>')
+    expect(renderToStaticMarkup(<ShareButton ui={words('nl')} uiLang={undefined} />)).toContain('>Kopieer link</button>')
   })
 
   test('says nothing about having copied until it has', () => {
-    const html = renderToStaticMarkup(<ShareButton ui={chrome('en')} uiLang={undefined} />)
+    const html = renderToStaticMarkup(<ShareButton ui={words('en')} uiLang={undefined} />)
 
     expect(html).not.toContain(chrome('en').copied)
     // The confirmation lands in a live region that is on the page from the start, so a
@@ -188,14 +204,8 @@ describe('the share button', () => {
     expect(html).toContain('role="status"')
   })
 
-  test('is on every Node page, beside the Node it would share', async () => {
-    for (const url of ['/ai-act-example/start', '/ai-act-example/start/outside-scope']) {
-      expect(await view(url), url).toContain('class="share"')
-    }
-  })
-
-  test('marks its language only where the chrome does not speak the page\'s language', async () => {
-    expect(await view('/ai-act-example/start?lang=nl')).toContain('Kopieer link')
-    expect(await view('/other-languages/start')).toContain(`lang="${chromeLang('de')}">Copy link`)
+  test('marks its language only where the chrome does not speak the page\'s language', () => {
+    expect(renderToStaticMarkup(<ShareButton ui={words('nl')} uiLang={chromeLang('nl')} />)).toContain('<button class="share" type="button">Kopieer link')
+    expect(renderToStaticMarkup(<ShareButton ui={words('de')} uiLang={chromeLang('de')} />)).toContain('lang="en">Copy link')
   })
 })
