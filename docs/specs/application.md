@@ -175,10 +175,11 @@ add keys; every key exists in both languages or the build fails.
 | **`trailMore`** | The collapsed middle of a long Trail; takes the number of hidden entries (10.2). |
 | **`previous`**, **`next`** | The Carousel's two buttons (section 12); also the two buttons of a paged Sheet. |
 | **`imageCount`** | The Carousel's position indicator: which Image of how many is selected. |
-| **`minimumSize`** | The notice shown below the smallest supported viewport (10.5). |
+| **`minimumSize`** | The notice shown at and below the floor (10.4, 10.5 step 7): the sentence that says the window is too small. |
+| **`minimumWidth`**, **`minimumHeight`** | The notice's second sentence, one per dimension: the stylesheet shows the one for the dimension that is short, both at the floor's corner, so a 1280 x 480 window is told to grow taller (#41, PR #56). |
 
 New in 0.2: `back`, `startAgain`, `trailMore`, `previous`, `next`, `imageCount`,
-`minimumSize`. Keys that take a number (`trailMore`, `imageCount`) are functions of that
+`minimumSize`, `minimumWidth`, `minimumHeight`. Keys that take a number (`trailMore`, `imageCount`) are functions of that
 number in `src/chrome.ts`, not strings with a placeholder, so that a language which
 orders the sentence differently is not forced into English word order.
 
@@ -917,7 +918,7 @@ and disclaimer are unchanged.
 | **The guaranteed viewport** | **1280 x 640** | The full arrangement of 10.1, every text at its designed size, no label truncated, nothing collapsed. The document does not scroll. |
 | Above it | anything larger | The same, with the extra space going to margins, the Option columns and the Bubble. The document does not scroll. |
 | Between the floor and the guarantee | down to, but not including, **320 x 480** | The tree view, degraded in the stated order of 10.5. The document does not scroll. |
-| At and below the floor | **320 pixels wide or 480 pixels tall**, whatever the other dimension | The `minimumSize` notice, which itself fits and does not scroll. |
+| At and below the floor | **320 pixels wide or 480 pixels tall**, whatever the other dimension | The `minimumSize` notice, which names the dimension that is short (`minimumWidth`, `minimumHeight`; both at the corner), and which itself fits and does not scroll. |
 
 The floor itself shows the notice, and so does any viewport that is at the floor in
 either dimension -- a 1280 x 480 window as much as a 320 x 900 one -- because the order
@@ -946,7 +947,7 @@ Whichever step first makes the arrangement fit is where it stops.
 | 4 | either | The Option Branches collapse to one Branch labelled `options` with their count. | A Sheet listing the Options, each a link to its target. |
 | 5 | height | The Sources collapse to one control showing their count. | A Sheet listing them, each a link that opens in a new tab. |
 | 6 | height | Body text steps down 16 -> 15 -> 14 -> 13 px, line height 1.5, and **never below 13 px**; the title steps 22 -> 20 -> 18 px. | Unchanged. |
-| 7 | anything left | The `minimumSize` notice replaces the tree view. | The notice names the smallest size the tool works at. |
+| 7 | anything left | The `minimumSize` notice replaces the tree view. | The notice says which dimension is short and the size it must exceed (3.2). |
 
 - The order is deliberate: the Trail and the Carousel are context, the Options are a
   list, the Sources are a citation, and the **Node's own title, description and

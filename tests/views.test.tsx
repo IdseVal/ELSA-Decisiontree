@@ -146,11 +146,18 @@ describe('the tree layer', () => {
     expect(html).toContain('<div class="carousel"></div>')
   })
 
-  test('carries the notice for a window below the floor, for the stylesheet to show (10.4)', async () => {
+  test('carries the notice for a window at or below the floor, with a sentence per short dimension (10.4)', async () => {
+    // The stylesheet shows the notice and, inside it, the sentence for the dimension that
+    // ran short: a 1280 x 480 window must not be told it needs 320 by 480.
     expect(await view('/ai-act-example/start')).toContain(
-      '<p class="minimum-size">This tool needs a window of at least 320 by 480 pixels.</p>',
+      '<p class="minimum-size">This tool needs a larger window. ' +
+        '<span class="minimum-width">Make it wider than 320 pixels.</span> ' +
+        '<span class="minimum-height">Make it taller than 480 pixels.</span></p>',
     )
-    expect(await view('/ai-act-example/start?lang=nl')).toContain('minimaal 320 bij 480 pixels')
+    const nl = await view('/ai-act-example/start?lang=nl')
+    expect(nl).toContain('Dit hulpmiddel heeft een groter venster nodig.')
+    expect(nl).toContain('<span class="minimum-width">Maak het breder dan 320 pixels.</span>')
+    expect(nl).toContain('<span class="minimum-height">Maak het hoger dan 480 pixels.</span>')
   })
 })
 

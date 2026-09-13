@@ -291,6 +291,37 @@ for (const [width, height] of [
   })
 }
 
+test.describe('the minimum-size notice', () => {
+  // At and below the floor the notice names the dimension that is short (10.4): a
+  // half-height desktop window is told to grow taller, not that it needs 320 by 480.
+  const cases = [
+    { viewport: [1280, 480], what: 'a wide, short window', width: false, height: true },
+    { viewport: [320, 900], what: 'a narrow, tall window', width: true, height: false },
+    { viewport: [320, 480], what: "the floor's corner", width: true, height: true },
+  ] as const
+
+  for (const { viewport, what, width, height } of cases) {
+    const [w, h] = viewport
+    test(`${what}, ${w} x ${h}, names the dimension that is short`, async ({ page }) => {
+      await page.setViewportSize({ width: w, height: h })
+      await page.goto(ROOT)
+      await expect(page.locator('.tree-layer')).toBeHidden()
+      const notice = page.locator('.minimum-size')
+      await expect(notice).toBeVisible()
+      await expect(notice).toContainText('This tool needs a larger window.')
+      await expect(notice.locator('.minimum-width')).toBeVisible({ visible: width })
+      await expect(notice.locator('.minimum-height')).toBeVisible({ visible: height })
+    })
+  }
+
+  test('is not on the page one pixel above the floor in both dimensions', async ({ page }) => {
+    await page.setViewportSize({ width: 321, height: 481 })
+    await page.goto(ROOT)
+    await expect(page.locator('.minimum-size')).toBeHidden()
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  })
+})
+
 test.describe('with JavaScript switched off', () => {
   test.use({ javaScriptEnabled: false })
 

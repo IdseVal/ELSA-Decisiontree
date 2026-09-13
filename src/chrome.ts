@@ -65,8 +65,14 @@ export interface Chrome {
   next: string
   /** The Carousel's position: which Image of how many is selected (section 12). */
   imageCount: (index: number, total: number) => string
-  /** The notice shown below the smallest viewport the tree view works at (10.4, 10.5). */
+  /**
+   * The notice shown at and below the floor of 10.4: the sentence that says the window is
+   * too small, then the one for whichever dimension is short (both at the floor's corner).
+   * The stylesheet shows the notice and picks the dimension; the markup carries all three.
+   */
   minimumSize: string
+  minimumWidth: string
+  minimumHeight: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -106,7 +112,9 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     previous: 'Previous',
     next: 'Next',
     imageCount: (index, total) => `Image ${index} of ${total}`,
-    minimumSize: 'This tool needs a window of at least 320 by 480 pixels.',
+    minimumSize: 'This tool needs a larger window.',
+    minimumWidth: 'Make it wider than 320 pixels.',
+    minimumHeight: 'Make it taller than 480 pixels.',
   },
   nl: {
     yes: 'Ja',
@@ -144,7 +152,9 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     previous: 'Vorige',
     next: 'Volgende',
     imageCount: (index, total) => `Afbeelding ${index} van ${total}`,
-    minimumSize: 'Dit hulpmiddel heeft een venster van minimaal 320 bij 480 pixels nodig.',
+    minimumSize: 'Dit hulpmiddel heeft een groter venster nodig.',
+    minimumWidth: 'Maak het breder dan 320 pixels.',
+    minimumHeight: 'Maak het hoger dan 480 pixels.',
   },
 }
 

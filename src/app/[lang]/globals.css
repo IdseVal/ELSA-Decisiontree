@@ -1014,6 +1014,11 @@ a.language:hover,
   color: var(--elsa-text-muted);
 }
 
+.minimum-width,
+.minimum-height {
+  display: none;
+}
+
 /* ==================================================================================
  * Below the guaranteed viewport: the degradation order of 10.5, step by step.
  * Each step is a media query on the dimension that ran short; a viewport that is short
@@ -1340,7 +1345,11 @@ a.language:hover,
   }
 }
 
-/* Step 7 -- below the floor of 320 x 480, the notice replaces the tree view. */
+/*
+ * Step 7 -- at and below the floor, 320 pixels of width or 480 of height, the notice
+ * replaces the tree view (10.4). Its two sentences follow each dimension on its own, so
+ * the reader is told which one to grow; at the floor's corner both show.
+ */
 @media (max-width: 320px), (max-height: 480px) {
   .tree-layer {
     display: none;
@@ -1348,6 +1357,18 @@ a.language:hover,
 
   .minimum-size {
     display: block;
+  }
+}
+
+@media (max-width: 320px) {
+  .minimum-width {
+    display: inline;
+  }
+}
+
+@media (max-height: 480px) {
+  .minimum-height {
+    display: inline;
   }
 }
 

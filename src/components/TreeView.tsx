@@ -77,9 +77,12 @@ export function TreeView({ node, address, tree }: { node: Node; address: PageAdd
           )}
         </div>
       </div>
-      {/* Shown instead of the tree view below the floor of 10.4; the stylesheet decides. */}
+      {/* Shown instead of the tree view at and below the floor of 10.4; the stylesheet decides,
+          and shows the sentence for the dimension that is short, so a 1280 x 480 window is
+          told to grow taller and not that it needs 320 by 480. */}
       <p className="minimum-size" lang={view.uiLang}>
-        {view.ui.minimumSize}
+        {view.ui.minimumSize} <span className="minimum-width">{view.ui.minimumWidth}</span>{' '}
+        <span className="minimum-height">{view.ui.minimumHeight}</span>
       </p>
     </>
   )
