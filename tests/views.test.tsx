@@ -162,7 +162,8 @@ describe('the Carousel', () => {
     const html = await view('/carousel/five')
     const strip = part(html, 'ul', 'carousel-strip')
 
-    expect(strip).toContain('<ul class="carousel-strip" data-carousel-strip="">')
+    // Focusable in the markup, named as the row is: the arrow keys scroll it without a script (12.2, 12.3).
+    expect(strip).toContain('<ul class="carousel-strip" tabindex="0" aria-labelledby="images-label" data-carousel-strip="">')
     expect(all(strip, /<a class="thumbnail" href="([^"]*)"/g)).toEqual([
       '/images/orchard.svg',
       '/images/greenhouse.svg',

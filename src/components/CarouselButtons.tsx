@@ -74,6 +74,8 @@ export function CarouselButtons({
     const found = strip()
     if (!found) return
     const { element, thumbnails } = found
+    // The selected thumbnail is the strip's tab stop now; the strip itself stays focusable.
+    element.tabIndex = -1
     const indexOf = (target: EventTarget | null): number => {
       const thumbnail = target instanceof Element ? target.closest<HTMLAnchorElement>('.thumbnail') : null
       return thumbnail ? thumbnails.indexOf(thumbnail) : -1

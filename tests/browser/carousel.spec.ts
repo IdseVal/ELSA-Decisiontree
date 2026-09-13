@@ -187,7 +187,10 @@ test.describe('the keyboard', () => {
     const thumbnails = page.locator('.thumbnail')
     const position = page.locator('.carousel-position')
 
-    // Tab from the last Answer lands on the selected thumbnail, and the next Tab leaves the strip.
+    // Once the script has run, Tab from the last Answer lands on the selected thumbnail, not
+    // on the strip, and the next Tab leaves the strip.
+    await expect(page.getByRole('button', { name: 'Next' })).toBeVisible()
+    await expect(page.locator('[data-carousel-strip]')).toHaveAttribute('tabindex', '-1')
     await page.locator('.answer--no').focus()
     await page.keyboard.press('Tab')
     await expect(thumbnails.nth(0)).toBeFocused()
@@ -314,6 +317,28 @@ test.describe('with JavaScript switched off', () => {
 
     await thumbnails.nth(4).click()
     await expect(page).toHaveURL(`${origin}/images/harbour.svg`)
+  })
+
+  test('the strip is a tab stop of its own, and the keys scroll it (12.2)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
+    await page.goto(`${origin}${FIVE}`)
+    const strip = page.locator('[data-carousel-strip]')
+
+    await page.locator('.answer--no').focus()
+    await page.keyboard.press('Tab')
+    await expect(strip).toBeFocused()
+    await expect(strip).toHaveAccessibleName('Images')
+    await expect(strip).toHaveJSProperty('scrollLeft', 0)
+
+    // The fifth thumbnail is past the strip's page of four: the arrow keys scroll it into view and back.
+    await expect(page.locator('.thumbnail').nth(4)).not.toBeInViewport()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.locator('.thumbnail').nth(4)).toBeInViewport({ ratio: 1 })
+    await page.keyboard.press('ArrowLeft')
+    await expect(strip).toHaveJSProperty('scrollLeft', 0)
+    // The next stop is the first thumbnail: every one of them is a link.
+    await page.keyboard.press('Tab')
+    await expect(page.locator('.thumbnail').first()).toBeFocused()
   })
 
   test('below the guaranteed height the control opens the Images as pages of disclosures, each with its credit', async ({ page }) => {

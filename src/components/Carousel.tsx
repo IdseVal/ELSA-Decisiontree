@@ -5,7 +5,7 @@
  * caption line beneath it.
  *
  * Everything that works without JavaScript is here, in markup (section 14): the strip is a
- * scroll container, each thumbnail is a link to its file, and each Image carries its own
+ * focusable scroll container, each thumbnail is a link to its file, and each Image carries its own
  * caption, which the stylesheet shows for the selected Image -- the first, or the one the
  * keyboard is on. `CarouselButtons` adds what needs a script: the previous and next buttons,
  * the position, the arrow keys, and the enlarged view in the one `Sheet`.
@@ -61,7 +61,8 @@ export function Carousel({ node, lang, ui, uiLang }: { node: Node; lang: string;
       <span hidden id="carousel-enlarge" lang={uiLang}>
         {ui.enlarge}
       </span>
-      <ul className="carousel-strip" data-carousel-strip="">
+      {/* A tab stop, so that without the script the arrow keys scroll it (12.2); the script moves the stop to the selected thumbnail. */}
+      <ul className="carousel-strip" tabIndex={0} aria-labelledby="images-label" data-carousel-strip="">
         {images.map((image, index) => (
           <li key={image.href}>
             <a
