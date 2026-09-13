@@ -13,7 +13,8 @@
  * The pages: the four situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
  * at a 49-entry Trail (every maximum the format allows at once), and the longest Node of
  * the first Tree once it validates -- each in both languages, and each again with every
- * Sheet it offers open. Mid-transition is issue #42's, which builds the transition.
+ * Sheet it offers open -- and, on the four pages of the example Tree, in the middle of a slide
+ * (section 11): halfway out of the page, and halfway back into it on the history step.
  *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
  * pull request can paste the numbers rather than describe them (10.6, last paragraph).
@@ -27,6 +28,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { openTree } from '../../src/tree/loader.ts'
+import { arrived } from './arrived.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const trees = path.join(repo, 'trees')
@@ -243,6 +245,64 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
 }
 
 /**
+ * Measures `url` at every viewport above the floor in the middle of a slide, both halves of
+ * it (application.md 10.6, section 11): following a Branch, with the target's payload held
+ * back so the page that leaves is caught halfway; at rest on the target; and halfway back on
+ * the history step, where the page that arrives slides in from the target.
+ */
+async function measureSliding(page: Page, url: string, what: string, lang: string): Promise<void> {
+  for (const [width, height] of VIEWPORTS.filter(([w, h]) => w > 320 && h > 480)) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    await page.goto(url)
+    await expect(page.locator('main')).toBeVisible()
+
+    // A Branch that slides on every kind of Node: an Answer, or `back` where there are none.
+    const branch = page.locator('.answer--yes, .answer--back').first()
+    const href = (await branch.getAttribute('href'))!
+
+    let release = () => {}
+    const held = new Promise<void>((resolve) => (release = resolve))
+    await page.route('**/*', async (route) => {
+      if (route.request().headers()['rsc'] === '1') await held
+      await route.continue()
+    })
+    await branch.click()
+    await halfway(page)
+    const leaving = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: 'mid-slide, leaving', measured: leaving })
+    assertFits(leaving, `${what} (${lang}) at ${viewport} halfway through a slide out`)
+
+    release()
+    await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.play())
+    await arrived(page, href)
+    await page.unroute('**/*')
+    const after = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: 'after a slide', measured: after })
+    assertFits(after, `${what} (${lang}) at ${viewport} after a slide`)
+
+    await page.goBack()
+    await halfway(page)
+    const arriving = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: 'mid-slide, arriving (back)', measured: arriving })
+    assertFits(arriving, `${what} (${lang}) at ${viewport} halfway through a slide back`)
+    await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.play())
+    await arrived(page, url)
+  }
+}
+
+/** Stops the slide that is running at about half its distance, and holds it there. */
+async function halfway(page: Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const animation = document.querySelector('.tree-layer[data-sliding]')?.getAnimations()[0]
+    if (!animation) return false
+    animation.pause()
+    animation.currentTime = 90
+    return true
+  })
+}
+
+/**
  * Closes an open Sheet the way a reader would: a click beside the panel. With the script
  * the backdrop covers the page, the control included, and that click is what closes it;
  * without the script there is no backdrop and the control is a plain disclosure again.
@@ -265,6 +325,15 @@ for (const { what, url } of EXAMPLE_PAGES) {
     test(`${what}, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
       test.slow()
       await measureEverywhere(page, inLang(url, lang), what, lang)
+    })
+  }
+}
+
+for (const { what, url } of EXAMPLE_PAGES) {
+  for (const lang of LANGUAGES) {
+    test(`${what}, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
+      test.slow()
+      await measureSliding(page, inLang(url, lang), what, lang)
     })
   }
 }
