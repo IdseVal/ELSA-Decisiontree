@@ -164,7 +164,7 @@ test('an Option leads to an explanation-only child that offers a visible way bac
   await walk(page, WALKS.prohibited!.slice(0, 3))
 
   await page.getByRole('link', { name: 'Social scoring' }).click()
-  await arrived(page, 
+  await arrived(page,
     `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/social-scoring`,
   )
 
@@ -190,7 +190,7 @@ test('the high-risk finding does not end the walk', async ({ page }) => {
   // because a high-risk system can carry Article 50 obligations at the same time.
   await expect(page.locator('.outcome')).toHaveCount(0)
   await clickAnswer(page, 'en', 'no')
-  await arrived(page, 
+  await arrived(page,
     `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/` +
       'annex-i-legislation/high-risk/general-purpose-ai',
   )
@@ -216,10 +216,10 @@ async function screenshotWalk(page: Page, lang: Lang): Promise<void> {
   await shot('root-question')
 
   const toProhibitedPractices = ['start', 'article-2-exclusions', 'ai-system-definition', 'prohibited-practices']
-  await clickAnswer(page, lang, 'yes')
-  await clickAnswer(page, lang, 'no')
-  await clickAnswer(page, lang, 'yes')
-  await arrived(page, pageUrl(toProhibitedPractices, lang))
+  for (const [index, which] of (['yes', 'no', 'yes'] as const).entries()) {
+    await clickAnswer(page, lang, which)
+    await arrived(page, pageUrl(toProhibitedPractices.slice(0, index + 2), lang))
+  }
   await shot('prohibited-practices')
 
   await page.getByRole('link', { name: lang === 'en' ? 'Social scoring' : 'Sociale scoring' }).click()
@@ -227,6 +227,7 @@ async function screenshotWalk(page: Page, lang: Lang): Promise<void> {
   await shot('explanation-child')
 
   await page.locator('.trail-entry').last().click()
+  await arrived(page, pageUrl(toProhibitedPractices, lang))
   await clickAnswer(page, lang, 'yes')
   await arrived(page, pageUrl([...toProhibitedPractices, 'prohibited'], lang))
   await shot('terminal-prohibited')
