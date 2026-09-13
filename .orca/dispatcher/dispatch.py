@@ -75,7 +75,9 @@ WHAT IT DOES EACH TICK
         run for its current head has COMPLETED was dropped by CI: a Reviewer that ended
         its turn without merging or sending back (observed repeatedly: a green job, 30-40
         turns, nothing posted), a Verifier that ended without a label, or a job that died
-        on the session limit -- CI agents share the subscription. CI re-runs only on a
+        on the session limit -- CI agents share the subscription, and since v0.2.12 a CI job's own
+        log is read for the limit line, so the hold is set even when no local run
+        died at the same minute, and the re-run is not counted. CI re-runs only on a
         push, so the dispatcher re-runs the job that owes the verdict (`gh run rerun`),
         up to `circuit_breaker.max_ci_reruns` times per finished run (v0.2.8; a re-run
         after a limit death is not counted), then escalates. A re-run does not spend the
@@ -195,6 +197,7 @@ LIMIT_FALLBACK_MINUTES = 60   # hold this long when the reset time cannot be rea
 LIMIT_MARGIN_MINUTES = 2      # start a little after the stated reset, not on it
 _CREDITS_RE = re.compile(r"(?i)out of usage credits")   # v0.2.9: a MODEL's cap, not the session limit
 USAGE_TAIL_BYTES = 65536      # v0.2.11: a run's JSON result is its last line; this much tail finds it
+_CI_RESULT_RE = re.compile(r'^([^\t]+)\t[^\t]*\t\S+\s+"(?:result|error|summary)":\s*"(.*)",?$', re.M)
 _CI_USAGE_RE = re.compile(r'^([^\t]+)\t[^\t]*\t\S+\s+"(num_turns|total_cost_usd|input_tokens|output_tokens|'
                           r'cache_read_input_tokens|cache_creation_input_tokens)":\s*([\d.]+)', re.M)
 MODEL_HOLD_MINUTES = 360      # ... re-try a capped model this often (models.capped_hold_minutes)
@@ -754,6 +757,16 @@ def parse_ci_log(text: str) -> dict[str, dict[str, Any]]:
         job, field_, val = m.group(1).strip(), m.group(2), m.group(3)
         rec = jobs.setdefault(job, {})
         rec[key[field_]] = float(val) if field_ == "total_cost_usd" else int(float(val))
+    # v0.2.12: the agent's result/error text names a limit death -- the same lines the
+    # local detectors read, in the action's JSON dump ("result": "You've hit your ...").
+    for m in _CI_RESULT_RE.finditer(text):
+        job, msg = m.group(1).strip(), m.group(2)
+        rec = jobs.setdefault(job, {})
+        if _LIMIT_RE.search(msg):
+            r = _LIMIT_RESET_RE.search(msg)
+            rec["limit"] = r.group(0) if r else ""
+        elif _CREDITS_RE.search(msg):
+            rec["credits"] = True
     return jobs
 
 
@@ -764,23 +777,43 @@ def collect_ci_usage(state: "State") -> None:
     ci = u.setdefault("ci", {})
     since = int(u.setdefault("since", now_ms()))
     runs = gh_json(["run", "list", "--workflow", PIPELINE_FILE.name, "--limit", "10",
-                    "--json", "databaseId,status,conclusion,createdAt,headBranch"]) or []
+                    "--json", "databaseId,status,conclusion,createdAt,updatedAt,headBranch"]) or []
     changed = False
     for raw in runs:
         rid = str(raw.get("databaseId"))
-        if rid in ci or raw.get("status") != "completed" or iso_ms(raw.get("createdAt")) < since:
+        if raw.get("status") != "completed" or iso_ms(raw.get("createdAt")) < since:
+            continue
+        # a re-run attempt updates the run in place: read the log again when it did
+        updated = iso_ms(raw.get("updatedAt"))
+        prev = ci.get(rid) or {}
+        if prev and int(prev.get("updated", 0)) >= updated:
             continue
         ok, out, _ = run(["gh", "run", "view", rid, "--log"], timeout=SUBPROCESS_TIMEOUT)
         if not ok:
             continue
         jobs = parse_ci_log(out)
         ci[rid] = {"branch": raw.get("headBranch"), "conclusion": raw.get("conclusion"), "at": now_ms(),
-                   "jobs": jobs}
+                   "updated": updated, "jobs": jobs}
         changed = True
         for job, rec in jobs.items():
-            log.info("usage: CI run %s job %s -> %s turns, $%.2f", rid, job, rec.get("turns", 0), rec.get("cost", 0.0))
+            log.info("usage: CI run %s job %s -> %s turns, $%.2f%s", rid, job, rec.get("turns", 0),
+                     rec.get("cost", 0.0),
+                     " -- died on the session limit" if "limit" in rec else
+                     " -- out of usage credits" if rec.get("credits") else "")
+            # v0.2.12: a CI job that died on the limit sets the hold like a local run --
+            # but only a RECENT death, since the message names a clock time and an old
+            # log would hold the fleet until tomorrow's 2:50pm.
+            if "limit" in rec and minutes_since(updated) <= 30:
+                set_limit_hold(state, rec["limit"], f"ci-run-{rid}-{job}")
     if changed:
         state.save()
+
+
+def ci_died_on_limit(state: "State", run_id: int) -> bool:
+    """v0.2.12: did any job of this CI run end on the session limit or a model's
+    credits, per its own log (recorded by collect_ci_usage)?"""
+    rec = ((state.usage or {}).get("ci") or {}).get(str(run_id)) or {}
+    return any("limit" in j or j.get("credits") for j in (rec.get("jobs") or {}).values())
 
 
 def usage_summary(state: "State") -> str:
@@ -1879,6 +1912,7 @@ def ci_without_verdict(pr: PR, s: dict[str, Any], issue: Optional[Issue], cfg: d
     # a local run was reporting the session limit died of the limit, not of the PR.
     on_limit = bool(ci["conclusion"] == "failure" and lim
                     and int(lim.get("seen", 0)) - 10 * 60_000 <= ci["updated"] <= int(lim.get("until", 0)))
+    on_limit = on_limit or (ci["conclusion"] == "failure" and ci_died_on_limit(state, ci["id"]))   # v0.2.12
     # `state:tested` on means the Verifier decided and the Reviewer did not; off means
     # the Verifier owes the verdict (the `review` job follows it either way).
     job = "review" if LABEL_TESTED in pr.labels else "verify"
