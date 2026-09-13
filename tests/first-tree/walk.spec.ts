@@ -24,6 +24,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
+import { arrived } from '../browser/arrived.ts'
 import { openTree, type Tree } from '../../src/tree/loader.ts'
 import { imageHref } from '../../src/url.ts'
 
@@ -130,7 +131,7 @@ async function walk(page: Page, steps: Step[], lang: Lang = 'en'): Promise<strin
   for (const step of steps) {
     await clickAnswer(page, lang, step.answer)
     visited.push(step.lands)
-    await expect(page).toHaveURL(pageUrl(visited, lang))
+    await arrived(page, pageUrl(visited, lang))
   }
   return visited
 }
@@ -163,7 +164,7 @@ test('an Option leads to an explanation-only child that offers a visible way bac
   await walk(page, WALKS.prohibited!.slice(0, 3))
 
   await page.getByRole('link', { name: 'Social scoring' }).click()
-  await expect(page).toHaveURL(
+  await arrived(page, 
     `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/social-scoring`,
   )
 
@@ -179,7 +180,7 @@ test('an Option leads to an explanation-only child that offers a visible way bac
   await expect(back).toBeVisible()
   await expect(back).toHaveText('Does your system do a prohibited practice? (1/2)')
   await back.click()
-  await expect(page).toHaveURL(`/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices`)
+  await arrived(page, `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices`)
 })
 
 test('the high-risk finding does not end the walk', async ({ page }) => {
@@ -189,7 +190,7 @@ test('the high-risk finding does not end the walk', async ({ page }) => {
   // because a high-risk system can carry Article 50 obligations at the same time.
   await expect(page.locator('.outcome')).toHaveCount(0)
   await clickAnswer(page, 'en', 'no')
-  await expect(page).toHaveURL(
+  await arrived(page, 
     `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/` +
       'annex-i-legislation/high-risk/general-purpose-ai',
   )
@@ -209,7 +210,7 @@ async function screenshotWalk(page: Page, lang: Lang): Promise<void> {
   if (lang !== 'en') {
     // The app's own language mechanism, clicked -- not a source edit and not a typed URL.
     await page.getByRole('link', { name: CHROME[lang].endonym }).click()
-    await expect(page).toHaveURL(pageUrl(['start'], lang))
+    await arrived(page, pageUrl(['start'], lang))
   }
   await expect(page.locator('html')).toHaveAttribute('lang', lang)
   await shot('root-question')
@@ -218,16 +219,16 @@ async function screenshotWalk(page: Page, lang: Lang): Promise<void> {
   await clickAnswer(page, lang, 'yes')
   await clickAnswer(page, lang, 'no')
   await clickAnswer(page, lang, 'yes')
-  await expect(page).toHaveURL(pageUrl(toProhibitedPractices, lang))
+  await arrived(page, pageUrl(toProhibitedPractices, lang))
   await shot('prohibited-practices')
 
   await page.getByRole('link', { name: lang === 'en' ? 'Social scoring' : 'Sociale scoring' }).click()
-  await expect(page).toHaveURL(pageUrl([...toProhibitedPractices, 'social-scoring'], lang))
+  await arrived(page, pageUrl([...toProhibitedPractices, 'social-scoring'], lang))
   await shot('explanation-child')
 
   await page.locator('.trail-entry').last().click()
   await clickAnswer(page, lang, 'yes')
-  await expect(page).toHaveURL(pageUrl([...toProhibitedPractices, 'prohibited'], lang))
+  await arrived(page, pageUrl([...toProhibitedPractices, 'prohibited'], lang))
   await shot('terminal-prohibited')
 }
 
@@ -266,7 +267,7 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     const last = steps[steps.length - 1]!
     await clickAnswer(page, 'en', last.answer)
     visited.push(last.lands)
-    await expect(page).toHaveURL(pageUrl(visited, 'en'))
+    await arrived(page, pageUrl(visited, 'en'))
 
     const options = await page.locator('.option').count()
     expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)

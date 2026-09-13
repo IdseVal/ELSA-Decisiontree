@@ -11,6 +11,7 @@
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */
 import { expect, test, type Page } from '@playwright/test'
+import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
 
@@ -39,23 +40,23 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   )
 
   await page.locator('.answer--yes').click()
-  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
 
   await page.getByRole('link', { name: 'Social scoring' }).click()
-  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices/social-scoring')
+  await arrived(page, '/ai-act-example/start/prohibited-practices/social-scoring')
   await expect(page.locator('.hint')).toBeVisible()
 
   // Issue #8 replaced the interim "back" control this test used with the Trail; the walk
   // it checks is unchanged. What the Trail itself does is `tests/browser/trail.spec.ts`.
   await page.locator('.trail-entry').last().click()
-  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
 })
 
 test('no answers a different Node than yes', async ({ page }) => {
   await page.goto(START)
   await page.locator('.answer--no').click()
 
-  await expect(page).toHaveURL('/ai-act-example/start/outside-scope')
+  await arrived(page, '/ai-act-example/start/outside-scope')
 })
 
 test('a Terminal Node shows its outcome and offers no yes or no', async ({ page }) => {
@@ -76,7 +77,7 @@ test('the document declares the language of the content it shows', async ({ page
   await page.goto(`${START}?lang=nl`)
   await expect(page.locator('html')).toHaveAttribute('lang', 'nl')
   // The public URL is untouched by the rewrite: the language is still a query parameter.
-  await expect(page).toHaveURL(`${START}?lang=nl`)
+  await arrived(page, `${START}?lang=nl`)
 
   await page.goto(START)
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
@@ -227,7 +228,7 @@ test('a keyboard reaches the Answers and follows one', async ({ page }) => {
 
   await page.locator('.answer--yes').focus()
   await page.keyboard.press('Enter')
-  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
 })
 
 test('the Options of a Node are reachable by keyboard', async ({ page }) => {
@@ -236,7 +237,7 @@ test('the Options of a Node are reachable by keyboard', async ({ page }) => {
   await page.locator('.option').first().focus()
   await page.keyboard.press('Enter')
 
-  await expect(page).toHaveURL('/ai-act-example/prohibited-practices/social-scoring')
+  await arrived(page, '/ai-act-example/prohibited-practices/social-scoring')
 })
 
 test('an unknown Node answers 404 with a way back to the start', async ({ page }) => {
@@ -244,15 +245,15 @@ test('an unknown Node answers 404 with a way back to the start', async ({ page }
 
   expect(response?.status()).toBe(404)
   await page.getByRole('link', { name: 'Start' }).click()
-  await expect(page).toHaveURL(START)
+  await arrived(page, START)
 })
 
 test('the address of the Tree redirects to its root Node', async ({ page }) => {
   await page.goto('/')
-  await expect(page).toHaveURL(START)
+  await arrived(page, START)
 
   await page.goto('/ai-act-example')
-  await expect(page).toHaveURL(START)
+  await arrived(page, START)
 })
 
 test('the image route serves a Tree image with the headers that make it safe', async ({ page }) => {
@@ -302,19 +303,19 @@ test.describe('with JavaScript switched off', () => {
     await expect(page.locator('.thumbnail').first()).toHaveAttribute('href', '/images/eu-map.png')
 
     await page.locator('.answer--yes').click()
-    await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+    await arrived(page, '/ai-act-example/start/prohibited-practices')
 
     // With the enlarge unavailable the click is not intercepted, so it opens the file (14).
     await page.goto(START)
     await page.locator('.thumbnail').first().click()
-    await expect(page).toHaveURL('/images/eu-map.png')
+    await arrived(page, '/images/eu-map.png')
   })
 })
 
 test('nothing about the reader is stored', async ({ page, context }) => {
   await page.goto(START)
   await page.locator('.answer--yes').click()
-  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
 
   expect(await context.cookies()).toEqual([])
   expect(

@@ -6,6 +6,7 @@
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */
 import { expect, test, type Page } from '@playwright/test'
+import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
 const CHILD = '/ai-act-example/start/prohibited-practices/social-scoring'
@@ -15,7 +16,7 @@ async function walkToChild(page: Page): Promise<void> {
   await page.goto(START)
   await page.locator('.answer--yes').click()
   await page.getByRole('link', { name: 'Social scoring' }).click()
-  await expect(page).toHaveURL(CHILD)
+  await arrived(page, CHILD)
 }
 
 /** The text of every Trail entry on screen, top to bottom. */
@@ -42,13 +43,13 @@ test('clicking a Trail entry jumps back and discards the Trail after it', async 
 
   // The second entry: back to that Node, with the one entry before it left standing.
   await page.locator('.trail-entry').nth(1).click()
-  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
   expect(await trail(page)).toEqual(['Is your AI system within the reach of the AI Act?'])
 
   // The first entry: back to the root, with nothing left to go back to.
   await walkToChild(page)
   await page.locator('.trail-entry').first().click()
-  await expect(page).toHaveURL(START)
+  await arrived(page, START)
   expect(await trail(page)).toEqual([])
 })
 
@@ -67,7 +68,7 @@ test('a Trail entry is reached and followed by the keyboard alone', async ({ pag
   await expect(page.locator('.trail-entry').nth(1)).toBeFocused()
 
   await page.keyboard.press('Enter')
-  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
 })
 
 test('the share button copies the page it is on, and says so', async ({ page, context }) => {
@@ -148,7 +149,7 @@ test('a shared link in another language shows that language on both ends', async
   ])
   // Going back keeps the language: it is in the link, not in a cookie.
   await page.locator('.trail-entry').first().click()
-  await expect(page).toHaveURL(`${START}?lang=nl`)
+  await arrived(page, `${START}?lang=nl`)
 })
 
 test('a Node opened by its own URL offers the way into the walk', async ({ page }) => {
@@ -156,7 +157,7 @@ test('a Node opened by its own URL offers the way into the walk', async ({ page 
 
   expect(await trail(page)).toEqual(['Start'])
   await page.locator('.trail-entry').first().click()
-  await expect(page).toHaveURL(START)
+  await arrived(page, START)
 })
 
 test('an unknown Node and a malformed Trail answer 404, never a server error', async ({ page }) => {
@@ -177,7 +178,7 @@ test('an unknown Node and a malformed Trail answer 404, never a server error', a
   // The answer is the 404 page of application.md 4.3, with its link to the start.
   await page.goto('/ai-act-example/ghost/start')
   await page.getByRole('link', { name: 'Start' }).click()
-  await expect(page).toHaveURL(START)
+  await arrived(page, START)
 })
 
 test('nothing about the reader is stored while walking, going back or sharing', async ({
@@ -210,6 +211,6 @@ test.describe('with JavaScript switched off', () => {
 
     expect(await trail(page)).toHaveLength(2)
     await page.locator('.trail-entry').nth(1).click()
-    await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+    await arrived(page, '/ai-act-example/start/prohibited-practices')
   })
 })
