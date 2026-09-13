@@ -164,8 +164,9 @@ export function CarouselButtons({
       direction === 1
         ? hidden.findIndex((box) => box.right > shown.right + 1)
         : hidden.findLastIndex((box) => box.left < shown.left - 1)
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    element.scrollBy({ left: direction * element.clientWidth, behavior: still ? 'instant' : 'smooth' })
+    // At once, not smoothly: a second press during an animation would measure a strip still
+    // on its way and turn from the wrong place.
+    element.scrollBy({ left: direction * element.clientWidth, behavior: 'instant' })
     if (next >= 0 && next !== selected) {
       turning.current = true
       setSelected(next)
