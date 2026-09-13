@@ -92,7 +92,7 @@ export function TreeView({ node, address, tree }: { node: Node; address: PageAdd
  * The Trail as the Branches above (10.2): oldest first, the parent nearest the Bubble. A
  * Trail longer than five collapses in the middle to `trailMore(n)`, which opens the whole
  * Trail as a Sheet; below the guaranteed height it collapses to the parent alone plus that
- * control (10.5, step 1), and on a phone-width screen, where a 200-pixel parent Branch
+ * control (10.5, step 1), and on a phone-width screen, where a 212-pixel parent Branch
  * cannot hold three lines of title in its row, to that control alone. The control says how
  * many entries it hides in each of the three cases; the stylesheet shows one. The root Node
  * has no Trail and shows the Tree's title instead; a Node opened by its own URL offers the

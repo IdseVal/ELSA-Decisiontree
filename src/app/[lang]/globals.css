@@ -1029,9 +1029,10 @@ a.language:hover,
 
 /*
  * Step 1 -- the Trail collapses to the parent plus trailMore(n) (Trail Sheet behind it).
- * By height, as 10.5 orders it, and also by width: five 200-pixel Branches and the 120-pixel
- * control need 1160 pixels, so a narrower row could only truncate or wrap, and 10.2 allows
- * neither.
+ * By height, as 10.5 orders it, and also by width: five 212-pixel Branches, the 120-pixel
+ * control and five 8-pixel gaps need 1220 pixels (10.2), so a narrower row could only
+ * truncate or wrap, and 10.2 allows neither. Between 1200 and 1220 the five steps shrink
+ * to 208 and their labels to 192, still above the 184 where a fourth line starts.
  */
 @media (max-height: 639px), (max-width: 1199px) {
   :root {
@@ -1257,7 +1258,7 @@ a.language:hover,
   }
 
   /*
-   * The Trail is its control alone: a 200-pixel parent Branch holds an 80-character title
+   * The Trail is its control alone: a 212-pixel parent Branch holds an 80-character title
    * in three lines, which the row no longer has, and a clipped title would break 10.6. The
    * parent is the first entry of the Trail Sheet, and the `back` Branch where there is one.
    */
