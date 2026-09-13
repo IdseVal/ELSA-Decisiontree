@@ -1,4 +1,5 @@
 import { chrome, chromeLanguage } from '../../chrome.ts'
+import { Branch } from '../../components/Branch.tsx'
 import { Disclaimer } from '../../components/Disclaimer.tsx'
 import { Logo } from '../../components/Logo.tsx'
 import { servedTree } from '../../config.ts'
@@ -41,11 +42,7 @@ export default async function NotFound() {
           </div>
         </article>
         <div className="answers">
-          <a className="branch answer answer--yes" href={rootHref(tree, tree.manifest.defaultLanguage)}>
-            <span className="branch-label">
-              <span className="branch-title">{ui.start}</span>
-            </span>
-          </a>
+          <Branch className="answer answer--yes" href={rootHref(tree, tree.manifest.defaultLanguage)} title={ui.start} />
         </div>
       </main>
       <Disclaimer lang={lang} />
