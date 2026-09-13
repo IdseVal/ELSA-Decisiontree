@@ -102,7 +102,7 @@ the app does depends on a hosting vendor.
 |---|---|
 | Framework | Next.js, App Router, React, TypeScript (strict). Exact versions are pinned in `package.json` by the scaffold issue; the current stable major at that time. |
 | Server-side rendering | React Server Components. The Node page is an `async` server component; the first response to every URL is complete HTML, with the single exception named in 4.3 (the 404 page). |
-| Client-side JavaScript | React plus **four** client components: `Slider` (the slide transition and the pre-rendered neighbours, section 11), `CarouselButtons` (the Carousel's previous and next buttons, section 12 -- the Carousel itself is a server component), `Sheet` (the one overlay: the enlarged Image, the full Trail, and the collapsed Options and Sources of 10.5) and `ShareButton`. Everything else -- navigation, the Trail, the Branches, the language switch, the Carousel's strip -- is links, CSS and ordinary form-free markup. **Section 14 states exactly what a reader without JavaScript gets**, and it is a working application, not a degraded one. The 404 page's body is the single exception (4.3). |
+| Client-side JavaScript | React plus **four** client components: `Slider` (the slide transition and the pre-rendered neighbours, section 11), `CarouselButtons` (the Carousel's previous and next buttons, section 12 -- the Carousel itself is a server component), `Sheet` (the one overlay: the enlarged Image, the full Trail, and the collapsed Options and Sources of 10.5) and `ShareButton`. **A fifth ships in the interim** (amended 2026-09-13, #41, PR #56): `Thumbnails`, 0.1's thumbnails in the Carousel's row until #43 draws the Carousel (section 6, 12.1); #43 removes it and returns the count to four. Everything else -- navigation, the Trail, the Branches, the language switch, the Carousel's strip -- is links, CSS and ordinary form-free markup. **Section 14 states exactly what a reader without JavaScript gets**, and it is a working application, not a degraded one. The 404 page's body is the single exception (4.3). |
 | Runtime | Node.js 22 (LTS), in `.nvmrc` and `package.json` `engines`. |
 | Package manager | npm; `package-lock.json` committed; `npm ci` in CI and deployment. |
 | Build output | `output: 'standalone'`: `next build` yields a folder that runs with `node server.js`. |
@@ -636,7 +636,7 @@ is out of a reader's reach between #41 and #43. It is a client component in the 
 | `src/chrome.ts` | The chrome strings and the language fallback rule. | Contain Tree content. |
 | `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. | Parse Trees or URLs. |
 | `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab. | Accept raw HTML. |
-| `src/components/` | Views. Server components take data and return markup -- `Logo.tsx` **[v0.2]** is one: it asks `theme.ts` which logo variant this palette calls for and renders it, or the Tree's title when there is none (13.2). The four client components own exactly one interaction each (section 1). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
+| `src/components/` | Views. Server components take data and return markup -- `Logo.tsx` **[v0.2]** is one: it asks `theme.ts` which logo variant this palette calls for and renders it, or the Tree's title when there is none (13.2). The four client components own exactly one interaction each (section 1) -- and so does the interim fifth, `Thumbnails.tsx`, until #43 removes it (amended 2026-09-13, #41, PR #56). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
 | `src/app/` | Routes: parse, load, hand to a view; redirects; the image and theme routes; 404. The `[lang]` layout sets `<html lang>` and emits the Theme. | Hold logic. Take the language from `searchParams` (4.4). |
 | `next.config.ts` | The two rewrites of 4.4, plus the build settings of section 1. | Know which languages a Tree declares, or anything else about the application. |
 
@@ -659,7 +659,8 @@ next.config.ts  ->  nothing in src/
 - **The four client components import no server module.** `Slider` receives the
   positions it needs as props from `TreeView`; it never computes a neighbourhood, never
   fetches a Node, and never reads the Tree. `Sheet`, `CarouselButtons` and `ShareButton`
-  take strings. This is what keeps the client bundle small and what makes section 14
+  take strings, and so does the interim fifth, `Thumbnails`, until #43 removes it (amended
+  2026-09-13, #41, PR #56). This is what keeps the client bundle small and what makes section 14
   statable: everything a client component does is an enhancement of markup that is
   already correct without it.
 - Styling mechanism and visual design are the build issues' (#40, #41, #43), within
@@ -1041,7 +1042,7 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 | `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 600-character 8-line description, 3 Sources, 8 Options, 10 Images, the longest Trail. If this fits, every valid Tree fits. |
 | The longest Node of the first Tree that validates | The real content, once #44 has cut it. |
 | Each of the above in **both** `en` and `nl` | Dutch runs longer than English; the limits are per language and so is the fit. |
-| Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. |
+| Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. **Mid-transition is deferred with the transition** (amended 2026-09-13, #41, PR #56): #42 builds it, and adds the mid-transition rows to `no-scroll.spec.ts`; #41's test measures every page with every Sheet open. |
 
 The build issue (#41) pastes the measured numbers in its pull request; the test is what
 keeps them true afterwards.
@@ -1306,7 +1307,7 @@ it (section 7), not a browser.
 | Control | Behaviour | Chrome key |
 |---|---|---|
 | The strip | Focusable region, named for assistive technology. Left/Right move the selection, Home/End jump to the first/last, Enter or Space enlarges the selected Image. | `images` |
-| Previous / next | Buttons; scroll the strip by one page. Disabled at the ends. `CarouselButtons`, one of the four client components of section 1. | `previous`, `next` |
+| Previous / next | Buttons; scroll the strip by one page. Disabled at the ends. `CarouselButtons`, one of the four client components of section 1 (five until #43 replaces the interim `Thumbnails` with it; amended 2026-09-13, #41, PR #56). | `previous`, `next` |
 | Position | "Image 3 of 7", updated as the selection moves, announced politely. | `imageCount` |
 | A thumbnail | An `<a href="/images/<file>">` around the `<img>`. With JavaScript the click is intercepted and opens the enlarged view; without it, the link opens the file. | `enlarge` |
 | The enlarged view | A `Sheet`: the full image bounded to the viewport so that it never scrolls, with the `description` and the `credit` beneath it. Closed by Escape, by the close button, or by clicking outside; focus returns to the thumbnail. | `close` |
