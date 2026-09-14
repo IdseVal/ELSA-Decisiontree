@@ -103,6 +103,15 @@ describe('the Trail', () => {
     expect(trail(html).match(/rel="prev"/g)).toHaveLength(1)
   })
 
+  test('only the parent and the grandparent are marked to slide; an older entry is an ordinary link (11.1)', async () => {
+    const html = await view(walkOf(9))
+    const marked = [...trail(html).matchAll(/<a class="branch trail-entry"([^>]*)>/g)].map((match) =>
+      match[1]!.includes('data-slide'),
+    )
+
+    expect(marked).toEqual([false, false, false, false, false, false, false, true, true])
+  })
+
   test('at the root Node there is no Trail: the row holds the Tree title instead (10.2)', async () => {
     const html = await view('/ai-act-example/start')
 

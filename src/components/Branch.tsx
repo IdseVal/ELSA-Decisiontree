@@ -5,9 +5,9 @@
  * `startAgain`) or the Option's first Image beside it as a thumbnail.
  *
  * Every Branch is a plain link so that following one works without JavaScript (section 14);
- * the slide of section 11 is an enhancement layered on the same element. A Branch with a
- * direction is marked `data-slide`; `start` and `startAgain` have none and are only links
- * (11.1).
+ * the slide of section 11 is an enhancement layered on the same element. A Branch whose
+ * target has a placement is marked `data-slide`; `start`, `startAgain` and a Trail entry
+ * older than the grandparent have none and are only links (11.1).
  */
 import type { ReactNode } from 'react'
 
@@ -35,7 +35,7 @@ export function Branch({
   image?: { src: string; alt: string } | 'withheld'
   className: string
   rel?: string
-  /** Its target is drawn in a direction, so following it may slide there (11.1). */
+  /** Its target has a placement in the neighbourhood, so following it slides there (11.1). */
   slides?: boolean
 }) {
   return (

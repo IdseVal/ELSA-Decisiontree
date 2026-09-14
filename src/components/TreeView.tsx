@@ -219,7 +219,9 @@ function Trail({ node, view }: { node: Node; view: View }) {
                   href={entry.href}
                   title={entry.title}
                   rel={parent ? 'prev' : undefined}
-                  slides
+                  // Only the parent and the grandparent are placed above (11.2); an older entry
+                  // is an ordinary link (11.1).
+                  slides={index >= entries.length - 2}
                 />
               </li>
               {/* The collapsed middle sits where the middle is: after `start`, before what stays. */}
