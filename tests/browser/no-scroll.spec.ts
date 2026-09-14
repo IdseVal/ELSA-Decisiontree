@@ -383,16 +383,20 @@ test.describe('with JavaScript switched off', () => {
 
   // Issue #59: the Sources control is in the Bubble, in the middle of the page, where the
   // panel is laid. At these rows it lay over one of the panel's own links. Each link now
-  // takes its click, and a second click on the control still closes the panel (14).
+  // takes its click, a second click on the control still closes the panel (14), and the
+  // Bubble behind the panel does not move when the control leaves it.
   test('the Sources Sheet keeps every link clear of its own control without JavaScript (#59)', async ({ page }) => {
     for (const { url, viewport } of ISSUE_59) {
       const [width, height] = viewport.split('x').map(Number) as [number, number]
       await page.setViewportSize({ width, height })
       await page.goto(url)
       const sheet = page.locator('details.sources-sheet')
+      const title = page.locator('.bubble h1').first()
+      const closed = await title.boundingBox()
       await sheet.locator('.sheet-open').click()
       await expect(sheet.locator('.sheet-panel')).toBeVisible()
       await assertReachable(sheet, `${url} at ${viewport} with the Sources open`)
+      expect(await title.boundingBox(), `${url} at ${viewport}: the Bubble moved as the Sources opened`).toEqual(closed)
       await sheet.locator('.sheet-open').click()
       await expect(sheet.locator('.sheet-panel')).toBeHidden()
     }
