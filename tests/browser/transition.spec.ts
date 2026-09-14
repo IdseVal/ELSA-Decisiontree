@@ -11,7 +11,9 @@
  *   back returns to the page before, and slides too.
  * - The tree layer's transform changes during a slide, and with `prefers-reduced-motion:
  *   reduce` it never does while the navigation still happens.
- * - While the page left behind and the target are both mounted, no id is in the document twice.
+ * - While the page left behind and the target are both mounted, no id is in the document twice,
+ *   and the frame of the page left behind is `inert`.
+ * - A slide that starts with a Sheet open closes the Sheet before the layer moves.
  * - Without JavaScript a Branch is a link that loads the target's page, and no neighbour is
  *   in the document.
  *
@@ -338,7 +340,34 @@ test('the moment just after the payload lands, screenshot: the page left behind 
   const ids = await page.evaluate(() => [...document.querySelectorAll('[id]')].map((element) => element.id))
   expect(ids.filter((id, index) => ids.indexOf(id) !== index), 'ids written twice').toEqual([])
 
+  // And out of the tab order (11.3): `inert` is the whole of that guarantee.
+  expect(await page.locator('.tree-frame[aria-hidden]').evaluate((frame) => (frame as HTMLElement).inert)).toBe(true)
+
   await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.play())
+  await arrived(page, QUESTION)
+})
+
+test('a slide started with a Sheet open closes it first, so no panel travels with the layer (10.6, 11.3)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 640 })
+  await page.goto(ROOT)
+  await page.locator('.thumbnail').first().click()
+  await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
+
+  // Hold the target's payload back, so the page that started the slide is still the one sliding.
+  let release = () => {}
+  const held = new Promise<void>((resolve) => (release = resolve))
+  await page.route('**/*', async (route) => {
+    if (route.request().headers()['rsc'] === '1') await held
+    await route.continue()
+  })
+  // The backdrop stops the pointer, not the keyboard: a Branch behind the veil is still reached.
+  await page.locator('.answer--yes').focus()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.tree-layer[data-sliding]')).toHaveCount(1)
+  // A fixed panel inside the transformed layer would be laid out in the layer's box, not the viewport's.
+  await expect(page.locator('.tree-layer details.sheet[open]')).toHaveCount(0)
+
+  release()
   await arrived(page, QUESTION)
 })
 

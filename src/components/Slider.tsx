@@ -22,7 +22,8 @@
  *
  * While a slide runs the layer is `position: fixed` and exactly as large as the two frames
  * it shows. Fixed, it is part of no element's scrollable area; that large, nothing in it is
- * larger than itself -- so the no-scroll rule holds mid-slide too (10.6).
+ * larger than itself -- so the no-scroll rule holds mid-slide too (10.6). A slide never
+ * begins with a Sheet open: following a Branch closes any Sheet in the layer first.
  */
 import { useRouter } from 'next/navigation'
 import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
@@ -113,6 +114,11 @@ export function Slider({ href, neighbours, children }: { href: string; neighbour
     // list -- is the ordinary link it looks like (11.3).
     if (!target || !layer.current) return
     event.preventDefault()
+    // A Sheet's panel is `position: fixed`, and a transformed layer is the box a fixed
+    // descendant is laid out in: left open, the panel would travel with the tree. The keyboard
+    // reaches a Branch behind the backdrop, so a slide can start with one open; the page it
+    // reaches opens with every Sheet closed anyway.
+    for (const sheet of layer.current.querySelectorAll<HTMLDetailsElement>('details.sheet[open]')) sheet.open = false
 
     // A click during a slide navigates at once; the page it reaches slides in from this one.
     if (!slide && !reducedMotion()) {
