@@ -12,6 +12,7 @@
  * folder, so this test also proves that the whole Tree is reachable from its root by
  * clicking (docs/specs/application.md section 7: fixtures are loaded through `openTree`).
  */
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, test } from 'vitest'
@@ -390,6 +391,26 @@ describe('the content of the first Tree', () => {
         expect(image.credit, `${where}: credit names no licence`).toMatch(OPEN_LICENCE)
         const attribution = image.credit.replace(OPEN_LICENCE, '').replace(/[,\s]+/g, ' ').trim()
         expect(attribution, `${where}: credit is a licence and nothing else`).not.toBe('')
+      }
+    })
+
+    test('every credit names the author and licence the provenance table in NOTES.md records', () => {
+      // The table was taken from Wikimedia Commons; a credit is "reproduced as written"
+      // (tree-format.md 5.2) and must carry the name as supplied. The Reviewer of PR #54 found
+      // "Petar Milosevic" in `tree.yaml` against "Petar Milošević" on Commons and in the table.
+      const notes = readFileSync(path.join(treeDir, 'NOTES.md'), 'utf8')
+      const rows = new Map(
+        [...notes.matchAll(/^\| `([^`]+)` \| [^|]+ \| ([^|]+) \| ([^|]+) \| https:\/\/commons\.wikimedia\.org\//gm)].map(
+          ([, file, author, licence]) => [file!, { authors: author!.trim().split(' / '), licence: licence!.trim() }],
+        ),
+      )
+      const images = everyImage()
+      expect(rows.size, 'rows in the provenance table').toBe(images.length)
+      for (const { where, image } of images) {
+        const row = rows.get(image.file)
+        expect(row, `${where}: not in the provenance table`).toBeDefined()
+        for (const author of row!.authors) expect(image.credit, `${where}: author`).toContain(author)
+        expect(image.credit.endsWith(`, ${row!.licence}`), `${where}: licence`).toBe(true)
       }
     })
   })
