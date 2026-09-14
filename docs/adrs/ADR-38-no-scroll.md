@@ -148,3 +148,27 @@ the contract and not an implementation detail (`application.md` 10.4, 10.5, 10.7
   is #43's, with the Carousel; the interim thumbnail row of `application.md` 12.1 shrinks
   to 24-pixel thumbnails where step 2 fires, and `imageCount` is in `src/chrome.ts` with
   no caller until #43.
+
+## Amendment, 2026-09-14 (issue #43, the owner on PR #58)
+
+- **Decision 3, step 2's width trigger is 960.** The owner's answer on PR #58
+  (<https://github.com/IdseVal/ELSA-Decisiontree/pull/58#issuecomment-5667939977>,
+  option A). Step 2 no longer fires by width with steps 5 and 6 at 792 but below 960
+  pixels, for every Node. The reason is the caption line of `application.md` 12.2: a
+  `credit` may be 120 characters (`tree-format.md` 5.2), it is never cut and never wraps,
+  and with its separator it needs 123 characters, about 891 pixels, which the line has
+  only from about 955 pixels of width up (896 at 960, measured). With the trigger at 792
+  no build could hold the credit rule, the no-scroll rule and the fixed order at once. #43's first build kept the strip to
+  792 and collapsed the row below 1280 on a Node with a credit over 97 characters instead,
+  which fired step 2 before step 1 and keyed a trigger to content; the Reviewer of PR #58
+  caught it. The order by width is now step 1 (1200), step 2 (960), steps 5 and 6 (792),
+  the same for every Node, and no trigger depends on what a Node holds.
+- **What the caption line gives up.** Below 1280 pixels of width it is 123 characters, so
+  every credit is whole; the description takes what is left and may be empty below the
+  guaranteed width. It stays whole in the thumbnail's alternative text and in the
+  enlarged view. Cost: between 792 and 959 pixels a Node with a short credit also shows
+  step 2's control instead of the strip.
+- **Tested.** `no-scroll.spec.ts` measures a Node whose credit is 120 characters at the
+  viewports of 10.6 and at 1240, 960, 959 and 800 pixels of width; `carousel.spec.ts`
+  asserts that the Trail collapses at 1200 and the Carousel at 960, with the credit whole
+  on the line until then.
