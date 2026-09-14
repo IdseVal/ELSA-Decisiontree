@@ -80,9 +80,8 @@ const EXAMPLE_PAGES = [
 ] as const
 
 /**
- * The rows issue #59 records, English and without the script: the page and viewport where the
- * open Sources panel lies under its own control. Only these leave the Sources Sheet's
- * reachability unasserted, and the `test.fixme` below pins exactly these.
+ * The rows issue #59 recorded, English and without the script: the page and viewport where the
+ * open Sources panel lay under its own control, so that one Source link took no click.
  */
 const ISSUE_59 = [
   { url: EXAMPLE_PAGES[0].url, viewport: '768x1024' },
@@ -212,13 +211,7 @@ async function measureEverywhere(
       const open = await measure(page)
       rows.push({ page: what, lang, viewport, sheet: kind, measured: open })
       assertFits(open, `${what} (${lang}) at ${viewport} with the ${kind} open`)
-      // Without the script the Sources control in the Bubble lies over a link of its own panel
-      // at the rows of issue #59, pinned by the `test.fixme` of that number below, which is
-      // where that Sheet's reachability is asserted there until it is fixed. Everywhere else
-      // it is asserted here.
-      const known59 = !script && kind === 'sources-sheet' && ISSUE_59.some((row) => row.url === url && row.viewport === viewport)
-      const reachable = !known59
-      if (reachable) await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open`)
+      await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open`)
 
       // Without the script a long list is pages of native disclosures (section 14): each
       // page turned in its turn, and measured.
@@ -228,7 +221,7 @@ async function measureEverywhere(
         const turned_ = await measure(page)
         rows.push({ page: what, lang, viewport, sheet: `${kind}, page ${turned + 1}`, measured: turned_ })
         assertFits(turned_, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
-        if (reachable) await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
+        await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
       }
       await closeSheet(sheet)
     }
@@ -388,11 +381,10 @@ test.describe('with JavaScript switched off', () => {
     })
   }
 
-  // Known defect, issue #59: at the rows of ISSUE_59 the open Sources panel lies under its
-  // own control, so one Source link takes no click. `measureEverywhere` leaves the Sources
-  // Sheet out without the script at those rows only; this is the assertion it would make
-  // there, marked `fixme` so the run shows it until #59 is fixed.
-  test.fixme('the Sources Sheet keeps every link clear of its own control without JavaScript (#59)', async ({ page }) => {
+  // Issue #59: the Sources control is in the Bubble, in the middle of the page, where the
+  // panel is laid. At these rows it lay over one of the panel's own links. Each link now
+  // takes its click, and a second click on the control still closes the panel (14).
+  test('the Sources Sheet keeps every link clear of its own control without JavaScript (#59)', async ({ page }) => {
     for (const { url, viewport } of ISSUE_59) {
       const [width, height] = viewport.split('x').map(Number) as [number, number]
       await page.setViewportSize({ width, height })
@@ -401,6 +393,8 @@ test.describe('with JavaScript switched off', () => {
       await sheet.locator('.sheet-open').click()
       await expect(sheet.locator('.sheet-panel')).toBeVisible()
       await assertReachable(sheet, `${url} at ${viewport} with the Sources open`)
+      await sheet.locator('.sheet-open').click()
+      await expect(sheet.locator('.sheet-panel')).toBeHidden()
     }
   })
 
