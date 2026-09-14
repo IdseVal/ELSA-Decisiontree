@@ -39,10 +39,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      // The viewport comes after the device, which carries one of its own: 1000 px is the
-      // width the earlier screenshot set in docs/screenshots/issue-10/ was taken at, and
-      // the screenshots are the reason this suite exists.
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1000, height: 900 } },
+      // The viewport comes after the device, which carries one of its own: the guaranteed
+      // viewport of docs/specs/application.md 10.4, where the tree view shows every Option
+      // as a Branch. The 1000 px this suite used until issue #41 was the width of the 0.1
+      // screenshot set; below 1280 px the Options of a five-Option Node are behind a Sheet
+      // (10.5, step 4), and this suite walks by clicking what is on the page.
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 640 } },
     },
   ],
   webServer: {

@@ -10,8 +10,7 @@
 import { themeLogo } from '../theme.ts'
 import type { LocalisedText, Theme } from '../tree/types.ts'
 import { themeHref } from '../url.ts'
-import { chrome } from '../chrome.ts'
-import { chromeLang, text } from './NodeView.tsx'
+import { chrome, chromeLang, text } from '../chrome.ts'
 
 export function Logo({
   theme,
@@ -38,11 +37,18 @@ export function Logo({
 
   // Linked to and opened in a new tab; never fetched by the application (13.2, 13.5).
   return (
-    <a className="logo-link" href={logo.url} target="_blank" rel="noopener noreferrer">
+    <a
+      className="logo-link"
+      href={logo.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-describedby="logo-new-tab"
+    >
       {image}
-      <span className="visually-hidden" lang={chromeLang(lang)}>
-        {' '}
-        ({chrome(lang).opensInNewTab})
+      {/* Hidden, not clipped off screen: a description is read from a hidden element all the
+          same, and a clipped element has content wider than itself (application.md 10.6). */}
+      <span hidden id="logo-new-tab" lang={chromeLang(lang)}>
+        {chrome(lang).opensInNewTab}
       </span>
     </a>
   )

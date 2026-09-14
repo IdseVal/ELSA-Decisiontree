@@ -46,7 +46,7 @@ async function notFoundPage(id: string): Promise<string> {
 }
 
 /** Every element the page renders: what it announces to a reader who cannot see it. */
-const MARKERS = ['class="node"', 'class="prose"', 'class="answer answer--yes"', 'class="disclaimer"']
+const MARKERS = ['class="bubble bubble--notice"', 'class="prose"', 'class="branch answer answer--yes"', 'class="disclaimer"']
 
 describe('the 404 page', () => {
   test('is English and says so, on a Tree whose default language the chrome does not speak', async () => {

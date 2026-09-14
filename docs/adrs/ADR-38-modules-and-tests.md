@@ -43,7 +43,11 @@ leaves this origin. None of them can be asserted against a string of markup.
    `Bubble`, `Branch` and `Carousel` render; `Slider`, `Sheet`, `CarouselButtons` and
    `ShareButton` enhance. The Carousel is a server component and the client part is its
    two buttons, so that part has a name and the count of four is a count of files. 0.1's
-   `NodeView`, `Trail` and `Thumbnails` go.
+   `NodeView`, `Trail` and `Thumbnails` go. *Amended 2026-09-13 (issue #41, PR #56):*
+   `Thumbnails` stays until #43 draws the Carousel, as the interim content of the
+   Carousel's row (`application.md` 12.1, `ADR-38-tree-view.md` amendment) -- a fifth
+   client component for the interim, owning the one interaction of the enlarged view.
+   #43 removes it with `Carousel` and `CarouselButtons`, and the count is four again.
 3. **The client components are leaves.** They import no server module, compute no
    neighbourhood, fetch no Node and read no Tree; `Slider` receives its positions as
    props. That is what keeps the bundle small and what makes
@@ -56,7 +60,11 @@ leaves this origin. None of them can be asserted against a string of markup.
    the bound lives.
 6. **Browser tests are in the contract**: `npm run test:browser` joins the CI command,
    and `no-scroll.spec.ts`, `transition.spec.ts`, `theme.spec.ts` and `no-js.spec.ts`
-   join the 0.1 specs that already existed outside it.
+   join the 0.1 specs that already existed outside it. *Amended 2026-09-13 (issue #41,
+   PR #56):* there is no `no-js.spec.ts`; #41 put the no-script assertions in
+   `tree-view.spec.ts` (the walk of the Branches and the Sheets) and `no-scroll.spec.ts`
+   (the measurement), and `tree-view.spec.ts` is the build's own spec, listed in
+   `application.md` section 7.
 7. **The dividing line is stated so nobody has to guess:** a claim about *markup* is a
    unit test; a claim about *layout, motion or network* needs a browser.
    `application.md` section 7 lists every file on both sides of it.

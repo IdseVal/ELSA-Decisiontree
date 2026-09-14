@@ -32,8 +32,18 @@ export const DEFAULT_COLOURS: Colours = {
   danger: '#8a2f26',
 }
 
-/** The default type stack: the reader's own system face, so a plain Tree fetches no font. */
-export const DEFAULT_FONT_STACK = 'ui-sans-serif, system-ui, "Segoe UI", sans-serif'
+/**
+ * The default type stack: the reader's own system face, so a plain Tree fetches no font.
+ *
+ * Named face by face rather than as `system-ui`, because on a Linux machine with no desktop
+ * -- a server, a CI runner -- `system-ui` resolves through fontconfig to DejaVu Sans, which
+ * is wider than the humanist faces tree-format.md 5.7 measured the length limits with, and a
+ * Node at those limits then takes one line more than the Bubble has. Arial, or Liberation
+ * Sans that fontconfig substitutes for it, has the metrics the limits assume and is on
+ * every platform. Windows, macOS and Android still get their own face, named first.
+ */
+export const DEFAULT_FONT_STACK =
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Liberation Sans", sans-serif'
 
 /** A colour as the format writes it, re-checked here because this is the sink (13.3). */
 const COLOUR = /^#[0-9a-f]{6}$/

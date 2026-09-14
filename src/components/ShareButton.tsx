@@ -9,13 +9,19 @@
  * same link -- that is what "the share link is the page's own URL" buys.
  */
 import { useState } from 'react'
-import type { Chrome } from '../chrome.ts'
+
+/** The three things the button says; strings, because a client component takes no module. */
+export interface ShareWords {
+  share: string
+  copied: string
+  copyFailed: string
+}
 
 export function ShareButton({
   ui,
   uiLang,
 }: {
-  ui: Chrome
+  ui: ShareWords
   /** Set when the chrome speaks another language than the content. */
   uiLang: string | undefined
 }) {
