@@ -1135,6 +1135,15 @@ centre.
   neighbourhood only by coincidence (a Trail of two), and a root Bubble placed one
   viewport away in some direction would draw a tree that is not there. It is an ordinary
   link (11.3).
+- **Amended 2026-09-14 (#42, PR #57): the side slide exists only while the Option
+  columns are on screen.** Where 10.5 step 4 has collapsed them into the `options`
+  Sheet, which on the full Node is 1024 x 768 and below, the Sheet's items are plain
+  links with no `data-slide`. The Sheet is a list, not a Branch drawn in the layer, so
+  following an Option from it loads the target's page without a slide. 11.2 still
+  places every Option target at those viewports, because the server renders one page
+  for every viewport and the stylesheet decides the collapse. On the full Node that is
+  eight neighbour frames that nothing on screen can slide to. Issue #60 weighs that
+  cost.
 
 ### 11.2 The neighbourhood: which Nodes are pre-rendered
 
@@ -1229,10 +1238,19 @@ target's page loads and the tree is redrawn around it. `Slider` does not animate
 does not fetch one to be able to; a jump five steps back is not a slide in the first
 place.
 
-**Amended 2026-09-14 (#42, PR #57):** a third kind, reached only by an address whose Trail
-repeats a Node (adjacency is not checked, 4.3): a Branch whose target 11.2 deduplicated
-away, such as a parent that is the Node on screen. It has no placement either, so it is
-an ordinary link. A Branch is marked `data-slide` only where its `href` is a placement's.
+**Amended 2026-09-14 (#42, PR #57):** a third kind: a Branch whose target another
+direction has already placed at a different address, so that 11.2's deduplication leaves
+this Branch's own address without a placement. An ordinary valid Tree reaches it. One
+case is a question Node whose `yes` or `no` targets a Node already on its Trail, since a
+cycle among question Nodes is not an error (`tree-format.md` 7). The ancestor is placed
+`up` first, and the Answer's deeper `followHref` is not that placement's address. An
+address whose Trail repeats a Node (adjacency is not checked, 4.3) reaches it too, such as
+a parent that is the Node on screen. The Branch has no placement, so it is an ordinary
+link. A Branch is marked `data-slide` only where its `href` is a placement's. Two Branches
+with one `href`, such as `yes` and `no` naming one target (5.3 does not require them to
+differ), share that placement and both slide to it. A target 11.2 *drops*, a Link to an id
+the Tree does not hold, cannot reach a served page: the loader rejects such a Tree at
+start-up (`tree-format.md` 7, V-ANSWERS and V-OPTIONS).
 
 Back and forward are the browser's, and reverse the slide when the payload is in the
 framework's cache. `prefers-reduced-motion: reduce` removes the motion and keeps the

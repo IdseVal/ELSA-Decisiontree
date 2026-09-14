@@ -124,7 +124,9 @@ it must become a number.
   to 50 path segments. With a single neighbour, `applies` is already 169 kB. The lever is
   a neighbour frame that does not repeat the Trail Sheet's list, since the frame is inert
   mid-slide. That changes what 11.3 says a neighbour is, so it is issue #60, not a quiet
-  fix.
+  fix. The lever is sharpest where the Options have collapsed into their Sheet (10.5 step
+  4, 11.1). The side slide does not exist there, but the page still carries every Option's
+  frame, which is eight at the full Node.
 - A navigation costs one request and no image request for any Node but the one arriving.
   A reader who walks a thousand-Node Tree end to end still never receives it.
 - Issue #42 builds against a number it can assert, and issue #39 changes the loader by

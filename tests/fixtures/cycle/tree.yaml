@@ -1,0 +1,62 @@
+# A valid Tree in which deduplication leaves a Branch without a slide, and no Trail repeats
+# a Node (application.md 11.3). A cycle among question Nodes is not an error
+# (tree-format.md 7): `third`'s `yes` goes back to `second`. `second`'s `yes` and `no` name
+# one target, which 5.3 allows.
+format: elsa-tree/2
+languages: [en]
+root: first
+title:
+  en: The cycle fixture
+metadata:
+  version: "1.0"
+
+--- # first
+id: first
+title:
+  en: The first question
+description:
+  en: |
+    The root.
+metadata:
+  version: "1.0"
+answers:
+  yes: second
+  no: done
+
+--- # second
+id: second
+title:
+  en: The second question
+description:
+  en: |
+    Both Answers lead to the third question.
+metadata:
+  version: "1.0"
+answers:
+  yes: third
+  no: third
+
+--- # third
+id: third
+title:
+  en: The third question
+description:
+  en: |
+    Yes goes back to the second question.
+metadata:
+  version: "1.0"
+answers:
+  yes: second
+  no: done
+
+--- # done
+id: done
+title:
+  en: Done
+description:
+  en: |
+    The walk ends here.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable

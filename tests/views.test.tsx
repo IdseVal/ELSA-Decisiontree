@@ -27,6 +27,7 @@ beforeAll(async () => {
     ['other-languages', path.join(here, 'fixtures', 'other-languages')],
     ['full-node', path.join(here, 'fixtures', 'full-node')],
     ['carousel', path.join(here, 'fixtures', 'carousel')],
+    ['cycle', path.join(here, 'fixtures', 'cycle')],
   ] as const) {
     trees.set(id, await openTree(dir))
   }
@@ -143,6 +144,23 @@ describe('the tree layer', () => {
     const full = await view('/full-node/full/full/full')
     expect(full.match(/<a class="branch trail-entry"[^>]*data-slide/g), 'the full Node\'s Trail').toBeNull()
     expect(full.match(/<a class="branch option"[^>]*data-slide/g), 'the full Node\'s Options').toHaveLength(8)
+  })
+
+  test('on a Trail that repeats nothing, an Answer back to the parent does not slide, and two Answers to one target both do (11.3)', async () => {
+    const answers = async (url: string) =>
+      [...(await view(url)).matchAll(/<a class="branch answer (answer--(?:yes|no))" href="([^"]*)"([^>]*)>/g)].map(
+        ([, kind, href, rest]) => [kind, href, rest!.includes('data-slide')],
+      )
+
+    // `third`'s `yes` is `second`, which the Trail entry placed `up` at its own shorter address.
+    expect(await answers('/cycle/first/second/third')).toEqual([
+      ['answer--yes', '/cycle/first/second/third/second', false],
+      ['answer--no', '/cycle/first/second/third/done', true],
+    ])
+    expect(await answers('/cycle/first/second')).toEqual([
+      ['answer--yes', '/cycle/first/second/third', true],
+      ['answer--no', '/cycle/first/second/third', true],
+    ])
   })
 
   test('the Carousel row is present on every Node, empty where the Node has no Images, so the Bubble never moves (12.1)', async () => {
