@@ -617,12 +617,14 @@ test('the longest Node of the first Tree, once it validates, never scrolls at an
 })
 
 // The heaviest Node a reader meets (issue #55): its own picture and eight Options, each with
-// a picture that is on its Branch and in the strip, nine in the Carousel.
+// a picture that is on its Branch and in the strip, nine in the Carousel -- at rest, and
+// mid-slide, where the strip rides in the layer beside a neighbour with an empty row (11.4).
 for (const lang of LANGUAGES) {
-  test(`the first Tree's annex-i-legislation, ${lang}, never scrolls at any viewport of 10.6, each picture enlarged in turn`, async ({ page }) => {
+  test(`the first Tree's annex-i-legislation, ${lang}, never scrolls at any viewport of 10.6, each picture enlarged in turn, or mid-slide`, async ({ page }) => {
     test.slow()
     const url = `${await firstTreeOrigin()}${inLang('/ai-act-applicability-agrifood/annex-i-legislation', lang)}`
     await measureEverywhere(page, url, 'first Tree, annex-i-legislation (9 pictures)', lang)
+    await measureSliding(page, url, 'first Tree, annex-i-legislation (9 pictures)', lang)
   })
 }
 
