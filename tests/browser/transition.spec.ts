@@ -15,9 +15,10 @@
  *   in the document.
  *
  * The recorded requests are written to `tests/browser/.results/transition-requests.md`, so a
- * pull request can paste the list rather than describe it. The three screenshots of one
- * slide go to the gitignored results folder unless `ELSA_SHOTS=1` asks for the tracked set
- * in `docs/screenshots/issue-42/` (the convention of tree-view.spec.ts).
+ * pull request can paste the list rather than describe it. The screenshots of one slide --
+ * before, midway, just after the target's payload lands, arrived -- go to the gitignored
+ * results folder unless `ELSA_SHOTS=1` asks for the tracked set in
+ * `docs/screenshots/issue-42/` (the convention of tree-view.spec.ts).
  *
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */
@@ -111,6 +112,8 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
     /** The page on screen when the request was made. */
     on: string
     nodes?: string[]
+    /** A page response's body as the browser decoded it, against ADR-38-neighbourhood's estimate. */
+    bytes?: number
   }
   const recorded: Recorded[] = []
   const bodies: Promise<void>[] = []
@@ -127,6 +130,7 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
         request.response().then(async (response) => {
           const body = await response!.text()
           entry.nodes = nodesIn(body)
+          entry.bytes = (await response!.body()).length
           // 11.4: no image URL of any Node but the one the page opens, anywhere in the payload.
           const named = [...body.matchAll(/\/images\/([^"\\?\s)]+)/g)].map((m) => m[1]!)
           const allowed = await allowedImages(entry.url)
@@ -177,10 +181,11 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
   await writeFile(
     path.join(RESULTS, 'transition-requests.md'),
     [
-      '| # | request | kind | on screen | Nodes carried |',
-      '|---|---|---|---|---|',
+      '| # | request | kind | on screen | Nodes carried | bytes |',
+      '|---|---|---|---|---|---|',
       ...recorded.map(
-        (r, i) => `| ${i + 1} | \`${r.url}\` | ${r.kind} | \`${r.on}\` | ${r.nodes ? `${r.nodes.length}: ${r.nodes.join(', ')}` : ''} |`,
+        (r, i) =>
+          `| ${i + 1} | \`${r.url}\` | ${r.kind} | \`${r.on}\` | ${r.nodes ? `${r.nodes.length}: ${r.nodes.join(', ')}` : ''} | ${r.bytes ?? ''} |`,
       ),
       '',
     ].join('\n'),
@@ -284,6 +289,43 @@ test('three moments of one slide, screenshot', async ({ page }) => {
   await arrived(page, QUESTION)
   await page.waitForLoadState('networkidle')
   await page.screenshot({ path: path.join(SHOTS, 'slide-3-arrived-1280x640.png') })
+})
+
+test('the moment just after the payload lands, screenshot: the page left behind is drawn without its pictures (11.4)', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 640 })
+  await page.goto(ROOT)
+  await page.evaluate(() => document.fonts.ready)
+  // The root's own Image is on screen before the click.
+  await expect(page.locator('.tree-frame img')).not.toHaveCount(0)
+
+  // A tenth of a second of network, so the payload lands near the midway shot's moment rather
+  // than a local server's few milliseconds; well inside the slide, so the target's page takes
+  // it over. Its animation is caught and stopped in the first frame it runs.
+  await page.route('**/*', async (route) => {
+    if (route.request().headers()['rsc'] === '1') await new Promise((wake) => setTimeout(wake, 100))
+    await route.continue()
+  })
+  await page.locator('.answer--yes').click()
+  const caught = await page.waitForFunction((target) => {
+    if (location.pathname !== target) return false
+    const animation = document.querySelector('.tree-layer[data-sliding]')?.getAnimations()[0]
+    if (!animation) return false
+    animation.pause()
+    return { at: Math.round(Number(animation.currentTime)) }
+  }, QUESTION)
+  // `waitForFunction` resolves only on a truthy value, so it is never `false` here.
+  const { at } = (await caught.jsonValue()) as { at: number }
+  await page.screenshot({ path: path.join(SHOTS, `slide-2b-after-payload-1280x640.png`) })
+  test.info().annotations.push({ type: 'handover', description: `the payload landed ${at} ms into the slide` })
+
+  // The page left behind is now drawn from the target's neighbour props, which name no image.
+  await expect(page.locator('.tree-frame[aria-hidden]')).toHaveCount(1)
+  await expect(page.locator('.tree-frame[aria-hidden] img')).toHaveCount(0)
+
+  await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.play())
+  await arrived(page, QUESTION)
 })
 
 test.describe('with JavaScript switched off', () => {
