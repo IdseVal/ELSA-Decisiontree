@@ -137,5 +137,5 @@ pictures".
   named to a reader who hears the strip as well.
 - **Consequences.** A Node whose only pictures are its Options' now has a strip, and with
   it a tab stop and the previous/next buttons. The image requests do not grow: the strip
-  names the same `/images/<file>` URL as the Branch. `application.md` 10.1, 10.3, 10.6, 10.7,
-  12.1, 12.2 and 12.4 carry the dated amendments, and `ADR-38-tree-view.md` decision 6.
+  names the same `/images/<file>` URL as the Branch. `application.md` 7, 10.1, 10.3, 10.6, 10.7,
+  12.1 to 12.4 and 14 carry the dated amendments, and `ADR-38-tree-view.md` decision 6.

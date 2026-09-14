@@ -771,7 +771,7 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | **[v0.2]** The neighbourhood: at most 16 neighbours, in the page payload, never the Tree | `docs/adrs/ADR-38-neighbourhood.md` |
 | **[v0.2]** The slide transition: the tree layer moves, the URL is the plain link's | `docs/adrs/ADR-38-transitions.md` |
 | **[v0.2]** The guaranteed viewport, the no-scroll rule, the degradation order, the test | `docs/adrs/ADR-38-no-scroll.md` |
-| **[v0.2]** The Carousel: a scroll-snap strip of this Node's Images, enlarged in a Sheet | `docs/adrs/ADR-38-carousel.md` |
+| **[v0.2]** The Carousel: a scroll-snap strip of this Node's Images, enlarged in a Sheet (amended 2026-09-14, #55: and its Options' first pictures) | `docs/adrs/ADR-38-carousel.md` |
 | **[v0.2]** The Theme: custom properties and `@font-face` emitted at render time, files from a route | `docs/adrs/ADR-38-theme-delivery.md`, amended by issue #40 (PR #52) |
 | **[v0.2]** What holds without JavaScript | `docs/adrs/ADR-38-without-javascript.md` |
 | **[v0.2]** Modules, dependency direction and which tests need a browser | `docs/adrs/ADR-38-modules-and-tests.md`, amended by issue #40 (PR #52) |
@@ -1260,9 +1260,11 @@ be image carrousells below the node bubble." This reverses core document open it
 The Carousel is the 80-pixel row under the Bubble (10.1). It shows **this Node's own
 `images` list, in the order the author wrote it** (`tree-format.md` 5.2: the list is the
 order, the description is the caption, the credit is shown with the picture). At most
-ten, which is the format's maximum.
+ten, which is the format's maximum. *(Amended 2026-09-14, #55: then its Options' pictures,
+at most 18 in all -- below.)*
 
-**Option Images do not join it.** An Option's picture belongs to that Option and is
+**Option Images do not join it.** *(Reversed 2026-09-14 for an Option's first Image, #55 --
+below.)* An Option's picture belongs to that Option and is
 shown on its Branch (10.3), where the reader is looking when they read the Option. The
 Carousel keeps one list, one order and one caption rule; merging two lists would leave
 a reader unable to tell which entry a caption belongs to.
@@ -1284,11 +1286,11 @@ Branch too. The enlarged view's image keeps the description as its alternative t
 the whole caption beside it. An Option's second and third Images are shown
 nowhere, on the Branch or in the strip. **The strip's cap is therefore 18**: at most ten
 Images of the Node's own plus one per Option, at most eight. Nothing is left out; the strip
-already scrolls sideways inside its row (12.2), so its length costs no height. The empty
-row below is for a Node where neither it nor any of its Options carries a picture.
+already scrolls sideways inside its row (12.2), so its length costs no height.
 
-A Node with no Images gets the row anyway, empty, so that the Bubble sits in the same
-place on every Node and the transition of section 11 has nothing to reflow.
+A Node with no picture -- no Image of its own and none on any of its Options (amended
+2026-09-14, #55) -- gets the row anyway, empty, so that the Bubble sits in the same place
+on every Node and the transition of section 11 has nothing to reflow.
 
 **Until #43 draws the Carousel**, the row holds the Node's Images as plain 60-pixel
 thumbnails in the strip's place, each a link to its file that, with JavaScript, opens
@@ -1331,7 +1333,9 @@ the two are given the line in a fixed order of priority:
   width, and below it possibly none (the last paragraph of this section) -- shortened to fit,
   with a trailing ellipsis when it is shortened. Nothing is lost by it: the whole
   description is the thumbnail's alternative text, and both fields are shown in full in
-  the enlarged view (12.3), one Enter away.
+  the enlarged view (12.3), one Enter away. For an Option's picture the text that gives
+  way is the Option's title, a colon and the description, and all of it is the thumbnail's
+  alternative text and whole in the enlarged view (amended 2026-09-14, #55; 12.1).
 
 **The shortening is computed, not painted.** `text-overflow: ellipsis` would leave the
 caption's content wider than the caption, and 10.6's test measures `scrollWidth` against
@@ -1349,7 +1353,8 @@ Image, and the stylesheet shows it below 1280 pixels of width. **The credit is w
 it for every credit the format allows**; the description takes what is left, shortened as
 above, and **may be empty** -- beside a 120-character credit it is. Nothing is lost by it:
 the whole description is still the thumbnail's alternative text and is shown in full in
-the enlarged view. Nothing about the row is keyed to the length of a credit. The enlarged
+the enlarged view -- for an Option's picture, the Option's title with it (amended
+2026-09-14, #55; 12.1). Nothing about the row is keyed to the length of a credit. The enlarged
 view keeps clear of step 2's control wherever it is shown: the control is at the foot of
 the page and, without JavaScript, is the only way to close the Sheet. (The build of
 2026-09-13 drew a 100-character line and collapsed the row below 1280 on a Node with a
@@ -1363,7 +1368,7 @@ credit over 97 characters, before step 1; the owner replaced that with this rule
 | Previous / next | Buttons; scroll the strip by one page. Disabled at the ends. `CarouselButtons`, one of the four client components of section 1 (five until #43 replaces the interim `Thumbnails` with it; amended 2026-09-13, #41, PR #56). | `previous`, `next` |
 | Position | "Image 3 of 7", updated as the selection moves, announced politely. | `imageCount` |
 | A thumbnail | An `<a href="/images/<file>">` around the `<img>`. With JavaScript the click is intercepted and opens the enlarged view; without it, the link opens the file. | `enlarge` |
-| The enlarged view | A `Sheet`: the full image bounded to the viewport so that it never scrolls, with the `description` and the `credit` beneath it. Closed by Escape, by the close button, or by clicking outside; focus returns to the thumbnail. | `close` |
+| The enlarged view | A `Sheet`: the full image bounded to the viewport so that it never scrolls, with the `description` and the `credit` beneath it -- for an Option's picture, the Option's title, a colon and the description (amended 2026-09-14, #55; 12.1). Closed by Escape, by the close button, or by clicking outside; focus returns to the thumbnail. | `close` |
 
 The enlarged view is the same `Sheet` as the Trail Sheet and the collapsed Sheets of
 10.5 -- one overlay concept, one set of keyboard rules, one implementation.
@@ -1373,7 +1378,8 @@ The enlarged view is the same `Sheet` as the Trail Sheet and the collapsed Sheet
 - Only the images of the Node that is the centre Bubble are ever requested (11.4, 11.5).
 - Within the Carousel, each `<img>` carries `loading="lazy"` and explicit `width` and
   `height`, so the browser fetches the thumbnails at and near the visible page of the
-  strip and not the whole list. A Node may name ten Images; a reader who never scrolls
+  strip and not the whole list. A Node may name ten Images, and its strip hold 18 with its
+  Options' pictures (amended 2026-09-14, #55; 12.1); a reader who never scrolls
   the strip fetches only what the row showed.
 - The enlarged view shows the file the strip already has: enlarging costs no request.
 - An Option Branch's thumbnail (10.3) is an image of the Node on screen -- the Option is
@@ -1522,7 +1528,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | The whole current Node | The server returns complete HTML: the tree view of section 10 with the centre Bubble, its title, description, Sources, outcome or hint. |
 | Every Branch | Ordinary `<a href>`. Following one loads the target's page. The tree is redrawn around the new Node instead of sliding to it. |
 | Going back up the Trail | The Trail Branches are links that discard the later Trail, exactly as 4.1 says: the URL *is* the Trail. |
-| The Carousel | A native scroll-snap strip (12.2): every Image is reachable, with its credit whole in the caption line, its description there as far as the line allows, and both in full when the thumbnail's link opens the file. |
+| The Carousel | A native scroll-snap strip (12.2): every Image is reachable -- the Node's own and, since #55, the picture on each Option's Branch (12.1) -- with its credit whole in the caption line, its description there as far as the line allows, and both in full when the thumbnail's link opens the file. |
 | Enlarging an Image | Each thumbnail is a link to `/images/<file>`; the browser opens the file, with the description and credit still on the page behind it. |
 | The language switch | Links with `?lang=` (4.1). |
 | The share link | The address bar: the page's own URL is the share link (4.1). |
