@@ -1,6 +1,7 @@
 # One Node at every maximum docs/specs/tree-format.md 5.7 allows (application.md 10.6):
 # an 80-character title, a 600-character description of eight estimated lines, 3 Sources,
-# 8 Options, 10 Images, and Options that carry their own Images. If this fits inside the
+# 8 Options, 10 Images, and every Option a picture of its own, so the Carousel holds the
+# 18 of application.md 12.1 (the first Option carries three). If this fits inside the
 # Bubble at the guaranteed viewport, every valid Tree fits. A Trail of 49 entries is made
 # by visiting `full` 49 times: adjacency is not checked (application.md 4.3).
 format: elsa-tree/2
@@ -129,30 +130,72 @@ options:
       en: "Option two: a title of sixty characters, the most it may be."
       nl: "Optie twee: een titel van zestig tekens, het meeste dat mag."
     target: opt-two
+    images:
+      - file: four.png
+        description:
+          en: "Option two, its picture: a description of one hundred and twenty characters, the most an Image description may be Optio."
+          nl: "Optie twee, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+        credit: "Credit for Option two’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Comm."
   - title:
       en: "Option three: a title of sixty characters, the most it may.."
       nl: "Optie drie: een titel van zestig tekens, het meeste dat mag."
     target: opt-three
+    images:
+      - file: five.png
+        description:
+          en: "Option three, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt."
+          nl: "Optie drie, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+        credit: "Credit for Option three’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
   - title:
       en: "Option four: a title of sixty characters, the most it may b."
       nl: "Optie vier: een titel van zestig tekens, het meeste dat mag."
     target: opt-four
+    images:
+      - file: six.png
+        description:
+          en: "Option four, its picture: a description of one hundred and twenty characters, the most an Image description may be Opti."
+          nl: "Optie vier, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+        credit: "Credit for Option four’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Com."
   - title:
       en: "Option five: a title of sixty characters, the most it may b."
       nl: "Optie vijf: een titel van zestig tekens, het meeste dat mag."
     target: opt-five
+    images:
+      - file: seven.png
+        description:
+          en: "Option five, its picture: a description of one hundred and twenty characters, the most an Image description may be Opti."
+          nl: "Optie vijf, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+        credit: "Credit for Option five’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Com."
   - title:
       en: "Option six: a title of sixty characters, the most it may be."
       nl: "Optie zes: een titel van zestig tekens, het meeste dat mag.."
     target: opt-six
+    images:
+      - file: eight.png
+        description:
+          en: "Option six, its picture: a description of one hundred and twenty characters, the most an Image description may be Optio."
+          nl: "Optie zes, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie.."
+        credit: "Credit for Option six’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Comm."
   - title:
       en: "Option seven: a title of sixty characters, the most it may.."
       nl: "Optie zeven: een titel van zestig tekens, het meeste dat ma."
     target: opt-seven
+    images:
+      - file: nine.png
+        description:
+          en: "Option seven, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt."
+          nl: "Optie zeven, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Opti."
+        credit: "Credit for Option seven’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
   - title:
       en: "Option eight: a title of sixty characters, the most it may.."
       nl: "Optie acht: een titel van zestig tekens, het meeste dat mag."
     target: opt-eight
+    images:
+      - file: ten.png
+        description:
+          en: "Option eight, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt."
+          nl: "Optie acht, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+        credit: "Credit for Option eight’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
 answers:
   yes: applies
   no: does-not-apply

@@ -61,12 +61,8 @@ export function TreeView({ node, address, tree }: { node: Node; address: PageAdd
         <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
         {node.options.length > 0 && <Options node={node} view={view} />}
         <Answers node={node} view={view} />
-        {/* The Carousel's row (section 12), on every Node, empty where there are no Images, so the Bubble never moves. */}
-        {node.images.length > 0 ? (
-          <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
-        ) : (
-          <div className="carousel" />
-        )}
+        {/* The Carousel's row (section 12), on every Node, empty where there are no pictures, so the Bubble never moves. */}
+        <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
       </div>
       {/* Shown instead of the tree view at and below the floor of 10.4; the stylesheet decides,
           and shows the sentence for the dimension that is short, so a 1280 x 480 window is

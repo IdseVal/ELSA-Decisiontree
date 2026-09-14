@@ -19,11 +19,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Sheet, type SheetHandle, type SheetWords } from './Sheet.tsx'
 
-/** One of the Node's Images, its description already in the content language. */
+/** One picture of the strip, its texts already in the content language. */
 export interface CarouselImage {
   /** The image route's URL for the file, `/images/<file>` (5.3). */
   href: string
+  /** The picture's alternative text. */
   description: string
+  /** What the caption says before the credit: the description, after its Option's title for an Option's picture (12.1). */
+  caption: string
   credit: string
 }
 
@@ -220,11 +223,11 @@ export function CarouselButtons({
         ref={sheet}
         className="carousel-sheet"
         summary={<span lang={uiLang}>{counts[selected]}</span>}
-        pages={images.map((image) => (
-          <figure className="sheet-figure" key={image.href}>
+        pages={images.map((image, index) => (
+          <figure className="sheet-figure" key={index}>
             <img src={image.href} alt={image.description} loading="lazy" />
             <figcaption>
-              <p>{image.description}</p>
+              <p>{image.caption}</p>
               <p className="credit">
                 <span className="kind" lang={uiLang}>
                   {words.credit}
