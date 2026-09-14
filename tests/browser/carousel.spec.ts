@@ -1,12 +1,14 @@
 /**
  * The Carousel in a real browser (docs/specs/application.md section 12, issue #43): which
  * image files the browser asks for, what previous and next do, whether a keyboard alone
- * moves, enlarges and closes, what the row collapses to below the guaranteed height, what
+ * moves, enlarges and closes, what the row collapses to below the guaranteed height and in
+ * what order by width, what
  * a reader without JavaScript gets, and the screenshots the issue owes. What the markup
  * says is `tests/views.test.tsx`; whether it fits is `no-scroll.spec.ts`.
  *
  * The Tree is `tests/fixtures/carousel/`: `five` carries five Images, more than the strip's
- * page of four; `two` carries two; `done` carries one that no other page may ask for.
+ * page of four; `two` carries two; `long` carries a credit of the format's maximum 120
+ * characters; `done` carries one that no other page may ask for.
  *
  * The requests each test records are written to `tests/browser/.results/carousel-requests.md`,
  * so the pull request pastes the lists rather than describes them. Screenshots go to the
@@ -262,7 +264,9 @@ test.describe('names for assistive technology', () => {
       await page.setViewportSize({ width: 1280, height: 640 })
       await page.goto(`${origin}${FIVE}${lang === 'en' ? '' : `?lang=${lang}`}`)
 
-      await expect(page.getByRole('region', { name: names.region })).toBeVisible()
+      // The strip is the named region of 12.3; the row around it is not named too, or the name is read twice.
+      await expect(page.locator('[data-carousel-strip]')).toHaveAccessibleName(names.region)
+      await expect(page.getByRole('region', { name: names.region })).toHaveCount(0)
       await expect(page.getByRole('button', { name: names.previous, exact: true })).toBeVisible()
       await expect(page.getByRole('button', { name: names.next, exact: true })).toBeVisible()
       const first = page.locator('.thumbnail').first()
@@ -297,6 +301,43 @@ test.describe('below the guaranteed height', () => {
 
     await control.click()
     await expect(panel.locator('.sheet-figure img')).toHaveAttribute('src', '/images/drone.svg')
+  })
+})
+
+test.describe('below the guaranteed width', () => {
+  /** The credit of `long`'s first Image: 120 characters, the format's maximum (tree-format.md 5.2). */
+  const LONG_CREDIT = 'Photograph: Example Agricultural Research Station, Department of Soil and Water, via Example Commons, licence CC BY 4.0.'
+
+  test('by width the Trail collapses first (1200), then the Carousel (960), and until then the longest credit is whole on the caption line', async ({ page }) => {
+    // 800 pixels high, so no height-keyed step fires and only the width orders them (10.5).
+    const widths = [
+      { width: 1240, trail: 'open', strip: true },
+      { width: 1199, trail: 'collapsed', strip: true },
+      { width: 960, trail: 'collapsed', strip: true },
+      { width: 959, trail: 'collapsed', strip: false },
+    ] as const
+    await page.goto(`${origin}${TWO}/long`)
+    const control = page.locator('.carousel-sheet .sheet-open')
+    for (const { width, trail, strip } of widths) {
+      await page.setViewportSize({ width, height: 800 })
+      const where = `at ${width} x 800`
+
+      // `five`, the first of the Trail's two entries, is what step 1 gives up.
+      if (trail === 'open') await expect(page.locator('.trail-step').first(), where).toBeVisible()
+      else await expect(page.locator('.trail-step').first(), where).toBeHidden()
+
+      if (strip) {
+        await expect(page.locator('[data-carousel-strip]'), where).toBeVisible()
+        await expect(control, where).toBeHidden()
+        // No room is left for the description beside a credit of 120: the credit alone, uncut.
+        await expect(caption(page), where).toHaveText(LONG_CREDIT, { useInnerText: true })
+        const line = await caption(page).evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }))
+        expect(line.scroll, `${where}: the caption line holds the credit`).toBeLessThanOrEqual(line.client + 1)
+      } else {
+        await expect(page.locator('[data-carousel-strip]'), where).toBeHidden()
+        await expect(control, where).toHaveText('Image 1 of 2')
+      }
+    }
   })
 })
 
@@ -339,6 +380,29 @@ test.describe('with JavaScript switched off', () => {
     // The next stop is the first thumbnail: every one of them is a link.
     await page.keyboard.press('Tab')
     await expect(page.locator('.thumbnail').first()).toBeFocused()
+  })
+
+  test('a Node without Images has no strip, so no empty tab stop in the Carousel row (12.1)', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
+    // The example Tree's `prohibited-practices`: an Option carries an Image, the Node none.
+    await page.goto('/ai-act-example/start/prohibited-practices')
+    await expect(page.locator('[data-carousel-strip]')).toHaveCount(0)
+
+    // Every tab stop of the page, in order, and none of them in the row.
+    const stops: string[] = []
+    await page.locator('body').focus()
+    for (let i = 0; i < 40; i += 1) {
+      await page.keyboard.press('Tab')
+      const stop = await page.evaluate(() => {
+        const active = document.activeElement
+        if (!active || active === document.body) return null
+        return active.closest('.carousel') ? `in the Carousel row: ${active.outerHTML.slice(0, 80)}` : active.tagName
+      })
+      if (stop === null) break
+      stops.push(stop)
+    }
+    expect(stops.length).toBeGreaterThan(0)
+    expect(stops.filter((stop) => stop.startsWith('in the Carousel row'))).toEqual([])
   })
 
   test('below the guaranteed height the control opens the Images as pages of disclosures, each with its credit', async ({ page }) => {

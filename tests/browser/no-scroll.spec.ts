@@ -53,6 +53,21 @@ const VIEWPORTS = [
   [320, 480],
 ] as const
 
+/**
+ * Where the width alone orders steps 1 and 2 (10.5), none of them a viewport of 10.6: between
+ * step 1 (1200) and the guaranteed width, at step 2's trigger (960) and just below it, and in
+ * the band between step 2 and the Bubble narrowing (792), each at the guaranteed height and
+ * at one tall enough that no height-keyed step fires.
+ */
+const STEP_2_VIEWPORTS = [
+  [1240, 640],
+  [1240, 800],
+  [960, 640],
+  [960, 800],
+  [959, 800],
+  [800, 800],
+] as const
+
 /** The four situations of 10.3, as pages of the example Tree (playwright.config.ts serves it). */
 const EXAMPLE_PAGES = [
   { what: 'question Node with Options', url: '/ai-act-example/start/prohibited-practices' },
@@ -62,6 +77,18 @@ const EXAMPLE_PAGES = [
     url: '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
   },
   { what: 'Terminal', url: '/ai-act-example/start/prohibited-practices/prohibited' },
+] as const
+
+/**
+ * The rows issue #59 records, English and without the script: the page and viewport where the
+ * open Sources panel lies under its own control. Only these leave the Sources Sheet's
+ * reachability unasserted, and the `test.fixme` below pins exactly these.
+ */
+const ISSUE_59 = [
+  { url: EXAMPLE_PAGES[0].url, viewport: '768x1024' },
+  { url: EXAMPLE_PAGES[2].url, viewport: '768x1024' },
+  { url: EXAMPLE_PAGES[2].url, viewport: '390x844' },
+  { url: EXAMPLE_PAGES[2].url, viewport: '360x640' },
 ] as const
 
 /** The full Node reached by visiting itself 49 times: adjacency is not checked (4.3). */
@@ -152,9 +179,17 @@ function assertFits(m: Measured, where: string): void {
  * open -- and, where the Node has Images and the script runs, with the enlarged view open --
  * and records every measurement. `what` and `lang` name the rows. `script` is false in the
  * no-JavaScript runs, where a thumbnail is a link to the file and opens nothing in place.
+ * `viewports` are 10.6's unless a test measures a band of its own.
  */
-async function measureEverywhere(page: Page, url: string, what: string, lang: string, script = true): Promise<void> {
-  for (const [width, height] of VIEWPORTS) {
+async function measureEverywhere(
+  page: Page,
+  url: string,
+  what: string,
+  lang: string,
+  script = true,
+  viewports: readonly (readonly [number, number])[] = VIEWPORTS,
+): Promise<void> {
+  for (const [width, height] of viewports) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
     await page.goto(url)
@@ -177,10 +212,12 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
       const open = await measure(page)
       rows.push({ page: what, lang, viewport, sheet: kind, measured: open })
       assertFits(open, `${what} (${lang}) at ${viewport} with the ${kind} open`)
-      // Without the script the Sources control in the Bubble can lie over a link of its own
-      // panel: issue #59, pinned by the `test.fixme` of that number below, which is where
-      // that Sheet's reachability is asserted until it is fixed.
-      const reachable = script || kind !== 'sources-sheet'
+      // Without the script the Sources control in the Bubble lies over a link of its own panel
+      // at the rows of issue #59, pinned by the `test.fixme` of that number below, which is
+      // where that Sheet's reachability is asserted there until it is fixed. Everywhere else
+      // it is asserted here.
+      const known59 = !script && kind === 'sources-sheet' && ISSUE_59.some((row) => row.url === url && row.viewport === viewport)
+      const reachable = !known59
       if (reachable) await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open`)
 
       // Without the script a long list is pages of native disclosures (section 14): each
@@ -271,10 +308,14 @@ for (const lang of LANGUAGES) {
   })
 }
 
-/** The Carousel's fixture (section 12): a Node whose Images are more than a page of the strip, and the common two. */
+/**
+ * The Carousel's fixture (section 12): a Node whose Images are more than a page of the strip,
+ * the common two, and a credit of the format's maximum 120 characters.
+ */
 const CAROUSEL_PAGES = [
   { what: 'Node with five Images', url: '/carousel/five' },
   { what: 'Node with two Images', url: '/carousel/five/two' },
+  { what: 'Node with a 120-character credit', url: '/carousel/five/two/long' },
 ] as const
 
 let carousel: Promise<string | null> | undefined
@@ -294,6 +335,16 @@ for (const { what, url } of CAROUSEL_PAGES) {
       await measureEverywhere(page, `${await carouselOrigin()}${inLang(url, lang)}`, what, lang)
     })
   }
+}
+
+// The order of 10.5 by width, laid out: the longest credit whole on the caption line from
+// the guaranteed width down to step 2's trigger, and the collapsed row below it.
+for (const lang of LANGUAGES) {
+  test(`the Node with a 120-character credit, ${lang}, never scrolls where steps 1 and 2 fire by width`, async ({ page }) => {
+    test.slow()
+    const { what, url } = CAROUSEL_PAGES[2]
+    await measureEverywhere(page, `${await carouselOrigin()}${inLang(url, lang)}`, what, lang, true, STEP_2_VIEWPORTS)
+  })
 }
 
 test('the longest Node of the first Tree, once it validates, never scrolls at any viewport of 10.6', async ({ page }) => {
@@ -337,21 +388,19 @@ test.describe('with JavaScript switched off', () => {
     })
   }
 
-  // Known defect, issue #59: at 768 x 1024 (and, on the explanation Node, at 390 x 844 and
-  // 360 x 640) the open Sources panel lies under its own control, so one Source link takes
-  // no click. `measureEverywhere` leaves this one Sheet out without the script; this is the
-  // assertion it would make, marked `fixme` so the run shows it until #59 is fixed.
+  // Known defect, issue #59: at the rows of ISSUE_59 the open Sources panel lies under its
+  // own control, so one Source link takes no click. `measureEverywhere` leaves the Sources
+  // Sheet out without the script at those rows only; this is the assertion it would make
+  // there, marked `fixme` so the run shows it until #59 is fixed.
   test.fixme('the Sources Sheet keeps every link clear of its own control without JavaScript (#59)', async ({ page }) => {
-    for (const [width, height] of VIEWPORTS) {
+    for (const { url, viewport } of ISSUE_59) {
+      const [width, height] = viewport.split('x').map(Number) as [number, number]
       await page.setViewportSize({ width, height })
-      for (const { what, url } of EXAMPLE_PAGES) {
-        await page.goto(url)
-        const sheet = page.locator('details.sources-sheet')
-        if (!(await sheet.locator('.sheet-open').isVisible())) continue
-        await sheet.locator('.sheet-open').click()
-        await expect(sheet.locator('.sheet-panel')).toBeVisible()
-        await assertReachable(sheet, `${what} at ${width}x${height} with the Sources open`)
-      }
+      await page.goto(url)
+      const sheet = page.locator('details.sources-sheet')
+      await sheet.locator('.sheet-open').click()
+      await expect(sheet.locator('.sheet-panel')).toBeVisible()
+      await assertReachable(sheet, `${url} at ${viewport} with the Sources open`)
     }
   })
 
