@@ -12,6 +12,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeAll, describe, expect, test } from 'vitest'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
 import { TreeView } from '../src/components/TreeView.tsx'
+import { neighbourhood } from '../src/neighbourhood.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { contentLanguage, parseUrl } from '../src/url.ts'
 import { effectiveLang } from './effective-lang.ts'
@@ -26,6 +27,7 @@ beforeAll(async () => {
     ['other-languages', path.join(here, 'fixtures', 'other-languages')],
     ['full-node', path.join(here, 'fixtures', 'full-node')],
     ['carousel', path.join(here, 'fixtures', 'carousel')],
+    ['cycle', path.join(here, 'fixtures', 'cycle')],
   ] as const) {
     trees.set(id, await openTree(dir))
   }
@@ -48,7 +50,7 @@ async function view(url: string): Promise<string> {
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)
-  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} />)
+  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} neighbours={await neighbourhood(tree, address, node)} />)
 }
 
 /**
@@ -65,7 +67,7 @@ async function shell(url: string): Promise<string> {
     <html lang={contentLanguage(tree, langSegment(target))}>
       <body>
         <main>
-          <TreeView node={node} address={address} tree={tree} />
+          <TreeView node={node} address={address} tree={tree} neighbours={await neighbourhood(tree, address, node)} />
         </main>
         <Disclaimer lang={address.lang} />
       </body>
@@ -112,6 +114,53 @@ describe('the tree layer', () => {
     )
     expect(order.every((at) => at >= 0), layer.slice(0, 200)).toBe(true)
     expect(order).toEqual([...order].sort((a, b) => a - b))
+  })
+
+  test('a Branch is marked to slide exactly when the neighbourhood places its target (11.1, 11.2)', async () => {
+    const urls = [
+      '/ai-act-example/start',
+      '/ai-act-example/start/prohibited-practices',
+      '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
+      // A Terminal, whose `startAgain` URL is its grandparent's.
+      '/ai-act-example/start/prohibited-practices/prohibited',
+      '/ai-act-example/start/prohibited-practices?lang=nl',
+      // Every Trail entry is the Node on screen, which is never its own neighbour.
+      '/full-node/full/full/full',
+    ]
+    for (const url of urls) {
+      const target = new URL(url, 'https://example.org')
+      const tree = trees.get(target.pathname.split('/')[1]!)!
+      const address = parseUrl(target.pathname, langSegment(target), tree)!
+      const placed = new Set((await neighbourhood(tree, address, (await tree.getNode(address.nodeId))!)).map((p) => p.href))
+      const marked = [...(await view(url)).matchAll(/<a class="branch ([^"]*)" href="([^"]*)"([^>]*)>/g)].map(
+        ([, kind, href, rest]) => [kind, href, rest!.includes('data-slide')],
+      )
+      // `startAgain` has no direction (11.1), even where its URL is the grandparent's.
+      const slides = (kind: string, href: string) => kind !== 'answer answer--start-again' && placed.has(href)
+
+      expect(marked.length, url).toBeGreaterThan(0)
+      expect(marked, url).toEqual(marked.map(([kind, href]) => [kind, href, slides(kind as string, href as string)]))
+    }
+    const full = await view('/full-node/full/full/full')
+    expect(full.match(/<a class="branch trail-entry"[^>]*data-slide/g), 'the full Node\'s Trail').toBeNull()
+    expect(full.match(/<a class="branch option"[^>]*data-slide/g), 'the full Node\'s Options').toHaveLength(8)
+  })
+
+  test('on a Trail that repeats nothing, an Answer back to the parent does not slide, and two Answers to one target both do (11.3)', async () => {
+    const answers = async (url: string) =>
+      [...(await view(url)).matchAll(/<a class="branch answer (answer--(?:yes|no))" href="([^"]*)"([^>]*)>/g)].map(
+        ([, kind, href, rest]) => [kind, href, rest!.includes('data-slide')],
+      )
+
+    // `third`'s `yes` is `second`, which the Trail entry placed `up` at its own shorter address.
+    expect(await answers('/cycle/first/second/third')).toEqual([
+      ['answer--yes', '/cycle/first/second/third/second', false],
+      ['answer--no', '/cycle/first/second/third/done', true],
+    ])
+    expect(await answers('/cycle/first/second')).toEqual([
+      ['answer--yes', '/cycle/first/second/third', true],
+      ['answer--no', '/cycle/first/second/third', true],
+    ])
   })
 
   test('the Carousel row is present on every Node, empty where neither the Node nor its Options carry a picture, so the Bubble never moves (12.1)', async () => {
@@ -343,7 +392,7 @@ describe('the Bubble', () => {
   })
 
   test('is the article the content language is declared on', async () => {
-    expect(await view('/ai-act-example/start?lang=nl')).toContain('<article class="bubble bubble--question" lang="nl">')
+    expect(await view('/ai-act-example/start?lang=nl')).toContain('<article class="bubble bubble--question" lang="nl" data-node="start">')
   })
 
   test('shows no metadata: nothing but what 10.3 lists is inside it', async () => {

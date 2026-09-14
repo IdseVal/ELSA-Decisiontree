@@ -6,7 +6,9 @@
  * read and come back from (10.3, core document 10.23).
  *
  * Everything between the chrome bar and the disclaimer is one element, the tree layer, so
- * that the transitions of section 11 (#42) can move the whole tree with one transform. The
+ * that the slide of section 11 moves the whole tree with one transform (`Slider`). The
+ * neighbours of the Node (11.2) are drawn as frames of the same layout, one layer away in
+ * the direction of the Branch that leads to them, and carry no image URL at all (11.4). The
  * Carousel's row (section 12) is present on every Node, so the Bubble sits in the same place.
  *
  * Below the guaranteed viewport the layout gives things up in the order of 10.5, and each
@@ -14,11 +16,13 @@
  * and its collapsed control are both in the markup; the stylesheet shows one or the other,
  * which is what keeps the page correct without JavaScript (section 14).
  *
- * The view takes a Node, the address it was reached by and the Tree's index, and returns
- * markup; it never touches the file system, the environment or the request (section 6).
+ * The view takes a Node, the address it was reached by, its neighbourhood and the Tree's
+ * index, and returns markup; it never touches the file system, the environment or the
+ * request, and it never decides which Nodes are neighbours (section 6).
  */
 import { Fragment } from 'react'
 import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
+import type { Placed } from '../neighbourhood.ts'
 import type { Tree } from '../tree/loader.ts'
 import type { Node, Option } from '../tree/types.ts'
 import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
@@ -26,6 +30,7 @@ import { Branch } from './Branch.tsx'
 import { Bubble, sheetWords } from './Bubble.tsx'
 import { Carousel } from './Carousel.tsx'
 import { Sheet } from './Sheet.tsx'
+import { Slider } from './Slider.tsx'
 
 /** How many Trail Branches carry a title at the guaranteed viewport (10.2). */
 const TRAIL_SHOWN = 5
@@ -39,12 +44,38 @@ interface View {
   /** A Node's title in the content language, from the index: never a second Node read. */
   titleOf: (id: string) => string
   root: string
+  treeTitle: string
+  /**
+   * Prepended to every `id` the frame writes. A neighbour frame is mounted beside the centre
+   * during a slide, and two elements must not share an id even for that half second.
+   */
+  idPrefix: string
+  /** False in a neighbour frame, which names no image file at all (11.4). */
+  pictures: boolean
+  /**
+   * Whether a Branch of a kind that slides, to `href`, has a placement to slide to (11.1,
+   * 11.2). A target the neighbourhood dropped or deduplicated is an ordinary link; so is every
+   * Branch of a neighbour frame, which is inert and never clicked.
+   */
+  placed: (href: string) => boolean
 }
 
-export function TreeView({ node, address, tree }: { node: Node; address: PageAddress; tree: Tree }) {
+export function TreeView({
+  node,
+  address,
+  tree,
+  neighbours,
+}: {
+  node: Node
+  address: PageAddress
+  tree: Tree
+  /** The Nodes around this one, from `src/neighbourhood.ts` (11.2). */
+  neighbours: Placed[]
+}) {
   const lang = address.lang
-  const view: View = {
-    address,
+  const hrefs = new Set(neighbours.map((placed) => placed.href))
+  const viewAt = (at: PageAddress, idPrefix: string, centre: boolean): View => ({
+    address: at,
     ui: chrome(lang),
     uiLang: chromeLang(lang),
     // Every id a Branch names was accepted by `parseUrl` or validated by the loader, so the
@@ -52,18 +83,28 @@ export function TreeView({ node, address, tree }: { node: Node; address: PageAdd
     // `text` reserves for a missing text, instead of a crash.
     titleOf: (id) => text(tree.getTitle(id) ?? {}, lang, `${id}.title`),
     root: tree.manifest.root,
-  }
+    treeTitle: text(tree.manifest.title, lang, 'tree.title'),
+    idPrefix,
+    pictures: centre,
+    placed: (href) => centre && hrefs.has(href),
+  })
+  const view = viewAt(address, '', true)
+  const here = nodeHref(address)
 
   return (
     <>
-      <div className="tree-layer">
-        <Trail node={node} treeTitle={text(tree.manifest.title, lang, 'tree.title')} view={view} />
-        <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
-        {node.options.length > 0 && <Options node={node} view={view} />}
-        <Answers node={node} view={view} />
-        {/* The Carousel's row (section 12), on every Node, empty where there are no pictures, so the Bubble never moves. */}
-        <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
-      </div>
+      <Slider
+        // One mount per page, so each page runs its own half of a slide (`Slider`).
+        key={here}
+        href={here}
+        neighbours={neighbours.map((placed, index) => ({
+          href: placed.href,
+          ...position(placed, node),
+          frame: <Frame node={placed.node} view={viewAt(placed.address, `n${index}-`, false)} />,
+        }))}
+      >
+        <Frame node={node} view={view} />
+      </Slider>
       {/* Shown instead of the tree view at and below the floor of 10.4; the stylesheet decides,
           and shows the sentence for the dimension that is short, so a 1280 x 480 window is
           told to grow taller and not that it needs 320 by 480. */}
@@ -76,6 +117,47 @@ export function TreeView({ node, address, tree }: { node: Node; address: PageAdd
 }
 
 /**
+ * One Node laid out as the tree view draws it: the Trail, the Bubble, the Options, the
+ * Answers and the Carousel's row. The centre of the page is one; so is each neighbour, which
+ * is why a Bubble arriving in a slide already carries its own Branch labels (11.3).
+ */
+function Frame({ node, view }: { node: Node; view: View }) {
+  const lang = view.address.lang
+  return (
+    <>
+      <Trail node={node} view={view} />
+      <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} />
+      {node.options.length > 0 && <Options node={node} view={view} />}
+      <Answers node={node} view={view} />
+      {/* The Carousel's row (section 12), on every Node, empty where there are no pictures, so the
+          Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
+      {view.pictures ? (
+        <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
+      ) : (
+        <div className="carousel" />
+      )}
+    </>
+  )
+}
+
+/**
+ * Where a neighbour's frame is drawn, in widths and heights of the layer, from the Node on
+ * screen (11.1): a Trail entry straight above, one layer per step back; an Answer target
+ * below and towards its own Branch -- `yes` left, `no` right -- and their Answer targets a
+ * layer further, spread so no two frames overlap; an Option target beside, on the side of
+ * its column and a little towards its row.
+ */
+function position({ direction, slot }: Placed, node: Node): { x: number; y: number } {
+  if (direction === 'up') return { x: 0, y: -(slot + 1) }
+  if (direction === 'down') return slot < 2 ? { x: slot - 0.5, y: 1 } : { x: slot - 3.5, y: 2 }
+  const half = Math.ceil(node.options.length / 2)
+  const left = slot < half
+  const rows = left ? half : node.options.length - half
+  const row = left ? slot : slot - half
+  return { x: left ? -1 : 1, y: (row - (rows - 1) / 2) / 4 }
+}
+
+/**
  * The Trail as the Branches above (10.2): oldest first, the parent nearest the Bubble. A
  * Trail longer than five collapses in the middle to `trailMore(n)`, which opens the whole
  * Trail as a Sheet; below the guaranteed height it collapses to the parent alone plus that
@@ -85,8 +167,8 @@ export function TreeView({ node, address, tree }: { node: Node; address: PageAdd
  * has no Trail and shows the Tree's title instead; a Node opened by its own URL offers the
  * `start` Branch, so no reader is stranded.
  */
-function Trail({ node, treeTitle, view }: { node: Node; treeTitle: string; view: View }) {
-  const { address, ui, uiLang, titleOf, root } = view
+function Trail({ node, view }: { node: Node; view: View }) {
+  const { address, ui, uiLang, titleOf, root, treeTitle, idPrefix, placed } = view
   const entries = address.trail.map((id, index) => ({ href: trailHref(address, index), title: titleOf(id) }))
 
   if (entries.length === 0 && node.id === root) {
@@ -103,13 +185,13 @@ function Trail({ node, treeTitle, view }: { node: Node; treeTitle: string; view:
   return (
     <nav
       className={`trail${long ? ' trail--long' : ''}${collapsible ? ' trail--collapsible' : ''}`}
-      aria-labelledby="trail-label"
+      aria-labelledby={`${idPrefix}trail-label`}
     >
       {/* The name of the region is chrome and may be in another language than the titles
           under it. Only a referenced element can say so; an `aria-label` string cannot. It is
           `hidden` rather than clipped: a name is read from a hidden element all the same, and
           a clipped one is an element whose content is wider than itself (10.6). */}
-      <span hidden id="trail-label" lang={uiLang}>
+      <span hidden id={`${idPrefix}trail-label`} lang={uiLang}>
         {ui.trail}
       </span>
       <ol>
@@ -131,7 +213,15 @@ function Trail({ node, treeTitle, view }: { node: Node; treeTitle: string; view:
             <Fragment key={entry.href}>
               <li className="trail-step" data-kept={kept ? '' : undefined} data-parent={parent ? '' : undefined}>
                 {/* The entry just above the current Node is the page the reader came from. */}
-                <Branch className="trail-entry" href={entry.href} title={entry.title} rel={parent ? 'prev' : undefined} />
+                <Branch
+                  className="trail-entry"
+                  href={entry.href}
+                  title={entry.title}
+                  rel={parent ? 'prev' : undefined}
+                  // Only the parent and the grandparent are placed above (11.2); an older entry
+                  // is an ordinary link (11.1).
+                  slides={placed(entry.href)}
+                />
               </li>
               {/* The collapsed middle sits where the middle is: after `start`, before what stays. */}
               {index === 0 && (
@@ -157,6 +247,7 @@ function Trail({ node, treeTitle, view }: { node: Node; treeTitle: string; view:
                     items={entries.map((e) => ({ href: e.href, label: e.title })).reverse()}
                     words={sheetWords(ui)}
                     uiLang={uiLang}
+                    idPrefix={idPrefix}
                   />
                 </li>
               )}
@@ -174,25 +265,27 @@ function Trail({ node, treeTitle, view }: { node: Node; treeTitle: string; view:
  * them. The same list as a Sheet is what the columns collapse to (10.5, steps 3 and 4).
  */
 function Options({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang } = view
+  const { address, ui, uiLang, idPrefix, pictures, placed } = view
   const lang = address.lang
   const half = Math.ceil(node.options.length / 2)
 
   const branch = (option: Option, index: number) => {
     const where = `${node.id}.options[${index}]`
     const image = option.images[0]
+    const href = followHref(address, option.target)
     return (
       <li key={option.target}>
         <Branch
           className="option"
-          href={followHref(address, option.target)}
+          href={href}
           title={text(option.title, lang, `${where}.title`)}
           image={
-            image && {
-              src: imageHref(image.file),
-              alt: text(image.description, lang, `${where}.images[${image.file}].description`),
-            }
+            image &&
+            (pictures
+              ? { src: imageHref(image.file), alt: text(image.description, lang, `${where}.images[${image.file}].description`) }
+              : 'withheld')
           }
+          slides={placed(href)}
         />
       </li>
     )
@@ -200,16 +293,16 @@ function Options({ node, view }: { node: Node; view: View }) {
 
   return (
     <>
-      <span hidden id="options-label" lang={uiLang}>
+      <span hidden id={`${idPrefix}options-label`} lang={uiLang}>
         {ui.options}
       </span>
       {/* The count is what the stylesheet collapses the columns on (10.5, step 4). */}
       <div className="options-columns" data-count={node.options.length}>
-        <ul className="options options--left" aria-labelledby="options-label">
+        <ul className="options options--left" aria-labelledby={`${idPrefix}options-label`}>
           {node.options.slice(0, half).map(branch)}
         </ul>
         {node.options.length > 1 && (
-          <ul className="options options--right" aria-labelledby="options-label">
+          <ul className="options options--right" aria-labelledby={`${idPrefix}options-label`}>
             {node.options.slice(half).map((option, index) => branch(option, half + index))}
           </ul>
         )}
@@ -224,6 +317,7 @@ function Options({ node, view }: { node: Node; view: View }) {
           }))}
           words={sheetWords(ui)}
           uiLang={uiLang}
+          idPrefix={idPrefix}
         />
       </div>
     </>
@@ -237,23 +331,24 @@ function Options({ node, view }: { node: Node; view: View }) {
  * own URL has none, and the Trail row's `start` Branch is its way on.
  */
 function Answers({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, titleOf, root } = view
+  const { address, ui, uiLang, titleOf, root, idPrefix, placed } = view
   const parent = address.trail.length - 1
+  const sliding = (href: string) => ({ href, slides: placed(href) })
 
   return (
-    <div className="answers" role="group" aria-labelledby="node-title">
+    <div className="answers" role="group" aria-labelledby={`${idPrefix}node-title`}>
       {node.kind === 'question' && (
         <>
           <Branch
             className="answer answer--yes"
-            href={followHref(address, node.answers.yes)}
+            {...sliding(followHref(address, node.answers.yes))}
             word={ui.yes}
             wordLang={uiLang}
             title={titleOf(node.answers.yes)}
           />
           <Branch
             className="answer answer--no"
-            href={followHref(address, node.answers.no)}
+            {...sliding(followHref(address, node.answers.no))}
             word={ui.no}
             wordLang={uiLang}
             title={titleOf(node.answers.no)}
@@ -263,7 +358,7 @@ function Answers({ node, view }: { node: Node; view: View }) {
       {node.kind !== 'question' && parent >= 0 && (
         <Branch
           className="answer answer--back"
-          href={trailHref(address, parent)}
+          {...sliding(trailHref(address, parent))}
           word={ui.back}
           wordLang={uiLang}
           title={titleOf(address.trail[parent]!)}

@@ -5,5 +5,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
+    // A router for the client components that ask for one (tests/setup.ts).
+    setupFiles: ['tests/setup.ts'],
   },
 })

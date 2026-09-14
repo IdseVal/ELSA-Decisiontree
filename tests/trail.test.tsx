@@ -13,6 +13,7 @@ import { beforeAll, describe, expect, test } from 'vitest'
 import { chrome, chromeLang } from '../src/chrome.ts'
 import { ShareButton } from '../src/components/ShareButton.tsx'
 import { TreeView } from '../src/components/TreeView.tsx'
+import { neighbourhood } from '../src/neighbourhood.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { parseUrl } from '../src/url.ts'
 
@@ -39,7 +40,7 @@ async function view(url: string): Promise<string> {
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)
-  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} />)
+  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} neighbours={await neighbourhood(tree, address, node)} />)
 }
 
 /** The Trail's markup on its own, or the empty string when the page draws no Trail. */
@@ -98,8 +99,19 @@ describe('the Trail', () => {
   test('the parent -- the entry nearest the Bubble -- is the page the reader came from', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
 
-    expect(trail(html)).toContain('<a class="branch trail-entry" href="/ai-act-example/start/prohibited-practices" rel="prev">')
+    expect(trail(html)).toContain('<a class="branch trail-entry" href="/ai-act-example/start/prohibited-practices" rel="prev" data-slide="">')
     expect(trail(html).match(/rel="prev"/g)).toHaveLength(1)
+  })
+
+  test('only the parent and the grandparent are marked to slide; an older entry is an ordinary link (11.1)', async () => {
+    // Four different Nodes, so no entry is dropped as the Node on screen: a walk of `full` to
+    // itself places no Trail entry at all, and so marks none.
+    const html = await view('/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring/prohibited')
+    const marked = [...trail(html).matchAll(/<a class="branch trail-entry"([^>]*)>/g)].map((match) =>
+      match[1]!.includes('data-slide'),
+    )
+
+    expect(marked).toEqual([false, false, true, true])
   })
 
   test('at the root Node there is no Trail: the row holds the Tree title instead (10.2)', async () => {

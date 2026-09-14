@@ -485,7 +485,7 @@ the parsed Tree held in memory.
 | Moment | Server reads | Browser receives |
 |---|---|---|
 | Server start | `tree.yaml` once, to validate and to build the Node and title indexes. Failure: every violation printed, exit code 1, nothing served. | -- |
-| A request for a Node page | Nothing from disk. The current Node and its neighbourhood -- **at most 17 Nodes** (section 11) -- from the index, and Branch labels from the title index. | Complete HTML: the tree view of section 10 with the current Node as the centre Bubble, its Branches, its Carousel with an `<img loading="lazy">` per Image of this Node, the neighbour Bubbles of section 11 (**without any image URL**), chrome, the Theme's `<style>` block, the disclaimer, the stylesheet and the client bundle. No image bytes, no font bytes. |
+| A request for a Node page | Nothing from disk. The current Node and its neighbourhood -- **at most 17 Nodes** (section 11) -- from the index, and Branch labels from the title index. | Complete HTML: the tree view of section 10 with the current Node as the centre Bubble, its Branches, its Carousel with an `<img loading="lazy">` per Image of this Node, the neighbour Bubbles of section 11 (**without any image URL**), chrome, the Theme's `<style>` block, the disclaimer, the stylesheet and the client bundle. No image bytes, no font bytes. **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours into the page as the tree layer's payload; they enter the DOM only during a slide. At rest, and without JavaScript, the DOM holds the centre Bubble only (11.3). |
 | After the HTML | -- | The image files this Node's Carousel and Option Branches name, through `GET /images/<file>`; the Theme's font and logo files, through `GET /theme/<file>`. Nothing else, and nothing from another origin. |
 | The user follows a Branch | Nothing from disk; the target Node and **its** neighbourhood from the index. | **Exactly one** page payload, carrying at most 17 Nodes, then that Node's image files. Section 11 has the accounting. |
 | Opening an Image in the Carousel | -- | Nothing new: the enlarged view shows the file the strip already loaded (section 12). |
@@ -503,6 +503,13 @@ The size this bounds: a Node at the format's maxima is about 900 characters of t
 one language, so a 17-Node response is roughly 40 kB of HTML before compression. The
 Tree it comes from may have a thousand Nodes and a thousand images; neither number
 appears anywhere in a response.
+
+**Amended 2026-09-14 (#42, PR #57), measured:** the example Tree's pages are 35 to 48 kB
+of HTML, as estimated. At the format's maxima they are not: the full Node at a 49-entry
+Trail is 720 kB of HTML (22 kB gzipped), with 11 Nodes. The Node count bounds what a
+response may carry, and holds; the bytes follow the Trail, which every neighbour frame
+draws in full. `ADR-38-neighbourhood.md` (Consequences) has the figures, and issue #60
+the lever.
 
 ### 5.3 The image route
 
@@ -699,7 +706,7 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | Browser (Playwright) | Asserts |
 |---|---|
 | `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind, with every Sheet open, and again with JavaScript disabled; **[v0.2]** the Node with a 120-character credit also at 1240, 960, 959 and 800 pixels of width, where steps 1 and 2 fire by width (10.5; amended 2026-09-14, #43); the first Tree's `annex-i-legislation`, its heaviest Node -- its own picture and eight Options with one each, nine in the strip -- in both languages, with every Sheet open and each of the nine pictures enlarged in turn (amended 2026-09-14, #55). |
-| `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, no image of an off-centre Node, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation. |
+| `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, no image of an off-centre Node, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation; the neighbour frame of a running slide is `inert`, and a slide started with a Sheet open closes it first. |
 | `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.yaml` and restarting changes the page with no code change. |
 | `tree-view.spec.ts` **[v0.2]** | The tree view in a browser (#41): what a click on each kind of Branch does to the URL (10.3); Tab reaches every control in document order and Enter follows each Branch -- every control that is shown and enabled, because a disabled button is no tab stop, as the Carousel's previous and next are on a strip that fits its row (amended 2026-09-14, #55); a Sheet opens, lists its links, closes on Escape and returns the focus; the Trail Sheet pages eight at a time, newest first (10.2); the minimum-size notice names the dimension that is short (10.4); the screenshots of #41. **With JavaScript disabled**, section 14: every Branch is a link that navigates, a collapsed group is its plain list, and the Trail Sheet is pages of disclosures. There is no `no-js.spec.ts`: the no-script assertions live here and in `no-scroll.spec.ts`, which measures every page without script as well (amended 2026-09-13, #41, PR #56). |
 | `carousel.spec.ts` **[v0.2]** | The Carousel in a browser (#43), against `tests/fixtures/carousel/`: the image files requested on load, after `next` and on enlarging, and never another Node's (12.4, 11.5); previous and next scroll a page and are disabled at the ends; one tab stop, Left/Right/Home/End, Enter or Space enlarges, Escape closes and returns the focus (12.3); the names in `en` and `nl`; below step 2 the one control says `imageCount` and opens the enlarged view (10.5); by width the Trail collapses at 1200 and the Carousel at 960, the 120-character credit whole on the caption line until then (10.5, 12.2); **with JavaScript disabled**, a thumbnail opens its file, the strip is a tab stop the arrow keys scroll, a Node without pictures -- its own or its Options' (below) -- has no stop in the row, the caption follows the focus, and the collapsed control pages the Images as disclosures (14); the screenshots of #43 (amended 2026-09-13 and 2026-09-14, #43). **Amended 2026-09-14, #55:** the Node with no stop in the row is `social-scoring`, not `prohibited-practices`, whose Option carries a picture; on the example Tree's `prohibited-practices` an Option's picture is named with its Option -- "Enlarge Social scoring: A scoreboard ranking people" -- and described by its credit, in `en` and `nl`; and every picture of the example Tree, the Nodes' own and the Options', shows its whole credit on the caption line as the keyboard walks the strip, without a click, in `en` and `nl` (with `tests/browser/credits.ts`). |
@@ -1058,7 +1065,7 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 | The longest Node of the first Tree that validates | The real content, once #44 has cut it. |
 | `annex-i-legislation` of the first Tree | Its heaviest Node: its own picture and eight Options with one each, nine in the strip (amended 2026-09-14, #55). |
 | Each of the above in **both** `en` and `nl` | Dutch runs longer than English; the limits are per language and so is the fit. |
-| Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. **Mid-transition is deferred with the transition** (amended 2026-09-13, #41, PR #56): #42 builds it, and adds the mid-transition rows to `no-scroll.spec.ts`; #41's test measures every page with every Sheet open. |
+| Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. **Mid-transition is deferred with the transition** (amended 2026-09-13, #41, PR #56): #42 builds it, and adds the mid-transition rows to `no-scroll.spec.ts`; #41's test measures every page with every Sheet open. The two never happen at once (amended 2026-09-15, #42, PR #57): a slide closes any open Sheet before it begins (11.3), so the mid-transition rows are measured with every Sheet closed. |
 
 The build issue (#41) pastes the measured numbers in its pull request; the test is what
 keeps them true afterwards.
@@ -1135,6 +1142,21 @@ centre.
   neighbourhood only by coincidence (a Trail of two), and a root Bubble placed one
   viewport away in some direction would draw a tree that is not there. It is an ordinary
   link (11.3).
+- **Amended 2026-09-14 (#42, PR #57): the side slide exists only while the Option
+  columns are on screen.** Where 10.5 step 4 has collapsed them into the `options`
+  Sheet, which on the full Node is 1024 x 768 and below, the Sheet's items are plain
+  links with no `data-slide`. The Sheet is a list, not a Branch drawn in the layer, so
+  following an Option from it loads the target's page without a slide. 11.2 still
+  places every Option target at those viewports, because the server renders one page
+  for every viewport and the stylesheet decides the collapse. On the full Node that is
+  eight neighbour frames that nothing on screen can slide to. Issue #60 weighs that
+  cost.
+- **Amended 2026-09-15 (#42, PR #57): no item of any Sheet slides, whatever its
+  target's placement.** The line above is one case of it. The Trail Sheet (10.2) lists
+  the whole Trail newest first, so its first two items are the parent and the
+  grandparent, the two entries placed `up`; following the parent from the Trail row
+  slides, and following it from the Sheet loads the page. A Sheet is a list, not a
+  Branch drawn in the layer, and a slide never runs with a Sheet open (11.3).
 
 ### 11.2 The neighbourhood: which Nodes are pre-rendered
 
@@ -1146,6 +1168,17 @@ export type Direction = 'up' | 'down' | 'side'
 export interface Placed { node: Node; href: string; direction: Direction; slot: number }
 export function neighbourhood(tree: Tree, at: PageAddress): Promise<Placed[]>   // at most 16
 ```
+
+**The signature as built** (amended 2026-09-14, #42, PR #57, by the owner):
+
+```ts
+export interface Placed { node: Node; href: string; address: PageAddress; direction: Direction; slot: number }
+export function neighbourhood(tree: Tree, at: PageAddress, node: Node): Promise<Placed[]>   // at most 16
+```
+
+The page passes the Node it has already read, so each Node is read once (the last bullet
+below), and each placement carries the address its `href` names, from which the
+neighbour's own Branches are built.
 
 Given the Node on screen and the Trail that reached it:
 
@@ -1185,6 +1218,14 @@ and out of the tab order. No second route, no JSON API, no client fetch on load.
 costs nothing on the server, because `elsa-tree/2` is one file already parsed in memory
 (`tree-format.md` section 6).
 
+**Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours into
+the page as the tree layer's payload; they enter the DOM only during a slide. At rest, and
+without JavaScript, the DOM holds the centre Bubble only. Nothing is fetched at the moment
+of a slide and the neighbour is still rendered by the server, not by a second renderer;
+hidden duplicate Bubbles in every page would cost DOM weight and confuse assistive
+technology for nothing. `transition.spec.ts` pins it: with JavaScript disabled the page
+holds exactly one `.tree-frame`.
+
 Following a Branch, with JavaScript:
 
 1. The Branch is an ordinary `<a href>`. `Slider` intercepts the click.
@@ -1209,6 +1250,29 @@ a long Trail, or an entry reached from the Trail Sheet (10.2) -- and a Terminal'
 target's page loads and the tree is redrawn around it. `Slider` does not animate toward a Bubble that is not there, and it
 does not fetch one to be able to; a jump five steps back is not a slide in the first
 place.
+
+**Amended 2026-09-14 (#42, PR #57):** a third kind: a Branch whose target another
+direction has already placed at a different address, so that 11.2's deduplication leaves
+this Branch's own address without a placement. An ordinary valid Tree reaches it. One
+case is a question Node whose `yes` or `no` targets a Node already on its Trail, since a
+cycle among question Nodes is not an error (`tree-format.md` 7). The ancestor is placed
+`up` first, and the Answer's deeper `followHref` is not that placement's address. An
+address whose Trail repeats a Node (adjacency is not checked, 4.3) reaches it too, such as
+a parent that is the Node on screen. The Branch has no placement, so it is an ordinary
+link. A Branch is marked `data-slide` only where its `href` is a placement's. Two Branches
+with one `href`, such as `yes` and `no` naming one target (5.3 does not require them to
+differ), share that placement and both slide to it. A target 11.2 *drops*, a Link to an id
+the Tree does not hold, cannot reach a served page: the loader rejects such a Tree at
+start-up (`tree-format.md` 7, V-ANSWERS and V-OPTIONS).
+
+**Amended 2026-09-15 (#42, PR #57): an entry of any Sheet navigates without a slide too**,
+including the parent and the grandparent in the Trail Sheet (11.1); the "entry reached from
+the Trail Sheet" above is not only an entry older than the grandparent. **And a slide never
+begins with a Sheet open.** A Sheet's panel and backdrop are `position: fixed`, and the
+sliding layer's `transform` makes the layer the box a fixed descendant is laid out in, so an
+open panel would travel with the tree. The backdrop stops the pointer but not the keyboard,
+so a Branch behind it can still be followed; `Slider` closes every open Sheet in the layer
+before the layer moves. `transition.spec.ts` pins it.
 
 Back and forward are the browser's, and reverse the slide when the payload is in the
 framework's cache. `prefers-reduced-motion: reduce` removes the motion and keeps the
@@ -1246,6 +1310,12 @@ it by recording every network request.
 | `GET /theme/<file>` | One file the Theme names (5.5). | A file in `theme/` the Theme does not name; anything outside it. |
 | Any request at all | This origin. | Any other origin (13.5). |
 | Any route | -- | There is **no** route that returns more than one Node, and none that returns the Tree. |
+
+**Amended 2026-09-14 (#42, PR #57):** an Option's Images are part of the Node that holds
+the Option (`tree-format.md` 5.4). So the first Image of an Option of the centre Bubble,
+drawn on that Option's Branch (10.3), is an image file of the centre Bubble's Node, and
+5.2's "the image files this Node's Carousel and Option Branches name" is the same set.
+Nothing else off-centre is. `transition.spec.ts` asserts exactly that set.
 
 Walking the whole Tree still downloads it one Node at a time, seventeen at a time at
 the very most, and the server's memory holds the Tree the browser never gets.
@@ -1540,7 +1610,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | Needs JavaScript | What a reader without it gets instead |
 |---|---|
 | The slide transition | A normal page load. Same URL, same Node, no motion. |
-| The pre-rendered neighbour Bubbles | They are in the HTML -- the server rendered them -- but hidden, and `Slider` is what reveals them. Without it the tree layer shows the centre Bubble and its Branches, which is everything the reader needs; off-centre Bubbles that can never move would be clutter, and they are `aria-hidden` besides. No image of another Node is requested either way, because a neighbour Bubble carries no image URL (11.4). |
+| The pre-rendered neighbour Bubbles | They are in the HTML -- the server rendered them -- but hidden, and `Slider` is what reveals them. Without it the tree layer shows the centre Bubble and its Branches, which is everything the reader needs; off-centre Bubbles that can never move would be clutter, and they are `aria-hidden` besides. No image of another Node is requested either way, because a neighbour Bubble carries no image URL (11.4). **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours into the page as the tree layer's payload; they enter the DOM only during a slide. At rest, and without JavaScript, the DOM holds the centre Bubble only (11.3). |
 | The enlarged view in place | The image file, opened by the link. |
 | The Carousel's previous/next buttons | The strip itself scrolls; the buttons are an enhancement of a control that already works. |
 | The Sheets of 10.2 and 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. A list longer than one page of eight -- the 49-entry Trail -- is pages of nested native disclosures: `next` opens the next page and the stylesheet hides the one before it, so no panel is ever asked to hold more than fits, at any viewport of 10.6 (#41). The control that opened a Sheet stays above its panel, and a second click on it closes the Sheet. The Sources control's place in the Bubble is under the middle of the panel, and the foot of the page holds the collapsed Carousel's control and the disclaimer, so while its Sheet is open the Sources panel hangs from the top of the page with the control inside it, at its head: it covers nothing the panel does not (#59). |

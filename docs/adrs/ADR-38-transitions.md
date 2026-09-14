@@ -34,6 +34,9 @@ moves, and what the address bar does while it moves.
    slides **up**. `startAgain` has no direction at all -- a restart is not a step through
    the tree -- and is an ordinary link, like a Trail Branch older than the grandparent
    (`application.md` 11.1, 11.3).
+   **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours
+   into the page as the tree layer's payload; they enter the DOM only during a slide. At
+   rest, and without JavaScript, the DOM holds the centre Bubble only.
 3. **The click is intercepted on an ordinary `<a href>`.** `Slider` starts the
    translation and, in parallel, the client navigation to the same `href`. When the
    payload arrives the tree layer is replaced by the target's own layout and the

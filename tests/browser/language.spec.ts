@@ -8,6 +8,7 @@
  * server does not hold: they are checked in `tests/language.test.tsx` and `tests/interop.test.tsx`.
  */
 import { expect, test, type Page } from '@playwright/test'
+import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
 const STEP = '/ai-act-example/start/prohibited-practices'
@@ -43,7 +44,7 @@ test('switching language changes every text of the Node, and the switch says whe
 
   await page.getByRole('link', { name: 'Nederlands' }).click()
 
-  await expect(page).toHaveURL(`${STEP}?lang=nl`)
+  await arrived(page, `${STEP}?lang=nl`)
   // The document follows the switch too: the `[lang]` segment of issue #20 reaches the root
   // layout through the rewrite, so a screen reader is told the page changed language.
   await expect(page.locator('html')).toHaveAttribute('lang', 'nl')
@@ -62,18 +63,18 @@ test('switching language changes every text of the Node, and the switch says whe
 test('the chosen language survives Answers, Options and the way back', async ({ page }) => {
   await page.goto(START)
   await page.getByRole('link', { name: 'Nederlands' }).click()
-  await expect(page).toHaveURL(`${START}?lang=nl`)
+  await arrived(page, `${START}?lang=nl`)
 
   await page.locator('.answer--yes').click()
-  await expect(page).toHaveURL(`${STEP}?lang=nl`)
+  await arrived(page, `${STEP}?lang=nl`)
 
   await page.locator('.options').getByRole('link', { name: 'Sociale scoring' }).click()
-  await expect(page).toHaveURL(`${STEP}/social-scoring?lang=nl`)
+  await arrived(page, `${STEP}/social-scoring?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sociale scoring')
 
   // The way back keeps it too: the Trail entry is the same page in the same language.
   await page.locator('.trail-entry').first().click()
-  await expect(page).toHaveURL(`${START}?lang=nl`)
+  await arrived(page, `${START}?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Valt uw AI-systeem binnen het bereik van de AI-verordening?',
   )
@@ -106,7 +107,7 @@ test('the language is kept in the URL and nowhere else on the reader machine', a
   await page.goto(START)
   await page.getByRole('link', { name: 'Nederlands' }).click()
   await page.locator('.answer--yes').click()
-  await expect(page).toHaveURL(`${STEP}?lang=nl`)
+  await arrived(page, `${STEP}?lang=nl`)
 
   expect(await context.cookies()).toEqual([])
   expect(
@@ -150,7 +151,7 @@ test('the switch is in the HTML the server sends, and is reached by the keyboard
   for (let i = 0; i < logos + 1; i++) await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Nederlands' })).toBeFocused()
   await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(`${STEP}?lang=nl`)
+  await arrived(page, `${STEP}?lang=nl`)
 })
 
 test.describe('with JavaScript switched off', () => {
@@ -160,7 +161,7 @@ test.describe('with JavaScript switched off', () => {
     await page.goto(STEP)
     await page.getByRole('link', { name: 'Nederlands' }).click()
 
-    await expect(page).toHaveURL(`${STEP}?lang=nl`)
+    await arrived(page, `${STEP}?lang=nl`)
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       'Verricht uw systeem een van de verboden praktijken?',
     )

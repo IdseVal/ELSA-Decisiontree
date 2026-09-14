@@ -35,15 +35,19 @@ export function Bubble({
   lang,
   ui,
   uiLang,
+  idPrefix = '',
 }: {
   node: Node
   lang: string
   ui: Chrome
   /** Set when the chrome speaks another language than the content. */
   uiLang: string | undefined
+  /** Prepended to every `id` the Bubble writes, for a copy of it in a neighbour frame. */
+  idPrefix?: string
 }) {
   return (
-    <article className={`bubble bubble--${node.kind}`} lang={lang}>
+    // `data-node` names the Node a Bubble draws, so a response can be counted in Nodes (11.5).
+    <article className={`bubble bubble--${node.kind}`} lang={lang} data-node={node.id}>
       {node.kind === 'terminal' && (
         <p className={`outcome outcome--${node.outcome}`} lang={uiLang}>
           {ui[OUTCOME_LABEL[node.outcome]]}
@@ -51,7 +55,7 @@ export function Bubble({
       )}
 
       <div className="bubble-text">
-        <h1 id="node-title">{text(node.title, lang, `${node.id}.title`)}</h1>
+        <h1 id={`${idPrefix}node-title`}>{text(node.title, lang, `${node.id}.title`)}</h1>
 
         <div
           className="prose"
@@ -61,7 +65,7 @@ export function Bubble({
         />
 
         {node.sources.length > 0 && (
-          <Sources sources={node.sources} nodeId={node.id} lang={lang} ui={ui} uiLang={uiLang} />
+          <Sources sources={node.sources} nodeId={node.id} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} />
         )}
       </div>
 
@@ -89,6 +93,7 @@ function Sources({
   lang,
   ui,
   uiLang,
+  idPrefix,
 }: {
   sources: Source[]
   /** The Node these Sources belong to, for the warning `text` logs. */
@@ -96,6 +101,7 @@ function Sources({
   lang: string
   ui: Chrome
   uiLang: string | undefined
+  idPrefix: string
 }) {
   const entries = sources.map((source, index) => ({
     kind: ui[SOURCE_LABEL[source.kind]],
@@ -105,14 +111,14 @@ function Sources({
 
   return (
     <>
-      <section className="sources" aria-labelledby="sources-label">
+      <section className="sources" aria-labelledby={`${idPrefix}sources-label`}>
         {/* Both `hidden`, not clipped off screen: a name and a description are read from a
             hidden element all the same, and a clipped element is one whose content is wider
             than itself, which the no-scroll rule forbids (10.6). */}
-        <span hidden id="sources-label" lang={uiLang}>
+        <span hidden id={`${idPrefix}sources-label`} lang={uiLang}>
           {ui.sources}
         </span>
-        <span hidden id="sources-new-tab" lang={uiLang}>
+        <span hidden id={`${idPrefix}sources-new-tab`} lang={uiLang}>
           {ui.opensInNewTab}
         </span>
         <ul>
@@ -125,7 +131,7 @@ function Sources({
                 href={entry.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-describedby="sources-new-tab"
+                aria-describedby={`${idPrefix}sources-new-tab`}
               >
                 {entry.label}
               </a>
@@ -140,6 +146,7 @@ function Sources({
           items={entries.map((entry) => ({ ...entry, newTab: true }))}
           words={sheetWords(ui)}
           uiLang={uiLang}
+          idPrefix={idPrefix}
         />
       </div>
     </>
