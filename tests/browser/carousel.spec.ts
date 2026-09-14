@@ -19,6 +19,8 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
+import { openTree } from '../../src/tree/loader.ts'
+import { picturesByNode, readEveryCredit } from './credits.ts'
 import { BASE_PORT, serve, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -382,10 +384,10 @@ test.describe('with JavaScript switched off', () => {
     await expect(page.locator('.thumbnail').first()).toBeFocused()
   })
 
-  test('a Node without Images has no strip, so no empty tab stop in the Carousel row (12.1)', async ({ page }) => {
+  test('a Node without pictures has no strip, so no empty tab stop in the Carousel row (12.1)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    // The example Tree's `prohibited-practices`: an Option carries an Image, the Node none.
-    await page.goto('/ai-act-example/start/prohibited-practices')
+    // The example Tree's `social-scoring`: neither the Node nor an Option of it carries an Image.
+    await page.goto('/ai-act-example/start/prohibited-practices/social-scoring')
     await expect(page.locator('[data-carousel-strip]')).toHaveCount(0)
 
     // Every tab stop of the page, in order, and none of them in the row.
@@ -420,6 +422,22 @@ test.describe('with JavaScript switched off', () => {
     await expect(figures.last().locator('.credit')).toContainText('Drawing: Example Cartography, public domain')
   })
 })
+
+for (const lang of ['en', 'nl'] as const) {
+  test(`every picture of the example Tree shows its author, source and licence without a click, in ${lang}`, async ({ page }) => {
+    // Issue #55: the Node's own Images and its Options' pictures, walked along the strip by
+    // the keyboard at the guaranteed viewport. Playwright's own server serves this Tree.
+    await page.setViewportSize({ width: 1280, height: 640 })
+    const dir = path.join(repo, 'trees', 'ai-act-example')
+    const tree = await openTree(dir)
+    let read = 0
+    for (const [nodeId, pictures] of await picturesByNode(tree, dir, lang)) {
+      read += await readEveryCredit(page, `/ai-act-example/${nodeId}${lang === 'en' ? '' : `?lang=${lang}`}`, pictures)
+    }
+    // eu-map.png on `start` and scoreboard.png on an Option of `prohibited-practices`.
+    expect(read, 'pictures read').toBe(2)
+  })
+}
 
 test('the screenshots of issue #43: five Images, two Images, and the enlarged view, at 1280 x 640', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 640 })

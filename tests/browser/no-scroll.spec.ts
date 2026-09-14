@@ -13,7 +13,7 @@
  * The pages: the four situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
  * at a 49-entry Trail (every maximum the format allows at once), the two Nodes with Images
  * of `tests/fixtures/carousel/` (issue #43), and the longest Node of the first Tree once it
- * validates -- each in both languages, and each again with every Sheet it offers open and
+ * validates and its heaviest, `annex-i-legislation` (issue #55) -- each in both languages, and each again with every Sheet it offers open and
  * every Image it carries enlarged. Mid-transition is issue #42's, which builds the transition.
  *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
@@ -328,6 +328,16 @@ async function carouselOrigin(): Promise<string> {
   return origin!
 }
 
+let firstTree: Promise<string | null> | undefined
+
+/** The first Tree's server, started once for every test of this file that needs it. */
+async function firstTreeOrigin(): Promise<string> {
+  firstTree ??= serve(trees, 'ai-act-applicability-agrifood', FIRST_TREE_PORT)
+  const origin = await firstTree
+  expect(origin, 'the first Tree starts').not.toBeNull()
+  return origin!
+}
+
 for (const { what, url } of CAROUSEL_PAGES) {
   for (const lang of LANGUAGES) {
     test(`${what}, ${lang}, never scrolls at any viewport of 10.6, each Image enlarged in turn`, async ({ page }) => {
@@ -369,13 +379,22 @@ test('the longest Node of the first Tree, once it validates, never scrolls at an
     if (length > longest.length) longest = { id, length }
   }
 
-  const origin = await serve(trees, first, FIRST_TREE_PORT)
-  expect(origin, `${first} starts`).not.toBeNull()
+  const origin = await firstTreeOrigin()
   const url = longest.id === tree!.manifest.root ? `/${first}/${longest.id}` : `/${first}/${tree!.manifest.root}/${longest.id}`
   for (const lang of tree!.manifest.languages) {
     await measureEverywhere(page, `${origin}${inLang(url, lang)}`, `first Tree, longest Node (${longest.id})`, lang)
   }
 })
+
+// The heaviest Node a reader meets (issue #55): its own picture and eight Options, each with
+// a picture that is on its Branch and in the strip, nine in the Carousel.
+for (const lang of LANGUAGES) {
+  test(`the first Tree's annex-i-legislation, ${lang}, never scrolls at any viewport of 10.6, each picture enlarged in turn`, async ({ page }) => {
+    test.slow()
+    const url = `${await firstTreeOrigin()}${inLang('/ai-act-applicability-agrifood/annex-i-legislation', lang)}`
+    await measureEverywhere(page, url, 'first Tree, annex-i-legislation (9 pictures)', lang)
+  })
+}
 
 test.describe('with JavaScript switched off', () => {
   test.use({ javaScriptEnabled: false })

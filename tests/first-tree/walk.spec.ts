@@ -26,6 +26,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { openTree, type Tree } from '../../src/tree/loader.ts'
 import { imageHref } from '../../src/url.ts'
+import { picturesByNode, readEveryCredit } from '../browser/credits.ts'
 
 const TREE = 'ai-act-applicability-agrifood'
 
@@ -271,7 +272,8 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     const options = await page.locator('.option').count()
     expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)
     await expect(page.locator('.option-image')).toHaveCount(options)
-    await expect(page.locator('.carousel .thumbnail img')).toHaveCount(1)
+    // The Node's own picture and, after it, the one of each Option (application.md 12.1).
+    await expect(page.locator('.carousel .thumbnail img')).toHaveCount(options + 1)
 
     // The description is the alternative text (tree-format.md 5.2), in the reader's language.
     for (const image of await page.locator('.option-image, .carousel .thumbnail img').all()) {
@@ -298,15 +300,10 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
  * it" is. The owner's answer on PR #54 (2026-09-12) was to merge the pictures now and make
  * the display a release blocker (`docs/deployment.md`), tracked as issue #55.
  *
- * The three tests below therefore assert what is true TODAY, not what the format promises:
- * the Node pictures show their credit on the Carousel's caption line and in the enlarged
- * view (issue #43), every Option picture on
- * screen has a credit in the Tree the server is serving, and no Option credit reaches the
- * page. The last one is a DECLARED FAILING test: Playwright runs it and requires it to
- * fail, so the day #55 puts the credit on the page it reports "expected to fail, but
- * passed" and whoever fixed it is sent back here to replace it. `test.fixme` would have
- * been the quieter marker, but it does not run the body at all and so cannot fail the day
- * the gap closes, which is the whole point of writing it down.
+ * The tests below assert it: the Node pictures show their credit in the enlarged view, every
+ * Option picture on screen has a credit in the Tree the server is serving, and every one of
+ * the 35 shows its credit on the Carousel's caption line without a click (issue #55, which
+ * replaced the declared failing test that stood here until the display was built).
  */
 const TREE_DIR = fileURLToPath(new URL('../../trees/ai-act-applicability-agrifood', import.meta.url))
 
@@ -347,8 +344,9 @@ test("every step Node's picture gives its credit on the Carousel's caption line 
     expect(node, `${nodeId} cannot be read`).not.toBeNull()
     await page.goto(`/${TREE}/${nodeId}`)
 
+    // The Node's own pictures lead the strip; its Options' follow (application.md 12.1).
     const thumbnails = page.locator('.thumbnail')
-    await expect(thumbnails).toHaveCount(node!.images.length)
+    await expect(thumbnails).toHaveCount(node!.images.length + node!.options.filter((o) => o.images.length > 0).length)
     for (const [index, image] of node!.images.entries()) {
       await thumbnails.nth(index).click()
       const enlarged = page.locator('.carousel-sheet .sheet-panel')
@@ -391,24 +389,20 @@ test('every Option picture on screen has a credit in the Tree this server is ser
   expect(checked, 'Annex Option pictures checked').toBe(28)
 })
 
-test.fail(
-  'KNOWN GAP, issue #55 (accepted by the owner 2026-09-12): an Option picture shows its credit to a reader',
-  async ({ page }) => {
-    // Expected to FAIL today: an Option's `<img>` sits inside the link that walks to its
-    // explanation, so a click navigates and no code path draws an Option's credit. When
-    // #55 (or the Carousel, #43) puts it on the page, Playwright reports "expected to fail,
-    // but passed" -- replace this test then with the one #55 asks for, over all 35 pictures.
-    const nodeId = 'annex-iii-areas'
-    const node = await tree.getNode(nodeId)
-    await page.goto(`/${TREE}/${nodeId}`)
-
-    for (const option of node!.options) {
-      for (const image of option.images) {
-        // `useInnerText`: what a reader can read on the page, not what is in the markup.
-        await expect(page.locator('body'), `${nodeId} -> ${image.file}`).toContainText(image.credit, {
-          useInnerText: true,
-        })
-      }
+for (const lang of ['en', 'nl'] as const) {
+  test(`every one of the 35 pictures shows its author, source and licence without a click, in ${lang}`, async ({ page }) => {
+    // Issue #55, replacing the declared failing test #45 left here: the owner chose on #55
+    // (2026-09-14) that an Option's picture joins the Carousel after the Node's own, so every
+    // credit is on the caption line under the strip (application.md 12.1, 12.2). The strip is
+    // walked by the keyboard, never clicked, at the guaranteed viewport this config sets.
+    const byNode = await picturesByNode(tree, TREE_DIR, lang)
+    let read = 0
+    for (const [nodeId, pictures] of byNode) {
+      read += await readEveryCredit(page, pageUrl([nodeId], lang), pictures)
     }
-  },
-)
+    expect(read, 'pictures read').toBe(35)
+    // Every Image in the Tree is one of them: no Option carries a second picture that no page shows.
+    const nodes = await Promise.all([...byNode.keys()].map((id) => tree.getNode(id)))
+    expect(nodes.reduce((sum, node) => sum + node!.images.length + node!.options.flatMap((o) => o.images).length, 0)).toBe(35)
+  })
+}
