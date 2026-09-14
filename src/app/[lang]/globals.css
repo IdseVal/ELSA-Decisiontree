@@ -68,6 +68,9 @@
   --small: 13px;
   --small-line: 20px;
 
+  /* A Sheet's control, laid out: the small line, 3 pixels of padding and a 1-pixel border, twice. */
+  --sheet-open: 28px;
+
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -966,6 +969,31 @@ a.language:hover,
   max-height: calc(100% - 32px - var(--carousel-clearance, 0px));
 }
 
+/*
+ * The Sources control is in the Bubble, in the middle of the page, so without the script the
+ * centred panel lay under it and one of its links took no click (#59). No spot outside the
+ * panel is free either: the foot holds the collapsed Carousel's control and the disclaimer.
+ * So the open panel hangs from the top of the page and the control moves inside it, into
+ * its padding at its head -- 16 pixels, the control, 12 more -- where it lies over nothing
+ * the panel does not already cover. The disclosure keeps the control's height, so the
+ * Bubble does not move.
+ */
+.sources-sheet[open]:not(:has(> .sheet-backdrop)) {
+  min-height: var(--sheet-open);
+}
+
+.sources-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-open {
+  position: fixed;
+  inset: calc(16px + 1px + 16px) 0 auto;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.sources-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-panel {
+  bottom: auto;
+  padding-top: calc(16px + var(--sheet-open) + 12px);
+}
+
 .sheet-list {
   display: flex;
   flex-direction: column;
@@ -1396,6 +1424,7 @@ a.language:hover,
     --chrome-row: 36px;
     --trail-row: 30px;
     --disclaimer-row: auto;
+    --sheet-open: 24px;
   }
 
   /* Each collapsed group's control: 24 pixels, so the rows that hold one are 24 too. */
