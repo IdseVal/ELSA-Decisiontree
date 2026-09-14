@@ -22,11 +22,13 @@ import { CarouselButtons } from './CarouselButtons.tsx'
 
 /**
  * How many characters the caption line holds (12.2): about 1230 pixels at the guaranteed
- * viewport and, below it, the 728 left beside the page margins at the narrowest width the
- * strip is shown at (792), each at tree-format.md 5.7's 13-pixel advance of 7.24 pixels.
+ * viewport and, below it, the 896 left beside the page margins at the narrowest width the
+ * strip is shown at (960), each at tree-format.md 5.7's 13-pixel advance of 7.24 pixels.
+ * The narrow line is a 120-character credit and its separator exactly, so every credit the
+ * format allows is whole on it; the description may have no room left there.
  */
 const CAPTION_WIDE = 170
-const CAPTION_NARROW = 100
+const CAPTION_NARROW = 123
 
 /** Between the description and the credit on the caption line. */
 const SEPARATOR = ' — '
@@ -48,12 +50,10 @@ export function Carousel({ node, lang, ui, uiLang }: { node: Node; lang: string;
     description: text(image.description, lang, `${node.id}.images[${image.file}].description`),
     credit: image.credit,
   }))
-  // A credit longer than the narrow line gives the row up to its collapsed control below
-  // the guaranteed width, rather than being cut or pushed out of its box (12.2, 10.5 step 2).
-  const longCredit = images.some((image) => image.credit.length > CAPTION_NARROW - SEPARATOR.length)
 
   return (
-    <section className="carousel" aria-labelledby="images-label" data-long-credit={longCredit ? '' : undefined}>
+    // Unnamed: the strip inside is the region 12.3 names, and naming both says "Images" twice.
+    <section className="carousel">
       {/* Hidden, not clipped: read as names all the same, and never wider than themselves (10.6). */}
       <span hidden id="images-label" lang={uiLang}>
         {ui.images}
@@ -74,21 +74,14 @@ export function Carousel({ node, lang, ui, uiLang }: { node: Node; lang: string;
               <img id={`carousel-image-${index}`} src={image.href} alt={image.description} width={80} height={60} loading="lazy" />
             </a>
             <p className="carousel-caption">
-              {/* The whole description is the thumbnail's name already; the shortened copy is for the eye. */}
-              {[CAPTION_WIDE, CAPTION_NARROW].map((budget) => {
-                const description = captionDescription(image.description, image.credit, budget)
-                return (
-                  <span key={budget} className={budget === CAPTION_WIDE ? 'caption-wide' : 'caption-narrow'}>
-                    {description && (
-                      <span aria-hidden="true">
-                        {description}
-                        {SEPARATOR}
-                      </span>
-                    )}
-                    <span id={budget === CAPTION_WIDE ? `carousel-credit-${index}` : undefined}>{image.credit}</span>
-                  </span>
-                )
-              })}
+              <span className="caption-wide">
+                <ShortDescription image={image} budget={CAPTION_WIDE} />
+                <span id={`carousel-credit-${index}`}>{image.credit}</span>
+              </span>
+              <span className="caption-narrow">
+                <ShortDescription image={image} budget={CAPTION_NARROW} />
+                <span>{image.credit}</span>
+              </span>
             </p>
           </li>
         ))}
@@ -102,4 +95,19 @@ export function Carousel({ node, lang, ui, uiLang }: { node: Node; lang: string;
       />
     </section>
   )
+}
+
+/**
+ * The description and separator in front of a caption's credit, as far as `budget` holds
+ * them; nothing when no word fits. The whole description is the thumbnail's name already, so
+ * the shortened copy is for the eye and hidden from assistive technology.
+ */
+function ShortDescription({ image, budget }: { image: { description: string; credit: string }; budget: number }) {
+  const description = captionDescription(image.description, image.credit, budget)
+  return description ? (
+    <span aria-hidden="true">
+      {description}
+      {SEPARATOR}
+    </span>
+  ) : null
 }

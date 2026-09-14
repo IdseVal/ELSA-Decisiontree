@@ -1195,11 +1195,12 @@ a.language:hover,
 }
 
 /*
- * Step 2 -- the Carousel collapses to one control (#43 draws it; the row shrinks). Also
- * where the Bubble narrows (below 792 pixels): the same text takes more lines there, and
- * the height the row gives up is what keeps it inside the Bubble.
+ * Step 2 -- the Carousel collapses to one control, and the row shrinks. Also by width, below
+ * 960 pixels: narrower than that the caption line cannot hold a 120-character credit whole
+ * on its one line (12.2), and it is never cut. After step 1 (1200) and before the Bubble
+ * narrows (792), so the order of 10.5 holds for every Node.
  */
-@media (max-height: 619px), (max-width: 791px) {
+@media (max-height: 619px), (max-width: 959px) {
   :root {
     --carousel-row: 28px;
   }
@@ -1221,8 +1222,8 @@ a.language:hover,
 
 /*
  * Below the guaranteed width the caption line is narrower than the 170 characters of 12.2,
- * so it shows the shorter caption the server wrote for it; and a Node with a credit longer
- * than that line gives its row up to the control of step 2 rather than cut the credit.
+ * so it shows the shorter caption the server wrote for it: the credit whole, and whatever of
+ * the description is left beside it.
  */
 @media (max-width: 1279px) {
   .caption-wide {
@@ -1231,20 +1232,6 @@ a.language:hover,
 
   .caption-narrow {
     display: inline;
-  }
-
-  .carousel[data-long-credit] {
-    align-items: center;
-    --carousel-clearance: calc(var(--carousel-row) + 64px);
-  }
-
-  .carousel[data-long-credit] .carousel-strip,
-  .carousel[data-long-credit] .carousel-controls {
-    display: none;
-  }
-
-  .carousel[data-long-credit] .carousel-sheet > .sheet-open {
-    display: inline-block;
   }
 }
 

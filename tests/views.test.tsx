@@ -118,7 +118,11 @@ describe('the tree layer', () => {
     for (const url of ['/ai-act-example/covered', '/ai-act-example/social-scoring']) {
       expect(await view(url), url).toContain('<div class="carousel"></div>')
     }
-    expect(await view('/ai-act-example/start')).toContain('<section class="carousel" aria-labelledby="images-label">')
+    expect(await view('/ai-act-example/start')).toContain('<section class="carousel">')
+    // So a Node without Images has no strip, and no empty tab stop without a script either.
+    for (const url of ['/ai-act-example/covered', '/ai-act-example/social-scoring', '/ai-act-example/prohibited-practices']) {
+      expect(await view(url), url).not.toContain('carousel-strip')
+    }
   })
 
   test("an Option's thumbnail is on its Branch, not in the Carousel row (10.3, 12.1)", async () => {
@@ -178,10 +182,12 @@ describe('the Carousel', () => {
     expect(strip.match(/loading="lazy"/g)).toHaveLength(5)
   })
 
-  test('names the region, and names each thumbnail by the enlarge word and its description, described by its credit', async () => {
+  test('names the strip and not the row around it, and names each thumbnail by the enlarge word and its description, described by its credit', async () => {
     const html = await view('/carousel/five?lang=nl')
 
-    expect(html).toContain('<section class="carousel" aria-labelledby="images-label">')
+    // One name, on the focusable strip 12.3 names: on the row as well it would be read twice.
+    expect(html).toContain('<section class="carousel">')
+    expect(html.match(/aria-labelledby="images-label"/g)).toHaveLength(1)
     expect(html).toContain('<span hidden="" id="images-label">Afbeeldingen</span>')
     expect(html).toContain('<span hidden="" id="carousel-enlarge">Vergroten</span>')
     expect(html).toContain(
@@ -226,20 +232,33 @@ describe('the Carousel', () => {
         expect(shown.endsWith('…'), shown).toBe(true)
         expect(shown.length).toBeGreaterThanOrEqual(47)
         expect(description.startsWith(shown.slice(0, -1))).toBe(true)
-        // Below it a 120-character credit is longer than the line: it stays whole, the
-        // description goes, and the row collapses instead (the next test).
+        // Below it a 120-character credit and its separator fill the line: the credit stays
+        // whole and the description has no room (the next test).
         expect(narrow[index]).toBe(image.credit)
       }
     }
   })
 
-  test('below the guaranteed width the caption is at most 100 characters, the credit whole', async () => {
-    const narrow = captions(await view('/carousel/five'), 'caption-narrow')
+  test('below the guaranteed width the caption is at most 123 characters, so every credit the format allows is whole (12.2)', async () => {
+    for (const url of ['/carousel/five', '/carousel/five/two/long']) {
+      const narrow = captions(await view(url), 'caption-narrow')
+      expect(narrow.length, url).toBeGreaterThan(0)
+      expect(narrow.filter((line) => line.length > 123), url).toEqual([])
+    }
+    // Both fit whole on the narrow line too: 101 characters with the separator.
+    expect(captions(await view('/carousel/five'), 'caption-narrow')[2]).toBe(
+      'A drone scanning a field from above — Drawing: Example Illustrator, via Example Commons, CC BY-SA 4.0',
+    )
 
-    expect(narrow.every((line) => line.length <= 100)).toBe(true)
-    // 35 characters of description and 63 of credit are 101 with the separator: the description gives way.
-    expect(narrow[2]).toBe('A drone scanning a field from abo… — Drawing: Example Illustrator, via Example Commons, CC BY-SA 4.0')
-    expect(narrow[0]).toBe('An orchard of three apple trees under a yellow sun — Drawing: Example Studio, CC0 1.0')
+    const narrow = captions(await view('/carousel/five/two/long'), 'caption-narrow')
+    // A credit of 120 characters leaves the description no room: the credit alone, never cut.
+    expect(narrow[0]).toBe(
+      'Photograph: Example Agricultural Research Station, Department of Soil and Water, via Example Commons, licence CC BY 4.0.',
+    )
+    // A short credit leaves 86 characters: the description gives way, and says so.
+    expect(narrow[1]).toBe(
+      'A solar-powered pump beside a pond, its panel tilted towards the sun and a pipe leadi… — Drawing: Example Studio, CC BY 4.0',
+    )
   })
 
   test('the shortened description is for the eye: the whole one is the thumbnail\'s name, so the copy is hidden from assistive technology', async () => {
@@ -247,9 +266,10 @@ describe('the Carousel', () => {
     expect(html).toContain('<span class="caption-wide"><span aria-hidden="true">Picture 1 of ten: a description of one hundred…')
   })
 
-  test('a Node with a credit longer than the narrow caption line says so, for the stylesheet to collapse the row below the guaranteed width', async () => {
-    expect(await view('/full-node/full')).toContain('<section class="carousel" aria-labelledby="images-label" data-long-credit="">')
-    expect(await view('/carousel/five')).not.toContain('data-long-credit')
+  test('the row collapses by width alone: nothing in the markup keys it to the length of a credit (10.5, step 2)', async () => {
+    for (const url of ['/full-node/full', '/carousel/five/two/long', '/carousel/five']) {
+      expect(await view(url), url).not.toContain('data-long-credit')
+    }
   })
 
   test('the enlarged view is a Sheet holding each Image in full, one page each, its description and credit whole (12.3, 14)', async () => {

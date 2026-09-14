@@ -1,7 +1,9 @@
 # The Carousel's fixture (docs/specs/application.md section 12, issue #43): a root Node with
 # five Images, more than one page of the strip holds, so that `previous` and `next` have
-# somewhere to go; a Node with two Images, the common case; and a Terminal whose one Image
-# no other page may ask for (12.4). The pictures are small drawings of different shapes --
+# somewhere to go; a Node with two Images, the common case; a Node whose first credit is
+# the format's maximum of 120 characters, the longest the caption line must hold whole below
+# the guaranteed width (12.2, 10.5 step 2); and a Terminal whose one Image no other page may
+# ask for (12.4). The pictures are small drawings of different shapes --
 # landscape, wide, portrait, square, panorama -- so the thumbnails and the enlarged view are
 # seen cropping and fitting each of them.
 format: elsa-tree/2
@@ -78,6 +80,33 @@ images:
       en: A grain silo beside a field
       nl: Een graansilo naast een akker
     credit: "Drawing: Example Studio, CC0 1.0"
+answers:
+  yes: done
+  no: long
+
+--- # long
+id: long
+title:
+  en: Does the system control the water supply?
+  nl: Regelt het systeem de watertoevoer?
+description:
+  en: |
+    One credit at the format's limit of 120 characters, which the caption line holds whole at every width the strip is shown at.
+  nl: |
+    Een vermelding op de grens van 120 tekens, die de onderschrift-regel heel toont op elke breedte waarop de strip staat.
+metadata:
+  version: "1.0"
+images:
+  - file: channel.svg
+    description:
+      en: An irrigation channel between two fields of young maize, with a sluice gate half open and water running
+      nl: Een irrigatiekanaal tussen twee velden jonge mais, met een half geopende sluisdeur en stromend water
+    credit: "Photograph: Example Agricultural Research Station, Department of Soil and Water, via Example Commons, licence CC BY 4.0."
+  - file: pump.svg
+    description:
+      en: A solar-powered pump beside a pond, its panel tilted towards the sun and a pipe leading to the field
+      nl: Een pomp op zonne-energie naast een vijver, het paneel naar de zon gekanteld en een buis naar de akker
+    credit: "Drawing: Example Studio, CC BY 4.0"
 answers:
   yes: done
   no: done
