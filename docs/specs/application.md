@@ -1131,6 +1131,17 @@ export interface Placed { node: Node; href: string; direction: Direction; slot: 
 export function neighbourhood(tree: Tree, at: PageAddress): Promise<Placed[]>   // at most 16
 ```
 
+**The signature as built** (amended 2026-09-14, #42, PR #57, by the owner):
+
+```ts
+export interface Placed { node: Node; href: string; address: PageAddress; direction: Direction; slot: number }
+export function neighbourhood(tree: Tree, at: PageAddress, node: Node): Promise<Placed[]>   // at most 16
+```
+
+The page passes the Node it has already read, so each Node is read once (the last bullet
+below), and each placement carries the address its `href` names, from which the
+neighbour's own Branches are built.
+
 Given the Node on screen and the Trail that reached it:
 
 | Direction | Which Nodes | At most |
@@ -1168,6 +1179,14 @@ with the neighbour Bubbles in it, in their positions in the tree layer, `aria-hi
 and out of the tab order. No second route, no JSON API, no client fetch on load. This
 costs nothing on the server, because `elsa-tree/2` is one file already parsed in memory
 (`tree-format.md` section 6).
+
+**Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours into
+the page as the tree layer's payload; they enter the DOM only during a slide. At rest, and
+without JavaScript, the DOM holds the centre Bubble only. Nothing is fetched at the moment
+of a slide and the neighbour is still rendered by the server, not by a second renderer;
+hidden duplicate Bubbles in every page would cost DOM weight and confuse assistive
+technology for nothing. `transition.spec.ts` pins it: with JavaScript disabled the page
+holds exactly one `.tree-frame`.
 
 Following a Branch, with JavaScript:
 
@@ -1478,7 +1497,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | Needs JavaScript | What a reader without it gets instead |
 |---|---|
 | The slide transition | A normal page load. Same URL, same Node, no motion. |
-| The pre-rendered neighbour Bubbles | They are in the HTML -- the server rendered them -- but hidden, and `Slider` is what reveals them. Without it the tree layer shows the centre Bubble and its Branches, which is everything the reader needs; off-centre Bubbles that can never move would be clutter, and they are `aria-hidden` besides. No image of another Node is requested either way, because a neighbour Bubble carries no image URL (11.4). |
+| The pre-rendered neighbour Bubbles | They are in the HTML -- the server rendered them -- but hidden, and `Slider` is what reveals them. Without it the tree layer shows the centre Bubble and its Branches, which is everything the reader needs; off-centre Bubbles that can never move would be clutter, and they are `aria-hidden` besides. No image of another Node is requested either way, because a neighbour Bubble carries no image URL (11.4). **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours into the page as the tree layer's payload; they enter the DOM only during a slide. At rest, and without JavaScript, the DOM holds the centre Bubble only (11.3). |
 | The enlarged view in place | The image file, opened by the link. |
 | The Carousel's previous/next buttons | The strip itself scrolls; the buttons are an enhancement of a control that already works. |
 | The Sheets of 10.2 and 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. A list longer than one page of eight -- the 49-entry Trail -- is pages of nested native disclosures: `next` opens the next page and the stylesheet hides the one before it, so no panel is ever asked to hold more than fits, at any viewport of 10.6 (#41). |

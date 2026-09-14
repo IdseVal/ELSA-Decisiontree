@@ -45,6 +45,11 @@ it must become a number.
    Bubbles in their positions in the tree layer, `aria-hidden` and out of the tab order.
    No second route, no JSON API, no fetch on load. It costs no I/O, because the Tree is
    already parsed in memory.
+   **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours
+   into the page as the tree layer's payload; they enter the DOM only during a slide. At
+   rest, and without JavaScript, the DOM holds the centre Bubble only. The rejected
+   alternative below still stands: the neighbours are rendered by the server, not by a
+   second renderer in the client.
 5. **The loader's interface does not widen to serve this.** `neighbourhood` calls
    `getNode` once per id. The rule becomes: a page may call `getNode` at most seventeen
    times. `getTree`, `listNodes` and `getChildren` still do not exist.

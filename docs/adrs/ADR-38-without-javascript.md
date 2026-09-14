@@ -48,6 +48,9 @@ line. In summary:
    needed is hidden with them, and no image of another Node is requested either way,
    because a neighbour Bubble never carries an image URL
    (`ADR-38-neighbourhood.md`).
+   **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours
+   into the page as the tree layer's payload; they enter the DOM only during a slide. At
+   rest, and without JavaScript, the DOM holds the centre Bubble only.
 8. **What is lost is motion and convenience**: the slide becomes a page load, the
    enlarged view becomes the file, the Carousel's buttons become a strip the reader
    scrolls, the share button is not shown when it cannot work.
