@@ -1048,8 +1048,9 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 | A question Node without Options | The second situation of 10.3. |
 | An explanation Node, reached with a three-entry Trail | The third. |
 | A Terminal | The fourth. |
-| `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 600-character 8-line description, 3 Sources, 8 Options, 10 Images, the longest Trail. If this fits, every valid Tree fits. |
+| `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 600-character 8-line description, 3 Sources, 8 Options, 10 Images, the longest Trail. If this fits, every valid Tree fits. Every Option carries a picture of 120-character description and credit, so the strip holds the 18 of 12.1 (amended 2026-09-14, #55). |
 | The longest Node of the first Tree that validates | The real content, once #44 has cut it. |
+| `annex-i-legislation` of the first Tree | Its heaviest Node: its own picture and eight Options with one each, nine in the strip (amended 2026-09-14, #55). |
 | Each of the above in **both** `en` and `nl` | Dutch runs longer than English; the limits are per language and so is the fit. |
 | Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. **Mid-transition is deferred with the transition** (amended 2026-09-13, #41, PR #56): #42 builds it, and adds the mid-transition rows to `no-scroll.spec.ts`; #41's test measures every page with every Sheet open. |
 
@@ -1261,6 +1262,21 @@ shown on its Branch (10.3), where the reader is looking when they read the Optio
 Carousel keeps one list, one order and one caption rule; merging two lists would leave
 a reader unable to tell which entry a caption belongs to.
 
+**Amended 2026-09-14, #55 (the owner's answer on the issue, option A): Option pictures join
+it.** The 64-pixel picture on the Branch has no room for a credit (a Branch is 248 x 82,
+and a credit may be 120 characters that are never cut), and a credit reached only by a
+click is not the promise of `tree-format.md` 5.2. So after the Node's own Images the strip
+holds **the picture each Option's Branch shows -- its first Image -- in Option order**,
+and that picture stays on its Branch too. The paragraph above is answered by the caption:
+an Option's picture's caption line puts **the Option's title, a colon and then the
+description** where a Node Image has its description alone, so a reader can tell which
+Branch it belongs to; that text gives way to the credit exactly as a description does
+(12.2), and the enlarged view shows it whole. An Option's second and third Images are shown
+nowhere, on the Branch or in the strip. **The strip's cap is therefore 18**: at most ten
+Images of the Node's own plus one per Option, at most eight. Nothing is left out; the strip
+already scrolls sideways inside its row (12.2), so its length costs no height. The empty
+row below is for a Node where neither it nor any of its Options carries a picture.
+
 A Node with no Images gets the row anyway, empty, so that the Bubble sits in the same
 place on every Node and the transition of section 11 has nothing to reflow.
 
@@ -1278,7 +1294,8 @@ them** (2026-09-13): `Thumbnails.tsx` is gone, and step 2's control is the Carou
 
 ### 12.2 The strip, and its one exemption from the no-scroll rule
 
-The strip is a horizontal row of the Node's Images as 60-pixel thumbnails with
+The strip is a horizontal row of the Node's Images -- and, since #55, its Options' pictures,
+at most 18 in all (12.1) -- as 60-pixel thumbnails with
 `scroll-snap-type: x mandatory`, and under it a caption line of 20 pixels: 60 + 20 is the
 row's 80 pixels exactly (10.1). The strip is the **one element in the document allowed to
 scroll**, and only horizontally, and only within its own row (10.6). That exemption buys
@@ -1352,7 +1369,9 @@ The enlarged view is the same `Sheet` as the Trail Sheet and the collapsed Sheet
 - An Option Branch's thumbnail (10.3) is an image of the Node on screen -- the Option is
   part of this Node's data -- so it loads with the page. A Node with 8 Options and 10
   Images can therefore ask for up to 18 image files, all of them its own, none of them
-  another Node's.
+  another Node's. Since #55 the same picture is in the strip as well (12.1): the same
+  `/images/<file>` URL, which the browser asks for once, so the ceiling stays 18
+  (`walk.spec.ts` counts the requests on `annex-i-legislation`: nine).
 
 ## 13. The Theme: how a Tree's look reaches the page
 

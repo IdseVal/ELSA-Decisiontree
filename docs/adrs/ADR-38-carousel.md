@@ -1,6 +1,6 @@
 # ADR-38-carousel: the Carousel is a native scroll-snap strip of this Node's own Images, the one element allowed to scroll, enlarged in the same Sheet the rest of the view uses
 
-- Status: ACCEPTED (frozen) -- 2026-09-10
+- Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-14 by the owner on #55 (see the end)
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, section 12
 - Core document: 3.2, open item **10.6** (reversed by the owner on 2026-09-09)
@@ -101,3 +101,26 @@ document 9).
   `application.md` 12.4 so nobody has to derive it from a slow page.
 - Issue #43 builds a strip, two buttons and a caption line, and reuses the `Sheet` #41
   already ships.
+
+## Amendment 2026-09-14 (issue #55): Option pictures join the strip
+
+Decision 2 and the rejected alternative "Merging the Options' Images into the Carousel"
+are reversed by the owner's answer on #55 (option A). Everything else above stands.
+
+- **Why.** After #43 the Node's pictures showed their credit on the caption line, and the
+  first Tree's 28 Option pictures showed it nowhere: a Branch is 248 x 82 at the guaranteed
+  viewport, every row of the 640 pixels is spent, a credit may be 120 characters and is
+  never cut, and #55 requires the credit to be seen without a click. The caption line is
+  the one place already built to show any credit the format allows, whole, at every width
+  the strip is shown at, with and without JavaScript.
+- **What.** After the Node's own Images the strip holds the first Image of each Option --
+  the picture its Branch shows, which stays there -- in Option order. The cap becomes 18:
+  ten of the Node's own plus one per Option. Nothing is left out.
+- **The objection answered.** The rejection said no reader could tell which picture
+  belongs to which Option. The caption of an Option's picture therefore starts with the
+  Option's title and a colon; that text gives way to the credit as a description does, and
+  the enlarged view shows it whole.
+- **Consequences.** A Node whose only pictures are its Options' now has a strip, and with
+  it a tab stop and the previous/next buttons. The image requests do not grow: the strip
+  names the same `/images/<file>` URL as the Branch. `application.md` 12.1, 12.2, 12.4 and
+  10.6 carry the dated amendments.

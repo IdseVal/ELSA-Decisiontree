@@ -212,22 +212,22 @@ it. The `description` is the Carousel's caption and the alternative text a scree
 speaks, so write what the picture *shows*. Delete the whole `images:` list to leave a Node
 or an Option without a picture; an unused file in `images/` is not an error.
 
-**What a reader is shown of a credit today**, which is less than the format promises:
-
-- the **7 pictures on step Nodes**: the credit is in the enlarged view, so a reader sees it
-  only **after clicking** the thumbnail;
-- the **28 pictures on Options**: the credit is shown **nowhere on the page**. An Option's
-  picture sits inside the link that walks to its explanation, so clicking it walks on
-  rather than enlarging, and no part of the frontend draws an Option's credit.
-
-`docs/specs/tree-format.md` 5.2 promises more -- the credit "shown with it, in the Carousel
-and in the enlarged view" -- and the Carousel is issue #43, which is not built yet. Issue
-**#55** is the whole of this gap, Node thumbnails included, with a browser test that every
-picture's author, source and licence can be seen without a click. Until #55 is done,
-`docs/deployment.md` says this app must not be put in front of the public: 23 of the 28
-Option pictures are CC BY or CC BY-SA, and those licences ask for the attribution to be
-given where the work is shared. Inside this repository it **is** given -- in `tree.yaml`
+**What a reader is shown of a credit**: every one of the 35 pictures is in the Carousel
+under the Bubble -- a Node's own picture first, then the picture of each of its Options,
+in Option order -- and the caption line under the strip shows the selected picture's
+credit whole, **without a click**. An Option's caption names the Option first, so a reader
+can tell which Branch it belongs to; the Option's picture also stays on its Branch. The
+enlarged view shows the credit again. That is what `docs/specs/tree-format.md` 5.2
+promises (the credit "shown with it, in the Carousel and in the enlarged view"), and it
+matters here because 23 of the 28 Option pictures are CC BY or CC BY-SA, licences that ask
+for the attribution to be given where the work is shared. `tests/first-tree/walk.spec.ts`
+walks the strip of every Node with the keyboard and reads all 35 credits off the page in
+both languages (issue #55). Inside this repository the credit is also in `tree.yaml`
 beside every picture, and in the table at the end of this section.
+
+Only an Option's **first** picture is shown, on its Branch and in the strip. Give an
+Option a second one and no page shows it; that test then fails, because it counts every
+picture in the file against the ones it read.
 
 **On CC BY-SA (24 of the 35: 16 at 4.0, 4 at 3.0, 4 at 2.0).** The owner accepted the
 family on 2026-09-12. Each picture is a separable work under its own licence; the
