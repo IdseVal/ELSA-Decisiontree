@@ -13,6 +13,15 @@ THE TWO IDEAS
        the human says so on the issue/PR, labels it `needs-human`, and ends; the human
        answers in the comments and removes the label, and a fresh run reads them.
 
+A TICK THAT OVERRUNS (v0.2.13)
+    A tick is a few dozen `gh` calls, each with a timeout -- and still one tick stalled
+    for an hour (a killed child's grandchild holding a pipe is the likely class; nothing
+    was logged). A watchdog thread exits the process when a tick has run longer than
+    `dispatcher.tick_deadline_minutes` (10); the scheduled task restarts it within a
+    minute, and the lock is by pid, so the restart is clean. The hour cost a page that
+    was answered while the dispatcher was not looking, which left the PR `blocked` with
+    its fix record gone and nothing to re-dispatch it: that state is now repaired.
+
 WHERE IT RUNS
     On the HOST, because it drives the `orca` CLI (worktrees) and spawns local `claude`
     processes. Orca is a desktop app: GitHub webhooks have nowhere to land, so the
@@ -131,6 +140,7 @@ import re
 import signal
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -203,6 +213,7 @@ _CI_USAGE_RE = re.compile(r'^([^\t]+)\t[^\t]*\t\S+\s+"(num_turns|total_cost_usd|
 MODEL_HOLD_MINUTES = 360      # ... re-try a capped model this often (models.capped_hold_minutes)
 
 SUBPROCESS_TIMEOUT = 180
+TICK_DEADLINE_MINUTES = 10    # v0.2.13: a tick longer than this exits the process (the task restarts it)
 STILL_ACTIVE = 259
 PR_GRACE_MINUTES = 5          # a run whose PR already exists gets this long to finish talking
 CI_VERDICT_GRACE_MINUTES = 3  # v0.2.7: a finished CI run gets this long before "no verdict" counts
@@ -448,6 +459,7 @@ def load_config() -> dict[str, Any]:
     d.setdefault("max_active_issues", 3)
     d.setdefault("max_run_minutes", 30)
     d.setdefault("max_run_minutes_complex", 60)   # v0.2.10
+    d.setdefault("tick_deadline_minutes", TICK_DEADLINE_MINUTES)   # v0.2.13
     d.setdefault("retry_empty_run", True)
     d.setdefault("cleanup_worktrees_on_merge", True)
     d.setdefault("claude_cmd", "claude")
@@ -2060,6 +2072,12 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
 
         if LABEL_BLOCKED in pr.labels:
             fix = s.get("fix")
+            if s.get("blocked_handled") and not fix:
+                # v0.2.13: "handled" with no run record and no page is a dead end (a fix
+                # run killed on the ceiling while the page was answered during a stalled
+                # tick left exactly this). Whatever handled it is gone: handle it again.
+                log.info("PR #%s: blocked, marked handled, but no fix run record -> dispatch again", pr.number)
+                s.pop("blocked_handled", None)
             if not s.get("blocked_handled"):
                 if limit_hold(state):
                     log.debug("PR #%s: fix run held: %s", pr.number, limit_hold(state))
@@ -2137,8 +2155,11 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                         act(f"PR #{pr.number}: fix run {pid} exceeded {ceiling:.0f} min -> kill + needs-human",
                             lambda p=pid, n=pr.number: (kill_tree(p),
                                                         gh_label("pr", n, add=[LABEL_NEEDS_HUMAN]),
-                                                        gh_comment("pr", n, "Fix run timed out. See .orca/dispatcher/runs/.")))
+                                                        gh_comment("pr", n, "Fix run timed out. See .orca/dispatcher/runs/. "
+                                                                            "Its committed work is in the worktree; the next fix "
+                                                                            "run continues from it. Remove `needs-human` to retry.")))
                         s.pop("fix", None)
+                        s.pop("blocked_handled", None)   # v0.2.13: nothing handles it now
                         state.save()
                 else:
                     if reset is not None:
@@ -2466,15 +2487,19 @@ def cmd_run(cfg: dict[str, Any], state: State, interval: int) -> int:
         log.error("another dispatcher holds %s; refusing to start", LOCK_FILE)
         return 2
     log.info("dispatcher running (interval %ss, dry-run=%s)", interval, DRY_RUN)
+    tick_started = {"at": 0.0}
+    threading.Thread(target=tick_watchdog, args=(tick_started, cfg), name="tick-watchdog", daemon=True).start()
     try:
         while not _stop:
             started = time.time()
+            tick_started["at"] = started
             try:
                 cfg = load_config()  # re-read every tick (v0.2.3): the autonomy dial and
                                      # dispatcher knobs take effect without a restart
                 tick(cfg, state)
             except Exception:  # noqa: BLE001 -- the loop must never die
                 log.exception("tick failed")
+            tick_started["at"] = 0.0
             remaining = max(1.0, interval - (time.time() - started))
             while remaining > 0 and not _stop:
                 time.sleep(min(1.0, remaining))
@@ -2483,6 +2508,35 @@ def cmd_run(cfg: dict[str, Any], state: State, interval: int) -> int:
         release_lock()
     log.info("dispatcher stopped")
     return 0
+
+
+def tick_overrun(started_at: float, deadline_minutes: float, now: Optional[float] = None) -> bool:
+    """True when a tick that started at `started_at` (0 = no tick running) has run longer
+    than the deadline (v0.2.13)."""
+    if not started_at:
+        return False
+    return ((now if now is not None else time.time()) - started_at) > deadline_minutes * 60
+
+
+def tick_watchdog(tick_started: dict[str, float], cfg: dict[str, Any]) -> None:
+    """Exit the process when a tick overruns, so the scheduled task restarts it (v0.2.13).
+    Every subprocess call has a timeout and still a tick once stalled for an hour with
+    nothing logged; a restart a minute later is cheaper than any diagnosis at 2 am. The
+    deadline is re-read each check so `dispatch.yml` edits apply. The lock is by pid,
+    so the restarted dispatcher takes over cleanly."""
+    while not _stop:
+        time.sleep(15)
+        try:
+            deadline = float((load_config().get("dispatcher") or {}).get("tick_deadline_minutes") or TICK_DEADLINE_MINUTES)
+        except Exception:  # noqa: BLE001 -- a broken config must not stop the watchdog
+            deadline = TICK_DEADLINE_MINUTES
+        at = tick_started.get("at", 0.0)
+        if tick_overrun(at, deadline):
+            log.critical("tick started %.0f min ago and has not finished; exiting so the scheduled task "
+                         "restarts the dispatcher (v0.2.13)", (time.time() - at) / 60)
+            release_lock()
+            logging.shutdown()
+            os._exit(3)
 
 
 def cmd_once(cfg: dict[str, Any], state: State) -> int:
