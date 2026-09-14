@@ -23,9 +23,9 @@ import { Sheet, type SheetHandle, type SheetWords } from './Sheet.tsx'
 export interface CarouselImage {
   /** The image route's URL for the file, `/images/<file>` (5.3). */
   href: string
-  /** The picture's alternative text. */
+  /** The picture's alternative text in the enlarged view, where the caption beside it names the Option. */
   description: string
-  /** What the caption says before the credit: the description, after its Option's title for an Option's picture (12.1). */
+  /** What the caption says before the credit, and the strip thumbnail's alternative text: the description, after its Option's title for an Option's picture (12.1). */
   caption: string
   credit: string
 }

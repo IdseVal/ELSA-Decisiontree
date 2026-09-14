@@ -131,6 +131,10 @@ describe('the tree layer', () => {
     )
     expect(all(part(html, 'ul', 'carousel-strip'), /<a class="thumbnail" href="([^"]*)"/g)).toEqual(['/images/scoreboard.png'])
     expect(captions(html, 'caption-wide')[0]).toMatch(/^Social scoring: A scoreboard ranking people — \S/)
+    // The caption line's copy is hidden from assistive technology, so the thumbnail's own name carries the Option too.
+    expect(part(html, 'ul', 'carousel-strip')).toContain(
+      '<img id="carousel-image-0" src="/images/scoreboard.png" alt="Social scoring: A scoreboard ranking people"',
+    )
   })
 
   test('carries the notice for a window at or below the floor, with a sentence per short dimension (10.4)', async () => {
@@ -194,12 +198,24 @@ describe('the Carousel', () => {
     expect(html).not.toContain('Optie een, tweede afbeelding')
     // Each Option picture's caption names its Option before the description, and the credit is whole.
     const wide = captions(html, 'caption-wide')
+    const narrow = captions(html, 'caption-narrow')
     for (const [index, option] of node.options.entries()) {
       const caption = wide[node.images.length + index]!
       const image = option.images[0]!
       expect(caption.length, caption).toBeLessThanOrEqual(170)
       expect(caption.endsWith(image.credit), caption).toBe(true)
       expect(`${option.title.nl}: ${image.description.nl}`.startsWith(caption.slice(0, -(image.credit.length + ' — '.length + 1)))).toBe(true)
+      // Below the guaranteed width the credit stays whole too; Options two to eight carry a
+      // 120-character credit, which fills the line, so their Option's title gives way with the description.
+      const line = narrow[node.images.length + index]!
+      expect(line.length, line).toBeLessThanOrEqual(123)
+      expect(line.endsWith(image.credit), line).toBe(true)
+      if (index > 0) {
+        expect(image.credit).toHaveLength(120)
+        expect(line).toBe(image.credit)
+      }
+      // Whole in the thumbnail's name, which is where assistive technology reads it.
+      expect(html).toContain(`alt="${option.title.nl}: ${image.description.nl}"`)
     }
     expect(html).toContain('<summary class="sheet-open"><span>Afbeelding 1 van 18</span></summary>')
   })

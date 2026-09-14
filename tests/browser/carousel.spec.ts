@@ -279,6 +279,19 @@ test.describe('names for assistive technology', () => {
       await expect(page.locator('.carousel-position')).toHaveAttribute('aria-live', 'polite')
     })
   }
+
+  for (const [lang, name] of [
+    ['en', 'Enlarge Social scoring: A scoreboard ranking people'],
+    ['nl', 'Vergroten Sociale scoring: Een scorebord dat mensen rangschikt'],
+  ] as const) {
+    test(`an Option's picture is named with its Option, which the caption line hides from assistive technology, in ${lang} (12.1)`, async ({ page }) => {
+      await page.setViewportSize({ width: 1280, height: 640 })
+      // The example Tree's `prohibited-practices`: scoreboard.png on an Option, the Node none. Playwright's own server serves it.
+      await page.goto(`/ai-act-example/start/prohibited-practices${lang === 'en' ? '' : `?lang=${lang}`}`)
+      await expect(page.locator('.thumbnail')).toHaveAccessibleName(name)
+      await expect(page.locator('.thumbnail')).toHaveAccessibleDescription('Illustration: Example Studio, CC0 1.0')
+    })
+  }
 })
 
 test.describe('below the guaranteed height', () => {

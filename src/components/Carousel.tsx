@@ -91,7 +91,8 @@ export function Carousel({ node, lang, ui, uiLang }: { node: Node; lang: string;
               aria-labelledby={`carousel-enlarge carousel-image-${index}`}
               aria-describedby={`carousel-credit-${index}`}
             >
-              <img id={`carousel-image-${index}`} src={image.href} alt={image.description} width={80} height={60} loading="lazy" />
+              {/* The caption's words, not the description alone: an Option's picture is named with its Option, which the caption line may cut and hides from assistive technology (12.1). */}
+              <img id={`carousel-image-${index}`} src={image.href} alt={image.caption} width={80} height={60} loading="lazy" />
             </a>
             <p className="carousel-caption">
               <span className="caption-wide">
@@ -119,8 +120,9 @@ export function Carousel({ node, lang, ui, uiLang }: { node: Node; lang: string;
 
 /**
  * The caption's text and separator in front of its credit, as far as `budget` holds them;
- * nothing when no word fits. The whole description is the thumbnail's name already, so the
- * shortened copy is for the eye and hidden from assistive technology.
+ * nothing when no word fits. The whole caption text -- an Option's title included -- is the
+ * thumbnail's name already, so the shortened copy is for the eye and hidden from assistive
+ * technology.
  */
 function ShortDescription({ image, budget }: { image: CarouselImage; budget: number }) {
   const description = captionDescription(image.caption, image.credit, budget)
