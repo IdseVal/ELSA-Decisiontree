@@ -11,6 +11,7 @@
  *   back returns to the page before, and slides too.
  * - The tree layer's transform changes during a slide, and with `prefers-reduced-motion:
  *   reduce` it never does while the navigation still happens.
+ * - While the page left behind and the target are both mounted, no id is in the document twice.
  * - Without JavaScript a Branch is a link that loads the target's page, and no neighbour is
  *   in the document.
  *
@@ -323,6 +324,12 @@ test('the moment just after the payload lands, screenshot: the page left behind 
   // The page left behind is now drawn from the target's neighbour props, which name no image.
   await expect(page.locator('.tree-frame[aria-hidden]')).toHaveCount(1)
   await expect(page.locator('.tree-frame[aria-hidden] img')).toHaveCount(0)
+
+  // Two frames, two Bubbles, and still no id written twice: every `aria-labelledby` and
+  // `aria-describedby` names the one element it means (10.3), in either frame.
+  await expect(page.locator('[id$="node-title"]')).toHaveCount(2)
+  const ids = await page.evaluate(() => [...document.querySelectorAll('[id]')].map((element) => element.id))
+  expect(ids.filter((id, index) => ids.indexOf(id) !== index), 'ids written twice').toEqual([])
 
   await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.play())
   await arrived(page, QUESTION)

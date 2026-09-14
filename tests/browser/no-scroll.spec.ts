@@ -15,7 +15,9 @@
  * of `tests/fixtures/carousel/` (issue #43), and the longest Node of the first Tree once it
  * validates -- each in both languages, and each again with every Sheet it offers open and
  * every Image it carries enlarged -- and each in the middle of a slide (section 11): halfway
- * out of the page, and halfway back into it on the history step.
+ * out of the page, and halfway back into it on the history step. A slide follows an Answer or
+ * `back`; on the full Node and the question Node with Options it also follows an Option, the
+ * side slide whose layer is a fraction of a frame taller.
  *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
  * pull request can paste the numbers rather than describe them (10.6, last paragraph).
@@ -254,21 +256,32 @@ async function measureEverywhere(
   }
 }
 
+/** A Branch that slides on every kind of Node: an Answer, or `back` where there are none. */
+const DOWN = { selector: '.answer--yes, .answer--back', label: '' }
+
 /**
  * Measures `url` at every viewport above the floor in the middle of a slide, both halves of
  * it (application.md 10.6, section 11): following a Branch, with the target's payload held
  * back so the page that leaves is caught halfway; at rest on the target; and halfway back on
  * the history step, where the page that arrives slides in from the target.
+ *
+ * `follow` names the Branch followed, and the label its rows carry. A viewport where it is
+ * not on screen -- an Option collapsed into its Sheet (10.5) -- is left out, and returned, so
+ * a test can say where the slide it asked for could not be taken.
  */
-async function measureSliding(page: Page, url: string, what: string, lang: string): Promise<void> {
+async function measureSliding(page: Page, url: string, what: string, lang: string, follow = DOWN): Promise<string[]> {
+  const skipped: string[] = []
   for (const [width, height] of VIEWPORTS.filter(([w, h]) => w > 320 && h > 480)) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
     await page.goto(url)
     await expect(page.locator('main')).toBeVisible()
 
-    // A Branch that slides on every kind of Node: an Answer, or `back` where there are none.
-    const branch = page.locator('.answer--yes, .answer--back').first()
+    const branch = page.locator(follow.selector).first()
+    if (!(await branch.isVisible())) {
+      skipped.push(viewport)
+      continue
+    }
     // Resolved against the page, not the config's base URL: the fixture has its own origin.
     const href = new URL((await branch.getAttribute('href'))!, page.url()).href
 
@@ -281,25 +294,41 @@ async function measureSliding(page: Page, url: string, what: string, lang: strin
     await branch.click()
     await halfway(page)
     const leaving = await measure(page)
-    rows.push({ page: what, lang, viewport, sheet: 'mid-slide, leaving', measured: leaving })
-    assertFits(leaving, `${what} (${lang}) at ${viewport} halfway through a slide out`)
+    rows.push({ page: what, lang, viewport, sheet: `mid-slide, leaving${follow.label}, ${await layerBox(page)}`, measured: leaving })
+    assertFits(leaving, `${what} (${lang}) at ${viewport} halfway through a slide out${follow.label}`)
 
     release()
     await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.play())
     await arrived(page, href)
     await page.unroute('**/*')
     const after = await measure(page)
-    rows.push({ page: what, lang, viewport, sheet: 'after a slide', measured: after })
-    assertFits(after, `${what} (${lang}) at ${viewport} after a slide`)
+    rows.push({ page: what, lang, viewport, sheet: `after a slide${follow.label}`, measured: after })
+    assertFits(after, `${what} (${lang}) at ${viewport} after a slide${follow.label}`)
 
     await page.goBack()
     await halfway(page)
     const arriving = await measure(page)
-    rows.push({ page: what, lang, viewport, sheet: 'mid-slide, arriving (back)', measured: arriving })
-    assertFits(arriving, `${what} (${lang}) at ${viewport} halfway through a slide back`)
+    rows.push({ page: what, lang, viewport, sheet: `mid-slide, arriving (back)${follow.label}, ${await layerBox(page)}`, measured: arriving })
+    assertFits(arriving, `${what} (${lang}) at ${viewport} halfway through a slide back${follow.label}`)
     await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.play())
     await arrived(page, url)
   }
+  return skipped
+}
+
+/**
+ * The sliding layer's box against one frame's, in pixels: two frames side by side for an
+ * Option, and a fraction of a frame taller for the row it sits in (11.1). Written into the
+ * row so the table shows which geometry each measurement caught.
+ */
+async function layerBox(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const size = (selector: string) => {
+      const { width, height } = document.querySelector(selector)!.getBoundingClientRect()
+      return `${Math.round(width)}x${Math.round(height)}`
+    }
+    return `layer ${size('.tree-layer[data-sliding]')} over ${size('.tree-frame')}`
+  })
 }
 
 /** Stops the slide that is running at about half its distance, and holds it there. */
@@ -379,14 +408,58 @@ for (const lang of LANGUAGES) {
   })
 }
 
+let fullNodeSliding: Promise<string | null> | undefined
+
+/** The full-node fixture's server for the slides, started once for every test that needs it. */
+async function fullNodeSlidingOrigin(): Promise<string> {
+  fullNodeSliding ??= serve(fixtures, 'full-node', FULL_NODE_SLIDING_PORT)
+  const origin = await fullNodeSliding
+  expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+  return origin!
+}
+
 // The page the rule exists for, mid-slide: the layer is fixed at a pixel box and holds two
 // frames, one of them the collapsed 49-entry Trail with eight Options (10.6).
 for (const lang of LANGUAGES) {
   test(`the full Node at a 49-entry Trail, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
     test.slow()
-    const origin = await serve(fixtures, 'full-node', FULL_NODE_SLIDING_PORT)
-    expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
-    await measureSliding(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+    await measureSliding(page, `${await fullNodeSlidingOrigin()}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+}
+
+/**
+ * The side slides (11.1): the one direction whose layer is a frame wider and a fraction of a
+ * frame taller or higher, because an Option's frame sits a quarter-row off the middle. The
+ * first Option of eight is up and to the left, the last down and to the right: both signs of
+ * the fraction, both edges the fixed layer can grow past.
+ */
+const SIDE = [
+  { selector: '.option >> nth=0', label: ', first Option' },
+  { selector: '.option >> nth=-1', label: ', last Option' },
+] as const
+
+/** Where the eight Options have collapsed into their Sheet (10.5, steps 3 and 4), so no side slide starts. */
+const FULL_NODE_OPTIONS_COLLAPSED = ['1024x768', '768x1024', '390x844', '360x640']
+
+for (const lang of LANGUAGES) {
+  test(`the full Node at a 49-entry Trail, ${lang}, never scrolls in the middle of a slide to an Option`, async ({ page }) => {
+    test.slow()
+    const url = `${await fullNodeSlidingOrigin()}${inLang(FULL_NODE_URL, lang)}`
+    for (const side of SIDE) {
+      expect(await measureSliding(page, url, 'full Node, 49-entry Trail', lang, side), `${side.label}: viewports with no Option on screen`).toEqual(
+        FULL_NODE_OPTIONS_COLLAPSED,
+      )
+    }
+  })
+}
+
+// Two Options, one a column: a side slide straight across, down to the tablet, where eight
+// Options have collapsed into their Sheet and two still stand beside the Bubble.
+for (const lang of LANGUAGES) {
+  test(`the question Node with Options, ${lang}, never scrolls in the middle of a slide to an Option`, async ({ page }) => {
+    test.slow()
+    const skipped = await measureSliding(page, inLang(EXAMPLE_PAGES[0].url, lang), EXAMPLE_PAGES[0].what, lang, SIDE[0])
+    expect(skipped, 'viewports with no Option on screen').toEqual(['390x844', '360x640'])
   })
 }
 
