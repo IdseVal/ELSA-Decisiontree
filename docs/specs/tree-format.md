@@ -533,7 +533,7 @@ options:
 |---|---|---|---|
 | `title` | yes | localised text, plain, at most 60 characters | The entry's text: the label of its Branch out of the Bubble. |
 | `target` | yes | Node reference | The explanation Node that expands on this entry. Must be an explanation Node (5.6). |
-| `images` | no | list of Image, at most 3 | Pictures for this entry (e.g. what kind of product a piece of legislation covers). Whether the Carousel shows them with the Node's own Images is the frontend's (issue #38). |
+| `images` | no | list of Image, at most 3 | Pictures for this entry (e.g. what kind of product a piece of legislation covers). Whether the Carousel shows them with the Node's own Images is the frontend's (issue #38). Decided by the owner on #55 (2026-09-14): the first of them, the one on the Option's Branch, follows the Node's own Images in the strip (`application.md` 12.1). |
 
 Options in one list have distinct targets. Several Nodes may point at the same
 explanation Node. The order of the list is the order shown. **At most 8 Options on a

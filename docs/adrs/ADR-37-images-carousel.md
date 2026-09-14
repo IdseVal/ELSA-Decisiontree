@@ -25,6 +25,8 @@ picture is its `description`; the credit is shown with it. There is no `order` k
 Images on a Node and 3 on an Option, so the strip and its controls stay bounded, in
 step with the other limits. Whether Option Images join the Node's Carousel or appear
 with their Option is the frontend's decision (#38); the data is the same either way.
+*(2026-09-14: #38 kept them with their Option; the owner on #55 put an Option's first
+Image in the Node's Carousel as well -- `application.md` 12.1, `ADR-38-carousel.md`.)*
 
 ## Alternatives rejected
 

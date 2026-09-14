@@ -249,7 +249,8 @@ a.language:hover,
 /* --- the Carousel: the row under the Bubble (section 12) ------------------------- */
 
 /*
- * One row of 80 pixels on every Node, empty where the Node has no Images, so the Bubble
+ * One row of 80 pixels on every Node, empty where neither the Node nor any of its Options
+ * carries a picture (12.1, amended by #55), so the Bubble
  * never moves. A strip of 60-pixel thumbnails with its controls beside it, and under both
  * a caption line of 20 (12.2). The strip is a page of four: short enough to sit under the
  * Bubble as one object with its buttons -- a carousel, not a contact sheet -- and each turn
