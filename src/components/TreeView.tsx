@@ -8,7 +8,8 @@
  * Everything between the chrome bar and the disclaimer is one element, the tree layer, so
  * that the slide of section 11 moves the whole tree with one transform (`Slider`). The
  * neighbours of the Node (11.2) are drawn as frames of the same layout, one layer away in
- * the direction of the Branch that leads to them, and carry no image URL at all (11.4). The
+ * the direction of the Branch that leads to them, carry no image URL at all (11.4), and draw
+ * only the part of their Trail the guaranteed viewport shows, not the Trail Sheet (#60). The
  * Carousel's row (section 12) is present on every Node, so the Bubble sits in the same place.
  *
  * Below the guaranteed viewport the layout gives things up in the order of 10.5, and each
@@ -53,6 +54,14 @@ interface View {
   /** False in a neighbour frame, which names no image file at all (11.4). */
   pictures: boolean
   /**
+   * False in a neighbour frame, which draws only the Trail Branches 10.2 draws at the
+   * guaranteed viewport and the collapsed control, with no Trail Sheet list behind it (11.3,
+   * #60). Every narrower step shows a subset of those, so the frame looks the same at every
+   * size; it is inert, so nothing could open the list; and at a 49-entry Trail the whole
+   * Trail repeated in every neighbour was most of the page.
+   */
+  wholeTrail: boolean
+  /**
    * Whether a Branch of a kind that slides, to `href`, has a placement to slide to (11.1,
    * 11.2). A target the neighbourhood dropped or deduplicated is an ordinary link; so is every
    * Branch of a neighbour frame, which is inert and never clicked.
@@ -86,6 +95,7 @@ export function TreeView({
     treeTitle: text(tree.manifest.title, lang, 'tree.title'),
     idPrefix,
     pictures: centre,
+    wholeTrail: centre,
     placed: (href) => centre && hrefs.has(href),
   })
   const view = viewAt(address, '', true)
@@ -168,7 +178,7 @@ function position({ direction, slot }: Placed, node: Node): { x: number; y: numb
  * `start` Branch, so no reader is stranded.
  */
 function Trail({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, titleOf, root, treeTitle, idPrefix, placed } = view
+  const { address, ui, uiLang, titleOf, root, treeTitle, idPrefix, wholeTrail, placed } = view
   const entries = address.trail.map((id, index) => ({ href: trailHref(address, index), title: titleOf(id) }))
 
   if (entries.length === 0 && node.id === root) {
@@ -209,6 +219,7 @@ function Trail({ node, view }: { node: Node; view: View }) {
           const parent = index === entries.length - 1
           // `start` and the last four stay when the middle collapses (10.2).
           const kept = index === 0 || index >= entries.length - 4
+          if (!kept && !wholeTrail) return null
           return (
             <Fragment key={entry.href}>
               <li className="trail-step" data-kept={kept ? '' : undefined} data-parent={parent ? '' : undefined}>
@@ -244,7 +255,7 @@ function Trail({ node, view }: { node: Node; view: View }) {
                       </>
                     }
                     // The whole Trail, newest first (10.2).
-                    items={entries.map((e) => ({ href: e.href, label: e.title })).reverse()}
+                    items={wholeTrail ? entries.map((e) => ({ href: e.href, label: e.title })).reverse() : []}
                     words={sheetWords(ui)}
                     uiLang={uiLang}
                     idPrefix={idPrefix}
