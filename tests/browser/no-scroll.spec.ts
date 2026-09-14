@@ -587,7 +587,10 @@ for (const { what, url } of CAROUSEL_PAGES) {
 }
 
 test('the longest Node of the first Tree, once it validates, never scrolls at any viewport of 10.6', async ({ page }) => {
-  test.slow()
+  // Every language at rest, each picture enlarged -- its Options' pictures too since #55 --
+  // and mid-slide: four passes over every viewport, more than `test.slow()`'s 90 seconds
+  // (4.3 minutes on a laptop).
+  test.setTimeout(10 * 60_000)
   const first = 'ai-act-applicability-agrifood'
   const tree = await openTree(path.join(trees, first)).catch(() => null)
   test.skip(
