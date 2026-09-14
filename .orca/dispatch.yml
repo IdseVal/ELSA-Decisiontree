@@ -19,7 +19,8 @@ dispatcher:
                                      # local processes doing real work; 3 keeps a laptop
                                      # usable. Raise it on a workstation if you like --
                                      # idle hoarding is gone, this only bounds LIVE work.
-  max_run_minutes: 30                # hard wall-clock ceiling per run; then kill + breaker
+  max_run_minutes: 45                # hard wall-clock ceiling per run; then kill + breaker (30 until 2026-09-14:
+                                     # a fix run adding browser tests to a 134-test suite was killed at 30 with work done)
   max_run_minutes_complex: 60        # v0.2.10: the ceiling for runs of a `complex` issue
   retry_empty_run: true              # one fresh retry when a run exits without a PR
   cleanup_worktrees_on_merge: true
