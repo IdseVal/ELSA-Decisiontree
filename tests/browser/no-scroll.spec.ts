@@ -13,8 +13,8 @@
  * The pages: the four situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
  * at a 49-entry Trail (every maximum the format allows at once), and the longest Node of
  * the first Tree once it validates -- each in both languages, and each again with every
- * Sheet it offers open -- and, on the four pages of the example Tree, in the middle of a slide
- * (section 11): halfway out of the page, and halfway back into it on the history step.
+ * Sheet it offers open -- and each in the middle of a slide (section 11): halfway out of the
+ * page, and halfway back into it on the history step.
  *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
  * pull request can paste the numbers rather than describe them (10.6, last paragraph).
@@ -259,7 +259,8 @@ async function measureSliding(page: Page, url: string, what: string, lang: strin
 
     // A Branch that slides on every kind of Node: an Answer, or `back` where there are none.
     const branch = page.locator('.answer--yes, .answer--back').first()
-    const href = (await branch.getAttribute('href'))!
+    // Resolved against the page, not the config's base URL: the fixture has its own origin.
+    const href = new URL((await branch.getAttribute('href'))!, page.url()).href
 
     let release = () => {}
     const held = new Promise<void>((resolve) => (release = resolve))
@@ -347,6 +348,17 @@ for (const lang of LANGUAGES) {
   })
 }
 
+// The page the rule exists for, mid-slide: the layer is fixed at a pixel box and holds two
+// frames, one of them the collapsed 49-entry Trail with eight Options (10.6).
+for (const lang of LANGUAGES) {
+  test(`the full Node at a 49-entry Trail, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
+    test.slow()
+    const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 3)
+    expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+    await measureSliding(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+}
+
 test('the longest Node of the first Tree, once it validates, never scrolls at any viewport of 10.6', async ({ page }) => {
   test.slow()
   const first = 'ai-act-applicability-agrifood'
@@ -374,6 +386,7 @@ test('the longest Node of the first Tree, once it validates, never scrolls at an
   const url = longest.id === tree!.manifest.root ? `/${first}/${longest.id}` : `/${first}/${tree!.manifest.root}/${longest.id}`
   for (const lang of tree!.manifest.languages) {
     await measureEverywhere(page, `${origin}${inLang(url, lang)}`, `first Tree, longest Node (${longest.id})`, lang)
+    await measureSliding(page, `${origin}${inLang(url, lang)}`, `first Tree, longest Node (${longest.id})`, lang)
   }
 })
 
