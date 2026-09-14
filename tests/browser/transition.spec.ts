@@ -117,29 +117,28 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
     bytes?: number
   }
   const recorded: Recorded[] = []
-  const bodies: Promise<void>[] = []
+  /** Each page response's body, by its request. */
+  const bodies = new Map<Request, Buffer>()
 
   page.on('request', (request) => {
-    const entry: Recorded = {
+    recorded.push({
       url: local(request.url(), origin),
       kind: isPagePayload(request) ? (request.resourceType() === 'document' ? 'page (HTML)' : 'page (payload)') : request.resourceType(),
       on: page.url() === 'about:blank' ? '-' : local(page.url()),
-    }
-    recorded.push(entry)
-    if (isPagePayload(request)) {
-      bodies.push(
-        request.response().then(async (response) => {
-          const body = await response!.text()
-          entry.nodes = nodesIn(body)
-          entry.bytes = (await response!.body()).length
-          // 11.4: no image URL of any Node but the one the page opens, anywhere in the payload.
-          const named = [...body.matchAll(/\/images\/([^"\\?\s)]+)/g)].map((m) => m[1]!)
-          const allowed = await allowedImages(entry.url)
-          expect(named.filter((file) => !allowed.includes(file)), `images named by ${entry.url}`).toEqual([])
-        }),
-      )
-    }
+    })
   })
+  // The bodies are taken on their way to the page rather than asked of the browser afterwards:
+  // Chromium does not keep a client navigation's payload for `response.body()` -- it answered
+  // "No data found for resource" for one payload in three, the last one included.
+  await page.route(
+    (url) => url.pathname.startsWith('/ai-act-example'),
+    async (route) => {
+      const response = await route.fetch()
+      const body = await response.body()
+      bodies.set(route.request(), body)
+      await route.fulfill({ response, body })
+    },
+  )
 
   await page.goto(ROOT)
   await expect(page.locator('.bubble')).toBeVisible()
@@ -152,16 +151,24 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
   expect([yes, option]).toEqual([QUESTION, OPTION])
   // Let the arriving page ask for everything it is going to ask for.
   await page.waitForLoadState('networkidle')
-  await Promise.all(bodies)
 
   const pages = recorded.filter((r) => r.kind.startsWith('page'))
   // Exactly one payload per navigation, and no prefetch of any Branch's page.
   // (The framework's cache-busting `_rsc` parameter is not part of the page's address.)
   expect(pages.map((r) => r.url.replace(/[?&]_rsc=[^&]*$/, ''))).toEqual([ROOT, QUESTION, OPTION])
-  for (const entry of pages) {
-    expect(entry.nodes!.length, entry.url).toBeLessThanOrEqual(MAX_NODES)
+  for (const [request, body] of bodies) {
+    const entry = pages.find((r) => r.url === local(request.url(), origin))!
+    const text = body.toString('utf8')
+    entry.nodes = nodesIn(text)
+    entry.bytes = body.length
+    expect(entry.nodes.length, entry.url).toBeLessThanOrEqual(MAX_NODES)
     expect(entry.nodes, `the Nodes in ${entry.url}`).toEqual(await allowedNodes(entry.url))
+    // 11.4: no image URL of any Node but the one the page opens, anywhere in the payload.
+    const named = [...text.matchAll(/\/images\/([^"\\?\s)]+)/g)].map((m) => m[1]!)
+    const allowed = await allowedImages(entry.url)
+    expect(named.filter((file) => !allowed.includes(file)), `images named by ${entry.url}`).toEqual([])
   }
+  expect(bodies.size, 'a body for every page').toBe(pages.length)
 
   for (const entry of recorded) {
     // Same origin, and nothing but pages, the framework's own files, and single files of the Tree.
