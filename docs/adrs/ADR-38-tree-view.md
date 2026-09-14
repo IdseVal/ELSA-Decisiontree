@@ -98,7 +98,8 @@ The owner has not yet said what "children" and "side children" mean (core docume
   this to this issue. Rejected: the Carousel's contract is that its order is the Node's
   `images` list and its caption is that Image's description; a merged list has neither,
   and a reader cannot tell which of nine pictures belongs to which of eight Options. On
-  the Branch, the picture is next to the words it illustrates.
+  the Branch, the picture is next to the words it illustrates. *Reversed 2026-09-14 for an
+  Option's first Image by the owner on #55: see the amendment at the end.*
 
 ## Consequences
 

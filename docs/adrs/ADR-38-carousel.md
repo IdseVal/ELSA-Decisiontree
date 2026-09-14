@@ -25,9 +25,11 @@ document 9).
 1. **The Carousel shows this Node's own `images` list, in the author's order**, at most
    ten. The list is the order, the `description` is the caption, and the `credit` is
    shown with the picture -- `tree-format.md` 5.2 says the format needs nothing more, and
-   this is the frontend keeping that bargain.
+   this is the frontend keeping that bargain. *Amended 2026-09-14 by the owner on #55: the
+   Options' pictures follow this list, at most 18 in all -- see the amendment at the end.*
 2. **Option Images do not join it.** An Option's first Image is shown on its Branch
-   (`ADR-38-tree-view.md`), next to the words it illustrates.
+   (`ADR-38-tree-view.md`), next to the words it illustrates. *Reversed 2026-09-14 for that
+   first Image by the owner on #55: see the amendment at the end.*
 3. **The strip is a native scroll-snap container, and it is the one element in the
    document allowed to scroll** -- horizontally, inside its own 80-pixel row. That
    exemption is stated in `ADR-38-no-scroll.md` and is what makes the Carousel work
@@ -44,6 +46,9 @@ document 9).
    view shows both fields in full. The shortening is computed on the server rather than
    done with `text-overflow`, because an ellipsis painted over content that still
    overflows its box is exactly what `ADR-38-no-scroll.md`'s test measures and forbids.
+   *Amended 2026-09-14 by #55: for an Option's picture the text that gives way is the
+   Option's title, a colon and the description, and those same words -- not the description
+   alone -- are the thumbnail's alternative text. The amendment at the end governs.*
 6. **The enlarged view is the same `Sheet`** as the Trail Sheet and the collapsed groups
    of `application.md` 10.5: bounded to the viewport so it never scrolls, closed by
    Escape, by its close button or by a click outside, focus returned to the thumbnail.
@@ -53,7 +58,9 @@ document 9).
    opens the file. This is 0.1's behaviour, kept.
 8. **The row exists even when the Node has no Images**, empty and the same height, so the
    Bubble sits in the same place on every Node and the slide of
-   `ADR-38-transitions.md` has nothing to reflow.
+   `ADR-38-transitions.md` has nothing to reflow. *Amended 2026-09-14 by #55: the row is
+   empty only where neither the Node nor any of its Options carries a picture; a Node whose
+   only pictures are its Options' has a strip.*
 9. **Loading:** `loading="lazy"` with explicit `width` and `height` on every thumbnail,
    so a Node with ten Images fetches what the row shows rather than the list; only the
    centre Bubble's Images are ever named in the markup at all
@@ -76,7 +83,8 @@ document 9).
 - **Merging the Options' Images into the Carousel.** Left open by `tree-format.md` 5.4.
   Rejected: the Carousel's contract is that its order is the Node's `images` list and its
   caption is that Image's description. A merged list breaks both, and no reader can tell
-  which of nine pictures belongs to which of eight Options.
+  which of nine pictures belongs to which of eight Options. *Reversed 2026-09-14 for an
+  Option's first Image by the owner on #55: see the amendment at the end.*
 - **A credit line under every thumbnail instead of one shared caption.** Correct in
   principle and impossible in 80 pixels: 60 of thumbnail plus a per-item credit leaves
   nothing. The shared caption plus the always-present credit in the enlarged view keeps
@@ -105,7 +113,12 @@ document 9).
 ## Amendment 2026-09-14 (issue #55): Option pictures join the strip
 
 Decision 2 and the rejected alternative "Merging the Options' Images into the Carousel"
-are reversed by the owner's answer on #55 (option A). Everything else above stands.
+are reversed by the owner's answer on #55 (option A), and three decisions change with them:
+decision 1's cap of ten becomes 18, decision 5's alternative text for an Option's picture is
+its caption's words, and decision 8's empty row is only for a Node where no Option has a
+picture either. Each carries a dated note where it stands. The rest of the record stands;
+where the title and the context say "this Node's own Images", read "and its Options' first
+pictures".
 
 - **Why.** After #43 the Node's pictures showed their credit on the caption line, and the
   first Tree's 28 Option pictures showed it nowhere: a Branch is 248 x 82 at the guaranteed
