@@ -966,6 +966,28 @@ a.language:hover,
   max-height: calc(100% - 32px - var(--carousel-clearance, 0px));
 }
 
+/*
+ * The Sources control is in the Bubble, in the middle of the page, so without the script the
+ * centred panel lay under it and one of its links took no click (#59). Open, the control goes
+ * to the foot of the page and the panel keeps clear of it: 16 pixels, the 28-pixel control,
+ * and 12 more. The disclosure keeps the control's height, so the Bubble does not move.
+ */
+.sources-sheet[open]:not(:has(> .sheet-backdrop)) {
+  min-height: 28px;
+}
+
+.sources-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-open {
+  position: fixed;
+  inset: auto 0 16px;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.sources-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-panel {
+  bottom: 56px;
+  max-height: calc(100% - 72px);
+}
+
 .sheet-list {
   display: flex;
   flex-direction: column;
@@ -1401,6 +1423,10 @@ a.language:hover,
   /* Each collapsed group's control: 24 pixels, so the rows that hold one are 24 too. */
   .sheet-open {
     padding: 1px 12px;
+  }
+
+  .sources-sheet[open]:not(:has(> .sheet-backdrop)) {
+    min-height: 24px;
   }
 
   /*
