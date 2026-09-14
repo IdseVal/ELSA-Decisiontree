@@ -115,6 +115,36 @@ describe('the tree layer', () => {
     expect(order).toEqual([...order].sort((a, b) => a - b))
   })
 
+  test('a Branch is marked to slide exactly when the neighbourhood places its target (11.1, 11.2)', async () => {
+    const urls = [
+      '/ai-act-example/start',
+      '/ai-act-example/start/prohibited-practices',
+      '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
+      // A Terminal, whose `startAgain` URL is its grandparent's.
+      '/ai-act-example/start/prohibited-practices/prohibited',
+      '/ai-act-example/start/prohibited-practices?lang=nl',
+      // Every Trail entry is the Node on screen, which is never its own neighbour.
+      '/full-node/full/full/full',
+    ]
+    for (const url of urls) {
+      const target = new URL(url, 'https://example.org')
+      const tree = trees.get(target.pathname.split('/')[1]!)!
+      const address = parseUrl(target.pathname, langSegment(target), tree)!
+      const placed = new Set((await neighbourhood(tree, address, (await tree.getNode(address.nodeId))!)).map((p) => p.href))
+      const marked = [...(await view(url)).matchAll(/<a class="branch ([^"]*)" href="([^"]*)"([^>]*)>/g)].map(
+        ([, kind, href, rest]) => [kind, href, rest!.includes('data-slide')],
+      )
+      // `startAgain` has no direction (11.1), even where its URL is the grandparent's.
+      const slides = (kind: string, href: string) => kind !== 'answer answer--start-again' && placed.has(href)
+
+      expect(marked.length, url).toBeGreaterThan(0)
+      expect(marked, url).toEqual(marked.map(([kind, href]) => [kind, href, slides(kind as string, href as string)]))
+    }
+    const full = await view('/full-node/full/full/full')
+    expect(full.match(/<a class="branch trail-entry"[^>]*data-slide/g), 'the full Node\'s Trail').toBeNull()
+    expect(full.match(/<a class="branch option"[^>]*data-slide/g), 'the full Node\'s Options').toHaveLength(8)
+  })
+
   test('the Carousel row is present on every Node, empty where the Node has no Images, so the Bubble never moves (12.1)', async () => {
     for (const url of ['/ai-act-example/covered', '/ai-act-example/social-scoring']) {
       expect(await view(url), url).toContain('<div class="carousel"></div>')

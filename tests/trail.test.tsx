@@ -104,12 +104,14 @@ describe('the Trail', () => {
   })
 
   test('only the parent and the grandparent are marked to slide; an older entry is an ordinary link (11.1)', async () => {
-    const html = await view(walkOf(9))
+    // Four different Nodes, so no entry is dropped as the Node on screen: a walk of `full` to
+    // itself places no Trail entry at all, and so marks none.
+    const html = await view('/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring/prohibited')
     const marked = [...trail(html).matchAll(/<a class="branch trail-entry"([^>]*)>/g)].map((match) =>
       match[1]!.includes('data-slide'),
     )
 
-    expect(marked).toEqual([false, false, false, false, false, false, false, true, true])
+    expect(marked).toEqual([false, false, true, true])
   })
 
   test('at the root Node there is no Trail: the row holds the Tree title instead (10.2)', async () => {

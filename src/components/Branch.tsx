@@ -6,8 +6,9 @@
  *
  * Every Branch is a plain link so that following one works without JavaScript (section 14);
  * the slide of section 11 is an enhancement layered on the same element. A Branch whose
- * target has a placement is marked `data-slide`; `start`, `startAgain` and a Trail entry
- * older than the grandparent have none and are only links (11.1).
+ * target has a placement is marked `data-slide`; `start`, `startAgain`, a Trail entry older
+ * than the grandparent and a target the neighbourhood dropped or deduplicated have none and
+ * are only links (11.1, 11.2).
  */
 import type { ReactNode } from 'react'
 

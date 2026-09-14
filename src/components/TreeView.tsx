@@ -52,6 +52,12 @@ interface View {
   idPrefix: string
   /** False in a neighbour frame, which names no image file at all (11.4). */
   pictures: boolean
+  /**
+   * Whether a Branch of a kind that slides, to `href`, has a placement to slide to (11.1,
+   * 11.2). A target the neighbourhood dropped or deduplicated is an ordinary link; so is every
+   * Branch of a neighbour frame, which is inert and never clicked.
+   */
+  placed: (href: string) => boolean
 }
 
 export function TreeView({
@@ -67,7 +73,8 @@ export function TreeView({
   neighbours: Placed[]
 }) {
   const lang = address.lang
-  const viewAt = (at: PageAddress, idPrefix: string, pictures: boolean): View => ({
+  const hrefs = new Set(neighbours.map((placed) => placed.href))
+  const viewAt = (at: PageAddress, idPrefix: string, centre: boolean): View => ({
     address: at,
     ui: chrome(lang),
     uiLang: chromeLang(lang),
@@ -78,7 +85,8 @@ export function TreeView({
     root: tree.manifest.root,
     treeTitle: text(tree.manifest.title, lang, 'tree.title'),
     idPrefix,
-    pictures,
+    pictures: centre,
+    placed: (href) => centre && hrefs.has(href),
   })
   const view = viewAt(address, '', true)
   const here = nodeHref(address)
@@ -160,7 +168,7 @@ function position({ direction, slot }: Placed, node: Node): { x: number; y: numb
  * `start` Branch, so no reader is stranded.
  */
 function Trail({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, titleOf, root, treeTitle, idPrefix } = view
+  const { address, ui, uiLang, titleOf, root, treeTitle, idPrefix, placed } = view
   const entries = address.trail.map((id, index) => ({ href: trailHref(address, index), title: titleOf(id) }))
 
   if (entries.length === 0 && node.id === root) {
@@ -212,7 +220,7 @@ function Trail({ node, view }: { node: Node; view: View }) {
                   rel={parent ? 'prev' : undefined}
                   // Only the parent and the grandparent are placed above (11.2); an older entry
                   // is an ordinary link (11.1).
-                  slides={index >= entries.length - 2}
+                  slides={placed(entry.href)}
                 />
               </li>
               {/* The collapsed middle sits where the middle is: after `start`, before what stays. */}
@@ -257,18 +265,19 @@ function Trail({ node, view }: { node: Node; view: View }) {
  * them. The same list as a Sheet is what the columns collapse to (10.5, steps 3 and 4).
  */
 function Options({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, idPrefix, pictures } = view
+  const { address, ui, uiLang, idPrefix, pictures, placed } = view
   const lang = address.lang
   const half = Math.ceil(node.options.length / 2)
 
   const branch = (option: Option, index: number) => {
     const where = `${node.id}.options[${index}]`
     const image = option.images[0]
+    const href = followHref(address, option.target)
     return (
       <li key={option.target}>
         <Branch
           className="option"
-          href={followHref(address, option.target)}
+          href={href}
           title={text(option.title, lang, `${where}.title`)}
           image={
             image &&
@@ -276,7 +285,7 @@ function Options({ node, view }: { node: Node; view: View }) {
               ? { src: imageHref(image.file), alt: text(image.description, lang, `${where}.images[${image.file}].description`) }
               : 'withheld')
           }
-          slides
+          slides={placed(href)}
         />
       </li>
     )
@@ -322,8 +331,9 @@ function Options({ node, view }: { node: Node; view: View }) {
  * own URL has none, and the Trail row's `start` Branch is its way on.
  */
 function Answers({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, titleOf, root, idPrefix } = view
+  const { address, ui, uiLang, titleOf, root, idPrefix, placed } = view
   const parent = address.trail.length - 1
+  const sliding = (href: string) => ({ href, slides: placed(href) })
 
   return (
     <div className="answers" role="group" aria-labelledby={`${idPrefix}node-title`}>
@@ -331,16 +341,14 @@ function Answers({ node, view }: { node: Node; view: View }) {
         <>
           <Branch
             className="answer answer--yes"
-            href={followHref(address, node.answers.yes)}
-            slides
+            {...sliding(followHref(address, node.answers.yes))}
             word={ui.yes}
             wordLang={uiLang}
             title={titleOf(node.answers.yes)}
           />
           <Branch
             className="answer answer--no"
-            href={followHref(address, node.answers.no)}
-            slides
+            {...sliding(followHref(address, node.answers.no))}
             word={ui.no}
             wordLang={uiLang}
             title={titleOf(node.answers.no)}
@@ -350,8 +358,7 @@ function Answers({ node, view }: { node: Node; view: View }) {
       {node.kind !== 'question' && parent >= 0 && (
         <Branch
           className="answer answer--back"
-          href={trailHref(address, parent)}
-          slides
+          {...sliding(trailHref(address, parent))}
           word={ui.back}
           wordLang={uiLang}
           title={titleOf(address.trail[parent]!)}
