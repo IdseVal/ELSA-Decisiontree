@@ -273,31 +273,54 @@ a.language:hover,
     "carousel carousel carousel carousel carousel carousel carousel";
 }
 
-/* The Carousel's row (#43): on every Node, and the same height, so the Bubble never moves. */
+/* --- the Carousel: the row under the Bubble (section 12) ------------------------- */
+
+/*
+ * One row of 80 pixels on every Node, empty where the Node has no Images, so the Bubble
+ * never moves. A strip of 60-pixel thumbnails with its controls beside it, and under both
+ * a caption line of 20 (12.2). The strip is a page of four: short enough to sit under the
+ * Bubble as one object with its buttons -- a carousel, not a contact sheet -- and each turn
+ * of `next` brings the next four. It is the one element allowed to scroll, sideways, in
+ * its own row (10.6); the scrollbar is not drawn, because the row has no height for one
+ * and the strip is moved by the buttons, the arrow keys and the wheel.
+ */
 .carousel {
   grid-area: carousel;
+  /* The caption line's box: it sits under the strip and the controls, across the row. */
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 0;
 }
 
-/*
- * Until #43 draws the Carousel, the Node's Images are plain thumbnails where its strip will
- * be: 60 pixels, the strip's own size (12.2), ten of them 672 wide in the 80-pixel row. Each
- * opens the enlarged view with the Image's description and credit, so no credit is out of
- * reach before the Carousel lands (the owner, PR #56). Where step 2 shrinks the row to 28,
- * they shrink to 24, still ten in 276 pixels: reachable at every size, never a control.
- */
-.images ul {
+.carousel-strip {
   display: flex;
   gap: 8px;
+  max-width: calc(4 * 80px + 3 * 8px);
+  height: 60px;
   margin: 0;
   padding: 0;
   list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.carousel-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* Static on purpose: the caption inside is placed against the row, not against its item. */
+.carousel-strip > li {
+  flex: none;
+  scroll-snap-align: start;
 }
 
 .thumbnail {
+  position: relative;
   display: block;
   line-height: 0;
   border-radius: 8px;
@@ -305,83 +328,132 @@ a.language:hover,
 
 .thumbnail img {
   display: block;
-  width: 60px;
+  width: 80px;
   height: 60px;
   border-radius: 8px;
   object-fit: cover;
   background: var(--elsa-surface);
+  opacity: 0.7;
   transition: opacity 160ms var(--ease);
 }
 
-.thumbnail:hover img {
-  opacity: 0.82;
+/* A ring inside the thumbnail's own box: one outside it would be cut off by the strip. */
+.thumbnail::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  pointer-events: none;
 }
 
-/* The enlarged view: bounded to the viewport, so it never scrolls either (10.6, 12.3). */
-.enlarged {
-  max-width: calc(100% - 32px);
-  max-height: calc(100% - 32px);
+.thumbnail:focus-visible {
+  outline-offset: -2px;
+}
+
+.thumbnail:hover img {
+  opacity: 1;
+}
+
+/*
+ * The caption of the selected Image, under the strip. Without the script the selected Image
+ * is the thumbnail the keyboard is on, or else the first; with it, the one CarouselButtons
+ * marks `data-selected`. Every other caption has no box at all. The line never wraps: the
+ * text is shortened on the server to what the line holds, the credit whole (12.2).
+ */
+.carousel-caption {
+  display: none;
+  position: absolute;
+  right: 16px;
+  bottom: 0;
+  left: 16px;
+  margin: 0;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text-muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.caption-narrow {
+  display: none;
+}
+
+.carousel-strip:not(:has([data-selected], .thumbnail:focus)) > li:first-child > .carousel-caption,
+.carousel-strip > li:has(> .thumbnail:focus) > .carousel-caption,
+.carousel-strip:not(:has(.thumbnail:focus)) > li[data-selected] > .carousel-caption {
+  display: block;
+}
+
+.carousel-strip:not(:has([data-selected], .thumbnail:focus)) > li:first-child img,
+.carousel-strip > li:has(> .thumbnail:focus) img,
+.carousel-strip:not(:has(.thumbnail:focus)) > li[data-selected] img {
+  opacity: 1;
+}
+
+.carousel-strip:not(:has([data-selected], .thumbnail:focus)) > li:first-child .thumbnail::after,
+.carousel-strip > li:has(> .thumbnail:focus) .thumbnail::after,
+.carousel-strip:not(:has(.thumbnail:focus)) > li[data-selected] .thumbnail::after {
+  box-shadow: inset 0 0 0 2px var(--elsa-accent);
+}
+
+/* Beside the strip: previous, the position, next. Room for them is kept before the script draws them. */
+.carousel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 216px;
+  height: 60px;
+  margin-left: 12px;
+}
+
+.carousel-button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 1px solid var(--rule);
-  border-radius: 24px;
-  background: var(--elsa-surface);
-  color: var(--elsa-text);
-  overflow: hidden;
-}
-
-.enlarged::backdrop {
-  background: var(--veil);
-}
-
-.enlarged figure {
-  margin: 0;
-}
-
-.enlarged img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 50vh;
-  margin: 0 auto;
-}
-
-.enlarged figcaption {
-  padding: 12px 24px 0;
-  font-size: var(--small);
-  line-height: var(--small-line);
-  text-align: center;
-}
-
-.enlarged figcaption p {
-  margin: 0;
-}
-
-.enlarged .credit {
-  margin-top: 4px;
-  color: var(--elsa-text-muted);
-}
-
-.enlarged form {
-  margin: 0;
-  padding: 12px 24px 16px;
-  text-align: center;
-}
-
-.close {
-  padding: 3px 14px;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  font: inherit;
-  font-size: var(--small);
-  line-height: var(--small-line);
+  border-radius: 50%;
   color: var(--elsa-text);
   background: transparent;
   cursor: pointer;
+  transition: border-color 160ms var(--ease);
 }
 
-.close:hover {
+.carousel-button svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.carousel-button:not(:disabled):hover {
   border-color: var(--accent-secondary-read);
+}
+
+.carousel-button:disabled {
+  color: var(--elsa-text-muted);
+  border-color: var(--rule-soft);
+  cursor: default;
+}
+
+.carousel-position {
+  margin: 0;
+  padding: 0 8px;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  font-variant-numeric: tabular-nums;
+  color: var(--elsa-text-muted);
+  white-space: nowrap;
+}
+
+/* The Sheet's own control is the row's collapsed form (10.5, step 2): until then the thumbnails open it. */
+.carousel-sheet > .sheet-open {
+  display: none;
 }
 
 /* --- the Branches ------------------------------------------------------------------ */
@@ -878,11 +950,13 @@ a.language:hover,
 }
 
 /*
- * The control stays above the open panel. Without the script there is no close button and
- * no backdrop, and the panel is laid over the middle of the page -- over the very control
- * that opened it, were it not for this; a second click on it closes the disclosure (14).
+ * Without the script the control stays above the open panel. There is no close button and
+ * no backdrop then, and the panel is laid over the middle of the page -- over the very
+ * control that opened it, were it not for this; a second click on it closes the disclosure
+ * (14). With the script the backdrop and the close button do that, and a control left above
+ * the panel would lie over the panel's own buttons.
  */
-.sheet[open] > .sheet-open {
+.sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-open {
   position: relative;
   z-index: 11;
 }
@@ -909,6 +983,17 @@ a.language:hover,
   font-size: var(--small);
   line-height: var(--small-line);
   overflow: hidden;
+}
+
+/*
+ * The collapsed Carousel's control is at the foot of the page, where a centred panel would
+ * cover it, and without the script it is the only way to close the panel. So the enlarged
+ * view keeps clear of the Carousel's row and of the disclaimer under it, which wraps to at
+ * most 64 pixels; `--carousel-clearance` is set where the control is shown (10.5, step 2).
+ */
+.carousel-sheet > .sheet-panel {
+  bottom: calc(16px + var(--carousel-clearance, 0px));
+  max-height: calc(100% - 32px - var(--carousel-clearance, 0px));
 }
 
 .sheet-list {
@@ -964,13 +1049,58 @@ a.language:hover,
 .sheet-more:not([open]) > :not(summary),
 .sheet-more:not([open]) > summary > .sheet-more-previous,
 .sheet-more[open] > summary > .sheet-more-next,
-.sheet-list:has(+ .sheet-more[open]),
+.sheet-page:has(+ .sheet-more[open]),
 .sheet-more[open]:has(> .sheet-more[open]) > summary {
   display: none;
 }
 
-.sheet-list .kind {
+/* A page is the panel's to lay out: the wrapper is only what the rule above hides. */
+.sheet-page {
+  display: contents;
+}
+
+.sheet-list .kind,
+.sheet-figure .kind {
   margin-right: 6px;
+}
+
+/*
+ * The enlarged Image (12.3): one Image a page, as large as the panel allows above its
+ * description and its credit, both in full. The picture gives way to the text and the
+ * controls in height, so the panel is never taller than the viewport either (10.6).
+ */
+.sheet-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+.sheet-figure img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 880px);
+  max-height: calc(100vh - 280px - var(--carousel-clearance, 0px));
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.sheet-figure figcaption {
+  max-width: 72ch;
+  text-align: center;
+}
+
+.sheet-figure figcaption p {
+  margin: 0;
+}
+
+.sheet-figure .credit {
+  margin-top: 4px;
+  color: var(--elsa-text-muted);
 }
 
 .sheet-list a {
@@ -1095,27 +1225,43 @@ a.language:hover,
 }
 
 /*
- * Step 2 -- the Carousel collapses to one control (#43 draws it; the row shrinks). Also
- * where the Bubble narrows (below 792 pixels): the same text takes more lines there, and
- * the height the row gives up is what keeps it inside the Bubble.
+ * Step 2 -- the Carousel collapses to one control, and the row shrinks. Also by width, below
+ * 960 pixels: narrower than that the caption line cannot hold a 120-character credit whole
+ * on its one line (12.2), and it is never cut. After step 1 (1200) and before the Bubble
+ * narrows (792), so the order of 10.5 holds for every Node.
  */
-@media (max-height: 619px), (max-width: 791px) {
+@media (max-height: 619px), (max-width: 959px) {
   :root {
     --carousel-row: 28px;
   }
 
-  .images ul {
-    gap: 4px;
+  .carousel {
+    align-items: center;
+    --carousel-clearance: calc(var(--carousel-row) + 64px);
   }
 
-  .thumbnail,
-  .thumbnail img {
-    border-radius: 4px;
+  .carousel-strip,
+  .carousel-controls {
+    display: none;
   }
 
-  .thumbnail img {
-    width: 24px;
-    height: 24px;
+  .carousel-sheet > .sheet-open {
+    display: inline-block;
+  }
+}
+
+/*
+ * Below the guaranteed width the caption line is narrower than the 170 characters of 12.2,
+ * so it shows the shorter caption the server wrote for it: the credit whole, and whatever of
+ * the description is left beside it.
+ */
+@media (max-width: 1279px) {
+  .caption-wide {
+    display: none;
+  }
+
+  .caption-narrow {
+    display: inline;
   }
 }
 

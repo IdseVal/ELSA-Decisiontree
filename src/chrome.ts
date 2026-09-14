@@ -64,8 +64,8 @@ export interface Chrome {
   previous: string
   next: string
   /**
-   * The Carousel's position: which Image of how many is selected (section 12). No caller
-   * until #43 draws the Carousel and the collapsed control of 10.5 step 2 (12.1).
+   * The Carousel's position: which Image of how many is selected (section 12), beside its
+   * buttons and on the control the row collapses to (10.5, step 2).
    */
   imageCount: (index: number, total: number) => string
   /**

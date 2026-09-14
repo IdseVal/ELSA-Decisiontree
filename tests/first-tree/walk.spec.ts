@@ -273,10 +273,10 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     const options = await page.locator('.option').count()
     expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)
     await expect(page.locator('.option-image')).toHaveCount(options)
-    await expect(page.locator('.images .thumbnail img')).toHaveCount(1)
+    await expect(page.locator('.carousel .thumbnail img')).toHaveCount(1)
 
     // The description is the alternative text (tree-format.md 5.2), in the reader's language.
-    for (const image of await page.locator('.option-image, .images img').all()) {
+    for (const image of await page.locator('.option-image, .carousel .thumbnail img').all()) {
       expect((await image.getAttribute('alt'))?.trim(), 'an Image with no alternative text').toBeTruthy()
     }
 
@@ -301,7 +301,8 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
  * the display a release blocker (`docs/deployment.md`), tracked as issue #55.
  *
  * The three tests below therefore assert what is true TODAY, not what the format promises:
- * the Node pictures reach their credit through the enlarged view, every Option picture on
+ * the Node pictures show their credit on the Carousel's caption line and in the enlarged
+ * view (issue #43), every Option picture on
  * screen has a credit in the Tree the server is serving, and no Option credit reaches the
  * page. The last one is a DECLARED FAILING test: Playwright runs it and requires it to
  * fail, so the day #55 puts the credit on the page it reports "expected to fail, but
@@ -342,7 +343,7 @@ test.beforeAll(async () => {
   tree = await openTree(TREE_DIR)
 })
 
-test("every step Node's picture gives its credit in the enlarged view", async ({ page }) => {
+test("every step Node's picture gives its credit on the Carousel's caption line and in the enlarged view", async ({ page }) => {
   for (const nodeId of STEP_NODES) {
     const node = await tree.getNode(nodeId)
     expect(node, `${nodeId} cannot be read`).not.toBeNull()
@@ -352,13 +353,15 @@ test("every step Node's picture gives its credit in the enlarged view", async ({
     await expect(thumbnails).toHaveCount(node!.images.length)
     for (const [index, image] of node!.images.entries()) {
       await thumbnails.nth(index).click()
-      const enlarged = page.locator('dialog.enlarged')
+      const enlarged = page.locator('.carousel-sheet .sheet-panel')
       await expect(enlarged).toBeVisible()
-      // Author, where it came from and the licence, as `tree.yaml` writes it -- after a
-      // click, which is the gap issue #55 closes.
+      // Author, where it came from and the licence, as `tree.yaml` writes it.
       await expect(enlarged.locator('.credit')).toContainText(image.credit)
       await page.keyboard.press('Escape')
       await expect(enlarged).toBeHidden()
+      // And without a click: the Carousel (#43) puts the selected picture's credit, whole,
+      // under the strip (application.md 12.2).
+      await expect(page.locator('.carousel-caption:visible')).toContainText(image.credit, { useInnerText: true })
     }
   }
 })

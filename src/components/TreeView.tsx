@@ -9,8 +9,7 @@
  * that the slide of section 11 moves the whole tree with one transform (`Slider`). The
  * neighbours of the Node (11.2) are drawn as frames of the same layout, one layer away in
  * the direction of the Branch that leads to them, and carry no image URL at all (11.4). The
- * Carousel's row (#43) is present on every Node, so the Bubble sits in the same place; until
- * #43 draws the Carousel it holds the Node's Images as plain thumbnails (`Thumbnails.tsx`).
+ * Carousel's row (section 12) is present on every Node, so the Bubble sits in the same place.
  *
  * Below the guaranteed viewport the layout gives things up in the order of 10.5, and each
  * thing it gives up stays reachable behind one control that opens a Sheet. The full group
@@ -29,9 +28,9 @@ import type { Node, Option } from '../tree/types.ts'
 import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
 import { Branch } from './Branch.tsx'
 import { Bubble, sheetWords } from './Bubble.tsx'
+import { Carousel } from './Carousel.tsx'
 import { Sheet } from './Sheet.tsx'
 import { Slider } from './Slider.tsx'
-import { Thumbnails } from './Thumbnails.tsx'
 
 /** How many Trail Branches carry a title at the guaranteed viewport (10.2). */
 const TRAIL_SHOWN = 5
@@ -122,21 +121,13 @@ function Frame({ node, view }: { node: Node; view: View }) {
       <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} />
       {node.options.length > 0 && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
-      {/* The Carousel's row (section 12, issue #43), on every Node, so the Bubble never moves.
-          A neighbour's is empty: its pictures arrive with its own page (11.4). */}
-      <div className="carousel">
-        {view.pictures && node.images.length > 0 && (
-          <Thumbnails
-            images={node.images.map((image) => ({
-              href: imageHref(image.file),
-              description: text(image.description, lang, `${node.id}.images[${image.file}].description`),
-              credit: image.credit,
-            }))}
-            words={{ images: view.ui.images, enlarge: view.ui.enlarge, close: view.ui.close, credit: view.ui.credit }}
-            uiLang={view.uiLang}
-          />
-        )}
-      </div>
+      {/* The Carousel's row (section 12), on every Node, empty where there are no Images, so the
+          Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
+      {view.pictures && node.images.length > 0 ? (
+        <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
+      ) : (
+        <div className="carousel" />
+      )}
     </>
   )
 }

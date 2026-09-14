@@ -1,0 +1,133 @@
+# The Carousel's fixture (docs/specs/application.md section 12, issue #43): a root Node with
+# five Images, more than one page of the strip holds, so that `previous` and `next` have
+# somewhere to go; a Node with two Images, the common case; a Node whose first credit is
+# the format's maximum of 120 characters, the longest the caption line must hold whole below
+# the guaranteed width (12.2, 10.5 step 2); and a Terminal whose one Image no other page may
+# ask for (12.4). The pictures are small drawings of different shapes --
+# landscape, wide, portrait, square, panorama -- so the thumbnails and the enlarged view are
+# seen cropping and fitting each of them.
+format: elsa-tree/2
+languages: [en, nl]
+root: five
+title:
+  en: The Carousel fixture
+  nl: De carrousel-fixture
+metadata:
+  version: "1.0"
+
+--- # five
+id: five
+title:
+  en: Does your farm use AI to decide when to harvest?
+  nl: Gebruikt uw bedrijf AI om te bepalen wanneer er geoogst wordt?
+description:
+  en: |
+    Five pictures of the places such a system watches. Look through them below, then answer.
+  nl: |
+    Vijf afbeeldingen van de plekken die zo'n systeem in de gaten houdt. Bekijk ze hieronder en antwoord dan.
+metadata:
+  version: "1.0"
+images:
+  - file: orchard.svg
+    description:
+      en: An orchard of three apple trees under a yellow sun
+      nl: Een boomgaard met drie appelbomen onder een gele zon
+    credit: "Drawing: Example Studio, CC0 1.0"
+  - file: greenhouse.svg
+    description:
+      en: Two greenhouses with rows of seedlings and a shed beside them
+      nl: Twee kassen met rijen zaailingen en een schuur ernaast
+    credit: "Drawing: Example Studio, CC BY 4.0"
+  - file: drone.svg
+    description:
+      en: A drone scanning a field from above
+      nl: Een drone die een akker van bovenaf scant
+    credit: "Drawing: Example Illustrator, via Example Commons, CC BY-SA 4.0"
+  - file: tractor.svg
+    description:
+      en: A red tractor on a dirt track
+      nl: Een rode tractor op een zandpad
+    credit: "Drawing: Example Studio, CC0 1.0"
+  - file: harbour.svg
+    description:
+      en: A fishing harbour at sunset with a boat leaving the quay
+      nl: Een vissershaven bij zonsondergang met een boot die de kade verlaat
+    credit: "Drawing: Example Cartography, public domain"
+answers:
+  yes: two
+  no: done
+
+--- # two
+id: two
+title:
+  en: Does the system store what it sees?
+  nl: Bewaart het systeem wat het ziet?
+description:
+  en: |
+    Two pictures, the most common number on a Node.
+  nl: |
+    Twee afbeeldingen, het gebruikelijkste aantal op een stap.
+metadata:
+  version: "1.0"
+images:
+  - file: barn.svg
+    description:
+      en: A red barn with a white door
+      nl: Een rode schuur met een witte deur
+    credit: "Drawing: Example Studio, CC BY 4.0"
+  - file: silo.svg
+    description:
+      en: A grain silo beside a field
+      nl: Een graansilo naast een akker
+    credit: "Drawing: Example Studio, CC0 1.0"
+answers:
+  yes: done
+  no: long
+
+--- # long
+id: long
+title:
+  en: Does the system control the water supply?
+  nl: Regelt het systeem de watertoevoer?
+description:
+  en: |
+    One credit at the format's limit of 120 characters, which the caption line holds whole at every width the strip is shown at.
+  nl: |
+    Een vermelding op de grens van 120 tekens, die de onderschrift-regel heel toont op elke breedte waarop de strip staat.
+metadata:
+  version: "1.0"
+images:
+  - file: channel.svg
+    description:
+      en: An irrigation channel between two fields of young maize, with a sluice gate half open and water running
+      nl: Een irrigatiekanaal tussen twee velden jonge mais, met een half geopende sluisdeur en stromend water
+    credit: "Photograph: Example Agricultural Research Station, Department of Soil and Water, via Example Commons, licence CC BY 4.0."
+  - file: pump.svg
+    description:
+      en: A solar-powered pump beside a pond, its panel tilted towards the sun and a pipe leading to the field
+      nl: Een pomp op zonne-energie naast een vijver, het paneel naar de zon gekanteld en een buis naar de akker
+    credit: "Drawing: Example Studio, CC BY 4.0"
+answers:
+  yes: done
+  no: done
+
+--- # done
+id: done
+title:
+  en: The walk ends here
+  nl: De doorloop eindigt hier
+description:
+  en: |
+    Nothing on this page is asked for by the pages before it.
+  nl: |
+    Niets op deze pagina wordt door de pagina's ervoor opgevraagd.
+metadata:
+  version: "1.0"
+images:
+  - file: field.svg
+    description:
+      en: A field of wheat
+      nl: Een tarweveld
+    credit: "Drawing: Example Studio, CC0 1.0"
+terminal:
+  outcome: not-applicable

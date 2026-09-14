@@ -4,9 +4,9 @@
  *
  * Issue #41 turned the Node view into the tree view of docs/specs/application.md section
  * 10: the Answers are Branches whose accessible name is the chrome word and the target's
- * title, so they are found by class here. The thumbnails and the enlarged view are what
- * 0.1 showed, kept in the Carousel's row until issue #43 draws the Carousel (the owner,
- * PR #56); the tree view's own clicks, keyboard and Sheets are `tree-view.spec.ts`.
+ * title, so they are found by class here. The thumbnail and the enlarged view checks are the
+ * 0.1 ones, kept on the Carousel issue #43 drew (`carousel.spec.ts` is the rest of it); the
+ * tree view's own clicks, keyboard and Sheets are `tree-view.spec.ts`.
  *
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */
@@ -125,14 +125,12 @@ test('the 404 sends its status in the response and its body in the client payloa
 
 test('clicking a thumbnail shows the image larger with its description and credit', async ({ page }) => {
   await page.goto(START)
-  const enlarged = page.locator('dialog.enlarged')
+  const enlarged = page.locator('.carousel-sheet .sheet-panel')
   await expect(enlarged).toBeHidden()
 
   await page.locator('.thumbnail').first().click()
 
   await expect(enlarged).toBeVisible()
-  // The overlay is announced by the image it shows, not as a bare "dialog".
-  await expect(page.getByRole('dialog', { name: 'Map of the European Union member states' })).toBeVisible()
   await expect(enlarged).toContainText('Map of the European Union member states')
   await expect(enlarged.locator('.credit')).toContainText('Map: Example Cartography, CC BY 4.0')
   const enlargedImage = enlarged.locator('img')
@@ -148,7 +146,7 @@ test('clicking a thumbnail shows the image larger with its description and credi
 
 test('Escape closes the enlarged image, and so does a click outside it', async ({ page }) => {
   await page.goto(START)
-  const enlarged = page.locator('dialog.enlarged')
+  const enlarged = page.locator('.carousel-sheet .sheet-panel')
 
   await page.locator('.thumbnail').first().click()
   await expect(enlarged).toBeVisible()
@@ -157,7 +155,7 @@ test('Escape closes the enlarged image, and so does a click outside it', async (
 
   await page.locator('.thumbnail').first().click()
   await expect(enlarged).toBeVisible()
-  // The backdrop of a modal dialog reports the dialog itself as the click target.
+  // The Sheet's backdrop covers the page around the panel.
   await page.mouse.click(4, 4)
   await expect(enlarged).toBeHidden()
 })
@@ -178,7 +176,7 @@ test('enlarging a thumbnail fetches nothing new', async ({ page }) => {
 
   const whileEnlarging = await imageRequests(page, async () => {
     await page.locator('.thumbnail').first().click()
-    await expect(page.locator('dialog.enlarged')).toBeVisible()
+    await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
   })
 
   expect(whileEnlarging).toEqual([])
@@ -201,10 +199,10 @@ test('a keyboard reaches the thumbnail, opens the enlarged view and closes it, a
 
   await page.locator('.thumbnail').first().focus()
   await page.keyboard.press('Enter')
-  await expect(page.locator('dialog.enlarged')).toBeVisible()
-  await expect(page.locator('button.close')).toBeFocused()
+  await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
+  await expect(page.locator('.carousel-sheet .sheet-close')).toBeFocused()
   await page.keyboard.press('Enter')
-  await expect(page.locator('dialog.enlarged')).toBeHidden()
+  await expect(page.locator('.carousel-sheet .sheet-panel')).toBeHidden()
   await expect(page.locator('.thumbnail').first()).toBeFocused()
 })
 

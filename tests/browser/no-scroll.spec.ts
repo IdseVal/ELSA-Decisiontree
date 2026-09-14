@@ -11,33 +11,36 @@
  * two would let through.
  *
  * The pages: the four situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
- * at a 49-entry Trail (every maximum the format allows at once), and the longest Node of
- * the first Tree once it validates -- each in both languages, and each again with every
- * Sheet it offers open -- and each in the middle of a slide (section 11): halfway out of the
- * page, and halfway back into it on the history step.
+ * at a 49-entry Trail (every maximum the format allows at once), the two Nodes with Images
+ * of `tests/fixtures/carousel/` (issue #43), and the longest Node of the first Tree once it
+ * validates -- each in both languages, and each again with every Sheet it offers open and
+ * every Image it carries enlarged -- and each in the middle of a slide (section 11): halfway
+ * out of the page, and halfway back into it on the history step.
  *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
  * pull request can paste the numbers rather than describe them (10.6, last paragraph).
  *
- * The fixture and the first Tree are served by servers this file starts, the way
- * tests/browser/theme.spec.ts does: Playwright's own server serves the example Tree.
+ * The fixtures and the first Tree are served by servers this file starts (`serve.ts`):
+ * Playwright's own server serves the example Tree.
  */
-import { spawn, type ChildProcess } from 'node:child_process'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { openTree } from '../../src/tree/loader.ts'
 import { arrived } from './arrived.ts'
+import { BASE_PORT, serve, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const trees = path.join(repo, 'trees')
 const fixtures = path.join(repo, 'tests', 'fixtures')
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 
-/** Ports for the servers this file starts; clear of playwright.config.ts's and theme.spec.ts's. */
-const FULL_NODE_PORT = Number(process.env.ELSA_TEST_PORT ?? 3117) + 20
+/** Ports for the servers this file starts; clear of playwright.config.ts's, theme.spec.ts's and carousel.spec.ts's. */
+const FULL_NODE_PORT = BASE_PORT + 20
 const FIRST_TREE_PORT = FULL_NODE_PORT + 1
+const CAROUSEL_PORT = FULL_NODE_PORT + 3
+const FULL_NODE_SLIDING_PORT = FULL_NODE_PORT + 4
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -53,6 +56,21 @@ const VIEWPORTS = [
   [320, 480],
 ] as const
 
+/**
+ * Where the width alone orders steps 1 and 2 (10.5), none of them a viewport of 10.6: between
+ * step 1 (1200) and the guaranteed width, at step 2's trigger (960) and just below it, and in
+ * the band between step 2 and the Bubble narrowing (792), each at the guaranteed height and
+ * at one tall enough that no height-keyed step fires.
+ */
+const STEP_2_VIEWPORTS = [
+  [1240, 640],
+  [1240, 800],
+  [960, 640],
+  [960, 800],
+  [959, 800],
+  [800, 800],
+] as const
+
 /** The four situations of 10.3, as pages of the example Tree (playwright.config.ts serves it). */
 const EXAMPLE_PAGES = [
   { what: 'question Node with Options', url: '/ai-act-example/start/prohibited-practices' },
@@ -62,6 +80,18 @@ const EXAMPLE_PAGES = [
     url: '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
   },
   { what: 'Terminal', url: '/ai-act-example/start/prohibited-practices/prohibited' },
+] as const
+
+/**
+ * The rows issue #59 records, English and without the script: the page and viewport where the
+ * open Sources panel lies under its own control. Only these leave the Sources Sheet's
+ * reachability unasserted, and the `test.fixme` below pins exactly these.
+ */
+const ISSUE_59 = [
+  { url: EXAMPLE_PAGES[0].url, viewport: '768x1024' },
+  { url: EXAMPLE_PAGES[2].url, viewport: '768x1024' },
+  { url: EXAMPLE_PAGES[2].url, viewport: '390x844' },
+  { url: EXAMPLE_PAGES[2].url, viewport: '360x640' },
 ] as const
 
 /** The full Node reached by visiting itself 49 times: adjacency is not checked (4.3). */
@@ -98,51 +128,12 @@ interface Row {
 }
 
 const rows: Row[] = []
-const started: ChildProcess[] = []
 
 test.afterAll(async () => {
-  for (const server of started) server.kill()
+  stopServers()
   await mkdir(RESULTS, { recursive: true })
   await writeFile(path.join(RESULTS, 'no-scroll.md'), table(rows))
 })
-
-/**
- * The standalone server, serving `treeId` out of `treesDir` on its own origin -- the same
- * command docs/deployment.md gives. Null when the server exits before it answers, which
- * is what it does for a Tree that does not validate (application.md 5.4).
- */
-async function serve(treesDir: string, treeId: string, port: number): Promise<string | null> {
-  const origin = `http://127.0.0.1:${port}`
-  const server = spawn(process.execPath, [path.join('.next', 'standalone', 'server.js')], {
-    cwd: repo,
-    stdio: 'ignore',
-    env: {
-      ...process.env,
-      ELSA_TREE: treeId,
-      ELSA_TREES_DIR: treesDir,
-      ELSA_BASE_URL: '',
-      NEXT_TELEMETRY_DISABLED: '1',
-      PORT: String(port),
-      HOSTNAME: '127.0.0.1',
-    },
-  })
-  started.push(server)
-  let exited = false
-  server.on('exit', () => {
-    exited = true
-  })
-
-  const deadline = Date.now() + 30_000
-  for (;;) {
-    if (exited) return null
-    try {
-      if ((await fetch(origin, { redirect: 'manual' })).status > 0) return origin
-    } catch {
-      if (Date.now() > deadline) throw new Error(`${treeId} did not start on ${port}`)
-      await new Promise((wake) => setTimeout(wake, 250))
-    }
-  }
-}
 
 /** The page as laid out, once its fonts have settled: the numbers of 10.6. */
 async function measure(page: Page): Promise<Measured> {
@@ -191,9 +182,17 @@ function assertFits(m: Measured, where: string): void {
  * open -- and, where the Node has Images and the script runs, with the enlarged view open --
  * and records every measurement. `what` and `lang` name the rows. `script` is false in the
  * no-JavaScript runs, where a thumbnail is a link to the file and opens nothing in place.
+ * `viewports` are 10.6's unless a test measures a band of its own.
  */
-async function measureEverywhere(page: Page, url: string, what: string, lang: string, script = true): Promise<void> {
-  for (const [width, height] of VIEWPORTS) {
+async function measureEverywhere(
+  page: Page,
+  url: string,
+  what: string,
+  lang: string,
+  script = true,
+  viewports: readonly (readonly [number, number])[] = VIEWPORTS,
+): Promise<void> {
+  for (const [width, height] of viewports) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
     await page.goto(url)
@@ -216,6 +215,13 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
       const open = await measure(page)
       rows.push({ page: what, lang, viewport, sheet: kind, measured: open })
       assertFits(open, `${what} (${lang}) at ${viewport} with the ${kind} open`)
+      // Without the script the Sources control in the Bubble lies over a link of its own panel
+      // at the rows of issue #59, pinned by the `test.fixme` of that number below, which is
+      // where that Sheet's reachability is asserted there until it is fixed. Everywhere else
+      // it is asserted here.
+      const known59 = !script && kind === 'sources-sheet' && ISSUE_59.some((row) => row.url === url && row.viewport === viewport)
+      const reachable = !known59
+      if (reachable) await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open`)
 
       // Without the script a long list is pages of native disclosures (section 14): each
       // page turned in its turn, and measured.
@@ -225,19 +231,23 @@ async function measureEverywhere(page: Page, url: string, what: string, lang: st
         const turned_ = await measure(page)
         rows.push({ page: what, lang, viewport, sheet: `${kind}, page ${turned + 1}`, measured: turned_ })
         assertFits(turned_, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
+        if (reachable) await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
       }
       await closeSheet(sheet)
     }
 
-    // The enlarged view of the Node's first Image (12.3), where there is one to open.
-    const thumbnail = page.locator('.thumbnail').first()
-    if (script && (await thumbnail.isVisible())) {
-      await thumbnail.click()
-      const enlarged = page.locator('dialog.enlarged')
+    // The enlarged view of each of the Node's Images, opened from its thumbnail (12.3), where
+    // the strip is on the page. Below step 2 the loop above opened it from its own control.
+    const thumbnails = page.locator('.thumbnail')
+    const enlarged = page.locator('.carousel-sheet .sheet-panel')
+    for (let i = 0; script && i < (await thumbnails.count()); i += 1) {
+      if (!(await thumbnails.nth(i).isVisible())) continue
+      await thumbnails.nth(i).click()
       await expect(enlarged).toBeVisible()
       const open = await measure(page)
-      rows.push({ page: what, lang, viewport, sheet: 'enlarged', measured: open })
-      assertFits(open, `${what} (${lang}) at ${viewport} with the enlarged view open`)
+      rows.push({ page: what, lang, viewport, sheet: `enlarged Image ${i + 1}`, measured: open })
+      assertFits(open, `${what} (${lang}) at ${viewport} with Image ${i + 1} enlarged`)
+      await assertReachable(page.locator('details.carousel-sheet'), `${what} (${lang}) at ${viewport} with Image ${i + 1} enlarged`)
       await page.keyboard.press('Escape')
       await expect(enlarged).toBeHidden()
     }
@@ -315,6 +325,27 @@ async function closeSheet(sheet: Locator): Promise<void> {
   await expect(sheet.locator('.sheet-panel')).toBeHidden()
 }
 
+/**
+ * Every control on an open Sheet's panel is the element a click at its centre lands on. The
+ * control that opened the Sheet stays above the panel (14), so a panel laid over it --
+ * the collapsed Carousel's, at the bottom of the page -- would swallow the click meant for
+ * `next` or `close` and shut the Sheet instead.
+ */
+async function assertReachable(sheet: Locator, where: string): Promise<void> {
+  const covered = await sheet.locator('.sheet-panel').evaluate((panel) =>
+    [...panel.querySelectorAll('summary, button, a')].flatMap((control) => {
+      // The first line box: the middle of a link wrapped over lines may be beside its text.
+      const box = control.getClientRects()[0]
+      if (!box || box.width === 0 || box.height === 0) return []
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+      return hit && control.contains(hit)
+        ? []
+        : [`${control.textContent?.trim()} at ${Math.round(box.left)},${Math.round(box.top)} under ${hit?.closest('[class]')?.className ?? 'nothing'}`]
+    }),
+  )
+  expect(covered, `${where}: a control on the panel is covered`).toEqual([])
+}
+
 
 /** `url` said in `lang`: the query of 4.1, left out for the Tree's default. */
 function inLang(url: string, lang: string): string {
@@ -353,10 +384,60 @@ for (const lang of LANGUAGES) {
 for (const lang of LANGUAGES) {
   test(`the full Node at a 49-entry Trail, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
     test.slow()
-    const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 3)
+    const origin = await serve(fixtures, 'full-node', FULL_NODE_SLIDING_PORT)
     expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
     await measureSliding(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
   })
+}
+
+/**
+ * The Carousel's fixture (section 12): a Node whose Images are more than a page of the strip,
+ * the common two, and a credit of the format's maximum 120 characters.
+ */
+const CAROUSEL_PAGES = [
+  { what: 'Node with five Images', url: '/carousel/five' },
+  { what: 'Node with two Images', url: '/carousel/five/two' },
+  { what: 'Node with a 120-character credit', url: '/carousel/five/two/long' },
+] as const
+
+let carousel: Promise<string | null> | undefined
+
+/** The Carousel fixture's server, started once for every test of this file that needs it. */
+async function carouselOrigin(): Promise<string> {
+  carousel ??= serve(fixtures, 'carousel', CAROUSEL_PORT)
+  const origin = await carousel
+  expect(origin, 'the carousel fixture is a valid Tree').not.toBeNull()
+  return origin!
+}
+
+for (const { what, url } of CAROUSEL_PAGES) {
+  for (const lang of LANGUAGES) {
+    test(`${what}, ${lang}, never scrolls at any viewport of 10.6, each Image enlarged in turn`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, `${await carouselOrigin()}${inLang(url, lang)}`, what, lang)
+    })
+  }
+}
+
+// The order of 10.5 by width, laid out: the longest credit whole on the caption line from
+// the guaranteed width down to step 2's trigger, and the collapsed row below it.
+for (const lang of LANGUAGES) {
+  test(`the Node with a 120-character credit, ${lang}, never scrolls where steps 1 and 2 fire by width`, async ({ page }) => {
+    test.slow()
+    const { what, url } = CAROUSEL_PAGES[2]
+    await measureEverywhere(page, `${await carouselOrigin()}${inLang(url, lang)}`, what, lang, true, STEP_2_VIEWPORTS)
+  })
+}
+
+// A page with a Carousel mid-slide: the strip rides in the layer, and the neighbour it slides
+// towards has an empty row where its Carousel will be (11.4).
+for (const { what, url } of CAROUSEL_PAGES) {
+  for (const lang of LANGUAGES) {
+    test(`${what}, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
+      test.slow()
+      await measureSliding(page, `${await carouselOrigin()}${inLang(url, lang)}`, what, lang)
+    })
+  }
 }
 
 test('the longest Node of the first Tree, once it validates, never scrolls at any viewport of 10.6', async ({ page }) => {
@@ -400,6 +481,29 @@ test.describe('with JavaScript switched off', () => {
       await measureEverywhere(page, url, `${what}, no JavaScript`, 'en', false)
     })
   }
+
+  // Known defect, issue #59: at the rows of ISSUE_59 the open Sources panel lies under its
+  // own control, so one Source link takes no click. `measureEverywhere` leaves the Sources
+  // Sheet out without the script at those rows only; this is the assertion it would make
+  // there, marked `fixme` so the run shows it until #59 is fixed.
+  test.fixme('the Sources Sheet keeps every link clear of its own control without JavaScript (#59)', async ({ page }) => {
+    for (const { url, viewport } of ISSUE_59) {
+      const [width, height] = viewport.split('x').map(Number) as [number, number]
+      await page.setViewportSize({ width, height })
+      await page.goto(url)
+      const sheet = page.locator('details.sources-sheet')
+      await sheet.locator('.sheet-open').click()
+      await expect(sheet.locator('.sheet-panel')).toBeVisible()
+      await assertReachable(sheet, `${url} at ${viewport} with the Sources open`)
+    }
+  })
+
+  // The Carousel without the script: the strip, its caption line, and below step 2 its
+  // control, whose Sheet is a page of disclosures per Image (12.2, 14).
+  test('a Node with five Images never scrolls without JavaScript', async ({ page }) => {
+    test.slow()
+    await measureEverywhere(page, `${await carouselOrigin()}/carousel/five`, 'Node with five Images, no JavaScript', 'en', false)
+  })
 
   // The one Sheet the script pages: without it the 49 entries are pages of disclosures,
   // and each page has to fit the narrowest viewport above the floor (10.2, 10.6, 14).

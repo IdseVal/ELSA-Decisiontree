@@ -586,8 +586,6 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── Branch.tsx       [v0.2] server: one Link as a Branch (link, label, thumbnail)
 │   │   ├── Carousel.tsx     [v0.2] server: the Images strip and its caption line (12)
 │   │   ├── CarouselButtons.tsx  [v0.2] client: the strip's previous/next buttons (12)
-│   │   ├── Thumbnails.tsx   client: 0.1's thumbnails in the Carousel's row until #43
-│   │   │                    draws the Carousel (12.1); #43 removes it
 │   │   ├── Sheet.tsx        [v0.2] client: the one overlay -- enlarged Image, full
 │   │   │                    Trail, collapsed Options, collapsed Sources (10.5, 12)
 │   │   ├── Slider.tsx       [v0.2] client: the slide transition (11)
@@ -624,7 +622,8 @@ Gone with 0.1's view: `src/components/NodeView.tsx` and `Trail.tsx`. Their work 
 Carousel's row, each opening the enlarged view with the credit (12.1), so that no credit
 is out of a reader's reach between #41 and #43. It is a client component in the interim
 -- a fifth, owning the one interaction of the enlarged view -- and #43 removes it when
-`Carousel.tsx` and `CarouselButtons.tsx` take the row.
+`Carousel.tsx` and `CarouselButtons.tsx` take the row. **Removed by #43** (2026-09-13):
+the client components are four again.
 
 | Module | Owns | Does not |
 |---|---|---|
@@ -675,10 +674,10 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | Item | Contract |
 |---|---|
 | Runner | Vitest, `npm test` = `vitest run`, Node environment; files `tests/**/*.test.ts(x)`. |
-| Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. |
+| Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. A spec that needs a Tree other than the example starts its own server with `tests/browser/serve.ts`, a helper and not a spec file (amended 2026-09-14, #43). |
 | Also in CI | `tsc --noEmit`, `next build`, `npm run validate trees/<each Tree>`, `npm run test:browser`. Command: `npm ci && npm test && npm run build && npm run test:browser`. |
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; never YAML read by a test. |
-| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description, 3 Sources, 8 Options, 10 Images, and a 49-entry Trail to reach it). |
+| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description, 3 Sources, 8 Options, 10 Images, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with five Images, more than the strip's page of four, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request; amended 2026-09-13 and 2026-09-14, #43). |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
 
 **Which tests are unit and which need a browser.** The rule is: a claim about *markup*
@@ -694,15 +693,16 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | `neighbourhood.test.ts` **[v0.2]** | The set for each Node kind; **never more than 16**; no id twice; a Link to an unknown id is dropped, not thrown; the Trail supplies `up`, the Answers `down`, the Options `side`; an empty Trail has no `up`. |
 | `theme.test.ts` **[v0.2]** | The emitted properties equal the manifest's values; a Tree with no Theme, and one with only `colours`, get the documented defaults for the rest; the three derived `--elsa-on-*` colours; a `family` containing `'`, `\` or `</style>` is escaped or refused; a colour that is not `#rrggbb` is refused rather than emitted. |
 | `stylesheet.test.ts` **[v0.2]** | `globals.css` contains no colour literal (`#rgb`, `#rrggbb`, `rgb(`, `hsl(`, a CSS colour keyword) and no `font-family` value that is not `var(--elsa-font-*)`. This is core document section 9's "the frontend must never carry a lab's branding in its code", as a test that cannot be argued with. |
-| `views.test.tsx` | Each Node kind's structure (10.3): what the Bubble holds, which Branches exist, where they link; **[v0.2]** the Carousel's caption is at most 170 characters with the `credit` whole and the `description` shortened to fit (12.2). |
+| `views.test.tsx` | Each Node kind's structure (10.3): what the Bubble holds, which Branches exist, where they link; **[v0.2]** the Carousel's caption is at most 170 characters with the `credit` whole and the `description` shortened to fit (12.2); **[v0.2]** the rest of the Carousel's markup (#43): the Node's own Images in the author's order, a focusable strip of lazy thumbnails with `width` and `height`, each a link to its file named by `enlarge` and its description and described by its credit, the chrome in its own language, and the enlarged view as the one `Sheet` (12.1, 12.3, 12.4; amended 2026-09-13, #43); the caption below the guaranteed width at most 123 characters with every credit whole, the strip named and the row around it not, no strip on a Node without Images, and nothing in the markup keyed to a credit's length (12.2, 10.5; amended 2026-09-14, #43). |
 | `interop.test.tsx` | Below. |
 
 | Browser (Playwright) | Asserts |
 |---|---|
-| `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind, with every Sheet open, and again with JavaScript disabled. |
+| `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind, with every Sheet open, and again with JavaScript disabled; **[v0.2]** the Node with a 120-character credit also at 1240, 960, 959 and 800 pixels of width, where steps 1 and 2 fire by width (10.5; amended 2026-09-14, #43). |
 | `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, no image of an off-centre Node, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation. |
 | `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.yaml` and restarting changes the page with no code change. |
 | `tree-view.spec.ts` **[v0.2]** | The tree view in a browser (#41): what a click on each kind of Branch does to the URL (10.3); Tab reaches every control in document order and Enter follows each Branch; a Sheet opens, lists its links, closes on Escape and returns the focus; the Trail Sheet pages eight at a time, newest first (10.2); the minimum-size notice names the dimension that is short (10.4); the screenshots of #41. **With JavaScript disabled**, section 14: every Branch is a link that navigates, a collapsed group is its plain list, and the Trail Sheet is pages of disclosures. There is no `no-js.spec.ts`: the no-script assertions live here and in `no-scroll.spec.ts`, which measures every page without script as well (amended 2026-09-13, #41, PR #56). |
+| `carousel.spec.ts` **[v0.2]** | The Carousel in a browser (#43), against `tests/fixtures/carousel/`: the image files requested on load, after `next` and on enlarging, and never another Node's (12.4, 11.5); previous and next scroll a page and are disabled at the ends; one tab stop, Left/Right/Home/End, Enter or Space enlarges, Escape closes and returns the focus (12.3); the names in `en` and `nl`; below step 2 the one control says `imageCount` and opens the enlarged view (10.5); by width the Trail collapses at 1200 and the Carousel at 960, the 120-character credit whole on the caption line until then (10.5, 12.2); **with JavaScript disabled**, a thumbnail opens its file, the strip is a tab stop the arrow keys scroll, a Node without Images has no stop in the row, the caption follows the focus, and the collapsed control pages the Images as disclosures (14); the screenshots of #43 (amended 2026-09-13 and 2026-09-14, #43). |
 | `node-view.spec.ts`, `trail.spec.ts`, `language.spec.ts`, `deployment.spec.ts` | The 0.1 browser specs, kept: the URL scheme, the Trail, the language mechanism and the deployment shape are unchanged contracts and keep their tests. |
 
 **The interoperability test** (`interop.test.tsx`) is core document section 9, first
@@ -986,19 +986,28 @@ Whichever step first makes the arrangement fit is where it stops.
   `ADR-38-no-scroll.md`), because a narrower page narrows the row or the Bubble the
   same content sits in, so the content needs more height there and the step that frees
   it is the same step. Step 1 fires below 1200 pixels of width, where the collapsed row
-  of 10.2 (1220 pixels) no longer fits and could only truncate or wrap; steps 2, 5 and
-  6 fire together below 792, where the Bubble narrows (its rim to 36 by 24) and its text
-  takes more lines; step 6's further sizes follow at 640 and 480. By height the
-  triggers keep the order of the table: below 640, 620, 568, 548, 532 then 516 then
+  of 10.2 (1220 pixels) no longer fits and could only truncate or wrap; step 2 fires
+  below 960, where the caption line of 12.2 no longer holds a 120-character credit whole;
+  steps 5 and 6 fire together below 792, where the Bubble narrows (its rim to 36 by 24)
+  and its text takes more lines; step 6's further sizes follow at 640 and 480. By height
+  the triggers keep the order of the table: below 640, 620, 568, 548, 532 then 516 then
   500, and the notice at 480. By width the order as built is steps 3 and 4 first (below
   1280; 4 there for five Options or more, or when the height is also below 740, and by
   count at 1000, 770 and 520 for four, three and two Options), then
-  step 1 (1200), then 2, 5 and 6 at once (792), then the notice (at 320): the two width
-  steps of the table lead, because the Option columns are the widest thing beside the
-  Bubble, and no height-keyed step fires by width before the height-keyed step above it.
+  step 1 (1200), then step 2 (960), then 5 and 6 at once (792), then the notice (at 320):
+  the two width steps of the table lead, because the Option columns are the widest thing
+  beside the Bubble, and no height-keyed step fires by width before the height-keyed step
+  above it. Every trigger is a width or a height, the same for every Node; none is keyed
+  to a Node's content.
   (Until 2026-09-13 step 5 fired by width only at 640 and step 6 at 792, so between them
   the type had stepped down while the citation was still inline; the Reviewer of PR #56
   caught it.)
+  (Until 2026-09-14 step 2 fired by width with 5 and 6, at 792. Between 792 and about 955
+  pixels the caption line cannot hold the longest credit the format allows, which 12.2
+  never cuts, so #43's first build collapsed the row below 1280 on a Node with a long
+  credit -- before step 1, which the Reviewer of PR #58 caught. The owner's answer on
+  PR #58, <https://github.com/IdseVal/ELSA-Decisiontree/pull/58#issuecomment-5667939977>,
+  is 960 for every Node; `ADR-38-no-scroll.md`, amendment of 2026-09-14.)
 
 ### 10.6 The no-scroll rule, and the exact test
 
@@ -1283,7 +1292,8 @@ caption line, no transitions; where 10.5's step 2 shrinks the row to 28 pixels t
 shrink to 24. #43 replaces them. **Step 2's control is deferred with them** (amended
 2026-09-13, #41, PR #56): the one control showing `imageCount` is the Carousel's, so
 #43 builds it; until then the row below step 2 is the 24-pixel thumbnails, and
-`imageCount` is in `src/chrome.ts`, in both languages, with no caller.
+`imageCount` is in `src/chrome.ts`, in both languages, with no caller. **#43 replaced
+them** (2026-09-13): `Thumbnails.tsx` is gone, and step 2's control is the Carousel's.
 
 ### 12.2 The strip, and its one exemption from the no-scroll rule
 
@@ -1309,7 +1319,8 @@ the two are given the line in a fixed order of priority:
   exception and core document 8 is why; a credit visible only when the description
   happens to be short is not that promise. At 120 characters it takes about 850 pixels of
   the line at most.
-- **the `description` takes what is left** -- at least 47 characters -- shortened to fit,
+- **the `description` takes what is left** -- at least 47 characters at the guaranteed
+  width, and below it possibly none (the last paragraph of this section) -- shortened to fit,
   with a trailing ellipsis when it is shortened. Nothing is lost by it: the whole
   description is the thumbnail's alternative text, and both fields are shown in full in
   the enlarged view (12.3), one Enter away.
@@ -1320,6 +1331,21 @@ caption's content wider than the caption, and 10.6's test measures `scrollWidth`
 that still overflows is precisely what the no-scroll rule forbids. So the Carousel
 shortens the string it renders. That is a fact about markup, and `views.test.tsx` asserts
 it (section 7), not a browser.
+
+**Below the guaranteed width** (amended 2026-09-14, #43, the owner on PR #58: 10.5's last
+note): the line is narrower than 1230 pixels, down to the 896 left beside the page margins
+at 960 pixels of width, below which step 2 collapses the row for every Node (10.5). 896
+pixels are **123 characters**: a `credit` of the format's maximum 120 and the ` — `
+separator. So the Carousel renders a second caption of at most 123 characters for each
+Image, and the stylesheet shows it below 1280 pixels of width. **The credit is whole on
+it for every credit the format allows**; the description takes what is left, shortened as
+above, and **may be empty** -- beside a 120-character credit it is. Nothing is lost by it:
+the whole description is still the thumbnail's alternative text and is shown in full in
+the enlarged view. Nothing about the row is keyed to the length of a credit. The enlarged
+view keeps clear of step 2's control wherever it is shown: the control is at the foot of
+the page and, without JavaScript, is the only way to close the Sheet. (The build of
+2026-09-13 drew a 100-character line and collapsed the row below 1280 on a Node with a
+credit over 97 characters, before step 1; the owner replaced that with this rule.)
 
 ### 12.3 Controls, keyboard and the enlarged view
 
