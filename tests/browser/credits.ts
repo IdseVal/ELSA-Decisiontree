@@ -32,7 +32,9 @@ export async function picturesByNode(tree: Tree, treeDir: string, lang: string):
     if (!node) throw new Error(`${id} cannot be read`)
     const pictures: Picture[] = [
       ...node.images.map((image) => ({ image })),
-      ...node.options.flatMap((option) => (option.images[0] ? [{ image: option.images[0], option: text(option.title, lang, 'title') }] : [])),
+      ...node.options.flatMap((option, index) =>
+        option.images[0] ? [{ image: option.images[0], option: text(option.title, lang, `${node.id}.options[${index}].title`) }] : [],
+      ),
     ]
     if (pictures.length > 0) byNode.set(node.id, pictures)
   }
@@ -58,6 +60,8 @@ export async function readEveryCredit(page: Page, url: string, pictures: Picture
     // `useInnerText`: what a reader can read on the page, not what is in the markup.
     const caption = page.locator('.carousel-caption:visible')
     await expect(caption, where).toContainText(image.credit, { useInnerText: true })
+    // Twenty characters of the title, not all of it: beside a 120-character credit the line at
+    // the guaranteed width keeps only the first 46 of the caption (12.2), and a title may be 60.
     if (option) await expect(caption, where).toContainText(option.slice(0, 20), { useInnerText: true })
     await page.keyboard.press('ArrowRight')
   }
