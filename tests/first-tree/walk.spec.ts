@@ -406,3 +406,25 @@ for (const lang of ['en', 'nl'] as const) {
     expect(nodes.reduce((sum, node) => sum + node!.images.length + node!.options.flatMap((o) => o.images).length, 0)).toBe(35)
   })
 }
+
+test('the screenshots issue #55 owes: annex-i-legislation on an Option picture, and a step Node, at 1280 x 640', async ({ page }) => {
+  // `ELSA_SHOTS=1` writes the tracked pair, as above; the viewport is this config's, the guaranteed one.
+  const shots = fileURLToPath(
+    process.env.ELSA_SHOTS === '1' ? new URL('../../docs/screenshots/issue-55/', import.meta.url) : new URL('.results/shots/', import.meta.url),
+  )
+  const shot = async (name: string): Promise<void> => {
+    await page.evaluate(() => document.fonts.ready)
+    await page.screenshot({ path: path.join(shots, `${name}.png`) })
+  }
+
+  // The first Option's picture selected by the keyboard, so its caption names the Option.
+  await page.goto(`/${TREE}/annex-i-legislation`)
+  await page.locator('.thumbnail').first().focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.carousel-position')).toHaveText('Image 2 of 9')
+  await shot('annex-i-legislation-1280x640')
+
+  await page.goto(`/${TREE}/ai-system-definition`)
+  await expect(page.locator('.carousel-caption:visible')).toBeVisible()
+  await shot('step-node-1280x640')
+})
