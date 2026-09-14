@@ -706,7 +706,7 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | Browser (Playwright) | Asserts |
 |---|---|
 | `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind, with every Sheet open, and again with JavaScript disabled; **[v0.2]** the Node with a 120-character credit also at 1240, 960, 959 and 800 pixels of width, where steps 1 and 2 fire by width (10.5; amended 2026-09-14, #43); the first Tree's `annex-i-legislation`, its heaviest Node -- its own picture and eight Options with one each, nine in the strip -- in both languages, with every Sheet open and each of the nine pictures enlarged in turn (amended 2026-09-14, #55). |
-| `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, no image of an off-centre Node, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation. |
+| `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, no image of an off-centre Node, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation; the neighbour frame of a running slide is `inert`, and a slide started with a Sheet open closes it first. |
 | `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.yaml` and restarting changes the page with no code change. |
 | `tree-view.spec.ts` **[v0.2]** | The tree view in a browser (#41): what a click on each kind of Branch does to the URL (10.3); Tab reaches every control in document order and Enter follows each Branch -- every control that is shown and enabled, because a disabled button is no tab stop, as the Carousel's previous and next are on a strip that fits its row (amended 2026-09-14, #55); a Sheet opens, lists its links, closes on Escape and returns the focus; the Trail Sheet pages eight at a time, newest first (10.2); the minimum-size notice names the dimension that is short (10.4); the screenshots of #41. **With JavaScript disabled**, section 14: every Branch is a link that navigates, a collapsed group is its plain list, and the Trail Sheet is pages of disclosures. There is no `no-js.spec.ts`: the no-script assertions live here and in `no-scroll.spec.ts`, which measures every page without script as well (amended 2026-09-13, #41, PR #56). |
 | `carousel.spec.ts` **[v0.2]** | The Carousel in a browser (#43), against `tests/fixtures/carousel/`: the image files requested on load, after `next` and on enlarging, and never another Node's (12.4, 11.5); previous and next scroll a page and are disabled at the ends; one tab stop, Left/Right/Home/End, Enter or Space enlarges, Escape closes and returns the focus (12.3); the names in `en` and `nl`; below step 2 the one control says `imageCount` and opens the enlarged view (10.5); by width the Trail collapses at 1200 and the Carousel at 960, the 120-character credit whole on the caption line until then (10.5, 12.2); **with JavaScript disabled**, a thumbnail opens its file, the strip is a tab stop the arrow keys scroll, a Node without pictures -- its own or its Options' (below) -- has no stop in the row, the caption follows the focus, and the collapsed control pages the Images as disclosures (14); the screenshots of #43 (amended 2026-09-13 and 2026-09-14, #43). **Amended 2026-09-14, #55:** the Node with no stop in the row is `social-scoring`, not `prohibited-practices`, whose Option carries a picture; on the example Tree's `prohibited-practices` an Option's picture is named with its Option -- "Enlarge Social scoring: A scoreboard ranking people" -- and described by its credit, in `en` and `nl`; and every picture of the example Tree, the Nodes' own and the Options', shows its whole credit on the caption line as the keyboard walks the strip, without a click, in `en` and `nl` (with `tests/browser/credits.ts`). |
@@ -1065,7 +1065,7 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 | The longest Node of the first Tree that validates | The real content, once #44 has cut it. |
 | `annex-i-legislation` of the first Tree | Its heaviest Node: its own picture and eight Options with one each, nine in the strip (amended 2026-09-14, #55). |
 | Each of the above in **both** `en` and `nl` | Dutch runs longer than English; the limits are per language and so is the fit. |
-| Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. **Mid-transition is deferred with the transition** (amended 2026-09-13, #41, PR #56): #42 builds it, and adds the mid-transition rows to `no-scroll.spec.ts`; #41's test measures every page with every Sheet open. |
+| Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. **Mid-transition is deferred with the transition** (amended 2026-09-13, #41, PR #56): #42 builds it, and adds the mid-transition rows to `no-scroll.spec.ts`; #41's test measures every page with every Sheet open. The two never happen at once (amended 2026-09-15, #42, PR #57): a slide closes any open Sheet before it begins (11.3), so the mid-transition rows are measured with every Sheet closed. |
 
 The build issue (#41) pastes the measured numbers in its pull request; the test is what
 keeps them true afterwards.
@@ -1151,6 +1151,12 @@ centre.
   for every viewport and the stylesheet decides the collapse. On the full Node that is
   eight neighbour frames that nothing on screen can slide to. Issue #60 weighs that
   cost.
+- **Amended 2026-09-15 (#42, PR #57): no item of any Sheet slides, whatever its
+  target's placement.** The line above is one case of it. The Trail Sheet (10.2) lists
+  the whole Trail newest first, so its first two items are the parent and the
+  grandparent, the two entries placed `up`; following the parent from the Trail row
+  slides, and following it from the Sheet loads the page. A Sheet is a list, not a
+  Branch drawn in the layer, and a slide never runs with a Sheet open (11.3).
 
 ### 11.2 The neighbourhood: which Nodes are pre-rendered
 
@@ -1258,6 +1264,15 @@ with one `href`, such as `yes` and `no` naming one target (5.3 does not require 
 differ), share that placement and both slide to it. A target 11.2 *drops*, a Link to an id
 the Tree does not hold, cannot reach a served page: the loader rejects such a Tree at
 start-up (`tree-format.md` 7, V-ANSWERS and V-OPTIONS).
+
+**Amended 2026-09-15 (#42, PR #57): an entry of any Sheet navigates without a slide too**,
+including the parent and the grandparent in the Trail Sheet (11.1); the "entry reached from
+the Trail Sheet" above is not only an entry older than the grandparent. **And a slide never
+begins with a Sheet open.** A Sheet's panel and backdrop are `position: fixed`, and the
+sliding layer's `transform` makes the layer the box a fixed descendant is laid out in, so an
+open panel would travel with the tree. The backdrop stops the pointer but not the keyboard,
+so a Branch behind it can still be followed; `Slider` closes every open Sheet in the layer
+before the layer moves. `transition.spec.ts` pins it.
 
 Back and forward are the browser's, and reverse the slide when the payload is in the
 framework's cache. `prefers-reduced-motion: reduce` removes the motion and keeps the
