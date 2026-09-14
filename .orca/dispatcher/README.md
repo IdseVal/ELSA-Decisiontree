@@ -122,6 +122,7 @@ A corrupt marker counts as paused: a bad file must never quietly restart the spe
 | The log says `escalated` and "circuit breaker reset" six seconds apart | fixed in v0.2.8: the escalation marks the tick's own observation, so the issue loop (which runs after the PR loop on the same observation) no longer reads the pre-escalation labels as "the human removed `escalated`". |
 | CI pipeline never ran on a PR | check the repo's Actions tab; usually OWNER STEP 1 or 2 was skipped -- or the PR is CONFLICTING (see above). |
 | Two dispatchers | the lock file refuses the second. |
+| A tick stalls | every subprocess call has a timeout and still one tick stalled for an hour with nothing logged (a killed child's grandchild holding a pipe is the likely class). Since v0.2.13 a watchdog thread exits the process when a tick has run longer than `dispatcher.tick_deadline_minutes` (10); the scheduled task restarts it within a minute; the lock is by pid, so the restart is clean. A page answered during a stall used to leave the PR `blocked` with no fix record and nothing to re-dispatch it; that state is now handled again. |
 | Human pauses the project | no new dispatches or audits; in-flight work still lands. |
 
 ## Re-running an issue by hand
