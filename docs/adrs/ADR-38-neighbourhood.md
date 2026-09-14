@@ -105,6 +105,26 @@ it must become a number.
 - A response is bigger: about 40 kB of HTML at the format's maxima, against about 3 kB in
   0.1. The core document accepts this trade in as many words -- "prefer slightly more
   network traffic over a clunky app" (3.2).
+  **Amended 2026-09-14 (#42, PR #57), measured** with `curl` against the standalone
+  server as built. "HTML" is the page without `Accept-Encoding`, then with gzip; "payload"
+  is a client navigation's response (`RSC: 1`), which is what a slide costs.
+
+  | page | Nodes | HTML | HTML gzip | payload | payload gzip |
+  |---|---|---|---|---|---|
+  | full Node, 49-entry Trail | 11 | 719,703 | 22,344 | 606,054 | 53,554 |
+  | `applies` (Terminal), 49-entry Trail | 2 | 169,395 | 8,567 | 122,744 | 13,117 |
+  | example: `start` | 5 | 41,268 | 7,256 | 29,674 | 8,756 |
+  | example: `prohibited-practices` | 6 | 48,342 | 7,593 | 35,323 | 10,095 |
+  | example: `social-scoring` | 3 | 34,563 | 6,918 | 23,539 | 7,496 |
+
+  On the example Tree the estimate holds. At the format's maxima it is about eighteen
+  times too low. The cause is not the Node count, which holds at 11 of 17. It is that
+  every neighbour frame is a full frame of the tree view: at a 49-entry Trail, each one
+  draws 49 Trail Branches and a 49-link Trail Sheet, and every `href` in them carries up
+  to 50 path segments. With a single neighbour, `applies` is already 169 kB. The lever is
+  a neighbour frame that does not repeat the Trail Sheet's list, since the frame is inert
+  mid-slide. That changes what 11.3 says a neighbour is, so it is issue #60, not a quiet
+  fix.
 - A navigation costs one request and no image request for any Node but the one arriving.
   A reader who walks a thousand-Node Tree end to end still never receives it.
 - Issue #42 builds against a number it can assert, and issue #39 changes the loader by

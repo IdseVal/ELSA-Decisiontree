@@ -77,7 +77,7 @@ async function allowedNodes(url: string): Promise<string[]> {
   return [node.id, ...(await neighbourhood(tree, address, node)).map((p) => p.node.id)].sort()
 }
 
-/** The image files the Node at `url` may name: its own Images and each Option's first (5.2). */
+/** The image files the Node at `url` may name: its own Images and each Option's first (5.2, 11.5). */
 async function allowedImages(url: string): Promise<string[]> {
   const address = parseUrl(new URL(url, 'http://x').pathname, 'en', tree)!
   const node = (await tree.getNode(address.nodeId))!

@@ -77,6 +77,9 @@ line. In summary:
   clutter to a reader who cannot slide, they would be read out by a screen reader as
   content of this page, and they would make the no-scroll rule much harder at the
   degraded viewports of `application.md` 10.5.
+  **Amended 2026-09-14 (#42, PR #57):** the premise "in the HTML already" no longer
+  holds. By decision 7's amendment the neighbours enter the DOM only during a slide. The
+  rejection stands on its three reasons.
 - **A `<noscript>` variant of the view.** A second view to build, test at ten
   viewports and keep in step with the first, to replace one that already works.
 

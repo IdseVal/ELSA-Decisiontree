@@ -485,7 +485,7 @@ the parsed Tree held in memory.
 | Moment | Server reads | Browser receives |
 |---|---|---|
 | Server start | `tree.yaml` once, to validate and to build the Node and title indexes. Failure: every violation printed, exit code 1, nothing served. | -- |
-| A request for a Node page | Nothing from disk. The current Node and its neighbourhood -- **at most 17 Nodes** (section 11) -- from the index, and Branch labels from the title index. | Complete HTML: the tree view of section 10 with the current Node as the centre Bubble, its Branches, its Carousel with an `<img loading="lazy">` per Image of this Node, the neighbour Bubbles of section 11 (**without any image URL**), chrome, the Theme's `<style>` block, the disclaimer, the stylesheet and the client bundle. No image bytes, no font bytes. |
+| A request for a Node page | Nothing from disk. The current Node and its neighbourhood -- **at most 17 Nodes** (section 11) -- from the index, and Branch labels from the title index. | Complete HTML: the tree view of section 10 with the current Node as the centre Bubble, its Branches, its Carousel with an `<img loading="lazy">` per Image of this Node, the neighbour Bubbles of section 11 (**without any image URL**), chrome, the Theme's `<style>` block, the disclaimer, the stylesheet and the client bundle. No image bytes, no font bytes. **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours into the page as the tree layer's payload; they enter the DOM only during a slide. At rest, and without JavaScript, the DOM holds the centre Bubble only (11.3). |
 | After the HTML | -- | The image files this Node's Carousel and Option Branches name, through `GET /images/<file>`; the Theme's font and logo files, through `GET /theme/<file>`. Nothing else, and nothing from another origin. |
 | The user follows a Branch | Nothing from disk; the target Node and **its** neighbourhood from the index. | **Exactly one** page payload, carrying at most 17 Nodes, then that Node's image files. Section 11 has the accounting. |
 | Opening an Image in the Carousel | -- | Nothing new: the enlarged view shows the file the strip already loaded (section 12). |
@@ -503,6 +503,13 @@ The size this bounds: a Node at the format's maxima is about 900 characters of t
 one language, so a 17-Node response is roughly 40 kB of HTML before compression. The
 Tree it comes from may have a thousand Nodes and a thousand images; neither number
 appears anywhere in a response.
+
+**Amended 2026-09-14 (#42, PR #57), measured:** the example Tree's pages are 35 to 48 kB
+of HTML, as estimated. At the format's maxima they are not: the full Node at a 49-entry
+Trail is 720 kB of HTML (22 kB gzipped), with 11 Nodes. The Node count bounds what a
+response may carry, and holds; the bytes follow the Trail, which every neighbour frame
+draws in full. `ADR-38-neighbourhood.md` (Consequences) has the figures, and issue #60
+the lever.
 
 ### 5.3 The image route
 
@@ -1222,6 +1229,11 @@ target's page loads and the tree is redrawn around it. `Slider` does not animate
 does not fetch one to be able to; a jump five steps back is not a slide in the first
 place.
 
+**Amended 2026-09-14 (#42, PR #57):** a third kind, reached only by an address whose Trail
+repeats a Node (adjacency is not checked, 4.3): a Branch whose target 11.2 deduplicated
+away, such as a parent that is the Node on screen. It has no placement either, so it is
+an ordinary link. A Branch is marked `data-slide` only where its `href` is a placement's.
+
 Back and forward are the browser's, and reverse the slide when the payload is in the
 framework's cache. `prefers-reduced-motion: reduce` removes the motion and keeps the
 navigation: the target replaces the current view without a transform. Nothing about
@@ -1258,6 +1270,12 @@ it by recording every network request.
 | `GET /theme/<file>` | One file the Theme names (5.5). | A file in `theme/` the Theme does not name; anything outside it. |
 | Any request at all | This origin. | Any other origin (13.5). |
 | Any route | -- | There is **no** route that returns more than one Node, and none that returns the Tree. |
+
+**Amended 2026-09-14 (#42, PR #57):** an Option's Images are part of the Node that holds
+the Option (`tree-format.md` 5.4). So the first Image of an Option of the centre Bubble,
+drawn on that Option's Branch (10.3), is an image file of the centre Bubble's Node, and
+5.2's "the image files this Node's Carousel and Option Branches name" is the same set.
+Nothing else off-centre is. `transition.spec.ts` asserts exactly that set.
 
 Walking the whole Tree still downloads it one Node at a time, seventeen at a time at
 the very most, and the server's memory holds the Tree the browser never gets.
