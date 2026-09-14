@@ -41,7 +41,7 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await page.locator('.answer--yes').click()
   await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
 
-  await page.getByRole('link', { name: 'Social scoring' }).click()
+  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
   await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices/social-scoring')
   await expect(page.locator('.hint')).toBeVisible()
 

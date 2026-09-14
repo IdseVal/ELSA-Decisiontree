@@ -163,7 +163,7 @@ test('a full Article 2 exclusion ends the walk for a reader the Act reaches', as
 test('an Option leads to an explanation-only child that offers a visible way back', async ({ page }) => {
   await walk(page, WALKS.prohibited!.slice(0, 3))
 
-  await page.getByRole('link', { name: 'Social scoring' }).click()
+  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
   await expect(page).toHaveURL(
     `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/social-scoring`,
   )
@@ -222,7 +222,7 @@ async function screenshotWalk(page: Page, lang: Lang): Promise<void> {
   await expect(page).toHaveURL(pageUrl(toProhibitedPractices, lang))
   await shot('prohibited-practices')
 
-  await page.getByRole('link', { name: lang === 'en' ? 'Social scoring' : 'Sociale scoring' }).click()
+  await page.locator('.options').getByRole('link', { name: lang === 'en' ? 'Social scoring' : 'Sociale scoring' }).click()
   await expect(page).toHaveURL(pageUrl([...toProhibitedPractices, 'social-scoring'], lang))
   await shot('explanation-child')
 
