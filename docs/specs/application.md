@@ -968,7 +968,8 @@ Whichever step first makes the arrangement fit is where it stops.
   appears only when even those do not fit.
 - Every collapse opens the same `Sheet`. One concept, four uses -- the enlarged Image,
   the full Trail, the collapsed Options and the collapsed Sources -- and one set of
-  keyboard rules (Escape closes, focus returns to the control that opened it).
+  keyboard rules (Escape closes, focus returns to the control that opened it). One Sheet is
+  open at a time: opening another closes it, with or without JavaScript (#59).
 - **Below 480 pixels of width, step 1 gives up the parent's title too** (#41,
   `ADR-38-no-scroll.md`). The Trail row is 30 pixels there, and a parent Branch holding
   an 80-character title needs three lines of 20, which the row cannot hold and 10.2 does
@@ -1507,7 +1508,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | The pre-rendered neighbour Bubbles | They are in the HTML -- the server rendered them -- but hidden, and `Slider` is what reveals them. Without it the tree layer shows the centre Bubble and its Branches, which is everything the reader needs; off-centre Bubbles that can never move would be clutter, and they are `aria-hidden` besides. No image of another Node is requested either way, because a neighbour Bubble carries no image URL (11.4). |
 | The enlarged view in place | The image file, opened by the link. |
 | The Carousel's previous/next buttons | The strip itself scrolls; the buttons are an enhancement of a control that already works. |
-| The Sheets of 10.2 and 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. A list longer than one page of eight -- the 49-entry Trail -- is pages of nested native disclosures: `next` opens the next page and the stylesheet hides the one before it, so no panel is ever asked to hold more than fits, at any viewport of 10.6 (#41). The control that opened a Sheet stays above its panel, and a second click on it closes the Sheet; the Sources control, whose place in the Bubble is under the middle of the panel, moves to the foot of the page while its Sheet is open, and the panel keeps clear of it (#59). |
+| The Sheets of 10.2 and 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. A list longer than one page of eight -- the 49-entry Trail -- is pages of nested native disclosures: `next` opens the next page and the stylesheet hides the one before it, so no panel is ever asked to hold more than fits, at any viewport of 10.6 (#41). The control that opened a Sheet stays above its panel, and a second click on it closes the Sheet. The Sources control's place in the Bubble is under the middle of the panel, and the foot of the page holds the collapsed Carousel's control and the disclaimer, so while its Sheet is open the Sources panel hangs from the top of the page with the control inside it, at its head: it covers nothing the panel does not (#59). |
 | The share button's copy | The address bar. The button is not shown when it cannot work. |
 | The 404 page's body | The single framework exception, 4.3, unchanged. |
 
