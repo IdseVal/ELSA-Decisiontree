@@ -1,6 +1,6 @@
 # ADR-38-tree-view: the open Node is a round Bubble in the centre of the screen, the Trail is the Branches above it, the Answer targets are Branches below and the Option targets Branches beside, so that direction on screen carries the meaning of a Link
 
-- Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 by issue #41 (the numbers as built, below)
+- Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 by issue #41 (the numbers as built, below); amended 2026-09-14 by the owner on #55 (see the end)
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, section 10 (10.1 to 10.3)
 - Core document: 3.2, section 5 (Bubble, Branch, Trail), open item 10.23
@@ -49,7 +49,8 @@ The owner has not yet said what "children" and "side children" mean (core docume
    `yes` or `no` above that title.
 6. **An Option Branch may carry the first of that Option's Images** as a 64-pixel
    thumbnail. Option Images are not merged into the Node's Carousel
-   (`ADR-38-carousel.md`).
+   (`ADR-38-carousel.md`). *Reversed 2026-09-14 for that first Image by the owner on #55:
+   see the amendment at the end.*
 7. **A long Trail collapses in its middle** (`application.md` 10.2): `start`, a
    `trailMore(n)` Branch that opens the Trail Sheet, then the last four entries. At most
    five Branches carry a title, at 200 pixels each, where an 80-character title fits
@@ -132,7 +133,27 @@ spec (`application.md` 10.2, 10.7) and this record say what the layout is.
   the Node's own Images as plain thumbnails opening the enlarged view with the credit --
   version 0.1's display, kept alive by the owner's decision on PR #56 after PR #54 made
   visible credits a release blocker. Option Images are still not merged into it.
+  *Superseded 2026-09-14 by #55: see the amendment at the end.*
 
 The face the limits hold in is `application.md` 10.7's last paragraph: the default type
 stack names Arial-metric faces before `sans-serif`, because the Bubble's text area holds
 the format's maximum in those and not in DejaVu Sans, as `tree-format.md` 5.7 warns.
+
+## Amendment 2026-09-14 (issue #55): an Option's picture joins the Carousel
+
+Decision 6's second sentence, the rejected alternative "Merging an Option's Images into
+the Node's Carousel" and the last sentence of the #41 amendment are reversed by the
+owner's answer on #55 (option A). The rest of decision 6 stands: the Branch keeps its
+64-pixel thumbnail.
+
+- **Why.** A 248 x 82 Branch has no room for a credit of up to 120 characters that is
+  never cut, and #55 requires every credit to be seen without a click; the Carousel's
+  caption line is the one place built to show any credit whole.
+- **What.** The first Image of each Option -- the one its Branch shows -- follows the
+  Node's own Images in the strip, in Option order, at most 18 in all
+  (`application.md` 12.1). An Option's second and third Images are shown nowhere.
+- **The objection answered.** The rejection said a reader could not tell which picture
+  belongs to which Option. The caption of an Option's picture starts with the Option's
+  title and a colon, and the same words are the thumbnail's alternative text, so the
+  Option is named to the eye and to assistive technology alike. The full record is the
+  amendment at the end of `ADR-38-carousel.md`.

@@ -828,7 +828,7 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
 | Trail | 64 | The Trail Branches, 10.2. Empty of Branches at the root Node, where it holds the Tree's title instead, so nothing moves when the walk starts. |
 | middle | 360 | Left column of Option Branches, 20 gap, the **Bubble** (760 x 360), 20 gap, right column of Option Branches. |
 | Answers | 64 | The Branches out of the bottom of the Bubble, 10.3. |
-| Carousel | 80 | Section 12. Present as an empty row of the same height when the Node has no Images, so the Bubble does not move between Nodes. |
+| Carousel | 80 | Section 12. Present as an empty row of the same height when the Node has no Images and none of its Options has one either (amended 2026-09-14, #55), so the Bubble does not move between Nodes. |
 | disclaimer | 28 | The permanent "not legal advice" footer (core document 8). |
 
 - **The Bubble is round.** A single element with a large border radius, filled with the
@@ -911,6 +911,11 @@ and disclaimer are unchanged.
   Option's own Node and are seen there. Option Images are **not** mixed into this
   Node's Carousel: the Carousel's order is the Node's `images` list and its caption is
   that Image's description, and merging two lists would break both.
+  **Amended 2026-09-14, #55 (the owner's answer on the issue, option A): reversed.** The
+  picture on the Branch has no room for its credit, so that same picture -- the first
+  Image, and only the first -- also joins this Node's Carousel after the Node's own
+  Images, in Option order, its caption and its thumbnail's name starting with the
+  Option's title. The Branch keeps its thumbnail. See 12.1.
 - **Direction carries meaning, and that is how open item 10.23 is answered on screen.**
   Above is where you came from; below is where an answer takes you; beside is an aside
   that you read and come back from. The owner's "children" are the Answer targets, drawn
@@ -1075,7 +1080,7 @@ a limit:
 | An Answer Branch has 640 px and a Node title of 80 characters is 1 line. | A 480 px Branch with 20 px of padding each side, so 440 px of label, about 60 characters per line: 80 characters take 2 lines of 20 px, plus the 16 px chrome word, 56 px inside the 64 px row. | None. |
 | A Trail of up to 6 Nodes fits at 213 px each; a longer Trail was left to #38. | 5 title Branches at 212 px, 196 of them label; a longer Trail collapses to those five plus a 120 px `trailMore` in the middle, which is the row at its widest: 5 x 212 + 120 + 5 x 8 = 1220 px of 1280 (10.2). 196 px holds an 80-character title in three lines in a wide fallback face; the 200 px #38 first wrote (176 of label) did so only in the humanist faces 5.7 measured with, and was four lines, 84 px in 64, in DejaVu Sans (#41). | None; a Trail label is a Node title, already bounded. |
 | The Bubble's text area is 640 x 304 inside the curve and padding of a 760 x 360 Bubble -- and 5.7 divides that 304 px exactly, leaving nothing over. | Unchanged, and nothing is added to it: a Terminal's outcome badge and an explanation Node's `explanationOnly` hint are chrome and sit on the Bubble's **rim**, outside the text area (10.1); the 2 px outline is part of the rim, so the padding inside it is 58 and 26 and the text area measures exactly 640 x 304. | None. The description keeps 192 px and 8 lines on every one of the four situations of 10.3. |
-| The Carousel is "one picture at a time, 80 px strip; a caption of 120 characters fits one line at 13 px under the enlarged view, two in the strip". | Five pictures at a time at 60 px, and **one** 20 px caption line under them rather than two: 60 + 20 is the 80 px row. That line holds about 170 characters and a `description` plus a `credit` may be 240, so the credit is laid out whole and the description is shortened to what is left, at least 47 characters (12.2). | None. What is shortened is repeated in full in the thumbnail's alternative text and in the enlarged view, where 5.7's "one line at 13 px" is exactly what it assumed. |
+| The Carousel is "one picture at a time, 80 px strip; a caption of 120 characters fits one line at 13 px under the enlarged view, two in the strip". | Five pictures at a time at 60 px, and **one** 20 px caption line under them rather than two: 60 + 20 is the 80 px row. That line holds about 170 characters and a `description` plus a `credit` may be 240, so the credit is laid out whole and the description is shortened to what is left, at least 47 characters (12.2). | None. What is shortened is repeated in full in the thumbnail's alternative text and in the enlarged view, where 5.7's "one line at 13 px" is exactly what it assumed. For an Option's picture what is shortened is its Option's title as well as its description, and the thumbnail's alternative text repeats both (amended 2026-09-14, #55; 12.1). |
 
 **The face the numbers hold in.** `tree-format.md` 5.7 measured its limits in a
 humanist sans, and #41 re-derived the widths above in the widest fallback a reader is
@@ -1271,7 +1276,12 @@ and that picture stays on its Branch too. The paragraph above is answered by the
 an Option's picture's caption line puts **the Option's title, a colon and then the
 description** where a Node Image has its description alone, so a reader can tell which
 Branch it belongs to; that text gives way to the credit exactly as a description does
-(12.2), and the enlarged view shows it whole. An Option's second and third Images are shown
+(12.2), and the enlarged view shows it whole. **The same words -- title, colon,
+description -- are the strip thumbnail's alternative text**, so the thumbnail is named by
+the enlarge word and them: the caption line's copy is hidden from assistive technology
+(12.2), and a reader who hears the strip rather than sees it must be able to tell the
+Branch too. The enlarged view's image keeps the description as its alternative text, with
+the whole caption beside it. An Option's second and third Images are shown
 nowhere, on the Branch or in the strip. **The strip's cap is therefore 18**: at most ten
 Images of the Node's own plus one per Option, at most eight. Nothing is left out; the strip
 already scrolls sideways inside its row (12.2), so its length costs no height. The empty
