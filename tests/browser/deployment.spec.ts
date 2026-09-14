@@ -56,7 +56,7 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   // cookie would hide.
   await page.goto(START)
   await page.locator('.answer--yes').click()
-  await page.getByRole('link', { name: 'Social scoring' }).click()
+  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
   await page.locator('.trail-entry').last().click()
   await page.locator('.answer--no').click()
   await page.goto(`${START}?lang=nl`)

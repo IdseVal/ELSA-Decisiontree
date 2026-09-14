@@ -68,7 +68,7 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await page.locator('.answer--yes').click()
   await arrived(page, `${STEP}?lang=nl`)
 
-  await page.getByRole('link', { name: 'Sociale scoring' }).click()
+  await page.locator('.options').getByRole('link', { name: 'Sociale scoring' }).click()
   await arrived(page, `${STEP}/social-scoring?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sociale scoring')
 

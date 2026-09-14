@@ -42,7 +42,7 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await page.locator('.answer--yes').click()
   await arrived(page, '/ai-act-example/start/prohibited-practices')
 
-  await page.getByRole('link', { name: 'Social scoring' }).click()
+  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
   await arrived(page, '/ai-act-example/start/prohibited-practices/social-scoring')
   await expect(page.locator('.hint')).toBeVisible()
 
@@ -162,7 +162,7 @@ test('Escape closes the enlarged image, and so does a click outside it', async (
 
 test('the browser asks for the images of the Node on screen and no others', async ({ page }) => {
   // The root Node's own Image is in the Carousel's row (12.1); an Option's first Image is
-  // on its Branch (10.3). Neither page asks for the other's.
+  // on its Branch (10.3) and in the row, one file asked for once. Neither page asks for the other's.
   const onStart = await imageRequests(page, () => page.goto(START))
   expect(new Set(onStart)).toEqual(new Set(['eu-map.png']))
 

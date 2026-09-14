@@ -129,9 +129,9 @@ function Frame({ node, view }: { node: Node; view: View }) {
       <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} />
       {node.options.length > 0 && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
-      {/* The Carousel's row (section 12), on every Node, empty where there are no Images, so the
+      {/* The Carousel's row (section 12), on every Node, empty where there are no pictures, so the
           Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
-      {view.pictures && node.images.length > 0 ? (
+      {view.pictures ? (
         <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
       ) : (
         <div className="carousel" />

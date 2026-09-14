@@ -187,6 +187,10 @@ jobs:
              A run that ends without a label stalls the pipeline: your verdict exists
              ONLY once that `gh` command has run. Nobody reads your final message and
              nobody is there to confirm. Never merge anything.
+          Never start a command in the background, and never end your turn to wait for one:
+          this is a headless run, and ending the turn ENDS THE RUN -- nothing re-invokes you
+          and the job then fails for want of a verdict. Run the suites in the foreground with
+          a timeout, read the result, then decide.
           BRIEF
             if [ "$MODE" = "delta" ]; then
               sed -e "s/__PREV__/$PREV/g" <<'DELTA'
@@ -317,6 +321,10 @@ jobs:
           happened -- decide now.
           You may merge into `dev` and only `dev`; never `main`. You never close
           issues; the dispatcher does that on merge.
+          Never start a command in the background, and never end your turn to wait for one:
+          this is a headless run, and ending the turn ENDS THE RUN -- nothing re-invokes you
+          and the job then fails for want of a verdict. Run the suites in the foreground with
+          a timeout, read the result, then decide.
           BRIEF
             if [ "$VERDICT" = "blocked" ]; then
               cat <<'ADVISORY'

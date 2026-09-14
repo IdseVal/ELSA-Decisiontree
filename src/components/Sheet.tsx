@@ -180,8 +180,10 @@ export function Sheet({
     </>
   )
 
+  // One name for every Sheet: opening one closes any other, so without the script, where no
+  // backdrop keeps the page from a second click, two panels are never laid over each other.
   return (
-    <details className={`sheet ${className}`} ref={details} onKeyDown={onKeyDown} onToggle={onToggle}>
+    <details className={`sheet ${className}`} name="sheet" ref={details} onKeyDown={onKeyDown} onToggle={onToggle}>
       <summary className="sheet-open">{summary}</summary>
       {enhanced && <div className="sheet-backdrop" onClick={close} />}
       <div className="sheet-panel">

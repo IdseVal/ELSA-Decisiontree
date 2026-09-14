@@ -681,10 +681,10 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | Item | Contract |
 |---|---|
 | Runner | Vitest, `npm test` = `vitest run`, Node environment; files `tests/**/*.test.ts(x)`. |
-| Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. A spec that needs a Tree other than the example starts its own server with `tests/browser/serve.ts`, a helper and not a spec file (amended 2026-09-14, #43). |
+| Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. A spec that needs a Tree other than the example starts its own server with `tests/browser/serve.ts`, a helper and not a spec file (amended 2026-09-14, #43). `tests/browser/credits.ts` is a helper too: it lists every picture a Tree shows, Node by Node in strip order, and reads each one's credit off the caption line by the keyboard alone, for `carousel.spec.ts` and `tests/first-tree/walk.spec.ts` (amended 2026-09-14, #55). |
 | Also in CI | `tsc --noEmit`, `next build`, `npm run validate trees/<each Tree>`, `npm run test:browser`. Command: `npm ci && npm test && npm run build && npm run test:browser`. |
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; never YAML read by a test. |
-| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description, 3 Sources, 8 Options, 10 Images, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with five Images, more than the strip's page of four, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request; amended 2026-09-13 and 2026-09-14, #43). |
+| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description, 3 Sources, 8 Options, 10 Images, and a 49-entry Trail to reach it; every Option carries a picture of 120-character description and credit, the first Option three, so the strip holds the 18 of 12.1; amended 2026-09-14, #55); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with five Images, more than the strip's page of four, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request; amended 2026-09-13 and 2026-09-14, #43). |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
 
 **Which tests are unit and which need a browser.** The rule is: a claim about *markup*
@@ -700,17 +700,17 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | `neighbourhood.test.ts` **[v0.2]** | The set for each Node kind; **never more than 16**; no id twice; a Link to an unknown id is dropped, not thrown; the Trail supplies `up`, the Answers `down`, the Options `side`; an empty Trail has no `up`. |
 | `theme.test.ts` **[v0.2]** | The emitted properties equal the manifest's values; a Tree with no Theme, and one with only `colours`, get the documented defaults for the rest; the three derived `--elsa-on-*` colours; a `family` containing `'`, `\` or `</style>` is escaped or refused; a colour that is not `#rrggbb` is refused rather than emitted. |
 | `stylesheet.test.ts` **[v0.2]** | `globals.css` contains no colour literal (`#rgb`, `#rrggbb`, `rgb(`, `hsl(`, a CSS colour keyword) and no `font-family` value that is not `var(--elsa-font-*)`. This is core document section 9's "the frontend must never carry a lab's branding in its code", as a test that cannot be argued with. |
-| `views.test.tsx` | Each Node kind's structure (10.3): what the Bubble holds, which Branches exist, where they link; **[v0.2]** the Carousel's caption is at most 170 characters with the `credit` whole and the `description` shortened to fit (12.2); **[v0.2]** the rest of the Carousel's markup (#43): the Node's own Images in the author's order, a focusable strip of lazy thumbnails with `width` and `height`, each a link to its file named by `enlarge` and its description and described by its credit, the chrome in its own language, and the enlarged view as the one `Sheet` (12.1, 12.3, 12.4; amended 2026-09-13, #43); the caption below the guaranteed width at most 123 characters with every credit whole, the strip named and the row around it not, no strip on a Node without Images, and nothing in the markup keyed to a credit's length (12.2, 10.5; amended 2026-09-14, #43). |
+| `views.test.tsx` | Each Node kind's structure (10.3): what the Bubble holds, which Branches exist, where they link; **[v0.2]** the Carousel's caption is at most 170 characters with the `credit` whole and the `description` shortened to fit (12.2); **[v0.2]** the rest of the Carousel's markup (#43): the Node's own Images in the author's order (then its Options' pictures, below), a focusable strip of lazy thumbnails with `width` and `height`, each a link to its file named by `enlarge` and its description (an Option's picture: its caption's words, below) and described by its credit, the chrome in its own language, and the enlarged view as the one `Sheet` (12.1, 12.3, 12.4; amended 2026-09-13, #43); the caption below the guaranteed width at most 123 characters with every credit whole, the strip named and the row around it not, no strip on a Node without pictures (its own or its Options', below), and nothing in the markup keyed to a credit's length (12.2, 10.5; amended 2026-09-14, #43). **Amended 2026-09-14, #55:** after the Node's own Images the strip holds the first picture of each Option, in Option order, 18 on `full-node`, and never an Option's second; an Option's picture stays on its Branch too; its caption starts with the Option's title and a colon, the wide one at most 170 characters and the narrow one at most 123 with the credit whole, and beside a 120-character credit the narrow line is the credit alone; its thumbnail is named by `enlarge` and its caption's words -- title, colon, description -- where a Node Image's is `enlarge` and its description; the enlarged view holds all 18, the Option's caption whole beside it; and the row is empty, with no strip, only on a Node where neither it nor any of its Options carries a picture. |
 | `interop.test.tsx` | Below. |
 
 | Browser (Playwright) | Asserts |
 |---|---|
-| `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind, with every Sheet open, and again with JavaScript disabled; **[v0.2]** the Node with a 120-character credit also at 1240, 960, 959 and 800 pixels of width, where steps 1 and 2 fire by width (10.5; amended 2026-09-14, #43). |
+| `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every Node kind, with every Sheet open, and again with JavaScript disabled; **[v0.2]** the Node with a 120-character credit also at 1240, 960, 959 and 800 pixels of width, where steps 1 and 2 fire by width (10.5; amended 2026-09-14, #43); the first Tree's `annex-i-legislation`, its heaviest Node -- its own picture and eight Options with one each, nine in the strip -- in both languages, with every Sheet open and each of the nine pictures enlarged in turn (amended 2026-09-14, #55). |
 | `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, no image of an off-centre Node, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation. |
 | `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.yaml` and restarting changes the page with no code change. |
-| `tree-view.spec.ts` **[v0.2]** | The tree view in a browser (#41): what a click on each kind of Branch does to the URL (10.3); Tab reaches every control in document order and Enter follows each Branch; a Sheet opens, lists its links, closes on Escape and returns the focus; the Trail Sheet pages eight at a time, newest first (10.2); the minimum-size notice names the dimension that is short (10.4); the screenshots of #41. **With JavaScript disabled**, section 14: every Branch is a link that navigates, a collapsed group is its plain list, and the Trail Sheet is pages of disclosures. There is no `no-js.spec.ts`: the no-script assertions live here and in `no-scroll.spec.ts`, which measures every page without script as well (amended 2026-09-13, #41, PR #56). |
-| `carousel.spec.ts` **[v0.2]** | The Carousel in a browser (#43), against `tests/fixtures/carousel/`: the image files requested on load, after `next` and on enlarging, and never another Node's (12.4, 11.5); previous and next scroll a page and are disabled at the ends; one tab stop, Left/Right/Home/End, Enter or Space enlarges, Escape closes and returns the focus (12.3); the names in `en` and `nl`; below step 2 the one control says `imageCount` and opens the enlarged view (10.5); by width the Trail collapses at 1200 and the Carousel at 960, the 120-character credit whole on the caption line until then (10.5, 12.2); **with JavaScript disabled**, a thumbnail opens its file, the strip is a tab stop the arrow keys scroll, a Node without Images has no stop in the row, the caption follows the focus, and the collapsed control pages the Images as disclosures (14); the screenshots of #43 (amended 2026-09-13 and 2026-09-14, #43). |
-| `node-view.spec.ts`, `trail.spec.ts`, `language.spec.ts`, `deployment.spec.ts` | The 0.1 browser specs, kept: the URL scheme, the Trail, the language mechanism and the deployment shape are unchanged contracts and keep their tests. |
+| `tree-view.spec.ts` **[v0.2]** | The tree view in a browser (#41): what a click on each kind of Branch does to the URL (10.3); Tab reaches every control in document order and Enter follows each Branch -- every control that is shown and enabled, because a disabled button is no tab stop, as the Carousel's previous and next are on a strip that fits its row (amended 2026-09-14, #55); a Sheet opens, lists its links, closes on Escape and returns the focus; the Trail Sheet pages eight at a time, newest first (10.2); the minimum-size notice names the dimension that is short (10.4); the screenshots of #41. **With JavaScript disabled**, section 14: every Branch is a link that navigates, a collapsed group is its plain list, and the Trail Sheet is pages of disclosures. There is no `no-js.spec.ts`: the no-script assertions live here and in `no-scroll.spec.ts`, which measures every page without script as well (amended 2026-09-13, #41, PR #56). |
+| `carousel.spec.ts` **[v0.2]** | The Carousel in a browser (#43), against `tests/fixtures/carousel/`: the image files requested on load, after `next` and on enlarging, and never another Node's (12.4, 11.5); previous and next scroll a page and are disabled at the ends; one tab stop, Left/Right/Home/End, Enter or Space enlarges, Escape closes and returns the focus (12.3); the names in `en` and `nl`; below step 2 the one control says `imageCount` and opens the enlarged view (10.5); by width the Trail collapses at 1200 and the Carousel at 960, the 120-character credit whole on the caption line until then (10.5, 12.2); **with JavaScript disabled**, a thumbnail opens its file, the strip is a tab stop the arrow keys scroll, a Node without pictures -- its own or its Options' (below) -- has no stop in the row, the caption follows the focus, and the collapsed control pages the Images as disclosures (14); the screenshots of #43 (amended 2026-09-13 and 2026-09-14, #43). **Amended 2026-09-14, #55:** the Node with no stop in the row is `social-scoring`, not `prohibited-practices`, whose Option carries a picture; on the example Tree's `prohibited-practices` an Option's picture is named with its Option -- "Enlarge Social scoring: A scoreboard ranking people" -- and described by its credit, in `en` and `nl`; and every picture of the example Tree, the Nodes' own and the Options', shows its whole credit on the caption line as the keyboard walks the strip, without a click, in `en` and `nl` (with `tests/browser/credits.ts`). |
+| `node-view.spec.ts`, `trail.spec.ts`, `language.spec.ts`, `deployment.spec.ts` | The 0.1 browser specs, kept: the URL scheme, the Trail, the language mechanism and the deployment shape are unchanged contracts and keep their tests. Since #55 an Option's picture is in the row as well as on its Branch, one file asked for once (`node-view.spec.ts`), and a click on an Option looks for its Branch inside the Options, because the strip thumbnail's name carries the same title (amended 2026-09-14, #55). |
 
 **The interoperability test** (`interop.test.tsx`) is core document section 9, first
 bullet, as a test. For `single-language/` and `other-languages/`, for every declared
@@ -778,7 +778,7 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | **[v0.2]** The neighbourhood: at most 16 neighbours, in the page payload, never the Tree | `docs/adrs/ADR-38-neighbourhood.md` |
 | **[v0.2]** The slide transition: the tree layer moves, the URL is the plain link's | `docs/adrs/ADR-38-transitions.md` |
 | **[v0.2]** The guaranteed viewport, the no-scroll rule, the degradation order, the test | `docs/adrs/ADR-38-no-scroll.md` |
-| **[v0.2]** The Carousel: a scroll-snap strip of this Node's Images, enlarged in a Sheet | `docs/adrs/ADR-38-carousel.md` |
+| **[v0.2]** The Carousel: a scroll-snap strip of this Node's Images, enlarged in a Sheet (amended 2026-09-14, #55: and its Options' first pictures) | `docs/adrs/ADR-38-carousel.md` |
 | **[v0.2]** The Theme: custom properties and `@font-face` emitted at render time, files from a route | `docs/adrs/ADR-38-theme-delivery.md`, amended by issue #40 (PR #52) |
 | **[v0.2]** What holds without JavaScript | `docs/adrs/ADR-38-without-javascript.md` |
 | **[v0.2]** Modules, dependency direction and which tests need a browser | `docs/adrs/ADR-38-modules-and-tests.md`, amended by issue #40 (PR #52) |
@@ -835,7 +835,7 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
 | Trail | 64 | The Trail Branches, 10.2. Empty of Branches at the root Node, where it holds the Tree's title instead, so nothing moves when the walk starts. |
 | middle | 360 | Left column of Option Branches, 20 gap, the **Bubble** (760 x 360), 20 gap, right column of Option Branches. |
 | Answers | 64 | The Branches out of the bottom of the Bubble, 10.3. |
-| Carousel | 80 | Section 12. Present as an empty row of the same height when the Node has no Images, so the Bubble does not move between Nodes. |
+| Carousel | 80 | Section 12. Present as an empty row of the same height when the Node has no Images and none of its Options has one either (amended 2026-09-14, #55), so the Bubble does not move between Nodes. |
 | disclaimer | 28 | The permanent "not legal advice" footer (core document 8). |
 
 - **The Bubble is round.** A single element with a large border radius, filled with the
@@ -918,6 +918,11 @@ and disclaimer are unchanged.
   Option's own Node and are seen there. Option Images are **not** mixed into this
   Node's Carousel: the Carousel's order is the Node's `images` list and its caption is
   that Image's description, and merging two lists would break both.
+  **Amended 2026-09-14, #55 (the owner's answer on the issue, option A): reversed.** The
+  picture on the Branch has no room for its credit, so that same picture -- the first
+  Image, and only the first -- also joins this Node's Carousel after the Node's own
+  Images, in Option order, its caption and its thumbnail's name starting with the
+  Option's title. The Branch keeps its thumbnail. See 12.1.
 - **Direction carries meaning, and that is how open item 10.23 is answered on screen.**
   Above is where you came from; below is where an answer takes you; beside is an aside
   that you read and come back from. The owner's "children" are the Answer targets, drawn
@@ -975,7 +980,8 @@ Whichever step first makes the arrangement fit is where it stops.
   appears only when even those do not fit.
 - Every collapse opens the same `Sheet`. One concept, four uses -- the enlarged Image,
   the full Trail, the collapsed Options and the collapsed Sources -- and one set of
-  keyboard rules (Escape closes, focus returns to the control that opened it).
+  keyboard rules (Escape closes, focus returns to the control that opened it). One Sheet is
+  open at a time: opening another closes it, with or without JavaScript (#59).
 - **Below 480 pixels of width, step 1 gives up the parent's title too** (#41,
   `ADR-38-no-scroll.md`). The Trail row is 30 pixels there, and a parent Branch holding
   an 80-character title needs three lines of 20, which the row cannot hold and 10.2 does
@@ -1055,8 +1061,9 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 | A question Node without Options | The second situation of 10.3. |
 | An explanation Node, reached with a three-entry Trail | The third. |
 | A Terminal | The fourth. |
-| `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 600-character 8-line description, 3 Sources, 8 Options, 10 Images, the longest Trail. If this fits, every valid Tree fits. |
+| `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 600-character 8-line description, 3 Sources, 8 Options, 10 Images, the longest Trail. If this fits, every valid Tree fits. Every Option carries a picture of 120-character description and credit, so the strip holds the 18 of 12.1 (amended 2026-09-14, #55). |
 | The longest Node of the first Tree that validates | The real content, once #44 has cut it. |
+| `annex-i-legislation` of the first Tree | Its heaviest Node: its own picture and eight Options with one each, nine in the strip (amended 2026-09-14, #55). |
 | Each of the above in **both** `en` and `nl` | Dutch runs longer than English; the limits are per language and so is the fit. |
 | Each of the above with a Sheet open, and mid-transition | 10.5 and section 11 do not get an exemption. **Mid-transition is deferred with the transition** (amended 2026-09-13, #41, PR #56): #42 builds it, and adds the mid-transition rows to `no-scroll.spec.ts`; #41's test measures every page with every Sheet open. |
 
@@ -1081,7 +1088,7 @@ a limit:
 | An Answer Branch has 640 px and a Node title of 80 characters is 1 line. | A 480 px Branch with 20 px of padding each side, so 440 px of label, about 60 characters per line: 80 characters take 2 lines of 20 px, plus the 16 px chrome word, 56 px inside the 64 px row. | None. |
 | A Trail of up to 6 Nodes fits at 213 px each; a longer Trail was left to #38. | 5 title Branches at 212 px, 196 of them label; a longer Trail collapses to those five plus a 120 px `trailMore` in the middle, which is the row at its widest: 5 x 212 + 120 + 5 x 8 = 1220 px of 1280 (10.2). 196 px holds an 80-character title in three lines in a wide fallback face; the 200 px #38 first wrote (176 of label) did so only in the humanist faces 5.7 measured with, and was four lines, 84 px in 64, in DejaVu Sans (#41). | None; a Trail label is a Node title, already bounded. |
 | The Bubble's text area is 640 x 304 inside the curve and padding of a 760 x 360 Bubble -- and 5.7 divides that 304 px exactly, leaving nothing over. | Unchanged, and nothing is added to it: a Terminal's outcome badge and an explanation Node's `explanationOnly` hint are chrome and sit on the Bubble's **rim**, outside the text area (10.1); the 2 px outline is part of the rim, so the padding inside it is 58 and 26 and the text area measures exactly 640 x 304. | None. The description keeps 192 px and 8 lines on every one of the four situations of 10.3. |
-| The Carousel is "one picture at a time, 80 px strip; a caption of 120 characters fits one line at 13 px under the enlarged view, two in the strip". | Five pictures at a time at 60 px, and **one** 20 px caption line under them rather than two: 60 + 20 is the 80 px row. That line holds about 170 characters and a `description` plus a `credit` may be 240, so the credit is laid out whole and the description is shortened to what is left, at least 47 characters (12.2). | None. What is shortened is repeated in full in the thumbnail's alternative text and in the enlarged view, where 5.7's "one line at 13 px" is exactly what it assumed. |
+| The Carousel is "one picture at a time, 80 px strip; a caption of 120 characters fits one line at 13 px under the enlarged view, two in the strip". | Five pictures at a time at 60 px, and **one** 20 px caption line under them rather than two: 60 + 20 is the 80 px row. That line holds about 170 characters and a `description` plus a `credit` may be 240, so the credit is laid out whole and the description is shortened to what is left, at least 47 characters (12.2). | None. What is shortened is repeated in full in the thumbnail's alternative text and in the enlarged view, where 5.7's "one line at 13 px" is exactly what it assumed. For an Option's picture what is shortened is its Option's title as well as its description, and the thumbnail's alternative text repeats both (amended 2026-09-14, #55; 12.1). |
 
 **The face the numbers hold in.** `tree-format.md` 5.7 measured its limits in a
 humanist sans, and #41 re-derived the widths above in the widest fallback a reader is
@@ -1309,15 +1316,37 @@ be image carrousells below the node bubble." This reverses core document open it
 The Carousel is the 80-pixel row under the Bubble (10.1). It shows **this Node's own
 `images` list, in the order the author wrote it** (`tree-format.md` 5.2: the list is the
 order, the description is the caption, the credit is shown with the picture). At most
-ten, which is the format's maximum.
+ten, which is the format's maximum. *(Amended 2026-09-14, #55: then its Options' pictures,
+at most 18 in all -- below.)*
 
-**Option Images do not join it.** An Option's picture belongs to that Option and is
+**Option Images do not join it.** *(Reversed 2026-09-14 for an Option's first Image, #55 --
+below.)* An Option's picture belongs to that Option and is
 shown on its Branch (10.3), where the reader is looking when they read the Option. The
 Carousel keeps one list, one order and one caption rule; merging two lists would leave
 a reader unable to tell which entry a caption belongs to.
 
-A Node with no Images gets the row anyway, empty, so that the Bubble sits in the same
-place on every Node and the transition of section 11 has nothing to reflow.
+**Amended 2026-09-14, #55 (the owner's answer on the issue, option A): Option pictures join
+it.** The 64-pixel picture on the Branch has no room for a credit (a Branch is 248 x 82,
+and a credit may be 120 characters that are never cut), and a credit reached only by a
+click is not the promise of `tree-format.md` 5.2. So after the Node's own Images the strip
+holds **the picture each Option's Branch shows -- its first Image -- in Option order**,
+and that picture stays on its Branch too. The paragraph above is answered by the caption:
+an Option's picture's caption line puts **the Option's title, a colon and then the
+description** where a Node Image has its description alone, so a reader can tell which
+Branch it belongs to; that text gives way to the credit exactly as a description does
+(12.2), and the enlarged view shows it whole. **The same words -- title, colon,
+description -- are the strip thumbnail's alternative text**, so the thumbnail is named by
+the enlarge word and them: the caption line's copy is hidden from assistive technology
+(12.2), and a reader who hears the strip rather than sees it must be able to tell the
+Branch too. The enlarged view's image keeps the description as its alternative text, with
+the whole caption beside it. An Option's second and third Images are shown
+nowhere, on the Branch or in the strip. **The strip's cap is therefore 18**: at most ten
+Images of the Node's own plus one per Option, at most eight. Nothing is left out; the strip
+already scrolls sideways inside its row (12.2), so its length costs no height.
+
+A Node with no picture -- no Image of its own and none on any of its Options (amended
+2026-09-14, #55) -- gets the row anyway, empty, so that the Bubble sits in the same place
+on every Node and the transition of section 11 has nothing to reflow.
 
 **Until #43 draws the Carousel**, the row holds the Node's Images as plain 60-pixel
 thumbnails in the strip's place, each a link to its file that, with JavaScript, opens
@@ -1333,7 +1362,8 @@ them** (2026-09-13): `Thumbnails.tsx` is gone, and step 2's control is the Carou
 
 ### 12.2 The strip, and its one exemption from the no-scroll rule
 
-The strip is a horizontal row of the Node's Images as 60-pixel thumbnails with
+The strip is a horizontal row of the Node's Images -- and, since #55, its Options' pictures,
+at most 18 in all (12.1) -- as 60-pixel thumbnails with
 `scroll-snap-type: x mandatory`, and under it a caption line of 20 pixels: 60 + 20 is the
 row's 80 pixels exactly (10.1). The strip is the **one element in the document allowed to
 scroll**, and only horizontally, and only within its own row (10.6). That exemption buys
@@ -1359,7 +1389,9 @@ the two are given the line in a fixed order of priority:
   width, and below it possibly none (the last paragraph of this section) -- shortened to fit,
   with a trailing ellipsis when it is shortened. Nothing is lost by it: the whole
   description is the thumbnail's alternative text, and both fields are shown in full in
-  the enlarged view (12.3), one Enter away.
+  the enlarged view (12.3), one Enter away. For an Option's picture the text that gives
+  way is the Option's title, a colon and the description, and all of it is the thumbnail's
+  alternative text and whole in the enlarged view (amended 2026-09-14, #55; 12.1).
 
 **The shortening is computed, not painted.** `text-overflow: ellipsis` would leave the
 caption's content wider than the caption, and 10.6's test measures `scrollWidth` against
@@ -1377,7 +1409,8 @@ Image, and the stylesheet shows it below 1280 pixels of width. **The credit is w
 it for every credit the format allows**; the description takes what is left, shortened as
 above, and **may be empty** -- beside a 120-character credit it is. Nothing is lost by it:
 the whole description is still the thumbnail's alternative text and is shown in full in
-the enlarged view. Nothing about the row is keyed to the length of a credit. The enlarged
+the enlarged view -- for an Option's picture, the Option's title with it (amended
+2026-09-14, #55; 12.1). Nothing about the row is keyed to the length of a credit. The enlarged
 view keeps clear of step 2's control wherever it is shown: the control is at the foot of
 the page and, without JavaScript, is the only way to close the Sheet. (The build of
 2026-09-13 drew a 100-character line and collapsed the row below 1280 on a Node with a
@@ -1391,7 +1424,7 @@ credit over 97 characters, before step 1; the owner replaced that with this rule
 | Previous / next | Buttons; scroll the strip by one page. Disabled at the ends. `CarouselButtons`, one of the four client components of section 1 (five until #43 replaces the interim `Thumbnails` with it; amended 2026-09-13, #41, PR #56). | `previous`, `next` |
 | Position | "Image 3 of 7", updated as the selection moves, announced politely. | `imageCount` |
 | A thumbnail | An `<a href="/images/<file>">` around the `<img>`. With JavaScript the click is intercepted and opens the enlarged view; without it, the link opens the file. | `enlarge` |
-| The enlarged view | A `Sheet`: the full image bounded to the viewport so that it never scrolls, with the `description` and the `credit` beneath it. Closed by Escape, by the close button, or by clicking outside; focus returns to the thumbnail. | `close` |
+| The enlarged view | A `Sheet`: the full image bounded to the viewport so that it never scrolls, with the `description` and the `credit` beneath it -- for an Option's picture, the Option's title, a colon and the description (amended 2026-09-14, #55; 12.1). Closed by Escape, by the close button, or by clicking outside; focus returns to the thumbnail. | `close` |
 
 The enlarged view is the same `Sheet` as the Trail Sheet and the collapsed Sheets of
 10.5 -- one overlay concept, one set of keyboard rules, one implementation.
@@ -1401,13 +1434,16 @@ The enlarged view is the same `Sheet` as the Trail Sheet and the collapsed Sheet
 - Only the images of the Node that is the centre Bubble are ever requested (11.4, 11.5).
 - Within the Carousel, each `<img>` carries `loading="lazy"` and explicit `width` and
   `height`, so the browser fetches the thumbnails at and near the visible page of the
-  strip and not the whole list. A Node may name ten Images; a reader who never scrolls
+  strip and not the whole list. A Node may name ten Images, and its strip hold 18 with its
+  Options' pictures (amended 2026-09-14, #55; 12.1); a reader who never scrolls
   the strip fetches only what the row showed.
 - The enlarged view shows the file the strip already has: enlarging costs no request.
 - An Option Branch's thumbnail (10.3) is an image of the Node on screen -- the Option is
   part of this Node's data -- so it loads with the page. A Node with 8 Options and 10
   Images can therefore ask for up to 18 image files, all of them its own, none of them
-  another Node's.
+  another Node's. Since #55 the same picture is in the strip as well (12.1): the same
+  `/images/<file>` URL, which the browser asks for once, so the ceiling stays 18
+  (`walk.spec.ts` counts the requests on `annex-i-legislation`: nine).
 
 ## 13. The Theme: how a Tree's look reaches the page
 
@@ -1548,7 +1584,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | The whole current Node | The server returns complete HTML: the tree view of section 10 with the centre Bubble, its title, description, Sources, outcome or hint. |
 | Every Branch | Ordinary `<a href>`. Following one loads the target's page. The tree is redrawn around the new Node instead of sliding to it. |
 | Going back up the Trail | The Trail Branches are links that discard the later Trail, exactly as 4.1 says: the URL *is* the Trail. |
-| The Carousel | A native scroll-snap strip (12.2): every Image is reachable, with its credit whole in the caption line, its description there as far as the line allows, and both in full when the thumbnail's link opens the file. |
+| The Carousel | A native scroll-snap strip (12.2): every Image is reachable -- the Node's own and, since #55, the picture on each Option's Branch (12.1) -- with its credit whole in the caption line, its description there as far as the line allows, and both in full when the thumbnail's link opens the file. |
 | Enlarging an Image | Each thumbnail is a link to `/images/<file>`; the browser opens the file, with the description and credit still on the page behind it. |
 | The language switch | Links with `?lang=` (4.1). |
 | The share link | The address bar: the page's own URL is the share link (4.1). |
@@ -1562,7 +1598,7 @@ Recorded in `docs/adrs/ADR-38-without-javascript.md`.
 | The pre-rendered neighbour Bubbles | They are in the HTML -- the server rendered them -- but hidden, and `Slider` is what reveals them. Without it the tree layer shows the centre Bubble and its Branches, which is everything the reader needs; off-centre Bubbles that can never move would be clutter, and they are `aria-hidden` besides. No image of another Node is requested either way, because a neighbour Bubble carries no image URL (11.4). **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours into the page as the tree layer's payload; they enter the DOM only during a slide. At rest, and without JavaScript, the DOM holds the centre Bubble only (11.3). |
 | The enlarged view in place | The image file, opened by the link. |
 | The Carousel's previous/next buttons | The strip itself scrolls; the buttons are an enhancement of a control that already works. |
-| The Sheets of 10.2 and 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. A list longer than one page of eight -- the 49-entry Trail -- is pages of nested native disclosures: `next` opens the next page and the stylesheet hides the one before it, so no panel is ever asked to hold more than fits, at any viewport of 10.6 (#41). |
+| The Sheets of 10.2 and 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. A list longer than one page of eight -- the 49-entry Trail -- is pages of nested native disclosures: `next` opens the next page and the stylesheet hides the one before it, so no panel is ever asked to hold more than fits, at any viewport of 10.6 (#41). The control that opened a Sheet stays above its panel, and a second click on it closes the Sheet. The Sources control's place in the Bubble is under the middle of the panel, and the foot of the page holds the collapsed Carousel's control and the disclaimer, so while its Sheet is open the Sources panel hangs from the top of the page with the control inside it, at its head: it covers nothing the panel does not (#59). |
 | The share button's copy | The address bar. The button is not shown when it cannot work. |
 | The 404 page's body | The single framework exception, 4.3, unchanged. |
 
