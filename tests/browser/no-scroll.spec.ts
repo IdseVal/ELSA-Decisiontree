@@ -205,6 +205,7 @@ async function measureEverywhere(
       const control = sheet.locator('.sheet-open')
       if (!(await control.isVisible())) continue
       const kind = (await sheet.getAttribute('class'))!.replace('sheet ', '')
+      const outside = script ? [] : await pointsOutside(sheet)
 
       await control.click()
       await expect(sheet.locator('.sheet-panel')).toBeVisible()
@@ -212,6 +213,7 @@ async function measureEverywhere(
       rows.push({ page: what, lang, viewport, sheet: kind, measured: open })
       assertFits(open, `${what} (${lang}) at ${viewport} with the ${kind} open`)
       await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open`)
+      await assertClear(sheet, outside, `${what} (${lang}) at ${viewport} with the ${kind} open`)
 
       // Without the script a long list is pages of native disclosures (section 14): each
       // page turned in its turn, and measured.
@@ -222,6 +224,7 @@ async function measureEverywhere(
         rows.push({ page: what, lang, viewport, sheet: `${kind}, page ${turned + 1}`, measured: turned_ })
         assertFits(turned_, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
         await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
+        await assertClear(sheet, outside, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
       }
       await closeSheet(sheet)
     }
@@ -275,6 +278,72 @@ async function assertReachable(sheet: Locator, where: string): Promise<void> {
     }),
   )
   expect(covered, `${where}: a control on the panel is covered`).toEqual([])
+}
+
+/** What a click outside a Sheet lands on: the `at`-th element of `OUTSIDE`, at (x, y). */
+interface Point {
+  what: string
+  at: number
+  x: number
+  y: number
+}
+
+/** Every control a reader can click, and the disclaimer's line, which is always on the page (core document 8). */
+const OUTSIDE = 'summary, button, a, .disclaimer p'
+
+/**
+ * Without the script nothing veils the page while a Sheet is open, so what is outside its
+ * panel is still the reader's: every control of `OUTSIDE` beyond the Sheet that a click
+ * reaches while the Sheet is closed, and three points along each line of the disclaimer.
+ * Taken before the Sheet opens, for `assertClear` to take again once it is.
+ */
+async function pointsOutside(sheet: Locator): Promise<Point[]> {
+  return sheet.evaluate((details, selector) => {
+    const lands = (el: Element, x: number, y: number): boolean => {
+      const hit = document.elementFromPoint(x, y)
+      return hit !== null && el.contains(hit)
+    }
+    return [...document.querySelectorAll(selector)].flatMap((el, at) => {
+      if (details.contains(el)) return []
+      const what = el.textContent?.trim().slice(0, 40) ?? ''
+      let points: { x: number; y: number }[]
+      if (el.matches('.disclaimer p')) {
+        const range = document.createRange()
+        range.selectNodeContents(el)
+        points = [...range.getClientRects()].flatMap((line) =>
+          [line.left + 2, line.left + line.width / 2, line.right - 2].map((x) => ({ x, y: line.top + line.height / 2 })),
+        )
+      } else {
+        const box = el.getClientRects()[0]
+        points = box && box.width > 0 && box.height > 0 ? [{ x: box.left + box.width / 2, y: box.top + box.height / 2 }] : []
+      }
+      return points.filter(({ x, y }) => lands(el, x, y)).map(({ x, y }) => ({ what, at, x, y }))
+    })
+  }, OUTSIDE)
+}
+
+/**
+ * Every point of `pointsOutside` that the open panel does not lie over still lands where it
+ * did. The panel covers what is under it, as any overlay does; what it must not do is leave
+ * the control that opened it, or anything else of its own, over the rest of the page (#59).
+ */
+async function assertClear(sheet: Locator, points: Point[], where: string): Promise<void> {
+  if (points.length === 0) return
+  const covered = await sheet.evaluate(
+    (details, [selector, points]) => {
+      const panel = details.querySelector('.sheet-panel')!.getBoundingClientRect()
+      const all = document.querySelectorAll(selector)
+      return points.flatMap(({ what, at, x, y }) => {
+        if (x >= panel.left && x <= panel.right && y >= panel.top && y <= panel.bottom) return []
+        const hit = document.elementFromPoint(x, y)
+        return hit && all[at]!.contains(hit)
+          ? []
+          : [`${what} at ${Math.round(x)},${Math.round(y)} under ${hit?.closest('[class]')?.className ?? 'nothing'}`]
+      })
+    },
+    [OUTSIDE, points] as const,
+  )
+  expect(covered, `${where}: something outside the panel is covered`).toEqual([])
 }
 
 
@@ -399,6 +468,23 @@ test.describe('with JavaScript switched off', () => {
       expect(await title.boundingBox(), `${url} at ${viewport}: the Bubble moved as the Sources opened`).toEqual(closed)
       await sheet.locator('.sheet-open').click()
       await expect(sheet.locator('.sheet-panel')).toBeHidden()
+    }
+  })
+
+  // Issue #59, PR #61's first fix: a Node with a Source and an Image, below step 2, where the
+  // collapsed Carousel's control is at the foot of the page. With the Sources open, a click on
+  // that control opens the enlarged view, and the Sources close: one Sheet at a time (10.2).
+  test('the open Sources Sheet leaves the collapsed Carousel its control without JavaScript (#59)', async ({ page }) => {
+    for (const [width, height] of [[768, 1024], [390, 844], [360, 640]] as const) {
+      await page.setViewportSize({ width, height })
+      await page.goto(EXAMPLE_PAGES[1].url)
+      const sources = page.locator('details.sources-sheet')
+      const carousel = page.locator('details.carousel-sheet')
+      await sources.locator('.sheet-open').click()
+      await expect(sources.locator('.sheet-panel')).toBeVisible()
+      await carousel.locator('.sheet-open').click()
+      await expect(carousel.locator('.sheet-panel'), `${width}x${height}: the Carousel did not open`).toBeVisible()
+      await expect(sources.locator('.sheet-panel'), `${width}x${height}: the Sources stayed open`).toBeHidden()
     }
   })
 
