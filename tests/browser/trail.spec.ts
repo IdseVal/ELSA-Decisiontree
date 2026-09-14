@@ -14,7 +14,7 @@ const CHILD = '/ai-act-example/start/prohibited-practices/social-scoring'
 async function walkToChild(page: Page): Promise<void> {
   await page.goto(START)
   await page.locator('.answer--yes').click()
-  await page.getByRole('link', { name: 'Social scoring' }).click()
+  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
   await expect(page).toHaveURL(CHILD)
 }
 
