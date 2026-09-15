@@ -882,6 +882,11 @@ oldest first, the current Node's parent nearest the Bubble.
   lines **in a wide fallback face too** (DejaVu Sans wraps it into four at the 176 pixels
   a 200-pixel Branch leaves, and 10.5's row has no fourth line), and no label is
   truncated at the guaranteed viewport. (#38 wrote 200 here; #41 measured and widened it.)
+  **Amended 2026-09-15, #65:** the lines are **18** pixels, not 20. Three lines of 20, the
+  Branch's padding and its border were the row's 64 pixels exactly, so a three-line Branch
+  sat on the chrome bar's rule and on the Bubble's outline. At 18 with no vertical padding
+  it is 56 pixels, **4 clear** of each; the line height does not change where a label
+  wraps, so the three lines above still hold.
 - **A longer Trail collapses in the middle.** The `start` Branch stays, the last four
   entries stay, and everything between them becomes one Branch labelled with
   `trailMore(n)` -- "n earlier steps". That Branch carries chrome, not a title, and is
@@ -1400,7 +1405,8 @@ them** (2026-09-13): `Thumbnails.tsx` is gone, and step 2's control is the Carou
 The strip is a horizontal row of the Node's Images -- and, since #55, its Options' pictures,
 at most 18 in all (12.1) -- as 60-pixel thumbnails with
 `scroll-snap-type: x mandatory`, and under it a caption line of 20 pixels: 60 + 20 is the
-row's 80 pixels exactly (10.1). The strip is the **one element in the document allowed to
+row's 80 pixels exactly (10.1). (Amended 2026-09-15, #65: those 20 pixels are a 16-pixel
+line 4 above the row's foot. A 20-pixel line there ended on the disclaimer's rule.) The strip is the **one element in the document allowed to
 scroll**, and only horizontally, and only within its own row (10.6). That exemption buys
 a great deal:
 
