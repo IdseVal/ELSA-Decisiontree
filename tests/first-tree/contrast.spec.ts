@@ -92,7 +92,10 @@ async function measure(page: Page, selector: string): Promise<Measured[]> {
   })
 }
 
-/** Asserts that `selector` matches at least one visible element and that each reaches the minimum; softly, so a run reports every one. */
+/**
+ * Asserts that `selector` matches at least one visible element and that each reaches the
+ * minimum -- softly, so one run reports every element that falls short, not the first.
+ */
 async function expectReadable(page: Page, selector: string): Promise<void> {
   const measured = await measure(page, selector)
   expect(measured.length, `${selector}: visible elements`).toBeGreaterThan(0)
@@ -122,3 +125,28 @@ test('a Terminal at the end of a long walk: the Trail labels and back / startAga
   await expectReadable(page, '.answer--back .branch-title')
   await expectReadable(page, '.disclaimer p')
 })
+
+/** A page of each kind the first Tree has: a question with Images, many Options, an explanation, both Terminal outcomes. */
+const EVERY_KIND = [
+  ROOT,
+  `/${TREE}/annex-i-legislation`,
+  `/${TREE}/start/article-2-exclusions/exclusion-open-source`,
+  `/${TREE}/ai-act-does-not-apply`,
+  END_OF_WALK,
+]
+
+for (const url of EVERY_KIND) {
+  test(`every text a reader sees at rest reaches 4.5 : 1: ${url.split('/').pop()}`, async ({ page }) => {
+    await page.goto(url)
+    await arrived(page, new RegExp(`${url}$`))
+    // Only an element with a text node of its own paints text; its wrappers would be measured twice.
+    await page.evaluate(() => {
+      for (const el of document.body.querySelectorAll('*')) {
+        if ([...el.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())) {
+          el.setAttribute('data-own-text', '')
+        }
+      }
+    })
+    await expectReadable(page, '[data-own-text]')
+  })
+}
