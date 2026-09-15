@@ -62,6 +62,7 @@ export function Sheet({
   words,
   uiLang,
   className,
+  idPrefix = '',
   startPage = 0,
   onPage,
   ref,
@@ -76,6 +77,8 @@ export function Sheet({
   /** Set when the chrome speaks another language than the content around it. */
   uiLang: string | undefined
   className: string
+  /** Prepended to the one `id` the Sheet writes, for a copy of it in a neighbour frame. */
+  idPrefix?: string
   /** The page the summary opens the Sheet at: the Image the collapsed Carousel names. */
   startPage?: number
   /** Told the page on the panel whenever it changes while the Sheet is open. */
@@ -106,7 +109,7 @@ export function Sheet({
             href={item.href}
             target={item.newTab ? '_blank' : undefined}
             rel={item.newTab ? 'noopener noreferrer' : undefined}
-            aria-describedby={item.newTab ? `${className}-new-tab` : undefined}
+            aria-describedby={item.newTab ? `${idPrefix}${className}-new-tab` : undefined}
           >
             {item.label}
           </a>
@@ -186,7 +189,7 @@ export function Sheet({
       <div className="sheet-panel">
         {items && (
           /* Hidden, not clipped: read as a description all the same, and never wider than itself (10.6). */
-          <span hidden id={`${className}-new-tab`} lang={uiLang}>
+          <span hidden id={`${idPrefix}${className}-new-tab`} lang={uiLang}>
             {words.opensInNewTab}
           </span>
         )}

@@ -7,13 +7,15 @@ import { Logo } from '../../../../components/Logo.tsx'
 import { ShareButton, type ShareWords } from '../../../../components/ShareButton.tsx'
 import { TreeView } from '../../../../components/TreeView.tsx'
 import { publicBaseUrl, servedTree } from '../../../../config.ts'
+import { neighbourhood } from '../../../../neighbourhood.ts'
 import type { Tree } from '../../../../tree/loader.ts'
 import { canonicalHref, parseUrl, type PageAddress } from '../../../../url.ts'
 
 /**
  * The Node page, `/<tree-id>/<...trail>/<node-id>` (docs/specs/application.md 4.1). The
- * route parses the address, reads exactly one Node and hands it to the tree view with the
- * Tree's index; everything else about how a Node looks is in `src/components/`.
+ * route parses the address, reads the Node and its neighbourhood -- at most seventeen Nodes
+ * (11.2) -- and hands them to the tree view with the Tree's index; everything else about how
+ * a Node looks is in `src/components/`.
  */
 interface Props {
   params: Promise<{ lang: string; tree: string; path: string[] }>
@@ -24,6 +26,7 @@ export default async function NodePage(props: Props) {
   if (!found) notFound()
   const node = await found.tree.getNode(found.address.nodeId)
   if (!node) notFound()
+  const neighbours = await neighbourhood(found.tree, found.address, node)
 
   return (
     <>
@@ -45,7 +48,7 @@ export default async function NodePage(props: Props) {
         </div>
       </header>
       <main>
-        <TreeView node={node} address={found.address} tree={found.tree} />
+        <TreeView node={node} address={found.address} tree={found.tree} neighbours={neighbours} />
       </main>
       <Disclaimer lang={found.address.lang} />
     </>

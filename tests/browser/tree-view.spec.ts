@@ -15,6 +15,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
+import { arrived } from './arrived.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const SHOTS =
@@ -32,16 +33,16 @@ test.describe('following a Branch', () => {
   test('an Answer opens its target with the current Node appended to the Trail', async ({ page }) => {
     await page.goto(ROOT)
     await page.locator('.answer--yes').click()
-    await expect(page).toHaveURL(QUESTION)
+    await arrived(page, QUESTION)
 
     await page.locator('.answer--no').click()
-    await expect(page).toHaveURL(`${QUESTION}/covered`)
+    await arrived(page, `${QUESTION}/covered`)
   })
 
   test('an Option opens its target with the current Node appended to the Trail', async ({ page }) => {
     await page.goto(QUESTION)
     await page.locator('.option').first().click()
-    await expect(page).toHaveURL(`${QUESTION}/social-scoring`)
+    await arrived(page, `${QUESTION}/social-scoring`)
     await expect(page.locator('.hint')).toHaveText('This step only explains. Go back to answer the question.')
   })
 
@@ -50,12 +51,12 @@ test.describe('following a Branch', () => {
     await expect(page.locator('.trail-entry')).toHaveCount(3)
 
     await page.locator('.trail-entry').nth(1).click()
-    await expect(page).toHaveURL(QUESTION)
+    await arrived(page, QUESTION)
     await expect(page.locator('.trail-entry')).toHaveCount(1)
 
     await page.goto(EXPLANATION)
     await page.locator('.trail-entry').first().click()
-    await expect(page).toHaveURL(ROOT)
+    await arrived(page, ROOT)
     await expect(page.locator('.trail-entry')).toHaveCount(0)
   })
 
@@ -64,18 +65,18 @@ test.describe('following a Branch', () => {
     const back = page.locator('.answer--back')
     await expect(back).toContainText('Emotion recognition at work or in education')
     await back.click()
-    await expect(page).toHaveURL(`${QUESTION}/emotion-recognition-at-work`)
+    await arrived(page, `${QUESTION}/emotion-recognition-at-work`)
   })
 
   test("a Terminal's back Branch goes up and startAgain goes to the root with an empty Trail", async ({ page }) => {
     await page.goto(TERMINAL)
     await expect(page.locator('.outcome')).toHaveText('Prohibited')
     await page.locator('.answer--back').click()
-    await expect(page).toHaveURL(QUESTION)
+    await arrived(page, QUESTION)
 
     await page.goto(TERMINAL)
     await page.locator('.answer--start-again').click()
-    await expect(page).toHaveURL(ROOT)
+    await arrived(page, ROOT)
     await expect(page.locator('.trail-entry')).toHaveCount(0)
   })
 
@@ -150,19 +151,19 @@ test.describe('the keyboard', () => {
     await page.goto(EXPLANATION)
     await page.locator('.trail-entry').nth(1).focus()
     await page.keyboard.press('Enter')
-    await expect(page).toHaveURL(QUESTION)
+    await arrived(page, QUESTION)
 
     await page.locator('.option').first().focus()
     await page.keyboard.press('Enter')
-    await expect(page).toHaveURL(`${QUESTION}/social-scoring`)
+    await arrived(page, `${QUESTION}/social-scoring`)
 
     await page.locator('.answer--back').focus()
     await page.keyboard.press('Enter')
-    await expect(page).toHaveURL(QUESTION)
+    await arrived(page, QUESTION)
 
     await page.locator('.answer--yes').focus()
     await page.keyboard.press('Enter')
-    await expect(page).toHaveURL(TERMINAL)
+    await arrived(page, TERMINAL)
   })
 
   test('a Sheet opens with Enter, lists its links, closes with Escape and gives the focus back', async ({ page }) => {
@@ -199,7 +200,7 @@ test.describe('the keyboard', () => {
     const links = sheet.locator('.sheet-list a')
     await expect(links).toHaveText(['Social scoring', 'Emotion recognition at work or in education'])
     await links.first().click()
-    await expect(page).toHaveURL(`${QUESTION}/social-scoring`)
+    await arrived(page, `${QUESTION}/social-scoring`)
   })
 })
 
@@ -256,7 +257,7 @@ test.describe('the Trail Sheet', () => {
     await sheet.locator('.sheet-open').click()
     // The fourth-newest entry: `start` reached by a Trail of 45.
     await sheet.locator('.sheet-list a').nth(3).click()
-    await expect(page).toHaveURL(`${TREE}/${Array.from({ length: 46 }, () => 'start').join('/')}`)
+    await arrived(page, `${TREE}/${Array.from({ length: 46 }, () => 'start').join('/')}`)
     await expect(page.locator('.trail-sheet .sheet-open')).toHaveText('40 earlier steps', { useInnerText: true })
   })
 
@@ -329,11 +330,11 @@ test.describe('with JavaScript switched off', () => {
   test('every Branch is a link that navigates, and a collapsed group is its plain list', async ({ page }) => {
     await page.goto(EXPLANATION)
     await page.locator('.answer--back').click()
-    await expect(page).toHaveURL(`${QUESTION}/emotion-recognition-at-work`)
+    await arrived(page, `${QUESTION}/emotion-recognition-at-work`)
     await page.locator('.trail-entry').nth(1).click()
-    await expect(page).toHaveURL(QUESTION)
+    await arrived(page, QUESTION)
     await page.locator('.option').last().click()
-    await expect(page).toHaveURL(`${QUESTION}/emotion-recognition-at-work`)
+    await arrived(page, `${QUESTION}/emotion-recognition-at-work`)
 
     // A Sheet is a native disclosure: it opens without the script and holds every link.
     await page.setViewportSize({ width: 1024, height: 640 })
@@ -343,7 +344,7 @@ test.describe('with JavaScript switched off', () => {
     await expect(sheet.locator('.sheet-list a')).toHaveCount(2)
     await expect(sheet.locator('.sheet-close')).toHaveCount(0)
     await sheet.locator('.sheet-list a').last().click()
-    await expect(page).toHaveURL(`${QUESTION}/emotion-recognition-at-work`)
+    await arrived(page, `${QUESTION}/emotion-recognition-at-work`)
   })
 
   test('the Trail Sheet holds the whole Trail as pages of disclosures, one page on the panel at a time', async ({ page }) => {
@@ -382,6 +383,6 @@ test.describe('with JavaScript switched off', () => {
     await expect(links.last()).toBeHidden()
 
     await links.nth(40).click()
-    await expect(page).toHaveURL(`${TREE}/${Array.from({ length: 8 }, () => 'start').join('/')}/start`)
+    await arrived(page, `${TREE}/${Array.from({ length: 8 }, () => 'start').join('/')}/start`)
   })
 })
