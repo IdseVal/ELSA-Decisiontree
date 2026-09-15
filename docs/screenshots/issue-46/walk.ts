@@ -1,7 +1,7 @@
 /**
  * Issue #46: version 0.2 of the first Tree walked in the running app, as a reader would, with
- * every page measured and every request recorded. The record this writes -- `README.md`,
- * `requests.md` and the screenshots beside this file -- is what the owner inspects (core
+ * every page measured and every request recorded. The record this writes -- `walk-record.md`, which
+ * `README.md` embeds, `requests.md` and the screenshots beside this file -- is what the owner inspects (core
  * document 3.3); it is not a test and asserts nothing, because the issue files what it finds
  * as issues instead of failing on it.
  *
@@ -324,7 +324,7 @@ class Walker {
 
   /**
    * Replaces the tab with a new one at the page the walk is on. Headless Chromium's renderer
-   * crashed after 119 to about 310 slides in one tab (the defect filed from this walk), which
+   * crashed after 119 to about 310 slides in one tab (#63), which
    * would end the walk; a tab of its own every FRESH_TAB_EVERY pages keeps it well short.
    */
   private async freshTab(ids: string[]): Promise<void> {
@@ -332,7 +332,7 @@ class Walker {
     this.page = await old.context().newPage()
     await old.close()
     this.sinceFresh = 0
-    const visit = this.begin('the same page in a new tab (renderer crash, see README)')
+    const visit = this.begin('the same page in a new tab (renderer crash, #63)')
     await this.page.goto(pageUrl(ids, this.lang))
     await this.arrive(visit, ids)
   }
@@ -431,6 +431,12 @@ async function main(): Promise<void> {
   await writeRecord(nodes)
 }
 
+/** A visit's document and Bubble columns; the English root a Dutch walk switches language on is not measured. */
+function measured(v: Visit): string {
+  if (v.inner.h === 0) return 'not measured: the language switch was clicked on it; the next row is where it led | '
+  return `${v.docSH} / ${v.inner.h} | ${v.bubbleSH} / ${v.bubbleCH}`
+}
+
 /** `README.md`'s generated half and `requests.md`: every page, every number, every request. */
 async function writeRecord(nodes: Map<string, Node>): Promise<void> {
   const lines: string[] = []
@@ -462,7 +468,7 @@ async function writeRecord(nodes: Map<string, Node>): Promise<void> {
     const found = await problems(v)
     const payload = Math.max(0, ...v.requests.map((r) => r.nodes?.length ?? 0))
     lines.push(
-      `| ${v.n} | ${v.lang} | ${v.viewport} | ${v.how} | \`${v.url}\` | ${v.docSH} / ${v.inner.h} | ${v.bubbleSH} / ${v.bubbleCH} | ${v.overflowing.length} | ` +
+      `| ${v.n} | ${v.lang} | ${v.viewport} | ${v.how} | \`${v.url}\` | ${measured(v)} | ${v.overflowing.length} | ` +
         `${v.requests.length} | ${payload || ''} | ${found.join('; ').replaceAll('|', '\\|')} |`,
     )
   }
