@@ -7,8 +7,8 @@
  * Issue #63 reported the renderer crashing after about 300 slides. That crash was the
  * harness, not the slide: the probe ran under Git Bash's `timeout 300`, whose expiry on Windows
  * takes the renderer down before the script, which Playwright reports as "Page crashed" --
- * measured at 299.7 seconds, the 300-349th click. Without it the same probe runs all 400 slides, in 330 seconds. So the test
- * asserts more than survival, which a plain run always had:
+ * measured at 299.7 seconds. Without it the same probe runs all 400 slides, in 330 seconds.
+ * So the test asserts more than survival, which a plain run always had:
  *
  * - the clicks ran slides, at least one each, counted where the layer takes `data-sliding`
  *   -- without that the loop would pass just as well with the motion off;
