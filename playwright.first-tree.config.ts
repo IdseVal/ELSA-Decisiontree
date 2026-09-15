@@ -22,6 +22,10 @@ import { defineConfig, devices } from '@playwright/test'
  * machine's rendering and any other machine re-renders them differently. A plain run writes
  * its shots to the gitignored results directory and leaves the tracked files alone -- see
  * the note at the top of `tests/first-tree/walk.spec.ts`.
+ *
+ * `tests/first-tree/every-link.spec.ts` (issue #46) follows every Link of the Tree in both
+ * languages at two viewports and records each page; under `ELSA_SHOTS=1` it rewrites
+ * `docs/screenshots/issue-46/`, so re-take one issue's record by naming its file.
  */
 const PORT = Number(process.env.ELSA_TEST_PORT ?? 3118)
 
