@@ -5,9 +5,10 @@
  * it without keeping what each slide showed.
  *
  * Issue #63 reported the renderer crashing after about 300 slides. That crash was the
- * harness, not the slide: every probe ran under Git Bash's `timeout`, which on Windows ends
- * the browser's child processes when it expires, and each "crash" came at the second its
- * `timeout` did. So the test asserts more than survival, which a plain run always had:
+ * harness, not the slide: the probe ran under Git Bash's `timeout 300`, whose expiry on Windows
+ * takes the renderer down before the script, which Playwright reports as "Page crashed" --
+ * measured at 299.7 seconds, the 300-349th click. Without it the same probe runs all 400 slides, in 330 seconds. So the test
+ * asserts more than survival, which a plain run always had:
  *
  * - the clicks ran slides, at least one each, counted where the layer takes `data-sliding`
  *   -- without that the loop would pass just as well with the motion off;
@@ -20,7 +21,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type CDPSession } from '@playwright/test'
-import { arrived } from './arrived.ts'
 import { BASE_PORT, serve, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -36,6 +36,10 @@ const SLIDES = 400
 const CENTRE = '.tree-frame:not([inert])'
 
 let origin: string
+
+// A trace keeps a snapshot per action: over the 1,600 actions of this test it slowed the
+// run past fifteen minutes, where without it the test takes six.
+test.use({ trace: 'off' })
 
 test.beforeAll(async () => {
   const started = await serve(path.join(repo, 'trees'), 'ai-act-applicability-agrifood', PORT)
@@ -72,13 +76,13 @@ test('400 slides in one tab run, and leave nothing of themselves behind', async 
 
   let baseline = { nodes: 0, listeners: 0 }
   for (let slide = 1; slide <= SLIDES; slide++) {
-    if (slide % 2 === 1) {
-      await page.locator(`${CENTRE} .answer--yes`).click()
-      await arrived(page, origin + YES)
-    } else {
-      await page.locator(`${CENTRE} .trail-step[data-parent] .trail-entry`).click()
-      await arrived(page, origin + ROOT)
-    }
+    const target = slide % 2 === 1 ? YES : ROOT
+    if (target === YES) await page.locator(`${CENTRE} .answer--yes`).click()
+    else await page.locator(`${CENTRE} .trail-step[data-parent] .trail-entry`).click()
+    // The probe's waits rather than `arrived`'s assertions, whose polling adds a quarter of a
+    // second to each of four hundred slides.
+    await page.waitForURL(origin + target)
+    await page.locator('.tree-layer[data-sliding]').waitFor({ state: 'detached' })
     if (slide === 2) baseline = await retained(cdp)
   }
 
