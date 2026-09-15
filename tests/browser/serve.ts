@@ -3,8 +3,8 @@
  * playwright.config.ts serves: the fixtures and the first Tree. The same command
  * docs/deployment.md gives, so what a spec sees is what a deployment serves.
  *
- * Not a spec file: `no-scroll.spec.ts` and `carousel.spec.ts` import it, and each stops the
- * servers it started when its suite ends.
+ * Not a spec file: `no-scroll.spec.ts`, `carousel.spec.ts` and `chrome-clearance.spec.ts`
+ * import it, and each stops the servers it started when its suite ends.
  */
 import { spawn, type ChildProcess } from 'node:child_process'
 import path from 'node:path'
