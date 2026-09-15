@@ -511,6 +511,11 @@ response may carry, and holds; the bytes follow the Trail, which every neighbour
 draws in full. `ADR-38-neighbourhood.md` (Consequences) has the figures, and issue #60
 the lever.
 
+**Amended 2026-09-15 (#60):** a neighbour frame now draws only the part of its Trail the
+guaranteed viewport shows (11.3). The full Node at a 49-entry Trail is 269 kB of HTML
+(14 kB gzipped), and its payload 176 kB (24 kB gzipped); most of what is left is the
+centre frame's own Trail. `ADR-38-neighbourhood.md` (Consequences) has the table.
+
 ### 5.3 The image route
 
 `GET /images/<file>` asks `imagePath(file)`. `null` answers 404. Otherwise the file is
@@ -877,6 +882,11 @@ oldest first, the current Node's parent nearest the Bubble.
   lines **in a wide fallback face too** (DejaVu Sans wraps it into four at the 176 pixels
   a 200-pixel Branch leaves, and 10.5's row has no fourth line), and no label is
   truncated at the guaranteed viewport. (#38 wrote 200 here; #41 measured and widened it.)
+  **Amended 2026-09-15, #65:** the lines are **18** pixels, not 20. Three lines of 20, the
+  Branch's padding and its border were the row's 64 pixels exactly, so a three-line Branch
+  sat on the chrome bar's rule and on the Bubble's outline. At 18 with no vertical padding
+  it is 56 pixels, **4 clear** of each; the line height does not change where a label
+  wraps, so the three lines above still hold.
 - **A longer Trail collapses in the middle.** The `start` Branch stays, the last four
   entries stay, and everything between them becomes one Branch labelled with
   `trailMore(n)` -- "n earlier steps". That Branch carries chrome, not a title, and is
@@ -1150,7 +1160,8 @@ centre.
   places every Option target at those viewports, because the server renders one page
   for every viewport and the stylesheet decides the collapse. On the full Node that is
   eight neighbour frames that nothing on screen can slide to. Issue #60 weighs that
-  cost.
+  cost. (Decided 2026-09-15, #60: the frames stay placed, and each is trimmed as 11.3
+  says.)
 - **Amended 2026-09-15 (#42, PR #57): no item of any Sheet slides, whatever its
   target's placement.** The line above is one case of it. The Trail Sheet (10.2) lists
   the whole Trail newest first, so its first two items are the parent and the
@@ -1225,6 +1236,20 @@ of a slide and the neighbour is still rendered by the server, not by a second re
 hidden duplicate Bubbles in every page would cost DOM weight and confuse assistive
 technology for nothing. `transition.spec.ts` pins it: with JavaScript disabled the page
 holds exactly one `.tree-frame`.
+
+**Amended 2026-09-15 (#60, by the owner's decision of 2026-09-14,
+<https://github.com/IdseVal/ELSA-Decisiontree/issues/60#issuecomment-5670372885>): a
+neighbour frame does not repeat the whole Trail.** It is the tree view's layout with its
+Trail trimmed: it keeps exactly the Trail Branches 10.2 draws at the guaranteed viewport
+-- `start` and the last four, or all of a Trail of five or fewer -- and the collapsed
+control with the same `trailMore(n)` words, and it drops the Trail Sheet's list. Nothing
+visible changes, at rest or mid-slide. Every narrower step of 10.5 shows a subset of
+those entries, and the list is behind the control either way. The frame is inert, so
+nobody can open that Sheet or follow those links, and the page that replaces it in step 4
+carries the whole Trail. The centre frame keeps the whole Trail and its Sheet. At a
+49-entry Trail every neighbour frame drew 49 Trail Branches and a 49-link Sheet, so the
+full Node's page was 750 kB of HTML with the Trail repeated in each of its ten frames
+(5.2). `tests/trail.test.tsx` pins the trim against each neighbour's own page.
 
 Following a Branch, with JavaScript:
 
@@ -1380,7 +1405,8 @@ them** (2026-09-13): `Thumbnails.tsx` is gone, and step 2's control is the Carou
 The strip is a horizontal row of the Node's Images -- and, since #55, its Options' pictures,
 at most 18 in all (12.1) -- as 60-pixel thumbnails with
 `scroll-snap-type: x mandatory`, and under it a caption line of 20 pixels: 60 + 20 is the
-row's 80 pixels exactly (10.1). The strip is the **one element in the document allowed to
+row's 80 pixels exactly (10.1). (Amended 2026-09-15, #65: those 20 pixels are a 16-pixel
+line 4 above the row's foot. A 20-pixel line there ended on the disclaimer's rule.) The strip is the **one element in the document allowed to
 scroll**, and only horizontally, and only within its own row (10.6). That exemption buys
 a great deal:
 
