@@ -44,6 +44,9 @@ type Lang = (typeof LANGUAGES)[number]
 /** The bound of application.md 11.5: the Node a page shows and at most sixteen neighbours. */
 const MAX_NODES = 17
 
+/** Page visits per tab before the walk moves to a new one (`Walker.freshTab`). */
+const FRESH_TAB_EVERY = 50
+
 /** The centre frame: the neighbour frames are `inert` and are never clicked (11.3). */
 const CENTRE = '.tree-frame:not([inert])'
 
@@ -123,18 +126,22 @@ class Walker {
   /** Resolves once page payloads are being read on their way in; await before the first navigation. */
   readonly routed: Promise<unknown>
 
-  readonly page: Page
+  page: Page
   readonly lang: Lang
   readonly viewport: string
   readonly nodes: Map<string, Node>
+  /** Page visits since the tab was last replaced; see `freshTab`. */
+  private sinceFresh = 0
 
   constructor(page: Page, lang: Lang, viewport: string, nodes: Map<string, Node>) {
     this.page = page
     this.lang = lang
     this.viewport = viewport
     this.nodes = nodes
-    page.setDefaultTimeout(20_000)
-    page.on('request', (request) => {
+    // Listened for on the context, so a tab `freshTab` opens is recorded the same way.
+    const context = page.context()
+    context.setDefaultTimeout(20_000)
+    context.on('request', (request) => {
       this.inflight += 1
       this.lastActivity = Date.now()
       this.visit?.requests.push({ url: local(request.url()), kind: kindOf(request) })
@@ -143,11 +150,11 @@ class Walker {
       this.inflight = Math.max(0, this.inflight - 1)
       this.lastActivity = Date.now()
     }
-    page.on('requestfinished', done)
-    page.on('requestfailed', done)
+    context.on('requestfinished', done)
+    context.on('requestfailed', done)
     // A page payload's body is taken on its way to the page, so the Nodes it carries can be
     // counted: Chromium does not keep a client navigation's payload for `response.body()`.
-    this.routed = page.route(
+    this.routed = context.route(
       (url) => url.pathname.startsWith(`/${TREE}`),
       async (route) => {
         const response = await route.fetch()
@@ -179,6 +186,7 @@ class Walker {
       requests: [],
     }
     visits.push(this.visit)
+    this.sinceFresh += 1
     if (visits.length % 50 === 0) console.log(`${visits.length} pages, ${new Date().toISOString()}`)
     return this.visit
   }
@@ -282,6 +290,7 @@ class Walker {
     }
 
     for (const link of links) {
+      if (this.sinceFresh >= FRESH_TAB_EVERY) await this.freshTab(ids)
       const there = [...ids, link.target]
       const visit = this.begin(`${link.how} from ${node.id}`)
       try {
@@ -294,6 +303,7 @@ class Walker {
         }
       } catch (error) {
         visit.error = String(error).split('\n')[0]
+        console.log(visit.n, visit.how, String(error).slice(0, 700))
         await this.recover(there)
       }
       if (!this.walked.has(link.target)) {
@@ -306,9 +316,25 @@ class Walker {
         await this.arrive(back, ids)
       } catch (error) {
         back.error = String(error).split('\n')[0]
+        console.log(back.n, back.how, String(error).slice(0, 700))
         await this.recover(ids)
       }
     }
+  }
+
+  /**
+   * Replaces the tab with a new one at the page the walk is on. Headless Chromium's renderer
+   * crashed after 119 to about 310 slides in one tab (the defect filed from this walk), which
+   * would end the walk; a tab of its own every FRESH_TAB_EVERY pages keeps it well short.
+   */
+  private async freshTab(ids: string[]): Promise<void> {
+    const old = this.page
+    this.page = await old.context().newPage()
+    await old.close()
+    this.sinceFresh = 0
+    const visit = this.begin('the same page in a new tab (renderer crash, see README)')
+    await this.page.goto(pageUrl(ids, this.lang))
+    await this.arrive(visit, ids)
   }
 
   /** After a failed click: loads the page the walk expected, so the walk carries on from it. */
