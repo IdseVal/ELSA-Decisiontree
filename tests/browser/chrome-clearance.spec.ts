@@ -81,12 +81,12 @@ for (const lang of ['en', 'nl'] as const) {
 
       for (const entry of m.entries) {
         tallest = Math.max(tallest, entry.bottom - entry.top)
-        expect(entry.top - m.header.bottom, `${where}: a Trail Branch below the chrome bar`).toBeGreaterThanOrEqual(CLEARANCE)
-        expect(m.trailRow.bottom - entry.bottom, `${where}: a Trail Branch above the Bubble's row`).toBeGreaterThanOrEqual(CLEARANCE)
+        expect.soft(entry.top - m.header.bottom, `${where}: a Trail Branch below the chrome bar`).toBeGreaterThanOrEqual(CLEARANCE)
+        expect.soft(m.trailRow.bottom - entry.bottom, `${where}: a Trail Branch above the Bubble's row`).toBeGreaterThanOrEqual(CLEARANCE)
       }
       if (m.caption) {
         captions += 1
-        expect(m.disclaimer.top - m.caption.bottom, `${where}: the caption line above the disclaimer`).toBeGreaterThanOrEqual(CLEARANCE)
+        expect.soft(m.disclaimer.top - m.caption.bottom, `${where}: the caption line above the disclaimer`).toBeGreaterThanOrEqual(CLEARANCE)
       }
     }
     // Without these the test could pass on pages that no longer show what it is about.
