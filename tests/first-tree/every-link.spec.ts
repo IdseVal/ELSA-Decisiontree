@@ -507,7 +507,7 @@ function shownNodes(visits: Visit[]): Set<string> {
 }
 
 test('every Link of the first Tree, in both languages at both viewports, measured and recorded', async ({ browser, baseURL }) => {
-  // About seven minutes for the four walks side by side on one laptop; one walk alone takes about six.
+  // About three minutes for the four walks side by side on one laptop; far above the default.
   test.setTimeout(40 * 60_000)
   origin = new URL(baseURL!).origin
   tree = await openTree(fileURLToPath(new URL(`../../trees/${TREE}`, import.meta.url)))

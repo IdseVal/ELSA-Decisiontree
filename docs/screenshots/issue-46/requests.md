@@ -58,6 +58,7 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 17 | font | `/theme/open-sans-400.woff2` |  |
 | 17 | font | `/theme/open-sans-700.woff2` |  |
 | 18 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations?_rsc=NKfWy2jG8AEdQoGT` | 9 |
+| 18 | image | `/images/step-transparency.jpg` |  |
 | 19 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations/end-of-walk?_rsc=DP9ZqNPMkOX9G3qo` | 3 |
 | 20 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations?_rsc=NKfWy2jG8AEdQoGT` | 9 |
 | 21 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations/article-50-direct-interaction?_rsc=4sITyAg2X6rc92ew` | 3 |
@@ -73,6 +74,7 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 31 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai?_rsc=mRj9BAjQONYLY_ks` | 5 |
 | 31 | image | `/images/step-general-purpose-ai.jpg` |  |
 | 32 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations?_rsc=8K_k1zjue46lxAnH` | 9 |
+| 32 | image | `/images/step-transparency.jpg` |  |
 | 33 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai?_rsc=mRj9BAjQONYLY_ks` | 5 |
 | 34 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk?_rsc=K63_bFbrEN44MCNJ` | 5 |
 | 35 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai?_rsc=rZGzY5fYLdfmjywQ` | 5 |
@@ -122,6 +124,15 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 48 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?_rsc=uhc9ROTvUfZ_Sh9m` | 14 |
 | 49 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-biometrics?_rsc=rZ4cl8V8qa0Hw5TI` | 3 |
 | 50 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?_rsc=mDKVugDEAUh5Nugb` | 14 |
+| 50 | image | `/images/biometrics.jpg` |  |
+| 50 | image | `/images/critical-infrastructure.jpg` |  |
+| 50 | image | `/images/education.jpg` |  |
+| 50 | image | `/images/employment.jpg` |  |
+| 50 | image | `/images/essential-services.jpg` |  |
+| 50 | image | `/images/law-enforcement.jpg` |  |
+| 50 | image | `/images/migration-and-borders.jpg` |  |
+| 50 | image | `/images/justice-and-democracy.jpg` |  |
+| 50 | image | `/images/step-annex-iii.jpg` |  |
 | 51 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-critical-infrastructure?_rsc=rZ4cl8V8qa0Hw5TI` | 3 |
 | 52 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?_rsc=0Wtq7OsHQ610fN5a` | 14 |
 | 53 | page (HTML) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas` | 14 |
@@ -153,6 +164,15 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 59 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?_rsc=f7YWWGYXsty7sTtx` | 14 |
 | 60 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-law-enforcement?_rsc=rZ4cl8V8qa0Hw5TI` | 3 |
 | 61 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?_rsc=NJlxjb97U2-prwg8` | 14 |
+| 61 | image | `/images/biometrics.jpg` |  |
+| 61 | image | `/images/critical-infrastructure.jpg` |  |
+| 61 | image | `/images/education.jpg` |  |
+| 61 | image | `/images/employment.jpg` |  |
+| 61 | image | `/images/essential-services.jpg` |  |
+| 61 | image | `/images/law-enforcement.jpg` |  |
+| 61 | image | `/images/migration-and-borders.jpg` |  |
+| 61 | image | `/images/justice-and-democracy.jpg` |  |
+| 61 | image | `/images/step-annex-iii.jpg` |  |
 | 62 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-migration-and-borders?_rsc=rZ4cl8V8qa0Hw5TI` | 3 |
 | 63 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?_rsc=mkNxVm2qBpcEciNC` | 14 |
 | 64 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-justice-and-democracy?_rsc=rZ4cl8V8qa0Hw5TI` | 3 |
@@ -167,12 +187,22 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 68 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?_rsc=nL7fWFAsV5Puw3LW` | 11 |
 | 69 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-i-motor-vehicle-approval?_rsc=jn6w_NoBtTWotOWe` | 3 |
 | 70 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?_rsc=3xC75virgy0noVcv` | 11 |
+| 70 | image | `/images/rail-interoperability.jpg` |  |
+| 70 | image | `/images/motor-vehicle-approval.jpg` |  |
+| 70 | image | `/images/motor-vehicle-general-safety.jpg` |  |
+| 70 | image | `/images/unmanned-aircraft.jpg` |  |
+| 70 | image | `/images/machinery.jpg` |  |
 | 71 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-i-motor-vehicle-general-safety?_rsc=jn6w_NoBtTWotOWe` | 3 |
 | 72 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?_rsc=E-qBJpm4i5DIho9o` | 11 |
 | 73 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-i-unmanned-aircraft?_rsc=jn6w_NoBtTWotOWe` | 3 |
 | 74 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?_rsc=8ws02qwDoJ1VJokJ` | 11 |
 | 75 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-i-machinery?_rsc=jn6w_NoBtTWotOWe` | 3 |
 | 76 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?_rsc=jXFieS_R5klI0ORy` | 11 |
+| 76 | image | `/images/rail-interoperability.jpg` |  |
+| 76 | image | `/images/motor-vehicle-approval.jpg` |  |
+| 76 | image | `/images/motor-vehicle-general-safety.jpg` |  |
+| 76 | image | `/images/unmanned-aircraft.jpg` |  |
+| 76 | image | `/images/machinery.jpg` |  |
 | 77 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?_rsc=jn6w_NoBtTWotOWe` | 14 |
 | 77 | image | `/images/gas-appliances.jpg` |  |
 | 77 | image | `/images/medical-devices.jpg` |  |
@@ -187,17 +217,17 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 81 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?_rsc=ctm54MPEr00efyoo` | 14 |
 | 82 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-ivd-medical-devices?_rsc=ZRoJfl2SNzOqUBVQ` | 3 |
 | 83 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?_rsc=XtnZLkqPQc_ntS0q` | 14 |
-| 83 | image | `/images/gas-appliances.jpg` |  |
-| 83 | image | `/images/medical-devices.jpg` |  |
-| 83 | image | `/images/ivd-medical-devices.jpg` |  |
-| 83 | image | `/images/civil-aviation-security.jpg` |  |
-| 83 | image | `/images/two-or-three-wheel-vehicles.jpg` |  |
-| 83 | image | `/images/agricultural-vehicles.jpg` |  |
-| 83 | image | `/images/marine-equipment.jpg` |  |
 | 84 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-civil-aviation-security?_rsc=ZRoJfl2SNzOqUBVQ` | 3 |
 | 85 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?_rsc=WwNW5MW-V7UXBJ09` | 14 |
 | 86 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-two-or-three-wheel-vehicles?_rsc=ZRoJfl2SNzOqUBVQ` | 3 |
 | 87 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?_rsc=12_Hhd4FLpFQkVfr` | 14 |
+| 87 | image | `/images/gas-appliances.jpg` |  |
+| 87 | image | `/images/medical-devices.jpg` |  |
+| 87 | image | `/images/ivd-medical-devices.jpg` |  |
+| 87 | image | `/images/civil-aviation-security.jpg` |  |
+| 87 | image | `/images/two-or-three-wheel-vehicles.jpg` |  |
+| 87 | image | `/images/agricultural-vehicles.jpg` |  |
+| 87 | image | `/images/marine-equipment.jpg` |  |
 | 88 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-agricultural-vehicles?_rsc=ZRoJfl2SNzOqUBVQ` | 3 |
 | 89 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?_rsc=Vd_nZ43QAQTGSa4m` | 14 |
 | 90 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-marine-equipment?_rsc=ZRoJfl2SNzOqUBVQ` | 3 |
@@ -220,6 +250,15 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 98 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation?_rsc=1JafjlDbeI2nT_Il` | 15 |
 | 99 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-explosive-atmospheres?_rsc=xUkg7jR0eSz7j8hx` | 3 |
 | 100 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation?_rsc=Kty3UugWOd5eKCX4` | 15 |
+| 100 | image | `/images/toys.jpg` |  |
+| 100 | image | `/images/recreational-craft.jpg` |  |
+| 100 | image | `/images/lifts.jpg` |  |
+| 100 | image | `/images/explosive-atmospheres.jpg` |  |
+| 100 | image | `/images/radio-equipment.jpg` |  |
+| 100 | image | `/images/pressure-equipment.jpg` |  |
+| 100 | image | `/images/cableway-installations.jpg` |  |
+| 100 | image | `/images/personal-protective-equipment.jpg` |  |
+| 100 | image | `/images/step-annex-i.jpg` |  |
 | 101 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-radio-equipment?_rsc=xUkg7jR0eSz7j8hx` | 3 |
 | 102 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation?_rsc=eni7YCD9b7OE26Od` | 15 |
 | 103 | page (HTML) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation` | 15 |
@@ -391,6 +430,7 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 197 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations?lang=nl&_rsc=dpfaz13F1Up7FcBb` | 9 |
 | 198 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations/article-50-synthetic-content?lang=nl&_rsc=AmdzwDhyFHRpUBPZ` | 3 |
 | 199 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations?lang=nl&_rsc=5p8Ot1rxSSAOFWd8` | 9 |
+| 199 | image | `/images/step-transparency.jpg` |  |
 | 200 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations/article-50-emotion-and-biometric?lang=nl&_rsc=AmdzwDhyFHRpUBPZ` | 3 |
 | 201 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations?lang=nl&_rsc=tladoFZKTtF_Ic9u` | 9 |
 | 202 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations/article-50-deep-fakes?lang=nl&_rsc=AmdzwDhyFHRpUBPZ` | 3 |
@@ -447,6 +487,15 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 222 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/general-purpose-ai?lang=nl&_rsc=V622KS2Ji-_GbdgJ` | 5 |
 | 222 | image | `/images/step-general-purpose-ai.jpg` |  |
 | 223 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?lang=nl&_rsc=VzgFYmmDKnZLxuP6` | 14 |
+| 223 | image | `/images/biometrics.jpg` |  |
+| 223 | image | `/images/critical-infrastructure.jpg` |  |
+| 223 | image | `/images/education.jpg` |  |
+| 223 | image | `/images/employment.jpg` |  |
+| 223 | image | `/images/essential-services.jpg` |  |
+| 223 | image | `/images/law-enforcement.jpg` |  |
+| 223 | image | `/images/migration-and-borders.jpg` |  |
+| 223 | image | `/images/justice-and-democracy.jpg` |  |
+| 223 | image | `/images/step-annex-iii.jpg` |  |
 | 224 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-biometrics?lang=nl&_rsc=V622KS2Ji-_GbdgJ` | 3 |
 | 225 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?lang=nl&_rsc=-xnHMfj_KFQzNsJ-` | 14 |
 | 226 | page (HTML) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?lang=nl` | 14 |
@@ -476,19 +525,19 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 230 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?lang=nl&_rsc=hW99-RVmzQCgKOyg` | 14 |
 | 231 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-employment?lang=nl&_rsc=V622KS2Ji-_GbdgJ` | 3 |
 | 232 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?lang=nl&_rsc=ZxKEk_hfKevQXZ9s` | 14 |
+| 232 | image | `/images/biometrics.jpg` |  |
+| 232 | image | `/images/critical-infrastructure.jpg` |  |
+| 232 | image | `/images/education.jpg` |  |
+| 232 | image | `/images/employment.jpg` |  |
+| 232 | image | `/images/essential-services.jpg` |  |
+| 232 | image | `/images/law-enforcement.jpg` |  |
+| 232 | image | `/images/migration-and-borders.jpg` |  |
+| 232 | image | `/images/justice-and-democracy.jpg` |  |
+| 232 | image | `/images/step-annex-iii.jpg` |  |
 | 233 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-essential-services?lang=nl&_rsc=V622KS2Ji-_GbdgJ` | 3 |
 | 234 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?lang=nl&_rsc=4v4tn3cqhajPpDze` | 14 |
 | 235 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-law-enforcement?lang=nl&_rsc=V622KS2Ji-_GbdgJ` | 3 |
 | 236 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?lang=nl&_rsc=cCgSga-KYdnqk6Ev` | 14 |
-| 236 | image | `/images/biometrics.jpg` |  |
-| 236 | image | `/images/critical-infrastructure.jpg` |  |
-| 236 | image | `/images/education.jpg` |  |
-| 236 | image | `/images/employment.jpg` |  |
-| 236 | image | `/images/essential-services.jpg` |  |
-| 236 | image | `/images/law-enforcement.jpg` |  |
-| 236 | image | `/images/migration-and-borders.jpg` |  |
-| 236 | image | `/images/justice-and-democracy.jpg` |  |
-| 236 | image | `/images/step-annex-iii.jpg` |  |
 | 237 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-migration-and-borders?lang=nl&_rsc=V622KS2Ji-_GbdgJ` | 3 |
 | 238 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?lang=nl&_rsc=XsWTQsrOmThCOnQA` | 14 |
 | 239 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-justice-and-democracy?lang=nl&_rsc=V622KS2Ji-_GbdgJ` | 3 |
@@ -505,6 +554,11 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 245 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?lang=nl&_rsc=LGvxRux0chwp9Dlj` | 11 |
 | 246 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-i-motor-vehicle-general-safety?lang=nl&_rsc=RcR21AhH6MyEr7UJ` | 3 |
 | 247 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?lang=nl&_rsc=EQqh3X6cdegtKeeP` | 11 |
+| 247 | image | `/images/rail-interoperability.jpg` |  |
+| 247 | image | `/images/motor-vehicle-approval.jpg` |  |
+| 247 | image | `/images/motor-vehicle-general-safety.jpg` |  |
+| 247 | image | `/images/unmanned-aircraft.jpg` |  |
+| 247 | image | `/images/machinery.jpg` |  |
 | 248 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-i-unmanned-aircraft?lang=nl&_rsc=RcR21AhH6MyEr7UJ` | 3 |
 | 249 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?lang=nl&_rsc=3-y3LpjYY1XR2-5q` | 11 |
 | 250 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-i-machinery?lang=nl&_rsc=RcR21AhH6MyEr7UJ` | 3 |
@@ -716,6 +770,7 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 380 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai?_rsc=mRj9BAjQONYLY_ks` | 5 |
 | 380 | image | `/images/step-general-purpose-ai.jpg` |  |
 | 381 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations?_rsc=8K_k1zjue46lxAnH` | 9 |
+| 381 | image | `/images/step-transparency.jpg` |  |
 | 382 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai?_rsc=mRj9BAjQONYLY_ks` | 5 |
 | 383 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk?_rsc=K63_bFbrEN44MCNJ` | 5 |
 | 384 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai?_rsc=rZGzY5fYLdfmjywQ` | 5 |
@@ -765,6 +820,15 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 397 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?_rsc=uhc9ROTvUfZ_Sh9m` | 14 |
 | 398 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-biometrics?_rsc=rZ4cl8V8qa0Hw5TI` | 3 |
 | 399 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?_rsc=mDKVugDEAUh5Nugb` | 14 |
+| 399 | image | `/images/biometrics.jpg` |  |
+| 399 | image | `/images/critical-infrastructure.jpg` |  |
+| 399 | image | `/images/education.jpg` |  |
+| 399 | image | `/images/employment.jpg` |  |
+| 399 | image | `/images/essential-services.jpg` |  |
+| 399 | image | `/images/law-enforcement.jpg` |  |
+| 399 | image | `/images/migration-and-borders.jpg` |  |
+| 399 | image | `/images/justice-and-democracy.jpg` |  |
+| 399 | image | `/images/step-annex-iii.jpg` |  |
 | 400 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas/annex-iii-critical-infrastructure?_rsc=rZ4cl8V8qa0Hw5TI` | 3 |
 | 401 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas?_rsc=0Wtq7OsHQ610fN5a` | 14 |
 | 402 | page (HTML) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-iii-areas` | 14 |
@@ -814,6 +878,11 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 421 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?_rsc=E-qBJpm4i5DIho9o` | 11 |
 | 422 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-i-unmanned-aircraft?_rsc=jn6w_NoBtTWotOWe` | 3 |
 | 423 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?_rsc=8ws02qwDoJ1VJokJ` | 11 |
+| 423 | image | `/images/rail-interoperability.jpg` |  |
+| 423 | image | `/images/motor-vehicle-approval.jpg` |  |
+| 423 | image | `/images/motor-vehicle-general-safety.jpg` |  |
+| 423 | image | `/images/unmanned-aircraft.jpg` |  |
+| 423 | image | `/images/machinery.jpg` |  |
 | 424 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3/annex-i-machinery?_rsc=jn6w_NoBtTWotOWe` | 3 |
 | 425 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-legislation-3?_rsc=jXFieS_R5klI0ORy` | 11 |
 | 426 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?_rsc=jn6w_NoBtTWotOWe` | 14 |
@@ -885,6 +954,15 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 456 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation?_rsc=ep40lB1UbE9fa-dQ` | 15 |
 | 457 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-personal-protective-equipment?_rsc=xUkg7jR0eSz7j8hx` | 3 |
 | 458 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation?_rsc=He2z7hOQaDCCFkVi` | 15 |
+| 458 | image | `/images/toys.jpg` |  |
+| 458 | image | `/images/recreational-craft.jpg` |  |
+| 458 | image | `/images/lifts.jpg` |  |
+| 458 | image | `/images/explosive-atmospheres.jpg` |  |
+| 458 | image | `/images/radio-equipment.jpg` |  |
+| 458 | image | `/images/pressure-equipment.jpg` |  |
+| 458 | image | `/images/cableway-installations.jpg` |  |
+| 458 | image | `/images/personal-protective-equipment.jpg` |  |
+| 458 | image | `/images/step-annex-i.jpg` |  |
 | 459 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2?_rsc=xUkg7jR0eSz7j8hx` | 12 |
 | 460 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/predicting-criminal-offences?_rsc=yyVSJ3mzSeSC7pB-` | 3 |
 | 461 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2?_rsc=A5tNpHE56S4UNzxp` | 12 |
@@ -1036,6 +1114,7 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 555 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai?lang=nl&_rsc=9bbvlu8667NQXG-u` | 5 |
 | 555 | image | `/images/step-general-purpose-ai.jpg` |  |
 | 556 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations?lang=nl&_rsc=xubX15qb97FvwBnd` | 9 |
+| 556 | image | `/images/step-transparency.jpg` |  |
 | 557 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai?lang=nl&_rsc=9bbvlu8667NQXG-u` | 5 |
 | 558 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk?lang=nl&_rsc=XCg-ptuIbm9zy_VU` | 5 |
 | 559 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai?lang=nl&_rsc=ORPqjlN_IhqRoa7j` | 5 |
@@ -1154,17 +1233,17 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 609 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?lang=nl&_rsc=DDl2nIh3F8QYzzwV` | 14 |
 | 610 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-two-or-three-wheel-vehicles?lang=nl&_rsc=qqS2IeKbCvLQg_rs` | 3 |
 | 611 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?lang=nl&_rsc=SN6JkD0HRSfB879s` | 14 |
-| 611 | image | `/images/gas-appliances.jpg` |  |
-| 611 | image | `/images/medical-devices.jpg` |  |
-| 611 | image | `/images/ivd-medical-devices.jpg` |  |
-| 611 | image | `/images/civil-aviation-security.jpg` |  |
-| 611 | image | `/images/two-or-three-wheel-vehicles.jpg` |  |
-| 611 | image | `/images/agricultural-vehicles.jpg` |  |
-| 611 | image | `/images/marine-equipment.jpg` |  |
 | 612 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-agricultural-vehicles?lang=nl&_rsc=qqS2IeKbCvLQg_rs` | 3 |
 | 613 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?lang=nl&_rsc=LJuMfs3dHsOzPQpt` | 14 |
 | 614 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2/annex-i-marine-equipment?lang=nl&_rsc=qqS2IeKbCvLQg_rs` | 3 |
 | 615 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-legislation-2?lang=nl&_rsc=lNh-7ijhAORSgQh5` | 14 |
+| 615 | image | `/images/gas-appliances.jpg` |  |
+| 615 | image | `/images/medical-devices.jpg` |  |
+| 615 | image | `/images/ivd-medical-devices.jpg` |  |
+| 615 | image | `/images/civil-aviation-security.jpg` |  |
+| 615 | image | `/images/two-or-three-wheel-vehicles.jpg` |  |
+| 615 | image | `/images/agricultural-vehicles.jpg` |  |
+| 615 | image | `/images/marine-equipment.jpg` |  |
 | 616 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation?lang=nl&_rsc=qqS2IeKbCvLQg_rs` | 15 |
 | 616 | image | `/images/toys.jpg` |  |
 | 616 | image | `/images/recreational-craft.jpg` |  |
@@ -1210,6 +1289,15 @@ The page numbers are those of `README.md`. A path is this server; anything else 
 | 629 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation?lang=nl&_rsc=fdWEp8EXklI406BT` | 15 |
 | 630 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-cableway-installations?lang=nl&_rsc=K95Rt1Zwiaizn_Ny` | 3 |
 | 631 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation?lang=nl&_rsc=dKajeO7CJoxME72t` | 15 |
+| 631 | image | `/images/toys.jpg` |  |
+| 631 | image | `/images/recreational-craft.jpg` |  |
+| 631 | image | `/images/lifts.jpg` |  |
+| 631 | image | `/images/explosive-atmospheres.jpg` |  |
+| 631 | image | `/images/radio-equipment.jpg` |  |
+| 631 | image | `/images/pressure-equipment.jpg` |  |
+| 631 | image | `/images/cableway-installations.jpg` |  |
+| 631 | image | `/images/personal-protective-equipment.jpg` |  |
+| 631 | image | `/images/step-annex-i.jpg` |  |
 | 632 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/annex-i-personal-protective-equipment?lang=nl&_rsc=K95Rt1Zwiaizn_Ny` | 3 |
 | 633 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation?lang=nl&_rsc=UbDs6ZNi6eyhKwbx` | 15 |
 | 634 | page (payload) | `/ai-act-applicability-agrifood/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2?lang=nl&_rsc=K95Rt1Zwiaizn_Ny` | 12 |
