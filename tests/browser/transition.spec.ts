@@ -182,9 +182,14 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
     ).toBe(true)
   }
 
-  // Every image requested belongs to the centre Bubble of the page on screen at that moment.
-  for (const entry of recorded.filter((r) => r.url.startsWith('/images/'))) {
-    expect(await allowedImages(entry.on), `${entry.url} requested on ${entry.on}`).toContain(entry.url.slice('/images/'.length))
+  // Every image requested belongs to the centre Bubble of the page last asked for. Not of the
+  // address bar at that moment: the main image is not lazy (10.3), so the arriving page asks
+  // for it as soon as it is drawn, before the router has written its address.
+  for (const [index, entry] of recorded.entries()) {
+    if (!entry.url.startsWith('/images/')) continue
+    const page = recorded.slice(0, index).findLast((r) => pages.includes(r))!
+    const node = page.url.replace(/[?&]_rsc=[^&]*$/, '')
+    expect(await allowedImages(node), `${entry.url} requested after ${node} (on ${entry.on})`).toContain(entry.url.slice('/images/'.length))
   }
 
   await mkdir(RESULTS, { recursive: true })
