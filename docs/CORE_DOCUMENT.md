@@ -151,7 +151,8 @@ required was named.
   absolutely cannot have any scrolling on the page." This is a hard rule (section 9).
   It is met on the data side by length limits (3.1) and by cutting long steps into
   several (3.3), and on the frontend side by a layout designed for a stated viewport,
-  which the Architect fixes (**OPEN 10.22**, issue #38).
+  decided by the Architect, 10.22 (issue #38): 1280 x 640 CSS pixels guaranteed,
+  `docs/adrs/ADR-38-no-scroll.md`.
 - **[v0.2] Smooth transitions (owner, #35).** "I want the transitions to slide over the
   tree to the next node." Following a branch slides the tree so the target becomes the
   Bubble; the neighbouring Nodes are pre-rendered for that (3.1).
@@ -176,11 +177,14 @@ required was named.
   (section 4), the path travels inside the link itself (PROPOSED consequence).
 - **Language switch**: the UI lets the user choose among the languages the loaded Tree
   provides. UI chrome (yes/no labels, disclaimer, share button) -- which languages, and
-  what to show when the Tree's language has no chrome translation -- **OPEN 10.20**.
+  what to show when the Tree's language has no chrome translation -- decided by the
+  Architect, 10.20: English and Dutch, falling back to English,
+  `docs/adrs/ADR-5-chrome-languages.md`.
 - A permanently visible **"not legal advice" disclaimer** (footer).
 - Interoperable: the same frontend loads any Tree in the agreed shape with no code
   change. Whether one deployment serves exactly one Tree or offers a choice of Trees
-  is **OPEN 10.19**.
+  was decided by the Architect, 10.19: one Tree per deployment,
+  `docs/adrs/ADR-5-tree-selection.md`.
 - Technical qualities the owner requires: lightweight component, lazy loading,
   server-side rendering, nothing heavy on screen; prefer slightly more network traffic
   over a clunky app. Simple code: not many files, no long files -- it is a small app.
