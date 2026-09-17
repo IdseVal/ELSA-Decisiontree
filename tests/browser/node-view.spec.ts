@@ -42,14 +42,16 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await page.locator('.answer--yes').click()
   await arrived(page, '/ai-act-example/start/prohibited-practices')
 
-  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
-  await arrived(page, '/ai-act-example/start/prohibited-practices/social-scoring')
-  await expect(page.locator('.hint')).toBeVisible()
+  // An Option opens its Overlay in place (10.9); the address stays the question's.
+  await page.locator('.options').getByText('Social scoring').click()
+  await expect(page.locator('.overlay').first().locator('.sheet-panel')).toBeVisible()
+  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+  await page.keyboard.press('Escape')
 
   // Issue #8 replaced the interim "back" control this test used with the Trail; the walk
   // it checks is unchanged. What the Trail itself does is `tests/browser/trail.spec.ts`.
   await page.locator('.trail-entry').last().click()
-  await arrived(page, '/ai-act-example/start/prohibited-practices')
+  await arrived(page, '/ai-act-example/start')
 })
 
 test('no answers a different Node than yes', async ({ page }) => {
@@ -232,10 +234,11 @@ test('a keyboard reaches the Answers and follows one', async ({ page }) => {
 test('the Options of a Node are reachable by keyboard', async ({ page }) => {
   await page.goto('/ai-act-example/prohibited-practices')
 
-  await page.locator('.option').first().focus()
+  await page.locator('.overlay .sheet-open').first().focus()
   await page.keyboard.press('Enter')
 
-  await arrived(page, '/ai-act-example/prohibited-practices/social-scoring')
+  await expect(page.locator('.overlay .sheet-panel').first()).toBeVisible()
+  await expect(page).toHaveURL('/ai-act-example/prohibited-practices')
 })
 
 test('an unknown Node answers 404 with a way back to the start', async ({ page }) => {

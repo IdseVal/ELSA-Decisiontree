@@ -27,9 +27,9 @@ const BOTH_LANGUAGES = [
   { what: 'chrome', en: 'Sources', nl: 'Bronnen' },
 ]
 
-/** The alt text of the Option's image: an Image description, which is content, not chrome. */
+/** The alt text of the Node's first picture in the Carousel row: an Image description, which is content, not chrome. */
 async function optionImageAlt(page: Page): Promise<string | null> {
-  return page.locator('.option .branch-image').first().getAttribute('alt')
+  return page.locator('.carousel-strip img').first().getAttribute('alt')
 }
 
 test('switching language changes every text of the Node, and the switch says where you are', async ({

@@ -9,7 +9,9 @@ import { expect, test, type Page } from '@playwright/test'
 import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
-const CHILD = '/ai-act-example/start/prohibited-practices/social-scoring'
+// A path ending at an explanation Node renders its parent's page (10.9): the child under
+// test is the Terminal with the same two-entry Trail.
+const CHILD = '/ai-act-example/start/prohibited-practices/prohibited'
 
 /** Walks root -> yes -> an Option -> its child, the way a reader reaches an explanation. */
 async function walkToChild(page: Page): Promise<void> {
