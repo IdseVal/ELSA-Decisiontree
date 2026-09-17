@@ -810,7 +810,10 @@ a.language:hover,
  * The 96 is a minimum, not a height: a Dutch title of 60 characters can run to five lines
  * where 10.7 counted four ("Seksueel beeldmateriaal zonder toestemming (2-12-2026)" in the
  * first Tree), and a button that holds them is 102 tall, still 9 clear of its neighbour at
- * the pitch of a side of four. It grows from its centre, which stays on the curve.
+ * the pitch of a side of four. It grows downward from the row's top: that button's centre sits
+ * 3 below the curve, which no eye finds. It is not centred by a transform, because a
+ * transform on the item would make it the containing block of the panel and the backdrop
+ * (`position: fixed`), which would then lie inside the item instead of over the page.
  *
  * The item's box is the button and, at its inner end, the connector's 20 pixels, so that
  * the connector lies inside it and no element holds content wider than itself (10.6).
@@ -829,8 +832,7 @@ a.language:hover,
   display: var(--fan, block);
   position: absolute;
   box-sizing: border-box;
-  top: calc(50% + var(--y) * 1px);
-  transform: translateY(-50%);
+  top: calc(50% + var(--y) * 1px - var(--option-h) / 2);
   width: calc(232px + var(--connector));
   min-height: var(--option-h);
   pointer-events: auto;
