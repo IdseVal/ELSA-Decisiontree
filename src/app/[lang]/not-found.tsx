@@ -42,7 +42,7 @@ export default async function NotFound() {
           </div>
         </article>
         <div className="answers">
-          <Branch className="answer answer--yes" href={rootHref(tree, tree.manifest.defaultLanguage)} title={ui.start} />
+          <Branch className="answer answer--start-again" href={rootHref(tree, tree.manifest.defaultLanguage)} title={ui.startAgain} />
         </div>
       </main>
       <Disclaimer lang={lang} />

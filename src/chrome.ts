@@ -60,6 +60,8 @@ export interface Chrome {
    * English word order (application.md 3.2).
    */
   trailMore: (hidden: number) => string
+  /** The up arrow's accessible name, from the parent's title (10.2). */
+  up: (title: string) => string
   /** The two buttons of a paged Sheet, and of the Carousel (section 12). */
   previous: string
   next: string
@@ -112,6 +114,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     back: 'Back',
     startAgain: 'Start again',
     trailMore: (hidden) => (hidden === 1 ? '1 earlier step' : `${hidden} earlier steps`),
+    up: (title) => `Back to: ${title}`,
     previous: 'Previous',
     next: 'Next',
     imageCount: (index, total) => `Image ${index} of ${total}`,
@@ -152,6 +155,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     back: 'Terug',
     startAgain: 'Opnieuw beginnen',
     trailMore: (hidden) => (hidden === 1 ? '1 eerdere stap' : `${hidden} eerdere stappen`),
+    up: (title) => `Terug naar: ${title}`,
     previous: 'Vorige',
     next: 'Volgende',
     imageCount: (index, total) => `Afbeelding ${index} van ${total}`,

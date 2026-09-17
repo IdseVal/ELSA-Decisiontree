@@ -2,14 +2,15 @@
  * One Node as the Bubble (docs/specs/application.md 10.1, 10.3): the round element in the
  * centre of the tree view, holding the Node's title, description and Sources in its text
  * area, and on its rim -- outside the text area, so the format's length limits stand -- the
- * one chrome element a Node kind adds: a Terminal's outcome badge above, an explanation
- * Node's hint below.
+ * up arrow on the top outline where the page has a way back, and the one chrome element a
+ * Node kind adds: a Terminal's outcome badge above, an explanation Node's hint below.
  *
  * The Sources are rendered twice, once inline and once inside a Sheet, and the stylesheet
  * shows one or the other: below the guaranteed viewport they collapse to one control
  * (10.5, step 5), and the markup must be present either way so the page is correct
  * without JavaScript (section 14).
  */
+import type { ReactNode } from 'react'
 import { text, type Chrome, type ChromeString } from '../chrome.ts'
 import { richTextToHtml } from '../markdown.ts'
 import type { Node, Outcome, Source } from '../tree/types.ts'
@@ -36,6 +37,7 @@ export function Bubble({
   ui,
   uiLang,
   idPrefix = '',
+  up,
 }: {
   node: Node
   lang: string
@@ -44,10 +46,17 @@ export function Bubble({
   uiLang: string | undefined
   /** Prepended to every `id` the Bubble writes, for a copy of it in a neighbour frame. */
   idPrefix?: string
+  /**
+   * The up arrow (10.2), drawn on the top outline. It is placed from the Bubble's own box
+   * because the Bubble is centred in its row: a Bubble shorter than the row would leave an
+   * arrow placed from the row floating above it.
+   */
+  up?: ReactNode
 }) {
   return (
     // `data-node` names the Node a Bubble draws, so a response can be counted in Nodes (11.5).
     <article className={`bubble bubble--${node.kind}`} lang={lang} data-node={node.id}>
+      {up}
       {node.kind === 'terminal' && (
         <p className={`outcome outcome--${node.outcome}`} lang={uiLang}>
           {ui[OUTCOME_LABEL[node.outcome]]}
