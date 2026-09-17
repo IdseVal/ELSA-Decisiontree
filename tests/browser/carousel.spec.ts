@@ -281,13 +281,14 @@ test.describe('names for assistive technology', () => {
   }
 
   for (const [lang, name] of [
-    ['en', 'Enlarge Social scoring: A scoreboard ranking people'],
-    ['nl', 'Vergroten Sociale scoring: Een scorebord dat mensen rangschikt'],
+    ['en', 'Enlarge A scoreboard ranking people'],
+    ['nl', 'Vergroten Een scorebord dat mensen rangschikt'],
   ] as const) {
-    test(`an Option's picture is named with its Option, which the caption line hides from assistive technology, in ${lang} (12.1)`, async ({ page }) => {
+    test(`an Option's former picture is named on its target like any Image of the Node, in ${lang} (12.1)`, async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 640 })
-      // The example Tree's `prohibited-practices`: scoreboard.png on an Option, the Node none. Playwright's own server serves it.
-      await page.goto(`/ai-act-example/start/prohibited-practices${lang === 'en' ? '' : `?lang=${lang}`}`)
+      // The example Tree's `social-scoring`: scoreboard.png, which elsa-tree/3 moved there from
+      // the Option of `prohibited-practices` that leads to it (#79). Playwright's own server serves it.
+      await page.goto(`/ai-act-example/start/prohibited-practices/social-scoring${lang === 'en' ? '' : `?lang=${lang}`}`)
       await expect(page.locator('.thumbnail')).toHaveAccessibleName(name)
       await expect(page.locator('.thumbnail')).toHaveAccessibleDescription('Illustration: Example Studio, CC0 1.0')
     })
@@ -399,8 +400,8 @@ test.describe('with JavaScript switched off', () => {
 
   test('a Node without pictures has no strip, so no empty tab stop in the Carousel row (12.1)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    // The example Tree's `social-scoring`: neither the Node nor an Option of it carries an Image.
-    await page.goto('/ai-act-example/start/prohibited-practices/social-scoring')
+    // The example Tree's `emotion-recognition-at-work`: the Node carries no Image.
+    await page.goto('/ai-act-example/start/prohibited-practices/emotion-recognition-at-work')
     await expect(page.locator('[data-carousel-strip]')).toHaveCount(0)
 
     // Every tab stop of the page, in order, and none of them in the row.
