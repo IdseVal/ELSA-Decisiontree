@@ -3,7 +3,7 @@
 - Status: ACCEPTED -- 2026-09-17
 - Issue: #75 -- Minor changes to the app (the owner's instruction)
 - Core document: `docs/CORE_DOCUMENT.md`, revised 2026-09-17 (sections 3.1, 3.2, 3.3, 5, 9, 10)
-- Specs affected: `docs/specs/application.md` (sections 10 to 14), `docs/specs/tree-format.md` (`elsa-tree/2`), both marked "superseded in part" pending #ISSUE_A
+- Specs affected: `docs/specs/application.md` (sections 10 to 14), `docs/specs/tree-format.md` (`elsa-tree/2`), both marked "superseded in part" pending #78
 
 ## Context
 
@@ -85,17 +85,17 @@ Two of the owner's instructions also collide with something the owner said befor
    Option keeps `images` once its button shows its target's main image) depends on the
    same view decisions.
 5. **Two build issues open at once**, without waiting for the architecture: the images
-   for every Node of both Trees (#ISSUE_G; the format has room, the owner wants to
+   for every Node of both Trees (#84; the format has room, the owner wants to
    inspect it, and the 28 Option pictures already point at their targets), and the
-   copy-link defect (#ISSUE_J, a `bug`, reproduced before it is fixed).
+   copy-link defect (#86, a `bug`, reproduced before it is fixed).
 6. **The rest is one build issue per owner change or pair of changes, behind the
    architecture**: the explainer format in the loader, validator and migration
-   (#ISSUE_B); the Overlay and the mind-map fan-out (#ISSUE_C, `complex`: it replaces the
+   (#79); the Overlay and the mind-map fan-out (#80, `complex`: it replaces the
    `side` direction of the neighbourhood, touches the slide, the Sheet, the URL rule of
    10.27 and the no-scroll test at once); the Bubble's interior -- main image, Sources
-   heading, the Carousel at the lower edge (#ISSUE_D); the Answer buttons and the up
-   arrow (#ISSUE_E); the hover panel (#ISSUE_F); the first Tree's explainers (#ISSUE_H);
-   and a walk through the running app with screenshots for the owner (#ISSUE_K), as #46
+   heading, the Carousel at the lower edge (#81); the Answer buttons and the up
+   arrow (#82); the hover panel (#83); the first Tree's explainers (#85);
+   and a walk through the running app with screenshots for the owner (#87), as #46
    was for version 0.2.
 7. **The issues are filed `ready`, not `proposed`.** The project's autonomy mode is
    `propose`, but the owner wrote in #75 that the issues "are hereby authorised to be
@@ -134,14 +134,14 @@ Two of the owner's instructions also collide with something the owner said befor
 
 ## Consequences
 
-- Until #ISSUE_A merges, `dev` carries specs that describe the code on `dev` with a
+- Until #78 merges, `dev` carries specs that describe the code on `dev` with a
   banner saying which parts are superseded; the code keeps passing its tests.
-- #ISSUE_G and #ISSUE_J can be dispatched as soon as this PR merges; everything else
-  waits for #ISSUE_A, then runs in parallel (the dispatcher's limit is three at a time).
+- #84 and #86 can be dispatched as soon as this PR merges; everything else
+  waits for #78, then runs in parallel (the dispatcher's limit is three at a time).
 - Open items for the owner: 10.26 (the credit's place), and 10.28 if the Architect finds
   the description's 600 characters cannot survive the main image.
-- The ADRs that #ISSUE_A supersedes (`ADR-38-tree-view.md`, `ADR-38-carousel.md`,
+- The ADRs that #78 supersedes (`ADR-38-tree-view.md`, `ADR-38-carousel.md`,
   `ADR-38-neighbourhood.md`, `ADR-38-transitions.md`, `ADR-37-length-limits.md`,
   `ADR-37-images-carousel.md` as far as it concerns Option pictures) are untouched here
-  so that the 0.2 record stays exact; their "superseded by" lines are in #ISSUE_A's
+  so that the 0.2 record stays exact; their "superseded by" lines are in #78's
   DONE WHEN.

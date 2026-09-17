@@ -9,7 +9,7 @@
 > **Superseded in part -- 2026-09-17 (issue #75).** The owner saw version 0.2 running
 > and changed the presentation again (`docs/CORE_DOCUMENT.md`, revised 2026-09-17,
 > sections 3.1, 3.2, 5, 9, 10; `docs/adrs/ADR-75-presentation-changes.md`). Until
-> architecture issue #ISSUE_A re-freezes them, the following still describe the code on
+> architecture issue #78 re-freezes them, the following still describe the code on
 > `dev` but **no longer the requirement**, and nothing new may be built against them:
 > 10.1 (the six rows and their heights: the Trail row goes, a main image enters the
 > Bubble, the Carousel moves to the Bubble's lower edge and loses its caption line);
@@ -21,7 +21,7 @@
 > the slide to them); 12 (the Carousel: no buttons, no caption line, the credit's place,
 > Option pictures in the strip, the Images after the main one); 13.1 (which Theme colour
 > the Answer buttons paint); 14 (the rows for the Trail, the Trail Sheet, the Carousel's
-> buttons and the share button). Sections 1 to 9 stand except where #ISSUE_A amends the
+> buttons and the share button). Sections 1 to 9 stand except where #78 amends the
 > module table (6), the test list (7) and the index (9). The URL scheme (4), the Trail in
 > it, the share link and the language mechanism are unchanged, by the owner's
 > instruction.
