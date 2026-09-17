@@ -59,7 +59,7 @@ the explanation (`application.md` 14).
    question after reading an aside does not carry the aside into the Trail. A path with
    no question Node or Terminal in it -- `/<tree>/<explanation-id>` typed by hand -- is
    the one case with no parent to show: the explanation Node is then the centre itself,
-   as a fifth situation of 10.3 (its Interior in the Bubble, its Options as buttons,
+   as the fourth situation of 10.3 (its Interior in the Bubble, its Options as buttons,
    `startAgain` in the Answer row, no up arrow), so that "every Node is reachable by
    URL" stays literally true.
 5. **A second-level Option inside an Overlay is a plain link** to
@@ -95,7 +95,7 @@ the explanation (`application.md` 14).
 - **Keeping the 0.2 rendering (the explanation Node as the centre) for every URL that
   names one.** Rejected: a shared link and a click would show two different things for
   the same Node, and the `back` Branch and the hint would have to stay for that case
-  alone. The fifth situation of decision 4 is kept only for a path with no parent at
+  alone. The fourth situation of decision 4 is kept only for a path with no parent at
   all, which no link the application produces contains.
 - **Making the Option button an `<a href>` that script turns into an Overlay.** A plain
   link without JavaScript, which is the strongest reading of "reachable by a plain
