@@ -1,5 +1,5 @@
 /**
- * The types of the `elsa-tree/2` format (docs/specs/tree-format.md) as the loader hands
+ * The types of the `elsa-tree/3` format (docs/specs/tree-format.md) as the loader hands
  * them out (docs/specs/application.md section 5.1). Two normalisations against the
  * file: `id` and `kind` are added, and absent lists become empty arrays.
  */
@@ -54,7 +54,7 @@ export interface Theme {
 }
 
 export interface Manifest {
-  format: 'elsa-tree/2'
+  format: 'elsa-tree/3'
   languages: string[]
   /** The first declared language: what the frontend shows before the user chooses. */
   defaultLanguage: string
@@ -79,10 +79,17 @@ export interface Image {
   source?: string
 }
 
+/** No pictures of its own: the button shows its target's main image (tree-format.md 5.4). */
 export interface Option {
   title: LocalisedText
   target: string
-  images: Image[]
+}
+
+/** A term of the Node's description with a short explanation shown on hover (tree-format.md 5.9). */
+export interface Explainer {
+  id: string
+  term: LocalisedText
+  text: LocalisedText
 }
 
 export type Outcome = 'not-applicable' | 'applicable' | 'prohibited' | 'refer'
@@ -97,6 +104,7 @@ export type Node = {
   sources: Source[]
   images: Image[]
   options: Option[]
+  explainers: Explainer[]
 } & (
   | { kind: 'question'; answers: { yes: string; no: string } }
   | { kind: 'terminal'; outcome: Outcome }

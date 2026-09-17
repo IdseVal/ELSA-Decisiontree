@@ -283,7 +283,7 @@ describe('an invalid Tree is rejected, naming the Node and the rule', () => {
     'V-DIR', 'V-YAML', 'V-FORMAT', 'V-LANG', 'V-ROOT', 'V-TITLE', 'V-META', 'V-KEYS',
     'V-REACH', 'V-THEME', 'V-L10N', 'V-PLAIN', 'V-HTML', 'V-LENGTH', 'V-LINES', 'V-COUNT',
     'V-NODE', 'V-KIND', 'V-ANSWERS', 'V-OPTIONS', 'V-ORPHAN', 'V-TERMINAL', 'V-SOURCE',
-    'V-IMAGE', 'V-CROSS',
+    'V-IMAGE', 'V-EXPLAINER', 'V-MARK', 'V-CROSS',
   ]
 
   test('every rule of section 7 has a fixture, and every fixture a rule', async () => {
@@ -321,6 +321,33 @@ describe('an invalid Tree is rejected, naming the Node and the rule', () => {
 
     expect(error!.violations).toEqual([
       { file: 'start', keyPath: 'title.en', rule: 'V-LENGTH', message: '81 characters; at most 80' },
+    ])
+  })
+
+  test('an explainer marked nowhere in one language names the explainer and the language', async () => {
+    const error = await openTree(fixture('invalid', 'v-explainer')).then(
+      () => null,
+      (reason: unknown) => reason as InstanceType<typeof TreeInvalid>,
+    )
+
+    expect(error!.violations).toEqual([
+      {
+        file: 'start',
+        keyPath: 'explainers[0]',
+        rule: 'V-EXPLAINER',
+        message: '"provider" is not marked in description.nl; write [words](#provider) where the term occurs',
+      },
+    ])
+  })
+
+  test('a mark naming no explainer of its Node names the mark', async () => {
+    const error = await openTree(fixture('invalid', 'v-mark')).then(
+      () => null,
+      (reason: unknown) => reason as InstanceType<typeof TreeInvalid>,
+    )
+
+    expect(error!.violations).toEqual([
+      { file: 'start', keyPath: 'description.en', rule: 'V-MARK', message: '"[deployer](#deployer)" names no explainer of this Node' },
     ])
   })
 
@@ -382,6 +409,46 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
       'terminal-with-options',
       [
         { file: 'yes-end', keyPath: 'options', rule: 'V-TERMINAL', message: 'a Terminal cannot have options' },
+      ],
+    ],
+    [
+      'explainer-malformed',
+      [
+        { file: 'start', keyPath: 'explainers[1].id', rule: 'V-EXPLAINER', message: 'explainer id "provider" is used twice on this Node' },
+        { file: 'start', keyPath: 'explainers[2].text', rule: 'V-EXPLAINER', message: 'text is required' },
+      ],
+    ],
+    [
+      'explainers-empty',
+      [
+        { file: 'start', keyPath: 'explainers', rule: 'V-EXPLAINER', message: 'must be a non-empty list; leave the key out for a Node without explainers' },
+      ],
+    ],
+    [
+      'mark-inside-strong',
+      [
+        { file: 'start', keyPath: 'description.en', rule: 'V-MARK', message: '"[provider](#provider)" is inside emphasis or strong text, or holds some; the frontend styles a mark itself' },
+        { file: 'start', keyPath: 'description.nl', rule: 'V-MARK', message: '"[](#provider)" has no text for the reader to see' },
+      ],
+    ],
+    [
+      'mark-in-manifest',
+      [
+        { file: 'manifest', keyPath: 'description.en', rule: 'V-MARK', message: '"[provider](#provider)" names no explainer; the manifest has none' },
+      ],
+    ],
+    [
+      // The limits of explainers are the length and count rules of 5.7, not a rule of their own.
+      'too-many-explainers',
+      [
+        { file: 'start', keyPath: 'explainers', rule: 'V-COUNT', message: '9 entries; at most 8' },
+      ],
+    ],
+    [
+      'explainer-too-long',
+      [
+        { file: 'start', keyPath: 'explainers[0].term.en', rule: 'V-LENGTH', message: '41 characters; at most 40' },
+        { file: 'start', keyPath: 'explainers[0].text.nl', rule: 'V-LENGTH', message: '201 characters; at most 200' },
       ],
     ],
   ]
