@@ -1,6 +1,7 @@
 # ADR-38-tree-view: the open Node is a round Bubble in the centre of the screen, the Trail is the Branches above it, the Answer targets are Branches below and the Option targets Branches beside, so that direction on screen carries the meaning of a Link
 
 - Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 by issue #41 (the numbers as built, below); amended 2026-09-14 by the owner on #55 (see the end)
+- Superseded in part by `ADR-78-main-image-and-row-budget.md` (the six rows, the rim), `ADR-78-overlay.md` (Option Branches and the `back` Branch), `ADR-78-answer-buttons-and-up-arrow.md` (the Trail row and Sheet, the Answer Branches), `ADR-78-fan-out-and-option-picture.md` (the Option columns and the Option picture), `ADR-78-carousel.md` (decision 6), `ADR-78-sources-heading.md` -- 2026-09-17 (issue #78). The rest stands as the 0.2 record.
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, section 10 (10.1 to 10.3)
 - Core document: 3.2, section 5 (Bubble, Branch, Trail), open item 10.23

@@ -1,6 +1,7 @@
 # ADR-37-images-carousel: the Image list is unchanged; the Carousel's order is the list order and its caption is the description; only a count is added
 
 - Status: ACCEPTED (frozen) -- 2026-09-10
+- Superseded in part by `ADR-78-carousel.md` (the caption and the credit's place) and `ADR-78-fan-out-and-option-picture.md` (Images on an Option are dropped in `elsa-tree/3`) -- 2026-09-17 (issue #78). The rest stands.
 - Issue: #37 -- Architecture: freeze elsa-tree/2
 - Spec: `docs/specs/tree-format.md`, section 5.2, 5.4; rules V-IMAGE, V-COUNT
 - Keeps: `docs/adrs/ADR-4-image-reference.md`
