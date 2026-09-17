@@ -24,7 +24,7 @@ import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
 import type { Placed } from '../neighbourhood.ts'
 import type { Tree } from '../tree/loader.ts'
 import type { Node, Option } from '../tree/types.ts'
-import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
+import { followHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
 import { Branch } from './Branch.tsx'
 import { Bubble, sheetWords } from './Bubble.tsx'
 import { Carousel } from './Carousel.tsx'
@@ -191,17 +191,17 @@ function UpArrow({ view }: { view: View }) {
 
 /**
  * The Option Branches beside the Bubble (10.3): the side children, in two columns of at
- * most four, each showing its target's title and, when the Option has Images, the first of
- * them. The same list as a Sheet is what the columns collapse to (10.5, steps 3 and 4).
+ * most four, each showing its title. An Option has no Images of its own in `elsa-tree/3`
+ * (tree-format.md 5.4); the picture its button shows is its target's main image, which is
+ * #80's to draw. The same list as a Sheet is what the columns collapse to (10.5, steps 3 and 4).
  */
 function Options({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, idPrefix, pictures, placed } = view
+  const { address, ui, uiLang, idPrefix, placed } = view
   const lang = address.lang
   const half = Math.ceil(node.options.length / 2)
 
   const branch = (option: Option, index: number) => {
     const where = `${node.id}.options[${index}]`
-    const image = option.images[0]
     const href = followHref(address, option.target)
     return (
       <li key={option.target}>
@@ -209,12 +209,6 @@ function Options({ node, view }: { node: Node; view: View }) {
           className="option"
           href={href}
           title={text(option.title, lang, `${where}.title`)}
-          image={
-            image &&
-            (pictures
-              ? { src: imageHref(image.file), alt: text(image.description, lang, `${where}.images[${image.file}].description`) }
-              : 'withheld')
-          }
           slides={placed(href)}
         />
       </li>
