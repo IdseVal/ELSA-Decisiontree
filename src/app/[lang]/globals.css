@@ -806,6 +806,11 @@ a.language:hover,
  * (inner edge 400), the top and bottom ones 75 nearer, 111.5 of pitch on a side of four. A
  * button is 232 x 96; on a row shorter than four of them the pitch shrinks and so does the
  * button, to the row's quarter, down to the 80 pixels its four lines of label take.
+ *
+ * The collapse of 10.5, step 4, is `--fan: none`, set on the list by the breakpoints below:
+ * every button and connector goes and the fan takes no room. An Overlay that is open outlives
+ * it -- the explanation Node a URL opened, at a phone's width (10.9) -- as an empty box with
+ * only its panel over the page.
  */
 .options > li {
   --bubble-h: tan(atan2(100cqh, 1px));
@@ -813,6 +818,7 @@ a.language:hover,
   --y: calc((var(--i) + 0.5) * var(--bubble-h) / var(--m) - var(--r));
   --x: calc(380 - var(--r) + sqrt(var(--r) * var(--r) - var(--y) * var(--y)) + 20);
   --option-h: min(96px, calc(100cqh / var(--m)));
+  display: var(--fan, block);
   position: absolute;
   top: calc(50% + var(--y) * 1px - var(--option-h) / 2);
   width: 232px;
@@ -828,9 +834,14 @@ a.language:hover,
   right: calc(50% + var(--x) * 1px);
 }
 
+.options > li:has(> .overlay[open]) {
+  display: block;
+}
+
 /* The connector: 20 pixels, 2 wide, from the button's inner edge to the outline at its centre height. */
 .options > li::before {
   content: "";
+  display: var(--fan, block);
   position: absolute;
   top: calc(50% - 1px);
   width: var(--connector);
@@ -852,7 +863,7 @@ a.language:hover,
  * shade, filled `surface`, a wash of `accent` on hover.
  */
 .overlay > .sheet-open {
-  display: flex;
+  display: var(--fan, flex);
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -1485,6 +1496,8 @@ a.language:hover,
     max-height: none;
     padding-top: 8px;
     container-type: normal;
+    /* Collapsed, the list is its padding, in the area the control takes over. */
+    pointer-events: none;
   }
 
   .options > li {
@@ -1507,7 +1520,7 @@ a.language:hover,
 @media (max-height: 639px) {
   .options[data-count="7"],
   .options[data-count="8"] {
-    display: none;
+    --fan: none;
   }
 
   .options[data-count="7"] ~ .options-collapsed,
@@ -1519,7 +1532,7 @@ a.language:hover,
 @media (max-height: 549px) {
   .options[data-count="5"],
   .options[data-count="6"] {
-    display: none;
+    --fan: none;
   }
 
   .options[data-count="5"] ~ .options-collapsed,
@@ -1530,7 +1543,7 @@ a.language:hover,
 
 @media (max-width: 1199px) and (max-height: 743px) {
   .options {
-    display: none;
+    --fan: none;
   }
 
   .options-collapsed {
@@ -1543,7 +1556,7 @@ a.language:hover,
   .options[data-count="6"],
   .options[data-count="7"],
   .options[data-count="8"] {
-    display: none;
+    --fan: none;
   }
 
   .options[data-count="5"] ~ .options-collapsed,
@@ -1556,7 +1569,7 @@ a.language:hover,
 
 @media (max-width: 999px) {
   .options[data-count="4"] {
-    display: none;
+    --fan: none;
   }
 
   .options[data-count="4"] ~ .options-collapsed {
@@ -1566,7 +1579,7 @@ a.language:hover,
 
 @media (max-width: 769px) {
   .options[data-count="3"] {
-    display: none;
+    --fan: none;
   }
 
   .options[data-count="3"] ~ .options-collapsed {
@@ -1576,7 +1589,7 @@ a.language:hover,
 
 @media (max-width: 519px) {
   .options[data-count="2"] {
-    display: none;
+    --fan: none;
   }
 
   .options[data-count="2"] ~ .options-collapsed {
