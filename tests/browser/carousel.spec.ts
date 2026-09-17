@@ -399,8 +399,9 @@ test.describe('with JavaScript switched off', () => {
 
   test('a Node without pictures has no strip, so no empty tab stop in the Carousel row (12.1)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    // The example Tree's `social-scoring`: neither the Node nor an Option of it carries an Image.
-    await page.goto('/ai-act-example/start/prohibited-practices/social-scoring')
+    // The example Tree's `social-scoring`, as the centre: neither the Node nor an Option of it
+    // carries an Image. Under its parent the page would be the parent's, strip and all (10.9).
+    await page.goto('/ai-act-example/social-scoring')
     await expect(page.locator('[data-carousel-strip]')).toHaveCount(0)
 
     // Every tab stop of the page, in order, and none of them in the row.

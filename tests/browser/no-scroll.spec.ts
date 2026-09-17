@@ -508,6 +508,9 @@ for (const lang of LANGUAGES) {
         const viewport = `${width}x${height}`
         await page.setViewportSize({ width, height })
         await page.goto(inLang(url, lang))
+        // The page arrives with its Overlay open (10.9), whose backdrop veils the chrome bar.
+        await page.keyboard.press('Escape')
+        await expect(page.locator('details.sheet[open]')).toHaveCount(0)
         const share = page.locator('button.share')
         if (!(await share.isVisible())) continue
         await share.click()

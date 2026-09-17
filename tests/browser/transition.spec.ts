@@ -349,9 +349,10 @@ test('the moment just after the payload lands, screenshot: the page left behind 
   await expect(page.locator('.tree-frame[aria-hidden]')).toHaveCount(1)
   await expect(page.locator('.tree-frame[aria-hidden] img')).toHaveCount(0)
 
-  // Two frames, two Bubbles, and still no id written twice: every `aria-labelledby` and
-  // `aria-describedby` names the one element it means (10.3), in either frame.
-  await expect(page.locator('[id$="node-title"]')).toHaveCount(2)
+  // Two frames, two Bubbles, the centre's asides each with a heading in its closed Overlay
+  // (10.9), and still no id written twice: every `aria-labelledby` and `aria-describedby`
+  // names the one element it means (10.3), in either frame.
+  await expect(page.locator('[id$="node-title"]')).toHaveCount(2 + (await page.locator('.overlay-interior').count()))
   const ids = await page.evaluate(() => [...document.querySelectorAll('[id]')].map((element) => element.id))
   expect(ids.filter((id, index) => ids.indexOf(id) !== index), 'ids written twice').toEqual([])
 

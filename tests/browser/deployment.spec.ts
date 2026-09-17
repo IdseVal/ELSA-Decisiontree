@@ -14,6 +14,7 @@
  */
 import { expect, test, type Page, type Request, type Response } from '@playwright/test'
 import { NO_BASE_URL_ORIGIN, PUBLIC_BASE_URL } from '../../playwright.config.ts'
+import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
 
@@ -56,8 +57,14 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   // cookie would hide.
   await page.goto(START)
   await page.locator('.answer--yes').click()
-  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
+  // The Option opens its Overlay in place; its heading is the link to the aside's own address,
+  // whose page arrives with the Overlay open, and Escape uncovers the page (10.9).
+  await page.locator('.options .sheet-open', { hasText: 'Social scoring' }).click()
+  await page.locator('.overlay[open] h2 a').click()
+  await page.keyboard.press('Escape')
   await page.locator('.trail-entry').last().click()
+  // The slide up brings a second frame into the document until it lands (11.3).
+  await arrived(page, START)
   await page.locator('.answer--no').click()
   await page.goto(`${START}?lang=nl`)
   await page.setViewportSize({ width: 1280, height: 540 })

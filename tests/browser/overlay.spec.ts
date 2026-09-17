@@ -64,8 +64,8 @@ test.describe('opening and closing', () => {
     // The parent's page is underneath, unchanged: its title is still the page heading.
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Does your system do any of the prohibited practices?')
     expect(local(page)).toBe(QUESTION)
-    // The focus moved to the cross (10.9).
-    expect(await focused(page)).toBe('button.sheet-close.sheet-close--cross')
+    // The focus moved to the cross (10.9): on the toggle event, a task after the click.
+    await expect(overlay.locator('.sheet-close--cross')).toBeFocused()
   })
 
   test('the cross closes it and the focus returns to the Option button', async ({ page }) => {
@@ -126,7 +126,7 @@ test.describe('the keyboard', () => {
     await overlay.locator('.sheet-open').focus()
     await page.keyboard.press('Enter')
     await expect(overlay.locator('.sheet-panel')).toBeVisible()
-    expect(await focused(page)).toBe('button.sheet-close.sheet-close--cross')
+    await expect(overlay.locator('.sheet-close--cross')).toBeFocused()
 
     await page.keyboard.press('Tab')
     expect(await focused(page)).toBe('a')
