@@ -1,6 +1,7 @@
 # ADR-38-transitions: following a Branch translates one element, the tree layer, and ends at exactly the URL a plain link would have reached
 
 - Status: ACCEPTED (frozen) -- 2026-09-10
+- Superseded in part by `ADR-78-overlay.md` (decision 2 as far as it concerns the side slide: an Option opens an Overlay and nothing slides sideways) -- 2026-09-17 (issue #78). The slide down and up, and decisions 1 and 3 to 7, stand.
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 11.1, 11.3, 11.4
 - Core document: 3.2 ("I want the transitions to slide over the tree to the next node")
