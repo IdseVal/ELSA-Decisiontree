@@ -255,6 +255,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: agricultural-vehicles.jpg
+    description:
+      en: "A tractor ploughing a field, seen from above"
+      nl: "Een tractor die een akker ploegt, van bovenaf gezien"
+    credit: "Petar Milošević, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-i-cableway-installations
 id: annex-i-cableway-installations
@@ -294,6 +300,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: cableway-installations.jpg
+    description:
+      en: "The first gondola cabin of a mountain cableway, from 1964"
+      nl: "De eerste gondelcabine van een bergkabelbaan, uit 1964"
+    credit: "Yamen, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-i-civil-aviation-security
 id: annex-i-civil-aviation-security
@@ -333,6 +345,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: civil-aviation-security.jpg
+    description:
+      en: "A passenger at an airport security screening checkpoint"
+      nl: "Een passagier bij een beveiligingscontrole op een luchthaven"
+    credit: "Michael Ball, via Wikimedia Commons, CC0 1.0"
 
 --- # annex-i-explosive-atmospheres
 id: annex-i-explosive-atmospheres
@@ -376,6 +394,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: explosive-atmospheres.jpg
+    description:
+      en: "Grain silos, where dust can make the atmosphere explosive"
+      nl: "Graansilo's, waar stof de lucht ontplofbaar kan maken"
+    credit: "TheTechnician27, via Wikimedia Commons, CC0 1.0"
 
 --- # annex-i-gas-appliances
 id: annex-i-gas-appliances
@@ -419,6 +443,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: gas-appliances.jpg
+    description:
+      en: "A gas-fired boiler in a boiler room"
+      nl: "Een gasgestookte ketel in een ketelruimte"
+    credit: "Oleg Bor, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-i-ivd-medical-devices
 id: annex-i-ivd-medical-devices
@@ -462,6 +492,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: ivd-medical-devices.jpg
+    description:
+      en: "A technician handling blood samples in a diagnostic laboratory"
+      nl: "Een analist met bloedmonsters in een diagnostisch laboratorium"
+    credit: "Goleisureintl, via Wikimedia Commons, CC BY 4.0"
 
 --- # annex-i-legislation
 id: annex-i-legislation
@@ -858,6 +894,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: lifts.jpg
+    description:
+      en: "The inside of a passenger lift, with its control panel"
+      nl: "De binnenkant van een personenlift, met bedieningspaneel"
+    credit: "Edward Orde, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-i-machinery
 id: annex-i-machinery
@@ -900,6 +942,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: machinery.jpg
+    description:
+      en: "A cow in a milking robot, beside its emergency stop"
+      nl: "Een koe in een melkrobot, naast de noodstop"
+    credit: ".Anja., via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-i-marine-equipment
 id: annex-i-marine-equipment
@@ -940,6 +988,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: marine-equipment.jpg
+    description:
+      en: "A fishing trawler returning to port"
+      nl: "Een vissersschip dat terugkeert naar de haven"
+    credit: "Christian Ferrer, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-i-medical-devices
 id: annex-i-medical-devices
@@ -978,6 +1032,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: medical-devices.jpg
+    description:
+      en: "An infusion pump at a hospital bedside"
+      nl: "Een infuuspomp aan een ziekenhuisbed"
+    credit: "DiverDave, via Wikimedia Commons, CC BY-SA 3.0"
 
 --- # annex-i-motor-vehicle-approval
 id: annex-i-motor-vehicle-approval
@@ -1021,6 +1081,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: motor-vehicle-approval.jpg
+    description:
+      en: "A milk tanker on a farm road"
+      nl: "Een melktankwagen op een landweg"
+    credit: "TCExplorer, via Wikimedia Commons, CC BY-SA 2.0"
 
 --- # annex-i-motor-vehicle-general-safety
 id: annex-i-motor-vehicle-general-safety
@@ -1062,6 +1128,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: motor-vehicle-general-safety.jpg
+    description:
+      en: "A dashboard showing lane keeping and the speed limit the car read"
+      nl: "Een dashboard met rijstrookhulp en de afgelezen maximumsnelheid"
+    credit: "Hans Haase, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-i-personal-protective-equipment
 id: annex-i-personal-protective-equipment
@@ -1105,6 +1177,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: personal-protective-equipment.jpg
+    description:
+      en: "Protective clothing, gloves and hood for spraying work"
+      nl: "Beschermende kleding, handschoenen en kap voor spuitwerk"
+    credit: "Protectepi, via Wikimedia Commons, CC BY-SA 3.0"
 
 --- # annex-i-pressure-equipment
 id: annex-i-pressure-equipment
@@ -1148,6 +1226,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: pressure-equipment.jpg
+    description:
+      en: "A liquid carbon dioxide tank: pressure equipment beside a plant"
+      nl: "Een tank met vloeibaar kooldioxide: drukapparatuur naast een fabriek"
+    credit: "Exit2dos2000, via Wikimedia Commons, CC BY-SA 3.0"
 
 --- # annex-i-radio-equipment
 id: annex-i-radio-equipment
@@ -1192,6 +1276,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: radio-equipment.jpg
+    description:
+      en: "A wireless sensor reporting from a strawberry field"
+      nl: "Een draadloze sensor die meet in een aardbeienveld"
+    credit: "USDAgov, via Wikimedia Commons, public domain"
 
 --- # annex-i-rail-interoperability
 id: annex-i-rail-interoperability
@@ -1231,6 +1321,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: rail-interoperability.jpg
+    description:
+      en: "An electric passenger train at a station platform"
+      nl: "Een elektrische passagierstrein aan een perron"
+    credit: "Philip Mallis, via Wikimedia Commons, CC BY-SA 2.0"
 
 --- # annex-i-recreational-craft
 id: annex-i-recreational-craft
@@ -1270,6 +1366,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: recreational-craft.jpg
+    description:
+      en: "A sailing yacht leaving a marina"
+      nl: "Een zeiljacht dat een jachthaven verlaat"
+    credit: "Pjotr Mahhonin, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-i-toys
 id: annex-i-toys
@@ -1308,6 +1410,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: toys.jpg
+    description:
+      en: "A wooden toy car"
+      nl: "Een houten speelgoedauto"
+    credit: "Gausanchennai, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-i-two-or-three-wheel-vehicles
 id: annex-i-two-or-three-wheel-vehicles
@@ -1352,6 +1460,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: two-or-three-wheel-vehicles.jpg
+    description:
+      en: "A quadricycle, or quad bike"
+      nl: "Een vierwieler, ofwel quad"
+    credit: "Norbert Nagel, via Wikimedia Commons, CC BY-SA 3.0"
 
 --- # annex-i-unmanned-aircraft
 id: annex-i-unmanned-aircraft
@@ -1397,6 +1511,12 @@ sources:
       en: Article 6(1) AI Act (high-risk classification)
       nl: Artikel 6, lid 1, AI-verordening (classificatie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: unmanned-aircraft.jpg
+    description:
+      en: "A drone spraying a paddy field"
+      nl: "Een drone die een rijstveld bespuit"
+    credit: "Shreesha Sharma, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-iii-areas
 id: annex-iii-areas
@@ -1573,6 +1693,12 @@ sources:
       en: Article 5(1)(f), (g), (h) AI Act (prohibited)
       nl: Artikel 5, lid 1, punten f), g) en h) (verboden)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+images:
+  - file: biometrics.jpg
+    description:
+      en: "A face-detection demonstration marking faces in a live image"
+      nl: "Een demonstratie die gezichten in een live beeld markeert"
+    credit: "Patrick H~, via Wikimedia Commons, CC BY 2.0"
 
 --- # annex-iii-critical-infrastructure
 id: annex-iii-critical-infrastructure
@@ -1612,6 +1738,12 @@ sources:
       en: Article 3(14) and 6(1a) to (1c) AI Act
       nl: Artikel 3, punt 14, en artikel 6, leden 1 bis-1 quater
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: critical-infrastructure.jpg
+    description:
+      en: "Electricity transmission towers at sunset"
+      nl: "Hoogspanningsmasten bij zonsondergang"
+    credit: "Matthew T Rader, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-iii-education
 id: annex-iii-education
@@ -1644,6 +1776,12 @@ sources:
       en: Annex III, point 3 AI Act (education)
       nl: Bijlage III, punt 3, AI-verordening (onderwijs)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
+images:
+  - file: education.jpg
+    description:
+      en: "Students taking an exam on computers"
+      nl: "Leerlingen die een examen op de computer maken"
+    credit: "Michael Surran, via Wikimedia Commons, CC BY-SA 2.0"
 
 --- # annex-iii-employment
 id: annex-iii-employment
@@ -1680,6 +1818,12 @@ sources:
       en: Article 5(1)(f) AI Act (emotions at work, prohibited)
       nl: Artikel 5, lid 1, punt f) (emoties op het werk, verboden)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+images:
+  - file: employment.jpg
+    description:
+      en: "Farm workers picking a field crop by hand"
+      nl: "Landarbeiders die met de hand een veldgewas oogsten"
+    credit: "USDAgov, via Wikimedia Commons, public domain"
 
 --- # annex-iii-essential-services
 id: annex-iii-essential-services
@@ -1714,6 +1858,12 @@ sources:
       en: Annex III, point 5 AI Act (essential services)
       nl: Bijlage III, punt 5, AI-verordening (essentiële diensten)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
+images:
+  - file: essential-services.jpg
+    description:
+      en: "An ambulance of an emergency medical service"
+      nl: "Een ambulance van een spoedeisende hulpdienst"
+    credit: "Raymond Wambsgans, via Wikimedia Commons, CC BY-SA 2.0"
 
 --- # annex-iii-justice-and-democracy
 id: annex-iii-justice-and-democracy
@@ -1745,6 +1895,12 @@ sources:
       en: Annex III, point 8 AI Act (justice and democracy)
       nl: Bijlage III, punt 8, AI-verordening (rechtsbedeling)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
+images:
+  - file: justice-and-democracy.jpg
+    description:
+      en: "A courtroom with the judge's bench"
+      nl: "Een rechtszaal met de rechterstafel"
+    credit: "Michael D Beckwith, via Wikimedia Commons, CC0 1.0"
 
 --- # annex-iii-law-enforcement
 id: annex-iii-law-enforcement
@@ -1783,6 +1939,12 @@ sources:
       en: Article 5(1)(d) AI Act (prohibited)
       nl: Artikel 5, lid 1, punt d), AI-verordening (verboden)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+images:
+  - file: law-enforcement.jpg
+    description:
+      en: "Police officers on bicycle patrol"
+      nl: "Politieagenten op fietspatrouille"
+    credit: "Maksim Sokolov, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # annex-iii-migration-and-borders
 id: annex-iii-migration-and-borders
@@ -1816,6 +1978,12 @@ sources:
       en: Annex III, point 7 AI Act (migration and borders)
       nl: Bijlage III, punt 7, AI-verordening (migratie en grenzen)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#anx_III
+images:
+  - file: migration-and-borders.jpg
+    description:
+      en: "Automated e-passport control gates at an airport"
+      nl: "Automatische paspoortcontrolepoortjes op een luchthaven"
+    credit: "PESP, derivative by Bonus bon, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # article-2-exclusions
 id: article-2-exclusions
