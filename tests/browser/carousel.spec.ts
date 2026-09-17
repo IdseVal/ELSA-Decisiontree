@@ -438,16 +438,16 @@ test.describe('with JavaScript switched off', () => {
 
 for (const lang of ['en', 'nl'] as const) {
   test(`every picture of the example Tree shows its author, source and licence without a click, in ${lang}`, async ({ page }) => {
-    // Issue #55: the Node's own Images and its Options' pictures, walked along the strip by
+    // Issue #55: every Node's own Images, walked along the strip by
     // the keyboard at the guaranteed viewport. Playwright's own server serves this Tree.
     await page.setViewportSize({ width: 1280, height: 640 })
     const dir = path.join(repo, 'trees', 'ai-act-example')
     const tree = await openTree(dir)
     let read = 0
-    for (const [nodeId, pictures] of await picturesByNode(tree, dir, lang)) {
+    for (const [nodeId, pictures] of await picturesByNode(tree, dir)) {
       read += await readEveryCredit(page, `/ai-act-example/${nodeId}${lang === 'en' ? '' : `?lang=${lang}`}`, pictures)
     }
-    // eu-map.png on `start` and scoreboard.png on an Option of `prohibited-practices`.
+    // eu-map.png on `start` and scoreboard.png on `social-scoring`, where elsa-tree/3 moved it from its Option.
     expect(read, 'pictures read').toBe(2)
   })
 }

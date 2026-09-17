@@ -346,9 +346,9 @@ test("every step Node's picture gives its credit on the Carousel's caption line 
     expect(node, `${nodeId} cannot be read`).not.toBeNull()
     await page.goto(`/${TREE}/${nodeId}`)
 
-    // The Node's own pictures lead the strip; its Options' follow (application.md 12.1).
+    // The strip holds the Node's own pictures (application.md 12.1).
     const thumbnails = page.locator('.thumbnail')
-    await expect(thumbnails).toHaveCount(node!.images.length + node!.options.filter((o) => o.images.length > 0).length)
+    await expect(thumbnails).toHaveCount(node!.images.length)
     for (const [index, image] of node!.images.entries()) {
       await thumbnails.nth(index).click()
       const enlarged = page.locator('.carousel-sheet .sheet-panel')
@@ -364,25 +364,20 @@ test("every step Node's picture gives its credit on the Carousel's caption line 
   }
 })
 
-test('every Option picture on screen has a credit in the Tree this server is serving', async ({ page }) => {
+test("every Annex Option's picture is its target's first Image, on screen with a credit in the Tree this server is serving", async ({ page }) => {
+  // elsa-tree/3 (tree-format.md 5.4): an Option has no Images of its own; the migration of #79
+  // moved each Annex Option's picture to its target, where the target's own page shows it.
   let checked = 0
   for (const nodeId of ANNEX_NODES) {
     const node = await tree.getNode(nodeId)
     expect(node, `${nodeId} cannot be read`).not.toBeNull()
-    await page.goto(`/${TREE}/${nodeId}`)
 
-    const credits = new Map(
-      node!.options.flatMap((option) => option.images.map((image) => [imageHref(image.file), image.credit])),
-    )
-    const shown = await page
-      .locator('.option-image')
-      .evaluateAll((images) => images.map((image) => new URL((image as HTMLImageElement).src).pathname))
-    expect(shown.length, `${nodeId}: pictures on screen`).toBe(credits.size)
-
-    for (const src of shown) {
-      const credit = credits.get(src)
-      expect(credit, `${nodeId}: ${src} is on screen but is no Option Image of this Node`).toBeDefined()
-      expect(credit!, `${nodeId}: ${src} has no licence in its credit`).toMatch(OPEN_LICENCE)
+    for (const option of node!.options) {
+      const image = (await tree.getNode(option.target))!.images[0]
+      expect(image, `${option.target} carries no Image`).toBeDefined()
+      await page.goto(pageUrl([nodeId, option.target], 'en'))
+      await expect(page.locator('.thumbnail').first(), option.target).toHaveAttribute('href', imageHref(image!.file))
+      expect(image!.credit, `${option.target}: ${image!.file} has no licence in its credit`).toMatch(OPEN_LICENCE)
       checked += 1
     }
   }
@@ -397,7 +392,7 @@ for (const lang of ['en', 'nl'] as const) {
     // (2026-09-14) that an Option's picture joins the Carousel after the Node's own, so every
     // credit is on the caption line under the strip (application.md 12.1, 12.2). The strip is
     // walked by the keyboard, never clicked, at the guaranteed viewport this config sets.
-    const byNode = await picturesByNode(tree, TREE_DIR, lang)
+    const byNode = await picturesByNode(tree, TREE_DIR)
     let read = 0
     for (const [nodeId, pictures] of byNode) {
       read += await readEveryCredit(page, pageUrl([nodeId], lang), pictures)
@@ -405,7 +400,7 @@ for (const lang of ['en', 'nl'] as const) {
     expect(read, 'pictures read').toBe(35)
     // Every Image in the Tree is one of them: no Option carries a second picture that no page shows.
     const nodes = await Promise.all([...byNode.keys()].map((id) => tree.getNode(id)))
-    expect(nodes.reduce((sum, node) => sum + node!.images.length + node!.options.flatMap((o) => o.images).length, 0)).toBe(35)
+    expect(nodes.reduce((sum, node) => sum + node!.images.length, 0)).toBe(35)
   })
 }
 
@@ -419,11 +414,10 @@ test('the screenshots issue #55 owes: annex-i-legislation on an Option picture, 
     await page.screenshot({ path: path.join(shots, `${name}.png`) })
   }
 
-  // The first Option's picture selected by the keyboard, so its caption names the Option.
+  // Since elsa-tree/3 (#79) the Options' pictures are on their targets, so this strip holds the Node's own.
   await page.goto(`/${TREE}/annex-i-legislation`)
-  await page.locator('.thumbnail').first().focus()
-  await page.keyboard.press('ArrowRight')
-  await expect(page.locator('.carousel-position')).toHaveText('Image 2 of 9')
+  const own = (await tree.getNode('annex-i-legislation'))!.images.length
+  await expect(page.locator('.carousel-position')).toHaveText(`Image 1 of ${own}`)
   await shot('annex-i-legislation-1280x640')
 
   await page.goto(`/${TREE}/ai-system-definition`)
