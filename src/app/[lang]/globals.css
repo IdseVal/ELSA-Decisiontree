@@ -1058,6 +1058,11 @@ a.language:hover,
   max-width: 100%;
 }
 
+/* A closed page is its summary alone: its empty content slot would still take a gap of 12. */
+.sheet-more:not([open]) {
+  gap: 0;
+}
+
 .sheet-more > summary {
   padding: 3px 14px;
   border: 1px solid var(--rule);
