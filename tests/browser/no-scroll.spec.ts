@@ -205,9 +205,23 @@ async function measureEverywhere(
     await page.goto(url)
     await expect(page.locator('main')).toBeVisible()
 
+    // A URL that names an explanation Node arrives with its Overlay open (10.9): the plain
+    // row is that, the `overlay` column filled.
+    const urlOpened = page.locator('details.sheet[open]')
     const plain = await measure(page)
-    rows.push({ page: what, lang, viewport, sheet: '', measured: plain })
+    rows.push({ page: what, lang, viewport, sheet: (await urlOpened.count()) > 0 ? 'open by URL' : '', measured: plain })
     assertFits(plain, `${what} (${lang}) at ${viewport}`)
+
+    // Closed before each Sheet is opened in turn, as a reader closes it: Escape with the
+    // script, the button's second click without it. Where the fan has collapsed the button
+    // is gone with it and a reader without the script has only the browser's back; the
+    // disclosure is shut directly, so this viewport's other Sheets are still measured.
+    if ((await urlOpened.count()) > 0) {
+      if (script) await page.keyboard.press('Escape')
+      else if (await urlOpened.locator('.sheet-open').isVisible()) await urlOpened.locator('.sheet-open').click()
+      else await urlOpened.evaluate((details: HTMLDetailsElement) => details.removeAttribute('open'))
+      await expect(urlOpened).toHaveCount(0)
+    }
 
     // Each Sheet the layout offers at this size, opened in turn: 10.5 gets no exemption.
     const sheets = page.locator('details.sheet')
@@ -258,8 +272,8 @@ async function measureEverywhere(
   }
 }
 
-/** A Branch that slides on every kind of Node: an Answer, or `back` where there are none; `startAgain` where there is neither. */
-const DOWN = { selector: '.answer--yes, .answer--back, .answer--start-again', label: '' }
+/** A Branch that slides on every kind of Node: an Answer, or `back` where there are none. */
+const DOWN = { selector: '.answer--yes, .answer--back', label: '' }
 
 /**
  * Measures `url` at every viewport above the floor in the middle of a slide, both halves of
@@ -279,6 +293,11 @@ async function measureSliding(page: Page, url: string, what: string, lang: strin
     await page.goto(url)
     await expect(page.locator('main')).toBeVisible()
 
+    // A slide never begins with a Sheet open (11.3): the Overlay a URL opened is closed first.
+    if ((await page.locator('.sheet[open]').count()) > 0) {
+      await page.keyboard.press('Escape')
+      await expect(page.locator('.sheet[open]')).toHaveCount(0)
+    }
     const branch = page.locator(follow.selector).first()
     if (!(await branch.isVisible())) {
       skipped.push(viewport)
@@ -458,7 +477,8 @@ for (const { what, url } of EXAMPLE_PAGES) {
   }
 }
 
-for (const { what, url } of EXAMPLE_PAGES) {
+// Nothing slides from an explanation Node that is the centre: no parent above, `startAgain` below (11.1).
+for (const { what, url } of EXAMPLE_PAGES.filter((page) => page !== EXAMPLE_PAGES[3])) {
   for (const lang of LANGUAGES) {
     test(`${what}, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
       test.slow()
