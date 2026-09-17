@@ -741,7 +741,7 @@ in any order; comments anywhere.
 ## 8. Complete example Tree (English and Dutch)
 
 The Tree below is complete and valid: it observes every limit of 5.7 and exercises
-every element of the format, including a Theme and two Images. It is **illustrative
+every element of the format, including a Theme and Images. It is **illustrative
 content**: the legal statements are simplified sketches used to show the format, not
 verified readings of the AI Act. The real first Tree is authored separately.
 
@@ -754,6 +754,11 @@ trees/
     images/
       eu-map.png
       scoreboard.png
+      outside-scope.png
+      prohibited-practices.png
+      emotion-recognition.png
+      prohibited.png
+      covered.png
     theme/
       example-lab-logo.svg
       example-lab-logo-white.svg
@@ -767,7 +772,8 @@ Answer ends at the Terminal `outside-scope`; its `yes` Answer leads to
 `prohibited-practices`, a question Node with two Options, each opening an explanation
 Node (`social-scoring`, with a case-law and a literature Source and an Image on the
 Option; `emotion-recognition-at-work`). Answering `yes` there reaches the Terminal
-`prohibited`, `no` reaches the Terminal `covered`.
+`prohibited`, `no` reaches the Terminal `covered`. Every Node carries at least one Image (issue
+#84); `social-scoring` carries the picture of the Option that opens it.
 
 The Theme is **deliberately unlike the first Tree's** (issue #40; `ADR-38-theme-delivery`,
 Consequences: "the example Tree and the first Tree can ship deliberately different Themes
@@ -887,6 +893,12 @@ description:
     Andere regels kunnen nog steeds van toepassing zijn; deze boom behandelt die niet.
 metadata:
   version: "2.0"
+images:
+  - file: outside-scope.png
+    description:
+      en: Placeholder picture for a system outside the scope
+      nl: Plaatsvervangende afbeelding voor een systeem buiten het toepassingsgebied
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 terminal:
   outcome: not-applicable
 
@@ -916,6 +928,12 @@ sources:
       en: Article 5 AI Act (prohibited AI practices)
       nl: Artikel 5 AI-verordening (verboden AI-praktijken)
     url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+images:
+  - file: prohibited-practices.png
+    description:
+      en: Placeholder picture for the prohibited practices
+      nl: Plaatsvervangende afbeelding voor de verboden praktijken
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 options:
   - title:
       en: Social scoring
@@ -969,6 +987,12 @@ sources:
       en: Veale & Zuiderveen Borgesius (2021), Demystifying the AI Act
       nl: Veale & Zuiderveen Borgesius (2021), Demystifying the AI Act
     url: https://arxiv.org/abs/2107.03721
+images:
+  - file: scoreboard.png
+    description:
+      en: A scoreboard ranking people
+      nl: Een scorebord dat mensen rangschikt
+    credit: "Illustration: Example Studio, CC0 1.0"
 
 --- # emotion-recognition-at-work
 id: emotion-recognition-at-work
@@ -990,6 +1014,12 @@ sources:
       en: Article 5(1)(f) AI Act
       nl: Artikel 5, lid 1, onder f, AI-verordening
     url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+images:
+  - file: emotion-recognition.png
+    description:
+      en: Placeholder picture for emotion recognition
+      nl: Plaatsvervangende afbeelding voor emotieherkenning
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 
 --- # prohibited
 id: prohibited
@@ -1005,6 +1035,12 @@ description:
     gebruiken van een systeem voor deze praktijk. De doorloop eindigt hier.
 metadata:
   version: "2.0"
+images:
+  - file: prohibited.png
+    description:
+      en: Placeholder picture for a prohibited practice
+      nl: Plaatsvervangende afbeelding voor een verboden praktijk
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 terminal:
   outcome: prohibited
 
@@ -1022,12 +1058,18 @@ description:
     boom gaat verder met de hoog-risico-indeling; dit voorbeeld eindigt hier.
 metadata:
   version: "2.0"
+images:
+  - file: covered.png
+    description:
+      en: Placeholder picture for a system the AI Act applies to
+      nl: Plaatsvervangende afbeelding voor een systeem waarop de AI-verordening van toepassing is
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 terminal:
   outcome: applicable
 ```
 
-The two image files `eu-map.png` and `scoreboard.png` are ordinary PNG files placed in
-`trees/ai-act-example/images/` by hand; the logo and font files are placed in
+The image files are ordinary PNG files placed in `trees/ai-act-example/images/` by hand;
+the five added by issue #84 are labelled placeholders; the logo and font files are placed in
 `trees/ai-act-example/theme/` the same way, with the licence texts next to them.
 
 Note what the explanation Nodes no longer say: the sentence "This is an explanation
