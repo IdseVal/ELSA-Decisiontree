@@ -13,6 +13,7 @@
 import { text, type Chrome, type ChromeString } from '../chrome.ts'
 import { richTextToHtml } from '../markdown.ts'
 import type { Node, Outcome, Source } from '../tree/types.ts'
+import { Explainer } from './Explainer.tsx'
 import { Sheet, type SheetWords } from './Sheet.tsx'
 
 /** The chrome key that labels each kind of Source (tree-format.md 5.1). */
@@ -57,15 +58,12 @@ export function Bubble({
       <div className="bubble-text">
         <h1 id={`${idPrefix}node-title`}>{text(node.title, lang, `${node.id}.title`)}</h1>
 
-        <div
-          className="prose"
-          dangerouslySetInnerHTML={{
-            __html: richTextToHtml(text(node.description, lang, `${node.id}.description`), {
-              explainers: node.explainers,
-              lang,
-              idPrefix,
-            }),
-          }}
+        <Explainer
+          html={richTextToHtml(text(node.description, lang, `${node.id}.description`), {
+            explainers: node.explainers,
+            lang,
+            idPrefix,
+          })}
         />
 
         {node.sources.length > 0 && (
