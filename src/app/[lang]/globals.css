@@ -807,6 +807,9 @@ a.language:hover,
  * button is 232 x 96; on a row shorter than four of them the pitch shrinks and so does the
  * button, to the row's quarter, down to the 80 pixels its four lines of label take.
  *
+ * The item's box is the button and, at its inner end, the connector's 20 pixels, so that
+ * the connector lies inside it and no element holds content wider than itself (10.6).
+ *
  * The collapse of 10.5, step 4, is `--fan: none`, set on the list by the breakpoints below:
  * every button and connector goes and the fan takes no room. An Overlay that is open outlives
  * it -- the explanation Node a URL opened, at a phone's width (10.9) -- as an empty box with
@@ -820,18 +823,21 @@ a.language:hover,
   --option-h: min(96px, calc(100cqh / var(--m)));
   display: var(--fan, block);
   position: absolute;
+  box-sizing: border-box;
   top: calc(50% + var(--y) * 1px - var(--option-h) / 2);
-  width: 232px;
+  width: calc(232px + var(--connector));
   height: var(--option-h);
   pointer-events: auto;
 }
 
 .options > li[data-side="right"] {
-  left: calc(50% + var(--x) * 1px);
+  left: calc(50% + var(--x) * 1px - var(--connector));
+  padding-left: var(--connector);
 }
 
 .options > li[data-side="left"] {
-  right: calc(50% + var(--x) * 1px);
+  right: calc(50% + var(--x) * 1px - var(--connector));
+  padding-right: var(--connector);
 }
 
 .options > li:has(> .overlay[open]) {
@@ -849,11 +855,11 @@ a.language:hover,
 }
 
 .options > li[data-side="right"]::before {
-  right: 100%;
+  left: 0;
 }
 
 .options > li[data-side="left"]::before {
-  left: 100%;
+  right: 0;
 }
 
 /* The disclosure fills its row, so the button can (the summary is sized from it). */
@@ -1469,11 +1475,8 @@ a.language:hover,
 @media (max-width: 1279px) {
   .options > li {
     --x: 400;
+    --connector: 0px;
     width: 200px;
-  }
-
-  .options > li::before {
-    display: none;
   }
 
   .options .option-image {
