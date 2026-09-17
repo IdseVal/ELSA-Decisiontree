@@ -87,18 +87,21 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (1/7)
 description:
   en: |
-    Article 2(1) lists **seven** categories of people and organisations the Act
-    reaches; these steps take one each. Are you a **provider** who places an AI system
-    on the Union market or puts it into service in the Union, or who places a
-    general-purpose AI model on the Union market?
+    Article 2(1) lists **seven** categories of people and organisations the Act reaches;
+    these steps take one each. Are you a [provider](#provider) who places an
+    [AI system](#ai-system) [on the Union market](#placing-on-the-market) or
+    [puts it into service](#putting-into-service) in the Union, or who places a
+    [general-purpose AI model](#general-purpose-ai-model) on the Union market?
 
     Being established in the Union or in a third country makes no difference. A
     provider develops a system, or has one developed, and places it under its own name
     or trademark. A **yes** leads to the Article 2 exclusions.
   nl: |
     Artikel 2, lid 1, noemt **zeven** categorieën die de verordening bereikt; elke stap
-    behandelt er één. Bent u een **aanbieder** die een AI-systeem in de Unie in de handel
-    brengt of in gebruik stelt, of een AI-model voor algemene doeleinden in de Unie in de
+    behandelt er één. Bent u een [aanbieder](#provider) die een [AI-systeem](#ai-system)
+    in de Unie [in de handel brengt](#placing-on-the-market) of
+    [in gebruik stelt](#putting-into-service), of een
+    [AI-model voor algemene doeleinden](#general-purpose-ai-model) in de Unie in de
     handel brengt?
 
     Waar u gevestigd bent, maakt niet uit. Een aanbieder ontwikkelt een systeem of laat
@@ -126,6 +129,42 @@ images:
       nl: "Kaart van de lidstaten van de Europese Unie, die artikel 2, lid 1, bereikt"
     credit: "Ssolbergj and Moonraker, via Wikimedia Commons, CC BY-SA 4.0"
     source: art-2-1
+explainers:
+  - id: provider
+    term:
+      en: provider
+      nl: aanbieder
+    text:
+      en: A person, organisation or public body that develops an AI system or general-purpose AI model, or has one developed, and places it on the market or puts it into service under its own name or trademark.
+      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem of AI-model voor algemene doeleinden ontwikkelt of laat ontwikkelen en onder eigen naam of merk in de handel brengt of in gebruik stelt.
+  - id: ai-system
+    term:
+      en: AI system
+      nl: AI-systeem
+    text:
+      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
+      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
+  - id: placing-on-the-market
+    term:
+      en: placing on the market
+      nl: in de handel brengen
+    text:
+      en: The first making available of an AI system or a general-purpose AI model on the Union market.
+      nl: Het voor het eerst in de Unie op de markt aanbieden van een AI-systeem of een AI-model voor algemene doeleinden.
+  - id: putting-into-service
+    term:
+      en: putting into service
+      nl: in gebruik stellen
+    text:
+      en: Supplying an AI system for first use directly to the deployer, or for own use, in the Union for its intended purpose.
+      nl: De directe levering van een AI-systeem aan de gebruiksverantwoordelijke voor het eerste gebruik, of voor eigen gebruik, in de Unie voor het beoogde doel.
+  - id: general-purpose-ai-model
+    term:
+      en: general-purpose AI model
+      nl: AI-model voor algemene doeleinden
+    text:
+      en: An AI model of significant generality that competently performs a wide range of distinct tasks and can be integrated into many systems; not one used only for research or prototyping before release.
+      nl: Een AI-model met een aanzienlijk algemeen karakter dat uiteenlopende taken competent uitvoert en in veel systemen integreerbaar is; geen model enkel voor onderzoek of prototypes vóór marktintroductie.
 answers:
   yes: article-2-exclusions
   no: jurisdiction-deployer
@@ -172,21 +211,21 @@ title:
   nl: Is uw systeem een AI-systeem in de zin van de verordening?
 description:
   en: |
-    Article 3(1): an *AI system* is a machine-based system designed to operate with
-    varying levels of autonomy, that may exhibit adaptiveness after deployment and that,
-    for explicit or implicit objectives, **infers from the input it receives how to
-    generate outputs** - predictions, content, recommendations or decisions - that can
-    influence physical or virtual environments. Inferring is the distinguishing element:
-    as Recital 12 says, the definition does not cover systems based on rules defined
-    solely by natural persons.
+    Article 3(1): an [AI system](#ai-system) is a machine-based system designed to
+    operate with varying levels of autonomy, that may exhibit adaptiveness after
+    deployment and that, for explicit or implicit objectives, **infers from the input it
+    receives how to generate outputs** - predictions, content, recommendations or
+    decisions - that can influence physical or virtual environments. Inferring is the
+    distinguishing element: as Recital 12 says, the definition does not cover systems
+    based on rules defined solely by natural persons.
   nl: |
-    Artikel 3, punt 1: een *AI-systeem* is een op een machine gebaseerd systeem dat met
-    verschillende niveaus van autonomie werkt, dat na het inzetten aanpassingsvermogen
-    kan vertonen en dat, voor expliciete of impliciete doelstellingen, **uit de ontvangen
-    input afleidt hoe output te genereren** die van invloed kan zijn op fysieke of
-    virtuele omgevingen. Het afleiden is het onderscheidende element: volgens overweging
-    12 omvat de definitie geen systemen op basis van regels die uitsluitend door
-    natuurlijke personen zijn vastgesteld.
+    Artikel 3, punt 1: een [AI-systeem](#ai-system) is een op een machine gebaseerd
+    systeem dat met verschillende niveaus van autonomie werkt, dat na het inzetten
+    aanpassingsvermogen kan vertonen en dat, voor expliciete of impliciete
+    doelstellingen, **uit de ontvangen input afleidt hoe output te genereren** die van
+    invloed kan zijn op fysieke of virtuele omgevingen. Het afleiden is het
+    onderscheidende element: volgens overweging 12 omvat de definitie geen systemen op
+    basis van regels die uitsluitend door natuurlijke personen zijn vastgesteld.
 metadata:
   version: "0.2"
   step: 2 - material scope
@@ -209,6 +248,14 @@ images:
       nl: "Een banaan en een foto ervan, elk gelabeld door een objectherkenningsmodel"
     credit: "Max Gruber, via Wikimedia Commons, CC BY 4.0"
     source: art-3-1
+explainers:
+  - id: ai-system
+    term:
+      en: AI system
+      nl: AI-systeem
+    text:
+      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
+      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
 answers:
   yes: prohibited-practices
   no: not-an-ai-system
@@ -507,17 +554,19 @@ title:
 description:
   en: |
     The first route to **high-risk**. Article 6(1) applies when **both** are met:
-    **(a)** the system is intended as a **safety component of a product**, or is itself
-    a product, covered by **Annex I** legislation; **and (b)** that product must undergo
-    a **third-party conformity assessment** first.
+    **(a)** the system is intended as a
+    [safety component of a product](#safety-component), or is itself a product, covered
+    by **Annex I** legislation; **and (b)** that product must undergo a **third-party
+    conformity assessment** first.
 
     Annex I legislation alone is not enough. These are points 2 to 9 of the 20, all
     **Section A**: for Section A, Article 2(13) lets the Commission limit Articles 9 to
     15 and 17 to 25 by delegated act.
   nl: |
-    De eerste route naar een **hoog risico**. Artikel 6, lid 1, vereist **beide**: **a)**
-    het systeem is bedoeld als **veiligheidscomponent van een product**, of is zelf zo'n
-    product, dat onder **bijlage I** valt; **en b)** dat product vereist een
+    De eerste route naar een **hoog risico**. Artikel 6, lid 1, vereist **beide**:
+    **a)** het systeem is bedoeld als
+    [veiligheidscomponent van een product](#safety-component), of is zelf zo'n product,
+    dat onder **bijlage I** valt; **en b)** dat product vereist een
     **conformiteitsbeoordeling door een derde partij**.
 
     Alleen bijlage I-wetgeving volstaat niet. De punten 2 tot en met 9 zijn alle
@@ -585,6 +634,14 @@ options:
       en: Personal protective equipment
       nl: Persoonlijke beschermingsmiddelen
     target: annex-i-personal-protective-equipment
+explainers:
+  - id: safety-component
+    term:
+      en: safety component
+      nl: veiligheidscomponent
+    text:
+      en: A component of a product or AI system meant to prevent or mitigate risks to the health and safety of persons or property, or whose failure or malfunction endangers them.
+      nl: Een component van een product of AI-systeem die risico’s voor de gezondheid en veiligheid van personen of eigendom moet voorkomen of beperken, of waarvan het falen die in gevaar brengt.
 answers:
   yes: high-risk
   no: annex-i-legislation-2
@@ -596,18 +653,20 @@ title:
   nl: "Is uw systeem een veiligheidscomponent of product onder bijlage I? (2/3)"
 description:
   en: |
-    A **safety component** fulfils a safety function for a product or an AI system, or
-    its failure endangers health and safety. Article 6(1a): a system used **solely** for
-    non-safety aspects - user assistance, performance, service efficiency, automation,
-    convenience or quality control - is not one.
+    A [safety component](#safety-component) fulfils a safety function for a product or
+    an [AI system](#ai-system), or its failure endangers health and safety. Article
+    6(1a): a system used **solely** for non-safety aspects - user assistance,
+    performance, service efficiency, automation, convenience or quality control - is not
+    one.
 
     Article 6(1b): a system whose failure would endanger health and safety is one.
     Article 6(1c): assessment required solely for other risks fails condition (b).
   nl: |
-    Een **veiligheidscomponent** vervult een veiligheidsfunctie voor een product of
-    AI-systeem, of het falen ervan brengt de veiligheid in gevaar. Artikel 6, lid 1 bis:
-    een systeem dat **uitsluitend** voor niet-veiligheidsaspecten dient - bijstand,
-    prestaties, efficiëntie, automatisering, gemak, kwaliteitscontrole - is er geen.
+    Een [veiligheidscomponent](#safety-component) vervult een veiligheidsfunctie voor
+    een product of [AI-systeem](#ai-system), of het falen ervan brengt de veiligheid in
+    gevaar. Artikel 6, lid 1 bis: een systeem dat **uitsluitend** voor
+    niet-veiligheidsaspecten dient - bijstand, prestaties, efficiëntie, automatisering,
+    gemak, kwaliteitscontrole - is er geen.
 
     Lid 1 ter: een systeem waarvan het falen de veiligheid in gevaar brengt, wel. Lid 1
     quater: een beoordeling om andere risico's voldoet niet aan b).
@@ -655,6 +714,21 @@ options:
       en: Marine equipment
       nl: Uitrusting van zeeschepen
     target: annex-i-marine-equipment
+explainers:
+  - id: safety-component
+    term:
+      en: safety component
+      nl: veiligheidscomponent
+    text:
+      en: A component of a product or AI system meant to prevent or mitigate risks to the health and safety of persons or property, or whose failure or malfunction endangers them.
+      nl: Een component van een product of AI-systeem die risico’s voor de gezondheid en veiligheid van personen of eigendom moet voorkomen of beperken, of waarvan het falen die in gevaar brengt.
+  - id: ai-system
+    term:
+      en: AI system
+      nl: AI-systeem
+    text:
+      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
+      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
 answers:
   yes: high-risk
   no: annex-i-legislation-3
@@ -2408,20 +2482,24 @@ title:
   nl: Is er sprake van AI voor algemene doeleinden?
 description:
   en: |
-    The Act uses two terms. A **general-purpose AI model** (Article 3(63)) displays
-    significant generality, performs a wide range of distinct tasks competently and can
-    be integrated into many downstream systems; a **general-purpose AI system** (Article
-    3(66)) is based on such a model and can serve a variety of purposes. Chapter V places
-    its obligations on **providers of models** (Articles 53 and 55; Article 51 classifies
-    models with **systemic risk**), not on such a system as such. Either answer continues.
+    The Act uses two terms. A [general-purpose AI model](#general-purpose-ai-model)
+    (Article 3(63)) displays significant generality, performs a wide range of distinct
+    tasks competently and can be integrated into many downstream systems; a
+    [general-purpose AI system](#general-purpose-ai-system) (Article 3(66)) is based on
+    such a model and can serve a variety of purposes. Chapter V places its obligations
+    on [providers](#provider) of models (Articles 53 and 55; Article 51 classifies
+    models with [systemic risk](#systemic-risk)), not on such a system as such. Either
+    answer continues.
   nl: |
-    De verordening gebruikt twee begrippen. Een **AI-model voor algemene doeleinden**
-    (artikel 3, punt 63) vertoont een aanzienlijk algemeen karakter, voert een breed scala
-    aan taken competent uit en kan in veel systemen worden geïntegreerd; een **AI-systeem
-    voor algemene doeleinden** (artikel 3, punt 66) is op zo'n model gebaseerd en kan
-    verschillende doeleinden dienen. Hoofdstuk V legt verplichtingen op aan **aanbieders
-    van modellen** (artikelen 53 en 55; artikel 51 gaat over **systeemrisico**), niet aan
-    zo'n systeem als zodanig. Beide antwoorden lopen door.
+    De verordening gebruikt twee begrippen. Een
+    [AI-model voor algemene doeleinden](#general-purpose-ai-model) (artikel 3, punt 63)
+    vertoont een aanzienlijk algemeen karakter, voert een breed scala aan taken
+    competent uit en kan in veel systemen worden geïntegreerd; een
+    [AI-systeem voor algemene doeleinden](#general-purpose-ai-system) (artikel 3, punt
+    66) is op zo'n model gebaseerd en kan verschillende doeleinden dienen. Hoofdstuk V
+    legt verplichtingen op aan [aanbieders](#provider) van modellen (artikelen 53 en 55;
+    artikel 51 gaat over [systeemrisico](#systemic-risk)), niet aan zo'n systeem als
+    zodanig. Beide antwoorden lopen door.
 metadata:
   version: "0.2"
   step: 5 - general-purpose AI
@@ -2457,6 +2535,35 @@ images:
       nl: "Een technicus bij een serverrek: de machines waarop zo'n model draait"
     credit: "Derrick Coetzee, via Wikimedia Commons, CC0 1.0"
     source: art-3-63
+explainers:
+  - id: general-purpose-ai-model
+    term:
+      en: general-purpose AI model
+      nl: AI-model voor algemene doeleinden
+    text:
+      en: An AI model of significant generality that competently performs a wide range of distinct tasks and can be integrated into many systems; not one used only for research or prototyping before release.
+      nl: Een AI-model met een aanzienlijk algemeen karakter dat uiteenlopende taken competent uitvoert en in veel systemen integreerbaar is; geen model enkel voor onderzoek of prototypes vóór marktintroductie.
+  - id: general-purpose-ai-system
+    term:
+      en: general-purpose AI system
+      nl: AI-systeem voor algemene doeleinden
+    text:
+      en: An AI system based on a general-purpose AI model that can serve a variety of purposes, both for direct use and for integration in other AI systems.
+      nl: Een AI-systeem dat is gebaseerd op een AI-model voor algemene doeleinden en verschillende doeleinden kan dienen, zowel voor direct gebruik als voor integratie in andere AI-systemen.
+  - id: provider
+    term:
+      en: provider
+      nl: aanbieder
+    text:
+      en: A person, organisation or public body that develops an AI system or general-purpose AI model, or has one developed, and places it on the market or puts it into service under its own name or trademark.
+      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem of AI-model voor algemene doeleinden ontwikkelt of laat ontwikkelen en onder eigen naam of merk in de handel brengt of in gebruik stelt.
+  - id: systemic-risk
+    term:
+      en: systemic risk
+      nl: systeemrisico
+    text:
+      en: A risk specific to the high-impact capabilities of general-purpose AI models, with a significant impact on the Union market through their reach or their negative effects, that can spread at scale.
+      nl: Een risico eigen aan de capaciteiten met een grote impact van AI-modellen voor algemene doeleinden, met aanzienlijke gevolgen voor de Uniemarkt door hun bereik of negatieve effecten, op grote schaal.
 answers:
   yes: transparency-obligations
   no: transparency-obligations
@@ -2468,20 +2575,20 @@ title:
   nl: Uw systeem heeft een hoog risico onder de AI-verordening
 description:
   en: |
-    Your system is a **high-risk AI system**. Which route you came by matters: for a
-    product covered by **Annex I, Section B**, Article 2(2) provides that only Article
-    6(1), Article 60a and Articles 102 to 112 apply. Section A and Annex III systems
-    carry the full Chapter III regime, which applies from 2 August 2028 and 2 December
-    2027 respectively.
+    Your system is a **high-risk** [AI system](#ai-system). Which route you came by
+    matters: for a product covered by **Annex I, Section B**, Article 2(2) provides that
+    only Article 6(1), Article 60a and Articles 102 to 112 apply. Section A and Annex
+    III systems carry the full Chapter III regime, which applies from 2 August 2028 and
+    2 December 2027 respectively.
 
     **This step does not end the walk.** A high-risk system can carry Article 50 duties
     at the same time (Article 50(6)), so either answer continues.
   nl: |
-    Uw systeem is een **AI-systeem met een hoog risico**. De route doet ertoe: voor een
-    product dat onder **bijlage I, afdeling B**, valt, bepaalt artikel 2, lid 2, dat
-    uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met 112 van
-    toepassing zijn. Hoofdstuk III geldt vanaf 2 december 2027 (bijlage III) en 2
-    augustus 2028 (bijlage I).
+    Uw systeem is een [AI-systeem](#ai-system) **met een hoog risico**. De route doet
+    ertoe: voor een product dat onder **bijlage I, afdeling B**, valt, bepaalt artikel
+    2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot
+    en met 112 van toepassing zijn. Hoofdstuk III geldt vanaf 2 december 2027 (bijlage
+    III) en 2 augustus 2028 (bijlage I).
 
     **Deze stap beëindigt de doorloop niet.** Zo'n systeem kan tegelijk plichten uit
     artikel 50 dragen (artikel 50, lid 6); beide antwoorden lopen door.
@@ -2509,6 +2616,14 @@ sources:
       en: Article 2(2) AI Act (Annex I, Section B systems)
       nl: Artikel 2, lid 2, AI-verordening (afdeling B)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+explainers:
+  - id: ai-system
+    term:
+      en: AI system
+      nl: AI-systeem
+    text:
+      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
+      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
 answers:
   yes: general-purpose-ai
   no: general-purpose-ai
@@ -2520,14 +2635,14 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (7/7)
 description:
   en: |
-    The last category of Article 2(1). Are you an **affected person** located in the
-    Union?
+    The last category of Article 2(1). Are you an [affected person](#affected-person)
+    located in the Union?
 
     A **no** here means that none of the seven categories describes you: the Act does
     not reach you, and the walk ends.
   nl: |
-    De laatste categorie van artikel 2, lid 1. Bent u een **getroffen persoon** die zich
-    in de Unie bevindt?
+    De laatste categorie van artikel 2, lid 1. Bent u een
+    [getroffen persoon](#affected-person) die zich in de Unie bevindt?
 
     **Nee** betekent hier dat geen van de zeven categorieën op u van toepassing is: de
     verordening bereikt u niet en de doorloop eindigt.
@@ -2540,6 +2655,14 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+explainers:
+  - id: affected-person
+    term:
+      en: affected person
+      nl: getroffen persoon
+    text:
+      en: Not defined in the Act. Article 2(1)(g) covers affected persons located in the Union; Article 86 gives one a right to an explanation of a decision based on a high-risk AI system of Annex III.
+      nl: Niet gedefinieerd in de verordening. Artikel 2, lid 1, onder g), dekt getroffen personen in de Unie; artikel 86 geeft hun recht op uitleg bij een besluit op basis van een AI-systeem uit bijlage III.
 answers:
   yes: article-2-exclusions
   no: ai-act-does-not-apply
@@ -2551,11 +2674,13 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (6/7)
 description:
   en: |
-    The sixth category of Article 2(1). Are you an **authorised representative** of a
-    provider that is **not established in the Union**?
+    The sixth category of Article 2(1). Are you an
+    [authorised representative](#authorised-representative) of a [provider](#provider)
+    that is **not established in the Union**?
   nl: |
-    De zesde categorie van artikel 2, lid 1. Bent u een **gemachtigde** van een aanbieder
-    die **niet in de Unie is gevestigd**?
+    De zesde categorie van artikel 2, lid 1. Bent u een
+    [gemachtigde](#authorised-representative) van een [aanbieder](#provider) die **niet
+    in de Unie is gevestigd**?
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -2565,6 +2690,21 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+explainers:
+  - id: authorised-representative
+    term:
+      en: authorised representative
+      nl: gemachtigde
+    text:
+      en: A person or organisation in the Union that has received and accepted a written mandate from a provider to carry out the obligations and procedures of the Act on its behalf.
+      nl: Een persoon of organisatie in de Unie die van een aanbieder een schriftelijke machtiging heeft gekregen en aanvaard om namens hem de verplichtingen en procedures van de verordening na te komen.
+  - id: provider
+    term:
+      en: provider
+      nl: aanbieder
+    text:
+      en: A person, organisation or public body that develops an AI system or general-purpose AI model, or has one developed, and places it on the market or puts it into service under its own name or trademark.
+      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem of AI-model voor algemene doeleinden ontwikkelt of laat ontwikkelen en onder eigen naam of merk in de handel brengt of in gebruik stelt.
 answers:
   yes: article-2-exclusions
   no: jurisdiction-affected-person
@@ -2576,15 +2716,15 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (2/7)
 description:
   en: |
-    The second category of Article 2(1). Are you a **deployer** of an AI system who is
-    established or located in the Union?
+    The second category of Article 2(1). Are you a [deployer](#deployer) of an
+    [AI system](#ai-system) who is established or located in the Union?
 
     A deployer uses an AI system under its own authority, other than in a purely
     personal, non-professional activity.
   nl: |
     De tweede categorie van artikel 2, lid 1. Bent u een
-    **gebruiksverantwoordelijke** van een AI-systeem die in de Unie is gevestigd of zich
-    er bevindt?
+    [gebruiksverantwoordelijke](#deployer) van een [AI-systeem](#ai-system) die in de
+    Unie is gevestigd of zich er bevindt?
 
     Een gebruiksverantwoordelijke gebruikt een AI-systeem onder eigen
     verantwoordelijkheid, behalve in het kader van een louter persoonlijke
@@ -2603,6 +2743,21 @@ sources:
       en: Article 3(4) AI Act (deployer)
       nl: Artikel 3, punt 4, AI-verordening (definitie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+explainers:
+  - id: deployer
+    term:
+      en: deployer
+      nl: gebruiksverantwoordelijke
+    text:
+      en: A person, organisation or public body that uses an AI system under its own authority, except where it is used in a personal, non-professional activity.
+      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem onder eigen verantwoordelijkheid gebruikt, tenzij dat gebeurt in het kader van een persoonlijke niet-beroepsactiviteit.
+  - id: ai-system
+    term:
+      en: AI system
+      nl: AI-systeem
+    text:
+      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
+      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
 answers:
   yes: article-2-exclusions
   no: jurisdiction-third-country-output
@@ -2614,11 +2769,11 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (4/7)
 description:
   en: |
-    The fourth category of Article 2(1). Are you an **importer** or a **distributor** of
-    AI systems?
+    The fourth category of Article 2(1). Are you an [importer](#importer) or a
+    [distributor](#distributor) of [AI systems](#ai-system)?
   nl: |
-    De vierde categorie van artikel 2, lid 1. Bent u een **importeur** of
-    **distributeur** van AI-systemen?
+    De vierde categorie van artikel 2, lid 1. Bent u een [importeur](#importer) of
+    [distributeur](#distributor) van [AI-systemen](#ai-system)?
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -2628,6 +2783,28 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+explainers:
+  - id: importer
+    term:
+      en: importer
+      nl: importeur
+    text:
+      en: A person or organisation located or established in the Union that places on the market an AI system bearing the name or trademark of someone established in a third country.
+      nl: Een persoon of organisatie in de Unie die een AI-systeem in de handel brengt dat de naam of het merk draagt van een in een derde land gevestigde persoon of organisatie.
+  - id: distributor
+    term:
+      en: distributor
+      nl: distributeur
+    text:
+      en: A person or organisation in the supply chain, other than the provider or the importer, that makes an AI system available on the Union market.
+      nl: Een persoon of organisatie in de toeleveringsketen, anders dan de aanbieder of de importeur, die een AI-systeem in de Unie op de markt aanbiedt.
+  - id: ai-system
+    term:
+      en: AI system
+      nl: AI-systeem
+    text:
+      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
+      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
 answers:
   yes: article-2-exclusions
   no: jurisdiction-product-manufacturer
@@ -2639,13 +2816,17 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (5/7)
 description:
   en: |
-    The fifth category of Article 2(1). Are you a **product manufacturer** who places an
-    AI system on the market, or puts it into service, **together with your product and
+    The fifth category of Article 2(1). Are you a
+    [product manufacturer](#product-manufacturer) who places an [AI system](#ai-system)
+    [on the market](#placing-on-the-market), or
+    [puts it into service](#putting-into-service), **together with your product and
     under your own name or trademark**?
   nl: |
-    De vijfde categorie van artikel 2, lid 1. Bent u een **fabrikant van producten** die
-    samen met uw product en **onder uw eigen naam of merk** een AI-systeem in de handel
-    brengt of in gebruik stelt?
+    De vijfde categorie van artikel 2, lid 1. Bent u een
+    [fabrikant van producten](#product-manufacturer) die samen met uw product en **onder
+    uw eigen naam of merk** een [AI-systeem](#ai-system)
+    [in de handel brengt](#placing-on-the-market) of
+    [in gebruik stelt](#putting-into-service)?
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -2655,6 +2836,35 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+explainers:
+  - id: product-manufacturer
+    term:
+      en: product manufacturer
+      nl: fabrikant van producten
+    text:
+      en: Not defined in Article 3; point 8 lists it as an operator. Article 2(1)(e) covers one who places an AI system on the market or puts it into service with its product, under its own name or trademark.
+      nl: Niet gedefinieerd in artikel 3; punt 8 noemt hem operator. Artikel 2, lid 1, onder e), dekt wie een AI-systeem samen met zijn product onder eigen naam of merk in de handel brengt of in gebruik stelt.
+  - id: ai-system
+    term:
+      en: AI system
+      nl: AI-systeem
+    text:
+      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
+      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
+  - id: placing-on-the-market
+    term:
+      en: placing on the market
+      nl: in de handel brengen
+    text:
+      en: The first making available of an AI system or a general-purpose AI model on the Union market.
+      nl: Het voor het eerst in de Unie op de markt aanbieden van een AI-systeem of een AI-model voor algemene doeleinden.
+  - id: putting-into-service
+    term:
+      en: putting into service
+      nl: in gebruik stellen
+    text:
+      en: Supplying an AI system for first use directly to the deployer, or for own use, in the Union for its intended purpose.
+      nl: De directe levering van een AI-systeem aan de gebruiksverantwoordelijke voor het eerste gebruik, of voor eigen gebruik, in de Unie voor het beoogde doel.
 answers:
   yes: article-2-exclusions
   no: jurisdiction-authorised-representative
@@ -2666,13 +2876,14 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (3/7)
 description:
   en: |
-    The third category of Article 2(1). Are you a provider or a deployer established or
-    located in a **third country**, where the output produced by the AI system **is used
-    in the Union**?
+    The third category of Article 2(1). Are you a [provider](#provider) or a
+    [deployer](#deployer) established or located in a **third country**, where the
+    output produced by the [AI system](#ai-system) **is used in the Union**?
   nl: |
-    De derde categorie van artikel 2, lid 1. Bent u een aanbieder of
-    gebruiksverantwoordelijke die in een **derde land** is gevestigd of zich er bevindt,
-    terwijl de output van het AI-systeem **in de Unie wordt gebruikt**?
+    De derde categorie van artikel 2, lid 1. Bent u een [aanbieder](#provider) of
+    [gebruiksverantwoordelijke](#deployer) die in een **derde land** is gevestigd of
+    zich er bevindt, terwijl de output van het [AI-systeem](#ai-system) **in de Unie
+    wordt gebruikt**?
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -2682,6 +2893,28 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+explainers:
+  - id: provider
+    term:
+      en: provider
+      nl: aanbieder
+    text:
+      en: A person, organisation or public body that develops an AI system or general-purpose AI model, or has one developed, and places it on the market or puts it into service under its own name or trademark.
+      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem of AI-model voor algemene doeleinden ontwikkelt of laat ontwikkelen en onder eigen naam of merk in de handel brengt of in gebruik stelt.
+  - id: deployer
+    term:
+      en: deployer
+      nl: gebruiksverantwoordelijke
+    text:
+      en: A person, organisation or public body that uses an AI system under its own authority, except where it is used in a personal, non-professional activity.
+      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem onder eigen verantwoordelijkheid gebruikt, tenzij dat gebeurt in het kader van een persoonlijke niet-beroepsactiviteit.
+  - id: ai-system
+    term:
+      en: AI system
+      nl: AI-systeem
+    text:
+      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
+      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
 answers:
   yes: article-2-exclusions
   no: jurisdiction-importer-distributor
@@ -2839,18 +3072,20 @@ title:
 description:
   en: |
     Article 5(1) lists AI practices that are **prohibited** outright. There is no
-    compliance route: a system that does one of them may not be placed on the market,
-    put into service or used at all. **Ten** practices are listed, five here and five on
-    the next step.
+    compliance route: a system that does one of them may not be
+    [placed on the market](#placing-on-the-market),
+    [put into service](#putting-into-service) or used at all. **Ten** practices are
+    listed, five here and five on the next step.
 
     Points (ba) and (bb), the third and fourth entries, were inserted by Regulation (EU)
     2026/1744 and apply from **2 December 2026**; the other eight have applied since 2
     February 2025.
   nl: |
     Artikel 5, lid 1, noemt AI-praktijken die zonder meer **verboden** zijn. Er is geen
-    route naar naleving: een systeem dat een daarvan verricht, mag niet in de handel
-    worden gebracht, in gebruik worden gesteld of worden gebruikt. Er zijn **tien**
-    praktijken, vijf hier en vijf in de volgende stap.
+    route naar naleving: een systeem dat een daarvan verricht, mag niet
+    [in de handel worden gebracht](#placing-on-the-market),
+    [in gebruik worden gesteld](#putting-into-service) of worden gebruikt. Er zijn
+    **tien** praktijken, vijf hier en vijf in de volgende stap.
 
     De punten b bis) en b ter), het derde en vierde onderdeel, zijn ingevoegd bij
     Verordening (EU) 2026/1744 en gelden vanaf **2 december 2026**; de andere acht gelden
@@ -2899,6 +3134,21 @@ options:
       en: Social scoring
       nl: Sociale scoring
     target: social-scoring
+explainers:
+  - id: placing-on-the-market
+    term:
+      en: placing on the market
+      nl: in de handel brengen
+    text:
+      en: The first making available of an AI system or a general-purpose AI model on the Union market.
+      nl: Het voor het eerst in de Unie op de markt aanbieden van een AI-systeem of een AI-model voor algemene doeleinden.
+  - id: putting-into-service
+    term:
+      en: putting into service
+      nl: in gebruik stellen
+    text:
+      en: Supplying an AI system for first use directly to the deployer, or for own use, in the Union for its intended purpose.
+      nl: De directe levering van een AI-systeem aan de gebruiksverantwoordelijke voor het eerste gebruik, of voor eigen gebruik, in de Unie voor het beoogde doel.
 answers:
   yes: prohibited
   no: prohibited-practices-2
@@ -2910,17 +3160,19 @@ title:
   nl: Verricht uw systeem een verboden praktijk? (2/2)
 description:
   en: |
-    The last five practices of Article 5(1). Most points cover placing on the market,
-    putting into service *and* use, so they can catch you whether you build the system
-    or only use it. Point (h), the last entry, covers only the use, and only by law
-    enforcement.
+    The last five practices of Article 5(1). Most points cover
+    [placing on the market](#placing-on-the-market),
+    [putting into service](#putting-into-service) *and* use, so they can catch you
+    whether you build the system or only use it. Point (h), the last entry, covers only
+    the use, and only by law enforcement.
 
     Article 5(8) adds that this Article does not affect prohibitions that apply where an
     AI practice infringes other Union law.
   nl: |
-    De laatste vijf praktijken van artikel 5, lid 1. De meeste punten bestrijken het in
-    de handel brengen, het in gebruik stellen *en* het gebruiken, en kunnen u dus raken
-    of u het systeem nu bouwt of alleen gebruikt. Punt h), het laatste onderdeel,
+    De laatste vijf praktijken van artikel 5, lid 1. De meeste punten bestrijken het
+    [in de handel brengen](#placing-on-the-market), het
+    [in gebruik stellen](#putting-into-service) *en* het gebruiken, en kunnen u dus
+    raken of u het systeem nu bouwt of alleen gebruikt. Punt h), het laatste onderdeel,
     bestrijkt alleen het gebruik met het oog op de rechtshandhaving.
 
     Artikel 5, lid 8, doet geen afbreuk aan verbodsbepalingen die gelden wanneer een
@@ -2956,6 +3208,21 @@ options:
       en: Real-time biometric ID in public for law enforcement
       nl: Live biometrische ID in het openbaar voor rechtshandhaving
     target: real-time-biometric-identification
+explainers:
+  - id: placing-on-the-market
+    term:
+      en: placing on the market
+      nl: in de handel brengen
+    text:
+      en: The first making available of an AI system or a general-purpose AI model on the Union market.
+      nl: Het voor het eerst in de Unie op de markt aanbieden van een AI-systeem of een AI-model voor algemene doeleinden.
+  - id: putting-into-service
+    term:
+      en: putting into service
+      nl: in gebruik stellen
+    text:
+      en: Supplying an AI system for first use directly to the deployer, or for own use, in the Union for its intended purpose.
+      nl: De directe levering van een AI-systeem aan de gebruiksverantwoordelijke voor het eerste gebruik, of voor eigen gebruik, in de Unie voor het beoogde doel.
 answers:
   yes: prohibited
   no: annex-i-legislation
@@ -3061,18 +3328,20 @@ title:
   nl: Gelden er transparantieverplichtingen voor uw systeem?
 description:
   en: |
-    Article 50 attaches **transparency obligations** to certain AI systems, whatever
-    their risk classification. Paragraph 6 leaves the requirements of Chapter III intact.
-    The Article holds **five situations** with two addressees: 1 and 2 bind the
-    **provider**, 3 to 5 the **deployer**.
+    Article 50 attaches **transparency obligations** to certain
+    [AI systems](#ai-system), whatever their risk classification. Paragraph 6 leaves the
+    requirements of Chapter III intact. The Article holds **five situations** with two
+    addressees: 1 and 2 bind the [provider](#provider), 3 to 5 the
+    [deployer](#deployer).
 
     Article 50(5): the information must be given **clearly and distinguishably, at the
     latest at the first interaction or exposure**. Article 50 applies from 2 August 2026.
   nl: |
-    Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde AI-systemen,
-    ongeacht hun risicoclassificatie. Lid 6 laat hoofdstuk III onverlet. Het artikel
-    bevat **vijf situaties** met twee adressaten: 1 en 2 binden de **aanbieder**, 3 tot
-    en met 5 de **gebruiksverantwoordelijke**.
+    Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde
+    [AI-systemen](#ai-system), ongeacht hun risicoclassificatie. Lid 6 laat hoofdstuk
+    III onverlet. Het artikel bevat **vijf situaties** met twee adressaten: 1 en 2
+    binden de [aanbieder](#provider), 3 tot en met 5 de
+    [gebruiksverantwoordelijke](#deployer).
 
     Lid 5: de informatie wordt **duidelijk en te onderscheiden, uiterlijk bij de eerste
     interactie of blootstelling**, verstrekt. Artikel 50 geldt vanaf 2 augustus 2026.
@@ -3120,6 +3389,28 @@ options:
       en: 5. AI-generated text informing the public (deployer)
       nl: 5. Door AI gegenereerde tekst voor het publiek
     target: article-50-generated-text
+explainers:
+  - id: ai-system
+    term:
+      en: AI system
+      nl: AI-systeem
+    text:
+      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
+      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
+  - id: provider
+    term:
+      en: provider
+      nl: aanbieder
+    text:
+      en: A person, organisation or public body that develops an AI system or general-purpose AI model, or has one developed, and places it on the market or puts it into service under its own name or trademark.
+      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem of AI-model voor algemene doeleinden ontwikkelt of laat ontwikkelen en onder eigen naam of merk in de handel brengt of in gebruik stelt.
+  - id: deployer
+    term:
+      en: deployer
+      nl: gebruiksverantwoordelijke
+    text:
+      en: A person, organisation or public body that uses an AI system under its own authority, except where it is used in a personal, non-professional activity.
+      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem onder eigen verantwoordelijkheid gebruikt, tenzij dat gebeurt in het kader van een persoonlijke niet-beroepsactiviteit.
 answers:
   yes: end-of-walk
   no: end-of-walk
