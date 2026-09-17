@@ -366,7 +366,8 @@ test("every step Node's picture is its main image, and a click on it shows its c
 
 test("every Annex Option's picture is its target's first Image, on screen with a credit in the Tree this server is serving", async ({ page }) => {
   // elsa-tree/3 (tree-format.md 5.4): an Option has no Images of its own; the migration of #79
-  // moved each Annex Option's picture to its target, where the target's own page shows it.
+  // moved each Annex Option's picture to its target, where the target's own page shows it as
+  // its main image (application.md 10.3).
   let checked = 0
   for (const nodeId of ANNEX_NODES) {
     const node = await tree.getNode(nodeId)
@@ -376,7 +377,7 @@ test("every Annex Option's picture is its target's first Image, on screen with a
       const image = (await tree.getNode(option.target))!.images[0]
       expect(image, `${option.target} carries no Image`).toBeDefined()
       await page.goto(pageUrl([nodeId, option.target], 'en'))
-      await expect(page.locator('.thumbnail').first(), option.target).toHaveAttribute('href', imageHref(image!.file))
+      await expect(page.locator('.bubble a.main-image'), option.target).toHaveAttribute('href', imageHref(image!.file))
       expect(image!.credit, `${option.target}: ${image!.file} has no licence in its credit`).toMatch(OPEN_LICENCE)
       checked += 1
     }
