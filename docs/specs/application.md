@@ -17,14 +17,23 @@
 > 10.3 (an Option Branch navigates and slides: it opens an Overlay; the Answer Branches'
 > look: both the same, larger, in the logo's green; the Sources gain a heading; the
 > `back` Branch and the `explanationOnly` hint of an explanation Node); 10.5 (step 1, and
-> what an Option Branch collapses to); 11.1 to 11.3 (the `up` and `side` placements and
-> the slide to them); 12 (the Carousel: no buttons, no caption line, the credit's place,
-> Option pictures in the strip, the Images after the main one); 13.1 (which Theme colour
-> the Answer buttons paint); 14 (the rows for the Trail, the Trail Sheet, the Carousel's
-> buttons and the share button). Sections 1 to 9 stand except where #78 amends the
-> module table (6), the test list (7) and the index (9). The URL scheme (4), the Trail in
-> it, the share link and the language mechanism are unchanged, by the owner's
-> instruction.
+> what an Option Branch collapses to); 10.6 (the Carousel strip's own 80-pixel row as
+> the one scrolling element, and the test rows for an open Sheet and the 49-entry
+> Trail: the rule itself stands, and its test must also run with an Overlay open and
+> with an explainer panel open, which never scroll and never make the page scroll --
+> core document section 9); 10.7 ("the limits are confirmed unchanged": they are
+> reopened by core document 10.28, since the Trail row, the caption line and the text
+> area it derives them from all change); 11.1 to 11.3 (the `up` and `side` placements and
+> the slide to them); 11.4 and 11.5 (no image URL for a Node not on screen, and "may
+> not: an image of any other Node, at any time, for any reason": the side child's main
+> image on the Option button is an image of another Node -- core document 10.29
+> proposes the one exception #78 decides); 12 (the Carousel: no buttons, no caption
+> line, the credit's place, Option pictures in the strip, the Images after the main
+> one); 13.1 (which Theme colour the Answer buttons paint); 14 (the rows for the Trail,
+> the Trail Sheet, the Carousel's buttons and the share button). Sections 1 to 9 stand
+> except where #78 amends the module table (6), the test list (7) and the index (9).
+> The URL scheme (4), the Trail in it, the share link and the language mechanism are
+> unchanged, by the owner's instruction.
 >
 > **How to read this document.** Sections 1 to 4 are the 0.1 contracts the owner kept
 > (framework, Tree selection, chrome languages, the URL scheme); they carry small

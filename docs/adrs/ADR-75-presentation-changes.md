@@ -45,25 +45,41 @@ and what holds without JavaScript. Two do not: the images for every Node (4, the
 half) fit the format as it is, and the copy-link button (9) is a defect in one client
 component.
 
-Two of the owner's instructions also collide with something the owner said before:
+Three of the owner's instructions also collide with something the owner said before:
 
 - Change 5 says nothing is displayed under the Carousel's pictures. Core document
   section 8 requires a credit on every Image, `tree-format.md` 5.2 requires it to be
-  shown with the picture, and the owner made visible credits a release blocker on PR #54.
+  shown with the picture, and visible credits were made a release blocker on PR #54
+  (by the oversight session under the owner's standing instruction).
 - Changes 3 and 7 change what is drawn, while #35 kept "the way navigation works in line
   with the URL and the copy-link (share) option" out of scope. An Overlay that shows a
   Node without changing the address, and a Trail that is carried but not drawn, must
   both keep every Node reachable by URL.
+- Change 4 puts a side child's main image on the Option button that opens it. Core
+  document 3.1 and section 9 say images are loaded only for the Node on screen, and
+  `application.md` 11.5 -- the testable form of that rule, asserted by
+  `transition.spec.ts` -- says `GET /images/<file>` may not carry "an image of any other
+  Node, at any time, for any reason"; its 2026-09-14 amendment makes an Option's *own*
+  Images legal precisely because they belong to the centre Node, and 11.4 forbids any
+  image URL in a Node that is not on screen. The owner's example works today only
+  because the first Tree writes those pictures on the Options, not on their targets.
+  This is the stricter of the three collisions and is recorded as open item 10.29
+  with a proposed resolution, for #78 to decide.
 
 ## Decision
 
 1. **The core document is revised now, in this PR**, because the owner's written
    instruction in #75 is the same kind of source as the interview and as #35. Every
-   changed passage is marked `[#75]` and quotes #75. Three new open items record what
+   changed passage is marked `[#75]` and quotes #75. Four new open items record what
    the instruction leaves open: 10.26 (where the credit is shown when no text is under
    the pictures -- PROPOSED: in the enlarged view a click opens, and in the accessible
    text), 10.27 (the address of an open Overlay), 10.28 (the row budget and the length
-   limits after the main image). Item 10.23 records that the owner's own words in #75
+   limits after the main image), 10.29 (the side child's main image on the Option
+   button against the rule that images are loaded only for the Node on screen --
+   PROPOSED: a page may fetch, per Option, exactly the target's main image, and 11.5
+   gains that row). That the main image is the *first* Image of a Node is this ADR's
+   inference, marked PROPOSED in the core document, not the owner's words: the owner
+   asked only for a main image above the title. Item 10.23 records that the owner's own words in #75
    ("side-steps", "side nodes" for Option targets; "the buttons to navigate further
    down ... (yes and no buttons)" for Answers) are consistent with the PROPOSED reading.
 2. **The frozen specs are not rewritten by this issue.** Both carry a "superseded in
@@ -138,8 +154,10 @@ Two of the owner's instructions also collide with something the owner said befor
   banner saying which parts are superseded; the code keeps passing its tests.
 - #84 and #86 can be dispatched as soon as this PR merges; everything else
   waits for #78, then runs in parallel (the dispatcher's limit is three at a time).
-- Open items for the owner: 10.26 (the credit's place), and 10.28 if the Architect finds
-  the description's 600 characters cannot survive the main image.
+- Open items for the owner: 10.26 (the credit's place), the first-Image reading of the
+  main image (3.1, PROPOSED), and 10.28 if the Architect finds the description's 600
+  characters cannot survive the main image. Open items for the Architect on #78: 10.27
+  (the Overlay's address) and 10.29 (the Option button's picture against 11.4 and 11.5).
 - The ADRs that #78 supersedes (`ADR-38-tree-view.md`, `ADR-38-carousel.md`,
   `ADR-38-neighbourhood.md`, `ADR-38-transitions.md`, `ADR-37-length-limits.md`,
   `ADR-37-images-carousel.md` as far as it concerns Option pictures) are untouched here
