@@ -97,7 +97,7 @@ function branches(html: string, className: string): Array<[href: string, title: 
   return [
     ...html.matchAll(
       new RegExp(
-        `<a class="branch ${className}[^"]*" href="([^"]*)"[^>]*>(?:<img [^>]*>)?<span class="branch-label">(?:<span class="branch-word"[^>]*>[^<]*</span>: )?<span class="branch-title">(?:<span[^>]*>)?([^<]*)`,
+        `<a class="branch ${className}[^"]*" href="([^"]*)"[^>]*>(?:<img [^>]*>)?<span class="branch-label">(?:<span class="branch-word"[^>]*>[^<]*</span><span class="branch-colon">: </span>)?<span class="branch-title">(?:<span[^>]*>)?([^<]*)`,
         'g',
       ),
     ),
@@ -454,9 +454,9 @@ describe('a question Node with Options', () => {
     expect(part(html, 'div', 'answers')).toBe(
       '<div class="answers" role="group" aria-labelledby="node-title">' +
         '<a class="branch answer answer--yes" href="/ai-act-example/start/prohibited-practices/prohibited" data-slide="">' +
-        '<span class="branch-label"><span class="branch-word">Yes</span>: <span class="branch-title">This is a prohibited practice</span></span></a>' +
+        '<span class="branch-label"><span class="branch-word">Yes</span><span class="branch-colon">: </span><span class="branch-title">This is a prohibited practice</span></span></a>' +
         '<a class="branch answer answer--no" href="/ai-act-example/start/prohibited-practices/covered" data-slide="">' +
-        '<span class="branch-label"><span class="branch-word">No</span>: <span class="branch-title">The AI Act applies to your system</span></span></a>' +
+        '<span class="branch-label"><span class="branch-word">No</span><span class="branch-colon">: </span><span class="branch-title">The AI Act applies to your system</span></span></a>' +
         '</div>',
     )
   })
@@ -569,7 +569,7 @@ describe('a Terminal', () => {
     expect(branches(html, 'answer')).toEqual([
       ['/ai-act-example/start?lang=nl', 'Valt uw AI-systeem binnen het bereik van de AI-verordening?'],
     ])
-    expect(html).toContain('<span class="branch-word">Opnieuw beginnen</span>: ')
+    expect(html).toContain('<span class="branch-word">Opnieuw beginnen</span><span class="branch-colon">: </span>')
     expect(html).toContain('<a class="up-arrow" href="/ai-act-example/start/prohibited-practices?lang=nl" rel="prev"')
   })
 

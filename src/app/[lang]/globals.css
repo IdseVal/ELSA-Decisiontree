@@ -829,7 +829,7 @@ a.language:hover,
   max-width: 100%;
   min-height: 60px;
   padding: 6px 20px;
-  border-color: var(--elsa-accent-secondary);
+  border: 0;
   background: var(--elsa-accent-secondary);
   color: var(--elsa-on-accent-secondary);
   font-family: var(--elsa-font-heading);
@@ -1179,6 +1179,21 @@ a.language:hover,
  * so it shows the shorter caption the server wrote for it: the credit whole, and whatever of
  * the description is left beside it.
  */
+/*
+ * Narrower than two 620-pixel Answer buttons, a label of 86 characters takes a third line
+ * or more, and the row grows to hold it rather than cut it (10.3). At and above the
+ * guarantee it stays the 68 of 10.1.
+ */
+@media (max-width: 1279px) {
+  :root {
+    --answers-row: auto;
+  }
+
+  .answers {
+    padding-block: 4px;
+  }
+}
+
 @media (max-width: 1279px) {
   .caption-wide {
     display: none;
@@ -1395,7 +1410,19 @@ a.language:hover,
   }
 
   .answer {
+    min-height: 0;
     padding-inline: 12px;
+  }
+
+  /*
+   * A 170-pixel button holds eleven characters a line of the 19-pixel label, which must stay
+   * large text to be readable on a mid-tone fill (13.1): an 86-character label is eight lines,
+   * more than the whole Bubble gives up at this width. So the button keeps its word -- yes,
+   * no, start again -- and gives up the target's title, which the page it leads to shows.
+   */
+  .answer .branch-colon,
+  .answer .branch-title {
+    display: none;
   }
 
   .disclaimer p {

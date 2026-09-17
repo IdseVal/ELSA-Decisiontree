@@ -60,7 +60,7 @@ export function Branch({
             <span className="branch-word" lang={wordLang}>
               {word}
             </span>
-            {': '}
+            <span className="branch-colon">: </span>
           </>
         )}
         <span className="branch-title">{title}</span>
