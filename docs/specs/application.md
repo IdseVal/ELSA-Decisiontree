@@ -107,11 +107,13 @@ Linux server and serves exactly one Tree, named by the environment variable
 the current Node, the query carries the language. A request takes the current Node and
 a bounded neighbourhood around it -- at most seventeen Nodes, never the Tree -- from
 the loader's in-memory index and returns complete HTML: the current Node as a round
-**Bubble** in the centre of a screen-sized tree, the Trail as clickable **Branches**
-above it, its Answer targets as Branches below and its Option targets as Branches
-beside, its Images as a **Carousel** under it. Following a Branch slides the tree until
-the target Bubble is in the centre, and ends at exactly the URL a plain link would have
-reached. The page never scrolls. Colours, fonts and the logo come from the loaded
+**Bubble** in the centre of a screen-sized tree -- its main image above its title, its
+description with its explainers, its Sources under a heading -- one **up arrow** on its
+top outline that goes a step back, its Answer targets as two alike buttons below, its
+Option targets as buttons fanned out beside it that open their side child in an
+**Overlay**, and its further Images as a strip of pictures on its lower outline
+(**[#75]**). Following the arrow or an Answer slides the tree until the target Bubble
+is in the centre, and ends at exactly the URL a plain link would have reached. The page never scrolls. Colours, fonts and the logo come from the loaded
 Tree's Theme and are served from that Tree's folder, so no request ever leaves this
 origin. Chrome comes in English and Dutch and follows the content language, falling
 back to English. There is no database, no account, no cookie, no analytics, and nothing
