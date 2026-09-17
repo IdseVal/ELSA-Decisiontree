@@ -57,10 +57,10 @@
   --bubble-radius: 180px;
   --page-inset: 0px;
   /*
-   * The up arrow (10.2): a round button centred on the Bubble's top outline, or as near the
-   * centre as the rim allows -- it stops 2 pixels short of the text area. The band above the
-   * Bubble is what of it stands above the outline, and 2 pixels clear of the chrome bar:
-   * 26 at the guarantee.
+   * The up arrow (10.2): a round button whose foot is 2 pixels above the Bubble's padding,
+   * which on the guaranteed Bubble centres it on the outline. The band above the Bubble is
+   * what of it stands above the outline, and 2 pixels clear of the chrome bar: 26 at the
+   * guarantee.
    */
   --up-size: 48px;
   --up-row: calc(var(--up-size) - var(--rim-y) + 4px);
@@ -573,12 +573,12 @@ a.language:hover,
 
 /*
  * The way back (10.2), in the Answer buttons' style: filled with the walk's controls' colour
- * and lettered like them (13.1). Its foot is 2 pixels above the text area, so on the
- * guaranteed Bubble its centre is on the outline.
+ * and lettered like them (13.1). Placed from the padding box, whose top is inside the
+ * 2-pixel outline: its foot 4 pixels above the rim's end is its centre on the outline.
  */
 .up-arrow {
   position: absolute;
-  top: calc(var(--rim-y) - 2px - var(--up-size));
+  top: calc(var(--rim-y) - 4px - var(--up-size));
   left: 0;
   right: 0;
   z-index: 1;
