@@ -4,6 +4,26 @@
 > contract: any Tree that follows it loads in the ELSA decision-tree frontend without a
 > code change. Changing it requires a new `architecture` issue and a new format number.
 >
+> **Superseded in part -- 2026-09-17 (issue #75).** The owner asks for two things the
+> data must carry (`docs/CORE_DOCUMENT.md` 3.1, revised 2026-09-17;
+> `docs/adrs/ADR-75-presentation-changes.md`): **explainers** -- the Tree says which
+> words of a Node's text have a short explanation shown on hover, and what it says, per
+> language -- and a **main image** on every Node, which is the first entry of `images`
+> and needs no new key (the first-entry reading is PROPOSED in the core document, 3.1,
+> and is ADR-75's inference, not the owner's words). Architecture issue #78 freezes
+> `elsa-tree/3` with the explainer shape (a new key, its length limits, how an
+> occurrence in the text is marked, its validity rules and the migration from
+> `elsa-tree/2`), decides whether an Option still carries `images` of its own (5.4) now
+> that its button shows its target's main image (core document 10.29), confirms or
+> corrects the length limits of 5.7 after the main image takes height inside the
+> Bubble, and re-states 5.2's "the caption under a picture is its `description`; the
+> credit is shown with it, in the Carousel and in the enlarged view" and the `credit`
+> row's "shown with the picture": nothing is written under the pictures any more, the
+> description is accessible text only, and where the credit is shown is core document
+> 10.26. The keys of 5.2 do not change. Everything else carries over. Until #78 merges and
+> issue #79 builds it, `elsa-tree/2` is the format on `dev` and both Trees stay in
+> it; nothing new may be built against the parts named here.
+>
 > **What this version is.** `elsa-tree/2` replaces `elsa-tree/1` (frozen 2026-09-03,
 > issue #4; kept readable on branch `version-0.1`, file `docs/specs/tree-format.md`
 > there). The owner changed three requirements the old format rested on
