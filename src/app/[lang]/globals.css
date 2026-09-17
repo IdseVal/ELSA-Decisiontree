@@ -1229,9 +1229,11 @@ a.language:hover,
   min-width: 0;
 }
 
-.trail .sheet-open {
+/* One line of 16 and a border: 18 pixels, 4 clear of the chrome bar's rule and of the Bubble (#65). */
+.trail .sheet-open,
+.trail-step[data-parent] .trail-entry {
   padding-block: 0;
-  line-height: 18px;
+  line-height: 16px;
 }
 
 @media (max-width: 1279px) {
@@ -1241,6 +1243,10 @@ a.language:hover,
 
   .trail-step[data-parent] {
     max-width: 480px;
+  }
+
+  .trail-step[data-parent] .trail-entry {
+    line-height: 18px;
   }
 }
 
