@@ -350,7 +350,7 @@ test('the moment just after the payload lands, screenshot: the page left behind 
 test('a slide started with a Sheet open closes it first, so no panel travels with the layer (10.6, 11.3)', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 640 })
   await page.goto(ROOT)
-  await page.locator('.thumbnail').first().click()
+  await page.locator('.main-image').click()
   await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
 
   // Hold the target's payload back, so the page that started the slide is still the one sliding.

@@ -274,11 +274,13 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     const options = await page.locator('.option').count()
     expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)
     await expect(page.locator('.option-image')).toHaveCount(options)
-    // The Node's own picture and, after it, the one of each Option (application.md 12.1).
-    await expect(page.locator('.carousel .thumbnail img')).toHaveCount(options + 1)
+    // The Node's own picture is its main image; an Option's picture is on its button only and
+    // does not join the strip (application.md 12.1).
+    await expect(page.locator('.bubble .main-image img')).toHaveCount(1)
+    await expect(page.locator('.carousel .thumbnail')).toHaveCount(0)
 
     // The description is the alternative text (tree-format.md 5.2), in the reader's language.
-    for (const image of await page.locator('.option-image, .carousel .thumbnail img').all()) {
+    for (const image of await page.locator('.option-image, .bubble .main-image img').all()) {
       expect((await image.getAttribute('alt'))?.trim(), 'an Image with no alternative text').toBeTruthy()
     }
 
