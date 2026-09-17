@@ -1,7 +1,7 @@
 # Core document
 
 > Populated by deep interview with the project owner. Nothing here is inferred.
-> Status: AGREED -- 2026-09-09 (revised; first agreed 2026-09-03)
+> Status: AGREED -- 2026-09-17 (revised; first agreed 2026-09-03, revised 2026-09-09)
 > The owner noted the document may change in future; changes go through a revision round and a PR.
 >
 > **Revision of 2026-09-09 (issue #35).** After seeing version 0.1 of the tool the owner
@@ -10,8 +10,14 @@
 > built -- code, both Trees, the specs it was built against -- is preserved on the branch
 > `version-0.1`. The decision to rework in place and how the change reaches the specs is
 > `docs/adrs/ADR-35-version-0-2-rework.md`; the work is issues #36 to #46.
+>
+> **Revision of 2026-09-17 (issue #75).** The owner saw version 0.2 running ("this is
+> initially great") and wrote, in issue #75, nine changes to the display and layout.
+> Every passage that changed is marked **[#75]** and quotes or cites #75; nothing else in
+> this document was touched. How the changes reach the specs is
+> `docs/adrs/ADR-75-presentation-changes.md`; the work is issues #78 to #87.
 
-Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revision 2026-09-09.
+Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09 and 2026-09-17.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
 Items marked **PROPOSED** are the Planner's wording, waiting for the owner to confirm or correct.
 
@@ -107,6 +113,30 @@ required was named.
     expects them on every step and list entry ("where are the images? I told you there
     should be image carrousells below the node bubble"); the first Tree was authored
     without any, which issue #45 corrects. The format always had room for them.
+    **[#75] Every Node has a main image (owner, #75):** "I also want every node to come
+    with a main-image that is displayed above the node bubbles title." It is shown
+    above the title (3.2); a side child's main image is also shown, small, on the
+    button that opens it. The owner wants every Node of the data prepared so far to
+    carry one -- "Make sure every node in the placeholder data (the structure you have
+    prepared so far) has an image so I can test and inspect how this work" -- which
+    issue #84 does for both Trees. PROPOSED (Planner, not the owner's words): the data
+    says which Image is the main one by its place -- **the first Image of a Node is its
+    main image** -- because the format already makes the list the order
+    (`docs/specs/tree-format.md` 5.2) and a separate key would be a second way to say
+    it (`docs/adrs/ADR-75-presentation-changes.md`); the owner may correct this on
+    #78. Whether an Option keeps Images of its own or the picture on its button is
+    simply its target's main image is the Architect's (issue #78); that the button
+    shows an image of a Node other than the one on screen collides with "images are
+    loaded only for the Node on screen" (below, section 9) and is **OPEN 10.29**.
+  - **[#75] Explainers (owner, #75):** some words in a Node's text carry a short
+    explanation that the frontend shows in a small panel on hover (3.2): "on
+    'Jurisdictional scope of the AI Act? (1/7)' I want 'provider' to be hoverable with
+    this mechanism with an explainer, this should be clear from the datastructure that
+    this term has a small explainer with a hover." So the Tree data, not the frontend,
+    says **which words of which Node have an explainer, and what it says, per
+    language**. The shape -- how a term is declared, how its occurrence in the text is
+    marked, its maximum length -- is the Architect's to freeze under a new format number
+    (issue #78); the first Tree's explainers are authored by issue #85.
 - A Node's outgoing Links are of two kinds. **[v0.2]** On screen the Answer targets
   are the Node's **children** and the Option targets its **side children** (the owner's
   words in #35; this reading is PROPOSED, **OPEN 10.23**):
@@ -122,6 +152,8 @@ required was named.
   Answers of its own. The user reads it, goes back through the Trail to the parent, and
   answers the parent's yes/no there (e.g. having found that none of the prohibited
   practices applies, they answer "no" on the "prohibited practices" Node and move on).
+  **[#75]** On screen the side child no longer replaces the parent: it opens in an
+  **Overlay** over the parent's page (3.2), and "going back" is closing it.
 - **Terminal Nodes** (Planner's decision, delegated by the owner): a Node that ends the
   walk (e.g. "the AI Act does not apply") is **marked explicitly** as a terminal, with
   an outcome the frontend can style. "No outgoing Links" is NOT sufficient as a marker,
@@ -145,27 +177,100 @@ required was named.
   displayed as a **Bubble** ("a bubble is round btw"), "with the branches above visible
   and clickable, and branches going out for the children and side children". So: the
   Trail is the branches above the Bubble; the Answer targets and the Option targets are
-  branches out of it, each showing its target's title and leading to it.
+  branches out of it, each showing its target's title and leading to it. **[#75]**
+  Revised by the owner after seeing it: the branches above are no longer drawn (the up
+  arrow, below), the side children open in an Overlay instead of replacing the Bubble,
+  and both Answer buttons look the same. The bullets marked [#75] below say what
+  changed; the Bubble, the no-scroll rule, the slide and the Theme stand.
+- **[#75] Side children open in an Overlay (owner, #75).** "What are now side-steps on
+  a main-path node, for example on the node 'Does a full exclusion in Article 2 cover
+  your system?' it has a side-node called 'Research or testing before placing on the
+  market'. I want all side nodes to be still displayed on the side as they are now, but
+  when clicked they should load in an overlay on the page, with a little cross to close
+  it, or when clicked outside of it it closes. This overlay should just contain the
+  larger explainer that would be displayed in the side-node." So: the Option buttons
+  stay beside the Bubble; clicking one opens its target -- the side child's main image
+  above its title, then its title, description and Sources -- in an **Overlay** over the
+  page, closed by a cross, by Escape or by a click outside it. Every Node stays
+  reachable by URL (shareable links, below); how an open Overlay relates to the address
+  is the Architect's (**OPEN 10.27**, issue #78).
+- **[#75] The side children fan out like a mind map, in larger text (owner, #75).**
+  "The text on the side-nodes as they are displayed must be bigger and better readable,
+  also I want how the side-nodes are displayed to fan out a little more like a mindmap."
+  Each side child's button shows its main image, small: "example we already do this:
+  'Is your system a safety component, or a product, under Annex I? (2/3)' the sidenodes
+  have this, we want that on all side-nodes in the structure." (The example works
+  today because those pictures are written on the Options themselves, not on their
+  targets; a picture that belongs to the side child collides with the image rule of
+  3.1 and section 9 -- **OPEN 10.29**, issue #78.)
+- **[#75] A main image above the title (owner, #75).** Every Node's main image (3.1) is
+  displayed above the Node's title in its Bubble, "and the overlay itself follows the
+  same rule of displaying the image above the title." The height it takes inside the
+  Bubble, against the length limits of 3.1, is **OPEN 10.28** (issue #78).
+- **[#75] The Carousel: pictures only, no buttons, no caption, at the Bubble's lower
+  edge (owner, #75).** "There can be more images than the main image, these should be
+  shown in the carroussell, however, the rule was that the carrousel will not have any
+  buttons, so there will just be the images, and, I want the carroussel of images to be
+  displayed at the lower edge of the opened node bubble. The maps text should also not
+  be visible, it can be as part of the accessiblity data on the image for blind people,
+  but we do not want to display it." So: the Carousel holds the Node's Images after the
+  main one; it has no previous/next buttons; nothing is written under the pictures; an
+  Image's description is its accessible text and is not displayed. The **credit** every
+  Image must carry (section 8, 10.12) is not displayed under the pictures either; where
+  it is shown instead is **OPEN 10.26** (PROPOSED: in the enlarged view a click on the
+  picture opens, and in the picture's accessible text).
+- **[#75] Both Answer buttons the same, bigger, in the logo's green (owner, #75).**
+  "The buttons to navigate further down the decision-tree should be bigger, the text
+  better readible, we want to keep it simple and we don't want to steer the user with
+  the button colors, so both should have the same layout, both the same green as the
+  text from the ELSA logo." The green of the lettering in the ELSA-Lab logo was measured
+  by issue #36 as `#159a2f` (`docs/research/issue-36-ai4sfs-visual-identity.md`,
+  section 4.2, row "Logo mark, green"); it is not the site's interface green `#41ab64`
+  that section 7 of the same document names `accentSecondary`. It
+  reaches the buttons through the first Tree's Theme, never through the frontend's code
+  (section 9); by which Theme role is the Architect's (issue #78).
+- **[#75] The Trail is no longer drawn; an up arrow goes one step back (owner, #75).**
+  "The pathing we show above the node, that shows what questions have been answered do
+  not look that nice, we would rather want to not display that there, but we want to
+  just show an upwards arrow in the same style and roundness as the further buttons
+  (yes and no buttons), and when clicked it should navigate to the node that was
+  previously opened in the traversal." This reverses the [v0.2] "branches above": the
+  Trail stays in the URL and in the shared link (the owner's instruction of #35, kept
+  below), but on screen it is **one round button with an upward arrow**, in the style
+  of the Answer buttons, that goes to the Trail entry directly above the current Node
+  and discards the Trail after it (10.17).
+- **[#75] A "Legal sources" heading (owner, #75).** "In the node bubble, I want the
+  sources to have a header 'Legal sources' or 'Juridische bronnen' in Dutch, with the
+  sources listed below that." The heading is chrome, in the chrome language; the Node's
+  Sources are listed under it.
+- **[#75] The copy-link button just copies (owner, #75).** "The copy link button should
+  just copy the link to the clipboard, whatever it is doing now is not good." One click
+  puts the page's own link in the clipboard. Issue #86 finds out what it does now
+  in the owner's browser and fixes it; the link itself (the shareable link, below) is
+  unchanged.
 - **[v0.2] Everything fits inside the Bubble; the page never scrolls (owner, #35).**
   "Everything that is on an opened node should fit on the screen, inside the bubble. We
   absolutely cannot have any scrolling on the page." This is a hard rule (section 9).
   It is met on the data side by length limits (3.1) and by cutting long steps into
   several (3.3), and on the frontend side by a layout designed for a stated viewport,
-  which the Architect fixes (**OPEN 10.22**, issue #38).
+  decided by the Architect, 10.22 (issue #38): 1280 x 640 CSS pixels guaranteed,
+  `docs/adrs/ADR-38-no-scroll.md`.
 - **[v0.2] Smooth transitions (owner, #35).** "I want the transitions to slide over the
   tree to the next node." Following a branch slides the tree so the target becomes the
   Bubble; the neighbouring Nodes are pre-rendered for that (3.1).
 - **[v0.2] Images as a carousel (owner, #35).** The Node's Images are shown as an
   **image carousel below the Bubble**. This reverses 10.6 (thumbnails without chrome).
-  Clicking an image still shows it larger, with its description and credit.
+  Clicking an image still shows it larger, with its description and credit. **[#75]**
+  Revised: pictures only, no buttons, no caption, at the Bubble's lower edge (above).
 - The Node offers its Answers (yes / no) and, if it has them, its Options; clicking any
   of these navigates to the linked Node. **[v0.2]** They are the branches out of the
-  Bubble.
+  Bubble. **[#75]** An Option opens its target in an Overlay (above).
 - Navigation through the tree must be intuitive and click-based.
 - The way back must be clearly visible: the **Trail** of visited Nodes is drawn upward
   from the current Node. **Clicking a Trail entry jumps back to that Node and discards
   the part of the Trail after it.** **[v0.2]** The Trail is the branches above the
-  Bubble.
+  Bubble. **[#75]** The Trail is no longer drawn: the way back is the up arrow, one
+  step at a time (above); the Trail itself is still in the URL.
 - **[v0.2] Branding from the Tree (owner, #35).** Logo, colours and fonts come from
   the loaded Tree's Theme (3.1), so a third-party Tree shows its own lab's identity
   without a code change; a Tree without a Theme gets a plain default look. The first
@@ -176,17 +281,22 @@ required was named.
   (section 4), the path travels inside the link itself (PROPOSED consequence).
 - **Language switch**: the UI lets the user choose among the languages the loaded Tree
   provides. UI chrome (yes/no labels, disclaimer, share button) -- which languages, and
-  what to show when the Tree's language has no chrome translation -- **OPEN 10.20**.
+  what to show when the Tree's language has no chrome translation -- decided by the
+  Architect, 10.20: English and Dutch, falling back to English,
+  `docs/adrs/ADR-5-chrome-languages.md`.
 - A permanently visible **"not legal advice" disclaimer** (footer).
 - Interoperable: the same frontend loads any Tree in the agreed shape with no code
   change. Whether one deployment serves exactly one Tree or offers a choice of Trees
-  is **OPEN 10.19**.
+  was decided by the Architect, 10.19: one Tree per deployment,
+  `docs/adrs/ADR-5-tree-selection.md`.
 - Technical qualities the owner requires: lightweight component, lazy loading,
   server-side rendering, nothing heavy on screen; prefer slightly more network traffic
   over a clunky app. Simple code: not many files, no long files -- it is a small app.
 - **[v0.2] Unchanged by the owner's instruction (#35, "out of scope"):** the
   mechanisms for different languages, and the way navigation works in line with the URL
-  and the copy-link (share) option.
+  and the copy-link (share) option. **[#75]** Still unchanged: #75 changes what is
+  drawn and how a side child opens, not the URL, the Trail carried in it, or the
+  language mechanism; the copy-link button is repaired (above), not redesigned.
 
 ### 3.3 Content of the first Tree (AI Act applicability, agrifood)
 
@@ -227,6 +337,10 @@ task; the owner's recollections below are starting points, NOT verified facts):
    step does not, "we must make the decision-tree multistep where we now made it single
    step or we collapse duplicate sentences." The legal content stays as #3 verified it;
    only the cut changes. Item 1 is the owner's worked example.
+9. **[#75] Explainers and a main image on every step (owner, #75).** The defined terms
+   a step uses -- the owner's example is "provider" on the first jurisdiction step --
+   carry an explainer (3.1), and every Node of the first Tree carries a main image so
+   the owner can inspect the result (3.1; issues #84 and #85).
 
 The owner will author and refine the data structure themselves and expects to refine
 the traversal details once they have visual feedback from the working tool. For the
@@ -263,16 +377,19 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 | **Node** | One step in a Tree. Has title, description, Sources, metadata (incl. version), Images, and outgoing Links (Answers and/or Options), or a terminal marker. All user-facing text is per language. **[v0.2]** Every text field has a maximum length. | item, step, object, bubble, data item, reasoning step |
 | **Link** | Any clickable connection from one Node to another. Two kinds: Answer and Option. | -- |
 | **Answer** | The yes or no Link on a Node; each leads to exactly one target Node. **[v0.2]** Its target is a **child** of the Node on screen (PROPOSED, 10.23). | yes/no, children |
-| **Option** (PROPOSED) | A named entry in a Node's list, with its own title and optional Images, leading to an explanation-only child Node. **[v0.2]** Its target is a **side child** of the Node on screen (PROPOSED, 10.23). | condition, area, listed item, side children |
+| **Option** (PROPOSED) | A named entry in a Node's list, with its own title and optional Images, leading to an explanation-only child Node. **[v0.2]** Its target is a **side child** of the Node on screen (PROPOSED, 10.23). **[#75]** Its button beside the Bubble shows the side child's main image and opens the side child in an Overlay. | condition, area, listed item, side children, side-steps, side-nodes |
 | **Terminal** | A Node explicitly marked as ending the walk, with an outcome (e.g. "AI Act does not apply"). | message |
 | **Image** | A picture attached to a Node or an Option; has a description, a credit, and an optional pointer to a Source. Stored server-side in a dedicated images folder. **[v0.2]** Shown in the Carousel. | image, picture |
 | **Source** | A reference attached to a Node or Image, with a URL. Kinds: **legal**, **case law**, **literature**, labelled distinctly in the data. | legal reference, caselaw reference, literature reference, source parameter |
-| **Trail** | The ordered list of Nodes the user visited to reach the current Node; clickable to jump back. Carried in a shared link. **[v0.2]** Drawn as the Branches above the Bubble (was: a line upward). | the way back, line to previous items, path, the branches above |
+| **Trail** | The ordered list of Nodes the user visited to reach the current Node; clickable to jump back. Carried in a shared link. **[v0.2]** Drawn as the Branches above the Bubble (was: a line upward). **[#75]** No longer drawn: the way back is the **up arrow**, one round button above the Bubble that goes to the entry directly above; the Trail itself stays in the URL. | the way back, line to previous items, path, the branches above, the pathing |
 | **Cross-link** | A Link from a Node to a Node in another Tree, or to a non-child Node in the same Tree. Future capability. | link different graphs, cross-link between graph items |
 | **Bubble** | **[v0.2]** The round view of the Node that is open: its title, description, Sources, outcome. Everything in it fits on screen without scrolling. | bubble, opened node |
-| **Branch** | **[v0.2]** A Link as drawn on screen: a line from the Bubble to a Trail entry above it, or out to a child or side child, labelled with the target's title, clickable. | branches above, branches going out |
-| **Carousel** | **[v0.2]** The strip of the open Node's Images below the Bubble, with controls to move between them. | image carrousell |
+| **Branch** | **[v0.2]** A Link as drawn on screen: a line from the Bubble to a Trail entry above it, or out to a child or side child, labelled with the target's title, clickable. **[#75]** No Branches above any more: a Branch is an Answer button below the Bubble (both the same, in the logo's green) or a side child's button beside it (its main image and title, fanned out like a mind map). | branches above, branches going out, buttons |
+| **Carousel** | **[v0.2]** The strip of the open Node's Images below the Bubble, with controls to move between them. **[#75]** The Node's Images after the main image, at the lower edge of the Bubble: pictures only, no buttons, no caption. | image carrousell |
 | **Theme** | **[v0.2]** The logo, colours and fonts a Tree carries so the frontend shows that Tree's lab's identity. Files in the Tree's folder; nothing external. | styles and logo, their logo is displayed |
+| **Main image** | **[#75]** The Image a Node leads with: its first Image (PROPOSED, 3.1). Shown above the Node's title in its Bubble or Overlay, and small on the button that opens the Node as a side child (10.29). | main-image |
+| **Overlay** | **[#75]** The panel a side child opens in, over the page of the Node it belongs to: the side child's main image, title, description and Sources. Closed by a cross, by Escape, or by a click outside it. | overlay |
+| **Explainer** | **[#75]** A short explanation of one term in a Node's text, declared in the Tree data per language and shown in a small panel when the term is hovered (or focused, or tapped). | small explainer, hoverable, explainer |
 
 ## 6. Data sources and their constraints
 
@@ -285,7 +402,8 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
   in the repository. Each carries a credit. They are served from the server and loaded
   only for the Node on screen -- never all at once. **[v0.2]** The owner has not placed
   any and asked in #35 where they are; issue #45 has the agents source openly licensed
-  images with full credits, which the owner may replace (PROPOSED, **OPEN 10.24**).
+  images with full credits, which the owner may replace (accepted by the owner on #72,
+  2026-09-17; 10.24).
 - **[v0.2] Theme assets** for the first Tree: the logo and fonts of https://ai4sfs.org,
   the ELSA-Lab's own site, copied into the Tree's folder with their licences (the fonts
   are expected to be under the SIL Open Font License; issue #36 verifies). Reuse of the
@@ -329,6 +447,8 @@ Confirmed by the owner on 2026-09-03:
   duty of the owner, not a property of the code.)
 - **[v0.2] The page must never scroll** (owner, #35: "We absolutely cannot have any
   scrolling on the page"). Everything a Node shows fits inside its Bubble on the screen.
+  **[#75]** An open Overlay and an open explainer panel are on the page too: neither
+  scrolls, and neither makes the page scroll.
 - **[v0.2] The frontend must never carry a lab's branding in its code**: logo, colours
   and fonts come from the loaded Tree, so a third-party Tree shows its own (#35).
 
@@ -341,7 +461,7 @@ Confirmed by the owner on 2026-09-03:
 | 10.3 | Stakeholders. | -- | answered (section 1) |
 | 10.4 | Languages. | -- | answered: per-language text inside each Node; languages optional and open-ended |
 | 10.5 | Metadata. | -- | answered: version + free-form; Sources carry URLs |
-| 10.6 | Carousel. | -- | **[v0.2] reversed by the owner (#35, 2026-09-09):** an image carousel below the Bubble. Was: thumbnails only, no chrome (2026-09-03). Built by #43 |
+| 10.6 | Carousel. | -- | **[v0.2] reversed by the owner (#35, 2026-09-09):** an image carousel below the Bubble. Was: thumbnails only, no chrome (2026-09-03). Built by #43. **[#75] revised by the owner (2026-09-17):** pictures only, no buttons, no caption, at the Bubble's lower edge, holding the Images after the main image (3.2); re-frozen by #78, rebuilt by #81 |
 | 10.7 | After the high-risk step. | -- | answered: general-purpose AI step, then Article 50 transparency step; nothing further for now (section 3.3) |
 | 10.8 | NON-scope. | -- | answered (section 4) |
 | 10.9 | Traversal after an Option's child Node. | -- | answered: explanation only; back via Trail; may be refined later |
@@ -358,6 +478,10 @@ Confirmed by the owner on 2026-09-03:
 | 10.20 | UI chrome languages, and fallback when the Tree's language has no chrome translation. Architect decides; Planner's expectation: chrome in English and Dutch, fall back to English. | Architect | decided by Architect (2026-09-03): chrome ships in English and Dutch, as typed strings in the code (`src/chrome.ts`). Chrome follows the content language when it is English or Dutch and falls back to English otherwise; the content language is never affected. `docs/adrs/ADR-5-chrome-languages.md`, `docs/specs/application.md` section 3 |
 | 10.21 | **[v0.2]** Serialisation of the single Tree file (3.1): YAML kept, or another form, with hand-editability of one large multilingual file as the criterion; the theme block; the length limits and how a step counter such as "(1/7)" is written; the migration from `elsa-tree/1`. | Architect | decided by Architect (2026-09-10, issue #37): YAML kept, as a **YAML stream** in one `tree.yaml` -- the manifest first, then one document per Node with its `id` key, separated by `--- # <id>` lines, so a mistake breaks one Node and a search lists them all; the manifest carries an optional `theme` (logo, two font families by role, seven colours by role; each part complete or absent; files in `theme/`); every text field has a maximum (title 80, description 600 characters and 8 estimated lines, Option title 60, Source label 60, ...) and every list a maximum count (8 Options, 3 Sources), the same for every language, derived from a 1280 x 640 viewport that #38 confirms or corrects; the "(1/7)" counter is authored in the title; Images unchanged; migration is textual concatenation that reports every violation. `docs/specs/tree-format.md` (`elsa-tree/2`), `docs/adrs/ADR-37-*.md` |
 | 10.22 | **[v0.2]** The viewport the no-scroll layout guarantees (3.2), what happens on a smaller screen, and how "never scrolls" is tested. | Architect | decided by Architect (2026-09-10, issue #38): the layout **guarantees 1280 x 640 CSS pixels** -- a 1366 x 768 laptop, or a 1920 x 1080 one at 150 % scaling, minus browser chrome and taskbar -- and at or above it shows the full arrangement with nothing collapsed and nothing truncated. Below it the layout **gives things up in a fixed order of seven steps** (Trail, Carousel, Option columns move below, Options, Sources, then the type scale down to a floor of 13 px), each collapsed thing still reachable behind one control; the Node's title, description and Answer Branches are never given up. At or below a floor of **320 pixels of width or 480 pixels of height** -- smaller than any display in current use -- a minimum-size notice replaces the view and names the dimension that is short (amended 2026-09-13 by the owner on PR #56, issue #41: the rows need 568 pixels of height, so a window short in either dimension gets the notice; #38 had written "below a floor of 320 x 480"). The document **never** scrolls at any size, with an overlay open, or during a transition; the one element allowed to scroll is the Carousel strip, horizontally, inside its own row. Tested by `tests/browser/no-scroll.spec.ts` (Playwright, now part of the contract), which measures `scrollHeight` and `scrollWidth` against the viewport for the document and for **every** element, at ten named viewports, on every kind of Node in both languages, including a fixture Node at every maximum the format allows with a 49-entry Trail. `docs/adrs/ADR-38-no-scroll.md`, `docs/specs/application.md` 10.4 to 10.6 |
-| 10.23 | **[v0.2]** What "children" and "side children" mean (3.2, section 5). PROPOSED reading: children are the yes/no Answer targets, side children the Option targets. | Idse | **still PROPOSED** -- the owner has not answered on #38 (asked 2026-09-09; no comment by 2026-09-10). The Architect froze the view on the PROPOSED reading and recorded it as the working interpretation: **children are the Answer targets, drawn as Branches BELOW the Bubble; side children are the Option targets, drawn as Branches BESIDE it**, so that direction on screen carries the meaning -- above is where you came from, below is where an answer takes you, beside is an aside you read and come back from. Should the owner correct it, what changes is the direction a Link is drawn in, which one module (`src/neighbourhood.ts`) decides; no other contract moves. Say so on #38 or on #41. `docs/specs/application.md` 10.3, `docs/adrs/ADR-38-tree-view.md` |
-| 10.24 | **[v0.2]** Who sources the first Tree's images (section 6). PROPOSED: the agents source openly licensed images with full credits (#45); the owner replaces any at will. | Idse | PROPOSED -- the owner may object on #45; silence means accepted |
+| 10.23 | **[v0.2]** What "children" and "side children" mean (3.2, section 5). PROPOSED reading: children are the yes/no Answer targets, side children the Option targets. | Idse | **still PROPOSED** -- the owner has not answered on #38 (asked 2026-09-09; no comment by 2026-09-10). The Architect froze the view on the PROPOSED reading and recorded it as the working interpretation: **children are the Answer targets, drawn as Branches BELOW the Bubble; side children are the Option targets, drawn as Branches BESIDE it**, so that direction on screen carries the meaning -- above is where you came from, below is where an answer takes you, beside is an aside you read and come back from. Should the owner correct it, what changes is the direction a Link is drawn in, which one module (`src/neighbourhood.ts`) decides; no other contract moves. Say so on #38 or on #41. `docs/specs/application.md` 10.3, `docs/adrs/ADR-38-tree-view.md`. **[#75] Consistent with the owner's own words (2026-09-17):** in #75 the owner calls the Option targets "side-steps on a main-path node" and "side nodes" (the example is the exclusion "Research or testing before placing on the market", an Option target) and calls the Answers "the buttons to navigate further down the decision-tree ... (yes and no buttons)". The PROPOSED reading stands as the working interpretation; the owner may still correct it on #78 |
+| 10.24 | **[v0.2]** Who sources the first Tree's images (section 6): the agents source openly licensed images with full credits (#45); the owner replaces any at will. | Idse | answered: "accepted" (owner, #72, 2026-09-17) |
 | 10.25 | **[v0.2]** May the ai4sfs.org logo and fonts be copied into the repository, and under what licence line (section 6)? The owner asked for the logo; the fonts' licences are to be verified by #36. | Idse | open on the substance -- #36 reports the licences; the owner confirms the logo's use on #40 if anything beyond their own lab's ownership is needed. The format side is decided by Architect (2026-09-10, issue #37): every font family in a Tree carries a required `licence` line and its licence text sits next to the files in `theme/`; the logo carries a required alternative text; nothing is fetched from ai4sfs.org at run time. `docs/specs/tree-format.md` section 4.3, `docs/adrs/ADR-37-theme-block.md` |
+| 10.26 | **[#75]** Where an Image's credit is shown now that nothing is written under the Carousel's pictures (3.2, section 8). The credit is required on every Image (10.12) and visible credits were made a release blocker on PR #54 (by the oversight session under the owner's standing instruction, not by the owner in person); the owner now asks for no text under the pictures. | Idse | PROPOSED (2026-09-17): the credit is shown in the enlarged view a click on the picture opens (a picture is not a button), and is part of the picture's accessible text; the main image's credit the same way. The Architect freezes it on #78; the owner may correct it there; silence means accepted |
+| 10.29 | **[#75]** The side child's main image on the Option button (3.1, 3.2) against the image rule: "images are loaded only for the Node on screen" (3.1, section 9) and its testable form, `docs/specs/application.md` 11.4 and 11.5 ("`GET /images/<file>`: may not: an image of any other Node, at any time, for any reason"). An Option's own Images are legal there because they belong to the Node that holds the Option (the 2026-09-14 amendment); a side child's main image belongs to the side child. Today the 28 Option pictures of the first Tree are written on the Options themselves, which is why the owner's example already works. | Architect | to be decided by the Architect on #78. Planner's PROPOSED resolution: the rule is kept as a rule about pages -- a page may fetch the centre Node's Images and, for each of its Options, exactly one file, the target's main image, never the target's other Images -- so 11.5 gains that one row (bounded by the format's eight Options) and `transition.spec.ts` asserts the new set; an Option then needs no `images` of its own (`tree-format.md` 5.4), and the first Tree's 28 Option pictures move to their targets as those targets' main images (#84 gives every Node one). The alternative that leaves 11.5 untouched: an Option keeps `images` and the author writes the target's main image on the Option as well, so every side child's picture is stored twice |
+| 10.27 | **[#75]** The address of an open Overlay (3.2): does opening a side child change the URL, and what does the URL of an explanation Node show when it is opened directly or from a shared link? Every Node must stay reachable by URL and the Trail must stay in the link (3.2). | Architect | to be decided by the Architect on #78. Planner's expectation: the URL of an explanation Node shows its parent's page with the Overlay open, so every existing link keeps working |
+| 10.28 | **[#75]** The row budget and the length limits after the main image (3.1, 3.2): the main image takes height inside the Bubble, the Trail row's height is freed, the Carousel moves to the Bubble's lower edge and loses its caption line. Do the description's 600 characters and 8 lines survive, or do the limits change -- which would re-cut the first Tree a second time (3.3, item 8)? | Architect; Idse if content must be cut | to be decided by the Architect on #78. If the limits must shrink, the Architect asks the owner on #78 (label `needs-human`) before any Tree is re-cut |

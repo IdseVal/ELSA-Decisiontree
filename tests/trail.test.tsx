@@ -8,10 +8,12 @@
  */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeAll, describe, expect, test } from 'vitest'
 import { chrome, chromeLang } from '../src/chrome.ts'
 import { ShareButton } from '../src/components/ShareButton.tsx'
+import type { Neighbour } from '../src/components/Slider.tsx'
 import { TreeView } from '../src/components/TreeView.tsx'
 import { neighbourhood } from '../src/neighbourhood.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
@@ -30,8 +32,8 @@ beforeAll(async () => {
   }
 })
 
-/** The markup of the Node the URL names, rendered the way the page renders it. */
-async function view(url: string): Promise<string> {
+/** What the page at the URL renders from: its Tree, its address, its Node and its neighbourhood. */
+async function page(url: string): Promise<Parameters<typeof TreeView>[0]> {
   const { pathname, searchParams } = new URL(url, 'https://example.org')
   const tree = trees.get(pathname.split('/')[1]!)!
   // The `[lang]` segment the rewrite of 4.4 makes of the URL: these languages are all
@@ -40,7 +42,22 @@ async function view(url: string): Promise<string> {
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
   const node = await tree.getNode(address.nodeId)
   if (!node) throw new Error(`${url} names no Node`)
-  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} neighbours={await neighbourhood(tree, address, node)} />)
+  return { tree, address, node, neighbours: await neighbourhood(tree, address, node) }
+}
+
+/** The markup of the Node the URL names, rendered the way the page renders it. */
+async function view(url: string): Promise<string> {
+  return renderToStaticMarkup(<TreeView {...await page(url)} />)
+}
+
+/**
+ * The markup of each neighbour frame the page at the URL hands to the slide (11.3), by the
+ * frame's `href`. A frame enters the document only mid-slide, so it is taken from the props
+ * `TreeView` gives `Slider` rather than from the page's markup.
+ */
+async function neighbourFrames(url: string): Promise<Map<string, string>> {
+  const layout = TreeView(await page(url)) as ReactElement<{ children: [ReactElement<{ neighbours: Neighbour[] }>] }>
+  return new Map(layout.props.children[0].props.neighbours.map((n) => [n.href, renderToStaticMarkup(<>{n.frame}</>)]))
 }
 
 /** The Trail's markup on its own, or the empty string when the page draws no Trail. */
@@ -171,6 +188,42 @@ describe('the Trail', () => {
     expect(trailBranches(html)).toHaveLength(49)
     expect(sheet(html).match(/<a href="/g)).toHaveLength(49)
     expect(trail(html)).toContain('44 earlier steps')
+  })
+
+  test('a neighbour frame draws the Trail its own page shows at the guaranteed viewport, and no Trail Sheet list (#60, 11.3)', async () => {
+    // A 49-entry Trail whose neighbours carry 50; a Trail of three whose neighbours carry four
+    // (the guaranteed viewport draws all of them); and the example Tree's own Nodes.
+    const pages = [walkOf(49), walkOf(3), '/ai-act-example/start/prohibited-practices/social-scoring']
+    let long = 0
+    for (const url of pages) {
+      const frames = await neighbourFrames(url)
+      expect(frames.size, url).toBeGreaterThan(0)
+      for (const [href, frame] of frames) {
+        const own = await view(href)
+        const branches = trailBranches(own)
+        // `start` and the last four: the entries 10.2 draws, and every narrower step shows fewer.
+        const kept = branches.filter((_, index) => index === 0 || index >= branches.length - 4)
+        if (kept.length < branches.length) long++
+
+        expect(trailBranches(frame), href).toEqual(kept)
+        // The same row and the same collapsed control say the same thing, so nothing jumps at the handover.
+        expect(/<nav class="[^"]*"/.exec(frame)?.[0], href).toBe(/<nav class="[^"]*"/.exec(own)?.[0])
+        expect(/<summary[\s\S]*?<\/summary>/.exec(sheet(frame))?.[0], href).toBe(/<summary[\s\S]*?<\/summary>/.exec(sheet(own))?.[0])
+        // Behind that control, nothing: the frame is inert, and its page brings the list.
+        expect(sheet(frame), href).not.toContain('<a ')
+      }
+    }
+    // The case that matters was measured at all: at least one frame dropped entries.
+    expect(long).toBeGreaterThan(0)
+  })
+
+  test('the centre frame still carries the whole Trail and its Sheet, beside trimmed neighbours', async () => {
+    const html = await view(walkOf(49))
+    const frames = [...(await neighbourFrames(walkOf(49))).values()]
+
+    expect(trailBranches(html)).toHaveLength(49)
+    expect(sheet(html).match(/<a href="/g)).toHaveLength(49)
+    for (const frame of frames) expect(trailBranches(frame)).toHaveLength(5)
   })
 
   test('is a navigation landmark named for a reader who cannot see it, in the language that name is written in', async () => {

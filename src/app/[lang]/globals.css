@@ -365,16 +365,18 @@ a.language:hover,
  * is the thumbnail the keyboard is on, or else the first; with it, the one CarouselButtons
  * marks `data-selected`. Every other caption has no box at all. The line never wraps: the
  * text is shortened on the server to what the line holds, the credit whole (12.2).
+ * The row's last 20 pixels are a 16-pixel line 4 above the row's foot: a line of 20 there
+ * sat on the disclaimer's rule (#65).
  */
 .carousel-caption {
   display: none;
   position: absolute;
   right: 16px;
-  bottom: 0;
+  bottom: 4px;
   left: 16px;
   margin: 0;
   font-size: var(--small);
-  line-height: var(--small-line);
+  line-height: 16px;
   color: var(--elsa-text-muted);
   text-align: center;
   white-space: nowrap;
@@ -563,8 +565,14 @@ a.language:hover,
   width: 212px;
 }
 
+/*
+ * Three lines of 20, a padding and a border are the row's 64 pixels to the pixel, and such a
+ * Branch sat on the chrome bar's rule and on the Bubble's outline (#65). Lines of 18 and no
+ * padding make it 56, 4 clear of each; a 13-pixel face still has room in an 18-pixel line.
+ */
 .trail-entry {
-  padding: 1px 8px;
+  padding: 0 8px;
+  line-height: 18px;
   color: var(--elsa-text-muted);
 }
 
