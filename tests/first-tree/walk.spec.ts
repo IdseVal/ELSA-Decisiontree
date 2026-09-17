@@ -304,7 +304,7 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
  *
  * The tests below assert it: the Node pictures show their credit in the enlarged view, every
  * Option picture on screen has a credit in the Tree the server is serving, and every one of
- * the 35 shows its credit on the Carousel's caption line without a click (issue #55, which
+ * the 99 shows its credit on the Carousel's caption line without a click (issue #55, which
  * replaced the declared failing test that stood here until the display was built).
  */
 const TREE_DIR = fileURLToPath(new URL('../../trees/ai-act-applicability-agrifood', import.meta.url))
@@ -392,7 +392,7 @@ test('every Option picture on screen has a credit in the Tree this server is ser
 })
 
 for (const lang of ['en', 'nl'] as const) {
-  test(`every one of the 35 pictures shows its author, source and licence without a click, in ${lang}`, async ({ page }) => {
+  test(`every picture shows its author, source and licence without a click, in ${lang}`, async ({ page }) => {
     // Issue #55, replacing the declared failing test #45 left here: the owner chose on #55
     // (2026-09-14) that an Option's picture joins the Carousel after the Node's own, so every
     // credit is on the caption line under the strip (application.md 12.1, 12.2). The strip is
@@ -402,10 +402,11 @@ for (const lang of ['en', 'nl'] as const) {
     for (const [nodeId, pictures] of byNode) {
       read += await readEveryCredit(page, pageUrl([nodeId], lang), pictures)
     }
-    expect(read, 'pictures read').toBe(35)
+    // 99 since #84: an Image on each of the 71 Nodes and the 28 Option pictures (NOTES.md 6).
+    expect(read, 'pictures read').toBe(99)
     // Every Image in the Tree is one of them: no Option carries a second picture that no page shows.
     const nodes = await Promise.all([...byNode.keys()].map((id) => tree.getNode(id)))
-    expect(nodes.reduce((sum, node) => sum + node!.images.length + node!.options.flatMap((o) => o.images).length, 0)).toBe(35)
+    expect(nodes.reduce((sum, node) => sum + node!.images.length + node!.options.flatMap((o) => o.images).length, 0)).toBe(99)
   })
 }
 

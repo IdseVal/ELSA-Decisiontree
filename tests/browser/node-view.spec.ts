@@ -162,12 +162,13 @@ test('Escape closes the enlarged image, and so does a click outside it', async (
 
 test('the browser asks for the images of the Node on screen and no others', async ({ page }) => {
   // The root Node's own Image is in the Carousel's row (12.1); an Option's first Image is
-  // on its Branch (10.3) and in the row, one file asked for once. Neither page asks for the other's.
+  // on its Branch (10.3) and in the row, one file asked for once, after the Node's own (#84).
+  // Neither page asks for the other's.
   const onStart = await imageRequests(page, () => page.goto(START))
   expect(new Set(onStart)).toEqual(new Set(['eu-map.png']))
 
   const onOptions = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices'))
-  expect(new Set(onOptions)).toEqual(new Set(['scoreboard.png']))
+  expect(new Set(onOptions)).toEqual(new Set(['prohibited-practices.png', 'scoreboard.png']))
 })
 
 test('enlarging a thumbnail fetches nothing new', async ({ page }) => {

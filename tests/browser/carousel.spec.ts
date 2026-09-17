@@ -286,10 +286,10 @@ test.describe('names for assistive technology', () => {
   ] as const) {
     test(`an Option's picture is named with its Option, which the caption line hides from assistive technology, in ${lang} (12.1)`, async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 640 })
-      // The example Tree's `prohibited-practices`: scoreboard.png on an Option, the Node none. Playwright's own server serves it.
+      // The example Tree's `prohibited-practices`: scoreboard.png on an Option, after the Node's own Image (#84). Playwright's own server serves it.
       await page.goto(`/ai-act-example/start/prohibited-practices${lang === 'en' ? '' : `?lang=${lang}`}`)
-      await expect(page.locator('.thumbnail')).toHaveAccessibleName(name)
-      await expect(page.locator('.thumbnail')).toHaveAccessibleDescription('Illustration: Example Studio, CC0 1.0')
+      await expect(page.locator('.thumbnail').nth(1)).toHaveAccessibleName(name)
+      await expect(page.locator('.thumbnail').nth(1)).toHaveAccessibleDescription('Illustration: Example Studio, CC0 1.0')
     })
   }
 })
@@ -399,8 +399,10 @@ test.describe('with JavaScript switched off', () => {
 
   test('a Node without pictures has no strip, so no empty tab stop in the Carousel row (12.1)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    // The example Tree's `social-scoring`: neither the Node nor an Option of it carries an Image.
-    await page.goto('/ai-act-example/start/prohibited-practices/social-scoring')
+    // The `cycle` fixture carries no Image anywhere; since #84 every Node of the example Tree does.
+    const cycle = await serve(path.join(repo, 'tests', 'fixtures'), 'cycle', PORT + 1)
+    expect(cycle, 'the cycle fixture is a valid Tree').not.toBeNull()
+    await page.goto(`${cycle!}/cycle/first`)
     await expect(page.locator('[data-carousel-strip]')).toHaveCount(0)
 
     // Every tab stop of the page, in order, and none of them in the row.
@@ -447,8 +449,8 @@ for (const lang of ['en', 'nl'] as const) {
     for (const [nodeId, pictures] of await picturesByNode(tree, dir, lang)) {
       read += await readEveryCredit(page, `/ai-act-example/${nodeId}${lang === 'en' ? '' : `?lang=${lang}`}`, pictures)
     }
-    // eu-map.png on `start` and scoreboard.png on an Option of `prohibited-practices`.
-    expect(read, 'pictures read').toBe(2)
+    // An Image on each of the seven Nodes (#84), and scoreboard.png on an Option of `prohibited-practices`.
+    expect(read, 'pictures read').toBe(8)
   })
 }
 
