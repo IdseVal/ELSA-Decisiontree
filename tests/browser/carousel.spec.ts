@@ -223,21 +223,25 @@ test.describe('the image files', () => {
     expect([...onLoad].sort()).toEqual([...expected].sort())
   })
 
-  test('below the guaranteed height neither the strip nor the main image is fetched, and an Image is fetched when the Sheet shows it', async ({ page }) => {
-    // 10.5, steps 1 and 5 at 600: the strip is one control and the main image is hidden.
+  test('below the guaranteed height the strip is not fetched, and a thumbnail\'s Image is fetched when the Sheet shows it', async ({ page }) => {
+    // 10.5, steps 1 and 5 at 600: the strip is one control and the main image is hidden. The
+    // main image is not lazy -- it is on screen whenever the Bubble is -- so its file comes
+    // with the page all the same; the strip's lazy thumbnails have no box and do not.
     await page.setViewportSize({ width: 1280, height: 600 })
     const where = 'carousel fixture, five, 1280 x 600 (collapsed)'
 
     const onLoad = await imageRequests(page, () => page.goto(`${origin}${FIVE}`))
     recordRequests(where, 'load', onLoad)
-    expect(onLoad).toEqual([])
+    expect(onLoad).toEqual(['orchard.svg'])
 
-    const onOpen = await imageRequests(page, async () => {
+    const onNext = await imageRequests(page, async () => {
       await page.locator('.carousel-sheet .sheet-open').click()
       await expect(page.locator('.carousel-sheet .sheet-figure img')).toHaveAttribute('src', '/images/orchard.svg')
+      await page.locator('.carousel-sheet .sheet-controls button', { hasText: 'Next' }).click()
+      await expect(page.locator('.carousel-sheet .sheet-figure img')).toHaveAttribute('src', '/images/greenhouse.svg')
     })
-    recordRequests(where, 'open the control', onOpen)
-    expect(onOpen).toEqual(['orchard.svg'])
+    recordRequests(where, 'open the control, then next', onNext)
+    expect(onNext).toEqual(['greenhouse.svg'])
   })
 })
 
