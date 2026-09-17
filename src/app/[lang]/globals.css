@@ -1236,6 +1236,11 @@ a.language:hover,
   line-height: 16px;
 }
 
+/* A block, not inline: an inline pill sits on the row's 24-pixel line and a pixel lower. */
+.trail .sheet-open {
+  display: block;
+}
+
 @media (max-width: 1279px) {
   :root {
     --trail-row: 44px;
