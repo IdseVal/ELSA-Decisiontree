@@ -1,7 +1,7 @@
 /**
  * The neighbourhood (docs/specs/application.md 11.2): the set for each kind of Node, never
- * more than sixteen, no id twice, a Link to an unknown id dropped rather than thrown; the
- * Trail supplies `up`, the Answers `down`, the Options `side`; an empty Trail has no `up`.
+ * more than fifteen, no id twice, a Link to an unknown id dropped rather than thrown; the
+ * parent supplies `up`, the Answers `down`, the Options `side`; an empty Trail has no `up`.
  *
  * Every Tree comes through `openTree` and every address through `parseUrl` (section 7).
  */
@@ -65,20 +65,20 @@ describe('which Nodes surround the Node on screen', () => {
     expect(placed[3]!.href).toBe(followHref(address, 'social-scoring'))
   })
 
-  test('an explanation Node: the parent and grandparent `up`, and its `back` adds nothing', async () => {
+  test('an explanation Node: the parent alone `up`, the one Node the up arrow reaches; the grandparent is not placed', async () => {
     const { address, node } = await at(
       example,
       '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
     )
     const placed = await neighbourhood(example, address, node)
 
-    expect(summary(placed)).toEqual(['up 0 emotion-recognition-at-work', 'up 1 prohibited-practices'])
-    expect(placed.map((p) => p.href)).toEqual([trailHref(address, 2), trailHref(address, 1)])
+    expect(summary(placed)).toEqual(['up 0 emotion-recognition-at-work'])
+    expect(placed.map((p) => p.href)).toEqual([trailHref(address, 2)])
   })
 
   test('a Terminal: the Trail `up` only; `startAgain` has no placement', async () => {
     const { address, node } = await at(example, '/ai-act-example/start/prohibited-practices/prohibited')
-    expect(summary(await neighbourhood(example, address, node))).toEqual(['up 0 prohibited-practices', 'up 1 start'])
+    expect(summary(await neighbourhood(example, address, node))).toEqual(['up 0 prohibited-practices'])
   })
 
   test('the address of each placement is the one its href names, in the page language', async () => {
@@ -102,7 +102,11 @@ describe('which Nodes surround the Node on screen', () => {
 })
 
 describe('the bound', () => {
-  test('every reachable Node of both Trees, reached by its path: at most 16, no id twice, one read each', async () => {
+  test('is fifteen: one parent, two Answers and their four, eight Options (11.2)', () => {
+    expect(MAX_NEIGHBOURS).toBe(15)
+  })
+
+  test('every reachable Node of both Trees, reached by its path: at most 15, no id twice, one read each', async () => {
     for (const tree of [example, fullNode]) {
       // Walk the Tree by its Links from the root, each Node reached with the Trail that got there.
       const queue: string[] = [`/${tree.id}/${tree.manifest.root}`]

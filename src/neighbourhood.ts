@@ -5,15 +5,15 @@
  * a Bubble that is already there (11.3).
  *
  * This is the one place a page takes more than one Node from the loader, and so it is where
- * the bound lives: at most sixteen neighbours, which with the Node on screen makes the
- * seventeen a response may carry (11.5). Sixteen is a contract, not a setting -- widening it
+ * the bound lives: at most fifteen neighbours, which with the Node on screen and the one
+ * Overlay a URL may name makes the seventeen a response may carry (11.5). Fifteen is a contract, not a setting -- widening it
  * is an architecture decision, because it is what stands between a page and the whole Tree.
  */
 import type { Tree } from './tree/loader.ts'
 import type { Node } from './tree/types.ts'
 import { MAX_PATH_IDS, nodeHref, type PageAddress } from './url.ts'
 
-/** Where a neighbour is drawn: above (the Trail), below (the Answers), beside (the Options). */
+/** Where a neighbour is drawn: above (the parent), below (the Answers), beside (the Options). */
 export type Direction = 'up' | 'down' | 'side'
 
 /** One neighbour, placed. */
@@ -25,7 +25,7 @@ export interface Placed {
   address: PageAddress
   direction: Direction
   /**
-   * Its place in its direction. `up`: 0 the parent, 1 the grandparent. `down`: 0 and 1 the
+   * Its place in its direction. `up`: 0 the parent, the only one. `down`: 0 and 1 the
    * `yes` and `no` targets, 2 to 5 their `yes` and `no` targets in that order. `side`: the
    * Option's index.
    */
@@ -33,10 +33,10 @@ export interface Placed {
 }
 
 /** The bound of 11.2: never more neighbours than this, whatever the Tree. */
-export const MAX_NEIGHBOURS = 16
+export const MAX_NEIGHBOURS = 15
 
 /**
- * The Nodes around `node`, which is the Node `at` names: the last two Trail entries up, the
+ * The Nodes around `node`, which is the Node `at` names: the last Trail entry up, the
  * Answer targets and theirs down, the Option targets beside. Deduplicated by Node id -- the
  * first placement wins, in that order, and the Node on screen is never its own neighbour --
  * and a Link to an id the Tree does not hold is dropped rather than thrown: the loader has
@@ -54,9 +54,10 @@ export async function neighbourhood(tree: Tree, at: PageAddress, node: Node): Pr
 
   const wanted: { address: PageAddress; direction: Direction; slot: number }[] = []
 
-  for (let slot = 0; slot < 2 && slot < at.trail.length; slot += 1) {
-    const index = at.trail.length - 1 - slot
-    wanted.push({ address: { ...at, trail: at.trail.slice(0, index), nodeId: at.trail[index]! }, direction: 'up', slot })
+  // The parent only: the up arrow goes one step back, so the grandparent is never one click away (10.2).
+  const parent = at.trail.length - 1
+  if (parent >= 0) {
+    wanted.push({ address: { ...at, trail: at.trail.slice(0, parent), nodeId: at.trail[parent]! }, direction: 'up', slot: 0 })
   }
 
   if (node.kind === 'question') {
@@ -82,7 +83,7 @@ export async function neighbourhood(tree: Tree, at: PageAddress, node: Node): Pr
     seen.add(neighbour.id)
     placed.push({ node: neighbour, href: nodeHref(address), address, direction, slot })
   }
-  // The three directions already add up to at most 2 + 6 + 8; the slice states the contract
+  // The three directions already add up to at most 1 + 6 + 8; the slice states the contract
   // where a later change to them would otherwise break it silently.
   return placed.slice(0, MAX_NEIGHBOURS)
 }
