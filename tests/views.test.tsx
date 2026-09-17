@@ -164,7 +164,8 @@ describe('the tree layer', () => {
   })
 
   test('the Carousel row is present on every Node, empty where neither the Node nor its Options carry a picture, so the Bubble never moves (12.1)', async () => {
-    for (const url of ['/ai-act-example/covered', '/ai-act-example/social-scoring']) {
+    // The `cycle` fixture carries no picture anywhere; since #84 every Node of the example Tree does.
+    for (const url of ['/cycle/first', '/cycle/first/second/third/done']) {
       expect(await view(url), url).toContain('<div class="carousel"></div>')
       // So such a Node has no strip, and no empty tab stop without a script either.
       expect(await view(url), url).not.toContain('carousel-strip')
@@ -173,16 +174,19 @@ describe('the tree layer', () => {
   })
 
   test("an Option's picture is on its Branch and in the Carousel row, its caption naming the Option (10.3, 12.1)", async () => {
-    // `prohibited-practices` carries scoreboard.png on an Option and no Image of its own.
+    // `prohibited-practices` carries scoreboard.png on an Option, after its own Image (#84).
     const html = await view('/ai-act-example/prohibited-practices')
     expect(html).toContain(
       '<img class="branch-image option-image" src="/images/scoreboard.png" alt="A scoreboard ranking people"',
     )
-    expect(all(part(html, 'ul', 'carousel-strip'), /<a class="thumbnail" href="([^"]*)"/g)).toEqual(['/images/scoreboard.png'])
-    expect(captions(html, 'caption-wide')[0]).toMatch(/^Social scoring: A scoreboard ranking people — \S/)
+    expect(all(part(html, 'ul', 'carousel-strip'), /<a class="thumbnail" href="([^"]*)"/g)).toEqual([
+      '/images/prohibited-practices.png',
+      '/images/scoreboard.png',
+    ])
+    expect(captions(html, 'caption-wide')[1]).toMatch(/^Social scoring: A scoreboard ranking people — \S/)
     // The caption line's copy is hidden from assistive technology, so the thumbnail's own name carries the Option too.
     expect(part(html, 'ul', 'carousel-strip')).toContain(
-      '<img id="carousel-image-0" src="/images/scoreboard.png" alt="Social scoring: A scoreboard ranking people"',
+      '<img id="carousel-image-1" src="/images/scoreboard.png" alt="Social scoring: A scoreboard ranking people"',
     )
   })
 
