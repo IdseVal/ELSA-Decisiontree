@@ -28,6 +28,8 @@ const ROOT = `${TREE}/start`
 const QUESTION = `${ROOT}/prohibited-practices`
 const EXPLANATION = `${QUESTION}/emotion-recognition-at-work/social-scoring`
 const TERMINAL = `${QUESTION}/prohibited`
+// A three-entry Trail on the example Tree: the path is the Trail and repeats are allowed (4.3, 11.3).
+const DEEP = `${QUESTION}/start/prohibited-practices`
 
 test.describe('following a Branch', () => {
   test('an Answer opens its target with the current Node appended to the Trail', async ({ page }) => {
@@ -49,14 +51,14 @@ test.describe('following a Branch', () => {
   })
 
   test('a Trail Branch jumps to that entry and discards everything after it', async ({ page }) => {
-    await page.goto(EXPLANATION)
+    await page.goto(DEEP)
     await expect(page.locator('.trail-entry')).toHaveCount(3)
 
     await page.locator('.trail-entry').nth(1).click()
     await arrived(page, QUESTION)
     await expect(page.locator('.trail-entry')).toHaveCount(1)
 
-    await page.goto(EXPLANATION)
+    await page.goto(DEEP)
     await page.locator('.trail-entry').first().click()
     await arrived(page, ROOT)
     await expect(page.locator('.trail-entry')).toHaveCount(0)
@@ -65,7 +67,9 @@ test.describe('following a Branch', () => {
   test("an explanation Node's URL is its parent's page with the Overlay open: the parent's Answers, no back Branch (10.9)", async ({ page }) => {
     await page.goto(EXPLANATION)
     await expect(page.locator('.answer--back')).toHaveCount(0)
+    // A second-level address: the Overlay has no button of its own in the fan (10.9).
     await expect(page.locator('.overlay--unbuttoned .sheet-panel')).toBeVisible()
+    await page.locator('.overlay--unbuttoned .sheet-close').click()
     await page.locator('.answer--yes').click()
     await arrived(page, `${QUESTION}/prohibited`)
   })
@@ -174,7 +178,8 @@ test.describe('the keyboard', () => {
   test('a Sheet opens with Enter, lists its links, closes with Escape and gives the focus back', async ({ page }) => {
     // Below the guaranteed height the Sources collapse to one control (10.5, step 5).
     await page.setViewportSize({ width: 1280, height: 540 })
-    await page.goto(EXPLANATION)
+    // The explanation Node with three Sources as the centre: a path with no parent in it (10.9).
+    await page.goto(`${TREE}/social-scoring`)
     const sheet = page.locator('.sources-sheet')
     const control = sheet.locator('.sheet-open')
     await expect(control).toBeVisible()
@@ -198,7 +203,7 @@ test.describe('the keyboard', () => {
     await page.setViewportSize({ width: 1024, height: 640 })
     await page.goto(QUESTION)
     const sheet = page.locator('.options-sheet')
-    await expect(page.locator('ul.options')).toBeHidden()
+    await expect(page.locator('.options .sheet-open').first()).toBeHidden()
     await expect(sheet.locator('.sheet-open')).toHaveText('What this covers (2)')
 
     await sheet.locator('.sheet-open').click()

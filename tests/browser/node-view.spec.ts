@@ -43,7 +43,7 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await arrived(page, '/ai-act-example/start/prohibited-practices')
 
   // An Option opens its Overlay in place (10.9); the address stays the question's.
-  await page.locator('.options').getByText('Social scoring').click()
+  await page.locator('.options .sheet-open', { hasText: 'Social scoring' }).click()
   await expect(page.locator('.overlay').first().locator('.sheet-panel')).toBeVisible()
   await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
   await page.keyboard.press('Escape')

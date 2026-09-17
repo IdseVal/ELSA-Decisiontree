@@ -9,15 +9,16 @@ import { expect, test, type BrowserContext, type Page } from '@playwright/test'
 import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
-// A path ending at an explanation Node renders its parent's page (10.9): the child under
-// test is the Terminal with the same two-entry Trail.
+// A path ending at an explanation Node renders its parent's page (10.9), so an Option adds
+// nothing to the Trail: the child under test is the Terminal two Answers deep.
 const CHILD = '/ai-act-example/start/prohibited-practices/prohibited'
 
-/** Walks root -> yes -> an Option -> its child, the way a reader reaches an explanation. */
+/** Walks root -> yes -> yes, the way a reader reaches a Terminal two entries deep. */
 async function walkToChild(page: Page): Promise<void> {
   await page.goto(START)
   await page.locator('.answer--yes').click()
-  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
+  await page.locator('.answer--yes').click()
   await arrived(page, CHILD)
 }
 
@@ -209,7 +210,7 @@ test('a shared link shows the recipient the same Node and the same Trail', async
   const theirPage = await recipient.newPage()
   await theirPage.goto(link)
 
-  await expect(theirPage.getByRole('heading', { level: 1 })).toHaveText('Social scoring')
+  await expect(theirPage.getByRole('heading', { level: 1 })).toHaveText('This is a prohibited practice')
   expect(await trail(theirPage)).toEqual(await trail(page))
   await recipient.close()
 })

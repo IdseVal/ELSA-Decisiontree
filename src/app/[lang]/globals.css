@@ -856,6 +856,11 @@ a.language:hover,
   left: 100%;
 }
 
+/* The disclosure fills its row, so the button can (the summary is sized from it). */
+.options > li > .overlay {
+  height: 100%;
+}
+
 /*
  * The button is the Overlay's summary: the target's main image as a 48-pixel round picture
  * at the inner end, an 8-pixel gap, and the title at 16 pixels on 20-pixel lines, at most

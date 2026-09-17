@@ -27,9 +27,9 @@ const BOTH_LANGUAGES = [
   { what: 'chrome', en: 'Sources', nl: 'Bronnen' },
 ]
 
-/** The alt text of the Node's first picture in the Carousel row: an Image description, which is content, not chrome. */
+/** The alt text of the first Option button's picture: an Image description, which is content, not chrome. */
 async function optionImageAlt(page: Page): Promise<string | null> {
-  return page.locator('.carousel-strip img').first().getAttribute('alt')
+  return page.locator('.options img.option-image').first().getAttribute('alt')
 }
 
 test('switching language changes every text of the Node, and the switch says where you are', async ({
@@ -68,9 +68,14 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await page.locator('.answer--yes').click()
   await arrived(page, `${STEP}?lang=nl`)
 
-  await page.locator('.options').getByRole('link', { name: 'Sociale scoring' }).click()
-  await arrived(page, `${STEP}/social-scoring?lang=nl`)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sociale scoring')
+  // An Option opens its Overlay in place (10.9): the address, language included, stays, and
+  // the Overlay's heading links to the aside's address in the same language.
+  const overlay = page.locator('.options .overlay', { hasText: 'Sociale scoring' })
+  await overlay.locator('.sheet-open').click()
+  await expect(overlay.locator('h2 a')).toHaveText('Sociale scoring')
+  await expect(overlay.locator('h2 a')).toHaveAttribute('href', `${STEP}/social-scoring?lang=nl`)
+  await expect(page).toHaveURL(`${STEP}?lang=nl`)
+  await page.keyboard.press('Escape')
 
   // The way back keeps it too: the Trail entry is the same page in the same language.
   await page.locator('.trail-entry').first().click()
