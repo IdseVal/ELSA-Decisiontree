@@ -85,25 +85,30 @@ test('the share button copies the page it is on, and says so', async ({ page, co
 
 /**
  * Replaces the page's clipboard before any of its script runs: `refused` is a clipboard that
- * denies the write (an insecure context, a withheld permission), `absent` is a browser that
- * has no clipboard API at all. Neither can be produced by a permission grant.
+ * denies the write (a withheld permission), `absent` is a browser that has no clipboard API
+ * at all. Neither can be produced by a permission grant. With `selection` false the older
+ * copy of a selection is refused too, so no way of copying is left.
  */
-async function breakClipboard(page: Page, how: 'refused' | 'absent'): Promise<void> {
-  await page.addInitScript((how) => {
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: how === 'refused' ? { writeText: () => Promise.reject(new Error('denied')) } : undefined,
-    })
-  }, how)
+async function breakClipboard(page: Page, how: 'refused' | 'absent', selection = true): Promise<void> {
+  await page.addInitScript(
+    ([how, selection]) => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: how === 'refused' ? { writeText: () => Promise.reject(new Error('denied')) } : undefined,
+      })
+      if (!selection) document.execCommand = () => false
+    },
+    [how, selection] as const,
+  )
 }
 
 for (const how of ['refused', 'absent'] as const) {
-  test(`the link is offered by hand, not claimed copied, when the clipboard is ${how}`, async ({
+  test(`the link is offered by hand, not claimed copied, when the clipboard is ${how} and a selection cannot be copied`, async ({
     page,
   }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(String(error)))
-    await breakClipboard(page, how)
+    await breakClipboard(page, how, false)
     await walkToChild(page)
 
     await page.getByRole('button', { name: 'Copy link' }).click()
