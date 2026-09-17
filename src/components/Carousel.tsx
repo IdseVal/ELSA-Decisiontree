@@ -17,12 +17,12 @@
 import { text, type Chrome } from '../chrome.ts'
 import type { Node } from '../tree/types.ts'
 import { imageHref } from '../url.ts'
+import { sheetWords } from './Bubble.tsx'
 import { EnlargedView, type EnlargedImage } from './EnlargedView.tsx'
-import { sheetWords } from './Interior.tsx'
 
 /**
  * Without a script a thumbnail cannot open the enlarged view in place, so its control shows
- * beside the strip at every size, and the panel keeps clear of it (section 14, 12.3).
+ * beside the strip at every size (section 14, 12.3).
  */
 const NO_SCRIPT = '.carousel-sheet > .sheet-open { display: block; }'
 
