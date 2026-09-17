@@ -23,7 +23,6 @@ export interface Chrome {
   no: string
   options: string
   sources: string
-  sourceLegal: string
   sourceCaseLaw: string
   sourceLiterature: string
   images: string
@@ -60,12 +59,12 @@ export interface Chrome {
    * English word order (application.md 3.2).
    */
   trailMore: (hidden: number) => string
-  /** The two buttons of a paged Sheet, and of the Carousel (section 12). */
+  /** The two buttons of a paged Sheet, the enlarged view's included (12.3). */
   previous: string
   next: string
   /**
-   * The Carousel's position: which Image of how many is selected (section 12), beside its
-   * buttons and on the control the row collapses to (10.5, step 2).
+   * Which Image of how many: spoken in the enlarged view and on the control the strip
+   * collapses to (10.5, step 1; 12.3).
    */
   imageCount: (index: number, total: number) => string
   /**
@@ -84,7 +83,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     no: 'No',
     options: 'What this covers',
     sources: 'Legal sources',
-    sourceLegal: 'Legal',
     sourceCaseLaw: 'Case law',
     sourceLiterature: 'Literature',
     images: 'Images',
@@ -124,7 +122,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     no: 'Nee',
     options: 'Wat hieronder valt',
     sources: 'Juridische bronnen',
-    sourceLegal: 'Wetgeving',
     sourceCaseLaw: 'Rechtspraak',
     sourceLiterature: 'Literatuur',
     images: 'Afbeeldingen',
