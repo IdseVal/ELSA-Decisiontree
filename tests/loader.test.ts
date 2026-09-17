@@ -41,7 +41,7 @@ describe('a Tree in two languages', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/2')
+    expect(tree.manifest.format).toBe('elsa-tree/3')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
@@ -104,7 +104,7 @@ describe('a Tree in two languages', () => {
     expect(node!.options).toEqual([])
   })
 
-  test('a Node with Options carries them in order, each with its own Images', async () => {
+  test('a Node with Options carries them in order, each a title and a target only', async () => {
     const tree = await openTree(exampleTree)
     const node = await tree.getNode('prohibited-practices')
 
@@ -112,16 +112,33 @@ describe('a Tree in two languages', () => {
       'social-scoring',
       'emotion-recognition-at-work',
     ])
-    expect(node!.options[0]!.title.nl).toBe('Sociale scoring')
-    expect(node!.options[0]!.images).toEqual([
+    expect(node!.options[0]).toEqual({
+      title: { en: 'Social scoring', nl: 'Sociale scoring' },
+      target: 'social-scoring',
+    })
+    // The picture the Option's button shows is its target's first Image (tree-format.md 5.4).
+    expect((await tree.getNode('social-scoring'))!.images[0]).toEqual({
+      file: 'scoreboard.png',
+      description: { en: 'A scoreboard ranking people', nl: 'Een scorebord dat mensen rangschikt' },
+      credit: 'Illustration: Example Studio, CC0 1.0',
+    })
+  })
+
+  test('a Node carries its explainers; a Node without any has an empty list', async () => {
+    const tree = await openTree(exampleTree)
+
+    expect((await tree.getNode('start'))!.explainers).toEqual([
       {
-        file: 'scoreboard.png',
-        description: { en: 'A scoreboard ranking people', nl: 'Een scorebord dat mensen rangschikt' },
-        credit: 'Illustration: Example Studio, CC0 1.0',
+        id: 'provider',
+        term: { en: 'provider', nl: 'aanbieder' },
+        text: {
+          en: 'Someone who develops an AI system, or has one developed, and places it on the market or puts it into service under their own name or trademark.',
+          nl: 'Wie een AI-systeem ontwikkelt of laat ontwikkelen en het onder eigen naam of merk in de handel brengt of in gebruik stelt.',
+        },
       },
     ])
     // An absent list becomes an empty array, so a caller never checks for undefined.
-    expect(node!.options[1]!.images).toEqual([])
+    expect((await tree.getNode('covered'))!.explainers).toEqual([])
   })
 
   test('an explanation Node has no Answers and no Terminal marker', async () => {
@@ -177,6 +194,30 @@ describe('a Tree in two languages', () => {
     expect(tree.imagePath('no-such-image.png')).toBeNull()
     expect(tree.imagePath('../../../etc/passwd')).toBeNull()
     expect(tree.imagePath('EU-Map.PNG')).toBeNull()
+  })
+})
+
+describe('explainers at every maximum (tree-format.md 5.7, 5.9)', () => {
+  test('eight explainers, each a 40-character term and a 200-character text in both languages, load', async () => {
+    const tree = await openTree(fixture('explainers'))
+    const node = (await tree.getNode('start'))!
+
+    expect(node.explainers).toHaveLength(8)
+    for (const explainer of node.explainers) {
+      for (const lang of ['en', 'nl']) {
+        expect(countedLength(explainer.term[lang]!), `${explainer.id}.term.${lang}`).toBe(40)
+        expect(countedLength(explainer.text[lang]!), `${explainer.id}.text.${lang}`).toBe(200)
+        expect(node.description[lang], `${explainer.id} marked in ${lang}`).toContain(`](#${explainer.id})`)
+      }
+    }
+  })
+
+  test('the full Node carries one explainer at its maximum lengths', async () => {
+    const tree = await openTree(fixture('full-node'))
+    const [explainer, ...rest] = (await tree.getNode('full'))!.explainers
+
+    expect(rest).toEqual([])
+    expect([countedLength(explainer!.term.en!), countedLength(explainer!.text.nl!)]).toEqual([40, 200])
   })
 })
 
@@ -300,7 +341,7 @@ describe('an invalid Tree is rejected, naming the Node and the rule', () => {
     'V-DIR', 'V-YAML', 'V-FORMAT', 'V-LANG', 'V-ROOT', 'V-TITLE', 'V-META', 'V-KEYS',
     'V-REACH', 'V-THEME', 'V-L10N', 'V-PLAIN', 'V-HTML', 'V-LENGTH', 'V-LINES', 'V-COUNT',
     'V-NODE', 'V-KIND', 'V-ANSWERS', 'V-OPTIONS', 'V-ORPHAN', 'V-TERMINAL', 'V-SOURCE',
-    'V-IMAGE', 'V-CROSS',
+    'V-IMAGE', 'V-EXPLAINER', 'V-MARK', 'V-CROSS',
   ]
 
   test('every rule of section 7 has a fixture, and every fixture a rule', async () => {
@@ -338,6 +379,33 @@ describe('an invalid Tree is rejected, naming the Node and the rule', () => {
 
     expect(error!.violations).toEqual([
       { file: 'start', keyPath: 'title.en', rule: 'V-LENGTH', message: '81 characters; at most 80' },
+    ])
+  })
+
+  test('an explainer marked nowhere in one language names the explainer and the language', async () => {
+    const error = await openTree(fixture('invalid', 'v-explainer')).then(
+      () => null,
+      (reason: unknown) => reason as InstanceType<typeof TreeInvalid>,
+    )
+
+    expect(error!.violations).toEqual([
+      {
+        file: 'start',
+        keyPath: 'explainers[0]',
+        rule: 'V-EXPLAINER',
+        message: '"provider" is not marked in description.nl; write [words](#provider) where the term occurs',
+      },
+    ])
+  })
+
+  test('a mark naming no explainer of its Node names the mark', async () => {
+    const error = await openTree(fixture('invalid', 'v-mark')).then(
+      () => null,
+      (reason: unknown) => reason as InstanceType<typeof TreeInvalid>,
+    )
+
+    expect(error!.violations).toEqual([
+      { file: 'start', keyPath: 'description.en', rule: 'V-MARK', message: '"[deployer](#deployer)" names no explainer of this Node' },
     ])
   })
 
@@ -399,6 +467,46 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
       'terminal-with-options',
       [
         { file: 'yes-end', keyPath: 'options', rule: 'V-TERMINAL', message: 'a Terminal cannot have options' },
+      ],
+    ],
+    [
+      'explainer-malformed',
+      [
+        { file: 'start', keyPath: 'explainers[1].id', rule: 'V-EXPLAINER', message: 'explainer id "provider" is used twice on this Node' },
+        { file: 'start', keyPath: 'explainers[2].text', rule: 'V-EXPLAINER', message: 'text is required' },
+      ],
+    ],
+    [
+      'explainers-empty',
+      [
+        { file: 'start', keyPath: 'explainers', rule: 'V-EXPLAINER', message: 'must be a non-empty list; leave the key out for a Node without explainers' },
+      ],
+    ],
+    [
+      'mark-inside-strong',
+      [
+        { file: 'start', keyPath: 'description.en', rule: 'V-MARK', message: '"[provider](#provider)" is inside emphasis or strong text, or holds some; the frontend styles a mark itself' },
+        { file: 'start', keyPath: 'description.nl', rule: 'V-MARK', message: '"[](#provider)" has no text for the reader to see' },
+      ],
+    ],
+    [
+      'mark-in-manifest',
+      [
+        { file: 'manifest', keyPath: 'description.en', rule: 'V-MARK', message: '"[provider](#provider)" names no explainer; the manifest has none' },
+      ],
+    ],
+    [
+      // The limits of explainers are the length and count rules of 5.7, not a rule of their own.
+      'too-many-explainers',
+      [
+        { file: 'start', keyPath: 'explainers', rule: 'V-COUNT', message: '9 entries; at most 8' },
+      ],
+    ],
+    [
+      'explainer-too-long',
+      [
+        { file: 'start', keyPath: 'explainers[0].term.en', rule: 'V-LENGTH', message: '41 characters; at most 40' },
+        { file: 'start', keyPath: 'explainers[0].text.nl', rule: 'V-LENGTH', message: '201 characters; at most 200' },
       ],
     ],
   ]

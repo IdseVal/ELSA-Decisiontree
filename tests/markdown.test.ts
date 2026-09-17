@@ -5,8 +5,9 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
-import { richTextToHtml } from '../src/markdown.ts'
+import { explainerMarks, richTextToHtml } from '../src/markdown.ts'
 import { openTree } from '../src/tree/loader.ts'
+import type { Explainer } from '../src/tree/types.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 
@@ -58,6 +59,63 @@ describe('the subset the format promises', () => {
   test('text with no blocks gives no markup', () => {
     expect(richTextToHtml('')).toBe('')
     expect(richTextToHtml('\n  \n')).toBe('')
+  })
+})
+
+describe('explainer marks (tree-format.md 3.4, 5.9; application.md 10.8)', () => {
+  const provider: Explainer = {
+    id: 'provider',
+    term: { en: 'provider', nl: 'aanbieder' },
+    text: { en: 'Someone who places an AI system on the market.', nl: 'Wie een AI-systeem in de handel brengt.' },
+  }
+  const context = { explainers: [provider], lang: 'en', idPrefix: '' }
+
+  test('a mark becomes a focusable term described by its panel, the next sibling', () => {
+    expect(richTextToHtml('Are you a [providers](#provider)?', context)).toBe(
+      '<p>Are you a <span class="term" tabindex="0" aria-describedby="e-provider">providers</span>' +
+        '<span class="explainer" role="tooltip" id="e-provider"><b>provider</b> Someone who places an AI system on the market.</span>?</p>',
+    )
+  })
+
+  test('the panel is written in the language asked for, and its id carries the prefix', () => {
+    const html = richTextToHtml('De [aanbieders](#provider).', { ...context, lang: 'nl', idPrefix: 'n1-' })
+
+    expect(html).toContain('aria-describedby="n1-e-provider">aanbieders</span>')
+    expect(html).toContain('id="n1-e-provider"><b>aanbieder</b> Wie een AI-systeem in de handel brengt.</span>')
+  })
+
+  test('a term marked twice has two panels with distinct ids', () => {
+    const html = richTextToHtml('A [provider](#provider).\n\n- another [provider](#provider)', context)
+    const ids = [...html.matchAll(/ id="([^"]+)"/g)].map((match) => match[1])
+
+    expect(ids).toEqual(['e-provider', 'e-provider--2'])
+    expect(html).toContain('aria-describedby="e-provider--2"')
+  })
+
+  test('without the Node explainers, or naming none of them, a mark is shown as written', () => {
+    expect(richTextToHtml('A [provider](#provider).')).toBe('<p>A [provider](#provider).</p>')
+    expect(richTextToHtml('A [deployer](#deployer).', context)).toBe('<p>A [deployer](#deployer).</p>')
+  })
+
+  test('the explainer text is escaped like every other text', () => {
+    const hostile = { ...provider, text: { en: '<img src=x onerror=alert(1)>' } }
+
+    expect(richTextToHtml('[p](#provider)', { ...context, explainers: [hostile] })).not.toContain('<img')
+  })
+
+  test('the marks are found where the renderer finds them, emphasis included', () => {
+    expect(explainerMarks('A [providers](#provider) and\n\n- a [deployer](#deployer)')).toEqual([
+      { text: 'providers', id: 'provider', emphasised: false },
+      { text: 'deployer', id: 'deployer', emphasised: false },
+    ])
+    expect(explainerMarks('**the [provider](#provider)** and *a [x](#y)*')).toEqual([
+      { text: 'provider', id: 'provider', emphasised: true },
+      { text: 'x', id: 'y', emphasised: true },
+    ])
+    expect(explainerMarks('[**provider**](#provider) and [](#empty) and [a link](https://a.example/)')).toEqual([
+      { text: '**provider**', id: 'provider', emphasised: true },
+      { text: '', id: 'empty', emphasised: false },
+    ])
   })
 })
 

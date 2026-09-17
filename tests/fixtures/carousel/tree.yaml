@@ -6,7 +6,7 @@
 # ask for (12.4). The pictures are small drawings of different shapes --
 # landscape, wide, portrait, square, panorama -- so the thumbnails and the enlarged view are
 # seen cropping and fitting each of them.
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en, nl]
 root: five
 title:

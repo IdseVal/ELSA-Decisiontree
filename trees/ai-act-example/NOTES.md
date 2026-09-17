@@ -43,7 +43,7 @@ kept small, and the picture only has to show where a Node's Images go.
 | File | On | What it is | Author | Licence |
 |---|---|---|---|---|
 | `eu-map.png` | `start` | A flat blue field, credited as a map | Example Cartography (fictitious) | CC BY 4.0 |
-| `scoreboard.png` | the `social-scoring` Option of `prohibited-practices`, and `social-scoring` | A flat red field, credited as a scoreboard | Example Studio (fictitious) | CC0 1.0 |
+| `scoreboard.png` | `social-scoring` | A flat red field, credited as a scoreboard | Example Studio (fictitious) | CC0 1.0 |
 | `outside-scope.png` | `outside-scope` | Labelled placeholder, "outside the scope" | drawn for this repository by issue #84 | CC0 1.0 |
 | `prohibited-practices.png` | `prohibited-practices` | Labelled placeholder, "prohibited practices" | drawn for this repository by issue #84 | CC0 1.0 |
 | `emotion-recognition.png` | `emotion-recognition-at-work` | Labelled placeholder, "emotion recognition" | drawn for this repository by issue #84 | CC0 1.0 |

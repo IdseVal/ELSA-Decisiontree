@@ -97,14 +97,9 @@ const STEP_NODES = [
 /** The licences issue #45 sourced under: public domain, CC0, CC BY and CC BY-SA. */
 const OPEN_LICENCE = /CC0 1\.0|CC BY(-SA)? [0-9.]+|public domain/
 
-/** Every Image in the Tree, on a Node or on an Option, each with where it hangs. */
+/** Every Image in the Tree, each with the Node it hangs on: in elsa-tree/3 only a Node has Images. */
 function everyImage(): { where: string; image: Image }[] {
-  return [...nodes.values()].flatMap((node) => [
-    ...node.images.map((image) => ({ where: `${node.id}.images[${image.file}]`, image })),
-    ...node.options.flatMap((option) =>
-      option.images.map((image) => ({ where: `${node.id} -> ${option.target} [${image.file}]`, image })),
-    ),
-  ])
+  return [...nodes.values()].flatMap((node) => node.images.map((image) => ({ where: `${node.id}.images[${image.file}]`, image })))
 }
 
 /** A Node's description in one language, unwrapped, so an assertion does not depend on where it wraps. */
@@ -363,13 +358,14 @@ describe('the content of the first Tree', () => {
     // images were, and open item 10.24 answers that the agents source them and the owner
     // replaces any of them at will. The three tests below are what the old one becomes.
 
-    test('every Annex I and Annex III Option carries at least one Image', () => {
+    test("every Annex I and Annex III Option's target carries an Image, the one its button shows", () => {
       // Core document 3.3, items 4a and 4b: each piece of Annex I legislation is an Option
       // "with an image showing what kind of product it covers", and each Annex III area is
-      // "an Option with an image". The Annex I list spans three Nodes since #44.
+      // "an Option with an image". The Annex I list spans three Nodes since #44. In
+      // elsa-tree/3 an Option's picture is its target's first Image (tree-format.md 5.4).
       for (const id of [...ANNEX_I_STEPS, 'annex-iii-areas']) {
         for (const option of nodes.get(id)!.options) {
-          expect(option.images.length, `${id} -> ${option.target} carries no Image`).toBeGreaterThan(0)
+          expect(nodes.get(option.target)!.images.length, `${id} -> ${option.target} carries no Image`).toBeGreaterThan(0)
         }
       }
     })

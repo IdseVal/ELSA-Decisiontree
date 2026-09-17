@@ -1,6 +1,6 @@
 # A Tree in one language, and not the frontend's default one: the interoperability
 # requirement of docs/CORE_DOCUMENT.md section 9, as a fixture.
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [nl]
 root: start
 title:

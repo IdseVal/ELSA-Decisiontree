@@ -281,15 +281,16 @@ test.describe('names for assistive technology', () => {
   }
 
   for (const [lang, name] of [
-    ['en', 'Enlarge Social scoring: A scoreboard ranking people'],
-    ['nl', 'Vergroten Sociale scoring: Een scorebord dat mensen rangschikt'],
+    ['en', 'Enlarge A scoreboard ranking people'],
+    ['nl', 'Vergroten Een scorebord dat mensen rangschikt'],
   ] as const) {
-    test(`an Option's picture is named with its Option, which the caption line hides from assistive technology, in ${lang} (12.1)`, async ({ page }) => {
+    test(`an Option's former picture is named on its target like any Image of the Node, in ${lang} (12.1)`, async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 640 })
-      // The example Tree's `prohibited-practices`: scoreboard.png on an Option, after the Node's own Image (#84). Playwright's own server serves it.
-      await page.goto(`/ai-act-example/start/prohibited-practices${lang === 'en' ? '' : `?lang=${lang}`}`)
-      await expect(page.locator('.thumbnail').nth(1)).toHaveAccessibleName(name)
-      await expect(page.locator('.thumbnail').nth(1)).toHaveAccessibleDescription('Illustration: Example Studio, CC0 1.0')
+      // The example Tree's `social-scoring`: scoreboard.png, which elsa-tree/3 moved there from
+      // the Option of `prohibited-practices` that leads to it (#79). Playwright's own server serves it.
+      await page.goto(`/ai-act-example/start/prohibited-practices/social-scoring${lang === 'en' ? '' : `?lang=${lang}`}`)
+      await expect(page.locator('.thumbnail')).toHaveAccessibleName(name)
+      await expect(page.locator('.thumbnail')).toHaveAccessibleDescription('Illustration: Example Studio, CC0 1.0')
     })
   }
 })
@@ -440,17 +441,17 @@ test.describe('with JavaScript switched off', () => {
 
 for (const lang of ['en', 'nl'] as const) {
   test(`every picture of the example Tree shows its author, source and licence without a click, in ${lang}`, async ({ page }) => {
-    // Issue #55: the Node's own Images and its Options' pictures, walked along the strip by
+    // Issue #55: every Node's own Images, walked along the strip by
     // the keyboard at the guaranteed viewport. Playwright's own server serves this Tree.
     await page.setViewportSize({ width: 1280, height: 640 })
     const dir = path.join(repo, 'trees', 'ai-act-example')
     const tree = await openTree(dir)
     let read = 0
-    for (const [nodeId, pictures] of await picturesByNode(tree, dir, lang)) {
+    for (const [nodeId, pictures] of await picturesByNode(tree, dir)) {
       read += await readEveryCredit(page, `/ai-act-example/${nodeId}${lang === 'en' ? '' : `?lang=${lang}`}`, pictures)
     }
-    // An Image on each of the seven Nodes (#84), and scoreboard.png on an Option of `prohibited-practices`.
-    expect(read, 'pictures read').toBe(8)
+    // An Image on each of the seven Nodes (#84); scoreboard.png is `social-scoring`'s, where elsa-tree/3 moved it from its Option.
+    expect(read, 'pictures read').toBe(7)
   })
 }
 

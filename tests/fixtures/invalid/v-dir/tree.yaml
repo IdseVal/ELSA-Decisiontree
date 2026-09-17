@@ -3,7 +3,7 @@
 # (docs/specs/tree-format.md section 2). In elsa-tree/1 this fixture was a folder without
 # a nodes/ folder, which in elsa-tree/2 is a stream without Node documents -- V-NODE, not
 # V-DIR (12.3).
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en]
 root: start
 title:

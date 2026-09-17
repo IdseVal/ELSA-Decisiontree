@@ -187,9 +187,9 @@ Where they hang:
 **Every Node has a picture** since issue #84: the owner wants a main image above each
 Node's title (issue #75), and the core document (3.1) records as proposed that a Node's
 first Image is that main image. The 28 explanation Nodes an Annex I or Annex III Option
-opens carry that Option's picture as their first Image -- same file, description and
-credit -- so those 28 files hang twice. They carry no `source`: those Nodes give their
-Sources no ids, and giving them ids would change the Nodes beyond #84. The 36 other Nodes
+opens already had one: `elsa-tree/3` (issue #79) moved each Option's picture onto the Node
+it opens, as that Node's first Image, dropping the `source` the Node cannot resolve, so
+each of those 28 files hangs once. The 36 other Nodes
 got a photograph of their own, sourced under the same rule; no placeholder was needed.
 Three of them show identifiable people (`prohibited-exploiting-vulnerabilities.jpg`,
 `prohibited-emotion-recognition.jpg`, `article-50-synthetic-content.jpg`), which Wikimedia
