@@ -552,4 +552,55 @@ describe('the content of the first Tree', () => {
       }
     })
   })
+
+  describe('the defined terms carry explainers (issue #85)', () => {
+    /** The explainer ids a jurisdiction step must mark: the roles of Article 2(1) it asks about. */
+    const JURISDICTION_ROLES: Record<(typeof JURISDICTION_STEPS)[number], string[]> = {
+      start: ['provider'],
+      'jurisdiction-deployer': ['deployer'],
+      'jurisdiction-third-country-output': ['provider', 'deployer'],
+      'jurisdiction-importer-distributor': ['importer', 'distributor'],
+      'jurisdiction-product-manufacturer': ['product-manufacturer'],
+      'jurisdiction-authorised-representative': ['authorised-representative'],
+      'jurisdiction-affected-person': ['affected-person'],
+    }
+
+    /** Whether a Node's description in one language marks the explainer `id` at least once. */
+    const marks = (id: string, lang: string, explainer: string): boolean =>
+      new RegExp(`\\]\\(#${explainer}\\)`).test(nodes.get(id)!.description[lang]!)
+
+    test('start marks "provider" / "aanbieder" with an explainer', () => {
+      // The owner's own example (#75): "on 'Jurisdictional scope of the AI Act? (1/7)' I want
+      // 'provider' to be hoverable".
+      const provider = nodes.get('start')!.explainers.find((explainer) => explainer.id === 'provider')
+      expect(provider?.term).toEqual({ en: 'provider', nl: 'aanbieder' })
+      expect(unwrapped('start', 'en')).toContain('[provider](#provider)')
+      expect(unwrapped('start', 'nl')).toContain('[aanbieder](#provider)')
+    })
+
+    test('every jurisdiction step marks the role it asks about', () => {
+      for (const id of JURISDICTION_STEPS) {
+        const declared = nodes.get(id)!.explainers.map((explainer) => explainer.id)
+        for (const role of JURISDICTION_ROLES[id]) {
+          expect(declared, `${id} declares no explainer "${role}"`).toContain(role)
+          for (const lang of ['en', 'nl']) {
+            expect(marks(id, lang, role), `${id} (${lang}) does not mark "${role}"`).toBe(true)
+          }
+        }
+      }
+    })
+
+    test('every explainer exists in both languages', () => {
+      const explainers = [...nodes.values()].flatMap((node) => node.explainers.map((explainer) => ({ node, explainer })))
+      expect(explainers.length).toBeGreaterThan(0)
+      for (const { node, explainer } of explainers) {
+        for (const lang of ['en', 'nl']) {
+          const where = `${node.id}.explainers[${explainer.id}] (${lang})`
+          expect(explainer.term[lang]?.trim(), `${where} term`).toBeTruthy()
+          expect(explainer.text[lang]?.trim(), `${where} text`).toBeTruthy()
+          expect(marks(node.id, lang, explainer.id), `${where} is not marked`).toBe(true)
+        }
+      }
+    })
+  })
 })
