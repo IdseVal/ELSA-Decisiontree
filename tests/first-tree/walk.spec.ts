@@ -257,10 +257,11 @@ const PICTURE_NODES = {
 } as const
 
 for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
-  test(`${nodeId} shows its own picture and one per Option, all from this server`, async ({ page, baseURL }) => {
+  test(`${nodeId} shows its own picture, all from this server; each Option's is on its target`, async ({ page, baseURL }) => {
     // Issue #45: the Annex I and Annex III lists are the two the core document (3.3, items
-    // 4a and 4b) asks for a picture on every entry of. The count is asserted against the
-    // Options actually on screen, so an Option added later without a picture fails here.
+    // 4a and 4b) asks for a picture on every entry of. Since elsa-tree/3 (#79) an entry's
+    // picture is its target's first Image, shown on the target's page and checked in
+    // "every Annex Option's picture is its target's first Image" below; this page asks for its own.
     // The requests are recorded over the LAST click only, so what is counted is what this
     // one Node costs a reader, not what the whole walk to it did.
     const visited = await walk(page, steps.slice(0, -1))
@@ -273,9 +274,9 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
 
     const options = await page.locator('.option').count()
     expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)
-    await expect(page.locator('.option-image')).toHaveCount(options)
-    // The Node's own picture and, after it, the one of each Option (application.md 12.1).
-    await expect(page.locator('.carousel .thumbnail img')).toHaveCount(options + 1)
+    await expect(page.locator('.option-image')).toHaveCount(0)
+    // The Node's own picture (application.md 12.1).
+    await expect(page.locator('.carousel .thumbnail img')).toHaveCount(1)
 
     // The description is the alternative text (tree-format.md 5.2), in the reader's language.
     for (const image of await page.locator('.option-image, .carousel .thumbnail img').all()) {
@@ -286,7 +287,7 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     // included. The analogue of the #40 check, on the Tree that now carries the pictures.
     const own = new URL(baseURL!).host
     expect(asked.filter((url) => new URL(url).host !== own)).toEqual([])
-    expect(asked.filter((url) => new URL(url).pathname.startsWith('/images/')).length).toBe(options + 1)
+    expect(asked.filter((url) => new URL(url).pathname.startsWith('/images/')).length).toBe(1)
 
     await page.screenshot({ path: path.join(PICTURE_SHOTS, `${nodeId}.png`), fullPage: true })
   })
