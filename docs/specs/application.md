@@ -203,8 +203,8 @@ add keys; every key exists in both languages or the build fails.
 
 New in 0.2: `back`, `startAgain`, `trailMore`, `previous`, `next`, `imageCount`,
 `minimumSize`, `minimumWidth`, `minimumHeight`. **[#75]** New in #78: `up`; gone: `trail`,
-`start`, `trailMore`, `back`, `explanationOnly`, `sourceLegal`. Keys that take a number (`trailMore`, `imageCount`) are functions of that
-number in `src/chrome.ts`, not strings with a placeholder, so that a language which
+`start`, `trailMore`, `back`, `explanationOnly`, `sourceLegal`. Keys that take a value (`up`, `imageCount`) are functions of that
+value in `src/chrome.ts`, not strings with a placeholder, so that a language which
 orders the sentence differently is not forced into English word order.
 
 Recorded in `docs/adrs/ADR-5-chrome-languages.md`.
@@ -778,7 +778,7 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | Core document | Where it is met |
 |---|---|
 | 3.1 one file per Tree, hand-editable | `tree-format.md` (`elsa-tree/2`); 5.1, 5.2 |
-| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 16 neighbours), 11.5 (the accounting), 5.2 (never, in any response) |
+| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (never, in any response) |
 | 3.1 / 9 images only for the Node on screen | 11.4, 12.4; **[#75]** 11.5 names the one exception per Option (core document 10.29) |
 | 3.1 text has a maximum length | `tree-format.md` 5.7, confirmed against this layout in 10.7 (**[#75]** again, with two pixels to spare: core document 10.28) |
 | 3.2 the screen is a tree: a Bubble, the way back above, Answers below, side children beside | 10.1 to 10.3; **[#75]** the up arrow (10.2), the fan-out (10.3) |
