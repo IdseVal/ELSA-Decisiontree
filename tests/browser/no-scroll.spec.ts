@@ -62,8 +62,9 @@ const VIEWPORTS = [
 /**
  * Either side of each trigger of 10.5 as #78 re-froze it, none of them a viewport of 10.6: by
  * height at the guaranteed width, the strip (640), the main image (632), the Sources (564) and
- * the type (496); by width at a height where no height-keyed step fires, the guaranteed
- * width (1280) and the Bubble narrowing (792).
+ * the type (506: 10.5 says 496, but the Sources' control keeps 36 of the 68 it counts, #81);
+ * by width at a height where no height-keyed step fires, the guaranteed width (1280) and the
+ * Bubble narrowing (792).
  */
 const STEP_VIEWPORTS = [
   [1280, 639],
@@ -71,8 +72,8 @@ const STEP_VIEWPORTS = [
   [1280, 631],
   [1280, 564],
   [1280, 563],
-  [1280, 496],
-  [1280, 495],
+  [1280, 506],
+  [1280, 505],
   [1279, 800],
   [792, 800],
   [791, 800],

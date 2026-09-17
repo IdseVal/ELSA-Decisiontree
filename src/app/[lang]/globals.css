@@ -1425,7 +1425,11 @@ a.language:hover,
   }
 }
 
-/* Step 6 -- the Sources, heading included, collapse to one control showing their count: 68 more, to 496. */
+/*
+ * Step 6 -- the Sources, heading included, collapse to one control showing their count. 10.5
+ * counts 68 freed, to 496; the control keeps 36 of them (28 and its gap), so step 7 fires
+ * below 506, where the full Node of 10.6 measured the text area short (#81).
+ */
 @media (max-height: 563px), (max-width: 791px) {
   .sources {
     display: none;
@@ -1437,7 +1441,7 @@ a.language:hover,
 }
 
 /* Step 7 -- the type scale steps down, 16 -> 15 -> 14 -> 13, never below 13. */
-@media (max-height: 495px), (max-width: 791px) {
+@media (max-height: 505px), (max-width: 791px) {
   :root {
     --body: 15px;
     --body-line: 22.5px;
