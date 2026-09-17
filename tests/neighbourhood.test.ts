@@ -1,17 +1,19 @@
 /**
- * The neighbourhood (docs/specs/application.md 11.2): the set for each kind of Node, never
- * more than sixteen, no id twice, a Link to an unknown id dropped rather than thrown; the
- * Trail supplies `up`, the Answers `down`, the Options `side`; an empty Trail has no `up`.
+ * The neighbourhood (docs/specs/application.md 10.9, 11.2): what a path names as its centre
+ * and its aside chain; the placed set for each kind of Node, never more than seven, no id
+ * twice, a Link to an unknown id dropped rather than thrown; the Option targets as asides,
+ * at most eight; the Trail supplies `up`, the Answers `down`; an empty Trail has no `up`;
+ * and a page reads at most seventeen Nodes in all.
  *
  * Every Tree comes through `openTree` and every address through `parseUrl` (section 7).
  */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, test } from 'vitest'
-import { MAX_NEIGHBOURS, neighbourhood, type Placed } from '../src/neighbourhood.ts'
+import { centreOf, loadPage, MAX_ASIDES, MAX_PLACED, neighbourhood, type Placed } from '../src/neighbourhood.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import type { Node } from '../src/tree/types.ts'
-import { followHref, parseUrl, trailHref, type PageAddress } from '../src/url.ts'
+import { followHref, nodeHref, parseUrl, trailHref, type PageAddress } from '../src/url.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 let example: Tree
@@ -34,10 +36,84 @@ function summary(placed: Placed[]): string[] {
   return placed.map((p) => `${p.direction} ${p.slot} ${p.node.id}`)
 }
 
-describe('which Nodes surround the Node on screen', () => {
-  test('the root with an empty Trail: no `up`, its Answers and theirs `down`', async () => {
+/** A copy of `tree` that counts its `getNode` calls. */
+function counting(tree: Tree): { tree: Tree; reads: () => number } {
+  let reads = 0
+  return { tree: { ...tree, getNode: (id) => ((reads += 1), tree.getNode(id)) }, reads: () => reads }
+}
+
+describe('the centre a path names, and its aside chain (10.9)', () => {
+  test('a path ending at a question Node: that Node is the centre and the chain is empty', async () => {
+    const address = parseUrl('/ai-act-example/start/prohibited-practices', 'en', example)!
+    const centre = (await centreOf(example, address))!
+
+    expect(centre.node.id).toBe('prohibited-practices')
+    expect(centre.address).toEqual(address)
+    expect(centre.chain).toEqual([])
+  })
+
+  test("an explanation Node's URL: the centre is the question Node before it, the explanation Node its open aside", async () => {
+    const address = parseUrl('/ai-act-example/start/prohibited-practices/social-scoring', 'en', example)!
+    const centre = (await centreOf(example, address))!
+
+    expect(centre.node.id).toBe('prohibited-practices')
+    expect(centre.address).toEqual(parseUrl('/ai-act-example/start/prohibited-practices', 'en', example))
+    expect(centre.chain.map((aside) => aside.node.id)).toEqual(['social-scoring'])
+    // The aside's own address is the URL itself: the Overlay's heading links there.
+    expect(centre.chain[0]!.href).toBe('/ai-act-example/start/prohibited-practices/social-scoring')
+    expect(centre.chain[0]!.address).toEqual(address)
+  })
+
+  test('two explanation Nodes after the centre: both are the chain, in path order, the last the one open', async () => {
+    // Adjacency is not checked (4.3): `social-scoring` is not an Option of `emotion-recognition-at-work`.
+    const address = parseUrl(
+      '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
+      'en',
+      example,
+    )!
+    const centre = (await centreOf(example, address))!
+
+    expect(centre.node.id).toBe('prohibited-practices')
+    expect(centre.chain.map((aside) => aside.node.id)).toEqual(['emotion-recognition-at-work', 'social-scoring'])
+    expect(centre.chain.map((aside) => aside.href)).toEqual([
+      '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work',
+      '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
+    ])
+  })
+
+  test('a Terminal is a centre too: the entries after it are its chain', async () => {
+    const address = parseUrl('/ai-act-example/start/prohibited-practices/prohibited/social-scoring', 'en', example)!
+    const centre = (await centreOf(example, address))!
+    expect(centre.node.id).toBe('prohibited')
+    expect(centre.chain.map((aside) => aside.node.id)).toEqual(['social-scoring'])
+  })
+
+  test('a path of explanation Nodes alone has no parent to show: its first entry is the centre', async () => {
+    const alone = (await centreOf(example, parseUrl('/ai-act-example/social-scoring', 'en', example)!))!
+    expect(alone.node.id).toBe('social-scoring')
+    expect(alone.address.trail).toEqual([])
+    expect(alone.chain).toEqual([])
+
+    const two = (await centreOf(fullNode, parseUrl('/full-node/opt-one/opt-two', 'en', fullNode)!))!
+    expect(two.node.id).toBe('opt-one')
+    expect(two.chain.map((aside) => aside.node.id)).toEqual(['opt-two'])
+  })
+
+  test('reads one Node per entry walked back over, and the language travels with every address', async () => {
+    const { tree, reads } = counting(example)
+    const address = parseUrl('/ai-act-example/start/prohibited-practices/social-scoring', 'nl', tree)!
+    const centre = (await centreOf(tree, address))!
+
+    expect(reads()).toBe(2)
+    expect(centre.address.lang).toBe('nl')
+    expect(centre.chain[0]!.href).toBe('/ai-act-example/start/prohibited-practices/social-scoring?lang=nl')
+  })
+})
+
+describe('which Nodes surround the centre', () => {
+  test('the root with an empty Trail: no `up`, its Answers and theirs `down`, and no asides', async () => {
     const { address, node } = await at(example, '/ai-act-example/start')
-    const placed = await neighbourhood(example, address, node)
+    const { placed, asides } = await neighbourhood(example, address, node)
 
     // start -> yes prohibited-practices (a question: prohibited, covered), no outside-scope (a Terminal).
     expect(summary(placed)).toEqual([
@@ -48,61 +124,67 @@ describe('which Nodes surround the Node on screen', () => {
     ])
     expect(placed[0]!.href).toBe(followHref(address, 'prohibited-practices'))
     expect(placed[2]!.href).toBe('/ai-act-example/start/prohibited-practices/prohibited')
+    expect(asides).toEqual([])
   })
 
-  test('a question Node with Options: the Trail `up`, Answers `down`, Options `side`', async () => {
+  test('a question Node with Options: the parent `up`, Answers `down`, the Option targets as asides in Option order', async () => {
     const { address, node } = await at(example, '/ai-act-example/start/prohibited-practices')
-    const placed = await neighbourhood(example, address, node)
+    const { placed, asides } = await neighbourhood(example, address, node)
 
-    expect(summary(placed)).toEqual([
-      'up 0 start',
-      'down 0 prohibited',
-      'down 1 covered',
-      'side 0 social-scoring',
-      'side 1 emotion-recognition-at-work',
-    ])
+    expect(summary(placed)).toEqual(['up 0 start', 'down 0 prohibited', 'down 1 covered'])
     expect(placed[0]!.href).toBe(trailHref(address, 0))
-    expect(placed[3]!.href).toBe(followHref(address, 'social-scoring'))
+    expect(asides.map((aside) => aside.node.id)).toEqual(['social-scoring', 'emotion-recognition-at-work'])
+    // An aside's address is the explanation Node's own, under this centre (10.9).
+    expect(asides[0]!.href).toBe(followHref(address, 'social-scoring'))
+    expect(asides[0]!.address).toEqual(parseUrl(asides[0]!.href, 'en', example))
   })
 
-  test('an explanation Node: the parent and grandparent `up`, and its `back` adds nothing', async () => {
-    const { address, node } = await at(
-      example,
-      '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
-    )
-    const placed = await neighbourhood(example, address, node)
-
-    expect(summary(placed)).toEqual(['up 0 emotion-recognition-at-work', 'up 1 prohibited-practices'])
-    expect(placed.map((p) => p.href)).toEqual([trailHref(address, 2), trailHref(address, 1)])
-  })
-
-  test('a Terminal: the Trail `up` only; `startAgain` has no placement', async () => {
+  test('only the parent is `up`: the grandparent is no longer one click away (11.2)', async () => {
     const { address, node } = await at(example, '/ai-act-example/start/prohibited-practices/prohibited')
-    expect(summary(await neighbourhood(example, address, node))).toEqual(['up 0 prohibited-practices', 'up 1 start'])
+    expect(summary(await neighbourhood(example, address, node))).toEqual(['up 0 prohibited-practices'])
   })
 
-  test('the address of each placement is the one its href names, in the page language', async () => {
+  test('nothing is placed `side`: an Option target is an aside, and an aside that is also placed stays an aside', async () => {
+    // `third`'s `yes` is `second`, its parent: placed `up` once, and never `side`.
+    const cycle = await openTree(path.join(here, 'fixtures', 'cycle'))
+    const { address, node } = await at(cycle, '/cycle/first/second/third')
+    const { placed } = await neighbourhood(cycle, address, node)
+    expect(placed.map((p) => p.direction)).not.toContain('side')
+    expect(new Set(placed.map((p) => p.node.id)).size).toBe(placed.length)
+  })
+
+  test('the address of each placement and aside is the one its href names, in the page language', async () => {
     const { address, node } = await at(example, '/ai-act-example/start/prohibited-practices', 'nl')
-    for (const placed of await neighbourhood(example, address, node)) {
-      const pathname = placed.href.split('?')[0]!
-      expect(placed.address).toEqual(parseUrl(pathname, 'nl', example))
-      expect(placed.href).toContain('lang=nl')
+    const { placed, asides } = await neighbourhood(example, address, node)
+    for (const each of [...placed, ...asides]) {
+      const pathname = each.href.split('?')[0]!
+      expect(each.address).toEqual(parseUrl(pathname, 'nl', example))
+      expect(each.href).toContain('lang=nl')
     }
   })
 
-  test('the full Node: eight Options beside, its Answers below, and itself never its own neighbour', async () => {
+  test('the full Node: eight asides, its Answers below, and itself never its own neighbour', async () => {
     const { address, node } = await at(fullNode, `/full-node/${Array.from({ length: 50 }, () => 'full').join('/')}`)
-    const placed = await neighbourhood(fullNode, address, node)
+    const { placed, asides } = await neighbourhood(fullNode, address, node)
 
     // Its Trail is itself 49 times, so there is nothing `up` that is not the Node on screen.
     expect(placed.filter((p) => p.direction === 'up')).toEqual([])
-    expect(placed.filter((p) => p.direction === 'side').map((p) => p.slot)).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
+    expect(asides.map((aside) => aside.node.id)).toEqual([
+      'opt-one',
+      'opt-two',
+      'opt-three',
+      'opt-four',
+      'opt-five',
+      'opt-six',
+      'opt-seven',
+      'opt-eight',
+    ])
     expect(placed.some((p) => p.node.id === 'full')).toBe(false)
   })
 })
 
 describe('the bound', () => {
-  test('every reachable Node of both Trees, reached by its path: at most 16, no id twice, one read each', async () => {
+  test('every reachable Node of both Trees, reached by its path: at most 7 placed, 8 asides, no id placed twice, one read each', async () => {
     for (const tree of [example, fullNode]) {
       // Walk the Tree by its Links from the root, each Node reached with the Trail that got there.
       const queue: string[] = [`/${tree.id}/${tree.manifest.root}`]
@@ -113,16 +195,16 @@ describe('the bound', () => {
         if (visited.has(node.id)) continue
         visited.add(node.id)
 
-        let reads = 0
-        const counted: Tree = { ...tree, getNode: (id) => ((reads += 1), tree.getNode(id)) }
-        const placed = await neighbourhood(counted, address, node)
+        const counted = counting(tree)
+        const { placed, asides } = await neighbourhood(counted.tree, address, node)
 
-        expect(placed.length, pathname).toBeLessThanOrEqual(MAX_NEIGHBOURS)
+        expect(placed.length, pathname).toBeLessThanOrEqual(MAX_PLACED)
+        expect(asides.length, pathname).toBeLessThanOrEqual(MAX_ASIDES)
         const ids = placed.map((p) => p.node.id)
         expect(new Set(ids).size, pathname).toBe(ids.length)
         expect(ids, pathname).not.toContain(node.id)
         // One `getNode` per neighbour at most, so the page's total stays at seventeen (11.2).
-        expect(reads, pathname).toBeLessThanOrEqual(MAX_NEIGHBOURS)
+        expect(counted.reads(), pathname).toBeLessThanOrEqual(MAX_PLACED + MAX_ASIDES)
 
         const links = [...(node.kind === 'question' ? [node.answers.yes, node.answers.no] : []), ...node.options.map((o) => o.target)]
         for (const id of links) queue.push(`${pathname}/${id}`)
@@ -131,12 +213,46 @@ describe('the bound', () => {
     }
   })
 
+  test('a whole page -- centre, chain and neighbourhood -- reads at most 17 Nodes, and an aside the chain named is read once', async () => {
+    for (const pathname of [
+      '/ai-act-example/start/prohibited-practices/social-scoring',
+      '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
+      `/full-node/${Array.from({ length: 49 }, () => 'full').join('/')}/opt-one`,
+      `/full-node/${Array.from({ length: 48 }, () => 'full').join('/')}/opt-one/opt-two`,
+    ]) {
+      const tree = pathname.startsWith('/full-node') ? fullNode : example
+      const counted = counting(tree)
+      const page = (await loadPage(counted.tree, parseUrl(pathname, 'en', tree)!))!
+
+      const carried = new Set([
+        page.centre.node.id,
+        ...page.centre.chain.map((a) => a.node.id),
+        ...page.neighbours.placed.map((p) => p.node.id),
+        ...page.neighbours.asides.map((a) => a.node.id),
+      ])
+      expect(counted.reads(), pathname).toBe(carried.size)
+      expect(counted.reads(), pathname).toBeLessThanOrEqual(17)
+    }
+  })
+
   test('a Link to an id the Tree does not hold is dropped, not thrown', async () => {
     const { address, node } = await at(example, '/ai-act-example/start/prohibited-practices')
     // The real Tree, except that it has lost one Node: the stale index a view must survive.
     const missing: Tree = { ...example, getNode: async (id) => (id === 'covered' ? null : example.getNode(id)) }
 
-    const placed = await neighbourhood(missing, address, node)
-    expect(summary(placed)).toEqual(['up 0 start', 'down 0 prohibited', 'side 0 social-scoring', 'side 1 emotion-recognition-at-work'])
+    const { placed, asides } = await neighbourhood(missing, address, node)
+    expect(summary(placed)).toEqual(['up 0 start', 'down 0 prohibited'])
+    expect(asides.map((aside) => aside.node.id)).toEqual(['social-scoring', 'emotion-recognition-at-work'])
+
+    const gone: Tree = { ...example, getNode: async (id) => (id === 'social-scoring' ? null : example.getNode(id)) }
+    expect((await neighbourhood(gone, address, node)).asides.map((aside) => aside.node.id)).toEqual(['emotion-recognition-at-work'])
+    expect(await centreOf(gone, parseUrl('/ai-act-example/start/prohibited-practices/social-scoring', 'en', gone)!)).toBeNull()
+  })
+
+  test('the page carries the address it was asked for, whole, beside the centre it shows', async () => {
+    const address = parseUrl('/ai-act-example/start/prohibited-practices/social-scoring', 'nl', example)!
+    const page = (await loadPage(example, address))!
+    expect(nodeHref(page.address)).toBe('/ai-act-example/start/prohibited-practices/social-scoring?lang=nl')
+    expect(nodeHref(page.centre.address)).toBe('/ai-act-example/start/prohibited-practices?lang=nl')
   })
 })

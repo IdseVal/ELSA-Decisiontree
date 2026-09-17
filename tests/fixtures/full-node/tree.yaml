@@ -1,9 +1,10 @@
 # One Node at every maximum docs/specs/tree-format.md 5.7 allows (application.md 10.6):
 # an 80-character title, a 600-character description of eight estimated lines, 3 Sources,
 # 8 Options, 10 Images, and every Option a picture of its own, so the Carousel holds the
-# 18 of application.md 12.1 (the first Option carries three). If this fits inside the
-# Bubble at the guaranteed viewport, every valid Tree fits. A Trail of 49 entries is made
-# by visiting `full` 49 times: adjacency is not checked (application.md 4.3).
+# 18 of application.md 12.1 (the first Option carries three). Every Option target leads
+# with a first Image, the picture its button and its Overlay show (10.3, 10.9). If this
+# fits inside the Bubble at the guaranteed viewport, every valid Tree fits. A Trail of 49
+# entries is made by visiting `full` 49 times: adjacency is not checked (application.md 4.3).
 format: elsa-tree/2
 languages: [en, nl]
 root: full
@@ -202,6 +203,12 @@ answers:
 
 --- # opt-one
 id: opt-one
+images:
+  - file: one.png
+    description:
+      en: "What Option one leads with"
+      nl: "Waarmee optie een begint"
+    credit: "Example Studio, CC0 1.0"
 title:
   en: "Option one: a title of sixty characters, the most it may be."
   nl: "Optie een: een titel van zestig tekens, het meeste dat mag.."
@@ -220,6 +227,12 @@ options:
 
 --- # opt-two
 id: opt-two
+images:
+  - file: two.png
+    description:
+      en: "What Option two leads with"
+      nl: "Waarmee optie twee begint"
+    credit: "Example Studio, CC0 1.0"
 title:
   en: "Option two: a title of sixty characters, the most it may be."
   nl: "Optie twee: een titel van zestig tekens, het meeste dat mag."
@@ -233,6 +246,12 @@ metadata:
 
 --- # opt-three
 id: opt-three
+images:
+  - file: three.png
+    description:
+      en: "What Option three leads with"
+      nl: "Waarmee optie drie begint"
+    credit: "Example Studio, CC0 1.0"
 title:
   en: "Option three: a title of sixty characters, the most it may.."
   nl: "Optie drie: een titel van zestig tekens, het meeste dat mag."
@@ -246,6 +265,12 @@ metadata:
 
 --- # opt-four
 id: opt-four
+images:
+  - file: four.png
+    description:
+      en: "What Option four leads with"
+      nl: "Waarmee optie vier begint"
+    credit: "Example Studio, CC0 1.0"
 title:
   en: "Option four: a title of sixty characters, the most it may b."
   nl: "Optie vier: een titel van zestig tekens, het meeste dat mag."
@@ -259,6 +284,12 @@ metadata:
 
 --- # opt-five
 id: opt-five
+images:
+  - file: five.png
+    description:
+      en: "What Option five leads with"
+      nl: "Waarmee optie vijf begint"
+    credit: "Example Studio, CC0 1.0"
 title:
   en: "Option five: a title of sixty characters, the most it may b."
   nl: "Optie vijf: een titel van zestig tekens, het meeste dat mag."
@@ -272,6 +303,12 @@ metadata:
 
 --- # opt-six
 id: opt-six
+images:
+  - file: six.png
+    description:
+      en: "What Option six leads with"
+      nl: "Waarmee optie zes begint"
+    credit: "Example Studio, CC0 1.0"
 title:
   en: "Option six: a title of sixty characters, the most it may be."
   nl: "Optie zes: een titel van zestig tekens, het meeste dat mag.."
@@ -285,6 +322,12 @@ metadata:
 
 --- # opt-seven
 id: opt-seven
+images:
+  - file: seven.png
+    description:
+      en: "What Option seven leads with"
+      nl: "Waarmee optie zeven begint"
+    credit: "Example Studio, CC0 1.0"
 title:
   en: "Option seven: a title of sixty characters, the most it may.."
   nl: "Optie zeven: een titel van zestig tekens, het meeste dat ma."
@@ -298,6 +341,12 @@ metadata:
 
 --- # opt-eight
 id: opt-eight
+images:
+  - file: eight.png
+    description:
+      en: "What Option eight leads with"
+      nl: "Waarmee optie acht begint"
+    credit: "Example Studio, CC0 1.0"
 title:
   en: "Option eight: a title of sixty characters, the most it may.."
   nl: "Optie acht: een titel van zestig tekens, het meeste dat mag."
