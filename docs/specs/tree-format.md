@@ -1,30 +1,30 @@
-# Tree file format -- `elsa-tree/2`
+# Tree file format -- `elsa-tree/3`
 
-> Status: FROZEN -- 2026-09-10 (issue #37). This document is the interoperability
+> Status: FROZEN -- 2026-09-17 (issue #78); `elsa-tree/3` replaces `elsa-tree/2` (frozen 2026-09-10, issue #37). This document is the interoperability
 > contract: any Tree that follows it loads in the ELSA decision-tree frontend without a
 > code change. Changing it requires a new `architecture` issue and a new format number.
 >
-> **Superseded in part -- 2026-09-17 (issue #75).** The owner asks for two things the
-> data must carry (`docs/CORE_DOCUMENT.md` 3.1, revised 2026-09-17;
-> `docs/adrs/ADR-75-presentation-changes.md`): **explainers** -- the Tree says which
-> words of a Node's text have a short explanation shown on hover, and what it says, per
-> language -- and a **main image** on every Node, which is the first entry of `images`
-> and needs no new key (the first-entry reading is PROPOSED in the core document, 3.1,
-> and is ADR-75's inference, not the owner's words). Architecture issue #78 freezes
-> `elsa-tree/3` with the explainer shape (a new key, its length limits, how an
-> occurrence in the text is marked, its validity rules and the migration from
-> `elsa-tree/2`), decides whether an Option still carries `images` of its own (5.4) now
-> that its button shows its target's main image (core document 10.29), confirms or
-> corrects the length limits of 5.7 after the main image takes height inside the
-> Bubble, and re-states 5.2's "the caption under a picture is its `description`; the
-> credit is shown with it, in the Carousel and in the enlarged view" and the `credit`
-> row's "shown with the picture": nothing is written under the pictures any more, the
-> description is accessible text only, and where the credit is shown is core document
-> 10.26. The keys of 5.2 do not change. Everything else carries over. Until #78 merges and
-> issue #79 builds it, `elsa-tree/2` is the format on `dev` and both Trees stay in
-> it; nothing new may be built against the parts named here.
+> **What this version is.** `elsa-tree/3` replaces `elsa-tree/2`. The owner saw version
+> 0.2 running and asked for two things the data must carry (`docs/CORE_DOCUMENT.md` 3.1,
+> revised 2026-09-17; `docs/adrs/ADR-75-presentation-changes.md`): **explainers** -- the
+> Tree says which words of a Node's description have a short explanation shown on hover,
+> and what it says, per language -- and a **main image** on every Node, shown above its
+> title. Three things change (`docs/adrs/ADR-78-explainers.md`,
+> `ADR-78-fan-out-and-option-picture.md`, `ADR-78-carousel.md`): a Node may carry an
+> `explainers` list and mark each occurrence in its description with the link syntax,
+> `[providers](#provider)` (3.4, 5.9, rules V-EXPLAINER and V-MARK); an Option no longer
+> carries `images` of its own, because the picture on its button is its target's main
+> image (5.4); and 5.2 is restated: the first Image of a Node is its main image, nothing is
+> written under the Carousel's pictures, the description is accessible text, and the
+> credit is shown in the enlarged view and read as the picture's description. The length
+> limits of 5.7 are confirmed unchanged against the new layout
+> (`docs/adrs/ADR-78-main-image-and-row-budget.md`; `application.md` 10.7), with two
+> new limits for the explainers. Everything else carries over. Section 12.5 is the
+> conversion; **until the loader of issue #79 merges, the code on `dev` still reads
+> `elsa-tree/2`**, and both Trees under `trees/` are still written in it; nothing new may
+> be built against `elsa-tree/2`.
 >
-> **What this version is.** `elsa-tree/2` replaces `elsa-tree/1` (frozen 2026-09-03,
+> **What `elsa-tree/2` was.** `elsa-tree/2` replaces `elsa-tree/1` (frozen 2026-09-03,
 > issue #4; kept readable on branch `version-0.1`, file `docs/specs/tree-format.md`
 > there). The owner changed three requirements the old format rested on
 > (`docs/CORE_DOCUMENT.md`, revised 2026-09-09; `docs/adrs/ADR-35-version-0-2-rework.md`):
@@ -35,17 +35,16 @@
 > `images/` folder, Sources, Images, Answers, Options, the terminal marker, the three
 > kinds of Node, strict validation, and the reservation for Cross-links.
 >
-> **Until the loader of issue #39 merges, the code on `dev` still reads `elsa-tree/1`**,
-> and the two Trees under `trees/` are still written in it. Section 12 specifies the
-> mechanical conversion that #39 scripts. Nothing new may be built against
-> `elsa-tree/1`.
+> **The migration of issue #39** (`elsa-tree/1` to `elsa-tree/2`) is section 12.1 to 12.4,
+> kept as written; #79 adds 12.5.
 >
 > Vocabulary: the canonical names from `docs/CORE_DOCUMENT.md` section 5 -- **Tree**,
 > **Node**, **Link**, **Answer**, **Option**, **Terminal**, **Image**, **Source**,
 > **Trail**, **Cross-link**, **Bubble**, **Branch**, **Carousel**, **Theme** -- are used
-> here with exactly that meaning. The decisions behind this document are recorded one
-> per file in `docs/adrs/ADR-37-*.md`; the decisions carried over from `elsa-tree/1` in
-> `docs/adrs/ADR-4-*.md` (section 11).
+> here with exactly that meaning; **explainer** and **main image** are defined in 5.9 and
+> 5.2. The decisions behind this document are recorded one per file in
+> `docs/adrs/ADR-78-*.md` (`elsa-tree/3`), `docs/adrs/ADR-37-*.md` (`elsa-tree/2`) and
+> `docs/adrs/ADR-4-*.md` (`elsa-tree/1`), section 11.
 
 This document is written so that a third party -- another ELSA lab, or the owner of this
 project -- can author a complete Tree from it alone, in a text editor, with no other
@@ -124,7 +123,7 @@ document must have one.
 ### 3.2 Node references
 
 Wherever a Link names its target, it does so with a **Node reference**: the id of a
-Node in the same Tree, written bare, e.g. `target: social-scoring`. In `elsa-tree/2` a
+Node in the same Tree, written bare, e.g. `target: social-scoring`. In `elsa-tree/3` a
 reference containing a colon is an error (rule V-CROSS); the shape `tree-id:node-id`
 is reserved for future Cross-links and must not be used yet.
 
@@ -176,6 +175,12 @@ and everything under `metadata`.
   links. Nothing else is part of the contract: headings, tables, raw HTML, embedded
   images and footnotes are not supported. Raw HTML is an error (rule V-HTML). Images
   belong in `images:`, never inline.
+- **An explainer mark** is the link syntax with a fragment target: `[providers](#provider)`
+  in a Node's `description` marks those words as carrying the explainer whose `id` is
+  `provider` on the same Node (5.9). The mark's text is what the reader sees and may be
+  any inflection of the term; the frontend styles it as hoverable, so a mark is not
+  written inside `*emphasis*` or `**strong**` (rule V-MARK). Only the description carries
+  marks: a title is plain text.
 
 Writing multi-paragraph text by hand:
 
@@ -195,7 +200,7 @@ description:
     De tweede alinea.
 ```
 
-Rich text is short in `elsa-tree/2`: a description has at most 600 characters and must
+Rich text is short in `elsa-tree/3`: a description has at most 600 characters and must
 fit an estimate of 8 rendered lines (section 3.8, section 5.7). Several paragraphs and
 a list still fit, but a Node that needs more becomes several Nodes (core document 3.3,
 item 8).
@@ -277,7 +282,8 @@ The limits of section 5.7 are checked on the **counted text** of a field:
 1. Take the string value. Remove leading and trailing whitespace (a block scalar ends
    with a line break; it is not counted).
 2. Replace every Markdown link `[text](url)` by its `text`. The URL is not shown to the
-   reader, so it does not take space in the Bubble. Every other character counts,
+   reader, so it does not take space in the Bubble. An explainer mark `[text](#id)` (5.9)
+   is a link for this rule: its text counts, its target does not. Every other character counts,
    including emphasis markers (`*`, `**`), list markers and punctuation: this is a
    little conservative and keeps the rule simple.
 3. **Length** is the number of Unicode code points of the result. Not bytes, not UTF-16
@@ -309,7 +315,7 @@ author knows how much to cut.
 ## 4. The manifest: the first document of `tree.yaml`
 
 ```yaml
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en, nl]
 root: start
 title:
@@ -329,7 +335,7 @@ theme:                             # optional; section 4.3
 
 | Key | Required | Type | Meaning |
 |---|---|---|---|
-| `format` | yes | string, exactly `elsa-tree/2` | The version of this contract the Tree is written against. A loader that does not know the value rejects the Tree. Only the first document has this key; a Node document with `format` is an error (V-KEYS). |
+| `format` | yes | string, exactly `elsa-tree/3` | The version of this contract the Tree is written against. A loader that does not know the value rejects the Tree. Only the first document has this key; a Node document with `format` is an error (V-KEYS). |
 | `languages` | yes | list of language tags, non-empty, distinct | The languages every localised text in the Tree provides. First entry is the default language. |
 | `root` | yes | Node reference | The Node the walk starts at. Must be a question Node or a Terminal, never an explanation Node. |
 | `title` | yes | localised text, plain, at most 80 characters | The Tree's name, shown by the frontend. |
@@ -465,9 +471,10 @@ A Node document is a mapping with these keys:
 | `description` | yes | localised text, rich, at most 600 characters and 8 estimated lines | The explanatory text, shown in the Bubble. |
 | `metadata` | yes | mapping | `version` (non-empty string) required; the rest free-form, kept but not interpreted. |
 | `sources` | no | list of Source (5.1), at most 3 | References this Node cites. Absent means none. |
-| `images` | no | list of Image (5.2), at most 10 | Pictures shown in the Carousel below this Node's Bubble. Absent means none. |
+| `images` | no | list of Image (5.2), at most 10 | The Node's pictures: the **first is its main image**, shown above the title in the Bubble and, small, on the Option button that leads to this Node; the rest are the Carousel's. Absent means none. |
 | `answers` | see 5.6 | Answers (5.3) | The yes/no Links. Present exactly on question Nodes. |
-| `options` | no | list of Option (5.4), at most 8 | The clickable list of entries, each leading to an explanation Node. Allowed on question Nodes and explanation Nodes; never on a Terminal. |
+| `options` | no | list of Option (5.4), at most 8 | The clickable list of entries, each opening an explanation Node in an Overlay. Allowed on question Nodes and explanation Nodes; never on a Terminal. |
+| `explainers` | no | list of Explainer (5.9), at most 8 | The terms of this Node's description that carry a short explanation shown on hover. Absent means none. |
 | `terminal` | see 5.6 | Terminal marker (5.5) | Present exactly on Terminals. |
 
 There is no `kind` key: the kind follows from which of `answers` / `terminal` is present
@@ -510,16 +517,20 @@ images:
 | Key | Required | Type | Meaning |
 |---|---|---|---|
 | `file` | yes | image file name (3.5) | A file in this Tree's `images/` folder. Must exist. |
-| `description` | yes | localised text, plain, at most 120 characters | What the picture shows: the Carousel's caption, and the accessible alternative text. |
-| `credit` | yes | non-empty string, at most 120 characters | Attribution and licence, reproduced as written, shown with the picture. Required for every Image without exception. |
+| `description` | yes | localised text, plain, at most 120 characters | What the picture shows: the accessible alternative text, and the name of the picture's link. Not displayed as a caption. |
+| `credit` | yes | non-empty string, at most 120 characters | Attribution and licence, reproduced as written. Shown whole in the enlarged view a click on the picture opens, and read as the picture's accessible description (`application.md` 12.3). Required for every Image without exception. |
 | `source` | no | id of a Source on the same Node | Where the picture or its content comes from. For an Image on an Option this refers to the `sources` of the Node the Option is written in. |
 
 **The Carousel needs nothing more than this.** The order of the list is the order of
-the Carousel, first entry first; the caption under a picture is its `description`; the
-credit is shown with it, in the Carousel and in the enlarged view. There is no `order`
-key, no `caption` key and no `cover` key: the list is the order, the description is the
-caption, and a Node that wants a different first picture moves it up the list. Unchanged
-from `elsa-tree/1` in every key (`docs/adrs/ADR-37-images-carousel.md`).
+the pictures, and **the first entry is the Node's main image**: shown 60 pixels tall above
+the Node's title in its Bubble and in its Overlay, and small on the button of every Option
+that leads to the Node (`application.md` 10.3). The entries after it are the Carousel's,
+in order. Nothing is written under a picture: the `description` is its alternative text
+and the `credit` is shown in the enlarged view and read as the picture's description.
+There is no `order` key, no `caption` key and no `main` key: the list is the order, and a
+Node that wants a different main image moves it up the list. The keys are unchanged from
+`elsa-tree/1` (`docs/adrs/ADR-37-images-carousel.md`, `ADR-78-carousel.md`,
+`ADR-78-main-image-and-row-budget.md`).
 
 ### 5.3 Answers
 
@@ -543,17 +554,18 @@ options:
       en: Social scoring
       nl: Sociale scoring
     target: social-scoring
-    images:                         # optional, same shape as 5.2
-      - file: scoreboard.png
-        description: { en: A scoreboard, nl: Een scorebord }
-        credit: "Illustration: Example Studio, CC0"
 ```
 
 | Key | Required | Type | Meaning |
 |---|---|---|---|
 | `title` | yes | localised text, plain, at most 60 characters | The entry's text: the label of its Branch out of the Bubble. |
 | `target` | yes | Node reference | The explanation Node that expands on this entry. Must be an explanation Node (5.6). |
-| `images` | no | list of Image, at most 3 | Pictures for this entry (e.g. what kind of product a piece of legislation covers). Whether the Carousel shows them with the Node's own Images is the frontend's (issue #38). Decided by the owner on #55 (2026-09-14): the first of them, the one on the Option's Branch, follows the Node's own Images in the strip (`application.md` 12.1). |
+
+**An Option has no Images of its own** (`elsa-tree/3`; `docs/adrs/ADR-78-fan-out-and-option-picture.md`).
+The picture on its button is its target's main image, the first entry of the target's
+`images` (5.2): a picture that shows what an entry covers is written once, on the Node
+that explains it, and the button and the Overlay show the same file. An `images` key on
+an Option is an error (V-KEYS); 12.5 moves the pictures of an `elsa-tree/2` Tree.
 
 Options in one list have distinct targets. Several Nodes may point at the same
 explanation Node. The order of the list is the order shown. **At most 8 Options on a
@@ -590,9 +602,9 @@ The set is closed. A Tree that needs a fifth value needs a new format number.
 | **explanation Node** | no | no | yes | an Option | at least one Option |
 
 A document with both `answers` and `terminal` is an error. An explanation Node reached
-through an Option is "explanation only" (core document 3.1, traversal rule): the user
-reads it, may open its own Options, and goes back through the Trail to answer the
-parent's question. A Trail is therefore just a list of Node ids, which the frontend can
+through an Option is "explanation only" (core document 3.1, traversal rule): on screen it
+opens in an Overlay over its parent's page (`application.md` 10.9); the user reads it,
+may follow its own Options, and closes it to answer the parent's question. A Trail is therefore just a list of Node ids, which the frontend can
 carry in a shareable link.
 
 ### 5.7 Maximum lengths and counts
@@ -618,29 +630,37 @@ language**.
 | `sources` on a Node | 3 entries | V-COUNT |
 | `options` on a Node | 8 entries | V-COUNT |
 | `images` on a Node | 10 entries | V-COUNT |
-| `images` on an Option | 3 entries | V-COUNT |
+| Explainer `term` (any language) | 40 characters | V-LENGTH |
+| Explainer `text` (any language) | 200 characters | V-LENGTH |
+| `explainers` on a Node | 8 entries | V-COUNT |
 | `fonts` in a Theme | 2 families, 8 files each | V-COUNT |
 
 `metadata` values, URLs, ids and file names have no length rule beyond their own
 grammar; they are not shown in the Bubble.
 
 **The assumptions the numbers derive from.** They are written down so that the
-application architecture (issue #38), which fixes the layout, can confirm or correct
-them; if it corrects them, it says so on issue #37 and the numbers here change with a
-new format number. `docs/adrs/ADR-37-length-limits.md` has the reasoning.
+application architecture, which fixes the layout, can confirm or correct them; if it
+corrects them, the numbers here change with a new format number. Issue #38 confirmed
+them against the 0.2 layout; issue #78 re-derived them against the layout of #75 --
+the Trail row gone, a main image above the title, a heading over the Sources, the
+Carousel on the Bubble's lower edge -- and **confirmed every limit unchanged, with two
+pixels to spare** (`application.md` 10.1, 10.7; `docs/adrs/ADR-78-main-image-and-row-budget.md`).
+`docs/adrs/ADR-37-length-limits.md` has the original reasoning.
 
 | Assumption | Value |
 |---|---|
 | Viewport the layout guarantees | 1280 x 640 CSS pixels: a 1366 x 768 laptop display, or a 1920 x 1080 one at 150 % scaling, minus browser tabs, address bar and taskbar |
-| Vertical budget at that height | chrome bar 44 + Trail Branches 64 + Bubble 360 + outgoing Branches 64 + Carousel 80 + disclaimer 28 = 640 |
-| Text area inside the Bubble | 640 x 304 CSS pixels, inside the curve and the padding of a 760 x 360 rounded Bubble |
+| Vertical budget at that height | chrome bar 44 + up-arrow band 26 + Bubble 446 + Carousel strip band 28 + Answer buttons 68 + disclaimer 28 = 640 (was: chrome 44 + Trail 64 + Bubble 360 + Branches 64 + Carousel 80 + disclaimer 28) |
+| Text area inside the Bubble | 640 x 394 CSS pixels, inside the curve and the padding of a 760 x 446 rounded Bubble (was 640 x 304 in 760 x 360) |
+| Main image | 60 px tall, at most 90 wide, above the title; an empty slot of the same height on a Node without Images (`application.md` 10.3) |
 | Body text | 16 px, line height 24 px, average advance 8.5 px per character (Open Sans and similar humanist sans-serifs): **75 characters per line** |
 | Node title | 22 px, line height 28 px, about 55 characters per line: 80 characters is at most **2 lines** (56 px) |
-| Sources | 13 px, line height 20 px, about 90 characters per line: 3 labels of 60 characters with separators is at most **2 lines** (40 px) |
-| Description | what remains: 304 - 56 - 8 - 40 - 8 = 192 px = **8 lines** of 24 px, at 75 characters = 600 characters |
-| Option Branch labels | 13 px, line height 20 px, in a label at most 150 px wide, about 21 characters per line: an Option title of 60 characters is at most **3 lines** (60 px, inside the 64 px row); 8 Option Branches fit 1280 px side by side (1200 px). A question Node that carries both `answers` and `options` (section 5.6) shows 10 Branches, which need 1500 px at that width: #38 decides whether they narrow or wrap |
-| Answer and Trail Branch labels | the same 13 px on 20 px lines, but the label is a Node `title` of up to 80 characters (5.3, section 6), which at 150 px would be 4 lines = 80 px and not fit a 64 px row. The 2 Answer Branches have 640 px each (about 90 characters per line): 80 characters is **1 line**. A Trail of n Nodes has n Branches in the 64 px Trail row: up to 6 fit, at 213 px each (about 30 characters per line: 80 characters is at most **3 lines**, 60 px); the format does not bound a Trail's length, so a longer Trail is real, and #38 decides whether its labels truncate, its row wraps or its middle collapses to a count |
-| Carousel | one picture at a time, 80 px strip; a caption of 120 characters fits one line at 13 px under the enlarged view, two in the strip |
+| Sources | a 20 px heading line ("Legal sources"), then 13 px on 20 px lines, about 90 characters per line: 3 labels of 60 characters with two kind prefixes and separators is at most **2 lines**: 60 px in all |
+| Description | what remains: 394 - 60 - 8 - 56 - 8 - 60 - 8 = 194 px, of which **8 lines** of 24 px = 192 are used, at 75 characters = 600 characters; 2 px spare |
+| Explainer panel | 320 px wide, 14 px text on 20 px lines, about 45 characters per line: a 200-character `text` is at most 5 lines, and the panel with its `term` heading and padding at most 148 px, which fits above or below any line of the 394 px text area (5.9) |
+| Option button labels | an Option button of 232 x 96 px beside the Bubble, with 152 px of label at 16 px on 20 px lines, up to four lines: an Option title of 60 characters is at most **3 lines** in a humanist face and 4 in DejaVu Sans, the widest fallback (80 px, inside the 96 px button). The Options fan out at most 4 a side at a pitch of 111.5 px: four buttons are 384 px of the Bubble's 446, so 8 Options fit without narrowing or wrapping. A question Node that carries both `answers` and `options` (section 5.6) puts its 2 Answer buttons below the Bubble and its Options beside it, so the two never share a row (`application.md` 10.3, 10.7; `docs/adrs/ADR-78-fan-out-and-option-picture.md`) |
+| Answer button labels, and the Trail | the label is the chrome word, a colon and a Node `title` of up to 80 characters (5.3, section 6): at most 86 characters in one run of 19 px bold on 24 px lines, in a 620 x 60 px button with 580 px of label, at least 43 characters per line in DejaVu Sans Bold: **2 lines** (48 px, inside the 60 px button). The 2 Answer buttons sit side by side in the 68 px Answer row. No Trail is drawn: the up arrow carries the parent's title as its accessible name only, so no Trail label has a width to fit; the format still does not bound a Trail's length, and a long one costs the screen nothing (`application.md` 10.2, 10.3, 10.7; `docs/adrs/ADR-78-answer-buttons-and-up-arrow.md`) |
+| Carousel | a strip of 48 px round thumbnails on the Bubble's lower outline, the Images after the main one, seven visible, no caption; the description is alternative text and the credit is shown in the enlarged view, where it fits one line at 13 px (`application.md` 12) |
 
 What these numbers do **not** promise: that a description written at the maximum in a
 wide font (a `heading`-role font is never used for it) or in a script with wider
@@ -656,6 +676,36 @@ format has no field for it and the validator does not check that `2/7` follows `
 (`docs/adrs/ADR-37-step-counter.md`). The frontend may recognise a trailing `(n/m)`
 and style it as muted text; it does not depend on it.
 
+### 5.9 Explainers
+
+```yaml
+explainers:
+  - id: provider
+    term:
+      en: provider
+      nl: aanbieder
+    text:
+      en: Someone who develops an AI system, or has one developed, and places it on the market or puts it into service under their own name or trademark.
+      nl: Wie een AI-systeem ontwikkelt of laat ontwikkelen en het onder eigen naam of merk in de handel brengt of in gebruik stelt.
+description:
+  en: |
+    Are you a [provider](#provider) who places an AI system on the Union market? ...
+```
+
+| Key | Required | Type | Meaning |
+|---|---|---|---|
+| `id` | yes | id (3.1), unique among this Node's explainers | What a mark in the description points at: `[providers](#provider)`. |
+| `term` | yes | localised text, plain, at most 40 characters | The canonical word or phrase, shown as the panel's heading. The mark's own text may be an inflection of it. |
+| `text` | yes | localised text, plain, at most 200 characters | The explanation, shown in the panel. One line of plain text: no emphasis, no links, no lists. |
+
+An explainer belongs to the Node it is written on, like a Source (core document 10.11):
+a term used on several Nodes is written on each. Every explainer must be marked at
+least once in the description, in every language (V-EXPLAINER), and every mark must name
+an explainer of the same Node (V-MARK); a mark is not written inside emphasis or strong
+text. What the frontend shows -- the panel on hover, focus and tap, what a screen reader
+hears, and what holds without JavaScript -- is `application.md` 10.8. The limits are
+derived in 5.7. `docs/adrs/ADR-78-explainers.md` has the reasoning.
+
 ## 6. Loading: the file is read once, a page still receives one Node
 
 The Tree is one file, so it is read as one file, and the moment it is read is the moment
@@ -668,7 +718,7 @@ it is validated:
   too, only from sixty files instead of one.
 - **To render Node `x`** the server takes `x` from the index. It reads no file. The
   page is given **one Node, never the Tree**: its text in every language, its Sources,
-  the file names of its own Images, the *ids* of its Link targets, and the titles of
+  the file names of its own Images, its explainers, the *ids* of its Link targets, and the titles of
   the Trail from the title index. The Theme reaches the page from the manifest.
 - **The browser** receives that one Node's HTML and then requests the image files it
   names, and the Theme files, as it needs them. Nothing in the format lets a Node refer
@@ -699,7 +749,7 @@ A Tree is never partially loaded.
 |---|---|
 | V-DIR | a folder name that is an id (3.1), containing `tree.yaml`. `images/` and `theme/`, when present, are folders. |
 | V-YAML | a `tree.yaml` that parses as a YAML 1.2 stream in which every document is a mapping at the top level. A document that fails to parse is reported with its line number; the other documents are still checked. |
-| V-FORMAT | a first document whose `format` is exactly `elsa-tree/2`. |
+| V-FORMAT | a first document whose `format` is exactly `elsa-tree/3`. |
 | V-LANG | `languages`: a non-empty list of distinct, valid language tags (3.3). |
 | V-ROOT | `root` naming an existing Node that is a question Node or a Terminal. |
 | V-TITLE | `title` as a plain localised text, in the manifest. |
@@ -726,12 +776,14 @@ A Tree is never partially loaded.
 | V-NODE | at least one Node document; every Node document with an `id` that is a valid id and is distinct from every other Node's, and `title`, `description`, `metadata` present. |
 | V-KIND | at most one of `answers` and `terminal` on a Node. |
 | V-ANSWERS | `answers` with exactly the keys `yes` and `no`, each a Node reference to an existing question Node or Terminal. |
-| V-OPTIONS | `options`, when present, a non-empty list; each with `title` and `target`; targets existing explanation Nodes; targets distinct within the list. |
+| V-OPTIONS | `options`, when present, a non-empty list; each with `title` and `target` and nothing else (an `images` key on an Option fails V-KEYS); targets existing explanation Nodes; targets distinct within the list. |
 | V-ORPHAN | every explanation Node targeted by at least one Option (this is also implied by V-REACH, but gets its own message). |
 | V-TERMINAL | `terminal` as a mapping whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`; a Terminal has no `options`. |
 | V-SOURCE | every Source with a `kind` in `legal` / `case-law` / `literature`, a plain localised `label`, an absolute http(s) `url`; Source ids valid and distinct within the Node. |
 | V-IMAGE | every Image with a `file` matching 3.5 that exists in the Tree's `images/`, a plain localised `description`, a non-empty `credit`, and, if present, a `source` naming a Source id on the same Node. |
-| V-CROSS | no Node reference containing `:` (Cross-links are not part of `elsa-tree/2`). |
+| V-EXPLAINER | `explainers`, when present, a non-empty list of at most 8; each with an `id` that is a valid id and distinct within the Node, a plain localised `term` and a plain localised `text` within 5.7; and each marked at least once in the Node's `description` in every declared language. |
+| V-MARK | every `[text](#id)` in a `description` names an explainer `id` of the same Node, has non-empty text, and is not inside `*emphasis*` or `**strong**`. |
+| V-CROSS | no Node reference containing `:` (Cross-links are not part of `elsa-tree/3`). |
 
 Not errors: an image file in `images/` or a file in `theme/` that nothing references; a
 Node reached by more than one Link; a cycle among question Nodes (the Tree is
@@ -741,7 +793,7 @@ in any order; comments anywhere.
 ## 8. Complete example Tree (English and Dutch)
 
 The Tree below is complete and valid: it observes every limit of 5.7 and exercises
-every element of the format, including a Theme and Images. It is **illustrative
+every element of the format, including a Theme, Images and an explainer. It is **illustrative
 content**: the legal statements are simplified sketches used to show the format, not
 verified readings of the AI Act. The real first Tree is authored separately.
 
@@ -767,13 +819,12 @@ trees/
       LICENCE.md                     ownership of the logo; likewise ignored
 ```
 
-Shape: `start` is the root question Node with an Image and a legal Source. Its `no`
+Shape: `start` is the root question Node with an Image (its main image), a legal Source and an explainer for "provider". Its `no`
 Answer ends at the Terminal `outside-scope`; its `yes` Answer leads to
 `prohibited-practices`, a question Node with two Options, each opening an explanation
-Node (`social-scoring`, with a case-law and a literature Source and an Image on the
-Option; `emotion-recognition-at-work`). Answering `yes` there reaches the Terminal
-`prohibited`, `no` reaches the Terminal `covered`. Every Node carries at least one Image (issue
-#84); `social-scoring` carries the picture of the Option that opens it.
+Node (`social-scoring`, with a case-law and a literature Source and a main image, which
+its Option's button shows; `emotion-recognition-at-work`). Answering `yes` there reaches the Terminal
+`prohibited`, `no` reaches the Terminal `covered`. Every Node carries a main image (issue #84).
 
 The Theme is **deliberately unlike the first Tree's** (issue #40; `ADR-38-theme-delivery`,
 Consequences: "the example Tree and the first Tree can ship deliberately different Themes
@@ -790,7 +841,7 @@ is the identity issue #36 measured on https://ai4sfs.org.
 ```yaml
 # The example Tree of docs/specs/tree-format.md, section 8: every element of the format
 # in one small Tree. Its legal content is simplified and not to be relied on.
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en, nl]
 root: start
 title:
@@ -798,10 +849,10 @@ title:
   nl: Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)
 description:
   en: |
-    A small example Tree that exercises every element of the `elsa-tree/2` format.
+    A small example Tree that exercises every element of the `elsa-tree/3` format.
     Its legal content is simplified and not to be relied on.
   nl: |
-    Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/2`-formaat gebruikt.
+    Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/3`-formaat gebruikt.
     De juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen.
 metadata:
   version: "2.0"
@@ -844,7 +895,7 @@ title:
 description:
   en: |
     The AI Act reaches AI systems **placed on the market or put into service in the
-    EU**, and systems whose *output is used in the EU*, wherever the provider is based.
+    EU**, and systems whose *output is used in the EU*, wherever the [provider](#provider) is based.
 
     Answer **yes** if you place your system on the EU market, put it into service in
     the EU, use it in the EU, or use its output in the EU.
@@ -853,7 +904,7 @@ description:
   nl: |
     De AI-verordening bestrijkt AI-systemen die **in de EU in de handel worden gebracht
     of in gebruik worden gesteld**, en systemen waarvan de *output in de EU wordt
-    gebruikt*, waar de aanbieder ook is gevestigd.
+    gebruikt*, waar de [aanbieder](#provider) ook is gevestigd.
 
     Antwoord **ja** als u uw systeem in de EU in de handel brengt, in gebruik stelt,
     gebruikt, of als de output ervan in de EU wordt gebruikt.
@@ -875,6 +926,14 @@ images:
       nl: Kaart van de lidstaten van de Europese Unie
     credit: "Map: Example Cartography, CC BY 4.0"
     source: art-2
+explainers:
+  - id: provider
+    term:
+      en: provider
+      nl: aanbieder
+    text:
+      en: Someone who develops an AI system, or has one developed, and places it on the market or puts it into service under their own name or trademark.
+      nl: Wie een AI-systeem ontwikkelt of laat ontwikkelen en het onder eigen naam of merk in de handel brengt of in gebruik stelt.
 answers:
   yes: prohibited-practices
   no: outside-scope
@@ -939,12 +998,6 @@ options:
       en: Social scoring
       nl: Sociale scoring
     target: social-scoring
-    images:
-      - file: scoreboard.png
-        description:
-          en: A scoreboard ranking people
-          nl: Een scorebord dat mensen rangschikt
-        credit: "Illustration: Example Studio, CC0 1.0"
   - title:
       en: Emotion recognition at work or in education
       nl: Emotieherkenning op het werk of in het onderwijs
@@ -971,6 +1024,12 @@ description:
     onevenredig is.
 metadata:
   version: "2.0"
+images:
+  - file: scoreboard.png
+    description:
+      en: A scoreboard ranking people
+      nl: Een scorebord dat mensen rangschikt
+    credit: "Illustration: Example Studio, CC0 1.0"
 sources:
   - kind: legal
     label:
@@ -987,12 +1046,6 @@ sources:
       en: Veale & Zuiderveen Borgesius (2021), Demystifying the AI Act
       nl: Veale & Zuiderveen Borgesius (2021), Demystifying the AI Act
     url: https://arxiv.org/abs/2107.03721
-images:
-  - file: scoreboard.png
-    description:
-      en: A scoreboard ranking people
-      nl: Een scorebord dat mensen rangschikt
-    credit: "Illustration: Example Studio, CC0 1.0"
 
 --- # emotion-recognition-at-work
 id: emotion-recognition-at-work
@@ -1082,7 +1135,7 @@ Nothing structural changes. The manifest declares one language and every localis
 text has one key:
 
 ```yaml
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [nl]
 root: start
 title:
@@ -1114,13 +1167,22 @@ one, is shown in the frontend's plain default look.
   colon) will address a Node in another Tree, and a bare reference to a non-child Node
   may become allowed for in-Tree cross-links. Ids therefore cannot contain a colon
   today, and today's loader rejects references with a colon (V-CROSS). Files written
-  against `elsa-tree/2` will remain valid when Cross-links arrive.
-- **Format number.** `format: elsa-tree/2` is the only accepted value. Any change to
+  against `elsa-tree/3` will remain valid when Cross-links arrive.
+- **Format number.** `format: elsa-tree/3` is the only accepted value. Any change to
   the keys, the kinds, the outcome set, the Theme roles, the limits or the validity
-  rules is published as `elsa-tree/3` with its own document; a loader states which
+  rules is published as `elsa-tree/4` with its own document; a loader states which
   format numbers it accepts.
 
 ## 11. Where each decision is recorded
+
+Decisions of `elsa-tree/3` (issue #78):
+
+| Decision | ADR |
+|---|---|
+| Explainers: an `explainers` list of `id`, `term` and `text`, at most 8 of 40 and 200 characters; each occurrence marked in the description with the link syntax `[text](#id)`; strict rules V-EXPLAINER and V-MARK; the title stays plain | `docs/adrs/ADR-78-explainers.md` |
+| An Option has no Images of its own: the picture on its button is its target's main image, and the migration moves an `elsa-tree/2` Option's first picture to its target | `docs/adrs/ADR-78-fan-out-and-option-picture.md` |
+| The first Image is the main image; the length limits confirmed unchanged against the layout of #75 | `docs/adrs/ADR-78-main-image-and-row-budget.md` (amends `ADR-37-length-limits.md`) |
+| Nothing under the pictures: the description is accessible text, the credit is shown in the enlarged view and read as the picture's description | `docs/adrs/ADR-78-carousel.md` (amends `ADR-37-images-carousel.md`) |
 
 Decisions of `elsa-tree/2` (issue #37):
 
@@ -1271,3 +1333,44 @@ title:
 
 `start` comes first because it is the root; `covered` next because it sorts first
 among the rest; the other five follow in byte order of their old file names.
+
+### 12.5 From `elsa-tree/2` to `elsa-tree/3`
+
+A Tree folder written against `elsa-tree/2` is converted to `elsa-tree/3` by a procedure
+that is textual wherever it can be and touches only what changed, so that every comment
+and every quoting choice an author made survives. `docs/adrs/ADR-78-fan-out-and-option-picture.md`
+and `ADR-78-explainers.md` have the reasoning; issue #79 scripts it.
+
+1. **The format line.** In `tree.yaml` find the first line matching
+   `^format:\s*elsa-tree/2\s*(#.*)?$` and replace it by `format: elsa-tree/3`, keeping any
+   comment. If no such line exists, leave the text unchanged and report
+   `manifest: no "format: elsa-tree/2" line found` (the result will fail V-FORMAT, as the
+   input would have).
+2. **Option pictures.** For every Option that has an `images` key: take its **first**
+   Image; if the target Node's `images` list is absent or its first entry names a
+   different `file`, insert that Image, unchanged in every key, as the **first** entry of
+   the target's `images` (creating the key after the target's `metadata` when it is
+   absent); a `source` on the moved Image is dropped, with a report, unless the target has
+   a Source of that id. Then remove the Option's `images` key and its block. Report every
+   second and third Image an Option had, by file name: they are shown nowhere in
+   `elsa-tree/3`, and the author decides whether the target's Carousel should carry them
+   (an image file nothing references is not an error). The block is moved as text, with
+   its indentation adjusted from the Option's level to the Node's, so a comment inside it
+   survives.
+3. **Nothing else changes.** No `explainers` key is added: a Tree without explainers is a
+   valid `elsa-tree/3` Tree, and `[text](#id)` did not occur in any Tree or fixture on
+   `dev` on 2026-09-17, so no existing description acquires a mark by accident. A
+   description that does contain `](#` fails V-MARK afterwards, and is reported.
+4. **Validate** the result with the rules of section 7 and **report every violation** as
+   the loader would. Shorten nothing, drop nothing else, silence nothing. Exit
+   successfully when the result validates, and unsuccessfully otherwise.
+
+What the procedure guarantees: a valid `elsa-tree/2` Tree whose Options carry no Images
+converts by its format line alone; one whose Options carry Images converts to a Tree in
+which every side child's button shows the picture its Option showed, the same file and
+the same credit, and every Node reference, Source, Theme and `metadata` bag is what it
+was, so every URL and every shared link keeps working. For the Trees on `dev`: issue #84
+gives every Node of both Trees a main image first, copying each of the first Tree's 28
+Option pictures to its target as that target's first Image, so step 2 finds them there
+and moves nothing; the example Tree's `scoreboard.png` is written on `social-scoring` in
+section 8 for the same reason.
