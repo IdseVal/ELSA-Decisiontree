@@ -302,12 +302,28 @@ a.language:hover,
   grid-area: carousel;
   position: relative;
   z-index: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
   min-width: 0;
   height: 48px;
   margin-top: -24px;
+}
+
+/*
+ * The strip in the middle column, centred on the Bubble whatever stands beside it: without
+ * the script the enlarged view's control is beside it, and leaves the flow when its
+ * disclosure opens, which must not move the pictures under the reader's pointer.
+ */
+.carousel > .carousel-strip,
+.carousel > .carousel-sheet {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.carousel-strip ~ .carousel-sheet {
+  grid-column: 3;
+  justify-self: start;
 }
 
 /*
@@ -1274,6 +1290,10 @@ a.language:hover,
     display: none;
   }
 
+  .carousel > .carousel-sheet {
+    grid-column: 2;
+  }
+
   .carousel .carousel-sheet > .sheet-open {
     display: block;
     margin-left: 0;
@@ -1505,6 +1525,10 @@ a.language:hover,
 
   .carousel-strip {
     display: none;
+  }
+
+  .carousel > .carousel-sheet {
+    grid-column: 2;
   }
 
   .carousel .carousel-sheet > .sheet-open {
