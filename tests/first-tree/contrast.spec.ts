@@ -1,12 +1,17 @@
 /**
  * Issue #64: the secondary text of the first Tree is readable.
  *
- * The Trail's Branch labels, the Tree's name, the Carousel's caption (the credit a CC BY
- * licence asks to be shown), the disclaimer and the `back` / `startAgain` Branches are drawn
- * in the Theme's `text-muted`. The first Tree once set it to the ai4sfs.org site's own muted
+ * The Carousel's caption (the credit a CC BY licence asks to be shown) and the disclaimer
+ * are drawn in the Theme's `text-muted` (the Trail's labels, the Tree's name and the `back`
+ * Branch were too, until #82 retired them). The first Tree once set it to the ai4sfs.org site's own muted
  * grey, 2.49 : 1 on its white page, where WCAG 2.2 SC 1.4.3 asks 4.5 : 1 of text this small.
  * The palette is where that is fixed (tree-format.md 4.3.3); this suite measures what the
  * browser actually paints, so a Theme value and a stylesheet rule have to agree to pass.
+ *
+ * Issue #82: the Answer buttons, `startAgain` and the up arrow are filled with the Theme's
+ * `accent-secondary`, the logo green #159a2f, under `--elsa-on-accent-secondary`. The label
+ * is 19-pixel bold, large text, for which SC 1.4.3 asks 3 : 1
+ * (ADR-78-answer-buttons-and-up-arrow decision 3).
  *
  * The server serves `trees/ai-act-applicability-agrifood` (see playwright.first-tree.config.ts).
  */
@@ -15,14 +20,17 @@ import { arrived } from '../browser/arrived.ts'
 
 const TREE = 'ai-act-applicability-agrifood'
 
-/** The root, whose Carousel shows a credit and whose Trail row holds the Tree's name. */
+/** The root, whose Carousel shows a credit. */
 const ROOT = `/${TREE}/start`
 
 /** The walk of the issue's screenshot: a Trail as long as the first Tree gets, ending on a Terminal. */
 const END_OF_WALK = `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/prohibited-practices-2/annex-i-legislation/high-risk/general-purpose-ai/transparency-obligations/end-of-walk`
 
-/** WCAG 2.2 SC 1.4.3's minimum for text below the large-text sizes, which all of these are. */
+/** WCAG 2.2 SC 1.4.3's minimum for text below the large-text sizes. */
 const MINIMUM = 4.5
+
+/** WCAG 2.2 SC 1.4.3's minimum for large text: at least 18.66 CSS pixels bold, or 24 regular. */
+const LARGE_MINIMUM = 3
 
 /** One element's measured text colour, the background it is drawn on, and their contrast. */
 interface Measured {
@@ -30,6 +38,9 @@ interface Measured {
   colour: string
   background: string
   ratio: number
+  /** The computed font size in CSS pixels and weight, which decide whether the text is large. */
+  size: number
+  weight: number
 }
 
 /**
@@ -87,6 +98,8 @@ async function measure(page: Page, selector: string): Promise<Measured[]> {
           colour: hex(painted),
           background: hex(background),
           ratio: Math.round(((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)) * 100) / 100,
+          size: parseFloat(getComputedStyle(el).fontSize),
+          weight: Number(getComputedStyle(el).fontWeight),
         }
       })
   })
@@ -100,7 +113,8 @@ async function expectReadable(page: Page, selector: string): Promise<void> {
   const measured = await measure(page, selector)
   expect(measured.length, `${selector}: visible elements`).toBeGreaterThan(0)
   for (const m of measured) {
-    expect.soft(m.ratio, `${selector} "${m.text}": ${m.colour} on ${m.background}`).toBeGreaterThanOrEqual(MINIMUM)
+    const large = m.size >= 24 || (m.size >= 18.66 && m.weight >= 700)
+    expect.soft(m.ratio, `${selector} "${m.text}": ${m.colour} on ${m.background}`).toBeGreaterThanOrEqual(large ? LARGE_MINIMUM : MINIMUM)
   }
 }
 
@@ -109,21 +123,46 @@ test('the root: the Tree name, the image credit and the disclaimer reach 4.5 : 1
   await arrived(page, new RegExp(`${ROOT}$`))
   await expect(page.locator('.carousel-caption:visible')).toBeVisible()
 
-  await expectReadable(page, '.tree-name')
   await expectReadable(page, '.carousel-caption')
   await expectReadable(page, '.disclaimer p')
 })
 
-test('a Terminal at the end of a long walk: the Trail labels and back / startAgain reach 4.5 : 1', async ({ page }) => {
+test('a Terminal at the end of a long walk: startAgain and the disclaimer are readable', async ({ page }) => {
   await page.goto(END_OF_WALK)
   await arrived(page, /\/end-of-walk$/)
 
-  await expectReadable(page, '.trail-entry .branch-title')
   await expectReadable(page, '.answer--start-again .branch-word')
   await expectReadable(page, '.answer--start-again .branch-title')
-  await expectReadable(page, '.answer--back .branch-word')
-  await expectReadable(page, '.answer--back .branch-title')
   await expectReadable(page, '.disclaimer p')
+})
+
+test('the Answer label is large text on the logo green, at least 3 : 1, measured on the running page (#82)', async ({ page }, testInfo) => {
+  const question = `${TREE}/start/article-2-exclusions/ai-system-definition`
+  await page.goto(`/${question}`)
+  await arrived(page, new RegExp(`/${question}$`))
+
+  const labels = await measure(page, '.answer .branch-label')
+  expect(labels).toHaveLength(2)
+  for (const m of labels) {
+    // The fill is the Theme value, not a stylesheet colour: the first Tree's accent-secondary.
+    expect(m.background, m.text).toBe('#159a2f')
+    expect(m.colour, m.text).toBe('#ffffff')
+    expect(m.size, m.text).toBe(19)
+    expect(m.weight, m.text).toBe(700)
+    expect(m.ratio, m.text).toBeGreaterThanOrEqual(LARGE_MINIMUM)
+  }
+  // The arrow's glyph is a graphic, for which SC 1.4.11 asks the same 3 : 1.
+  const arrow = await measure(page, '.up-arrow')
+  expect(arrow).toHaveLength(1)
+  expect(arrow[0]!.background).toBe('#159a2f')
+  expect(arrow[0]!.ratio).toBeGreaterThanOrEqual(LARGE_MINIMUM)
+
+  const fill = await page.locator('.answer--yes').evaluate((el) => getComputedStyle(el).backgroundColor)
+  testInfo.annotations.push({
+    type: 'measured',
+    description: `computed fill ${fill}; ${[...labels, ...arrow].map((m) => `"${m.text}" ${m.colour} on ${m.background} = ${m.ratio} : 1 at ${m.size}px/${m.weight}`).join('; ')}`,
+  })
+  console.log(testInfo.annotations.at(-1)!.description)
 })
 
 /** A page of each kind the first Tree has: a question with Images, many Options, an explanation, both Terminal outcomes. */

@@ -323,23 +323,20 @@ test.describe('below the guaranteed width', () => {
   /** The credit of `long`'s first Image: 120 characters, the format's maximum (tree-format.md 5.2). */
   const LONG_CREDIT = 'Photograph: Example Agricultural Research Station, Department of Soil and Water, via Example Commons, licence CC BY 4.0.'
 
-  test('by width the Trail collapses first (1200), then the Carousel (960), and until then the longest credit is whole on the caption line', async ({ page }) => {
+  test('by width the Carousel collapses at 960, and until then the longest credit is whole on the caption line', async ({ page }) => {
     // 800 pixels high, so no height-keyed step fires and only the width orders them (10.5).
+    // The Trail's own collapse at 1200, which came first, went with the drawn Trail (#82).
     const widths = [
-      { width: 1240, trail: 'open', strip: true },
-      { width: 1199, trail: 'collapsed', strip: true },
-      { width: 960, trail: 'collapsed', strip: true },
-      { width: 959, trail: 'collapsed', strip: false },
+      { width: 1240, strip: true },
+      { width: 1199, strip: true },
+      { width: 960, strip: true },
+      { width: 959, strip: false },
     ] as const
     await page.goto(`${origin}${TWO}/long`)
     const control = page.locator('.carousel-sheet .sheet-open')
-    for (const { width, trail, strip } of widths) {
+    for (const { width, strip } of widths) {
       await page.setViewportSize({ width, height: 800 })
       const where = `at ${width} x 800`
-
-      // `five`, the first of the Trail's two entries, is what step 1 gives up.
-      if (trail === 'open') await expect(page.locator('.trail-step').first(), where).toBeVisible()
-      else await expect(page.locator('.trail-step').first(), where).toBeHidden()
 
       if (strip) {
         await expect(page.locator('[data-carousel-strip]'), where).toBeVisible()

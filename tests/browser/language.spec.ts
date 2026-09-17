@@ -72,8 +72,10 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await arrived(page, `${STEP}/social-scoring?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sociale scoring')
 
-  // The way back keeps it too: the Trail entry is the same page in the same language.
-  await page.locator('.trail-entry').first().click()
+  // The way back keeps it too: the up arrow leads to the same page in the same language.
+  await page.locator('.up-arrow').click()
+  await arrived(page, `${STEP}?lang=nl`)
+  await page.locator('.up-arrow').click()
   await arrived(page, `${START}?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Valt uw AI-systeem binnen het bereik van de AI-verordening?',

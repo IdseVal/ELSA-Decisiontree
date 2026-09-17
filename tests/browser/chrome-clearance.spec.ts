@@ -1,9 +1,11 @@
 /**
  * The tree view keeps clear of the chrome (issue #65): at the guaranteed viewport of
- * docs/specs/application.md 10.4 a Trail Branch of three lines and the Carousel's caption
- * line each fill the row they are in to the pixel, so without a clearance of their own they
- * touch the chrome bar's rule above and the disclaimer's rule below. 10.6 cannot see that --
- * nothing overflows -- so it is measured here, as edges.
+ * docs/specs/application.md 10.4 the Carousel's caption line fills its row to the pixel, and
+ * so did a three-line Trail Branch until the up arrow replaced the drawn Trail (#82). Without
+ * a clearance of their own they touch the disclaimer's rule below and the chrome bar's rule
+ * above. 10.6 cannot see that -- nothing overflows -- so it is measured here, as edges: the
+ * caption line against the disclaimer, and the up arrow, which stands above the Bubble's
+ * outline, against the chrome bar.
  *
  * The pages are the first Tree's, where issue #46's walk found the collisions: its bundled
  * Open Sans wraps these titles into three lines on every machine, so the case is not left
@@ -22,8 +24,8 @@ const PORT = BASE_PORT + 40
 /** The clearance, in CSS pixels, between the tree view and the chrome bar or the disclaimer. */
 const CLEARANCE = 4
 
-/** A Trail label's line (10.2): three of them is the tallest Branch the row holds. */
-const TRAIL_LINE = 18
+/** The up arrow's, above: its band is 26 pixels, 24 of arrow and 2 clear (application.md 10.1). */
+const ARROW_CLEARANCE = 2
 
 /** Issue #65's pages: the credit line on the root, a three-line parent in Dutch, `annex-i-legislation` as a parent. */
 const PAGES = [
@@ -51,7 +53,7 @@ interface Edges {
 }
 
 /** The edges issue #65 measured on one laid-out page, once its fonts have settled. */
-async function edges(page: Page): Promise<{ header: Edges; trailRow: Edges; entries: Edges[]; caption: Edges | null; disclaimer: Edges }> {
+async function edges(page: Page): Promise<{ header: Edges; arrow: Edges | null; caption: Edges | null; disclaimer: Edges }> {
   await page.evaluate(() => document.fonts.ready)
   return page.evaluate(() => {
     const of = (el: Element): Edges => {
@@ -62,8 +64,7 @@ async function edges(page: Page): Promise<{ header: Edges; trailRow: Edges; entr
     const caption = [...document.querySelectorAll('.carousel-caption')].find(visible)
     return {
       header: of(document.querySelector('header')!),
-      trailRow: of(document.querySelector('.trail')!),
-      entries: [...document.querySelectorAll('.trail-entry')].filter(visible).map(of),
+      arrow: [...document.querySelectorAll('.up-arrow')].filter(visible).map(of)[0] ?? null,
       caption: caption ? of(caption) : null,
       disclaimer: of(document.querySelector('.disclaimer')!),
     }
@@ -71,18 +72,17 @@ async function edges(page: Page): Promise<{ header: Edges; trailRow: Edges; entr
 }
 
 for (const lang of ['en', 'nl'] as const) {
-  test(`at 1280 x 640 the Trail Branches and the caption line keep ${CLEARANCE} px clear of the chrome, in ${lang}`, async ({ page }) => {
-    let tallest = 0
+  test(`at 1280 x 640 the up arrow keeps ${ARROW_CLEARANCE} px and the caption line ${CLEARANCE} px clear of the chrome, in ${lang}`, async ({ page }) => {
+    let arrows = 0
     let captions = 0
     for (const url of PAGES) {
       const where = `${url} (${lang})`
       await page.goto(`${origin}${url}${lang === 'nl' ? '?lang=nl' : ''}`)
       const m = await edges(page)
 
-      for (const entry of m.entries) {
-        tallest = Math.max(tallest, entry.bottom - entry.top)
-        expect.soft(entry.top - m.header.bottom, `${where}: a Trail Branch below the chrome bar`).toBeGreaterThanOrEqual(CLEARANCE)
-        expect.soft(m.trailRow.bottom - entry.bottom, `${where}: a Trail Branch above the Bubble's row`).toBeGreaterThanOrEqual(CLEARANCE)
+      if (m.arrow) {
+        arrows += 1
+        expect.soft(m.arrow.top - m.header.bottom, `${where}: the up arrow below the chrome bar`).toBeGreaterThanOrEqual(ARROW_CLEARANCE)
       }
       if (m.caption) {
         captions += 1
@@ -90,7 +90,7 @@ for (const lang of ['en', 'nl'] as const) {
       }
     }
     // Without these the test could pass on pages that no longer show what it is about.
-    expect(tallest, 'a three-line Trail Branch was measured').toBeGreaterThanOrEqual(3 * TRAIL_LINE)
+    expect(arrows, 'an up arrow was measured').toBeGreaterThan(0)
     expect(captions, 'a caption line was measured').toBeGreaterThan(0)
   })
 }

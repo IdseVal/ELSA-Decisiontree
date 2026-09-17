@@ -46,9 +46,10 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await arrived(page, '/ai-act-example/start/prohibited-practices/social-scoring')
   await expect(page.locator('.hint')).toBeVisible()
 
-  // Issue #8 replaced the interim "back" control this test used with the Trail; the walk
-  // it checks is unchanged. What the Trail itself does is `tests/browser/trail.spec.ts`.
-  await page.locator('.trail-entry').last().click()
+  // Issue #8 replaced the interim "back" control this test used with the Trail, and #82 the
+  // drawn Trail with the up arrow; the walk it checks is unchanged. What the arrow itself
+  // does is `tests/browser/trail.spec.ts`.
+  await page.locator('.up-arrow').click()
   await arrived(page, '/ai-act-example/start/prohibited-practices')
 })
 
@@ -242,7 +243,7 @@ test('an unknown Node answers 404 with a way back to the start', async ({ page }
   const response = await page.goto('/ai-act-example/no-such-node')
 
   expect(response?.status()).toBe(404)
-  await page.getByRole('link', { name: 'Start' }).click()
+  await page.getByRole('link', { name: 'Start again' }).click()
   await arrived(page, START)
 })
 

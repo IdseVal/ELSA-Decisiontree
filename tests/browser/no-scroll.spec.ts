@@ -16,7 +16,7 @@
  * validates and its heaviest, `annex-i-legislation` (issue #55) -- each in both languages, and
  * each again with every Sheet it offers open and every Image it carries enlarged -- and each
  * in the middle of a slide (section 11): halfway out of the page, and halfway back into it on
- * the history step. A slide follows an Answer or `back`; on the full Node and the question
+ * the history step. A slide follows an Answer or the up arrow; on the full Node and the question
  * Node with Options it also follows an Option, the side slide whose layer is a fraction of a
  * frame taller.
  *
@@ -253,8 +253,8 @@ async function measureEverywhere(
   }
 }
 
-/** A Branch that slides on every kind of Node: an Answer, or `back` where there are none. */
-const DOWN = { selector: '.answer--yes, .answer--back', label: '' }
+/** A control that slides on every kind of Node: an Answer, or the up arrow where there are none. */
+const DOWN = { selector: '.answer--yes, .bubble--explanation .up-arrow, .bubble--terminal .up-arrow', label: '' }
 
 /**
  * Measures `url` at every viewport above the floor in the middle of a slide, both halves of

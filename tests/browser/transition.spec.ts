@@ -207,9 +207,9 @@ test.describe('the address bar', () => {
     const steps: Array<[from: string, branch: string]> = [
       [ROOT, '.answer--yes'],
       [QUESTION, '.option >> nth=0'],
-      [OPTION, '.answer--back'],
-      [EXPLANATION, '.trail-entry >> nth=-1'],
-      [`${QUESTION}/prohibited`, '.answer--back'],
+      [OPTION, '.up-arrow'],
+      [EXPLANATION, '.up-arrow'],
+      [`${QUESTION}/prohibited`, '.up-arrow'],
     ]
     for (const [from, branch] of steps) {
       await page.goto(from)

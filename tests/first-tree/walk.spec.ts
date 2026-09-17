@@ -176,10 +176,10 @@ test('an Option leads to an explanation-only child that offers a visible way bac
     'This step only explains. Go back to answer the question.',
   )
 
-  // The way back is the Trail, and its last entry is the parent this child explains.
-  const back = page.locator('.trail-entry').last()
+  // The way back is the up arrow (#82), to the parent this child explains.
+  const back = page.locator('.up-arrow')
   await expect(back).toBeVisible()
-  await expect(back).toHaveText('Does your system do a prohibited practice? (1/2)')
+  await expect(back).toHaveAccessibleName('Back to: Does your system do a prohibited practice? (1/2)')
   await back.click()
   await arrived(page, `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices`)
 })
@@ -227,7 +227,7 @@ async function screenshotWalk(page: Page, lang: Lang): Promise<void> {
   await arrived(page, pageUrl([...toProhibitedPractices, 'social-scoring'], lang))
   await shot('explanation-child')
 
-  await page.locator('.trail-entry').last().click()
+  await page.locator('.up-arrow').click()
   await arrived(page, pageUrl(toProhibitedPractices, lang))
   await clickAnswer(page, lang, 'yes')
   await arrived(page, pageUrl([...toProhibitedPractices, 'prohibited'], lang))
