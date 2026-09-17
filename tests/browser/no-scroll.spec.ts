@@ -660,14 +660,14 @@ test('the longest Node of the first Tree, once it validates, never scrolls at an
 })
 
 // The heaviest Node a reader meets (issue #55): its own picture as the main image and eight
-// Options, each with a picture on its Branch -- at rest, the main image enlarged, and
-// mid-slide beside a neighbour whose main image is withheld (11.4).
+// Options, whose pictures elsa-tree/3 moved to their targets (#79) -- at rest, the main image
+// enlarged, and mid-slide beside neighbours whose main images are withheld (11.4).
 for (const lang of LANGUAGES) {
   test(`the first Tree's annex-i-legislation, ${lang}, never scrolls at any viewport of 10.6, each picture enlarged in turn, or mid-slide`, async ({ page }) => {
     test.slow()
     const url = `${await firstTreeOrigin()}${inLang('/ai-act-applicability-agrifood/annex-i-legislation', lang)}`
-    await measureEverywhere(page, url, 'first Tree, annex-i-legislation (9 pictures: 1 main, 8 on Options)', lang)
-    await measureSliding(page, url, 'first Tree, annex-i-legislation (9 pictures: 1 main, 8 on Options)', lang)
+    await measureEverywhere(page, url, 'first Tree, annex-i-legislation (its main image, 8 Options)', lang)
+    await measureSliding(page, url, 'first Tree, annex-i-legislation (its main image, 8 Options)', lang)
   })
 }
 
