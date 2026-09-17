@@ -161,27 +161,31 @@ test('a full Article 2 exclusion ends the walk for a reader the Act reaches', as
   await expect(page.locator('.outcome')).toHaveCount(1)
 })
 
-test('an Option leads to an explanation-only child that offers a visible way back', async ({ page }) => {
+test('an Option opens its explanation-only child in an Overlay over the question, and the cross is the way back (10.9)', async ({ page }) => {
   await walk(page, WALKS.prohibited!.slice(0, 3))
+  const question = `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices`
 
-  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
-  await arrived(page,
-    `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/social-scoring`,
-  )
+  const overlay = page.locator('.options .overlay', { has: page.locator('.option-title', { hasText: 'Social scoring' }) })
+  await overlay.locator('.sheet-open').click()
+  await expect(overlay.locator('.sheet-panel')).toBeVisible()
+  // The address is the question's: a disclosure does nothing to the address bar (10.9).
+  await expect(page).toHaveURL(question)
 
-  // Explanation only: no Answers of its own, and it says so (core document 3.2, 10.9).
-  await expect(page.getByRole('link', { name: CHROME.en.yes, exact: true })).toHaveCount(0)
-  await expect(page.getByRole('link', { name: CHROME.en.no, exact: true })).toHaveCount(0)
-  await expect(page.locator('.hint')).toHaveText(
-    'This step only explains. Go back to answer the question.',
-  )
+  // Explanation only: no Answers of its own in the Overlay; its heading is the child's own address.
+  await expect(overlay.locator('.sheet-panel').getByRole('link', { name: CHROME.en.yes, exact: true })).toHaveCount(0)
+  await expect(overlay.locator('.sheet-panel').getByRole('link', { name: CHROME.en.no, exact: true })).toHaveCount(0)
+  await expect(overlay.locator('h2 a')).toHaveAttribute('href', `${question}/social-scoring`)
 
-  // The way back is the Trail, and its last entry is the parent this child explains.
-  const back = page.locator('.trail-entry').last()
-  await expect(back).toBeVisible()
-  await expect(back).toHaveText('Does your system do a prohibited practice? (1/2)')
-  await back.click()
-  await arrived(page, `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices`)
+  // The way back is the cross, and the focus returns to the button beside the Bubble.
+  await overlay.locator('.sheet-close').click()
+  await expect(overlay.locator('.sheet-panel')).toBeHidden()
+  await expect(overlay.locator('.sheet-open')).toBeFocused()
+  await expect(page).toHaveURL(question)
+
+  // The child's own URL renders the question with that Overlay open (core document 10.27).
+  await page.goto(`${question}/social-scoring`)
+  await expect(page.locator('.overlay[open] h2 a')).toHaveText('Social scoring')
+  await expect(page.locator('h1')).toHaveText('Does your system do a prohibited practice? (1/2)')
 })
 
 test('the high-risk finding does not end the walk', async ({ page }) => {
@@ -223,12 +227,13 @@ async function screenshotWalk(page: Page, lang: Lang): Promise<void> {
   }
   await shot('prohibited-practices')
 
-  await page.locator('.options').getByRole('link', { name: lang === 'en' ? 'Social scoring' : 'Sociale scoring' }).click()
-  await arrived(page, pageUrl([...toProhibitedPractices, 'social-scoring'], lang))
+  // The Option opens its Overlay over the question (10.9); Escape closes it and the walk goes on.
+  await page.locator('.options .sheet-open', { hasText: lang === 'en' ? 'Social scoring' : 'Sociale scoring' }).click()
+  await expect(page.locator('.overlay[open] .sheet-panel')).toBeVisible()
   await shot('explanation-child')
 
-  await page.locator('.trail-entry').last().click()
-  await arrived(page, pageUrl(toProhibitedPractices, lang))
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.overlay[open]')).toHaveCount(0)
   await clickAnswer(page, lang, 'yes')
   await arrived(page, pageUrl([...toProhibitedPractices, 'prohibited'], lang))
   await shot('terminal-prohibited')
@@ -271,9 +276,9 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     visited.push(last.lands)
     await arrived(page, pageUrl(visited, 'en'))
 
-    const options = await page.locator('.option').count()
+    const options = await page.locator('.options > li').count()
     expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)
-    await expect(page.locator('.option-image')).toHaveCount(options)
+    await expect(page.locator('img.option-image')).toHaveCount(options)
     // The Node's own picture and, after it, the one of each Option (application.md 12.1).
     await expect(page.locator('.carousel .thumbnail img')).toHaveCount(options + 1)
 
@@ -375,7 +380,7 @@ test('every Option picture on screen has a credit in the Tree this server is ser
       node!.options.flatMap((option) => option.images.map((image) => [imageHref(image.file), image.credit])),
     )
     const shown = await page
-      .locator('.option-image')
+      .locator('img.option-image')
       .evaluateAll((images) => images.map((image) => new URL((image as HTMLImageElement).src).pathname))
     expect(shown.length, `${nodeId}: pictures on screen`).toBe(credits.size)
 

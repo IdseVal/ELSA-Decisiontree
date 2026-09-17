@@ -4,8 +4,10 @@
  * along one click path per Terminal; this suite follows every Link.
  *
  * For each language and viewport it opens a fresh browser context at the root and walks by
- * clicking: yes and no on every question Node, every Option, and after each the parent's Trail
- * Branch back. A Node already walked is still clicked into and measured from every Link that
+ * clicking: yes and no on every question Node, every Option -- which opens its Overlay over
+ * the page, whose heading is then clicked to load the explanation Node's own URL (10.9) --
+ * and after each the way back: the parent's Trail Branch, or the browser's back from an
+ * Overlay. A Node already walked is still clicked into and measured from every Link that
  * leads to it, but its own Links are followed only the first time, so every Link of the Tree is
  * followed exactly once per language and viewport. The four walks run side by side, each in a
  * context of its own.
@@ -68,6 +70,13 @@ const FRESH_TAB_EVERY = 50
 
 /** The centre frame: the neighbour frames are `inert` and are never clicked (11.3). */
 const CENTRE = '.tree-frame:not([inert])'
+
+/** Where a Node is on its own page: the centre Bubble, or -- an explanation Node -- the open Overlay (10.9). */
+function shownAs(node: Node): string {
+  return node.kind === 'explanation'
+    ? `.overlay[open] .overlay-interior[data-node="${node.id}"]`
+    : `.bubble[data-node="${node.id}"]`
+}
 
 /** One request, as the browser made it. */
 interface Asked {
@@ -218,14 +227,18 @@ class Walker {
     return this.visit
   }
 
-  /** Waits for `ids` in `lang` to be the page on screen, settled, then measures it (application.md 10.6). */
+  /**
+   * Waits for `ids` in `lang` to be the page on screen, settled, then measures it (application.md
+   * 10.6). An explanation Node's page is its parent's with the Overlay open (10.9): what is
+   * waited for is that Overlay's Interior.
+   */
   private async arrive(visit: Visit, ids: string[], lang: Lang = this.run.lang): Promise<void> {
     const id = ids[ids.length - 1]!
     const url = pageUrl(ids, lang)
     visit.url = url
     visit.node = id
     visit.situation = situation(this.nodes.get(id)!)
-    await this.page.locator(`${CENTRE} .bubble[data-node="${id}"]`).waitFor()
+    await this.page.locator(`${CENTRE} ${shownAs(this.nodes.get(id)!)}`).waitFor()
     await arrived(this.page, new URL(url, origin).href)
     await this.settle()
     await this.page.evaluate(() => document.fonts.ready)
@@ -302,7 +315,12 @@ class Walker {
     }
   }
 
-  /** Follows every Link of the Node at the end of `ids`, going back by the Trail after each. */
+  /**
+   * Follows every Link of the Node at the end of `ids`, going back after each. An Option of the
+   * centre is its button: the click opens the Overlay in place, and the Overlay's heading is
+   * the link that loads the explanation Node's URL (10.9), which is the page recorded. An
+   * Option of an open explanation Node is a plain link in its Overlay to the deeper address.
+   */
   private async explore(ids: string[]): Promise<void> {
     const node = this.nodes.get(ids[ids.length - 1]!)!
     const links: { how: string; target: string; selector: string }[] = []
@@ -312,7 +330,11 @@ class Walker {
     }
     for (const option of node.options) {
       const href = pageUrl([...ids, option.target], this.run.lang)
-      links.push({ how: 'option', target: option.target, selector: `${CENTRE} a.option[href="${href}"]` })
+      const selector =
+        node.kind === 'explanation'
+          ? `${CENTRE} .overlay[open] .overlay-options a[href="${href}"]`
+          : `${CENTRE} .options .overlay:has(h2 a[href="${href}"]) > .sheet-open`
+      links.push({ how: 'option', target: option.target, selector })
     }
 
     for (const link of links) {
@@ -321,6 +343,13 @@ class Walker {
       const visit = this.begin(`${link.how} from ${node.id}`)
       try {
         await this.page.locator(link.selector).click()
+        if (link.how === 'option' && node.kind !== 'explanation') {
+          // The Overlay opened in place and the address stayed (10.9); its heading loads the aside's URL.
+          const overlay = this.page.locator(`${CENTRE} .options .overlay[open]`)
+          await expect(overlay.locator('.sheet-panel')).toBeVisible()
+          expect(local(this.page.url())).toBe(pageUrl(ids, this.run.lang))
+          await overlay.locator('h2 a').click()
+        }
         await this.arrive(visit, there)
         await this.shoot(visit)
         if (this.run.lang === 'en' && this.run.viewport === '1280x640' && link.target === 'end-of-walk' && !sharing) {
@@ -336,7 +365,9 @@ class Walker {
       }
       const back = this.begin(`Trail back from ${link.target}`)
       try {
-        await this.page.locator(`${CENTRE} .trail-step[data-parent] .trail-entry`).click()
+        // From an Overlay the way back is the browser's (10.9); from a child, the parent's Trail Branch.
+        if (link.how === 'option') await this.page.goBack()
+        else await this.page.locator(`${CENTRE} .trail-step[data-parent] .trail-entry`).click()
         await this.arrive(back, ids)
       } catch (error) {
         back.error = String(error).split('\n')[0]
@@ -419,8 +450,7 @@ async function problems(v: Visit): Promise<string[]> {
   }
   if (v.bubbleSH > v.bubbleCH + 1) found.push(`Bubble content ${v.bubbleSH} px in ${v.bubbleCH} px`)
   found.push(...v.overflowing.map((o) => `overflow: ${o}`))
-  const node = await tree.getNode(v.node)
-  const images = node ? [...node.images, ...node.options.flatMap((o) => o.images.slice(0, 1))].map((i) => i.file) : []
+  const images = await allowedImages(v.url)
   for (const r of v.requests) {
     if (!r.url.startsWith('/')) found.push(`third-party request: ${r.url}`)
     if (/tree\.ya?ml|\/api\//.test(r.url)) found.push(`request for the Tree: ${r.url}`)
@@ -429,6 +459,26 @@ async function problems(v: Visit): Promise<string[]> {
     if (image && !images.includes(decodeURIComponent(image[1]!))) found.push(`image of an off-screen Node: ${r.url}`)
   }
   return found
+}
+
+/**
+ * The image files the page at `url` may ask for (11.5): the centre's own Images, one per Option
+ * -- the target's first, and, until #84 moves the first Tree's pictures to their targets, the
+ * Option's own first -- and the Images of every explanation Node the path opens (10.9). The
+ * centre is the last question Node or Terminal of the path; the ids after it are its Overlays.
+ */
+async function allowedImages(url: string): Promise<string[]> {
+  const ids = new URL(url, origin).pathname.split('/').slice(2)
+  const nodes = await Promise.all(ids.map((id) => tree.getNode(id)))
+  let centre = nodes.findLastIndex((node) => node?.kind !== 'explanation')
+  if (centre < 0) centre = 0
+  const files: string[] = []
+  for (const node of nodes.slice(centre)) files.push(...(node?.images ?? []).map((i) => i.file))
+  for (const option of nodes[centre]?.options ?? []) {
+    const target = await tree.getNode(option.target)
+    files.push(...[...(target?.images ?? []).slice(0, 1), ...option.images.slice(0, 1)].map((i) => i.file))
+  }
+  return files
 }
 
 /** The generated half of `README.md` and `requests.md`: every page, every number, every request. */
