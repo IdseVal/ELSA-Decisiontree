@@ -145,9 +145,13 @@ for (const how of ['refused', 'absent'] as const) {
     await breakClipboard(page, how)
     await walkToChild(page)
 
-    await page.getByRole('button', { name: 'Copy link' }).click()
+    const button = page.getByRole('button', { name: 'Copy link' })
+    await button.focus()
+    await page.keyboard.press('Enter')
 
     await expect(page.locator('.share-said')).toHaveText('Link copied')
+    // The selection copied from moved the focus; a keyboard reader is given their place back.
+    await expect(button).toBeFocused()
     expect(await clipboardOf(context, baseURL!)).toBe(page.url())
   })
 }
