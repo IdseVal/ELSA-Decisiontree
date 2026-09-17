@@ -62,7 +62,8 @@ describe('the stylesheet names no colour', () => {
   })
 
   test('no named colour', () => {
-    const found = NAMED_COLOURS.filter((colour) => new RegExp(`(?<![\\w-])${colour}(?![\\w-])`, 'i').test(rules))
+    // A name followed by `(` is a function -- `tan()` reads the Bubble's height for the fan -- not the colour.
+    const found = NAMED_COLOURS.filter((colour) => new RegExp(`(?<![\\w-])${colour}(?![\\w(-])`, 'i').test(rules))
 
     expect(found).toEqual([])
   })

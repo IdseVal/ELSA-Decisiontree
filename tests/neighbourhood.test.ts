@@ -141,7 +141,7 @@ describe('which Nodes surround the centre', () => {
 
   test('only the parent is `up`: the grandparent is no longer one click away (11.2)', async () => {
     const { address, node } = await at(example, '/ai-act-example/start/prohibited-practices/prohibited')
-    expect(summary(await neighbourhood(example, address, node))).toEqual(['up 0 prohibited-practices'])
+    expect(summary((await neighbourhood(example, address, node)).placed)).toEqual(['up 0 prohibited-practices'])
   })
 
   test('nothing is placed `side`: an Option target is an aside, and an aside that is also placed stays an aside', async () => {

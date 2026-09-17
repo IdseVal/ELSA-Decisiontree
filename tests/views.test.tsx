@@ -28,6 +28,7 @@ beforeAll(async () => {
     ['full-node', path.join(here, 'fixtures', 'full-node')],
     ['carousel', path.join(here, 'fixtures', 'carousel')],
     ['cycle', path.join(here, 'fixtures', 'cycle')],
+    ['overlay', path.join(here, 'fixtures', 'overlay')],
   ] as const) {
     trees.set(id, await openTree(dir))
   }
@@ -476,8 +477,8 @@ describe('a question Node with Options', () => {
   test('the fan for one, two, five and eight Options: rows and sides by the numbers of ADR-78 (10.3)', async () => {
     const placements = async (url: string) => all(part(await view(url), 'ul', 'options'), /<li (data-side="[^"]*" style="[^"]*")/g)
 
-    // One Option: on the right, at the Bubble's middle.
-    expect(await placements('/full-node/full/opt-one')).toEqual(['data-side="right" style="--i:0;--m:1"'])
+    // One Option: on the right, at the Bubble's middle (`opt-one` as the centre, the fourth situation of 10.3).
+    expect(await placements('/full-node/opt-one')).toEqual(['data-side="right" style="--i:0;--m:1"'])
     // Two: one each side.
     expect(await placements('/ai-act-example/prohibited-practices')).toEqual([
       'data-side="right" style="--i:0;--m:1"',
@@ -511,8 +512,8 @@ describe('a question Node with Options', () => {
     expect(part(html, 'ul', 'options')).toContain(
       '<summary class="sheet-open"><img class="option-image" src="/images/one.png" alt="What Option one leads with" width="48" height="48" loading="lazy"/><span class="option-title">Option one: a title of sixty characters, the most it may be.</span></summary>',
     )
-    // The target's other pictures are not on the button.
-    expect(part(html, 'ul', 'options')).not.toContain('/images/two.png')
+    // Only the target's first picture is on the button, and nothing of the target is in the fan but its Overlay.
+    expect(part(html, 'ul', 'options').split('</li>')[0]!.match(/\/images\//g)).toHaveLength(1)
     // A target without Images: the empty slot.
     const none = await view('/ai-act-example/start/prohibited-practices')
     expect(part(none, 'ul', 'options').match(/<span class="option-image option-image--empty"><\/span>/g)).toHaveLength(2)
@@ -586,7 +587,9 @@ describe('the Overlay (10.9)', () => {
     expect(extra).toContain('<h2 id="ax-node-title"><a href="/full-node/full/opt-one/opt-two">Option two: a title of sixty characters, the most it may be.</a></h2>')
     expect(extra).toContain('data-node="opt-two"')
     // The centre's Branches are built from the path up to the centre: the asides never join the Trail.
-    expect(branches(html, 'answer answer--yes')).toEqual([['/full-node/full/applies', 'The Act applies']])
+    expect(branches(html, 'answer answer--yes')).toEqual([
+      ['/full-node/full/applies', 'The rules apply: a Terminal whose title is also eighty characters long The rule.'],
+    ])
   })
 
   test("a neighbour frame draws the Option buttons with empty slots and no Overlay interior behind them (11.3, 11.4)", async () => {
@@ -633,8 +636,8 @@ describe('an explanation Node as the centre (only a path with no parent in it, 1
   })
 
   test('draws its own Options fanned out, like a question Node', async () => {
-    const html = await view('/full-node/full/opt-one/opt-two/opt-one')
-    // The path's first entry is the centre when nothing before it is a question Node or a Terminal.
+    const html = await view('/full-node/opt-one/opt-two')
+    // The path's first entry is the centre when nothing in it is a question Node or a Terminal; the rest is its chain.
     expect(html).toContain('<h1 id="node-title">Option one: a title of sixty characters, the most it may be.</h1>')
     expect(all(part(html, 'ul', 'options'), /<span class="option-title">([^<]*)<\/span>/g)).toEqual([
       'Option two: a title of sixty characters, the most it may be.',

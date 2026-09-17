@@ -86,7 +86,9 @@ function walkOf(length: number): string {
 
 describe('the Trail', () => {
   test('is the Nodes visited to reach this one, as Branches, by their titles, oldest first', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
+    // A path ending at an explanation Node renders its parent's page (10.9): the Trail under
+    // test is the Terminal's, which has the same two entries.
+    const html = await view('/ai-act-example/start/prohibited-practices/prohibited')
 
     expect(trailBranches(html)).toEqual([
       ['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?'],
@@ -101,7 +103,7 @@ describe('the Trail', () => {
   })
 
   test('each Branch jumps back to that Node with everything after it discarded (10.17)', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring?lang=nl')
+    const html = await view('/ai-act-example/start/prohibited-practices/prohibited?lang=nl')
 
     expect(trailBranches(html).map(([href]) => href)).toEqual([
       '/ai-act-example/start?lang=nl',
@@ -114,21 +116,22 @@ describe('the Trail', () => {
   })
 
   test('the parent -- the entry nearest the Bubble -- is the page the reader came from', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
+    const html = await view('/ai-act-example/start/prohibited-practices/prohibited')
 
     expect(trail(html)).toContain('<a class="branch trail-entry" href="/ai-act-example/start/prohibited-practices" rel="prev" data-slide="">')
     expect(trail(html).match(/rel="prev"/g)).toHaveLength(1)
   })
 
-  test('only the parent and the grandparent are marked to slide; an older entry is an ordinary link (11.1)', async () => {
+  test('only the parent is marked to slide; the grandparent and an older entry are ordinary links (11.1, 11.2)', async () => {
     // Four different Nodes, so no entry is dropped as the Node on screen: a walk of `full` to
-    // itself places no Trail entry at all, and so marks none.
+    // itself places no Trail entry at all, and so marks none. Since #78 only the parent is
+    // placed `up`: the grandparent is no longer one click away once the Trail goes (10.2).
     const html = await view('/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring/prohibited')
     const marked = [...trail(html).matchAll(/<a class="branch trail-entry"([^>]*)>/g)].map((match) =>
       match[1]!.includes('data-slide'),
     )
 
-    expect(marked).toEqual([false, false, true, true])
+    expect(marked).toEqual([false, false, false, true])
   })
 
   test('at the root Node there is no Trail: the row holds the Tree title instead (10.2)', async () => {
@@ -175,7 +178,7 @@ describe('the Trail', () => {
   })
 
   test('the Trail Sheet lists the whole Trail as links, newest first', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
+    const html = await view('/ai-act-example/start/prohibited-practices/prohibited')
     const links = [...sheet(html).matchAll(/<a href="([^"]*)"/g)].map((match) => match[1])
 
     expect(links).toEqual(['/ai-act-example/start/prohibited-practices', '/ai-act-example/start'])
@@ -229,7 +232,7 @@ describe('the Trail', () => {
   test('is a navigation landmark named for a reader who cannot see it, in the language that name is written in', async () => {
     const english = await view('/ai-act-example/start/prohibited-practices')
     const dutch = await view('/ai-act-example/start/prohibited-practices?lang=nl')
-    const german = await view('/other-languages/start/inverkehrbringen')
+    const german = await view('/other-languages/start/anwendbar')
 
     expect(english).toContain('<nav class="trail" aria-labelledby="trail-label">')
     expect(english).toContain('id="trail-label">Your path</span>')

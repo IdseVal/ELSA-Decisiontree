@@ -142,7 +142,7 @@ function Frame({ node, view }: { node: Node; view: View }) {
     <>
       <Trail node={node} view={view} />
       <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} />
-      {node.options.length > 0 && <Options node={node} view={view} />}
+      {(node.options.length > 0 || view.open) && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
       {/* The Carousel's row (section 12), on every Node, empty where there are no pictures, so the
           Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
@@ -277,8 +277,9 @@ function Trail({ node, view }: { node: Node; view: View }) {
  * explanation Nodes' addresses is what the fan collapses to (10.5, step 4).
  *
  * The one Overlay a URL may name that is not an aside of the centre -- a second-level
- * explanation Node (10.9) -- is rendered after the fan, open, with no button of its own: the
- * way back to the first is the browser's back or the first Option's button.
+ * explanation Node, or one after a Terminal (10.9) -- is rendered after the fan, open, with
+ * no button of its own: the way back to the first is the browser's back or the first
+ * Option's button. A centre without Options draws no fan and no collapsed control, only that.
  */
 function Options({ node, view }: { node: Node; view: View }) {
   const { address, ui, uiLang, idPrefix, asides, open } = view
@@ -293,6 +294,7 @@ function Options({ node, view }: { node: Node; view: View }) {
         {ui.options}
       </span>
       {/* The count is what the stylesheet collapses the fan on (10.5, step 4). */}
+      {count > 0 && (
       <ul className="options" aria-labelledby={`${idPrefix}options-label`} data-count={count}>
         {node.options.map((option, index) => {
           const side = index % 2 === 0 ? 'right' : 'left'
@@ -315,6 +317,7 @@ function Options({ node, view }: { node: Node; view: View }) {
           )
         })}
       </ul>
+      )}
       {extra && (
         <div className="options-extra">
           <Overlay
@@ -328,6 +331,7 @@ function Options({ node, view }: { node: Node; view: View }) {
           />
         </div>
       )}
+      {count > 0 && (
       <div className="options-collapsed">
         <Sheet
           className="options-sheet"
@@ -341,6 +345,7 @@ function Options({ node, view }: { node: Node; view: View }) {
           idPrefix={idPrefix}
         />
       </div>
+      )}
     </>
   )
 }
