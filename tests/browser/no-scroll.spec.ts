@@ -12,9 +12,11 @@
  *
  * The pages: the four situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
  * at a 49-entry Trail (every maximum the format allows at once), the two Nodes with Images
- * of `tests/fixtures/carousel/` (issue #43), and the longest Node of the first Tree once it
+ * of `tests/fixtures/carousel/` (issue #43), the eight explainers at every maximum of
+ * `tests/fixtures/explainers/` (issue #83), and the longest Node of the first Tree once it
  * validates and its heaviest, `annex-i-legislation` (issue #55) -- each in both languages, and
- * each again with every Sheet it offers open and every Image it carries enlarged -- and each
+ * each again with every Sheet it offers open, every Image it carries enlarged and every
+ * explainer panel it marks opened by focus, with and without JavaScript -- and each
  * in the middle of a slide (section 11): halfway out of the page, and halfway back into it on
  * the history step. A slide follows an Answer or `back`; on the full Node and the question
  * Node with Options it also follows an Option, the side slide whose layer is a fraction of a
@@ -44,6 +46,8 @@ const FULL_NODE_PORT = BASE_PORT + 20
 const FIRST_TREE_PORT = FULL_NODE_PORT + 1
 const CAROUSEL_PORT = FULL_NODE_PORT + 3
 const FULL_NODE_SLIDING_PORT = FULL_NODE_PORT + 4
+const EXPLAINERS_PORT = FULL_NODE_PORT + 5
+const EXPLAINERS_NO_SCRIPT_PORT = FULL_NODE_PORT + 6
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -203,6 +207,23 @@ async function measureEverywhere(
     const plain = await measure(page)
     rows.push({ page: what, lang, viewport, sheet: '', measured: plain })
     assertFits(plain, `${what} (${lang}) at ${viewport}`)
+
+    // Each explainer panel the Bubble marks, opened by focus in turn (10.8): placed beside its
+    // term by the script, or at the foot of the text area by CSS alone without it.
+    const terms = page.locator('.bubble .term')
+    if (script && (await terms.count()) > 0) await expect(page.locator('.bubble .prose[data-enhanced]').first()).toBeAttached()
+    for (let i = 0; i < (await terms.count()); i += 1) {
+      const term = terms.nth(i)
+      if (!(await term.isVisible())) continue
+      const panel = (await term.getAttribute('aria-describedby'))!
+      await term.focus()
+      await expect(page.locator(`[id="${panel}"]`)).toBeVisible()
+      const open = await measure(page)
+      rows.push({ page: what, lang, viewport, sheet: `explainer ${panel}`, measured: open })
+      assertFits(open, `${what} (${lang}) at ${viewport} with the explainer ${panel} open`)
+      await term.blur()
+      await expect(page.locator(`[id="${panel}"]`)).toBeHidden()
+    }
 
     // Each Sheet the layout offers at this size, opened in turn: 10.5 gets no exemption.
     const sheets = page.locator('details.sheet')
@@ -559,6 +580,26 @@ for (const lang of LANGUAGES) {
   })
 }
 
+const explainers = new Map<number, Promise<string | null>>()
+
+/** The explainers fixture's server on `port`, started once for every test that asks for it there. */
+async function explainersOrigin(port: number): Promise<string> {
+  if (!explainers.has(port)) explainers.set(port, serve(fixtures, 'explainers', port))
+  const origin = await explainers.get(port)
+  expect(origin, 'the explainers fixture is a valid Tree').not.toBeNull()
+  return origin!
+}
+
+// Eight explainers at every maximum the format allows (tree-format.md 5.9), each panel opened
+// in turn at every viewport: the tallest panel the format can ask for, beside every line of a
+// paragraph that runs the text area's width (10.8).
+for (const lang of LANGUAGES) {
+  test(`the explainers fixture, ${lang}, never scrolls at any viewport of 10.6, each panel open in turn`, async ({ page }) => {
+    test.slow()
+    await measureEverywhere(page, `${await explainersOrigin(EXPLAINERS_PORT)}${inLang('/explainers/start', lang)}`, 'explainers fixture', lang)
+  })
+}
+
 /**
  * The Carousel's fixture (section 12): a Node whose Images are more than a page of the strip,
  * the common two, and a credit of the format's maximum 120 characters.
@@ -712,6 +753,15 @@ test.describe('with JavaScript switched off', () => {
       await expect(sources.locator('.sheet-panel'), `${width}x${height}: the Sources stayed open`).toBeHidden()
     }
   })
+
+  // The explainer panels without the script: CSS alone opens each at the foot of the text
+  // area, full width (10.8, 14).
+  for (const lang of LANGUAGES) {
+    test(`the explainers fixture, ${lang}, never scrolls without JavaScript, each panel open in turn`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, `${await explainersOrigin(EXPLAINERS_NO_SCRIPT_PORT)}${inLang('/explainers/start', lang)}`, 'explainers fixture, no JavaScript', lang, false)
+    })
+  }
 
   // The Carousel without the script: the strip, its caption line, and below step 2 its
   // control, whose Sheet is a page of disclosures per Image (12.2, 14).
