@@ -10,7 +10,7 @@
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { LineCounter, parseAllDocuments } from 'yaml'
-import type { Image, LocalisedText, Manifest, Node, Option, Outcome, Source, Theme, Violation } from './types.ts'
+import type { Explainer, Image, LocalisedText, Manifest, Node, Option, Outcome, Source, Theme, Violation } from './types.ts'
 import {
   isId,
   isImageFile,
@@ -220,7 +220,7 @@ function referencedThemeFiles(theme: Theme | undefined): Set<string> {
 function toManifest(raw: Mapping): Manifest {
   const languages = raw.languages as string[]
   return {
-    format: 'elsa-tree/2',
+    format: 'elsa-tree/3',
     languages,
     defaultLanguage: languages[0]!,
     root: raw.root as string,
@@ -232,7 +232,6 @@ function toManifest(raw: Mapping): Manifest {
 }
 
 function toNode(id: string, raw: Mapping): Node {
-  const options = (raw.options as Array<Omit<Option, 'images'> & { images?: Image[] }> | undefined) ?? []
   const common = {
     id,
     title: raw.title as LocalisedText,
@@ -240,7 +239,8 @@ function toNode(id: string, raw: Mapping): Node {
     metadata: raw.metadata as Node['metadata'],
     sources: (raw.sources as Source[] | undefined) ?? [],
     images: (raw.images as Image[] | undefined) ?? [],
-    options: options.map((option) => ({ ...option, images: option.images ?? [] })),
+    options: (raw.options as Option[] | undefined) ?? [],
+    explainers: (raw.explainers as Explainer[] | undefined) ?? [],
   }
   switch (nodeKind(raw)) {
     case 'question':

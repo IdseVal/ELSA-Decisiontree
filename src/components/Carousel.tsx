@@ -1,7 +1,7 @@
 /**
  * The Carousel (docs/specs/application.md section 12, ADR-38-carousel): the 80-pixel row
- * under the Bubble, holding this Node's own Images in the author's order and then its
- * Options' pictures as a native scroll-snap strip of thumbnails, with the selected Image's
+ * under the Bubble, holding this Node's own Images in the author's order as a native
+ * scroll-snap strip of thumbnails, with the selected Image's
  * description and credit on one caption line beneath it.
  *
  * Everything that works without JavaScript is here, in markup (section 14): the strip is a
@@ -45,24 +45,15 @@ export function captionDescription(description: string, credit: string, budget: 
 }
 
 /**
- * What the strip holds (12.1): this Node's own Images in the author's order, then the picture
- * each Option's Branch shows, in Option order. An Option's caption names the Option first, so
- * a reader can tell which Branch a picture and its credit belong to.
+ * What the strip holds (12.1): this Node's own Images in the author's order. The Options'
+ * pictures joined them while an Option had Images of its own; in `elsa-tree/3` each is its
+ * target's first Image (tree-format.md 5.4) and is in that Node's strip.
  */
 function carouselImages(node: Node, lang: string): CarouselImage[] {
-  const own = node.images.map((image) => {
+  return node.images.map((image) => {
     const description = text(image.description, lang, `${node.id}.images[${image.file}].description`)
     return { href: imageHref(image.file), description, caption: description, credit: image.credit }
   })
-  const options = node.options.flatMap((option, index) => {
-    const image = option.images[0]
-    if (!image) return []
-    const where = `${node.id}.options[${index}]`
-    const description = text(image.description, lang, `${where}.images[${image.file}].description`)
-    const caption = `${text(option.title, lang, `${where}.title`)}: ${description}`
-    return [{ href: imageHref(image.file), description, caption, credit: image.credit }]
-  })
-  return [...own, ...options]
 }
 
 /** The Carousel row: the strip and its controls, or the empty row where nothing on the Node has a picture. */

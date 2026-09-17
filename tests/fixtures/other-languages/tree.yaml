@@ -5,7 +5,7 @@
 # one (application.md section 7). The Theme carries two of its three parts, so a Tree
 # with fonts absent is covered too; theme/unused.svg is a file the Theme does not name,
 # which themePath must refuse even though it exists (5.1).
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [de, fr]
 root: start
 title:

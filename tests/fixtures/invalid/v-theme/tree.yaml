@@ -1,7 +1,7 @@
 # The fixture for V-THEME: a colours block with six of the seven roles of
 # docs/specs/tree-format.md 4.3.3. The set is closed, so half a palette is not a choice;
 # `danger` is missing.
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en]
 root: start
 title:

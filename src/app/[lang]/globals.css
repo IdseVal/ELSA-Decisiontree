@@ -678,6 +678,14 @@ a.language:hover,
   text-underline-offset: 0.18em;
 }
 
+/* An explainer mark's panel (application.md 10.8). How the term looks and where its panel
+   opens is issue #83's; until then the panel stays out of the text's flow, so a marked
+   description takes the lines tree-format.md 3.8 counts. A screen reader still hears it:
+   aria-describedby reads hidden text. */
+.prose .explainer {
+  display: none;
+}
+
 /* --- the rim: the outcome badge above, the explanation hint below (10.1) ----------- */
 
 .outcome {

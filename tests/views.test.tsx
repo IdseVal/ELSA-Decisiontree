@@ -163,8 +163,8 @@ describe('the tree layer', () => {
     ])
   })
 
-  test('the Carousel row is present on every Node, empty where neither the Node nor its Options carry a picture, so the Bubble never moves (12.1)', async () => {
-    for (const url of ['/ai-act-example/covered', '/ai-act-example/social-scoring']) {
+  test('the Carousel row is present on every Node, empty where the Node carries no picture, so the Bubble never moves (12.1)', async () => {
+    for (const url of ['/ai-act-example/covered', '/ai-act-example/prohibited-practices']) {
       expect(await view(url), url).toContain('<div class="carousel"></div>')
       // So such a Node has no strip, and no empty tab stop without a script either.
       expect(await view(url), url).not.toContain('carousel-strip')
@@ -172,18 +172,14 @@ describe('the tree layer', () => {
     expect(await view('/ai-act-example/start')).toContain('<section class="carousel">')
   })
 
-  test("an Option's picture is on its Branch and in the Carousel row, its caption naming the Option (10.3, 12.1)", async () => {
-    // `prohibited-practices` carries scoreboard.png on an Option and no Image of its own.
-    const html = await view('/ai-act-example/prohibited-practices')
-    expect(html).toContain(
-      '<img class="branch-image option-image" src="/images/scoreboard.png" alt="A scoreboard ranking people"',
-    )
+  test("an Option's picture is its target's first Image, in the target's Carousel row (tree-format.md 5.4, 12.1)", async () => {
+    // In elsa-tree/2 `prohibited-practices` carried scoreboard.png on its Option; the
+    // migration of #79 moved it to `social-scoring`. Drawing it on the Option's button is #80's.
+    expect(await view('/ai-act-example/prohibited-practices')).not.toContain('scoreboard.png')
+
+    const html = await view('/ai-act-example/prohibited-practices/social-scoring')
     expect(all(part(html, 'ul', 'carousel-strip'), /<a class="thumbnail" href="([^"]*)"/g)).toEqual(['/images/scoreboard.png'])
-    expect(captions(html, 'caption-wide')[0]).toMatch(/^Social scoring: A scoreboard ranking people — \S/)
-    // The caption line's copy is hidden from assistive technology, so the thumbnail's own name carries the Option too.
-    expect(part(html, 'ul', 'carousel-strip')).toContain(
-      '<img id="carousel-image-0" src="/images/scoreboard.png" alt="Social scoring: A scoreboard ranking people"',
-    )
+    expect(captions(html, 'caption-wide')[0]).toMatch(/^A scoreboard ranking people — \S/)
   })
 
   test('carries the notice for a window at or below the floor, with a sentence per short dimension (10.4)', async () => {
@@ -234,39 +230,22 @@ describe('the Carousel', () => {
     expect(strip.match(/loading="lazy"/g)).toHaveLength(5)
   })
 
-  test("after the Node's own Images come its Options' pictures, the one each Branch shows, in Option order (12.1)", async () => {
-    // The full Node: ten Images of its own and eight Options with a picture each, 18 in all.
+  test("the strip holds the Node's own Images only; each Option's picture is in its target's strip (12.1)", async () => {
+    // The full Node: ten Images of its own. Its eight Options carried a picture each in
+    // elsa-tree/2, and the migration of #79 made each its target's first Image.
     const tree = trees.get('full-node')!
     const node = (await tree.getNode('full'))!
     const html = await view('/full-node/full?lang=nl')
-    const expected = [...node.images, ...node.options.map((option) => option.images[0]!)].map((image) => `/images/${image.file}`)
-    expect(expected).toHaveLength(18)
+    const expected = node.images.map((image) => `/images/${image.file}`)
+    expect(expected).toHaveLength(10)
     expect(all(part(html, 'ul', 'carousel-strip'), /<a class="thumbnail" href="([^"]*)"/g)).toEqual(expected)
+    expect(html).toContain('<summary class="sheet-open"><span>Afbeelding 1 van 10</span></summary>')
 
-    // Only the first picture of an Option is on its Branch, so only the first joins the strip.
-    expect(html).not.toContain('Optie een, tweede afbeelding')
-    // Each Option picture's caption names its Option before the description, and the credit is whole.
-    const wide = captions(html, 'caption-wide')
-    const narrow = captions(html, 'caption-narrow')
-    for (const [index, option] of node.options.entries()) {
-      const caption = wide[node.images.length + index]!
-      const image = option.images[0]!
-      expect(caption.length, caption).toBeLessThanOrEqual(170)
-      expect(caption.endsWith(image.credit), caption).toBe(true)
-      expect(`${option.title.nl}: ${image.description.nl}`.startsWith(caption.slice(0, -(image.credit.length + ' — '.length + 1)))).toBe(true)
-      // Below the guaranteed width the credit stays whole too; Options two to eight carry a
-      // 120-character credit, which fills the line, so their Option's title gives way with the description.
-      const line = narrow[node.images.length + index]!
-      expect(line.length, line).toBeLessThanOrEqual(123)
-      expect(line.endsWith(image.credit), line).toBe(true)
-      if (index > 0) {
-        expect(image.credit).toHaveLength(120)
-        expect(line).toBe(image.credit)
-      }
-      // Whole in the thumbnail's name, which is where assistive technology reads it.
-      expect(html).toContain(`alt="${option.title.nl}: ${image.description.nl}"`)
+    for (const option of node.options) {
+      const target = (await tree.getNode(option.target))!
+      const strip = part(await view(`/full-node/full/${option.target}?lang=nl`), 'ul', 'carousel-strip')
+      expect(all(strip, /<a class="thumbnail" href="([^"]*)"/g), option.target).toEqual([`/images/${target.images[0]!.file}`])
     }
-    expect(html).toContain('<summary class="sheet-open"><span>Afbeelding 1 van 18</span></summary>')
   })
 
   test('names the strip and not the row around it, and names each thumbnail by the enlarge word and its description, described by its credit', async () => {
@@ -308,7 +287,7 @@ describe('the Carousel', () => {
       const html = await view(`/full-node/full${lang === 'en' ? '' : `?lang=${lang}`}`)
       const wide = captions(html, 'caption-wide')
       const narrow = captions(html, 'caption-narrow')
-      expect(wide).toHaveLength(18)
+      expect(wide).toHaveLength(10)
 
       for (const [index, image] of node.images.entries()) {
         const description = image.description[lang]!
@@ -365,16 +344,13 @@ describe('the Carousel', () => {
     const tree = trees.get('full-node')!
     const node = (await tree.getNode('full'))!
 
-    expect(sheet.match(/<figure class="sheet-figure">/g)).toHaveLength(18)
-    // Without the script every page after the first is a disclosure: seventeen of them.
-    expect(sheet.match(/<details class="sheet-more">/g)).toHaveLength(17)
+    expect(sheet.match(/<figure class="sheet-figure">/g)).toHaveLength(10)
+    // Without the script every page after the first is a disclosure: nine of them.
+    expect(sheet.match(/<details class="sheet-more">/g)).toHaveLength(9)
     for (const image of node.images) {
       expect(sheet).toContain(`<img src="/images/${image.file}" alt="${image.description.en}" loading="lazy"/>`)
       expect(sheet).toContain(`<p class="credit"><span class="kind">Credit</span> ${image.credit}</p>`)
     }
-    // An Option's picture is enlarged with its Option's name before the whole description.
-    const option = node.options[1]!
-    expect(sheet).toContain(`<p>${option.title.en}: ${option.images[0]!.description.en}</p>`)
   })
 })
 
@@ -389,6 +365,20 @@ describe('the Bubble', () => {
     expect(bubble).toContain('<li>Answer <strong>no</strong> only if none of these applies to your system.</li>')
     expect(bubble).toContain('<section class="sources"')
     expect(html.match(/<h1 /g)).toHaveLength(1)
+  })
+
+  test("marks an explainer's term in the description, its panel beside it (application.md 10.8)", async () => {
+    const english = part(await view('/ai-act-example/start'), 'article', 'bubble')
+    const dutch = part(await view('/ai-act-example/start?lang=nl'), 'article', 'bubble')
+
+    expect(english).toContain(
+      'wherever the <span class="term" tabindex="0" aria-describedby="e-provider">provider</span>' +
+        '<span class="explainer" role="tooltip" id="e-provider"><b>provider</b> Someone who develops an AI system, ' +
+        'or has one developed, and places it on the market or puts it into service under their own name or trademark.</span> is based.',
+    )
+    expect(dutch).toContain('waar de <span class="term" tabindex="0" aria-describedby="e-provider">aanbieder</span>')
+    expect(dutch).toContain('id="e-provider"><b>aanbieder</b> Wie een AI-systeem ontwikkelt')
+    expect(english).not.toContain('](#provider)')
   })
 
   test('is the article the content language is declared on', async () => {
@@ -476,12 +466,11 @@ describe('a question Node with Options', () => {
     expect(part(eight, 'ul', 'options options--right').match(/<li>/g)).toHaveLength(4)
   })
 
-  test('an Option with Images carries the first of them as a thumbnail, and only the first', async () => {
+  test('an Option has no picture of its own in elsa-tree/3, so its Branch names no image file (tree-format.md 5.4)', async () => {
     const html = await view('/full-node/full')
-    const first = part(html, 'ul', 'options options--left')
 
-    expect(first).toContain('<img class="branch-image option-image" src="/images/one.png" alt="Option one, first picture" width="64" height="64" loading="lazy"/>')
-    expect(first).not.toContain('/images/two.png')
+    expect(part(html, 'ul', 'options options--left')).not.toContain('<img')
+    expect(part(html, 'ul', 'options options--right')).not.toContain('<img')
   })
 
   test('the Options are named as a group, and are also in the Sheet they collapse to (10.5, 14)', async () => {

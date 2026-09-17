@@ -1,10 +1,11 @@
 # One Node at every maximum docs/specs/tree-format.md 5.7 allows (application.md 10.6):
 # an 80-character title, a 600-character description of eight estimated lines, 3 Sources,
-# 8 Options, 10 Images, and every Option a picture of its own, so the Carousel holds the
-# 18 of application.md 12.1 (the first Option carries three). If this fits inside the
-# Bubble at the guaranteed viewport, every valid Tree fits. A Trail of 49 entries is made
-# by visiting `full` 49 times: adjacency is not checked (application.md 4.3).
-format: elsa-tree/2
+# 8 Options, 10 Images, and one explainer with a 40-character term and a 200-character
+# text. Each Option target carries, as its first Image, the picture its Option carried in
+# elsa-tree/2 (the migration of #79 moved them). If this fits inside the Bubble at the
+# guaranteed viewport, every valid Tree fits. A Trail of 49 entries is made by visiting
+# `full` 49 times: adjacency is not checked (application.md 4.3).
+format: elsa-tree/3
 languages: [en, nl]
 root: full
 title:
@@ -20,11 +21,19 @@ title:
   nl: "De volle stap: een titel van precies tachtig tekens, het meeste dat mag De voll."
 description:
   en: |
-    Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is a.
+    Every field of this Node is at the maximum the format allows so that if this page fits inside the [Bubble](#bubble) every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is a.
   nl: |
-    Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat..
+    Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de [Bel](#bubble) past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat..
 metadata:
   version: "1.0"
+explainers:
+  - id: bubble
+    term:
+      en: "Bubble: a term of forty characters, the."
+      nl: "Bel: een term van veertig tekens, het m."
+    text:
+      en: "The round element in the centre of the tree view that holds the Node. This text has two hundred characters, the most an explainer may have, so the panel opened on this Node is as tall as a panel can.."
+      nl: "Het ronde element in het midden van de boomweergave dat de stap bevat. Deze tekst heeft tweehonderd tekens, het meeste dat een uitleg mag hebben, zodat het paneel zo hoog is als een paneel kan zijn H."
 sources:
   - id: s1
     kind: legal
@@ -110,92 +119,34 @@ options:
       en: "Option one: a title of sixty characters, the most it may be."
       nl: "Optie een: een titel van zestig tekens, het meeste dat mag.."
     target: opt-one
-    images:
-      - file: one.png
-        description:
-          en: "Option one, first picture"
-          nl: "Optie een, eerste afbeelding"
-        credit: "Example Studio, CC0 1.0"
-      - file: two.png
-        description:
-          en: "Option one, second picture"
-          nl: "Optie een, tweede afbeelding"
-        credit: "Example Studio, CC0 1.0"
-      - file: three.png
-        description:
-          en: "Option one, third picture"
-          nl: "Optie een, derde afbeelding"
-        credit: "Example Studio, CC0 1.0"
   - title:
       en: "Option two: a title of sixty characters, the most it may be."
       nl: "Optie twee: een titel van zestig tekens, het meeste dat mag."
     target: opt-two
-    images:
-      - file: four.png
-        description:
-          en: "Option two, its picture: a description of one hundred and twenty characters, the most an Image description may be Optio."
-          nl: "Optie twee, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
-        credit: "Credit for Option two’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Comm."
   - title:
       en: "Option three: a title of sixty characters, the most it may.."
       nl: "Optie drie: een titel van zestig tekens, het meeste dat mag."
     target: opt-three
-    images:
-      - file: five.png
-        description:
-          en: "Option three, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt."
-          nl: "Optie drie, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
-        credit: "Credit for Option three’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
   - title:
       en: "Option four: a title of sixty characters, the most it may b."
       nl: "Optie vier: een titel van zestig tekens, het meeste dat mag."
     target: opt-four
-    images:
-      - file: six.png
-        description:
-          en: "Option four, its picture: a description of one hundred and twenty characters, the most an Image description may be Opti."
-          nl: "Optie vier, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
-        credit: "Credit for Option four’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Com."
   - title:
       en: "Option five: a title of sixty characters, the most it may b."
       nl: "Optie vijf: een titel van zestig tekens, het meeste dat mag."
     target: opt-five
-    images:
-      - file: seven.png
-        description:
-          en: "Option five, its picture: a description of one hundred and twenty characters, the most an Image description may be Opti."
-          nl: "Optie vijf, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
-        credit: "Credit for Option five’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Com."
   - title:
       en: "Option six: a title of sixty characters, the most it may be."
       nl: "Optie zes: een titel van zestig tekens, het meeste dat mag.."
     target: opt-six
-    images:
-      - file: eight.png
-        description:
-          en: "Option six, its picture: a description of one hundred and twenty characters, the most an Image description may be Optio."
-          nl: "Optie zes, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie.."
-        credit: "Credit for Option six’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Comm."
   - title:
       en: "Option seven: a title of sixty characters, the most it may.."
       nl: "Optie zeven: een titel van zestig tekens, het meeste dat ma."
     target: opt-seven
-    images:
-      - file: nine.png
-        description:
-          en: "Option seven, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt."
-          nl: "Optie zeven, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Opti."
-        credit: "Credit for Option seven’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
   - title:
       en: "Option eight: a title of sixty characters, the most it may.."
       nl: "Optie acht: een titel van zestig tekens, het meeste dat mag."
     target: opt-eight
-    images:
-      - file: ten.png
-        description:
-          en: "Option eight, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt."
-          nl: "Optie acht, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
-        credit: "Credit for Option eight’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
 answers:
   yes: applies
   no: does-not-apply
@@ -212,6 +163,12 @@ description:
     Wat optie one uitlegt.
 metadata:
   version: "1.0"
+images:
+  - file: one.png
+    description:
+      en: "Option one, first picture"
+      nl: "Optie een, eerste afbeelding"
+    credit: "Example Studio, CC0 1.0"
 options:
   - title:
       en: "Option two: a title of sixty characters, the most it may be."
@@ -230,6 +187,12 @@ description:
     Wat optie two uitlegt.
 metadata:
   version: "1.0"
+images:
+  - file: four.png
+    description:
+      en: "Option two, its picture: a description of one hundred and twenty characters, the most an Image description may be Optio."
+      nl: "Optie twee, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+    credit: "Credit for Option two’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Comm."
 
 --- # opt-three
 id: opt-three
@@ -243,6 +206,12 @@ description:
     Wat optie three uitlegt.
 metadata:
   version: "1.0"
+images:
+  - file: five.png
+    description:
+      en: "Option three, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt."
+      nl: "Optie drie, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+    credit: "Credit for Option three’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
 
 --- # opt-four
 id: opt-four
@@ -256,6 +225,12 @@ description:
     Wat optie four uitlegt.
 metadata:
   version: "1.0"
+images:
+  - file: six.png
+    description:
+      en: "Option four, its picture: a description of one hundred and twenty characters, the most an Image description may be Opti."
+      nl: "Optie vier, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+    credit: "Credit for Option four’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Com."
 
 --- # opt-five
 id: opt-five
@@ -269,6 +244,12 @@ description:
     Wat optie five uitlegt.
 metadata:
   version: "1.0"
+images:
+  - file: seven.png
+    description:
+      en: "Option five, its picture: a description of one hundred and twenty characters, the most an Image description may be Opti."
+      nl: "Optie vijf, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+    credit: "Credit for Option five’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Com."
 
 --- # opt-six
 id: opt-six
@@ -282,6 +263,12 @@ description:
     Wat optie six uitlegt.
 metadata:
   version: "1.0"
+images:
+  - file: eight.png
+    description:
+      en: "Option six, its picture: a description of one hundred and twenty characters, the most an Image description may be Optio."
+      nl: "Optie zes, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie.."
+    credit: "Credit for Option six’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Comm."
 
 --- # opt-seven
 id: opt-seven
@@ -295,6 +282,12 @@ description:
     Wat optie seven uitlegt.
 metadata:
   version: "1.0"
+images:
+  - file: nine.png
+    description:
+      en: "Option seven, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt."
+      nl: "Optie zeven, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Opti."
+    credit: "Credit for Option seven’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
 
 --- # opt-eight
 id: opt-eight
@@ -308,6 +301,12 @@ description:
     Wat optie eight uitlegt.
 metadata:
   version: "1.0"
+images:
+  - file: ten.png
+    description:
+      en: "Option eight, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt."
+      nl: "Optie acht, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+    credit: "Credit for Option eight’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
 
 --- # applies
 id: applies
