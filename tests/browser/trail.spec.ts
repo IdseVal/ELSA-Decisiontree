@@ -5,7 +5,7 @@
  *
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type BrowserContext, type Page } from '@playwright/test'
 import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
@@ -124,6 +124,69 @@ for (const how of ['refused', 'absent'] as const) {
     expect(errors).toEqual([])
   })
 }
+
+/**
+ * What the clipboard holds, read from a page of the test origin that nothing was done to: the
+ * page under test may have no clipboard API left to read it with. Chromium's clipboard is
+ * one for the whole browser, so any page of it reads what another page copied.
+ */
+async function clipboardOf(context: BrowserContext, origin: string): Promise<string> {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin })
+  const reader = await context.newPage()
+  await reader.goto(`${origin}${START}`)
+  const text = await reader.evaluate(() => navigator.clipboard.readText())
+  await reader.close()
+  return text
+}
+
+// Issue #86: the owner clicked `Copy link` and got a link to copy by hand instead of a copy.
+for (const how of ['refused', 'absent'] as const) {
+  test(`one click copies the page's URL when the clipboard is ${how}`, async ({ page, context, baseURL }) => {
+    await breakClipboard(page, how)
+    await walkToChild(page)
+
+    await page.getByRole('button', { name: 'Copy link' }).click()
+
+    await expect(page.locator('.share-said')).toHaveText('Link copied')
+    expect(await clipboardOf(context, baseURL!)).toBe(page.url())
+  })
+}
+
+test('one click copies the URL in the address bar on a plain http:// address that is not this machine', async ({
+  playwright,
+  baseURL,
+}) => {
+  // What the owner did: a browser treats such an origin as insecure and gives it no
+  // `navigator.clipboard` at all. The name is resolved to the test server, so the page is the
+  // same one, served to an insecure context -- which needs a browser launched to resolve it.
+  const browser = await playwright.chromium.launch({
+    args: ['--host-resolver-rules=MAP elsa-insecure.test 127.0.0.1'],
+  })
+  try {
+    const context = await browser.newContext()
+    const page = await context.newPage()
+    const insecure = baseURL!.replace('127.0.0.1', 'elsa-insecure.test')
+    await page.goto(`${insecure}${CHILD}?lang=nl`)
+    expect(await page.evaluate(() => [window.isSecureContext, typeof navigator.clipboard])).toEqual([
+      false,
+      'undefined',
+    ])
+    // Something else on the clipboard first, so a click that copies nothing is caught.
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseURL! })
+    const reader = await context.newPage()
+    await reader.goto(`${baseURL}${START}`)
+    await reader.evaluate(() => navigator.clipboard.writeText('not the link'))
+    await reader.close()
+
+    await page.getByRole('button', { name: 'Kopieer link' }).click()
+
+    await expect(page.locator('.share-said')).toHaveText('Link gekopieerd')
+    expect(await clipboardOf(context, baseURL!)).toBe(page.url())
+    expect(page.url()).toBe(`${insecure}${CHILD}?lang=nl`)
+  } finally {
+    await browser.close()
+  }
+})
 
 test('a shared link shows the recipient the same Node and the same Trail', async ({
   page,
