@@ -44,7 +44,6 @@ export interface Chrome {
   outcomeApplicable: string
   outcomeProhibited: string
   outcomeRefer: string
-  explanationOnly: string
   disclaimer: string
   notFoundTitle: string
   notFoundText: string
@@ -103,7 +102,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcomeApplicable: 'Applies',
     outcomeProhibited: 'Prohibited',
     outcomeRefer: 'Look elsewhere',
-    explanationOnly: 'This step only explains. Go back to answer the question.',
     disclaimer:
       'This is not legal advice. Read the sources and consult a lawyer before you rely on an outcome.',
     notFoundTitle: 'This step does not exist',
@@ -143,7 +141,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcomeApplicable: 'Van toepassing',
     outcomeProhibited: 'Verboden',
     outcomeRefer: 'Elders geregeld',
-    explanationOnly: 'Deze stap geeft alleen uitleg. Ga terug om de vraag te beantwoorden.',
     disclaimer:
       'Dit is geen juridisch advies. Lees de bronnen en raadpleeg een jurist voordat u op een uitkomst vertrouwt.',
     notFoundTitle: 'Deze stap bestaat niet',

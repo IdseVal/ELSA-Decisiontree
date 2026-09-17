@@ -15,7 +15,7 @@ import { chrome, chromeLang } from '../src/chrome.ts'
 import { ShareButton } from '../src/components/ShareButton.tsx'
 import type { Neighbour } from '../src/components/Slider.tsx'
 import { TreeView } from '../src/components/TreeView.tsx'
-import { neighbourhood } from '../src/neighbourhood.ts'
+import { loadPage } from '../src/neighbourhood.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { parseUrl } from '../src/url.ts'
 
@@ -40,9 +40,9 @@ async function page(url: string): Promise<Parameters<typeof TreeView>[0]> {
   // well-formed tags, which it passes through unchanged.
   const address = parseUrl(pathname, searchParams.get('lang') ?? '_', tree)
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
-  const node = await tree.getNode(address.nodeId)
-  if (!node) throw new Error(`${url} names no Node`)
-  return { tree, address, node, neighbours: await neighbourhood(tree, address, node) }
+  const page = await loadPage(tree, address)
+  if (!page) throw new Error(`${url} names no Node`)
+  return { tree, page }
 }
 
 /** The markup of the Node the URL names, rendered the way the page renders it. */

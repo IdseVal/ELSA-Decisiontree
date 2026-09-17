@@ -56,14 +56,13 @@ describe('the chrome strings', () => {
     }
   })
 
-  test("the two rim texts fit the Bubble's rim: at most 80 characters (application.md 10.1)", () => {
-    // The badge and the hint sit in the band between the text area and the Bubble's curve,
-    // which holds about 80 characters of 13-pixel text; they are chrome, so their length is
-    // this file's to keep and not an author's.
+  test("the badge fits the Bubble's rim: at most 80 characters (application.md 10.1)", () => {
+    // The badge sits in the band between the text area and the Bubble's curve, which holds
+    // about 80 characters of 13-pixel text; it is chrome, so its length is this file's to
+    // keep and not an author's. (The explanation hint went with the Option slide, 10.9.)
     for (const language of CHROME_LANGUAGES) {
       const ui = chrome(language)
       for (const key of [
-        'explanationOnly',
         'outcomeNotApplicable',
         'outcomeApplicable',
         'outcomeProhibited',
