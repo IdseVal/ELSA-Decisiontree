@@ -41,7 +41,7 @@ describe('a Tree in two languages', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/2')
+    expect(tree.manifest.format).toBe('elsa-tree/3')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
@@ -104,7 +104,7 @@ describe('a Tree in two languages', () => {
     expect(node!.options).toEqual([])
   })
 
-  test('a Node with Options carries them in order, each with its own Images', async () => {
+  test('a Node with Options carries them in order, each a title and a target only', async () => {
     const tree = await openTree(exampleTree)
     const node = await tree.getNode('prohibited-practices')
 
@@ -112,16 +112,33 @@ describe('a Tree in two languages', () => {
       'social-scoring',
       'emotion-recognition-at-work',
     ])
-    expect(node!.options[0]!.title.nl).toBe('Sociale scoring')
-    expect(node!.options[0]!.images).toEqual([
+    expect(node!.options[0]).toEqual({
+      title: { en: 'Social scoring', nl: 'Sociale scoring' },
+      target: 'social-scoring',
+    })
+    // The picture the Option's button shows is its target's first Image (tree-format.md 5.4).
+    expect((await tree.getNode('social-scoring'))!.images[0]).toEqual({
+      file: 'scoreboard.png',
+      description: { en: 'A scoreboard ranking people', nl: 'Een scorebord dat mensen rangschikt' },
+      credit: 'Illustration: Example Studio, CC0 1.0',
+    })
+  })
+
+  test('a Node carries its explainers; a Node without any has an empty list', async () => {
+    const tree = await openTree(exampleTree)
+
+    expect((await tree.getNode('start'))!.explainers).toEqual([
       {
-        file: 'scoreboard.png',
-        description: { en: 'A scoreboard ranking people', nl: 'Een scorebord dat mensen rangschikt' },
-        credit: 'Illustration: Example Studio, CC0 1.0',
+        id: 'provider',
+        term: { en: 'provider', nl: 'aanbieder' },
+        text: {
+          en: 'Someone who develops an AI system, or has one developed, and places it on the market or puts it into service under their own name or trademark.',
+          nl: 'Wie een AI-systeem ontwikkelt of laat ontwikkelen en het onder eigen naam of merk in de handel brengt of in gebruik stelt.',
+        },
       },
     ])
     // An absent list becomes an empty array, so a caller never checks for undefined.
-    expect(node!.options[1]!.images).toEqual([])
+    expect((await tree.getNode('covered'))!.explainers).toEqual([])
   })
 
   test('an explanation Node has no Answers and no Terminal marker', async () => {
@@ -160,6 +177,30 @@ describe('a Tree in two languages', () => {
     expect(tree.imagePath('no-such-image.png')).toBeNull()
     expect(tree.imagePath('../../../etc/passwd')).toBeNull()
     expect(tree.imagePath('EU-Map.PNG')).toBeNull()
+  })
+})
+
+describe('explainers at every maximum (tree-format.md 5.7, 5.9)', () => {
+  test('eight explainers, each a 40-character term and a 200-character text in both languages, load', async () => {
+    const tree = await openTree(fixture('explainers'))
+    const node = (await tree.getNode('start'))!
+
+    expect(node.explainers).toHaveLength(8)
+    for (const explainer of node.explainers) {
+      for (const lang of ['en', 'nl']) {
+        expect(countedLength(explainer.term[lang]!), `${explainer.id}.term.${lang}`).toBe(40)
+        expect(countedLength(explainer.text[lang]!), `${explainer.id}.text.${lang}`).toBe(200)
+        expect(node.description[lang], `${explainer.id} marked in ${lang}`).toContain(`](#${explainer.id})`)
+      }
+    }
+  })
+
+  test('the full Node carries one explainer at its maximum lengths', async () => {
+    const tree = await openTree(fixture('full-node'))
+    const [explainer, ...rest] = (await tree.getNode('full'))!.explainers
+
+    expect(rest).toEqual([])
+    expect([countedLength(explainer!.term.en!), countedLength(explainer!.text.nl!)]).toEqual([40, 200])
   })
 })
 

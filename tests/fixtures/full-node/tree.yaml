@@ -1,9 +1,10 @@
 # One Node at every maximum docs/specs/tree-format.md 5.7 allows (application.md 10.6):
 # an 80-character title, a 600-character description of eight estimated lines, 3 Sources,
-# 8 Options, 10 Images, and every Option a picture of its own, so the Carousel holds the
-# 18 of application.md 12.1 (the first Option carries three). If this fits inside the
-# Bubble at the guaranteed viewport, every valid Tree fits. A Trail of 49 entries is made
-# by visiting `full` 49 times: adjacency is not checked (application.md 4.3).
+# 8 Options, 10 Images, and one explainer with a 40-character term and a 200-character
+# text. Each Option target carries, as its first Image, the picture its Option carried in
+# elsa-tree/2 (the migration of #79 moved them). If this fits inside the Bubble at the
+# guaranteed viewport, every valid Tree fits. A Trail of 49 entries is made by visiting
+# `full` 49 times: adjacency is not checked (application.md 4.3).
 format: elsa-tree/3
 languages: [en, nl]
 root: full
@@ -20,11 +21,19 @@ title:
   nl: "De volle stap: een titel van precies tachtig tekens, het meeste dat mag De voll."
 description:
   en: |
-    Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is a.
+    Every field of this Node is at the maximum the format allows so that if this page fits inside the [Bubble](#bubble) every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is a.
   nl: |
-    Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat..
+    Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de [Bel](#bubble) past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat..
 metadata:
   version: "1.0"
+explainers:
+  - id: bubble
+    term:
+      en: "Bubble: a term of forty characters, the."
+      nl: "Bel: een term van veertig tekens, het m."
+    text:
+      en: "The round element in the centre of the tree view that holds the Node. This text has two hundred characters, the most an explainer may have, so the panel opened on this Node is as tall as a panel can.."
+      nl: "Het ronde element in het midden van de boomweergave dat de stap bevat. Deze tekst heeft tweehonderd tekens, het meeste dat een uitleg mag hebben, zodat het paneel zo hoog is als een paneel kan zijn H."
 sources:
   - id: s1
     kind: legal
