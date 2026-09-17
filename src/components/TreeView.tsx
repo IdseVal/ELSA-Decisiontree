@@ -28,7 +28,7 @@ import { Fragment, type CSSProperties } from 'react'
 import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
 import type { Aside, NodePage, Placed } from '../neighbourhood.ts'
 import type { Tree } from '../tree/loader.ts'
-import type { Node } from '../tree/types.ts'
+import type { Node, Option } from '../tree/types.ts'
 import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
 import { Branch } from './Branch.tsx'
 import { Bubble, sheetWords } from './Bubble.tsx'
@@ -306,8 +306,8 @@ function Options({ node, view }: { node: Node; view: View }) {
               style={{ '--i': Math.floor(index / 2), '--m': rows(side) } as CSSProperties}
             >
               <Overlay
-                target={option.target}
                 title={text(option.title, lang, `${node.id}.options[${index}].title`)}
+                picture={view.pictures ? optionPicture(node, option, index, target ?? null, lang) : null}
                 aside={target ?? null}
                 open={target !== null && target !== undefined && open?.href === target.href}
                 view={view}
@@ -321,8 +321,8 @@ function Options({ node, view }: { node: Node; view: View }) {
       {extra && (
         <div className="options-extra">
           <Overlay
-            target={extra.node.id}
             title={text(extra.node.title, lang, `${extra.node.id}.title`)}
+            picture={null}
             aside={extra}
             open
             unbuttoned
@@ -351,6 +351,26 @@ function Options({ node, view }: { node: Node; view: View }) {
 }
 
 /**
+ * The picture on an Option button (10.3): the target's main image, the file its Overlay shows.
+ * Until #84 moves the first Tree's pictures from its Options to their targets, an Option's own
+ * first Image stands in for a target that has none -- a file of the centre Node's own, which
+ * 11.5 allows and the Carousel's row already names.
+ */
+function optionPicture(
+  node: Node,
+  option: Option,
+  index: number,
+  target: Aside | null,
+  lang: string,
+): { src: string; alt: string } | null {
+  const own = target?.node.images[0]
+  const image = own ?? option.images[0]
+  if (!image) return null
+  const at = own ? `${option.target}.images[${image.file}]` : `${node.id}.options[${index}].images[${image.file}]`
+  return { src: imageHref(image.file), alt: text(image.description, lang, `${at}.description`) }
+}
+
+/**
  * One Option's Overlay (10.9): a Sheet whose control is the Option button -- the target's
  * main image as a 48-pixel round picture, or the empty slot, and the target's title -- and
  * whose one page is the target's Interior, its heading a link to the target's own address,
@@ -358,16 +378,17 @@ function Options({ node, view }: { node: Node; view: View }) {
  * neighbour frame the button stands with an empty slot and no page behind it (11.3, 11.4).
  */
 function Overlay({
-  target,
   title,
+  picture,
   aside,
   open,
   unbuttoned = false,
   view,
   idPrefix,
 }: {
-  target: string
   title: string
+  /** The 48-pixel picture on the button; null for the empty slot, and in a neighbour frame. */
+  picture: { src: string; alt: string } | null
   /** The target as the page carries it; null in a neighbour frame. */
   aside: Aside | null
   open: boolean
@@ -376,10 +397,8 @@ function Overlay({
   view: View
   idPrefix: string
 }) {
-  const { ui, uiLang, pictures } = view
+  const { ui, uiLang } = view
   const lang = view.address.lang
-  const image = aside?.node.images[0]
-  const alt = image && text(image.description, lang, `${target}.images[${image.file}].description`)
 
   return (
     <Sheet
@@ -387,8 +406,8 @@ function Overlay({
       summary={
         <>
           {/* `option-image` is the name the first Tree's walk (tests/first-tree/walk.spec.ts) finds an Option's picture by. */}
-          {image && pictures ? (
-            <img className="option-image" src={imageHref(image.file)} alt={alt} width={48} height={48} loading="lazy" />
+          {picture ? (
+            <img className="option-image" src={picture.src} alt={picture.alt} width={48} height={48} loading="lazy" />
           ) : (
             <span className="option-image option-image--empty" />
           )}

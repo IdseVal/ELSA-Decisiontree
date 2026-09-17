@@ -514,9 +514,22 @@ describe('a question Node with Options', () => {
     )
     // Only the target's first picture is on the button, and nothing of the target is in the fan but its Overlay.
     expect(part(html, 'ul', 'options').split('</li>')[0]!.match(/\/images\//g)).toHaveLength(1)
-    // A target without Images: the empty slot.
-    const none = await view('/ai-act-example/start/prohibited-practices')
-    expect(part(none, 'ul', 'options').match(/<span class="option-image option-image--empty"><\/span>/g)).toHaveLength(2)
+    // A target without Images, on an Option without any: the empty slot (the fixture's four small asides).
+    const five = part(await view('/overlay/five'), 'ul', 'options')
+    expect(five.match(/<span class="option-image option-image--empty"><\/span>/g)).toHaveLength(4)
+    expect(five.match(/<img class="option-image"/g)).toHaveLength(1)
+  })
+
+  test("an Option's own first Image stands in for a target without one, until #84 moves the pictures (elsa-tree/2)", async () => {
+    // The example Tree writes the pictures on the Options, as the first Tree does: the button
+    // shows that file, described by the Option's own Image, and never a second file of the Option's.
+    const fan = part(await view('/ai-act-example/start/prohibited-practices'), 'ul', 'options')
+    expect(fan).toContain(
+      '<summary class="sheet-open"><img class="option-image" src="/images/scoreboard.png" alt="A scoreboard ranking people" width="48" height="48" loading="lazy"/><span class="option-title">Social scoring</span></summary>',
+    )
+    // The second Option has no Image of its own and its target none either: the empty slot.
+    expect(fan.match(/<img class="option-image"/g)).toHaveLength(1)
+    expect(fan.match(/<span class="option-image option-image--empty"><\/span>/g)).toHaveLength(1)
   })
 
   test('the Options are named as a group, and are also in the Sheet they collapse to, as plain links to the explanation Nodes (10.5, 10.9, 14)', async () => {
