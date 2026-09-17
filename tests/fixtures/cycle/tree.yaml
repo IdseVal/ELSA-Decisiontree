@@ -2,7 +2,7 @@
 # a Node (application.md 11.3). A cycle among question Nodes is not an error
 # (tree-format.md 7): `third`'s `yes` goes back to `second`. `second`'s `yes` and `no` name
 # one target, which 5.3 allows.
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en]
 root: first
 title:

@@ -1,6 +1,6 @@
 # The example Tree of docs/specs/tree-format.md, section 8: every element of the format
 # in one small Tree. Its legal content is simplified and not to be relied on.
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en, nl]
 root: start
 title:
@@ -137,12 +137,6 @@ options:
       en: Social scoring
       nl: Sociale scoring
     target: social-scoring
-    images:
-      - file: scoreboard.png
-        description:
-          en: A scoreboard ranking people
-          nl: Een scorebord dat mensen rangschikt
-        credit: "Illustration: Example Studio, CC0 1.0"
   - title:
       en: Emotion recognition at work or in education
       nl: Emotieherkenning op het werk of in het onderwijs
@@ -169,6 +163,12 @@ description:
     onevenredig is.
 metadata:
   version: "2.0"
+images:
+  - file: scoreboard.png
+    description:
+      en: A scoreboard ranking people
+      nl: Een scorebord dat mensen rangschikt
+    credit: "Illustration: Example Studio, CC0 1.0"
 sources:
   - kind: legal
     label:
