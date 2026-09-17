@@ -531,6 +531,11 @@ response may carry, and holds; the bytes follow the Trail, which every neighbour
 draws in full. `ADR-38-neighbourhood.md` (Consequences) has the figures, and issue #60
 the lever.
 
+**Amended 2026-09-15 (#60):** a neighbour frame now draws only the part of its Trail the
+guaranteed viewport shows (11.3). The full Node at a 49-entry Trail is 269 kB of HTML
+(14 kB gzipped), and its payload 176 kB (24 kB gzipped); most of what is left is the
+centre frame's own Trail. `ADR-38-neighbourhood.md` (Consequences) has the table.
+
 ### 5.3 The image route
 
 `GET /images/<file>` asks `imagePath(file)`. `null` answers 404. Otherwise the file is
@@ -731,6 +736,7 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | `tree-view.spec.ts` **[v0.2]** | The tree view in a browser (#41): what a click on each kind of Branch does to the URL (10.3); Tab reaches every control in document order and Enter follows each Branch -- every control that is shown and enabled, because a disabled button is no tab stop, as the Carousel's previous and next are on a strip that fits its row (amended 2026-09-14, #55); a Sheet opens, lists its links, closes on Escape and returns the focus; the Trail Sheet pages eight at a time, newest first (10.2); the minimum-size notice names the dimension that is short (10.4); the screenshots of #41. **With JavaScript disabled**, section 14: every Branch is a link that navigates, a collapsed group is its plain list, and the Trail Sheet is pages of disclosures. There is no `no-js.spec.ts`: the no-script assertions live here and in `no-scroll.spec.ts`, which measures every page without script as well (amended 2026-09-13, #41, PR #56). |
 | `carousel.spec.ts` **[v0.2]** | The Carousel in a browser (#43), against `tests/fixtures/carousel/`: the image files requested on load, after `next` and on enlarging, and never another Node's (12.4, 11.5); previous and next scroll a page and are disabled at the ends; one tab stop, Left/Right/Home/End, Enter or Space enlarges, Escape closes and returns the focus (12.3); the names in `en` and `nl`; below step 2 the one control says `imageCount` and opens the enlarged view (10.5); by width the Trail collapses at 1200 and the Carousel at 960, the 120-character credit whole on the caption line until then (10.5, 12.2); **with JavaScript disabled**, a thumbnail opens its file, the strip is a tab stop the arrow keys scroll, a Node without pictures -- its own or its Options' (below) -- has no stop in the row, the caption follows the focus, and the collapsed control pages the Images as disclosures (14); the screenshots of #43 (amended 2026-09-13 and 2026-09-14, #43). **Amended 2026-09-14, #55:** the Node with no stop in the row is `social-scoring`, not `prohibited-practices`, whose Option carries a picture; on the example Tree's `prohibited-practices` an Option's picture is named with its Option -- "Enlarge Social scoring: A scoreboard ranking people" -- and described by its credit, in `en` and `nl`; and every picture of the example Tree, the Nodes' own and the Options', shows its whole credit on the caption line as the keyboard walks the strip, without a click, in `en` and `nl` (with `tests/browser/credits.ts`). |
 | `node-view.spec.ts`, `trail.spec.ts`, `language.spec.ts`, `deployment.spec.ts` | The 0.1 browser specs, kept: the URL scheme, the Trail, the language mechanism and the deployment shape are unchanged contracts and keep their tests. Since #55 an Option's picture is in the row as well as on its Branch, one file asked for once (`node-view.spec.ts`), and a click on an Option looks for its Branch inside the Options, because the strip thumbnail's name carries the same title (amended 2026-09-14, #55). |
+| `tests/first-tree/slide-endurance.spec.ts` **[v0.2]** | Four hundred slides in one tab with the slide on (11.3, #63), on the first Tree: `yes` from `start` and the parent's Trail Branch back, alternately. The tab survives; the page counts at least 400 changes of `data-sliding` over the walk, so a run with the motion off fails; and after a forced garbage collection the renderer's DOM nodes, detached ones included, and event listeners at the four-hundredth slide are fewer than twice those at the second (`Memory.getDOMCounters`). Under `npm run test:first-tree`, beside the first Tree's long walks, and **not** in `npm run test:browser`: it takes six minutes, and the CI command above runs in a 30-minute job that also installs, builds and runs the rest of the suite (amended 2026-09-15, #63). |
 
 **The interoperability test** (`interop.test.tsx`) is core document section 9, first
 bullet, as a test. For `single-language/` and `other-languages/`, for every declared
@@ -897,6 +903,11 @@ oldest first, the current Node's parent nearest the Bubble.
   lines **in a wide fallback face too** (DejaVu Sans wraps it into four at the 176 pixels
   a 200-pixel Branch leaves, and 10.5's row has no fourth line), and no label is
   truncated at the guaranteed viewport. (#38 wrote 200 here; #41 measured and widened it.)
+  **Amended 2026-09-15, #65:** the lines are **18** pixels, not 20. Three lines of 20, the
+  Branch's padding and its border were the row's 64 pixels exactly, so a three-line Branch
+  sat on the chrome bar's rule and on the Bubble's outline. At 18 with no vertical padding
+  it is 56 pixels, **4 clear** of each; the line height does not change where a label
+  wraps, so the three lines above still hold.
 - **A longer Trail collapses in the middle.** The `start` Branch stays, the last four
   entries stay, and everything between them becomes one Branch labelled with
   `trailMore(n)` -- "n earlier steps". That Branch carries chrome, not a title, and is
@@ -1170,7 +1181,8 @@ centre.
   places every Option target at those viewports, because the server renders one page
   for every viewport and the stylesheet decides the collapse. On the full Node that is
   eight neighbour frames that nothing on screen can slide to. Issue #60 weighs that
-  cost.
+  cost. (Decided 2026-09-15, #60: the frames stay placed, and each is trimmed as 11.3
+  says.)
 - **Amended 2026-09-15 (#42, PR #57): no item of any Sheet slides, whatever its
   target's placement.** The line above is one case of it. The Trail Sheet (10.2) lists
   the whole Trail newest first, so its first two items are the parent and the
@@ -1245,6 +1257,20 @@ of a slide and the neighbour is still rendered by the server, not by a second re
 hidden duplicate Bubbles in every page would cost DOM weight and confuse assistive
 technology for nothing. `transition.spec.ts` pins it: with JavaScript disabled the page
 holds exactly one `.tree-frame`.
+
+**Amended 2026-09-15 (#60, by the owner's decision of 2026-09-14,
+<https://github.com/IdseVal/ELSA-Decisiontree/issues/60#issuecomment-5670372885>): a
+neighbour frame does not repeat the whole Trail.** It is the tree view's layout with its
+Trail trimmed: it keeps exactly the Trail Branches 10.2 draws at the guaranteed viewport
+-- `start` and the last four, or all of a Trail of five or fewer -- and the collapsed
+control with the same `trailMore(n)` words, and it drops the Trail Sheet's list. Nothing
+visible changes, at rest or mid-slide. Every narrower step of 10.5 shows a subset of
+those entries, and the list is behind the control either way. The frame is inert, so
+nobody can open that Sheet or follow those links, and the page that replaces it in step 4
+carries the whole Trail. The centre frame keeps the whole Trail and its Sheet. At a
+49-entry Trail every neighbour frame drew 49 Trail Branches and a 49-link Sheet, so the
+full Node's page was 750 kB of HTML with the Trail repeated in each of its ten frames
+(5.2). `tests/trail.test.tsx` pins the trim against each neighbour's own page.
 
 Following a Branch, with JavaScript:
 
@@ -1400,7 +1426,8 @@ them** (2026-09-13): `Thumbnails.tsx` is gone, and step 2's control is the Carou
 The strip is a horizontal row of the Node's Images -- and, since #55, its Options' pictures,
 at most 18 in all (12.1) -- as 60-pixel thumbnails with
 `scroll-snap-type: x mandatory`, and under it a caption line of 20 pixels: 60 + 20 is the
-row's 80 pixels exactly (10.1). The strip is the **one element in the document allowed to
+row's 80 pixels exactly (10.1). (Amended 2026-09-15, #65: those 20 pixels are a 16-pixel
+line 4 above the row's foot. A 20-pixel line there ended on the disclaimer's rule.) The strip is the **one element in the document allowed to
 scroll**, and only horizontally, and only within its own row (10.6). That exemption buys
 a great deal:
 
