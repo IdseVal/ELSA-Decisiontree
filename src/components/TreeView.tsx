@@ -10,7 +10,7 @@
  * neighbours of the Node (11.2) are drawn as frames of the same layout, one layer away in
  * the direction of the Branch that leads to them, carry no image URL at all (11.4), and draw
  * only the part of their Trail the guaranteed viewport shows, not the Trail Sheet (#60). The
- * Carousel's row (section 12) is present on every Node, so the Bubble sits in the same place.
+ * Carousel's band (section 12) is present on every Node, so the Bubble sits in the same place.
  *
  * Below the guaranteed viewport the layout gives things up in the order of 10.5, and each
  * thing it gives up stays reachable behind one control that opens a Sheet. The full group
@@ -28,8 +28,9 @@ import type { Tree } from '../tree/loader.ts'
 import type { Node, Option } from '../tree/types.ts'
 import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
 import { Branch } from './Branch.tsx'
-import { Bubble, sheetWords } from './Bubble.tsx'
+import { Bubble } from './Bubble.tsx'
 import { Carousel } from './Carousel.tsx'
+import { sheetWords } from './Interior.tsx'
 import { Sheet } from './Sheet.tsx'
 import { Slider } from './Slider.tsx'
 
@@ -128,7 +129,7 @@ export function TreeView({
 
 /**
  * One Node laid out as the tree view draws it: the Trail, the Bubble, the Options, the
- * Answers and the Carousel's row. The centre of the page is one; so is each neighbour, which
+ * Answers and the Carousel's band. The centre of the page is one; so is each neighbour, which
  * is why a Bubble arriving in a slide already carries its own Branch labels (11.3).
  */
 function Frame({ node, view }: { node: Node; view: View }) {
@@ -136,10 +137,10 @@ function Frame({ node, view }: { node: Node; view: View }) {
   return (
     <>
       <Trail node={node} view={view} />
-      <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} />
+      <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} pictures={view.pictures} />
       {node.options.length > 0 && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
-      {/* The Carousel's row (section 12), on every Node, empty where there are no pictures, so the
+      {/* The Carousel's band (section 12), on every Node, empty where there is no picture, so the
           Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
       {view.pictures ? (
         <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />

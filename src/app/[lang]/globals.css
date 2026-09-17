@@ -2,17 +2,17 @@
  * The stylesheet: the tree view of docs/specs/application.md section 10, drawn.
  *
  * ONE SCREEN, SIX ROWS, NOTHING OUTSIDE THEM. The page is a grid whose rows are known before
- * any content is measured: chrome bar 44, Trail 64, the middle 360, Answers 64, Carousel 80,
- * disclaimer 28 -- the vertical budget of tree-format.md 5.7, which is where every length
- * limit of the format comes from. `html` and `body` are the viewport with `overflow: hidden`
+ * any content is measured: chrome bar 44, the band above the Bubble 26, the Bubble 446, the
+ * strip band 28, Answers 68, disclaimer 28 -- the vertical budget of tree-format.md 5.7 as
+ * 10.7 re-derives it, which is where every length limit of the format comes from. `html` and `body` are the viewport with `overflow: hidden`
  * (10.6); nothing here may be taller or wider than the box it is in, and
  * tests/browser/no-scroll.spec.ts measures every element to make sure.
  *
  * The Bubble is the one idea. It is round, it holds the Node, and everything else is a
  * Branch drawn relative to it: the Trail above on one hairline, the Options beside on short
  * ticks, the Answers below. Below the guaranteed viewport of 1280 x 640 the layout gives
- * things up in the fixed order of 10.5 -- the Trail, the Carousel, the Option columns, the
- * Options, the Sources, the type size, and only then the whole view -- each step a media
+ * things up in the fixed order of 10.5 -- the strip, the Option columns, the Options, the
+ * main image, the Sources, the type size, and only then the whole view -- each step a media
  * query at the bottom of this file, in that order, and never a scrollbar.
  *
  * NOTHING HERE NAMES A COLOUR OR A FONT. Both come from the Tree, as the seven `--elsa-*`
@@ -37,25 +37,32 @@
   --accent-secondary-read: color-mix(in srgb, var(--elsa-accent-secondary) 65%, var(--elsa-text));
   --danger-read: color-mix(in srgb, var(--elsa-danger) 70%, var(--elsa-text));
 
-  /* The six rows of 10.1, at the guaranteed viewport. The middle row is what is left. */
+  /*
+   * The six rows of 10.1, at the guaranteed viewport: 44 + 26 + 446 + 28 + 68 + 28 = 640.
+   * The Bubble's row is what is left, up to `--bubble-height`; beyond that the extra height
+   * is shared above and below the tree.
+   */
   --chrome-row: 44px;
-  --trail-row: 64px;
-  --answers-row: 64px;
-  --carousel-row: 80px;
+  --trail-row: 26px;
+  --strip-row: 28px;
+  --answers-row: 68px;
   --disclaimer-row: 28px;
+  --bubble-height: 520px;
 
   /* The middle row across: an Option column, a gap, the Bubble, a gap, an Option column. */
   --column: 240px;
   --gap: 20px;
   --bubble-width: 760px;
   /*
-   * The rim: the band between the text area (640 x 304) and the curve, 60 across and 28
+   * The rim: the band between the text area (640 x 394) and the curve, 60 across and 26
    * down (10.1). The Bubble's 2-pixel outline is part of that band, so the padding inside
-   * it is 2 less, and the text area measures exactly 640 x 304.
+   * it is 2 less, and the text area measures exactly 640 x 394.
    */
   --rim-x: 58px;
-  --rim-y: 26px;
-  --bubble-radius: 180px;
+  --rim-y: 24px;
+  --bubble-radius: 223px;
+  /* The main image's slot above the title, and the gap under it (10.3, 10.7). */
+  --main-image: 60px;
   --page-inset: 0px;
   /* The tick from an Option to the Bubble: inside the Option's own box, short of the gap. */
   --tick: 12px;
@@ -267,49 +274,63 @@ a.language:hover,
   grid-template-columns:
     minmax(0, 1fr) var(--column) var(--gap) minmax(0, var(--bubble-width)) var(--gap) var(--column)
     minmax(0, 1fr);
-  grid-template-rows: var(--trail-row) minmax(0, 1fr) var(--answers-row) auto var(--carousel-row);
+  grid-template-rows:
+    var(--trail-row) minmax(0, 1fr) minmax(0, var(--bubble-height)) var(--strip-row) var(--answers-row)
+    auto minmax(0, 1fr);
   grid-template-areas:
     "trail trail trail trail trail trail trail"
+    ". . . . . . ."
     ". left . bubble . right ."
+    ". . . carousel . . ."
     "answers answers answers answers answers answers answers"
     "options options options options options options options"
-    "carousel carousel carousel carousel carousel carousel carousel";
+    ". . . . . . .";
 }
 
-/* --- the Carousel: the row under the Bubble (section 12) ------------------------- */
+/* --- the Carousel: the strip on the Bubble's lower outline (section 12) ----------- */
 
 /*
- * One row of 80 pixels on every Node, empty where neither the Node nor any of its Options
- * carries a picture (12.1, amended by #55), so the Bubble
- * never moves. A strip of 60-pixel thumbnails with its controls beside it, and under both
- * a caption line of 20 (12.2). The strip is a page of four: short enough to sit under the
- * Bubble as one object with its buttons -- a carousel, not a contact sheet -- and each turn
- * of `next` brings the next four. It is the one element allowed to scroll, sideways, in
- * its own row (10.6); the scrollbar is not drawn, because the row has no height for one
- * and the strip is moved by the buttons, the arrow keys and the wheel.
+ * A band of 28 pixels under the Bubble on every Node, empty where the Node has fewer than
+ * two Images (12.1), so the Bubble never moves. The strip is 48 pixels tall and pulled up
+ * by half of that, so its thumbnails sit centred on the outline: the upper half in the
+ * Bubble's lower rim, 2 pixels clear of the text area, the lower half in the band, 4 clear
+ * of the Answer row (10.1). Its margin box is 24 pixels, inside the band, so nothing
+ * overflows the frame (10.6).
  */
 .carousel {
   grid-area: carousel;
-  /* The caption line's box: it sits under the strip and the controls, across the row. */
   position: relative;
+  z-index: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  min-height: 0;
+  min-width: 0;
+  height: 48px;
+  margin-top: -24px;
 }
 
+/*
+ * Seven 48-pixel pictures at a 56-pixel pitch and 8 pixels of padding at each end: 400
+ * pixels (12.2); fewer pictures make a shorter strip, centred on the Bubble. It is the one
+ * element allowed to scroll, sideways, in its own box (10.6);
+ * the scrollbar is not drawn, because the band has no height for one and the strip is
+ * moved by the arrow keys, the wheel and a swipe.
+ */
 .carousel-strip {
   display: flex;
+  flex: 0 1 auto;
   gap: 8px;
-  max-width: calc(4 * 80px + 3 * 8px);
-  height: 60px;
+  min-width: 0;
+  max-width: 400px;
+  height: 48px;
   margin: 0;
-  padding: 0;
+  padding: 0 8px;
   list-style: none;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
+  scroll-padding-inline: 8px;
   scrollbar-width: none;
 }
 
@@ -317,7 +338,6 @@ a.language:hover,
   display: none;
 }
 
-/* Static on purpose: the caption inside is placed against the row, not against its item. */
 .carousel-strip > li {
   flex: none;
   scroll-snap-align: start;
@@ -327,139 +347,49 @@ a.language:hover,
   position: relative;
   display: block;
   line-height: 0;
-  border-radius: 8px;
+  border-radius: 50%;
 }
 
 .thumbnail img {
   display: block;
-  width: 80px;
-  height: 60px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   object-fit: cover;
   background: var(--elsa-surface);
-  opacity: 0.7;
-  transition: opacity 160ms var(--ease);
 }
 
-/* A ring inside the thumbnail's own box: one outside it would be cut off by the strip. */
+/* A bead on the rim: a ring in the outline's colour, inside the picture's own box, which the strip would cut off outside it. */
 .thumbnail::after {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 8px;
-  box-shadow: inset 0 0 0 1px var(--rule);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--elsa-accent);
   pointer-events: none;
+  transition: box-shadow 160ms var(--ease);
+}
+
+.thumbnail:hover::after {
+  box-shadow: inset 0 0 0 3px var(--accent-secondary-read);
 }
 
 .thumbnail:focus-visible {
   outline-offset: -2px;
 }
 
-.thumbnail:hover img {
-  opacity: 1;
-}
-
 /*
- * The caption of the selected Image, under the strip. Without the script the selected Image
- * is the thumbnail the keyboard is on, or else the first; with it, the one CarouselButtons
- * marks `data-selected`. Every other caption has no box at all. The line never wraps: the
- * text is shortened on the server to what the line holds, the credit whole (12.2).
- * The row's last 20 pixels are a 16-pixel line 4 above the row's foot: a line of 20 there
- * sat on the disclaimer's rule (#65).
+ * The enlarged view's own control is what the strip collapses to (10.5, step 1); until then
+ * a picture opens it. A 20-pixel pill, centred on the same outline.
  */
-.carousel-caption {
-  display: none;
-  position: absolute;
-  right: 16px;
-  bottom: 4px;
-  left: 16px;
-  margin: 0;
-  font-size: var(--small);
-  line-height: 16px;
-  color: var(--elsa-text-muted);
-  text-align: center;
-  white-space: nowrap;
-}
-
-.caption-narrow {
-  display: none;
-}
-
-.carousel-strip:not(:has([data-selected], .thumbnail:focus)) > li:first-child > .carousel-caption,
-.carousel-strip > li:has(> .thumbnail:focus) > .carousel-caption,
-.carousel-strip:not(:has(.thumbnail:focus)) > li[data-selected] > .carousel-caption {
-  display: block;
-}
-
-.carousel-strip:not(:has([data-selected], .thumbnail:focus)) > li:first-child img,
-.carousel-strip > li:has(> .thumbnail:focus) img,
-.carousel-strip:not(:has(.thumbnail:focus)) > li[data-selected] img {
-  opacity: 1;
-}
-
-.carousel-strip:not(:has([data-selected], .thumbnail:focus)) > li:first-child .thumbnail::after,
-.carousel-strip > li:has(> .thumbnail:focus) .thumbnail::after,
-.carousel-strip:not(:has(.thumbnail:focus)) > li[data-selected] .thumbnail::after {
-  box-shadow: inset 0 0 0 2px var(--elsa-accent);
-}
-
-/* Beside the strip: previous, the position, next. Room for them is kept before the script draws them. */
-.carousel-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 216px;
-  height: 60px;
-  margin-left: 12px;
-}
-
-.carousel-button {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid var(--rule);
-  border-radius: 50%;
-  color: var(--elsa-text);
-  background: transparent;
-  cursor: pointer;
-  transition: border-color 160ms var(--ease);
-}
-
-.carousel-button svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.carousel-button:not(:disabled):hover {
-  border-color: var(--accent-secondary-read);
-}
-
-.carousel-button:disabled {
-  color: var(--elsa-text-muted);
-  border-color: var(--rule-soft);
-  cursor: default;
-}
-
-.carousel-position {
-  margin: 0;
-  padding: 0 8px;
-  font-size: var(--small);
-  line-height: var(--small-line);
-  font-variant-numeric: tabular-nums;
-  color: var(--elsa-text-muted);
-  white-space: nowrap;
-}
-
-/* The Sheet's own control is the row's collapsed form (10.5, step 2): until then the thumbnails open it. */
 .carousel-sheet > .sheet-open {
   display: none;
+  padding: 0 12px;
+  line-height: 18px;
+}
+
+.carousel-strip ~ .carousel-sheet > .sheet-open {
+  margin-left: 8px;
 }
 
 /* --- the Branches ------------------------------------------------------------------ */
@@ -622,23 +552,62 @@ a.language:hover,
 .bubble {
   position: relative;
   grid-area: bubble;
-  align-self: center;
   justify-self: center;
   width: 100%;
   height: 100%;
-  max-height: 520px;
   padding: var(--rim-y) var(--rim-x);
   border: 2px solid var(--elsa-accent);
   border-radius: var(--bubble-radius);
   background: var(--elsa-surface);
 }
 
+/* From the top, not centred: the main image and the title sit at the same height on every Node (10.3). */
 .bubble-text {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   height: 100%;
   min-height: 0;
+}
+
+/*
+ * The main image (10.3): 60 pixels tall and 90 wide, a 3 : 2 picture whole and any other
+ * shape cropped to that box, centred above the title with 8 pixels under it.
+ */
+.main-image {
+  display: block;
+  flex: none;
+  align-self: center;
+  width: 90px;
+  height: var(--main-image);
+  margin-bottom: 8px;
+  border-radius: 8px;
+  line-height: 0;
+}
+
+.main-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--elsa-background);
+}
+
+.main-image:focus-visible {
+  outline-offset: 2px;
+}
+
+/* A neighbour frame's picture: the same box, and no image URL (11.4). */
+.main-image--withheld {
+  background: var(--elsa-background);
+}
+
+/* A Node without Images: the same 60 pixels, a faint circle, so the title never moves. */
+.main-image--empty {
+  width: var(--main-image);
+  border: 1px solid var(--rule);
+  border-radius: 50%;
 }
 
 .bubble h1 {
@@ -734,13 +703,25 @@ a.language:hover,
   text-align: center;
 }
 
-/* --- Sources: two lines inside the text area, or one control (10.5, step 5) -------- */
+/* --- Sources: a heading and two lines inside the text area, or one control (10.5, step 6) */
 
 .sources {
   margin-top: 8px;
   font-size: var(--small);
   line-height: var(--small-line);
   text-align: center;
+}
+
+/* Chrome, on its own 20-pixel line: 13-pixel small capitals in the muted shade (ADR-78-sources-heading). */
+.sources h2 {
+  margin: 0;
+  font-family: var(--elsa-font-heading);
+  font-size: var(--small);
+  line-height: var(--small-line);
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+  color: var(--elsa-text-muted);
 }
 
 .sources ul {
@@ -808,12 +789,12 @@ a.language:hover,
 /* Each column spans its gap too, so the tick to the Bubble is inside the entry's own box. */
 .options--left {
   grid-column: 2 / 4;
-  grid-row: 2;
+  grid-row: bubble;
 }
 
 .options--right {
   grid-column: 5 / 7;
-  grid-row: 2;
+  grid-row: bubble;
 }
 
 .options li {
@@ -998,20 +979,9 @@ a.language:hover,
 }
 
 /*
- * The collapsed Carousel's control is at the foot of the page, where a centred panel would
- * cover it, and without the script it is the only way to close the panel. So the enlarged
- * view keeps clear of the Carousel's row and of the disclaimer under it, which wraps to at
- * most 64 pixels; `--carousel-clearance` is set where the control is shown (10.5, step 2).
- */
-.carousel-sheet > .sheet-panel {
-  bottom: calc(16px + var(--carousel-clearance, 0px));
-  max-height: calc(100% - 32px - var(--carousel-clearance, 0px));
-}
-
-/*
- * The Sources control is in the Bubble, in the middle of the page, so without the script the
- * centred panel lay under it and one of its links took no click (#59). No spot outside the
- * panel is free either: the foot holds the collapsed Carousel's control and the disclaimer.
+ * The Sources control and the enlarged view's control are in the middle of the page, so
+ * without the script the centred panel lay under them and a link of it took no click (#59).
+ * No spot outside the panel is free either: the foot holds the Answers and the disclaimer.
  * So the open panel hangs from the top of the page and the control moves inside it, into
  * its padding at its head -- 16 pixels, the control, 12 more -- where it lies over nothing
  * the panel does not already cover. The disclosure keeps the control's height, so the
@@ -1021,14 +991,20 @@ a.language:hover,
   min-height: var(--sheet-open);
 }
 
-.sources-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-open {
+.carousel-sheet[open]:not(:has(> .sheet-backdrop)) {
+  min-height: 20px;
+}
+
+.sources-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-open,
+.carousel-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-open {
   position: fixed;
   inset: calc(16px + 1px + 16px) 0 auto;
   width: fit-content;
   margin: 0 auto;
 }
 
-.sources-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-panel {
+.sources-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-panel,
+.carousel-sheet[open]:not(:has(> .sheet-backdrop)) > .sheet-panel {
   bottom: auto;
   padding-top: calc(16px + var(--sheet-open) + 12px);
 }
@@ -1121,7 +1097,7 @@ a.language:hover,
   width: auto;
   height: auto;
   max-width: min(100%, 880px);
-  max-height: calc(100vh - 280px - var(--carousel-clearance, 0px));
+  max-height: calc(100vh - 280px);
   border-radius: 12px;
   object-fit: contain;
 }
@@ -1225,80 +1201,70 @@ a.language:hover,
  * ================================================================================== */
 
 /*
- * Step 1 -- the Trail collapses to the parent plus trailMore(n) (Trail Sheet behind it).
- * By height, as 10.5 orders it, and also by width: five 212-pixel Branches, the 120-pixel
- * control and five 8-pixel gaps need 1220 pixels (10.2), so a narrower row could only
- * truncate or wrap, and 10.2 allows neither. Between 1200 and 1220 the five steps shrink
- * to 208 and their labels to 192, still above the 184 where a fourth line starts.
+ * The Trail, at every size, in the 26-pixel band 10.1 gives the up arrow: the parent on one
+ * line plus trailMore(n), the Trail Sheet behind it -- 0.2's first step of 10.5, which the
+ * row budget of #78 no longer has the 64 pixels to undo. #82 replaces the drawn Trail with
+ * the up arrow. Below the guaranteed width the parent may take two lines, and the band 44.
  */
-@media (max-height: 639px), (max-width: 1199px) {
+.trail--collapsible .trail-step:not([data-parent]) {
+  display: none;
+}
+
+.trail--collapsible .trail-more {
+  display: block;
+}
+
+.trail-more-wide {
+  display: none;
+}
+
+.trail-more-short {
+  display: inline;
+}
+
+.trail-step[data-parent] {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: 900px;
+  min-width: 0;
+}
+
+.trail .sheet-open {
+  padding-block: 0;
+  line-height: 18px;
+}
+
+@media (max-width: 1279px) {
   :root {
     --trail-row: 44px;
   }
 
-  .trail--collapsible .trail-step:not([data-parent]) {
-    display: none;
-  }
-
-  .trail--collapsible .trail-more {
-    display: block;
-  }
-
-  .trail-more-wide {
-    display: none;
-  }
-
-  .trail-more-short {
-    display: inline;
-  }
-
   .trail-step[data-parent] {
-    flex: 0 1 auto;
-    width: auto;
     max-width: 480px;
-    min-width: 0;
   }
-
 }
 
 /*
- * Step 2 -- the Carousel collapses to one control, and the row shrinks. Also by width, below
- * 960 pixels: narrower than that the caption line cannot hold a 120-character credit whole
- * on its one line (12.2), and it is never cut. After step 1 (1200) and before the Bubble
- * narrows (792), so the order of 10.5 holds for every Node.
+ * Step 1 -- the strip collapses to the enlarged view's control, a 20-pixel pill on the same
+ * outline, and the band closes to 20 (10.5).
  */
-@media (max-height: 619px), (max-width: 959px) {
+@media (max-height: 639px) {
   :root {
-    --carousel-row: 28px;
+    --strip-row: 20px;
   }
 
   .carousel {
-    align-items: center;
-    --carousel-clearance: calc(var(--carousel-row) + 64px);
+    height: 20px;
+    margin-top: -10px;
   }
 
-  .carousel-strip,
-  .carousel-controls {
+  .carousel-strip {
     display: none;
   }
 
-  .carousel-sheet > .sheet-open {
-    display: inline-block;
-  }
-}
-
-/*
- * Below the guaranteed width the caption line is narrower than the 170 characters of 12.2,
- * so it shows the shorter caption the server wrote for it: the credit whole, and whatever of
- * the description is left beside it.
- */
-@media (max-width: 1279px) {
-  .caption-wide {
-    display: none;
-  }
-
-  .caption-narrow {
-    display: inline;
+  .carousel .carousel-sheet > .sheet-open {
+    display: block;
+    margin-left: 0;
   }
 }
 
@@ -1399,11 +1365,18 @@ a.language:hover,
 }
 
 /*
- * Step 5 -- the Sources collapse to one control showing their count. Also below 792 pixels
- * of width, where the Bubble narrows: step 6 fires there, and 10.5's order has the
- * citation give way before the type does.
+ * Step 5 -- the main image is hidden and its slot closes, on every Node alike (10.5): 68
+ * pixels, from 632 to 564. Also below 792 pixels of width, where the Bubble narrows and
+ * steps 5, 6 and 7 fire together.
  */
-@media (max-height: 547px), (max-width: 791px) {
+@media (max-height: 631px), (max-width: 791px) {
+  .main-image {
+    display: none;
+  }
+}
+
+/* Step 6 -- the Sources, heading included, collapse to one control showing their count: 68 more, to 496. */
+@media (max-height: 563px), (max-width: 791px) {
   .sources {
     display: none;
   }
@@ -1413,8 +1386,8 @@ a.language:hover,
   }
 }
 
-/* Step 6 -- the type scale steps down, 16 -> 15 -> 14 -> 13, never below 13. */
-@media (max-height: 531px), (max-width: 791px) {
+/* Step 7 -- the type scale steps down, 16 -> 15 -> 14 -> 13, never below 13. */
+@media (max-height: 495px), (max-width: 791px) {
   :root {
     --body: 15px;
     --body-line: 22.5px;
@@ -1423,7 +1396,7 @@ a.language:hover,
   }
 }
 
-@media (max-height: 515px), (max-width: 639px) {
+@media (max-height: 487px), (max-width: 639px) {
   :root {
     --body: 14px;
     --body-line: 21px;
@@ -1432,7 +1405,7 @@ a.language:hover,
   }
 }
 
-@media (max-height: 499px), (max-width: 479px) {
+@media (max-height: 483px), (max-width: 479px) {
   :root {
     --body: 13px;
     --body-line: 19.5px;
@@ -1502,6 +1475,29 @@ a.language:hover,
   /* The rim keeps room for the one chrome element a Node kind puts on it (10.1). */
   .bubble--terminal {
     padding-top: 28px;
+  }
+
+  /*
+   * The strip is its control alone, as at step 1: a 48-pixel strip needs 24 pixels of the
+   * lower rim, which is 10 here, and the full Node of 10.6 at 360 x 640 has not the 14 to
+   * give. The 20-pixel pill is centred on the outline, 10 in the rim.
+   */
+  :root {
+    --strip-row: 20px;
+  }
+
+  .carousel {
+    height: 20px;
+    margin-top: -10px;
+  }
+
+  .carousel-strip {
+    display: none;
+  }
+
+  .carousel .carousel-sheet > .sheet-open {
+    display: block;
+    margin-left: 0;
   }
 
   .bubble--explanation {
