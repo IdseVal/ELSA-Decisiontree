@@ -179,11 +179,11 @@ describe('a Node that lacks a text in a language the Tree declares', () => {
 
   test('shows a placeholder the reader can see, and warns on the server', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const node = damaged
     const address = parseUrl('/ai-act-example/start', 'nl', tree)!
+    const page = (await loadPage(tree, address))!
 
     const html = renderToStaticMarkup(
-      <TreeView page={(await loadPage(tree, address))!} tree={tree} />,
+      <TreeView page={{ ...page, centre: { ...page.centre, node: damaged } }} tree={tree} />,
     )
 
     expect(html).toContain('[Tekst ontbreekt in deze taal]')
@@ -195,11 +195,11 @@ describe('a Node that lacks a text in a language the Tree declares', () => {
 
   test('the language it does have is untouched', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const node = damaged
     const address = parseUrl('/ai-act-example/start', '_', tree)!
+    const page = (await loadPage(tree, address))!
 
     const html = renderToStaticMarkup(
-      <TreeView page={(await loadPage(tree, address))!} tree={tree} />,
+      <TreeView page={{ ...page, centre: { ...page.centre, node: damaged } }} tree={tree} />,
     )
 
     expect(html).toContain('Is your AI system within the reach of the AI Act?')

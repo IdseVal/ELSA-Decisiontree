@@ -163,7 +163,10 @@ export function Sheet({
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDetailsElement>): void => {
-    if (event.key === 'Escape') close()
+    if (event.key !== 'Escape') return
+    // One Escape closes one Sheet: the Overlay around a Sheet its Interior holds stays open.
+    event.stopPropagation()
+    close()
   }
 
   const onToggle = (): void => {
