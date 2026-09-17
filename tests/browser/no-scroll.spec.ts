@@ -462,6 +462,39 @@ for (const { what, url } of EXAMPLE_PAGES) {
   }
 }
 
+/**
+ * What the share button says after a click lands under the chrome bar (issue #86): the short
+ * confirmation, or -- when no way of copying worked -- the whole link to copy by hand, the
+ * longest thing it can say. Neither may make the page scroll. The deepest example page has
+ * the longest link.
+ */
+for (const lang of LANGUAGES) {
+  for (const said of ['copied', 'by hand'] as const) {
+    test(`the share button's ${said} message, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+      test.slow()
+      if (said === 'by hand') {
+        await page.addInitScript(() => {
+          Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
+          document.execCommand = () => false
+        })
+      }
+      const { what, url } = EXAMPLE_PAGES[2]
+      for (const [width, height] of VIEWPORTS) {
+        const viewport = `${width}x${height}`
+        await page.setViewportSize({ width, height })
+        await page.goto(inLang(url, lang))
+        const share = page.locator('button.share')
+        if (!(await share.isVisible())) continue
+        await share.click()
+        await expect(page.locator(said === 'copied' ? '.share-said' : '.share-by-hand')).not.toBeEmpty()
+        const m = await measure(page)
+        rows.push({ page: what, lang, viewport, sheet: `share button, ${said}`, measured: m })
+        assertFits(m, `${what} (${lang}) at ${viewport} after the share button said ${said}`)
+      }
+    })
+  }
+}
+
 for (const lang of LANGUAGES) {
   test(`the full Node at a 49-entry Trail, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
     test.slow()
