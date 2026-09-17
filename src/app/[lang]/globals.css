@@ -195,15 +195,16 @@ a.language:hover,
   border-color: var(--rule);
 }
 
-/* What the share button says lands under the bar, out of the flow, so the rows never move. */
-.share-control {
-  position: relative;
-}
-
+/*
+ * What the share button says lands under the bar, out of the flow, so the rows never move.
+ * Fixed rather than absolute: an absolute box under the bar counts as overflow of the bar
+ * and of the button's box, which 10.6 forbids, and it was only as wide as the button, so
+ * the link to copy by hand stood a word to a line (#86). The bar is always at the top.
+ */
 .share-said {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
+  position: fixed;
+  top: calc(var(--chrome-row) + 6px);
+  right: 16px;
   z-index: 2;
   max-width: min(60vw, 40rem);
   font-size: 12px;
@@ -1529,6 +1530,10 @@ a.language:hover,
   .page-chrome {
     padding: 0 8px;
     gap: 8px;
+  }
+
+  .share-said {
+    right: 8px;
   }
 
   .page-controls {
