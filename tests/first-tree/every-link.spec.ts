@@ -420,7 +420,7 @@ async function problems(v: Visit): Promise<string[]> {
   if (v.bubbleSH > v.bubbleCH + 1) found.push(`Bubble content ${v.bubbleSH} px in ${v.bubbleCH} px`)
   found.push(...v.overflowing.map((o) => `overflow: ${o}`))
   const node = await tree.getNode(v.node)
-  const images = node ? [...node.images, ...node.options.flatMap((o) => o.images.slice(0, 1))].map((i) => i.file) : []
+  const images = node ? node.images.map((i) => i.file) : []
   for (const r of v.requests) {
     if (!r.url.startsWith('/')) found.push(`third-party request: ${r.url}`)
     if (/tree\.ya?ml|\/api\//.test(r.url)) found.push(`request for the Tree: ${r.url}`)

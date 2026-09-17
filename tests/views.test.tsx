@@ -166,7 +166,7 @@ describe('the tree layer', () => {
   })
 
   test('the Carousel band is present on every Node, empty where the Node has no Image, so the Bubble never moves (12.1)', async () => {
-    for (const url of ['/ai-act-example/covered', '/ai-act-example/social-scoring']) {
+    for (const url of ['/ai-act-example/covered', '/ai-act-example/prohibited-practices']) {
       expect(await view(url), url).toContain('<div class="carousel"></div>')
       // So such a Node has no strip, and no empty tab stop without a script either.
       expect(await view(url), url).not.toContain('carousel-strip')
@@ -174,13 +174,13 @@ describe('the tree layer', () => {
     expect(await view('/ai-act-example/start')).toContain('<section class="carousel">')
   })
 
-  test("an Option's picture is on its Branch and not in the strip (10.3, 12.1)", async () => {
-    // `prohibited-practices` carries scoreboard.png on an Option and no Image of its own.
-    const html = await view('/ai-act-example/prohibited-practices')
-    expect(html).toContain(
-      '<img class="branch-image option-image" src="/images/scoreboard.png" alt="A scoreboard ranking people"',
-    )
-    expect(html).toContain('<div class="carousel"></div>')
+  test("an Option's picture is its target's main image, not on the Option and not in a strip (tree-format.md 5.4, 10.3, 12.1)", async () => {
+    // In elsa-tree/2 `prohibited-practices` carried scoreboard.png on its Option; the
+    // migration of #79 moved it to `social-scoring`. Drawing it on the Option's button is #80's.
+    expect(await view('/ai-act-example/prohibited-practices')).not.toContain('scoreboard.png')
+
+    const html = await view('/ai-act-example/prohibited-practices/social-scoring')
+    expect(part(html, 'article', 'bubble')).toContain('<a class="main-image" href="/images/scoreboard.png"')
     expect(html).not.toContain('class="thumbnail"')
   })
 
@@ -220,7 +220,7 @@ describe('the main image', () => {
   })
 
   test('a Node without Images shows the empty slot in its place, which says nothing to assistive technology (10.3)', async () => {
-    const bubble = part(await view('/ai-act-example/social-scoring'), 'article', 'bubble')
+    const bubble = part(await view('/ai-act-example/emotion-recognition-at-work'), 'article', 'bubble')
     expect(bubble).toContain('<div class="bubble-text"><span class="main-image main-image--empty" aria-hidden="true"></span><h1 ')
     expect(bubble).not.toContain('<img')
   })
@@ -279,11 +279,9 @@ describe('the Carousel', () => {
     expect(carousel).toContain('<details class="sheet carousel-sheet" name="sheet"><summary class="sheet-open"><span>Image 1 of 1</span></summary>')
   })
 
-  test("the full Node's strip holds nine: its ten Images less the main one, and no Option's picture (12.1)", async () => {
+  test("the full Node's strip holds nine: its ten Images less the main one (12.1)", async () => {
     const node = (await trees.get('full-node')!.getNode('full'))!
     const strip = part(await view('/full-node/full?lang=nl'), 'ul', 'carousel-strip')
-    // Eight Options each with a picture: in 0.2 the strip held those too, 18 in all.
-    expect(node.options.every((option) => option.images.length > 0)).toBe(true)
     expect(all(strip, /<a class="thumbnail" href="([^"]*)"/g)).toEqual(node.images.slice(1).map((image) => `/images/${image.file}`))
     expect(strip.match(/<li>/g)).toHaveLength(9)
   })
@@ -344,6 +342,20 @@ describe('the Bubble', () => {
     expect(bubble).toContain('<li>Answer <strong>no</strong> only if none of these applies to your system.</li>')
     expect(bubble).toContain('<section class="sources"')
     expect(html.match(/<h1 /g)).toHaveLength(1)
+  })
+
+  test("marks an explainer's term in the description, its panel beside it (application.md 10.8)", async () => {
+    const english = part(await view('/ai-act-example/start'), 'article', 'bubble')
+    const dutch = part(await view('/ai-act-example/start?lang=nl'), 'article', 'bubble')
+
+    expect(english).toContain(
+      'wherever the <span class="term" tabindex="0" aria-describedby="e-provider">provider</span>' +
+        '<span class="explainer" role="tooltip" id="e-provider"><b>provider</b> Someone who develops an AI system, ' +
+        'or has one developed, and places it on the market or puts it into service under their own name or trademark.</span> is based.',
+    )
+    expect(dutch).toContain('waar de <span class="term" tabindex="0" aria-describedby="e-provider">aanbieder</span>')
+    expect(dutch).toContain('id="e-provider"><b>aanbieder</b> Wie een AI-systeem ontwikkelt')
+    expect(english).not.toContain('](#provider)')
   })
 
   test('is the article the content language is declared on', async () => {
@@ -447,12 +459,11 @@ describe('a question Node with Options', () => {
     expect(part(eight, 'ul', 'options options--right').match(/<li>/g)).toHaveLength(4)
   })
 
-  test('an Option with Images carries the first of them as a thumbnail, and only the first', async () => {
+  test('an Option has no picture of its own in elsa-tree/3, so its Branch names no image file (tree-format.md 5.4)', async () => {
     const html = await view('/full-node/full')
-    const first = part(html, 'ul', 'options options--left')
 
-    expect(first).toContain('<img class="branch-image option-image" src="/images/one.png" alt="Option one, first picture" width="64" height="64" loading="lazy"/>')
-    expect(first).not.toContain('/images/two.png')
+    expect(part(html, 'ul', 'options options--left')).not.toContain('<img')
+    expect(part(html, 'ul', 'options options--right')).not.toContain('<img')
   })
 
   test('the Options are named as a group, and are also in the Sheet they collapse to (10.5, 14)', async () => {

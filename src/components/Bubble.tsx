@@ -111,7 +111,11 @@ export function Interior({
       <div
         className="prose"
         dangerouslySetInnerHTML={{
-          __html: richTextToHtml(text(node.description, lang, `${node.id}.description`)),
+          __html: richTextToHtml(text(node.description, lang, `${node.id}.description`), {
+            explainers: node.explainers,
+            lang,
+            idPrefix,
+          }),
         }}
       />
 

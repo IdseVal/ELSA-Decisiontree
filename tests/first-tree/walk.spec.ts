@@ -257,10 +257,11 @@ const PICTURE_NODES = {
 } as const
 
 for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
-  test(`${nodeId} shows its own picture and one per Option, all from this server`, async ({ page, baseURL }) => {
+  test(`${nodeId} shows its own picture, all from this server; each Option's is on its target`, async ({ page, baseURL }) => {
     // Issue #45: the Annex I and Annex III lists are the two the core document (3.3, items
-    // 4a and 4b) asks for a picture on every entry of. The count is asserted against the
-    // Options actually on screen, so an Option added later without a picture fails here.
+    // 4a and 4b) asks for a picture on every entry of. Since elsa-tree/3 (#79) an entry's
+    // picture is its target's first Image, shown on the target's page and checked in
+    // "every Annex Option's picture is its target's first Image" below; this page asks for its own.
     // The requests are recorded over the LAST click only, so what is counted is what this
     // one Node costs a reader, not what the whole walk to it did.
     const visited = await walk(page, steps.slice(0, -1))
@@ -273,9 +274,8 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
 
     const options = await page.locator('.option').count()
     expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)
-    await expect(page.locator('.option-image')).toHaveCount(options)
-    // The Node's own picture is its main image; an Option's picture is on its button only and
-    // does not join the strip (application.md 12.1).
+    await expect(page.locator('.option-image')).toHaveCount(0)
+    // The Node's own picture is its main image, and it has no other (application.md 10.3, 12.1).
     await expect(page.locator('.bubble .main-image img')).toHaveCount(1)
     await expect(page.locator('.carousel .thumbnail')).toHaveCount(0)
 
@@ -288,7 +288,7 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     // included. The analogue of the #40 check, on the Tree that now carries the pictures.
     const own = new URL(baseURL!).host
     expect(asked.filter((url) => new URL(url).host !== own)).toEqual([])
-    expect(asked.filter((url) => new URL(url).pathname.startsWith('/images/')).length).toBe(options + 1)
+    expect(asked.filter((url) => new URL(url).pathname.startsWith('/images/')).length).toBe(1)
 
     await page.screenshot({ path: path.join(PICTURE_SHOTS, `${nodeId}.png`), fullPage: true })
   })
@@ -364,25 +364,20 @@ test("every step Node's picture is its main image, and a click on it shows its c
   }
 })
 
-test('every Option picture on screen has a credit in the Tree this server is serving', async ({ page }) => {
+test("every Annex Option's picture is its target's first Image, on screen with a credit in the Tree this server is serving", async ({ page }) => {
+  // elsa-tree/3 (tree-format.md 5.4): an Option has no Images of its own; the migration of #79
+  // moved each Annex Option's picture to its target, where the target's own page shows it.
   let checked = 0
   for (const nodeId of ANNEX_NODES) {
     const node = await tree.getNode(nodeId)
     expect(node, `${nodeId} cannot be read`).not.toBeNull()
-    await page.goto(`/${TREE}/${nodeId}`)
 
-    const credits = new Map(
-      node!.options.flatMap((option) => option.images.map((image) => [imageHref(image.file), image.credit])),
-    )
-    const shown = await page
-      .locator('.option-image')
-      .evaluateAll((images) => images.map((image) => new URL((image as HTMLImageElement).src).pathname))
-    expect(shown.length, `${nodeId}: pictures on screen`).toBe(credits.size)
-
-    for (const src of shown) {
-      const credit = credits.get(src)
-      expect(credit, `${nodeId}: ${src} is on screen but is no Option Image of this Node`).toBeDefined()
-      expect(credit!, `${nodeId}: ${src} has no licence in its credit`).toMatch(OPEN_LICENCE)
+    for (const option of node!.options) {
+      const image = (await tree.getNode(option.target))!.images[0]
+      expect(image, `${option.target} carries no Image`).toBeDefined()
+      await page.goto(pageUrl([nodeId, option.target], 'en'))
+      await expect(page.locator('.thumbnail').first(), option.target).toHaveAttribute('href', imageHref(image!.file))
+      expect(image!.credit, `${option.target}: ${image!.file} has no licence in its credit`).toMatch(OPEN_LICENCE)
       checked += 1
     }
   }
@@ -400,7 +395,10 @@ for (const lang of ['en', 'nl'] as const) {
     for (const [nodeId, images] of byNode) {
       read += await readEveryCredit(page, pageUrl([nodeId], lang), images)
     }
-    expect(read, 'Node pictures read').toBe(7)
+    expect(read, 'Node pictures read').toBe(35)
+    // Every Image in the Tree is one of them: no Option carries a second picture that no page shows.
+    const nodes = await Promise.all([...byNode.keys()].map((id) => tree.getNode(id)))
+    expect(nodes.reduce((sum, node) => sum + node!.images.length, 0)).toBe(35)
   })
 }
 

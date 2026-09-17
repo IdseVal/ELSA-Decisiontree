@@ -83,7 +83,7 @@ async function allowedNodes(url: string): Promise<string[]> {
 async function allowedImages(url: string): Promise<string[]> {
   const address = parseUrl(new URL(url, 'http://x').pathname, 'en', tree)!
   const node = (await tree.getNode(address.nodeId))!
-  return [...node.images, ...node.options.flatMap((o) => o.images.slice(0, 1))].map((i) => encodeURIComponent(i.file))
+  return node.images.map((i) => encodeURIComponent(i.file))
 }
 
 /** Records, from now on, every computed transform of the tree layer, one per frame. */

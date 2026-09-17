@@ -211,12 +211,14 @@ test.describe('the image files', () => {
     expect(onEnlarge).toEqual([])
   })
 
-  test("the first Tree's annex-i-legislation: its main image and one picture per Option, nothing else (11.5, 12.4)", async ({ page }) => {
+  test("the first Tree's annex-i-legislation: its main image, nothing else (11.5, 12.4)", async ({ page }) => {
+    // Its eight Options' pictures are their targets' main images since elsa-tree/3 (#79), and
+    // drawing them on the Options' buttons is #80's: this page asks for its own Image alone.
     await page.setViewportSize({ width: 1280, height: 640 })
     const tree = await openTree(path.join(repo, 'trees', FIRST_TREE))
     const node = (await tree.getNode('annex-i-legislation'))!
-    const expected = [...node.images.map((image) => image.file), ...node.options.map((option) => option.images[0]!.file)]
-    expect(expected).toHaveLength(9)
+    const expected = node.images.map((image) => image.file)
+    expect(expected).toHaveLength(1)
 
     const onLoad = await imageRequests(page, () => page.goto(`${firstTree}/${FIRST_TREE}/annex-i-legislation`))
     recordRequests(`first Tree, annex-i-legislation, 1280 x 640`, 'load', onLoad)
@@ -358,12 +360,28 @@ test.describe('names for assistive technology', () => {
 
   test('a Node without Images says nothing where its main image would be', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    await page.goto('/ai-act-example/start/prohibited-practices/social-scoring')
+    // The example Tree's `emotion-recognition-at-work` carries no Image.
+    await page.goto('/ai-act-example/start/prohibited-practices/emotion-recognition-at-work')
     await expect(page.locator('.main-image--empty')).toBeVisible()
     await expect(page.locator('.main-image--empty')).toHaveAttribute('aria-hidden', 'true')
     const box = (await page.locator('.main-image--empty').boundingBox())!
     expect([box.width, box.height]).toEqual([60, 60])
   })
+
+  for (const [lang, name] of [
+    ['en', 'Enlarge A scoreboard ranking people'],
+    ['nl', 'Vergroten Een scorebord dat mensen rangschikt'],
+  ] as const) {
+    test(`an Option's former picture is its target's main image, named like any other, in ${lang} (10.3)`, async ({ page }) => {
+      await page.setViewportSize({ width: 1280, height: 640 })
+      // The example Tree's `social-scoring`: scoreboard.png, which elsa-tree/3 moved there from
+      // the Option of `prohibited-practices` that leads to it (#79). Playwright's own server serves it.
+      await page.goto(`/ai-act-example/start/prohibited-practices/social-scoring${lang === 'en' ? '' : `?lang=${lang}`}`)
+      await expect(page.locator('.bubble a.main-image')).toHaveAccessibleName(name)
+      await expect(page.locator('.bubble a.main-image')).toHaveAccessibleDescription('Illustration: Example Studio, CC0 1.0')
+      await expect(page.locator('.thumbnail')).toHaveCount(0)
+    })
+  }
 })
 
 test.describe('below the guaranteed height', () => {
@@ -442,8 +460,8 @@ test.describe('with JavaScript switched off', () => {
 
   test('a Node without pictures has no strip, so no empty tab stop in the Carousel band (12.1)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    // The example Tree's `social-scoring` carries no Image.
-    await page.goto('/ai-act-example/start/prohibited-practices/social-scoring')
+    // The example Tree's `emotion-recognition-at-work`: the Node carries no Image.
+    await page.goto('/ai-act-example/start/prohibited-practices/emotion-recognition-at-work')
     await expect(page.locator('[data-carousel-strip]')).toHaveCount(0)
 
     const stops: string[] = []
@@ -494,8 +512,9 @@ test('every Node picture of the example Tree gives its author, source and licenc
       read += await readEveryCredit(page, `/ai-act-example/${nodeId}${lang === 'en' ? '' : `?lang=${lang}`}`, images)
     }
   }
-  // eu-map.png on `start`, in each language.
-  expect(read, 'pictures read').toBe(2)
+  // eu-map.png on `start` and scoreboard.png on `social-scoring`, where elsa-tree/3 moved it
+  // from its Option, in each language.
+  expect(read, 'pictures read').toBe(4)
 })
 
 test('the screenshots of issue #81, at the smallest and the largest guaranteed viewport', async ({ page }) => {
