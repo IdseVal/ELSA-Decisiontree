@@ -1350,6 +1350,19 @@ a.language:hover,
   }
 }
 
+/*
+ * At the full width the control takes the left column the Options leave, not a row under
+ * the Answers: the height budget of 10.5 has no 28 pixels for one, and the Bubble would pay
+ * them out of the text area that steps 5 and 6 free.
+ */
+@media (max-height: 567px) and (min-width: 1280px) {
+  .options-collapsed {
+    grid-area: left;
+    align-self: center;
+    justify-self: center;
+  }
+}
+
 @media (max-width: 1279px) {
   .options-columns[data-count="5"],
   .options-columns[data-count="6"],
