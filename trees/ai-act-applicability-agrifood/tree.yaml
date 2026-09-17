@@ -67,17 +67,21 @@ theme:
       licence: SIL Open Font License 1.1 (theme/ofl-open-sans.txt)
   # The seven roles of tree-format.md 4.3.3, filled from research 7's role -> value table --
   # except text-muted. The site's .uk-text-muted #a3a4a8 is 2.49 : 1 on background and
-  # 2.24 : 1 on surface, and the frontend draws the credits, the disclaimer, the Trail and
+  # 2.24 : 1 on surface, and the frontend draws the credits, the disclaimer and
   # the Source kinds in it, all at 11 to 13 pixels, where WCAG 2.2 SC 1.4.3 asks 4.5 : 1
   # (issue #64). #696a6e is the same cool grey darkened to 5.40 : 1 on background and
   # 4.85 : 1 on surface, and stays lighter than text (2.51 : 1 against it).
+  # accent-secondary is the walk's controls -- the Answer buttons, the up arrow, startAgain
+  # -- and the owner asked for them in the green of the ELSA logo's lettering (issue #75),
+  # measured by issue #36 as #159a2f, not the site's interface green #41ab64. White on it
+  # is 3.69 : 1, enough for the 19-pixel bold label, which is large text (ADR-78).
   colours:
     background: "#ffffff"        # html { background:#fff }
     surface: "#f0f3f7"           # .uk-button-default, .uk-progress
     text: "#2d2e33"              # html { color:#2d2e33 }
     text-muted: "#696a6e"        # .uk-text-muted #a3a4a8, darkened to read (issue #64)
     accent: "#ffc600"            # the navbar and primary button yellow
-    accent-secondary: "#41ab64"  # the green sections and secondary button
+    accent-secondary: "#159a2f"  # the ELSA logo's lettering (issue #36 4.2)
     danger: "#e44e56"            # .uk-button-danger, .uk-text-danger
 
 --- # start
