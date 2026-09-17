@@ -143,7 +143,7 @@ describe('choosing a language', () => {
       ['Source label', 'Article 5 AI Act', 'Artikel 5 AI-verordening'],
       ['Trail entry', 'Is your AI system within the reach', 'Valt uw AI-systeem binnen het bereik'],
       ['chrome', '>Yes<', '>Ja<'],
-      ['chrome heading', 'Sources', 'Bronnen'],
+      ['chrome heading', '>Legal sources<', '>Juridische bronnen<'],
     ]
 
     for (const [what, english, dutch] of rows) {
