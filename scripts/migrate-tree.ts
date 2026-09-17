@@ -192,7 +192,7 @@ function moveOptionPictures(text: string, reports: string[]): string {
       reports.push(`${where}: "${String(targetId)}" is not a Node of this Tree; the Images are left where they are`)
       continue
     }
-    images.value.items.slice(1).forEach((extra, i) => {
+    images.value!.items.slice(1).forEach((extra, i) => {
       const file = isMap(extra) ? String(extra.get('file')) : '?'
       reports.push(`${where}[${i + 1}]: ${file} is shown nowhere in elsa-tree/3; add it to the images of ${targetNode.id} if its Carousel should carry it`)
     })
