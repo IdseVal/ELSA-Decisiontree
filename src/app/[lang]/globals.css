@@ -807,6 +807,11 @@ a.language:hover,
  * button is 232 x 96; on a row shorter than four of them the pitch shrinks and so does the
  * button, to the row's quarter, down to the 80 pixels its four lines of label take.
  *
+ * The 96 is a minimum, not a height: a Dutch title of 60 characters can run to five lines
+ * where 10.7 counted four ("Seksueel beeldmateriaal zonder toestemming (2-12-2026)" in the
+ * first Tree), and a button that holds them is 102 tall, still 9 clear of its neighbour at
+ * the pitch of a side of four. It grows from its centre, which stays on the curve.
+ *
  * The item's box is the button and, at its inner end, the connector's 20 pixels, so that
  * the connector lies inside it and no element holds content wider than itself (10.6).
  *
@@ -824,9 +829,10 @@ a.language:hover,
   display: var(--fan, block);
   position: absolute;
   box-sizing: border-box;
-  top: calc(50% + var(--y) * 1px - var(--option-h) / 2);
+  top: calc(50% + var(--y) * 1px);
+  transform: translateY(-50%);
   width: calc(232px + var(--connector));
-  height: var(--option-h);
+  min-height: var(--option-h);
   pointer-events: auto;
 }
 
@@ -862,9 +868,9 @@ a.language:hover,
   right: 0;
 }
 
-/* The disclosure fills its row, so the button can (the summary is sized from it). */
+/* The disclosure is its button: the row is as tall as the button, and the button at least the row's minimum. */
 .options > li > .overlay {
-  height: 100%;
+  display: block;
 }
 
 /*
@@ -878,7 +884,7 @@ a.language:hover,
   align-items: center;
   gap: 8px;
   width: 100%;
-  height: 100%;
+  min-height: var(--option-h);
   padding: 0 12px;
   border: 1px solid var(--rule);
   border-radius: 48px;
