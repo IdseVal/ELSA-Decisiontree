@@ -4,6 +4,20 @@
 > contract: any Tree that follows it loads in the ELSA decision-tree frontend without a
 > code change. Changing it requires a new `architecture` issue and a new format number.
 >
+> **Superseded in part -- 2026-09-17 (issue #75).** The owner asks for two things the
+> data must carry (`docs/CORE_DOCUMENT.md` 3.1, revised 2026-09-17;
+> `docs/adrs/ADR-75-presentation-changes.md`): **explainers** -- the Tree says which
+> words of a Node's text have a short explanation shown on hover, and what it says, per
+> language -- and a **main image** on every Node, which is the first entry of `images`
+> and needs no new key. Architecture issue #ISSUE_A freezes `elsa-tree/3` with the
+> explainer shape (a new key, its length limits, how an occurrence in the text is marked,
+> its validity rules and the migration from `elsa-tree/2`), decides whether an Option
+> still carries `images` of its own (5.4) now that its button shows its target's main
+> image, and confirms or corrects the length limits of 5.7 after the main image takes
+> height inside the Bubble. Everything else carries over. Until #ISSUE_A merges and
+> issue #ISSUE_B builds it, `elsa-tree/2` is the format on `dev` and both Trees stay in
+> it; nothing new may be built against the parts named here.
+>
 > **What this version is.** `elsa-tree/2` replaces `elsa-tree/1` (frozen 2026-09-03,
 > issue #4; kept readable on branch `version-0.1`, file `docs/specs/tree-format.md`
 > there). The owner changed three requirements the old format rested on

@@ -6,6 +6,26 @@
 > they consume is frozen separately in `docs/specs/tree-format.md` (`elsa-tree/2`, issue
 > #37).
 >
+> **Superseded in part -- 2026-09-17 (issue #75).** The owner saw version 0.2 running
+> and changed the presentation again (`docs/CORE_DOCUMENT.md`, revised 2026-09-17,
+> sections 3.1, 3.2, 5, 9, 10; `docs/adrs/ADR-75-presentation-changes.md`). Until
+> architecture issue #ISSUE_A re-freezes them, the following still describe the code on
+> `dev` but **no longer the requirement**, and nothing new may be built against them:
+> 10.1 (the six rows and their heights: the Trail row goes, a main image enters the
+> Bubble, the Carousel moves to the Bubble's lower edge and loses its caption line);
+> 10.2 (the Trail as Branches above and the Trail Sheet: replaced by one up-arrow button);
+> 10.3 (an Option Branch navigates and slides: it opens an Overlay; the Answer Branches'
+> look: both the same, larger, in the logo's green; the Sources gain a heading; the
+> `back` Branch and the `explanationOnly` hint of an explanation Node); 10.5 (step 1, and
+> what an Option Branch collapses to); 11.1 to 11.3 (the `up` and `side` placements and
+> the slide to them); 12 (the Carousel: no buttons, no caption line, the credit's place,
+> Option pictures in the strip, the Images after the main one); 13.1 (which Theme colour
+> the Answer buttons paint); 14 (the rows for the Trail, the Trail Sheet, the Carousel's
+> buttons and the share button). Sections 1 to 9 stand except where #ISSUE_A amends the
+> module table (6), the test list (7) and the index (9). The URL scheme (4), the Trail in
+> it, the share link and the language mechanism are unchanged, by the owner's
+> instruction.
+>
 > **How to read this document.** Sections 1 to 4 are the 0.1 contracts the owner kept
 > (framework, Tree selection, chrome languages, the URL scheme); they carry small
 > amendments, marked. Sections 5 to 9 keep their numbers and are rewritten in place --
