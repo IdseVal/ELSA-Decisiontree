@@ -283,15 +283,15 @@ describe('the content of the first Tree', () => {
       // #44 cut both from the Annex I entries on the grounds that every entry repeated them.
       // That holds only while the step says them instead: if these sentences go, no Node
       // states the Article 6(1) test at all. Article 2(13) came back here on PR #53, with its
-      // own Source.
+      // own Source. Since #85 "safety component of a product" is an explainer mark, not bold.
       expect(unwrapped('annex-i-legislation', 'en')).toContain(
-        'Article 6(1) applies when **both** are met: **(a)** the system is intended as a **safety component of a product**',
+        'Article 6(1) applies when **both** are met: **(a)** the system is intended as a [safety component of a product](#safety-component)',
       )
       expect(unwrapped('annex-i-legislation', 'en')).toContain(
         '**and (b)** that product must undergo a **third-party conformity assessment**',
       )
       expect(unwrapped('annex-i-legislation', 'nl')).toContain(
-        'Artikel 6, lid 1, vereist **beide**: **a)** het systeem is bedoeld als **veiligheidscomponent van een product**',
+        'Artikel 6, lid 1, vereist **beide**: **a)** het systeem is bedoeld als [veiligheidscomponent van een product](#safety-component)',
       )
       expect(unwrapped('annex-i-legislation', 'nl')).toContain(
         '**en b)** dat product vereist een **conformiteitsbeoordeling door een derde partij**',
@@ -478,12 +478,13 @@ describe('the content of the first Tree', () => {
       expect(unwrapped('high-risk', 'nl')).toContain(
         '**bijlage I, afdeling B**, valt, bepaalt artikel 2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met 112 van toepassing zijn',
       )
-      // Step 6 states the general rule, unqualified, to that same reader.
+      // Step 6 states the general rule, unqualified, to that same reader ("AI systems" carries
+      // an explainer mark since #85).
       expect(unwrapped('transparency-obligations', 'en')).toContain(
-        'Article 50 attaches **transparency obligations** to certain AI systems, whatever their risk classification.',
+        'Article 50 attaches **transparency obligations** to certain [AI systems](#ai-system), whatever their risk classification.',
       )
       expect(unwrapped('transparency-obligations', 'nl')).toContain(
-        'Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde AI-systemen, ongeacht hun risicoclassificatie.',
+        'Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde [AI-systemen](#ai-system), ongeacht hun risicoclassificatie.',
       )
 
       // The other half, and the one that bites on an addition: the reconciliation is absent.
