@@ -287,6 +287,8 @@ test.describe('with JavaScript switched off', () => {
   })
 })
 
+let firstTree: Promise<string | null> | undefined
+
 /** The three pages the issue asks screenshots of, on the first Tree. */
 const FIRST_TREE_SHOTS = [
   ['article-2-exclusions-fan', '/ai-act-applicability-agrifood/start/article-2-exclusions', null],
@@ -303,7 +305,9 @@ for (const [width, height] of [
   [2560, 1440],
 ] as const) {
   test(`the first Tree's fan and Overlay at ${width} x ${height}, screenshot`, async ({ page }) => {
-    const origin = await serve(path.join(repo, 'trees'), 'ai-act-applicability-agrifood', FIRST_TREE_PORT)
+    // Started once for both viewports: `serve` refuses a port that already answers.
+    firstTree ??= serve(path.join(repo, 'trees'), 'ai-act-applicability-agrifood', FIRST_TREE_PORT)
+    const origin = await firstTree
     expect(origin, 'the first Tree starts').not.toBeNull()
     await page.setViewportSize({ width, height })
     for (const [name, url, open] of FIRST_TREE_SHOTS) {

@@ -13,12 +13,14 @@
  * The pages: the five situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
  * at a 49-entry Trail (every maximum the format allows at once), `tests/fixtures/overlay/`
  * (the Overlay of an explanation Node at every maximum with eight Options of its own, 10.9),
- * the two Nodes with Images of `tests/fixtures/carousel/` (issue #43), and the longest Node
- * of the first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55) --
- * each in both languages, and each again with every Sheet it offers open -- the Overlay of
- * each Option among them -- and every Image it carries enlarged -- and each in the middle of
- * a slide (section 11): halfway out of the page, and halfway back into it on the history
- * step. A slide follows an Answer or the up arrow; nothing slides to an Option (11.1).
+ * the two Nodes with Images of `tests/fixtures/carousel/` (issue #43), the eight explainers
+ * at every maximum of `tests/fixtures/explainers/` (issue #83), and the longest Node of the
+ * first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55) -- each in
+ * both languages, and each again with every Sheet it offers open -- the Overlay of each
+ * Option among them -- every Image it carries enlarged and every explainer panel it marks
+ * opened by focus, with and without JavaScript -- and each in the middle of a slide
+ * (section 11): halfway out of the page, and halfway back into it on the history step. A
+ * slide follows an Answer or the up arrow; nothing slides to an Option (11.1).
  *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
  * pull request can paste the numbers rather than describe them (10.6, last paragraph).
@@ -39,11 +41,21 @@ const trees = path.join(repo, 'trees')
 const fixtures = path.join(repo, 'tests', 'fixtures')
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 
-/** Ports for the servers this file starts; clear of playwright.config.ts's, theme.spec.ts's and carousel.spec.ts's. */
+/**
+ * Ports for the servers this file starts, one server each, every one of them named here;
+ * clear of playwright.config.ts's, theme.spec.ts's and carousel.spec.ts's.
+ */
 const FULL_NODE_PORT = BASE_PORT + 20
 const FIRST_TREE_PORT = FULL_NODE_PORT + 1
+const FULL_NODE_NO_SCRIPT_PORT = FULL_NODE_PORT + 2
 const CAROUSEL_PORT = FULL_NODE_PORT + 3
 const FULL_NODE_SLIDING_PORT = FULL_NODE_PORT + 4
+const FULL_NODE_TRIGGERS_PORT = FULL_NODE_PORT + 5
+const EXPLAINERS_NO_SCRIPT_PORT = FULL_NODE_PORT + 6
+const EXPLAINERS_PORT = FULL_NODE_PORT + 7
+// Its own port: on the trigger test's, that test measured this fixture's 404 page and passed (PR #99).
+const OVERLAY_PORT = FULL_NODE_PORT + 8
+const OVERLAY_NO_SCRIPT_PORT = FULL_NODE_PORT + 9
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -139,8 +151,24 @@ interface Row {
 
 const rows: Row[] = []
 
+const servers = new Map<number, { treeId: string; origin: Promise<string | null> }>()
+
+/**
+ * `treeId` out of `treesDir` on `port`, started once for every test of this file that asks
+ * for it there. A port asked for a second Tree fails the test that asks: that Tree would be
+ * measured on the first one's pages.
+ */
+async function served(treesDir: string, treeId: string, port: number): Promise<string> {
+  const server = servers.get(port) ?? { treeId, origin: serve(treesDir, treeId, port) }
+  servers.set(port, server)
+  expect(server.treeId, `port ${port}: the Tree it serves`).toBe(treeId)
+  const origin = await server.origin
+  expect(origin, `${treeId} is a valid Tree`).not.toBeNull()
+  return origin!
+}
+
 test.afterAll(async () => {
-  stopServers()
+  await stopServers()
   await mkdir(RESULTS, { recursive: true })
   await writeFile(path.join(RESULTS, 'no-scroll.md'), table(rows))
 })
@@ -207,9 +235,8 @@ async function measureEverywhere(
   for (const [width, height] of viewports) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
-    // The page asked for, not a 404: `serve` hands back whatever already answers on a port, and
-    // a 404 page never scrolls (PR #99: the full Node's trigger test passed on the overlay
-    // fixture's server, which had the same port).
+    // The page asked for, not a 404, which never scrolls: the full Node's trigger test once
+    // passed on the overlay fixture's server, which had been given the same port (PR #99).
     expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
     await expect(page.locator('main')).toBeVisible()
 
@@ -230,6 +257,29 @@ async function measureEverywhere(
       else await urlOpened.evaluate((details: HTMLDetailsElement) => details.removeAttribute('open'))
       await expect(urlOpened).toHaveCount(0)
     }
+
+    // Each explainer panel the Bubble marks, opened by focus in turn (10.8): placed beside its
+    // term by the script, or at the foot of the text area by CSS alone without it.
+    const terms = page.locator('.bubble .term')
+    const marked = await terms.count()
+    if (script && marked > 0) await expect(page.locator('.bubble .prose[data-enhanced]').first()).toBeAttached()
+    let opened = 0
+    for (let i = 0; i < marked; i += 1) {
+      const term = terms.nth(i)
+      if (!(await term.isVisible())) continue
+      opened += 1
+      const panel = (await term.getAttribute('aria-describedby'))!
+      await term.focus()
+      await expect(page.locator(`[id="${panel}"]`)).toBeVisible()
+      const open = await measure(page)
+      rows.push({ page: what, lang, viewport, sheet: `explainer ${panel}`, measured: open })
+      assertFits(open, `${what} (${lang}) at ${viewport} with the explainer ${panel} open`)
+      await term.blur()
+      await expect(page.locator(`[id="${panel}"]`)).toBeHidden()
+    }
+    // Only at and below the floor does the notice stand in for the Bubble and its terms
+    // (10.5 step 7); anywhere else a term that is not shown is a panel that went unmeasured.
+    if (width > 320 && height > 480) expect(opened, `${what} (${lang}) at ${viewport}: every marked term opened`).toBe(marked)
 
     // Each Sheet the layout offers at this size, opened in turn: 10.5 gets no exemption.
     const sheets = page.locator('details.sheet')
@@ -531,21 +581,13 @@ for (const lang of LANGUAGES) {
 for (const lang of LANGUAGES) {
   test(`the full Node at a 49-entry Trail, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
     test.slow()
-    const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT)
-    expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+    const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
   })
 }
 
-let fullNodeSliding: Promise<string | null> | undefined
-
-/** The full-node fixture's server for the slides, started once for every test that needs it. */
-async function fullNodeSlidingOrigin(): Promise<string> {
-  fullNodeSliding ??= serve(fixtures, 'full-node', FULL_NODE_SLIDING_PORT)
-  const origin = await fullNodeSliding
-  expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
-  return origin!
-}
+/** The full-node fixture's server for the slides. */
+const fullNodeSlidingOrigin = () => served(fixtures, 'full-node', FULL_NODE_SLIDING_PORT)
 
 // The page the rule exists for, mid-slide: the layer is fixed at a pixel box and holds two
 // frames, one of them the collapsed 49-entry Trail with eight Options (10.6).
@@ -567,17 +609,8 @@ const OVERLAY_PAGES = [
   { what: 'overlay fixture: a second-level Overlay, open by URL', url: '/overlay/five/big/o1' },
 ] as const
 
-// Its own port: `FULL_NODE_PORT + 5` is the trigger test's full Node, below.
-const OVERLAY_PORT = FULL_NODE_PORT + 6
-let overlay: Promise<string | null> | undefined
-
 /** The Overlay fixture's server, started once for every test of this file that needs it. */
-async function overlayOrigin(): Promise<string> {
-  overlay ??= serve(fixtures, 'overlay', OVERLAY_PORT)
-  const origin = await overlay
-  expect(origin, 'the overlay fixture is a valid Tree').not.toBeNull()
-  return origin!
-}
+const overlayOrigin = () => served(fixtures, 'overlay', OVERLAY_PORT)
 
 for (const { what, url } of OVERLAY_PAGES) {
   for (const lang of LANGUAGES) {
@@ -586,6 +619,29 @@ for (const { what, url } of OVERLAY_PAGES) {
       await measureEverywhere(page, `${await overlayOrigin()}${inLang(url, lang)}`, what, lang)
     })
   }
+}
+
+/**
+ * The panels the explainers fixture must have been measured with, in one language: its eight
+ * terms at each viewport of 10.6 but the floor, where the notice replaces the Bubble.
+ */
+function expectEveryPanelMeasured(what: string, lang: string): void {
+  const measured = rows.filter((row) => row.page === what && row.lang === lang && row.sheet.startsWith('explainer '))
+  expect(measured.length, `${what} (${lang}): panels measured`).toBe(8 * (VIEWPORTS.length - 1))
+}
+
+/** The explainers fixture's server on `port`: one with the script, one without. */
+const explainersOrigin = (port: number) => served(fixtures, 'explainers', port)
+
+// Eight explainers at every maximum the format allows (tree-format.md 5.9), each panel opened
+// in turn at every viewport: the tallest panel the format can ask for, beside every line of a
+// paragraph that runs the text area's width (10.8).
+for (const lang of LANGUAGES) {
+  test(`the explainers fixture, ${lang}, never scrolls at any viewport of 10.6, each panel open in turn`, async ({ page }) => {
+    test.slow()
+    await measureEverywhere(page, `${await explainersOrigin(EXPLAINERS_PORT)}${inLang('/explainers/start', lang)}`, 'explainers fixture', lang)
+    expectEveryPanelMeasured('explainers fixture', lang)
+  })
 }
 
 /**
@@ -598,25 +654,11 @@ const CAROUSEL_PAGES = [
   { what: 'Node with a 120-character credit', url: '/carousel/five/two/long' },
 ] as const
 
-let carousel: Promise<string | null> | undefined
+/** The Carousel fixture's server. */
+const carouselOrigin = () => served(fixtures, 'carousel', CAROUSEL_PORT)
 
-/** The Carousel fixture's server, started once for every test of this file that needs it. */
-async function carouselOrigin(): Promise<string> {
-  carousel ??= serve(fixtures, 'carousel', CAROUSEL_PORT)
-  const origin = await carousel
-  expect(origin, 'the carousel fixture is a valid Tree').not.toBeNull()
-  return origin!
-}
-
-let firstTree: Promise<string | null> | undefined
-
-/** The first Tree's server, started once for every test of this file that needs it. */
-async function firstTreeOrigin(): Promise<string> {
-  firstTree ??= serve(trees, 'ai-act-applicability-agrifood', FIRST_TREE_PORT)
-  const origin = await firstTree
-  expect(origin, 'the first Tree starts').not.toBeNull()
-  return origin!
-}
+/** The first Tree's server. */
+const firstTreeOrigin = () => served(trees, 'ai-act-applicability-agrifood', FIRST_TREE_PORT)
 
 for (const { what, url } of CAROUSEL_PAGES) {
   for (const lang of LANGUAGES) {
@@ -632,8 +674,7 @@ for (const { what, url } of CAROUSEL_PAGES) {
 for (const lang of LANGUAGES) {
   test(`the full Node, ${lang}, never scrolls either side of each trigger of 10.5`, async ({ page }) => {
     test.slow()
-    const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 5)
-    expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+    const origin = await served(fixtures, 'full-node', FULL_NODE_TRIGGERS_PORT)
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail, at the triggers', lang, true, STEP_VIEWPORTS)
   })
 }
@@ -642,8 +683,7 @@ for (const lang of LANGUAGES) {
 // of the text area in Liberation Sans and less in Segoe UI, so a text area two pixels short
 // passed on Windows and failed on the runner (PR #99); the budget is the same in every face.
 test('the full Node keeps the text area 10.5 budgets and a 760 Bubble down to 1200 wide: the collapsed Options stand beside it, not in a row of their own', async ({ page }) => {
-  const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 5)
-  expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+  const origin = await served(fixtures, 'full-node', FULL_NODE_TRIGGERS_PORT)
   for (const [width, height] of [[1280, 640], [1280, 632], [1279, 640], [1200, 640], [1200, 632]] as const) {
     await page.setViewportSize({ width, height })
     expect((await page.goto(`${origin}${FULL_NODE_URL}`))?.status()).toBe(200)
@@ -724,8 +764,7 @@ test.describe('with JavaScript switched off', () => {
   for (const { what, url } of OVERLAY_PAGES) {
     test(`${what} never scrolls without JavaScript`, async ({ page }) => {
       test.slow()
-      const origin = await serve(fixtures, 'overlay', OVERLAY_PORT + 1)
-      expect(origin, 'the overlay fixture is a valid Tree').not.toBeNull()
+      const origin = await served(fixtures, 'overlay', OVERLAY_NO_SCRIPT_PORT)
       await measureEverywhere(page, `${origin}${url}`, `${what}, no JavaScript`, 'en', false)
     })
   }
@@ -768,6 +807,16 @@ test.describe('with JavaScript switched off', () => {
     }
   })
 
+  // The explainer panels without the script: CSS alone opens each at the foot of the text
+  // area, full width (10.8, 14).
+  for (const lang of LANGUAGES) {
+    test(`the explainers fixture, ${lang}, never scrolls without JavaScript, each panel open in turn`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, `${await explainersOrigin(EXPLAINERS_NO_SCRIPT_PORT)}${inLang('/explainers/start', lang)}`, 'explainers fixture, no JavaScript', lang, false)
+      expectEveryPanelMeasured('explainers fixture, no JavaScript', lang)
+    })
+  }
+
   // The Carousel without the script: the strip and, beside it at every size, the enlarged
   // view's control, whose Sheet is a page of disclosures per Image (12.2, 14).
   test('a Node with five Images never scrolls without JavaScript', async ({ page }) => {
@@ -780,8 +829,7 @@ test.describe('with JavaScript switched off', () => {
   for (const lang of LANGUAGES) {
     test(`the full Node at a 49-entry Trail, ${lang}, never scrolls without JavaScript`, async ({ page }) => {
       test.slow()
-      const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 2)
-      expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+      const origin = await served(fixtures, 'full-node', FULL_NODE_NO_SCRIPT_PORT)
       await measureEverywhere(
         page,
         `${origin}${inLang(FULL_NODE_URL, lang)}`,
