@@ -441,14 +441,12 @@ function Overlay({
 
 /**
  * The Branches out of the bottom of the Bubble (10.3): the two Answers of a question Node,
- * `back` and `startAgain` on a Terminal, `startAgain` alone on an explanation Node that is
- * the centre, which only a path with no parent in it makes it (10.9). `back` leads to the
- * Trail entry directly above, which is the page the reader came from; a Node opened by its
- * own URL has none, and the Trail row's `start` Branch is its way on.
+ * and the one button `startAgain` on a Terminal and on an explanation Node that is the
+ * centre, which only a path with no parent in it makes it (10.9). The `back` Branch went
+ * with the side slide (10.9): the way up from a Terminal is the Trail entry directly above.
  */
 function Answers({ node, view }: { node: Node; view: View }) {
   const { address, ui, uiLang, titleOf, root, idPrefix, placed } = view
-  const parent = address.trail.length - 1
   const sliding = (href: string) => ({ href, slides: placed(href) })
 
   return (
@@ -470,15 +468,6 @@ function Answers({ node, view }: { node: Node; view: View }) {
             title={titleOf(node.answers.no)}
           />
         </>
-      )}
-      {node.kind === 'terminal' && parent >= 0 && (
-        <Branch
-          className="answer answer--back"
-          {...sliding(trailHref(address, parent))}
-          word={ui.back}
-          wordLang={uiLang}
-          title={titleOf(address.trail[parent]!)}
-        />
       )}
       {node.kind !== 'question' && (
         <Branch

@@ -626,7 +626,7 @@ describe('an explanation Node as the centre (only a path with no parent in it, 1
     expect(html).not.toContain('class="hint"')
     expect(html).not.toContain('answer--yes')
     expect(html).not.toContain('answer--no')
-    expect(branches(html, 'answer answer--back')).toEqual([])
+    expect(html).not.toContain('answer--back')
     expect(branches(html, 'answer answer--start-again')).toEqual([['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?']])
     // The Trail row still offers the way in (10.2, until #82).
     expect(branches(html, 'trail-entry')).toEqual([['/ai-act-example/start', 'Start']])
@@ -657,24 +657,17 @@ describe('a Terminal', () => {
     expect(await view('/ai-act-example/covered')).toContain('class="outcome outcome--applicable">Applies</p>')
   })
 
-  test('offers back to the Trail entry above and startAgain to the root with an empty Trail', async () => {
+  test('offers one button, startAgain to the root with an empty Trail: the `back` Branch is gone (10.3, 10.9)', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices/prohibited?lang=nl')
 
-    expect(branches(html, 'answer answer--back')).toEqual([
-      ['/ai-act-example/start/prohibited-practices?lang=nl', 'Verricht uw systeem een van de verboden praktijken?'],
-    ])
+    expect(html).not.toContain('answer--back')
+    expect(all(part(html, 'div', 'answers'), /class="branch (answer [^"]*)"/g)).toEqual(['answer answer--start-again'])
     expect(branches(html, 'answer answer--start-again')).toEqual([
       ['/ai-act-example/start?lang=nl', 'Valt uw AI-systeem binnen het bereik van de AI-verordening?'],
     ])
-    expect(html).toContain('<span class="branch-word">Terug</span>')
     expect(html).toContain('<span class="branch-word">Opnieuw beginnen</span>')
-  })
-
-  test('with no Trail entry above it shows startAgain alone', async () => {
-    const html = await view('/ai-act-example/covered')
-
-    expect(branches(html, 'answer answer--back')).toEqual([])
-    expect(branches(html, 'answer answer--start-again')).toHaveLength(1)
+    // The way up is the Trail entry directly above, which is the page the reader came from.
+    expect(html).toContain('rel="prev"')
   })
 
   test('never draws Options', async () => {
@@ -696,7 +689,7 @@ describe('the chrome speaks its own language beside content it does not speak', 
     const html = await view('/ai-act-example/start/outside-scope?lang=nl')
 
     expect(html).toContain('<p class="outcome outcome--not-applicable">Niet van toepassing</p>')
-    expect(html).toContain('<span class="branch-word">Terug</span>')
+    expect(html).toContain('<span class="branch-word">Opnieuw beginnen</span>')
   })
 })
 

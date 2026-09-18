@@ -226,7 +226,8 @@ test.describe('the address bar', () => {
     const steps: Array<[from: string, branch: string]> = [
       [ROOT, '.answer--yes'],
       [QUESTION, '.trail-entry >> nth=-1'],
-      [`${QUESTION}/prohibited`, '.answer--back'],
+      // A Terminal's way up is the Trail entry above it: the `back` Branch is gone (10.9).
+      [`${QUESTION}/prohibited`, '.trail-entry >> nth=-1'],
     ]
     for (const [from, branch] of steps) {
       await page.goto(from)

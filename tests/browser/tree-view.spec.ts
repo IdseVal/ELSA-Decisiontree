@@ -78,10 +78,13 @@ test.describe('following a Branch', () => {
     await arrived(page, `${QUESTION}/prohibited`)
   })
 
-  test("a Terminal's back Branch goes up and startAgain goes to the root with an empty Trail", async ({ page }) => {
+  test('a Terminal has one button: the Trail entry above goes up and startAgain goes to the root with an empty Trail (10.3)', async ({ page }) => {
     await page.goto(TERMINAL)
     await expect(page.locator('.outcome')).toHaveText('Prohibited')
-    await page.locator('.answer--back').click()
+    // The `back` Branch went with the side slide (10.9).
+    await expect(page.locator('.answer--back')).toHaveCount(0)
+    await expect(page.locator('.tree-frame').first().locator('.answers a')).toHaveCount(1)
+    await page.locator('.trail-step[data-parent] .trail-entry').first().click()
     await arrived(page, QUESTION)
 
     await page.goto(TERMINAL)
@@ -158,7 +161,7 @@ test.describe('the keyboard', () => {
     })
   }
 
-  test('Enter follows a Trail Branch, opens an Option, follows an Answer and a back Branch', async ({ page }) => {
+  test('Enter follows a Trail Branch, opens an Option, follows an Answer and the Trail entry above a Terminal', async ({ page }) => {
     await page.goto(TERMINAL)
     // The one entry the band shows is the parent (#81).
     await page.locator('.trail-step[data-parent] .trail-entry').focus()
@@ -175,7 +178,7 @@ test.describe('the keyboard', () => {
     await page.keyboard.press('Enter')
     await arrived(page, TERMINAL)
 
-    await page.locator('.answer--back').focus()
+    await page.locator('.trail-step[data-parent] .trail-entry').first().focus()
     await page.keyboard.press('Enter')
     await arrived(page, QUESTION)
   })
@@ -345,7 +348,7 @@ test.describe('with JavaScript switched off', () => {
 
   test('every Branch is a link that navigates, and a collapsed group is its plain list', async ({ page }) => {
     await page.goto(TERMINAL)
-    await page.locator('.answer--back').click()
+    await page.locator('.trail-step[data-parent] .trail-entry').first().click()
     await arrived(page, QUESTION)
     await page.locator('.trail-entry').first().click()
     await arrived(page, ROOT)

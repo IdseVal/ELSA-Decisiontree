@@ -48,9 +48,7 @@ export interface Chrome {
   notFoundText: string
   /** Read out after a link that leaves the app, so the new tab is not a surprise. */
   opensInNewTab: string
-  /** The Branch below an explanation Node or a Terminal, back to the Trail entry above (10.3). */
-  back: string
-  /** The second Branch below a Terminal: the root Node with an empty Trail (10.3). */
+  /** The one Branch below a Terminal: the root Node with an empty Trail (10.3). */
   startAgain: string
   /**
    * The collapsed middle of a long Trail (10.2). A function of the count, not a string with
@@ -105,7 +103,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notFoundTitle: 'This step does not exist',
     notFoundText: 'The address does not name a step of this tree.',
     opensInNewTab: 'opens in a new tab',
-    back: 'Back',
     startAgain: 'Start again',
     trailMore: (hidden) => (hidden === 1 ? '1 earlier step' : `${hidden} earlier steps`),
     previous: 'Previous',
@@ -143,7 +140,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notFoundTitle: 'Deze stap bestaat niet',
     notFoundText: 'Het adres verwijst niet naar een stap van deze boom.',
     opensInNewTab: 'opent in een nieuw tabblad',
-    back: 'Terug',
     startAgain: 'Opnieuw beginnen',
     trailMore: (hidden) => (hidden === 1 ? '1 eerdere stap' : `${hidden} eerdere stappen`),
     previous: 'Vorige',

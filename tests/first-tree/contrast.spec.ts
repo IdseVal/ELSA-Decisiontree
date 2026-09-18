@@ -2,7 +2,7 @@
  * Issue #64: the secondary text of the first Tree is readable.
  *
  * The Trail's Branch labels, the Tree's name, the Carousel's caption (the credit a CC BY
- * licence asks to be shown), the disclaimer and the `back` / `startAgain` Branches are drawn
+ * licence asks to be shown), the disclaimer and the `startAgain` Branch are drawn
  * in the Theme's `text-muted`. The first Tree once set it to the ai4sfs.org site's own muted
  * grey, 2.49 : 1 on its white page, where WCAG 2.2 SC 1.4.3 asks 4.5 : 1 of text this small.
  * The palette is where that is fixed (tree-format.md 4.3.3); this suite measures what the
@@ -117,15 +117,13 @@ test('the root: the Tree name, the Sources heading, the image credit in the enla
   await expectReadable(page, '.carousel-sheet .credit')
 })
 
-test('a Terminal at the end of a long walk: the Trail labels and back / startAgain reach 4.5 : 1', async ({ page }) => {
+test('a Terminal at the end of a long walk: the Trail labels and startAgain reach 4.5 : 1', async ({ page }) => {
   await page.goto(END_OF_WALK)
   await arrived(page, /\/end-of-walk$/)
 
   await expectReadable(page, '.trail-entry .branch-title')
   await expectReadable(page, '.answer--start-again .branch-word')
   await expectReadable(page, '.answer--start-again .branch-title')
-  await expectReadable(page, '.answer--back .branch-word')
-  await expectReadable(page, '.answer--back .branch-title')
   await expectReadable(page, '.disclaimer p')
 })
 

@@ -1,7 +1,7 @@
 /**
  * One Link drawn as a Branch (docs/specs/application.md 10.3): an ordinary `<a href>` that
  * shows its target's title -- from the title index, never from a second Node read -- with,
- * where the kind of Branch asks for it, a chrome word above the title (`yes`, `no`, `back`,
+ * where the kind of Branch asks for it, a chrome word above the title (`yes`, `no`,
  * `startAgain`). An Option is not a Branch since 10.9: it is the control of its Overlay
  * (`TreeView`), and nothing slides to it.
  *

@@ -446,7 +446,7 @@ a.language:hover,
   overflow-wrap: anywhere;
 }
 
-/* The chrome word above a target's title: `yes`, `no`, `back`, `startAgain`. */
+/* The chrome word above a target's title: `yes`, `no`, `startAgain`. */
 .branch-word {
   font-family: var(--elsa-font-heading);
   font-size: 11px;
@@ -1096,12 +1096,10 @@ a.language:hover,
   background: var(--wash);
 }
 
-.answer--back,
 .answer--start-again {
   color: var(--elsa-text-muted);
 }
 
-.answer--back:hover,
 .answer--start-again:hover {
   color: var(--elsa-text);
 }
@@ -1748,7 +1746,7 @@ a.language:hover,
   /*
    * The Trail is its control alone: a 212-pixel parent Branch holds an 80-character title
    * in three lines, which the row no longer has, and a clipped title would break 10.6. The
-   * parent is the first entry of the Trail Sheet, and the `back` Branch where there is one.
+   * parent is the first entry of the Trail Sheet.
    */
   .trail:has(.trail-more) .trail-step {
     display: none;
