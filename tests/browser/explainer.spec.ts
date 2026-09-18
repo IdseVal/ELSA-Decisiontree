@@ -7,14 +7,21 @@
  *
  * The page is `tests/fixtures/explainers/`: eight explainers at every maximum the format
  * allows, marked in one paragraph in both languages. `no-scroll.spec.ts` measures that every
- * page still fits with each panel open.
+ * page still fits with each panel open. The screenshots #83 owes go to the gitignored results
+ * folder unless `ELSA_SHOTS=1` asks for the tracked set in `docs/screenshots/issue-83/`, the
+ * convention of `carousel.spec.ts`.
  */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { BASE_PORT, serve, stopServers } from './serve.ts'
 
-const fixtures = path.join(fileURLToPath(new URL('../..', import.meta.url)), 'tests', 'fixtures')
+const repo = fileURLToPath(new URL('../..', import.meta.url))
+const fixtures = path.join(repo, 'tests', 'fixtures')
+const SHOTS =
+  process.env.ELSA_SHOTS === '1'
+    ? path.join(repo, 'docs', 'screenshots', 'issue-83')
+    : path.join(repo, 'tests', 'browser', '.results', 'shots')
 
 /** Clear of every other spec's ports (no-scroll 20-27, carousel 30, chrome-clearance 40). */
 const PORT = BASE_PORT + 50
@@ -186,11 +193,13 @@ test.describe('with a pointer and a keyboard', () => {
               below: Math.abs(box.top - lines.at(-1)!.bottom) <= 0.5,
               above: Math.abs(box.bottom - lines[0]!.top) <= 0.5,
               width: box.width,
+              height: box.height,
             }
           })
           expect(where.inside, `${id}: the panel leaves the text area`).toBe(true)
           expect(where.below || where.above, `${id}: the panel is not against its term's line`).toBe(true)
           expect(where.width, `${id}: the panel is wider than 320 pixels`).toBeLessThanOrEqual(320)
+          expect(where.height, `${id}: the panel is taller than 148 pixels`).toBeLessThanOrEqual(148)
         }
       })
     }
@@ -281,4 +290,51 @@ test.describe('with JavaScript switched off', () => {
     await term.blur()
     await expect(panel).toBeHidden()
   })
+
+  test('a panel opened over its own term stays open while the pointer rests on it', async ({ page }) => {
+    await page.goto(`${origin}/explainers/start`)
+    // The text area is cut to end just under term eight, on the last line, so the panel
+    // opened at its foot lies over the term, as it does over a term on a full area's last lines.
+    const { term, panel } = marked(page, 'term-eight')
+    // addStyleTag waits for a load event a page without script never sends; a style set by
+    // Playwright's own evaluation does the same.
+    await term.evaluate((element) => {
+      const area = element.closest<HTMLElement>('.bubble-text')!
+      area.style.flex = 'none'
+      area.style.height = `${element.getBoundingClientRect().bottom - area.getBoundingClientRect().top + 20}px`
+    })
+    const line = (await term.boundingBox())!
+    // Not term.hover(): its check that the term takes the pointer fails once the panel is over it.
+    await page.mouse.move(line.x + line.width / 2, line.y + line.height / 2)
+    await expect(panel).toBeVisible()
+    const box = (await panel.boundingBox())!
+    expect(line.y + line.height / 2, 'the panel covers its term').toBeGreaterThan(box.y)
+    await page.mouse.move(line.x + line.width / 2 + 1, line.y + line.height / 2)
+    await expect(panel).toBeVisible()
+    await page.mouse.move(2, 2)
+    await expect(panel).toBeHidden()
+  })
+})
+
+test('the screenshots of issue #83, at the smallest and the largest guaranteed viewport', async ({ page }) => {
+  const shot = async (name: string): Promise<void> => {
+    await page.evaluate(() => document.fonts.ready)
+    await page.screenshot({ path: path.join(SHOTS, `${name}.png`) })
+  }
+
+  for (const [width, height] of [[1280, 640], [2560, 1440]] as const) {
+    const size = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    await open(page)
+    await shot(`terms-at-rest-${size}`)
+    // Term eight is the last marked term, in both languages; term four ends the first line,
+    // at the area's right edge, so its panel is pushed back inside.
+    for (const [id, lang] of [['term-eight', 'en'], ['term-four', 'en'], ['term-eight', 'nl']] as const) {
+      await open(page, lang)
+      const { term, panel } = marked(page, id)
+      await term.hover()
+      await expect(panel).toBeVisible()
+      await shot(`panel-open-e-${id}-${lang}-${size}`)
+    }
+  }
 })
