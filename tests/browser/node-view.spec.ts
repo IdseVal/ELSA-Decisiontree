@@ -250,6 +250,17 @@ test('an unknown Node answers 404 with a way back to the start', async ({ page }
   await arrived(page, START)
 })
 
+test('at a phone width the 404 page still shows and names its way back to the start (10.3)', async ({ page }) => {
+  // The phone-width rule that shortens an Answer button to its word must not empty this one,
+  // whose label is a title with no word before it.
+  await page.setViewportSize({ width: 360, height: 640 })
+  await page.goto('/ai-act-example/no-such-node')
+
+  const startAgain = page.locator('.answer--start-again')
+  await expect(startAgain).toHaveAccessibleName('Start again')
+  await expect(startAgain.locator('.branch-label')).toHaveText('Start again', { useInnerText: true })
+})
+
 test('the address of the Tree redirects to its root Node', async ({ page }) => {
   await page.goto('/')
   await arrived(page, START)

@@ -1453,10 +1453,11 @@ a.language:hover,
    * large text to be readable on a mid-tone fill (13.1): an 86-character label is eight lines,
    * more than the whole Bubble gives up at this width. So the button keeps its word -- yes,
    * no, start again -- and gives up the target's title, which the page it leads to shows and
-   * the button's name keeps (10.3, amended 2026-09-18).
+   * the button's name keeps (10.3, amended 2026-09-18). A title with no word before it --
+   * the 404 page's way back to the start -- is the whole label, and stays.
    */
   .answer .branch-colon,
-  .answer .branch-title {
+  .answer .branch-word ~ .branch-title {
     display: none;
   }
 
