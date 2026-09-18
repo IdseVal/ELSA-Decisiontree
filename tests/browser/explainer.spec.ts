@@ -29,13 +29,21 @@ const PORT = BASE_PORT + 50
 /** The fixture's eight explainer ids, in the order the description marks them. */
 const IDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'].map((n) => `term-${n}`)
 
-/** The guaranteed viewport and the largest of 10.6, where every panel must sit beside its term. */
+/**
+ * Every viewport of 10.6 above the floor: the guarantee and above it, where one side of the
+ * term's line always fits, and the laptop, tablet and phone shapes of 10.5, where the text
+ * area narrows with the Bubble and the rule of 10.8 is asserted all the same.
+ */
 const VIEWPORTS = [
   [1280, 640],
   [1366, 768],
   [1920, 1080],
   [2560, 1440],
   [1280, 800],
+  [1024, 768],
+  [768, 1024],
+  [390, 844],
+  [360, 640],
 ] as const
 
 let origin: string
@@ -62,6 +70,52 @@ function marked(page: Page, id: string): { term: Locator; panel: Locator } {
 async function open(page: Page, lang = 'en'): Promise<void> {
   await page.goto(`${origin}/explainers/start${lang === 'en' ? '' : `?lang=${lang}`}`)
   await expect(page.locator('.bubble .prose[data-enhanced]')).toBeAttached()
+}
+
+/**
+ * Asserts that the open panel of `id` is placed by the rule of 10.8: inside the text area,
+ * below its term's last line when it fits there, else above its first line when it fits
+ * there, else against the area's edge on the side with more room. Returns which of the three
+ * it was, so a caller can count the fallback.
+ */
+async function expectPlaced(panel: Locator, id: string): Promise<'below' | 'above' | 'neither'> {
+  const where = await panel.evaluate((element) => {
+    const area = element.closest('.bubble-text')!.getBoundingClientRect()
+    const box = element.getBoundingClientRect()
+    const lines = [...element.previousElementSibling!.getClientRects()]
+    return {
+      area: { top: area.top, bottom: area.bottom, left: area.left, right: area.right },
+      box: { top: box.top, bottom: box.bottom, left: box.left, right: box.right },
+      first: lines[0]!.top,
+      last: lines.at(-1)!.bottom,
+    }
+  })
+  const { area, box } = where
+  expect(box.left, `${id}: the panel leaves the text area`).toBeGreaterThanOrEqual(area.left - 0.5)
+  expect(box.right, `${id}: the panel leaves the text area`).toBeLessThanOrEqual(area.right + 0.5)
+  expect(box.top, `${id}: the panel leaves the text area`).toBeGreaterThanOrEqual(area.top - 0.5)
+  expect(box.bottom, `${id}: the panel leaves the text area`).toBeLessThanOrEqual(area.bottom + 0.5)
+  expect(box.right - box.left, `${id}: the panel is wider than 320 pixels`).toBeLessThanOrEqual(320)
+  const height = box.bottom - box.top
+  // Five lines of 320 pixels hold the longest text; in a narrower area, a phone's, the panel
+  // takes the area's width and a line or two more (10.8).
+  if (area.right - area.left >= 320) {
+    expect(height, `${id}: the panel is taller than 148 pixels`).toBeLessThanOrEqual(148)
+  }
+
+  const roomBelow = area.bottom - where.last
+  const roomAbove = where.first - area.top
+  if (height <= roomBelow) {
+    expect(box.top, `${id}: fits below, so lies below its line`).toBeCloseTo(where.last, 0)
+    return 'below'
+  }
+  if (height <= roomAbove) {
+    expect(box.bottom, `${id}: fits above, so lies above its line`).toBeCloseTo(where.first, 0)
+    return 'above'
+  }
+  if (roomBelow >= roomAbove) expect(box.bottom, `${id}: more room below`).toBeCloseTo(area.bottom, 0)
+  else expect(box.top, `${id}: more room above`).toBeCloseTo(area.top, 0)
+  return 'neither'
 }
 
 test.describe('with a pointer and a keyboard', () => {
@@ -173,41 +227,22 @@ test.describe('with a pointer and a keyboard', () => {
 
   for (const lang of ['en', 'nl']) {
     for (const [width, height] of VIEWPORTS) {
-      test(`every panel lies inside the text area, below or above its term's line, ${lang} at ${width}x${height}`, async ({ page }) => {
+      test(`every panel lies inside the text area, placed against its term's line by 10.8, ${lang} at ${width}x${height}`, async ({ page }) => {
         await page.setViewportSize({ width, height })
         await open(page, lang)
         for (const id of IDS) {
           const { term, panel } = marked(page, id)
           await term.focus()
           await expect(panel).toBeVisible()
-          const where = await panel.evaluate((element) => {
-            const area = element.closest('.bubble-text')!.getBoundingClientRect()
-            const box = element.getBoundingClientRect()
-            const lines = [...element.previousElementSibling!.getClientRects()]
-            return {
-              inside:
-                box.left >= area.left - 0.5 &&
-                box.right <= area.right + 0.5 &&
-                box.top >= area.top - 0.5 &&
-                box.bottom <= area.bottom + 0.5,
-              below: Math.abs(box.top - lines.at(-1)!.bottom) <= 0.5,
-              above: Math.abs(box.bottom - lines[0]!.top) <= 0.5,
-              width: box.width,
-              height: box.height,
-            }
-          })
-          expect(where.inside, `${id}: the panel leaves the text area`).toBe(true)
-          expect(where.below || where.above, `${id}: the panel is not against its term's line`).toBe(true)
-          expect(where.width, `${id}: the panel is wider than 320 pixels`).toBeLessThanOrEqual(320)
-          expect(where.height, `${id}: the panel is taller than 148 pixels`).toBeLessThanOrEqual(148)
+          await expectPlaced(panel, id)
         }
       })
     }
   }
 
-  // Below the guaranteed viewport the text area can be shorter than the 394 pixels that let
-  // one side always fit (10.8); here it is made shorter still, so that the terms high in the
-  // paragraph fit neither below nor above their line.
+  // At the viewports above the fixture's panels all fit below their line, so none reaches
+  // the third branch of 10.8; here the text area is cut shorter than any of them makes it, so
+  // that the terms high in the paragraph fit neither below nor above their line.
   for (const lang of ['en', 'nl']) {
     test(`in a text area too short for either side, a panel takes the side with more room and stays inside, ${lang}`, async ({ page }) => {
       await open(page, lang)
@@ -217,29 +252,7 @@ test.describe('with a pointer and a keyboard', () => {
         const { term, panel } = marked(page, id)
         await term.focus()
         await expect(panel).toBeVisible()
-        const where = await panel.evaluate((element) => {
-          const area = element.closest('.bubble-text')!.getBoundingClientRect()
-          const box = element.getBoundingClientRect()
-          const lines = [...element.previousElementSibling!.getClientRects()]
-          return {
-            area: { top: area.top, bottom: area.bottom },
-            box: { top: box.top, bottom: box.bottom },
-            first: lines[0]!.top,
-            last: lines.at(-1)!.bottom,
-          }
-        })
-        const roomBelow = where.area.bottom - where.last
-        const roomAbove = where.first - where.area.top
-        const height = where.box.bottom - where.box.top
-        expect(where.box.top, `${id}: the panel leaves the text area`).toBeGreaterThanOrEqual(where.area.top - 0.5)
-        expect(where.box.bottom, `${id}: the panel leaves the text area`).toBeLessThanOrEqual(where.area.bottom + 0.5)
-        if (height <= roomBelow) expect(where.box.top, `${id}: fits below`).toBeCloseTo(where.last, 0)
-        else if (height <= roomAbove) expect(where.box.bottom, `${id}: fits above`).toBeCloseTo(where.first, 0)
-        else {
-          neither += 1
-          if (roomBelow >= roomAbove) expect(where.box.bottom, `${id}: more room below`).toBeCloseTo(where.area.bottom, 0)
-          else expect(where.box.top, `${id}: more room above`).toBeCloseTo(where.area.top, 0)
-        }
+        if ((await expectPlaced(panel, id)) === 'neither') neither += 1
       }
       expect(neither, 'some term fits neither below nor above its line').toBeGreaterThan(0)
     })
@@ -309,7 +322,13 @@ test.describe('with JavaScript switched off', () => {
     await expect(panel).toBeVisible()
     const box = (await panel.boundingBox())!
     expect(line.y + line.height / 2, 'the panel covers its term').toBeGreaterThan(box.y)
-    await page.mouse.move(line.x + line.width / 2 + 1, line.y + line.height / 2)
+    // A point of the panel well off the term's box, so the term is no longer hovered and only
+    // the panel's own :hover can keep it open: a pixel's move stays inside the term's hover.
+    const x = line.x + line.width / 2 > box.x + box.width / 2 ? box.x + 8 : box.x + box.width - 8
+    const y = box.y + box.height - 4
+    expect(x < line.x - 8 || x > line.x + line.width + 8 || y > line.y + line.height + 8, 'the point is off the term').toBe(true)
+    await page.mouse.move(x, y, { steps: 8 })
+    expect(await term.evaluate((element) => element.matches(':hover')), 'the term is still hovered').toBe(false)
     await expect(panel).toBeVisible()
     await page.mouse.move(2, 2)
     await expect(panel).toBeHidden()
