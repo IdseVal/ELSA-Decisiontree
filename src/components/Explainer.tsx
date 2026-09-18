@@ -31,6 +31,9 @@ function panelOf(term: Element): HTMLElement | null {
  */
 function close(): void {
   openPanel?.removeAttribute('data-open')
+  // A panel open() cannot measure keeps no place from an earlier opening.
+  openPanel?.style.removeProperty('top')
+  openPanel?.style.removeProperty('left')
   openPanel = null
   document.removeEventListener('keydown', onEscape, true)
   window.removeEventListener('resize', close)
