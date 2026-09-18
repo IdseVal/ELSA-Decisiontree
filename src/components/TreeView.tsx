@@ -297,7 +297,8 @@ function Options({ node, view }: { node: Node; view: View }) {
       <ul className="options" aria-labelledby={`${idPrefix}options-label`} data-count={count}>
         {node.options.map((option, index) => {
           const side = index % 2 === 0 ? 'right' : 'left'
-          const target = view.pictures ? asides.find((aside) => aside.node.id === option.target) : null
+          // A neighbour frame carries no asides (11.3): its buttons are drawn empty and closed.
+          const target = asides.find((aside) => aside.node.id === option.target) ?? null
           return (
             <li
               key={option.target}
@@ -306,9 +307,9 @@ function Options({ node, view }: { node: Node; view: View }) {
             >
               <Overlay
                 title={text(option.title, lang, `${node.id}.options[${index}].title`)}
-                picture={optionPicture(target ?? null, lang)}
-                aside={target ?? null}
-                open={target !== null && target !== undefined && open?.href === target.href}
+                picture={optionPicture(target, lang)}
+                aside={target}
+                open={target !== null && open?.href === target.href}
                 view={view}
                 idPrefix={`${idPrefix}a${index}-`}
               />
@@ -412,19 +413,21 @@ function Overlay({
               <div key={aside.href} className="overlay-interior" lang={lang} data-node={aside.node.id}>
                 <Interior node={aside.node} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} href={aside.href} />
                 {aside.node.options.length > 0 && (
-                  <ul className="overlay-options" aria-labelledby={`${idPrefix}options-label`}>
-                    {/* A second-level Option is a plain link to the deeper address, which renders this page with that Overlay open (10.9). */}
+                  <>
                     <span hidden id={`${idPrefix}options-label`} lang={uiLang}>
                       {ui.options}
                     </span>
-                    {aside.node.options.map((option, index) => (
-                      <li key={option.target}>
-                        <a href={followHref(aside.address, option.target)}>
-                          {text(option.title, lang, `${aside.node.id}.options[${index}].title`)}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                    {/* A second-level Option is a plain link to the deeper address, which renders this page with that Overlay open (10.9). */}
+                    <ul className="overlay-options" aria-labelledby={`${idPrefix}options-label`}>
+                      {aside.node.options.map((option, index) => (
+                        <li key={option.target}>
+                          <a href={followHref(aside.address, option.target)}>
+                            {text(option.title, lang, `${aside.node.id}.options[${index}].title`)}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
                 )}
               </div>,
             ]

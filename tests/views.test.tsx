@@ -556,7 +556,10 @@ describe('the Overlay (10.9)', () => {
 
     expect(list).toContain('<a href="/full-node/full/opt-one/opt-two">Option two: a title of sixty characters, the most it may be.</a>')
     expect(list.match(/<li>/g)).toHaveLength(1)
-    expect(list).toContain('<span hidden="" id="a0-options-label">What this covers</span>')
+    // The list's name sits beside it, not in it: a `ul` holds `li` and nothing else.
+    expect(list).toMatch(/^<ul class="overlay-options" aria-labelledby="a0-options-label"><li>/)
+    expect(list).not.toContain('<span hidden')
+    expect(first).toContain('<span hidden="" id="a0-options-label">What this covers</span><ul class="overlay-options"')
   })
 
   test("an explanation Node's URL renders its parent's page with that Overlay open, and the parent's Branches built from the path up to the parent (10.9)", async () => {
