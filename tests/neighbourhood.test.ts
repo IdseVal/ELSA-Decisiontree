@@ -18,10 +18,12 @@ import { followHref, nodeHref, parseUrl, trailHref, type PageAddress } from '../
 const here = path.dirname(fileURLToPath(import.meta.url))
 let example: Tree
 let fullNode: Tree
+let overlay: Tree
 
 beforeAll(async () => {
   example = await openTree(path.join(here, '..', 'trees', 'ai-act-example'))
   fullNode = await openTree(path.join(here, 'fixtures', 'full-node'))
+  overlay = await openTree(path.join(here, 'fixtures', 'overlay'))
 })
 
 /** The address and Node a path names, the way the page reads them. */
@@ -97,6 +99,34 @@ describe('the centre a path names, and its aside chain (10.9)', () => {
     const two = (await centreOf(fullNode, parseUrl('/full-node/opt-one/opt-two', 'en', fullNode)!))!
     expect(two.node.id).toBe('opt-one')
     expect(two.chain.map((aside) => aside.node.id)).toEqual(['opt-two'])
+  })
+
+  test('a run of explanation Nodes at the end of a path: at most two are the chain, and the entry before them is the centre whatever its kind', async () => {
+    // `opt-two` is an Option of `opt-one`, so `opt-one` is the parent the path shows.
+    const centre = (await centreOf(fullNode, parseUrl('/full-node/full/opt-three/opt-one/opt-two/opt-four', 'en', fullNode)!))!
+    expect(centre.node.id).toBe('opt-one')
+    expect(centre.address).toEqual(parseUrl('/full-node/full/opt-three/opt-one', 'en', fullNode))
+    expect(centre.chain.map((aside) => aside.node.id)).toEqual(['opt-two', 'opt-four'])
+  })
+
+  test('the first of a chain of two is an aside of the centre, or it is the centre itself: a page has one Overlay that is not', async () => {
+    // `opt-three` is not an Option of `opt-one`, so it is no aside of it: it is the centre, under `opt-one`.
+    const centre = (await centreOf(fullNode, parseUrl('/full-node/full/opt-one/opt-three/opt-four', 'en', fullNode)!))!
+    expect(centre.node.id).toBe('opt-three')
+    expect(centre.address).toEqual(parseUrl('/full-node/full/opt-one/opt-three', 'en', fullNode))
+    expect(centre.chain.map((aside) => aside.node.id)).toEqual(['opt-four'])
+  })
+
+  test('reads at most three Nodes however long the path and whatever it repeats, each id once', async () => {
+    for (const [pathname, most] of [
+      [`/ai-act-example/start/prohibited-practices/${Array.from({ length: 47 }, () => 'social-scoring').join('/')}`, 1],
+      [`/full-node/full/${Array.from({ length: 12 }, () => 'opt-one/opt-two/opt-three/opt-four').join('/')}`, 3],
+    ] as const) {
+      const base = pathname.startsWith('/full-node') ? fullNode : example
+      const { tree, reads } = counting(base)
+      expect(await centreOf(tree, parseUrl(pathname, 'en', base)!), pathname).not.toBeNull()
+      expect(reads(), pathname).toBe(most)
+    }
   })
 
   test('reads one Node per entry walked back over, and the language travels with every address', async () => {
@@ -219,8 +249,14 @@ describe('the bound', () => {
       '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
       `/full-node/${Array.from({ length: 49 }, () => 'full').join('/')}/opt-one`,
       `/full-node/${Array.from({ length: 48 }, () => 'full').join('/')}/opt-one/opt-two`,
+      // Long in the chain, not in the Trail: what a reader clicking through nested asides, or typing, arrives at.
+      `/ai-act-example/start/prohibited-practices/${Array.from({ length: 47 }, () => 'social-scoring').join('/')}`,
+      `/full-node/full/${Array.from({ length: 12 }, () => 'opt-one/opt-two/opt-three/opt-four').join('/')}`,
+      // Two explanation Nodes after a full question Node, neither of them its aside.
+      '/overlay/five/o1/o2',
+      '/full-node/full/opt-one/opt-three/opt-four',
     ]) {
-      const tree = pathname.startsWith('/full-node') ? fullNode : example
+      const tree = { 'full-node': fullNode, overlay }[pathname.split('/')[1]!] ?? example
       const counted = counting(tree)
       const page = (await loadPage(counted.tree, parseUrl(pathname, 'en', tree)!))!
 

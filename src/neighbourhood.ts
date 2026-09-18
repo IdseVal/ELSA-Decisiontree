@@ -58,14 +58,18 @@ export interface Neighbourhood {
 export interface Centre {
   address: PageAddress
   node: Node
-  /** The explanation Nodes after the centre, in path order; empty when the path ends at the centre. */
+  /** The explanation Nodes after the centre, in path order; empty when the path ends at the centre. At most `MAX_CHAIN`. */
   chain: Aside[]
+  /** Every Node read to find the centre, so that the page reads none of them again (11.2). */
+  known: Node[]
 }
 
 /** The bound of 11.2 on placed neighbours: the parent, two Answer targets and their four. */
 export const MAX_PLACED = 7
 /** The bound of 11.2 on asides: the format's eight Options. */
 export const MAX_ASIDES = 8
+/** The bound of 11.2 on the aside chain: an aside of the centre, and the one Overlay a URL may name that is not. */
+export const MAX_CHAIN = 2
 
 /**
  * The centre of the page `at` names and the aside chain after it (10.9): the centre is the
@@ -75,17 +79,34 @@ export const MAX_ASIDES = 8
  * Node stays reachable by its own URL. Null when an entry read from the end is not a Node of
  * the Tree, which `parseUrl` has already ruled out for every id it accepts.
  *
- * Reads one Node per entry it walks back over, and no other: the centre and its chain.
+ * Reads at most three Nodes, each id once, because the seventeen of 11.2 leave room for the
+ * centre, its asides and one Overlay that is not among them, and a path may be 50 entries of
+ * anything (4.3 checks no adjacency). So the walk back stops after `MAX_CHAIN` explanation
+ * Nodes: the entry before them is the centre whatever its kind, as the first entry of a path
+ * of explanation Nodes alone is. And the first of a chain of two is an aside of that centre
+ * or it is the centre itself, under the entry before it: either way the open Overlay is the
+ * only Node of the page that may be neither the centre nor its neighbour.
  */
 export async function centreOf(tree: Tree, at: PageAddress): Promise<Centre | null> {
   const ids = [...at.trail, at.nodeId]
+  const read = new Map<string, Node | null>()
   const chain: Aside[] = []
   for (let index = ids.length - 1; index >= 0; index -= 1) {
-    const node = await tree.getNode(ids[index]!)
+    const id = ids[index]!
+    if (!read.has(id)) read.set(id, await tree.getNode(id))
+    const node = read.get(id)
     if (!node) return null
     const address = { ...at, trail: ids.slice(0, index), nodeId: node.id }
-    if (node.kind !== 'explanation' || index === 0) return { address, node, chain: chain.reverse() }
-    chain.push({ node, href: nodeHref(address), address })
+    if (node.kind === 'explanation' && index > 0 && chain.length < MAX_CHAIN) {
+      chain.unshift({ node, href: nodeHref(address), address })
+      continue
+    }
+    const known = [...read.values()].filter((n) => n !== null)
+    const first = chain[0]
+    if (first && chain.length === MAX_CHAIN && !node.options.some((option) => option.target === first.node.id)) {
+      return { address: first.address, node: first.node, chain: chain.slice(1), known }
+    }
+    return { address, node, chain, known }
   }
   return null
 }
@@ -162,14 +183,14 @@ export interface NodePage {
 
 /**
  * The page a URL names, read within the bound: the centre and its chain (`centreOf`), then
- * the centre's neighbourhood with the chain's Nodes already in hand, so that an aside the
+ * the centre's neighbourhood with the Nodes that took already in hand, so that an aside the
  * chain named is not read twice. Null for a path `parseUrl` accepted but the index has since
  * lost a Node of.
  */
 export async function loadPage(tree: Tree, address: PageAddress): Promise<NodePage | null> {
   const centre = await centreOf(tree, address)
   if (!centre) return null
-  const neighbours = await neighbourhood(tree, centre.address, centre.node, centre.chain.map((aside) => aside.node))
+  const neighbours = await neighbourhood(tree, centre.address, centre.node, centre.known)
   return { address, centre, neighbours }
 }
 
