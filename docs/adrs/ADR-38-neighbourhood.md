@@ -1,6 +1,7 @@
 # ADR-38-neighbourhood: a page carries the current Node and at most sixteen neighbours, rendered into its own payload, so that a slide needs no network and no response ever approaches the whole Tree
 
 - Status: ACCEPTED (frozen) -- 2026-09-10
+- Superseded in part by `ADR-78-overlay.md` (the `side` direction, decisions 1 and 3), `ADR-78-answer-buttons-and-up-arrow.md` (two `up` becomes one), `ADR-78-fan-out-and-option-picture.md` (decisions 7 and 8: the Option picture) -- 2026-09-17 (issue #78). The rest stands as the 0.2 record.
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 5 and 11
 - **Supersedes `docs/adrs/ADR-5-lazy-loading.md`** (2026-09-03), whose "never reading a
@@ -50,6 +51,15 @@ it must become a number.
    rest, and without JavaScript, the DOM holds the centre Bubble only. The rejected
    alternative below still stands: the neighbours are rendered by the server, not by a
    second renderer in the client.
+   **Amended 2026-09-15 (#60, by the owner's decision of 2026-09-14,
+   <https://github.com/IdseVal/ELSA-Decisiontree/issues/60#issuecomment-5670372885>):** a
+   neighbour frame is the tree view's layout, trimmed. Its Trail keeps exactly the Trail
+   Branches `application.md` 10.2 draws at the guaranteed viewport -- `start` and the last
+   four -- and the collapsed control, and it drops the Trail Sheet's list. Every narrower
+   step of 10.5 shows a subset of those entries, so the frame looks the same as the page
+   that replaces it at every size, and nothing jumps at the handover. The frame is inert
+   and `aria-hidden`, so nobody could open the list, and the arriving page carries the whole
+   Trail once its payload lands. The centre frame is unchanged.
 5. **The loader's interface does not widen to serve this.** `neighbourhood` calls
    `getNode` once per id. The rule becomes: a page may call `getNode` at most seventeen
    times. `getTree`, `listNodes` and `getChildren` still do not exist.
@@ -97,6 +107,10 @@ it must become a number.
   and it would move Bubble rendering into the client bundle -- which is exactly what
   `ADR-38-without-javascript.md` forbids, and it would duplicate the Bubble in two
   renderers.
+- **Accepting a neighbour frame that repeats the whole Trail** (#60, 2026-09-14). It is
+  the simplest reading of "a frame of the same layout", and it costs 720 kB of HTML at the
+  format's maxima for list entries no one can open mid-slide. The owner chose the trim of
+  decision 4 instead.
 
 ## Consequences
 
@@ -127,6 +141,24 @@ it must become a number.
   fix. The lever is sharpest where the Options have collapsed into their Sheet (10.5 step
   4, 11.1). The side slide does not exist there, but the page still carries every Option's
   frame, which is eight at the full Node.
+  **Amended 2026-09-15 (#60), re-measured** the same way, on the build that trims each
+  neighbour frame's Trail (decision 4, amended). "Before" is `dev` at `b2508ff`, which
+  had grown since the table above; "after" is the trim.
+
+  | page | Nodes | HTML before | HTML after | HTML gzip after | payload before | payload after | payload gzip after |
+  |---|---|---|---|---|---|---|---|
+  | full Node, 49-entry Trail | 11 | 751,718 | 269,300 | 14,049 | 621,885 | 176,473 | 23,821 |
+  | `applies` (Terminal), 49-entry Trail | 2 | 169,701 | 122,956 | 7,529 | 122,992 | 79,859 | 10,052 |
+  | example: `start` | 5 | 41,333 | 40,696 | 7,245 | 29,709 | 29,117 | 8,725 |
+  | example: `prohibited-practices` | 6 | 51,844 | 50,944 | 8,192 | 37,105 | 36,269 | 10,711 |
+  | example: `social-scoring` | 3 | 34,589 | 34,489 | 6,925 | 23,539 | 23,447 | 7,498 |
+
+  The full Node's page is about a third of what it was, and a slide to it costs 24 kB
+  gzipped instead of 56. What is left at a 49-entry Trail is mostly the centre frame's own
+  Trail: 49 Branches and a 49-link Trail Sheet, which a reader uses, written once into the
+  document and once more into the framework's inline payload. The example Tree's short
+  Trails lose little, because a Trail of five or fewer is already all kept. The Option
+  frames the collapsed Options cannot slide to (11.1) are still placed, each now trimmed.
 - A navigation costs one request and no image request for any Node but the one arriving.
   A reader who walks a thousand-Node Tree end to end still never receives it.
 - Issue #42 builds against a number it can assert, and issue #39 changes the loader by

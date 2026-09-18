@@ -1,6 +1,6 @@
 # The fixture for V-COUNT: four Sources on one Node, where docs/specs/tree-format.md 5.7
 # allows three. Every Source itself is valid.
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en]
 root: start
 title:

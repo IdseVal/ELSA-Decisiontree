@@ -1,6 +1,6 @@
 # The example Tree of docs/specs/tree-format.md, section 8: every element of the format
 # in one small Tree. Its legal content is simplified and not to be relied on.
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en, nl]
 root: start
 title:
@@ -8,10 +8,10 @@ title:
   nl: Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)
 description:
   en: |
-    A small example Tree that exercises every element of the `elsa-tree/2` format.
+    A small example Tree that exercises every element of the `elsa-tree/3` format.
     Its legal content is simplified and not to be relied on.
   nl: |
-    Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/2`-formaat gebruikt.
+    Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/3`-formaat gebruikt.
     De juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen.
 metadata:
   version: "2.0"
@@ -54,7 +54,7 @@ title:
 description:
   en: |
     The AI Act reaches AI systems **placed on the market or put into service in the
-    EU**, and systems whose *output is used in the EU*, wherever the provider is based.
+    EU**, and systems whose *output is used in the EU*, wherever the [provider](#provider) is based.
 
     Answer **yes** if you place your system on the EU market, put it into service in
     the EU, use it in the EU, or use its output in the EU.
@@ -63,7 +63,7 @@ description:
   nl: |
     De AI-verordening bestrijkt AI-systemen die **in de EU in de handel worden gebracht
     of in gebruik worden gesteld**, en systemen waarvan de *output in de EU wordt
-    gebruikt*, waar de aanbieder ook is gevestigd.
+    gebruikt*, waar de [aanbieder](#provider) ook is gevestigd.
 
     Antwoord **ja** als u uw systeem in de EU in de handel brengt, in gebruik stelt,
     gebruikt, of als de output ervan in de EU wordt gebruikt.
@@ -85,6 +85,14 @@ images:
       nl: Kaart van de lidstaten van de Europese Unie
     credit: "Map: Example Cartography, CC BY 4.0"
     source: art-2
+explainers:
+  - id: provider
+    term:
+      en: provider
+      nl: aanbieder
+    text:
+      en: Someone who develops an AI system, or has one developed, and places it on the market or puts it into service under their own name or trademark.
+      nl: Wie een AI-systeem ontwikkelt of laat ontwikkelen en het onder eigen naam of merk in de handel brengt of in gebruik stelt.
 answers:
   yes: prohibited-practices
   no: outside-scope
@@ -137,12 +145,6 @@ options:
       en: Social scoring
       nl: Sociale scoring
     target: social-scoring
-    images:
-      - file: scoreboard.png
-        description:
-          en: A scoreboard ranking people
-          nl: Een scorebord dat mensen rangschikt
-        credit: "Illustration: Example Studio, CC0 1.0"
   - title:
       en: Emotion recognition at work or in education
       nl: Emotieherkenning op het werk of in het onderwijs
@@ -169,6 +171,12 @@ description:
     onevenredig is.
 metadata:
   version: "2.0"
+images:
+  - file: scoreboard.png
+    description:
+      en: A scoreboard ranking people
+      nl: Een scorebord dat mensen rangschikt
+    credit: "Illustration: Example Studio, CC0 1.0"
 sources:
   - kind: legal
     label:

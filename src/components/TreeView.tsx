@@ -8,8 +8,9 @@
  * Everything between the chrome bar and the disclaimer is one element, the tree layer, so
  * that the slide of section 11 moves the whole tree with one transform (`Slider`). The
  * neighbours of the Node (11.2) are drawn as frames of the same layout, one layer away in
- * the direction of the Branch that leads to them, and carry no image URL at all (11.4). The
- * Carousel's row (section 12) is present on every Node, so the Bubble sits in the same place.
+ * the direction of the Branch that leads to them, carry no image URL at all (11.4), and draw
+ * only the part of their Trail the guaranteed viewport shows, not the Trail Sheet (#60). The
+ * Carousel's band (section 12) is present on every Node, so the Bubble sits in the same place.
  *
  * Below the guaranteed viewport the layout gives things up in the order of 10.5, and each
  * thing it gives up stays reachable behind one control that opens a Sheet. The full group
@@ -25,7 +26,7 @@ import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
 import type { Placed } from '../neighbourhood.ts'
 import type { Tree } from '../tree/loader.ts'
 import type { Node, Option } from '../tree/types.ts'
-import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
+import { followHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
 import { Branch } from './Branch.tsx'
 import { Bubble, sheetWords } from './Bubble.tsx'
 import { Carousel } from './Carousel.tsx'
@@ -52,6 +53,14 @@ interface View {
   idPrefix: string
   /** False in a neighbour frame, which names no image file at all (11.4). */
   pictures: boolean
+  /**
+   * False in a neighbour frame, which draws only the Trail Branches 10.2 draws at the
+   * guaranteed viewport and the collapsed control, with no Trail Sheet list behind it (11.3,
+   * #60). Every narrower step shows a subset of those, so the frame looks the same at every
+   * size; it is inert, so nothing could open the list; and at a 49-entry Trail the whole
+   * Trail repeated in every neighbour was most of the page.
+   */
+  wholeTrail: boolean
   /**
    * Whether a Branch of a kind that slides, to `href`, has a placement to slide to (11.1,
    * 11.2). A target the neighbourhood dropped or deduplicated is an ordinary link; so is every
@@ -86,6 +95,7 @@ export function TreeView({
     treeTitle: text(tree.manifest.title, lang, 'tree.title'),
     idPrefix,
     pictures: centre,
+    wholeTrail: centre,
     placed: (href) => centre && hrefs.has(href),
   })
   const view = viewAt(address, '', true)
@@ -118,7 +128,7 @@ export function TreeView({
 
 /**
  * One Node laid out as the tree view draws it: the Trail, the Bubble, the Options, the
- * Answers and the Carousel's row. The centre of the page is one; so is each neighbour, which
+ * Answers and the Carousel's band. The centre of the page is one; so is each neighbour, which
  * is why a Bubble arriving in a slide already carries its own Branch labels (11.3).
  */
 function Frame({ node, view }: { node: Node; view: View }) {
@@ -126,10 +136,10 @@ function Frame({ node, view }: { node: Node; view: View }) {
   return (
     <>
       <Trail node={node} view={view} />
-      <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} />
+      <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} pictures={view.pictures} />
       {node.options.length > 0 && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
-      {/* The Carousel's row (section 12), on every Node, empty where there are no pictures, so the
+      {/* The Carousel's band (section 12), on every Node, empty where there is no picture, so the
           Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
       {view.pictures ? (
         <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
@@ -168,7 +178,7 @@ function position({ direction, slot }: Placed, node: Node): { x: number; y: numb
  * `start` Branch, so no reader is stranded.
  */
 function Trail({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, titleOf, root, treeTitle, idPrefix, placed } = view
+  const { address, ui, uiLang, titleOf, root, treeTitle, idPrefix, wholeTrail, placed } = view
   const entries = address.trail.map((id, index) => ({ href: trailHref(address, index), title: titleOf(id) }))
 
   if (entries.length === 0 && node.id === root) {
@@ -209,6 +219,7 @@ function Trail({ node, view }: { node: Node; view: View }) {
           const parent = index === entries.length - 1
           // `start` and the last four stay when the middle collapses (10.2).
           const kept = index === 0 || index >= entries.length - 4
+          if (!kept && !wholeTrail) return null
           return (
             <Fragment key={entry.href}>
               <li className="trail-step" data-kept={kept ? '' : undefined} data-parent={parent ? '' : undefined}>
@@ -244,7 +255,7 @@ function Trail({ node, view }: { node: Node; view: View }) {
                       </>
                     }
                     // The whole Trail, newest first (10.2).
-                    items={entries.map((e) => ({ href: e.href, label: e.title })).reverse()}
+                    items={wholeTrail ? entries.map((e) => ({ href: e.href, label: e.title })).reverse() : []}
                     words={sheetWords(ui)}
                     uiLang={uiLang}
                     idPrefix={idPrefix}
@@ -261,17 +272,17 @@ function Trail({ node, view }: { node: Node; view: View }) {
 
 /**
  * The Option Branches beside the Bubble (10.3): the side children, in two columns of at
- * most four, each showing its target's title and, when the Option has Images, the first of
- * them. The same list as a Sheet is what the columns collapse to (10.5, steps 3 and 4).
+ * most four, each showing its title. An Option has no Images of its own in `elsa-tree/3`
+ * (tree-format.md 5.4); the picture its button shows is its target's main image, which is
+ * #80's to draw. The same list as a Sheet is what the columns collapse to (10.5, steps 3 and 4).
  */
 function Options({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, idPrefix, pictures, placed } = view
+  const { address, ui, uiLang, idPrefix, placed } = view
   const lang = address.lang
   const half = Math.ceil(node.options.length / 2)
 
   const branch = (option: Option, index: number) => {
     const where = `${node.id}.options[${index}]`
-    const image = option.images[0]
     const href = followHref(address, option.target)
     return (
       <li key={option.target}>
@@ -279,12 +290,6 @@ function Options({ node, view }: { node: Node; view: View }) {
           className="option"
           href={href}
           title={text(option.title, lang, `${where}.title`)}
-          image={
-            image &&
-            (pictures
-              ? { src: imageHref(image.file), alt: text(image.description, lang, `${where}.images[${image.file}].description`) }
-              : 'withheld')
-          }
           slides={placed(href)}
         />
       </li>

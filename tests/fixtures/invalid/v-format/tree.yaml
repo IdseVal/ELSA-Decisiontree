@@ -1,7 +1,7 @@
 # A format number this loader does not know: the fixture for V-FORMAT. It said
-# elsa-tree/2 while the loader read elsa-tree/1; now that elsa-tree/2 is the accepted
-# value, the unknown one is elsa-tree/3 (docs/specs/tree-format.md 12.3).
-format: elsa-tree/3
+# elsa-tree/3 while the loader read elsa-tree/2; now that elsa-tree/3 is the accepted
+# value, the unknown one is the format it replaced (docs/specs/tree-format.md 12.5).
+format: elsa-tree/2
 languages: [en]
 root: start
 title:

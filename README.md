@@ -1,7 +1,7 @@
 # ELSA decision tree
 
 A small web application that walks a reader through a legal decision tree, one **Node**
-at a time. It serves one **Tree** -- one `tree.yaml` file in the `elsa-tree/2` format
+at a time. It serves one **Tree** -- one `tree.yaml` file in the `elsa-tree/3` format
 ([`docs/specs/tree-format.md`](docs/specs/tree-format.md)), with its images and its theme
 beside it -- and holds its whole state in the URL: no database, no account, no cookie, no
 tracking.

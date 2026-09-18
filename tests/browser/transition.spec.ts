@@ -83,7 +83,7 @@ async function allowedNodes(url: string): Promise<string[]> {
 async function allowedImages(url: string): Promise<string[]> {
   const address = parseUrl(new URL(url, 'http://x').pathname, 'en', tree)!
   const node = (await tree.getNode(address.nodeId))!
-  return [...node.images, ...node.options.flatMap((o) => o.images.slice(0, 1))].map((i) => encodeURIComponent(i.file))
+  return node.images.map((i) => encodeURIComponent(i.file))
 }
 
 /** Records, from now on, every computed transform of the tree layer, one per frame. */
@@ -182,9 +182,14 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
     ).toBe(true)
   }
 
-  // Every image requested belongs to the centre Bubble of the page on screen at that moment.
-  for (const entry of recorded.filter((r) => r.url.startsWith('/images/'))) {
-    expect(await allowedImages(entry.on), `${entry.url} requested on ${entry.on}`).toContain(entry.url.slice('/images/'.length))
+  // Every image requested belongs to the centre Bubble of the page last asked for. Not of the
+  // address bar at that moment: the main image is not lazy (10.3), so the arriving page asks
+  // for it as soon as it is drawn, before the router has written its address.
+  for (const [index, entry] of recorded.entries()) {
+    if (!entry.url.startsWith('/images/')) continue
+    const page = recorded.slice(0, index).findLast((r) => pages.includes(r))!
+    const node = page.url.replace(/[?&]_rsc=[^&]*$/, '')
+    expect(await allowedImages(node), `${entry.url} requested after ${node} (on ${entry.on})`).toContain(entry.url.slice('/images/'.length))
   }
 
   await mkdir(RESULTS, { recursive: true })
@@ -350,7 +355,7 @@ test('the moment just after the payload lands, screenshot: the page left behind 
 test('a slide started with a Sheet open closes it first, so no panel travels with the layer (10.6, 11.3)', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 640 })
   await page.goto(ROOT)
-  await page.locator('.thumbnail').first().click()
+  await page.locator('.main-image').click()
   await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
 
   // Hold the target's payload back, so the page that started the slide is still the one sliding.

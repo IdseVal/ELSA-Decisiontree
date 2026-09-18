@@ -1,6 +1,7 @@
 # ADR-37-length-limits: every user-facing text has a maximum length and every list a maximum count, the same for every language, derived from a stated viewport and Bubble; rich text is also bounded by an estimated line count
 
 - Status: ACCEPTED (frozen) -- 2026-09-10
+- Superseded in part by `ADR-78-main-image-and-row-budget.md` (decision 4: the vertical budget and the text area the limits derive from), `ADR-78-sources-heading.md` (the Sources block), `ADR-78-fan-out-and-option-picture.md` ("3 Images per Option"), `ADR-78-explainers.md` (the explainer limits) -- 2026-09-17 (issue #78). The limits of decision 1 stand unchanged in `elsa-tree/3`.
 - Issue: #37 -- Architecture: freeze elsa-tree/2
 - Spec: `docs/specs/tree-format.md`, sections 3.8, 5.7; rules V-LENGTH, V-LINES, V-COUNT
 

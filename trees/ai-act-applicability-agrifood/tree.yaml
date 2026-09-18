@@ -3,7 +3,7 @@
 # consolidated text of 27 July 2026 (CELEX 02024R1689-20260727). The Dutch text uses the
 # official terminology of the Dutch-language consolidated text. Version 0.2: the same
 # content, re-cut to the length limits of elsa-tree/2 (issue #44); see NOTES.md.
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en, nl]
 root: start
 title:
@@ -65,12 +65,17 @@ theme:
       files:
         - { file: open-sans-700.woff2, weight: "700", style: normal }
       licence: SIL Open Font License 1.1 (theme/ofl-open-sans.txt)
-  # The seven roles of tree-format.md 4.3.3, filled from research 7's role -> value table.
+  # The seven roles of tree-format.md 4.3.3, filled from research 7's role -> value table --
+  # except text-muted. The site's .uk-text-muted #a3a4a8 is 2.49 : 1 on background and
+  # 2.24 : 1 on surface, and the frontend draws the credits, the disclaimer, the Trail and
+  # the Source kinds in it, all at 11 to 13 pixels, where WCAG 2.2 SC 1.4.3 asks 4.5 : 1
+  # (issue #64). #696a6e is the same cool grey darkened to 5.40 : 1 on background and
+  # 4.85 : 1 on surface, and stays lighter than text (2.51 : 1 against it).
   colours:
     background: "#ffffff"        # html { background:#fff }
     surface: "#f0f3f7"           # .uk-button-default, .uk-progress
     text: "#2d2e33"              # html { color:#2d2e33 }
-    text-muted: "#a3a4a8"        # .uk-text-muted
+    text-muted: "#696a6e"        # .uk-text-muted #a3a4a8, darkened to read (issue #64)
     accent: "#ffc600"            # the navbar and primary button yellow
     accent-secondary: "#41ab64"  # the green sections and secondary button
     danger: "#e44e56"            # .uk-button-danger, .uk-text-danger
@@ -234,6 +239,12 @@ metadata:
   version: "0.2"
   annex-i-point: 15
   annex-i-section: B
+images:
+  - file: agricultural-vehicles.jpg
+    description:
+      en: "A tractor ploughing a field, seen from above"
+      nl: "Een tractor die een akker ploegt, van bovenaf gezien"
+    credit: "Petar Milošević, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -273,6 +284,12 @@ metadata:
   version: "0.2"
   annex-i-point: 8
   annex-i-section: A
+images:
+  - file: cableway-installations.jpg
+    description:
+      en: "The first gondola cabin of a mountain cableway, from 1964"
+      nl: "De eerste gondelcabine van een bergkabelbaan, uit 1964"
+    credit: "Yamen, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -312,6 +329,12 @@ metadata:
   version: "0.2"
   annex-i-point: 13
   annex-i-section: B
+images:
+  - file: civil-aviation-security.jpg
+    description:
+      en: "A passenger at an airport security screening checkpoint"
+      nl: "Een passagier bij een beveiligingscontrole op een luchthaven"
+    credit: "Michael Ball, via Wikimedia Commons, CC0 1.0"
 sources:
   - kind: legal
     label:
@@ -355,6 +378,12 @@ metadata:
   version: "0.2"
   annex-i-point: 5
   annex-i-section: A
+images:
+  - file: explosive-atmospheres.jpg
+    description:
+      en: "Grain silos, where dust can make the atmosphere explosive"
+      nl: "Graansilo's, waar stof de lucht ontplofbaar kan maken"
+    credit: "TheTechnician27, via Wikimedia Commons, CC0 1.0"
 sources:
   - kind: legal
     label:
@@ -398,6 +427,12 @@ metadata:
   version: "0.2"
   annex-i-point: 10
   annex-i-section: A
+images:
+  - file: gas-appliances.jpg
+    description:
+      en: "A gas-fired boiler in a boiler room"
+      nl: "Een gasgestookte ketel in een ketelruimte"
+    credit: "Oleg Bor, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -441,6 +476,12 @@ metadata:
   version: "0.2"
   annex-i-point: 12
   annex-i-section: A
+images:
+  - file: ivd-medical-devices.jpg
+    description:
+      en: "A technician handling blood samples in a diagnostic laboratory"
+      nl: "Een analist met bloedmonsters in een diagnostisch laboratorium"
+    credit: "Goleisureintl, via Wikimedia Commons, CC BY 4.0"
 sources:
   - kind: legal
     label:
@@ -516,90 +557,34 @@ options:
       en: Safety of toys
       nl: Veiligheid van speelgoed
     target: annex-i-toys
-    images:
-      - file: toys.jpg
-        description:
-          en: "A wooden toy car"
-          nl: "Een houten speelgoedauto"
-        credit: "Gausanchennai, via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-i
   - title:
       en: Recreational craft and personal watercraft
       nl: Pleziervaartuigen en waterscooters
     target: annex-i-recreational-craft
-    images:
-      - file: recreational-craft.jpg
-        description:
-          en: "A sailing yacht leaving a marina"
-          nl: "Een zeiljacht dat een jachthaven verlaat"
-        credit: "Pjotr Mahhonin, via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-i
   - title:
       en: Lifts and safety components for lifts
       nl: Liften en veiligheidscomponenten voor liften
     target: annex-i-lifts
-    images:
-      - file: lifts.jpg
-        description:
-          en: "The inside of a passenger lift, with its control panel"
-          nl: "De binnenkant van een personenlift, met bedieningspaneel"
-        credit: "Edward Orde, via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-i
   - title:
       en: Equipment for potentially explosive atmospheres
       nl: Apparaten voor plaatsen met ontploffingsgevaar
     target: annex-i-explosive-atmospheres
-    images:
-      - file: explosive-atmospheres.jpg
-        description:
-          en: "Grain silos, where dust can make the atmosphere explosive"
-          nl: "Graansilo's, waar stof de lucht ontplofbaar kan maken"
-        credit: "TheTechnician27, via Wikimedia Commons, CC0 1.0"
-        source: anx-i
   - title:
       en: Radio equipment
       nl: Radioapparatuur
     target: annex-i-radio-equipment
-    images:
-      - file: radio-equipment.jpg
-        description:
-          en: "A wireless sensor reporting from a strawberry field"
-          nl: "Een draadloze sensor die meet in een aardbeienveld"
-        credit: "USDAgov, via Wikimedia Commons, public domain"
-        source: anx-i
   - title:
       en: Pressure equipment
       nl: Drukapparatuur
     target: annex-i-pressure-equipment
-    images:
-      - file: pressure-equipment.jpg
-        description:
-          en: "A liquid carbon dioxide tank: pressure equipment beside a plant"
-          nl: "Een tank met vloeibaar kooldioxide: drukapparatuur naast een fabriek"
-        credit: "Exit2dos2000, via Wikimedia Commons, CC BY-SA 3.0"
-        source: anx-i
   - title:
       en: Cableway installations
       nl: Kabelbaaninstallaties
     target: annex-i-cableway-installations
-    images:
-      - file: cableway-installations.jpg
-        description:
-          en: "The first gondola cabin of a mountain cableway, from 1964"
-          nl: "De eerste gondelcabine van een bergkabelbaan, uit 1964"
-        credit: "Yamen, via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-i
   - title:
       en: Personal protective equipment
       nl: Persoonlijke beschermingsmiddelen
     target: annex-i-personal-protective-equipment
-    images:
-      - file: personal-protective-equipment.jpg
-        description:
-          en: "Protective clothing, gloves and hood for spraying work"
-          nl: "Beschermende kleding, handschoenen en kap voor spuitwerk"
-        credit: "Protectepi, via Wikimedia Commons, CC BY-SA 3.0"
-        source: anx-i
 answers:
   yes: high-risk
   no: annex-i-legislation-2
@@ -646,72 +631,30 @@ options:
       en: Appliances burning gaseous fuels
       nl: Gasverbrandingstoestellen
     target: annex-i-gas-appliances
-    images:
-      - file: gas-appliances.jpg
-        description:
-          en: "A gas-fired boiler in a boiler room"
-          nl: "Een gasgestookte ketel in een ketelruimte"
-        credit: "Oleg Bor, via Wikimedia Commons, CC BY-SA 4.0"
   - title:
       en: Medical devices
       nl: Medische hulpmiddelen
     target: annex-i-medical-devices
-    images:
-      - file: medical-devices.jpg
-        description:
-          en: "An infusion pump at a hospital bedside"
-          nl: "Een infuuspomp aan een ziekenhuisbed"
-        credit: "DiverDave, via Wikimedia Commons, CC BY-SA 3.0"
   - title:
       en: In vitro diagnostic medical devices
       nl: Hulpmiddelen voor in-vitrodiagnostiek
     target: annex-i-ivd-medical-devices
-    images:
-      - file: ivd-medical-devices.jpg
-        description:
-          en: "A technician handling blood samples in a diagnostic laboratory"
-          nl: "Een analist met bloedmonsters in een diagnostisch laboratorium"
-        credit: "Goleisureintl, via Wikimedia Commons, CC BY 4.0"
   - title:
       en: Civil aviation security
       nl: Beveiliging van de burgerluchtvaart
     target: annex-i-civil-aviation-security
-    images:
-      - file: civil-aviation-security.jpg
-        description:
-          en: "A passenger at an airport security screening checkpoint"
-          nl: "Een passagier bij een beveiligingscontrole op een luchthaven"
-        credit: "Michael Ball, via Wikimedia Commons, CC0 1.0"
   - title:
       en: Two- or three-wheel vehicles and quadricycles
       nl: Twee- of driewielige voertuigen en vierwielers
     target: annex-i-two-or-three-wheel-vehicles
-    images:
-      - file: two-or-three-wheel-vehicles.jpg
-        description:
-          en: "A quadricycle, or quad bike"
-          nl: "Een vierwieler, ofwel quad"
-        credit: "Norbert Nagel, via Wikimedia Commons, CC BY-SA 3.0"
   - title:
       en: Agricultural and forestry vehicles
       nl: Landbouw- en bosbouwvoertuigen
     target: annex-i-agricultural-vehicles
-    images:
-      - file: agricultural-vehicles.jpg
-        description:
-          en: "A tractor ploughing a field, seen from above"
-          nl: "Een tractor die een akker ploegt, van bovenaf gezien"
-        credit: "Petar Milošević, via Wikimedia Commons, CC BY-SA 4.0"
   - title:
       en: Marine equipment
       nl: Uitrusting van zeeschepen
     target: annex-i-marine-equipment
-    images:
-      - file: marine-equipment.jpg
-        description:
-          en: "A fishing trawler returning to port"
-          nl: "Een vissersschip dat terugkeert naar de haven"
-        credit: "Christian Ferrer, via Wikimedia Commons, CC BY-SA 4.0"
 answers:
   yes: high-risk
   no: annex-i-legislation-3
@@ -760,57 +703,22 @@ options:
       en: Interoperability of the rail system
       nl: Interoperabiliteit van het spoorwegsysteem
     target: annex-i-rail-interoperability
-    images:
-      - file: rail-interoperability.jpg
-        description:
-          en: "An electric passenger train at a station platform"
-          nl: "Een elektrische passagierstrein aan een perron"
-        credit: "Philip Mallis, via Wikimedia Commons, CC BY-SA 2.0"
-        source: anx-i
   - title:
       en: Approval of motor vehicles and their trailers
       nl: Goedkeuring van motorvoertuigen en aanhangwagens
     target: annex-i-motor-vehicle-approval
-    images:
-      - file: motor-vehicle-approval.jpg
-        description:
-          en: "A milk tanker on a farm road"
-          nl: "Een melktankwagen op een landweg"
-        credit: "TCExplorer, via Wikimedia Commons, CC BY-SA 2.0"
-        source: anx-i
   - title:
       en: "Type-approval of motor vehicles: general safety"
       nl: "Typegoedkeuring van motorvoertuigen: veiligheid"
     target: annex-i-motor-vehicle-general-safety
-    images:
-      - file: motor-vehicle-general-safety.jpg
-        description:
-          en: "A dashboard showing lane keeping and the speed limit the car read"
-          nl: "Een dashboard met rijstrookhulp en de afgelezen maximumsnelheid"
-        credit: "Hans Haase, via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-i
   - title:
       en: Civil aviation, as regards unmanned aircraft
       nl: "Burgerluchtvaart: onbemande luchtvaartuigen"
     target: annex-i-unmanned-aircraft
-    images:
-      - file: unmanned-aircraft.jpg
-        description:
-          en: "A drone spraying a paddy field"
-          nl: "Een drone die een rijstveld bespuit"
-        credit: "Shreesha Sharma, via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-i
   - title:
       en: Machinery
       nl: Machines
     target: annex-i-machinery
-    images:
-      - file: machinery.jpg
-        description:
-          en: "A cow in a milking robot, beside its emergency stop"
-          nl: "Een koe in een melkrobot, naast de noodstop"
-        credit: ".Anja., via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-i
 answers:
   yes: high-risk
   no: annex-iii-areas
@@ -837,6 +745,12 @@ metadata:
   version: "0.2"
   annex-i-point: 4
   annex-i-section: A
+images:
+  - file: lifts.jpg
+    description:
+      en: "The inside of a passenger lift, with its control panel"
+      nl: "De binnenkant van een personenlift, met bedieningspaneel"
+    credit: "Edward Orde, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -879,6 +793,12 @@ metadata:
   version: "0.2"
   annex-i-point: 21
   annex-i-section: B
+images:
+  - file: machinery.jpg
+    description:
+      en: "A cow in a milking robot, beside its emergency stop"
+      nl: "Een koe in een melkrobot, naast de noodstop"
+    credit: ".Anja., via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -919,6 +839,12 @@ metadata:
   version: "0.2"
   annex-i-point: 16
   annex-i-section: B
+images:
+  - file: marine-equipment.jpg
+    description:
+      en: "A fishing trawler returning to port"
+      nl: "Een vissersschip dat terugkeert naar de haven"
+    credit: "Christian Ferrer, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -957,6 +883,12 @@ metadata:
   version: "0.2"
   annex-i-point: 11
   annex-i-section: A
+images:
+  - file: medical-devices.jpg
+    description:
+      en: "An infusion pump at a hospital bedside"
+      nl: "Een infuuspomp aan een ziekenhuisbed"
+    credit: "DiverDave, via Wikimedia Commons, CC BY-SA 3.0"
 sources:
   - kind: legal
     label:
@@ -1000,6 +932,12 @@ metadata:
   version: "0.2"
   annex-i-point: 18
   annex-i-section: B
+images:
+  - file: motor-vehicle-approval.jpg
+    description:
+      en: "A milk tanker on a farm road"
+      nl: "Een melktankwagen op een landweg"
+    credit: "TCExplorer, via Wikimedia Commons, CC BY-SA 2.0"
 sources:
   - kind: legal
     label:
@@ -1041,6 +979,12 @@ metadata:
   version: "0.2"
   annex-i-point: 19
   annex-i-section: B
+images:
+  - file: motor-vehicle-general-safety.jpg
+    description:
+      en: "A dashboard showing lane keeping and the speed limit the car read"
+      nl: "Een dashboard met rijstrookhulp en de afgelezen maximumsnelheid"
+    credit: "Hans Haase, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -1084,6 +1028,12 @@ metadata:
   version: "0.2"
   annex-i-point: 9
   annex-i-section: A
+images:
+  - file: personal-protective-equipment.jpg
+    description:
+      en: "Protective clothing, gloves and hood for spraying work"
+      nl: "Beschermende kleding, handschoenen en kap voor spuitwerk"
+    credit: "Protectepi, via Wikimedia Commons, CC BY-SA 3.0"
 sources:
   - kind: legal
     label:
@@ -1127,6 +1077,12 @@ metadata:
   version: "0.2"
   annex-i-point: 7
   annex-i-section: A
+images:
+  - file: pressure-equipment.jpg
+    description:
+      en: "A liquid carbon dioxide tank: pressure equipment beside a plant"
+      nl: "Een tank met vloeibaar kooldioxide: drukapparatuur naast een fabriek"
+    credit: "Exit2dos2000, via Wikimedia Commons, CC BY-SA 3.0"
 sources:
   - kind: legal
     label:
@@ -1171,6 +1127,12 @@ metadata:
   version: "0.2"
   annex-i-point: 6
   annex-i-section: A
+images:
+  - file: radio-equipment.jpg
+    description:
+      en: "A wireless sensor reporting from a strawberry field"
+      nl: "Een draadloze sensor die meet in een aardbeienveld"
+    credit: "USDAgov, via Wikimedia Commons, public domain"
 sources:
   - kind: legal
     label:
@@ -1210,6 +1172,12 @@ metadata:
   version: "0.2"
   annex-i-point: 17
   annex-i-section: B
+images:
+  - file: rail-interoperability.jpg
+    description:
+      en: "An electric passenger train at a station platform"
+      nl: "Een elektrische passagierstrein aan een perron"
+    credit: "Philip Mallis, via Wikimedia Commons, CC BY-SA 2.0"
 sources:
   - kind: legal
     label:
@@ -1249,6 +1217,12 @@ metadata:
   version: "0.2"
   annex-i-point: 3
   annex-i-section: A
+images:
+  - file: recreational-craft.jpg
+    description:
+      en: "A sailing yacht leaving a marina"
+      nl: "Een zeiljacht dat een jachthaven verlaat"
+    credit: "Pjotr Mahhonin, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -1287,6 +1261,12 @@ metadata:
   version: "0.2"
   annex-i-point: 2
   annex-i-section: A
+images:
+  - file: toys.jpg
+    description:
+      en: "A wooden toy car"
+      nl: "Een houten speelgoedauto"
+    credit: "Gausanchennai, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -1331,6 +1311,12 @@ metadata:
   version: "0.2"
   annex-i-point: 14
   annex-i-section: B
+images:
+  - file: two-or-three-wheel-vehicles.jpg
+    description:
+      en: "A quadricycle, or quad bike"
+      nl: "Een vierwieler, ofwel quad"
+    credit: "Norbert Nagel, via Wikimedia Commons, CC BY-SA 3.0"
 sources:
   - kind: legal
     label:
@@ -1376,6 +1362,12 @@ metadata:
   version: "0.2"
   annex-i-point: 20
   annex-i-section: B
+images:
+  - file: unmanned-aircraft.jpg
+    description:
+      en: "A drone spraying a paddy field"
+      nl: "Een drone die een rijstveld bespuit"
+    credit: "Shreesha Sharma, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -1445,90 +1437,34 @@ options:
       en: 1. Biometrics
       nl: 1. Biometrie
     target: annex-iii-biometrics
-    images:
-      - file: biometrics.jpg
-        description:
-          en: "A face-detection demonstration marking faces in a live image"
-          nl: "Een demonstratie die gezichten in een live beeld markeert"
-        credit: "Patrick H~, via Wikimedia Commons, CC BY 2.0"
-        source: anx-iii
   - title:
       en: 2. Critical infrastructure
       nl: 2. Kritieke infrastructuur
     target: annex-iii-critical-infrastructure
-    images:
-      - file: critical-infrastructure.jpg
-        description:
-          en: "Electricity transmission towers at sunset"
-          nl: "Hoogspanningsmasten bij zonsondergang"
-        credit: "Matthew T Rader, via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-iii
   - title:
       en: 3. Education and vocational training
       nl: 3. Onderwijs en beroepsopleiding
     target: annex-iii-education
-    images:
-      - file: education.jpg
-        description:
-          en: "Students taking an exam on computers"
-          nl: "Leerlingen die een examen op de computer maken"
-        credit: "Michael Surran, via Wikimedia Commons, CC BY-SA 2.0"
-        source: anx-iii
   - title:
       en: 4. Employment and workers management
       nl: 4. Werkgelegenheid en personeelsbeheer
     target: annex-iii-employment
-    images:
-      - file: employment.jpg
-        description:
-          en: "Farm workers picking a field crop by hand"
-          nl: "Landarbeiders die met de hand een veldgewas oogsten"
-        credit: "USDAgov, via Wikimedia Commons, public domain"
-        source: anx-iii
   - title:
       en: 5. Essential private and public services
       nl: 5. Essentiële particuliere en publieke diensten
     target: annex-iii-essential-services
-    images:
-      - file: essential-services.jpg
-        description:
-          en: "An ambulance of an emergency medical service"
-          nl: "Een ambulance van een spoedeisende hulpdienst"
-        credit: "Raymond Wambsgans, via Wikimedia Commons, CC BY-SA 2.0"
-        source: anx-iii
   - title:
       en: 6. Law enforcement
       nl: 6. Rechtshandhaving
     target: annex-iii-law-enforcement
-    images:
-      - file: law-enforcement.jpg
-        description:
-          en: "Police officers on bicycle patrol"
-          nl: "Politieagenten op fietspatrouille"
-        credit: "Maksim Sokolov, via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-iii
   - title:
       en: 7. Migration, asylum and border control
       nl: 7. Migratie-, asiel- en grenstoezichtsbeheer
     target: annex-iii-migration-and-borders
-    images:
-      - file: migration-and-borders.jpg
-        description:
-          en: "Automated e-passport control gates at an airport"
-          nl: "Automatische paspoortcontrolepoortjes op een luchthaven"
-        credit: "PESP, derivative by Bonus bon, via Wikimedia Commons, CC BY-SA 4.0"
-        source: anx-iii
   - title:
       en: 8. Administration of justice and democracy
       nl: 8. Rechtsbedeling en democratische processen
     target: annex-iii-justice-and-democracy
-    images:
-      - file: justice-and-democracy.jpg
-        description:
-          en: "A courtroom with the judge's bench"
-          nl: "Een rechtszaal met de rechterstafel"
-        credit: "Michael D Beckwith, via Wikimedia Commons, CC0 1.0"
-        source: anx-iii
 answers:
   yes: high-risk
   no: general-purpose-ai
@@ -1557,6 +1493,12 @@ metadata:
   version: "0.2"
   annex-iii-area: 1
   listed-system-types: 3
+images:
+  - file: biometrics.jpg
+    description:
+      en: "A face-detection demonstration marking faces in a live image"
+      nl: "Een demonstratie die gezichten in een live beeld markeert"
+    credit: "Patrick H~, via Wikimedia Commons, CC BY 2.0"
 sources:
   - kind: legal
     label:
@@ -1596,6 +1538,12 @@ metadata:
   version: "0.2"
   annex-iii-area: 2
   listed-system-types: 1
+images:
+  - file: critical-infrastructure.jpg
+    description:
+      en: "Electricity transmission towers at sunset"
+      nl: "Hoogspanningsmasten bij zonsondergang"
+    credit: "Matthew T Rader, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -1633,6 +1581,12 @@ metadata:
   version: "0.2"
   annex-iii-area: 3
   listed-system-types: 4
+images:
+  - file: education.jpg
+    description:
+      en: "Students taking an exam on computers"
+      nl: "Leerlingen die een examen op de computer maken"
+    credit: "Michael Surran, via Wikimedia Commons, CC BY-SA 2.0"
 sources:
   - kind: legal
     label:
@@ -1664,6 +1618,12 @@ metadata:
   version: "0.2"
   annex-iii-area: 4
   listed-system-types: 2
+images:
+  - file: employment.jpg
+    description:
+      en: "Farm workers picking a field crop by hand"
+      nl: "Landarbeiders die met de hand een veldgewas oogsten"
+    credit: "USDAgov, via Wikimedia Commons, public domain"
 sources:
   - kind: legal
     label:
@@ -1703,6 +1663,12 @@ metadata:
   version: "0.2"
   annex-iii-area: 5
   listed-system-types: 4
+images:
+  - file: essential-services.jpg
+    description:
+      en: "An ambulance of an emergency medical service"
+      nl: "Een ambulance van een spoedeisende hulpdienst"
+    credit: "Raymond Wambsgans, via Wikimedia Commons, CC BY-SA 2.0"
 sources:
   - kind: legal
     label:
@@ -1734,6 +1700,12 @@ metadata:
   version: "0.2"
   annex-iii-area: 8
   listed-system-types: 2
+images:
+  - file: justice-and-democracy.jpg
+    description:
+      en: "A courtroom with the judge's bench"
+      nl: "Een rechtszaal met de rechterstafel"
+    credit: "Michael D Beckwith, via Wikimedia Commons, CC0 1.0"
 sources:
   - kind: legal
     label:
@@ -1767,6 +1739,12 @@ metadata:
   version: "0.2"
   annex-iii-area: 6
   listed-system-types: 5
+images:
+  - file: law-enforcement.jpg
+    description:
+      en: "Police officers on bicycle patrol"
+      nl: "Politieagenten op fietspatrouille"
+    credit: "Maksim Sokolov, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:
@@ -1805,6 +1783,12 @@ metadata:
   version: "0.2"
   annex-iii-area: 7
   listed-system-types: 4
+images:
+  - file: migration-and-borders.jpg
+    description:
+      en: "Automated e-passport control gates at an airport"
+      nl: "Automatische paspoortcontrolepoortjes op een luchthaven"
+    credit: "PESP, derivative by Bonus bon, via Wikimedia Commons, CC BY-SA 4.0"
 sources:
   - kind: legal
     label:

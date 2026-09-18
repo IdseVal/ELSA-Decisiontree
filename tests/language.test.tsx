@@ -139,18 +139,27 @@ describe('choosing a language', () => {
       ['title', 'Does your system do any of the prohibited practices?', 'Verricht uw systeem een van de verboden praktijken?'],
       ['description', 'lists practices that are', 'noemt praktijken die zonder meer'],
       ['Option', 'Emotion recognition at work', 'Emotieherkenning op het werk'],
-      ['Image description', 'A scoreboard ranking people', 'Een scorebord dat mensen rangschikt'],
       ['Source label', 'Article 5 AI Act', 'Artikel 5 AI-verordening'],
       ['Trail entry', 'Is your AI system within the reach', 'Valt uw AI-systeem binnen het bereik'],
       ['chrome', '>Yes<', '>Ja<'],
-      ['chrome heading', 'Sources', 'Bronnen'],
+      ['chrome heading', '>Legal sources<', '>Juridische bronnen<'],
+    ]
+    // Since elsa-tree/3 moved this page's Option picture to its target (#79), the Image and
+    // the explainer are read on `start`, which carries both.
+    const startEn = await view('/ai-act-example/start')
+    const startNl = await view('/ai-act-example/start?lang=nl')
+    const startRows: Array<[what: string, english: string, dutch: string]> = [
+      ['Image description', 'Map of the European Union member states', 'Kaart van de lidstaten van de Europese Unie'],
+      ['explainer', 'places it on the market or puts it into service', 'in de handel brengt of in gebruik stelt'],
     ]
 
-    for (const [what, english, dutch] of rows) {
-      expect(en, what).toContain(english)
-      expect(en, what).not.toContain(dutch)
-      expect(nl, what).toContain(dutch)
-      expect(nl, what).not.toContain(english)
+    for (const [pageEn, pageNl, table] of [[en, nl, rows], [startEn, startNl, startRows]] as const) {
+      for (const [what, english, dutch] of table) {
+        expect(pageEn, what).toContain(english)
+        expect(pageEn, what).not.toContain(dutch)
+        expect(pageNl, what).toContain(dutch)
+        expect(pageNl, what).not.toContain(english)
+      }
     }
   })
 

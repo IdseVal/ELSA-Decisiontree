@@ -7,7 +7,7 @@
  * A Tree in one language, and one in a language the chrome does not speak, are fixtures the
  * server does not hold: they are checked in `tests/language.test.tsx` and `tests/interop.test.tsx`.
  */
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
@@ -24,13 +24,9 @@ const BOTH_LANGUAGES = [
   { what: 'Option', en: 'Emotion recognition at work', nl: 'Emotieherkenning op het werk' },
   { what: 'Source label', en: 'Article 5 AI Act', nl: 'Artikel 5 AI-verordening' },
   { what: 'Trail entry', en: 'Is your AI system within the reach', nl: 'Valt uw AI-systeem binnen het bereik' },
-  { what: 'chrome', en: 'Sources', nl: 'Bronnen' },
+  { what: 'chrome', en: 'Legal sources', nl: 'Juridische bronnen' },
 ]
 
-/** The alt text of the Option's image: an Image description, which is content, not chrome. */
-async function optionImageAlt(page: Page): Promise<string | null> {
-  return page.locator('.option .branch-image').first().getAttribute('alt')
-}
 
 test('switching language changes every text of the Node, and the switch says where you are', async ({
   page,
@@ -39,7 +35,6 @@ test('switching language changes every text of the Node, and the switch says whe
   for (const row of BOTH_LANGUAGES) {
     await expect(page.locator('body'), row.what).toContainText(row.en)
   }
-  expect(await optionImageAlt(page)).toBe('A scoreboard ranking people')
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
 
   await page.getByRole('link', { name: 'Nederlands' }).click()
@@ -52,7 +47,6 @@ test('switching language changes every text of the Node, and the switch says whe
     await expect(page.locator('body'), row.what).toContainText(row.nl)
     await expect(page.locator('body'), row.what).not.toContainText(row.en)
   }
-  expect(await optionImageAlt(page)).toBe('Een scorebord dat mensen rangschikt')
 
   // The language on screen is named but is not a link: it is where the reader already is.
   await expect(page.locator('.language--current')).toHaveText('Nederlands')
@@ -72,11 +66,12 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await arrived(page, `${STEP}/social-scoring?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sociale scoring')
 
-  // The way back keeps it too: the Trail entry is the same page in the same language.
-  await page.locator('.trail-entry').first().click()
-  await arrived(page, `${START}?lang=nl`)
+  // The way back keeps it too: the Trail's parent entry, the one the band shows (10.1), is
+  // the same page in the same language.
+  await page.locator('.trail-step[data-parent] .trail-entry').click()
+  await arrived(page, `${STEP}?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'Valt uw AI-systeem binnen het bereik van de AI-verordening?',
+    'Verricht uw systeem een van de verboden praktijken?',
   )
 })
 

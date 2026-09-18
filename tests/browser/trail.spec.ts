@@ -5,7 +5,7 @@
  *
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type BrowserContext, type Page } from '@playwright/test'
 import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
@@ -19,7 +19,16 @@ async function walkToChild(page: Page): Promise<void> {
   await arrived(page, CHILD)
 }
 
-/** The text of every Trail entry on screen, top to bottom. */
+/**
+ * Back to the Trail's first entry, the root. The band of 10.1 shows the parent on one line
+ * and the rest behind `trailMore(n)` (#81), so the root is followed from the Trail Sheet.
+ */
+async function backToRoot(page: Page): Promise<void> {
+  await page.locator('.trail-sheet .sheet-open').click()
+  await page.locator('.trail-sheet .sheet-list a').last().click()
+}
+
+/** The text of every Trail entry in the markup, top to bottom, the ones behind `trailMore(n)` included. */
 async function trail(page: Page): Promise<string[]> {
   return page.locator('.trail-entry').allTextContents()
 }
@@ -48,7 +57,7 @@ test('clicking a Trail entry jumps back and discards the Trail after it', async 
 
   // The first entry: back to the root, with nothing left to go back to.
   await walkToChild(page)
-  await page.locator('.trail-entry').first().click()
+  await backToRoot(page)
   await arrived(page, START)
   expect(await trail(page)).toEqual([])
 })
@@ -60,10 +69,10 @@ test('a Trail entry is reached and followed by the keyboard alone', async ({ pag
   // the Tree's logo beside it and issue #41 the share button, so the tab key reaches the
   // whole bar first; the Trail is still the first thing in the content itself. The bar is
   // counted rather than written down, so a Tree with no logo and a Tree with one both walk
-  // the same way here.
+  // the same way here. The band shows `trailMore(n)` and then the parent (#81).
   const chrome = await page.locator('.page-chrome a, .page-chrome button').count()
   for (let i = 0; i < chrome + 1; i++) await page.keyboard.press('Tab')
-  await expect(page.locator('.trail-entry').first()).toBeFocused()
+  await expect(page.locator('.trail-sheet .sheet-open')).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.locator('.trail-entry').nth(1)).toBeFocused()
 
@@ -85,25 +94,30 @@ test('the share button copies the page it is on, and says so', async ({ page, co
 
 /**
  * Replaces the page's clipboard before any of its script runs: `refused` is a clipboard that
- * denies the write (an insecure context, a withheld permission), `absent` is a browser that
- * has no clipboard API at all. Neither can be produced by a permission grant.
+ * denies the write (a withheld permission), `absent` is a browser that has no clipboard API
+ * at all. Neither can be produced by a permission grant. With `selection` false the older
+ * copy of a selection is refused too, so no way of copying is left.
  */
-async function breakClipboard(page: Page, how: 'refused' | 'absent'): Promise<void> {
-  await page.addInitScript((how) => {
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: how === 'refused' ? { writeText: () => Promise.reject(new Error('denied')) } : undefined,
-    })
-  }, how)
+async function breakClipboard(page: Page, how: 'refused' | 'absent', selection = true): Promise<void> {
+  await page.addInitScript(
+    ([how, selection]) => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: how === 'refused' ? { writeText: () => Promise.reject(new Error('denied')) } : undefined,
+      })
+      if (!selection) document.execCommand = () => false
+    },
+    [how, selection] as const,
+  )
 }
 
 for (const how of ['refused', 'absent'] as const) {
-  test(`the link is offered by hand, not claimed copied, when the clipboard is ${how}`, async ({
+  test(`the link is offered by hand, not claimed copied, when the clipboard is ${how} and a selection cannot be copied`, async ({
     page,
   }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(String(error)))
-    await breakClipboard(page, how)
+    await breakClipboard(page, how, false)
     await walkToChild(page)
 
     await page.getByRole('button', { name: 'Copy link' }).click()
@@ -119,6 +133,73 @@ for (const how of ['refused', 'absent'] as const) {
     expect(errors).toEqual([])
   })
 }
+
+/**
+ * What the clipboard holds, read from a page of the test origin that nothing was done to: the
+ * page under test may have no clipboard API left to read it with. Chromium's clipboard is
+ * one for the whole browser, so any page of it reads what another page copied.
+ */
+async function clipboardOf(context: BrowserContext, origin: string): Promise<string> {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin })
+  const reader = await context.newPage()
+  await reader.goto(`${origin}${START}`)
+  const text = await reader.evaluate(() => navigator.clipboard.readText())
+  await reader.close()
+  return text
+}
+
+// Issue #86: the owner clicked `Copy link` and got a link to copy by hand instead of a copy.
+for (const how of ['refused', 'absent'] as const) {
+  test(`one click copies the page's URL when the clipboard is ${how}`, async ({ page, context, baseURL }) => {
+    await breakClipboard(page, how)
+    await walkToChild(page)
+
+    const button = page.getByRole('button', { name: 'Copy link' })
+    await button.focus()
+    await page.keyboard.press('Enter')
+
+    await expect(page.locator('.share-said')).toHaveText('Link copied')
+    // The selection copied from moved the focus; a keyboard reader is given their place back.
+    await expect(button).toBeFocused()
+    expect(await clipboardOf(context, baseURL!)).toBe(page.url())
+  })
+}
+
+test('one click copies the URL in the address bar on a plain http:// address that is not this machine', async ({
+  playwright,
+  baseURL,
+}) => {
+  // What the owner did: a browser treats such an origin as insecure and gives it no
+  // `navigator.clipboard` at all. The name is resolved to the test server, so the page is the
+  // same one, served to an insecure context -- which needs a browser launched to resolve it.
+  const browser = await playwright.chromium.launch({
+    args: ['--host-resolver-rules=MAP elsa-insecure.test 127.0.0.1'],
+  })
+  try {
+    const context = await browser.newContext()
+    const page = await context.newPage()
+    const insecure = baseURL!.replace('127.0.0.1', 'elsa-insecure.test')
+    await page.goto(`${insecure}${CHILD}?lang=nl`)
+    expect(await page.evaluate(() => [window.isSecureContext, typeof navigator.clipboard])).toEqual([
+      false,
+      'undefined',
+    ])
+    // Something else on the clipboard first, so a click that copies nothing is caught.
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseURL! })
+    const reader = await context.newPage()
+    await reader.goto(`${baseURL}${START}`)
+    await reader.evaluate(() => navigator.clipboard.writeText('not the link'))
+    await reader.close()
+
+    await page.getByRole('button', { name: 'Kopieer link' }).click()
+
+    await expect(page.locator('.share-said')).toHaveText('Link gekopieerd')
+    expect(await clipboardOf(context, baseURL!)).toBe(page.url())
+    expect(page.url()).toBe(`${insecure}${CHILD}?lang=nl`)
+  } finally {
+    await browser.close()
+  }
+})
 
 test('a shared link shows the recipient the same Node and the same Trail', async ({
   page,
@@ -148,7 +229,7 @@ test('a shared link in another language shows that language on both ends', async
     'Verricht uw systeem een van de verboden praktijken?',
   ])
   // Going back keeps the language: it is in the link, not in a cookie.
-  await page.locator('.trail-entry').first().click()
+  await backToRoot(page)
   await arrived(page, `${START}?lang=nl`)
 })
 
@@ -189,7 +270,7 @@ test('nothing about the reader is stored while walking, going back or sharing', 
   await walkToChild(page)
   await page.getByRole('button', { name: 'Copy link' }).click()
   await expect(page.locator('.share-said')).toHaveText('Link copied')
-  await page.locator('.trail-entry').first().click()
+  await backToRoot(page)
 
   // The whole walk is in the URL: no cookie, no local storage, no session storage (8).
   expect(await context.cookies()).toEqual([])

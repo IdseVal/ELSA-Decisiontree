@@ -1,0 +1,68 @@
+# A mark in the manifest's description: the manifest has no explainers (V-MARK).
+format: elsa-tree/3
+languages: [en, nl]
+root: start
+title:
+  en: A minimal Tree
+  nl: Een minimale boom
+description:
+  en: |
+    About a [provider](#provider).
+  nl: |
+    Over een aanbieder.
+metadata:
+  version: "1.0"
+
+--- # start
+id: start
+title:
+  en: Does it apply?
+  nl: Is het van toepassing?
+description:
+  en: |
+    Are you a [provider](#provider)?
+  nl: |
+    Bent u een [aanbieder](#provider)?
+metadata:
+  version: "1.0"
+explainers:
+  - id: provider
+    term:
+      en: provider
+      nl: aanbieder
+    text:
+      en: Someone who places an AI system on the market under their own name.
+      nl: Wie een AI-systeem onder eigen naam in de handel brengt.
+answers:
+  yes: yes-end
+  no: no-end
+
+--- # no-end
+id: no-end
+title:
+  en: It does not apply
+  nl: Het is niet van toepassing
+description:
+  en: |
+    The walk ends here.
+  nl: |
+    De wandeling eindigt hier.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: not-applicable
+
+--- # yes-end
+id: yes-end
+title:
+  en: It applies
+  nl: Het is van toepassing
+description:
+  en: |
+    The walk ends here.
+  nl: |
+    De wandeling eindigt hier.
+metadata:
+  version: "1.0"
+terminal:
+  outcome: applicable

@@ -1,6 +1,7 @@
 # ADR-38-carousel: the Carousel is a native scroll-snap strip of this Node's own Images, the one element allowed to scroll, enlarged in the same Sheet the rest of the view uses
 
 - Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-14 by the owner on #55 (see the end)
+- Superseded in part by `ADR-78-carousel.md` (decisions 1, 2, 4, 5, 8 and the #55 amendment) -- 2026-09-17 (issue #78). The rest stands as the 0.2 record.
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, section 12
 - Core document: 3.2, open item **10.6** (reversed by the owner on 2026-09-09)
