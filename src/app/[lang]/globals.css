@@ -26,7 +26,6 @@
   --rule: color-mix(in srgb, var(--elsa-text) 18%, transparent);
   --rule-soft: color-mix(in srgb, var(--elsa-text) 9%, transparent);
   --wash: color-mix(in srgb, var(--elsa-accent) 14%, var(--elsa-background));
-  --wash-secondary: color-mix(in srgb, var(--elsa-accent-secondary) 14%, var(--elsa-background));
   --veil: color-mix(in srgb, var(--elsa-scrim) 72%, transparent);
   /*
    * A fill colour as a READING colour: an accent chosen to be seen as a fill may be far too
