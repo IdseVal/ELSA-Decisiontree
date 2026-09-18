@@ -917,6 +917,14 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
   characters (`src/chrome.ts`, `chrome.test.ts`). The explanation Node's hint is gone
   with the `back` Branch (10.9). **Nothing on the rim takes a pixel from the text
   area**, which is what lets 5.7's derivation stand (10.7).
+
+  **Amended 2026-09-18 (#82, PR #93, by the owner):** below 480 pixels wide the outcome
+  badge stands under the arrow's foot and takes the whole band, centred under the arrow,
+  instead of the half of the band left of it. At 360 x 640 that half is 140 pixels, and
+  the first Tree's own badges need more: "Does not apply" 142, "Niet van toepassing" 178.
+  The Terminal's rim above grows to hold arrow and badge one above the other; still
+  nothing on the rim takes a pixel from the text area. Like the Answer label of 10.3, this
+  gives way by width alone, outside 10.5's numbered order.
 - **The curve and the text area.** The chord of the Bubble 26 pixels in is 523 pixels;
   at the title's top (94 in) it is 678, wider than the text area, and at the lowest
   Sources line (46 from the bottom) 585. The main image is centred and at most 90 wide;

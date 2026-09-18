@@ -1381,7 +1381,7 @@ a.language:hover,
   /*
    * The rim keeps room for the one chrome element a Node kind puts on it (10.1). Half a
    * phone-width Bubble cannot hold a badge beside the arrow, so the badge stands under the
-   * arrow's foot, across the whole band.
+   * arrow's foot, across the whole band (10.1, amended 2026-09-18).
    */
   .bubble--terminal {
     padding-top: 36px;
