@@ -49,13 +49,24 @@ the owner's own statement, not a published licence.
 
 > This is our logo, we have the right to use it it stays in the repo.
 
-Both files stay in this repository and are published with it.
+Both files stay in this repository. Whether they may also be published with it when it
+goes public was asked in the same question and is not separately confirmed (see below and
+issue #12).
 
     debeef5b5b35ab9571c0b7b4b170fbcc586361c5d94da96c72a9dcb584e1e74d  elsa-lab-logo.png
     53d5d494e7efe8e4f3dc9f8c4ed9a1d487d1437605d7f143af897e50802cd15a  favicon.png
 
-Two questions put to the owner on #73 were not answered and are recorded as such:
+The owner's words settle the right to use the logo. These questions put to the owner on
+#73 were not answered and are recorded as such:
 
+- Whether both files may be published with the repository when it goes public (#12): **not
+  answered** -- the owner said the logo stays in the repository.
+- Who "we" is, and whether anyone other than the owner (the lab, the university's
+  communications department) must agree, and whether that agreement exists: **not
+  answered**.
+- Whether the mark is a registered trademark of Wageningen University & Research, and
+  whether WUR's corporate-identity rules constrain how it is shown (minimum clear space,
+  minimum size, permitted backgrounds): **not answered**.
 - Whether the apple artwork inside the logo is stock material: **not answered**.
 - Whether a transparent or vector master exists: **not answered**. Both files served have
   an **opaque background baked into the pixels** (white for the logo, `#ffc600` for the
@@ -64,4 +75,4 @@ Two questions put to the owner on #73 were not answered and are recorded as such
   coloured surface, needs a master this lab has not published. That is why this Theme
   names no `logo.dark`.
 
-These two files travel with this Tree and with nothing else.
+Until those are answered, these two files travel with this Tree and with nothing else.
