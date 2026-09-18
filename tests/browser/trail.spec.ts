@@ -58,6 +58,9 @@ test("at a phone width the up arrow keeps its 48 pixels, clear of the chrome bar
     if ((await outcome.count()) > 0) {
       const badge = (await outcome.boundingBox())!
       expect(badge.y, `${url}: the badge under the arrow's foot`).toBeGreaterThanOrEqual(arrow.y + arrow.height)
+      // 10.1, amended 2026-09-18: below 480 the badge takes the whole band, centred under the
+      // arrow, not the half of it left of the arrow (1 pixel for sub-pixel rounding).
+      expect(Math.abs(badge.x + badge.width / 2 - (arrow.x + arrow.width / 2)), `${url}: centred under the arrow`).toBeLessThanOrEqual(1)
     }
   }
 })
