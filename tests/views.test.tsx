@@ -228,7 +228,7 @@ describe('the main image', () => {
   test('a neighbour frame keeps the slot and names no image file (11.4)', async () => {
     // The Bubble a neighbour frame draws: `two` has Images of its own.
     const node = (await trees.get('carousel')!.getNode('two'))!
-    const html = renderToStaticMarkup(<Bubble node={node} lang="en" ui={chrome('en')} uiLang={undefined} idPrefix="n0-" pictures={false} />)
+    const html = renderToStaticMarkup(<Bubble node={node} lang="en" ui={chrome('en')} uiLang={undefined} idPrefix="n0-" pictures={false} up={null} />)
     expect(html).toContain('<div class="bubble-text"><span class="main-image main-image--withheld" aria-hidden="true"></span><h1 id="n0-node-title">')
     expect(html).not.toContain('/images/')
   })

@@ -57,7 +57,7 @@ export function Bubble({
    * because the Bubble is centred in its row: a Bubble shorter than the row would leave an
    * arrow placed from the row floating above it.
    */
-  up?: ReactNode
+  up: ReactNode
 }) {
   return (
     // `data-node` names the Node a Bubble draws, so a response can be counted in Nodes (11.5).
