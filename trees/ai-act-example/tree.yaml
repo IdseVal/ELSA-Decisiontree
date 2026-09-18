@@ -16,7 +16,7 @@ description:
 metadata:
   version: "2.0"
   author: ELSA-Lab for sustainable food systems, Wageningen University
-  licence: to be decided (core document OPEN 10.14)
+  licence: CC BY 4.0 (CONTENT-LICENSE at the repository root)
 # A Theme deliberately unlike the first Tree's (issue #40): its own mark, a dark palette
 # and no `body` family, so running text falls back to the frontend's own type stack
 # (tree-format.md 4.3.2). The same build serves this and the AI4SFS look with no code

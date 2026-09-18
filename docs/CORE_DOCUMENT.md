@@ -305,10 +305,12 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 - **Nothing about the user is collected or stored**: no accounts, no cookies, no
   tracking, no analytics.
 - The app **must display a permanently visible "not legal advice" disclaimer**.
-- **Licence**: the project is an academic research project funded by NWO; the owner
-  wants it **open source**. The specific licence for the code and for the tree content
-  is not chosen -- **OPEN 10.14**; it must be chosen before the repository is made
-  public.
+- **Licence**: the project is an academic research project funded by NWO and is **open
+  source**. The code is under the **MIT** licence (`LICENSE`); the content of the Trees
+  -- text, structure, and the images the authors make themselves -- is under **CC BY
+  4.0** (`CONTENT-LICENSE`). Holder: Wageningen University & Research, 2026. Images
+  copied from elsewhere keep their own licence, recorded in each Image's credit (#12,
+  answered 10.14).
 - **Image rights**: every Image carries a credit/attribution.
 - Content review before publication is the owner's responsibility, outside the code.
 
@@ -349,7 +351,7 @@ Confirmed by the owner on 2026-09-03:
 | 10.11 | Sources inline vs shared. | -- | inline (PROPOSED, from owner's "source parameter") |
 | 10.12 | Image credits. | -- | answered: required |
 | 10.13 | Hosting. | -- | answered: undecided between university server and Hetzner; plain Linux, no vendor lock-in |
-| 10.14 | Which open-source licence for code, and which for content? | Idse | open (confirmed undecided 2026-09-03) -- must be chosen before publishing the repo |
+| 10.14 | Which open-source licence for code, and which for content? | Idse | answered (#12, 2026-09-17): code MIT (`LICENSE`), Tree content CC BY 4.0 (`CONTENT-LICENSE`), holder Wageningen University & Research, 2026 (section 8) |
 | 10.15 | What must never happen. | -- | answered (section 9) |
 | 10.16 | Storage technology. | -- | answered: files in the repo, no database |
 | 10.17 | Trail click. | -- | answered: jump back, discard later Trail |
