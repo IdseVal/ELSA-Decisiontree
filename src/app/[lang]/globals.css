@@ -1359,9 +1359,10 @@ a.language:hover,
 
 /*
  * A phone-width screen. The full Node of 10.6 at 360 x 640 needs every pixel the rows
- * around the Bubble can spare, so each gives up what it does not use: the chrome bar and
- * the up arrow narrow to what they need, the rim to 10 pixels, the margins inside the
- * Bubble to 4. Two Answers of four lines each still stand side by side.
+ * around the Bubble can spare, so each gives up what it does not use: the chrome bar
+ * narrows to what it needs, the rim to 10 pixels, the margins inside the Bubble to 4. The
+ * up arrow keeps its 48 pixels (10.1, 10.5: never given up); on the 10-pixel rim its band
+ * is 40. Two Answers still stand side by side.
  */
 @media (max-width: 479px) {
   :root {
@@ -1370,7 +1371,6 @@ a.language:hover,
     --bubble-radius: 48px;
     --answers-row: auto;
     --chrome-row: 36px;
-    --up-size: 32px;
     --disclaimer-row: auto;
     --sheet-open: 24px;
   }
@@ -1386,11 +1386,11 @@ a.language:hover,
    * arrow's foot, across the whole band.
    */
   .bubble--terminal {
-    padding-top: 34px;
+    padding-top: 36px;
   }
 
   .outcome {
-    top: calc(var(--rim-y) - 2px);
+    top: var(--rim-y);
     right: 0;
     max-width: calc(100% - 24px);
   }

@@ -39,6 +39,28 @@ test('the up arrow sits on the Bubble\'s top outline, and no Trail is drawn', as
   await expect(page.locator('[class*="trail"]')).toHaveCount(0)
 })
 
+test("at a phone width the up arrow keeps its 48 pixels, clear of the chrome bar, the text area and a Terminal's badge", async ({ page }) => {
+  // 10.1 and 10.2 fix the arrow at 48, and 10.5 never gives it up: the phone's 10-pixel rim
+  // widens the band above the Bubble instead.
+  await page.setViewportSize({ width: 360, height: 640 })
+  for (const url of [CHILD, '/ai-act-example/start/prohibited-practices/prohibited']) {
+    await page.goto(url)
+    const arrow = (await upArrow(page).boundingBox())!
+    const header = (await page.locator('header').boundingBox())!
+    const text = (await page.locator('.bubble:not([inert] *) .bubble-text').boundingBox())!
+    expect(arrow.width, url).toBe(48)
+    expect(arrow.height, url).toBe(48)
+    expect(arrow.y, `${url}: below the chrome bar`).toBeGreaterThanOrEqual(header.y + header.height)
+    expect(arrow.y + arrow.height, `${url}: above the text area`).toBeLessThanOrEqual(text.y)
+
+    const outcome = page.locator('.bubble:not([inert] *) .outcome')
+    if ((await outcome.count()) > 0) {
+      const badge = (await outcome.boundingBox())!
+      expect(badge.y, `${url}: the badge under the arrow's foot`).toBeGreaterThanOrEqual(arrow.y + arrow.height)
+    }
+  }
+})
+
 test('clicking the arrow on /<tree>/start/<a>/<b> lands on /<tree>/start/<a>, and again on /<tree>/start', async ({ page }) => {
   await walkToChild(page)
   await expect(upArrow(page)).toHaveAccessibleName('Back to: Does your system do any of the prohibited practices?')
