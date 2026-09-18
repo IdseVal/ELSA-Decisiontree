@@ -10,6 +10,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeAll, describe, expect, test } from 'vitest'
+import { chrome } from '../src/chrome.ts'
+import { Bubble } from '../src/components/Bubble.tsx'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
 import { TreeView } from '../src/components/TreeView.tsx'
 import { neighbourhood } from '../src/neighbourhood.ts'
@@ -105,7 +107,7 @@ function branches(html: string, className: string): Array<[href: string, title: 
 }
 
 describe('the tree layer', () => {
-  test('is one element holding the Trail, the Bubble, the Branches and the Carousel row, in that order (11.1)', async () => {
+  test('is one element holding the Trail, the Bubble, the Branches and the Carousel band, in that order (11.1)', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
     const layer = part(html, 'div', 'tree-layer')
 
@@ -163,7 +165,7 @@ describe('the tree layer', () => {
     ])
   })
 
-  test('the Carousel row is present on every Node, empty where the Node carries no picture, so the Bubble never moves (12.1)', async () => {
+  test('the Carousel band is present on every Node, empty where the Node has no Image, so the Bubble never moves (12.1)', async () => {
     for (const url of ['/ai-act-example/covered', '/ai-act-example/prohibited-practices']) {
       expect(await view(url), url).toContain('<div class="carousel"></div>')
       // So such a Node has no strip, and no empty tab stop without a script either.
@@ -172,14 +174,14 @@ describe('the tree layer', () => {
     expect(await view('/ai-act-example/start')).toContain('<section class="carousel">')
   })
 
-  test("an Option's picture is its target's first Image, in the target's Carousel row (tree-format.md 5.4, 12.1)", async () => {
+  test("an Option's picture is its target's main image, not on the Option and not in a strip (tree-format.md 5.4, 10.3, 12.1)", async () => {
     // In elsa-tree/2 `prohibited-practices` carried scoreboard.png on its Option; the
     // migration of #79 moved it to `social-scoring`. Drawing it on the Option's button is #80's.
     expect(await view('/ai-act-example/prohibited-practices')).not.toContain('scoreboard.png')
 
     const html = await view('/ai-act-example/prohibited-practices/social-scoring')
-    expect(all(part(html, 'ul', 'carousel-strip'), /<a class="thumbnail" href="([^"]*)"/g)).toEqual(['/images/scoreboard.png'])
-    expect(captions(html, 'caption-wide')[0]).toMatch(/^A scoreboard ranking people — \S/)
+    expect(part(html, 'article', 'bubble')).toContain('<a class="main-image" href="/images/scoreboard.png"')
+    expect(html).not.toContain('class="thumbnail"')
   })
 
   test('carries the notice for a window at or below the floor, with a sentence per short dimension (10.4)', async () => {
@@ -202,163 +204,138 @@ function all(html: string, pattern: RegExp): string[] {
   return [...html.matchAll(pattern)].map((match) => match[1]!)
 }
 
-/** The text a caption variant shows: its markup without the tags. */
-function captions(html: string, variant: 'caption-wide' | 'caption-narrow'): string[] {
-  return all(html, new RegExp(`<span class="${variant}">(.*?)</span></span>`, 'g')).map((inner) =>
-    `${inner}</span>`.replace(/<[^>]+>/g, ''),
-  )
-}
+describe('the main image', () => {
+  test("is the Node's first Image, above the title, a link to its file named by enlarge and its description and described by its credit (10.3, 12.3)", async () => {
+    const bubble = part(await view('/carousel/five?lang=nl'), 'article', 'bubble')
+
+    expect(bubble).toContain(
+      '<a class="main-image" href="/images/orchard.svg" data-enlarge="0" aria-labelledby="main-image-enlarge main-image-picture" aria-describedby="main-image-credit">' +
+        '<img id="main-image-picture" src="/images/orchard.svg" alt="Een boomgaard met drie appelbomen onder een gele zon" width="90" height="60"/></a>',
+    )
+    expect(bubble).toContain('<span hidden="" id="main-image-enlarge">Vergroten</span>')
+    expect(bubble).toContain('<span hidden="" id="main-image-credit">Drawing: Example Studio, CC0 1.0</span>')
+    // Above the title, and not loaded lazily: it is on screen whenever the Bubble is.
+    expect(bubble.indexOf('class="main-image"')).toBeLessThan(bubble.indexOf('<h1'))
+    expect(/<a class="main-image"[^]*?<\/a>/.exec(bubble)![0]).not.toContain('loading=')
+  })
+
+  test('a Node without Images shows the empty slot in its place, which says nothing to assistive technology (10.3)', async () => {
+    const bubble = part(await view('/ai-act-example/emotion-recognition-at-work'), 'article', 'bubble')
+    expect(bubble).toContain('<div class="bubble-text"><span class="main-image main-image--empty" aria-hidden="true"></span><h1 ')
+    expect(bubble).not.toContain('<img')
+  })
+
+  test('a neighbour frame keeps the slot and names no image file (11.4)', async () => {
+    // The Bubble a neighbour frame draws: `two` has Images of its own.
+    const node = (await trees.get('carousel')!.getNode('two'))!
+    const html = renderToStaticMarkup(<Bubble node={node} lang="en" ui={chrome('en')} uiLang={undefined} idPrefix="n0-" pictures={false} />)
+    expect(html).toContain('<div class="bubble-text"><span class="main-image main-image--withheld" aria-hidden="true"></span><h1 id="n0-node-title">')
+    expect(html).not.toContain('/images/')
+  })
+})
 
 describe('the Carousel', () => {
-  test("shows the Node's own Images in the author's order, each a thumbnail that links to its file (12.1, 12.3)", async () => {
-    const html = await view('/carousel/five')
-    const strip = part(html, 'ul', 'carousel-strip')
+  test("shows the Node's Images after the main one, in the author's order, as thumbnails that link to their files (12.1, 12.2)", async () => {
+    const strip = part(await view('/carousel/five'), 'ul', 'carousel-strip')
 
-    // Focusable in the markup, named as the row is: the arrow keys scroll it without a script (12.2, 12.3).
+    // Focusable in the markup, named: the arrow keys scroll it without a script (12.2, 12.3).
     expect(strip).toContain('<ul class="carousel-strip" tabindex="0" aria-labelledby="images-label" data-carousel-strip="">')
     expect(all(strip, /<a class="thumbnail" href="([^"]*)"/g)).toEqual([
-      '/images/orchard.svg',
       '/images/greenhouse.svg',
       '/images/drone.svg',
       '/images/tractor.svg',
       '/images/harbour.svg',
     ])
-    // Loaded lazily, with the size the row draws them at, so no page asks for what it does not show (12.4).
+    // Loaded lazily, at the size the strip draws them, so no page asks for what it does not show (12.4).
     expect(strip).toContain(
-      '<img id="carousel-image-0" src="/images/orchard.svg" alt="An orchard of three apple trees under a yellow sun" width="80" height="60" loading="lazy"/>',
+      '<img id="carousel-image-0" src="/images/greenhouse.svg" alt="Two greenhouses with rows of seedlings and a shed beside them" width="48" height="48" loading="lazy"/>',
     )
-    expect(strip.match(/loading="lazy"/g)).toHaveLength(5)
+    expect(strip.match(/loading="lazy"/g)).toHaveLength(4)
   })
 
-  test("the strip holds the Node's own Images only; each Option's picture is in its target's strip (12.1)", async () => {
-    // The full Node: ten Images of its own. Its eight Options carried a picture each in
-    // elsa-tree/2, and the migration of #79 made each its target's first Image.
-    const tree = trees.get('full-node')!
-    const node = (await tree.getNode('full'))!
-    const html = await view('/full-node/full?lang=nl')
-    const expected = node.images.map((image) => `/images/${image.file}`)
-    expect(expected).toHaveLength(10)
-    expect(all(part(html, 'ul', 'carousel-strip'), /<a class="thumbnail" href="([^"]*)"/g)).toEqual(expected)
-    expect(html).toContain('<summary class="sheet-open"><span>Afbeelding 1 van 10</span></summary>')
+  test('pictures only: no button, no position text, no caption, and nothing written under a picture (12.2)', async () => {
+    const html = await view('/carousel/five')
+    const carousel = part(html, 'section', 'carousel')
+    const strip = part(html, 'ul', 'carousel-strip')
 
-    for (const option of node.options) {
-      const target = (await tree.getNode(option.target))!
-      const strip = part(await view(`/full-node/full/${option.target}?lang=nl`), 'ul', 'carousel-strip')
-      expect(all(strip, /<a class="thumbnail" href="([^"]*)"/g), option.target).toEqual([`/images/${target.images[0]!.file}`])
-    }
+    expect(carousel).not.toContain('<button')
+    expect(carousel).not.toMatch(/carousel-caption|carousel-position|aria-live/)
+    // The one caption left is the enlarged view's, inside its Sheet (12.3).
+    expect(carousel.match(/<figcaption>/g)).toHaveLength(5)
+    expect(part(carousel, 'details', 'sheet carousel-sheet').match(/<figcaption>/g)).toHaveLength(5)
+    // Every text inside the strip is hidden: the credit a thumbnail is described by, and nothing else.
+    expect(all(strip, />([^<]+)</g)).toEqual([
+      'Drawing: Example Studio, CC BY 4.0',
+      'Drawing: Example Illustrator, via Example Commons, CC BY-SA 4.0',
+      'Drawing: Example Studio, CC0 1.0',
+      'Drawing: Example Cartography, public domain',
+    ])
+    expect(strip.match(/<span hidden="" id="carousel-credit-\d">/g)).toHaveLength(4)
   })
 
-  test('names the strip and not the row around it, and names each thumbnail by the enlarge word and its description, described by its credit', async () => {
+  test('a Node with one Image has no strip and no tab stop there, but its enlarged view (12.1, 12.3)', async () => {
+    const carousel = part(await view('/ai-act-example/start'), 'section', 'carousel')
+    expect(carousel).not.toContain('carousel-strip')
+    expect(carousel).toContain('<details class="sheet carousel-sheet" name="sheet"><summary class="sheet-open"><span>Image 1 of 1</span></summary>')
+  })
+
+  test("the full Node's strip holds nine: its ten Images less the main one (12.1)", async () => {
+    const node = (await trees.get('full-node')!.getNode('full'))!
+    const strip = part(await view('/full-node/full?lang=nl'), 'ul', 'carousel-strip')
+    expect(all(strip, /<a class="thumbnail" href="([^"]*)"/g)).toEqual(node.images.slice(1).map((image) => `/images/${image.file}`))
+    expect(strip.match(/<li>/g)).toHaveLength(9)
+  })
+
+  test('names the strip and each thumbnail by the enlarge word and its description, described by its credit', async () => {
     const html = await view('/carousel/five?lang=nl')
 
-    // One name, on the focusable strip 12.3 names: on the row as well it would be read twice.
+    // One name, on the focusable strip 12.3 names: on the band as well it would be read twice.
     expect(html).toContain('<section class="carousel">')
     expect(html.match(/aria-labelledby="images-label"/g)).toHaveLength(1)
     expect(html).toContain('<span hidden="" id="images-label">Afbeeldingen</span>')
     expect(html).toContain('<span hidden="" id="carousel-enlarge">Vergroten</span>')
     expect(html).toContain(
-      '<a class="thumbnail" href="/images/drone.svg" aria-labelledby="carousel-enlarge carousel-image-2" aria-describedby="carousel-credit-2">',
+      '<a class="thumbnail" href="/images/drone.svg" data-enlarge="2" aria-labelledby="carousel-enlarge carousel-image-1" aria-describedby="carousel-credit-1">',
     )
-    expect(html).toContain('<span id="carousel-credit-2">Drawing: Example Illustrator, via Example Commons, CC BY-SA 4.0</span>')
+    expect(html).toContain('<span hidden="" id="carousel-credit-1">Drawing: Example Illustrator, via Example Commons, CC BY-SA 4.0</span>')
     expect(html).toContain('alt="Een drone die een akker van bovenaf scant"')
   })
 
-  test('the chrome of the Carousel speaks its own language beside content it does not speak', async () => {
-    // other-languages carries no Image on a Node; the example's Dutch page is the chrome's own language.
+  test('the chrome of the enlarged view speaks its own language beside content it does not speak', async () => {
     expect(await view('/carousel/five')).toContain('<summary class="sheet-open"><span>Image 1 of 5</span></summary>')
     expect(await view('/carousel/five?lang=nl')).toContain('<summary class="sheet-open"><span>Afbeelding 1 van 5</span></summary>')
+    expect(await view('/other-languages/start')).toContain('<summary class="sheet-open"><span lang="en">Image 1 of 1</span></summary>')
   })
 
-  test('gives every Image a caption of its whole description and its credit when both fit the line', async () => {
-    expect(captions(await view('/carousel/five'), 'caption-wide')).toEqual([
-      'An orchard of three apple trees under a yellow sun — Drawing: Example Studio, CC0 1.0',
-      'Two greenhouses with rows of seedlings and a shed beside them — Drawing: Example Studio, CC BY 4.0',
-      'A drone scanning a field from above — Drawing: Example Illustrator, via Example Commons, CC BY-SA 4.0',
-      'A red tractor on a dirt track — Drawing: Example Studio, CC0 1.0',
-      'A fishing harbour at sunset with a boat leaving the quay — Drawing: Example Cartography, public domain',
-    ])
-  })
-
-  test('the caption is at most 170 characters, the credit whole and the description shortened to fit (12.2)', async () => {
-    // The full Node: descriptions and credits of 120 characters each, 243 with the separator.
-    const tree = trees.get('full-node')!
-    const node = (await tree.getNode('full'))!
-    for (const lang of ['en', 'nl']) {
-      const html = await view(`/full-node/full${lang === 'en' ? '' : `?lang=${lang}`}`)
-      const wide = captions(html, 'caption-wide')
-      const narrow = captions(html, 'caption-narrow')
-      expect(wide).toHaveLength(10)
-
-      for (const [index, image] of node.images.entries()) {
-        const description = image.description[lang]!
-        expect(wide[index]!.length, wide[index]).toBeLessThanOrEqual(170)
-        expect(wide[index]!.endsWith(image.credit), wide[index]).toBe(true)
-        // At the guaranteed width the description keeps the 47 characters 12.2 promises, and says it was cut.
-        const shown = wide[index]!.slice(0, -(image.credit.length + ' — '.length))
-        expect(shown.endsWith('…'), shown).toBe(true)
-        expect(shown.length).toBeGreaterThanOrEqual(47)
-        expect(description.startsWith(shown.slice(0, -1))).toBe(true)
-        // Below it a 120-character credit and its separator fill the line: the credit stays
-        // whole and the description has no room (the next test).
-        expect(narrow[index]).toBe(image.credit)
-      }
-    }
-  })
-
-  test('below the guaranteed width the caption is at most 123 characters, so every credit the format allows is whole (12.2)', async () => {
-    for (const url of ['/carousel/five', '/carousel/five/two/long']) {
-      const narrow = captions(await view(url), 'caption-narrow')
-      expect(narrow.length, url).toBeGreaterThan(0)
-      expect(narrow.filter((line) => line.length > 123), url).toEqual([])
-    }
-    // Both fit whole on the narrow line too: 101 characters with the separator.
-    expect(captions(await view('/carousel/five'), 'caption-narrow')[2]).toBe(
-      'A drone scanning a field from above — Drawing: Example Illustrator, via Example Commons, CC BY-SA 4.0',
-    )
-
-    const narrow = captions(await view('/carousel/five/two/long'), 'caption-narrow')
-    // A credit of 120 characters leaves the description no room: the credit alone, never cut.
-    expect(narrow[0]).toBe(
-      'Photograph: Example Agricultural Research Station, Department of Soil and Water, via Example Commons, licence CC BY 4.0.',
-    )
-    // A short credit leaves 86 characters: the description gives way, and says so.
-    expect(narrow[1]).toBe(
-      'A solar-powered pump beside a pond, its panel tilted towards the sun and a pipe leadi… — Drawing: Example Studio, CC BY 4.0',
+  test("without a script, a stylesheet shows the enlarged view's control beside the strip, so every credit is one disclosure away (14)", async () => {
+    expect(part(await view('/carousel/five'), 'section', 'carousel')).toContain(
+      '<noscript><style>.carousel-sheet > .sheet-open { display: block; }</style></noscript>',
     )
   })
 
-  test('the shortened description is for the eye: the whole one is the thumbnail\'s name, so the copy is hidden from assistive technology', async () => {
-    const html = await view('/full-node/full')
-    expect(html).toContain('<span class="caption-wide"><span aria-hidden="true">Picture 1 of ten: a description of one hundred…')
-  })
-
-  test('the row collapses by width alone: nothing in the markup keys it to the length of a credit (10.5, step 2)', async () => {
-    for (const url of ['/full-node/full', '/carousel/five/two/long', '/carousel/five']) {
-      expect(await view(url), url).not.toContain('data-long-credit')
-    }
-  })
-
-  test('the enlarged view is a Sheet holding each Image in full, one page each, its description and credit whole (12.3, 14)', async () => {
-    const html = await view('/full-node/full')
-    const sheet = part(html, 'details', 'sheet carousel-sheet')
-    const tree = trees.get('full-node')!
-    const node = (await tree.getNode('full'))!
+  test('the enlarged view is a Sheet holding every Image in full, the main image first, its description and credit whole (12.3, 14)', async () => {
+    const sheet = part(await view('/full-node/full'), 'details', 'sheet carousel-sheet')
+    const node = (await trees.get('full-node')!.getNode('full'))!
 
     expect(sheet.match(/<figure class="sheet-figure">/g)).toHaveLength(10)
     // Without the script every page after the first is a disclosure: nine of them.
     expect(sheet.match(/<details class="sheet-more">/g)).toHaveLength(9)
+    expect(all(sheet, /<img src="([^"]*)"/g)).toEqual(node.images.map((image) => `/images/${image.file}`))
     for (const image of node.images) {
       expect(sheet).toContain(`<img src="/images/${image.file}" alt="${image.description.en}" loading="lazy"/>`)
-      expect(sheet).toContain(`<p class="credit"><span class="kind">Credit</span> ${image.credit}</p>`)
+      expect(sheet).toContain(
+        `<figcaption><p>${image.description.en}</p><p class="credit"><span class="kind">Credit</span> ${image.credit}</p></figcaption>`,
+      )
     }
   })
 })
 
 describe('the Bubble', () => {
-  test('holds the title as the page heading, the description as rich text, and the Sources', async () => {
+  test('holds the main image, the title as the page heading, the description as rich text, and the Sources', async () => {
     const html = await view('/ai-act-example/start')
     const bubble = part(html, 'article', 'bubble')
 
+    expect(bubble).toContain('<a class="main-image" href="/images/eu-map.png"')
     expect(bubble).toContain('<h1 id="node-title">Is your AI system within the reach of the AI Act?</h1>')
     expect(bubble).toContain('<p>The AI Act reaches AI systems')
     expect(bubble).toContain('<strong>placed on the market')
@@ -405,22 +382,38 @@ describe('Sources', () => {
     }
   })
 
-  test('are labelled by their kind, and say that the link leaves the page', async () => {
-    const html = await view('/ai-act-example/social-scoring')
-
-    expect(html).toContain('>Legal</span>')
-    expect(html).toContain('>Case law</span>')
-    expect(html).toContain('>Literature</span>')
-    expect(html).toContain('<span hidden="" id="sources-new-tab">opens in a new tab</span>')
+  test('sit under the chrome heading, which names the group, in both chrome languages (ADR-78-sources-heading)', async () => {
+    expect(part(await view('/ai-act-example/social-scoring'), 'section', 'sources')).toMatch(
+      /^<section class="sources" aria-labelledby="sources-label"><h2 id="sources-label">Legal sources<\/h2>/,
+    )
+    expect(part(await view('/ai-act-example/social-scoring?lang=nl'), 'section', 'sources')).toContain(
+      '<h2 id="sources-label">Juridische bronnen</h2>',
+    )
+    // Content in German: the heading is English chrome, and says so (3.1).
+    expect(await view('/other-languages/start')).toContain('<h2 id="sources-label" lang="en">Legal sources</h2>')
   })
 
-  test('are also in the Sheet they collapse to below the guarantee, as the same links (10.5, 14)', async () => {
+  test('carry the Case law and Literature labels, not the Legal one, and say that the link leaves the page', async () => {
     const html = await view('/ai-act-example/social-scoring')
-    const sheet = part(html, 'div', 'sources-collapsed')
+    const sources = part(html, 'section', 'sources')
 
-    expect(sheet).toContain('<summary class="sheet-open"><span>Sources (3)</span></summary>')
+    expect(sources).toContain('<li><a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj"')
+    expect(sources).not.toContain('>Legal</span>')
+    expect(sources).toContain('<li><span class="kind">Case law</span> <a href="https://curia.europa.eu')
+    expect(sources).toContain('<li><span class="kind">Literature</span> <a href="https://arxiv.org')
+    expect(html).toContain('<span hidden="" id="sources-new-tab">opens in a new tab</span>')
+    const nl = part(await view('/ai-act-example/social-scoring?lang=nl'), 'section', 'sources')
+    expect(nl).not.toContain('>Wetgeving</span>')
+    expect(nl).toContain('>Rechtspraak</span>')
+  })
+
+  test('are also in the Sheet they collapse to below the guarantee, titled by the same heading, as the same links (10.5, 14)', async () => {
+    const sheet = part(await view('/ai-act-example/social-scoring'), 'div', 'sources-collapsed')
+
+    expect(sheet).toContain('<summary class="sheet-open"><span>Legal sources (3)</span></summary>')
     expect(sheet.match(/target="_blank"/g)).toHaveLength(3)
     expect(sheet).toContain('href="https://arxiv.org/abs/2107.03721"')
+    expect(sheet).not.toContain('>Legal</span>')
   })
 
   test('a Node without Sources renders neither the list nor the Sheet', async () => {
