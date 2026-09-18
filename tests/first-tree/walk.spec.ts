@@ -275,11 +275,12 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     const options = await page.locator('.option').count()
     expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)
     await expect(page.locator('.option-image')).toHaveCount(0)
-    // The Node's own picture (application.md 12.1).
-    await expect(page.locator('.carousel .thumbnail img')).toHaveCount(1)
+    // The Node's own picture is its main image, and it has no other (application.md 10.3, 12.1).
+    await expect(page.locator('.bubble .main-image img')).toHaveCount(1)
+    await expect(page.locator('.carousel .thumbnail')).toHaveCount(0)
 
     // The description is the alternative text (tree-format.md 5.2), in the reader's language.
-    for (const image of await page.locator('.option-image, .carousel .thumbnail img').all()) {
+    for (const image of await page.locator('.option-image, .bubble .main-image img').all()) {
       expect((await image.getAttribute('alt'))?.trim(), 'an Image with no alternative text').toBeTruthy()
     }
 
@@ -303,10 +304,12 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
  * it" is. The owner's answer on PR #54 (2026-09-12) was to merge the pictures now and make
  * the display a release blocker (`docs/deployment.md`), tracked as issue #55.
  *
- * The tests below assert it: the Node pictures show their credit in the enlarged view, every
- * Option picture on screen has a credit in the Tree the server is serving, and every one of
- * the 99 shows its credit on the Carousel's caption line without a click (issue #55, which
- * replaced the declared failing test that stood here until the display was built).
+ * Since #81 the owner's pictures-only Carousel (#75) shows nothing under a picture: a Node
+ * picture's credit is its accessible description and is shown whole in the enlarged view,
+ * one keystroke away (application.md 12.2, 12.3; ADR-78-carousel, decision 5). An Option's
+ * picture is its target's main image, credited in the target's Overlay (12.1), which #80
+ * builds. Since #84 every one of the 71 Nodes carries a main image, the 28 Option pictures
+ * among them on their targets, so every credit is read below on its own Node.
  */
 const TREE_DIR = fileURLToPath(new URL('../../trees/ai-act-applicability-agrifood', import.meta.url))
 
@@ -341,33 +344,30 @@ test.beforeAll(async () => {
   tree = await openTree(TREE_DIR)
 })
 
-test("every step Node's picture gives its credit on the Carousel's caption line and in the enlarged view", async ({ page }) => {
+test("every step Node's picture is its main image, and a click on it shows its credit in the enlarged view", async ({ page }) => {
   for (const nodeId of STEP_NODES) {
     const node = await tree.getNode(nodeId)
     expect(node, `${nodeId} cannot be read`).not.toBeNull()
+    expect(node!.images, `${nodeId}: one picture`).toHaveLength(1)
     await page.goto(`/${TREE}/${nodeId}`)
 
-    // The strip holds the Node's own pictures (application.md 12.1).
-    const thumbnails = page.locator('.thumbnail')
-    await expect(thumbnails).toHaveCount(node!.images.length)
-    for (const [index, image] of node!.images.entries()) {
-      await thumbnails.nth(index).click()
-      const enlarged = page.locator('.carousel-sheet .sheet-panel')
-      await expect(enlarged).toBeVisible()
-      // Author, where it came from and the licence, as `tree.yaml` writes it.
-      await expect(enlarged.locator('.credit')).toContainText(image.credit)
-      await page.keyboard.press('Escape')
-      await expect(enlarged).toBeHidden()
-      // And without a click: the Carousel (#43) puts the selected picture's credit, whole,
-      // under the strip (application.md 12.2).
-      await expect(page.locator('.carousel-caption:visible')).toContainText(image.credit, { useInnerText: true })
-    }
+    // One Image: the main image above the title, and no strip (application.md 10.3, 12.1).
+    await expect(page.locator('.thumbnail')).toHaveCount(0)
+    const image = node!.images[0]!
+    await page.locator('.bubble a.main-image').click()
+    const enlarged = page.locator('.carousel-sheet .sheet-panel')
+    await expect(enlarged).toBeVisible()
+    // Author, where it came from and the licence, as `tree.yaml` writes it.
+    await expect(enlarged.locator('.credit')).toContainText(image.credit)
+    await page.keyboard.press('Escape')
+    await expect(enlarged).toBeHidden()
   }
 })
 
 test("every Annex Option's picture is its target's first Image, on screen with a credit in the Tree this server is serving", async ({ page }) => {
   // elsa-tree/3 (tree-format.md 5.4): an Option has no Images of its own; the migration of #79
-  // moved each Annex Option's picture to its target, where the target's own page shows it.
+  // moved each Annex Option's picture to its target, where the target's own page shows it as
+  // its main image (application.md 10.3).
   let checked = 0
   for (const nodeId of ANNEX_NODES) {
     const node = await tree.getNode(nodeId)
@@ -377,7 +377,7 @@ test("every Annex Option's picture is its target's first Image, on screen with a
       const image = (await tree.getNode(option.target))!.images[0]
       expect(image, `${option.target} carries no Image`).toBeDefined()
       await page.goto(pageUrl([nodeId, option.target], 'en'))
-      await expect(page.locator('.thumbnail').first(), option.target).toHaveAttribute('href', imageHref(image!.file))
+      await expect(page.locator('.bubble a.main-image'), option.target).toHaveAttribute('href', imageHref(image!.file))
       expect(image!.credit, `${option.target}: ${image!.file} has no licence in its credit`).toMatch(OPEN_LICENCE)
       checked += 1
     }
@@ -388,41 +388,36 @@ test("every Annex Option's picture is its target's first Image, on screen with a
 })
 
 for (const lang of ['en', 'nl'] as const) {
-  test(`every picture shows its author, source and licence without a click, in ${lang}`, async ({ page }) => {
-    // Issue #55, replacing the declared failing test #45 left here: the owner chose on #55
-    // (2026-09-14) that an Option's picture joins the Carousel after the Node's own, so every
-    // credit is on the caption line under the strip (application.md 12.1, 12.2). The strip is
-    // walked by the keyboard, never clicked, at the guaranteed viewport this config sets.
+  test(`every Node picture's credit is its accessible description and whole in the enlarged view, by keyboard, in ${lang}`, async ({ page }) => {
+    // Where application.md 12.2 and 12.3 put it since #81, read by `credits.ts` without a click
+    // at the guaranteed viewport this config sets.
     const byNode = await picturesByNode(tree, TREE_DIR)
     let read = 0
-    for (const [nodeId, pictures] of byNode) {
-      read += await readEveryCredit(page, pageUrl([nodeId], lang), pictures)
+    for (const [nodeId, images] of byNode) {
+      read += await readEveryCredit(page, pageUrl([nodeId], lang), images)
     }
     // 71 since #84: an Image on each of the 71 Nodes, the 28 Option pictures among them on their targets (NOTES.md 6).
-    expect(read, 'pictures read').toBe(71)
+    expect(read, 'Node pictures read').toBe(71)
     // Every Image in the Tree is one of them: no Option carries a second picture that no page shows.
     const nodes = await Promise.all([...byNode.keys()].map((id) => tree.getNode(id)))
     expect(nodes.reduce((sum, node) => sum + node!.images.length, 0)).toBe(71)
   })
 }
 
-test('the screenshots issue #55 owes: annex-i-legislation on an Option picture, and a step Node, at 1280 x 640', async ({ page }) => {
-  // `ELSA_SHOTS=1` writes the tracked pair, as above; the viewport is this config's, the guaranteed one.
+test('the screenshots issue #81 owes of the first Tree: the start Node and its enlarged view, at 1280 x 640', async ({ page }) => {
+  // `ELSA_SHOTS=1` writes the tracked set, as above; the viewport is this config's, the guaranteed one.
   const shots = fileURLToPath(
-    process.env.ELSA_SHOTS === '1' ? new URL('../../docs/screenshots/issue-55/', import.meta.url) : new URL('.results/shots/', import.meta.url),
+    process.env.ELSA_SHOTS === '1' ? new URL('../../docs/screenshots/issue-81/', import.meta.url) : new URL('.results/shots/', import.meta.url),
   )
   const shot = async (name: string): Promise<void> => {
     await page.evaluate(() => document.fonts.ready)
+    await page.waitForLoadState('networkidle')
     await page.screenshot({ path: path.join(shots, `${name}.png`) })
   }
 
-  // Since elsa-tree/3 (#79) the Options' pictures are on their targets, so this strip holds the Node's own.
-  await page.goto(`/${TREE}/annex-i-legislation`)
-  const own = (await tree.getNode('annex-i-legislation'))!.images.length
-  await expect(page.locator('.carousel-position')).toHaveText(`Image 1 of ${own}`)
-  await shot('annex-i-legislation-1280x640')
-
-  await page.goto(`/${TREE}/ai-system-definition`)
-  await expect(page.locator('.carousel-caption:visible')).toBeVisible()
-  await shot('step-node-1280x640')
+  await page.goto(`/${TREE}/start`)
+  await shot('first-tree-start-1280x640')
+  await page.locator('.bubble a.main-image').click()
+  await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
+  await shot('first-tree-start-enlarged-1280x640')
 })

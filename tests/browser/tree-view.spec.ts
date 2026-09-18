@@ -50,12 +50,16 @@ test.describe('following a Branch', () => {
     await page.goto(EXPLANATION)
     await expect(page.locator('.trail-entry')).toHaveCount(3)
 
-    await page.locator('.trail-entry').nth(1).click()
+    // The band shows the parent; the entries before it are in the Trail Sheet, newest first (#81).
+    const entries = page.locator('.trail-sheet .sheet-list a')
+    await page.locator('.trail-sheet .sheet-open').click()
+    await entries.nth(1).click()
     await arrived(page, QUESTION)
     await expect(page.locator('.trail-entry')).toHaveCount(1)
 
     await page.goto(EXPLANATION)
-    await page.locator('.trail-entry').first().click()
+    await page.locator('.trail-sheet .sheet-open').click()
+    await entries.last().click()
     await arrived(page, ROOT)
     await expect(page.locator('.trail-entry')).toHaveCount(0)
   })
@@ -151,10 +155,12 @@ test.describe('the keyboard', () => {
 
   test('Enter follows a Trail Branch, an Option, an Answer and a back Branch', async ({ page }) => {
     await page.goto(EXPLANATION)
-    await page.locator('.trail-entry').nth(1).focus()
+    // The one entry the band shows is the parent (#81).
+    await page.locator('.trail-step[data-parent] .trail-entry').focus()
     await page.keyboard.press('Enter')
-    await arrived(page, QUESTION)
+    await arrived(page, `${QUESTION}/emotion-recognition-at-work`)
 
+    await page.goto(QUESTION)
     await page.locator('.option').first().focus()
     await page.keyboard.press('Enter')
     await arrived(page, `${QUESTION}/social-scoring`)
@@ -175,7 +181,7 @@ test.describe('the keyboard', () => {
     const sheet = page.locator('.sources-sheet')
     const control = sheet.locator('.sheet-open')
     await expect(control).toBeVisible()
-    await expect(control).toHaveText('Sources (3)')
+    await expect(control).toHaveText('Legal sources (3)')
 
     await control.focus()
     await page.keyboard.press('Enter')
@@ -219,9 +225,9 @@ test.describe('the Trail Sheet', () => {
     await page.goto(LONG_TRAIL)
     const sheet = page.locator('.trail-sheet')
     const control = sheet.locator('.sheet-open')
-    // Six entries or more: `start`, the collapsed middle, the last four (10.2).
-    await expect(page.locator('.trail-entry:visible')).toHaveCount(5)
-    await expect(control).toHaveText('44 earlier steps', { useInnerText: true })
+    // The parent and the control, at every size: the 26-pixel band of 10.1 holds one line (#81).
+    await expect(page.locator('.trail-entry:visible')).toHaveCount(1)
+    await expect(control).toHaveText('48 earlier steps', { useInnerText: true })
 
     await control.click()
     const links = sheet.locator('.sheet-list a')
@@ -260,7 +266,7 @@ test.describe('the Trail Sheet', () => {
     // The fourth-newest entry: `start` reached by a Trail of 45.
     await sheet.locator('.sheet-list a').nth(3).click()
     await arrived(page, `${TREE}/${Array.from({ length: 46 }, () => 'start').join('/')}`)
-    await expect(page.locator('.trail-sheet .sheet-open')).toHaveText('40 earlier steps', { useInnerText: true })
+    await expect(page.locator('.trail-sheet .sheet-open')).toHaveText('44 earlier steps', { useInnerText: true })
   })
 
   test('below the guaranteed height it is the parent and the control, and the control says how many it hides', async ({ page }) => {

@@ -63,6 +63,11 @@ FIX CYCLES (your brief will say "this PR was sent back" and include the comments
 - If a point is wrong or impossible, say so on the PR, add `needs-human`, and END YOUR
   RUN. Do not argue in circles.
 
+TREE CONTENT IS PLACEHOLDER: the text, explainers, pictures, credits and legal wording in
+`trees/*/tree.yaml` are development filler the owner replaces by hand. Never ask the owner
+about content, never file an issue about content quality, and never let a content doubt
+stop a run; the format, loader, validator and app are the work.
+
 NEEDING THE HUMAN (a decision, a credential, a missing skill):
 - Post a comment on the ISSUE or PR explaining exactly what you need and what you will do
   with the answer. Add the label `needs-human` (`gh issue edit N --add-label needs-human`

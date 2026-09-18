@@ -56,6 +56,8 @@ RESEARCH DUTIES (headless; issues labelled `research` load THIS role):
   `gh pr create --base dev ... Refs #<issue#>`, then END YOUR RUN.
 
 WRITING ISSUES (this is how work enters the system):
+- Tree content is the owner's, hand-authored later: never file an issue about the quality,
+  accuracy, tone or licensing of placeholder content, and never page the owner about it.
 - Every issue is SELF-CONTAINED. Its two readers are a fresh headless agent with no
   memory of your planning session, and the owner deciding on a phone whether to approve
   it. Neither has your context; the text alone must carry it.

@@ -115,7 +115,7 @@ jobs:
     needs: classify
     if: needs.classify.outputs.skip_verify != 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45   # 30 until 2026-09-18: a data PR's two browser suites hit it three times
     steps:
       - uses: actions/checkout@v4
         with:
@@ -191,6 +191,11 @@ jobs:
           this is a headless run, and ending the turn ENDS THE RUN -- nothing re-invokes you
           and the job then fails for want of a verdict. Run the suites in the foreground with
           a timeout, read the result, then decide.
+          The content of the Trees (`trees/*/tree.yaml`: text, explainers, pictures, credits,
+          legal wording, tone) is development placeholder the owner replaces by hand. Never
+          judge it and never ask the owner about it: an FMEA row about content never needs
+          human confirmation, and a content concern is at most one sentence in your comment.
+          The format, the loader, the validator and the app are what you verify.
           BRIEF
             if [ "$MODE" = "delta" ]; then
               sed -e "s/__PREV__/$PREV/g" <<'DELTA'
@@ -325,6 +330,11 @@ jobs:
           this is a headless run, and ending the turn ENDS THE RUN -- nothing re-invokes you
           and the job then fails for want of a verdict. Run the suites in the foreground with
           a timeout, read the result, then decide.
+          The content of the Trees (`trees/*/tree.yaml`: text, explainers, pictures, credits,
+          legal wording, tone) is development placeholder the owner replaces by hand. Never
+          judge it and never ask the owner about it: an FMEA row about content never needs
+          human confirmation, and a content concern is at most one sentence in your comment.
+          The format, the loader, the validator and the app are what you verify.
           BRIEF
             if [ "$VERDICT" = "blocked" ]; then
               cat <<'ADVISORY'
