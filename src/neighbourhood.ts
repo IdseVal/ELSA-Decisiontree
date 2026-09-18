@@ -72,43 +72,54 @@ export const MAX_ASIDES = 8
 export const MAX_CHAIN = 2
 
 /**
- * The centre of the page `at` names and the aside chain after it (10.9): the centre is the
- * last entry of the path that is a question Node or a Terminal, and the entries after it are
- * explanation Nodes, each an aside of the one before. A path that names only explanation
- * Nodes has no parent to show, so its first entry is the centre and the rest its chain: every
- * Node stays reachable by its own URL. Null when an entry read from the end is not a Node of
- * the Tree, which `parseUrl` has already ruled out for every id it accepts.
+ * The centre of the page `at` names and the aside chain after it (10.9): the entries at the
+ * end of the path that are explanation Nodes are the chain, each an aside of the one before,
+ * and the entry before them is the centre. A path that names only explanation Nodes has no
+ * parent to show, so its first entry is the centre and the rest its chain: every Node stays
+ * reachable by its own URL. Null when an entry read is not a Node of the Tree, which
+ * `parseUrl` has already ruled out for every id it accepts.
  *
- * Reads at most three Nodes, each id once, because the seventeen of 11.2 leave room for the
- * centre, its asides and one Overlay that is not among them, and a path may be 50 entries of
- * anything (4.3 checks no adjacency). So the walk back stops after `MAX_CHAIN` explanation
- * Nodes: the entry before them is the centre whatever its kind, as the first entry of a path
- * of explanation Nodes alone is. And the first of a chain of two is an aside of that centre
- * or it is the centre itself, under the entry before it: either way the open Overlay is the
- * only Node of the page that may be neither the centre nor its neighbour.
+ * Reads the last `MAX_CHAIN + 1` entries at most, because a path may be 50 entries of
+ * anything (4.3 checks no adjacency) and the seventeen of 11.2 are a contract: the walk back
+ * stops after `MAX_CHAIN` explanation Nodes, and the entry before them is the centre
+ * whatever its kind. And the first of a chain of two is an aside of that centre or it is
+ * the centre itself, under the entry before it: either way the open Overlay is the only
+ * Node of the page that may be neither the centre nor its neighbour. In those two shapes,
+ * which only a URL that ignores adjacency has, the centre is an explanation Node where
+ * 10.9 says "the last entry that is a question Node or a Terminal": #100 asks the
+ * Architect to amend that sentence.
  */
 export async function centreOf(tree: Tree, at: PageAddress): Promise<Centre | null> {
   const ids = [...at.trail, at.nodeId]
+  // An id repeated among the entries read is read once (11.2, last bullet).
   const read = new Map<string, Node | null>()
-  const chain: Aside[] = []
-  for (let index = ids.length - 1; index >= 0; index -= 1) {
+  const entry = async (index: number): Promise<Aside | null> => {
     const id = ids[index]!
     if (!read.has(id)) read.set(id, await tree.getNode(id))
     const node = read.get(id)
     if (!node) return null
     const address = { ...at, trail: ids.slice(0, index), nodeId: node.id }
-    if (node.kind === 'explanation' && index > 0 && chain.length < MAX_CHAIN) {
-      chain.unshift({ node, href: nodeHref(address), address })
-      continue
-    }
-    const known = [...read.values()].filter((n) => n !== null)
-    const first = chain[0]
-    if (first && chain.length === MAX_CHAIN && !node.options.some((option) => option.target === first.node.id)) {
-      return { address: first.address, node: first.node, chain: chain.slice(1), known }
-    }
-    return { address, node, chain, known }
+    return { node, href: nodeHref(address), address }
   }
-  return null
+
+  const chain: Aside[] = []
+  const stop = Math.max(0, ids.length - 1 - MAX_CHAIN)
+  let index = ids.length - 1
+  for (; index > stop; index -= 1) {
+    const aside = await entry(index)
+    if (!aside) return null
+    if (aside.node.kind !== 'explanation') break
+    chain.unshift(aside)
+  }
+  const before = await entry(index)
+  if (!before) return null
+
+  const known = [...read.values()].filter((n) => n !== null)
+  const first = chain[0]
+  if (first && chain.length === MAX_CHAIN && !before.node.options.some((option) => option.target === first.node.id)) {
+    return { address: first.address, node: first.node, chain: chain.slice(1), known }
+  }
+  return { address: before.address, node: before.node, chain, known }
 }
 
 /**
