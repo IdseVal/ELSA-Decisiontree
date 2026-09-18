@@ -262,11 +262,12 @@ const PICTURE_NODES = {
 } as const
 
 for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
-  test(`${nodeId} shows its own picture, all from this server; each Option's is on its target`, async ({ page, baseURL }) => {
+  test(`${nodeId} shows its own picture and its Options' targets' on their buttons, all from this server`, async ({ page, baseURL }) => {
     // Issue #45: the Annex I and Annex III lists are the two the core document (3.3, items
     // 4a and 4b) asks for a picture on every entry of. Since elsa-tree/3 (#79) an entry's
-    // picture is its target's first Image, shown on the target's page and checked in
-    // "every Annex Option's picture is its target's first Image" below; this page asks for its own.
+    // picture is its target's first Image, checked in "every Annex Option's picture is its
+    // target's first Image" below, and since #80 the Option's button shows it (10.3): this
+    // page asks for its own and for one per Option.
     // The requests are recorded over the LAST click only, so what is counted is what this
     // one Node costs a reader, not what the whole walk to it did.
     const visited = await walk(page, steps.slice(0, -1))
@@ -294,7 +295,13 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     // included. The analogue of the #40 check, on the Tree that now carries the pictures.
     const own = new URL(baseURL!).host
     expect(asked.filter((url) => new URL(url).host !== own)).toEqual([])
-    expect(asked.filter((url) => new URL(url).pathname.startsWith('/images/')).length).toBe(1)
+    // Its own main image and one file per Option button, the target's main image; the closed
+    // Overlays' strips are lazy and ask for nothing. Nine on `annex-i-legislation`, as
+    // ADR-78-fan-out-and-option-picture.md's Consequences count it.
+    const pictures = asked.filter((url) => new URL(url).pathname.startsWith('/images/'))
+    expect(new Set(pictures).size, 'a picture asked for twice').toBe(pictures.length)
+    expect(pictures.length).toBe(1 + options)
+    if (nodeId === 'annex-i-legislation') expect(pictures.length).toBe(9)
 
     await page.screenshot({ path: path.join(PICTURE_SHOTS, `${nodeId}.png`), fullPage: true })
   })
