@@ -378,6 +378,17 @@ describe('the content of the first Tree', () => {
       }
     })
 
+    test('every Node carries at least one Image, and its first credit names a licence', () => {
+      // Issue #84: the owner wants a main image on every Node (issue #75), and core document
+      // 3.1 records as proposed that a Node's first Image is it. Every Node, not only the
+      // steps: the explanation Nodes, the jurisdiction sub-steps and the Terminals as well.
+      expect(nodes.size, 'Nodes walked from the root').toBe(71)
+      for (const [id, node] of nodes) {
+        expect(node.images.length, `${id} carries no Image`).toBeGreaterThan(0)
+        expect(node.images[0]!.credit, `${id}: first credit names no licence`).toMatch(OPEN_LICENCE)
+      }
+    })
+
     test("every Image's credit names an open licence, and an attribution besides it", () => {
       // The rule the sourcing of #45 worked under: openly licensed only, and the credit says
       // which licence, next to the author and where the picture came from. `credit` is
@@ -401,7 +412,9 @@ describe('the content of the first Tree', () => {
         ),
       )
       const images = everyImage()
-      expect(rows.size, 'rows in the provenance table').toBe(images.length)
+      // One row per file, not per Image: since #84 an Option's picture also hangs on the Node
+      // the Option opens, so 28 files are used twice and the table still lists each once.
+      expect(rows.size, 'rows in the provenance table').toBe(new Set(images.map(({ image }) => image.file)).size)
       for (const { where, image } of images) {
         const row = rows.get(image.file)
         expect(row, `${where}: not in the provenance table`).toBeDefined()

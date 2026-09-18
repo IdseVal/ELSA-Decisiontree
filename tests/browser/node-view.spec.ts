@@ -162,12 +162,13 @@ test('Escape closes the enlarged image, and so does a click outside it', async (
 
 test('the browser asks for the images of the Node on screen and no others', async ({ page }) => {
   // A Node's own Image is its main image (10.3). An Option has no Image of its own in
-  // elsa-tree/3, so the Node with Options asks for none, and its target for its own.
+  // elsa-tree/3, so the Node with Options asks for its own picture only (#84), and its
+  // target for its own.
   const onStart = await imageRequests(page, () => page.goto(START))
   expect(new Set(onStart)).toEqual(new Set(['eu-map.png']))
 
   const onOptions = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices'))
-  expect(new Set(onOptions)).toEqual(new Set())
+  expect(new Set(onOptions)).toEqual(new Set(['prohibited-practices.png']))
 
   const onTarget = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices/social-scoring'))
   expect(new Set(onTarget)).toEqual(new Set(['scoreboard.png']))
