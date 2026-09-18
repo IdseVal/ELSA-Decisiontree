@@ -66,7 +66,10 @@ function open(term: Element): void {
   // At the guaranteed viewport one of the two always fits -- the panel is at most 148 pixels,
   // the text area 394 (10.8). In a shorter area neither may: the panel then takes the side
   // with more room and is kept inside the area, where it lies over the least of the text.
-  const top = height <= roomBelow ? below : height <= roomAbove || roomAbove > roomBelow ? above : below
+  let top: number
+  if (height <= roomBelow) top = below
+  else if (height <= roomAbove) top = above
+  else top = roomAbove > roomBelow ? above : below
   const left = Math.min(Math.max(first.left - area.left, 0), area.width - width)
   panel.style.top = `${Math.max(0, Math.min(top, area.height - height))}px`
   panel.style.left = `${Math.max(0, left)}px`

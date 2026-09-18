@@ -718,7 +718,8 @@ a.language:hover,
 
 /* Without the script (section 14): CSS alone opens the panel on hover and on focus, at the
    foot of the text area and across it, where it cannot leave the Bubble whichever line the
-   term is on. Hovering the open panel keeps it, so the pointer can reach what it says. */
+   term is on. A term on the last lines lies under the panel it opens, so the pointer is then
+   on the panel, not the term: hovering the panel keeps it open, or it would flicker. */
 .prose:not([data-enhanced]) .term:is(:hover, :focus) + .explainer,
 .prose:not([data-enhanced]) .explainer:hover {
   display: block;
