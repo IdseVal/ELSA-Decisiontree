@@ -105,6 +105,32 @@ test.describe('with a pointer and a keyboard', () => {
     await expect(panel).toBeHidden()
   })
 
+  test('Escape still closes a panel on a page reached by a slide', async ({ page }) => {
+    await open(page)
+    // A slide mounts a neighbour frame, with its own text, and unmounts it when it ends.
+    await page.locator('.answer--yes').click()
+    await expect(page).toHaveURL(/\/explainers\/start\/yes-end$/)
+    await expect(page.locator('.bubble')).toHaveCount(1)
+    await page.goBack()
+    await expect(page).toHaveURL(/\/explainers\/start$/)
+    await expect(page.locator('.bubble')).toHaveCount(1)
+
+    const { term, panel } = marked(page, 'term-two')
+    await term.focus()
+    await expect(panel).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(panel).toBeHidden()
+  })
+
+  test('resizing the window closes the open panel, whose place was measured in the old one', async ({ page }) => {
+    await open(page)
+    const { term, panel } = marked(page, 'term-six')
+    await term.focus()
+    await expect(panel).toBeVisible()
+    await page.setViewportSize({ width: 1024, height: 768 })
+    await expect(panel).toBeHidden()
+  })
+
   test('one panel is open at a time', async ({ page }) => {
     await open(page)
     await marked(page, 'term-one').term.focus()
@@ -168,6 +194,46 @@ test.describe('with a pointer and a keyboard', () => {
         }
       })
     }
+  }
+
+  // Below the guaranteed viewport the text area can be shorter than the 394 pixels that let
+  // one side always fit (10.8); here it is made shorter still, so that the terms high in the
+  // paragraph fit neither below nor above their line.
+  for (const lang of ['en', 'nl']) {
+    test(`in a text area too short for either side, a panel takes the side with more room and stays inside, ${lang}`, async ({ page }) => {
+      await open(page, lang)
+      await page.addStyleTag({ content: '.bubble .bubble-text { height: 240px; flex: none; }' })
+      let neither = 0
+      for (const id of IDS) {
+        const { term, panel } = marked(page, id)
+        await term.focus()
+        await expect(panel).toBeVisible()
+        const where = await panel.evaluate((element) => {
+          const area = element.closest('.bubble-text')!.getBoundingClientRect()
+          const box = element.getBoundingClientRect()
+          const lines = [...element.previousElementSibling!.getClientRects()]
+          return {
+            area: { top: area.top, bottom: area.bottom },
+            box: { top: box.top, bottom: box.bottom },
+            first: lines[0]!.top,
+            last: lines.at(-1)!.bottom,
+          }
+        })
+        const roomBelow = where.area.bottom - where.last
+        const roomAbove = where.first - where.area.top
+        const height = where.box.bottom - where.box.top
+        expect(where.box.top, `${id}: the panel leaves the text area`).toBeGreaterThanOrEqual(where.area.top - 0.5)
+        expect(where.box.bottom, `${id}: the panel leaves the text area`).toBeLessThanOrEqual(where.area.bottom + 0.5)
+        if (height <= roomBelow) expect(where.box.top, `${id}: fits below`).toBeCloseTo(where.last, 0)
+        else if (height <= roomAbove) expect(where.box.bottom, `${id}: fits above`).toBeCloseTo(where.first, 0)
+        else {
+          neither += 1
+          if (roomBelow >= roomAbove) expect(where.box.bottom, `${id}: more room below`).toBeCloseTo(where.area.bottom, 0)
+          else expect(where.box.top, `${id}: more room above`).toBeCloseTo(where.area.top, 0)
+        }
+      }
+      expect(neither, 'some term fits neither below nor above its line').toBeGreaterThan(0)
+    })
   }
 })
 

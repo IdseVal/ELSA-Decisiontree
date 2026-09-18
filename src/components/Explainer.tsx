@@ -24,17 +24,23 @@ function panelOf(term: Element): HTMLElement | null {
   return next instanceof HTMLElement && next.matches('.explainer') ? next : null
 }
 
-/** Closes the open panel, if there is one. */
+/**
+ * Closes the open panel, if there is one. The document listens for Escape and resize only
+ * while a panel is open, so a Bubble mounted or unmounted by a slide cannot take the
+ * listeners of another away.
+ */
 function close(): void {
   openPanel?.removeAttribute('data-open')
   openPanel = null
+  document.removeEventListener('keydown', onEscape, true)
+  window.removeEventListener('resize', close)
 }
 
 /**
  * Opens the panel of `term` and places it. The text area is the panel's containing block; a
  * term wrapped over two lines is left by its last line when the panel goes below and by its
  * first when it goes above, so the panel always touches the words that opened it and the
- * pointer can cross onto it.
+ * pointer can cross onto it. The document listens for Escape and resize until it closes.
  */
 function open(term: Element): void {
   const panel = panelOf(term)
@@ -42,6 +48,10 @@ function open(term: Element): void {
   close()
   panel.setAttribute('data-open', '')
   openPanel = panel
+  document.addEventListener('keydown', onEscape, true)
+  // The panel's place is in pixels of the text area as it is now; a resized window would
+  // leave it where the area no longer is, and outside the page (10.6).
+  window.addEventListener('resize', close)
 
   const area = panel.offsetParent?.getBoundingClientRect()
   const lines = term.getClientRects()
@@ -51,8 +61,12 @@ function open(term: Element): void {
   const { width, height } = panel.getBoundingClientRect()
   const below = last.bottom - area.top
   const above = first.top - area.top - height
-  // One of the two always fits: the panel is at most 148 pixels, the text area 394 (10.8).
-  const top = below + height <= area.height || above < 0 ? below : above
+  const roomBelow = area.height - below
+  const roomAbove = first.top - area.top
+  // At the guaranteed viewport one of the two always fits -- the panel is at most 148 pixels,
+  // the text area 394 (10.8). In a shorter area neither may: the panel then takes the side
+  // with more room and is kept inside the area, where it lies over the least of the text.
+  const top = height <= roomBelow ? below : height <= roomAbove || roomAbove > roomBelow ? above : below
   const left = Math.min(Math.max(first.left - area.left, 0), area.width - width)
   panel.style.top = `${Math.max(0, Math.min(top, area.height - height))}px`
   panel.style.left = `${Math.max(0, left)}px`
@@ -72,13 +86,14 @@ export function Explainer({ html }: { html: string }) {
   // Whether the term under a finger was already open when it went down, so the tap that
   // follows -- which focuses the term, and so opens it -- knows to close it instead.
   const tappedOpen = useRef(false)
+  const element = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setEnhanced(true)
-    document.addEventListener('keydown', onEscape, true)
+    const text = element.current
+    // A neighbour frame unmounted at the end of a slide must leave the centre's panel open.
     return () => {
-      document.removeEventListener('keydown', onEscape, true)
-      close()
+      if (openPanel && text?.contains(openPanel)) close()
     }
   }, [])
 
@@ -124,6 +139,7 @@ export function Explainer({ html }: { html: string }) {
 
   return (
     <div
+      ref={element}
       className="prose"
       data-enhanced={enhanced ? '' : undefined}
       onPointerOver={onPointerOver}
