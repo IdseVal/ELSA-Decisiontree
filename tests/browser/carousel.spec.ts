@@ -9,8 +9,9 @@
  * The Trees: `tests/fixtures/carousel/`, where `five` carries five Images (a main image and
  * four in the strip), `two` carries two, `long` a credit of the format's maximum 120
  * characters, and `done` one that no other page may ask for; `tests/fixtures/full-node/` for
- * the row budget at every maximum; and the first Tree for its `start` Node, a Node without
- * Images and `annex-i-legislation`.
+ * the row budget at every maximum; the first Tree for its `start` Node and
+ * `annex-i-legislation`; and `tests/fixtures/cycle/` for a Node without Images, which since
+ * #84 neither Tree has.
  *
  * The requests and the rows each test records are written to
  * `tests/browser/.results/carousel-requests.md` and `carousel-rows.md`, so the pull request
@@ -45,6 +46,7 @@ const FIRST_TREE = 'ai-act-applicability-agrifood'
 let origin: string
 let fullNode: string
 let firstTree: string
+let cycle: string
 const requests: string[] = []
 const rowTable: string[] = []
 
@@ -58,6 +60,10 @@ test.beforeAll(async () => {
   const first = await serve(path.join(repo, 'trees'), FIRST_TREE, PORT + 2)
   expect(first, 'the first Tree starts').not.toBeNull()
   firstTree = first!
+  // Since #84 every Node of both Trees carries an Image; the `cycle` fixture carries none.
+  const noImages = await serve(fixtures, 'cycle', PORT + 3)
+  expect(noImages, 'the cycle fixture is a valid Tree').not.toBeNull()
+  cycle = noImages!
 })
 
 test.afterAll(async () => {
@@ -360,8 +366,7 @@ test.describe('names for assistive technology', () => {
 
   test('a Node without Images says nothing where its main image would be', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    // The example Tree's `emotion-recognition-at-work` carries no Image.
-    await page.goto('/ai-act-example/start/prohibited-practices/emotion-recognition-at-work')
+    await page.goto(`${cycle}/cycle/first`)
     await expect(page.locator('.main-image--empty')).toBeVisible()
     await expect(page.locator('.main-image--empty')).toHaveAttribute('aria-hidden', 'true')
     const box = (await page.locator('.main-image--empty').boundingBox())!
@@ -460,8 +465,7 @@ test.describe('with JavaScript switched off', () => {
 
   test('a Node without pictures has no strip, so no empty tab stop in the Carousel band (12.1)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    // The example Tree's `emotion-recognition-at-work`: the Node carries no Image.
-    await page.goto('/ai-act-example/start/prohibited-practices/emotion-recognition-at-work')
+    await page.goto(`${cycle}/cycle/first`)
     await expect(page.locator('[data-carousel-strip]')).toHaveCount(0)
 
     const stops: string[] = []
@@ -512,9 +516,9 @@ test('every Node picture of the example Tree gives its author, source and licenc
       read += await readEveryCredit(page, `/ai-act-example/${nodeId}${lang === 'en' ? '' : `?lang=${lang}`}`, images)
     }
   }
-  // eu-map.png on `start` and scoreboard.png on `social-scoring`, where elsa-tree/3 moved it
-  // from its Option, in each language.
-  expect(read, 'pictures read').toBe(4)
+  // An Image on each of the seven Nodes (#84), scoreboard.png on `social-scoring`, where
+  // elsa-tree/3 moved it from its Option, in each language.
+  expect(read, 'pictures read').toBe(14)
 })
 
 test('the screenshots of issue #81, at the smallest and the largest guaranteed viewport', async ({ page }) => {
@@ -541,8 +545,9 @@ test('the screenshots of issue #81, at the smallest and the largest guaranteed v
     await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
     await shot(`five-images-enlarged-${size}`)
 
-    // A question Node of the first Tree without an Image of its own: the empty slot.
-    await page.goto(`${firstTree}/${FIRST_TREE}/annex-i-legislation/annex-i-legislation-2`)
+    // A question Node without an Image of its own: the empty slot. Since #84 no Node of either
+    // Tree is one, so the `cycle` fixture shows it.
+    await page.goto(`${cycle}/cycle/first`)
     await expect(page.locator('.main-image--empty')).toBeVisible()
     await shot(`no-images-${size}`)
   }

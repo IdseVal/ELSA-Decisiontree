@@ -308,8 +308,8 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
  * picture's credit is its accessible description and is shown whole in the enlarged view,
  * one keystroke away (application.md 12.2, 12.3; ADR-78-carousel, decision 5). An Option's
  * picture is its target's main image, credited in the target's Overlay (12.1), which #80
- * builds; until the first Tree's Option targets carry those images (#84), the 28 Option
- * pictures' credits are checked here in the data only.
+ * builds. Since #84 every one of the 71 Nodes carries a main image, the 28 Option pictures
+ * among them on their targets, so every credit is read below on its own Node.
  */
 const TREE_DIR = fileURLToPath(new URL('../../trees/ai-act-applicability-agrifood', import.meta.url))
 
@@ -396,10 +396,11 @@ for (const lang of ['en', 'nl'] as const) {
     for (const [nodeId, images] of byNode) {
       read += await readEveryCredit(page, pageUrl([nodeId], lang), images)
     }
-    expect(read, 'Node pictures read').toBe(35)
+    // 71 since #84: an Image on each of the 71 Nodes, the 28 Option pictures among them on their targets (NOTES.md 6).
+    expect(read, 'Node pictures read').toBe(71)
     // Every Image in the Tree is one of them: no Option carries a second picture that no page shows.
     const nodes = await Promise.all([...byNode.keys()].map((id) => tree.getNode(id)))
-    expect(nodes.reduce((sum, node) => sum + node!.images.length, 0)).toBe(35)
+    expect(nodes.reduce((sum, node) => sum + node!.images.length, 0)).toBe(71)
   })
 }
 

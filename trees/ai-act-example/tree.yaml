@@ -111,6 +111,12 @@ description:
     Andere regels kunnen nog steeds van toepassing zijn; deze boom behandelt die niet.
 metadata:
   version: "2.0"
+images:
+  - file: outside-scope.png
+    description:
+      en: Placeholder picture for a system outside the scope
+      nl: Plaatsvervangende afbeelding voor een systeem buiten het toepassingsgebied
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 terminal:
   outcome: not-applicable
 
@@ -140,6 +146,12 @@ sources:
       en: Article 5 AI Act (prohibited AI practices)
       nl: Artikel 5 AI-verordening (verboden AI-praktijken)
     url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+images:
+  - file: prohibited-practices.png
+    description:
+      en: Placeholder picture for the prohibited practices
+      nl: Plaatsvervangende afbeelding voor de verboden praktijken
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 options:
   - title:
       en: Social scoring
@@ -214,6 +226,12 @@ sources:
       en: Article 5(1)(f) AI Act
       nl: Artikel 5, lid 1, onder f, AI-verordening
     url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+images:
+  - file: emotion-recognition.png
+    description:
+      en: Placeholder picture for emotion recognition
+      nl: Plaatsvervangende afbeelding voor emotieherkenning
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 
 --- # prohibited
 id: prohibited
@@ -229,6 +247,12 @@ description:
     gebruiken van een systeem voor deze praktijk. De doorloop eindigt hier.
 metadata:
   version: "2.0"
+images:
+  - file: prohibited.png
+    description:
+      en: Placeholder picture for a prohibited practice
+      nl: Plaatsvervangende afbeelding voor een verboden praktijk
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 terminal:
   outcome: prohibited
 
@@ -246,5 +270,11 @@ description:
     boom gaat verder met de hoog-risico-indeling; dit voorbeeld eindigt hier.
 metadata:
   version: "2.0"
+images:
+  - file: covered.png
+    description:
+      en: Placeholder picture for a system the AI Act applies to
+      nl: Plaatsvervangende afbeelding voor een systeem waarop de AI-verordening van toepassing is
+    credit: "Placeholder drawn for this repository, CC0 1.0"
 terminal:
   outcome: applicable

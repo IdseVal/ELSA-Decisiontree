@@ -166,7 +166,8 @@ describe('the tree layer', () => {
   })
 
   test('the Carousel band is present on every Node, empty where the Node has no Image, so the Bubble never moves (12.1)', async () => {
-    for (const url of ['/ai-act-example/covered', '/ai-act-example/prohibited-practices']) {
+    // The `cycle` fixture carries no picture anywhere; since #84 every Node of the example Tree does.
+    for (const url of ['/cycle/first', '/cycle/first/second/third/done']) {
       expect(await view(url), url).toContain('<div class="carousel"></div>')
       // So such a Node has no strip, and no empty tab stop without a script either.
       expect(await view(url), url).not.toContain('carousel-strip')
@@ -220,7 +221,8 @@ describe('the main image', () => {
   })
 
   test('a Node without Images shows the empty slot in its place, which says nothing to assistive technology (10.3)', async () => {
-    const bubble = part(await view('/ai-act-example/emotion-recognition-at-work'), 'article', 'bubble')
+    // The `cycle` fixture carries no picture anywhere; since #84 every Node of the example Tree does.
+    const bubble = part(await view('/cycle/first'), 'article', 'bubble')
     expect(bubble).toContain('<div class="bubble-text"><span class="main-image main-image--empty" aria-hidden="true"></span><h1 ')
     expect(bubble).not.toContain('<img')
   })

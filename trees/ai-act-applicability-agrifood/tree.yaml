@@ -168,6 +168,12 @@ sources:
       en: Article 2 AI Act (scope)
       nl: Artikel 2 AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: terminal-does-not-apply.jpg
+    description:
+      en: "An open gate on a footpath leading into a field"
+      nl: "Een open hek op een voetpad dat een weiland in leidt"
+    credit: "Jonathan Billinger, via Wikimedia Commons, CC BY-SA 2.0"
 terminal:
   outcome: not-applicable
 
@@ -644,6 +650,12 @@ sources:
       en: Article 6(1a) to (1c) AI Act
       nl: Artikel 6, leden 1 bis tot en met 1 quater, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_6
+images:
+  - file: step-annex-i-safety-component.jpg
+    description:
+      en: "A universal testing machine set up for a compression test"
+      nl: "Een universele testbank opgesteld voor een druktest"
+    credit: "Cjp24, via Wikimedia Commons, CC BY-SA 3.0"
 options:
   - title:
       en: Appliances burning gaseous fuels
@@ -724,6 +736,12 @@ sources:
       en: Article 2(2) AI Act (Section B systems)
       nl: Artikel 2, lid 2, AI-verordening (afdeling B)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: step-annex-i-legislation.jpg
+    description:
+      en: "The CE marking printed on the circuit board of a mobile phone"
+      nl: "De CE-markering op de printplaat van een mobiele telefoon"
+    credit: "Raimond Spekking, via Wikimedia Commons, CC BY-SA 4.0"
 options:
   - title:
       en: Interoperability of the rail system
@@ -1853,6 +1871,12 @@ sources:
       en: Article 2 AI Act (scope and exclusions)
       nl: Artikel 2 AI-verordening (uitsluitingen)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: step-article-2-exclusions.jpg
+    description:
+      en: "A raised barrier across a road into a residential area"
+      nl: "Een geopende slagboom over een weg naar een woonwijk"
+    credit: "Jeffrey Beall, via Wikimedia Commons, CC BY 4.0"
 options:
   - title:
       en: Military, defence or national security purposes
@@ -1918,6 +1942,12 @@ sources:
       en: Article 3(60) AI Act (deep fake)
       nl: Artikel 3, punt 60, AI-verordening (deepfake)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+images:
+  - file: article-50-deep-fakes.jpg
+    description:
+      en: "Ancient stone theatre masks in Ostia Antica"
+      nl: "Antieke stenen theatermaskers in Ostia Antica"
+    credit: "Dennis G. Jarvis, via Wikimedia Commons, CC BY-SA 2.0"
 
 --- # article-50-direct-interaction
 id: article-50-direct-interaction
@@ -1951,6 +1981,12 @@ sources:
       en: Article 50(1) AI Act
       nl: Artikel 50, lid 1, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_50
+images:
+  - file: article-50-direct-interaction.jpg
+    description:
+      en: "Two humanoid Pepper robots with screens on their chests"
+      nl: "Twee mensachtige Pepper-robots met een scherm op hun borst"
+    credit: "Kukarobot, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # article-50-emotion-and-biometric
 id: article-50-emotion-and-biometric
@@ -1988,6 +2024,12 @@ sources:
       en: Article 3(39) and (40) AI Act (definitions)
       nl: Artikel 3, punten 39 en 40, AI-verordening (definities)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+images:
+  - file: article-50-emotion-and-biometric.jpg
+    description:
+      en: "Faces showing seven facial expressions of emotion"
+      nl: "Gezichten met zeven gezichtsuitdrukkingen van emoties"
+    credit: "Boundless Psychology, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # article-50-generated-text
 id: article-50-generated-text
@@ -2020,6 +2062,12 @@ sources:
       en: Article 50(4), second subparagraph, AI Act
       nl: Artikel 50, lid 4, tweede alinea, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_50
+images:
+  - file: article-50-generated-text.jpg
+    description:
+      en: "A stack of newspapers"
+      nl: "Een stapel kranten"
+    credit: "Bernerlover, via Wikimedia Commons, CC BY 4.0"
 
 --- # article-50-synthetic-content
 id: article-50-synthetic-content
@@ -2058,6 +2106,12 @@ sources:
       en: Article 111(4) AI Act as amended (transition)
       nl: Artikel 111, lid 4, AI-verordening (overgang)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_111
+images:
+  - file: article-50-synthetic-content.jpg
+    description:
+      en: "A picture being drawn digitally on a laptop"
+      nl: "Een tekening die digitaal op een laptop wordt gemaakt"
+    credit: "MIKI Yoshihito, via Wikimedia Commons, CC BY 2.0"
 
 --- # biometric-categorisation
 id: biometric-categorisation
@@ -2093,6 +2147,12 @@ sources:
       en: Article 3(40) AI Act (biometric categorisation)
       nl: Artikel 3, punt 40, AI-verordening (categorisering)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+images:
+  - file: prohibited-biometric-categorisation.jpg
+    description:
+      en: "A finger on a fingerprint scanner"
+      nl: "Een vinger op een vingerafdrukscanner"
+    credit: "Rachmaninoff, via Wikimedia Commons, CC BY-SA 3.0"
 
 --- # child-sexual-abuse-material
 id: child-sexual-abuse-material
@@ -2128,6 +2188,12 @@ sources:
       en: Regulation (EU) 2026/1744 (Digital Omnibus on AI)
       nl: Verordening (EU) 2026/1744 (Digital Omnibus on AI)
     url: https://eur-lex.europa.eu/eli/reg/2026/1744/oj
+images:
+  - file: prohibited-child-sexual-abuse-material.jpg
+    description:
+      en: "A padlock and chain closing a door"
+      nl: "Een hangslot met ketting dat een deur afsluit"
+    credit: "Lacz02, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # emotion-recognition-at-work
 id: emotion-recognition-at-work
@@ -2163,6 +2229,12 @@ sources:
       en: Article 3(39) AI Act (emotion recognition system)
       nl: Artikel 3, punt 39, AI-verordening (emotieherkenning)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+images:
+  - file: prohibited-emotion-recognition.jpg
+    description:
+      en: "People working at computers in an open-plan office"
+      nl: "Mensen die achter computers werken in een kantoortuin"
+    credit: "VeronicaTherese, via Wikimedia Commons, CC BY-SA 3.0"
 
 --- # end-of-walk
 id: end-of-walk
@@ -2202,6 +2274,12 @@ sources:
       en: Regulation (EU) 2024/1689 (AI Act), 27 July 2026 text
       nl: Verordening (EU) 2024/1689, tekst van 27 juli 2026
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727
+images:
+  - file: terminal-end-of-walk.jpg
+    description:
+      en: "Runners crossing the finish line of a marathon"
+      nl: "Hardlopers die de finish van een marathon passeren"
+    credit: "John Marino, via Wikimedia Commons, CC0 1.0"
 terminal:
   outcome: applicable
 
@@ -2237,6 +2315,12 @@ sources:
       en: Article 2(3) AI Act
       nl: Artikel 2, lid 3, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: exclusion-national-security.jpg
+    description:
+      en: "A military armoured reconnaissance vehicle"
+      nl: "Een militair gepantserd verkenningsvoertuig"
+    credit: "L Cowieson, via Wikimedia Commons, CC BY-SA 2.0"
 
 --- # exclusion-open-source
 id: exclusion-open-source
@@ -2269,6 +2353,12 @@ sources:
       en: Article 2(12) AI Act
       nl: Artikel 2, lid 12, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: exclusion-open-source.jpg
+    description:
+      en: "Source code on a computer monitor"
+      nl: "Broncode op een computerscherm"
+    credit: "Markus Spiske, via Wikimedia Commons, CC0 1.0"
 
 --- # exclusion-personal-use
 id: exclusion-personal-use
@@ -2299,6 +2389,12 @@ sources:
       en: Article 2(10) AI Act
       nl: Artikel 2, lid 10, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: exclusion-personal-use.jpg
+    description:
+      en: "A hand holding a smartphone at home"
+      nl: "Een hand die thuis een smartphone vasthoudt"
+    credit: "Océanos y dados, via Wikimedia Commons, CC0 1.0"
 
 --- # exclusion-research-and-development
 id: exclusion-research-and-development
@@ -2332,6 +2428,12 @@ sources:
       en: Article 2(8) AI Act
       nl: Artikel 2, lid 8, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: exclusion-research-and-development.jpg
+    description:
+      en: "A prototype rover being field-tested in a desert"
+      nl: "Een prototype-rover die in een woestijn in het veld wordt getest"
+    credit: "NASA/JPL-Caltech, via Wikimedia Commons, public domain"
 
 --- # exclusion-scientific-research
 id: exclusion-scientific-research
@@ -2364,6 +2466,12 @@ sources:
       en: Article 2(6) AI Act
       nl: Artikel 2, lid 6, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: exclusion-scientific-research.jpg
+    description:
+      en: "A scientist looking through a microscope in a laboratory"
+      nl: "Een wetenschapper die in een laboratorium door een microscoop kijkt"
+    credit: "Diane A. Reid, via Wikimedia Commons, public domain"
 
 --- # exclusion-third-country-authorities
 id: exclusion-third-country-authorities
@@ -2395,6 +2503,12 @@ sources:
       en: Article 2(4) AI Act
       nl: Artikel 2, lid 4, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: exclusion-third-country-authorities.jpg
+    description:
+      en: "The Europol headquarters in The Hague, with flags"
+      nl: "Het hoofdkantoor van Europol in Den Haag, met vlaggen"
+    credit: "European Commission, via Wikimedia Commons, CC BY 4.0"
 
 --- # exploiting-vulnerabilities
 id: exploiting-vulnerabilities
@@ -2426,6 +2540,12 @@ sources:
       en: Article 5(1)(b) AI Act
       nl: Artikel 5, lid 1, punt b), AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+images:
+  - file: prohibited-exploiting-vulnerabilities.jpg
+    description:
+      en: "A woman looking at her phone on a bus"
+      nl: "Een vrouw die in de bus op haar telefoon kijkt"
+    credit: "W.carter, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # general-purpose-ai
 id: general-purpose-ai
@@ -2554,6 +2674,12 @@ sources:
       en: Article 2(2) AI Act (Annex I, Section B systems)
       nl: Artikel 2, lid 2, AI-verordening (afdeling B)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: high-risk.jpg
+    description:
+      en: "A high-voltage warning sign on a fuse box"
+      nl: "Een waarschuwingsbord voor hoogspanning op een zekeringkast"
+    credit: "Pittigrilli, via Wikimedia Commons, CC BY 4.0"
 explainers:
   - id: ai-system
     term:
@@ -2593,6 +2719,12 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: jurisdiction-affected-person.jpg
+    description:
+      en: "People walking between the stalls of a farmers market"
+      nl: "Mensen die tussen de kramen van een boerenmarkt lopen"
+    credit: "Miles Continental, via Wikimedia Commons, CC BY 2.0"
 explainers:
   - id: affected-person
     term:
@@ -2628,6 +2760,12 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: jurisdiction-authorised-representative.jpg
+    description:
+      en: "A contract with a pen lying on it, ready to be signed"
+      nl: "Een contract met een pen erop, klaar om te worden ondertekend"
+    credit: "Blogtrepreneur, via Wikimedia Commons, CC BY 2.0"
 explainers:
   - id: authorised-representative
     term:
@@ -2681,6 +2819,12 @@ sources:
       en: Article 3(4) AI Act (deployer)
       nl: Artikel 3, punt 4, AI-verordening (definitie)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+images:
+  - file: jurisdiction-deployer.jpg
+    description:
+      en: "Two farmers looking at a smartphone in a field"
+      nl: "Twee boeren die in een veld op een smartphone kijken"
+    credit: "USDAgov, via Wikimedia Commons, public domain"
 explainers:
   - id: deployer
     term:
@@ -2721,6 +2865,12 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: jurisdiction-importer-distributor.jpg
+    description:
+      en: "Container cranes loading a ship in a port at sunset"
+      nl: "Containerkranen die bij zonsondergang een schip laden in een haven"
+    credit: "VileGecko, via Wikimedia Commons, CC BY-SA 3.0"
 explainers:
   - id: importer
     term:
@@ -2773,6 +2923,12 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: jurisdiction-product-manufacturer.jpg
+    description:
+      en: "Cars on an assembly line in a car factory"
+      nl: "Auto's aan een assemblagelijn in een autofabriek"
+    credit: "Marek Ślusarczyk (Tupungato), via Wikimedia Commons, CC BY 3.0"
 explainers:
   - id: product-manufacturer
     term:
@@ -2830,6 +2986,12 @@ sources:
       en: Article 2(1) AI Act (scope)
       nl: Artikel 2, lid 1, AI-verordening (toepassingsgebied)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: jurisdiction-third-country-output.jpg
+    description:
+      en: "A satellite dish antenna under a clouded sky"
+      nl: "Een satellietschotel onder een bewolkte lucht"
+    credit: "Biswarup Ganguly, via Wikimedia Commons, CC BY-SA 4.0"
 explainers:
   - id: provider
     term:
@@ -2892,6 +3054,12 @@ sources:
       en: Regulation (EU) 2026/1744 (Digital Omnibus on AI)
       nl: Verordening (EU) 2026/1744 (Digital Omnibus on AI)
     url: https://eur-lex.europa.eu/eli/reg/2026/1744/oj
+images:
+  - file: prohibited-non-consensual-imagery.jpg
+    description:
+      en: "A sign asking visitors not to take flash photographs"
+      nl: "Een bord dat bezoekers vraagt geen flitsfoto's te maken"
+    credit: "Yaffa Phillips, via Wikimedia Commons, CC BY-SA 2.0"
 
 --- # not-an-ai-system
 id: not-an-ai-system
@@ -2930,6 +3098,12 @@ sources:
       en: Article 2(9) AI Act (without prejudice to other law)
       nl: Artikel 2, lid 9, AI-verordening (ander recht)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_2
+images:
+  - file: terminal-not-an-ai-system.jpg
+    description:
+      en: "A Brunsviga mechanical calculator"
+      nl: "Een mechanische rekenmachine van Brunsviga"
+    credit: "CEphoto, Uwe Aranas, via Wikimedia Commons, CC BY-SA 3.0"
 terminal:
   outcome: refer
 
@@ -2961,6 +3135,12 @@ sources:
       en: Article 5(1)(d) AI Act
       nl: Artikel 5, lid 1, punt d), AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+images:
+  - file: prohibited-predicting-offences.jpg
+    description:
+      en: "A hand holding a crystal ball in front of a city"
+      nl: "Een hand die een glazen bol voor een stad vasthoudt"
+    credit: "Balise42, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # prohibited
 id: prohibited
@@ -2998,6 +3178,12 @@ sources:
       en: Article 113(3)(a) AI Act as amended (from when)
       nl: Artikel 113, lid 3, punt a), AI-verordening (vanaf wanneer)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_113
+images:
+  - file: terminal-prohibited.jpg
+    description:
+      en: "A stop sign beside a desert road"
+      nl: "Een stopbord langs een woestijnweg"
+    credit: "Tuxyso, via Wikimedia Commons, CC BY-SA 3.0"
 terminal:
   outcome: prohibited
 
@@ -3124,6 +3310,12 @@ sources:
       en: Article 5 AI Act (prohibited AI practices)
       nl: Artikel 5 AI-verordening (verboden AI-praktijken)
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+images:
+  - file: step-prohibited-practices-2.jpg
+    description:
+      en: "A sign saying that entering the stand is prohibited"
+      nl: "Een bord dat zegt dat het betreden van de tribune verboden is"
+    credit: "Pittigrilli, via Wikimedia Commons, CC BY-SA 4.0"
 options:
   - title:
       en: Predicting criminal offences from profiling alone
@@ -3198,6 +3390,12 @@ sources:
       en: Article 3(41), (42), (44) AI Act (definitions)
       nl: Artikel 3, punten 41, 42 en 44, AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_3
+images:
+  - file: prohibited-real-time-identification.jpg
+    description:
+      en: "A pole with several CCTV cameras at night"
+      nl: "Een paal met meerdere bewakingscamera's bij nacht"
+    credit: "Punit Rajpal, via Wikimedia Commons, CC0 1.0"
 
 --- # social-scoring
 id: social-scoring
@@ -3227,6 +3425,12 @@ sources:
       en: Article 5(1)(c) AI Act
       nl: Artikel 5, lid 1, punt c), AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+images:
+  - file: prohibited-social-scoring.jpg
+    description:
+      en: "A plaque awarding a five-star rating"
+      nl: "Een plaquette die een beoordeling van vijf sterren toekent"
+    credit: "Threeohsix, via Wikimedia Commons, CC BY-SA 4.0"
 
 --- # subliminal-or-manipulative-techniques
 id: subliminal-or-manipulative-techniques
@@ -3257,6 +3461,12 @@ sources:
       en: Article 5(1)(a) AI Act
       nl: Artikel 5, lid 1, punt a), AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+images:
+  - file: prohibited-manipulative-techniques.jpg
+    description:
+      en: "An optical illusion of circles that seem to rotate"
+      nl: "Een optische illusie van cirkels die lijken te draaien"
+    credit: "Dennis Sylvester Hurd, via Wikimedia Commons, CC BY 2.0"
 
 --- # transparency-obligations
 id: transparency-obligations
@@ -3384,3 +3594,9 @@ sources:
       en: Article 5(1)(e) AI Act
       nl: Artikel 5, lid 1, punt e), AI-verordening
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727#art_5
+images:
+  - file: prohibited-facial-scraping.jpg
+    description:
+      en: "A CCTV camera mounted on a wall"
+      nl: "Een bewakingscamera aan een muur"
+    credit: "MichalPL, via Wikimedia Commons, CC BY-SA 4.0"

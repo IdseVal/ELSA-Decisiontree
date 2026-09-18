@@ -34,3 +34,28 @@ Three things follow, and each of them is a path nothing else in the repository e
 | `nova-square-400.woff2` | Nova Square, latin subset, redistributed unmodified. It is the `heading` family. |
 | `ofl-nova-square.txt` | The SIL Open Font License 1.1 text the family is redistributed under. The Theme names it in its `licence` line but does not reference it as a file, so the loader ignores it and `themePath` never serves it (`docs/specs/application.md` 5.1). |
 | `LICENCE.md` | The terms of every file above. Likewise unreferenced, likewise never served. |
+
+## The images
+
+Every Node carries at least one Image (issue #84). None is a photograph: this Tree is
+kept small, and the picture only has to show where a Node's Images go.
+
+| File | On | What it is | Author | Licence |
+|---|---|---|---|---|
+| `eu-map.png` | `start` | A flat blue field, credited as a map | Example Cartography (fictitious) | CC BY 4.0 |
+| `scoreboard.png` | `social-scoring` | A flat red field, credited as a scoreboard | Example Studio (fictitious) | CC0 1.0 |
+| `outside-scope.png` | `outside-scope` | Labelled placeholder, "outside the scope" | drawn for this repository by issue #84 | CC0 1.0 |
+| `prohibited-practices.png` | `prohibited-practices` | Labelled placeholder, "prohibited practices" | drawn for this repository by issue #84 | CC0 1.0 |
+| `emotion-recognition.png` | `emotion-recognition-at-work` | Labelled placeholder, "emotion recognition" | drawn for this repository by issue #84 | CC0 1.0 |
+| `prohibited.png` | `prohibited` | Labelled placeholder, "prohibited" | drawn for this repository by issue #84 | CC0 1.0 |
+| `covered.png` | `covered` | Labelled placeholder, "the AI Act applies" | drawn for this repository by issue #84 | CC0 1.0 |
+
+The five placeholders were drawn with Pillow's bundled default font, 960 by 640 pixels, 16
+colours, under 6 KB each; none was fetched from anywhere, and there is no source URL.
+
+### To replace
+
+All five placeholders above: `outside-scope.png`, `prohibited-practices.png`,
+`emotion-recognition.png`, `prohibited.png` and `covered.png`. A replacement keeps the
+Tree identical to `docs/specs/tree-format.md` section 8 only if the spec's copy changes
+with it.
