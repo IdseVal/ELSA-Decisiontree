@@ -1,8 +1,9 @@
 /**
  * Issue #82's screenshots: the uniform Answer buttons in the logo green and the up arrow that
  * replaced the drawn Trail, on the first Tree, at the smallest and the largest viewport of
- * docs/specs/application.md 10.6 above the guarantee -- a question Node three steps in, the
- * root Node, and a Terminal.
+ * docs/specs/application.md 10.6 above the guarantee, and at the phone's 360 x 640 where an
+ * Answer button shows its word alone (10.3, amended 2026-09-18) -- a question Node three steps
+ * in, the root Node, and a Terminal.
  *
  * As tests/first-tree/walk.spec.ts does, the tracked PNGs in `docs/screenshots/issue-82/` are
  * rewritten only when `ELSA_SHOTS=1` asks for them; a plain run writes to the gitignored
@@ -32,6 +33,7 @@ const PAGES = [
 for (const [width, height] of [
   [1280, 640],
   [2560, 1440],
+  [360, 640],
 ] as const) {
   test(`the arrow and the Answer buttons at ${width} x ${height}, screenshot`, async ({ page }) => {
     await page.setViewportSize({ width, height })
