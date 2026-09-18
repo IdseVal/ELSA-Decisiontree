@@ -24,7 +24,7 @@ const BOTH_LANGUAGES = [
   { what: 'Option', en: 'Emotion recognition at work', nl: 'Emotieherkenning op het werk' },
   { what: 'Source label', en: 'Article 5 AI Act', nl: 'Artikel 5 AI-verordening' },
   { what: 'Trail entry', en: 'Is your AI system within the reach', nl: 'Valt uw AI-systeem binnen het bereik' },
-  { what: 'chrome', en: 'Sources', nl: 'Bronnen' },
+  { what: 'chrome', en: 'Legal sources', nl: 'Juridische bronnen' },
 ]
 
 
@@ -72,7 +72,7 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await page.locator('.up-arrow').click()
   await arrived(page, `${START}?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'Valt uw AI-systeem binnen het bereik van de AI-verordening?',
+    'Verricht uw systeem een van de verboden praktijken?',
   )
 })
 

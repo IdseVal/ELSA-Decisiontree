@@ -9,7 +9,7 @@
  * that the slide of section 11 moves the whole tree with one transform (`Slider`). The
  * neighbours of the Node (11.2) are drawn as frames of the same layout, one layer away in
  * the direction of the Branch that leads to them and carry no image URL at all (11.4). The
- * Carousel's row (section 12) is present on every Node, so the Bubble sits in the same place.
+ * Carousel's band (section 12) is present on every Node, so the Bubble sits in the same place.
  *
  * Below the guaranteed viewport the layout gives things up in the order of 10.5, and each
  * thing it gives up stays reachable behind one control that opens a Sheet. The full group
@@ -112,7 +112,7 @@ export function TreeView({
 
 /**
  * One Node laid out as the tree view draws it: the Bubble with the up arrow on it, the
- * Options, the Answers and the Carousel's row. The centre of the page is one; so is each neighbour, which
+ * Options, the Answers and the Carousel's band. The centre of the page is one; so is each neighbour, which
  * is why a Bubble arriving in a slide already carries its own Branch labels (11.3).
  */
 function Frame({ node, view }: { node: Node; view: View }) {
@@ -125,11 +125,12 @@ function Frame({ node, view }: { node: Node; view: View }) {
         ui={view.ui}
         uiLang={view.uiLang}
         idPrefix={view.idPrefix}
+        pictures={view.pictures}
         up={<UpArrow view={view} />}
       />
       {node.options.length > 0 && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
-      {/* The Carousel's row (section 12), on every Node, empty where there are no pictures, so the
+      {/* The Carousel's band (section 12), on every Node, empty where there is no picture, so the
           Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
       {view.pictures ? (
         <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />

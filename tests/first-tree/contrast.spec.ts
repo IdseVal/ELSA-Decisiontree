@@ -118,13 +118,16 @@ async function expectReadable(page: Page, selector: string): Promise<void> {
   }
 }
 
-test('the root: the Tree name, the image credit and the disclaimer reach 4.5 : 1', async ({ page }) => {
+test('the root: the Sources heading, the image credit in the enlarged view and the disclaimer reach 4.5 : 1', async ({ page }) => {
   await page.goto(ROOT)
   await arrived(page, new RegExp(`${ROOT}$`))
-  await expect(page.locator('.carousel-caption:visible')).toBeVisible()
 
-  await expectReadable(page, '.carousel-caption')
+  await expectReadable(page, '.sources h2')
   await expectReadable(page, '.disclaimer p')
+  // The credit is no longer under the picture (#81): it is read in the enlarged view.
+  await page.locator('.bubble a.main-image').click()
+  await expect(page.locator('.carousel-sheet .credit')).toBeVisible()
+  await expectReadable(page, '.carousel-sheet .credit')
 })
 
 test('a Terminal at the end of a long walk: startAgain and the disclaimer are readable', async ({ page }) => {

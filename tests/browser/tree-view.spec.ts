@@ -175,7 +175,7 @@ test.describe('the keyboard', () => {
     const sheet = page.locator('.sources-sheet')
     const control = sheet.locator('.sheet-open')
     await expect(control).toBeVisible()
-    await expect(control).toHaveText('Sources (3)')
+    await expect(control).toHaveText('Legal sources (3)')
 
     await control.focus()
     await page.keyboard.press('Enter')
