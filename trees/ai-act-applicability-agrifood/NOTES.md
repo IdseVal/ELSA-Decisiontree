@@ -18,11 +18,11 @@ The loader ignores this file, so you can write anything in it.
 trees/ai-act-applicability-agrifood/
   tree.yaml          the WHOLE Tree: the manifest, then one document per Node
   NOTES.md           this file (ignored by the loader)
-  images/            the 35 pictures the Nodes and Options show, with their credits
+  images/            the 71 pictures the Nodes and Options show, with their credits
   theme/             the lab's look: the logo, the tab icon, the fonts and their licence
 ```
 
-The `images/` folder holds the 35 pictures of section 6. The `theme/` folder holds what the
+The `images/` folder holds the 71 pictures of section 6. The `theme/` folder holds what the
 manifest's `theme:` block names -- the ELSA-Lab logo, the favicon and three Open Sans
 files, downloaded from ai4sfs.org by issue #40 -- plus `LICENCE.md`, which states the
 terms of each, carries the owner's statement on the logo as its licence line (issue #73),
@@ -156,13 +156,13 @@ Things that will trip you up, in rough order of likelihood:
 ## 5. What the description may contain
 
 Paragraphs separated by a blank line, `*emphasis*`, `**strong**`, `- ` bullets, `1. `
-numbered lists, and `[text](https://...)` links. Nothing else: no headings, no tables, no
-raw HTML, no inline images. Write it as a YAML block scalar, which is the `|` you see
+numbered lists, `[text](https://...)` links, and `[text](#id)` explainer marks (section
+11). Nothing else: no headings, no tables, no raw HTML, no inline images. Write it as a YAML block scalar, which is the `|` you see
 after `en:` and `nl:`, and indent the text under it.
 
 ## 6. The images, and how to replace one
 
-This Tree carries **35 pictures**, in `images/`. The core document (section 6) says you
+This Tree carries **71 pictures**, in `images/`. The core document (section 6) says you
 download them and place them yourself; you asked in issue #35 where they were, so issue
 #45 sourced them instead, under the rule recorded as open item **10.24**: every picture is
 **openly licensed** -- public domain, CC0, CC BY or CC BY-SA -- and **you may replace any
@@ -177,11 +177,24 @@ Where they hang:
 - **7** on the step Nodes themselves: `start`, `ai-system-definition`,
   `prohibited-practices`, `annex-i-legislation`, `annex-iii-areas`, `general-purpose-ai`
   and `transparency-obligations`. That is seven pictures for six steps because step 4 is
-  asked twice, once down each route, and each entry Node carries its own.
+  asked twice, once down each route, and each entry Node carries its own;
+- **36** on the Nodes issue #84 found without one and not opened by an illustrated Option:
+  the other 11 question Nodes (six jurisdiction sub-steps, `article-2-exclusions`,
+  `prohibited-practices-2`, `annex-i-legislation-2`, `annex-i-legislation-3` and
+  `high-risk`), 21 explanation Nodes (the six Article 2 exclusions, the ten prohibited
+  practices and the five Article 50 cases) and the 4 Terminals.
 
-Nothing else has a picture. The explanation Nodes, the Terminals and the seven
-jurisdiction sub-steps have none: 49 more pictures would be a second sourcing job with a
-worse fit, and a Terminal reads better without one.
+**Every Node has a picture** since issue #84: the owner wants a main image above each
+Node's title (issue #75), and the core document (3.1) records as proposed that a Node's
+first Image is that main image. The 28 explanation Nodes an Annex I or Annex III Option
+opens already had one: `elsa-tree/3` (issue #79) moved each Option's picture onto the Node
+it opens, as that Node's first Image, dropping the `source` the Node cannot resolve, so
+each of those 28 files hangs once. The 36 other Nodes
+got a photograph of their own, sourced under the same rule; no placeholder was needed.
+Three of them show identifiable people (`prohibited-exploiting-vulnerabilities.jpg`,
+`prohibited-emotion-recognition.jpg`, `article-50-synthetic-content.jpg`), which Wikimedia
+Commons marks with a personality-rights warning: the licence covers the photograph, not
+every use of a person's likeness. Replace them if that matters where the Tree is shown.
 
 **How they were prepared.** Each file is the **500-pixel-wide rendering** Wikimedia
 Commons serves of the original, downloaded once and committed; nothing is fetched from
@@ -191,7 +204,9 @@ the viewport, so a wider file would cost the reader bytes it never shows. One fi
 narrower: `motor-vehicle-general-safety.jpg` is 396 pixels, because the original on
 Commons is 396 pixels and Commons serves the original rather than upscale it. It is the
 only picture that will look soft when enlarged; replace it if that bothers you. The result
-is **35 files, 1.9 MB in total, none over 120 KB**; the heaviest Node in the Tree
+is **71 files, 3,780 KB in total, none over 120 KB** (the largest is `machinery.jpg`, 117
+KB; the 36 files of #84 are 1,816 KB, the largest `prohibited-manipulative-techniques.jpg`,
+114 KB); the heaviest Node in the Tree
 (`annex-i-legislation`: its own picture and eight Options) asks for **9 files, 457 KB**.
 
 **To replace one**, put your file in `images/` with a lowercase name and no spaces and
@@ -212,7 +227,7 @@ it. The `description` is the Carousel's caption and the alternative text a scree
 speaks, so write what the picture *shows*. Delete the whole `images:` list to leave a Node
 or an Option without a picture; an unused file in `images/` is not an error.
 
-**What a reader is shown of a credit**: every one of the 35 pictures is in the Carousel
+**What a reader is shown of a credit**: every picture is in the Carousel
 under the Bubble -- a Node's own picture first, then the picture of each of its Options,
 in Option order -- and the caption line under the strip shows the selected picture's
 credit whole, **without a click**. An Option's caption names the Option first, so a reader
@@ -221,7 +236,7 @@ enlarged view shows the credit again. That is what `docs/specs/tree-format.md` 5
 promises (the credit "shown with it, in the Carousel and in the enlarged view"), and it
 matters here because 23 of the 28 Option pictures are CC BY or CC BY-SA, licences that ask
 for the attribution to be given where the work is shared. `tests/first-tree/walk.spec.ts`
-walks the strip of every Node with the keyboard and reads all 35 credits off the page in
+walks the strip of every Node with the keyboard and reads every credit off the page in
 both languages (issue #55). Inside this repository the credit is also in `tree.yaml`
 beside every picture, and in the table at the end of this section.
 
@@ -229,7 +244,7 @@ Only an Option's **first** picture is shown, on its Branch and in the strip. Giv
 Option a second one and no page shows it; that test then fails, because it counts every
 picture in the file against the ones it read.
 
-**On CC BY-SA (24 of the 35: 16 at 4.0, 4 at 3.0, 4 at 2.0).** The owner accepted the
+**On CC BY-SA (44 of the 71: 26 at 4.0, 10 at 3.0, 8 at 2.0).** The owner accepted the
 family on 2026-09-12. Each picture is a separable work under its own licence; the
 resized copies in `images/` are adaptations and stay under that same licence, which the
 table below records per file. That does not decide the licence of this repository's code or
@@ -248,18 +263,19 @@ been a content change this issue was not asked to make.
 ### Where every picture came from
 
 Author, licence and page as Wikimedia Commons states them. The credit in `tree.yaml` is
-`<author>, via Wikimedia Commons, <licence>`. Seven licences occur; these are their texts,
+`<author>, via Wikimedia Commons, <licence>`. Eight licences occur; these are their texts,
 which is what the licence names in the table and in every credit refer to:
 
 | Licence | Its text | Pictures |
 |---|---|---|
-| CC0 1.0 | https://creativecommons.org/publicdomain/zero/1.0/ | 5 |
-| public domain (a work of the US federal government) | https://commons.wikimedia.org/wiki/Template:PD-USGov | 2 |
-| CC BY 2.0 | https://creativecommons.org/licenses/by/2.0/ | 2 |
-| CC BY 4.0 | https://creativecommons.org/licenses/by/4.0/ | 2 |
-| CC BY-SA 2.0 | https://creativecommons.org/licenses/by-sa/2.0/ | 4 |
-| CC BY-SA 3.0 | https://creativecommons.org/licenses/by-sa/3.0/ | 4 |
-| CC BY-SA 4.0 | https://creativecommons.org/licenses/by-sa/4.0/ | 16 |
+| CC0 1.0 | https://creativecommons.org/publicdomain/zero/1.0/ | 9 |
+| public domain (a work of the US federal government) | https://commons.wikimedia.org/wiki/Template:PD-USGov | 5 |
+| CC BY 2.0 | https://creativecommons.org/licenses/by/2.0/ | 6 |
+| CC BY 3.0 | https://creativecommons.org/licenses/by/3.0/ | 1 |
+| CC BY 4.0 | https://creativecommons.org/licenses/by/4.0/ | 6 |
+| CC BY-SA 2.0 | https://creativecommons.org/licenses/by-sa/2.0/ | 8 |
+| CC BY-SA 3.0 | https://creativecommons.org/licenses/by-sa/3.0/ | 10 |
+| CC BY-SA 4.0 | https://creativecommons.org/licenses/by-sa/4.0/ | 26 |
 
 | File | What it illustrates | Author | Licence | Source page |
 |---|---|---|---|---|
@@ -298,6 +314,42 @@ which is what the licence names in the table and in every credit refer to:
 | `step-annex-iii.jpg` | Step 4b: the Annex III route | Olga Ernst | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:High_Risk_Accident_Zone,_B2_road_Namibia.jpg |
 | `step-general-purpose-ai.jpg` | Step 5: general-purpose AI | Derrick Coetzee | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Technician_with_laptop_working_on_server_rack_at_NERSC.jpg |
 | `step-transparency.jpg` | Step 6: transparency obligations | piqsels | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Piqsels.com-id-zbxec.jpg |
+| `step-article-2-exclusions.jpg` | `article-2-exclusions`: Does a full exclusion in Article 2 cover your system? | Jeffrey Beall | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Foxfield,_Colorado.JPG |
+| `jurisdiction-deployer.jpg` | `jurisdiction-deployer`: step 1, a deployer in the Union | USDAgov | public domain | https://commons.wikimedia.org/wiki/File:Dam_to_Row_-_Gravity_Flow_Water_at_P%26J_Ranches_(20190828-NRCS-LSC-0787).jpg |
+| `jurisdiction-third-country-output.jpg` | `jurisdiction-third-country-output`: step 1, output used in the Union | Biswarup Ganguly | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Satellite_Dish_Antenna_With_Overclouded_Sky_-_Nalban_Waterbody_-_Kolkata_2018-05-02_0328.JPG |
+| `jurisdiction-importer-distributor.jpg` | `jurisdiction-importer-distributor`: step 1, an importer or distributor | VileGecko | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:RCT_Sunset.jpg |
+| `jurisdiction-product-manufacturer.jpg` | `jurisdiction-product-manufacturer`: step 1, a product manufacturer | Marek Ślusarczyk (Tupungato) | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:002_Production_line_-_car_assembly_line_in_General_Motors_Manufacturing_Poland_-_Gliwice,_Poland.jpg |
+| `jurisdiction-authorised-representative.jpg` | `jurisdiction-authorised-representative`: step 1, an authorised representative | Blogtrepreneur | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Legal_Contract_%26_Signature_-_Warm_Tones.jpg |
+| `jurisdiction-affected-person.jpg` | `jurisdiction-affected-person`: step 1, an affected person in the Union | Miles Continental | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Christchurch_Farmers_Market_(8133184094).jpg |
+| `step-prohibited-practices-2.jpg` | `prohibited-practices-2`: Does your system do a prohibited practice? (2/2) | Pittigrilli | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Entry_to_stand_prohibited_-_Betreten_des_Trib%C3%BCnenbereichs_untersagt_-_Sign_on_stand_of_Regattastrecke_Oberschlei%C3%9Fheim_near_Munich,_Germany.jpg |
+| `high-risk.jpg` | `high-risk`: Your system is high-risk under the AI Act | Pittigrilli | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:High_voltage_warning_sign_(pictogram)_on_fuse_box_in_German_shop.jpg |
+| `step-annex-i-safety-component.jpg` | `annex-i-legislation-2`: Is your system a safety component, or a product, under Annex I? (2/3) | Cjp24 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Compression_test-Universal_testing_machine.jpg |
+| `step-annex-i-legislation.jpg` | `annex-i-legislation-3`: Is your system a safety component, or a product, under Annex I? (3/3) | Raimond Spekking | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:LG_E455_Optimus_L5_II_Dual_-_bottom_printed_circuit_board-2345.jpg |
+| `terminal-does-not-apply.jpg` | `ai-act-does-not-apply`: The AI Act does not apply | Jonathan Billinger | CC BY-SA 2.0 | https://commons.wikimedia.org/wiki/File:Gate_open_on_this_footpath_-_geograph.org.uk_-_898388.jpg |
+| `terminal-not-an-ai-system.jpg` | `not-an-ai-system`: Not an AI system - other regulation may apply instead | CEphoto, Uwe Aranas | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Mechanical-calculator-Brunsviga-15-01.jpg |
+| `terminal-prohibited.jpg` | `prohibited`: This is a prohibited practice | Tuxyso | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Letterboxes_Ocotillo_Wells_2013.jpg |
+| `terminal-end-of-walk.jpg` | `end-of-walk`: The AI Act applies to your system - the walk ends here | John Marino | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Pittsburgh_Marathon_Finish_Line_2010.jpg |
+| `exclusion-national-security.jpg` | `exclusion-national-security`: Military, defence or national security purposes | L Cowieson | CC BY-SA 2.0 | https://commons.wikimedia.org/wiki/File:Ferret_Armoured_Recce_Vehicle_-_geograph.org.uk_-_3306209.jpg |
+| `exclusion-third-country-authorities.jpg` | `exclusion-third-country-authorities`: Third-country authorities in law enforcement cooperation | European Commission | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Visit_by_Julian_King,_Member_of_the_EC,_to_Europol_(P-032539-00-09).jpg |
+| `exclusion-scientific-research.jpg` | `exclusion-scientific-research`: Sole purpose of scientific research and development | Diane A. Reid | public domain | https://commons.wikimedia.org/wiki/File:Scientist_working_in_laboratory_(2).jpg |
+| `exclusion-research-and-development.jpg` | `exclusion-research-and-development`: Research or testing before placing on the market | NASA/JPL-Caltech | public domain | https://commons.wikimedia.org/wiki/File:Desert_Field_Test_With_NASA_Advanced_Rover_Prototype_(PIA26701_figA).jpg |
+| `exclusion-personal-use.jpg` | `exclusion-personal-use`: A natural person using a system in a personal activity | Océanos y dados | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Smartphone_Use.jpg |
+| `exclusion-open-source.jpg` | `exclusion-open-source`: Free and open-source licences (partial exclusion only) | Markus Spiske | CC0 1.0 | https://commons.wikimedia.org/wiki/File:Code_on_computer_monitor_(Unsplash).jpg |
+| `prohibited-manipulative-techniques.jpg` | `subliminal-or-manipulative-techniques`: Subliminal or purposefully manipulative techniques | Dennis Sylvester Hurd | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Optical_Illusion_(67183712).jpg |
+| `prohibited-exploiting-vulnerabilities.jpg` | `exploiting-vulnerabilities`: Exploiting vulnerabilities of age, disability or situation | W.carter | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Woman_watching_her_phone_on_a_bus.jpg |
+| `prohibited-non-consensual-imagery.jpg` | `non-consensual-sexual-imagery`: Non-consensual sexual imagery (from 2 December 2026) | Yaffa Phillips | CC BY-SA 2.0 | https://commons.wikimedia.org/wiki/File:No_Flash_Photography_Sign_(4220150080).jpg |
+| `prohibited-child-sexual-abuse-material.jpg` | `child-sexual-abuse-material`: Child sexual abuse material (from 2 December 2026) | Lacz02 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Padlock_with_chain.jpg |
+| `prohibited-social-scoring.jpg` | `social-scoring`: Social scoring | Threeohsix | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Five_star_UEFA_stadium_plaque_at_Est%C3%A1dio_Alvalade_XXI.JPG |
+| `prohibited-predicting-offences.jpg` | `predicting-criminal-offences`: Predicting criminal offences from profiling alone | Balise42 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Z%C3%BCrich_through_a_crystal_ball.jpg |
+| `prohibited-facial-scraping.jpg` | `untargeted-facial-scraping`: Untargeted scraping of facial images | MichalPL | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:CCTV_camera_in_Poland_(1).jpg |
+| `prohibited-emotion-recognition.jpg` | `emotion-recognition-at-work`: Inferring emotions in the workplace or in education | VeronicaTherese | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:OpenPlanRedBalloon1.jpg |
+| `prohibited-biometric-categorisation.jpg` | `biometric-categorisation`: Biometric categorisation to infer race, beliefs or sex life | Rachmaninoff | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Fingerprint_scanner_identification.jpg |
+| `prohibited-real-time-identification.jpg` | `real-time-biometric-identification`: Real-time remote biometric identification in public | Punit Rajpal | CC0 1.0 | https://commons.wikimedia.org/wiki/File:CCTV_cameras_in_Mumbai.jpg |
+| `article-50-direct-interaction.jpg` | `article-50-direct-interaction`: Systems that interact directly with people (provider) | Kukarobot | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Pepper_a_humanoid_robot.jpg |
+| `article-50-synthetic-content.jpg` | `article-50-synthetic-content`: Systems generating synthetic content (provider) | MIKI Yoshihito | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:A_young_girl_drawing_by_using_graphics_tablet;_August_2020_(01).jpg |
+| `article-50-emotion-and-biometric.jpg` | `article-50-emotion-and-biometric`: Emotion recognition or biometric categorisation (deployer) | Boundless Psychology | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Universal_facial_expressions.jpg |
+| `article-50-deep-fakes.jpg` | `article-50-deep-fakes`: Deep fakes (deployer) | Dennis G. Jarvis | CC BY-SA 2.0 | https://commons.wikimedia.org/wiki/File:Italy_-_Ostia_Antica_-_Theatre_Masks_(5149585364).jpg |
+| `article-50-generated-text.jpg` | `article-50-generated-text`: AI-generated text informing the public (deployer) | Bernerlover | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Vecteezy_stack-of-newspaper_1961329.jpg |
 
 ## 7. The Sources, and the URL language decision
 
@@ -540,3 +592,104 @@ or, better, doing what this cut did to the three steps that would not fit: give 
 another numbered Node and carry the counter, `(1/2)`, `(2/2)`, as the format describes
 (`docs/specs/tree-format.md` 5.8). `npm run validate` tells you which of the two you are
 looking at.
+
+## 11. The explainers: the Act's defined terms, and where they are marked
+
+Issue #85 gave the defined terms of the question Nodes an **explainer**: a short
+explanation of the term, in English and Dutch, that the page shows in a small panel when
+the reader hovers, focuses or taps the term (`docs/specs/tree-format.md` 5.9). In
+`tree.yaml` a Node lists them under `explainers:`, and its description marks the words
+with `[provider](#provider)`: the text in brackets is what the reader sees, the part after
+`#` names the explainer. A mark replaces the bold or italic the term had before, because
+the format does not allow a mark inside `**...**`; the wording itself did not change.
+
+Each text is a short plain rendering of the Article 3 definition in the consolidated text
+of 27 July 2026, in its English and Dutch versions, and at most 200 characters. An
+explainer belongs to the Node it is written on, like a Source, so "AI system" is written
+out on each of the seven Nodes that mark it. If you correct one, correct all of them:
+searching `tree.yaml` for `- id: ai-system` finds every copy.
+
+### The terms, Node by Node
+
+Only the 18 question Nodes -- the steps -- were covered; 11.2 says what was left
+out. 14 of them mark at least one term; `article-2-exclusions`, `ai-system-definition`,
+`annex-i-legislation-3` and `annex-iii-areas` mark none. 28 explainers in all, 12 terms;
+`tests/ai-act-tree.test.ts` pins both numbers, so change them there too.
+
+| Node | Terms marked (Article 3 point) |
+|---|---|
+| `start` | provider (3) |
+| `jurisdiction-deployer` | deployer (4), AI system (1) |
+| `jurisdiction-third-country-output` | provider (3), deployer (4), AI system (1) |
+| `jurisdiction-importer-distributor` | importer (6), distributor (7), AI system (1) |
+| `jurisdiction-product-manufacturer` | product manufacturer (none), AI system (1), placing on the market (9), putting into service (11) |
+| `jurisdiction-authorised-representative` | authorised representative (5), provider (3) |
+| `jurisdiction-affected-person` | affected person (none) |
+| `prohibited-practices` | placing on the market (9), putting into service (11) |
+| `prohibited-practices-2` | placing on the market (9), putting into service (11) |
+| `annex-i-legislation` | safety component (14) |
+| `annex-i-legislation-2` | AI system (1) |
+| `high-risk` | AI system (1) |
+| `general-purpose-ai` | provider (3), systemic risk (65) |
+| `transparency-obligations` | AI system (1), provider (3), deployer (4) |
+
+| Explainer id | English term | Dutch term | Article 3 point |
+|---|---|---|---|
+| `ai-system` | AI system | AI-systeem | 1 |
+| `provider` | provider | aanbieder | 3 |
+| `deployer` | deployer | gebruiksverantwoordelijke | 4 |
+| `authorised-representative` | authorised representative | gemachtigde | 5 |
+| `importer` | importer | importeur | 6 |
+| `distributor` | distributor | distributeur | 7 |
+| `placing-on-the-market` | placing on the market | in de handel brengen | 9 |
+| `putting-into-service` | putting into service | in gebruik stellen | 11 |
+| `safety-component` | safety component | veiligheidscomponent | 14 (as amended by Regulation (EU) 2026/1744) |
+| `systemic-risk` | systemic risk | systeemrisico | 65 |
+| `product-manufacturer` | product manufacturer | fabrikant van producten | none: see below |
+| `affected-person` | affected person | getroffen persoon | none: see below |
+
+### 11.1 Two roles of Article 2(1) that Article 3 does not define
+
+**Read these two first.** The Act defines five of the seven roles of Article 2(1), but not
+**product manufacturer** and not **affected person**. Article 3(8) only lists the product
+manufacturer as one of the "operators", and "affected person" is used (Article 2(1)(g),
+Article 86 and elsewhere) but defined nowhere in the Act. Their explainers therefore say
+so, and then say what the Act does with the term instead: Article 2(1)(e) for the product
+manufacturer, Article 2(1)(g) and the right to an explanation of Article 86 for the
+affected person. That is the agents' wording, not the Act's; decide whether you want it.
+
+The Dutch term for the product manufacturer is `fabrikant van producten`, the words of
+Article 2(1)(e) and of the Node's own text; Article 3(8) says `productfabrikant`.
+
+### 11.2 What was not marked, and why
+
+- **Explanation Nodes and Terminals.** Issue #85 asks for the terms "on the steps that ask
+  about them"; the 49 explanation Nodes and 4 Terminals use many of the same words ("AI
+  system" above all) and carry no explainer yet.
+- **A term the Node itself defines.** A panel that restates the sentence it hangs on
+  adds a hover and nothing else, so these carry their old emphasis instead of a mark:
+  "AI system" on `ai-system-definition` (the description is Article 3(1)), "safety
+  component" on `annex-i-legislation-2` (its first sentence is Article 3(14)), and both
+  "general-purpose AI model" (3(63)) and "general-purpose AI system" (3(66)) on
+  `general-purpose-ai`, which gives both definitions with their Article points. This
+  is deliberate: do not add the marks back without a reason these do not cover.
+- **`start` marks only "provider".** It is the role the step asks about and the owner's
+  example in #75; five marks in one question made it indistinguishable. The sentence
+  that explained a provider in the second paragraph went, as the panel now carries it.
+  "AI system", "placing on the market" and "putting into service" are marked on the
+  steps that follow.
+- **Substantial modification** (Article 3(23)) is not used by any Node of this Tree.
+- **"placed on the market" on `annex-iii-areas`.** The English text uses it in its last
+  sentence, the Dutch text says only "Lid 4 vereist documentatie vooraf". An explainer must
+  be marked in both languages, and the Dutch Node has no room for the words: with them it
+  is 606 characters and 9 lines, over the 600 and 8 allowed.
+- **Terms Article 3 does not define**: "high-risk AI system" (Article 6 decides it; the
+  mark on `high-risk` is on "AI system" only), "third country", "Annex I legislation".
+- **Terms Article 3 defines but the Tree only mentions in passing**, such as "intended
+  purpose" (3(12)) or "deep fake" (3(60)) on explanation Nodes, are left for later.
+
+The Article 2 and 3 texts in both languages were fetched for this from EUR-Lex with headless Chrome, as section 1.1 of
+`docs/research/issue-3-ai-act-applicability.md` describes:
+`https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02024R1689-20260727`
+(906 622 bytes, sha256 `808269ce…9987f44`) and the same URL with `NL` (954 844 bytes,
+sha256 `5a584f9d…a37939`).

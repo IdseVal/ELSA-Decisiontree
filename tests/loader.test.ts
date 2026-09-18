@@ -170,6 +170,23 @@ describe('a Tree in two languages', () => {
     expect(reads).toEqual([])
   })
 
+  test('every Node carries at least one Image, and its first credit names a licence', async () => {
+    // Issue #84: the example Tree, like the first, gives every Node a main image. Its Nodes are
+    // found by following Answers and Options from the root, as a reader would reach them.
+    const tree = await openTree(exampleTree)
+    const seen = new Set<string>()
+    for (let queue = [tree.manifest.root], id = queue.shift(); id !== undefined; id = queue.shift()) {
+      if (seen.has(id)) continue
+      seen.add(id)
+      const node = (await tree.getNode(id))!
+      expect(node.images.length, `${id} carries no Image`).toBeGreaterThan(0)
+      expect(node.images[0]!.credit, `${id}: first credit names no licence`).toMatch(/CC0 1\.0|CC BY(-SA)? [0-9.]+|public domain/)
+      if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+      queue.push(...node.options.map((option) => option.target))
+    }
+    expect(seen.size, 'Nodes walked from the root').toBe(7)
+  })
+
   test('imagePath resolves inside this Tree and refuses anything else', async () => {
     const tree = await openTree(exampleTree)
 

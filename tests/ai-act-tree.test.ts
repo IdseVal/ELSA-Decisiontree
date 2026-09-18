@@ -283,15 +283,15 @@ describe('the content of the first Tree', () => {
       // #44 cut both from the Annex I entries on the grounds that every entry repeated them.
       // That holds only while the step says them instead: if these sentences go, no Node
       // states the Article 6(1) test at all. Article 2(13) came back here on PR #53, with its
-      // own Source.
+      // own Source. Since #85 "safety component of a product" is an explainer mark, not bold.
       expect(unwrapped('annex-i-legislation', 'en')).toContain(
-        'Article 6(1) applies when **both** are met: **(a)** the system is intended as a **safety component of a product**',
+        'Article 6(1) applies when **both** are met: **(a)** the system is intended as a [safety component of a product](#safety-component)',
       )
       expect(unwrapped('annex-i-legislation', 'en')).toContain(
         '**and (b)** that product must undergo a **third-party conformity assessment**',
       )
       expect(unwrapped('annex-i-legislation', 'nl')).toContain(
-        'Artikel 6, lid 1, vereist **beide**: **a)** het systeem is bedoeld als **veiligheidscomponent van een product**',
+        'Artikel 6, lid 1, vereist **beide**: **a)** het systeem is bedoeld als [veiligheidscomponent van een product](#safety-component)',
       )
       expect(unwrapped('annex-i-legislation', 'nl')).toContain(
         '**en b)** dat product vereist een **conformiteitsbeoordeling door een derde partij**',
@@ -378,6 +378,17 @@ describe('the content of the first Tree', () => {
       }
     })
 
+    test('every Node carries at least one Image, and its first credit names a licence', () => {
+      // Issue #84: the owner wants a main image on every Node (issue #75), and core document
+      // 3.1 records as proposed that a Node's first Image is it. Every Node, not only the
+      // steps: the explanation Nodes, the jurisdiction sub-steps and the Terminals as well.
+      expect(nodes.size, 'Nodes walked from the root').toBe(71)
+      for (const [id, node] of nodes) {
+        expect(node.images.length, `${id} carries no Image`).toBeGreaterThan(0)
+        expect(node.images[0]!.credit, `${id}: first credit names no licence`).toMatch(OPEN_LICENCE)
+      }
+    })
+
     test("every Image's credit names an open licence, and an attribution besides it", () => {
       // The rule the sourcing of #45 worked under: openly licensed only, and the credit says
       // which licence, next to the author and where the picture came from. `credit` is
@@ -401,7 +412,9 @@ describe('the content of the first Tree', () => {
         ),
       )
       const images = everyImage()
-      expect(rows.size, 'rows in the provenance table').toBe(images.length)
+      // One row per file, not per Image: since #84 an Option's picture also hangs on the Node
+      // the Option opens, so 28 files are used twice and the table still lists each once.
+      expect(rows.size, 'rows in the provenance table').toBe(new Set(images.map(({ image }) => image.file)).size)
       for (const { where, image } of images) {
         const row = rows.get(image.file)
         expect(row, `${where}: not in the provenance table`).toBeDefined()
@@ -478,12 +491,13 @@ describe('the content of the first Tree', () => {
       expect(unwrapped('high-risk', 'nl')).toContain(
         '**bijlage I, afdeling B**, valt, bepaalt artikel 2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met 112 van toepassing zijn',
       )
-      // Step 6 states the general rule, unqualified, to that same reader.
+      // Step 6 states the general rule, unqualified, to that same reader ("AI systems" carries
+      // an explainer mark since #85).
       expect(unwrapped('transparency-obligations', 'en')).toContain(
-        'Article 50 attaches **transparency obligations** to certain AI systems, whatever their risk classification.',
+        'Article 50 attaches **transparency obligations** to certain [AI systems](#ai-system), whatever their risk classification.',
       )
       expect(unwrapped('transparency-obligations', 'nl')).toContain(
-        'Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde AI-systemen, ongeacht hun risicoclassificatie.',
+        'Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde [AI-systemen](#ai-system), ongeacht hun risicoclassificatie.',
       )
 
       // The other half, and the one that bites on an addition: the reconciliation is absent.
@@ -550,6 +564,67 @@ describe('the content of the first Tree', () => {
           expect(nodes.get(option.target)!.kind, `${id} -> ${option.target}`).toBe('explanation')
         }
       }
+    })
+  })
+
+  describe('the defined terms carry explainers (issue #85)', () => {
+    /** The explainer ids a jurisdiction step must mark: the roles of Article 2(1) it asks about. */
+    const JURISDICTION_ROLES: Record<(typeof JURISDICTION_STEPS)[number], string[]> = {
+      start: ['provider'],
+      'jurisdiction-deployer': ['deployer'],
+      'jurisdiction-third-country-output': ['provider', 'deployer'],
+      'jurisdiction-importer-distributor': ['importer', 'distributor'],
+      'jurisdiction-product-manufacturer': ['product-manufacturer'],
+      'jurisdiction-authorised-representative': ['authorised-representative'],
+      'jurisdiction-affected-person': ['affected-person'],
+    }
+
+    /** Whether the description of Node `node` in one language marks the explainer `id` at least once. */
+    const marks = (node: string, lang: string, id: string): boolean =>
+      nodes.get(node)!.description[lang]!.includes(`](#${id})`)
+
+    test('start marks "provider" / "aanbieder" with an explainer', () => {
+      // The owner's own example (#75): "on 'Jurisdictional scope of the AI Act? (1/7)' I want
+      // 'provider' to be hoverable".
+      const provider = nodes.get('start')!.explainers.find((explainer) => explainer.id === 'provider')
+      expect(provider?.term).toEqual({ en: 'provider', nl: 'aanbieder' })
+      expect(unwrapped('start', 'en')).toContain('[provider](#provider)')
+      expect(unwrapped('start', 'nl')).toContain('[aanbieder](#provider)')
+    })
+
+    test('every jurisdiction step marks the role it asks about', () => {
+      for (const id of JURISDICTION_STEPS) {
+        const declared = nodes.get(id)!.explainers.map((explainer) => explainer.id)
+        for (const role of JURISDICTION_ROLES[id]) {
+          expect(declared, `${id} declares no explainer "${role}"`).toContain(role)
+          for (const lang of ['en', 'nl']) {
+            expect(marks(id, lang, role), `${id} (${lang}) does not mark "${role}"`).toBe(true)
+          }
+        }
+      }
+    })
+
+    test('the Tree carries the explainers NOTES § 11 lists, no more and no fewer', () => {
+      // The loader already rejects an explainer without a term, a text or a mark (V-EXPLAINER);
+      // what it cannot see is an explainer dropped or renamed, which would leave NOTES stale.
+      const ids = [...nodes.values()].flatMap((node) => node.explainers.map((explainer) => explainer.id))
+      expect(ids).toHaveLength(28)
+      expect(new Set(ids)).toEqual(
+        new Set([
+          'ai-system',
+          'provider',
+          'deployer',
+          'authorised-representative',
+          'importer',
+          'distributor',
+          'placing-on-the-market',
+          'putting-into-service',
+          'safety-component',
+          'systemic-risk',
+          'product-manufacturer',
+          'affected-person',
+        ]),
+      )
     })
   })
 })

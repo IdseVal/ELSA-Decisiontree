@@ -10,6 +10,7 @@ tracking.
 - The Tree file format, for anyone authoring a Tree: [`docs/specs/tree-format.md`](docs/specs/tree-format.md)
 - The application contracts: [`docs/specs/application.md`](docs/specs/application.md)
 - How to run it on a server: [`docs/deployment.md`](docs/deployment.md)
+- Licence: the code is MIT ([`LICENSE`](LICENSE)); the Tree content is CC BY 4.0 ([`CONTENT-LICENSE`](CONTENT-LICENSE)).
 
 Version 0.1 -- the state described by those two specs -- is preserved on the branch
 `version-0.1`. `dev` carries the plan for the version 0.2 rework the owner asked for in

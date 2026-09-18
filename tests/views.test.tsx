@@ -169,7 +169,8 @@ describe('the tree layer', () => {
   })
 
   test('the Carousel band is present on every Node, empty where the Node has no Image, so the Bubble never moves (12.1)', async () => {
-    for (const url of ['/ai-act-example/covered', '/ai-act-example/prohibited-practices']) {
+    // The `cycle` fixture carries no picture anywhere; since #84 every Node of the example Tree does.
+    for (const url of ['/cycle/first', '/cycle/first/second/third/done']) {
       expect(await view(url), url).toContain('<div class="carousel"></div>')
       // So such a Node has no strip, and no empty tab stop without a script either.
       expect(await view(url), url).not.toContain('carousel-strip')
@@ -185,9 +186,11 @@ describe('the tree layer', () => {
     expect(fan).toContain(
       '<summary class="sheet-open"><img class="option-image" src="/images/scoreboard.png" alt="A scoreboard ranking people" width="48" height="48" loading="lazy"/><span class="option-title">Social scoring</span></summary>',
     )
-    // The second Option's target has no Image: the empty slot.
-    expect(fan.match(/<img class="option-image"/g)).toHaveLength(1)
-    expect(fan.match(/<span class="option-image option-image--empty"><\/span>/g)).toHaveLength(1)
+    // Since #84 the second Option's target carries an Image too: no empty slot in this Tree
+    // (the `overlay` fixture shows one, below).
+    expect(fan.match(/<img class="option-image"/g)).toHaveLength(2)
+    expect(fan).toContain('<img class="option-image" src="/images/emotion-recognition.png"')
+    expect(fan).not.toContain('option-image--empty')
     // In the Overlay it is a plain link to the file: the enlarged view is the centre Node's (10.9).
     expect(fan).toContain('<a class="main-image" href="/images/scoreboard.png" aria-labelledby=')
     expect(html).not.toContain('class="thumbnail"')
@@ -233,7 +236,8 @@ describe('the main image', () => {
   })
 
   test('a Node without Images shows the empty slot in its place, which says nothing to assistive technology (10.3)', async () => {
-    const bubble = part(await view('/ai-act-example/emotion-recognition-at-work'), 'article', 'bubble')
+    // The `cycle` fixture carries no picture anywhere; since #84 every Node of the example Tree does.
+    const bubble = part(await view('/cycle/first'), 'article', 'bubble')
     expect(bubble).toContain('<div class="bubble-text"><span class="main-image main-image--empty" aria-hidden="true"></span><h1 ')
     expect(bubble).not.toContain('<img')
   })
