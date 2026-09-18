@@ -149,19 +149,19 @@ test('changing a colour in tree.yaml and restarting changes the page, with no co
   const { treesDir, dir } = await copyTree(path.join(trees, 'ai-act-example'), 'ai-act-example')
   const file = path.join(dir, 'tree.yaml')
   const before = await readFile(file, 'utf8')
-  const changed = before.replace('accent: "#e2604a"', 'accent: "#00c2a8"')
-  expect(changed, 'the accent line the Tree is edited at').not.toBe(before)
+  const changed = before.replace('accent-secondary: "#5aa9c9"', 'accent-secondary: "#00c2a8"')
+  expect(changed, 'the accent-secondary line the Tree is edited at').not.toBe(before)
   await writeFile(file, changed)
 
   const origin = await serve(treesDir, 'ai-act-example', FIRST_PORT)
   await page.goto(`${origin}/ai-act-example/start`)
 
-  expect(await property(page, '--elsa-accent')).toBe('#00c2a8')
-  // The one place the accent is painted whole: the filled Answer (globals.css).
-  const painted = await page
-    .locator('.answer--yes')
-    .evaluate((element) => getComputedStyle(element).backgroundColor)
-  expect(painted).toBe('rgb(0, 194, 168)')
+  expect(await property(page, '--elsa-accent-secondary')).toBe('#00c2a8')
+  // The walk's controls are painted whole in it: both Answer buttons alike (globals.css, #82).
+  for (const answer of ['.answer--yes', '.answer--no']) {
+    const painted = await page.locator(answer).evaluate((element) => getComputedStyle(element).backgroundColor)
+    expect(painted, answer).toBe('rgb(0, 194, 168)')
+  }
 
   // The same build, unedited: the served bytes of the app are identical in both servers.
   expect(await property(page, '--elsa-danger')).toBe('#ff8a7a')

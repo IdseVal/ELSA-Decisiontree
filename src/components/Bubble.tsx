@@ -1,8 +1,9 @@
 /**
  * One Node as the Bubble (docs/specs/application.md 10.1, 10.3): the round element in the
  * centre of the tree view, holding the Node's Interior in its text area, and on its rim --
- * outside the text area, so the format's length limits stand -- the one chrome element a
- * Node kind adds: a Terminal's outcome badge above, an explanation Node's hint below.
+ * outside the text area, so the format's length limits stand -- the up arrow on the top
+ * outline where the page has a way back, and the one chrome element a Node kind adds: a
+ * Terminal's outcome badge above, an explanation Node's hint below.
  *
  * The Interior (10.3, ADR-78-main-image-and-row-budget, ADR-78-sources-heading) is what a
  * Node shows inside its text area, in order -- the main image, the title, the description
@@ -18,6 +19,7 @@
  * step 6), and the markup must be present either way so the page is correct without
  * JavaScript (section 14).
  */
+import type { ReactNode } from 'react'
 import { text, type Chrome, type ChromeString } from '../chrome.ts'
 import { richTextToHtml } from '../markdown.ts'
 import type { Node, Outcome, Source } from '../tree/types.ts'
@@ -39,6 +41,7 @@ export function Bubble({
   uiLang,
   idPrefix = '',
   pictures = true,
+  up,
 }: {
   node: Node
   lang: string
@@ -49,10 +52,17 @@ export function Bubble({
   idPrefix?: string
   /** False in a neighbour frame, which names no image file at all (11.4). */
   pictures?: boolean
+  /**
+   * The up arrow (10.2), drawn on the top outline. It is placed from the Bubble's own box
+   * because the Bubble is centred in its row: a Bubble shorter than the row would leave an
+   * arrow placed from the row floating above it.
+   */
+  up: ReactNode
 }) {
   return (
     // `data-node` names the Node a Bubble draws, so a response can be counted in Nodes (11.5).
     <article className={`bubble bubble--${node.kind}`} lang={lang} data-node={node.id}>
+      {up}
       {node.kind === 'terminal' && (
         <p className={`outcome outcome--${node.outcome}`} lang={uiLang}>
           {ui[OUTCOME_LABEL[node.outcome]]}

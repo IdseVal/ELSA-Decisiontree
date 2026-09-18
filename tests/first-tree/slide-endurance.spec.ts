@@ -70,7 +70,7 @@ test('400 slides in one tab run, and the DOM they leave behind does not grow wit
   for (let slide = 1; slide <= SLIDES; slide++) {
     const target = slide % 2 === 1 ? YES : ROOT
     if (target === YES) await page.locator(`${CENTRE} .answer--yes`).click()
-    else await page.locator(`${CENTRE} .trail-step[data-parent] .trail-entry`).click()
+    else await page.locator(`${CENTRE} .up-arrow`).click()
     // The probe's waits rather than `arrived`'s assertions, whose polling adds a quarter of a
     // second to each of four hundred slides.
     await page.waitForURL(target)

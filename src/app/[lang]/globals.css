@@ -2,14 +2,14 @@
  * The stylesheet: the tree view of docs/specs/application.md section 10, drawn.
  *
  * ONE SCREEN, SIX ROWS, NOTHING OUTSIDE THEM. The page is a grid whose rows are known before
- * any content is measured: chrome bar 44, the band above the Bubble 26, the Bubble 446, the
+ * any content is measured: chrome bar 44, the up arrow's band 26, the Bubble 446, the
  * strip band 28, Answers 68, disclaimer 28 -- the vertical budget of tree-format.md 5.7 as
  * 10.7 re-derives it, which is where every length limit of the format comes from. `html` and `body` are the viewport with `overflow: hidden`
  * (10.6); nothing here may be taller or wider than the box it is in, and
  * tests/browser/no-scroll.spec.ts measures every element to make sure.
  *
  * The Bubble is the one idea. It is round, it holds the Node, and everything else is a
- * Branch drawn relative to it: the Trail above on one hairline, the Options beside on short
+ * control drawn relative to it: the up arrow on its top outline, the Options beside on short
  * ticks, the Answers below. Below the guaranteed viewport of 1280 x 640 the layout gives
  * things up in the fixed order of 10.5 -- the strip, the Option columns, the Options, the
  * main image, the Sources, the type size, and only then the whole view -- each step a media
@@ -26,7 +26,6 @@
   --rule: color-mix(in srgb, var(--elsa-text) 18%, transparent);
   --rule-soft: color-mix(in srgb, var(--elsa-text) 9%, transparent);
   --wash: color-mix(in srgb, var(--elsa-accent) 14%, var(--elsa-background));
-  --wash-secondary: color-mix(in srgb, var(--elsa-accent-secondary) 14%, var(--elsa-background));
   --veil: color-mix(in srgb, var(--elsa-scrim) 72%, transparent);
   /*
    * A fill colour as a READING colour: an accent chosen to be seen as a fill may be far too
@@ -43,7 +42,6 @@
    * is shared above and below the tree.
    */
   --chrome-row: 44px;
-  --trail-row: 26px;
   --strip-row: 28px;
   --answers-row: 68px;
   --disclaimer-row: 28px;
@@ -64,6 +62,13 @@
   /* The main image's slot above the title, and the gap under it (10.3, 10.7). */
   --main-image: 60px;
   --page-inset: 0px;
+  /*
+   * The up arrow (10.2): a round button whose foot is 2 pixels clear of the text area, which
+   * on the guaranteed Bubble centres it on the outline. The band above the Bubble is what of
+   * it stands above the outline, and 2 pixels clear of the chrome bar: 26 at the guarantee.
+   */
+  --up-size: 48px;
+  --up-row: calc(var(--up-size) - var(--rim-y) + 2px);
   /* The tick from an Option to the Bubble: inside the Option's own box, short of the gap. */
   --tick: 12px;
 
@@ -276,10 +281,10 @@ a.language:hover,
     minmax(0, 1fr) var(--column) var(--gap) minmax(0, var(--bubble-width)) var(--gap) var(--column)
     minmax(0, 1fr);
   grid-template-rows:
-    var(--trail-row) minmax(0, 1fr) minmax(0, var(--bubble-height)) var(--strip-row) var(--answers-row)
+    var(--up-row) minmax(0, 1fr) minmax(0, var(--bubble-height)) var(--strip-row) var(--answers-row)
     auto minmax(0, 1fr);
   grid-template-areas:
-    "trail trail trail trail trail trail trail"
+    ". . . . . . ."
     ". . . . . . ."
     ". left . bubble . right ."
     ". . . carousel . . ."
@@ -439,16 +444,6 @@ a.language:hover,
   overflow-wrap: anywhere;
 }
 
-/* The chrome word above a target's title: `yes`, `no`, `back`, `startAgain`. */
-.branch-word {
-  font-family: var(--elsa-font-heading);
-  font-size: 11px;
-  line-height: 16px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .branch-image {
   flex: none;
   width: 64px;
@@ -456,112 +451,6 @@ a.language:hover,
   border-radius: 50%;
   object-fit: cover;
   background: var(--elsa-surface);
-}
-
-/* --- the Trail: the Branches above (10.2) ------------------------------------------ */
-
-.trail {
-  position: relative;
-  grid-area: trail;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-}
-
-/* The line the Trail is: one hairline through the row, and one down to the Bubble. */
-.trail::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  bottom: 0;
-  border-left: 1px solid var(--rule);
-}
-
-.trail ol {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.trail ol::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  border-top: 1px solid var(--rule);
-}
-
-/*
- * A title Branch: 212 pixels, 196 of them label. 10.2 budgets 200 and its arithmetic gives
- * an 80-character title three 20-pixel lines at 13 pixels, which holds in the humanist
- * faces the limits were measured with and not in a wider fallback such as DejaVu Sans,
- * where 176 pixels of label wrap it into four lines and the row's 64 pixels are 20 short.
- * The extra 12 come out of the row's margin: 5 x 212 + 120 + 5 x 8 = 1220 of 1280, and
- * the collapsed middle may still grow to 180 before the row is full.
- */
-.trail-step {
-  position: relative;
-  width: 212px;
-}
-
-/*
- * Three lines of 20, a padding and a border are the row's 64 pixels to the pixel, and such a
- * Branch sat on the chrome bar's rule and on the Bubble's outline (#65). Lines of 18 and no
- * padding make it 56, 4 clear of each; a 13-pixel face still has room in an 18-pixel line.
- */
-.trail-entry {
-  padding: 0 8px;
-  line-height: 18px;
-  color: var(--elsa-text-muted);
-}
-
-.trail-entry:hover {
-  color: var(--elsa-text);
-}
-
-/* The root Node: no Trail, the Tree's title in its place, so nothing moves when the walk starts. */
-.tree-name {
-  margin: 0;
-  padding: 0 16px;
-  font-family: var(--elsa-font-heading);
-  font-size: var(--small);
-  line-height: var(--small-line);
-  color: var(--elsa-text-muted);
-  text-align: center;
-}
-
-/*
- * The collapsed middle of a long Trail: chrome, the Trail Sheet behind it. 120 pixels is
- * its budget in 10.2's sum; `trailMore(n)` in Dutch, or with two digits, runs a little
- * past it, and the 60 pixels the row has left after five 212-pixel Branches is where that
- * goes -- never a truncated word.
- */
-.trail-more {
-  position: relative;
-  display: none;
-  flex: none;
-  min-width: 120px;
-}
-
-/* Six entries or more: `start`, the collapsed middle, the last four (10.2). */
-.trail--long .trail-more {
-  display: block;
-}
-
-.trail--long .trail-step:not([data-kept]) {
-  display: none;
-}
-
-.trail-more-short,
-.trail-more-all {
-  display: none;
 }
 
 /* --- the Bubble (10.1) ------------------------------------------------------------- */
@@ -671,15 +560,54 @@ a.language:hover,
   display: none;
 }
 
-/* --- the rim: the outcome badge above, the explanation hint below (10.1) ----------- */
+/* --- the rim: the up arrow and the outcome badge above, the explanation hint below (10.1) */
 
+/*
+ * The way back (10.2), in the Answer buttons' style: filled with the walk's controls' colour
+ * and lettered like them (13.1). Placed from the padding box, whose top is inside the
+ * 2-pixel outline: its foot 2 pixels above the rim's end is its centre on the outline.
+ */
+.up-arrow {
+  position: absolute;
+  top: calc(var(--rim-y) - 2px - var(--up-size));
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--up-size);
+  height: var(--up-size);
+  margin: 0 auto;
+  border-radius: 50%;
+  color: var(--elsa-on-accent-secondary);
+  background: var(--elsa-accent-secondary);
+  transition: box-shadow 160ms var(--ease);
+}
+
+.up-arrow svg {
+  width: 50%;
+  height: 50%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* A ring in the page's colour and then the fill's, as on the Answer buttons: no second colour. */
+.up-arrow:hover,
+.answer:hover {
+  box-shadow: 0 0 0 2px var(--elsa-background), 0 0 0 4px var(--elsa-accent-secondary);
+}
+
+/* The badge sits in the half of the band left of the arrow, so the two never meet (10.1). */
 .outcome {
   position: absolute;
   top: 2px;
   left: 0;
-  right: 0;
+  right: calc(50% + var(--up-size) / 2);
   width: fit-content;
-  max-width: 70%;
+  max-width: calc(50% - var(--up-size) / 2);
   margin: 0 auto;
   padding: 0 14px;
   border: 1px solid currentColor;
@@ -872,7 +800,7 @@ a.language:hover,
 }
 
 .option:hover {
-  background: var(--wash-secondary);
+  background: var(--wash);
 }
 
 .options-collapsed {
@@ -881,7 +809,7 @@ a.language:hover,
   justify-self: center;
 }
 
-/* --- Answers: the Branches below (10.3) -------------------------------------------- */
+/* --- Answers: the buttons below (10.3) --------------------------------------------- */
 
 .answers {
   grid-area: answers;
@@ -889,43 +817,32 @@ a.language:hover,
   align-items: center;
   justify-content: center;
   gap: 20px;
-  padding: 0 16px;
+  padding: 0 10px;
 }
 
+/*
+ * Both Answers alike, and `startAgain` the same: the owner does not want the colour to steer
+ * the reader (core document 3.2). The fill is the walk's controls' Theme role and the label
+ * its derived letter colour (13.1); the label is 19-pixel bold, large text, which is what
+ * lets a mid-tone fill such as the logo green read under white at 3 : 1. Two lines of 24
+ * and 6 pixels above and below are the button's 60.
+ */
 .answer {
-  width: 480px;
+  width: 620px;
   max-width: 100%;
-  min-height: 48px;
-  padding: 3px 20px;
+  min-height: 60px;
+  padding: 6px 20px;
+  border: 0;
+  background: var(--elsa-accent-secondary);
+  color: var(--elsa-on-accent-secondary);
+  font-family: var(--elsa-font-heading);
+  font-size: 19px;
+  line-height: 24px;
+  font-weight: 700;
 }
 
-/* The filled Answer is the one place the accent is painted whole (13.1: `--elsa-on-accent`). */
-.answer--yes {
-  border-color: var(--elsa-accent);
-  background: var(--elsa-accent);
-  color: var(--elsa-on-accent);
-}
-
-.answer--yes:hover {
-  border-color: var(--accent-read);
-}
-
-.answer--no {
-  border-color: var(--elsa-accent);
-}
-
-.answer--no:hover {
-  background: var(--wash);
-}
-
-.answer--back,
-.answer--start-again {
-  color: var(--elsa-text-muted);
-}
-
-.answer--back:hover,
-.answer--start-again:hover {
-  color: var(--elsa-text);
+.answer .branch-label {
+  display: block;
 }
 
 /* --- the Sheet: the one overlay (10.2, 10.5) --------------------------------------- */
@@ -1231,61 +1148,6 @@ a.language:hover,
  * ================================================================================== */
 
 /*
- * The Trail, at every size, in the 26-pixel band 10.1 gives the up arrow: the parent on one
- * line plus trailMore(n), the Trail Sheet behind it -- 0.2's first step of 10.5, which the
- * row budget of #78 no longer has the 64 pixels to undo. #82 replaces the drawn Trail with
- * the up arrow. Below the guaranteed width the parent may take two lines, and the band 44.
- */
-.trail--collapsible .trail-step:not([data-parent]) {
-  display: none;
-}
-
-.trail--collapsible .trail-more {
-  display: block;
-}
-
-.trail-more-wide {
-  display: none;
-}
-
-.trail-more-short {
-  display: inline;
-}
-
-.trail-step[data-parent] {
-  flex: 0 1 auto;
-  width: auto;
-  max-width: 900px;
-  min-width: 0;
-}
-
-/* One line of 16 and a border: 18 pixels, 4 clear of the chrome bar's rule and of the Bubble (#65). */
-.trail .sheet-open,
-.trail-step[data-parent] .trail-entry {
-  padding-block: 0;
-  line-height: 16px;
-}
-
-/* A block, not inline: an inline pill sits on the row's 24-pixel line and a pixel lower. */
-.trail .sheet-open {
-  display: block;
-}
-
-@media (max-width: 1279px) {
-  :root {
-    --trail-row: 44px;
-  }
-
-  .trail-step[data-parent] {
-    max-width: 480px;
-  }
-
-  .trail-step[data-parent] .trail-entry {
-    line-height: 18px;
-  }
-}
-
-/*
  * Step 1 -- the strip collapses to the enlarged view's control, a 20-pixel pill on the same
  * outline, and the band closes to 20 (10.5).
  */
@@ -1313,12 +1175,23 @@ a.language:hover,
   }
 }
 
-/* Step 3 -- the Option columns move below the Answers as one row. */
+/*
+ * Step 3 -- the Option columns move below the Answers as one row.
+ *
+ * Narrower than two 620-pixel Answer buttons, a label of 86 characters also takes a third
+ * line or more, and the Answer row grows to hold it rather than cut it (10.3). At and above
+ * the guarantee it stays the 68 of 10.1.
+ */
 @media (max-width: 1279px) {
   :root {
     --column: 0px;
     --gap: 0px;
     --page-inset: 16px;
+    --answers-row: auto;
+  }
+
+  .answers {
+    padding-block: 4px;
   }
 
   .options-columns {
@@ -1485,18 +1358,17 @@ a.language:hover,
 
 /*
  * A phone-width screen. The full Node of 10.6 at 360 x 640 needs every pixel the rows
- * around the Bubble can spare, so each gives up what it does not use: the chrome bar and
- * the Trail row narrow to their content, the rim to 10 pixels, the margins inside the
- * Bubble to 4. Two Answers of four lines each still stand side by side.
+ * around the Bubble can spare, so each gives up what it does not use: the chrome bar
+ * narrows to what it needs, the rim to 10 pixels, the margins inside the Bubble to 4. The
+ * up arrow keeps its 48 pixels (10.1, 10.5: never given up); on the 10-pixel rim its band
+ * is 40. Two Answers still stand side by side.
  */
 @media (max-width: 479px) {
   :root {
     --rim-x: 22px;
     --rim-y: 10px;
     --bubble-radius: 48px;
-    --answers-row: auto;
     --chrome-row: 36px;
-    --trail-row: 30px;
     --disclaimer-row: auto;
     --sheet-open: 24px;
   }
@@ -1507,36 +1379,18 @@ a.language:hover,
   }
 
   /*
-   * The Trail is its control alone: a 212-pixel parent Branch holds an 80-character title
-   * in three lines, which the row no longer has, and a clipped title would break 10.6. The
-   * parent is the first entry of the Trail Sheet, and the `back` Branch where there is one.
+   * The rim keeps room for the one chrome element a Node kind puts on it (10.1). Half a
+   * phone-width Bubble cannot hold a badge beside the arrow, so the badge stands under the
+   * arrow's foot, across the whole band (10.1, amended 2026-09-18).
    */
-  .trail:has(.trail-more) .trail-step {
-    display: none;
-  }
-
-  .trail .trail-more {
-    display: block;
-  }
-
-  .trail-more-wide,
-  .trail-more-short {
-    display: none;
-  }
-
-  .trail-more-all {
-    display: inline;
-  }
-
-  .tree-name {
-    padding: 0 8px;
-    font-size: 11px;
-    line-height: 14px;
-  }
-
-  /* The rim keeps room for the one chrome element a Node kind puts on it (10.1). */
   .bubble--terminal {
-    padding-top: 28px;
+    padding-top: 36px;
+  }
+
+  .outcome {
+    top: var(--rim-y);
+    right: 0;
+    max-width: calc(100% - 24px);
   }
 
   /*
@@ -1587,8 +1441,22 @@ a.language:hover,
     padding: 0;
   }
 
+  /* Still 60 pixels tall (10.3): the word alone is one line, and a phone's thumb needs the height. */
   .answer {
     padding-inline: 12px;
+  }
+
+  /*
+   * A 170-pixel button holds eleven characters a line of the 19-pixel label, which must stay
+   * large text to be readable on a mid-tone fill (13.1): an 86-character label is eight lines,
+   * more than the whole Bubble gives up at this width. So the button keeps its word -- yes,
+   * no, start again -- and gives up the target's title, which the page it leads to shows and
+   * the button's name keeps (10.3, amended 2026-09-18). A title with no word before it --
+   * the 404 page's way back to the start -- is the whole label, and stays.
+   */
+  .answer .branch-colon,
+  .answer .branch-word ~ .branch-title {
+    display: none;
   }
 
   .disclaimer p {

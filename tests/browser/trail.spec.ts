@@ -1,7 +1,8 @@
 /**
- * The Trail and the shareable link in a real browser: what markup alone cannot show --
- * where a click lands, what the clipboard actually holds, whether a stranger opening the
- * link sees the same path, and that none of it leaves a trace on the reader's machine.
+ * The way back -- the up arrow that replaced the drawn Trail (#82) -- and the shareable link
+ * in a real browser: what markup alone cannot show -- where a click lands, what the
+ * clipboard actually holds, whether a stranger opening the link sees the same path, and
+ * that none of it leaves a trace on the reader's machine.
  *
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */
@@ -19,62 +20,77 @@ async function walkToChild(page: Page): Promise<void> {
   await arrived(page, CHILD)
 }
 
-/**
- * Back to the Trail's first entry, the root. The band of 10.1 shows the parent on one line
- * and the rest behind `trailMore(n)` (#81), so the root is followed from the Trail Sheet.
- */
-async function backToRoot(page: Page): Promise<void> {
-  await page.locator('.trail-sheet .sheet-open').click()
-  await page.locator('.trail-sheet .sheet-list a').last().click()
+/** The up arrow of the Node on screen, outside the inert neighbour frames of the slide. */
+function upArrow(page: Page) {
+  return page.locator('.up-arrow:not([inert] *)')
 }
 
-/** The text of every Trail entry in the markup, top to bottom, the ones behind `trailMore(n)` included. */
-async function trail(page: Page): Promise<string[]> {
-  return page.locator('.trail-entry').allTextContents()
-}
-
-test('walking the tree builds the Trail, and it is above the Node', async ({ page }) => {
+test('the up arrow sits on the Bubble\'s top outline, and no Trail is drawn', async ({ page }) => {
   await walkToChild(page)
 
-  expect(await trail(page)).toEqual([
-    'Is your AI system within the reach of the AI Act?',
-    'Does your system do any of the prohibited practices?',
-  ])
-
-  // "A line upward from the current Node": the Trail sits above the title on screen.
-  const trailBox = await page.locator('.trail').boundingBox()
-  const titleBox = await page.getByRole('heading', { level: 1 }).boundingBox()
-  expect(trailBox!.y + trailBox!.height).toBeLessThanOrEqual(titleBox!.y)
+  const arrow = await upArrow(page).boundingBox()
+  const bubble = await page.locator('.bubble:not([inert] *)').boundingBox()
+  const title = await page.getByRole('heading', { level: 1 }).boundingBox()
+  // Centred across, its middle on the outline (1 pixel for sub-pixel rounding), above the title.
+  expect(Math.abs(arrow!.x + arrow!.width / 2 - (bubble!.x + bubble!.width / 2))).toBeLessThanOrEqual(1)
+  expect(Math.abs(arrow!.y + arrow!.height / 2 - bubble!.y)).toBeLessThanOrEqual(1)
+  expect(arrow!.y + arrow!.height).toBeLessThanOrEqual(title!.y)
+  expect(arrow!.width).toBe(48)
+  expect(arrow!.height).toBe(48)
+  await expect(page.locator('[class*="trail"]')).toHaveCount(0)
 })
 
-test('clicking a Trail entry jumps back and discards the Trail after it', async ({ page }) => {
-  await walkToChild(page)
+test("at a phone width the up arrow keeps its 48 pixels, clear of the chrome bar, the text area and a Terminal's badge", async ({ page }) => {
+  // 10.1 and 10.2 fix the arrow at 48, and 10.5 never gives it up: the phone's 10-pixel rim
+  // widens the band above the Bubble instead.
+  await page.setViewportSize({ width: 360, height: 640 })
+  for (const url of [CHILD, '/ai-act-example/start/prohibited-practices/prohibited']) {
+    await page.goto(url)
+    const arrow = (await upArrow(page).boundingBox())!
+    const header = (await page.locator('header').boundingBox())!
+    const text = (await page.locator('.bubble:not([inert] *) .bubble-text').boundingBox())!
+    expect(arrow.width, url).toBe(48)
+    expect(arrow.height, url).toBe(48)
+    expect(arrow.y, `${url}: below the chrome bar`).toBeGreaterThanOrEqual(header.y + header.height)
+    expect(arrow.y + arrow.height, `${url}: above the text area`).toBeLessThanOrEqual(text.y)
 
-  // The second entry: back to that Node, with the one entry before it left standing.
-  await page.locator('.trail-entry').nth(1).click()
+    const outcome = page.locator('.bubble:not([inert] *) .outcome')
+    if ((await outcome.count()) > 0) {
+      const badge = (await outcome.boundingBox())!
+      expect(badge.y, `${url}: the badge under the arrow's foot`).toBeGreaterThanOrEqual(arrow.y + arrow.height)
+      // 10.1, amended 2026-09-18: below 480 the badge takes the whole band, centred under the
+      // arrow, not the half of it left of the arrow (1 pixel for sub-pixel rounding).
+      expect(Math.abs(badge.x + badge.width / 2 - (arrow.x + arrow.width / 2)), `${url}: centred under the arrow`).toBeLessThanOrEqual(1)
+    }
+  }
+})
+
+test('clicking the arrow on /<tree>/start/<a>/<b> lands on /<tree>/start/<a>, and again on /<tree>/start', async ({ page }) => {
+  await walkToChild(page)
+  await expect(upArrow(page)).toHaveAccessibleName('Back to: Does your system do any of the prohibited practices?')
+
+  await upArrow(page).click()
   await arrived(page, '/ai-act-example/start/prohibited-practices')
-  expect(await trail(page)).toEqual(['Is your AI system within the reach of the AI Act?'])
+  expect(new URL(page.url()).pathname).toBe('/ai-act-example/start/prohibited-practices')
 
-  // The first entry: back to the root, with nothing left to go back to.
-  await walkToChild(page)
-  await backToRoot(page)
+  // One step at a time, the Trail after each step discarded, to the root, which has no arrow.
+  await expect(upArrow(page)).toHaveAccessibleName('Back to: Is your AI system within the reach of the AI Act?')
+  await upArrow(page).click()
   await arrived(page, START)
-  expect(await trail(page)).toEqual([])
+  await expect(upArrow(page)).toHaveCount(0)
 })
 
-test('a Trail entry is reached and followed by the keyboard alone', async ({ page }) => {
+test('the up arrow is reached and followed by the keyboard alone', async ({ page }) => {
   await walkToChild(page)
 
   // Issue #9 put the language switch above the content as the page chrome, issue #40 put
   // the Tree's logo beside it and issue #41 the share button, so the tab key reaches the
-  // whole bar first; the Trail is still the first thing in the content itself. The bar is
+  // whole bar first; the up arrow is the first thing in the content itself. The bar is
   // counted rather than written down, so a Tree with no logo and a Tree with one both walk
-  // the same way here. The band shows `trailMore(n)` and then the parent (#81).
+  // the same way here.
   const chrome = await page.locator('.page-chrome a, .page-chrome button').count()
   for (let i = 0; i < chrome + 1; i++) await page.keyboard.press('Tab')
-  await expect(page.locator('.trail-sheet .sheet-open')).toBeFocused()
-  await page.keyboard.press('Tab')
-  await expect(page.locator('.trail-entry').nth(1)).toBeFocused()
+  await expect(upArrow(page)).toBeFocused()
 
   await page.keyboard.press('Enter')
   await arrived(page, '/ai-act-example/start/prohibited-practices')
@@ -201,7 +217,7 @@ test('one click copies the URL in the address bar on a plain http:// address tha
   }
 })
 
-test('a shared link shows the recipient the same Node and the same Trail', async ({
+test('a shared link shows the recipient the same Node and the same way back', async ({
   page,
   context,
   browser,
@@ -217,27 +233,25 @@ test('a shared link shows the recipient the same Node and the same Trail', async
   await theirPage.goto(link)
 
   await expect(theirPage.getByRole('heading', { level: 1 })).toHaveText('Social scoring')
-  expect(await trail(theirPage)).toEqual(await trail(page))
+  await expect(upArrow(theirPage)).toHaveAttribute('href', (await upArrow(page).getAttribute('href'))!)
+  expect(theirPage.url()).toBe(page.url())
   await recipient.close()
 })
 
 test('a shared link in another language shows that language on both ends', async ({ page }) => {
   await page.goto(`${CHILD}?lang=nl`)
 
-  expect(await trail(page)).toEqual([
-    'Valt uw AI-systeem binnen het bereik van de AI-verordening?',
-    'Verricht uw systeem een van de verboden praktijken?',
-  ])
+  await expect(upArrow(page)).toHaveAccessibleName('Terug naar: Verricht uw systeem een van de verboden praktijken?')
   // Going back keeps the language: it is in the link, not in a cookie.
-  await backToRoot(page)
-  await arrived(page, `${START}?lang=nl`)
+  await upArrow(page).click()
+  await arrived(page, '/ai-act-example/start/prohibited-practices?lang=nl')
 })
 
-test('a Node opened by its own URL offers the way into the walk', async ({ page }) => {
+test('a Node opened by its own URL has no up arrow, and startAgain is its way into the walk', async ({ page }) => {
   await page.goto('/ai-act-example/social-scoring')
 
-  expect(await trail(page)).toEqual(['Start'])
-  await page.locator('.trail-entry').first().click()
+  await expect(upArrow(page)).toHaveCount(0)
+  await page.locator('.answer--start-again:not([inert] *)').click()
   await arrived(page, START)
 })
 
@@ -258,7 +272,7 @@ test('an unknown Node and a malformed Trail answer 404, never a server error', a
 
   // The answer is the 404 page of application.md 4.3, with its link to the start.
   await page.goto('/ai-act-example/ghost/start')
-  await page.getByRole('link', { name: 'Start' }).click()
+  await page.getByRole('link', { name: 'Start again' }).click()
   await arrived(page, START)
 })
 
@@ -270,7 +284,7 @@ test('nothing about the reader is stored while walking, going back or sharing', 
   await walkToChild(page)
   await page.getByRole('button', { name: 'Copy link' }).click()
   await expect(page.locator('.share-said')).toHaveText('Link copied')
-  await backToRoot(page)
+  await upArrow(page).click()
 
   // The whole walk is in the URL: no cookie, no local storage, no session storage (8).
   expect(await context.cookies()).toEqual([])
@@ -285,13 +299,14 @@ test('nothing about the reader is stored while walking, going back or sharing', 
 test.describe('with JavaScript switched off', () => {
   test.use({ javaScriptEnabled: false })
 
-  test('the Trail is still the way back; the address bar is still the share link', async ({
+  test('the up arrow is still the way back; the address bar is still the share link', async ({
     page,
   }) => {
     await page.goto(CHILD)
 
-    expect(await trail(page)).toHaveLength(2)
-    await page.locator('.trail-entry').nth(1).click()
+    await upArrow(page).click()
     await arrived(page, '/ai-act-example/start/prohibited-practices')
+    await upArrow(page).click()
+    await arrived(page, START)
   })
 })

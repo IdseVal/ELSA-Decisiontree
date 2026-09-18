@@ -917,6 +917,14 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
   characters (`src/chrome.ts`, `chrome.test.ts`). The explanation Node's hint is gone
   with the `back` Branch (10.9). **Nothing on the rim takes a pixel from the text
   area**, which is what lets 5.7's derivation stand (10.7).
+
+  **Amended 2026-09-18 (#82, PR #93, by the owner):** below 480 pixels wide the outcome
+  badge stands under the arrow's foot and takes the whole band, centred under the arrow,
+  instead of the half of the band left of it. At 360 x 640 that half is 140 pixels, and
+  the first Tree's own badges need more: "Does not apply" 142, "Niet van toepassing" 178.
+  The Terminal's rim above grows to hold arrow and badge one above the other; still
+  nothing on the rim takes a pixel from the text area. Like the Answer label of 10.3, this
+  gives way by width alone, outside 10.5's numbered order.
 - **The curve and the text area.** The chord of the Bubble 26 pixels in is 523 pixels;
   at the title's top (94 in) it is 678, wider than the text area, and at the lowest
   Sources line (46 from the bottom) 585. The main image is centred and at most 90 wide;
@@ -981,6 +989,14 @@ outline (section 12), the chrome bar and disclaimer unchanged.
 - **Every button shows its target's title**, taken from the title index (`getTitle`),
   never from a second Node read -- except an Option button, whose target the page has in
   hand for its Overlay (11.2).
+
+  **Amended 2026-09-18 (#82, PR #93, by the owner):** below 480 pixels wide an Answer
+  button -- `yes`, `no` or `startAgain` -- shows its chrome word alone. A 170-pixel button
+  holds about eleven characters a line of the 19-pixel label, so an 86-character label
+  would take eight lines, more than the Bubble gives up at that width; and a smaller label
+  drops out of large text and fails the 4.5 : 1 that normal text needs on the fill. The
+  button's **accessible name keeps the whole label** -- the word, a colon and the target's
+  title -- at every width (WCAG 2.2 SC 2.4.4), and the page it leads to shows the title.
 - **The Answer buttons are the walk's controls, painted alike.** Both are filled with
   the Theme role `accent-secondary` and lettered in `--elsa-on-accent-secondary`
   (13.1); the label is large text (WCAG 2.2: at least 18.66 pixels bold), so the fill
@@ -1055,6 +1071,13 @@ Whichever step first makes the arrangement fit is where it stops.
   the picture is a picture, the Sources are a citation, and the **Node's title,
   description, up arrow and Answer buttons are never given up** -- they are the step
   the reader is on. The notice appears only when even those do not fit.
+
+  **Amended 2026-09-18 (#82, PR #93, by the owner):** one thing is shortened outside the
+  numbered order, by width alone: below 480 pixels an Answer button's label is its chrome
+  word only (10.3, amended the same day). The buttons themselves stay, at their place and
+  in their colour, and so does each one's accessible name, whole. The up arrow keeps its
+  48 pixels at every width; on the phone's narrower rim its band above the Bubble is
+  taller instead.
 - Every collapse opens the same `Sheet`. One concept, five uses -- the enlarged Image,
   the Overlay (10.9), the collapsed Options, the collapsed Sources, and the explainer
   panel is *not* one (10.8) -- and one set of keyboard rules (Escape closes, focus

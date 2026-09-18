@@ -46,9 +46,10 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await arrived(page, '/ai-act-example/start/prohibited-practices/social-scoring')
   await expect(page.locator('.hint')).toBeVisible()
 
-  // Issue #8 replaced the interim "back" control this test used with the Trail; the walk
-  // it checks is unchanged. What the Trail itself does is `tests/browser/trail.spec.ts`.
-  await page.locator('.trail-entry').last().click()
+  // Issue #8 replaced the interim "back" control this test used with the Trail, and #82 the
+  // drawn Trail with the up arrow; the walk it checks is unchanged. What the arrow itself
+  // does is `tests/browser/trail.spec.ts`.
+  await page.locator('.up-arrow').click()
   await arrived(page, '/ai-act-example/start/prohibited-practices')
 })
 
@@ -246,8 +247,19 @@ test('an unknown Node answers 404 with a way back to the start', async ({ page }
   const response = await page.goto('/ai-act-example/no-such-node')
 
   expect(response?.status()).toBe(404)
-  await page.getByRole('link', { name: 'Start' }).click()
+  await page.getByRole('link', { name: 'Start again' }).click()
   await arrived(page, START)
+})
+
+test('at a phone width the 404 page still shows and names its way back to the start (10.3)', async ({ page }) => {
+  // The phone-width rule that shortens an Answer button to its word must not empty this one,
+  // whose label is a title with no word before it.
+  await page.setViewportSize({ width: 360, height: 640 })
+  await page.goto('/ai-act-example/no-such-node')
+
+  const startAgain = page.locator('.answer--start-again')
+  await expect(startAgain).toHaveAccessibleName('Start again')
+  await expect(startAgain.locator('.branch-label')).toHaveText('Start again', { useInnerText: true })
 })
 
 test('the address of the Tree redirects to its root Node', async ({ page }) => {

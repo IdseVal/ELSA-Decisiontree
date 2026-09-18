@@ -57,7 +57,7 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   await page.goto(START)
   await page.locator('.answer--yes').click()
   await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
-  await page.locator('.trail-entry').last().click()
+  await page.locator('.tree-frame:not([inert]) .up-arrow').click()
   await page.locator('.answer--no').click()
   await page.goto(`${START}?lang=nl`)
   await page.setViewportSize({ width: 1280, height: 540 })

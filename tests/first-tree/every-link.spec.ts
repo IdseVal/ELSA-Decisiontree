@@ -60,7 +60,7 @@ const VIEWPORTS = [
 const LANGUAGES = ['en', 'nl'] as const
 type Lang = (typeof LANGUAGES)[number]
 
-/** The bound of application.md 11.5: the Node a page shows and at most sixteen neighbours. */
+/** The bound of application.md 11.2: the Node a page shows, at most fifteen neighbours and the one Overlay its URL may name. */
 const MAX_NODES = 17
 
 /** Page visits per tab before the walk moves to a new one (`Walker.freshTab`). */
@@ -336,7 +336,8 @@ class Walker {
       }
       const back = this.begin(`Trail back from ${link.target}`)
       try {
-        await this.page.locator(`${CENTRE} .trail-step[data-parent] .trail-entry`).click()
+        // The way back is the up arrow (#82): one step up the Trail.
+        await this.page.locator(`${CENTRE} .up-arrow`).click()
         await this.arrive(back, ids)
       } catch (error) {
         back.error = String(error).split('\n')[0]
@@ -389,9 +390,15 @@ class Walker {
   }
 }
 
-/** The Trail Branches of the centre frame, by their `href`. */
+/**
+ * The way back the centre frame draws, by its `href`: the up arrow, the one link to a Trail
+ * entry since the drawn Trail went (#82). The share link is judged by the page's own URL too.
+ */
 async function trailOf(page: Page): Promise<string[]> {
-  return page.locator(`${CENTRE} .trail-entry`).evaluateAll((links) => links.map((a) => a.getAttribute('href') ?? ''))
+  return page.locator(`${CENTRE} .up-arrow`).evaluateAll((links) => [
+    ...links.map((a) => a.getAttribute('href') ?? ''),
+    location.pathname + location.search,
+  ])
 }
 
 function kindOf(request: Request): string {
@@ -453,7 +460,7 @@ async function writeRecord(runs: Run[], nodes: Map<string, Node>): Promise<void>
     lines.push('## The share link', '')
     lines.push(`- Copied on \`${sharing.from.url}\` (page ${sharing.from.n}): \`${sharing.copied}\``)
     lines.push(
-      `- Trail Branches on the page it was copied from: ${sharing.trailFrom.length}; on the page opened in a fresh context (page ${sharing.opened?.n}): ` +
+      `- Up arrow and address on the page it was copied from: ${sharing.trailFrom.length}; on the page opened in a fresh context (page ${sharing.opened?.n}): ` +
         `${sharing.trailOpened?.length}; identical: ${JSON.stringify(sharing.trailFrom) === JSON.stringify(sharing.trailOpened)}`,
       '',
     )

@@ -29,8 +29,6 @@ export interface Chrome {
   enlarge: string
   close: string
   credit: string
-  trail: string
-  start: string
   share: string
   copied: string
   /** Shown instead of a confirmation when the browser refused the clipboard. */
@@ -49,16 +47,14 @@ export interface Chrome {
   notFoundText: string
   /** Read out after a link that leaves the app, so the new tab is not a surprise. */
   opensInNewTab: string
-  /** The Branch below an explanation Node or a Terminal, back to the Trail entry above (10.3). */
-  back: string
-  /** The second Branch below a Terminal: the root Node with an empty Trail (10.3). */
+  /** The one button below an explanation Node or a Terminal: the root Node with an empty Trail (10.3). */
   startAgain: string
   /**
-   * The collapsed middle of a long Trail (10.2). A function of the count, not a string with
-   * a placeholder, so a language that orders the sentence differently is not forced into
-   * English word order (application.md 3.2).
+   * The up arrow's accessible name, from the parent's title (10.2). A function of the title,
+   * not a string with a placeholder, so a language that orders the sentence differently is
+   * not forced into English word order (application.md 3.2).
    */
-  trailMore: (hidden: number) => string
+  up: (title: string) => string
   /** The two buttons of a paged Sheet, the enlarged view's included (12.3). */
   previous: string
   next: string
@@ -89,8 +85,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     enlarge: 'Enlarge',
     close: 'Close',
     credit: 'Credit',
-    trail: 'Your path',
-    start: 'Start',
     share: 'Copy link',
     copied: 'Link copied',
     copyFailed: 'Copy this link yourself:',
@@ -107,9 +101,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notFoundTitle: 'This step does not exist',
     notFoundText: 'The address does not name a step of this tree.',
     opensInNewTab: 'opens in a new tab',
-    back: 'Back',
     startAgain: 'Start again',
-    trailMore: (hidden) => (hidden === 1 ? '1 earlier step' : `${hidden} earlier steps`),
+    up: (title) => `Back to: ${title}`,
     previous: 'Previous',
     next: 'Next',
     imageCount: (index, total) => `Image ${index} of ${total}`,
@@ -128,8 +121,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     enlarge: 'Vergroten',
     close: 'Sluiten',
     credit: 'Bronvermelding',
-    trail: 'Uw pad',
-    start: 'Begin',
     share: 'Kopieer link',
     copied: 'Link gekopieerd',
     copyFailed: 'Kopieer deze link zelf:',
@@ -146,9 +137,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     notFoundTitle: 'Deze stap bestaat niet',
     notFoundText: 'Het adres verwijst niet naar een stap van deze boom.',
     opensInNewTab: 'opent in een nieuw tabblad',
-    back: 'Terug',
     startAgain: 'Opnieuw beginnen',
-    trailMore: (hidden) => (hidden === 1 ? '1 eerdere stap' : `${hidden} eerdere stappen`),
+    up: (title) => `Terug naar: ${title}`,
     previous: 'Vorige',
     next: 'Volgende',
     imageCount: (index, total) => `Afbeelding ${index} van ${total}`,
