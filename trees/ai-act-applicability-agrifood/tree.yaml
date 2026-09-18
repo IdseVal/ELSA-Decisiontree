@@ -88,25 +88,20 @@ title:
 description:
   en: |
     Article 2(1) lists **seven** categories of people and organisations the Act reaches;
-    these steps take one each. Are you a [provider](#provider) who places an
-    [AI system](#ai-system) [on the Union market](#placing-on-the-market) or
-    [puts it into service](#putting-into-service) in the Union, or who places a
-    [general-purpose AI model](#general-purpose-ai-model) on the Union market?
+    these steps take one each. Are you a [provider](#provider) who places an AI system
+    on the Union market or puts it into service in the Union, or who places a
+    general-purpose AI model on the Union market?
 
-    Being established in the Union or in a third country makes no difference. A
-    provider develops a system, or has one developed, and places it under its own name
-    or trademark. A **yes** leads to the Article 2 exclusions.
+    Being established in the Union or in a third country makes no difference. A **yes**
+    leads to the Article 2 exclusions.
   nl: |
     Artikel 2, lid 1, noemt **zeven** categorieën die de verordening bereikt; elke stap
-    behandelt er één. Bent u een [aanbieder](#provider) die een [AI-systeem](#ai-system)
-    in de Unie [in de handel brengt](#placing-on-the-market) of
-    [in gebruik stelt](#putting-into-service), of een
-    [AI-model voor algemene doeleinden](#general-purpose-ai-model) in de Unie in de
-    handel brengt?
+    behandelt er één. Bent u een [aanbieder](#provider) die een AI-systeem in de Unie in
+    de handel brengt of in gebruik stelt, of een AI-model voor algemene doeleinden in de
+    Unie in de handel brengt?
 
-    Waar u gevestigd bent, maakt niet uit. Een aanbieder ontwikkelt een systeem of laat
-    het ontwikkelen en brengt het onder eigen naam of merk in de handel. Na elk **ja**
-    volgen de uitsluitingen van artikel 2.
+    Waar u gevestigd bent, maakt niet uit. Na elk **ja** volgen de uitsluitingen van
+    artikel 2.
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -137,34 +132,6 @@ explainers:
     text:
       en: A person, organisation or public body that develops an AI system or general-purpose AI model, or has one developed, and places it on the market or puts it into service under its own name or trademark.
       nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem of AI-model voor algemene doeleinden ontwikkelt of laat ontwikkelen en onder eigen naam of merk in de handel brengt of in gebruik stelt.
-  - id: ai-system
-    term:
-      en: AI system
-      nl: AI-systeem
-    text:
-      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
-      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
-  - id: placing-on-the-market
-    term:
-      en: placing on the market
-      nl: in de handel brengen
-    text:
-      en: The first making available of an AI system or a general-purpose AI model on the Union market.
-      nl: Het voor het eerst in de Unie op de markt aanbieden van een AI-systeem of een AI-model voor algemene doeleinden.
-  - id: putting-into-service
-    term:
-      en: putting into service
-      nl: in gebruik stellen
-    text:
-      en: Supplying an AI system for first use directly to the deployer, or for own use, in the Union for its intended purpose.
-      nl: De directe levering van een AI-systeem aan de gebruiksverantwoordelijke voor het eerste gebruik, of voor eigen gebruik, in de Unie voor het beoogde doel.
-  - id: general-purpose-ai-model
-    term:
-      en: general-purpose AI model
-      nl: AI-model voor algemene doeleinden
-    text:
-      en: An AI model of significant generality that competently performs a wide range of distinct tasks and can be integrated into many systems; not one used only for research or prototyping before release.
-      nl: Een AI-model met een aanzienlijk algemeen karakter dat uiteenlopende taken competent uitvoert en in veel systemen integreerbaar is; geen model enkel voor onderzoek of prototypes vóór marktintroductie.
 answers:
   yes: article-2-exclusions
   no: jurisdiction-deployer
@@ -211,7 +178,7 @@ title:
   nl: Is uw systeem een AI-systeem in de zin van de verordening?
 description:
   en: |
-    Article 3(1): an [AI system](#ai-system) is a machine-based system designed to
+    Article 3(1): an *AI system* is a machine-based system designed to
     operate with varying levels of autonomy, that may exhibit adaptiveness after
     deployment and that, for explicit or implicit objectives, **infers from the input it
     receives how to generate outputs** - predictions, content, recommendations or
@@ -219,7 +186,7 @@ description:
     distinguishing element: as Recital 12 says, the definition does not cover systems
     based on rules defined solely by natural persons.
   nl: |
-    Artikel 3, punt 1: een [AI-systeem](#ai-system) is een op een machine gebaseerd
+    Artikel 3, punt 1: een *AI-systeem* is een op een machine gebaseerd
     systeem dat met verschillende niveaus van autonomie werkt, dat na het inzetten
     aanpassingsvermogen kan vertonen en dat, voor expliciete of impliciete
     doelstellingen, **uit de ontvangen input afleidt hoe output te genereren** die van
@@ -248,14 +215,6 @@ images:
       nl: "Een banaan en een foto ervan, elk gelabeld door een objectherkenningsmodel"
     credit: "Max Gruber, via Wikimedia Commons, CC BY 4.0"
     source: art-3-1
-explainers:
-  - id: ai-system
-    term:
-      en: AI system
-      nl: AI-systeem
-    text:
-      en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
-      nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
 answers:
   yes: prohibited-practices
   no: not-an-ai-system
@@ -653,7 +612,7 @@ title:
   nl: "Is uw systeem een veiligheidscomponent of product onder bijlage I? (2/3)"
 description:
   en: |
-    A [safety component](#safety-component) fulfils a safety function for a product or
+    A **safety component** fulfils a safety function for a product or
     an [AI system](#ai-system), or its failure endangers health and safety. Article
     6(1a): a system used **solely** for non-safety aspects - user assistance,
     performance, service efficiency, automation, convenience or quality control - is not
@@ -662,7 +621,7 @@ description:
     Article 6(1b): a system whose failure would endanger health and safety is one.
     Article 6(1c): assessment required solely for other risks fails condition (b).
   nl: |
-    Een [veiligheidscomponent](#safety-component) vervult een veiligheidsfunctie voor
+    Een **veiligheidscomponent** vervult een veiligheidsfunctie voor
     een product of [AI-systeem](#ai-system), of het falen ervan brengt de veiligheid in
     gevaar. Artikel 6, lid 1 bis: een systeem dat **uitsluitend** voor
     niet-veiligheidsaspecten dient - bijstand, prestaties, efficiëntie, automatisering,
@@ -715,13 +674,6 @@ options:
       nl: Uitrusting van zeeschepen
     target: annex-i-marine-equipment
 explainers:
-  - id: safety-component
-    term:
-      en: safety component
-      nl: veiligheidscomponent
-    text:
-      en: A component of a product or AI system meant to prevent or mitigate risks to the health and safety of persons or property, or whose failure or malfunction endangers them.
-      nl: Een component van een product of AI-systeem die risico’s voor de gezondheid en veiligheid van personen of eigendom moet voorkomen of beperken, of waarvan het falen die in gevaar brengt.
   - id: ai-system
     term:
       en: AI system
@@ -2482,20 +2434,20 @@ title:
   nl: Is er sprake van AI voor algemene doeleinden?
 description:
   en: |
-    The Act uses two terms. A [general-purpose AI model](#general-purpose-ai-model)
+    The Act uses two terms. A **general-purpose AI model**
     (Article 3(63)) displays significant generality, performs a wide range of distinct
     tasks competently and can be integrated into many downstream systems; a
-    [general-purpose AI system](#general-purpose-ai-system) (Article 3(66)) is based on
+    **general-purpose AI system** (Article 3(66)) is based on
     such a model and can serve a variety of purposes. Chapter V places its obligations
     on [providers](#provider) of models (Articles 53 and 55; Article 51 classifies
     models with [systemic risk](#systemic-risk)), not on such a system as such. Either
     answer continues.
   nl: |
     De verordening gebruikt twee begrippen. Een
-    [AI-model voor algemene doeleinden](#general-purpose-ai-model) (artikel 3, punt 63)
+    **AI-model voor algemene doeleinden** (artikel 3, punt 63)
     vertoont een aanzienlijk algemeen karakter, voert een breed scala aan taken
     competent uit en kan in veel systemen worden geïntegreerd; een
-    [AI-systeem voor algemene doeleinden](#general-purpose-ai-system) (artikel 3, punt
+    **AI-systeem voor algemene doeleinden** (artikel 3, punt
     66) is op zo'n model gebaseerd en kan verschillende doeleinden dienen. Hoofdstuk V
     legt verplichtingen op aan [aanbieders](#provider) van modellen (artikelen 53 en 55;
     artikel 51 gaat over [systeemrisico](#systemic-risk)), niet aan zo'n systeem als
@@ -2536,20 +2488,6 @@ images:
     credit: "Derrick Coetzee, via Wikimedia Commons, CC0 1.0"
     source: art-3-63
 explainers:
-  - id: general-purpose-ai-model
-    term:
-      en: general-purpose AI model
-      nl: AI-model voor algemene doeleinden
-    text:
-      en: An AI model of significant generality that competently performs a wide range of distinct tasks and can be integrated into many systems; not one used only for research or prototyping before release.
-      nl: Een AI-model met een aanzienlijk algemeen karakter dat uiteenlopende taken competent uitvoert en in veel systemen integreerbaar is; geen model enkel voor onderzoek of prototypes vóór marktintroductie.
-  - id: general-purpose-ai-system
-    term:
-      en: general-purpose AI system
-      nl: AI-systeem voor algemene doeleinden
-    text:
-      en: An AI system based on a general-purpose AI model that can serve a variety of purposes, both for direct use and for integration in other AI systems.
-      nl: Een AI-systeem dat is gebaseerd op een AI-model voor algemene doeleinden en verschillende doeleinden kan dienen, zowel voor direct gebruik als voor integratie in andere AI-systemen.
   - id: provider
     term:
       en: provider
@@ -2817,10 +2755,9 @@ title:
 description:
   en: |
     The fifth category of Article 2(1). Are you a
-    [product manufacturer](#product-manufacturer) who places an [AI system](#ai-system)
-    [on the market](#placing-on-the-market), or
-    [puts it into service](#putting-into-service), **together with your product and
-    under your own name or trademark**?
+    [product manufacturer](#product-manufacturer) who [places](#placing-on-the-market)
+    an [AI system](#ai-system) on the market, or [puts](#putting-into-service) it into
+    service, **together with your product and under your own name or trademark**?
   nl: |
     De vijfde categorie van artikel 2, lid 1. Bent u een
     [fabrikant van producten](#product-manufacturer) die samen met uw product en **onder
