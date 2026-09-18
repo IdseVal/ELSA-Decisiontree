@@ -72,7 +72,7 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await page.locator('.up-arrow').click()
   await arrived(page, `${START}?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'Verricht uw systeem een van de verboden praktijken?',
+    'Valt uw AI-systeem binnen het bereik van de AI-verordening?',
   )
 })
 
