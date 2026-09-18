@@ -120,7 +120,7 @@ test.describe('opening and closing', () => {
 })
 
 test.describe('the keyboard', () => {
-  test('Enter on a focused Option button opens its Overlay; Tab reaches the cross, the heading link and the Sources; Escape returns', async ({ page }) => {
+  test('Enter on a focused Option button opens its Overlay; Tab reaches the cross, the main image, the heading link and the Sources; Escape returns', async ({ page }) => {
     await page.goto(QUESTION)
     const overlay = page.locator('.overlay').first()
     await overlay.locator('.sheet-open').focus()
@@ -128,6 +128,11 @@ test.describe('the keyboard', () => {
     await expect(overlay.locator('.sheet-panel')).toBeVisible()
     await expect(overlay.locator('.sheet-close--cross')).toBeFocused()
 
+    // The Interior's order (10.3): the main image, a plain link to its file here, then the heading.
+    await page.keyboard.press('Tab')
+    expect(await focused(page)).toBe('a.main-image')
+    await expect(page.locator(':focus')).toHaveAttribute('href', '/images/scoreboard.png')
+    await expect(page.locator(':focus')).not.toHaveAttribute('data-enlarge')
     await page.keyboard.press('Tab')
     expect(await focused(page)).toBe('a')
     await expect(page.locator(':focus')).toHaveAttribute('href', FIRST_OPTION)
