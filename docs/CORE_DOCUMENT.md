@@ -428,8 +428,12 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
   source**. The code is under the **MIT** licence (`LICENSE`); the content of the Trees
   -- text, structure, and the images the authors make themselves -- is under **CC BY
   4.0** (`CONTENT-LICENSE`). Holder: Wageningen University & Research, 2026. Images
-  copied from elsewhere keep their own licence, recorded in each Image's credit (#12,
-  answered 10.14).
+  copied from elsewhere keep their own licence, recorded in each Image's credit (10.14:
+  the owner chose MIT on #12; the content licence and the holder line were completed by
+  the oversight session under the owner's standing instruction, open to the owner's
+  overrule). Choosing the licences does not clear the repository for publication: whether
+  the logo and tab icon may be published with it is still not answered (10.25), and that
+  gates making the repository public.
 - **Image rights**: every Image carries a credit/attribution.
 - Content review before publication is the owner's responsibility, outside the code.
 
@@ -472,7 +476,7 @@ Confirmed by the owner on 2026-09-03:
 | 10.11 | Sources inline vs shared. | -- | inline (PROPOSED, from owner's "source parameter") |
 | 10.12 | Image credits. | -- | answered: required |
 | 10.13 | Hosting. | -- | answered: undecided between university server and Hetzner; plain Linux, no vendor lock-in |
-| 10.14 | Which open-source licence for code, and which for content? | Idse | answered (#12, 2026-09-17): code MIT (`LICENSE`), Tree content CC BY 4.0 (`CONTENT-LICENSE`), holder Wageningen University & Research, 2026 (section 8) |
+| 10.14 | Which open-source licence for code, and which for content? | Idse | code answered (owner, #12, 2026-09-17): "MIT license is fine" -- code MIT (`LICENSE`). The content licence and the holder line were completed on #12 on 2026-09-18 by the oversight session under the owner's standing instruction, not by the owner in person, and are open to the owner's overrule: Tree content CC BY 4.0 (`CONTENT-LICENSE`), holder Wageningen University & Research, 2026. Publishing the repository is still gated by 10.25 (section 8) |
 | 10.15 | What must never happen. | -- | answered (section 9) |
 | 10.16 | Storage technology. | -- | answered: files in the repo, no database |
 | 10.17 | Trail click. | -- | answered: jump back, discard later Trail |
