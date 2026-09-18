@@ -1,7 +1,8 @@
 /**
  * The way back -- the up arrow that replaced the drawn Trail (#82) -- and the shareable link
- * in a real browser: what markup alone cannot show -- where a click lands, what the clipboard actually holds, whether a stranger opening the
- * link sees the same path, and that none of it leaves a trace on the reader's machine.
+ * in a real browser: what markup alone cannot show -- where a click lands, what the
+ * clipboard actually holds, whether a stranger opening the link sees the same path, and
+ * that none of it leaves a trace on the reader's machine.
  *
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */

@@ -6,8 +6,9 @@
  *
  * This is the one place a page takes more than one Node from the loader, and so it is where
  * the bound lives: at most fifteen neighbours, which with the Node on screen and the one
- * Overlay a URL may name makes the seventeen a response may carry (11.5). Fifteen is a contract, not a setting -- widening it
- * is an architecture decision, because it is what stands between a page and the whole Tree.
+ * Overlay a URL may name makes the seventeen a response may carry (11.5). Fifteen is a
+ * contract, not a setting -- widening it is an architecture decision, because it is what
+ * stands between a page and the whole Tree.
  */
 import type { Tree } from './tree/loader.ts'
 import type { Node } from './tree/types.ts'
