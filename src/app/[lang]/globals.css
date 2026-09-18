@@ -469,6 +469,8 @@ a.language:hover,
 
 /* From the top, not centred: the main image and the title sit at the same height on every Node (10.3). */
 .bubble-text {
+  /* The containing block of an explainer panel, which never leaves the text area (10.8). */
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -552,12 +554,73 @@ a.language:hover,
   text-underline-offset: 0.18em;
 }
 
-/* An explainer mark's panel (application.md 10.8). How the term looks and where its panel
-   opens is issue #83's; until then the panel stays out of the text's flow, so a marked
-   description takes the lines tree-format.md 3.8 counts. A screen reader still hears it:
-   aria-describedby reads hidden text. */
+/* --- the explainers (10.8) --------------------------------------------------------- */
+
+/* A marked term: a dotted underline says there is more here without reading as a link. The
+   Tree may not bold or emphasise it (tree-format.md 3.4), so this is the only look it has. */
+.prose .term {
+  border-radius: 2px;
+  text-decoration: underline dotted var(--accent-secondary-read);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.22em;
+  cursor: help;
+}
+
+.prose .term:hover,
+.prose .term:focus-visible,
+.prose .term:has(+ .explainer[data-open]) {
+  background: var(--wash-secondary);
+  text-decoration-style: solid;
+}
+
+/* The panel is out of the text's flow at all times, so a marked description takes exactly
+   the lines tree-format.md 3.8 counts, and a closed one is still read: aria-describedby
+   reads hidden text. 14 px on 20-px lines, five lines of the 200-character maximum under a
+   one-line heading, is at most 148 pixels with its padding (10.8). */
 .prose .explainer {
   display: none;
+  position: absolute;
+  z-index: 3;
+  width: min(320px, 100%);
+  padding: 11px 14px 13px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--elsa-surface);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 10%, transparent),
+    0 8px 24px -6px color-mix(in srgb, var(--elsa-scrim) 28%, transparent);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  font-style: normal;
+  text-align: left;
+  color: var(--elsa-text);
+  cursor: auto;
+}
+
+.prose .explainer b {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-secondary-read);
+}
+
+/* Without the script (section 14): CSS alone opens the panel on hover and on focus, at the
+   foot of the text area and across it, where it cannot leave the Bubble whichever line the
+   term is on. A term on the last lines lies under the panel it opens, so the pointer is then
+   on the panel, not the term: hovering the panel keeps it open, or it would flicker. */
+.prose:not([data-enhanced]) .term:is(:hover, :focus) + .explainer,
+.prose:not([data-enhanced]) .explainer:hover {
+  display: block;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: auto;
+}
+
+/* With the script, Explainer.tsx opens one panel at a time and places it beside its term. */
+.prose .explainer[data-open] {
+  display: block;
 }
 
 /* --- the rim: the up arrow and the outcome badge above, the explanation hint below (10.1) */

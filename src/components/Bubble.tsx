@@ -24,6 +24,7 @@ import { text, type Chrome, type ChromeString } from '../chrome.ts'
 import { richTextToHtml } from '../markdown.ts'
 import type { Node, Outcome, Source } from '../tree/types.ts'
 import { imageHref } from '../url.ts'
+import { Explainer } from './Explainer.tsx'
 import { Sheet, type SheetWords } from './Sheet.tsx'
 
 /** The chrome key that names each Terminal outcome (tree-format.md 5.5). */
@@ -118,15 +119,12 @@ export function Interior({
 
       <h1 id={`${idPrefix}node-title`}>{text(node.title, lang, `${node.id}.title`)}</h1>
 
-      <div
-        className="prose"
-        dangerouslySetInnerHTML={{
-          __html: richTextToHtml(text(node.description, lang, `${node.id}.description`), {
-            explainers: node.explainers,
-            lang,
-            idPrefix,
-          }),
-        }}
+      <Explainer
+        html={richTextToHtml(text(node.description, lang, `${node.id}.description`), {
+          explainers: node.explainers,
+          lang,
+          idPrefix,
+        })}
       />
 
       {node.sources.length > 0 && (
