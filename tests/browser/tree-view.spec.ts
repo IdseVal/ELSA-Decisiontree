@@ -110,11 +110,9 @@ async function focused(page: Page): Promise<string> {
 /** Every control on the page that is shown and enabled, as `tag.class`, in document order. */
 async function controls(page: Page): Promise<string[]> {
   // A disabled button is no tab stop: the Carousel's previous and next are, on a strip that fits its row.
-  // Nor is a thumbnail other than the selected one: the strip is one stop, walked with the arrow keys,
-  // which a Node shows once it has two pictures (since #84, the example's question Node does).
   return page.locator('a[href], button:not(:disabled), summary').evaluateAll((elements) =>
     elements
-      .filter((el) => el.getClientRects().length > 0 && (el as HTMLElement).tabIndex >= 0)
+      .filter((el) => el.getClientRects().length > 0)
       .map((el) => `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`),
   )
 }
