@@ -60,18 +60,23 @@ const VIEWPORTS = [
 ] as const
 
 /**
- * Where the width alone orders steps 1 and 2 (10.5), none of them a viewport of 10.6: between
- * step 1 (1200) and the guaranteed width, at step 2's trigger (960) and just below it, and in
- * the band between step 2 and the Bubble narrowing (792), each at the guaranteed height and
- * at one tall enough that no height-keyed step fires.
+ * Either side of each trigger of 10.5 as #78 re-froze it, none of them a viewport of 10.6: by
+ * height at the guaranteed width, the strip (640), the main image (632), the Sources (564) and
+ * the type (506: 10.5 says 496, but the Sources' control keeps 36 of the 68 it counts, #81);
+ * by width at a height where no height-keyed step fires, the guaranteed width (1280) and the
+ * Bubble narrowing (792).
  */
-const STEP_2_VIEWPORTS = [
-  [1240, 640],
-  [1240, 800],
-  [960, 640],
-  [960, 800],
-  [959, 800],
-  [800, 800],
+const STEP_VIEWPORTS = [
+  [1280, 639],
+  [1280, 632],
+  [1280, 631],
+  [1280, 564],
+  [1280, 563],
+  [1280, 506],
+  [1280, 505],
+  [1279, 800],
+  [792, 800],
+  [791, 800],
 ] as const
 
 /** The five situations of 10.3, as pages of the example Tree (playwright.config.ts serves it). */
@@ -254,9 +259,10 @@ async function measureEverywhere(
       await closeSheet(sheet)
     }
 
-    // The enlarged view of each of the Node's Images, opened from its thumbnail (12.3), where
-    // the strip is on the page. Below step 2 the loop above opened it from its own control.
-    const thumbnails = page.locator('.thumbnail')
+    // The enlarged view of each of the Node's Images, opened from the main image or its
+    // thumbnail (12.3), where they are on the page. Below steps 1 and 5 the loop above opened
+    // it from its own control.
+    const thumbnails = page.locator('.tree-frame a[data-enlarge]')
     const enlarged = page.locator('.carousel-sheet .sheet-panel')
     for (let i = 0; script && i < (await thumbnails.count()); i += 1) {
       if (!(await thumbnails.nth(i).isVisible())) continue
@@ -583,8 +589,8 @@ for (const { what, url } of OVERLAY_PAGES) {
 }
 
 /**
- * The Carousel's fixture (section 12): a Node whose Images are more than a page of the strip,
- * the common two, and a credit of the format's maximum 120 characters.
+ * The Carousel's fixture (section 12): a main image and four in the strip, a main image and
+ * one, and a credit of the format's maximum 120 characters, each enlarged in turn.
  */
 const CAROUSEL_PAGES = [
   { what: 'Node with five Images', url: '/carousel/five' },
@@ -621,13 +627,14 @@ for (const { what, url } of CAROUSEL_PAGES) {
   }
 }
 
-// The order of 10.5 by width, laid out: the longest credit whole on the caption line from
-// the guaranteed width down to step 2's trigger, and the collapsed row below it.
+// The order of 10.5 laid out either side of each trigger, on the Node that has every step to
+// take: ten Images, a strip, a main image and three Sources to collapse.
 for (const lang of LANGUAGES) {
-  test(`the Node with a 120-character credit, ${lang}, never scrolls where steps 1 and 2 fire by width`, async ({ page }) => {
+  test(`the full Node, ${lang}, never scrolls either side of each trigger of 10.5`, async ({ page }) => {
     test.slow()
-    const { what, url } = CAROUSEL_PAGES[2]
-    await measureEverywhere(page, `${await carouselOrigin()}${inLang(url, lang)}`, what, lang, true, STEP_2_VIEWPORTS)
+    const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 5)
+    expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+    await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail, at the triggers', lang, true, STEP_VIEWPORTS)
   })
 }
 
@@ -675,15 +682,15 @@ test('the longest Node of the first Tree, once it validates, never scrolls at an
   }
 })
 
-// The heaviest Node a reader meets (issue #55): its own picture and eight Options, each with
-// a picture that is on its Branch and in the strip, nine in the Carousel -- at rest, and
-// mid-slide, where the strip rides in the layer beside a neighbour with an empty row (11.4).
+// The heaviest Node a reader meets (issue #55): its own picture as the main image and eight
+// Options, whose pictures elsa-tree/3 moved to their targets (#79) -- at rest, the main image
+// enlarged, and mid-slide beside neighbours whose main images are withheld (11.4).
 for (const lang of LANGUAGES) {
   test(`the first Tree's annex-i-legislation, ${lang}, never scrolls at any viewport of 10.6, each picture enlarged in turn, or mid-slide`, async ({ page }) => {
     test.slow()
     const url = `${await firstTreeOrigin()}${inLang('/ai-act-applicability-agrifood/annex-i-legislation', lang)}`
-    await measureEverywhere(page, url, 'first Tree, annex-i-legislation (9 pictures)', lang)
-    await measureSliding(page, url, 'first Tree, annex-i-legislation (9 pictures)', lang)
+    await measureEverywhere(page, url, 'first Tree, annex-i-legislation (its main image, 8 Options)', lang)
+    await measureSliding(page, url, 'first Tree, annex-i-legislation (its main image, 8 Options)', lang)
   })
 }
 
@@ -729,9 +736,9 @@ test.describe('with JavaScript switched off', () => {
     }
   })
 
-  // Issue #59, PR #61's first fix: a Node with a Source and an Image, below step 2, where the
-  // collapsed Carousel's control is at the foot of the page. With the Sources open, a click on
-  // that control opens the enlarged view, and the Sources close: one Sheet at a time (10.2).
+  // Issue #59, PR #61's first fix: a Node with a Source and an Image, where without the script
+  // the enlarged view's control is on the Bubble's lower outline. With the Sources open, a
+  // click on that control opens the enlarged view, and the Sources close: one Sheet at a time.
   test('the open Sources Sheet leaves the collapsed Carousel its control without JavaScript (#59)', async ({ page }) => {
     for (const [width, height] of [[768, 1024], [390, 844], [360, 640]] as const) {
       await page.setViewportSize({ width, height })
@@ -746,8 +753,8 @@ test.describe('with JavaScript switched off', () => {
     }
   })
 
-  // The Carousel without the script: the strip, its caption line, and below step 2 its
-  // control, whose Sheet is a page of disclosures per Image (12.2, 14).
+  // The Carousel without the script: the strip and, beside it at every size, the enlarged
+  // view's control, whose Sheet is a page of disclosures per Image (12.2, 14).
   test('a Node with five Images never scrolls without JavaScript', async ({ page }) => {
     test.slow()
     await measureEverywhere(page, `${await carouselOrigin()}/carousel/five`, 'Node with five Images, no JavaScript', 'en', false)

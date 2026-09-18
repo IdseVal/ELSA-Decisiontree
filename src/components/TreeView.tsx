@@ -11,7 +11,7 @@
  * away in the direction of the Branch that leads to them, carry no image URL at all (11.4),
  * and draw only the part of their Trail the guaranteed viewport shows, not the Trail Sheet
  * (#60). The asides -- the Option targets -- are not placed: each is carried closed in the
- * Overlay its button opens (10.9). The Carousel's row (section 12) is present on every
+ * Overlay its button opens (10.9). The Carousel's band (section 12) is present on every
  * Node, so the Bubble sits in the same place.
  *
  * Below the guaranteed viewport the layout gives things up in the order of 10.5, and each
@@ -28,12 +28,11 @@ import { Fragment, type CSSProperties } from 'react'
 import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
 import type { Aside, NodePage, Placed } from '../neighbourhood.ts'
 import type { Tree } from '../tree/loader.ts'
-import type { Node, Option } from '../tree/types.ts'
+import type { Node } from '../tree/types.ts'
 import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
 import { Branch } from './Branch.tsx'
-import { Bubble, sheetWords } from './Bubble.tsx'
+import { Bubble, Interior, sheetWords } from './Bubble.tsx'
 import { Carousel } from './Carousel.tsx'
-import { Interior } from './Interior.tsx'
 import { Sheet } from './Sheet.tsx'
 import { Slider } from './Slider.tsx'
 
@@ -132,7 +131,7 @@ export function TreeView({ page, tree }: { page: NodePage; tree: Tree }) {
 
 /**
  * One Node laid out as the tree view draws it: the Trail, the Bubble, the Options with their
- * Overlays, the Answers and the Carousel's row. The centre of the page is one; so is each
+ * Overlays, the Answers and the Carousel's band. The centre of the page is one; so is each
  * neighbour, which is why a Bubble arriving in a slide already carries its own Branch labels
  * (11.3).
  */
@@ -141,10 +140,10 @@ function Frame({ node, view }: { node: Node; view: View }) {
   return (
     <>
       <Trail node={node} view={view} />
-      <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} />
+      <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} pictures={view.pictures} />
       {(node.options.length > 0 || view.open) && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
-      {/* The Carousel's row (section 12), on every Node, empty where there are no pictures, so the
+      {/* The Carousel's band (section 12), on every Node, empty where there is no picture, so the
           Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
       {view.pictures ? (
         <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
@@ -307,7 +306,7 @@ function Options({ node, view }: { node: Node; view: View }) {
             >
               <Overlay
                 title={text(option.title, lang, `${node.id}.options[${index}].title`)}
-                picture={view.pictures ? optionPicture(node, option, index, target ?? null, lang) : null}
+                picture={optionPicture(target ?? null, lang)}
                 aside={target ?? null}
                 open={target !== null && target !== undefined && open?.href === target.href}
                 view={view}
@@ -351,23 +350,16 @@ function Options({ node, view }: { node: Node; view: View }) {
 }
 
 /**
- * The picture on an Option button (10.3): the target's main image, the file its Overlay shows.
- * Until #84 moves the first Tree's pictures from its Options to their targets, an Option's own
- * first Image stands in for a target that has none -- a file of the centre Node's own, which
- * 11.5 allows and the Carousel's row already names.
+ * The picture on an Option button (10.3): the target's main image, the file its Overlay
+ * shows. An Option has no Images of its own (tree-format.md 5.4).
  */
-function optionPicture(
-  node: Node,
-  option: Option,
-  index: number,
-  target: Aside | null,
-  lang: string,
-): { src: string; alt: string } | null {
-  const own = target?.node.images[0]
-  const image = own ?? option.images[0]
-  if (!image) return null
-  const at = own ? `${option.target}.images[${image.file}]` : `${node.id}.options[${index}].images[${image.file}]`
-  return { src: imageHref(image.file), alt: text(image.description, lang, `${at}.description`) }
+function optionPicture(target: Aside | null, lang: string): { src: string; alt: string } | null {
+  const image = target?.node.images[0]
+  if (!target || !image) return null
+  return {
+    src: imageHref(image.file),
+    alt: text(image.description, lang, `${target.node.id}.images[${image.file}].description`),
+  }
 }
 
 /**

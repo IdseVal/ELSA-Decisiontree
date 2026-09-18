@@ -4,8 +4,8 @@
  *
  * Issue #41 turned the Node view into the tree view of docs/specs/application.md section
  * 10: the Answers are Branches whose accessible name is the chrome word and the target's
- * title, so they are found by class here. The thumbnail and the enlarged view checks are the
- * 0.1 ones, kept on the Carousel issue #43 drew (`carousel.spec.ts` is the rest of it); the
+ * title, so they are found by class here. The picture and the enlarged view checks are the
+ * 0.1 ones, on the main image #81 put above the title (`carousel.spec.ts` is the strip); the
  * tree view's own clicks, keyboard and Sheets are `tree-view.spec.ts`.
  *
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
@@ -125,12 +125,12 @@ test('the 404 sends its status in the response and its body in the client payloa
   await expect(page.locator('.disclaimer')).toContainText('This is not legal advice.')
 })
 
-test('clicking a thumbnail shows the image larger with its description and credit', async ({ page }) => {
+test('clicking the main image shows the image larger with its description and credit', async ({ page }) => {
   await page.goto(START)
   const enlarged = page.locator('.carousel-sheet .sheet-panel')
   await expect(enlarged).toBeHidden()
 
-  await page.locator('.thumbnail').first().click()
+  await page.locator('.main-image').click()
 
   await expect(enlarged).toBeVisible()
   await expect(enlarged).toContainText('Map of the European Union member states')
@@ -138,11 +138,11 @@ test('clicking a thumbnail shows the image larger with its description and credi
   const enlargedImage = enlarged.locator('img')
   await expect(enlargedImage).toHaveAttribute('src', '/images/eu-map.png')
 
-  // Larger than the 60-pixel thumbnail of the row, and bounded to the viewport (10.6).
-  const thumbnail = await page.locator('.thumbnail img').first().boundingBox()
+  // Larger than the 60-pixel main image above the title, and bounded to the viewport (10.6).
+  const mainImage = await page.locator('.main-image img').first().boundingBox()
   const shown = await enlargedImage.boundingBox()
-  expect(thumbnail!.height).toBe(60)
-  expect(shown!.height).toBeGreaterThan(thumbnail!.height)
+  expect(mainImage!.height).toBe(60)
+  expect(shown!.height).toBeGreaterThan(mainImage!.height)
   expect(shown!.height).toBeLessThan(page.viewportSize()!.height)
 })
 
@@ -150,12 +150,12 @@ test('Escape closes the enlarged image, and so does a click outside it', async (
   await page.goto(START)
   const enlarged = page.locator('.carousel-sheet .sheet-panel')
 
-  await page.locator('.thumbnail').first().click()
+  await page.locator('.main-image').click()
   await expect(enlarged).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(enlarged).toBeHidden()
 
-  await page.locator('.thumbnail').first().click()
+  await page.locator('.main-image').click()
   await expect(enlarged).toBeVisible()
   // The Sheet's backdrop covers the page around the panel.
   await page.mouse.click(4, 4)
@@ -163,28 +163,31 @@ test('Escape closes the enlarged image, and so does a click outside it', async (
 })
 
 test('the browser asks for the images of the Node on screen and no others', async ({ page }) => {
-  // The root Node's own Image is in the Carousel's row (12.1); an Option's first Image is
-  // on its Branch (10.3) and in the row, one file asked for once. Neither page asks for the other's.
+  // A Node's own Image is its main image (10.3). An Option has no Image of its own in
+  // elsa-tree/3, so the Node with Options asks for none, and its target for its own.
   const onStart = await imageRequests(page, () => page.goto(START))
   expect(new Set(onStart)).toEqual(new Set(['eu-map.png']))
 
   const onOptions = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices'))
-  expect(new Set(onOptions)).toEqual(new Set(['scoreboard.png']))
+  expect(new Set(onOptions)).toEqual(new Set())
+
+  const onTarget = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices/social-scoring'))
+  expect(new Set(onTarget)).toEqual(new Set(['scoreboard.png']))
 })
 
-test('enlarging a thumbnail fetches nothing new', async ({ page }) => {
+test('enlarging the main image fetches nothing new', async ({ page }) => {
   await page.goto(START)
   await page.waitForLoadState('networkidle')
 
   const whileEnlarging = await imageRequests(page, async () => {
-    await page.locator('.thumbnail').first().click()
+    await page.locator('.main-image').click()
     await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
   })
 
   expect(whileEnlarging).toEqual([])
 })
 
-test('a keyboard reaches the thumbnail, opens the enlarged view and closes it, and the focus comes back', async ({ page }) => {
+test('a keyboard reaches the main image, opens the enlarged view and closes it, and the focus comes back', async ({ page }) => {
   await page.goto(START)
 
   const stops: string[] = []
@@ -197,15 +200,15 @@ test('a keyboard reaches the thumbnail, opens the enlarged view and closes it, a
       }),
     )
   }
-  expect(stops).toContain('a.thumbnail')
+  expect(stops).toContain('a.main-image')
 
-  await page.locator('.thumbnail').first().focus()
+  await page.locator('.main-image').focus()
   await page.keyboard.press('Enter')
   await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
   await expect(page.locator('.carousel-sheet .sheet-close')).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(page.locator('.carousel-sheet .sheet-panel')).toBeHidden()
-  await expect(page.locator('.thumbnail').first()).toBeFocused()
+  await expect(page.locator('.main-image')).toBeFocused()
 })
 
 test('a keyboard reaches the Answers and follows one', async ({ page }) => {
@@ -291,7 +294,7 @@ test('the image route answers 404 for a name the Tree does not have', async ({ p
 test.describe('with JavaScript switched off', () => {
   test.use({ javaScriptEnabled: false })
 
-  test('a Node page is whole: its Answers, its thumbnail and its disclaimer all work', async ({ page }) => {
+  test('a Node page is whole: its Answers, its main image and its disclaimer all work', async ({ page }) => {
     await page.goto(START)
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
@@ -300,15 +303,15 @@ test.describe('with JavaScript switched off', () => {
     await expect(page.locator('.disclaimer')).toContainText('This is not legal advice.')
     await expect(page.locator('.answer--yes')).toHaveAttribute('href', '/ai-act-example/start/prohibited-practices')
     await expect(page.locator('.answer--no')).toHaveAttribute('href', '/ai-act-example/start/outside-scope')
-    // The enlarge is a client component; without it the thumbnail is still a link to the file.
-    await expect(page.locator('.thumbnail').first()).toHaveAttribute('href', '/images/eu-map.png')
+    // The enlarge is a client component; without it the main image is still a link to the file.
+    await expect(page.locator('.main-image')).toHaveAttribute('href', '/images/eu-map.png')
 
     await page.locator('.answer--yes').click()
     await arrived(page, '/ai-act-example/start/prohibited-practices')
 
     // With the enlarge unavailable the click is not intercepted, so it opens the file (14).
     await page.goto(START)
-    await page.locator('.thumbnail').first().click()
+    await page.locator('.main-image').click()
     await arrived(page, '/images/eu-map.png')
   })
 })

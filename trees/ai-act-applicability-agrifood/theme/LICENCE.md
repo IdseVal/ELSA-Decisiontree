@@ -42,25 +42,37 @@ raise (`ADR-37-theme-block.md`, Consequences).
 that site's tab icon. They are the mark of the **ELSA-Lab for sustainable food systems**
 at Wageningen University -- the lab this project belongs to (`docs/CORE_DOCUMENT.md`
 section 1) -- and the project owner asked in issue #35 for the application to display it.
-They are here on that instruction, not under a licence anyone has published: ai4sfs.org
-carries no copyright line, colophon or terms page.
+ai4sfs.org carries no copyright line, colophon or terms page, so the licence line below is
+the owner's own statement, not a published licence.
+
+**Licence line** (the owner, on issue #73, 2026-09-18; core-document item 10.25):
+
+> This is our logo, we have the right to use it it stays in the repo.
+
+Both files stay in this repository. Whether they may also be published with it when it
+goes public was asked in the same question and is not separately confirmed (see below and
+issue #12).
 
     debeef5b5b35ab9571c0b7b4b170fbcc586361c5d94da96c72a9dcb584e1e74d  elsa-lab-logo.png
     53d5d494e7efe8e4f3dc9f8c4ed9a1d487d1437605d7f143af897e50802cd15a  favicon.png
 
-**Three questions issue #36 could not settle by measurement remain open for the owner**
-(section 6.1 of that document; the logo half of core-document open item 10.25):
+The owner's words settle the right to use the logo. These questions put to the owner on
+#73 were not answered and are recorded as such:
 
-1. Whether the mark is a registered trademark of Wageningen University & Research, and
-   whether WUR's corporate-identity rules constrain how it is shown.
-2. Whether the apple artwork inside the logo is itself licensed material -- the site's
-   other imagery is stock photography.
-3. Whether a transparent or vector master exists. Both files served have an **opaque
-   background baked into the pixels** (white for the logo, `#ffc600` for the mobile
-   variant). This Tree's palette has a white `background`, so the logo merges with the
-   page; a Tree whose palette is dark, or a frontend that ever places the logo on a
-   coloured surface, needs a master this lab has not published. That is why this Theme
-   names no `logo.dark`.
+- Whether both files may be published with the repository when it goes public (#12): **not
+  answered** -- the owner said the logo stays in the repository.
+- Who "we" is, and whether anyone other than the owner (the lab, the university's
+  communications department) must agree, and whether that agreement exists: **not
+  answered**.
+- Whether the mark is a registered trademark of Wageningen University & Research, and
+  whether WUR's corporate-identity rules constrain how it is shown (minimum clear space,
+  minimum size, permitted backgrounds): **not answered**.
+- Whether the apple artwork inside the logo is stock material: **not answered**.
+- Whether a transparent or vector master exists: **not answered**. Both files served have
+  an **opaque background baked into the pixels** (white for the logo, `#ffc600` for the
+  mobile variant). This Tree's palette has a white `background`, so the logo merges with
+  the page; a Tree whose palette is dark, or a frontend that ever places the logo on a
+  coloured surface, needs a master this lab has not published. That is why this Theme
+  names no `logo.dark`.
 
-Answering 1 and 2 is the owner's; until then these two files travel with this Tree and
-with nothing else.
+Until those are answered, these two files travel with this Tree and with nothing else.

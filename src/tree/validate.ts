@@ -4,6 +4,7 @@
  * V-DIR and V-YAML). Every failing rule is collected; nothing stops at the first
  * (ADR-4-validity-rules).
  */
+import { explainerMarks } from '../markdown.ts'
 import type { NodeKind, Violation } from './types.ts'
 
 /** A parsed YAML mapping whose shape is not yet trusted. */
@@ -49,7 +50,7 @@ const FONT_ROLES: readonly string[] = ['body', 'heading']
 const FONT_STYLES: readonly string[] = ['normal', 'italic']
 const COLOUR_ROLES = ['background', 'surface', 'text', 'text-muted', 'accent', 'accent-secondary', 'danger']
 const MANIFEST_KEYS = ['format', 'languages', 'root', 'title', 'description', 'metadata', 'theme']
-const NODE_KEYS = ['id', 'title', 'description', 'metadata', 'sources', 'images', 'answers', 'options', 'terminal']
+const NODE_KEYS = ['id', 'title', 'description', 'metadata', 'sources', 'images', 'answers', 'options', 'explainers', 'terminal']
 
 /** The maximum lengths and counts of tree-format.md 5.7; the same for every language. */
 const MAX = {
@@ -66,7 +67,9 @@ const MAX = {
   sources: 3,
   options: 8,
   nodeImages: 10,
-  optionImages: 3,
+  explainers: 8,
+  explainerTerm: 40,
+  explainerText: 200,
   fontFamilies: 2,
   fontFiles: 8,
 }
@@ -152,12 +155,15 @@ export function validateTree(tree: RawTree): Violation[] {
     const c = new DocumentChecker('manifest', context, out)
     const m = tree.manifest
     c.keys(m, '', MANIFEST_KEYS)
-    if (m.format !== 'elsa-tree/2') c.fail('format', 'V-FORMAT', 'must be exactly "elsa-tree/2"')
+    if (m.format !== 'elsa-tree/3') c.fail('format', 'V-FORMAT', 'must be exactly "elsa-tree/3"')
     context.languages = checkLanguages(c, m.languages)
     root = c.reference(m.root, 'root', 'V-ROOT')
     if (!('title' in m)) c.fail('title', 'V-TITLE', 'title is required')
     else c.localised(m.title, 'title', false, MAX.title)
-    if ('description' in m) c.localised(m.description, 'description', true, MAX.description)
+    if ('description' in m) {
+      c.localised(m.description, 'description', true, MAX.description)
+      checkMarks(c, m.description, null)
+    }
     c.metadata(m.metadata)
     if ('theme' in m) checkTheme(c, m.theme)
   }
@@ -285,7 +291,7 @@ class DocumentChecker {
   /** A Node reference (3.2): an id without a colon (V-CROSS). Returns it, or null when unusable. */
   reference(value: unknown, keyPath: string, rule: string): string | null {
     if (typeof value === 'string' && value.includes(':')) {
-      this.fail(keyPath, 'V-CROSS', `"${value}" contains a colon; Cross-links are not part of elsa-tree/2`)
+      this.fail(keyPath, 'V-CROSS', `"${value}" contains a colon; Cross-links are not part of elsa-tree/3`)
       return null
     }
     if (!isId(value)) {
@@ -481,11 +487,12 @@ function checkNode(c: DocumentChecker, node: Mapping): NodeShape {
   if ('metadata' in node) c.metadata(node.metadata)
   const sourceIds = checkSources(c, node.sources)
   checkImages(c, node.images, 'images', MAX.nodeImages, sourceIds)
+  checkMarks(c, node.description, 'explainers' in node ? checkExplainers(c, node.explainers) : [])
   if ('answers' in node && 'terminal' in node) {
     c.fail('terminal', 'V-KIND', 'a Node has either answers (question Node) or terminal (Terminal), never both')
   }
   const answers = 'answers' in node ? checkAnswers(c, node.answers) : []
-  const options = 'options' in node ? checkOptions(c, node.options, sourceIds) : []
+  const options = 'options' in node ? checkOptions(c, node.options) : []
   if ('terminal' in node) checkTerminal(c, node.terminal, 'options' in node)
   return { kind: nodeKind(node), answers, options }
 }
@@ -521,7 +528,7 @@ function checkSources(c: DocumentChecker, value: unknown): Set<string> {
   return ids
 }
 
-/** V-IMAGE, for the Images of a Node or of one of its Options. */
+/** V-IMAGE, for the Images of a Node. */
 function checkImages(c: DocumentChecker, value: unknown, keyPath: string, max: number, sourceIds: Set<string>): void {
   if (value === undefined) return
   if (!Array.isArray(value)) {
@@ -573,7 +580,7 @@ function checkAnswers(c: DocumentChecker, value: unknown): Link[] {
 }
 
 /** V-OPTIONS, the part that needs only this document; the targets are checked in checkGraph. */
-function checkOptions(c: DocumentChecker, value: unknown, sourceIds: Set<string>): Link[] {
+function checkOptions(c: DocumentChecker, value: unknown): Link[] {
   if (!Array.isArray(value) || value.length === 0) {
     c.fail('options', 'V-OPTIONS', 'must be a non-empty list')
     return []
@@ -586,7 +593,7 @@ function checkOptions(c: DocumentChecker, value: unknown, sourceIds: Set<string>
       c.fail(at, 'V-OPTIONS', 'must be a mapping with title and target')
       return
     }
-    c.keys(option, at, ['title', 'target', 'images'])
+    c.keys(option, at, ['title', 'target'])
     if (!('title' in option)) c.fail(`${at}.title`, 'V-OPTIONS', 'title is required')
     else c.localised(option.title, `${at}.title`, false, MAX.optionTitle)
     const target = c.reference(option.target, `${at}.target`, 'V-OPTIONS')
@@ -595,9 +602,70 @@ function checkOptions(c: DocumentChecker, value: unknown, sourceIds: Set<string>
     } else if (target) {
       links.push({ keyPath: `${at}.target`, target })
     }
-    checkImages(c, option.images, `${at}.images`, MAX.optionImages, sourceIds)
   })
   return links
+}
+
+/**
+ * V-EXPLAINER, the part that needs only the list (tree-format.md 5.9). Returns the ids that
+ * a mark may name, each with its place in the list, for `checkMarks`.
+ */
+function checkExplainers(c: DocumentChecker, value: unknown): Array<{ id: string; keyPath: string }> {
+  if (!Array.isArray(value) || value.length === 0) {
+    c.fail('explainers', 'V-EXPLAINER', 'must be a non-empty list; leave the key out for a Node without explainers')
+    return []
+  }
+  c.count(value, 'explainers', MAX.explainers)
+  const explainers: Array<{ id: string; keyPath: string }> = []
+  value.forEach((explainer: unknown, i) => {
+    const at = `explainers[${i}]`
+    if (!isMapping(explainer)) {
+      c.fail(at, 'V-EXPLAINER', 'must be a mapping with id, term and text')
+      return
+    }
+    c.keys(explainer, at, ['id', 'term', 'text'])
+    if (!isId(explainer.id)) {
+      c.fail(`${at}.id`, 'V-EXPLAINER', 'id must be an id: lowercase letters, digits and single hyphens')
+    } else if (explainers.some((known) => known.id === explainer.id)) {
+      c.fail(`${at}.id`, 'V-EXPLAINER', `explainer id "${explainer.id}" is used twice on this Node`)
+    } else {
+      explainers.push({ id: explainer.id, keyPath: at })
+    }
+    if (!('term' in explainer)) c.fail(`${at}.term`, 'V-EXPLAINER', 'term is required')
+    else c.localised(explainer.term, `${at}.term`, false, MAX.explainerTerm)
+    if (!('text' in explainer)) c.fail(`${at}.text`, 'V-EXPLAINER', 'text is required')
+    else c.localised(explainer.text, `${at}.text`, false, MAX.explainerText)
+  })
+  return explainers
+}
+
+/**
+ * V-MARK for every mark of a description, and the half of V-EXPLAINER that needs the
+ * description: each explainer marked at least once in every language. `explainers` is null
+ * for the manifest, which has none. A mark that breaks V-MARK in form still marks its
+ * explainer, so one defect is reported once.
+ */
+function checkMarks(c: DocumentChecker, description: unknown, explainers: Array<{ id: string; keyPath: string }> | null): void {
+  if (!isMapping(description)) return
+  for (const [lang, text] of Object.entries(description)) {
+    if (typeof text !== 'string') continue
+    const at = `description.${lang}`
+    const marks = explainerMarks(text)
+    for (const mark of marks) {
+      const written = `"[${mark.text}](#${mark.id})"`
+      if (explainers === null) c.fail(at, 'V-MARK', `${written} names no explainer; the manifest has none`)
+      else if (!explainers.some((explainer) => explainer.id === mark.id)) c.fail(at, 'V-MARK', `${written} names no explainer of this Node`)
+      if (mark.text.trim() === '') c.fail(at, 'V-MARK', `${written} has no text for the reader to see`)
+      if (mark.emphasised) {
+        c.fail(at, 'V-MARK', `${written} is inside emphasis or strong text, or holds some; the frontend styles a mark itself`)
+      }
+    }
+    for (const { id, keyPath } of explainers ?? []) {
+      if (!marks.some((mark) => mark.id === id)) {
+        c.fail(keyPath, 'V-EXPLAINER', `"${id}" is not marked in ${at}; write [words](#${id}) where the term occurs`)
+      }
+    }
+  }
 }
 
 /** V-TERMINAL. */

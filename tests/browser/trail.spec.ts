@@ -22,7 +22,16 @@ async function walkToChild(page: Page): Promise<void> {
   await arrived(page, CHILD)
 }
 
-/** The text of every Trail entry on screen, top to bottom. */
+/**
+ * Back to the Trail's first entry, the root. The band of 10.1 shows the parent on one line
+ * and the rest behind `trailMore(n)` (#81), so the root is followed from the Trail Sheet.
+ */
+async function backToRoot(page: Page): Promise<void> {
+  await page.locator('.trail-sheet .sheet-open').click()
+  await page.locator('.trail-sheet .sheet-list a').last().click()
+}
+
+/** The text of every Trail entry in the markup, top to bottom, the ones behind `trailMore(n)` included. */
 async function trail(page: Page): Promise<string[]> {
   return page.locator('.trail-entry').allTextContents()
 }
@@ -51,7 +60,7 @@ test('clicking a Trail entry jumps back and discards the Trail after it', async 
 
   // The first entry: back to the root, with nothing left to go back to.
   await walkToChild(page)
-  await page.locator('.trail-entry').first().click()
+  await backToRoot(page)
   await arrived(page, START)
   expect(await trail(page)).toEqual([])
 })
@@ -63,10 +72,10 @@ test('a Trail entry is reached and followed by the keyboard alone', async ({ pag
   // the Tree's logo beside it and issue #41 the share button, so the tab key reaches the
   // whole bar first; the Trail is still the first thing in the content itself. The bar is
   // counted rather than written down, so a Tree with no logo and a Tree with one both walk
-  // the same way here.
+  // the same way here. The band shows `trailMore(n)` and then the parent (#81).
   const chrome = await page.locator('.page-chrome a, .page-chrome button').count()
   for (let i = 0; i < chrome + 1; i++) await page.keyboard.press('Tab')
-  await expect(page.locator('.trail-entry').first()).toBeFocused()
+  await expect(page.locator('.trail-sheet .sheet-open')).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.locator('.trail-entry').nth(1)).toBeFocused()
 
@@ -223,7 +232,7 @@ test('a shared link in another language shows that language on both ends', async
     'Verricht uw systeem een van de verboden praktijken?',
   ])
   // Going back keeps the language: it is in the link, not in a cookie.
-  await page.locator('.trail-entry').first().click()
+  await backToRoot(page)
   await arrived(page, `${START}?lang=nl`)
 })
 
@@ -264,7 +273,7 @@ test('nothing about the reader is stored while walking, going back or sharing', 
   await walkToChild(page)
   await page.getByRole('button', { name: 'Copy link' }).click()
   await expect(page.locator('.share-said')).toHaveText('Link copied')
-  await page.locator('.trail-entry').first().click()
+  await backToRoot(page)
 
   // The whole walk is in the URL: no cookie, no local storage, no session storage (8).
   expect(await context.cookies()).toEqual([])

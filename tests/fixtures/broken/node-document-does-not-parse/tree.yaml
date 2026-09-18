@@ -1,7 +1,7 @@
 # One Node document with a mis-indented key, to show what elsa-tree/2 promises about a
 # YAML error: it is reported for THAT document, with its line number, and the other
 # documents are still read and checked (docs/specs/tree-format.md 3.7).
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en]
 root: start
 title:

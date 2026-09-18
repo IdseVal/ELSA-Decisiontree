@@ -463,8 +463,7 @@ async function problems(v: Visit): Promise<string[]> {
 
 /**
  * The image files the page at `url` may ask for (11.5): the centre's own Images, one per Option
- * -- the target's first, and, until #84 moves the first Tree's pictures to their targets, the
- * Option's own first -- and the Images of every explanation Node the path opens (10.9). The
+ * -- the target's first -- and the Images of every explanation Node the path opens (10.9). The
  * centre is the last question Node or Terminal of the path; the ids after it are its Overlays.
  */
 async function allowedImages(url: string): Promise<string[]> {
@@ -476,7 +475,7 @@ async function allowedImages(url: string): Promise<string[]> {
   for (const node of nodes.slice(centre)) files.push(...(node?.images ?? []).map((i) => i.file))
   for (const option of nodes[centre]?.options ?? []) {
     const target = await tree.getNode(option.target)
-    files.push(...[...(target?.images ?? []).slice(0, 1), ...option.images.slice(0, 1)].map((i) => i.file))
+    files.push(...(target?.images ?? []).slice(0, 1).map((i) => i.file))
   }
   return files
 }

@@ -5,7 +5,7 @@
 # is the first Option of `five`, a question Node with five Options, so the fan of three
 # and two is measured too. `/overlay/five/big` renders `five` with `big`'s Overlay open;
 # `/overlay/five/big/o1` the same page with the deeper Overlay open (10.9).
-format: elsa-tree/2
+format: elsa-tree/3
 languages: [en, nl]
 root: five
 title:
