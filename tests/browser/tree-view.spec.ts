@@ -31,6 +31,9 @@ const TERMINAL = `${QUESTION}/prohibited`
 // A three-entry Trail on the example Tree: the path is the Trail and repeats are allowed (4.3, 11.3).
 const DEEP = `${QUESTION}/start/prohibited-practices`
 
+/** The up arrow of the Node on screen (10.2). */
+const UP = '.up-arrow'
+
 test.describe('following a Branch', () => {
   test('an Answer opens its target with the current Node appended to the Trail', async ({ page }) => {
     await page.goto(ROOT)
@@ -50,22 +53,15 @@ test.describe('following a Branch', () => {
     await expect(page).toHaveURL(QUESTION)
   })
 
-  test('a Trail Branch jumps to that entry and discards everything after it', async ({ page }) => {
+  test('the up arrow goes one step up at a time, discarding the Trail after it, to the root', async ({ page }) => {
     await page.goto(DEEP)
-    await expect(page.locator('.trail-entry')).toHaveCount(3)
-
-    // The band shows the parent; the entries before it are in the Trail Sheet, newest first (#81).
-    const entries = page.locator('.trail-sheet .sheet-list a')
-    await page.locator('.trail-sheet .sheet-open').click()
-    await entries.nth(1).click()
+    await page.locator(UP).click()
+    await arrived(page, `${QUESTION}/start`)
+    await page.locator(UP).click()
     await arrived(page, QUESTION)
-    await expect(page.locator('.trail-entry')).toHaveCount(1)
-
-    await page.goto(DEEP)
-    await page.locator('.trail-sheet .sheet-open').click()
-    await entries.last().click()
+    await page.locator(UP).click()
     await arrived(page, ROOT)
-    await expect(page.locator('.trail-entry')).toHaveCount(0)
+    await expect(page.locator(UP)).toHaveCount(0)
   })
 
   test("an explanation Node's URL is its parent's page with the Overlay open: the parent's Answers, no back Branch (10.9)", async ({ page }) => {
@@ -78,19 +74,19 @@ test.describe('following a Branch', () => {
     await arrived(page, `${QUESTION}/prohibited`)
   })
 
-  test('a Terminal has one button: the Trail entry above goes up and startAgain goes to the root with an empty Trail (10.3)', async ({ page }) => {
+  test('a Terminal has one button: the up arrow goes up and startAgain goes to the root with an empty Trail (10.3)', async ({ page }) => {
     await page.goto(TERMINAL)
     await expect(page.locator('.outcome')).toHaveText('Prohibited')
     // The `back` Branch went with the side slide (10.9).
     await expect(page.locator('.answer--back')).toHaveCount(0)
     await expect(page.locator('.tree-frame').first().locator('.answers a')).toHaveCount(1)
-    await page.locator('.trail-step[data-parent] .trail-entry').first().click()
+    await page.locator(UP).click()
     await arrived(page, QUESTION)
 
     await page.goto(TERMINAL)
     await page.locator('.answer--start-again').click()
     await arrived(page, ROOT)
-    await expect(page.locator('.trail-entry')).toHaveCount(0)
+    await expect(page.locator(UP)).toHaveCount(0)
   })
 
   test('every Branch shows the title of the Node it leads to', async ({ page }) => {
@@ -101,9 +97,39 @@ test.describe('following a Branch', () => {
       'Social scoring',
       'Emotion recognition at work or in education',
     ])
-    await expect(page.locator('.trail-entry .branch-title')).toHaveText([
-      'Is your AI system within the reach of the AI Act?',
-    ])
+    await expect(page.locator(UP)).toHaveAccessibleName('Back to: Is your AI system within the reach of the AI Act?')
+  })
+
+  test('at a phone width an Answer button shows its word alone, and its name still says where it leads (10.3)', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 })
+    await page.goto(QUESTION)
+    for (const [answer, name] of [
+      ['.answer--yes', 'Yes: This is a prohibited practice'],
+      ['.answer--no', 'No: The AI Act applies to your system'],
+    ] as const) {
+      await expect(page.locator(`${answer} .branch-title`)).toBeHidden()
+      await expect(page.locator(`${answer} .branch-label`)).toHaveText(answer === '.answer--yes' ? 'Yes' : 'No', { useInnerText: true })
+      await expect(page.locator(answer)).toHaveAccessibleName(name)
+    }
+
+    await page.goto(TERMINAL)
+    await expect(page.locator('.answer--start-again .branch-label')).toHaveText('Start again', { useInnerText: true })
+    await expect(page.locator('.answer--start-again')).toHaveAccessibleName(
+      'Start again: Is your AI system within the reach of the AI Act?',
+    )
+  })
+
+  test('an Answer button of one line is 60 pixels tall, at the guaranteed width and at a phone width (10.3)', async ({ page }) => {
+    for (const [width, height] of [
+      [1280, 720],
+      [360, 640],
+    ] as const) {
+      await page.setViewportSize({ width, height })
+      await page.goto(QUESTION)
+      for (const answer of ['.answer--yes', '.answer--no']) {
+        expect((await page.locator(answer).boundingBox())?.height, `${answer} at ${width}x${height}`).toBe(60)
+      }
+    }
   })
 })
 
@@ -151,20 +177,20 @@ test.describe('the keyboard', () => {
       const shown = await controls(page)
       const stops = await tabStops(page)
 
-      // The share button, the language link, every Trail Branch, every Option button, every
+      // The share button, the language link, the up arrow, every Option button, every
       // Source, every Answer: the page's controls, exactly, and nothing skipped. On the
       // explanation Node's URL the open Overlay's cross, heading and Sources are among them.
       expect(stops).toEqual(shown)
       expect(stops.filter((s) => s.startsWith('a.branch'))).toHaveLength(
         await page.locator('a.branch:visible').count(),
       )
+      expect(stops.filter((s) => s === 'a.up-arrow')).toHaveLength(1)
     })
   }
 
-  test('Enter follows a Trail Branch, opens an Option, follows an Answer and the Trail entry above a Terminal', async ({ page }) => {
+  test('Enter follows the up arrow, opens an Option, follows an Answer and startAgain', async ({ page }) => {
     await page.goto(TERMINAL)
-    // The one entry the band shows is the parent (#81).
-    await page.locator('.trail-step[data-parent] .trail-entry').focus()
+    await page.locator(UP).focus()
     await page.keyboard.press('Enter')
     await arrived(page, QUESTION)
 
@@ -178,9 +204,9 @@ test.describe('the keyboard', () => {
     await page.keyboard.press('Enter')
     await arrived(page, TERMINAL)
 
-    await page.locator('.trail-step[data-parent] .trail-entry').first().focus()
+    await page.locator('.answer--start-again').focus()
     await page.keyboard.press('Enter')
-    await arrived(page, QUESTION)
+    await arrived(page, ROOT)
   })
 
   test('a Sheet opens with Enter, lists its links, closes with Escape and gives the focus back', async ({ page }) => {
@@ -230,62 +256,15 @@ test.describe('the keyboard', () => {
  */
 const LONG_TRAIL = `${TREE}/${Array.from({ length: 49 }, () => 'start').join('/')}/prohibited-practices`
 
-test.describe('the Trail Sheet', () => {
-  test('pages the whole Trail eight at a time, newest first, and starts over each time it opens', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 640 })
-    await page.goto(LONG_TRAIL)
-    const sheet = page.locator('.trail-sheet')
-    const control = sheet.locator('.sheet-open')
-    // The parent and the control, at every size: the 26-pixel band of 10.1 holds one line (#81).
-    await expect(page.locator('.trail-entry:visible')).toHaveCount(1)
-    await expect(control).toHaveText('48 earlier steps', { useInnerText: true })
+test('on the longest Trail a URL carries, the up arrow is the one way back drawn, and goes one entry up', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 640 })
+  await page.goto(LONG_TRAIL)
+  await expect(page.locator(UP)).toHaveCount(1)
+  await expect(page.locator('[class*="trail"]')).toHaveCount(0)
 
-    await control.click()
-    const links = sheet.locator('.sheet-list a')
-    const previous = sheet.locator('.sheet-controls button', { hasText: 'Previous' })
-    const next = sheet.locator('.sheet-controls button', { hasText: 'Next' })
-    await expect(links).toHaveCount(8)
-    // Newest first: the parent, whose Trail is the 48 entries before it.
-    await expect(links.first()).toHaveAttribute('href', `${TREE}/${Array.from({ length: 48 }, () => 'start').join('/')}/start`)
-    await expect(previous).toBeDisabled()
-    await expect(next).toBeEnabled()
-
-    // 49 entries are six pages of eight and one of one.
-    for (let turned = 1; turned <= 6; turned += 1) await next.click()
-    await expect(links).toHaveCount(1)
-    await expect(links.first()).toHaveAttribute('href', ROOT)
-    await expect(next).toBeDisabled()
-    await expect(previous).toBeEnabled()
-
-    await previous.click()
-    await expect(links).toHaveCount(8)
-    await expect(links.first()).toHaveAttribute('href', `${TREE}/${Array.from({ length: 8 }, () => 'start').join('/')}/start`)
-
-    // Closed and opened again, the Sheet is back at its first page.
-    await page.keyboard.press('Escape')
-    await expect(sheet.locator('.sheet-panel')).toBeHidden()
-    await control.click()
-    await expect(links).toHaveCount(8)
-    await expect(previous).toBeDisabled()
-  })
-
-  test('a link out of the Trail Sheet jumps to that entry and discards everything after it', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 640 })
-    await page.goto(LONG_TRAIL)
-    const sheet = page.locator('.trail-sheet')
-    await sheet.locator('.sheet-open').click()
-    // The fourth-newest entry: `start` reached by a Trail of 45.
-    await sheet.locator('.sheet-list a').nth(3).click()
-    await arrived(page, `${TREE}/${Array.from({ length: 46 }, () => 'start').join('/')}`)
-    await expect(page.locator('.trail-sheet .sheet-open')).toHaveText('44 earlier steps', { useInnerText: true })
-  })
-
-  test('below the guaranteed height it is the parent and the control, and the control says how many it hides', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 600 })
-    await page.goto(LONG_TRAIL)
-    await expect(page.locator('.trail-entry:visible')).toHaveCount(1)
-    await expect(page.locator('.trail-sheet .sheet-open')).toHaveText('48 earlier steps', { useInnerText: true })
-  })
+  await page.locator(UP).click()
+  // `start` reached by a Trail of 48: the entry directly above, the Trail after it discarded.
+  await arrived(page, `${TREE}/${Array.from({ length: 49 }, () => 'start').join('/')}`)
 })
 
 /** The four pages the issue asks screenshots of, at the two ends of the guarantee (10.4). */
@@ -348,9 +327,9 @@ test.describe('with JavaScript switched off', () => {
 
   test('every Branch is a link that navigates, and a collapsed group is its plain list', async ({ page }) => {
     await page.goto(TERMINAL)
-    await page.locator('.trail-step[data-parent] .trail-entry').first().click()
+    await page.locator(UP).click()
     await arrived(page, QUESTION)
-    await page.locator('.trail-entry').first().click()
+    await page.locator(UP).click()
     await arrived(page, ROOT)
     await page.goto(QUESTION)
     // An Option is a disclosure (14): its Overlay opens in place, and its heading is the link.
@@ -367,44 +346,5 @@ test.describe('with JavaScript switched off', () => {
     await expect(sheet.locator('.sheet-close')).toHaveCount(0)
     await sheet.locator('.sheet-list a').last().click()
     await arrived(page, `${QUESTION}/emotion-recognition-at-work`)
-  })
-
-  test('the Trail Sheet holds the whole Trail as pages of disclosures, one page on the panel at a time', async ({ page }) => {
-    // The narrowest viewport above the floor: where 49 links on one page could never fit.
-    await page.setViewportSize({ width: 360, height: 640 })
-    await page.goto(LONG_TRAIL)
-    const sheet = page.locator('.trail-sheet')
-    await sheet.locator('.sheet-open').click()
-    const links = sheet.locator('.sheet-list a')
-    await expect(links).toHaveCount(49)
-    await expect(sheet.locator('.sheet-controls')).toHaveCount(0)
-
-    // Page one: the newest eight, and `next` -- a disclosure, not a button.
-    await expect(links.locator('visible=true')).toHaveCount(8)
-    await expect(links.first()).toBeVisible()
-    const next = sheet.locator('.sheet-more:not([open]) > summary:visible')
-    await expect(next).toHaveCount(1)
-    await expect(next).toHaveText('Next', { useInnerText: true })
-
-    // Turning it hides page one and shows the next eight, behind one `previous`.
-    await next.click()
-    await expect(links.locator('visible=true')).toHaveCount(8)
-    await expect(links.first()).toBeHidden()
-    await expect(links.nth(8)).toBeVisible()
-    await expect(sheet.locator('.sheet-more[open] > summary:visible')).toHaveText('Previous', { useInnerText: true })
-
-    // Six turns reach the last page: the root alone, and no `next`.
-    for (let turned = 2; turned <= 6; turned += 1) await sheet.locator('.sheet-more:not([open]) > summary:visible').click()
-    await expect(links.locator('visible=true')).toHaveCount(1)
-    await expect(links.last()).toBeVisible()
-    await expect(sheet.locator('.sheet-more:not([open])')).toHaveCount(0)
-
-    // `previous` is the same disclosure closed again.
-    await sheet.locator('.sheet-more[open] > summary:visible').click()
-    await expect(links.locator('visible=true')).toHaveCount(8)
-    await expect(links.last()).toBeHidden()
-
-    await links.nth(40).click()
-    await arrived(page, `${TREE}/${Array.from({ length: 8 }, () => 'start').join('/')}/start`)
   })
 })

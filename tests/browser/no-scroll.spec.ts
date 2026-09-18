@@ -18,7 +18,7 @@
  * each in both languages, and each again with every Sheet it offers open -- the Overlay of
  * each Option among them -- and every Image it carries enlarged -- and each in the middle of
  * a slide (section 11): halfway out of the page, and halfway back into it on the history
- * step. A slide follows an Answer or the Trail entry above; nothing slides to an Option (11.1).
+ * step. A slide follows an Answer or the up arrow; nothing slides to an Option (11.1).
  *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
  * pull request can paste the numbers rather than describe them (10.6, last paragraph).
@@ -278,8 +278,8 @@ async function measureEverywhere(
   }
 }
 
-/** A Branch that slides on every kind of Node: an Answer, or the Trail entry above where there are none (a Terminal, 10.3). */
-const DOWN = { selector: '.answer--yes, .tree-frame:not(:has(.answer--yes)) .trail-step[data-parent] .trail-entry', label: '' }
+/** A control that slides on every kind of Node: an Answer, or the up arrow where there are none (a Terminal, 10.3). */
+const DOWN = { selector: '.answer--yes, .tree-frame:not(:has(.answer--yes)) .up-arrow', label: '' }
 
 /**
  * Measures `url` at every viewport above the floor in the middle of a slide, both halves of

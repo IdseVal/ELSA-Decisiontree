@@ -62,7 +62,7 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   await page.locator('.options .sheet-open', { hasText: 'Social scoring' }).click()
   await page.locator('.overlay[open] h2 a').click()
   await page.keyboard.press('Escape')
-  await page.locator('.trail-entry').last().click()
+  await page.locator('.tree-frame:not([inert]) .up-arrow').click()
   // The slide up brings a second frame into the document until it lands (11.3).
   await arrived(page, START)
   await page.locator('.answer--no').click()

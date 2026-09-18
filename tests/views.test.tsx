@@ -100,7 +100,7 @@ function branches(html: string, className: string): Array<[href: string, title: 
   return [
     ...html.matchAll(
       new RegExp(
-        `<a class="branch ${className}[^"]*" href="([^"]*)"[^>]*>(?:<img [^>]*>)?<span class="branch-label">(?:<span class="branch-word"[^>]*>[^<]*</span>)?<span class="branch-title">(?:<span[^>]*>)?([^<]*)`,
+        `<a class="branch ${className}[^"]*" href="([^"]*)"[^>]*>(?:<img [^>]*>)?<span class="branch-label">(?:<span class="branch-word"[^>]*>[^<]*</span><span class="branch-colon">: </span>)?<span class="branch-title">(?:<span[^>]*>)?([^<]*)`,
         'g',
       ),
     ),
@@ -108,11 +108,11 @@ function branches(html: string, className: string): Array<[href: string, title: 
 }
 
 describe('the tree layer', () => {
-  test('is one element holding the Trail, the Bubble, the Branches and the Carousel band, in that order (11.1)', async () => {
+  test('is one element holding the Bubble with its up arrow, the Branches and the Carousel band, in that order (11.1)', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
     const layer = part(html, 'div', 'tree-layer')
 
-    const order = ['class="trail', 'class="bubble', 'class="options"', 'class="answers"', 'class="carousel"'].map((marker) =>
+    const order = ['class="bubble', 'class="up-arrow"', 'class="options"', 'class="answers"', 'class="carousel"'].map((marker) =>
       layer.indexOf(marker),
     )
     expect(order.every((at) => at >= 0), layer.slice(0, 200)).toBe(true)
@@ -135,29 +135,29 @@ describe('the tree layer', () => {
       const tree = trees.get(target.pathname.split('/')[1]!)!
       const address = parseUrl(target.pathname, langSegment(target), tree)!
       const placed = new Set((await loadPage(tree, address))!.neighbours.placed.map((p) => p.href))
-      const marked = [...(await view(url)).matchAll(/<a class="branch ([^"]*)" href="([^"]*)"([^>]*)>/g)].map(
+      const marked = [...(await view(url)).matchAll(/<a class="(branch [^"]*|up-arrow)" href="([^"]*)"([^>]*)>/g)].map(
         ([, kind, href, rest]) => [kind, href, rest!.includes('data-slide')],
       )
       // `startAgain` has no direction (11.1), even where its URL is the grandparent's.
-      const slides = (kind: string, href: string) => kind !== 'answer answer--start-again' && placed.has(href)
+      const slides = (kind: string, href: string) => kind !== 'branch answer answer--start-again' && placed.has(href)
 
       expect(marked.length, url).toBeGreaterThan(0)
       expect(marked, url).toEqual(marked.map(([kind, href]) => [kind, href, slides(kind as string, href as string)]))
     }
     const full = await view('/full-node/full/full/full')
-    expect(full.match(/<a class="branch trail-entry"[^>]*data-slide/g), 'the full Node\'s Trail').toBeNull()
+    expect(full.match(/<a class="up-arrow"[^>]*data-slide/g), "the full Node's up arrow").toBeNull()
     // An Option is not a Branch and nothing slides to it: it opens an Overlay (10.9, 11.1).
-    expect(full.match(/<a class="branch option/g), 'the full Node\'s Options').toBeNull()
-    expect(full.match(/data-slide/g), 'the full Node\'s slides').toHaveLength(2)
+    expect(full.match(/<a class="branch option/g), "the full Node's Options").toBeNull()
+    expect(full.match(/data-slide/g), "the full Node's slides").toHaveLength(2)
   })
 
-  test('on a Trail that repeats nothing, an Answer back to the parent does not slide, and two Answers to one target both do (11.3)', async () => {
+  test('an Answer back to the parent does not slide, and two Answers to one target both do (11.3)', async () => {
     const answers = async (url: string) =>
       [...(await view(url)).matchAll(/<a class="branch answer (answer--(?:yes|no))" href="([^"]*)"([^>]*)>/g)].map(
         ([, kind, href, rest]) => [kind, href, rest!.includes('data-slide')],
       )
 
-    // `third`'s `yes` is `second`, which the Trail entry placed `up` at its own shorter address.
+    // `third`'s `yes` is `second`, which the parent placed `up` at its own shorter address.
     expect(await answers('/cycle/first/second/third')).toEqual([
       ['answer--yes', '/cycle/first/second/third/second', false],
       ['answer--no', '/cycle/first/second/third/done', true],
@@ -245,7 +245,7 @@ describe('the main image', () => {
   test('a neighbour frame keeps the slot and names no image file (11.4)', async () => {
     // The Bubble a neighbour frame draws: `two` has Images of its own.
     const node = (await trees.get('carousel')!.getNode('two'))!
-    const html = renderToStaticMarkup(<Bubble node={node} lang="en" ui={chrome('en')} uiLang={undefined} idPrefix="n0-" pictures={false} />)
+    const html = renderToStaticMarkup(<Bubble node={node} lang="en" ui={chrome('en')} uiLang={undefined} idPrefix="n0-" pictures={false} up={null} />)
     expect(html).toContain('<div class="bubble-text"><span class="main-image main-image--withheld" aria-hidden="true"></span><h1 id="n0-node-title">')
     expect(html).not.toContain('/images/')
   })
@@ -442,7 +442,7 @@ describe('Sources', () => {
 })
 
 describe('a question Node with Options', () => {
-  test('offers yes and no as two Branches below, each showing its chrome word and its target title', async () => {
+  test('offers yes and no as two buttons below, each labelled and named with its chrome word, a colon and its target title in one run', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
 
     expect(branches(html, 'answer answer--yes')).toEqual([
@@ -451,8 +451,14 @@ describe('a question Node with Options', () => {
     expect(branches(html, 'answer answer--no')).toEqual([
       ['/ai-act-example/start/prohibited-practices/covered', 'The AI Act applies to your system'],
     ])
-    expect(html).toContain('<span class="branch-word">Yes</span>')
-    expect(html).toContain('<span class="branch-word">No</span>')
+    expect(part(html, 'div', 'answers')).toBe(
+      '<div class="answers" role="group" aria-labelledby="node-title">' +
+        '<a class="branch answer answer--yes" href="/ai-act-example/start/prohibited-practices/prohibited" data-slide="" aria-label="Yes: This is a prohibited practice">' +
+        '<span class="branch-label"><span class="branch-word">Yes</span><span class="branch-colon">: </span><span class="branch-title">This is a prohibited practice</span></span></a>' +
+        '<a class="branch answer answer--no" href="/ai-act-example/start/prohibited-practices/covered" data-slide="" aria-label="No: The AI Act applies to your system">' +
+        '<span class="branch-label"><span class="branch-word">No</span><span class="branch-colon">: </span><span class="branch-title">The AI Act applies to your system</span></span></a>' +
+        '</div>',
+    )
   })
 
   test('draws its Options beside the Bubble as the buttons of their Overlays, in Option order, alternating right and left (10.3, 10.9)', async () => {
@@ -574,7 +580,8 @@ describe('the Overlay (10.9)', () => {
     expect(branches(html, 'answer answer--yes')).toEqual([
       ['/ai-act-example/start/prohibited-practices/prohibited', 'This is a prohibited practice'],
     ])
-    expect(branches(html, 'trail-entry')).toEqual([['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?']])
+    // The way back is the parent's too: the up arrow leads above the centre, not to the centre (10.2).
+    expect(html).toContain('<a class="up-arrow" href="/ai-act-example/start" rel="prev"')
     // The aside the path names is the one Overlay open; the other stays closed.
     const overlays = [...part(html, 'ul', 'options').matchAll(/<details class="sheet overlay" name="sheet"( open="")?>/g)].map((m) => m[1] === ' open=""')
     expect(overlays).toEqual([true, false])
@@ -626,17 +633,19 @@ describe('a question Node without Options', () => {
 })
 
 describe('an explanation Node as the centre (only a path with no parent in it, 10.9)', () => {
-  test('shows its Interior in the Bubble, no hint, and one startAgain Branch below to the root with an empty Trail', async () => {
+  test('shows its Interior in the Bubble, no hint, no up arrow, and one startAgain button below to the root with an empty Trail', async () => {
     const html = await view('/ai-act-example/social-scoring')
 
     expect(html).toContain('<h1 id="node-title">Social scoring</h1>')
     expect(html).not.toContain('class="hint"')
     expect(html).not.toContain('answer--yes')
     expect(html).not.toContain('answer--no')
-    expect(html).not.toContain('answer--back')
-    expect(branches(html, 'answer answer--start-again')).toEqual([['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?']])
-    // The Trail row still offers the way in (10.2, until #82).
-    expect(branches(html, 'trail-entry')).toEqual([['/ai-act-example/start', 'Start']])
+    expect(branches(html, 'answer')).toEqual([['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?']])
+    expect(html).toContain(
+      '<a class="branch answer answer--start-again" href="/ai-act-example/start" aria-label="Start again: Is your AI system within the reach of the AI Act?">',
+    )
+    // Its Trail is empty, so there is no entry above and no up arrow (10.2).
+    expect(html).not.toContain('class="up-arrow"')
   })
 
   test('draws its own Options fanned out, like a question Node', async () => {
@@ -664,17 +673,22 @@ describe('a Terminal', () => {
     expect(await view('/ai-act-example/covered')).toContain('class="outcome outcome--applicable">Applies</p>')
   })
 
-  test('offers one button, startAgain to the root with an empty Trail: the `back` Branch is gone (10.3, 10.9)', async () => {
+  test('offers startAgain to the root with an empty Trail, and the up arrow back to the Trail entry above', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices/prohibited?lang=nl')
 
-    expect(html).not.toContain('answer--back')
-    expect(all(part(html, 'div', 'answers'), /class="branch (answer [^"]*)"/g)).toEqual(['answer answer--start-again'])
-    expect(branches(html, 'answer answer--start-again')).toEqual([
+    expect(branches(html, 'answer')).toEqual([
       ['/ai-act-example/start?lang=nl', 'Valt uw AI-systeem binnen het bereik van de AI-verordening?'],
     ])
-    expect(html).toContain('<span class="branch-word">Opnieuw beginnen</span>')
-    // The way up is the Trail entry directly above, which is the page the reader came from.
-    expect(html).toContain('rel="prev"')
+    expect(html).toContain('<span class="branch-word">Opnieuw beginnen</span><span class="branch-colon">: </span>')
+    expect(html).toContain('<a class="up-arrow" href="/ai-act-example/start/prohibited-practices?lang=nl" rel="prev"')
+  })
+
+  test('with no Trail entry above it shows startAgain alone, and no up arrow', async () => {
+    const html = await view('/ai-act-example/covered')
+
+    expect(branches(html, 'answer')).toHaveLength(1)
+    expect(branches(html, 'answer answer--start-again')).toHaveLength(1)
+    expect(html).not.toContain('class="up-arrow"')
   })
 
   test('never draws Options', async () => {
@@ -687,7 +701,7 @@ describe('the chrome speaks its own language beside content it does not speak', 
     const html = await view('/other-languages/inverkehrbringen/start?lang=de')
 
     expect(html).toContain('<span class="branch-word" lang="en">Yes</span>')
-    expect(html).toContain('<span hidden="" id="trail-label" lang="en">Your path</span>')
+    expect(html).toMatch(/<span hidden="" id="up-label" lang="en">Back to: [^<]+<\/span>/)
     expect(html).toContain('id="options-label" lang="en">')
     expect(html).toContain('<p class="minimum-size" lang="en">')
   })
@@ -696,6 +710,7 @@ describe('the chrome speaks its own language beside content it does not speak', 
     const html = await view('/ai-act-example/start/outside-scope?lang=nl')
 
     expect(html).toContain('<p class="outcome outcome--not-applicable">Niet van toepassing</p>')
+    expect(html).toContain('<span hidden="" id="up-label">Terug naar: ')
     expect(html).toContain('<span class="branch-word">Opnieuw beginnen</span>')
   })
 })

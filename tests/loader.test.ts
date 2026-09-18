@@ -298,7 +298,7 @@ describe('the Tree is read once and a page reads nothing', () => {
   })
 
   test('the seventeen Nodes a page may ask for cost no read either', async () => {
-    // The bound of ADR-38-neighbourhood: one Node plus at most sixteen neighbours.
+    // The bound of application.md 11.2: one Node, at most fifteen neighbours and one Overlay.
     const tree = await openTree(exampleTree)
     reads.length = 0
 

@@ -46,12 +46,11 @@ describe('the chrome strings', () => {
     }
   })
 
-  test('a key that takes a number is a function of it, in both languages (application.md 3.2)', () => {
+  test('a key that takes a value is a function of it, in both languages (application.md 3.2)', () => {
     for (const language of CHROME_LANGUAGES) {
       const ui = chrome(language)
-      expect(ui.trailMore(1), language).toMatch(/\b1\b/)
-      expect(ui.trailMore(7), language).toMatch(/\b7\b/)
-      expect(ui.trailMore(7), language).not.toBe(ui.trailMore(1))
+      expect(ui.up('Social scoring'), language).toContain('Social scoring')
+      expect(ui.up('Social scoring'), language).not.toBe(ui.up('Prohibited practices'))
       expect(ui.imageCount(3, 7), language).toMatch(/\b3\b.*\b7\b/)
     }
   })

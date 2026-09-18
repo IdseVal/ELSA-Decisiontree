@@ -133,6 +133,7 @@ export async function neighbourhood(tree: Tree, at: PageAddress, node: Node, kno
 
   const wanted: { address: PageAddress; direction: Direction; slot: number }[] = []
 
+  // The parent only: the up arrow goes one step back, so the grandparent is never one click away (10.2).
   if (at.trail.length > 0) {
     const index = at.trail.length - 1
     wanted.push({ address: { ...at, trail: at.trail.slice(0, index), nodeId: at.trail[index]! }, direction: 'up', slot: 0 })

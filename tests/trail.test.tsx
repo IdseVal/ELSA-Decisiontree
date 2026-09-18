@@ -1,7 +1,8 @@
 /**
- * The Trail as the Branches above the Bubble (docs/specs/application.md 10.2, core document
- * 3.2 and 10.17), and the share button: the way back, and the link that carries it. What a
- * click does is `tests/browser/trail.spec.ts`; this file is what the server sends.
+ * The up arrow on the Bubble's top outline (docs/specs/application.md 10.2, core document
+ * 3.2 and 10.17), which replaced the Trail drawn above it (#82), and the share button: the
+ * way back, and the link that carries the Trail. What a click does is
+ * `tests/browser/trail.spec.ts`; this file is what the server sends.
  *
  * Every fixture is loaded through `openTree` and every address through `parseUrl`, as
  * docs/specs/application.md section 7 requires; nothing here builds a Node by hand.
@@ -60,23 +61,14 @@ async function neighbourFrames(url: string): Promise<Map<string, string>> {
   return new Map(layout.props.children[0].props.neighbours.map((n) => [n.href, renderToStaticMarkup(<>{n.frame}</>)]))
 }
 
-/** The Trail's markup on its own, or the empty string when the page draws no Trail. */
-function trail(html: string): string {
-  return /<nav class="trail[^"]*"[\s\S]*?<\/nav>/.exec(html)?.[0] ?? ''
+/** The up arrow's markup on its own, or the empty string when the page draws none. */
+function arrow(html: string): string {
+  return /<a class="up-arrow"[\s\S]*?<\/a>/.exec(html)?.[0] ?? ''
 }
 
-/** Every Trail Branch: its `href` and its title, in the order they are on the page. */
-function trailBranches(html: string): Array<[href: string, title: string]> {
-  return [
-    ...trail(html).matchAll(
-      /<a class="branch trail-entry" href="([^"]*)"[^>]*><span class="branch-label"><span class="branch-title">(?:<span[^>]*>)?([^<]*)/g,
-    ),
-  ].map((match) => [match[1]!, match[2]!])
-}
-
-/** The Trail Sheet's markup: the whole Trail as a list, behind the collapsed control. */
-function sheet(html: string): string {
-  return /<li class="trail-more">[\s\S]*?<\/details>/.exec(html)?.[0] ?? ''
+/** The up arrow's `href`, or null when the page draws none. */
+function arrowHref(html: string): string | null {
+  return /<a class="up-arrow" href="([^"]*)"/.exec(html)?.[1] ?? null
 }
 
 /** The `start` Node of the full-node fixture, reached by a Trail of `length` visits to itself. */
@@ -84,171 +76,86 @@ function walkOf(length: number): string {
   return `/full-node/${Array.from({ length: length + 1 }, () => 'full').join('/')}`
 }
 
-describe('the Trail', () => {
-  test('is the Nodes visited to reach this one, as Branches, by their titles, oldest first', async () => {
-    // A path ending at an explanation Node renders its parent's page (10.9): the Trail under
-    // test is the Terminal's, which has the same two entries.
-    const html = await view('/ai-act-example/start/prohibited-practices/prohibited')
-
-    expect(trailBranches(html)).toEqual([
-      ['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?'],
-      ['/ai-act-example/start/prohibited-practices', 'Does your system do any of the prohibited practices?'],
-    ])
-  })
-
-  test('is above the Bubble: it comes before the title on the page', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices')
-
-    expect(html.indexOf('<nav class="trail')).toBeLessThan(html.indexOf('<h1'))
-  })
-
-  test('each Branch jumps back to that Node with everything after it discarded (10.17)', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/prohibited?lang=nl')
-
-    expect(trailBranches(html).map(([href]) => href)).toEqual([
-      '/ai-act-example/start?lang=nl',
-      '/ai-act-example/start/prohibited-practices?lang=nl',
-    ])
-    expect(trailBranches(html).map(([, title]) => title)).toEqual([
-      'Valt uw AI-systeem binnen het bereik van de AI-verordening?',
-      'Verricht uw systeem een van de verboden praktijken?',
-    ])
-  })
-
-  test('the parent -- the entry nearest the Bubble -- is the page the reader came from', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/prohibited')
-
-    expect(trail(html)).toContain('<a class="branch trail-entry" href="/ai-act-example/start/prohibited-practices" rel="prev" data-slide="">')
-    expect(trail(html).match(/rel="prev"/g)).toHaveLength(1)
-  })
-
-  test('only the parent is marked to slide; the grandparent and an older entry are ordinary links (11.1, 11.2)', async () => {
-    // Four different Nodes, so no entry is dropped as the Node on screen: a walk of `full` to
-    // itself places no Trail entry at all, and so marks none. Since #78 only the parent is
-    // placed `up`: the grandparent is no longer one click away once the Trail goes (10.2).
-    const html = await view('/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring/prohibited')
-    const marked = [...trail(html).matchAll(/<a class="branch trail-entry"([^>]*)>/g)].map((match) =>
-      match[1]!.includes('data-slide'),
+describe('the up arrow', () => {
+  test('links to the Trail entry directly above, with everything after it discarded (10.2, 10.17)', async () => {
+    // A Terminal, not an explanation Node: a path ending at an aside renders its parent's page (10.9).
+    expect(arrowHref(await view('/ai-act-example/start/prohibited-practices/prohibited'))).toBe(
+      '/ai-act-example/start/prohibited-practices',
     )
-
-    expect(marked).toEqual([false, false, false, true])
+    expect(arrowHref(await view('/ai-act-example/start/prohibited-practices'))).toBe('/ai-act-example/start')
+    // With an Overlay open by its URL the arrow is still the centre's: it leads to the centre's parent.
+    expect(arrowHref(await view('/ai-act-example/start/prohibited-practices/social-scoring'))).toBe('/ai-act-example/start')
+    // The language is in the link, not in a cookie.
+    expect(arrowHref(await view('/ai-act-example/start/prohibited-practices/prohibited?lang=nl'))).toBe(
+      '/ai-act-example/start/prohibited-practices?lang=nl',
+    )
   })
 
-  test('at the root Node there is no Trail: the row holds the Tree title instead (10.2)', async () => {
+  test('is the page the reader came from, and slides up to it: the parent is placed (11.1, 11.2)', async () => {
+    expect(arrow(await view('/ai-act-example/start/prohibited-practices/prohibited'))).toMatch(
+      /^<a class="up-arrow" href="\/ai-act-example\/start\/prohibited-practices" rel="prev" aria-labelledby="up-label" data-slide="">/,
+    )
+  })
+
+  test('does not slide where the parent is the Node on screen, which is never its own neighbour', async () => {
+    expect(arrow(await view(walkOf(3)))).not.toContain('data-slide')
+  })
+
+  test('is the Bubble\'s: it is drawn on its top outline, before the title', async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices')
+    const bubble = html.indexOf('<article class="bubble')
+
+    expect(html.indexOf('<a class="up-arrow"')).toBeGreaterThan(bubble)
+    expect(html.indexOf('<a class="up-arrow"')).toBeLessThan(html.indexOf('<h1'))
+  })
+
+  test('is named by the title it leads to, in the language that name is written in', async () => {
+    const english = arrow(await view('/ai-act-example/start/prohibited-practices/prohibited'))
+    const dutch = arrow(await view('/ai-act-example/start/prohibited-practices/prohibited?lang=nl'))
+    const german = arrow(await view('/other-languages/start/anwendbar'))
+
+    expect(english).toContain('<span hidden="" id="up-label">Back to: Does your system do any of the prohibited practices?</span>')
+    // Dutch chrome beside Dutch content inherits `nl` from the page (application.md 3.1).
+    expect(dutch).toContain('<span hidden="" id="up-label">Terug naar: Verricht uw systeem een van de verboden praktijken?</span>')
+    expect(german).toMatch(/<span hidden="" id="up-label" lang="en">Back to: [^<]+<\/span>/)
+    // The glyph says nothing a screen reader should read.
+    expect(english).toContain('<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">')
+  })
+
+  test('at the root Node nothing is drawn: there is nothing above', async () => {
     const html = await view('/ai-act-example/start')
 
-    expect(html).not.toContain('<nav class="trail')
-    expect(html).toContain('<div class="trail trail--root"><p class="tree-name">Does the EU AI Act apply to my AI system? (example)</p></div>')
+    expect(arrow(html)).toBe('')
+    expect(html).not.toContain('up-label')
   })
 
-  test('offers the way into the walk on a Node opened by its own URL, whatever its kind', async () => {
-    // A shared link to a Node on its own carries no Trail; the reader still gets a way in,
-    // and a question and an outcome are the likeliest things to share.
+  test('on a Node opened by its own URL, whatever its kind, nothing is drawn: its Trail is empty', async () => {
     for (const url of ['/ai-act-example/social-scoring', '/ai-act-example/prohibited-practices', '/ai-act-example/covered']) {
-      const html = await view(url)
-
-      expect(trailBranches(html), url).toEqual([['/ai-act-example/start', 'Start']])
-      expect(sheet(html), url).toBe('')
+      expect(arrow(await view(url)), url).toBe('')
     }
   })
 
-  test('a Trail of one to five entries draws exactly those, with no collapsed middle', async () => {
-    for (const length of [1, 2, 5]) {
-      const html = await view(walkOf(length))
-
-      expect(trailBranches(html), `${length}`).toHaveLength(length)
-      expect(trail(html), `${length}`).not.toContain('trail--long')
-      expect(trail(html), `${length}`).not.toContain('trail-more-wide')
-    }
-  })
-
-  test('a longer Trail keeps every entry in the markup and marks start and the last four as kept (10.2)', async () => {
-    const html = await view(walkOf(9))
-    const steps = [...trail(html).matchAll(/<li class="trail-step"([^>]*)>/g)].map((match) => match[1]!)
-
-    expect(trail(html)).toContain('class="trail trail--long trail--collapsible"')
-    expect(steps).toHaveLength(9)
-    expect(steps.map((attributes) => attributes.includes('data-kept'))).toEqual([
-      true, false, false, false, false, true, true, true, true,
-    ])
-    // The collapsed middle says how many it hides: nine minus the five that stay.
-    expect(trail(html)).toContain('<span class="trail-more-wide">4 earlier steps</span>')
-    // The one-Branch collapse of the short viewport (10.5, step 1) hides all but the parent.
-    expect(trail(html)).toContain('<span class="trail-more-short">8 earlier steps</span>')
-  })
-
-  test('the Trail Sheet lists the whole Trail as links, newest first', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/prohibited')
-    const links = [...sheet(html).matchAll(/<a href="([^"]*)"/g)].map((match) => match[1])
-
-    expect(links).toEqual(['/ai-act-example/start/prohibited-practices', '/ai-act-example/start'])
-    expect(sheet(html)).toContain('<span class="trail-more-short">1 earlier step</span>')
-  })
-
-  test('a Trail of forty-nine entries -- the most a URL carries -- renders every one of them', async () => {
+  test('the drawn Trail is gone: no Trail Branch, no collapsed middle, no Trail Sheet (10.2)', async () => {
     const html = await view(walkOf(49))
 
-    expect(trailBranches(html)).toHaveLength(49)
-    expect(sheet(html).match(/<a href="/g)).toHaveLength(49)
-    expect(trail(html)).toContain('44 earlier steps')
+    expect(html).not.toMatch(/class="[^"]*trail/)
+    expect(html).not.toContain('earlier step')
+    expect(html.match(/<a class="up-arrow"/g)).toHaveLength(1)
+    // Only the link back is in the page; the other 48 entries are in the URL alone.
+    expect(arrowHref(html)).toBe(walkOf(48))
   })
 
-  test('a neighbour frame draws the Trail its own page shows at the guaranteed viewport, and no Trail Sheet list (#60, 11.3)', async () => {
-    // A 49-entry Trail whose neighbours carry 50; a Trail of three whose neighbours carry four
-    // (the guaranteed viewport draws all of them); and the example Tree's own Nodes.
-    const pages = [walkOf(49), walkOf(3), '/ai-act-example/start/prohibited-practices/social-scoring']
-    let long = 0
-    for (const url of pages) {
-      const frames = await neighbourFrames(url)
-      expect(frames.size, url).toBeGreaterThan(0)
-      for (const [href, frame] of frames) {
-        const own = await view(href)
-        const branches = trailBranches(own)
-        // `start` and the last four: the entries 10.2 draws, and every narrower step shows fewer.
-        const kept = branches.filter((_, index) => index === 0 || index >= branches.length - 4)
-        if (kept.length < branches.length) long++
-
-        expect(trailBranches(frame), href).toEqual(kept)
-        // The same row and the same collapsed control say the same thing, so nothing jumps at the handover.
-        expect(/<nav class="[^"]*"/.exec(frame)?.[0], href).toBe(/<nav class="[^"]*"/.exec(own)?.[0])
-        expect(/<summary[\s\S]*?<\/summary>/.exec(sheet(frame))?.[0], href).toBe(/<summary[\s\S]*?<\/summary>/.exec(sheet(own))?.[0])
-        // Behind that control, nothing: the frame is inert, and its page brings the list.
-        expect(sheet(frame), href).not.toContain('<a ')
-      }
+  test('a neighbour frame draws its own up arrow, to its own parent, so nothing jumps at the handover (11.3)', async () => {
+    const frames = await neighbourFrames('/ai-act-example/start/prohibited-practices')
+    let checked = 0
+    for (const [href, frame] of frames) {
+      const own = await view(href)
+      // A frame's ids are prefixed; its link and its name are the page's own.
+      expect(arrowHref(frame), href).toBe(arrowHref(own))
+      expect(/>[^<]*<\/span><svg/.exec(arrow(frame))?.[0], href).toBe(/>[^<]*<\/span><svg/.exec(arrow(own))?.[0])
+      if (arrowHref(own) !== null) checked++
     }
-    // The case that matters was measured at all: at least one frame dropped entries.
-    expect(long).toBeGreaterThan(0)
-  })
-
-  test('the centre frame still carries the whole Trail and its Sheet, beside trimmed neighbours', async () => {
-    const html = await view(walkOf(49))
-    const frames = [...(await neighbourFrames(walkOf(49))).values()]
-
-    expect(trailBranches(html)).toHaveLength(49)
-    expect(sheet(html).match(/<a href="/g)).toHaveLength(49)
-    for (const frame of frames) expect(trailBranches(frame)).toHaveLength(5)
-  })
-
-  test('is a navigation landmark named for a reader who cannot see it, in the language that name is written in', async () => {
-    const english = await view('/ai-act-example/start/prohibited-practices')
-    const dutch = await view('/ai-act-example/start/prohibited-practices?lang=nl')
-    const german = await view('/other-languages/start/anwendbar')
-
-    expect(english).toContain('<nav class="trail" aria-labelledby="trail-label">')
-    expect(english).toContain('id="trail-label">Your path</span>')
-    // Dutch chrome beside Dutch content inherits `nl` from the page; only chrome in another
-    // language than the content around it marks itself (application.md 3.1).
-    expect(dutch).toContain('id="trail-label">Uw pad</span>')
-    expect(german).toContain('id="trail-label" lang="en">Your path</span>')
-  })
-
-  test('is an ordered list of links, so a keyboard and a screen reader both walk it', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
-
-    expect(trail(html)).toMatch(/<span[^>]*>[^<]*<\/span><ol>/)
-    expect(trail(html)).not.toContain('tabindex="-1"')
-    // Every anchor of the Trail has a target: none of them is a dead control.
-    expect(trail(html)).not.toMatch(/<a(?=[\s>])(?![^>]*\shref=)/)
+    expect(checked).toBeGreaterThan(0)
   })
 })
 

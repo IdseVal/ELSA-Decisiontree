@@ -77,9 +77,8 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await expect(page).toHaveURL(`${STEP}?lang=nl`)
   await page.keyboard.press('Escape')
 
-  // The way back keeps it too: the Trail's parent entry, the one the band shows (10.1), is
-  // the same page in the same language.
-  await page.locator('.trail-step[data-parent] .trail-entry').click()
+  // The way back keeps it too: the up arrow leads to the same page in the same language.
+  await page.locator('.up-arrow').click()
   await arrived(page, `${START}?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Valt uw AI-systeem binnen het bereik van de AI-verordening?',

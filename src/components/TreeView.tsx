@@ -1,6 +1,6 @@
 /**
  * The tree view (docs/specs/application.md section 10): one screen with the current Node as
- * a round Bubble in the centre, the Trail as Branches above it, the Answers as Branches
+ * a round Bubble in the centre, the up arrow on its top outline, the Answers as buttons
  * below it and the Options as buttons fanned out beside it. Direction carries meaning: above
  * is where the reader came from, below is where an answer takes them, beside is an aside
  * they read and come back from -- by closing it (10.3, 10.9, core document 10.23).
@@ -8,9 +8,8 @@
  * Everything between the chrome bar and the disclaimer is one element, the tree layer, so
  * that the slide of section 11 moves the whole tree with one transform (`Slider`). The
  * placed neighbours of the Node (11.2) are drawn as frames of the same layout, one layer
- * away in the direction of the Branch that leads to them, carry no image URL at all (11.4),
- * and draw only the part of their Trail the guaranteed viewport shows, not the Trail Sheet
- * (#60). The asides -- the Option targets -- are not placed: each is carried closed in the
+ * away in the direction of the Branch that leads to them, and carry no image URL at all
+ * (11.4). The asides -- the Option targets -- are not placed: each is carried closed in the
  * Overlay its button opens (10.9). The Carousel's band (section 12) is present on every
  * Node, so the Bubble sits in the same place.
  *
@@ -24,7 +23,7 @@
  * system, the environment or the request, and it never decides which Nodes are neighbours
  * (section 6).
  */
-import { Fragment, type CSSProperties } from 'react'
+import type { CSSProperties } from 'react'
 import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
 import type { Aside, NodePage, Placed } from '../neighbourhood.ts'
 import type { Tree } from '../tree/loader.ts'
@@ -36,9 +35,6 @@ import { Carousel } from './Carousel.tsx'
 import { Sheet } from './Sheet.tsx'
 import { Slider } from './Slider.tsx'
 
-/** How many Trail Branches carry a title at the guaranteed viewport (10.2). */
-const TRAIL_SHOWN = 5
-
 /** What every part of the view needs: the page's address, its chrome, and the title index. */
 interface View {
   address: PageAddress
@@ -48,7 +44,6 @@ interface View {
   /** A Node's title in the content language, from the index: never a second Node read. */
   titleOf: (id: string) => string
   root: string
-  treeTitle: string
   /**
    * Prepended to every `id` the frame writes. A neighbour frame is mounted beside the centre
    * during a slide, and two elements must not share an id even for that half second.
@@ -56,14 +51,6 @@ interface View {
   idPrefix: string
   /** False in a neighbour frame, which names no image file at all (11.4). */
   pictures: boolean
-  /**
-   * False in a neighbour frame, which draws only the Trail Branches 10.2 draws at the
-   * guaranteed viewport and the collapsed control, with no Trail Sheet list behind it (11.3,
-   * #60). Every narrower step shows a subset of those, so the frame looks the same at every
-   * size; it is inert, so nothing could open the list; and at a 49-entry Trail the whole
-   * Trail repeated in every neighbour was most of the page.
-   */
-  wholeTrail: boolean
   /**
    * Whether a Branch of a kind that slides, to `href`, has a placement to slide to (11.1,
    * 11.2). A target the neighbourhood dropped or deduplicated is an ordinary link; so is every
@@ -92,10 +79,8 @@ export function TreeView({ page, tree }: { page: NodePage; tree: Tree }) {
     // `text` reserves for a missing text, instead of a crash.
     titleOf: (id) => text(tree.getTitle(id) ?? {}, lang, `${id}.title`),
     root: tree.manifest.root,
-    treeTitle: text(tree.manifest.title, lang, 'tree.title'),
     idPrefix,
     pictures: isCentre,
-    wholeTrail: isCentre,
     placed: (href) => isCentre && hrefs.has(href),
     asides: isCentre ? neighbours.asides : [],
     open: isCentre ? open : null,
@@ -130,17 +115,24 @@ export function TreeView({ page, tree }: { page: NodePage; tree: Tree }) {
 }
 
 /**
- * One Node laid out as the tree view draws it: the Trail, the Bubble, the Options with their
- * Overlays, the Answers and the Carousel's band. The centre of the page is one; so is each
- * neighbour, which is why a Bubble arriving in a slide already carries its own Branch labels
- * (11.3).
+ * One Node laid out as the tree view draws it: the Bubble with the up arrow on it, the
+ * Options with their Overlays, the Answers and the Carousel's band. The centre of the page is
+ * one; so is each neighbour, which is why a Bubble arriving in a slide already carries its own
+ * Branch labels (11.3).
  */
 function Frame({ node, view }: { node: Node; view: View }) {
   const lang = view.address.lang
   return (
     <>
-      <Trail node={node} view={view} />
-      <Bubble node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} idPrefix={view.idPrefix} pictures={view.pictures} />
+      <Bubble
+        node={node}
+        lang={lang}
+        ui={view.ui}
+        uiLang={view.uiLang}
+        idPrefix={view.idPrefix}
+        pictures={view.pictures}
+        up={<UpArrow view={view} />}
+      />
       {(node.options.length > 0 || view.open) && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
       {/* The Carousel's band (section 12), on every Node, empty where there is no picture, so the
@@ -161,109 +153,39 @@ function Frame({ node, view }: { node: Node; view: View }) {
  * two frames overlap.
  */
 function position({ direction, slot }: Placed): { x: number; y: number } {
-  if (direction === 'up') return { x: 0, y: -(slot + 1) }
+  if (direction === 'up') return { x: 0, y: -1 }
   return slot < 2 ? { x: slot - 0.5, y: 1 } : { x: slot - 3.5, y: 2 }
 }
 
 /**
- * The Trail as the Branches above (10.2): oldest first, the parent nearest the Bubble. A
- * Trail longer than five collapses in the middle to `trailMore(n)`, which opens the whole
- * Trail as a Sheet; below the guaranteed height it collapses to the parent alone plus that
- * control (10.5, step 1), and on a phone-width screen, where a 212-pixel parent Branch
- * cannot hold three lines of title in its row, to that control alone. The control says how
- * many entries it hides in each of the three cases; the stylesheet shows one. The root Node
- * has no Trail and shows the Tree's title instead; a Node opened by its own URL offers the
- * `start` Branch, so no reader is stranded.
+ * The way back (10.2): one round button on the Bubble's top outline, a link to the Trail
+ * entry directly above at the address that discards everything after it (core document
+ * 10.17), named for a reader who cannot see the arrow by the title it leads to. The Trail
+ * itself is not drawn; it stays in the URL. Where there is nothing above -- the root Node,
+ * or a Node opened by its own URL -- nothing is drawn, and the band stays empty.
  */
-function Trail({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, titleOf, root, treeTitle, idPrefix, wholeTrail, placed } = view
-  const entries = address.trail.map((id, index) => ({ href: trailHref(address, index), title: titleOf(id) }))
-
-  if (entries.length === 0 && node.id === root) {
-    return (
-      <div className="trail trail--root">
-        <p className="tree-name">{treeTitle}</p>
-      </div>
-    )
-  }
-
-  const long = entries.length > TRAIL_SHOWN
-  const collapsible = entries.length > 1
+function UpArrow({ view }: { view: View }) {
+  const { address, ui, uiLang, titleOf, idPrefix, placed } = view
+  const parent = address.trail.length - 1
+  if (parent < 0) return null
+  const href = trailHref(address, parent)
 
   return (
-    <nav
-      className={`trail${long ? ' trail--long' : ''}${collapsible ? ' trail--collapsible' : ''}`}
-      aria-labelledby={`${idPrefix}trail-label`}
+    <a
+      className="up-arrow"
+      href={href}
+      rel="prev"
+      aria-labelledby={`${idPrefix}up-label`}
+      data-slide={placed(href) ? '' : undefined}
     >
-      {/* The name of the region is chrome and may be in another language than the titles
-          under it. Only a referenced element can say so; an `aria-label` string cannot. It is
-          `hidden` rather than clipped: a name is read from a hidden element all the same, and
-          a clipped one is an element whose content is wider than itself (10.6). */}
-      <span hidden id={`${idPrefix}trail-label`} lang={uiLang}>
-        {ui.trail}
+      {/* `hidden`, not clipped: a name is read from a hidden element all the same (10.6). */}
+      <span hidden id={`${idPrefix}up-label`} lang={uiLang}>
+        {ui.up(titleOf(address.trail[parent]!))}
       </span>
-      <ol>
-        {entries.length === 0 && (
-          <li className="trail-step" data-parent="">
-            {/* Chrome, not a Node title: it marks its own language. */}
-            <Branch
-              className="trail-entry"
-              href={nodeHref({ ...address, trail: [], nodeId: root })}
-              title={<span lang={uiLang}>{ui.start}</span>}
-            />
-          </li>
-        )}
-        {entries.map((entry, index) => {
-          const parent = index === entries.length - 1
-          // `start` and the last four stay when the middle collapses (10.2).
-          const kept = index === 0 || index >= entries.length - 4
-          if (!kept && !wholeTrail) return null
-          return (
-            <Fragment key={entry.href}>
-              <li className="trail-step" data-kept={kept ? '' : undefined} data-parent={parent ? '' : undefined}>
-                {/* The entry just above the current Node is the page the reader came from. */}
-                <Branch
-                  className="trail-entry"
-                  href={entry.href}
-                  title={entry.title}
-                  rel={parent ? 'prev' : undefined}
-                  // Only the parent is placed above (11.2); an older entry is an ordinary link (11.1).
-                  slides={placed(entry.href)}
-                />
-              </li>
-              {/* The collapsed middle sits where the middle is: after `start`, before what stays. */}
-              {index === 0 && (
-                <li className="trail-more">
-                  <Sheet
-                    className="trail-sheet"
-                    summary={
-                      <>
-                        {long && (
-                          <span className="trail-more-wide" lang={uiLang}>
-                            {ui.trailMore(entries.length - TRAIL_SHOWN)}
-                          </span>
-                        )}
-                        <span className="trail-more-short" lang={uiLang}>
-                          {ui.trailMore(entries.length - 1)}
-                        </span>
-                        <span className="trail-more-all" lang={uiLang}>
-                          {ui.trailMore(entries.length)}
-                        </span>
-                      </>
-                    }
-                    // The whole Trail, newest first (10.2).
-                    items={wholeTrail ? entries.map((e) => ({ href: e.href, label: e.title })).reverse() : []}
-                    words={sheetWords(ui)}
-                    uiLang={uiLang}
-                    idPrefix={idPrefix}
-                  />
-                </li>
-              )}
-            </Fragment>
-          )
-        })}
-      </ol>
-    </nav>
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+        <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" />
+      </svg>
+    </a>
   )
 }
 
@@ -443,42 +365,41 @@ function Overlay({
 }
 
 /**
- * The Branches out of the bottom of the Bubble (10.3): the two Answers of a question Node,
- * and the one button `startAgain` on a Terminal and on an explanation Node that is the
- * centre, which only a path with no parent in it makes it (10.9). The `back` Branch went
- * with the side slide (10.9): the way up from a Terminal is the Trail entry directly above.
+ * The buttons below the Bubble (10.3): the two Answers of a question Node, and `startAgain`
+ * below a Node that has none -- a Terminal, or an explanation Node that is the centre, which
+ * only a path with no parent in it makes it (10.9) -- to the root Node with an empty Trail.
+ * The way back is the up arrow, not a button here.
  */
 function Answers({ node, view }: { node: Node; view: View }) {
   const { address, ui, uiLang, titleOf, root, idPrefix, placed } = view
   const sliding = (href: string) => ({ href, slides: placed(href) })
+  // The word, a colon and the target's title: shown whole at every width but a phone's, and
+  // the name at every width (10.3).
+  const labelled = (word: string, target: string) => {
+    const title = titleOf(target)
+    return { word, wordLang: uiLang, title, name: `${word}: ${title}` }
+  }
 
   return (
     <div className="answers" role="group" aria-labelledby={`${idPrefix}node-title`}>
-      {node.kind === 'question' && (
+      {node.kind === 'question' ? (
         <>
           <Branch
             className="answer answer--yes"
             {...sliding(followHref(address, node.answers.yes))}
-            word={ui.yes}
-            wordLang={uiLang}
-            title={titleOf(node.answers.yes)}
+            {...labelled(ui.yes, node.answers.yes)}
           />
           <Branch
             className="answer answer--no"
             {...sliding(followHref(address, node.answers.no))}
-            word={ui.no}
-            wordLang={uiLang}
-            title={titleOf(node.answers.no)}
+            {...labelled(ui.no, node.answers.no)}
           />
         </>
-      )}
-      {node.kind !== 'question' && (
+      ) : (
         <Branch
           className="answer answer--start-again"
           href={nodeHref({ ...address, trail: [], nodeId: root })}
-          word={ui.startAgain}
-          wordLang={uiLang}
-          title={titleOf(root)}
+          {...labelled(ui.startAgain, root)}
         />
       )}
     </div>

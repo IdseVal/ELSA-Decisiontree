@@ -43,7 +43,7 @@ const ROOT = '/ai-act-example/start'
 const QUESTION = `${ROOT}/prohibited-practices`
 const OPTION = `${QUESTION}/social-scoring`
 
-/** The bound of 11.5: the Node a page shows and at most sixteen neighbours. */
+/** The bound of 11.2: the Node a page shows, at most fifteen neighbours and the one Overlay its URL may name. */
 const MAX_NODES = 17
 
 let tree: Tree
@@ -225,9 +225,9 @@ test.describe('the address bar', () => {
     // The Option slide is gone (10.9, 11.1): an Option opens an Overlay and nothing moves.
     const steps: Array<[from: string, branch: string]> = [
       [ROOT, '.answer--yes'],
-      [QUESTION, '.trail-entry >> nth=-1'],
-      // A Terminal's way up is the Trail entry above it: the `back` Branch is gone (10.9).
-      [`${QUESTION}/prohibited`, '.trail-entry >> nth=-1'],
+      [QUESTION, '.up-arrow'],
+      // A Terminal's way up is the up arrow too: the `back` Branch is gone (10.9).
+      [`${QUESTION}/prohibited`, '.up-arrow'],
     ]
     for (const [from, branch] of steps) {
       await page.goto(from)

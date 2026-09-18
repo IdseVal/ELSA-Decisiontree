@@ -186,6 +186,8 @@ test('an Option opens its explanation-only child in an Overlay over the question
   await page.goto(`${question}/social-scoring`)
   await expect(page.locator('.overlay[open] h2 a')).toHaveText('Social scoring')
   await expect(page.locator('h1')).toHaveText('Does your system do a prohibited practice? (1/2)')
+  // The up arrow is the question's own (#82): with the Overlay open it still leads above the question.
+  await expect(page.locator('.up-arrow')).toHaveAttribute('href', `/${TREE}/start/article-2-exclusions/ai-system-definition`)
 })
 
 test('the high-risk finding does not end the walk', async ({ page }) => {
