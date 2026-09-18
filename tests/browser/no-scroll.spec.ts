@@ -216,10 +216,13 @@ async function measureEverywhere(
     // Each explainer panel the Bubble marks, opened by focus in turn (10.8): placed beside its
     // term by the script, or at the foot of the text area by CSS alone without it.
     const terms = page.locator('.bubble .term')
-    if (script && (await terms.count()) > 0) await expect(page.locator('.bubble .prose[data-enhanced]').first()).toBeAttached()
-    for (let i = 0; i < (await terms.count()); i += 1) {
+    const marked = await terms.count()
+    if (script && marked > 0) await expect(page.locator('.bubble .prose[data-enhanced]').first()).toBeAttached()
+    let opened = 0
+    for (let i = 0; i < marked; i += 1) {
       const term = terms.nth(i)
       if (!(await term.isVisible())) continue
+      opened += 1
       const panel = (await term.getAttribute('aria-describedby'))!
       await term.focus()
       await expect(page.locator(`[id="${panel}"]`)).toBeVisible()
@@ -229,6 +232,9 @@ async function measureEverywhere(
       await term.blur()
       await expect(page.locator(`[id="${panel}"]`)).toBeHidden()
     }
+    // Only at and below the floor does the notice stand in for the Bubble and its terms
+    // (10.5 step 7); anywhere else a term that is not shown is a panel that went unmeasured.
+    if (width > 320 && height > 480) expect(opened, `${what} (${lang}) at ${viewport}: every marked term opened`).toBe(marked)
 
     // Each Sheet the layout offers at this size, opened in turn: 10.5 gets no exemption.
     const sheets = page.locator('details.sheet')
@@ -588,6 +594,15 @@ for (const lang of LANGUAGES) {
 
 const explainers = new Map<number, Promise<string | null>>()
 
+/**
+ * The panels the explainers fixture must have been measured with, in one language: its eight
+ * terms at each viewport of 10.6 but the floor, where the notice replaces the Bubble.
+ */
+function expectEveryPanelMeasured(what: string, lang: string): void {
+  const measured = rows.filter((row) => row.page === what && row.lang === lang && row.sheet.startsWith('explainer '))
+  expect(measured.length, `${what} (${lang}): panels measured`).toBe(8 * (VIEWPORTS.length - 1))
+}
+
 /** The explainers fixture's server on `port`, started once for every test that asks for it there. */
 async function explainersOrigin(port: number): Promise<string> {
   if (!explainers.has(port)) explainers.set(port, serve(fixtures, 'explainers', port))
@@ -603,6 +618,7 @@ for (const lang of LANGUAGES) {
   test(`the explainers fixture, ${lang}, never scrolls at any viewport of 10.6, each panel open in turn`, async ({ page }) => {
     test.slow()
     await measureEverywhere(page, `${await explainersOrigin(EXPLAINERS_PORT)}${inLang('/explainers/start', lang)}`, 'explainers fixture', lang)
+    expectEveryPanelMeasured('explainers fixture', lang)
   })
 }
 
@@ -767,6 +783,7 @@ test.describe('with JavaScript switched off', () => {
     test(`the explainers fixture, ${lang}, never scrolls without JavaScript, each panel open in turn`, async ({ page }) => {
       test.slow()
       await measureEverywhere(page, `${await explainersOrigin(EXPLAINERS_NO_SCRIPT_PORT)}${inLang('/explainers/start', lang)}`, 'explainers fixture, no JavaScript', lang, false)
+      expectEveryPanelMeasured('explainers fixture, no JavaScript', lang)
     })
   }
 
