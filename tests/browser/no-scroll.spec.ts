@@ -207,7 +207,10 @@ async function measureEverywhere(
   for (const [width, height] of viewports) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
-    await page.goto(url)
+    // The page asked for, not a 404: `serve` hands back whatever already answers on a port, and
+    // a 404 page never scrolls (PR #99: the full Node's trigger test passed on the overlay
+    // fixture's server, which had the same port).
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
     await expect(page.locator('main')).toBeVisible()
 
     // A URL that names an explanation Node arrives with its Overlay open (10.9): the plain
@@ -296,7 +299,7 @@ async function measureSliding(page: Page, url: string, what: string, lang: strin
   for (const [width, height] of VIEWPORTS.filter(([w, h]) => w > 320 && h > 480)) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
-    await page.goto(url)
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
     await expect(page.locator('main')).toBeVisible()
 
     // A slide never begins with a Sheet open (11.3): the Overlay a URL opened is closed first.
@@ -564,7 +567,8 @@ const OVERLAY_PAGES = [
   { what: 'overlay fixture: a second-level Overlay, open by URL', url: '/overlay/five/big/o1' },
 ] as const
 
-const OVERLAY_PORT = FULL_NODE_PORT + 5
+// Its own port: `FULL_NODE_PORT + 5` is the trigger test's full Node, below.
+const OVERLAY_PORT = FULL_NODE_PORT + 6
 let overlay: Promise<string | null> | undefined
 
 /** The Overlay fixture's server, started once for every test of this file that needs it. */
@@ -633,6 +637,21 @@ for (const lang of LANGUAGES) {
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail, at the triggers', lang, true, STEP_VIEWPORTS)
   })
 }
+
+// What a face cannot hide: the rows of 10.1 and 10.5 in pixels. The full Node's text takes 368
+// of the text area in Liberation Sans and less in Segoe UI, so a text area two pixels short
+// passed on Windows and failed on the runner (PR #99); the budget is the same in every face.
+test('the full Node keeps the text area 10.5 budgets and a 760 Bubble down to 1200 wide: the collapsed Options stand beside it, not in a row of their own', async ({ page }) => {
+  const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 5)
+  expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+  for (const [width, height] of [[1280, 640], [1280, 632], [1279, 640], [1200, 640], [1200, 632]] as const) {
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(`${origin}${FULL_NODE_URL}`))?.status()).toBe(200)
+    // Step 1 frees 8 pixels, to 632: the text area is the guarantee's 394 at both ends of it.
+    expect((await page.locator('.bubble').boundingBox())!.width, `${width}x${height}: the Bubble`).toBe(760)
+    expect((await page.locator('.bubble-text').boundingBox())!.height, `${width}x${height}: the text area`).toBe(394)
+  }
+})
 
 // A page with a Carousel mid-slide: the strip rides in the layer, and the neighbour it slides
 // towards has an empty row where its Carousel will be (11.4).

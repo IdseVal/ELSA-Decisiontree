@@ -1364,6 +1364,8 @@ a.language:hover,
  */
 @media (max-width: 1279px) {
   :root {
+    /* The columns are the buttons' 200, so the Bubble keeps its 760 down to 1200 (10.5). */
+    --column: 200px;
     --answers-row: auto;
   }
 
@@ -1444,6 +1446,19 @@ a.language:hover,
   .options[data-count="5"] ~ .options-collapsed,
   .options[data-count="6"] ~ .options-collapsed {
     display: block;
+  }
+}
+
+/*
+ * Where the columns beside the Bubble still stand (1200 and wider), the control takes the
+ * left one the fan leaves, not a row under the Answers: the height budget of 10.5 has no 28
+ * pixels for one, and the Bubble would pay them out of the text area that steps 1, 5 and 6
+ * free -- at 1280 x 632 the full Node's text area was 366 for the 368 it holds.
+ */
+@media (max-height: 639px) and (min-width: 1200px) {
+  .options-collapsed {
+    grid-area: left;
+    align-self: center;
   }
 }
 
