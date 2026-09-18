@@ -1452,7 +1452,8 @@ a.language:hover,
    * A 170-pixel button holds eleven characters a line of the 19-pixel label, which must stay
    * large text to be readable on a mid-tone fill (13.1): an 86-character label is eight lines,
    * more than the whole Bubble gives up at this width. So the button keeps its word -- yes,
-   * no, start again -- and gives up the target's title, which the page it leads to shows.
+   * no, start again -- and gives up the target's title, which the page it leads to shows and
+   * the button's name keeps (10.3, amended 2026-09-18).
    */
   .answer .branch-colon,
   .answer .branch-title {
