@@ -170,11 +170,13 @@ test('the browser asks for the images of the Node on screen and no others', asyn
   const onStart = await imageRequests(page, () => page.goto(START))
   expect(new Set(onStart)).toEqual(new Set(['eu-map.png']))
 
+  const ofOptions = new Set(['prohibited-practices.png', 'scoreboard.png', 'emotion-recognition.png'])
   const onOptions = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices'))
-  expect(new Set(onOptions)).toEqual(new Set(['prohibited-practices.png', 'scoreboard.png', 'emotion-recognition.png']))
+  expect(new Set(onOptions)).toEqual(ofOptions)
 
+  // The target's address is its parent's page with the Overlay open (10.9): the same files.
   const onTarget = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices/social-scoring'))
-  expect(new Set(onTarget)).toEqual(new Set(['scoreboard.png']))
+  expect(new Set(onTarget)).toEqual(ofOptions)
 })
 
 test('enlarging the main image fetches nothing new', async ({ page }) => {
