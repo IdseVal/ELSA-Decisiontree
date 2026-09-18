@@ -2,6 +2,7 @@
   "name": "elsa-decisiontree",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "ELSA decision-tree frontend: shows one Node of an elsa-tree/3 Tree at a time",
   "engines": {

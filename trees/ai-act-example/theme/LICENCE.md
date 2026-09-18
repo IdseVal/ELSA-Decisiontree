@@ -5,8 +5,8 @@
 `example-lab-logo.svg` and `example-lab-logo-white.svg` were drawn for this repository as
 the mark of a Tree that belongs to nobody. They carry no real laboratory's identity, which
 is the point: the example Tree exists to show the format and the theme mechanism, so its
-look must not be any lab's. They are part of this repository and are covered by whatever
-licence the project chooses for its content (core document open item 10.14).
+look must not be any lab's. They are part of this repository's Tree content and are under
+CC BY 4.0, as `CONTENT-LICENSE` at the repository root states.
 
 ## Font -- SIL Open Font License 1.1
 
