@@ -257,6 +257,12 @@ function Options({ node, view }: { node: Node; view: View }) {
 function Answers({ node, view }: { node: Node; view: View }) {
   const { address, ui, uiLang, titleOf, root, idPrefix, placed } = view
   const sliding = (href: string) => ({ href, slides: placed(href) })
+  // The word, a colon and the target's title: shown whole at every width but a phone's, and
+  // the name at every width (10.3).
+  const labelled = (word: string, target: string) => {
+    const title = titleOf(target)
+    return { word, wordLang: uiLang, title, name: `${word}: ${title}` }
+  }
 
   return (
     <div className="answers" role="group" aria-labelledby={`${idPrefix}node-title`}>
@@ -265,25 +271,19 @@ function Answers({ node, view }: { node: Node; view: View }) {
           <Branch
             className="answer answer--yes"
             {...sliding(followHref(address, node.answers.yes))}
-            word={ui.yes}
-            wordLang={uiLang}
-            title={titleOf(node.answers.yes)}
+            {...labelled(ui.yes, node.answers.yes)}
           />
           <Branch
             className="answer answer--no"
             {...sliding(followHref(address, node.answers.no))}
-            word={ui.no}
-            wordLang={uiLang}
-            title={titleOf(node.answers.no)}
+            {...labelled(ui.no, node.answers.no)}
           />
         </>
       ) : (
         <Branch
           className="answer answer--start-again"
           href={nodeHref({ ...address, trail: [], nodeId: root })}
-          word={ui.startAgain}
-          wordLang={uiLang}
-          title={titleOf(root)}
+          {...labelled(ui.startAgain, root)}
         />
       )}
     </div>

@@ -89,6 +89,25 @@ test.describe('following a Branch', () => {
     ])
     await expect(page.locator(UP)).toHaveAccessibleName('Back to: Is your AI system within the reach of the AI Act?')
   })
+
+  test('at a phone width an Answer button shows its word alone, and its name still says where it leads (10.3)', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 })
+    await page.goto(QUESTION)
+    for (const [answer, name] of [
+      ['.answer--yes', 'Yes: This is a prohibited practice'],
+      ['.answer--no', 'No: The AI Act applies to your system'],
+    ] as const) {
+      await expect(page.locator(`${answer} .branch-title`)).toBeHidden()
+      await expect(page.locator(`${answer} .branch-label`)).toHaveText(answer === '.answer--yes' ? 'Yes' : 'No', { useInnerText: true })
+      await expect(page.locator(answer)).toHaveAccessibleName(name)
+    }
+
+    await page.goto(TERMINAL)
+    await expect(page.locator('.answer--start-again .branch-label')).toHaveText('Start again', { useInnerText: true })
+    await expect(page.locator('.answer--start-again')).toHaveAccessibleName(
+      'Start again: Is your AI system within the reach of the AI Act?',
+    )
+  })
 })
 
 /** What the browser is focused on, as `tag.class`, or '' when nothing is. */

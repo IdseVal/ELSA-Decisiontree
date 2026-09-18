@@ -21,6 +21,7 @@ export function Branch({
   image,
   className,
   slides = false,
+  name,
 }: {
   href: string
   /** The target's title, in the content language. */
@@ -37,9 +38,16 @@ export function Branch({
   className: string
   /** Its target has a placement in the neighbourhood, so following it slides there (11.1). */
   slides?: boolean
+  /**
+   * The link's name, where the stylesheet may shorten the visible label: an Answer button
+   * below 480 pixels shows its word alone, and its name must still say where it leads (10.3,
+   * WCAG 2.2 SC 2.4.4). An attribute, not a hidden copy of the label, so the label's parts
+   * stay one of each on the page.
+   */
+  name?: string
 }) {
   return (
-    <a className={`branch ${className}`} href={href} data-slide={slides ? '' : undefined}>
+    <a className={`branch ${className}`} href={href} data-slide={slides ? '' : undefined} aria-label={name}>
       {image === 'withheld' && <span className="branch-image" />}
       {image && image !== 'withheld' && (
         // `option-image` is the name the first Tree's walk (tests/first-tree/walk.spec.ts,

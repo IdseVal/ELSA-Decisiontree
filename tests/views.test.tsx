@@ -425,7 +425,7 @@ describe('Sources', () => {
 })
 
 describe('a question Node with Options', () => {
-  test('offers yes and no as two buttons below, each labelled with its chrome word, a colon and its target title in one run', async () => {
+  test('offers yes and no as two buttons below, each labelled and named with its chrome word, a colon and its target title in one run', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
 
     expect(branches(html, 'answer answer--yes')).toEqual([
@@ -436,9 +436,9 @@ describe('a question Node with Options', () => {
     ])
     expect(part(html, 'div', 'answers')).toBe(
       '<div class="answers" role="group" aria-labelledby="node-title">' +
-        '<a class="branch answer answer--yes" href="/ai-act-example/start/prohibited-practices/prohibited" data-slide="">' +
+        '<a class="branch answer answer--yes" href="/ai-act-example/start/prohibited-practices/prohibited" data-slide="" aria-label="Yes: This is a prohibited practice">' +
         '<span class="branch-label"><span class="branch-word">Yes</span><span class="branch-colon">: </span><span class="branch-title">This is a prohibited practice</span></span></a>' +
-        '<a class="branch answer answer--no" href="/ai-act-example/start/prohibited-practices/covered" data-slide="">' +
+        '<a class="branch answer answer--no" href="/ai-act-example/start/prohibited-practices/covered" data-slide="" aria-label="No: The AI Act applies to your system">' +
         '<span class="branch-label"><span class="branch-word">No</span><span class="branch-colon">: </span><span class="branch-title">The AI Act applies to your system</span></span></a>' +
         '</div>',
     )
@@ -512,7 +512,9 @@ describe('an explanation Node', () => {
     expect(html).not.toContain('answer--yes')
     expect(html).not.toContain('answer--no')
     expect(branches(html, 'answer')).toEqual([['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?']])
-    expect(html).toContain('<a class="branch answer answer--start-again" href="/ai-act-example/start">')
+    expect(html).toContain(
+      '<a class="branch answer answer--start-again" href="/ai-act-example/start" aria-label="Start again: Is your AI system within the reach of the AI Act?">',
+    )
     expect(html).toContain('<a class="up-arrow" href="/ai-act-example/start/prohibited-practices" rel="prev"')
   })
 
