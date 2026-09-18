@@ -1006,16 +1006,21 @@ a.language:hover,
   background: var(--wash);
 }
 
+/* Laid out from the top, as the Bubble's text area is (10.3): the title at the same height in both. */
 .overlay-interior {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   height: 100%;
   min-height: 0;
 }
 
-/* The heading links to the explanation Node's own address (10.9): the one plain link that names the aside. */
-.overlay-interior h2 {
+/*
+ * The heading links to the explanation Node's own address (10.9): the one plain link that
+ * names the aside. The child only: the Sources' chrome heading is an `h2` too, and keeps the
+ * small capitals it has in the Bubble.
+ */
+.overlay-interior > h2 {
   margin: 0 0 8px;
   font-family: var(--elsa-font-heading);
   font-size: var(--title);
@@ -1025,11 +1030,11 @@ a.language:hover,
   text-wrap: balance;
 }
 
-.overlay-interior h2 a {
+.overlay-interior > h2 a {
   text-decoration: none;
 }
 
-.overlay-interior h2 a:hover {
+.overlay-interior > h2 a:hover {
   text-decoration: underline;
   text-decoration-color: var(--accent-secondary-read);
   text-underline-offset: 0.18em;

@@ -119,6 +119,31 @@ test.describe('opening and closing', () => {
   })
 })
 
+test.describe('the Interior in an Overlay', () => {
+  test("is laid out as the Bubble's: the Sources heading in its small capitals, not the title's size, and the content from the top (10.3, 10.9)", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
+    // `social-scoring` carries three Sources; as the centre it is the Bubble to compare with.
+    await page.goto('/ai-act-example/social-scoring')
+    const type = (heading: HTMLElement) => {
+      const style = getComputedStyle(heading)
+      return [style.fontSize, style.lineHeight, style.fontWeight, style.fontVariantCaps]
+    }
+    const inBubble = await page.locator('.bubble .sources h2').evaluate(type)
+
+    await page.goto(QUESTION)
+    const overlay = page.locator('.overlay').first()
+    await overlay.locator('.sheet-open').click()
+    await expect(overlay.locator('.sheet-panel')).toBeVisible()
+    expect(await overlay.locator('.sources h2').evaluate(type)).toEqual(inBubble)
+    expect(inBubble[0]).toBe('13px')
+
+    // From the top of the panel's content box, as the Bubble's text area lays its Interior out.
+    const interior = (await overlay.locator('.overlay-interior').boundingBox())!
+    const image = (await overlay.locator('.overlay-interior .main-image').boundingBox())!
+    expect(Math.round(image.y - interior.y)).toBe(0)
+  })
+})
+
 test.describe('the keyboard', () => {
   test('Enter on a focused Option button opens its Overlay; Tab reaches the cross, the main image, the heading link and the Sources; Escape returns', async ({ page }) => {
     await page.goto(QUESTION)
