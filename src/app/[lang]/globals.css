@@ -999,6 +999,8 @@ a.language:hover,
 
 /* Laid out from the top, as the Bubble's text area is (10.3): the title at the same height in both. */
 .overlay-interior {
+  /* The containing block of an explainer panel, as the Bubble's text area is (10.8). */
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
