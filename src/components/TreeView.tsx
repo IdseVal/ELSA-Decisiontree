@@ -190,17 +190,18 @@ function UpArrow({ view }: { view: View }) {
 }
 
 /**
- * The Option buttons fanned out beside the Bubble, each the control of the Overlay that holds
- * its target (10.3, 10.9): the first Option on the right, the second on the left, alternating,
+ * The Options of the centre and the Overlay its URL opened (10.3, 10.9). A centre without
+ * Options draws no fan and no collapsed control, only the one Overlay a URL may name that is
+ * not an aside of the centre -- a second-level explanation Node, or one after a Terminal
+ * (10.9) -- rendered open, with no button of its own: the way back to the first is the
+ * browser's back or the first Option's button.
+ *
+ * With Options, the buttons are fanned out beside the Bubble, each the control of the Overlay
+ * that holds its target: the first Option on the right, the second on the left, alternating,
  * each side top to bottom in Option order. Each button carries its row `--i` of the `--m` on
  * its side, from which the stylesheet places it on the Bubble's curve
  * (ADR-78-fan-out-and-option-picture). The same list as a Sheet of plain links to the
  * explanation Nodes' addresses is what the fan collapses to (10.5, step 4).
- *
- * The one Overlay a URL may name that is not an aside of the centre -- a second-level
- * explanation Node, or one after a Terminal (10.9) -- is rendered after the fan, open, with
- * no button of its own: the way back to the first is the browser's back or the first
- * Option's button. A centre without Options draws no fan and no collapsed control, only that.
  */
 function Options({ node, view }: { node: Node; view: View }) {
   const { address, ui, uiLang, idPrefix, asides, open } = view
@@ -216,29 +217,29 @@ function Options({ node, view }: { node: Node; view: View }) {
       </span>
       {/* The count is what the stylesheet collapses the fan on (10.5, step 4). */}
       {count > 0 && (
-      <ul className="options" aria-labelledby={`${idPrefix}options-label`} data-count={count}>
-        {node.options.map((option, index) => {
-          const side = index % 2 === 0 ? 'right' : 'left'
-          // A neighbour frame carries no asides (11.3): its buttons are drawn empty and closed.
-          const target = asides.find((aside) => aside.node.id === option.target) ?? null
-          return (
-            <li
-              key={option.target}
-              data-side={side}
-              style={{ '--i': Math.floor(index / 2), '--m': rows(side) } as CSSProperties}
-            >
-              <Overlay
-                title={text(option.title, lang, `${node.id}.options[${index}].title`)}
-                picture={optionPicture(target, lang)}
-                aside={target}
-                open={target !== null && open?.href === target.href}
-                view={view}
-                idPrefix={`${idPrefix}a${index}-`}
-              />
-            </li>
-          )
-        })}
-      </ul>
+        <ul className="options" aria-labelledby={`${idPrefix}options-label`} data-count={count}>
+          {node.options.map((option, index) => {
+            const side = index % 2 === 0 ? 'right' : 'left'
+            // A neighbour frame carries no asides (11.3): its buttons are drawn empty and closed.
+            const target = asides.find((aside) => aside.node.id === option.target) ?? null
+            return (
+              <li
+                key={option.target}
+                data-side={side}
+                style={{ '--i': Math.floor(index / 2), '--m': rows(side) } as CSSProperties}
+              >
+                <Overlay
+                  title={text(option.title, lang, `${node.id}.options[${index}].title`)}
+                  picture={optionPicture(target, lang)}
+                  aside={target}
+                  open={target !== null && open?.href === target.href}
+                  view={view}
+                  idPrefix={`${idPrefix}a${index}-`}
+                />
+              </li>
+            )
+          })}
+        </ul>
       )}
       {extra && (
         <div className="options-extra">
@@ -254,19 +255,19 @@ function Options({ node, view }: { node: Node; view: View }) {
         </div>
       )}
       {count > 0 && (
-      <div className="options-collapsed">
-        <Sheet
-          className="options-sheet"
-          summary={<span lang={uiLang}>{`${ui.options} (${count})`}</span>}
-          items={node.options.map((option, index) => ({
-            href: followHref(address, option.target),
-            label: text(option.title, lang, `${node.id}.options[${index}].title`),
-          }))}
-          words={sheetWords(ui)}
-          uiLang={uiLang}
-          idPrefix={idPrefix}
-        />
-      </div>
+        <div className="options-collapsed">
+          <Sheet
+            className="options-sheet"
+            summary={<span lang={uiLang}>{`${ui.options} (${count})`}</span>}
+            items={node.options.map((option, index) => ({
+              href: followHref(address, option.target),
+              label: text(option.title, lang, `${node.id}.options[${index}].title`),
+            }))}
+            words={sheetWords(ui)}
+            uiLang={uiLang}
+            idPrefix={idPrefix}
+          />
+        </div>
       )}
     </>
   )
@@ -329,6 +330,8 @@ function Overlay({
           <span className="option-title">{title}</span>
         </>
       }
+      // One page, the Interior and the target's own Options: no strip of the target's other
+      // Images, which 10.9's pre-rendering bullet names and its panel has no room for (#100).
       pages={
         aside
           ? [
