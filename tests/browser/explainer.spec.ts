@@ -16,7 +16,7 @@ import { BASE_PORT, serve, stopServers } from './serve.ts'
 
 const fixtures = path.join(fileURLToPath(new URL('../..', import.meta.url)), 'tests', 'fixtures')
 
-/** Clear of every other spec's ports (no-scroll 20-24, carousel 30, chrome-clearance 40). */
+/** Clear of every other spec's ports (no-scroll 20-27, carousel 30, chrome-clearance 40). */
 const PORT = BASE_PORT + 50
 
 /** The fixture's eight explainer ids, in the order the description marks them. */

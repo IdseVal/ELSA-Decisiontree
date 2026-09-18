@@ -61,7 +61,7 @@ test.beforeAll(async () => {
 })
 
 test.afterAll(async () => {
-  stopServers()
+  await stopServers()
   await mkdir(RESULTS, { recursive: true })
   await writeFile(path.join(RESULTS, 'carousel-requests.md'), `${requests.join('\n')}\n`)
   await writeFile(path.join(RESULTS, 'carousel-rows.md'), `${rowTable.join('\n')}\n`)

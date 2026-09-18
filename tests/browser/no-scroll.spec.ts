@@ -41,13 +41,18 @@ const trees = path.join(repo, 'trees')
 const fixtures = path.join(repo, 'tests', 'fixtures')
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 
-/** Ports for the servers this file starts; clear of playwright.config.ts's, theme.spec.ts's and carousel.spec.ts's. */
+/**
+ * Ports for the servers this file starts, one server each, every one of them named here;
+ * clear of playwright.config.ts's, theme.spec.ts's and carousel.spec.ts's.
+ */
 const FULL_NODE_PORT = BASE_PORT + 20
 const FIRST_TREE_PORT = FULL_NODE_PORT + 1
+const FULL_NODE_NO_SCRIPT_PORT = FULL_NODE_PORT + 2
 const CAROUSEL_PORT = FULL_NODE_PORT + 3
 const FULL_NODE_SLIDING_PORT = FULL_NODE_PORT + 4
-const EXPLAINERS_PORT = FULL_NODE_PORT + 5
+const FULL_NODE_TRIGGERS_PORT = FULL_NODE_PORT + 5
 const EXPLAINERS_NO_SCRIPT_PORT = FULL_NODE_PORT + 6
+const EXPLAINERS_PORT = FULL_NODE_PORT + 7
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -140,8 +145,24 @@ interface Row {
 
 const rows: Row[] = []
 
+const servers = new Map<number, { treeId: string; origin: Promise<string | null> }>()
+
+/**
+ * `treeId` out of `treesDir` on `port`, started once for every test of this file that asks
+ * for it there. A port asked for a second Tree fails the test that asks: that Tree would be
+ * measured on the first one's pages.
+ */
+async function served(treesDir: string, treeId: string, port: number): Promise<string> {
+  const server = servers.get(port) ?? { treeId, origin: serve(treesDir, treeId, port) }
+  servers.set(port, server)
+  expect(server.treeId, `port ${port}: the Tree it serves`).toBe(treeId)
+  const origin = await server.origin
+  expect(origin, `${treeId} is a valid Tree`).not.toBeNull()
+  return origin!
+}
+
 test.afterAll(async () => {
-  stopServers()
+  await stopServers()
   await mkdir(RESULTS, { recursive: true })
   await writeFile(path.join(RESULTS, 'no-scroll.md'), table(rows))
 })
@@ -531,21 +552,13 @@ for (const lang of LANGUAGES) {
 for (const lang of LANGUAGES) {
   test(`the full Node at a 49-entry Trail, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
     test.slow()
-    const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT)
-    expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+    const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
   })
 }
 
-let fullNodeSliding: Promise<string | null> | undefined
-
-/** The full-node fixture's server for the slides, started once for every test that needs it. */
-async function fullNodeSlidingOrigin(): Promise<string> {
-  fullNodeSliding ??= serve(fixtures, 'full-node', FULL_NODE_SLIDING_PORT)
-  const origin = await fullNodeSliding
-  expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
-  return origin!
-}
+/** The full-node fixture's server for the slides. */
+const fullNodeSlidingOrigin = () => served(fixtures, 'full-node', FULL_NODE_SLIDING_PORT)
 
 // The page the rule exists for, mid-slide: the layer is fixed at a pixel box and holds two
 // frames, one of them the collapsed 49-entry Trail with eight Options (10.6).
@@ -592,8 +605,6 @@ for (const lang of LANGUAGES) {
   })
 }
 
-const explainers = new Map<number, Promise<string | null>>()
-
 /**
  * The panels the explainers fixture must have been measured with, in one language: its eight
  * terms at each viewport of 10.6 but the floor, where the notice replaces the Bubble.
@@ -603,13 +614,8 @@ function expectEveryPanelMeasured(what: string, lang: string): void {
   expect(measured.length, `${what} (${lang}): panels measured`).toBe(8 * (VIEWPORTS.length - 1))
 }
 
-/** The explainers fixture's server on `port`, started once for every test that asks for it there. */
-async function explainersOrigin(port: number): Promise<string> {
-  if (!explainers.has(port)) explainers.set(port, serve(fixtures, 'explainers', port))
-  const origin = await explainers.get(port)
-  expect(origin, 'the explainers fixture is a valid Tree').not.toBeNull()
-  return origin!
-}
+/** The explainers fixture's server on `port`: one with the script, one without. */
+const explainersOrigin = (port: number) => served(fixtures, 'explainers', port)
 
 // Eight explainers at every maximum the format allows (tree-format.md 5.9), each panel opened
 // in turn at every viewport: the tallest panel the format can ask for, beside every line of a
@@ -632,25 +638,11 @@ const CAROUSEL_PAGES = [
   { what: 'Node with a 120-character credit', url: '/carousel/five/two/long' },
 ] as const
 
-let carousel: Promise<string | null> | undefined
+/** The Carousel fixture's server. */
+const carouselOrigin = () => served(fixtures, 'carousel', CAROUSEL_PORT)
 
-/** The Carousel fixture's server, started once for every test of this file that needs it. */
-async function carouselOrigin(): Promise<string> {
-  carousel ??= serve(fixtures, 'carousel', CAROUSEL_PORT)
-  const origin = await carousel
-  expect(origin, 'the carousel fixture is a valid Tree').not.toBeNull()
-  return origin!
-}
-
-let firstTree: Promise<string | null> | undefined
-
-/** The first Tree's server, started once for every test of this file that needs it. */
-async function firstTreeOrigin(): Promise<string> {
-  firstTree ??= serve(trees, 'ai-act-applicability-agrifood', FIRST_TREE_PORT)
-  const origin = await firstTree
-  expect(origin, 'the first Tree starts').not.toBeNull()
-  return origin!
-}
+/** The first Tree's server. */
+const firstTreeOrigin = () => served(trees, 'ai-act-applicability-agrifood', FIRST_TREE_PORT)
 
 for (const { what, url } of CAROUSEL_PAGES) {
   for (const lang of LANGUAGES) {
@@ -666,8 +658,7 @@ for (const { what, url } of CAROUSEL_PAGES) {
 for (const lang of LANGUAGES) {
   test(`the full Node, ${lang}, never scrolls either side of each trigger of 10.5`, async ({ page }) => {
     test.slow()
-    const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 5)
-    expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+    const origin = await served(fixtures, 'full-node', FULL_NODE_TRIGGERS_PORT)
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail, at the triggers', lang, true, STEP_VIEWPORTS)
   })
 }
@@ -799,8 +790,7 @@ test.describe('with JavaScript switched off', () => {
   for (const lang of LANGUAGES) {
     test(`the full Node at a 49-entry Trail, ${lang}, never scrolls without JavaScript`, async ({ page }) => {
       test.slow()
-      const origin = await serve(fixtures, 'full-node', FULL_NODE_PORT + 2)
-      expect(origin, 'the full-node fixture is a valid Tree').not.toBeNull()
+      const origin = await served(fixtures, 'full-node', FULL_NODE_NO_SCRIPT_PORT)
       await measureEverywhere(
         page,
         `${origin}${inLang(FULL_NODE_URL, lang)}`,
