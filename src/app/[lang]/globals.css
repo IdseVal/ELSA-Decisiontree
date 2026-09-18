@@ -846,10 +846,6 @@ a.language:hover,
   display: block;
 }
 
-.answer:focus-visible {
-  outline-color: var(--elsa-accent-secondary);
-}
-
 /* --- the Sheet: the one overlay (10.2, 10.5) --------------------------------------- */
 
 .sheet-open {
