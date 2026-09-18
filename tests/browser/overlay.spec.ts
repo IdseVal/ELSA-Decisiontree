@@ -15,7 +15,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
-import { arrived } from './arrived.ts'
+import { arrived, escapeUrlOpened } from './arrived.ts'
 import { BASE_PORT, serve, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -200,11 +200,23 @@ test.describe('the address rule (10.9, core document 10.27)', () => {
   test('closing a URL-opened Overlay leaves the address as it was; the browser back is the way to the page before', async ({ page }) => {
     await page.goto(QUESTION)
     await page.goto(FIRST_OPTION)
-    await page.keyboard.press('Escape')
+    await escapeUrlOpened(page)
     await expect(page.locator('.overlay .sheet-panel:visible')).toHaveCount(0)
     expect(local(page)).toBe(FIRST_OPTION)
     await page.goBack()
     await arrived(page, QUESTION)
+  })
+
+  test('Escape closes a URL-opened Overlay every time, on a processor a quarter as fast', async ({ page }) => {
+    // The send-back of PR #99: Escape pressed on the `load` event fell, one run in five on
+    // CI, into the 50 ms before the Sheets are hydrated. Slowed down, that gap is wide
+    // enough to fall into every few loads, so this fails if the wait stops covering it.
+    const cdp = await page.context().newCDPSession(page)
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+    for (let load = 0; load < 20; load += 1) {
+      await page.goto(FIRST_OPTION)
+      await escapeUrlOpened(page)
+    }
   })
 
   test('a path with no question Node or Terminal in it shows the explanation Node as the centre, with startAgain', async ({ page }) => {

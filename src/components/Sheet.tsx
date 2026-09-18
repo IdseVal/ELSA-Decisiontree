@@ -171,14 +171,15 @@ export function Sheet({
 
   // An Overlay the URL opened has the focus on the page, not on its cross (10.9), so Escape
   // is also heard from anywhere on the page. A Sheet with the focus in it has already
-  // stopped the event above; only the one open Sheet does anything.
+  // stopped the event above; only the one open Sheet does anything. Attached once: `close`
+  // reads nothing but refs, so the first render's is as good as any later one's.
   useEffect(() => {
     const onAnyKeyDown = (event: globalThis.KeyboardEvent): void => {
       if (event.key === 'Escape' && details.current?.open) close()
     }
     document.addEventListener('keydown', onAnyKeyDown)
     return () => document.removeEventListener('keydown', onAnyKeyDown)
-  })
+  }, [])
 
   const onToggle = (): void => {
     if (details.current?.open) {

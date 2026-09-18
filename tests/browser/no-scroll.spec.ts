@@ -31,7 +31,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { openTree } from '../../src/tree/loader.ts'
-import { arrived } from './arrived.ts'
+import { arrived, escapeUrlOpened } from './arrived.ts'
 import { BASE_PORT, serve, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -222,7 +222,7 @@ async function measureEverywhere(
     // is gone with it and a reader without the script has only the browser's back; the
     // disclosure is shut directly, so this viewport's other Sheets are still measured.
     if ((await urlOpened.count()) > 0) {
-      if (script) await page.keyboard.press('Escape')
+      if (script) await escapeUrlOpened(page)
       else if (await urlOpened.locator('.sheet-open').isVisible()) await urlOpened.locator('.sheet-open').click()
       else await urlOpened.evaluate((details: HTMLDetailsElement) => details.removeAttribute('open'))
       await expect(urlOpened).toHaveCount(0)
@@ -300,10 +300,7 @@ async function measureSliding(page: Page, url: string, what: string, lang: strin
     await expect(page.locator('main')).toBeVisible()
 
     // A slide never begins with a Sheet open (11.3): the Overlay a URL opened is closed first.
-    if ((await page.locator('.sheet[open]').count()) > 0) {
-      await page.keyboard.press('Escape')
-      await expect(page.locator('.sheet[open]')).toHaveCount(0)
-    }
+    if ((await page.locator('.sheet[open]').count()) > 0) await escapeUrlOpened(page)
     const branch = page.locator(follow.selector).first()
     if (!(await branch.isVisible())) {
       skipped.push(viewport)
@@ -515,8 +512,7 @@ for (const lang of LANGUAGES) {
         await page.setViewportSize({ width, height })
         await page.goto(inLang(url, lang))
         // The page arrives with its Overlay open (10.9), whose backdrop veils the chrome bar.
-        await page.keyboard.press('Escape')
-        await expect(page.locator('details.sheet[open]')).toHaveCount(0)
+        await escapeUrlOpened(page)
         const share = page.locator('button.share')
         if (!(await share.isVisible())) continue
         await share.click()
