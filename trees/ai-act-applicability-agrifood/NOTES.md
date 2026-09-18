@@ -156,8 +156,8 @@ Things that will trip you up, in rough order of likelihood:
 ## 5. What the description may contain
 
 Paragraphs separated by a blank line, `*emphasis*`, `**strong**`, `- ` bullets, `1. `
-numbered lists, and `[text](https://...)` links. Nothing else: no headings, no tables, no
-raw HTML, no inline images. Write it as a YAML block scalar, which is the `|` you see
+numbered lists, `[text](https://...)` links, and `[text](#id)` explainer marks (section
+11). Nothing else: no headings, no tables, no raw HTML, no inline images. Write it as a YAML block scalar, which is the `|` you see
 after `en:` and `nl:`, and indent the text under it.
 
 ## 6. The images, and how to replace one
@@ -592,3 +592,104 @@ or, better, doing what this cut did to the three steps that would not fit: give 
 another numbered Node and carry the counter, `(1/2)`, `(2/2)`, as the format describes
 (`docs/specs/tree-format.md` 5.8). `npm run validate` tells you which of the two you are
 looking at.
+
+## 11. The explainers: the Act's defined terms, and where they are marked
+
+Issue #85 gave the defined terms of the question Nodes an **explainer**: a short
+explanation of the term, in English and Dutch, that the page shows in a small panel when
+the reader hovers, focuses or taps the term (`docs/specs/tree-format.md` 5.9). In
+`tree.yaml` a Node lists them under `explainers:`, and its description marks the words
+with `[provider](#provider)`: the text in brackets is what the reader sees, the part after
+`#` names the explainer. A mark replaces the bold or italic the term had before, because
+the format does not allow a mark inside `**...**`; the wording itself did not change.
+
+Each text is a short plain rendering of the Article 3 definition in the consolidated text
+of 27 July 2026, in its English and Dutch versions, and at most 200 characters. An
+explainer belongs to the Node it is written on, like a Source, so "AI system" is written
+out on each of the seven Nodes that mark it. If you correct one, correct all of them:
+searching `tree.yaml` for `- id: ai-system` finds every copy.
+
+### The terms, Node by Node
+
+Only the 18 question Nodes -- the steps -- were covered; 11.2 says what was left
+out. 14 of them mark at least one term; `article-2-exclusions`, `ai-system-definition`,
+`annex-i-legislation-3` and `annex-iii-areas` mark none. 28 explainers in all, 12 terms;
+`tests/ai-act-tree.test.ts` pins both numbers, so change them there too.
+
+| Node | Terms marked (Article 3 point) |
+|---|---|
+| `start` | provider (3) |
+| `jurisdiction-deployer` | deployer (4), AI system (1) |
+| `jurisdiction-third-country-output` | provider (3), deployer (4), AI system (1) |
+| `jurisdiction-importer-distributor` | importer (6), distributor (7), AI system (1) |
+| `jurisdiction-product-manufacturer` | product manufacturer (none), AI system (1), placing on the market (9), putting into service (11) |
+| `jurisdiction-authorised-representative` | authorised representative (5), provider (3) |
+| `jurisdiction-affected-person` | affected person (none) |
+| `prohibited-practices` | placing on the market (9), putting into service (11) |
+| `prohibited-practices-2` | placing on the market (9), putting into service (11) |
+| `annex-i-legislation` | safety component (14) |
+| `annex-i-legislation-2` | AI system (1) |
+| `high-risk` | AI system (1) |
+| `general-purpose-ai` | provider (3), systemic risk (65) |
+| `transparency-obligations` | AI system (1), provider (3), deployer (4) |
+
+| Explainer id | English term | Dutch term | Article 3 point |
+|---|---|---|---|
+| `ai-system` | AI system | AI-systeem | 1 |
+| `provider` | provider | aanbieder | 3 |
+| `deployer` | deployer | gebruiksverantwoordelijke | 4 |
+| `authorised-representative` | authorised representative | gemachtigde | 5 |
+| `importer` | importer | importeur | 6 |
+| `distributor` | distributor | distributeur | 7 |
+| `placing-on-the-market` | placing on the market | in de handel brengen | 9 |
+| `putting-into-service` | putting into service | in gebruik stellen | 11 |
+| `safety-component` | safety component | veiligheidscomponent | 14 (as amended by Regulation (EU) 2026/1744) |
+| `systemic-risk` | systemic risk | systeemrisico | 65 |
+| `product-manufacturer` | product manufacturer | fabrikant van producten | none: see below |
+| `affected-person` | affected person | getroffen persoon | none: see below |
+
+### 11.1 Two roles of Article 2(1) that Article 3 does not define
+
+**Read these two first.** The Act defines five of the seven roles of Article 2(1), but not
+**product manufacturer** and not **affected person**. Article 3(8) only lists the product
+manufacturer as one of the "operators", and "affected person" is used (Article 2(1)(g),
+Article 86 and elsewhere) but defined nowhere in the Act. Their explainers therefore say
+so, and then say what the Act does with the term instead: Article 2(1)(e) for the product
+manufacturer, Article 2(1)(g) and the right to an explanation of Article 86 for the
+affected person. That is the agents' wording, not the Act's; decide whether you want it.
+
+The Dutch term for the product manufacturer is `fabrikant van producten`, the words of
+Article 2(1)(e) and of the Node's own text; Article 3(8) says `productfabrikant`.
+
+### 11.2 What was not marked, and why
+
+- **Explanation Nodes and Terminals.** Issue #85 asks for the terms "on the steps that ask
+  about them"; the 49 explanation Nodes and 4 Terminals use many of the same words ("AI
+  system" above all) and carry no explainer yet.
+- **A term the Node itself defines.** A panel that restates the sentence it hangs on
+  adds a hover and nothing else, so these carry their old emphasis instead of a mark:
+  "AI system" on `ai-system-definition` (the description is Article 3(1)), "safety
+  component" on `annex-i-legislation-2` (its first sentence is Article 3(14)), and both
+  "general-purpose AI model" (3(63)) and "general-purpose AI system" (3(66)) on
+  `general-purpose-ai`, which gives both definitions with their Article points. This
+  is deliberate: do not add the marks back without a reason these do not cover.
+- **`start` marks only "provider".** It is the role the step asks about and the owner's
+  example in #75; five marks in one question made it indistinguishable. The sentence
+  that explained a provider in the second paragraph went, as the panel now carries it.
+  "AI system", "placing on the market" and "putting into service" are marked on the
+  steps that follow.
+- **Substantial modification** (Article 3(23)) is not used by any Node of this Tree.
+- **"placed on the market" on `annex-iii-areas`.** The English text uses it in its last
+  sentence, the Dutch text says only "Lid 4 vereist documentatie vooraf". An explainer must
+  be marked in both languages, and the Dutch Node has no room for the words: with them it
+  is 606 characters and 9 lines, over the 600 and 8 allowed.
+- **Terms Article 3 does not define**: "high-risk AI system" (Article 6 decides it; the
+  mark on `high-risk` is on "AI system" only), "third country", "Annex I legislation".
+- **Terms Article 3 defines but the Tree only mentions in passing**, such as "intended
+  purpose" (3(12)) or "deep fake" (3(60)) on explanation Nodes, are left for later.
+
+The Article 2 and 3 texts in both languages were fetched for this from EUR-Lex with headless Chrome, as section 1.1 of
+`docs/research/issue-3-ai-act-applicability.md` describes:
+`https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02024R1689-20260727`
+(906 622 bytes, sha256 `808269ce…9987f44`) and the same URL with `NL` (954 844 bytes,
+sha256 `5a584f9d…a37939`).
