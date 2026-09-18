@@ -1442,8 +1442,8 @@ a.language:hover,
     padding: 0;
   }
 
+  /* Still 60 pixels tall (10.3): the word alone is one line, and a phone's thumb needs the height. */
   .answer {
-    min-height: 0;
     padding-inline: 12px;
   }
 

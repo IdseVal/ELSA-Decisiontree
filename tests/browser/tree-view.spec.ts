@@ -108,6 +108,19 @@ test.describe('following a Branch', () => {
       'Start again: Is your AI system within the reach of the AI Act?',
     )
   })
+
+  test('an Answer button of one line is 60 pixels tall, at the guaranteed width and at a phone width (10.3)', async ({ page }) => {
+    for (const [width, height] of [
+      [1280, 720],
+      [360, 640],
+    ] as const) {
+      await page.setViewportSize({ width, height })
+      await page.goto(QUESTION)
+      for (const answer of ['.answer--yes', '.answer--no']) {
+        expect((await page.locator(answer).boundingBox())?.height, `${answer} at ${width}x${height}`).toBe(60)
+      }
+    }
+  })
 })
 
 /** What the browser is focused on, as `tag.class`, or '' when nothing is. */
