@@ -566,9 +566,9 @@ describe('the content of the first Tree', () => {
       'jurisdiction-affected-person': ['affected-person'],
     }
 
-    /** Whether a Node's description in one language marks the explainer `id` at least once. */
-    const marks = (id: string, lang: string, explainer: string): boolean =>
-      new RegExp(`\\]\\(#${explainer}\\)`).test(nodes.get(id)!.description[lang]!)
+    /** Whether the description of Node `node` in one language marks the explainer `id` at least once. */
+    const marks = (node: string, lang: string, id: string): boolean =>
+      nodes.get(node)!.description[lang]!.includes(`](#${id})`)
 
     test('start marks "provider" / "aanbieder" with an explainer', () => {
       // The owner's own example (#75): "on 'Jurisdictional scope of the AI Act? (1/7)' I want
@@ -591,17 +591,27 @@ describe('the content of the first Tree', () => {
       }
     })
 
-    test('every explainer exists in both languages', () => {
-      const explainers = [...nodes.values()].flatMap((node) => node.explainers.map((explainer) => ({ node, explainer })))
-      expect(explainers.length).toBeGreaterThan(0)
-      for (const { node, explainer } of explainers) {
-        for (const lang of ['en', 'nl']) {
-          const where = `${node.id}.explainers[${explainer.id}] (${lang})`
-          expect(explainer.term[lang]?.trim(), `${where} term`).toBeTruthy()
-          expect(explainer.text[lang]?.trim(), `${where} text`).toBeTruthy()
-          expect(marks(node.id, lang, explainer.id), `${where} is not marked`).toBe(true)
-        }
-      }
+    test('the Tree carries the explainers NOTES § 11 lists, no more and no fewer', () => {
+      // The loader already rejects an explainer without a term, a text or a mark (V-EXPLAINER);
+      // what it cannot see is an explainer dropped or renamed, which would leave NOTES stale.
+      const ids = [...nodes.values()].flatMap((node) => node.explainers.map((explainer) => explainer.id))
+      expect(ids).toHaveLength(28)
+      expect(new Set(ids)).toEqual(
+        new Set([
+          'ai-system',
+          'provider',
+          'deployer',
+          'authorised-representative',
+          'importer',
+          'distributor',
+          'placing-on-the-market',
+          'putting-into-service',
+          'safety-component',
+          'systemic-risk',
+          'product-manufacturer',
+          'affected-person',
+        ]),
+      )
     })
   })
 })
