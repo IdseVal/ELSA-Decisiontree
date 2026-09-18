@@ -60,7 +60,7 @@ const VIEWPORTS = [
 const LANGUAGES = ['en', 'nl'] as const
 type Lang = (typeof LANGUAGES)[number]
 
-/** The bound of application.md 11.5: the Node a page shows and at most sixteen neighbours. */
+/** The bound of application.md 11.2: the Node a page shows, at most fifteen neighbours and the one Overlay its URL may name. */
 const MAX_NODES = 17
 
 /** Page visits per tab before the walk moves to a new one (`Walker.freshTab`). */

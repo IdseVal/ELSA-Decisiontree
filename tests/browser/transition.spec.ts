@@ -43,7 +43,7 @@ const QUESTION = `${ROOT}/prohibited-practices`
 const OPTION = `${QUESTION}/social-scoring`
 const EXPLANATION = `${QUESTION}/emotion-recognition-at-work/social-scoring`
 
-/** The bound of 11.5: the Node a page shows and at most sixteen neighbours. */
+/** The bound of 11.2: the Node a page shows, at most fifteen neighbours and the one Overlay its URL may name. */
 const MAX_NODES = 17
 
 let tree: Tree
