@@ -1,6 +1,6 @@
 /**
  * The tree view (docs/specs/application.md section 10): one screen with the current Node as
- * a round Bubble in the centre, the up arrow on its top outline, the Answers as buttons
+ * a round Bubble in the centre, the up arrow above its top outline, the Answers as buttons
  * below it and the Options as buttons fanned out beside it. Direction carries meaning: above
  * is where the reader came from, below is where an answer takes them, beside is an aside
  * they read and come back from -- by closing it (10.3, 10.9, core document 10.23).
@@ -159,7 +159,7 @@ function position({ direction, slot }: Placed): { x: number; y: number } {
 }
 
 /**
- * The way back (10.2): one round button on the Bubble's top outline, a link to the Trail
+ * The way back (10.2): one round button above the Bubble's top outline, a link to the Trail
  * entry directly above at the address that discards everything after it (core document
  * 10.17), named for a reader who cannot see the arrow by the title it leads to. The Trail
  * itself is not drawn; it stays in the URL. Where there is nothing above -- the root Node,
