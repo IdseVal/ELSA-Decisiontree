@@ -67,7 +67,7 @@ function open(term: Element): void {
   const roomBelow = area.height - below
   const roomAbove = first.top - area.top
   // At the guaranteed viewport one of the two always fits -- the panel is at most 148 pixels,
-  // the text area 394 (10.8). In a shorter area neither may: the panel then takes the side
+  // the text area 364 (10.8). In a shorter area neither may: the panel then takes the side
   // with more room and is kept inside the area, where it lies over the least of the text.
   let top: number
   if (height <= roomBelow) top = below
