@@ -65,7 +65,7 @@ most two explanation Nodes follow it**. It is an explanation Node, drawn as the
   placement), `E2` as one of its Option buttons and `E3` open. On 2026-09-19 neither
   Tree and no fixture has an explanation Node whose Option target has an explanation
   Node as an Option target, so no page served today reaches it (counted with a script
-  over every `tree.yaml` under `trees/` and `tests/fixtures/`).
+  over both Trees and every valid fixture, `tests/fixtures/overlay/` of PR #99 included).
 
 Rule 2 is reached only by a path that ignores adjacency, typed or edited by hand.
 

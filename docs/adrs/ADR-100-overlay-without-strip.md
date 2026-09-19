@@ -34,7 +34,9 @@ The explanation Node's later Images are drawn where it is the centre of a page a
 its own Carousel (10.3): at `/<tree>/<explanation-id>`, and as the first of three
 explanation Nodes ending a path (`ADR-100-bounded-centre.md`). On 2026-09-19 no
 explanation Node of either Tree has more than one Image (counted with a script over
-both `tree.yaml` files), so nothing a reader of either Tree could see is lost.
+both `tree.yaml` files), so nothing a reader of either Tree could see is lost. The one
+explanation Node with more, `big` in `tests/fixtures/overlay/` (ten Images, the format's
+maximum), is a fixture for the Overlay at its largest; its Overlay shows the first.
 
 ## Alternatives rejected
 
