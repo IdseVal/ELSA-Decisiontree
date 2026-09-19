@@ -17,9 +17,9 @@ title:
   nl: Past elke uitleg?
 description:
   en: |
-    Every explainer of this Node is at a maximum: [term one](#term-one), [term two](#term-two), [term three](#term-three), [term four](#term-four), [term five](#term-five), [term six](#term-six), [term seven](#term-seven), [term eight](#term-eight). Eight marks, a forty-character term and a two-hundred-character text each, in both languages.
+    Every explainer of this Node is at a maximum: [term one](#term-one), [term two](#term-two), [term three](#term-three), [term four](#term-four), [term five](#term-five), [term six](#term-six), [term seven](#term-seven), [term eight](#term-eight).
   nl: |
-    Elke uitleg van deze stap staat op een maximum: [term een](#term-one), [term twee](#term-two), [term drie](#term-three), [term vier](#term-four), [term vijf](#term-five), [term zes](#term-six), [term zeven](#term-seven), [term acht](#term-eight). Acht markeringen, elk een term van veertig en een tekst van tweehonderd tekens, in beide talen.
+    Elke uitleg van deze stap staat op een maximum: [term een](#term-one), [term twee](#term-two), [term drie](#term-three), [term vier](#term-four), [term vijf](#term-five), [term zes](#term-six), [term zeven](#term-seven), [term acht](#term-eight).
 metadata:
   version: "1.0"
 explainers:
