@@ -27,6 +27,10 @@ import { defineConfig, devices } from '@playwright/test'
  * languages at two viewports and records each page; under `ELSA_SHOTS=1` it rewrites
  * `docs/screenshots/issue-46/`, so re-take one issue's record by naming its file.
  *
+ * `tests/first-tree/explainers.spec.ts` (issue #103) hovers every marked term of the Tree in
+ * both languages at two viewports and holds each panel to the 148 pixels of 10.8: the Tree's
+ * Dutch, in its own font, is the long-worded text the `explainers` fixture is not.
+ *
  * `tests/first-tree/slide-endurance.spec.ts` (issue #63) slides 400 times in one tab. It is
  * here rather than in `tests/browser/` for its six minutes, which `npm run test:browser`,
  * the command CI runs, cannot spare (docs/specs/application.md section 7).

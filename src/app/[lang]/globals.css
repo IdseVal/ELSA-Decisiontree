@@ -574,13 +574,18 @@ a.language:hover,
 /* The panel is out of the text's flow at all times, so a marked description takes exactly
    the lines tree-format.md 3.8 counts, and a closed one is still read: aria-describedby
    reads hidden text. 14 px on 20-px lines, five lines of the 200-character maximum under a
-   one-line heading, is at most 148 pixels with its padding (10.8). */
+   one-line heading, is at most 148 pixels with its padding (10.8). The first Tree's long
+   Dutch words (`overheidsorgaan`) leave lines short (#103): with 14-pixel sides and a
+   290-pixel line, seven of its panels took a sixth. The sides are 10 pixels, a 298-pixel
+   line, and the words break at their syllables in the page's language: Linux's Chromium sets
+   Open Sans about 3% wider than Windows', and 298 without hyphens still left two panels on
+   six lines there. */
 .prose .explainer {
   display: none;
   position: absolute;
   z-index: 3;
   width: min(320px, 100%);
-  padding: 11px 14px 13px;
+  padding: 11px 10px 13px;
   border: 1px solid var(--rule);
   border-radius: 10px;
   background: var(--elsa-surface);
@@ -592,6 +597,7 @@ a.language:hover,
   font-weight: 400;
   font-style: normal;
   text-align: left;
+  hyphens: auto;
   color: var(--elsa-text);
   cursor: auto;
 }

@@ -98,7 +98,7 @@ async function expectPlaced(panel: Locator, id: string): Promise<'below' | 'abov
   expect(box.right - box.left, `${id}: the panel is wider than 320 pixels`).toBeLessThanOrEqual(320)
   const height = box.bottom - box.top
   // Five lines of 320 pixels hold the longest text; in a narrower area, a phone's, the panel
-  // takes the area's width and a line or two more (10.8).
+  // takes the area's width and up to a line more (10.8).
   if (area.right - area.left >= 320) {
     expect(height, `${id}: the panel is taller than 148 pixels`).toBeLessThanOrEqual(148)
   }
