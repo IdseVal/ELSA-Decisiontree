@@ -248,7 +248,7 @@ jobs:
       needs.classify.result == 'success' &&
       (needs.verify.result == 'success' || needs.verify.result == 'skipped')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60   # 30 until 2026-09-19: a Reviewer round on a 30-file PR was cancelled at 30
     steps:
       - uses: actions/checkout@v4
         with:
