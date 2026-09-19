@@ -685,7 +685,7 @@ the client components are four again.
 | Module | Owns | Does not |
 |---|---|---|
 | `src/tree/` (loader) | Reading, validating and indexing a Tree; handing out one Node, one title, one image path, one theme path. | Know URLs, chrome, React, or that a Bubble exists. |
-| `src/neighbourhood.ts` **[v0.2]** | Which Nodes surround the Node on screen: the placements `up` and `down` with their slots, the asides in Option order, and the bound on how many (11). One function. | Read files, render, or know what a button or an Overlay looks like. |
+| `src/neighbourhood.ts` **[v0.2]** | Which Nodes surround the Node on screen: the placements `up` and `down` with their slots, the asides in Option order, and the bound on how many (11). **[#100]** It also finds the centre of a path (`centreOf`, 10.9). | Read files, render, or know what a button or an Overlay looks like. |
 | `src/theme.ts` **[v0.2]** | A `Theme` (or its absence) turned into the exact CSS custom properties and `@font-face` rules the page emits, including the derived values and every escape (13), and which logo variant the palette calls for. | Know React, or which element uses which property. Write a URL: the `src` of an `@font-face` is `url.ts`'s `themeHref`. |
 | `src/assets.ts` **[v0.2]** | One file of the served Tree as an HTTP response: the `Content-Type` its extension names, the four headers that make third-party bytes inert, and the one 404 that covers every refusal (5.3, 5.5). | Resolve a path -- `imagePath` and `themePath` do, inside the Tree's folder. Know which Tree is served. |
 | `src/url.ts` | Parsing a request into `{ treeId, trail, nodeId, lang }` and building every link. | Read files or render. |
@@ -1294,11 +1294,12 @@ decides core document 10.27.
   always read it (adjacency is not checked): an explanation Node reached by two different
   Options has a URL under each parent.
 - **A second-level Option** -- an Option of the explanation Node in the Overlay -- is a
-  plain link to `<the page's path>/<this explanation id>/<its target id>`, which renders
+  plain link to **[#100]** `<the Overlay's own path>/<its target id>` (for the first
+  Overlay, `<the page's path>/<this explanation id>/<its target id>`), which renders
   the same parent's page with the deeper Overlay open, in place of this one. The way back
   to the first is the browser's back or the first Option's button. **[#100]** The Options
-  of that deeper Overlay link on in the same way, to a path ending in three explanation
-  Nodes, which the centre rule above renders centred on the first of them, with its
+  of that deeper Overlay link on in the same way, from its own path, to a path ending in
+  three explanation Nodes, which the centre rule above renders centred on the first of them, with its
   parent above it and the third open.
 - **The Overlay's heading is a link to the explanation Node's own address**, so a reader
   can copy an address for the aside (the share button copies the page's) and a reader
