@@ -6,6 +6,12 @@
 - Core document: 3.1 (main image, PROPOSED first-Image reading), 3.2 ("A main image above the title"), open item **10.28** (decided here), 10.26 (the credit's place; `ADR-78-carousel.md`)
 - Supersedes in part: `ADR-38-tree-view.md` (decisions 1, 2, 7 and 9: the six rows, the rim's chrome, the Trail row), `ADR-37-length-limits.md` (decision 4: the vertical budget and the text area the limits derive from -- the limits themselves stand)
 - Built by: #81 (the Interior), #82 (the Answer row), #80 (the fan-out uses the middle row's height)
+- Amended in part by the owner on issue #102 (PR #110, answer (b) on the PR), 2026-09-19:
+  decisions 2 to 5 and 7, the first rejected alternative (now built) and the last two
+  consequences. The main image is two fifths of the Bubble, the Bubble is 416 tall, the
+  description's limit is **150 characters and 2 lines**, and both Trees were re-cut; the
+  header line's 60 pixels, 446 and "two pixels to spare" are #78's and historical. The
+  dated notes below give the numbers; core document 10.28 points here for them.
 
 ## Context
 
@@ -47,6 +53,12 @@ re-cuts the first Tree a second time.
 
    44 + 26 + 446 + 28 + 68 + 28 = 640. The Option buttons fan out beside the Bubble
    within the same 446 pixels (`ADR-78-fan-out-and-option-picture.md`).
+   **Amended 2026-09-19 (#102, PR #110, by the owner):** the up arrow stands above the
+   Bubble, its foot 6 pixels clear (`ADR-78-answer-buttons-and-up-arrow.md`, amended the
+   same day), so its band is **56** and the Bubble gives the 30: **44 + 56 + 416 + 28 +
+   68 + 28 = 640**, the Bubble 760 x 416 (radius 208), its text area **640 x 364**, and
+   the fan within its 416 (`application.md` 10.1). Below 640 pixels tall the band is 26
+   again and the arrow back on the outline (10.5).
 3. **The text area is 640 x 394 and the Interior divides it as** main image 60, gap 8,
    title 56 (two lines of 28), gap 8, description 192 (eight lines of 24), gap 8,
    Sources 60 (a 20-pixel heading line and two lines of 20): **392 of 394**. Every limit
@@ -55,6 +67,20 @@ re-cuts the first Tree a second time.
    Options, 10 Images -- and the description survives **by two pixels**. No Tree is
    re-cut and 10.28 needs no answer from the owner; the trade the owner may still make is
    stated in the consequences.
+   **Amended 2026-09-19 (#102, PR #110, by the owner; answer (b) on the PR): the trade
+   was made, and the picture won.** The text area is 640 x 364 and divides as main image
+   **166.4** (two fifths of the Bubble's 416), gap 8, title 56, gap 8, description **48**
+   (two lines of 24), gap 8, Sources 60: **354.4 of 364**, the 9.6 left a clear foot under
+   the Sources, where the curve narrows the Bubble (`application.md` 10.3, 10.7). The
+   description's limit is cut from 600 characters and 8 lines to **150 characters and 2
+   lines**, what the 57.6 pixels left beside the picture hold (`tree-format.md` 5.7);
+   every other limit stands, and so does the Tree's own `description`, which the Bubble
+   does not draw (600 and 8). Both Trees were re-cut mechanically, in both languages
+   (`trees/ai-act-applicability-agrifood/NOTES.md` section 12). `elsa-tree/3` keeps its
+   number: the owner scoped the change to the limit and the validator, and V-LENGTH and
+   V-LINES tell a Tree written to the old limit which field to cut. Where the Bubble is
+   taller, up to 520, the picture takes two fifths of the extra pixels and the text keeps
+   the rest, so the limit holds at every guaranteed viewport.
 4. **The main image is 60 pixels tall, at most 90 wide** (a landscape of up to 3 : 2 is
    shown whole; a wider or taller picture is cropped to that box, centred, `object-fit:
    cover`), with 8-pixel corners, centred above the title. Its `description` is its
@@ -63,12 +89,20 @@ re-cuts the first Tree a second time.
    **empty slot of the same 60 pixels** -- a faint circle outlined in the `rule` shade,
    no text -- so the title sits at the same height on every Node and the slide has
    nothing to reflow.
+   **Amended 2026-09-19 (#102, PR #110, by the owner):** "The Node's main image in the
+   Bubble occupies about two fifths of the Bubble's height." It is a **3 : 2 box two
+   fifths of the Bubble's height on every Node** -- 166.4 tall at 1280 x 640, up to 208
+   where the Bubble is 520 -- cropped and cornered as before, and the empty slot is a
+   circle of that same height, so the title still sits at one height on every Node. Down
+   to 632 pixels tall the picture stays two fifths; below that step 5 of 10.5 hides it.
 5. **The rim keeps its two chrome elements and loses one.** A Terminal's outcome badge
    stays in the band above, centred in the half of the band left of the up arrow, and is
    at most 40 characters (`chrome.test.ts`); the explanation Node's hint is gone with the
    `back` Branch (`ADR-78-overlay.md`). The band above holds the arrow's lower half and
    the band below the strip's upper half, each 2 pixels clear of the text area, so
    nothing chrome takes a pixel from the text.
+   **Amended 2026-09-19 (#102, PR #110):** the arrow no longer reaches into the band
+   above at and above 640 pixels tall; that band holds only a Terminal's badge.
 6. **The Bubble never shrinks at or above the guarantee**, as before: extra width goes
    to the fan-out and the margins, extra height to the Bubble and the gaps.
 7. **The Overlay renders the same Interior at the same sizes**, in a panel of 760 x 608
@@ -76,6 +110,12 @@ re-cuts the first Tree a second time.
    side: 640 x 560 of content, which holds the Interior's 392 and, under it, an
    explanation Node's own Options as a list of at most eight 20-pixel lines with an
    8-pixel gap: 560 exactly (`application.md` 10.9).
+   **Amended 2026-09-19 (#102, PR #110, by the owner):** the Overlay's picture is two
+   fifths of its panel, **243.2 of 608**, where it was 60, and the panel's 640 x 558 of
+   content holds it at every maximum because the explanation Node's own Options now flow
+   as one inline list of about 5 lines, 100 pixels, where one to a line took 160:
+   243.2 + 56 + 48 + 60 + 100 and four gaps of 8 = 539.2, measured on the `overlay`
+   fixture at 1280 x 640 (`application.md` 10.9; `overlay.spec.ts`).
 
 ## Alternatives rejected
 
@@ -86,6 +126,10 @@ re-cuts the first Tree a second time.
   that is displayed above the node bubbles title". 60 pixels is the largest size that
   keeps every limit, and the trade stays open to the owner: each further 24 pixels of
   image costs one line, 75 characters, of description.
+  **Amended 2026-09-19 (#102, PR #110): no longer rejected -- the owner asked for it and
+  it is built** (decisions 3 and 4 above): "The pictures are too small." The picture is
+  166.4 tall, the description 2 lines and 150 characters, and the first Tree was re-cut,
+  as this alternative foresaw; the owner answered 10.28 on PR #110 with (b), the picture.
 - **Shrinking the chrome bar or the disclaimer.** They are 0.1 contracts the owner kept
   (`application.md` sections 1 to 9 stand), and 8 pixels from each buys a third of a
   line.
@@ -111,5 +155,9 @@ re-cuts the first Tree a second time.
 - The trade the owner may make later -- a taller main image against a shorter
   description -- is one row in 10.1 and one line in 5.7, and it would be a new format
   number, because a Tree that validates today must keep validating.
+  **Amended 2026-09-19 (#102, PR #110, by the owner):** the trade was made, and the
+  owner kept `elsa-tree/3` rather than take a new number (`tree-format.md` line 6, 5.7).
 - Core document 10.28 is answered: the limits survive; 3.1's PROPOSED first-Image
   reading is confirmed as the working rule with the owner free to correct it.
+  **Amended 2026-09-19 (#102, PR #110):** 10.28 was answered again by the owner, with
+  the picture over the text; its amendment points here for the budget above.
