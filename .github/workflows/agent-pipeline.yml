@@ -148,6 +148,12 @@ jobs:
           {
             echo 'prompt<<__END_OF_BRIEF__'
             sed -e "s/__PR__/$PR/g" -e "s/__HEAD__/${HEAD_SHA:0:7}/g" -e "s/__PREV__/$PREV/g" <<'BRIEF'
+          FIRST RULE, before anything else: you run headless, and your run ENDS when your turn
+          ends. Never run a command in the background (no `run_in_background`, no Monitor, no
+          "I'll wait for the notification"): nothing re-invokes you, and a turn that ends
+          waiting is a failed run at full cost. Run every suite in the FOREGROUND with a
+          timeout of up to 25 minutes, read its result, and only then decide.
+
           You are the VERIFIER for pull request #__PR__
           into `dev`. You are a fresh, independent, adversarial check on an
           Implementer's work. You run headless in CI; everything you want a human or
@@ -284,6 +290,12 @@ jobs:
           {
             echo 'prompt<<__END_OF_BRIEF__'
             sed -e "s/__PR__/$PR/g" -e "s/__HEAD__/${HEAD_SHA:0:7}/g" <<'BRIEF'
+          FIRST RULE, before anything else: you run headless, and your run ENDS when your turn
+          ends. Never run a command in the background (no `run_in_background`, no Monitor, no
+          "I'll wait for the notification"): nothing re-invokes you, and a turn that ends
+          waiting is a failed run at full cost. Run every suite in the FOREGROUND with a
+          timeout of up to 25 minutes, read its result, and only then decide.
+
           You are the REVIEWER for pull request #__PR__
           into `dev`. You are the last gate before integration. Fresh context, headless,
           in CI; everything you decide goes on the pull request via `gh`. The first line
