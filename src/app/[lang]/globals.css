@@ -73,8 +73,12 @@
    */
   --main-image: 45%;
   --main-image-min: 30px;
-  /* The foot of the text area the Interior keeps clear while it can (below). */
-  --foot: 24px;
+  /*
+   * The foot of the text area the Interior keeps clear while it can (below): 24 pixels on
+   * the guaranteed Bubble, and a quarter of every pixel the text area grows by, because a
+   * taller Bubble is rounder and its curve cuts further into the area's lower corners.
+   */
+  --foot: calc(24px + (100% - 364px) / 4);
   --page-inset: 0px;
   /*
    * The up arrow (10.2): a round button standing above the Bubble, its foot 6 pixels clear of
