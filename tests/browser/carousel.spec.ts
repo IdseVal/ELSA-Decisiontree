@@ -139,8 +139,8 @@ test.describe('the rows of 10.1 at 1280 x 640', () => {
       const m = await rows(page)
       const measured: Array<[row: string, spec: number, height: number]> = [
         ['chrome bar', 44, m.header.height],
-        ['band above the Bubble', 26, m.bubble.top - m.header.bottom],
-        ['Bubble', 446, m.bubble.height],
+        ['band above the Bubble', 56, m.bubble.top - m.header.bottom],
+        ['Bubble', 416, m.bubble.height],
         ['strip band', 28, m.answers.top - m.bubble.bottom],
         ['Answers', 68, m.answers.height],
         ['disclaimer', 28, m.disclaimer.height],
@@ -150,17 +150,20 @@ test.describe('the rows of 10.1 at 1280 x 640', () => {
         rowTable.push(`| ${what} | ${row} | ${spec} | ${height} |`)
         expect.soft(height, `${what}: ${row}`).toBe(spec)
       }
-      // The Bubble 760 wide, its text area 640 x 394 (10.1).
+      // The Bubble 760 wide, its text area 640 x 364 (10.1, amended by #102).
       expect(m.bubble.width).toBe(760)
-      expect([m.text.width, m.text.height]).toEqual([640, 394])
-      rowTable.push(`| ${what} | text area | 640 x 394 | ${m.text.width} x ${m.text.height} |`)
+      expect([m.text.width, m.text.height]).toEqual([640, 364])
+      rowTable.push(`| ${what} | text area | 640 x 364 | ${m.text.width} x ${m.text.height} |`)
 
-      // The Interior from the top of the text area: main image 60, gap 8, title, and the
-      // Sources ending inside it (10.7).
+      // The Interior from the top of the text area: the main image, 3 : 2, as tall as the
+      // text leaves it between 30 and 45% of the area (#102), gap 8, title, and the Sources
+      // ending inside it (10.7).
       expect(m.mainImage!.top).toBe(m.text.top)
-      expect([m.mainImage!.width, m.mainImage!.height]).toEqual([90, 60])
+      expect(m.mainImage!.height).toBeGreaterThanOrEqual(30)
+      expect(m.mainImage!.height).toBeLessThanOrEqual(0.45 * 364)
+      expect(m.mainImage!.width).toBeCloseTo(1.5 * m.mainImage!.height, 0)
       expect(m.title.top - m.mainImage!.bottom).toBe(8)
-      rowTable.push(`| ${what} | main image | 90 x 60 | ${m.mainImage!.width} x ${m.mainImage!.height} |`)
+      rowTable.push(`| ${what} | main image | 30 to 164 tall, 3 : 2 | ${m.mainImage!.width} x ${m.mainImage!.height} |`)
       rowTable.push(`| ${what} | title | at most 56 | ${m.title.height} |`)
       rowTable.push(`| ${what} | description | at most 192 | ${m.prose.height} |`)
       if (m.sources) {
@@ -370,8 +373,11 @@ test.describe('names for assistive technology', () => {
     await page.goto(`${cycle}/cycle/first`)
     await expect(page.locator('.bubble .main-image--empty')).toBeVisible()
     await expect(page.locator('.bubble .main-image--empty')).toHaveAttribute('aria-hidden', 'true')
+    // A circle as tall as a picture would be there, between 30 and 45% of the text area (#102).
     const box = (await page.locator('.bubble .main-image--empty').boundingBox())!
-    expect([box.width, box.height]).toEqual([60, 60])
+    expect(box.width).toBeCloseTo(box.height, 0)
+    expect(box.height).toBeGreaterThanOrEqual(30)
+    expect(box.height).toBeLessThanOrEqual(0.45 * 364)
   })
 
   for (const [lang, name] of [

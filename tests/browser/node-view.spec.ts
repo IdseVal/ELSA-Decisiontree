@@ -139,12 +139,32 @@ test('clicking the main image shows the image larger with its description and cr
   const enlargedImage = enlarged.locator('img')
   await expect(enlargedImage).toHaveAttribute('src', '/images/eu-map.png')
 
-  // Larger than the 60-pixel main image above the title, and bounded to the viewport (10.6).
+  // Larger than the main image above the title, and bounded to the viewport (10.6).
   const mainImage = await page.locator('.main-image img').first().boundingBox()
   const shown = await enlargedImage.boundingBox()
-  expect(mainImage!.height).toBe(60)
   expect(shown!.height).toBeGreaterThan(mainImage!.height)
   expect(shown!.height).toBeLessThan(page.viewportSize()!.height)
+})
+
+test('where the text leaves room the main image takes 45% of the text area -- about two fifths of the Bubble -- and in an Overlay too (#102)', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 })
+  await page.goto(`${START}/prohibited-practices`)
+  const bubble = (await page.locator('.bubble').boundingBox())!
+  const area = (await page.locator('.bubble-text').boundingBox())!
+  const image = (await page.locator('.bubble .main-image').boundingBox())!
+  expect(image.height).toBeCloseTo(0.45 * area.height, 0)
+  expect(image.width).toBeCloseTo(1.5 * image.height, 0)
+  expect(image.height / bubble.height).toBeGreaterThan(0.38)
+  expect(image.height / bubble.height).toBeLessThan(0.42)
+
+  // The Overlay's panel is a text area of its own: the same share of it, several times the 60 pixels it was.
+  await page.goto(`${START}/prohibited-practices/social-scoring`)
+  const inOverlay = (await page.locator('.overlay[open] .main-image').boundingBox())!
+  const content = (await page.locator('.overlay[open] .overlay-interior').boundingBox())!
+  expect(inOverlay.height).toBeCloseTo(0.45 * content.height, 0)
+  expect(inOverlay.height).toBeGreaterThan(3 * 60)
 })
 
 test('Escape closes the enlarged image, and so does a click outside it', async ({ page }) => {
