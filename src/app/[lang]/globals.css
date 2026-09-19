@@ -2,14 +2,14 @@
  * The stylesheet: the tree view of docs/specs/application.md section 10, drawn.
  *
  * ONE SCREEN, SIX ROWS, NOTHING OUTSIDE THEM. The page is a grid whose rows are known before
- * any content is measured: chrome bar 44, the up arrow's band 26, the Bubble 446, the
+ * any content is measured: chrome bar 44, the up arrow's band 56, the Bubble 416, the
  * strip band 28, Answers 68, disclaimer 28 -- the vertical budget of tree-format.md 5.7 as
  * 10.7 re-derives it, which is where every length limit of the format comes from. `html` and `body` are the viewport with `overflow: hidden`
  * (10.6); nothing here may be taller or wider than the box it is in, and
  * tests/browser/no-scroll.spec.ts measures every element to make sure.
  *
  * The Bubble is the one idea. It is round, it holds the Node, and everything else is drawn
- * relative to it: the up arrow on its top outline, the Option buttons fanned out on its curve like a mind
+ * relative to it: the up arrow above its top outline, the Option buttons fanned out on its curve like a mind
  * map, each on a short connector, the Answers below. Below the guaranteed viewport of
  * 1280 x 640 the layout gives things up in the fixed order of 10.5 -- the strip, the fan (it
  * straightens, then moves below, then collapses), the main image, the Sources, the type
@@ -38,7 +38,7 @@
   --danger-read: color-mix(in srgb, var(--elsa-danger) 70%, var(--elsa-text));
 
   /*
-   * The six rows of 10.1, at the guaranteed viewport: 44 + 26 + 446 + 28 + 68 + 28 = 640.
+   * The six rows of 10.1, at the guaranteed viewport: 44 + 56 + 416 + 28 + 68 + 28 = 640.
    * The Bubble's row is what is left, up to `--bubble-height`; beyond that the extra height
    * is shared above and below the tree.
    */
@@ -53,29 +53,44 @@
   --gap: 20px;
   --bubble-width: 760px;
   /*
-   * The rim: the band between the text area (640 x 394) and the curve, 60 across and 26
+   * The rim: the band between the text area (640 x 364) and the curve, 60 across and 26
    * down (10.1). The Bubble's 2-pixel outline is part of that band, so the padding inside
-   * it is 2 less, and the text area measures exactly 640 x 394.
+   * it is 2 less, and the text area measures exactly 640 x 364.
    */
   --rim-x: 58px;
   --rim-y: 24px;
   /*
-   * A pill: the radius is half the Bubble's height whatever that height is (223 at the
-   * guaranteed 446), so the curve the fan of Option buttons follows (below) is one formula.
+   * A pill: the radius is half the Bubble's height whatever that height is (208 at the
+   * guaranteed 416), so the curve the fan of Option buttons follows (below) is one formula.
    * Where the Bubble narrows (792 and 480) the radius is fixed again, so its corners stay
    * clear of the text.
    */
   --bubble-radius: 999px;
-  /* The main image's slot above the title, and the gap under it (10.3, 10.7). */
-  --main-image: 60px;
+  /*
+   * The main image above the title (10.3, 10.7): two fifths of the Bubble's height on every
+   * Node (#102, the owner's answer (b) on PR #110). It is sized from the text area it sits
+   * in, which is the Bubble less the rim above and below: 166.4 of 416 at the guaranteed
+   * viewport, 208 of 520 at the largest Bubble. tree-format.md 5.7 cuts the description to
+   * what fits beside it. 30 pixels is the floor it can give way to where the text does not
+   * fit after all -- a font wider than 5.7 assumes -- and never at the guarantee.
+   */
+  --main-image: calc((100% + 2 * var(--rim-y) + 4px) * 2 / 5);
+  --main-image-min: 30px;
+  /*
+   * The foot of the text area the Interior keeps clear while it can (below): 24 pixels on
+   * the guaranteed Bubble, and a quarter of every pixel the text area grows by, because a
+   * taller Bubble is rounder and its curve cuts further into the area's lower corners.
+   */
+  --foot: calc(24px + (100% - 364px) / 4);
   --page-inset: 0px;
   /*
-   * The up arrow (10.2): a round button whose foot is 2 pixels clear of the text area, which
-   * on the guaranteed Bubble centres it on the outline. The band above the Bubble is what of
-   * it stands above the outline, and 2 pixels clear of the chrome bar: 26 at the guarantee.
+   * The up arrow (10.2): a round button standing above the Bubble, its foot 6 pixels clear of
+   * the outline (#102). The band above the Bubble holds all of it, 2 pixels clear of the
+   * chrome bar: 56.
    */
   --up-size: 48px;
-  --up-row: calc(var(--up-size) - var(--rim-y) + 2px);
+  --up-clearance: 6px;
+  --up-row: calc(2px + var(--up-size) + var(--up-clearance));
   /* The connector from an Option button to the Bubble's outline: its length. */
   --connector: 20px;
 
@@ -477,15 +492,28 @@ a.language:hover,
 }
 
 /*
- * The main image (10.3): 60 pixels tall and 90 wide, a 3 : 2 picture whole and any other
- * shape cropped to that box, centred above the title with 8 pixels under it.
+ * The foot of the text area is kept clear where the text leaves room: the curve narrows the
+ * Bubble there, and a line of Sources drawn in it crosses the outline. The picture wins
+ * over it (#102): its shrink weight is ten thousand times the picture's, so it yields
+ * first, and all of it -- a Node at every maximum keeps 9.6 of its 24 pixels (10.7). (Not
+ * 1 against 0.0001: shrink factors that sum below one absorb only that share of the overflow.)
+ */
+.bubble-text::after {
+  content: "";
+  flex: 0 10000 var(--foot);
+}
+
+/*
+ * The main image (10.3): a 3 : 2 box, a 3 : 2 picture whole and any other shape cropped to
+ * it, centred above the title with 8 pixels under it. Only once the foot is gone does it
+ * give way, and only to text wider than tree-format.md 5.7 assumes.
  */
 .main-image {
   display: block;
-  flex: none;
+  flex: 0 1 var(--main-image);
   align-self: center;
-  width: 90px;
-  height: var(--main-image);
+  min-height: var(--main-image-min);
+  aspect-ratio: 3 / 2;
   margin-bottom: 8px;
   border-radius: 8px;
   line-height: 0;
@@ -509,9 +537,9 @@ a.language:hover,
   background: var(--elsa-background);
 }
 
-/* A Node without Images: the same 60 pixels, a faint circle, so the title never moves. */
+/* A Node without Images: the same height, a faint circle, so a slide has nothing to reflow. */
 .main-image--empty {
-  width: var(--main-image);
+  aspect-ratio: 1;
   border: 1px solid var(--rule);
   border-radius: 50%;
 }
@@ -554,13 +582,14 @@ a.language:hover,
 
 /* --- the explainers (10.8) --------------------------------------------------------- */
 
-/* A marked term: a dotted underline says there is more here without reading as a link. The
-   Tree may not bold or emphasise it (tree-format.md 3.4), so this is the only look it has. */
+/* A marked term: bold in the Theme's own green, the Answer buttons' `accent-secondary`, and
+   nothing else, so it says there is more here without reading as a link (10.8, amended
+   2026-09-19, #102). The Tree may not bold or emphasise it (tree-format.md 3.4), so this is
+   the only look it has. */
 .prose .term {
   border-radius: 2px;
-  text-decoration: underline dotted var(--accent-secondary-read);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.22em;
+  font-weight: 700;
+  color: var(--elsa-accent-secondary);
   cursor: help;
 }
 
@@ -568,7 +597,6 @@ a.language:hover,
 .prose .term:focus-visible,
 .prose .term:has(+ .explainer[data-open]) {
   background: var(--wash-secondary);
-  text-decoration-style: solid;
 }
 
 /* The panel is out of the text's flow at all times, so a marked description takes exactly
@@ -632,11 +660,11 @@ a.language:hover,
 /*
  * The way back (10.2), in the Answer buttons' style: filled with the walk's controls' colour
  * and lettered like them (13.1). Placed from the padding box, whose top is inside the
- * 2-pixel outline: its foot 2 pixels above the rim's end is its centre on the outline.
+ * 2-pixel outline: its foot stands the clearance above the outline.
  */
 .up-arrow {
   position: absolute;
-  top: calc(var(--rim-y) - 2px - var(--up-size));
+  top: calc(-2px - var(--up-clearance) - var(--up-size));
   left: 0;
   right: 0;
   z-index: 1;
@@ -805,14 +833,14 @@ a.language:hover,
  * the button's centre is (i + 1/2) H / m - H / 2 from the Bubble's centre, and its inner
  * edge 20 pixels outside the outline at that height, at (380 - R) + sqrt(R^2 - y^2) + 20
  * from the centre line, R = H / 2 the radius and 380 - R half the Bubble's straight middle.
- * At the spec's 446 that is the fan of 10.3 to the pixel: the middle buttons furthest out
- * (inner edge 400), the top and bottom ones 75 nearer, 111.5 of pitch on a side of four. A
- * button is 232 x 96; on a row shorter than four of them the pitch shrinks and so does the
- * button, to the row's quarter, down to the 80 pixels its four lines of label take.
+ * At the spec's 416 that is the fan of 10.3: the middle buttons furthest out, the top and
+ * bottom ones nearer, 104 of pitch on a side of four (10.3's 111.5 was #78's, at a Bubble of
+ * 446). A button is 232 x 96; on a row shorter than four of them the pitch shrinks and so
+ * does the button, to the row's quarter, down to the 80 pixels its four lines of label take.
  *
  * The 96 is a minimum, not a height: a title of 60 characters can take five lines where the
  * browser has no hyphenation dictionary for the page's `lang` (see `.option-title`), and a
- * button that holds them is 102 tall, still 9 clear of its neighbour at the pitch of a side of
+ * button that holds them is 102 tall, still 2 clear of its neighbour at the pitch of a side of
  * four. It grows downward from the row's top: that button's centre sits 3 below the curve,
  * which no eye finds. It is not centred by a transform, because a transform on the item
  * would make it the containing block of the panel and the backdrop
@@ -1011,8 +1039,13 @@ a.language:hover,
   background: var(--wash);
 }
 
-/* Laid out from the top, as the Bubble's text area is (10.3): the title at the same height in both. */
+/*
+ * Laid out from the top, as the Bubble's text area is (10.3): the title at the same height in
+ * both. The main image is two fifths of the panel, as it is of the Bubble (#102): the panel
+ * is this area and its padding and outline, 24 and 1 above and below.
+ */
 .overlay-interior {
+  --main-image: calc((100% + 2 * 24px + 2px) * 2 / 5);
   /* The containing block of an explainer panel, as the Bubble's text area is (10.8). */
   position: relative;
   display: flex;
@@ -1047,7 +1080,11 @@ a.language:hover,
   text-underline-offset: 0.18em;
 }
 
-/* The target's own Options: a gap of 8 and at most eight 20-pixel lines of links. */
+/*
+ * The target's own Options: a gap of 8 and one inline list of links on 20-pixel lines. Eight
+ * of 60 characters with their separators are 5 lines of about 90 characters, 100 pixels:
+ * one to a line they would be 160, and the picture would give up the 60 it keeps (#102).
+ */
 .overlay-options {
   margin: 8px 0 0;
   padding: 0;
@@ -1055,6 +1092,16 @@ a.language:hover,
   font-size: var(--small);
   line-height: var(--small-line);
   text-align: center;
+}
+
+.overlay-options li {
+  display: inline;
+}
+
+.overlay-options li + li::before {
+  content: "\00B7";
+  margin: 0 8px;
+  color: var(--elsa-text-muted);
 }
 
 .overlay-options a {
@@ -1405,6 +1452,22 @@ a.language:hover,
  * ================================================================================== */
 
 /*
+ * Below the guaranteed height the up arrow goes back onto the outline, its middle on it, and
+ * its band back to 26 (10.2, amended 2026-09-19, #102): the 30 pixels it stands clear by
+ * above 640 are what every step below takes its measure from, and at the floor there is no
+ * step left to pay for them.
+ */
+@media (max-height: 639px) {
+  :root {
+    --up-row: calc(var(--up-size) - var(--rim-y) + 2px);
+  }
+
+  .up-arrow {
+    top: calc(var(--rim-y) - 2px - var(--up-size));
+  }
+}
+
+/*
  * Step 1 -- the strip collapses to the enlarged view's control, a 20-pixel pill on the same
  * outline, and the band closes to 20 (10.5).
  */
@@ -1598,9 +1661,9 @@ a.language:hover,
 }
 
 /*
- * The Overlay below the guarantee: its bands close, and its Sources and its Options wrap as
- * inline lists so that an explanation Node at every maximum, with eight Options of its own,
- * still fits a phone's width without a scrollbar (10.6, 10.9).
+ * The Overlay below the guarantee: its bands close, and its Sources wrap as an inline list,
+ * as its Options already do, so that an explanation Node at every maximum, with eight
+ * Options of its own, still fits a phone's width without a scrollbar (10.6, 10.9).
  */
 @media (max-width: 1279px), (max-height: 639px) {
   .overlay > .sheet-panel {
@@ -1608,21 +1671,12 @@ a.language:hover,
     max-height: calc(100% - 16px);
     padding: 12px 20px;
   }
-
-  .overlay-options li {
-    display: inline;
-  }
-
-  .overlay-options li + li::before {
-    content: "\00B7";
-    margin: 0 8px;
-    color: var(--elsa-text-muted);
-  }
 }
 
 /*
- * Step 5 -- the main image is hidden and its slot closes, on every Node alike (10.5): 68
- * pixels, from 632 to 564. Also below 792 pixels of width, where the Bubble narrows and
+ * Step 5 -- the main image is hidden and its slot closes, on every Node alike (10.5): at
+ * 1280 x 632 the picture is 178.4 of a 446 Bubble, so hiding it and its gap frees 186.4 of
+ * the text area (#78's 68 was a 60-pixel image and its gap). Also below 792 pixels of width, where the Bubble narrows and
  * steps 5, 6 and 7 fire together.
  */
 @media (max-height: 631px), (max-width: 791px) {

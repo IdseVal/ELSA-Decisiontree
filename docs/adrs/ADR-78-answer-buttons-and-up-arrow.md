@@ -6,6 +6,12 @@
 - Core document: 3.2 ("Both Answer buttons the same ...", "The Trail is no longer drawn ..."), 9 (no lab colour in code), 10.17 (a Trail click discards the later Trail)
 - Supersedes in part: `ADR-38-tree-view.md` (decisions 1, 5, 7 and 8: the Trail row, the Trail's collapse and Sheet, the chrome word above the title), `ADR-38-neighbourhood.md` (decision 1: two `up`), `ADR-38-transitions.md` (nothing: the slide up stays)
 - Built by: #82
+- Amended in part by the owner on issue #102 (PR #110), 2026-09-19: decision 4's place
+  and slide, decision 5's band, and the last rejected alternative, which #102 built. The
+  arrow stands above the Bubble with its foot 6 pixels clear, in a band of 56, and its
+  slide retraces the step it undoes; `ADR-38-transitions.md` decision 2 is superseded in
+  part by it, where the Supersedes line above said "nothing". The dated notes below give
+  the numbers.
 
 ## Context
 
@@ -65,12 +71,26 @@ drawn changes.
    10.17) and the URL stays the path. It slides **up**, as the parent Branch did: the
    parent is still placed `up` (11.2), the only `up` placement now, because the
    grandparent is no longer reachable in one click.
+   **Amended 2026-09-19 (#102, PR #110, by the owner):** "The up arrow sits a bit above
+   the Bubble, not on it." At and above 640 pixels tall the arrow is centred **above** the
+   Bubble's top outline, its foot 6 pixels clear of it (`application.md` 10.1, 10.2). Below
+   640 tall it goes back onto the outline, centred on it as decided here (10.5). And it no
+   longer slides straight up: "Going back must retrace the direction taken going down." The
+   parent is still the one `up` placement, but its `slot` records the step it undoes -- 0
+   after the parent's `yes`, 1 after its `no`, 2 after any other step (11.2) -- and the
+   slide goes up and to the right from a `yes` target, up and to the left from a `no`
+   target, straight up otherwise (11.1, 11.3; `neighbourhood.test.ts`,
+   `transition.spec.ts`).
 5. **Where there is nothing above, nothing is drawn:** the root Node, and a Node opened
    by its own URL with an empty Trail, show an empty band; the band keeps its 26 pixels
    so nothing moves. A Terminal's `back` Branch is the up arrow; its `startAgain` stays
    as the one button in its Answer row, in the Answer buttons' size and colour, and a
    Terminal that is the root shows `startAgain` alone with no arrow, as before. The
    explanation Node's `back` goes with the Overlay (`ADR-78-overlay.md`).
+   **Amended 2026-09-19 (#102, PR #110, by the owner):** at and above 640 pixels tall the
+   band is **56**, not 26 -- 2 clear of the chrome bar, 48 of arrow, 6 of clearance -- and
+   it keeps those 56 where nothing is drawn, so still nothing moves. Below 640 tall it is
+   26 again, as decided here (`application.md` 10.1, 10.5).
 6. **What goes with the Trail row:** the Trail Branches, the collapsed middle, the Trail
    Sheet, step 1 of 10.5, the chrome keys `trail`, `start`, `trailMore` and `back`, and
    `tests/trail.test.tsx` and `trail.spec.ts` as they stand (rewritten for the arrow).
@@ -103,6 +123,14 @@ drawn changes.
 - **A wider arrow band with the arrow wholly above the Bubble.** Rejected: 22 more pixels
   of height that the budget of `ADR-78-main-image-and-row-budget.md` does not have; on
   the outline the arrow reads as part of the Bubble, "in the same style and roundness".
+  **Amended 2026-09-19 (#102, PR #110): no longer rejected -- the owner asked for it and
+  it is built.** "The up arrow sits a bit above the Bubble, not on it, with visible
+  clearance." The budget this rejection rested on was re-spent: the band grew by 30, not
+  22 (the 6 pixels of clearance included), and the **Bubble gave the 30**, from 760 x 446
+  to 760 x 416 with a text area of 640 x 364, so the rows still add to 640
+  (`ADR-78-main-image-and-row-budget.md`, amended the same day). Below 640 pixels tall,
+  where 10.5's steps have no pixel to spare, the arrow goes back on the outline as this
+  alternative's rejection had it.
 
 ## Consequences
 

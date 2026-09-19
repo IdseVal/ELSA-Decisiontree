@@ -553,14 +553,14 @@ describe('how text is measured (tree-format.md 3.8)', () => {
     expect(countedLength('  café  ')).toBe(4)
   })
 
-  test("the spec's worked example lays out over exactly eight lines", async () => {
-    // Section 3.8: three blocks of 163, 135 and 61 characters and two breaks, which is
-    // 3 + 2 + 1 + 2 = 8 -- exactly the maximum. The text is the root Node of section 8.
+  test("the spec's worked example lays out over exactly two lines", async () => {
+    // Section 3.8: one block of 117 characters and no break, which is ceil(117 / 75) = 2 --
+    // exactly the maximum. The text is the root Node of section 8.
     const tree = await openTree(exampleTree)
     const start = (await tree.getNode('start'))!
 
-    expect(estimatedLines(start.description.en!)).toBe(8)
-    expect(countedLength(start.description.en!)).toBe(363)
+    expect(estimatedLines(start.description.en!)).toBe(2)
+    expect(countedLength(start.description.en!)).toBe(117)
   })
 
   test('a list of short entries takes a line each, however short the text is', () => {

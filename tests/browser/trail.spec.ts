@@ -28,15 +28,15 @@ function upArrow(page: Page) {
   return page.locator('.up-arrow:not([inert] *)')
 }
 
-test('the up arrow sits on the Bubble\'s top outline, and no Trail is drawn', async ({ page }) => {
+test('the up arrow stands above the Bubble, 6 pixels clear of its outline, and no Trail is drawn', async ({ page }) => {
   await walkToChild(page)
 
   const arrow = await upArrow(page).boundingBox()
   const bubble = await page.locator('.bubble:not([inert] *)').boundingBox()
   const title = await page.getByRole('heading', { level: 1 }).boundingBox()
-  // Centred across, its middle on the outline (1 pixel for sub-pixel rounding), above the title.
+  // Centred across (1 pixel for sub-pixel rounding), its foot 6 pixels above the outline (#102).
   expect(Math.abs(arrow!.x + arrow!.width / 2 - (bubble!.x + bubble!.width / 2))).toBeLessThanOrEqual(1)
-  expect(Math.abs(arrow!.y + arrow!.height / 2 - bubble!.y)).toBeLessThanOrEqual(1)
+  expect(bubble!.y - (arrow!.y + arrow!.height)).toBeCloseTo(6, 0)
   expect(arrow!.y + arrow!.height).toBeLessThanOrEqual(title!.y)
   expect(arrow!.width).toBe(48)
   expect(arrow!.height).toBe(48)
