@@ -1078,7 +1078,11 @@ a.language:hover,
   text-underline-offset: 0.18em;
 }
 
-/* The target's own Options: a gap of 8 and at most eight 20-pixel lines of links. */
+/*
+ * The target's own Options: a gap of 8 and one inline list of links on 20-pixel lines. Eight
+ * of 60 characters with their separators are 5 lines of about 90 characters, 100 pixels:
+ * one to a line they would be 160, and the picture would give up the 60 it keeps (#102).
+ */
 .overlay-options {
   margin: 8px 0 0;
   padding: 0;
@@ -1086,6 +1090,16 @@ a.language:hover,
   font-size: var(--small);
   line-height: var(--small-line);
   text-align: center;
+}
+
+.overlay-options li {
+  display: inline;
+}
+
+.overlay-options li + li::before {
+  content: "\00B7";
+  margin: 0 8px;
+  color: var(--elsa-text-muted);
 }
 
 .overlay-options a {
@@ -1645,25 +1659,15 @@ a.language:hover,
 }
 
 /*
- * The Overlay below the guarantee: its bands close, and its Sources and its Options wrap as
- * inline lists so that an explanation Node at every maximum, with eight Options of its own,
- * still fits a phone's width without a scrollbar (10.6, 10.9).
+ * The Overlay below the guarantee: its bands close, and its Sources wrap as an inline list,
+ * as its Options already do, so that an explanation Node at every maximum, with eight
+ * Options of its own, still fits a phone's width without a scrollbar (10.6, 10.9).
  */
 @media (max-width: 1279px), (max-height: 639px) {
   .overlay > .sheet-panel {
     max-width: calc(100% - 16px);
     max-height: calc(100% - 16px);
     padding: 12px 20px;
-  }
-
-  .overlay-options li {
-    display: inline;
-  }
-
-  .overlay-options li + li::before {
-    content: "\00B7";
-    margin: 0 8px;
-    color: var(--elsa-text-muted);
   }
 }
 
