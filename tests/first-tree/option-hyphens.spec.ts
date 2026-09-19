@@ -19,13 +19,15 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
-import { MAX_LINES, nodesWithOptions, TREE } from './options.ts'
+import { MAX_LINES, nodesWithOptions } from './options.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const SHOTS =
   process.env.ELSA_SHOTS === '1'
     ? path.join(repo, 'docs', 'screenshots', 'issue-104')
     : path.join(repo, 'tests', 'first-tree', '.results', 'issue-104')
+
+const TREE = 'ai-act-applicability-agrifood'
 
 /** The viewports of application.md 10.6 but the floor, where the notice replaces the tree view. */
 const VIEWPORTS = [

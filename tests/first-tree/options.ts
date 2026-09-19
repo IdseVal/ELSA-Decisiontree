@@ -6,7 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { openTree } from '../../src/tree/loader.ts'
 
-export const TREE = 'ai-act-applicability-agrifood'
+const TREE = 'ai-act-applicability-agrifood'
 
 /** docs/specs/application.md 10.3: an Option title takes at most four lines. */
 export const MAX_LINES = 4
