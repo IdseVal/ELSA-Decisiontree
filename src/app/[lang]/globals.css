@@ -554,13 +554,14 @@ a.language:hover,
 
 /* --- the explainers (10.8) --------------------------------------------------------- */
 
-/* A marked term: a dotted underline says there is more here without reading as a link. The
-   Tree may not bold or emphasise it (tree-format.md 3.4), so this is the only look it has. */
+/* A marked term: bold in the Theme's own green, the Answer buttons' `accent-secondary`, and
+   nothing else, so it says there is more here without reading as a link (10.8, amended
+   2026-09-19, #102). The Tree may not bold or emphasise it (tree-format.md 3.4), so this is
+   the only look it has. */
 .prose .term {
   border-radius: 2px;
-  text-decoration: underline dotted var(--accent-secondary-read);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.22em;
+  font-weight: 700;
+  color: var(--elsa-accent-secondary);
   cursor: help;
 }
 
@@ -568,7 +569,6 @@ a.language:hover,
 .prose .term:focus-visible,
 .prose .term:has(+ .explainer[data-open]) {
   background: var(--wash-secondary);
-  text-decoration-style: solid;
 }
 
 /* The panel is out of the text's flow at all times, so a marked description takes exactly

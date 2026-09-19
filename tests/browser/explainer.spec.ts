@@ -118,6 +118,28 @@ async function expectPlaced(panel: Locator, id: string): Promise<'below' | 'abov
   return 'neither'
 }
 
+test("every marked term is bold in the Theme's accent-secondary, the Answer buttons' green, and undecorated (#102)", async ({
+  page,
+}) => {
+  await open(page)
+  // The Theme's own value, as the Answer buttons paint it (13.1).
+  const green = await page.locator('.answer').first().evaluate((answer) => getComputedStyle(answer).backgroundColor)
+  const terms = page.locator('.bubble .term')
+  await expect(terms).toHaveCount(IDS.length)
+  for (const term of await terms.all()) {
+    const style = await term.evaluate((element) => {
+      const computed = getComputedStyle(element)
+      return {
+        weight: computed.fontWeight,
+        colour: computed.color,
+        line: computed.textDecorationLine,
+        border: computed.borderBottomStyle,
+      }
+    })
+    expect(style).toEqual({ weight: '700', colour: green, line: 'none', border: 'none' })
+  }
+})
+
 test.describe('with a pointer and a keyboard', () => {
   test('hover opens the panel and leaving the term closes it', async ({ page }) => {
     await open(page)
