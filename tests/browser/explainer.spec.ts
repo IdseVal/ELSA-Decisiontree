@@ -294,7 +294,8 @@ test.describe('with a touch screen', () => {
 
     await term.tap()
     await expect(panel).toBeVisible()
-    await page.locator('.bubble h1').tap()
+    // Outside the Bubble: in the 364-pixel text area of #102 this panel opens over the title.
+    await page.locator('.disclaimer').tap()
     await expect(panel).toBeHidden()
   })
 })
