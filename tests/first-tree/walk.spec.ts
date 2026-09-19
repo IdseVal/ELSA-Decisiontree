@@ -558,10 +558,15 @@ async function noScroll(page: Page, name: string, lang: Lang, notes: string[] = 
   expect(m.overflowing, `${name}: elements larger inside than out`).toEqual([])
 }
 
-/** A viewport-sized screenshot, once the pictures have arrived. */
-async function shot87(page: Page, name: string, lang: Lang): Promise<void> {
+/**
+ * A viewport-sized screenshot, once the pictures have arrived. The pointer is parked on the
+ * disclaimer first, unless `hovering`: left where the last click was, it hovers the Answer
+ * button the next page puts under it, whose hover ring then reads as a difference between the two.
+ */
+async function shot87(page: Page, name: string, lang: Lang, hovering = false): Promise<void> {
   await page.waitForLoadState('networkidle')
   const { width, height } = page.viewportSize()!
+  if (!hovering) await page.mouse.move(width / 2, height - 4)
   await page.screenshot({ path: path.join(ISSUE_87, `${name}-${lang}-${width}x${height}.png`) })
 }
 
@@ -621,6 +626,11 @@ for (const [width, height] of VIEWPORTS) {
       expect(yes!.fill).toBe('rgb(21, 154, 47)')
       const ratio = contrast(yes!.ink, yes!.fill)
       expect(ratio, 'the Answer label on its fill, large text').toBeGreaterThanOrEqual(3)
+      await noScroll(page, 'start', lang, [
+        `Answer buttons ${yes!.size}, radius ${yes!.radius}, fill ${yes!.fill}, label ${yes!.ink} ${yes!.font}, contrast ${ratio} : 1`,
+      ])
+      // Taken before the hover: the open panel lies over the Sources' heading.
+      await shot87(page, '1-4-6-start', lang)
 
       const term = page.locator('.bubble .term', { hasText: WORDS_87[lang].provider }).first()
       await term.hover()
@@ -628,14 +638,12 @@ for (const [width, height] of VIEWPORTS) {
       await expect(panel).toBeVisible()
       const panelBox = (await panel.boundingBox())!
       await noScroll(page, 'start, "provider" hovered', lang, [
-        `Answer buttons ${yes!.size}, radius ${yes!.radius}, fill ${yes!.fill}, label ${yes!.ink} ${yes!.font}, contrast ${ratio} : 1`,
         `explainer panel ${Math.round(panelBox.width)} x ${Math.round(panelBox.height)}`,
       ])
-      await shot87(page, '1-2-4-6-start', lang)
+      await shot87(page, '2-start-provider-hovered', lang, true)
 
       // Point 3, and 4 in the Overlay: an Option opens its target in an Overlay with a cross,
       // and a click outside it closes it.
-      await page.mouse.move(0, 0)
       await clickAnswer(page, lang, 'yes')
       const toArticle2 = ['start', 'article-2-exclusions']
       await arrived(page, pageUrl(toArticle2, lang))
