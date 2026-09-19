@@ -42,15 +42,17 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await page.locator('.answer--yes').click()
   await arrived(page, '/ai-act-example/start/prohibited-practices')
 
-  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
-  await arrived(page, '/ai-act-example/start/prohibited-practices/social-scoring')
-  await expect(page.locator('.hint')).toBeVisible()
+  // An Option opens its Overlay in place (10.9); the address stays the question's.
+  await page.locator('.options .sheet-open', { hasText: 'Social scoring' }).click()
+  await expect(page.locator('.overlay').first().locator('.sheet-panel')).toBeVisible()
+  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+  await page.keyboard.press('Escape')
 
   // Issue #8 replaced the interim "back" control this test used with the Trail, and #82 the
   // drawn Trail with the up arrow; the walk it checks is unchanged. What the arrow itself
   // does is `tests/browser/trail.spec.ts`.
   await page.locator('.up-arrow').click()
-  await arrived(page, '/ai-act-example/start/prohibited-practices')
+  await arrived(page, '/ai-act-example/start')
 })
 
 test('no answers a different Node than yes', async ({ page }) => {
@@ -163,16 +165,19 @@ test('Escape closes the enlarged image, and so does a click outside it', async (
 
 test('the browser asks for the images of the Node on screen and no others', async ({ page }) => {
   // A Node's own Image is its main image (10.3). An Option has no Image of its own in
-  // elsa-tree/3, so the Node with Options asks for its own picture only (#84), and its
-  // target for its own.
+  // elsa-tree/3: the Node with Options asks for its own picture (#84) and one file per Option,
+  // its target's first Image, which its button shows (11.5), and the target's Overlay for that
+  // same file.
   const onStart = await imageRequests(page, () => page.goto(START))
   expect(new Set(onStart)).toEqual(new Set(['eu-map.png']))
 
+  const ofOptions = new Set(['prohibited-practices.png', 'scoreboard.png', 'emotion-recognition.png'])
   const onOptions = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices'))
-  expect(new Set(onOptions)).toEqual(new Set(['prohibited-practices.png']))
+  expect(new Set(onOptions)).toEqual(ofOptions)
 
+  // The target's address is its parent's page with the Overlay open (10.9): the same files.
   const onTarget = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices/social-scoring'))
-  expect(new Set(onTarget)).toEqual(new Set(['scoreboard.png']))
+  expect(new Set(onTarget)).toEqual(ofOptions)
 })
 
 test('enlarging the main image fetches nothing new', async ({ page }) => {
@@ -237,10 +242,11 @@ test('a keyboard reaches the Answers and follows one', async ({ page }) => {
 test('the Options of a Node are reachable by keyboard', async ({ page }) => {
   await page.goto('/ai-act-example/prohibited-practices')
 
-  await page.locator('.option').first().focus()
+  await page.locator('.overlay .sheet-open').first().focus()
   await page.keyboard.press('Enter')
 
-  await arrived(page, '/ai-act-example/prohibited-practices/social-scoring')
+  await expect(page.locator('.overlay .sheet-panel').first()).toBeVisible()
+  await expect(page).toHaveURL('/ai-act-example/prohibited-practices')
 })
 
 test('an unknown Node answers 404 with a way back to the start', async ({ page }) => {

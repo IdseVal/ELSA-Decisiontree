@@ -28,6 +28,8 @@ const ROOT = `${TREE}/start`
 const QUESTION = `${ROOT}/prohibited-practices`
 const EXPLANATION = `${QUESTION}/emotion-recognition-at-work/social-scoring`
 const TERMINAL = `${QUESTION}/prohibited`
+// A three-entry Trail on the example Tree: the path is the Trail and repeats are allowed (4.3, 11.3).
+const DEEP = `${QUESTION}/start/prohibited-practices`
 
 /** The up arrow of the Node on screen (10.2). */
 const UP = '.up-arrow'
@@ -42,17 +44,19 @@ test.describe('following a Branch', () => {
     await arrived(page, `${QUESTION}/covered`)
   })
 
-  test('an Option opens its target with the current Node appended to the Trail', async ({ page }) => {
+  test('an Option opens its target in an Overlay over the page; the address stays (10.9)', async ({ page }) => {
     await page.goto(QUESTION)
-    await page.locator('.option').first().click()
-    await arrived(page, `${QUESTION}/social-scoring`)
-    await expect(page.locator('.hint')).toHaveText('This step only explains. Go back to answer the question.')
+    const overlay = page.locator('.overlay').first()
+    await overlay.locator('.sheet-open').click()
+    await expect(overlay.locator('.sheet-panel')).toBeVisible()
+    await expect(overlay.locator('h2 a')).toHaveAttribute('href', `${QUESTION}/social-scoring`)
+    await expect(page).toHaveURL(QUESTION)
   })
 
   test('the up arrow goes one step up at a time, discarding the Trail after it, to the root', async ({ page }) => {
-    await page.goto(EXPLANATION)
+    await page.goto(DEEP)
     await page.locator(UP).click()
-    await arrived(page, `${QUESTION}/emotion-recognition-at-work`)
+    await arrived(page, `${QUESTION}/start`)
     await page.locator(UP).click()
     await arrived(page, QUESTION)
     await page.locator(UP).click()
@@ -60,16 +64,22 @@ test.describe('following a Branch', () => {
     await expect(page.locator(UP)).toHaveCount(0)
   })
 
-  test("an explanation Node's one button is startAgain, to the root with an empty Trail", async ({ page }) => {
+  test("an explanation Node's URL is its parent's page with the Overlay open: the parent's Answers, no back Branch (10.9)", async ({ page }) => {
     await page.goto(EXPLANATION)
-    await expect(page.locator('.answers .branch')).toHaveCount(1)
-    await page.locator('.answer--start-again').click()
-    await arrived(page, ROOT)
+    await expect(page.locator('.answer--back')).toHaveCount(0)
+    // A second-level address: the Overlay has no button of its own in the fan (10.9).
+    await expect(page.locator('.overlay--unbuttoned .sheet-panel')).toBeVisible()
+    await page.locator('.overlay--unbuttoned .sheet-close').click()
+    await page.locator('.answer--yes').click()
+    await arrived(page, `${QUESTION}/prohibited`)
   })
 
-  test("a Terminal's up arrow goes up and startAgain goes to the root with an empty Trail", async ({ page }) => {
+  test('a Terminal has one button: the up arrow goes up and startAgain goes to the root with an empty Trail (10.3)', async ({ page }) => {
     await page.goto(TERMINAL)
     await expect(page.locator('.outcome')).toHaveText('Prohibited')
+    // The `back` Branch went with the side slide (10.9).
+    await expect(page.locator('.answer--back')).toHaveCount(0)
+    await expect(page.locator('.tree-frame').first().locator('.answers a')).toHaveCount(1)
     await page.locator(UP).click()
     await arrived(page, QUESTION)
 
@@ -83,7 +93,7 @@ test.describe('following a Branch', () => {
     await page.goto(QUESTION)
     await expect(page.locator('.answer--yes .branch-title')).toHaveText('This is a prohibited practice')
     await expect(page.locator('.answer--no .branch-title')).toHaveText('The AI Act applies to your system')
-    await expect(page.locator('.option .branch-title')).toHaveText([
+    await expect(page.locator('.options .option-title')).toHaveText([
       'Social scoring',
       'Emotion recognition at work or in education',
     ])
@@ -167,8 +177,9 @@ test.describe('the keyboard', () => {
       const shown = await controls(page)
       const stops = await tabStops(page)
 
-      // The share button, the language link, the up arrow, every Option, every Source,
-      // every Answer: the page's controls, exactly, and nothing skipped.
+      // The share button, the language link, the up arrow, every Option button, every
+      // Source, every Answer: the page's controls, exactly, and nothing skipped. On the
+      // explanation Node's URL the open Overlay's cross, heading and Sources are among them.
       expect(stops).toEqual(shown)
       expect(stops.filter((s) => s.startsWith('a.branch'))).toHaveLength(
         await page.locator('a.branch:visible').count(),
@@ -177,19 +188,17 @@ test.describe('the keyboard', () => {
     })
   }
 
-  test('Enter follows the up arrow, an Option, an Answer and startAgain', async ({ page }) => {
-    await page.goto(`${QUESTION}/emotion-recognition-at-work`)
+  test('Enter follows the up arrow, opens an Option, follows an Answer and startAgain', async ({ page }) => {
+    await page.goto(TERMINAL)
     await page.locator(UP).focus()
     await page.keyboard.press('Enter')
     await arrived(page, QUESTION)
 
-    await page.locator('.option').first().focus()
+    await page.locator('.overlay .sheet-open').first().focus()
     await page.keyboard.press('Enter')
-    await arrived(page, `${QUESTION}/social-scoring`)
-
-    await page.locator(UP).focus()
-    await page.keyboard.press('Enter')
-    await arrived(page, QUESTION)
+    await expect(page.locator('.overlay .sheet-panel').first()).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.overlay .sheet-panel').first()).toBeHidden()
 
     await page.locator('.answer--yes').focus()
     await page.keyboard.press('Enter')
@@ -203,7 +212,8 @@ test.describe('the keyboard', () => {
   test('a Sheet opens with Enter, lists its links, closes with Escape and gives the focus back', async ({ page }) => {
     // Below the guaranteed height the Sources collapse to one control (10.5, step 5).
     await page.setViewportSize({ width: 1280, height: 540 })
-    await page.goto(EXPLANATION)
+    // The explanation Node with three Sources as the centre: a path with no parent in it (10.9).
+    await page.goto(`${TREE}/social-scoring`)
     const sheet = page.locator('.sources-sheet')
     const control = sheet.locator('.sheet-open')
     await expect(control).toBeVisible()
@@ -221,13 +231,13 @@ test.describe('the keyboard', () => {
     await expect(control).toBeFocused()
   })
 
-  test('the collapsed Options open as a Sheet of links to the same targets', async ({ page }) => {
-    // Below 1280 px the columns move under the Answers, and with no height to take there
+  test('the collapsed Options open as a Sheet of links to the explanation Nodes, which open their Overlays', async ({ page }) => {
+    // Below 1200 px the buttons move under the Answers, and with no height to take there
     // they collapse to one control (10.5, steps 3 and 4).
     await page.setViewportSize({ width: 1024, height: 640 })
     await page.goto(QUESTION)
     const sheet = page.locator('.options-sheet')
-    await expect(page.locator('.options-columns')).toBeHidden()
+    await expect(page.locator('.options .sheet-open').first()).toBeHidden()
     await expect(sheet.locator('.sheet-open')).toHaveText('What this covers (2)')
 
     await sheet.locator('.sheet-open').click()
@@ -235,6 +245,7 @@ test.describe('the keyboard', () => {
     await expect(links).toHaveText(['Social scoring', 'Emotion recognition at work or in education'])
     await links.first().click()
     await arrived(page, `${QUESTION}/social-scoring`)
+    await expect(page.locator('.overlay .sheet-panel').first()).toBeVisible()
   })
 })
 
@@ -315,12 +326,15 @@ test.describe('with JavaScript switched off', () => {
   test.use({ javaScriptEnabled: false })
 
   test('every Branch is a link that navigates, and a collapsed group is its plain list', async ({ page }) => {
-    await page.goto(EXPLANATION)
-    await page.locator(UP).click()
-    await arrived(page, `${QUESTION}/emotion-recognition-at-work`)
+    await page.goto(TERMINAL)
     await page.locator(UP).click()
     await arrived(page, QUESTION)
-    await page.locator('.option').last().click()
+    await page.locator(UP).click()
+    await arrived(page, ROOT)
+    await page.goto(QUESTION)
+    // An Option is a disclosure (14): its Overlay opens in place, and its heading is the link.
+    await page.locator('.overlay').last().locator('.sheet-open').click()
+    await page.locator('.overlay').last().locator('h2 a').click()
     await arrived(page, `${QUESTION}/emotion-recognition-at-work`)
 
     // A Sheet is a native disclosure: it opens without the script and holds every link.

@@ -1,32 +1,36 @@
 /**
  * The tree view (docs/specs/application.md section 10): one screen with the current Node as
  * a round Bubble in the centre, the up arrow on its top outline, the Answers as buttons
- * below it and the Options as Branches beside it. Direction carries meaning: above is
- * where the reader came from, below is where an answer takes them, beside is an aside they
- * read and come back from (10.3, core document 10.23).
+ * below it and the Options as buttons fanned out beside it. Direction carries meaning: above
+ * is where the reader came from, below is where an answer takes them, beside is an aside
+ * they read and come back from -- by closing it (10.3, 10.9, core document 10.23).
  *
  * Everything between the chrome bar and the disclaimer is one element, the tree layer, so
  * that the slide of section 11 moves the whole tree with one transform (`Slider`). The
- * neighbours of the Node (11.2) are drawn as frames of the same layout, one layer away in
- * the direction of the Branch that leads to them and carry no image URL at all (11.4). The
- * Carousel's band (section 12) is present on every Node, so the Bubble sits in the same place.
+ * placed neighbours of the Node (11.2) are drawn as frames of the same layout, one layer
+ * away in the direction of the Branch that leads to them, and carry no image URL at all
+ * (11.4). The asides -- the Option targets -- are not placed: each is carried closed in the
+ * Overlay its button opens (10.9). The Carousel's band (section 12) is present on every
+ * Node, so the Bubble sits in the same place.
  *
  * Below the guaranteed viewport the layout gives things up in the order of 10.5, and each
  * thing it gives up stays reachable behind one control that opens a Sheet. The full group
  * and its collapsed control are both in the markup; the stylesheet shows one or the other,
  * which is what keeps the page correct without JavaScript (section 14).
  *
- * The view takes a Node, the address it was reached by, its neighbourhood and the Tree's
- * index, and returns markup; it never touches the file system, the environment or the
- * request, and it never decides which Nodes are neighbours (section 6).
+ * The view takes what `loadPage` read -- the address, the centre with its chain, the
+ * neighbourhood -- and the Tree's index, and returns markup; it never touches the file
+ * system, the environment or the request, and it never decides which Nodes are neighbours
+ * (section 6).
  */
+import type { CSSProperties } from 'react'
 import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
-import type { Placed } from '../neighbourhood.ts'
+import type { Aside, NodePage, Placed } from '../neighbourhood.ts'
 import type { Tree } from '../tree/loader.ts'
-import type { Node, Option } from '../tree/types.ts'
-import { followHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
+import type { Node } from '../tree/types.ts'
+import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
 import { Branch } from './Branch.tsx'
-import { Bubble, sheetWords } from './Bubble.tsx'
+import { Bubble, Interior, sheetWords } from './Bubble.tsx'
 import { Carousel } from './Carousel.tsx'
 import { Sheet } from './Sheet.tsx'
 import { Slider } from './Slider.tsx'
@@ -53,23 +57,20 @@ interface View {
    * Branch of a neighbour frame, which is inert and never clicked.
    */
   placed: (href: string) => boolean
+  /**
+   * The asides of the centre, for their Overlays (10.9), and the one the URL opened. Empty in
+   * a neighbour frame, which draws the Option buttons and none of their interiors (11.3).
+   */
+  asides: Aside[]
+  open: Aside | null
 }
 
-export function TreeView({
-  node,
-  address,
-  tree,
-  neighbours,
-}: {
-  node: Node
-  address: PageAddress
-  tree: Tree
-  /** The Nodes around this one, from `src/neighbourhood.ts` (11.2). */
-  neighbours: Placed[]
-}) {
+export function TreeView({ page, tree }: { page: NodePage; tree: Tree }) {
+  const { address, centre, neighbours } = page
   const lang = address.lang
-  const hrefs = new Set(neighbours.map((placed) => placed.href))
-  const viewAt = (at: PageAddress, idPrefix: string, centre: boolean): View => ({
+  const hrefs = new Set(neighbours.placed.map((placed) => placed.href))
+  const open = centre.chain[centre.chain.length - 1] ?? null
+  const viewAt = (at: PageAddress, idPrefix: string, isCentre: boolean): View => ({
     address: at,
     ui: chrome(lang),
     uiLang: chromeLang(lang),
@@ -79,10 +80,13 @@ export function TreeView({
     titleOf: (id) => text(tree.getTitle(id) ?? {}, lang, `${id}.title`),
     root: tree.manifest.root,
     idPrefix,
-    pictures: centre,
-    placed: (href) => centre && hrefs.has(href),
+    pictures: isCentre,
+    placed: (href) => isCentre && hrefs.has(href),
+    asides: isCentre ? neighbours.asides : [],
+    open: isCentre ? open : null,
   })
-  const view = viewAt(address, '', true)
+  const view = viewAt(centre.address, '', true)
+  // The page's own URL, aside chain included: what a slide arrives at, and what a history step leaves.
   const here = nodeHref(address)
 
   return (
@@ -91,13 +95,13 @@ export function TreeView({
         // One mount per page, so each page runs its own half of a slide (`Slider`).
         key={here}
         href={here}
-        neighbours={neighbours.map((placed, index) => ({
+        neighbours={neighbours.placed.map((placed, index) => ({
           href: placed.href,
-          ...position(placed, node),
+          ...position(placed),
           frame: <Frame node={placed.node} view={viewAt(placed.address, `n${index}-`, false)} />,
         }))}
       >
-        <Frame node={node} view={view} />
+        <Frame node={centre.node} view={view} />
       </Slider>
       {/* Shown instead of the tree view at and below the floor of 10.4; the stylesheet decides,
           and shows the sentence for the dimension that is short, so a 1280 x 480 window is
@@ -112,8 +116,9 @@ export function TreeView({
 
 /**
  * One Node laid out as the tree view draws it: the Bubble with the up arrow on it, the
- * Options, the Answers and the Carousel's band. The centre of the page is one; so is each neighbour, which
- * is why a Bubble arriving in a slide already carries its own Branch labels (11.3).
+ * Options with their Overlays, the Answers and the Carousel's band. The centre of the page is
+ * one; so is each neighbour, which is why a Bubble arriving in a slide already carries its own
+ * Branch labels (11.3).
  */
 function Frame({ node, view }: { node: Node; view: View }) {
   const lang = view.address.lang
@@ -128,7 +133,7 @@ function Frame({ node, view }: { node: Node; view: View }) {
         pictures={view.pictures}
         up={<UpArrow view={view} />}
       />
-      {node.options.length > 0 && <Options node={node} view={view} />}
+      {(node.options.length > 0 || view.open) && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
       {/* The Carousel's band (section 12), on every Node, empty where there is no picture, so the
           Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
@@ -143,19 +148,13 @@ function Frame({ node, view }: { node: Node; view: View }) {
 
 /**
  * Where a neighbour's frame is drawn, in widths and heights of the layer, from the Node on
- * screen (11.1): the parent straight above; an Answer target
- * below and towards its own Branch -- `yes` left, `no` right -- and their Answer targets a
- * layer further, spread so no two frames overlap; an Option target beside, on the side of
- * its column and a little towards its row.
+ * screen (11.1): the parent straight above; an Answer target below and towards its own
+ * Branch -- `yes` left, `no` right -- and their Answer targets a layer further, spread so no
+ * two frames overlap.
  */
-function position({ direction, slot }: Placed, node: Node): { x: number; y: number } {
+function position({ direction, slot }: Placed): { x: number; y: number } {
   if (direction === 'up') return { x: 0, y: -1 }
-  if (direction === 'down') return slot < 2 ? { x: slot - 0.5, y: 1 } : { x: slot - 3.5, y: 2 }
-  const half = Math.ceil(node.options.length / 2)
-  const left = slot < half
-  const rows = left ? half : node.options.length - half
-  const row = left ? slot : slot - half
-  return { x: left ? -1 : 1, y: (row - (rows - 1) / 2) / 4 }
+  return slot < 2 ? { x: slot - 0.5, y: 1 } : { x: slot - 3.5, y: 2 }
 }
 
 /**
@@ -191,68 +190,188 @@ function UpArrow({ view }: { view: View }) {
 }
 
 /**
- * The Option Branches beside the Bubble (10.3): the side children, in two columns of at
- * most four, each showing its title. An Option has no Images of its own in `elsa-tree/3`
- * (tree-format.md 5.4); the picture its button shows is its target's main image, which is
- * #80's to draw. The same list as a Sheet is what the columns collapse to (10.5, steps 3 and 4).
+ * The Options of the centre and the Overlay its URL opened (10.3, 10.9). A centre without
+ * Options draws no fan and no collapsed control, only the one Overlay a URL may name that is
+ * not an aside of the centre -- a second-level explanation Node, or one after a Terminal
+ * (10.9) -- rendered open, with no button of its own: the way back to the first is the
+ * browser's back or the first Option's button.
+ *
+ * With Options, the buttons are fanned out beside the Bubble, each the control of the Overlay
+ * that holds its target: the first Option on the right, the second on the left, alternating,
+ * each side top to bottom in Option order. Each button carries its row `--i` of the `--m` on
+ * its side, from which the stylesheet places it on the Bubble's curve
+ * (ADR-78-fan-out-and-option-picture). The same list as a Sheet of plain links to the
+ * explanation Nodes' addresses is what the fan collapses to (10.5, step 4).
  */
 function Options({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, idPrefix, placed } = view
+  const { address, ui, uiLang, idPrefix, asides, open } = view
   const lang = address.lang
-  const half = Math.ceil(node.options.length / 2)
-
-  const branch = (option: Option, index: number) => {
-    const where = `${node.id}.options[${index}]`
-    const href = followHref(address, option.target)
-    return (
-      <li key={option.target}>
-        <Branch
-          className="option"
-          href={href}
-          title={text(option.title, lang, `${where}.title`)}
-          slides={placed(href)}
-        />
-      </li>
-    )
-  }
+  const count = node.options.length
+  const rows = (side: 'right' | 'left') => (side === 'right' ? Math.ceil(count / 2) : Math.floor(count / 2))
+  const extra = open && !asides.some((aside) => aside.href === open.href) ? open : null
 
   return (
     <>
       <span hidden id={`${idPrefix}options-label`} lang={uiLang}>
         {ui.options}
       </span>
-      {/* The count is what the stylesheet collapses the columns on (10.5, step 4). */}
-      <div className="options-columns" data-count={node.options.length}>
-        <ul className="options options--left" aria-labelledby={`${idPrefix}options-label`}>
-          {node.options.slice(0, half).map(branch)}
+      {/* The count is what the stylesheet collapses the fan on (10.5, step 4). */}
+      {count > 0 && (
+        <ul className="options" aria-labelledby={`${idPrefix}options-label`} data-count={count}>
+          {node.options.map((option, index) => {
+            const side = index % 2 === 0 ? 'right' : 'left'
+            // A neighbour frame carries no asides (11.3): its buttons are drawn empty and closed.
+            const target = asides.find((aside) => aside.node.id === option.target) ?? null
+            return (
+              <li
+                key={option.target}
+                data-side={side}
+                style={{ '--i': Math.floor(index / 2), '--m': rows(side) } as CSSProperties}
+              >
+                <Overlay
+                  title={text(option.title, lang, `${node.id}.options[${index}].title`)}
+                  picture={optionPicture(target, lang)}
+                  aside={target}
+                  open={target !== null && open?.href === target.href}
+                  view={view}
+                  idPrefix={`${idPrefix}a${index}-`}
+                />
+              </li>
+            )
+          })}
         </ul>
-        {node.options.length > 1 && (
-          <ul className="options options--right" aria-labelledby={`${idPrefix}options-label`}>
-            {node.options.slice(half).map((option, index) => branch(option, half + index))}
-          </ul>
-        )}
-      </div>
-      <div className="options-collapsed">
-        <Sheet
-          className="options-sheet"
-          summary={<span lang={uiLang}>{`${ui.options} (${node.options.length})`}</span>}
-          items={node.options.map((option, index) => ({
-            href: followHref(address, option.target),
-            label: text(option.title, lang, `${node.id}.options[${index}].title`),
-          }))}
-          words={sheetWords(ui)}
-          uiLang={uiLang}
-          idPrefix={idPrefix}
-        />
-      </div>
+      )}
+      {extra && (
+        <div className="options-extra">
+          <Overlay
+            title={text(extra.node.title, lang, `${extra.node.id}.title`)}
+            picture={null}
+            aside={extra}
+            open
+            unbuttoned
+            view={view}
+            idPrefix={`${idPrefix}ax-`}
+          />
+        </div>
+      )}
+      {count > 0 && (
+        <div className="options-collapsed">
+          <Sheet
+            className="options-sheet"
+            summary={<span lang={uiLang}>{`${ui.options} (${count})`}</span>}
+            items={node.options.map((option, index) => ({
+              href: followHref(address, option.target),
+              label: text(option.title, lang, `${node.id}.options[${index}].title`),
+            }))}
+            words={sheetWords(ui)}
+            uiLang={uiLang}
+            idPrefix={idPrefix}
+          />
+        </div>
+      )}
     </>
   )
 }
 
 /**
+ * The picture on an Option button (10.3): the target's main image, the file its Overlay
+ * shows. An Option has no Images of its own (tree-format.md 5.4).
+ */
+function optionPicture(target: Aside | null, lang: string): { src: string; alt: string } | null {
+  const image = target?.node.images[0]
+  if (!target || !image) return null
+  return {
+    src: imageHref(image.file),
+    alt: text(image.description, lang, `${target.node.id}.images[${image.file}].description`),
+  }
+}
+
+/**
+ * One Option's Overlay (10.9): a Sheet whose control is the Option button -- the target's
+ * main image as a 48-pixel round picture, or the empty slot, and the target's title -- and
+ * whose one page is the target's Interior, its heading a link to the target's own address,
+ * with the target's own Options under it as plain links to the deeper addresses. In a
+ * neighbour frame the button stands with an empty slot and no page behind it (11.3, 11.4).
+ */
+function Overlay({
+  title,
+  picture,
+  aside,
+  open,
+  unbuttoned = false,
+  view,
+  idPrefix,
+}: {
+  title: string
+  /** The 48-pixel picture on the button; null for the empty slot, and in a neighbour frame. */
+  picture: { src: string; alt: string } | null
+  /** The target as the page carries it; null in a neighbour frame. */
+  aside: Aside | null
+  open: boolean
+  /** The URL-named Overlay with no Option button of its own. */
+  unbuttoned?: boolean
+  view: View
+  idPrefix: string
+}) {
+  const { ui, uiLang } = view
+  const lang = view.address.lang
+
+  return (
+    <Sheet
+      className={`overlay${unbuttoned ? ' overlay--unbuttoned' : ''}`}
+      summary={
+        <>
+          {/* `option-image` is the name the first Tree's walk (tests/first-tree/walk.spec.ts) finds an Option's picture by. */}
+          {picture ? (
+            <img className="option-image" src={picture.src} alt={picture.alt} width={48} height={48} loading="lazy" />
+          ) : (
+            <span className="option-image option-image--empty" />
+          )}
+          <span className="option-title">{title}</span>
+        </>
+      }
+      // One page, the Interior and the target's own Options: no strip of the target's other
+      // Images, which 10.9's pre-rendering bullet names and its panel has no room for (#100).
+      pages={
+        aside
+          ? [
+              <div key={aside.href} className="overlay-interior" lang={lang} data-node={aside.node.id}>
+                <Interior node={aside.node} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} href={aside.href} />
+                {aside.node.options.length > 0 && (
+                  <>
+                    <span hidden id={`${idPrefix}options-label`} lang={uiLang}>
+                      {ui.options}
+                    </span>
+                    {/* A second-level Option is a plain link to the deeper address, which renders this page with that Overlay open (10.9). */}
+                    <ul className="overlay-options" aria-labelledby={`${idPrefix}options-label`}>
+                      {aside.node.options.map((option, index) => (
+                        <li key={option.target}>
+                          <a href={followHref(aside.address, option.target)}>
+                            {text(option.title, lang, `${aside.node.id}.options[${index}].title`)}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>,
+            ]
+          : []
+      }
+      open={open}
+      cross
+      words={sheetWords(ui)}
+      uiLang={uiLang}
+      idPrefix={idPrefix}
+    />
+  )
+}
+
+/**
  * The buttons below the Bubble (10.3): the two Answers of a question Node, and `startAgain`
- * below a Node that has none -- an explanation Node or a Terminal -- to the root Node with
- * an empty Trail. The way back is the up arrow, not a button here.
+ * below a Node that has none -- a Terminal, or an explanation Node that is the centre, which
+ * only a path with no parent in it makes it (10.9) -- to the root Node with an empty Trail.
+ * The way back is the up arrow, not a button here.
  */
 function Answers({ node, view }: { node: Node; view: View }) {
   const { address, ui, uiLang, titleOf, root, idPrefix, placed } = view

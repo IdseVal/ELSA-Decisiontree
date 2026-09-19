@@ -4,9 +4,10 @@
  * it leaves the address bar, and whether it moves at all.
  *
  * - The request accounting of 11.5, by recording every request of "open the root Node,
- *   follow yes, follow one Option": exactly one page payload per navigation, each carrying
- *   the Node it opens and that Node's neighbourhood and nothing more -- at most seventeen
- *   Nodes -- no request for the Tree, and no image of a Node that is not the centre Bubble.
+ *   follow yes, open one Option": exactly one page payload per navigation and none for the
+ *   Overlay, each payload carrying the Node it opens, that Node's neighbourhood and its
+ *   asides and nothing more -- at most seventeen Nodes -- no request for the Tree, and no
+ *   image of a Node that is not the centre Bubble or an Option target's first (11.5).
  * - The URL after a slide is the URL of the plain link, for each kind of Branch that slides;
  *   back returns to the page before, and slides too.
  * - The tree layer's transform changes during a slide, and with `prefers-reduced-motion:
@@ -29,7 +30,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page, type Request } from '@playwright/test'
-import { neighbourhood } from '../../src/neighbourhood.ts'
+import { loadPage } from '../../src/neighbourhood.ts'
 import { openTree, type Tree } from '../../src/tree/loader.ts'
 import { parseUrl } from '../../src/url.ts'
 import { arrived } from './arrived.ts'
@@ -41,7 +42,6 @@ const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screensh
 const ROOT = '/ai-act-example/start'
 const QUESTION = `${ROOT}/prohibited-practices`
 const OPTION = `${QUESTION}/social-scoring`
-const EXPLANATION = `${QUESTION}/emotion-recognition-at-work/social-scoring`
 
 /** The bound of 11.2: the Node a page shows, at most fifteen neighbours and the one Overlay its URL may name. */
 const MAX_NODES = 17
@@ -72,18 +72,29 @@ function nodesIn(body: string): string[] {
   return [...new Set([...body.matchAll(/data-node\\?"?[=:]\\?"([^"\\]+)/g)].map((m) => m[1]!))].sort()
 }
 
-/** What the server may put in the page at `url`: its Node and that Node's neighbourhood (11.2). */
+/** What the server may put in the page at `url`: its centre, its chain, the placed neighbours and the asides (10.9, 11.2). */
 async function allowedNodes(url: string): Promise<string[]> {
-  const address = parseUrl(new URL(url, 'http://x').pathname, 'en', tree)!
-  const node = (await tree.getNode(address.nodeId))!
-  return [node.id, ...(await neighbourhood(tree, address, node)).map((p) => p.node.id)].sort()
+  const page = (await loadPage(tree, parseUrl(new URL(url, 'http://x').pathname, 'en', tree)!))!
+  return [
+    ...new Set([
+      page.centre.node.id,
+      ...page.centre.chain.map((a) => a.node.id),
+      ...page.neighbours.placed.map((p) => p.node.id),
+      ...page.neighbours.asides.map((a) => a.node.id),
+    ]),
+  ].sort()
 }
 
-/** The image files the Node at `url` may name: its own Images and each Option's first (5.2, 11.5). */
+/**
+ * The image files the page at `url` may name (11.5): the centre's own Images, each Option
+ * target's first Image (on the button), and -- until #81 moves them to their targets -- each
+ * Option's own first Image, which the Carousel row still shows (12.1 as amended by #55).
+ */
 async function allowedImages(url: string): Promise<string[]> {
-  const address = parseUrl(new URL(url, 'http://x').pathname, 'en', tree)!
-  const node = (await tree.getNode(address.nodeId))!
-  return node.images.map((i) => encodeURIComponent(i.file))
+  const page = (await loadPage(tree, parseUrl(new URL(url, 'http://x').pathname, 'en', tree)!))!
+  return [...page.centre.node.images, ...page.neighbours.asides.flatMap((a) => a.node.images.slice(0, 1))].map((i) =>
+    encodeURIComponent(i.file),
+  )
 }
 
 /** Records, from now on, every computed transform of the tree layer, one per frame. */
@@ -104,7 +115,7 @@ async function transforms(page: Page): Promise<string[]> {
   return [...new Set(await page.evaluate(() => (window as unknown as { transforms: string[] }).transforms))]
 }
 
-test('open the root Node, follow yes, follow one Option: one payload each, at most 17 Nodes, no image of an off-screen Node', async ({
+test('open the root Node, follow yes, open one Option: one payload per navigation and none for the Overlay, at most 17 Nodes, no image of an off-screen Node', async ({
   page,
   baseURL,
 }) => {
@@ -147,17 +158,19 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
   const yes = await page.locator('.answer--yes').getAttribute('href')
   await page.locator('.answer--yes').click()
   await arrived(page, yes!)
-  const option = await page.locator('.option').first().getAttribute('href')
-  await page.locator('.option').first().click()
-  await arrived(page, option!)
-  expect([yes, option]).toEqual([QUESTION, OPTION])
-  // Let the arriving page ask for everything it is going to ask for.
+  expect(yes).toBe(QUESTION)
+  // An Option opens its Overlay in place: no navigation, no payload, the address unchanged (10.9).
+  await page.locator('.overlay').first().locator('.sheet-open').click()
+  await expect(page.locator('.overlay').first().locator('.sheet-panel')).toBeVisible()
+  await expect(page.locator('.overlay').first().locator('h2 a')).toHaveAttribute('href', OPTION)
+  await expect(page).toHaveURL(QUESTION)
+  // Let the page ask for everything it is going to ask for.
   await page.waitForLoadState('networkidle')
 
   const pages = recorded.filter((r) => r.kind.startsWith('page'))
-  // Exactly one payload per navigation, and no prefetch of any Branch's page.
+  // Exactly one payload per navigation, none for the Overlay, and no prefetch of any Branch's page.
   // (The framework's cache-busting `_rsc` parameter is not part of the page's address.)
-  expect(pages.map((r) => r.url.replace(/[?&]_rsc=[^&]*$/, ''))).toEqual([ROOT, QUESTION, OPTION])
+  expect(pages.map((r) => r.url.replace(/[?&]_rsc=[^&]*$/, ''))).toEqual([ROOT, QUESTION])
   for (const [request, body] of bodies) {
     const entry = pages.find((r) => r.url === local(request.url(), origin))!
     const text = body.toString('utf8')
@@ -165,7 +178,7 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
     entry.bytes = body.length
     expect(entry.nodes.length, entry.url).toBeLessThanOrEqual(MAX_NODES)
     expect(entry.nodes, `the Nodes in ${entry.url}`).toEqual(await allowedNodes(entry.url))
-    // 11.4: no image URL of any Node but the one the page opens, anywhere in the payload.
+    // 11.4, 11.5: no image URL of any Node but the one the page opens and its Option targets' first, anywhere in the payload.
     const named = [...text.matchAll(/\/images\/([^"\\?\s)]+)/g)].map((m) => m[1]!)
     const allowed = await allowedImages(entry.url)
     expect(named.filter((file) => !allowed.includes(file)), `images named by ${entry.url}`).toEqual([])
@@ -209,11 +222,11 @@ test('open the root Node, follow yes, follow one Option: one payload each, at mo
 
 test.describe('the address bar', () => {
   test('after each kind of slide it is the URL of the plain link, and back returns to the page before', async ({ page }) => {
+    // The Option slide is gone (10.9, 11.1): an Option opens an Overlay and nothing moves.
     const steps: Array<[from: string, branch: string]> = [
       [ROOT, '.answer--yes'],
-      [QUESTION, '.option >> nth=0'],
-      [OPTION, '.up-arrow'],
-      [EXPLANATION, '.up-arrow'],
+      [QUESTION, '.up-arrow'],
+      // A Terminal's way up is the up arrow too: the `back` Branch is gone (10.9).
       [`${QUESTION}/prohibited`, '.up-arrow'],
     ]
     for (const [from, branch] of steps) {
@@ -339,9 +352,10 @@ test('the moment just after the payload lands, screenshot: the page left behind 
   await expect(page.locator('.tree-frame[aria-hidden]')).toHaveCount(1)
   await expect(page.locator('.tree-frame[aria-hidden] img')).toHaveCount(0)
 
-  // Two frames, two Bubbles, and still no id written twice: every `aria-labelledby` and
-  // `aria-describedby` names the one element it means (10.3), in either frame.
-  await expect(page.locator('[id$="node-title"]')).toHaveCount(2)
+  // Two frames, two Bubbles, the centre's asides each with a heading in its closed Overlay
+  // (10.9), and still no id written twice: every `aria-labelledby` and `aria-describedby`
+  // names the one element it means (10.3), in either frame.
+  await expect(page.locator('[id$="node-title"]')).toHaveCount(2 + (await page.locator('.overlay-interior').count()))
   const ids = await page.evaluate(() => [...document.querySelectorAll('[id]')].map((element) => element.id))
   expect(ids.filter((id, index) => ids.indexOf(id) !== index), 'ids written twice').toEqual([])
 
@@ -379,7 +393,7 @@ test('a slide started with a Sheet open closes it first, so no panel travels wit
 test.describe('with JavaScript switched off', () => {
   test.use({ javaScriptEnabled: false })
 
-  test('a Branch is a link that loads the target page, and no neighbour is in the document', async ({ page }) => {
+  test('a Branch is a link that loads the target page, an Option a disclosure, and no neighbour is in the document', async ({ page }) => {
     await page.goto(ROOT)
     const payloads: string[] = []
     page.on('request', (request) => isPagePayload(request) && payloads.push(request.resourceType()))
@@ -387,7 +401,10 @@ test.describe('with JavaScript switched off', () => {
     const href = await page.locator('.answer--yes').getAttribute('href')
     await page.locator('.answer--yes').click()
     await expect(page).toHaveURL(href!)
-    await page.locator('.option').first().click()
+    // The Option opens its Overlay in place (14); its heading is the plain link to the aside's address.
+    await page.locator('.overlay').first().locator('.sheet-open').click()
+    await expect(page).toHaveURL(QUESTION)
+    await page.locator('.overlay').first().locator('h2 a').click()
     await expect(page).toHaveURL(OPTION)
 
     expect(payloads).toEqual(['document', 'document'])

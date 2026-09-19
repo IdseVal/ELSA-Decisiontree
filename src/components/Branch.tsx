@@ -2,8 +2,8 @@
  * One Link drawn as a Branch (docs/specs/application.md 10.3): an ordinary `<a href>` that
  * shows its target's title -- from the title index, never from a second Node read -- with,
  * where the kind of Branch asks for it, a chrome word and a colon before the title in one
- * run (`yes`, `no`, `startAgain`: "Yes: Annex III areas") or the Option's first Image beside
- * it as a thumbnail.
+ * run (`yes`, `no`, `startAgain`: "Yes: Annex III areas"). An Option is not a Branch since
+ * 10.9: it is the control of its Overlay (`TreeView`), and nothing slides to it.
  *
  * Every Branch is a plain link so that following one works without JavaScript (section 14);
  * the slide of section 11 is an enhancement layered on the same element. A Branch whose
@@ -19,7 +19,6 @@ export function Branch({
   title,
   word,
   wordLang,
-  image,
   className,
   slides = false,
   name,
@@ -31,11 +30,6 @@ export function Branch({
   word?: string
   /** Set when the chrome word speaks another language than the title under it. */
   wordLang?: string | undefined
-  /**
-   * An Option's first Image, shown at 64 pixels beside the label (10.3). `withheld` in a
-   * neighbour frame: the same 64 pixels, and no image URL (11.4).
-   */
-  image?: { src: string; alt: string } | 'withheld'
   className: string
   /** Its target has a placement in the neighbourhood, so following it slides there (11.1). */
   slides?: boolean
@@ -49,19 +43,6 @@ export function Branch({
 }) {
   return (
     <a className={`branch ${className}`} href={href} data-slide={slides ? '' : undefined} aria-label={name}>
-      {image === 'withheld' && <span className="branch-image" />}
-      {image && image !== 'withheld' && (
-        // `option-image` is the name the first Tree's walk (tests/first-tree/walk.spec.ts,
-        // PR #54) finds an Option's picture by; the Branch is the only one that carries one.
-        <img
-          className="branch-image option-image"
-          src={image.src}
-          alt={image.alt}
-          width={64}
-          height={64}
-          loading="lazy"
-        />
-      )}
       <span className="branch-label">
         {/* One run, not a word stacked over a title: the label is read in one breath (10.3). */}
         {word !== undefined && (

@@ -217,14 +217,15 @@ test.describe('the image files', () => {
     expect(onEnlarge).toEqual([])
   })
 
-  test("the first Tree's annex-i-legislation: its main image, nothing else (11.5, 12.4)", async ({ page }) => {
+  test("the first Tree's annex-i-legislation: its main image and one file per Option, its target's first Image, nothing else (11.5, 12.4)", async ({ page }) => {
     // Its eight Options' pictures are their targets' main images since elsa-tree/3 (#79), and
-    // drawing them on the Options' buttons is #80's: this page asks for its own Image alone.
+    // each Option's button shows its target's (10.3, #80): the one file per Option 11.5 allows.
     await page.setViewportSize({ width: 1280, height: 640 })
     const tree = await openTree(path.join(repo, 'trees', FIRST_TREE))
     const node = (await tree.getNode('annex-i-legislation'))!
-    const expected = node.images.map((image) => image.file)
-    expect(expected).toHaveLength(1)
+    const targets = await Promise.all(node.options.map((option) => tree.getNode(option.target)))
+    const expected = [...node.images, ...targets.map((target) => target!.images[0]!)].map((image) => image.file)
+    expect(expected).toHaveLength(1 + 8)
 
     const onLoad = await imageRequests(page, () => page.goto(`${firstTree}/${FIRST_TREE}/annex-i-legislation`))
     recordRequests(`first Tree, annex-i-legislation, 1280 x 640`, 'load', onLoad)
@@ -367,9 +368,9 @@ test.describe('names for assistive technology', () => {
   test('a Node without Images says nothing where its main image would be', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
     await page.goto(`${cycle}/cycle/first`)
-    await expect(page.locator('.main-image--empty')).toBeVisible()
-    await expect(page.locator('.main-image--empty')).toHaveAttribute('aria-hidden', 'true')
-    const box = (await page.locator('.main-image--empty').boundingBox())!
+    await expect(page.locator('.bubble .main-image--empty')).toBeVisible()
+    await expect(page.locator('.bubble .main-image--empty')).toHaveAttribute('aria-hidden', 'true')
+    const box = (await page.locator('.bubble .main-image--empty').boundingBox())!
     expect([box.width, box.height]).toEqual([60, 60])
   })
 
@@ -381,10 +382,18 @@ test.describe('names for assistive technology', () => {
       await page.setViewportSize({ width: 1280, height: 640 })
       // The example Tree's `social-scoring`: scoreboard.png, which elsa-tree/3 moved there from
       // the Option of `prohibited-practices` that leads to it (#79). Playwright's own server serves it.
-      await page.goto(`/ai-act-example/start/prohibited-practices/social-scoring${lang === 'en' ? '' : `?lang=${lang}`}`)
+      // As the centre, which a path with no parent makes it, and in the Overlay its URL under
+      // its parent opens (10.9): the same names, from ids the Overlay prefixes.
+      const query = lang === 'en' ? '' : `?lang=${lang}`
+      await page.goto(`/ai-act-example/social-scoring${query}`)
       await expect(page.locator('.bubble a.main-image')).toHaveAccessibleName(name)
       await expect(page.locator('.bubble a.main-image')).toHaveAccessibleDescription('Illustration: Example Studio, CC0 1.0')
       await expect(page.locator('.thumbnail')).toHaveCount(0)
+
+      await page.goto(`/ai-act-example/start/prohibited-practices/social-scoring${query}`)
+      const inOverlay = page.locator('.overlay[open] .overlay-interior a.main-image')
+      await expect(inOverlay).toHaveAccessibleName(name)
+      await expect(inOverlay).toHaveAccessibleDescription('Illustration: Example Studio, CC0 1.0')
     })
   }
 })

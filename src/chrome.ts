@@ -41,13 +41,12 @@ export interface Chrome {
   outcomeApplicable: string
   outcomeProhibited: string
   outcomeRefer: string
-  explanationOnly: string
   disclaimer: string
   notFoundTitle: string
   notFoundText: string
   /** Read out after a link that leaves the app, so the new tab is not a surprise. */
   opensInNewTab: string
-  /** The one button below an explanation Node or a Terminal: the root Node with an empty Trail (10.3). */
+  /** The one button below a Terminal: the root Node with an empty Trail (10.3). */
   startAgain: string
   /**
    * The up arrow's accessible name, from the parent's title (10.2). A function of the title,
@@ -95,7 +94,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcomeApplicable: 'Applies',
     outcomeProhibited: 'Prohibited',
     outcomeRefer: 'Look elsewhere',
-    explanationOnly: 'This step only explains. Go back to answer the question.',
     disclaimer:
       'This is not legal advice. Read the sources and consult a lawyer before you rely on an outcome.',
     notFoundTitle: 'This step does not exist',
@@ -131,7 +129,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcomeApplicable: 'Van toepassing',
     outcomeProhibited: 'Verboden',
     outcomeRefer: 'Elders geregeld',
-    explanationOnly: 'Deze stap geeft alleen uitleg. Ga terug om de vraag te beantwoorden.',
     disclaimer:
       'Dit is geen juridisch advies. Lees de bronnen en raadpleeg een jurist voordat u op een uitkomst vertrouwt.',
     notFoundTitle: 'Deze stap bestaat niet',

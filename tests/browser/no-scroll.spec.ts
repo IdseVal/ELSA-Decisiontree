@@ -10,17 +10,17 @@
  * catches a nested element quietly overflowing behind `overflow: hidden`, which the first
  * two would let through.
  *
- * The pages: the four situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
- * at a 49-entry Trail (every maximum the format allows at once), the two Nodes with Images
- * of `tests/fixtures/carousel/` (issue #43), the eight explainers at every maximum of
- * `tests/fixtures/explainers/` (issue #83), and the longest Node of the first Tree once it
- * validates and its heaviest, `annex-i-legislation` (issue #55) -- each in both languages, and
- * each again with every Sheet it offers open, every Image it carries enlarged and every
- * explainer panel it marks opened by focus, with and without JavaScript -- and each
- * in the middle of a slide (section 11): halfway out of the page, and halfway back into it on
- * the history step. A slide follows an Answer or the up arrow; on the full Node and the question
- * Node with Options it also follows an Option, the side slide whose layer is a fraction of a
- * frame taller.
+ * The pages: the five situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
+ * at a 49-entry Trail (every maximum the format allows at once), `tests/fixtures/overlay/`
+ * (the Overlay of an explanation Node at every maximum with eight Options of its own, 10.9),
+ * the two Nodes with Images of `tests/fixtures/carousel/` (issue #43), the eight explainers
+ * at every maximum of `tests/fixtures/explainers/` (issue #83), and the longest Node of the
+ * first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55) -- each in
+ * both languages, and each again with every Sheet it offers open -- the Overlay of each
+ * Option among them -- every Image it carries enlarged and every explainer panel it marks
+ * opened by focus, with and without JavaScript -- and each in the middle of a slide
+ * (section 11): halfway out of the page, and halfway back into it on the history step. A
+ * slide follows an Answer or the up arrow; nothing slides to an Option (11.1).
  *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
  * pull request can paste the numbers rather than describe them (10.6, last paragraph).
@@ -33,7 +33,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { openTree } from '../../src/tree/loader.ts'
-import { arrived } from './arrived.ts'
+import { arrived, escapeUrlOpened } from './arrived.ts'
 import { BASE_PORT, serve, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -53,6 +53,9 @@ const FULL_NODE_SLIDING_PORT = FULL_NODE_PORT + 4
 const FULL_NODE_TRIGGERS_PORT = FULL_NODE_PORT + 5
 const EXPLAINERS_NO_SCRIPT_PORT = FULL_NODE_PORT + 6
 const EXPLAINERS_PORT = FULL_NODE_PORT + 7
+// Its own port: on the trigger test's, that test measured this fixture's 404 page and passed (PR #99).
+const OVERLAY_PORT = FULL_NODE_PORT + 8
+const OVERLAY_NO_SCRIPT_PORT = FULL_NODE_PORT + 9
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -88,14 +91,15 @@ const STEP_VIEWPORTS = [
   [791, 800],
 ] as const
 
-/** The four situations of 10.3, as pages of the example Tree (playwright.config.ts serves it). */
+/** The five situations of 10.3, as pages of the example Tree (playwright.config.ts serves it). */
 const EXAMPLE_PAGES = [
   { what: 'question Node with Options', url: '/ai-act-example/start/prohibited-practices' },
   { what: 'question Node without Options (the root)', url: '/ai-act-example/start' },
   {
-    what: 'explanation Node, three-entry Trail',
+    what: "explanation Node's URL, three-entry Trail (the parent's page, the Overlay open)",
     url: '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
   },
+  { what: 'explanation Node as the centre (no parent in the path)', url: '/ai-act-example/social-scoring' },
   { what: 'Terminal', url: '/ai-act-example/start/prohibited-practices/prohibited' },
 ] as const
 
@@ -105,9 +109,9 @@ const EXAMPLE_PAGES = [
  */
 const ISSUE_59 = [
   { url: EXAMPLE_PAGES[0].url, viewport: '768x1024' },
-  { url: EXAMPLE_PAGES[2].url, viewport: '768x1024' },
-  { url: EXAMPLE_PAGES[2].url, viewport: '390x844' },
-  { url: EXAMPLE_PAGES[2].url, viewport: '360x640' },
+  { url: EXAMPLE_PAGES[3].url, viewport: '768x1024' },
+  { url: EXAMPLE_PAGES[3].url, viewport: '390x844' },
+  { url: EXAMPLE_PAGES[3].url, viewport: '360x640' },
 ] as const
 
 /** The full Node reached by visiting itself 49 times: adjacency is not checked (4.3). */
@@ -130,6 +134,8 @@ interface Measured {
   body: Box
   /** Absent below the floor, where the notice replaces the tree view (10.4). */
   bubble: Box | null
+  /** The open Overlay's panel, when one is open (10.9). */
+  overlay: Box | null
   /** Every element whose content is wider or taller than itself, with its numbers. */
   overflowing: string[]
 }
@@ -190,11 +196,13 @@ async function measure(page: Page): Promise<Measured> {
       }
     }
     const bubble = document.querySelector('.bubble')
+    const overlay = document.querySelector('.overlay[open] > .sheet-panel')
     return {
       inner: { w: window.innerWidth, h: window.innerHeight },
       doc: box(document.documentElement),
       body: box(document.body),
       bubble: bubble && box(bubble),
+      overlay: overlay && box(overlay),
       overflowing,
     }
   })
@@ -227,12 +235,28 @@ async function measureEverywhere(
   for (const [width, height] of viewports) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
-    await page.goto(url)
+    // The page asked for, not a 404, which never scrolls: the full Node's trigger test once
+    // passed on the overlay fixture's server, which had been given the same port (PR #99).
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
     await expect(page.locator('main')).toBeVisible()
 
+    // A URL that names an explanation Node arrives with its Overlay open (10.9): the plain
+    // row is that, the `overlay` column filled.
+    const urlOpened = page.locator('details.sheet[open]')
     const plain = await measure(page)
-    rows.push({ page: what, lang, viewport, sheet: '', measured: plain })
+    rows.push({ page: what, lang, viewport, sheet: (await urlOpened.count()) > 0 ? 'open by URL' : '', measured: plain })
     assertFits(plain, `${what} (${lang}) at ${viewport}`)
+
+    // Closed before each Sheet is opened in turn, as a reader closes it: Escape with the
+    // script, the button's second click without it. Where the fan has collapsed the button
+    // is gone with it and a reader without the script has only the browser's back; the
+    // disclosure is shut directly, so this viewport's other Sheets are still measured.
+    if ((await urlOpened.count()) > 0) {
+      if (script) await escapeUrlOpened(page)
+      else if (await urlOpened.locator('.sheet-open').isVisible()) await urlOpened.locator('.sheet-open').click()
+      else await urlOpened.evaluate((details: HTMLDetailsElement) => details.removeAttribute('open'))
+      await expect(urlOpened).toHaveCount(0)
+    }
 
     // Each explainer panel the Bubble marks, opened by focus in turn (10.8): placed beside its
     // term by the script, or at the foot of the text area by CSS alone without it.
@@ -307,8 +331,8 @@ async function measureEverywhere(
   }
 }
 
-/** A control that slides on every kind of Node: an Answer, or the up arrow where there are none. */
-const DOWN = { selector: '.answer--yes, .bubble--explanation .up-arrow, .bubble--terminal .up-arrow', label: '' }
+/** A control that slides on every kind of Node: an Answer, or the up arrow where there are none (a Terminal, 10.3). */
+const DOWN = { selector: '.answer--yes, .tree-frame:not(:has(.answer--yes)) .up-arrow', label: '' }
 
 /**
  * Measures `url` at every viewport above the floor in the middle of a slide, both halves of
@@ -325,9 +349,11 @@ async function measureSliding(page: Page, url: string, what: string, lang: strin
   for (const [width, height] of VIEWPORTS.filter(([w, h]) => w > 320 && h > 480)) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
-    await page.goto(url)
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
     await expect(page.locator('main')).toBeVisible()
 
+    // A slide never begins with a Sheet open (11.3): the Overlay a URL opened is closed first.
+    if ((await page.locator('.sheet[open]').count()) > 0) await escapeUrlOpened(page)
     const branch = page.locator(follow.selector).first()
     if (!(await branch.isVisible())) {
       skipped.push(viewport)
@@ -507,7 +533,8 @@ for (const { what, url } of EXAMPLE_PAGES) {
   }
 }
 
-for (const { what, url } of EXAMPLE_PAGES) {
+// Nothing slides from an explanation Node that is the centre: no parent above, `startAgain` below (11.1).
+for (const { what, url } of EXAMPLE_PAGES.filter((page) => page !== EXAMPLE_PAGES[3])) {
   for (const lang of LANGUAGES) {
     test(`${what}, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
       test.slow()
@@ -537,6 +564,8 @@ for (const lang of LANGUAGES) {
         const viewport = `${width}x${height}`
         await page.setViewportSize({ width, height })
         await page.goto(inLang(url, lang))
+        // The page arrives with its Overlay open (10.9), whose backdrop veils the chrome bar.
+        await escapeUrlOpened(page)
         const share = page.locator('button.share')
         if (!(await share.isVisible())) continue
         await share.click()
@@ -570,39 +599,26 @@ for (const lang of LANGUAGES) {
 }
 
 /**
- * The side slides (11.1): the one direction whose layer is a frame wider and a fraction of a
- * frame taller or higher, because an Option's frame sits a quarter-row off the middle. The
- * first Option of eight is up and to the left, the last down and to the right: both signs of
- * the fraction, both edges the fixed layer can grow past.
+ * The Overlay's fixture (10.9): a question Node with five Options, the first of which is an
+ * explanation Node at every maximum with eight Options of its own -- the Overlay at its
+ * largest -- measured at rest, with every Overlay open in turn, and on the URL that opens it.
  */
-const SIDE = [
-  { selector: '.option >> nth=0', label: ', first Option' },
-  { selector: '.option >> nth=-1', label: ', last Option' },
+const OVERLAY_PAGES = [
+  { what: 'overlay fixture: five Options', url: '/overlay/five' },
+  { what: 'overlay fixture: the largest Overlay, open by URL', url: '/overlay/five/big' },
+  { what: 'overlay fixture: a second-level Overlay, open by URL', url: '/overlay/five/big/o1' },
 ] as const
 
-/** Where the eight Options have collapsed into their Sheet (10.5, steps 3 and 4), so no side slide starts. */
-const FULL_NODE_OPTIONS_COLLAPSED = ['1024x768', '768x1024', '390x844', '360x640']
+/** The Overlay fixture's server, started once for every test of this file that needs it. */
+const overlayOrigin = () => served(fixtures, 'overlay', OVERLAY_PORT)
 
-for (const lang of LANGUAGES) {
-  test(`the full Node at a 49-entry Trail, ${lang}, never scrolls in the middle of a slide to an Option`, async ({ page }) => {
-    test.slow()
-    const url = `${await fullNodeSlidingOrigin()}${inLang(FULL_NODE_URL, lang)}`
-    for (const side of SIDE) {
-      expect(await measureSliding(page, url, 'full Node, 49-entry Trail', lang, side), `${side.label}: viewports with no Option on screen`).toEqual(
-        FULL_NODE_OPTIONS_COLLAPSED,
-      )
-    }
-  })
-}
-
-// Two Options, one a column: a side slide straight across, down to the tablet, where eight
-// Options have collapsed into their Sheet and two still stand beside the Bubble.
-for (const lang of LANGUAGES) {
-  test(`the question Node with Options, ${lang}, never scrolls in the middle of a slide to an Option`, async ({ page }) => {
-    test.slow()
-    const skipped = await measureSliding(page, inLang(EXAMPLE_PAGES[0].url, lang), EXAMPLE_PAGES[0].what, lang, SIDE[0])
-    expect(skipped, 'viewports with no Option on screen').toEqual(['390x844', '360x640'])
-  })
+for (const { what, url } of OVERLAY_PAGES) {
+  for (const lang of LANGUAGES) {
+    test(`${what}, ${lang}, never scrolls at any viewport of 10.6, each Overlay open in turn`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, `${await overlayOrigin()}${inLang(url, lang)}`, what, lang)
+    })
+  }
 }
 
 /**
@@ -662,6 +678,20 @@ for (const lang of LANGUAGES) {
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail, at the triggers', lang, true, STEP_VIEWPORTS)
   })
 }
+
+// What a face cannot hide: the rows of 10.1 and 10.5 in pixels. The full Node's text takes 368
+// of the text area in Liberation Sans and less in Segoe UI, so a text area two pixels short
+// passed on Windows and failed on the runner (PR #99); the budget is the same in every face.
+test('the full Node keeps the text area 10.5 budgets and a 760 Bubble down to 1200 wide: the collapsed Options stand beside it, not in a row of their own', async ({ page }) => {
+  const origin = await served(fixtures, 'full-node', FULL_NODE_TRIGGERS_PORT)
+  for (const [width, height] of [[1280, 640], [1280, 632], [1279, 640], [1200, 640], [1200, 632]] as const) {
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(`${origin}${FULL_NODE_URL}`))?.status()).toBe(200)
+    // Step 1 frees 8 pixels, to 632: the text area is the guarantee's 394 at both ends of it.
+    expect((await page.locator('.bubble').boundingBox())!.width, `${width}x${height}: the Bubble`).toBe(760)
+    expect((await page.locator('.bubble-text').boundingBox())!.height, `${width}x${height}: the text area`).toBe(394)
+  }
+})
 
 // A page with a Carousel mid-slide: the strip rides in the layer, and the neighbour it slides
 // towards has an empty row where its Carousel will be (11.4).
@@ -727,6 +757,15 @@ test.describe('with JavaScript switched off', () => {
     test(`${what} never scrolls without JavaScript`, async ({ page }) => {
       test.slow()
       await measureEverywhere(page, url, `${what}, no JavaScript`, 'en', false)
+    })
+  }
+
+  // The Overlay at its largest, without the script: a native disclosure over the page (14).
+  for (const { what, url } of OVERLAY_PAGES) {
+    test(`${what} never scrolls without JavaScript`, async ({ page }) => {
+      test.slow()
+      const origin = await served(fixtures, 'overlay', OVERLAY_NO_SCRIPT_PORT)
+      await measureEverywhere(page, `${origin}${url}`, `${what}, no JavaScript`, 'en', false)
     })
   }
 
@@ -806,13 +845,13 @@ test.describe('with JavaScript switched off', () => {
 function table(all: Row[]): string {
   const fraction = (a: number, b: number): string => `${a}/${b}`
   const lines = [
-    '| page | lang | viewport | Sheet open | document h/inner h | document w/inner w | body h | body w | bubble h/client h | bubble w/client w | overflowing elements |',
-    '|---|---|---|---|---|---|---|---|---|---|---|',
+    '| page | lang | viewport | Sheet open | document h/inner h | document w/inner w | body h | body w | bubble h/client h | bubble w/client w | overlay h/client h | overlay w/client w | overflowing elements |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
   ]
   for (const row of all) {
     const m = row.measured
     lines.push(
-      `| ${row.page} | ${row.lang} | ${row.viewport} | ${row.sheet || '-'} | ${fraction(m.doc.sh, m.inner.h)} | ${fraction(m.doc.sw, m.inner.w)} | ${m.body.sh} | ${m.body.sw} | ${m.bubble ? fraction(m.bubble.sh, m.bubble.ch) : '- (notice)'} | ${m.bubble ? fraction(m.bubble.sw, m.bubble.cw) : '-'} | ${m.overflowing.length === 0 ? 'none' : m.overflowing.join('; ')} |`,
+      `| ${row.page} | ${row.lang} | ${row.viewport} | ${row.sheet || '-'} | ${fraction(m.doc.sh, m.inner.h)} | ${fraction(m.doc.sw, m.inner.w)} | ${m.body.sh} | ${m.body.sw} | ${m.bubble ? fraction(m.bubble.sh, m.bubble.ch) : '- (notice)'} | ${m.bubble ? fraction(m.bubble.sw, m.bubble.cw) : '-'} | ${m.overlay ? fraction(m.overlay.sh, m.overlay.ch) : '-'} | ${m.overlay ? fraction(m.overlay.sw, m.overlay.cw) : '-'} | ${m.overflowing.length === 0 ? 'none' : m.overflowing.join('; ')} |`,
     )
   }
   return `${lines.join('\n')}\n`

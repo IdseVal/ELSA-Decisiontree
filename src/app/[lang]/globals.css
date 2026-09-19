@@ -8,12 +8,13 @@
  * (10.6); nothing here may be taller or wider than the box it is in, and
  * tests/browser/no-scroll.spec.ts measures every element to make sure.
  *
- * The Bubble is the one idea. It is round, it holds the Node, and everything else is a
- * control drawn relative to it: the up arrow on its top outline, the Options beside on short
- * ticks, the Answers below. Below the guaranteed viewport of 1280 x 640 the layout gives
- * things up in the fixed order of 10.5 -- the strip, the Option columns, the Options, the
- * main image, the Sources, the type size, and only then the whole view -- each step a media
- * query at the bottom of this file, in that order, and never a scrollbar.
+ * The Bubble is the one idea. It is round, it holds the Node, and everything else is drawn
+ * relative to it: the up arrow on its top outline, the Option buttons fanned out on its curve like a mind
+ * map, each on a short connector, the Answers below. Below the guaranteed viewport of
+ * 1280 x 640 the layout gives things up in the fixed order of 10.5 -- the strip, the fan (it
+ * straightens, then moves below, then collapses), the main image, the Sources, the type
+ * size, and only then the whole view -- each step a media query at the bottom of this file,
+ * in that order, and never a scrollbar.
  *
  * NOTHING HERE NAMES A COLOUR OR A FONT. Both come from the Tree, as the seven `--elsa-*`
  * roles and the two `--elsa-font-*` stacks that `src/theme.ts` emits into the document
@@ -58,7 +59,13 @@
    */
   --rim-x: 58px;
   --rim-y: 24px;
-  --bubble-radius: 223px;
+  /*
+   * A pill: the radius is half the Bubble's height whatever that height is (223 at the
+   * guaranteed 446), so the curve the fan of Option buttons follows (below) is one formula.
+   * Where the Bubble narrows (792 and 480) the radius is fixed again, so its corners stay
+   * clear of the text.
+   */
+  --bubble-radius: 999px;
   /* The main image's slot above the title, and the gap under it (10.3, 10.7). */
   --main-image: 60px;
   --page-inset: 0px;
@@ -69,8 +76,8 @@
    */
   --up-size: 48px;
   --up-row: calc(var(--up-size) - var(--rim-y) + 2px);
-  /* The tick from an Option to the Bubble: inside the Option's own box, short of the gap. */
-  --tick: 12px;
+  /* The connector from an Option button to the Bubble's outline: its length. */
+  --connector: 20px;
 
   /* The type scale tree-format.md 5.7 measured the limits with. */
   --body: 16px;
@@ -444,15 +451,6 @@ a.language:hover,
   overflow-wrap: anywhere;
 }
 
-.branch-image {
-  flex: none;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--elsa-surface);
-}
-
 /* --- the Bubble (10.1) ------------------------------------------------------------- */
 
 .bubble {
@@ -623,7 +621,7 @@ a.language:hover,
   display: block;
 }
 
-/* --- the rim: the up arrow and the outcome badge above, the explanation hint below (10.1) */
+/* --- the rim: the up arrow and the outcome badge above (10.1) -------------------- */
 
 /*
  * The way back (10.2), in the Answer buttons' style: filled with the walk's controls' colour
@@ -705,20 +703,6 @@ a.language:hover,
   border-color: var(--elsa-danger);
 }
 
-.hint {
-  position: absolute;
-  bottom: 4px;
-  left: 0;
-  right: 0;
-  width: fit-content;
-  max-width: 70%;
-  margin: 0 auto;
-  font-size: var(--small);
-  line-height: var(--small-line);
-  color: var(--elsa-text-muted);
-  text-align: center;
-}
-
 /* --- Sources: a heading and two lines inside the text area, or one control (10.5, step 6) */
 
 .sources {
@@ -785,91 +769,287 @@ a.language:hover,
   text-align: center;
 }
 
-/* --- Options: the Branches beside (10.3) ------------------------------------------- */
+/* --- Options: the fan beside the Bubble (10.3, ADR-78-fan-out-and-option-picture) ---- */
 
-.options-columns {
-  display: contents;
-}
-
+/*
+ * The fan's box is the Bubble's: the middle row across all five columns, as tall as the
+ * Bubble and centred with it, so a button placed from its centre is placed from the
+ * Bubble's. It is a size container, which is what lets each button read the Bubble's height
+ * in `cqh`. It lies over the Bubble's cell and lets every click through except on a button.
+ */
 .options {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  min-width: 0;
+  grid-column: 2 / 7;
+  grid-row: bubble;
+  position: relative;
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  height: 100%;
+  max-height: 520px;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-/* Each column spans its gap too, so the tick to the Bubble is inside the entry's own box. */
-.options--left {
-  grid-column: 2 / 4;
-  grid-row: bubble;
-}
-
-.options--right {
-  grid-column: 5 / 7;
-  grid-row: bubble;
-}
-
-.options li {
-  position: relative;
-}
-
-.options--left li {
-  padding-right: var(--tick);
-}
-
-.options--right li {
-  padding-left: var(--tick);
-}
-
-/* The tick from each Option to the Bubble, across the gap. */
-.options li::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: var(--tick);
-  border-top: 1px solid var(--rule);
-}
-
-.options--left li::after {
-  right: 0;
-}
-
-.options--right li::after {
-  left: 0;
+  container-type: size;
+  pointer-events: none;
 }
 
 /*
- * 248 wide beside the Bubble: 24 of padding, a 64-pixel thumbnail and its 8-pixel gap leave
- * 152 for the label, which is what a 60-character Option title needs for three lines of
- * 13-pixel text in a wide fallback face -- at 136 a Dutch one took four, and 96 pixels of
- * Branch in the 90 the column gives each. Four Branches and three gaps are 352 of the 360.
+ * One button, on the curve. Its side (`data-side`), its row `--i` and the rows on its side
+ * `--m` come from the markup; everything else is the Bubble's height H, read as a number:
+ * the button's centre is (i + 1/2) H / m - H / 2 from the Bubble's centre, and its inner
+ * edge 20 pixels outside the outline at that height, at (380 - R) + sqrt(R^2 - y^2) + 20
+ * from the centre line, R = H / 2 the radius and 380 - R half the Bubble's straight middle.
+ * At the spec's 446 that is the fan of 10.3 to the pixel: the middle buttons furthest out
+ * (inner edge 400), the top and bottom ones 75 nearer, 111.5 of pitch on a side of four. A
+ * button is 232 x 96; on a row shorter than four of them the pitch shrinks and so does the
+ * button, to the row's quarter, down to the 80 pixels its four lines of label take.
+ *
+ * The 96 is a minimum, not a height: a Dutch title of 60 characters can run to five lines
+ * where 10.7 counted four ("Seksueel beeldmateriaal zonder toestemming (2-12-2026)" in the
+ * first Tree), and a button that holds them is 102 tall, still 9 clear of its neighbour at
+ * the pitch of a side of four. It grows downward from the row's top: that button's centre sits
+ * 3 below the curve, which no eye finds. It is not centred by a transform, because a
+ * transform on the item would make it the containing block of the panel and the backdrop
+ * (`position: fixed`), which would then lie inside the item instead of over the page.
+ *
+ * The item's box is the button and, at its inner end, the connector's 20 pixels, so that
+ * the connector lies inside it and no element holds content wider than itself (10.6).
+ *
+ * The collapse of 10.5, step 4, is `--fan: none`, set on the list by the breakpoints below:
+ * every button and connector goes and the fan takes no room. An Overlay that is open outlives
+ * it -- the explanation Node a URL opened, at a phone's width (10.9) -- as an empty box with
+ * only its panel over the page.
  */
-.option {
-  justify-content: flex-start;
+.options > li {
+  --bubble-h: tan(atan2(100cqh, 1px));
+  --r: calc(var(--bubble-h) / 2);
+  --y: calc((var(--i) + 0.5) * var(--bubble-h) / var(--m) - var(--r));
+  --x: calc(380 - var(--r) + sqrt(var(--r) * var(--r) - var(--y) * var(--y)) + 20);
+  --option-h: min(96px, calc(100cqh / var(--m)));
+  display: var(--fan, block);
+  position: absolute;
+  box-sizing: border-box;
+  top: calc(50% + var(--y) * 1px - var(--option-h) / 2);
+  width: calc(232px + var(--connector));
+  min-height: var(--option-h);
+  pointer-events: auto;
+}
+
+.options > li[data-side="right"] {
+  left: calc(50% + var(--x) * 1px - var(--connector));
+  padding-left: var(--connector);
+}
+
+.options > li[data-side="left"] {
+  right: calc(50% + var(--x) * 1px - var(--connector));
+  padding-right: var(--connector);
+}
+
+.options > li:has(> .overlay[open]) {
+  display: block;
+}
+
+/* The connector: 20 pixels, 2 wide, from the button's inner edge to the outline at its centre height. */
+.options > li::before {
+  content: "";
+  display: var(--fan, block);
+  position: absolute;
+  top: calc(50% - 1px);
+  width: var(--connector);
+  border-top: 2px solid var(--rule);
+}
+
+.options > li[data-side="right"]::before {
+  left: 0;
+}
+
+.options > li[data-side="left"]::before {
+  right: 0;
+}
+
+/* The disclosure is its button: the row is as tall as the button, and the button at least the row's minimum. */
+.options > li > .overlay {
+  display: block;
+}
+
+/*
+ * The button is the Overlay's summary: the target's main image as a 48-pixel round picture
+ * at the inner end, an 8-pixel gap, and the title at 16 pixels on 20-pixel lines, at most
+ * four lines in the 152 pixels left of 232 (12 of padding each side). Outlined in the rule
+ * shade, filled `surface`, a wash of `accent` on hover.
+ */
+.overlay > .sheet-open {
+  display: var(--fan, flex);
+  align-items: center;
   gap: 8px;
-  min-height: 82px;
-  padding: 8px 12px;
-  border-radius: 41px;
+  width: 100%;
+  min-height: var(--option-h);
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 48px;
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--elsa-text);
+  background: var(--elsa-surface);
   text-align: left;
+  white-space: normal;
+  transition: border-color 160ms var(--ease), background-color 160ms var(--ease);
 }
 
-.option .branch-label {
-  align-items: flex-start;
-  text-align: left;
-}
-
-.option:hover {
+.overlay > .sheet-open:hover {
+  color: var(--elsa-text);
+  border-color: var(--accent-read);
   background: var(--wash);
+}
+
+/* On the left of the Bubble the inner end is the right: the picture goes there, and the title reads towards it. */
+.options > li[data-side="left"] .sheet-open {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.option-image {
+  flex: none;
+  display: block;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--elsa-background);
+}
+
+/* A target without Images: the empty slot, a faint circle in the rule shade (10.3). */
+.option-image--empty {
+  border: 1px solid var(--rule);
+}
+
+.option-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The URL-named Overlay with no button of its own (10.9): its summary is not on the page. */
+.overlay--unbuttoned > .sheet-open {
+  display: none;
+}
+
+.options-extra {
+  display: contents;
 }
 
 .options-collapsed {
   display: none;
   grid-area: options;
   justify-self: center;
+}
+
+/* --- the Overlay: an Option's target laid over the page (10.9) --------------------- */
+
+/*
+ * The panel is 760 x 608, centred, 24-pixel bands above and below and 60 each side: 640 x
+ * 560 of content, the Interior at the Bubble's own widths and, under it, the target's own
+ * Options as at most eight lines of plain links. It never scrolls (10.6): below the
+ * guarantee the bands close, the type steps down with the page, and the Sources and the
+ * Options wrap as inline lists.
+ */
+.overlay > .sheet-panel {
+  inset: 0;
+  width: 760px;
+  height: 608px;
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  margin: auto;
+  padding: 24px 60px;
+  gap: 0;
+  align-items: stretch;
+  font-size: var(--body);
+  line-height: var(--body-line);
+}
+
+/* The cross: a 32-pixel round button in the panel's top right corner, first on the panel. */
+.sheet-close--cross {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  color: var(--elsa-text);
+  background: var(--elsa-surface);
+  cursor: pointer;
+  transition: border-color 160ms var(--ease), background-color 160ms var(--ease);
+}
+
+.sheet-close--cross svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+
+.sheet-close--cross:hover {
+  border-color: var(--accent-read);
+  background: var(--wash);
+}
+
+/* Laid out from the top, as the Bubble's text area is (10.3): the title at the same height in both. */
+.overlay-interior {
+  /* The containing block of an explainer panel, as the Bubble's text area is (10.8). */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  min-height: 0;
+}
+
+/*
+ * The heading links to the explanation Node's own address (10.9): the one plain link that
+ * names the aside. The child only: the Sources' chrome heading is an `h2` too, and keeps the
+ * small capitals it has in the Bubble.
+ */
+.overlay-interior > h2 {
+  margin: 0 0 8px;
+  font-family: var(--elsa-font-heading);
+  font-size: var(--title);
+  line-height: var(--title-line);
+  font-weight: 700;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.overlay-interior > h2 a {
+  text-decoration: none;
+}
+
+.overlay-interior > h2 a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent-secondary-read);
+  text-underline-offset: 0.18em;
+}
+
+/* The target's own Options: a gap of 8 and at most eight 20-pixel lines of links. */
+.overlay-options {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  text-align: center;
+}
+
+.overlay-options a {
+  text-decoration-color: var(--rule);
+  text-underline-offset: 0.18em;
+}
+
+.overlay-options a:hover {
+  text-decoration-color: var(--accent-secondary-read);
 }
 
 /* --- Answers: the buttons below (10.3) --------------------------------------------- */
@@ -1239,7 +1419,9 @@ a.language:hover,
 }
 
 /*
- * Step 3 -- the Option columns move below the Answers as one row.
+ * Step 2 of 10.5 (by width) -- below 1280 the fan straightens: two columns of 200 x 96
+ * buttons without pictures, 20 from the Bubble, holding to 1200 (200 + 20 + 760 + 20 + 200).
+ * The rows keep the fan's pitch; the columns stand at the Bubble's edge.
  *
  * Narrower than two 620-pixel Answer buttons, a label of 86 characters also takes a third
  * line or more, and the Answer row grows to hold it rather than cut it (10.3). At and above
@@ -1247,9 +1429,8 @@ a.language:hover,
  */
 @media (max-width: 1279px) {
   :root {
-    --column: 0px;
-    --gap: 0px;
-    --page-inset: 16px;
+    /* The columns are the buttons' 200, so the Bubble keeps its 760 down to 1200 (10.5). */
+    --column: 200px;
     --answers-row: auto;
   }
 
@@ -1257,41 +1438,98 @@ a.language:hover,
     padding-block: 4px;
   }
 
-  .options-columns {
-    display: flex;
-    grid-area: options;
-    justify-content: center;
-    gap: 8px;
-    padding-top: 8px;
+  .options > li {
+    --x: 400;
+    --connector: 0px;
+    width: 200px;
   }
 
-  .options {
-    flex-direction: row;
-  }
-
-  .options li {
-    width: 240px;
-  }
-
-  .options li::after {
+  .options .option-image {
     display: none;
-  }
-
-  .options li {
-    padding: 0;
   }
 }
 
 /*
- * Step 4 -- the Options collapse to one Branch labelled with their count, and a Sheet.
- * When: the columns beside the Bubble no longer fit its row (below 568 pixels), the row of
- * step 3 has no height to take (a short viewport), or that row would not hold this many
- * Options at 240 pixels each -- which the markup says as `data-count`. The control and the
- * columns are switched by the same conditions, so exactly one of them is on the page.
+ * Step 3 -- below 1200 the buttons move below the Answer row as one row, where the height
+ * allows the row (at least 744); otherwise step 4 fires at once (below).
  */
-@media (max-height: 567px), (max-width: 1279px) and (max-height: 739px) {
-  .options-columns {
-    display: none;
+@media (max-width: 1199px) {
+  :root {
+    --column: 0px;
+    --gap: 0px;
+    --page-inset: 16px;
+  }
+
+  .options {
+    grid-area: options;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    height: auto;
+    max-height: none;
+    padding-top: 8px;
+    container-type: normal;
+    /* Collapsed, the list is its padding, in the area the control takes over. */
+    pointer-events: none;
+  }
+
+  .options > li {
+    position: static;
+    width: 200px;
+    height: 96px;
+  }
+}
+
+/*
+ * Step 4 -- the Options collapse to one control labelled with their count, and a Sheet whose
+ * entries are plain links to the explanation Nodes' addresses, which open their Overlays
+ * (10.9). When: the row of step 3 has no height to take (below 744), or would not hold this
+ * many buttons -- at once for five or more, at 1000, 770 and 520 for four, three and two,
+ * as #41 measured -- which the markup says as `data-count`. By height at the guaranteed
+ * width, where the fan's rows would be shorter than the four lines a label may take: four
+ * a side need the 640 the guarantee gives, three a side 550. The control and the fan are
+ * switched by the same conditions, so exactly one of them is on the page.
+ */
+@media (max-height: 639px) {
+  .options[data-count="7"],
+  .options[data-count="8"] {
+    --fan: none;
+  }
+
+  .options[data-count="7"] ~ .options-collapsed,
+  .options[data-count="8"] ~ .options-collapsed {
+    display: block;
+  }
+}
+
+@media (max-height: 549px) {
+  .options[data-count="5"],
+  .options[data-count="6"] {
+    --fan: none;
+  }
+
+  .options[data-count="5"] ~ .options-collapsed,
+  .options[data-count="6"] ~ .options-collapsed {
+    display: block;
+  }
+}
+
+/*
+ * Where the columns beside the Bubble still stand (1200 and wider), the control takes the
+ * left one the fan leaves, not a row under the Answers: the height budget of 10.5 has no 28
+ * pixels for one, and the Bubble would pay them out of the text area that steps 1, 5 and 6
+ * free -- at 1280 x 632 the full Node's text area was 366 for the 368 it holds.
+ */
+@media (max-height: 639px) and (min-width: 1200px) {
+  .options-collapsed {
+    grid-area: left;
+    align-self: center;
+  }
+}
+
+@media (max-width: 1199px) and (max-height: 743px) {
+  .options {
+    --fan: none;
   }
 
   .options-collapsed {
@@ -1299,62 +1537,72 @@ a.language:hover,
   }
 }
 
-/*
- * At the full width the control takes the left column the Options leave, not a row under
- * the Answers: the height budget of 10.5 has no 28 pixels for one, and the Bubble would pay
- * them out of the text area that steps 5 and 6 free.
- */
-@media (max-height: 567px) and (min-width: 1280px) {
-  .options-collapsed {
-    grid-area: left;
-    align-self: center;
-    justify-self: center;
-  }
-}
-
-@media (max-width: 1279px) {
-  .options-columns[data-count="5"],
-  .options-columns[data-count="6"],
-  .options-columns[data-count="7"],
-  .options-columns[data-count="8"] {
-    display: none;
+@media (max-width: 1199px) {
+  .options[data-count="5"],
+  .options[data-count="6"],
+  .options[data-count="7"],
+  .options[data-count="8"] {
+    --fan: none;
   }
 
-  .options-columns[data-count="5"] ~ .options-collapsed,
-  .options-columns[data-count="6"] ~ .options-collapsed,
-  .options-columns[data-count="7"] ~ .options-collapsed,
-  .options-columns[data-count="8"] ~ .options-collapsed {
+  .options[data-count="5"] ~ .options-collapsed,
+  .options[data-count="6"] ~ .options-collapsed,
+  .options[data-count="7"] ~ .options-collapsed,
+  .options[data-count="8"] ~ .options-collapsed {
     display: block;
   }
 }
 
 @media (max-width: 999px) {
-  .options-columns[data-count="4"] {
-    display: none;
+  .options[data-count="4"] {
+    --fan: none;
   }
 
-  .options-columns[data-count="4"] ~ .options-collapsed {
+  .options[data-count="4"] ~ .options-collapsed {
     display: block;
   }
 }
 
 @media (max-width: 769px) {
-  .options-columns[data-count="3"] {
-    display: none;
+  .options[data-count="3"] {
+    --fan: none;
   }
 
-  .options-columns[data-count="3"] ~ .options-collapsed {
+  .options[data-count="3"] ~ .options-collapsed {
     display: block;
   }
 }
 
 @media (max-width: 519px) {
-  .options-columns[data-count="2"] {
-    display: none;
+  .options[data-count="2"] {
+    --fan: none;
   }
 
-  .options-columns[data-count="2"] ~ .options-collapsed {
+  .options[data-count="2"] ~ .options-collapsed {
     display: block;
+  }
+}
+
+/*
+ * The Overlay below the guarantee: its bands close, and its Sources and its Options wrap as
+ * inline lists so that an explanation Node at every maximum, with eight Options of its own,
+ * still fits a phone's width without a scrollbar (10.6, 10.9).
+ */
+@media (max-width: 1279px), (max-height: 639px) {
+  .overlay > .sheet-panel {
+    max-width: calc(100% - 16px);
+    max-height: calc(100% - 16px);
+    padding: 12px 20px;
+  }
+
+  .overlay-options li {
+    display: inline;
+  }
+
+  .overlay-options li + li::before {
+    content: "\00B7";
+    margin: 0 8px;
+    color: var(--elsa-text-muted);
   }
 }
 
@@ -1416,6 +1664,15 @@ a.language:hover,
     --rim-x: 36px;
     --rim-y: 24px;
     --bubble-radius: 120px;
+  }
+
+  .overlay > .sheet-panel {
+    padding: 8px 12px;
+  }
+
+  .sheet-close--cross {
+    top: 4px;
+    right: 4px;
   }
 }
 
@@ -1481,14 +1738,6 @@ a.language:hover,
   .carousel .carousel-sheet > .sheet-open {
     display: block;
     margin-left: 0;
-  }
-
-  .bubble--explanation {
-    padding-bottom: 48px;
-  }
-
-  .hint {
-    max-width: calc(100% - 24px);
   }
 
   .bubble h1 {

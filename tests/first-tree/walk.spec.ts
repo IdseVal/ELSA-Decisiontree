@@ -161,27 +161,33 @@ test('a full Article 2 exclusion ends the walk for a reader the Act reaches', as
   await expect(page.locator('.outcome')).toHaveCount(1)
 })
 
-test('an Option leads to an explanation-only child that offers a visible way back', async ({ page }) => {
+test('an Option opens its explanation-only child in an Overlay over the question, and the cross is the way back (10.9)', async ({ page }) => {
   await walk(page, WALKS.prohibited!.slice(0, 3))
+  const question = `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices`
 
-  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
-  await arrived(page,
-    `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices/social-scoring`,
-  )
+  const overlay = page.locator('.options .overlay', { has: page.locator('.option-title', { hasText: 'Social scoring' }) })
+  await overlay.locator('.sheet-open').click()
+  await expect(overlay.locator('.sheet-panel')).toBeVisible()
+  // The address is the question's: a disclosure does nothing to the address bar (10.9).
+  await expect(page).toHaveURL(question)
 
-  // Explanation only: no Answers of its own, and it says so (core document 3.2, 10.9).
-  await expect(page.getByRole('link', { name: CHROME.en.yes, exact: true })).toHaveCount(0)
-  await expect(page.getByRole('link', { name: CHROME.en.no, exact: true })).toHaveCount(0)
-  await expect(page.locator('.hint')).toHaveText(
-    'This step only explains. Go back to answer the question.',
-  )
+  // Explanation only: no Answers of its own in the Overlay; its heading is the child's own address.
+  await expect(overlay.locator('.sheet-panel').getByRole('link', { name: CHROME.en.yes, exact: true })).toHaveCount(0)
+  await expect(overlay.locator('.sheet-panel').getByRole('link', { name: CHROME.en.no, exact: true })).toHaveCount(0)
+  await expect(overlay.locator('h2 a')).toHaveAttribute('href', `${question}/social-scoring`)
 
-  // The way back is the up arrow (#82), to the parent this child explains.
-  const back = page.locator('.up-arrow')
-  await expect(back).toBeVisible()
-  await expect(back).toHaveAccessibleName('Back to: Does your system do a prohibited practice? (1/2)')
-  await back.click()
-  await arrived(page, `/${TREE}/start/article-2-exclusions/ai-system-definition/prohibited-practices`)
+  // The way back is the cross, and the focus returns to the button beside the Bubble.
+  await overlay.locator('.sheet-close').click()
+  await expect(overlay.locator('.sheet-panel')).toBeHidden()
+  await expect(overlay.locator('.sheet-open')).toBeFocused()
+  await expect(page).toHaveURL(question)
+
+  // The child's own URL renders the question with that Overlay open (core document 10.27).
+  await page.goto(`${question}/social-scoring`)
+  await expect(page.locator('.overlay[open] h2 a')).toHaveText('Social scoring')
+  await expect(page.locator('h1')).toHaveText('Does your system do a prohibited practice? (1/2)')
+  // The up arrow is the question's own (#82): with the Overlay open it still leads above the question.
+  await expect(page.locator('.up-arrow')).toHaveAttribute('href', `/${TREE}/start/article-2-exclusions/ai-system-definition`)
 })
 
 test('the high-risk finding does not end the walk', async ({ page }) => {
@@ -223,12 +229,13 @@ async function screenshotWalk(page: Page, lang: Lang): Promise<void> {
   }
   await shot('prohibited-practices')
 
-  await page.locator('.options').getByRole('link', { name: lang === 'en' ? 'Social scoring' : 'Sociale scoring' }).click()
-  await arrived(page, pageUrl([...toProhibitedPractices, 'social-scoring'], lang))
+  // The Option opens its Overlay over the question (10.9); Escape closes it and the walk goes on.
+  await page.locator('.options .sheet-open', { hasText: lang === 'en' ? 'Social scoring' : 'Sociale scoring' }).click()
+  await expect(page.locator('.overlay[open] .sheet-panel')).toBeVisible()
   await shot('explanation-child')
 
-  await page.locator('.up-arrow').click()
-  await arrived(page, pageUrl(toProhibitedPractices, lang))
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.overlay[open]')).toHaveCount(0)
   await clickAnswer(page, lang, 'yes')
   await arrived(page, pageUrl([...toProhibitedPractices, 'prohibited'], lang))
   await shot('terminal-prohibited')
@@ -257,11 +264,12 @@ const PICTURE_NODES = {
 } as const
 
 for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
-  test(`${nodeId} shows its own picture, all from this server; each Option's is on its target`, async ({ page, baseURL }) => {
+  test(`${nodeId} shows its own picture and its Options' targets' on their buttons, all from this server`, async ({ page, baseURL }) => {
     // Issue #45: the Annex I and Annex III lists are the two the core document (3.3, items
     // 4a and 4b) asks for a picture on every entry of. Since elsa-tree/3 (#79) an entry's
-    // picture is its target's first Image, shown on the target's page and checked in
-    // "every Annex Option's picture is its target's first Image" below; this page asks for its own.
+    // picture is its target's first Image, checked in "every Annex Option's picture is its
+    // target's first Image" below, and since #80 the Option's button shows it (10.3): this
+    // page asks for its own and for one per Option.
     // The requests are recorded over the LAST click only, so what is counted is what this
     // one Node costs a reader, not what the whole walk to it did.
     const visited = await walk(page, steps.slice(0, -1))
@@ -272,9 +280,10 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     visited.push(last.lands)
     await arrived(page, pageUrl(visited, 'en'))
 
-    const options = await page.locator('.option').count()
+    const options = await page.locator('.options > li').count()
     expect(options, `${nodeId} shows no Options`).toBeGreaterThan(0)
-    await expect(page.locator('.option-image')).toHaveCount(0)
+    // Each button shows its target's main image (application.md 10.3); the first Tree's targets all carry one.
+    await expect(page.locator('img.option-image')).toHaveCount(options)
     // The Node's own picture is its main image, and it has no other (application.md 10.3, 12.1).
     await expect(page.locator('.bubble .main-image img')).toHaveCount(1)
     await expect(page.locator('.carousel .thumbnail')).toHaveCount(0)
@@ -288,7 +297,13 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     // included. The analogue of the #40 check, on the Tree that now carries the pictures.
     const own = new URL(baseURL!).host
     expect(asked.filter((url) => new URL(url).host !== own)).toEqual([])
-    expect(asked.filter((url) => new URL(url).pathname.startsWith('/images/')).length).toBe(1)
+    // Its own main image and one file per Option button, the target's main image; the closed
+    // Overlays' strips are lazy and ask for nothing. Nine on `annex-i-legislation`, as
+    // ADR-78-fan-out-and-option-picture.md's Consequences count it.
+    const pictures = asked.filter((url) => new URL(url).pathname.startsWith('/images/'))
+    expect(new Set(pictures).size, 'a picture asked for twice').toBe(pictures.length)
+    expect(pictures.length).toBe(1 + options)
+    if (nodeId === 'annex-i-legislation') expect(pictures.length).toBe(9)
 
     await page.screenshot({ path: path.join(PICTURE_SHOTS, `${nodeId}.png`), fullPage: true })
   })
@@ -366,18 +381,28 @@ test("every step Node's picture is its main image, and a click on it shows its c
 
 test("every Annex Option's picture is its target's first Image, on screen with a credit in the Tree this server is serving", async ({ page }) => {
   // elsa-tree/3 (tree-format.md 5.4): an Option has no Images of its own; the migration of #79
-  // moved each Annex Option's picture to its target, where the target's own page shows it as
-  // its main image (application.md 10.3).
+  // moved each Annex Option's picture to its target, whose main image the Option's button and
+  // its Overlay show (application.md 10.3, 10.9).
   let checked = 0
   for (const nodeId of ANNEX_NODES) {
     const node = await tree.getNode(nodeId)
     expect(node, `${nodeId} cannot be read`).not.toBeNull()
 
+    await page.goto(pageUrl([nodeId], 'en'))
+    const shown = await page
+      .locator('img.option-image')
+      .evaluateAll((images) => images.map((image) => new URL((image as HTMLImageElement).src).pathname))
+    expect(shown.length, `${nodeId}: pictures on screen`).toBe(node!.options.length)
+
     for (const option of node!.options) {
       const image = (await tree.getNode(option.target))!.images[0]
       expect(image, `${option.target} carries no Image`).toBeDefined()
-      await page.goto(pageUrl([nodeId, option.target], 'en'))
-      await expect(page.locator('.bubble a.main-image'), option.target).toHaveAttribute('href', imageHref(image!.file))
+      // On the Option's button, and in the Overlay the button opens (application.md 10.3, 10.9).
+      expect(shown, `${option.target}: not on its Option's button`).toContain(imageHref(image!.file))
+      await expect(
+        page.locator(`.overlay-interior[data-node="${option.target}"] a.main-image`),
+        option.target,
+      ).toHaveAttribute('href', imageHref(image!.file))
       expect(image!.credit, `${option.target}: ${image!.file} has no licence in its credit`).toMatch(OPEN_LICENCE)
       checked += 1
     }

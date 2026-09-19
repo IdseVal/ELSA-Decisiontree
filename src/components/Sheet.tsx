@@ -5,7 +5,9 @@
  * A group the layout has collapsed -- the middle of a long Trail, the Options, the Sources
  * -- is one control that opens the whole group as a list of links, laid over the page and
  * never scrolling. The enlarged Image of the Carousel is the same component, holding one
- * Image per page instead of eight links.
+ * Image per page instead of eight links; so is the Overlay (10.9), whose control is the
+ * Option button and whose one page is its target's Interior, closed by a cross at its top
+ * right corner, and rendered open by the server when the URL names its explanation Node.
  *
  * It is a native `<details>`, so it is correct without JavaScript (section 14): the summary
  * is a real disclosure button and opening it shows the first page. A longer list is paged
@@ -14,7 +16,8 @@
  * stylesheet shows one page at a time -- a reader with no script turns the pages by opening
  * disclosures, and the panel is never asked to hold a 49-entry Trail on a phone. What else
  * the script adds is what a disclosure does not do on its own: Escape closes it and returns
- * focus to the control that opened it, and a click outside closes it.
+ * focus to the control that opened it, a click outside closes it, and an Overlay moves the
+ * focus to its cross when it opens (10.9).
  */
 import {
   useEffect,
@@ -65,6 +68,8 @@ export function Sheet({
   idPrefix = '',
   startPage = 0,
   onPage,
+  open = false,
+  cross = false,
   ref,
 }: {
   /** What the control says: chrome, already in its own `lang` where it needs one. */
@@ -83,6 +88,14 @@ export function Sheet({
   startPage?: number
   /** Told the page on the panel whenever it changes while the Sheet is open. */
   onPage?: (page: number) => void
+  /** Rendered open by the server: the Overlay a URL names (10.9). */
+  open?: boolean
+  /**
+   * The Overlay's close: a round cross at the panel's top right corner, first on the panel,
+   * where the focus lands when the Sheet opens (10.9). Otherwise the close is a button among
+   * the panel's controls, and the focus stays on the summary that was pressed.
+   */
+  cross?: boolean
   ref?: Ref<SheetHandle>
 }) {
   const details = useRef<HTMLDetailsElement>(null)
@@ -150,12 +163,29 @@ export function Sheet({
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDetailsElement>): void => {
-    if (event.key === 'Escape') close()
+    if (event.key !== 'Escape') return
+    // One Escape closes one Sheet: the Overlay around a Sheet its Interior holds stays open.
+    event.stopPropagation()
+    close()
   }
+
+  // An Overlay the URL opened has the focus on the page, not on its cross (10.9), so Escape
+  // is also heard from anywhere on the page. A Sheet with the focus in it has already
+  // stopped the event above; only the one open Sheet does anything. Attached once: `close`
+  // reads nothing but refs, so the first render's is as good as any later one's.
+  useEffect(() => {
+    const onAnyKeyDown = (event: globalThis.KeyboardEvent): void => {
+      if (event.key === 'Escape' && details.current?.open) close()
+    }
+    document.addEventListener('keydown', onAnyKeyDown)
+    return () => document.removeEventListener('keydown', onAnyKeyDown)
+  }, [])
 
   const onToggle = (): void => {
     if (details.current?.open) {
       turnTo(startAt.current ?? startPage)
+      // Into the panel, so Escape reaches the Sheet and a screen reader is where the aside is (10.9).
+      if (cross) details.current.querySelector<HTMLElement>('.sheet-close')?.focus()
     } else {
       startAt.current = null
       opener.current = null
@@ -183,10 +213,17 @@ export function Sheet({
   // One name for every Sheet: opening one closes any other, so without the script, where no
   // backdrop keeps the page from a second click, two panels are never laid over each other.
   return (
-    <details className={`sheet ${className}`} name="sheet" ref={details} onKeyDown={onKeyDown} onToggle={onToggle}>
+    <details className={`sheet ${className}`} name="sheet" open={open} ref={details} onKeyDown={onKeyDown} onToggle={onToggle}>
       <summary className="sheet-open">{summary}</summary>
       {enhanced && <div className="sheet-backdrop" onClick={close} />}
       <div className="sheet-panel">
+        {enhanced && cross && (
+          <button type="button" className="sheet-close sheet-close--cross" onClick={close} aria-label={words.close}>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3 3l10 10M13 3L3 13" />
+            </svg>
+          </button>
+        )}
         {items && (
           /* Hidden, not clipped: read as a description all the same, and never wider than itself (10.6). */
           <span hidden id={`${idPrefix}${className}-new-tab`} lang={uiLang}>
@@ -194,7 +231,7 @@ export function Sheet({
           </span>
         )}
         {enhanced ? <div className="sheet-page">{all[page]}</div> : pagesFrom(0)}
-        {enhanced && (
+        {enhanced && (all.length > 1 || !cross) && (
           <div className="sheet-controls" lang={uiLang}>
             {all.length > 1 && (
               <>
@@ -206,9 +243,11 @@ export function Sheet({
                 </button>
               </>
             )}
-            <button type="button" className="sheet-close" onClick={close}>
-              {words.close}
-            </button>
+            {!cross && (
+              <button type="button" className="sheet-close" onClick={close}>
+                {words.close}
+              </button>
+            )}
           </div>
         )}
       </div>

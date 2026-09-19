@@ -14,7 +14,7 @@ import { chrome } from '../src/chrome.ts'
 import { Bubble } from '../src/components/Bubble.tsx'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
 import { TreeView } from '../src/components/TreeView.tsx'
-import { neighbourhood } from '../src/neighbourhood.ts'
+import { loadPage } from '../src/neighbourhood.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import { contentLanguage, parseUrl } from '../src/url.ts'
 import { effectiveLang } from './effective-lang.ts'
@@ -30,6 +30,7 @@ beforeAll(async () => {
     ['full-node', path.join(here, 'fixtures', 'full-node')],
     ['carousel', path.join(here, 'fixtures', 'carousel')],
     ['cycle', path.join(here, 'fixtures', 'cycle')],
+    ['overlay', path.join(here, 'fixtures', 'overlay')],
   ] as const) {
     trees.set(id, await openTree(dir))
   }
@@ -50,9 +51,9 @@ async function view(url: string): Promise<string> {
   const tree = trees.get(target.pathname.split('/')[1]!)!
   const address = parseUrl(target.pathname, langSegment(target), tree)
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
-  const node = await tree.getNode(address.nodeId)
-  if (!node) throw new Error(`${url} names no Node`)
-  return renderToStaticMarkup(<TreeView node={node} address={address} tree={tree} neighbours={await neighbourhood(tree, address, node)} />)
+  const page = await loadPage(tree, address)
+  if (!page) throw new Error(`${url} names no Node`)
+  return renderToStaticMarkup(<TreeView page={page} tree={tree} />)
 }
 
 /**
@@ -64,12 +65,12 @@ async function shell(url: string): Promise<string> {
   const target = new URL(url, 'https://example.org')
   const tree = trees.get(target.pathname.split('/')[1]!)!
   const address = parseUrl(target.pathname, langSegment(target), tree)!
-  const node = (await tree.getNode(address.nodeId))!
+  const page = (await loadPage(tree, address))!
   return renderToStaticMarkup(
     <html lang={contentLanguage(tree, langSegment(target))}>
       <body>
         <main>
-          <TreeView node={node} address={address} tree={tree} neighbours={await neighbourhood(tree, address, node)} />
+          <TreeView page={page} tree={tree} />
         </main>
         <Disclaimer lang={address.lang} />
       </body>
@@ -111,7 +112,7 @@ describe('the tree layer', () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
     const layer = part(html, 'div', 'tree-layer')
 
-    const order = ['class="bubble', 'class="up-arrow"', 'class="options', 'class="answers"', 'class="carousel"'].map((marker) =>
+    const order = ['class="bubble', 'class="up-arrow"', 'class="options"', 'class="answers"', 'class="carousel"'].map((marker) =>
       layer.indexOf(marker),
     )
     expect(order.every((at) => at >= 0), layer.slice(0, 200)).toBe(true)
@@ -133,7 +134,7 @@ describe('the tree layer', () => {
       const target = new URL(url, 'https://example.org')
       const tree = trees.get(target.pathname.split('/')[1]!)!
       const address = parseUrl(target.pathname, langSegment(target), tree)!
-      const placed = new Set((await neighbourhood(tree, address, (await tree.getNode(address.nodeId))!)).map((p) => p.href))
+      const placed = new Set((await loadPage(tree, address))!.neighbours.placed.map((p) => p.href))
       const marked = [...(await view(url)).matchAll(/<a class="(branch [^"]*|up-arrow)" href="([^"]*)"([^>]*)>/g)].map(
         ([, kind, href, rest]) => [kind, href, rest!.includes('data-slide')],
       )
@@ -144,8 +145,10 @@ describe('the tree layer', () => {
       expect(marked, url).toEqual(marked.map(([kind, href]) => [kind, href, slides(kind as string, href as string)]))
     }
     const full = await view('/full-node/full/full/full')
-    expect(full.match(/<a class="up-arrow"[^>]*data-slide/g), 'the full Node\'s up arrow').toBeNull()
-    expect(full.match(/<a class="branch option"[^>]*data-slide/g), 'the full Node\'s Options').toHaveLength(8)
+    expect(full.match(/<a class="up-arrow"[^>]*data-slide/g), "the full Node's up arrow").toBeNull()
+    // An Option is not a Branch and nothing slides to it: it opens an Overlay (10.9, 11.1).
+    expect(full.match(/<a class="branch option/g), "the full Node's Options").toBeNull()
+    expect(full.match(/data-slide/g), "the full Node's slides").toHaveLength(2)
   })
 
   test('an Answer back to the parent does not slide, and two Answers to one target both do (11.3)', async () => {
@@ -175,14 +178,26 @@ describe('the tree layer', () => {
     expect(await view('/ai-act-example/start')).toContain('<section class="carousel">')
   })
 
-  test("an Option's picture is its target's main image, not on the Option and not in a strip (tree-format.md 5.4, 10.3, 12.1)", async () => {
+  test("an Option's picture is its target's main image: on its button and in its Overlay, not on the Option and not in a strip (tree-format.md 5.4, 10.3, 12.1)", async () => {
     // In elsa-tree/2 `prohibited-practices` carried scoreboard.png on its Option; the
-    // migration of #79 moved it to `social-scoring`. Drawing it on the Option's button is #80's.
-    expect(await view('/ai-act-example/prohibited-practices')).not.toContain('scoreboard.png')
-
-    const html = await view('/ai-act-example/prohibited-practices/social-scoring')
-    expect(part(html, 'article', 'bubble')).toContain('<a class="main-image" href="/images/scoreboard.png"')
+    // migration of #79 moved it to `social-scoring`.
+    const html = await view('/ai-act-example/prohibited-practices')
+    const fan = part(html, 'ul', 'options')
+    expect(fan).toContain(
+      '<summary class="sheet-open"><img class="option-image" src="/images/scoreboard.png" alt="A scoreboard ranking people" width="48" height="48" loading="lazy"/><span class="option-title">Social scoring</span></summary>',
+    )
+    // Since #84 the second Option's target carries an Image too: no empty slot in this Tree
+    // (the `overlay` fixture shows one, below).
+    expect(fan.match(/<img class="option-image"/g)).toHaveLength(2)
+    expect(fan).toContain('<img class="option-image" src="/images/emotion-recognition.png"')
+    expect(fan).not.toContain('option-image--empty')
+    // In the Overlay it is a plain link to the file: the enlarged view is the centre Node's (10.9).
+    expect(fan).toContain('<a class="main-image" href="/images/scoreboard.png" aria-labelledby=')
     expect(html).not.toContain('class="thumbnail"')
+
+    // As the centre, which only a path with no parent makes it, it is the Bubble's main image.
+    const own = await view('/ai-act-example/social-scoring')
+    expect(part(own, 'article', 'bubble')).toContain('<a class="main-image" href="/images/scoreboard.png" data-enlarge="0"')
   })
 
   test('carries the notice for a window at or below the floor, with a sentence per short dimension (10.4)', async () => {
@@ -446,43 +461,161 @@ describe('a question Node with Options', () => {
     )
   })
 
-  test('draws its Options beside the Bubble, one Branch per Option, each to its target with the current Node appended', async () => {
+  test('draws its Options beside the Bubble as the buttons of their Overlays, in Option order, alternating right and left (10.3, 10.9)', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
+    const fan = part(html, 'ul', 'options')
 
-    expect(branches(html, 'option')).toEqual([
-      ['/ai-act-example/start/prohibited-practices/social-scoring', 'Social scoring'],
-      ['/ai-act-example/start/prohibited-practices/emotion-recognition-at-work', 'Emotion recognition at work or in education'],
+    expect(fan).toMatch(/^<ul class="options" aria-labelledby="options-label" data-count="2">/)
+    expect(all(fan, /<span class="option-title">([^<]*)<\/span>/g)).toEqual([
+      'Social scoring',
+      'Emotion recognition at work or in education',
     ])
+    // The first Option on the right, the second on the left; one row a side.
+    expect(all(fan, /<li (data-side="[^"]*" style="[^"]*")/g)).toEqual([
+      'data-side="right" style="--i:0;--m:1"',
+      'data-side="left" style="--i:0;--m:1"',
+    ])
+    // Not a link: nothing navigates and nothing slides (11.1).
+    expect(fan).not.toContain('<a class="branch option')
+    expect(fan.match(/<details class="sheet overlay" name="sheet">/g)).toHaveLength(2)
   })
 
-  test('splits the Options over two columns, at most four a side, and says how many there are', async () => {
-    const two = await view('/ai-act-example/prohibited-practices')
-    expect(two).toContain('<div class="options-columns" data-count="2">')
-    expect(part(two, 'ul', 'options options--left').match(/<li>/g)).toHaveLength(1)
-    expect(part(two, 'ul', 'options options--right').match(/<li>/g)).toHaveLength(1)
+  test('the fan for one, two, five and eight Options: rows and sides by the numbers of ADR-78 (10.3)', async () => {
+    const placements = async (url: string) => all(part(await view(url), 'ul', 'options'), /<li (data-side="[^"]*" style="[^"]*")/g)
 
-    const eight = await view('/full-node/full')
-    expect(eight).toContain('data-count="8"')
-    expect(part(eight, 'ul', 'options options--left').match(/<li>/g)).toHaveLength(4)
-    expect(part(eight, 'ul', 'options options--right').match(/<li>/g)).toHaveLength(4)
+    // One Option: on the right, at the Bubble's middle (`opt-one` as the centre, the fourth situation of 10.3).
+    expect(await placements('/full-node/opt-one')).toEqual(['data-side="right" style="--i:0;--m:1"'])
+    // Two: one each side.
+    expect(await placements('/ai-act-example/prohibited-practices')).toEqual([
+      'data-side="right" style="--i:0;--m:1"',
+      'data-side="left" style="--i:0;--m:1"',
+    ])
+    // Five: three on the right, two on the left, each side top to bottom in Option order.
+    expect(await placements('/overlay/five')).toEqual([
+      'data-side="right" style="--i:0;--m:3"',
+      'data-side="left" style="--i:0;--m:2"',
+      'data-side="right" style="--i:1;--m:3"',
+      'data-side="left" style="--i:1;--m:2"',
+      'data-side="right" style="--i:2;--m:3"',
+    ])
+    // Eight: four a side.
+    expect(await placements('/full-node/full')).toEqual([
+      'data-side="right" style="--i:0;--m:4"',
+      'data-side="left" style="--i:0;--m:4"',
+      'data-side="right" style="--i:1;--m:4"',
+      'data-side="left" style="--i:1;--m:4"',
+      'data-side="right" style="--i:2;--m:4"',
+      'data-side="left" style="--i:2;--m:4"',
+      'data-side="right" style="--i:3;--m:4"',
+      'data-side="left" style="--i:3;--m:4"',
+    ])
+    expect(await view('/full-node/full')).toContain('data-count="8"')
   })
 
-  test('an Option has no picture of its own in elsa-tree/3, so its Branch names no image file (tree-format.md 5.4)', async () => {
+  test("an Option button shows its target's main image, small, or the empty slot where the target has none (10.3)", async () => {
     const html = await view('/full-node/full')
-
-    expect(part(html, 'ul', 'options options--left')).not.toContain('<img')
-    expect(part(html, 'ul', 'options options--right')).not.toContain('<img')
+    // `opt-one` leads with one.png: the same file its Overlay's Interior will show (11.4).
+    expect(part(html, 'ul', 'options')).toContain(
+      '<summary class="sheet-open"><img class="option-image" src="/images/one.png" alt="Option one, first picture" width="48" height="48" loading="lazy"/><span class="option-title">Option one: a title of sixty characters, the most it may be.</span></summary>',
+    )
+    // Only the target's first picture is on the button, and its Overlay's main image is that same file (10.9, 11.5).
+    expect(new Set(all(part(html, 'ul', 'options').split('</li>')[0]!, /"(\/images\/[^"]*)"/g))).toEqual(new Set(['/images/one.png']))
+    // A target without Images, on an Option without any: the empty slot (the fixture's four small asides).
+    const five = part(await view('/overlay/five'), 'ul', 'options')
+    expect(five.match(/<span class="option-image option-image--empty"><\/span>/g)).toHaveLength(4)
+    expect(five.match(/<img class="option-image"/g)).toHaveLength(1)
   })
 
-  test('the Options are named as a group, and are also in the Sheet they collapse to (10.5, 14)', async () => {
+  test('the Options are named as a group, and are also in the Sheet they collapse to, as plain links to the explanation Nodes (10.5, 10.9, 14)', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
 
     expect(html).toContain('<span hidden="" id="options-label">What this covers</span>')
-    expect(html).toContain('<ul class="options options--left" aria-labelledby="options-label">')
+    expect(html).toContain('<ul class="options" aria-labelledby="options-label"')
     const sheet = part(html, 'div', 'options-collapsed')
     expect(sheet).toContain('<summary class="sheet-open"><span>What this covers (2)</span></summary>')
     expect(sheet).toContain('href="/ai-act-example/start/prohibited-practices/social-scoring"')
     expect(sheet).toContain('href="/ai-act-example/start/prohibited-practices/emotion-recognition-at-work"')
+  })
+})
+
+describe('the Overlay (10.9)', () => {
+  test("is a closed Sheet behind each Option button, holding the target's Interior through the Bubble's own component, its heading a link to the target's address", async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices')
+    const fan = part(html, 'ul', 'options')
+    const overlay = part(fan, 'details', 'sheet overlay')
+
+    expect(overlay).not.toContain('<details class="sheet overlay" name="sheet" open')
+    const interior = part(overlay, 'div', 'overlay-interior')
+    expect(interior).toMatch(/^<div class="overlay-interior" lang="en" data-node="social-scoring">/)
+    expect(interior).toContain('<h2 id="a0-node-title"><a href="/ai-act-example/start/prohibited-practices/social-scoring">Social scoring</a></h2>')
+    expect(interior).toContain('<div class="prose"><p>')
+    // The Sources through the same component as the Bubble's, inline; not a second Sheet inside this one.
+    expect(interior).toContain('<section class="sources" aria-labelledby="a0-sources-label">')
+    expect(interior).toContain('aria-describedby="a0-sources-new-tab"')
+    expect(interior).not.toContain('sources-collapsed')
+    // One page, so no paging and no nested disclosure without the script (14).
+    expect(overlay).not.toContain('sheet-more')
+    // The one h1 on the page is the Bubble's.
+    expect(html.match(/<h1 /g)).toHaveLength(1)
+  })
+
+  test("carries the target's own Options as plain links to the deeper address, which renders this page with that Overlay open", async () => {
+    const html = await view('/full-node/full')
+    const first = part(part(html, 'ul', 'options'), 'details', 'sheet overlay')
+    const list = part(first, 'ul', 'overlay-options')
+
+    expect(list).toContain('<a href="/full-node/full/opt-one/opt-two">Option two: a title of sixty characters, the most it may be.</a>')
+    expect(list.match(/<li>/g)).toHaveLength(1)
+    // The list's name sits beside it, not in it: a `ul` holds `li` and nothing else.
+    expect(list).toMatch(/^<ul class="overlay-options" aria-labelledby="a0-options-label"><li>/)
+    expect(list).not.toContain('<span hidden')
+    expect(first).toContain('<span hidden="" id="a0-options-label">What this covers</span><ul class="overlay-options"')
+  })
+
+  test("an explanation Node's URL renders its parent's page with that Overlay open, and the parent's Branches built from the path up to the parent (10.9)", async () => {
+    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
+
+    // The centre is the parent: its title is the page heading, its Answers are below.
+    expect(html).toContain('<h1 id="node-title">Does your system do any of the prohibited practices?</h1>')
+    expect(branches(html, 'answer answer--yes')).toEqual([
+      ['/ai-act-example/start/prohibited-practices/prohibited', 'This is a prohibited practice'],
+    ])
+    // The way back is the parent's too: the up arrow leads above the centre, not to the centre (10.2).
+    expect(html).toContain('<a class="up-arrow" href="/ai-act-example/start" rel="prev"')
+    // The aside the path names is the one Overlay open; the other stays closed.
+    const overlays = [...part(html, 'ul', 'options').matchAll(/<details class="sheet overlay" name="sheet"( open="")?>/g)].map((m) => m[1] === ' open=""')
+    expect(overlays).toEqual([true, false])
+    expect(html).not.toContain('overlay--unbuttoned')
+  })
+
+  test('a second-level explanation Node in the path is an Overlay of its own, open, with no button; the first stays closed', async () => {
+    const html = await view('/full-node/full/opt-one/opt-two')
+    const fan = part(html, 'ul', 'options')
+
+    expect(fan).not.toContain(' open=""')
+    const extra = part(html, 'div', 'options-extra')
+    expect(extra).toContain('<details class="sheet overlay overlay--unbuttoned" name="sheet" open="">')
+    expect(extra).toContain('<h2 id="ax-node-title"><a href="/full-node/full/opt-one/opt-two">Option two: a title of sixty characters, the most it may be.</a></h2>')
+    expect(extra).toContain('data-node="opt-two"')
+    // The centre's Branches are built from the path up to the centre: the asides never join the Trail.
+    expect(branches(html, 'answer answer--yes')).toEqual([
+      ['/full-node/full/applies', 'The rules apply: a Terminal whose title is also eighty characters long The rule.'],
+    ])
+  })
+
+  test("a neighbour frame draws the Option buttons with empty slots and no Overlay interior behind them (11.3, 11.4)", async () => {
+    const html = await view('/ai-act-example/start')
+    // The `yes` neighbour is the question Node with Options: its frame is in the Slider's props, not the markup at rest.
+    expect(html).not.toContain('overlay-interior')
+    const tree = trees.get('ai-act-example')!
+    const address = parseUrl('/ai-act-example/start', '_', tree)!
+    const page = (await loadPage(tree, address))!
+    const frames = (TreeView({ page, tree }) as { props: { children: [{ props: { neighbours: { href: string; frame: unknown }[] } }] } })
+      .props.children[0].props.neighbours
+    const question = renderToStaticMarkup(<>{frames.find((n) => n.href === '/ai-act-example/start/prohibited-practices')!.frame as never}</>)
+    expect(question.match(/<span class="option-image option-image--empty"><\/span>/g)).toHaveLength(2)
+    expect(question).not.toContain('overlay-interior')
+    expect(question).not.toContain('/images/')
   })
 })
 
@@ -499,38 +632,29 @@ describe('a question Node without Options', () => {
   })
 })
 
-describe('an explanation Node', () => {
-  test('says the answer is given on the step above, on the rim and outside the text area (10.1)', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
-    const textArea = part(html, 'div', 'bubble-text')
+describe('an explanation Node as the centre (only a path with no parent in it, 10.9)', () => {
+  test('shows its Interior in the Bubble, no hint, no up arrow, and one startAgain button below to the root with an empty Trail', async () => {
+    const html = await view('/ai-act-example/social-scoring')
 
-    expect(part(html, 'article', 'bubble')).toContain('<p class="hint">This step only explains. Go back to answer the question.</p>')
-    expect(textArea).not.toContain('class="hint"')
-  })
-
-  test('offers no yes or no, and one startAgain button below to the root with an empty Trail; the way back is the up arrow', async () => {
-    const html = await view('/ai-act-example/start/prohibited-practices/social-scoring')
-
+    expect(html).toContain('<h1 id="node-title">Social scoring</h1>')
+    expect(html).not.toContain('class="hint"')
     expect(html).not.toContain('answer--yes')
     expect(html).not.toContain('answer--no')
     expect(branches(html, 'answer')).toEqual([['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?']])
     expect(html).toContain(
       '<a class="branch answer answer--start-again" href="/ai-act-example/start" aria-label="Start again: Is your AI system within the reach of the AI Act?">',
     )
-    expect(html).toContain('<a class="up-arrow" href="/ai-act-example/start/prohibited-practices" rel="prev"')
-  })
-
-  test('opened by its own URL it has no entry above, so no up arrow, and startAgain is its way in', async () => {
-    const html = await view('/ai-act-example/social-scoring')
-
+    // Its Trail is empty, so there is no entry above and no up arrow (10.2).
     expect(html).not.toContain('class="up-arrow"')
-    expect(branches(html, 'answer')).toEqual([['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?']])
   })
 
-  test('draws its own Options beside it, when it has any', async () => {
-    const html = await view('/full-node/full/opt-one')
-
-    expect(branches(html, 'option')).toEqual([['/full-node/full/opt-one/opt-two', 'Option two: a title of sixty characters, the most it may be.']])
+  test('draws its own Options fanned out, like a question Node', async () => {
+    const html = await view('/full-node/opt-one/opt-two')
+    // The path's first entry is the centre when nothing in it is a question Node or a Terminal; the rest is its chain.
+    expect(html).toContain('<h1 id="node-title">Option one: a title of sixty characters, the most it may be.</h1>')
+    expect(all(part(html, 'ul', 'options'), /<span class="option-title">([^<]*)<\/span>/g)).toEqual([
+      'Option two: a title of sixty characters, the most it may be.',
+    ])
   })
 })
 
@@ -643,8 +767,10 @@ describe('everything on the page is reachable by keyboard', () => {
       '/ai-act-example/start',
       '/ai-act-example/start/prohibited-practices',
       '/ai-act-example/start/prohibited-practices/social-scoring',
+      '/ai-act-example/social-scoring',
       '/ai-act-example/start/outside-scope',
       '/full-node/full/full/full/full/full/full/full',
+      '/full-node/full/opt-one/opt-two',
     ]) {
       const html = await view(url)
 

@@ -10,13 +10,16 @@ import { expect, test, type BrowserContext, type Page } from '@playwright/test'
 import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
-const CHILD = '/ai-act-example/start/prohibited-practices/social-scoring'
+// A path ending at an explanation Node renders its parent's page (10.9), so an Option adds
+// nothing to the Trail: the child under test is the Terminal two Answers deep.
+const CHILD = '/ai-act-example/start/prohibited-practices/prohibited'
 
-/** Walks root -> yes -> an Option -> its child, the way a reader reaches an explanation. */
+/** Walks root -> yes -> yes, the way a reader reaches a Terminal two entries deep. */
 async function walkToChild(page: Page): Promise<void> {
   await page.goto(START)
   await page.locator('.answer--yes').click()
-  await page.locator('.options').getByRole('link', { name: 'Social scoring' }).click()
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
+  await page.locator('.answer--yes').click()
   await arrived(page, CHILD)
 }
 
@@ -44,7 +47,7 @@ test("at a phone width the up arrow keeps its 48 pixels, clear of the chrome bar
   // 10.1 and 10.2 fix the arrow at 48, and 10.5 never gives it up: the phone's 10-pixel rim
   // widens the band above the Bubble instead.
   await page.setViewportSize({ width: 360, height: 640 })
-  for (const url of [CHILD, '/ai-act-example/start/prohibited-practices/prohibited']) {
+  for (const url of ['/ai-act-example/start/prohibited-practices', CHILD]) {
     await page.goto(url)
     const arrow = (await upArrow(page).boundingBox())!
     const header = (await page.locator('header').boundingBox())!
@@ -232,7 +235,7 @@ test('a shared link shows the recipient the same Node and the same way back', as
   const theirPage = await recipient.newPage()
   await theirPage.goto(link)
 
-  await expect(theirPage.getByRole('heading', { level: 1 })).toHaveText('Social scoring')
+  await expect(theirPage.getByRole('heading', { level: 1 })).toHaveText('This is a prohibited practice')
   await expect(upArrow(theirPage)).toHaveAttribute('href', (await upArrow(page).getAttribute('href'))!)
   expect(theirPage.url()).toBe(page.url())
   await recipient.close()

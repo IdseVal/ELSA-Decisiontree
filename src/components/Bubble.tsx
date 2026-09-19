@@ -3,12 +3,16 @@
  * centre of the tree view, holding the Node's Interior in its text area, and on its rim --
  * outside the text area, so the format's length limits stand -- the up arrow on the top
  * outline where the page has a way back, and the one chrome element a Node kind adds: a
- * Terminal's outcome badge above, an explanation Node's hint below.
+ * Terminal's outcome badge above. (An explanation Node's hint went with the side slide,
+ * 10.9: an explanation Node opens in an Overlay, and is the centre only when a path names
+ * no parent for it.)
  *
  * The Interior (10.3, ADR-78-main-image-and-row-budget, ADR-78-sources-heading) is what a
  * Node shows inside its text area, in order -- the main image, the title, the description
  * and the Sources under their chrome heading. It is exported because the Overlay (10.9)
- * renders it too, so a change here reaches both.
+ * renders it too, so a change here reaches both. In the Bubble the title is the page's `h1`;
+ * in an Overlay it is an `h2` that links to the explanation Node's own address, the one plain
+ * link on the page that names the aside.
  *
  * The main image is the Node's first Image, a link to its file that opens the enlarged view
  * (12.3). A Node without Images keeps the same 60 pixels as an empty slot, so the title sits
@@ -17,7 +21,8 @@
  * The Sources are rendered twice, once inline and once inside a Sheet, and the stylesheet
  * shows one or the other: below the guaranteed viewport they collapse to one control (10.5,
  * step 6), and the markup must be present either way so the page is correct without
- * JavaScript (section 14).
+ * JavaScript (section 14). In the Bubble only: an Overlay is a Sheet already, and one Sheet
+ * is open at a time, so its Sources stay inline at every size.
  */
 import type { ReactNode } from 'react'
 import { text, type Chrome, type ChromeString } from '../chrome.ts'
@@ -70,13 +75,9 @@ export function Bubble({
         </p>
       )}
 
-      <Interior node={node} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} pictures={pictures} />
-
-      {node.kind === 'explanation' && (
-        <p className="hint" lang={uiLang}>
-          {ui.explanationOnly}
-        </p>
-      )}
+      <div className="bubble-text">
+        <Interior node={node} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} pictures={pictures} />
+      </div>
     </article>
   )
 }
@@ -102,22 +103,40 @@ export function Interior({
   uiLang,
   idPrefix = '',
   pictures = true,
+  href,
 }: {
   node: Node
   lang: string
   ui: Chrome
   /** Set when the chrome speaks another language than the content. */
   uiLang: string | undefined
-  /** Prepended to every `id` the Interior writes, for a copy of it in a neighbour frame. */
+  /** Prepended to every `id` the Interior writes, for a copy of it in a neighbour frame or in an Overlay. */
   idPrefix?: string
   /** False in a neighbour frame, which names no image file at all (11.4). */
   pictures?: boolean
+  /** In an Overlay: the explanation Node's own address, which its heading links to. Absent in the Bubble. */
+  href?: string
 }) {
+  const title = text(node.title, lang, `${node.id}.title`)
   return (
-    <div className="bubble-text">
-      <MainImage node={node} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} pictures={pictures} />
+    <>
+      <MainImage
+        node={node}
+        lang={lang}
+        ui={ui}
+        uiLang={uiLang}
+        idPrefix={idPrefix}
+        pictures={pictures}
+        enlarges={href === undefined}
+      />
 
-      <h1 id={`${idPrefix}node-title`}>{text(node.title, lang, `${node.id}.title`)}</h1>
+      {href === undefined ? (
+        <h1 id={`${idPrefix}node-title`}>{title}</h1>
+      ) : (
+        <h2 id={`${idPrefix}node-title`}>
+          <a href={href}>{title}</a>
+        </h2>
+      )}
 
       <Explainer
         html={richTextToHtml(text(node.description, lang, `${node.id}.description`), {
@@ -128,9 +147,17 @@ export function Interior({
       />
 
       {node.sources.length > 0 && (
-        <Sources sources={node.sources} nodeId={node.id} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} />
+        <Sources
+          sources={node.sources}
+          nodeId={node.id}
+          lang={lang}
+          ui={ui}
+          uiLang={uiLang}
+          idPrefix={idPrefix}
+          collapsible={href === undefined}
+        />
       )}
-    </div>
+    </>
   )
 }
 
@@ -138,7 +165,9 @@ export function Interior({
  * The main image above the title (10.3): a link to its file, named by `enlarge` and its
  * description and described by its credit, which the enlarged view shows whole (12.3). The
  * empty slot stands in on a Node without Images, and in a neighbour frame, which carries no
- * image URL; both are decoration and say nothing to assistive technology.
+ * image URL; both are decoration and say nothing to assistive technology. In an Overlay the
+ * link stays a plain link to the file: the enlarged view is the centre Node's, and one Sheet
+ * is open at a time (10.9).
  */
 function MainImage({
   node,
@@ -147,6 +176,7 @@ function MainImage({
   uiLang,
   idPrefix,
   pictures,
+  enlarges,
 }: {
   node: Node
   lang: string
@@ -154,6 +184,8 @@ function MainImage({
   uiLang: string | undefined
   idPrefix: string
   pictures: boolean
+  /** Whether a click opens the enlarged view (12.3): in the Bubble, not in an Overlay. */
+  enlarges: boolean
 }) {
   const image = node.images[0]
   if (!image) return <span className="main-image main-image--empty" aria-hidden="true" />
@@ -173,7 +205,7 @@ function MainImage({
       <a
         className="main-image"
         href={href}
-        data-enlarge="0"
+        data-enlarge={enlarges ? '0' : undefined}
         aria-labelledby={`${idPrefix}main-image-enlarge ${idPrefix}main-image-picture`}
         aria-describedby={`${idPrefix}main-image-credit`}
       >
@@ -192,7 +224,8 @@ function MainImage({
 /**
  * The Node's Sources under the heading `sources`, each opening in a new tab and prefixed by
  * its kind where the kind is not `legal`: inline on the heading line and two lines of the
- * text area, and as the Sheet the block collapses to, titled by the same key.
+ * text area, and, where `collapsible`, as the Sheet the block collapses to, titled by the
+ * same key.
  */
 function Sources({
   sources,
@@ -201,6 +234,7 @@ function Sources({
   ui,
   uiLang,
   idPrefix,
+  collapsible,
 }: {
   sources: Source[]
   /** The Node these Sources belong to, for the warning `text` logs. */
@@ -209,6 +243,7 @@ function Sources({
   ui: Chrome
   uiLang: string | undefined
   idPrefix: string
+  collapsible: boolean
 }) {
   const entries = sources.map((source, index) => {
     const label = SOURCE_LABEL[source.kind]
@@ -251,16 +286,18 @@ function Sources({
           ))}
         </ul>
       </section>
-      <div className="sources-collapsed">
-        <Sheet
-          className="sources-sheet"
-          summary={<span lang={uiLang}>{`${ui.sources} (${entries.length})`}</span>}
-          items={entries.map((entry) => ({ ...entry, newTab: true }))}
-          words={sheetWords(ui)}
-          uiLang={uiLang}
-          idPrefix={idPrefix}
-        />
-      </div>
+      {collapsible && (
+        <div className="sources-collapsed">
+          <Sheet
+            className="sources-sheet"
+            summary={<span lang={uiLang}>{`${ui.sources} (${entries.length})`}</span>}
+            items={entries.map((entry) => ({ ...entry, newTab: true }))}
+            words={sheetWords(ui)}
+            uiLang={uiLang}
+            idPrefix={idPrefix}
+          />
+        </div>
+      )}
     </>
   )
 }

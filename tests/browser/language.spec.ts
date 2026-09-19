@@ -7,7 +7,7 @@
  * A Tree in one language, and one in a language the chrome does not speak, are fixtures the
  * server does not hold: they are checked in `tests/language.test.tsx` and `tests/interop.test.tsx`.
  */
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { arrived } from './arrived.ts'
 
 const START = '/ai-act-example/start'
@@ -27,6 +27,10 @@ const BOTH_LANGUAGES = [
   { what: 'chrome', en: 'Legal sources', nl: 'Juridische bronnen' },
 ]
 
+/** The alt text of the first Option button's picture: an Image description, which is content, not chrome. */
+async function optionImageAlt(page: Page): Promise<string | null> {
+  return page.locator('.options img.option-image').first().getAttribute('alt')
+}
 
 test('switching language changes every text of the Node, and the switch says where you are', async ({
   page,
@@ -35,6 +39,7 @@ test('switching language changes every text of the Node, and the switch says whe
   for (const row of BOTH_LANGUAGES) {
     await expect(page.locator('body'), row.what).toContainText(row.en)
   }
+  expect(await optionImageAlt(page)).toBe('A scoreboard ranking people')
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
 
   await page.getByRole('link', { name: 'Nederlands' }).click()
@@ -47,6 +52,7 @@ test('switching language changes every text of the Node, and the switch says whe
     await expect(page.locator('body'), row.what).toContainText(row.nl)
     await expect(page.locator('body'), row.what).not.toContainText(row.en)
   }
+  expect(await optionImageAlt(page)).toBe('Een scorebord dat mensen rangschikt')
 
   // The language on screen is named but is not a link: it is where the reader already is.
   await expect(page.locator('.language--current')).toHaveText('Nederlands')
@@ -62,13 +68,16 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await page.locator('.answer--yes').click()
   await arrived(page, `${STEP}?lang=nl`)
 
-  await page.locator('.options').getByRole('link', { name: 'Sociale scoring' }).click()
-  await arrived(page, `${STEP}/social-scoring?lang=nl`)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sociale scoring')
+  // An Option opens its Overlay in place (10.9): the address, language included, stays, and
+  // the Overlay's heading links to the aside's address in the same language.
+  const overlay = page.locator('.options .overlay', { hasText: 'Sociale scoring' })
+  await overlay.locator('.sheet-open').click()
+  await expect(overlay.locator('h2 a')).toHaveText('Sociale scoring')
+  await expect(overlay.locator('h2 a')).toHaveAttribute('href', `${STEP}/social-scoring?lang=nl`)
+  await expect(page).toHaveURL(`${STEP}?lang=nl`)
+  await page.keyboard.press('Escape')
 
   // The way back keeps it too: the up arrow leads to the same page in the same language.
-  await page.locator('.up-arrow').click()
-  await arrived(page, `${STEP}?lang=nl`)
   await page.locator('.up-arrow').click()
   await arrived(page, `${START}?lang=nl`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
