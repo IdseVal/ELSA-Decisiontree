@@ -1200,6 +1200,16 @@ likely to meet, and the default type stack names Arial-metric faces before `sans
 (`src/theme.ts`, 13.4), because the Bubble's text area holds the format's maximum in
 those and not in DejaVu Sans, as 5.7 warns.
 
+**Amended 2026-09-19 (#105, PR #109):** the Option row's "60 characters take 3 in a
+humanist face" does not hold for every title. In Open Sans, the first Tree's face, the
+Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" (54 characters) takes
+**five** lines in 152 pixels (and in 150) when words break only at spaces, because no two
+of its words fit on one line. It takes four because the title is hyphenated in the page's
+language (`hyphens: auto`, #104). The four lines of 10.3 therefore hold for a 60-character
+title only where the reader's browser has a hyphenation dictionary for the page's `lang`.
+Where it has none, the button grows to 102 (10.3's 96 is a minimum) instead of
+overflowing. The limit stays 60: the owner decides whether it should come down.
+
 ### 10.8 The explainer panel
 
 **[#75], new.** A word of a Node's description may carry an explainer (`tree-format.md`

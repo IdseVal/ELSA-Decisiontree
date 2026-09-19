@@ -63,7 +63,9 @@ with the Planner's proposed resolution.
 4. **A button is 232 x 96**: the target's main image as a 48-pixel round picture at the
    inner end, an 8-pixel gap, and the label -- the target's title -- at **16 pixels on
    20-pixel lines, at most four lines** in the 152 pixels left (232 less 12 of padding
-   each side, 48 and 8): a 60-character title is three lines in a humanist face and four
+   each side, 48 and 8; #105: the 12 includes the 1-pixel outline, so the padding is 11,
+   and 12 of padding had left 150; `application.md` 10.7, amended for #105, qualifies the
+   three lines): a 60-character title is three lines in a humanist face and four
    in DejaVu Sans, the widest fallback, both inside the 80 the four lines take with 8 pixels of padding
    above and below. Outlined in the `rule` shade, filled `surface`, hover wash of
    `accent` (`ADR-78-answer-buttons-and-up-arrow.md` moved `accent-secondary` to the
