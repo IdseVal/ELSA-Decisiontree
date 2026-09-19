@@ -923,8 +923,14 @@ a.language:hover,
   border: 1px solid var(--rule);
 }
 
+/*
+ * A Dutch compound can be longer than the label's 152 pixels: break it where the page's `lang`
+ * allows, with a hyphen drawn (#104). `anywhere` stays the last resort for a word the
+ * browser's dictionary finds no break in, so a title never overflows its button.
+ */
 .option-title {
   min-width: 0;
+  hyphens: auto;
   overflow-wrap: anywhere;
 }
 
