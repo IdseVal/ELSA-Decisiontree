@@ -264,12 +264,14 @@ test.describe('with a pointer and a keyboard', () => {
 
   // At the viewports above the fixture's panels all fit below their line, so none reaches
   // the third branch of 10.8; here the text area is cut shorter than any of them makes it, so
-  // that the terms high in the paragraph fit neither below nor above their line. (210: the main
-  // image gives way down to 30 pixels since #102, so the paragraph starts 30 higher than at 240.)
+  // that the terms high in the paragraph fit neither below nor above their line. (180 since
+  // #102: the description is two lines, so the main image only gives way, to about 60, when
+  // the area is this short; the first line then starts about 132 down, too high for a panel
+  // of up to 148 above it and too low for one below.)
   for (const lang of ['en', 'nl']) {
     test(`in a text area too short for either side, a panel takes the side with more room and stays inside, ${lang}`, async ({ page }) => {
       await open(page, lang)
-      await page.addStyleTag({ content: '.bubble .bubble-text { height: 210px; flex: none; }' })
+      await page.addStyleTag({ content: '.bubble .bubble-text { height: 180px; flex: none; }' })
       let neither = 0
       for (const id of IDS) {
         const { term, panel } = marked(page, id)

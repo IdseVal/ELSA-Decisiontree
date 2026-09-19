@@ -155,17 +155,15 @@ test.describe('the rows of 10.1 at 1280 x 640', () => {
       expect([m.text.width, m.text.height]).toEqual([640, 364])
       rowTable.push(`| ${what} | text area | 640 x 364 | ${m.text.width} x ${m.text.height} |`)
 
-      // The Interior from the top of the text area: the main image, 3 : 2, as tall as the
-      // text leaves it between 30 and 45% of the area (#102), gap 8, title, and the Sources
-      // ending inside it (10.7).
+      // The Interior from the top of the text area: the main image, 3 : 2, two fifths of the
+      // Bubble's 416 (#102), gap 8, title, and the Sources ending inside it (10.7).
       expect(m.mainImage!.top).toBe(m.text.top)
-      expect(m.mainImage!.height).toBeGreaterThanOrEqual(30)
-      expect(m.mainImage!.height).toBeLessThanOrEqual(0.45 * 364)
+      expect(m.mainImage!.height).toBeCloseTo(0.4 * 416, 1)
       expect(m.mainImage!.width).toBeCloseTo(1.5 * m.mainImage!.height, 0)
       expect(m.title.top - m.mainImage!.bottom).toBe(8)
-      rowTable.push(`| ${what} | main image | 30 to 164 tall, 3 : 2 | ${m.mainImage!.width} x ${m.mainImage!.height} |`)
+      rowTable.push(`| ${what} | main image | 166.4 tall, 3 : 2 | ${m.mainImage!.width} x ${m.mainImage!.height} |`)
       rowTable.push(`| ${what} | title | at most 56 | ${m.title.height} |`)
-      rowTable.push(`| ${what} | description | at most 192 | ${m.prose.height} |`)
+      rowTable.push(`| ${what} | description | at most 48 | ${m.prose.height} |`)
       if (m.sources) {
         rowTable.push(`| ${what} | Sources | at most 60 | ${m.sources.height} |`)
         rowTable.push(`| ${what} | text area left under the Sources | at least 2 | ${m.text.bottom - m.sources.bottom} |`)
@@ -373,11 +371,10 @@ test.describe('names for assistive technology', () => {
     await page.goto(`${cycle}/cycle/first`)
     await expect(page.locator('.bubble .main-image--empty')).toBeVisible()
     await expect(page.locator('.bubble .main-image--empty')).toHaveAttribute('aria-hidden', 'true')
-    // A circle as tall as a picture would be there, between 30 and 45% of the text area (#102).
+    // A circle as tall as a picture would be there: two fifths of the Bubble (#102).
     const box = (await page.locator('.bubble .main-image--empty').boundingBox())!
     expect(box.width).toBeCloseTo(box.height, 0)
-    expect(box.height).toBeGreaterThanOrEqual(30)
-    expect(box.height).toBeLessThanOrEqual(0.45 * 364)
+    expect(box.height).toBeCloseTo(0.4 * 416, 1)
   })
 
   for (const [lang, name] of [
