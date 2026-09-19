@@ -7,6 +7,7 @@
 - Supersedes in part: `ADR-38-tree-view.md` (decisions 4 and 6 and the #41 amendment: the two straight columns, the 248 x 82 Branch, the Option's own picture), `ADR-38-neighbourhood.md` (decision 7 and 8 as far as they concern the Option button's picture), `ADR-37-images-carousel.md` (its "Dropping Images from Options" rejection), `ADR-37-length-limits.md` (decision 1's "3 Images per Option")
 - Built by: #80 (the fan-out), #79 (the format), #84 (the pictures move to their targets)
 - Amended in part by: `ADR-100-overlay-without-strip.md` (decision 2: an Overlay has no strip, so it has no strip pictures), 2026-09-19, issue #100
+- Amended 2026-09-19 by issue #105 (PR #109): decision 4's padding and its three lines
 
 ## Context
 
@@ -63,14 +64,18 @@ with the Planner's proposed resolution.
 4. **A button is 232 x 96**: the target's main image as a 48-pixel round picture at the
    inner end, an 8-pixel gap, and the label -- the target's title -- at **16 pixels on
    20-pixel lines, at most four lines** in the 152 pixels left (232 less 12 of padding
-   each side, 48 and 8; #105: the 12 includes the 1-pixel outline, so the padding is 11,
-   and 12 of padding had left 150; `application.md` 10.7, amended for #105, qualifies the
-   three lines): a 60-character title is three lines in a humanist face and four
+   each side, 48 and 8): a 60-character title is three lines in a humanist face and four
    in DejaVu Sans, the widest fallback, both inside the 80 the four lines take with 8 pixels of padding
    above and below. Outlined in the `rule` shade, filled `surface`, hover wash of
    `accent` (`ADR-78-answer-buttons-and-up-arrow.md` moved `accent-secondary` to the
    walk's controls). A target without Images shows the same empty slot the Bubble shows
-   (`ADR-78-main-image-and-row-budget.md`).
+   (`ADR-78-main-image-and-row-budget.md`). *Amended 2026-09-19 (issue #105, PR #109):*
+   the 12 of padding includes the 1-pixel outline, so the padding is 11; 12 inside the
+   outline had left 150. And a 60-character title is not three lines in every humanist
+   face: in Open Sans the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)"
+   takes four only hyphenated in the page's language, and five without, which do not fit
+   the 80: the button grows to 102, so the 96 is a minimum (`application.md` 10.3 and
+   10.7, amended).
 5. **Below the guarantee** (10.5): below 1280 pixels of width the fan straightens into
    two columns of 200 x 96 buttons without pictures (176 pixels of label, four lines at
    most) with 20-pixel gaps beside the Bubble (step 2, holds to 1200); below 1200 the
