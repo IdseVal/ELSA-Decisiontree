@@ -148,12 +148,13 @@ function Frame({ node, view }: { node: Node; view: View }) {
 
 /**
  * Where a neighbour's frame is drawn, in widths and heights of the layer, from the Node on
- * screen (11.1): the parent straight above; an Answer target below and towards its own
- * Branch -- `yes` left, `no` right -- and their Answer targets a layer further, spread so no
- * two frames overlap.
+ * screen (11.1): an Answer target below and towards its own Branch -- `yes` left, `no` right
+ * -- and their Answer targets a layer further, spread so no two frames overlap; the parent
+ * above, where the step down from it started, so the way back retraces that step: above and
+ * right of a `yes` target, above and left of a `no` target, straight above anything else.
  */
 function position({ direction, slot }: Placed): { x: number; y: number } {
-  if (direction === 'up') return { x: 0, y: -1 }
+  if (direction === 'up') return { x: slot < 2 ? 0.5 - slot : 0, y: -1 }
   return slot < 2 ? { x: slot - 0.5, y: 1 } : { x: slot - 3.5, y: 2 }
 }
 
