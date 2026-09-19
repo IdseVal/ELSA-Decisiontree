@@ -231,7 +231,7 @@ jobs:
           # compare, count -- and a full Opus Verifier round measured 65 turns and $4.57.
           # The Reviewer, the last gate, stays on Opus. Explicit, so the cloud agents
           # never drift with the action's default.
-          claude_args: "--max-turns 80 --allowedTools Bash,Read,Glob,Grep,Skill --model sonnet"
+          claude_args: "--max-turns 120 --allowedTools Bash,Read,Glob,Grep,Skill --model sonnet"   # 80 until 2026-09-19: a re-measure of every page hit it
           show_full_output: true
           prompt: ${{ steps.vbrief.outputs.prompt }}
 
