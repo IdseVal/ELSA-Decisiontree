@@ -1153,6 +1153,12 @@ the floor of 480 there is no step left to pay for them: with the arrow above the
 the full Node of 10.6 overflowed its text area at 1280 x 564. So at 1280 x 639 the text
 area is 401 tall and at 1280 x 640 it is 364; the triggers above are unchanged. Down to
 632 the main image of 10.3 is still two fifths of the Bubble; step 5 hides it below that.
+The pixels each step frees in the list above are #78's, when the main image was 60 tall
+and step 5 freed it and its gap, 68; they are historical. Measured at this layout, at
+1280 x 632 the Bubble is 446 and the picture 178.4, so step 5 frees 186.4 of the text
+area (the picture and its gap of 8), and at 1280 x 631 the Bubble of 445 has no picture.
+Step 5 frees more than it did, so the triggers, which `no-scroll.spec.ts` proves at every
+one, still hold.
 
 ### 10.6 The no-scroll rule, and the exact test
 
@@ -1344,7 +1350,8 @@ decides core document 10.27.
   title 56, the description 48, the Sources 60, the list 100 and four gaps of 8, 539.2 in
   all, 18.8 to spare, in Arial and Segoe UI alike. A face as wide as 5.7's 90 characters
   a line puts the list on a sixth line, 1.2 pixels more than the spare, and the picture
-  gives up those 1.2: 242 of 243.2), `surface` over the `scrim` veil, a 32-pixel round
+  gives up those 1.2: 242 of 243.2; amended 2026-09-19, #102, was: 640 x 560 of content:
+  the Interior's 392, a gap of 8 and 160 of list), `surface` over the `scrim` veil, a 32-pixel round
   close cross at its top right corner. It never scrolls; the fixture `tests/fixtures/overlay/`
   is an explanation Node at every maximum with eight Options, 10.6 measures it, and
   `overlay.spec.ts` measures its picture at two fifths of the panel, which no-scroll alone

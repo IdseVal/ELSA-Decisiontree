@@ -1672,8 +1672,9 @@ a.language:hover,
 }
 
 /*
- * Step 5 -- the main image is hidden and its slot closes, on every Node alike (10.5): 68
- * pixels, from 632 to 564. Also below 792 pixels of width, where the Bubble narrows and
+ * Step 5 -- the main image is hidden and its slot closes, on every Node alike (10.5): at
+ * 1280 x 632 the picture is 178.4 of a 446 Bubble, so hiding it and its gap frees 186.4 of
+ * the text area (#78's 68 was a 60-pixel image and its gap). Also below 792 pixels of width, where the Bubble narrows and
  * steps 5, 6 and 7 fire together.
  */
 @media (max-height: 631px), (max-width: 791px) {
