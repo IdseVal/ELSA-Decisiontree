@@ -1075,6 +1075,11 @@ outline (section 12), the chrome bar and disclaimer unchanged.
   The 96 is a minimum, not a height, as #80 built it: a title that takes a fifth line
   (10.7, amended) makes its button 102 tall, still 9 clear of its neighbour at the pitch
   of a side of four, growing downward from the row's top instead of overflowing.
+
+  **Amended 2026-09-19 (#102):** the Bubble is 760 x 416 now (10.1), so the formula reads
+  (*i* + 0.5) x 416 / *m* - 208 and 172 + sqrt(208² - *y*²) + 20, and the pitch on a side
+  of four is **104**: 8 clear of a 96-pixel button, 2 of a 102-pixel one. The figures
+  above (446, 223, 157, 111.5, 15 and 9) are #78's and #105's, at a Bubble of 446.
 - **The picture on an Option button is its target's main image** -- an image of another
   Node, which 11.5 allows for exactly this: one file per Option, the target's first
   Image, never its other Images (core document 10.29). An Option has no `images` of its
@@ -1340,7 +1345,8 @@ and marks each occurrence in the description as `[providers](#provider)`. Record
   placed below the term's line when that fits inside the Bubble's text area and above it
   otherwise, and shifted sideways so that it stays inside the text area: at and above the
   guaranteed viewport, since the panel is at most 148 pixels and the area 394, one of the
-  two always fits. Where neither fits -- an area 10.5 has shortened -- the panel takes the
+  two always fits (**amended 2026-09-19, #102:** the area is 364 now (10.1); either side
+  of any line of it still has 170 or more, so one still fits). Where neither fits -- an area 10.5 has shortened -- the panel takes the
   side with more room and lies against that edge of the text area, over the least of the
   text (amended 2026-09-18, #83). **Without
   JavaScript** the panel opens on hover and on focus by CSS alone (`:hover`, `:focus`),
