@@ -6,6 +6,7 @@
 - Core document: 3.1 (traversal rule, `[#75]`), 3.2 ("Side children open in an Overlay"), open item **10.27** (decided here), 10.23 (unchanged)
 - Supersedes in part: `ADR-38-tree-view.md` (decisions 3, 8, 10 as far as they concern Option Branches and the `back` Branch), `ADR-38-neighbourhood.md` (decisions 1 and 3: the `side` direction), `ADR-38-transitions.md` (decision 2 as far as it concerns the side slide)
 - Built by: #80
+- Amended in part by: `ADR-100-bounded-centre.md` (decision 4: the centre is found in at most the path's last three entries) and `ADR-100-overlay-without-strip.md` (decision 2: an Overlay has no strip), 2026-09-19, issue #100
 
 ## Context
 
@@ -41,8 +42,9 @@ the explanation (`application.md` 14).
 2. **The page pre-renders the Interior of every Option target, closed.** The targets are
    read by `neighbourhood` as before (one `getNode` per id, at most 8), but they are no
    longer *placed* in the tree layer: `Direction` loses `side`, the side slide goes, and
-   the Overlays are the page's **asides**. A closed Overlay's strip pictures are
-   `loading="lazy"`, so the browser requests nothing for an aside until it is opened
+   the Overlays are the page's **asides**. [Amended by `ADR-100-overlay-without-strip.md`:
+   an Overlay has no strip, so the next sentence names nothing.] A closed Overlay's strip
+   pictures are `loading="lazy"`, so the browser requests nothing for an aside until it is opened
    (`ADR-78-fan-out-and-option-picture.md` for the accounting).
 3. **Opening or closing an Overlay does not change the address.** The address is the
    page's, and the page is the parent's. This is what "the way navigation works in line
@@ -51,7 +53,9 @@ the explanation (`application.md` 14).
 4. **The URL of an explanation Node renders its parent's page with that Overlay open
    (10.27).** For a path `/<tree>/<id-1>/.../<id-n>` the **centre** is the last entry
    that is a question Node or a Terminal; the entries after it are explanation Nodes and
-   the last of them is the Overlay rendered `open`. "Parent" is therefore what the path
+   the last of them is the Overlay rendered `open`. [Amended by `ADR-100-bounded-centre.md`:
+   the centre is found in at most the path's last three entries, and is an explanation
+   Node when three or more end the path.] "Parent" is therefore what the path
    says it is, entry by entry, which is the same rule the Trail has always followed
    (4.3 checks no adjacency); an explanation Node reached by two different Options has
    two URLs, one under each parent, and each renders that parent. The centre's own
