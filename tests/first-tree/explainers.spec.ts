@@ -23,17 +23,24 @@ const VIEWPORTS = [
 ] as const
 const LANGUAGES = ['en', 'nl'] as const
 
-/** The Nodes that list explainers, found by following every answer and Option from the root. */
+/**
+ * The Nodes that list explainers, found by following every answer and Option from the root:
+ * the queue of `reachableNodes` in every-link.spec.ts.
+ */
 async function explainedNodes(): Promise<string[]> {
   const tree = await openTree(fileURLToPath(new URL(`../../trees/${TREE}`, import.meta.url)))
-  const seen = new Set([tree.manifest.root])
+  const seen = new Set<string>()
   const ids: string[] = []
-  for (const id of seen) {
-    const node = (await tree.getNode(id))!
+  const queue = [tree.manifest.root]
+  while (queue.length > 0) {
+    const id = queue.shift()!
+    if (seen.has(id)) continue
+    seen.add(id)
+    const node = await tree.getNode(id)
+    if (!node) throw new Error(`the loader cannot read ${id}`)
     if (node.explainers.length > 0) ids.push(id)
-    const next = node.options.map((option) => option.target)
-    if (node.kind === 'question') next.push(node.answers.yes, node.answers.no)
-    for (const target of next) seen.add(target)
+    if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+    queue.push(...node.options.map((option) => option.target))
   }
   return ids
 }
@@ -55,6 +62,8 @@ for (const [width, height] of VIEWPORTS) {
         await expect(shown.locator('.prose[data-enhanced]').first()).toBeAttached()
         const terms = shown.locator('.prose .term')
         const count = await terms.count()
+        // A Node that lists explainers marks at least one term; none found means the selector missed.
+        expect(count, `${id} marks no term`).toBeGreaterThan(0)
         for (let i = 0; i < count; i++) {
           const term = terms.nth(i)
           await term.hover()
@@ -69,7 +78,6 @@ for (const [width, height] of VIEWPORTS) {
         }
       }
       console.log(`${lang} ${width}x${height}: ${measured.length} panels\n${measured.join('\n')}`)
-      expect(measured.length, 'every Node with explainers marks at least one term').toBeGreaterThanOrEqual(nodes.length)
       expect(over, 'panels over 320 x 148').toEqual([])
     })
   }
