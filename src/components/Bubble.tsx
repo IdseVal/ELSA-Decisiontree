@@ -15,9 +15,9 @@
  * link on the page that names the aside.
  *
  * The main image is the Node's first Image, a link to its file that opens the enlarged view
- * (12.3). It takes what height the text leaves it, up to its share of the text area (10.3,
- * amended by #102). A Node without Images keeps the same box as an empty slot, and a
- * neighbour frame as a withheld one, so a slide has nothing to reflow.
+ * (12.3). It is two fifths of the Bubble's height (10.3, amended by #102). A Node without
+ * Images keeps the same box as an empty slot, and a neighbour frame as a withheld one, so a
+ * slide has nothing to reflow.
  *
  * The Sources are rendered twice, once inline and once inside a Sheet, and the stylesheet
  * shows one or the other: below the guaranteed viewport they collapse to one control (10.5,

@@ -67,11 +67,14 @@
    */
   --bubble-radius: 999px;
   /*
-   * The main image above the title (10.3, 10.7): as tall as the text leaves it, up to 45% of
-   * the text area -- about two fifths of the Bubble -- and never less than 30 pixels, which
-   * is what a Node at every maximum leaves it.
+   * The main image above the title (10.3, 10.7): two fifths of the Bubble's height on every
+   * Node (#102, the owner's answer (b) on PR #110). It is sized from the text area it sits
+   * in, which is the Bubble less the rim above and below: 166.4 of 416 at the guaranteed
+   * viewport, 208 of 520 at the largest Bubble. tree-format.md 5.7 cuts the description to
+   * what fits beside it. 30 pixels is the floor it can give way to where the text does not
+   * fit after all -- a font wider than 5.7 assumes -- and never at the guarantee.
    */
-  --main-image: 45%;
+  --main-image: calc((100% + 2 * var(--rim-y) + 4px) * 2 / 5);
   --main-image-min: 30px;
   /*
    * The foot of the text area the Interior keeps clear while it can (below): 24 pixels on
@@ -489,25 +492,25 @@ a.language:hover,
 }
 
 /*
- * The foot of the text area is kept clear while the main image can give way: the curve
- * narrows the Bubble there, and a line of Sources drawn in it crosses the outline. Its
- * shrink weight is a hundredth of the picture's, so it yields only once the picture is at
- * its least -- on a Node at every maximum, where 10.7's budget needs the whole area. (Not
- * 0.01 against 1: shrink factors that sum below one absorb only that share of the overflow.)
+ * The foot of the text area is kept clear where the text leaves room: the curve narrows the
+ * Bubble there, and a line of Sources drawn in it crosses the outline. The picture wins
+ * over it (#102): its shrink weight is ten thousand times the picture's, so it yields
+ * first, and all of it -- a Node at every maximum keeps 9.6 of its 24 pixels (10.7). (Not
+ * 1 against 0.0001: shrink factors that sum below one absorb only that share of the overflow.)
  */
 .bubble-text::after {
   content: "";
-  flex: 0 1 var(--foot);
+  flex: 0 10000 var(--foot);
 }
 
 /*
  * The main image (10.3): a 3 : 2 box, a 3 : 2 picture whole and any other shape cropped to
- * it, centred above the title with 8 pixels under it. The one part of the Interior that
- * shrinks: the text takes the height it needs and the picture the rest, up to its share.
+ * it, centred above the title with 8 pixels under it. Only once the foot is gone does it
+ * give way, and only to text wider than tree-format.md 5.7 assumes.
  */
 .main-image {
   display: block;
-  flex: 0 100 var(--main-image);
+  flex: 0 1 var(--main-image);
   align-self: center;
   min-height: var(--main-image-min);
   aspect-ratio: 3 / 2;
@@ -1022,8 +1025,13 @@ a.language:hover,
   background: var(--wash);
 }
 
-/* Laid out from the top, as the Bubble's text area is (10.3): the title at the same height in both. */
+/*
+ * Laid out from the top, as the Bubble's text area is (10.3): the title at the same height in
+ * both. The main image is two fifths of the panel, as it is of the Bubble (#102): the panel
+ * is this area and its padding and outline, 24 and 1 above and below.
+ */
 .overlay-interior {
+  --main-image: calc((100% + 2 * 24px + 2px) * 2 / 5);
   /* The containing block of an explainer panel, as the Bubble's text area is (10.8). */
   position: relative;
   display: flex;
