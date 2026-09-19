@@ -97,7 +97,9 @@ second case above the path has one.
   case no Tree has yet. The page the adjacent link opens -- centred on the aside the
   reader came through -- is the more truthful one.
 - **Raise 17 to cover a longer chain.** Rejected: widening it is an `architecture`
-  issue with a reason, and the only reason here is URLs no reader is sent to.
+  issue with a reason, and there is none here: no number would bound a walk over 50
+  unchecked entries, and the one shape the application links to (three explanation Nodes
+  at the end) is already rendered within 17 by rule 1.
 
 ## Consequences
 
