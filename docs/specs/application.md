@@ -1016,7 +1016,8 @@ in it crosses the outline; the foot is what yields first, and a Node at every ma
 keeps 9.6 of it. Only text wider than 5.7 assumes -- a face wider than those 13.4 names
 -- would then make the picture give way, never below 30 pixels. The Overlay's Interior is
 the same component, and its picture is two fifths of the Overlay's panel in the same way:
-243.2 of 608, where it was 60. The title sits at one height on every Node again; a
+243.2 of 608, where it was 60, at every maximum too, because the Overlay's own Options
+now flow as one inline list (10.9). The title sits at one height on every Node again; a
 neighbour frame's withheld slot is the same box as the picture it stands for, so a slide
 has nothing to reflow.
 
@@ -1333,12 +1334,21 @@ decides core document 10.27.
 
 - **What it is.** The `Sheet` (12.3, 10.5), with the Option button as its control and
   one page: the target's **Interior** (10.3), rendered by the same component as the
-  Bubble's, and under it the target's own Options, if it has any, as a list of at most
-  eight 20-pixel lines of plain links (below). The panel is 760 x 608, centred, with
-  24-pixel bands above and below and 60 each side (640 x 560 of content: the Interior's
-  392, a gap of 8 and 160 of list), `surface` over the `scrim` veil, a 32-pixel round
+  Bubble's, and under it the target's own Options, if it has any, as a list of plain
+  links (below). **[#102]** The list is one inline run of links on 20-pixel lines,
+  separated by a middle dot, where it was one link to a line: eight Option titles of 60
+  characters, 5.7's most, with their separators are about 505 characters: 5 lines as
+  measured, 100 pixels, where one to a line took 160 and left the picture 202 (10.3).
+  The panel is 760 x 608, centred, with 24-pixel bands above and below and 60 each side (640 x 558 of content inside its
+  outline: at every maximum, measured on the fixture at 1280 x 640, the picture 243.2, the
+  title 56, the description 48, the Sources 60, the list 100 and four gaps of 8, 539.2 in
+  all, 18.8 to spare, in Arial and Segoe UI alike. A face as wide as 5.7's 90 characters
+  a line puts the list on a sixth line, 1.2 pixels more than the spare, and the picture
+  gives up those 1.2: 242 of 243.2), `surface` over the `scrim` veil, a 32-pixel round
   close cross at its top right corner. It never scrolls; the fixture `tests/fixtures/overlay/`
-  is an explanation Node at every maximum with eight Options, and 10.6 measures it.
+  is an explanation Node at every maximum with eight Options, 10.6 measures it, and
+  `overlay.spec.ts` measures its picture at two fifths of the panel, which no-scroll alone
+  cannot see.
 - **How it closes:** the cross, Escape, a click outside it. Focus moves to the cross on
   open and returns to the Option button on close. One Sheet is open at a time, so
   opening an Overlay closes any other Sheet and opening another Overlay closes this one.
