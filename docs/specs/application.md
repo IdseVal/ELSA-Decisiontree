@@ -1431,9 +1431,10 @@ translates the layer by exactly that offset, so the target Bubble arrives in the
   arrow's slide is the step down reversed: a `yes` target is placed down and to the left,
   so from it the parent lies **up and to the right**; from a `no` target **up and to the
   left**; after any other step -- an address whose last step was no Answer of its parent --
-  **straight up**. At the guaranteed viewport both diagonals are 45 degrees (half the
-  layer's 1280 across, the whole of its 640 down); at every size the way back is exactly
-  the way down reversed.
+  **straight up**. A diagonal step is half the layer's width across and its whole height
+  down -- 640 by 568 at the guaranteed viewport, where the layer is the 568 pixels between
+  the chrome bar and the disclaimer: 42 degrees below the horizontal, the "45 degrees" of
+  the owner's words -- and at every size the way back is exactly the way down reversed.
 - **`startAgain` has no direction and does not slide.** It leads to the root Node with an
   empty Trail, which is a restart rather than a step through the tree. It is an ordinary
   link (11.3).
