@@ -2,6 +2,7 @@
 
 - Status: ACCEPTED (frozen) -- 2026-09-10
 - Superseded in part by `ADR-78-overlay.md` (decision 2 as far as it concerns the side slide: an Option opens an Overlay and nothing slides sideways) -- 2026-09-17 (issue #78). The slide down and up, and decisions 1 and 3 to 7, stand.
+- Superseded in part by `ADR-78-answer-buttons-and-up-arrow.md` as amended by issue #102 (PR #110), 2026-09-19 (decision 2 as far as it fixes the up slide as straight up: the up arrow's slide retraces the step it undoes). The slide down, and decisions 1 and 3 to 7, stand.
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 11.1, 11.3, 11.4
 - Core document: 3.2 ("I want the transitions to slide over the tree to the next node")
@@ -35,6 +36,15 @@ moves, and what the address bar does while it moves.
    slides **up**. `startAgain` has no direction at all -- a restart is not a step through
    the tree -- and is an ordinary link, like a Trail Branch older than the grandparent
    (`application.md` 11.1, 11.3).
+   **Amended 2026-09-19 (#102, PR #110, by the owner):** "Going back must retrace the
+   direction taken going down." The `back` Branch is the up arrow now
+   (`ADR-78-answer-buttons-and-up-arrow.md`), and its target is placed where the step down
+   to the centre started, so following it slides **up and to the right** from a `yes`
+   target (reached down and to the left), **up and to the left** from a `no` target, and
+   straight up after any other step. The `up` placement's `slot` carries which (0, 1, 2;
+   `application.md` 11.2, `neighbourhood.ts`); the translation stays exactly the offset to
+   where the target is drawn, as decided here, and `transition.spec.ts` asserts the
+   reversed vector for all three.
    **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours
    into the page as the tree layer's payload; they enter the DOM only during a slide. At
    rest, and without JavaScript, the DOM holds the centre Bubble only.
