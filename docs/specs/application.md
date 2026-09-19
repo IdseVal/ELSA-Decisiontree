@@ -949,6 +949,17 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
 - **The centre of the viewport is the centre of the tree.** Everything else is placed
   relative to the Bubble: that is what section 11 slides.
 
+**Amended 2026-09-19 (#102, by the owner):** the up arrow stands **above** the Bubble, not
+on it, its foot 6 pixels clear of the outline (10.2). Its band grows from 26 to **56** --
+2 clear of the chrome bar, 48 of arrow, 6 of clearance -- and the Bubble gives the 30
+pixels: at the guaranteed viewport the rows are **44 + 56 + 416 + 28 + 68 + 28 = 640**,
+the Bubble is 760 x 416 (radius 208) and its text area **640 x 364**. The rim keeps its
+60 by 26; its band above now holds only a Terminal's badge. The chord 26 pixels in is
+now 545, and at the lowest Sources line of a full text area (46 from the bottom) 605.
+Below 640 pixels tall the arrow goes back onto the outline and its band back to 26, as
+before this amendment (10.5, amended the same day), so every height trigger of 10.5
+stands as it was measured.
+
 ### 10.2 The up arrow: the way back
 
 The Trail is the ordered list of Nodes visited to get here, and it is the path in the
@@ -971,6 +982,12 @@ control:
   presses the arrow again or uses the browser's back; the share link still carries the
   whole Trail.
 
+**Amended 2026-09-19 (#102, by the owner):** the up arrow is centred **above** the Bubble's
+top outline, its foot 6 pixels clear of it, at and above the guaranteed height (10.1, 10.5).
+Following it **retraces the step it undoes** (11.1, 11.3): back up and to the right from a
+`yes` target, which was reached down and to the left; up and to the left from a `no`
+target; straight up after any other step.
+
 ### 10.3 What each kind of Node shows
 
 **The Interior** is what a Node shows, in this order, inside a 640-pixel-wide text area
@@ -985,6 +1002,23 @@ circle outlined in the `rule` shade; then the **title** (heading); the **descrip
 prefixed by its kind for `case-law` and `literature` only (`ADR-78-sources-heading.md`).
 The same component renders the Bubble's interior and every Overlay's (10.9), so a change
 to one reaches the other.
+
+**Amended 2026-09-19 (#102, by the owner):** the main image is bigger. It is a **3 : 2 box
+as tall as the text leaves it, up to 45% of the text area it stands in -- about two
+fifths of the Bubble -- and never less than 30 pixels**, cropped and cornered as before;
+the empty slot is a circle of the same height. It is the one part of the Interior that
+gives way: the title, description and Sources take the height they need, the picture
+takes the rest up to its share, and a Node at every maximum leaves it the 30 of 10.7. In
+the Bubble a **clear foot** of 24 pixels, plus a quarter of every pixel the text area has
+over 364, stays empty under the Sources while the picture can still yield, because the
+curve narrows the Bubble there and a Sources line drawn in it crosses the outline; the
+foot yields only once the picture is at its least. The Overlay's Interior is the same
+component, so its picture takes the same 45% of the Overlay's content area. Measured at
+1280 x 640 (PR for #102): the Bubble 416 tall, the picture 30 to 164 tall across the first
+Tree's 71 Nodes; at 1366 x 768 and above, the Bubble 520 and the picture up to 211; the
+Overlay's picture 251 in its 608-pixel panel, where it was 60. The title therefore no
+longer sits at one height on every Node; a neighbour frame's withheld slot is the same box
+as the picture it stands for, so a slide still has nothing to reflow.
 
 `tree-format.md` 5.6 has three kinds and the frontend distinguishes five situations. In
 every one: the up arrow above where there is a Trail (10.2), the strip on the lower
@@ -1110,6 +1144,15 @@ Whichever step first makes the arrangement fit is where it stops.
   a Terminal's badge sits in is kept, so the badge still takes nothing from the text
   area.
 
+**Amended 2026-09-19 (#102, by the owner):** one more thing gives way outside the numbered
+order, by height alone: **below 640 pixels tall the up arrow goes back onto the Bubble's
+top outline**, its middle on it, and its band back to 26 (10.1, 10.2). The 30 pixels it
+stands clear by above 640 are what every step of this table was measured without, and at
+the floor of 480 there is no step left to pay for them: with the arrow above the Bubble
+the full Node of 10.6 overflowed its text area at 1280 x 564. So at 1280 x 639 the text
+area is 401 tall and at 1280 x 640 it is 364; the triggers above are unchanged. The main
+image of 10.3 still gives way first, by its own shrinking, before step 5 hides it.
+
 ### 10.6 The no-scroll rule, and the exact test
 
 **The rule.** `html` and `body` are exactly the size of the viewport and have
@@ -1183,6 +1226,26 @@ explainers and the Option pictures, not for a length, and no Tree is re-cut.
 | Sources | 60 | The 20-px heading line, then 13 px on 20-px lines, about 90 characters a line: 3 labels of 60 with two kind prefixes and separators is at most 2 lines. |
 | | **392 of 394** | |
 
+**Amended 2026-09-19 (#102, by the owner):** the text area is **640 x 364** (10.1) and the
+main image gives way down to **30** (10.3). The budget of a Node at every maximum:
+
+| Inside the text area | Height |
+|---|---|
+| Main image | 30 at the least, up to 45% of the area where the text leaves it |
+| gap | 8 |
+| Title | 56 |
+| gap | 8 |
+| Description | 192 |
+| gap | 8 |
+| Sources | 60 |
+| | **362 of 364** |
+
+**The limits are confirmed unchanged**: the picture pays for the arrow's clearance, not the
+text. A picture of 2/5 of the Bubble on every Node, whatever its text, does not fit these
+limits at 1280 x 640 -- 166 + 8 + 56 + 8 + 192 + 8 + 60 = 498 of 364 -- and would need
+`tree-format.md` 5.7's description limit cut to about two lines; that is a format change
+this amendment does not make.
+
 Five assumptions behind those numbers are re-derived by this layout. None moves a limit:
 
 | `tree-format.md` 5.7 assumed | This layout | Effect on the limits |
@@ -1219,6 +1282,15 @@ and marks each occurrence in the description as `[providers](#provider)`. Record
   `tree-format.md` 3.4). The panel holds the canonical `term` and the `text`. Ids are
   prefixed for a copy in a neighbour frame or an Overlay, as every id in the tree view
   is.
+
+  **Amended 2026-09-19 (#102, by the owner):** the term is marked **bold, in the Theme's own
+  `accent-secondary`** -- the Answer buttons' green -- **and nothing else**: no underline,
+  dotted or solid. Hovering, focusing or opening it adds the `accent-secondary` wash behind
+  it, as before. On the first Tree that green is `#159a2f` on the Bubble's `#f0f3f7`,
+  **3.31 : 1**, which WCAG 2.2 SC 1.4.3 accepts for large text only (at least 18.66 pixels
+  bold); the term is 16-pixel bold body text, for which it asks 4.5 : 1. The owner chose the
+  colour; the shortfall is recorded here, and a Theme whose `accent-secondary` reads at
+  4.5 : 1 on its `surface` removes it.
 - **What a screen reader hears:** the marked words, then their description, which is
   the explainer -- `aria-describedby` on the term, `role="tooltip"` on the panel. Nothing
   else is announced on open or close.
@@ -1353,6 +1425,15 @@ translates the layer by exactly that offset, so the target Bubble arrives in the
 - **The up arrow slides up.** Its target is the parent, which 11.2 places `up`; the
   control sits on the Bubble's top outline and the target above it, so the control and
   the direction agree.
+
+  **Amended 2026-09-19 (#102, by the owner):** "The app is one large map the reader
+  traverses." The parent is placed **where the step down from it started**, so the up
+  arrow's slide is the step down reversed: a `yes` target is placed down and to the left,
+  so from it the parent lies **up and to the right**; from a `no` target **up and to the
+  left**; after any other step -- an address whose last step was no Answer of its parent --
+  **straight up**. At the guaranteed viewport both diagonals are 45 degrees (half the
+  layer's 1280 across, the whole of its 640 down); at every size the way back is exactly
+  the way down reversed.
 - **`startAgain` has no direction and does not slide.** It leads to the root Node with an
   empty Trail, which is a restart rather than a step through the tree. It is an ordinary
   link (11.3).
@@ -1392,6 +1473,11 @@ Given the centre Node and the Trail that reached it:
 - **`up` is the parent only.** The grandparent is no longer reachable in one click (the
   Trail Branches are gone, 10.2), so it is not placed. `down` is the Answer targets and
   theirs, and nothing else; `startAgain` has no placement at all.
+
+  **Amended 2026-09-19 (#102):** the `up` placement's `slot` records the step it undoes --
+  **0** when the centre is the parent's `yes` target, **1** its `no` target, **2** any
+  other step -- which is what 11.1's amended placement reads. The parent was read for its
+  own frame already, so the count of 17 does not change.
 - **This is "the next two nodes in each direction", read as directions of the screen**:
   two deep down the answer path; one up, because that is as far as one click goes; the
   Options one out as asides, because they fan (a Node may have eight) and an aside's own
@@ -1439,6 +1525,14 @@ Following the up arrow or an Answer button, with JavaScript:
 5. The URL is the target's URL -- `followHref` for an Answer, `trailHref` for the up
    arrow (4.1) -- pushed exactly as a plain link would have left it. Reload, back and
    copy-link keep working.
+
+**Amended 2026-09-19 (#102, by the owner):** the translation of step 2 is toward the
+target's position as 11.1 places it, and the up arrow's target is placed where the step
+down to the centre started (11.1, amended the same day): the layer moves so that the
+reader goes back up along the diagonal they came down -- up and to the right after a
+`yes`, up and to the left after a `no` -- and straight up after any other step. The back
+button has always reversed the slide that brought the reader (below); the arrow now does
+too. `transition.spec.ts` asserts it for a `yes` target, a `no` target and a straight step.
 
 **A control whose target is not placed navigates without a slide.** `startAgain`; an
 entry of any Sheet, including a second-level Option in an Overlay and an Option in the
