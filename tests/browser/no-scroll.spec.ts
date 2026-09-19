@@ -687,9 +687,12 @@ test('the full Node keeps the text area 10.5 budgets and a 760 Bubble down to 12
   for (const [width, height] of [[1280, 640], [1280, 632], [1279, 640], [1200, 640], [1200, 632]] as const) {
     await page.setViewportSize({ width, height })
     expect((await page.goto(`${origin}${FULL_NODE_URL}`))?.status()).toBe(200)
-    // Step 1 frees 8 pixels, to 632: the text area is the guarantee's 394 at both ends of it.
+    // At 640 the up arrow stands 30 pixels above the Bubble and the text area is 364 (#102);
+    // below it the arrow is back on the outline, and step 1 frees 8 more, so 632 has 394.
     expect((await page.locator('.bubble').boundingBox())!.width, `${width}x${height}: the Bubble`).toBe(760)
-    expect((await page.locator('.bubble-text').boundingBox())!.height, `${width}x${height}: the text area`).toBe(394)
+    expect((await page.locator('.bubble-text').boundingBox())!.height, `${width}x${height}: the text area`).toBe(
+      height >= 640 ? 364 : 394,
+    )
   }
 })
 

@@ -1412,6 +1412,22 @@ a.language:hover,
  * ================================================================================== */
 
 /*
+ * Below the guaranteed height the up arrow goes back onto the outline, its middle on it, and
+ * its band back to 26 (10.2, amended 2026-09-19, #102): the 30 pixels it stands clear by
+ * above 640 are what every step below takes its measure from, and at the floor there is no
+ * step left to pay for them.
+ */
+@media (max-height: 639px) {
+  :root {
+    --up-row: calc(var(--up-size) - var(--rim-y) + 2px);
+  }
+
+  .up-arrow {
+    top: calc(var(--rim-y) - 2px - var(--up-size));
+  }
+}
+
+/*
  * Step 1 -- the strip collapses to the enlarged view's control, a 20-pixel pill on the same
  * outline, and the band closes to 20 (10.5).
  */
