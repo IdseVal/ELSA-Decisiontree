@@ -6,6 +6,7 @@
 - Core document: 3.1 (Options "with its own title and optional Images"), 3.2 ("The side children fan out like a mind map, in larger text"), section 9 (images only for the Node on screen), open item **10.29** (decided here)
 - Supersedes in part: `ADR-38-tree-view.md` (decisions 4 and 6 and the #41 amendment: the two straight columns, the 248 x 82 Branch, the Option's own picture), `ADR-38-neighbourhood.md` (decision 7 and 8 as far as they concern the Option button's picture), `ADR-37-images-carousel.md` (its "Dropping Images from Options" rejection), `ADR-37-length-limits.md` (decision 1's "3 Images per Option")
 - Built by: #80 (the fan-out), #79 (the format), #84 (the pictures move to their targets)
+- Amended in part by: `ADR-100-overlay-without-strip.md` (decision 2: an Overlay has no strip, so it has no strip pictures), 2026-09-19, issue #100
 
 ## Context
 
@@ -38,7 +39,8 @@ with the Planner's proposed resolution.
    -- never the target's other Images, bounded by the format's eight Options -- and,
    once an Overlay is open, the Images of the Node in it (`ADR-78-overlay.md`). 11.4 is
    restated for what is off screen: a neighbour frame placed `up` or `down` carries no
-   image URL; a closed Overlay's strip pictures are `loading="lazy"` and its main image
+   image URL; a closed Overlay's strip pictures [none: an Overlay has no strip,
+   `ADR-100-overlay-without-strip.md`] are `loading="lazy"` and its main image
    is the URL the button already loads, so no request is made for an aside until it is
    opened. `transition.spec.ts` asserts that set: on load, the centre Node's files and
    one per Option; on opening an Overlay, that Node's files; nothing else, ever. Core
