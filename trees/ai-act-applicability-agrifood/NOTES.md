@@ -141,10 +141,10 @@ Things that will trip you up, in rough order of likelihood:
   rejected.
 - **Titles are one line.** `title`, Option titles and Source labels take no line breaks.
 - **Everything has a maximum length now**, because nothing on the page may scroll: 80
-  characters for a title, 600 for a description (and at most 8 rendered lines), 60 for an
+  characters for a title, 150 for a description (and at most 2 rendered lines), 60 for an
   Option title or a Source label, 3 Sources, 8 Options. The validator names the actual
-  length and the maximum. This Tree now fits inside all of them with very little room to
-  spare (section 10), so a sentence you add has to buy its space from another.
+  length and the maximum. The description was 600 characters and 8 lines until PR #110
+  (issue #102) gave the main image two fifths of the Bubble; section 12 says what that cut.
 - **No unknown keys.** A typo like `anwsers:` is an error, not a silently ignored key. The
   one place you may invent keys is under `metadata:`.
 - **`yes` and `no` are the only Answer keys**, and both are required on a question Node.
@@ -586,8 +586,8 @@ that took a statement with it, as far as a side-by-side reading of the two versi
 
 ### If you want a sentence back
 
-There is little room left: the longest description is 584 characters of the 600 allowed,
-and every Node is inside the 8-line limit. So adding a sentence means taking one out --
+There is little room left: since issue #102 a description is at most 150 characters and
+2 lines (section 12). So adding a sentence means taking one out --
 or, better, doing what this cut did to the three steps that would not fit: give the step
 another numbered Node and carry the counter, `(1/2)`, `(2/2)`, as the format describes
 (`docs/specs/tree-format.md` 5.8). `npm run validate` tells you which of the two you are
@@ -613,7 +613,7 @@ searching `tree.yaml` for `- id: ai-system` finds every copy.
 
 Only the 18 question Nodes -- the steps -- were covered; 11.2 says what was left
 out. 14 of them mark at least one term; `article-2-exclusions`, `ai-system-definition`,
-`annex-i-legislation-3` and `annex-iii-areas` mark none. 28 explainers in all, 12 terms;
+`annex-i-legislation-3` and `annex-iii-areas` mark none. 26 explainers in all, 12 terms;
 `tests/ai-act-tree.test.ts` pins both numbers, so change them there too.
 
 | Node | Terms marked (Article 3 point) |
@@ -631,7 +631,7 @@ out. 14 of them mark at least one term; `article-2-exclusions`, `ai-system-defin
 | `annex-i-legislation-2` | AI system (1) |
 | `high-risk` | AI system (1) |
 | `general-purpose-ai` | provider (3), systemic risk (65) |
-| `transparency-obligations` | AI system (1), provider (3), deployer (4) |
+| `transparency-obligations` | AI system (1) |
 
 | Explainer id | English term | Dutch term | Article 3 point |
 |---|---|---|---|
@@ -693,3 +693,21 @@ The Article 2 and 3 texts in both languages were fetched for this from EUR-Lex w
 `https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02024R1689-20260727`
 (906 622 bytes, sha256 `808269ce…9987f44`) and the same URL with `NL` (954 844 bytes,
 sha256 `5a584f9d…a37939`).
+
+## 12. What issue #102 cut: every description to two lines
+
+The owner chose a main image of two fifths of the Bubble on every Node (PR #110). What is
+left of the text area beside it is two lines of description, so the format's limit went
+from 600 characters and 8 lines to **150 characters and 2 lines**
+(`docs/specs/tree-format.md` 5.7, `docs/specs/application.md` 10.7). Every description
+over it was cut mechanically, in both languages, with no rewording:
+
+- The text keeps its leading whole sentences, as many as fit in 150 characters on one
+  paragraph. Lists and later paragraphs went.
+- Where that would lose a term the Node explains, the text starts at the first sentence
+  that marks one instead, so the explainer stays.
+- Where not even one sentence fits, it is cut at the last word that fits and ends in `…`.
+
+`transparency-obligations` lost its sentences that marked "provider" and "deployer", so
+those two explainers went with them. The full texts are in the Git history of `tree.yaml`
+before PR #110, for when you write the short versions by hand.

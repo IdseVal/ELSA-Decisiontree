@@ -31,6 +31,7 @@ const SECOND_OPTION = `${QUESTION}/emotion-recognition-at-work`
 /** Ports for the servers this file starts; clear of the other specs'. */
 const FIRST_TREE_PORT = BASE_PORT + 40
 const FULL_NODE_PORT = BASE_PORT + 41
+const OVERLAY_PORT = BASE_PORT + 42
 
 test.afterAll(() => stopServers())
 
@@ -141,6 +142,22 @@ test.describe('the Interior in an Overlay', () => {
     const interior = (await overlay.locator('.overlay-interior').boundingBox())!
     const image = (await overlay.locator('.overlay-interior .main-image').boundingBox())!
     expect(Math.round(image.y - interior.y)).toBe(0)
+  })
+
+  // No-scroll alone cannot catch a picture that gives way: the panel absorbs the shortfall
+  // into it silently. The fixture's `big` Node is every maximum an Overlay holds (10.9).
+  test('the main image keeps two fifths of the panel in the Overlay at every maximum (#102)', async ({ page }) => {
+    const origin = await serve(path.join(repo, 'tests', 'fixtures'), 'overlay', OVERLAY_PORT)
+    expect(origin, 'the overlay fixture is a valid Tree').not.toBeNull()
+    for (const [width, height] of [[1280, 640], [1920, 1080]] as const) {
+      await page.setViewportSize({ width, height })
+      await page.goto(`${origin}/overlay/five/big`)
+      await page.evaluate(() => document.fonts.ready)
+      const panel = (await page.locator('.overlay[open] > .sheet-panel').boundingBox())!
+      const image = (await page.locator('.overlay[open] .main-image').boundingBox())!
+      expect(await page.locator('.overlay[open] .overlay-options li').count()).toBe(8)
+      expect(image.height, `${width}x${height}`).toBeCloseTo(0.4 * panel.height, 0)
+    }
   })
 })
 

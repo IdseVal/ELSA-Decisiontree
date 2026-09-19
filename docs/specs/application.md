@@ -733,7 +733,7 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. A spec that needs a Tree other than the example starts its own server with `tests/browser/serve.ts`, a helper and not a spec file (amended 2026-09-14, #43). `tests/browser/credits.ts` is a helper too: it lists every picture a Tree shows, Node by Node in strip order, and reads each one's credit off the caption line by the keyboard alone, for `carousel.spec.ts` and `tests/first-tree/walk.spec.ts` (amended 2026-09-14, #55). |
 | Also in CI | `tsc --noEmit`, `next build`, `npm run validate trees/<each Tree>`, `npm run test:browser`. Command: `npm ci && npm test && npm run build && npm run test:browser`. |
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; never YAML read by a test. |
-| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description, 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). |
+| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
 
 **Which tests are unit and which need a browser.** The rule is: a claim about *markup*
@@ -950,6 +950,17 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
 - **The centre of the viewport is the centre of the tree.** Everything else is placed
   relative to the Bubble: that is what section 11 slides.
 
+**Amended 2026-09-19 (#102, by the owner):** the up arrow stands **above** the Bubble, not
+on it, its foot 6 pixels clear of the outline (10.2). Its band grows from 26 to **56** --
+2 clear of the chrome bar, 48 of arrow, 6 of clearance -- and the Bubble gives the 30
+pixels: at the guaranteed viewport the rows are **44 + 56 + 416 + 28 + 68 + 28 = 640**,
+the Bubble is 760 x 416 (radius 208) and its text area **640 x 364**. The rim keeps its
+60 by 26; its band above now holds only a Terminal's badge. The chord 26 pixels in is
+now 545, and at the lowest Sources line of a full text area (46 from the bottom) 605.
+Below 640 pixels tall the arrow goes back onto the outline and its band back to 26, as
+before this amendment (10.5, amended the same day), so every height trigger of 10.5
+stands as it was measured.
+
 ### 10.2 The up arrow: the way back
 
 The Trail is the ordered list of Nodes visited to get here, and it is the path in the
@@ -972,6 +983,12 @@ control:
   presses the arrow again or uses the browser's back; the share link still carries the
   whole Trail.
 
+**Amended 2026-09-19 (#102, by the owner):** the up arrow is centred **above** the Bubble's
+top outline, its foot 6 pixels clear of it, at and above the guaranteed height (10.1, 10.5).
+Following it **retraces the step it undoes** (11.1, 11.3): back up and to the right from a
+`yes` target, which was reached down and to the left; up and to the left from a `no`
+target; straight up after any other step.
+
 ### 10.3 What each kind of Node shows
 
 **The Interior** is what a Node shows, in this order, inside a 640-pixel-wide text area
@@ -986,6 +1003,23 @@ circle outlined in the `rule` shade; then the **title** (heading); the **descrip
 prefixed by its kind for `case-law` and `literature` only (`ADR-78-sources-heading.md`).
 The same component renders the Bubble's interior and every Overlay's (10.9), so a change
 to one reaches the other.
+
+**Amended 2026-09-19 (#102, by the owner; answer (b) on PR #110):** the main image is
+bigger. It is a **3 : 2 box two fifths of the Bubble's height on every Node**, cropped and
+cornered as before; the empty slot is a circle of the same height. At 1280 x 640 that is
+166.4 of the Bubble's 416; where the Bubble is taller, up to 520, it is 208. The
+description's limit is cut to what is left beside it (10.7, `tree-format.md` 5.7), so no
+valid Node makes the picture smaller. In the Bubble a **clear foot** of 24 pixels, plus a
+quarter of every pixel the text area has over 364, stays empty under the Sources where
+the text leaves room, because the curve narrows the Bubble there and a Sources line drawn
+in it crosses the outline; the foot is what yields first, and a Node at every maximum
+keeps 9.6 of it. Only text wider than 5.7 assumes -- a face wider than those 13.4 names
+-- would then make the picture give way, never below 30 pixels. The Overlay's Interior is
+the same component, and its picture is two fifths of the Overlay's panel in the same way:
+243.2 of 608, where it was 60, at every maximum too, because the Overlay's own Options
+now flow as one inline list (10.9). The title sits at one height on every Node again; a
+neighbour frame's withheld slot is the same box as the picture it stands for, so a slide
+has nothing to reflow.
 
 `tree-format.md` 5.6 has three kinds and the frontend distinguishes five situations. In
 every one: the up arrow above where there is a Trail (10.2), the strip on the lower
@@ -1041,6 +1075,11 @@ outline (section 12), the chrome bar and disclaimer unchanged.
   The 96 is a minimum, not a height, as #80 built it: a title that takes a fifth line
   (10.7, amended) makes its button 102 tall, still 9 clear of its neighbour at the pitch
   of a side of four, growing downward from the row's top instead of overflowing.
+
+  **Amended 2026-09-19 (#102):** the Bubble is 760 x 416 now (10.1), so the formula reads
+  (*i* + 0.5) x 416 / *m* - 208 and 172 + sqrt(208² - *y*²) + 20, and the pitch on a side
+  of four is **104**: 8 clear of a 96-pixel button, 2 of a 102-pixel one. The figures
+  above (446, 223, 157, 111.5, 15 and 9) are #78's and #105's, at a Bubble of 446.
 - **The picture on an Option button is its target's main image** -- an image of another
   Node, which 11.5 allows for exactly this: one file per Option, the target's first
   Image, never its other Images (core document 10.29). An Option has no `images` of its
@@ -1117,6 +1156,21 @@ Whichever step first makes the arrangement fit is where it stops.
   a Terminal's badge sits in is kept, so the badge still takes nothing from the text
   area.
 
+**Amended 2026-09-19 (#102, by the owner):** one more thing gives way outside the numbered
+order, by height alone: **below 640 pixels tall the up arrow goes back onto the Bubble's
+top outline**, its middle on it, and its band back to 26 (10.1, 10.2). The 30 pixels it
+stands clear by above 640 are what every step of this table was measured without, and at
+the floor of 480 there is no step left to pay for them: with the arrow above the Bubble
+the full Node of 10.6 overflowed its text area at 1280 x 564. So at 1280 x 639 the text
+area is 401 tall and at 1280 x 640 it is 364; the triggers above are unchanged. Down to
+632 the main image of 10.3 is still two fifths of the Bubble; step 5 hides it below that.
+The pixels each step frees in the list above are #78's, when the main image was 60 tall
+and step 5 freed it and its gap, 68; they are historical. Measured at this layout, at
+1280 x 632 the Bubble is 446 and the picture 178.4, so step 5 frees 186.4 of the text
+area (the picture and its gap of 8), and at 1280 x 631 the Bubble of 445 has no picture.
+Step 5 frees more than it did, so the triggers, which `no-scroll.spec.ts` proves at every
+one, still hold.
+
 ### 10.6 The no-scroll rule, and the exact test
 
 **The rule.** `html` and `body` are exactly the size of the viewport and have
@@ -1158,7 +1212,7 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 | An explanation Node's URL, reached with a three-entry Trail | The third: its parent's page with the Overlay open (10.9). |
 | An explanation Node's URL with no parent in the path | The fourth: the explanation Node as the centre. |
 | A Terminal | The fifth. |
-| `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 600-character 8-line description, 3 Sources, 8 Options each with a target that has a first Image, 10 Images, 8 explainers at 40 and 200 characters, the longest Trail. If this fits, every valid Tree fits. |
+| `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 150-character 2-line description (600 and 8 until #102), 3 Sources, 8 Options each with a target that has a first Image, 10 Images, 8 explainers at 40 and 200 characters, the longest Trail. If this fits, every valid Tree fits. |
 | `tests/fixtures/overlay/`: the Overlay of an explanation Node at every maximum, with eight Options of its own | The Overlay at its largest (10.9). |
 | The longest Node of the first Tree that validates | The real content. |
 | `annex-i-legislation` of the first Tree | Its heaviest Node: its own picture and eight Options, each button with its target's picture. |
@@ -1190,12 +1244,44 @@ explainers and the Option pictures, not for a length, and no Tree is re-cut.
 | Sources | 60 | The 20-px heading line, then 13 px on 20-px lines, about 90 characters a line: 3 labels of 60 with two kind prefixes and separators is at most 2 lines. |
 | | **392 of 394** | |
 
+**Amended 2026-09-19 (#102, by the owner; answer (b) on PR #110): the description's limit
+is cut to 150 characters and 2 estimated lines.** The text area is **640 x 364** (10.1)
+and the main image is two fifths of the Bubble on every Node (10.3): 2/5 x 416 = 166.4.
+The owner chose the picture over the text, so the description gets what is left:
+
+| Inside the text area | Height | Derivation |
+|---|---|---|
+| Main image | 166.4 | Two fifths of the Bubble's 416. |
+| gap | 8 | |
+| Title | 56 | As above: 80 characters, 2 lines. |
+| gap | 8 | |
+| Description | 48 | What is left: 364 - 166.4 - 8 - 56 - 8 - 8 - 60 = **57.6**. Two 24-px lines are 48; a third would need 72. At 75 characters a line: **2 lines = 150 characters**. |
+| gap | 8 | |
+| Sources | 60 | As above. |
+| | **354.4 of 364** | The 9.6 left is the clear foot of 10.3. |
+
+The Answers are not in the text area: their row of 68 is one of the six rows of 10.1 and
+did not change. Where the Bubble is taller than 416 (up to 520), the text area grows by
+the same pixels; the picture takes two fifths of them and the text keeps the rest, so the
+limit holds at every guaranteed viewport. The limit is on the Node's `description` only:
+the Tree's `description` is not drawn in the Bubble and keeps 600 characters and 8 lines.
+Both Trees' descriptions over the new limit were cut mechanically, in both languages
+(the first Tree's `NOTES.md` section 12 gives the rule). `elsa-tree/3` keeps its number:
+the owner's answer scoped the change to the limit and the validator, and a Tree written
+to the old limit is told by V-LENGTH and V-LINES which field to cut, by how much.
+
 Five assumptions behind those numbers are re-derived by this layout. None moves a limit:
+
+**Amended 2026-09-19 (#102):** this table is #78's re-derivation, at the 446 Bubble and the
+394 text area, and is kept as history. **Now** the first row's limit has moved -- the
+description is 150 characters and 2 lines, as amended above -- and the second row's
+numbers are 10.3's amended ones: four buttons on a side at a pitch of **104**, their 384 in
+the Bubble's 416; its Effect, none, still holds. The other three rows stand as written.
 
 | `tree-format.md` 5.7 assumed | This layout | Effect on the limits |
 |---|---|---|
-| A vertical budget of chrome 44, Trail 64, Bubble 360, Branches 64, Carousel 80, disclaimer 28, and a 640 x 304 text area divided exactly. | Chrome 44, up-arrow band 26, Bubble 446, strip band 28, Answers 68, disclaimer 28; a text area of 640 x 394 holding 392 (above). The Trail row and the caption line paid for the main image, the Sources heading and the larger Answer buttons. | None: the description keeps its 192 pixels and 8 lines. |
-| An Option Branch label of 150 px, 3 lines for 60 characters. | An Option button is 232 x 96 with **152 px of label at 16 px on 20-px lines**, up to four lines: 60 characters take 3 in a humanist face and 4 in DejaVu Sans; four buttons on a side, at a pitch of 111.5, are 384 of the 446. | None. |
+| A vertical budget of chrome 44, Trail 64, Bubble 360, Branches 64, Carousel 80, disclaimer 28, and a 640 x 304 text area divided exactly. | Chrome 44, up-arrow band 26, Bubble 446, strip band 28, Answers 68, disclaimer 28; a text area of 640 x 394 holding 392 (above). The Trail row and the caption line paid for the main image, the Sources heading and the larger Answer buttons. | None: the description keeps its 192 pixels and 8 lines. **Now (2026-09-19, #102):** cut to 48 pixels, 2 lines and 150 characters (above). |
+| An Option Branch label of 150 px, 3 lines for 60 characters. | An Option button is 232 x 96 with **152 px of label at 16 px on 20-px lines**, up to four lines: 60 characters take 3 in a humanist face and 4 in DejaVu Sans; four buttons on a side, at a pitch of 111.5, are 384 of the 446. **Now (2026-09-19, #102):** a pitch of 104, and the four buttons' 384 of the Bubble's 416 (10.3). | None. |
 | An Answer Branch of 640 px with an 80-character title on 1 line. | A 620 x 60 button with 580 px of label at 19 px bold on 24-px lines: the chrome word, a colon and 80 characters are at most 86, at least 43 a line in DejaVu Sans Bold: **2 lines**, 48 px in 60. | None. |
 | A Trail of up to 6 Nodes at 213 px each. | No Trail is drawn; the up arrow carries the parent's title as its accessible name only. | None. |
 | The Carousel as an 80-px row with a caption line of one or two lines for a 120-character description and credit. | A strip of 48-px thumbnails on the outline, no caption: the description is alternative text and the credit is read as the picture's description and shown whole in the enlarged view, where 5.7's "one line at 13 px" is what it assumed. | None. |
@@ -1236,6 +1322,15 @@ and marks each occurrence in the description as `[providers](#provider)`. Record
   `tree-format.md` 3.4). The panel holds the canonical `term` and the `text`. Ids are
   prefixed for a copy in a neighbour frame or an Overlay, as every id in the tree view
   is.
+
+  **Amended 2026-09-19 (#102, by the owner):** the term is marked **bold, in the Theme's own
+  `accent-secondary`** -- the Answer buttons' green -- **and nothing else**: no underline,
+  dotted or solid. Hovering, focusing or opening it adds the `accent-secondary` wash behind
+  it, as before. On the first Tree that green is `#159a2f` on the Bubble's `#f0f3f7`,
+  **3.31 : 1**, which WCAG 2.2 SC 1.4.3 accepts for large text only (at least 18.66 pixels
+  bold); the term is 16-pixel bold body text, for which it asks 4.5 : 1. The owner chose the
+  colour; the shortfall is recorded here, and a Theme whose `accent-secondary` reads at
+  4.5 : 1 on its `surface` removes it.
 - **What a screen reader hears:** the marked words, then their description, which is
   the explainer -- `aria-describedby` on the term, `role="tooltip"` on the panel. Nothing
   else is announced on open or close.
@@ -1256,7 +1351,8 @@ and marks each occurrence in the description as `[providers](#provider)`. Record
   placed below the term's line when that fits inside the Bubble's text area and above it
   otherwise, and shifted sideways so that it stays inside the text area: at and above the
   guaranteed viewport, since the panel is at most 148 pixels and the area 394, one of the
-  two always fits. Where neither fits -- an area 10.5 has shortened -- the panel takes the
+  two always fits (**amended 2026-09-19, #102:** the area is 364 now (10.1); either side
+  of any line of it still has 170 or more, so one still fits). Where neither fits -- an area 10.5 has shortened -- the panel takes the
   side with more room and lies against that edge of the text area, over the least of the
   text (amended 2026-09-18, #83). **Without
   JavaScript** the panel opens on hover and on focus by CSS alone (`:hover`, `:focus`),
@@ -1272,12 +1368,22 @@ decides core document 10.27.
 
 - **What it is.** The `Sheet` (12.3, 10.5), with the Option button as its control and
   one page: the target's **Interior** (10.3), rendered by the same component as the
-  Bubble's, and under it the target's own Options, if it has any, as a list of at most
-  eight 20-pixel lines of plain links (below). The panel is 760 x 608, centred, with
-  24-pixel bands above and below and 60 each side (640 x 560 of content: the Interior's
-  392, a gap of 8 and 160 of list), `surface` over the `scrim` veil, a 32-pixel round
+  Bubble's, and under it the target's own Options, if it has any, as a list of plain
+  links (below). **[#102]** The list is one inline run of links on 20-pixel lines,
+  separated by a middle dot, where it was one link to a line: eight Option titles of 60
+  characters, 5.7's most, with their separators are about 505 characters: 5 lines as
+  measured, 100 pixels, where one to a line took 160 and left the picture 202 (10.3).
+  The panel is 760 x 608, centred, with 24-pixel bands above and below and 60 each side (640 x 558 of content inside its
+  outline: at every maximum, measured on the fixture at 1280 x 640, the picture 243.2, the
+  title 56, the description 48, the Sources 60, the list 100 and four gaps of 8, 539.2 in
+  all, 18.8 to spare, in Arial and Segoe UI alike. A face as wide as 5.7's 90 characters
+  a line puts the list on a sixth line, 1.2 pixels more than the spare, and the picture
+  gives up those 1.2: 242 of 243.2; amended 2026-09-19, #102, was: 640 x 560 of content:
+  the Interior's 392, a gap of 8 and 160 of list), `surface` over the `scrim` veil, a 32-pixel round
   close cross at its top right corner. It never scrolls; the fixture `tests/fixtures/overlay/`
-  is an explanation Node at every maximum with eight Options, and 10.6 measures it.
+  is an explanation Node at every maximum with eight Options, 10.6 measures it, and
+  `overlay.spec.ts` measures its picture at two fifths of the panel, which no-scroll alone
+  cannot see.
 - **How it closes:** the cross, Escape, a click outside it. Focus moves to the cross on
   open and returns to the Option button on close. One Sheet is open at a time, so
   opening an Overlay closes any other Sheet and opening another Overlay closes this one.
@@ -1374,7 +1480,19 @@ translates the layer by exactly that offset, so the target Bubble arrives in the
 
 - **The up arrow slides up.** Its target is the parent, which 11.2 places `up`; the
   control sits on the Bubble's top outline and the target above it, so the control and
-  the direction agree.
+  the direction agree. (**Amended 2026-09-19, #102:** at 640 px of viewport height and
+  above, the control stands above the outline, its foot 6 pixels clear (10.2); below 640
+  it is back on the outline. Either way it is at the Bubble's top, so the argument holds.)
+
+  **Amended 2026-09-19 (#102, by the owner):** "The app is one large map the reader
+  traverses." The parent is placed **where the step down from it started**, so the up
+  arrow's slide is the step down reversed: a `yes` target is placed down and to the left,
+  so from it the parent lies **up and to the right**; from a `no` target **up and to the
+  left**; after any other step -- an address whose last step was no Answer of its parent --
+  **straight up**. A diagonal step is half the layer's width across and its whole height
+  down -- 640 by 568 at the guaranteed viewport, where the layer is the 568 pixels between
+  the chrome bar and the disclaimer: 42 degrees below the horizontal, the "45 degrees" of
+  the owner's words -- and at every size the way back is exactly the way down reversed.
 - **`startAgain` has no direction and does not slide.** It leads to the root Node with an
   empty Trail, which is a restart rather than a step through the tree. It is an ordinary
   link (11.3).
@@ -1414,6 +1532,11 @@ Given the centre Node and the Trail that reached it:
 - **`up` is the parent only.** The grandparent is no longer reachable in one click (the
   Trail Branches are gone, 10.2), so it is not placed. `down` is the Answer targets and
   theirs, and nothing else; `startAgain` has no placement at all.
+
+  **Amended 2026-09-19 (#102):** the `up` placement's `slot` records the step it undoes --
+  **0** when the centre is the parent's `yes` target, **1** its `no` target, **2** any
+  other step -- which is what 11.1's amended placement reads. The parent was read for its
+  own frame already, so the count of 17 does not change.
 - **This is "the next two nodes in each direction", read as directions of the screen**:
   two deep down the answer path; one up, because that is as far as one click goes; the
   Options one out as asides, because they fan (a Node may have eight) and an aside's own
@@ -1461,6 +1584,14 @@ Following the up arrow or an Answer button, with JavaScript:
 5. The URL is the target's URL -- `followHref` for an Answer, `trailHref` for the up
    arrow (4.1) -- pushed exactly as a plain link would have left it. Reload, back and
    copy-link keep working.
+
+**Amended 2026-09-19 (#102, by the owner):** the translation of step 2 is toward the
+target's position as 11.1 places it, and the up arrow's target is placed where the step
+down to the centre started (11.1, amended the same day): the layer moves so that the
+reader goes back up along the diagonal they came down -- up and to the right after a
+`yes`, up and to the left after a `no` -- and straight up after any other step. The back
+button has always reversed the slide that brought the reader (below); the arrow now does
+too. `transition.spec.ts` asserts it for a `yes` target, a `no` target and a straight step.
 
 **A control whose target is not placed navigates without a slide.** `startAgain`; an
 entry of any Sheet, including a second-level Option in an Overlay and an Option in the

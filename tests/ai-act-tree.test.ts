@@ -279,30 +279,22 @@ describe('the content of the first Tree', () => {
       }
     })
 
-    test('the first Annex I step states the two conditions of Article 6(1) and Article 2(13)', () => {
+    test('the first Annex I step states the two conditions of Article 6(1), and cites Article 2(13)', () => {
       // #44 cut both from the Annex I entries on the grounds that every entry repeated them.
       // That holds only while the step says them instead: if these sentences go, no Node
       // states the Article 6(1) test at all. Article 2(13) came back here on PR #53, with its
       // own Source. Since #85 "safety component of a product" is an explainer mark, not bold.
+      // Since #102 a description is two lines (tree-format.md 5.7): the cut kept condition
+      // (a) and the start of (b), and the Article 2(13) sentence is gone; its Source stays.
       expect(unwrapped('annex-i-legislation', 'en')).toContain(
-        'Article 6(1) applies when **both** are met: **(a)** the system is intended as a [safety component of a product](#safety-component)',
+        '**(a)** the system is intended as a [safety component of a product](#safety-component)',
       )
-      expect(unwrapped('annex-i-legislation', 'en')).toContain(
-        '**and (b)** that product must undergo a **third-party conformity assessment**',
-      )
+      expect(unwrapped('annex-i-legislation', 'en')).toContain('**and (b)**')
       expect(unwrapped('annex-i-legislation', 'nl')).toContain(
-        'Artikel 6, lid 1, vereist **beide**: **a)** het systeem is bedoeld als [veiligheidscomponent van een product](#safety-component)',
+        '**a)** het systeem is bedoeld als [veiligheidscomponent van een product](#safety-component)',
       )
-      expect(unwrapped('annex-i-legislation', 'nl')).toContain(
-        '**en b)** dat product vereist een **conformiteitsbeoordeling door een derde partij**',
-      )
+      expect(unwrapped('annex-i-legislation', 'nl')).toContain('**en b)**')
 
-      expect(unwrapped('annex-i-legislation', 'en')).toContain(
-        'Article 2(13) lets the Commission limit Articles 9 to 15 and 17 to 25 by delegated act',
-      )
-      expect(unwrapped('annex-i-legislation', 'nl')).toContain(
-        'artikel 2, lid 13, laat de Commissie daarvoor de artikelen 9 tot en met 15 en 17 tot en met 25 bij gedelegeerde handeling beperken',
-      )
       expect(nodes.get('annex-i-legislation')!.sources.map((source) => source.label.en)).toContain(
         'Article 2(13) AI Act (limitation for Section A)',
       )
@@ -484,14 +476,9 @@ describe('the content of the first Tree', () => {
       // where the Act itself stops". Repeating them here would pin nothing new. NOTES.md
       // section 8 records the decision and points at both sets.
 
-      // `high-risk` carries the caveat the Act gives, and is the only place the reader meets it.
-      expect(unwrapped('high-risk', 'en')).toContain(
-        '**Annex I, Section B**, Article 2(2) provides that only Article 6(1), Article 60a and Articles 102 to 112 apply',
-      )
-      expect(unwrapped('high-risk', 'nl')).toContain(
-        '**bijlage I, afdeling B**, valt, bepaalt artikel 2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met 112 van toepassing zijn',
-      )
-      // Step 6 states the general rule, unqualified, to that same reader ("AI systems" carries
+      // `high-risk` carried the caveat the Act gives until #102 cut every description to two
+      // lines (tree-format.md 5.7); the owner writes the short versions by hand (NOTES.md
+      // section 12). Step 6 states the general rule, unqualified, to that same reader ("AI systems" carries
       // an explainer mark since #85).
       expect(unwrapped('transparency-obligations', 'en')).toContain(
         'Article 50 attaches **transparency obligations** to certain [AI systems](#ai-system), whatever their risk classification.',
@@ -537,25 +524,16 @@ describe('the content of the first Tree', () => {
       expect(terminalsFrom('annex-i-legislation')).toEqual(['end-of-walk'])
     })
 
-    test('the three Nodes whose text issue #24 changed say what the traversal now does', () => {
+    test('the sentence issue #24 took out of high-risk stays out', () => {
       // The traversal is pinned above, but the wording issue #24 asked for is not, and prose
-      // is what a reader of this Tree actually gets. One assertion per changed Node, in both
-      // languages, so reverting any of these sentences fails here and not only in review.
+      // is what a reader of this Tree actually gets.
 
-      // `high-risk` no longer sends the reader on by hand: the sentence #24 quotes is gone.
+      // Since #102 a description is two lines (tree-format.md 5.7), and the cut took the
+      // sentences #24 added on all three Nodes; the owner writes the short versions by hand
+      // (NOTES.md section 12). What still holds: `high-risk` does not send the reader on by
+      // hand, since the sentence #24 quotes is gone.
       expect(unwrapped('high-risk', 'en')).not.toContain('Continue with the general-purpose AI and transparency steps as well')
       expect(unwrapped('high-risk', 'nl')).not.toContain('Loop ook de stappen over AI voor algemene doeleinden en transparantie door')
-      expect(unwrapped('high-risk', 'en')).toContain('**This step does not end the walk.**')
-      expect(unwrapped('high-risk', 'nl')).toContain('**Deze stap beëindigt de doorloop niet.**')
-
-      // Issue #24 task item 2: `prohibited` says its stop is deliberate instead of leaving it
-      // to be inferred from the absence of an Answer.
-      expect(unwrapped('prohibited', 'en')).toContain('**This walk ends here, and that is deliberate.**')
-      expect(unwrapped('prohibited', 'nl')).toContain('**Deze doorloop eindigt hier, en dat is een bewuste keuze.**')
-
-      // The high-risk finding is no longer an outcome of its own, so `end-of-walk` carries it.
-      expect(unwrapped('end-of-walk', 'en')).toContain('**If step 4 found your system to be high-risk, that finding stands.**')
-      expect(unwrapped('end-of-walk', 'nl')).toContain('hoog risico heeft, blijft die bevinding staan.**')
     })
 
     test('every Option leads to an explanation Node, so no Option can end the walk', () => {
@@ -608,7 +586,8 @@ describe('the content of the first Tree', () => {
       // The loader already rejects an explainer without a term, a text or a mark (V-EXPLAINER);
       // what it cannot see is an explainer dropped or renamed, which would leave NOTES stale.
       const ids = [...nodes.values()].flatMap((node) => node.explainers.map((explainer) => explainer.id))
-      expect(ids).toHaveLength(28)
+      // 26 since #102: `transparency-obligations` lost its provider and deployer marks to the cut.
+      expect(ids).toHaveLength(26)
       expect(new Set(ids)).toEqual(
         new Set([
           'ai-system',

@@ -13,6 +13,11 @@
  * is 19-pixel bold, large text, for which SC 1.4.3 asks 3 : 1
  * (ADR-78-answer-buttons-and-up-arrow decision 3).
  *
+ * Issue #102: a marked explainer term is 16-pixel bold in that same green, the owner's
+ * choice, at 3.31 : 1 on the Bubble -- short of the 4.5 : 1 of normal text. application.md
+ * 10.8 (amended 2026-09-19) records the shortfall, so the sweep leaves the term out and a
+ * test of its own pins the colour and the ratio: a Theme change that moves either shows here.
+ *
  * The server serves `trees/ai-act-applicability-agrifood` (see playwright.first-tree.config.ts).
  */
 import { expect, test, type Page } from '@playwright/test'
@@ -168,6 +173,20 @@ test('the Answer label is large text on the logo green, at least 3 : 1, measured
   console.log(testInfo.annotations.at(-1)!.description)
 })
 
+test("a marked term is the Answer buttons' green on the Bubble, 3.31 : 1, the shortfall 10.8 records (#102)", async ({ page }) => {
+  await page.goto(ROOT)
+  await arrived(page, new RegExp(`${ROOT}$`))
+
+  const terms = await measure(page, '.bubble .term')
+  expect(terms.length).toBeGreaterThan(0)
+  for (const m of terms) {
+    expect(m.colour, m.text).toBe('#159a2f')
+    expect(m.background, m.text).toBe('#f0f3f7')
+    expect(m.weight, m.text).toBe(700)
+    expect(m.ratio, m.text).toBe(3.31)
+  }
+})
+
 /** A page of each kind the first Tree has: a question with Images, many Options, an explanation, both Terminal outcomes. */
 const EVERY_KIND = [
   ROOT,
@@ -184,6 +203,8 @@ for (const url of EVERY_KIND) {
     // Only an element with a text node of its own paints text; its wrappers would be measured twice.
     await page.evaluate(() => {
       for (const el of document.body.querySelectorAll('*')) {
+        // A marked term is measured by its own test above (#102).
+        if (el.closest('.term')) continue
         if ([...el.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())) {
           el.setAttribute('data-own-text', '')
         }

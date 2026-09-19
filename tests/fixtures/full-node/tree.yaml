@@ -1,5 +1,5 @@
 # One Node at every maximum docs/specs/tree-format.md 5.7 allows (application.md 10.6):
-# an 80-character title, a 600-character description of eight estimated lines, 3 Sources,
+# an 80-character title, a 150-character description of two estimated lines, 3 Sources,
 # 8 Options, 10 Images, and one explainer with a 40-character term and a 200-character
 # text. Each Option target carries, as its first Image, the picture its Option carried in
 # elsa-tree/2 (the migration of #79 moved them). If this fits inside the Bubble at the
@@ -21,9 +21,9 @@ title:
   nl: "De volle stap: een titel van precies tachtig tekens, het meeste dat mag De voll."
 description:
   en: |
-    Every field of this Node is at the maximum the format allows so that if this page fits inside the [Bubble](#bubble) every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this page fits inside the Bubble every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is a.
+    Every field of this Node is at the maximum the format allows so that if this page fits inside the [Bubble](#bubble) every valid Tree fits which is the promise t.
   nl: |
-    Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de [Bel](#bubble) past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de Bel past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat..
+    Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de [Bel](#bubble) past elke geldige boom past en dat is de belofte .
 metadata:
   version: "1.0"
 explainers:
