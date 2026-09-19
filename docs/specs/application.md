@@ -27,6 +27,15 @@
 > | 13 | 13.1: `accent-secondary` paints the walk's controls and `--elsa-on-accent-secondary` their labels; nothing else. |
 > | 14 | Rows for the up arrow, the Overlay, the explainer panel and the credit without JavaScript; the Trail Sheet and the Carousel's buttons are gone. |
 >
+> **Amended 2026-09-19 by issue #100** (`docs/adrs/ADR-100-bounded-centre.md`,
+> `docs/adrs/ADR-100-overlay-without-strip.md`), where the build of #80 (PR #99) departed
+> from 10.9 for reasons the Reviewer found forced or measured. Two sentences move: 10.9's
+> centre of a path is found by reading at most the path's last three entries, so that
+> the seventeen Nodes of 11.2 hold for every path (10.9, and the row of 10.3 it names);
+> and an Overlay has no strip, because its panel has no room for one (10.9's
+> pre-rendering bullet, 11.4's last paragraph). Every other contract, 11.5's rows
+> included, is unchanged.
+>
 > **How to read this document.** Sections 1 to 4 are the 0.1 contracts the owner kept
 > (framework, Tree selection, chrome languages, the URL scheme); they carry small
 > amendments, marked. Sections 5 to 9 keep their numbers and are rewritten in place --
@@ -840,6 +849,8 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | **[#75]** Both Answer buttons alike in `accent-secondary`, a large-text label at 3.69 : 1; the up arrow replaces the drawn Trail | `docs/adrs/ADR-78-answer-buttons-and-up-arrow.md` |
 | **[#75]** The "Legal sources" heading; the `Legal` kind label goes | `docs/adrs/ADR-78-sources-heading.md` |
 | **[#75]** The fan-out geometry; an Option has no Images; a page may fetch one file per Option, its target's main image | `docs/adrs/ADR-78-fan-out-and-option-picture.md` |
+| **[#100]** The centre of a path is found in at most its last three entries, so a page reads at most 17 Nodes for every path | `docs/adrs/ADR-100-bounded-centre.md` |
+| **[#100]** An Overlay has no strip: its panel has no room for one | `docs/adrs/ADR-100-overlay-without-strip.md` |
 
 ## 10. The tree view
 
@@ -984,7 +995,7 @@ outline (section 12), the chrome bar and disclaimer unchanged.
 | **question Node, with Options** | The Interior | **Two Answer buttons**, `yes` and `no`, 620 x 60, side by side, the same shape and fill; each labelled with the chrome word, a colon and the target's title in one run of **19-pixel bold** text on 24-pixel lines, at most two lines | **The Option buttons**, fanned out, at most 4 per side (below) |
 | **question Node, no Options** | The same | The same two Answer buttons | Empty fans; the Bubble keeps its size and place |
 | **explanation Node, in an Overlay** (the ordinary case: an Option opened it, or its URL did, 10.9) | The parent's page is underneath, unchanged | -- | The Overlay holds the explanation Node's Interior and, under it, its own Options as a list of plain links (10.9) |
-| **explanation Node, as the centre** (only a path with no question Node or Terminal before it, 10.9) | The Interior | **One button**, `startAgain`, in the Answer buttons' style, to the root Node with an empty Trail; no up arrow | Its Options, fanned out like a question Node's |
+| **explanation Node, as the centre** (a path with no question Node or Terminal before it, or **[#100]** one where 10.9's bounded centre rule stops on an explanation Node) | The Interior; the up arrow (10.2) when the path has an entry before it, none when it has not | **One button**, `startAgain`, in the Answer buttons' style, to the root Node with an empty Trail | Its Options, fanned out like a question Node's |
 | **Terminal** | The Interior, and on the rim the **outcome badge**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited` or `outcomeRefer`, coloured `danger` for `prohibited` and `accent` otherwise | **One button**, `startAgain`, in the Answer buttons' style. The way back is the up arrow (10.2); a Terminal that is the root shows `startAgain` alone | Nothing: a Terminal may not carry Options (`tree-format.md` 5.6) |
 
 - **Every button shows its target's title**, taken from the title index (`getTitle`),
@@ -1251,28 +1262,56 @@ decides core document 10.27.
 - **The address does not change** when an Overlay opens or closes: the address is the
   page's, the page is the parent's, and a disclosure does nothing to the address bar.
 - **The URL of an explanation Node renders its parent's page with that Overlay open.**
-  For a path `/<tree>/<id-1>/.../<id-n>` the **centre** is the last entry that is a
-  question Node or a Terminal; the entries after it are explanation Nodes (the **aside
-  chain**) and the last of them is rendered as the open Overlay. The Trail (for the up
-  arrow and the `up` placement) is the path before the centre; the centre's Branch hrefs
-  (`followHref`, `trailHref`) are built from the path **up to the centre**, so answering
-  the parent's question after reading an aside does not carry the aside into the Trail.
-  "Parent" is what the path says, entry by entry, as 4.3 has always read it (adjacency
-  is not checked): an explanation Node reached by two different Options has a URL under
-  each parent. A path with no question Node or Terminal in it -- `/<tree>/<explanation-id>`
-  -- has no parent to show, and the explanation Node is then the centre itself (the
-  fourth situation of 10.3); every Node stays reachable by its URL.
+  **[#100]** For a path `/<tree>/<id-1>/.../<id-n>` the page finds its **centre** by
+  reading **at most the last three entries**, from the end (`centreOf` in
+  `src/neighbourhood.ts`; `docs/adrs/ADR-100-bounded-centre.md`):
+  1. The explanation Nodes met walking back from `<id-n>`, **at most two**, are the
+     **aside chain**; the last of them is rendered as the open Overlay. The walk stops at
+     the first entry that is not an explanation Node, after two explanation Nodes, or at
+     `<id-1>`, and **the entry it stops on is the centre, whatever its kind**.
+  2. When the chain is two entries long and its first entry is **not an Option target of
+     the centre**, that first entry is the centre instead, and the second alone is its
+     chain.
+
+  Both rules are what keep a page to the seventeen Nodes of 11.2: the centre is found in
+  three reads whatever the path's length, and the one Overlay that is not an aside of
+  the centre is the only Node on the page that is neither the centre nor its neighbour.
+  In a path whose every entry is an Option or Answer target of the one before -- every
+  path the application's own links build -- the centre is **the last question Node or
+  Terminal** when at most two explanation Nodes follow it. It is an **explanation Node**
+  in three cases, each shown as the explanation-Node-as-centre situation of 10.3: a path
+  with no question Node or Terminal in it (`/<tree>/<explanation-id>`, the one with no
+  parent to show; every Node stays reachable by its URL); a path that ends in three or
+  more explanation Nodes, where the centre is the third from the end -- an aside of an
+  aside of an aside, which the format allows (`tree-format.md` 5.4, 5.6) and a
+  second-level Overlay's own Options link to (below), though no Tree or fixture has one
+  on 2026-09-19; and, only in a path that ignores adjacency, rule 2.
+
+  The Trail (for the up arrow and the `up` placement) is the path before the centre; the
+  centre's Branch hrefs (`followHref`, `trailHref`) are built from the path **up to the
+  centre**, so answering the parent's question after reading an aside does not carry the
+  aside into the Trail. "Parent" is what the path says, entry by entry, as 4.3 has
+  always read it (adjacency is not checked): an explanation Node reached by two different
+  Options has a URL under each parent.
 - **A second-level Option** -- an Option of the explanation Node in the Overlay -- is a
   plain link to `<the page's path>/<this explanation id>/<its target id>`, which renders
   the same parent's page with the deeper Overlay open, in place of this one. The way back
-  to the first is the browser's back or the first Option's button.
+  to the first is the browser's back or the first Option's button. **[#100]** The Options
+  of that deeper Overlay link on in the same way, to a path ending in three explanation
+  Nodes, which the centre rule above renders centred on the first of them, with its
+  parent above it and the third open.
 - **The Overlay's heading is a link to the explanation Node's own address**, so a reader
   can copy an address for the aside (the share button copies the page's) and a reader
   without JavaScript can open it as a page.
 - **The asides are pre-rendered, closed.** The page carries the Interior of every Option
-  target of the centre (11.2), so opening one costs no request but its pictures: its
-  main image is the file the button already shows, and its strip pictures are
-  `loading="lazy"`, requested only once it is open (11.4, 11.5).
+  target of the centre (11.2), so opening one costs no request: its main image is the
+  file the button already shows. **[#100]** An Overlay has **no strip**: the target's
+  Images after its main image are not in the Overlay, because the panel's 560 pixels of
+  content are the Interior's 392, the gap of 8 and the list's 160, and a 48-pixel strip
+  has no room in them (`docs/adrs/ADR-100-overlay-without-strip.md`). They are drawn
+  only where the explanation Node is the centre (10.3) and has its own Carousel: at
+  `/<tree>/<explanation-id>`, which no link the application renders leads to, and as the
+  first of three explanation Nodes ending a path (the centre rule above).
 - **Without JavaScript** the Option button is a native disclosure (`<details>`): it opens
   the Interior laid over the page as every Sheet does (section 14), and a second click on
   the button, which stays uncovered beside the Bubble, closes it. The cross, Escape and
@@ -1428,9 +1467,8 @@ step 4 above: a frame or two after the slide, the main image, the strip and the 
 pictures fill.
 
 An **aside** is on the page: its Overlay's main image is the same `/images/<file>` URL
-its Option button shows, which the browser asks for once, and its strip pictures carry
-`loading="lazy"` inside a closed disclosure, which the browser does not fetch until the
-Overlay is open.
+its Option button shows, which the browser asks for once. **[#100]** An Overlay has no
+strip (10.9), so an aside names no other image URL, open or closed.
 
 ### 11.5 The accounting: what a request may and may not carry
 
