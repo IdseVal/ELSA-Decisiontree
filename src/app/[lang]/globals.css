@@ -804,11 +804,10 @@ a.language:hover,
  * button is 232 x 96; on a row shorter than four of them the pitch shrinks and so does the
  * button, to the row's quarter, down to the 80 pixels its four lines of label take.
  *
- * The 96 is a minimum, not a height: a Dutch title of 60 characters can run to five lines
- * where 10.7 counted four ("Seksueel beeldmateriaal zonder toestemming (2-12-2026)" in the
- * first Tree), and a button that holds them is 102 tall, still 9 clear of its neighbour at
- * the pitch of a side of four. It grows downward from the row's top: that button's centre sits
- * 3 below the curve, which no eye finds. It is not centred by a transform, because a
+ * The 96 is a minimum, not a height: a title that still takes five lines (see `.option-title`)
+ * makes its button 102 tall, still 9 clear of its neighbour at the pitch of a side of four.
+ * It grows downward from the row's top: that button's centre sits 3 below the curve, which
+ * no eye finds. It is not centred by a transform, because a
  * transform on the item would make it the containing block of the panel and the backdrop
  * (`position: fixed`), which would then lie inside the item instead of over the page.
  *
@@ -875,8 +874,8 @@ a.language:hover,
 /*
  * The button is the Overlay's summary: the target's main image as a 48-pixel round picture
  * at the inner end, an 8-pixel gap, and the title at 16 pixels on 20-pixel lines, at most
- * four lines in the 152 pixels left of 232 (12 of padding each side). Outlined in the rule
- * shade, filled `surface`, a wash of `accent` on hover.
+ * four lines in the 152 pixels left of 232 (12 each side, the 1-pixel outline included).
+ * Outlined in the rule shade, filled `surface`, a wash of `accent` on hover.
  */
 .overlay > .sheet-open {
   display: var(--fan, flex);
@@ -884,7 +883,7 @@ a.language:hover,
   gap: 8px;
   width: 100%;
   min-height: var(--option-h);
-  padding: 0 12px;
+  padding: 0 11px;
   border: 1px solid var(--rule);
   border-radius: 48px;
   font-size: 16px;
@@ -923,9 +922,17 @@ a.language:hover,
   border: 1px solid var(--rule);
 }
 
+/*
+ * Tracked a fiftieth of an em tighter than the face (#105): in Open Sans at 16 pixels the
+ * Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" of the first Tree breaks
+ * into five lines of 152, because "zonder toestemming" is 155.2 pixels wide; tracked, it is
+ * 149.4 and the title takes the four lines 10.3 allows. `tests/first-tree/option-buttons.spec.ts`
+ * holds every Option title of that Tree to four.
+ */
 .option-title {
   min-width: 0;
   overflow-wrap: anywhere;
+  letter-spacing: -0.02em;
 }
 
 /* The URL-named Overlay with no button of its own (10.9): its summary is not on the page. */
