@@ -733,7 +733,7 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. A spec that needs a Tree other than the example starts its own server with `tests/browser/serve.ts`, a helper and not a spec file (amended 2026-09-14, #43). `tests/browser/credits.ts` is a helper too: it lists every picture a Tree shows, Node by Node in strip order, and reads each one's credit off the caption line by the keyboard alone, for `carousel.spec.ts` and `tests/first-tree/walk.spec.ts` (amended 2026-09-14, #55). |
 | Also in CI | `tsc --noEmit`, `next build`, `npm run validate trees/<each Tree>`, `npm run test:browser`. Command: `npm ci && npm test && npm run build && npm run test:browser`. |
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; never YAML read by a test. |
-| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description, 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). |
+| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
 
 **Which tests are unit and which need a browser.** The rule is: a claim about *markup*
@@ -1003,22 +1003,21 @@ prefixed by its kind for `case-law` and `literature` only (`ADR-78-sources-headi
 The same component renders the Bubble's interior and every Overlay's (10.9), so a change
 to one reaches the other.
 
-**Amended 2026-09-19 (#102, by the owner):** the main image is bigger. It is a **3 : 2 box
-as tall as the text leaves it, up to 45% of the text area it stands in -- about two
-fifths of the Bubble -- and never less than 30 pixels**, cropped and cornered as before;
-the empty slot is a circle of the same height. It is the one part of the Interior that
-gives way: the title, description and Sources take the height they need, the picture
-takes the rest up to its share, and a Node at every maximum leaves it the 30 of 10.7. In
-the Bubble a **clear foot** of 24 pixels, plus a quarter of every pixel the text area has
-over 364, stays empty under the Sources while the picture can still yield, because the
-curve narrows the Bubble there and a Sources line drawn in it crosses the outline; the
-foot yields only once the picture is at its least. The Overlay's Interior is the same
-component, so its picture takes the same 45% of the Overlay's content area. Measured at
-1280 x 640 (PR for #102): the Bubble 416 tall, the picture 30 to 164 tall across the first
-Tree's 71 Nodes; at 1366 x 768 and above, the Bubble 520 and the picture up to 211; the
-Overlay's picture 251 in its 608-pixel panel, where it was 60. The title therefore no
-longer sits at one height on every Node; a neighbour frame's withheld slot is the same box
-as the picture it stands for, so a slide still has nothing to reflow.
+**Amended 2026-09-19 (#102, by the owner; answer (b) on PR #110):** the main image is
+bigger. It is a **3 : 2 box two fifths of the Bubble's height on every Node**, cropped and
+cornered as before; the empty slot is a circle of the same height. At 1280 x 640 that is
+166.4 of the Bubble's 416; where the Bubble is taller, up to 520, it is 208. The
+description's limit is cut to what is left beside it (10.7, `tree-format.md` 5.7), so no
+valid Node makes the picture smaller. In the Bubble a **clear foot** of 24 pixels, plus a
+quarter of every pixel the text area has over 364, stays empty under the Sources where
+the text leaves room, because the curve narrows the Bubble there and a Sources line drawn
+in it crosses the outline; the foot is what yields first, and a Node at every maximum
+keeps 9.6 of it. Only text wider than 5.7 assumes -- a face wider than those 13.4 names
+-- would then make the picture give way, never below 30 pixels. The Overlay's Interior is
+the same component, and its picture is two fifths of the Overlay's panel in the same way:
+243.2 of 608, where it was 60. The title sits at one height on every Node again; a
+neighbour frame's withheld slot is the same box as the picture it stands for, so a slide
+has nothing to reflow.
 
 `tree-format.md` 5.6 has three kinds and the frontend distinguishes five situations. In
 every one: the up arrow above where there is a Trail (10.2), the strip on the lower
@@ -1150,8 +1149,8 @@ top outline**, its middle on it, and its band back to 26 (10.1, 10.2). The 30 pi
 stands clear by above 640 are what every step of this table was measured without, and at
 the floor of 480 there is no step left to pay for them: with the arrow above the Bubble
 the full Node of 10.6 overflowed its text area at 1280 x 564. So at 1280 x 639 the text
-area is 401 tall and at 1280 x 640 it is 364; the triggers above are unchanged. The main
-image of 10.3 still gives way first, by its own shrinking, before step 5 hides it.
+area is 401 tall and at 1280 x 640 it is 364; the triggers above are unchanged. Down to
+632 the main image of 10.3 is still two fifths of the Bubble; step 5 hides it below that.
 
 ### 10.6 The no-scroll rule, and the exact test
 
@@ -1194,7 +1193,7 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 | An explanation Node's URL, reached with a three-entry Trail | The third: its parent's page with the Overlay open (10.9). |
 | An explanation Node's URL with no parent in the path | The fourth: the explanation Node as the centre. |
 | A Terminal | The fifth. |
-| `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 600-character 8-line description, 3 Sources, 8 Options each with a target that has a first Image, 10 Images, 8 explainers at 40 and 200 characters, the longest Trail. If this fits, every valid Tree fits. |
+| `tests/fixtures/full-node/` at a 49-entry Trail | Every maximum the format allows at once: 80-character title, 150-character 2-line description (600 and 8 until #102), 3 Sources, 8 Options each with a target that has a first Image, 10 Images, 8 explainers at 40 and 200 characters, the longest Trail. If this fits, every valid Tree fits. |
 | `tests/fixtures/overlay/`: the Overlay of an explanation Node at every maximum, with eight Options of its own | The Overlay at its largest (10.9). |
 | The longest Node of the first Tree that validates | The real content. |
 | `annex-i-legislation` of the first Tree | Its heaviest Node: its own picture and eight Options, each button with its target's picture. |
@@ -1226,25 +1225,31 @@ explainers and the Option pictures, not for a length, and no Tree is re-cut.
 | Sources | 60 | The 20-px heading line, then 13 px on 20-px lines, about 90 characters a line: 3 labels of 60 with two kind prefixes and separators is at most 2 lines. |
 | | **392 of 394** | |
 
-**Amended 2026-09-19 (#102, by the owner):** the text area is **640 x 364** (10.1) and the
-main image gives way down to **30** (10.3). The budget of a Node at every maximum:
+**Amended 2026-09-19 (#102, by the owner; answer (b) on PR #110): the description's limit
+is cut to 150 characters and 2 estimated lines.** The text area is **640 x 364** (10.1)
+and the main image is two fifths of the Bubble on every Node (10.3): 2/5 x 416 = 166.4.
+The owner chose the picture over the text, so the description gets what is left:
 
-| Inside the text area | Height |
-|---|---|
-| Main image | 30 at the least, up to 45% of the area where the text leaves it |
-| gap | 8 |
-| Title | 56 |
-| gap | 8 |
-| Description | 192 |
-| gap | 8 |
-| Sources | 60 |
-| | **362 of 364** |
+| Inside the text area | Height | Derivation |
+|---|---|---|
+| Main image | 166.4 | Two fifths of the Bubble's 416. |
+| gap | 8 | |
+| Title | 56 | As above: 80 characters, 2 lines. |
+| gap | 8 | |
+| Description | 48 | What is left: 364 - 166.4 - 8 - 56 - 8 - 8 - 60 = **57.6**. Two 24-px lines are 48; a third would need 72. At 75 characters a line: **2 lines = 150 characters**. |
+| gap | 8 | |
+| Sources | 60 | As above. |
+| | **354.4 of 364** | The 9.6 left is the clear foot of 10.3. |
 
-**The limits are confirmed unchanged**: the picture pays for the arrow's clearance, not the
-text. A picture of 2/5 of the Bubble on every Node, whatever its text, does not fit these
-limits at 1280 x 640 -- 166 + 8 + 56 + 8 + 192 + 8 + 60 = 498 of 364 -- and would need
-`tree-format.md` 5.7's description limit cut to about two lines; that is a format change
-this amendment does not make.
+The Answers are not in the text area: their row of 68 is one of the six rows of 10.1 and
+did not change. Where the Bubble is taller than 416 (up to 520), the text area grows by
+the same pixels; the picture takes two fifths of them and the text keeps the rest, so the
+limit holds at every guaranteed viewport. The limit is on the Node's `description` only:
+the Tree's `description` is not drawn in the Bubble and keeps 600 characters and 8 lines.
+Both Trees' descriptions over the new limit were cut mechanically, in both languages
+(the first Tree's `NOTES.md` section 12 gives the rule). `elsa-tree/3` keeps its number:
+the owner's answer scoped the change to the limit and the validator, and a Tree written
+to the old limit is told by V-LENGTH and V-LINES which field to cut, by how much.
 
 Five assumptions behind those numbers are re-derived by this layout. None moves a limit:
 
