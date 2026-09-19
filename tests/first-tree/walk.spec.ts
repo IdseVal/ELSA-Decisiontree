@@ -456,7 +456,9 @@ test('the screenshots issue #81 owes of the first Tree: the start Node and its e
  * best seen, and on each screenshot's page the numbers the specs promise are measured and
  * written to `measurements.md` beside the screenshots: 10.6's no-scroll test with the
  * Overlay or the explainer panel open, the requests of the heaviest Node, the Answer
- * label's contrast, the fan's geometry and the copied link.
+ * buttons' colours, the fan's geometry and the copied link. What another spec owns -- the
+ * label's contrast, the heaviest Node's picture count, the Carousel's missing caption -- is
+ * recorded or photographed here, not asserted again.
  *
  * The Carousel (point 5) is photographed on `tests/fixtures/carousel/`, served beside the
  * first Tree: no Node of the first Tree has a second Image, so its strip is empty everywhere
@@ -476,8 +478,8 @@ const VIEWPORTS = [
   [1920, 1080],
 ] as const
 
-/** Where the Carousel fixture is served: clear of the ports `tests/browser/` uses. */
-const CAROUSEL_PORT = BASE_PORT + 50
+/** Clear of `tests/browser/`'s ports (no-scroll 20-29, carousel 30, chrome-clearance and overlay 40-41, explainer 50). */
+const CAROUSEL_PORT = BASE_PORT + 60
 
 /** The words the walk checks on screen, per language (src/chrome.ts, the Tree's explainer). */
 const WORDS_87 = {
@@ -531,8 +533,8 @@ test.afterAll(async () => {
 })
 
 /**
- * 10.6's test on the page as it stands -- a Sheet or a panel left open stays open -- recorded
- * for `measurements.md` and asserted.
+ * 10.6's test on the page as it stands -- a Sheet or a panel left open stays open -- asserted
+ * with 10.6's one-pixel tolerance, and the exact sizes recorded for `measurements.md`.
  */
 async function noScroll(page: Page, name: string, lang: Lang, notes: string[] = []): Promise<void> {
   await page.evaluate(() => document.fonts.ready)
@@ -544,17 +546,20 @@ async function noScroll(page: Page, name: string, lang: Lang, notes: string[] = 
         overflowing.push(`${el.tagName.toLowerCase()}.${[...el.classList].join('.')}`)
       }
     }
-    const size = (el: Element): string => `${el.scrollWidth} x ${el.scrollHeight}`
+    const size = (el: Element) => ({ w: el.scrollWidth, h: el.scrollHeight })
     return {
-      inner: `${window.innerWidth} x ${window.innerHeight}`,
+      inner: { w: window.innerWidth, h: window.innerHeight },
       doc: size(document.documentElement),
       body: size(document.body),
       overflowing,
     }
   })
-  measured87.push({ page: name, lang, viewport: m.inner, doc: m.doc, body: m.body, overflowing: m.overflowing, notes })
-  expect(m.doc, `${name}: the document scrolls`).toBe(m.inner)
-  expect(m.body, `${name}: the body scrolls`).toBe(m.inner)
+  const text = (b: { w: number; h: number }): string => `${b.w} x ${b.h}`
+  measured87.push({ page: name, lang, viewport: text(m.inner), doc: text(m.doc), body: text(m.body), overflowing: m.overflowing, notes })
+  for (const [what, b] of [['document', m.doc], ['body', m.body]] as const) {
+    expect(b.h, `${name}: the ${what} is taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
+    expect(b.w, `${name}: the ${what} is wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
+  }
   expect(m.overflowing, `${name}: elements larger inside than out`).toEqual([])
 }
 
@@ -570,21 +575,6 @@ async function shot87(page: Page, name: string, lang: Lang, hovering = false): P
   await page.screenshot({ path: path.join(ISSUE_87, `${name}-${lang}-${width}x${height}.png`) })
 }
 
-/** WCAG 2.2's contrast ratio of two opaque `rgb()` colours, to two decimals. */
-function contrast(a: string, b: string): number {
-  const luminance = (css: string): number => {
-    const [r, g, bl] = css
-      .match(/[\d.]+/g)!
-      .slice(0, 3)
-      .map((v) => {
-        const c = Number(v) / 255
-        return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-      })
-    return 0.2126 * r! + 0.7152 * g! + 0.0722 * bl!
-  }
-  const [x, y] = [luminance(a), luminance(b)]
-  return Math.round(((Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)) * 100) / 100
-}
 
 for (const [width, height] of VIEWPORTS) {
   for (const lang of ['en', 'nl'] as const) {
@@ -621,13 +611,12 @@ for (const [width, height] of VIEWPORTS) {
       )
       expect(answers).toHaveLength(2)
       const [yes, no] = answers
-      // The same layout, in the logo's green #159a2f (core document 3.2).
+      // The same layout, in the logo's green #159a2f (core document 3.2); the label's contrast
+      // on it is contrast.spec.ts's.
       expect(no).toEqual(yes)
       expect(yes!.fill).toBe('rgb(21, 154, 47)')
-      const ratio = contrast(yes!.ink, yes!.fill)
-      expect(ratio, 'the Answer label on its fill, large text').toBeGreaterThanOrEqual(3)
       await noScroll(page, 'start', lang, [
-        `Answer buttons ${yes!.size}, radius ${yes!.radius}, fill ${yes!.fill}, label ${yes!.ink} ${yes!.font}, contrast ${ratio} : 1`,
+        `Answer buttons ${yes!.size}, radius ${yes!.radius}, fill ${yes!.fill}, label ${yes!.ink} ${yes!.font}`,
       ])
       // Taken before the hover: the open panel lies over the Sources' heading.
       await shot87(page, '1-4-6-start', lang)
@@ -676,7 +665,8 @@ for (const [width, height] of VIEWPORTS) {
       await page.locator('.up-arrow').click()
       await arrived(page, pageUrl(toProhibited.slice(0, -1), lang))
 
-      // The heaviest Node, annex-i-legislation: what the click that opens it asks for.
+      // The heaviest Node, annex-i-legislation: what the click that opens it asks for, recorded;
+      // the count is asserted by the requests test above.
       await clickAnswer(page, lang, 'yes')
       await arrived(page, pageUrl(toProhibited, lang))
       await clickAnswer(page, lang, 'no')
@@ -692,8 +682,6 @@ for (const [width, height] of VIEWPORTS) {
       await page.waitForLoadState('networkidle')
       page.off('request', record)
       const pictures = asked.filter((line) => line.includes(' /images/'))
-      // Its own main image and one per Option button, the target's main image (12.4, 11.5).
-      expect(pictures, 'its own picture and one per Option').toHaveLength(9)
       requests87.push(
         `- ${lang}, ${width} x ${height}: ${asked.length} requests, ${pictures.length} of them image files`,
         ...asked.map((line) => `  - \`${line}\``),
@@ -744,10 +732,8 @@ for (const [width, height] of VIEWPORTS) {
         return {
           centre: Math.round(strip.top + strip.height / 2),
           outline: Math.round(document.querySelector('.bubble')!.getBoundingClientRect().bottom),
-          text: (document.querySelector('.carousel') as HTMLElement).innerText.trim(),
         }
       })
-      expect(carousel.text, 'text under the pictures').toBe('')
       expect(Math.abs(carousel.centre - carousel.outline), "the strip on the Bubble's lower edge").toBeLessThanOrEqual(2)
       await noScroll(page, 'carousel fixture, five Images', lang, [`strip centre y ${carousel.centre}, Bubble bottom ${carousel.outline}`])
       await shot87(page, '5-carousel-fixture', lang)
