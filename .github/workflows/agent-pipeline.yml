@@ -115,7 +115,7 @@ jobs:
     needs: classify
     if: needs.classify.outputs.skip_verify != 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 45   # 30 until 2026-09-18: a data PR's two browser suites hit it three times
+    timeout-minutes: 60   # 30 until 2026-09-18, 45 until 09-19: a full no-scroll re-measure plus both suites needs the hour
     steps:
       - uses: actions/checkout@v4
         with:

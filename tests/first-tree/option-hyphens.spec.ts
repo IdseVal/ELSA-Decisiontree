@@ -19,7 +19,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
-import { openTree } from '../../src/tree/loader.ts'
+import { MAX_LINES, nodesWithOptions } from './options.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const SHOTS =
@@ -42,28 +42,6 @@ const VIEWPORTS = [
   [360, 640],
 ] as const
 const LANGUAGES = ['en', 'nl'] as const
-
-/** 10.3: an Option title takes at most four lines. */
-const MAX_LINES = 4
-
-/** Every Node that fans out Options: a question Node, or an explanation Node opened as the centre. */
-async function nodesWithOptions(): Promise<string[]> {
-  const tree = await openTree(path.join(repo, 'trees', TREE))
-  const ids: string[] = []
-  const seen = new Set<string>()
-  const queue = [tree.manifest.root]
-  while (queue.length > 0) {
-    const id = queue.shift()!
-    if (seen.has(id)) continue
-    seen.add(id)
-    const node = await tree.getNode(id)
-    if (!node) throw new Error(`the loader cannot read ${id}`)
-    if (node.options.length > 0) ids.push(id)
-    if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
-    queue.push(...node.options.map((o) => o.target))
-  }
-  return ids
-}
 
 /** One Option title as drawn: its lines, and each break that cuts a word without a hyphen. */
 interface Measured {

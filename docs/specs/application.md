@@ -1069,6 +1069,12 @@ outline (section 12), the chrome bar and disclaimer unchanged.
   a 20-pixel **connector**, 2 pixels wide in the `rule` shade, runs from each button's
   inner edge to the outline at its centre height. The pitch on a side of four is 111.5
   pixels, 15 clear of the button.
+
+  **Amended 2026-09-19 (#105, PR #109):** the 152 pixels are 232 less 11 of padding and
+  the 1-pixel outline each side, 48 and 8; 12 of padding inside the outline had left 150.
+  The 96 is a minimum, not a height, as #80 built it: a title that takes a fifth line
+  (10.7, amended) makes its button 102 tall, still 9 clear of its neighbour at the pitch
+  of a side of four, growing downward from the row's top instead of overflowing.
 - **The picture on an Option button is its target's main image** -- an image of another
   Node, which 11.5 allows for exactly this: one file per Option, the target's first
   Image, never its other Images (core document 10.29). An Option has no `images` of its
@@ -1274,6 +1280,16 @@ sans, the widths above are re-derived in DejaVu Sans, the widest fallback a read
 likely to meet, and the default type stack names Arial-metric faces before `sans-serif`
 (`src/theme.ts`, 13.4), because the Bubble's text area holds the format's maximum in
 those and not in DejaVu Sans, as 5.7 warns.
+
+**Amended 2026-09-19 (#105, PR #109):** the Option row's "60 characters take 3 in a
+humanist face" does not hold for every title. In Open Sans, the first Tree's face, the
+Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" (54 characters) takes
+**five** lines in 152 pixels (and in 150) when words break only at spaces, because no two
+of its words fit on one line. It takes four because the title is hyphenated in the page's
+language (`hyphens: auto`, #104). The four lines of 10.3 therefore hold for a 60-character
+title only where the reader's browser has a hyphenation dictionary for the page's `lang`.
+Where it has none, the button grows to 102 (10.3, amended: the 96 is a minimum) instead
+of overflowing. The limit stays 60: the owner decides whether it should come down.
 
 ### 10.8 The explainer panel
 
