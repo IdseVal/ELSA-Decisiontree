@@ -1272,10 +1272,16 @@ to the old limit is told by V-LENGTH and V-LINES which field to cut, by how much
 
 Five assumptions behind those numbers are re-derived by this layout. None moves a limit:
 
+**Amended 2026-09-19 (#102):** this table is #78's re-derivation, at the 446 Bubble and the
+394 text area, and is kept as history. **Now** the first row's limit has moved -- the
+description is 150 characters and 2 lines, as amended above -- and the second row's
+numbers are 10.3's amended ones: four buttons on a side at a pitch of **104**, their 384 in
+the Bubble's 416; its Effect, none, still holds. The other three rows stand as written.
+
 | `tree-format.md` 5.7 assumed | This layout | Effect on the limits |
 |---|---|---|
-| A vertical budget of chrome 44, Trail 64, Bubble 360, Branches 64, Carousel 80, disclaimer 28, and a 640 x 304 text area divided exactly. | Chrome 44, up-arrow band 26, Bubble 446, strip band 28, Answers 68, disclaimer 28; a text area of 640 x 394 holding 392 (above). The Trail row and the caption line paid for the main image, the Sources heading and the larger Answer buttons. | None: the description keeps its 192 pixels and 8 lines. |
-| An Option Branch label of 150 px, 3 lines for 60 characters. | An Option button is 232 x 96 with **152 px of label at 16 px on 20-px lines**, up to four lines: 60 characters take 3 in a humanist face and 4 in DejaVu Sans; four buttons on a side, at a pitch of 111.5, are 384 of the 446. | None. |
+| A vertical budget of chrome 44, Trail 64, Bubble 360, Branches 64, Carousel 80, disclaimer 28, and a 640 x 304 text area divided exactly. | Chrome 44, up-arrow band 26, Bubble 446, strip band 28, Answers 68, disclaimer 28; a text area of 640 x 394 holding 392 (above). The Trail row and the caption line paid for the main image, the Sources heading and the larger Answer buttons. | None: the description keeps its 192 pixels and 8 lines. **Now (2026-09-19, #102):** cut to 48 pixels, 2 lines and 150 characters (above). |
+| An Option Branch label of 150 px, 3 lines for 60 characters. | An Option button is 232 x 96 with **152 px of label at 16 px on 20-px lines**, up to four lines: 60 characters take 3 in a humanist face and 4 in DejaVu Sans; four buttons on a side, at a pitch of 111.5, are 384 of the 446. **Now (2026-09-19, #102):** a pitch of 104, and the four buttons' 384 of the Bubble's 416 (10.3). | None. |
 | An Answer Branch of 640 px with an 80-character title on 1 line. | A 620 x 60 button with 580 px of label at 19 px bold on 24-px lines: the chrome word, a colon and 80 characters are at most 86, at least 43 a line in DejaVu Sans Bold: **2 lines**, 48 px in 60. | None. |
 | A Trail of up to 6 Nodes at 213 px each. | No Trail is drawn; the up arrow carries the parent's title as its accessible name only. | None. |
 | The Carousel as an 80-px row with a caption line of one or two lines for a 120-character description and credit. | A strip of 48-px thumbnails on the outline, no caption: the description is alternative text and the credit is read as the picture's description and shown whole in the enlarged view, where 5.7's "one line at 13 px" is what it assumed. | None. |
@@ -1474,7 +1480,9 @@ translates the layer by exactly that offset, so the target Bubble arrives in the
 
 - **The up arrow slides up.** Its target is the parent, which 11.2 places `up`; the
   control sits on the Bubble's top outline and the target above it, so the control and
-  the direction agree.
+  the direction agree. (**Amended 2026-09-19, #102:** at 640 px of viewport height and
+  above, the control stands above the outline, its foot 6 pixels clear (10.2); below 640
+  it is back on the outline. Either way it is at the Bubble's top, so the argument holds.)
 
   **Amended 2026-09-19 (#102, by the owner):** "The app is one large map the reader
   traverses." The parent is placed **where the step down from it started**, so the up
