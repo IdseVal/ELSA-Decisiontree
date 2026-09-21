@@ -255,14 +255,22 @@ resolves it inside the Tree's own `images/` folder and nowhere else. Unchanged f
 
 ### 3.6 Theme file names
 
-The same grammar, with the extensions a Theme needs:
+The same grammar, with the extensions a Theme needs -- and it is **two** grammars, one
+per role, because a logo is never a font file and a font file is never a logo:
 
 ```
-^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|webp|ico|woff2)$           at most 128 characters
+logo or icon   ^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|webp|ico)$   at most 128 characters
+font file      ^[a-z0-9]+([._-][a-z0-9]+)*\.woff2$                at most 128 characters
 ```
 
 A logo or icon is `.svg`, `.png`, `.webp` or `.ico`; a font file is `.woff2` and nothing
 else (one modern, compressed format; every browser the application supports reads it).
+**[#118]** Until this freeze the block above was written once, as the union of the two
+extension sets, with the split stated only in the sentence that follows it. The schema
+of 3.9 carries the two separately (`logoFileName` and `fontFileName`), so a Theme naming
+`"logo": {"light": "a.woff2"}` is refused by the schema and not only by V-THEME's file
+check; the published grammar now says the same thing. **No rule changed** -- `.woff2` was
+never a logo and `.svg` was never a font -- only what section 3.6 states out loud.
 The Theme refers to a file by this bare name; the loader resolves it inside the Tree's
 own `theme/` folder and nowhere else. A file is served as a file, never inlined into the
 page: an SVG logo is shown through `<img>`, so a script inside it cannot run. (How the
@@ -430,15 +438,34 @@ question Node is not also a Terminal, and a Terminal has no Answers and no Optio
 
 **What the schema deliberately does not check**, and why:
 
-- **The limits of 5.7.** They are measured on the **counted text** of 3.8 -- Markdown
-  links replaced by their text, Unicode code points counted, and for rich text an
-  estimated line count. A JSON Schema's `maxLength` counts the raw string, so for a
-  description with two links the two numbers differ. A `maxLength: 600` would be a
-  different rule wearing the same number, and an author would be told two things.
+- **The text limits of 5.7** (V-LENGTH, V-LINES), because a JSON Schema cannot compute
+  them. They are measured on the **counted text** of 3.8 -- Markdown links replaced by
+  their text, Unicode code points counted, and for rich text an estimated line count. A
+  JSON Schema's `maxLength` counts the raw string, so for a description with two links
+  the two numbers differ. A `maxLength: 600` would be a different rule wearing the same
+  number, and an author would be told two things.
+- **The list maxima of 5.7** (V-COUNT): 3 `sources`, 8 `options`, 10 `images`, 8
+  `explainers`, 2 font families of 8 files each. The reason above does **not** reach
+  these. They are plain counts of array entries, `maxItems` computes them exactly, and
+  nothing in them comes from 3.8. They are left out for a different reason: every limit
+  of 5.7 is written once, in 5.7, and reported once, by the rules, in the message form
+  that names the Tree, the Node, the key path and the actual against the maximum.
+  Putting half of that table in the schema would make a change to it an edit in two
+  files, and would answer an author over one table in two voices -- a rule id and a
+  sentence for a title that is too long, and for a ninth Option a JSON Pointer with
+  `must NOT have more than 8 items`.
+- **Two single-string rules a `pattern` could carry**: V-PLAIN (no `\n` in a plain text
+  field) and V-HTML (in rich text, no `<` followed by a letter, `/` or `!`). Neither
+  reads another part of the file. They stay with the rules because plain versus rich is
+  a property of the **field**, not of the string, and this schema gives every localised
+  text one definition (`localisedText`, in the schema's `$defs`); splitting it in two
+  would restate in a regular expression what 3.4 and 3.5 already state, and would report
+  raw HTML in a description as a pointer and a pattern instead of as V-HTML on a named
+  key in a named language.
 - **Every rule that must read another part of the file**, or the file system: V-L10N
   (exactly the declared languages), V-ROOT, V-ANSWERS, V-OPTIONS, V-ORPHAN, V-REACH,
-  V-IMAGE (the file exists in `images/`), V-EXPLAINER, V-MARK, V-THEME's "at most one
-  family per role", V-HTML and V-PLAIN.
+  V-IMAGE (the file exists in `images/`), V-EXPLAINER, V-MARK and V-THEME's "at most one
+  family per role".
 
 Section 7 says, rule by rule, which of the two answers for it. The order is fixed: the
 schema first, the rules of section 7 second, and neither translates the other's message.
@@ -1808,6 +1835,13 @@ section 8's block.
   with no violation.
 - `tests/fixtures/full-node`, `carousel`, `overlay`, `explainers`: convert and validate;
   each still exercises exactly the maximum it was built for, because no limit moved.
+- `tests/fixtures/cycle`: converts and validates. It is not about a maximum -- it holds a
+  cycle among question Nodes, one Node whose `yes` and `no` name the same target, and a
+  Node with no Images, all three of which are valid (section 7) -- and the conversion
+  touches none of it. Its four header comments go the way every comment goes (12.6.2),
+  so #119 moves what they say into the tests that open it:
+  `tests/neighbourhood.test.ts`, `tests/views.test.tsx` and
+  `tests/browser/carousel.spec.ts`.
 - `tests/fixtures/invalid/<rule>`: each converts and fails **the same rule**, because
   step 4 carries every value across -- a misspelt target is still misspelt, a missing
   Dutch string is still missing. Two need re-fitting by hand, and #119 does it: `v-yaml`

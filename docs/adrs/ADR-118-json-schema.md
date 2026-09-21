@@ -18,19 +18,25 @@ JSON has one. The question this ADR settles is not whether to publish a JSON Sch
 contract and checks half of it is worse than no schema: an author whose Tree "passes the
 schema" and then fails the loader learns that the published contract is not the contract.
 
-Section 7 has twenty-odd rules. They fall into three kinds:
+Section 7 has twenty-odd rules. They fall into four kinds:
 
 - **Shape**: types, which keys exist, which are required, the closed sets (`legal` /
   `case-law` / `literature`, the four outcomes, the seven colour roles, the two font
   roles), and the grammars of ids, language tags, file names, colours and URLs. A JSON
   Schema expresses all of these exactly.
-- **Measured text**: V-LENGTH, V-LINES and V-COUNT. These are measured on the **counted
-  text** of 3.8 -- Markdown links replaced by their text, explainer marks likewise,
-  Unicode code points counted, and for rich text an estimated line count at 75 characters
-  a line. A JSON Schema's `maxLength` counts UTF-16 code units of the raw string. For a
+- **Measured text**: V-LENGTH and V-LINES. These are measured on the **counted text**
+  of 3.8 -- Markdown links replaced by their text, explainer marks likewise, Unicode
+  code points counted, and for rich text an estimated line count at 75 characters a
+  line. A JSON Schema's `maxLength` counts UTF-16 code units of the raw string. For a
   description with two links the two numbers differ, so a `maxLength: 150` -- a Node
   description's limit since #102 -- would reject text the format allows and would be a
   different rule wearing the same number.
+- **Counted entries**: V-COUNT, and it belongs in its own kind because none of the above
+  is true of it. The maxima of 5.7 that it applies -- 3 `sources`, 8 `options`, 10
+  `images`, 8 `explainers`, 2 font families of 8 files each -- are plain counts of array
+  entries, and `maxItems` expresses every one of them exactly, with nothing owed to 3.8.
+  It is the one rule of section 7 the schema leaves out by **choice** rather than by
+  inability; the choice, and what it costs, is the first rejected alternative below.
 - **Cross-reading**: V-L10N (every localised text holds exactly the declared languages),
   V-ROOT, V-ANSWERS, V-OPTIONS, V-ORPHAN, V-REACH, V-IMAGE (the file exists on disk),
   V-EXPLAINER and V-MARK. Each needs another part of the file, or the file system.
@@ -113,11 +119,11 @@ Section 7 has twenty-odd rules. They fall into three kinds:
 - The schema is a file in the repository, so it is under the code's licence (MIT), not the
   content licence; the route that serves it says so (`ADR-118-dataset-endpoint.md`).
 - Verified on 2026-09-21 against the example Tree of `tree-format.md` section 8 in its
-  JSON form: valid, and 23 mutations of it -- a Node both question and Terminal, an Option
-  with `images`, a misspelt `anwsers`, a colour without `#`, a missing colour role, a
-  capitalised id, a reference with a colon, a `null`, an empty list, no Nodes, a numeric
-  `version`, a fifth outcome, an unknown Source kind, an image file with a path
-  separator, a `.ttf` font, a `javascript:` URL, the wrong `format`, a `$schema` naming
-  another version, no `$schema`, `nodes` as an object, a localised text as a bare string,
-  and an empty string -- each rejected, each with the place named. The run is in the pull
-  request of this issue.
+  JSON form: valid, and 23 mutations of it -- a Node both question and Terminal, a
+  Terminal carrying Options, an Option with `images`, a misspelt `anwsers`, a colour
+  without `#`, a missing colour role, a capitalised id, a reference with a colon, a
+  `null`, an empty list, no Nodes, a numeric `version`, a fifth outcome, an unknown
+  Source kind, an image file with a path separator, a `.ttf` font, a `javascript:` URL,
+  the wrong `format`, a `$schema` naming another version, no `$schema`, `nodes` as an
+  object, a localised text as a bare string, and an empty string -- each rejected, each
+  with the place named. The run is in the pull request of this issue.
