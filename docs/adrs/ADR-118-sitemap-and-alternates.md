@@ -114,7 +114,7 @@ absolute when `ELSA_BASE_URL` is set. Alternates are the same thing, once per la
   signal that tells a crawler a re-crawl is worth its bandwidth. Decision 6 keeps it where
   it can be trusted and drops it where it cannot, which is the same trade made honestly.
 - **Listing Trail-carrying addresses in the sitemap** so that a shared link is indexed.
-  A Tree of 61 Nodes has an unbounded number of Trails; the canonical link already folds
+  A Tree of 71 Nodes has an unbounded number of Trails; the canonical link already folds
   every one of them onto the Node's own page, which is exactly what should be indexed.
 - **A static `sitemap.xml` generated at build time.** It would have to be regenerated
   whenever the Tree file changed, which is the thing a deployment most easily forgets,

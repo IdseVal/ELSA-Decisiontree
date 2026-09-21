@@ -20,12 +20,15 @@ be crawled. It is needed for two other things:
   (`ADR-118-sitemap-and-alternates.md`).
 - **It is where the owner's intent is written down.** The owner asked, on 2026-09-21, for
   the Trees to be findable by "the crawlers that feed AI assistants", and named eight
-  agents. Several of those agents are not crawlers at all: `Google-Extended` and
-  `Applebot-Extended` are control tokens with no fetcher behind them, read only to decide
-  whether content already collected by Googlebot or Applebot may be used for AI training.
-  A site that says nothing is, for most of them, allowed by default -- but the default is
-  the operator's to change, and a file that names each one is a statement that survives a
-  change of default and that a reader can check.
+  agents: `GPTBot`, `ClaudeBot`, `Claude-Web`, `PerplexityBot`, `Google-Extended`,
+  `Bingbot`, `Applebot` and `CCBot`. **Exactly one of the eight is not a crawler at
+  all**: `Google-Extended` is a control token with no fetcher behind it, read only to
+  decide whether content already collected by Googlebot may be used for AI training. The
+  table of decision 3 names the other operators' control tokens beside it --
+  `Applebot-Extended` among them -- for the same reason, which is why twenty tokens
+  answer a list of eight. A site that says nothing is, for most of these tokens, allowed
+  by default -- but the default is the operator's to change, and a file that names each
+  one is a statement that survives a change of default and that a reader can check.
 
 ## Decision
 

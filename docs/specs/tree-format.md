@@ -382,8 +382,7 @@ dataset endpoint serves the file's own bytes (`docs/specs/application.md` 15.1).
 
 The limits of section 5.7 are checked on the **counted text** of a field:
 
-1. Take the string value. Remove leading and trailing whitespace (a block scalar ends
-   with a line break; it is not counted).
+1. Take the string value. Remove leading and trailing whitespace.
 2. Replace every Markdown link `[text](url)` by its `text`. The URL is not shown to the
    reader, so it does not take space in the Bubble. An explainer mark `[text](#id)` (5.9)
    is a link for this rule: its text counts, its target does not. Every other character counts,

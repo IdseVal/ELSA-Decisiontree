@@ -18,7 +18,7 @@ none today.
 Two things make the mapping non-obvious rather than mechanical:
 
 - **The Dataset is the Tree, and a Tree has many pages.** Repeating the whole `Dataset`
-  on all 61 pages states 61 datasets unless every copy carries the same `@id`; carrying
+  on all 71 pages states 71 datasets unless every copy carries the same `@id`; carrying
   it once and referring to it by `@id` from the rest states one. And the `@id` must not
   change with the page's language, or the English pages and the Dutch pages belong to two
   datasets.
@@ -162,6 +162,6 @@ Two things make the mapping non-obvious rather than mechanical:
   #121 (`ADR-118-build-order.md`): a `DataDownload` whose `contentUrl` answers 404 is
   worse than no `Dataset`.
 - A test may parse the emitted script back and assert each field, and should assert the
-  two Google requirements (`name`, `description`, and a `distribution` with a
-  `contentUrl`) by name, so that a future edit that drops one fails for the stated reason
-  (issue #122).
+  two Google requirements -- `name` and `description` -- by name, and the `Dataset`'s
+  `distribution` with its `contentUrl` beside them, so that a future edit that drops one
+  fails for the stated reason (issue #122).

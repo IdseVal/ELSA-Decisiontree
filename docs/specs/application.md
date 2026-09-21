@@ -877,7 +877,7 @@ back.
 | 8 **[#118]** the Tree data is public under CC BY 4.0, served with no cookie and no account | 15.2: the licence in a `Link` header on the bytes themselves, and the no-cookie sweep -- `tests/browser/deployment.spec.ts` (section 7) -- extended to every route of 15 and 16 |
 | 10.21 **[#118]** superseded: hand-editability is no longer the criterion | `tree-format.md` 3.7, 3.9; `docs/adrs/ADR-118-json-serialisation.md` |
 | 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`); 5.1, 5.2 |
-| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; 15.2 is the one route that serves the whole file, and it is the dataset, not a page) |
+| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
 | 3.1 / 9 images only for the Node on screen | 11.4, 12.4; **[#75]** 11.5 names the one exception per Option (core document 10.29) |
 | 3.1 text has a maximum length | `tree-format.md` 5.7, confirmed against this layout in 10.7 (**[#75]** again, with two pixels to spare: core document 10.28) |
 | 3.2 the screen is a tree: a Bubble, the way back above, Answers below, side children beside | 10.1 to 10.3; **[#75]** the up arrow (10.2), the fan-out (10.3) |
@@ -2064,10 +2064,12 @@ statements, made in the five places that read them. Recorded in
 `docs/adrs/ADR-118-crawler-access.md`, `ADR-118-sitemap-and-alternates.md`,
 `ADR-118-json-ld.md` and `ADR-118-llms-txt.md`.
 
-**The base URL, once, for the whole section.** `robots.txt`, the sitemap, `llms.txt` and
-the JSON-LD all emit **absolute** URLs, because each is read away from the page that
-served it. The base is `ELSA_BASE_URL` (section 1, `ADR-11-public-base-url.md`) when it is
-set, and otherwise the request's own origin. A public deployment sets it, and
+**The base URL, once, for the whole section.** `robots.txt`, the sitemap, the address
+set of 16.3 that the page head renders, `llms.txt` and the JSON-LD all emit **absolute**
+URLs, because each is read away from the page that served it -- the canonical and
+alternate links of the head included, which is the consumer `ADR-11-public-base-url.md`
+was written for and which 16.3 widens to the whole set. The base is `ELSA_BASE_URL`
+(section 1, `ADR-11-public-base-url.md`) when it is set, and otherwise the request's own origin. A public deployment sets it, and
 `docs/deployment.md` says so beside the variable. The value is used **only** to build the
 URLs these five contracts emit: it is never fetched, never redirected to, and never used
 to read a file. Where it enters a document it is escaped as that document requires --
