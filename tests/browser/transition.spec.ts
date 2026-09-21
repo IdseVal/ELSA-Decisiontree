@@ -12,6 +12,8 @@
  *   back returns to the page before, and slides too.
  * - The tree layer's transform changes during a slide, and with `prefers-reduced-motion:
  *   reduce` it never does while the navigation still happens.
+ * - The up arrow retraces the step it undoes (#102): back up-right from a `yes` target,
+ *   up-left from a `no` target, straight up after any other step.
  * - While the page left behind and the target are both mounted, no id is in the document twice,
  *   and the frame of the page left behind is `inert`.
  * - A slide that starts with a Sheet open closes the Sheet before the layer moves.
@@ -256,6 +258,58 @@ test.describe('the address bar', () => {
     await page.locator('.answer--start-again').click()
     await arrived(page, ROOT)
     expect(payloads).toEqual(['document'])
+  })
+})
+
+/**
+ * Where the slide `control` starts is heading: the translation, in pixels, the tree layer
+ * ends the first half of the slide at. The target's payload is held back, so the page's own
+ * animation is the one read, then let through.
+ */
+async function slideOf(page: Page, control: string): Promise<{ x: number; y: number }> {
+  let release = () => {}
+  const held = new Promise<void>((resolve) => (release = resolve))
+  await page.route('**/*', async (route) => {
+    if (route.request().headers()['rsc'] === '1') await held
+    await route.continue()
+  })
+  const href = (await page.locator(control).getAttribute('href'))!
+  await page.locator(control).click()
+  const away = await page.waitForFunction(() => {
+    const frames = document.querySelector('.tree-layer')?.getAnimations()[0]?.effect
+    return frames instanceof KeyframeEffect ? String(frames.getKeyframes().at(-1)?.transform) : null
+  })
+  const [, x, y] = (await away.jsonValue())!.match(/translate\((-?[\d.]+)px, (-?[\d.]+)px\)/)!.map(Number)
+  release()
+  await arrived(page, href)
+  await page.unroute('**/*')
+  return { x: x!, y: y! }
+}
+
+test.describe('the way back retraces the way down (#102)', () => {
+  test('from a yes target up and to the right, from a no target up and to the left: the step down reversed', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
+    for (const answer of ['.answer--yes', '.answer--no']) {
+      await page.goto(QUESTION)
+      const down = await slideOf(page, answer)
+      const up = await slideOf(page, '.up-arrow')
+      // The layer moves opposite the reader: down-left for `yes` moves it right and up.
+      expect(Math.sign(down.x), `${answer} goes down to its side`).toBe(answer === '.answer--yes' ? 1 : -1)
+      expect(down.y, `${answer} goes down`).toBeLessThan(0)
+      expect(up, `the up arrow undoes ${answer}`).toEqual({ x: -down.x, y: -down.y })
+    }
+  })
+
+  test('after a step that was no Answer, the up arrow goes straight up', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
+    // Adjacency is not checked (4.3): `covered` is neither Answer of `start`.
+    await page.goto(`${ROOT}/covered`)
+    const up = await slideOf(page, '.up-arrow')
+    // `-0` when the Slider negates a zero offset, which is still no sideways movement.
+    expect(Math.abs(up.x)).toBe(0)
+    expect(up.y).toBeGreaterThan(0)
   })
 })
 

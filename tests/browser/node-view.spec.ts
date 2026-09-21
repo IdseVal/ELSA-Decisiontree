@@ -139,12 +139,30 @@ test('clicking the main image shows the image larger with its description and cr
   const enlargedImage = enlarged.locator('img')
   await expect(enlargedImage).toHaveAttribute('src', '/images/eu-map.png')
 
-  // Larger than the 60-pixel main image above the title, and bounded to the viewport (10.6).
+  // Larger than the main image above the title, and bounded to the viewport (10.6).
   const mainImage = await page.locator('.main-image img').first().boundingBox()
   const shown = await enlargedImage.boundingBox()
-  expect(mainImage!.height).toBe(60)
   expect(shown!.height).toBeGreaterThan(mainImage!.height)
   expect(shown!.height).toBeLessThan(page.viewportSize()!.height)
+})
+
+test('the main image is two fifths of the Bubble at every guaranteed viewport, and of the Overlay\'s panel too (#102)', async ({
+  page,
+}) => {
+  for (const [width, height] of [[1280, 640], [1920, 1080]] as const) {
+    await page.setViewportSize({ width, height })
+    await page.goto(`${START}/prohibited-practices`)
+    const bubble = (await page.locator('.bubble').boundingBox())!
+    const image = (await page.locator('.bubble .main-image').boundingBox())!
+    expect(image.height, `${width}x${height}`).toBeCloseTo(0.4 * bubble.height, 0)
+    expect(image.width, `${width}x${height}`).toBeCloseTo(1.5 * image.height, 0)
+
+    // The side arm: the Overlay's panel stands where the Bubble does, and its picture takes the same share of it.
+    await page.goto(`${START}/prohibited-practices/social-scoring`)
+    const inOverlay = (await page.locator('.overlay[open] .main-image').boundingBox())!
+    const panel = (await page.locator('.overlay[open] > .sheet-panel').boundingBox())!
+    expect(inOverlay.height, `${width}x${height}: the Overlay`).toBeCloseTo(0.4 * panel.height, 0)
+  }
 })
 
 test('Escape closes the enlarged image, and so does a click outside it', async ({ page }) => {

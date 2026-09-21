@@ -174,6 +174,19 @@ describe('which Nodes surround the centre', () => {
     expect(summary((await neighbourhood(example, address, node)).placed)).toEqual(['up 0 prohibited-practices'])
   })
 
+  test("`up` knows the step it undoes: slot 0 under the parent's `yes`, 1 under its `no`, 2 for any other step (11.3)", async () => {
+    const up = async (pathname: string) => {
+      const { address, node } = await at(example, pathname)
+      return summary((await neighbourhood(example, address, node)).placed).filter((s) => s.startsWith('up'))
+    }
+    // start -> yes prohibited-practices -> no covered.
+    expect(await up('/ai-act-example/start/prohibited-practices')).toEqual(['up 0 start'])
+    expect(await up('/ai-act-example/start/prohibited-practices/covered')).toEqual(['up 1 prohibited-practices'])
+    expect(await up('/ai-act-example/start/outside-scope')).toEqual(['up 1 start'])
+    // Adjacency is not checked (4.3): `covered` is neither Answer of `start`, so the step was straight down.
+    expect(await up('/ai-act-example/start/covered')).toEqual(['up 2 start'])
+  })
+
   test('nothing is placed `side`: an Option target is an aside, and an aside that is also placed stays an aside', async () => {
     // `third`'s `yes` is `second`, its parent: placed `up` once, and never `side`.
     const cycle = await openTree(path.join(here, 'fixtures', 'cycle'))

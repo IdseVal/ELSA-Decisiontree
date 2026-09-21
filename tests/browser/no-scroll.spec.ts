@@ -679,17 +679,24 @@ for (const lang of LANGUAGES) {
   })
 }
 
-// What a face cannot hide: the rows of 10.1 and 10.5 in pixels. The full Node's text takes 368
-// of the text area in Liberation Sans and less in Segoe UI, so a text area two pixels short
+// What a face cannot hide: the rows of 10.1 and 10.5 in pixels. A text area two pixels short
 // passed on Windows and failed on the runner (PR #99); the budget is the same in every face.
-test('the full Node keeps the text area 10.5 budgets and a 760 Bubble down to 1200 wide: the collapsed Options stand beside it, not in a row of their own', async ({ page }) => {
+// Since #102 the main image is two fifths of the Bubble on this Node too, the one at every
+// maximum: if its picture keeps that share, every valid Node's does (10.7).
+test('the full Node keeps the text area 10.5 budgets, a 760 Bubble down to 1200 wide and a main image of two fifths of it: the collapsed Options stand beside it, not in a row of their own', async ({ page }) => {
   const origin = await served(fixtures, 'full-node', FULL_NODE_TRIGGERS_PORT)
   for (const [width, height] of [[1280, 640], [1280, 632], [1279, 640], [1200, 640], [1200, 632]] as const) {
     await page.setViewportSize({ width, height })
     expect((await page.goto(`${origin}${FULL_NODE_URL}`))?.status()).toBe(200)
-    // Step 1 frees 8 pixels, to 632: the text area is the guarantee's 394 at both ends of it.
+    // At 640 the up arrow stands 30 pixels above the Bubble and the text area is 364 (#102);
+    // below it the arrow is back on the outline, and step 1 frees 8 more, so 632 has 394.
     expect((await page.locator('.bubble').boundingBox())!.width, `${width}x${height}: the Bubble`).toBe(760)
-    expect((await page.locator('.bubble-text').boundingBox())!.height, `${width}x${height}: the text area`).toBe(394)
+    expect((await page.locator('.bubble-text').boundingBox())!.height, `${width}x${height}: the text area`).toBe(
+      height >= 640 ? 364 : 394,
+    )
+    const bubble = (await page.locator('.bubble').boundingBox())!
+    const image = (await page.locator('.bubble .main-image').boundingBox())!
+    expect(image.height, `${width}x${height}: the main image`).toBeCloseTo(0.4 * bubble.height, 0)
   }
 })
 

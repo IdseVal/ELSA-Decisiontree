@@ -1,7 +1,7 @@
-# The fixture for V-LINES: a description well inside the 600 characters of
-# docs/specs/tree-format.md 5.7 that still lays out over more than 8 lines, because a
-# list of short entries takes a line each (3.8). Height, not length, is what the Bubble
-# runs out of.
+# The fixture for V-LINES: a description well inside the 150 characters of
+# docs/specs/tree-format.md 5.7 that still lays out over more than 2 lines, because a
+# paragraph break and a list of short entries take a line each (3.8). Height, not length,
+# is what the Bubble runs out of.
 format: elsa-tree/3
 languages: [en]
 root: start
@@ -20,12 +20,6 @@ description:
 
     - the first case
     - the second case
-    - the third case
-    - the fourth case
-    - the fifth case
-    - the sixth case
-    - the seventh case
-    - the eighth case
 metadata:
   version: "1.0"
 answers:

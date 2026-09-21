@@ -3,6 +3,9 @@
 > Status: FROZEN -- 2026-09-17 (issue #78); `elsa-tree/3` replaces `elsa-tree/2` (frozen 2026-09-10, issue #37). This document is the interoperability
 > contract: any Tree that follows it loads in the ELSA decision-tree frontend without a
 > code change. Changing it requires a new `architecture` issue and a new format number.
+> **Amended 2026-09-19 (#102, by the owner):** one change was made without a new number: the
+> Node description's limit was cut to 150 characters and 2 lines under `elsa-tree/3`
+> (section 5.7 says why).
 >
 > **What this version is.** `elsa-tree/3` replaces `elsa-tree/2`. The owner saw version
 > 0.2 running and asked for two things the data must carry (`docs/CORE_DOCUMENT.md` 3.1,
@@ -200,8 +203,8 @@ description:
     De tweede alinea.
 ```
 
-Rich text is short in `elsa-tree/3`: a description has at most 600 characters and must
-fit an estimate of 8 rendered lines (section 3.8, section 5.7). Several paragraphs and
+Rich text is short in `elsa-tree/3`: a Node's description has at most 150 characters and
+must fit an estimate of 2 rendered lines (section 3.8, section 5.7; 600 and 8 until #102). Several paragraphs and
 a list still fit, but a Node that needs more becomes several Nodes (core document 3.3,
 item 8).
 
@@ -306,11 +309,12 @@ assumed width of 75 characters per line (section 5.7):
 3. The estimate is the sum over blocks, plus one line per break (paragraph spacing is
    one line height; consecutive list items have none).
 
-Worked example, English text of the root Node in section 8: three blocks, two breaks.
-The first paragraph has 163 characters (3 lines), the second 135 (2 lines), the list
-item 61 (1 line): `3 + 2 + 1` block lines `+ 2` breaks `= 8` estimated lines, which is
-exactly the maximum. The validator reports the estimate next to the maximum so that the
-author knows how much to cut.
+Worked example, English text of the root Node in section 8: one block, no break. The
+paragraph has 117 characters -- the Markdown of its explainer mark `[provider](#provider)`
+counts as the 8 characters of `provider` -- so it takes `ceil(117 / 75) = 2` estimated
+lines, which is exactly the maximum. A paragraph and a one-line list item under it would be
+`1 + 1` block lines `+ 1` break `= 3`: over it, however short the text. The validator
+reports the estimate next to the maximum so that the author knows how much to cut.
 
 ## 4. The manifest: the first document of `tree.yaml`
 
@@ -339,7 +343,7 @@ theme:                             # optional; section 4.3
 | `languages` | yes | list of language tags, non-empty, distinct | The languages every localised text in the Tree provides. First entry is the default language. |
 | `root` | yes | Node reference | The Node the walk starts at. Must be a question Node or a Terminal, never an explanation Node. |
 | `title` | yes | localised text, plain, at most 80 characters | The Tree's name, shown by the frontend. |
-| `description` | no | localised text, rich, limits as a Node's description | What the Tree is about. |
+| `description` | no | localised text, rich, at most 600 characters and 8 estimated lines (**[#102]** as a Node's description until 2026-09-19; the Tree's is not drawn in the Bubble and kept these) | What the Tree is about. |
 | `metadata` | yes | mapping | `version` (non-empty string) is required. Any other keys are the author's own; the loader keeps them and does not interpret them. |
 | `theme` | no | Theme (4.3) | The look the frontend shows for this Tree. Absent: the frontend's plain default look. |
 
@@ -468,7 +472,7 @@ A Node document is a mapping with these keys:
 |---|---|---|---|
 | `id` | yes | id (3.1), unique in the Tree | The Node's id: what URLs, the Trail and Links use. Write it first in the document (3.7). |
 | `title` | yes | localised text, plain, at most 80 characters | The Node's heading, shown in the Bubble and on the Branch that leads to it. A step counter such as `(1/7)` is written here, at the end (5.8). |
-| `description` | yes | localised text, rich, at most 600 characters and 8 estimated lines | The explanatory text, shown in the Bubble. |
+| `description` | yes | localised text, rich, at most 150 characters and 2 estimated lines (**[#102]** amended 2026-09-19; 600 and 8 until #102) | The explanatory text, shown in the Bubble. |
 | `metadata` | yes | mapping | `version` (non-empty string) required; the rest free-form, kept but not interpreted. |
 | `sources` | no | list of Source (5.1), at most 3 | References this Node cites. Absent means none. |
 | `images` | no | list of Image (5.2), at most 10 | The Node's pictures: the **first is its main image**, shown above the title in the Bubble and, small, on the Option button that leads to this Node; the rest are the Carousel's. Absent means none. |
@@ -619,7 +623,7 @@ language**.
 | Tree `title` (any language) | 80 characters | V-LENGTH |
 | Tree `description` (any language) | 600 characters and 8 estimated lines | V-LENGTH, V-LINES |
 | Node `title` (any language) | 80 characters | V-LENGTH |
-| Node `description` (any language) | 600 characters and 8 estimated lines | V-LENGTH, V-LINES |
+| Node `description` (any language) | 150 characters and 2 estimated lines (600 and 8 until #102) | V-LENGTH, V-LINES |
 | Option `title` (any language) | 60 characters | V-LENGTH |
 | Source `label` (any language) | 60 characters | V-LENGTH |
 | Image `description` (any language) | 120 characters | V-LENGTH |
@@ -640,25 +644,39 @@ grammar; they are not shown in the Bubble.
 
 **The assumptions the numbers derive from.** They are written down so that the
 application architecture, which fixes the layout, can confirm or correct them; if it
-corrects them, the numbers here change with a new format number. Issue #38 confirmed
+corrects them, the numbers here change with a new format number (**[#102]** amended
+2026-09-19: except the cut below, which the owner took under `elsa-tree/3`). Issue #38 confirmed
 them against the 0.2 layout; issue #78 re-derived them against the layout of #75 --
 the Trail row gone, a main image above the title, a heading over the Sources, the
 Carousel on the Bubble's lower edge -- and **confirmed every limit unchanged, with two
 pixels to spare** (`application.md` 10.1, 10.7; `docs/adrs/ADR-78-main-image-and-row-budget.md`).
 `docs/adrs/ADR-37-length-limits.md` has the original reasoning.
 
+**Amended 2026-09-19 (#102, by the owner; answer (b) on PR #110): the Node description is
+cut to 150 characters and 2 estimated lines.** The owner chose a main image of two fifths
+of the Bubble on every Node over the description's length. The up arrow now stands above
+the Bubble, which is 760 x 416 with a text area of 640 x 364, and the picture is 166.4 of
+it; `application.md` 10.7 derives the 57.6 pixels left, of which two 24-pixel lines are
+used. The rows below record the layout #78 confirmed; where this amendment changes one, its
+new value is in the row after the word **Now**. No other limit moves, and the Tree
+`description`, which is not drawn in the Bubble, keeps 600 characters and 8 lines.
+The format number stays `elsa-tree/3`, though the rule above asks for a new one: the owner's
+answer scoped the change to the limit and the validator, the shape of a Tree file is
+unchanged, and a Tree written to the old limit is told by V-LENGTH and V-LINES which field
+to cut, by how much (`application.md` 10.7).
+
 | Assumption | Value |
 |---|---|
 | Viewport the layout guarantees | 1280 x 640 CSS pixels: a 1366 x 768 laptop display, or a 1920 x 1080 one at 150 % scaling, minus browser tabs, address bar and taskbar |
-| Vertical budget at that height | chrome bar 44 + up-arrow band 26 + Bubble 446 + Carousel strip band 28 + Answer buttons 68 + disclaimer 28 = 640 (was: chrome 44 + Trail 64 + Bubble 360 + Branches 64 + Carousel 80 + disclaimer 28) |
-| Text area inside the Bubble | 640 x 394 CSS pixels, inside the curve and the padding of a 760 x 446 rounded Bubble (was 640 x 304 in 760 x 360) |
-| Main image | 60 px tall, at most 90 wide, above the title; an empty slot of the same height on a Node without Images (`application.md` 10.3) |
+| Vertical budget at that height | chrome bar 44 + up-arrow band 26 + Bubble 446 + Carousel strip band 28 + Answer buttons 68 + disclaimer 28 = 640 (was: chrome 44 + Trail 64 + Bubble 360 + Branches 64 + Carousel 80 + disclaimer 28). **Now** (#102): chrome bar 44 + up-arrow band 56 + Bubble 416 + strip band 28 + Answer buttons 68 + disclaimer 28 = 640 |
+| Text area inside the Bubble | 640 x 394 CSS pixels, inside the curve and the padding of a 760 x 446 rounded Bubble (was 640 x 304 in 760 x 360). **Now** (#102): 640 x 364 in 760 x 416 |
+| Main image | 60 px tall, at most 90 wide, above the title; an empty slot of the same height on a Node without Images (`application.md` 10.3). **Now** (#102): two fifths of the Bubble's height, 166.4 px, in a 3 : 2 box |
 | Body text | 16 px, line height 24 px, average advance 8.5 px per character (Open Sans and similar humanist sans-serifs): **75 characters per line** |
 | Node title | 22 px, line height 28 px, about 55 characters per line: 80 characters is at most **2 lines** (56 px) |
 | Sources | a 20 px heading line ("Legal sources"), then 13 px on 20 px lines, about 90 characters per line: 3 labels of 60 characters with two kind prefixes and separators is at most **2 lines**: 60 px in all |
-| Description | what remains: 394 - 60 - 8 - 56 - 8 - 60 - 8 = 194 px, of which **8 lines** of 24 px = 192 are used, at 75 characters = 600 characters; 2 px spare |
-| Explainer panel | 320 px wide, 14 px text on 20 px lines, about 45 characters per line: a 200-character `text` is at most 5 lines, and the panel with its `term` heading and padding at most 148 px, which fits above or below any line of the 394 px text area (5.9) |
-| Option button labels | an Option button of 232 x 96 px beside the Bubble, with 152 px of label at 16 px on 20 px lines, up to four lines: an Option title of 60 characters is at most **3 lines** in a humanist face and 4 in DejaVu Sans, the widest fallback (80 px, inside the 96 px button). **Amended 2026-09-19 (#105, PR #109):** not for every title: in Open Sans the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" (54 characters) takes 4 lines only hyphenated in the page's language and 5 without, and its button then grows to 102 px; the limit stays 60 for the owner to judge (`application.md` 10.3 and 10.7, both amended). The Options fan out at most 4 a side at a pitch of 111.5 px: four buttons are 384 px of the Bubble's 446, so 8 Options fit without narrowing or wrapping. A question Node that carries both `answers` and `options` (section 5.6) puts its 2 Answer buttons below the Bubble and its Options beside it, so the two never share a row (`application.md` 10.3, 10.7; `docs/adrs/ADR-78-fan-out-and-option-picture.md`) |
+| Description | what remains: 394 - 60 - 8 - 56 - 8 - 60 - 8 = 194 px, of which **8 lines** of 24 px = 192 are used, at 75 characters = 600 characters; 2 px spare. **Now** (#102): 364 - 166.4 - 8 - 56 - 8 - 60 - 8 = 57.6 px, of which **2 lines** of 24 px = 48 are used, at 75 characters = **150 characters**; 9.6 px spare |
+| Explainer panel | 320 px wide, 14 px text on 20 px lines, about 45 characters per line: a 200-character `text` is at most 5 lines, and the panel with its `term` heading and padding at most 148 px, which fits above or below any line of the 394 px text area (5.9). **Now** (#102): any line of the 364 px text area; 148 fits still |
+| Option button labels | an Option button of 232 x 96 px beside the Bubble, with 152 px of label at 16 px on 20 px lines, up to four lines: an Option title of 60 characters is at most **3 lines** in a humanist face and 4 in DejaVu Sans, the widest fallback (80 px, inside the 96 px button). **Amended 2026-09-19 (#105, PR #109):** not for every title: in Open Sans the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" (54 characters) takes 4 lines only hyphenated in the page's language and 5 without, and its button then grows to 102 px; the limit stays 60 for the owner to judge (`application.md` 10.3 and 10.7, both amended). The Options fan out at most 4 a side at a pitch of 111.5 px: four buttons are 384 px of the Bubble's 446, so 8 Options fit without narrowing or wrapping (**Now**, #102: of the Bubble's 416, which still holds the 384). A question Node that carries both `answers` and `options` (section 5.6) puts its 2 Answer buttons below the Bubble and its Options beside it, so the two never share a row (`application.md` 10.3, 10.7; `docs/adrs/ADR-78-fan-out-and-option-picture.md`) |
 | Answer button labels, and the Trail | the label is the chrome word, a colon and a Node `title` of up to 80 characters (5.3, section 6): at most 86 characters in one run of 19 px bold on 24 px lines, in a 620 x 60 px button with 580 px of label, at least 43 characters per line in DejaVu Sans Bold: **2 lines** (48 px, inside the 60 px button). The 2 Answer buttons sit side by side in the 68 px Answer row. No Trail is drawn: the up arrow carries the parent's title as its accessible name only, so no Trail label has a width to fit; the format still does not bound a Trail's length, and a long one costs the screen nothing (`application.md` 10.2, 10.3, 10.7; `docs/adrs/ADR-78-answer-buttons-and-up-arrow.md`) |
 | Carousel | a strip of 48 px round thumbnails on the Bubble's lower outline, the Images after the main one, seven visible, no caption; the description is alternative text and the credit is shown in the enlarged view, where it fits one line at 13 px (`application.md` 12) |
 
@@ -766,7 +784,7 @@ A Tree is never partially loaded.
 | V-PLAIN | plain text fields on a single line (no line breaks). |
 | V-HTML | no raw HTML in rich text: the sequence `<` followed by a letter, `/` or `!` is rejected. |
 | V-LENGTH | every text field within the maximum characters of 5.7, per language, measured as 3.8 says. The message names the field, the language, the actual length and the maximum. |
-| V-LINES | every rich text within 8 estimated lines (3.8), per language. The message names the estimate and the maximum. |
+| V-LINES | every rich text within its estimated lines (3.8, 5.7): 2 for a Node description, 8 for the Tree's, per language. The message names the estimate and the maximum. |
 | V-COUNT | every list within the maximum entries of 5.7. |
 
 ### Node level
@@ -894,22 +912,9 @@ title:
   nl: Valt uw AI-systeem binnen het bereik van de AI-verordening?
 description:
   en: |
-    The AI Act reaches AI systems **placed on the market or put into service in the
-    EU**, and systems whose *output is used in the EU*, wherever the [provider](#provider) is based.
-
-    Answer **yes** if you place your system on the EU market, put it into service in
-    the EU, use it in the EU, or use its output in the EU.
-
-    - Answer **no** only if none of these applies to your system.
+    The AI Act reaches AI systems **placed on the market or put into service in the EU**, wherever the [provider](#provider) is based.
   nl: |
-    De AI-verordening bestrijkt AI-systemen die **in de EU in de handel worden gebracht
-    of in gebruik worden gesteld**, en systemen waarvan de *output in de EU wordt
-    gebruikt*, waar de [aanbieder](#provider) ook is gevestigd.
-
-    Antwoord **ja** als u uw systeem in de EU in de handel brengt, in gebruik stelt,
-    gebruikt, of als de output ervan in de EU wordt gebruikt.
-
-    - Antwoord **nee** alleen als geen hiervan op uw systeem van toepassing is.
+    De AI-verordening bestrijkt AI-systemen die **in de EU in de handel worden gebracht of in gebruik worden gesteld**, waar de [aanbieder](#provider) ook zit.
 metadata:
   version: "2.0"
 sources:
@@ -949,7 +954,6 @@ description:
     apply to it; this Tree does not cover them.
   nl: |
     Uw systeem valt buiten het territoriale toepassingsgebied van de AI-verordening.
-    Andere regels kunnen nog steeds van toepassing zijn; deze boom behandelt die niet.
 metadata:
   version: "2.0"
 images:
@@ -968,16 +972,9 @@ title:
   nl: Verricht uw systeem een van de verboden praktijken?
 description:
   en: |
-    Article 5 lists practices that are **prohibited** outright. Open each entry to read
-    what it covers, then come back here and answer.
-
-    Answer **yes** if your system does any of them, **no** if it does none.
+    Article 5 lists practices that are **prohibited** outright. Open each entry to read what it covers, then come back here and answer.
   nl: |
-    Artikel 5 noemt praktijken die zonder meer **verboden** zijn. Open elk onderdeel om
-    te lezen wat het inhoudt, en kom dan hier terug om te antwoorden.
-
-    Antwoord **ja** als uw systeem een van deze praktijken verricht, **nee** als geen
-    ervan van toepassing is.
+    Artikel 5 noemt praktijken die zonder meer **verboden** zijn. Open elk onderdeel om te lezen wat het inhoudt, en kom dan hier terug om te antwoorden.
 metadata:
   version: "2.0"
   reviewed: 2026-09-10
@@ -1013,15 +1010,9 @@ title:
   nl: Sociale scoring
 description:
   en: |
-    Evaluating or classifying people over time on the basis of their social behaviour
-    or personal characteristics, where the resulting score leads to detrimental
-    treatment that is unrelated to the context in which the data was collected, or
-    that is disproportionate.
+    Evaluating or classifying people over time on the basis of their social behaviour or personal characteristics, where the resulting score leads to…
   nl: |
-    Het beoordelen of indelen van mensen gedurende een periode op basis van hun
-    sociale gedrag of persoonlijke kenmerken, waarbij de score leidt tot nadelige
-    behandeling die losstaat van de context waarin de gegevens zijn verzameld, of die
-    onevenredig is.
+    Het beoordelen of indelen van mensen gedurende een periode op basis van hun sociale gedrag of persoonlijke kenmerken, waarbij de score leidt tot…
 metadata:
   version: "2.0"
 images:
@@ -1107,8 +1098,7 @@ description:
     Your system is within scope and is not a prohibited practice. The real Tree
     continues with the high-risk categorisation; this example stops here.
   nl: |
-    Uw systeem valt binnen het toepassingsgebied en is geen verboden praktijk. De echte
-    boom gaat verder met de hoog-risico-indeling; dit voorbeeld eindigt hier.
+    Uw systeem valt binnen het toepassingsgebied en is geen verboden praktijk.
 metadata:
   version: "2.0"
 images:

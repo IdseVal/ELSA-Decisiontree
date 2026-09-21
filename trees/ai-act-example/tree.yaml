@@ -53,22 +53,9 @@ title:
   nl: Valt uw AI-systeem binnen het bereik van de AI-verordening?
 description:
   en: |
-    The AI Act reaches AI systems **placed on the market or put into service in the
-    EU**, and systems whose *output is used in the EU*, wherever the [provider](#provider) is based.
-
-    Answer **yes** if you place your system on the EU market, put it into service in
-    the EU, use it in the EU, or use its output in the EU.
-
-    - Answer **no** only if none of these applies to your system.
+    The AI Act reaches AI systems **placed on the market or put into service in the EU**, wherever the [provider](#provider) is based.
   nl: |
-    De AI-verordening bestrijkt AI-systemen die **in de EU in de handel worden gebracht
-    of in gebruik worden gesteld**, en systemen waarvan de *output in de EU wordt
-    gebruikt*, waar de [aanbieder](#provider) ook is gevestigd.
-
-    Antwoord **ja** als u uw systeem in de EU in de handel brengt, in gebruik stelt,
-    gebruikt, of als de output ervan in de EU wordt gebruikt.
-
-    - Antwoord **nee** alleen als geen hiervan op uw systeem van toepassing is.
+    De AI-verordening bestrijkt AI-systemen die **in de EU in de handel worden gebracht of in gebruik worden gesteld**, waar de [aanbieder](#provider) ook zit.
 metadata:
   version: "2.0"
 sources:
@@ -108,7 +95,6 @@ description:
     apply to it; this Tree does not cover them.
   nl: |
     Uw systeem valt buiten het territoriale toepassingsgebied van de AI-verordening.
-    Andere regels kunnen nog steeds van toepassing zijn; deze boom behandelt die niet.
 metadata:
   version: "2.0"
 images:
@@ -127,16 +113,9 @@ title:
   nl: Verricht uw systeem een van de verboden praktijken?
 description:
   en: |
-    Article 5 lists practices that are **prohibited** outright. Open each entry to read
-    what it covers, then come back here and answer.
-
-    Answer **yes** if your system does any of them, **no** if it does none.
+    Article 5 lists practices that are **prohibited** outright. Open each entry to read what it covers, then come back here and answer.
   nl: |
-    Artikel 5 noemt praktijken die zonder meer **verboden** zijn. Open elk onderdeel om
-    te lezen wat het inhoudt, en kom dan hier terug om te antwoorden.
-
-    Antwoord **ja** als uw systeem een van deze praktijken verricht, **nee** als geen
-    ervan van toepassing is.
+    Artikel 5 noemt praktijken die zonder meer **verboden** zijn. Open elk onderdeel om te lezen wat het inhoudt, en kom dan hier terug om te antwoorden.
 metadata:
   version: "2.0"
   reviewed: 2026-09-10
@@ -172,15 +151,9 @@ title:
   nl: Sociale scoring
 description:
   en: |
-    Evaluating or classifying people over time on the basis of their social behaviour
-    or personal characteristics, where the resulting score leads to detrimental
-    treatment that is unrelated to the context in which the data was collected, or
-    that is disproportionate.
+    Evaluating or classifying people over time on the basis of their social behaviour or personal characteristics, where the resulting score leads to…
   nl: |
-    Het beoordelen of indelen van mensen gedurende een periode op basis van hun
-    sociale gedrag of persoonlijke kenmerken, waarbij de score leidt tot nadelige
-    behandeling die losstaat van de context waarin de gegevens zijn verzameld, of die
-    onevenredig is.
+    Het beoordelen of indelen van mensen gedurende een periode op basis van hun sociale gedrag of persoonlijke kenmerken, waarbij de score leidt tot…
 metadata:
   version: "2.0"
 images:
@@ -266,8 +239,7 @@ description:
     Your system is within scope and is not a prohibited practice. The real Tree
     continues with the high-risk categorisation; this example stops here.
   nl: |
-    Uw systeem valt binnen het toepassingsgebied en is geen verboden praktijk. De echte
-    boom gaat verder met de hoog-risico-indeling; dit voorbeeld eindigt hier.
+    Uw systeem valt binnen het toepassingsgebied en is geen verboden praktijk.
 metadata:
   version: "2.0"
 images:

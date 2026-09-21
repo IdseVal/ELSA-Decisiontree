@@ -28,8 +28,9 @@ export interface Placed {
   address: PageAddress
   direction: Direction
   /**
-   * Its place in its direction. `up`: 0, the parent. `down`: 0 and 1 the `yes` and `no`
-   * targets, 2 to 5 their `yes` and `no` targets in that order.
+   * Its place in its direction. `up`: the parent, by the step down it undoes -- 0 when the
+   * Node on screen is the parent's `yes` target, 1 its `no` target, 2 any other step. `down`:
+   * 0 and 1 the `yes` and `no` targets, 2 to 5 their `yes` and `no` targets in that order.
    */
   slot: number
 }
@@ -145,9 +146,16 @@ export async function neighbourhood(tree: Tree, at: PageAddress, node: Node, kno
   const wanted: { address: PageAddress; direction: Direction; slot: number }[] = []
 
   // The parent only: the up arrow goes one step back, so the grandparent is never one click away (10.2).
+  // Its slot is the Answer that led down from it, so that going back retraces that step (11.3).
   if (at.trail.length > 0) {
     const index = at.trail.length - 1
-    wanted.push({ address: { ...at, trail: at.trail.slice(0, index), nodeId: at.trail[index]! }, direction: 'up', slot: 0 })
+    const parent = await get(at.trail[index]!)
+    const answer = parent?.kind === 'question' ? [parent.answers.yes, parent.answers.no].indexOf(node.id) : -1
+    wanted.push({
+      address: { ...at, trail: at.trail.slice(0, index), nodeId: at.trail[index]! },
+      direction: 'up',
+      slot: answer === -1 ? 2 : answer,
+    })
   }
 
   if (node.kind === 'question') {
