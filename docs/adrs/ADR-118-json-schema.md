@@ -124,11 +124,13 @@ Section 7 has twenty-odd rules. They fall into four kinds:
 - The schema is a file in the repository, so it is under the code's licence (MIT), not the
   content licence; the route that serves it says so (`ADR-118-dataset-endpoint.md`).
 - Verified on 2026-09-21 against the example Tree of `tree-format.md` section 8 in its
-  JSON form: valid, and 23 mutations of it -- a Node both question and Terminal, a
+  JSON form: valid, and 27 mutations of it -- a Node both question and Terminal, a
   Terminal carrying Options, an Option with `images`, a misspelt `anwsers`, a colour
   without `#`, a missing colour role, a capitalised id, a reference with a colon, a
-  `null`, an empty list, no Nodes, a numeric `version`, a fifth outcome, an unknown
-  Source kind, an image file with a path separator, a `.ttf` font, a `javascript:` URL,
-  the wrong `format`, a `$schema` naming another version, no `$schema`, `nodes` as an
-  object, a localised text as a bare string, and an empty string -- each rejected, each
-  with the place named. The run is in the pull request of this issue.
+  `null`, an empty list, no Nodes, a numeric `version`, an all-digit `metadata` key, a
+  fifth outcome, an unknown Source kind, an image file with a path separator, a `.ttf`
+  font, a `.woff2` logo, a `javascript:` URL, a URL with a space in it, the wrong
+  `format`, a `$schema` naming another version, a `$schema` whose name is only in the
+  query string, no `$schema`, `nodes` as an object, a localised text as a bare string,
+  and an empty string -- each rejected, each with the place named. The run is in the
+  pull request of this issue, re-measured there against the head it describes.
