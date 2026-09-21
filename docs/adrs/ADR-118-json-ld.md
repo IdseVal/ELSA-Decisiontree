@@ -110,7 +110,7 @@ Two things make the mapping non-obvious rather than mechanical:
   reader's answer.
 - **Mapping each Option to a `suggestedAnswer`.** See decision 8.
 - **`sameAs` pointing at the GitHub repository.** The issue offered it. Left out: what
-  the public sees at that address is an open question (#111, #112 -- `main` holds a stub
+  the public sees at that address is an open question (#112 -- `main` holds a stub
   today), and a `sameAs` that resolves to an empty repository is a worse statement than
   no `sameAs`. It is one field to add on the day the repository is the dataset's real
   home.

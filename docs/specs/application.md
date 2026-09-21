@@ -2255,7 +2255,7 @@ element. That is 13.3's rule applied to the second place a Tree's text -- third-
 data -- reaches the document.
 
 Reserved and deliberately empty for now: `identifier` (a DOI, when the project has one)
-and `sameAs` (the repository, when what the public sees there is settled -- #111, #112);
+and `sameAs` (the repository, when what the public sees there is settled -- #112);
 `keywords`, because nothing in the Tree supplies them honestly.
 
 ### 16.5 `llms.txt`
