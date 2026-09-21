@@ -6,7 +6,9 @@
 - Amends: `docs/adrs/ADR-5-repository-layout.md` (`src/findability/jsonld.ts`; the
   graph is emitted into the page head, so this one adds no route) and
   `ADR-5-testing-approach.md` (`tests/findability/jsonld.test.ts`, and the
-  escaping half of `findability.spec.ts`)
+  escaping half of `findability.spec.ts`). Also `ADR-11-public-base-url.md`: the
+  `Dataset`'s `@id`, the `WebPage`'s `url` and the `DataDownload`'s `contentUrl`
+  are absolute URLs built from the base
 
 ## Context
 

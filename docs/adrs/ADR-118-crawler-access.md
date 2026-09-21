@@ -7,7 +7,10 @@
   4.1), `ADR-5-repository-layout.md` (`src/findability/robots.ts` and
   `src/app/[lang]/robots.txt/route.ts`) and `ADR-5-testing-approach.md`
   (`tests/findability/robots.test.ts`, and `robots.txt` in `findability.spec.ts`
-  and in `deployment.spec.ts`'s sweep)
+  and in `deployment.spec.ts`'s sweep). Also `ADR-11-public-base-url.md`: the
+  `Sitemap:` line is an absolute URL built from `ELSA_BASE_URL`, so the variable
+  has a consumer that is not the canonical link, and the request origin answers
+  when it is unset
 
 ## Context
 

@@ -49,7 +49,7 @@
 > | Section | #118 |
 > |---|---|
 > | 1 | One optional configuration variable, `ELSA_TREE_LASTMOD`. |
-> | 4.1 | Five routes join the grammar: the dataset endpoint, the schema, `robots.txt`, `sitemap.xml`, `llms.txt`. **The Node page, the Trail in the path, the share link and `?lang` are unchanged**, and no URL that resolves today resolves differently. |
+> | 4.1 | Five routes join the grammar: the dataset endpoint, the schema, `robots.txt`, `sitemap.xml`, `llms.txt`. The canonical link is rendered from 16.3's address set, so it is absolute whether or not `ELSA_BASE_URL` is set -- the one bullet that moves, and `ADR-11-public-base-url.md` carries the amendment. **The Node page, the Trail in the path, the share link and `?lang` are unchanged**, and no URL that resolves today resolves differently. |
 > | 4.3 | `schemas` joins the reserved Tree ids; two rows for the new routes' 404s. |
 > | 5.1 | The loader's `Manifest['format']` becomes `elsa-tree/4` and the file it reads is `tree.json`; the seam gains the path of the Tree's own file. Issue #119 makes that edit with the code. |
 > | 5.2 | The "Never, in any response" list is restated as a list about **page** responses, because the dataset endpoint of section 15 serves the whole file on purpose. The bound on what a page may carry is untouched. |
@@ -293,8 +293,12 @@ Redirects   /            ->  /<tree-id>/<root-id>[?lang=...]      307
   `lang`: the Trail after it is discarded (core document 10.17).
 - Every Node page carries `<link rel="canonical">` to `/<tree-id>/<id-n>` (with `lang`
   when not the default). A deployment that sets `ELSA_BASE_URL` (section 1) makes that
-  link the absolute URL of the same page; without it the link is the path. Recorded in
-  `docs/adrs/ADR-11-public-base-url.md`.
+  link the absolute URL of the same page; **[#118]** a deployment that sets none gets the
+  absolute URL on the request's own origin, because 16.3 renders this link from the same
+  address set as the sitemap and the JSON-LD and the three must be one string. Which page
+  it points at is unchanged either way: the Trail is dropped and the language kept.
+  Recorded in `docs/adrs/ADR-11-public-base-url.md`, amended **[#118]** by the four
+  `ADR-118-*` decisions that read the base (16).
 
 ### 4.2 Worked examples
 
@@ -917,7 +921,7 @@ back.
 | Chrome in `en` and `nl` in code; follows content language, falls back to English | `docs/adrs/ADR-5-chrome-languages.md` |
 | Path is the Trail; `lang` query; 50-id limit; 404 rules | `docs/adrs/ADR-5-url-scheme.md`, amended **[#118]** by the five `ADR-118-*` decisions that each add an address to 4.1 (`dataset-endpoint`, `json-schema`, `crawler-access`, `sitemap-and-alternates`, `llms-txt`); `schemas` reserved and two 404 rows in 4.3 |
 | `?lang` restated as a `[lang]` route segment so `<html lang>` is the content language | `docs/adrs/ADR-19-content-language-in-the-route.md` |
-| `ELSA_BASE_URL` optional, read by the canonical link only, refused when malformed | `docs/adrs/ADR-11-public-base-url.md` |
+| `ELSA_BASE_URL` optional, read by the canonical link only, refused when malformed | `docs/adrs/ADR-11-public-base-url.md`, amended **[#118]** by the four `ADR-118-*` decisions that build absolute URLs from it (`crawler-access`, `sitemap-and-alternates`, `json-ld`, `llms-txt`): five consumers rather than one, `src/url.ts` reading the base, and an unset variable answering with the request origin rather than a bare path (16) |
 | The loader seam; one Node per call; images by route; startup validation | `docs/adrs/ADR-5-lazy-loading.md` -- **superseded by `ADR-38-neighbourhood.md`** |
 | `src/` modules, `trees/`, `tests/`; dependency direction | `docs/adrs/ADR-5-repository-layout.md`, amended by `ADR-38-modules-and-tests.md` and, **[#118]**, by the six `ADR-118-*` decisions that add files: `src/findability/`, five route files, a member each on `url.ts` and `markdown.ts` |
 | Vitest; fixtures through the loader; the interoperability test | `docs/adrs/ADR-5-testing-approach.md`, amended by `ADR-38-modules-and-tests.md` and, **[#118]**, by the same six: four `tests/findability/` unit files, `findability.spec.ts`, one fixture, and `deployment.spec.ts` as a contract of #118 |

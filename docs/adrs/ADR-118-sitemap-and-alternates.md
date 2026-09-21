@@ -9,7 +9,10 @@
   the absolute form of a link, `markdown.ts` the plain-text reduction and the
   155-character cut) and `ADR-5-testing-approach.md`
   (`tests/findability/sitemap.test.ts`, `findability.spec.ts`, and the grown rows
-  on `url.test.ts` and `markdown.test.ts`)
+  on `url.test.ts` and `markdown.test.ts`). Also `ADR-11-public-base-url.md`: the
+  address set is absolute, `src/url.ts` reads the base its decision 2 says that
+  module does not know about, and the canonical link becomes one entry of the set
+  rather than a path
 
 ## Context
 

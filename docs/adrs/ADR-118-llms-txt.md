@@ -7,7 +7,8 @@
   `ADR-5-repository-layout.md` (`src/findability/llms.ts` and
   `src/app/[lang]/llms.txt/route.ts`) and `ADR-5-testing-approach.md`
   (`tests/findability/llms.test.ts`, and `llms.txt` in `findability.spec.ts` and
-  in `deployment.spec.ts`'s sweep)
+  in `deployment.spec.ts`'s sweep). Also `ADR-11-public-base-url.md`: every URL
+  the document lists is absolute and built from the base
 
 ## Context
 

@@ -5,6 +5,28 @@
 - Spec: `docs/specs/application.md`, sections 1 and 4.1
 - Amends: `ADR-5-url-scheme.md` -- its canonical-link bullet. The path grammar, the share
   link, the Trail and every answer of the error table are unchanged.
+- Amended 2026-09-21 by issue #118 (`ADR-118-crawler-access.md`,
+  `ADR-118-sitemap-and-alternates.md`, `ADR-118-json-ld.md`, `ADR-118-llms-txt.md`):
+  **decision 2's one consumer becomes five**, and **decision 1's fallback changes
+  shape**. `application.md` 16 makes this variable the base of every absolute URL the
+  findability contracts emit: `robots.txt`'s `Sitemap:` line, the sitemap's `<loc>` and
+  its `xhtml:link` alternates, the address set of 16.3 that the page head renders (the
+  canonical link among them), the JSON-LD's `@id`, `url` and `contentUrl`, and every URL
+  in `llms.txt`. `src/url.ts`, which decision 2 says does not know the variable exists,
+  gains the absolute form of a link and a Node's address set (`application.md` 6, 16.3),
+  so the reading moves out of `metadataBase` and into the module that owns the grammar.
+  With that, a deployment that names no base URL no longer gets a bare path: it gets the
+  same addresses on **the request's own origin**, because a sitemap, a `Dataset` or an
+  `llms.txt` read away from the page it came from cannot resolve a path, and the head's
+  canonical must be the same string as the sitemap's `<loc>` and the JSON-LD's `@id`
+  (`findability.spec.ts` asserts exactly that equality, `application.md` section 7).
+  **Unchanged**: the variable is still optional and a deployment that omits it is still a
+  valid deployment; decision 3's three refusals of a bad value are the same three, with
+  the same messages; decision 4 still reads it at start, before the Tree, and again per
+  request; and the share link still copies the address bar and still reads nothing. What
+  the variable buys a deployment is also unchanged in kind -- it names the canonical host
+  when the same content answers on more than one -- and is now worth more, since five
+  documents say that host instead of one link.
 
 ## Context
 
