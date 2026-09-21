@@ -5,7 +5,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
-import { explainerMarks, richTextToHtml } from '../src/markdown.ts'
+import { explainerMarks, plainDescription, richTextToHtml } from '../src/markdown.ts'
 import { openTree } from '../src/tree/loader.ts'
 import type { Explainer } from '../src/tree/types.ts'
 
@@ -161,6 +161,125 @@ describe('the descriptions of a real Tree', () => {
 
         expect(html, `${id}.${language}`).toMatch(/^<p>/)
         expect(html, `${id}.${language}`).not.toContain('undefined')
+      }
+    }
+  })
+})
+
+/**
+ * The plain-text reduction of docs/specs/application.md 16.3, the one function four
+ * documents read: the meta description and a `WebPage`'s description take its cut string,
+ * a `Question`'s text and `llms.txt`'s blockquote take its reduced one.
+ */
+describe('the plain-text reduction (16.3)', () => {
+  test('a link becomes its text and an explainer mark its term', () => {
+    const { reduced } = plainDescription(
+      'See [Article 5](https://eur-lex.europa.eu/eli/reg/2024/1689/oj) on [providers](#provider).',
+    )
+
+    expect(reduced).toBe('See Article 5 on providers.')
+  })
+
+  test('emphasis markers go, and the words they marked stay', () => {
+    expect(plainDescription('A *soft* and a **hard** word.').reduced).toBe('A soft and a hard word.')
+  })
+
+  test('list markers go and the blocks are joined by one space', () => {
+    expect(plainDescription('The question:\n\n- one entry\n- another entry\n\n1. and a numbered one').reduced).toBe(
+      'The question: one entry another entry and a numbered one',
+    )
+  })
+
+  test('a line break becomes one space and runs of whitespace collapse', () => {
+    expect(plainDescription('  The first line\n   and its   second.\t\n').reduced).toBe('The first line and its second.')
+  })
+
+  test('nothing of the subset is left in the result', () => {
+    const { reduced } = plainDescription('**Strong**, *soft*, a [link](https://a.example/), a [mark](#m).\n\n- item')
+
+    expect(reduced).not.toMatch(/[*]|\]\(/)
+  })
+
+  test('a description under the limit is returned whole and uncut', () => {
+    const short = 'A question about the scope of the Act. Answer yes or no.'
+    const { reduced, cut } = plainDescription(short)
+
+    expect(reduced).toBe(short)
+    expect(cut).toBe(short)
+    expect(cut).not.toContain('\u2026')
+  })
+
+  test('over the limit, the cut falls at the last sentence end that fits', () => {
+    const first = 'The Act applies to providers and deployers of AI systems in the Union.'
+    const second = 'It applies to importers and distributors as well, wherever they are established.'
+    const third = 'The rest follows from Article 2.'
+    const { cut } = plainDescription(`${first} ${second} ${third}`)
+
+    expect(cut).toBe(`${first} ${second}`)
+    expect([...cut].length).toBeLessThanOrEqual(155)
+    expect(cut).not.toContain('\u2026')
+  })
+
+  test('with no sentence end in reach the cut falls on a word boundary and ends in an ellipsis', () => {
+    // One sentence of 180 characters: no `.`, `!` or `?` below 155, so step 4's second half
+    // runs. The 155th character falls inside "considerations", which must stay whole.
+    const long =
+      'The scope of the Act reaches providers, deployers, importers and distributors of systems placed on the market of the Union, and the rest of this sentence considerations aside'
+    const { cut } = plainDescription(long)
+
+    expect([...cut].length).toBeLessThanOrEqual(155)
+    expect(cut.endsWith('\u2026')).toBe(true)
+    expect(cut).not.toContain('considerations')
+    expect(long.startsWith(cut.slice(0, -1))).toBe(true)
+  })
+
+  test('the cut counts code points, so a surrogate pair is never split', () => {
+    // 160 astral characters: cutting on UTF-16 units would leave half a pair at the end.
+    const emoji = '\u{1F331} '.repeat(80).trim()
+    const { cut } = plainDescription(emoji)
+
+    expect([...cut].length).toBeLessThanOrEqual(155)
+    // Every code point of the result is a whole one: a split pair would show as two halves
+    // neither of which is the character.
+    expect([...cut].every((point) => point === '\u{1F331}' || point === ' ' || point === '\u2026')).toBe(true)
+  })
+
+  test('the same input gives the same output every time', () => {
+    const text = 'A *description* with [a link](https://a.example/) and two paragraphs.\n\nThe second one.'
+
+    expect(plainDescription(text)).toEqual(plainDescription(text))
+  })
+
+  test('the cut string, ellipsis removed, is a prefix of the reduced one', () => {
+    // The assertion that keeps a `Question`'s text and a meta description one reduction.
+    const texts = [
+      'Short enough to be returned whole.',
+      'A *marked up* one with [a link](https://a.example/) in it.',
+      'x '.repeat(120),
+      'No sentence end anywhere in this one so the ellipsis branch runs ' + 'y '.repeat(60),
+    ]
+
+    for (const text of texts) {
+      const { reduced, cut } = plainDescription(text)
+      const withoutEllipsis = cut.endsWith('\u2026') ? cut.slice(0, -1) : cut
+
+      expect(reduced.startsWith(withoutEllipsis), text.slice(0, 30)).toBe(true)
+    }
+  })
+
+  test('every Node of the example Tree reduces to plain text that fits a listing', async () => {
+    const tree = await openTree(path.join(here, '..', 'trees', 'ai-act-example'))
+
+    for (const id of tree.nodeIds()) {
+      const node = (await tree.getNode(id))!
+      for (const language of tree.manifest.languages) {
+        const { reduced, cut } = plainDescription(node.description[language]!)
+
+        expect(reduced, `${id}.${language}`).not.toMatch(/[*]|\]\(/)
+        expect([...cut].length, `${id}.${language}`).toBeLessThanOrEqual(155)
+        // A conforming Tree's Node description is at most 150 counted characters, so the
+        // two outputs are the same string and the distinction of 16.3 never shows.
+        expect(cut, `${id}.${language}`).toBe(reduced)
       }
     }
   })

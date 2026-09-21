@@ -65,6 +65,19 @@ export interface Tree {
   getNode(id: string): Promise<Node | null>
   /** From the in-memory title index; no file read. */
   getTitle(id: string): LocalisedText | null
+  /**
+   * **[#118]** Every Node id of the Tree, in the order the file lists them. Ids, not
+   * Nodes: the bound of application.md 5.2 is on how many Nodes a *page* may carry, and
+   * the sitemap of 16.2 needs the set of pages that exist, which is this list. A caller
+   * that wants a Node still asks for it by id, one at a time.
+   */
+  nodeIds(): string[]
+  /**
+   * **[#118]** When the Tree's own file was last written, read once here at `openTree`
+   * (5.4). `null` when it cannot be read; the sitemap's `<lastmod>` is left out rather
+   * than guessed (16.2).
+   */
+  readonly lastModified: Date | null
   /** Absolute path inside this Tree's `images/`; null for a malformed or missing name. */
   imagePath(file: string): string | null
   /**
@@ -95,8 +108,10 @@ export async function openTree(dir: string): Promise<Tree> {
   return {
     id,
     manifest,
+    lastModified: await lastModified(path.join(root, 'tree.yaml')),
     getNode: async (nodeId) => (isId(nodeId) ? (nodes.get(nodeId) ?? null) : null),
     getTitle: (nodeId) => nodes.get(nodeId)?.title ?? null,
+    nodeIds: () => [...nodes.keys()],
     imagePath: (file) => (isImageFile(file) && raw.images.has(file) ? path.join(root, 'images', file) : null),
     themePath: (file) =>
       isThemeFile(file) && themeReferences.has(file) && raw.themeFiles.has(file)
@@ -193,6 +208,15 @@ async function listFiles(dir: string): Promise<string[]> {
     return entries.filter((entry) => entry.isFile()).map((entry) => entry.name)
   } catch {
     return []
+  }
+}
+
+/** The Tree file's modification time, or null when it cannot be read (application.md 16.2). */
+async function lastModified(file: string): Promise<Date | null> {
+  try {
+    return (await stat(file)).mtime
+  } catch {
+    return null
   }
 }
 

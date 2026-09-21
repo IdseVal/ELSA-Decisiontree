@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, test } from 'vitest'
 import { openTree, type Tree } from '../src/tree/loader.ts'
 import {
+  absolute,
+  addressSet,
   canonicalHref,
   contentLanguage,
   followHref,
@@ -202,5 +204,101 @@ describe('building an address', () => {
     const address = parse('/single-language/start', dutchTree)!
 
     expect(withLang(address, 'nl')).toBe('/single-language/start')
+  })
+})
+
+/**
+ * The absolute form of a link and a Node's address set (docs/specs/application.md 16.3):
+ * the one function the page head, the sitemap and -- with #122 -- the JSON-LD render, so
+ * that one page has one string in all three.
+ */
+describe('the absolute form of a link (16.3)', () => {
+  test('a path against a base, with and without a trailing slash', () => {
+    for (const base of ['https://elsa.example.org', 'https://elsa.example.org/']) {
+      expect(absolute('/ai-act-example/start', new URL(base)), base).toBe('https://elsa.example.org/ai-act-example/start')
+    }
+  })
+
+  test('the query of a non-default language survives', () => {
+    expect(absolute('/ai-act-example/start?lang=nl', new URL('https://elsa.example.org'))).toBe(
+      'https://elsa.example.org/ai-act-example/start?lang=nl',
+    )
+  })
+
+  test('a base that is not ELSA_BASE_URL is the request origin, port and all', () => {
+    // What a deployment that names no base URL emits (16): the origin the request arrived
+    // on, which a reverse proxy may make anything at all -- including a port.
+    expect(absolute('/ai-act-example/start', new URL('http://127.0.0.1:3117'))).toBe(
+      'http://127.0.0.1:3117/ai-act-example/start',
+    )
+  })
+})
+
+describe('the address set of a Node (16.3)', () => {
+  const base = new URL('https://elsa.example.org')
+
+  test('one canonical URL per declared language; the default one carries no ?lang', () => {
+    const { addresses } = addressSet(tree, 'prohibited-practices', base)
+
+    expect(addresses).toEqual([
+      { lang: 'en', url: 'https://elsa.example.org/ai-act-example/prohibited-practices' },
+      { lang: 'nl', url: 'https://elsa.example.org/ai-act-example/prohibited-practices?lang=nl' },
+    ])
+  })
+
+  test('an address is the Node itself, whatever Trail led to it', () => {
+    // The set of a Node reached through a Trail is the set of the same Node reached
+    // without one, which is what the canonical link already says (4.1).
+    const address = parse('/ai-act-example/start/prohibited-practices?lang=nl')!
+
+    expect(addressSet(tree, address.nodeId, base).addresses.map((entry) => entry.url)).toEqual([
+      'https://elsa.example.org/ai-act-example/prohibited-practices',
+      'https://elsa.example.org/ai-act-example/prohibited-practices?lang=nl',
+    ])
+  })
+
+  test('the alternates include the self-reference and x-default at the default language', () => {
+    const { alternates } = addressSet(tree, 'start', base)
+
+    expect(alternates).toEqual([
+      { hreflang: 'en', url: 'https://elsa.example.org/ai-act-example/start' },
+      { hreflang: 'nl', url: 'https://elsa.example.org/ai-act-example/start?lang=nl' },
+      { hreflang: 'x-default', url: 'https://elsa.example.org/ai-act-example/start' },
+    ])
+  })
+
+  test('the shape is the same for every Node kind', () => {
+    // A question Node, an explanation Node and a Terminal: the address set knows nothing
+    // about what is on the page, which is why it can be built from an id.
+    for (const id of ['start', 'social-scoring', 'prohibited']) {
+      const { addresses, alternates } = addressSet(tree, id, base)
+
+      expect(addresses.map((entry) => entry.lang), id).toEqual(['en', 'nl'])
+      expect(alternates.map((entry) => entry.hreflang), id).toEqual(['en', 'nl', 'x-default'])
+    }
+  })
+
+  test('a Tree that declares one language gets no alternates at all', () => {
+    const { addresses, alternates } = addressSet(dutchTree, 'start', base)
+
+    expect(addresses).toEqual([{ lang: 'nl', url: 'https://elsa.example.org/single-language/start' }])
+    expect(alternates).toEqual([])
+  })
+
+  test('every canonical address parses back to the Node it names', () => {
+    // Parse and build are inverses here too: an address set entry is a URL of this app.
+    for (const { lang, url } of addressSet(tree, 'covered', base).addresses) {
+      const parsed = parse(url)
+
+      expect(parsed?.nodeId, url).toBe('covered')
+      expect(parsed?.trail, url).toEqual([])
+      expect(parsed?.lang, url).toBe(lang)
+    }
+  })
+
+  test('`schemas` is not a Tree of this deployment, so its addresses answer 404', () => {
+    // 4.3 reserves it for the schema route of 15.1; nothing under it is a page.
+    expect(parse('/schemas/elsa-tree-4.json')).toBeNull()
+    expect(parse('/schemas/start')).toBeNull()
   })
 })

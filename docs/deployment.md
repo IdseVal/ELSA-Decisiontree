@@ -35,7 +35,8 @@ in the application and nothing to edit in the source.
 |---|---|---|
 | `ELSA_TREE` | **yes** | The Tree this deployment serves: the folder name under `ELSA_TREES_DIR`. There is no default; the server refuses to start without it, listing the Tree ids it did find. One deployment serves exactly one Tree (`docs/specs/application.md` section 2). |
 | `ELSA_TREES_DIR` | no | Where the Tree folders live. Defaults to `trees` under the working directory. |
-| `ELSA_BASE_URL` | no | The address readers reach this deployment at, e.g. `https://elsa.example.org` -- the reverse proxy's address, not the one the process listens on. It must be a bare origin: `http` or `https`, no path, no query. See [share links and the base URL](#share-links-and-the-base-url). |
+| `ELSA_BASE_URL` | no | The address readers reach this deployment at, e.g. `https://elsa.example.org` -- the reverse proxy's address, not the one the process listens on. It must be a bare origin: `http` or `https`, no path, no query. **[#120]** It is now the address `robots.txt`, `sitemap.xml` and every page's canonical and `hreflang` links advertise, so a deployment that sets none advertises the address each request arrived on instead. See [share links and the base URL](#share-links-and-the-base-url). |
+| `ELSA_TREE_LASTMOD` | no | **[#120]** A `YYYY-MM-DD` date the sitemap reports every page as last modified at, overriding the Tree file's own modification time. Only for a build or copy pipeline that does not preserve timestamps; see [the date the sitemap reports](#the-date-the-sitemap-reports). The server refuses to start on anything that is not a day of the calendar. |
 | `PORT` | no | The TCP port the process listens on. Defaults to 3000. |
 | `HOSTNAME` | no | The address it listens on. Defaults to `0.0.0.0`. Behind a reverse proxy set `127.0.0.1`, so nothing but the proxy can reach the process. |
 | `NODE_ENV` | no | `production` in a deployment. |
@@ -52,11 +53,38 @@ A share link is the reader's own address bar (`docs/specs/application.md` 4.1): 
 button copies the URL the browser is showing, so it is the public URL whatever sits in
 front of the server, and it needs no configuration to be right.
 
-`ELSA_BASE_URL` is for the one absolute URL the *server* writes about a page: the
-`<link rel="canonical">` in its `<head>`, which tells a search engine that one Node has one
-address whatever Trail led to it. Without the variable that link stays a path
-(`/<tree-id>/<node-id>`), which every browser resolves correctly; with it the link is the
-full public URL.
+`ELSA_BASE_URL` is for the absolute URLs the *server* writes about itself: the
+`<link rel="canonical">` in a page's `<head>`, which tells a search engine that one Node
+has one address whatever Trail led to it, and -- **[#120]**, `docs/specs/application.md`
+16 -- the `hreflang` links beside it, every `<loc>` of `/sitemap.xml`, and the `Sitemap:`
+line of `/robots.txt`.
+
+**So the variable is now what this deployment advertises to the outside world.** A
+deployment that names none is still a valid deployment: those documents then carry the
+origin each request arrived on -- the `Host` the proxy passed through -- which is right
+whenever the proxy passes the public host through, and wrong the moment it does not. A
+public deployment sets the variable, and then no header is read at all.
+
+The share link is unaffected either way: it is the reader's own address bar.
+
+### The date the sitemap reports
+
+`/sitemap.xml` reports every page as last modified on the day the **Tree file** was last
+written, read once when the server starts (`docs/specs/application.md` 16.2). One file, so
+no Node's text can change without it changing.
+
+That holds only if the copy onto the server preserves the file's timestamp. `rsync -a` and
+`cp -p` do; a plain `cp -r`, a container build and an archive unpacked without timestamps
+do not, and they stamp the Tree with the day of the deploy. Two ways out, in this order:
+
+1. copy with the timestamp -- the [Tree update](#putting-a-new-version-of-a-tree-on-the-server)
+   below uses `rsync -a`, which does;
+2. or set `ELSA_TREE_LASTMOD=2026-09-21` to the day the content changed, which wins over
+   the file.
+
+When neither is available the sitemap carries **no** date rather than a wrong one: a
+search engine that catches a site reporting dates it cannot back stops reading them for
+that site altogether.
 
 ---
 
@@ -139,7 +167,10 @@ sudo cp -r /tmp/elsa-src/.next/standalone /opt/elsa-decisiontree/app
 # ELSA_TREES_DIR does not point at. This line may be re-run, and a reinstall is a re-run.
 # It is not guarded by `rm -rf` the way app is, because a Tree that is not in the
 # repository lives in this folder too.
-sudo cp -r /tmp/elsa-src/trees/. /opt/elsa-decisiontree/trees/
+# -p preserves each file's modification time, which is the date /sitemap.xml reports
+# (docs/specs/application.md 16.2). Without it the Tree is stamped with the day of the
+# deploy and every page claims to have changed then.
+sudo cp -rp /tmp/elsa-src/trees/. /opt/elsa-decisiontree/trees/
 
 # The service reads these files and writes none of them.
 sudo chown -R root:root /opt/elsa-decisiontree
@@ -265,6 +296,11 @@ curl -s http://127.0.0.1:3000/ai-act-applicability-agrifood/start | head -20
 `--restart unless-stopped` is what the systemd unit's `Restart=always` is. TLS is the same
 reverse proxy as above, pointed at the published port.
 
+A container build does not preserve the Tree file's modification time, so
+`/sitemap.xml` would report the day the image was built. Set `ELSA_TREE_LASTMOD` to the
+day the content changed, or mount the Tree folder from the host, where its timestamp
+survives ([the date the sitemap reports](#the-date-the-sitemap-reports)).
+
 The image carries the Trees that were in the repository when it was built. To serve a Tree
 without rebuilding, mount a folder over them:
 
@@ -358,6 +394,8 @@ reader's local or session storage is asserted by the walks in `tests/browser/`.
 | `ELSA_BASE_URL=... is not an absolute URL` | The base URL has no scheme -- `elsa.example.org` rather than `https://elsa.example.org`. |
 | `ELSA_BASE_URL=...: only http and https are served` | The base URL names another scheme. |
 | `ELSA_BASE_URL=... must be a bare origin` | The base URL carries a path, a query or a fragment. |
+| `ELSA_TREE_LASTMOD=... is not a YYYY-MM-DD date` | **[#120]** The date is not written `2026-09-21`: a time, another order or a word. |
+| `ELSA_TREE_LASTMOD=... is not a day of the calendar` | **[#120]** The date is written right and is no day, e.g. `2026-02-30`. |
 | `EADDRINUSE` | Another process holds `PORT`. |
 
 Everything else is in the same journal: the process logs to standard output, which systemd
