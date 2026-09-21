@@ -631,6 +631,48 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
     }
   })
 
+  test('an escaped quote does not move the scan: the Tree loads, and a later repeat is still found', async () => {
+    // The four cases above are what the scan must find; this is the other half, and it is
+    // the half that costs an author a working Tree rather than a broken one. A scan that
+    // loses the `\\` skip of loader.ts mistakes an escaped quote for the end of the string,
+    // and from there it is out of step for the rest of the file: it rejects a Tree nothing
+    // is wrong with, or -- worse -- it stops seeing the repeats it exists to find. The
+    // description below carries a brace, a colon, a repeated key and an ODD number of
+    // escaped quotes, which is what puts the rest of the file out of step; the second half
+    // of the test is a real repeat standing after it.
+    const text = 'Een scherm van 27" is geen AI-systeem: {"soort": "scherm", "soort": "beeld"} noemt het zo.'
+    const source = await readFile(path.join(fixture('single-language'), 'tree.json'), 'utf8')
+    const tree = JSON.parse(source) as { nodes: Array<{ description: Record<string, string>; metadata: unknown }> }
+    tree.nodes[0]!.description.nl = text
+    tree.nodes[0]!.metadata = { version: '1.0', note: 'een notitie' }
+    const valid = `${JSON.stringify(tree, null, 2)}\n`
+    // A repeat after the escaped quotes, written as text: JSON.stringify cannot produce one.
+    const anchor = '"note": "een notitie"'
+    expect(valid).toContain(anchor)
+    const repeat = valid.replace(anchor, `${anchor},\n        "note": "nog een notitie"`)
+    const work = await mkdtemp(path.join(tmpdir(), 'elsa-scan-'))
+    try {
+      const dir = path.join(work, 'escaped-quote')
+      const repeated = path.join(work, 'escaped-quote-repeat')
+      await cp(fixture('single-language'), dir, { recursive: true })
+      await cp(fixture('single-language'), repeated, { recursive: true })
+      await writeFile(path.join(dir, 'tree.json'), valid, 'utf8')
+      await writeFile(path.join(repeated, 'tree.json'), repeat, 'utf8')
+      // The bytes, not the value: the point is what the scan reads, and it reads the file.
+      expect(valid).toContain('27\\" is geen')
+
+      const loaded = await openTree(dir)
+      const violations = await violationsOf(repeated)
+
+      expect((await loaded.getNode('start'))!.description.nl).toBe(text)
+      expect(violations).toHaveLength(1)
+      expect(violations[0]).toMatchObject({ file: 'tree.json', keyPath: '', rule: 'V-JSON' })
+      expect(violations[0]!.message).toContain('the key "note" appears twice')
+    } finally {
+      await rm(work, { recursive: true, force: true })
+    }
+  })
+
   test('a byte-order mark is refused by name, not as a parser error', async () => {
     const violations = await violationsOf(fixture('broken', 'byte-order-mark'))
 
