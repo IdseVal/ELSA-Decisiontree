@@ -145,10 +145,13 @@ describe('the writer reports what the loader would', () => {
     expect(await readFile(file, 'utf8')).toBe(before)
   })
 
-  // 12.6.1 step 5 stops the job for two more things, and for the same reason the parse
-  // failure above stops it: the file is the only copy. Each case is written back with a
-  // four-space indentation first, so the file is NOT in the canonical byte form and a
-  // writer that ran would rewrite it -- which is what makes "unchanged" worth asserting.
+  // The writer stops for two more things, and for the same reason the parse failure above
+  // stops it: the file is the only copy (12.6.1 step 5 and "What survives the job"). One
+  // case per branch of the walk -- a localised text, `metadata`, a named object, a list --
+  // because a branch the refusal does not answer is a branch that rewrites. Each case is
+  // written back with a four-space indentation first, so the file is NOT in the canonical
+  // byte form and a writer that ran would rewrite it: that is what makes "unchanged" worth
+  // asserting.
   test.each([
     [
       'a metadata key made only of digits is refused, with its remedy',
@@ -170,6 +173,51 @@ describe('the writer reports what the loader would', () => {
         return tree
       },
       'nodes[0].sources: the format has a list here, and the file has an object',
+    ],
+    [
+      'a localised text is refused when it holds a list, at the top level',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        tree.title = ['not', 'an', 'object']
+        return tree
+      },
+      'title: the format has an object here, and the file has a list',
+    ],
+    [
+      'a localised text is refused when it holds a list, on a Node',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        ;(tree.nodes as Array<Record<string, unknown>>)[0]!.description = []
+        return tree
+      },
+      'nodes[0].description: the format has an object here, and the file has a list',
+    ],
+    [
+      'metadata is refused when it holds a list, at the top level',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        tree.metadata = []
+        return tree
+      },
+      'metadata: the format has an object here, and the file has a list',
+    ],
+    [
+      'a list in metadata is refused as a list, not as a key made of digits',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        ;(tree.nodes as Array<Record<string, unknown>>)[0]!.metadata = ['x']
+        return tree
+      },
+      'nodes[0].metadata: the format has an object here, and the file has a list',
+    ],
+    [
+      'an object the format names is refused when it holds a list',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        ;(tree.nodes as Array<Record<string, unknown>>)[0]!.answers = []
+        return tree
+      },
+      'nodes[0].answers: the format has an object here, and the file has a list',
     ],
   ])('%s, and nothing is written', async (_name, source, edit, note) => {
     const target = await copyTree(source)

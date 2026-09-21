@@ -83,9 +83,10 @@ export interface Migration {
   /** The Node ids written, in the order they stand in `nodes`. */
   ids: string[]
   /**
-   * What stopped the job before anything was written (12.6.1 steps 1 and 5): a file that
-   * does not parse, a file that is not a Tree file, and a `metadata` key made only of
-   * digits. Everything else is a violation of the written file, below.
+   * What stopped the job before anything was written (12.6.1): a file that does not parse
+   * (step 1), a `metadata` key made only of digits (step 5), and a value whose shape the
+   * writer cannot carry ("What survives the job"). Everything else is a violation of the
+   * written file, below.
    */
   notes: string[]
   /** Every rule the written Tree breaks; empty when it is valid. */
@@ -99,7 +100,7 @@ export interface Migration {
  * would report at start.
  *
  * Three things stop it before a byte is written, and are reported as `notes` with the file
- * untouched: a file that does not parse (step 1), and the two of `refusals` below (step 5).
+ * untouched: a file that does not parse (step 1), and the two of `refusals` below.
  */
 export async function migrateTree(dir: string): Promise<Migration> {
   const file = path.join(path.resolve(dir), 'tree.json')
@@ -141,16 +142,17 @@ export function bytes(tree: Record<string, Json>): string {
 }
 
 /**
- * 12.6.1 step 5: what stops the job before a byte is written, each reported by name, with
- * the object it sits on and the remedy. Empty when the writer may run.
+ * What stops the job before a byte is written, each reported by name, with the object it
+ * sits on and the remedy. Empty when the writer may run.
  *
  * Two kinds. A `metadata` key made only of digits is the one thing an `elsa-tree/3` Tree
- * can carry that this conversion refuses (V-META, 3.7): a procedure that renamed the key
- * itself would be a procedure that edits content, so its author renames it. A value whose
- * shape this format does not have stops the job for the writer's own reason: `canonical`
- * below dispatches on the key name and trusts the shape, so on `"sources": {}` it would
- * throw, and on a file whose top level is a list it would write back an object the author
- * never wrote -- over the only copy of it. Everything else the loader answers, after the
+ * can carry that this conversion refuses (12.6.1 step 5, V-META, 3.7): a procedure that
+ * renamed the key itself would be a procedure that edits content, so its author renames
+ * it. A value whose shape this format does not have stops the job for the writer's own
+ * reason (12.6.1, "What survives the job"): `canonical` below dispatches on the key name
+ * and trusts the shape, so on `"sources": {}` it would throw, and on a `title` holding a
+ * list -- or a file whose top level is a list -- it would write back an object the author
+ * never wrote, over the only copy of it. Everything else the loader answers, after the
  * write, as step 8 asks.
  */
 function refusals(parsed: unknown): string[] {
@@ -160,7 +162,14 @@ function refusals(parsed: unknown): string[] {
   return out
 }
 
-/** One object and everything below it; `at` is the key path of 3.9, `nodes[0].sources`. */
+/**
+ * One object and everything below it; `at` is the key path of 3.9, `nodes[0].sources`.
+ *
+ * Its branches are the branches of `canonicalValue` -- the four kinds of the `VALUE`
+ * table, none of them skipped -- because the two walks encode one
+ * question, *will the writer act on this value*, and a kind answered in one and not in the
+ * other is a value the writer rewrites in silence. A fifth kind means a branch in both.
+ */
 function refuse(value: Record<string, unknown>, prefix: string, out: string[]): void {
   for (const [key, entry] of Object.entries(value)) {
     const kind = VALUE[key]
@@ -168,12 +177,8 @@ function refuse(value: Record<string, unknown>, prefix: string, out: string[]): 
     // A scalar where the format has an object is carried across untouched and fails a rule
     // on the written file, exactly as an unknown key does: only a shape the walk below
     // would act on is refused here.
-    if (kind === undefined || kind === 'text' || entry === null || typeof entry !== 'object') continue
-    if (kind === 'metadata') {
-      for (const own of Object.keys(entry)) {
-        if (/^[0-9]+$/.test(own)) out.push(`${at}: the key "${own}" is made only of digits; rename it to "note-${own}" and run again`)
-      }
-    } else if (typeof kind === 'object') {
+    if (kind === undefined || entry === null || typeof entry !== 'object') continue
+    if (typeof kind === 'object') {
       if (!Array.isArray(entry)) out.push(`${at}: the format has a list here, and the file has ${shape(entry)}`)
       else {
         entry.forEach((item, index) => {
@@ -181,8 +186,20 @@ function refuse(value: Record<string, unknown>, prefix: string, out: string[]): 
           else out.push(`${at}[${index}]: the format has an object here, and the file has ${shape(item)}`)
         })
       }
-    } else if (Array.isArray(entry)) out.push(`${at}: the format has an object here, and the file has a list`)
-    else refuse(entry as Record<string, unknown>, `${at}.`, out)
+      continue
+    }
+    // `localised`, `metadata` and `canonical` each read an object's own keys, so an object
+    // is what all three need and a list is what all three would write back as one.
+    if (!isMapping(entry)) {
+      out.push(`${at}: the format has an object here, and the file has ${shape(entry)}`)
+      continue
+    }
+    if (kind === 'text') continue // `localised` reorders the languages it finds and carries each value across
+    if (kind === 'metadata') {
+      for (const own of Object.keys(entry)) {
+        if (/^[0-9]+$/.test(own)) out.push(`${at}: the key "${own}" is made only of digits; rename it to "note-${own}" and run again`)
+      }
+    } else refuse(entry as Record<string, unknown>, `${at}.`, out)
   }
 }
 
