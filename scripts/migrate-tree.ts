@@ -22,6 +22,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { formatViolation, openTree, TreeInvalid } from '../src/tree/loader.ts'
 import type { Violation } from '../src/tree/types.ts'
+import { isMapping } from '../src/tree/validate.ts'
 
 /**
  * The key order of every object this format defines (tree-format.md 3.7): the order of its
@@ -81,7 +82,11 @@ export interface Migration {
   rewritten: boolean
   /** The Node ids written, in the order they stand in `nodes`. */
   ids: string[]
-  /** What stopped the job before anything was written: a file that is not a Tree file. */
+  /**
+   * What stopped the job before anything was written (12.6.1 steps 1 and 5): a file that
+   * does not parse, a file that is not a Tree file, and a `metadata` key made only of
+   * digits. Everything else is a violation of the written file, below.
+   */
   notes: string[]
   /** Every rule the written Tree breaks; empty when it is valid. */
   violations: Violation[]
@@ -92,6 +97,9 @@ export interface Migration {
  * schema of 3.9, then the rules of section 7, every violation reported. The file is read
  * back through `openTree`, as 12.6.1 step 8 asks, so what is reported is what the server
  * would report at start.
+ *
+ * Three things stop it before a byte is written, and are reported as `notes` with the file
+ * untouched: a file that does not parse (step 1), and the two of `refusals` below (step 5).
  */
 export async function migrateTree(dir: string): Promise<Migration> {
   const file = path.join(path.resolve(dir), 'tree.json')
@@ -104,6 +112,9 @@ export async function migrateTree(dir: string): Promise<Migration> {
   } catch (error) {
     return { rewritten: false, ids: [], notes: [(error as SyntaxError).message], violations: [] }
   }
+
+  const stopped = refusals(parsed)
+  if (stopped.length > 0) return { rewritten: false, ids: [], notes: stopped, violations: [] }
 
   const tree = parsed as Record<string, unknown>
   const languages = Array.isArray(tree.languages) ? (tree.languages as string[]) : []
@@ -127,6 +138,59 @@ export async function migrateTree(dir: string): Promise<Migration> {
  */
 export function bytes(tree: Record<string, Json>): string {
   return `${JSON.stringify(tree, null, 2)}\n`
+}
+
+/**
+ * 12.6.1 step 5: what stops the job before a byte is written, each reported by name, with
+ * the object it sits on and the remedy. Empty when the writer may run.
+ *
+ * Two kinds. A `metadata` key made only of digits is the one thing an `elsa-tree/3` Tree
+ * can carry that this conversion refuses (V-META, 3.7): a procedure that renamed the key
+ * itself would be a procedure that edits content, so its author renames it. A value whose
+ * shape this format does not have stops the job for the writer's own reason: `canonical`
+ * below dispatches on the key name and trusts the shape, so on `"sources": {}` it would
+ * throw, and on a file whose top level is a list it would write back an object the author
+ * never wrote -- over the only copy of it. Everything else the loader answers, after the
+ * write, as step 8 asks.
+ */
+function refusals(parsed: unknown): string[] {
+  if (!isMapping(parsed)) return [`tree.json holds ${shape(parsed)} where the format has an object, so it is not a Tree file`]
+  const out: string[] = []
+  refuse(parsed as Record<string, unknown>, '', out)
+  return out
+}
+
+/** One object and everything below it; `at` is the key path of 3.9, `nodes[0].sources`. */
+function refuse(value: Record<string, unknown>, prefix: string, out: string[]): void {
+  for (const [key, entry] of Object.entries(value)) {
+    const kind = VALUE[key]
+    const at = prefix + key
+    // A scalar where the format has an object is carried across untouched and fails a rule
+    // on the written file, exactly as an unknown key does: only a shape the walk below
+    // would act on is refused here.
+    if (kind === undefined || kind === 'text' || entry === null || typeof entry !== 'object') continue
+    if (kind === 'metadata') {
+      for (const own of Object.keys(entry)) {
+        if (/^[0-9]+$/.test(own)) out.push(`${at}: the key "${own}" is made only of digits; rename it to "note-${own}" and run again`)
+      }
+    } else if (typeof kind === 'object') {
+      if (!Array.isArray(entry)) out.push(`${at}: the format has a list here, and the file has ${shape(entry)}`)
+      else {
+        entry.forEach((item, index) => {
+          if (isMapping(item)) refuse(item as Record<string, unknown>, `${at}[${index}].`, out)
+          else out.push(`${at}[${index}]: the format has an object here, and the file has ${shape(item)}`)
+        })
+      }
+    } else if (Array.isArray(entry)) out.push(`${at}: the format has an object here, and the file has a list`)
+    else refuse(entry as Record<string, unknown>, `${at}.`, out)
+  }
+}
+
+/** What the file has, in the words of the messages above. */
+function shape(value: unknown): string {
+  if (Array.isArray(value)) return 'a list'
+  if (isMapping(value)) return 'an object'
+  return JSON.stringify(value)
 }
 
 /**

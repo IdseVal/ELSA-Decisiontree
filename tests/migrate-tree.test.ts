@@ -145,6 +145,45 @@ describe('the writer reports what the loader would', () => {
     expect(await readFile(file, 'utf8')).toBe(before)
   })
 
+  // 12.6.1 step 5 stops the job for two more things, and for the same reason the parse
+  // failure above stops it: the file is the only copy. Each case is written back with a
+  // four-space indentation first, so the file is NOT in the canonical byte form and a
+  // writer that ran would rewrite it -- which is what makes "unchanged" worth asserting.
+  test.each([
+    [
+      'a metadata key made only of digits is refused, with its remedy',
+      fixture('broken', 'metadata-all-digits'),
+      (tree: Record<string, unknown>) => tree,
+      'metadata: the key "2024" is made only of digits; rename it to "note-2024" and run again',
+    ],
+    [
+      'a file whose top level is a list is not a Tree file',
+      fixture('single-language'),
+      () => ['not a tree'],
+      'tree.json holds a list where the format has an object, so it is not a Tree file',
+    ],
+    [
+      'a key the format lists is refused when it holds an object',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        ;(tree.nodes as Array<Record<string, unknown>>)[0]!.sources = {}
+        return tree
+      },
+      'nodes[0].sources: the format has a list here, and the file has an object',
+    ],
+  ])('%s, and nothing is written', async (_name, source, edit, note) => {
+    const target = await copyTree(source)
+    const file = path.join(target, 'tree.json')
+    const edited = edit(JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>)
+    await writeFile(file, JSON.stringify(edited, null, 4), 'utf8')
+    const before = await readFile(file, 'utf8')
+
+    const migration = await migrateTree(target)
+
+    expect(migration).toEqual({ rewritten: false, ids: [], notes: [note], violations: [] })
+    expect(await readFile(file, 'utf8')).toBe(before)
+  })
+
   test('a folder that holds no tree.json is reported, not crashed on', async () => {
     const migration = await migrateTree(work)
 
