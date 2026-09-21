@@ -1,7 +1,8 @@
 /**
  * What a deployment configures (docs/specs/application.md section 2, ADR-5-tree-selection,
  * docs/deployment.md): the one Tree it serves, named by ELSA_TREE inside ELSA_TREES_DIR,
- * and the public base URL its readers reach it at.
+ * the public base URL its readers reach it at, and -- **[#118]** -- the date the sitemap
+ * reports the Tree at (16.2).
  */
 import { readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
@@ -33,6 +34,7 @@ export async function startServedTree(): Promise<void> {
     // Before the Tree, because a typo here is the cheapest failure to report and the
     // server would otherwise carry it until the first page asked for a canonical link.
     const base = publicBaseUrl()
+    treeLastmod()
     const tree = await servedTree()
     const at = base ? ` at ${base.origin}` : ''
     console.log(`Serving Tree "${tree.id}" (${tree.manifest.languages.join(', ')})${at}`)
@@ -98,6 +100,63 @@ export function publicBaseUrl(env: Environment = process.env): URL | undefined {
   }
   return url
 }
+
+/** `YYYY-MM-DD`, and a real date: `2026-02-30` is a typo, not a day. */
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+
+/**
+ * **[#118]** The date the sitemap reports every Node at (ELSA_TREE_LASTMOD,
+ * application.md 16.2), or undefined when the deployment names none -- in which case the
+ * Tree file's own modification time answers.
+ *
+ * It exists for a build pipeline that does not preserve file timestamps, where the file's
+ * time would say the day of the deploy rather than the day the content changed. Refused
+ * like a malformed base URL, and for the same reason: a search engine that catches a site
+ * lying about `lastmod` stops reading it for that site altogether, so a typo must be a
+ * server that does not start rather than a wrong date on every URL.
+ */
+export function treeLastmod(env: Environment = process.env): string | undefined {
+  const raw = env.ELSA_TREE_LASTMOD?.trim()
+  if (!raw) return undefined
+  const example = 'e.g. 2026-09-21'
+  if (!ISO_DATE.test(raw)) throw new Error(`ELSA_TREE_LASTMOD=${raw} is not a YYYY-MM-DD date (${example})`)
+  const date = new Date(`${raw}T00:00:00Z`)
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== raw) {
+    throw new Error(`ELSA_TREE_LASTMOD=${raw} is not a day of the calendar (${example})`)
+  }
+  return raw
+}
+
+/**
+ * **[#118]** The base every absolute URL of sections 15 and 16 is built against
+ * (application.md 16): ELSA_BASE_URL when the deployment names one, and otherwise the
+ * origin this request arrived on -- a sitemap, a `robots.txt` or a canonical link is read
+ * away from the page it came from and cannot resolve a path.
+ *
+ * The request's host is caller-supplied, which is why ADR-11 refused it for the canonical
+ * link while that link was allowed to stay relative; #118 amends that decision, because
+ * the documents of section 16 have no relative form to fall back on. It is therefore used
+ * for nothing but building these URLs -- never fetched, never redirected to, never used to
+ * read a file -- and a host that is not a host is dropped rather than parsed. **A public
+ * deployment sets ELSA_BASE_URL**, and then nothing below is read at all (docs/deployment.md).
+ */
+export function baseUrl(requestHeaders: Headers, env: Environment = process.env): URL {
+  const configured = publicBaseUrl(env)
+  if (configured) return configured
+  // A proxy's list value is the client's first; the framework fills both headers itself.
+  const host = first(requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host'))
+  const scheme = first(requestHeaders.get('x-forwarded-proto'))
+  const origin = `${scheme === 'https' ? 'https' : 'http'}://${HOST.test(host ?? '') ? host : 'localhost'}`
+  return new URL(origin)
+}
+
+/** A host or a scheme as one value: what stands before the first comma of a proxy's list. */
+function first(header: string | null): string | null {
+  return header?.split(',')[0]?.trim() || null
+}
+
+/** A host name or address with an optional port, and nothing that could carry a path. */
+const HOST = /^[a-z0-9.-]{1,253}(:\d{1,5})?$|^\[[0-9a-f:]{2,45}\](:\d{1,5})?$/i
 
 async function listFolders(dir: string): Promise<string[]> {
   try {
