@@ -97,16 +97,16 @@ Two things make the mapping non-obvious rather than mechanical:
    The Option targets are ordinary links in the page and are crawled as such.
 9. **Escaping is part of the contract.** Every value the server puts in the script is
    JSON-encoded, and in the encoded payload every `<` (U+003C) is emitted as the JSON
-   escape `\u003c` (the six characters `\`, `u`, `0`, `0`, `3`, `c` -- written out here because an editor that folds the escape is exactly how this rule became a tautology once)
-   rather than as the character itself. A consumer's parser reads
-   `\u003c` back as `<`, so the object is unchanged, but the sequence `</script>` cannot
-   occur in the bytes -- no title, description, credit or origin can close the `<script>`
-   element. An HTML entity such as `&lt;` would not do it: a `<script>` element's content
-   is not entity-decoded, so the entity would land in the JSON as four literal
-   characters. The emitted string is then checked for `</script>` and `<!--` at the sink
-   and dropped rather than emitted if either is present. The rule is `application.md`
-   13.3's, applied to a second place a Tree's text -- third-party data -- reaches the
-   document.
+   escape `\u003c` -- the six characters `\`, `u`, `0`, `0`, `3`, `c`, spelled out because
+   an editor that folds that escape into the character it escapes is how this rule was
+   a tautology once. A consumer's parser reads `\u003c` back as `<`, so the object is
+   unchanged, but `</script>` cannot occur in the bytes: no title, description, credit
+   or origin can close the element. An HTML entity such as `&lt;` would not do it, since
+   a `<script>` element's content is not entity-decoded and the entity would land in the
+   JSON as four literal characters. The emitted string is then checked for `</script>`
+   and `<!--` at the sink and dropped rather than emitted if either is present -- two
+   checks, one of them at the sink, which is `application.md` 13.3's discipline applied
+   to a second place a Tree's text, third-party data, reaches the document.
 
 ## Alternatives rejected
 

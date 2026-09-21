@@ -2287,16 +2287,16 @@ step of a legal decision aid, and claiming a type to win a rich result would be 
 misstatement about structure in a document whose value is that it is trustworthy.
 
 **Escaping.** Every value the server puts in the script is JSON-encoded, and in the
-encoded payload every `<` (U+003C) is emitted as the JSON escape `\u003c`
-(the six characters `\`, `u`, `0`, `0`, `3`, `c` -- written out here because an editor that folds the escape is exactly how this rule became a tautology once) rather than as the character
-itself. JSON reads `\u003c` back as `<`, so the object a
-consumer parses is unchanged; the bytes in the element are not, and the sequence
-`</script>` therefore cannot occur in the payload -- no title, description, credit or
-origin can close the `<script>` element. The escape is applied to the whole serialised
-string, not to selected fields, because any value may come from the Tree. HTML entities
-are **not** the mechanism here: the content of a `<script>` element is not entity-decoded
-by an HTML parser, so writing `&lt;` would put the four literal characters into the JSON
-and break it.
+encoded payload every `<` (U+003C) is emitted as the JSON escape `\u003c` -- the six
+characters `\`, `u`, `0`, `0`, `3`, `c`, written out here because an editor that folds that
+escape into the character it escapes is exactly how this rule was a tautology once. JSON
+reads `\u003c` back as `<`, so the object a consumer parses is unchanged; the bytes in
+the element are not, and the sequence `</script>` therefore cannot occur in the payload
+-- no title, description, credit or origin can close the `<script>` element. The escape
+is applied to the whole serialised string and not to selected fields, because any value
+in it may have come from the Tree. An HTML entity is **not** the mechanism: the content
+of a `<script>` element is not entity-decoded, so `&lt;` would land in the JSON as four
+literal characters and break it.
 
 **And checked at the sink.** Before the string is put in the element, `src/findability/`
 checks that it contains no `</script>` sequence (case-insensitively) and no `<!--`; if it
