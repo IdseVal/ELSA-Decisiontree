@@ -6,6 +6,10 @@
  *
  * An id is accepted only when the Tree's title index knows it, which is also how a
  * malformed id is rejected: the index holds none, and consulting it reads no file.
+ *
+ * **[#118]** It also builds the absolute form of a link and a Node's **address set** (16.3)
+ * -- its canonical URL per declared language and the `hreflang` annotations that relate
+ * them -- so that the page head, the sitemap and the JSON-LD say one string for one page.
  */
 import type { Tree } from './tree/loader.ts'
 
@@ -120,4 +124,65 @@ export function themeHref(file: string): string {
 function href(a: PageAddress, ids: string[]): string {
   const path = [a.treeId, ...ids].join('/')
   return a.lang === a.defaultLang ? `/${path}` : `/${path}?lang=${encodeURIComponent(a.lang)}`
+}
+
+/** The Node's canonical URL in one of the Tree's declared languages (16.3). */
+export interface Address {
+  lang: string
+  /** Absolute, against the base the route was given. */
+  url: string
+}
+
+/** One `hreflang` annotation: a declared language or `x-default`, and the URL it names. */
+export interface Alternate {
+  hreflang: string
+  url: string
+}
+
+/**
+ * Every public address of one Node (application.md 16.3): the canonical URL per declared
+ * language, and the `hreflang` set that annotates them.
+ *
+ * This is the one function both the page head and the sitemap render, which is what keeps
+ * them from disagreeing -- and `hreflang` is ignored outright by a search engine when the
+ * two do disagree, silently, with nothing logged and nothing broken on screen.
+ */
+export interface AddressSet {
+  /** One per declared language, in the order the manifest declares them. */
+  addresses: Address[]
+  /**
+   * What to emit: one entry per declared language, including the page's own -- the
+   * self-reference is required for the annotation to be read -- and `x-default` at the
+   * default language's address. **Empty for a Tree that declares one language** (16.2):
+   * `hreflang` relates translations, and a group of one relates nothing.
+   */
+  alternates: Alternate[]
+}
+
+/**
+ * A link this module built, made absolute against `base` (16). The base is handed in --
+ * `ELSA_BASE_URL`, or the request's own origin when a deployment names none -- because
+ * this module owns the grammar and not what the deployment is called
+ * (docs/adrs/ADR-11-public-base-url.md, amended by #118).
+ */
+export function absolute(href: string, base: URL): string {
+  return new URL(href, base).href
+}
+
+/** The address set of `nodeId` (16.3). The Node is not read: an address is its id and the Tree's. */
+export function addressSet(tree: Tree, nodeId: string, base: URL): AddressSet {
+  const { languages, defaultLanguage } = tree.manifest
+  const addresses = languages.map((lang) => ({
+    lang,
+    url: absolute(canonicalHref({ treeId: tree.id, trail: [], nodeId, lang, defaultLang: defaultLanguage }), base),
+  }))
+  const byDefault = addresses.find((address) => address.lang === defaultLanguage)
+  const alternates =
+    addresses.length < 2 || !byDefault
+      ? []
+      : [
+          ...addresses.map(({ lang, url }) => ({ hreflang: lang, url })),
+          { hreflang: 'x-default', url: byDefault.url },
+        ]
+  return { addresses, alternates }
 }
