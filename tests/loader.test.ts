@@ -5,7 +5,8 @@
  * Fixtures are always loaded through `openTree`; no test builds a `Node` by hand or parses
  * a `tree.json` itself (docs/specs/application.md section 7).
  */
-import { readFile, readdir, stat } from 'node:fs/promises'
+import { cp, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, test, vi } from 'vitest'
@@ -588,12 +589,46 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
   test('a duplicate key is caught although the parser keeps the last value silently', async () => {
     // The one rule of the format that reads the bytes rather than the value (3.7): the
     // fixture's manifest names `root` twice, and JSON.parse would answer "no-end".
+    const file = path.join(fixture('broken', 'duplicate-key'), 'tree.json')
     const violations = await violationsOf(fixture('broken', 'duplicate-key'))
 
     expect(violations).toEqual([
       { file: 'tree.json', keyPath: '', rule: 'V-JSON', message: 'the key "root" appears twice in one object, at line 8 column 3' },
     ])
-    expect(JSON.parse(await readFile(path.join(fixture('broken', 'duplicate-key'), 'tree.json'), 'utf8')).root).toBe('no-end')
+    // The assertion that makes the test worth having: the same bytes parse without a
+    // complaint, so the scan cannot be quietly replaced by a parse that reports nothing.
+    const parsed = JSON.parse(await readFile(file, 'utf8')) as { root: string }
+    expect(parsed.root).toBe('no-end')
+  })
+
+  test.each([
+    ['at the top level', '  "root": "start",\n', '  "root": "start",\n  "root": "no-end",\n', 'root'],
+    ['inside a Node', '      "id": "start",\n', '      "id": "start",\n      "id": "elsewhere",\n', 'id'],
+    ['inside a localised text', '        "en": "Does it apply?"\n', '        "en": "Does it apply?",\n        "en": "Something else"\n', 'en'],
+    ['inside metadata', '  "version": "1.0"\n', '  "version": "1.0",\n  "version": "2.0"\n', 'version'],
+  ])('the scan finds a repeat %s, at any depth', async (_where, anchor, repeated, key) => {
+    // Four places, because the scan has to know which container it is in: an object keeps
+    // its keys, an array has none, and a string is neither (tree-format.md 3.7).
+    const source = await readFile(path.join(fixture('broken', 'duplicate-key'), 'tree.json'), 'utf8')
+    // The fixture's own duplicate first, so each case is the only one in its file.
+    const clean = source.replace('  "root": "no-end",\n', '')
+    expect(clean, `the anchor ${JSON.stringify(anchor)} is in the fixture`).toContain(anchor)
+    const work = await mkdtemp(path.join(tmpdir(), 'elsa-duplicate-'))
+    // Inside the temporary directory, under the fixture's own name: the folder name is the
+    // Tree's id, and a random one would fail V-DIR before the scan ever ran.
+    const dir = path.join(work, 'duplicate-key')
+    try {
+      await cp(fixture('broken', 'duplicate-key'), dir, { recursive: true })
+      await writeFile(path.join(dir, 'tree.json'), clean.replace(anchor, repeated), 'utf8')
+
+      const violations = await violationsOf(dir)
+
+      expect(violations).toHaveLength(1)
+      expect(violations[0]).toMatchObject({ file: 'tree.json', keyPath: '', rule: 'V-JSON' })
+      expect(violations[0]!.message).toContain(`the key "${key}" appears twice`)
+    } finally {
+      await rm(work, { recursive: true, force: true })
+    }
   })
 
   test('a byte-order mark is refused by name, not as a parser error', async () => {

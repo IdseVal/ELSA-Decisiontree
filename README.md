@@ -1,13 +1,17 @@
 # ELSA decision tree
 
 A small web application that walks a reader through a legal decision tree, one **Node**
-at a time. It serves one **Tree** -- one `tree.yaml` file in the `elsa-tree/3` format
+at a time. It serves one **Tree** -- one `tree.json` file in the `elsa-tree/4` format
 ([`docs/specs/tree-format.md`](docs/specs/tree-format.md)), with its images and its theme
 beside it -- and holds its whole state in the URL: no database, no account, no cookie, no
 tracking.
 
 - What the project is for: [`docs/CORE_DOCUMENT.md`](docs/CORE_DOCUMENT.md)
 - The Tree file format, for anyone authoring a Tree: [`docs/specs/tree-format.md`](docs/specs/tree-format.md)
+- The structure half of that format as a JSON Schema: [`schemas/elsa-tree-4.json`](schemas/elsa-tree-4.json),
+  which any validator checks. It carries no length limit and no list maximum: those are
+  measured on counted text (`tree-format.md` 3.8, 5.7) and are reported by `npm run validate`,
+  so run that too before you call a Tree finished.
 - The application contracts: [`docs/specs/application.md`](docs/specs/application.md)
 - How to run it on a server: [`docs/deployment.md`](docs/deployment.md)
 - Licence: the code is MIT ([`LICENSE`](LICENSE)); the Tree content is CC BY 4.0 ([`CONTENT-LICENSE`](CONTENT-LICENSE)).

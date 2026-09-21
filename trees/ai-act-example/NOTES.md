@@ -1,9 +1,15 @@
 # Notes on the example Tree
 
-`tree.yaml` is section 8 of `docs/specs/tree-format.md` verbatim: the complete example
-Tree of the `elsa-tree/2` contract, in English and Dutch. It is the development default
+`tree.json` is section 8 of `docs/specs/tree-format.md` verbatim -- byte for byte, which
+`tests/migrate-tree.test.ts` and the section's own words hold it to: the complete example
+Tree of the `elsa-tree/4` contract, in English and Dutch. It is the development default
 and the Tree the loader tests load, so it is kept identical to the spec -- change the
 spec first, then this file. Its legal content is simplified and not to be relied on.
+
+Issue #119 converted it from `elsa-tree/3` by the procedure of 12.6. One sentence changed
+with it, and only because it is about the format rather than about the AI Act: the
+manifest description said "every element of the `elsa-tree/3` format" and now says
+`elsa-tree/4` (12.6.2). Nothing else in the Tree differs by a character.
 
 It was written rather than converted from its `elsa-tree/1` folder, as
 `docs/specs/tree-format.md` 12.3 asks (#39): its old Nodes exceeded the new length

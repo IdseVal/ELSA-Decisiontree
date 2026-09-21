@@ -494,7 +494,8 @@ changes, and nothing is added to let a caller enumerate the Tree.
 
 ```ts
 export function openTree(dir: string): Promise<Tree>
-// Reads and validates tree.yaml once (the rules of tree-format.md section 7).
+// Reads and validates tree.json once: the JSON Schema of tree-format.md 3.9 for the
+// shape, then the rules of section 7 for the content (**[#119]**).
 // Rejects with TreeInvalid { treeId, violations: Violation[] } listing every failure
 // with { file, keyPath, rule, message }. Builds the Node index and the title index.
 
@@ -535,7 +536,7 @@ The types, in `src/tree/types.ts`, mirror `tree-format.md` with two normalisatio
 
 ```ts
 type LocalisedText = Record<string, string>              // language tag -> text
-interface Manifest { format: 'elsa-tree/3';           // [#75] elsa-tree/3 (issue #78) languages: string[]; defaultLanguage: string;
+interface Manifest { format: 'elsa-tree/4';           // [#119] elsa-tree/4 (issue #118) languages: string[]; defaultLanguage: string;
                      root: string; title: LocalisedText; description?: LocalisedText;
                      metadata: { version: string; [key: string]: unknown };
                      theme?: Theme }                     // [v0.2]
@@ -561,15 +562,25 @@ type Node = {
 )
 ```
 
-Behind the interface, invisible to callers: the YAML 1.2 stream parser, every validity
-rule, the length and line rules, path-safety checks, the Node and title indexes, and
-the parsed Tree held in memory.
+Behind the interface, invisible to callers: the JSON parse and the duplicate-key scan of
+`tree-format.md` 3.7, the compiled JSON Schema of 3.9, every validity rule, the length and
+line rules, path-safety checks, the Node and title indexes, and the parsed Tree held in
+memory.
+
+**Amended 2026-09-21 (#119).** Two report forms reach `violations`, and section 7 of
+`tree-format.md` says which rule takes which. A **shape** failure comes from the schema:
+`file` is `tree.json`, `keyPath` is a JSON Pointer such as `/nodes/3/options/2`, `rule` is
+the word `schema`, and `message` is the schema's own. A **content** failure comes from the
+rules, as before: `file` is `manifest` or the Node's id, `keyPath` a key path such as
+`description.nl`, and `rule` a rule id. The schema runs first and the rules run only when
+it passed, so one defect is answered once, by one of the two; neither translates the
+other's message (`tree-format.md` 3.9, `ADR-118-json-schema.md`).
 
 ### 5.2 When what is read and sent
 
 | Moment | Server reads | Browser receives |
 |---|---|---|
-| Server start | `tree.yaml` once, to validate and to build the Node and title indexes. Failure: every violation printed, exit code 1, nothing served. | -- |
+| Server start | `tree.json` once, to validate and to build the Node and title indexes. Failure: every violation printed, exit code 1, nothing served. | -- |
 | A request for a Node page | Nothing from disk. The current Node and its neighbourhood -- **at most 17 Nodes** (section 11) -- from the index, and Branch labels from the title index. | Complete HTML: the tree view of section 10 with the current Node as the centre Bubble, its Branches, its Carousel with an `<img loading="lazy">` per Image of this Node, the neighbour Bubbles of section 11 (**without any image URL**), chrome, the Theme's `<style>` block, the disclaimer, the stylesheet and the client bundle. No image bytes, no font bytes. **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours into the page as the tree layer's payload; they enter the DOM only during a slide. At rest, and without JavaScript, the DOM holds the centre Bubble only (11.3). |
 | After the HTML | -- | The image files this Node's Interior and strip name, one per Option (its target's main image, on the button), and, once an Overlay is opened, the files of the Node in it (11.5; **[#75]**), through `GET /images/<file>`; the Theme's font and logo files, through `GET /theme/<file>`. Nothing else, and nothing from another origin. |
 | The user follows a Branch | Nothing from disk; the target Node and **its** neighbourhood from the index. | **Exactly one** page payload, carrying at most 17 Nodes, then that Node's image files. Section 11 has the accounting. |
@@ -672,8 +683,8 @@ deploy; an hour of a stale font is the same trade the images make.
 ```
 .
 ├── docs/                    core document, specs, ADRs, research (unchanged)
-├── trees/                   Tree data: one folder per Tree (elsa-tree/3)
-│   └── ai-act-example/      tree.yaml, images/, theme/ -- the development default
+├── trees/                   Tree data: one folder per Tree (elsa-tree/4)
+│   └── ai-act-example/      tree.json, images/, theme/ -- the development default
 ├── src/
 │   ├── app/                 Next.js routes (thin); all of them under [lang] (4.4)
 │   │   └── [lang]/          no src/app/layout.tsx exists: this level is the root
@@ -726,11 +737,12 @@ deploy; an hour of a stale font is the same trade the images make.
 │   ├── tree/                the Tree loader module
 │   │   ├── loader.ts        openTree and the Tree interface (5.1)
 │   │   ├── validate.ts      the rules of tree-format.md section 7
-│   │   └── types.ts         the types of elsa-tree/3 (5.1)
+│   │   └── types.ts         the types of elsa-tree/4 (5.1)
 │   └── instrumentation.ts   startup validation (5.4)
 ├── schemas/elsa-tree-4.json [#118] the format's JSON Schema, served at /schemas/ (15.1)
 ├── scripts/validate.ts      `npm run validate`
-├── scripts/migrate-tree.ts  [v0.2] elsa-tree/1 -> 2 (issue #39); [#75] 2 -> 3 (issue #79)
+├── scripts/migrate-tree.ts  [#119] the canonical byte form of tree-format.md 3.7: what is
+│                        left of the migration after #119 ran 3 -> 4 (12.6)
 ├── tests/                   Vitest tests, Playwright specs and fixtures (7)
 ├── package.json  package-lock.json  next.config.ts  tsconfig.json  vitest.config.ts
 ├── playwright.config.ts     [v0.2] in the contract now (7)
@@ -849,7 +861,7 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 |---|---|
 | `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every page of its list, with every Sheet open in turn -- **[#75]** each Option's Overlay and each picture's enlarged view included -- and with each explainer panel open by focus, and again with JavaScript disabled; the mid-transition rows with every Sheet closed. |
 | `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, on load only the centre Node's files and one per Option, after opening an Overlay that Node's files, no image of a placed neighbour, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation; the neighbour frame of a running slide is `inert`, and a slide started with a Sheet open closes it first; **[#75]** an Option opens its Overlay and nothing slides; the up arrow slides up. |
-| `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.json` and restarting changes the page with no code change (**[#118]** `tree.yaml` until #119 renames the file). |
+| `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.json` and restarting changes the page with no code change (**[#118]**, the file renamed by **[#119]**). |
 | `tree-view.spec.ts` **[v0.2]** | The tree view in a browser: what a click on the up arrow and on each Answer button does to the URL (10.2, 10.3), on `/<tree>/start/<a>/<b>` the arrow lands on `/<tree>/start/<a>`; Tab reaches every control in document order and Enter follows each; an Option button opens its Overlay, the cross, Escape and a click outside close it, focus returns to the button, the address is unchanged throughout, and a direct request for an explanation Node's URL renders its parent with the Overlay open (10.9); the collapsed Sheets open, list their links, close on Escape; the minimum-size notice names the dimension that is short (10.4); the contrast of the Answer label on its fill is at least 3 : 1 (10.3); the screenshots of #80, #81 and #82. **With JavaScript disabled**, section 14: the arrow and the Answer buttons navigate, the Option button is a disclosure that opens the Interior, the collapsed groups are plain lists. There is no `no-js.spec.ts`. **[#75]** |
 | `carousel.spec.ts` **[v0.2]** | The Carousel in a browser, against `tests/fixtures/carousel/`: the image files requested on load and on enlarging, and never another Node's (12.4, 11.5); one tab stop, Left/Right/Home/End, Enter or Space enlarges, `previous` and `next` page the enlarged view, Escape closes and returns the focus (12.3); the credit visible in the enlarged view for every picture and read as each picture's description; the names in `en` and `nl`; below step 1 the one control says `imageCount` and opens the enlarged view (10.5); **with JavaScript disabled**, a thumbnail opens its file, the strip is a tab stop the arrow keys scroll, a Node with one Image has no stop there, and the `<noscript>` control pages the Images as disclosures with their credits (14); **[#75]** no button and no caption is rendered (12.2). |
 | `node-view.spec.ts`, `trail.spec.ts`, `language.spec.ts` | The 0.1 browser specs, kept: the URL scheme, the Trail in the path and the language mechanism are unchanged contracts and keep their tests. **[#75]** `trail.spec.ts` and `tests/trail.test.tsx` are rewritten by #82 for what is drawn -- the up arrow and its `trailHref` -- since the Trail Branches and the Trail Sheet are gone (10.2); the path and `trailHref` they assert do not change. **[#118]** `deployment.spec.ts` moves to its own row below: the deployment shape is no longer unchanged. |
