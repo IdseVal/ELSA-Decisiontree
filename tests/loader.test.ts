@@ -699,7 +699,7 @@ describe('the Node index the sitemap reads (#118)', () => {
 
   test("the Tree file's modification time is read once, at openTree", async () => {
     const tree = await openTree(exampleTree)
-    const onDisk = await stat(path.join(exampleTree, 'tree.yaml'))
+    const onDisk = await stat(path.join(exampleTree, 'tree.json'))
 
     expect(tree.lastModified?.getTime()).toBe(onDisk.mtime.getTime())
   })

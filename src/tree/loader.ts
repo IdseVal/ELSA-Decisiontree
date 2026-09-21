@@ -95,7 +95,7 @@ export async function openTree(dir: string): Promise<Tree> {
   return {
     id,
     manifest,
-    lastModified: await lastModified(path.join(root, 'tree.yaml')),
+    lastModified: await lastModified(path.join(root, 'tree.json')),
     getNode: async (nodeId) => (isId(nodeId) ? (nodes.get(nodeId) ?? null) : null),
     getTitle: (nodeId) => nodes.get(nodeId)?.title ?? null,
     nodeIds: () => [...nodes.keys()],
