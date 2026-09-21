@@ -1,6 +1,11 @@
 # ADR-37-serialisation: the one Tree file is a YAML 1.2 stream, one document per Node with `id` first, separated by `--- # <id>` lines
 
-- Status: ACCEPTED (frozen) -- 2026-09-10
+- Status: ACCEPTED (frozen) -- 2026-09-10. **Superseded by
+  `ADR-118-json-serialisation.md`** (2026-09-21, issue #118): `elsa-tree/4` is JSON, so
+  the YAML stream, its `--- # <id>` separators and its document-per-Node shape end with
+  it. What this ADR decided that is not about YAML -- one file per Tree, the `id` key as
+  the one source of a Node's id, the free order of Nodes -- carries over unchanged.
+  Everything below stands as the exact record of `elsa-tree/2` and `/3`.
 - Issue: #37 -- Architecture: freeze elsa-tree/2
 - Spec: `docs/specs/tree-format.md`, sections 3.7, 4, 5, 8
 - Amends: `docs/adrs/ADR-4-serialisation-format.md` (YAML kept; the file-per-Node

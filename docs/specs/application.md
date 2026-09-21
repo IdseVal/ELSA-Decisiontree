@@ -36,6 +36,28 @@
 > pre-rendering bullet, 11.4's last paragraph). Every other contract, 11.5's rows
 > included, is unchanged.
 >
+> **Amended 2026-09-21 by issue #118** (`docs/adrs/ADR-118-dataset-endpoint.md`,
+> `ADR-118-crawler-access.md`, `ADR-118-sitemap-and-alternates.md`, `ADR-118-json-ld.md`,
+> `ADR-118-llms-txt.md`), for the owner's direction of that day: the Trees must be
+> **optimally findable** -- by search engines, by dataset indexes such as Google Dataset
+> Search, and by the crawlers that feed AI assistants -- and the Tree data moves to
+> **JSON only** (`docs/specs/tree-format.md`, `elsa-tree/4`; core document 3.1 and 1,
+> revised 2026-09-21). **Sections 15 and 16 are new** and are the whole of it; what
+> changes in the sections already here is small and listed below. No contract of sections
+> 10 to 14 moves.
+>
+> | Section | #118 |
+> |---|---|
+> | 1 | One optional configuration variable, `ELSA_TREE_LASTMOD`. |
+> | 4.1 | Five routes join the grammar: the dataset endpoint, the schema, `robots.txt`, `sitemap.xml`, `llms.txt`. The canonical link is rendered from 16.3's address set, so it is absolute whether or not `ELSA_BASE_URL` is set -- the one bullet that moves, and `ADR-11-public-base-url.md` carries the amendment. **The Node page, the Trail in the path, the share link and `?lang` are unchanged**, and no URL that resolves today resolves differently. |
+> | 4.3 | `schemas` joins the reserved Tree ids; two rows for the new routes' 404s. |
+> | 5.1 | The loader's `Manifest['format']` becomes `elsa-tree/4` and the file it reads is `tree.json`; the seam gains the path of the Tree's own file. Issue #119 makes that edit with the code. |
+> | 5.2 | The "Never, in any response" list is restated as a list about **page** responses, because the dataset endpoint of section 15 serves the whole file on purpose. The bound on what a page may carry is untouched. |
+> | 6 | Five route files, one module folder `src/findability/`, and two existing modules gain a member each. |
+> | 7 | **A row per new unit test and per new browser test**, one fixture, and the issue that owns each: nothing section 6 adds arrives without a named test. The no-cookie sweep is named by its file (`deployment.spec.ts`) and grows to cover 15 and 16. Two lines that still named `tree.yaml` are corrected. |
+> | 8, 9 | Rows for the new guarantees and the eight `ADR-118-*` decisions. |
+> | 15, 16 | New. |
+>
 > **How to read this document.** Sections 1 to 4 are the 0.1 contracts the owner kept
 > (framework, Tree selection, chrome languages, the URL scheme); they carry small
 > amendments, marked. Sections 5 to 9 keep their numbers and are rewritten in place --
@@ -138,7 +160,7 @@ the app does depends on a hosting vendor.
 | Runtime | Node.js 22 (LTS), in `.nvmrc` and `package.json` `engines`. |
 | Package manager | npm; `package-lock.json` committed; `npm ci` in CI and deployment. |
 | Build output | `output: 'standalone'`: `next build` yields a folder that runs with `node server.js`. |
-| Configuration | Environment variables only: `PORT`, `HOSTNAME` (Next.js), `ELSA_TREE`, `ELSA_TREES_DIR` (section 2), `ELSA_BASE_URL` (the public origin; a bare `http`/`https` origin or the server refuses to start), `NEXT_TELEMETRY_DISABLED=1`. |
+| Configuration | Environment variables only: `PORT`, `HOSTNAME` (Next.js), `ELSA_TREE`, `ELSA_TREES_DIR` (section 2), `ELSA_BASE_URL` (the public origin; a bare `http`/`https` origin or the server refuses to start), **[#118]** `ELSA_TREE_LASTMOD` (optional; a `YYYY-MM-DD` date that overrides the Tree file's modification time in the sitemap, 16.2 -- refused at startup when it is not a date), `NEXT_TELEMETRY_DISABLED=1`. |
 | Vendor neutrality | No edge runtime, no Incremental Static Regeneration, no hosted image optimisation, no fonts or scripts fetched from third parties at run time. Anything fetched at build time is vendored into the repository. |
 | Headers | `poweredByHeader: false`. The app sets no cookie, ever. |
 | Repository root | `agentRules: false`: `next dev` does not scaffold `AGENTS.md` and `CLAUDE.md`. The root `CLAUDE.md` is the project instructions the agents in `.orca/` read, not build output. |
@@ -227,9 +249,21 @@ Recorded in `docs/adrs/ADR-5-chrome-languages.md`.
 Node page   /<tree-id>/<id-1>/<id-2>/.../<id-n>[?lang=<tag>]      1 <= n <= 50
 Image       /images/<file>
 Theme file  /theme/<file>                                        [v0.2]
+Dataset     /<tree-id>/tree.json                                 [#118]
+Schema      /schemas/elsa-tree-4.json                            [#118]
+Crawlers    /robots.txt                                          [#118]
+Sitemap     /sitemap.xml                                         [#118]
+Agents      /llms.txt                                            [#118]
 Redirects   /            ->  /<tree-id>/<root-id>[?lang=...]      307
             /<tree-id>   ->  /<tree-id>/<root-id>[?lang=...]      307
 ```
+
+- **[#118]** The five new routes are sections 15 and 16. None of them collides with
+  anything: `tree.json`, `robots.txt`, `sitemap.xml` and `llms.txt` contain a dot and so
+  can be neither a Tree id nor a Node id (`tree-format.md` 3.1), and `schemas` joins
+  `images` and `theme` as a reserved Tree id (4.3). Every one of the five answers 404
+  today, so **no URL that resolves now resolves differently**. They ignore `?lang`, as
+  the image and theme routes do.
 
 - **[v0.2]** `/theme/<file>` serves one file of the served Tree's Theme -- a logo, an
   icon or a font (5.5). It is the exact analogue of `/images/<file>`, including its
@@ -259,8 +293,12 @@ Redirects   /            ->  /<tree-id>/<root-id>[?lang=...]      307
   `lang`: the Trail after it is discarded (core document 10.17).
 - Every Node page carries `<link rel="canonical">` to `/<tree-id>/<id-n>` (with `lang`
   when not the default). A deployment that sets `ELSA_BASE_URL` (section 1) makes that
-  link the absolute URL of the same page; without it the link is the path. Recorded in
-  `docs/adrs/ADR-11-public-base-url.md`.
+  link the absolute URL of the same page; **[#118]** a deployment that sets none gets the
+  absolute URL on the request's own origin, because 16.3 renders this link from the same
+  address set as the sitemap and the JSON-LD and the three must be one string. Which page
+  it points at is unchanged either way: the Trail is dropped and the language kept.
+  Recorded in `docs/adrs/ADR-11-public-base-url.md`, amended **[#118]** by the four
+  `ADR-118-*` decisions that read the base (16).
 
 ### 4.2 Worked examples
 
@@ -300,7 +338,9 @@ The first Image of `start`:
 | Image name malformed or not in the Tree's `images/` | 404. |
 | **[v0.2]** Theme file name malformed or not in the Tree's `theme/` | 404, by the same rule and the same code path as an image (5.5). |
 | **[v0.2]** A theme file that exists but the Theme does not name | 404. The route serves what the Theme references, not the folder: a licence text or a stray file next to the fonts is not public. |
-| Reserved Tree ids | `images` and, **[v0.2]**, `theme`. A deployment with `ELSA_TREE` set to either refuses to start. |
+| **[#118]** `/<tree-id>/tree.json` where the Tree id is not the served Tree | 404, by the row above; nothing is looked up on disk for it. |
+| **[#118]** `/schemas/<file>` other than a schema this repository publishes | 404. The route serves the published set, not a folder -- the same rule, and the same code path, as the theme route's (5.5). |
+| Reserved Tree ids | `images`, `theme` (**[v0.2]**) and `schemas` (**[#118]**). A deployment with `ELSA_TREE` set to any of them refuses to start. |
 | The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. The status is always in the response; the **body** may require JavaScript -- see below. Next.js renders `not-found.tsx` without params, so it cannot know the content language; it therefore takes the chrome language 3.1 resolves from the **Tree's default** language, which is `en` or `nl` and never an arbitrary tag. Because the page renders inside the `[lang]` layout, `<html lang>` around it is the resolved content language of the request -- what `src/url.ts` makes of the segment (4.4): a language the Tree declares, or the Tree's default -- exactly as on every other page, in the document the reader ends up with (for this one page that is the painted document, see below). Every element this page renders carries the chrome language above as its own `lang`: that is 3.1's second half, and the reason each element's own `lang` is never a false statement about the text under it. |
 
 **The 404 body may require JavaScript** (amended 2026-09-05, PR #17). Next.js answers a
@@ -525,14 +565,24 @@ the parsed Tree held in memory.
 | The user follows a Branch | Nothing from disk; the target Node and **its** neighbourhood from the index. | **Exactly one** page payload, carrying at most 17 Nodes, then that Node's image files. Section 11 has the accounting. |
 | Opening an Image in the Carousel | -- | Nothing new: the enlarged view shows the file the strip already loaded (section 12). |
 
-**Never**, in any response, under any setting:
+**Never**, in any **page** response, under any setting:
 
 - more than 17 Nodes' content;
 - any Node's text in a language other than the one the page is rendered in;
-- the Tree file, a file path, or any route that returns more than one Node;
+- a file path, or any route a page follows that returns more than one Node;
 - an image file of a Node that is not the centre Bubble (section 11 defines the one
   moment a transition target's images may begin to load);
 - a request to any origin but this one (section 13).
+
+**Amended 2026-09-21 (#118):** the list above says **page** where it used to say
+*response*, and its third row no longer names the Tree file. The owner's direction of
+that day is that the Tree is a public dataset with a URL of its own, and section 15
+serves the whole file at `/<tree-id>/tree.json`, byte for byte. That is not a hole in
+this bound: no page fetches it, no client component knows it exists, and every number
+above is what it was. The rule always protected the *page* -- a reader on a slow
+connection opening a Tree of a thousand Nodes -- and never claimed the data was secret;
+the content is CC BY 4.0 and the repository is public (core document 8).
+`docs/adrs/ADR-118-dataset-endpoint.md` records the restatement.
 
 The size this bounds: a Node at the format's maxima is about 900 characters of text in
 one language, so a 17-Node response is roughly 40 kB of HTML before compression. The
@@ -625,7 +675,12 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │       ├── [tree]/page.tsx           `/<tree-id>` -> redirect to root Node
 │   │       ├── [tree]/[...path]/page.tsx the Node page
 │   │       ├── images/[file]/route.ts    one image file (5.3)
-│   │       └── theme/[file]/route.ts     [v0.2] one theme file (5.5)
+│   │       ├── theme/[file]/route.ts     [v0.2] one theme file (5.5)
+│   │       ├── [tree]/tree.json/route.ts [#118] the dataset endpoint (15)
+│   │       ├── schemas/[file]/route.ts   [#118] the published JSON Schema (15.1)
+│   │       ├── robots.txt/route.ts       [#118] 16.1 (the Sitemap line and the agents)
+│   │       ├── sitemap.xml/route.ts      [#118] 16.2 (every Node in every language)
+│   │       └── llms.txt/route.ts         [#118] 16.5
 │   ├── components/
 │   │   ├── TreeView.tsx     [v0.2] server: the whole tree layer -- the up arrow, the centre
 │   │   │                    Bubble, the fanned Option buttons and their Overlays, the
@@ -644,19 +699,26 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── ShareButton.tsx  client, unchanged
 │   │   ├── LanguageSwitch.tsx  unchanged
 │   │   └── Disclaimer.tsx   unchanged
+│   ├── findability/         [#118] four documents built from the Tree and one base URL (16)
+│   │   ├── robots.ts        robots.txt: the wildcard, the named agents, the Sitemap line (16.1)
+│   │   ├── sitemap.ts       sitemap.xml: one <url> per Node per language, with the alternates (16.2)
+│   │   ├── jsonld.ts        the @graph: the Dataset, the WebPage, the Question (16.4)
+│   │   └── llms.ts          llms.txt (16.5)
 │   ├── neighbourhood.ts     [v0.2] which Nodes surround this one: placed up and down, and the asides (11)
 │   ├── theme.ts             [v0.2] a Theme -> CSS custom properties and @font-face; the default (13)
 │   ├── assets.ts            [v0.2] one file of the Tree as a response: the headers and the
 │   │                        streaming the image and theme routes share (5.3, 5.5)
-│   ├── url.ts               the URL scheme (4)
+│   ├── url.ts               the URL scheme (4); [#118] the absolute form and a Node's alternates (16.3)
 │   ├── chrome.ts            chrome strings and fallback (3)
 │   ├── config.ts            ELSA_TREE / ELSA_TREES_DIR; the one opened Tree
-│   ├── markdown.ts          rich-text subset -> safe HTML, with the explainer marks (10.8)
+│   ├── markdown.ts          rich-text subset -> safe HTML, with the explainer marks (10.8);
+│   │                        [#118] and -> plain text, and the 155-character description (16.3)
 │   ├── tree/                the Tree loader module
 │   │   ├── loader.ts        openTree and the Tree interface (5.1)
 │   │   ├── validate.ts      the rules of tree-format.md section 7
 │   │   └── types.ts         the types of elsa-tree/3 (5.1)
 │   └── instrumentation.ts   startup validation (5.4)
+├── schemas/elsa-tree-4.json [#118] the format's JSON Schema, served at /schemas/ (15.1)
 ├── scripts/validate.ts      `npm run validate`
 ├── scripts/migrate-tree.ts  [v0.2] elsa-tree/1 -> 2 (issue #39); [#75] 2 -> 3 (issue #79)
 ├── tests/                   Vitest tests, Playwright specs and fixtures (7)
@@ -687,11 +749,12 @@ the client components are four again.
 | `src/tree/` (loader) | Reading, validating and indexing a Tree; handing out one Node, one title, one image path, one theme path. | Know URLs, chrome, React, or that a Bubble exists. |
 | `src/neighbourhood.ts` **[v0.2]** | Which Nodes surround the Node on screen: the placements `up` and `down` with their slots, the asides in Option order, and the bound on how many (11). **[#100]** It also finds the centre of a path (`centreOf`, 10.9). | Read files, render, or know what a button or an Overlay looks like. |
 | `src/theme.ts` **[v0.2]** | A `Theme` (or its absence) turned into the exact CSS custom properties and `@font-face` rules the page emits, including the derived values and every escape (13), and which logo variant the palette calls for. | Know React, or which element uses which property. Write a URL: the `src` of an `@font-face` is `url.ts`'s `themeHref`. |
-| `src/assets.ts` **[v0.2]** | One file of the served Tree as an HTTP response: the `Content-Type` its extension names, the four headers that make third-party bytes inert, and the one 404 that covers every refusal (5.3, 5.5). | Resolve a path -- `imagePath` and `themePath` do, inside the Tree's folder. Know which Tree is served. |
-| `src/url.ts` | Parsing a request into `{ treeId, trail, nodeId, lang }` and building every link. | Read files or render. |
+| `src/assets.ts` **[v0.2]** | One file of the served Tree as an HTTP response: the `Content-Type` its extension names, the four headers that make third-party bytes inert, and the one 404 that covers every refusal (5.3, 5.5). **[#118]** The dataset endpoint and the schema route are two more files served through it, with the extra headers of 15.2. | Resolve a path -- `imagePath` and `themePath` do, inside the Tree's folder. Know which Tree is served. |
+| `src/findability/` **[#118]** | The four documents of section 16, each a pure function of the loaded Tree and one base URL: `robots.txt`, `sitemap.xml`, the JSON-LD graph, `llms.txt`. One of them, the address set of a Node (16.3), is `url.ts`'s and is called by two of these and by the page head, which is what keeps the sitemap and the head from disagreeing. | Read files, render React, or decide what the base URL is -- the route hands it in. |
+| `src/url.ts` | Parsing a request into `{ treeId, trail, nodeId, lang }` and building every link. **[#118]** Also the absolute form of a link against a base, and a Node's **address set**: its canonical URL per declared language and which is the default (16.3). | Read files or render. |
 | `src/chrome.ts` | The chrome strings and the language fallback rule. | Contain Tree content. |
 | `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. | Parse Trees or URLs. |
-| `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab; **[#75]** a `[text](#id)` mark to a marked term and its explainer panel (10.8), given the Node's explainers. | Accept raw HTML. Know what the panel looks like. |
+| `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab; **[#75]** a `[text](#id)` mark to a marked term and its explainer panel (10.8), given the Node's explainers. **[#118]** Also the rich-text subset to **plain text**, and the 155-character cut built from it (16.3). Two outputs from one reduction: the meta description and the `WebPage`'s `description` take the cut string, the `Question`'s `text` and `llms.txt`'s blockquote take the uncut one, and the table in 16.3 says which is which. | Accept raw HTML. Know what the panel looks like. |
 | `src/components/` | Views. Server components take data and return markup -- `Logo.tsx` **[v0.2]** is one: it asks `theme.ts` which logo variant this palette calls for and renders it, or the Tree's title when there is none (13.2). The four client components own exactly one interaction each (section 1); the interim fifth of #41, `Thumbnails.tsx`, was removed by #43 (above). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
 | `src/app/` | Routes: parse, load, hand to a view; redirects; the image and theme routes; 404. The `[lang]` layout sets `<html lang>` and emits the Theme. | Hold logic. Take the language from `searchParams` (4.4). |
 | `next.config.ts` | The two rewrites of 4.4, plus the build settings of section 1. | Know which languages a Tree declares, or anything else about the application. |
@@ -700,6 +763,7 @@ Dependencies point inward, and the client components are leaves:
 
 ```
 app  ->  components  ->  chrome, url, markdown, theme, tree/types
+app  ->  findability  ->  tree (getNode, getTitle), url, markdown, chrome     [#118]
 app  ->  neighbourhood  ->  tree (getNode, getTitle), url
 app  ->  theme  ->  url (themeHref)
 app  ->  assets  ->  nothing in src/
@@ -723,17 +787,31 @@ take strings (**[#75]** `Explainer` replaced `CarouselButtons`, #78). This is wh
   font-family literal.
 
 Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
-`docs/adrs/ADR-5-repository-layout.md`.
+`docs/adrs/ADR-5-repository-layout.md`. **[#118]** What this freeze adds above is
+recorded in the six `ADR-118-*` decisions that add the files -- `dataset-endpoint`,
+`json-schema`, `crawler-access`, `sitemap-and-alternates`, `json-ld` and
+`llms-txt` -- each of which carries an `Amends:` line to `ADR-5-repository-layout.md`,
+which carries one back.
 
 ## 7. Testing approach
+
+**Amended 2026-09-21 (#118).** Sections 15 and 16 add five routes, the module folder
+`src/findability/`, a member on `url.ts` and a member on `markdown.ts`. Every one of them
+has a row below, in the Unit table or the Browser table, and every row names **the build
+issue that writes it** (`ADR-118-build-order.md`). The rule of this freeze is that a
+contract of 15 or 16 arrives with the test that would fail if it regressed, in the same
+branch as the code: no build issue of this round is done while its row here is empty. The
+three test sentences in the prose of 16 (16.1 on the tokens and the absent `Disallow`,
+16.2 on the single-language sitemap, 15.2 / 16.4 on the holder line) are those rows'
+detail, not a second place to look.
 
 | Item | Contract |
 |---|---|
 | Runner | Vitest, `npm test` = `vitest run`, Node environment; files `tests/**/*.test.ts(x)`. |
 | Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. A spec that needs a Tree other than the example starts its own server with `tests/browser/serve.ts`, a helper and not a spec file (amended 2026-09-14, #43). `tests/browser/credits.ts` is a helper too: it lists every picture a Tree shows, Node by Node in strip order, and reads each one's credit off the caption line by the keyboard alone, for `carousel.spec.ts` and `tests/first-tree/walk.spec.ts` (amended 2026-09-14, #55). |
 | Also in CI | `tsc --noEmit`, `next build`, `npm run validate trees/<each Tree>`, `npm run test:browser`. Command: `npm ci && npm test && npm run build && npm run test:browser`. |
-| Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; never YAML read by a test. |
-| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). |
+| Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; **[#118]** and never a Tree file parsed by the test itself -- a test that wants a Tree opens it through the loader, whatever the serialisation is. (This row read "never YAML read by a test" until #118; the fixtures become `tree.json` with #119, and the rule was never about YAML.) |
+| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). **[#118]** `tests/fixtures/findability/` (**#120** creates it, **#122** extends it): a two-language Tree whose manifest has **no `description`**, so the `Dataset` and `llms.txt` fall back to the root Node's; whose `title` and one Node `title` carry `&`, `<`, `>`, `"` and a literal `</script>`, so the XML escaping of 16.2 and the JSON escaping of 16.4 are exercised rather than assumed; with one Node holding two `kind: legal` Sources at one URL and one at another, so `isBasedOn`'s most-frequent rule has something to choose; one Node with **no** Source at all; a Terminal and an explanation Node, so the "no `Question`" half of 16.4 has a subject; and a description over 155 counted characters whose 155th character falls inside a word, for the cut. The single-language half of 16.2 and 16.5 uses `tests/fixtures/single-language/`, which already exists. |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
 
 **Which tests are unit and which need a browser.** The rule is: a claim about *markup*
@@ -741,8 +819,12 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 
 | Unit (Vitest) | Asserts |
 |---|---|
-| `loader.test.ts` | Every validity rule via `invalid/<rule>/`; `getNode` returns one Node; malformed ids give `null`; **[v0.2]** `themePath` gives `null` for a file the Theme does not name, even when it exists. |
-| `url.test.ts` | Parse and build are inverses; every 404 case of 4.3; the 50-id limit. |
+| `loader.test.ts` | Every validity rule via `invalid/<rule>/`; `getNode` returns one Node; malformed ids give `null`; **[v0.2]** `themePath` gives `null` for a file the Theme does not name, even when it exists. **[#118] #119 adds** the duplicate-key scan of `tree-format.md` 3.7, which is the one rule the JSON parser cannot check: a `tree.json` with a repeated key at the top level, inside a Node, inside a localised text and inside `metadata` is refused with the position of the first repeat, and -- the assertion that makes the test worth having -- a test asserts directly that `JSON.parse` accepts the same bytes, so the scan cannot be quietly replaced by a parse that reports nothing. `tests/fixtures/broken/duplicate-key/` is that fixture (12.6.3). |
+| `url.test.ts` | Parse and build are inverses; every 404 case of 4.3; the 50-id limit. **[#118] #120 adds**: `absolute()` against a base with and without a trailing slash, and against a base that is unset (the request origin); the **address set** of 16.3 -- one canonical URL per declared language, the default language's carrying no `?lang`, the set identical for every Node kind, and `schemas` refused as a Tree id (4.3). |
+| `findability/robots.test.ts` **[#118]** (**#120**) | The generated `robots.txt` against a fixture: the `User-agent: *` block with `Allow: /`; **every one of the twenty tokens of 16.1 appears exactly once**, so a token lost in an edit fails here; **the file contains no `Disallow` line at all**; one absolute `Sitemap:` line, built from `ELSA_BASE_URL` when set and from the request origin when not; the media type is `text/plain`; no cookie. |
+| `findability/sitemap.test.ts` **[#118]** (**#120**) | The generated `sitemap.xml` against `ai-act-example/` (`en` + `nl`) and `tests/fixtures/single-language/`: one `<url>` per Node per declared language; every `<loc>` absolute and equal to that Node's address set entry, so the sitemap and the page head cannot disagree; the `xhtml:link` alternates including the self-reference and `x-default`; **a single-language Tree emits no alternates at all** (16.2); `<lastmod>` from `ELSA_TREE_LASTMOD` when set and the Tree file's mtime otherwise; the document is well-formed XML and every value XML-escaped, checked with a Tree whose title carries `&` and `<`. |
+| `findability/jsonld.test.ts` **[#118]** (**#122**) | The `@graph` of 16.4 against the fixtures: the `Dataset` on the root page only and every other page referring to it by the same language-independent `@id`; the `Dataset`'s required `name` and `description`, and the fall back to the root Node's description when the manifest has none; `isBasedOn` as the most frequent `kind: legal` Source URL with ties by Node order, and **absent** on a Tree with no legal Source; a `WebPage` on every page; a `Question` with two `suggestedAnswer` entries on a question Node and **no `Question`** on a Terminal or an explanation Node; no `QAPage` and no `acceptedAnswer` anywhere. **And the escaping**, which is the rule of 13.3 at a second sink: a Tree whose Node title contains `</script>`, `<!--` and a lone `<` is rendered, and the emitted script's text is asserted to contain no `<` character at all, to parse as JSON, and to parse back to the original title. A test that only checks the parsed object would pass the tautology this freeze removed. |
+| `findability/llms.test.ts` **[#118]** (**#121**) | The generated `llms.txt` of 16.5 against the fixtures: the sections and their order; the H1 and the blockquote from the manifest in the **default** language, falling back to the root Node's description when the manifest has none; **no Node's title, description or Source appears anywhere in it** -- it is a signpost, and a test that fails when Tree content leaks into it is what keeps it one; every URL absolute; the dataset and schema entries, the root URL, the sitemap, the URL grammar line, the declared languages with the default marked, and both licences with the holder line; `text/plain` as the media type; **no `llms-full.txt` route exists** (16.5). |
 | `routing.test.ts` | The two rewrites of 4.4, read out of `next.config.ts` itself. |
 | `chrome.test.ts` | The table in 3.1; every key of 3.2 exists in both languages; **[#75]** every outcome badge is at most 40 characters (10.1); `up(title)` contains the title it is given. |
 | `not-found.test.tsx` | The 404 page of 4.3. |
@@ -750,17 +832,19 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | `theme.test.ts` **[v0.2]** | The emitted properties equal the manifest's values; a Tree with no Theme, and one with only `colours`, get the documented defaults for the rest; the three derived `--elsa-on-*` colours; a `family` containing `'`, `\` or `</style>` is escaped or refused; a colour that is not `#rrggbb` is refused rather than emitted. |
 | `stylesheet.test.ts` **[v0.2]** | `globals.css` contains no colour literal (`#rgb`, `#rrggbb`, `rgb(`, `hsl(`, a CSS colour keyword) and no `font-family` value that is not `var(--elsa-font-*)`. This is core document section 9's "the frontend must never carry a lab's branding in its code", as a test that cannot be argued with. |
 | `views.test.tsx` | Each situation's structure (10.3): what the Interior holds -- the main image as a link named by `enlarge` and its description and described by its credit, or the empty slot; the title; the description with its marked terms and their panels (10.8); the Sources heading and the two kind prefixes that remain -- which controls exist and where they link: the up arrow's `href` on a Node with a Trail, at the root and on a Node opened without one; both Answer buttons the same shape with the chrome word, a colon and the title in one label; `startAgain` on a Terminal and on an explanation Node shown as the centre; the Option buttons in the fan's order with their targets' first Images, and the fan's numbers for one, two, five and eight Options; each Option's Overlay as a closed disclosure holding the target's Interior and its Options as links, with the heading link, and `open` on the one the URL names (10.9); the strip's markup (12): the Images after the first, `loading="lazy"` with `width` and `height`, no button and no caption element, no strip on a Node with fewer than two Images; nothing in the markup keyed to a credit's length. **[#75]**, rewritten by #80, #81 and #82. |
-| `markdown.test.ts` | The subset of `tree-format.md` 3.4; **[#75]** a `[text](#id)` mark renders the term and its panel of 10.8 and a mark to an unknown id is refused. |
+| `markdown.test.ts` | The subset of `tree-format.md` 3.4; **[#75]** a `[text](#id)` mark renders the term and its panel of 10.8 and a mark to an unknown id is refused. **[#118] #120 adds** the plain-text reduction of 16.3: a link becomes its text and an explainer mark its term, emphasis and code markers go, a `\n` becomes one space and runs of whitespace collapse, and the result contains no Markdown syntax character left over -- and the **155-character cut** separately: a description under the limit is returned whole and uncut, one over it is cut on a word boundary with a single-character ellipsis, the cut counts Unicode code points and never splits a surrogate pair or a combining sequence, and the same input gives the same output every time. **Both outputs are asserted**: the reduced string and the cut string are returned by one function, and the test checks that the cut string, with any trailing ellipsis removed, is a prefix of the reduced one (or equal to it), so the `Question`'s `text` and the meta description can never come from two different reductions (16.3). |
 | `interop.test.tsx` | Below. |
 
 | Browser (Playwright) | Asserts |
 |---|---|
 | `no-scroll.spec.ts` **[v0.2]** | The exact test of 10.6, at every named viewport, on every page of its list, with every Sheet open in turn -- **[#75]** each Option's Overlay and each picture's enlarged view included -- and with each explainer panel open by focus, and again with JavaScript disabled; the mid-transition rows with every Sheet closed. |
 | `transition.spec.ts` **[v0.2]** | The request accounting of 11.5: one page payload per navigation, at most 17 Nodes in it, on load only the centre Node's files and one per Option, after opening an Overlay that Node's files, no image of a placed neighbour, no request for the Tree; the URL after a slide equals the plain-link URL; back reverses it; `prefers-reduced-motion` removes the motion and keeps the navigation; the neighbour frame of a running slide is `inert`, and a slide started with a Sheet open closes it first; **[#75]** an Option opens its Overlay and nothing slides; the up arrow slides up. |
-| `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.yaml` and restarting changes the page with no code change. |
+| `theme.spec.ts` **[v0.2]** | Every request while loading a themed Node page is same-origin; the logo is visible; changing a colour in `tree.json` and restarting changes the page with no code change (**[#118]** `tree.yaml` until #119 renames the file). |
 | `tree-view.spec.ts` **[v0.2]** | The tree view in a browser: what a click on the up arrow and on each Answer button does to the URL (10.2, 10.3), on `/<tree>/start/<a>/<b>` the arrow lands on `/<tree>/start/<a>`; Tab reaches every control in document order and Enter follows each; an Option button opens its Overlay, the cross, Escape and a click outside close it, focus returns to the button, the address is unchanged throughout, and a direct request for an explanation Node's URL renders its parent with the Overlay open (10.9); the collapsed Sheets open, list their links, close on Escape; the minimum-size notice names the dimension that is short (10.4); the contrast of the Answer label on its fill is at least 3 : 1 (10.3); the screenshots of #80, #81 and #82. **With JavaScript disabled**, section 14: the arrow and the Answer buttons navigate, the Option button is a disclosure that opens the Interior, the collapsed groups are plain lists. There is no `no-js.spec.ts`. **[#75]** |
 | `carousel.spec.ts` **[v0.2]** | The Carousel in a browser, against `tests/fixtures/carousel/`: the image files requested on load and on enlarging, and never another Node's (12.4, 11.5); one tab stop, Left/Right/Home/End, Enter or Space enlarges, `previous` and `next` page the enlarged view, Escape closes and returns the focus (12.3); the credit visible in the enlarged view for every picture and read as each picture's description; the names in `en` and `nl`; below step 1 the one control says `imageCount` and opens the enlarged view (10.5); **with JavaScript disabled**, a thumbnail opens its file, the strip is a tab stop the arrow keys scroll, a Node with one Image has no stop there, and the `<noscript>` control pages the Images as disclosures with their credits (14); **[#75]** no button and no caption is rendered (12.2). |
-| `node-view.spec.ts`, `trail.spec.ts`, `language.spec.ts`, `deployment.spec.ts` | The 0.1 browser specs, kept: the URL scheme, the Trail in the path, the language mechanism and the deployment shape are unchanged contracts and keep their tests. **[#75]** `trail.spec.ts` and `tests/trail.test.tsx` are rewritten by #82 for what is drawn -- the up arrow and its `trailHref` -- since the Trail Branches and the Trail Sheet are gone (10.2); the path and `trailHref` they assert do not change. |
+| `node-view.spec.ts`, `trail.spec.ts`, `language.spec.ts` | The 0.1 browser specs, kept: the URL scheme, the Trail in the path and the language mechanism are unchanged contracts and keep their tests. **[#75]** `trail.spec.ts` and `tests/trail.test.tsx` are rewritten by #82 for what is drawn -- the up arrow and its `trailHref` -- since the Trail Branches and the Trail Sheet are gone (10.2); the path and `trailHref` they assert do not change. **[#118]** `deployment.spec.ts` moves to its own row below: the deployment shape is no longer unchanged. |
+| `deployment.spec.ts` **[#118]** (**#121**, extended by **#120** and **#122**) | **The no-cookie sweep, and the one place that sweep is named.** 15.2's last row and the row of section 8 that carries core document 8 both point here, so this spec is a contract of #118 and not a 0.1 spec kept as it was. It sweeps every Node page **and every route of 15 and 16** -- `/<tree-id>/tree.json`, `/schemas/elsa-tree-4.json`, `/robots.txt`, `/sitemap.xml`, `/llms.txt` -- and asserts that not one response carries a `Set-Cookie`, that not one request leaves this origin, and that the browser's cookie jar is empty after the walk. Each route is added by the issue that adds the route; the sweep's list is one array, so a route added without a line here is visibly absent. It also asserts, on the two routes of 15: the header table of 15.2 in full, both `Link` values, `ETag` with a `304` on `If-None-Match`, `Access-Control-Allow-Origin: *` **with no `Access-Control-Allow-Credentials`**, `HEAD` answering with the same headers and no body; and **byte-identity** (15.3) -- the bytes fetched from `/<tree-id>/tree.json` equal `trees/<tree-id>/tree.json` on disk, byte for byte, which is the one claim of section 15 that cannot be made in a unit test. The 0.1 deployment assertions it already held -- the standalone server starting, the routes it answers -- stay. |
+| `findability.spec.ts` **[#118]** (**#120**, extended by **#121** and **#122**) | What only a served page or a served document shows. In the page head (16.3): one `<link rel="canonical">` per page equal to that page's address-set entry, one `<link rel="alternate" hreflang>` per declared language plus `x-default`, the `<meta name="description">` equal to the reduced and cut description, and **the head's canonical, the sitemap's `<loc>` and the JSON-LD's `@id` are the same string for the same page** -- the three are generated from one address set (16.3) and this is where that is checked end to end. **[#121]** One `<link rel="alternate" type="application/json">` per page, and the test **fetches the `href` it finds there** and asserts `200` with `application/json` -- the head link of 16.3 and the route of 15.1 are one issue's deliverable (`ADR-118-dataset-endpoint.md` decision 6), and this is the assertion that fails if either ships without the other. On the served documents: `/robots.txt`, `/sitemap.xml` and `/llms.txt` answer `200` with their media types on the example Tree, `/sitemap.xml` parses in the browser's XML parser, and each is regenerated per request rather than served from `public/`. **[#122]** The JSON-LD script of every page parses as JSON, validates as one `@graph`, and on a Tree whose Node title carries `</script>` the element still closes where the server put it -- the escaping of 16.4 asserted against a real HTML parser, which is the only place the tautology this freeze removed would have shown. |
 | `explainer.spec.ts` **[#75]** | The explainer panel in a browser, against `tests/fixtures/explainers/` (amended 2026-09-18, #83: its own file rather than a part of `tree-view.spec.ts`): a marked term opens its panel on hover, focus and tap and closes it on leaving, blur and Escape, Escape also on a page reached by a slide; one panel is open at a time; Tab reaches every term in text order; the term's accessible description is its explainer and the panel is a `tooltip`; resizing the window closes it; at each viewport of 10.6 above the floor in `en` and `nl` every panel lies inside the text area, at most 320 pixels wide and, where the area is at least 320 wide, 148 tall, placed by the rule of 10.8 -- below its term's line if it fits, else above, else against the area's edge on the side with more room -- and in an area cut too short for either side that last branch is reached (10.8); **with JavaScript disabled**, hover and focus open it at the foot of the text area, full width, and it stays open while the pointer rests on it over its own term (14); the screenshots of #83, in `docs/screenshots/issue-83/` under `ELSA_SHOTS=1`. That every page still fits with each panel open is `no-scroll.spec.ts`'s. |
 | `tests/first-tree/explainers.spec.ts` **[#75]** | The 148 pixels of 10.8 on real text (#103): it walks the first Tree from the root through every Answer and Option, hovers every marked term of every Node that lists explainers, and fails if an open panel is wider than 320 or taller than 148 pixels, in `en` and `nl` at 1280 x 640 and 1920 x 1080; a Node that lists explainers and shows no marked term fails too. The `explainers` fixture of `explainer.spec.ts` has short words in the machine's font; the first Tree's Dutch has long ones in Open Sans. Under `npm run test:first-tree`, beside the first Tree's other specs, and **not** in `npm run test:browser`, which serves the example Tree and the fixtures: a change to the panel's CSS or to the first Tree's explainers is checked by running it by hand, on Linux as well as on Windows (amended 2026-09-19, #103). |
 | `tests/first-tree/slide-endurance.spec.ts` **[v0.2]** | Four hundred slides in one tab with the slide on (11.3, #63), on the first Tree: `yes` from `start` and the parent's Trail Branch back, alternately. The tab survives; the page counts at least 400 changes of `data-sliding` over the walk, so a run with the motion off fails; and after a forced garbage collection the renderer's DOM nodes, detached ones included, and event listeners at the four-hundredth slide are fewer than twice those at the second (`Memory.getDOMCounters`). Under `npm run test:first-tree`, beside the first Tree's long walks, and **not** in `npm run test:browser`: it takes six minutes, and the CI command above runs in a 30-minute job that also installs, builds and runs the rest of the suite (amended 2026-09-15, #63). |
@@ -783,14 +867,21 @@ checks:
   them there is no gap where a third-party Tree could break the frontend.
 
 Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
-`docs/adrs/ADR-5-testing-approach.md`.
+`docs/adrs/ADR-5-testing-approach.md`. **[#118]** The rows this freeze adds are
+recorded in the six `ADR-118-*` decisions that add the files they test, each of
+which carries an `Amends:` line to `ADR-5-testing-approach.md`, which carries one
+back.
 
 ## 8. What the contracts guarantee to the core document
 
 | Core document | Where it is met |
 |---|---|
-| 3.1 one file per Tree, hand-editable | `tree-format.md` (`elsa-tree/2`); 5.1, 5.2 |
-| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (never, in any response) |
+| 1 **[#118]** findable by search engines, dataset indexes and AI crawlers | section 16 in full: 16.1 robots, 16.2 sitemap, 16.3 hreflang and description, 16.4 JSON-LD, 16.5 `llms.txt` |
+| 3.1 **[#118]** JSON only, one format from one schema, written by tools | `tree-format.md` (`elsa-tree/4`), 3.7 and 3.9; 5.1, 5.2 |
+| 8 **[#118]** the Tree data is public under CC BY 4.0, served with no cookie and no account | 15.2: the licence in a `Link` header on the bytes themselves, and the no-cookie sweep -- `tests/browser/deployment.spec.ts` (section 7) -- extended to every route of 15 and 16 |
+| 10.21 **[#118]** superseded: hand-editability is no longer the criterion | `tree-format.md` 3.7, 3.9; `docs/adrs/ADR-118-json-serialisation.md` |
+| 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`); 5.1, 5.2 |
+| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
 | 3.1 / 9 images only for the Node on screen | 11.4, 12.4; **[#75]** 11.5 names the one exception per Option (core document 10.29) |
 | 3.1 text has a maximum length | `tree-format.md` 5.7, confirmed against this layout in 10.7 (**[#75]** again, with two pixels to spare: core document 10.28) |
 | 3.2 the screen is a tree: a Bubble, the way back above, Answers below, side children beside | 10.1 to 10.3; **[#75]** the up arrow (10.2), the fan-out (10.3) |
@@ -828,12 +919,12 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | Next.js App Router, server components, standalone Node 22, npm | `docs/adrs/ADR-5-framework-and-rendering.md` |
 | One Tree per deployment via `ELSA_TREE`; Tree id kept in URLs | `docs/adrs/ADR-5-tree-selection.md` |
 | Chrome in `en` and `nl` in code; follows content language, falls back to English | `docs/adrs/ADR-5-chrome-languages.md` |
-| Path is the Trail; `lang` query; 50-id limit; 404 rules | `docs/adrs/ADR-5-url-scheme.md` |
+| Path is the Trail; `lang` query; 50-id limit; 404 rules | `docs/adrs/ADR-5-url-scheme.md`, amended **[#118]** by the five `ADR-118-*` decisions that each add an address to 4.1 (`dataset-endpoint`, `json-schema`, `crawler-access`, `sitemap-and-alternates`, `llms-txt`); `schemas` reserved and two 404 rows in 4.3 |
 | `?lang` restated as a `[lang]` route segment so `<html lang>` is the content language | `docs/adrs/ADR-19-content-language-in-the-route.md` |
-| `ELSA_BASE_URL` optional, read by the canonical link only, refused when malformed | `docs/adrs/ADR-11-public-base-url.md` |
+| `ELSA_BASE_URL` optional, read by the canonical link only, refused when malformed | `docs/adrs/ADR-11-public-base-url.md`, amended **[#118]** by the four `ADR-118-*` decisions that build absolute URLs from it (`crawler-access`, `sitemap-and-alternates`, `json-ld`, `llms-txt`): five consumers rather than one, `src/url.ts` reading the base, and an unset variable answering with the request origin rather than a bare path (16) |
 | The loader seam; one Node per call; images by route; startup validation | `docs/adrs/ADR-5-lazy-loading.md` -- **superseded by `ADR-38-neighbourhood.md`** |
-| `src/` modules, `trees/`, `tests/`; dependency direction | `docs/adrs/ADR-5-repository-layout.md`, amended by `ADR-38-modules-and-tests.md` |
-| Vitest; fixtures through the loader; the interoperability test | `docs/adrs/ADR-5-testing-approach.md`, amended by `ADR-38-modules-and-tests.md` |
+| `src/` modules, `trees/`, `tests/`; dependency direction | `docs/adrs/ADR-5-repository-layout.md`, amended by `ADR-38-modules-and-tests.md` and, **[#118]**, by the six `ADR-118-*` decisions that add files: `src/findability/`, five route files, a member each on `url.ts` and `markdown.ts` |
+| Vitest; fixtures through the loader; the interoperability test | `docs/adrs/ADR-5-testing-approach.md`, amended by `ADR-38-modules-and-tests.md` and, **[#118]**, by the same six: four `tests/findability/` unit files, `findability.spec.ts`, one fixture, and `deployment.spec.ts` as a contract of #118 |
 | **[v0.2]** The tree view: a Bubble in the centre, the Trail above, Answers below, Options beside | `docs/adrs/ADR-38-tree-view.md` |
 | **[v0.2]** The neighbourhood: at most 16 neighbours, in the page payload, never the Tree | `docs/adrs/ADR-38-neighbourhood.md` |
 | **[v0.2]** The slide transition: the tree layer moves, the URL is the plain link's | `docs/adrs/ADR-38-transitions.md` |
@@ -852,6 +943,14 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | **[#75]** The fan-out geometry; an Option has no Images; a page may fetch one file per Option, its target's main image | `docs/adrs/ADR-78-fan-out-and-option-picture.md` |
 | **[#100]** The centre of a path is found in at most its last three entries, so a page reads at most 17 Nodes for every path | `docs/adrs/ADR-100-bounded-centre.md` |
 | **[#100]** An Overlay has no strip: its panel has no room for one | `docs/adrs/ADR-100-overlay-without-strip.md` |
+| **[#118]** JSON replaces YAML as the Tree file: one `tree.json`, `nodes` an array, a canonical byte form | `docs/adrs/ADR-118-json-serialisation.md` |
+| **[#118]** The JSON Schema at `schemas/elsa-tree-4.json`: the structure, not the limits | `docs/adrs/ADR-118-json-schema.md` |
+| **[#118]** The dataset endpoint: byte-identical, CC BY 4.0 in a `Link` header, cross-origin, no cookie; 5.2's "never" restated as a rule about pages | `docs/adrs/ADR-118-dataset-endpoint.md` |
+| **[#118]** `robots.txt`: allow everything, name the sitemap, name twenty agents, disallow nothing | `docs/adrs/ADR-118-crawler-access.md` |
+| **[#118]** One address set per Node, emitted twice -- as the head's `hreflang` links and as the sitemap's `<url>` entries -- so the two cannot disagree; the description meta tag | `docs/adrs/ADR-118-sitemap-and-alternates.md` |
+| **[#118]** The JSON-LD: one `@graph`, a `Dataset` by `@id`, a `Question` as the page's `mainEntity`, no `QAPage` | `docs/adrs/ADR-118-json-ld.md` |
+| **[#118]** `llms.txt` generated from the manifest; no `llms-full.txt`, because `tree.json` is it | `docs/adrs/ADR-118-llms-txt.md` |
+| **[#118]** The order of the four build issues #119 to #122 | `docs/adrs/ADR-118-build-order.md` |
 
 ## 10. The tree view
 
@@ -1882,3 +1981,385 @@ the rows for the Overlay, the explainer panel and the up arrow in
 markup that is already correct without it. If a feature cannot be expressed that way, it
 does not go in the client component -- it goes in the server render or it does not go
 in.
+
+## 15. The dataset endpoint
+
+**[#118], new -- 2026-09-21.** The owner's direction of that day is that a Tree is a
+public dataset as well as a walk: findable by Google Dataset Search, fetchable by another
+ELSA lab, citable by a paper. Until now the Tree file was served nowhere --
+`/<tree>/tree.yaml` was a 404 -- so the only copy was the git repository. This section is
+the one URL that changes that. Recorded in `docs/adrs/ADR-118-dataset-endpoint.md`.
+
+### 15.1 The two routes
+
+| Route | Serves | 404 when |
+|---|---|---|
+| `GET /<tree-id>/tree.json` | The served Tree's own file, byte for byte (15.3). | `<tree-id>` is not the Tree this deployment serves, by the rule 4.3 already gives for a Node page. |
+| `GET /schemas/elsa-tree-4.json` | `schemas/elsa-tree-4.json`, the format's JSON Schema (`tree-format.md` 3.9). | The file name is not one this repository publishes. The route serves the published set, not the folder, exactly as the theme route serves what the Theme names and not what sits beside it (5.5). |
+
+The Tree id is in the dataset's path, and not a bare `/tree.json`, for the reason every
+other public URL of this application carries it (`ADR-5-tree-selection.md`): the day a
+landing page or a second Tree arrives, a root-level dataset URL would either break or
+lie. `schemas` is a reserved Tree id from this section onwards (4.3), and the schema's
+path carries the format number, so `elsa-tree/5` will be served beside `/4` and neither
+URL will move.
+
+Both routes live under `[lang]` like every other route and **ignore the segment**
+(4.4): there is one dataset and one schema, in no language.
+
+**The schema file must reach the running server.** `next build` writes
+`.next/standalone/`, and `scripts/collect-standalone.ts` copies in what the documented run
+command needs but the framework leaves behind (section 1). `schemas/` joins that list, so
+that `node .next/standalone/server.js` serves the schema from the standalone folder alone
+and a deployment does not have to remember a second path. The Tree folders are a different
+case and stay as they are: they are chosen at run time by `ELSA_TREES_DIR` (section 2),
+where the schema is a constant of the build.
+
+### 15.2 The headers
+
+| Header | `tree.json` | `elsa-tree-4.json` | Why |
+|---|---|---|---|
+| `Content-Type` | `application/json; charset=utf-8` | the same | What it is. |
+| `Link` (licence) | `<https://creativecommons.org/licenses/by/4.0/>; rel="license"` | `<https://opensource.org/license/mit>; rel="license"` | The licence travels with the bytes, not only with the page that links to them -- a crawler that fetches only the JSON never sees a page. The Tree is content (CC BY 4.0, `CONTENT-LICENSE`); the schema is a file of the repository and is code (MIT, `LICENSE`). Core document 8. |
+| `Link` (contract) | `</schemas/elsa-tree-4.json>; rel="describedby"` | -- | The contract is one hop from the data for a tool that reads headers and not bodies. |
+| `Cache-Control` | `public, max-age=3600` | the same | The same hour as an image or a font (5.3, 5.5). A Tree that changes is a deploy. |
+| `ETag` | a strong tag over the bytes; `If-None-Match` answers `304` | the same | A crawler that re-fetches daily should download again only when something changed. |
+| `Access-Control-Allow-Origin` | `*` | the same | A dataset is meant to be fetched by other sites, notebooks and tools. Safe here in a way it is not on most origins: there is no cookie, no session, no account and no header that carries authority, so a cross-origin read reaches nothing a plain `curl` does not (core document 4, 8). **`Access-Control-Allow-Credentials` is never sent**, and this is not a precedent for any future route that gains a credential. |
+| `Access-Control-Allow-Methods` | `GET, HEAD` | the same | The only two that exist here. |
+| `X-Content-Type-Options` | `nosniff` | the same | The route decides the type; the bytes never do. |
+| `Content-Security-Policy` | `default-src 'none'; sandbox` | the same | The set 5.3 already applies to third-party bytes, kept identical so there is one header set in `src/assets.ts` and not two. |
+| `Content-Disposition` | `inline` | the same | Data to look at, not a file to save: a crawler that follows the link should get a document it can read. |
+| `Set-Cookie` | never | never | Core document 8. The no-cookie browser sweep -- `tests/browser/deployment.spec.ts`, which section 7 gives a row of its own for this -- covers both routes of 15 and every route of 16, so this row is asserted and not merely stated. |
+
+### 15.3 Byte-identity: the download IS the dataset
+
+The bytes this route returns are **the file's bytes**, streamed from disk through
+`src/assets.ts` like an Image or a Theme file -- not a re-serialisation of the in-memory
+Tree, not a pretty-print, not a projection. Two consequences, and they are the contract:
+
+- `curl -s <base>/<tree-id>/tree.json | diff - trees/<tree-id>/tree.json` is **empty**,
+  and a checksum of the download equals one taken from the repository. A reader can
+  verify that what they fetched is what the project holds, which is what makes it a
+  dataset rather than an export.
+- What is served has **already passed validation**: the file was read, checked against
+  the schema and checked against every rule of `tree-format.md` section 7 at server start
+  (5.4). A deployment that serves the dataset is a deployment whose dataset validates.
+
+The loader's seam gains one member for this: the path of the Tree's own file, the third
+file of a Tree beside `imagePath` and `themePath` (5.1; issue #121 adds it). It hands out
+a path, not Nodes, so nothing on that interface enumerates the Tree still.
+
+**Every Node page points at it once**: `<link rel="alternate" type="application/json"
+href="<dataset URL>">` in the head, so a crawler that landed anywhere in the walk finds
+the data. **Issue #121 adds that line, with this route**, and 16.3 lists it among the
+head's links saying the same: the link and the route it resolves to are one deliverable
+of one issue, so neither can ship without the other.
+
+What 5.2's restated "never" means here is said there and is worth repeating in one line:
+no page fetches this route, no client component knows it exists, and the bound on what a
+page may carry is exactly what it was.
+
+## 16. Findability
+
+**[#118], new -- 2026-09-21.** Every Node is already a server-rendered page with real
+links, a canonical URL and a content language in `<html lang>`, so a crawler that finds
+the root can walk the whole Tree. What it cannot work out is where the pages are without
+walking, that the Dutch page and the English page are one page in two languages, and that
+behind the walk there is a validated, licensed dataset. This section is those three
+statements, made in the five places that read them. Recorded in
+`docs/adrs/ADR-118-crawler-access.md`, `ADR-118-sitemap-and-alternates.md`,
+`ADR-118-json-ld.md` and `ADR-118-llms-txt.md`.
+
+**The base URL, once, for the whole section.** `robots.txt`, the sitemap, the address
+set of 16.3 that the page head renders, `llms.txt` and the JSON-LD all emit **absolute**
+URLs, because each is read away from the page that served it -- the canonical and
+alternate links of the head included, which is the consumer `ADR-11-public-base-url.md`
+was written for and which 16.3 widens to the whole set. The base is `ELSA_BASE_URL`
+(section 1, `ADR-11-public-base-url.md`) when it is set, and otherwise the request's own origin. A public deployment sets it, and
+`docs/deployment.md` says so beside the variable. The value is used **only** to build the
+URLs these five contracts emit: it is never fetched, never redirected to, and never used
+to read a file. Where it enters a document it is escaped as that document requires --
+XML-escaped in the sitemap, and JSON-encoded with every `<` emitted as the escape
+`\u003c` -- not as the character -- in the JSON-LD (16.4), by the rule 13.3 already
+states for a Tree's text.
+
+**Every route of this section is generated from the loaded Tree at request time**, never
+a static file in the repository, and none of them sets a cookie.
+
+### 16.1 `robots.txt`
+
+`GET /robots.txt`, `text/plain; charset=utf-8`, `Cache-Control: public, max-age=3600`.
+
+```
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+...one block per agent in the table below...
+
+Sitemap: <base>/sitemap.xml
+```
+
+- **Nothing is disallowed.** Not `/images/`: the "enlarged view" of a picture is the Sheet
+  a click opens over the page, and the only address behind it is the picture's own file
+  (12.3), so disallowing it would hide the Tree's pictures from image search in exchange
+  for nothing. Not the Trail-carrying addresses either: `<link rel="canonical">` already
+  folds every one of them onto the Node's own page (4.1), and a `Disallow` would stop a
+  crawler reading the page and so stop it reading the canonical link.
+- **`User-agent: *` with `Allow: /` is what does the work.** The named blocks below are
+  declaratory: several of these agents read only their own block, and the owner asked for
+  the intent to be written down. An agent whose token is misspelt here, or renamed by its
+  operator tomorrow, matches the wildcard and is allowed -- so **this list can go stale
+  without ever becoming a refusal**, which is the property that makes naming agents safe.
+
+| Operator | Tokens | What each is |
+|---|---|---|
+| OpenAI | `GPTBot`, `OAI-SearchBot`, `ChatGPT-User` | training; ChatGPT Search's index; a fetch a user asked for |
+| Anthropic | `ClaudeBot`, `Claude-SearchBot`, `Claude-User`, `Claude-Web` | training; Claude's search index; a fetch a user asked for; the older token the owner named |
+| Perplexity | `PerplexityBot`, `Perplexity-User` | the answer index; a fetch a user asked for |
+| Google | `Googlebot`, `Google-Extended` | Search; the AI-training control token, which has no crawler behind it |
+| Microsoft | `Bingbot` | Search |
+| Apple | `Applebot`, `Applebot-Extended` | Siri, Spotlight and Safari; the AI-training control token |
+| Meta | `meta-externalagent`, `meta-externalfetcher` | training; a fetch for a product feature |
+| Common Crawl | `CCBot` | the open crawl many models and researchers read |
+| Amazon | `Amazonbot` | Amazon's assistants |
+| ByteDance | `Bytespider` | training |
+| DuckDuckGo | `DuckDuckBot` | Search |
+
+The tokens are as their operators published them on 2026-09-21. **The list is data, not
+architecture**: adding or removing one changes this table and one array, and needs no
+`architecture` issue, because nothing depends on which tokens are in it. A test asserts
+that every token in this table appears in the generated file and that the file contains
+no `Disallow` line.
+
+### 16.2 `sitemap.xml`
+
+`GET /sitemap.xml`, `application/xml; charset=utf-8`, `Cache-Control: public, max-age=3600`.
+Generated from the loaded Tree's Node index; never a file in the repository.
+
+- **One `<url>` per Node per declared language.** A Tree of `n` Nodes in 2 languages is
+  `2n` entries. `<loc>` is the Node's **canonical** address in that language (16.3), made
+  absolute against the base.
+- **Each `<url>` repeats the whole alternate set**, as the protocol requires: one
+  `<xhtml:link rel="alternate" hreflang="<tag>">` per declared language, **including its
+  own**, plus one `hreflang="x-default"` pointing at the default-language address. The
+  `urlset` element carries `xmlns:xhtml="http://www.w3.org/1999/xhtml"`.
+- **A Tree that declares one language gets no `xhtml:link` at all.** `hreflang` relates
+  translations; a group of one relates nothing. This is the case core document 9 cares
+  about, and here "not breaking" means emitting nothing rather than a degenerate group.
+  `tests/fixtures/single-language` is the test.
+- **`lastmod`** is the Tree file's last-modified time as a `YYYY-MM-DD` UTC date, read
+  once when the Tree is loaded (5.4). Every `<url>` carries the same value, which is the
+  truth: there is one file, so no Node's text can change without it changing.
+  `ELSA_TREE_LASTMOD`, when set, wins (section 1), for a build pipeline that does not
+  preserve timestamps; `docs/deployment.md` says to copy a Tree folder with its
+  timestamps (`cp -p`, `rsync -t`, a bind mount) and why. When neither is available, the
+  `<url>` carries **no `lastmod`**: the element is optional, and a search engine that
+  catches a site lying about it stops reading it for that site altogether.
+- **Not listed**: `/images/<file>` and `/theme/<file>`, `/robots.txt`, `/sitemap.xml`,
+  `/llms.txt`, `/<tree-id>/tree.json`, the schema, the 404 page, and every address that
+  carries a Trail. The sitemap holds exactly the set of canonical Node addresses -- the
+  same set the head's alternates name (16.3).
+- **No sitemap index.** The protocol's limit is 50,000 URLs or 50 MB uncompressed; a Tree
+  would need 25,000 Nodes in two languages to reach it, against the thousand the owner
+  called a plausible size. An index is reserved and not built; a generator that would
+  exceed the limit must fail loudly rather than truncate.
+
+### 16.3 `hreflang`, the address set, and the description meta tag
+
+**The address set is one function, and both the head and the sitemap render it.** That is
+the decision, and the rest of this section is what it returns. Two generators that each
+build URLs out of a base and an id drift apart -- over a trailing slash, over the `?lang`
+of the default language, over what a page reached with a Trail should say -- and when
+they do, the annotation is simply ignored: nothing breaks, nothing logs, and the Dutch
+pages quietly do not rank. `src/url.ts` owns it (section 6).
+
+**An address** is the Node's canonical address (4.1): the empty-Trail path
+`/<tree-id>/<node-id>`, with `?lang=<tag>` for every language but the Tree's default,
+made absolute against the base. A page reached with a Trail lists the same alternates as
+the same page reached without one, because both are the same Node -- which is what the
+canonical link already says.
+
+**In the head of every Node page**, beside the canonical link that is already there:
+
+- one `<link rel="alternate" hreflang="<tag>" href="...">` per declared language,
+  **including the page's own** -- the self-reference is required for the annotation to be
+  read at all;
+- one `<link rel="alternate" hreflang="x-default" href="...">` at the default-language
+  address;
+- `<link rel="alternate" type="application/json" href="<dataset URL>">` (15.3) --
+  **added by issue #121**, with the route it points at, and by no other issue. It is
+  the one line of this section that is not #120's: a head link to a route that does
+  not exist yet is a link to a 404, which is the failure 16.4 refuses a `Dataset`
+  over, and the two cannot be split across issues without a window in which the page
+  advertises data the deployment does not serve
+  (`ADR-118-dataset-endpoint.md` decision 6, `ADR-118-build-order.md`);
+- `<meta name="description" content="...">`, below.
+
+A Tree with one declared language emits none of the `hreflang` links (16.2).
+
+**The description** is reduced from the Node's own `description` in the page's language,
+deterministically:
+
+1. take its **counted text** (`tree-format.md` 3.8 steps 1 and 2): trim, and replace every
+   `[text](url)` and every explainer mark `[text](#id)` by its `text`;
+2. drop the Markdown markers that are punctuation rather than words -- the `*` and `**`
+   of emphasis, a leading `- `, a leading `1. ` -- and join the blocks with one space,
+   collapsing every run of whitespace to one space;
+3. if the result is at most **155 characters**, it is the description;
+4. otherwise cut at the last sentence end (`.`, `!` or `?` followed by a space) at or
+   below 155 characters; if there is none, cut at the last space at or below 154 and
+   append a horizontal ellipsis.
+
+Step 2 is where this reduction and 3.8's differ, on purpose: 3.8 counts the markers
+because they take a reader's space on screen, and a meta description shows nobody an
+asterisk. Steps 3 and 4 do not fire for a conforming Tree, whose Node description is at
+most 150 counted characters since #102 (`tree-format.md` 5.7); they are stated anyway,
+because a reduction that is not total is a reduction with a crash in it, and because that
+limit is the layout's and has already moved twice.
+
+**The reduction has two outputs, and 16.4 and 16.5 take different ones.** Steps 1 and 2
+give the **reduced** string; steps 3 and 4 give the **cut** string, at most 155
+characters and possibly ending in an ellipsis.
+
+| Taken by | Which |
+|---|---|
+| the page's `<meta name="description">` | the **cut** string. 155 characters is what a result listing shows; a description written for that box is the whole point of cutting. |
+| the `WebPage`'s `description` (16.4) | the **cut** string, the same one, byte for byte -- the `WebPage` is the record of this page and its `description` must be what the page says about itself. |
+| the `Question`'s `text` (16.4) | the **reduced** string, **not cut**. A `Question`'s `text` is the question, and a question cut mid-clause and closed with an ellipsis is a different question -- in a legal aid, a misstatement of exactly the kind 16.4 refuses `QAPage` over. `name` already carries the short form (the Node's title). |
+| the `Dataset`'s `description` (16.4) | the **reduced** string, not cut. It is a dataset record's abstract, read by an index rather than shown in a listing, and it is built from the manifest's description, which has its own limit. |
+| `llms.txt`'s blockquote (16.5) | the **reduced** string, not cut: it is a document, not a result listing. |
+
+Both come from one function in `markdown.ts` (section 6), the cut string built from the
+reduced one, so they cannot drift apart even where they differ. **For a conforming Tree
+they are the same string**: a Node description is at most 150 counted characters since
+#102, so steps 3 and 4 do not fire. The distinction is what happens the day that limit
+moves again, and it decides in advance which consumer takes the loss.
+
+### 16.4 JSON-LD
+
+**One `<script type="application/ld+json">` per page**, emitted by the server, holding one
+object with `@context: "https://schema.org"` and an `@graph`. No client code, nothing
+fetched, no third-party host (core document 7, 8, 9).
+
+**The `Dataset`, on the root Node's page only**, with a **language-independent `@id`** so
+that the English pages and the Dutch pages belong to one dataset and not two:
+
+| Field | Value |
+|---|---|
+| `@type` | `Dataset` |
+| `@id` | `<base>/<tree-id>#dataset` -- the same on every page of every language |
+| `name` | the manifest `title` in the page's language |
+| `description` | the manifest `description` in the page's language, reduced by 16.3 steps 1 and 2 without the cut; **when the manifest has none** -- it is optional in the format -- the root Node's `description`, which is required. `name` and `description` are Google's two requirements, so the mapping leaves neither to chance |
+| `url` | the root Node's canonical URL in the page's language |
+| `license` | `https://creativecommons.org/licenses/by/4.0/` |
+| `creator` | `{ "@type": "Organization", "name": "<the holder line of CONTENT-LICENSE>" }` -- today `Wageningen University & Research` |
+| `version` | the manifest's `metadata.version` |
+| `inLanguage` | the Tree's declared languages, in order |
+| `isAccessibleForFree` | `true` |
+| `distribution` | one `DataDownload`: `contentUrl` the dataset endpoint (15.1), `encodingFormat` `application/json` |
+| `isBasedOn` | the most frequent `url` among every `kind: legal` Source in the Tree, compared after dropping fragment and query, ties broken by first occurrence in Node order; omitted when the Tree has no legal Source |
+
+Two of those are worth their own sentence. **The holder line is a constant of the
+deployment, checked against `CONTENT-LICENSE` by a test** that greps
+`^Copyright \(c\) \d{4} (.+)$` out of the file and compares -- not parsed at run time,
+because reading a licence text at startup to find a name fails silently on the one day it
+matters. And **`isBasedOn` is derived from the Tree, not written into the code**: for both
+Trees here it is `https://eur-lex.europa.eu/eli/reg/2024/1689/oj`, EUR-Lex's
+language-negotiating ELI address for the AI Act (CELEX 32024R1689), which is the address
+the Trees actually cite; a third-party Tree about another instrument gets its own, with no
+code change.
+
+**Every Node page carries a `WebPage`**: `@id` and `url` the page's canonical URL (which
+includes `?lang` when not the default, so each language is its own `WebPage`), `name` the
+Node's title, `description` the page's meta description -- the **cut** string of 16.3, the same bytes the `<meta name="description">` carries -- `inLanguage` the page's
+language, and `isPartOf` `{ "@id": "<base>/<tree-id>#dataset" }`. Every other page refers
+to the `Dataset` by that `@id` and never restates it.
+
+**A question Node adds a `Question` as the `WebPage`'s `mainEntity`** -- not as the page's
+type:
+
+- `@type` `Question`, `@id` `<page canonical>#question`, `name` the Node's title, `text`
+  the Node's description **reduced to plain text and not cut** -- steps 1 and 2 of 16.3,
+  never steps 3 and 4, so a `Question`'s `text` never ends in an ellipsis; `inLanguage`
+  the page's language;
+- `suggestedAnswer`: two `Answer` entries, yes then no, each with `text` the chrome word
+  for that Answer, a colon and the target Node's title in the page's language -- the exact
+  label the button carries (10.3) -- and `url` the target's canonical URL in that
+  language.
+
+`suggestedAnswer` and not `acceptedAnswer`: which answer is right depends on the reader's
+system, which is the whole point of the Tree.
+
+**A Terminal and an explanation Node carry the `WebPage` and nothing more.** A Terminal
+is an outcome, not a question; an explanation Node has no answers of its own
+(`tree-format.md` 5.6), and its address renders its parent's page with an Overlay open
+(10.9), so its `WebPage` is that address's. **The Options are not mapped**: an Option
+opens an aside the reader comes back from, not an answer to the Node's question, and
+`schema.org` has no term for that. They are ordinary links in the page and are crawled as
+such.
+
+**The page is a `WebPage` and never a `QAPage` or an `FAQPage`.** Those types say the
+page is community question-and-answer or a frequently-asked-questions list; this is a
+step of a legal decision aid, and claiming a type to win a rich result would be a
+misstatement about structure in a document whose value is that it is trustworthy.
+
+**Escaping.** Every value the server puts in the script is JSON-encoded, and in the
+encoded payload every `<` (U+003C) is emitted as the JSON escape `\u003c` -- the six
+characters `\`, `u`, `0`, `0`, `3`, `c`, written out here because an editor that folds that
+escape into the character it escapes is exactly how this rule was a tautology once. JSON
+reads `\u003c` back as `<`, so the object a consumer parses is unchanged; the bytes in
+the element are not, and the sequence `</script>` therefore cannot occur in the payload
+-- no title, description, credit or origin can close the `<script>` element. The escape
+is applied to the whole serialised string and not to selected fields, because any value
+in it may have come from the Tree. An HTML entity is **not** the mechanism: the content
+of a `<script>` element is not entity-decoded, so `&lt;` would land in the JSON as four
+literal characters and break it.
+
+**And checked at the sink.** Before the string is put in the element, `src/findability/`
+checks that it contains no `</script>` sequence (case-insensitively) and no `<!--`; if it
+does, the script is not emitted and the page is served without its JSON-LD. Two checks,
+because one of them is at the sink. That is 13.3's rule and 13.3's discipline applied to
+the second place a Tree's text -- third-party data -- reaches the document.
+
+Reserved and deliberately empty for now: `identifier` (a DOI, when the project has one)
+and `sameAs` (the repository, when what the public sees there is settled -- #112);
+`keywords`, because nothing in the Tree supplies them honestly.
+
+### 16.5 `llms.txt`
+
+`GET /llms.txt`, `text/plain; charset=utf-8`, `Cache-Control: public, max-age=3600`.
+Markdown content under a plain-text media type: that is what the convention's readers
+expect, and `text/markdown` is not reliably handled by the middle of the internet.
+
+Generated from the served Tree's manifest, in the order the convention gives:
+
+- an **H1**: the Tree's `title` in the default language (the one element the convention
+  requires);
+- a **blockquote**: the Tree's `description` in the default language reduced to plain text
+  (16.3 steps 1 and 2, no cut), or the root Node's description when the manifest has none;
+- a **short free-form paragraph**, chrome and not Tree content: that this is an
+  interactive decision tree, that every step is a page of its own with a real URL, that
+  the whole thing is one JSON file, and that nothing here is legal advice -- the same
+  disclaimer the pages carry permanently (core document 8);
+- `## The dataset`: the Tree file and the schema, as `- [name](url): note` entries;
+- `## Walking the Tree`: the root Node's URL, the sitemap, and one line stating the URL
+  grammar of 4.1 -- the path is the Trail, `?lang` chooses the language -- so an agent can
+  address any step without guessing;
+- `## Languages`: the declared languages and which is the default;
+- `## Licence`: the content licence with its URL and the holder line, and the code
+  licence, naming that Tree content and code differ (core document 8).
+
+Every URL in it is absolute.
+
+**There is no `llms-full.txt`.** The convention describes one -- all of a site's material
+in a single document -- and this site already has it: `/<tree-id>/tree.json`, validated
+against a published schema, named in the file's first section. A second complete
+rendering would be a second serialisation of the same content, by a second renderer, with
+no schema and no validator, and it is the copy that would drift.
+
+**`llms.txt` carries no Tree content beyond the manifest's title and description.** It is
+a signpost. Node titles, descriptions and Sources are in the pages, in the sitemap and in
+the dataset.
