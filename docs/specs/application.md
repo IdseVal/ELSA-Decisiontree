@@ -508,6 +508,7 @@ export interface Tree {
   themePath(file: string): string | null       // [v0.2] absolute path inside this Tree's theme/, and only for a file the Theme names
   nodeIds(): string[]                          // [#120] every Node id, in file order: which pages exist (16.2)
   readonly lastModified: Date | null           // [#120] when the Tree's file was last written; null when it cannot be read (16.2)
+  readonly filePath: string                    // [#121] the Tree's own file: what the dataset endpoint streams (15.3)
 }
 ```
 
@@ -530,6 +531,11 @@ export interface Tree {
   of that sentence -- 16.2 dates every `<url>` from the Tree file, read once here (5.4)
   rather than stat'd per request. #119 replaces the file name behind both, as it does for
   the read itself, and neither signature changes with it.
+- **[#121]** `filePath` does not break it either, and for a plainer reason: it is a path,
+  and a caller that wants a Node still asks for it by id. 15.3 needs the file the loader
+  read -- so that what the dataset endpoint serves is what passed validation, and so that
+  the route cannot assemble a path of its own -- and a path is the smallest thing that
+  says so.
 
 The types, in `src/tree/types.ts`, mirror `tree-format.md` with two normalisations:
 `id` and `kind` are added, and absent lists become empty arrays.
