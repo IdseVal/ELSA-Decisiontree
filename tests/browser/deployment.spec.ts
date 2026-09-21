@@ -211,6 +211,12 @@ test.describe('the dataset endpoint (15)', () => {
       // A tag the server did not issue is not a match, and the bytes come back.
       const stale = await request.get(route, { headers: { 'If-None-Match': '"not-this-one"' } })
       expect(stale.status(), route).toBe(200)
+      // `*` is a match whenever a representation exists (RFC 9110 13.1.2), and one does:
+      // 15.2 promises `304` for `If-None-Match` without qualifying the form.
+      const wildcard = await request.get(route, { headers: { 'If-None-Match': '*' } })
+      expect(wildcard.status(), route).toBe(304)
+      expect((await wildcard.body()).length, route).toBe(0)
+      expect(wildcard.headers()['etag'], route).toBe(etag)
     }
   })
 

@@ -795,12 +795,20 @@ app  ->  findability  ->  tree (getNode, getTitle), url, markdown, chrome     [#
 app  ->  neighbourhood  ->  tree (getNode, getTitle), url
 app  ->  theme  ->  url (themeHref)
 app  ->  assets  ->  nothing in src/
+findability  ->  assets (the two licence URLs of 15.2)                       [#121]
 app  ->  url, chrome, config, markdown
 config  ->  tree
 tree/  ->  nothing in src/
 next.config.ts  ->  nothing in src/
 ```
 
+- **[#121] `findability -> assets` is the one edge into `assets.ts` that is not a
+  route's.** `llms.txt` names the content and code licences (16.5), and they are the
+  strings 15.2 puts on the bytes themselves, so they are declared where they are sent and
+  read from there rather than written twice. The constants do not move to `url.ts`
+  instead: that would make `assets -> url` and cost the stricter line above it, which says
+  `assets` imports nothing in `src/` at all -- and it still does not. #122's `jsonld.ts`
+  takes `CONTENT_LICENCE_URL` over this same edge for the `Dataset`'s `license`.
 - **`src/tree/` still imports nothing from the rest of the application**, and nothing
   imports it to get more than one Node at a time except `neighbourhood`, which is where
   the bound lives.

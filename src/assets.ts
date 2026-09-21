@@ -37,6 +37,25 @@ export const THEME_TYPES: Record<string, string> = {
 }
 
 /**
+ * The four headers every route of this module sends, whatever the file is: an hour of
+ * caching, the two that make third-party bytes inert, and the one that says these are
+ * bytes to look at rather than a file to save (5.3, 5.5, 15.2).
+ *
+ * Declared once because there is one set and not two: 15.2 keeps the dataset's rows
+ * identical to the asset routes' for exactly that reason, and a second literal spelling
+ * out the same four values is the copy that drifts.
+ */
+const SHARED_HEADERS = {
+  'Cache-Control': 'public, max-age=3600',
+  // A Tree is third-party data and the format allows `.svg`: an SVG opened on its own
+  // would otherwise run script on this origin. These two headers make anything a route
+  // here serves inert whatever its bytes turn out to be.
+  'Content-Security-Policy': "default-src 'none'; sandbox",
+  'X-Content-Type-Options': 'nosniff',
+  'Content-Disposition': 'inline',
+}
+
+/**
  * `absolute` streamed with the `Content-Type` its extension names, or 404 when the loader
  * refused the name. A `null` path is every refusal at once -- malformed, not referenced,
  * not there -- with no difference a caller can measure (5.5).
@@ -51,13 +70,7 @@ export function assetResponse(absolute: string | null, types: Record<string, str
   return new Response(body, {
     headers: {
       'Content-Type': types[extension] ?? 'application/octet-stream',
-      'Cache-Control': 'public, max-age=3600',
-      // A Tree is third-party data and the format allows `.svg`: an SVG opened on its own
-      // would otherwise run script on this origin. These two headers make anything either
-      // route serves inert whatever its bytes turn out to be.
-      'Content-Security-Policy': "default-src 'none'; sandbox",
-      'X-Content-Type-Options': 'nosniff',
-      'Content-Disposition': 'inline',
+      ...SHARED_HEADERS,
     },
   })
 }
@@ -112,22 +125,15 @@ export async function datasetResponse(dataset: Dataset, request: Request): Promi
   const headers = {
     'Content-Type': 'application/json; charset=utf-8',
     Link: links.join(', '),
-    'Cache-Control': 'public, max-age=3600',
     ETag: etag,
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, HEAD',
-    // The same two headers the image and theme routes send, so there is one header set in
-    // this module and not two: the route decides the type, the bytes never do (5.3).
-    'X-Content-Type-Options': 'nosniff',
-    'Content-Security-Policy': "default-src 'none'; sandbox",
-    // Data to look at, not a file to save: a crawler that follows the link should get a
-    // document it can read (15.2).
-    'Content-Disposition': 'inline',
+    ...SHARED_HEADERS,
   }
 
   // The whole set, not a subset: a `304` that dropped the licence or the contract would be
   // the one answer a returning crawler sees, and it would see less than the first did.
-  if (offeredTags(request).includes(etag)) return new Response(null, { status: 304, headers })
+  if (alreadyHeld(request, etag)) return new Response(null, { status: 304, headers })
   // A Buffer's backing store is typed as `ArrayBufferLike` -- it could in principle be
   // shared memory, which a response body may not be -- and `readFile` never returns one.
   // The view is over the same bytes and copies none of them.
@@ -135,7 +141,15 @@ export async function datasetResponse(dataset: Dataset, request: Request): Promi
   return new Response(body, { headers })
 }
 
-/** The tags an `If-None-Match` offers; a caller may send the list it holds, not only one. */
-function offeredTags(request: Request): string[] {
-  return (request.headers.get('if-none-match') ?? '').split(',').map((tag) => tag.trim())
+/**
+ * Whether the caller's `If-None-Match` already covers these bytes.
+ *
+ * A caller may offer the list of tags it holds and not only one, and it may offer `*`,
+ * which RFC 9110 13.1.2 makes true whenever a current representation exists -- and one
+ * always does by the time this is asked, because the bytes have been read. 15.2 promises
+ * `304` for `If-None-Match` without qualifying the form, so both forms get it.
+ */
+function alreadyHeld(request: Request, etag: string): boolean {
+  const offered = (request.headers.get('if-none-match') ?? '').split(',').map((tag) => tag.trim())
+  return offered.includes('*') || offered.includes(etag)
 }
