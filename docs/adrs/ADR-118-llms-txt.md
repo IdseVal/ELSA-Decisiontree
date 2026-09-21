@@ -24,22 +24,16 @@ say.
    as `text/plain; charset=utf-8` with `Cache-Control: public, max-age=3600` and no
    cookie. Markdown content, plain-text media type: that is what the convention's readers
    expect, and `text/markdown` is not reliably handled by the middle of the internet.
-2. **Its shape**, in the order the convention gives:
-   - an H1: the Tree's `title` in the default language;
-   - a blockquote: the Tree's `description` in the default language reduced to plain text
-     (the rule of `ADR-118-sitemap-and-alternates.md` decision 8, without the cut), or
-     the root Node's description when the manifest has none;
-   - a short free-form paragraph, chrome and not Tree content: that this is an
-     interactive decision tree, that every step is a page of its own with a real URL,
-     that the whole thing is one JSON file, and that nothing here is legal advice -- the
-     same disclaimer the pages carry permanently (core document 8);
-   - `## The dataset`: the Tree file and the schema, as links with notes;
-   - `## Walking the Tree`: the root Node's URL, the sitemap, and one line stating the
-     URL grammar of `application.md` 4.1 -- the path is the Trail, `?lang` chooses the
-     language -- so an agent can address any step without guessing;
-   - `## Languages`: the declared languages and the default;
-   - `## Licence`: the content licence with its URL and the holder line, and the code
-     licence, naming that Tree content and code differ (core document 8).
+2. **Its shape is the list in `application.md` 16.5**, in the order the convention
+   gives: an H1, a blockquote, a free-form paragraph that is chrome and not Tree
+   content, and the sections `## The dataset`, `## Walking the Tree`, `## Languages`
+   and `## Licence`. **What goes in each is written out there, once, and this ADR does
+   not repeat it**, for the reason `ADR-118-crawler-access.md` gives for the token
+   list. The two choices inside that shape are decided here: the blockquote is the
+   Tree's description **in the default language**, falling back to the root Node's when
+   the manifest has none, so the file is never headless; and `## Walking the Tree`
+   states the URL grammar of `application.md` 4.1 rather than listing addresses, so an
+   agent can reach any step without guessing and the file does not grow with the Tree.
 3. **Every URL in it is absolute**, built from the same base as the sitemap
    (`ELSA_BASE_URL`, else the request's origin), because the file is read away from the
    site that served it.

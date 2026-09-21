@@ -78,12 +78,13 @@ serialisation moves, which is why `elsa-tree/4` is a conversion and not a rewrit
    non-ASCII characters written as themselves. Every mainstream language's standard
    library produces exactly these bytes from the same value; nothing here needs a
    bespoke pretty-printer, and the editor round needs no new agreement about formatting.
-8. **Key order is fixed by the spec, not alphabetical**: the order sections 4 and 5 list
-   the keys in (`$schema`, `format`, `languages`, `root`, `title`, `description`,
-   `metadata`, `theme`, `nodes`; and per Node `id`, `title`, `description`, `metadata`,
-   `sources`, `images`, `answers`, `options`, `explainers`, `terminal`). Inside
-   `metadata`, `version` comes first and the author's own keys keep the order they were
-   written in. Alphabetical order would put `answers` above `title`, which no reader and
+8. **Key order is fixed by the spec, not alphabetical.** It is the order sections 4 and
+   5 list the keys in, at the top level and per Node, and inside `metadata` `version`
+   comes first with the author's own keys in the order they were written.
+   **`tree-format.md` 3.7 writes that order out, once, and this ADR does not repeat
+   it**, for the reason `ADR-118-crawler-access.md` gives for the token list: a
+   normative list in two documents is two lists, and the second is the one that
+   drifts. Alphabetical order would put `answers` above `title`, which no reader and
    no reviewer wants.
 
    **One key shape has to be excluded for this to hold.** A JavaScript object treats a

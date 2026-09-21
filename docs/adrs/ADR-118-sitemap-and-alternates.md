@@ -68,24 +68,20 @@ absolute when `ELSA_BASE_URL` is set. Alternates are the same thing, once per la
    holds exactly the set of canonical Node addresses, which is the set the head's
    alternates name -- the same sentence as decision 1, checked from the other side.
 8. **The page's description meta tag comes from the Node's description**, by a stated,
-   deterministic reduction:
-   1. take the description in the page's language;
-   2. take its counted text (3.8 steps 1 and 2): trim, and replace every `[text](url)`
-      and every explainer mark `[text](#id)` by its `text`;
-   3. drop the Markdown markers that are punctuation rather than words -- the `*` and
-      `**` of emphasis, a leading `- ` and a leading `1. ` of a list item -- and join the
-      blocks with one space, collapsing every run of whitespace to one space;
-   4. if the result is at most 155 characters, it is the description;
-   5. otherwise cut it at the last sentence end (`.`, `!` or `?` followed by a space) at
-      or below 155 characters; if there is none, cut at the last space at or below 154
-      and append a horizontal ellipsis.
+   deterministic reduction. **It is written out as four numbered steps in
+   `application.md` 16.3 and is not repeated here**: the counted text; the Markdown
+   markers that are punctuation dropped and the blocks joined; the 155-character test;
+   and the cut. One copy means one numbering, so "step 4" names the same step wherever
+   it is cited -- `ADR-118-crawler-access.md`'s reasoning, applied to a numbered list.
 
-   Step 3 is where this reduction and 3.8's differ, and they differ on purpose: 3.8 counts
-   the markers because they take a reader's space on screen, and a meta description shows
-   nobody an asterisk. Steps 4 and 5 do not fire for a conforming Tree -- a Node
-   description is at most 150 counted characters since #102 -- and are stated anyway,
-   because a reduction that is not total is a reduction with a crash in it, and because
-   that limit is the layout's and has already moved twice.
+   What this decision settles is that the reduction exists, that it is
+   **deterministic** -- the same description gives the same meta tag on every build --
+   and that it deliberately does not match 3.8's counted text: 3.8 counts the Markdown
+   markers because they take a reader's space on screen, and a meta description shows
+   nobody an asterisk. The cut is stated although it cannot fire for a conforming Tree
+   -- a Node description is at most 150 counted characters since #102 -- because a
+   reduction that is not total is a reduction with a crash in it, and because the limit
+   it guards is the layout's and has already moved twice.
 9. **`<meta name="description">` is on every Node page, in the page's language.** The
    Tree's own description is the Dataset's (`ADR-118-json-ld.md`), not every page's.
 10. **The sitemap is generated from the loaded Tree at request time**, never a file in

@@ -31,22 +31,14 @@ Two things make the mapping non-obvious rather than mechanical:
    code, no third-party host, nothing fetched (core document 7, 8, 9).
 2. **The `Dataset` is emitted on the root Node's page only**, with a language-independent
    `@id`: `<base>/<tree-id>#dataset`. Every other page refers to it by that `@id` and
-   never restates it. Its fields:
-
-   | Field | Value |
-   |---|---|
-   | `@type` | `Dataset` |
-   | `@id` | `<base>/<tree-id>#dataset` -- the same on the English page and the Dutch one |
-   | `name` | the manifest `title` in the page's language |
-   | `description` | the manifest `description` in the page's language, reduced to plain text by the rule of `ADR-118-sitemap-and-alternates.md` decision 8 but without the 155-character cut. **When the manifest has no `description`** -- it is optional in the format -- the root Node's `description`, which is required. `name` and `description` are the two fields Google requires, so the mapping may not leave one to chance |
-   | `url` | the root Node's canonical URL in the page's language |
-   | `license` | `https://creativecommons.org/licenses/by/4.0/` |
-   | `creator` | `{ "@type": "Organization", "name": "<the holder line of CONTENT-LICENSE>" }` -- today `Wageningen University & Research` |
-   | `version` | the manifest's `metadata.version` |
-   | `inLanguage` | the Tree's declared languages, in order |
-   | `isAccessibleForFree` | `true` |
-   | `distribution` | one `DataDownload`: `contentUrl` the dataset endpoint `<base>/<tree-id>/tree.json`, `encodingFormat` `application/json` |
-   | `isBasedOn` | the URL the Tree's own legal Sources cite (decision 4) |
+   never restates it, so the English pages and the Dutch pages belong to one dataset and
+   not two. **Its fields are the table in `application.md` 16.4 -- one table, and this
+   ADR does not repeat it**, for the reason `ADR-118-crawler-access.md` gives for the
+   token list. Two of the rows are decisions rather than mappings, and they are decided
+   here: `description` falls back to the **root Node's** `description` when the manifest
+   has none, because `name` and `description` are the two fields Google requires and a
+   required field may not rest on an optional one; and `isBasedOn` is derived from the
+   Tree rather than written into the code (decision 4).
 
 3. **The holder line is a constant of the deployment, checked against `CONTENT-LICENSE`
    by a test**, not parsed out of the file at run time. Reading a licence text at startup

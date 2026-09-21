@@ -41,21 +41,25 @@ be secret -- the content is CC BY 4.0 and the repository is public.
    diff - trees/<id>/tree.json` is empty and a checksum taken from the download equals
    one taken from the repository. **The download IS the dataset.** The file was validated
    at server start, so what is served is data that passed section 7.
-4. **These headers**, on `tree.json` and on the schema alike unless a row says otherwise:
+4. **One header set for both routes**, defined once. `Content-Type`; a `Link` carrying
+   the licence -- CC BY 4.0 on `tree.json`, MIT on the schema, because the licence must
+   travel with the bytes and not only with the page that links to them (core document
+   8); a `Link` carrying `rel="describedby"` to the schema on `tree.json`;
+   `Cache-Control`, the same hour as an image or a font; a strong `ETag` answering
+   `304`; `Access-Control-Allow-Origin: *` with **`Access-Control-Allow-Credentials`
+   never sent**; `Access-Control-Allow-Methods: GET, HEAD`; `X-Content-Type-Options:
+   nosniff`; the `Content-Security-Policy` 5.3 already applies to third-party bytes,
+   unchanged; `Content-Disposition: inline`; and **never a `Set-Cookie`**. **The
+   values, and the reason for each row, are in `application.md` 15.2 -- one table, and
+   this ADR does not repeat it**, for the reason `ADR-118-crawler-access.md` gives for
+   the token list: a normative table in two documents is two tables, and the second is
+   the one that drifts.
 
-   | Header | Value | Why |
-   |---|---|---|
-   | `Content-Type` | `application/json; charset=utf-8` | What it is. |
-   | `Link` | `<https://creativecommons.org/licenses/by/4.0/>; rel="license"` on `tree.json`; `<https://opensource.org/license/mit>; rel="license"` on the schema | The licence travels with the bytes, not only with the page that links to them. The Tree is content (CC BY 4.0, `CONTENT-LICENSE`); the schema is a file of the repository and is code (MIT, `LICENSE`). Core document 8. |
-   | `Link` | `</schemas/elsa-tree-4.json>; rel="describedby"` on `tree.json` | The contract is one hop from the data for a tool that reads headers and not the body. |
-   | `Cache-Control` | `public, max-age=3600` | The same hour as an image or a font (5.3, 5.5). A Tree that changes is a deploy. |
-   | `ETag` | a strong tag over the file's bytes; `If-None-Match` answers 304 | A dataset a crawler re-fetches daily should be re-downloaded when it changed and not otherwise. |
-   | `Access-Control-Allow-Origin` | `*` | A dataset is meant to be fetched by other sites and tools. Safe here in a way it is not on most origins: there is no cookie, no session, no account and no header that carries authority, so there is nothing a cross-origin read reaches that a plain `curl` does not (core document 4, 8). `Access-Control-Allow-Credentials` is never sent. |
-   | `Access-Control-Allow-Methods` | `GET, HEAD` | The only two that exist here. |
-   | `X-Content-Type-Options` | `nosniff` | The route decides the type; the bytes never do. |
-   | `Content-Security-Policy` | `default-src 'none'; sandbox` | The header set 5.3 already applies to third-party bytes, kept the same so there is one set and not two. |
-   | `Content-Disposition` | `inline` | It is data to look at, not a file to save. |
-   | `Set-Cookie` | never, on this route or any other | Core document 8. |
+   What this decision settles, rather than the values, is that **CORS is safe on this
+   origin**: there is no cookie, no session, no account and no header that carries
+   authority, so a cross-origin read reaches nothing a plain `curl` does not (core
+   document 4, 8). That is a fact about this deployment and not a precedent for any
+   future route that gains a credential.
 
 5. **5.2's "never" is restated as a rule about pages.** The sentence becomes: never, in
    any **page** response, more than 17 Nodes' content, a file path, or any route a *page*
@@ -88,8 +92,9 @@ be secret -- the content is CC BY 4.0 and the repository is public.
   asked to save rather than a document it can read, and a browser cannot show it.
 - **No CORS header.** The conservative default, and wrong for this one route: a dataset
   that a notebook or another lab's page cannot `fetch` is a dataset only in name. The
-  reason it is safe is stated in the table, and it is specific to an origin with no
-  credentials at all -- it is not a precedent for any future route that gains one.
+  reason it is safe is stated in decision 4 and in `application.md` 15.2, and it is
+  specific to an origin with no credentials at all -- it is not a precedent for any
+  future route that gains one.
 - **Serving `tree.yaml` as well, for a transition period.** Two serialisations of one
   contract, which `ADR-118-json-serialisation.md` rejected for the format and which is
   no better at the edge of the system.
