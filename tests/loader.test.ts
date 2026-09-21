@@ -5,7 +5,7 @@
  * Fixtures are always loaded through `openTree`; no test builds a `Node` by hand or reads
  * YAML itself (docs/specs/application.md section 7).
  */
-import { readdir } from 'node:fs/promises'
+import { readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, test, vi } from 'vitest'
@@ -568,5 +568,41 @@ describe('how text is measured (tree-format.md 3.8)', () => {
 
     expect(countedLength(text)).toBe(35)
     expect(estimatedLines(text)).toBe(5)
+  })
+})
+
+/**
+ * What the sitemap reads (docs/specs/application.md 16.2): which pages exist, and when the
+ * Tree they come from last changed. Ids, not Nodes -- the bound of 5.2 is on how many
+ * Nodes a page may carry, and nothing below hands out one.
+ */
+describe('the Node index the sitemap reads (#118)', () => {
+  test('every Node id, in the order the file lists them', async () => {
+    const tree = await openTree(exampleTree)
+
+    expect(tree.nodeIds()).toEqual([
+      'start',
+      'outside-scope',
+      'prohibited-practices',
+      'social-scoring',
+      'emotion-recognition-at-work',
+      'prohibited',
+      'covered',
+    ])
+  })
+
+  test('the ids are exactly the Nodes `getNode` answers for, and no other id is one', async () => {
+    const tree = await openTree(exampleTree)
+
+    for (const id of tree.nodeIds()) expect(await tree.getNode(id), id).not.toBeNull()
+    expect(await tree.getNode('no-such-node')).toBeNull()
+    expect(tree.nodeIds()).not.toContain('no-such-node')
+  })
+
+  test("the Tree file's modification time is read once, at openTree", async () => {
+    const tree = await openTree(exampleTree)
+    const onDisk = await stat(path.join(exampleTree, 'tree.yaml'))
+
+    expect(tree.lastModified?.getTime()).toBe(onDisk.mtime.getTime())
   })
 })
