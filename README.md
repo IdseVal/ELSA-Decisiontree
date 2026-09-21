@@ -54,6 +54,7 @@ The Tree is a public dataset as well as a walk (`docs/specs/application.md` 15 a
 | `/schemas/elsa-tree-4.json` | The format's JSON Schema, which that file names in its own `$schema` key. MIT, like the rest of the code. |
 | `/llms.txt` | A short plain-text description of the site for an AI agent: what it is, where the dataset and the schema are, and how to address any step by URL. |
 | `/sitemap.xml`, `/robots.txt` | Every Node in every language, and a crawler policy that allows everything. |
+| Every Node page | A `schema.org` `@graph` in one `application/ld+json` script: the `Dataset` on the root Node's page -- its licence, its download and the instrument it is based on -- and a `WebPage` on every page, with the step's `Question` and its two answers where the Node asks one. |
 
 `curl -s http://localhost:3000/ai-act-example/tree.json | diff - trees/ai-act-example/tree.json`
 is empty: the download **is** the dataset, not an export of it.
