@@ -14,10 +14,16 @@
  * font a stylesheet fetches are both invisible in the markup the server sends.
  */
 import { expect, test, type Page, type Request, type Response } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { NO_BASE_URL_ORIGIN, PUBLIC_BASE_URL } from '../../playwright.config.ts'
 import { arrived } from './arrived.ts'
 
+const here = path.dirname(fileURLToPath(import.meta.url))
 const START = '/ai-act-example/start'
+const DATASET = '/ai-act-example/tree.json'
+const SCHEMA = '/schemas/elsa-tree-4.json'
 
 /**
  * Every host the page asked for something from, and every Set-Cookie it was answered.
@@ -120,9 +126,9 @@ test("without a public base URL the canonical link is the request's own origin",
  * and `/sitemap.xml`, **#121** `/<tree-id>/tree.json`, `/schemas/elsa-tree-4.json` and
  * `/llms.txt`.
  */
-const DOCUMENT_ROUTES = ['/robots.txt', '/sitemap.xml']
+const DOCUMENT_ROUTES = ['/robots.txt', '/sitemap.xml', '/llms.txt', DATASET, SCHEMA]
 
-test('the documents of section 16 set no cookie and leave the jar empty', async ({ page, context }) => {
+test('the documents of sections 15 and 16 set no cookie and leave the jar empty', async ({ page, context }) => {
   const seen = watch(page)
 
   for (const route of DOCUMENT_ROUTES) {
@@ -134,4 +140,98 @@ test('the documents of section 16 set no cookie and leave the jar empty', async 
   await seen.settled()
   expect(seen.setCookie).toEqual([])
   expect(await context.cookies()).toEqual([])
+})
+
+/**
+ * **[#121]** The two routes of section 15, against the server a deployment runs. The
+ * header table of 15.2 is asserted in full here rather than in a unit test because what a
+ * route hands back and what a server sends are not the same thing: the framework adds
+ * headers of its own, and a `304` is assembled by the server and not by the handler.
+ */
+test.describe('the dataset endpoint (15)', () => {
+  test('the Tree file answers with every header of 15.2, and the schema with its own licence', async ({
+    request,
+  }) => {
+    const dataset = await request.get(DATASET)
+    const schema = await request.get(SCHEMA)
+
+    for (const [route, answer] of [
+      [DATASET, dataset],
+      [SCHEMA, schema],
+    ] as const) {
+      const headers = answer.headers()
+
+      expect(answer.status(), route).toBe(200)
+      expect(headers['content-type'], route).toBe('application/json; charset=utf-8')
+      expect(headers['cache-control'], route).toBe('public, max-age=3600')
+      expect(headers['access-control-allow-origin'], route).toBe('*')
+      expect(headers['access-control-allow-methods'], route).toBe('GET, HEAD')
+      expect(headers['x-content-type-options'], route).toBe('nosniff')
+      expect(headers['content-security-policy'], route).toBe("default-src 'none'; sandbox")
+      expect(headers['content-disposition'], route).toBe('inline')
+      // A strong tag: a weak one (`W/"..."`) promises only that the bytes are equivalent,
+      // and this route's whole claim is that they are identical (15.3).
+      expect(headers['etag'], route).toMatch(/^"[^"]+"$/)
+      // Never sent, and not a precedent for any future route that gains a credential: a
+      // cross-origin read here reaches nothing a plain `curl` does not (15.2).
+      expect(headers['access-control-allow-credentials'], route).toBeUndefined()
+      expect(headers['set-cookie'], route).toBeUndefined()
+    }
+
+    // The licence travels with the bytes. The Tree is content and the schema is a file of
+    // the repository, so they carry different ones (core document 8).
+    expect(dataset.headers()['link']).toBe(
+      '<https://creativecommons.org/licenses/by/4.0/>; rel="license", </schemas/elsa-tree-4.json>; rel="describedby"',
+    )
+    expect(schema.headers()['link']).toBe('<https://opensource.org/license/mit>; rel="license"')
+  })
+
+  test('the bytes served are the file in the repository, byte for byte (15.3)', async ({ request }) => {
+    // The one claim of section 15 that cannot be made in a unit test: what a reader
+    // downloads is what the project holds, which is what makes this a dataset rather than
+    // an export. A re-serialisation of the in-memory Tree would pass a JSON comparison and
+    // fail this one.
+    const onDisk = await readFile(path.join(here, '..', '..', 'trees', 'ai-act-example', 'tree.json'))
+    const downloaded = await (await request.get(DATASET)).body()
+
+    expect(downloaded.equals(onDisk)).toBe(true)
+    expect(JSON.parse(downloaded.toString('utf8')).format).toBe('elsa-tree/4')
+  })
+
+  test('the ETag answers 304, so a crawler that re-fetches downloads nothing', async ({ request }) => {
+    for (const route of [DATASET, SCHEMA]) {
+      const first = await request.get(route)
+      const etag = first.headers()['etag']!
+      const again = await request.get(route, { headers: { 'If-None-Match': etag } })
+
+      expect(again.status(), route).toBe(304)
+      expect((await again.body()).length, route).toBe(0)
+      // The tag survives the round trip, so the next fetch can offer it again.
+      expect(again.headers()['etag'], route).toBe(etag)
+      // A tag the server did not issue is not a match, and the bytes come back.
+      const stale = await request.get(route, { headers: { 'If-None-Match': '"not-this-one"' } })
+      expect(stale.status(), route).toBe(200)
+    }
+  })
+
+  test('HEAD answers the same headers and no body', async ({ request }) => {
+    for (const route of [DATASET, SCHEMA]) {
+      const body = await request.get(route)
+      const head = await request.head(route)
+
+      expect(head.status(), route).toBe(200)
+      expect((await head.body()).length, route).toBe(0)
+      for (const header of ['content-type', 'link', 'cache-control', 'etag', 'access-control-allow-origin']) {
+        expect(head.headers()[header], `${route} ${header}`).toBe(body.headers()[header])
+      }
+    }
+  })
+
+  test('a Tree id this deployment does not serve, and an unpublished schema, are 404', async ({ request }) => {
+    // By the row 4.3 already gives for a Node page; nothing is looked up on disk for it.
+    expect((await request.get('/some-other-tree/tree.json')).status()).toBe(404)
+    // The route serves the published set, not the folder (15.1, the theme route's rule).
+    expect((await request.get('/schemas/elsa-tree-3.json')).status()).toBe(404)
+    expect((await request.get('/schemas/../package.json')).status()).not.toBe(200)
+  })
 })

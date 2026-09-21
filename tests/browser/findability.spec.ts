@@ -116,6 +116,43 @@ test("the sitemap parses in the browser's XML parser and holds the alternates", 
   expect(parsed.alternates).toEqual(['en', 'nl', 'x-default'])
 })
 
+/**
+ * **[#121]** The head link of 16.3 and the route of 15.1 are one deliverable, because a
+ * page that advertises a dataset the deployment does not serve is worse than one that
+ * says nothing (ADR-118-dataset-endpoint decision 6). This test is the assertion that
+ * fails if either ships without the other: it does not compare the href to a string it
+ * built, it **fetches what it finds in the head**.
+ */
+test('every page links to the dataset, and the link resolves to the dataset', async ({ page, request }) => {
+  const seen = new Set<string>()
+
+  for (const id of tree.nodeIds()) {
+    for (const lang of tree.manifest.languages) {
+      await page.goto(`/ai-act-example/${id}${lang === tree.manifest.defaultLanguage ? '' : `?lang=${lang}`}`)
+      const links = page.locator('link[rel="alternate"][type="application/json"]')
+
+      // Once per page, and the same URL on every page and in both languages: there is one
+      // dataset, in no language (15.1).
+      await expect(links, `${id}.${lang}`).toHaveCount(1)
+      seen.add(await links.evaluate((link) => (link as HTMLLinkElement).href))
+    }
+  }
+
+  expect([...seen]).toEqual([`${PUBLIC_BASE_URL}/ai-act-example/tree.json`])
+  const answer = await request.get([...seen][0]!.replace(PUBLIC_BASE_URL, ''))
+  expect(answer.status()).toBe(200)
+  expect(answer.headers()['content-type']).toBe('application/json; charset=utf-8')
+})
+
+test('a page reached through a Trail links to the same dataset', async ({ page }) => {
+  await page.goto('/ai-act-example/start/prohibited-practices?lang=nl')
+
+  await expect(page.locator('link[rel="alternate"][type="application/json"]')).toHaveAttribute(
+    'href',
+    `${PUBLIC_BASE_URL}/ai-act-example/tree.json`,
+  )
+})
+
 test('robots.txt answers with its media type, the twenty agents and the sitemap', async ({ request }) => {
   const answer = await request.get('/robots.txt')
   const file = await answer.text()
@@ -135,7 +172,37 @@ test('the sitemap answers with its media type', async ({ request }) => {
   expect(answer.headers()['content-type']).toBe('application/xml; charset=utf-8')
 })
 
-test('both documents are generated per request, not served from the repository', async ({ request }) => {
+/**
+ * **[#121]** `llms.txt` (16.5): what a served document shows that a unit test cannot --
+ * the media type a client actually receives, and that the file an agent fetches names a
+ * dataset URL that answers.
+ */
+test('llms.txt answers as plain text and its dataset link resolves', async ({ request }) => {
+  const answer = await request.get('/llms.txt')
+  const file = await answer.text()
+
+  expect(answer.status()).toBe(200)
+  // Markdown content under a plain-text media type, which is what the convention's readers
+  // expect: `text/markdown` is not reliably handled by the middle of the internet.
+  expect(answer.headers()['content-type']).toBe('text/plain; charset=utf-8')
+  expect(file.split('\n')[0]).toBe(`# ${tree.manifest.title.en}`)
+  expect(file).toContain(`(${PUBLIC_BASE_URL}/ai-act-example/tree.json)`)
+  expect(file).toContain(`(${PUBLIC_BASE_URL}/sitemap.xml)`)
+  expect(file).toContain('https://creativecommons.org/licenses/by/4.0/')
+
+  // The URL an agent that read only this file would fetch, on the server that served it.
+  expect((await request.get('/ai-act-example/tree.json')).status()).toBe(200)
+})
+
+test('there is no llms-full.txt to fetch', async ({ request }) => {
+  // The complete content of this site in one document is `/<tree-id>/tree.json`, which
+  // llms.txt names in its first section; a second rendering would be the copy that drifts.
+  expect((await request.get('/llms-full.txt')).status()).toBe(404)
+})
+
+test('the documents of section 16 are generated per request, not served from the repository', async ({
+  request,
+}) => {
   // The same build, two deployments: the one configured with a public base URL and the one
   // given none, which answers on its own origin (16). A file in `public/` could not say
   // two different things, and a build-time sitemap would need the origin baked in.
@@ -150,4 +217,10 @@ test('both documents are generated per request, not served from the repository',
   const sitemap = await (await request.get(`${NO_BASE_URL_ORIGIN}/sitemap.xml`)).text()
   expect(sitemap).toContain(`<loc>${NO_BASE_URL_ORIGIN}/ai-act-example/start</loc>`)
   expect(sitemap).not.toContain(PUBLIC_BASE_URL)
+
+  // **[#121]** `llms.txt` and the head's dataset link read the same base, so the
+  // deployment that names none advertises the origin each request arrived on.
+  const llms = await (await request.get(`${NO_BASE_URL_ORIGIN}/llms.txt`)).text()
+  expect(llms).toContain(`(${NO_BASE_URL_ORIGIN}/ai-act-example/tree.json)`)
+  expect(llms).not.toContain(PUBLIC_BASE_URL)
 })
