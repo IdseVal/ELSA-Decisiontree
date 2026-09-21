@@ -75,7 +75,12 @@ be secret -- the content is CC BY 4.0 and the repository is public.
    project's architect role exists to avoid.
 6. **Every Node page links to it once**: `<link rel="alternate" type="application/json"
    href="<dataset URL>">` in the head, so a crawler that landed on any page of the walk
-   finds the data (issue #121).
+   finds the data. **Issue #121 adds the line, together with the route**, and it is the
+   one line of `application.md` 16.3 that is not #120's: the head link and the resource
+   it names are one deliverable, because a page that advertises a dataset the deployment
+   does not serve is the failure `ADR-118-json-ld.md` calls worse than no `Dataset`.
+   16.3 and 15.3 both say so, and `findability.spec.ts` asserts it by fetching the
+   `href` it finds in the head (`application.md` section 7, #121's row).
 7. **No collision, and no existing URL changes.** `tree.json` cannot be a Node id -- the
    id grammar of `tree-format.md` 3.1 admits no dot -- so `/<tree-id>/tree.json` is a
    path the Node page route answers 404 for today and the dataset route answers 200 for
