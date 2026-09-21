@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { chrome, chromeLang, text } from '../../../../chrome.ts'
 import { Disclaimer } from '../../../../components/Disclaimer.tsx'
@@ -6,10 +7,11 @@ import { LanguageSwitch } from '../../../../components/LanguageSwitch.tsx'
 import { Logo } from '../../../../components/Logo.tsx'
 import { ShareButton, type ShareWords } from '../../../../components/ShareButton.tsx'
 import { TreeView } from '../../../../components/TreeView.tsx'
-import { publicBaseUrl, servedTree } from '../../../../config.ts'
+import { baseUrl, servedTree } from '../../../../config.ts'
+import { plainDescription } from '../../../../markdown.ts'
 import { loadPage } from '../../../../neighbourhood.ts'
 import type { Tree } from '../../../../tree/loader.ts'
-import { canonicalHref, parseUrl, type PageAddress } from '../../../../url.ts'
+import { addressSet, parseUrl, type PageAddress } from '../../../../url.ts'
 
 /**
  * The Node page, `/<tree-id>/<...trail>/<node-id>` (docs/specs/application.md 4.1). The
@@ -61,25 +63,38 @@ function shareWords(lang: string): ShareWords {
 }
 
 /**
- * The page title and the canonical link (4.1). The Node's title comes from the loader's
- * in-memory index, so describing the page costs no second read of the Node file.
+ * The head of a Node page: the title, the canonical link (4.1), the `hreflang` links and
+ * the description meta tag (**[#118]** 16.3). The Node's title comes from the loader's
+ * in-memory index and its description from the Node itself, so describing the page reads
+ * no file.
  *
- * `metadataBase` is the deployment's own address (`ELSA_BASE_URL`, docs/deployment.md):
- * with it the canonical link is the absolute URL of this Node, without it the path 4.1
- * gives. It is read here, per request, rather than baked into the build, because where the
- * app is reached is a run-time setting like the Tree it serves.
+ * All four addresses come from one call to `addressSet`, which is the decision of 16.3:
+ * the sitemap renders the same call, and a page's `hreflang` set and the sitemap's entries
+ * are read as one graph that a search engine drops entirely when the two disagree.
+ *
+ * The base is read here, per request, rather than baked into the build, because where the
+ * app is reached is a run-time setting like the Tree it serves: `ELSA_BASE_URL` when the
+ * deployment names one, and otherwise this request's own origin (16).
  */
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const found = await addressOf(props)
   if (!found) return {}
   const { tree, address } = found
+  const base = baseUrl(await headers())
+  const { addresses, alternates } = addressSet(tree, address.nodeId, base)
   const title = tree.getTitle(address.nodeId)
+  const node = await tree.getNode(address.nodeId)
+  const description = node?.description[address.lang]
   return {
-    metadataBase: publicBaseUrl(),
+    metadataBase: base,
     title: title
       ? `${text(title, address.lang, `${address.nodeId}.title`)} - ${text(tree.manifest.title, address.lang, 'tree.title')}`
       : undefined,
-    alternates: { canonical: canonicalHref(address) },
+    description: description ? plainDescription(description).cut : undefined,
+    alternates: {
+      canonical: addresses.find((entry) => entry.lang === address.lang)?.url,
+      languages: Object.fromEntries(alternates.map(({ hreflang, url }) => [hreflang, url])),
+    },
   }
 }
 
