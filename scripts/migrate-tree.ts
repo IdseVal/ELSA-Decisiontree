@@ -4,9 +4,9 @@
  *
  * This is what is left of the migration of section 12 after issue #119 ran it. Its steps 5
  * to 9 -- the key order, the byte form, the read-back and the validation -- are these; its
- * steps 1 to 4, which parsed a `tree.yaml`, went with the parser, and a Tree still written
- * in `elsa-tree/1`, `/2` or `/3` is converted with the last release that read YAML and
- * then by 12.6. No Tree in this repository is in that state.
+ * steps 1 to 4 read the format this one replaced, and went with the parser that read it. A
+ * Tree still written in `elsa-tree/1`, `/2` or `/3` is converted with the last release
+ * before #119 and then by 12.6; no Tree in this repository is in that state.
  *
  * What it is for now is the contract of 3.7 made runnable: **writing a Tree that was just
  * read changes no byte**, so a Tree the editor of the next round rewrites has a diff that

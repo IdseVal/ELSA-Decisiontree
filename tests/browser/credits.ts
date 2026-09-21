@@ -23,10 +23,10 @@ import { imageHref } from '../../src/url.ts'
  * enumerate; every Node comes through the loader (section 7).
  */
 export async function picturesByNode(tree: Tree, treeDir: string): Promise<Map<string, Image[]>> {
-  const yaml = await readFile(path.join(treeDir, 'tree.yaml'), 'utf8')
+  const file = JSON.parse(await readFile(path.join(treeDir, 'tree.json'), 'utf8')) as { nodes: Array<{ id: string }> }
   const byNode = new Map<string, Image[]>()
-  for (const [, id] of yaml.matchAll(/^id: (\S+)$/gm)) {
-    const node = await tree.getNode(id!)
+  for (const { id } of file.nodes) {
+    const node = await tree.getNode(id)
     if (!node) throw new Error(`${id} cannot be read`)
     if (node.images.length > 0) byNode.set(node.id, node.images)
   }

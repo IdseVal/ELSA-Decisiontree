@@ -6,7 +6,7 @@
  *   nothing is fetched from a third party at run time; a font a stylesheet asks for is
  *   invisible in the HTML, so this is measured rather than asserted.
  * - **the logo is really on the page**, painted, not merely in the markup.
- * - **changing a colour in a Tree's `tree.yaml` and restarting changes the page**, with no
+ * - **changing a colour in a Tree's `tree.json` and restarting changes the page**, with no
  *   code change. That is the whole point of hosting the look in the data
  *   (ADR-38-theme-delivery, Consequences), and it is one thing a unit test cannot show.
  *
@@ -145,11 +145,11 @@ test('the logo links out but is never fetched, and the dark variant is the one s
   expect(await property(page, '--elsa-background')).toBe('#161a1d')
 })
 
-test('changing a colour in tree.yaml and restarting changes the page, with no code change', async ({ page }) => {
+test('changing a colour in tree.json and restarting changes the page, with no code change', async ({ page }) => {
   const { treesDir, dir } = await copyTree(path.join(trees, 'ai-act-example'), 'ai-act-example')
-  const file = path.join(dir, 'tree.yaml')
+  const file = path.join(dir, 'tree.json')
   const before = await readFile(file, 'utf8')
-  const changed = before.replace('accent-secondary: "#5aa9c9"', 'accent-secondary: "#00c2a8"')
+  const changed = before.replace('"accent-secondary": "#5aa9c9"', '"accent-secondary": "#00c2a8"')
   expect(changed, 'the accent-secondary line the Tree is edited at').not.toBe(before)
   await writeFile(file, changed)
 
@@ -219,11 +219,11 @@ test('the Sheet never brightens the page behind it, whichever way the palette ru
 
   // The same Tree with `text` and `background` exchanged: a light palette, one line each.
   const { treesDir, dir } = await copyTree(path.join(trees, 'ai-act-example'), 'ai-act-example')
-  const file = path.join(dir, 'tree.yaml')
+  const file = path.join(dir, 'tree.json')
   const before = await readFile(file, 'utf8')
   const changed = before
-    .replace('background: "#161a1d"', 'background: "#eef1f2"')
-    .replace('text: "#eef1f2"', 'text: "#161a1d"')
+    .replace('"background": "#161a1d"', '"background": "#eef1f2"')
+    .replace('"text": "#eef1f2"', '"text": "#161a1d"')
   expect(changed, 'the two palette lines the Tree is edited at').not.toBe(before)
   await writeFile(file, changed)
 

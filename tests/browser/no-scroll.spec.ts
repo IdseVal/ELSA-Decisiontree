@@ -725,9 +725,8 @@ test('the longest Node of the first Tree, once it validates, never scrolls at an
 
   // The longest Node: the longest description in any language. The ids are read off the
   // file only to enumerate; every Node itself comes through the loader (section 7).
-  const ids = [...(await readFile(path.join(trees, first, 'tree.yaml'), 'utf8')).matchAll(/^id: (\S+)$/gm)].map(
-    (match) => match[1]!,
-  )
+  const file = JSON.parse(await readFile(path.join(trees, first, 'tree.json'), 'utf8')) as { nodes: Array<{ id: string }> }
+  const ids = file.nodes.map((node) => node.id)
   let longest = { id: tree!.manifest.root, length: -1 }
   for (const id of ids) {
     const node = await tree!.getNode(id)

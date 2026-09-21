@@ -317,7 +317,7 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
  *
  * 23 of the 28 Option pictures and 5 of the 7 Node pictures are CC BY or CC BY-SA, and
  * those licences ask for the attribution to be given where the work is shared. So "the
- * credit is in `tree.yaml`" is not the behaviour that matters to them; "a reader is shown
+ * credit is in `tree.json`" is not the behaviour that matters to them; "a reader is shown
  * it" is. The owner's answer on PR #54 (2026-09-12) was to merge the pictures now and make
  * the display a release blocker (`docs/deployment.md`), tracked as issue #55.
  *
@@ -374,7 +374,7 @@ test("every step Node's picture is its main image, and a click on it shows its c
     await page.locator('.bubble a.main-image').click()
     const enlarged = page.locator('.carousel-sheet .sheet-panel')
     await expect(enlarged).toBeVisible()
-    // Author, where it came from and the licence, as `tree.yaml` writes it.
+    // Author, where it came from and the licence, as `tree.json` writes it.
     await expect(enlarged.locator('.credit')).toContainText(image.credit)
     await page.keyboard.press('Escape')
     await expect(enlarged).toBeHidden()

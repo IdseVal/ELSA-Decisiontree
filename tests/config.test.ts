@@ -73,10 +73,10 @@ describe('a deployment that names no usable Tree refuses to start', () => {
   })
 
   test('an invalid Tree is refused, with every violation in the message', async () => {
-    const message = await refusal({ ELSA_TREE: 'v-terminal', ELSA_TREES_DIR: path.join(fixturesDir, 'invalid') })
+    const message = await refusal({ ELSA_TREE: 'v-image', ELSA_TREES_DIR: path.join(fixturesDir, 'invalid') })
 
-    expect(message).toContain('V-TERMINAL')
-    expect(message).toContain('yes-end')
+    expect(message).toContain('V-IMAGE')
+    expect(message).toContain('start')
   })
 })
 

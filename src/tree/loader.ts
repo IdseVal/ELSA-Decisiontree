@@ -135,14 +135,14 @@ async function readTree(root: string, id: string, violations: Violation[]): Prom
  * V-JSON: `tree.json` as one JSON object (RFC 8259) in UTF-8 without a byte-order mark and
  * with no duplicate key. One JSON file is one document, so a syntax error anywhere is a
  * syntax error everywhere: nothing else is checked and the Tree is not loaded
- * (tree-format.md 7, and 12.6.3 on what that changes against the YAML stream of /3).
+ * (tree-format.md 7, and 12.6.3 on what that changes against the document stream of /3).
  */
 function parseTree(text: string, violations: Violation[]): Mapping | null {
   const fail = (message: string): null => {
     violations.push({ file: 'tree.json', keyPath: '', rule: 'V-JSON', message })
     return null
   }
-  if (text.startsWith('﻿')) return fail('tree.json begins with a byte-order mark; write it as UTF-8 without one')
+  if (text.startsWith('\uFEFF')) return fail('tree.json begins with a byte-order mark; write it as UTF-8 without one')
 
   let parsed: unknown
   try {

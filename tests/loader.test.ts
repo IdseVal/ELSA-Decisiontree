@@ -2,10 +2,10 @@
  * The Tree loader (docs/specs/application.md section 5.1): what `openTree` accepts, what
  * it rejects, and the promise that a page is served from the index without touching a file.
  *
- * Fixtures are always loaded through `openTree`; no test builds a `Node` by hand or reads
- * YAML itself (docs/specs/application.md section 7).
+ * Fixtures are always loaded through `openTree`; no test builds a `Node` by hand or parses
+ * a `tree.json` itself (docs/specs/application.md section 7).
  */
-import { readdir, stat } from 'node:fs/promises'
+import { readFile, readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, test, vi } from 'vitest'
@@ -36,12 +36,22 @@ afterEach(() => {
   reads.length = 0
 })
 
+/** The violations `openTree` refused this Tree folder with; fails the test if it loaded. */
+async function violationsOf(dir: string): Promise<Violation[]> {
+  const error = await openTree(dir).then(
+    () => null,
+    (reason: unknown) => reason,
+  )
+  expect(error, `${path.basename(dir)} loaded without error`).toBeInstanceOf(TreeInvalid)
+  return (error as InstanceType<typeof TreeInvalid>).violations
+}
+
 describe('a Tree in two languages', () => {
   test('the manifest carries the declared languages, the first one as the default', async () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/3')
+    expect(tree.manifest.format).toBe('elsa-tree/4')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
@@ -279,7 +289,7 @@ describe('the Tree is read once and a page reads nothing', () => {
   test('openTree reads one file: the Tree', async () => {
     await openTree(exampleTree)
 
-    expect(reads).toEqual([path.join(exampleTree, 'tree.yaml')])
+    expect(reads).toEqual([path.join(exampleTree, 'tree.json')])
   })
 
   test('a Node page costs no file read at all', async () => {
@@ -336,21 +346,26 @@ describe('a Tree in languages the frontend does not know', () => {
 
 describe('an invalid Tree is rejected, naming the Node and the rule', () => {
   // One fixture per validity rule of tree-format.md section 7, each breaking exactly that
-  // rule (docs/specs/application.md section 7).
-  const rules = [
-    'V-DIR', 'V-YAML', 'V-FORMAT', 'V-LANG', 'V-ROOT', 'V-TITLE', 'V-META', 'V-KEYS',
-    'V-REACH', 'V-THEME', 'V-L10N', 'V-PLAIN', 'V-HTML', 'V-LENGTH', 'V-LINES', 'V-COUNT',
-    'V-NODE', 'V-KIND', 'V-ANSWERS', 'V-OPTIONS', 'V-ORPHAN', 'V-TERMINAL', 'V-SOURCE',
-    'V-IMAGE', 'V-EXPLAINER', 'V-MARK', 'V-CROSS',
+  // rule, and each answered by the tool the rule's Where column names: `schema` for a
+  // shape failure, `rules` for a content one (3.9, docs/specs/application.md section 7).
+  const rules: Array<[rule: string, answers: 'schema' | 'rules']> = [
+    ['V-DIR', 'rules'], ['V-JSON', 'rules'], ['V-SCHEMA', 'schema'], ['V-FORMAT', 'schema'],
+    ['V-NULL', 'schema'], ['V-EMPTY', 'schema'], ['V-LANG', 'schema'], ['V-ROOT', 'rules'],
+    ['V-TITLE', 'schema'], ['V-META', 'schema'], ['V-KEYS', 'schema'], ['V-REACH', 'rules'],
+    ['V-THEME', 'schema'], ['V-L10N', 'rules'], ['V-PLAIN', 'rules'], ['V-HTML', 'rules'],
+    ['V-LENGTH', 'rules'], ['V-LINES', 'rules'], ['V-COUNT', 'rules'], ['V-NODE', 'schema'],
+    ['V-KIND', 'schema'], ['V-ANSWERS', 'schema'], ['V-OPTIONS', 'rules'], ['V-ORPHAN', 'rules'],
+    ['V-TERMINAL', 'schema'], ['V-SOURCE', 'schema'], ['V-IMAGE', 'rules'],
+    ['V-EXPLAINER', 'rules'], ['V-MARK', 'rules'], ['V-CROSS', 'schema'],
   ]
 
   test('every rule of section 7 has a fixture, and every fixture a rule', async () => {
     const folders = await readdir(fixture('invalid'))
 
-    expect(folders.sort()).toEqual(rules.map((rule) => rule.toLowerCase()).sort())
+    expect(folders.sort()).toEqual(rules.map(([rule]) => rule.toLowerCase()).sort())
   })
 
-  test.each(rules)('%s', async (rule) => {
+  test.each(rules)('%s is answered by the %s', async (rule, answers) => {
     const dir = fixture('invalid', rule.toLowerCase())
 
     const error = await openTree(dir).then(
@@ -361,14 +376,35 @@ describe('an invalid Tree is rejected, naming the Node and the rule', () => {
     expect(error, `${rule} fixture loaded without error`).toBeInstanceOf(TreeInvalid)
     const invalid = error as InstanceType<typeof TreeInvalid>
     expect(invalid.treeId).toBe(rule.toLowerCase())
-    // Exactly this rule: a fixture that also trips another rule proves the wrong thing.
-    expect([...new Set(invalid.violations.map((v) => v.rule))]).toEqual([rule])
-    for (const violation of invalid.violations) {
-      expect(violation.message).not.toBe('')
-      // The message a person reads names where it is and the rule (tree-format.md section 7).
-      expect(invalid.message).toContain(violation.file || rule.toLowerCase())
-      expect(invalid.message).toContain(rule)
+    if (answers === 'rules') {
+      // Exactly this rule: a fixture that also trips another rule proves the wrong thing.
+      expect([...new Set(invalid.violations.map((v) => v.rule))]).toEqual([rule])
+      for (const violation of invalid.violations) {
+        expect(invalid.message).toContain(violation.file || rule.toLowerCase())
+        expect(invalid.message).toContain(rule)
+      }
+    } else {
+      // The schema answers in its own form: the file, a JSON Pointer and its own words.
+      // The rule id is in section 7's table, not in the message; nothing translates it.
+      expect([...new Set(invalid.violations.map((v) => v.rule))]).toEqual(['schema'])
+      for (const violation of invalid.violations) {
+        expect(violation.file).toBe('tree.json')
+        expect(violation.keyPath.startsWith('/'), `${rule}: "${violation.keyPath}" is not a JSON Pointer`).toBe(true)
+      }
     }
+    for (const violation of invalid.violations) expect(violation.message).not.toBe('')
+  })
+
+  test('the two report forms stand side by side, and neither is the other', async () => {
+    const shape = await violationsOf(fixture('invalid', 'v-keys'))
+    const content = await violationsOf(fixture('invalid', 'v-length'))
+
+    expect(shape).toEqual([
+      { file: 'tree.json', keyPath: '/nodes/0', rule: 'schema', message: 'must NOT have additional properties: "notes"' },
+    ])
+    expect(content).toEqual([
+      { file: 'start', keyPath: 'title.en', rule: 'V-LENGTH', message: '81 characters; at most 80' },
+    ])
   })
 
   test('a length violation names the field, the language, the actual length and the maximum', async () => {
@@ -464,22 +500,33 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
     ],
     [
       // The half of V-TERMINAL that `invalid/v-terminal/` (a bad outcome) does not reach.
+      // The schema states it as `options: false` under `dependentSchemas.terminal`, so the
+      // pointer names the key and the words are the schema's (tree-format.md 3.9).
       'terminal-with-options',
       [
-        { file: 'yes-end', keyPath: 'options', rule: 'V-TERMINAL', message: 'a Terminal cannot have options' },
+        { file: 'tree.json', keyPath: '/nodes/3/options', rule: 'schema', message: 'boolean schema is false' },
       ],
     ],
     [
       'explainer-malformed',
       [
         { file: 'start', keyPath: 'explainers[1].id', rule: 'V-EXPLAINER', message: 'explainer id "provider" is used twice on this Node' },
-        { file: 'start', keyPath: 'explainers[2].text', rule: 'V-EXPLAINER', message: 'text is required' },
       ],
     ],
     [
+      // `"explainers": []` is V-EMPTY, which the schema owns: one way to say a thing.
       'explainers-empty',
       [
-        { file: 'start', keyPath: 'explainers', rule: 'V-EXPLAINER', message: 'must be a non-empty list; leave the key out for a Node without explainers' },
+        { file: 'tree.json', keyPath: '/nodes/0/explainers', rule: 'schema', message: 'must NOT have fewer than 1 items' },
+      ],
+    ],
+    [
+      // The one rule of elsa-tree/4 a valid elsa-tree/3 Tree could trip (12.6.2). Ajv says
+      // it twice, once for the `not` and once for the key it fired on; both are the schema's.
+      'metadata-all-digits',
+      [
+        { file: 'tree.json', keyPath: '/metadata', rule: 'schema', message: 'must NOT be valid' },
+        { file: 'tree.json', keyPath: '/metadata', rule: 'schema', message: 'property name must be valid: "2024"' },
       ],
     ],
     [
@@ -528,17 +575,33 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
     }
   })
 
-  test('a Node document that does not parse breaks that Node and no other', async () => {
-    // tree-format.md 3.7: the error is reported for its own document, with its line
-    // number, and the other documents are still read and checked.
-    const error = await openTree(fixture('broken', 'node-document-does-not-parse')).then(
-      () => null,
-      (reason: unknown) => reason as InstanceType<typeof TreeInvalid>,
-    )
+  test('a file that does not parse is one V-JSON with the parser position, and nothing else', async () => {
+    // One JSON file is one document, so a syntax error anywhere is a syntax error
+    // everywhere: no other rule is checked (tree-format.md 7, 12.6.3).
+    const violations = await violationsOf(fixture('invalid', 'v-json'))
 
-    expect(error!.violations).toHaveLength(1)
-    expect(error!.violations[0]).toMatchObject({ file: 'detail', keyPath: '', rule: 'V-YAML' })
-    expect(error!.violations[0]!.message).toContain('at line 33')
+    expect(violations).toHaveLength(1)
+    expect(violations[0]).toMatchObject({ file: 'tree.json', keyPath: '', rule: 'V-JSON' })
+    expect(violations[0]!.message).toMatch(/line 47 column 1/)
+  })
+
+  test('a duplicate key is caught although the parser keeps the last value silently', async () => {
+    // The one rule of the format that reads the bytes rather than the value (3.7): the
+    // fixture's manifest names `root` twice, and JSON.parse would answer "no-end".
+    const violations = await violationsOf(fixture('broken', 'duplicate-key'))
+
+    expect(violations).toEqual([
+      { file: 'tree.json', keyPath: '', rule: 'V-JSON', message: 'the key "root" appears twice in one object, at line 8 column 3' },
+    ])
+    expect(JSON.parse(await readFile(path.join(fixture('broken', 'duplicate-key'), 'tree.json'), 'utf8')).root).toBe('no-end')
+  })
+
+  test('a byte-order mark is refused by name, not as a parser error', async () => {
+    const violations = await violationsOf(fixture('broken', 'byte-order-mark'))
+
+    expect(violations).toEqual([
+      { file: 'tree.json', keyPath: '', rule: 'V-JSON', message: 'tree.json begins with a byte-order mark; write it as UTF-8 without one' },
+    ])
   })
 })
 
