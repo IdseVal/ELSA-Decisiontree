@@ -44,10 +44,14 @@ Section 7 has twenty-odd rules. They fall into three kinds:
 2. **The app serves it at `GET /schemas/elsa-tree-4.json`** (`application.md` 15.1), so
    `schemas` joins `images` and `theme` as a reserved Tree id.
 3. **The schema carries the shape and nothing else.** Types, required keys, closed sets,
-   grammars, `additionalProperties: false` at every level (which is V-KEYS), "no `null`"
-   and "no empty list" (V-NULL, V-EMPTY), and the two kind rules a single Node object can
-   state: a question Node is not also a Terminal, and a Terminal has no Answers and no
-   Options (V-KIND, V-TERMINAL, expressed with `dependentSchemas`).
+   grammars, `additionalProperties: false` at every level whose keys this format defines
+   -- which is V-KEYS, and stops where V-KEYS stops: `metadata` stays open (the author's
+   bag), and a localised text is keyed by language tag rather than by a fixed list, so
+   its `additionalProperties` is a string schema and not `false` (`tree-format.md` 3.7,
+   3.3) -- "no `null`" and "no empty list" (V-NULL, V-EMPTY, which stop at `metadata`
+   too), and the two kind rules a single Node object can state: a question Node is
+   not also a Terminal, and a Terminal has no Answers and no Options (V-KIND,
+   V-TERMINAL, expressed with `dependentSchemas`).
 4. **The limits and the cross-reading rules stay in section 7**, applied by the loader
    after the schema passes. `tree-format.md` 7 says which rule each kind belongs to, in
    its own column, so an author reading the rules knows which tool answers for which.
