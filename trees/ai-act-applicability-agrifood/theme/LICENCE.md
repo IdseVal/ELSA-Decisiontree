@@ -49,18 +49,23 @@ the owner's own statement, not a published licence.
 
 > This is our logo, we have the right to use it it stays in the repo.
 
-Both files stay in this repository. Whether they may also be published with it when it
-goes public was asked in the same question and is not separately confirmed (see below and
-issue #12).
+Both files stay in this repository **and are published with it**. The repository has been
+public since it was created on 2026-09-01, so both files have been downloadable by anyone
+since they were committed on 2026-09-10. The owner was shown that on issue #111 and
+accepted it on 2026-09-21:
+
+> Yes they may be published. Stop worrying about this. This is our logo.
+
+Asked whether any further licence or permission line should be recorded beside the files,
+the owner gave none, so the licence line above is the only one.
 
     debeef5b5b35ab9571c0b7b4b170fbcc586361c5d94da96c72a9dcb584e1e74d  elsa-lab-logo.png
     53d5d494e7efe8e4f3dc9f8c4ed9a1d487d1437605d7f143af897e50802cd15a  favicon.png
 
-The owner's words settle the right to use the logo. These questions put to the owner on
-#73 were not answered and are recorded as such:
+The owner's words settle the right to use the logo and the right to publish it. These
+further questions, put to the owner on #73 and again on #111, were not answered and are
+recorded as such:
 
-- Whether both files may be published with the repository when it goes public (#12): **not
-  answered** -- the owner said the logo stays in the repository.
 - Who "we" is, and whether anyone other than the owner (the lab, the university's
   communications department) must agree, and whether that agreement exists: **not
   answered**.
@@ -75,4 +80,6 @@ The owner's words settle the right to use the logo. These questions put to the o
   coloured surface, needs a master this lab has not published. That is why this Theme
   names no `logo.dark`.
 
-Until those are answered, these two files travel with this Tree and with nothing else.
+Those blanks no longer hold anything up here: the owner has settled both keeping the files
+and publishing them. They bear on reuse elsewhere, and nothing in this file grants anyone
+outside this project a licence to the mark.
