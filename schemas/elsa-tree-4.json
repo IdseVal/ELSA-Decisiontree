@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "elsa-tree/4",
+  "description": "The shape of a Tree file (tree.json) of the ELSA decision-tree frontend. This schema is the STRUCTURE half of the contract: types, required keys, closed sets and the grammars of ids, language tags, file names, colours and URLs. It deliberately carries no length limit and no list maximum, because those are measured on the COUNTED TEXT of docs/specs/tree-format.md 3.8 -- Markdown links replaced by their text, Unicode code points counted -- which a JSON Schema cannot compute; they are the content rules of tree-format.md section 7 (V-LENGTH, V-LINES, V-COUNT), applied by the loader after this schema passes. Rules that need to read another part of the file (every localised text holds exactly the declared languages; every reference names an existing Node; every explainer is marked in the description) are content rules for the same reason. See docs/specs/tree-format.md and docs/adrs/ADR-118-json-schema.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "format", "languages", "root", "title", "metadata", "nodes"],
+  "properties": {
+    "$schema": {
+      "description": "A pointer to this schema, so a generic tool can find the contract from the file alone. Written first. The Trees in this repository write the origin-relative path, which resolves against whatever origin serves the Tree (docs/specs/application.md 15.1); a third party that publishes the schema elsewhere writes its absolute URL. The loader does not fetch it.",
+      "type": "string",
+      "pattern": "^(?:/|https?://[^\\s]*/)schemas/elsa-tree-4\\.json$"
+    },
+    "format": {
+      "description": "The version of the contract this Tree is written against. A loader that does not know the value rejects the Tree (V-FORMAT).",
+      "const": "elsa-tree/4"
+    },
+    "languages": {
+      "description": "The languages every localised text in the Tree provides. The first entry is the default language. Order is meaningful.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/languageTag" }
+    },
+    "root": {
+      "description": "The Node the walk starts at. Must be a question Node or a Terminal (V-ROOT).",
+      "$ref": "#/$defs/nodeReference"
+    },
+    "title": { "$ref": "#/$defs/localisedText" },
+    "description": { "$ref": "#/$defs/localisedText" },
+    "metadata": { "$ref": "#/$defs/metadata" },
+    "theme": { "$ref": "#/$defs/theme" },
+    "nodes": {
+      "description": "Every Node of the Tree, as an array in the author's order. The order is the Tree's reading order; the loader indexes by id, so no Link depends on it.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "description": "An id (tree-format.md 3.1): lowercase ASCII letters and digits with single hyphens between groups. The colon is excluded, which is rule V-CROSS by construction.",
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "nodeReference": {
+      "description": "The id of a Node in the same Tree (tree-format.md 3.2).",
+      "$ref": "#/$defs/id"
+    },
+    "languageTag": {
+      "description": "A lowercase BCP 47 language tag (tree-format.md 3.3): en, nl, de, pt-br.",
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[a-z0-9]{2,8})*$"
+    },
+    "localisedText": {
+      "description": "A mapping from language tag to a non-empty string. That it holds exactly the languages the manifest declares is rule V-L10N, which needs `languages` and is therefore a content rule.",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/languageTag" },
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "metadata": {
+      "description": "The author's bag. `version` is required and is a string (V-META); every other key is the author's own, kept and not interpreted. This is where a note that would have been a YAML comment goes.",
+      "type": "object",
+      "required": ["version"],
+      "properties": { "version": { "type": "string", "minLength": 1 } }
+    },
+    "url": {
+      "description": "An absolute http:// or https:// URL. Linked to, never fetched by the application.",
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://"
+    },
+    "imageFileName": {
+      "description": "A file in this Tree's images/ folder (tree-format.md 3.5). Lowercase, no path separator, no dot segment.",
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^[a-z0-9]+([._-][a-z0-9]+)*\\.(png|jpg|jpeg|gif|webp|svg)$"
+    },
+    "logoFileName": {
+      "description": "A logo or icon file in this Tree's theme/ folder (tree-format.md 3.6).",
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^[a-z0-9]+([._-][a-z0-9]+)*\\.(svg|png|webp|ico)$"
+    },
+    "fontFileName": {
+      "description": "A font file in this Tree's theme/ folder: woff2 and nothing else (tree-format.md 3.6).",
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^[a-z0-9]+([._-][a-z0-9]+)*\\.woff2$"
+    },
+    "theme": {
+      "description": "The look this Tree carries (tree-format.md 4.3). At least one of the three parts, and each part that is present is complete (V-THEME).",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "logo": { "$ref": "#/$defs/logo" },
+        "fonts": { "$ref": "#/$defs/fonts" },
+        "colours": { "$ref": "#/$defs/colours" }
+      }
+    },
+    "logo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["light", "alt"],
+      "properties": {
+        "light": { "$ref": "#/$defs/logoFileName" },
+        "dark": { "$ref": "#/$defs/logoFileName" },
+        "icon": { "$ref": "#/$defs/logoFileName" },
+        "alt": { "$ref": "#/$defs/localisedText" },
+        "url": { "$ref": "#/$defs/url" }
+      }
+    },
+    "fonts": {
+      "description": "Font families, at most two and at most one per role; both maxima are content rules (V-COUNT, V-THEME).",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/fontFamily" }
+    },
+    "fontFamily": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "role", "files", "licence"],
+      "properties": {
+        "family": { "type": "string", "minLength": 1 },
+        "role": { "enum": ["body", "heading"] },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/fontFile" }
+        },
+        "licence": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fontFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "weight", "style"],
+      "properties": {
+        "file": { "$ref": "#/$defs/fontFileName" },
+        "weight": {
+          "description": "The font-weight descriptor as a string: one number 1 to 1000, or two separated by a space for a variable font's range.",
+          "type": "string",
+          "pattern": "^(?:1000|[1-9][0-9]{0,2})(?: (?:1000|[1-9][0-9]{0,2}))?$"
+        },
+        "style": { "enum": ["normal", "italic"] }
+      }
+    },
+    "colours": {
+      "description": "Exactly the seven roles, each six lowercase hexadecimal digits (tree-format.md 4.3.3). The set is closed: no eighth key, no missing key.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "background",
+        "surface",
+        "text",
+        "text-muted",
+        "accent",
+        "accent-secondary",
+        "danger"
+      ],
+      "properties": {
+        "background": { "$ref": "#/$defs/colour" },
+        "surface": { "$ref": "#/$defs/colour" },
+        "text": { "$ref": "#/$defs/colour" },
+        "text-muted": { "$ref": "#/$defs/colour" },
+        "accent": { "$ref": "#/$defs/colour" },
+        "accent-secondary": { "$ref": "#/$defs/colour" },
+        "danger": { "$ref": "#/$defs/colour" }
+      }
+    },
+    "colour": {
+      "type": "string",
+      "pattern": "^#[0-9a-f]{6}$"
+    },
+    "node": {
+      "description": "One Node (tree-format.md section 5). Its kind follows from which of `answers` and `terminal` is present: a question Node has `answers`, a Terminal has `terminal`, an explanation Node has neither. There is no `kind` key.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "description", "metadata"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "$ref": "#/$defs/localisedText" },
+        "description": { "$ref": "#/$defs/localisedText" },
+        "metadata": { "$ref": "#/$defs/metadata" },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/source" }
+        },
+        "images": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/image" }
+        },
+        "answers": { "$ref": "#/$defs/answers" },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/option" }
+        },
+        "explainers": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/explainer" }
+        },
+        "terminal": { "$ref": "#/$defs/terminal" }
+      },
+      "dependentSchemas": {
+        "answers": {
+          "description": "V-KIND: a question Node is not also a Terminal.",
+          "properties": { "terminal": false }
+        },
+        "terminal": {
+          "description": "V-KIND and V-TERMINAL: a Terminal has no Answers and no Options.",
+          "properties": { "answers": false, "options": false }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "label", "url"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["legal", "case-law", "literature"] },
+        "label": { "$ref": "#/$defs/localisedText" },
+        "url": { "$ref": "#/$defs/url" }
+      }
+    },
+    "image": {
+      "description": "One picture. The first Image of a Node is its main image (tree-format.md 5.2); there is no `main` key and no `order` key.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "description", "credit"],
+      "properties": {
+        "file": { "$ref": "#/$defs/imageFileName" },
+        "description": { "$ref": "#/$defs/localisedText" },
+        "credit": { "type": "string", "minLength": 1 },
+        "source": { "$ref": "#/$defs/id" }
+      }
+    },
+    "answers": {
+      "description": "The yes/no Links. Exactly these two keys; in JSON they are strings by construction, so the YAML 1.1 trap that turned them into booleans is gone.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["yes", "no"],
+      "properties": {
+        "yes": { "$ref": "#/$defs/nodeReference" },
+        "no": { "$ref": "#/$defs/nodeReference" }
+      }
+    },
+    "option": {
+      "description": "One entry of the clickable list. An Option has no Images of its own: the picture on its button is its target's main image (tree-format.md 5.4).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "target"],
+      "properties": {
+        "title": { "$ref": "#/$defs/localisedText" },
+        "target": { "$ref": "#/$defs/nodeReference" }
+      }
+    },
+    "explainer": {
+      "description": "A term of this Node's description that carries a short explanation (tree-format.md 5.9). Marked in the description as [text](#id).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "term", "text"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "term": { "$ref": "#/$defs/localisedText" },
+        "text": { "$ref": "#/$defs/localisedText" }
+      }
+    },
+    "terminal": {
+      "description": "The explicit end-of-walk marker. The set of outcomes is closed; a Tree that needs a fifth value needs a new format number.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome"],
+      "properties": {
+        "outcome": { "enum": ["not-applicable", "applicable", "prohibited", "refer"] }
+      }
+    }
+  }
+}
