@@ -505,6 +505,8 @@ export interface Tree {
   getTitle(id: string): LocalisedText | null   // from the in-memory index; for a Branch label
   imagePath(file: string): string | null       // absolute path inside this Tree's images/; null for a malformed or missing name
   themePath(file: string): string | null       // [v0.2] absolute path inside this Tree's theme/, and only for a file the Theme names
+  nodeIds(): string[]                          // [#120] every Node id, in file order: which pages exist (16.2)
+  readonly lastModified: Date | null           // [#120] when the Tree's file was last written; null when it cannot be read (16.2)
 }
 ```
 
@@ -519,6 +521,14 @@ export interface Tree {
 - **Still not on the interface:** `listNodes`, `getChildren`, `getTree`, or anything
   that hands out more than one Node per call. Section 11 needs many Nodes; it asks for
   them one at a time, by id, and the bound on how many is a contract, not a parameter.
+- **[#120]** `nodeIds` does not break that rule, which is why it could be added by a build
+  issue: it hands out **ids**, not Nodes, and the bound of 5.2 is on how many Nodes a
+  *page* response may carry. 16.2 says the sitemap is generated "from the loaded Tree's
+  Node index", and the set of pages that exist is exactly what it needs; a caller that
+  wants a Node still asks for it by id, one at a time. `lastModified` is the second half
+  of that sentence -- 16.2 dates every `<url>` from the Tree file, read once here (5.4)
+  rather than stat'd per request. #119 replaces the file name behind both, as it does for
+  the read itself, and neither signature changes with it.
 
 The types, in `src/tree/types.ts`, mirror `tree-format.md` with two normalisations:
 `id` and `kind` are added, and absent lists become empty arrays.
