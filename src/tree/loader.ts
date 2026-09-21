@@ -203,7 +203,7 @@ function duplicateKey(text: string): { key: string; line: number; column: number
     if (character === '"') {
       const start = i
       for (i += 1; text[i] !== '"'; i += 1) if (text[i] === '\\') i += 1
-      name = unescape(text.slice(start + 1, i))
+      name = characters(text.slice(start + 1, i))
       at = start
     } else if (character === '{' || character === '[') {
       open.push(character === '{' ? new Set() : null)
@@ -224,13 +224,13 @@ function duplicateKey(text: string): { key: string; line: number; column: number
   return null
 }
 
-/** A JSON string's characters, so that `"a"` and `"a"` count as the same key. */
-function unescape(raw: string): string {
-  try {
-    return JSON.parse(`"${raw}"`) as string
-  } catch {
-    return raw
-  }
+/**
+ * A JSON string's characters, so that `"a"` and `"a"` count as the same key. `raw` is the
+ * text between one string's quotes in a file that has already parsed, so it is a JSON
+ * string body and nothing else: the parse below cannot fail.
+ */
+function characters(raw: string): string {
+  return JSON.parse(`"${raw}"`) as string
 }
 
 /** The one-based line and column of `offset`, for a message a person can act on. */

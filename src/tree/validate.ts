@@ -175,30 +175,32 @@ function toViolation(error: ErrorObject): Violation {
 /** The content pass: the rules section 7 marks `rules`, on a Tree whose shape is known good. */
 function contentViolations(tree: RawTree): Violation[] {
   const out: Violation[] = []
-  const manifest = tree.tree
+  // The whole file, manifest fields and `nodes` together (3.7); `manifest` below is the
+  // `where` of a violation the manifest's own fields cause, which is not the same thing.
+  const top = tree.tree
   const context: Context = {
-    languages: manifest.languages as string[],
+    languages: top.languages as string[],
     images: tree.images,
     themeFiles: tree.themeFiles,
   }
 
   const c = new DocumentChecker('manifest', context, out)
-  c.localised(manifest.title, 'title', false, MAX.title)
-  if ('description' in manifest) {
-    c.localised(manifest.description, 'description', true, MAX.treeDescription, MAX.treeLines)
-    checkMarks(c, manifest.description, null)
+  c.localised(top.title, 'title', false, MAX.title)
+  if ('description' in top) {
+    c.localised(top.description, 'description', true, MAX.treeDescription, MAX.treeLines)
+    checkMarks(c, top.description, null)
   }
-  if ('theme' in manifest) checkTheme(c, manifest.theme as Mapping)
+  if ('theme' in top) checkTheme(c, top.theme as Mapping)
 
   const shapes = new Map<string, NodeShape>()
-  for (const node of manifest.nodes as Mapping[]) {
+  for (const node of top.nodes as Mapping[]) {
     const id = node.id as string
     const nodeChecker = new DocumentChecker(id, context, out)
     const shape = checkNode(nodeChecker, node)
     if (shapes.has(id)) nodeChecker.fail('id', 'V-NODE', `"${id}" is the id of two Nodes`)
     else shapes.set(id, shape)
   }
-  checkGraph(out, manifest.root as string, shapes)
+  checkGraph(out, top.root as string, shapes)
   return out
 }
 
