@@ -120,6 +120,21 @@ export function themeHref(file: string): string {
   return `/theme/${encodeURIComponent(file)}`
 }
 
+/**
+ * **[#121]** Where a reader, a crawler or another lab fetches the Tree file itself (15.1).
+ * The Tree id is in the path for the reason every other public URL of this application
+ * carries it: a root-level dataset URL would break or lie the day a second Tree arrives.
+ */
+export function datasetHref(treeId: string): string {
+  return `/${treeId}/tree.json`
+}
+
+/**
+ * **[#121]** Where the format's JSON Schema is published (15.1). The path carries the
+ * format number, so `elsa-tree/5` is served beside it and neither URL ever moves.
+ */
+export const SCHEMA_HREF = '/schemas/elsa-tree-4.json'
+
 /** `/<tree-id>/<ids...>`, with `lang` only when it is not the Tree's default (4.1). */
 function href(a: PageAddress, ids: string[]): string {
   const path = [a.treeId, ...ids].join('/')

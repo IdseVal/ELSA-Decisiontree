@@ -65,6 +65,12 @@ export interface Tree {
    * than guessed (16.2).
    */
   readonly lastModified: Date | null
+  /**
+   * **[#121]** Absolute path of the Tree's own file, the third file of a Tree beside
+   * `imagePath` and `themePath`: what the dataset endpoint streams byte for byte (15.3).
+   * A path, not Nodes, so nothing on this interface enumerates the Tree still (5.1).
+   */
+  readonly filePath: string
   /** Absolute path inside this Tree's `images/`; null for a malformed or missing name. */
   imagePath(file: string): string | null
   /**
@@ -96,6 +102,7 @@ export async function openTree(dir: string): Promise<Tree> {
     id,
     manifest,
     lastModified: await lastModified(path.join(root, 'tree.json')),
+    filePath: path.join(root, 'tree.json'),
     getNode: async (nodeId) => (isId(nodeId) ? (nodes.get(nodeId) ?? null) : null),
     getTitle: (nodeId) => nodes.get(nodeId)?.title ?? null,
     nodeIds: () => [...nodes.keys()],

@@ -745,4 +745,13 @@ describe('the Node index the sitemap reads (#118)', () => {
 
     expect(tree.lastModified?.getTime()).toBe(onDisk.mtime.getTime())
   })
+
+  test('**[#121]** the Tree file the dataset endpoint streams is the file that was read', async () => {
+    // 15.3: what the route serves must be the same bytes the loader validated, so the
+    // seam hands out that file's path and not a path the route assembles for itself.
+    const tree = await openTree(exampleTree)
+
+    expect(tree.filePath).toBe(path.join(exampleTree, 'tree.json'))
+    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/4')
+  })
 })
