@@ -13,8 +13,10 @@
   its `xhtml:link` alternates, the address set of 16.3 that the page head renders (the
   canonical link among them), the JSON-LD's `@id`, `url` and `contentUrl`, and every URL
   in `llms.txt`. `src/url.ts`, which decision 2 says does not know the variable exists,
-  gains the absolute form of a link and a Node's address set (`application.md` 6, 16.3),
-  so the reading moves out of `metadataBase` and into the module that owns the grammar.
+  gains the absolute form of a link and a Node's address set (`application.md` 6, 16.3):
+  the module that owns the grammar now builds absolute URLs too, taking the base as an
+  argument. Where the value is *read* is unchanged -- `publicBaseUrl()` in
+  `src/config.ts`, decisions 3 and 4 -- so the refusals below still happen at start.
   With that, a deployment that names no base URL no longer gets a bare path: it gets the
   same addresses on **the request's own origin**, because a sitemap, a `Dataset` or an
   `llms.txt` read away from the page it came from cannot resolve a path, and the head's
