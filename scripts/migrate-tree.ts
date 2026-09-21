@@ -3,8 +3,10 @@
  * of docs/specs/tree-format.md 3.7 and validates the result.
  *
  * This is what is left of the migration of section 12 after issue #119 ran it. Its steps 5
- * to 9 -- the key order, the byte form, the read-back and the validation -- are these; its
- * steps 1 to 4 read the format this one replaced, and went with the parser that read it. A
+ * to 8 -- the key order, the byte form, the read-back and the validation -- are these; its
+ * steps 1 to 4 read the format this one replaced, and went with the parser that read it,
+ * except for step 1's rule, which is kept here against JSON: bytes the loader will not
+ * read stop the job and nothing is written. Step 9 deleted `tree.yaml` and left with it. A
  * Tree still written in `elsa-tree/1`, `/2` or `/3` is converted with the last release
  * before #119 and then by 12.6; no Tree in this repository is in that state.
  *
@@ -20,7 +22,7 @@
 import { readFile, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { formatViolation, openTree, TreeInvalid } from '../src/tree/loader.ts'
+import { formatViolation, openTree, readTreeText, TreeInvalid } from '../src/tree/loader.ts'
 import type { Violation } from '../src/tree/types.ts'
 import { isMapping } from '../src/tree/validate.ts'
 
@@ -83,10 +85,10 @@ export interface Migration {
   /** The Node ids written, in the order they stand in `nodes`. */
   ids: string[]
   /**
-   * What stopped the job before anything was written (12.6.1): a file that does not parse
-   * (step 1), a `metadata` key made only of digits (step 5), and a value whose shape the
-   * writer cannot carry ("What survives the job"). Everything else is a violation of the
-   * written file, below.
+   * What stopped the job before anything was written (12.6.1): a text the loader will not
+   * read -- a syntax error, a byte-order mark or a duplicate key (step 1) -- a `metadata`
+   * key made only of digits (step 5), and a value whose shape the writer cannot carry
+   * ("What survives the job"). Everything else is a violation of the written file, below.
    */
   notes: string[]
   /** Every rule the written Tree breaks; empty when it is valid. */
@@ -100,19 +102,20 @@ export interface Migration {
  * would report at start.
  *
  * Three things stop it before a byte is written, and are reported as `notes` with the file
- * untouched: a file that does not parse (step 1), and the two of `refusals` below.
+ * untouched: bytes the loader will not read (step 1), and the two of `refusals` below.
+ *
+ * Step 1 is `readTreeText`, the loader's own answer, and not a bare `JSON.parse`: a
+ * duplicate key is the one malformation a parsed value no longer carries (3.7), so a
+ * writer that parsed for itself would serialise the surviving half over the only copy of
+ * the file and report a Tree that now validates -- silencing V-JSON by erasing it.
  */
 export async function migrateTree(dir: string): Promise<Migration> {
   const file = path.join(path.resolve(dir), 'tree.json')
   const before = await readFile(file, 'utf8').catch(() => null)
   if (before === null) return { rewritten: false, ids: [], notes: [`${path.basename(file)} is missing`], violations: [] }
 
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(before)
-  } catch (error) {
-    return { rewritten: false, ids: [], notes: [(error as SyntaxError).message], violations: [] }
-  }
+  const { value: parsed, problem } = readTreeText(before)
+  if (problem !== null) return { rewritten: false, ids: [], notes: [problem], violations: [] }
 
   const stopped = refusals(parsed)
   if (stopped.length > 0) return { rewritten: false, ids: [], notes: stopped, violations: [] }

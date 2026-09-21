@@ -131,6 +131,41 @@ async function readTree(root: string, id: string, violations: Violation[]): Prom
   }
 }
 
+/** What `readTreeText` answers: the value the text holds, or why it may not be read at all. */
+export type TreeText = { value: unknown; problem: null } | { value: null; problem: string }
+
+/**
+ * May this text be read as a Tree's `tree.json`, and what does it hold? The three things
+ * that forbid it are a byte-order mark, a syntax error and a duplicate key; `problem` is
+ * the V-JSON message for the one found first, and `value` is what `JSON.parse` returned
+ * when there is none.
+ *
+ * It is exported because the loader is not the only reader of these bytes: the writer of
+ * 12.6.1 asks the same question of the same text before it rewrites the only copy of the
+ * file, and a duplicate key is exactly the malformation a parsed value no longer shows
+ * (3.7). One answer to "may this text be read", not two that can drift apart.
+ *
+ * The duplicate scan reads the bytes, so it runs only after `JSON.parse` has said they are
+ * well formed: on an unterminated string it would read past the end of the text.
+ */
+export function readTreeText(text: string): TreeText {
+  if (text.startsWith('\uFEFF')) {
+    return { value: null, problem: 'tree.json begins with a byte-order mark; write it as UTF-8 without one' }
+  }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch (error) {
+    return { value: null, problem: (error as SyntaxError).message }
+  }
+  const duplicate = duplicateKey(text)
+  if (duplicate) {
+    const { key, line, column } = duplicate
+    return { value: null, problem: `the key "${key}" appears twice in one object, at line ${line} column ${column}` }
+  }
+  return { value: parsed, problem: null }
+}
+
 /**
  * V-JSON: `tree.json` as one JSON object (RFC 8259) in UTF-8 without a byte-order mark and
  * with no duplicate key. One JSON file is one document, so a syntax error anywhere is a
@@ -142,19 +177,10 @@ function parseTree(text: string, violations: Violation[]): Mapping | null {
     violations.push({ file: 'tree.json', keyPath: '', rule: 'V-JSON', message })
     return null
   }
-  if (text.startsWith('\uFEFF')) return fail('tree.json begins with a byte-order mark; write it as UTF-8 without one')
-
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(text)
-  } catch (error) {
-    return fail((error as SyntaxError).message)
-  }
-  if (!isMapping(parsed)) return fail('the whole file must be one JSON object, not an array or a bare value')
-
-  const duplicate = duplicateKey(text)
-  if (duplicate) return fail(`the key "${duplicate.key}" appears twice in one object, at line ${duplicate.line} column ${duplicate.column}`)
-  return parsed
+  const { value, problem } = readTreeText(text)
+  if (problem !== null) return fail(problem)
+  if (!isMapping(value)) return fail('the whole file must be one JSON object, not an array or a bare value')
+  return value
 }
 
 /**

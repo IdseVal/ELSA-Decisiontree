@@ -13,11 +13,13 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { bytes, migrateTree } from '../scripts/migrate-tree.ts'
-import { openTree } from '../src/tree/loader.ts'
+import { openTree, TreeInvalid } from '../src/tree/loader.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const fixture = (...parts: string[]): string => path.join(here, 'fixtures', ...parts)
 const exampleTree = path.join(here, '..', 'trees', 'ai-act-example')
+/** The Tree title of `tests/fixtures/single-language`, the line a repeat is written above. */
+const TITLE = '    "nl": "Is de AI-verordening van toepassing?"\n'
 
 let work: string
 
@@ -230,6 +232,55 @@ describe('the writer reports what the loader would', () => {
 
     expect(migration).toEqual({ rewritten: false, ids: [], notes: [note], violations: [] })
     expect(await readFile(file, 'utf8')).toBe(before)
+  })
+
+  // The two checks of V-JSON that read the bytes rather than the parsed value, and the
+  // reason the writer asks the loader (`readTreeText`) instead of parsing for itself:
+  // `JSON.parse` keeps the last of a duplicate key and says nothing, so a writer that
+  // trusted it would serialise the survivor over the only copy of the file -- and step 8,
+  // reading back a file that no longer holds the defect, would report the Tree as valid.
+  // The one rule written to catch a silent loss would be silenced by that loss.
+  test.each([
+    [
+      'a duplicate key',
+      (text: string) => text.replace(TITLE, `    "nl": "DE TITEL VAN DE AUTEUR",\n${TITLE}`),
+      'the key "nl" appears twice in one object, at line 10 column 5',
+    ],
+    [
+      'a byte-order mark',
+      (text: string) => `﻿${text}`,
+      'tree.json begins with a byte-order mark; write it as UTF-8 without one',
+    ],
+  ])('%s stops the writer, and the loader still finds it afterwards', async (_name, edit, note) => {
+    const target = await copyTree(fixture('single-language'))
+    const file = path.join(target, 'tree.json')
+    // The edited file is NOT in the canonical byte form -- writing back what the parser
+    // returns would drop the repeated line, or the mark -- so a writer that ran is visible.
+    const before = edit(await readFile(file, 'utf8'))
+    await writeFile(file, before, 'utf8')
+
+    const migration = await migrateTree(target)
+
+    expect(migration).toEqual({ rewritten: false, ids: [], notes: [note], violations: [] })
+    expect(await readFile(file, 'utf8')).toBe(before)
+    // The file is the evidence, so it must still be the file the loader refuses, with the
+    // same message: the writer and the loader answer "may this be read" the same way.
+    const refused = await openTree(target).catch((error: unknown) => error)
+    expect(refused).toBeInstanceOf(TreeInvalid)
+    expect((refused as TreeInvalid).violations).toEqual([{ file: 'tree.json', keyPath: '', rule: 'V-JSON', message: note }])
+  })
+
+  test('the author\'s first value is still in the file after a duplicate key is refused', async () => {
+    // What the silent rewrite cost: `JSON.parse` keeps the last, so the text above the
+    // repeat is what a writer that ran would have deleted.
+    const target = await copyTree(fixture('single-language'))
+    const file = path.join(target, 'tree.json')
+    const written = `    "nl": "DE TITEL VAN DE AUTEUR",\n`
+    await writeFile(file, (await readFile(file, 'utf8')).replace(TITLE, written + TITLE), 'utf8')
+
+    await migrateTree(target)
+
+    expect(await readFile(file, 'utf8')).toContain('DE TITEL VAN DE AUTEUR')
   })
 
   test('a folder that holds no tree.json is reported, not crashed on', async () => {
