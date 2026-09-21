@@ -1798,22 +1798,35 @@ worth stating if it is stable.
 
 **What survives the job (amended 2026-09-21, #119).** Steps 1 to 4 read the serialisation
 this version replaced, and they left the repository with the parser that read it, as this
-section said they would. Steps 5 to 9 stayed, and are `scripts/migrate-tree.ts` (`npm run
+section said they would. Steps 5 to 8 stayed, and are `scripts/migrate-tree.ts` (`npm run
 migrate <tree-folder>`): it writes a `tree.json` in the canonical byte form of 3.7,
 reads it back, validates it against the schema and the rules, and reports every violation.
-On a Tree already in the byte form it writes the same bytes and says so, which is the
-idempotence above, run on demand. A Tree written in `elsa-tree/1`, `/2` or `/3` is
-converted with the last release before #119 and then by this procedure; no Tree in this
-repository is in that state.
+Step 9 deleted `<in>/tree.yaml`, and it left with the file it deleted: there is no
+`tree.yaml` in this repository and the tool never removes anything. On a Tree already in
+the byte form it writes the same bytes and says so, which is the idempotence above, run on
+demand. A Tree written in `elsa-tree/1`, `/2` or `/3` is converted with the last release
+before #119 and then by this procedure; no Tree in this repository is in that state.
+
+**Step 1's rule stayed too, against JSON**: text the loader will not read stops the job and
+nothing is written. It is asked of the *bytes*, with the loader's own reader, because one
+of the three things that forbid the read -- a duplicate key -- is the one malformation the
+parsed value no longer shows (3.7, V-JSON). A writer that parsed for itself would serialise
+the half the parser kept over the only copy of the file, and step 8 would then read back a
+Tree that validates: the author's text gone, and the rule that exists to catch exactly this
+silenced by the erasure of its evidence. The byte-order mark and the syntax error are the
+other two, and all three are reported by name, with the key and its position.
 
 It also **stops before writing, and reports the way step 5 does, on a file whose shape it
-cannot carry**: a top level that is not an object, and a key of 3.7 whose value is a list
-where the format has an object or an object where the format has a list (`"title": []`,
+cannot carry**: a top level that is not an object, and a value the writer would reorder or
+rebuild -- the keys whose values this format defines the shape of -- that is a list where
+the format has an object or an object where the format has a list (`"title": []`,
 `"sources": {}`). Step 7 writes the key order of step 5, and a writer that reordered a
 shape the format does not have would write back something the author never wrote, over the
 only copy of it -- so the file stays as it is and the shape is named by its key path. A
-scalar where the format has an object, and a key the format does not define, are carried
-across untouched and reported by step 8 on the written file, as everything else is.
+value the writer carries across as it stands is not its business: a scalar where the format
+has an object, a key the format does not define, and a key whose value the writer does not
+walk into (`"languages": {}`) are written back unchanged and reported by step 8 on the
+written file, as everything else is.
 
 #### 12.6.2 What the procedure guarantees, and what it does not
 
