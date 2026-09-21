@@ -91,21 +91,9 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (1/7)
 description:
   en: |
-    Article 2(1) lists **seven** categories of people and organisations the Act reaches;
-    these steps take one each. Are you a [provider](#provider) who places an AI system
-    on the Union market or puts it into service in the Union, or who places a
-    general-purpose AI model on the Union market?
-
-    Being established in the Union or in a third country makes no difference. A **yes**
-    leads to the Article 2 exclusions.
+    Are you a [provider](#provider) who places an AI system on the Union market or puts it into service in the Union, or who places a general-purpose AI model on the…
   nl: |
-    Artikel 2, lid 1, noemt **zeven** categorieën die de verordening bereikt; elke stap
-    behandelt er één. Bent u een [aanbieder](#provider) die een AI-systeem in de Unie in
-    de handel brengt of in gebruik stelt, of een AI-model voor algemene doeleinden in de
-    Unie in de handel brengt?
-
-    Waar u gevestigd bent, maakt niet uit. Na elk **ja** volgen de uitsluitingen van
-    artikel 2.
+    Bent u een [aanbieder](#provider) die een AI-systeem in de Unie in de handel brengt of in gebruik stelt, of een AI-model voor algemene doeleinden in de Unie in de…
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -147,23 +135,9 @@ title:
   nl: De AI-verordening is niet van toepassing
 description:
   en: |
-    None of the seven categories of Article 2(1) describes you, or an Article 2
-    exclusion covers your system entirely. The AI Act does not apply, and this walk ends
-    here.
-
-    The exclusions are narrow: several turn on the word *exclusively*, so a system
-    placed on the market for an excluded **and** a non-excluded purpose stays inside the
-    Act. Other law may still apply, and if you later place the system on the Union
-    market the answer changes.
+    None of the seven categories of Article 2(1) describes you, or an Article 2 exclusion covers your system entirely.
   nl: |
-    Geen van de zeven categorieën van artikel 2, lid 1, is op u van toepassing, of een
-    uitsluiting van artikel 2 geldt volledig voor uw systeem. De AI-verordening is niet
-    van toepassing en deze doorloop eindigt hier.
-
-    De uitsluitingen zijn eng en hangen vaak af van het woord *uitsluitend*: een systeem
-    dat ook voor een niet-uitgesloten doel in de handel wordt gebracht, blijft binnen de
-    verordening. Ander recht kan nog gelden, en brengt u het systeem later in de Unie in
-    de handel, dan verandert het antwoord.
+    Geen van de zeven categorieën van artikel 2, lid 1, is op u van toepassing, of een uitsluiting van artikel 2 geldt volledig voor uw systeem.
 metadata:
   version: "0.2"
 sources:
@@ -188,21 +162,9 @@ title:
   nl: Is uw systeem een AI-systeem in de zin van de verordening?
 description:
   en: |
-    Article 3(1): an *AI system* is a machine-based system designed to
-    operate with varying levels of autonomy, that may exhibit adaptiveness after
-    deployment and that, for explicit or implicit objectives, **infers from the input it
-    receives how to generate outputs** - predictions, content, recommendations or
-    decisions - that can influence physical or virtual environments. Inferring is the
-    distinguishing element: as Recital 12 says, the definition does not cover systems
-    based on rules defined solely by natural persons.
+    Article 3(1): an *AI system* is a machine-based system designed to operate with varying levels of autonomy, that may exhibit adaptiveness after…
   nl: |
-    Artikel 3, punt 1: een *AI-systeem* is een op een machine gebaseerd
-    systeem dat met verschillende niveaus van autonomie werkt, dat na het inzetten
-    aanpassingsvermogen kan vertonen en dat, voor expliciete of impliciete
-    doelstellingen, **uit de ontvangen input afleidt hoe output te genereren** die van
-    invloed kan zijn op fysieke of virtuele omgevingen. Het afleiden is het
-    onderscheidende element: volgens overweging 12 omvat de definitie geen systemen op
-    basis van regels die uitsluitend door natuurlijke personen zijn vastgesteld.
+    Artikel 3, punt 1: een *AI-systeem* is een op een machine gebaseerd systeem dat met verschillende niveaus van autonomie werkt, dat na het inzetten…
 metadata:
   version: "0.2"
   step: 2 - material scope
@@ -236,21 +198,9 @@ title:
   nl: "Landbouw- en bosbouwvoertuigen"
 description:
   en: |
-    Annex I, Section B, point 15 lists **Regulation (EU) No 167/2013 on the approval and
-    market surveillance of agricultural and forestry vehicles**.
-
-    **Section B**: under Article 2(2) only Article 6(1), Article 60a and Articles 102 to 112
-    apply to a system that is high-risk through it. The entry most agrifood systems reach
-    first: tractors, trailers and towed and interchangeable towed equipment. An AI system
-    that steers or brakes such a vehicle is the case Article 6(1) describes.
+    Annex I, Section B, point 15 lists **Regulation (EU) No 167/2013 on the approval and market surveillance of agricultural and forestry vehicles**.
   nl: |
-    Bijlage I, afdeling B, punt 15, noemt **Verordening (EU) nr. 167/2013 inzake de
-    goedkeuring van en het markttoezicht op landbouw- en bosbouwvoertuigen**.
-
-    **Afdeling B**: op grond van artikel 2, lid 2, gelden dan alleen artikel 6, lid 1,
-    artikel 60 bis, en de artikelen 102 tot en met 112. Het onderdeel dat agrifood het
-    vaakst raakt: trekkers, aanhangwagens en getrokken uitrusting. Een AI-systeem dat daarop
-    stuurt of remt, valt onder artikel 6, lid 1.
+    Bijlage I, afdeling B, punt 15, noemt **Verordening (EU) nr. 167/2013 inzake de goedkeuring van en het markttoezicht op landbouw- en…**
 metadata:
   version: "0.2"
   annex-i-point: 15
@@ -285,17 +235,9 @@ title:
   nl: "Kabelbaaninstallaties"
 description:
   en: |
-    Annex I, Section A, point 8 lists **Regulation (EU) 2016/424 on cableway
-    installations**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III.
+    Annex I, Section A, point 8 lists **Regulation (EU) 2016/424 on cableway installations**.
   nl: |
-    Bijlage I, afdeling A, punt 8, noemt **Verordening (EU) 2016/424 betreffende
-    kabelbaaninstallaties**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III.
+    Bijlage I, afdeling A, punt 8, noemt **Verordening (EU) 2016/424 betreffende kabelbaaninstallaties**.
 metadata:
   version: "0.2"
   annex-i-point: 8
@@ -330,17 +272,9 @@ title:
   nl: "Beveiliging van de burgerluchtvaart"
 description:
   en: |
-    Annex I, Section B, point 13 lists **Regulation (EC) No 300/2008 on common rules in the
-    field of civil aviation security**.
-
-    **Section B**: under Article 2(2) only Article 6(1), Article 60a and Articles 102 to 112
-    apply to a system that is high-risk through it.
+    Annex I, Section B, point 13 lists **Regulation (EC) No 300/2008 on common rules in the field of civil aviation security**.
   nl: |
-    Bijlage I, afdeling B, punt 13, noemt **Verordening (EG) nr. 300/2008 inzake
-    gemeenschappelijke regels op het gebied van de beveiliging van de burgerluchtvaart**.
-
-    **Afdeling B**: op grond van artikel 2, lid 2, gelden dan alleen artikel 6, lid 1,
-    artikel 60 bis, en de artikelen 102 tot en met 112.
+    Bijlage I, afdeling B, punt 13, noemt **Verordening (EG) nr. 300/2008 inzake gemeenschappelijke regels op het gebied van de beveiliging van de…**
 metadata:
   version: "0.2"
   annex-i-point: 13
@@ -375,21 +309,9 @@ title:
   nl: "Apparaten voor plaatsen met ontploffingsgevaar"
 description:
   en: |
-    Annex I, Section A, point 5 lists **Directive 2014/34/EU relating to equipment and
-    protective systems intended for use in potentially explosive atmospheres**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III. Relevant to agrifood
-    wherever combustible dust is handled: grain silos, feed mills, flour and sugar
-    processing.
+    Annex I, Section A, point 5 lists **Directive 2014/34/EU relating to equipment and protective systems intended for use in potentially explosive…**
   nl: |
-    Bijlage I, afdeling A, punt 5, noemt **Richtlijn 2014/34/EU inzake apparaten en
-    beveiligingssystemen op plaatsen waar ontploffingsgevaar kan heersen**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III.
-    Relevant voor agrifood overal waar brandbaar stof voorkomt: graansilo’s,
-    mengvoederfabrieken, meel- en suikerverwerking.
+    Bijlage I, afdeling A, punt 5, noemt **Richtlijn 2014/34/EU inzake apparaten en beveiligingssystemen op plaatsen waar ontploffingsgevaar kan…**
 metadata:
   version: "0.2"
   annex-i-point: 5
@@ -424,21 +346,9 @@ title:
   nl: "Gasverbrandingstoestellen"
 description:
   en: |
-    Annex I, Section A, point 10 lists **Regulation (EU) 2016/426 on appliances burning
-    gaseous fuels**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III. Reaches gas-fired
-    heating in greenhouses and livestock housing, and gas burners in drying and processing
-    lines.
+    Annex I, Section A, point 10 lists **Regulation (EU) 2016/426 on appliances burning gaseous fuels**.
   nl: |
-    Bijlage I, afdeling A, punt 10, noemt **Verordening (EU) 2016/426 betreffende
-    gasverbrandingstoestellen**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III. Raakt
-    gasgestookte verwarming in kassen en stallen, en gasbranders in droog- en
-    verwerkingslijnen.
+    Bijlage I, afdeling A, punt 10, noemt **Verordening (EU) 2016/426 betreffende gasverbrandingstoestellen**.
 metadata:
   version: "0.2"
   annex-i-point: 10
@@ -473,21 +383,9 @@ title:
   nl: "Hulpmiddelen voor in-vitrodiagnostiek"
 description:
   en: |
-    Annex I, Section A, point 12 lists **Regulation (EU) 2017/746 on in vitro diagnostic
-    medical devices**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III. Covers devices for
-    human diagnostics. Veterinary diagnostics and food or feed testing are not covered by
-    it.
+    Annex I, Section A, point 12 lists **Regulation (EU) 2017/746 on in vitro diagnostic medical devices**.
   nl: |
-    Bijlage I, afdeling A, punt 12, noemt **Verordening (EU) 2017/746 betreffende medische
-    hulpmiddelen voor in-vitrodiagnostiek**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III.
-    Betreft diagnostiek bij mensen. Veterinaire diagnostiek en onderzoek van levensmiddelen
-    of diervoeder vallen er niet onder.
+    Bijlage I, afdeling A, punt 12, noemt **Verordening (EU) 2017/746 betreffende medische hulpmiddelen voor in-vitrodiagnostiek**.
 metadata:
   version: "0.2"
   annex-i-point: 12
@@ -522,25 +420,9 @@ title:
   nl: "Is uw systeem een veiligheidscomponent of product onder bijlage I? (1/3)"
 description:
   en: |
-    The first route to **high-risk**. Article 6(1) applies when **both** are met:
-    **(a)** the system is intended as a
-    [safety component of a product](#safety-component), or is itself a product, covered
-    by **Annex I** legislation; **and (b)** that product must undergo a **third-party
-    conformity assessment** first.
-
-    Annex I legislation alone is not enough. These are points 2 to 9 of the 20, all
-    **Section A**: for Section A, Article 2(13) lets the Commission limit Articles 9 to
-    15 and 17 to 25 by delegated act.
+    **(a)** the system is intended as a [safety component of a product](#safety-component), or is itself a product, covered by **Annex I** legislation; **and (b)** that…
   nl: |
-    De eerste route naar een **hoog risico**. Artikel 6, lid 1, vereist **beide**:
-    **a)** het systeem is bedoeld als
-    [veiligheidscomponent van een product](#safety-component), of is zelf zo'n product,
-    dat onder **bijlage I** valt; **en b)** dat product vereist een
-    **conformiteitsbeoordeling door een derde partij**.
-
-    Alleen bijlage I-wetgeving volstaat niet. De punten 2 tot en met 9 zijn alle
-    **afdeling A**: artikel 2, lid 13, laat de Commissie daarvoor de artikelen 9 tot en
-    met 15 en 17 tot en met 25 bij gedelegeerde handeling beperken.
+    **a)** het systeem is bedoeld als [veiligheidscomponent van een product](#safety-component), of is zelf zo'n product, dat onder **bijlage I** valt; **en b)** dat product…
 metadata:
   version: "0.2"
   step: 4a - high-risk, Annex I route
@@ -622,23 +504,9 @@ title:
   nl: "Is uw systeem een veiligheidscomponent of product onder bijlage I? (2/3)"
 description:
   en: |
-    A **safety component** fulfils a safety function for a product or
-    an [AI system](#ai-system), or its failure endangers health and safety. Article
-    6(1a): a system used **solely** for non-safety aspects - user assistance,
-    performance, service efficiency, automation, convenience or quality control - is not
-    one.
-
-    Article 6(1b): a system whose failure would endanger health and safety is one.
-    Article 6(1c): assessment required solely for other risks fails condition (b).
+    A **safety component** fulfils a safety function for a product or an [AI system](#ai-system), or its failure endangers health and safety.
   nl: |
-    Een **veiligheidscomponent** vervult een veiligheidsfunctie voor
-    een product of [AI-systeem](#ai-system), of het falen ervan brengt de veiligheid in
-    gevaar. Artikel 6, lid 1 bis: een systeem dat **uitsluitend** voor
-    niet-veiligheidsaspecten dient - bijstand, prestaties, efficiëntie, automatisering,
-    gemak, kwaliteitscontrole - is er geen.
-
-    Lid 1 ter: een systeem waarvan het falen de veiligheid in gevaar brengt, wel. Lid 1
-    quater: een beoordeling om andere risico's voldoet niet aan b).
+    Een **veiligheidscomponent** vervult een veiligheidsfunctie voor een product of [AI-systeem](#ai-system), of het falen ervan brengt de veiligheid in gevaar.
 metadata:
   version: "0.2"
   step: 4a - high-risk, Annex I route
@@ -708,22 +576,9 @@ title:
   nl: "Is uw systeem een veiligheidscomponent of product onder bijlage I? (3/3)"
 description:
   en: |
-    Annex I has **20** entries. **Section A** (points 2 to 12) is New Legislative
-    Framework legislation; **Section B** (points 13 to 21) is other Union harmonisation
-    legislation, and Article 2(2) limits what applies to a Section B system to Article
-    6(1), Article 60a and Articles 102 to 112.
-
-    The Machinery Directive 2006/42/EC, once point 1 of Section A, was **deleted** by
-    Regulation (EU) 2026/1744; machinery is now point 21 of Section B. Answer **yes**
-    only if both conditions of Article 6(1) are met.
+    Annex I has **20** entries.
   nl: |
-    Bijlage I telt **20** onderdelen. **Afdeling A** (punten 2-12) is wetgeving op basis
-    van het nieuwe wetgevingskader; voor **afdeling B** (punten 13-21) beperkt artikel 2,
-    lid 2, wat geldt: artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot en met
-    112.
-
-    De machinerichtlijn 2006/42/EG, ooit punt 1 van afdeling A, is bij Verordening (EU)
-    2026/1744 **geschrapt**; machines zijn nu punt 21 van afdeling B.
+    Bijlage I telt **20** onderdelen.
 metadata:
   version: "0.2"
   step: 4a - high-risk, Annex I route
@@ -778,17 +633,9 @@ title:
   nl: "Liften en veiligheidscomponenten voor liften"
 description:
   en: |
-    Annex I, Section A, point 4 lists **Directive 2014/33/EU relating to lifts and safety
-    components for lifts**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III.
+    Annex I, Section A, point 4 lists **Directive 2014/33/EU relating to lifts and safety components for lifts**.
   nl: |
-    Bijlage I, afdeling A, punt 4, noemt **Richtlijn 2014/33/EU inzake liften en
-    veiligheidscomponenten voor liften**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III.
+    Bijlage I, afdeling A, punt 4, noemt **Richtlijn 2014/33/EU inzake liften en veiligheidscomponenten voor liften**.
 metadata:
   version: "0.2"
   annex-i-point: 4
@@ -824,19 +671,8 @@ title:
 description:
   en: |
     Annex I, Section B, point 21 lists **Regulation (EU) 2023/1230 on machinery**.
-
-    **Section B**: under Article 2(2) only Article 6(1), Article 60a and Articles 102 to 112
-    apply to a system that is high-risk through it. Added by Regulation (EU) 2026/1744,
-    which deleted the Machinery Directive 2006/42/EC from Section A. For agrifood this is
-    the broadest entry: harvesters, sorting and packing lines, milking robots, feed mixers.
   nl: |
-    Bijlage I, afdeling B, punt 21, noemt **Verordening (EU) 2023/1230 betreffende
-    machines**.
-
-    **Afdeling B**: op grond van artikel 2, lid 2, gelden dan alleen artikel 6, lid 1,
-    artikel 60 bis, en de artikelen 102 tot en met 112. Toegevoegd bij Verordening (EU)
-    2026/1744, die de machinerichtlijn 2006/42/EG uit afdeling A schrapte. Voor agrifood is
-    dit het breedste onderdeel: oogstmachines, sorteerlijnen, melkrobots, voermengers.
+    Bijlage I, afdeling B, punt 21, noemt **Verordening (EU) 2023/1230 betreffende machines**.
 metadata:
   version: "0.2"
   annex-i-point: 21
@@ -872,17 +708,8 @@ title:
 description:
   en: |
     Annex I, Section B, point 16 lists **Directive 2014/90/EU on marine equipment**.
-
-    **Section B**: under Article 2(2) only Article 6(1), Article 60a and Articles 102 to 112
-    apply to a system that is high-risk through it. Relevant to fisheries and aquaculture:
-    equipment placed on board an EU-flagged sea-going vessel.
   nl: |
-    Bijlage I, afdeling B, punt 16, noemt **Richtlijn 2014/90/EU inzake uitrusting van
-    zeeschepen**.
-
-    **Afdeling B**: op grond van artikel 2, lid 2, gelden dan alleen artikel 6, lid 1,
-    artikel 60 bis, en de artikelen 102 tot en met 112. Relevant voor visserij en
-    aquacultuur: uitrusting aan boord van een zeeschip onder EU-vlag.
+    Bijlage I, afdeling B, punt 16, noemt **Richtlijn 2014/90/EU inzake uitrusting van zeeschepen**.
 metadata:
   version: "0.2"
   annex-i-point: 16
@@ -918,15 +745,8 @@ title:
 description:
   en: |
     Annex I, Section A, point 11 lists **Regulation (EU) 2017/745 on medical devices**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III.
   nl: |
-    Bijlage I, afdeling A, punt 11, noemt **Verordening (EU) 2017/745 betreffende medische
-    hulpmiddelen**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III.
+    Bijlage I, afdeling A, punt 11, noemt **Verordening (EU) 2017/745 betreffende medische hulpmiddelen**.
 metadata:
   version: "0.2"
   annex-i-point: 11
@@ -961,21 +781,9 @@ title:
   nl: "Goedkeuring van motorvoertuigen en aanhangwagens"
 description:
   en: |
-    Annex I, Section B, point 18 lists **Regulation (EU) 2018/858 on the approval and market
-    surveillance of motor vehicles and their trailers, and of systems, components and
-    separate technical units intended for such vehicles**.
-
-    **Section B**: under Article 2(2) only Article 6(1), Article 60a and Articles 102 to 112
-    apply to a system that is high-risk through it. Covers the road vehicles of the food
-    chain, including lorries used for transport and distribution.
+    Annex I, Section B, point 18 lists **Regulation (EU) 2018/858 on the approval and market surveillance of motor vehicles and their trailers, and of…**
   nl: |
-    Bijlage I, afdeling B, punt 18, noemt **Verordening (EU) 2018/858 betreffende de
-    goedkeuring van en het markttoezicht op motorvoertuigen en aanhangwagens daarvan en
-    systemen, onderdelen en technische eenheden daarvoor**.
-
-    **Afdeling B**: op grond van artikel 2, lid 2, gelden dan alleen artikel 6, lid 1,
-    artikel 60 bis, en de artikelen 102 tot en met 112. Bestrijkt de wegvoertuigen van de
-    voedselketen, waaronder vrachtwagens voor transport en distributie.
+    Bijlage I, afdeling B, punt 18, noemt **Verordening (EU) 2018/858 betreffende de goedkeuring van en het markttoezicht op motorvoertuigen en…**
 metadata:
   version: "0.2"
   annex-i-point: 18
@@ -1010,19 +818,9 @@ title:
   nl: "Typegoedkeuring van motorvoertuigen: veiligheid"
 description:
   en: |
-    Annex I, Section B, point 19 lists **Regulation (EU) 2019/2144 on type-approval
-    requirements for motor vehicles and their trailers as regards their general safety and
-    the protection of vehicle occupants and vulnerable road users**.
-
-    **Section B**: under Article 2(2) only Article 6(1), Article 60a and Articles 102 to 112
-    apply to a system that is high-risk through it.
+    Annex I, Section B, point 19 lists **Regulation (EU) 2019/2144 on type-approval requirements for motor vehicles and their trailers as regards their…**
   nl: |
-    Bijlage I, afdeling B, punt 19, noemt **Verordening (EU) 2019/2144 betreffende de
-    typegoedkeuring van motorvoertuigen en aanhangwagens wat de algemene veiligheid en de
-    bescherming van inzittenden en kwetsbare weggebruikers betreft**.
-
-    **Afdeling B**: op grond van artikel 2, lid 2, gelden dan alleen artikel 6, lid 1,
-    artikel 60 bis, en de artikelen 102 tot en met 112.
+    Bijlage I, afdeling B, punt 19, noemt **Verordening (EU) 2019/2144 betreffende de typegoedkeuring van motorvoertuigen en aanhangwagens wat de…**
 metadata:
   version: "0.2"
   annex-i-point: 19
@@ -1057,21 +855,9 @@ title:
   nl: "Persoonlijke beschermingsmiddelen"
 description:
   en: |
-    Annex I, Section A, point 9 lists **Regulation (EU) 2016/425 on personal protective
-    equipment**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III. Relevant to smart
-    protective equipment worn in agriculture and food processing: respiratory protection,
-    gas detection, fall arrest.
+    Annex I, Section A, point 9 lists **Regulation (EU) 2016/425 on personal protective equipment**.
   nl: |
-    Bijlage I, afdeling A, punt 9, noemt **Verordening (EU) 2016/425 betreffende
-    persoonlijke beschermingsmiddelen**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III.
-    Relevant voor slimme beschermingsmiddelen in de landbouw en voedingsindustrie:
-    ademhalingsbescherming, gasdetectie, valbeveiliging.
+    Bijlage I, afdeling A, punt 9, noemt **Verordening (EU) 2016/425 betreffende persoonlijke beschermingsmiddelen**.
 metadata:
   version: "0.2"
   annex-i-point: 9
@@ -1106,21 +892,9 @@ title:
   nl: "Drukapparatuur"
 description:
   en: |
-    Annex I, Section A, point 7 lists **Directive 2014/68/EU relating to the making
-    available on the market of pressure equipment**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III. Reaches agrifood
-    process equipment such as sterilisers, retorts, pasteurisers and ammonia refrigeration
-    plant.
+    Annex I, Section A, point 7 lists **Directive 2014/68/EU relating to the making available on the market of pressure equipment**.
   nl: |
-    Bijlage I, afdeling A, punt 7, noemt **Richtlijn 2014/68/EU inzake het op de markt
-    aanbieden van drukapparatuur**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III. Raakt
-    agrifood-procesapparatuur zoals sterilisatoren, autoclaven, pasteurisatoren en
-    ammoniakkoelinstallaties.
+    Bijlage I, afdeling A, punt 7, noemt **Richtlijn 2014/68/EU inzake het op de markt aanbieden van drukapparatuur**.
 metadata:
   version: "0.2"
   annex-i-point: 7
@@ -1155,22 +929,9 @@ title:
   nl: "Radioapparatuur"
 description:
   en: |
-    Annex I, Section A, point 6 lists **Directive 2014/53/EU relating to the making
-    available on the market of radio equipment**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III. Article 6(1c) matters
-    here: a product that needs a third-party assessment solely because of radio spectrum or
-    interference risks that do not affect health and safety does not meet condition (b).
+    Annex I, Section A, point 6 lists **Directive 2014/53/EU relating to the making available on the market of radio equipment**.
   nl: |
-    Bijlage I, afdeling A, punt 6, noemt **Richtlijn 2014/53/EU inzake het op de markt
-    aanbieden van radioapparatuur**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III.
-    Artikel 6, lid 1 quater, is hier van belang: een product dat uitsluitend vanwege
-    radiospectrum- of interferentierisico’s beoordeeld moet worden, voldoet niet aan
-    voorwaarde b).
+    Bijlage I, afdeling A, punt 6, noemt **Richtlijn 2014/53/EU inzake het op de markt aanbieden van radioapparatuur**.
 metadata:
   version: "0.2"
   annex-i-point: 6
@@ -1205,17 +966,9 @@ title:
   nl: "Interoperabiliteit van het spoorwegsysteem"
 description:
   en: |
-    Annex I, Section B, point 17 lists **Directive (EU) 2016/797 on the interoperability of
-    the rail system within the European Union**.
-
-    **Section B**: under Article 2(2) only Article 6(1), Article 60a and Articles 102 to 112
-    apply to a system that is high-risk through it.
+    Annex I, Section B, point 17 lists **Directive (EU) 2016/797 on the interoperability of the rail system within the European Union**.
   nl: |
-    Bijlage I, afdeling B, punt 17, noemt **Richtlijn (EU) 2016/797 betreffende de
-    interoperabiliteit van het spoorwegsysteem in de Europese Unie**.
-
-    **Afdeling B**: op grond van artikel 2, lid 2, gelden dan alleen artikel 6, lid 1,
-    artikel 60 bis, en de artikelen 102 tot en met 112.
+    Bijlage I, afdeling B, punt 17, noemt **Richtlijn (EU) 2016/797 betreffende de interoperabiliteit van het spoorwegsysteem in de Europese Unie**.
 metadata:
   version: "0.2"
   annex-i-point: 17
@@ -1250,17 +1003,9 @@ title:
   nl: "Pleziervaartuigen en waterscooters"
 description:
   en: |
-    Annex I, Section A, point 3 lists **Directive 2013/53/EU on recreational craft and
-    personal watercraft**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III.
+    Annex I, Section A, point 3 lists **Directive 2013/53/EU on recreational craft and personal watercraft**.
   nl: |
-    Bijlage I, afdeling A, punt 3, noemt **Richtlijn 2013/53/EU betreffende
-    pleziervaartuigen en waterscooters**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III.
+    Bijlage I, afdeling A, punt 3, noemt **Richtlijn 2013/53/EU betreffende pleziervaartuigen en waterscooters**.
 metadata:
   version: "0.2"
   annex-i-point: 3
@@ -1296,15 +1041,8 @@ title:
 description:
   en: |
     Annex I, Section A, point 2 lists **Directive 2009/48/EC on the safety of toys**.
-
-    **Section A** is New Legislative Framework legislation: a system that is high-risk
-    through it falls under the full high-risk regime of Chapter III.
   nl: |
-    Bijlage I, afdeling A, punt 2, noemt **Richtlijn 2009/48/EG betreffende de veiligheid
-    van speelgoed**.
-
-    **Afdeling A** is wetgeving op basis van het nieuwe wetgevingskader: een systeem dat
-    daardoor een hoog risico vormt, valt onder het volledige regime van hoofdstuk III.
+    Bijlage I, afdeling A, punt 2, noemt **Richtlijn 2009/48/EG betreffende de veiligheid van speelgoed**.
 metadata:
   version: "0.2"
   annex-i-point: 2
@@ -1339,22 +1077,9 @@ title:
   nl: "Twee- of driewielige voertuigen en vierwielers"
 description:
   en: |
-    Annex I, Section B, point 14 lists **Regulation (EU) No 168/2013 on the approval and
-    market surveillance of two- or three-wheel vehicles and quadricycles**.
-
-    **Section B**: under Article 2(2) only Article 6(1), Article 60a and Articles 102 to 112
-    apply to a system that is high-risk through it. Quadricycles used on holdings can fall
-    here rather than under the agricultural vehicle Regulation; the vehicle category
-    decides, not where it is driven.
+    Annex I, Section B, point 14 lists **Regulation (EU) No 168/2013 on the approval and market surveillance of two- or three-wheel vehicles and…**
   nl: |
-    Bijlage I, afdeling B, punt 14, noemt **Verordening (EU) nr. 168/2013 betreffende de
-    goedkeuring van en het markttoezicht op twee- of driewielige voertuigen en
-    vierwielers**.
-
-    **Afdeling B**: op grond van artikel 2, lid 2, gelden dan alleen artikel 6, lid 1,
-    artikel 60 bis, en de artikelen 102 tot en met 112. Vierwielers op bedrijven kunnen
-    hieronder vallen in plaats van onder de verordening voor landbouwvoertuigen; de
-    voertuigcategorie beslist.
+    Bijlage I, afdeling B, punt 14, noemt **Verordening (EU) nr. 168/2013 betreffende de goedkeuring van en het markttoezicht op twee- of driewielige…**
 metadata:
   version: "0.2"
   annex-i-point: 14
@@ -1389,23 +1114,9 @@ title:
   nl: "Burgerluchtvaart: onbemande luchtvaartuigen"
 description:
   en: |
-    Annex I, Section B, point 20 lists **Regulation (EU) 2018/1139 on common rules in the
-    field of civil aviation**.
-
-    **Section B**: under Article 2(2) only Article 6(1), Article 60a and Articles 102 to 112
-    apply to a system that is high-risk through it. Annex I limits this entry to **unmanned
-    aircraft** and the equipment to control them remotely, as referred to in Article 2(1),
-    points (a) and (b), of that Regulation. Crop-scouting and spraying drones are the
-    agrifood case.
+    Annex I, Section B, point 20 lists **Regulation (EU) 2018/1139 on common rules in the field of civil aviation**.
   nl: |
-    Bijlage I, afdeling B, punt 20, noemt **Verordening (EU) 2018/1139 inzake
-    gemeenschappelijke regels op het gebied van burgerluchtvaart**.
-
-    **Afdeling B**: op grond van artikel 2, lid 2, gelden dan alleen artikel 6, lid 1,
-    artikel 60 bis, en de artikelen 102 tot en met 112. Bijlage I beperkt dit onderdeel tot
-    **onbemande luchtvaartuigen** en de apparatuur om ze op afstand te besturen (artikel 2,
-    lid 1, punten a) en b), van die verordening). Drones voor gewasinspectie zijn het
-    agrifood-geval.
+    Bijlage I, afdeling B, punt 20, noemt **Verordening (EU) 2018/1139 inzake gemeenschappelijke regels op het gebied van burgerluchtvaart**.
 metadata:
   version: "0.2"
   annex-i-point: 20
@@ -1440,21 +1151,9 @@ title:
   nl: Valt uw systeem in een gebied met een hoog risico van bijlage III?
 description:
   en: |
-    The second route to **high-risk**. Article 6(2): the systems referred to in **Annex
-    III** are high-risk. It lists **8 areas** covering 25 system types. Article 6(3):
-    such a system is **not** high-risk where it poses no significant risk of harm, which
-    applies where **any** of four conditions is met - a narrow procedural task, improving
-    a completed human activity, detecting decision patterns, or a preparatory task - but
-    it always is where it **performs profiling of natural persons**. Article 6(4): that
-    assessment must be documented before the system is placed on the market.
+    The second route to **high-risk**. Article 6(2): the systems referred to in **Annex III** are high-risk.
   nl: |
-    De tweede route naar een **hoog risico**. Artikel 6, lid 2: ook de in **bijlage III**
-    bedoelde systemen zijn een hoog risico. Bijlage III noemt **8 gebieden** met 25 types
-    systemen. Artikel 6, lid 3: zo'n systeem is **geen** hoog risico als het geen
-    significant risico op schade inhoudt, wat geldt bij **één** van vier voorwaarden -
-    een beperkte procedurele taak, verbetering van een voltooide menselijke activiteit,
-    het opsporen van besluitvormingspatronen of een voorbereidende taak - maar altijd wel
-    bij **profilering van natuurlijke personen**. Lid 4 vereist documentatie vooraf.
+    De tweede route naar een **hoog risico**. Artikel 6, lid 2: ook de in **bijlage III** bedoelde systemen zijn een hoog risico.
 metadata:
   version: "0.2"
   step: 4b - high-risk, Annex III route
@@ -1524,19 +1223,9 @@ title:
   nl: Biometrie
 description:
   en: |
-    Annex III, area 1 applies **in so far as the use of these systems is permitted under
-    Union or national law**, and lists three types: **(a)** remote biometric
-    identification, which does **not** include **biometric verification** whose sole
-    purpose is to confirm a claimed identity; **(b)** **biometric categorisation
-    according to sensitive or protected attributes**; **(c)** **emotion recognition**.
-    Check step 3 as well: Article 5(1)(f), (g) and (h) prohibit some of these outright.
+    Annex III, area 1 applies **in so far as the use of these systems is permitted under Union or national law**, and lists three types:
   nl: |
-    Bijlage III, gebied 1, geldt **voor zover het gebruik is toegestaan op grond van het
-    Unierecht of nationale recht**, en noemt drie types: **a)** biometrische
-    identificatie op afstand, met uitzondering van **biometrische verificatie** die
-    alleen een geclaimde identiteit bevestigt; **b)** **biometrische categorisering op
-    basis van gevoelige of beschermde kenmerken**; **c)** **emotieherkenning**. Toets ook
-    stap 3: artikel 5, lid 1, punten f), g) en h), verbiedt sommige hiervan zonder meer.
+    Bijlage III, gebied 1, geldt **voor zover het gebruik is toegestaan op grond van het Unierecht of nationale recht**, en noemt drie types:
 metadata:
   version: "0.2"
   annex-iii-area: 1
@@ -1566,22 +1255,9 @@ title:
   nl: Kritieke infrastructuur
 description:
   en: |
-    Annex III, area 2 is a single entry: *AI systems intended to be used as safety
-    components in the management and operation of critical digital infrastructure, road
-    traffic, or in the supply of water, gas, heating or electricity.*
-
-    Three elements must line up: a **safety component**; used in the **management and
-    operation**; of one of those infrastructures. For agrifood the entry to weigh is
-    **the supply of water**, not irrigation on a single holding.
+    Annex III, area 2 is a single entry:
   nl: |
-    Bijlage III, gebied 2, bestaat uit één onderdeel: *AI-systemen die bedoeld zijn om te
-    worden gebruikt als veiligheidscomponent bij het beheer of de exploitatie van
-    kritieke digitale infrastructuur, wegverkeer of bij de levering van water, gas,
-    verwarming en elektriciteit.*
-
-    Drie elementen moeten samenvallen: een **veiligheidscomponent**; gebruikt bij
-    **beheer of exploitatie**; van die infrastructuur. Voor agrifood gaat het vooral om
-    **de levering van water**, niet om beregening op één bedrijf.
+    Bijlage III, gebied 2, bestaat uit één onderdeel:
 metadata:
   version: "0.2"
   annex-iii-area: 2
@@ -1611,20 +1287,9 @@ title:
   nl: Onderwijs en beroepsopleiding
 description:
   en: |
-    Annex III, area 3 lists four types, all tied to educational and vocational training
-    institutions **at all levels**: **(a)** determining access or admission, or assigning
-    persons to them; **(b)** evaluating learning outcomes, including where used to steer
-    a learning process; **(c)** assessing the appropriate level of education a person
-    will receive; **(d)** monitoring and detecting prohibited behaviour of students
-    during tests. All four turn on the institutional setting; training an employer gives
-    is tested against area 4.
+    Annex III, area 3 lists four types, all tied to educational and vocational training institutions **at all levels**:
   nl: |
-    Bijlage III, gebied 3, noemt vier types, alle gebonden aan instellingen voor
-    onderwijs en beroepsonderwijs **op alle niveaus**: **a)** het bepalen van toegang of
-    toelating; **b)** het evalueren van leerresultaten, ook wanneer die het leerproces
-    sturen; **c)** het beoordelen van het passende onderwijsniveau; **d)** het monitoren
-    en detecteren van ongeoorloofd gedrag tijdens toetsen. Alle vier draaien om de
-    instelling; opleiding door een werkgever wordt aan gebied 4 getoetst.
+    Bijlage III, gebied 3, noemt vier types, alle gebonden aan instellingen voor onderwijs en beroepsonderwijs **op alle niveaus**:
 metadata:
   version: "0.2"
   annex-iii-area: 3
@@ -1649,19 +1314,9 @@ title:
   nl: Werkgelegenheid, personeelsbeheer en zelfstandige arbeid
 description:
   en: |
-    Annex III, area 4 lists two types: **(a)** systems for the **recruitment or
-    selection** of persons, in particular targeted job advertisements, filtering
-    applications and evaluating candidates; **(b)** systems to make **decisions affecting
-    the terms of work-related relationships**, promotion or termination, **to allocate
-    tasks** on individual behaviour or personal traits, or to **monitor and evaluate
-    performance and behaviour**. The relationship need not be an employment contract.
+    Annex III, area 4 lists two types:
   nl: |
-    Bijlage III, gebied 4, noemt twee types: **a)** systemen voor het **werven of
-    selecteren** van personen, met name gerichte vacatures, het filteren van sollicitaties
-    en het beoordelen van kandidaten; **b)** systemen voor **besluiten over de voorwaarden
-    van arbeidsgerelateerde betrekkingen**, bevordering of beëindiging, voor het
-    **toewijzen van taken** op basis van gedrag of kenmerken, of voor het **monitoren en
-    evalueren van prestaties en gedrag**. Een arbeidsovereenkomst is niet vereist.
+    Bijlage III, gebied 4, noemt twee types:
 metadata:
   version: "0.2"
   annex-iii-area: 4
@@ -1691,22 +1346,9 @@ title:
   nl: Essentiële particuliere en publieke diensten en uitkeringen
 description:
   en: |
-    Annex III, area 5 lists four types: **(a)** systems used by or on behalf of public
-    authorities to **evaluate eligibility for essential public assistance benefits and
-    services**, or to grant, reduce, revoke or reclaim them; **(b)** **creditworthiness**
-    or credit scoring of natural persons, except fraud detection; **(c)** **risk
-    assessment and pricing in life and health insurance**; **(d)** **evaluating and
-    classifying emergency calls** and dispatching first response services. Points (b) and
-    (c) cover natural persons only; many farmers are sole traders.
+    Annex III, area 5 lists four types:
   nl: |
-    Bijlage III, gebied 5, noemt vier types: **a)** systemen die door of namens
-    overheidsinstanties beoordelen of iemand **in aanmerking komt voor essentiële
-    overheidsuitkeringen en -diensten**, of die verlenen, beperken, intrekken of
-    terugvorderen; **b)** het beoordelen van **kredietwaardigheid** of kredietscores van
-    natuurlijke personen, behalve fraudedetectie; **c)** **risicobeoordeling en
-    prijsstelling bij levens- en ziektekostenverzekeringen**; **d)** het **evalueren en
-    classificeren van noodoproepen**. De punten b) en c) zien alleen op natuurlijke
-    personen.
+    Bijlage III, gebied 5, noemt vier types:
 metadata:
   version: "0.2"
   annex-iii-area: 5
@@ -1731,19 +1373,9 @@ title:
   nl: Rechtsbedeling en democratische processen
 description:
   en: |
-    Annex III, area 8 lists two types: **(a)** systems used by or on behalf of a
-    **judicial authority to research and interpret facts and the law** and apply it to a
-    concrete set of facts, or used the same way in **alternative dispute resolution**;
-    **(b)** systems for **influencing the outcome of an election or referendum** or
-    voting behaviour, excluding systems to whose output persons are not directly exposed,
-    such as tools that organise a campaign administratively.
+    Annex III, area 8 lists two types:
   nl: |
-    Bijlage III, gebied 8, noemt twee types: **a)** systemen die door of namens een
-    **gerechtelijke instantie** worden gebruikt om **feiten en het recht te onderzoeken
-    en uit te leggen** en toe te passen op een concrete reeks feiten, of op dezelfde
-    wijze bij **alternatieve geschillenbeslechting**; **b)** systemen voor het
-    **beïnvloeden van de uitslag van een verkiezing of referendum** of van stemgedrag,
-    behalve systemen aan de output waarvan personen niet rechtstreeks worden blootgesteld.
+    Bijlage III, gebied 8, noemt twee types:
 metadata:
   version: "0.2"
   annex-iii-area: 8
@@ -1768,21 +1400,9 @@ title:
   nl: Rechtshandhaving
 description:
   en: |
-    Annex III, area 6 applies **so far as the use is permitted under Union or national
-    law** and lists five types, all defined by who uses them - law enforcement
-    authorities or those acting for them: **(a)** assessing the risk of a person
-    **becoming a victim**; **(b)** **polygraphs** and similar tools; **(c)** **evaluating
-    the reliability of evidence**; **(d)** assessing the risk of **offending or
-    re-offending**, not solely on profiling; **(e)** **profiling** during detection,
-    investigation or prosecution. Solely on profiling, Article 5(1)(d) prohibits it.
+    Annex III, area 6 applies **so far as the use is permitted under Union or national law** and lists five types, all defined by who uses them - law…
   nl: |
-    Bijlage III, gebied 6, geldt **voor zover het gebruik is toegestaan op grond van het
-    Unierecht of nationale recht** en noemt vijf types, alle omschreven naar wie ze
-    gebruikt - rechtshandhavingsinstanties of wie namens hen handelt: **a)** het risico
-    dat iemand **slachtoffer wordt**; **b)** **leugendetectors**; **c)** het beoordelen
-    van de **betrouwbaarheid van bewijs**; **d)** het risico op **(herhaald) plegen**,
-    niet uitsluitend op profilering; **e)** **profilering** bij opsporing of vervolging.
-    Uitsluitend op profilering verbiedt artikel 5, lid 1, punt d), dit.
+    Bijlage III, gebied 6, geldt **voor zover het gebruik is toegestaan op grond van het Unierecht of nationale recht** en noemt vijf types, alle…
 metadata:
   version: "0.2"
   annex-iii-area: 6
@@ -1812,21 +1432,9 @@ title:
   nl: Migratie-, asiel- en grenstoezichtsbeheer
 description:
   en: |
-    Annex III, area 7 applies **so far as the use is permitted under Union or national
-    law** and lists four types, all defined by who uses them - competent public
-    authorities or those acting for them: **(a)** **polygraphs** and similar tools;
-    **(b)** assessing a **security, irregular migration or health risk** posed by a
-    person entering a Member State; **(c)** assisting the **examination of applications**
-    for asylum, visa or residence permits; **(d)** **detecting, recognising or
-    identifying** persons, except the verification of travel documents.
+    Annex III, area 7 applies **so far as the use is permitted under Union or national law** and lists four types, all defined by who uses them -…
   nl: |
-    Bijlage III, gebied 7, geldt **voor zover het gebruik is toegestaan op grond van het
-    Unierecht of nationale recht** en noemt vier types, alle omschreven naar wie ze
-    gebruikt - bevoegde overheidsinstanties of wie namens hen handelt: **a)**
-    **leugendetectors**; **b)** het beoordelen van een **veiligheids-, migratie- of
-    gezondheidsrisico** van wie een lidstaat binnenkomt; **c)** hulp bij de **behandeling
-    van aanvragen** voor asiel, visa of verblijf; **d)** het **opsporen, herkennen of
-    identificeren** van personen, behalve verificatie van reisdocumenten.
+    Bijlage III, gebied 7, geldt **voor zover het gebruik is toegestaan op grond van het Unierecht of nationale recht** en noemt vier types, alle…
 metadata:
   version: "0.2"
   annex-iii-area: 7
@@ -1852,20 +1460,8 @@ title:
 description:
   en: |
     One of the seven categories of Article 2(1) describes you, so the Act reaches you.
-    Article 2 also takes some systems and activities back out of the Act; the entries
-    below are those exclusions. Open one to read what it covers.
-
-    Answer **yes** only if a **full** exclusion covers your system: the Act then does
-    not apply to it, and the walk ends. The free and open-source exclusion is only
-    partial, so it is no reason to answer yes.
   nl: |
-    Een van de zeven categorieën van artikel 2, lid 1, geldt voor u, dus de verordening
-    bereikt u. Artikel 2 haalt ook systemen en activiteiten weer buiten de verordening;
-    de onderdelen hieronder zijn die uitsluitingen.
-
-    Antwoord **ja** alleen als een **volledige** uitsluiting uw systeem dekt: de
-    verordening geldt dan niet en de doorloop eindigt. De uitsluiting voor
-    opensourcelicenties is slechts gedeeltelijk en dus geen reden voor ja.
+    Een van de zeven categorieën van artikel 2, lid 1, geldt voor u, dus de verordening bereikt u.
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -1917,20 +1513,9 @@ title:
   nl: Deepfakes (gebruiksverantwoordelijke)
 description:
   en: |
-    **Article 50(4), first subparagraph.** Deployers of an AI system that generates or
-    manipulates image, audio or video content constituting a **deep fake** must
-    **disclose that the content has been artificially generated or manipulated**. Article
-    3(60) covers content resembling existing persons, **objects, places, entities or
-    events** that would falsely appear authentic. Law-enforcement use authorised by law
-    is excepted; for an evidently artistic, creative, satirical or fictional work the
-    disclosure is limited to its existence.
+    **Article 50(4), first subparagraph.** Deployers of an AI system that generates or manipulates image, audio or video content constituting a **deep…**
   nl: |
-    **Artikel 50, lid 4, eerste alinea.** Gebruiksverantwoordelijken van een AI-systeem
-    dat beeld-, audio- of videocontent genereert of bewerkt die een **deepfake** vormt,
-    **maken bekend dat de content kunstmatig is gegenereerd of gemanipuleerd**. Artikel 3,
-    punt 60, ziet ook op **voorwerpen, plaatsen, entiteiten of gebeurtenissen**. Bij wet
-    toegestaan gebruik voor strafbare feiten is uitgezonderd; bij een duidelijk artistiek,
-    creatief, satirisch of fictief werk beperkt de plicht zich tot het bestaan ervan.
+    **Artikel 50, lid 4, eerste alinea.** Gebruiksverantwoordelijken van een AI-systeem dat beeld-, audio- of videocontent genereert of bewerkt die een…
 metadata:
   version: "0.2"
   article-50-situation: 4
@@ -1960,21 +1545,9 @@ title:
   nl: Directe interactie met mensen (aanbieder)
 description:
   en: |
-    **Article 50(1).** Providers must ensure that AI systems **intended to interact
-    directly with natural persons** are designed and developed so that those persons
-    **are informed that they are interacting with an AI system**. This does not apply
-    where that is **obvious** to a reasonably well-informed, observant and circumspect
-    person in the context of use, nor to systems authorised by law to detect, prevent,
-    investigate or prosecute criminal offences - unless they are available for the public
-    to report an offence.
+    **Article 50(1).** Providers must ensure that AI systems **intended to interact directly with natural persons** are designed and developed so that…
   nl: |
-    **Artikel 50, lid 1.** Aanbieders zorgen ervoor dat AI-systemen die **voor directe
-    interactie met natuurlijke personen zijn bedoeld** zo worden ontworpen dat die
-    personen **worden geïnformeerd dat zij met een AI-systeem interageren**. Dit geldt
-    niet wanneer dat **duidelijk** is voor een normaal geïnformeerde, omzichtige en
-    oplettende persoon in de gebruikscontext, en evenmin voor bij wet toegestane systemen
-    voor het opsporen of vervolgen van strafbare feiten - tenzij het publiek daarmee een
-    strafbaar feit kan melden.
+    **Artikel 50, lid 1.** Aanbieders zorgen ervoor dat AI-systemen die **voor directe interactie met natuurlijke personen zijn bedoeld** zo worden…
 metadata:
   version: "0.2"
   article-50-situation: 1
@@ -1999,20 +1572,9 @@ title:
   nl: Emotieherkenning of biometrische categorisering
 description:
   en: |
-    **Article 50(3).** Deployers of an **emotion recognition system** or a **biometric
-    categorisation system** must **inform the natural persons exposed to it of the
-    operation of the system**, and process the personal data in accordance with
-    Regulation (EU) 2016/679, Regulation (EU) 2018/1725 and Directive (EU) 2016/680. It
-    does not apply to systems permitted by law to detect, prevent or investigate criminal
-    offences. Check step 3 first: Article 5(1)(f) and (g) prohibit some of these outright.
+    **Article 50(3).** Deployers of an **emotion recognition system** or a **biometric categorisation system** must **inform the natural persons…**
   nl: |
-    **Artikel 50, lid 3.** Gebruiksverantwoordelijken van een **systeem voor
-    emotieherkenning** of **biometrische categorisering** **informeren de blootgestelde
-    natuurlijke personen over de werking van het systeem** en verwerken persoonsgegevens
-    volgens Verordening (EU) 2016/679, Verordening (EU) 2018/1725 en Richtlijn (EU)
-    2016/680. Dit geldt niet voor bij wet toegestane systemen voor het opsporen van
-    strafbare feiten. Toets eerst stap 3: artikel 5, lid 1, punten f) en g), verbiedt
-    sommige hiervan.
+    **Artikel 50, lid 3.** Gebruiksverantwoordelijken van een **systeem voor emotieherkenning** of **biometrische categorisering** **informeren de…**
 metadata:
   version: "0.2"
   article-50-situation: 3
@@ -2042,20 +1604,9 @@ title:
   nl: Door AI gegenereerde tekst voor het publiek
 description:
   en: |
-    **Article 50(4), second subparagraph.** Deployers of an AI system that generates or
-    manipulates **text published with the purpose of informing the public on matters of
-    public interest** must **disclose that the text has been artificially generated or
-    manipulated**. It does not apply where the use is authorised by law for
-    criminal-offence purposes, or where the content **has undergone human review or
-    editorial control** **and** a natural or legal person **holds editorial
-    responsibility** for its publication.
+    **Article 50(4), second subparagraph.** Deployers of an AI system that generates or manipulates **text published with the purpose of informing the…**
   nl: |
-    **Artikel 50, lid 4, tweede alinea.** Gebruiksverantwoordelijken van een AI-systeem
-    dat **tekst genereert of bewerkt die wordt gepubliceerd om het publiek te informeren
-    over aangelegenheden van algemeen belang**, **maken bekend dat de tekst kunstmatig is
-    gegenereerd of bewerkt**. Dit geldt niet bij wettelijk toegestaan gebruik voor
-    strafbare feiten, of wanneer de content **menselijke toetsing of redactionele
-    controle heeft ondergaan** **en** iemand **redactionele verantwoordelijkheid draagt**.
+    **Artikel 50, lid 4, tweede alinea.** Gebruiksverantwoordelijken van een AI-systeem dat **tekst genereert of bewerkt die wordt gepubliceerd om het…**
 metadata:
   version: "0.2"
   article-50-situation: 5
@@ -2080,21 +1631,9 @@ title:
   nl: Systemen die synthetische content genereren (aanbieder)
 description:
   en: |
-    **Article 50(2).** Providers of AI systems (**including general-purpose AI systems**)
-    that generate **synthetic audio, image, video or text** must ensure the outputs are
-    **marked in a machine-readable format and detectable as artificially generated**. It
-    does not apply where the system performs an **assistive function for standard
-    editing**, does **not substantially alter** the deployer's input, or is authorised by
-    law for criminal-offence purposes. Article 111(4) gives systems on the market before
-    2 August 2026 until 2 December 2026.
+    **Article 50(2).** Providers of AI systems (**including general-purpose AI systems**) that generate **synthetic audio, image, video or text** must…
   nl: |
-    **Artikel 50, lid 2.** Aanbieders van AI-systemen - **ook systemen voor algemene
-    doeleinden** - die **synthetische audio, beelden, video of tekst** genereren, zorgen
-    dat de output **machineleesbaar is gemarkeerd en detecteerbaar als kunstmatig
-    gegenereerd of gemanipuleerd**. Dit geldt niet voor systemen met een
-    **ondersteunende functie voor standaardbewerking**, systemen die de input van de
-    gebruiksverantwoordelijke **niet wezenlijk wijzigen**, of bij wet toegestane systemen.
-    Artikel 111, lid 4, geeft systemen van vóór 2 augustus 2026 tot 2 december 2026.
+    **Artikel 50, lid 2.** Aanbieders van AI-systemen - **ook systemen voor algemene doeleinden** - die **synthetische audio, beelden, video of tekst**…
 metadata:
   version: "0.2"
   article-50-situation: 2
@@ -2124,20 +1663,9 @@ title:
   nl: Biometrische categorisering (ras, overtuiging, seksleven)
 description:
   en: |
-    Article 5(1)(g) prohibits placing on the market, putting into service for this
-    purpose, or using **biometric categorisation systems that categorise individual
-    natural persons on their biometric data to deduce or infer** race, political
-    opinions, trade union membership, religious or philosophical beliefs, sex life or
-    sexual orientation. Labelling or filtering lawfully acquired biometric datasets, and
-    categorising in the area of law enforcement, are excluded. Article 3(40) defines the
-    system.
+    Article 5(1)(g) prohibits placing on the market, putting into service for this purpose, or using **biometric categorisation systems that categorise…**
   nl: |
-    Artikel 5, lid 1, punt g), verbiedt het in de handel brengen, voor dit doel in gebruik
-    stellen of gebruiken van **systemen voor biometrische categorisering die personen
-    individueel indelen op biometrische gegevens om** ras, politieke opvattingen,
-    vakbondslidmaatschap, religieuze of levensbeschouwelijke overtuigingen, seksleven of
-    seksuele gerichtheid **af te leiden**. Labelen of filteren van rechtmatig verkregen
-    datasets en categorisering bij rechtshandhaving vallen erbuiten.
+    Artikel 5, lid 1, punt g), verbiedt het in de handel brengen, voor dit doel in gebruik stellen of gebruiken van **systemen voor biometrische…**
 metadata:
   version: "0.2"
 sources:
@@ -2165,19 +1693,9 @@ title:
   nl: Materiaal van seksueel kindermisbruik (2-12-2026)
 description:
   en: |
-    Article 5(1)(bb), inserted by Regulation (EU) 2026/1744, prohibits placing on the
-    market, putting into service or using an AI system that **generates or manipulates
-    material or performance within the meaning of Article 2, points (c) and (e), of
-    Directive 2011/93/EU**, except where a "without right" defence applies under national
-    law. The conditions of Article 5(1a) apply as they do for point (ba). Applies from
-    **2 December 2026**.
+    Article 5(1)(bb), inserted by Regulation (EU) 2026/1744, prohibits placing on the market, putting into service or using an AI system that…
   nl: |
-    Artikel 5, lid 1, punt b ter), ingevoegd bij Verordening (EU) 2026/1744, verbiedt het
-    in de handel brengen, in gebruik stellen of gebruiken van een AI-systeem dat
-    **materiaal of een voorstelling genereert of manipuleert in de zin van artikel 2,
-    punten c) en e), van Richtlijn 2011/93/EU**, behalve wanneer het nationale recht een
-    "wederrechtelijke" verdediging kent. De voorwaarden van artikel 5, lid 1 bis, gelden
-    net als bij punt b bis). Vanaf **2 december 2026**.
+    Artikel 5, lid 1, punt b ter), ingevoegd bij Verordening (EU) 2026/1744, verbiedt het in de handel brengen, in gebruik stellen of gebruiken van een…
 metadata:
   version: "0.2"
   applies-from: 2 December 2026 (Article 113(3)(a) as amended)
@@ -2206,20 +1724,9 @@ title:
   nl: Emoties afleiden op de werkplek of in het onderwijs
 description:
   en: |
-    Article 5(1)(f) prohibits placing on the market, putting into service for this
-    purpose, or using AI systems **to infer emotions of a natural person in the areas of
-    workplace and education institutions**, except where the system is intended for
-    **medical or safety reasons**. The prohibition is tied to those two places;
-    inferring emotions elsewhere may still be high-risk under Annex III or carry
-    Article 50(3) transparency duties. Article 3(39) defines an emotion recognition
-    system.
+    Article 5(1)(f) prohibits placing on the market, putting into service for this purpose, or using AI systems **to infer emotions of a natural person…**
   nl: |
-    Artikel 5, lid 1, punt f), verbiedt het in de handel brengen, voor dit doel in gebruik
-    stellen of gebruiken van AI-systemen **om emoties van een natuurlijke persoon op de
-    werkplek en in het onderwijs af te leiden**, behalve wanneer het systeem is bedoeld
-    **uit medische of veiligheidsoverwegingen**. Het verbod is aan die twee plaatsen
-    gebonden; elders kan het systeem wel een hoog risico vormen (bijlage III) of onder
-    artikel 50, lid 3, vallen.
+    Artikel 5, lid 1, punt f), verbiedt het in de handel brengen, voor dit doel in gebruik stellen of gebruiken van AI-systemen **om emoties van een…**
 metadata:
   version: "0.2"
 sources:
@@ -2247,23 +1754,9 @@ title:
   nl: De AI-verordening geldt voor uw systeem - einde doorloop
 description:
   en: |
-    You have worked through all six steps: the Act reaches you, your system is an AI
-    system, it is not a prohibited practice, and you have answered the high-risk,
-    general-purpose AI and transparency questions.
-
-    **If step 4 found your system to be high-risk, that finding stands.** Article 50(6)
-    leaves the Chapter III requirements intact. **The Tree stops here for now**:
-    obligations, conformity assessment, registration, which role you are in and penalties
-    are not in it, and it is not legal advice.
+    You have worked through all six steps: the Act reaches you, your system is an AI system, it is not a prohibited practice, and you have answered the…
   nl: |
-    U hebt alle zes stappen doorlopen: de verordening bereikt u, uw systeem is een
-    AI-systeem, het is geen verboden praktijk, en u hebt de vragen over hoog risico, AI
-    voor algemene doeleinden en transparantie beantwoord.
-
-    **Als stap 4 heeft uitgewezen dat uw systeem een hoog risico heeft, blijft die
-    bevinding staan.** **De boom stopt hier voorlopig**: verplichtingen,
-    conformiteitsbeoordeling, registratie, uw rol en sancties staan er niet in, en dit is
-    geen juridisch advies.
+    U hebt alle zes stappen doorlopen: de verordening bereikt u, uw systeem is een AI-systeem, het is geen verboden praktijk, en u hebt de vragen over…
 metadata:
   version: "0.2"
   owner-action: what follows after Article 50 is out of scope for this version (core document 3.3, item 7, and section 4)
@@ -2294,23 +1787,9 @@ title:
   nl: Militaire, defensie- of nationale veiligheidsdoeleinden
 description:
   en: |
-    Article 2(3) excludes three things: areas outside the scope of Union law and the
-    Member States' competences concerning **national security**; AI systems placed on
-    the market, put into service or used **exclusively** for military, defence or
-    national security purposes; and systems whose output is used in the Union
-    exclusively for those purposes.
-
-    Recital 24: a system placed on the market for a non-excluded purpose as well falls
-    within the Regulation.
+    Article 2(3) excludes three things: areas outside the scope of Union law and the Member States' competences concerning **national security**; AI…
   nl: |
-    Artikel 2, lid 3, sluit drie dingen uit: gebieden buiten het Unierecht en de
-    bevoegdheden van de lidstaten inzake **nationale veiligheid**; AI-systemen die
-    **uitsluitend** voor militaire, defensie- of nationale veiligheidsdoeleinden in de
-    handel worden gebracht, in gebruik gesteld of gebruikt; en systemen waarvan de output
-    in de Unie uitsluitend daarvoor wordt gebruikt.
-
-    Overweging 24: een systeem dat ook een niet-uitgesloten doel dient, valt binnen de
-    verordening.
+    Artikel 2, lid 3, sluit drie dingen uit: gebieden buiten het Unierecht en de bevoegdheden van de lidstaten inzake **nationale veiligheid**…
 metadata:
   version: "0.2"
 sources:
@@ -2333,22 +1812,9 @@ title:
   nl: Vrije en opensourcelicenties (slechts gedeeltelijk)
 description:
   en: |
-    Article 2(12): the Regulation does not apply to AI systems released under free and
-    open-source licences, **unless** they are placed on the market or put into service
-    as high-risk AI systems or as a system that falls under Article 5 or Article 50.
-
-    This is not a full exclusion, so answer **no** on the exclusions step: it does not
-    end the walk. Steps 3, 4 and 6 ask exactly the questions the exception names; an
-    open-source system must still go through them.
+    Article 2(12): the Regulation does not apply to AI systems released under free and open-source licences, **unless** they are placed on the market or…
   nl: |
-    Artikel 2, lid 12: de verordening is niet van toepassing op AI-systemen die worden
-    vrijgegeven onder vrije en opensourcelicenties, **tenzij** zij in de handel worden
-    gebracht of in gebruik worden gesteld als systeem met een hoog risico of als systeem
-    dat onder artikel 5 of artikel 50 valt.
-
-    Dit is geen volledige uitsluiting: antwoord bij de uitsluitingen dus **nee**, want de
-    doorloop eindigt hier niet. De stappen 3, 4 en 6 stellen precies de vragen die de
-    uitzondering noemt.
+    Artikel 2, lid 12: de verordening is niet van toepassing op AI-systemen die worden vrijgegeven onder vrije en opensourcelicenties, **tenzij** zij in…
 metadata:
   version: "0.2"
 sources:
@@ -2371,20 +1837,9 @@ title:
   nl: Natuurlijke persoon in een persoonlijke activiteit
 description:
   en: |
-    Article 2(10) excludes the **obligations of deployers who are natural persons**
-    using AI systems in the course of a purely personal non-professional activity.
-
-    Two limits: it excludes obligations of *deployers*, not those of the provider of the
-    system they use; and the activity must be purely personal. Anything done in the
-    course of a farm business, a cooperative or a research institute is not.
+    Article 2(10) excludes the **obligations of deployers who are natural persons** using AI systems in the course of a purely personal non-professional…
   nl: |
-    Artikel 2, lid 10, sluit de **verplichtingen uit van gebruiksverantwoordelijken die
-    natuurlijke personen zijn** en AI-systemen gebruiken in het kader van een louter
-    persoonlijke niet-beroepsactiviteit.
-
-    Twee grenzen: het sluit verplichtingen van *gebruiksverantwoordelijken* uit, niet die
-    van de aanbieder; en de activiteit moet louter persoonlijk zijn. Werk in een
-    landbouwbedrijf, een coöperatie of een onderzoeksinstituut is dat niet.
+    Artikel 2, lid 10, sluit de **verplichtingen uit van gebruiksverantwoordelijken die natuurlijke personen zijn** en AI-systemen gebruiken in het kader…
 metadata:
   version: "0.2"
 sources:
@@ -2407,23 +1862,9 @@ title:
   nl: Onderzoek of tests vóór het in de handel brengen
 description:
   en: |
-    Article 2(8) excludes **any research, testing or development activity** regarding AI
-    systems or AI models **prior to their being placed on the market or put into
-    service**. Such activities must still be conducted in accordance with applicable
-    Union law.
-
-    The exclusion covers the *activity*, not the system, and **testing in real world
-    conditions is expressly not covered**. Field trials on a working farm therefore stay
-    inside the Act.
+    Article 2(8) excludes **any research, testing or development activity** regarding AI systems or AI models **prior to their being placed on the…**
   nl: |
-    Artikel 2, lid 8, sluit **onderzoeks-, test- of ontwikkelingsactiviteiten** uit met
-    betrekking tot AI-systemen of AI-modellen **voordat zij in de handel worden gebracht
-    of in gebruik worden gesteld**. Die activiteiten moeten wel in overeenstemming met
-    het toepasselijke Unierecht worden uitgevoerd.
-
-    De uitsluiting betreft de *activiteit*, niet het systeem, en **testen onder reële
-    omstandigheden valt er uitdrukkelijk niet onder**. Praktijkproeven op een werkend
-    bedrijf blijven dus binnen de verordening.
+    Artikel 2, lid 8, sluit **onderzoeks-, test- of ontwikkelingsactiviteiten** uit met betrekking tot AI-systemen of AI-modellen **voordat zij in de…**
 metadata:
   version: "0.2"
 sources:
@@ -2446,22 +1887,9 @@ title:
   nl: Uitsluitend wetenschappelijk onderzoek en ontwikkeling
 description:
   en: |
-    Article 2(6) excludes AI systems and AI models, including their output, that are
-    **specifically developed and put into service for the sole purpose of scientific
-    research and development**.
-
-    This excludes the *system*, not merely an activity. Recital 25 adds that any other
-    system that may be used for research and development remains subject to the
-    Regulation, so a system built for another purpose and used in research is not
-    excluded.
+    Article 2(6) excludes AI systems and AI models, including their output, that are **specifically developed and put into service for the sole purpose…**
   nl: |
-    Artikel 2, lid 6, sluit AI-systemen en AI-modellen uit, met inbegrip van hun output,
-    die **specifiek zijn ontwikkeld en in gebruik gesteld met wetenschappelijk onderzoek
-    en wetenschappelijke ontwikkeling als enig doel**.
-
-    Dit sluit het *systeem* zelf uit, niet slechts een activiteit. Overweging 25 voegt
-    toe dat elk ander systeem dat voor onderzoek kan worden gebruikt, aan de verordening
-    onderworpen blijft.
+    Artikel 2, lid 6, sluit AI-systemen en AI-modellen uit, met inbegrip van hun output, die **specifiek zijn ontwikkeld en in gebruik gesteld met…**
 metadata:
   version: "0.2"
 sources:
@@ -2484,21 +1912,9 @@ title:
   nl: Autoriteiten van derde landen bij rechtshandhaving
 description:
   en: |
-    Article 2(4) excludes third-country public authorities and international
-    organisations that would otherwise fall under Article 2(1), **where they use AI
-    systems in the framework of international cooperation or agreements for law
-    enforcement and judicial cooperation** with the Union or its Member States.
-
-    It is conditional: the country or organisation must provide adequate safeguards for
-    the fundamental rights and freedoms of individuals.
+    Article 2(4) excludes third-country public authorities and international organisations that would otherwise fall under Article 2(1), **where they…**
   nl: |
-    Artikel 2, lid 4, sluit overheidsinstanties in derde landen en internationale
-    organisaties uit die anders onder artikel 2, lid 1, zouden vallen, **wanneer zij
-    AI-systemen gebruiken in het kader van internationale samenwerking of overeenkomsten
-    met de Unie of de lidstaten op het gebied van rechtshandhaving en justitie**.
-
-    De uitsluiting is voorwaardelijk: het derde land of de organisatie moet passende
-    waarborgen voor de grondrechten bieden.
+    Artikel 2, lid 4, sluit overheidsinstanties in derde landen en internationale organisaties uit die anders onder artikel 2, lid 1, zouden vallen…
 metadata:
   version: "0.2"
 sources:
@@ -2521,21 +1937,9 @@ title:
   nl: Misbruik van kwetsbaarheden (leeftijd, handicap, situatie)
 description:
   en: |
-    Article 5(1)(b) prohibits placing on the market, putting into service or using an AI
-    system that **exploits the vulnerabilities** of a person or a specific group **due
-    to their age, disability, or a specific social or economic situation**, with the
-    objective or the effect of materially distorting their behaviour in a manner that
-    causes or is reasonably likely to cause significant harm. Unlike point (a) the lever
-    is a listed vulnerability, the grounds are closed, and no impairment of informed
-    decision-making is required.
+    Article 5(1)(b) prohibits placing on the market, putting into service or using an AI system that **exploits the vulnerabilities** of a person or a…
   nl: |
-    Artikel 5, lid 1, punt b), verbiedt het in de handel brengen, in gebruik stellen of
-    gebruiken van een AI-systeem dat **gebruikmaakt van de kwetsbaarheden** van een
-    persoon of groep **als gevolg van leeftijd, handicap of een specifieke sociale of
-    economische omstandigheid**, met als doel of gevolg het gedrag wezenlijk te verstoren
-    op een wijze die aanzienlijke schade veroorzaakt of waarschijnlijk veroorzaakt.
-    Anders dan bij punt a) is de grond limitatief en hoeft het besluitvermogen niet
-    belemmerd te zijn.
+    Artikel 5, lid 1, punt b), verbiedt het in de handel brengen, in gebruik stellen of gebruiken van een AI-systeem dat **gebruikmaakt van de…**
 metadata:
   version: "0.2"
 sources:
@@ -2558,24 +1962,9 @@ title:
   nl: Is er sprake van AI voor algemene doeleinden?
 description:
   en: |
-    The Act uses two terms. A **general-purpose AI model**
-    (Article 3(63)) displays significant generality, performs a wide range of distinct
-    tasks competently and can be integrated into many downstream systems; a
-    **general-purpose AI system** (Article 3(66)) is based on
-    such a model and can serve a variety of purposes. Chapter V places its obligations
-    on [providers](#provider) of models (Articles 53 and 55; Article 51 classifies
-    models with [systemic risk](#systemic-risk)), not on such a system as such. Either
-    answer continues.
+    Chapter V places its obligations on [providers](#provider) of models (Articles 53 and 55; Article 51 classifies models with [systemic risk](#systemic-risk)), not on such a system…
   nl: |
-    De verordening gebruikt twee begrippen. Een
-    **AI-model voor algemene doeleinden** (artikel 3, punt 63)
-    vertoont een aanzienlijk algemeen karakter, voert een breed scala aan taken
-    competent uit en kan in veel systemen worden geïntegreerd; een
-    **AI-systeem voor algemene doeleinden** (artikel 3, punt
-    66) is op zo'n model gebaseerd en kan verschillende doeleinden dienen. Hoofdstuk V
-    legt verplichtingen op aan [aanbieders](#provider) van modellen (artikelen 53 en 55;
-    artikel 51 gaat over [systeemrisico](#systemic-risk)), niet aan zo'n systeem als
-    zodanig. Beide antwoorden lopen door.
+    Hoofdstuk V legt verplichtingen op aan [aanbieders](#provider) van modellen (artikelen 53 en 55; artikel 51 gaat over [systeemrisico](#systemic-risk)), niet aan zo'n systeem als…
 metadata:
   version: "0.2"
   step: 5 - general-purpose AI
@@ -2637,23 +2026,9 @@ title:
   nl: Uw systeem heeft een hoog risico onder de AI-verordening
 description:
   en: |
-    Your system is a **high-risk** [AI system](#ai-system). Which route you came by
-    matters: for a product covered by **Annex I, Section B**, Article 2(2) provides that
-    only Article 6(1), Article 60a and Articles 102 to 112 apply. Section A and Annex
-    III systems carry the full Chapter III regime, which applies from 2 August 2028 and
-    2 December 2027 respectively.
-
-    **This step does not end the walk.** A high-risk system can carry Article 50 duties
-    at the same time (Article 50(6)), so either answer continues.
+    Your system is a **high-risk** [AI system](#ai-system).
   nl: |
-    Uw systeem is een [AI-systeem](#ai-system) **met een hoog risico**. De route doet
-    ertoe: voor een product dat onder **bijlage I, afdeling B**, valt, bepaalt artikel
-    2, lid 2, dat uitsluitend artikel 6, lid 1, artikel 60 bis, en de artikelen 102 tot
-    en met 112 van toepassing zijn. Hoofdstuk III geldt vanaf 2 december 2027 (bijlage
-    III) en 2 augustus 2028 (bijlage I).
-
-    **Deze stap beëindigt de doorloop niet.** Zo'n systeem kan tegelijk plichten uit
-    artikel 50 dragen (artikel 50, lid 6); beide antwoorden lopen door.
+    Uw systeem is een [AI-systeem](#ai-system) **met een hoog risico**.
 metadata:
   version: "0.2"
   step: 4c - the high-risk finding
@@ -2703,17 +2078,9 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (7/7)
 description:
   en: |
-    The last category of Article 2(1). Are you an [affected person](#affected-person)
-    located in the Union?
-
-    A **no** here means that none of the seven categories describes you: the Act does
-    not reach you, and the walk ends.
+    The last category of Article 2(1). Are you an [affected person](#affected-person) located in the Union?
   nl: |
-    De laatste categorie van artikel 2, lid 1. Bent u een
-    [getroffen persoon](#affected-person) die zich in de Unie bevindt?
-
-    **Nee** betekent hier dat geen van de zeven categorieën op u van toepassing is: de
-    verordening bereikt u niet en de doorloop eindigt.
+    De laatste categorie van artikel 2, lid 1. Bent u een [getroffen persoon](#affected-person) die zich in de Unie bevindt?
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -2796,19 +2163,9 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (2/7)
 description:
   en: |
-    The second category of Article 2(1). Are you a [deployer](#deployer) of an
-    [AI system](#ai-system) who is established or located in the Union?
-
-    A deployer uses an AI system under its own authority, other than in a purely
-    personal, non-professional activity.
+    The second category of Article 2(1). Are you a [deployer](#deployer) of an [AI system](#ai-system) who is established or located in the Union?
   nl: |
-    De tweede categorie van artikel 2, lid 1. Bent u een
-    [gebruiksverantwoordelijke](#deployer) van een [AI-systeem](#ai-system) die in de
-    Unie is gevestigd of zich er bevindt?
-
-    Een gebruiksverantwoordelijke gebruikt een AI-systeem onder eigen
-    verantwoordelijkheid, behalve in het kader van een louter persoonlijke
-    niet-beroepsactiviteit.
+    De tweede categorie van artikel 2, lid 1. Bent u een [gebruiksverantwoordelijke](#deployer) van een [AI-systeem](#ai-system) die in de Unie is gevestigd of zich er bevindt?
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -2908,16 +2265,9 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (5/7)
 description:
   en: |
-    The fifth category of Article 2(1). Are you a
-    [product manufacturer](#product-manufacturer) who [places](#placing-on-the-market)
-    an [AI system](#ai-system) on the market, or [puts](#putting-into-service) it into
-    service, **together with your product and under your own name or trademark**?
+    Are you a [product manufacturer](#product-manufacturer) who [places](#placing-on-the-market) an [AI system](#ai-system) on the market, or [puts](#putting-into-service) it into service, **together with your product and under your own name…**
   nl: |
-    De vijfde categorie van artikel 2, lid 1. Bent u een
-    [fabrikant van producten](#product-manufacturer) die samen met uw product en **onder
-    uw eigen naam of merk** een [AI-systeem](#ai-system)
-    [in de handel brengt](#placing-on-the-market) of
-    [in gebruik stelt](#putting-into-service)?
+    Bent u een [fabrikant van producten](#product-manufacturer) die samen met uw product en **onder uw eigen naam of merk** een [AI-systeem](#ai-system) [in de handel brengt](#placing-on-the-market) of [in gebruik stelt](#putting-into-service)?
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -2973,14 +2323,9 @@ title:
   nl: Toepassingsgebied van de AI-verordening? (3/7)
 description:
   en: |
-    The third category of Article 2(1). Are you a [provider](#provider) or a
-    [deployer](#deployer) established or located in a **third country**, where the
-    output produced by the [AI system](#ai-system) **is used in the Union**?
+    Are you a [provider](#provider) or a [deployer](#deployer) established or located in a **third country**, where the output produced by the [AI system](#ai-system) **is used in the Union**?
   nl: |
-    De derde categorie van artikel 2, lid 1. Bent u een [aanbieder](#provider) of
-    [gebruiksverantwoordelijke](#deployer) die in een **derde land** is gevestigd of
-    zich er bevindt, terwijl de output van het [AI-systeem](#ai-system) **in de Unie
-    wordt gebruikt**?
+    Bent u een [aanbieder](#provider) of [gebruiksverantwoordelijke](#deployer) die in een **derde land** is gevestigd of zich er bevindt, terwijl de output van het [AI-systeem](#ai-system)…
 metadata:
   version: "0.2"
   step: 1 - jurisdictional scope
@@ -3029,21 +2374,9 @@ title:
   nl: Seksueel beeldmateriaal zonder toestemming (2-12-2026)
 description:
   en: |
-    Article 5(1)(ba), inserted by Regulation (EU) 2026/1744, prohibits placing on the
-    market, putting into service or using an AI system that **generates or manipulates
-    realistic sexual imagery of an identifiable person without that person's explicit
-    consent**. Under Article 5(1a) a provider is caught only where this is the intended
-    purpose, or a foreseeable and reproducible outcome that adequate safeguards do not
-    prevent; a deployer only where they use it for that purpose. Applies from **2
-    December 2026**.
+    Article 5(1)(ba), inserted by Regulation (EU) 2026/1744, prohibits placing on the market, putting into service or using an AI system that…
   nl: |
-    Artikel 5, lid 1, punt b bis), ingevoegd bij Verordening (EU) 2026/1744, verbiedt het
-    in de handel brengen, in gebruik stellen of gebruiken van een AI-systeem dat
-    **realistisch seksueel beeldmateriaal van een identificeerbare persoon genereert of
-    manipuleert zonder diens uitdrukkelijke toestemming**. Artikel 5, lid 1 bis, raakt een
-    aanbieder alleen bij beoogd doel of een voorzienbaar resultaat zonder afdoende
-    waarborgen, en een gebruiksverantwoordelijke alleen bij dat gebruik. Vanaf **2
-    december 2026**.
+    Artikel 5, lid 1, punt b bis), ingevoegd bij Verordening (EU) 2026/1744, verbiedt het in de handel brengen, in gebruik stellen of gebruiken van een…
 metadata:
   version: "0.2"
   applies-from: 2 December 2026 (Article 113(3)(a) as amended)
@@ -3072,22 +2405,9 @@ title:
   nl: Geen AI-systeem - andere regelgeving kan gelden
 description:
   en: |
-    Your system does not meet the definition in Article 3(1), so the AI Act does not
-    apply and this walk ends here. **The Act does not say what applies instead.** Article
-    2(9) only records that it is without prejudice to other Union law on consumer
-    protection and product safety.
-
-    Any other list is editorial: the owner names **product safety regulation** and the
-    **product liability directive** as worth checking. Data protection, food and
-    machinery law may also be relevant; none is covered by this Tree.
+    Your system does not meet the definition in Article 3(1), so the AI Act does not apply and this walk ends here.
   nl: |
-    Uw systeem voldoet niet aan de definitie van artikel 3, punt 1, dus de
-    AI-verordening geldt er niet voor en de doorloop eindigt hier. **De verordening zegt
-    niet wat in plaats daarvan geldt.** Artikel 2, lid 9, bepaalt alleen dat zij geen
-    afbreuk doet aan ander Unierecht inzake consumentenbescherming en productveiligheid.
-
-    Elke andere opsomming is redactioneel: de eigenaar noemt de
-    **productveiligheidsregelgeving** en de **richtlijn productaansprakelijkheid**.
+    Uw systeem voldoet niet aan de definitie van artikel 3, punt 1, dus de AI-verordening geldt er niet voor en de doorloop eindigt hier.
 metadata:
   version: "0.2"
   owner-action: the two named acts have no Source yet; the owner adds the references they want to cite
@@ -3118,19 +2438,9 @@ title:
   nl: Strafbare feiten voorspellen op basis van profilering
 description:
   en: |
-    Article 5(1)(d) prohibits placing on the market, putting into service for this
-    purpose, or using an AI system for **risk assessments of natural persons to assess or
-    predict the risk of their committing a criminal offence**, based **solely** on
-    profiling or on assessing personality traits. It does **not** apply to systems that
-    support a human assessment of involvement in a criminal activity already based on
-    objective and verifiable facts directly linked to that activity.
+    Article 5(1)(d) prohibits placing on the market, putting into service for this purpose, or using an AI system for **risk assessments of natural…**
   nl: |
-    Artikel 5, lid 1, punt d), verbiedt het in de handel brengen, voor dit doel in gebruik
-    stellen of gebruiken van een AI-systeem voor **risicobeoordelingen om te voorspellen
-    of iemand een strafbaar feit pleegt**, **uitsluitend** op basis van profilering of
-    persoonlijkheidskenmerken. Het geldt **niet** voor systemen die een menselijke
-    beoordeling ondersteunen die al berust op objectieve en verifieerbare feiten die
-    rechtstreeks met de criminele activiteit verband houden.
+    Artikel 5, lid 1, punt d), verbiedt het in de handel brengen, voor dit doel in gebruik stellen of gebruiken van een AI-systeem voor…
 metadata:
   version: "0.2"
 sources:
@@ -3153,22 +2463,9 @@ title:
   nl: Dit is een verboden praktijk
 description:
   en: |
-    Your system falls under one of the practices prohibited by Article 5(1). There is no
-    compliance route: depending on the point, the system may not be placed on the
-    market, put into service or used.
-
-    **This walk ends here, and that is deliberate.** The later steps ask what a system
-    that may be used at all must do, and a prohibited practice has no such route. Check
-    what the point prohibits, whether an exception applies and from when; if it does
-    not bite, go back and answer **no**.
+    Your system falls under one of the practices prohibited by Article 5(1).
   nl: |
-    Uw systeem valt onder een van de praktijken die artikel 5, lid 1, verbiedt. Er is
-    geen route naar naleving: het systeem mag, afhankelijk van het punt, niet in de
-    handel worden gebracht, in gebruik gesteld of gebruikt.
-
-    **Deze doorloop eindigt hier, en dat is een bewuste keuze.** De volgende stappen
-    gaan over systemen die gebruikt mogen worden. Ga na wat het punt verbiedt, of een
-    uitzondering geldt en vanaf wanneer; gaat het verbod niet op, antwoord dan **nee**.
+    Uw systeem valt onder een van de praktijken die artikel 5, lid 1, verbiedt.
 metadata:
   version: "0.2"
 sources:
@@ -3198,25 +2495,9 @@ title:
   nl: Verricht uw systeem een verboden praktijk? (1/2)
 description:
   en: |
-    Article 5(1) lists AI practices that are **prohibited** outright. There is no
-    compliance route: a system that does one of them may not be
-    [placed on the market](#placing-on-the-market),
-    [put into service](#putting-into-service) or used at all. **Ten** practices are
-    listed, five here and five on the next step.
-
-    Points (ba) and (bb), the third and fourth entries, were inserted by Regulation (EU)
-    2026/1744 and apply from **2 December 2026**; the other eight have applied since 2
-    February 2025.
+    There is no compliance route: a system that does one of them may not be [placed on the market](#placing-on-the-market), [put into service](#putting-into-service) or used at all.
   nl: |
-    Artikel 5, lid 1, noemt AI-praktijken die zonder meer **verboden** zijn. Er is geen
-    route naar naleving: een systeem dat een daarvan verricht, mag niet
-    [in de handel worden gebracht](#placing-on-the-market),
-    [in gebruik worden gesteld](#putting-into-service) of worden gebruikt. Er zijn
-    **tien** praktijken, vijf hier en vijf in de volgende stap.
-
-    De punten b bis) en b ter), het derde en vierde onderdeel, zijn ingevoegd bij
-    Verordening (EU) 2026/1744 en gelden vanaf **2 december 2026**; de andere acht gelden
-    sinds 2 februari 2025.
+    Er is geen route naar naleving: een systeem dat een daarvan verricht, mag niet [in de handel worden gebracht](#placing-on-the-market), [in gebruik worden gesteld](#putting-into-service) of worden…
 metadata:
   version: "0.2"
   step: 3 - prohibited practices
@@ -3287,23 +2568,9 @@ title:
   nl: Verricht uw systeem een verboden praktijk? (2/2)
 description:
   en: |
-    The last five practices of Article 5(1). Most points cover
-    [placing on the market](#placing-on-the-market),
-    [putting into service](#putting-into-service) *and* use, so they can catch you
-    whether you build the system or only use it. Point (h), the last entry, covers only
-    the use, and only by law enforcement.
-
-    Article 5(8) adds that this Article does not affect prohibitions that apply where an
-    AI practice infringes other Union law.
+    Most points cover [placing on the market](#placing-on-the-market), [putting into service](#putting-into-service) *and* use, so they can catch you whether you build the system or only use it.
   nl: |
-    De laatste vijf praktijken van artikel 5, lid 1. De meeste punten bestrijken het
-    [in de handel brengen](#placing-on-the-market), het
-    [in gebruik stellen](#putting-into-service) *en* het gebruiken, en kunnen u dus
-    raken of u het systeem nu bouwt of alleen gebruikt. Punt h), het laatste onderdeel,
-    bestrijkt alleen het gebruik met het oog op de rechtshandhaving.
-
-    Artikel 5, lid 8, doet geen afbreuk aan verbodsbepalingen die gelden wanneer een
-    AI-praktijk inbreuk maakt op ander Unierecht.
+    De meeste punten bestrijken het [in de handel brengen](#placing-on-the-market), het [in gebruik stellen](#putting-into-service) *en* het gebruiken, en kunnen u dus raken of u het systeem nu bouwt of…
 metadata:
   version: "0.2"
   step: 3 - prohibited practices
@@ -3367,20 +2634,9 @@ title:
   nl: Biometrische identificatie op afstand in real time
 description:
   en: |
-    Article 5(1)(h) prohibits **the use** of real-time remote biometric identification
-    **in publicly accessible spaces for law enforcement**, unless strictly necessary for
-    a targeted search for victims of abduction, trafficking or sexual exploitation and
-    for missing persons; the prevention of a specific, substantial and imminent threat
-    to life or of a terrorist attack; or the localisation of a suspect of an Annex II
-    offence punishable by at least four years. Article 5(2) to (7) then still apply.
+    Article 5(1)(h) prohibits **the use** of real-time remote biometric identification **in publicly accessible spaces for law enforcement**, unless…
   nl: |
-    Artikel 5, lid 1, punt h), verbiedt **het gebruik** van biometrische identificatie op
-    afstand in real time **in openbare ruimten met het oog op de rechtshandhaving**,
-    tenzij strikt noodzakelijk voor het gericht zoeken naar slachtoffers van ontvoering,
-    mensenhandel of seksuele uitbuiting en vermiste personen; het voorkomen van een
-    imminente dreiging voor het leven of van een terroristische aanslag; of de lokalisatie
-    van een verdachte van een in bijlage II genoemd strafbaar feit waarop ten minste vier
-    jaar staat. Artikel 5, leden 2 tot en met 7, blijven gelden.
+    Artikel 5, lid 1, punt h), verbiedt **het gebruik** van biometrische identificatie op afstand in real time **in openbare ruimten met het oog op de…**
 metadata:
   version: "0.2"
 sources:
@@ -3408,19 +2664,9 @@ title:
   nl: Sociale scoring
 description:
   en: |
-    Article 5(1)(c) prohibits placing on the market, putting into service or using AI
-    systems **for the evaluation or classification of natural persons or groups over a
-    certain period of time** on their social behaviour or personal characteristics, where
-    the resulting **social score** leads to detrimental or unfavourable treatment in
-    social contexts **unrelated** to where the data was collected, or to treatment that
-    is **unjustified or disproportionate** to the behaviour or its gravity.
+    Article 5(1)(c) prohibits placing on the market, putting into service or using AI systems **for the evaluation or classification of natural persons…**
   nl: |
-    Artikel 5, lid 1, punt c), verbiedt het in de handel brengen, in gebruik stellen of
-    gebruiken van AI-systemen **voor de evaluatie of classificatie van natuurlijke
-    personen of groepen gedurende een bepaalde periode** op basis van sociaal gedrag of
-    persoonlijke kenmerken, waarbij de **sociale score** leidt tot nadelige behandeling in
-    een context die **geen verband houdt** met waar de data zijn verzameld, of tot een
-    behandeling die **ongerechtvaardigd of onevenredig** is.
+    Artikel 5, lid 1, punt c), verbiedt het in de handel brengen, in gebruik stellen of gebruiken van AI-systemen **voor de evaluatie of classificatie…**
 metadata:
   version: "0.2"
 sources:
@@ -3443,20 +2689,9 @@ title:
   nl: Subliminale of doelbewust manipulatieve technieken
 description:
   en: |
-    Article 5(1)(a) prohibits placing on the market, putting into service or using an AI
-    system that deploys **subliminal techniques beyond a person's consciousness**, or
-    **purposefully manipulative or deceptive techniques**, with the objective or the
-    effect of materially distorting behaviour. Every element must be present: the
-    ability to make an informed decision is appreciably impaired, a decision follows
-    that would not otherwise have been taken, and **significant harm** is caused or
-    reasonably likely. Intent is not required; the effect is enough.
+    Article 5(1)(a) prohibits placing on the market, putting into service or using an AI system that deploys **subliminal techniques beyond a person's…**
   nl: |
-    Artikel 5, lid 1, punt a), verbiedt het in de handel brengen, in gebruik stellen of
-    gebruiken van een AI-systeem dat **subliminale technieken waarvan personen zich niet
-    bewust zijn** of **doelbewust manipulatieve of misleidende technieken** gebruikt, met
-    als doel of effect het gedrag wezenlijk te verstoren. Alle elementen moeten aanwezig
-    zijn: het vermogen om een geïnformeerd besluit te nemen wordt merkbaar belemmerd, er
-    volgt een ander besluit en er ontstaat **aanzienlijke schade**. Opzet is niet vereist.
+    Artikel 5, lid 1, punt a), verbiedt het in de handel brengen, in gebruik stellen of gebruiken van een AI-systeem dat **subliminale technieken…**
 metadata:
   version: "0.2"
 sources:
@@ -3479,23 +2714,9 @@ title:
   nl: Gelden er transparantieverplichtingen voor uw systeem?
 description:
   en: |
-    Article 50 attaches **transparency obligations** to certain
-    [AI systems](#ai-system), whatever their risk classification. Paragraph 6 leaves the
-    requirements of Chapter III intact. The Article holds **five situations** with two
-    addressees: 1 and 2 bind the [provider](#provider), 3 to 5 the
-    [deployer](#deployer).
-
-    Article 50(5): the information must be given **clearly and distinguishably, at the
-    latest at the first interaction or exposure**. Article 50 applies from 2 August 2026.
+    Article 50 attaches **transparency obligations** to certain [AI systems](#ai-system), whatever their risk classification.
   nl: |
-    Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde
-    [AI-systemen](#ai-system), ongeacht hun risicoclassificatie. Lid 6 laat hoofdstuk
-    III onverlet. Het artikel bevat **vijf situaties** met twee adressaten: 1 en 2
-    binden de [aanbieder](#provider), 3 tot en met 5 de
-    [gebruiksverantwoordelijke](#deployer).
-
-    Lid 5: de informatie wordt **duidelijk en te onderscheiden, uiterlijk bij de eerste
-    interactie of blootstelling**, verstrekt. Artikel 50 geldt vanaf 2 augustus 2026.
+    Artikel 50 verbindt **transparantieverplichtingen** aan bepaalde [AI-systemen](#ai-system), ongeacht hun risicoclassificatie. Lid 6 laat hoofdstuk III onverlet.
 metadata:
   version: "0.2"
   step: 6 - transparency obligations
@@ -3548,20 +2769,6 @@ explainers:
     text:
       en: A machine-based system that works with varying levels of autonomy and infers from the input it receives how to generate outputs, such as predictions, content, recommendations or decisions.
       nl: Een op een machine gebaseerd systeem dat met wisselende autonomie werkt en uit de ontvangen input afleidt hoe output te genereren, zoals voorspellingen, inhoud, aanbevelingen of beslissingen.
-  - id: provider
-    term:
-      en: provider
-      nl: aanbieder
-    text:
-      en: A person, organisation or public body that develops an AI system or general-purpose AI model, or has one developed, and places it on the market or puts it into service under its own name or trademark.
-      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem of AI-model voor algemene doeleinden ontwikkelt of laat ontwikkelen en onder eigen naam of merk in de handel brengt of in gebruik stelt.
-  - id: deployer
-    term:
-      en: deployer
-      nl: gebruiksverantwoordelijke
-    text:
-      en: A person, organisation or public body that uses an AI system under its own authority, except where it is used in a personal, non-professional activity.
-      nl: Een persoon, organisatie of overheidsorgaan die een AI-systeem onder eigen verantwoordelijkheid gebruikt, tenzij dat gebeurt in het kader van een persoonlijke niet-beroepsactiviteit.
 answers:
   yes: end-of-walk
   no: end-of-walk
@@ -3573,23 +2780,9 @@ title:
   nl: Ongerichte scraping van gezichtsafbeeldingen
 description:
   en: |
-    Article 5(1)(e) prohibits placing on the market, putting into service for this
-    purpose, or using AI systems that **create or expand facial recognition databases
-    through the untargeted scraping of facial images from the internet or CCTV
-    footage**.
-
-    Three things to check: the purpose is a facial recognition database; it is created
-    or expanded; the images come from *untargeted* scraping. There is no harm threshold
-    and no exception here.
+    Article 5(1)(e) prohibits placing on the market, putting into service for this purpose, or using AI systems that **create or expand facial…**
   nl: |
-    Artikel 5, lid 1, punt e), verbiedt het in de handel brengen, voor dit doel in gebruik
-    stellen of gebruiken van AI-systemen **die databanken voor gezichtsherkenning
-    aanleggen of aanvullen door ongerichte scraping van gezichtsafbeeldingen van internet
-    of CCTV-beelden**.
-
-    Drie dingen om na te gaan: het doel is zo'n databank; die wordt aangelegd of
-    aangevuld; de afbeeldingen komen uit *ongerichte* scraping. Er is geen schadedrempel
-    en geen uitzondering.
+    Artikel 5, lid 1, punt e), verbiedt het in de handel brengen, voor dit doel in gebruik stellen of gebruiken van AI-systemen **die databanken voor…**
 metadata:
   version: "0.2"
 sources:

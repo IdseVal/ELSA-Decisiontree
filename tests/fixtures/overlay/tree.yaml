@@ -1,6 +1,6 @@
 # The Overlay at its largest (application.md 10.6, 10.9): `big` is an explanation Node at
 # every maximum docs/specs/tree-format.md 5.7 allows -- an 80-character title, a
-# 600-character description of eight estimated lines, 3 Sources, 10 Images, 8 Options of
+# 150-character description of two estimated lines, 3 Sources, 10 Images, 8 Options of
 # its own, each with a 60-character title and a target that leads with an Image -- and it
 # is the first Option of `five`, a question Node with five Options, so the fan of three
 # and two is measured too. `/overlay/five/big` renders `five` with `big`'s Overlay open;
@@ -58,9 +58,9 @@ title:
   nl: "De grote zijstap: een titel van precies tachtig tekens, het meeste dat mag De g."
 description:
   en: |
-    Every field of this Node is at the maximum the format allows so that if this Overlay fits over the page every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this Overlay fits over the page every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node is at the maximum the format allows so that if this Overlay fits over the page every valid Tree fits which is the promise the no-scroll rule makes to a Tree author Every field of this Node.
+    Every field of this Node is at the maximum the format allows so that if this Overlay fits over the page every valid Tree fits which is the promise th.
   nl: |
-    Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze overlay over de pagina past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze overlay over de pagina past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze overlay over de pagina past elke geldige boom past en dat is de belofte van de regel dat er nooit gescrold wordt Elk veld va.
+    Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze overlay over de pagina past elke geldige boom past en dat is de be.
 metadata:
   version: "1.0"
 sources:

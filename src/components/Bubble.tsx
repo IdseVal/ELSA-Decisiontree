@@ -1,9 +1,9 @@
 /**
  * One Node as the Bubble (docs/specs/application.md 10.1, 10.3): the round element in the
- * centre of the tree view, holding the Node's Interior in its text area, and on its rim --
- * outside the text area, so the format's length limits stand -- the up arrow on the top
- * outline where the page has a way back, and the one chrome element a Node kind adds: a
- * Terminal's outcome badge above. (An explanation Node's hint went with the side slide,
+ * centre of the tree view, holding the Node's Interior in its text area; above it the up
+ * arrow where the page has a way back; and on its rim -- outside the text area, so the
+ * format's length limits stand -- the one chrome element a Node kind adds: a Terminal's
+ * outcome badge above. (An explanation Node's hint went with the side slide,
  * 10.9: an explanation Node opens in an Overlay, and is the centre only when a path names
  * no parent for it.)
  *
@@ -15,8 +15,9 @@
  * link on the page that names the aside.
  *
  * The main image is the Node's first Image, a link to its file that opens the enlarged view
- * (12.3). A Node without Images keeps the same 60 pixels as an empty slot, so the title sits
- * at the same height on every Node and a slide has nothing to reflow.
+ * (12.3). It is two fifths of the Bubble's height (10.3, amended by #102). A Node without
+ * Images keeps the same box as an empty slot, and a neighbour frame as a withheld one, so a
+ * slide has nothing to reflow.
  *
  * The Sources are rendered twice, once inline and once inside a Sheet, and the stylesheet
  * shows one or the other: below the guaranteed viewport they collapse to one control (10.5,
@@ -59,7 +60,7 @@ export function Bubble({
   /** False in a neighbour frame, which names no image file at all (11.4). */
   pictures?: boolean
   /**
-   * The up arrow (10.2), drawn on the top outline. It is placed from the Bubble's own box
+   * The up arrow (10.2), drawn above the top outline. It is placed from the Bubble's own box
    * because the Bubble is centred in its row: a Bubble shorter than the row would leave an
    * arrow placed from the row floating above it.
    */

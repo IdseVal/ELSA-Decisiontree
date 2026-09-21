@@ -55,8 +55,11 @@ const NODE_KEYS = ['id', 'title', 'description', 'metadata', 'sources', 'images'
 /** The maximum lengths and counts of tree-format.md 5.7; the same for every language. */
 const MAX = {
   title: 80,
-  description: 600,
-  lines: 8,
+  treeDescription: 600,
+  treeLines: 8,
+  /* What fits beside a main image of two fifths of the Bubble (application.md 10.7, #102). */
+  nodeDescription: 150,
+  nodeLines: 2,
   optionTitle: 60,
   sourceLabel: 60,
   imageDescription: 120,
@@ -161,7 +164,7 @@ export function validateTree(tree: RawTree): Violation[] {
     if (!('title' in m)) c.fail('title', 'V-TITLE', 'title is required')
     else c.localised(m.title, 'title', false, MAX.title)
     if ('description' in m) {
-      c.localised(m.description, 'description', true, MAX.description)
+      c.localised(m.description, 'description', true, MAX.treeDescription, MAX.treeLines)
       checkMarks(c, m.description, null)
     }
     c.metadata(m.metadata)
@@ -236,9 +239,10 @@ class DocumentChecker {
 
   /**
    * V-L10N, V-PLAIN or V-HTML depending on whether the text is rich, and the length rules
-   * V-LENGTH and V-LINES, per language (tree-format.md 3.8, 5.7).
+   * V-LENGTH and V-LINES, per language (tree-format.md 3.8, 5.7). `maxLines` is the
+   * estimated line count rich text may take; plain text is one line by V-PLAIN.
    */
-  localised(value: unknown, keyPath: string, rich: boolean, max: number): void {
+  localised(value: unknown, keyPath: string, rich: boolean, max: number, maxLines = 1): void {
     if (!isMapping(value)) {
       this.fail(keyPath, 'V-L10N', 'must be a mapping from language tag to text, even for one language')
       return
@@ -254,7 +258,7 @@ class DocumentChecker {
       if (rich) {
         if (RAW_HTML.test(text)) this.fail(at, 'V-HTML', 'raw HTML is not allowed in rich text')
         const lines = estimatedLines(text)
-        if (lines > MAX.lines) this.fail(at, 'V-LINES', `${lines} estimated lines; at most ${MAX.lines}`)
+        if (lines > maxLines) this.fail(at, 'V-LINES', `${lines} estimated lines; at most ${maxLines}`)
       } else if (text.trim().includes('\n')) {
         this.fail(at, 'V-PLAIN', 'plain text must be a single line')
       }
@@ -483,7 +487,7 @@ function checkNode(c: DocumentChecker, node: Mapping): NodeShape {
     if (!(key in node)) c.fail(key, 'V-NODE', `"${key}" is required on every Node`)
   }
   if ('title' in node) c.localised(node.title, 'title', false, MAX.title)
-  if ('description' in node) c.localised(node.description, 'description', true, MAX.description)
+  if ('description' in node) c.localised(node.description, 'description', true, MAX.nodeDescription, MAX.nodeLines)
   if ('metadata' in node) c.metadata(node.metadata)
   const sourceIds = checkSources(c, node.sources)
   checkImages(c, node.images, 'images', MAX.nodeImages, sourceIds)

@@ -356,7 +356,6 @@ describe('the Bubble', () => {
     expect(bubble).toContain('<h1 id="node-title">Is your AI system within the reach of the AI Act?</h1>')
     expect(bubble).toContain('<p>The AI Act reaches AI systems')
     expect(bubble).toContain('<strong>placed on the market')
-    expect(bubble).toContain('<li>Answer <strong>no</strong> only if none of these applies to your system.</li>')
     expect(bubble).toContain('<section class="sources"')
     expect(html.match(/<h1 /g)).toHaveLength(1)
   })

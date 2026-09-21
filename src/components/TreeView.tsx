@@ -1,6 +1,6 @@
 /**
  * The tree view (docs/specs/application.md section 10): one screen with the current Node as
- * a round Bubble in the centre, the up arrow on its top outline, the Answers as buttons
+ * a round Bubble in the centre, the up arrow above its top outline, the Answers as buttons
  * below it and the Options as buttons fanned out beside it. Direction carries meaning: above
  * is where the reader came from, below is where an answer takes them, beside is an aside
  * they read and come back from -- by closing it (10.3, 10.9, core document 10.23).
@@ -148,17 +148,18 @@ function Frame({ node, view }: { node: Node; view: View }) {
 
 /**
  * Where a neighbour's frame is drawn, in widths and heights of the layer, from the Node on
- * screen (11.1): the parent straight above; an Answer target below and towards its own
- * Branch -- `yes` left, `no` right -- and their Answer targets a layer further, spread so no
- * two frames overlap.
+ * screen (11.1): an Answer target below and towards its own Branch -- `yes` left, `no` right
+ * -- and their Answer targets a layer further, spread so no two frames overlap; the parent
+ * above, where the step down from it started, so the way back retraces that step: above and
+ * right of a `yes` target, above and left of a `no` target, straight above anything else.
  */
 function position({ direction, slot }: Placed): { x: number; y: number } {
-  if (direction === 'up') return { x: 0, y: -1 }
+  if (direction === 'up') return { x: slot < 2 ? 0.5 - slot : 0, y: -1 }
   return slot < 2 ? { x: slot - 0.5, y: 1 } : { x: slot - 3.5, y: 2 }
 }
 
 /**
- * The way back (10.2): one round button on the Bubble's top outline, a link to the Trail
+ * The way back (10.2): one round button above the Bubble's top outline, a link to the Trail
  * entry directly above at the address that discards everything after it (core document
  * 10.17), named for a reader who cannot see the arrow by the title it leads to. The Trail
  * itself is not drawn; it stays in the URL. Where there is nothing above -- the root Node,
