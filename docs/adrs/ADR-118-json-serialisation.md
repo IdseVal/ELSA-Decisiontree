@@ -85,6 +85,18 @@ serialisation moves, which is why `elsa-tree/4` is a conversion and not a rewrit
    `metadata`, `version` comes first and the author's own keys keep the order they were
    written in. Alphabetical order would put `answers` above `title`, which no reader and
    no reviewer wants.
+
+   **One key shape has to be excluded for this to hold.** A JavaScript object treats a
+   key made only of digits as an array index and enumerates it before every string key,
+   so `{"version": "1.0", "2024": "note", "author": "x"}` comes back out of
+   `JSON.stringify` with `2024` first. `metadata` is exactly where the format tells an
+   author to put what used to be a comment, and a year is exactly the note they would
+   write. The schema therefore refuses an all-digit key inside `metadata`
+   (`propertyNames`), and 3.7 and V-META say so. The alternative -- specifying the order
+   as whatever `JSON.stringify` happens to produce -- would put an implementation detail
+   of one language in the middle of a format contract, and would still leave `version`
+   not first. This is the only rule this format puts on the name of a key in the
+   free-form bag, and it is here to keep idempotence true rather than nearly true.
 9. **There are no comments, and `metadata` is where a note goes.** JSON has no comment
    syntax and none is invented. The `--- # <id>` table of contents and the author's
    comments of `elsa-tree/3` do not survive the conversion; that is the price of the

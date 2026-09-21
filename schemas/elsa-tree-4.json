@@ -61,9 +61,10 @@
       "additionalProperties": { "type": "string", "minLength": 1 }
     },
     "metadata": {
-      "description": "The author's bag. `version` is required and is a string (V-META); every other key is the author's own, kept and not interpreted. This is where a note that would have been a YAML comment goes.",
+      "description": "The author's bag. `version` is required and is a string (V-META); every other key is the author's own, kept and not interpreted. This is where a note that would have been a YAML comment goes. A key made only of digits is refused: an integer-like key is an array index to a JavaScript object, which moves it in front of every other key, and the canonical byte form of tree-format.md 3.7 -- version first, then the author's own keys in the order they were written -- would not survive a read and a write. Prefix such a key: note-2024, not 2024.",
       "type": "object",
       "required": ["version"],
+      "propertyNames": { "not": { "pattern": "^[0-9]+$" } },
       "properties": { "version": { "type": "string", "minLength": 1 } }
     },
     "url": {

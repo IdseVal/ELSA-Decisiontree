@@ -283,7 +283,26 @@ reader may rely on. `docs/adrs/ADR-118-json-serialisation.md` has the reasoning.
   with `/schemas/elsa-tree-4.json` for a Tree that publishes the schema elsewhere (rule
   V-SCHEMA, 3.9). The loader never fetches it.
 - **No duplicate keys** in any object (rule V-JSON). Most parsers keep the last and say
-  nothing, which is exactly the silent loss this rule exists to prevent.
+  nothing, which is exactly the silent loss this rule exists to prevent. **This one rule
+  needs a mechanism named, because the obvious one does not work.** A standard JSON
+  parser cannot report a duplicate: on Node 22, `JSON.parse('{"a":1,"a":2}')` returns
+  `{a: 2}` without complaint, and a reviver does not help -- it is called once for `a`,
+  after the duplicate has already been discarded. The check is therefore a **scan of the
+  file's raw text**, made by the loader (`src/tree/loader.ts`) before it hands the parsed
+  value on: a single pass that tracks string, object and array boundaries and the keys
+  seen in the object currently open, and reports the first repeat with its position, in
+  the same form as a parse error. It is about sixty lines and takes no dependency. It is
+  the only rule of this format that reads the bytes rather than the value, and it is
+  worth it because a duplicate key is the one malformation that changes what a Tree says
+  without changing whether it loads. Issue #119 writes it with the loader.
+
+  Two limits, stated so nobody assumes more. **The rule binds the file, not every
+  reader**: a third-party consumer that calls its language's `JSON.parse` on
+  `/<tree-id>/tree.json` gets the last value silently, and this format cannot change
+  that. And a **conforming writer cannot produce a duplicate** in the first place, since
+  the byte form below is serialised from an in-memory object whose keys are unique by
+  construction. The rule is aimed at a file that reached the repository some other way --
+  a hand-merged conflict, a patch, a generator someone wrote in an afternoon.
 - **No `null`, anywhere** (rule V-NULL). An optional field that is absent is **omitted**:
   the key is not written.
 - **No empty array and no empty object** (rule V-EMPTY). "No Sources" is the absence of
@@ -323,6 +342,15 @@ reader may rely on. `docs/adrs/ADR-118-json-serialisation.md` has the reasoning.
   its table in sections 4 and 5 gives. Inside `metadata`, `version` comes first and the
   author's own keys keep the order they were written in. A localised text lists its
   languages in the order the manifest declares them.
+- **A `metadata` key made only of digits is refused** (V-META, and the schema's
+  `propertyNames` on `metadata`). It is the one key shape that would make the order above
+  impossible to hold: a JavaScript object treats an integer-like key as an array index
+  and puts it in front of everything else, so `{"version": "1.0", "2024": "note",
+  "author": "x"}` re-serialises with `2024` first, `version` no longer first and the
+  author's order gone -- and idempotence, the contract below, would fail on a file whose
+  author did nothing wrong. Writing `note-2024` instead costs nothing and the rule fires
+  at validation rather than as a mystery diff. This is the only constraint this format
+  puts on the name of a key inside the free-form bag.
 
 That form is chosen because every mainstream language's standard library produces it from
 the same value with no bespoke pretty-printer, so the migration, the validator and the
@@ -448,7 +476,7 @@ byte form of 3.7 puts one element per line, as section 8 shows.
 | `root` | yes | Node reference | The Node the walk starts at. Must be a question Node or a Terminal, never an explanation Node. |
 | `title` | yes | localised text, plain, at most 80 characters | The Tree's name, shown by the frontend. |
 | `description` | no | localised text, rich, at most 600 characters and 8 estimated lines (**[#102]** as a Node's description until 2026-09-19; the Tree's is not drawn in the Bubble and kept these) | What the Tree is about. Also what the dataset record and `llms.txt` say the Tree is (`docs/specs/application.md` 16.4, 16.5), so a Tree that omits it is described by its root Node instead. |
-| `metadata` | yes | object | `version` (non-empty string) is required. Any other keys are the author's own; the loader keeps them and does not interpret them. This is where a note that would have been a comment goes. |
+| `metadata` | yes | object | `version` (non-empty string) is required. A key made only of digits is refused (3.7). Any other keys are the author's own; the loader keeps them and does not interpret them. This is where a note that would have been a comment goes. |
 | `theme` | no | Theme (4.3) | The look the frontend shows for this Tree. Absent: the frontend's plain default look. |
 | `nodes` | yes | array of Node (section 5), non-empty | Every Node of the Tree, in the author's order. |
 
@@ -610,7 +638,7 @@ A Node is an object with these keys, written in this order (3.7):
 | `id` | yes | id (3.1), unique in the Tree | The Node's id: what URLs, the Trail and Links use. Written first. |
 | `title` | yes | localised text, plain, at most 80 characters | The Node's heading, shown in the Bubble and on the Branch that leads to it. A step counter such as `(1/7)` is written here, at the end (5.8). |
 | `description` | yes | localised text, rich, at most 150 characters and 2 estimated lines (**[#102]** amended 2026-09-19; 600 and 8 until #102) | The explanatory text, shown in the Bubble. |
-| `metadata` | yes | object | `version` (non-empty string) required; the rest free-form, kept but not interpreted. A note that would have been a comment goes here. |
+| `metadata` | yes | object | `version` (non-empty string) required; no key made only of digits (3.7); the rest free-form, kept but not interpreted. A note that would have been a comment goes here. |
 | `sources` | no | array of Source (5.1), at most 3 | References this Node cites. Absent means none. |
 | `images` | no | array of Image (5.2), at most 10 | The Node's pictures: the **first is its main image**, shown above the title in the Bubble and, small, on the Option button that leads to this Node; the rest are the Carousel's. Absent means none. |
 | `answers` | see 5.6 | Answers (5.3) | The yes/no Links. Present exactly on question Nodes. |
@@ -948,7 +976,7 @@ The **Where** column below says which of the two a rule belongs to.
 | Rule | Where | A valid Tree has... |
 |---|---|---|
 | V-DIR | rules | a folder name that is an id (3.1), containing `tree.json`. `images/` and `theme/`, when present, are folders. |
-| V-JSON | rules | a `tree.json` that parses as one JSON object (RFC 8259) in UTF-8 without a byte-order mark, with no duplicate key in any object. A file that does not parse is reported with the parser's position and nothing else is checked: unlike the YAML stream of `elsa-tree/3`, one JSON file is one document, so a syntax error anywhere is a syntax error everywhere. |
+| V-JSON | rules | a `tree.json` that parses as one JSON object (RFC 8259) in UTF-8 without a byte-order mark, with no duplicate key in any object. A file that does not parse is reported with the parser's position and nothing else is checked: unlike the YAML stream of `elsa-tree/3`, one JSON file is one document, so a syntax error anywhere is a syntax error everywhere. **The duplicate-key half is checked by a scan of the raw text, not by the parser**, which cannot see it (3.7 gives the mechanism and the measurement); it reports the first repeated key with its position. |
 | V-SCHEMA | schema | `$schema`, as the path `/schemas/elsa-tree-4.json` or an absolute http(s) URL whose path ends the same way (3.7). |
 | V-FORMAT | schema | `format` exactly `elsa-tree/4`. |
 | V-NULL | schema | no `null` as the value of any key this format defines. An absent optional field is omitted. |
@@ -956,7 +984,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-LANG | schema, rules | `languages`: a non-empty array of valid language tags (3.3), which the rules also check are distinct. |
 | V-ROOT | rules | `root` naming an existing Node that is a question Node or a Terminal. |
 | V-TITLE | schema, rules | `title` as a plain localised text, at the top level. |
-| V-META | schema | `metadata` as an object whose `version` is a non-empty string (at the top level and on every Node). |
+| V-META | schema | `metadata` as an object whose `version` is a non-empty string (at the top level and on every Node), and **no key made only of digits** -- an integer-like key sorts to the front of a JavaScript object and would break the key order and the idempotence of 3.7. |
 | V-KEYS | schema | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `$schema`, `format`, `languages`, `root`, `theme` and `nodes` only at the top level; `id` never at the top level. |
 | V-REACH | rules | every Node reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target. |
 | V-THEME | schema, rules | `theme`, when present, an object with at least one of `logo`, `fonts`, `colours`, each as section 4.3 defines it: the schema checks the keys, the grammars, the seven colour roles and every font file's `weight` and `style`; the rules check that the files exist in `theme/` and that there is at most one font family per `role`. |
