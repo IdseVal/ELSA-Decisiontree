@@ -16,6 +16,15 @@
 > Every passage that changed is marked **[#75]** and quotes or cites #75; nothing else in
 > this document was touched. How the changes reach the specs is
 > `docs/adrs/ADR-75-presentation-changes.md`; the work is issues #78 to #87.
+>
+> **Revision of 2026-09-21 (issue #118).** The owner set the direction for the next
+> round: the Trees must be **optimally findable** -- by search engines, by dataset
+> indexes such as Google Dataset Search, and by the crawlers that feed AI assistants --
+> and the Tree data moves to **JSON only**, because the round after this one edits Trees
+> through the frontend, so no person will work inside the file again and the only
+> argument for YAML is gone. Every passage that changed is marked **[#118]** and cites
+> that direction as issue #118 records it; nothing else in this document was touched. The
+> decisions are `docs/adrs/ADR-118-*.md`; the work is issues #118 to #122.
 
 Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09 and 2026-09-17.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
@@ -40,6 +49,16 @@ how the AI Act applies to their AI system.
 **Success criterion (owner's words).** "If a user can quickly and accurately qualify
 how the AI Act applies to their AI system, the tool has worked." No numeric target was
 given and the owner did not ask for one.
+
+**[#118] Second success criterion (owner, 2026-09-21): the Trees must be findable.** A
+user who never reaches the tool cannot be helped by it, so being found is part of the
+tool working, not a marketing afterthought. Findable means three audiences at once:
+**search engines**, **dataset indexes** such as Google Dataset Search, and **the crawlers
+that feed AI assistants**. What that requires of the application is frozen as
+`docs/specs/application.md` sections 15 and 16 -- `robots.txt` naming the AI crawlers,
+a `sitemap.xml` of every Node in every language, `hreflang` between the languages,
+`schema.org` structured data, an `llms.txt`, and the Tree itself downloadable at one URL
+as a dataset. No numeric target was given here either, and none is invented.
 
 **Stakeholders.** The project belongs to the **ELSA-Lab for sustainable food systems**
 at **Wageningen University**, funded by **NWO** as part of the Dutch ELSA funding
@@ -83,7 +102,31 @@ required was named.
   Architect on issue #37): one `tree.yaml` per Tree, a YAML stream of the manifest and
   one document per Node; `docs/specs/tree-format.md` and `docs/adrs/ADR-37-*.md`. The
   owner's alternative -- "an interface that makes the nodes editable in view (a lot of
-  work, but we might have to do that)" -- stays out of scope (section 4).
+  work, but we might have to do that)" -- stays out of scope (section 4) until #118; see
+  the next bullet.
+- **[#118] JSON only, and the file is written by tools (owner, 2026-09-21).** The Tree
+  file is JSON: one `tree.json` per Tree, frozen as `elsa-tree/4` (item 10.21, decided by
+  the Architect on issue #118; `docs/specs/tree-format.md`,
+  `docs/adrs/ADR-118-json-serialisation.md`). **The reason is the round after this one:**
+  Trees will be edited through the frontend, so no person will ever work inside the file
+  again, and hand-editability -- the criterion that chose YAML for `elsa-tree/1` to `/3`
+  -- no longer applies. With JSON the editor, the validator, the loader, the app and the
+  public download all speak one format from one schema, and that schema is published as a
+  file (`schemas/elsa-tree-4.json`), which is the "published schema *is* the
+  interoperability contract" of the storage bullet above made into something a machine
+  can read. Nothing else about the data changes: the content model, every field and every
+  length limit of `elsa-tree/3` carry over unchanged, and both Trees convert with no
+  change to a single piece of their text (`tree-format.md` 12.6). What is given up, and
+  named here so nobody looks for it: comments in the Tree file, and the per-Node parse
+  errors a YAML stream allowed. **Where an edited Tree is stored** -- a file per Tree
+  committed through git, or a store of another kind -- the owner defines later
+  (**OPEN 10.30**); nothing in the format depends on the answer.
+- **[#118] The Tree is a public dataset (owner, 2026-09-21).** It is served whole at one
+  URL, byte-identical to the file in the repository, under the content licence of section
+  8, so a reader, another lab or a dataset index can take the data and not only walk it
+  (`docs/specs/application.md` section 15, `docs/adrs/ADR-118-dataset-endpoint.md`). The
+  rule that no response may carry the whole Tree is unchanged for **pages**, which is
+  what it was always about (section 9).
 - **[v0.2] The look travels with the Tree (owner, #35).** A Tree carries its own
   **Theme**: logo, colours and fonts, "hosted in the datastructure and not in the
   frontend itself, so a different ELSA-lab can load in their own datastructures and
@@ -370,7 +413,12 @@ Confirmed by the owner on 2026-09-03:
   owner named an in-view editor as the fallback if a single file (3.1) does not prove
   hand-editable: "OR we have to build an interface that makes the nodes editable in
   view (a lot of work, but we might have to do that)". It stays out of scope until the
-  owner says the single file has failed.
+  owner says the single file has failed. **[#118] That is no longer the position**: on
+  2026-09-21 the owner set the frontend editor as the round after the current one, which
+  is the stated reason the Tree data moves to JSON (3.1). It is **not in scope of issues
+  #118 to #122**, which build the format, the dataset endpoint and the findability
+  contracts; it enters scope when the owner opens that round, and where an edited Tree is
+  then stored is **OPEN 10.30**.
 - No analytics, no tracking.
 - No database.
 - No editorial-review workflow in code (see 3.3, last paragraph).
@@ -445,6 +493,17 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
   overrule). Choosing the licences does not clear the repository for publication: whether
   the logo and tab icon may be published with it is still not answered (10.25), and that
   gates making the repository public.
+- **[#118] The Tree data is published under that content licence, at a URL of its own**
+  (owner's direction, 2026-09-21). `GET /<tree-id>/tree.json` serves the Tree file
+  byte-identical to the repository's copy, with the CC BY 4.0 URL in a `Link` header so
+  the licence travels with the bytes and not only with a page that links to them; the
+  JSON Schema beside it is code and carries the MIT licence instead. The routes set **no
+  cookie**, ask for nothing about the reader, and allow cross-origin reads -- which is
+  safe here precisely because there is no cookie, no account and no session for a
+  cross-origin read to reach (`docs/specs/application.md` 15.2,
+  `docs/adrs/ADR-118-dataset-endpoint.md`). Publishing the data is a consequence of the
+  licence the project already chose, not a new decision about it; what still gates making
+  the **repository** public is 10.25, which is about the logo and not about the Trees.
 - **Image rights**: every Image carries a credit/attribution.
 - Content review before publication is the owner's responsibility, outside the code.
 
@@ -494,7 +553,7 @@ Confirmed by the owner on 2026-09-03:
 | 10.18 | Disclaimer. | -- | answered: permanent footer |
 | 10.19 | One Tree per deployment, or a choice of Trees in the UI? Owner did not answer; the Architect decides, default *one Tree per deployment, chosen by configuration* (does not preclude a landing page later). | Architect | decided by Architect (2026-09-03): one Tree per deployment, named by the environment variable `ELSA_TREE` (no default; the server refuses to start without it). The Tree id stays in every Node URL, so a landing page or a second Tree can be added later without breaking shared links. `docs/adrs/ADR-5-tree-selection.md`, `docs/specs/application.md` section 2 |
 | 10.20 | UI chrome languages, and fallback when the Tree's language has no chrome translation. Architect decides; Planner's expectation: chrome in English and Dutch, fall back to English. | Architect | decided by Architect (2026-09-03): chrome ships in English and Dutch, as typed strings in the code (`src/chrome.ts`). Chrome follows the content language when it is English or Dutch and falls back to English otherwise; the content language is never affected. `docs/adrs/ADR-5-chrome-languages.md`, `docs/specs/application.md` section 3 |
-| 10.21 | **[v0.2]** Serialisation of the single Tree file (3.1): YAML kept, or another form, with hand-editability of one large multilingual file as the criterion; the theme block; the length limits and how a step counter such as "(1/7)" is written; the migration from `elsa-tree/1`. | Architect | decided by Architect (2026-09-10, issue #37): YAML kept, as a **YAML stream** in one `tree.yaml` -- the manifest first, then one document per Node with its `id` key, separated by `--- # <id>` lines, so a mistake breaks one Node and a search lists them all; the manifest carries an optional `theme` (logo, two font families by role, seven colours by role; each part complete or absent; files in `theme/`); every text field has a maximum (title 80, description 600 characters and 8 estimated lines, Option title 60, Source label 60, ...) and every list a maximum count (8 Options, 3 Sources), the same for every language, derived from a 1280 x 640 viewport that #38 confirms or corrects; the "(1/7)" counter is authored in the title; Images unchanged; migration is textual concatenation that reports every violation. `docs/specs/tree-format.md` (`elsa-tree/2`), `docs/adrs/ADR-37-*.md` |
+| 10.21 | **[v0.2]** Serialisation of the single Tree file (3.1): YAML kept, or another form, with hand-editability of one large multilingual file as the criterion; the theme block; the length limits and how a step counter such as "(1/7)" is written; the migration from `elsa-tree/1`. | Architect | decided by Architect (2026-09-10, issue #37): YAML kept, as a **YAML stream** in one `tree.yaml` -- the manifest first, then one document per Node with its `id` key, separated by `--- # <id>` lines, so a mistake breaks one Node and a search lists them all; the manifest carries an optional `theme` (logo, two font families by role, seven colours by role; each part complete or absent; files in `theme/`); every text field has a maximum (title 80, description 600 characters and 8 estimated lines, Option title 60, Source label 60, ...) and every list a maximum count (8 Options, 3 Sources), the same for every language, derived from a 1280 x 640 viewport that #38 confirms or corrects; the "(1/7)" counter is authored in the title; Images unchanged; migration is textual concatenation that reports every violation. `docs/specs/tree-format.md` (`elsa-tree/2`), `docs/adrs/ADR-37-*.md`. **[#118] SUPERSEDED (owner, 2026-09-21; Architect, issue #118): hand-editability is no longer the criterion, and the serialisation is JSON.** Trees are edited through the frontend in the next round, so nobody works inside the file again and the one argument for YAML is gone. The format is **`elsa-tree/4`**: one `tree.json` per Tree, a single object carrying the manifest fields and `nodes` as an array in the author's order, rich text a string with `\n`, an absent optional field omitted, a required `$schema`, no comments, and a canonical byte form so two writers of the same Tree produce the same bytes. Its structure is published as a JSON Schema at `schemas/elsa-tree-4.json`, served at `/schemas/elsa-tree-4.json`; the length limits stay content rules, because they are measured on counted text a schema cannot compute. Everything this row decided in 2026-09-10 about the *content* -- the Theme block, the limits, the step counter, Images -- carries over unchanged, and the Node description's 150 characters are #102's. `docs/specs/tree-format.md` (`elsa-tree/4`), `docs/adrs/ADR-118-json-serialisation.md`, `ADR-118-json-schema.md` |
 | 10.22 | **[v0.2]** The viewport the no-scroll layout guarantees (3.2), what happens on a smaller screen, and how "never scrolls" is tested. | Architect | decided by Architect (2026-09-10, issue #38): the layout **guarantees 1280 x 640 CSS pixels** -- a 1366 x 768 laptop, or a 1920 x 1080 one at 150 % scaling, minus browser chrome and taskbar -- and at or above it shows the full arrangement with nothing collapsed and nothing truncated. Below it the layout **gives things up in a fixed order of seven steps** (Trail, Carousel, Option columns move below, Options, Sources, then the type scale down to a floor of 13 px), each collapsed thing still reachable behind one control; the Node's title, description and Answer Branches are never given up. At or below a floor of **320 pixels of width or 480 pixels of height** -- smaller than any display in current use -- a minimum-size notice replaces the view and names the dimension that is short (amended 2026-09-13 by the owner on PR #56, issue #41: the rows need 568 pixels of height, so a window short in either dimension gets the notice; #38 had written "below a floor of 320 x 480"). The document **never** scrolls at any size, with an overlay open, or during a transition; the one element allowed to scroll is the Carousel strip, horizontally, inside its own row. Tested by `tests/browser/no-scroll.spec.ts` (Playwright, now part of the contract), which measures `scrollHeight` and `scrollWidth` against the viewport for the document and for **every** element, at ten named viewports, on every kind of Node in both languages, including a fixture Node at every maximum the format allows with a 49-entry Trail. `docs/adrs/ADR-38-no-scroll.md`, `docs/specs/application.md` 10.4 to 10.6 |
 | 10.23 | **[v0.2]** What "children" and "side children" mean (3.2, section 5). PROPOSED reading: children are the yes/no Answer targets, side children the Option targets. | Idse | **still PROPOSED** -- the owner has not answered on #38 (asked 2026-09-09; no comment by 2026-09-10). The Architect froze the view on the PROPOSED reading and recorded it as the working interpretation: **children are the Answer targets, drawn as Branches BELOW the Bubble; side children are the Option targets, drawn as Branches BESIDE it**, so that direction on screen carries the meaning -- above is where you came from, below is where an answer takes you, beside is an aside you read and come back from. Should the owner correct it, what changes is the direction a Link is drawn in, which one module (`src/neighbourhood.ts`) decides; no other contract moves. Say so on #38 or on #41. `docs/specs/application.md` 10.3, `docs/adrs/ADR-38-tree-view.md`. **[#75] Consistent with the owner's own words (2026-09-17):** in #75 the owner calls the Option targets "side-steps on a main-path node" and "side nodes" (the example is the exclusion "Research or testing before placing on the market", an Option target) and calls the Answers "the buttons to navigate further down the decision-tree ... (yes and no buttons)". The PROPOSED reading stands as the working interpretation; the owner may still correct it on #78 |
 | 10.24 | **[v0.2]** Who sources the first Tree's images (section 6): the agents source openly licensed images with full credits (#45); the owner replaces any at will. | Idse | answered: "accepted" (owner, #72, 2026-09-17) |
@@ -503,3 +562,4 @@ Confirmed by the owner on 2026-09-03:
 | 10.29 | **[#75]** The side child's main image on the Option button (3.1, 3.2) against the image rule: "images are loaded only for the Node on screen" (3.1, section 9) and its testable form, `docs/specs/application.md` 11.4 and 11.5 ("`GET /images/<file>`: may not: an image of any other Node, at any time, for any reason"). An Option's own Images are legal there because they belong to the Node that holds the Option (the 2026-09-14 amendment); a side child's main image belongs to the side child. Today the 28 Option pictures of the first Tree are written on the Options themselves, which is why the owner's example already works. | Architect | decided by Architect (2026-09-17, issue #78), as the Planner proposed: `application.md` 11.5 gains one row -- a page may fetch, for each Option of the centre Node, exactly one file, the target's first Image, never its other Images, and the Images of a Node whose Overlay is open -- and `transition.spec.ts` asserts that set; an Option has no `images` of its own in `elsa-tree/3` (`tree-format.md` 5.4), and the migration moves an Option's first picture to its target (#84 does it for the first Tree's 28 first). `docs/adrs/ADR-78-fan-out-and-option-picture.md`. The Planner's proposal was: the rule is kept as a rule about pages -- a page may fetch the centre Node's Images and, for each of its Options, exactly one file, the target's main image, never the target's other Images -- so 11.5 gains that one row (bounded by the format's eight Options) and `transition.spec.ts` asserts the new set; an Option then needs no `images` of its own (`tree-format.md` 5.4), and the first Tree's 28 Option pictures move to their targets as those targets' main images (#84 gives every Node one). The alternative that leaves 11.5 untouched: an Option keeps `images` and the author writes the target's main image on the Option as well, so every side child's picture is stored twice |
 | 10.27 | **[#75]** The address of an open Overlay (3.2): does opening a side child change the URL, and what does the URL of an explanation Node show when it is opened directly or from a shared link? Every Node must stay reachable by URL and the Trail must stay in the link (3.2). | Architect | decided by Architect (2026-09-17, issue #78): opening or closing an Overlay does not change the address; the URL of an explanation Node renders its parent's page with that Overlay open, the parent being the path entry before it (the last question Node or Terminal in the path is the centre, the entries after it are the aside chain, the last of them open), so every existing link keeps working and an explanation Node reached by two Options has a URL under each; a path with no parent at all (`/<tree>/<explanation-id>`) shows the explanation Node as the centre. A second-level Option is a plain link to the deeper address. `docs/specs/application.md` 10.9, `docs/adrs/ADR-78-overlay.md`. Amended by Architect (2026-09-19, issue #100): the centre is found in at most the path's last three entries, so a page reads at most 17 Nodes for every path; it is an explanation Node when three or more explanation Nodes end the path (the third from the end) or when the path ignores adjacency; and an Overlay has no strip. `docs/adrs/ADR-100-bounded-centre.md`, `docs/adrs/ADR-100-overlay-without-strip.md` |
 | 10.28 | **[#75]** The row budget and the length limits after the main image (3.1, 3.2): the main image takes height inside the Bubble, the Trail row's height is freed, the Carousel moves to the Bubble's lower edge and loses its caption line. Do the description's 600 characters and 8 lines survive, or do the limits change -- which would re-cut the first Tree a second time (3.3, item 8)? | Architect; Idse if content must be cut | decided by Architect (2026-09-17, issue #78): **the limits survive, by two pixels.** The rows are chrome bar 44, up-arrow band 26, Bubble 446 (text area 640 x 394), strip band 28, Answers 68, disclaimer 28; the Interior is main image 60, title 56, description 192 (8 lines, 600 characters), Sources 60 (heading and two lines), three gaps of 8 = 392. The main image is 60 pixels tall, the largest size that keeps every limit; each further 24 pixels would cost one line, 75 characters, of description and a new format number, and is the owner's to ask for. No Tree is re-cut. **Amended 2026-09-19 (#102, by the owner; answer (b) on PR #110):** the owner asked for the pixels -- a main image of two fifths of the Bubble, the description cut to 150 characters and 2 lines, both Trees cut mechanically -- and took them **without a new format number**: the change is scoped to the limit and the validator, the shape of a Tree file is unchanged, and V-LENGTH and V-LINES tell a Tree written to the old limit what to cut; `elsa-tree/3` stands. `docs/specs/application.md` 10.1, 10.7, `docs/specs/tree-format.md` 5.7, `docs/adrs/ADR-78-main-image-and-row-budget.md` |
+| 10.30 | **[#118]** Where a Tree is stored once it is edited through the frontend (3.1, section 4). The round after #118 to #122 makes Trees editable in the app, which is the stated reason the data moved to JSON. Today a Tree is plain files in the repository (3.1, 10.16) and a change is a deploy. When an editor writes a Tree back, is the destination still **a file per Tree committed through git** -- which keeps the review, the history and the "no database" rule of 10.16 -- or **a store of another kind**, which would reopen 10.16? The question is only about where the bytes live: the format is the same file either way, and nothing in `elsa-tree/4` depends on the answer (`docs/specs/tree-format.md` section 10). | Idse | **OPEN** -- raised by the Architect on 2026-09-21 (issue #118) because the owner's reason for JSON names that round. Not asked of the owner yet; it is the first question of that round, not of this one |
