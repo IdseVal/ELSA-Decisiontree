@@ -2072,10 +2072,12 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
 
         if LABEL_BLOCKED in pr.labels:
             fix = s.get("fix")
-            if s.get("blocked_handled") and not fix:
+            if s.get("blocked_handled") and not fix and not s.get("escalated"):
                 # v0.2.13: "handled" with no run record and no page is a dead end (a fix
                 # run killed on the ceiling while the page was answered during a stalled
                 # tick left exactly this). Whatever handled it is gone: handle it again.
+                # NOT when escalated (v0.2.15): an escalation leaves exactly this state on
+                # purpose, and re-handling it re-escalated every tick (PR #127, 2026-09-21).
                 log.info("PR #%s: blocked, marked handled, but no fix run record -> dispatch again", pr.number)
                 s.pop("blocked_handled", None)
             if not s.get("blocked_handled"):
