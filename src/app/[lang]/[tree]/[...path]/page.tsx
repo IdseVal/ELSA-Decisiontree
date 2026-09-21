@@ -8,6 +8,7 @@ import { Logo } from '../../../../components/Logo.tsx'
 import { ShareButton, type ShareWords } from '../../../../components/ShareButton.tsx'
 import { TreeView } from '../../../../components/TreeView.tsx'
 import { baseUrl, servedTree } from '../../../../config.ts'
+import { graphScript, pageGraph } from '../../../../findability/jsonld.ts'
 import { plainDescription } from '../../../../markdown.ts'
 import { loadPage } from '../../../../neighbourhood.ts'
 import type { Tree } from '../../../../tree/loader.ts'
@@ -28,9 +29,19 @@ export default async function NodePage(props: Props) {
   if (!found) notFound()
   const page = await loadPage(found.tree, found.address)
   if (!page) notFound()
+  const script = await jsonLd(found.tree, found.address)
 
   return (
     <>
+      {/*
+        The JSON-LD of 16.4: one script, emitted by the server, holding one `@graph` --
+        the `Dataset` on the root Node's page, a `WebPage` here, a `Question` where this
+        Node asks one. Raw rather than React's text, like the Theme's `<style>` (13.1),
+        because a `<script>` element's content is not entity-decoded; `jsonld.ts` has
+        already escaped every `<` of it and checked its own output at the sink, and hands
+        back null rather than a payload that could close this element.
+      */}
+      {script !== null && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: script }} />}
       {/*
         The page chrome. It sits in the page rather than in the root layout, where
         docs/specs/application.md section 6 sketches it, for the reason the Disclaimer does:
@@ -54,6 +65,17 @@ export default async function NodePage(props: Props) {
       <Disclaimer lang={found.address.lang} />
     </>
   )
+}
+
+/**
+ * The page's JSON-LD (**[#122]** 16.4), or null when it must not be emitted. The Node is
+ * the one the **address** names -- the same Node `generateMetadata` describes -- so the
+ * graph's `@id`, the canonical link and the meta description cannot describe two pages.
+ */
+async function jsonLd(tree: Tree, address: PageAddress): Promise<string | null> {
+  const node = await tree.getNode(address.nodeId)
+  if (!node) return null
+  return graphScript(await pageGraph(tree, node, address.lang, baseUrl(await headers())))
 }
 
 /** What the share button says, in the chrome language of the page. */
