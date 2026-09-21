@@ -1,0 +1,62 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "de"
+  ],
+  "root": "start",
+  "title": {
+    "de": "Gilt die KI-Verordnung?"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "de": "Fällt Ihr System in den Anwendungsbereich?"
+      },
+      "description": {
+        "de": "Die erste Frage."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "anwendbar",
+        "no": "nicht-anwendbar"
+      }
+    },
+    {
+      "id": "anwendbar",
+      "title": {
+        "de": "Die Verordnung ist anwendbar"
+      },
+      "description": {
+        "de": "Der Durchlauf endet hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "applicable"
+      }
+    },
+    {
+      "id": "nicht-anwendbar",
+      "title": {
+        "de": "Die Verordnung ist nicht anwendbar"
+      },
+      "description": {
+        "de": "Der Durchlauf endet hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    }
+  ]
+}

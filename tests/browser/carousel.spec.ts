@@ -60,7 +60,10 @@ test.beforeAll(async () => {
   const first = await serve(path.join(repo, 'trees'), FIRST_TREE, PORT + 2)
   expect(first, 'the first Tree starts').not.toBeNull()
   firstTree = first!
-  // Since #84 every Node of both Trees carries an Image; the `cycle` fixture carries none.
+  // Since #84 every Node of both Trees carries an Image; the `cycle` fixture carries none,
+  // which is one of the three things it is built from -- with a cycle among question Nodes
+  // and a Node whose `yes` and `no` name one target -- and all three are valid (section 7).
+  // It said so in a comment of its own until #119; elsa-tree/4 has no comments.
   const noImages = await serve(fixtures, 'cycle', PORT + 3)
   expect(noImages, 'the cycle fixture is a valid Tree').not.toBeNull()
   cycle = noImages!

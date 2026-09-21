@@ -157,7 +157,10 @@ describe('the tree layer', () => {
         ([, kind, href, rest]) => [kind, href, rest!.includes('data-slide')],
       )
 
-    // `third`'s `yes` is `second`, which the parent placed `up` at its own shorter address.
+    // `third`'s `yes` is `second`, which the parent placed `up` at its own shorter address:
+    // a cycle among question Nodes, which section 7 allows. `second`'s `yes` and `no` name
+    // one target, which 5.3 allows, so both its Branches lead to `third`. The `cycle`
+    // fixture carried both sentences as a comment until #119; elsa-tree/4 has no comments.
     expect(await answers('/cycle/first/second/third')).toEqual([
       ['answer--yes', '/cycle/first/second/third/second', false],
       ['answer--no', '/cycle/first/second/third/done', true],

@@ -1,0 +1,160 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en",
+    "nl"
+  ],
+  "root": "start",
+  "title": {
+    "en": "The explainers fixture",
+    "nl": "De uitleg-fixture"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does every explainer fit?",
+        "nl": "Past elke uitleg?"
+      },
+      "description": {
+        "en": "Every explainer of this Node is at a maximum: [term one](#term-one), [term two](#term-two), [term three](#term-three), [term four](#term-four), [term five](#term-five), [term six](#term-six), [term seven](#term-seven), [term eight](#term-eight).",
+        "nl": "Elke uitleg van deze stap staat op een maximum: [term een](#term-one), [term twee](#term-two), [term drie](#term-three), [term vier](#term-four), [term vijf](#term-five), [term zes](#term-six), [term zeven](#term-seven), [term acht](#term-eight)."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "yes-end",
+        "no": "no-end"
+      },
+      "explainers": [
+        {
+          "id": "term-one",
+          "term": {
+            "en": "Term one, a term of forty characters Te.",
+            "nl": "Term een, een term van veertig tekens T."
+          },
+          "text": {
+            "en": "The explanation of term one: a text of two hundred characters, the most an explainer may hold, so the panel is measured at its tallest in English as well as in Dutch, which runs longer The explanatio.",
+            "nl": "De uitleg van term een: een tekst van tweehonderd tekens, het meeste dat een uitleg mag bevatten, zodat het paneel op zijn hoogst gemeten wordt in het Engels en ook in het Nederlands De uitleg van te."
+          }
+        },
+        {
+          "id": "term-two",
+          "term": {
+            "en": "Term two, a term of forty characters Te.",
+            "nl": "Term twee, een term van veertig tekens.."
+          },
+          "text": {
+            "en": "The explanation of term two: a text of two hundred characters, the most an explainer may hold, so the panel is measured at its tallest in English as well as in Dutch, which runs longer The explanatio.",
+            "nl": "De uitleg van term twee: een tekst van tweehonderd tekens, het meeste dat een uitleg mag bevatten, zodat het paneel op zijn hoogst gemeten wordt in het Engels en ook in het Nederlands De uitleg van t."
+          }
+        },
+        {
+          "id": "term-three",
+          "term": {
+            "en": "Term three, a term of forty characters..",
+            "nl": "Term drie, een term van veertig tekens.."
+          },
+          "text": {
+            "en": "The explanation of term three: a text of two hundred characters, the most an explainer may hold, so the panel is measured at its tallest in English as well as in Dutch, which runs longer The explanat.",
+            "nl": "De uitleg van term drie: een tekst van tweehonderd tekens, het meeste dat een uitleg mag bevatten, zodat het paneel op zijn hoogst gemeten wordt in het Engels en ook in het Nederlands De uitleg van t."
+          }
+        },
+        {
+          "id": "term-four",
+          "term": {
+            "en": "Term four, a term of forty characters T.",
+            "nl": "Term vier, een term van veertig tekens.."
+          },
+          "text": {
+            "en": "The explanation of term four: a text of two hundred characters, the most an explainer may hold, so the panel is measured at its tallest in English as well as in Dutch, which runs longer The explanati.",
+            "nl": "De uitleg van term vier: een tekst van tweehonderd tekens, het meeste dat een uitleg mag bevatten, zodat het paneel op zijn hoogst gemeten wordt in het Engels en ook in het Nederlands De uitleg van t."
+          }
+        },
+        {
+          "id": "term-five",
+          "term": {
+            "en": "Term five, a term of forty characters T.",
+            "nl": "Term vijf, een term van veertig tekens.."
+          },
+          "text": {
+            "en": "The explanation of term five: a text of two hundred characters, the most an explainer may hold, so the panel is measured at its tallest in English as well as in Dutch, which runs longer The explanati.",
+            "nl": "De uitleg van term vijf: een tekst van tweehonderd tekens, het meeste dat een uitleg mag bevatten, zodat het paneel op zijn hoogst gemeten wordt in het Engels en ook in het Nederlands De uitleg van t."
+          }
+        },
+        {
+          "id": "term-six",
+          "term": {
+            "en": "Term six, a term of forty characters Te.",
+            "nl": "Term zes, een term van veertig tekens T."
+          },
+          "text": {
+            "en": "The explanation of term six: a text of two hundred characters, the most an explainer may hold, so the panel is measured at its tallest in English as well as in Dutch, which runs longer The explanatio.",
+            "nl": "De uitleg van term zes: een tekst van tweehonderd tekens, het meeste dat een uitleg mag bevatten, zodat het paneel op zijn hoogst gemeten wordt in het Engels en ook in het Nederlands De uitleg van te."
+          }
+        },
+        {
+          "id": "term-seven",
+          "term": {
+            "en": "Term seven, a term of forty characters..",
+            "nl": "Term zeven, een term van veertig tekens."
+          },
+          "text": {
+            "en": "The explanation of term seven: a text of two hundred characters, the most an explainer may hold, so the panel is measured at its tallest in English as well as in Dutch, which runs longer The explanat.",
+            "nl": "De uitleg van term zeven: een tekst van tweehonderd tekens, het meeste dat een uitleg mag bevatten, zodat het paneel op zijn hoogst gemeten wordt in het Engels en ook in het Nederlands De uitleg van.."
+          }
+        },
+        {
+          "id": "term-eight",
+          "term": {
+            "en": "Term eight, a term of forty characters..",
+            "nl": "Term acht, een term van veertig tekens.."
+          },
+          "text": {
+            "en": "The explanation of term eight: a text of two hundred characters, the most an explainer may hold, so the panel is measured at its tallest in English as well as in Dutch, which runs longer The explanat.",
+            "nl": "De uitleg van term acht: een tekst van tweehonderd tekens, het meeste dat een uitleg mag bevatten, zodat het paneel op zijn hoogst gemeten wordt in het Engels en ook in het Nederlands De uitleg van t."
+          }
+        }
+      ]
+    },
+    {
+      "id": "no-end",
+      "title": {
+        "en": "It does not fit",
+        "nl": "Het past niet"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    },
+    {
+      "id": "yes-end",
+      "title": {
+        "en": "It fits",
+        "nl": "Het past"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "applicable"
+      }
+    }
+  ]
+}

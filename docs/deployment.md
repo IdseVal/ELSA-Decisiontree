@@ -325,7 +325,10 @@ new version is: validate, copy, restart.
 cd /tmp/elsa-src && git pull
 npm run validate trees/ai-act-applicability-agrifood   # must print "valid" before you copy
 
-# Copy the folder, then restart. --delete so a Node the author removed is removed here too.
+# Copy the folder -- `tree.json`, `images/` and `theme/` -- then restart. --delete so a Node
+# the author removed is removed here too, and so is the Tree file of an older format left
+# behind by an earlier release (`docs/specs/tree-format.md` section 12), which the loader
+# ignores but which no longer describes what is served.
 sudo apt-get install -y rsync
 sudo rsync -a --delete \
   /tmp/elsa-src/trees/ai-act-applicability-agrifood/ \

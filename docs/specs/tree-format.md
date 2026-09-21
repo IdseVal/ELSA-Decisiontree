@@ -32,9 +32,9 @@
 > unchanged at the dataset endpoint (`docs/specs/application.md` section 15), so the
 > download *is* the dataset.
 >
-> **Until the loader of issue #119 merges, the code on `dev` still reads `elsa-tree/3`**,
-> and both Trees under `trees/` and every fixture are still written in it; nothing new may
-> be built against `elsa-tree/3`.
+> **Done 2026-09-21 (issue #119).** The loader reads `tree.json` and nothing else, both
+> Trees under `trees/` and every fixture are written in `elsa-tree/4`, and no YAML parser
+> is left in the repository. 12.6 has the conversion and what it did to each Tree.
 >
 > **What `elsa-tree/3` was.** `elsa-tree/3` replaced `elsa-tree/2` (issue #78, 2026-09-17)
 > for two things the owner asked the data to carry (`docs/CORE_DOCUMENT.md` 3.1, revised
@@ -1014,9 +1014,9 @@ The **Where** column below says which of the two a rule belongs to.
 | V-FORMAT | schema | `format` exactly `elsa-tree/4`. |
 | V-NULL | schema | no `null` as the value of any key this format defines. An absent optional field is omitted. |
 | V-EMPTY | schema | no empty array and no empty object as the value of any key this format defines. Inside `metadata` the schema accepts both, as it accepts `null` there (V-NULL, 3.7). |
-| V-LANG | schema, rules | `languages`: a non-empty array of valid language tags (3.3), which the rules also check are distinct. |
+| V-LANG | schema | `languages`: a non-empty array of valid language tags (3.3), distinct from each other. Distinctness is the schema's `uniqueItems`, not a content rule: a repeated tag is a shape failure, and one tool says it. |
 | V-ROOT | rules | `root` naming an existing Node that is a question Node or a Terminal. |
-| V-TITLE | schema, rules | `title` as a plain localised text, at the top level. |
+| V-TITLE | schema | `title` present at the top level, as a localised text. That it is plain and within its length is V-PLAIN and V-LENGTH, which report under their own ids: there is no V-TITLE content check, and nothing reports that id. |
 | V-META | schema | `metadata` as an object whose `version` is a non-empty string (at the top level and on every Node), and **no key made only of digits** -- an integer-like key sorts to the front of a JavaScript object and would break the key order and the idempotence of 3.7. |
 | V-KEYS | schema | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `$schema`, `format`, `languages`, `root`, `theme` and `nodes` only at the top level; `id` never at the top level. |
 | V-REACH | rules | every Node reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target. |
@@ -1795,6 +1795,38 @@ Input: the folder `<in>/` holding `tree.yaml`. Output: `<in>/tree.json`.
 Running the whole procedure on a folder that holds a `tree.json` and no `tree.yaml` does
 nothing and reports nothing. Issue #119 tests both, because the byte form of 3.7 is only
 worth stating if it is stable.
+
+**What survives the job (amended 2026-09-21, #119).** Steps 1 to 4 read the serialisation
+this version replaced, and they left the repository with the parser that read it, as this
+section said they would. Steps 5 to 8 stayed, and are `scripts/migrate-tree.ts` (`npm run
+migrate <tree-folder>`): it writes a `tree.json` in the canonical byte form of 3.7,
+reads it back, validates it against the schema and the rules, and reports every violation.
+Step 9 deleted `<in>/tree.yaml`, and it left with the file it deleted: there is no
+`tree.yaml` in this repository and the tool never removes anything. On a Tree already in
+the byte form it writes the same bytes and says so, which is the idempotence above, run on
+demand. A Tree written in `elsa-tree/1`, `/2` or `/3` is converted with the last release
+before #119 and then by this procedure; no Tree in this repository is in that state.
+
+**Step 1's rule stayed too, against JSON**: text the loader will not read stops the job and
+nothing is written. It is asked of the *bytes*, with the loader's own reader, because one
+of the three things that forbid the read -- a duplicate key -- is the one malformation the
+parsed value no longer shows (3.7, V-JSON). A writer that parsed for itself would serialise
+the half the parser kept over the only copy of the file, and step 8 would then read back a
+Tree that validates: the author's text gone, and the rule that exists to catch exactly this
+silenced by the erasure of its evidence. The byte-order mark and the syntax error are the
+other two, and all three are reported by name, with the key and its position.
+
+It also **stops before writing, and reports the way step 5 does, on a file whose shape it
+cannot carry**: a top level that is not an object, and a value the writer would reorder or
+rebuild -- the keys whose values this format defines the shape of -- that is a list where
+the format has an object or an object where the format has a list (`"title": []`,
+`"sources": {}`). Step 7 writes the key order of step 5, and a writer that reordered a
+shape the format does not have would write back something the author never wrote, over the
+only copy of it -- so the file stays as it is and the shape is named by its key path. A
+value the writer carries across as it stands is not its business: a scalar where the format
+has an object, a key the format does not define, and a key whose value the writer does not
+walk into (`"languages": {}`) are written back unchanged and reported by step 8 on the
+written file, as everything else is.
 
 #### 12.6.2 What the procedure guarantees, and what it does not
 

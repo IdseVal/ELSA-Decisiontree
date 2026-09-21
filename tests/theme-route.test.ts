@@ -68,10 +68,10 @@ describe('everything else answers 404, and the same 404', () => {
   test.for([
     // Malformed: the grammar of tree-format.md 3.6 admits none of these, and each is
     // refused before anything touches the file system.
-    ['a path separator', 'nodes/start.yaml'],
-    ['a Windows separator', 'nodes\\start.yaml'],
-    ['a traversal', '../tree.yaml'],
-    ['a percent-encoded traversal', '..%2Ftree.yaml'],
+    ['a path separator', 'fonts/nova-square-400.woff2'],
+    ['a Windows separator', 'fonts\\nova-square-400.woff2'],
+    ['a traversal', '../tree.json'],
+    ['a percent-encoded traversal', '..%2Ftree.json'],
     ['an uppercase letter', 'Example-Lab-Logo.svg'],
     ['an extension the Theme has no use for', 'example-lab-logo.txt'],
     ['nothing at all', ''],

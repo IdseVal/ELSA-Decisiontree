@@ -1,0 +1,153 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en",
+    "nl"
+  ],
+  "root": "start",
+  "title": {
+    "en": "Findability & escaping: <b>, \"quotes\" & </script>",
+    "nl": "Vindbaarheid & escaping: <b>, \"aanhalingstekens\" & </script>"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does the Act apply to your system?",
+        "nl": "Is de verordening van toepassing op uw systeem?"
+      },
+      "description": {
+        "en": "The first question, and the one the [Dataset](#dataset) record describes the Tree by when the manifest says nothing.",
+        "nl": "De eerste vraag, en degene die het [datasetrecord](#dataset) gebruikt als het manifest niets zegt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "sources": [
+        {
+          "id": "art-2",
+          "kind": "legal",
+          "label": {
+            "en": "Article 2 of the AI Act",
+            "nl": "Artikel 2 AI-verordening"
+          },
+          "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+        },
+        {
+          "id": "art-3",
+          "kind": "legal",
+          "label": {
+            "en": "Article 3 of the AI Act",
+            "nl": "Artikel 3 AI-verordening"
+          },
+          "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+        },
+        {
+          "id": "gdpr",
+          "kind": "legal",
+          "label": {
+            "en": "The General Data Protection Regulation",
+            "nl": "De Algemene verordening gegevensbescherming"
+          },
+          "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj"
+        }
+      ],
+      "answers": {
+        "yes": "applies",
+        "no": "no-sources"
+      },
+      "options": [
+        {
+          "title": {
+            "en": "What does \"<placing on the market>\" mean?",
+            "nl": "Wat betekent \"<in de handel brengen>\"?"
+          },
+          "target": "placing-on-the-market"
+        }
+      ],
+      "explainers": [
+        {
+          "id": "dataset",
+          "term": {
+            "en": "Dataset",
+            "nl": "datasetrecord"
+          },
+          "text": {
+            "en": "The record a dataset index reads: what this Tree is and where to download it.",
+            "nl": "Het record dat een datasetindex leest: wat deze Boom is en waar hij te vinden is."
+          }
+        }
+      ]
+    },
+    {
+      "id": "placing-on-the-market",
+      "title": {
+        "en": "\"Placing on the market\" & <what it means> </script>",
+        "nl": "\"In de handel brengen\" & <wat het betekent> </script>"
+      },
+      "description": {
+        "en": "An explanation Node, so 16.4 emits no Question for it. Its title is the awkward one.",
+        "nl": "Een toelichting, dus 16.4 zendt hier geen Question uit. De titel is de lastige."
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "no-sources",
+      "title": {
+        "en": "A question with no Source at all",
+        "nl": "Een vraag zonder enige bron"
+      },
+      "description": {
+        "en": "No Source, so nothing here can contribute to the most frequent legal URL of 16.4.",
+        "nl": "Geen bron, dus niets hier telt mee voor de meest voorkomende juridische URL van 16.4."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "applies",
+        "no": "does-not-apply"
+      }
+    },
+    {
+      "id": "applies",
+      "title": {
+        "en": "The Act applies",
+        "nl": "De verordening is van toepassing"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De doorloop eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "applicable"
+      }
+    },
+    {
+      "id": "does-not-apply",
+      "title": {
+        "en": "The Act does not apply",
+        "nl": "De verordening is niet van toepassing"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De doorloop eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    }
+  ]
+}

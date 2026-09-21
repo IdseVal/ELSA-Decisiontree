@@ -16,7 +16,7 @@ The loader ignores this file, so you can write anything in it.
 
 ```
 trees/ai-act-applicability-agrifood/
-  tree.yaml          the WHOLE Tree: the manifest, then one document per Node
+  tree.json          the WHOLE Tree: the manifest fields, the theme, and `nodes`
   NOTES.md           this file (ignored by the loader)
   images/            the 71 pictures the Nodes and Options show, with their credits
   theme/             the lab's look: the logo, the tab icon, the fonts and their licence
@@ -26,12 +26,18 @@ The `images/` folder holds the 71 pictures of section 6. The `theme/` folder hol
 manifest's `theme:` block names -- the ELSA-Lab logo, the favicon and three Open Sans
 files, downloaded from ai4sfs.org by issue #40 -- plus `LICENCE.md`, which states the
 terms of each, carries the owner's statement on the logo as its licence line (issue #73),
-and records which questions about the logo the owner has not answered. Changing a colour in `theme:` and restarting the server changes the page; no code
+and records which questions about the logo the owner has not answered. Changing a colour in `"theme"` and restarting the server changes the page; no code
 knows any of these values. There is no `nodes/` folder any more:
 `elsa-tree/2` (issue #37) puts the whole Tree in one file, and issue #39 converted it.
-Inside `tree.yaml` a Node begins at a line `--- # <node-id>` followed by `id: <node-id>`,
-so searching for `--- #` lists every Node in order, and searching for `# social-scoring`
-lands on that Node. Everything else about a Node is exactly what its old file held.
+
+**The file is JSON, and it is written by tools.** `elsa-tree/4` (issue #118) replaced the
+serialisation `elsa-tree/3` used, and issue #119 converted this Tree with no change to a
+single piece of its text. Every Node is an element of the `"nodes"` array in the order it always stood
+in, so searching `tree.json` for `"id": "social-scoring"` lands on that Node. The file
+carries **no comments** -- JSON has none -- so the two the manifest used to hold are in
+this file now, and anything you would have written beside the data goes in a `"metadata"`
+key. The round after this one edits Trees through the frontend, which is why the format
+stopped being something a person works inside (`docs/specs/tree-format.md` 3.7, 12.6).
 
 **This Tree loads.** `npm run validate trees/ai-act-applicability-agrifood` prints
 `valid`, and `npm run test:first-tree` walks it in a browser. The development default of
@@ -157,8 +163,10 @@ Things that will trip you up, in rough order of likelihood:
 
 Paragraphs separated by a blank line, `*emphasis*`, `**strong**`, `- ` bullets, `1. `
 numbered lists, `[text](https://...)` links, and `[text](#id)` explainer marks (section
-11). Nothing else: no headings, no tables, no raw HTML, no inline images. Write it as a YAML block scalar, which is the `|` you see
-after `en:` and `nl:`, and indent the text under it.
+11). Nothing else: no headings, no tables, no raw HTML, no inline images. Write it as one JSON
+string after `"en":` and `"nl":`, with `
+` where a line breaks; JSON has no block scalar
+and no other way to spell a line break.
 
 ## 6. The images, and how to replace one
 
@@ -210,22 +218,28 @@ KB; the 36 files of #84 are 1,816 KB, the largest `prohibited-manipulative-techn
 (`annex-i-legislation`: its own picture and eight Options) asks for **9 files, 457 KB**.
 
 **To replace one**, put your file in `images/` with a lowercase name and no spaces and
-point the `images:` entry at it:
+point the `"images"` entry at it. `description` is at most 120 characters in both
+languages, and `source` is optional: the id of a Source on the same Node.
 
-```yaml
-images:
-  - file: annex-i-tractor.jpg
-    description:                        # at most 120 characters, both languages
-      en: A tractor with an automated steering system
-      nl: Een trekker met een automatisch stuursysteem
-    credit: "Name, via where you got it, CC BY 4.0"
-    source: anx-i                       # optional: the id of a Source on the same Node
+```json
+"images": [
+  {
+    "file": "annex-i-tractor.jpg",
+    "description": {
+      "en": "A tractor with an automated steering system",
+      "nl": "Een trekker met een automatisch stuursysteem"
+    },
+    "credit": "Name, via where you got it, CC BY 4.0",
+    "source": "anx-i"
+  }
+]
 ```
 
 `credit` is required on every image without exception, and it is reproduced as you write
 it. The `description` is the Carousel's caption and the alternative text a screen reader
-speaks, so write what the picture *shows*. Delete the whole `images:` list to leave a Node
-or an Option without a picture; an unused file in `images/` is not an error.
+speaks, so write what the picture *shows*. Delete the whole `"images"` key to leave a Node
+without a picture -- an empty list is refused, because there is one way to say a thing
+(`tree-format.md` 3.7) -- and an unused file in `images/` is not an error.
 
 **What a reader is shown of a credit**: every picture is in the Carousel
 under the Bubble -- a Node's own picture first, then the picture of each of its Options,
@@ -237,7 +251,7 @@ promises (the credit "shown with it, in the Carousel and in the enlarged view"),
 matters here because 23 of the 28 Option pictures are CC BY or CC BY-SA, licences that ask
 for the attribution to be given where the work is shared. `tests/first-tree/walk.spec.ts`
 walks the strip of every Node with the keyboard and reads every credit off the page in
-both languages (issue #55). Inside this repository the credit is also in `tree.yaml`
+both languages (issue #55). Inside this repository the credit is also in `tree.json`
 beside every picture, and in the table at the end of this section.
 
 Only an Option's **first** picture is shown, on its Branch and in the strip. Give an
@@ -262,7 +276,7 @@ been a content change this issue was not asked to make.
 
 ### Where every picture came from
 
-Author, licence and page as Wikimedia Commons states them. The credit in `tree.yaml` is
+Author, licence and page as Wikimedia Commons states them. The credit in `tree.json` is
 `<author>, via Wikimedia Commons, <licence>`. Eight licences occur; these are their texts,
 which is what the licence names in the table and in every credit refer to:
 
@@ -598,7 +612,7 @@ looking at.
 Issue #85 gave the defined terms of the question Nodes an **explainer**: a short
 explanation of the term, in English and Dutch, that the page shows in a small panel when
 the reader hovers, focuses or taps the term (`docs/specs/tree-format.md` 5.9). In
-`tree.yaml` a Node lists them under `explainers:`, and its description marks the words
+`tree.json` a Node lists them under `"explainers"`, and its description marks the words
 with `[provider](#provider)`: the text in brackets is what the reader sees, the part after
 `#` names the explainer. A mark replaces the bold or italic the term had before, because
 the format does not allow a mark inside `**...**`; the wording itself did not change.
@@ -607,7 +621,7 @@ Each text is a short plain rendering of the Article 3 definition in the consolid
 of 27 July 2026, in its English and Dutch versions, and at most 200 characters. An
 explainer belongs to the Node it is written on, like a Source, so "AI system" is written
 out on each of the seven Nodes that mark it. If you correct one, correct all of them:
-searching `tree.yaml` for `- id: ai-system` finds every copy.
+searching `tree.json` for `"id": "ai-system"` finds every copy.
 
 ### The terms, Node by Node
 
@@ -709,5 +723,6 @@ over it was cut mechanically, in both languages, with no rewording:
 - Where not even one sentence fits, it is cut at the last word that fits and ends in `…`.
 
 `transparency-obligations` lost its sentences that marked "provider" and "deployer", so
-those two explainers went with them. The full texts are in the Git history of `tree.yaml`
-before PR #110, for when you write the short versions by hand.
+those two explainers went with them. The full texts are in the Git history of this Tree's
+file before PR #110, under the name it had before issue #119 converted it, for when you
+write the short versions by hand.

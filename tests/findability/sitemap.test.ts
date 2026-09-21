@@ -120,7 +120,7 @@ describe('lastmod', () => {
 
   afterAll(async () => {
     // The fixture's own timestamp is restored: the test below moves it into the future.
-    await utimes(path.join(treeDir(), 'tree.yaml'), mtime, mtime)
+    await utimes(path.join(treeDir(), 'tree.json'), mtime, mtime)
   })
 
   test('ELSA_TREE_LASTMOD wins, for a pipeline that does not preserve timestamps', () => {
@@ -141,7 +141,7 @@ describe('lastmod', () => {
     // A file whose time is in the future is a wrong clock or a touch on the deploy. A
     // search engine that catches a site lying about lastmod stops reading it for that site.
     const future = new Date(Date.now() + 86_400_000)
-    await utimes(path.join(treeDir(), 'tree.yaml'), future, future)
+    await utimes(path.join(treeDir(), 'tree.json'), future, future)
     const reopened = await openTree(treeDir())
 
     expect(lastmodDate(reopened, undefined)).toBeNull()

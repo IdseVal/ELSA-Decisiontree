@@ -396,7 +396,7 @@ describe('the content of the first Tree', () => {
     test('every credit names the author and licence the provenance table in NOTES.md records', () => {
       // The table was taken from Wikimedia Commons; a credit is "reproduced as written"
       // (tree-format.md 5.2) and must carry the name as supplied. The Reviewer of PR #54 found
-      // "Petar Milosevic" in `tree.yaml` against "Petar Milošević" on Commons and in the table.
+      // "Petar Milosevic" in `tree.json` against "Petar Milošević" on Commons and in the table.
       const notes = readFileSync(path.join(treeDir, 'NOTES.md'), 'utf8')
       const rows = new Map(
         [...notes.matchAll(/^\| `([^`]+)` \| [^|]+ \| ([^|]+) \| ([^|]+) \| https:\/\/commons\.wikimedia\.org\//gm)].map(

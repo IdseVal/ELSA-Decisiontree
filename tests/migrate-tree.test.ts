@@ -1,443 +1,311 @@
 /**
- * The migration of docs/specs/tree-format.md section 12 (`scripts/migrate-tree.ts`,
- * `npm run migrate`): an `elsa-tree/1` folder (12.1) or an `elsa-tree/2` file (12.5) becomes
- * an `elsa-tree/3` file textually.
+ * The writer of docs/specs/tree-format.md 3.7 (`scripts/migrate-tree.ts`, `npm run
+ * migrate`): what is left of the migration of section 12 after issue #119 ran it, and the
+ * one contract that is worth stating only if it is tested -- **writing a Tree that was
+ * just read changes no byte** (12.6.1, Idempotence).
  *
- * The inputs are written here rather than kept as fixtures: neither older format is left in
- * this repository, and a leftover Tree in one would be the one thing in `tests/fixtures/`
- * that no loader can read. What the conversion produces is always checked through
- * `openTree`, as section 7 requires.
+ * Every Tree it writes is read back through `openTree`, as section 7 requires; no test
+ * builds a `Node` by hand.
  */
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
-import { migrateTree } from '../scripts/migrate-tree.ts'
-import { openTree } from '../src/tree/loader.ts'
+import { bytes, migrateTree } from '../scripts/migrate-tree.ts'
+import { openTree, TreeInvalid } from '../src/tree/loader.ts'
 
-const MANIFEST = `# A comment the author wrote, which the conversion must not lose.
-format: elsa-tree/1   # and a trailing comment on the format line
-languages: [en]
-root: start
-title:
-  en: A minimal Tree
-metadata:
-  version: "1.0"
-`
+const here = path.dirname(fileURLToPath(import.meta.url))
+const fixture = (...parts: string[]): string => path.join(here, 'fixtures', ...parts)
+const exampleTree = path.join(here, '..', 'trees', 'ai-act-example')
+/** The Tree title of `tests/fixtures/single-language`, the line a repeat is written above. */
+const TITLE = '    "nl": "Is de AI-verordening van toepassing?"\n'
 
-/** Written with a comment, a blank line and a quoting choice, to see them survive. */
-const START = `title:
-  en: Does it apply?
-
-# Why this question comes first.
-description:
-  en: |
-    The first question.
-metadata:
-  version: "1.0"
-options:
-  - title:
-      en: 'What does it mean?'
-    target: detail
-answers:
-  yes: yes-end
-  no: no-end
-`
-
-const DETAIL = `title:
-  en: What it means
-description:
-  en: |
-    An explanation.
-metadata:
-  version: "1.0"
-`
-
-const terminal = (title: string, outcome: string): string => `title:
-  en: ${title}
-description:
-  en: |
-    The walk ends here.
-metadata:
-  version: "1.0"
-terminal:
-  outcome: ${outcome}
-`
-
-let dir: string
-
-/** An `elsa-tree/1` Tree folder: a manifest, four Node files and an image. */
-async function writeOldTree(name: string, manifest = MANIFEST): Promise<string> {
-  const root = path.join(dir, name)
-  await mkdir(path.join(root, 'nodes'), { recursive: true })
-  await mkdir(path.join(root, 'images'), { recursive: true })
-  await writeFile(path.join(root, 'tree.yaml'), manifest, 'utf8')
-  await writeFile(path.join(root, 'nodes', 'start.yaml'), START, 'utf8')
-  await writeFile(path.join(root, 'nodes', 'detail.yaml'), DETAIL, 'utf8')
-  await writeFile(path.join(root, 'nodes', 'yes-end.yaml'), terminal('It applies', 'applicable'), 'utf8')
-  await writeFile(path.join(root, 'nodes', 'no-end.yaml'), terminal('It does not apply', 'not-applicable'), 'utf8')
-  await writeFile(path.join(root, 'images', 'pic.png'), 'not really a PNG', 'utf8')
-  await writeFile(path.join(root, 'NOTES.md'), 'Notes the author keeps beside the Tree.\n', 'utf8')
-  return root
-}
+let work: string
 
 beforeEach(async () => {
-  dir = await mkdtemp(path.join(tmpdir(), 'elsa-migrate-'))
+  work = await mkdtemp(path.join(tmpdir(), 'elsa-migrate-'))
 })
 
 afterEach(async () => {
-  await rm(dir, { recursive: true, force: true })
+  await rm(work, { recursive: true, force: true })
 })
 
-describe('a valid elsa-tree/1 Tree', () => {
-  test('converts into one file that the loader reads as elsa-tree/3', async () => {
-    const source = await writeOldTree('old')
-    const target = path.join(dir, 'converted')
-
-    const migration = await migrateTree(source, target)
-
-    expect(migration.violations).toEqual([])
-    expect(migration.notes).toEqual([])
-    // The manifest plus one document per Node file (tree-format.md 12.2).
-    expect(migration.documents).toBe(migration.ids.length + 1)
-
-    const tree = await openTree(target)
-    expect(migration.from).toBe('elsa-tree/1')
-    expect(tree.manifest.format).toBe('elsa-tree/3')
-    expect(tree.manifest.root).toBe('start')
-    expect((await tree.getNode('start'))!.options[0]!.target).toBe('detail')
-    expect((await tree.getNode('detail'))!.kind).toBe('explanation')
-  })
-
-  test('writes the root Node first and the rest in byte order of their file names', async () => {
-    const source = await writeOldTree('old')
-
-    const migration = await migrateTree(source, path.join(dir, 'converted'))
-
-    expect(migration.ids).toEqual(['start', 'detail', 'no-end', 'yes-end'])
-  })
-
-  test('carries every Node over verbatim, behind its separator and its id', async () => {
-    const source = await writeOldTree('old')
-    const target = path.join(dir, 'converted')
-
-    await migrateTree(source, target)
-
-    const text = await readFile(path.join(target, 'tree.yaml'), 'utf8')
-    // Nothing inside a Node is touched: not a comment, not a blank line, not the single
-    // quotes the author chose (12.1 step 4).
-    expect(text).toContain(`\n--- # start\nid: start\n${START}`)
-    expect(text).toContain(`\n--- # detail\nid: detail\n${DETAIL}`)
-    expect(text).toContain("      en: 'What does it mean?'")
-  })
-
-  test('keeps the manifest as it was apart from its format line', async () => {
-    const source = await writeOldTree('old')
-    const target = path.join(dir, 'converted')
-
-    await migrateTree(source, target)
-
-    const text = await readFile(path.join(target, 'tree.yaml'), 'utf8')
-    expect(text).toContain('# A comment the author wrote, which the conversion must not lose.')
-    // The comment on the format line stays with it, one space away (12.1 step 1).
-    expect(text).toContain('format: elsa-tree/3 # and a trailing comment on the format line')
-    expect(text).not.toContain('elsa-tree/1')
-  })
-
-  test('takes the images and the files the author keeps along, and leaves nodes/ behind', async () => {
-    const source = await writeOldTree('old')
-    const target = path.join(dir, 'converted')
-
-    await migrateTree(source, target)
-
-    expect(await readFile(path.join(target, 'images', 'pic.png'), 'utf8')).toBe('not really a PNG')
-    expect(await readFile(path.join(target, 'NOTES.md'), 'utf8')).toBe('Notes the author keeps beside the Tree.\n')
-    // No theme/ is invented: a Theme is authored, not migrated (12.1 step 5).
-    await expect(stat(path.join(target, 'theme'))).rejects.toThrow()
-    await expect(stat(path.join(target, 'nodes'))).rejects.toThrow()
-    // The input is left alone when the output is somewhere else.
-    expect((await stat(path.join(source, 'nodes'))).isDirectory()).toBe(true)
-  })
-
-  test('converted in place, it replaces nodes/ with the file', async () => {
-    const source = await writeOldTree('old')
-
-    await migrateTree(source, source)
-
-    await expect(stat(path.join(source, 'nodes'))).rejects.toThrow()
-    expect((await openTree(source)).manifest.format).toBe('elsa-tree/3')
-  })
-
-  test('the second argument may name the file to write', async () => {
-    const source = await writeOldTree('old')
-    const file = path.join(dir, 'converted', 'tree.yaml')
-
-    await migrateTree(source, file)
-
-    expect((await openTree(path.dirname(file))).id).toBe('converted')
-  })
-})
-
-describe('a Tree the new limits reject', () => {
-  test('is converted whole, and every violation is reported rather than silenced', async () => {
-    const long = 'A title of more than eighty characters, which elsa-tree/1 allowed and 3 does not.'
-    const source = await writeOldTree('old')
-    await writeFile(
-      path.join(source, 'nodes', 'detail.yaml'),
-      DETAIL.replace('What it means', long),
-      'utf8',
-    )
-    const target = path.join(dir, 'converted')
-
-    const migration = await migrateTree(source, target)
-
-    expect(migration.violations).toEqual([
-      { file: 'detail', keyPath: 'title.en', rule: 'V-LENGTH', message: '81 characters; at most 80' },
-    ])
-    // Shortened nothing: the text is in the file, whole, for the content issue to cut.
-    expect(await readFile(path.join(target, 'tree.yaml'), 'utf8')).toContain(long)
-  })
-})
-
-describe('a folder that is not an elsa-tree/1 Tree', () => {
-  test('is reported, not guessed at', async () => {
-    const source = await writeOldTree('old', MANIFEST.replace('format: elsa-tree/1', 'format: elsa-tree/9'))
-
-    const migration = await migrateTree(source, path.join(dir, 'converted'))
-
-    expect(migration.notes).toEqual(['manifest: no "format: elsa-tree/1" line found'])
-    expect(migration.violations.map((violation) => violation.rule)).toEqual(['V-FORMAT'])
-  })
-
-  test('an empty folder converts to nothing and says why', async () => {
-    const source = path.join(dir, 'empty')
-    await mkdir(source, { recursive: true })
-
-    const migration = await migrateTree(source, path.join(dir, 'converted'))
-
-    expect(migration.ids).toEqual([])
-    // An empty file is no document at all, and a Tree without Nodes is no Tree (12.1).
-    expect(migration.violations.map((violation) => violation.rule)).toEqual(['V-YAML', 'V-NODE'])
-  })
-})
-
-const V2_MANIFEST = `# A comment the author wrote, which the conversion must not lose.
-format: elsa-tree/2   # and a trailing comment on the format line
-languages: [en]
-root: start
-title:
-  en: A minimal Tree
-metadata:
-  version: "1.0"
-`
-
-const v2Node = (id: string, body: string): string => `
---- # ${id}
-id: ${id}
-title:
-  en: The Node ${id}
-description:
-  en: |
-    Text of ${id}.
-metadata:
-  version: "1.0"
-${body}`
-
-/** An `elsa-tree/2` Tree without Option Images: 12.5 converts it by its format line alone. */
-const V2_PLAIN =
-  V2_MANIFEST +
-  v2Node('start', `options:
-  - title:
-      en: 'What does it mean?'
-    target: detail
-answers:
-  yes: yes-end
-  no: no-end
-`) +
-  v2Node('detail', '') +
-  v2Node('no-end', 'terminal:\n  outcome: not-applicable\n') +
-  v2Node('yes-end', 'terminal:\n  outcome: applicable\n')
-
-/**
- * An `elsa-tree/2` Tree whose Options carry Images, one case of 12.5 step 2 each: `detail`
- * has no `images` and no Source, `other` has both, `same` already shows the Option's picture.
- */
-const V2_PICTURES =
-  V2_MANIFEST +
-  v2Node('start', `sources:
-  - id: art-1
-    kind: legal
-    label:
-      en: Article 1
-    url: https://example.org/article-1
-options:
-  - title:
-      en: 'What does it mean?'
-    target: detail
-    images:
-      - file: one.png
-        description:
-          en: A picture
-        # A comment inside the Image, which moves with it.
-        credit: "Picture: Example, CC0"
-        source: art-1
-      - file: two.png
-        description:
-          en: A second picture
-        credit: "Picture: Example, CC0"
-  - title:
-      en: Another
-    target: other
-    images:
-      - file: three.png
-        description:
-          en: A third picture
-        credit: "Picture: Example, CC0"
-        source: art-1
-  - title:
-      en: The same
-    target: same
-    images:
-    - file: five.png
-      description:
-        en: A fifth picture
-      credit: "Picture: Example, CC0"
-answers:
-  yes: yes-end
-  no: no-end
-`) +
-  v2Node('detail', '') +
-  v2Node('other', `sources:
-  - id: art-1
-    kind: legal
-    label:
-      en: Article 1
-    url: https://example.org/article-1
-images:
-  - file: four.png
-    description:
-      en: A fourth picture
-    credit: "Picture: Example, CC0"
-`) +
-  v2Node('same', `images:
-  - file: five.png
-    description:
-      en: A fifth picture
-    credit: "Picture: Example, CC0"
-`) +
-  v2Node('no-end', 'terminal:\n  outcome: not-applicable\n') +
-  v2Node('yes-end', 'terminal:\n  outcome: applicable\n')
-
-/** An `elsa-tree/2` Tree folder holding `text` and the five pictures V2_PICTURES names. */
-async function writeV2Tree(name: string, text: string): Promise<string> {
-  const root = path.join(dir, name)
-  await mkdir(path.join(root, 'images'), { recursive: true })
-  await writeFile(path.join(root, 'tree.yaml'), text, 'utf8')
-  for (const file of ['one', 'two', 'three', 'four', 'five']) {
-    await writeFile(path.join(root, 'images', `${file}.png`), 'not really a PNG', 'utf8')
-  }
-  return root
+/** A copy of a Tree folder under the temporary directory, so the repository is untouched. */
+async function copyTree(source: string): Promise<string> {
+  const target = path.join(work, path.basename(source))
+  await cp(source, target, { recursive: true })
+  return target
 }
 
-describe('a valid elsa-tree/2 Tree (tree-format.md 12.5)', () => {
-  test('without Option Images, only its format line changes', async () => {
-    const source = await writeV2Tree('old', V2_PLAIN)
-    const target = path.join(dir, 'converted')
+describe('the canonical byte form is stable (tree-format.md 3.7, 12.6.1)', () => {
+  test.each([
+    ['trees/ai-act-example', exampleTree],
+    ['tests/fixtures/full-node', fixture('full-node')],
+    ['tests/fixtures/other-languages', fixture('other-languages')],
+  ])('%s is written back byte for byte, twice', async (_name, source) => {
+    const target = await copyTree(source)
+    const original = await readFile(path.join(target, 'tree.json'), 'utf8')
 
-    const migration = await migrateTree(source, target)
+    const first = await migrateTree(target)
+    const afterFirst = await readFile(path.join(target, 'tree.json'), 'utf8')
+    const second = await migrateTree(target)
+    const afterSecond = await readFile(path.join(target, 'tree.json'), 'utf8')
 
-    expect(migration).toMatchObject({ from: 'elsa-tree/2', notes: [], reports: [], violations: [] })
-    expect(migration.ids).toEqual(['start', 'detail', 'no-end', 'yes-end'])
-    const before = V2_PLAIN.split('\n')
-    const after = (await readFile(path.join(target, 'tree.yaml'), 'utf8')).split('\n')
-    expect(after).toHaveLength(before.length)
-    const changed = after.flatMap((line, index) => (line === before[index] ? [] : [[before[index], line]]))
-    expect(changed).toEqual([
-      ['format: elsa-tree/2   # and a trailing comment on the format line', 'format: elsa-tree/3 # and a trailing comment on the format line'],
-    ])
-    expect((await openTree(target)).manifest.format).toBe('elsa-tree/3')
+    expect(first.violations).toEqual([])
+    expect(first.rewritten, 'the committed file is not in the canonical byte form').toBe(false)
+    expect(afterFirst).toBe(original)
+    expect(second.rewritten).toBe(false)
+    expect(afterSecond).toBe(original)
   })
 
-  test('converted in place, the file is rewritten and the images stay', async () => {
-    const source = await writeV2Tree('old', V2_PLAIN)
+  test('a Tree written any other way is brought into the byte form, and then stays', async () => {
+    // The three ways a writer may differ: the indentation, the key order of 3.7, and the
+    // order a localised text lists its languages in (the manifest's).
+    const target = await copyTree(fixture('other-languages'))
+    const file = path.join(target, 'tree.json')
+    const canonical = await readFile(file, 'utf8')
+    const tree = JSON.parse(canonical) as Record<string, unknown>
+    const shuffled = Object.fromEntries(Object.entries(tree).reverse())
+    const first = (shuffled.nodes as Array<Record<string, unknown>>)[0]!
+    first.title = Object.fromEntries(Object.entries(first.title as Record<string, string>).reverse())
+    await writeFile(file, JSON.stringify(shuffled, null, 4), 'utf8')
 
-    await migrateTree(source, source)
+    const migration = await migrateTree(target)
 
-    expect((await openTree(source)).manifest.format).toBe('elsa-tree/3')
-    expect(await readFile(path.join(source, 'images', 'one.png'), 'utf8')).toBe('not really a PNG')
-  })
-
-  test("an Option's first Image moves to its target, and what cannot move is reported", async () => {
-    const source = await writeV2Tree('old', V2_PICTURES)
-    const target = path.join(dir, 'converted')
-
-    const migration = await migrateTree(source, target)
-
+    expect(migration.rewritten).toBe(true)
     expect(migration.violations).toEqual([])
-    expect(migration.notes).toEqual([])
-    expect(migration.reports).toEqual([
-      'start  options[0].images[1]: two.png is shown nowhere in elsa-tree/3; add it to the images of detail if its Carousel should carry it',
-      'start  options[0].images[0].source: "art-1" dropped: detail has no Source of that id',
-      'start  options[0].images[0]: one.png moved to detail as its first Image',
-      'start  options[1].images[0]: three.png moved to other as its first Image',
-      'start  options[2].images[0]: five.png is already the first Image of same; nothing moved',
-    ])
-    const text = await readFile(path.join(target, 'tree.yaml'), 'utf8')
-    // Created after `metadata`, re-indented to the Node's level, the comment kept, the
-    // unresolvable `source` gone.
-    expect(text).toContain(`metadata:
-  version: "1.0"
-images:
-  - file: one.png
-    description:
-      en: A picture
-    # A comment inside the Image, which moves with it.
-    credit: "Picture: Example, CC0"
-
---- # other`)
-    // In front of the target's own first Image, its `source` kept: `other` cites art-1.
-    expect(text).toContain(`images:
-  - file: three.png
-    description:
-      en: A third picture
-    credit: "Picture: Example, CC0"
-    source: art-1
-  - file: four.png`)
-    // Every Option is left with its title and target only.
-    expect(text).toContain(`options:
-  - title:
-      en: 'What does it mean?'
-    target: detail
-  - title:
-      en: Another
-    target: other
-  - title:
-      en: The same
-    target: same
-answers:`)
-    expect(text).not.toContain('two.png')
-
-    const tree = await openTree(target)
-    expect((await tree.getNode('same'))!.images.map((image) => image.file)).toEqual(['five.png'])
-    expect((await tree.getNode('other'))!.images.map((image) => image.file)).toEqual(['three.png', 'four.png'])
+    expect(await readFile(file, 'utf8')).toBe(canonical)
+    // And a second run finds nothing left to do: that is what idempotence means here.
+    expect((await migrateTree(target)).rewritten).toBe(false)
   })
 
-  test('a description that already holds a fragment link is reported by V-MARK, not rewritten', async () => {
-    const source = await writeV2Tree('old', V2_PLAIN.replace('Text of detail.', 'Text of [detail](#detail).'))
+  test('the written Tree is the same Tree: every Node, in order, with its text', async () => {
+    const target = await copyTree(exampleTree)
+    const before = await openTree(target)
+    const ids = ['start', 'outside-scope', 'prohibited-practices', 'social-scoring', 'emotion-recognition-at-work', 'prohibited', 'covered']
 
-    const migration = await migrateTree(source, path.join(dir, 'converted'))
+    const migration = await migrateTree(target)
+
+    expect(migration.ids).toEqual(ids)
+    const after = await openTree(target)
+    for (const id of ids) expect(await after.getNode(id), id).toEqual(await before.getNode(id))
+    expect(after.manifest).toEqual(before.manifest)
+  })
+
+  test('bytes is two-space indentation and one trailing line feed, and nothing else', () => {
+    const written = bytes({ format: 'elsa-tree/4', languages: ['en', 'nl'] })
+
+    expect(written).toBe('{\n  "format": "elsa-tree/4",\n  "languages": [\n    "en",\n    "nl"\n  ]\n}\n')
+  })
+
+  test('a non-ASCII character is written as itself, not as an escape', async () => {
+    const target = await copyTree(fixture('other-languages'))
+    const file = path.join(target, 'tree.json')
+    expect(await readFile(file, 'utf8')).toContain('é')
+
+    await migrateTree(target)
+
+    const written = await readFile(file, 'utf8')
+    expect(written).toContain('é')
+    // The six characters of an escape, not the character: the byte form writes it as itself.
+    expect(written).not.toContain('\\u00e9')
+  })
+})
+
+describe('the writer reports what the loader would', () => {
+  test('a Tree that breaks a content rule is written and every violation named', async () => {
+    const target = await copyTree(fixture('invalid', 'v-length'))
+
+    const migration = await migrateTree(target)
 
     expect(migration.violations).toEqual([
-      { file: 'detail', keyPath: 'description.en', rule: 'V-MARK', message: '"[detail](#detail)" names no explainer of this Node' },
+      { file: 'start', keyPath: 'title.en', rule: 'V-LENGTH', message: '81 characters; at most 80' },
     ])
   })
 
-  test('a file without an elsa-tree/2 format line is reported, not guessed at', async () => {
-    const source = await writeV2Tree('old', V2_PLAIN.replace('format: elsa-tree/2', 'format: elsa-tree/9'))
+  test('a Tree whose shape is wrong is answered by the schema, with a JSON Pointer', async () => {
+    const target = await copyTree(fixture('invalid', 'v-keys'))
 
-    const migration = await migrateTree(source, path.join(dir, 'converted'))
+    const migration = await migrateTree(target)
 
-    expect(migration.notes).toEqual(['manifest: no "format: elsa-tree/2" line found'])
-    expect(migration.violations.map((violation) => violation.rule)).toEqual(['V-FORMAT'])
+    expect(migration.violations).toEqual([
+      { file: 'tree.json', keyPath: '/nodes/0', rule: 'schema', message: 'must NOT have additional properties: "notes"' },
+    ])
+  })
+
+  test('a file that does not parse is reported and nothing is written', async () => {
+    const target = await copyTree(fixture('invalid', 'v-json'))
+    const file = path.join(target, 'tree.json')
+    const before = await readFile(file, 'utf8')
+
+    const migration = await migrateTree(target)
+
+    expect(migration.rewritten).toBe(false)
+    expect(migration.notes).toHaveLength(1)
+    expect(migration.notes[0]).toMatch(/JSON/)
+    expect(await readFile(file, 'utf8')).toBe(before)
+  })
+
+  // The writer stops for two more things, and for the same reason the parse failure above
+  // stops it: the file is the only copy (12.6.1 step 5 and "What survives the job"). One
+  // case per branch of the walk -- a localised text, `metadata`, a named object, a list --
+  // because a branch the refusal does not answer is a branch that rewrites. Each case is
+  // written back with a four-space indentation first, so the file is NOT in the canonical
+  // byte form and a writer that ran would rewrite it: that is what makes "unchanged" worth
+  // asserting.
+  test.each([
+    [
+      'a metadata key made only of digits is refused, with its remedy',
+      fixture('broken', 'metadata-all-digits'),
+      (tree: Record<string, unknown>) => tree,
+      'metadata: the key "2024" is made only of digits; rename it to "note-2024" and run again',
+    ],
+    [
+      'a file whose top level is a list is not a Tree file',
+      fixture('single-language'),
+      () => ['not a tree'],
+      'tree.json holds a list where the format has an object, so it is not a Tree file',
+    ],
+    [
+      'a key the format lists is refused when it holds an object',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        ;(tree.nodes as Array<Record<string, unknown>>)[0]!.sources = {}
+        return tree
+      },
+      'nodes[0].sources: the format has a list here, and the file has an object',
+    ],
+    [
+      'a localised text is refused when it holds a list, at the top level',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        tree.title = ['not', 'an', 'object']
+        return tree
+      },
+      'title: the format has an object here, and the file has a list',
+    ],
+    [
+      'a localised text is refused when it holds a list, on a Node',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        ;(tree.nodes as Array<Record<string, unknown>>)[0]!.description = []
+        return tree
+      },
+      'nodes[0].description: the format has an object here, and the file has a list',
+    ],
+    [
+      'metadata is refused when it holds a list, at the top level',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        tree.metadata = []
+        return tree
+      },
+      'metadata: the format has an object here, and the file has a list',
+    ],
+    [
+      'a list in metadata is refused as a list, not as a key made of digits',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        ;(tree.nodes as Array<Record<string, unknown>>)[0]!.metadata = ['x']
+        return tree
+      },
+      'nodes[0].metadata: the format has an object here, and the file has a list',
+    ],
+    [
+      'an object the format names is refused when it holds a list',
+      fixture('single-language'),
+      (tree: Record<string, unknown>) => {
+        ;(tree.nodes as Array<Record<string, unknown>>)[0]!.answers = []
+        return tree
+      },
+      'nodes[0].answers: the format has an object here, and the file has a list',
+    ],
+  ])('%s, and nothing is written', async (_name, source, edit, note) => {
+    const target = await copyTree(source)
+    const file = path.join(target, 'tree.json')
+    const edited = edit(JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>)
+    await writeFile(file, JSON.stringify(edited, null, 4), 'utf8')
+    const before = await readFile(file, 'utf8')
+
+    const migration = await migrateTree(target)
+
+    expect(migration).toEqual({ rewritten: false, ids: [], notes: [note], violations: [] })
+    expect(await readFile(file, 'utf8')).toBe(before)
+  })
+
+  // The two checks of V-JSON that read the bytes rather than the parsed value, and the
+  // reason the writer asks the loader (`readTreeText`) instead of parsing for itself:
+  // `JSON.parse` keeps the last of a duplicate key and says nothing, so a writer that
+  // trusted it would serialise the survivor over the only copy of the file -- and step 8,
+  // reading back a file that no longer holds the defect, would report the Tree as valid.
+  // The one rule written to catch a silent loss would be silenced by that loss.
+  test.each([
+    [
+      'a duplicate key',
+      (text: string) => text.replace(TITLE, `    "nl": "DE TITEL VAN DE AUTEUR",\n${TITLE}`),
+      'the key "nl" appears twice in one object, at line 10 column 5',
+    ],
+    [
+      'a byte-order mark',
+      (text: string) => `﻿${text}`,
+      'tree.json begins with a byte-order mark; write it as UTF-8 without one',
+    ],
+  ])('%s stops the writer, and the loader still finds it afterwards', async (_name, edit, note) => {
+    const target = await copyTree(fixture('single-language'))
+    const file = path.join(target, 'tree.json')
+    // The edited file is NOT in the canonical byte form -- writing back what the parser
+    // returns would drop the repeated line, or the mark -- so a writer that ran is visible.
+    const before = edit(await readFile(file, 'utf8'))
+    await writeFile(file, before, 'utf8')
+
+    const migration = await migrateTree(target)
+
+    expect(migration).toEqual({ rewritten: false, ids: [], notes: [note], violations: [] })
+    expect(await readFile(file, 'utf8')).toBe(before)
+    // The file is the evidence, so it must still be the file the loader refuses, with the
+    // same message: the writer and the loader answer "may this be read" the same way.
+    const refused = await openTree(target).catch((error: unknown) => error)
+    expect(refused).toBeInstanceOf(TreeInvalid)
+    expect((refused as TreeInvalid).violations).toEqual([{ file: 'tree.json', keyPath: '', rule: 'V-JSON', message: note }])
+  })
+
+  test('the author\'s first value is still in the file after a duplicate key is refused', async () => {
+    // What the silent rewrite cost: `JSON.parse` keeps the last, so the text above the
+    // repeat is what a writer that ran would have deleted.
+    const target = await copyTree(fixture('single-language'))
+    const file = path.join(target, 'tree.json')
+    const written = `    "nl": "DE TITEL VAN DE AUTEUR",\n`
+    await writeFile(file, (await readFile(file, 'utf8')).replace(TITLE, written + TITLE), 'utf8')
+
+    await migrateTree(target)
+
+    expect(await readFile(file, 'utf8')).toContain('DE TITEL VAN DE AUTEUR')
+  })
+
+  test('a folder that holds no tree.json is reported, not crashed on', async () => {
+    const migration = await migrateTree(work)
+
+    expect(migration).toEqual({ rewritten: false, ids: [], notes: ['tree.json is missing'], violations: [] })
+  })
+})
+
+describe('the example Tree and section 8 of the format spec are one file', () => {
+  // tree-format.md 8 is the complete example, and trees/ai-act-example is the Tree the
+  // development default serves. #119 converted both; NOTES.md of the Tree says they are
+  // byte-identical, and nothing held them to it until this test. A reader who trusts the
+  // spec's block is reading the file the app serves, or the test says which drifted.
+  test('section 8 holds the bytes of trees/ai-act-example/tree.json', async () => {
+    const spec = await readFile(path.join(here, '..', 'docs', 'specs', 'tree-format.md'), 'utf8')
+    const heading = spec.indexOf('\n## 8. ')
+    const fence = spec.indexOf('\n```json\n', heading)
+    const end = spec.indexOf('\n```\n', fence + 8)
+
+    expect(heading, 'section 8 is in the spec').toBeGreaterThan(-1)
+    expect(fence, 'section 8 opens a json block').toBeGreaterThan(heading)
+    // The block's own trailing line feed is the file's, so the slice ends at the fence.
+    const block = spec.slice(fence + '\n```json\n'.length, end + 1)
+
+    expect(block).toBe(await readFile(path.join(exampleTree, 'tree.json'), 'utf8'))
   })
 })

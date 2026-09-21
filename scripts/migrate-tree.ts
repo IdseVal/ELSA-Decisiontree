@@ -1,317 +1,269 @@
 /**
- * `npm run migrate <old-folder> <new-folder-or-tree.yaml>`: the mechanical conversion of an
- * older Tree folder into an `elsa-tree/3` Tree, as docs/specs/tree-format.md section 12
- * specifies it -- an `elsa-tree/1` folder of Node files (12.1, ADR-37-migration) or an
- * `elsa-tree/2` file (12.5, ADR-78-explainers, ADR-78-fan-out-and-option-picture).
+ * `npm run migrate <tree-folder>`: writes a Tree's `tree.json` in the canonical byte form
+ * of docs/specs/tree-format.md 3.7 and validates the result.
  *
- * The conversion is TEXTUAL: nothing is parsed and re-serialised, so every comment, every
- * line break and every quoting choice survives, and a file that does not parse is carried
- * over to fail the same rule it failed before. The YAML parser is used only to find where
- * an Option's Images are written. The converted Tree is then validated and EVERY violation
- * is printed; nothing is shortened and nothing is silenced.
+ * This is what is left of the migration of section 12 after issue #119 ran it. Its steps 5
+ * to 8 -- the key order, the byte form, the read-back and the validation -- are these; its
+ * steps 1 to 4 read the format this one replaced, and went with the parser that read it,
+ * except for step 1's rule, which is kept here against JSON: bytes the loader will not
+ * read stop the job and nothing is written. Step 9 deleted `tree.yaml` and left with it. A
+ * Tree still written in `elsa-tree/1`, `/2` or `/3` is converted with the last release
+ * before #119 and then by 12.6; no Tree in this repository is in that state.
  *
- * Exit code 0 when the result validates -- for an `elsa-tree/1` input, when the only
- * violations are the content rules its length limits added (V-LENGTH, V-LINES, V-COUNT)
- * -- and 1 otherwise.
+ * What it is for now is the contract of 3.7 made runnable: **writing a Tree that was just
+ * read changes no byte**, so a Tree the editor of the next round rewrites has a diff that
+ * shows the fields that changed and nothing else. Run on a Tree already in the byte form,
+ * it writes the same bytes and reports that it did.
+ *
+ * Exit code 0 when the written Tree validates, 1 otherwise.
  *
  * Runs with plain Node 22 (built-in type stripping), so no extra tool is needed.
  */
-import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { readFile, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { isMap, isScalar, isSeq, parseAllDocuments, type Pair, type YAMLMap, type YAMLSeq } from 'yaml'
-import { formatViolation, openTree, TreeInvalid } from '../src/tree/loader.ts'
+import { formatViolation, openTree, readTreeText, TreeInvalid } from '../src/tree/loader.ts'
 import type { Violation } from '../src/tree/types.ts'
+import { isMapping } from '../src/tree/validate.ts'
 
-const FORMAT_LINE_1 = /^format:[ \t]*elsa-tree\/1[ \t]*(#.*)?$/
-const FORMAT_LINE_2 = /^format:[ \t]*elsa-tree\/2[ \t]*(#.*)?$/
-const ROOT_LINE = /^root:[ \t]*(\S+)/
-const DOCUMENT_START = /^---[ \t]*(#.*)?$/
+/**
+ * The key order of every object this format defines (tree-format.md 3.7): the order of its
+ * table in sections 4 and 5, not alphabetical.
+ */
+const ORDER = {
+  tree: ['$schema', 'format', 'languages', 'root', 'title', 'description', 'metadata', 'theme', 'nodes'],
+  node: ['id', 'title', 'description', 'metadata', 'sources', 'images', 'answers', 'options', 'explainers', 'terminal'],
+  theme: ['logo', 'fonts', 'colours'],
+  logo: ['light', 'dark', 'icon', 'alt', 'url'],
+  fontFamily: ['family', 'role', 'files', 'licence'],
+  fontFile: ['file', 'weight', 'style'],
+  colours: ['background', 'surface', 'text', 'text-muted', 'accent', 'accent-secondary', 'danger'],
+  source: ['id', 'kind', 'label', 'url'],
+  image: ['file', 'description', 'credit', 'source'],
+  answers: ['yes', 'no'],
+  option: ['title', 'target'],
+  explainer: ['id', 'term', 'text'],
+  terminal: ['outcome'],
+} as const satisfies Record<string, readonly string[]>
 
-/** The rules an `elsa-tree/1` Tree may still break after a faithful conversion (12.2). */
-const CONTENT_RULES: readonly string[] = ['V-LENGTH', 'V-LINES', 'V-COUNT']
+type ObjectName = keyof typeof ORDER
+
+/**
+ * What the value of each key is, so the walk knows where to go on. One table serves the
+ * whole format because no key name means two things in it: `description` is a localised
+ * text wherever it occurs, `source` is always the id of a Source, `sources` always a list
+ * of them. A key absent here holds a string, or a list of strings, and is written as it is.
+ */
+const VALUE: Record<string, 'text' | 'metadata' | ObjectName | { each: ObjectName }> = {
+  title: 'text',
+  description: 'text',
+  label: 'text',
+  alt: 'text',
+  term: 'text',
+  text: 'text',
+  metadata: 'metadata',
+  theme: 'theme',
+  logo: 'logo',
+  colours: 'colours',
+  answers: 'answers',
+  terminal: 'terminal',
+  nodes: { each: 'node' },
+  sources: { each: 'source' },
+  images: { each: 'image' },
+  options: { each: 'option' },
+  explainers: { each: 'explainer' },
+  fonts: { each: 'fontFamily' },
+  files: { each: 'fontFile' },
+}
+
+/** Numbers and booleans appear nowhere in the contract, but `metadata` is the author's bag (3.7). */
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
 
 export interface Migration {
-  /** The format the input was written in, told apart by its layout: `nodes/` is `elsa-tree/1`. */
-  from: 'elsa-tree/1' | 'elsa-tree/2'
-  /** The Node ids written, in the order they stand in the file. */
+  /** False when the file was already in the canonical byte form: nothing was written. */
+  rewritten: boolean
+  /** The Node ids written, in the order they stand in `nodes`. */
   ids: string[]
-  /** How many documents the written file parses back into: the manifest plus the Nodes. */
-  documents: number
-  /** What could not be converted mechanically, in the words section 12 gives them. */
+  /**
+   * What stopped the job before anything was written (12.6.1): a text the loader will not
+   * read -- a syntax error, a byte-order mark or a duplicate key (step 1) -- a `metadata`
+   * key made only of digits (step 5), and a value whose shape the writer cannot carry
+   * ("What survives the job"). Everything else is a violation of the written file, below.
+   */
   notes: string[]
-  /** What step 2 of 12.5 did with each Option's Images, for the author to act on. */
-  reports: string[]
-  /** Every rule the converted Tree breaks; empty when it is valid. */
+  /** Every rule the written Tree breaks; empty when it is valid. */
   violations: Violation[]
 }
 
 /**
- * Converts the Tree in `inDir` into `out` (a Tree folder, or the path of the `tree.yaml` to
- * write) and validates the result. For an `elsa-tree/1` Tree converted in place, deletes
- * `<in>/nodes/` only when the file it was replaced by parses back into one document per
- * Node file (12.1 step 7).
+ * Rewrites `<dir>/tree.json` in the canonical byte form and validates the result: the
+ * schema of 3.9, then the rules of section 7, every violation reported. The file is read
+ * back through `openTree`, as 12.6.1 step 8 asks, so what is reported is what the server
+ * would report at start.
+ *
+ * Three things stop it before a byte is written, and are reported as `notes` with the file
+ * untouched: bytes the loader will not read (step 1), and the two of `refusals` below.
+ *
+ * Step 1 is `readTreeText`, the loader's own answer, and not a bare `JSON.parse`: a
+ * duplicate key is the one malformation a parsed value no longer carries (3.7), so a
+ * writer that parsed for itself would serialise the surviving half over the only copy of
+ * the file and report a Tree that now validates -- silencing V-JSON by erasing it.
  */
-export async function migrateTree(inDir: string, out: string): Promise<Migration> {
-  const source = path.resolve(inDir)
-  const outFile = out.endsWith('.yaml') ? path.resolve(out) : path.join(path.resolve(out), 'tree.yaml')
-  const target = path.dirname(outFile)
-  const notes: string[] = []
-  const reports: string[] = []
+export async function migrateTree(dir: string): Promise<Migration> {
+  const file = path.join(path.resolve(dir), 'tree.json')
+  const before = await readFile(file, 'utf8').catch(() => null)
+  if (before === null) return { rewritten: false, ids: [], notes: [`${path.basename(file)} is missing`], violations: [] }
 
-  const nodeFiles = await listNodeFiles(source)
-  const from = nodeFiles === null ? 'elsa-tree/2' : 'elsa-tree/1'
-  const written =
-    nodeFiles === null
-      ? rewriteFormat(await readFile(path.join(source, 'tree.yaml'), 'utf8').catch(() => ''), FORMAT_LINE_2, notes)
-      : await joinNodeFiles(source, nodeFiles, notes)
-  const text = moveOptionPictures(written, reports)
+  const { value: parsed, problem } = readTreeText(before)
+  if (problem !== null) return { rewritten: false, ids: [], notes: [problem], violations: [] }
 
-  await mkdir(target, { recursive: true })
-  await writeFile(outFile, text, 'utf8')
-  if (target !== source) await copyAssets(source, target)
+  const stopped = refusals(parsed)
+  if (stopped.length > 0) return { rewritten: false, ids: [], notes: stopped, violations: [] }
 
-  // Parse the result back and report what the loader would report (12.1 step 6, 12.5 step 4).
-  const documents = parseAllDocuments(text)
-  const ids = documents.slice(1).flatMap((document) => {
-    const id: unknown = isMap(document.contents) ? document.contents.get('id') : undefined
-    return typeof id === 'string' ? [id] : []
-  })
-  const violations = await validated(target)
-  if (nodeFiles !== null && target === source) {
-    if (documents.length === nodeFiles.length + 1) await rm(path.join(source, 'nodes'), { recursive: true, force: true })
-    else notes.push(`nodes/ kept: the written file holds ${documents.length} documents, not ${nodeFiles.length + 1}`)
+  const tree = parsed as Record<string, unknown>
+  const languages = Array.isArray(tree.languages) ? (tree.languages as string[]) : []
+  const after = bytes(canonical(tree, 'tree', languages))
+  if (after !== before) await writeFile(file, after, 'utf8')
+
+  const nodes = Array.isArray(tree.nodes) ? (tree.nodes as Array<Record<string, unknown>>) : []
+  return {
+    rewritten: after !== before,
+    ids: nodes.map((node) => String(node.id)),
+    notes: [],
+    violations: await validated(path.dirname(file)),
   }
-  return { from, ids, documents: documents.length, notes, reports, violations }
 }
 
 /**
- * 12.1 steps 1 to 5: the manifest and the Node files of an `elsa-tree/1` folder as one
- * stream, the root's Node first, its format line naming `elsa-tree/3` directly.
+ * The canonical byte form of tree-format.md 3.7: the value as `JSON.stringify(value,
+ * null, 2)` writes it, followed by one line feed. That form is chosen because every
+ * mainstream language's standard library produces it from the same value, so the
+ * migration, the validator and an editor agree on the bytes without agreeing on a library.
  */
-async function joinNodeFiles(source: string, nodeFiles: string[], notes: string[]): Promise<string> {
-  const manifest = rewriteFormat(stripDocumentStart(await readTreeText(path.join(source, 'tree.yaml'))), FORMAT_LINE_1, notes)
-  const rootFile = `${rootId(manifest)}.yaml`
-  const ordered = nodeFiles.includes(rootFile) ? [rootFile, ...nodeFiles.filter((file) => file !== rootFile)] : nodeFiles
-
-  let text = manifest === '' ? '' : `${manifest}\n`
-  for (const file of ordered) {
-    const id = file.slice(0, -'.yaml'.length)
-    const body = stripDocumentStart(await readTreeText(path.join(source, 'nodes', file)))
-    text += `\n--- # ${id}\nid: ${id}\n${body}\n`
-  }
-  return text
-}
-
-/** An `elsa-tree/1` file as text: without its byte-order mark and with `\n` line endings (12.1 step 5). */
-async function readTreeText(file: string): Promise<string> {
-  const text = await readFile(file, 'utf8').catch(() => '')
-  return trimTrailingBlankLines(text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n'))
-}
-
-function trimTrailingBlankLines(text: string): string {
-  const lines = text.split('\n')
-  while (lines.length > 0 && lines[lines.length - 1]!.trim() === '') lines.pop()
-  return lines.join('\n')
+export function bytes(tree: Record<string, Json>): string {
+  return `${JSON.stringify(tree, null, 2)}\n`
 }
 
 /**
- * 12.1 step 1 and 12.5 step 1: the first line matching `formatLine` becomes
- * `format: elsa-tree/3`, keeping any comment. Every other line is left as it was.
+ * What stops the job before a byte is written, each reported by name, with the object it
+ * sits on and the remedy. Empty when the writer may run.
+ *
+ * Two kinds. A `metadata` key made only of digits is the one thing an `elsa-tree/3` Tree
+ * can carry that this conversion refuses (12.6.1 step 5, V-META, 3.7): a procedure that
+ * renamed the key itself would be a procedure that edits content, so its author renames
+ * it. A value whose shape this format does not have stops the job for the writer's own
+ * reason (12.6.1, "What survives the job"): `canonical` below dispatches on the key name
+ * and trusts the shape, so on `"sources": {}` it would throw, and on a `title` holding a
+ * list -- or a file whose top level is a list -- it would write back an object the author
+ * never wrote, over the only copy of it. Everything else the loader answers, after the
+ * write, as step 8 asks.
  */
-function rewriteFormat(text: string, formatLine: RegExp, notes: string[]): string {
-  const lines = text.split('\n')
-  const index = lines.findIndex((line) => formatLine.test(line.replace(/\r$/, '')))
-  if (index === -1) {
-    const old = formatLine === FORMAT_LINE_1 ? 'elsa-tree/1' : 'elsa-tree/2'
-    if (text !== '') notes.push(`manifest: no "format: ${old}" line found`)
-    return text
-  }
-  const line = lines[index]!
-  const comment = formatLine.exec(line.replace(/\r$/, ''))![1]
-  lines[index] = (comment ? `format: elsa-tree/3 ${comment}` : 'format: elsa-tree/3') + (line.endsWith('\r') ? '\r' : '')
-  return lines.join('\n')
-}
-
-/** 12.1 steps 1 and 4: a leading `---` line belongs to the stream, not to the document's text. */
-function stripDocumentStart(text: string): string {
-  const lines = text.split('\n')
-  if (DOCUMENT_START.test(lines[0] ?? '')) lines.shift()
-  return lines.join('\n')
-}
-
-/** 12.1 step 2: the root id, so that its Node is written first. */
-function rootId(manifest: string): string | null {
-  const line = manifest.split('\n').find((candidate) => ROOT_LINE.test(candidate))
-  return line ? ROOT_LINE.exec(line)![1]! : null
+function refusals(parsed: unknown): string[] {
+  if (!isMapping(parsed)) return [`tree.json holds ${shape(parsed)} where the format has an object, so it is not a Tree file`]
+  const out: string[] = []
+  refuse(parsed as Record<string, unknown>, '', out)
+  return out
 }
 
 /**
- * 12.1 step 3: the Node files of an `elsa-tree/1` folder in byte order of file name --
- * `LC_ALL=C sort`, which is the same on Windows and on Linux, unlike what `ls` shows. Null
- * when the folder has no `nodes/`, which is what makes it an `elsa-tree/2` folder.
+ * One object and everything below it; `at` is the key path of 3.9, `nodes[0].sources`.
+ *
+ * Its branches are the branches of `canonicalValue` -- the four kinds of the `VALUE`
+ * table, none of them skipped -- because the two walks encode one
+ * question, *will the writer act on this value*, and a kind answered in one and not in the
+ * other is a value the writer rewrites in silence. A fifth kind means a branch in both.
  */
-async function listNodeFiles(source: string): Promise<string[] | null> {
-  const entries = await readdir(path.join(source, 'nodes'), { withFileTypes: true }).catch(() => null)
-  if (entries === null) return null
-  return entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith('.yaml'))
-    .map((entry) => entry.name)
-    .sort((a, b) => Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8')))
-}
-
-/** A Node document's parsed mapping and id, when it parsed. */
-interface NodeDocument {
-  id: string
-  map: YAMLMap
-}
-
-/**
- * 12.5 step 2, one Option at a time until none carries Images: the Option's first Image
- * moves, as text, to the front of its target's `images`, and the Option's `images` block
- * goes. The text is parsed again after every move, so every offset used is current. An
- * Option whose target is not a Node keeps its Images, and V-KEYS reports them.
- */
-function moveOptionPictures(text: string, reports: string[]): string {
-  const kept = new Set<string>()
-  for (;;) {
-    const nodes = parseAllDocuments(text)
-      .slice(1)
-      .flatMap((document): NodeDocument[] => {
-        const id: unknown = isMap(document.contents) && document.errors.length === 0 ? document.contents.get('id') : null
-        return typeof id === 'string' ? [{ id, map: document.contents as YAMLMap }] : []
-      })
-    const found = nextOptionWithImages(nodes, kept)
-    if (!found) return text
-    const { node, index, option, images } = found
-    const where = `${node.id}  options[${index}].images`
-    const targetId: unknown = option.get('target')
-    const targetNode = nodes.find((candidate) => candidate.id === targetId)
-    if (!targetNode) {
-      kept.add(`${node.id}:${index}`)
-      reports.push(`${where}: "${String(targetId)}" is not a Node of this Tree; the Images are left where they are`)
+function refuse(value: Record<string, unknown>, prefix: string, out: string[]): void {
+  for (const [key, entry] of Object.entries(value)) {
+    const kind = VALUE[key]
+    const at = prefix + key
+    // A scalar where the format has an object is carried across untouched and fails a rule
+    // on the written file, exactly as an unknown key does: only a shape the walk below
+    // would act on is refused here.
+    if (kind === undefined || entry === null || typeof entry !== 'object') continue
+    if (typeof kind === 'object') {
+      if (!Array.isArray(entry)) out.push(`${at}: the format has a list here, and the file has ${shape(entry)}`)
+      else {
+        entry.forEach((item, index) => {
+          if (isMapping(item)) refuse(item as Record<string, unknown>, `${at}[${index}].`, out)
+          else out.push(`${at}[${index}]: the format has an object here, and the file has ${shape(item)}`)
+        })
+      }
       continue
     }
-    images.value!.items.slice(1).forEach((extra, i) => {
-      const file = isMap(extra) ? String(extra.get('file')) : '?'
-      reports.push(`${where}[${i + 1}]: ${file} is shown nowhere in elsa-tree/3; add it to the images of ${targetNode.id} if its Carousel should carry it`)
-    })
-    text = moveFirstImage(text, where, images, targetNode, reports)
-  }
-}
-
-/** The first Option of any Node that still has an `images` key, and that key's pair. */
-function nextOptionWithImages(
-  nodes: NodeDocument[],
-  kept: Set<string>,
-): { node: NodeDocument; index: number; option: YAMLMap; images: Pair<unknown, YAMLSeq> } | null {
-  for (const node of nodes) {
-    const options = node.map.get('options')
-    if (!isSeq(options)) continue
-    for (const [index, option] of options.items.entries()) {
-      if (!isMap(option) || kept.has(`${node.id}:${index}`)) continue
-      const images = option.items.find((pair) => isScalar(pair.key) && pair.key.value === 'images')
-      if (images && isSeq(images.value)) return { node, index, option, images: images as Pair<unknown, YAMLSeq> }
+    // `localised`, `metadata` and `canonical` each read an object's own keys, so an object
+    // is what all three need and a list is what all three would write back as one.
+    if (!isMapping(entry)) {
+      out.push(`${at}: the format has an object here, and the file has ${shape(entry)}`)
+      continue
     }
-  }
-  return null
-}
-
-/**
- * One move of 12.5 step 2 on the text: the Option's `images` block is cut, and its first
- * Image, re-indented to the target's level and without a `source` the target cannot
- * resolve, is inserted as the target's first Image unless that is already the same file.
- */
-function moveFirstImage(text: string, where: string, images: Pair<unknown, YAMLSeq>, target: NodeDocument, reports: string[]): string {
-  const blockStart = lineStart(text, (images.key as { range: [number, number, number] }).range[0])
-  const blockEnd = lineEnd(text, images.value!.range![2])
-  const first = images.value!.items[0]
-  const edits: Array<{ start: number; end: number; insert: string }> = [{ start: blockStart, end: blockEnd, insert: '' }]
-
-  if (isMap(first)) {
-    const file = String(first.get('file'))
-    const targetImages = target.map.get('images')
-    const targetFirst = isSeq(targetImages) ? targetImages.items[0] : undefined
-    if (isMap(targetFirst) && targetFirst.get('file') === file) {
-      reports.push(`${where}[0]: ${file} is already the first Image of ${target.id}; nothing moved`)
-    } else {
-      let item = text.slice(lineStart(text, first.range![0]), lineEnd(text, first.range![2]))
-      item = dropUnresolvedSource(item, first, text, target, `${where}[0]`, reports)
-      if (!item.endsWith('\n')) item += '\n'
-      const from = dashColumn(item)
-      if (isMap(targetFirst)) {
-        const at = lineStart(text, targetFirst.range![0])
-        edits.push({ start: at, end: at, insert: indent(item, dashColumn(text.slice(at)) - from) })
-      } else {
-        // No `images` on the target: the key is created after its `metadata` (12.5 step 2).
-        const metadata = target.map.items.find((pair) => isScalar(pair.key) && pair.key.value === 'metadata')
-        const at = metadata?.value ? lineEnd(text, (metadata.value as { range: [number, number, number] }).range[2]) : lineEnd(text, target.map.range![2])
-        edits.push({ start: at, end: at, insert: `images:\n${indent(item, 2 - from)}` })
+    if (kind === 'text') continue // `localised` reorders the languages it finds and carries each value across
+    if (kind === 'metadata') {
+      for (const own of Object.keys(entry)) {
+        if (/^[0-9]+$/.test(own)) out.push(`${at}: the key "${own}" is made only of digits; rename it to "note-${own}" and run again`)
       }
-      reports.push(`${where}[0]: ${file} moved to ${target.id} as its first Image`)
-    }
+    } else refuse(entry as Record<string, unknown>, `${at}.`, out)
   }
-  // From the end of the text backwards, so no edit moves the offsets of another.
-  for (const edit of edits.sort((a, b) => b.start - a.start)) {
-    text = text.slice(0, edit.start) + edit.insert + text.slice(edit.end)
-  }
-  return text
 }
 
-/** The Image's text without its `source` line when the target has no Source of that id. */
-function dropUnresolvedSource(item: string, image: YAMLMap, text: string, target: NodeDocument, where: string, reports: string[]): string {
-  const source = image.items.find((pair) => isScalar(pair.key) && pair.key.value === 'source')
-  if (!source) return item
-  const id: unknown = image.get('source')
-  const sources = target.map.get('sources')
-  if (isSeq(sources) && sources.items.some((entry) => isMap(entry) && entry.get('id') === id)) return item
-  const offset = lineStart(text, image.range![0])
-  const start = lineStart(text, (source.key as { range: [number, number, number] }).range[0]) - offset
-  const end = lineEnd(text, (source.value as { range: [number, number, number] }).range[2]) - offset
-  reports.push(`${where}.source: "${String(id)}" dropped: ${target.id} has no Source of that id`)
-  return item.slice(0, start) + item.slice(end)
-}
-
-/** The offset of the first character of the line holding `offset`. */
-function lineStart(text: string, offset: number): number {
-  return text.lastIndexOf('\n', offset - 1) + 1
-}
-
-/** The offset just past the line break that ends the line before `offset`, or `offset` at a line start. */
-function lineEnd(text: string, offset: number): number {
-  if (offset === 0 || text[offset - 1] === '\n') return offset
-  const next = text.indexOf('\n', offset)
-  return next === -1 ? text.length : next + 1
-}
-
-/** The column of the `-` that opens the first list entry of `text`. */
-function dashColumn(text: string): number {
-  return /^( *)-/.exec(text)?.[1]?.length ?? 0
-}
-
-/** Every non-empty line of `text` moved `by` columns: right when positive, left when negative. */
-function indent(text: string, by: number): string {
-  return text
-    .split('\n')
-    .map((line) => (line.trim() === '' ? line : by >= 0 ? ' '.repeat(by) + line : line.replace(new RegExp(`^ {0,${-by}}`), '')))
-    .join('\n')
+/** What the file has, in the words of the messages above. */
+function shape(value: unknown): string {
+  if (Array.isArray(value)) return 'a list'
+  if (isMapping(value)) return 'an object'
+  return JSON.stringify(value)
 }
 
 /**
- * 12.1 step 5: `images/`, `theme/` and the top-level files an author keeps beside the Tree
- * travel with it, byte for byte. `nodes/` does not, and neither does the old `tree.yaml`.
+ * One object with its keys in the order of 3.7 and its values carried across; an absent
+ * key stays absent. A key this format does not define keeps its place at the end rather
+ * than being dropped, so the written Tree fails V-KEYS for it as the input did -- the
+ * writer reports, it does not edit.
  */
-async function copyAssets(source: string, target: string): Promise<void> {
-  for (const entry of await readdir(source, { withFileTypes: true })) {
-    const copy = entry.isDirectory() ? entry.name === 'images' || entry.name === 'theme' : entry.name !== 'tree.yaml'
-    if (copy) await cp(path.join(source, entry.name), path.join(target, entry.name), { recursive: true })
+function canonical(value: Record<string, unknown>, name: ObjectName, languages: string[]): Record<string, Json> {
+  const out: Record<string, Json> = {}
+  const keys = ORDER[name] as readonly string[]
+  const own = Object.keys(value)
+  for (const key of [...keys.filter((key) => own.includes(key)), ...own.filter((key) => !keys.includes(key))]) {
+    out[key] = canonicalValue(key, value[key], languages)
   }
+  return out
 }
 
-/** 12.1 step 6 and 12.5 step 4: every violation the loader finds in the converted Tree. */
-async function validated(target: string): Promise<Violation[]> {
+function canonicalValue(key: string, value: unknown, languages: string[]): Json {
+  const kind = VALUE[key]
+  if (kind === undefined || value === null || typeof value !== 'object') return value as Json
+  if (kind === 'text') return localised(value as Record<string, unknown>, languages)
+  if (kind === 'metadata') return metadata(value as Record<string, unknown>)
+  if (typeof kind === 'object') {
+    return (value as Array<Record<string, unknown>>).map((entry) => canonical(entry, kind.each, languages))
+  }
+  return canonical(value as Record<string, unknown>, kind, languages)
+}
+
+/** 3.7: a localised text lists its languages in the order the manifest declares them. */
+function localised(value: Record<string, unknown>, languages: string[]): Record<string, Json> {
+  const own = Object.keys(value)
+  const order = [...languages.filter((lang) => own.includes(lang)), ...own.filter((lang) => !languages.includes(lang))]
+  return Object.fromEntries(order.map((lang) => [lang, value[lang] as Json]))
+}
+
+/**
+ * 3.7: inside `metadata`, `version` comes first and the author's own keys keep the order
+ * they were written in. A key made only of digits is refused by V-META, and this is why:
+ * a JavaScript object sorts an integer-like key in front of every other, so the order
+ * above would not survive a read and a write, and the idempotence below would fail on a
+ * file whose author did nothing wrong. It is left in place for the schema to report.
+ */
+function metadata(value: Record<string, unknown>): Record<string, Json> {
+  const keys = Object.keys(value)
+  const order = keys.includes('version') ? ['version', ...keys.filter((key) => key !== 'version')] : keys
+  return Object.fromEntries(order.map((key) => [key, value[key] as Json]))
+}
+
+/** 12.6.1 step 8: every violation the loader finds in the written Tree. */
+async function validated(dir: string): Promise<Violation[]> {
   try {
-    await openTree(target)
+    await openTree(dir)
     return []
   } catch (error) {
     if (error instanceof TreeInvalid) return error.violations
@@ -319,33 +271,31 @@ async function validated(target: string): Promise<Violation[]> {
   }
 }
 
-/** The report: what moved, one line per violation, then one line per rule with its count. */
+/** The report: one line per note, one per violation, then one line of summary. */
 function report(treeId: string, migration: Migration): void {
-  for (const line of migration.reports) console.log(`${treeId}  ${line}`)
   for (const note of migration.notes) console.error(`${treeId}  ${note}`)
   for (const violation of migration.violations) console.error(formatViolation(treeId, violation))
+  if (migration.notes.length > 0) return
   const counts = new Map<string, number>()
   for (const violation of migration.violations) counts.set(violation.rule, (counts.get(violation.rule) ?? 0) + 1)
   const summary = [...counts].map(([rule, count]) => `${count} ${rule}`).join(', ')
-  console.log(`${treeId}: ${migration.from} to elsa-tree/3, ${migration.ids.length} Nodes, ${migration.documents} documents; ${summary || 'valid'}`)
+  const wrote = migration.rewritten ? 'rewritten' : 'already in the canonical byte form'
+  console.log(`${treeId}: ${migration.ids.length} Nodes, ${wrote}; ${summary || 'valid'}`)
 }
 
 async function main(): Promise<void> {
-  const [from, to] = process.argv.slice(2)
-  if (!from || !to) {
-    console.error('usage: npm run migrate <old-folder> <new-folder-or-tree.yaml>')
+  const dir = process.argv[2]
+  if (!dir) {
+    console.error('usage: npm run migrate <tree-folder>')
     process.exit(2)
   }
-  if (!(await stat(from).catch(() => null))?.isDirectory()) {
-    console.error(`${from} is not a folder`)
+  if (!(await stat(dir).catch(() => null))?.isDirectory()) {
+    console.error(`${dir} is not a folder`)
     process.exit(2)
   }
-  const migration = await migrateTree(from, to)
-  const treeId = path.basename(to.endsWith('.yaml') ? path.dirname(path.resolve(to)) : path.resolve(to))
-  report(treeId, migration)
-  const allowed = migration.from === 'elsa-tree/1' ? CONTENT_RULES : []
-  const unexpected = migration.violations.filter((violation) => !allowed.includes(violation.rule))
-  process.exit(migration.notes.length === 0 && unexpected.length === 0 ? 0 : 1)
+  const migration = await migrateTree(dir)
+  report(path.basename(path.resolve(dir)), migration)
+  process.exit(migration.notes.length === 0 && migration.violations.length === 0 ? 0 : 1)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main()

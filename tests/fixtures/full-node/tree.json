@@ -1,0 +1,463 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en",
+    "nl"
+  ],
+  "root": "full",
+  "title": {
+    "en": "The full Node fixture",
+    "nl": "De volle-stap-fixture"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "full",
+      "title": {
+        "en": "The full Node: a title of exactly eighty characters, the most it may be The ful.",
+        "nl": "De volle stap: een titel van precies tachtig tekens, het meeste dat mag De voll."
+      },
+      "description": {
+        "en": "Every field of this Node is at the maximum the format allows so that if this page fits inside the [Bubble](#bubble) every valid Tree fits which is the promise t.",
+        "nl": "Elk veld van deze stap staat op het maximum dat het formaat toelaat zodat als deze pagina in de [Bel](#bubble) past elke geldige boom past en dat is de belofte ."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "sources": [
+        {
+          "id": "s1",
+          "kind": "legal",
+          "label": {
+            "en": "Source 1 (legal): a label of sixty characters at most Sourc.",
+            "nl": "Bron 1 (legal): een label van ten hoogste zestig tekens Bro."
+          },
+          "url": "https://example.org/source-1"
+        },
+        {
+          "id": "s2",
+          "kind": "case-law",
+          "label": {
+            "en": "Source 2 (case law): a label of sixty characters at most So.",
+            "nl": "Bron 2 (case law): een label van ten hoogste zestig tekens.."
+          },
+          "url": "https://example.org/source-2"
+        },
+        {
+          "id": "s3",
+          "kind": "literature",
+          "label": {
+            "en": "Source 3 (literature): a label of sixty characters at most..",
+            "nl": "Bron 3 (literature): een label van ten hoogste zestig teken."
+          },
+          "url": "https://example.org/source-3"
+        }
+      ],
+      "images": [
+        {
+          "file": "one.png",
+          "description": {
+            "en": "Picture 1 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 1 of.",
+            "nl": "Afbeelding 1 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+          },
+          "credit": "Credit for picture 1: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit..",
+          "source": "s1"
+        },
+        {
+          "file": "two.png",
+          "description": {
+            "en": "Picture 2 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 2 of.",
+            "nl": "Afbeelding 2 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+          },
+          "credit": "Credit for picture 2: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit..",
+          "source": "s2"
+        },
+        {
+          "file": "three.png",
+          "description": {
+            "en": "Picture 3 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 3 of.",
+            "nl": "Afbeelding 3 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+          },
+          "credit": "Credit for picture 3: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit..",
+          "source": "s3"
+        },
+        {
+          "file": "four.png",
+          "description": {
+            "en": "Picture 4 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 4 of.",
+            "nl": "Afbeelding 4 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+          },
+          "credit": "Credit for picture 4: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit..",
+          "source": "s1"
+        },
+        {
+          "file": "five.png",
+          "description": {
+            "en": "Picture 5 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 5 of.",
+            "nl": "Afbeelding 5 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+          },
+          "credit": "Credit for picture 5: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit..",
+          "source": "s2"
+        },
+        {
+          "file": "six.png",
+          "description": {
+            "en": "Picture 6 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 6 of.",
+            "nl": "Afbeelding 6 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+          },
+          "credit": "Credit for picture 6: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit..",
+          "source": "s3"
+        },
+        {
+          "file": "seven.png",
+          "description": {
+            "en": "Picture 7 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 7 of.",
+            "nl": "Afbeelding 7 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+          },
+          "credit": "Credit for picture 7: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit..",
+          "source": "s1"
+        },
+        {
+          "file": "eight.png",
+          "description": {
+            "en": "Picture 8 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 8 of.",
+            "nl": "Afbeelding 8 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+          },
+          "credit": "Credit for picture 8: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit..",
+          "source": "s2"
+        },
+        {
+          "file": "nine.png",
+          "description": {
+            "en": "Picture 9 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 9 of.",
+            "nl": "Afbeelding 9 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding.."
+          },
+          "credit": "Credit for picture 9: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit..",
+          "source": "s3"
+        },
+        {
+          "file": "ten.png",
+          "description": {
+            "en": "Picture 10 of ten: a description of one hundred and twenty characters, the most an Image description may be Picture 10..",
+            "nl": "Afbeelding 10 van tien: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Afbeelding."
+          },
+          "credit": "Credit for picture 10: Example Photographer, Creative Commons Attribution 4.0 International, via Example Commons Credit.",
+          "source": "s1"
+        }
+      ],
+      "answers": {
+        "yes": "applies",
+        "no": "does-not-apply"
+      },
+      "options": [
+        {
+          "title": {
+            "en": "Option one: a title of sixty characters, the most it may be.",
+            "nl": "Optie een: een titel van zestig tekens, het meeste dat mag.."
+          },
+          "target": "opt-one"
+        },
+        {
+          "title": {
+            "en": "Option two: a title of sixty characters, the most it may be.",
+            "nl": "Optie twee: een titel van zestig tekens, het meeste dat mag."
+          },
+          "target": "opt-two"
+        },
+        {
+          "title": {
+            "en": "Option three: a title of sixty characters, the most it may..",
+            "nl": "Optie drie: een titel van zestig tekens, het meeste dat mag."
+          },
+          "target": "opt-three"
+        },
+        {
+          "title": {
+            "en": "Option four: a title of sixty characters, the most it may b.",
+            "nl": "Optie vier: een titel van zestig tekens, het meeste dat mag."
+          },
+          "target": "opt-four"
+        },
+        {
+          "title": {
+            "en": "Option five: a title of sixty characters, the most it may b.",
+            "nl": "Optie vijf: een titel van zestig tekens, het meeste dat mag."
+          },
+          "target": "opt-five"
+        },
+        {
+          "title": {
+            "en": "Option six: a title of sixty characters, the most it may be.",
+            "nl": "Optie zes: een titel van zestig tekens, het meeste dat mag.."
+          },
+          "target": "opt-six"
+        },
+        {
+          "title": {
+            "en": "Option seven: a title of sixty characters, the most it may..",
+            "nl": "Optie zeven: een titel van zestig tekens, het meeste dat ma."
+          },
+          "target": "opt-seven"
+        },
+        {
+          "title": {
+            "en": "Option eight: a title of sixty characters, the most it may..",
+            "nl": "Optie acht: een titel van zestig tekens, het meeste dat mag."
+          },
+          "target": "opt-eight"
+        }
+      ],
+      "explainers": [
+        {
+          "id": "bubble",
+          "term": {
+            "en": "Bubble: a term of forty characters, the.",
+            "nl": "Bel: een term van veertig tekens, het m."
+          },
+          "text": {
+            "en": "The round element in the centre of the tree view that holds the Node. This text has two hundred characters, the most an explainer may have, so the panel opened on this Node is as tall as a panel can..",
+            "nl": "Het ronde element in het midden van de boomweergave dat de stap bevat. Deze tekst heeft tweehonderd tekens, het meeste dat een uitleg mag hebben, zodat het paneel zo hoog is als een paneel kan zijn H."
+          }
+        }
+      ]
+    },
+    {
+      "id": "opt-one",
+      "title": {
+        "en": "Option one: a title of sixty characters, the most it may be.",
+        "nl": "Optie een: een titel van zestig tekens, het meeste dat mag.."
+      },
+      "description": {
+        "en": "What Option one explains.",
+        "nl": "Wat optie one uitlegt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "images": [
+        {
+          "file": "one.png",
+          "description": {
+            "en": "Option one, first picture",
+            "nl": "Optie een, eerste afbeelding"
+          },
+          "credit": "Example Studio, CC0 1.0"
+        }
+      ],
+      "options": [
+        {
+          "title": {
+            "en": "Option two: a title of sixty characters, the most it may be.",
+            "nl": "Optie twee: een titel van zestig tekens, het meeste dat mag."
+          },
+          "target": "opt-two"
+        }
+      ]
+    },
+    {
+      "id": "opt-two",
+      "title": {
+        "en": "Option two: a title of sixty characters, the most it may be.",
+        "nl": "Optie twee: een titel van zestig tekens, het meeste dat mag."
+      },
+      "description": {
+        "en": "What Option two explains.",
+        "nl": "Wat optie two uitlegt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "images": [
+        {
+          "file": "four.png",
+          "description": {
+            "en": "Option two, its picture: a description of one hundred and twenty characters, the most an Image description may be Optio.",
+            "nl": "Optie twee, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+          },
+          "credit": "Credit for Option two’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Comm."
+        }
+      ]
+    },
+    {
+      "id": "opt-three",
+      "title": {
+        "en": "Option three: a title of sixty characters, the most it may..",
+        "nl": "Optie drie: een titel van zestig tekens, het meeste dat mag."
+      },
+      "description": {
+        "en": "What Option three explains.",
+        "nl": "Wat optie three uitlegt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "images": [
+        {
+          "file": "five.png",
+          "description": {
+            "en": "Option three, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt.",
+            "nl": "Optie drie, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+          },
+          "credit": "Credit for Option three’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
+        }
+      ]
+    },
+    {
+      "id": "opt-four",
+      "title": {
+        "en": "Option four: a title of sixty characters, the most it may b.",
+        "nl": "Optie vier: een titel van zestig tekens, het meeste dat mag."
+      },
+      "description": {
+        "en": "What Option four explains.",
+        "nl": "Wat optie four uitlegt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "images": [
+        {
+          "file": "six.png",
+          "description": {
+            "en": "Option four, its picture: a description of one hundred and twenty characters, the most an Image description may be Opti.",
+            "nl": "Optie vier, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+          },
+          "credit": "Credit for Option four’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Com."
+        }
+      ]
+    },
+    {
+      "id": "opt-five",
+      "title": {
+        "en": "Option five: a title of sixty characters, the most it may b.",
+        "nl": "Optie vijf: een titel van zestig tekens, het meeste dat mag."
+      },
+      "description": {
+        "en": "What Option five explains.",
+        "nl": "Wat optie five uitlegt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "images": [
+        {
+          "file": "seven.png",
+          "description": {
+            "en": "Option five, its picture: a description of one hundred and twenty characters, the most an Image description may be Opti.",
+            "nl": "Optie vijf, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+          },
+          "credit": "Credit for Option five’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Com."
+        }
+      ]
+    },
+    {
+      "id": "opt-six",
+      "title": {
+        "en": "Option six: a title of sixty characters, the most it may be.",
+        "nl": "Optie zes: een titel van zestig tekens, het meeste dat mag.."
+      },
+      "description": {
+        "en": "What Option six explains.",
+        "nl": "Wat optie six uitlegt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "images": [
+        {
+          "file": "eight.png",
+          "description": {
+            "en": "Option six, its picture: a description of one hundred and twenty characters, the most an Image description may be Optio.",
+            "nl": "Optie zes, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie.."
+          },
+          "credit": "Credit for Option six’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Comm."
+        }
+      ]
+    },
+    {
+      "id": "opt-seven",
+      "title": {
+        "en": "Option seven: a title of sixty characters, the most it may..",
+        "nl": "Optie zeven: een titel van zestig tekens, het meeste dat ma."
+      },
+      "description": {
+        "en": "What Option seven explains.",
+        "nl": "Wat optie seven uitlegt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "images": [
+        {
+          "file": "nine.png",
+          "description": {
+            "en": "Option seven, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt.",
+            "nl": "Optie zeven, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Opti."
+          },
+          "credit": "Credit for Option seven’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
+        }
+      ]
+    },
+    {
+      "id": "opt-eight",
+      "title": {
+        "en": "Option eight: a title of sixty characters, the most it may..",
+        "nl": "Optie acht: een titel van zestig tekens, het meeste dat mag."
+      },
+      "description": {
+        "en": "What Option eight explains.",
+        "nl": "Wat optie eight uitlegt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "images": [
+        {
+          "file": "ten.png",
+          "description": {
+            "en": "Option eight, its picture: a description of one hundred and twenty characters, the most an Image description may be Opt.",
+            "nl": "Optie acht, haar afbeelding: een beschrijving van honderdtwintig tekens, het meeste dat een beschrijving mag zijn Optie."
+          },
+          "credit": "Credit for Option eight’s picture: Example Photographer, Creative Commons Attribution 4.0 International, via Example Co."
+        }
+      ]
+    },
+    {
+      "id": "applies",
+      "title": {
+        "en": "The rules apply: a Terminal whose title is also eighty characters long The rule.",
+        "nl": "De regels gelden: een eindstap waarvan de titel ook tachtig tekens lang is De r."
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De doorloop eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "applicable"
+      }
+    },
+    {
+      "id": "does-not-apply",
+      "title": {
+        "en": "The rules do not apply: a Terminal whose title is eighty characters long The ru.",
+        "nl": "De regels gelden niet: een eindstap waarvan de titel tachtig tekens lang is De.."
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De doorloop eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    }
+  ]
+}

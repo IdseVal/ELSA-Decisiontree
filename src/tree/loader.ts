@@ -9,22 +9,8 @@
  */
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
-import { LineCounter, parseAllDocuments } from 'yaml'
 import type { Explainer, Image, LocalisedText, Manifest, Node, Option, Outcome, Source, Theme, Violation } from './types.ts'
-import {
-  isId,
-  isImageFile,
-  isMapping,
-  isThemeFile,
-  nodeKind,
-  validateTree,
-  type Mapping,
-  type RawNode,
-  type RawTree,
-} from './validate.ts'
-
-/** The id line the migration writes first in every Node document (tree-format.md 3.7). */
-const ID_LINE = /^id:[ \t]*(\S+)/m
+import { isId, isImageFile, isMapping, isThemeFile, nodeKind, validateTree, type Mapping, type RawTree } from './validate.ts'
 
 /**
  * Thrown by `openTree` for a Tree that breaks any validity rule; carries every violation.
@@ -46,8 +32,9 @@ export class TreeInvalid extends Error {
 
 /**
  * One violation as one line: `tree-id  where  key.path  RULE  message`, where `where` is
- * `manifest` or the Node's id. The message is folded onto that line because a YAML parser
- * error arrives with its own line breaks.
+ * `manifest`, the Node's id or `tree.json`, and `key.path` is a JSON Pointer when the
+ * schema is the one answering (tree-format.md section 7). The message is folded onto that
+ * line because a parser error arrives with its own line breaks.
  */
 export function formatViolation(treeId: string, v: Violation): string {
   const message = v.message.replace(/\s+/g, ' ').trim()
@@ -100,15 +87,15 @@ export async function openTree(dir: string): Promise<Tree> {
   if (!raw || violations.length > 0) throw new TreeInvalid(id, violations)
 
   // Every cast below is backed by the validation that just passed.
-  const manifest = toManifest(raw.manifest!)
+  const manifest = toManifest(raw.tree)
   const nodes = new Map<string, Node>()
-  for (const node of raw.nodes) nodes.set(node.id!, toNode(node.id!, node.document!))
+  for (const node of raw.tree.nodes as Mapping[]) nodes.set(node.id as string, toNode(node))
   const themeReferences = referencedThemeFiles(manifest.theme)
 
   return {
     id,
     manifest,
-    lastModified: await lastModified(path.join(root, 'tree.yaml')),
+    lastModified: await lastModified(path.join(root, 'tree.json')),
     getNode: async (nodeId) => (isId(nodeId) ? (nodes.get(nodeId) ?? null) : null),
     getTitle: (nodeId) => nodes.get(nodeId)?.title ?? null,
     nodeIds: () => [...nodes.keys()],
@@ -120,77 +107,137 @@ export async function openTree(dir: string): Promise<Tree> {
   }
 }
 
-/** Reads and parses the Tree folder, reporting V-DIR and V-YAML. */
+/** Reads and parses the Tree folder, reporting V-DIR and V-JSON. */
 async function readTree(root: string, id: string, violations: Violation[]): Promise<RawTree | null> {
   const fail = (where: string, rule: string, message: string): void => {
     violations.push({ file: where, keyPath: '', rule, message })
   }
-  const text = await readText(path.join(root, 'tree.yaml'))
+  const text = await readText(path.join(root, 'tree.json'))
   if (!isId(id)) fail('', 'V-DIR', `folder name "${id}" is not an id: lowercase letters, digits and single hyphens`)
-  if (text === null) fail('tree.yaml', 'V-DIR', 'tree.yaml is missing')
+  if (text === null) fail('tree.json', 'V-DIR', 'tree.json is missing')
   // The two names are spelled out rather than looped over: a `path.join` whose last segment
   // is a variable makes Turbopack trace the whole project into the standalone build.
   if (await isFile(path.join(root, 'images'))) fail('images', 'V-DIR', 'images must be a folder, not a file')
   if (await isFile(path.join(root, 'theme'))) fail('theme', 'V-DIR', 'theme must be a folder, not a file')
   if (violations.length > 0) return null
 
-  const { manifest, nodes } = readStream(text!, violations)
+  const tree = parseTree(text!, violations)
+  if (!tree) return null
   return {
     id,
-    manifest,
-    nodes,
+    tree,
     images: new Set(await listFiles(path.join(root, 'images'))),
     themeFiles: new Set(await listFiles(path.join(root, 'theme'))),
   }
 }
 
+/** What `readTreeText` answers: the value the text holds, or why it may not be read at all. */
+export type TreeText = { value: unknown; problem: null } | { value: null; problem: string }
+
 /**
- * V-YAML: `tree.yaml` as a YAML 1.2 stream whose first document is the manifest and whose
- * others are Nodes. A document that fails to parse is reported with its line number and
- * skipped; the rest are still read (tree-format.md 3.7).
+ * May this text be read as a Tree's `tree.json`, and what does it hold? The three things
+ * that forbid it are a byte-order mark, a syntax error and a duplicate key; `problem` is
+ * the V-JSON message for the one found first, and `value` is what `JSON.parse` returned
+ * when there is none.
+ *
+ * It is exported because the loader is not the only reader of these bytes: the writer of
+ * 12.6.1 asks the same question of the same text before it rewrites the only copy of the
+ * file, and a duplicate key is exactly the malformation a parsed value no longer shows
+ * (3.7). One answer to "may this text be read", not two that can drift apart.
+ *
+ * The duplicate scan reads the bytes, so it runs only after `JSON.parse` has said they are
+ * well formed: on an unterminated string it would read past the end of the text.
  */
-function readStream(text: string, violations: Violation[]): { manifest: Mapping | null; nodes: RawNode[] } {
-  const lineCounter = new LineCounter()
-  const documents = parseAllDocuments(text, { lineCounter })
-  if (documents.length === 0) {
-    violations.push({ file: 'manifest', keyPath: '', rule: 'V-YAML', message: 'tree.yaml holds no YAML document' })
-    return { manifest: null, nodes: [] }
+export function readTreeText(text: string): TreeText {
+  if (text.startsWith('\uFEFF')) {
+    return { value: null, problem: 'tree.json begins with a byte-order mark; write it as UTF-8 without one' }
   }
-
-  const nodes: RawNode[] = []
-  let manifest: Mapping | null = null
-  documents.forEach((document, index) => {
-    const parsed = toMapping(document)
-    const id = index === 0 ? null : documentId(parsed, text.slice(document.range[0], document.range[2]))
-    const where = index === 0 ? 'manifest' : (id ?? `document at line ${lineCounter.linePos(document.range[0]).line}`)
-
-    if (document.errors.length > 0) {
-      violations.push({ file: where, keyPath: '', rule: 'V-YAML', message: document.errors[0]!.message })
-    } else if (!parsed) {
-      violations.push({ file: where, keyPath: '', rule: 'V-YAML', message: 'the top level of a document must be a mapping' })
-    }
-    if (index === 0) manifest = parsed
-    else nodes.push({ id, where, document: parsed })
-  })
-  return { manifest, nodes }
-}
-
-/** The document as a mapping, or null when it did not parse or is not one. */
-function toMapping(document: ReturnType<typeof parseAllDocuments>[number]): Mapping | null {
-  if (document.errors.length > 0) return null
-  const value: unknown = document.toJS()
-  return isMapping(value) ? value : null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch (error) {
+    return { value: null, problem: (error as SyntaxError).message }
+  }
+  const duplicate = duplicateKey(text)
+  if (duplicate) {
+    const { key, line, column } = duplicate
+    return { value: null, problem: `the key "${key}" appears twice in one object, at line ${line} column ${column}` }
+  }
+  return { value: parsed, problem: null }
 }
 
 /**
- * A Node document's id: the `id` key, or -- when the document did not parse -- the `id:`
- * line read out of its text, so that its violations still name the Node rather than a
- * line number (tree-format.md 3.7). Null when neither gives a valid id; V-NODE says so.
+ * V-JSON: `tree.json` as one JSON object (RFC 8259) in UTF-8 without a byte-order mark and
+ * with no duplicate key. One JSON file is one document, so a syntax error anywhere is a
+ * syntax error everywhere: nothing else is checked and the Tree is not loaded
+ * (tree-format.md 7, and 12.6.3 on what that changes against the document stream of /3).
  */
-function documentId(parsed: Mapping | null, source: string): string | null {
-  if (parsed) return isId(parsed.id) ? parsed.id : null
-  const match = ID_LINE.exec(source)
-  return match && isId(match[1]) ? match[1] : null
+function parseTree(text: string, violations: Violation[]): Mapping | null {
+  const fail = (message: string): null => {
+    violations.push({ file: 'tree.json', keyPath: '', rule: 'V-JSON', message })
+    return null
+  }
+  const { value, problem } = readTreeText(text)
+  if (problem !== null) return fail(problem)
+  if (!isMapping(value)) return fail('the whole file must be one JSON object, not an array or a bare value')
+  return value
+}
+
+/**
+ * The first key repeated inside one object, with its position, or null when there is none.
+ *
+ * This is the one rule of the format that reads the bytes rather than the value, because a
+ * standard parser cannot see it: `JSON.parse('{"a":1,"a":2}')` returns `{a: 2}` without
+ * complaint and a reviver is called once, after the loss (tree-format.md 3.7). The scan is
+ * one pass that tracks whether it is inside a string, which containers are open, and which
+ * keys the innermost object has already seen. It runs on text that has already parsed, so
+ * it may assume the structure is well formed.
+ */
+function duplicateKey(text: string): { key: string; line: number; column: number } | null {
+  // One entry per open container: the keys seen so far, or null for an array, which has none.
+  const open: Array<Set<string> | null> = []
+  let name: string | null = null
+  let at = 0
+  for (let i = 0; i < text.length; i += 1) {
+    const character = text[i]
+    if (character === '"') {
+      const start = i
+      for (i += 1; text[i] !== '"'; i += 1) if (text[i] === '\\') i += 1
+      name = characters(text.slice(start + 1, i))
+      at = start
+    } else if (character === '{' || character === '[') {
+      open.push(character === '{' ? new Set() : null)
+      name = null
+    } else if (character === '}' || character === ']') {
+      open.pop()
+      name = null
+    } else if (character === ':') {
+      const keys = open[open.length - 1]
+      // `name` holds the string just read; before a colon that string is this object's key.
+      if (keys && name !== null) {
+        if (keys.has(name)) return { key: name, ...position(text, at) }
+        keys.add(name)
+      }
+      name = null
+    }
+  }
+  return null
+}
+
+/**
+ * A JSON string's characters, so that `"a"` and `"a"` count as the same key. `raw` is the
+ * text between one string's quotes in a file that has already parsed, so it is a JSON
+ * string body and nothing else: the parse below cannot fail.
+ */
+function characters(raw: string): string {
+  return JSON.parse(`"${raw}"`) as string
+}
+
+/** The one-based line and column of `offset`, for a message a person can act on. */
+function position(text: string, offset: number): { line: number; column: number } {
+  const before = text.slice(0, offset)
+  const lineStart = before.lastIndexOf('\n') + 1
+  return { line: before.split('\n').length, column: offset - lineStart + 1 }
 }
 
 async function readText(file: string): Promise<string | null> {
@@ -244,7 +291,7 @@ function referencedThemeFiles(theme: Theme | undefined): Set<string> {
 function toManifest(raw: Mapping): Manifest {
   const languages = raw.languages as string[]
   return {
-    format: 'elsa-tree/3',
+    format: 'elsa-tree/4',
     languages,
     defaultLanguage: languages[0]!,
     root: raw.root as string,
@@ -255,9 +302,9 @@ function toManifest(raw: Mapping): Manifest {
   }
 }
 
-function toNode(id: string, raw: Mapping): Node {
+function toNode(raw: Mapping): Node {
   const common = {
-    id,
+    id: raw.id as string,
     title: raw.title as LocalisedText,
     description: raw.description as LocalisedText,
     metadata: raw.metadata as Node['metadata'],
