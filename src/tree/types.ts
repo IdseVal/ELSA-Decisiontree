@@ -1,5 +1,5 @@
 /**
- * The types of the `elsa-tree/3` format (docs/specs/tree-format.md) as the loader hands
+ * The types of the `elsa-tree/4` format (docs/specs/tree-format.md) as the loader hands
  * them out (docs/specs/application.md section 5.1). Two normalisations against the
  * file: `id` and `kind` are added, and absent lists become empty arrays.
  */
@@ -54,7 +54,7 @@ export interface Theme {
 }
 
 export interface Manifest {
-  format: 'elsa-tree/3'
+  format: 'elsa-tree/4'
   languages: string[]
   /** The first declared language: what the frontend shows before the user chooses. */
   defaultLanguage: string
@@ -114,14 +114,18 @@ export type Node = {
 /** One broken validity rule of docs/specs/tree-format.md section 7. */
 export interface Violation {
   /**
-   * Where in the Tree: `manifest`, the Node's id, or `document at line N` for a Node
-   * document whose id could not be read. The Tree is one file, so this is no longer a
+   * Where in the Tree: `manifest`, the Node's id, or `tree.json` for the file as a whole
+   * and for every failure the schema reports. The Tree is one file, so this is no longer a
    * path; the field keeps its name from the interface of application.md section 5.1.
    */
   file: string
-  /** Key path inside the document, e.g. `options[2].target`; empty for the document as a whole. */
+  /**
+   * Where inside it: a key path such as `options[2].target` for a content rule, a JSON
+   * Pointer such as `/nodes/3/options/2` for the schema (tree-format.md 7); empty for the
+   * file as a whole.
+   */
   keyPath: string
-  /** The rule id, e.g. `V-ANSWERS`. */
+  /** The rule id, e.g. `V-ANSWERS`, or `schema` for a shape failure the schema reports. */
   rule: string
   message: string
 }
