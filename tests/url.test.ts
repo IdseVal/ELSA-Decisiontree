@@ -12,8 +12,10 @@ import {
   absolute,
   addressSet,
   canonicalHref,
+  SCHEMA_HREF,
   contentLanguage,
   followHref,
+  datasetHref,
   imageHref,
   MAX_PATH_IDS,
   nodeHref,
@@ -178,6 +180,19 @@ describe('building an address', () => {
 
   test('an Image is fetched from the images route', () => {
     expect(imageHref('eu-map.png')).toBe('/images/eu-map.png')
+  })
+
+  test('**[#121]** the dataset carries the Tree id, and the schema the format number (15.1)', () => {
+    expect(datasetHref('ai-act-example')).toBe('/ai-act-example/tree.json')
+    expect(SCHEMA_HREF).toBe('/schemas/elsa-tree-4.json')
+  })
+
+  test('**[#121]** the dataset URL is not a page, in any language', () => {
+    // `tree.json` holds a dot, so it is neither a Tree id nor a Node id (tree-format.md
+    // 3.1): the page route answered 404 for this path before section 15 existed, which is
+    // why no URL that resolved then resolves differently now (4.1).
+    expect(parse(datasetHref('ai-act-example'))).toBeNull()
+    expect(parse(`${datasetHref('ai-act-example')}?lang=nl`)).toBeNull()
   })
 
   test('the same page in another language keeps its Trail and its Node', () => {

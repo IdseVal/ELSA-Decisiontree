@@ -508,6 +508,7 @@ export interface Tree {
   themePath(file: string): string | null       // [v0.2] absolute path inside this Tree's theme/, and only for a file the Theme names
   nodeIds(): string[]                          // [#120] every Node id, in file order: which pages exist (16.2)
   readonly lastModified: Date | null           // [#120] when the Tree's file was last written; null when it cannot be read (16.2)
+  readonly filePath: string                    // [#121] the Tree's own file: what the dataset endpoint streams (15.3)
 }
 ```
 
@@ -530,6 +531,11 @@ export interface Tree {
   of that sentence -- 16.2 dates every `<url>` from the Tree file, read once here (5.4)
   rather than stat'd per request. #119 replaces the file name behind both, as it does for
   the read itself, and neither signature changes with it.
+- **[#121]** `filePath` does not break it either, and for a plainer reason: it is a path,
+  and a caller that wants a Node still asks for it by id. 15.3 needs the file the loader
+  read -- so that what the dataset endpoint serves is what passed validation, and so that
+  the route cannot assemble a path of its own -- and a path is the smallest thing that
+  says so.
 
 The types, in `src/tree/types.ts`, mirror `tree-format.md` with two normalisations:
 `id` and `kind` are added, and absent lists become empty arrays.
@@ -789,12 +795,20 @@ app  ->  findability  ->  tree (getNode, getTitle), url, markdown, chrome     [#
 app  ->  neighbourhood  ->  tree (getNode, getTitle), url
 app  ->  theme  ->  url (themeHref)
 app  ->  assets  ->  nothing in src/
+findability  ->  assets (the two licence URLs of 15.2)                       [#121]
 app  ->  url, chrome, config, markdown
 config  ->  tree
 tree/  ->  nothing in src/
 next.config.ts  ->  nothing in src/
 ```
 
+- **[#121] `findability -> assets` is the one edge into `assets.ts` that is not a
+  route's.** `llms.txt` names the content and code licences (16.5), and they are the
+  strings 15.2 puts on the bytes themselves, so they are declared where they are sent and
+  read from there rather than written twice. The constants do not move to `url.ts`
+  instead: that would make `assets -> url` and cost the stricter line above it, which says
+  `assets` imports nothing in `src/` at all -- and it still does not. #122's `jsonld.ts`
+  takes `CONTENT_LICENCE_URL` over this same edge for the `Dataset`'s `license`.
 - **`src/tree/` still imports nothing from the rest of the application**, and nothing
   imports it to get more than one Node at a time except `neighbourhood`, which is where
   the bound lives.

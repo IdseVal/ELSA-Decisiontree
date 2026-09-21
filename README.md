@@ -41,8 +41,22 @@ npm run build && ELSA_TREE=ai-act-example npm start
 ```
 
 Then open `http://localhost:3000/ai-act-example/start` -- the URL of a Node is
-`/<tree-id>/<node-id>`. `npm run build` also copies the client bundle and the stylesheet
-into `.next/standalone/`, so that folder plus `trees/` is the whole deployment.
+`/<tree-id>/<node-id>`. `npm run build` also copies the client bundle, the stylesheet and
+`schemas/` into `.next/standalone/`, so that folder plus `trees/` is the whole deployment.
+
+## What a deployment serves besides the pages
+
+The Tree is a public dataset as well as a walk (`docs/specs/application.md` 15 and 16):
+
+| URL | What |
+|---|---|
+| `/<tree-id>/tree.json` | The served Tree's file, byte for byte, under CC BY 4.0 -- the licence is in a `Link` header on the bytes. Cross-origin reads are allowed; no cookie is set. |
+| `/schemas/elsa-tree-4.json` | The format's JSON Schema, which that file names in its own `$schema` key. MIT, like the rest of the code. |
+| `/llms.txt` | A short plain-text description of the site for an AI agent: what it is, where the dataset and the schema are, and how to address any step by URL. |
+| `/sitemap.xml`, `/robots.txt` | Every Node in every language, and a crawler policy that allows everything. |
+
+`curl -s http://localhost:3000/ai-act-example/tree.json | diff - trees/ai-act-example/tree.json`
+is empty: the download **is** the dataset, not an export of it.
 
 ## Point the app at a Tree
 

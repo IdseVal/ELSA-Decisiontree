@@ -11,7 +11,7 @@ import { baseUrl, servedTree } from '../../../../config.ts'
 import { plainDescription } from '../../../../markdown.ts'
 import { loadPage } from '../../../../neighbourhood.ts'
 import type { Tree } from '../../../../tree/loader.ts'
-import { addressSet, parseUrl, type PageAddress } from '../../../../url.ts'
+import { absolute, addressSet, datasetHref, parseUrl, type PageAddress } from '../../../../url.ts'
 
 /**
  * The Node page, `/<tree-id>/<...trail>/<node-id>` (docs/specs/application.md 4.1). The
@@ -63,10 +63,11 @@ function shareWords(lang: string): ShareWords {
 }
 
 /**
- * The head of a Node page: the title, the canonical link (4.1), the `hreflang` links and
- * the description meta tag (**[#118]** 16.3). The Node's title comes from the loader's
- * in-memory index and its description from the Node itself, so describing the page reads
- * no file.
+ * The head of a Node page: the title, the canonical link (4.1), the `hreflang` links, the
+ * description meta tag (**[#118]** 16.3) and -- **[#121]** -- the one link to the dataset
+ * the walk is drawn from (15.3), so that a crawler which landed anywhere in the walk finds
+ * the data. The Node's title comes from the loader's in-memory index and its description
+ * from the Node itself, so describing the page reads no file.
  *
  * All four addresses come from one call to `addressSet`, which is the decision of 16.3:
  * the sitemap renders the same call, and a page's `hreflang` set and the sitemap's entries
@@ -94,6 +95,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     alternates: {
       canonical: addresses.find((entry) => entry.lang === address.lang)?.url,
       languages: Object.fromEntries(alternates.map(({ hreflang, url }) => [hreflang, url])),
+      // `<link rel="alternate" type="application/json">`, the same on every page and in
+      // every language: there is one dataset. The head link and the route it resolves to
+      // are one deliverable of one issue (ADR-118-dataset-endpoint decision 6) -- a page
+      // that advertises data the deployment does not serve is worse than one that is
+      // silent -- and `findability.spec.ts` fetches this href to hold the two together.
+      types: { 'application/json': absolute(datasetHref(tree.id), base) },
     },
   }
 }
