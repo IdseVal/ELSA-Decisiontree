@@ -151,3 +151,23 @@ describe('the writer reports what the loader would', () => {
     expect(migration).toEqual({ rewritten: false, ids: [], notes: ['tree.json is missing'], violations: [] })
   })
 })
+
+describe('the example Tree and section 8 of the format spec are one file', () => {
+  // tree-format.md 8 is the complete example, and trees/ai-act-example is the Tree the
+  // development default serves. #119 converted both; NOTES.md of the Tree says they are
+  // byte-identical, and nothing held them to it until this test. A reader who trusts the
+  // spec's block is reading the file the app serves, or the test says which drifted.
+  test('section 8 holds the bytes of trees/ai-act-example/tree.json', async () => {
+    const spec = await readFile(path.join(here, '..', 'docs', 'specs', 'tree-format.md'), 'utf8')
+    const heading = spec.indexOf('\n## 8. ')
+    const fence = spec.indexOf('\n```json\n', heading)
+    const end = spec.indexOf('\n```\n', fence + 8)
+
+    expect(heading, 'section 8 is in the spec').toBeGreaterThan(-1)
+    expect(fence, 'section 8 opens a json block').toBeGreaterThan(heading)
+    // The block's own trailing line feed is the file's, so the slice ends at the fence.
+    const block = spec.slice(fence + '\n```json\n'.length, end + 1)
+
+    expect(block).toBe(await readFile(path.join(exampleTree, 'tree.json'), 'utf8'))
+  })
+})
