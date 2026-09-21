@@ -1,6 +1,10 @@
 # ADR-4-serialisation-format: YAML 1.2 files, with a Markdown subset for rich text
 
-- Status: ACCEPTED (frozen) -- 2026-09-03
+- Status: ACCEPTED (frozen) -- 2026-09-03. **Its YAML half is superseded by
+  `ADR-118-json-serialisation.md`** (2026-09-21, issue #118): `elsa-tree/4` serialises a
+  Tree as JSON. The Markdown subset for rich text, decided here, is untouched and is
+  still the rule (`docs/specs/tree-format.md` 3.4). Everything below stands as the exact
+  record of version 0.1, which is preserved on branch `version-0.1`.
 - Amended by `ADR-37-serialisation.md` (2026-09-10, issue #37): YAML 1.2 and the
   Markdown subset stay; "manifest and Node files" becomes one YAML stream, `tree.yaml`,
   with one document per Node. The text below is the 0.1 record and is unchanged; its
