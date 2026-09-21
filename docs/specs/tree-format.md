@@ -1806,6 +1806,15 @@ idempotence above, run on demand. A Tree written in `elsa-tree/1`, `/2` or `/3` 
 converted with the last release before #119 and then by this procedure; no Tree in this
 repository is in that state.
 
+It also **stops before writing, and reports the way step 5 does, on a file whose shape it
+cannot carry**: a top level that is not an object, and a key of 3.7 whose value is a list
+where the format has an object or an object where the format has a list (`"title": []`,
+`"sources": {}`). Step 7 writes the key order of step 5, and a writer that reordered a
+shape the format does not have would write back something the author never wrote, over the
+only copy of it -- so the file stays as it is and the shape is named by its key path. A
+scalar where the format has an object, and a key the format does not define, are carried
+across untouched and reported by step 8 on the written file, as everything else is.
+
 #### 12.6.2 What the procedure guarantees, and what it does not
 
 **Guaranteed.** Every Node of the input is an element of `nodes` in the same order, with
