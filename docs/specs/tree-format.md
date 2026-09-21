@@ -32,9 +32,9 @@
 > unchanged at the dataset endpoint (`docs/specs/application.md` section 15), so the
 > download *is* the dataset.
 >
-> **Until the loader of issue #119 merges, the code on `dev` still reads `elsa-tree/3`**,
-> and both Trees under `trees/` and every fixture are still written in it; nothing new may
-> be built against `elsa-tree/3`.
+> **Done 2026-09-21 (issue #119).** The loader reads `tree.json` and nothing else, both
+> Trees under `trees/` and every fixture are written in `elsa-tree/4`, and no YAML parser
+> is left in the repository. 12.6 has the conversion and what it did to each Tree.
 >
 > **What `elsa-tree/3` was.** `elsa-tree/3` replaced `elsa-tree/2` (issue #78, 2026-09-17)
 > for two things the owner asked the data to carry (`docs/CORE_DOCUMENT.md` 3.1, revised
@@ -1795,6 +1795,16 @@ Input: the folder `<in>/` holding `tree.yaml`. Output: `<in>/tree.json`.
 Running the whole procedure on a folder that holds a `tree.json` and no `tree.yaml` does
 nothing and reports nothing. Issue #119 tests both, because the byte form of 3.7 is only
 worth stating if it is stable.
+
+**What survives the job (amended 2026-09-21, #119).** Steps 1 to 4 read the serialisation
+this version replaced, and they left the repository with the parser that read it, as this
+section said they would. Steps 5 to 9 stayed, and are `scripts/migrate-tree.ts` (`npm run
+migrate <tree-folder>`): it writes a `tree.json` in the canonical byte form of 3.7,
+reads it back, validates it against the schema and the rules, and reports every violation.
+On a Tree already in the byte form it writes the same bytes and says so, which is the
+idempotence above, run on demand. A Tree written in `elsa-tree/1`, `/2` or `/3` is
+converted with the last release before #119 and then by this procedure; no Tree in this
+repository is in that state.
 
 #### 12.6.2 What the procedure guarantees, and what it does not
 
