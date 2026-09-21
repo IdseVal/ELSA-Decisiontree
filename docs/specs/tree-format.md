@@ -303,13 +303,20 @@ reader may rely on. `docs/adrs/ADR-118-json-serialisation.md` has the reasoning.
   the byte form below is serialised from an in-memory object whose keys are unique by
   construction. The rule is aimed at a file that reached the repository some other way --
   a hand-merged conflict, a patch, a generator someone wrote in an afternoon.
-- **No `null`, anywhere** (rule V-NULL). An optional field that is absent is **omitted**:
-  the key is not written.
-- **No empty array and no empty object** (rule V-EMPTY). "No Sources" is the absence of
-  `sources`, not `"sources": []` -- one way to say a thing, not three. What the loader
-  holds in memory is a different matter: it normalises an absent list to an empty array
-  (`docs/specs/application.md` 5.1), which is the one place the three ways would
-  otherwise have to be made one.
+- **No `null` as the value of any key this format defines** (rule V-NULL). An optional
+  field that is absent is **omitted**: the key is not written.
+- **No empty array and no empty object as the value of any key this format defines**
+  (rule V-EMPTY). "No Sources" is the absence of `sources`, not `"sources": []` -- one
+  way to say a thing, not three. What the loader holds in memory is a different matter:
+  it normalises an absent list to an empty array (`docs/specs/application.md` 5.1),
+  which is the one place the three ways would otherwise have to be made one.
+- **Both stop at `metadata`**, and say so rather than leaving it to be discovered.
+  `metadata` is the author's bag: open by decision, uninterpreted by the loader, and
+  outside V-KEYS for the same reason. `"note": null`, `"note": {}` and `"note": []`
+  inside it are the author's business and the schema accepts all three -- it enforces
+  only `version` and the key-name rule of V-META. A rule written as enforced that never
+  fires is the thing not to freeze; that was the lesson of V-JSON above, and it applies
+  to its own neighbours.
 - **Unknown keys are errors** (rule V-KEYS), at every level except inside `metadata`. A
   misspelt `"anwsers"` must fail loudly, not silently become an explanation Node.
 - **Numbers and booleans appear nowhere in the contract.** Every value this format
@@ -980,7 +987,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-SCHEMA | schema | `$schema`, as the path `/schemas/elsa-tree-4.json` or an absolute http(s) URL whose path ends the same way (3.7). |
 | V-FORMAT | schema | `format` exactly `elsa-tree/4`. |
 | V-NULL | schema | no `null` as the value of any key this format defines. An absent optional field is omitted. |
-| V-EMPTY | schema | no empty array and no empty object. |
+| V-EMPTY | schema | no empty array and no empty object as the value of any key this format defines. Inside `metadata` the schema accepts both, as it accepts `null` there (V-NULL, 3.7). |
 | V-LANG | schema, rules | `languages`: a non-empty array of valid language tags (3.3), which the rules also check are distinct. |
 | V-ROOT | rules | `root` naming an existing Node that is a question Node or a Terminal. |
 | V-TITLE | schema, rules | `title` as a plain localised text, at the top level. |
@@ -1742,7 +1749,12 @@ Input: the folder `<in>/` holding `tree.yaml`. Output: `<in>/tree.json`.
    text changes its counted length.
 5. **Keys are written in the order of 3.7**; `metadata` keeps `version` first and the
    author's remaining keys in the order they were written; a localised text lists its
-   languages in the manifest's order.
+   languages in the manifest's order. **A `metadata` key made only of digits stops the
+   job**, like a parse failure in step 1: it is reported by name, with the object it
+   sits on and the remedy (`2024` becomes `note-2024`), and nothing is written. It is
+   the one thing an `elsa-tree/3` Tree can carry that this conversion cannot (V-META,
+   3.7), and a procedure that renamed the key itself would be a procedure that edits
+   content.
 6. **An absent key stays absent.** Nothing becomes `null`, `[]` or `{}` (V-NULL,
    V-EMPTY).
 7. **Write** `<in>/tree.json` in the canonical byte form of 3.7. Do not touch `images/`,
@@ -1765,7 +1777,14 @@ the same `id`. Every piece of text in every language is the same sequence of cha
 minus the one trailing line break of step 4. Every id, Node reference, Source, URL, image
 and theme file name, colour, font descriptor and `metadata` value is what it was. So
 **every URL and every shared link keeps working**, `images/` and `theme/` need no change,
-and no Tree is re-cut: a Tree that validated as `elsa-tree/3` validates as `elsa-tree/4`.
+and no Tree is re-cut.
+
+**The one exception**, and the only rule of this round that can make a valid
+`elsa-tree/3` Tree invalid: `elsa-tree/3` said nothing about `metadata` key names, and
+`elsa-tree/4` refuses a key made only of digits (V-META, 3.7). A `/3` Tree carrying one
+is reported by step 5 and is not converted until its author prefixes the key. Every
+other Tree that validated as `elsa-tree/3` validates as `elsa-tree/4`. No Tree or
+fixture on `dev` carries such a key (12.6.3).
 
 **Not guaranteed, and lost on purpose.** Comments, the `--- # <id>` table of contents,
 the author's quoting choices and the author's line wrapping inside a block scalar. JSON
@@ -1794,7 +1813,12 @@ section 8's block.
   Dutch string is still missing. Two need re-fitting by hand, and #119 does it: `v-yaml`
   becomes `v-json` (a file that does not parse as JSON), and `v-format`'s manifest must
   say something that is not `elsa-tree/4`. New fixtures are needed for V-SCHEMA, V-NULL
-  and V-EMPTY, which are rules `elsa-tree/3` had no equivalent of.
+  and V-EMPTY, which are rules `elsa-tree/3` had no equivalent of, and one for the
+  all-digit `metadata` key of V-META, which is the new rule an existing `/3` Tree could
+  actually trip. **No Tree and no fixture on `dev` carries such a key** -- checked, key by
+  key, over every `metadata` block in `trees/` and `tests/fixtures/`, which is why the
+  exception in 12.6.2 costs this round nothing and is stated for the author who writes the
+  next Tree.
 - `tests/fixtures/broken/<case>`: a case whose point is a YAML syntax error becomes the
   JSON equivalent -- a truncated file, a trailing comma, a duplicate key -- and fails
   V-JSON. There is one behavioural change to record: `elsa-tree/3` reported a parse error
