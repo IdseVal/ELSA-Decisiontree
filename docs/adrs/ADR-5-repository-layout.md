@@ -3,6 +3,18 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 6
+- Amended 2026-09-21 by issue #118 (`ADR-118-dataset-endpoint.md`,
+  `ADR-118-json-schema.md`, `ADR-118-crawler-access.md`,
+  `ADR-118-sitemap-and-alternates.md`, `ADR-118-json-ld.md`, `ADR-118-llms-txt.md`):
+  `src/` gains a fourth folder beside `src/app/`, `src/components/` and
+  `src/tree/` -- `src/findability/`, the four documents of `application.md`
+  section 16, each a pure function of the loaded Tree and one base URL -- and
+  `src/app/[lang]/` gains five route files: the dataset endpoint, the schema,
+  `robots.txt`, `sitemap.xml` and `llms.txt`. Two existing modules gain a member
+  each: `url.ts` a Node's address set and the absolute form of a link, and
+  `markdown.ts` the plain-text reduction and its 155-character cut. The
+  dependency direction below is unchanged: `findability/` takes a loaded Tree and
+  a base URL and returns strings, and the routes hand it both.
 - Amended 2026-09-10 by `ADR-38-modules-and-tests.md` (issue #38): `src/` gains
   `neighbourhood.ts` and `theme.ts`; `src/components/` loses `NodeView.tsx`, `Trail.tsx`
   and `Thumbnails.tsx` and gains the tree view's components; a theme route joins the

@@ -12,6 +12,16 @@
   absolute URL of the same Trail-less Node page when a deployment sets `ELSA_BASE_URL`,
   and the path it has always been when it does not. Which page it points at, and the
   grammar of that page's URL, are unchanged; so is every other link the app emits.
+- Amended 2026-09-21 by issue #118, one address per decision:
+  `ADR-118-dataset-endpoint.md` (`/<tree-id>/tree.json`),
+  `ADR-118-json-schema.md` (`/schemas/<file>`), `ADR-118-crawler-access.md`
+  (`/robots.txt`), `ADR-118-sitemap-and-alternates.md` (`/sitemap.xml`) and
+  `ADR-118-llms-txt.md` (`/llms.txt`). All five join the grammar of
+  `application.md` 4.1; `schemas` joins `images` and `theme` as a reserved Tree
+  id, and 4.3 gains a 404 row for each of the two the schema and the dataset
+  endpoint bring. The Trail in the path, the share link, `?lang`, the 50-id limit
+  and every answer of the error table below are unchanged, and no URL that
+  resolves today resolves differently.
 
 ## Context
 

@@ -783,7 +783,11 @@ take strings (**[#75]** `Explainer` replaced `CarouselButtons`, #78). This is wh
   font-family literal.
 
 Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
-`docs/adrs/ADR-5-repository-layout.md`.
+`docs/adrs/ADR-5-repository-layout.md`. **[#118]** What this freeze adds above is
+recorded in the six `ADR-118-*` decisions that add the files -- `dataset-endpoint`,
+`json-schema`, `crawler-access`, `sitemap-and-alternates`, `json-ld` and
+`llms-txt` -- each of which carries an `Amends:` line to `ADR-5-repository-layout.md`,
+which carries one back.
 
 ## 7. Testing approach
 
@@ -859,7 +863,10 @@ checks:
   them there is no gap where a third-party Tree could break the frontend.
 
 Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
-`docs/adrs/ADR-5-testing-approach.md`.
+`docs/adrs/ADR-5-testing-approach.md`. **[#118]** The rows this freeze adds are
+recorded in the six `ADR-118-*` decisions that add the files they test, each of
+which carries an `Amends:` line to `ADR-5-testing-approach.md`, which carries one
+back.
 
 ## 8. What the contracts guarantee to the core document
 
@@ -908,12 +915,12 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | Next.js App Router, server components, standalone Node 22, npm | `docs/adrs/ADR-5-framework-and-rendering.md` |
 | One Tree per deployment via `ELSA_TREE`; Tree id kept in URLs | `docs/adrs/ADR-5-tree-selection.md` |
 | Chrome in `en` and `nl` in code; follows content language, falls back to English | `docs/adrs/ADR-5-chrome-languages.md` |
-| Path is the Trail; `lang` query; 50-id limit; 404 rules | `docs/adrs/ADR-5-url-scheme.md` |
+| Path is the Trail; `lang` query; 50-id limit; 404 rules | `docs/adrs/ADR-5-url-scheme.md`, amended **[#118]** by the five `ADR-118-*` decisions that each add an address to 4.1 (`dataset-endpoint`, `json-schema`, `crawler-access`, `sitemap-and-alternates`, `llms-txt`); `schemas` reserved and two 404 rows in 4.3 |
 | `?lang` restated as a `[lang]` route segment so `<html lang>` is the content language | `docs/adrs/ADR-19-content-language-in-the-route.md` |
 | `ELSA_BASE_URL` optional, read by the canonical link only, refused when malformed | `docs/adrs/ADR-11-public-base-url.md` |
 | The loader seam; one Node per call; images by route; startup validation | `docs/adrs/ADR-5-lazy-loading.md` -- **superseded by `ADR-38-neighbourhood.md`** |
-| `src/` modules, `trees/`, `tests/`; dependency direction | `docs/adrs/ADR-5-repository-layout.md`, amended by `ADR-38-modules-and-tests.md` |
-| Vitest; fixtures through the loader; the interoperability test | `docs/adrs/ADR-5-testing-approach.md`, amended by `ADR-38-modules-and-tests.md` |
+| `src/` modules, `trees/`, `tests/`; dependency direction | `docs/adrs/ADR-5-repository-layout.md`, amended by `ADR-38-modules-and-tests.md` and, **[#118]**, by the six `ADR-118-*` decisions that add files: `src/findability/`, five route files, a member each on `url.ts` and `markdown.ts` |
+| Vitest; fixtures through the loader; the interoperability test | `docs/adrs/ADR-5-testing-approach.md`, amended by `ADR-38-modules-and-tests.md` and, **[#118]**, by the same six: four `tests/findability/` unit files, `findability.spec.ts`, one fixture, and `deployment.spec.ts` as a contract of #118 |
 | **[v0.2]** The tree view: a Bubble in the centre, the Trail above, Answers below, Options beside | `docs/adrs/ADR-38-tree-view.md` |
 | **[v0.2]** The neighbourhood: at most 16 neighbours, in the page payload, never the Tree | `docs/adrs/ADR-38-neighbourhood.md` |
 | **[v0.2]** The slide transition: the tree layer moves, the URL is the plain link's | `docs/adrs/ADR-38-transitions.md` |

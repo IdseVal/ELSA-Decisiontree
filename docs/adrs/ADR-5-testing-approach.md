@@ -3,6 +3,20 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 7
+- Amended 2026-09-21 by issue #118 (`ADR-118-dataset-endpoint.md`,
+  `ADR-118-json-schema.md`, `ADR-118-crawler-access.md`,
+  `ADR-118-sitemap-and-alternates.md`, `ADR-118-json-ld.md`, `ADR-118-llms-txt.md`):
+  nothing this ADR decided moves -- Vitest, fixtures opened through the loader,
+  and the split "a claim about markup is a unit test; a claim about layout,
+  motion or network needs a browser". What `application.md` section 7 gains is
+  the tests for sections 15 and 16: four unit files under `tests/findability/`
+  (`robots`, `sitemap`, `jsonld`, `llms`), one browser spec
+  (`findability.spec.ts`), one fixture (`tests/fixtures/findability/`), grown
+  rows on `loader.test.ts`, `url.test.ts` and `markdown.test.ts`, and
+  `deployment.spec.ts` promoted to a row of its own because the no-cookie sweep
+  is now a contract of #118 rather than a 0.1 spec kept as it was. One row is
+  restated and not changed: "never a Tree file parsed by the test itself" read
+  "never YAML read by a test", and was never about YAML.
 - Amended 2026-09-10 by `ADR-38-modules-and-tests.md` (issue #38): this ADR's decision to
   leave browser tests **out** of the contract is reversed, because three 0.2 contracts --
   the page never scrolls, one payload per navigation, no request to another origin --

@@ -4,6 +4,11 @@
 - Issue: #118 -- Architecture: freeze the JSON-only Tree format (`elsa-tree/4`)
 - Spec: `docs/specs/application.md` section 15; 4.1, 4.3 and 5.2 amended
 - Depends on: `docs/adrs/ADR-118-json-serialisation.md`, `ADR-118-json-schema.md`
+- Amends: `docs/adrs/ADR-5-url-scheme.md` (`/<tree-id>/tree.json` joins the
+  grammar of 4.1 and 4.3 gains its 404 row; the Trail, the share link and `?lang`
+  are untouched), `ADR-5-repository-layout.md` (one route file, served through
+  `src/assets.ts`) and `ADR-5-testing-approach.md` (`deployment.spec.ts` becomes a
+  contract of this issue and its no-cookie sweep covers every route of 15 and 16)
 
 ## Context
 

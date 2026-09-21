@@ -3,6 +3,11 @@
 - Status: ACCEPTED (frozen) -- 2026-09-21
 - Issue: #118 -- Architecture: freeze the JSON-only Tree format (`elsa-tree/4`)
 - Spec: `docs/specs/application.md` 16.5
+- Amends: `docs/adrs/ADR-5-url-scheme.md` (`/llms.txt` joins the grammar of 4.1),
+  `ADR-5-repository-layout.md` (`src/findability/llms.ts` and
+  `src/app/[lang]/llms.txt/route.ts`) and `ADR-5-testing-approach.md`
+  (`tests/findability/llms.test.ts`, and `llms.txt` in `findability.spec.ts` and
+  in `deployment.spec.ts`'s sweep)
 
 ## Context
 

@@ -4,6 +4,11 @@
 - Issue: #118 -- Architecture: freeze the JSON-only Tree format (`elsa-tree/4`)
 - Spec: `docs/specs/tree-format.md` 2, 3.9, 7; `docs/specs/application.md` 15.1
 - Depends on: `docs/adrs/ADR-118-json-serialisation.md`
+- Amends: `docs/adrs/ADR-5-url-scheme.md` (`/schemas/<file>` joins the grammar of
+  4.1; `schemas` joins the reserved Tree ids of 4.3, with its 404 row),
+  `ADR-5-repository-layout.md` (`src/app/[lang]/schemas/[file]/route.ts`) and
+  `ADR-5-testing-approach.md` (`url.test.ts` asserts `schemas` is refused as a
+  Tree id)
 
 ## Context
 

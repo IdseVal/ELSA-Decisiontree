@@ -3,6 +3,13 @@
 - Status: ACCEPTED (frozen) -- 2026-09-21
 - Issue: #118 -- Architecture: freeze the JSON-only Tree format (`elsa-tree/4`)
 - Spec: `docs/specs/application.md` 16.2, 16.3
+- Amends: `docs/adrs/ADR-5-url-scheme.md` (`/sitemap.xml` joins the grammar of
+  4.1), `ADR-5-repository-layout.md` (`src/findability/sitemap.ts` and
+  `src/app/[lang]/sitemap.xml/route.ts`; `url.ts` gains a Node's address set and
+  the absolute form of a link, `markdown.ts` the plain-text reduction and the
+  155-character cut) and `ADR-5-testing-approach.md`
+  (`tests/findability/sitemap.test.ts`, `findability.spec.ts`, and the grown rows
+  on `url.test.ts` and `markdown.test.ts`)
 
 ## Context
 
