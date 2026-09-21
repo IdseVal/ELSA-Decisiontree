@@ -141,14 +141,21 @@ export function datasetId(tree: Tree, base: URL): string {
  */
 export function graphScript(graph: Graph): string | null {
   const payload = JSON.stringify(graph).replaceAll('<', LESS_THAN)
-  return CLOSES_THE_ELEMENT.test(payload) ? null : payload
+  return closesTheElement(payload) ? null : payload
+}
+
+/**
+ * Whether `payload` holds either sequence that ends a `<script>` element's content: its end
+ * tag, in any case, or a comment's opening. Exported because it is the second of the two
+ * checks 16.4 asks for and the one the escape above makes unreachable -- a check no test
+ * can reach through `graphScript` is a check nobody knows still works.
+ */
+export function closesTheElement(payload: string): boolean {
+  return /<\/script|<!--/i.test(payload)
 }
 
 /** The JSON escape for `<` (U+003C), written so that no editor can fold it into the character. */
 const LESS_THAN = '\\u003c'
-
-/** What may not reach a `<script>` element's content: its end tag, and a comment's opening. */
-const CLOSES_THE_ELEMENT = /<\/script|<!--/i
 
 /**
  * What the Tree is based on: the most frequent `url` among its `kind: legal` Sources,

@@ -1,0 +1,97 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en"
+  ],
+  "root": "start",
+  "title": {
+    "en": "Two instruments, cited once each"
+  },
+  "description": {
+    "en": "The tie of application.md 16.4: two legal Sources at two URLs, one citation each, so only Node order can decide what the Tree is based on."
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does the Act apply?"
+      },
+      "description": {
+        "en": "Cites the AI Act once. It is the first Node, so its instrument wins the tie."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "sources": [
+        {
+          "kind": "legal",
+          "label": {
+            "en": "The AI Act"
+          },
+          "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+        }
+      ],
+      "answers": {
+        "yes": "applies",
+        "no": "does-not-apply"
+      }
+    },
+    {
+      "id": "applies",
+      "title": {
+        "en": "The Act applies"
+      },
+      "description": {
+        "en": "Cites the GDPR once, and a piece of literature that no count of legal Sources may see."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "sources": [
+        {
+          "kind": "legal",
+          "label": {
+            "en": "The GDPR"
+          },
+          "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj"
+        },
+        {
+          "kind": "literature",
+          "label": {
+            "en": "A commentary on the GDPR"
+          },
+          "url": "https://example.org/commentary"
+        },
+        {
+          "kind": "case-law",
+          "label": {
+            "en": "A judgment on the GDPR"
+          },
+          "url": "https://example.org/judgment"
+        }
+      ],
+      "terminal": {
+        "outcome": "applicable"
+      }
+    },
+    {
+      "id": "does-not-apply",
+      "title": {
+        "en": "The Act does not apply"
+      },
+      "description": {
+        "en": "The walk ends here, citing nothing."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    }
+  ]
+}
