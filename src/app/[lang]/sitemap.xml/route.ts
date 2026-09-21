@@ -8,6 +8,11 @@ import { lastmodDate, sitemapXml } from '../../../findability/sitemap.ts'
  * the repository -- a static sitemap would have to be regenerated whenever the Tree
  * changed, which is the step a deployment most easily forgets.
  */
+/**
+ * Generated at request time, never a file in the repository (application.md 16): the Tree and the base are run-time settings.
+ */
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const tree = await servedTree()
   const document = sitemapXml(tree, baseUrl(await headers()), lastmodDate(tree, treeLastmod()))

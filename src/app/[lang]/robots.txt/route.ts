@@ -10,6 +10,11 @@ import { robotsTxt } from '../../../findability/robots.ts'
  * It lives under `[lang]` because every route does (4.4), and it ignores the segment, as
  * the image and theme routes do.
  */
+/**
+ * Generated at request time, never a file in the repository (application.md 16): the base this deployment is reached at is a run-time setting.
+ */
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   return new Response(robotsTxt(baseUrl(await headers())), {
     headers: {

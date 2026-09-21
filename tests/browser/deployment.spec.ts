@@ -6,8 +6,9 @@
  * - nothing about the reader is stored or sent anywhere (docs/CORE_DOCUMENT.md section 8):
  *   no cookie, and no request to any host but this one;
  * - the public base URL the deployment is configured with is the one the server writes
- *   into the absolute link it emits about a page, and a deployment that names none gets
- *   the path instead (a second server, started without the variable).
+ *   into the absolute links it emits about a page, and a deployment that names none gets
+ *   the same addresses on the request's own origin (a second server, started without the
+ *   variable -- **[#118]**, application.md 16).
  *
  * A browser is the only place these can be measured: a cookie a client script sets and a
  * font a stylesheet fetches are both invisible in the markup the server sends.
@@ -96,16 +97,41 @@ test('the canonical link is the deployment its public base URL names', async ({ 
   )
 })
 
-test('without a public base URL the canonical link is the path', async ({ page }) => {
-  // The default deployment of docs/deployment.md: ELSA_BASE_URL unset. What keeps the link
-  // relative is the framework's handling of `metadataBase: undefined`, so it is asserted
-  // here, on a served page, and not on `publicBaseUrl({})` -- a version bump can change it.
+test("without a public base URL the canonical link is the request's own origin", async ({ page }) => {
+  // The default deployment of docs/deployment.md: ELSA_BASE_URL unset. **[#118]** This
+  // test read "the canonical link is the path" until 16.3 made the head, the sitemap and
+  // the JSON-LD render one address set, which has no relative form: a sitemap is read away
+  // from the page that served it. application.md 4.1's canonical bullet and
+  // ADR-11-public-base-url.md carry the amendment; what the link points *at* -- the Node,
+  // the Trail dropped, the language kept -- is unchanged, as the second half below shows.
   await page.goto(`${NO_BASE_URL_ORIGIN}${START}`)
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', START)
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `${NO_BASE_URL_ORIGIN}${START}`)
 
   await page.goto(`${NO_BASE_URL_ORIGIN}/ai-act-example/start/prohibited-practices?lang=nl`)
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
-    '/ai-act-example/prohibited-practices?lang=nl',
+    `${NO_BASE_URL_ORIGIN}/ai-act-example/prohibited-practices?lang=nl`,
   )
+})
+
+/**
+ * **[#118]** Every route of sections 15 and 16, swept for a cookie. The list is one array
+ * so that a route added without a line here is visibly absent: **#120** adds `/robots.txt`
+ * and `/sitemap.xml`, **#121** `/<tree-id>/tree.json`, `/schemas/elsa-tree-4.json` and
+ * `/llms.txt`.
+ */
+const DOCUMENT_ROUTES = ['/robots.txt', '/sitemap.xml']
+
+test('the documents of section 16 set no cookie and leave the jar empty', async ({ page, context }) => {
+  const seen = watch(page)
+
+  for (const route of DOCUMENT_ROUTES) {
+    const answer = await page.goto(route)
+
+    expect(answer?.status(), route).toBe(200)
+  }
+
+  await seen.settled()
+  expect(seen.setCookie).toEqual([])
+  expect(await context.cookies()).toEqual([])
 })
