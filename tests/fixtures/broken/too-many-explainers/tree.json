@@ -1,0 +1,171 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en",
+    "nl"
+  ],
+  "root": "start",
+  "title": {
+    "en": "A minimal Tree",
+    "nl": "Een minimale boom"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does it apply?",
+        "nl": "Is het van toepassing?"
+      },
+      "description": {
+        "en": "[term 1](#term-1) [term 2](#term-2) [term 3](#term-3) [term 4](#term-4) [term 5](#term-5) [term 6](#term-6) [term 7](#term-7) [term 8](#term-8) [term 9](#term-9)",
+        "nl": "[term 1](#term-1) [term 2](#term-2) [term 3](#term-3) [term 4](#term-4) [term 5](#term-5) [term 6](#term-6) [term 7](#term-7) [term 8](#term-8) [term 9](#term-9)"
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "yes-end",
+        "no": "no-end"
+      },
+      "explainers": [
+        {
+          "id": "term-1",
+          "term": {
+            "en": "term 1",
+            "nl": "term 1"
+          },
+          "text": {
+            "en": "Explanation 1.",
+            "nl": "Uitleg 1."
+          }
+        },
+        {
+          "id": "term-2",
+          "term": {
+            "en": "term 2",
+            "nl": "term 2"
+          },
+          "text": {
+            "en": "Explanation 2.",
+            "nl": "Uitleg 2."
+          }
+        },
+        {
+          "id": "term-3",
+          "term": {
+            "en": "term 3",
+            "nl": "term 3"
+          },
+          "text": {
+            "en": "Explanation 3.",
+            "nl": "Uitleg 3."
+          }
+        },
+        {
+          "id": "term-4",
+          "term": {
+            "en": "term 4",
+            "nl": "term 4"
+          },
+          "text": {
+            "en": "Explanation 4.",
+            "nl": "Uitleg 4."
+          }
+        },
+        {
+          "id": "term-5",
+          "term": {
+            "en": "term 5",
+            "nl": "term 5"
+          },
+          "text": {
+            "en": "Explanation 5.",
+            "nl": "Uitleg 5."
+          }
+        },
+        {
+          "id": "term-6",
+          "term": {
+            "en": "term 6",
+            "nl": "term 6"
+          },
+          "text": {
+            "en": "Explanation 6.",
+            "nl": "Uitleg 6."
+          }
+        },
+        {
+          "id": "term-7",
+          "term": {
+            "en": "term 7",
+            "nl": "term 7"
+          },
+          "text": {
+            "en": "Explanation 7.",
+            "nl": "Uitleg 7."
+          }
+        },
+        {
+          "id": "term-8",
+          "term": {
+            "en": "term 8",
+            "nl": "term 8"
+          },
+          "text": {
+            "en": "Explanation 8.",
+            "nl": "Uitleg 8."
+          }
+        },
+        {
+          "id": "term-9",
+          "term": {
+            "en": "term 9",
+            "nl": "term 9"
+          },
+          "text": {
+            "en": "Explanation 9.",
+            "nl": "Uitleg 9."
+          }
+        }
+      ]
+    },
+    {
+      "id": "no-end",
+      "title": {
+        "en": "It does not apply",
+        "nl": "Het is niet van toepassing"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    },
+    {
+      "id": "yes-end",
+      "title": {
+        "en": "It applies",
+        "nl": "Het is van toepassing"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "applicable"
+      }
+    }
+  ]
+}

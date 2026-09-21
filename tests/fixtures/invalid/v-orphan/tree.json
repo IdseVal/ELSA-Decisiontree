@@ -1,0 +1,114 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en"
+  ],
+  "root": "start",
+  "title": {
+    "en": "A minimal Tree"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does it apply?"
+      },
+      "description": {
+        "en": "The first question."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "sources": [
+        {
+          "id": "art-1",
+          "kind": "legal",
+          "label": {
+            "en": "Article 1"
+          },
+          "url": "https://example.org/article-1"
+        }
+      ],
+      "images": [
+        {
+          "file": "pic.png",
+          "description": {
+            "en": "A picture"
+          },
+          "credit": "Picture: Example, CC0",
+          "source": "art-1"
+        }
+      ],
+      "answers": {
+        "yes": "yes-end",
+        "no": "no-end"
+      },
+      "options": [
+        {
+          "title": {
+            "en": "What does it mean?"
+          },
+          "target": "detail"
+        }
+      ]
+    },
+    {
+      "id": "detail",
+      "title": {
+        "en": "What it means"
+      },
+      "description": {
+        "en": "This is explanation only. Go back to the previous step to answer."
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "lonely",
+      "title": {
+        "en": "Nobody opens this"
+      },
+      "description": {
+        "en": "An explanation Node that no Option targets."
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "no-end",
+      "title": {
+        "en": "It does not apply"
+      },
+      "description": {
+        "en": "The walk ends here."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    },
+    {
+      "id": "yes-end",
+      "title": {
+        "en": "It applies"
+      },
+      "description": {
+        "en": "The walk ends here."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "applicable"
+      }
+    }
+  ]
+}

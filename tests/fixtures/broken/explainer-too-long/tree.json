@@ -1,0 +1,83 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en",
+    "nl"
+  ],
+  "root": "start",
+  "title": {
+    "en": "A minimal Tree",
+    "nl": "Een minimale boom"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does it apply?",
+        "nl": "Is het van toepassing?"
+      },
+      "description": {
+        "en": "Are you a [provider](#provider)?",
+        "nl": "Bent u een [aanbieder](#provider)?"
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "yes-end",
+        "no": "no-end"
+      },
+      "explainers": [
+        {
+          "id": "provider",
+          "term": {
+            "en": "ppppppppppppppppppppppppppppppppppppppppp",
+            "nl": "aanbieder"
+          },
+          "text": {
+            "en": "Someone.",
+            "nl": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          }
+        }
+      ]
+    },
+    {
+      "id": "no-end",
+      "title": {
+        "en": "It does not apply",
+        "nl": "Het is niet van toepassing"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    },
+    {
+      "id": "yes-end",
+      "title": {
+        "en": "It applies",
+        "nl": "Het is van toepassing"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "applicable"
+      }
+    }
+  ]
+}

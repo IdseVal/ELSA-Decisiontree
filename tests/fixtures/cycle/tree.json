@@ -1,0 +1,79 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en"
+  ],
+  "root": "first",
+  "title": {
+    "en": "The cycle fixture"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "first",
+      "title": {
+        "en": "The first question"
+      },
+      "description": {
+        "en": "The root."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "second",
+        "no": "done"
+      }
+    },
+    {
+      "id": "second",
+      "title": {
+        "en": "The second question"
+      },
+      "description": {
+        "en": "Both Answers lead to the third question."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "third",
+        "no": "third"
+      }
+    },
+    {
+      "id": "third",
+      "title": {
+        "en": "The third question"
+      },
+      "description": {
+        "en": "Yes goes back to the second question."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "second",
+        "no": "done"
+      }
+    },
+    {
+      "id": "done",
+      "title": {
+        "en": "Done"
+      },
+      "description": {
+        "en": "The walk ends here."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en"
+  ],
+  "root": "start",
+  "title": {
+    "en": "A minimal Tree"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "theme": {
+    "colours": {
+      "background": "#ffffff",
+      "surface": "#f0f3f7",
+      "text": "#2d2e33",
+      "text-muted": "#a3a4a8",
+      "accent": "#ffc600",
+      "accent-secondary": "#41ab64"
+    }
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does it apply?"
+      },
+      "description": {
+        "en": "The first question."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "yes-end",
+        "no": "no-end"
+      }
+    },
+    {
+      "id": "no-end",
+      "title": {
+        "en": "It does not apply"
+      },
+      "description": {
+        "en": "The walk ends here."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    },
+    {
+      "id": "yes-end",
+      "title": {
+        "en": "It applies"
+      },
+      "description": {
+        "en": "The walk ends here."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "outcome": "applicable"
+      }
+    }
+  ]
+}
