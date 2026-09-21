@@ -86,6 +86,12 @@ Section 7 has twenty-odd rules. They fall into three kinds:
 - **Letting `$schema` be any string, or omitting it.** Then a generated Tree usually has
   no pointer, and the self-describing property the dataset endpoint depends on holds for
   the Trees in this repository and nowhere else.
+- **The `format` vocabulary** (`format: "uri"` on a Source's URL, and the rest). `format`
+  is annotation-only by default in 2020-12, asserts in some validators and not others, and
+  makes a stock `ajv-cli` refuse this schema outright unless a plugin is loaded (measured
+  2026-09-21, which is how the keyword came out again). Every grammar here is a `pattern`
+  instead, so the schema means the same thing in every tool and needs no plugin -- which
+  is the whole point of publishing it.
 - **Validating against the schema fetched from `$schema` at run time.** A Tree is
   third-party data (`application.md` 5.3); fetching a URL it names, at server start, is
   the one thing sections 7 and 9 of the core document forbid.

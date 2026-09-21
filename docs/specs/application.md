@@ -1979,6 +1979,14 @@ URL will move.
 Both routes live under `[lang]` like every other route and **ignore the segment**
 (4.4): there is one dataset and one schema, in no language.
 
+**The schema file must reach the running server.** `next build` writes
+`.next/standalone/`, and `scripts/collect-standalone.ts` copies in what the documented run
+command needs but the framework leaves behind (section 1). `schemas/` joins that list, so
+that `node .next/standalone/server.js` serves the schema from the standalone folder alone
+and a deployment does not have to remember a second path. The Tree folders are a different
+case and stay as they are: they are chosen at run time by `ELSA_TREES_DIR` (section 2),
+where the schema is a constant of the build.
+
 ### 15.2 The headers
 
 | Header | `tree.json` | `elsa-tree-4.json` | Why |

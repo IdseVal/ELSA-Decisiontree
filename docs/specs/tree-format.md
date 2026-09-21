@@ -382,8 +382,9 @@ names it in `$schema` (3.7). The format number is in the file name, so `elsa-tre
 be `schemas/elsa-tree-5.json` beside it and this file stays where it is: a Tree written
 today keeps a schema to point at after the next format lands.
 
-**What the schema checks**, and therefore what any JSON Schema validator on earth can
-check without this application: types, which keys exist and which are required, no
+**What the schema checks**, and therefore what any JSON Schema validator can check
+without this application -- with no plugin, because every grammar in it is a `pattern`
+and it uses no `format` keyword: types, which keys exist and which are required, no
 unknown keys at any level (V-KEYS), the closed sets (the three Source kinds, the four
 outcomes, the seven colour roles, the two font roles), the grammars of ids, language
 tags, image and theme file names, colours, font weights and URLs, the absence of `null`

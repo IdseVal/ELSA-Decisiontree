@@ -67,9 +67,8 @@
       "properties": { "version": { "type": "string", "minLength": 1 } }
     },
     "url": {
-      "description": "An absolute http:// or https:// URL. Linked to, never fetched by the application.",
+      "description": "An absolute http:// or https:// URL. Linked to, never fetched by the application. The rule is the pattern, not a `format` keyword: `format` is annotation-only by default and its assertion behaviour differs between validators, so a schema that leans on it is a schema that means different things in different tools.",
       "type": "string",
-      "format": "uri",
       "pattern": "^https?://"
     },
     "imageFileName": {

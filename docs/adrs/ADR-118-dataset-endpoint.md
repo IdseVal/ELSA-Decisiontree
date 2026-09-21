@@ -107,5 +107,9 @@ be secret -- the content is CC BY 4.0 and the repository is public.
 - The no-cookie and own-origin browser sweeps must include the new routes, or the
   guarantee of core document 8 is asserted about a shrinking share of the surface
   (issue #121).
+- `scripts/collect-standalone.ts` gains `schemas/`, so the run command the README and
+  section 1 document keeps working from the standalone folder alone. The Tree folders are
+  not in that list and should not be: they are chosen at run time by `ELSA_TREES_DIR`,
+  where the schema is a constant of the build.
 - A Tree file is a few hundred kilobytes at the sizes in this repository. A crawler that
   fetches it daily costs a deploy nothing; `ETag` makes that cost zero after the first.
