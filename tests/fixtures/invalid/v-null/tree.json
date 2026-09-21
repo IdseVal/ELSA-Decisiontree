@@ -8,6 +8,7 @@
   "title": {
     "en": "A minimal Tree"
   },
+  "description": null,
   "metadata": {
     "version": "1.0"
   },
@@ -98,6 +99,5 @@
         "outcome": "applicable"
       }
     }
-  ],
-  "description": null
+  ]
 }

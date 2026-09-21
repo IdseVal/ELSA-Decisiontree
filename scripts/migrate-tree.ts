@@ -1,27 +1,25 @@
 /**
- * `npm run migrate <tree-folder>`: the conversion of an `elsa-tree/3` Tree folder into an
- * `elsa-tree/4` one, as docs/specs/tree-format.md 12.6 specifies it.
+ * `npm run migrate <tree-folder>`: writes a Tree's `tree.json` in the canonical byte form
+ * of docs/specs/tree-format.md 3.7 and validates the result.
  *
- * Unlike the two conversions before it, this one is NOT textual: the shapes differ, so the
- * file is parsed and re-serialised (12.6.1). Every scalar is carried over unchanged but for
- * a block scalar's single trailing line break; the keys are written in the order of 3.7;
- * an absent key stays absent; and the result is written in the canonical byte form before
- * it is read back, validated against `schemas/elsa-tree-4.json` and the rules of section 7,
- * and only then is `tree.yaml` deleted. EVERY violation is printed; nothing is silenced.
+ * This is what is left of the migration of section 12 after issue #119 ran it. Its steps 5
+ * to 9 -- the key order, the byte form, the read-back and the validation -- are these; its
+ * steps 1 to 4, which parsed a `tree.yaml`, went with the parser, and a Tree still written
+ * in `elsa-tree/1`, `/2` or `/3` is converted with the last release that read YAML and
+ * then by 12.6. No Tree in this repository is in that state.
  *
- * It is a one-time job. The YAML parser and the `yaml` dependency leave the repository with
- * the last Tree they read (12.6, issue #119); what survives here afterwards is the writer,
- * which re-serialises a `tree.json` in the canonical byte form and changes no byte of a
- * Tree that is already in it.
+ * What it is for now is the contract of 3.7 made runnable: **writing a Tree that was just
+ * read changes no byte**, so a Tree the editor of the next round rewrites has a diff that
+ * shows the fields that changed and nothing else. Run on a Tree already in the byte form,
+ * it writes the same bytes and reports that it did.
  *
- * Exit code 0 when the result validates, 1 otherwise.
+ * Exit code 0 when the written Tree validates, 1 otherwise.
  *
  * Runs with plain Node 22 (built-in type stripping), so no extra tool is needed.
  */
-import { readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { readFile, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { parseAllDocuments } from 'yaml'
 import { formatViolation, openTree, TreeInvalid } from '../src/tree/loader.ts'
 import type { Violation } from '../src/tree/types.ts'
 
@@ -51,7 +49,7 @@ type ObjectName = keyof typeof ORDER
  * What the value of each key is, so the walk knows where to go on. One table serves the
  * whole format because no key name means two things in it: `description` is a localised
  * text wherever it occurs, `source` is always the id of a Source, `sources` always a list
- * of them. A key absent here holds a string, or a list of strings, and is carried across.
+ * of them. A key absent here holds a string, or a list of strings, and is written as it is.
  */
 const VALUE: Record<string, 'text' | 'metadata' | ObjectName | { each: ObjectName }> = {
   title: 'text',
@@ -75,143 +73,107 @@ const VALUE: Record<string, 'text' | 'metadata' | ObjectName | { each: ObjectNam
   files: { each: 'fontFile' },
 }
 
-const SCHEMA = '/schemas/elsa-tree-4.json'
-const FORMAT = 'elsa-tree/4'
-
 /** Numbers and booleans appear nowhere in the contract, but `metadata` is the author's bag (3.7). */
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
 
 export interface Migration {
-  /** False when the folder already held a `tree.json` and no `tree.yaml` (12.6.1). */
-  converted: boolean
-  /** The Node ids written, in the order they stood in the stream. */
+  /** False when the file was already in the canonical byte form: nothing was written. */
+  rewritten: boolean
+  /** The Node ids written, in the order they stand in `nodes`. */
   ids: string[]
-  /** What stopped the job before anything was written: a parse failure, an all-digit key. */
+  /** What stopped the job before anything was written: a file that is not a Tree file. */
   notes: string[]
   /** Every rule the written Tree breaks; empty when it is valid. */
   violations: Violation[]
 }
 
 /**
- * Converts the `elsa-tree/3` Tree in `dir` into `<dir>/tree.json` and validates the result
- * (12.6.1). `tree.yaml` is deleted only after the written file has been read back and
- * found valid. A folder that holds no `tree.yaml` is left alone: the conversion has
- * already run, and running it again does nothing and reports nothing.
+ * Rewrites `<dir>/tree.json` in the canonical byte form and validates the result: the
+ * schema of 3.9, then the rules of section 7, every violation reported. The file is read
+ * back through `openTree`, as 12.6.1 step 8 asks, so what is reported is what the server
+ * would report at start.
  */
 export async function migrateTree(dir: string): Promise<Migration> {
-  const root = path.resolve(dir)
-  const yaml = await readText(path.join(root, 'tree.yaml'))
-  if (yaml === null) return { converted: false, ids: [], notes: [], violations: [] }
+  const file = path.join(path.resolve(dir), 'tree.json')
+  const before = await readFile(file, 'utf8').catch(() => null)
+  if (before === null) return { rewritten: false, ids: [], notes: [`${path.basename(file)} is missing`], violations: [] }
 
-  const notes: string[] = []
-  const tree = readStream(yaml, notes)
-  if (!tree) return { converted: false, ids: [], notes, violations: [] }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(before)
+  } catch (error) {
+    return { rewritten: false, ids: [], notes: [(error as SyntaxError).message], violations: [] }
+  }
 
+  const tree = parsed as Record<string, unknown>
   const languages = Array.isArray(tree.languages) ? (tree.languages as string[]) : []
-  const written = canonical(tree, 'tree', languages, notes)
-  if (notes.length > 0) return { converted: false, ids: [], notes, violations: [] }
+  const after = bytes(canonical(tree, 'tree', languages))
+  if (after !== before) await writeFile(file, after, 'utf8')
 
-  await writeFile(path.join(root, 'tree.json'), bytes(written), 'utf8')
-  const violations = await validated(root)
-  if (violations.length === 0) await rm(path.join(root, 'tree.yaml'))
-  const nodes = written.nodes as Array<Record<string, Json>>
-  return { converted: true, ids: nodes.map((node) => node.id as string), notes, violations }
+  const nodes = Array.isArray(tree.nodes) ? (tree.nodes as Array<Record<string, unknown>>) : []
+  return {
+    rewritten: after !== before,
+    ids: nodes.map((node) => String(node.id)),
+    notes: [],
+    violations: await validated(path.dirname(file)),
+  }
 }
 
 /**
- * The canonical byte form of tree-format.md 3.7: `JSON.stringify(value, null, 2)` and one
- * line feed. Exported because it is what survives this script -- the writer the migration,
- * the validator and the editor of the next round have to agree on.
+ * The canonical byte form of tree-format.md 3.7: the value as `JSON.stringify(value,
+ * null, 2)` writes it, followed by one line feed. That form is chosen because every
+ * mainstream language's standard library produces it from the same value, so the
+ * migration, the validator and an editor agree on the bytes without agreeing on a library.
  */
 export function bytes(tree: Record<string, Json>): string {
   return `${JSON.stringify(tree, null, 2)}\n`
 }
 
 /**
- * 12.6.1 steps 1 to 3: the YAML stream as one object. The first document becomes the
- * top-level fields, the rest become `nodes` in stream order; `format` becomes
- * `elsa-tree/4` and `$schema` is added. A document that fails to parse stops the job:
- * a re-serialisation cannot carry a syntax error across the way a concatenation could.
+ * One object with its keys in the order of 3.7 and its values carried across; an absent
+ * key stays absent. A key this format does not define keeps its place at the end rather
+ * than being dropped, so the written Tree fails V-KEYS for it as the input did -- the
+ * writer reports, it does not edit.
  */
-function readStream(text: string, notes: string[]): Record<string, unknown> | null {
-  const documents = parseAllDocuments(text)
-  for (const [index, document] of documents.entries()) {
-    const where = index === 0 ? 'manifest' : `document ${index}`
-    if (document.errors.length > 0) notes.push(`${where}: ${document.errors[0]!.message}`)
-  }
-  if (notes.length > 0) return null
-  if (documents.length < 2) {
-    notes.push('the stream holds no manifest and at least one Node')
-    return null
-  }
-
-  const manifest = documents[0]!.toJS() as Record<string, unknown>
-  return {
-    $schema: SCHEMA,
-    ...manifest,
-    format: FORMAT,
-    nodes: documents.slice(1).map((document) => document.toJS() as Record<string, unknown>),
-  }
-}
-
-/**
- * 12.6.1 steps 4 to 6 for one object: its keys in the order of 3.7, its values carried
- * across, absent keys left absent. A key this format does not define keeps its place at
- * the end rather than being dropped, so the written Tree fails V-KEYS for it as the input
- * would have -- the conversion reports, it does not edit.
- */
-function canonical(value: Record<string, unknown>, name: ObjectName, languages: string[], notes: string[]): Record<string, Json> {
+function canonical(value: Record<string, unknown>, name: ObjectName, languages: string[]): Record<string, Json> {
   const out: Record<string, Json> = {}
   const keys = ORDER[name] as readonly string[]
-  for (const key of [...keys.filter((key) => key in value), ...Object.keys(value).filter((key) => !keys.includes(key))]) {
-    out[key] = canonicalValue(key, value[key], languages, notes)
+  const own = Object.keys(value)
+  for (const key of [...keys.filter((key) => own.includes(key)), ...own.filter((key) => !keys.includes(key))]) {
+    out[key] = canonicalValue(key, value[key], languages)
   }
   return out
 }
 
-function canonicalValue(key: string, value: unknown, languages: string[], notes: string[]): Json {
+function canonicalValue(key: string, value: unknown, languages: string[]): Json {
   const kind = VALUE[key]
-  if (typeof value === 'string') return scalar(value)
-  if (kind === undefined || value === null) return value as Json
+  if (kind === undefined || value === null || typeof value !== 'object') return value as Json
   if (kind === 'text') return localised(value as Record<string, unknown>, languages)
-  if (kind === 'metadata') return metadata(value as Record<string, unknown>, notes)
+  if (kind === 'metadata') return metadata(value as Record<string, unknown>)
   if (typeof kind === 'object') {
-    return (value as Array<Record<string, unknown>>).map((entry) => canonical(entry, kind.each, languages, notes))
+    return (value as Array<Record<string, unknown>>).map((entry) => canonical(entry, kind.each, languages))
   }
-  return canonical(value as Record<string, unknown>, kind, languages, notes)
+  return canonical(value as Record<string, unknown>, kind, languages)
 }
 
-/**
- * 12.6.1 step 4: every scalar unchanged, but for a block scalar's single trailing line
- * break. Nothing is re-wrapped and nothing is trimmed inside; 3.8 step 1 already stripped
- * that break before measuring, so no text changes its counted length.
- */
-function scalar(value: string): string {
-  return value.endsWith('\n') ? value.slice(0, -1) : value
-}
-
-/** 12.6.1 step 5: a localised text lists its languages in the manifest's order. */
+/** 3.7: a localised text lists its languages in the order the manifest declares them. */
 function localised(value: Record<string, unknown>, languages: string[]): Record<string, Json> {
-  const order = [...languages.filter((lang) => lang in value), ...Object.keys(value).filter((lang) => !languages.includes(lang))]
-  return Object.fromEntries(order.map((lang) => [lang, scalar(String(value[lang]))]))
+  const own = Object.keys(value)
+  const order = [...languages.filter((lang) => own.includes(lang)), ...own.filter((lang) => !languages.includes(lang))]
+  return Object.fromEntries(order.map((lang) => [lang, value[lang] as Json]))
 }
 
 /**
- * 12.6.1 step 5: `metadata` keeps `version` first and the author's remaining keys in the
- * order they were written. A key made only of digits stops the job: a JavaScript object
- * sorts it in front of every other key, so the order above would not survive a read and a
- * write, and a conversion that renamed it would be a conversion that edits content.
+ * 3.7: inside `metadata`, `version` comes first and the author's own keys keep the order
+ * they were written in. A key made only of digits is refused by V-META, and this is why:
+ * a JavaScript object sorts an integer-like key in front of every other, so the order
+ * above would not survive a read and a write, and the idempotence below would fail on a
+ * file whose author did nothing wrong. It is left in place for the schema to report.
  */
-function metadata(value: Record<string, unknown>, notes: string[]): Record<string, Json> {
-  const out: Record<string, Json> = {}
-  for (const key of ['version', ...Object.keys(value).filter((key) => key !== 'version')]) {
-    if (/^[0-9]+$/.test(key)) {
-      notes.push(`metadata: the key "${key}" is made only of digits, which elsa-tree/4 refuses (V-META); write "note-${key}" instead`)
-      continue
-    }
-    if (key in value) out[key] = typeof value[key] === 'string' ? scalar(value[key]) : (value[key] as Json)
-  }
-  return out
+function metadata(value: Record<string, unknown>): Record<string, Json> {
+  const keys = Object.keys(value)
+  const order = keys.includes('version') ? ['version', ...keys.filter((key) => key !== 'version')] : keys
+  return Object.fromEntries(order.map((key) => [key, value[key] as Json]))
 }
 
 /** 12.6.1 step 8: every violation the loader finds in the written Tree. */
@@ -225,23 +187,16 @@ async function validated(dir: string): Promise<Violation[]> {
   }
 }
 
-async function readText(file: string): Promise<string | null> {
-  return readFile(file, 'utf8').catch(() => null)
-}
-
 /** The report: one line per note, one per violation, then one line of summary. */
 function report(treeId: string, migration: Migration): void {
   for (const note of migration.notes) console.error(`${treeId}  ${note}`)
   for (const violation of migration.violations) console.error(formatViolation(treeId, violation))
-  if (!migration.converted && migration.notes.length === 0) {
-    console.log(`${treeId}: nothing to do; the Tree is already elsa-tree/4`)
-    return
-  }
+  if (migration.notes.length > 0) return
   const counts = new Map<string, number>()
   for (const violation of migration.violations) counts.set(violation.rule, (counts.get(violation.rule) ?? 0) + 1)
   const summary = [...counts].map(([rule, count]) => `${count} ${rule}`).join(', ')
-  const wrote = migration.converted ? `${migration.ids.length} Nodes written` : 'nothing written'
-  console.log(`${treeId}: elsa-tree/3 to ${FORMAT}, ${wrote}; ${summary || 'valid'}`)
+  const wrote = migration.rewritten ? 'rewritten' : 'already in the canonical byte form'
+  console.log(`${treeId}: ${migration.ids.length} Nodes, ${wrote}; ${summary || 'valid'}`)
 }
 
 async function main(): Promise<void> {
