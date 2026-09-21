@@ -70,8 +70,15 @@ Two things make the mapping non-obvious rather than mechanical:
 6. **A question Node adds a `Question` as the `WebPage`'s `mainEntity`**, not as the
    page's type:
    - `@type` `Question`, `@id` `<page canonical>#question`;
-   - `name` the Node's title, `text` the Node's description reduced to plain text,
-     `inLanguage` the page's language;
+   - `name` the Node's title, `text` the Node's description reduced to plain text
+     **without the 155-character cut** (`application.md` 16.3, steps 1 and 2 only),
+     `inLanguage` the page's language. The `WebPage`'s `description` takes the cut
+     string and the `Question`'s `text` does not, because a `description` is a summary
+     for a result listing and a `text` is the question itself: a question closed with an
+     ellipsis is a different question, and this is a legal aid. For a conforming Tree
+     the two strings are identical -- a Node description is at most 150 counted
+     characters -- so this decides which consumer takes the loss the day that limit
+     moves, not what is emitted today;
    - `suggestedAnswer`: two `Answer` entries, in the order yes then no, each with `text`
      the chrome word for that Answer followed by a colon and the target Node's title in
      the page's language -- the exact label the button carries (`application.md` 10.3) --
@@ -146,9 +153,12 @@ Two things make the mapping non-obvious rather than mechanical:
 
 ## Consequences
 
-- The reduced plain text of a description is used in three places -- the meta description,
-  the `WebPage`'s `description` and the `Question`'s `text` -- so it has one
-  implementation, next to the address set of `ADR-118-sitemap-and-alternates.md`.
+- The reduction of a description has **one implementation** in `markdown.ts`, next to the
+  address set of `ADR-118-sitemap-and-alternates.md`, and **two outputs**: the reduced
+  string and the cut string built from it. The meta description and the `WebPage`'s
+  `description` take the cut one, the `Question`'s `text` and `llms.txt`'s blockquote the
+  reduced one (`application.md` 16.3 has the table). One function, so the four cannot
+  drift; two outputs, so the one place a cut would be wrong does not get one.
 - The JSON-LD's `Answer.url` values are canonical Node URLs, so the structured data names
   the same addresses as the sitemap and the alternates. A crawler that reads all three
   gets one consistent graph.

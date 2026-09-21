@@ -750,7 +750,7 @@ the client components are four again.
 | `src/url.ts` | Parsing a request into `{ treeId, trail, nodeId, lang }` and building every link. **[#118]** Also the absolute form of a link against a base, and a Node's **address set**: its canonical URL per declared language and which is the default (16.3). | Read files or render. |
 | `src/chrome.ts` | The chrome strings and the language fallback rule. | Contain Tree content. |
 | `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. | Parse Trees or URLs. |
-| `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab; **[#75]** a `[text](#id)` mark to a marked term and its explainer panel (10.8), given the Node's explainers. **[#118]** Also the rich-text subset to **plain text**, and the 155-character description cut (16.3), which the meta description, the JSON-LD and `llms.txt` all take so that the three cannot differ. | Accept raw HTML. Know what the panel looks like. |
+| `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab; **[#75]** a `[text](#id)` mark to a marked term and its explainer panel (10.8), given the Node's explainers. **[#118]** Also the rich-text subset to **plain text**, and the 155-character cut built from it (16.3). Two outputs from one reduction: the meta description and the `WebPage`'s `description` take the cut string, the `Question`'s `text` and `llms.txt`'s blockquote take the uncut one, and the table in 16.3 says which is which. | Accept raw HTML. Know what the panel looks like. |
 | `src/components/` | Views. Server components take data and return markup -- `Logo.tsx` **[v0.2]** is one: it asks `theme.ts` which logo variant this palette calls for and renders it, or the Tree's title when there is none (13.2). The four client components own exactly one interaction each (section 1); the interim fifth of #41, `Thumbnails.tsx`, was removed by #43 (above). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
 | `src/app/` | Routes: parse, load, hand to a view; redirects; the image and theme routes; 404. The `[lang]` layout sets `<html lang>` and emits the Theme. | Hold logic. Take the language from `searchParams` (4.4). |
 | `next.config.ts` | The two rewrites of 4.4, plus the build settings of section 1. | Know which languages a Tree declares, or anything else about the application. |
@@ -825,7 +825,7 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | `stylesheet.test.ts` **[v0.2]** | `globals.css` contains no colour literal (`#rgb`, `#rrggbb`, `rgb(`, `hsl(`, a CSS colour keyword) and no `font-family` value that is not `var(--elsa-font-*)`. This is core document section 9's "the frontend must never carry a lab's branding in its code", as a test that cannot be argued with. |
 | `views.test.tsx` | Each situation's structure (10.3): what the Interior holds -- the main image as a link named by `enlarge` and its description and described by its credit, or the empty slot; the title; the description with its marked terms and their panels (10.8); the Sources heading and the two kind prefixes that remain -- which controls exist and where they link: the up arrow's `href` on a Node with a Trail, at the root and on a Node opened without one; both Answer buttons the same shape with the chrome word, a colon and the title in one label; `startAgain` on a Terminal and on an explanation Node shown as the centre; the Option buttons in the fan's order with their targets' first Images, and the fan's numbers for one, two, five and eight Options; each Option's Overlay as a closed disclosure holding the target's Interior and its Options as links, with the heading link, and `open` on the one the URL names (10.9); the strip's markup (12): the Images after the first, `loading="lazy"` with `width` and `height`, no button and no caption element, no strip on a Node with fewer than two Images; nothing in the markup keyed to a credit's length. **[#75]**, rewritten by #80, #81 and #82. |
 | `markdown.test.ts` | The subset of `tree-format.md` 3.4; **[#75]** a `[text](#id)` mark renders the term and its panel of 10.8 and a mark to an unknown id is refused. **[#118] #120 adds** the plain-text reduction of 16.3: a link becomes its text and an explainer mark its term, emphasis and code markers go, a `
-` becomes one space and runs of whitespace collapse, and the result contains no Markdown syntax character left over -- and the **155-character cut** separately: a description under the limit is returned whole and uncut, one over it is cut on a word boundary with a single-character ellipsis, the cut counts Unicode code points and never splits a surrogate pair or a combining sequence, and the same input gives the same output every time, since the meta description, the JSON-LD and `llms.txt` all take this one string (16.3). |
+` becomes one space and runs of whitespace collapse, and the result contains no Markdown syntax character left over -- and the **155-character cut** separately: a description under the limit is returned whole and uncut, one over it is cut on a word boundary with a single-character ellipsis, the cut counts Unicode code points and never splits a surrogate pair or a combining sequence, and and the same input gives the same output every time. **Both outputs are asserted**: the reduced string and the cut string are returned by one function, and the test checks that the cut string is a prefix of the reduced one (or equal to it), so the `Question`'s `text` and the meta description can never come from two different reductions (16.3). |
 | `interop.test.tsx` | Below. |
 
 | Browser (Playwright) | Asserts |
@@ -2198,9 +2198,25 @@ because they take a reader's space on screen, and a meta description shows nobod
 asterisk. Steps 3 and 4 do not fire for a conforming Tree, whose Node description is at
 most 150 counted characters since #102 (`tree-format.md` 5.7); they are stated anyway,
 because a reduction that is not total is a reduction with a crash in it, and because that
-limit is the layout's and has already moved twice. The same reduced string is the
-`WebPage`'s `description` and the `Question`'s `text` in 16.4, so the three cannot
-differ.
+limit is the layout's and has already moved twice.
+
+**The reduction has two outputs, and 16.4 and 16.5 take different ones.** Steps 1 and 2
+give the **reduced** string; steps 3 and 4 give the **cut** string, at most 155
+characters and possibly ending in an ellipsis.
+
+| Taken by | Which |
+|---|---|
+| the page's `<meta name="description">` | the **cut** string. 155 characters is what a result listing shows; a description written for that box is the whole point of cutting. |
+| the `WebPage`'s `description` (16.4) | the **cut** string, the same one, byte for byte -- the `WebPage` is the record of this page and its `description` must be what the page says about itself. |
+| the `Question`'s `text` (16.4) | the **reduced** string, **not cut**. A `Question`'s `text` is the question, and a question cut mid-clause and closed with an ellipsis is a different question -- in a legal aid, a misstatement of exactly the kind 16.4 refuses `QAPage` over. `name` already carries the short form (the Node's title). |
+| the `Dataset`'s `description` (16.4) | the **reduced** string, not cut. It is a dataset record's abstract, read by an index rather than shown in a listing, and it is built from the manifest's description, which has its own limit. |
+| `llms.txt`'s blockquote (16.5) | the **reduced** string, not cut: it is a document, not a result listing. |
+
+Both come from one function in `markdown.ts` (section 6), the cut string built from the
+reduced one, so they cannot drift apart even where they differ. **For a conforming Tree
+they are the same string**: a Node description is at most 150 counted characters since
+#102, so steps 3 and 4 do not fire. The distinction is what happens the day that limit
+moves again, and it decides in advance which consumer takes the loss.
 
 ### 16.4 JSON-LD
 
@@ -2238,7 +2254,7 @@ code change.
 
 **Every Node page carries a `WebPage`**: `@id` and `url` the page's canonical URL (which
 includes `?lang` when not the default, so each language is its own `WebPage`), `name` the
-Node's title, `description` the page's meta description (16.3), `inLanguage` the page's
+Node's title, `description` the page's meta description -- the **cut** string of 16.3, the same bytes the `<meta name="description">` carries -- `inLanguage` the page's
 language, and `isPartOf` `{ "@id": "<base>/<tree-id>#dataset" }`. Every other page refers
 to the `Dataset` by that `@id` and never restates it.
 
@@ -2246,7 +2262,9 @@ to the `Dataset` by that `@id` and never restates it.
 type:
 
 - `@type` `Question`, `@id` `<page canonical>#question`, `name` the Node's title, `text`
-  the Node's description reduced to plain text, `inLanguage` the page's language;
+  the Node's description **reduced to plain text and not cut** -- steps 1 and 2 of 16.3,
+  never steps 3 and 4, so a `Question`'s `text` never ends in an ellipsis; `inLanguage`
+  the page's language;
 - `suggestedAnswer`: two `Answer` entries, yes then no, each with `text` the chrome word
   for that Answer, a colon and the target Node's title in the page's language -- the exact
   label the button carries (10.3) -- and `url` the target's canonical URL in that
