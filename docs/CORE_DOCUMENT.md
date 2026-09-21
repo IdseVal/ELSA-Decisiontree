@@ -214,7 +214,11 @@ required was named.
 - The Tree may grow large (the owner mentioned "a thousand images" as a plausible
   size); nothing may load the whole Tree or all images on first visit.
 - Constraints on the format, stated by the owner: graph-shaped; hand-editable;
-  lightweight; the shape is a public contract for third-party Trees.
+  lightweight; the shape is a public contract for third-party Trees. **[#118]
+  Hand-editability is no longer one of them** (10.21 SUPERSEDED): the owner set the
+  frontend editor as the next round on 2026-09-21, so no person will ever work inside
+  the file again. Graph-shaped, lightweight and a public contract stand, and the format
+  is JSON (3.1).
 
 ### 3.2 The frontend
 
@@ -457,6 +461,10 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
   annex as a legal Source with its EUR-Lex URL. Verification of the owner's
   recollections is a research task.
 - **Tree content is authored by the owner** as files and must remain hand-editable.
+  **[#118] The second half no longer holds** (10.21 SUPERSEDED): the content is still the
+  owner's and still lives in a file in the repository, but it is authored through the
+  frontend editor of the next round and written by tools, not by hand, so the file is
+  JSON (3.1).
 - **Images**: the owner downloads them and places them in a **dedicated images folder**
   in the repository. Each carries a credit. They are served from the server and loaded
   only for the Node on screen -- never all at once. **[v0.2]** The owner has not placed

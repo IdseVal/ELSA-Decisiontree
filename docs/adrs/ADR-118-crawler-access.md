@@ -29,22 +29,13 @@ be crawled. It is needed for two other things:
    request's origin when the variable is unset -- `application.md` 16).
 2. **A `User-agent: *` block with `Allow: /`**, and no `Disallow` line anywhere in the
    file.
-3. **One `Allow: /` block per named agent**, for these twenty, grouped by operator. The
-   tokens are as their operators published them on 2026-09-21.
-
-   | Operator | Tokens | What each is |
-   |---|---|---|
-   | OpenAI | `GPTBot`, `OAI-SearchBot`, `ChatGPT-User` | training; ChatGPT Search's index; a fetch a user asked for |
-   | Anthropic | `ClaudeBot`, `Claude-SearchBot`, `Claude-User`, `Claude-Web` | training; Claude's search index; a fetch a user asked for; the older token the owner named, kept because it costs one line |
-   | Perplexity | `PerplexityBot`, `Perplexity-User` | the answer index; a fetch a user asked for |
-   | Google | `Googlebot`, `Google-Extended` | Search; the AI-training control token |
-   | Microsoft | `Bingbot` | Search |
-   | Apple | `Applebot`, `Applebot-Extended` | Siri, Spotlight and Safari; the AI-training control token |
-   | Meta | `meta-externalagent`, `meta-externalfetcher` | training; a fetch for a product feature |
-   | Common Crawl | `CCBot` | the open crawl many models and researchers read |
-   | Amazon | `Amazonbot` | Alexa and Amazon's assistants |
-   | ByteDance | `Bytespider` | training |
-   | DuckDuckGo | `DuckDuckBot` | Search |
+3. **One `Allow: /` block per named agent**, for twenty tokens, grouped by operator:
+   OpenAI, Anthropic, Perplexity, Google, Microsoft, Apple, Meta, Common Crawl, Amazon,
+   ByteDance and DuckDuckGo -- each operator's crawler, its search or answer index, and,
+   where the operator has one, its AI-training control token and its user-initiated
+   fetcher. **The tokens themselves are listed once, in `application.md` 16.1**, as their
+   operators published them on 2026-09-21. This ADR deliberately does not repeat them:
+   see point 6 -- a copy here would be the second table the list must not have.
 
 4. **Nothing is disallowed, the image route included.** The issue offered to exclude "the
    image route's enlarged views if you judge them noise". They are not a URL: the

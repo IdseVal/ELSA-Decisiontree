@@ -853,7 +853,7 @@ Recorded in `docs/adrs/ADR-38-modules-and-tests.md`, which amends
 | 8 **[#118]** the Tree data is public under CC BY 4.0, served with no cookie and no account | 15.2: the licence in a `Link` header on the bytes themselves, and the no-cookie sweep extended to every route of 15 and 16 |
 | 10.21 **[#118]** superseded: hand-editability is no longer the criterion | `tree-format.md` 3.7, 3.9; `docs/adrs/ADR-118-json-serialisation.md` |
 | 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`); 5.1, 5.2 |
-| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (never, in any response) |
+| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; 15.2 is the one route that serves the whole file, and it is the dataset, not a page) |
 | 3.1 / 9 images only for the Node on screen | 11.4, 12.4; **[#75]** 11.5 names the one exception per Option (core document 10.29) |
 | 3.1 text has a maximum length | `tree-format.md` 5.7, confirmed against this layout in 10.7 (**[#75]** again, with two pixels to spare: core document 10.28) |
 | 3.2 the screen is a tree: a Bubble, the way back above, Answers below, side children beside | 10.1 to 10.3; **[#75]** the up arrow (10.2), the fan-out (10.3) |
@@ -2047,8 +2047,9 @@ set, and otherwise the request's own origin. A public deployment sets it, and
 `docs/deployment.md` says so beside the variable. The value is used **only** to build the
 URLs these five contracts emit: it is never fetched, never redirected to, and never used
 to read a file. Where it enters a document it is escaped as that document requires --
-XML-escaped in the sitemap, and JSON-encoded with `<` written `<` in the JSON-LD
-(16.4), by the rule 13.3 already states for a Tree's text.
+XML-escaped in the sitemap, and JSON-encoded with every `<` emitted as the escape
+`\u003c` -- not as the character -- in the JSON-LD (16.4), by the rule 13.3 already
+states for a Tree's text.
 
 **Every route of this section is generated from the loaded Tree at request time**, never
 a static file in the repository, and none of them sets a cookie.
@@ -2249,10 +2250,23 @@ page is community question-and-answer or a frequently-asked-questions list; this
 step of a legal decision aid, and claiming a type to win a rich result would be a
 misstatement about structure in a document whose value is that it is trustworthy.
 
-**Escaping.** Every value the server puts in the script is JSON-encoded and `<` is written
-`<`, so that no title, description, credit or origin can close the `<script>`
-element. That is 13.3's rule applied to the second place a Tree's text -- third-party
-data -- reaches the document.
+**Escaping.** Every value the server puts in the script is JSON-encoded, and in the
+encoded payload every `<` (U+003C) is emitted as the JSON escape `\u003c`
+(the six characters `\`, `u`, `0`, `0`, `3`, `c` -- written out here because an editor that folds the escape is exactly how this rule became a tautology once) rather than as the character
+itself. JSON reads `\u003c` back as `<`, so the object a
+consumer parses is unchanged; the bytes in the element are not, and the sequence
+`</script>` therefore cannot occur in the payload -- no title, description, credit or
+origin can close the `<script>` element. The escape is applied to the whole serialised
+string, not to selected fields, because any value may come from the Tree. HTML entities
+are **not** the mechanism here: the content of a `<script>` element is not entity-decoded
+by an HTML parser, so writing `&lt;` would put the four literal characters into the JSON
+and break it.
+
+**And checked at the sink.** Before the string is put in the element, `src/findability/`
+checks that it contains no `</script>` sequence (case-insensitively) and no `<!--`; if it
+does, the script is not emitted and the page is served without its JSON-LD. Two checks,
+because one of them is at the sink. That is 13.3's rule and 13.3's discipline applied to
+the second place a Tree's text -- third-party data -- reaches the document.
 
 Reserved and deliberately empty for now: `identifier` (a DOI, when the project has one)
 and `sameAs` (the repository, when what the public sees there is settled -- #112);

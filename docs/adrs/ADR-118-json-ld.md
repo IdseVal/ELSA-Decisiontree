@@ -89,9 +89,17 @@ Two things make the mapping non-obvious rather than mechanical:
    `suggestedAnswer` for each would tell a machine the opposite of what the data means.
    The Option targets are ordinary links in the page and are crawled as such.
 9. **Escaping is part of the contract.** Every value the server puts in the script is
-   JSON-encoded, and `<` is written `<` so that no title, description, credit or
-   origin can close the `<script>` element. The rule is `application.md` 13.3's, applied
-   to a second place a Tree's text -- third-party data -- reaches the document.
+   JSON-encoded, and in the encoded payload every `<` (U+003C) is emitted as the JSON
+   escape `\u003c` (the six characters `\`, `u`, `0`, `0`, `3`, `c` -- written out here because an editor that folds the escape is exactly how this rule became a tautology once)
+   rather than as the character itself. A consumer's parser reads
+   `\u003c` back as `<`, so the object is unchanged, but the sequence `</script>` cannot
+   occur in the bytes -- no title, description, credit or origin can close the `<script>`
+   element. An HTML entity such as `&lt;` would not do it: a `<script>` element's content
+   is not entity-decoded, so the entity would land in the JSON as four literal
+   characters. The emitted string is then checked for `</script>` and `<!--` at the sink
+   and dropped rather than emitted if either is present. The rule is `application.md`
+   13.3's, applied to a second place a Tree's text -- third-party data -- reaches the
+   document.
 
 ## Alternatives rejected
 
@@ -109,6 +117,20 @@ Two things make the mapping non-obvious rather than mechanical:
 - **`acceptedAnswer` on the `Question`.** There is no accepted answer; there is the
   reader's answer.
 - **Mapping each Option to a `suggestedAnswer`.** See decision 8.
+- **`isBasedOn` as a fixed CELEX address for the AI Act.** The issue wrote the field this
+  way: name the instrument the first Tree is about, by its CELEX number
+  (`32024R1689`). Rejected on two counts. It hard-codes one instrument into the
+  application, so a third-party Tree about another regulation -- the interoperability
+  the format exists for (core document 3.1) -- would carry the AI Act's identifier and
+  state something false; and a CELEX address is not what the Trees cite. Their legal
+  Sources are ELI URLs, which negotiate language, and `isBasedOn` should name the thing
+  a reader following the page's own links arrives at. Deriving the value from the most
+  frequent `kind: legal` Source (decision 4) yields
+  `https://eur-lex.europa.eu/eli/reg/2024/1689/oj` for both Trees here -- the same
+  instrument the issue meant, reached by the address the data actually uses, and correct
+  for a Tree nobody here wrote. The CELEX number stays in this ADR and in 16.4 as prose
+  identifying the instrument, never as the emitted value.
+
 - **`sameAs` pointing at the GitHub repository.** The issue offered it. Left out: what
   the public sees at that address is an open question (#112 -- `main` holds a stub
   today), and a `sameAs` that resolves to an empty repository is a worse statement than

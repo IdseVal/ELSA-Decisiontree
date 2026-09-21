@@ -795,8 +795,16 @@ language**.
 | `explainers` on a Node | 8 entries | V-COUNT |
 | `fonts` in a Theme | 2 families, 8 files each | V-COUNT |
 
-`metadata` values, URLs, ids and file names have no length rule beyond their own
-grammar; they are not shown in the Bubble.
+`metadata` values and URLs have no length rule beyond their own grammar; they are not
+shown in the Bubble. **[#118]** An **id** is capped at **64** characters and an image,
+logo or font **file name** at **128**, and those two caps are in the schema
+(`schemas/elsa-tree-4.json`, the `maxLength` keywords on `id`, `imageFileName`,
+`logoFileName` and `fontFileName`) rather than here. They are not layout limits and
+nothing in the Bubble depends on them: they are structural caps on machine-facing
+tokens, which the schema can assert because the grammar of both is already ASCII, so a
+code-point count is a byte count and section 3.8 has nothing to contribute. An id
+travels in every URL and a file name in every image request; the caps keep either from
+growing into a path or a header a server has to carry.
 
 **The assumptions the numbers derive from.** They are written down so that the
 application architecture, which fixes the layout, can confirm or correct them; if it
