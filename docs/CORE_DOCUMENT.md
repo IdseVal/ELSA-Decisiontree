@@ -127,7 +127,10 @@ required was named.
     #78. Whether an Option keeps Images of its own or the picture on its button is
     simply its target's main image is the Architect's (issue #78); that the button
     shows an image of a Node other than the one on screen collides with "images are
-    loaded only for the Node on screen" (below, section 9) and is **OPEN 10.29**.
+    loaded only for the Node on screen" (below, section 9) and was decided by the
+    Architect, 10.29 (issue #78): a page may fetch, for each Option of the centre
+    Node, exactly one file, the target's first Image,
+    `docs/adrs/ADR-78-fan-out-and-option-picture.md`.
   - **[#75] Explainers (owner, #75):** some words in a Node's text carry a short
     explanation that the frontend shows in a small panel on hover (3.2): "on
     'Jurisdictional scope of the AI Act? (1/7)' I want 'provider' to be hoverable with
@@ -193,7 +196,10 @@ required was named.
   above its title, then its title, description and Sources -- in an **Overlay** over the
   page, closed by a cross, by Escape or by a click outside it. Every Node stays
   reachable by URL (shareable links, below); how an open Overlay relates to the address
-  is the Architect's (**OPEN 10.27**, issue #78).
+  was decided by the Architect, 10.27 (issue #78): opening or closing an Overlay
+  does not change the address, `docs/adrs/ADR-78-overlay.md`, amended by
+  `docs/adrs/ADR-100-bounded-centre.md` and
+  `docs/adrs/ADR-100-overlay-without-strip.md`.
 - **[#75] The side children fan out like a mind map, in larger text (owner, #75).**
   "The text on the side-nodes as they are displayed must be bigger and better readable,
   also I want how the side-nodes are displayed to fan out a little more like a mindmap."
@@ -202,11 +208,16 @@ required was named.
   have this, we want that on all side-nodes in the structure." (The example works
   today because those pictures are written on the Options themselves, not on their
   targets; a picture that belongs to the side child collides with the image rule of
-  3.1 and section 9 -- **OPEN 10.29**, issue #78.)
+  3.1 and section 9 -- decided by the Architect, 10.29 (issue #78): one file per
+  Option, the target's first Image,
+  `docs/adrs/ADR-78-fan-out-and-option-picture.md`.)
 - **[#75] A main image above the title (owner, #75).** Every Node's main image (3.1) is
   displayed above the Node's title in its Bubble, "and the overlay itself follows the
   same rule of displaying the image above the title." The height it takes inside the
-  Bubble, against the length limits of 3.1, is **OPEN 10.28** (issue #78).
+  Bubble, against the length limits of 3.1, was decided by the Architect, 10.28
+  (issue #78): the limits survive, and amended by the owner (2026-09-19, issue
+  #102): the picture takes two fifths of the Bubble and the description is cut to
+  150 characters and 2 lines, `docs/adrs/ADR-78-main-image-and-row-budget.md`.
 - **[#75] The Carousel: pictures only, no buttons, no caption, at the Bubble's lower
   edge (owner, #75).** "There can be more images than the main image, these should be
   shown in the carroussell, however, the rule was that the carrousel will not have any
