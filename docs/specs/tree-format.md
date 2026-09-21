@@ -1014,9 +1014,9 @@ The **Where** column below says which of the two a rule belongs to.
 | V-FORMAT | schema | `format` exactly `elsa-tree/4`. |
 | V-NULL | schema | no `null` as the value of any key this format defines. An absent optional field is omitted. |
 | V-EMPTY | schema | no empty array and no empty object as the value of any key this format defines. Inside `metadata` the schema accepts both, as it accepts `null` there (V-NULL, 3.7). |
-| V-LANG | schema, rules | `languages`: a non-empty array of valid language tags (3.3), which the rules also check are distinct. |
+| V-LANG | schema | `languages`: a non-empty array of valid language tags (3.3), distinct from each other. Distinctness is the schema's `uniqueItems`, not a content rule: a repeated tag is a shape failure, and one tool says it. |
 | V-ROOT | rules | `root` naming an existing Node that is a question Node or a Terminal. |
-| V-TITLE | schema, rules | `title` as a plain localised text, at the top level. |
+| V-TITLE | schema | `title` present at the top level, as a localised text. That it is plain and within its length is V-PLAIN and V-LENGTH, which report under their own ids: there is no V-TITLE content check, and nothing reports that id. |
 | V-META | schema | `metadata` as an object whose `version` is a non-empty string (at the top level and on every Node), and **no key made only of digits** -- an integer-like key sorts to the front of a JavaScript object and would break the key order and the idempotence of 3.7. |
 | V-KEYS | schema | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `$schema`, `format`, `languages`, `root`, `theme` and `nodes` only at the top level; `id` never at the top level. |
 | V-REACH | rules | every Node reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target. |
