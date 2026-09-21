@@ -28,8 +28,9 @@ Section 7 has twenty-odd rules. They fall into three kinds:
   text** of 3.8 -- Markdown links replaced by their text, explainer marks likewise,
   Unicode code points counted, and for rich text an estimated line count at 75 characters
   a line. A JSON Schema's `maxLength` counts UTF-16 code units of the raw string. For a
-  description with two links the two numbers differ, so a `maxLength: 600` would reject
-  text the format allows and would be a different rule wearing the same number.
+  description with two links the two numbers differ, so a `maxLength: 150` -- a Node
+  description's limit since #102 -- would reject text the format allows and would be a
+  different rule wearing the same number.
 - **Cross-reading**: V-L10N (every localised text holds exactly the declared languages),
   V-ROOT, V-ANSWERS, V-OPTIONS, V-ORPHAN, V-REACH, V-IMAGE (the file exists on disk),
   V-EXPLAINER and V-MARK. Each needs another part of the file, or the file system.
@@ -69,8 +70,8 @@ Section 7 has twenty-odd rules. They fall into three kinds:
 - **Put the length limits in the schema as `maxLength` and `maxItems`.** Tempting because
   a generic validator would then catch more. Rejected: `maxLength` measures the raw
   string, the format measures counted text (3.8), and the two disagree on exactly the
-  descriptions authors write -- the ones with links. An author would be told "600 is the
-  maximum" by one tool and "your 612 characters are 587 counted" by the other. The counts
+  descriptions authors write -- the ones with links. An author would be told "150 is the
+  maximum" by one tool and "your 162 characters are 137 counted" by the other. The counts
   (`maxItems`) could be expressed faithfully, but splitting the limits across two
   documents by whether each happens to be expressible is the worst of both: keep every
   limit in 5.7 and every limit's message in the loader.

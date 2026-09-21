@@ -1,59 +1,79 @@
-# Tree file format -- `elsa-tree/3`
+# Tree file format -- `elsa-tree/4`
 
-> Status: FROZEN -- 2026-09-17 (issue #78); `elsa-tree/3` replaces `elsa-tree/2` (frozen 2026-09-10, issue #37). This document is the interoperability
-> contract: any Tree that follows it loads in the ELSA decision-tree frontend without a
-> code change. Changing it requires a new `architecture` issue and a new format number.
-> **Amended 2026-09-19 (#102, by the owner):** one change was made without a new number: the
-> Node description's limit was cut to 150 characters and 2 lines under `elsa-tree/3`
-> (section 5.7 says why).
+> Status: FROZEN -- 2026-09-21 (issue #118); `elsa-tree/4` replaces `elsa-tree/3` (frozen
+> 2026-09-17, issue #78). This document is the interoperability contract: any Tree that
+> follows it loads in the ELSA decision-tree frontend without a code change. Its structural
+> half is published as a JSON Schema at `schemas/elsa-tree-4.json` (3.9), which the app
+> serves at `/schemas/elsa-tree-4.json`. Changing this contract requires a new
+> `architecture` issue and a new format number.
 >
-> **What this version is.** `elsa-tree/3` replaces `elsa-tree/2`. The owner saw version
-> 0.2 running and asked for two things the data must carry (`docs/CORE_DOCUMENT.md` 3.1,
-> revised 2026-09-17; `docs/adrs/ADR-75-presentation-changes.md`): **explainers** -- the
-> Tree says which words of a Node's description have a short explanation shown on hover,
-> and what it says, per language -- and a **main image** on every Node, shown above its
-> title. Three things change (`docs/adrs/ADR-78-explainers.md`,
-> `ADR-78-fan-out-and-option-picture.md`, `ADR-78-carousel.md`): a Node may carry an
-> `explainers` list and mark each occurrence in its description with the link syntax,
-> `[providers](#provider)` (3.4, 5.9, rules V-EXPLAINER and V-MARK); an Option no longer
-> carries `images` of its own, because the picture on its button is its target's main
-> image (5.4); and 5.2 is restated: the first Image of a Node is its main image, nothing is
-> written under the Carousel's pictures, the description is accessible text, and the
-> credit is shown in the enlarged view and read as the picture's description. The length
-> limits of 5.7 are confirmed unchanged against the new layout
-> (`docs/adrs/ADR-78-main-image-and-row-budget.md`; `application.md` 10.7), with two
-> new limits for the explainers. Everything else carries over. Section 12.5 is the
-> conversion; **until the loader of issue #79 merges, the code on `dev` still reads
-> `elsa-tree/2`**, and both Trees under `trees/` are still written in it; nothing new may
-> be built against `elsa-tree/2`.
+> **What this version is.** `elsa-tree/4` is `elsa-tree/3` in JSON. **Only the
+> serialisation changes.** Every field, every kind of Node, every closed set, every
+> validity rule about content and every limit of 5.7 is what it was -- the Node
+> description's 150 characters and 2 estimated lines included, which the owner cut under
+> `elsa-tree/3` on 2026-09-19 (#102, 5.7) -- so a Tree converts by the procedure of 12.6
+> with no hand-editing and no change to a single piece of its text.
+> What changes is the file: one `tree.json` object instead of a `tree.yaml` stream, `nodes`
+> an array in the author's order, multi-line text a string with `\n` instead of a block
+> scalar, no comments anywhere, a required `$schema`, and a canonical byte form so that two
+> writers of the same Tree produce the same bytes (3.7). The decisions are
+> `docs/adrs/ADR-118-json-serialisation.md` and `ADR-118-json-schema.md`; section 11 has
+> the table.
 >
-> **What `elsa-tree/2` was.** `elsa-tree/2` replaces `elsa-tree/1` (frozen 2026-09-03,
-> issue #4; kept readable on branch `version-0.1`, file `docs/specs/tree-format.md`
-> there). The owner changed three requirements the old format rested on
-> (`docs/CORE_DOCUMENT.md`, revised 2026-09-09; `docs/adrs/ADR-35-version-0-2-rework.md`):
-> a Tree is **one text file** instead of a folder of Node files; the Tree carries its
-> **Theme** (logo, fonts, colours); and every user-facing text has a **maximum length**,
-> because nothing on the page may scroll. Everything else is carried over unchanged:
-> ids and Node references, localised text, the Markdown subset, image file names and the
-> `images/` folder, Sources, Images, Answers, Options, the terminal marker, the three
-> kinds of Node, strict validation, and the reservation for Cross-links.
+> **Why.** The criterion that chose YAML is gone. `elsa-tree/1` to `/3` weighed
+> **hand-editability of one large multilingual file** above everything else (core document
+> item 10.21), because the owner authored Tree content in a text editor. On 2026-09-21 the
+> owner decided that Trees are edited **through the frontend** in the round after this one,
+> so no person will work inside the file again, and that Tree data is **JSON only**, so
+> that the editor, the validator, the loader, the app and the public download all speak one
+> format from one schema (core document 3.1, revised 2026-09-21; item 10.21, superseded).
+> The file is therefore **written by tools and read by tools**: it carries no comments, it
+> promises no formatting beyond the byte form of 3.7, and it is served to the public
+> unchanged at the dataset endpoint (`docs/specs/application.md` section 15), so the
+> download *is* the dataset.
 >
-> **The migration of issue #39** (`elsa-tree/1` to `elsa-tree/2`) is section 12.1 to 12.4,
-> kept as written; #79 adds 12.5.
+> **Until the loader of issue #119 merges, the code on `dev` still reads `elsa-tree/3`**,
+> and both Trees under `trees/` and every fixture are still written in it; nothing new may
+> be built against `elsa-tree/3`.
+>
+> **What `elsa-tree/3` was.** `elsa-tree/3` replaced `elsa-tree/2` (issue #78, 2026-09-17)
+> for two things the owner asked the data to carry (`docs/CORE_DOCUMENT.md` 3.1, revised
+> 2026-09-17; `docs/adrs/ADR-75-presentation-changes.md`): **explainers** -- the Tree says
+> which words of a Node's description have a short explanation shown on hover, and what it
+> says, per language (5.9, rules V-EXPLAINER and V-MARK) -- and a **main image** on every
+> Node, the first entry of its `images` (5.2), which is also the picture on the button of
+> every Option that leads to it, so an Option no longer carries `images` of its own (5.4).
+> The limits of 5.7 were confirmed unchanged against the layout of #75. All of that is
+> `elsa-tree/4`'s too.
+>
+> **What `elsa-tree/2` was.** `elsa-tree/2` replaced `elsa-tree/1` (issue #37, 2026-09-10;
+> `elsa-tree/1` is kept readable on branch `version-0.1`) after the owner changed three
+> requirements (`docs/CORE_DOCUMENT.md`, revised 2026-09-09;
+> `docs/adrs/ADR-35-version-0-2-rework.md`): a Tree is **one file** instead of a folder of
+> Node files; the Tree carries its **Theme**; and every user-facing text has a **maximum
+> length**, because nothing on the page may scroll. Everything else was carried over
+> unchanged, and still is: ids and Node references, localised text, the Markdown subset,
+> image file names and the `images/` folder, Sources, Images, Answers, Options, the
+> terminal marker, the three kinds of Node, strict validation, and the reservation for
+> Cross-links.
+>
+> **The migrations** are section 12: 12.1 to 12.4 from `elsa-tree/1`, 12.5 from
+> `elsa-tree/2`, and 12.6 from `elsa-tree/3` to this version.
 >
 > Vocabulary: the canonical names from `docs/CORE_DOCUMENT.md` section 5 -- **Tree**,
 > **Node**, **Link**, **Answer**, **Option**, **Terminal**, **Image**, **Source**,
 > **Trail**, **Cross-link**, **Bubble**, **Branch**, **Carousel**, **Theme** -- are used
 > here with exactly that meaning; **explainer** and **main image** are defined in 5.9 and
 > 5.2. The decisions behind this document are recorded one per file in
-> `docs/adrs/ADR-78-*.md` (`elsa-tree/3`), `docs/adrs/ADR-37-*.md` (`elsa-tree/2`) and
-> `docs/adrs/ADR-4-*.md` (`elsa-tree/1`), section 11.
+> `docs/adrs/ADR-118-*.md` (`elsa-tree/4`), `ADR-78-*.md` (`elsa-tree/3`), `ADR-37-*.md`
+> (`elsa-tree/2`) and `ADR-4-*.md` (`elsa-tree/1`), section 11.
 
 This document is written so that a third party -- another ELSA lab, or the owner of this
-project -- can author a complete Tree from it alone, in a text editor, with no other
-reference. Section 8 contains a complete, loadable example Tree in English and Dutch;
-section 9 shows what changes for a Tree with a single language; section 12 says how a
-Tree written in `elsa-tree/1` is converted.
+project -- can produce a complete Tree from it alone, with whatever tool they write it
+with, and check it against the schema of 3.9 before it ever meets this application.
+Section 8 contains a complete, loadable example Tree in English and Dutch; section 9 shows
+what changes for a Tree with a single language; section 12 says how a Tree written in an
+earlier version is converted.
 
 ## 1. Overview
 
@@ -62,17 +82,18 @@ A Tree is a **folder** holding **one text file** and up to two folders of asset 
 ```
 trees/
   <tree-id>/
-    tree.yaml               the whole Tree: the manifest, the Theme, and every Node
+    tree.json               the whole Tree: the manifest, the Theme, and every Node
     images/                 the Tree's Images, placed here by hand (optional folder)
       <file>
     theme/                  the Theme's files: logo, icon, fonts (optional folder)
       <file>
 ```
 
-- `tree.yaml` is a **YAML 1.2 stream**: a sequence of YAML documents separated by
-  `---` lines. The **first document is the manifest** (identity, languages, root,
-  metadata, Theme). **Every following document is one Node**, addressed by its `id`
-  key. Section 4 has the manifest, section 5 a Node, section 3.7 the YAML rules.
+- `tree.json` is **one JSON object** (RFC 8259, UTF-8). It carries `$schema` and `format`,
+  the **manifest fields** (identity, languages, root, metadata, Theme) at its top level,
+  and **`nodes`: an array holding every Node, in the author's order**, each element with
+  its own `id`. Section 4 has the manifest, section 5 a Node, section 3.7 the JSON rules
+  and the byte form, section 3.9 the schema.
 - Every piece of user-facing text is a **localised text**: a mapping from language tag
   to string, holding every language the Tree declares (section 3.3).
 - A Node is one of three kinds, decided by its own content: a **question Node** (has
@@ -83,6 +104,11 @@ trees/
   (section 5.7). The validator, not the screen, is what stops an author.
 - The Theme is optional. A Tree without one loads and is shown in the frontend's plain
   default look (section 4.3).
+- **The file is written by tools and read by tools.** It has no comments, no formatting
+  promises beyond the byte form of 3.7, and no place for a note that is not data: an
+  author's note goes in a `metadata` key. The same bytes are served to the public at the
+  dataset endpoint (`docs/specs/application.md` 15), so the file, the validator's input
+  and the published dataset are one thing.
 
 All folders under `trees/` are read by the loader; nothing else in the repository is
 part of a Tree. Which Tree a deployment serves is outside this contract
@@ -93,14 +119,21 @@ part of a Tree. Which Tree a deployment serves is outside this contract
 | Path | Meaning | Rule |
 |---|---|---|
 | `trees/<tree-id>/` | One Tree. | `<tree-id>` is an **id** (section 3.1). The folder name *is* the Tree's id; there is no `id` field in the manifest. |
-| `trees/<tree-id>/tree.yaml` | The whole Tree (section 4, section 5). | Required, exactly this name. |
+| `trees/<tree-id>/tree.json` | The whole Tree (section 4, section 5). | Required, exactly this name. |
 | `trees/<tree-id>/images/<file>` | One image file. | `<file>` follows the image file name rule (section 3.5). Flat: sub-folders are not read. The folder may be absent if no Node has Images. |
 | `trees/<tree-id>/theme/<file>` | One Theme file: a logo, an icon, a font. | `<file>` follows the theme file name rule (section 3.6). Flat. The folder may be absent if the Tree has no Theme or the Theme names no files. |
+
+One file of this repository is not part of a Tree and belongs beside this table because
+every Tree points at it:
+
+| Path | Meaning |
+|---|---|
+| `schemas/elsa-tree-4.json` | The JSON Schema of this format (3.9). Served at `/schemas/elsa-tree-4.json`. Every `tree.json` names it in `$schema`. |
 
 Anything else inside a Tree folder (a `README.md`, a `NOTES.md`, a `drafts/` folder,
 a licence text next to a font, editor files) is ignored by the loader. That is the place
 for work in progress that must not yet be validated. There is no `nodes/` folder any
-more; a folder of that name is ignored like any other.
+more and no `tree.yaml`; a file or folder of either name is ignored like any other.
 
 ## 3. Conventions used throughout
 
@@ -119,16 +152,17 @@ verbatim in URLs and in the Trail carried by a shared link, which is why the alp
 this small. **The grammar is unchanged from `elsa-tree/1`**, so no URL and no shared
 link changes when a Tree is converted.
 
-A Node's id is the value of its `id` key (section 5). Since a Node no longer has a file
-of its own, the `id` key is the one and only place the id is written, and every Node
-document must have one.
+A Node's id is the value of its `id` key (section 5). Since a Node has neither a file nor
+a mapping key of its own, the `id` key is the one and only place the id is written, and
+every element of `nodes` must have one.
 
 ### 3.2 Node references
 
 Wherever a Link names its target, it does so with a **Node reference**: the id of a
-Node in the same Tree, written bare, e.g. `target: social-scoring`. In `elsa-tree/3` a
-reference containing a colon is an error (rule V-CROSS); the shape `tree-id:node-id`
-is reserved for future Cross-links and must not be used yet.
+Node in the same Tree, as a plain string: `"target": "social-scoring"`. A reference
+containing a colon is an error (rule V-CROSS, which the id grammar of 3.1 gives for
+free); the shape `tree-id:node-id` is reserved for future Cross-links and must not be
+used yet.
 
 ### 3.3 Languages and localised text
 
@@ -143,11 +177,13 @@ lowercase [BCP 47](https://www.rfc-editor.org/info/bcp47) tags such as `en`, `nl
 A **localised text** is a mapping from language tag to string. It must contain a
 non-empty string for **every** language the manifest declares, and no other keys:
 
-```yaml
-title:
-  en: Does the AI Act apply?
-  nl: Is de AI-verordening van toepassing?
+```json
+"title": {
+  "en": "Does the AI Act apply?",
+  "nl": "Is de AI-verordening van toepassing?"
+}
 ```
+
 
 The first language in the manifest's list is the Tree's **default language**: the one
 the frontend shows before the user chooses. Consequences of this rule:
@@ -168,16 +204,16 @@ and everything under `metadata`.
 ### 3.4 Plain text and rich text
 
 - **Plain text** fields (`title`, an Option's `title`, a Source's `label`, an Image's
-  `description`, the logo's `alt`) are a single line. Markdown is not interpreted in
-  them.
-- **Rich text** fields (a Node's `description`, the manifest's `description`) are
-  written as a YAML literal block scalar (`description:` then `en: |`) and may use this
-  subset of [CommonMark](https://commonmark.org/): paragraphs separated by a blank line,
+  `description`, the logo's `alt`) are a single line: the string contains no line break
+  (rule V-PLAIN). Markdown is not interpreted in them.
+- **Rich text** fields (a Node's `description`, the manifest's `description`) are a
+  **single JSON string whose line breaks are written `\n`**, and may use this subset of
+  [CommonMark](https://commonmark.org/): paragraphs separated by a blank line (`\n\n`),
   `*emphasis*`, `**strong**`, bulleted lists (`- `), numbered lists (`1. `), and links
   `[text](https://...)`. The frontend opens such links in a new tab, like Source
   links. Nothing else is part of the contract: headings, tables, raw HTML, embedded
   images and footnotes are not supported. Raw HTML is an error (rule V-HTML). Images
-  belong in `images:`, never inline.
+  belong in `images`, never inline.
 - **An explainer mark** is the link syntax with a fragment target: `[providers](#provider)`
   in a Node's `description` marks those words as carrying the explainer whose `id` is
   `provider` on the same Node (5.9). The mark's text is what the reader sees and may be
@@ -185,28 +221,25 @@ and everything under `metadata`.
   written inside `*emphasis*` or `**strong**` (rule V-MARK). Only the description carries
   marks: a title is plain text.
 
-Writing multi-paragraph text by hand:
+Multi-paragraph text, as it appears in the file:
 
-```yaml
-description:
-  en: |
-    The first paragraph. It can run over several lines of the file; the line breaks
-    inside a paragraph are joined into spaces when rendered.
-
-    A blank line starts the second paragraph. A list:
-
-    - one entry
-    - another entry
-  nl: |
-    De eerste alinea.
-
-    De tweede alinea.
+```json
+"description": {
+  "en": "The first paragraph. Its line breaks are joined into spaces when rendered.\n\nA blank line starts the second paragraph. A list:\n\n- one entry\n- another entry",
+  "nl": "De eerste alinea.\n\nDe tweede alinea."
+}
 ```
 
-Rich text is short in `elsa-tree/3`: a Node's description has at most 150 characters and
-must fit an estimate of 2 rendered lines (section 3.8, section 5.7; 600 and 8 until #102). Several paragraphs and
-a list still fit, but a Node that needs more becomes several Nodes (core document 3.3,
-item 8).
+The string is one line of the file however long it is; the byte form of 3.7 does not wrap
+it, and no tool may. A `\n` inside it is a line break of the text, not of the file, and
+counts as one character (3.8). `elsa-tree/3` wrote the same text as a YAML block scalar,
+which ended with a trailing line break that 3.8 step 1 stripped before measuring; the
+conversion of 12.6 drops that one character, so no text changes length.
+
+Rich text is short in `elsa-tree/4`: a Node's description has at most 150 characters and
+must fit an estimate of 2 rendered lines, and the Tree's at most 600 and 8 (section 3.8,
+section 5.7; 600 and 8 for a Node until #102). A Node that needs more becomes several
+Nodes (core document 3.3, item 8).
 
 ### 3.5 Image file names
 
@@ -235,48 +268,72 @@ own `theme/` folder and nowhere else. A file is served as a file, never inlined 
 page: an SVG logo is shown through `<img>`, so a script inside it cannot run. (How the
 files are served is `docs/specs/application.md`, issue #38.)
 
-### 3.7 YAML rules that matter
+### 3.7 JSON rules, and the byte form
 
-- `tree.yaml` is parsed as a **YAML 1.2 stream**. In YAML 1.2 the words `yes` and `no`
-  are ordinary strings, which is what the `answers` block relies on. Some older tools
-  (YAML 1.1, e.g. Python's PyYAML by default) turn them into booleans; a loader must use
-  a 1.2 parser, and an author who uses another tool to generate the file must make sure
-  `yes` and `no` stay strings.
-- **Documents are separated by a line that is exactly `---`**, optionally followed by a
-  comment. The first document may start without a `---` line. Each document is a
-  mapping at its top level. A `...` document-end line is allowed by YAML and not needed.
-- **Write the Node's id on the separator line as a comment, and first in the document:**
+`tree.json` is one JSON object as RFC 8259 defines it, and nothing more: no JSON5, no
+JSONC, no trailing comma, no comment. What follows is what a writer must do and what a
+reader may rely on. `docs/adrs/ADR-118-json-serialisation.md` has the reasoning.
 
-  ```yaml
-  --- # social-scoring
-  id: social-scoring
-  title:
-    ...
-  ```
+**The rules a Tree must obey.**
 
-  This is a writing convention, not a validity rule: the loader reads `id:` wherever it
-  is in the document. It is what makes a file of several thousand lines navigable: a
-  search for `# social-scoring` or `id: social-scoring` lands on the Node, and an
-  editor's search for `^--- #` lists every Node in the file, in order, as a table of
-  contents. The migration writes this shape (section 12) and the example (section 8)
-  shows it.
-- **The order of Node documents is free.** The loader indexes Nodes by `id`, not by
-  position. Put them in the order that reads best: the root first, then the walk, with
-  each question Node followed by its explanation Nodes, is the recommendation; the
-  migration writes the root first and the rest by file name in byte order (section
-  12.1).
-- **Quote version numbers**: `version: "1.0"`. Unquoted, `1.0` is a number and is
-  rejected (rule V-META). **Quote colours**: `background: "#ffffff"`; unquoted, `#`
-  starts a comment and the value is lost. **Quote font weights**: `weight: "400"`.
-- Unknown keys are errors (rule V-KEYS). This is deliberate: a misspelt `anwsers:`
-  must fail loudly, not silently become an explanation Node. The only place for
-  free-form keys is `metadata`.
-- A YAML error inside one Node document is reported for that document, with its line
-  number, and does not stop the other documents from being read and checked (rule
-  V-YAML). One mis-indented line breaks one Node, not the file.
-- File encoding is UTF-8 without a byte-order mark. Line endings do not matter.
-- Comments (`# ...`) are welcome anywhere and are ignored by the loader. A comment line
-  is the right place for an author's notes between Nodes.
+- **One top-level object.** Not an array, not a stream of objects. Its keys are
+  `$schema`, `format`, the manifest fields and `nodes` (section 4).
+- **`$schema` is required and is written first.** Its value is the origin-relative path
+  `/schemas/elsa-tree-4.json`, or an absolute `http://` or `https://` URL whose path ends
+  with `/schemas/elsa-tree-4.json` for a Tree that publishes the schema elsewhere (rule
+  V-SCHEMA, 3.9). The loader never fetches it.
+- **No duplicate keys** in any object (rule V-JSON). Most parsers keep the last and say
+  nothing, which is exactly the silent loss this rule exists to prevent.
+- **No `null`, anywhere** (rule V-NULL). An optional field that is absent is **omitted**:
+  the key is not written.
+- **No empty array and no empty object** (rule V-EMPTY). "No Sources" is the absence of
+  `sources`, not `"sources": []` -- one way to say a thing, not three. What the loader
+  holds in memory is a different matter: it normalises an absent list to an empty array
+  (`docs/specs/application.md` 5.1), which is the one place the three ways would
+  otherwise have to be made one.
+- **Unknown keys are errors** (rule V-KEYS), at every level except inside `metadata`. A
+  misspelt `"anwsers"` must fail loudly, not silently become an explanation Node.
+- **Numbers and booleans appear nowhere in the contract.** Every value this format
+  defines is a string, an object or an array -- `version` is `"1.0"` and not `1.0`, a
+  colour is `"#ffffff"`, a font weight is `"400"`. Only inside `metadata`, which the
+  loader does not interpret, may an author write a number or a boolean.
+- **The keys `yes` and `no`** are ordinary strings in JSON, so the YAML 1.1 trap that
+  turned them into booleans -- and the warning `elsa-tree/3` had to carry about it -- is
+  gone.
+- **UTF-8 without a byte-order mark.** Escape sequences are allowed where JSON allows
+  them, but the canonical form below writes non-ASCII characters as themselves.
+- **There are no comments.** The `--- # <id>` table of contents and the author's comments
+  of `elsa-tree/3` do not survive the conversion (12.6). A note that must stay with the
+  data goes in `metadata`, which is a free-form bag the loader keeps and does not read.
+
+**The byte form.** A tool that writes a `tree.json` writes exactly these bytes:
+
+- the value serialised as `JSON.stringify(value, null, 2)` does it -- two-space
+  indentation, one key or array element per line, `": "` between a key and its value, no
+  space inside empty brackets (there are none, by V-EMPTY) -- followed by **one line
+  feed**;
+- `\n` line endings, no trailing whitespace on any line, UTF-8 with no byte-order mark;
+- non-ASCII characters as themselves, not as `\uXXXX`; `/` not escaped; the escapes JSON
+  requires (`\"`, `\\`, `\n`, `\t`, `\r`, `\b`, `\f`, and `\u00XX` for any other control
+  character) and no others;
+- **key order fixed by this document, not alphabetical**: `$schema`, `format`,
+  `languages`, `root`, `title`, `description`, `metadata`, `theme`, `nodes` at the top
+  level; per Node `id`, `title`, `description`, `metadata`, `sources`, `images`,
+  `answers`, `options`, `explainers`, `terminal`; and inside every other object the order
+  its table in sections 4 and 5 gives. Inside `metadata`, `version` comes first and the
+  author's own keys keep the order they were written in. A localised text lists its
+  languages in the order the manifest declares them.
+
+That form is chosen because every mainstream language's standard library produces it from
+the same value with no bespoke pretty-printer, so the migration, the validator and the
+frontend editor of the next round agree on the bytes without agreeing on a library. Two
+consequences are contracts of their own: **writing a Tree that was just read changes no
+byte** (idempotence, which 12.6 is tested against), and **a diff shows the fields that
+changed and nothing else**.
+
+A file that parses but is not in the canonical byte form is still a valid Tree: the byte
+form binds writers, not readers. The loader does not reformat what it reads, and the
+dataset endpoint serves the file's own bytes (`docs/specs/application.md` 15.1).
 
 ### 3.8 How text is measured
 
@@ -316,43 +373,108 @@ lines, which is exactly the maximum. A paragraph and a one-line list item under 
 `1 + 1` block lines `+ 1` break `= 3`: over it, however short the text. The validator
 reports the estimate next to the maximum so that the author knows how much to cut.
 
-## 4. The manifest: the first document of `tree.yaml`
+### 3.9 The JSON Schema
 
-```yaml
-format: elsa-tree/3
-languages: [en, nl]
-root: start
-title:
-  en: Does the EU AI Act apply to my agrifood AI system?
-  nl: Is de EU AI-verordening van toepassing op mijn agrifood-AI-systeem?
-description:                       # optional
-  en: |
-    An interactive walk through the applicability of Regulation (EU) 2024/1689.
-  nl: |
-    Een interactieve doorloop van de toepasselijkheid van Verordening (EU) 2024/1689.
-metadata:
-  version: "1.0"
-  author: ELSA-Lab for sustainable food systems, Wageningen University
-theme:                             # optional; section 4.3
-  ...
+The structural half of this contract is published as a JSON Schema (draft 2020-12) at
+**`schemas/elsa-tree-4.json`** in this repository, and served by the app at
+**`/schemas/elsa-tree-4.json`** (`docs/specs/application.md` 15.1). Every `tree.json`
+names it in `$schema` (3.7). The format number is in the file name, so `elsa-tree/5` will
+be `schemas/elsa-tree-5.json` beside it and this file stays where it is: a Tree written
+today keeps a schema to point at after the next format lands.
+
+**What the schema checks**, and therefore what any JSON Schema validator on earth can
+check without this application: types, which keys exist and which are required, no
+unknown keys at any level (V-KEYS), the closed sets (the three Source kinds, the four
+outcomes, the seven colour roles, the two font roles), the grammars of ids, language
+tags, image and theme file names, colours, font weights and URLs, the absence of `null`
+and of empty lists (V-NULL, V-EMPTY), that `$schema` and `format` name this version
+(V-SCHEMA, V-FORMAT), and the two kind rules one Node object can state on its own: a
+question Node is not also a Terminal, and a Terminal has no Answers and no Options
+(V-KIND, V-TERMINAL).
+
+**What the schema deliberately does not check**, and why:
+
+- **The limits of 5.7.** They are measured on the **counted text** of 3.8 -- Markdown
+  links replaced by their text, Unicode code points counted, and for rich text an
+  estimated line count. A JSON Schema's `maxLength` counts the raw string, so for a
+  description with two links the two numbers differ. A `maxLength: 600` would be a
+  different rule wearing the same number, and an author would be told two things.
+- **Every rule that must read another part of the file**, or the file system: V-L10N
+  (exactly the declared languages), V-ROOT, V-ANSWERS, V-OPTIONS, V-ORPHAN, V-REACH,
+  V-IMAGE (the file exists in `images/`), V-EXPLAINER, V-MARK, V-THEME's "at most one
+  family per role", V-HTML and V-PLAIN.
+
+Section 7 says, rule by rule, which of the two answers for it. The order is fixed: the
+schema first, the rules of section 7 second, and neither translates the other's message.
+A shape error names a JSON Pointer; a content error names the Tree id, the Node id, the
+key path, the rule and the actual against the maximum. `docs/adrs/ADR-118-json-schema.md`
+records the decision and the rejected alternatives.
+
+## 4. The manifest: the top-level fields of `tree.json`
+
+```json
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": ["en", "nl"],
+  "root": "start",
+  "title": {
+    "en": "Does the EU AI Act apply to my agrifood AI system?",
+    "nl": "Is de EU AI-verordening van toepassing op mijn agrifood-AI-systeem?"
+  },
+  "description": {
+    "en": "An interactive walk through the applicability of Regulation (EU) 2024/1689.",
+    "nl": "Een interactieve doorloop van de toepasselijkheid van Verordening (EU) 2024/1689."
+  },
+  "metadata": {
+    "version": "1.0",
+    "author": "ELSA-Lab for sustainable food systems, Wageningen University"
+  },
+  "theme": { "...": "optional; section 4.3" },
+  "nodes": [ "... section 5 ..." ]
+}
 ```
+
+(The last two values are placeholders for this illustration only; `"..."` is not a key of
+anything.) The `languages` array is shown on one line for readability here; the canonical
+byte form of 3.7 puts one element per line, as section 8 shows.
 
 | Key | Required | Type | Meaning |
 |---|---|---|---|
-| `format` | yes | string, exactly `elsa-tree/3` | The version of this contract the Tree is written against. A loader that does not know the value rejects the Tree. Only the first document has this key; a Node document with `format` is an error (V-KEYS). |
-| `languages` | yes | list of language tags, non-empty, distinct | The languages every localised text in the Tree provides. First entry is the default language. |
+| `$schema` | yes | string | The JSON Schema of this format (3.9), as the origin-relative path `/schemas/elsa-tree-4.json` or an absolute http(s) URL ending the same way. Written first. Not fetched by the loader. |
+| `format` | yes | string, exactly `elsa-tree/4` | The version of this contract the Tree is written against. A loader that does not know the value rejects the Tree. |
+| `languages` | yes | array of language tags, non-empty, distinct | The languages every localised text in the Tree provides. First entry is the default language. |
 | `root` | yes | Node reference | The Node the walk starts at. Must be a question Node or a Terminal, never an explanation Node. |
 | `title` | yes | localised text, plain, at most 80 characters | The Tree's name, shown by the frontend. |
-| `description` | no | localised text, rich, at most 600 characters and 8 estimated lines (**[#102]** as a Node's description until 2026-09-19; the Tree's is not drawn in the Bubble and kept these) | What the Tree is about. |
-| `metadata` | yes | mapping | `version` (non-empty string) is required. Any other keys are the author's own; the loader keeps them and does not interpret them. |
+| `description` | no | localised text, rich, at most 600 characters and 8 estimated lines (**[#102]** as a Node's description until 2026-09-19; the Tree's is not drawn in the Bubble and kept these) | What the Tree is about. Also what the dataset record and `llms.txt` say the Tree is (`docs/specs/application.md` 16.4, 16.5), so a Tree that omits it is described by its root Node instead. |
+| `metadata` | yes | object | `version` (non-empty string) is required. Any other keys are the author's own; the loader keeps them and does not interpret them. This is where a note that would have been a comment goes. |
 | `theme` | no | Theme (4.3) | The look the frontend shows for this Tree. Absent: the frontend's plain default look. |
+| `nodes` | yes | array of Node (section 5), non-empty | Every Node of the Tree, in the author's order. |
 
-### 4.1 Where the manifest stops and the Nodes begin
+### 4.1 The manifest fields and `nodes`
 
-The manifest is the first document of the stream, and only the first. It is recognised
-by position, not by content; that it carries `format` is a consequence. The second
-document onwards are Nodes (section 5). A stream with only one document is a Tree
-without Nodes and is rejected (V-NODE, at least one Node; V-ROOT, the root must exist).
+The manifest is not a separate document any more: its fields **are** the top-level fields
+of the object, beside `nodes`. A Node is an element of `nodes` and never carries `format`,
+`$schema`, `theme`, `languages` or `root` (V-KEYS); the manifest never carries `id`
+(4.2).
+
+**`nodes` is an array, not an object keyed by id.** Four things follow from that, and they
+are why it is an array (`docs/adrs/ADR-118-json-serialisation.md`):
+
+- the author's order survives, and it is the Tree's reading order -- the root first, then
+  the walk, each question Node followed by its explanation Nodes, is the recommendation --
+  which the editor, the sitemap and a reader of the file all walk;
+- **a duplicate id is a rule, not a silent merge**: two elements with `"id": "start"` fail
+  V-NODE with both places named, where two `"start"` keys in one object are "last wins" in
+  every mainstream parser and lose a Node without a message;
+- the id stays one thing in one place -- the `id` key -- rather than a key that a rename
+  must be kept in step with;
+- a Node is searched for by the same string it is referenced by: `"id": "start"` beside
+  `"target": "start"`.
+
+**The order of `nodes` is free.** The loader indexes Nodes by `id`, not by position, so no
+Link and no URL depends on it. A Tree with no Nodes is rejected (V-NODE, at least one
+Node; V-ROOT, the root must exist).
 
 ### 4.2 The Tree's id
 
@@ -367,42 +489,56 @@ from here and never carries a lab's branding in its own code (core document 3.2,
 Everything the Theme names is a file in the Tree's own `theme/` folder; nothing is
 fetched from anywhere else at run time.
 
-```yaml
-theme:
-  logo:
-    light: elsa-lab-logo.svg               # shown on a light background
-    dark: elsa-lab-logo-white.svg          # optional: shown on a dark background
-    icon: elsa-lab-icon.png                # optional: the browser tab icon
-    alt:
-      en: ELSA-Lab for sustainable food systems
-      nl: ELSA-Lab voor duurzame voedselsystemen
-    url: https://ai4sfs.org                # optional: where clicking the logo goes
-  fonts:
-    - family: Open Sans
-      role: body
-      files:
-        - { file: open-sans-400.woff2, weight: "400", style: normal }
-        - { file: open-sans-400-italic.woff2, weight: "400", style: italic }
-        - { file: open-sans-700.woff2, weight: "700", style: normal }
-      licence: SIL Open Font License 1.1 (theme/ofl-open-sans.txt)
-    - family: Nova Square
-      role: heading
-      files:
-        - { file: nova-square-400.woff2, weight: "400", style: normal }
-      licence: SIL Open Font License 1.1 (theme/ofl-nova-square.txt)
-  colours:
-    background: "#ffffff"
-    surface: "#f0f3f7"
-    text: "#2d2e33"
-    text-muted: "#a3a4a8"
-    accent: "#ffc600"
-    accent-secondary: "#41ab64"
-    danger: "#e44e56"
+```json
+"theme": {
+  "logo": {
+    "light": "elsa-lab-logo.svg",
+    "dark": "elsa-lab-logo-white.svg",
+    "icon": "elsa-lab-icon.png",
+    "alt": {
+      "en": "ELSA-Lab for sustainable food systems",
+      "nl": "ELSA-Lab voor duurzame voedselsystemen"
+    },
+    "url": "https://ai4sfs.org"
+  },
+  "fonts": [
+    {
+      "family": "Open Sans",
+      "role": "body",
+      "files": [
+        { "file": "open-sans-400.woff2", "weight": "400", "style": "normal" },
+        { "file": "open-sans-400-italic.woff2", "weight": "400", "style": "italic" },
+        { "file": "open-sans-700.woff2", "weight": "700", "style": "normal" }
+      ],
+      "licence": "SIL Open Font License 1.1 (theme/ofl-open-sans.txt)"
+    },
+    {
+      "family": "Nova Square",
+      "role": "heading",
+      "files": [
+        { "file": "nova-square-400.woff2", "weight": "400", "style": "normal" }
+      ],
+      "licence": "SIL Open Font License 1.1 (theme/ofl-nova-square.txt)"
+    }
+  ],
+  "colours": {
+    "background": "#ffffff",
+    "surface": "#f0f3f7",
+    "text": "#2d2e33",
+    "text-muted": "#a3a4a8",
+    "accent": "#ffc600",
+    "accent-secondary": "#41ab64",
+    "danger": "#e44e56"
+  }
+}
 ```
+
+(Shown here with each font file on one line for readability; the canonical byte form of
+3.7 gives every key its own line, as section 8 shows.)
 
 The three parts are independent: a Theme may carry any one, two or all three of
 `logo`, `fonts` and `colours`, but it must carry at least one (V-THEME; an empty
-`theme:` is a mistake, not a choice). **Each part that is present is complete**: a
+`"theme": {}` is not written at all, V-EMPTY). **Each part that is present is complete**: a
 `colours` block has all seven roles, a font family has its files. The frontend never
 merges half a Theme with half a default, because a palette or a type pairing is
 designed as a set; what it does when a part is absent is stated per part below.
@@ -440,8 +576,8 @@ Absent `fonts`: the frontend's default type stack, for both roles.
 
 #### 4.3.3 `colours`
 
-A mapping with **exactly** these seven keys, each a colour written as `#` and six
-lowercase hexadecimal digits (`^#[0-9a-f]{6}$`), quoted. No alpha, no names, no
+An object with **exactly** these seven keys, each a colour written as a string of `#`
+and six lowercase hexadecimal digits (`^#[0-9a-f]{6}$`). No alpha, no names, no
 shorthand.
 
 | Role | Used for |
@@ -464,58 +600,70 @@ contrast.
 
 Absent `colours`: the frontend's default palette.
 
-## 5. A Node: every document after the first
+## 5. A Node: one element of `nodes`
 
-A Node document is a mapping with these keys:
+A Node is an object with these keys, written in this order (3.7):
 
 | Key | Required | Type | Meaning |
 |---|---|---|---|
-| `id` | yes | id (3.1), unique in the Tree | The Node's id: what URLs, the Trail and Links use. Write it first in the document (3.7). |
+| `id` | yes | id (3.1), unique in the Tree | The Node's id: what URLs, the Trail and Links use. Written first. |
 | `title` | yes | localised text, plain, at most 80 characters | The Node's heading, shown in the Bubble and on the Branch that leads to it. A step counter such as `(1/7)` is written here, at the end (5.8). |
 | `description` | yes | localised text, rich, at most 150 characters and 2 estimated lines (**[#102]** amended 2026-09-19; 600 and 8 until #102) | The explanatory text, shown in the Bubble. |
-| `metadata` | yes | mapping | `version` (non-empty string) required; the rest free-form, kept but not interpreted. |
-| `sources` | no | list of Source (5.1), at most 3 | References this Node cites. Absent means none. |
-| `images` | no | list of Image (5.2), at most 10 | The Node's pictures: the **first is its main image**, shown above the title in the Bubble and, small, on the Option button that leads to this Node; the rest are the Carousel's. Absent means none. |
+| `metadata` | yes | object | `version` (non-empty string) required; the rest free-form, kept but not interpreted. A note that would have been a comment goes here. |
+| `sources` | no | array of Source (5.1), at most 3 | References this Node cites. Absent means none. |
+| `images` | no | array of Image (5.2), at most 10 | The Node's pictures: the **first is its main image**, shown above the title in the Bubble and, small, on the Option button that leads to this Node; the rest are the Carousel's. Absent means none. |
 | `answers` | see 5.6 | Answers (5.3) | The yes/no Links. Present exactly on question Nodes. |
-| `options` | no | list of Option (5.4), at most 8 | The clickable list of entries, each opening an explanation Node in an Overlay. Allowed on question Nodes and explanation Nodes; never on a Terminal. |
-| `explainers` | no | list of Explainer (5.9), at most 8 | The terms of this Node's description that carry a short explanation shown on hover. Absent means none. |
+| `options` | no | array of Option (5.4), at most 8 | The clickable list of entries, each opening an explanation Node in an Overlay. Allowed on question Nodes and explanation Nodes; never on a Terminal. |
+| `explainers` | no | array of Explainer (5.9), at most 8 | The terms of this Node's description that carry a short explanation shown on hover. Absent means none. |
 | `terminal` | see 5.6 | Terminal marker (5.5) | Present exactly on Terminals. |
 
 There is no `kind` key: the kind follows from which of `answers` / `terminal` is present
-(5.6). The limits are collected in 5.7.
+(5.6). The limits are collected in 5.7. An absent optional key is **omitted**, never
+`null` and never an empty array (3.7, rules V-NULL and V-EMPTY).
 
 ### 5.1 Source
 
-```yaml
-sources:
-  - id: art-2                       # optional; needed only if an Image points at it
-    kind: legal
-    label:
-      en: Article 2 AI Act (scope)
-      nl: Artikel 2 AI-verordening (toepassingsgebied)
-    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+```json
+"sources": [
+  {
+    "id": "art-2",
+    "kind": "legal",
+    "label": {
+      "en": "Article 2 AI Act (scope)",
+      "nl": "Artikel 2 AI-verordening (toepassingsgebied)"
+    },
+    "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+  }
+]
 ```
 
 | Key | Required | Type | Meaning |
 |---|---|---|---|
+| `id` | no | id, unique within the Node | A handle so an Image on this Node can point at this Source. Written first when present. |
 | `kind` | yes | one of `legal`, `case-law`, `literature` | The three kinds of reference, labelled distinctly so the frontend can group or style them. `legal`: an article, annex or recital of a regulation or directive. `case-law`: a court decision. `literature`: anything else -- papers, guidance, books, reports. |
 | `label` | yes | localised text, plain, at most 60 characters | The visible text of the link. Short: `Article 5(1)(c) AI Act`, not the article's title. |
 | `url` | yes | string, absolute `http://` or `https://` URL | Where the link goes; opened in a new tab; never fetched by the app. One URL for all languages -- prefer language-neutral URLs (EUR-Lex's `/eli/...` addresses negotiate the reader's language). |
-| `id` | no | id, unique within the Node | A handle so an Image on this Node can point at this Source. |
 
 Sources are written **inline on the Node that cites them** (core document 10.11). The
-same reference cited by two Nodes is written twice; there is no shared registry.
+same reference cited by two Nodes is written twice; there is no shared registry. The
+`legal` Sources are also what the dataset record's `isBasedOn` is derived from
+(`docs/specs/application.md` 16.4), which is one more reason to give a Tree's legal
+citations one consistent URL.
 
 ### 5.2 Image
 
-```yaml
-images:
-  - file: eu-map.png
-    description:
-      en: Map of the EU member states
-      nl: Kaart van de EU-lidstaten
-    credit: "Map: Example Cartography, CC BY 4.0"
-    source: art-2                   # optional: id of a Source on this Node
+```json
+"images": [
+  {
+    "file": "eu-map.png",
+    "description": {
+      "en": "Map of the EU member states",
+      "nl": "Kaart van de EU-lidstaten"
+    },
+    "credit": "Map: Example Cartography, CC BY 4.0",
+    "source": "art-2"
+  }
+]
 ```
 
 | Key | Required | Type | Meaning |
@@ -523,28 +671,31 @@ images:
 | `file` | yes | image file name (3.5) | A file in this Tree's `images/` folder. Must exist. |
 | `description` | yes | localised text, plain, at most 120 characters | What the picture shows: the accessible alternative text, and the name of the picture's link. Not displayed as a caption. |
 | `credit` | yes | non-empty string, at most 120 characters | Attribution and licence, reproduced as written. Shown whole in the enlarged view a click on the picture opens, and read as the picture's accessible description (`application.md` 12.3). Required for every Image without exception. |
-| `source` | no | id of a Source on the same Node | Where the picture or its content comes from. For an Image on an Option this refers to the `sources` of the Node the Option is written in. |
+| `source` | no | id of a Source on the same Node | Where the picture or its content comes from. |
 
-**The Carousel needs nothing more than this.** The order of the list is the order of
+**The Carousel needs nothing more than this.** The order of the array is the order of
 the pictures, and **the first entry is the Node's main image**: shown 60 pixels tall above
 the Node's title in its Bubble and in its Overlay, and small on the button of every Option
 that leads to the Node (`application.md` 10.3). The entries after it are the Carousel's,
 in order. Nothing is written under a picture: the `description` is its alternative text
 and the `credit` is shown in the enlarged view and read as the picture's description.
-There is no `order` key, no `caption` key and no `main` key: the list is the order, and a
-Node that wants a different main image moves it up the list. The keys are unchanged from
+There is no `order` key, no `caption` key and no `main` key: the array is the order, and a
+Node that wants a different main image moves it up the array. The keys are unchanged from
 `elsa-tree/1` (`docs/adrs/ADR-37-images-carousel.md`, `ADR-78-carousel.md`,
 `ADR-78-main-image-and-row-budget.md`).
 
 ### 5.3 Answers
 
-```yaml
-answers:
-  yes: prohibited-practices
-  no: outside-scope
+```json
+"answers": {
+  "yes": "prohibited-practices",
+  "no": "outside-scope"
+}
 ```
 
-Exactly the two keys `yes` and `no`, each a Node reference. The target of an Answer
+Exactly the two keys `yes` and `no`, each a Node reference. In JSON they are strings by
+construction, so a loader needs no rule to keep them from becoming booleans -- which is
+one trap of `elsa-tree/3` that `elsa-tree/4` simply does not have. The target of an Answer
 must be a question Node or a Terminal -- never an explanation Node, because arriving
 at an explanation Node by an Answer would leave the user with no way forward. The
 labels "yes" and "no" are UI chrome, translated by the frontend, not by the Tree. On
@@ -552,12 +703,16 @@ screen an Answer is a Branch out of the Bubble, labelled with its target's `titl
 
 ### 5.4 Option
 
-```yaml
-options:
-  - title:
-      en: Social scoring
-      nl: Sociale scoring
-    target: social-scoring
+```json
+"options": [
+  {
+    "title": {
+      "en": "Social scoring",
+      "nl": "Sociale scoring"
+    },
+    "target": "social-scoring"
+  }
+]
 ```
 
 | Key | Required | Type | Meaning |
@@ -569,18 +724,17 @@ options:
 The picture on its button is its target's main image, the first entry of the target's
 `images` (5.2): a picture that shows what an entry covers is written once, on the Node
 that explains it, and the button and the Overlay show the same file. An `images` key on
-an Option is an error (V-KEYS); 12.5 moves the pictures of an `elsa-tree/2` Tree.
+an Option is an error (V-KEYS).
 
-Options in one list have distinct targets. Several Nodes may point at the same
-explanation Node. The order of the list is the order shown. **At most 8 Options on a
+Options in one array have distinct targets. Several Nodes may point at the same
+explanation Node. The order of the array is the order shown. **At most 8 Options on a
 Node**: a longer list becomes several Nodes, each a step with its own title (5.8), as
 the owner's "(1/7)" example does for the seven jurisdiction categories.
 
 ### 5.5 Terminal marker
 
-```yaml
-terminal:
-  outcome: not-applicable
+```json
+"terminal": { "outcome": "not-applicable" }
 ```
 
 A Terminal ends the walk. The marker is explicit: "no outgoing Links" is *not* a
@@ -605,11 +759,12 @@ The set is closed. A Tree that needs a fifth value needs a new format number.
 | **Terminal** | no | yes | no | an Answer, or being `root` | -- |
 | **explanation Node** | no | no | yes | an Option | at least one Option |
 
-A document with both `answers` and `terminal` is an error. An explanation Node reached
-through an Option is "explanation only" (core document 3.1, traversal rule): on screen it
-opens in an Overlay over its parent's page (`application.md` 10.9); the user reads it,
-may follow its own Options, and closes it to answer the parent's question. A Trail is therefore just a list of Node ids, which the frontend can
-carry in a shareable link.
+A Node with both `answers` and `terminal` is an error, and it is one the schema of 3.9
+catches on its own. An explanation Node reached through an Option is "explanation only"
+(core document 3.1, traversal rule): on screen it opens in an Overlay over its parent's
+page (`application.md` 10.9); the user reads it, may follow its own Options, and closes it
+to answer the parent's question. A Trail is therefore just a list of Node ids, which the
+frontend can carry in a shareable link.
 
 ### 5.7 Maximum lengths and counts
 
@@ -696,18 +851,23 @@ and style it as muted text; it does not depend on it.
 
 ### 5.9 Explainers
 
-```yaml
-explainers:
-  - id: provider
-    term:
-      en: provider
-      nl: aanbieder
-    text:
-      en: Someone who develops an AI system, or has one developed, and places it on the market or puts it into service under their own name or trademark.
-      nl: Wie een AI-systeem ontwikkelt of laat ontwikkelen en het onder eigen naam of merk in de handel brengt of in gebruik stelt.
-description:
-  en: |
-    Are you a [provider](#provider) who places an AI system on the Union market? ...
+```json
+"explainers": [
+  {
+    "id": "provider",
+    "term": {
+      "en": "provider",
+      "nl": "aanbieder"
+    },
+    "text": {
+      "en": "Someone who develops an AI system, or has one developed, and places it on the market or puts it into service under their own name or trademark.",
+      "nl": "Wie een AI-systeem ontwikkelt of laat ontwikkelen en het onder eigen naam of merk in de handel brengt of in gebruik stelt."
+    }
+  }
+],
+"description": {
+  "en": "Are you a [provider](#provider) who places an AI system on the Union market? ..."
+}
 ```
 
 | Key | Required | Type | Meaning |
@@ -729,11 +889,10 @@ derived in 5.7. `docs/adrs/ADR-78-explainers.md` has the reasoning.
 The Tree is one file, so it is read as one file, and the moment it is read is the moment
 it is validated:
 
-- **At server start (or build time)** the loader reads `tree.yaml` once, parses the
-  stream, checks every rule of section 7 and builds its index: Node id to parsed Node,
-  Node id to title. That is the one whole-Tree read, server-side, one-off. It is the
-  same moment `elsa-tree/1` validated, and it costs the same: every Node was read then
-  too, only from sixty files instead of one.
+- **At server start (or build time)** the loader reads `tree.json` once, parses it,
+  validates it against the schema of 3.9, then checks every rule of section 7 and builds
+  its index: Node id to parsed Node, Node id to title. That is the one whole-Tree read,
+  server-side, one-off.
 - **To render Node `x`** the server takes `x` from the index. It reads no file. The
   page is given **one Node, never the Tree**: its text in every language, its Sources,
   the file names of its own Images, its explainers, the *ids* of its Link targets, and the titles of
@@ -742,71 +901,89 @@ it is validated:
   names, and the Theme files, as it needs them. Nothing in the format lets a Node refer
   to another Node's images, so "only the current Node's images" holds by construction.
   Which neighbouring Nodes may be pre-rendered ahead of a click, and through which
-  route, is the application contract of issue #38; whatever it decides, the browser is
-  never sent the whole Tree.
+  route, is the application contract of issue #38; whatever it decides, **no page** is
+  ever sent the whole Tree.
+- **The dataset endpoint is the one place the whole file leaves the server**, and it is a
+  URL a reader or a crawler asks for on purpose, not something a page carries: `GET
+  /<tree-id>/tree.json` streams the same bytes that are on disk
+  (`docs/specs/application.md` 15, `docs/adrs/ADR-118-dataset-endpoint.md`). The bound on
+  what a *page* may carry is untouched by it.
 
-A loader therefore keeps a narrow interface -- in words, not code, since the code is
-issue #39: *validate a Tree folder and report every violation*, *give me the manifest*
-(with its Theme), *give me Node `x`*, *give me the title of Node `x`*, *resolve this
-image file name*, *resolve this theme file name*. Everything about the stream, YAML,
-and the rules below sits behind that interface; the frontend never touches a file
-path. `docs/adrs/ADR-37-single-file-layout.md` records why holding the parsed Tree in
-memory is the right trade.
+A loader therefore keeps a narrow interface -- in words, not code: *validate a Tree folder
+and report every violation*, *give me the manifest* (with its Theme), *give me Node `x`*,
+*give me the title of Node `x`*, *resolve this image file name*, *resolve this theme file
+name*, and, since the endpoint exists, *where is this Tree's own file*. Everything about
+JSON, the schema and the rules below sits behind that interface; the frontend never
+touches a file path. `docs/adrs/ADR-37-single-file-layout.md` records why holding the
+parsed Tree in memory is the right trade, and
+`docs/adrs/ADR-118-json-serialisation.md` why the file it parses is JSON.
 
 ## 7. Validity rules
 
 A loader **rejects the whole Tree** if any rule fails, and reports every failure it
-found (not just the first) with: the Tree id, the Node id (or `manifest`), the key path
-inside the document (e.g. `options[2].target`, `description.nl`), the rule id below,
-and a plain-language message that, for a length rule, names the actual and the maximum.
-A Tree is never partially loaded.
+found (not just the first). A Tree is never partially loaded.
+
+Two tools answer between them, in this order, and neither translates the other's message
+(3.9):
+
+- **the schema** (`schemas/elsa-tree-4.json`) reports a shape failure with a JSON Pointer
+  into the file, e.g. `/nodes/3/options/2` -- *must NOT have additional properties*;
+- **the rules** report a content failure with the Tree id, the Node id (or `manifest`),
+  the key path inside it (e.g. `options[2].target`, `description.nl`), the rule id below,
+  and a plain-language message that, for a length rule, names the actual and the maximum.
+
+The **Where** column below says which of the two a rule belongs to.
 
 ### Tree level
 
-| Rule | A valid Tree has... |
-|---|---|
-| V-DIR | a folder name that is an id (3.1), containing `tree.yaml`. `images/` and `theme/`, when present, are folders. |
-| V-YAML | a `tree.yaml` that parses as a YAML 1.2 stream in which every document is a mapping at the top level. A document that fails to parse is reported with its line number; the other documents are still checked. |
-| V-FORMAT | a first document whose `format` is exactly `elsa-tree/3`. |
-| V-LANG | `languages`: a non-empty list of distinct, valid language tags (3.3). |
-| V-ROOT | `root` naming an existing Node that is a question Node or a Terminal. |
-| V-TITLE | `title` as a plain localised text, in the manifest. |
-| V-META | `metadata` as a mapping whose `version` is a non-empty string (in the manifest and in every Node). |
-| V-KEYS | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `format` and `theme` only in the first document; `id` never in the first document. |
-| V-REACH | every Node document reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target; keep drafts in comments or outside the file. |
-| V-THEME | `theme`, when present, a mapping with at least one of `logo`, `fonts`, `colours`, each as section 4.3 defines it: files matching 3.6 and existing in `theme/`; `logo.alt` a plain localised text; `logo.url` an absolute http(s) URL if present; at most one font family per `role`; every font file `.woff2` with a valid `weight` and `style`; `colours` with exactly the seven roles, each `^#[0-9a-f]{6}$`. |
+| Rule | Where | A valid Tree has... |
+|---|---|---|
+| V-DIR | rules | a folder name that is an id (3.1), containing `tree.json`. `images/` and `theme/`, when present, are folders. |
+| V-JSON | rules | a `tree.json` that parses as one JSON object (RFC 8259) in UTF-8 without a byte-order mark, with no duplicate key in any object. A file that does not parse is reported with the parser's position and nothing else is checked: unlike the YAML stream of `elsa-tree/3`, one JSON file is one document, so a syntax error anywhere is a syntax error everywhere. |
+| V-SCHEMA | schema | `$schema`, as the path `/schemas/elsa-tree-4.json` or an absolute http(s) URL whose path ends the same way (3.7). |
+| V-FORMAT | schema | `format` exactly `elsa-tree/4`. |
+| V-NULL | schema | no `null` as the value of any key this format defines. An absent optional field is omitted. |
+| V-EMPTY | schema | no empty array and no empty object. |
+| V-LANG | schema, rules | `languages`: a non-empty array of valid language tags (3.3), which the rules also check are distinct. |
+| V-ROOT | rules | `root` naming an existing Node that is a question Node or a Terminal. |
+| V-TITLE | schema, rules | `title` as a plain localised text, at the top level. |
+| V-META | schema | `metadata` as an object whose `version` is a non-empty string (at the top level and on every Node). |
+| V-KEYS | schema | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `$schema`, `format`, `languages`, `root`, `theme` and `nodes` only at the top level; `id` never at the top level. |
+| V-REACH | rules | every Node reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target. |
+| V-THEME | schema, rules | `theme`, when present, an object with at least one of `logo`, `fonts`, `colours`, each as section 4.3 defines it: the schema checks the keys, the grammars, the seven colour roles and every font file's `weight` and `style`; the rules check that the files exist in `theme/` and that there is at most one font family per `role`. |
 
 ### Text
 
-| Rule | A valid Tree has... |
-|---|---|
-| V-L10N | every localised text providing a non-empty string for every declared language and no keys for other languages. |
-| V-PLAIN | plain text fields on a single line (no line breaks). |
-| V-HTML | no raw HTML in rich text: the sequence `<` followed by a letter, `/` or `!` is rejected. |
-| V-LENGTH | every text field within the maximum characters of 5.7, per language, measured as 3.8 says. The message names the field, the language, the actual length and the maximum. |
-| V-LINES | every rich text within its estimated lines (3.8, 5.7): 2 for a Node description, 8 for the Tree's, per language. The message names the estimate and the maximum. |
-| V-COUNT | every list within the maximum entries of 5.7. |
+| Rule | Where | A valid Tree has... |
+|---|---|---|
+| V-L10N | rules | every localised text providing a non-empty string for every declared language and no keys for other languages. (The schema checks that it is an object of language tags to non-empty strings; which languages are the declared ones it cannot know.) |
+| V-PLAIN | rules | plain text fields on a single line (no `\n` in the string). |
+| V-HTML | rules | no raw HTML in rich text: the sequence `<` followed by a letter, `/` or `!` is rejected. |
+| V-LENGTH | rules | every text field within the maximum characters of 5.7, per language, measured as 3.8 says. The message names the field, the language, the actual length and the maximum. |
+| V-LINES | rules | every rich text within its estimated lines (3.8, 5.7): 2 for a Node description, 8 for the Tree's, per language. The message names the estimate and the maximum. |
+| V-COUNT | rules | every array within the maximum entries of 5.7. |
 
 ### Node level
 
-| Rule | A valid Tree has... |
-|---|---|
-| V-NODE | at least one Node document; every Node document with an `id` that is a valid id and is distinct from every other Node's, and `title`, `description`, `metadata` present. |
-| V-KIND | at most one of `answers` and `terminal` on a Node. |
-| V-ANSWERS | `answers` with exactly the keys `yes` and `no`, each a Node reference to an existing question Node or Terminal. |
-| V-OPTIONS | `options`, when present, a non-empty list; each with `title` and `target` and nothing else (an `images` key on an Option fails V-KEYS); targets existing explanation Nodes; targets distinct within the list. |
-| V-ORPHAN | every explanation Node targeted by at least one Option (this is also implied by V-REACH, but gets its own message). |
-| V-TERMINAL | `terminal` as a mapping whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`; a Terminal has no `options`. |
-| V-SOURCE | every Source with a `kind` in `legal` / `case-law` / `literature`, a plain localised `label`, an absolute http(s) `url`; Source ids valid and distinct within the Node. |
-| V-IMAGE | every Image with a `file` matching 3.5 that exists in the Tree's `images/`, a plain localised `description`, a non-empty `credit`, and, if present, a `source` naming a Source id on the same Node. |
-| V-EXPLAINER | `explainers`, when present, a non-empty list of at most 8; each with an `id` that is a valid id and distinct within the Node, a plain localised `term` and a plain localised `text` within 5.7; and each marked at least once in the Node's `description` in every declared language. |
-| V-MARK | every `[text](#id)` in a `description` names an explainer `id` of the same Node, has non-empty text, and is not inside `*emphasis*` or `**strong**`. |
-| V-CROSS | no Node reference containing `:` (Cross-links are not part of `elsa-tree/3`). |
+| Rule | Where | A valid Tree has... |
+|---|---|---|
+| V-NODE | schema, rules | a non-empty `nodes` array; every element with an `id` that is a valid id (schema) and is distinct from every other Node's (rules), and `title`, `description`, `metadata` present. |
+| V-KIND | schema | at most one of `answers` and `terminal` on a Node. |
+| V-ANSWERS | schema, rules | `answers` with exactly the keys `yes` and `no` (schema), each a Node reference to an existing question Node or Terminal (rules). |
+| V-OPTIONS | schema, rules | `options`, when present, a non-empty array; each entry with `title` and `target` and nothing else (schema; an `images` key on an Option fails V-KEYS); targets existing explanation Nodes, distinct within the array (rules). |
+| V-ORPHAN | rules | every explanation Node targeted by at least one Option (this is also implied by V-REACH, but gets its own message). |
+| V-TERMINAL | schema | `terminal` as an object whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`; a Terminal has no `options`. |
+| V-SOURCE | schema, rules | every Source with a `kind` in `legal` / `case-law` / `literature`, a plain localised `label`, an absolute http(s) `url` and a valid `id` when present (schema); Source ids distinct within the Node (rules). |
+| V-IMAGE | schema, rules | every Image with a `file` matching 3.5, a plain localised `description` and a non-empty `credit` (schema); the file existing in the Tree's `images/`, and a `source`, if present, naming a Source id on the same Node (rules). |
+| V-EXPLAINER | schema, rules | `explainers`, when present, a non-empty array; each with a valid `id`, a plain localised `term` and a plain localised `text` (schema); ids distinct within the Node, at most 8 entries, the lengths of 5.7, and each marked at least once in the Node's `description` in every declared language (rules). |
+| V-MARK | rules | every `[text](#id)` in a `description` names an explainer `id` of the same Node, has non-empty text, and is not inside `*emphasis*` or `**strong**`. |
+| V-CROSS | schema | no Node reference containing `:` -- which the id grammar excludes, so the schema catches it (Cross-links are not part of `elsa-tree/4`). |
 
 Not errors: an image file in `images/` or a file in `theme/` that nothing references; a
 Node reached by more than one Link; a cycle among question Nodes (the Tree is
-graph-shaped by design; the Trail is how the user finds their way back); Node documents
-in any order; comments anywhere.
+graph-shaped by design; the Trail is how the user finds their way back); the elements of
+`nodes` in any order; a file that parses but is not in the canonical byte form of 3.7
+(the byte form binds writers, not readers).
 
 ## 8. Complete example Tree (English and Dutch)
 
@@ -815,12 +992,17 @@ every element of the format, including a Theme, Images and an explainer. It is *
 content**: the legal statements are simplified sketches used to show the format, not
 verified readings of the AI Act. The real first Tree is authored separately.
 
+It is also the `elsa-tree/4` form of the `elsa-tree/3` example this section held before,
+produced by the procedure of 12.6 and validated against `schemas/elsa-tree-4.json`. Issue
+#119 converts `trees/ai-act-example/tree.yaml` into `trees/ai-act-example/tree.json`, and
+that file is byte-identical to the block below.
+
 Folder layout:
 
 ```
 trees/
   ai-act-example/
-    tree.yaml
+    tree.json
     images/
       eu-map.png
       scoreboard.png
@@ -854,268 +1036,353 @@ last choice makes this Tree the one that exercises the `fonts` fallback of 4.3.2
 as `@font-face` itself. The Theme of the first Tree, `trees/ai-act-applicability-agrifood`,
 is the identity issue #36 measured on https://ai4sfs.org.
 
-### `trees/ai-act-example/tree.yaml`
+Note what an `elsa-tree/3` reader will miss here: the comments that stood above the
+manifest and the Theme, and the `--- # <id>` line before every Node. JSON has neither, and
+none is invented (3.7). What those comments said is in this section's prose, where a
+reader of the contract finds it; what an author needs to keep beside the data goes in
+`metadata`.
 
-```yaml
-# The example Tree of docs/specs/tree-format.md, section 8: every element of the format
-# in one small Tree. Its legal content is simplified and not to be relied on.
-format: elsa-tree/3
-languages: [en, nl]
-root: start
-title:
-  en: Does the EU AI Act apply to my AI system? (example)
-  nl: Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)
-description:
-  en: |
-    A small example Tree that exercises every element of the `elsa-tree/3` format.
-    Its legal content is simplified and not to be relied on.
-  nl: |
-    Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/3`-formaat gebruikt.
-    De juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen.
-metadata:
-  version: "2.0"
-  author: ELSA-Lab for sustainable food systems, Wageningen University
-  licence: CC BY 4.0 (CONTENT-LICENSE at the repository root)
-# A Theme deliberately unlike the first Tree's (issue #40): its own mark, a dark palette
-# and no `body` family, so running text falls back to the frontend's own type stack
-# (tree-format.md 4.3.2). The same build serves this and the AI4SFS look with no code
-# change, which is what makes the interoperability requirement visible rather than claimed.
-# It is also the only servable Tree that exercises `logo.dark`: `background` below is dark,
-# so the frontend derives that the dark variant is the one to show (application.md 13.1).
-theme:
-  logo:
-    light: example-lab-logo.svg
-    dark: example-lab-logo-white.svg
-    alt:
-      en: Example Lab
-      nl: Voorbeeldlab
-    url: https://example.org
-  fonts:
-    - family: Nova Square
-      role: heading
-      files:
-        - { file: nova-square-400.woff2, weight: "400", style: normal }
-      licence: SIL Open Font License 1.1 (theme/ofl-nova-square.txt)
-  colours:
-    background: "#161a1d"
-    surface: "#212729"
-    text: "#eef1f2"
-    text-muted: "#9aa5aa"
-    accent: "#e2604a"
-    accent-secondary: "#5aa9c9"
-    danger: "#ff8a7a"
+### `trees/ai-act-example/tree.json`
 
---- # start
-id: start
-title:
-  en: Is your AI system within the reach of the AI Act?
-  nl: Valt uw AI-systeem binnen het bereik van de AI-verordening?
-description:
-  en: |
-    The AI Act reaches AI systems **placed on the market or put into service in the EU**, wherever the [provider](#provider) is based.
-  nl: |
-    De AI-verordening bestrijkt AI-systemen die **in de EU in de handel worden gebracht of in gebruik worden gesteld**, waar de [aanbieder](#provider) ook zit.
-metadata:
-  version: "2.0"
-sources:
-  - id: art-2
-    kind: legal
-    label:
-      en: Article 2 AI Act (scope)
-      nl: Artikel 2 AI-verordening (toepassingsgebied)
-    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
-images:
-  - file: eu-map.png
-    description:
-      en: Map of the European Union member states
-      nl: Kaart van de lidstaten van de Europese Unie
-    credit: "Map: Example Cartography, CC BY 4.0"
-    source: art-2
-explainers:
-  - id: provider
-    term:
-      en: provider
-      nl: aanbieder
-    text:
-      en: Someone who develops an AI system, or has one developed, and places it on the market or puts it into service under their own name or trademark.
-      nl: Wie een AI-systeem ontwikkelt of laat ontwikkelen en het onder eigen naam of merk in de handel brengt of in gebruik stelt.
-answers:
-  yes: prohibited-practices
-  no: outside-scope
-
---- # outside-scope
-id: outside-scope
-title:
-  en: The AI Act does not apply
-  nl: De AI-verordening is niet van toepassing
-description:
-  en: |
-    Your system is outside the territorial scope of the AI Act. Other rules may still
-    apply to it; this Tree does not cover them.
-  nl: |
-    Uw systeem valt buiten het territoriale toepassingsgebied van de AI-verordening.
-metadata:
-  version: "2.0"
-images:
-  - file: outside-scope.png
-    description:
-      en: Placeholder picture for a system outside the scope
-      nl: Plaatsvervangende afbeelding voor een systeem buiten het toepassingsgebied
-    credit: "Placeholder drawn for this repository, CC0 1.0"
-terminal:
-  outcome: not-applicable
-
---- # prohibited-practices
-id: prohibited-practices
-title:
-  en: Does your system do any of the prohibited practices?
-  nl: Verricht uw systeem een van de verboden praktijken?
-description:
-  en: |
-    Article 5 lists practices that are **prohibited** outright. Open each entry to read what it covers, then come back here and answer.
-  nl: |
-    Artikel 5 noemt praktijken die zonder meer **verboden** zijn. Open elk onderdeel om te lezen wat het inhoudt, en kom dan hier terug om te antwoorden.
-metadata:
-  version: "2.0"
-  reviewed: 2026-09-10
-sources:
-  - kind: legal
-    label:
-      en: Article 5 AI Act (prohibited AI practices)
-      nl: Artikel 5 AI-verordening (verboden AI-praktijken)
-    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
-images:
-  - file: prohibited-practices.png
-    description:
-      en: Placeholder picture for the prohibited practices
-      nl: Plaatsvervangende afbeelding voor de verboden praktijken
-    credit: "Placeholder drawn for this repository, CC0 1.0"
-options:
-  - title:
-      en: Social scoring
-      nl: Sociale scoring
-    target: social-scoring
-  - title:
-      en: Emotion recognition at work or in education
-      nl: Emotieherkenning op het werk of in het onderwijs
-    target: emotion-recognition-at-work
-answers:
-  yes: prohibited
-  no: covered
-
---- # social-scoring
-id: social-scoring
-title:
-  en: Social scoring
-  nl: Sociale scoring
-description:
-  en: |
-    Evaluating or classifying people over time on the basis of their social behaviour or personal characteristics, where the resulting score leads to…
-  nl: |
-    Het beoordelen of indelen van mensen gedurende een periode op basis van hun sociale gedrag of persoonlijke kenmerken, waarbij de score leidt tot…
-metadata:
-  version: "2.0"
-images:
-  - file: scoreboard.png
-    description:
-      en: A scoreboard ranking people
-      nl: Een scorebord dat mensen rangschikt
-    credit: "Illustration: Example Studio, CC0 1.0"
-sources:
-  - kind: legal
-    label:
-      en: Article 5(1)(c) AI Act
-      nl: Artikel 5, lid 1, onder c, AI-verordening
-    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
-  - kind: case-law
-    label:
-      en: CJEU, C-634/21 SCHUFA (Scoring), 7 December 2023
-      nl: HvJ EU, C-634/21 SCHUFA (Scoring), 7 december 2023
-    url: https://curia.europa.eu/juris/liste.jsf?num=C-634/21
-  - kind: literature
-    label:
-      en: Veale & Zuiderveen Borgesius (2021), Demystifying the AI Act
-      nl: Veale & Zuiderveen Borgesius (2021), Demystifying the AI Act
-    url: https://arxiv.org/abs/2107.03721
-
---- # emotion-recognition-at-work
-id: emotion-recognition-at-work
-title:
-  en: Emotion recognition at work or in education
-  nl: Emotieherkenning op het werk of in het onderwijs
-description:
-  en: |
-    Inferring the emotions of a person in the workplace or in an education
-    institution, except for medical or safety reasons.
-  nl: |
-    Het afleiden van emoties van een persoon op de werkplek of in een
-    onderwijsinstelling, behalve om medische of veiligheidsredenen.
-metadata:
-  version: "2.0"
-sources:
-  - kind: legal
-    label:
-      en: Article 5(1)(f) AI Act
-      nl: Artikel 5, lid 1, onder f, AI-verordening
-    url: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
-images:
-  - file: emotion-recognition.png
-    description:
-      en: Placeholder picture for emotion recognition
-      nl: Plaatsvervangende afbeelding voor emotieherkenning
-    credit: "Placeholder drawn for this repository, CC0 1.0"
-
---- # prohibited
-id: prohibited
-title:
-  en: This is a prohibited practice
-  nl: Dit is een verboden praktijk
-description:
-  en: |
-    The AI Act prohibits placing on the market, putting into service or using a system
-    for this practice. The walk ends here.
-  nl: |
-    De AI-verordening verbiedt het in de handel brengen, in gebruik stellen of
-    gebruiken van een systeem voor deze praktijk. De doorloop eindigt hier.
-metadata:
-  version: "2.0"
-images:
-  - file: prohibited.png
-    description:
-      en: Placeholder picture for a prohibited practice
-      nl: Plaatsvervangende afbeelding voor een verboden praktijk
-    credit: "Placeholder drawn for this repository, CC0 1.0"
-terminal:
-  outcome: prohibited
-
---- # covered
-id: covered
-title:
-  en: The AI Act applies to your system
-  nl: De AI-verordening is van toepassing op uw systeem
-description:
-  en: |
-    Your system is within scope and is not a prohibited practice. The real Tree
-    continues with the high-risk categorisation; this example stops here.
-  nl: |
-    Uw systeem valt binnen het toepassingsgebied en is geen verboden praktijk.
-metadata:
-  version: "2.0"
-images:
-  - file: covered.png
-    description:
-      en: Placeholder picture for a system the AI Act applies to
-      nl: Plaatsvervangende afbeelding voor een systeem waarop de AI-verordening van toepassing is
-    credit: "Placeholder drawn for this repository, CC0 1.0"
-terminal:
-  outcome: applicable
+```json
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "en",
+    "nl"
+  ],
+  "root": "start",
+  "title": {
+    "en": "Does the EU AI Act apply to my AI system? (example)",
+    "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
+  },
+  "description": {
+    "en": "A small example Tree that exercises every element of the `elsa-tree/4` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/4`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+  },
+  "metadata": {
+    "version": "2.0",
+    "author": "ELSA-Lab for sustainable food systems, Wageningen University",
+    "licence": "CC BY 4.0 (CONTENT-LICENSE at the repository root)"
+  },
+  "theme": {
+    "logo": {
+      "light": "example-lab-logo.svg",
+      "dark": "example-lab-logo-white.svg",
+      "alt": {
+        "en": "Example Lab",
+        "nl": "Voorbeeldlab"
+      },
+      "url": "https://example.org"
+    },
+    "fonts": [
+      {
+        "family": "Nova Square",
+        "role": "heading",
+        "files": [
+          {
+            "file": "nova-square-400.woff2",
+            "weight": "400",
+            "style": "normal"
+          }
+        ],
+        "licence": "SIL Open Font License 1.1 (theme/ofl-nova-square.txt)"
+      }
+    ],
+    "colours": {
+      "background": "#161a1d",
+      "surface": "#212729",
+      "text": "#eef1f2",
+      "text-muted": "#9aa5aa",
+      "accent": "#e2604a",
+      "accent-secondary": "#5aa9c9",
+      "danger": "#ff8a7a"
+    }
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Is your AI system within the reach of the AI Act?",
+        "nl": "Valt uw AI-systeem binnen het bereik van de AI-verordening?"
+      },
+      "description": {
+        "en": "The AI Act reaches AI systems **placed on the market or put into service in the EU**, wherever the [provider](#provider) is based.",
+        "nl": "De AI-verordening bestrijkt AI-systemen die **in de EU in de handel worden gebracht of in gebruik worden gesteld**, waar de [aanbieder](#provider) ook zit."
+      },
+      "metadata": {
+        "version": "2.0"
+      },
+      "sources": [
+        {
+          "id": "art-2",
+          "kind": "legal",
+          "label": {
+            "en": "Article 2 AI Act (scope)",
+            "nl": "Artikel 2 AI-verordening (toepassingsgebied)"
+          },
+          "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+        }
+      ],
+      "images": [
+        {
+          "file": "eu-map.png",
+          "description": {
+            "en": "Map of the European Union member states",
+            "nl": "Kaart van de lidstaten van de Europese Unie"
+          },
+          "credit": "Map: Example Cartography, CC BY 4.0",
+          "source": "art-2"
+        }
+      ],
+      "answers": {
+        "yes": "prohibited-practices",
+        "no": "outside-scope"
+      },
+      "explainers": [
+        {
+          "id": "provider",
+          "term": {
+            "en": "provider",
+            "nl": "aanbieder"
+          },
+          "text": {
+            "en": "Someone who develops an AI system, or has one developed, and places it on the market or puts it into service under their own name or trademark.",
+            "nl": "Wie een AI-systeem ontwikkelt of laat ontwikkelen en het onder eigen naam of merk in de handel brengt of in gebruik stelt."
+          }
+        }
+      ]
+    },
+    {
+      "id": "outside-scope",
+      "title": {
+        "en": "The AI Act does not apply",
+        "nl": "De AI-verordening is niet van toepassing"
+      },
+      "description": {
+        "en": "Your system is outside the territorial scope of the AI Act. Other rules may still\napply to it; this Tree does not cover them.",
+        "nl": "Uw systeem valt buiten het territoriale toepassingsgebied van de AI-verordening."
+      },
+      "metadata": {
+        "version": "2.0"
+      },
+      "images": [
+        {
+          "file": "outside-scope.png",
+          "description": {
+            "en": "Placeholder picture for a system outside the scope",
+            "nl": "Plaatsvervangende afbeelding voor een systeem buiten het toepassingsgebied"
+          },
+          "credit": "Placeholder drawn for this repository, CC0 1.0"
+        }
+      ],
+      "terminal": {
+        "outcome": "not-applicable"
+      }
+    },
+    {
+      "id": "prohibited-practices",
+      "title": {
+        "en": "Does your system do any of the prohibited practices?",
+        "nl": "Verricht uw systeem een van de verboden praktijken?"
+      },
+      "description": {
+        "en": "Article 5 lists practices that are **prohibited** outright. Open each entry to read what it covers, then come back here and answer.",
+        "nl": "Artikel 5 noemt praktijken die zonder meer **verboden** zijn. Open elk onderdeel om te lezen wat het inhoudt, en kom dan hier terug om te antwoorden."
+      },
+      "metadata": {
+        "version": "2.0",
+        "reviewed": "2026-09-10"
+      },
+      "sources": [
+        {
+          "kind": "legal",
+          "label": {
+            "en": "Article 5 AI Act (prohibited AI practices)",
+            "nl": "Artikel 5 AI-verordening (verboden AI-praktijken)"
+          },
+          "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+        }
+      ],
+      "images": [
+        {
+          "file": "prohibited-practices.png",
+          "description": {
+            "en": "Placeholder picture for the prohibited practices",
+            "nl": "Plaatsvervangende afbeelding voor de verboden praktijken"
+          },
+          "credit": "Placeholder drawn for this repository, CC0 1.0"
+        }
+      ],
+      "answers": {
+        "yes": "prohibited",
+        "no": "covered"
+      },
+      "options": [
+        {
+          "title": {
+            "en": "Social scoring",
+            "nl": "Sociale scoring"
+          },
+          "target": "social-scoring"
+        },
+        {
+          "title": {
+            "en": "Emotion recognition at work or in education",
+            "nl": "Emotieherkenning op het werk of in het onderwijs"
+          },
+          "target": "emotion-recognition-at-work"
+        }
+      ]
+    },
+    {
+      "id": "social-scoring",
+      "title": {
+        "en": "Social scoring",
+        "nl": "Sociale scoring"
+      },
+      "description": {
+        "en": "Evaluating or classifying people over time on the basis of their social behaviour or personal characteristics, where the resulting score leads to…",
+        "nl": "Het beoordelen of indelen van mensen gedurende een periode op basis van hun sociale gedrag of persoonlijke kenmerken, waarbij de score leidt tot…"
+      },
+      "metadata": {
+        "version": "2.0"
+      },
+      "sources": [
+        {
+          "kind": "legal",
+          "label": {
+            "en": "Article 5(1)(c) AI Act",
+            "nl": "Artikel 5, lid 1, onder c, AI-verordening"
+          },
+          "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+        },
+        {
+          "kind": "case-law",
+          "label": {
+            "en": "CJEU, C-634/21 SCHUFA (Scoring), 7 December 2023",
+            "nl": "HvJ EU, C-634/21 SCHUFA (Scoring), 7 december 2023"
+          },
+          "url": "https://curia.europa.eu/juris/liste.jsf?num=C-634/21"
+        },
+        {
+          "kind": "literature",
+          "label": {
+            "en": "Veale & Zuiderveen Borgesius (2021), Demystifying the AI Act",
+            "nl": "Veale & Zuiderveen Borgesius (2021), Demystifying the AI Act"
+          },
+          "url": "https://arxiv.org/abs/2107.03721"
+        }
+      ],
+      "images": [
+        {
+          "file": "scoreboard.png",
+          "description": {
+            "en": "A scoreboard ranking people",
+            "nl": "Een scorebord dat mensen rangschikt"
+          },
+          "credit": "Illustration: Example Studio, CC0 1.0"
+        }
+      ]
+    },
+    {
+      "id": "emotion-recognition-at-work",
+      "title": {
+        "en": "Emotion recognition at work or in education",
+        "nl": "Emotieherkenning op het werk of in het onderwijs"
+      },
+      "description": {
+        "en": "Inferring the emotions of a person in the workplace or in an education\ninstitution, except for medical or safety reasons.",
+        "nl": "Het afleiden van emoties van een persoon op de werkplek of in een\nonderwijsinstelling, behalve om medische of veiligheidsredenen."
+      },
+      "metadata": {
+        "version": "2.0"
+      },
+      "sources": [
+        {
+          "kind": "legal",
+          "label": {
+            "en": "Article 5(1)(f) AI Act",
+            "nl": "Artikel 5, lid 1, onder f, AI-verordening"
+          },
+          "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+        }
+      ],
+      "images": [
+        {
+          "file": "emotion-recognition.png",
+          "description": {
+            "en": "Placeholder picture for emotion recognition",
+            "nl": "Plaatsvervangende afbeelding voor emotieherkenning"
+          },
+          "credit": "Placeholder drawn for this repository, CC0 1.0"
+        }
+      ]
+    },
+    {
+      "id": "prohibited",
+      "title": {
+        "en": "This is a prohibited practice",
+        "nl": "Dit is een verboden praktijk"
+      },
+      "description": {
+        "en": "The AI Act prohibits placing on the market, putting into service or using a system\nfor this practice. The walk ends here.",
+        "nl": "De AI-verordening verbiedt het in de handel brengen, in gebruik stellen of\ngebruiken van een systeem voor deze praktijk. De doorloop eindigt hier."
+      },
+      "metadata": {
+        "version": "2.0"
+      },
+      "images": [
+        {
+          "file": "prohibited.png",
+          "description": {
+            "en": "Placeholder picture for a prohibited practice",
+            "nl": "Plaatsvervangende afbeelding voor een verboden praktijk"
+          },
+          "credit": "Placeholder drawn for this repository, CC0 1.0"
+        }
+      ],
+      "terminal": {
+        "outcome": "prohibited"
+      }
+    },
+    {
+      "id": "covered",
+      "title": {
+        "en": "The AI Act applies to your system",
+        "nl": "De AI-verordening is van toepassing op uw systeem"
+      },
+      "description": {
+        "en": "Your system is within scope and is not a prohibited practice. The real Tree\ncontinues with the high-risk categorisation; this example stops here.",
+        "nl": "Uw systeem valt binnen het toepassingsgebied en is geen verboden praktijk."
+      },
+      "metadata": {
+        "version": "2.0"
+      },
+      "images": [
+        {
+          "file": "covered.png",
+          "description": {
+            "en": "Placeholder picture for a system the AI Act applies to",
+            "nl": "Plaatsvervangende afbeelding voor een systeem waarop de AI-verordening van toepassing is"
+          },
+          "credit": "Placeholder drawn for this repository, CC0 1.0"
+        }
+      ],
+      "terminal": {
+        "outcome": "applicable"
+      }
+    }
+  ]
+}
 ```
 
 The image files are ordinary PNG files placed in `trees/ai-act-example/images/` by hand;
 the five added by issue #84 are labelled placeholders; the logo and font files are placed in
 `trees/ai-act-example/theme/` the same way, with the licence texts next to them.
 
-Note what the explanation Nodes no longer say: the sentence "This is an explanation
+Note what the explanation Nodes do not say: the sentence "This is an explanation
 only. Go back to the previous step to answer" of the `elsa-tree/1` example is chrome,
 said by the frontend on every explanation Node, and no longer spends Bubble space.
 
@@ -1124,31 +1391,46 @@ said by the frontend on every explanation Node, and no longer spends Bubble spac
 Nothing structural changes. The manifest declares one language and every localised
 text has one key:
 
-```yaml
-format: elsa-tree/3
-languages: [nl]
-root: start
-title:
-  nl: Is de AI-verordening van toepassing?
-metadata:
-  version: "1.0"
-
---- # start
-id: start
-title:
-  nl: Valt uw AI-systeem binnen het bereik van de AI-verordening?
-description:
-  nl: |
-    ...
+```json
+{
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
+  "languages": [
+    "nl"
+  ],
+  "root": "start",
+  "title": {
+    "nl": "Is de AI-verordening van toepassing?"
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "nl": "Valt uw AI-systeem binnen het bereik van de AI-verordening?"
+      },
+      "description": {
+        "nl": "..."
+      },
+      "metadata": {
+        "version": "1.0"
+      }
+    }
+  ]
+}
 ```
 
-Writing `title: Valt uw AI-systeem ...` as a bare string instead of a mapping is
-**not** allowed even for one language (rule V-L10N): a localised text is always a
-mapping, so that a second language can be added without changing the shape. The
-frontend shows the Tree in its only language and offers no language switch.
+Writing `"title": "Valt uw AI-systeem ..."` as a bare string instead of an object is
+**not** allowed even for one language (rule V-L10N): a localised text is always an
+object, so that a second language can be added without changing the shape. The
+frontend shows the Tree in its only language and offers no language switch -- and, because
+there is only one, its pages carry no `hreflang` alternates and its sitemap no
+`xhtml:link` (`docs/specs/application.md` 16.2, 16.3).
 
 A Tree in German, or in English, Dutch and German, is written the same way with
-`languages: [de]` or `languages: [en, nl, de]`. A Tree without a `theme` key, like this
+`"languages": ["de"]` or `["en", "nl", "de"]`. A Tree without a `theme` key, like this
 one, is shown in the frontend's plain default look.
 
 ## 10. Reserved for the future
@@ -1156,14 +1438,36 @@ one, is shown in the frontend's plain default look.
 - **Cross-links.** A Node reference of the shape `tree-id:node-id` (two ids joined by a
   colon) will address a Node in another Tree, and a bare reference to a non-child Node
   may become allowed for in-Tree cross-links. Ids therefore cannot contain a colon
-  today, and today's loader rejects references with a colon (V-CROSS). Files written
-  against `elsa-tree/3` will remain valid when Cross-links arrive.
-- **Format number.** `format: elsa-tree/3` is the only accepted value. Any change to
-  the keys, the kinds, the outcome set, the Theme roles, the limits or the validity
-  rules is published as `elsa-tree/4` with its own document; a loader states which
-  format numbers it accepts.
+  today, and today's grammar rejects references with a colon (V-CROSS). Files written
+  against `elsa-tree/4` will remain valid when Cross-links arrive.
+- **Format number.** `format: elsa-tree/4` is the only accepted value, and
+  `schemas/elsa-tree-4.json` the only schema a Tree may name. Any change to the keys, the
+  kinds, the outcome set, the Theme roles, the limits or the validity rules is published
+  as `elsa-tree/5`, with its own document and its own `schemas/elsa-tree-5.json` beside
+  this one; a loader states which format numbers it accepts, and the older schema files
+  stay where they are so that a Tree written today keeps something to point at.
+- **Where an edited Tree is stored.** The round after this one edits Trees through the
+  frontend. Whether the edited `tree.json` is written back into the repository through
+  git, or into a store of some other kind, is the owner's to define (core document open
+  item 10.30). Nothing in this format depends on the answer: the file is the same file
+  wherever it is kept.
 
 ## 11. Where each decision is recorded
+
+Decisions of `elsa-tree/4` (issue #118):
+
+| Decision | ADR |
+|---|---|
+| JSON replaces YAML: one `tree.json` object, `nodes` an array in the author's order with each element's own `id`, rich text a string with `\n`, an absent optional field omitted, a required `$schema`, no comments, and a canonical byte form | `docs/adrs/ADR-118-json-serialisation.md` (supersedes `ADR-37-serialisation.md` and the YAML half of `ADR-4-serialisation-format.md`) |
+| The JSON Schema at `schemas/elsa-tree-4.json`, served at `/schemas/elsa-tree-4.json`: the structure and the grammars, deliberately not the limits of 5.7, and no `$id` | `docs/adrs/ADR-118-json-schema.md` |
+| The dataset endpoint serves the file byte-identical under CC BY 4.0; "never the whole Tree" is restated as a rule about pages | `docs/adrs/ADR-118-dataset-endpoint.md` |
+| The order of the four build issues that follow the freeze | `docs/adrs/ADR-118-build-order.md` |
+
+The findability contracts decided on the same issue -- `robots.txt`, the sitemap and the
+`hreflang` alternates, the JSON-LD, `llms.txt` -- are the application's, not the format's:
+`docs/adrs/ADR-118-crawler-access.md`, `ADR-118-sitemap-and-alternates.md`,
+`ADR-118-json-ld.md`, `ADR-118-llms-txt.md`, and `docs/specs/application.md` sections 15
+and 16.
 
 Decisions of `elsa-tree/3` (issue #78):
 
@@ -1178,8 +1482,8 @@ Decisions of `elsa-tree/2` (issue #37):
 
 | Decision | ADR |
 |---|---|
-| One file per Tree: a YAML stream, manifest first, one document per Node, `id` inside the document; `images/` and `theme/` beside it; the Tree is read once and held in memory | `docs/adrs/ADR-37-single-file-layout.md` (supersedes `ADR-4-file-layout.md`) |
-| YAML 1.2 kept as the serialisation of one large multilingual file; the stream, the `--- # id` convention, free document order | `docs/adrs/ADR-37-serialisation.md` (amends `ADR-4-serialisation-format.md`, `ADR-4-identifiers-and-cross-links.md`) |
+| One file per Tree; `images/` and `theme/` beside it; the Tree is read once and held in memory | `docs/adrs/ADR-37-single-file-layout.md` (supersedes `ADR-4-file-layout.md`) |
+| YAML 1.2 as the serialisation of one large multilingual file; the stream, the `--- # id` convention, free document order | `docs/adrs/ADR-37-serialisation.md` -- **superseded by `ADR-118-json-serialisation.md`**; the free order of Nodes carries over as the order of the `nodes` array |
 | The Theme block: logo, fonts, colours by role; each part optional, each present part complete; files in `theme/` | `docs/adrs/ADR-37-theme-block.md` |
 | Maximum lengths and counts, the same for every language, derived from a stated viewport and Bubble; the estimated-line rule for rich text | `docs/adrs/ADR-37-length-limits.md` |
 | The step counter `(n/m)` is authored in the title, not a field | `docs/adrs/ADR-37-step-counter.md` |
@@ -1195,10 +1499,18 @@ Decisions carried over unchanged from `elsa-tree/1` (issue #4):
 | Explicit terminal marker with a closed outcome set; Node kind derived | `docs/adrs/ADR-4-terminal-marker.md` |
 | Images in the Tree's own `images/` folder, referenced by bare file name | `docs/adrs/ADR-4-image-reference.md` |
 | Strict validation: reject the whole Tree, report every violation | `docs/adrs/ADR-4-validity-rules.md` |
-| YAML 1.2 with a Markdown subset for rich text | `docs/adrs/ADR-4-serialisation-format.md` (the "one file per Node" consequence is amended by `ADR-37-serialisation.md`) |
+| A Markdown subset for rich text | `docs/adrs/ADR-4-serialisation-format.md` (its YAML half is superseded by `ADR-118-json-serialisation.md`) |
 
-## 12. Migration from `elsa-tree/1`
+## 12. Migrations
 
+Three conversions are recorded here. **12.6 is the one that runs now**: `elsa-tree/3` to
+`elsa-tree/4`, the JSON conversion of issue #119. 12.1 to 12.4 (`elsa-tree/1` to `/2`) and
+12.5 (`/2` to `/3`) are kept as the record of how the Trees on `dev` got here; a Tree
+still written in `elsa-tree/1` or `/2` is converted with **the last release that read
+YAML** -- the commit tagged before #119 merges -- and then by 12.6. No Tree in this
+repository is in that state.
+
+**12.1 to 12.4: from `elsa-tree/1` to `elsa-tree/2`.**
 A Tree folder written against `elsa-tree/1` -- `tree.yaml` plus `nodes/<id>.yaml` files
 plus `images/` -- is converted to `elsa-tree/2` by a **textual** procedure: no Node
 file is parsed and re-serialised, so every comment, every line break and every quoting
@@ -1364,3 +1676,92 @@ gives every Node of both Trees a main image first, copying each of the first Tre
 Option pictures to its target as that target's first Image, so step 2 finds them there
 and moves nothing; the example Tree's `scoreboard.png` is written on `social-scoring` in
 section 8 for the same reason.
+
+### 12.6 From `elsa-tree/3` to `elsa-tree/4`
+
+This conversion is **not textual**, and it is the first of the three that is not: the
+shapes differ, so the file is parsed and re-serialised. It is a **one-time job**, done
+while a YAML parser is still in the repository; the parser and the `yaml` dependency leave
+with it (issue #119), and after this round nothing here reads YAML.
+`docs/adrs/ADR-118-json-serialisation.md` has the reasoning.
+
+#### 12.6.1 The procedure
+
+Input: the folder `<in>/` holding `tree.yaml`. Output: `<in>/tree.json`.
+
+1. **Parse** `<in>/tree.yaml` as a YAML 1.2 stream, with the same parser the
+   `elsa-tree/3` loader used. If any document fails to parse, **report and stop**: nothing
+   is written. An invalid Tree is not converted, because a re-serialisation cannot carry a
+   syntax error across the way a textual concatenation could.
+2. **The first document becomes the top-level object**, the rest become the elements of
+   `nodes`, **in stream order**, so the author's order -- the root first, then the walk --
+   survives as the array's order.
+3. **`format` becomes `elsa-tree/4`**, and **`$schema` is written first**, with the value
+   `/schemas/elsa-tree-4.json`.
+4. **Every scalar is carried over unchanged**, with one rule for text: a block scalar's
+   **single trailing line break is removed**; every other character, line break included,
+   is kept exactly. Nothing is re-wrapped, nothing is trimmed inside, nothing is
+   re-punctuated. 3.8 step 1 already stripped that trailing break before measuring, so no
+   text changes its counted length.
+5. **Keys are written in the order of 3.7**; `metadata` keeps `version` first and the
+   author's remaining keys in the order they were written; a localised text lists its
+   languages in the manifest's order.
+6. **An absent key stays absent.** Nothing becomes `null`, `[]` or `{}` (V-NULL,
+   V-EMPTY).
+7. **Write** `<in>/tree.json` in the canonical byte form of 3.7. Do not touch `images/`,
+   `theme/`, or any other file in the folder.
+8. **Validate** the result against `schemas/elsa-tree-4.json` and then against the rules
+   of section 7, and **report every violation** as the loader would. Shorten nothing, drop
+   nothing, silence nothing.
+9. **Delete `<in>/tree.yaml` only after** the written file has been read back and
+   validated. Never before.
+
+**Idempotence.** Running the writer on a Tree it has already written changes no byte.
+Running the whole procedure on a folder that holds a `tree.json` and no `tree.yaml` does
+nothing and reports nothing. Issue #119 tests both, because the byte form of 3.7 is only
+worth stating if it is stable.
+
+#### 12.6.2 What the procedure guarantees, and what it does not
+
+**Guaranteed.** Every Node of the input is an element of `nodes` in the same order, with
+the same `id`. Every piece of text in every language is the same sequence of characters,
+minus the one trailing line break of step 4. Every id, Node reference, Source, URL, image
+and theme file name, colour, font descriptor and `metadata` value is what it was. So
+**every URL and every shared link keeps working**, `images/` and `theme/` need no change,
+and no Tree is re-cut: a Tree that validated as `elsa-tree/3` validates as `elsa-tree/4`.
+
+**Not guaranteed, and lost on purpose.** Comments, the `--- # <id>` table of contents,
+the author's quoting choices and the author's line wrapping inside a block scalar. JSON
+has none of these and none is invented (3.7). This is the price of the owner's decision
+that no person works inside the file again; it is written here so that nobody looks for
+them afterwards. What must stay beside the data goes in `metadata`.
+
+**One text the conversion does change**, and only in the example Tree: its manifest
+`description` names the format version ("every element of the `elsa-tree/3` format"), so
+that self-reference becomes `elsa-tree/4`. It is the one sentence in either Tree that is
+about the format rather than about the AI Act. Section 8 shows the result, and issue #119
+makes exactly that change so that `trees/ai-act-example/tree.json` stays byte-identical to
+section 8's block.
+
+#### 12.6.3 What it does for the Trees and fixtures on `dev`
+
+- `trees/ai-act-example` (7 Nodes, 7 Images, a Theme): converts to the file in section 8.
+- `trees/ai-act-applicability-agrifood` (the first Tree): converts and validates as it
+  stands; its content, its limits and its images are untouched.
+- `tests/fixtures/single-language`, `other-languages`, `german-only`: convert and validate
+  with no violation.
+- `tests/fixtures/full-node`, `carousel`, `overlay`, `explainers`: convert and validate;
+  each still exercises exactly the maximum it was built for, because no limit moved.
+- `tests/fixtures/invalid/<rule>`: each converts and fails **the same rule**, because
+  step 4 carries every value across -- a misspelt target is still misspelt, a missing
+  Dutch string is still missing. Two need re-fitting by hand, and #119 does it: `v-yaml`
+  becomes `v-json` (a file that does not parse as JSON), and `v-format`'s manifest must
+  say something that is not `elsa-tree/4`. New fixtures are needed for V-SCHEMA, V-NULL
+  and V-EMPTY, which are rules `elsa-tree/3` had no equivalent of.
+- `tests/fixtures/broken/<case>`: a case whose point is a YAML syntax error becomes the
+  JSON equivalent -- a truncated file, a trailing comma, a duplicate key -- and fails
+  V-JSON. There is one behavioural change to record: `elsa-tree/3` reported a parse error
+  per document and still checked the others (V-YAML), and `elsa-tree/4` cannot, because
+  one JSON file is one document. A syntax error anywhere is now a syntax error everywhere.
+  That is a real loss of an author-facing property, and it is acceptable only because no
+  author edits the file by hand any more -- which is the premise of this whole version.

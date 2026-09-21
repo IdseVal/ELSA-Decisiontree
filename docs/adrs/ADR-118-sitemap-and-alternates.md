@@ -82,7 +82,10 @@ absolute when `ELSA_BASE_URL` is set. Alternates are the same thing, once per la
 
    Step 3 is where this reduction and 3.8's differ, and they differ on purpose: 3.8 counts
    the markers because they take a reader's space on screen, and a meta description shows
-   nobody an asterisk.
+   nobody an asterisk. Steps 4 and 5 do not fire for a conforming Tree -- a Node
+   description is at most 150 counted characters since #102 -- and are stated anyway,
+   because a reduction that is not total is a reduction with a crash in it, and because
+   that limit is the layout's and has already moved twice.
 9. **`<meta name="description">` is on every Node page, in the page's language.** The
    Tree's own description is the Dataset's (`ADR-118-json-ld.md`), not every page's.
 10. **The sitemap is generated from the loaded Tree at request time**, never a file in
