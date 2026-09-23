@@ -117,11 +117,19 @@ reset by e-mail, no invitation by e-mail, and no reason to hold an e-mail addres
    `POST`, `PUT`, `PATCH` and `DELETE` under `/admin` is refused with **403** unless
    (a) `Sec-Fetch-Site` is `same-origin`, or the header is absent and `Origin` equals the
    deployment's own origin (`ELSA_BASE_URL` when set, else the request's `Host` as
-   `config.ts`'s `baseUrl` already resolves it); (b) the body's `Content-Type` is
-   `application/json` -- or `multipart/form-data` on the one upload route -- which a
-   cross-site form cannot send without a preflight this server does not answer; and (c)
-   the cookie's `SameSite=Strict`, which keeps a cross-site request from carrying the
-   session at all. `GET` and `HEAD` change nothing, ever. **No synchroniser token**: the
+   `config.ts`'s `baseUrl` already resolves it); (b) on a request that carries a body --
+   a `Content-Type` header or any body bytes -- the type is `application/json`, or
+   `multipart/form-data` on the one upload route; and (c) the cookie's `SameSite=Strict`,
+   which keeps a cross-site request from carrying the session at all. On (b):
+   `application/json` is a type no HTML form can send and no cross-site script can send
+   without a preflight this server does not answer, so on every JSON route (b) alone
+   refuses a form. `multipart/form-data` is one of the three types a form *can* send with
+   no preflight, so on the upload route (b) refuses only the other two form types and (a)
+   and (c) carry the route -- there is no hole, and this ADR claims no more for (b) than
+   it does there. A request with no `Content-Type` and no body -- logout and the three
+   `DELETE` routes, whose handlers read no body -- passes (b) and is carried by (a) and
+   (c); a form cannot produce one, since a form `POST` always carries one of its three
+   types and a form cannot send `DELETE`. `GET` and `HEAD` change nothing, ever. **No synchroniser token**: the
    three layers above have no common failure mode, and a token has one of its own (a page
    that leaks it) and a cost on every form and every render. The login route passes (a)
    and (b) too, against login CSRF. No route under `/admin` sends any

@@ -1004,7 +1004,8 @@ and the draft is held and shown with them; the rest are **blocking**, and a writ
 would cause one is refused before it reaches the disk. In one sentence, shape and safety
 rules block, completeness and size rules advise. The **Draft** column below is the
 contract; `docs/adrs/ADR-132-draft-and-publish.md` has the reasons and the mechanism (a
-draft schema derived from the published one in code, never a second file). Publishing runs
+draft schema derived from the published one in code by relaxing two named `minLength`
+keywords and two `required` lists, never a second file). Publishing runs
 every rule blocking, so nothing below changes for a reader of `tree.json`.
 
 Two tools answer between them, in this order, and neither translates the other's message
@@ -1030,7 +1031,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-EMPTY | schema | no empty array and no empty object as the value of any key this format defines. Inside `metadata` the schema accepts both, as it accepts `null` there (V-NULL, 3.7). | blocking |
 | V-LANG | schema | `languages`: a non-empty array of valid language tags (3.3), distinct from each other. Distinctness is the schema's `uniqueItems`, not a content rule: a repeated tag is a shape failure, and one tool says it. | blocking |
 | V-ROOT | rules | `root` naming an existing Node that is a question Node or a Terminal. | advisory: the root exists (blocking) but has neither Answers nor a terminal yet |
-| V-TITLE | schema | `title` present at the top level, as a localised text. That it is plain and within its length is V-PLAIN and V-LENGTH, which report under their own ids: there is no V-TITLE content check, and nothing reports that id. | advisory (a Tree without a title yet) |
+| V-TITLE | schema | `title` present at the top level, as a localised text. That it is plain and within its length is V-PLAIN and V-LENGTH, which report under their own ids: there is no V-TITLE content check, and nothing reports that id. | advisory (a title whose every language is still empty; the key stays required, and the empty strings are V-L10N's report) |
 | V-META | schema | `metadata` as an object whose `version` is a non-empty string (at the top level and on every Node), and **no key made only of digits** -- an integer-like key sorts to the front of a JavaScript object and would break the key order and the idempotence of 3.7. | blocking |
 | V-KEYS | schema | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `$schema`, `format`, `languages`, `root`, `theme` and `nodes` only at the top level; `id` never at the top level. | blocking |
 | V-REACH | rules | every Node reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target. | advisory |

@@ -2698,13 +2698,18 @@ is the contract; the reasoning is the ADR's. The mechanism, so that one validato
 both:
 
 - **Schema half**: at start the loader derives a **draft schema** from
-  `schemas/elsa-tree-4.json` in code -- drop every `minLength`, `minProperties` and
-  `minItems`; remove `title` and `description` from a Node's `required` and `yes` and `no`
-  from `answers`' -- and compiles both. Never a second file in `schemas/`. A test asserts
-  the derivation.
+  `schemas/elsa-tree-4.json` in code and compiles both. The derivation drops **two
+  keywords** -- the `minLength` on `$defs/localisedText`'s `additionalProperties` and the
+  `minLength` on `$defs/image/properties/credit` -- and removes `title` and `description`
+  from a Node's `required` and `yes` and `no` from `answers`'. **Every other `minLength`,
+  `minItems` and `minProperties` stays**: each is the only enforcement of a rule the table
+  keeps blocking (a non-empty `languages`, `nodes` and `metadata.version`; no empty
+  `sources`, `images`, `options` or `explainers`; a `theme` with a key and a complete font
+  family; a localised text that is never `{}`). Never a second file in `schemas/`. A test
+  asserts the derivation.
 - **Rules half**: `validateTree(raw, mode)` runs every content rule and, in draft mode,
   tags each violation blocking or advisory by the table, and additionally reports under
-  V-L10N and V-IMAGE the empty strings the draft schema let through.
+  V-L10N and V-IMAGE the empty strings the two dropped keywords let through.
 
 ```ts
 export function openTree(dir: string, options?: { draft: true }): Promise<Tree | Draft>
@@ -2716,14 +2721,15 @@ export interface Draft extends Omit<Tree, 'getNode' | 'filePath' | 'lastModified
   readonly filePath: string             // draft.json
 }
 type DraftNode = Omit<Node, 'answers'> & { answers?: { yes?: string; no?: string } }
-// and any LocalisedText may lack a language; nothing else differs from Node
+// and any LocalisedText may lack a language or hold "" for one; nothing else differs from Node
 ```
 
 **Referential integrity is the store's**, so a Link to a Node that does not exist stays
 blocking: deleting a Node removes every Answer and Option that names it in the same write
 (22.4). A Node's `kind` in a draft is derived as always, so a fresh Node is an
 "explanation Node" until it gets Answers or an end, and V-ANSWERS' target-kind half is
-advisory. V-MARK is advisory because a mark is text the author wrote.
+advisory. V-MARK is advisory because a mark is text the author wrote. The store never
+writes an empty array or object (22.4), so V-EMPTY stays blocking with no exception.
 
 **`draft.json` always passes the draft schema and every blocking rule**: what the store
 refuses (22.3) it never writes, so a draft can always be opened, indexed and shown.
@@ -2907,8 +2913,17 @@ Every `POST`, `PUT`, `PATCH` and `DELETE` under `/admin` -- the login route incl
 1. `Sec-Fetch-Site: same-origin`; or, when the header is absent, `Origin` equal to the
    deployment's own origin (`ELSA_BASE_URL` when set, else the request's `Host` as
    `baseUrl` in `config.ts` resolves it);
-2. `Content-Type: application/json` -- `multipart/form-data` on the upload route only --
-   which a cross-site form cannot send without a preflight this server does not answer;
+2. **on a request that carries a body** -- a `Content-Type` header, or any body bytes,
+   present -- the type is `application/json`, or `multipart/form-data` on
+   `POST /admin/api/trees/<t>/images` only. `application/json` is a type no HTML form can
+   send and no cross-site script can send without a preflight this server does not answer,
+   so on every JSON route this layer refuses a form by itself. `multipart/form-data` is one
+   of the three types a form *can* send with no preflight, so on the upload route this
+   layer refuses only the other two form types, and layers 1 and 3 carry the route. A
+   request with no `Content-Type` and no body -- `POST /admin/api/logout` and the three
+   `DELETE` routes of 22.1, whose handlers read no body -- passes this layer and is
+   carried by layers 1 and 3; a form cannot produce such a request, because a form `POST`
+   always carries one of its three types and a form cannot send `DELETE` at all;
 3. the cookie's `SameSite=Strict` (20.4).
 
 `GET` and `HEAD` change nothing, ever. **No synchroniser token.** No route under `/admin`
@@ -3091,7 +3106,10 @@ parent's Link in one store write; deleting a Node removes every Answer and Optio
 names it in the same write; the root Node cannot be deleted, and `root` may be pointed at
 another question Node or Terminal instead. A new Node's id is `n-<6 lowercase base32
 characters>` unless the request names a free, valid one; ids are stable for the Tree's
-life because they are in every URL.
+life because they are in every URL. **No empty array or object is ever written**: removing
+the last Source, Image, Option or explainer removes the key, and `remove-answer` on the
+last Answer removes `answers` (the Node is an explanation Node again), so V-EMPTY holds on
+every draft the store writes.
 
 ### 22.5 Concurrency between collaborators
 
@@ -3193,11 +3211,11 @@ credential on these routes -- is kept true by 20.5.
 | Test | Asserts (built by) |
 |---|---|
 | `tests/store/store.test.ts` (#134) | `openStore` on an empty directory seeds from `ELSA_SEED_DIR` and publishes; on a second open reads no seed; a hidden Tree (no `tree.json`) is not in `publishedIds`; a published Tree that fails validation is `servable: false`, not thrown, and the rest are served; two writes to one file land in order and the file is never torn (a reader mid-write sees the old or the new bytes, never a mix); the lock refuses a second open; the three retired variables refuse to start with the replacement named. |
-| `tests/store/drafts.test.ts` (#136) | 19.2's table, one fixture per row under `tests/fixtures/drafts/`; every field path of 22.2 accepted and every other refused; every operation; the cascade on delete; the root undeletable; an advisory write stored and reported; a blocking write refused and not stored; publish refused with violations and accepted with the copy byte-identical; 19.4 on a published Tree; the derived draft schema equals the published one minus the named keywords. |
+| `tests/store/drafts.test.ts` (#136) | 19.2's table, one fixture per row under `tests/fixtures/drafts/`; every field path of 22.2 accepted and every other refused; every operation; the cascade on delete; the root undeletable; an advisory write stored and reported; a blocking write refused and not stored; removing the last entry of an array removes the key; publish refused with violations and accepted with the copy byte-identical; 19.4 on a published Tree; the derived draft schema equals the published one minus the two named keywords and the two `required` entries, and a `draft.json` with `"languages": []`, `"version": ""` or `"sources": []` is refused by it. |
 | `tests/store/accounts.test.ts`, `sessions.test.ts` (#135) | the hash format and re-hash on parameter change; `authenticate` runs the KDF on an unknown name; the two lock counters; 12-hour idle and 14-day absolute expiry; the 5-minute refresh; the cookie constant, attribute by attribute; a deactivation ends sessions. |
 | `tests/store/permissions.test.ts` (#136) | every cell of 21.2. |
 | `tests/store/images.test.ts` (#136) | sniffing (a PNG named `.jpg`, text named `.png`, an SVG → 415); hostile names (`../x.png`, spaces, upper case, 300 characters, `%2F`) → a name matching 3.5 inside `images/`; the size cap; identical bytes → one file; removal refused while referenced. |
-| `tests/browser/admin-api.spec.ts` (#136) | 401 without a session; 403 on a foreign Tree; 403 on a write without `Origin`/`Sec-Fetch-Site` or with a foreign `Origin`; 403 on a non-JSON body; 415 on an SVG; every `/admin` response `no-store` and `noindex`. |
+| `tests/browser/admin-api.spec.ts` (#136) | 401 without a session; 403 on a foreign Tree; 403 on a write without `Origin`/`Sec-Fetch-Site` or with a foreign `Origin`; 403 on a form-encoded body, on a JSON route and on the upload route; 204 on a bodyless `POST /admin/api/logout` with no `Content-Type`; 415 on an SVG; every `/admin` response `no-store` and `noindex`. |
 | `deployment.spec.ts` (#135) | 20.5: the logged-in half of the sweep; `/admin/api/login` the only setter, every attribute present. |
 | `findability.spec.ts`, `tests/findability/*.test.ts` (#134) | a data directory with two Trees, one hidden: the hidden id appears nowhere in the sitemap, `llms.txt` or the overview; every route of 23.1 answers 404 for it, identically to an unknown id; `lastmod` differs per Tree; the overview's head (23.2). |
 | `jsonld.test.ts` (#136) | `version` equals the publish count after two publishes. |

@@ -51,24 +51,40 @@ the validator and the loader two shapes to agree on, and #131 decided the format
    | V-ANSWERS and V-OPTIONS: a target that does not exist, or is listed twice | V-ANSWERS: one Answer missing, or a target that is not yet a question Node or Terminal; V-OPTIONS: a target that is not yet an explanation Node |
    | V-SOURCE, V-IMAGE, V-EXPLAINER: shape, grammars, a file that is not in `images/`, an id used twice | V-IMAGE: an empty `credit` or `description`; V-EXPLAINER: a term not yet marked; V-MARK: a mark to an explainer that was removed |
    | V-PLAIN, V-HTML | V-REACH, V-ORPHAN |
-   | V-THEME (the files exist, one family per role) | -- |
+   | V-THEME (the files exist, one family per role) | V-TITLE (a title whose every language is still empty: the key stays required and the empty strings are V-L10N's report -- nothing reports V-TITLE itself, section 7) |
 
    Two mechanisms make one validator do both, and neither is a second document. **The
    schema half**: at start the loader derives a **draft schema** from
-   `schemas/elsa-tree-4.json` in code -- it drops every `minLength`, `minProperties` and
-   `minItems`, and removes `title` and `description` from a Node's `required` and `yes`
-   and `no` from `answers`' -- and compiles both. Nothing else in the schema changes, so
-   the draft schema still refuses an unknown key, a wrong type, a malformed id or file
-   name, a bad outcome and a `null`. **The rules half**: `validateTree(raw, mode)` runs
-   every content rule as today and, in draft mode, tags each violation blocking or
-   advisory by the table, and additionally reports under V-L10N and V-IMAGE the empty
-   strings the draft schema let through. The rule ids do not change; the published copy
-   is validated exactly as before, with the published schema and every rule blocking.
+   `schemas/elsa-tree-4.json` in code and compiles both. The derivation relaxes exactly
+   what an incomplete Tree needs and nothing else. It drops **two keywords** -- the
+   `minLength` on `$defs/localisedText`'s `additionalProperties` (a language whose text is
+   not written yet) and the `minLength` on `$defs/image/properties/credit` (a picture
+   whose credit is not written yet) -- and removes `title` and `description` from a
+   Node's `required` and `yes` and `no` from `answers`'. **Every other `minLength`,
+   `minItems` and `minProperties` of the published schema stays**, because each is the
+   only place a rule the table above keeps blocking is enforced: a non-empty `languages`
+   and `nodes` (V-LANG, V-NODE), a non-empty `metadata.version` (V-META), no empty
+   `sources`, `images`, `options` or `explainers` array (V-EMPTY, V-OPTIONS, V-EXPLAINER),
+   a `theme` with at least one key and a font family with a name, a licence and a file
+   (V-THEME), and a localised text that is never `{}` (V-EMPTY). So the draft schema
+   still refuses an unknown key, a wrong type, a malformed id or file name, a bad outcome,
+   a `null`, an empty array and an empty `version`; what it lets through that the
+   published schema would not is an empty string in a localised text or a credit, a Node
+   without `title` or `description`, and an Answer pair with one key. **The rules half**:
+   `validateTree(raw, mode)` runs every content rule as today and, in draft mode, tags
+   each violation blocking or advisory by the table, and additionally reports under V-L10N
+   and V-IMAGE the empty strings the two dropped keywords let through. The rule ids do not
+   change; the published copy is validated exactly as before, with the published schema
+   and every rule blocking.
 
 3. **Referential integrity is the store's, so a target that does not exist stays
    blocking.** Deleting a Node removes every Answer and Option that points at it in the
    same write; deleting an explainer does not remove its marks, because a mark is text the
-   author wrote and losing it silently is worse than a to-do -- so V-MARK is advisory. A
+   author wrote and losing it silently is worse than a to-do -- so V-MARK is advisory. The
+   store never writes an empty array or object: removing the last Source, Image, Option or
+   explainer removes the key, and `remove-answer` on the last Answer removes `answers`, so
+   the Node is an explanation Node again -- which is why V-EMPTY stays blocking in a draft
+   with no exception and no dropped keyword. A
    Node's `kind` in a draft is derived as it always was (`answers` → question, `terminal` →
    Terminal, neither → explanation), which is why a freshly created Node is "an explanation
    Node" until the creator gives it Answers or an end, and why V-ANSWERS' target-kind half
@@ -125,7 +141,17 @@ the validator and the loader two shapes to agree on, and #131 decided the format
   first, a third party would find it, and it would drift from the first at the first
   amendment. Derived in code from the one published schema, it cannot drift; a test
   asserts the derivation (every keyword the published schema has, the draft schema has,
-  minus the named ones).
+  minus the two named ones and the two `required` entries).
+- **Drop every `minLength`, `minProperties` and `minItems` from the draft schema** (the
+  first draft of this ADR). `elsa-tree-4.json` carries fifteen such keywords; thirteen of
+  them are the only place six rules the table keeps blocking are enforced -- V-LANG,
+  V-META, V-EMPTY, V-NODE's non-empty `nodes`, V-OPTIONS' and V-EXPLAINER's non-empty
+  arrays, V-THEME -- so a hand-edited `draft.json` with `"languages": []`,
+  `"version": ""` or `"sources": []` would have passed the draft schema, counted as
+  editable rather than uneditable, and left every localised-text rule with no language
+  list to check against; decision 4's invariant could not hold. The derivation exists to
+  admit an incomplete Node or an unwritten text, not an empty array or an empty version;
+  two keywords do that.
 - **Reject an autosave that breaks any rule, including length.** The autosave would lose
   the author's text at the 151st character, or the editor would have to block typing, and
   the owner asked for the limits *live* (#138), which means shown, not enforced by loss.
@@ -153,8 +179,8 @@ the validator and the loader two shapes to agree on, and #131 decided the format
 
 - `src/tree/validate.ts` gains the mode and the table; `src/tree/loader.ts` gains the draft
   mode, the derived schema, and a `Draft` return whose `getNode` yields a `DraftNode` --
-  a `Node` whose `answers` may lack a key and whose localised texts may lack a language,
-  and nothing else different. Issue #136 builds both, with the `Draft` type in `types.ts`.
+  a `Node` whose `answers` may lack a key and whose localised texts may lack a language or
+  hold an empty string for one, and nothing else different. Issue #136 builds both, with the `Draft` type in `types.ts`.
 - `tree-format.md` 7 gains the Draft column; its opening sentence "a loader rejects the
   whole Tree" is restated as true of the published copy.
 - `scripts/validate.ts` gains `--draft`, so the same report the editor shows can be printed

@@ -95,7 +95,8 @@ file of *the* Tree; with two Trees that each have a `map.png` the address names 
    on. Neither address can collide with a Node page: `<file>` carries a dot, which the id
    grammar of `tree-format.md` 3.1 does not admit, so both paths are 404 today, exactly as
    `/<tree-id>/tree.json` was before #121 -- **no URL that resolves now resolves
-   differently**. `imageHref` and `themeHref` in `src/url.ts` take the Tree id; the
+   differently**; the two 1.0 addresses that do change, `/images/<file>` and
+   `/theme/<file>`, stop resolving rather than resolve to something else. `imageHref` and `themeHref` in `src/url.ts` take the Tree id; the
    `@font-face` `src` of 13.1 and every `<img>` follow. Image and theme addresses are not
    share links, are not in the sitemap and are cached for an hour; the retirement costs a
    reader nothing they can keep.
