@@ -131,7 +131,11 @@ every Tree points at it:
 | `schemas/elsa-tree-4.json` | The JSON Schema of this format (3.9). Served at `/schemas/elsa-tree-4.json`. Every `tree.json` names it in `$schema`. |
 
 Anything else inside a Tree folder (a `README.md`, a `NOTES.md`, a `drafts/` folder,
-a licence text next to a font, editor files) is ignored by the loader. That is the place
+a licence text next to a font, editor files) is ignored by the loader. **[#132]** Two
+such files now have names: in a deployment's store (`docs/specs/application.md` 17.2) a
+Tree folder also holds `draft.json`, the same file under the draft rules of section 7,
+and `meta.json`, the store's record of who and when; the loader of the published copy
+ignores both, and neither is part of this format. That is the place
 for work in progress that must not yet be validated. There is no `nodes/` folder any
 more and no `tree.yaml`; a file or folder of either name is ignored like any other.
 
@@ -993,6 +997,17 @@ parsed Tree in memory is the right trade, and
 A loader **rejects the whole Tree** if any rule fails, and reports every failure it
 found (not just the first). A Tree is never partially loaded.
 
+**[#132] That is the rule for a published Tree, and it is unchanged.** A **draft** -- the
+file the editor of the round after #118 autosaves (`docs/specs/application.md` 19) -- is
+the same file read with the same rules, of which a named set is **advisory**: reported,
+and the draft is held and shown with them; the rest are **blocking**, and a write that
+would cause one is refused before it reaches the disk. In one sentence, shape and safety
+rules block, completeness and size rules advise. The **Draft** column below is the
+contract; `docs/adrs/ADR-132-draft-and-publish.md` has the reasons and the mechanism (a
+draft schema derived from the published one in code by relaxing two named `minLength`
+keywords and two `required` lists, never a second file). Publishing runs
+every rule blocking, so nothing below changes for a reader of `tree.json`.
+
 Two tools answer between them, in this order, and neither translates the other's message
 (3.9):
 
@@ -1006,48 +1021,48 @@ The **Where** column below says which of the two a rule belongs to.
 
 ### Tree level
 
-| Rule | Where | A valid Tree has... |
-|---|---|---|
-| V-DIR | rules | a folder name that is an id (3.1), containing `tree.json`. `images/` and `theme/`, when present, are folders. |
-| V-JSON | rules | a `tree.json` that parses as one JSON object (RFC 8259) in UTF-8 without a byte-order mark, with no duplicate key in any object. A file that does not parse is reported with the parser's position and nothing else is checked: unlike the YAML stream of `elsa-tree/3`, one JSON file is one document, so a syntax error anywhere is a syntax error everywhere. **The duplicate-key half is checked by a scan of the raw text, not by the parser**, which cannot see it (3.7 gives the mechanism and the measurement); it reports the first repeated key with its position. |
-| V-SCHEMA | schema | `$schema`, as the path `/schemas/elsa-tree-4.json` or an absolute http(s) URL whose path ends the same way (3.7). |
-| V-FORMAT | schema | `format` exactly `elsa-tree/4`. |
-| V-NULL | schema | no `null` as the value of any key this format defines. An absent optional field is omitted. |
-| V-EMPTY | schema | no empty array and no empty object as the value of any key this format defines. Inside `metadata` the schema accepts both, as it accepts `null` there (V-NULL, 3.7). |
-| V-LANG | schema | `languages`: a non-empty array of valid language tags (3.3), distinct from each other. Distinctness is the schema's `uniqueItems`, not a content rule: a repeated tag is a shape failure, and one tool says it. |
-| V-ROOT | rules | `root` naming an existing Node that is a question Node or a Terminal. |
-| V-TITLE | schema | `title` present at the top level, as a localised text. That it is plain and within its length is V-PLAIN and V-LENGTH, which report under their own ids: there is no V-TITLE content check, and nothing reports that id. |
-| V-META | schema | `metadata` as an object whose `version` is a non-empty string (at the top level and on every Node), and **no key made only of digits** -- an integer-like key sorts to the front of a JavaScript object and would break the key order and the idempotence of 3.7. |
-| V-KEYS | schema | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `$schema`, `format`, `languages`, `root`, `theme` and `nodes` only at the top level; `id` never at the top level. |
-| V-REACH | rules | every Node reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target. |
-| V-THEME | schema, rules | `theme`, when present, an object with at least one of `logo`, `fonts`, `colours`, each as section 4.3 defines it: the schema checks the keys, the grammars, the seven colour roles and every font file's `weight` and `style`; the rules check that the files exist in `theme/` and that there is at most one font family per `role`. |
+| Rule | Where | A valid Tree has... | Draft **[#132]** |
+|---|---|---|---|
+| V-DIR | rules | a folder name that is an id (3.1), containing `tree.json`. `images/` and `theme/`, when present, are folders. | blocking |
+| V-JSON | rules | a `tree.json` that parses as one JSON object (RFC 8259) in UTF-8 without a byte-order mark, with no duplicate key in any object. A file that does not parse is reported with the parser's position and nothing else is checked: unlike the YAML stream of `elsa-tree/3`, one JSON file is one document, so a syntax error anywhere is a syntax error everywhere. **The duplicate-key half is checked by a scan of the raw text, not by the parser**, which cannot see it (3.7 gives the mechanism and the measurement); it reports the first repeated key with its position. | blocking |
+| V-SCHEMA | schema | `$schema`, as the path `/schemas/elsa-tree-4.json` or an absolute http(s) URL whose path ends the same way (3.7). | blocking |
+| V-FORMAT | schema | `format` exactly `elsa-tree/4`. | blocking |
+| V-NULL | schema | no `null` as the value of any key this format defines. An absent optional field is omitted. | blocking |
+| V-EMPTY | schema | no empty array and no empty object as the value of any key this format defines. Inside `metadata` the schema accepts both, as it accepts `null` there (V-NULL, 3.7). | blocking |
+| V-LANG | schema | `languages`: a non-empty array of valid language tags (3.3), distinct from each other. Distinctness is the schema's `uniqueItems`, not a content rule: a repeated tag is a shape failure, and one tool says it. | blocking |
+| V-ROOT | rules | `root` naming an existing Node that is a question Node or a Terminal. | advisory: the root exists (blocking) but has neither Answers nor a terminal yet |
+| V-TITLE | schema | `title` present at the top level, as a localised text. That it is plain and within its length is V-PLAIN and V-LENGTH, which report under their own ids: there is no V-TITLE content check, and nothing reports that id. | advisory (a title whose every language is still empty; the key stays required, and the empty strings are V-L10N's report) |
+| V-META | schema | `metadata` as an object whose `version` is a non-empty string (at the top level and on every Node), and **no key made only of digits** -- an integer-like key sorts to the front of a JavaScript object and would break the key order and the idempotence of 3.7. | blocking |
+| V-KEYS | schema | no keys other than those listed in sections 4 and 5, at every level except inside `metadata`. `$schema`, `format`, `languages`, `root`, `theme` and `nodes` only at the top level; `id` never at the top level. | blocking |
+| V-REACH | rules | every Node reachable from `root` by following Answers and Options. An unreachable Node is almost always a misspelt target. | advisory |
+| V-THEME | schema, rules | `theme`, when present, an object with at least one of `logo`, `fonts`, `colours`, each as section 4.3 defines it: the schema checks the keys, the grammars, the seven colour roles and every font file's `weight` and `style`; the rules check that the files exist in `theme/` and that there is at most one font family per `role`. | blocking |
 
 ### Text
 
-| Rule | Where | A valid Tree has... |
-|---|---|---|
-| V-L10N | rules | every localised text providing a non-empty string for every declared language and no keys for other languages. (The schema checks that it is an object of language tags to non-empty strings; which languages are the declared ones it cannot know.) |
-| V-PLAIN | rules | plain text fields on a single line (no `\n` in the string). |
-| V-HTML | rules | no raw HTML in rich text: the sequence `<` followed by a letter, `/` or `!` is rejected. |
-| V-LENGTH | rules | every text field within the maximum characters of 5.7, per language, measured as 3.8 says. The message names the field, the language, the actual length and the maximum. |
-| V-LINES | rules | every rich text within its estimated lines (3.8, 5.7): 2 for a Node description, 8 for the Tree's, per language. The message names the estimate and the maximum. |
-| V-COUNT | rules | every array within the maximum entries of 5.7. |
+| Rule | Where | A valid Tree has... | Draft **[#132]** |
+|---|---|---|---|
+| V-L10N | rules | every localised text providing a non-empty string for every declared language and no keys for other languages. (The schema checks that it is an object of language tags to non-empty strings; which languages are the declared ones it cannot know.) | advisory: a missing or empty language is the to-do; a key for an undeclared language is blocking |
+| V-PLAIN | rules | plain text fields on a single line (no `\n` in the string). | blocking |
+| V-HTML | rules | no raw HTML in rich text: the sequence `<` followed by a letter, `/` or `!` is rejected. | blocking |
+| V-LENGTH | rules | every text field within the maximum characters of 5.7, per language, measured as 3.8 says. The message names the field, the language, the actual length and the maximum. | advisory |
+| V-LINES | rules | every rich text within its estimated lines (3.8, 5.7): 2 for a Node description, 8 for the Tree's, per language. The message names the estimate and the maximum. | advisory |
+| V-COUNT | rules | every array within the maximum entries of 5.7. | advisory |
 
 ### Node level
 
-| Rule | Where | A valid Tree has... |
-|---|---|---|
-| V-NODE | schema, rules | a non-empty `nodes` array; every element with an `id` that is a valid id (schema) and is distinct from every other Node's (rules), and `title`, `description`, `metadata` present. |
-| V-KIND | schema | at most one of `answers` and `terminal` on a Node. |
-| V-ANSWERS | schema, rules | `answers` with exactly the keys `yes` and `no` (schema), each a Node reference to an existing question Node or Terminal (rules). |
-| V-OPTIONS | schema, rules | `options`, when present, a non-empty array; each entry with `title` and `target` and nothing else (schema; an `images` key on an Option fails V-KEYS); targets existing explanation Nodes, distinct within the array (rules). |
-| V-ORPHAN | rules | every explanation Node targeted by at least one Option (this is also implied by V-REACH, but gets its own message). |
-| V-TERMINAL | schema | `terminal` as an object whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`; a Terminal has no `options`. |
-| V-SOURCE | schema, rules | every Source with a `kind` in `legal` / `case-law` / `literature`, a plain localised `label`, an absolute http(s) `url` and a valid `id` when present (schema); Source ids distinct within the Node (rules). |
-| V-IMAGE | schema, rules | every Image with a `file` matching 3.5, a plain localised `description` and a non-empty `credit` (schema); the file existing in the Tree's `images/`, and a `source`, if present, naming a Source id on the same Node (rules). |
-| V-EXPLAINER | schema, rules | `explainers`, when present, a non-empty array; each with a valid `id`, a plain localised `term` and a plain localised `text` (schema); ids distinct within the Node, at most 8 entries, the lengths of 5.7, and each marked at least once in the Node's `description` in every declared language (rules). |
-| V-MARK | rules | every `[text](#id)` in a `description` names an explainer `id` of the same Node, has non-empty text, and is not inside `*emphasis*` or `**strong**`. |
-| V-CROSS | schema | no Node reference containing `:` -- which the id grammar excludes, so the schema catches it (Cross-links are not part of `elsa-tree/4`). |
+| Rule | Where | A valid Tree has... | Draft **[#132]** |
+|---|---|---|---|
+| V-NODE | schema, rules | a non-empty `nodes` array; every element with an `id` that is a valid id (schema) and is distinct from every other Node's (rules), and `title`, `description`, `metadata` present. | blocking for an `id` that is not an id or is another Node's; advisory for a Node without `title` or `description` yet |
+| V-KIND | schema | at most one of `answers` and `terminal` on a Node. | blocking |
+| V-ANSWERS | schema, rules | `answers` with exactly the keys `yes` and `no` (schema), each a Node reference to an existing question Node or Terminal (rules). | blocking for a target that does not exist; advisory for one Answer missing, or a target that is not yet a question Node or Terminal |
+| V-OPTIONS | schema, rules | `options`, when present, a non-empty array; each entry with `title` and `target` and nothing else (schema; an `images` key on an Option fails V-KEYS); targets existing explanation Nodes, distinct within the array (rules). | blocking for a target that does not exist or is listed twice; advisory for a target that is not yet an explanation Node |
+| V-ORPHAN | rules | every explanation Node targeted by at least one Option (this is also implied by V-REACH, but gets its own message). | advisory |
+| V-TERMINAL | schema | `terminal` as an object whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`; a Terminal has no `options`. | blocking |
+| V-SOURCE | schema, rules | every Source with a `kind` in `legal` / `case-law` / `literature`, a plain localised `label`, an absolute http(s) `url` and a valid `id` when present (schema); Source ids distinct within the Node (rules). | blocking |
+| V-IMAGE | schema, rules | every Image with a `file` matching 3.5, a plain localised `description` and a non-empty `credit` (schema); the file existing in the Tree's `images/`, and a `source`, if present, naming a Source id on the same Node (rules). | blocking for the shape, the grammar and a file not in `images/`; advisory for an empty `credit` or `description` |
+| V-EXPLAINER | schema, rules | `explainers`, when present, a non-empty array; each with a valid `id`, a plain localised `term` and a plain localised `text` (schema); ids distinct within the Node, at most 8 entries, the lengths of 5.7, and each marked at least once in the Node's `description` in every declared language (rules). | blocking for the shape, an id used twice and the count; advisory for a term not yet marked |
+| V-MARK | rules | every `[text](#id)` in a `description` names an explainer `id` of the same Node, has non-empty text, and is not inside `*emphasis*` or `**strong**`. | advisory (a mark to an explainer that was removed) |
+| V-CROSS | schema | no Node reference containing `:` -- which the id grammar excludes, so the schema catches it (Cross-links are not part of `elsa-tree/4`). | blocking |
 
 Not errors: an image file in `images/` or a file in `theme/` that nothing references; a
 Node reached by more than one Link; a cycle among question Nodes (the Tree is
@@ -1516,13 +1531,25 @@ one, is shown in the frontend's plain default look.
   as `elsa-tree/5`, with its own document and its own `schemas/elsa-tree-5.json` beside
   this one; a loader states which format numbers it accepts, and the older schema files
   stay where they are so that a Tree written today keeps something to point at.
-- **Where an edited Tree is stored.** The round after this one edits Trees through the
+- **Where an edited Tree is stored.** ~~The round after this one edits Trees through the
   frontend. Whether the edited `tree.json` is written back into the repository through
   git, or into a store of some other kind, is the owner's to define (core document open
-  item 10.30). Nothing in this format depends on the answer: the file is the same file
-  wherever it is kept.
+  item 10.30).~~ **[#132] Decided (2026-09-23):** a deployment's writable data directory,
+  one folder per Tree holding the draft, the published `tree.json`, `images/` and
+  `theme/`, with the repository's `trees/` as seed and fixtures; JSON files, no database
+  (`docs/specs/application.md` 17; `docs/adrs/ADR-132-data-directory.md`). Nothing in
+  this format depended on the answer and nothing in it changed: the file is the same file,
+  the format number stays `elsa-tree/4`, and the draft is that file under section 7's
+  Draft column.
 
 ## 11. Where each decision is recorded
+
+Decisions about a Tree in a deployment's store (issue #132; the format is unchanged):
+
+| Decision | ADR |
+|---|---|
+| Where a Tree lives once edited in the app: one folder per Tree in `ELSA_DATA_DIR`, seeded from `trees/` | `docs/adrs/ADR-132-data-directory.md` |
+| The draft is the same `elsa-tree/4` file under section 7's Draft column; Publish copies it when it validates in full | `docs/adrs/ADR-132-draft-and-publish.md` |
 
 Decisions of `elsa-tree/4` (issue #118):
 

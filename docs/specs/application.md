@@ -27,6 +27,18 @@
 > | 13 | 13.1: `accent-secondary` paints the walk's controls and `--elsa-on-accent-secondary` their labels; nothing else. |
 > | 14 | Rows for the up arrow, the Overlay, the explainer panel and the credit without JavaScript; the Trail Sheet and the Carousel's buttons are gone. |
 >
+> **Amended 2026-09-23 by issue #132 (the editor round's store).** The owner opened the
+> editor round (#131; `docs/CORE_DOCUMENT.md` 3.4): Trees are created and edited in the
+> app behind a login, saved automatically, hidden until published, with an overview page
+> in front. Sections **17 to 23 are new** and freeze the store, many Trees per deployment,
+> drafts and publishing, accounts and sessions, permissions, the editor's server
+> interface, and how a hidden Tree stays off every public route. Section 2 is
+> **superseded** by 18; 4.1, 4.3, 5.1 to 5.5, 6, 7, 8 and 9 are amended in place, each
+> change marked **[#132]**; 10 to 16 are unchanged in what the end user sees, by the
+> owner's instruction. The one public address that moves is a Tree's image and theme
+> files, which gain the Tree id (18.1). The decisions are `docs/adrs/ADR-132-*.md`; the
+> screens are #133's to freeze; #134 to #144 build.
+>
 > **Amended 2026-09-19 by issue #100** (`docs/adrs/ADR-100-bounded-centre.md`,
 > `docs/adrs/ADR-100-overlay-without-strip.md`), where the build of #80 (PR #99) departed
 > from 10.9 for reasons the Reviewer found forced or measured. Two sentences move: 10.9's
@@ -170,6 +182,10 @@ Recorded in `docs/adrs/ADR-5-framework-and-rendering.md`.
 
 ## 2. Tree selection (decides core document 10.19)
 
+**[#132] SUPERSEDED by section 18 (2026-09-23).** A deployment serves every published Tree
+of its store; `ELSA_TREE` is gone and refuses to start when set; `ELSA_TREES_DIR` is
+`ELSA_SEED_DIR` (17.1). The text below is kept as the record of 0.1 to 1.0.
+
 - One deployment serves **exactly one Tree**.
 - `ELSA_TREE` = the Tree id, i.e. the folder name under `ELSA_TREES_DIR`.
   `ELSA_TREES_DIR` defaults to `trees` under the working directory.
@@ -247,16 +263,26 @@ Recorded in `docs/adrs/ADR-5-chrome-languages.md`.
 
 ```
 Node page   /<tree-id>/<id-1>/<id-2>/.../<id-n>[?lang=<tag>]      1 <= n <= 50
-Image       /images/<file>
-Theme file  /theme/<file>                                        [v0.2]
+Image       /<tree-id>/images/<file>                             [#132] (was /images/<file>)
+Theme file  /<tree-id>/theme/<file>                              [#132] (was /theme/<file>, [v0.2])
+Overview    /                                                    [#132] every served Tree (23.2)
+Admin area  /admin/...                                           [#132] the screens (#133) and /admin/api/... (22)
 Dataset     /<tree-id>/tree.json                                 [#118]
 Schema      /schemas/elsa-tree-4.json                            [#118]
 Crawlers    /robots.txt                                          [#118]
 Sitemap     /sitemap.xml                                         [#118]
 Agents      /llms.txt                                            [#118]
-Redirects   /            ->  /<tree-id>/<root-id>[?lang=...]      307
-            /<tree-id>   ->  /<tree-id>/<root-id>[?lang=...]      307
+Redirects   /<tree-id>   ->  /<tree-id>/<root-id>[?lang=...]      307
+            /            ->  (no longer redirects: the overview)  [#132]
 ```
+
+- **[#132]** `/<tree-id>/images/<file>` and `/<tree-id>/theme/<file>` replace the two
+  Tree-less addresses, which answer 404 from #134 on: with many Trees a bare `/images/<file>`
+  names nothing (18.1). Neither new address can be a Node page -- `<file>` carries a dot,
+  which the id grammar does not admit -- so, as with `/<tree-id>/tree.json`, **no URL that
+  resolves now resolves differently**. `/admin` is one reserved word for the whole admin
+  area (4.3, 22.1); `/` is the overview (23.2). The Node page, the Trail in the path, the
+  share link and `?lang` are unchanged, by the owner's instruction.
 
 - **[#118]** The five new routes are sections 15 and 16. None of them collides with
   anything: `tree.json`, `robots.txt`, `sitemap.xml` and `llms.txt` contain a dot and so
@@ -330,17 +356,18 @@ The first Image of `start`:
 |---|---|
 | Maximum Trail length | 50 ids in the path (49 Trail entries plus the current Node). When the app would build a longer link, it drops the oldest Trail entries. Worst case about 3.3 kB of path, within default proxy limits. |
 | More than 50 ids in a request | 404. |
-| Tree id in the path is not the served Tree | 404. |
+| Tree id in the path is not the served Tree | 404. **[#132]** "Not the served Tree" reads "not a served Tree of the store" (23.1): a hidden, an unservable, an unknown and a reserved id are one 404. |
 | An id is malformed (not the id grammar) | 404. Nothing is looked up on disk for it. |
 | An id is well-formed but not a Node of the Tree | 404. |
 | Trail adjacency | Not checked: any sequence of existing Node ids is accepted. |
 | `lang` not declared by the Tree | Ignored; default language used; 200. This holds for every value, including one that is not a language tag at all: 4.4 keeps such a value out of the route rather than answering an error for it. |
-| Image name malformed or not in the Tree's `images/` | 404. |
+| Image name malformed or not in the Tree's `images/` | 404. **[#132]** Or not named by any Node of the published copy: `imagePath` now serves the referenced set, as `themePath` always has (5.1), because `images/` also holds a draft's uploads (22.6). |
 | **[v0.2]** Theme file name malformed or not in the Tree's `theme/` | 404, by the same rule and the same code path as an image (5.5). |
 | **[v0.2]** A theme file that exists but the Theme does not name | 404. The route serves what the Theme references, not the folder: a licence text or a stray file next to the fonts is not public. |
 | **[#118]** `/<tree-id>/tree.json` where the Tree id is not the served Tree | 404, by the row above; nothing is looked up on disk for it. |
 | **[#118]** `/schemas/<file>` other than a schema this repository publishes | 404. The route serves the published set, not a folder -- the same rule, and the same code path, as the theme route's (5.5). |
-| Reserved Tree ids | `images`, `theme` (**[v0.2]**) and `schemas` (**[#118]**). A deployment with `ELSA_TREE` set to any of them refuses to start. |
+| Reserved Tree ids | `images`, `theme` (**[v0.2]**), `schemas` (**[#118]**) and `admin` (**[#132]**). A Tree of that id cannot be created (422), seeded or imported (skipped, reason printed); `ELSA_TREE` is gone (18.1). |
+| **[#132]** `/admin/...` | Never a Tree page. Without a session: the login page (200, `noindex`); `/admin/api/...` without a session: 401 (22.1). |
 | The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. The status is always in the response; the **body** may require JavaScript -- see below. Next.js renders `not-found.tsx` without params, so it cannot know the content language; it therefore takes the chrome language 3.1 resolves from the **Tree's default** language, which is `en` or `nl` and never an arbitrary tag. Because the page renders inside the `[lang]` layout, `<html lang>` around it is the resolved content language of the request -- what `src/url.ts` makes of the segment (4.4): a language the Tree declares, or the Tree's default -- exactly as on every other page, in the document the reader ends up with (for this one page that is the painted document, see below). Every element this page renders carries the chrome language above as its own `lang`: that is 3.1's second half, and the reason each element's own `lang` is never a false statement about the text under it. |
 
 **The 404 body may require JavaScript** (amended 2026-09-05, PR #17). Next.js answers a
@@ -493,7 +520,7 @@ returns one Node, never the Tree.** The interface gains exactly one member in 0.
 changes, and nothing is added to let a caller enumerate the Tree.
 
 ```ts
-export function openTree(dir: string): Promise<Tree>
+export function openTree(dir: string): Promise<Tree>          // [#132] and openTree(dir, { draft: true }): Promise<Draft>, section 19.2
 // Reads and validates tree.json once: the JSON Schema of tree-format.md 3.9 for the
 // shape, then the rules of section 7 for the content (**[#119]**).
 // Rejects with TreeInvalid { treeId, violations: Violation[] } listing every failure
@@ -504,7 +531,7 @@ export interface Tree {
   readonly manifest: Manifest                  // languages, defaultLanguage, root, title, description, metadata, theme
   getNode(id: string): Promise<Node | null>    // ONE Node; null for a malformed or unknown id; never throws for bad input
   getTitle(id: string): LocalisedText | null   // from the in-memory index; for a Branch label
-  imagePath(file: string): string | null       // absolute path inside this Tree's images/; null for a malformed or missing name
+  imagePath(file: string): string | null       // absolute path inside this Tree's images/; null for a malformed or missing name; [#132] and for a file no Node names (23.1)
   themePath(file: string): string | null       // [v0.2] absolute path inside this Tree's theme/, and only for a file the Theme names
   nodeIds(): string[]                          // [#120] every Node id, in file order: which pages exist (16.2)
   readonly lastModified: Date | null           // [#120] when the Tree's file was last written; null when it cannot be read (16.2)
@@ -512,6 +539,10 @@ export interface Tree {
 }
 ```
 
+- **[#132] `imagePath` resolves only what a Node references**, from #134 on, by the rule
+  the next bullet gives for `themePath`: the store's `images/` folder holds a draft's
+  uploads beside the published copy's pictures (17.2), and a picture that is only in the
+  draft must not be public (22.6). The one way `themePath` was stricter goes away.
 - **`themePath` resolves only what the Theme references.** A name that is not a theme
   file name (`tree-format.md` 3.6), or that the Tree's `theme` block does not name in
   `logo.light`, `logo.dark`, `logo.icon` or some `fonts[].files[].file`, is `null` --
@@ -586,7 +617,7 @@ other's message (`tree-format.md` 3.9, `ADR-118-json-schema.md`).
 
 | Moment | Server reads | Browser receives |
 |---|---|---|
-| Server start | `tree.json` once, to validate and to build the Node and title indexes. Failure: every violation printed, exit code 1, nothing served. | -- |
+| Server start | `tree.json` once, to validate and to build the Node and title indexes. Failure: every violation printed, exit code 1, nothing served. **[#132]** Every published Tree's `tree.json` (17.2); a failure prints that Tree's violations and leaves **that Tree** unserved, the rest serve, and the process exits only when the data directory is unusable (18.3). | -- |
 | A request for a Node page | Nothing from disk. The current Node and its neighbourhood -- **at most 17 Nodes** (section 11) -- from the index, and Branch labels from the title index. | Complete HTML: the tree view of section 10 with the current Node as the centre Bubble, its Branches, its Carousel with an `<img loading="lazy">` per Image of this Node, the neighbour Bubbles of section 11 (**without any image URL**), chrome, the Theme's `<style>` block, the disclaimer, the stylesheet and the client bundle. No image bytes, no font bytes. **Amended 2026-09-14 (#42, PR #57, by the owner):** the server renders the neighbours into the page as the tree layer's payload; they enter the DOM only during a slide. At rest, and without JavaScript, the DOM holds the centre Bubble only (11.3). |
 | After the HTML | -- | The image files this Node's Interior and strip name, one per Option (its target's main image, on the button), and, once an Overlay is opened, the files of the Node in it (11.5; **[#75]**), through `GET /images/<file>`; the Theme's font and logo files, through `GET /theme/<file>`. Nothing else, and nothing from another origin. |
 | The user follows a Branch | Nothing from disk; the target Node and **its** neighbourhood from the index. | **Exactly one** page payload, carrying at most 17 Nodes, then that Node's image files. Section 11 has the accounting. |
@@ -630,7 +661,9 @@ centre frame's own Trail. `ADR-38-neighbourhood.md` (Consequences) has the table
 
 ### 5.3 The image route
 
-`GET /images/<file>` asks `imagePath(file)`. `null` answers 404. Otherwise the file is
+`GET /images/<file>` asks `imagePath(file)`. `null` answers 404. **[#132]** From #134 the
+address is `/<tree-id>/images/<file>` (4.1): the route asks `store.published(treeId)` first
+and a `null` there is the same 404 (23.1); then `imagePath(file)` on that Tree. Otherwise the file is
 streamed with `Content-Type` from its extension and these headers:
 
 | Header | Value | Why |
@@ -647,16 +680,20 @@ route itself is unchanged apart from the headers above.
 ### 5.4 Startup and the validator command
 
 - `src/instrumentation.ts` (Next.js's `register()` hook, Node.js runtime only) calls
-  `openTree` on the configured Tree at server start.
+  `openTree` on the configured Tree at server start. **[#132]** From #134 it calls
+  `openStore` (17.5), which opens every published Tree and every draft (18.3).
 - `npm run validate <dir>` (`scripts/validate.ts`) runs the same `openTree` and prints
   every violation as `tree-id  file  key.path  RULE  message`; exit code 1 if any.
+  **[#132]** `--draft` opens `draft.json` in draft mode and prints the advisory list the
+  editor shows (19.2); exit code 1 only for a blocking violation.
   Authors run it before pushing; CI runs it on every PR that touches `trees/`.
 
 Unchanged from 0.1, including this section's number, which those files cite.
 
 ### 5.5 The theme route
 
-**[v0.2]** `GET /theme/<file>` asks `themePath(file)`. `null` answers 404 -- for a
+**[v0.2]** `GET /theme/<file>` asks `themePath(file)`. **[#132]** From #134 the address is
+`/<tree-id>/theme/<file>` and the route asks `store.published(treeId)` first, as 5.3. `null` answers 404 -- for a
 malformed name, for a name the Theme does not reference, and for a missing file alike,
 with no difference a caller can measure. Otherwise the file is streamed with the same
 four headers as 5.3 and a `Content-Type` from its extension:
@@ -701,8 +738,10 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │       ├── globals.css  the stylesheet: no colour literal, no font-family literal (13)
 │   │       ├── [tree]/page.tsx           `/<tree-id>` -> redirect to root Node
 │   │       ├── [tree]/[...path]/page.tsx the Node page
-│   │       ├── images/[file]/route.ts    one image file (5.3)
-│   │       ├── theme/[file]/route.ts     [v0.2] one theme file (5.5)
+│   │       ├── [tree]/images/[file]/route.ts   one image file (5.3); [#132] moved under the Tree id (18.1)
+│   │       ├── [tree]/theme/[file]/route.ts    [v0.2] one theme file (5.5); [#132] moved likewise
+│   │       ├── admin/                    [#132] the admin area: the screens (#133) and
+│   │       │   └── api/...               the route handlers of 22.1, one file per row
 │   │       ├── [tree]/tree.json/route.ts [#118] the dataset endpoint (15)
 │   │       ├── schemas/[file]/route.ts   [#118] the published JSON Schema (15.1)
 │   │       ├── robots.txt/route.ts       [#118] 16.1 (the Sitemap line and the agents)
@@ -737,16 +776,25 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │                        streaming the image and theme routes share (5.3, 5.5)
 │   ├── url.ts               the URL scheme (4); [#118] the absolute form and a Node's alternates (16.3)
 │   ├── chrome.ts            chrome strings and fallback (3)
-│   ├── config.ts            ELSA_TREE / ELSA_TREES_DIR; the one opened Tree
+│   ├── config.ts            ELSA_TREE / ELSA_TREES_DIR; the one opened Tree; [#132] ELSA_DATA_DIR,
+│   │                        ELSA_SEED_DIR, ELSA_ADMIN_PASSWORD, the three retired variables refused (17.1)
+│   ├── store/               [#132] the store (17.5): the one module that opens ELSA_DATA_DIR
+│   │   ├── index.ts         openStore, the atomic writer and its queues, the lock, the seed (17.3, 17.4)
+│   │   ├── accounts.ts      accounts, scrypt, the login rate limit (20.1 to 20.3, 20.7)
+│   │   ├── sessions.ts      the token, the record, the cookie string, expiry (20.4)
+│   │   ├── permissions.ts   permit: the table of 21.2 as code (21.3)
+│   │   ├── drafts.ts        the writes of 22.2 to 22.5, publish and unpublish (19.3, 19.4), importTree
+│   │   └── images.ts        sniffing, naming, the file write, the unreferenced-file sweep (22.6)
 │   ├── markdown.ts          rich-text subset -> safe HTML, with the explainer marks (10.8);
 │   │                        [#118] and -> plain text, and the 155-character description (16.3)
 │   ├── tree/                the Tree loader module
-│   │   ├── loader.ts        openTree and the Tree interface (5.1)
-│   │   ├── validate.ts      the rules of tree-format.md section 7
+│   │   ├── loader.ts        openTree and the Tree interface (5.1); [#132] the draft mode and the derived draft schema (19.2)
+│   │   ├── validate.ts      the rules of tree-format.md section 7; [#132] and the draft mode's blocking/advisory tag
 │   │   └── types.ts         the types of elsa-tree/4 (5.1)
 │   └── instrumentation.ts   startup validation (5.4)
 ├── schemas/elsa-tree-4.json [#118] the format's JSON Schema, served at /schemas/ (15.1)
-├── scripts/validate.ts      `npm run validate`
+├── scripts/validate.ts      `npm run validate`; [#132] --draft
+├── scripts/store.ts         [#132] `npm run store -- import <folder>` (17.4)
 ├── scripts/migrate-tree.ts  [#119] the canonical byte form of tree-format.md 3.7: what is
 │                        left of the migration after #119 ran 3 -> 4 (12.6)
 ├── tests/                   Vitest tests, Playwright specs and fixtures (7)
@@ -781,10 +829,11 @@ the client components are four again.
 | `src/findability/` **[#118]** | The four documents of section 16, each a pure function of the loaded Tree and one base URL: `robots.txt`, `sitemap.xml`, the JSON-LD graph, `llms.txt`. One of them, the address set of a Node (16.3), is `url.ts`'s and is called by two of these and by the page head, which is what keeps the sitemap and the head from disagreeing. | Read files, render React, or decide what the base URL is -- the route hands it in. |
 | `src/url.ts` | Parsing a request into `{ treeId, trail, nodeId, lang }` and building every link. **[#118]** Also the absolute form of a link against a base, and a Node's **address set**: its canonical URL per declared language and which is the default (16.3). | Read files or render. |
 | `src/chrome.ts` | The chrome strings and the language fallback rule. | Contain Tree content. |
-| `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. | Parse Trees or URLs. |
+| `src/config.ts` | Environment variables, reserved-id check, the process-wide opened Tree. **[#132]** The data, seed and admin-password variables, the refusal of the three retired ones; the process-wide opened **store**. | Parse Trees or URLs. Open a file under `ELSA_DATA_DIR` -- `src/store/` does. |
+| `src/store/` **[#132]** | Everything under `ELSA_DATA_DIR` (17): the set of published Trees and their swap in place, accounts, sessions, the permission table, the draft writes, publishing, uploads, the seed and the import. Every writing member takes the acting `Account` and calls `permit` itself. | Know URLs, React, or what a screen shows. Read a Tree file except through `src/tree/`'s `openTree`. Send a response -- the route handlers of `src/app/[lang]/admin/api/` do. |
 | `src/markdown.ts` | The rich-text subset to HTML, HTML disabled, links in a new tab; **[#75]** a `[text](#id)` mark to a marked term and its explainer panel (10.8), given the Node's explainers. **[#118]** Also the rich-text subset to **plain text**, and the 155-character cut built from it (16.3). Two outputs from one reduction: the meta description and the `WebPage`'s `description` take the cut string, the `Question`'s `text` and `llms.txt`'s blockquote take the uncut one, and the table in 16.3 says which is which. | Accept raw HTML. Know what the panel looks like. |
 | `src/components/` | Views. Server components take data and return markup -- `Logo.tsx` **[v0.2]** is one: it asks `theme.ts` which logo variant this palette calls for and renders it, or the Tree's title when there is none (13.2). The four client components own exactly one interaction each (section 1); the interim fifth of #41, `Thumbnails.tsx`, was removed by #43 (above). | Touch the file system, environment or request. Decide *which* Nodes are on screen -- that is `neighbourhood`. |
-| `src/app/` | Routes: parse, load, hand to a view; redirects; the image and theme routes; 404. The `[lang]` layout sets `<html lang>` and emits the Theme. | Hold logic. Take the language from `searchParams` (4.4). |
+| `src/app/` | Routes: parse, load, hand to a view; redirects; the image and theme routes; 404. The `[lang]` layout sets `<html lang>` and emits the Theme. **[#132]** Every public route asks `store.published(treeId)` first (23.1); every handler under `admin/api/` is `authenticated → permit → store → JSON` and nothing more (22.1). | Hold logic. Take the language from `searchParams` (4.4). **[#132]** Read `Cookie` outside `/admin`. |
 | `next.config.ts` | The two rewrites of 4.4, plus the build settings of section 1. | Know which languages a Tree declares, or anything else about the application. |
 
 Dependencies point inward, and the client components are leaves:
@@ -797,7 +846,10 @@ app  ->  theme  ->  url (themeHref)
 app  ->  assets  ->  nothing in src/
 findability  ->  assets (the two licence URLs of 15.2)                       [#121]
 app  ->  url, chrome, config, markdown
+app  ->  store                                                             [#132]
 config  ->  tree
+config  ->  store                                                          [#132]
+store  ->  tree (openTree, validateTree, the byte-form writer), nothing else in src/   [#132]
 tree/  ->  nothing in src/
 next.config.ts  ->  nothing in src/
 ```
@@ -843,10 +895,10 @@ detail, not a second place to look.
 
 | Item | Contract |
 |---|---|
-| Runner | Vitest, `npm test` = `vitest run`, Node environment; files `tests/**/*.test.ts(x)`. |
+| Runner | Vitest, `npm test` = `vitest run`, Node environment; files `tests/**/*.test.ts(x)`. **[#132]** `tests/store/*.test.ts` open a store on a temporary directory (`fs.mkdtemp`) seeded from a fixture; never the developer's `.elsa-data`. |
 | Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. A spec that needs a Tree other than the example starts its own server with `tests/browser/serve.ts`, a helper and not a spec file (amended 2026-09-14, #43). `tests/browser/credits.ts` is a helper too: it lists every picture a Tree shows, Node by Node in strip order, and reads each one's credit off the caption line by the keyboard alone, for `carousel.spec.ts` and `tests/first-tree/walk.spec.ts` (amended 2026-09-14, #55). |
 | Also in CI | `tsc --noEmit`, `next build`, `npm run validate trees/<each Tree>`, `npm run test:browser`. Command: `npm ci && npm test && npm run build && npm run test:browser`. |
-| Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; **[#118]** and never a Tree file parsed by the test itself -- a test that wants a Tree opens it through the loader, whatever the serialisation is. (This row read "never YAML read by a test" until #118; the fixtures become `tree.json` with #119, and the rule was never about YAML.) |
+| Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. **[#132]** A browser spec that needs its own server starts it with `ELSA_DATA_DIR` a fresh temporary directory and `ELSA_SEED_DIR` the fixture's parent folder (17.1), not with `ELSA_TREE`; `tests/browser/serve.ts` does it. The rows the round adds are in 23.7. Never hand-built `Node` objects; **[#118]** and never a Tree file parsed by the test itself -- a test that wants a Tree opens it through the loader, whatever the serialisation is. (This row read "never YAML read by a test" until #118; the fixtures become `tree.json` with #119, and the rule was never about YAML.) |
 | Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). **[#118]** `tests/fixtures/findability/` (**#120** creates it, **#122** extends it): a two-language Tree whose manifest has **no `description`**, so the `Dataset` and `llms.txt` fall back to the root Node's; whose `title` and one Node `title` carry `&`, `<`, `>`, `"` and a literal `</script>`, so the XML escaping of 16.2 and the JSON escaping of 16.4 are exercised rather than assumed; with one Node holding two `kind: legal` Sources at one URL and one at another, so `isBasedOn`'s most-frequent rule has something to choose; one Node with **no** Source at all; a Terminal and an explanation Node, so the "no `Question`" half of 16.4 has a subject; and a description over 155 counted characters whose 155th character falls inside a word, for the cut. The single-language half of 16.2 and 16.5 uses `tests/fixtures/single-language/`, which already exists. **[#122]** Two corrections to this row, made in building it. The Node title also carries `<!--`, the second sequence 16.4's sink refuses, which this row named for the test but not for the fixture. And **the over-155 description is not in this fixture, because the format forbids it**: a Node `description` is at most 150 counted characters and a Tree `description` is rich text whose reduction is shorter still (`tree-format.md` 5.7), so no valid Tree can exercise steps 3 and 4 of 16.3 -- which is 16.3's own point, that the cut does not fire for a conforming Tree. The cut is asserted on strings in `markdown.test.ts`, where it can be. **[#122]** `tests/fixtures/tied-sources/` is new: one language, two `kind: legal` Sources at two URLs with one citation each, and a `literature` and a `case-law` Source that no count of legal Sources may see -- the tie 16.4 breaks by first occurrence in Node order, which no other fixture can produce. |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
 
@@ -938,7 +990,13 @@ back.
 | 3.2 language switch among the Tree's languages | 4.1 `lang`; 3 chrome fallback |
 | 3.2 permanent disclaimer | 3.2 `disclaimer`, rendered in `layout.tsx` |
 | 3.2 server-side rendering, lightweight, lazy | 1; 5.2; section 14 |
-| 4 / 8 no accounts, cookies, tracking, analytics, database | 1 (no cookie, no telemetry), 2 (files only), 5 |
+| 4 / 8 no accounts, cookies, tracking, analytics, database | 1 (no cookie, no telemetry), 2 (files only), 5. **[#132]** For end users unchanged: 20.5 (no public route sets or reads a cookie; the sweep). For creators: 20 (accounts, one cookie on `/admin`), 17 (JSON files, no database server). |
+| 3.4 **[#132]** many Trees, an overview in front, every share link kept | 18, 23.2 |
+| 3.4 **[#132]** saved automatically; hidden until Publish; a published Tree follows every valid save | 19 |
+| 3.4 / 8 **[#132]** creators with a name, a login, an administrator over every Tree; nothing about a creator on a public page or in a Tree file | 20, 17.2 |
+| 3.4 / 9 **[#132]** every write checked on the server for that account and that Tree | 21, 22.1 |
+| 9 **[#132]** a hidden Tree on no public route, in no document | 23.1 |
+| 10.30 to 10.34 **[#132]** | 17, 20.1, 20.3, 19.4, 18 |
 | 7 plain Linux server, no vendor features | 1: standalone `node server.js`; `docs/deployment.md` |
 | 7 / 9 nothing fetched from a third party at run time | 13.5; `theme.spec.ts` records every request |
 | 9 third-party Tree never breaks the frontend | 3 (chrome fallback); 5.1 (strict loader); 13.4 (a Theme with any part absent); 7 (the interoperability test) |
@@ -953,7 +1011,15 @@ back.
 | Decision | ADR |
 |---|---|
 | Next.js App Router, server components, standalone Node 22, npm | `docs/adrs/ADR-5-framework-and-rendering.md` |
-| One Tree per deployment via `ELSA_TREE`; Tree id kept in URLs | `docs/adrs/ADR-5-tree-selection.md` |
+| One Tree per deployment via `ELSA_TREE`; Tree id kept in URLs | `docs/adrs/ADR-5-tree-selection.md` -- **superseded [#132] by `ADR-132-many-trees-per-deployment.md`**; the Tree id in every URL carries over |
+| **[#132]** Every published Tree served; `ELSA_TREE` gone; the loader per folder, the store the set; an invalid Tree unserved, not fatal; image and theme files under the Tree id | `docs/adrs/ADR-132-many-trees-per-deployment.md` |
+| **[#132]** `ELSA_DATA_DIR`: JSON files, an atomic writer with a queue per file, one process; the seed at first start; import, move, back up | `docs/adrs/ADR-132-data-directory.md` |
+| **[#132]** The draft is the same file under a named advisory set; Publish copies it when valid in full; every valid save of a published Tree is public at once | `docs/adrs/ADR-132-draft-and-publish.md` |
+| **[#132]** Accounts by the administrator, user name and scrypt; `ELSA_ADMIN_PASSWORD`; one `HttpOnly; Secure; SameSite=Strict; Path=/admin` cookie; three-layer CSRF; a login rate limit; the public routes set no cookie | `docs/adrs/ADR-132-accounts-and-sessions.md` |
+| **[#132]** Creator, collaborator, administrator; one table; `permit` on every request; invitations from a list | `docs/adrs/ADR-132-roles-and-permissions.md` |
+| **[#132]** Route handlers under `/admin/api`; a field or one Node operation per write; the Node as stored in every answer; last write wins per field; sniffed, renamed, capped uploads | `docs/adrs/ADR-132-editor-api.md` |
+| **[#132]** One 404 for hidden, unservable, unknown and reserved; one sitemap, `robots.txt` and `llms.txt` over every served Tree; `lastmod` per Tree | `docs/adrs/ADR-132-hidden-trees-and-findability.md` |
+| **[#132]** The order of #134 to #144; #135 and #136 gain #134 | `docs/adrs/ADR-132-build-order.md` |
 | Chrome in `en` and `nl` in code; follows content language, falls back to English | `docs/adrs/ADR-5-chrome-languages.md` |
 | Path is the Trail; `lang` query; 50-id limit; 404 rules | `docs/adrs/ADR-5-url-scheme.md`, amended **[#118]** by the five `ADR-118-*` decisions that each add an address to 4.1 (`dataset-endpoint`, `json-schema`, `crawler-access`, `sitemap-and-alternates`, `llms-txt`); `schemas` reserved and two 404 rows in 4.3 |
 | `?lang` restated as a `[lang]` route segment so `<html lang>` is the content language | `docs/adrs/ADR-19-content-language-in-the-route.md` |
@@ -2030,7 +2096,7 @@ the one URL that changes that. Recorded in `docs/adrs/ADR-118-dataset-endpoint.m
 
 | Route | Serves | 404 when |
 |---|---|---|
-| `GET /<tree-id>/tree.json` | The served Tree's own file, byte for byte (15.3). | `<tree-id>` is not the Tree this deployment serves, by the rule 4.3 already gives for a Node page. |
+| `GET /<tree-id>/tree.json` | The served Tree's own file, byte for byte (15.3). **[#132]** The store's published copy, `$ELSA_DATA_DIR/trees/<id>/tree.json` (23.6). | `<tree-id>` is not the Tree this deployment serves, by the rule 4.3 already gives for a Node page. **[#132]** Not a served Tree of the store: hidden, unservable, unknown or reserved alike (23.1). |
 | `GET /schemas/elsa-tree-4.json` | `schemas/elsa-tree-4.json`, the format's JSON Schema (`tree-format.md` 3.9). | The file name is not one this repository publishes. The route serves the published set, not the folder, exactly as the theme route serves what the Theme names and not what sits beside it (5.5). |
 
 The Tree id is in the dataset's path, and not a bare `/tree.json`, for the reason every
@@ -2120,7 +2186,9 @@ XML-escaped in the sitemap, and JSON-encoded with every `<` emitted as the escap
 states for a Tree's text.
 
 **Every route of this section is generated from the loaded Tree at request time**, never
-a static file in the repository, and none of them sets a cookie.
+a static file in the repository, and none of them sets a cookie. **[#132]** From #134,
+from the loaded **Trees**: how each document reads over many Trees, and says nothing of a
+hidden one, is section 23 (23.3 to 23.6); the text below is what it says of each Tree.
 
 ### 16.1 `robots.txt`
 
@@ -2430,3 +2498,725 @@ no schema and no validator, and it is the copy that would drift.
 **`llms.txt` carries no Tree content beyond the manifest's title and description.** It is
 a signpost. Node titles, descriptions and Sources are in the pages, in the sitemap and in
 the dataset.
+
+## 17. The store
+
+**[#132], new -- 2026-09-23.** The owner opened the editor round (core document 3.4, #131):
+Trees are created and edited in the app, saved automatically, hidden until published. The
+application is therefore a writer, and this section says where it writes. Recorded in
+`docs/adrs/ADR-132-data-directory.md`; decides core document 10.30.
+
+### 17.1 The data directory
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `ELSA_DATA_DIR` | **yes** | The one writable folder that is the whole state of a deployment. No default. The server refuses to start when it is unset, is not a folder, or cannot be written. Outside `app/`, so a release never touches it. |
+| `ELSA_SEED_DIR` | no | Read at the **first start only** -- when `$ELSA_DATA_DIR/trees/` does not exist -- and every Tree folder in it is imported, published, with the administrator as creator. Default `trees` under the working directory, which the standalone build already carries. Never read again. |
+| `ELSA_ADMIN_PASSWORD` | at first start | Section 20.3. |
+| `ELSA_TREE`, `ELSA_TREES_DIR`, `ELSA_TREE_LASTMOD` | **must be unset** | Retired (section 18). Set, the server refuses to start and names the replacement, so a 1.0 environment file is corrected rather than silently half-read. |
+
+`ELSA_BASE_URL`, `PORT`, `HOSTNAME`, `NODE_ENV` and `NEXT_TELEMETRY_DISABLED` are as in
+section 1 and `docs/deployment.md`.
+
+### 17.2 The layout
+
+```
+$ELSA_DATA_DIR/
+├── lock                         the pid of the one process that has this directory open
+├── accounts.json                every account (20.1)
+├── sessions.json                every live session record (20.4)
+└── trees/<tree-id>/
+    ├── meta.json                { creator, collaborators, createdAt, updatedAt, updatedBy,
+    │                              publishedAt, publishCount, revision }
+    ├── draft.json               the draft (19): elsa-tree/4 JSON in the byte form of tree-format.md 3.7
+    ├── tree.json                the published copy: present if and only if the Tree is published;
+    │                              always a Tree that validated in full (19.3)
+    ├── images/                  every uploaded picture: the draft's and the published copy's (22.6)
+    └── theme/                   the Theme's files (#144)
+```
+
+- **A Tree is a folder and the folder name is its id**, as in `trees/` of the repository.
+- **A Tree is published if and only if `tree.json` exists** in its folder. There is no
+  flag to agree with the file. `meta.json`'s `publishedAt` is when it was last published,
+  or absent.
+- **Nothing about an account is in `tree.json` or `draft.json`.** Creator, collaborators
+  and who last wrote are `meta.json`'s; `tree.json` is the public dataset of section 15
+  and carries no name (core document 8).
+- The store's files are **JSON**. No database library (`node:sqlite` is experimental on
+  Node 22 by its own warning; every native alternative wants a compiler on the server,
+  core document 7), no database server (core document 10.16). The numbers are a lab's: a
+  handful of accounts, tens of Trees, a few sessions.
+
+### 17.3 One writer, atomic files, a queue per file
+
+All state is read into memory when the store opens; **reads never touch disk**. A write
+mutates memory, serialises the whole file and replaces it **atomically**: written to
+`<file>.tmp` in the same folder, then `rename`d over the original. Writes to one file go
+through **one promise queue per file**, so they land whole, in the order accepted, and
+never interleave; writes to two Trees run in parallel. A crash loses at most the write in
+flight, whose `.tmp` the next start deletes. **One process per data directory**: the `lock`
+file holds its pid and a second process refuses to start while that pid lives. There is no
+transaction across two files and nothing needs one.
+
+### 17.4 Seed, import, move, back up
+
+- **Seed** (17.1): `importTree(folder, creator)` copies `tree.json`, `images/` and `theme/`
+  into `trees/<id>/`, writes `draft.json` as a byte copy of `tree.json`, and writes
+  `meta.json`. A seeded Tree is published from its first start. A folder whose id is
+  reserved (4.3), already in the store, or that fails validation in full is skipped and
+  the reason printed.
+- **Import later**: `node scripts/store.ts import <folder>` (`npm run store -- import
+  <folder>`), run with `ELSA_DATA_DIR` set and **the service stopped**, calls the same
+  function. Issue #136 builds it.
+- **Move a Tree between deployments**: copy `trees/<id>/tree.json`, `images/` and `theme/`
+  out -- not `draft.json`, not `meta.json`, which names accounts of the source -- and
+  import them on the other side, where that deployment's administrator becomes the
+  creator. Plain `cp`; nothing is encoded.
+- **Back up**: `rsync -a` or `tar` of `$ELSA_DATA_DIR`, running or stopped. Every file is
+  replaced atomically, so each file in a copy is whole; a copy taken while running may hold
+  a `draft.json` one write newer than its `meta.json`, which is tolerated (`revision` is
+  advisory). Stop the service for a copy exact to the write. Restore is copying the folder
+  back. Nothing outside it, and nothing in `app/`, holds state.
+- **Development**: `.env.development` sets `ELSA_DATA_DIR=.elsa-data` (gitignored); the
+  seed default fills it from `trees/` at the first `next dev`; deleting the folder resets.
+
+### 17.5 The seam: `src/store/`
+
+The one module that opens a file under `ELSA_DATA_DIR`. Routes call it; components never
+do; `src/tree/` knows nothing of it.
+
+```ts
+export function openStore(dataDir: string, env: Environment): Promise<Store>
+// Locks, reads accounts.json and sessions.json, opens every published Tree through
+// openTree, opens every draft in draft mode, seeds on first start, sets the
+// administrator's password (20.3). Never throws for one bad Tree (18.3).
+
+export interface Store {
+  // the read side, every public route's (#134)
+  published(id: string): Tree | null          // a servable published Tree; null for hidden, unservable, unknown, reserved
+  publishedIds(): string[]                    // in id order
+  // accounts and sessions (#135, section 20)
+  readonly accounts: Accounts
+  readonly sessions: Sessions
+  // drafts and writes (#136, sections 19, 21, 22)
+  readonly drafts: Drafts
+}
+```
+
+`Accounts`, `Sessions` and `Drafts` are given in 20, 21 and 22. Every writing member takes
+the acting `Account` as its first argument and calls `permit` (21) itself, so a route that
+forgot the check is caught at the seam.
+
+## 18. Many Trees per deployment
+
+**[#132], new -- 2026-09-23.** Supersedes section 2 and `ADR-5-tree-selection.md`; decides
+core document 10.34 and closes 10.19. Recorded in
+`docs/adrs/ADR-132-many-trees-per-deployment.md`.
+
+### 18.1 The rule
+
+- **A deployment serves every published, servable Tree of its store** (17.2, 18.3) and
+  nothing else. "Available" in the owner's words is **published**.
+- **`/` is the overview page** of every served Tree (23.2), built by #134, drawn by #133.
+  It no longer redirects. `/<tree-id>` still redirects (307) to that Tree's root Node.
+- **`ELSA_TREE` is gone**, not kept as a pin: a lab with one Tree gets an overview of one
+  tile. `ELSA_TREES_DIR` is `ELSA_SEED_DIR` with a new meaning; `ELSA_TREE_LASTMOD` is
+  gone because the store writes the published file and its modification time is right by
+  construction (16.2). All three refuse to start when set (17.1).
+- **Every Node URL, share link, dataset URL and redirect of 1.0 resolves as it did** for
+  every published Tree. The row "Tree id in the path is not the served Tree" of 4.3 reads
+  "is not a served Tree of the store".
+- **A Tree's image and theme files are under its id**: `/<tree-id>/images/<file>`,
+  `/<tree-id>/theme/<file>` (4.1). `/images/<file>` and `/theme/<file>` answer 404 from
+  #134 on. Neither new address can be a Node page (`<file>` carries a dot, which an id
+  cannot), so no URL that resolves now resolves differently -- the same argument that
+  admitted `/<tree-id>/tree.json`.
+- **Reserved Tree ids**: `images`, `theme`, `schemas`, `admin` (4.3).
+
+### 18.2 The loader and the set
+
+`openTree(dir)` (5.1) is unchanged in what it does: one folder, one `Tree`. The **store**
+holds the set (17.5). `servedTree()` and `openConfiguredTree()` in `src/config.ts` are
+replaced by `store.published(id)`.
+
+**The set follows the store without a restart because the process is its only writer.** A
+publish, an unpublish, a delete and an autosave that leaves a published draft valid (19.4)
+swap the in-memory `Tree` for that id in the same call, before the write answers. No file
+watcher, no polling: a folder placed by hand is read at the next start.
+
+### 18.3 Startup
+
+At start the store opens every Tree folder that has a `tree.json`. One that fails
+validation in full -- a release tightened a rule, a hand edit, a disk fault -- is
+**published but not servable**: 404 on every public route, absent from the overview and
+every document of 16, exactly as a hidden Tree (23.1); its violations are printed in the
+format of 5.4 and shown in the admin area to its creator, collaborators and the
+administrator (on its tile and its Publish toggle, #133). The published state is not
+touched -- it is the creator's -- and the creator's next valid autosave republishes (19.4).
+
+The process **exits with code 1 only when the data directory itself is unusable**: unset,
+missing, not writable, locked by a live process, `accounts.json` unreadable, or
+`ELSA_ADMIN_PASSWORD` needed and absent (20.3). **Zero servable Trees is a valid
+deployment**: the overview says there are none.
+
+The start log prints one line per Tree served -- `Serving Tree "<id>" (<languages>)` -- one
+block per Tree refused, one line for the administrator's password when set from the
+variable (20.3), and never a password, a token or a name typed into a form.
+
+### 18.4 What #134 changes in the earlier sections
+
+| Section | Change |
+|---|---|
+| 2 | Superseded by this section; kept for the record. |
+| 4.1, 4.3 | The two moved addresses; `/admin`; `admin` reserved; the 404 row's wording. |
+| 5.1 | `imagePath` answers only files the Tree's Nodes name -- the rule `themePath` always had -- because `images/` now also holds a draft's uploads (22.6). `openTree` gains the draft mode of 19.2. |
+| 5.2 | "Server start" reads every published Tree; "nothing served" becomes "that Tree not served". |
+| 5.3, 5.5 | The routes take the Tree id from the path and ask `store.published(id)` first. |
+| 5.4 | `instrumentation.ts` opens the store. |
+| 6 | `src/store/`, `src/app/[lang]/admin/`, the moved route files, `config.ts`'s new variables. |
+| 7 | A server per fixture is started with a temporary data directory seeded from that fixture (`ELSA_SEED_DIR`), not with `ELSA_TREE`; the rows named in 18 to 23. |
+| 15, 16 | Section 23. |
+
+## 19. Drafts and publishing
+
+**[#132], new -- 2026-09-23.** Decides core document 10.33. Recorded in
+`docs/adrs/ADR-132-draft-and-publish.md`; the rule table is `tree-format.md` section 7.
+
+### 19.1 The draft is the same file
+
+`draft.json` is an **`elsa-tree/4` file**, written in the byte form of `tree-format.md` 3.7
+by the one writer the migration uses. Same `$schema`, same `format`, no new key. What is not
+content -- who, when, the revision -- is `meta.json`'s (17.2). The format number stays
+`elsa-tree/4`; no case for a new one was found.
+
+### 19.2 The draft rules
+
+Every rule of `tree-format.md` section 7 is checked on a draft; **a named set is
+advisory**. In one sentence: **shape and safety rules are blocking; completeness and size
+rules are advisory.** The table with every rule id is `tree-format.md` 7's Draft column and
+is the contract; the reasoning is the ADR's. The mechanism, so that one validator does
+both:
+
+- **Schema half**: at start the loader derives a **draft schema** from
+  `schemas/elsa-tree-4.json` in code and compiles both. The derivation drops **two
+  keywords** -- the `minLength` on `$defs/localisedText`'s `additionalProperties` and the
+  `minLength` on `$defs/image/properties/credit` -- and removes `title` and `description`
+  from a Node's `required` and `yes` and `no` from `answers`'. **Every other `minLength`,
+  `minItems` and `minProperties` stays**: each is the only enforcement of a rule the table
+  keeps blocking (a non-empty `languages`, `nodes` and `metadata.version`; no empty
+  `sources`, `images`, `options` or `explainers`; a `theme` with a key and a complete font
+  family; a localised text that is never `{}`). Never a second file in `schemas/`. A test
+  asserts the derivation.
+- **Rules half**: `validateTree(raw, mode)` runs every content rule and, in draft mode,
+  tags each violation blocking or advisory by the table, and additionally reports under
+  V-L10N and V-IMAGE the empty strings the two dropped keywords let through.
+
+```ts
+export function openTree(dir: string, options?: { draft: true }): Promise<Tree | Draft>
+
+export interface Draft extends Omit<Tree, 'getNode' | 'filePath' | 'lastModified'> {
+  getNode(id: string): Promise<DraftNode | null>
+  readonly advisory: Violation[]        // the whole draft's to-do list, after opening
+  readonly blocking: Violation[]        // non-empty only for an uneditable Tree (19.5)
+  readonly filePath: string             // draft.json
+}
+type DraftNode = Omit<Node, 'answers'> & { answers?: { yes?: string; no?: string } }
+// and any LocalisedText may lack a language or hold "" for one; nothing else differs from Node
+```
+
+**Referential integrity is the store's**, so a Link to a Node that does not exist stays
+blocking: deleting a Node removes every Answer and Option that names it in the same write
+(22.4). A Node's `kind` in a draft is derived as always, so a fresh Node is an
+"explanation Node" until it gets Answers or an end, and V-ANSWERS' target-kind half is
+advisory. V-MARK is advisory because a mark is text the author wrote. The store never
+writes an empty array or object (22.4), so V-EMPTY stays blocking with no exception.
+
+**`draft.json` always passes the draft schema and every blocking rule**: what the store
+refuses (22.3) it never writes, so a draft can always be opened, indexed and shown.
+
+### 19.3 Publish
+
+`PUT /admin/api/trees/<t>/published { published: true }` runs the **full** validation --
+the published schema, every rule blocking -- on the draft.
+
+- **Passes**: the store sets the manifest's `metadata.version` in the draft to the publish
+  count as a string (`"1"`, `"2"`, ...), writes the draft, copies its bytes to `tree.json`,
+  sets `publishedAt`, and swaps the in-memory `Tree` (18.2). Public in the same call: the
+  Node pages, the dataset, the images the copy names, the next sitemap, `llms.txt` and
+  overview request.
+- **Fails**: 409 with every violation in the form of 5.1; nothing written, nothing flagged.
+  The editor shows them at the fields they name.
+
+`{ published: false }` deletes `tree.json` and drops the in-memory `Tree` in the same call:
+404 at once on every public route (23.1).
+
+**The published copy is byte-identical to the draft at the moment of the copy**, so 15.3
+holds against `$ELSA_DATA_DIR/trees/<id>/tree.json`.
+
+### 19.4 Autosave on a published Tree (10.33)
+
+After every write to a published Tree the store runs the full validation on the new draft.
+**Passes**: `tree.json` is replaced by the draft's bytes and the `Tree` swapped -- **every
+valid save reaches the public at once.** **Fails**: `tree.json` is left as it was -- **the
+last valid public copy stays until the draft is valid again** -- and the write's response
+says so (`tree.publicCopyCurrent: false`, 22.3) with the violations. The public never sees
+a Tree that fails section 7.
+
+### 19.5 An uneditable Tree
+
+A `draft.json` that breaks the invariant of 19.2 -- a hand edit -- makes that Tree
+**uneditable**, not the deployment down: `Draft.blocking` is non-empty, every write to it
+is 409, the admin area shows the violations, and the administrator's way out is the import
+command with a repaired file (17.4).
+
+### 19.6 `metadata.version`
+
+The store's, on the manifest (the publish count, 19.3) and on a Node (`"1"` at creation).
+The editor of this round exposes no metadata field; an imported Tree keeps its author's
+`metadata` keys and only `version` is touched. #133 may add editing of `metadata` within
+that.
+
+### 19.7 The seam: `Drafts`
+
+```ts
+export interface Drafts {
+  create(by: Account, id: string, languages: string[], title: LocalisedText): Promise<TreeEntry>
+  entry(by: Account, id: string): TreeEntry | null          // meta, published, servable, advisory count, violations
+  list(by: Account): TreeEntry[]                             // the caller's; every Tree for the administrator
+  draft(by: Account, id: string): Draft | null
+  write(by: Account, id: string, target: Manifest | NodeId, change: Field | Operation): Promise<WriteResponse>   // 22.3
+  createNode(by: Account, id: string, from: { node: string; link: 'yes' | 'no' | 'option' | 'end'; outcome?: Outcome }, title?: LocalisedText): Promise<WriteResponse>
+  deleteNode(by: Account, id: string, nodeId: string): Promise<WriteResponse>
+  publish(by: Account, id: string, published: boolean): Promise<TreeEntry>   // throws Invalid { violations } for 409
+  delete(by: Account, id: string): Promise<void>                              // hidden Trees only
+  handOver(by: Account, id: string, to: string): Promise<TreeEntry>
+  addCollaborator(by: Account, id: string, accountId: string): Promise<TreeEntry>
+  removeCollaborator(by: Account, id: string, accountId: string): Promise<TreeEntry>
+  uploadImage(by: Account, id: string, bytes: Uint8Array, clientName: string): Promise<{ file: string; width: number; height: number }>
+  removeImage(by: Account, id: string, file: string): Promise<void>
+  draftImagePath(by: Account, id: string, file: string): string | null        // 22.6
+  importTree(folder: string, creator: Account): Promise<TreeEntry>            // 17.4; the seed and the CLI
+}
+```
+
+## 20. Accounts, sessions and the administrator
+
+**[#132], new -- 2026-09-23.** Decides core document 10.31 and 10.32; restates core document
+8 and 9 for creators. Recorded in `docs/adrs/ADR-132-accounts-and-sessions.md`.
+
+### 20.1 Accounts
+
+```ts
+interface Account {
+  id: string            // 16 random bytes as hex; never reused; what meta.json names
+  name: string          // display name, plain text, 1 to 80 characters; shown in the admin area only
+  login: string         // a user name in the id grammar of tree-format.md 3.1, 2 to 64 characters, unique, lower-cased on entry
+  passwordHash: string  // 20.2
+  active: boolean       // false = deactivated: cannot log in, sessions ended, Trees kept
+  administrator: boolean   // true on exactly one account, set by the server alone (20.3)
+  createdAt: string     // ISO 8601
+}
+```
+
+- **The login is a user name, not an e-mail address**: the application sends no mail
+  (core document 7), so an address would be personal data held for nothing (8).
+- **The administrator creates every account** (10.31): name, login, first password, handed
+  over out of band; the holder changes it with their current password. **No
+  self-registration**, no invitation link, no reset by mail.
+- **An account is deactivated, never deleted**: `meta.json` files name it. Its Trees stay;
+  the administrator hands them over (21).
+
+### 20.2 The password hash
+
+**`scrypt` from `node:crypto`**: N = 2^16, r = 8, p = 2, `maxmem` 128 MiB, 16 random bytes
+of salt, a 32-byte key -- about 64 MiB and 100 ms per hash. Stored as
+`scrypt$16$8$2$<salt base64url>$<key base64url>`, so a later raise re-hashes at the next
+successful login. Compared with `timingSafeEqual`. A login naming no account still runs
+`scrypt` against a fixed dummy hash. A password is **12 to 256 characters** and nothing
+else is required of it. Not Argon2 (not in `node:crypto` on Node 22; a package is a
+native module), not PBKDF2 or bcrypt (cheaper for an attacker per unit of the defender's
+cost).
+
+### 20.3 The administrator
+
+One account, login `admin`, `administrator: true`, created by the server. Every permission
+on every Tree, present and future, whoever created it, is the line `account.administrator
+|| role(tree, account)` in `permit` (21); nothing is written into any Tree for it. The flag
+cannot be set, cleared or deactivated by any request.
+
+**Its password is `ELSA_ADMIN_PASSWORD`**, read **at every start** (10.32): no
+administrator yet → created with it; one exists and the variable is set → the password is
+**replaced**. That is the recovery for a lost password -- set, restart, remove -- and why
+the variable must be removed after the first start: while set, it wins over a change made
+in the admin area. Under 12 characters, or absent when no administrator exists, refuses to
+start. **Never a default, never generated and printed**; the log says `administrator
+password set from ELSA_ADMIN_PASSWORD; remove the variable` and no more. The environment
+file that holds it is `0600`.
+
+### 20.4 Sessions
+
+On login the server draws **32 random bytes** (base64url) as the token, stores
+`{ tokenHash: sha256(token), accountId, createdAt, lastSeen, expiresAt }` in
+`sessions.json`, and sets **the one cookie of this application**:
+
+```
+Set-Cookie: elsa-admin-session=<token>; HttpOnly; Secure; SameSite=Strict; Path=/admin; Max-Age=<seconds to expiresAt>
+```
+
+| Attribute | Why |
+|---|---|
+| `HttpOnly` | No script reads it. |
+| `Secure` | HTTPS only. `localhost` is a secure context in every browser, so development keeps the flag. |
+| `SameSite=Strict` | `Lax` would send it on a cross-site top-level navigation, the one hole a same-site cookie leaves. The admin area has no cross-site entry that needs the session: a creator arriving from a link sees the login page and is sent on to the page asked for. |
+| `Path=/admin` | The browser never sends it to a public route, so no public route can read, log or echo it. This is why the API is `/admin/api/...` (22.1). |
+| no `Domain` | Host-only. |
+| `Max-Age` | The absolute expiry; the idle expiry is the server's. |
+
+- **Expiry**: **12 hours idle, 14 days absolute.** `lastSeen` is refreshed when more than 5
+  minutes old; expired records are swept at the next write of the file.
+- **Regeneration**: a login always issues a new token and never accepts one from the
+  request; a login while a session is live replaces record and cookie.
+- **Logout** deletes the record and answers the same cookie with `Max-Age=0`. Deactivating
+  an account or changing its password ends every session of that account.
+- **The record holds the token's hash**, so a read of `sessions.json` logs nobody in.
+
+```ts
+export interface Accounts {
+  authenticate(login: string, password: string): Promise<Account | null>   // runs scrypt either way (20.2)
+  get(id: string): Account | null
+  listActive(): Pick<Account, 'id' | 'name' | 'login'>[]                   // 21.4
+  create(by: Account, name: string, login: string, password: string): Promise<Account>
+  update(by: Account, id: string, change: { name?: string; active?: boolean; password?: string; currentPassword?: string }): Promise<Account>
+}
+export interface Sessions {
+  start(account: Account): Promise<{ cookie: string }>                    // the Set-Cookie value above
+  resolve(cookieHeader: string | null): Promise<Session | null>          // null: absent, unknown, expired, deactivated account
+  end(session: Session): Promise<{ cookie: string }>                      // the clearing Set-Cookie value
+}
+```
+
+### 20.5 The public routes set no cookie
+
+**A rule of section 8, with its test named.** No route outside `/admin` sends
+`Set-Cookie` under any condition, and none reads `Cookie`. `tests/browser/deployment.spec.ts`
+keeps its sweep and gains the **logged-in half**: after a login in the same browser
+context, a walk of every public route of 4.1, 15 and 16 sends **no** `Cookie` header and
+receives no `Set-Cookie`, and `/admin/api/login` is asserted to be the **only** URL of the
+run that ever set one, with every attribute of 20.4 present. The CORS permission of 15.2
+stays safe for the reason 15.2 gives; this rule is what keeps that reason true.
+
+### 20.6 CSRF
+
+Every `POST`, `PUT`, `PATCH` and `DELETE` under `/admin` -- the login route included -- is
+**403** unless all three hold:
+
+1. `Sec-Fetch-Site: same-origin`; or, when the header is absent, `Origin` equal to the
+   deployment's own origin (`ELSA_BASE_URL` when set, else the request's `Host` as
+   `baseUrl` in `config.ts` resolves it);
+2. **on a request that carries a body** -- a `Content-Type` header, or any body bytes,
+   present -- the type is `application/json`, or `multipart/form-data` on
+   `POST /admin/api/trees/<t>/images` only. `application/json` is a type no HTML form can
+   send and no cross-site script can send without a preflight this server does not answer,
+   so on every JSON route this layer refuses a form by itself. `multipart/form-data` is one
+   of the three types a form *can* send with no preflight, so on the upload route this
+   layer refuses only the other two form types, and layers 1 and 3 carry the route. A
+   request with no `Content-Type` and no body -- `POST /admin/api/logout` and the three
+   `DELETE` routes of 22.1, whose handlers read no body -- passes this layer and is
+   carried by layers 1 and 3; a form cannot produce such a request, because a form `POST`
+   always carries one of its three types and a form cannot send `DELETE` at all;
+3. the cookie's `SameSite=Strict` (20.4).
+
+`GET` and `HEAD` change nothing, ever. **No synchroniser token.** No route under `/admin`
+sends any `Access-Control-*` header. One function, `authenticated(request, { writing })`,
+does 20.4's resolve and this check for every handler (22.1).
+
+### 20.7 Rate limit on login
+
+In memory, two counters. **Per login name**: 5 consecutive failures lock the name for 15
+minutes; a success resets. **Per deployment**: more than 60 failed logins in one minute
+across all names locks the route for one minute (429, `Retry-After`) -- each attempt costs
+64 MiB of scrypt, so this is also what keeps the box up. A lock is **429**, a wrong password
+**401**, both with the same body. **Not per client address**: the documented proxy passes
+no `X-Forwarded-For`, and an address is the one datum about a person this project has never
+held.
+
+### 20.8 Logging
+
+To standard output: a login success (`account <id> logged in`); a failure (`login failed
+for account <id>`, or `login failed for an unknown name` -- **never the name typed**, which
+is the commonest place a password lands in a log); a lock; a logout; every account,
+permission and publish change with the acting account's id, the Tree id and the time.
+**Never**: a password, a token or its hash, a request body, a client address, a field's
+text.
+
+### 20.9 Headers on `/admin`
+
+Every response under `/admin`: `X-Robots-Tag: noindex, nofollow`, `Cache-Control:
+no-store`; the pages a `<meta name="robots" content="noindex, nofollow">` to match.
+`robots.txt` is unchanged (16.1, 23.3).
+
+## 21. Permissions
+
+**[#132], new -- 2026-09-23.** Core document 9's last bullet as a contract. Recorded in
+`docs/adrs/ADR-132-roles-and-permissions.md`.
+
+### 21.1 Roles
+
+Per Tree, three: the **creator** (`meta.json`'s `creator`: the account that created it or
+was handed it), a **collaborator** (in `meta.json`'s `collaborators`), the
+**administrator** (20.3; named in no `meta.json`). An account may hold different roles on
+different Trees. Every active account may create a Tree; a deactivated account may do
+nothing.
+
+### 21.2 The table
+
+| Action | Creator | Collaborator | Administrator |
+|---|---|---|---|
+| Create a Tree (becomes its creator) | every active account | | yes |
+| Read the draft and its images in the admin area | yes | yes | yes |
+| Edit content: fields, structure, explainers, Sources, image order | yes | yes | yes |
+| Upload an image; remove an unreferenced one | yes | yes | yes |
+| Invite a collaborator; remove one | yes | no | yes |
+| Publish; unpublish | yes | no | yes |
+| Hand the Tree over | yes | no | yes |
+| Delete the Tree -- **hidden Trees only** | yes | no | yes |
+| Manage accounts | no | no | yes |
+| Change own name and password | yes | yes | yes |
+| See the active accounts list (name, login), for an invitation | yes | yes | yes |
+
+A published Tree has share links, a dataset URL and sitemap entries out; **delete is two
+steps** -- unpublish, then delete -- and 409 while published. A collaborator edits but does
+not publish; a collaborator's edits to a published Tree reach the public through 19.4,
+which is the trust an invitation extends.
+
+### 21.3 The check
+
+```ts
+export type Action = 'read' | 'edit' | 'upload' | 'invite' | 'publish' | 'hand-over' | 'delete'
+export function permit(account: Account, meta: TreeMeta, action: Action): boolean
+```
+
+Pure, in `src/store/permissions.ts`, the table as a `switch` with no default branch. Every
+handler under `/admin/api` calls it after `authenticated` and before touching the store;
+every writing member of the store calls it again. **No** is **403** with no detail -- also
+for a read of a Tree the caller has no role on, not 404: the admin area is not a public
+route, and a 404 there would tell a collaborator of one Tree which other ids are hidden
+rather than absent. The UI hides what a role may not do; the server never consults the UI.
+
+### 21.4 Invitations
+
+`GET /admin/api/accounts` answers every **active** account's `id`, `name` and `login` to
+any logged-in account; the creator picks one; `PUT
+/admin/api/trees/<t>/collaborators/<accountId>` adds it. No search, no exact-match typing:
+at a lab's size the list is the search. Adding the creator, the administrator or a
+deactivated account is 422; adding an existing collaborator is 200.
+
+**Handing over** sets `creator` to the named account and adds the old creator as a
+collaborator, so nothing they could see disappears under them.
+
+## 22. The editor's server interface
+
+**[#132], new -- 2026-09-23.** Recorded in `docs/adrs/ADR-132-editor-api.md`.
+
+### 22.1 Route handlers under `/admin/api/`
+
+Every request and response is JSON over plain HTTP with a documented path, method and
+status, checkable with `curl`; **not Server Actions**, whose wire format is the
+framework's. The prefix is `/admin/api/` and not `/api/admin/` so that the cookie's
+`Path=/admin` (20.4) covers screens and API with one attribute. Every handler is shaped
+`authenticated → permit → store → JSON` and is thin. Every response carries 20.9's headers.
+
+| Method and path | Does | Answers |
+|---|---|---|
+| `POST /admin/api/login` | `{ login, password }` | 204 + cookie; 401; 429 |
+| `POST /admin/api/logout` | ends the session | 204 + clearing cookie |
+| `GET /admin/api/me` | the caller | `{ id, name, login, administrator }` |
+| `GET /admin/api/accounts` | active accounts, for an invitation (21.4) | `[{ id, name, login }]` |
+| `POST /admin/api/accounts` | administrator: `{ name, login, password }` | 201; 422 |
+| `PATCH /admin/api/accounts/<id>` | administrator: `name`, `active`, `password`; self: `name`, `password` + `currentPassword` | 200; 403; 422 |
+| `GET /admin/api/trees` | the caller's `TreeEntry` list (administrator: all) | `[...]` |
+| `POST /admin/api/trees` | `{ id, languages, title }`: folder, `meta.json`, a draft with one root Node `start` | 201; 409 taken; 422 reserved or malformed |
+| `GET /admin/api/trees/<t>` | the `TreeEntry`: meta, manifest, `published`, `servable`, violations | 200 |
+| `PATCH /admin/api/trees/<t>` | one manifest field `{ path, value }`: `title.<lang>`, `description.<lang>`, `root` | `WriteResponse` |
+| `DELETE /admin/api/trees/<t>` | hidden Trees only | 204; 409 |
+| `PUT /admin/api/trees/<t>/published` | `{ published: boolean }` (19.3) | 200 `{ published, publishedAt }`; 409 `{ violations }` |
+| `PUT /admin/api/trees/<t>/creator` | `{ accountId }` | 200 `meta` |
+| `PUT` / `DELETE /admin/api/trees/<t>/collaborators/<accountId>` | add; remove | 200 `meta`; 422 |
+| `GET /admin/api/trees/<t>/nodes/<n>` | one `DraftNode`, its advisory violations, the titles its Links need | 200; 404 |
+| `POST /admin/api/trees/<t>/nodes` | `{ from: { node, link: 'yes' \| 'no' \| 'option' }, title? }` creates the Node **and** the Link in one write; `link: 'end'` with `outcome` makes the parent a Terminal instead | 201 `WriteResponse` (+ the parent's as `also`) |
+| `PATCH /admin/api/trees/<t>/nodes/<n>` | one field `{ path, value }` or one operation `{ op, ... }` (22.2) | `WriteResponse` |
+| `DELETE /admin/api/trees/<t>/nodes/<n>` | the Node and every Link to it; never the root | 204 + `also`; 409 on the root |
+| `POST /admin/api/trees/<t>/images` | `multipart/form-data`, one file (22.6) | 201 `{ file, width, height }`; 413; 415; 422 |
+| `DELETE /admin/api/trees/<t>/images/<file>` | an unreferenced file | 204; 409 while referenced |
+| `GET /admin/api/trees/<t>/images/<file>` | a draft's picture, to a reader with a role (22.6) | the file with 5.3's headers + `no-store`; 403; 404 |
+
+Status codes for every route: **401** no or invalid session; **403** `permit` said no, or
+20.6 failed; **404** unknown Tree or Node (for a caller with a role); **409** a state
+conflict (published, root, uneditable, id taken); **413** too large; **415** wrong type;
+**422** a blocking violation or a malformed body; **429** rate limited.
+
+The screens -- `/admin`, `/admin/trees/<t>/...` -- are #133's and render inside the
+`[lang]` layout like every page.
+
+### 22.2 The unit of a write
+
+**One field or one operation on one Node**; the manifest takes fields only.
+
+- A **field** is a key path the format defines: `title.<lang>`, `description.<lang>`,
+  `sources[i].label.<lang>`, `sources[i].url`, `sources[i].kind`, `images[i].description.<lang>`,
+  `images[i].credit`, `images[i].source`, `explainers[i].term.<lang>`, `explainers[i].text.<lang>`,
+  `options[i].title.<lang>`, `terminal.outcome`. Checked against the key set of
+  `tree-format.md` 4 and 5 **before** anything is applied; any other path is 422 (V-KEYS).
+- An **operation** is one of a closed set: `add-source`, `remove-source`, `add-image` (an
+  uploaded file), `remove-image`, `move-image`, `add-explainer`, `remove-explainer`,
+  `add-option` (an existing explanation Node, or a new one), `remove-option`, `set-answer`
+  (`yes` or `no` → an existing Node), `remove-answer`, `set-terminal`, `remove-terminal`.
+- **Limits on the request**: a body of at most **64 kB**; any string of at most **2,000
+  code points** (the largest limit of 5.7 is 600). Above either, 413 or 422, nothing stored.
+
+### 22.3 The write response
+
+```ts
+interface WriteResponse {
+  revision: number             // the Tree's after this write; monotonic per Tree
+  node: DraftNode | null       // as stored; null after a delete
+  manifest?: Manifest          // when the write was to the manifest
+  violations: Violation[]      // this Node's (or the manifest's) advisory list, after the write
+  tree: {
+    advisory: number           // the whole draft's advisory count: what the Publish toggle shows
+    published: boolean
+    publicCopyCurrent: boolean // false while an invalid draft leaves the last valid copy (19.4)
+  }
+  also?: WriteResponse[]       // other Nodes this write changed
+}
+```
+
+- **A write that violates 5.7, or any advisory rule, is stored and answers 200**, with the
+  violation in `violations` -- `keyPath` (`description.nl`), `rule` (`V-LENGTH`), the
+  message with the actual and the maximum -- which is what the editor shows **at the
+  field**.
+- **A write that would break a blocking rule answers 422** with the same `Violation`
+  shape and stores nothing.
+- 403 no role; 404 unknown Tree or Node; 409 uneditable Tree (19.5).
+
+### 22.4 Structural writes
+
+One operation, applied whole: creating a Node from a parent writes the Node **and** the
+parent's Link in one store write; deleting a Node removes every Answer and Option that
+names it in the same write; the root Node cannot be deleted, and `root` may be pointed at
+another question Node or Terminal instead. A new Node's id is `n-<6 lowercase base32
+characters>` unless the request names a free, valid one; ids are stable for the Tree's
+life because they are in every URL. **No empty array or object is ever written**: removing
+the last Source, Image, Option or explainer removes the key, and `remove-answer` on the
+last Answer removes `answers` (the Node is an explanation Node again), so V-EMPTY holds on
+every draft the store writes.
+
+### 22.5 Concurrency between collaborators
+
+**Last write wins, per field.** The store's queue serialises writes to one Tree; a field
+write replaces that field and no other, so two people in two fields of one Node never
+touch each other's text; two people in **one** field get the later value, and every
+response carries the Node as stored, so the editor **repaints every field it is not
+focused on**. `revision` tells "changed under me" from "my own write"; what the editor
+shows is #133's. **No `If-Match`, no 409 on a stale write**: an autosave has no user to ask.
+
+### 22.6 Images
+
+- **Upload**: one file per request, `multipart/form-data`, refused above **5 MiB** (413).
+  The type is taken from the **first bytes**, never from the name or the declared type:
+  **PNG, JPEG, GIF, WebP** accepted; anything else, **SVG included**, is 415. Width and
+  height are read from the bytes and returned.
+- **The file name is the server's**: the client's name lower-cased, every run outside
+  `[a-z0-9]` → one `-`, leading and trailing separators dropped, the stem cut to 100
+  characters; result `<stem>-<first 8 hex of the bytes' SHA-256>.<extension of the sniffed
+  type>` -- which matches `tree-format.md` 3.5 by construction, is **checked against 3.5
+  anyway**, and whose resolved path must lie inside the Tree's `images/` after
+  `path.resolve` (5.5's two-checks rule). The same bytes twice give one file. Written to
+  `$ELSA_DATA_DIR/trees/<t>/images/` through the atomic writer.
+- Attaching is the separate `add-image` operation (22.2); the upload knows no Node.
+  Removal is refused while the draft or the published copy names the file; after a
+  publish, files neither names are deleted.
+- **A draft's images are served to a logged-in reader with a role only**, at
+  `GET /admin/api/trees/<t>/images/<file>`, with 5.3's headers plus `no-store`. The public
+  `/<tree-id>/images/<file>` serves what the **published copy references** and nothing else
+  (18.1, 5.1). The Bubble takes its image URL builder as a parameter -- the public page
+  passes `imageHref`, the editor passes the admin one; the mechanism is #133's inside the
+  reuse rule.
+
+## 23. The public routes with many Trees, and a hidden Tree
+
+**[#132], new -- 2026-09-23.** Core document 9's hidden-Tree bullet as a contract; how 15
+and 16 read with many Trees. Recorded in `docs/adrs/ADR-132-hidden-trees-and-findability.md`.
+
+### 23.1 One 404
+
+Every public route works from `store.publishedIds()` and `store.published(id)` (17.5). A
+**hidden** Tree, a **published but not servable** Tree (18.3), an id that **never was** a
+Tree and a **reserved** word are **one case**: `published(id)` is `null` and the answer is
+the 404 of 4.3 -- same page, same status, same headers, no difference a caller can measure.
+That covers the Node page and both redirects, `/<tree-id>/tree.json`,
+`/<tree-id>/images/<file>`, `/<tree-id>/theme/<file>`, and absence from the overview,
+`sitemap.xml`, `llms.txt` and every JSON-LD graph. No public route reads a draft, a
+`meta.json` or `accounts.json`; the store's public interface has no member that could
+return one. Unpublishing makes all of it true in one call (19.3); the hour of
+`Cache-Control` on files and documents is the one delay, the same hour a Tree update always
+had.
+
+### 23.2 The overview, `/`
+
+Every served Tree: its title in the page's language when declared, else in its default
+language with a `lang` attribute on the tile; its logo when its Theme names one; a link to
+its root Node in the page's language or the Tree's default. **Order: by `id`**, so two
+requests agree and no Tree buys the top by renaming (#133 may order the display within
+that). The page's languages are the chrome's, `en` and `nl`: canonical, `hreflang` for both
+and `x-default`, a `<meta name="description">` from a chrome string; no Tree content beyond
+the titles. No cookie. **No JSON-LD in this round** (an `ItemList` is reserved, not built).
+Zero served Trees: the page says so, in the chrome language.
+
+### 23.3 `robots.txt`
+
+One file, **unchanged**. Nothing disallowed, `/admin` included (20.9 uses the header). 16.1
+and its test stand.
+
+### 23.4 `sitemap.xml`
+
+One document: the overview's two addresses first (`/`, `/?lang=nl`, with their alternates),
+then every served Tree in `id` order, each Tree's Nodes in file order, each `<url>` as 16.2
+gives it. **`lastmod` per Tree**: that Tree's `tree.json` modification time, written by the
+store at its last publish -- right by construction, so 16.2's copy-pipeline caveat and
+`ELSA_TREE_LASTMOD` are gone; unreadable → no `lastmod`. The 50,000 limit is now a sum over
+Trees; the generator fails loudly rather than truncating, and the index stays reserved.
+
+### 23.5 `llms.txt`
+
+One document, the deployment's: H1 a chrome string (`ELSA decision trees`), blockquote one
+chrome sentence; then `## The Trees` -- one entry per served Tree in `id` order, `- [<title
+in its default language>](<root URL>): <description reduced by 16.3 steps 1 and 2, or the
+root Node's>`; then 16.5's sections with one line per Tree where they named one (`## The
+datasets`: every `tree.json` and the one schema; `## Walking a Tree`: the overview, the
+sitemap, the grammar line; `## Languages`: per Tree, default marked; `## Licence`
+unchanged). Still a signpost: no Node's text, no `llms-full.txt`.
+
+### 23.6 JSON-LD and the dataset
+
+Per Tree, unchanged in shape: the `Dataset` on each Tree's own root page with `@id`
+`<base>/<tree-id>#dataset`; no page names another Tree's `Dataset`. `version` is
+`metadata.version`, now the publish count (19.6), so it changes exactly when the dataset
+does. `/<tree-id>/tree.json` streams `$ELSA_DATA_DIR/trees/<id>/tree.json`; 15.2 and 15.3
+are unchanged, with byte-identity asserted against that file. 15.2's CORS reason -- no
+credential on these routes -- is kept true by 20.5.
+
+### 23.7 The test rows
+
+| Test | Asserts (built by) |
+|---|---|
+| `tests/store/store.test.ts` (#134) | `openStore` on an empty directory seeds from `ELSA_SEED_DIR` and publishes; on a second open reads no seed; a hidden Tree (no `tree.json`) is not in `publishedIds`; a published Tree that fails validation is `servable: false`, not thrown, and the rest are served; two writes to one file land in order and the file is never torn (a reader mid-write sees the old or the new bytes, never a mix); the lock refuses a second open; the three retired variables refuse to start with the replacement named. |
+| `tests/store/drafts.test.ts` (#136) | 19.2's table, one fixture per row under `tests/fixtures/drafts/`; every field path of 22.2 accepted and every other refused; every operation; the cascade on delete; the root undeletable; an advisory write stored and reported; a blocking write refused and not stored; removing the last entry of an array removes the key; publish refused with violations and accepted with the copy byte-identical; 19.4 on a published Tree; the derived draft schema equals the published one minus the two named keywords and the two `required` entries, and a `draft.json` with `"languages": []`, `"version": ""` or `"sources": []` is refused by it. |
+| `tests/store/accounts.test.ts`, `sessions.test.ts` (#135) | the hash format and re-hash on parameter change; `authenticate` runs the KDF on an unknown name; the two lock counters; 12-hour idle and 14-day absolute expiry; the 5-minute refresh; the cookie constant, attribute by attribute; a deactivation ends sessions. |
+| `tests/store/permissions.test.ts` (#136) | every cell of 21.2. |
+| `tests/store/images.test.ts` (#136) | sniffing (a PNG named `.jpg`, text named `.png`, an SVG → 415); hostile names (`../x.png`, spaces, upper case, 300 characters, `%2F`) → a name matching 3.5 inside `images/`; the size cap; identical bytes → one file; removal refused while referenced. |
+| `tests/browser/admin-api.spec.ts` (#136) | 401 without a session; 403 on a foreign Tree; 403 on a write without `Origin`/`Sec-Fetch-Site` or with a foreign `Origin`; 403 on a form-encoded body, on a JSON route and on the upload route; 204 on a bodyless `POST /admin/api/logout` with no `Content-Type`; 415 on an SVG; every `/admin` response `no-store` and `noindex`. |
+| `deployment.spec.ts` (#135) | 20.5: the logged-in half of the sweep; `/admin/api/login` the only setter, every attribute present. |
+| `findability.spec.ts`, `tests/findability/*.test.ts` (#134) | a data directory with two Trees, one hidden: the hidden id appears nowhere in the sitemap, `llms.txt` or the overview; every route of 23.1 answers 404 for it, identically to an unknown id; `lastmod` differs per Tree; the overview's head (23.2). |
+| `jsonld.test.ts` (#136) | `version` equals the publish count after two publishes. |
+| `tests/browser/admin.spec.ts` (#143) | the walk: administrator, creator, collaborator and visitor, screenshots and measurements. |
