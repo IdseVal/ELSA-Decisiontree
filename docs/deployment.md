@@ -26,6 +26,33 @@ The shape on disk, for both:
 
 ---
 
+## The editor round changes this document (#132, decided 2026-09-23)
+
+> **A stub, written by the architecture freeze of issue #132.** Everything below this box
+> describes version 1.0 and is true of it; issues **#134** (the data directory and many
+> Trees), **#135** (the administrator's password and the login) and **#136** (the store's
+> write path and the import command) rewrite the sections they change. Until they merge,
+> deploy `version-1.0` by the text below. The decisions are `docs/adrs/ADR-132-*.md` and
+> `docs/specs/application.md` 17 to 23.
+
+The application becomes a **writer**: Trees are created and edited in the app behind a login,
+saved automatically and published with a toggle. What that changes on a server:
+
+| What | Version 1.0 | The editor round |
+|---|---|---|
+| The data | `trees/`, copied by an author, read-only to the service | **`ELSA_DATA_DIR`** (`/opt/elsa-decisiontree/data`): one writable folder, owned by the `elsa` user, holding `accounts.json`, `sessions.json` and `trees/<id>/` with the draft, the published `tree.json`, `images/` and `theme/`. Outside `app/`, so a release never touches it. **Required; no default.** (#134; `application.md` 17) |
+| Which Tree is served | `ELSA_TREE` names one | Every **published** Tree of the data directory; `/` is an overview of them. `ELSA_TREE`, `ELSA_TREES_DIR` and `ELSA_TREE_LASTMOD` are **retired, and the server refuses to start while any is set**, naming the replacement. (#134; `application.md` 18) |
+| The repository's Trees | copied by hand | **`ELSA_SEED_DIR`** (default `trees` beside `server.js`, which the build already carries) is imported into the data directory **at the first start only**, published, owned by the administrator. Later: `npm run store -- import <folder>` from the checkout, with the service stopped. (#134, #136; `application.md` 17.4) |
+| The administrator | none | **`ELSA_ADMIN_PASSWORD`**, at least 12 characters, in `/etc/elsa-decisiontree.env`, which becomes **mode `0600`**: at every start it creates the `admin` account or resets its password. **Remove it from the file after the first start**; set it again only to recover a lost password. Never a default, never printed. (#135; `application.md` 20.3) |
+| Updating a Tree | validate, `rsync`, restart | Through the editor at `/admin`; no restart. The `rsync` procedure below is retired by #136. |
+| Backups | the repository | **`rsync -a` or `tar` of `ELSA_DATA_DIR`**, running or stopped: every file in it is replaced atomically, so each file in a copy is whole. Stop the service for a copy exact to the write. Restore is copying the folder back. (`application.md` 17.4) |
+| Moving a Tree between deployments | copy the folder | Copy `trees/<id>/tree.json`, `images/` and `theme/` out (not `draft.json`, not `meta.json`) and import them on the other side. |
+| The container | `-e ELSA_TREE=...` | `-v /srv/elsa-data:/data -e ELSA_DATA_DIR=/data -e ELSA_ADMIN_PASSWORD=...` on the first run; the `Dockerfile` changes with #134 and #135. |
+| Cookies | none, anywhere | One session cookie, `HttpOnly; Secure; SameSite=Strict; Path=/admin`, on the admin routes only; **the public routes still set none**, and the `curl` check below still prints nothing. A proxy must pass `/admin` through unchanged and still add no cookie of its own. (`application.md` 20) |
+| The journal | one line per start | Also: logins by account id, lockouts, publishes and account changes. Never a password, a token, a name typed into the login form, or a client address. (`application.md` 20.8) |
+
+---
+
 ## Configuration
 
 Everything a deployment decides is an environment variable. There is no configuration file

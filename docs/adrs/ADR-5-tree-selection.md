@@ -1,6 +1,10 @@
 # ADR-5-tree-selection: one Tree per deployment, chosen by the `ELSA_TREE` environment variable; the Tree id stays in every URL
 
-- Status: ACCEPTED (frozen) -- 2026-09-03; decides core document OPEN 10.19
+- Status: **SUPERSEDED** 2026-09-23 by `docs/adrs/ADR-132-many-trees-per-deployment.md`
+  (issue #132): a deployment serves every published Tree of its store and `ELSA_TREE` is
+  gone. What carries over unchanged: the Tree id in every URL, `/<tree-id>` redirecting to
+  the root Node, a reserved id refusing to exist, the folder name as the Tree's id. Was:
+  ACCEPTED (frozen) -- 2026-09-03; decides core document OPEN 10.19
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 2
 
