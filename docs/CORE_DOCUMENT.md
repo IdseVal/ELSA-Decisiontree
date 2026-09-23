@@ -1,7 +1,7 @@
 # Core document
 
 > Populated by deep interview with the project owner. Nothing here is inferred.
-> Status: AGREED -- 2026-09-17 (revised; first agreed 2026-09-03, revised 2026-09-09)
+> Status: AGREED -- 2026-09-23 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17 and 2026-09-21)
 > The owner noted the document may change in future; changes go through a revision round and a PR.
 >
 > **Revision of 2026-09-09 (issue #35).** After seeing version 0.1 of the tool the owner
@@ -25,8 +25,19 @@
 > argument for YAML is gone. Every passage that changed is marked **[#118]** and cites
 > that direction as issue #118 records it; nothing else in this document was touched. The
 > decisions are `docs/adrs/ADR-118-*.md`; the work is issues #118 to #122.
+>
+> **Revision of 2026-09-23 (issue #131).** The owner saw the findability round merged
+> ("The graph looks the way we want to and should be findable properly for crawlers
+> etc. Good job on that team!") and opened, in issue #131, the **editor round**: Trees
+> are created and edited through the frontend, behind a login, with an overview page of
+> every Tree in front of them; the app as it stands is preserved on the branch
+> `version-1.0`. Every passage that changed is marked **[#131]** and quotes or cites
+> #131; nothing else in this document was touched. The owner's words are held whole in
+> section 3.4. The decision to rework in place and how the change reaches the specs is
+> `docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`; the work is issues #132 to
+> #144.
 
-Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09 and 2026-09-17.
+Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21 and 2026-09-23.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
 Items marked **PROPOSED** are the Planner's wording, waiting for the owner to confirm or correct.
 
@@ -75,9 +86,17 @@ required was named.
 - **Languages**: see 3.1 (multilingual data) and 3.2 (language switch).
 - **The owner**, as *author* of tree content: the tree data must be easy for a human --
   the owner in particular -- to create and maintain by hand, in a text editor.
+  **[#131]** No longer by hand: the owner, like every other author, creates and edits
+  a Tree through the editor of 3.4, because "not all users (academics) can read or
+  write JSON".
 - **Other ELSA labs / third parties**, as authors of *other* trees in the same shape
   (e.g. an ethics tree, a defence-AI tree, a healthcare tree), loaded by the same
   frontend without code changes.
+- **[#131] Creators** (owner, #131, 2026-09-23): people with an account who create
+  and edit Trees in the app -- the owner, colleagues, other labs' authors. Each has a
+  name; each may create Trees of their own and invite **collaborators** to them; one
+  **administrator** has every permission on every Tree (3.4, section 8). They are the
+  first users the app knows by name; end users stay anonymous.
 
 ## 3. Scope
 
@@ -406,11 +425,103 @@ first version the frontend displays content prepared by the agents so the owner 
 inspect what the app looks like; the owner alone is responsible for reviewing legal
 content before it is published, and this is NOT enforced by code.
 
+### 3.4 The editor, the login and the overview (owner, #131)
+
+**[#131]** The owner's instruction of 2026-09-23, whole, because every issue of the round
+derives from it:
+
+> "The graph looks the way we want to and should be findable properly for crawlers etc.
+> Good job on that team! Next, the users will have to be able to populate the
+> datastructures, but not all users (academics) can read or write JSON, therefore, we are
+> going to make an interface for the website where a datastructure can be created or
+> edited, but we will put this behind a login window. Also, we will put a page before the
+> page where we show a specific tree/datastructure, a page with an overview of all
+> available datastructures. For new pages, use similar styling as exists for the app now.
+>
+> We will want to work like this I think: we have the regular routes for end users, but if
+> we go to our page on /admin, we will first be shown a login page, once logged in we are
+> shown the editing page, this is the same front page with the overview of datastructures,
+> but now there will be on the top left a blank entry with a + in it, when clicked a new
+> datastructure can be created. The new datastructure creation looks exactly like the
+> final datastructure, but, the fields in the bubble are editable, images can be uploaded
+> and text content can be labelled to have the explanation on hover and there is a
+> side-bubble with a + where one of those side-bubbles can be created, then in editing
+> mode "yes", "no" and "tree ends here" buttons can be created and when they are clicked
+> the editor moves to a sequential new bubble, which can then be created with the same
+> editor etc.. I want all fields to be saved automatically, but the datastructure should
+> remain in hidden mode (so not published on the end-user page) until the creator toggles
+> a switch, somewhere in the top of the screen, to "Publish". We want to work with
+> permissions for editing, so all our potential creators with an account have a name and
+> everyone can create their own datastructure and there is a panel on the top right, in
+> which the "Publish" toggle is also situated, where a creator can invite collaborators
+> with an account. Make sure we start by having an admin account with all permissions to
+> all current and future datastructures, created by anyone.
+>
+> For now, store the app as it currently exists on a branch called 1.0 or something that
+> makes sense, we also have a 0.1 I think, use the same convention. And then continue
+> working on dev for the new features."
+
+What that asks for, item by item, with the Planner's reading marked PROPOSED where the
+owner's words leave a choice:
+
+- **An overview page before a Tree** (end users): one page listing every available Tree,
+  in the app's present styling, in front of the Node pages. "Available" is read as
+  **published** (below). A deployment therefore serves **many Trees**, which supersedes
+  10.19 (one Tree per deployment); the Tree id is already in every URL, so every share
+  link keeps working (10.34, decided by the Architect on #132).
+- **`/admin` behind a login**: the login page first; once logged in, the same overview with
+  a **+ tile at the top left** that creates a new Tree.
+- **The editor looks exactly like the final Tree**: the Node as the end user sees it (3.2)
+  with the Bubble's fields editable in place; images uploaded; a term in the text
+  labelled to carry an explainer (3.1); a side-bubble with a + that creates an Option and
+  its side child; on a new Node, "yes", "no" and "tree ends here" buttons that create the
+  next Node and move the editor to it. PROPOSED: "tree ends here" is the Terminal of 3.1
+  with its outcome; "yes" and "no" are the Answers; the side-bubble is an Option; nothing
+  new enters the format, which stays `elsa-tree/4` (10.21).
+- **Autosave**: every field is saved as it is edited; nobody presses Save.
+- **Hidden until Publish**: a new Tree is not on the end-user pages -- not on the
+  overview, not at its URLs, not in the sitemap, the dataset endpoint or the JSON-LD --
+  until its creator turns the **Publish** toggle on. PROPOSED (10.33): a Tree that is
+  being built is not a valid `elsa-tree/4` file until its last Answer has a target, so what
+  the autosave writes is a **draft**, and publishing copies a draft that validates to the
+  public copy; while published, every valid save reaches the public at once. Where a draft
+  and the public copy live is 10.30.
+- **Permissions**: every creator has an account with a **name**; everyone creates Trees of
+  their own; a **panel at the top right** holds the Publish toggle and lets a creator
+  **invite collaborators with an account** (PROPOSED, 10.31: accounts are made by the
+  administrator, and an invitation adds an existing account by name); **one administrator
+  account has every permission on every Tree, present and future, whoever created it**
+  (10.32: how its first credential is set).
+- **Similar styling** for every new page: the chrome bar, the disclaimer, the Theme
+  mechanism of 3.2; no second look.
+- **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
+  `version-0.1`, #35); the round is developed on `dev`
+  (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
+
+What the owner did **not** say, and is therefore open or PROPOSED, not decided: where the
+bytes live (10.30); who creates accounts and what "invite" adds (10.31); how the
+administrator's first credential is set (10.32); what an autosave does to a Tree that is
+already published (10.33); whether one deployment still serves one Tree by configuration
+or every published one (10.34); whether a Tree made in the editor can be given a Theme
+(10.35; not asked, filed as #144 so the gap is visible).
+
+What this round does **not** change, so that nobody looks for it: the end-user pages as
+`version-1.0` shows them -- the Bubble, the up arrow, the Overlay, the Carousel, the
+explainers, the slide, the no-scroll rule, the Theme, the URL scheme with the Trail in
+the link, the share button, the language mechanism, the findability contracts of section
+1 -- and the Tree format. The overview page is a new page in front of them; where the
+round must touch existing code (the loader opening several Trees, the sitemap listing
+several) the change is additive. The issue's own OUT OF SCOPE is "changes to the existing
+app parts". Issue #132 freezes the store and the accounts, #133 the editor's screens;
+#134 to #142 build, #143 walks the result.
+
 ## 4. Explicit NON-scope
 
 Confirmed by the owner on 2026-09-03:
 
-- No user accounts.
+- No user accounts. **[#131] Superseded for creators** (owner, 2026-09-23): creators,
+  collaborators and the administrator have accounts (3.4, section 8). End users still
+  have none.
 - No saving of a user's progress across visits (a shared link is the only persistence,
   and it lives in the link).
 - No graphical editor for tree content -- content is edited as files. **[v0.2]** The
@@ -422,10 +533,16 @@ Confirmed by the owner on 2026-09-03:
   is the stated reason the Tree data moves to JSON (3.1). It is **not in scope of issues
   #118 to #122**, which build the format, the dataset endpoint and the findability
   contracts; it enters scope when the owner opens that round, and where an edited Tree is
-  then stored is **OPEN 10.30**.
+  then stored is **OPEN 10.30**. **[#131] The owner opened that round on 2026-09-23**
+  (3.4): the editor is in scope, as issues #132 to #144.
 - No analytics, no tracking.
-- No database.
-- No editorial-review workflow in code (see 3.3, last paragraph).
+- No database. **[#131]** A store for accounts, sessions and edited Trees is now needed
+  (3.4). What stands is the reason: a plain Linux server with nothing to run beside
+  Node (section 7), so no database *server* is installed; whether the store is files
+  or an embedded library is the Architect's on #132 (10.30).
+- No editorial-review workflow in code (see 3.3, last paragraph). **[#131]** The
+  Publish toggle of 3.4 is the creator's own switch, not a review: nothing in code
+  reviews content, and the owner's responsibility of section 8 stands.
 - Cross-links between Trees: designed for, not built in the first iteration.
 - Anything in the first Tree beyond the Article 50 transparency step (obligations per role, conformity assessment, ...): later, by the owner.
 
@@ -453,6 +570,13 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 | **Main image** | **[#75]** The Image a Node leads with: its first Image (PROPOSED, 3.1). Shown above the Node's title in its Bubble or Overlay, and small on the button that opens the Node as a side child (10.29). | main-image |
 | **Overlay** | **[#75]** The panel a side child opens in, over the page of the Node it belongs to: the side child's main image, title, description and Sources. Closed by a cross, by Escape, or by a click outside it. | overlay |
 | **Explainer** | **[#75]** A short explanation of one term in a Node's text, declared in the Tree data per language and shown in a small panel when the term is hovered (or focused, or tapped). | small explainer, hoverable, explainer |
+| **Creator** | **[#131]** An account that created a Tree: edits it, invites Collaborators to it, publishes it. | creator, our potential creators |
+| **Collaborator** | **[#131]** An account a Creator invited to a Tree; edits it. | collaborators |
+| **Administrator** | **[#131]** The one account with every permission on every Tree, present and future, whoever created it. | admin account |
+| **Overview** | **[#131]** The page before a Tree: every published Tree, one tile each; for a logged-in Creator the same page with the + tile. | page with an overview of all available datastructures, front page |
+| **Editor** | **[#131]** The admin area's view of a Node: what the end user sees, every field editable in place. | editing page, editing mode, the same editor |
+| **Draft** (PROPOSED) | **[#131]** A Tree as its Creators have it: saved on every change, not necessarily valid, never public. | hidden mode |
+| **Published** | **[#131]** A Tree whose Creator turned the Publish toggle on: served on the public routes. A Tree that is not is **hidden**. | publish, hidden mode |
 
 ## 6. Data sources and their constraints
 
@@ -489,7 +613,16 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 ## 8. Legal, privacy and compliance limits
 
 - **Nothing about the user is collected or stored**: no accounts, no cookies, no
-  tracking, no analytics.
+  tracking, no analytics. **[#131] For end users, unchanged.** For **creators** (3.4)
+  the owner asks for accounts with a name, a login and permissions, which means: an
+  account record (name, login, a password hash, never the password), a session that
+  a cookie carries, and a record of who created which Tree and who was invited to it.
+  PROPOSED, for the Architect to freeze on #132: the session cookie is set on the
+  admin routes only, with the flags a session cookie must have, and **no public route
+  ever sets a cookie** -- the sweep in `tests/browser/deployment.spec.ts` stays a
+  contract; nothing about a creator is shown on a public page or written into a
+  Tree file (the file is the public dataset of the bullet below); no analytics, no
+  tracking, for anyone.
 - The app **must display a permanently visible "not legal advice" disclaimer**.
 - **Licence**: the project is an academic research project funded by NWO and is **open
   source**. The code is under the **MIT** licence (`LICENSE`); the content of the Trees
@@ -540,6 +673,15 @@ Confirmed by the owner on 2026-09-03:
   scrolls, and neither makes the page scroll.
 - **[v0.2] The frontend must never carry a lab's branding in its code**: logo, colours
   and fonts come from the loaded Tree, so a third-party Tree shows its own (#35).
+- **[#131] A public route must never set a cookie**, and nothing about a creator may
+  reach a public page or a Tree file (section 8). The account and the session exist
+  on the admin routes and nowhere else.
+- **[#131] A hidden Tree must never appear on a public route**: not on the overview,
+  not at a Node URL, not in the sitemap, the dataset endpoint, the JSON-LD or
+  `llms.txt`, and none of its images or theme files (3.4).
+- **[#131] No write reaches the store without the server checking, for that account
+  and that Tree, that it is allowed** (3.4): the editor hides what a role may not do,
+  but never decides it.
 
 ## 10. Open questions
 
@@ -560,10 +702,10 @@ Confirmed by the owner on 2026-09-03:
 | 10.13 | Hosting. | -- | answered: undecided between university server and Hetzner; plain Linux, no vendor lock-in |
 | 10.14 | Which open-source licence for code, and which for content? | Idse | code answered (owner, #12, 2026-09-17): "MIT license is fine" -- code MIT (`LICENSE`). The content licence and the holder line were completed on #12 on 2026-09-18 by the oversight session under the owner's standing instruction, not by the owner in person, and are open to the owner's overrule: Tree content CC BY 4.0 (`CONTENT-LICENSE`), holder Wageningen University & Research, 2026. Publishing the repository is no longer gated: 10.25 was settled by the owner on #111, 2026-09-21 (section 8) |
 | 10.15 | What must never happen. | -- | answered (section 9) |
-| 10.16 | Storage technology. | -- | answered: files in the repo, no database |
+| 10.16 | Storage technology. | -- | answered: files in the repo, no database. **[#131] Superseded in part** for edited Trees and accounts: see 10.30; what stands is no database *server* (section 4) |
 | 10.17 | Trail click. | -- | answered: jump back, discard later Trail |
 | 10.18 | Disclaimer. | -- | answered: permanent footer |
-| 10.19 | One Tree per deployment, or a choice of Trees in the UI? Owner did not answer; the Architect decides, default *one Tree per deployment, chosen by configuration* (does not preclude a landing page later). | Architect | decided by Architect (2026-09-03): one Tree per deployment, named by the environment variable `ELSA_TREE` (no default; the server refuses to start without it). The Tree id stays in every Node URL, so a landing page or a second Tree can be added later without breaking shared links. `docs/adrs/ADR-5-tree-selection.md`, `docs/specs/application.md` section 2 |
+| 10.19 | One Tree per deployment, or a choice of Trees in the UI? Owner did not answer; the Architect decides, default *one Tree per deployment, chosen by configuration* (does not preclude a landing page later). | Architect | decided by Architect (2026-09-03): one Tree per deployment, named by the environment variable `ELSA_TREE` (no default; the server refuses to start without it). The Tree id stays in every Node URL, so a landing page or a second Tree can be added later without breaking shared links. `docs/adrs/ADR-5-tree-selection.md`, `docs/specs/application.md` section 2. **[#131] Superseded (owner, 2026-09-23):** a deployment serves every published Tree, with the overview page in front (3.4); how, and what becomes of `ELSA_TREE`, is 10.34, the Architect's on #132 |
 | 10.20 | UI chrome languages, and fallback when the Tree's language has no chrome translation. Architect decides; Planner's expectation: chrome in English and Dutch, fall back to English. | Architect | decided by Architect (2026-09-03): chrome ships in English and Dutch, as typed strings in the code (`src/chrome.ts`). Chrome follows the content language when it is English or Dutch and falls back to English otherwise; the content language is never affected. `docs/adrs/ADR-5-chrome-languages.md`, `docs/specs/application.md` section 3 |
 | 10.21 | **[v0.2]** Serialisation of the single Tree file (3.1): YAML kept, or another form, with hand-editability of one large multilingual file as the criterion; the theme block; the length limits and how a step counter such as "(1/7)" is written; the migration from `elsa-tree/1`. | Architect | decided by Architect (2026-09-10, issue #37): YAML kept, as a **YAML stream** in one `tree.yaml` -- the manifest first, then one document per Node with its `id` key, separated by `--- # <id>` lines, so a mistake breaks one Node and a search lists them all; the manifest carries an optional `theme` (logo, two font families by role, seven colours by role; each part complete or absent; files in `theme/`); every text field has a maximum (title 80, description 600 characters and 8 estimated lines, Option title 60, Source label 60, ...) and every list a maximum count (8 Options, 3 Sources), the same for every language, derived from a 1280 x 640 viewport that #38 confirms or corrects; the "(1/7)" counter is authored in the title; Images unchanged; migration is textual concatenation that reports every violation. `docs/specs/tree-format.md` (`elsa-tree/2`), `docs/adrs/ADR-37-*.md`. **[#118] SUPERSEDED (owner, 2026-09-21; Architect, issue #118): hand-editability is no longer the criterion, and the serialisation is JSON.** Trees are edited through the frontend in the next round, so nobody works inside the file again and the one argument for YAML is gone. The format is **`elsa-tree/4`**: one `tree.json` per Tree, a single object carrying the manifest fields and `nodes` as an array in the author's order, rich text a string with `\n`, an absent optional field omitted, a required `$schema`, no comments, and a canonical byte form so two writers of the same Tree produce the same bytes. Its structure is published as a JSON Schema at `schemas/elsa-tree-4.json`, served at `/schemas/elsa-tree-4.json`; the length limits stay content rules, because they are measured on counted text a schema cannot compute. Everything this row decided in 2026-09-10 about the *content* -- the Theme block, the limits, the step counter, Images -- carries over unchanged, and the Node description's 150 characters are #102's. `docs/specs/tree-format.md` (`elsa-tree/4`), `docs/adrs/ADR-118-json-serialisation.md`, `ADR-118-json-schema.md` |
 | 10.22 | **[v0.2]** The viewport the no-scroll layout guarantees (3.2), what happens on a smaller screen, and how "never scrolls" is tested. | Architect | decided by Architect (2026-09-10, issue #38): the layout **guarantees 1280 x 640 CSS pixels** -- a 1366 x 768 laptop, or a 1920 x 1080 one at 150 % scaling, minus browser chrome and taskbar -- and at or above it shows the full arrangement with nothing collapsed and nothing truncated. Below it the layout **gives things up in a fixed order of seven steps** (Trail, Carousel, Option columns move below, Options, Sources, then the type scale down to a floor of 13 px), each collapsed thing still reachable behind one control; the Node's title, description and Answer Branches are never given up. At or below a floor of **320 pixels of width or 480 pixels of height** -- smaller than any display in current use -- a minimum-size notice replaces the view and names the dimension that is short (amended 2026-09-13 by the owner on PR #56, issue #41: the rows need 568 pixels of height, so a window short in either dimension gets the notice; #38 had written "below a floor of 320 x 480"). The document **never** scrolls at any size, with an overlay open, or during a transition; the one element allowed to scroll is the Carousel strip, horizontally, inside its own row. Tested by `tests/browser/no-scroll.spec.ts` (Playwright, now part of the contract), which measures `scrollHeight` and `scrollWidth` against the viewport for the document and for **every** element, at ten named viewports, on every kind of Node in both languages, including a fixture Node at every maximum the format allows with a 49-entry Trail. `docs/adrs/ADR-38-no-scroll.md`, `docs/specs/application.md` 10.4 to 10.6 |
@@ -574,4 +716,9 @@ Confirmed by the owner on 2026-09-03:
 | 10.29 | **[#75]** The side child's main image on the Option button (3.1, 3.2) against the image rule: "images are loaded only for the Node on screen" (3.1, section 9) and its testable form, `docs/specs/application.md` 11.4 and 11.5 ("`GET /images/<file>`: may not: an image of any other Node, at any time, for any reason"). An Option's own Images are legal there because they belong to the Node that holds the Option (the 2026-09-14 amendment); a side child's main image belongs to the side child. Today the 28 Option pictures of the first Tree are written on the Options themselves, which is why the owner's example already works. | Architect | decided by Architect (2026-09-17, issue #78), as the Planner proposed: `application.md` 11.5 gains one row -- a page may fetch, for each Option of the centre Node, exactly one file, the target's first Image, never its other Images, and the Images of a Node whose Overlay is open -- and `transition.spec.ts` asserts that set; an Option has no `images` of its own in `elsa-tree/3` (`tree-format.md` 5.4), and the migration moves an Option's first picture to its target (#84 does it for the first Tree's 28 first). `docs/adrs/ADR-78-fan-out-and-option-picture.md`. The Planner's proposal was: the rule is kept as a rule about pages -- a page may fetch the centre Node's Images and, for each of its Options, exactly one file, the target's main image, never the target's other Images -- so 11.5 gains that one row (bounded by the format's eight Options) and `transition.spec.ts` asserts the new set; an Option then needs no `images` of its own (`tree-format.md` 5.4), and the first Tree's 28 Option pictures move to their targets as those targets' main images (#84 gives every Node one). The alternative that leaves 11.5 untouched: an Option keeps `images` and the author writes the target's main image on the Option as well, so every side child's picture is stored twice |
 | 10.27 | **[#75]** The address of an open Overlay (3.2): does opening a side child change the URL, and what does the URL of an explanation Node show when it is opened directly or from a shared link? Every Node must stay reachable by URL and the Trail must stay in the link (3.2). | Architect | decided by Architect (2026-09-17, issue #78): opening or closing an Overlay does not change the address; the URL of an explanation Node renders its parent's page with that Overlay open, the parent being the path entry before it (the last question Node or Terminal in the path is the centre, the entries after it are the aside chain, the last of them open), so every existing link keeps working and an explanation Node reached by two Options has a URL under each; a path with no parent at all (`/<tree>/<explanation-id>`) shows the explanation Node as the centre. A second-level Option is a plain link to the deeper address. `docs/specs/application.md` 10.9, `docs/adrs/ADR-78-overlay.md`. Amended by Architect (2026-09-19, issue #100): the centre is found in at most the path's last three entries, so a page reads at most 17 Nodes for every path; it is an explanation Node when three or more explanation Nodes end the path (the third from the end) or when the path ignores adjacency; and an Overlay has no strip. `docs/adrs/ADR-100-bounded-centre.md`, `docs/adrs/ADR-100-overlay-without-strip.md` |
 | 10.28 | **[#75]** The row budget and the length limits after the main image (3.1, 3.2): the main image takes height inside the Bubble, the Trail row's height is freed, the Carousel moves to the Bubble's lower edge and loses its caption line. Do the description's 600 characters and 8 lines survive, or do the limits change -- which would re-cut the first Tree a second time (3.3, item 8)? | Architect; Idse if content must be cut | decided by Architect (2026-09-17, issue #78): **the limits survive, by two pixels.** The rows are chrome bar 44, up-arrow band 26, Bubble 446 (text area 640 x 394), strip band 28, Answers 68, disclaimer 28; the Interior is main image 60, title 56, description 192 (8 lines, 600 characters), Sources 60 (heading and two lines), three gaps of 8 = 392. The main image is 60 pixels tall, the largest size that keeps every limit; each further 24 pixels would cost one line, 75 characters, of description and a new format number, and is the owner's to ask for. No Tree is re-cut. **Amended 2026-09-19 (#102, by the owner; answer (b) on PR #110):** the owner asked for the pixels -- a main image of two fifths of the Bubble, the description cut to 150 characters and 2 lines, both Trees cut mechanically -- and took them **without a new format number**: the change is scoped to the limit and the validator, the shape of a Tree file is unchanged, and V-LENGTH and V-LINES tell a Tree written to the old limit what to cut; `elsa-tree/3` stands. `docs/specs/application.md` 10.1, 10.7, `docs/specs/tree-format.md` 5.7, `docs/adrs/ADR-78-main-image-and-row-budget.md` |
-| 10.30 | **[#118]** Where a Tree is stored once it is edited through the frontend (3.1, section 4). The round after #118 to #122 makes Trees editable in the app, which is the stated reason the data moved to JSON. Today a Tree is plain files in the repository (3.1, 10.16) and a change is a deploy. When an editor writes a Tree back, is the destination still **a file per Tree committed through git** -- which keeps the review, the history and the "no database" rule of 10.16 -- or **a store of another kind**, which would reopen 10.16? The question is only about where the bytes live: the format is the same file either way, and nothing in `elsa-tree/4` depends on the answer (`docs/specs/tree-format.md` section 10). | Idse | **OPEN** -- raised by the Architect on 2026-09-21 (issue #118) because the owner's reason for JSON names that round. Not asked of the owner yet; it is the first question of that round, not of this one |
+| 10.30 | **[#118]** Where a Tree is stored once it is edited through the frontend (3.1, section 4). The round after #118 to #122 makes Trees editable in the app, which is the stated reason the data moved to JSON. Today a Tree is plain files in the repository (3.1, 10.16) and a change is a deploy. When an editor writes a Tree back, is the destination still **a file per Tree committed through git** -- which keeps the review, the history and the "no database" rule of 10.16 -- or **a store of another kind**, which would reopen 10.16? The question is only about where the bytes live: the format is the same file either way, and nothing in `elsa-tree/4` depends on the answer (`docs/specs/tree-format.md` section 10). | Idse | **OPEN** -- raised by the Architect on 2026-09-21 (issue #118) because the owner's reason for JSON names that round. Not asked of the owner yet; it is the first question of that round, not of this one. **[#131] The round is open (owner, 2026-09-23, issue #131) and the question is now #132's.** The owner's "saved automatically" and "hidden until Publish" (3.4) rule out a deploy per edit; the constraint that stands is 10.16's reason: no database server. PROPOSED: a writable data directory outside the release, one folder per Tree holding its draft, its published `tree.json`, `images/` and `theme/`, with the repository's `trees/` as seed and fixtures; store metadata (published flag, owner, collaborators) outside `tree.json`, which stays the public dataset |
+| 10.31 | **[#131]** Who creates accounts, and what "invite collaborators with an account" adds (3.4). | Idse | PROPOSED: the administrator creates every account in the admin area (name, login, password); there is no self-registration; an invitation adds an existing account to a Tree by name. To be confirmed or corrected by the owner; frozen by the Architect on #132 if the owner is silent |
+| 10.32 | **[#131]** How the administrator's first credential is set (3.4: "Make sure we start by having an admin account"). | Idse | PROPOSED: from an environment variable read at first start, or a command run on the server; never a default password, never printed to a log. Frozen by the Architect on #132 |
+| 10.33 | **[#131]** What an autosave does to a Tree that is already published (3.4). | Idse | PROPOSED: a draft that validates in full is what publishing copies to the public copy; while the toggle is on, every valid save reaches the public at once, and an invalid draft (an Answer without a target yet) leaves the last valid public copy in place until the draft is valid again; turning the toggle off hides the Tree at once. Frozen by the Architect on #132 |
+| 10.34 | **[#131]** One deployment now serves many Trees (3.4; supersedes 10.19): the published ones, with the overview page in front; what becomes of `ELSA_TREE`, how the loader follows the store without a restart, and how the findability documents of section 1 list several Trees. | Architect | **OPEN** -- decided on #132; every existing Node URL and share link keeps working, which `ADR-5-tree-selection.md` foresaw |
+| 10.35 | **[#131]** Whether a Tree made in the editor can be given a Theme (3.1: the look travels with the Tree). The owner did not ask; without it a new Tree has the plain default look and the only way to a logo is files placed on the server by hand. | Idse | **OPEN** -- filed as #144, `proposed`, so the owner decides by promoting it or leaving it |
