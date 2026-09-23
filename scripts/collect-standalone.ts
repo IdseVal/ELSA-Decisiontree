@@ -13,6 +13,11 @@ import { cpSync, existsSync } from 'node:fs'
 const COPY: ReadonlyArray<readonly [from: string, to: string]> = [
   ['.next/static', '.next/standalone/.next/static'],
   ['public', '.next/standalone/public'],
+  // **[#121]** The schema route serves this folder's published set (application.md 15.1),
+  // and the framework leaves it behind for the same reason it leaves the stylesheet: it is
+  // read at request time, not imported. The Tree folders are deliberately not here -- they
+  // are chosen at run time by ELSA_TREES_DIR, where the schema is a constant of the build.
+  ['schemas', '.next/standalone/schemas'],
 ]
 
 if (!existsSync('.next/standalone')) {

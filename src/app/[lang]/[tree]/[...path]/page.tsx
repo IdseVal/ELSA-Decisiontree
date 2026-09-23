@@ -8,10 +8,11 @@ import { Logo } from '../../../../components/Logo.tsx'
 import { ShareButton, type ShareWords } from '../../../../components/ShareButton.tsx'
 import { TreeView } from '../../../../components/TreeView.tsx'
 import { baseUrl, servedTree } from '../../../../config.ts'
+import { graphScript, pageGraph } from '../../../../findability/jsonld.ts'
 import { plainDescription } from '../../../../markdown.ts'
 import { loadPage } from '../../../../neighbourhood.ts'
 import type { Tree } from '../../../../tree/loader.ts'
-import { addressSet, parseUrl, type PageAddress } from '../../../../url.ts'
+import { absolute, addressSet, datasetHref, parseUrl, type PageAddress } from '../../../../url.ts'
 
 /**
  * The Node page, `/<tree-id>/<...trail>/<node-id>` (docs/specs/application.md 4.1). The
@@ -28,9 +29,19 @@ export default async function NodePage(props: Props) {
   if (!found) notFound()
   const page = await loadPage(found.tree, found.address)
   if (!page) notFound()
+  const script = await jsonLd(found.tree, found.address)
 
   return (
     <>
+      {/*
+        The JSON-LD of 16.4: one script, emitted by the server, holding one `@graph` --
+        the `Dataset` on the root Node's page, a `WebPage` here, a `Question` where this
+        Node asks one. Raw rather than React's text, like the Theme's `<style>` (13.1),
+        because a `<script>` element's content is not entity-decoded; `jsonld.ts` has
+        already escaped every `<` of it and checked its own output at the sink, and hands
+        back null rather than a payload that could close this element.
+      */}
+      {script !== null && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: script }} />}
       {/*
         The page chrome. It sits in the page rather than in the root layout, where
         docs/specs/application.md section 6 sketches it, for the reason the Disclaimer does:
@@ -56,6 +67,17 @@ export default async function NodePage(props: Props) {
   )
 }
 
+/**
+ * The page's JSON-LD (**[#122]** 16.4), or null when it must not be emitted. The Node is
+ * the one the **address** names -- the same Node `generateMetadata` describes -- so the
+ * graph's `@id`, the canonical link and the meta description cannot describe two pages.
+ */
+async function jsonLd(tree: Tree, address: PageAddress): Promise<string | null> {
+  const node = await tree.getNode(address.nodeId)
+  if (!node) return null
+  return graphScript(await pageGraph(tree, node, address.lang, baseUrl(await headers())))
+}
+
 /** What the share button says, in the chrome language of the page. */
 function shareWords(lang: string): ShareWords {
   const { share, copied, copyFailed } = chrome(lang)
@@ -63,10 +85,11 @@ function shareWords(lang: string): ShareWords {
 }
 
 /**
- * The head of a Node page: the title, the canonical link (4.1), the `hreflang` links and
- * the description meta tag (**[#118]** 16.3). The Node's title comes from the loader's
- * in-memory index and its description from the Node itself, so describing the page reads
- * no file.
+ * The head of a Node page: the title, the canonical link (4.1), the `hreflang` links, the
+ * description meta tag (**[#118]** 16.3) and -- **[#121]** -- the one link to the dataset
+ * the walk is drawn from (15.3), so that a crawler which landed anywhere in the walk finds
+ * the data. The Node's title comes from the loader's in-memory index and its description
+ * from the Node itself, so describing the page reads no file.
  *
  * All four addresses come from one call to `addressSet`, which is the decision of 16.3:
  * the sitemap renders the same call, and a page's `hreflang` set and the sitemap's entries
@@ -94,6 +117,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     alternates: {
       canonical: addresses.find((entry) => entry.lang === address.lang)?.url,
       languages: Object.fromEntries(alternates.map(({ hreflang, url }) => [hreflang, url])),
+      // `<link rel="alternate" type="application/json">`, the same on every page and in
+      // every language: there is one dataset. The head link and the route it resolves to
+      // are one deliverable of one issue (ADR-118-dataset-endpoint decision 6) -- a page
+      // that advertises data the deployment does not serve is worse than one that is
+      // silent -- and `findability.spec.ts` fetches this href to hold the two together.
+      types: { 'application/json': absolute(datasetHref(tree.id), base) },
     },
   }
 }

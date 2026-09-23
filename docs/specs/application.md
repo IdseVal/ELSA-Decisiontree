@@ -508,6 +508,7 @@ export interface Tree {
   themePath(file: string): string | null       // [v0.2] absolute path inside this Tree's theme/, and only for a file the Theme names
   nodeIds(): string[]                          // [#120] every Node id, in file order: which pages exist (16.2)
   readonly lastModified: Date | null           // [#120] when the Tree's file was last written; null when it cannot be read (16.2)
+  readonly filePath: string                    // [#121] the Tree's own file: what the dataset endpoint streams (15.3)
 }
 ```
 
@@ -530,6 +531,11 @@ export interface Tree {
   of that sentence -- 16.2 dates every `<url>` from the Tree file, read once here (5.4)
   rather than stat'd per request. #119 replaces the file name behind both, as it does for
   the read itself, and neither signature changes with it.
+- **[#121]** `filePath` does not break it either, and for a plainer reason: it is a path,
+  and a caller that wants a Node still asks for it by id. 15.3 needs the file the loader
+  read -- so that what the dataset endpoint serves is what passed validation, and so that
+  the route cannot assemble a path of its own -- and a path is the smallest thing that
+  says so.
 
 The types, in `src/tree/types.ts`, mirror `tree-format.md` with two normalisations:
 `id` and `kind` are added, and absent lists become empty arrays.
@@ -789,12 +795,20 @@ app  ->  findability  ->  tree (getNode, getTitle), url, markdown, chrome     [#
 app  ->  neighbourhood  ->  tree (getNode, getTitle), url
 app  ->  theme  ->  url (themeHref)
 app  ->  assets  ->  nothing in src/
+findability  ->  assets (the two licence URLs of 15.2)                       [#121]
 app  ->  url, chrome, config, markdown
 config  ->  tree
 tree/  ->  nothing in src/
 next.config.ts  ->  nothing in src/
 ```
 
+- **[#121] `findability -> assets` is the one edge into `assets.ts` that is not a
+  route's.** `llms.txt` names the content and code licences (16.5), and they are the
+  strings 15.2 puts on the bytes themselves, so they are declared where they are sent and
+  read from there rather than written twice. The constants do not move to `url.ts`
+  instead: that would make `assets -> url` and cost the stricter line above it, which says
+  `assets` imports nothing in `src/` at all -- and it still does not. #122's `jsonld.ts`
+  takes `CONTENT_LICENCE_URL` over this same edge for the `Dataset`'s `license`.
 - **`src/tree/` still imports nothing from the rest of the application**, and nothing
   imports it to get more than one Node at a time except `neighbourhood`, which is where
   the bound lives.
@@ -833,7 +847,7 @@ detail, not a second place to look.
 | Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. A spec that needs a Tree other than the example starts its own server with `tests/browser/serve.ts`, a helper and not a spec file (amended 2026-09-14, #43). `tests/browser/credits.ts` is a helper too: it lists every picture a Tree shows, Node by Node in strip order, and reads each one's credit off the caption line by the keyboard alone, for `carousel.spec.ts` and `tests/first-tree/walk.spec.ts` (amended 2026-09-14, #55). |
 | Also in CI | `tsc --noEmit`, `next build`, `npm run validate trees/<each Tree>`, `npm run test:browser`. Command: `npm ci && npm test && npm run build && npm run test:browser`. |
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. Never hand-built `Node` objects; **[#118]** and never a Tree file parsed by the test itself -- a test that wants a Tree opens it through the loader, whatever the serialisation is. (This row read "never YAML read by a test" until #118; the fixtures become `tree.json` with #119, and the rule was never about YAML.) |
-| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). **[#118]** `tests/fixtures/findability/` (**#120** creates it, **#122** extends it): a two-language Tree whose manifest has **no `description`**, so the `Dataset` and `llms.txt` fall back to the root Node's; whose `title` and one Node `title` carry `&`, `<`, `>`, `"` and a literal `</script>`, so the XML escaping of 16.2 and the JSON escaping of 16.4 are exercised rather than assumed; with one Node holding two `kind: legal` Sources at one URL and one at another, so `isBasedOn`'s most-frequent rule has something to choose; one Node with **no** Source at all; a Terminal and an explanation Node, so the "no `Question`" half of 16.4 has a subject; and a description over 155 counted characters whose 155th character falls inside a word, for the cut. The single-language half of 16.2 and 16.5 uses `tests/fixtures/single-language/`, which already exists. |
+| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). **[#118]** `tests/fixtures/findability/` (**#120** creates it, **#122** extends it): a two-language Tree whose manifest has **no `description`**, so the `Dataset` and `llms.txt` fall back to the root Node's; whose `title` and one Node `title` carry `&`, `<`, `>`, `"` and a literal `</script>`, so the XML escaping of 16.2 and the JSON escaping of 16.4 are exercised rather than assumed; with one Node holding two `kind: legal` Sources at one URL and one at another, so `isBasedOn`'s most-frequent rule has something to choose; one Node with **no** Source at all; a Terminal and an explanation Node, so the "no `Question`" half of 16.4 has a subject; and a description over 155 counted characters whose 155th character falls inside a word, for the cut. The single-language half of 16.2 and 16.5 uses `tests/fixtures/single-language/`, which already exists. **[#122]** Two corrections to this row, made in building it. The Node title also carries `<!--`, the second sequence 16.4's sink refuses, which this row named for the test but not for the fixture. And **the over-155 description is not in this fixture, because the format forbids it**: a Node `description` is at most 150 counted characters and a Tree `description` is rich text whose reduction is shorter still (`tree-format.md` 5.7), so no valid Tree can exercise steps 3 and 4 of 16.3 -- which is 16.3's own point, that the cut does not fire for a conforming Tree. The cut is asserted on strings in `markdown.test.ts`, where it can be. **[#122]** `tests/fixtures/tied-sources/` is new: one language, two `kind: legal` Sources at two URLs with one citation each, and a `literature` and a `case-law` Source that no count of legal Sources may see -- the tie 16.4 breaks by first occurrence in Node order, which no other fixture can produce. |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
 
 **Which tests are unit and which need a browser.** The rule is: a claim about *markup*
@@ -2349,6 +2363,37 @@ the second place a Tree's text -- third-party data -- reaches the document.
 Reserved and deliberately empty for now: `identifier` (a DOI, when the project has one)
 and `sameAs` (the repository, when what the public sees there is settled -- #112);
 `keywords`, because nothing in the Tree supplies them honestly.
+
+**Built 2026-09-21 (#122).** `src/findability/jsonld.ts` emits the graph above; three things
+this section left open were settled in building it.
+
+- **Where the script sits: the first element of `<body>`, not the head.** Next.js's App
+  Router hoists a page's `<title>`, `<meta>` and `<link>` into the head through
+  `generateMetadata` and offers a page no supported way to put an inline `<script>` there;
+  the root layout, which could, is given the `[lang]` segment alone and does not know which
+  Node the page shows (section 6). This section asks for one script per page emitted by the
+  server, and does not place it: JSON-LD is read wherever it stands in the document, and
+  the `schema.org` validator read the whole graph -- `WebPage`, `Dataset`, `Organization`,
+  `DataDownload`, `Question` and both `Answer` entries -- out of the served page with no
+  error and no warning.
+- **`distribution` is a one-entry array**, not a bare object. One served format today
+  (15.1), and a second one would be a second entry rather than a change of shape.
+- **`isBasedOn` emits a Source's URL as the Tree wrote it, never the stripped comparison
+  key.** The table says "the most frequent `url` ... compared after dropping fragment and
+  query", which admits two readings, and only this one is true of the first Tree. Its legal
+  Sources are `https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02024R1689-20260727`
+  at twenty-odd fragments; stripped of fragment **and query** they become
+  `https://eur-lex.europa.eu/legal-content/EN/TXT/`, which identifies no instrument at all,
+  because on that address it is the query that names the Act. So the stripping decides
+  **which** Sources are one instrument, and the value emitted is the first of them in Node
+  order -- `.../?uri=CELEX:02024R1689-20260727#art_2` for the first Tree,
+  `https://eur-lex.europa.eu/eli/reg/2024/1689/oj` for the example Tree. Note that
+  `ADR-118-json-ld.md` decision 4 says the rule yields the ELI address "for both Trees
+  here"; that is true of `trees/ai-act-example/` and false of
+  `trees/ai-act-applicability-agrifood/`, which cites the consolidated CELEX text and no
+  ELI address at all. The decision's *reason* -- name the thing a reader following the
+  page's own links arrives at -- is what this implementation follows, and it is what makes
+  the stripped key the wrong value to emit.
 
 ### 16.5 `llms.txt`
 

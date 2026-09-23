@@ -9,7 +9,7 @@ import path from 'node:path'
 import { openTree, type Tree } from './tree/loader.ts'
 
 /** Tree ids that would collide with a route (application.md 4.3). */
-const RESERVED_TREE_IDS = ['images', 'theme']
+const RESERVED_TREE_IDS = ['images', 'theme', 'schemas']
 
 /** Only the three variables below are read, so any string map will do. */
 export type Environment = Readonly<Record<string, string | undefined>>

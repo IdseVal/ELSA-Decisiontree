@@ -86,8 +86,8 @@
     {
       "id": "placing-on-the-market",
       "title": {
-        "en": "\"Placing on the market\" & <what it means> </script>",
-        "nl": "\"In de handel brengen\" & <wat het betekent> </script>"
+        "en": "\"Placing on the market\" & <what it means> </script> <!--",
+        "nl": "\"In de handel brengen\" & <wat het betekent> </script> <!--"
       },
       "description": {
         "en": "An explanation Node, so 16.4 emits no Question for it. Its title is the awkward one.",

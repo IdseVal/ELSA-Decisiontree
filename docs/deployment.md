@@ -35,7 +35,7 @@ in the application and nothing to edit in the source.
 |---|---|---|
 | `ELSA_TREE` | **yes** | The Tree this deployment serves: the folder name under `ELSA_TREES_DIR`. There is no default; the server refuses to start without it, listing the Tree ids it did find. One deployment serves exactly one Tree (`docs/specs/application.md` section 2). |
 | `ELSA_TREES_DIR` | no | Where the Tree folders live. Defaults to `trees` under the working directory. |
-| `ELSA_BASE_URL` | no | The address readers reach this deployment at, e.g. `https://elsa.example.org` -- the reverse proxy's address, not the one the process listens on. It must be a bare origin: `http` or `https`, no path, no query. **[#120]** It is now the address `robots.txt`, `sitemap.xml` and every page's canonical and `hreflang` links advertise, so a deployment that sets none advertises the address each request arrived on instead. See [share links and the base URL](#share-links-and-the-base-url). |
+| `ELSA_BASE_URL` | no | The address readers reach this deployment at, e.g. `https://elsa.example.org` -- the reverse proxy's address, not the one the process listens on. It must be a bare origin: `http` or `https`, no path, no query. **[#120]** It is now the address `robots.txt`, `sitemap.xml` and every page's canonical and `hreflang` links advertise -- **[#121]** and `llms.txt` and every page's dataset link -- so a deployment that sets none advertises the address each request arrived on instead. See [share links and the base URL](#share-links-and-the-base-url). |
 | `ELSA_TREE_LASTMOD` | no | **[#120]** A `YYYY-MM-DD` date the sitemap reports every page as last modified at, overriding the Tree file's own modification time. Only for a build or copy pipeline that does not preserve timestamps; see [the date the sitemap reports](#the-date-the-sitemap-reports). The server refuses to start on anything that is not a day of the calendar. |
 | `PORT` | no | The TCP port the process listens on. Defaults to 3000. |
 | `HOSTNAME` | no | The address it listens on. Defaults to `0.0.0.0`. Behind a reverse proxy set `127.0.0.1`, so nothing but the proxy can reach the process. |
@@ -266,9 +266,26 @@ elsa.example.org {
 
 Set `ELSA_BASE_URL=https://elsa.example.org` to match, and restart the service.
 
+Both examples pass **every** path through, which includes the dataset: `location /` and
+`reverse_proxy` are not path lists, so nothing has to be added for the routes below.
+
 Two things a proxy in front of this application must not do: shorten the request path (a
 share link carries the whole Trail and may reach about 3.3 kB, within the defaults of both
 proxies above), and add a cookie of its own.
+
+### The dataset is public
+
+**[#121]** A deployment serves the Tree it holds as a dataset as well as a walk, at
+`https://<your host>/<tree-id>/tree.json` -- the Tree file itself, byte for byte, under
+CC BY 4.0, with the licence in a `Link` header on the bytes and `Access-Control-Allow-Origin: *`
+so another lab's page or a notebook can fetch it (`docs/specs/application.md` 15). The
+format's JSON Schema is beside it at `/schemas/elsa-tree-4.json`, and `/llms.txt` is the
+short plain-text description that points an AI agent at both.
+
+Nothing needs configuring for any of this, and there is nothing to turn off: the data was
+already public in the repository, the routes set no cookie, and what they serve is the
+file the server validated at start. A proxy that strips response headers it does not
+recognise would take the licence off the bytes, so leave `Link` alone.
 
 ---
 
