@@ -16,13 +16,15 @@ export async function AdminChrome({ lang, account }: { lang: ChromeLanguage; acc
   // The page the reader is on, in the other language: the address they asked for, whichever it is.
   const here = requested((await headers()).get(REQUEST_PATH_HEADER)).path
   return (
-    <header className="page-chrome">
+    <header className="page-chrome admin-chrome">
       <span className="tree-title">{ui.siteTitle}</span>
       <div className="page-controls">
         <ChromeLanguageSwitch lang={lang} href={(language) => adminHref(here, language)} />
         {account && (
           <nav className="admin-nav" aria-label={ui.account}>
-            <a className="admin-link" href={adminHref('/admin/account', lang)}>
+            {/* Cut with an ellipsis where the bar has no room for an 80-character name: a clamp
+                is the design, and `data-clamp` is how the no-scroll walk reads it (26.1). */}
+            <a className="admin-link" href={adminHref('/admin/account', lang)} data-clamp="">
               {account.name}
             </a>
             {account.administrator && (

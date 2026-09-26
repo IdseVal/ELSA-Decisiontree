@@ -1673,6 +1673,12 @@ a.language:hover,
   cursor: pointer;
 }
 
+.admin-submit--link {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
 fieldset:disabled .admin-submit {
   opacity: 0.6;
   cursor: default;
@@ -1798,22 +1804,47 @@ fieldset:disabled .admin-submit {
   width: min(360px, 100vw - 80px);
 }
 
+/*
+ * A phone: the bar holds the language switch, the caller's name, `accounts` and `logout` in
+ * 320 pixels only by giving up the site's title and the switch's current language, which is
+ * not a link and is the language on screen anyway; the cards give up padding and gaps, so
+ * the account page's two fit the floor's 408 pixels.
+ */
 @media (max-width: 479px) {
+  .admin-chrome .tree-title,
+  .admin-chrome .language--current {
+    display: none;
+  }
+
+  .admin-nav {
+    gap: 8px;
+  }
+
+  .admin-nav > a.admin-link:first-child {
+    max-width: 3.5rem;
+  }
+
   .admin-page {
     padding: 8px;
   }
 
-  .admin-card {
-    padding: 10px 12px;
-    gap: 6px;
+  .admin-cards {
+    gap: 8px;
+  }
+
+  .admin-card,
+  .admin-card.admin-form {
+    padding: 8px 12px;
+    gap: 4px;
+  }
+
+  .admin-card .admin-form,
+  .admin-card .admin-form fieldset {
+    gap: 4px;
   }
 
   .admin-field {
     grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
-  }
-
-  .admin-nav > a.admin-link:first-child {
-    max-width: 5rem;
   }
 }
 
