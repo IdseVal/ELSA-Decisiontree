@@ -32,44 +32,57 @@ npm ci
 
 ## Run
 
-The application serves exactly one Tree, named by `ELSA_TREE`. There is no default: the
-server refuses to start when the variable is unset or names a Tree that does not validate.
+The application serves every published Tree of its data directory, `ELSA_DATA_DIR`. There
+is no default: the server refuses to start when the variable is unset or names a folder it
+cannot write. The first start fills the folder from `trees/`, every Tree published, and
+creates the administrator from `ELSA_ADMIN_PASSWORD` (12 characters or more; there is no
+default, so a first start without it refuses to start). Later starts need it no more.
 
 ```sh
-npm run dev                    # development; .env.development points at trees/ai-act-example
-npm run build && ELSA_TREE=ai-act-example npm start
+ELSA_ADMIN_PASSWORD='choose a password' npm run dev   # development; .env.development points at .elsa-data/
+mkdir -p /tmp/elsa-data
+npm run build && ELSA_DATA_DIR=/tmp/elsa-data ELSA_ADMIN_PASSWORD='choose a password' npm start
 ```
 
-Then open `http://localhost:3000/ai-act-example/start` -- the URL of a Node is
-`/<tree-id>/<node-id>`. `npm run build` also copies the client bundle, the stylesheet and
-`schemas/` into `.next/standalone/`, so that folder plus `trees/` is the whole deployment.
+Then open `http://localhost:3000/` -- the overview of every published Tree, one tile each --
+or `http://localhost:3000/admin` to log in as `admin`.
+The URL of a Node is `/<tree-id>/<node-id>`, e.g. `/ai-act-example/start`. Deleting the
+data directory resets it: the next start seeds it again. `npm run build` also copies the
+client bundle, the stylesheet and `schemas/` into `.next/standalone/`, so that folder plus
+a data directory is the whole deployment.
 
 ## What a deployment serves besides the pages
 
-The Tree is a public dataset as well as a walk (`docs/specs/application.md` 15 and 16):
+Every published Tree is a public dataset as well as a walk (`docs/specs/application.md`
+15, 16 and 23); a Tree that is not published answers 404 on all of these and is listed in
+none:
 
 | URL | What |
 |---|---|
-| `/<tree-id>/tree.json` | The served Tree's file, byte for byte, under CC BY 4.0 -- the licence is in a `Link` header on the bytes. Cross-origin reads are allowed; no cookie is set. |
+| `/<tree-id>/tree.json` | That Tree's published file, byte for byte, under CC BY 4.0 -- the licence is in a `Link` header on the bytes. Cross-origin reads are allowed; no cookie is set. |
 | `/schemas/elsa-tree-4.json` | The format's JSON Schema, which that file names in its own `$schema` key. MIT, like the rest of the code. |
-| `/llms.txt` | A short plain-text description of the site for an AI agent: what it is, where the dataset and the schema are, and how to address any step by URL. |
-| `/sitemap.xml`, `/robots.txt` | Every Node in every language, and a crawler policy that allows everything. |
+| `/<tree-id>/images/<file>`, `/<tree-id>/theme/<file>` | That Tree's pictures and Theme files. |
+| `/llms.txt` | A short plain-text description of the site for an AI agent: what it is, where each Tree's dataset and the schema are, and how to address any step by URL. |
+| `/sitemap.xml`, `/robots.txt` | The overview and every Node of every published Tree in every language, and a crawler policy that allows everything. |
 | Every Node page | A `schema.org` `@graph` in one `application/ld+json` script: the `Dataset` on the root Node's page -- its licence, its download and the instrument it is based on -- and a `WebPage` on every page, with the step's `Question` and its two answers where the Node asks one. |
 
 `curl -s http://localhost:3000/ai-act-example/tree.json | diff - trees/ai-act-example/tree.json`
 is empty: the download **is** the dataset, not an export of it.
 
-## Point the app at a Tree
+## Point the app at its data
 
 | Variable | Meaning |
 |---|---|
-| `ELSA_TREE` | The Tree id: the folder name under `ELSA_TREES_DIR`. Required. |
-| `ELSA_TREES_DIR` | Where the Tree folders live. Defaults to `trees` under the working directory. |
+| `ELSA_DATA_DIR` | The one writable folder that holds every Tree, under `trees/<tree-id>/`. Required. |
+| `ELSA_SEED_DIR` | The Tree folders the first start imports, published, into an empty data directory. Defaults to `trees` under the working directory. Never read again. |
 | `ELSA_BASE_URL` | The public origin the deployment is reached at, e.g. `https://elsa.example.org`. Optional; it is what makes the canonical link of a page absolute. |
 | `PORT`, `HOSTNAME` | Where the server listens. |
 
-To serve your own Tree, put its folder next to `trees/ai-act-example/` (or point
-`ELSA_TREES_DIR` at your own folder) and name it in `ELSA_TREE`.
+`ELSA_TREE`, `ELSA_TREES_DIR` and `ELSA_TREE_LASTMOD` are retired: set, the server refuses
+to start and says what replaced them. A Tree is published exactly when its folder in the
+data directory holds a `tree.json`. To serve your own Tree, put its folder next to
+`trees/ai-act-example/` before the first start, or copy it into `$ELSA_DATA_DIR/trees/`
+with the server stopped (`docs/deployment.md`).
 
 ## Test
 
@@ -82,8 +95,9 @@ npx playwright install chromium         # once
 npm run test:browser                    # the same app in a real browser
 ```
 
-`npm run test:browser` builds the app and starts two standalone servers on that build with
-`ELSA_TREE=ai-act-example` -- the same command a deployment runs -- then drives them with
+`npm run test:browser` builds the app and starts two standalone servers on that build, each
+on a fresh data directory seeded with `ai-act-example` -- the same command a deployment
+runs -- then drives them with
 Playwright: port 3117 with a public base URL configured, and port 3118 with none, the
 default `docs/deployment.md` leaves a deployment at. It covers what markup cannot show:
 what a click on a thumbnail does, which image files the browser actually asks for, and

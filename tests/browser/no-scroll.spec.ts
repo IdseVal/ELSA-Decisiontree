@@ -5,8 +5,8 @@
  *
  * For every viewport of 10.6 and every page of 10.6, after the fonts have settled:
  * `document.documentElement` and `document.body` are no taller or wider than the window,
- * and no element in the document -- the Carousel strip excepted -- has content taller or
- * wider than itself, with one pixel for sub-pixel rounding. That last clause is what
+ * and no element in the document -- the Carousel strip and **[#134]** the overview's box
+ * excepted, the two exemptions of 10.6 -- has content taller or wider than itself, with one pixel for sub-pixel rounding. That last clause is what
  * catches a nested element quietly overflowing behind `overflow: hidden`, which the first
  * two would let through.
  *
@@ -15,7 +15,8 @@
  * (the Overlay of an explanation Node at every maximum with eight Options of its own, 10.9),
  * the two Nodes with Images of `tests/fixtures/carousel/` (issue #43), the eight explainers
  * at every maximum of `tests/fixtures/explainers/` (issue #83), and the longest Node of the
- * first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55) -- each in
+ * first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55), and
+ * **[#134]** the overview with fifteen tiles (26.3) -- each in
  * both languages, and each again with every Sheet it offers open -- the Overlay of each
  * Option among them -- every Image it carries enlarged and every explainer panel it marks
  * opened by focus, with and without JavaScript -- and each in the middle of a slide
@@ -34,7 +35,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { openTree } from '../../src/tree/loader.ts'
 import { arrived, escapeUrlOpened } from './arrived.ts'
-import { BASE_PORT, serve, stopServers } from './serve.ts'
+import { BASE_PORT, dataDir, serve, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const trees = path.join(repo, 'trees')
@@ -188,8 +189,11 @@ async function measure(page: Page): Promise<Measured> {
 
     const overflowing: string[] = []
     for (const el of document.querySelectorAll('*')) {
-      // The one exemption: the Carousel strip scrolls sideways inside its own row (12.2).
-      if (el.matches('[data-carousel-strip]')) continue
+      // The two exemptions: the Carousel strip scrolls sideways inside its own row (12.2),
+      // and **[#134]** the overview's box scrolls down inside its own bounds (26.3). A tile's
+      // title and description inside that box are clamped to their lines by 26.1: a cut
+      // with an ellipsis is the design, and `data-clamp` names exactly those two.
+      if (el.matches('[data-carousel-strip], [data-scroll-box], [data-scroll-box] [data-clamp]')) continue
       const b = box(el)
       if (b.sh > b.ch + 1 || b.sw > b.cw + 1) {
         overflowing.push(`${name(el)} holds ${b.sw}x${b.sh} in ${b.cw}x${b.ch}`)
@@ -518,6 +522,34 @@ async function assertClear(sheet: Locator, points: Point[], where: string): Prom
   expect(covered, `${where}: something outside the panel is covered`).toEqual([])
 }
 
+
+/**
+ * **[#134]** The overview with the named Trees of 35.3 less the hidden one: fifteen tiles, so
+ * that at every viewport the box has more than it shows and scrolls (26.3), while the
+ * document around it may not. Its own server, clear of every other port of this file.
+ */
+test.describe('the overview', () => {
+  const OVERVIEW_PORT = BASE_PORT + 73
+  let origin: string
+
+  test.beforeAll(async () => {
+    const numbered = Array.from({ length: 14 }, (_ignored, index) => ({
+      folder: path.join(repo, 'tests', 'fixtures', 'single-language'),
+      id: `tree-${String(index + 1).padStart(2, '0')}`,
+    }))
+    origin = await serveStore(
+      await dataDir([{ folder: path.join(repo, 'trees', 'ai-act-example') }, ...numbered]),
+      OVERVIEW_PORT,
+    )
+  })
+
+  for (const lang of LANGUAGES) {
+    test(`the overview with fifteen tiles, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, `${origin}/${lang === 'en' ? '' : `?lang=${lang}`}`, 'the overview, fifteen Trees', lang)
+    })
+  }
+})
 
 /** `url` said in `lang`: the query of 4.1, left out for the Tree's default. */
 function inLang(url: string, lang: string): string {

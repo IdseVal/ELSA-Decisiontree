@@ -1,7 +1,9 @@
 /**
- * `llms.txt` (docs/specs/application.md 16.5, ADR-118-llms-txt): the sections it carries,
- * in the order the convention gives, and the two things it must never become -- a second
- * copy of the Tree's content, and a document of relative URLs read away from its site.
+ * `llms.txt` (docs/specs/application.md 16.5, 23.5, ADR-118-llms-txt): the sections it
+ * carries, in the order the convention gives, and the two things it must never become -- a
+ * second copy of a Tree's content, and a document of relative URLs read away from its
+ * site. **[#134]** It is the deployment's: its H1 and blockquote are chrome, every served
+ * Tree is one line where a section names a Tree, and a hidden Tree appears nowhere.
  *
  * The Trees come from the loader, as section 7 requires; nothing here parses a Tree file.
  */
@@ -12,6 +14,7 @@ import { beforeAll, describe, expect, test } from 'vitest'
 import { text } from '../../src/chrome.ts'
 import { CONTENT_HOLDER, llmsTxt } from '../../src/findability/llms.ts'
 import { openTree, type Tree } from '../../src/tree/loader.ts'
+import { HIDDEN_ID, servedWithHiddenTree } from './hidden-tree.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(here, '..', '..')
@@ -21,11 +24,27 @@ let example: Tree
 let dutch: Tree
 let noManifestDescription: Tree
 
-/** The document for `tree`, with the root Node's description handed in as the route does. */
-async function generate(tree: Tree, at: URL = base): Promise<string> {
-  const lang = tree.manifest.defaultLanguage
-  const node = (await tree.getNode(tree.manifest.root))!
-  return llmsTxt(tree, at, text(node.description, lang, 'root.description'))
+/** The document for `trees`, each root Node's description handed in as the route does. */
+async function generate(trees: Tree[], at: URL = base): Promise<string> {
+  const entries = await Promise.all(
+    trees.map(async (tree) => {
+      const lang = tree.manifest.defaultLanguage
+      const node = (await tree.getNode(tree.manifest.root))!
+      return { tree, rootDescription: text(node.description, lang, 'root.description') }
+    }),
+  )
+  return llmsTxt(entries, at)
+}
+
+/** The lines of one `## ` section, the heading excluded. */
+function section(file: string, heading: string): string[] {
+  const start = file.indexOf(`## ${heading}\n`)
+  const end = file.indexOf('\n## ', start + 1)
+  return file
+    .slice(start, end < 0 ? undefined : end)
+    .split('\n')
+    .slice(1)
+    .filter((line) => line !== '')
 }
 
 beforeAll(async () => {
@@ -35,111 +54,133 @@ beforeAll(async () => {
 })
 
 describe('the shape the convention gives', () => {
-  test('the H1 is the manifest title in the default language, and is the first line', async () => {
-    const file = await generate(example)
+  test("the H1 is the deployment's name, a chrome string, and is the first line", async () => {
+    const file = await generate([example, dutch])
 
-    expect(file.split('\n')[0]).toBe(`# ${example.manifest.title.en}`)
+    expect(file.split('\n')[0]).toBe('# ELSA decision trees')
     // The one element the convention requires, and exactly one of it.
     expect(file.match(/^# /gm)).toHaveLength(1)
   })
 
-  test('the blockquote is the manifest description, reduced to plain text', async () => {
-    const file = await generate(example)
-    const quotes = file.match(/^> .*$/gm)!
+  test('the blockquote is one chrome sentence saying what this site is', async () => {
+    const quotes = (await generate([example])).match(/^> .*$/gm)!
 
-    expect(quotes).toHaveLength(1)
-    // The description holds a line break and a `code` span; neither survives into a line
-    // that has to be one line (16.3 steps 1 and 2, no cut).
-    expect(quotes[0]).toBe(
-      '> A small example Tree that exercises every element of the `elsa-tree/4` format. Its legal content is simplified and not to be relied on.',
-    )
-    expect(quotes[0]).not.toContain('\n')
+    expect(quotes).toEqual([
+      '> Interactive legal decision trees: answer one question at a time and arrive at an outcome, with the legal sources of every step.',
+    ])
   })
 
-  test('the blockquote falls back to the root Node when the manifest carries no description', async () => {
-    // The manifest's `description` is optional in the format; a headless llms.txt would
-    // say nothing at all, so the root Node's -- which is required -- answers (16.5).
-    expect(noManifestDescription.manifest.description).toBeUndefined()
-    const rootNode = (await noManifestDescription.getNode(noManifestDescription.manifest.root))!
-    const file = await generate(noManifestDescription)
-
-    expect(file).toContain('> The first question, and the one the Dataset record describes')
-    // Reduced, not raw: the explainer mark in that description is gone.
-    expect(file).not.toContain('(#dataset)')
-    expect(rootNode.description.en).toContain('(#dataset)')
-  })
-
-  test('the four sections appear once each, in the order 16.5 gives', async () => {
-    const file = await generate(example)
+  test('the five sections appear once each, in the order 23.5 gives', async () => {
+    const file = await generate([example, dutch])
 
     expect(file.match(/^## .*$/gm)).toEqual([
-      '## The dataset',
-      '## Walking the Tree',
+      '## The Trees',
+      '## The datasets',
+      '## Walking a Tree',
       '## Languages',
       '## Licence',
     ])
   })
 
   test('the free-form paragraph stands between the blockquote and the first heading', async () => {
-    const file = await generate(example)
-    const between = file.slice(file.indexOf('\n>'), file.indexOf('## The dataset'))
+    const file = await generate([example])
+    const between = file.slice(file.indexOf('\n>'), file.indexOf('## The Trees'))
 
-    expect(between).toContain('interactive legal decision tree')
+    expect(between).toContain('interactive legal decision trees')
     expect(between).toContain('Every step is a page of its own with a real URL')
-    expect(between).toContain('one JSON file')
+    expect(between).toContain('each tree is one JSON file')
     // The same disclaimer every page carries permanently (core document 8), not a second
     // wording of it: a file that softened it would be the copy a reader trusted.
     expect(between).toContain('This is not legal advice.')
   })
+})
 
-  test('a Dutch-default Tree gets its H1, its blockquote and its disclaimer in Dutch', async () => {
-    const file = await generate(dutch)
+describe('the Trees', () => {
+  test('one entry per served Tree, in the order given: its title and description in its default language', async () => {
+    const lines = section(await generate([example, dutch]), 'The Trees')
 
-    expect(file.split('\n')[0]).toBe(`# ${dutch.manifest.title.nl}`)
-    expect(file).toContain('Dit is geen juridisch advies.')
+    expect(lines).toEqual([
+      `- [${example.manifest.title.en}](https://elsa.example.org/ai-act-example/start): A small example Tree that exercises every element of the \`elsa-tree/4\` format. Its legal content is simplified and not to be relied on.`,
+      `- [${dutch.manifest.title.nl}](https://elsa.example.org/single-language/${dutch.manifest.root}): ${lines[1]!.split('): ')[1]}`,
+    ])
+    // A Dutch-default Tree is listed in Dutch: its own language, not the chrome's.
+    expect(lines[1]).toContain(dutch.manifest.title.nl)
+  })
+
+  test("a Tree's entry falls back to the root Node when the manifest carries no description", async () => {
+    // The manifest's `description` is optional in the format; the root Node's is required.
+    expect(noManifestDescription.manifest.description).toBeUndefined()
+    const rootNode = (await noManifestDescription.getNode(noManifestDescription.manifest.root))!
+    const file = await generate([noManifestDescription])
+
+    expect(section(file, 'The Trees')[0]).toContain('The first question, and the one the Dataset record describes')
+    // Reduced, not raw: the explainer mark in that description is gone.
+    expect(file).not.toContain('(#dataset)')
+    expect(rootNode.description.en).toContain('(#dataset)')
+  })
+
+  test('a hidden Tree of the store appears nowhere in it', async () => {
+    const { trees, remove } = await servedWithHiddenTree()
+    try {
+      const file = await generate(trees)
+
+      expect(section(file, 'The Trees')).toHaveLength(1)
+      expect(file).not.toContain(HIDDEN_ID)
+    } finally {
+      await remove()
+    }
+  })
+
+  test('no Tree at all is still a document: the chrome, with empty lists', async () => {
+    const file = await generate([])
+
+    expect(file.split('\n')[0]).toBe('# ELSA decision trees')
+    expect(section(file, 'The Trees')).toEqual([])
   })
 })
 
 describe('what the file points at', () => {
-  test('the dataset section names the Tree file and the schema, absolutely', async () => {
-    const file = await generate(example)
+  test('the datasets section names every Tree file and the one schema, absolutely', async () => {
+    const lines = section(await generate([example, dutch]), 'The datasets')
 
-    expect(file).toContain('- [The Tree file](https://elsa.example.org/ai-act-example/tree.json):')
-    expect(file).toContain('- [The JSON Schema](https://elsa.example.org/schemas/elsa-tree-4.json):')
+    expect(lines).toHaveLength(3)
+    expect(lines[0]).toContain(`- [${example.manifest.title.en}: the Tree file](https://elsa.example.org/ai-act-example/tree.json):`)
+    expect(lines[1]).toContain('(https://elsa.example.org/single-language/tree.json):')
+    expect(lines[2]).toContain('- [The JSON Schema](https://elsa.example.org/schemas/elsa-tree-4.json):')
   })
 
-  test('walking the Tree gives the root URL, the sitemap and the URL grammar', async () => {
-    const file = await generate(example)
+  test('walking a Tree gives the overview, the sitemap and the URL grammar', async () => {
+    const file = await generate([example])
 
-    expect(file).toContain('- [The first step](https://elsa.example.org/ai-act-example/start):')
+    expect(file).toContain('- [The overview](https://elsa.example.org/):')
     expect(file).toContain('- [Sitemap](https://elsa.example.org/sitemap.xml):')
     // The grammar, not a list of addresses: an agent reaches any step without guessing and
-    // the file does not grow with the Tree (16.5).
-    expect(file).toContain('The address of one step is `/ai-act-example/<step-id>`')
+    // the file does not grow with the Trees (16.5).
+    expect(file).toContain('The address of one step is `/<tree-id>/<step-id>`')
     expect(file).toContain('`?lang=<tag>` chooses the')
   })
 
   test('every URL in the document is absolute, at the base the route was given', async () => {
-    const file = await generate(example)
+    const file = await generate([example, dutch])
     const targets = [...file.matchAll(/\]\(([^)]+)\)/g)].map((match) => match[1]!)
 
-    expect(targets.length).toBeGreaterThanOrEqual(4)
+    expect(targets.length).toBeGreaterThanOrEqual(7)
     for (const target of targets) expect(() => new URL(target), target).not.toThrow()
     for (const target of targets) expect(target, target).not.toMatch(/^\//)
   })
 
   test("a deployment that names no base URL advertises the request's own origin", async () => {
     // What `baseUrl()` hands in when ELSA_BASE_URL is unset (16).
-    const file = await generate(example, new URL('http://127.0.0.1:3117'))
+    const file = await generate([example], new URL('http://127.0.0.1:3117'))
 
-    expect(file).toContain('- [The Tree file](http://127.0.0.1:3117/ai-act-example/tree.json):')
+    expect(file).toContain('(http://127.0.0.1:3117/ai-act-example/tree.json):')
     expect(file).not.toContain('elsa.example.org')
   })
 
   test('there is no llms-full.txt, and the file names none', async () => {
-    // The complete content of this site in one document already exists and is named in the
-    // first section; a second rendering would be the copy that drifts (16.5).
-    const file = await generate(example)
+    // The complete content of each Tree in one document already exists and is named in
+    // the datasets section; a second rendering would be the copy that drifts (16.5).
+    const file = await generate([example])
 
     expect(file).not.toContain('llms-full')
     const routes = path.join(root, 'src', 'app', '[lang]')
@@ -148,30 +189,19 @@ describe('what the file points at', () => {
 })
 
 describe('the languages and the licences', () => {
-  test('every declared language is listed, and the default is marked', async () => {
-    const file = await generate(example)
-    const section = file.slice(file.indexOf('## Languages'), file.indexOf('## Licence'))
+  test("every Tree's declared languages are listed on its line, the default marked", async () => {
+    const lines = section(await generate([example, dutch]), 'Languages')
 
-    expect(section).toContain('- `en` (default)')
-    expect(section).toContain('- `nl`')
-    expect(section).not.toContain('- `nl` (default)')
-  })
-
-  test('a single-language Tree lists its one language as the default', async () => {
-    const file = await generate(dutch)
-    const section = file.slice(file.indexOf('## Languages'), file.indexOf('## Licence'))
-
-    expect(section.match(/^- /gm)).toEqual(['- '])
-    expect(section).toContain('- `nl` (default)')
+    expect(lines).toEqual(['- `ai-act-example`: `en` (default), `nl`', '- `single-language`: `nl` (default)'])
   })
 
   test('both licences are named, with their URLs, and stated to differ', async () => {
-    const file = await generate(example)
-    const section = file.slice(file.indexOf('## Licence'))
+    const file = await generate([example])
+    const licence = file.slice(file.indexOf('## Licence'))
 
-    expect(section).toContain('[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)')
-    expect(section).toContain('[MIT](https://opensource.org/license/mit)')
-    expect(section).toMatch(/Tree content and code are licensed separately/)
+    expect(licence).toContain('[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)')
+    expect(licence).toContain('[MIT](https://opensource.org/license/mit)')
+    expect(licence).toMatch(/Tree content and code are licensed separately/)
   })
 
   test('the holder line is the one CONTENT-LICENSE carries', async () => {
@@ -182,19 +212,19 @@ describe('the languages and the licences', () => {
     const holder = licence.match(/^Copyright \(c\) \d{4} (.+)$/m)
 
     expect(holder?.[1]).toBe(CONTENT_HOLDER)
-    expect(await generate(example)).toContain(`(c) ${CONTENT_HOLDER}`)
+    expect(await generate([example])).toContain(`(c) ${CONTENT_HOLDER}`)
   })
 })
 
 /**
- * The rule that keeps this file a signpost. `llms.txt` carries the manifest's title and
- * description and nothing else of the Tree: Node titles, descriptions and Sources are in
- * the pages, in the sitemap and in the dataset, and a fourth copy is the one that goes
- * stale (16.5, ADR-118-llms-txt decision 5).
+ * The rule that keeps this file a signpost. `llms.txt` carries each manifest's title and
+ * description and nothing else of a Tree: Node titles, descriptions and Sources are in the
+ * pages, in the sitemap and in the dataset, and a fourth copy is the one that goes stale
+ * (16.5, ADR-118-llms-txt decision 5).
  */
 describe('no Tree content beyond the manifest leaks in', () => {
   test('no Node title, description or Source appears anywhere in it', async () => {
-    const file = await generate(example)
+    const file = await generate([example])
 
     for (const id of example.nodeIds()) {
       const node = (await example.getNode(id))!
@@ -210,9 +240,9 @@ describe('no Tree content beyond the manifest leaks in', () => {
   })
 
   test('no Node id but the root appears, and the root only inside its URL', async () => {
-    // The root's id is in the address of the first step, which is the point of the entry;
-    // every other id would be a list of addresses, which 16.5 refuses.
-    const file = await generate(example)
+    // The root's id is in the address where the walk begins, which is the point of the
+    // entry; every other id would be a list of addresses, which 16.5 refuses.
+    const file = await generate([example])
     const withoutRootUrl = file.replaceAll(`/ai-act-example/${example.manifest.root}`, '')
 
     for (const id of example.nodeIds()) {
@@ -220,13 +250,11 @@ describe('no Tree content beyond the manifest leaks in', () => {
     }
   })
 
-  test('the file does not grow with the Tree', async () => {
-    // Two Trees of very different sizes; the difference is the manifest's own text and the
-    // language list, never a line per Node.
-    const small = await generate(dutch)
-    const large = await generate(example)
+  test('the file grows by a line per Tree per section, never by a line per Node', async () => {
+    const small = await generate([dutch])
+    const large = await generate([example])
 
     expect(example.nodeIds().length).toBeGreaterThan(dutch.nodeIds().length)
-    expect(Math.abs(large.split('\n').length - small.split('\n').length)).toBeLessThanOrEqual(2)
+    expect(large.split('\n').length).toBe(small.split('\n').length)
   })
 })

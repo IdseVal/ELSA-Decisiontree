@@ -1,6 +1,6 @@
 /**
- * A Tree's Theme turned into the one `<style>` element the root layout emits, and into
- * the logo that layout shows (docs/specs/application.md section 13,
+ * A Tree's Theme turned into the one `<style>` element each page emits through
+ * `ThemeStyle`, and into the logo its chrome bar shows (docs/specs/application.md section 13,
  * docs/adrs/ADR-38-theme-delivery.md).
  *
  * This is the only module in the application that writes a colour or a font name, and the
@@ -57,14 +57,14 @@ const UNQUOTABLE_FAMILY = /[;{}<\p{Cc}]/u
 
 /** The logo the page shows, already resolved to the variant this palette calls for. */
 export interface ResolvedLogo {
-  /** The theme file name; the layout asks `themeHref` for its URL. */
+  /** The theme file name; the page asks `themeHref` for its URL. */
   file: string
   alt: LocalisedText
   /** Where clicking it leads, opened in a new tab and never fetched (13.2). */
   url?: string
 }
 
-/** What the root layout puts in `<head>`. The logo is `themeLogo`'s, for the chrome bar. */
+/** What `ThemeStyle` puts in `<head>`. The logo is `themeLogo`'s, for the chrome bar. */
 export interface ThemeStyle {
   /** The CSS of the one `<style>` element: `@font-face` rules and the `:root` block. */
   css: string
@@ -73,18 +73,19 @@ export interface ThemeStyle {
 }
 
 /**
- * The Theme of the served Tree, or its absence, as the page's style. Each of the three
+ * The Theme of the Tree `treeId`, or its absence, as the page's style. Each of the three
  * parts is taken whole or not at all: a palette is designed as a set, so half a Theme is
- * never merged with half a default (13.4).
+ * never merged with half a default (13.4). `treeId` is read only for the fonts' addresses,
+ * which are under the Tree's id (18.1).
  */
-export function themeStyle(theme: Theme | undefined): ThemeStyle {
-  const css = build(theme, paletteOf(theme?.colours))
+export function themeStyle(theme: Theme | undefined, treeId: string): ThemeStyle {
+  const css = build(theme, paletteOf(theme?.colours), treeId)
 
   return {
     // Every part above is escaped, so this can only fire if one of them stops escaping.
     // The default look is then emitted whole rather than nothing: a page with no custom
     // properties at all would have no colour left to fall back on.
-    css: css.toLowerCase().includes('</style') ? build(undefined, DEFAULT_COLOURS) : css,
+    css: css.toLowerCase().includes('</style') ? build(undefined, DEFAULT_COLOURS, treeId) : css,
     icon: theme?.logo?.icon,
   }
 }
@@ -105,8 +106,8 @@ export function themeLogo(theme: Theme | undefined): ResolvedLogo | undefined {
 }
 
 /** The `@font-face` rules and the `:root` block, in that order. */
-function build(theme: Theme | undefined, colours: Colours): string {
-  return [...fontFaces(theme), rootBlock(colours, theme)].join('\n')
+function build(theme: Theme | undefined, colours: Colours, treeId: string): string {
+  return [...fontFaces(theme, treeId), rootBlock(colours, theme)].join('\n')
 }
 
 /**
@@ -157,14 +158,14 @@ function rootBlock(colours: Colours, theme: Theme | undefined): string {
  * family takes its faces with it: serving a font under a name the page cannot use would
  * only cost the reader the download.
  */
-function fontFaces(theme: Theme | undefined): string[] {
+function fontFaces(theme: Theme | undefined, treeId: string): string[] {
   return (theme?.fonts ?? []).flatMap((family) => {
     const name = quoteFamily(family.family)
     if (!name) return []
     return family.files.map(
       (face) =>
         `@font-face{font-family:${name};font-weight:${face.weight};font-style:${face.style};` +
-        `src:url('${themeHref(face.file)}') format('woff2');font-display:swap}`,
+        `src:url('${themeHref(treeId, face.file)}') format('woff2');font-display:swap}`,
     )
   })
 }

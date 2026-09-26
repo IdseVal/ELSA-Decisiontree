@@ -21,7 +21,7 @@
  * `tests/first-tree/walk.spec.ts` set: the app renders in whatever fonts and at whatever
  * device pixel ratio the machine has, so a committed PNG records one machine's rendering.
  */
-import { spawn, type ChildProcess } from 'node:child_process'
+import { serve as serveTree, stopServers } from './serve.ts'
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -39,11 +39,10 @@ const SHOTS = process.env.ELSA_SHOTS === '1'
 /** Ports for the servers this file starts; clear of playwright.config.ts's 3117/3118. */
 const FIRST_PORT = Number(process.env.ELSA_TEST_PORT ?? 3117) + 13
 
-const started: ChildProcess[] = []
 const temporary: string[] = []
 
 test.afterAll(async () => {
-  for (const server of started) server.kill()
+  await stopServers()
   for (const dir of temporary) await rm(dir, { recursive: true, force: true })
 })
 
@@ -55,36 +54,13 @@ async function scratch(): Promise<string> {
 }
 
 /**
- * The standalone server, serving `treeId` out of `treesDir`, answering on its own origin.
- * The same command `docs/deployment.md` gives, so what these tests see is what a
- * deployment serves.
+ * The standalone server, serving `treeId` out of `treesDir` from a store of its own,
+ * answering on its own origin (`tests/browser/serve.ts`).
  */
 async function serve(treesDir: string, treeId: string, port: number): Promise<string> {
-  const origin = `http://127.0.0.1:${port}`
-  const server = spawn(process.execPath, [path.join('.next', 'standalone', 'server.js')], {
-    cwd: repo,
-    stdio: 'ignore',
-    env: {
-      ...process.env,
-      ELSA_TREE: treeId,
-      ELSA_TREES_DIR: treesDir,
-      ELSA_BASE_URL: '',
-      NEXT_TELEMETRY_DISABLED: '1',
-      PORT: String(port),
-      HOSTNAME: '127.0.0.1',
-    },
-  })
-  started.push(server)
-
-  const deadline = Date.now() + 30_000
-  for (;;) {
-    try {
-      if ((await fetch(origin, { redirect: 'manual' })).status > 0) return origin
-    } catch {
-      if (Date.now() > deadline) throw new Error(`${treeId} did not start on ${port}`)
-      await new Promise((wake) => setTimeout(wake, 250))
-    }
-  }
+  const origin = await serveTree(treesDir, treeId, port)
+  if (!origin) throw new Error(`${treeId} does not validate`)
+  return origin
 }
 
 /** A Tree copied where a test may edit it. */
@@ -131,15 +107,15 @@ test('a themed page asks nothing of any other host, and shows the logo', async (
   expect(asked.length).toBeGreaterThan(0)
   expect(asked.filter((url) => new URL(url).host !== own)).toEqual([])
   // The Theme's own files, fetched from the Tree's folder through the theme route (5.5).
-  expect(asked.some((url) => url.endsWith('/theme/nova-square-400.woff2'))).toBe(true)
-  expect(asked.some((url) => url.endsWith('/theme/example-lab-logo-white.svg'))).toBe(true)
+  expect(asked.some((url) => url.endsWith('/ai-act-example/theme/nova-square-400.woff2'))).toBe(true)
+  expect(asked.some((url) => url.endsWith('/ai-act-example/theme/example-lab-logo-white.svg'))).toBe(true)
 })
 
 test('the logo links out but is never fetched, and the dark variant is the one shown', async ({ page }) => {
   await page.goto('/ai-act-example/start')
 
   // The example Tree's palette is dark, so 13.1's derivation picks `logo.dark`.
-  await expect(page.locator('img.logo')).toHaveAttribute('src', '/theme/example-lab-logo-white.svg')
+  await expect(page.locator('img.logo')).toHaveAttribute('src', '/ai-act-example/theme/example-lab-logo-white.svg')
   await expect(page.locator('a.logo-link')).toHaveAttribute('href', 'https://example.org')
   await expect(page.locator('a.logo-link')).toHaveAttribute('rel', 'noopener noreferrer')
   expect(await property(page, '--elsa-background')).toBe('#161a1d')
@@ -264,8 +240,8 @@ test('the same build, three looks: the AI4SFS Theme, the example Tree, and no Th
   await page.goto(`${looks[0]!.origin}${looks[0]!.url}`)
   expect(await property(page, '--elsa-accent')).toBe('#ffc600')
   expect(await property(page, '--elsa-on-accent')).toBe('#2d2e33')
-  await expect(page.locator('img.logo')).toHaveAttribute('src', '/theme/elsa-lab-logo.png')
-  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/theme/favicon.png')
+  await expect(page.locator('img.logo')).toHaveAttribute('src', '/ai-act-applicability-agrifood/theme/elsa-lab-logo.png')
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/ai-act-applicability-agrifood/theme/favicon.png')
 
   // A Tree with no Theme is a first-class case: the plain default look, and no theme file.
   const plain = await requests(page, () => page.goto(`${looks[2]!.origin}${looks[2]!.url}`))

@@ -23,14 +23,17 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
-ENV ELSA_TREES_DIR=/app/trees
 # The standalone folder is the whole server: its own node_modules, no npm at run time.
 COPY --from=build /build/.next/standalone ./
-# Trees are data next to the application, so a new version of a Tree is a rebuild of this
-# layer -- or a folder mounted over it -- and never a rebuild of the application.
+# The repository's Trees are the seed (ELSA_SEED_DIR defaults to ./trees): imported into the
+# data directory at its first start only (docs/specs/application.md 17.4).
 COPY --from=build /build/trees ./trees
-# ELSA_TREE has no default (docs/specs/application.md section 2): name the Tree when the
-# image is run, e.g. `docker run -e ELSA_TREE=ai-act-applicability-agrifood`.
+# ELSA_DATA_DIR has no default (application.md 17.1): mount a volume and name it when the
+# image is run, e.g. `docker run -v /srv/elsa-data:/data -e ELSA_DATA_DIR=/data`. The first
+# run also needs ELSA_ADMIN_PASSWORD (application.md 20.3), passed with --env-file and left
+# out of every later run (docs/deployment.md, "A container"). The folder
+# exists and belongs to `node` so that a fresh named volume mounted there is writable.
+RUN mkdir /data && chown node:node /data
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]

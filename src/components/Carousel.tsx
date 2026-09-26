@@ -27,9 +27,22 @@ import { EnlargedView, type EnlargedImage } from './EnlargedView.tsx'
 const NO_SCRIPT = '.carousel-sheet > .sheet-open { display: block; }'
 
 /** The Carousel's band: the strip and the enlarged view, or an empty band where the Node has no Image. */
-export function Carousel({ node, lang, ui, uiLang }: { node: Node; lang: string; ui: Chrome; uiLang: string | undefined }) {
+export function Carousel({
+  node,
+  treeId,
+  lang,
+  ui,
+  uiLang,
+}: {
+  node: Node
+  /** The Tree the Node is of: its pictures are under its id (application.md 18.1). */
+  treeId: string
+  lang: string
+  ui: Chrome
+  uiLang: string | undefined
+}) {
   const images: EnlargedImage[] = node.images.map((image) => ({
-    href: imageHref(image.file),
+    href: imageHref(treeId, image.file),
     description: text(image.description, lang, `${node.id}.images[${image.file}].description`),
     credit: image.credit,
   }))

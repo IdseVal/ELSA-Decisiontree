@@ -28,6 +28,10 @@ const config: NextConfig = {
   // as project instructions, so a generated `@AGENTS.md` would quietly become this
   // project's instructions; the untracked pair also dirties every contributor's tree.
   agentRules: false,
+  // **[#135]** `forbidden()`, which renders `[lang]/forbidden.tsx` with status 403: the one
+  // way a page answers 403 (application.md 24.2). Experimental in Next.js 16, and a flag of
+  // the framework rather than of any host.
+  experimental: { authInterrupts: true },
 
   /**
    * The two rules of 4.4. Only the root layout can set `<html lang>` and Next.js does not

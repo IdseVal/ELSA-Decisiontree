@@ -7,7 +7,8 @@ import { LanguageSwitch } from '../../../../components/LanguageSwitch.tsx'
 import { Logo } from '../../../../components/Logo.tsx'
 import { ShareButton, type ShareWords } from '../../../../components/ShareButton.tsx'
 import { TreeView } from '../../../../components/TreeView.tsx'
-import { baseUrl, servedTree } from '../../../../config.ts'
+import { ThemeStyle } from '../../../../components/ThemeStyle.tsx'
+import { baseUrl, store } from '../../../../config.ts'
 import { graphScript, pageGraph } from '../../../../findability/jsonld.ts'
 import { plainDescription } from '../../../../markdown.ts'
 import { loadPage } from '../../../../neighbourhood.ts'
@@ -42,6 +43,8 @@ export default async function NodePage(props: Props) {
         back null rather than a payload that could close this element.
       */}
       {script !== null && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: script }} />}
+      {/* **[#134]** The published Tree's Theme, which the root layout cannot know (13.1). */}
+      <ThemeStyle tree={found.tree} />
       {/*
         The page chrome. It sits in the page rather than in the root layout, where
         docs/specs/application.md section 6 sketches it, for the reason the Disclaimer does:
@@ -50,6 +53,7 @@ export default async function NodePage(props: Props) {
       */}
       <header className="page-chrome">
         <Logo
+          treeId={found.tree.id}
           theme={found.tree.manifest.theme}
           title={found.tree.manifest.title}
           lang={found.address.lang}
@@ -128,12 +132,14 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 }
 
 /**
- * The served Tree and the address the request names, or null for every 404 case of 4.3.
- * The language is the `[lang]` segment, the one place it is read from (4.4, section 6).
+ * The served Tree and the address the request names, or null for every 404 case of 4.3 --
+ * **[#134]** a hidden, unservable or unknown Tree id among them, one case (23.1). The
+ * language is the `[lang]` segment, the one place it is read from (4.4, section 6).
  */
 async function addressOf(props: Props): Promise<{ tree: Tree; address: PageAddress } | null> {
   const { lang, tree: treeId, path } = await props.params
-  const tree = await servedTree()
+  const tree = (await store()).published(treeId)
+  if (!tree) return null
   const address = parseUrl(`/${[treeId, ...path].join('/')}`, lang, tree)
   return address && { tree, address }
 }

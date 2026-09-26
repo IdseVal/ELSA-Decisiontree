@@ -4,7 +4,8 @@
  * `docs/deployment.md` gives):
  *
  * - nothing about the reader is stored or sent anywhere (docs/CORE_DOCUMENT.md section 8):
- *   no cookie, and no request to any host but this one;
+ *   no cookie, and no request to any host but this one; **[#135]** and a creator's one
+ *   cookie never leaves the admin area (application.md 20.5);
  * - the public base URL the deployment is configured with is the one the server writes
  *   into the absolute links it emits about a page, and a deployment that names none gets
  *   the same addresses on the request's own origin (a second server, started without the
@@ -17,7 +18,8 @@ import { expect, test, type Page, type Request, type Response } from '@playwrigh
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { NO_BASE_URL_ORIGIN, PUBLIC_BASE_URL } from '../../playwright.config.ts'
+import { DATA_DIR, NO_BASE_URL_ORIGIN, PUBLIC_BASE_URL } from '../../playwright.config.ts'
+import { ADMIN_PASSWORD } from '../store/admin.ts'
 import { arrived } from './arrived.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -58,11 +60,14 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   const seen = watch(page)
   const ownHost = new URL(baseURL!).host
 
-  // A walk that touches everything the app can put on a page: a Node with Options and
-  // an Option image, an explanation child, a Terminal, the other language, and a Sheet
-  // (the client component that runs on load) -- the places a third-party asset or a
-  // cookie would hide.
-  await page.goto(START)
+  // A walk that touches everything the app can put on a page: **[#134]** the overview and
+  // its tile, a Node with Options and an Option image, an explanation child, a Terminal,
+  // the other language, and a Sheet (the client component that runs on load) -- the places
+  // a third-party asset or a cookie would hide.
+  await page.goto('/?lang=nl')
+  await page.goto('/')
+  await page.locator('a.tile').click()
+  await arrived(page, START)
   await page.locator('.answer--yes').click()
   // The Option opens its Overlay in place; its heading is the link to the aside's own address,
   // whose page arrives with the Overlay open, and Escape uncovers the page (10.9).
@@ -186,15 +191,18 @@ test.describe('the dataset endpoint (15)', () => {
     expect(schema.headers()['link']).toBe('<https://opensource.org/license/mit>; rel="license"')
   })
 
-  test('the bytes served are the file in the repository, byte for byte (15.3)', async ({ request }) => {
+  test("the bytes served are the store's published file, byte for byte (15.3, 23.6)", async ({ request }) => {
     // The one claim of section 15 that cannot be made in a unit test: what a reader
-    // downloads is what the project holds, which is what makes this a dataset rather than
-    // an export. A re-serialisation of the in-memory Tree would pass a JSON comparison and
-    // fail this one.
-    const onDisk = await readFile(path.join(here, '..', '..', 'trees', 'ai-act-example', 'tree.json'))
+    // downloads is what the store holds, which is what makes this a dataset rather than an
+    // export. A re-serialisation of the in-memory Tree would pass a JSON comparison and
+    // fail this one. **[#134]** The file is the store's published copy, which the import
+    // made a byte copy of the repository's -- so both comparisons hold.
+    const inStore = await readFile(path.join(DATA_DIR, 'trees', 'ai-act-example', 'tree.json'))
+    const inRepository = await readFile(path.join(here, '..', '..', 'trees', 'ai-act-example', 'tree.json'))
     const downloaded = await (await request.get(DATASET)).body()
 
-    expect(downloaded.equals(onDisk)).toBe(true)
+    expect(downloaded.equals(inStore)).toBe(true)
+    expect(downloaded.equals(inRepository)).toBe(true)
     expect(JSON.parse(downloaded.toString('utf8')).format).toBe('elsa-tree/4')
   })
 
@@ -239,5 +247,91 @@ test.describe('the dataset endpoint (15)', () => {
     // The route serves the published set, not the folder (15.1, the theme route's rule).
     expect((await request.get('/schemas/elsa-tree-3.json')).status()).toBe(404)
     expect((await request.get('/schemas/../package.json')).status()).not.toBe(200)
+  })
+})
+
+/**
+ * **[#135]** The logged-in half of the sweep (application.md 20.5, 35.5): the one cookie of
+ * this application stays in the admin area. After a login in the same browser, every public
+ * route of 4.1, 15 and 16 is asked for without a `Cookie` header and answers no
+ * `Set-Cookie`; every admin page answers none either, with and without the session, and
+ * carries 20.9's two headers; and the login is the only response of the whole run that set
+ * a cookie -- the logout's clearing value aside -- with every attribute of 20.4 present.
+ */
+const PUBLIC_ROUTES = [
+  '/',
+  '/?lang=nl',
+  '/ai-act-example',
+  START,
+  `${START}/prohibited-practices?lang=nl`,
+  '/ai-act-example/images/eu-map.png',
+  '/ai-act-example/theme/example-lab-logo.svg',
+  ...DOCUMENT_ROUTES,
+]
+const ADMIN_PAGES = ['/admin', '/admin/account', '/admin/accounts', '/admin/trees/ai-act-example/start', '/admin?lang=nl']
+
+test.describe('the logged-in half of the sweep (20.5)', () => {
+  test('after a login, no public route is sent the cookie or answers one; only login and logout ever set one', async ({ page, context, baseURL }) => {
+    const seen = watch(page)
+    const cookieSentTo: string[] = []
+    const reads: Promise<void>[] = []
+    page.on('request', (request: Request) => {
+      reads.push(
+        request.allHeaders().then((headers) => {
+          if (headers['cookie'] !== undefined) cookieSentTo.push(new URL(request.url()).pathname)
+        }),
+      )
+    })
+
+    await page.goto('/admin')
+    await page.getByLabel('Name').fill('admin')
+    await page.getByLabel('Password').fill(ADMIN_PASSWORD)
+    await page.getByRole('button', { name: 'Sign in' }).click()
+    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible()
+    expect(await context.cookies()).toHaveLength(1)
+
+    for (const route of PUBLIC_ROUTES) {
+      const answer = await page.goto(route)
+      expect(answer?.status(), route).toBe(200)
+    }
+    for (const route of ADMIN_PAGES) {
+      const answer = await page.goto(route)
+      const headers = await answer!.allHeaders()
+      expect(headers['x-robots-tag'], route).toBe('noindex, nofollow')
+      expect(headers['cache-control'], route).toBe('no-store')
+    }
+    await page.goto('/admin')
+    await page.getByRole('button', { name: 'Log out' }).click()
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
+
+    await seen.settled()
+    while (reads.length > 0) await Promise.all(reads.splice(0))
+    // Only admin paths were ever sent the cookie: `Path=/admin` keeps it home.
+    expect(cookieSentTo.filter((pathname) => pathname !== '/admin' && !pathname.startsWith('/admin/'))).toEqual([])
+    expect(cookieSentTo.length).toBeGreaterThan(0)
+    const origin = new URL(baseURL!).origin
+    expect(seen.setCookie).toEqual([
+      expect.stringMatching(
+        new RegExp(`^${origin}/admin/api/login: elsa-admin-session=[A-Za-z0-9_-]{43}; HttpOnly; Secure; SameSite=Strict; Path=/admin; Max-Age=1209600$`),
+      ),
+      `${origin}/admin/api/logout: elsa-admin-session=; HttpOnly; Secure; SameSite=Strict; Path=/admin; Max-Age=0`,
+    ])
+    expect(await context.cookies()).toEqual([])
+  })
+
+  test('without a session every admin page answers no cookie and 20.9 headers', async ({ page, context }) => {
+    const seen = watch(page)
+
+    for (const route of ADMIN_PAGES) {
+      const answer = await page.goto(route)
+      const headers = await answer!.allHeaders()
+      expect(answer?.status(), route).toBe(200)
+      expect(headers['x-robots-tag'], route).toBe('noindex, nofollow')
+      expect(headers['cache-control'], route).toBe('no-store')
+    }
+
+    await seen.settled()
+    expect(seen.setCookie).toEqual([])
+    expect(await context.cookies()).toEqual([])
   })
 })

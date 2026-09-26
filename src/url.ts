@@ -11,6 +11,7 @@
  * -- its canonical URL per declared language and the `hreflang` annotations that relate
  * them -- so that the page head, the sitemap and the JSON-LD say one string for one page.
  */
+import { CHROME_LANGUAGES, type ChromeLanguage } from './chrome.ts'
 import type { Tree } from './tree/loader.ts'
 
 /** Ids in one path: 49 Trail entries plus the Node shown (application.md 4.3). */
@@ -32,7 +33,7 @@ export interface PageAddress {
   defaultLang: string
 }
 
-/** What `parseUrl` gives back for an address that is not a page of the served Tree. */
+/** What `parseUrl` gives back for an address that is not a page of the Tree it was given. */
 export type NotFound = null
 
 /**
@@ -66,7 +67,7 @@ export function contentLanguage(tree: Tree, lang: string): string {
   return tree.manifest.languages.includes(lang) ? lang : tree.manifest.defaultLanguage
 }
 
-/** The URL of the Tree's root Node: where `/` and `/<tree-id>` lead (4.1). */
+/** The URL of the Tree's root Node: where `/<tree-id>` and the Tree's overview tile lead (4.1, 23.2). */
 export function rootHref(tree: Tree, lang: string): string {
   return nodeHref({
     treeId: tree.id,
@@ -110,14 +111,18 @@ export function canonicalHref(a: PageAddress): string {
   return href(a, [a.nodeId])
 }
 
-/** Where the browser fetches one Image of the served Tree (5.3). */
-export function imageHref(file: string): string {
-  return `/images/${encodeURIComponent(file)}`
+/**
+ * Where the browser fetches one Image of a Tree (5.3). **[#134]** Under the Tree's id, as
+ * every public file of a Tree is: with many Trees `/images/<file>` would name one file of
+ * two (application.md 18.1).
+ */
+export function imageHref(treeId: string, file: string): string {
+  return `/${treeId}/images/${encodeURIComponent(file)}`
 }
 
-/** Where the browser fetches one file of the served Tree's Theme -- a logo or a font (5.5). */
-export function themeHref(file: string): string {
-  return `/theme/${encodeURIComponent(file)}`
+/** Where the browser fetches one file of a Tree's Theme -- a logo or a font (5.5, 18.1). */
+export function themeHref(treeId: string, file: string): string {
+  return `/${treeId}/theme/${encodeURIComponent(file)}`
 }
 
 /**
@@ -200,4 +205,65 @@ export function addressSet(tree: Tree, nodeId: string, base: URL): AddressSet {
           { hreflang: 'x-default', url: byDefault.url },
         ]
   return { addresses, alternates }
+}
+
+/**
+ * **[#134]** The overview's address in one chrome language (23.2): `/` in English, the
+ * first chrome language and the `x-default`, and `/?lang=<tag>` in the others. The
+ * overview's languages are the chrome's, whatever the Trees on it declare.
+ */
+export function overviewHref(lang: ChromeLanguage): string {
+  return lang === CHROME_LANGUAGES[0] ? '/' : `/?lang=${lang}`
+}
+
+/**
+ * **[#135]** An address of the admin area's Tree-less pages, `/admin...`, in the chrome
+ * language `lang` (24.1): the query only for a language other than the first, as the
+ * overview's.
+ */
+export function adminHref(path: string, lang: ChromeLanguage): string {
+  return lang === CHROME_LANGUAGES[0] ? path : `${path}?lang=${lang}`
+}
+
+/**
+ * **[#134]** The overview's address set (16.3, 23.2): one address per chrome language and
+ * the `hreflang` set relating them, which the page head and the sitemap both render.
+ */
+export function overviewAddressSet(base: URL): AddressSet {
+  // The root as the bare origin, `https://host` and not `https://host/`: one address either
+  // way, but Next.js writes it so into the head, and the head and the sitemap must say one
+  // string for one page or the `hreflang` set is dropped (16.3).
+  const at = (lang: ChromeLanguage): string => (lang === CHROME_LANGUAGES[0] ? base.origin : absolute(overviewHref(lang), base))
+  const addresses = CHROME_LANGUAGES.map((lang) => ({ lang, url: at(lang) }))
+  return {
+    addresses,
+    alternates: [
+      ...addresses.map(({ lang, url }) => ({ hreflang: lang, url })),
+      { hreflang: 'x-default', url: addresses[0]!.url },
+    ],
+  }
+}
+
+/**
+ * **[#134]** The request header `src/proxy.ts` sets on every request: the path and query the
+ * reader asked for, before the `?lang` rewrite. The root layout and the 404 page read it,
+ * because Next.js gives neither the path (4.4, 24.3).
+ */
+export const REQUEST_PATH_HEADER = 'x-elsa-request-path'
+
+/** What `requested` reads out of the header: the path, and the `lang` query or null. */
+export interface Requested {
+  /** Always one leading slash: `//host` would be another origin in a link built from it. */
+  path: string
+  lang: string | null
+}
+
+/** **[#134]** The header of `REQUEST_PATH_HEADER`, read; `/` when it is absent. */
+export function requested(header: string | null): Requested {
+  // Split by hand: `new URL('//host/x', base)` would read the path as another origin.
+  const value = header ?? '/'
+  const query = value.indexOf('?')
+  const path = query < 0 ? value : value.slice(0, query)
+  const search = query < 0 ? '' : value.slice(query)
+  return { path: `/${path.replace(/^\/+/, '')}`, lang: new URLSearchParams(search).get('lang') }
 }

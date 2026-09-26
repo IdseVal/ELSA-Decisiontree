@@ -215,7 +215,7 @@ test.describe('the image files', () => {
 
     const onEnlarge = await imageRequests(page, async () => {
       await page.locator('.thumbnail').nth(3).click()
-      await expect(page.locator('.carousel-sheet .sheet-figure img')).toHaveAttribute('src', '/images/harbour.svg')
+      await expect(page.locator('.carousel-sheet .sheet-figure img')).toHaveAttribute('src', '/carousel/images/harbour.svg')
     })
     recordRequests(where, 'enlarge Image 5', onEnlarge)
     expect(onEnlarge).toEqual([])
@@ -249,9 +249,9 @@ test.describe('the image files', () => {
 
     const onNext = await imageRequests(page, async () => {
       await page.locator('.carousel-sheet .sheet-open').click()
-      await expect(page.locator('.carousel-sheet .sheet-figure img')).toHaveAttribute('src', '/images/orchard.svg')
+      await expect(page.locator('.carousel-sheet .sheet-figure img')).toHaveAttribute('src', '/carousel/images/orchard.svg')
       await page.locator('.carousel-sheet .sheet-controls button', { hasText: 'Next' }).click()
-      await expect(page.locator('.carousel-sheet .sheet-figure img')).toHaveAttribute('src', '/images/greenhouse.svg')
+      await expect(page.locator('.carousel-sheet .sheet-figure img')).toHaveAttribute('src', '/carousel/images/greenhouse.svg')
     })
     recordRequests(where, 'open the control, then next', onNext)
     expect(onNext).toEqual(['greenhouse.svg'])
@@ -280,7 +280,7 @@ test.describe('pictures only', () => {
 
     // The main image opens the same view at the first page.
     await page.locator('.bubble a.main-image').click()
-    await expect(panel.locator('.sheet-figure img')).toHaveAttribute('src', '/images/barn.svg')
+    await expect(panel.locator('.sheet-figure img')).toHaveAttribute('src', '/carousel/images/barn.svg')
     await expect(panel.getByRole('button', { name: 'Previous' })).toBeDisabled()
   })
 })
@@ -341,7 +341,7 @@ test.describe('the keyboard', () => {
     // The main image by keyboard: Enter opens the first page, Escape returns to it.
     await page.locator('.bubble a.main-image').focus()
     await page.keyboard.press('Enter')
-    await expect(panel.locator('.sheet-figure img')).toHaveAttribute('src', '/images/orchard.svg')
+    await expect(panel.locator('.sheet-figure img')).toHaveAttribute('src', '/carousel/images/orchard.svg')
     await page.keyboard.press('Escape')
     await expect(page.locator('.bubble a.main-image')).toBeFocused()
   })
@@ -421,10 +421,10 @@ test.describe('below the guaranteed height', () => {
 
     await control.focus()
     await page.keyboard.press('Enter')
-    await expect(panel.locator('.sheet-figure img')).toHaveAttribute('src', '/images/orchard.svg')
+    await expect(panel.locator('.sheet-figure img')).toHaveAttribute('src', '/carousel/images/orchard.svg')
     await panel.getByRole('button', { name: 'Next' }).click()
     await panel.getByRole('button', { name: 'Next' }).click()
-    await expect(panel.locator('.sheet-figure img')).toHaveAttribute('src', '/images/drone.svg')
+    await expect(panel.locator('.sheet-figure img')).toHaveAttribute('src', '/carousel/images/drone.svg')
     await page.keyboard.press('Escape')
     await expect(panel).toBeHidden()
     await expect(control).toBeFocused()
@@ -459,10 +459,10 @@ test.describe('with JavaScript switched off', () => {
     await page.setViewportSize({ width: 1280, height: 640 })
     await page.goto(`${origin}${FIVE}`)
     await page.locator('.thumbnail').nth(3).click()
-    await expect(page).toHaveURL(`${origin}/images/harbour.svg`)
+    await expect(page).toHaveURL(`${origin}/carousel/images/harbour.svg`)
     await page.goto(`${origin}${FIVE}`)
     await page.locator('.bubble a.main-image').click()
-    await expect(page).toHaveURL(`${origin}/images/orchard.svg`)
+    await expect(page).toHaveURL(`${origin}/carousel/images/orchard.svg`)
   })
 
   test('the strip is a tab stop of its own, named, and every thumbnail after it is one too (12.2)', async ({ page }) => {

@@ -10,6 +10,9 @@ mail/__pycache__/
 .orca/dispatcher/dispatcher.lock
 .orca/dispatcher/dispatcher.log*
 
+# The development store (ELSA_DATA_DIR in .env.development)
+.elsa-data/
+
 # Next.js application
 node_modules/
 .next/
@@ -18,5 +21,7 @@ next-env.d.ts
 
 # Playwright
 tests/browser/.results/
+tests/browser/.data/
+tests/first-tree/.data/
 tests/first-tree/.results/
 playwright-report/
