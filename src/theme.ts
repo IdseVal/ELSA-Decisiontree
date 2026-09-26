@@ -13,6 +13,7 @@
  * it cannot compare luminance either. Hover shades, borders, washes and the backdrop's
  * opacity are derived in CSS with `color-mix()` from those; this is not a colour system.
  */
+import { luminance, readableOn } from './contrast.ts'
 import { themeHref } from './url.ts'
 import type { Colours, LocalisedText, Theme } from './tree/types.ts'
 
@@ -189,28 +190,7 @@ function isDark(colours: Colours): boolean {
   return luminance(colours.background) < 0.5
 }
 
-/** Whichever of `text` and `background` reads better on `colour` (13.1). */
-function readableOn(colour: string, colours: Colours): string {
-  return contrast(colours.text, colour) >= contrast(colours.background, colour) ? colours.text : colours.background
-}
-
 /** Whichever of two `#rrggbb` colours is the darker; `a` when they are equally light. */
 function darkerOf(a: string, b: string): string {
   return luminance(a) <= luminance(b) ? a : b
-}
-
-/** The WCAG 2 relative luminance of `#rrggbb`. */
-function luminance(hex: string): number {
-  const channel = (from: number): number => {
-    const value = parseInt(hex.slice(from, from + 2), 16) / 255
-    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
-  }
-  return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5)
-}
-
-/** The WCAG 2 contrast ratio between two `#rrggbb` colours, 1 to 21. */
-function contrast(a: string, b: string): number {
-  const first = luminance(a)
-  const second = luminance(b)
-  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05)
 }
