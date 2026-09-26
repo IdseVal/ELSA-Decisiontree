@@ -3860,7 +3860,7 @@ ignored; the store sweeps after a publish, 22.6). No confirmation.
 ### 31.5 A draft's pictures
 
 In edit mode every `<img>` and enlarge link -- Bubble, strip, Overlay, Option buttons -- is
-`links.image(file)` = `adminImageHref(treeId, file)` (34.3, 22.6). The public page is
+`links.image(treeId, file)` = `adminImageHref(treeId, file)` (34.3, 22.6). The public page is
 untouched. When an Image is attached to, moved on or removed from the Node in an open
 Overlay, the **Option button's picture** on the same page repaints from the response (10.29).
 
@@ -4035,7 +4035,7 @@ export interface Links {
   follow(a: PageAddress, targetId: string): string
   trail(a: PageAddress, index: number): string
   withLang(a: PageAddress, lang: string): string
-  image(file: string): string
+  image(treeId: string, file: string): string   // [#138] as built: a picture's URL names its Tree (18.1)
 }
 ```
 
