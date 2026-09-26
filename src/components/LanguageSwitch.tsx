@@ -8,7 +8,8 @@
  * is what application.md section 1 promises for everything but the thumbnails and sharing.
  */
 import { chrome, CHROME_LANGUAGES, chromeLang, type ChromeLanguage } from '../chrome.ts'
-import { withLang, type PageAddress } from '../url.ts'
+import type { EditMode } from '../editor/mode.ts'
+import { PUBLIC_LINKS, type PageAddress } from '../url.ts'
 
 /**
  * The name of a language in that language itself -- `nl` reads "Nederlands", not "Dutch" --
@@ -28,11 +29,15 @@ export function LanguageSwitch({
   address,
   /** Exactly the Tree's declared languages, in the order the manifest declares them. */
   languages,
+  edit,
 }: {
   address: PageAddress
   languages: string[]
+  /** **[#138]** Edit mode (34.1): the links stay behind `/admin/trees`. Absent on every public page. */
+  edit?: EditMode
 }) {
-  return <Switch current={address.lang} languages={languages} href={(language) => withLang(address, language)} />
+  const links = edit?.links ?? PUBLIC_LINKS
+  return <Switch current={address.lang} languages={languages} href={(language) => links.withLang(address, language)} />
 }
 
 /**

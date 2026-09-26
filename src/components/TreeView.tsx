@@ -22,18 +22,33 @@
  * neighbourhood -- and the Tree's index, and returns markup; it never touches the file
  * system, the environment or the request, and it never decides which Nodes are neighbours
  * (section 6).
+ *
+ * **[#138]** With `edit` (34.1) it draws a draft: every address through `edit.links`, an
+ * Option's title through the `field` slot, and the structure slots of 34.2 where their
+ * controls belong -- `structure` in the Answer row, `linkMenu` beside each Answer and Option
+ * button, `sideAdd` in the fan's next free slot and after an Overlay's list. The Node type
+ * follows the Tree read (`Readable`): a `Node` on the public page, a `DraftNode` in the
+ * editor, whose Links are read through `linksOf` either way (34.6). Absent, not one
+ * attribute differs.
  */
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
+import type { EditMode } from '../editor/mode.ts'
 import type { Aside, NodePage, Placed } from '../neighbourhood.ts'
-import type { Tree } from '../tree/loader.ts'
-import type { Node } from '../tree/types.ts'
-import { followHref, imageHref, nodeHref, trailHref, type PageAddress } from '../url.ts'
+import type { Readable } from '../tree/loader.ts'
+import { linksOf, type DraftNode, type Node } from '../tree/types.ts'
+import { PUBLIC_LINKS, type Links, type PageAddress } from '../url.ts'
 import { Branch } from './Branch.tsx'
 import { Bubble, Interior, sheetWords } from './Bubble.tsx'
 import { Carousel } from './Carousel.tsx'
 import { Sheet } from './Sheet.tsx'
 import { Slider } from './Slider.tsx'
+
+/** The Node type a view draws: the public page's, or a draft's. */
+type AnyNode = Node | DraftNode
+
+/** The maximum length of an Option's title (tree-format.md 5.7). */
+const OPTION_TITLE = { characters: 60 }
 
 /** What every part of the view needs: the page's address, its chrome, and the title index. */
 interface View {
@@ -61,13 +76,18 @@ interface View {
    * The asides of the centre, for their Overlays (10.9), and the one the URL opened. Empty in
    * a neighbour frame, which draws the Option buttons and none of their interiors (11.3).
    */
-  asides: Aside[]
-  open: Aside | null
+  asides: Aside<AnyNode>[]
+  open: Aside<AnyNode> | null
+  /** The addresses and the pictures (34.3): the public functions, or the editor's. */
+  links: Links
+  /** Edit mode (34.1); absent on every public page. */
+  edit: EditMode | undefined
 }
 
-export function TreeView({ page, tree }: { page: NodePage; tree: Tree }) {
+export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePage<N>; tree: Readable<N>; edit?: EditMode }) {
   const { address, centre, neighbours } = page
   const lang = address.lang
+  const links = edit?.links ?? PUBLIC_LINKS
   const hrefs = new Set(neighbours.placed.map((placed) => placed.href))
   const open = centre.chain[centre.chain.length - 1] ?? null
   const viewAt = (at: PageAddress, idPrefix: string, isCentre: boolean): View => ({
@@ -84,10 +104,12 @@ export function TreeView({ page, tree }: { page: NodePage; tree: Tree }) {
     placed: (href) => isCentre && hrefs.has(href),
     asides: isCentre ? neighbours.asides : [],
     open: isCentre ? open : null,
+    links,
+    edit,
   })
   const view = viewAt(centre.address, '', true)
   // The page's own URL, aside chain included: what a slide arrives at, and what a history step leaves.
-  const here = nodeHref(address)
+  const here = links.node(address)
 
   return (
     <>
@@ -120,7 +142,7 @@ export function TreeView({ page, tree }: { page: NodePage; tree: Tree }) {
  * one; so is each neighbour, which is why a Bubble arriving in a slide already carries its own
  * Branch labels (11.3).
  */
-function Frame({ node, view }: { node: Node; view: View }) {
+function Frame({ node, view }: { node: AnyNode; view: View }) {
   const lang = view.address.lang
   return (
     <>
@@ -133,13 +155,14 @@ function Frame({ node, view }: { node: Node; view: View }) {
         idPrefix={view.idPrefix}
         pictures={view.pictures}
         up={<UpArrow view={view} />}
+        edit={view.edit}
       />
-      {(node.options.length > 0 || view.open) && <Options node={node} view={view} />}
+      {(node.options.length > 0 || view.open || view.edit?.slots.sideAdd) && <Options node={node} view={view} />}
       <Answers node={node} view={view} />
       {/* The Carousel's band (section 12), on every Node, empty where there is no picture, so the
           Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
       {view.pictures ? (
-        <Carousel node={node} treeId={view.address.treeId} lang={lang} ui={view.ui} uiLang={view.uiLang} />
+        <Carousel node={node} treeId={view.address.treeId} lang={lang} ui={view.ui} uiLang={view.uiLang} edit={view.edit} />
       ) : (
         <div className="carousel" />
       )}
@@ -167,10 +190,10 @@ function position({ direction, slot }: Placed): { x: number; y: number } {
  * or a Node opened by its own URL -- nothing is drawn, and the band stays empty.
  */
 function UpArrow({ view }: { view: View }) {
-  const { address, ui, uiLang, titleOf, idPrefix, placed } = view
+  const { address, ui, uiLang, titleOf, idPrefix, placed, links } = view
   const parent = address.trail.length - 1
   if (parent < 0) return null
-  const href = trailHref(address, parent)
+  const href = links.trail(address, parent)
 
   return (
     <a
@@ -204,12 +227,19 @@ function UpArrow({ view }: { view: View }) {
  * its side, from which the stylesheet places it on the Bubble's curve
  * (ADR-78-fan-out-and-option-picture). The same list as a Sheet of plain links to the
  * explanation Nodes' addresses is what the fan collapses to (10.5, step 4).
+ *
+ * **[#138]** In edit mode the `sideAdd` slot takes the fan's next free slot, as one more
+ * entry after the last Option, and the `linkMenu` slot stands in each entry beside its button.
  */
-function Options({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, idPrefix, asides, open } = view
+function Options({ node, view }: { node: AnyNode; view: View }) {
+  const { address, ui, uiLang, idPrefix, asides, open, links, edit } = view
   const lang = address.lang
   const count = node.options.length
-  const rows = (side: 'right' | 'left') => (side === 'right' ? Math.ceil(count / 2) : Math.floor(count / 2))
+  const sideAdd = edit?.slots.sideAdd?.(node) ?? null
+  // The add slot is one more button of the fan (28.1's sketch), so the rows count it.
+  const drawn = count + (sideAdd ? 1 : 0)
+  const rows = (side: 'right' | 'left') => (side === 'right' ? Math.ceil(drawn / 2) : Math.floor(drawn / 2))
+  const sideOf = (index: number) => (index % 2 === 0 ? 'right' : 'left')
   const extra = open && !asides.some((aside) => aside.href === open.href) ? open : null
 
   return (
@@ -218,12 +248,15 @@ function Options({ node, view }: { node: Node; view: View }) {
         {ui.options}
       </span>
       {/* The count is what the stylesheet collapses the fan on (10.5, step 4). */}
-      {count > 0 && (
+      {drawn > 0 && (
         <ul className="options" aria-labelledby={`${idPrefix}options-label`} data-count={count}>
           {node.options.map((option, index) => {
-            const side = index % 2 === 0 ? 'right' : 'left'
+            const side = sideOf(index)
             // A neighbour frame carries no asides (11.3): its buttons are drawn empty and closed.
             const target = asides.find((aside) => aside.node.id === option.target) ?? null
+            const title =
+              edit?.slots.field?.(node, `options[${index}].title`, option.title[lang] ?? '', OPTION_TITLE) ??
+              text(option.title, lang, `${node.id}.options[${index}].title`)
             return (
               <li
                 key={option.target}
@@ -231,16 +264,22 @@ function Options({ node, view }: { node: Node; view: View }) {
                 style={{ '--i': Math.floor(index / 2), '--m': rows(side) } as CSSProperties}
               >
                 <Overlay
-                  title={text(option.title, lang, `${node.id}.options[${index}].title`)}
-                  picture={optionPicture(target, view.address.treeId, lang)}
+                  title={title}
+                  picture={optionPicture(target, view.address.treeId, lang, links)}
                   aside={target}
                   open={target !== null && open?.href === target.href}
                   view={view}
                   idPrefix={`${idPrefix}a${index}-`}
                 />
+                {edit?.slots.linkMenu?.(node, { kind: 'option', index })}
               </li>
             )
           })}
+          {sideAdd && (
+            <li className="options-add" data-side={sideOf(count)} style={{ '--i': Math.floor(count / 2), '--m': rows(sideOf(count)) } as CSSProperties}>
+              {sideAdd}
+            </li>
+          )}
         </ul>
       )}
       {extra && (
@@ -262,7 +301,7 @@ function Options({ node, view }: { node: Node; view: View }) {
             className="options-sheet"
             summary={<span lang={uiLang}>{`${ui.options} (${count})`}</span>}
             items={node.options.map((option, index) => ({
-              href: followHref(address, option.target),
+              href: links.follow(address, option.target),
               label: text(option.title, lang, `${node.id}.options[${index}].title`),
             }))}
             words={sheetWords(ui)}
@@ -279,11 +318,11 @@ function Options({ node, view }: { node: Node; view: View }) {
  * The picture on an Option button (10.3): the target's main image, the file its Overlay
  * shows. An Option has no Images of its own (tree-format.md 5.4).
  */
-function optionPicture(target: Aside | null, treeId: string, lang: string): { src: string; alt: string } | null {
+function optionPicture(target: Aside<AnyNode> | null, treeId: string, lang: string, links: Links): { src: string; alt: string } | null {
   const image = target?.node.images[0]
   if (!target || !image) return null
   return {
-    src: imageHref(treeId, image.file),
+    src: links.image(treeId, image.file),
     alt: text(image.description, lang, `${target.node.id}.images[${image.file}].description`),
   }
 }
@@ -304,18 +343,19 @@ function Overlay({
   view,
   idPrefix,
 }: {
-  title: string
+  /** The target's title; in edit mode the Option's title as a field (28.1). */
+  title: ReactNode
   /** The 48-pixel picture on the button; null for the empty slot, and in a neighbour frame. */
   picture: { src: string; alt: string } | null
   /** The target as the page carries it; null in a neighbour frame. */
-  aside: Aside | null
+  aside: Aside<AnyNode> | null
   open: boolean
   /** The URL-named Overlay with no Option button of its own. */
   unbuttoned?: boolean
   view: View
   idPrefix: string
 }) {
-  const { ui, uiLang } = view
+  const { ui, uiLang, links, edit } = view
   const lang = view.address.lang
 
   return (
@@ -338,7 +378,7 @@ function Overlay({
         aside
           ? [
               <div key={aside.href} className="overlay-interior" lang={lang} data-node={aside.node.id}>
-                <Interior node={aside.node} treeId={view.address.treeId} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} href={aside.href} />
+                <Interior node={aside.node} treeId={view.address.treeId} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} href={aside.href} edit={edit} />
                 {aside.node.options.length > 0 && (
                   <>
                     <span hidden id={`${idPrefix}options-label`} lang={uiLang}>
@@ -348,7 +388,7 @@ function Overlay({
                     <ul className="overlay-options" aria-labelledby={`${idPrefix}options-label`}>
                       {aside.node.options.map((option, index) => (
                         <li key={option.target}>
-                          <a href={followHref(aside.address, option.target)}>
+                          <a href={links.follow(aside.address, option.target)}>
                             {text(option.title, lang, `${aside.node.id}.options[${index}].title`)}
                           </a>
                         </li>
@@ -356,6 +396,7 @@ function Overlay({
                     </ul>
                   </>
                 )}
+                {edit?.slots.sideAdd?.(aside.node)}
               </div>,
             ]
           : []
@@ -373,10 +414,13 @@ function Overlay({
  * The buttons below the Bubble (10.3): the two Answers of a question Node, and `startAgain`
  * below a Node that has none -- a Terminal, or an explanation Node that is the centre, which
  * only a path with no parent in it makes it (10.9) -- to the root Node with an empty Trail.
- * The way back is the up arrow, not a button here.
+ * The way back is the up arrow, not a button here. **[#138]** A draft's question Node may
+ * hold one Answer yet (19.2): each Answer that exists is drawn, and the `structure` slot
+ * draws what the row offers for the rest (30.1).
  */
-function Answers({ node, view }: { node: Node; view: View }) {
-  const { address, ui, uiLang, titleOf, root, idPrefix, placed } = view
+function Answers({ node, view }: { node: AnyNode; view: View }) {
+  const { address, ui, uiLang, titleOf, root, idPrefix, placed, links, edit } = view
+  const answers = linksOf(node)
   const sliding = (href: string) => ({ href, slides: placed(href) })
   // The word, a colon and the target's title: shown whole at every width but a phone's, and
   // the name at every width (10.3).
@@ -389,24 +433,23 @@ function Answers({ node, view }: { node: Node; view: View }) {
     <div className="answers" role="group" aria-labelledby={`${idPrefix}node-title`}>
       {node.kind === 'question' ? (
         <>
-          <Branch
-            className="answer answer--yes"
-            {...sliding(followHref(address, node.answers.yes))}
-            {...labelled(ui.yes, node.answers.yes)}
-          />
-          <Branch
-            className="answer answer--no"
-            {...sliding(followHref(address, node.answers.no))}
-            {...labelled(ui.no, node.answers.no)}
-          />
+          {answers.yes !== undefined && (
+            <Branch className="answer answer--yes" {...sliding(links.follow(address, answers.yes))} {...labelled(ui.yes, answers.yes)} />
+          )}
+          {edit?.slots.linkMenu?.(node, { kind: 'yes' })}
+          {answers.no !== undefined && (
+            <Branch className="answer answer--no" {...sliding(links.follow(address, answers.no))} {...labelled(ui.no, answers.no)} />
+          )}
+          {edit?.slots.linkMenu?.(node, { kind: 'no' })}
         </>
       ) : (
         <Branch
           className="answer answer--start-again"
-          href={nodeHref({ ...address, trail: [], nodeId: root })}
+          href={links.node({ ...address, trail: [], nodeId: root })}
           {...labelled(ui.startAgain, root)}
         />
       )}
+      {edit?.slots.structure?.(node)}
     </div>
   )
 }

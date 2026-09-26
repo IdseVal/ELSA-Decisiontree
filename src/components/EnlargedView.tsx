@@ -12,7 +12,7 @@
  * control is what the strip collapses to below the guaranteed height (10.5, step 1): it says
  * the position of the picture it opens at, and the only place `imageCount` is still spoken.
  */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Sheet, type SheetHandle, type SheetWords } from './Sheet.tsx'
 
 /** One picture of the Node, its texts already in the content language. */
@@ -29,6 +29,7 @@ export function EnlargedView({
   credit,
   sheetWords,
   uiLang,
+  captions,
 }: {
   /** The Node's Images in the author's order: the main image first. */
   images: EnlargedImage[]
@@ -39,6 +40,12 @@ export function EnlargedView({
   sheetWords: SheetWords
   /** Set when the chrome speaks another language than the content around it. */
   uiLang: string | undefined
+  /**
+   * **[#138]** In edit mode, per Image: the caption as the editor draws it -- the description
+   * and the credit as fields, and the controls of #140 -- or null for the public caption. The
+   * Carousel, a server component, calls the slots of 34.2 and hands the elements in.
+   */
+  captions?: (ReactNode | null)[]
 }) {
   const anchor = useRef<HTMLSpanElement>(null)
   const sheet = useRef<SheetHandle>(null)
@@ -121,13 +128,17 @@ export function EnlargedView({
           <figure className="sheet-figure" key={index}>
             <img src={image.href} alt={image.description} loading="lazy" />
             <figcaption>
-              <p>{image.description}</p>
-              <p className="credit">
-                <span className="kind" lang={uiLang}>
-                  {credit}
-                </span>{' '}
-                {image.credit}
-              </p>
+              {captions?.[index] ?? (
+                <>
+                  <p>{image.description}</p>
+                  <p className="credit">
+                    <span className="kind" lang={uiLang}>
+                      {credit}
+                    </span>{' '}
+                    {image.credit}
+                  </p>
+                </>
+              )}
             </figcaption>
           </figure>
         ))}

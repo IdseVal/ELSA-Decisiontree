@@ -24,12 +24,17 @@
  * step 6), and the markup must be present either way so the page is correct without
  * JavaScript (section 14). In the Bubble only: an Overlay is a Sheet already, and one Sheet
  * is open at a time, so its Sources stay inline at every size.
+ *
+ * **[#138]** With `edit` (34.1) every text is drawn by the `field` slot where the public
+ * text stands, the pictures come from `edit.links`, and the slots of 34.2 are called where
+ * their controls belong; absent, not one attribute differs from the public page.
  */
 import type { ReactNode } from 'react'
 import { text, type Chrome, type ChromeString } from '../chrome.ts'
+import type { EditMode } from '../editor/mode.ts'
 import { richTextToHtml } from '../markdown.ts'
-import type { Node, Outcome, Source } from '../tree/types.ts'
-import { imageHref } from '../url.ts'
+import { linksOf, type DraftNode, type Node, type NodeContent, type Outcome, type Source } from '../tree/types.ts'
+import { PUBLIC_LINKS } from '../url.ts'
 import { Explainer } from './Explainer.tsx'
 import { Sheet, type SheetWords } from './Sheet.tsx'
 
@@ -41,6 +46,18 @@ const OUTCOME_LABEL: Record<Outcome, ChromeString> = {
   refer: 'outcomeRefer',
 }
 
+/** The maximum lengths of tree-format.md 5.7 the Interior's fields are counted against (28.1). */
+const LIMIT = {
+  title: { characters: 80 },
+  description: { characters: 150, lines: 2 },
+  sourceLabel: { characters: 60 },
+  imageDescription: { characters: 120 },
+  credit: { characters: 120 },
+} as const
+
+/** The most Sources a Node may hold (5.7): `+ addSource` is absent at that many. */
+const MAX_SOURCES = 3
+
 export function Bubble({
   node,
   treeId,
@@ -50,8 +67,9 @@ export function Bubble({
   idPrefix = '',
   pictures = true,
   up,
+  edit,
 }: {
-  node: Node
+  node: Node | DraftNode
   /** The Tree the Node is of: its pictures are under its id (application.md 18.1). */
   treeId: string
   lang: string
@@ -68,19 +86,24 @@ export function Bubble({
    * arrow placed from the row floating above it.
    */
   up: ReactNode
+  /** Edit mode (34.1); absent on every public page. */
+  edit?: EditMode
 }) {
+  const links = linksOf(node)
   return (
     // `data-node` names the Node a Bubble draws, so a response can be counted in Nodes (11.5).
     <article className={`bubble bubble--${node.kind}`} lang={lang} data-node={node.id}>
       {up}
-      {node.kind === 'terminal' && (
-        <p className={`outcome outcome--${node.outcome}`} lang={uiLang}>
-          {ui[OUTCOME_LABEL[node.outcome]]}
-        </p>
-      )}
+      {edit?.slots.stepMenu?.(node)}
+      {links.terminal !== undefined &&
+        (edit?.slots.field?.(node, 'terminal.outcome', links.terminal, null) ?? (
+          <p className={`outcome outcome--${links.terminal}`} lang={uiLang}>
+            {ui[OUTCOME_LABEL[links.terminal]]}
+          </p>
+        ))}
 
       <div className="bubble-text">
-        <Interior node={node} treeId={treeId} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} pictures={pictures} />
+        <Interior node={node} treeId={treeId} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} pictures={pictures} edit={edit} />
       </div>
     </article>
   )
@@ -109,8 +132,9 @@ export function Interior({
   idPrefix = '',
   pictures = true,
   href,
+  edit,
 }: {
-  node: Node
+  node: NodeContent
   /** The Tree the Node is of: its pictures are under its id (application.md 18.1). */
   treeId: string
   lang: string
@@ -123,8 +147,21 @@ export function Interior({
   pictures?: boolean
   /** In an Overlay: the explanation Node's own address, which its heading links to. Absent in the Bubble. */
   href?: string
+  /** Edit mode (34.1); absent on every public page. */
+  edit?: EditMode
 }) {
-  const title = text(node.title, lang, `${node.id}.title`)
+  const field = edit?.slots.field
+  const title = field?.(node, 'title', node.title[lang] ?? '', LIMIT.title) ?? text(node.title, lang, `${node.id}.title`)
+  const explainer = (
+    <Explainer
+      html={richTextToHtml(field ? (node.description[lang] ?? '') : text(node.description, lang, `${node.id}.description`), {
+        explainers: node.explainers,
+        lang,
+        idPrefix,
+      })}
+      termEvent={edit?.slots.onTermClick}
+    />
+  )
   return (
     <>
       <MainImage
@@ -136,6 +173,7 @@ export function Interior({
         idPrefix={idPrefix}
         pictures={pictures}
         enlarges={href === undefined}
+        edit={edit}
       />
 
       {href === undefined ? (
@@ -146,23 +184,18 @@ export function Interior({
         </h2>
       )}
 
-      <Explainer
-        html={richTextToHtml(text(node.description, lang, `${node.id}.description`), {
-          explainers: node.explainers,
-          lang,
-          idPrefix,
-        })}
-      />
+      {field?.(node, 'description', node.description[lang] ?? '', LIMIT.description, explainer) ?? explainer}
+      {edit?.slots.mark?.()}
 
-      {node.sources.length > 0 && (
+      {(node.sources.length > 0 || edit?.slots.operation !== undefined) && (
         <Sources
-          sources={node.sources}
-          nodeId={node.id}
+          node={node}
           lang={lang}
           ui={ui}
           uiLang={uiLang}
           idPrefix={idPrefix}
           collapsible={href === undefined}
+          edit={edit}
         />
       )}
     </>
@@ -175,7 +208,7 @@ export function Interior({
  * empty slot stands in on a Node without Images, and in a neighbour frame, which carries no
  * image URL; both are decoration and say nothing to assistive technology. In an Overlay the
  * link stays a plain link to the file: the enlarged view is the centre Node's, and one Sheet
- * is open at a time (10.9).
+ * is open at a time (10.9). **[#138]** In edit mode the empty slot is the `imageSlot` slot's.
  */
 function MainImage({
   node,
@@ -186,8 +219,9 @@ function MainImage({
   idPrefix,
   pictures,
   enlarges,
+  edit,
 }: {
-  node: Node
+  node: NodeContent
   treeId: string
   lang: string
   ui: Chrome
@@ -196,12 +230,13 @@ function MainImage({
   pictures: boolean
   /** Whether a click opens the enlarged view (12.3): in the Bubble, not in an Overlay. */
   enlarges: boolean
+  edit: EditMode | undefined
 }) {
   const image = node.images[0]
-  if (!image) return <span className="main-image main-image--empty" aria-hidden="true" />
+  if (!image) return edit?.slots.imageSlot?.(node) ?? <span className="main-image main-image--empty" aria-hidden="true" />
   if (!pictures) return <span className="main-image main-image--withheld" aria-hidden="true" />
 
-  const href = imageHref(treeId, image.file)
+  const href = (edit?.links ?? PUBLIC_LINKS).image(treeId, image.file)
   return (
     <>
       {/* Hidden, not clipped: read as a name and a description all the same, and never wider than themselves (10.6). */}
@@ -236,33 +271,111 @@ function MainImage({
  * its kind where the kind is not `legal`: inline on the heading line and two lines of the
  * text area, and, where `collapsible`, as the Sheet the block collapses to, titled by the
  * same key.
+ *
+ * **[#138]** In edit mode each line is its label as a field beside the `...` control that
+ * opens the Source's Sheet -- its kind, its URL and `removeSource` -- and `+ addSource`
+ * follows the last one while there is room (28.1). The collapsed Sheet holds the same
+ * editable lines, so a collapsed block is edited in its Sheet (28.6).
  */
 function Sources({
-  sources,
-  nodeId,
+  node,
   lang,
   ui,
   uiLang,
   idPrefix,
   collapsible,
+  edit,
 }: {
-  sources: Source[]
-  /** The Node these Sources belong to, for the warning `text` logs. */
-  nodeId: string
+  node: NodeContent
   lang: string
   ui: Chrome
   uiLang: string | undefined
   idPrefix: string
   collapsible: boolean
+  edit: EditMode | undefined
 }) {
+  const { sources } = node
   const entries = sources.map((source, index) => {
     const label = SOURCE_LABEL[source.kind]
     return {
       kind: label && ui[label],
       href: source.url,
-      label: text(source.label, lang, `${nodeId}.sources[${index}].label`),
+      label: text(source.label, lang, `${node.id}.sources[${index}].label`),
     }
   })
+  const words = sheetWords(ui)
+
+  if (edit?.slots.field) {
+    const { field, operation } = edit.slots
+    const lines = sources.map((source, index) => {
+      const at = `sources[${index}]`
+      const kindLabel = SOURCE_LABEL[source.kind]
+      return (
+        <li key={index}>
+          {kindLabel !== undefined && (
+            <>
+              <span className="kind" lang={uiLang}>
+                {ui[kindLabel]}
+              </span>{' '}
+            </>
+          )}
+          {field(node, `${at}.label`, source.label[lang] ?? '', LIMIT.sourceLabel)}{' '}
+          <Sheet
+            className="source-sheet"
+            summary={<span aria-label={ui.editSource} lang={uiLang}>…</span>}
+            pages={[
+              <div key="source" className="source-editor" lang={uiLang}>
+                <h2>{ui.editSource}</h2>
+                <label className="editor-row">
+                  <span>{ui.sourceKind}</span>
+                  {field(node, `${at}.kind`, source.kind, null)}
+                </label>
+                <label className="editor-row">
+                  <span>{ui.sourceUrl}</span>
+                  {field(node, `${at}.url`, source.url, null)}
+                </label>
+                {operation?.(node, 'remove-source', index)}
+              </div>,
+            ]}
+            words={words}
+            uiLang={uiLang}
+            idPrefix={`${idPrefix}s${index}-`}
+          />
+        </li>
+      )
+    })
+    const add = sources.length < MAX_SOURCES ? operation?.(node, 'add-source') : null
+    return (
+      <>
+        <section className="sources sources--editing" aria-labelledby={`${idPrefix}sources-label`}>
+          <h2 id={`${idPrefix}sources-label`} lang={uiLang}>
+            {ui.sources}
+          </h2>
+          <ul>
+            {lines}
+            {add && <li className="sources-add">{add}</li>}
+          </ul>
+        </section>
+        {collapsible && (
+          <div className="sources-collapsed">
+            <Sheet
+              className="sources-sheet"
+              summary={<span lang={uiLang}>{`${ui.sources} (${entries.length})`}</span>}
+              pages={[
+                <ul key="lines" className="sheet-list">
+                  {lines}
+                  {add && <li className="sources-add">{add}</li>}
+                </ul>,
+              ]}
+              words={words}
+              uiLang={uiLang}
+              idPrefix={idPrefix}
+            />
+          </div>
+        )}
+      </>
+    )
+  }
 
   return (
     <>
@@ -302,7 +415,7 @@ function Sources({
             className="sources-sheet"
             summary={<span lang={uiLang}>{`${ui.sources} (${entries.length})`}</span>}
             items={entries.map((entry) => ({ ...entry, newTab: true }))}
-            words={sheetWords(ui)}
+            words={words}
             uiLang={uiLang}
             idPrefix={idPrefix}
           />

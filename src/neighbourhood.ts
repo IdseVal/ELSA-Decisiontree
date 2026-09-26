@@ -12,8 +12,8 @@
  * response may carry (11.5). Seventeen is a contract, not a setting: widening it is an
  * architecture decision, because it is what stands between a page and the whole Tree.
  */
-import type { Tree } from './tree/loader.ts'
-import type { Node } from './tree/types.ts'
+import type { Readable, Tree } from './tree/loader.ts'
+import type { DraftNode, Node } from './tree/types.ts'
 import { MAX_PATH_IDS, nodeHref, type PageAddress } from './url.ts'
 
 /** Where a placed neighbour is drawn: above (the parent), below (the Answers). An Option's target is not placed: it is an aside. */
@@ -35,20 +35,24 @@ export interface Placed {
   slot: number
 }
 
-/** An Option's target as the page carries it for its Overlay (10.9). */
-export interface Aside {
-  node: Node
+/**
+ * An Option's target as the page carries it for its Overlay (10.9). **[#138]** `N` is the
+ * Node type of the Tree read: a `Node` on the public page, a `DraftNode` in the editor
+ * (application.md 34.6); every public caller leaves it at its default.
+ */
+export interface Aside<N extends Node | DraftNode = Node> {
+  node: N
   /** The explanation Node's own address under this centre: the Overlay's heading link (10.9). */
   href: string
   /** The address `href` names, from which the Overlay's own Option links are built. */
   address: PageAddress
 }
 
-export interface Neighbourhood {
+export interface Neighbourhood<N extends Node | DraftNode = Node> {
   /** At most 7: the parent `up`, the Answer targets and theirs `down`. */
   placed: Placed[]
   /** At most 8: the centre's Option targets, in Option order. */
-  asides: Aside[]
+  asides: Aside<N>[]
 }
 
 /**
@@ -56,13 +60,13 @@ export interface Neighbourhood {
  * it, from which its Branches are built), and the aside chain after it -- the explanation
  * Nodes the path goes on to name, the last of which is rendered as the open Overlay.
  */
-export interface Centre {
+export interface Centre<N extends Node | DraftNode = Node> {
   address: PageAddress
-  node: Node
+  node: N
   /** The explanation Nodes after the centre, in path order; empty when the path ends at the centre. At most `MAX_CHAIN`. */
-  chain: Aside[]
+  chain: Aside<N>[]
   /** Every Node read to find the centre, so that the page reads none of them again (11.2). */
-  known: Node[]
+  known: N[]
 }
 
 /** The bound of 11.2 on placed neighbours: the parent, two Answer targets and their four. */
@@ -90,11 +94,11 @@ export const MAX_CHAIN = 2
  * 10.9 says "the last entry that is a question Node or a Terminal": #100 asks the
  * Architect to amend that sentence.
  */
-export async function centreOf(tree: Tree, at: PageAddress): Promise<Centre | null> {
+export async function centreOf<N extends Node | DraftNode>(tree: Readable<N>, at: PageAddress): Promise<Centre<N> | null> {
   const ids = [...at.trail, at.nodeId]
   // An id repeated among the entries read is read once (11.2, last bullet).
-  const read = new Map<string, Node | null>()
-  const entry = async (index: number): Promise<Aside | null> => {
+  const read = new Map<string, N | null>()
+  const entry = async (index: number): Promise<Aside<N> | null> => {
     const id = ids[index]!
     if (!read.has(id)) read.set(id, await tree.getNode(id))
     const node = read.get(id)
@@ -103,7 +107,7 @@ export async function centreOf(tree: Tree, at: PageAddress): Promise<Centre | nu
     return { node, href: nodeHref(address), address }
   }
 
-  const chain: Aside[] = []
+  const chain: Aside<N>[] = []
   const stop = Math.max(0, ids.length - 1 - MAX_CHAIN)
   let index = ids.length - 1
   for (; index > stop; index -= 1) {
@@ -115,7 +119,7 @@ export async function centreOf(tree: Tree, at: PageAddress): Promise<Centre | nu
   const before = await entry(index)
   if (!before) return null
 
-  const known = [...read.values()].filter((n) => n !== null)
+  const known = [...read.values()].filter((n): n is N => n !== null)
   const first = chain[0]
   if (first && chain.length === MAX_CHAIN && !before.node.options.some((option) => option.target === first.node.id)) {
     return { address: first.address, node: first.node, chain: chain.slice(1), known }
@@ -194,11 +198,11 @@ export async function neighbourhood(tree: Tree, at: PageAddress, node: Node, kno
 }
 
 /** Everything a page renders from: the address it was asked for, its centre and chain, and the centre's neighbourhood. */
-export interface NodePage {
+export interface NodePage<N extends Node | DraftNode = Node> {
   /** The address the URL names, whole: the page's own, which the share link and the language switch carry. */
   address: PageAddress
-  centre: Centre
-  neighbours: Neighbourhood
+  centre: Centre<N>
+  neighbours: Neighbourhood<N>
 }
 
 /**

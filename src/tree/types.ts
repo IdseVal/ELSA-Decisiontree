@@ -122,6 +122,42 @@ export type DraftNode = Omit<Node, 'kind'> & {
   outcome?: Outcome
 }
 
+/**
+ * **[#138]** The fields the Interior, the Carousel and the enlarged view read (application.md
+ * 34.6): what a `Node` and a `DraftNode` both satisfy, so the three components draw either
+ * without knowing which.
+ */
+export interface NodeContent {
+  id: string
+  title: LocalisedText
+  description: LocalisedText
+  sources: Source[]
+  images: Image[]
+  explainers: Explainer[]
+}
+
+/** **[#138]** A Node's Links as the tree view reads them (34.6): the Answers that exist, and the end. */
+export interface NodeLinks {
+  yes?: string
+  no?: string
+  terminal?: Outcome
+}
+
+/**
+ * **[#138]** The one helper through which `TreeView` and `Bubble` read a Node's Links, so that
+ * a draft's half-question -- one Answer, or none yet -- and a published Node's pair are read
+ * by one rule (34.6). Where a public `Node` is passed nothing differs.
+ */
+export function linksOf(node: Node | DraftNode): NodeLinks {
+  const links: NodeLinks = {}
+  if ('answers' in node && node.answers) {
+    if (node.answers.yes !== undefined) links.yes = node.answers.yes
+    if (node.answers.no !== undefined) links.no = node.answers.no
+  }
+  if ('outcome' in node && node.outcome !== undefined) links.terminal = node.outcome
+  return links
+}
+
 /** One broken validity rule of docs/specs/tree-format.md section 7. */
 export interface Violation {
   /**

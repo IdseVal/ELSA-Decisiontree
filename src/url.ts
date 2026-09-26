@@ -12,7 +12,8 @@
  * them -- so that the page head, the sitemap and the JSON-LD say one string for one page.
  */
 import { CHROME_LANGUAGES, type ChromeLanguage } from './chrome.ts'
-import type { Tree } from './tree/loader.ts'
+import type { Readable, Tree } from './tree/loader.ts'
+import type { DraftNode, Node } from './tree/types.ts'
 
 /** Ids in one path: 49 Trail entries plus the Node shown (application.md 4.3). */
 export const MAX_PATH_IDS = 50
@@ -42,7 +43,7 @@ export type NotFound = null
  * ids, or an id that is malformed or is not a Node of this Tree. The Trail is not checked
  * for adjacency. `lang` is a segment, never a query: 4.4 guarantees one always exists.
  */
-export function parseUrl(path: string, lang: string, tree: Tree): PageAddress | NotFound {
+export function parseUrl(path: string, lang: string, tree: Readable<Node | DraftNode>): PageAddress | NotFound {
   const segments = path.split('/').filter((segment) => segment !== '')
   const [treeId, ...ids] = segments
   if (treeId !== tree.id) return null
@@ -63,7 +64,7 @@ export function parseUrl(path: string, lang: string, tree: Tree): PageAddress | 
  * Tree's default (4.3). The segment the router writes when no language was asked for needs
  * no branch of its own -- no Tree declares it, so this rule already answers for it.
  */
-export function contentLanguage(tree: Tree, lang: string): string {
+export function contentLanguage(tree: Pick<Readable<Node | DraftNode>, 'manifest'>, lang: string): string {
   return tree.manifest.languages.includes(lang) ? lang : tree.manifest.defaultLanguage
 }
 
@@ -105,6 +106,23 @@ export function trailHref(a: PageAddress, index: number): string {
 export function withLang(a: PageAddress, lang: string): string {
   return nodeHref({ ...a, lang })
 }
+
+/**
+ * **[#138]** The five functions every component builds an address or a picture URL through
+ * (application.md 34.3): `edit?.links ?? PUBLIC_LINKS`. The public page's are the functions
+ * above as they are; the editor's (`src/editor/links.ts`) put the same paths behind
+ * `/admin/trees` and the pictures on the admin image route.
+ */
+export interface Links {
+  node(a: PageAddress): string
+  follow(a: PageAddress, targetId: string): string
+  trail(a: PageAddress, index: number): string
+  withLang(a: PageAddress, lang: string): string
+  image(treeId: string, file: string): string
+}
+
+/** The public page's `Links`: this module's own five functions, unchanged (34.3). */
+export const PUBLIC_LINKS: Links = { node: nodeHref, follow: followHref, trail: trailHref, withLang, image: imageHref }
 
 /** The Trail-less URL of the Node shown: what `<link rel="canonical">` points at. */
 export function canonicalHref(a: PageAddress): string {

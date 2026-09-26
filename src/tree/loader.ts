@@ -98,6 +98,19 @@ export interface Draft extends Omit<Tree, 'getNode' | 'filePath' | 'lastModified
 }
 
 /**
+ * **[#138]** What `parseUrl`, `centreOf` and the tree view read of a Tree (application.md
+ * 34.6): the members a `Tree` and a `Draft` both have, with the Node type of whichever is
+ * passed. So the editor's page reads its draft through the public page's own functions,
+ * and nothing about those functions changes.
+ */
+export interface Readable<N extends Node | DraftNode = Node> {
+  readonly id: string
+  readonly manifest: Manifest
+  getNode(id: string): Promise<N | null>
+  getTitle(id: string): LocalisedText | null
+}
+
+/**
  * Reads and validates the Tree folder `dir` once (tree-format.md section 7) and builds the
  * Node and title indexes. Rejects with `TreeInvalid` listing every violation.
  *

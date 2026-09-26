@@ -16,7 +16,8 @@ import { Disclaimer } from '../src/components/Disclaimer.tsx'
 import { TreeView } from '../src/components/TreeView.tsx'
 import { loadPage } from '../src/neighbourhood.ts'
 import { openTree, type Tree } from '../src/tree/loader.ts'
-import { contentLanguage, parseUrl } from '../src/url.ts'
+import type { EditMode } from '../src/editor/mode.ts'
+import { contentLanguage, parseUrl, PUBLIC_LINKS } from '../src/url.ts'
 import { effectiveLang } from './effective-lang.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -45,15 +46,15 @@ function langSegment(url: URL): string {
   return url.searchParams.get('lang') ?? '_'
 }
 
-/** The markup of the Node the URL names, rendered the way the page renders it. */
-async function view(url: string): Promise<string> {
+/** The markup of the Node the URL names, rendered the way the page renders it; with `edit`, as the editor would. */
+async function view(url: string, edit?: EditMode): Promise<string> {
   const target = new URL(url, 'https://example.org')
   const tree = trees.get(target.pathname.split('/')[1]!)!
   const address = parseUrl(target.pathname, langSegment(target), tree)
   if (!address) throw new Error(`${url} is not a page of ${tree.id}`)
   const page = await loadPage(tree, address)
   if (!page) throw new Error(`${url} names no Node`)
-  return renderToStaticMarkup(<TreeView page={page} tree={tree} />)
+  return renderToStaticMarkup(<TreeView page={page} tree={tree} edit={edit} />)
 }
 
 /**
@@ -787,5 +788,46 @@ describe('everything on the page is reachable by keyboard', () => {
     // test measures on every element; `hidden` elements are read as names and descriptions
     // all the same and have no box.
     expect(await view('/ai-act-example/start/prohibited-practices/social-scoring')).not.toContain('visually-hidden')
+  })
+})
+
+describe('the reuse rule (application.md 34.8, ADR-133-reuse-rule decision 8)', () => {
+  const pages = [
+    '/ai-act-example/start',
+    '/ai-act-example/start/prohibited-practices/social-scoring',
+    '/ai-act-example/start/outside-scope',
+    '/ai-act-example/social-scoring',
+    '/full-node/full/full/full/full/full/full/full',
+    '/full-node/full/opt-one/opt-two',
+    '/carousel/five',
+    '/overlay/five/big',
+    '/single-language/start',
+    '/other-languages/start?lang=fr',
+  ]
+
+  test('a public render contains no editor element: no [data-field], no contenteditable, no editor- class', async () => {
+    for (const url of pages) {
+      const html = await view(url)
+
+      expect(html, url).not.toContain('data-field')
+      expect(html, url).not.toContain('contenteditable')
+      expect(html, url).not.toMatch(/class="[^"]*editor-/)
+    }
+  })
+
+  test('the same fixtures with an edit whose slots are all absent and whose links are the public ones give the same markup', async () => {
+    const words = Object.fromEntries(
+      Object.keys({
+        missingText: 0, characters: 0, lines: 0, addSource: 0, editSource: 0, removeSource: 0, sourceKind: 0, sourceUrl: 0, sourceLegal: 0,
+        sourceCaseLaw: 0, sourceLiterature: 0, outcome: 0, outcomeNotApplicable: 0, outcomeApplicable: 0, outcomeProhibited: 0, outcomeRefer: 0,
+        saving: 0, saved: 0, notSaved: 0, retrying: 0, retry: 0, notEditable: 0, changedElsewhere: 0, sessionExpired: 0, publicBehind: 0, toOverview: 0,
+      }).map((key) => [key, key]),
+    ) as EditMode['words']
+    for (const url of pages) {
+      const treeId = url.split('/')[1]!
+      const edit: EditMode = { treeId, links: PUBLIC_LINKS, languages: trees.get(treeId)!.manifest.languages, words, slots: {} }
+
+      expect(await view(url, edit), url).toBe(await view(url))
+    }
   })
 })
