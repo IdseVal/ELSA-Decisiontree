@@ -52,6 +52,18 @@ export interface EditorApi {
   setCurrent(field: { nodeId: string; keyPath: string } | null): void
   /** A blocking rule caught before sending -- V-HTML -- shown as a refusal at the field (28.5). */
   refuseLocally(nodeId: string, keyPath: string, violation: Violation): void
+  /** **[#142]** The Tree's state as the page's load and the last response left it: what the panel's button says (33.1). */
+  tree: TreeState
+  /** **[#142]** The panel's own answers -- publish, unpublish, a re-read -- which no write response carries. */
+  setTree(change: Partial<TreeState>): void
+}
+
+/** **[#142]** The whole Tree's state of 22.3's `tree`, and whether the public routes serve it (18.3). */
+export interface TreeState {
+  advisory: number
+  published: boolean
+  publicCopyCurrent: boolean
+  servable: boolean
 }
 
 const EditorContext = createContext<EditorApi | null>(null)
@@ -79,8 +91,7 @@ export function Editor({
   adminHref,
   nodes: initialNodes,
   violations: initialViolations,
-  published,
-  publicCopyCurrent,
+  tree: initialTree,
   children,
 }: {
   treeId: string
@@ -94,8 +105,8 @@ export function Editor({
   nodes: Record<string, DraftNode>
   /** The draft's advisory violations for those Nodes (19.2). */
   violations: Violation[]
-  published: boolean
-  publicCopyCurrent: boolean
+  /** The Tree's state at load (22.1). */
+  tree: TreeState
   children: ReactNode
 }) {
   const router = useRouter()
@@ -103,7 +114,7 @@ export function Editor({
   const [advisory, setAdvisory] = useState<Record<string, Violation[]>>(() => byNode(initialViolations))
   const [refusals, setRefusals] = useState<Record<string, Refused>>({})
   const [notEditable, setNotEditable] = useState<string | null>(null)
-  const [publicBehind, setPublicBehind] = useState(published && !publicCopyCurrent)
+  const [tree, setTreeState] = useState(initialTree)
   const [changed, setChanged] = useState<Record<string, number>>({})
   const [changedUntil, setChangedUntil] = useState(0)
   const [sessionExpired, setSessionExpired] = useState(false)
@@ -155,7 +166,7 @@ export function Editor({
         // itself while this write was in flight: only a changed value clears that (29.4).
         const accepted = write.key
         if (accepted !== null) setRefusals(({ [accepted]: gone, ...rest }) => (gone?.local ? { ...rest, [accepted]: gone } : rest))
-        setPublicBehind(response.tree.published && !response.tree.publicCopyCurrent)
+        setTreeState((held) => ({ ...held, ...response.tree }))
         setVersion((v) => v + 1)
         // The shape changed: the server components draw the new list; the fields keep their state.
         if (write.key === null) router.refresh()
@@ -237,15 +248,17 @@ export function Editor({
         queue.current!.drop(nodeId, keyPath)
         setRefusals((held) => ({ ...held, [keyOf(nodeId, keyPath)]: { violations: [violation], code: 'blocking', local: true } }))
       },
+      tree,
+      setTree: (change) => setTreeState((held) => ({ ...held, ...change })),
     }),
-    [lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed],
+    [lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, tree],
   )
 
   const current = focused ?? lastEdited
   const indicator: IndicatorState = {
     queue: queueState,
     notEditable,
-    publicBehind,
+    publicBehind: tree.published && !tree.publicCopyCurrent,
     changedElsewhere: changedUntil > Date.now(),
     message: current ? api.violationsAt(current.nodeId, current.keyPath)[0] ?? null : null,
     refusedCode: current ? (refusals[keyOf(current.nodeId, current.keyPath)]?.code ?? null) : null,

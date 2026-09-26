@@ -165,6 +165,32 @@ export interface Chrome {
   /** **[#137] added in the build**: the cross on a language tag, and the tag grammar a refused tag is told (27.1). */
   removeLanguage: string
   languageHint: string
+  /** **[#142]** The top panel (33): its button and heading, the four sections, the confirmations. */
+  treeState: string
+  publish: string
+  todoCount: string
+  todoBefore: string
+  publishedAt: string
+  publicLink: string
+  publicBehindBecause: string
+  notServableBecause: string
+  confirmUnpublish: string
+  confirm: string
+  cancel: string
+  removeStep: string
+  collaborators: string
+  creator: string
+  invite: string
+  cannotInvite: string
+  removeCollaborator: string
+  chooseAccount: string
+  thisTree: string
+  fixed: string
+  handOver: string
+  handOverTo: string
+  deleteTree: string
+  unpublishFirst: string
+  confirmDeleteTree: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -277,6 +303,31 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     title: 'Title',
     removeLanguage: 'Remove',
     languageHint: 'A language tag such as en, nl or pt-br.',
+    treeState: 'Tree',
+    publish: 'Publish',
+    todoCount: 'things to do',
+    todoBefore: 'To do before publishing:',
+    publishedAt: 'Published',
+    publicLink: 'Public link',
+    publicBehindBecause: 'The public copy stays as it was until these are done:',
+    notServableBecause: 'The public page is not served because of:',
+    confirmUnpublish: 'Hide this tree? Links to it will stop working until it is published again.',
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    removeStep: 'remove',
+    collaborators: 'Collaborators',
+    creator: 'creator',
+    invite: 'Invite',
+    cannotInvite: 'This account cannot be invited.',
+    removeCollaborator: 'Remove',
+    chooseAccount: 'Choose an account',
+    thisTree: 'This tree',
+    fixed: 'fixed',
+    handOver: 'Hand over',
+    handOverTo: 'Hand over to',
+    deleteTree: 'Delete this tree',
+    unpublishFirst: 'Hide it first to delete it.',
+    confirmDeleteTree: 'Delete this tree and its pictures for good? This cannot be undone.',
   },
   nl: {
     yes: 'Ja',
@@ -387,6 +438,31 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     title: 'Titel',
     removeLanguage: 'Verwijderen',
     languageHint: 'Een taalcode zoals en, nl of pt-br.',
+    treeState: 'Boom',
+    publish: 'Publiceren',
+    todoCount: 'punten te doen',
+    todoBefore: 'Te doen voor publicatie:',
+    publishedAt: 'Gepubliceerd',
+    publicLink: 'Openbare link',
+    publicBehindBecause: 'De openbare versie blijft zoals ze was tot dit is gedaan:',
+    notServableBecause: 'De openbare pagina wordt niet getoond vanwege:',
+    confirmUnpublish: 'Deze boom verbergen? Links ernaar werken niet meer tot hij weer gepubliceerd is.',
+    confirm: 'Bevestigen',
+    cancel: 'Annuleren',
+    removeStep: 'verwijderen',
+    collaborators: 'Medewerkers',
+    creator: 'maker',
+    invite: 'Uitnodigen',
+    cannotInvite: 'Dit account kan niet worden uitgenodigd.',
+    removeCollaborator: 'Verwijderen',
+    chooseAccount: 'Kies een account',
+    thisTree: 'Deze boom',
+    fixed: 'vast',
+    handOver: 'Overdragen',
+    handOverTo: 'Overdragen aan',
+    deleteTree: 'Deze boom verwijderen',
+    unpublishFirst: 'Verberg hem eerst om hem te verwijderen.',
+    confirmDeleteTree: 'Deze boom en zijn afbeeldingen voorgoed verwijderen? Dit kan niet ongedaan worden.',
   },
 }
 
