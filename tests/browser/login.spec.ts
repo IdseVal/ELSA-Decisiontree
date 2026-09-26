@@ -21,6 +21,8 @@ const PORT = BASE_PORT + 80
 /** A second origin on the same host: same-site, cross-origin -- where a forged request would come from. */
 const OTHER_PORT = BASE_PORT + 81
 const LOG = path.join(RESULTS, 'login-server.log')
+/** The screenshots 35.7 asks for: the tracked set under `ELSA_SHOTS=1`, the results folder otherwise. */
+const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-135') : path.join(RESULTS, 'shots')
 
 const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
 const CEES = { login: 'cees', name: 'Cees', password: 'cees first password' }
@@ -308,6 +310,32 @@ test.describe('CSRF (20.6)', () => {
     const names = (await (await page.request.get(`${origin}/admin/api/accounts`, { headers: { Cookie: cookie } })).json()) as { login: string }[]
     expect(names.map((account) => account.login)).not.toContain('mallory')
   })
+})
+
+test('the four pages at 1280 x 640, for the pull request (35.7)', async ({ browser }) => {
+  const shoot = async (page: Page, name: string): Promise<void> => {
+    await page.evaluate(() => document.fonts.ready)
+    await page.screenshot({ path: path.join(SHOTS, `${name}.png`) })
+  }
+  const visitor = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
+  await visitor.goto(`${origin}/admin`)
+  await signIn(visitor, ANNA.login, 'not annas password')
+  await expect(visitor.getByRole('main').getByRole('alert')).toHaveText('Wrong name or password.')
+  await shoot(visitor, 'login-refused')
+
+  const anna = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
+  await login(anna, origin, ANNA.login, ANNA.password)
+  await anna.goto(`${origin}/admin/account`)
+  await shoot(anna, 'account')
+  expect((await anna.goto(`${origin}/admin/accounts?lang=nl`))?.status()).toBe(403)
+  await shoot(anna, 'forbidden-nl')
+
+  const admin = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
+  await login(admin, origin, 'admin', ADMIN_PASSWORD)
+  await admin.goto(`${origin}/admin/accounts`)
+  await shoot(admin, 'accounts')
+  await admin.locator('details.account-sheet summary', { hasText: 'New account' }).click()
+  await shoot(admin, 'accounts-new')
 })
 
 test('the server logged no password and no session token (20.8)', async () => {

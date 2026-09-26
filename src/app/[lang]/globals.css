@@ -1627,6 +1627,10 @@ a.language:hover,
   gap: 8px;
   min-width: 0;
   margin: 0;
+}
+
+/* The fieldset only groups the fields to disable them; a form that is a card keeps its outline. */
+.admin-form fieldset {
   padding: 0;
   border: 0;
 }
