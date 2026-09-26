@@ -49,12 +49,13 @@ export interface AccountChange {
  * `wrong-password`, `forbidden`, `not-found`, `malformed` -- never a sentence of its own.
  */
 export class AccountError extends Error {
-  constructor(
-    readonly status: 403 | 404 | 422,
-    readonly field: 'name' | 'login' | 'password' | 'currentPassword' | 'active' | null,
-    message: string,
-  ) {
-    super(message)
+  readonly status: 403 | 404 | 422
+  readonly field: 'name' | 'login' | 'password' | 'currentPassword' | 'active' | null
+
+  constructor(status: AccountError['status'], field: AccountError['field'], code: string) {
+    super(code)
+    this.status = status
+    this.field = field
   }
 }
 
