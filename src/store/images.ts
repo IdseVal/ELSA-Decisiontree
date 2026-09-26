@@ -25,6 +25,15 @@ export interface Sniffed {
  * anything else -- an SVG, a text file, a truncated header.
  */
 export function sniff(bytes: Uint8Array): Sniffed | null {
+  try {
+    return sniffed(bytes)
+  } catch {
+    // A header cut short reads past the end: not a picture this server can size.
+    return null
+  }
+}
+
+function sniffed(bytes: Uint8Array): Sniffed | null {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
   const ascii = (start: number, length: number): string =>
     String.fromCharCode(...bytes.subarray(start, Math.min(start + length, bytes.length)))
@@ -72,8 +81,9 @@ function webp(bytes: Uint8Array, view: DataView, ascii: (start: number, length: 
     width = (bits & 0x3fff) + 1
     height = ((bits >> 14) & 0x3fff) + 1
   } else if (chunk === 'VP8X') {
-    width = (view.getUint32(24, true) & 0xffffff) + 1
-    height = (view.getUint32(27, true) & 0xffffff) + 1
+    const uint24 = (at: number): number => bytes[at]! | (bytes[at + 1]! << 8) | (bytes[at + 2]! << 16)
+    width = uint24(24) + 1
+    height = uint24(27) + 1
   }
   return width > 0 && height > 0 ? { extension: 'webp', width, height } : null
 }

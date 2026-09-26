@@ -303,7 +303,7 @@ export async function openDrafts(
       return { node, violations: draft.advisory.filter((violation) => violation.file === nodeId), titles }
     },
 
-    write(by, id, nodeId, change) {
+    async write(by, id, nodeId, change) {
       const tree = allowed(by, id, 'edit')
       return serial(tree, async () => {
         let also: string[] = []
@@ -319,7 +319,7 @@ export async function openDrafts(
       })
     },
 
-    createNode(by, id, from, title, nodeId) {
+    async createNode(by, id, from, title, nodeId) {
       const tree = allowed(by, id, 'edit')
       return serial(tree, async () => {
         let created = ''
@@ -331,7 +331,7 @@ export async function openDrafts(
       })
     },
 
-    deleteNode(by, id, nodeId) {
+    async deleteNode(by, id, nodeId) {
       const tree = allowed(by, id, 'edit')
       return serial(tree, async () => {
         let referrers: string[] = []
@@ -342,7 +342,7 @@ export async function openDrafts(
       })
     },
 
-    publish(by, id, published) {
+    async publish(by, id, published) {
       const tree = allowed(by, id, 'publish')
       return serial(tree, async () => {
         const raw = editable(tree)
@@ -388,7 +388,7 @@ export async function openDrafts(
       })
     },
 
-    handOver(by, id, to) {
+    async handOver(by, id, to) {
       const tree = allowed(by, id, 'hand-over')
       return serial(tree, async () => {
         const next = accounts.get(to)
@@ -404,7 +404,7 @@ export async function openDrafts(
       })
     },
 
-    addCollaborator(by, id, accountId) {
+    async addCollaborator(by, id, accountId) {
       const tree = allowed(by, id, 'invite')
       return serial(tree, async () => {
         const invited = accounts.get(accountId)
@@ -420,7 +420,7 @@ export async function openDrafts(
       })
     },
 
-    removeCollaborator(by, id, accountId) {
+    async removeCollaborator(by, id, accountId) {
       const tree = allowed(by, id, 'invite')
       return serial(tree, async () => {
         if (!accounts.get(accountId)) throw malformed('meta', 'collaborators', 'account', 'not an account')
