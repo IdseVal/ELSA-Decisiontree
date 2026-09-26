@@ -148,6 +148,8 @@ test('open the root Node, follow yes, open one Option: one payload per navigatio
   await page.route(
     (url) => url.pathname.startsWith('/ai-act-example'),
     async (route) => {
+      // **[#134]** The Tree's pictures are under its id too (18.1); only its pages are bodies here.
+      if (!isPagePayload(route.request())) return route.continue()
       const response = await route.fetch()
       const body = await response.body()
       bodies.set(route.request(), body)
@@ -192,7 +194,7 @@ test('open the root Node, follow yes, open one Option: one payload per navigatio
     expect(entry.url, 'a request to another origin').toMatch(/^\//)
     expect(entry.url, 'a request for the Tree').not.toMatch(/tree\.ya?ml|\/api\//)
     expect(
-      pages.includes(entry) || /^\/_next\/static\/|^\/images\/[^/]+$|^\/theme\/[^/]+$|^\/favicon\.ico$/.test(entry.url),
+      pages.includes(entry) || /^\/_next\/static\/|^\/ai-act-example\/(images|theme)\/[^/]+$|^\/favicon\.ico$/.test(entry.url),
       `an unexpected request: ${entry.url}`,
     ).toBe(true)
   }

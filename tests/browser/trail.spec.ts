@@ -266,17 +266,18 @@ test('an unknown Node and a malformed Trail answer 404, never a server error', a
     '/ai-act-example/ghost/start', // the Trail names a Node that does not exist
     '/ai-act-example/start/..%2F..%2Fetc%2Fpasswd/social-scoring', // a path escape in the Trail
     `/ai-act-example/${fiftyOne}`, // more than the fifty ids of application.md 4.3
-    '/other-tree/start', // another Tree than the one served
+    '/other-tree/start', // a Tree id the store does not serve
   ]) {
     const response = await page.request.get(url)
 
     expect(response.status(), url).toBe(404)
   }
 
-  // The answer is the 404 page of application.md 4.3, with its link to the start.
+  // The answer is the 404 page of application.md 4.3 -- **[#134]** with its link to the
+  // overview, since one 404 serves every Tree and names none (23.1, 24.3).
   await page.goto('/ai-act-example/ghost/start')
-  await page.getByRole('link', { name: 'Start again' }).click()
-  await arrived(page, START)
+  await page.getByRole('link', { name: 'All decision trees' }).click()
+  await expect(page).toHaveURL('/')
 })
 
 test('nothing about the reader is stored while walking, going back or sharing', async ({
