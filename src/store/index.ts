@@ -78,15 +78,19 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
   await removeTemporaries(root, treesDir)
   const accounts = await openAccounts(root, env)
   const admin = accounts.all().find((account) => account.administrator)!
+  const sessions = await openSessions(root, accounts)
+  // A reset from the environment is the recovery of a leaked password: every session of the
+  // administrator ends with it, as any password change ends them (20.4).
+  if (accounts.adminPasswordReplaced) await sessions.endAll(admin.id)
   if (!(await isFolder(treesDir))) await seed(seedDirectory(env), treesDir, admin.id)
-  await nameCreator(treesDir, admin.id)
+  const refused: Refused[] = await nameCreator(treesDir, admin.id)
 
   const served = new Map<string, Tree>()
-  const refused: Refused[] = []
   for (const id of await listFolders(treesDir)) {
     const dir = path.join(/* turbopackIgnore: true */ treesDir, id)
     // A Tree is published if and only if its published copy exists (17.2).
     if (!(await isFile(path.join(/* turbopackIgnore: true */ dir, 'tree.json')))) continue
+    if (refused.some((tree) => tree.id === id)) continue
     if (RESERVED_TREE_IDS.includes(id)) {
       refused.push({ id, reason: `Tree "${id}": "${id}" is a reserved word (application.md 4.3)` })
       continue
@@ -107,7 +111,7 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
       else served.delete(id)
     },
     accounts,
-    sessions: await openSessions(root, accounts),
+    sessions,
     loginLimit: loginLimit(),
   }
 }
@@ -243,20 +247,32 @@ async function seed(seedDir: string, treesDir: string, creator: string): Promise
 /**
  * **[#135]** Names `creator` -- the administrator -- on every Tree whose `meta.json` names
  * none: the Trees a store seeded before accounts existed (#134), or a test imported without
- * one. Every Tree has a creator from then on (21.1).
+ * one. Every Tree has a creator from then on (21.1). Answers the Trees whose `meta.json` is
+ * not a JSON object: refused and reported, one at a time, while the rest start (18.3).
  */
-async function nameCreator(treesDir: string, creator: string): Promise<void> {
+async function nameCreator(treesDir: string, creator: string): Promise<Refused[]> {
+  const broken: Refused[] = []
   for (const id of await listFolders(treesDir)) {
     const file = path.join(/* turbopackIgnore: true */ treesDir, id, 'meta.json')
     const text = await readText(file)
     if (text === null) continue
-    const meta = JSON.parse(text) as { creator: string | null; updatedBy: string | null }
+    let meta: { creator: string | null; updatedBy: string | null }
+    try {
+      meta = JSON.parse(text) as typeof meta
+    } catch (error) {
+      broken.push({ id, reason: `Tree "${id}": meta.json is not JSON: ${messageOf(error)}` })
+      continue
+    }
+    if (typeof meta !== 'object' || meta === null || Array.isArray(meta)) {
+      broken.push({ id, reason: `Tree "${id}": meta.json is not a JSON object` })
+      continue
+    }
     if (meta.creator !== null) continue
     meta.creator = creator
     meta.updatedBy ??= creator
-    await writeAtomic(file, `${JSON.stringify(meta, null, 2)}
-`)
+    await writeAtomic(file, `${JSON.stringify(meta, null, 2)}\n`)
   }
+  return broken
 }
 
 /** Copies the folder `from` whole to `to`, timestamps kept; nothing when there is none. */

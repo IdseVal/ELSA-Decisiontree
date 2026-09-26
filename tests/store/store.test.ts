@@ -132,6 +132,45 @@ describe('which Trees are served (18.3, 23.1)', () => {
     expect(await readdir(path.join(data, 'trees', 'cycle'))).toContain('tree.json')
   })
 
+  test('**[#135]** a Tree whose meta.json is broken is refused, not thrown, and the rest are served', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const seed = await seedOf([path.join(fixtures, 'cycle'), 'cycle'], [path.join(fixtures, 'carousel'), 'carousel'])
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
+    await writeFile(path.join(data, 'trees', 'cycle', 'meta.json'), '{ "creator": ')
+    await writeFile(path.join(data, 'trees', 'carousel', 'meta.json'), 'null')
+
+    const store = await openStore(data, ADMIN)
+
+    expect(store.publishedIds()).toEqual([])
+    expect(store.refused().map(({ id }) => id).sort()).toEqual(['carousel', 'cycle'])
+    for (const { reason } of store.refused()) expect(reason).toContain('meta.json')
+    // Reported, not repaired: the file is the creator's to look at.
+    expect(await readFile(path.join(data, 'trees', 'cycle', 'meta.json'), 'utf8')).toBe('{ "creator": ')
+  })
+
+  test("**[#135]** ELSA_ADMIN_PASSWORD set to another password ends the administrator's sessions; the same one does not", async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const data = await folder()
+    const first = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await folder() })
+    const admin = first.accounts.all().find((account) => account.administrator)!
+    const anna = await first.accounts.create(admin, 'Anna', 'anna', 'annas first password')
+    const cookieOf = async (account: typeof admin): Promise<string> => (await first.sessions.start(account)).cookie.split(';')[0]!
+    const adminCookie = await cookieOf(admin)
+    const annaCookie = await cookieOf(anna)
+
+    // A restart with the variable still set to the same password is no reset (20.3).
+    const again = await openStore(data, ADMIN)
+    expect(again.accounts.adminPasswordReplaced).toBe(false)
+    expect(await again.sessions.resolve(adminCookie)).not.toBeNull()
+
+    // The recovery of a leaked password: the old sessions end with it (20.4).
+    const reset = await openStore(data, { ELSA_ADMIN_PASSWORD: 'a brand new password' })
+    expect(reset.accounts.adminPasswordReplaced).toBe(true)
+    expect(await reset.sessions.resolve(adminCookie)).toBeNull()
+    expect(await reset.sessions.resolve(annaCookie)).toMatchObject({ account: { id: anna.id } })
+  })
+
   test('an unknown or reserved id is null, like a hidden one', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const store = await openStore(await folder(), { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
