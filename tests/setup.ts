@@ -8,5 +8,5 @@ import { vi } from 'vitest'
 
 vi.mock('next/navigation', async (actual) => ({
   ...(await actual<typeof import('next/navigation')>()),
-  useRouter: () => ({ push: () => {} }),
+  useRouter: () => ({ push: () => {}, refresh: () => {} }),
 }))

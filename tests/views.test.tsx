@@ -822,7 +822,7 @@ describe('the reuse rule (application.md 34.8, ADR-133-reuse-rule decision 8)', 
         sourceCaseLaw: 0, sourceLiterature: 0, outcome: 0, outcomeNotApplicable: 0, outcomeApplicable: 0, outcomeProhibited: 0, outcomeRefer: 0,
         saving: 0, saved: 0, notSaved: 0, retrying: 0, retry: 0, notEditable: 0, changedElsewhere: 0, sessionExpired: 0, publicBehind: 0, toOverview: 0,
       }).map((key) => [key, key]),
-    ) as EditMode['words']
+    ) as unknown as EditMode['words']
     for (const url of pages) {
       const treeId = url.split('/')[1]!
       const edit: EditMode = { treeId, links: PUBLIC_LINKS, languages: trees.get(treeId)!.manifest.languages, words, slots: {} }

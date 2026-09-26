@@ -2340,3 +2340,287 @@ fieldset:disabled .admin-submit {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* --- the editor (28, 29): the regions, the rim's pill and tags, the indicator ---------- */
+
+/*
+ * A region is the box the public text takes, outlined 1 pixel inside on hover and focus
+ * only (28.1); `danger` over a limit or after a refusal, `accent` for five seconds after a
+ * collaborator's value arrived (29.7). Inset, so no outline takes a pixel from the text area.
+ */
+.editor-field {
+  display: block;
+  border-radius: 4px;
+  transition: box-shadow 160ms var(--ease);
+}
+
+.editor-field:hover,
+.editor-field--focused {
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+.editor-field--over,
+.editor-field--refused {
+  box-shadow: inset 0 0 0 1px var(--elsa-danger);
+}
+
+.editor-field--changed {
+  box-shadow: inset 0 0 0 1px var(--elsa-accent);
+}
+
+/* Inside a Source's line, an Option button, a Sheet's row: a region among other text. */
+.sources .editor-field,
+.option-title .editor-field,
+.editor-row .editor-field {
+  display: inline-block;
+  min-width: 6ch;
+  max-width: 100%;
+  vertical-align: baseline;
+}
+
+.option-title .editor-field {
+  display: block;
+}
+
+/*
+ * The text box grows with its text: `field-sizing` where the browser has it, and under it
+ * the grid whose hidden mirror -- the same text in the same font -- sets the row's height,
+ * so the textarea is never taller or shorter than what it holds (10.6).
+ */
+.editor-text {
+  display: grid;
+  width: 100%;
+}
+
+.editor-text::after,
+.editor-input {
+  grid-area: 1 / 1;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  text-transform: inherit;
+  text-wrap: wrap;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.editor-text::after {
+  content: attr(data-value);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.editor-input {
+  display: block;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  color: inherit;
+  outline: none;
+  field-sizing: content;
+}
+
+.editor-input::placeholder {
+  color: var(--elsa-text-muted);
+  opacity: 1;
+}
+
+.editor-input:disabled {
+  color: inherit;
+  opacity: 1;
+}
+
+/* The rendered description, a tab stop while it is not being edited (28.5). */
+.editor-rendered {
+  display: block;
+  cursor: text;
+  outline: none;
+}
+
+.editor-placeholder {
+  display: block;
+  color: var(--elsa-text-muted);
+}
+
+/* A select drawn where the badge or the kind stood: the same box, the browser's arrow kept. */
+.editor-select {
+  max-width: 100%;
+  font: inherit;
+  color: inherit;
+  background: var(--elsa-background);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+/* The outcome badge as a select (28.1): the badge's own look, the select's behaviour. */
+.editor-select.outcome {
+  position: absolute;
+  appearance: none;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+/*
+ * The rim (28.3): fixed, so it lies on the Bubble's or the Overlay's right rim without being
+ * the overflow of anything (10.6, as the share button's word). The pill first, the missing
+ * languages under it; both fit the rim's 60 pixels.
+ */
+.editor-rim {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 52px;
+  pointer-events: auto;
+}
+
+.editor-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 1px 0;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--elsa-background);
+  font-family: var(--elsa-font-heading);
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--elsa-text-muted);
+}
+
+.editor-pill--over {
+  border-color: var(--elsa-danger);
+  color: var(--danger-read);
+}
+
+.editor-tag {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--elsa-background);
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  color: var(--elsa-text-muted);
+}
+
+.editor-tag:hover {
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
+}
+
+/* The Source controls (28.1): the `...` beside a label, the add button after the last line. */
+.source-sheet {
+  display: inline;
+}
+
+.source-sheet > .sheet-open {
+  padding: 0 6px;
+  line-height: 16px;
+  font-weight: 700;
+  vertical-align: baseline;
+}
+
+.editor-operation {
+  padding: 0 10px;
+  border: 1px dashed var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--elsa-text-muted);
+  font: inherit;
+  font-size: var(--small);
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.editor-operation:hover {
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
+}
+
+.source-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 360px;
+  max-width: 100%;
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+.source-editor h2 {
+  margin: 0;
+  font-family: var(--elsa-font-heading);
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.editor-row {
+  display: grid;
+  grid-template-columns: minmax(0, 5rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.editor-row .editor-field {
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--elsa-background);
+}
+
+/* The indicator (29.3): one line of at most 320 pixels in the chrome bar, cut with an ellipsis. */
+.editor-status {
+  max-width: 320px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text-muted);
+}
+
+.editor-status--danger {
+  color: var(--danger-read);
+}
+
+.editor-status code {
+  font-family: inherit;
+  font-weight: 700;
+}
+
+/* The session Sheet (29.6): the login form laid over the page, with no close cross. */
+.editor-session-panel {
+  gap: 8px;
+  width: 400px;
+}
+
+.editor-session-panel h2 {
+  margin: 0;
+  font-family: var(--elsa-font-heading);
+  font-size: 18px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.editor-session-panel .admin-form {
+  width: 100%;
+}
