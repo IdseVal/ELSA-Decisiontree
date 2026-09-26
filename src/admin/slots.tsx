@@ -34,6 +34,8 @@ export interface Structure {
   index: Pickable[]
   addresses: Record<string, PageAddress>
   root: string
+  /** The centre's id: the `+` is the fan's on the centre and an Overlay's list entry on every other Node (30.4, 30.5). */
+  centre: string
 }
 
 /** The chrome strings the editor's client components read through `words`, as strings. */
@@ -198,7 +200,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     sideAdd(node) {
       const here = hereOf(node.id)
       if (here === null || node.options.length >= MAX_ASIDES || linksOf(node).terminal !== undefined) return null
-      const inOverlay = node.id !== address.nodeId
+      const inOverlay = node.id !== structure.centre
       return (
         <Sheet
           className={`side-add${inOverlay ? ' side-add--list' : ''}`}

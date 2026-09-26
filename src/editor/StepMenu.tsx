@@ -12,9 +12,9 @@
  * The Sheet and its 24-pixel `...` on the rim are built server side by the `stepMenu` slot.
  * Imports of `src/`: nothing but its own folder (34.4).
  */
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useEditor } from './Editor.tsx'
-import { refusalText } from './Structure.tsx'
+import { refusalText, useResetOnClose } from './Structure.tsx'
 import type { Answer } from './writes.ts'
 
 /** The chrome words the step menu says; strings, because a client component takes no module. */
@@ -50,6 +50,12 @@ export function StepMenuForm({
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const form = useRef<HTMLDivElement>(null)
+  // A reopened Sheet starts at its menu, not at a confirmation left behind.
+  useResetOnClose(form, () => {
+    setConfirming(false)
+    setError(null)
+  })
 
   const refused = (answer: Answer): boolean => {
     if (answer.status >= 200 && answer.status < 300) return false
@@ -83,7 +89,7 @@ export function StepMenuForm({
   }
 
   return (
-    <div className="structure-form structure-form--step" data-mode={confirming ? 'confirm' : 'menu'}>
+    <div ref={form} className="structure-form structure-form--step" data-mode={confirming ? 'confirm' : 'menu'}>
       <h2>{heading}</h2>
       <p className="structure-id">{nodeId}</p>
       {confirming ? (

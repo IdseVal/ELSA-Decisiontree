@@ -17,7 +17,7 @@
  *
  * Imports of `src/`: types, and nothing else (34.4).
  */
-import { useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode, type RefObject } from 'react'
 import { useEditor } from './Editor.tsx'
 import type { Answer, Change, Refusal, WriteResponse } from './writes.ts'
 
@@ -83,6 +83,21 @@ function goTo(href: string): void {
 function closeSheetAround(element: Element | null): void {
   const details = element?.closest('details')
   if (details) details.open = false
+}
+
+/** Runs `reset` when the Sheet around `root` closes, so a reopened Sheet starts at its first page. */
+export function useResetOnClose(root: RefObject<HTMLElement | null>, reset: () => void): void {
+  useEffect(() => {
+    const details = root.current?.closest('details')
+    if (!details) return
+    const onToggle = (): void => {
+      if (!details.open) reset()
+    }
+    details.addEventListener('toggle', onToggle)
+    return () => details.removeEventListener('toggle', onToggle)
+    // `reset` only sets state; the listener is bound once, to the Sheet the form is on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 }
 
 /**
@@ -161,7 +176,7 @@ export function EndForm({ nodeId, outcomes, heading, words }: { nodeId: string; 
  * order, its id in `text-muted` beside it, the current Node excluded by the slot. Ids and
  * titles from the index, never Nodes, in a box that scrolls where the list is long (26.3).
  */
-function Picker({ nodes, words, head, onPick }: { nodes: Pickable[]; words: StructureWords; head?: ReactNode; onPick: (node: Pickable) => void }) {
+function Picker({ nodes, words, head, onPick }: { nodes: Pickable[]; words: StructureWords; head?: ReactNode; onPick: (node: Pickable, button: HTMLElement) => void }) {
   const api = useEditor()
   return (
     <div className="structure-picker">
@@ -170,7 +185,7 @@ function Picker({ nodes, words, head, onPick }: { nodes: Pickable[]; words: Stru
       <ul className="structure-picker-list" data-scroll-box="">
         {nodes.map((node) => (
           <li key={node.id}>
-            <button type="button" className="structure-pick" disabled={api.readOnly} onClick={() => onPick(node)}>
+            <button type="button" className="structure-pick" disabled={api.readOnly} onClick={(event) => onPick(node, event.currentTarget)}>
               <span className="structure-pick-title">{node.title || words.missingText}</span> <span className="structure-pick-id">{node.id}</span>
             </button>
           </li>
@@ -193,6 +208,11 @@ export function SideAddForm({ nodeId, lang, here, nodes, words }: { nodeId: stri
   const [title, setTitle] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
+  useResetOnClose(root, () => {
+    setMode('choose')
+    setError(null)
+  })
 
   const done = (answer: Answer, form: Element | null, then: (response: WriteResponse) => void): void => {
     setBusy(false)
@@ -228,7 +248,7 @@ export function SideAddForm({ nodeId, lang, here, nodes, words }: { nodeId: stri
   }
 
   return (
-    <div className="structure-form structure-form--side" data-mode={mode}>
+    <div ref={root} className="structure-form structure-form--side" data-mode={mode}>
       {mode === 'choose' && (
         <>
           <h2>{words.newSideBubble}</h2>
@@ -267,7 +287,7 @@ export function SideAddForm({ nodeId, lang, here, nodes, words }: { nodeId: stri
       )}
       {mode === 'link' && (
         <div className="structure-link">
-          <Picker nodes={nodes} words={words} onPick={(target) => onPick(target, document.activeElement)} />
+          <Picker nodes={nodes} words={words} onPick={(target, button) => onPick(target, button)} />
           <button type="button" className="admin-link" onClick={() => setMode('choose')}>
             {words.cancel}
           </button>
@@ -296,6 +316,11 @@ export function LinkMenuForm({ nodeId, lang, link, here, nodes, words }: { nodeI
   const [picking, setPicking] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
+  useResetOnClose(root, () => {
+    setPicking(false)
+    setError(null)
+  })
 
   const send = (change: Change, form: Element | null, then?: (response: WriteResponse) => void): void => {
     if (busy || api.readOnly) return
@@ -338,7 +363,7 @@ export function LinkMenuForm({ nodeId, lang, link, here, nodes, words }: { nodeI
   }
 
   return (
-    <div className="structure-form structure-form--link" data-mode={picking ? 'pick' : 'menu'}>
+    <div ref={root} className="structure-form structure-form--link" data-mode={picking ? 'pick' : 'menu'}>
       {picking ? (
         <div className="structure-link">
           <Picker
@@ -351,7 +376,7 @@ export function LinkMenuForm({ nodeId, lang, link, here, nodes, words }: { nodeI
                 </button>
               )
             }
-            onPick={(target) => rePoint(target, document.activeElement)}
+            onPick={(target, button) => rePoint(target, button)}
           />
           <button type="button" className="admin-link" onClick={() => setPicking(false)}>
             {words.cancel}
