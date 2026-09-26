@@ -8,34 +8,20 @@
  */
 import type { ReactNode } from 'react'
 import { chrome, chromeLang, type Chrome } from '../chrome.ts'
-import { sheetWords } from '../components/Bubble.tsx'
+import { OUTCOME_LABEL, sheetWords, SOURCE_LABEL } from '../components/Bubble.tsx'
 import { Sheet } from '../components/Sheet.tsx'
 import { editorLinks } from '../editor/links.ts'
 import { AddSourceForm, Field, Operation, type FieldWords, type OtherLanguage } from '../editor/Field.tsx'
-import type { EditMode, EditorSlots, EditorWords, FieldLimit } from '../editor/mode.ts'
+import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
 import type { Explainer, NodeContent, Outcome, Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
 
-/** The chrome strings of 3.2's #138 block and the few older ones the editor's components say. */
-export function editorWords(lang: string): EditorWords {
-  const ui = chrome(lang)
+/** The chrome strings the editor's client components read through `words`, as strings. */
+function editorWords(ui: Chrome): EditorWords {
   return {
     missingText: ui.missingText,
     characters: ui.characters,
     lines: ui.lines,
-    addSource: ui.addSource,
-    editSource: ui.editSource,
-    removeSource: ui.removeSource,
-    sourceKind: ui.sourceKind,
-    sourceUrl: ui.sourceUrl,
-    sourceLegal: ui.sourceLegal,
-    sourceCaseLaw: ui.sourceCaseLaw,
-    sourceLiterature: ui.sourceLiterature,
-    outcome: ui.outcome,
-    outcomeNotApplicable: ui.outcomeNotApplicable,
-    outcomeApplicable: ui.outcomeApplicable,
-    outcomeProhibited: ui.outcomeProhibited,
-    outcomeRefer: ui.outcomeRefer,
     saving: ui.saving,
     saved: ui.saved,
     notSaved: ui.notSaved,
@@ -63,10 +49,13 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
   const lang = address.lang
   const ui = chrome(lang)
   const uiLang = chromeLang(lang)
-  const words = editorWords(lang)
+  const words = editorWords(ui)
   const links = editorLinks()
   const fieldWords: FieldWords = { missingText: words.missingText, characters: words.characters, lines: words.lines }
   const others: OtherLanguage[] = languages.filter((other) => other !== lang).map((other) => ({ lang: other, href: links.withLang(address, other) }))
+  const outcomes = OUTCOMES.map((outcome) => ({ value: outcome, label: ui[OUTCOME_LABEL[outcome]] }))
+  // The badge leaves `legal` unlabelled under its heading (ADR-78); a select must name every kind.
+  const kinds = KINDS.map((kind) => ({ value: kind, label: ui[SOURCE_LABEL[kind] ?? 'sourceLegal'] }))
 
   const slots: EditorSlots = {
     field(node, path, value, limit, rendered) {
@@ -74,10 +63,10 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
       const localised = LOCALISED.test(path)
       const common = { nodeId: node.id, path, lang: localised ? lang : null, value, limit, others, words: fieldWords }
       if (path === 'terminal.outcome') {
-        return <Field {...common} select={OUTCOMES.map((outcome) => ({ value: outcome, label: outcomeLabel(ui, outcome) }))} label={ui.outcome} className="outcome" classByValue />
+        return <Field {...common} select={outcomes} label={ui.outcome} className="outcome" classByValue />
       }
       if (path.endsWith('.kind')) {
-        return <Field {...common} select={KINDS.map((kind) => ({ value: kind, label: kindLabel(ui, kind) }))} label={ui.sourceKind} />
+        return <Field {...common} select={kinds} label={ui.sourceKind} />
       }
       if (path === 'description') {
         return <Field {...common} rich rendered={rendered} explainers={node.explainers as Explainer[]} />
@@ -98,7 +87,7 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
                 key="add"
                 nodeId={node.id}
                 focusPath={`sources[${node.sources.length}].label.${lang}`}
-                kinds={KINDS.map((kind) => ({ value: kind, label: kindLabel(ui, kind) }))}
+                kinds={kinds}
                 words={{ addSource: ui.addSource, sourceKind: ui.sourceKind, sourceUrl: ui.sourceUrl }}
               />,
             ]}
@@ -113,19 +102,3 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
   }
   return { treeId: address.treeId, links, languages, words, slots }
 }
-
-function outcomeLabel(ui: Chrome, outcome: Outcome): string {
-  return {
-    'not-applicable': ui.outcomeNotApplicable,
-    applicable: ui.outcomeApplicable,
-    prohibited: ui.outcomeProhibited,
-    refer: ui.outcomeRefer,
-  }[outcome]
-}
-
-function kindLabel(ui: Chrome, kind: Source['kind']): string {
-  return { legal: ui.sourceLegal, 'case-law': ui.sourceCaseLaw, literature: ui.sourceLiterature }[kind]
-}
-
-/** The limits are the components' (28.1); exported for the tests that assert the slot's contract. */
-export type { FieldLimit }

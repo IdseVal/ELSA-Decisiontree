@@ -22,12 +22,8 @@ import type { DraftNode } from '../../src/tree/types.ts'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const words = Object.fromEntries(
-  [
-    'missingText', 'characters', 'lines', 'addSource', 'editSource', 'removeSource', 'sourceKind', 'sourceUrl', 'sourceLegal', 'sourceCaseLaw',
-    'sourceLiterature', 'outcome', 'outcomeNotApplicable', 'outcomeApplicable', 'outcomeProhibited', 'outcomeRefer', 'saving', 'saved', 'notSaved',
-    'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview',
-  ].map((key) => [key, key]),
-) as unknown as EditorWords
+  ['missingText', 'characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview'].map((key) => [key, key]),
+) as EditorWords
 const loginWords = { login: 'login', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '' }
 const fieldWords = { missingText: 'Text missing in this language', characters: 'characters', lines: 'lines' }
 

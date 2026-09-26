@@ -38,8 +38,8 @@ import { PUBLIC_LINKS } from '../url.ts'
 import { Explainer } from './Explainer.tsx'
 import { Sheet, type SheetWords } from './Sheet.tsx'
 
-/** The chrome key that names each Terminal outcome (tree-format.md 5.5). */
-const OUTCOME_LABEL: Record<Outcome, ChromeString> = {
+/** The chrome key that names each Terminal outcome (tree-format.md 5.5); the editor's select takes it too. */
+export const OUTCOME_LABEL: Record<Outcome, ChromeString> = {
   'not-applicable': 'outcomeNotApplicable',
   applicable: 'outcomeApplicable',
   prohibited: 'outcomeProhibited',
@@ -111,9 +111,10 @@ export function Bubble({
 
 /**
  * The chrome key that labels a kind of Source. `legal` has none: under the heading "Legal
- * sources" the label only repeats it (ADR-78-sources-heading, decision 2).
+ * sources" the label only repeats it (ADR-78-sources-heading, decision 2). The editor's
+ * select takes it too, and names `legal` itself.
  */
-const SOURCE_LABEL: Partial<Record<Source['kind'], ChromeString>> = {
+export const SOURCE_LABEL: Partial<Record<Source['kind'], ChromeString>> = {
   'case-law': 'sourceCaseLaw',
   literature: 'sourceLiterature',
 }

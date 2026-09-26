@@ -1,6 +1,6 @@
 import { forbidden, notFound } from 'next/navigation'
 import { pageSession } from '../../../../../../admin/authenticated.ts'
-import { editMode, editorWords } from '../../../../../../admin/slots.tsx'
+import { editMode } from '../../../../../../admin/slots.tsx'
 import { loginWords } from '../../../../../../admin/words.ts'
 import { chrome, chromeLang, chromeLanguage } from '../../../../../../chrome.ts'
 import { Disclaimer } from '../../../../../../components/Disclaimer.tsx'
@@ -76,7 +76,7 @@ export default async function EditorPage({ params }: Props) {
     <Editor
       treeId={treeId}
       lang={address.lang}
-      words={editorWords(address.lang)}
+      words={edit.words}
       loginWords={loginWords(address.lang)}
       adminHref={adminHref('/admin', uiLang)}
       nodes={nodes}

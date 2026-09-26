@@ -62,7 +62,6 @@ export function Field({
   rich = false,
   rendered,
   explainers = [],
-  idPrefix = '',
   others = [],
   select,
   label,
@@ -85,7 +84,6 @@ export function Field({
   rendered?: ReactNode
   /** The Node's explainers, for the rich field's own render after an edit. */
   explainers?: Explainer[]
-  idPrefix?: string
   /** The other declared languages, for the rim's tags (28.3). */
   others?: OtherLanguage[]
   /** A select's choices: the field is a `<select>` of them. */
@@ -256,7 +254,7 @@ export function Field({
             {text.trim() === '' ? (
               <span className="prose editor-placeholder">{words.missingText}</span>
             ) : dirty || rendered === undefined ? (
-              <div className="prose" dangerouslySetInnerHTML={{ __html: richTextToHtml(text, { explainers, lang: lang ?? '', idPrefix }) }} />
+              <div className="prose" dangerouslySetInnerHTML={{ __html: richTextToHtml(text, { explainers, lang: lang ?? '', idPrefix: '' }) }} />
             ) : (
               rendered
             )}

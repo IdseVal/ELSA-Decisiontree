@@ -11,10 +11,9 @@
  * `src/components/` imports nothing of `src/editor/` but these types.
  */
 import type { ReactNode } from 'react'
+import type { Chrome } from '../chrome.ts'
 import type { DraftNode, Node, NodeContent } from '../tree/types.ts'
 import type { Links } from '../url.ts'
-
-export type { Links }
 
 export interface EditMode {
   treeId: string
@@ -75,32 +74,24 @@ export interface EditorSlots {
   onTermClick?: string
 }
 
-/** The chrome strings of the editor round the client components take (3.2, 34.1). */
-export interface EditorWords {
-  missingText: string
-  characters: string
-  lines: string
-  addSource: string
-  editSource: string
-  removeSource: string
-  sourceKind: string
-  sourceUrl: string
-  sourceLegal: string
-  sourceCaseLaw: string
-  sourceLiterature: string
-  outcome: string
-  outcomeNotApplicable: string
-  outcomeApplicable: string
-  outcomeProhibited: string
-  outcomeRefer: string
-  saving: string
-  saved: string
-  notSaved: string
-  retrying: string
-  retry: string
-  notEditable: string
-  changedElsewhere: string
-  sessionExpired: string
-  publicBehind: string
-  toOverview: string
-}
+/**
+ * The chrome strings the editor's client components read through `words` (3.2, 34.1): the
+ * field's three and the indicator's and the session Sheet's. The slots hand every other
+ * string -- a select's labels, the add-Source Sheet's -- straight from the chrome.
+ */
+export type EditorWords = Pick<
+  Chrome,
+  | 'missingText'
+  | 'characters'
+  | 'lines'
+  | 'saving'
+  | 'saved'
+  | 'notSaved'
+  | 'retrying'
+  | 'retry'
+  | 'notEditable'
+  | 'changedElsewhere'
+  | 'sessionExpired'
+  | 'publicBehind'
+  | 'toOverview'
+>
