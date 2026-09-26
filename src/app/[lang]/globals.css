@@ -2937,7 +2937,8 @@ fieldset:disabled .admin-submit {
   background: var(--elsa-surface);
   color: var(--elsa-text-muted);
   font-size: 14px;
-  line-height: 1;
+  /* Taller than the glyph's content area, so the word holds nothing larger than itself (10.6). */
+  line-height: 20px;
   font-weight: 700;
 }
 
@@ -3047,7 +3048,6 @@ fieldset:disabled .admin-submit {
 .structure-id {
   margin: 0;
   color: var(--elsa-text-muted);
-  font-family: ui-monospace, monospace;
 }
 
 .structure-confirm {
@@ -3147,7 +3147,6 @@ fieldset:disabled .admin-submit {
 .structure-pick-id {
   flex: none;
   color: var(--elsa-text-muted);
-  font-family: ui-monospace, monospace;
 }
 
 /* Below 480 pixels the row's buttons show their words alone, as the Answer buttons do (10.3). */
