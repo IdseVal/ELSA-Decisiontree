@@ -1,0 +1,168 @@
+
+Running 17 tests using 1 worker
+
+[1/17] [chromium] › tests\browser\admin-no-scroll.spec.ts:198:3 › the editor on the full Node, en, never scrolls at any viewport of 10.6, in every state (28.6)
+  1) [chromium] › tests\browser\admin-no-scroll.spec.ts:198:3 › the editor on the full Node, en, never scrolls at any viewport of 10.6, in every state (28.6) 
+
+    Error: editor (en) at 1280x640: elements whose content is larger than themselves
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "ul.carousel-strip holds 512x48 in 400x48",
+    + ]
+
+      102 |   expect(m.doc.sh, `${where}: taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
+      103 |   expect(m.doc.sw, `${where}: wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
+    > 104 |   expect(m.overflowing, `${where}: elements whose content is larger than themselves`).toEqual([])
+          |                                                                                       ^
+      105 | }
+      106 |
+      107 | /** Measures `address` at every viewport, plain and with each Sheet it offers open in turn. */
+        at record (C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\issue-138\tests\browser\admin-no-scroll.spec.ts:104:87)
+        at editorEverywhere (C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\issue-138\tests\browser\admin-no-scroll.spec.ts:164:5)
+        at C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\issue-138\tests\browser\admin-no-scroll.spec.ts:200:5
+
+    Error Context: tests\browser\.results\admin-no-scroll-the-editor-6ae98-f-10-6-in-every-state-28-6--chromium\error-context.md
+
+    Error Context: tests\browser\.results\admin-no-scroll-the-editor-6ae98-f-10-6-in-every-state-28-6--chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    tests\browser\.results\admin-no-scroll-the-editor-6ae98-f-10-6-in-every-state-28-6--chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace tests\browser\.results\admin-no-scroll-the-editor-6ae98-f-10-6-in-every-state-28-6--chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[2/17] [chromium] › tests\browser\admin-no-scroll.spec.ts:198:3 › the editor on the full Node, nl, never scrolls at any viewport of 10.6, in every state (28.6)
+  2) [chromium] › tests\browser\admin-no-scroll.spec.ts:198:3 › the editor on the full Node, nl, never scrolls at any viewport of 10.6, in every state (28.6) 
+
+    Error: editor (nl) at 1280x640: elements whose content is larger than themselves
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "ul.carousel-strip holds 512x48 in 400x48",
+    + ]
+
+      102 |   expect(m.doc.sh, `${where}: taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
+      103 |   expect(m.doc.sw, `${where}: wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
+    > 104 |   expect(m.overflowing, `${where}: elements whose content is larger than themselves`).toEqual([])
+          |                                                                                       ^
+      105 | }
+      106 |
+      107 | /** Measures `address` at every viewport, plain and with each Sheet it offers open in turn. */
+        at record (C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\issue-138\tests\browser\admin-no-scroll.spec.ts:104:87)
+        at editorEverywhere (C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\issue-138\tests\browser\admin-no-scroll.spec.ts:164:5)
+        at C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\issue-138\tests\browser\admin-no-scroll.spec.ts:200:5
+
+    Error Context: tests\browser\.results\admin-no-scroll-the-editor-4a18a-f-10-6-in-every-state-28-6--chromium\error-context.md
+
+    Error Context: tests\browser\.results\admin-no-scroll-the-editor-4a18a-f-10-6-in-every-state-28-6--chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    tests\browser\.results\admin-no-scroll-the-editor-4a18a-f-10-6-in-every-state-28-6--chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace tests\browser\.results\admin-no-scroll-the-editor-4a18a-f-10-6-in-every-state-28-6--chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[3/17] [chromium] › tests\browser\admin-no-scroll.spec.ts:204:1 › the editor with the session Sheet open never scrolls at the guarantee and at the floor (29.6)
+  3) [chromium] › tests\browser\admin-no-scroll.spec.ts:204:1 › the editor with the session Sheet open never scrolls at the guarantee and at the floor (29.6) 
+
+    Error: editor (en) at 1280x640 with session Sheet open: elements whose content is larger than themselves
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "ul.carousel-strip holds 512x48 in 400x48",
+    + ]
+
+      102 |   expect(m.doc.sh, `${where}: taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
+      103 |   expect(m.doc.sw, `${where}: wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
+    > 104 |   expect(m.overflowing, `${where}: elements whose content is larger than themselves`).toEqual([])
+          |                                                                                       ^
+      105 | }
+      106 |
+      107 | /** Measures `address` at every viewport, plain and with each Sheet it offers open in turn. */
+        at record (C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\issue-138\tests\browser\admin-no-scroll.spec.ts:104:87)
+        at C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\issue-138\tests\browser\admin-no-scroll.spec.ts:215:5
+
+    Error Context: tests\browser\.results\admin-no-scroll-the-editor-5dd02-ntee-and-at-the-floor-29-6--chromium\error-context.md
+
+    Error Context: tests\browser\.results\admin-no-scroll-the-editor-5dd02-ntee-and-at-the-floor-29-6--chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    tests\browser\.results\admin-no-scroll-the-editor-5dd02-ntee-and-at-the-floor-29-6--chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace tests\browser\.results\admin-no-scroll-the-editor-5dd02-ntee-and-at-the-floor-29-6--chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[4/17] [chromium] › tests\browser\editor.spec.ts:91:3 › the regions in place (28.1, 34.7) › every text of the full Node is a field where the public text stands; the pictures are read-only; the up arrow works
+  4) [chromium] › tests\browser\editor.spec.ts:91:3 › the regions in place (28.1, 34.7) › every text of the full Node is a field where the public text stands; the pictures are read-only; the up arrow works 
+
+    Error: page.goto: net::ERR_NO_BUFFER_SPACE at http://127.0.0.1:3400/admin/trees/hidden-draft/full/full
+    Call log:
+      - navigating to "http://127.0.0.1:3400/admin/trees/hidden-draft/full/full", waiting until "load"
+
+
+      91 |   test('every text of the full Node is a field where the public text stands; the pictures are read-only; the up arrow works', async ({ browser }) => {
+      92 |     const { page } = await loggedIn(browser, ANNA)
+    > 93 |     await page.goto(`${origin}/admin/trees/hidden-draft/full/full`)
+         |                ^
+      94 |
+      95 |     await expect(page.locator('h1').locator('textarea')).toHaveValue(FULL_TITLE)
+      96 |     await expect(field(page, 'full', 'description.en').locator('.prose .term')).toHaveText('Bubble')
+        at C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\issue-138\tests\browser\editor.spec.ts:93:16
+
+    Error Context: tests\browser\.results\editor-the-regions-in-plac-70253-ead-only-the-up-arrow-works-chromium\error-context.md
+
+    Error Context: tests\browser\.results\editor-the-regions-in-plac-70253-ead-only-the-up-arrow-works-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    tests\browser\.results\editor-the-regions-in-plac-70253-ead-only-the-up-arrow-works-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace tests\browser\.results\editor-the-regions-in-plac-70253-ead-only-the-up-arrow-works-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[5/17] [chromium] › tests\browser\editor.spec.ts:115:3 › the regions in place (28.1, 34.7) › a Terminal shows its outcome as a select drawn as the badge (28.1)
+[6/17] [chromium] › tests\browser\editor.spec.ts:130:3 › the regions in place (28.1, 34.7) › /admin/trees/<tree> is a 307 to the root Node’s editor (24.1)
+[7/17] [chromium] › tests\browser\editor.spec.ts:138:3 › the regions in place (28.1, 34.7) › an account with no role gets the 403 page, not the login page and not a 404 (24.2)
+[8/17] [chromium] › tests\browser\editor.spec.ts:148:3 › autosave (29) › typing a title saves it, the indicator says so, and the public page shows it after publishing through #136’s route
+[9/17] [chromium] › tests\browser\editor.spec.ts:175:3 › autosave (29) › a title past 80 counted characters: the pill and the outline turn danger, typing goes on, the write is stored, and the indicator says the validator’s own line
+[10/17] [chromium] › tests\browser\editor.spec.ts:205:3 › autosave (29) › a description past 2 estimated lines is stored and marked at the field with V-LINES, the same rule id as the validator’s; nothing is truncated
+[11/17] [chromium] › tests\browser\editor.spec.ts:230:3 › autosave (29) › a refused write (422) keeps the value on screen: the region outlined danger, the indicator not saved with the rule, and nothing reverted
+[12/17] [chromium] › tests\browser\editor.spec.ts:253:3 › autosave (29) › the language switch edits nl without touching en (28.2)
+[13/17] [chromium] › tests\browser\editor.spec.ts:271:3 › autosave (29) › the indicator: saving while a write is in flight, saved with the time, not saved with retrying and a retry button after a failure (29.3, 29.5)
+[14/17] [chromium] › tests\browser\editor.spec.ts:298:3 › autosave (29) › two contexts: a collaborator’s write arrives with the next response, repaints the field not being edited, and the indicator says changedElsewhere (29.7)
+[15/17] [chromium] › tests\browser\editor.spec.ts:317:3 › autosave (29) › a session that expires opens the login form in a Sheet; signing in resumes the queue with the same write (29.6)
+[16/17] [chromium] › tests\browser\editor.spec.ts:339:3 › an empty root Node, and the rim’s tags (28.2, 28.3) › the editor on a new Tree’s root: every region empty with the placeholder, a tag for the language without a text, + addSource
+[17/17] [chromium] › tests\browser\editor.spec.ts:369:3 › an empty root Node, and the rim’s tags (28.2, 28.3) › the full Node, written in both languages, shows no tag; + addSource adds a Source and focuses its label; the Sheet removes it
+  4 failed
+    [chromium] › tests\browser\admin-no-scroll.spec.ts:198:3 › the editor on the full Node, en, never scrolls at any viewport of 10.6, in every state (28.6) 
+    [chromium] › tests\browser\admin-no-scroll.spec.ts:198:3 › the editor on the full Node, nl, never scrolls at any viewport of 10.6, in every state (28.6) 
+    [chromium] › tests\browser\admin-no-scroll.spec.ts:204:1 › the editor with the session Sheet open never scrolls at the guarantee and at the floor (29.6) 
+    [chromium] › tests\browser\editor.spec.ts:91:3 › the regions in place (28.1, 34.7) › every text of the full Node is a field where the public text stands; the pictures are read-only; the up arrow works 
+  13 passed (1.6m)

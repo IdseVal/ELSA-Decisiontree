@@ -249,12 +249,10 @@ export function Field({
               if (!(event.target instanceof Element && event.target.closest('.term'))) setFocused(true)
             }}
           >
-            {dirty || rendered === undefined ? (
-              text.trim() === '' ? (
-                <span className="prose editor-placeholder">{words.missingText}</span>
-              ) : (
-                <div className="prose" dangerouslySetInnerHTML={{ __html: richTextToHtml(text, { explainers, lang: lang ?? '', idPrefix }) }} />
-              )
+            {text.trim() === '' ? (
+              <span className="prose editor-placeholder">{words.missingText}</span>
+            ) : dirty || rendered === undefined ? (
+              <div className="prose" dangerouslySetInnerHTML={{ __html: richTextToHtml(text, { explainers, lang: lang ?? '', idPrefix }) }} />
             ) : (
               rendered
             )}
