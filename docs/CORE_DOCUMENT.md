@@ -470,14 +470,36 @@ owner's words leave a choice:
   10.19 (one Tree per deployment); the Tree id is already in every URL, so every share
   link keeps working (10.34, decided by the Architect on #132).
 - **`/admin` behind a login**: the login page first; once logged in, the same overview with
-  a **+ tile at the top left** that creates a new Tree.
+  a **+ tile at the top left** that creates a new Tree. **[#133] Decided by the Architect
+  (2026-09-26):** the login page is one card with a name, a password and one error that
+  never says which was wrong; it is shown at whatever admin address a visitor asked for and
+  that address opens on success. The creators' overview shows every published Tree plus
+  the hidden ones the creator made or collaborates on (the administrator sees all), the
+  creator's own first, each tile marked published or hidden, the + tile first. The + tile
+  opens a short form -- an id that never changes afterwards because it is in every link,
+  the languages with the first as default, a title per language -- and lands in the editor
+  on the empty root Node. `docs/adrs/ADR-133-admin-routes.md`,
+  `ADR-133-login-and-account-pages.md`, `ADR-133-overview-tiles.md`,
+  `ADR-133-new-tree-form.md`; `docs/specs/application.md` 24 to 27.
 - **The editor looks exactly like the final Tree**: the Node as the end user sees it (3.2)
   with the Bubble's fields editable in place; images uploaded; a term in the text
   labelled to carry an explainer (3.1); a side-bubble with a + that creates an Option and
   its side child; on a new Node, "yes", "no" and "tree ends here" buttons that create the
   next Node and move the editor to it. PROPOSED: "tree ends here" is the Terminal of 3.1
   with its outcome; "yes" and "no" are the Answers; the side-bubble is an Option; nothing
-  new enters the format, which stays `elsa-tree/4` (10.21).
+  new enters the format, which stays `elsa-tree/4` (10.21). **[#133] Confirmed as
+  proposed by the Architect (2026-09-26):** a Node without Links offers `+ Yes`, `Tree ends
+  here` and `+ No` in the Answer row; a fresh yes or no creates its target and the editor
+  navigates to it; "tree ends here" asks for one of the four outcomes; the side-bubble `+`
+  creates an Option and its explanation Node and opens it, editable, in the Overlay of 3.2;
+  an Answer or an Option may also be pointed at an existing Node, since the data is a
+  graph; a step is deleted from its own page and a step nothing reaches stays until
+  someone deletes it. Every field is edited where the end user sees it, one language at a
+  time (the language switch), with the limits of 3.1 shown live and never stopping a
+  keystroke; images are uploaded where they appear and attached only with a credit; a term
+  is marked by selecting it. `docs/adrs/ADR-133-structure-editing.md`,
+  `ADR-133-bubble-edited-in-place.md`, `ADR-133-images-in-the-editor.md`,
+  `ADR-133-explainers-in-the-editor.md`; `docs/specs/application.md` 28 to 32.
 - **Autosave**: every field is saved as it is edited; nobody presses Save.
 - **Hidden until Publish**: a new Tree is not on the end-user pages -- not on the
   overview, not at its URLs, not in the sitemap, the dataset endpoint or the JSON-LD --
@@ -493,7 +515,15 @@ owner's words leave a choice:
   account has every permission on every Tree, present and future, whoever created it**
   (10.32: how its first credential is set).
 - **Similar styling** for every new page: the chrome bar, the disclaimer, the Theme
-  mechanism of 3.2; no second look.
+  mechanism of 3.2; no second look. **[#133] Decided by the Architect (2026-09-26):** the
+  pages that show no Tree -- the overview, the login, the account pages, the new-Tree form
+  -- carry the plain default look of 3.2 with the site's name where a logo would be; the
+  editor carries the Tree's own Theme; the Publish toggle and the collaborators are in a
+  panel that opens from a button at the top right of the editor's bar showing the Tree's
+  state. The editor reuses the end-user components through one optional setting, so the
+  end-user pages are unchanged (10.36, 10.37 for the two things this required that the
+  owner did not say). `docs/adrs/ADR-133-top-panel.md`, `ADR-133-reuse-rule.md`;
+  `docs/specs/application.md` 33, 34.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
@@ -722,3 +752,6 @@ Confirmed by the owner on 2026-09-03:
 | 10.33 | **[#131]** What an autosave does to a Tree that is already published (3.4). | Idse | PROPOSED: a draft that validates in full is what publishing copies to the public copy; while the toggle is on, every valid save reaches the public at once, and an invalid draft (an Answer without a target yet) leaves the last valid public copy in place until the draft is valid again; turning the toggle off hides the Tree at once. **[#132] Frozen as proposed (2026-09-23):** the draft is the same `elsa-tree/4` file with a named set of rules advisory (completeness and size) and the rest blocking; Publish copies it to `tree.json` only when every rule passes and otherwise shows the violations; while published, every write that leaves the draft fully valid replaces the public copy in the same call, and an invalid one leaves the last valid copy with the editor told; the toggle off deletes the public copy and the Tree is 404 at once. `docs/adrs/ADR-132-draft-and-publish.md`; `docs/specs/application.md` 19; `tree-format.md` 7 (Draft column) |
 | 10.34 | **[#131]** One deployment now serves many Trees (3.4; supersedes 10.19): the published ones, with the overview page in front; what becomes of `ELSA_TREE`, how the loader follows the store without a restart, and how the findability documents of section 1 list several Trees. | Architect | ~~**OPEN** -- decided on #132~~ **[#132] Decided by the Architect (2026-09-23):** a deployment serves every published Tree of its store and `/` is the overview; `ELSA_TREE` is dropped and refuses to start when set (no single-Tree pin: one Tree is an overview of one tile); `ELSA_TREES_DIR` becomes `ELSA_SEED_DIR`, read once; the loader still opens one folder and the store holds the set, swapped in place by the write path because the process is the only writer -- no restart, no file watcher; a Tree that fails validation at start is not served and the rest are, the process exiting only for an unusable data directory; `admin` joins the reserved ids; every Node URL, share link and dataset URL keeps working, and the one public address that moves is a Tree's image and theme files, which gain the Tree id because a bare `/images/<file>` names nothing with two Trees. One sitemap, `robots.txt` and `llms.txt` over every served Tree, `lastmod` per Tree, one `Dataset` per Tree on its root page; a hidden Tree is the same 404 as an unknown id everywhere. `docs/adrs/ADR-132-many-trees-per-deployment.md`, `ADR-132-hidden-trees-and-findability.md`; `docs/specs/application.md` 18, 23 |
 | 10.35 | **[#131]** Whether a Tree made in the editor can be given a Theme (3.1: the look travels with the Tree). The owner did not ask; without it a new Tree has the plain default look and the only way to a logo is files placed on the server by hand. | Idse | **OPEN** -- filed as #144, `proposed`, so the owner decides by promoting it or leaving it |
+| 10.36 | **[#133]** The no-scroll rule (3.2, section 9) on the new pages, where the number of Trees on the overview, of accounts and of to-do lines in the Publish panel is not bounded by the format the way a Node's text is. | Architect; Idse may overrule | decided by Architect (2026-09-26): the rule holds on every page -- the document never scrolls -- and the four unbounded lists (the overview's tiles, the accounts list, the new-Tree form's title fields, the panel's body) scroll inside their own box, exactly as the Carousel strip already does inside its row with the owner's acceptance (10.6); the editor's Bubble adds nothing to the text area and fits as the public page fits. `docs/adrs/ADR-133-overview-tiles.md` decision 5, `ADR-133-bubble-edited-in-place.md` decision 7; `docs/specs/application.md` 26.3, 28.6. Paging the tiles was the alternative |
+| 10.37 | **[#133]** JavaScript in the admin area. The end-user pages work without it (3.2, `application.md` 14); the editor's every action -- logging in, autosave, upload -- is a request the browser's script makes, and the store's request format refuses a plain form by design (#132). | Architect; Idse may overrule | decided by Architect (2026-09-26): the admin area needs JavaScript and says so in one sentence where its first control would be; the end-user pages' guarantee is unchanged. A form-encoded login for a reader without script would widen #132's request contract for a page that cannot edit anything without script anyway. `docs/adrs/ADR-133-admin-routes.md` decision 5; `docs/specs/application.md` 24.2, 14 |
+| 10.38 | **[#133]** Adding or removing a language of an existing Tree (3.1: the languages are declared once and every text must carry each). The editor of this round fixes them at creation; the owner did not ask for more. | Idse | **OPEN** -- filed as #147, `proposed`, so the owner decides by promoting it or leaving it (`docs/adrs/ADR-133-new-tree-form.md` decision 6) |

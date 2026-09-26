@@ -168,7 +168,7 @@ the app does depends on a hosting vendor.
 |---|---|
 | Framework | Next.js, App Router, React, TypeScript (strict). Exact versions are pinned in `package.json` by the scaffold issue; the current stable major at that time. |
 | Server-side rendering | React Server Components. The Node page is an `async` server component; the first response to every URL is complete HTML, with the single exception named in 4.3 (the 404 page). |
-| Client-side JavaScript | React plus **four** client components: `Slider` (the slide transition and the pre-rendered neighbours, section 11), `Sheet` (the one overlay: the Overlay of an Option, 10.9; the enlarged Image, 12.3; and the collapsed Options and Sources of 10.5), `Explainer` (the explainer panel's placement, Escape and tap, 10.8) and `ShareButton`. **[#75]** `CarouselButtons` is gone with #78 (the strip has no buttons, 12.2; the Carousel is a server component), and the interim `Thumbnails` of #41 was removed by #43 (section 6). Everything else -- navigation, the up arrow, the Answer buttons, the Option buttons as disclosures, the marked terms, the language switch, the Carousel's strip -- is links, CSS and ordinary form-free markup. **Section 14 states exactly what a reader without JavaScript gets**, and it is a working application, not a degraded one. The 404 page's body is the single exception (4.3). |
+| Client-side JavaScript | React plus **four** client components: `Slider` (the slide transition and the pre-rendered neighbours, section 11), `Sheet` (the one overlay: the Overlay of an Option, 10.9; the enlarged Image, 12.3; and the collapsed Options and Sources of 10.5), `Explainer` (the explainer panel's placement, Escape and tap, 10.8) and `ShareButton`. **[#75]** `CarouselButtons` is gone with #78 (the strip has no buttons, 12.2; the Carousel is a server component), and the interim `Thumbnails` of #41 was removed by #43 (section 6). Everything else -- navigation, the up arrow, the Answer buttons, the Option buttons as disclosures, the marked terms, the language switch, the Carousel's strip -- is links, CSS and ordinary form-free markup. **Section 14 states exactly what a reader without JavaScript gets**, and it is a working application, not a degraded one. The 404 page's body is the single exception (4.3). **[#133]** On the **public** pages that is still the whole list. The admin pages add the editor's client components of 34.4 (`Editor`, `Field`, `LoginForm`, ...), which no public page renders; the admin area needs JavaScript and says so (24.2). |
 | Runtime | Node.js 22 (LTS), in `.nvmrc` and `package.json` `engines`. |
 | Package manager | npm; `package-lock.json` committed; `npm ci` in CI and deployment. |
 | Build output | `output: 'standalone'`: `next build` yields a folder that runs with `node server.js`. |
@@ -255,6 +255,27 @@ New in 0.2: `back`, `startAgain`, `trailMore`, `previous`, `next`, `imageCount`,
 value in `src/chrome.ts`, not strings with a placeholder, so that a language which
 orders the sentence differently is not forced into English word order.
 
+**[#133] The keys of the editor round**, each existing in both languages from the issue that
+adds it (the build fails otherwise, as above); the strings are the build issues', within the
+sentences the sections quote. A key that takes a value is a function, as `up` is.
+
+| Issue | Keys |
+|---|---|
+| #134 | `siteTitle` (the overview's and `llms.txt`'s H1, 23.5, 24.3), `noTrees`, `newTree` |
+| #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save` |
+| #137 | `published`, `hidden`, `notServable`, `treeId`, `treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`, `languages`, `addLanguage`, `makeDefault`, `default`, `languagesFixed`, `title` |
+| #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
+| #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
+| #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused` |
+| #141 | `mark`, `unmark`, `cannotMarkHere`, `explainerLimit`, `term`, `explanation`, `markedIn`, `notMarkedIn` |
+| #142 | `treeState`, `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, `fixed`, `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
+
+The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
+takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
+component (section 6). Each issue appends its block at the end of both language records, so
+two branches conflict in two appended blocks that resolve by keeping both
+(`ADR-133-build-order.md`).
+
 Recorded in `docs/adrs/ADR-5-chrome-languages.md`.
 
 ## 4. URL scheme
@@ -267,6 +288,10 @@ Image       /<tree-id>/images/<file>                             [#132] (was /im
 Theme file  /<tree-id>/theme/<file>                              [#132] (was /theme/<file>, [v0.2])
 Overview    /                                                    [#132] every served Tree (23.2)
 Admin area  /admin/...                                           [#132] the screens (#133) and /admin/api/... (22)
+            /admin                                               [#133] the login page, or the creators' overview (24.1, 26.4)
+            /admin/new  /admin/account  /admin/accounts          [#133] the new-Tree form, the account page, the accounts page (27, 25)
+            /admin/trees/<tree-id>   ->  the root Node's editor  [#133] 307, like /<tree-id>
+            /admin/trees/<tree-id>/<id-1>/.../<id-n>[?lang=<tag>]   [#133] the editor: the Node page's grammar behind the prefix (24.1)
 Dataset     /<tree-id>/tree.json                                 [#118]
 Schema      /schemas/elsa-tree-4.json                            [#118]
 Crawlers    /robots.txt                                          [#118]
@@ -367,7 +392,9 @@ The first Image of `start`:
 | **[#118]** `/<tree-id>/tree.json` where the Tree id is not the served Tree | 404, by the row above; nothing is looked up on disk for it. |
 | **[#118]** `/schemas/<file>` other than a schema this repository publishes | 404. The route serves the published set, not a folder -- the same rule, and the same code path, as the theme route's (5.5). |
 | Reserved Tree ids | `images`, `theme` (**[v0.2]**), `schemas` (**[#118]**) and `admin` (**[#132]**). A Tree of that id cannot be created (422), seeded or imported (skipped, reason printed); `ELSA_TREE` is gone (18.1). |
-| **[#132]** `/admin/...` | Never a Tree page. Without a session: the login page (200, `noindex`); `/admin/api/...` without a session: 401 (22.1). |
+| **[#132]** `/admin/...` | Never a Tree page. Without a session: the login page (200, `noindex`); `/admin/api/...` without a session: 401 (22.1). **[#133]** The login page is rendered **at the address asked for** and reloads it on success; no redirect, no `?next=` (24.2). |
+| **[#133]** An admin page the caller may not see: an editor address of a Tree they have no role on, `/admin/accounts` for a non-administrator, a reserved or unknown Tree id under `/admin/trees/` for a non-administrator | The **403 page** (`forbiddenTitle`, `forbiddenText`, a link to `/admin`), status 403, in the chrome language; never the login page and never a 404 (21.3, 24.2). |
+| **[#133]** An editor address whose path is not a Node of the draft, for a caller with a role | The 404 page above, status 404. |
 | The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. The status is always in the response; the **body** may require JavaScript -- see below. Next.js renders `not-found.tsx` without params, so it cannot know the content language; it therefore takes the chrome language 3.1 resolves from the **Tree's default** language, which is `en` or `nl` and never an arbitrary tag. Because the page renders inside the `[lang]` layout, `<html lang>` around it is the resolved content language of the request -- what `src/url.ts` makes of the segment (4.4): a language the Tree declares, or the Tree's default -- exactly as on every other page, in the document the reader ends up with (for this one page that is the painted document, see below). Every element this page renders carries the chrome language above as its own `lang`: that is 3.1's second half, and the reason each element's own `lang` is never a false statement about the text under it. |
 
 **The 404 body may require JavaScript** (amended 2026-09-05, PR #17). Next.js answers a
@@ -741,7 +768,13 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │       ├── [tree]/images/[file]/route.ts   one image file (5.3); [#132] moved under the Tree id (18.1)
 │   │       ├── [tree]/theme/[file]/route.ts    [v0.2] one theme file (5.5); [#132] moved likewise
 │   │       ├── admin/                    [#132] the admin area: the screens (#133) and
-│   │       │   └── api/...               the route handlers of 22.1, one file per row
+│   │       │   ├── api/...               the route handlers of 22.1, one file per row
+│   │       │   ├── page.tsx              [#133] /admin: the login page or the creators' overview (24, 26.4)
+│   │       │   ├── new/page.tsx          [#133] the new-Tree form (27)
+│   │       │   ├── account/page.tsx      [#133] the caller's name and password (25.2)
+│   │       │   ├── accounts/page.tsx     [#133] the administrator's accounts page (25.3)
+│   │       │   ├── trees/[tree]/page.tsx [#133] 307 to the root Node's editor
+│   │       │   └── trees/[tree]/[...path]/page.tsx   [#133] the editor: authenticated -> permit -> draft -> TreeView with edit (34.7)
 │   │       ├── [tree]/tree.json/route.ts [#118] the dataset endpoint (15)
 │   │       ├── schemas/[file]/route.ts   [#118] the published JSON Schema (15.1)
 │   │       ├── robots.txt/route.ts       [#118] 16.1 (the Sitemap line and the agents)
@@ -762,6 +795,10 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── Slider.tsx       [v0.2] client: the slide transition (11)
 │   │   ├── Logo.tsx         [v0.2] server: the Tree's logo in the chrome bar, or its
 │   │   │                    title as text when the Theme names none (13.2)
+│   │   ├── ThemeStyle.tsx   [#133] server: the one <style> element of 13.1, emitted by every page
+│   │   │                    for the Tree it shows or the default (24.3); the root layout emits none
+│   │   ├── Tile.tsx         [#133] server: one Tree on the overview (26.1)
+│   │   ├── Overview.tsx     [#133] server: the tile grid in its scroll box, public or creators' (26.2, 26.4)
 │   │   ├── ShareButton.tsx  client, unchanged
 │   │   ├── LanguageSwitch.tsx  unchanged
 │   │   └── Disclaimer.tsx   unchanged
@@ -791,6 +828,21 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── loader.ts        openTree and the Tree interface (5.1); [#132] the draft mode and the derived draft schema (19.2)
 │   │   ├── validate.ts      the rules of tree-format.md section 7; [#132] and the draft mode's blocking/advisory tag
 │   │   └── types.ts         the types of elsa-tree/4 (5.1)
+│   ├── editor/              [#133] the editor's client components, leaves (34.4); import measure.ts and markdown.ts only
+│   │   ├── mode.ts          the EditMode type and the slots (34.1, 34.2); server side
+│   │   ├── links.ts         the admin Links: the /admin/trees prefix, adminImageHref (34.3); server side
+│   │   ├── Editor.tsx       client: the provider -- the write queue, the indicator, the session Sheet (29)
+│   │   ├── Field.tsx        client: one editable region, plain or source, with its counter (28)
+│   │   ├── writes.ts        the one caller of fetch against /admin/api/, one function per route used
+│   │   ├── slug.ts          the id proposed from a title or a selection (27.1, 32.1)
+│   │   ├── LoginForm.tsx    client: the login card, on the login page and in the session Sheet (25.1, 29.6)
+│   │   ├── NewTreeForm.tsx  client: the new-Tree form (27)
+│   │   ├── ImageSlot.tsx, AttachSheet.tsx     client: the pickers and the attach dialog (31)
+│   │   ├── Structure.tsx, StepMenu.tsx       client: the three buttons, the side +, the link menu, the picker, the step menu (30)
+│   │   ├── Marker.tsx, ExplainerSheet.tsx    client: marking and the explainer Sheet (32)
+│   │   └── Panel.tsx        client: the top panel (33)
+│   ├── tree/measure.ts      [#133] countedText, countedLength, estimatedLines, moved from validate.ts (28.4); pure
+│   ├── session.ts           [#135] authenticated(): the session resolved for a route handler or a page (20.4, 20.6)
 │   └── instrumentation.ts   startup validation (5.4)
 ├── schemas/elsa-tree-4.json [#118] the format's JSON Schema, served at /schemas/ (15.1)
 ├── scripts/validate.ts      `npm run validate`; [#132] --draft
@@ -852,7 +904,19 @@ config  ->  store                                                          [#132
 store  ->  tree (openTree, validateTree, the byte-form writer), nothing else in src/   [#132]
 tree/  ->  nothing in src/
 next.config.ts  ->  nothing in src/
+app  ->  editor (the pages mount Editor, LoginForm, NewTreeForm, Panel and build the EditMode)   [#133]
+components  ->  editor (the EditMode type only; a slot's element is handed in, never imported)  [#133]
+editor  ->  tree/measure, markdown (both pure), and nothing else in src/                          [#133]
+app  ->  session  ->  store (sessions.resolve)                                                    [#135]
 ```
+
+- **[#133] `src/editor/` is a leaf, like the four client components.** Its modules take
+  strings and ids, reach the write queue through React context, and import of `src/` the
+  two pure modules named -- `tests/editor/imports.test.ts` reads the files and fails on any
+  other import from `src/`, on a `node:` module, on `ajv` or on the schema. `markdown.ts`
+  must therefore stay pure, which it is once `countedText` lives in `tree/measure.ts`
+  (28.4). `src/components/` never imports a client component of the editor: a slot's
+  function (34.2) returns the element, built by the page.
 
 - **[#121] `findability -> assets` is the one edge into `assets.ts` that is not a
   route's.** `llms.txt` names the content and code licences (16.5), and they are the
@@ -901,6 +965,7 @@ detail, not a second place to look.
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. **[#132]** A browser spec that needs its own server starts it with `ELSA_DATA_DIR` a fresh temporary directory and `ELSA_SEED_DIR` the fixture's parent folder (17.1), not with `ELSA_TREE`; `tests/browser/serve.ts` does it. The rows the round adds are in 23.7. Never hand-built `Node` objects; **[#118]** and never a Tree file parsed by the test itself -- a test that wants a Tree opens it through the loader, whatever the serialisation is. (This row read "never YAML read by a test" until #118; the fixtures become `tree.json` with #119, and the rule was never about YAML.) |
 | Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). **[#118]** `tests/fixtures/findability/` (**#120** creates it, **#122** extends it): a two-language Tree whose manifest has **no `description`**, so the `Dataset` and `llms.txt` fall back to the root Node's; whose `title` and one Node `title` carry `&`, `<`, `>`, `"` and a literal `</script>`, so the XML escaping of 16.2 and the JSON escaping of 16.4 are exercised rather than assumed; with one Node holding two `kind: legal` Sources at one URL and one at another, so `isBasedOn`'s most-frequent rule has something to choose; one Node with **no** Source at all; a Terminal and an explanation Node, so the "no `Question`" half of 16.4 has a subject; and a description over 155 counted characters whose 155th character falls inside a word, for the cut. The single-language half of 16.2 and 16.5 uses `tests/fixtures/single-language/`, which already exists. **[#122]** Two corrections to this row, made in building it. The Node title also carries `<!--`, the second sequence 16.4's sink refuses, which this row named for the test but not for the fixture. And **the over-155 description is not in this fixture, because the format forbids it**: a Node `description` is at most 150 counted characters and a Tree `description` is rich text whose reduction is shorter still (`tree-format.md` 5.7), so no valid Tree can exercise steps 3 and 4 of 16.3 -- which is 16.3's own point, that the cut does not fire for a conforming Tree. The cut is asserted on strings in `markdown.test.ts`, where it can be. **[#122]** `tests/fixtures/tied-sources/` is new: one language, two `kind: legal` Sources at two URLs with one citation each, and a `literature` and a `case-law` Source that no count of legal Sources may see -- the tie 16.4 breaks by first occurrence in Node order, which no other fixture can produce. |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
+| **[#133]** The editor round's tests | Section 35: a data directory built by `tests/browser/admin.ts` from fixtures and a table of accounts, never committed; one server per spec through `serveStore`; one login helper; the admin pages under the no-scroll test with `[data-scroll-box]` exempted (26.3); one spec per build issue (35.4); the sweep's admin half (35.5); the public suites run unchanged (35.6). |
 
 **Which tests are unit and which need a browser.** The rule is: a claim about *markup*
 is a unit test; a claim about *layout, motion or network* needs a browser.
@@ -1005,6 +1070,12 @@ back.
 | 10.20 | 3 |
 | 10.22 | 10.4 to 10.6 |
 | 10.23 (PROPOSED) | 10.3: Answers are the children, drawn below; Options are the side children, drawn beside |
+| 3.4 **[#133]** `/admin` shows a login page, then the same overview with a + tile; the editor looks exactly like the final Tree with the fields editable in place | 24, 25.1, 26.4, 28, 34 |
+| 3.4 **[#133]** images uploaded; terms labelled for the explainer; a side-bubble with a +; yes, no and "tree ends here" buttons that create the next Node and move the editor there | 31, 32, 30.4, 30.1 to 30.3 |
+| 3.4 **[#133]** saved automatically; hidden until the Publish toggle in the top-right panel; collaborators invited there | 29, 33.3, 33.4 |
+| 3.4 **[#133]** similar styling for every new page | 24.3 (the chrome bar, the disclaimer, the default Theme), 25, 26.1 |
+| 3.2 / 9 **[#133]** the page never scrolls, on the new pages too | 26.3 (the scroll box, the second exemption), 28.6, 35.4 |
+| 3.4 **[#133]** the end-user pages unchanged in behaviour | 34.1, 34.5, 34.8, 35.6 |
 
 ## 9. Where each decision is recorded
 
@@ -1053,6 +1124,19 @@ back.
 | **[#118]** The JSON-LD: one `@graph`, a `Dataset` by `@id`, a `Question` as the page's `mainEntity`, no `QAPage` | `docs/adrs/ADR-118-json-ld.md` |
 | **[#118]** `llms.txt` generated from the manifest; no `llms-full.txt`, because `tree.json` is it | `docs/adrs/ADR-118-llms-txt.md` |
 | **[#118]** The order of the four build issues #119 to #122 | `docs/adrs/ADR-118-build-order.md` |
+| **[#133]** Five admin pages under `[lang]`; the editor's address is the public grammar behind `/admin/trees`; the login page rendered in place; JavaScript required; every page emits its own Theme | `docs/adrs/ADR-133-admin-routes.md` |
+| **[#133]** The login card with one error; the account page; the administrator's accounts page | `docs/adrs/ADR-133-login-and-account-pages.md` |
+| **[#133]** The tile and the grid in a scroll box (the second exemption); the + tile; the state mark; two groups; every published Tree plus one's own hidden ones | `docs/adrs/ADR-133-overview-tiles.md` |
+| **[#133]** The new-Tree form: an id that never changes, the languages with the first as default, a title per language; the editor on the root Node next | `docs/adrs/ADR-133-new-tree-form.md` |
+| **[#133]** Every field a region in place; the language switch as the editing switch; counters by the validator's functions, typing never stopped; the description as source; the no-scroll rule kept | `docs/adrs/ADR-133-bubble-edited-in-place.md` |
+| **[#133]** 600 ms and blur through one queue; the indicator; a refused write kept; retries; the login Sheet on 401; the response repaints; no polling | `docs/adrs/ADR-133-autosave.md` |
+| **[#133]** Three outlined buttons; plain navigation on creation; the side + opening its aside in the Overlay; re-pointing through a picker; the step menu on the rim; orphans kept | `docs/adrs/ADR-133-structure-editing.md` |
+| **[#133]** The slot and the strip's + as pickers; the credit required before attaching; the enlarged view as the Image's editor; the admin image route | `docs/adrs/ADR-133-images-in-the-editor.md` |
+| **[#133]** Marking a selection in the source; the id from the selection; the explainer Sheet per language; unmarking; the title plain | `docs/adrs/ADR-133-explainers-in-the-editor.md` |
+| **[#133]** The panel as a Sheet down the right edge: Publish with the to-do list, collaborators, this Tree, the administrator; unpublishing asks once | `docs/adrs/ADR-133-top-panel.md` |
+| **[#133]** The `edit` prop with `links` and named slots; `src/editor/` as leaves importing two pure modules; the editor page's bound of twelve | `docs/adrs/ADR-133-reuse-rule.md` |
+| **[#133]** A built data directory, one server per spec, one login helper, the admin pages under no-scroll, the sweep's admin half, the public suites unchanged | `docs/adrs/ADR-133-editor-testing.md` |
+| **[#133]** The lines of #137 to #144 confirmed; #138 gains #135; #138 lands every slot | `docs/adrs/ADR-133-build-order.md` |
 
 ## 10. The tree view
 
@@ -1378,7 +1462,11 @@ one, still hold.
 `overflow: hidden`. No element in the document has content taller or wider than itself,
 with **one exception**: the Carousel strip, which scrolls horizontally inside its own
 400-pixel box on the Bubble's lower outline and is how the Carousel works without
-JavaScript (12.2). The document itself never scrolls at any size, including below the
+JavaScript (12.2). **[#133] And a second, of the same kind**: a `[data-scroll-box]`, which
+scrolls vertically inside its own bounds, carried by exactly the four things the format does
+not bound -- the overview's tile grid, the accounts list, the new-Tree form and the top
+panel's body (26.3) -- and by nothing on a Node page or in the editor's Bubble. The element
+walk below skips both attributes; the document still never scrolls on any page. The document itself never scrolls at any size, including below the
 floor, including while a Sheet or an Overlay is open, including while an explainer
 panel is open, and including during a transition (core document 9, `[#75]`).
 
@@ -1926,6 +2014,16 @@ own datastructures and their logo is displayed". The Theme block is
 string in a `<style>` element in `<head>`, on every page. Nothing else in the
 application writes a colour or a font name.
 
+**[#133] Amended 2026-09-26: every page emits the element, once; the root layout emits
+none.** With many Trees the root layout, given only the `[lang]` segment, cannot know which
+Tree a page shows. One server component, `src/components/ThemeStyle.tsx`, is the only caller
+of `themeStyle` and renders the `<style precedence="high" href="elsa-theme">` element (and
+the `<link rel="icon">`) from wherever a page puts it -- React hoists it into `<head>` by
+the `precedence` attribute. The public Node page emits its published Tree's Theme; the editor
+its **draft's** (24.3); the overview, the four Tree-less admin pages, the 403 and the 404
+pages the default of 13.4. Everything below about the string is unchanged; #134 moves the
+emission (`ADR-133-admin-routes.md`, decision 6).
+
 ```css
 @font-face { font-family: 'Open Sans'; font-weight: 400; font-style: normal;
              src: url('/theme/open-sans-400.woff2') format('woff2'); font-display: swap }
@@ -2078,6 +2176,7 @@ the rows for the Overlay, the explainer panel and the up arrow in
 | The Sheets of 10.5 | Below the guaranteed viewport, a collapsed group falls back to the plain list it collapses -- the markup is present and CSS hides it only where a Sheet can open it. A reader without JavaScript at 360 px sees a longer page laid out to fit, never a control that does nothing. A list longer than one page of eight is pages of nested native disclosures: `next` opens the next page and the stylesheet hides the one before it, so no panel is ever asked to hold more than fits, at any viewport of 10.6 (#41). The control that opened a Sheet stays above its panel, and a second click on it closes the Sheet (#59). |
 | The share button's copy | The address bar. The button is not shown when it cannot work (#86 repairs what it does with script). |
 | The 404 page's body | The single framework exception, 4.3, unchanged. |
+| **[#133]** The admin area | Its every action is a JSON request the browser's script makes (22.1, 20.6), so **the admin area needs JavaScript**: every admin page renders on the server as complete markup and shows, in place of its first control, one `<noscript>` sentence (`needsJavaScript`, 24.2). The guarantee above is the public pages' and is unchanged by the editor round. |
 
 **The rule this leaves for every build issue:** a client component may only enhance
 markup that is already correct without it. If a feature cannot be expressed that way, it
@@ -3056,7 +3155,8 @@ conflict (published, root, uneditable, id taken); **413** too large; **415** wro
 **422** a blocking violation or a malformed body; **429** rate limited.
 
 The screens -- `/admin`, `/admin/trees/<t>/...` -- are #133's and render inside the
-`[lang]` layout like every page.
+`[lang]` layout like every page. **[#133]** They are sections 24 to 33: the addresses in
+24.1, the login page in 25.1, the editor's route in 34.7.
 
 ### 22.2 The unit of a write
 
@@ -3168,7 +3268,9 @@ Every served Tree: its title in the page's language when declared, else in its d
 language with a `lang` attribute on the tile; its logo when its Theme names one; a link to
 its root Node in the page's language or the Tree's default. **Order: by `id`**, so two
 requests agree and no Tree buys the top by renaming (#133 may order the display within
-that). The page's languages are the chrome's, `en` and `nl`: canonical, `hreflang` for both
+that). **[#133]** The tile, the grid and its scroll box are 26.1 to 26.3; the creators'
+overview, with its two groups each in `id` order, is 26.4. The page's languages are the
+chrome's, `en` and `nl`: canonical, `hreflang` for both
 and `x-default`, a `<meta name="description">` from a chrome string; no Tree content beyond
 the titles. No cookie. **No JSON-LD in this round** (an `ItemList` is reserved, not built).
 Zero served Trees: the page says so, in the chrome language.
@@ -3220,3 +3322,826 @@ credential on these routes -- is kept true by 20.5.
 | `findability.spec.ts`, `tests/findability/*.test.ts` (#134) | a data directory with two Trees, one hidden: the hidden id appears nowhere in the sitemap, `llms.txt` or the overview; every route of 23.1 answers 404 for it, identically to an unknown id; `lastmod` differs per Tree; the overview's head (23.2). |
 | `jsonld.test.ts` (#136) | `version` equals the publish count after two publishes. |
 | `tests/browser/admin.spec.ts` (#143) | the walk: administrator, creator, collaborator and visitor, screenshots and measurements. |
+
+## 24. The admin area: routes, chrome and language
+
+**[#133], new -- 2026-09-26.** The owner opened the editor round (core document 3.4,
+#131): `/admin` shows a login page, then "the same front page with the overview", then an
+editor that "looks exactly like the final datastructure". #132 froze what is behind the
+screens (17 to 23); sections 24 to 35 freeze the screens. Recorded in
+`docs/adrs/ADR-133-admin-routes.md`.
+
+### 24.1 The addresses
+
+```
+/admin                                     the login page (no session) or the creators' overview (26)
+/admin/new                                 the new-Tree form behind the + tile (27)
+/admin/account                             the caller's own name and password (25.2)
+/admin/accounts                            the administrator's accounts page; the 403 page for anyone else (25.3)
+/admin/trees/<tree-id>                     307 to the editor of the root Node, like /<tree-id>
+/admin/trees/<tree-id>/<id-1>/.../<id-n>[?lang=<tag>]   the editor: the grammar of 4.1 behind the prefix, 1 <= n <= 50
+/admin/api/...                             the route handlers of 22.1
+```
+
+- **The editor's address is the public address behind `/admin/trees`.** The same
+  `parseUrl`, the same Trail, the same 50-id limit, the same `?lang`; so `trailHref` (the
+  up arrow), `followHref` (the Answer buttons), `withLang` (the language switch) and
+  `centreOf` (10.9: an explanation Node's address renders its parent with the Overlay
+  open) work in the editor unchanged, prefixed by the reuse rule (34.3). The prefix is
+  `/admin/trees/` so that `new`, `account` and `accounts` -- valid Tree ids -- never
+  collide with a Tree.
+- **Logout is a button**, `POST /admin/api/logout`, after which the script goes to `/admin`.
+  No `/admin/logout` address: a `GET` changes nothing (20.6).
+- **Every admin address sits under `[lang]`** by the rewrite of 4.4, which already covers
+  every path. On the four Tree-less pages the segment resolves against the chrome
+  languages as 23.2 resolves the public overview's (`nl` gives Dutch, anything else
+  English); in the editor it resolves against the draft's declared languages as the Node
+  page's does (4.3, 4.4). The content language of the editor is **the language being
+  edited** (28.2); `<html lang>` is it; the chrome follows it by 3.1.
+
+### 24.2 Without a session, without a role, without JavaScript
+
+| Case | Answer |
+|---|---|
+| Any admin page, no session | The **login page (25.1) rendered at that address**, 200, `noindex` (20.9). The login script reloads the same address on 204. No `?next=`, no redirect: nothing to validate. |
+| `/admin/api/...`, no session | 401 (22.1). |
+| An editor address of a Tree the caller has no role on; `/admin/accounts` for a non-administrator | The **403 page**: `forbiddenTitle`, `forbiddenText`, a link to `/admin`, status 403, in the chrome language. Never the login page, never a 404 (21.3). |
+| An editor address whose Tree exists but whose path is not a Node of the draft | The 404 page of 4.3, status 404, for a caller with a role. |
+| A reserved or unknown Tree id under `/admin/trees/` | 403 for a caller without the administrator flag (21.3: the admin area does not say which ids exist); 404 for the administrator. |
+| Any admin page, JavaScript disabled | The page's markup, and in place of its first control one sentence in a `<noscript>`: `needsJavaScript`. **The admin area needs JavaScript**: its every action is a JSON request (22.1, 20.6). Section 14's guarantee is the public pages' and is unchanged. |
+
+### 24.3 The chrome bar and the Theme, per page
+
+| Page | Left | Right | Theme |
+|---|---|---|---|
+| Public Node page | The Tree's logo or title | language switch, share button | The published Tree's |
+| Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
+| Login page | `siteTitle` | language switch | The default |
+| Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, the caller's name (a link to `/admin/account`), `accounts` (administrator only, a link), `logout` | The default |
+| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), the panel button (33.1), the caller's name, `logout`. **No share button.** | **The draft's** |
+| The 404 and 403 pages | `siteTitle` | language switch | The default |
+
+The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
+one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
+is the content language on a Node page and in the editor, the chrome language on every other
+page; the mechanism by which the root layout learns it with many Trees is #134's inside this
+contract (`ADR-133-admin-routes.md`, decision 6), recorded as an amendment there.
+
+## 25. The login page, the account page and the accounts page
+
+**[#133], new -- 2026-09-26.** Recorded in `docs/adrs/ADR-133-login-and-account-pages.md`.
+All three pages are in the default Theme; the document never scrolls (10.6).
+
+### 25.1 The login page
+
+One centred card, 360 pixels wide, `surface` on the page's `background`, outlined in the
+`rule` shade: the heading `signIn`; a text field `login` (`autocomplete="username"`); a
+password field `password` (`autocomplete="current-password"`); one button `signIn` in the
+Answer buttons' style; one error line with `role="alert"`; under the card the sentence
+`loginHelp` ("Ask your administrator for an account or a new password").
+
+```
++------------------------------------------------------------------+ 44   chrome bar
+| ELSA decision trees                                  [language]  |
++------------------------------------------------------------------+
+|                  +----------------------------+                  |
+|                  |  Sign in                   |                  |
+|                  |  Name      [____________]  |                  |
+|                  |  Password  [____________]  |                  |
+|                  |  [        Sign in        ] |                  |
+|                  |  Wrong name or password.   |  <- 401          |
+|                  +----------------------------+                  |
+|            Ask your administrator for an account ...             |
++------------------------------------------------------------------+ 28   disclaimer
+```
+
+| Response of `POST /admin/api/login` | Shown |
+|---|---|
+| 204 | The current address is reloaded (24.2). |
+| 401 | `loginFailed` -- one string for a wrong name **and** a wrong password (20.7). The password field is cleared; the name is kept. |
+| 429 | `loginLocked` ("Too many attempts. Try again in a few minutes."). |
+| network failure, 5xx | `requestFailed`. |
+
+The form is one client component, `LoginForm` (`src/editor/LoginForm.tsx`), which the
+editor also mounts in a Sheet when a session expires (29.6). It sends
+`application/json`; a `<noscript>` shows `needsJavaScript` in its place (24.2).
+
+### 25.2 The account page, `/admin/account`
+
+Any logged-in account. Two cards of 25.1's shape: **`yourName`** -- one field, 1 to 80
+characters with a live counter (20.1), `save` → `PATCH /admin/api/accounts/<own id> { name }`;
+**`changePassword`** -- `currentPassword`, `newPassword`, `repeatPassword` (12 to 256; equal,
+checked before sending: `passwordsDiffer`), `save` → `{ password, currentPassword }`. A 422 at
+its field; a 403 → `wrongPassword` at the current password. Under the button the sentence
+`sessionsEnded` (20.4: every other session of the account ends).
+
+### 25.3 The accounts page, `/admin/accounts`
+
+The administrator only (the 403 page for anyone else). A button `newAccount` above a list in
+a **scroll box** (26.3) with one row per account: name, login, `active` / `deactivated`,
+`administrator` on the one; per row, for every account but the administrator's: `deactivate`
+/ `reactivate` (`PATCH { active }`) and `setPassword` (a Sheet with one field, `PATCH {
+password }`). `newAccount` opens a Sheet with `name`, `login`, `password` and `create` (`POST
+/admin/api/accounts`); a 422 at its field. Nothing is deleted (20.1); no hash, token or
+session is shown, because no route answers one.
+
+## 26. The overview: tiles, the + tile, which Trees
+
+**[#133], new -- 2026-09-26.** 23.2 gave the public overview its list, its order and its
+head; this section gives it its look, and the creators' overview its additions. Recorded in
+`docs/adrs/ADR-133-overview-tiles.md`; confirms core document 3.4's PROPOSED reading of
+which Trees a creator sees.
+
+### 26.1 The tile
+
+280 x 160 pixels, one link to the Tree's root Node in the page's language or the Tree's
+default (23.2), `surface` outlined in the `rule` shade with 8-pixel corners and a wash of
+`accent` on hover (the Option button's look, 10.3, at a larger size). Top to bottom: the
+Tree's **logo** when its Theme names one, at most 40 pixels tall; the **title** in the
+page's language when declared, else in the default language with `lang` on the tile
+(23.2), 18 pixels bold on 24-pixel lines, at most two lines; the **description** -- the
+manifest's, through `plainDescription(...).cut` (16.3), at most 155 characters -- 14 pixels
+on 20-pixel lines, at most three lines, or nothing; the **languages** as upper-case tags.
+Every tile is drawn in **the page's Theme** (the default): the logo is the identity, not the
+palette.
+
+### 26.2 The grid
+
+One box between the chrome bar and the disclaimer, padded 24, columns 280 wide with 20-pixel
+gaps, as many as fit (`auto-fill`), never fewer than one; tiles left-aligned. At 1280 x 640:
+four columns (1180 of 1232) and three rows (520 of 520): twelve tiles in view; the
+thirteenth is below the fold **of the box**.
+
+```
++------------------------------------------------------------------------------+ 44
+| ELSA decision trees                          [language] Anna  Accounts  Log out|
++------------------------------------------------------------------------------+
+|  +-----------+  +-----------+  +-----------+  +-----------+                  |
+|  |    +      |  | [logo]    |  | Title     |  | [logo]    |                  |
+|  |           |  | Title     |  | Descr...  |  | Title     |    the box       |
+|  | New tree  |  | Descr...  |  | EN        |  | Descr...  |    scrolls;      |
+|  |           |  | EN NL  o  |  |  hidden   |  | EN NL  o  |    the page      |
+|  +-----------+  +-----------+  +-----------+  +-----------+    never does    |
+|  +-----------+  +-----------+                                                |
+|  | ...       |  | ...       |                                                |
++------------------------------------------------------------------------------+ 28
+|                        This tool is not legal advice.                        |
++------------------------------------------------------------------------------+
+```
+
+### 26.3 The scroll box: the second exemption of 10.6
+
+The grid's box is marked `data-scroll-box` and **scrolls vertically inside its own bounds**;
+the document never scrolls. It is a native scroll container (no script, keyboard-reachable).
+`no-scroll.spec.ts`'s element walk skips `[data-scroll-box]` as it skips
+`[data-carousel-strip]`. The attribute is carried by exactly four things, the ones the
+format does not bound: this grid, the accounts list (25.3), the new-Tree form (27.1) and the
+body of the top panel (33.2). Nothing else may carry it: the Bubble, an Overlay, every other
+Sheet holds what the format bounds and fits or is a defect.
+
+### 26.4 The creators' overview, `/admin`
+
+The same page with three additions:
+
+- **The + tile**, first, top left: the tile's box outlined dashed in `rule`, a 48-pixel `+`
+  in `accent-secondary`, the words `newTree`; a link to `/admin/new`.
+- **A state mark** in every other tile's bottom right corner: a dot and `published` (in
+  `accent-secondary`) or `hidden` (`text-muted`); on a published Tree that is not servable
+  (18.3), `notServable` in `danger` and the tile links to the editor, where the panel lists
+  the violations.
+- **The link**: a tile the caller has a role on (21.1) goes to `/admin/trees/<id>/<root>` in
+  the page's language; a tile with no role goes to the public page as on `/`.
+
+**Which Trees, and in what order** (core document 3.4, confirmed): every published Tree,
+plus every hidden Tree the caller is creator of or collaborator on; the administrator sees
+every Tree. Two groups, each in `id` order (23.2's rule inside each): first the Trees the
+caller has a role on (`store.drafts.list(by)`), then every other published Tree
+(`store.publishedIds()` less the first group). The public overview has one group. Zero
+Trees: `noTrees` on `/`; the + tile alone on `/admin`.
+
+## 27. Creating a Tree
+
+**[#133], new -- 2026-09-26.** Recorded in `docs/adrs/ADR-133-new-tree-form.md`.
+
+### 27.1 The form, `/admin/new`
+
+One card of 520 pixels in a scroll box (26.3), holding in this order:
+
+| Field | Contract |
+|---|---|
+| `treeId` | The id grammar of `tree-format.md` 3.1, with `treeIdHint` under it and the address the Tree will have (`/<id>/start`) shown live. **Proposed by the script from the first title typed** (lower-cased, every run outside `[a-z0-9]` → one hyphen, trimmed, cut to 64) until the creator edits the field. Under it, `treeIdFixed`: **the id never changes after creation** -- it is the folder name (17.2) and is in every URL and share link (4.1). No rename exists on any route. |
+| `languages` | A row of tags with a field to add one (the tag grammar of 3.3, checked in the script); `en` and `nl` as one-click buttons; a `remove` cross on every tag but the last; `makeDefault` on every tag but the first. **The first tag is the default language** (3.3), marked `default`. Opens with the page's chrome language as its one tag. `languagesFixed`: the languages cannot be changed after creation in this round (#147, `proposed`). |
+| `title`, per language | One field per tag in tag order, labelled by the tag, with the 80-character counter of 28.4. May be left empty in a language: then V-L10N's to-do (19.2). |
+| `create` | One button in the Answer buttons' style. |
+
+The Tree's **description** is not here: it is a manifest field edited in the top panel
+(33.5). Nothing else is asked.
+
+### 27.2 What happens
+
+`POST /admin/api/trees { id, languages, title }` (22.1). 201 → the script goes to
+`/admin/trees/<id>/start` in the page's language when declared, else the Tree's default:
+the editor on the empty root Node (28), which is hidden until published (19). Errors at the
+field: 409 → `treeIdTaken`; 422 for a reserved word (`images`, `theme`, `schemas`, `admin`)
+→ `treeIdReserved`; 422 for a malformed id or tag → the hint in `danger` (the script checks
+both grammars before sending). Nothing is created on an error; the fields keep their values.
+
+## 28. The editor: the Bubble edited in place
+
+**[#133], new -- 2026-09-26.** The editor is the tree view of section 10, rendered by the
+same components through the reuse rule (34), on the draft (19), with every field an
+editable region where the end user sees it. Recorded in
+`docs/adrs/ADR-133-bubble-edited-in-place.md`.
+
+### 28.1 The fields
+
+Each is rendered by the client component `Field` through the `field` slot (34.2), with the
+path of 22.2 and the limit of 5.7:
+
+| Where | Field | Path | Limit |
+|---|---|---|---|
+| The heading | title | `title.<lang>` | 80, plain |
+| The text | description | `description.<lang>` | 150 and 2 lines, rich (28.5) |
+| Each Source's line | label | `sources[i].label.<lang>` | 60, plain |
+| A Source's `...` Sheet | kind (a select), URL, `removeSource` | `sources[i].kind`, `sources[i].url` | -- |
+| After the last Source | `+ addSource` (absent at 3) | `add-source` with an empty label, kind `legal` | -- |
+| The rim of a Terminal | outcome, a select drawn as the badge | `terminal.outcome` | -- |
+| An Option button | the Option's title | `options[i].title.<lang>` | 60, plain |
+| The enlarged view | an Image's description, credit | `images[i].description.<lang>`, `images[i].credit` | 120, 120 (31.3) |
+| The explainer Sheet | term, text | `explainers[i].term.<lang>`, `explainers[i].text.<lang>` | 40, 200 (32.2) |
+| The top panel | the Tree's title, description | `title.<lang>`, `description.<lang>` on the manifest | 80; 600 and 8 lines (33.5) |
+
+A plain field is one line: Enter blurs it, a pasted line break becomes a space (V-PLAIN is
+blocking). A region is the box the public text takes, outlined 1 pixel in `rule` inside the
+box on hover and focus only.
+
+```
++--------------------------------------------------------------------------------+ 44
+| [logo] AI Act (draft)   [language] Saved · Title: 93 of 80   Tree: Hidden (3)  Anna  Log out |
++--------------------------------------------------------------------------------+
+|                          (o)  [ ^ ]  (...)                          56         |  badge left, step menu right of the arrow
+|                       .----'         '----.                                    |
+|   +--------+     .-'     [ + picture ]      '-.     +--------+                 |
+|   |( ) Opt |----'      ___________________     '----|  +     |    <- side +    |
+|   +--------+          |Title being typed_ |   93/80 |  New   |    <- counter   |
+|                       (   Description ...  )         side    |       pill on   |
+|                       ( [providers](#provi )  nl -   bubble  |       the rim   |
+|                       (   LEGAL SOURCES     )        +--------+    <- missing- |
+|                        '.  Art 2  [+ add]  .'                        language  |
+|                          '----(o)(o)(+)---'          <- strip with its +       |
++--------------------------------------------------------------------------------+
+|   [ + Yes            ]  [ Tree ends here ]  [ + No             ]               |  68  three outlined buttons (30.2)
++--------------------------------------------------------------------------------+
+|                    This tool is not legal advice.                              |  28
++--------------------------------------------------------------------------------+
+```
+
+### 28.2 One language at a time
+
+The chrome bar's `LanguageSwitch` (unchanged) lists the draft's declared languages; the
+page's language (4.1) is the one every field edits and saves under. A field with no text in
+that language is an empty region showing `missingText` as a placeholder in `text-muted`,
+never saved as such.
+
+### 28.3 The rim: the counter and the missing languages
+
+While a field has the focus the **right rim** (60 pixels, 10.1) shows at the field's height a
+**counter pill** (`n / max`; for the description also `lines / 2`) and under it one **tag per
+other declared language that has no text for this field**, each a `withLang` link to the
+same page in that language. Nothing on the rim takes a pixel from the text area (10.1). The
+Overlay's Interior has the same rim (its 60-pixel sides, 10.9).
+
+### 28.4 The limits, live
+
+`n` is `countedLength` and `lines` is `estimatedLines` of `tree-format.md` 3.8, computed in
+the browser by **the validator's own functions**, which move to `src/tree/measure.ts`
+(pure; `validate.ts` re-exports them). **Typing never stops at a limit.** Over it: the pill
+and the region's outline turn `danger`, the write goes and is stored (22.3: 200 with
+V-LENGTH or V-LINES), the validator's message ("Title: 93 of 80 characters") is shown in the
+autosave indicator (29.3) while the field is focused or was last edited, and in the panel's
+to-do list (33.3). Publish is the wall (19.3).
+
+### 28.5 The description: source text
+
+Blurred, the region shows the **rendered** text (`richTextToHtml` with the Node's explainers,
+on the client after an edit, so marked terms look and hover as on the public page).
+Focused, it shows the **source**: the subset of 3.4 as written -- `*emphasis*`, `**strong**`,
+`- ` and `1. ` lists, `[text](https://...)`, `[term](#id)` -- Enter a line break, a blank line
+a paragraph. **No toolbar, no WYSIWYG.** A pasted text is plain; `<` followed by a letter,
+`/` or `!` is refused at the field with V-HTML's message before sending (blocking). The one
+control is `mark` (32.1).
+
+### 28.6 The no-scroll rule in the editor
+
+Unchanged. Every control the editor adds is outside the text area: the counter and tags on
+the rim; the violation and the save state in the chrome bar; the structure buttons in the
+Answer row (30.2); the side `+` in the fan's next free slot (30.5); the strip's `+` in the
+strip band (31.1); the outcome select where the badge is; the step menu on the rim above
+(30.8); everything else in a Sheet. `tests/fixtures/full-node/` as a draft fits in the editor
+as on the public page; `admin-no-scroll.spec.ts` measures it with every Sheet open (35.4).
+Below the guarantee the editor gives things up in 10.5's order; a collapsed Sources block is
+edited in its Sheet.
+
+### 28.7 Not offered
+
+A Node's `metadata` (19.6); a Source's `id` and an Image's `source`; the manifest's `root`;
+the languages after creation (#147); a step counter (5.8: text in the title); cropping or
+resizing (31.8); a Theme (#144).
+
+## 29. Autosave
+
+**[#133], new -- 2026-09-26.** Recorded in `docs/adrs/ADR-133-autosave.md`.
+
+### 29.1 When
+
+A field is written **600 ms after the last keystroke** in it and **on blur**, when its value
+differs from the last written or received; an operation at once. A write in flight is not
+cancelled by a newer value; the newer value queues behind it.
+
+### 29.2 One queue per page
+
+Every write of the page -- field or operation, the Node's, an Overlay's, the manifest's --
+goes through one client queue, one request in flight, in order; `revision` (22.3) rises
+monotonically as seen from the page. The queue is the `Editor` provider's (34.4).
+
+### 29.3 The indicator
+
+In the chrome bar between the language switch and the panel button, a `role="status"` region
+of at most 320 pixels:
+
+| State | Shown |
+|---|---|
+| queue non-empty | `saving` |
+| queue drained | `saved`, with the time for 5 seconds |
+| a write refused or failed | `notSaved` in `danger`, with the reason (29.4, 29.5) |
+| a field over its limit (28.4) | after the state word: the violation's message |
+| a published Tree whose public copy is behind (19.4) | after the state word: `publicBehind` |
+| a collaborator's value arrived (29.7) | `changedElsewhere` for 5 seconds |
+
+Never a token, an account id or a request body.
+
+### 29.4 Refused
+
+| Answer | The editor |
+|---|---|
+| 422 (a blocking rule) | The region outlined `danger`, `notSaved` with the violation's message; **the value stays on screen**; not written again until it changes. Nothing is reverted. |
+| 403, 404, 409 (role removed; Tree deleted; uneditable, 19.5) | `notEditable` with the reason; every region read-only; the panel links to `/admin`. |
+| 401 | 29.6. |
+
+### 29.5 Failed
+
+A network failure or 5xx is retried after 5, 10, 20, 40, 60 seconds and every 60 after, the
+indicator at `notSaved` and `retrying` with a `retry` button. While the queue holds a write
+not yet accepted, leaving the page asks the browser's one `beforeunload` confirmation. The
+queue is memory only; the indicator is what says so.
+
+### 29.6 A session that expires
+
+A 401 pauses the queue, keeps every value, and opens `LoginForm` (25.1) in a Sheet titled
+`sessionExpired`, without a close cross (nothing else can be done; `/admin` is a link in it).
+On 204 the Sheet closes and the queue resumes.
+
+### 29.7 The response repaints; concurrency on screen
+
+Every response's Node (and each in `also`) replaces the value of every region of those Nodes
+**that does not have the focus and has no write queued**, and updates the rim's tags, the
+counters, the Option and Answer titles. A region whose value changed from what the screen
+showed -- another collaborator's write, 22.5 -- is outlined in `accent` for 5 seconds and
+the indicator says `changedElsewhere`; the newer text wins and nothing asks. **No polling, no
+push**: a collaborator's write is seen on this page's next write or a reload.
+
+## 30. The structure
+
+**[#133], new -- 2026-09-26.** Confirms core document 3.4's PROPOSED reading: "yes" and
+"no" are the Answers, "tree ends here" the Terminal with its outcome, the side-bubble an
+Option; nothing new enters `elsa-tree/4`. Recorded in `docs/adrs/ADR-133-structure-editing.md`.
+
+### 30.1 The three situations of a Node's Links, in the Answer row
+
+| The draft Node has | The Answer row shows |
+|---|---|
+| no `answers`, no `terminal` (an explanation Node by 19.2, whatever its Options; the editor does not look for Options that point at it -- V-OPTIONS reports that case, advisory) | **Three outlined buttons** in the Answer buttons' style, `accent-secondary` outline on `surface`, 400 x 60 with 20-pixel gaps: `+ Yes`, `treeEndsHere`, `+ No`. The words alone below 480 pixels (10.3). |
+| one Answer | The filled button for it (`Yes: <title>`, 620 x 60) and the outlined `+` for the other. |
+| both Answers | The public row. |
+| `terminal` | `startAgain`, as public; the badge on the rim is a select of the four outcomes (`terminal.outcome`). |
+
+### 30.2 Creating an Answer target
+
+`+ Yes` / `+ No` → `POST .../nodes { from: { node, link: 'yes' | 'no' } }` (22.1: the Node and
+the Link in one write) → the editor **navigates** to `followHref` of the new Node: a plain
+navigation, no slide (34.5). The new Node is empty (no title, no description, the three
+buttons); its id is the server's (22.4), never proposed by the editor.
+
+### 30.3 Ending
+
+`treeEndsHere` opens a Sheet: the four outcomes as radio choices labelled with their badge
+texts, `confirm` → `POST .../nodes { from: { node, link: 'end', outcome } }`. The page
+repaints: the badge, `startAgain`. A Node with Options cannot end (V-TERMINAL, 422 shown in
+the Sheet): remove the Options first. `removeEnd` is in the step menu (30.8).
+
+### 30.4 The side-bubble +
+
+On a question Node and on an explanation Node shown as the centre, the fan (10.3) gets in
+its **next free slot of the alternating order** a button of the Option button's size, dashed
+`rule` outline, `+` where the picture is, `newSideBubble` where the title is; absent at
+eight Options. It opens a Sheet: `createNew` (one field, the title in the page's language →
+`POST .../nodes { from: { node, link: 'option' }, title }`: the Node and the Option with that
+title in one write) or `linkExisting` (the picker, 30.6 → `add-option { target }`). After a
+creation the editor navigates to **the aside's address under this page**,
+`<path>/<new id>`, which by 10.9 renders this page with the new Overlay open.
+
+### 30.5 An aside is edited in the Overlay
+
+The Overlay's Interior (10.9) is rendered by the same component with the `edit` seam: its
+title, description, Sources and main image are fields and slots as the centre's, with the rim
+inside the panel. The **Option's own title** (`options[i].title.<lang>`) is edited on the
+Option button. The Overlay's list of second-level Options stays plain links and gains a last
+entry, `+ newSideBubble`, which creates a second-level Option and navigates to the deeper
+address. The Overlay's heading link (10.9) leads to the aside's own page, where it gets a fan,
+its own asides and its step menu. Nothing is edited in two places.
+
+### 30.6 Re-pointing: the link menu and the picker
+
+Every Answer and Option button carries, in edit mode, a `...` control at its outer end
+(`linkMenu`) opening a Sheet: `changeTarget` and `removeLink` (`remove-answer` /
+`remove-option`). `changeTarget` opens **the picker**: every Node of the draft by its title in
+the page's language in file order with its id in `text-muted`, the current Node excluded --
+from `nodeIds()` and `getTitle` (5.1: ids and titles, never Nodes) -- and, for an Answer,
+`createNew` above. Choosing → `set-answer { yes|no, target }`, or `add-option { target }`
+after `remove-option`. **A target of the wrong kind is stored and reported** (V-ANSWERS,
+V-OPTIONS advisory) at the button and in the to-do: the picker cannot know a kind from a
+title and the editor reads no Node to find out. Two Answers may reach one Node; one aside
+may hang under several Nodes; nothing is copied.
+
+### 30.7 Removing a Link
+
+`removeLink` removes the Answer or the Option; **the target stays** in the draft.
+
+### 30.8 The step menu: deleting a Node
+
+In edit mode the rim above holds, in the half of the band **right** of the up arrow (the
+badge has the left half, 10.1), a 24-pixel round `stepMenu` (`...`) opening a Sheet with the
+step's id in `text-muted` and: `removeEnd` on a Terminal; `deleteStep` on every Node but the
+root, then `confirmDelete` in place naming the step's title → `DELETE .../nodes/<n>` (22.4:
+every Link to it goes in the same write; `also` says which Nodes lost one) → the editor goes
+to the parent (`trailHref`) or, with no Trail, to the root. A delete removes **one step,
+never a sub-tree**: what it led to stays.
+
+### 30.9 Orphans
+
+A Node nothing reaches any more is V-REACH's advisory (19.2): listed in the panel's to-do
+with a link to its editor page, where `deleteStep` is; **never deleted by the editor on its
+own**. Publish refuses while one exists.
+
+## 31. Images in the editor
+
+**[#133], new -- 2026-09-26.** Recorded in `docs/adrs/ADR-133-images-in-the-editor.md`.
+
+### 31.1 Two pickers
+
+| Where | What |
+|---|---|
+| The **empty slot** of 10.3 | A button: `+`, `addPicture`, a file input accepting `image/png, image/jpeg, image/gif, image/webp`, a drop target for one file. The first upload is the main image (5.2). |
+| The **strip's end** (or alone, on a Node with one Image) | A `+` thumbnail of 48 pixels, dashed outline, the same input and drop target; absent at ten Images. |
+
+Dropping anywhere else does nothing.
+
+### 31.2 Upload, then attach
+
+`POST .../images` (multipart, 22.6) → 201 → the **attach Sheet**: the picture (through the
+admin image route, 31.5), the server's file name, `credit` (120, plain, **required**: `attach`
+is disabled while empty), `description` for the page's language (120, plain, optional now),
+`attach` / `cancel`. `attach` → `add-image { file, credit, description }` through the queue;
+the page repaints. `cancel` → `DELETE .../images/<file>` (a 409 is ignored). **Nothing is
+attached without a credit** (core document 10.12, 10.26); the store's advisory for an empty
+one (19.2) is never exercised by the editor.
+
+### 31.3 The enlarged view is the Image's editor
+
+The Sheet of 12.3, with the two lines under the picture as fields (`images[i].description.<lang>`,
+`images[i].credit`, counters and tags beside them) and four controls: `makeMain`
+(`move-image` to 0; absent on the main image), `moveEarlier`, `moveLater` (absent at the
+ends), `removeImage`. The slot and the strip repaint from the response.
+
+### 31.4 Removing
+
+`remove-image`, then best-effort `DELETE .../images/<file>` (409 while still referenced is
+ignored; the store sweeps after a publish, 22.6). No confirmation.
+
+### 31.5 A draft's pictures
+
+In edit mode every `<img>` and enlarge link -- Bubble, strip, Overlay, Option buttons -- is
+`links.image(file)` = `adminImageHref(treeId, file)` (34.3, 22.6). The public page is
+untouched. When an Image is attached to, moved on or removed from the Node in an open
+Overlay, the **Option button's picture** on the same page repaints from the response (10.29).
+
+### 31.6 Errors, at the picker
+
+413 → `fileTooLarge`; 415 → `fileTypeRefused`; 422 → its message; in the indicator, the
+picker staying put. The tenth Image's `+` is absent, so V-COUNT is not asked for.
+
+### 31.7 Width and height
+
+The upload's `{ width, height }` feed the enlarged view's `<img width height>`; the strip's
+48 x 48 and the main image's 3 : 2 box are the stylesheet's.
+
+### 31.8 Not offered
+
+Cropping, resizing, rotating; an Image's `source` pointer; a picture on an Option (5.4); the
+Theme's logo (#144).
+
+## 32. Explainers in the editor
+
+**[#133], new -- 2026-09-26.** Recorded in `docs/adrs/ADR-133-explainers-in-the-editor.md`.
+The format is 5.9: at most eight per Node, `term` 40, `text` 200, per language; every
+explainer marked in every language (V-EXPLAINER) and every mark naming one (V-MARK), both
+advisory in a draft. **The title carries no mark** (3.4; confirmed).
+
+### 32.1 Marking
+
+While the description is focused (source state, 28.5) and a selection lies inside it, the
+right rim shows under the counter pill one button, `mark`. Pressing it: derives the id from
+the selection (the slug of 27.1, cut to 64, `-2`, `-3` while taken on this Node); queues
+`add-explainer { id, term: { <lang>: <selection> }, text: { <lang>: '' } }`; replaces the
+selection by `[<selection>](#<id>)` and queues the description write; opens the explainer
+Sheet with `text` focused. Disabled with `cannotMarkHere` for a selection over a line break,
+inside `*emphasis*` or `**strong**`, or inside a mark; with `explainerLimit` at eight.
+
+### 32.2 The explainer Sheet
+
+Titled by the explainer's `term` in the page's language (or its id while empty). Per declared
+language, in manifest order, the page's first: `term` (40, plain), `text` (200, plain), each
+with its counter inside the Sheet -- every language of one explainer in one place. Per
+language, `markedIn` / `notMarkedIn` from V-EXPLAINER's advisory. Under the fields: `unmark`.
+
+### 32.3 A marked term in the editor
+
+Rendered state: bold in `accent-secondary`, the panel on hover and focus as 10.8 (the same
+`Explainer` component); a **click** or Enter opens the explainer Sheet (the one change of
+edit mode on that element, a prop only the editor sets). Source state: the syntax, editable
+by hand; a mark to no explainer is V-MARK's advisory, kept as written (19.2).
+
+### 32.4 Unmarking
+
+`unmark` replaces every `[text](#<id>)` of that id in **the page's language's** description
+by its text and writes it; when no declared language's description marks the id any more,
+`remove-explainer { id }`; otherwise the explainer stays and V-EXPLAINER reports it until
+marked again or unmarked everywhere. Deleting the syntax by hand does the same to the
+description and nothing to the explainer (then the to-do, with `remove` beside it). The id
+is stable and shown only in the source and the Sheet's title while the term is empty.
+
+## 33. The top panel
+
+**[#133], new -- 2026-09-26.** Recorded in `docs/adrs/ADR-133-top-panel.md`.
+
+### 33.1 The button
+
+Top right of the editor's chrome bar, before the caller's name: a dot and the Tree's state --
+`hidden` (`text-muted`), `published` (`accent-secondary`), `published` + `notServable`
+(`danger`, 18.3), `published` + `publicBehind` (`accent`, 19.4) -- and the to-do count in
+brackets when not zero: "Hidden (3)". From `GET /admin/api/trees/<t>` at load and every write
+response's `tree` afterwards (22.3).
+
+### 33.2 The panel
+
+A Sheet down the right edge, 400 pixels wide, from under the chrome bar to above the
+disclaimer, over the scrim (10.5's rules: Escape, cross, click outside; focus to the cross;
+one Sheet at a time). Its body is a scroll box (26.3). Four sections:
+
+```
++--------------------------------------+
+|  Tree: Hidden (3)                 x  |
+|--------------------------------------|
+|  PUBLISH                             |
+|  [ o  ] Hidden                       |
+|  3 things to do before publishing:   |
+|   - Start: Title missing in Dutch    |  <- each a link to its Node's editor
+|   - n-4k2p1q: No answer for "no"     |
+|   - n-9x1abc: Nothing leads here  [remove] |
+|--------------------------------------|
+|  COLLABORATORS                       |
+|  Anna (creator)                      |
+|  Bram                          [x]   |
+|  [ choose an account  v ] [Invite]   |
+|  Hand over to [ account v ] [Go]     |  <- the creator's hand-over
+|--------------------------------------|
+|  THIS TREE                           |
+|  Title      [AI Act applicability ]  |
+|  Description[                     ]  |
+|  Languages  EN NL (fixed)  ai-act-example |
+|  Public link  /ai-act-example        |  <- when published
+|--------------------------------------|
+|  ADMINISTRATOR                       |  <- the administrator only
+|  Hand over to [ account v ] [Go]     |
+|  [Delete this tree]  (hidden only)   |
++--------------------------------------+
+```
+
+### 33.3 Publish
+
+A `role="switch"` labelled `publish`. **On** → `PUT .../published { published: true }`: 200 →
+`published`, `publishedAt`, the **public link** (the root URL, new tab); 409 → the switch stays
+off and the response's violations are the to-do list. **The to-do list**: the draft's
+advisory violations (re-read from `GET .../trees/<t>` when the panel opens; the count from
+every response), one line each -- the Node's title (or id, or `tree`) as a link to its editor
+page, then the message; a V-REACH line offers `remove`. Headed `publicBehindBecause` while
+`publicCopyCurrent` is false and `notServableBecause` with the start-up violations while not
+servable. **Off** asks once: the switch becomes `confirmUnpublish` ("Hide this tree? Links to
+it will stop working until it is published again.") with `confirm` / `cancel` → `{ published:
+false }`. A collaborator sees the switch disabled, the list, no confirmation (21.2).
+
+### 33.4 Collaborators
+
+The creator first (`creator`), then each collaborator by name (ids resolved through `GET
+/admin/api/accounts`, 21.4), a remove cross for the creator and the administrator (`DELETE
+.../collaborators/<id>`). For those two: a `<select>` of every active account not on the Tree
+and not the administrator (name, then login in `text-muted`), `invite` (`PUT
+.../collaborators/<id>`; a 422 under the select); and, for the creator, `handOver` with a
+`<select>` and a button (`PUT .../creator`), after which the list shows the new creator and
+the old one as a collaborator (21.4). A collaborator sees the list and no controls.
+
+### 33.5 This Tree
+
+Two fields for the page's language -- the manifest's `title` (80) and `description` (600 and
+8 lines, rich, as source) -- with the rim's counter and tags beside them; the declared
+languages as tags with `fixed` (#147); the id; the public link when published. #144's Theme
+panel, if promoted, goes here.
+
+### 33.6 Administrator
+
+The administrator only: `handOver` (every active account) and `deleteTree`, enabled while
+hidden and disabled with `unpublishFirst` while published (21.2), asking once
+(`confirmDeleteTree`) → `DELETE .../trees/<t>` → `/admin`.
+
+### 33.7 Not here
+
+The step's controls (30.8, on the rim). The overview has no panel: its chrome bar holds the
+name and `logout`; each tile's state is on the tile (26.4).
+
+## 34. The reuse rule
+
+**[#133], new -- 2026-09-26.** `ADR-131` decision 5: the editor looks like the final Tree
+without forking the components, and the public pages of `version-1.0` are unchanged in
+behaviour. Recorded in `docs/adrs/ADR-133-reuse-rule.md`; decides the mechanism 22.6 left
+to this issue.
+
+### 34.1 One optional prop
+
+`TreeView`, `Bubble`, `Interior`, `Carousel`, `EnlargedView`, `LanguageSwitch` and
+`Explainer` take `edit?: EditMode`. **Absent -- as on every public page -- a component
+renders exactly what it renders today, not one attribute more.** Present, it is passed down
+unchanged. No wrapper, no parallel components.
+
+```ts
+// src/editor/mode.ts (server side)
+export interface EditMode {
+  treeId: string
+  links: Links               // 34.3
+  languages: string[]        // the draft's declared languages, for the rim's tags (28.3)
+  words: EditorWords         // the chrome strings the editor's client components say, as strings
+  slots: EditorSlots         // 34.2
+}
+export interface Links {
+  node(a: PageAddress): string
+  follow(a: PageAddress, targetId: string): string
+  trail(a: PageAddress, index: number): string
+  withLang(a: PageAddress, lang: string): string
+  image(file: string): string
+}
+```
+
+### 34.2 The slots
+
+Named places where the editor adds something; each a server-side function returning an
+element (a client component with string props); an absent slot renders nothing. **#138 lands
+every call site**; #139 to #142 supply the functions and never edit a server component again.
+
+| Slot | Called by | Fills it |
+|---|---|---|
+| `field(path, value, limit)` | `Interior`, `Carousel`, `EnlargedView`, `TreeView` (Option titles), `Bubble` (outcome) | `Field` (#138) |
+| `imageSlot(node)` | `Interior` | `ImageSlot` (#140) |
+| `stripAdd(node)` | `Carousel` | `ImageSlot` (#140) |
+| `enlargedControls(node, index)` | `EnlargedView` | #140 |
+| `structure(node)` | `TreeView` (the Answer row) | `Structure` (#139) |
+| `linkMenu(node, link)` | `TreeView` (each Answer and Option button) | `Structure` (#139) |
+| `sideAdd(node)` | `TreeView` (the fan; the Overlay's list) | `Structure` (#139) |
+| `stepMenu(node)` | `Bubble` (the rim above) | `StepMenu` (#139) |
+| `mark()` | `Interior` (the description's rim) | `Marker` (#141) |
+| `onTermClick` | `Explainer` | #141 |
+
+### 34.3 The addresses and the pictures
+
+Every component builds an address or a picture URL through `links` = `edit?.links ??
+PUBLIC_LINKS`, where `PUBLIC_LINKS` is the five functions of `src/url.ts` as they are. The
+editor's `links` (`src/editor/links.ts`, server side) prefixes the four addresses with
+`/admin/trees` (24.1) and makes `image` `adminImageHref(treeId, file)` (22.6). `src/url.ts`
+is unchanged but for `adminImageHref`.
+
+### 34.4 The editor's client components
+
+Under `src/editor/`, leaves: `Editor` (the provider: the queue, the indicator, the session
+Sheet, 29), `Field`, `ImageSlot`, `AttachSheet`, `Structure`, `StepMenu`, `Marker`,
+`ExplainerSheet`, `Panel`, `LoginForm`, `NewTreeForm`; they take strings and ids and reach
+the queue through context. Of `src/` they import **exactly two modules**: `src/tree/measure.ts`
+and `src/markdown.ts`, both pure (no `node:` module, no `ajv`, no schema; a test asserts
+it). `src/editor/writes.ts` is the one caller of `fetch` against `/admin/api/`, one
+function per row of 22.1 used; `src/editor/slug.ts` derives ids. Nothing in `src/editor/`
+reads the file system, the environment or a request. `src/components/` imports of
+`src/editor/` only the `EditMode` type.
+
+### 34.5 What edit mode does not render
+
+No neighbour frames, no `data-slide` (every control a plain link; no slide); no JSON-LD, no
+`hreflang`, canonical or dataset link (`noindex`, 20.9); no share button. The strip, the
+enlarged view, the Overlays and the explainer panels render as on the public page, plus
+the slots.
+
+### 34.6 The types
+
+`src/tree/types.ts` gains `NodeContent` (`id`, `title`, `description`, `sources`, `images`,
+`explainers`), satisfied by `Node` and `DraftNode`; `Interior`, `Carousel` and `EnlargedView`
+take it. `TreeView` and `Bubble` take `Node | DraftNode` and read Links through
+`linksOf(node): { yes?, no?, terminal? }`. `parseUrl`, `centreOf` and `contentLanguage` take
+`Readable = Pick<Tree, 'manifest' | 'getNode'>`, so a `Draft` passes; nothing else changes
+and their tests run unchanged.
+
+### 34.7 The editor page's bound
+
+`src/app/[lang]/admin/trees/[tree]/[...path]/page.tsx` is `authenticated → permit('read') →
+store.drafts.draft(by, id) → parseUrl → centreOf → the asides by id → TreeView`: the centre
+and its chain (at most 3), its Option targets (at most 8), the titles of its Answer targets
+from the index -- **at most twelve Nodes**, under 11.2's seventeen; `neighbourhood()` is not
+called. The picker (30.6) carries ids and titles, never Nodes.
+
+### 34.8 The rule's tests
+
+`views.test.tsx`: a public render of every fixture contains no `[data-field]`, no
+`contenteditable`, no element whose class starts with `editor-`; the same fixtures with an
+`edit` whose slots are all absent give the same markup save the addresses `links` rewrote.
+Every existing browser spec runs unchanged by #138 to #142, and each PR pastes the counts.
+
+## 35. Testing the editor round
+
+**[#133], new -- 2026-09-26.** Amends section 7 for the screens. Recorded in
+`docs/adrs/ADR-133-editor-testing.md`.
+
+### 35.1 The data directory is built, not committed
+
+`tests/browser/admin.ts` exports `buildDataDir(spec)`: a temporary directory in the store's
+layout (17.2) from a spec naming, per Tree, the fixture folder, the id, published or hidden,
+the creator and the collaborators by login; per account, login, name and password. It
+writes `accounts.json` (hashes by the format of 20.2; `tests/store/accounts.test.ts`
+authenticates against a directory it built, tying the two), `meta.json` per Tree, an empty
+`sessions.json`. Draft-only states come from `tests/fixtures/drafts/<state>/` (23.7).
+
+### 35.2 One server per spec, one login helper
+
+`serveStore(dataDir, port, env?)` in `tests/browser/serve.ts` (the second export; the first
+now serves a fixture folder through a seeded store, 18.4): `ELSA_DATA_DIR` the directory,
+`ELSA_SEED_DIR` an empty folder, `ELSA_ADMIN_PASSWORD` from the table, a port at an offset
+from `BASE_PORT`. `login(page, login)` posts the password through `page.request` so the
+cookie lands in the context; `logout(page)`. Two accounts at once: two contexts.
+
+### 35.3 The named accounts and Trees
+
+`admin`; `anna` (creator); `bram` (collaborator); `cees` (no role). `ai-act-example`
+published, creator `anna`; `hidden-draft` hidden from `tests/fixtures/full-node`, creator
+`anna`, collaborator `bram`; `tree-01` to `tree-14` published from
+`tests/fixtures/single-language`, for the overview's box.
+
+### 35.4 The files, per build issue
+
+| File | Asserts | Issue |
+|---|---|---|
+| `tests/browser/overview.spec.ts` | 26.1 to 26.3 on `/`: one tile per published Tree, the link, a hidden Tree absent, the box scrolls and the document does not, `noTrees` | #134 |
+| `tests/browser/login.spec.ts` | 24.2, 25: the fields, the one error, the lock, the reload to the address asked for, `<noscript>`, the 403 page, the account and accounts pages, logout | #135 |
+| `tests/browser/admin-no-scroll.spec.ts` | 10.6's exact test at its ten viewports over the admin pages with `[data-scroll-box]` exempted: login, 403, account, accounts (#135); the creators' overview with fifteen tiles, the form with three languages (#137); the editor on `hidden-draft`'s full Node in `en` and `nl` with each Sheet open in turn and the description in its source state (#138; each later issue adds its Sheets) | #135, #137 to #142 |
+| `tests/browser/creators-overview.spec.ts` | 26.4, 27: who sees what, the two groups, the + tile absent for a visitor, the form's proposal, errors and landing | #137 |
+| `tests/editor/field.test.tsx`, `queue.test.ts`, `imports.test.ts` | 28.4, 28.5; 29.1, 29.2, 29.5, 29.6 against a fake `fetch`; 34.4's import rule | #138 |
+| `tests/browser/editor.spec.ts` | 28, 29: the regions; a title saved and public after publishing through #136's route; past 80, the same rule id as `npm run validate --draft`; `nl` edited without touching `en`; the tags; the indicator's states; a refused write kept; two contexts and `changedElsewhere`; the session Sheet | #138 |
+| `tests/browser/structure.spec.ts` | 30, and the Node count reconciled against the published `tree.json` | #139 |
+| `tests/browser/upload.spec.ts` | 31, and the public page's requests against 11.5 after publishing | #140 |
+| `tests/editor/slug.test.ts`, `tests/browser/marking.spec.ts` | 32; `explainer.spec.ts` untouched and green | #141 |
+| `tests/browser/panel.spec.ts` | 33, with the public overview's tiles before and after publishing | #142 |
+| `tests/browser/admin.spec.ts` | The walk of #143, screenshots under `docs/screenshots/editor/` | #143 |
+| `views.test.tsx` | 34.8 | #138 |
+
+### 35.5 The no-cookie sweep, extended
+
+`deployment.spec.ts` (#135; 20.5, 23.7) also asserts: a `GET` of every admin page of 24.1,
+with and without a session, answers no `Set-Cookie` -- only `POST /admin/api/login` and
+`POST /admin/api/logout` ever do -- and carries 20.9's two headers; and after the editor has
+saved a field, the walk of every public route of 4.1, 15 and 16 still sends no `Cookie` and
+receives no `Set-Cookie`. The admin pages are a second array in the same file.
+
+### 35.6 The public suites run unchanged
+
+#134 to #142 edit no public spec except to add a row a section of this freeze names (the
+overview in `no-scroll.spec.ts`; the moved addresses of 18.1 in #134); every PR runs all of
+`npm test` and `npm run test:browser` and pastes the counts, which must not fall. A changed
+public spec in a #138 to #142 branch is a send-back.
+
+### 35.7 Screenshots
+
+At 1280 x 640, by the spec under `ELSA_SHOTS=1`, into `docs/screenshots/issue-<n>/`, embedded
+in the PR pinned to a commit.
