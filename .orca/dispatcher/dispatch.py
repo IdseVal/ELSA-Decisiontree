@@ -220,7 +220,10 @@ CI_VERDICT_GRACE_MINUTES = 3  # v0.2.7: a finished CI run gets this long before 
 CI_RERUN_SETTLE_MINUTES = 10  # ... and a re-run this long to show up as in progress
 
 _ISSUE_RE = re.compile(r"issue-(\d+)")
-_DEPENDS_RE = re.compile(r"(?i)\b(?:depends\s+on|blocked\s+by)\b[^\n]*")
+# v0.2.16: only a line that STARTS with the phrase is a dependency list. A mention in
+# prose ("the `Depends on:` lines of #137 to #144") once made an issue wait on the issues
+# that waited on it, and the whole round sat for three days (#133, 2026-09-23).
+_DEPENDS_RE = re.compile(r"(?im)^[ \t>*-]*\**(?:depends\s+on|blocked\s+by)\**\s*:?[^\n]*")
 _HASH_RE = re.compile(r"#(\d+)")
 _CLOSES_RE = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|refs?)\s+#(\d+)")
 
