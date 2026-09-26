@@ -1428,6 +1428,140 @@ a.language:hover,
   height: var(--answers-row);
 }
 
+/* --- the overview (23.2, 26.1 to 26.3) --------------------------------------------- */
+
+/* The site's name in the chrome bar: the page's one heading, dressed as the Tree title is. */
+.site-title {
+  margin: 0;
+}
+
+.overview-page {
+  padding: 0;
+}
+
+/*
+ * The box between the chrome bar and the disclaimer: it scrolls inside its own bounds and
+ * the document never does -- the second exemption of 10.6, after the Carousel strip (26.3).
+ * At 1280 x 640 it holds four columns and three rows: 4 x 280 + 3 x 20 = 1180 of 1232, and
+ * 3 x 160 + 2 x 20 = 520 of 520.
+ */
+.overview {
+  height: 100%;
+  padding: 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.tiles {
+  display: grid;
+  /* 280 wide, as many as fit; a box narrower than one column -- a phone with a scrollbar --
+     gets one column of its own width rather than a row wider than itself. */
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 280px));
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * One Tree (26.1): the Option button's look at a larger size -- `surface`, outlined in the
+ * rule shade, a wash of `accent` on hover. Its 160 pixels hold, top to bottom, the logo,
+ * two lines of title, the description and the language tags: 12 + 48 + 4 + 60 + 4 + 18 + 12
+ * and the outline without a logo; with one, the 32-pixel logo and its gap take two of the
+ * description's three lines.
+ */
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 160px;
+  padding: 12px 15px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  color: var(--elsa-text);
+  background: var(--elsa-surface);
+  text-decoration: none;
+  transition: border-color 160ms var(--ease), background-color 160ms var(--ease);
+}
+
+.tile:hover {
+  border-color: var(--accent-read);
+  background: var(--wash);
+}
+
+.tile-logo {
+  flex: none;
+  display: block;
+  height: 32px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/*
+ * The two cut texts of 26.1: a clamp, with an ellipsis, is the design and not an overflow,
+ * so `data-clamp` is what the no-scroll walk reads them by (10.6).
+ */
+.tile-title,
+.tile-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.tile-title {
+  flex: none;
+  font-family: var(--elsa-font-heading);
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  -webkit-line-clamp: 2;
+}
+
+.tile-description {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--elsa-text-muted);
+  -webkit-line-clamp: 3;
+}
+
+.tile-logo ~ .tile-description {
+  -webkit-line-clamp: 1;
+}
+
+.tile-languages {
+  display: flex;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.tile-language {
+  padding: 0 5px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  color: var(--elsa-text-muted);
+}
+
+/* No Tree is served: one sentence, in the chrome language (26, ADR-133-overview-tiles 6). */
+.overview-empty {
+  margin: 40px auto;
+  max-width: var(--bubble-width);
+  text-align: center;
+  color: var(--elsa-text-muted);
+}
+
+/* The narrowest phones: a 280-pixel column still fits in the box, padded 16 instead of 24. */
+@media (max-width: 359px) {
+  .overview {
+    padding: 16px;
+  }
+}
+
 /* --- below the floor: the notice (10.4, 10.5 step 7) ------------------------------- */
 
 .minimum-size {

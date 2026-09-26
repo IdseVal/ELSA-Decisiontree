@@ -71,7 +71,11 @@ export interface Tree {
    * A path, not Nodes, so nothing on this interface enumerates the Tree still (5.1).
    */
   readonly filePath: string
-  /** Absolute path inside this Tree's `images/`; null for a malformed or missing name. */
+  /**
+   * Absolute path inside this Tree's `images/`, and only for a file a Node of this Tree
+   * names: **[#134]** a store Tree's `images/` also holds its draft's uploads, which are not
+   * public until published (application.md 5.1, ADR-132-many-trees-per-deployment 9).
+   */
   imagePath(file: string): string | null
   /**
    * Absolute path inside this Tree's `theme/`, and only for a file the Theme names: a
@@ -97,6 +101,7 @@ export async function openTree(dir: string): Promise<Tree> {
   const nodes = new Map<string, Node>()
   for (const node of raw.tree.nodes as Mapping[]) nodes.set(node.id as string, toNode(node))
   const themeReferences = referencedThemeFiles(manifest.theme)
+  const imageReferences = new Set([...nodes.values()].flatMap((node) => node.images.map((image) => image.file)))
 
   return {
     id,
@@ -106,7 +111,8 @@ export async function openTree(dir: string): Promise<Tree> {
     getNode: async (nodeId) => (isId(nodeId) ? (nodes.get(nodeId) ?? null) : null),
     getTitle: (nodeId) => nodes.get(nodeId)?.title ?? null,
     nodeIds: () => [...nodes.keys()],
-    imagePath: (file) => (isImageFile(file) && raw.images.has(file) ? path.join(root, 'images', file) : null),
+    imagePath: (file) =>
+      isImageFile(file) && imageReferences.has(file) && raw.images.has(file) ? path.join(root, 'images', file) : null,
     themePath: (file) =>
       isThemeFile(file) && themeReferences.has(file) && raw.themeFiles.has(file)
         ? path.join(root, 'theme', file)

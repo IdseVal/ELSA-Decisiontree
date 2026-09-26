@@ -137,7 +137,7 @@ test('clicking the main image shows the image larger with its description and cr
   await expect(enlarged).toContainText('Map of the European Union member states')
   await expect(enlarged.locator('.credit')).toContainText('Map: Example Cartography, CC BY 4.0')
   const enlargedImage = enlarged.locator('img')
-  await expect(enlargedImage).toHaveAttribute('src', '/images/eu-map.png')
+  await expect(enlargedImage).toHaveAttribute('src', '/ai-act-example/images/eu-map.png')
 
   // Larger than the main image above the title, and bounded to the viewport (10.6).
   const mainImage = await page.locator('.main-image img').first().boundingBox()
@@ -267,35 +267,45 @@ test('the Options of a Node are reachable by keyboard', async ({ page }) => {
   await expect(page).toHaveURL('/ai-act-example/prohibited-practices')
 })
 
-test('an unknown Node answers 404 with a way back to the start', async ({ page }) => {
+test('an unknown Node answers 404 with a way back to the overview', async ({ page }) => {
+  // **[#134]** One 404 for every Tree and none (23.1, 24.3): it names no Tree, so its way
+  // back is the overview, where 1.0's led to the one Tree's start.
   const response = await page.goto('/ai-act-example/no-such-node')
 
   expect(response?.status()).toBe(404)
-  await page.getByRole('link', { name: 'Start again' }).click()
-  await arrived(page, START)
+  await page.getByRole('link', { name: 'All decision trees' }).click()
+  await expect(page).toHaveURL('/')
+  await expect(page.locator('a.tile')).toHaveCount(1)
 })
 
-test('at a phone width the 404 page still shows and names its way back to the start (10.3)', async ({ page }) => {
+test('at a phone width the 404 page still shows and names its way back to the overview (10.3)', async ({ page }) => {
   // The phone-width rule that shortens an Answer button to its word must not empty this one,
   // whose label is a title with no word before it.
   await page.setViewportSize({ width: 360, height: 640 })
   await page.goto('/ai-act-example/no-such-node')
 
-  const startAgain = page.locator('.answer--start-again')
-  await expect(startAgain).toHaveAccessibleName('Start again')
-  await expect(startAgain.locator('.branch-label')).toHaveText('Start again', { useInnerText: true })
+  const back = page.locator('.answer--start-again')
+  await expect(back).toHaveAccessibleName('All decision trees')
+  await expect(back.locator('.branch-label')).toHaveText('All decision trees', { useInnerText: true })
 })
 
 test('the address of the Tree redirects to its root Node', async ({ page }) => {
-  await page.goto('/')
-  await arrived(page, START)
-
   await page.goto('/ai-act-example')
   await arrived(page, START)
 })
 
+test('**[#134]** / is the overview, and its tile leads to the root Node (18.1, 23.2)', async ({ page }) => {
+  const response = await page.goto('/')
+
+  // No longer a redirect: the page itself, listing the one Tree this server serves.
+  expect(response?.status()).toBe(200)
+  expect(page.url()).toBe(new URL('/', page.url()).href)
+  await page.locator('a.tile').click()
+  await arrived(page, START)
+})
+
 test('the image route serves a Tree image with the headers that make it safe', async ({ page }) => {
-  const response = await page.request.get('/images/eu-map.png')
+  const response = await page.request.get('/ai-act-example/images/eu-map.png')
   const headers = response.headers()
   const body = await response.body()
 
@@ -318,11 +328,16 @@ test('the image route answers 404 for a name the Tree does not have', async ({ p
     '%2e%2e%2f%2e%2e%2fpackage.json',
     'eu-map.png%00.txt',
   ]) {
-    const response = await page.request.get(`/images/${name}`)
+    const response = await page.request.get(`/ai-act-example/images/${name}`)
 
     expect(response.status(), name).toBe(404)
     expect(response.headers()['content-type'] ?? '', name).not.toContain('image')
   }
+})
+
+test('**[#134]** the 1.0 image address answers 404: a picture is under its Tree id (18.1)', async ({ page }) => {
+  expect((await page.request.get('/images/eu-map.png')).status()).toBe(404)
+  expect((await page.request.get('/theme/nova-square-400.woff2')).status()).toBe(404)
 })
 
 test.describe('with JavaScript switched off', () => {
@@ -338,7 +353,7 @@ test.describe('with JavaScript switched off', () => {
     await expect(page.locator('.answer--yes')).toHaveAttribute('href', '/ai-act-example/start/prohibited-practices')
     await expect(page.locator('.answer--no')).toHaveAttribute('href', '/ai-act-example/start/outside-scope')
     // The enlarge is a client component; without it the main image is still a link to the file.
-    await expect(page.locator('.main-image')).toHaveAttribute('href', '/images/eu-map.png')
+    await expect(page.locator('.main-image')).toHaveAttribute('href', '/ai-act-example/images/eu-map.png')
 
     await page.locator('.answer--yes').click()
     await arrived(page, '/ai-act-example/start/prohibited-practices')
@@ -346,7 +361,7 @@ test.describe('with JavaScript switched off', () => {
     // With the enlarge unavailable the click is not intercepted, so it opens the file (14).
     await page.goto(START)
     await page.locator('.main-image').click()
-    await arrived(page, '/images/eu-map.png')
+    await arrived(page, '/ai-act-example/images/eu-map.png')
   })
 })
 

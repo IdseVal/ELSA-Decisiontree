@@ -17,6 +17,10 @@ import {
   followHref,
   datasetHref,
   imageHref,
+  overviewAddressSet,
+  overviewHref,
+  requested,
+  themeHref,
   MAX_PATH_IDS,
   nodeHref,
   parseUrl,
@@ -178,8 +182,34 @@ describe('building an address', () => {
     expect(canonicalHref(parse('/ai-act-example/start/covered')!)).toBe('/ai-act-example/covered')
   })
 
-  test('an Image is fetched from the images route', () => {
-    expect(imageHref('eu-map.png')).toBe('/images/eu-map.png')
+  test("**[#134]** a Tree's Image and theme file are fetched under its id (18.1)", () => {
+    expect(imageHref('ai-act-example', 'eu-map.png')).toBe('/ai-act-example/images/eu-map.png')
+    expect(themeHref('ai-act-example', 'nova-square-400.woff2')).toBe('/ai-act-example/theme/nova-square-400.woff2')
+  })
+
+  test('**[#134]** the overview is / in English and /?lang=nl in Dutch, English the x-default (23.2)', () => {
+    const base = new URL('https://elsa.example.org')
+
+    expect(overviewHref('en')).toBe('/')
+    expect(overviewHref('nl')).toBe('/?lang=nl')
+    expect(overviewAddressSet(base)).toEqual({
+      addresses: [
+        { lang: 'en', url: 'https://elsa.example.org' },
+        { lang: 'nl', url: 'https://elsa.example.org/?lang=nl' },
+      ],
+      alternates: [
+        { hreflang: 'en', url: 'https://elsa.example.org' },
+        { hreflang: 'nl', url: 'https://elsa.example.org/?lang=nl' },
+        { hreflang: 'x-default', url: 'https://elsa.example.org' },
+      ],
+    })
+  })
+
+  test("**[#134]** the proxy's header is read as a path with one leading slash, and its lang", () => {
+    expect(requested('/ai-act-example/start?lang=nl')).toEqual({ path: '/ai-act-example/start', lang: 'nl' })
+    expect(requested(null)).toEqual({ path: '/', lang: null })
+    // `//host` would be another origin in a link built from it.
+    expect(requested('//evil.example/x?a=1')).toEqual({ path: '/evil.example/x', lang: null })
   })
 
   test('**[#121]** the dataset carries the Tree id, and the schema the format number (15.1)', () => {

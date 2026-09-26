@@ -13,11 +13,14 @@ import { themeHref } from '../url.ts'
 import { chrome, chromeLang, text } from '../chrome.ts'
 
 export function Logo({
+  treeId,
   theme,
   /** The Tree's title: what stands in for a logo the Theme does not give. */
   title,
   lang,
 }: {
+  /** The Tree the logo is of: its theme files are under its id (application.md 18.1). */
+  treeId: string
   theme: Theme | undefined
   title: LocalisedText
   lang: string
@@ -28,7 +31,7 @@ export function Logo({
   const image = (
     <img
       className="logo"
-      src={themeHref(logo.file)}
+      src={themeHref(treeId, logo.file)}
       // The lab's name, from the Theme (tree-format.md 4.3.1) and in the language on screen.
       alt={text(logo.alt, lang, 'theme.logo.alt')}
     />

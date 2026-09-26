@@ -16,7 +16,7 @@ const COPY: ReadonlyArray<readonly [from: string, to: string]> = [
   // **[#121]** The schema route serves this folder's published set (application.md 15.1),
   // and the framework leaves it behind for the same reason it leaves the stylesheet: it is
   // read at request time, not imported. The Tree folders are deliberately not here -- they
-  // are chosen at run time by ELSA_TREES_DIR, where the schema is a constant of the build.
+  // are read at run time from the data directory, where the schema is a constant of the build.
   ['schemas', '.next/standalone/schemas'],
 ]
 

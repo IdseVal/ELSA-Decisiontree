@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
 
 /**
@@ -8,8 +9,26 @@ import { defineConfig, devices } from '@playwright/test'
  * The server under test is the standalone server a deployment runs (`npm run build` then
  * `node .next/standalone/server.js`), serving the example Tree, so what the tests see is
  * what a deployment serves. `npm test` (Vitest) stays the unit suite.
+ *
+ * **[#134]** A deployment serves the published Trees of its data directory (18.1). Each
+ * server here gets one of its own, built fresh by `tests/browser/data-dir.ts` before it
+ * starts, holding the example Tree alone -- so every public spec reads the deployment it
+ * always read. A spec that needs several Trees, or a hidden one, starts its own server
+ * (`tests/browser/serve.ts`). The path is absolute because the standalone server moves
+ * into its own folder before it reads the variable.
  */
 const PORT = Number(process.env.ELSA_TEST_PORT ?? 3117)
+
+/** A fresh data directory holding the example Tree, and where it is. */
+function dataDir(name: string): { command: string; dir: string } {
+  const dir = path.resolve('tests', 'browser', '.data', name)
+  return { dir, command: `node tests/browser/data-dir.ts "${dir}" trees/ai-act-example` }
+}
+const main = dataDir(String(PORT))
+const noBaseUrl = dataDir(String(PORT + 1))
+
+/** The first server's data directory: `deployment.spec.ts` compares the dataset against its file (15.3). */
+export const DATA_DIR = main.dir
 
 /**
  * A second server of the same build, started with no public base URL: the default
@@ -41,12 +60,12 @@ export default defineConfig({
   // the build it left behind.
   webServer: [
     {
-      command: 'npm run build && node .next/standalone/server.js',
+      command: `${main.command} && npm run build && node .next/standalone/server.js`,
       url: `http://127.0.0.1:${PORT}/ai-act-example/start`,
       reuseExistingServer: !process.env.CI,
       timeout: 240_000,
       env: {
-        ELSA_TREE: 'ai-act-example',
+        ELSA_DATA_DIR: main.dir,
         NEXT_TELEMETRY_DISABLED: '1',
         // The standalone server reads where to listen from the environment, not from flags.
         PORT: String(PORT),
@@ -55,12 +74,12 @@ export default defineConfig({
       },
     },
     {
-      command: 'node .next/standalone/server.js',
+      command: `${noBaseUrl.command} && node .next/standalone/server.js`,
       url: `${NO_BASE_URL_ORIGIN}/ai-act-example/start`,
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
       env: {
-        ELSA_TREE: 'ai-act-example',
+        ELSA_DATA_DIR: noBaseUrl.dir,
         NEXT_TELEMETRY_DISABLED: '1',
         PORT: String(PORT + 1),
         HOSTNAME: '127.0.0.1',

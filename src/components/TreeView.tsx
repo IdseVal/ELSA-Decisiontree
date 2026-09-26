@@ -126,6 +126,7 @@ function Frame({ node, view }: { node: Node; view: View }) {
     <>
       <Bubble
         node={node}
+        treeId={view.address.treeId}
         lang={lang}
         ui={view.ui}
         uiLang={view.uiLang}
@@ -138,7 +139,7 @@ function Frame({ node, view }: { node: Node; view: View }) {
       {/* The Carousel's band (section 12), on every Node, empty where there is no picture, so the
           Bubble never moves. A neighbour's is empty too: its pictures arrive with its own page (11.4). */}
       {view.pictures ? (
-        <Carousel node={node} lang={lang} ui={view.ui} uiLang={view.uiLang} />
+        <Carousel node={node} treeId={view.address.treeId} lang={lang} ui={view.ui} uiLang={view.uiLang} />
       ) : (
         <div className="carousel" />
       )}
@@ -231,7 +232,7 @@ function Options({ node, view }: { node: Node; view: View }) {
               >
                 <Overlay
                   title={text(option.title, lang, `${node.id}.options[${index}].title`)}
-                  picture={optionPicture(target, lang)}
+                  picture={optionPicture(target, view.address.treeId, lang)}
                   aside={target}
                   open={target !== null && open?.href === target.href}
                   view={view}
@@ -278,11 +279,11 @@ function Options({ node, view }: { node: Node; view: View }) {
  * The picture on an Option button (10.3): the target's main image, the file its Overlay
  * shows. An Option has no Images of its own (tree-format.md 5.4).
  */
-function optionPicture(target: Aside | null, lang: string): { src: string; alt: string } | null {
+function optionPicture(target: Aside | null, treeId: string, lang: string): { src: string; alt: string } | null {
   const image = target?.node.images[0]
   if (!target || !image) return null
   return {
-    src: imageHref(image.file),
+    src: imageHref(treeId, image.file),
     alt: text(image.description, lang, `${target.node.id}.images[${image.file}].description`),
   }
 }
@@ -337,7 +338,7 @@ function Overlay({
         aside
           ? [
               <div key={aside.href} className="overlay-interior" lang={lang} data-node={aside.node.id}>
-                <Interior node={aside.node} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} href={aside.href} />
+                <Interior node={aside.node} treeId={view.address.treeId} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} href={aside.href} />
                 {aside.node.options.length > 0 && (
                   <>
                     <span hidden id={`${idPrefix}options-label`} lang={uiLang}>

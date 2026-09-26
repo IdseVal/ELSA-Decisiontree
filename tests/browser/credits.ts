@@ -42,16 +42,18 @@ export async function picturesByNode(tree: Tree, treeDir: string): Promise<Map<s
  */
 export async function readEveryCredit(page: Page, url: string, images: Image[]): Promise<number> {
   await page.goto(url)
+  // The Tree's pictures are under its id (application.md 18.1): the first segment of the path.
+  const treeId = new URL(url, 'http://localhost').pathname.split('/')[1]!
   const [main, ...strip] = images
   const mainImage = page.locator('.bubble a.main-image')
-  await expect(mainImage, `${url}: the main image`).toHaveAttribute('href', imageHref(main!.file))
+  await expect(mainImage, `${url}: the main image`).toHaveAttribute('href', imageHref(treeId, main!.file))
   await expect(mainImage, `${url}: the main image's credit`).toHaveAccessibleDescription(main!.credit)
 
   const thumbnails = page.locator('.thumbnail')
   await expect(thumbnails, `${url}: thumbnails in the strip`).toHaveCount(strip.length)
   for (const [index, image] of strip.entries()) {
     const where = `${url}, thumbnail ${index + 1} (${image.file})`
-    await expect(thumbnails.nth(index), where).toHaveAttribute('href', imageHref(image.file))
+    await expect(thumbnails.nth(index), where).toHaveAttribute('href', imageHref(treeId, image.file))
     await expect(thumbnails.nth(index), where).toHaveAccessibleDescription(image.credit)
   }
 
@@ -60,7 +62,7 @@ export async function readEveryCredit(page: Page, url: string, images: Image[]):
   const panel = page.locator('.carousel-sheet .sheet-panel')
   for (const [index, image] of images.entries()) {
     const where = `${url}, enlarged picture ${index + 1} (${image.file})`
-    await expect(panel.locator('.sheet-figure img'), where).toHaveAttribute('src', imageHref(image.file))
+    await expect(panel.locator('.sheet-figure img'), where).toHaveAttribute('src', imageHref(treeId, image.file))
     // `useInnerText`: what a reader can read on the page, not what is in the markup.
     await expect(panel.locator('.credit'), where).toContainText(image.credit, { useInnerText: true })
     await expect(panel.locator('.credit'), `${where}: in view`).toBeInViewport({ ratio: 1 })
