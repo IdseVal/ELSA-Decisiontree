@@ -80,7 +80,8 @@ export function refusalOf(answer: Answer | null, words: NewTreeWords): Refusal |
   const at = answer?.status === 422 ? answer.body?.violations?.[0]?.keyPath : undefined
   // The script sent an id of the right grammar, so an id the route refuses is a reserved word.
   if (at === 'id') return { field: 'id', text: words.treeIdReserved }
-  if (at?.startsWith('languages')) return { field: 'languages', text: words.languageHint }
+  // The route's own check names `languages`; the schema's, a pointer such as `/languages/1`.
+  if (at !== undefined && /^\/?languages\b/.test(at)) return { field: 'languages', text: words.languageHint }
   return { field: 'form', text: words.requestFailed }
 }
 
