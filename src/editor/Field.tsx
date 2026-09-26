@@ -296,7 +296,8 @@ function hostOf(element: HTMLElement): Element | null {
     element.closest('.overlay-interior') ??
     element.closest('.tree-frame')?.querySelector('.bubble') ??
     element.closest('.sheet-panel') ??
-    element.closest('.bubble')
+    element.closest('.bubble') ??
+    element
   )
 }
 

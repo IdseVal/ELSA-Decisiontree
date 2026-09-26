@@ -5,7 +5,7 @@
  * Not a spec file: the admin specs import it.
  */
 import { randomBytes } from 'node:crypto'
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { Page } from '@playwright/test'
 import { hashPassword, type Account } from '../../src/store/accounts.ts'
@@ -22,12 +22,20 @@ export interface TestAccount {
   active?: boolean
 }
 
+/** **[#138]** A Tree of the directory with its roles (35.1): the creator and the collaborators by login. */
+export interface RoledTree extends StoreTree {
+  creator?: string
+  collaborators?: string[]
+}
+
 /**
  * A fresh data directory holding `trees` and `accounts` (35.1): `accounts.json` with hashes
  * in the format of 20.2, so the store authenticates them as it would any. The administrator
  * is not in it: the server creates it from `ELSA_ADMIN_PASSWORD` at start, as a deployment's.
+ * **[#138]** A Tree that names a `creator` or `collaborators` gets them written into its
+ * `meta.json` by account id; one that names none is the administrator's.
  */
-export async function buildDataDir({ trees, accounts }: { trees: StoreTree[]; accounts: TestAccount[] }): Promise<string> {
+export async function buildDataDir({ trees, accounts }: { trees: RoledTree[]; accounts: TestAccount[] }): Promise<string> {
   const dir = await dataDir(trees)
   const records: Account[] = []
   for (const { login, name, password, active = true } of accounts) {
@@ -42,6 +50,19 @@ export async function buildDataDir({ trees, accounts }: { trees: StoreTree[]; ac
     })
   }
   await writeFile(path.join(dir, 'accounts.json'), `${JSON.stringify(records, null, 2)}\n`)
+  const idOf = (login: string): string => {
+    const record = records.find((account) => account.login === login)
+    if (!record) throw new Error(`no account "${login}" in the data directory`)
+    return record.id
+  }
+  for (const { folder, id, creator, collaborators } of trees) {
+    if (creator === undefined && collaborators === undefined) continue
+    const metaFile = path.join(dir, 'trees', id ?? path.basename(folder), 'meta.json')
+    const meta = JSON.parse(await readFile(metaFile, 'utf8')) as Record<string, unknown>
+    if (creator !== undefined) meta.creator = idOf(creator)
+    meta.collaborators = (collaborators ?? []).map(idOf)
+    await writeFile(metaFile, `${JSON.stringify(meta, null, 2)}\n`)
+  }
   return dir
 }
 
