@@ -3,7 +3,9 @@
  * 4), read off the files: the editor's client components import, of `src/`, exactly
  * `src/tree/measure.ts`, `src/tree/grammar.ts` (**[#137]**) and `src/markdown.ts` at run
  * time -- type-only imports are erased -- and those three are pure: no `node:` module, no
- * `ajv`, no schema. `writes.ts` is the one
+ * `ajv`, no schema. **[#141]** The description's `Field` also renders the public
+ * `components/Explainer.tsx`, so a marked term behaves in the editor as on the public page
+ * (32.3); it imports nothing but React. `writes.ts` is the one
  * module under `src/editor/` that calls `fetch`. And `src/components/` imports of
  * `src/editor/` only the `EditMode` types.
  */
@@ -30,8 +32,8 @@ async function files(dir: string): Promise<string[]> {
 }
 
 describe('the editor’s client components (34.4)', () => {
-  test('import of src/ only tree/measure.ts, tree/grammar.ts and markdown.ts at run time, and of their own folder', async () => {
-    const allowed = new Set(['tree/measure.ts', 'tree/grammar.ts', 'markdown.ts'])
+  test('import of src/ only tree/measure.ts, tree/grammar.ts, markdown.ts and components/Explainer.tsx at run time, and of their own folder', async () => {
+    const allowed = new Set(['tree/measure.ts', 'tree/grammar.ts', 'markdown.ts', 'components/Explainer.tsx'])
     for (const file of await files(path.join(src, 'editor'))) {
       const text = await readFile(file, 'utf8')
       if (!text.startsWith("'use client'")) continue
@@ -44,6 +46,10 @@ describe('the editor’s client components (34.4)', () => {
         expect(inEditor || allowed.has(target), `${path.basename(file)} imports ${target}`).toBe(true)
       }
     }
+  })
+
+  test('Explainer.tsx imports nothing but React', async () => {
+    expect(runtimeImports(await readFile(path.join(src, 'components', 'Explainer.tsx'), 'utf8'))).toEqual(['react'])
   })
 
   test('the three modules they import are pure: no node: module, no ajv, no schema', async () => {

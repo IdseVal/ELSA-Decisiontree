@@ -16,8 +16,9 @@
  * **[#138]** In edit mode (34.2, `onTermClick`) a click on a term dispatches the named DOM
  * event, bubbling, with the explainer's id in `detail`, instead of toggling the panel:
  * the explainer Sheet of #141 listens for it. Hover and focus still open the panel.
+ * **[#141]** Enter on a focused term dispatches it too (32.3).
  */
-import { useEffect, useRef, useState, type FocusEvent, type MouseEvent, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 
 /** The panel open in the document, of whichever text: opening another closes it. */
 let openPanel: HTMLElement | null = null
@@ -129,19 +130,31 @@ export function Explainer({ html, termEvent }: { html: string; /** The event a c
     tappedOpen.current = event.pointerType === 'touch' && term !== null && panelOf(term) === openPanel
   }
 
+  /** Edit mode: the term asks for its explainer Sheet. */
+  const dispatch = (term: Element, name: string): void => {
+    // The panel's id is `<prefix>e-<explainer id>[--n]`: the id is what follows `e-`.
+    const id = (panelOf(term)?.id ?? '').replace(/^.*?e-/, '').replace(/--\d+$/, '')
+    term.dispatchEvent(new CustomEvent(name, { bubbles: true, detail: { id } }))
+  }
+
   const onClick = (event: MouseEvent<HTMLDivElement>): void => {
     const term = termAt(event.target)
     if (!term) return
     if (termEvent !== undefined) {
-      // The panel's id is `<prefix>e-<explainer id>[--n]`: the id is what follows `e-`.
-      const id = (panelOf(term)?.id ?? '').replace(/^.*?e-/, '').replace(/--\d+$/, '')
-      term.dispatchEvent(new CustomEvent(termEvent, { bubbles: true, detail: { id } }))
+      dispatch(term, termEvent)
       tappedOpen.current = false
       return
     }
     if (tappedOpen.current) close()
     else open(term)
     tappedOpen.current = false
+  }
+
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>): void => {
+    const term = termAt(event.target)
+    if (termEvent === undefined || !term || event.key !== 'Enter') return
+    event.preventDefault()
+    dispatch(term, termEvent)
   }
 
   const onFocus = (event: FocusEvent<HTMLDivElement>): void => {
@@ -163,6 +176,7 @@ export function Explainer({ html, termEvent }: { html: string; /** The event a c
       onPointerOut={onPointerOut}
       onPointerDown={onPointerDown}
       onClick={onClick}
+      onKeyDown={onKeyDown}
       onFocus={onFocus}
       onBlur={onBlur}
       dangerouslySetInnerHTML={{ __html: html }}

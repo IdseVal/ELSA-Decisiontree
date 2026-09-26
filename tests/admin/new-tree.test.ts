@@ -1,11 +1,11 @@
 /**
  * The new-Tree form's rules that need no browser (docs/specs/application.md 27.1, 27.2): the
- * id proposed from a title, the editor's address it lands on, and which field a refusal of
+ * editor's address it lands on and which field a refusal of
  * `POST /admin/api/trees` is shown at. The form itself is `creators-overview.spec.ts`'s.
  */
 import { describe, expect, it } from 'vitest'
-import { editorHref, proposedId, refusalOf, type NewTreeWords } from '../../src/editor/NewTreeForm.tsx'
-import { isId, isUrl } from '../../src/tree/grammar.ts'
+import { editorHref, refusalOf, type NewTreeWords } from '../../src/editor/NewTreeForm.tsx'
+import { isUrl } from '../../src/tree/grammar.ts'
 
 const WORDS = {
   treeIdTaken: 'taken',
@@ -13,25 +13,6 @@ const WORDS = {
   languageHint: 'tag',
   requestFailed: 'failed',
 } as NewTreeWords
-
-describe('proposedId', () => {
-  it('lower-cases a title and makes every run outside [a-z0-9] one hyphen, none at either end', () => {
-    expect(proposedId('Does the AI Act apply?')).toBe('does-the-ai-act-apply')
-    expect(proposedId('  --AI   Act -- 2024!! ')).toBe('ai-act-2024')
-    expect(proposedId('Één wet')).toBe('n-wet')
-  })
-
-  it('cuts at 64 and leaves no hyphen at the cut', () => {
-    const cut = proposedId(`${'a'.repeat(63)} b`)
-    expect(cut).toBe('a'.repeat(63))
-    expect(proposedId('word '.repeat(30)).length).toBeLessThanOrEqual(64)
-    expect(isId(proposedId('word '.repeat(30)))).toBe(true)
-  })
-
-  it('proposes nothing from a title without a letter or digit', () => {
-    expect(proposedId('?!')).toBe('')
-  })
-})
 
 describe('editorHref', () => {
   it('lands in the page language when the Tree declares it, the query left out for the default', () => {

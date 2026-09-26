@@ -181,6 +181,27 @@ export function explainerMarks(text: string): ExplainerMark[] {
 }
 
 /**
+ * **[#141]** Where a rich text's syntax lies, as offsets into it: every link, explainer mark,
+ * `**strong**` and `*emphasis*` run, and every list item's marker, found line by line exactly
+ * as the renderer finds them. What the editor's `mark` control may not cut into (32.1).
+ */
+export function syntaxSpans(text: string): Array<{ start: number; end: number }> {
+  const spans: Array<{ start: number; end: number }> = []
+  let at = 0
+  for (const line of text.split('\n')) {
+    const marker = BULLET.exec(line) ?? NUMBER.exec(line)
+    const content = marker ? line.length - (marker[1] ?? '').length : 0
+    if (content > 0) spans.push({ start: at, end: at + content })
+    for (const match of line.slice(content).matchAll(INLINE)) {
+      const start = at + content + match.index
+      spans.push({ start, end: start + match[0].length })
+    }
+    at += line.length + 1
+  }
+  return spans
+}
+
+/**
  * The two strings application.md 16.3 hands out, from one reduction of one description.
  *
  * `reduced` is steps 1 and 2 -- what the text says with no Markdown left in it. `cut` is
