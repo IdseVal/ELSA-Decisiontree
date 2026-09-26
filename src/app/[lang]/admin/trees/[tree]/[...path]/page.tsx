@@ -66,7 +66,11 @@ export default async function EditorPage({ params }: Props) {
     asides.push({ node: target, href: editorLinks().node(at), address: at })
   }
   const page: NodePage<DraftNode> = { address, centre, neighbours: { placed: [], asides } }
-  const edit = editMode(address, draft.manifest.languages)
+  // **[#139]** The structure slots' needs (30): the picker's index from the title index, never
+  // a Node read (30.6), and the address of every Node the page carries.
+  const index = draft.nodeIds().map((id) => ({ id, title: draft.getTitle(id)?.[address.lang] ?? '' }))
+  const addresses = Object.fromEntries([centre, ...centre.chain, ...asides].map((entry) => [entry.node.id, entry.address]))
+  const edit = editMode(address, draft.manifest.languages, { index, addresses, root: draft.manifest.root })
   const entry = drafts.entry(session.account, treeId)
   const nodes = Object.fromEntries([centre.node, ...centre.chain.map((aside) => aside.node), ...asides.map((aside) => aside.node)].map((node) => [node.id, node]))
   const ui = chrome(address.lang)
