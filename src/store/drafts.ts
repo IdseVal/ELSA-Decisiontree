@@ -64,6 +64,11 @@ export interface NodeView {
 
 /** The members of 19.7. */
 export interface Drafts {
+  /**
+   * 21.3's check a route makes before it touches the store: throws 403 when `by` may not take
+   * `action` on the Tree `id`, and 404 to the administrator for an id that is no Tree.
+   */
+  permitted(by: Account, id: string, action: Action): void
   create(by: Account, id: unknown, languages: unknown, title: unknown): Promise<TreeEntry>
   entry(by: Account, id: string): TreeEntry
   list(by: Account): TreeEntry[]
@@ -226,6 +231,10 @@ export async function openDrafts(
   }
 
   return {
+    permitted(by, id, action) {
+      allowed(by, id, action)
+    },
+
     async create(by, id, languages, title) {
       if (!mayCreate(by)) throw new StoreError(403, 'forbidden')
       if (!isId(id)) throw malformed('manifest', 'id', 'V-DIR', 'an id is lowercase letters, digits and single hyphens, at most 64 (tree-format.md 3.1)')

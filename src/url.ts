@@ -120,6 +120,15 @@ export function imageHref(treeId: string, file: string): string {
   return `/${treeId}/images/${encodeURIComponent(file)}`
 }
 
+/**
+ * **[#136]** Where the editor fetches a draft's picture (application.md 22.6): the admin
+ * route, which answers a logged-in reader with a role on the Tree only. The one admin path
+ * this module builds; the rest are the route files'.
+ */
+export function adminImageHref(treeId: string, file: string): string {
+  return `/admin/api/trees/${treeId}/images/${encodeURIComponent(file)}`
+}
+
 /** Where the browser fetches one file of a Tree's Theme -- a logo or a font (5.5, 18.1). */
 export function themeHref(treeId: string, file: string): string {
   return `/${treeId}/theme/${encodeURIComponent(file)}`
