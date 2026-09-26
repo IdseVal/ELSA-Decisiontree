@@ -262,7 +262,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | Issue | Keys |
 |---|---|
 | #134 | `siteTitle` (the overview's and `llms.txt`'s H1, 23.5, 24.3), `noTrees`, `newTree` |
-| #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save` |
+| #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language) |
 | #137 | `published`, `hidden`, `notServable`, `treeId`, `treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`, `languages`, `addLanguage`, `makeDefault`, `default`, `languagesFixed`, `title` |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
 | #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
@@ -3370,6 +3370,14 @@ screens (17 to 23); sections 24 to 35 freeze the screens. Recorded in
 | A reserved or unknown Tree id under `/admin/trees/` | 403 for a caller without the administrator flag (21.3: the admin area does not say which ids exist); 404 for the administrator. |
 | Any admin page, JavaScript disabled | The page's markup, and in place of its first control one sentence in a `<noscript>`: `needsJavaScript`. **The admin area needs JavaScript**: its every action is a JSON request (22.1, 20.6). Section 14's guarantee is the public pages' and is unchanged. |
 
+**[#135] As built.** The 403 page answers through Next.js's `forbidden()` (the framework's
+`experimental.authInterrupts` flag), which renders `src/app/[lang]/forbidden.tsx` with status
+403; it is the login page's card holding `forbiddenTitle`, `forbiddenText` and a link to
+`/admin`, not the 404 page's Bubble, which overflowed the window at 390 pixels.
+`/admin/trees/<tree-id>/...` renders the login page without a session and, with one, the 404
+page until the editor (#138) replaces its file; the 403 and 404 rows above that need a role
+are #136's `permit`. `/admin/new` does not exist until #137.
+
 ### 24.3 The chrome bar and the Theme, per page
 
 | Page | Left | Right | Theme |
@@ -3380,6 +3388,12 @@ screens (17 to 23); sections 24 to 35 freeze the screens. Recorded in
 | Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, the caller's name (a link to `/admin/account`), `accounts` (administrator only, a link), `logout` | The default |
 | The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), the panel button (33.1), the caller's name, `logout`. **No share button.** | **The draft's** |
 | The 404 and 403 pages | `siteTitle` | language switch | The default |
+
+**[#135]** Below 480 pixels wide the Tree-less admin pages' bar gives up `siteTitle` and the
+current language's pill (not a link, and the language on screen) so that the switch, the
+name, `accounts` and `logout` fit 320 pixels; the name is cut with an ellipsis where it does
+not fit and carries `data-clamp`, which `admin-no-scroll.spec.ts` reads as the overview's
+walk reads a tile's title (26.1).
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
