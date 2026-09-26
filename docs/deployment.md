@@ -30,11 +30,10 @@ The shape on disk, for both:
 
 > **Written by the architecture freeze of issue #132.** **#134** (the data directory and
 > many Trees) has rewritten the sections below it changes: the configuration, the plain
-> server's steps, the container, updating a Tree and the start messages. **#135** (the
-> administrator's password and the login) and **#136** (the store's write path and the
-> import command) rewrite what is theirs; until they merge, the rows of this table that name
-> them describe what is coming, not what runs. The decisions are `docs/adrs/ADR-132-*.md`
-> and `docs/specs/application.md` 17 to 23.
+> server's steps, the container and the start messages. **#135** (the administrator's
+> password and the login) and **#136** (the store's write path, the import command, backups
+> and moving a Tree) have rewritten what is theirs. The decisions are
+> `docs/adrs/ADR-132-*.md` and `docs/specs/application.md` 17 to 23.
 
 The application becomes a **writer**: Trees are created and edited in the app behind a login,
 saved automatically and published with a toggle. What that changes on a server:
@@ -45,9 +44,9 @@ saved automatically and published with a toggle. What that changes on a server:
 | Which Tree is served | `ELSA_TREE` names one | Every **published** Tree of the data directory; `/` is an overview of them. `ELSA_TREE`, `ELSA_TREES_DIR` and `ELSA_TREE_LASTMOD` are **retired, and the server refuses to start while any is set**, naming the replacement. (#134; `application.md` 18) |
 | The repository's Trees | copied by hand | **`ELSA_SEED_DIR`** (default `trees` beside `server.js`, which the build already carries) is imported into the data directory **at the first start only**, published, owned by the administrator. Later: `npm run store -- import <folder>` from the checkout, with the service stopped. (#134, #136; `application.md` 17.4) |
 | The administrator | none | **`ELSA_ADMIN_PASSWORD`**, 12 to 256 characters, in `/etc/elsa-decisiontree.env`, which becomes **mode `0600`**: at every start it creates the `admin` account or resets its password. **Remove it from the file after the first start**; set it again only to recover a lost password. Never a default, never printed. **Done in #135**: see [the administrator and the login](#the-administrator-and-the-login). (`application.md` 20.3) |
-| Updating a Tree | validate, `rsync`, restart | Through the editor at `/admin`; no restart. The `rsync` procedure below is retired by #136. |
+| Updating a Tree | validate, `rsync`, restart | Through the editor at `/admin`; no restart. **Done in #136**: see [changing, importing, moving and backing up a Tree](#changing-importing-moving-and-backing-up-a-tree). |
 | Backups | the repository | **`rsync -a` or `tar` of `ELSA_DATA_DIR`**, running or stopped: every file in it is replaced atomically, so each file in a copy is whole. Stop the service for a copy exact to the write. Restore is copying the folder back. (`application.md` 17.4) |
-| Moving a Tree between deployments | copy the folder | Copy `trees/<id>/tree.json`, `images/` and `theme/` out (not `draft.json`, not `meta.json`) and import them on the other side. |
+| Moving a Tree between deployments | copy the folder | Copy `trees/<id>/tree.json`, `images/` and `theme/` out (not `draft.json`, not `meta.json`) and `npm run store -- import` them on the other side. **Done in #136.** |
 | The container | `-e ELSA_TREE=...` | `-v /srv/elsa-data:/data -e ELSA_DATA_DIR=/data -e ELSA_ADMIN_PASSWORD=...` on the first run; the `Dockerfile` changes with #134 and #135. |
 | Cookies | none, anywhere | One session cookie, `HttpOnly; Secure; SameSite=Strict; Path=/admin`, on the admin routes only; **the public routes still set none**, and the `curl` check below still prints nothing. A proxy must pass `/admin` through unchanged and still add no cookie of its own. (`application.md` 20) |
 | The journal | one line per start | Also: logins by account id, lockouts, publishes and account changes. Never a password, a token, a name typed into the login form, or a client address. (`application.md` 20.8) |
@@ -107,9 +106,9 @@ Node's text can change without it changing, and each Tree carries its own date.
 The seed keeps the timestamp of the file it copies, so a seeded Tree reports the day its
 `tree.json` was written in the build's `trees/` -- which, after a `git clone`, is the day of
 the clone. A Tree copied in by hand keeps its date only if the copy preserves timestamps:
-`rsync -a` and `cp -p` do, and the [Tree update](#putting-a-new-version-of-a-tree-on-the-server)
-below uses `rsync -a`. `ELSA_TREE_LASTMOD` is retired: once #136 lands, the store writes
-the published file itself on every publish, and its time is right by construction.
+`rsync -a` and `cp -p` do. `ELSA_TREE_LASTMOD` is retired: the store writes the published
+file itself on every publish and every valid save of a published Tree (#136), so its time is
+right by construction.
 
 When the file's time is in the future the sitemap carries **no** date rather than a wrong one: a
 search engine that catches a site reporting dates it cannot back stops reading them for
@@ -418,46 +417,99 @@ mounted folder keeps its own ([the date the sitemap reports](#the-date-the-sitem
 
 ---
 
-## Putting a new version of a Tree on the server
+## Changing, importing, moving and backing up a Tree
 
-Until #136 brings the editor's write path and `npm run store -- import`, a Tree changes
-the way it did in 1.0 -- validate, copy, restart -- except that the copy goes into the data
-directory, and the service is **stopped** while it happens: the running process is the
-store's only writer (`docs/specs/application.md` 17.3).
+**[#136]** A Tree changes through the editor, not through the server's file system: its
+creator and collaborators log in at `/admin`, every field they type is saved as they go into
+the Tree's draft, and the Publish toggle copies a draft that validates in full to the public
+`tree.json` -- at once, with no restart (`docs/specs/application.md` 19). While a Tree is
+published, every save that leaves its draft valid reaches the public copy immediately; a save
+that does not leaves the last valid copy in place until the draft is valid again. The process
+is the data directory's only writer, so **never edit, copy or delete a file under
+`ELSA_DATA_DIR` while the service runs** -- the running server would not see the change, and
+its next write would replace it.
 
-```sh
-# On the machine with the checkout -- the server refuses to start on a Tree that does not
-# validate, and finding that out on the server means downtime.
-cd /tmp/elsa-src && git pull
-npm run validate trees/ai-act-applicability-agrifood   # must print "valid" before you copy
+### What is in the data directory
 
-# Copy the published file, `images/` and `theme/` -- not the whole folder, which in the
-# data directory also holds the store's `draft.json` and `meta.json`. --delete so a picture
-# the author removed is removed here too. The draft becomes a byte copy of the new
-# published file, as the seed writes it (17.4).
-sudo systemctl stop elsa-decisiontree
-sudo apt-get install -y rsync
-src=/tmp/elsa-src/trees/ai-act-applicability-agrifood
-dst=/opt/elsa-decisiontree/data/trees/ai-act-applicability-agrifood
-sudo rsync -a "$src/tree.json" "$dst/tree.json"
-sudo rsync -a "$src/tree.json" "$dst/draft.json"
-sudo rsync -a --delete "$src/images/" "$dst/images/"
-sudo rsync -a --delete "$src/theme/" "$dst/theme/"
-sudo chown -R elsa:elsa "$dst"
-
-sudo systemctl start elsa-decisiontree
-journalctl -u elsa-decisiontree -n 5      # "Serving Tree ..." means the new version is up
+```
+/opt/elsa-decisiontree/data/          (ELSA_DATA_DIR)
+├── lock                  the pid of the running server; a second one refuses to start
+├── accounts.json         every account, with its password hash
+├── sessions.json         the live login sessions, by the hash of their token
+└── trees/<tree-id>/
+    ├── meta.json         creator, collaborators, times, publish count, revision
+    ├── draft.json        the draft the editor writes: the same elsa-tree/4 file, maybe unfinished
+    ├── tree.json         the published copy; present exactly when the Tree is published
+    ├── images/           every uploaded picture, the draft's and the published copy's
+    └── theme/            the Theme's files
 ```
 
-The restart takes well under a second and costs no reader their place: the whole state of
-the application is in the URL, so a reload lands on the same page.
+### What to back up
 
-To serve a Tree that is not in the data directory yet -- another lab's -- copy its folder
-(`tree.json`, `images/`, `theme/`) to `/opt/elsa-decisiontree/data/trees/<tree-id>/`, owned
-by `elsa`, with the service stopped. It is served from the next start, because a Tree is
-published exactly when its folder holds a `tree.json`. It is listed on the overview in id
-order with every other published Tree. A folder named `images`, `theme`, `schemas` or
-`admin` is refused: those are paths of the application.
+**The whole of `ELSA_DATA_DIR`, and nothing else**: the release in `app/` holds no state, and
+the environment file is yours already. Every file in the directory is replaced atomically
+(written beside itself and renamed over), so a copy taken while the service runs holds whole
+files; at worst a `draft.json` is one save newer than its `meta.json`, which the store
+tolerates. For a copy exact to the save, stop the service first.
+
+```sh
+# Running: every file in the archive is whole.
+sudo tar -C /opt/elsa-decisiontree -czf /var/backups/elsa-data-$(date +%F).tar.gz data
+
+# Restore: stop, put the folder back, start.
+sudo systemctl stop elsa-decisiontree
+sudo rm -rf /opt/elsa-decisiontree/data
+sudo tar -C /opt/elsa-decisiontree -xzf /var/backups/elsa-data-2026-09-26.tar.gz
+sudo chown -R elsa:elsa /opt/elsa-decisiontree/data
+sudo systemctl start elsa-decisiontree
+```
+
+`accounts.json` and `sessions.json` hold password hashes and session-token hashes: keep the
+backup where only an administrator can read it, as you keep `/etc/elsa-decisiontree.env`.
+
+### Importing a Tree, and moving one between deployments
+
+A Tree that arrives as a folder -- another lab's, a repository Tree after the first start, a
+Tree from another deployment -- is imported with one command, run from a checkout with **the
+service stopped** and `ELSA_DATA_DIR` naming the data directory:
+
+```sh
+cd /tmp/elsa-src
+npm run validate trees/ai-act-applicability-agrifood      # must print "valid"
+
+sudo systemctl stop elsa-decisiontree
+sudo -u elsa env ELSA_DATA_DIR=/opt/elsa-decisiontree/data \
+  npm run store -- import /tmp/elsa-src/trees/ai-act-applicability-agrifood
+sudo systemctl start elsa-decisiontree
+journalctl -u elsa-decisiontree -n 5      # "Serving Tree ..." for the imported Tree
+```
+
+The folder's name is the Tree's id. The command copies `tree.json`, `images/` and `theme/`,
+writes a `draft.json` that is a byte copy of `tree.json` and a `meta.json` naming **this
+deployment's administrator** as the creator, and the Tree is published from the next start.
+It refuses -- exit code 1, nothing written -- an id the data directory already has, a
+reserved id (`images`, `theme`, `schemas`, `admin`) and a Tree that does not validate in full,
+printing every violation. To replace a Tree that exists, delete it in the admin area first
+(unpublish, then delete) and import the new folder.
+
+**To move a Tree from one deployment to another**, copy three things out of the source's
+`trees/<tree-id>/` -- `tree.json`, `images/` and `theme/` -- into a folder named `<tree-id>`,
+and import that folder on the other side:
+
+```sh
+# On the source (running or not: each file is whole).
+mkdir -p /tmp/move/my-tree
+cp -p  /opt/elsa-decisiontree/data/trees/my-tree/tree.json /tmp/move/my-tree/
+cp -rp /opt/elsa-decisiontree/data/trees/my-tree/images    /tmp/move/my-tree/ 2>/dev/null || true
+cp -rp /opt/elsa-decisiontree/data/trees/my-tree/theme     /tmp/move/my-tree/ 2>/dev/null || true
+# ... carry /tmp/move/my-tree to the target, then import it there as above.
+```
+
+`draft.json` and `meta.json` stay behind: the draft is its authors' unpublished work, and
+`meta.json` names accounts of the source deployment, which mean nothing on the target. What
+moves is the published Tree; on the target its creator is the administrator, who hands it
+over to the right account in the admin area. The copy may carry pictures only the source's
+draft named; the next publish on the target deletes the ones its copy does not name.
 
 ## Putting a new version of the application on the server
 
