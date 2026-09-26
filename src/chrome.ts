@@ -191,6 +191,24 @@ export interface Chrome {
   deleteTree: string
   unpublishFirst: string
   confirmDeleteTree: string
+  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button, the side-bubble `+`, and the two choices of its Sheet. */
+  treeEndsHere: string
+  newSideBubble: string
+  createNew: string
+  linkExisting: string
+  /** **[#139]** The link menu of an Answer or Option button (30.6, 30.7): its name and its two actions. */
+  linkMenu: string
+  changeTarget: string
+  removeLink: string
+  /** **[#139]** The step menu on the rim (30.8): its name, its two actions, and the confirmation of a delete. */
+  stepMenu: string
+  deleteStep: string
+  removeEnd: string
+  /** The confirmation named with the step's title: a function, so a language may order the sentence its own way (3.2). */
+  confirmDelete: (title: string) => string
+  /** **[#139]** The picker (30.6): its heading, and the placeholder of the new side-bubble's title. */
+  pickTarget: string
+  sideBubbleTitle: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -328,6 +346,19 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     deleteTree: 'Delete this tree',
     unpublishFirst: 'Hide it first to delete it.',
     confirmDeleteTree: 'Delete this tree and its pictures for good? This cannot be undone.',
+    treeEndsHere: 'Tree ends here',
+    newSideBubble: 'New side bubble',
+    createNew: 'Create a new one',
+    linkExisting: 'Link an existing one',
+    linkMenu: 'This link',
+    changeTarget: 'Lead somewhere else',
+    removeLink: 'Remove this link',
+    stepMenu: 'This step',
+    deleteStep: 'Delete this step',
+    removeEnd: 'Does not end here after all',
+    confirmDelete: (title) => `Delete "${title}"? What it led to stays.`,
+    pickTarget: 'Which step?',
+    sideBubbleTitle: 'The side bubble\u2019s title',
   },
   nl: {
     yes: 'Ja',
@@ -463,6 +494,19 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     deleteTree: 'Deze boom verwijderen',
     unpublishFirst: 'Verberg hem eerst om hem te verwijderen.',
     confirmDeleteTree: 'Deze boom en zijn afbeeldingen voorgoed verwijderen? Dit kan niet ongedaan worden.',
+    treeEndsHere: 'Boom eindigt hier',
+    newSideBubble: 'Nieuwe zijbubbel',
+    createNew: 'Een nieuwe maken',
+    linkExisting: 'Een bestaande koppelen',
+    linkMenu: 'Deze koppeling',
+    changeTarget: 'Ergens anders heen',
+    removeLink: 'Deze koppeling verwijderen',
+    stepMenu: 'Deze stap',
+    deleteStep: 'Deze stap verwijderen',
+    removeEnd: 'Eindigt hier toch niet',
+    confirmDelete: (title) => `"${title}" verwijderen? Waar die heen leidde blijft.`,
+    pickTarget: 'Welke stap?',
+    sideBubbleTitle: 'De titel van de zijbubbel',
   },
 }
 

@@ -22,7 +22,7 @@ import { fieldValues, keyOf } from './fields.ts'
 import { LoginForm, type LoginWords } from './LoginForm.tsx'
 import type { EditorWords } from './mode.ts'
 import { WriteQueue, type QueueState, type Write } from './queue.ts'
-import { patchNode, type Answer, type Change, type WriteResponse } from './writes.ts'
+import { sendChange, type Answer, type Change, type WriteResponse } from './writes.ts'
 
 /** How long the saved time, an accent outline and `changedElsewhere` stay (29.3, 29.7). */
 const SHOWN_MS = 5_000
@@ -45,8 +45,12 @@ export interface EditorApi {
   focusKey: string | null
   write(nodeId: string, keyPath: string, value: string): void
   flush(nodeId: string, keyPath: string): void
-  /** An operation of 22.2, written at once; `focusKey` names the field to focus once the page has re-rendered. */
-  operate(nodeId: string, change: Change, focusKey?: string): void
+  /**
+   * An operation of 22.2, written at once; `focusKey` names the field to focus once the page
+   * has re-rendered. **[#139]** `then` hears the answer -- a 2xx as applied, a refusal -- so a
+   * structure control can navigate to the Node it made or show why it was refused (30).
+   */
+  operate(nodeId: string, change: Change, focusKey?: string, then?: (answer: Answer) => void): void
   hasWrite(nodeId: string, keyPath: string): boolean
   /** The field being edited, whose message the indicator shows (28.4); null clears the focus, not the last edited. */
   setCurrent(field: { nodeId: string; keyPath: string } | null): void
@@ -170,12 +174,14 @@ export function Editor({
         setVersion((v) => v + 1)
         // The shape changed: the server components draw the new list; the fields keep their state.
         if (write.key === null) router.refresh()
+        write.then?.(answer)
         return
       }
       if (status === 401) {
         setSessionExpired(true)
         return
       }
+      write.then?.(answer)
       if (status === 403 || status === 404 || status === 409) {
         const code = body && 'error' in body ? (body.error ?? null) : null
         setNotEditable(code ?? String(status))
@@ -191,7 +197,7 @@ export function Editor({
 
   const queue = useRef<WriteQueue | null>(null)
   if (queue.current === null) {
-    queue.current = new WriteQueue((write) => patchNode(treeId, write.nodeId, write.change), {
+    queue.current = new WriteQueue((write) => sendChange(treeId, write.nodeId, write.change), {
       onState: setQueueState,
       onAnswer: (write, answer) => apply(write, answer),
     })
@@ -235,10 +241,10 @@ export function Editor({
         queue.current!.field(nodeId, keyPath, value)
       },
       flush: (nodeId, keyPath) => queue.current!.flush(nodeId, keyPath),
-      operate: (nodeId, change, focus) => {
+      operate: (nodeId, change, focus, then) => {
         if (notEditable !== null) return
         setFocusKey(focus ?? null)
-        queue.current!.operation(nodeId, change)
+        queue.current!.operation(nodeId, change, then)
       },
       hasWrite: (nodeId, keyPath) => queue.current!.hasWrite(nodeId, keyPath),
       setCurrent: setFocused,

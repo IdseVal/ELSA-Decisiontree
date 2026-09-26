@@ -58,8 +58,18 @@ export default async function EditorPage({ params }: Props) {
   }
   const address = parseUrl(`/${[treeId, ...path].join('/')}`, segment, draft)
   if (!address) notFound()
-  const centre = await centreOf(draft, address)
+  let centre = await centreOf(draft, address)
   if (!centre) notFound()
+  // **[#139]** A fresh Answer target is an explanation Node by its draft kind until it gets
+  // Answers or an end (19.2), and `centreOf` would show it as an Overlay over its parent. In
+  // the editor an entry is an aside only where the entry before names it as an Option; any
+  // other explanation Node at the end of the path is the centre, with its up arrow (30.2).
+  for (let first = centre.chain[0]; first && !centre.node.options.some((option) => option.target === first!.node.id); first = centre.chain[0]) {
+    centre = { address: first.address, node: first.node, chain: centre.chain.slice(1), known: centre.known }
+  }
+  // The chain's addresses are the editor's, as the asides' below are: the tree view tells the
+  // Overlay a URL opened by its href (10.9), and the two must agree.
+  centre = { ...centre, chain: centre.chain.map((aside) => ({ ...aside, href: editorLinks().node(aside.address) })) }
 
   // The centre's Option targets, for their Overlays (10.9): at most eight, read by id.
   const asides: Aside<DraftNode>[] = []
@@ -71,7 +81,11 @@ export default async function EditorPage({ params }: Props) {
     asides.push({ node: target, href: editorLinks().node(at), address: at })
   }
   const page: NodePage<DraftNode> = { address, centre, neighbours: { placed: [], asides } }
-  const edit = editMode(address, draft.manifest.languages)
+  // **[#139]** The structure slots' needs (30): the picker's index from the title index, never
+  // a Node read (30.6), and the address of every Node the page carries.
+  const index = draft.nodeIds().map((id) => ({ id, title: draft.getTitle(id)?.[address.lang] ?? '' }))
+  const addresses = Object.fromEntries([centre, ...centre.chain, ...asides].map((entry) => [entry.node.id, entry.address]))
+  const edit = editMode(address, draft.manifest.languages, { index, addresses, root: draft.manifest.root, centre: centre.node.id })
   const entry = drafts.entry(session.account, treeId)
   const nodes = Object.fromEntries([centre.node, ...centre.chain.map((aside) => aside.node), ...asides.map((aside) => aside.node)].map((node) => [node.id, node]))
   const ui = chrome(address.lang)

@@ -403,7 +403,7 @@ export function Panel({
             <div className="panel-ask">
               <p>{words.confirmDeleteTree}</p>
               <div className="panel-actions">
-                <button type="button" className="admin-submit panel-danger" disabled={busy} onClick={deleteTree}>
+                <button type="button" className="admin-submit admin-submit--danger" disabled={busy} onClick={deleteTree}>
                   {words.confirm}
                 </button>
                 <button type="button" className="admin-link" onClick={() => setAsking(null)}>
@@ -415,7 +415,7 @@ export function Panel({
             <div className="panel-actions">
               <button
                 type="button"
-                className="admin-submit panel-danger"
+                className="admin-submit admin-submit--danger"
                 disabled={busy || tree.published}
                 aria-describedby={tree.published ? 'panel-unpublish-first' : undefined}
                 onClick={() => setAsking('delete')}
