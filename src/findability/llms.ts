@@ -4,10 +4,10 @@
  *
  * An agent that lands on a Node page sees one question and two buttons; it has no way to
  * know that behind the walk there is a complete, validated, licensed dataset at one URL.
- * That is the single sentence this file exists to say, and it is why the first section is
- * `## The dataset`.
+ * That is the single sentence this file exists to say. **[#134]** With many Trees it lists
+ * them first, `## The Trees`, and the datasets second (23.5).
  *
- * **It is a signpost, and carries no Tree content beyond the manifest's title and
+ * **It is a signpost, and carries no Tree content beyond each manifest's title and
  * description.** Node titles, descriptions and Sources are in the pages, in the sitemap
  * and in the dataset; a fourth copy would be the one that goes stale. There is no
  * `llms-full.txt` for the same reason: `/<tree-id>/tree.json` already is one, with a
@@ -17,7 +17,7 @@ import { CODE_LICENCE_URL, CONTENT_LICENCE_URL } from '../assets.ts'
 import { chrome, text } from '../chrome.ts'
 import { plainDescription } from '../markdown.ts'
 import type { Tree } from '../tree/loader.ts'
-import { absolute, datasetHref, rootHref, SCHEMA_HREF } from '../url.ts'
+import { absolute, datasetHref, overviewHref, rootHref, SCHEMA_HREF } from '../url.ts'
 
 /**
  * The holder of the Tree content: the `Copyright (c)` line of `CONTENT-LICENSE`.
@@ -29,53 +29,73 @@ import { absolute, datasetHref, rootHref, SCHEMA_HREF } from '../url.ts'
  */
 export const CONTENT_HOLDER = 'Wageningen University & Research'
 
+/** One served Tree as `llms.txt` lists it. */
+export interface LlmsTree {
+  tree: Tree
+  /**
+   * The root Node's description in the Tree's default language, which the Tree's entry falls
+   * back to when the manifest carries none: the manifest's is optional in the format, the
+   * root Node's is not (16.5).
+   */
+  rootDescription: string
+}
+
 /**
- * The document, built against the base the route was given (16). `rootDescription` is the
- * root Node's description in the default language, which the blockquote falls back to when
- * the manifest carries none: the manifest's is optional in the format, and a headless
- * `llms.txt` says nothing at all.
- *
- * Everything below is in the Tree's **default** language, and every URL in it is absolute,
- * because the file is read away from the site that served it.
+ * The document, built against the base the route was given (16). **[#134]** The
+ * deployment's, not one Tree's (23.5): its H1 and blockquote are chrome, and every served
+ * Tree is one line of each section that names a Tree, in the order given -- the store's id
+ * order. A Tree's title and description are in that Tree's **default** language; the rest
+ * is English chrome. Every URL in it is absolute, because the file is read away from the
+ * site that served it.
  */
-export function llmsTxt(tree: Tree, base: URL, rootDescription: string): string {
-  const { title, description, languages, defaultLanguage: lang } = tree.manifest
+export function llmsTxt(trees: LlmsTree[], base: URL): string {
   const url = (href: string): string => absolute(href, base)
-  const summary = description ? text(description, lang, 'tree.description') : rootDescription
+  const ui = chrome('en')
 
   return [
-    // A title is plain text and may hold no line break (V-PLAIN), but this document's
-    // shape is its line structure, so nothing enters it that could add a line of its own.
-    `# ${text(title, lang, 'tree.title').replace(/\s+/g, ' ').trim()}`,
+    `# ${ui.siteTitle}`,
     '',
-    `> ${plainDescription(summary).reduced}`,
+    `> ${ui.siteDescription}`,
     '',
-    ...preamble(lang),
+    ...preamble(),
     '',
-    '## The dataset',
+    '## The Trees',
     '',
-    entry(
-      'The Tree file',
-      url(datasetHref(tree.id)),
-      'every step of the tree, its text, its legal sources and its pictures, as one JSON file -- byte for byte the file this site serves its pages from',
+    ...trees.map(({ tree, rootDescription }) => {
+      const { title, description, defaultLanguage: lang } = tree.manifest
+      const summary = description ? text(description, lang, 'tree.description') : rootDescription
+      return entry(oneLine(text(title, lang, 'tree.title')), url(rootHref(tree, lang)), plainDescription(summary).reduced)
+    }),
+    '',
+    '## The datasets',
+    '',
+    ...trees.map(({ tree }) =>
+      entry(
+        `${oneLine(text(tree.manifest.title, tree.manifest.defaultLanguage, 'tree.title'))}: the Tree file`,
+        url(datasetHref(tree.id)),
+        'every step of the tree, its text, its legal sources and its pictures, as one JSON file -- byte for byte the file this site serves its pages from',
+      ),
     ),
     entry(
       'The JSON Schema',
       url(SCHEMA_HREF),
-      'the structure the Tree file is checked against, and which it passed before any page of this site was served',
+      'the structure every Tree file is checked against, and which it passed before any page of it was served',
     ),
     '',
-    '## Walking the Tree',
+    '## Walking a Tree',
     '',
-    entry('The first step', url(rootHref(tree, lang)), 'where the walk begins'),
-    entry('Sitemap', url('/sitemap.xml'), 'every step, in every language'),
+    entry('The overview', url(overviewHref('en')), 'every tree this site serves, each a link to where its walk begins'),
+    entry('Sitemap', url('/sitemap.xml'), 'every step of every tree, in every language'),
     // The grammar rather than a list of addresses: an agent can then reach any step
-    // without guessing, and the file does not grow with the Tree (16.5).
-    `- The address of one step is \`/${tree.id}/<step-id>\`. A longer path is the trail of steps visited, the last id being the step shown, and \`?lang=<tag>\` chooses the language, one of those below.`,
+    // without guessing, and the file does not grow with the Trees (16.5).
+    '- The address of one step is `/<tree-id>/<step-id>`. A longer path is the trail of steps visited, the last id being the step shown, and `?lang=<tag>` chooses the language, one of those the tree declares below.',
     '',
     '## Languages',
     '',
-    ...languages.map((tag) => `- \`${tag}\`${tag === lang ? ' (default)' : ''}`),
+    ...trees.map(({ tree }) => {
+      const { languages, defaultLanguage } = tree.manifest
+      return `- \`${tree.id}\`: ${languages.map((tag) => `\`${tag}\`${tag === defaultLanguage ? ' (default)' : ''}`).join(', ')}`
+    }),
     '',
     '## Licence',
     '',
@@ -83,6 +103,14 @@ export function llmsTxt(tree: Tree, base: URL, rootDescription: string): string 
     `- The code of this application is [MIT](${CODE_LICENCE_URL}). Tree content and code are licensed separately.`,
     '',
   ].join('\n')
+}
+
+/**
+ * A title as one line. It is plain text and may hold no line break (V-PLAIN), but this
+ * document's shape is its line structure, so nothing enters it that could add a line.
+ */
+function oneLine(value: string): string {
+  return value.replace(/\s+/g, ' ').trim()
 }
 
 /** One `- [name](url): note` entry, the form the convention gives a section's list. */
@@ -93,15 +121,15 @@ function entry(name: string, url: string, note: string): string {
 /**
  * The free-form paragraph the convention allows before the first heading: **chrome, not
  * Tree content**. It says what kind of thing this site is, that every step is a page with
- * an address, and that the whole thing is one JSON file -- the three facts an agent cannot
- * infer from a single Node page -- and it closes with the same disclaimer every page of
- * the application carries permanently, in the Tree's default language (core document 8).
+ * an address, and that each tree is one JSON file -- the three facts an agent cannot infer
+ * from a single Node page -- and it closes with the same disclaimer every page of the
+ * application carries permanently (core document 8).
  */
-function preamble(lang: string): string[] {
+function preamble(): string[] {
   return [
-    'This site is an interactive legal decision tree: a reader answers one question at a',
+    'This site serves interactive legal decision trees: a reader answers one question at a',
     'time and arrives at an outcome. Every step is a page of its own with a real URL, so',
-    'any step can be linked to, quoted and revisited, and the whole tree is one JSON file.',
-    chrome(lang).disclaimer,
+    'any step can be linked to, quoted and revisited, and each tree is one JSON file.',
+    chrome('en').disclaimer,
   ]
 }

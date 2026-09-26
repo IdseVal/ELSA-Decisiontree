@@ -7,7 +7,7 @@
  * It is links, not a form or a menu: the switch works with JavaScript switched off, which
  * is what application.md section 1 promises for everything but the thumbnails and sharing.
  */
-import { chrome, chromeLang } from '../chrome.ts'
+import { chrome, CHROME_LANGUAGES, chromeLang, type ChromeLanguage } from '../chrome.ts'
 import { withLang, type PageAddress } from '../url.ts'
 
 /**
@@ -32,26 +32,47 @@ export function LanguageSwitch({
   address: PageAddress
   languages: string[]
 }) {
-  const ui = chrome(address.lang)
+  return <Switch current={address.lang} languages={languages} href={(language) => withLang(address, language)} />
+}
+
+/**
+ * **[#134]** The switch of a page whose words are all chrome -- the overview, the 404 page
+ * (24.3): the chrome's own languages, each a link `href` builds for that page.
+ */
+export function ChromeLanguageSwitch({ lang, href }: { lang: ChromeLanguage; href: (lang: ChromeLanguage) => string }) {
+  return <Switch current={lang} languages={CHROME_LANGUAGES} href={(language) => href(language as ChromeLanguage)} />
+}
+
+function Switch({
+  current,
+  languages,
+  href,
+}: {
+  /** The language on screen. */
+  current: string
+  languages: readonly string[]
+  href: (language: string) => string
+}) {
+  const ui = chrome(current)
 
   return (
     <nav className="language-switch" aria-labelledby="language-label">
       {/* The name of the region is chrome and may be in another language than the language
           names under it, each of which is in its own. Only a referenced element can say so. */}
-      <span hidden id="language-label" lang={chromeLang(address.lang)}>
+      <span hidden id="language-label" lang={chromeLang(current)}>
         {ui.language}
       </span>
       <ul>
         {languages.map((language) => (
           <li key={language}>
-            {language === address.lang ? (
+            {language === current ? (
               // Where the reader already is: named, so they can see which language this is,
               // but not a link to the page they are looking at.
               <span className="language language--current" lang={language} aria-current="true">
                 {endonym(language)}
               </span>
             ) : (
-              <a className="language" href={withLang(address, language)} lang={language}>
+              <a className="language" href={href(language)} lang={language}>
                 {endonym(language)}
               </a>
             )}

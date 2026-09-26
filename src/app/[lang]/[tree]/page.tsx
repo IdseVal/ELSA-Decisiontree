@@ -1,21 +1,24 @@
 import { notFound, redirect } from 'next/navigation'
-import { servedTree } from '../../../config.ts'
+import { store } from '../../../config.ts'
 import { rootHref } from '../../../url.ts'
 
 /**
- * Rendered per request: the Tree is a run-time setting, so nothing here may be baked into
- * the build (docs/specs/application.md section 2).
+ * Rendered per request: which Trees are published is the store's, and changes without a
+ * build (docs/specs/application.md 18.2).
  */
 export const dynamic = 'force-dynamic'
 
-/** `/<tree-id>` redirects to that Tree's root Node; any other Tree id answers 404 (4.1). */
+/**
+ * `/<tree-id>` redirects to that Tree's root Node; an id that is not a served Tree answers
+ * 404, a hidden one exactly as an unknown one (4.1, 23.1).
+ */
 export default async function TreeRoot({
   params,
 }: {
   params: Promise<{ lang: string; tree: string }>
 }) {
-  const tree = await servedTree()
   const { lang, tree: treeId } = await params
-  if (treeId !== tree.id) notFound()
+  const tree = (await store()).published(treeId)
+  if (!tree) notFound()
   redirect(rootHref(tree, lang))
 }

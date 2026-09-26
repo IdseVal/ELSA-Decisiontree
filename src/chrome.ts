@@ -70,6 +70,16 @@ export interface Chrome {
   minimumSize: string
   minimumWidth: string
   minimumHeight: string
+  /** **[#134]** The deployment's name: the overview's chrome bar and title, the H1 of `llms.txt` (23.2, 23.5, 24.3). */
+  siteTitle: string
+  /** **[#134]** What this site is, in one sentence: the overview's description meta tag and the blockquote of `llms.txt`. */
+  siteDescription: string
+  /** **[#134]** The overview when no Tree is published (23.2). */
+  noTrees: string
+  /** **[#134]** The + tile of the creators' overview (26.4), which #137 draws. */
+  newTree: string
+  /** **[#134]** The link on the 404 page: the overview, since a Tree-less page has no root to start again from. */
+  toOverview: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -97,7 +107,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     disclaimer:
       'This is not legal advice. Read the sources and consult a lawyer before you rely on an outcome.',
     notFoundTitle: 'This step does not exist',
-    notFoundText: 'The address does not name a step of this tree.',
+    notFoundText: 'The address does not name a page of this site.',
     opensInNewTab: 'opens in a new tab',
     startAgain: 'Start again',
     up: (title) => `Back to: ${title}`,
@@ -107,6 +117,12 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     minimumSize: 'This tool needs a larger window.',
     minimumWidth: 'Make it wider than 320 pixels.',
     minimumHeight: 'Make it taller than 480 pixels.',
+    siteTitle: 'ELSA decision trees',
+    siteDescription:
+      'Interactive legal decision trees: answer one question at a time and arrive at an outcome, with the legal sources of every step.',
+    noTrees: 'No decision tree is published here yet.',
+    newTree: 'New tree',
+    toOverview: 'All decision trees',
   },
   nl: {
     yes: 'Ja',
@@ -132,7 +148,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     disclaimer:
       'Dit is geen juridisch advies. Lees de bronnen en raadpleeg een jurist voordat u op een uitkomst vertrouwt.',
     notFoundTitle: 'Deze stap bestaat niet',
-    notFoundText: 'Het adres verwijst niet naar een stap van deze boom.',
+    notFoundText: 'Het adres verwijst niet naar een pagina van deze site.',
     opensInNewTab: 'opent in een nieuw tabblad',
     startAgain: 'Opnieuw beginnen',
     up: (title) => `Terug naar: ${title}`,
@@ -142,6 +158,12 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     minimumSize: 'Dit hulpmiddel heeft een groter venster nodig.',
     minimumWidth: 'Maak het breder dan 320 pixels.',
     minimumHeight: 'Maak het hoger dan 480 pixels.',
+    siteTitle: 'ELSA-beslisbomen',
+    siteDescription:
+      'Interactieve juridische beslisbomen: beantwoord één vraag tegelijk en kom tot een uitkomst, met de juridische bronnen van elke stap.',
+    noTrees: 'Hier is nog geen beslisboom gepubliceerd.',
+    newTree: 'Nieuwe boom',
+    toOverview: 'Alle beslisbomen',
   },
 }
 

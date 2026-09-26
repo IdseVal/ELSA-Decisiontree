@@ -43,6 +43,7 @@ const OUTCOME_LABEL: Record<Outcome, ChromeString> = {
 
 export function Bubble({
   node,
+  treeId,
   lang,
   ui,
   uiLang,
@@ -51,6 +52,8 @@ export function Bubble({
   up,
 }: {
   node: Node
+  /** The Tree the Node is of: its pictures are under its id (application.md 18.1). */
+  treeId: string
   lang: string
   ui: Chrome
   /** Set when the chrome speaks another language than the content. */
@@ -77,7 +80,7 @@ export function Bubble({
       )}
 
       <div className="bubble-text">
-        <Interior node={node} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} pictures={pictures} />
+        <Interior node={node} treeId={treeId} lang={lang} ui={ui} uiLang={uiLang} idPrefix={idPrefix} pictures={pictures} />
       </div>
     </article>
   )
@@ -99,6 +102,7 @@ export function sheetWords(ui: Chrome): SheetWords {
 
 export function Interior({
   node,
+  treeId,
   lang,
   ui,
   uiLang,
@@ -107,6 +111,8 @@ export function Interior({
   href,
 }: {
   node: Node
+  /** The Tree the Node is of: its pictures are under its id (application.md 18.1). */
+  treeId: string
   lang: string
   ui: Chrome
   /** Set when the chrome speaks another language than the content. */
@@ -123,6 +129,7 @@ export function Interior({
     <>
       <MainImage
         node={node}
+        treeId={treeId}
         lang={lang}
         ui={ui}
         uiLang={uiLang}
@@ -172,6 +179,7 @@ export function Interior({
  */
 function MainImage({
   node,
+  treeId,
   lang,
   ui,
   uiLang,
@@ -180,6 +188,7 @@ function MainImage({
   enlarges,
 }: {
   node: Node
+  treeId: string
   lang: string
   ui: Chrome
   uiLang: string | undefined
@@ -192,7 +201,7 @@ function MainImage({
   if (!image) return <span className="main-image main-image--empty" aria-hidden="true" />
   if (!pictures) return <span className="main-image main-image--withheld" aria-hidden="true" />
 
-  const href = imageHref(image.file)
+  const href = imageHref(treeId, image.file)
   return (
     <>
       {/* Hidden, not clipped: read as a name and a description all the same, and never wider than themselves (10.6). */}
