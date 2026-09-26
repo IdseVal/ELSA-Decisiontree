@@ -16,20 +16,20 @@ Type=exec
 User=elsa
 Group=elsa
 WorkingDirectory=/opt/elsa-decisiontree/app
-# PORT, HOSTNAME, ELSA_TREE, ELSA_TREES_DIR and ELSA_BASE_URL: see
+# PORT, HOSTNAME, ELSA_DATA_DIR and ELSA_BASE_URL: see
 # deploy/elsa-decisiontree.env.example.
 EnvironmentFile=/etc/elsa-decisiontree.env
 Environment=NODE_ENV=production
 Environment=NEXT_TELEMETRY_DISABLED=1
 ExecStart=/usr/local/bin/node server.js
 
-# The server refuses to start on a Tree that does not validate (docs/specs/application.md
-# section 5.4), so a restart loop is how a bad Tree announces itself. `always` is still
+# The server refuses to start on a data directory it cannot use (docs/specs/application.md
+# 18.3), so a restart loop is how a bad configuration announces itself. `always` is still
 # right: the alternative is a machine that reboots and does not come back.
 Restart=always
 RestartSec=5
 
-# The app reads files, answers requests and needs nothing else.
+# The app writes to ELSA_DATA_DIR under /opt, answers requests and needs nothing else.
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full

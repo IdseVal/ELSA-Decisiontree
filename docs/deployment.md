@@ -3,11 +3,11 @@
 > Written for issue #11. Every command below was run on a clean `ubuntu:24.04` container;
 > what was measured is in the pull request that added this file.
 
-The application is **one Node.js process reading files from a folder**. It has no
+The application is **one Node.js process and the one folder it keeps its data in**. It has no
 database, no queue, no object store, no build service and no runtime that belongs to a
 hosting vendor: a Wageningen University machine and a Hetzner box are the same machine to
-it (`docs/CORE_DOCUMENT.md` section 7). Moving it is copying two folders and setting five
-environment variables.
+it (`docs/CORE_DOCUMENT.md` section 7). Moving it is copying two folders and setting a
+handful of environment variables.
 
 Two ways are documented, and they run the same build:
 
@@ -19,8 +19,8 @@ The shape on disk, for both:
 
 ```
 /opt/elsa-decisiontree/
-|-- app/     the built application: server.js, .next/, node_modules/  (replaced by a release)
-`-- trees/   the Tree data: one folder per Tree                       (replaced by an author)
+|-- app/     the built application: server.js, .next/, node_modules/, the seed trees/  (replaced by a release)
+`-- data/    ELSA_DATA_DIR: the whole state, one folder per Tree under trees/           (written by the service)
 /etc/elsa-decisiontree.env    the configuration
 ```
 
@@ -28,12 +28,13 @@ The shape on disk, for both:
 
 ## The editor round changes this document (#132, decided 2026-09-23)
 
-> **A stub, written by the architecture freeze of issue #132.** Everything below this box
-> describes version 1.0 and is true of it; issues **#134** (the data directory and many
-> Trees), **#135** (the administrator's password and the login) and **#136** (the store's
-> write path and the import command) rewrite the sections they change. Until they merge,
-> deploy `version-1.0` by the text below. The decisions are `docs/adrs/ADR-132-*.md` and
-> `docs/specs/application.md` 17 to 23.
+> **Written by the architecture freeze of issue #132.** **#134** (the data directory and
+> many Trees) has rewritten the sections below it changes: the configuration, the plain
+> server's steps, the container, updating a Tree and the start messages. **#135** (the
+> administrator's password and the login) and **#136** (the store's write path and the
+> import command) rewrite what is theirs; until they merge, the rows of this table that name
+> them describe what is coming, not what runs. The decisions are `docs/adrs/ADR-132-*.md`
+> and `docs/specs/application.md` 17 to 23.
 
 The application becomes a **writer**: Trees are created and edited in the app behind a login,
 saved automatically and published with a toggle. What that changes on a server:
@@ -60,17 +61,18 @@ in the application and nothing to edit in the source.
 
 | Variable | Required | Meaning |
 |---|---|---|
-| `ELSA_TREE` | **yes** | The Tree this deployment serves: the folder name under `ELSA_TREES_DIR`. There is no default; the server refuses to start without it, listing the Tree ids it did find. One deployment serves exactly one Tree (`docs/specs/application.md` section 2). |
-| `ELSA_TREES_DIR` | no | Where the Tree folders live. Defaults to `trees` under the working directory. |
+| `ELSA_DATA_DIR` | **yes** | **[#134]** The one writable folder that is the whole state of the deployment: `trees/<tree-id>/` per Tree, and the `lock` of the one process that has it open. There is no default; the server refuses to start when it is unset, is not a folder, cannot be written, or is held by another live process. Keep it outside `app/`, so a release never touches it (`docs/specs/application.md` 17). |
+| `ELSA_SEED_DIR` | no | **[#134]** Read at the **first start only** -- when `$ELSA_DATA_DIR/trees/` does not exist yet -- and every Tree folder in it that validates is imported, published. Defaults to `trees` under the working directory, which the build already carries. Never read again (`application.md` 17.4). |
 | `ELSA_BASE_URL` | no | The address readers reach this deployment at, e.g. `https://elsa.example.org` -- the reverse proxy's address, not the one the process listens on. It must be a bare origin: `http` or `https`, no path, no query. **[#120]** It is now the address `robots.txt`, `sitemap.xml` and every page's canonical and `hreflang` links advertise -- **[#121]** and `llms.txt` and every page's dataset link -- so a deployment that sets none advertises the address each request arrived on instead. See [share links and the base URL](#share-links-and-the-base-url). |
-| `ELSA_TREE_LASTMOD` | no | **[#120]** A `YYYY-MM-DD` date the sitemap reports every page as last modified at, overriding the Tree file's own modification time. Only for a build or copy pipeline that does not preserve timestamps; see [the date the sitemap reports](#the-date-the-sitemap-reports). The server refuses to start on anything that is not a day of the calendar. |
+| `ELSA_TREE`, `ELSA_TREES_DIR`, `ELSA_TREE_LASTMOD` | **must be unset** | **[#134]** Retired: a deployment serves every published Tree of its data directory, with an overview at `/`. Set, the server refuses to start and names what replaced the variable, so a 1.0 environment file is corrected rather than half-read (`application.md` 18). |
 | `PORT` | no | The TCP port the process listens on. Defaults to 3000. |
 | `HOSTNAME` | no | The address it listens on. Defaults to `0.0.0.0`. Behind a reverse proxy set `127.0.0.1`, so nothing but the proxy can reach the process. |
 | `NODE_ENV` | no | `production` in a deployment. |
 | `NEXT_TELEMETRY_DISABLED` | no | `1` in every environment: the framework must phone nobody. |
 
 All of the application's settings take effect **when the process starts**. There is no
-reload: change the file, restart the service.
+reload: change the file, restart the service. The set of Trees served is read from the data
+directory at the same moment; a folder placed there by hand is served from the next start.
 
 `deploy/elsa-decisiontree.env.example` is this table as a file to copy.
 
@@ -96,20 +98,19 @@ The share link is unaffected either way: it is the reader's own address bar.
 
 ### The date the sitemap reports
 
-`/sitemap.xml` reports every page as last modified on the day the **Tree file** was last
-written, read once when the server starts (`docs/specs/application.md` 16.2). One file, so
-no Node's text can change without it changing.
+`/sitemap.xml` reports every page of a Tree as last modified on the day that Tree's
+**published file** -- `$ELSA_DATA_DIR/trees/<tree-id>/tree.json` -- was last written, read
+when the server starts (`docs/specs/application.md` 16.2, 23). One file per Tree, so no
+Node's text can change without it changing, and each Tree carries its own date.
 
-That holds only if the copy onto the server preserves the file's timestamp. `rsync -a` and
-`cp -p` do; a plain `cp -r`, a container build and an archive unpacked without timestamps
-do not, and they stamp the Tree with the day of the deploy. Two ways out, in this order:
+The seed keeps the timestamp of the file it copies, so a seeded Tree reports the day its
+`tree.json` was written in the build's `trees/` -- which, after a `git clone`, is the day of
+the clone. A Tree copied in by hand keeps its date only if the copy preserves timestamps:
+`rsync -a` and `cp -p` do, and the [Tree update](#putting-a-new-version-of-a-tree-on-the-server)
+below uses `rsync -a`. `ELSA_TREE_LASTMOD` is retired: once #136 lands, the store writes
+the published file itself on every publish, and its time is right by construction.
 
-1. copy with the timestamp -- the [Tree update](#putting-a-new-version-of-a-tree-on-the-server)
-   below uses `rsync -a`, which does;
-2. or set `ELSA_TREE_LASTMOD=2026-09-21` to the day the content changed, which wins over
-   the file.
-
-When neither is available the sitemap carries **no** date rather than a wrong one: a
+When the file's time is in the future the sitemap carries **no** date rather than a wrong one: a
 search engine that catches a site reporting dates it cannot back stops reading them for
 that site altogether.
 
@@ -166,7 +167,7 @@ npm run build
 ```
 
 `npm run build` writes the self-contained server to `.next/standalone/` and copies the
-stylesheet and the client bundle in beside it. That folder plus `trees/` is the whole
+stylesheet and the client bundle in beside it, and carries `trees/` as the seed. That folder plus a data directory is the whole
 deployment: it carries its own `node_modules`, and nothing runs `npm` again on the server.
 
 Check the Tree you are about to serve while you still have the checkout -- the server
@@ -184,37 +185,34 @@ is recorded in `trees/ai-act-applicability-agrifood/NOTES.md` section 10.
 
 ```sh
 sudo useradd --system --home-dir /opt/elsa-decisiontree --shell /usr/sbin/nologin elsa
-sudo mkdir -p /opt/elsa-decisiontree/trees
 
 sudo rm -rf /opt/elsa-decisiontree/app
+sudo mkdir -p /opt/elsa-decisiontree
 sudo cp -r /tmp/elsa-src/.next/standalone /opt/elsa-decisiontree/app
 
-# The contents of trees/, not the folder: `cp -r .../trees /opt/elsa-decisiontree/trees`
-# copies the folder *into* the target on a second run and leaves a trees/trees that
-# ELSA_TREES_DIR does not point at. This line may be re-run, and a reinstall is a re-run.
-# It is not guarded by `rm -rf` the way app is, because a Tree that is not in the
-# repository lives in this folder too.
-# -p preserves each file's modification time, which is the date /sitemap.xml reports
-# (docs/specs/application.md 16.2). Without it the Tree is stamped with the day of the
-# deploy and every page claims to have changed then.
-sudo cp -rp /tmp/elsa-src/trees/. /opt/elsa-decisiontree/trees/
+# The service reads the application and writes none of it.
+sudo chown -R root:root /opt/elsa-decisiontree/app
+sudo chmod -R go-w /opt/elsa-decisiontree/app
 
-# The service reads these files and writes none of them.
-sudo chown -R root:root /opt/elsa-decisiontree
-sudo chmod -R go-w /opt/elsa-decisiontree
+# The data directory: the one folder the service writes, and so the one it owns. Created
+# empty; the first start fills it from the seed. Never inside app/, which a release replaces.
+sudo mkdir -p /opt/elsa-decisiontree/data
+sudo chown elsa:elsa /opt/elsa-decisiontree/data
+sudo chmod 0750 /opt/elsa-decisiontree/data
 ```
 
-> The build also traces a copy of `trees/` into `.next/standalone/`, so
-> `/opt/elsa-decisiontree/app/trees` exists as well. It is not what is served:
-> `ELSA_TREES_DIR` decides, and it names `/opt/elsa-decisiontree/trees` -- the folder an
-> author replaces, outside the folder a release replaces.
+> The build traces a copy of `trees/` into `.next/standalone/`, so
+> `/opt/elsa-decisiontree/app/trees` exists. That is the **seed**: `ELSA_SEED_DIR` defaults
+> to `trees` under the working directory, and the unit's working directory is `app/`. It is
+> read at the first start only, to fill `data/trees/`; after that, what is served is the
+> data directory's, and a release that replaces `app/` changes no Tree.
 
 ### 4. Configure it
 
 ```sh
 sudo cp /tmp/elsa-src/deploy/elsa-decisiontree.env.example /etc/elsa-decisiontree.env
 sudo chmod 0644 /etc/elsa-decisiontree.env
-sudoedit /etc/elsa-decisiontree.env     # set ELSA_TREE and ELSA_BASE_URL
+sudoedit /etc/elsa-decisiontree.env     # set ELSA_DATA_DIR and ELSA_BASE_URL
 ```
 
 The file holds no secret -- the application has none -- so it needs no special protection.
@@ -230,9 +228,13 @@ systemctl status elsa-decisiontree
 journalctl -u elsa-decisiontree -n 20
 ```
 
-A healthy start prints one line -- `Serving Tree "ai-act-applicability-agrifood" (en, nl)
-at https://elsa.example.org`. A refusal prints why (the Tree ids it found, or every broken
-rule of the Tree) and the unit restarts every 5 seconds until the reason is fixed.
+The first start prints one `Seeded Tree "<id>" from .../trees` line per Tree it imported.
+Every start then prints one `Serving Tree "<id>" (en, nl)` line per Tree served, and
+`Reached at https://elsa.example.org` when `ELSA_BASE_URL` is set. A published Tree that
+fails validation is **not served, and the others are**: its broken rules are printed after
+`Not serving, published but invalid:`, and it answers 404 everywhere until it is fixed. A
+data directory the server cannot use prints why, and the unit restarts every 5 seconds
+until the reason is fixed ([when it does not start](#when-it-does-not-start)).
 
 The unit (`deploy/elsa-decisiontree.service`) runs `node server.js` as the unprivileged
 `elsa` user, restarts on failure, and starts at boot. It uses systemd and nothing else.
@@ -240,7 +242,8 @@ The unit (`deploy/elsa-decisiontree.service`) runs `node server.js` as the unpri
 Check it answers:
 
 ```sh
-curl -sI http://127.0.0.1:3000/                       # 307 to the Tree's root Node
+curl -sI http://127.0.0.1:3000/                       # 200: the overview of every Tree (/?lang=nl in Dutch)
+curl -sI http://127.0.0.1:3000/ai-act-applicability-agrifood   # 307 to the Tree's root Node
 curl -s http://127.0.0.1:3000/ai-act-applicability-agrifood/start | head -20
 ```
 
@@ -302,12 +305,14 @@ proxies above), and add a cookie of its own.
 
 ### The dataset is public
 
-**[#121]** A deployment serves the Tree it holds as a dataset as well as a walk, at
+**[#121]** A deployment serves every published Tree as a dataset as well as a walk, at
 `https://<your host>/<tree-id>/tree.json` -- the Tree file itself, byte for byte, under
 CC BY 4.0, with the licence in a `Link` header on the bytes and `Access-Control-Allow-Origin: *`
 so another lab's page or a notebook can fetch it (`docs/specs/application.md` 15). The
 format's JSON Schema is beside it at `/schemas/elsa-tree-4.json`, and `/llms.txt` is the
-short plain-text description that points an AI agent at both.
+short plain-text description that points an AI agent at every Tree's and at the schema. A
+Tree that is not published is in none of them: its `tree.json`, its pages and its pictures
+answer 404, the same answer as an id that does not exist.
 
 Nothing needs configuring for any of this, and there is nothing to turn off: the data was
 already public in the repository, the routes set no cookie, and what they serve is the
@@ -329,7 +334,8 @@ docker build -t elsa-decisiontree .
 docker run -d --name elsa \
   --restart unless-stopped \
   -p 127.0.0.1:3000:3000 \
-  -e ELSA_TREE=ai-act-applicability-agrifood \
+  -v elsa-data:/data \
+  -e ELSA_DATA_DIR=/data \
   -e ELSA_BASE_URL=https://elsa.example.org \
   elsa-decisiontree
 
@@ -340,28 +346,31 @@ curl -s http://127.0.0.1:3000/ai-act-applicability-agrifood/start | head -20
 `--restart unless-stopped` is what the systemd unit's `Restart=always` is. TLS is the same
 reverse proxy as above, pointed at the published port.
 
-A container build does not preserve the Tree file's modification time, so
-`/sitemap.xml` would report the day the image was built. Set `ELSA_TREE_LASTMOD` to the
-day the content changed, or mount the Tree folder from the host, where its timestamp
-survives ([the date the sitemap reports](#the-date-the-sitemap-reports)).
-
-The image carries the Trees that were in the repository when it was built. To serve a Tree
-without rebuilding, mount a folder over them:
+The volume is the data directory, and the container is disposable around it: removing
+and re-running the container keeps every Tree. The image carries the Trees that were in the
+repository when it was built as its seed, imported the first time the volume is empty. To
+seed from other Trees, mount them and name them for that first run:
 
 ```sh
 docker run -d --name elsa \
   -p 127.0.0.1:3000:3000 \
-  -v /srv/elsa-trees:/app/trees:ro \
-  -e ELSA_TREE=my-tree \
+  -v elsa-data:/data -e ELSA_DATA_DIR=/data \
+  -v /srv/elsa-trees:/seed:ro -e ELSA_SEED_DIR=/seed \
   elsa-decisiontree
 ```
+
+A container build does not preserve the Tree file's modification time, so a Tree seeded
+from the image reports the day the image was built in `/sitemap.xml`; one seeded from a
+mounted folder keeps its own ([the date the sitemap reports](#the-date-the-sitemap-reports)).
 
 ---
 
 ## Putting a new version of a Tree on the server
 
-Tree content is files, and a running server holds the Tree it read at start. Publishing a
-new version is: validate, copy, restart.
+Until #136 brings the editor's write path and `npm run store -- import`, a Tree changes
+the way it did in 1.0 -- validate, copy, restart -- except that the copy goes into the data
+directory, and the service is **stopped** while it happens: the running process is the
+store's only writer (`docs/specs/application.md` 17.3).
 
 ```sh
 # On the machine with the checkout -- the server refuses to start on a Tree that does not
@@ -369,25 +378,33 @@ new version is: validate, copy, restart.
 cd /tmp/elsa-src && git pull
 npm run validate trees/ai-act-applicability-agrifood   # must print "valid" before you copy
 
-# Copy the folder -- `tree.json`, `images/` and `theme/` -- then restart. --delete so a Node
-# the author removed is removed here too, and so is the Tree file of an older format left
-# behind by an earlier release (`docs/specs/tree-format.md` section 12), which the loader
-# ignores but which no longer describes what is served.
+# Copy the published file, `images/` and `theme/` -- not the whole folder, which in the
+# data directory also holds the store's `draft.json` and `meta.json`. --delete so a picture
+# the author removed is removed here too. The draft becomes a byte copy of the new
+# published file, as the seed writes it (17.4).
+sudo systemctl stop elsa-decisiontree
 sudo apt-get install -y rsync
-sudo rsync -a --delete \
-  /tmp/elsa-src/trees/ai-act-applicability-agrifood/ \
-  /opt/elsa-decisiontree/trees/ai-act-applicability-agrifood/
-sudo chown -R root:root /opt/elsa-decisiontree/trees
+src=/tmp/elsa-src/trees/ai-act-applicability-agrifood
+dst=/opt/elsa-decisiontree/data/trees/ai-act-applicability-agrifood
+sudo rsync -a "$src/tree.json" "$dst/tree.json"
+sudo rsync -a "$src/tree.json" "$dst/draft.json"
+sudo rsync -a --delete "$src/images/" "$dst/images/"
+sudo rsync -a --delete "$src/theme/" "$dst/theme/"
+sudo chown -R elsa:elsa "$dst"
 
-sudo systemctl restart elsa-decisiontree
+sudo systemctl start elsa-decisiontree
 journalctl -u elsa-decisiontree -n 5      # "Serving Tree ..." means the new version is up
 ```
 
 The restart takes well under a second and costs no reader their place: the whole state of
 the application is in the URL, so a reload lands on the same page.
 
-To serve a Tree that is not in the repository -- another lab's -- put its folder in
-`/opt/elsa-decisiontree/trees/` and name it in `ELSA_TREE`.
+To serve a Tree that is not in the data directory yet -- another lab's -- copy its folder
+(`tree.json`, `images/`, `theme/`) to `/opt/elsa-decisiontree/data/trees/<tree-id>/`, owned
+by `elsa`, with the service stopped. It is served from the next start, because a Tree is
+published exactly when its folder holds a `tree.json`. It is listed on the overview in id
+order with every other published Tree. A folder named `images`, `theme`, `schemas` or
+`admin` is refused: those are paths of the application.
 
 ## Putting a new version of the application on the server
 
@@ -402,8 +419,9 @@ sudo chown -R root:root /opt/elsa-decisiontree/app
 sudo systemctl restart elsa-decisiontree
 ```
 
-`trees/` is untouched by this: the application folder and the data folder are replaced by
-different people at different times, which is why they are two folders.
+`data/` is untouched by this: a release replaces the application folder and the service
+writes the data folder, which is why they are two folders. The new release's `trees/` is
+not read again; it only seeds a data directory that is still empty.
 
 ## Checking what the deployment sends
 
@@ -416,9 +434,13 @@ running deployment, because both would arrive by accident rather than on purpose
 curl -sD - -o /dev/null http://127.0.0.1:3000/ai-act-applicability-agrifood/start | grep -i set-cookie
 # (no output)
 
+# No cookie on the overview either.
+curl -sD - -o /dev/null http://127.0.0.1:3000/ | grep -i set-cookie
+# (no output)
+
 # Every address the page points a browser at. Only paths on this server appear
-# (/_next/..., /images/...). The eur-lex.europa.eu links are Sources: a link a reader may
-# click, never something the page fetches.
+# (/_next/..., /<tree-id>/images/...). The eur-lex.europa.eu links are Sources: a link a
+# reader may click, never something the page fetches.
 curl -s http://127.0.0.1:3000/ai-act-applicability-agrifood/start \
   | grep -oE '(src|href)="[^"]*"' | sort -u
 ```
@@ -434,16 +456,20 @@ reader's local or session storage is asserted by the walks in `tests/browser/`.
 
 | Message | Meaning |
 |---|---|
-| `ELSA_TREE is not set. Tree ids found in ...` | The environment file was not read, or the variable is missing. |
-| `ELSA_TREE=x: ... is not a folder. Tree ids found in ...` | `ELSA_TREES_DIR` points somewhere else, or the Tree was not copied. |
-| `ELSA_TREE=images is a reserved word` | `images` is the image route's path segment; a Tree cannot be called that. |
-| `<tree>  <node-id>  key  V-RULE  message`, one line per broken rule | The Tree is broken. `npm run validate <folder>` prints the same list from the checkout. |
+| `ELSA_DATA_DIR is not set: ...` | The environment file was not read, or the variable is missing. |
+| `ELSA_DATA_DIR=... is not a folder` | The folder was not created, or the path is mistyped. A production server never creates it, so a typo is a server that does not start rather than an empty store somewhere else. |
+| `ELSA_DATA_DIR=... cannot be written` | The folder is not owned by `elsa` (step 3). |
+| `ELSA_DATA_DIR=... is in use by process N; one process per data directory` | A second copy of the service, or a container, has the same folder open. A lock left by a process that is gone is taken over by itself. |
+| `ELSA_TREE is set, and is retired: ...`, and the same for `ELSA_TREES_DIR` and `ELSA_TREE_LASTMOD` | **[#134]** A 1.0 environment file. Remove the line; the message names what replaced it. |
 | `ELSA_BASE_URL=... is not an absolute URL` | The base URL has no scheme -- `elsa.example.org` rather than `https://elsa.example.org`. |
 | `ELSA_BASE_URL=...: only http and https are served` | The base URL names another scheme. |
 | `ELSA_BASE_URL=... must be a bare origin` | The base URL carries a path, a query or a fragment. |
-| `ELSA_TREE_LASTMOD=... is not a YYYY-MM-DD date` | **[#120]** The date is not written `2026-09-21`: a time, another order or a word. |
-| `ELSA_TREE_LASTMOD=... is not a day of the calendar` | **[#120]** The date is written right and is no day, e.g. `2026-02-30`. |
 | `EADDRINUSE` | Another process holds `PORT`. |
+
+A broken Tree no longer stops the server. The start prints `Not serving, published but
+invalid:` and then the Tree's broken rules, one `<tree>  <node-id>  key  V-RULE  message`
+line each -- the list `npm run validate <folder>` prints from the checkout -- and serves
+every other Tree. `Not seeded: ...` at a first start is the same for a seed folder.
 
 Everything else is in the same journal: the process logs to standard output, which systemd
 collects.
