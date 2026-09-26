@@ -12,6 +12,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest'
 import { openConfiguredStore } from '../../src/config.ts'
 import { importTree, openStore, RESERVED_TREE_IDS } from '../../src/store/index.ts'
 import { writeAtomic } from '../../src/store/write.ts'
+import { ADMIN } from './admin.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const fixtures = path.join(here, '..', 'fixtures')
@@ -44,7 +45,7 @@ describe('the first start seeds the store, and no later start does', () => {
     const seed = await seedOf([path.join(trees, 'ai-act-example'), 'ai-act-example'], [path.join(fixtures, 'cycle'), 'cycle'])
     const data = await folder()
 
-    const store = await openStore(data, { ELSA_SEED_DIR: seed })
+    const store = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
 
     expect(store.publishedIds()).toEqual(['ai-act-example', 'cycle'])
     const folderOf = path.join(data, 'trees', 'ai-act-example')
@@ -53,7 +54,9 @@ describe('the first start seeds the store, and no later start does', () => {
     expect(await readFile(path.join(folderOf, 'tree.json'))).toEqual(original)
     expect(await readFile(path.join(folderOf, 'draft.json'))).toEqual(original)
     const meta = JSON.parse(await readFile(path.join(folderOf, 'meta.json'), 'utf8'))
-    expect(meta).toMatchObject({ creator: null, collaborators: [], publishCount: 1, revision: 0 })
+    // **[#135]** The seed's Trees are the administrator's (17.4, 20.3).
+    const admin = store.accounts.all().find((account) => account.administrator)!
+    expect(meta).toMatchObject({ creator: admin.id, updatedBy: admin.id, collaborators: [], publishCount: 1, revision: 0 })
     expect(Number.isNaN(Date.parse(meta.publishedAt))).toBe(false)
     // The dataset endpoint streams the store's copy now (23.6).
     expect(store.published('ai-act-example')!.filePath).toBe(path.join(folderOf, 'tree.json'))
@@ -63,11 +66,11 @@ describe('the first start seeds the store, and no later start does', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const seed = await seedOf([path.join(fixtures, 'cycle'), 'cycle'])
     const data = await folder()
-    await openStore(data, { ELSA_SEED_DIR: seed })
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
     await rm(path.join(data, 'trees', 'cycle'), { recursive: true })
     await cp(path.join(fixtures, 'carousel'), path.join(seed, 'carousel'), { recursive: true })
 
-    const store = await openStore(data, { ELSA_SEED_DIR: seed })
+    const store = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
 
     expect(store.publishedIds()).toEqual([])
   })
@@ -81,7 +84,7 @@ describe('the first start seeds the store, and no later start does', () => {
       [path.join(fixtures, 'carousel'), 'carousel'],
     )
 
-    const store = await openStore(await folder(), { ELSA_SEED_DIR: seed })
+    const store = await openStore(await folder(), { ...ADMIN, ELSA_SEED_DIR: seed })
 
     expect(store.publishedIds()).toEqual(['carousel'])
     const printed = errors.mock.calls.map((call) => String(call[0])).join('\n')
@@ -92,7 +95,7 @@ describe('the first start seeds the store, and no later start does', () => {
   test('ELSA_SEED_DIR defaults to trees/ under the working directory', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
 
-    const store = await openStore(await folder(), {})
+    const store = await openStore(await folder(), ADMIN)
 
     expect(store.publishedIds()).toEqual(['ai-act-applicability-agrifood', 'ai-act-example'])
   })
@@ -103,10 +106,10 @@ describe('which Trees are served (18.3, 23.1)', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const seed = await seedOf([path.join(fixtures, 'cycle'), 'cycle'], [path.join(fixtures, 'carousel'), 'carousel'])
     const data = await folder()
-    await openStore(data, { ELSA_SEED_DIR: seed })
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
     await rm(path.join(data, 'trees', 'cycle', 'tree.json'))
 
-    const store = await openStore(data, {})
+    const store = await openStore(data, ADMIN)
 
     expect(store.publishedIds()).toEqual(['carousel'])
     expect(store.published('cycle')).toBeNull()
@@ -116,10 +119,10 @@ describe('which Trees are served (18.3, 23.1)', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const seed = await seedOf([path.join(fixtures, 'cycle'), 'cycle'], [path.join(fixtures, 'carousel'), 'carousel'])
     const data = await folder()
-    await openStore(data, { ELSA_SEED_DIR: seed })
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
     await writeFile(path.join(data, 'trees', 'cycle', 'tree.json'), '{ "format": "elsa-tree/4" ')
 
-    const store = await openStore(data, {})
+    const store = await openStore(data, ADMIN)
 
     expect(store.publishedIds()).toEqual(['carousel'])
     expect(store.published('cycle')).toBeNull()
@@ -131,7 +134,7 @@ describe('which Trees are served (18.3, 23.1)', () => {
 
   test('an unknown or reserved id is null, like a hidden one', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
-    const store = await openStore(await folder(), { ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
+    const store = await openStore(await folder(), { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
 
     for (const id of ['no-such-tree', ...RESERVED_TREE_IDS, '..', '']) expect(store.published(id)).toBeNull()
   })
@@ -141,10 +144,10 @@ describe('which Trees are served (18.3, 23.1)', () => {
     // addresses are routes of their own (4.3).
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const data = await folder()
-    await openStore(data, { ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
     await cp(path.join(data, 'trees', 'cycle'), path.join(data, 'trees', 'theme'), { recursive: true })
 
-    const store = await openStore(data, {})
+    const store = await openStore(data, ADMIN)
 
     expect(store.publishedIds()).toEqual(['cycle'])
     expect(store.refused()).toEqual([{ id: 'theme', reason: 'Tree "theme": "theme" is a reserved word (application.md 4.3)' }])
@@ -153,7 +156,7 @@ describe('which Trees are served (18.3, 23.1)', () => {
   test('zero Trees is a valid store', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-    const store = await openStore(await folder(), { ELSA_SEED_DIR: await folder() })
+    const store = await openStore(await folder(), { ...ADMIN, ELSA_SEED_DIR: await folder() })
 
     expect(store.publishedIds()).toEqual([])
   })
@@ -161,7 +164,7 @@ describe('which Trees are served (18.3, 23.1)', () => {
   test('swap puts a Tree in the set and takes it out, without a restart (18.2)', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const data = await folder()
-    const store = await openStore(data, { ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
+    const store = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
     const cycle = store.published('cycle')!
 
     store.swap('cycle', null)
@@ -190,13 +193,13 @@ describe('the data directory itself (17.1, 17.3)', () => {
     const other = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 60000)'], { stdio: 'ignore' })
     try {
       await writeFile(path.join(data, 'lock'), `${other.pid}\n`)
-      await expect(openStore(data, { ELSA_SEED_DIR: await folder() })).rejects.toThrow(`in use by process ${other.pid}`)
+      await expect(openStore(data, { ...ADMIN, ELSA_SEED_DIR: await folder() })).rejects.toThrow(`in use by process ${other.pid}`)
     } finally {
       other.kill()
       await new Promise((done) => other.once('exit', done))
     }
 
-    await openStore(data, { ELSA_SEED_DIR: await folder() })
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await folder() })
     expect((await readFile(path.join(data, 'lock'), 'utf8')).trim()).toBe(String(process.pid))
   })
 
@@ -206,10 +209,10 @@ describe('the data directory itself (17.1, 17.3)', () => {
     await mkdir(path.join(data, 'trees.tmp', 'half'), { recursive: true })
     await writeFile(path.join(data, 'accounts.json.tmp'), '{')
 
-    const store = await openStore(data, { ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
+    const store = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
 
     expect(store.publishedIds()).toEqual(['cycle'])
-    expect((await readdir(data)).sort()).toEqual(['lock', 'trees'])
+    expect((await readdir(data)).sort()).toEqual(['accounts.json', 'lock', 'trees'])
   })
 
   test('a missing or unset data directory refuses to start; next dev creates it', async () => {
@@ -218,7 +221,7 @@ describe('the data directory itself (17.1, 17.3)', () => {
     await expect(openConfiguredStore({})).rejects.toThrow('ELSA_DATA_DIR is not set')
     await expect(openConfiguredStore({ ELSA_DATA_DIR: missing })).rejects.toThrow('is not a folder')
     vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const developed = await openConfiguredStore({ ELSA_DATA_DIR: missing, NODE_ENV: 'development', ELSA_SEED_DIR: await folder() })
+    const developed = await openConfiguredStore({ ...ADMIN, ELSA_DATA_DIR: missing, NODE_ENV: 'development', ELSA_SEED_DIR: await folder() })
     expect(developed.publishedIds()).toEqual([])
   })
 

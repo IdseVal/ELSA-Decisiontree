@@ -11,6 +11,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { openStore } from '../../src/store/index.ts'
+import { ADMIN } from '../store/admin.ts'
 import type { Tree } from '../../src/tree/loader.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -27,7 +28,7 @@ export async function servedWithHiddenTree(): Promise<{ trees: Tree[]; remove: (
   const log = console.log
   console.log = () => {}
   try {
-    await openStore(data, { ELSA_SEED_DIR: seed })
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
     await rm(path.join(data, 'trees', HIDDEN_ID, 'tree.json'))
     const store = await openStore(data, {})
     return {

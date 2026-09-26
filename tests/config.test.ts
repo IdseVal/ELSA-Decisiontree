@@ -20,6 +20,7 @@ describe('the configured store', () => {
     // store() reads the real environment, the way the server does.
     dataDir = await mkdtemp(path.join(tmpdir(), 'elsa-config-'))
     process.env.ELSA_DATA_DIR = dataDir
+    process.env.ELSA_ADMIN_PASSWORD = 'test administrator password'
     vi.spyOn(console, 'log').mockImplementation(() => {})
 
     // Every route asks for the store on every request; it must not re-open the directory,

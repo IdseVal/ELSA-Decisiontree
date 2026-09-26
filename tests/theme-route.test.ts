@@ -43,7 +43,7 @@ beforeAll(async () => {
   await writeFile(path.join(seed, 'ai-act-example', 'images', 'draft-upload.png'), await readFile(path.join(trees, 'ai-act-example', 'images', 'eu-map.png')))
   vi.spyOn(console, 'log').mockImplementation(() => {})
   const { openStore } = await import('../src/store/index.ts')
-  await openStore(data, { ELSA_SEED_DIR: seed })
+  await openStore(data, { ELSA_ADMIN_PASSWORD: 'test administrator password', ELSA_SEED_DIR: seed })
   await rm(path.join(data, 'trees', 'hidden-copy', 'tree.json'))
   process.env.ELSA_DATA_DIR = data
   themeRoute = (await import('../src/app/[lang]/[tree]/theme/[file]/route.ts')).GET
