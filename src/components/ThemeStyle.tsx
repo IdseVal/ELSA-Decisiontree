@@ -11,8 +11,8 @@ import { themeStyle } from '../theme.ts'
 import type { Tree } from '../tree/loader.ts'
 import { themeHref } from '../url.ts'
 
-/** `tree` is the Tree the page shows; null on a page that shows none, which takes the default (13.4). */
-export function ThemeStyle({ tree }: { tree: Tree | null }) {
+/** `tree` is the Tree the page shows -- **[#138]** or the editor's draft; null on a page that shows none, which takes the default (13.4). */
+export function ThemeStyle({ tree }: { tree: Pick<Tree, 'id' | 'manifest'> | null }) {
   // The default names no font file, so it needs no Tree id to address one.
   const theme = tree ? themeStyle(tree.manifest.theme, tree.id) : themeStyle(undefined, '')
   return (

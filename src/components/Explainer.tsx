@@ -12,6 +12,10 @@
  *
  * It takes the rendered text as a string, as the other client components take strings, and
  * listens on its own element for events from the terms inside it.
+ *
+ * **[#138]** In edit mode (34.2, `onTermClick`) a click on a term dispatches the named DOM
+ * event, bubbling, with the explainer's id in `detail`, instead of toggling the panel:
+ * the explainer Sheet of #141 listens for it. Hover and focus still open the panel.
  */
 import { useEffect, useRef, useState, type FocusEvent, type MouseEvent, type PointerEvent } from 'react'
 
@@ -85,7 +89,7 @@ function onEscape(event: KeyboardEvent): void {
   event.stopPropagation()
 }
 
-export function Explainer({ html }: { html: string }) {
+export function Explainer({ html, termEvent }: { html: string; /** The event a click on a term dispatches instead of the tap toggle (34.2). */ termEvent?: string }) {
   // Until the script runs the stylesheet opens the panels (section 14); once it does, the
   // attribute hands them to the handlers below and the CSS-only rules stand down.
   const [enhanced, setEnhanced] = useState(false)
@@ -128,6 +132,13 @@ export function Explainer({ html }: { html: string }) {
   const onClick = (event: MouseEvent<HTMLDivElement>): void => {
     const term = termAt(event.target)
     if (!term) return
+    if (termEvent !== undefined) {
+      // The panel's id is `<prefix>e-<explainer id>[--n]`: the id is what follows `e-`.
+      const id = (panelOf(term)?.id ?? '').replace(/^.*?e-/, '').replace(/--\d+$/, '')
+      term.dispatchEvent(new CustomEvent(termEvent, { bubbles: true, detail: { id } }))
+      tappedOpen.current = false
+      return
+    }
     if (tappedOpen.current) close()
     else open(term)
     tappedOpen.current = false

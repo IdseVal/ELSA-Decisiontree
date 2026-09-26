@@ -123,6 +123,48 @@ export interface Chrome {
   loginInvalid: string
   loginTaken: string
   passwordLength: string
+  /** **[#138]** The editor's Source controls (28.1): the add Sheet's control, title and button; the `...` Sheet's title, its fields and its remove button. */
+  addSource: string
+  editSource: string
+  removeSource: string
+  sourceKind: string
+  sourceUrl: string
+  /** **[#138]** The `legal` kind in the kind select; on the public page the heading `sources` says it (ADR-78-sources-heading). */
+  sourceLegal: string
+  /** **[#138]** The accessible name of a Terminal's outcome select, drawn as the badge (28.1). */
+  outcome: string
+  /** **[#138]** The counter pill on the rim (28.3): the accessible names of its two numbers. */
+  characters: string
+  lines: string
+  /** **[#138]** The autosave indicator (29.3 to 29.7) and the session Sheet (29.6). */
+  saving: string
+  saved: string
+  notSaved: string
+  retrying: string
+  retry: string
+  notEditable: string
+  changedElsewhere: string
+  sessionExpired: string
+  publicBehind: string
+  /** **[#137]** The state mark on a tile of the creators' overview (26.4). */
+  published: string
+  hidden: string
+  notServable: string
+  /** **[#137]** The new-Tree form (27.1) and its refusals at the field (27.2). */
+  treeId: string
+  treeIdHint: string
+  treeIdFixed: string
+  treeIdTaken: string
+  treeIdReserved: string
+  languages: string
+  addLanguage: string
+  makeDefault: string
+  default: string
+  languagesFixed: string
+  title: string
+  /** **[#137] added in the build**: the cross on a language tag, and the tag grammar a refused tag is told (27.1). */
+  removeLanguage: string
+  languageHint: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -201,6 +243,40 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     loginInvalid: 'Use 2 to 64 lowercase letters, digits and single hyphens.',
     loginTaken: 'This name is taken.',
     passwordLength: 'A password is 12 to 256 characters.',
+    addSource: 'Add a source',
+    editSource: 'Edit this source',
+    removeSource: 'Remove this source',
+    sourceKind: 'Kind',
+    sourceUrl: 'Link',
+    sourceLegal: 'Legal',
+    outcome: 'Outcome',
+    characters: 'characters',
+    lines: 'lines',
+    saving: 'Saving',
+    saved: 'Saved',
+    notSaved: 'Not saved',
+    retrying: 'retrying',
+    retry: 'Retry now',
+    notEditable: 'This tree can no longer be edited here',
+    changedElsewhere: 'changed by a collaborator',
+    sessionExpired: 'Your session has expired. Sign in to keep editing; nothing typed is lost.',
+    publicBehind: 'the public copy is behind',
+    published: 'Published',
+    hidden: 'Hidden',
+    notServable: 'Not served',
+    treeId: 'Address name',
+    treeIdHint: 'Lowercase letters, digits and single hyphens; at most 64.',
+    treeIdFixed: 'The address name never changes after the tree is created: it is in every link to it.',
+    treeIdTaken: 'A tree with this address name exists.',
+    treeIdReserved: 'This word is reserved by the site. Choose another.',
+    languages: 'Languages',
+    addLanguage: 'Add',
+    makeDefault: 'Make default',
+    default: 'default',
+    languagesFixed: 'The languages cannot be changed after the tree is created.',
+    title: 'Title',
+    removeLanguage: 'Remove',
+    languageHint: 'A language tag such as en, nl or pt-br.',
   },
   nl: {
     yes: 'Ja',
@@ -277,6 +353,40 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     loginInvalid: 'Gebruik 2 tot 64 kleine letters, cijfers en enkele koppeltekens.',
     loginTaken: 'Deze naam is al in gebruik.',
     passwordLength: 'Een wachtwoord is 12 tot 256 tekens.',
+    addSource: 'Bron toevoegen',
+    editSource: 'Deze bron bewerken',
+    removeSource: 'Deze bron verwijderen',
+    sourceKind: 'Soort',
+    sourceUrl: 'Link',
+    sourceLegal: 'Juridisch',
+    outcome: 'Uitkomst',
+    characters: 'tekens',
+    lines: 'regels',
+    saving: 'Opslaan',
+    saved: 'Opgeslagen',
+    notSaved: 'Niet opgeslagen',
+    retrying: 'opnieuw proberen',
+    retry: 'Nu opnieuw',
+    notEditable: 'Deze boom kan hier niet meer worden bewerkt',
+    changedElsewhere: 'gewijzigd door een medewerker',
+    sessionExpired: 'Uw sessie is verlopen. Log in om verder te werken; niets van wat u typte gaat verloren.',
+    publicBehind: 'de openbare versie loopt achter',
+    published: 'Gepubliceerd',
+    hidden: 'Verborgen',
+    notServable: 'Niet getoond',
+    treeId: 'Adresnaam',
+    treeIdHint: 'Kleine letters, cijfers en enkele koppeltekens; hoogstens 64.',
+    treeIdFixed: 'De adresnaam verandert nooit nadat de boom is aangemaakt: hij staat in elke link ernaartoe.',
+    treeIdTaken: 'Er bestaat al een boom met deze adresnaam.',
+    treeIdReserved: 'Dit woord is gereserveerd door de site. Kies een ander.',
+    languages: 'Talen',
+    addLanguage: 'Toevoegen',
+    makeDefault: 'Maak standaard',
+    default: 'standaard',
+    languagesFixed: 'De talen kunnen niet worden gewijzigd nadat de boom is aangemaakt.',
+    title: 'Titel',
+    removeLanguage: 'Verwijderen',
+    languageHint: 'Een taalcode zoals en, nl of pt-br.',
   },
 }
 

@@ -8,6 +8,9 @@
  *
  * Its fields stay disabled until the script runs: without it, a submit would send the
  * password as a form the server refuses (20.6), and the page says why in a `<noscript>`.
+ *
+ * **[#138]** In the editor's session Sheet (29.6) `onSuccess` takes the place of the reload:
+ * the Sheet closes and the queue resumes with the same requests, so nothing typed is lost.
  */
 import { useState, type FormEvent } from 'react'
 import { useHydrated } from './hydrated.ts'
@@ -23,7 +26,7 @@ export interface LoginWords {
   requestFailed: string
 }
 
-export function LoginForm({ words }: { words: LoginWords }) {
+export function LoginForm({ words, onSuccess }: { words: LoginWords; /** What a 204 does instead of reloading the address (29.6). */ onSuccess?: () => void }) {
   const enhanced = useHydrated()
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
@@ -35,7 +38,8 @@ export function LoginForm({ words }: { words: LoginWords }) {
     setBusy(true)
     const answer = await send('POST', '/admin/api/login', { login, password })
     if (answer?.status === 204) {
-      window.location.reload()
+      if (onSuccess) onSuccess()
+      else window.location.reload()
       return
     }
     setBusy(false)

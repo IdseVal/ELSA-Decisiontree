@@ -12,7 +12,8 @@
  * them -- so that the page head, the sitemap and the JSON-LD say one string for one page.
  */
 import { CHROME_LANGUAGES, type ChromeLanguage } from './chrome.ts'
-import type { Tree } from './tree/loader.ts'
+import type { Readable, Tree } from './tree/loader.ts'
+import type { DraftNode, Node } from './tree/types.ts'
 
 /** Ids in one path: 49 Trail entries plus the Node shown (application.md 4.3). */
 export const MAX_PATH_IDS = 50
@@ -42,7 +43,7 @@ export type NotFound = null
  * ids, or an id that is malformed or is not a Node of this Tree. The Trail is not checked
  * for adjacency. `lang` is a segment, never a query: 4.4 guarantees one always exists.
  */
-export function parseUrl(path: string, lang: string, tree: Tree): PageAddress | NotFound {
+export function parseUrl(path: string, lang: string, tree: Readable<Node | DraftNode>): PageAddress | NotFound {
   const segments = path.split('/').filter((segment) => segment !== '')
   const [treeId, ...ids] = segments
   if (treeId !== tree.id) return null
@@ -63,12 +64,15 @@ export function parseUrl(path: string, lang: string, tree: Tree): PageAddress | 
  * Tree's default (4.3). The segment the router writes when no language was asked for needs
  * no branch of its own -- no Tree declares it, so this rule already answers for it.
  */
-export function contentLanguage(tree: Tree, lang: string): string {
+export function contentLanguage(tree: Pick<Tree, 'manifest'>, lang: string): string {
   return tree.manifest.languages.includes(lang) ? lang : tree.manifest.defaultLanguage
 }
 
-/** The URL of the Tree's root Node: where `/<tree-id>` and the Tree's overview tile lead (4.1, 23.2). */
-export function rootHref(tree: Tree, lang: string): string {
+/**
+ * The URL of the Tree's root Node: where `/<tree-id>` and the Tree's overview tile lead (4.1,
+ * 23.2). **[#137]** A draft's manifest is enough, for the creators' overview.
+ */
+export function rootHref(tree: Pick<Tree, 'id' | 'manifest'>, lang: string): string {
   return nodeHref({
     treeId: tree.id,
     trail: [],
@@ -76,6 +80,14 @@ export function rootHref(tree: Tree, lang: string): string {
     lang: contentLanguage(tree, lang),
     defaultLang: tree.manifest.defaultLanguage,
   })
+}
+
+/**
+ * **[#137]** The editor of the Tree's root Node: its public address behind `/admin/trees`
+ * (24.1), where a tile of the creators' overview the caller has a role on leads (26.4).
+ */
+export function editorRootHref(tree: Pick<Tree, 'id' | 'manifest'>, lang: string): string {
+  return `/admin/trees${rootHref(tree, lang)}`
 }
 
 /** The page `a` itself: its Trail, its Node and its language. This is the share link. */
@@ -106,6 +118,23 @@ export function withLang(a: PageAddress, lang: string): string {
   return nodeHref({ ...a, lang })
 }
 
+/**
+ * **[#138]** The five functions every component builds an address or a picture URL through
+ * (application.md 34.3): `edit?.links ?? PUBLIC_LINKS`. The public page's are the functions
+ * above as they are; the editor's (`src/editor/links.ts`) put the same paths behind
+ * `/admin/trees` and the pictures on the admin image route.
+ */
+export interface Links {
+  node(a: PageAddress): string
+  follow(a: PageAddress, targetId: string): string
+  trail(a: PageAddress, index: number): string
+  withLang(a: PageAddress, lang: string): string
+  image(treeId: string, file: string): string
+}
+
+/** The public page's `Links`: this module's own five functions, unchanged (34.3). */
+export const PUBLIC_LINKS: Links = { node: nodeHref, follow: followHref, trail: trailHref, withLang, image: imageHref }
+
 /** The Trail-less URL of the Node shown: what `<link rel="canonical">` points at. */
 export function canonicalHref(a: PageAddress): string {
   return href(a, [a.nodeId])
@@ -118,6 +147,15 @@ export function canonicalHref(a: PageAddress): string {
  */
 export function imageHref(treeId: string, file: string): string {
   return `/${treeId}/images/${encodeURIComponent(file)}`
+}
+
+/**
+ * **[#136]** Where the editor fetches a draft's picture (application.md 22.6): the admin
+ * route, which answers a logged-in reader with a role on the Tree only. The one admin path
+ * this module builds; the rest are the route files'.
+ */
+export function adminImageHref(treeId: string, file: string): string {
+  return `/admin/api/trees/${treeId}/images/${encodeURIComponent(file)}`
 }
 
 /** Where the browser fetches one file of a Tree's Theme -- a logo or a font (5.5, 18.1). */

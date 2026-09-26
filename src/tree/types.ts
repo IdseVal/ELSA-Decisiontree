@@ -111,6 +111,53 @@ export type Node = {
   | { kind: 'explanation' }
 )
 
+/**
+ * **[#136]** A Node of a draft (docs/specs/application.md 19.2): a `Node` whose `answers` may
+ * lack a key and whose localised texts may lack a language or hold an empty string for one
+ * -- a `title` or `description` not written yet is `{}` -- and nothing else different.
+ */
+export type DraftNode = Omit<Node, 'kind'> & {
+  kind: NodeKind
+  answers?: { yes?: string; no?: string }
+  outcome?: Outcome
+}
+
+/**
+ * **[#138]** The fields the Interior, the Carousel and the enlarged view read (application.md
+ * 34.6): what a `Node` and a `DraftNode` both satisfy, so the three components draw either
+ * without knowing which.
+ */
+export interface NodeContent {
+  id: string
+  title: LocalisedText
+  description: LocalisedText
+  sources: Source[]
+  images: Image[]
+  explainers: Explainer[]
+}
+
+/** **[#138]** A Node's Links as the tree view reads them (34.6): the Answers that exist, and the end. */
+export interface NodeLinks {
+  yes?: string
+  no?: string
+  terminal?: Outcome
+}
+
+/**
+ * **[#138]** The one helper through which `TreeView` and `Bubble` read a Node's Links, so that
+ * a draft's half-question -- one Answer, or none yet -- and a published Node's pair are read
+ * by one rule (34.6). Where a public `Node` is passed nothing differs.
+ */
+export function linksOf(node: Node | DraftNode): NodeLinks {
+  const links: NodeLinks = {}
+  if ('answers' in node && node.answers) {
+    if (node.answers.yes !== undefined) links.yes = node.answers.yes
+    if (node.answers.no !== undefined) links.no = node.answers.no
+  }
+  if ('outcome' in node && node.outcome !== undefined) links.terminal = node.outcome
+  return links
+}
+
 /** One broken validity rule of docs/specs/tree-format.md section 7. */
 export interface Violation {
   /**
@@ -128,4 +175,9 @@ export interface Violation {
   /** The rule id, e.g. `V-ANSWERS`, or `schema` for a shape failure the schema reports. */
   rule: string
   message: string
+  /**
+   * **[#136]** Set on a draft's violations only (application.md 19.2): true for one of the
+   * creator's to-do list, which the draft holds; false for one the store never writes.
+   */
+  advisory?: boolean
 }

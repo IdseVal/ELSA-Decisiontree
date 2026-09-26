@@ -14,7 +14,7 @@
  * about. One reduction with two outputs, so those four consumers cannot drift apart.
  */
 import type { Explainer } from './tree/types.ts'
-import { countedText } from './tree/validate.ts'
+import { countedText } from './tree/measure.ts'
 
 /**
  * A link target, its text, or a run of plain text; `**strong**` before `*emphasis*`.

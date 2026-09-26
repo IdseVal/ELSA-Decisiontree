@@ -51,6 +51,12 @@ fragment target in that text (5.9).
    also holds `removeSource`. The Tree's own `title` and `description` are fields too, in
    the top panel (`ADR-133-top-panel.md`, decision 5), with 80 and 600 / 8.
 
+   **[#138] As built.** The schema requires a Source's `url` and V-SOURCE is blocking, so an
+   `add-source` without one is refused and a made-up address would be silent content. The
+   `+ addSource` control is therefore a Sheet holding the kind and the URL, the URL focused:
+   `add-source` goes once a URL of the schema's grammar is typed, with an empty label and the
+   kind chosen, and the new label takes the focus (application.md 28.1).
+
 2. **The language switch is the editing switch.** The chrome bar's `LanguageSwitch` is
    unchanged and lists the draft's declared languages; the page's language (4.1, `?lang`)
    is the one every field edits and saves under (`<field>.<lang>`). One language at a
