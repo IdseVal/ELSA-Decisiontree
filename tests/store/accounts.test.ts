@@ -246,6 +246,47 @@ describe('create and update (20.1, 22.1)', () => {
     expect(accounts.get(anna.id)!.name).toBe('Anna')
   })
 
+  test('a deactivation that lands while a password change runs scrypt stays: the change writes back only its own field', async () => {
+    const { accounts, admin } = await fresh()
+    const anna = await accounts.create(admin, 'Anna', 'anna', 'annas first password')
+
+    const change = accounts.update(anna, anna.id, { password: 'annas second password', currentPassword: 'annas first password' })
+    await accounts.update(admin, anna.id, { active: false })
+    await change
+
+    expect(accounts.get(anna.id)).toMatchObject({ active: false })
+    expect(await verifyPassword('annas second password', accounts.get(anna.id)!.passwordHash)).toBe(true)
+  })
+
+  test("a reset that lands while a login re-hashes wins over the re-hash", async () => {
+    const { accounts, admin } = await fresh()
+    const anna = await accounts.create(admin, 'Anna', 'anna', 'annas first password')
+    // An older hash, whose verification alone takes half of a current hash's time: the
+    // reset's one scrypt ends while the login's second is still running.
+    const salt = Buffer.alloc(16, 1)
+    const { scryptSync } = await import('node:crypto')
+    const key = scryptSync('annas first password', salt, 32, { N: 2 ** 15, r: 8, p: 2, maxmem: 128 * 1024 * 1024 })
+    anna.passwordHash = `scrypt$15$8$2$${salt.toString('base64url')}$${key.toString('base64url')}`
+
+    const login = accounts.authenticate('anna', 'annas first password')
+    await accounts.update(admin, anna.id, { password: 'a reset password' })
+    await login
+
+    expect(await accounts.authenticate('anna', 'annas first password')).toBeNull()
+    expect(await accounts.authenticate('anna', 'a reset password')).toMatchObject({ id: anna.id })
+  })
+
+  test("the log line names the fields changed in fixed words, never the caller's keys", async () => {
+    const { accounts, admin } = await fresh()
+    const anna = await accounts.create(admin, 'Anna', 'anna', 'annas first password')
+
+    await accounts.update(admin, anna.id, { name: 'Anna V.', 'forged\nline': 1 } as never)
+
+    const line = logged.find((entry) => entry.startsWith(`account ${anna.id} changed`))!
+    expect(line).toMatch(new RegExp(`^account ${anna.id} changed \\(name\\) by account ${admin.id} at `))
+    expect(logged.join('\n')).not.toContain('forged')
+  })
+
   test('normaliseLogin lower-cases and trims, and refuses what is not in the id grammar', () => {
     expect(normaliseLogin(' Anna-B ')).toBe('anna-b')
     expect(normaliseLogin('-anna')).toBeNull()

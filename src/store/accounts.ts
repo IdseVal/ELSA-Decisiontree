@@ -82,6 +82,11 @@ export interface Accounts {
   listActive(): Pick<Account, 'id' | 'name' | 'login'>[]
   create(by: Account, name: string, login: string, password: string): Promise<Account>
   update(by: Account, id: string, change: AccountChange): Promise<Account>
+  /**
+   * Whether this start gave the administrator a password other than the one it had, from
+   * `ELSA_ADMIN_PASSWORD`: the recovery of a leaked credential, whose sessions must end (20.4).
+   */
+  readonly adminPasswordReplaced: boolean
 }
 
 /** scrypt's cost (20.2): N = 2^16, r = 8, p = 2 -- about 64 MiB and 100 ms per hash. */
@@ -145,9 +150,9 @@ function isCurrent(stored: string): boolean {
 }
 
 /** Refuses a password outside 12 to 256 characters; nothing else is required of it (20.2). */
-export function checkPassword(password: unknown, field: 'password' = 'password'): string {
+export function checkPassword(password: unknown): string {
   if (typeof password !== 'string' || [...password].length < PASSWORD_MIN || [...password].length > PASSWORD_MAX) {
-    throw new AccountError(422, field, 'password-length')
+    throw new AccountError(422, 'password', 'password-length')
   }
   return password
 }
@@ -170,7 +175,7 @@ export function normaliseLogin(login: unknown): string | null {
 /**
  * Opens `accounts.json` in the data directory `root` and makes sure the administrator
  * exists with the password `ELSA_ADMIN_PASSWORD` gives it (20.3): created when there is none,
- * replaced when there is one and the variable is set. Rejects -- the server does not start
+ * replaced when there is one and the variable is set to another password. Rejects -- the server does not start
  * -- when the variable is shorter than 12 characters, or absent while there is no
  * administrator. The variable's value is never printed.
  */
@@ -181,17 +186,25 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
 
   const password = env.ELSA_ADMIN_PASSWORD
   let admin = accounts.find((account) => account.administrator)
+  let adminPasswordReplaced = false
   if (password) {
     if ([...password].length < PASSWORD_MIN || [...password].length > PASSWORD_MAX) {
       throw new Error(`ELSA_ADMIN_PASSWORD must be ${PASSWORD_MIN} to ${PASSWORD_MAX} characters`)
     }
-    const passwordHash = await hashPassword(password)
-    if (admin) admin.passwordHash = passwordHash
-    else {
-      admin = { id: newId(), name: 'Administrator', login: ADMIN_LOGIN, passwordHash, active: true, administrator: true, createdAt: new Date().toISOString() }
-      accounts.push(admin)
+    // The same password again is no reset: every restart with the variable left set would
+    // otherwise log the administrator out.
+    const unchanged = admin !== undefined && isCurrent(admin.passwordHash) && (await verifyPassword(password, admin.passwordHash))
+    if (!unchanged) {
+      const passwordHash = await hashPassword(password)
+      if (admin) {
+        admin.passwordHash = passwordHash
+        adminPasswordReplaced = true
+      } else {
+        admin = { id: newId(), name: 'Administrator', login: ADMIN_LOGIN, passwordHash, active: true, administrator: true, createdAt: new Date().toISOString() }
+        accounts.push(admin)
+      }
+      await save()
     }
-    await save()
     console.log('administrator password set from ELSA_ADMIN_PASSWORD; remove the variable')
   } else if (!admin) {
     throw new Error('ELSA_ADMIN_PASSWORD is not set and there is no administrator: set it for the first start (docs/deployment.md)')
@@ -201,6 +214,8 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
   const byLogin = (login: string): Account | undefined => accounts.find((account) => account.login === login)
 
   return {
+    adminPasswordReplaced,
+
     async authenticate(login, password) {
       const account = byLogin(normaliseLogin(login) ?? '')
       const matches = await verifyPassword(password, account?.passwordHash ?? DUMMY_HASH)
@@ -212,11 +227,15 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
         console.log(`login failed for account ${account.id}`)
         return null
       }
-      if (!isCurrent(account.passwordHash)) {
-        account.passwordHash = await hashPassword(password)
+      const verified = account.passwordHash
+      if (!isCurrent(verified)) {
+        const rehashed = await hashPassword(password)
+        // A change that landed while scrypt ran -- a reset, a deactivation -- wins over this rehash.
+        if (account.passwordHash !== verified) return null
+        account.passwordHash = rehashed
         await save()
       }
-      return account
+      return account.active ? account : null
     },
 
     get: (id) => byId(id) ?? null,
@@ -250,15 +269,14 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
       const self = by.id === id
       if (!by.administrator && !self) throw new AccountError(403, null, 'forbidden')
       if (!account) throw new AccountError(404, null, 'not-found')
-      // Built on a copy and applied at the end, so a refused field changes nothing.
-      const next: Account = { ...account }
-      if (change.name !== undefined) next.name = checkName(change.name)
+      // Every field is checked before any is applied, so a refused field changes nothing.
+      const name = change.name === undefined ? undefined : checkName(change.name)
       if (change.active !== undefined) {
         if (typeof change.active !== 'boolean') throw new AccountError(422, 'active', 'malformed')
         if (!by.administrator) throw new AccountError(403, 'active', 'forbidden')
         if (account.administrator) throw new AccountError(403, 'active', 'forbidden')
-        next.active = change.active
       }
+      let passwordHash: string | undefined
       if (change.password !== undefined) {
         const password = checkPassword(change.password)
         // Changing one's own asks for the current one; the administrator sets another's
@@ -269,12 +287,16 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
             throw new AccountError(403, 'currentPassword', 'wrong-password')
           }
         }
-        next.passwordHash = await hashPassword(password)
+        passwordHash = await hashPassword(password)
       }
-      Object.assign(account, next)
+      // Only the fields this change names, and only after the awaits: a copy taken before
+      // scrypt ran would write back what another request changed meanwhile, a deactivation too.
+      if (name !== undefined) account.name = name
+      if (change.active !== undefined) account.active = change.active
+      if (passwordHash !== undefined) account.passwordHash = passwordHash
       await save()
-      const what = Object.keys(change).filter((key) => key !== 'currentPassword' && key !== 'password')
-      if (change.password !== undefined) what.push('password')
+      // Fixed words, never the caller's keys: a request's text does not reach the log (20.8).
+      const what = (['name', 'active', 'password'] as const).filter((key) => change[key] !== undefined)
       console.log(`account ${account.id} changed (${what.join(', ')}) by account ${by.id} at ${new Date().toISOString()}`)
       return account
     },

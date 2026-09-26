@@ -17,9 +17,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!body) return refuse(422, 'malformed')
   const { id } = await params
   const { accounts, sessions } = await store()
+  // The four fields of 22.1 and nothing else of the body goes on.
+  const change: AccountChange = { name: body.name, active: body.active, password: body.password, currentPassword: body.currentPassword } as AccountChange
   try {
-    const account = await accounts.update(session.account, id, body as AccountChange)
-    if (body.active === false || body.password !== undefined) await sessions.endAll(account.id, session)
+    const account = await accounts.update(session.account, id, change)
+    if (change.active === false || change.password !== undefined) await sessions.endAll(account.id, session)
     return json(publicOf(account))
   } catch (error) {
     if (isAccountError(error)) return refuse(error.status, error.message, error.field)
