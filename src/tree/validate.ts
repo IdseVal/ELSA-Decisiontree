@@ -25,6 +25,7 @@
  */
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js'
 import { explainerMarks } from '../markdown.ts'
+import { countedLength, countedText, isId } from './grammar.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
 import schemaDocument from '../../schemas/elsa-tree-4.json' with { type: 'json' }
 
@@ -82,9 +83,7 @@ const ADVISORY = new Set(['V-L10N', 'V-LENGTH', 'V-LINES', 'V-COUNT', 'V-REACH',
 
 const IMAGE_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(png|jpg|jpeg|gif|webp|svg)$/
 const THEME_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|webp|ico|woff2)$/
-const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/
 const RAW_HTML = /<[a-zA-Z/!]/
-const MARKDOWN_LINK = /\[([^\]]*)\]\([^)]*\)/g
 const LIST_ITEM = /^(-\s|\d+\.\s)/
 
 /** The maximum lengths and counts of tree-format.md 5.7; the same for every language. */
@@ -115,11 +114,6 @@ const MAX = {
 /** The width the estimated line count of rich text assumes (tree-format.md 3.8, 5.7). */
 const CHARS_PER_LINE = 75
 
-/** Tree-format.md 3.1: lowercase letters, digits, single hyphens, at most 64 characters. */
-export function isId(value: unknown): value is string {
-  return typeof value === 'string' && value.length <= 64 && ID.test(value)
-}
-
 /** Tree-format.md 3.5: a bare lowercase image file name, at most 128 characters. */
 export function isImageFile(value: unknown): value is string {
   return typeof value === 'string' && value.length <= 128 && IMAGE_FILE.test(value)
@@ -134,18 +128,8 @@ export function isMapping(value: unknown): value is Mapping {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-/**
- * Tree-format.md 3.8 steps 1 and 2: what a length rule is measured on -- the text
- * trimmed, with every Markdown link replaced by the words the reader sees.
- */
-export function countedText(text: string): string {
-  return text.trim().replace(MARKDOWN_LINK, '$1')
-}
-
-/** Tree-format.md 3.8 step 3: the length in Unicode code points, not bytes. */
-export function countedLength(text: string): number {
-  return [...countedText(text)].length
-}
+/** **[#137]** The grammars moved to `grammar.ts`, which a client component can import; said here as before. */
+export { countedLength, countedText, isId } from './grammar.ts'
 
 /**
  * Tree-format.md 3.8: how many lines this rich text takes when a renderer lays it out at
