@@ -45,7 +45,8 @@ export type ThemeWords = Pick<
   | 'colourDanger'
   | 'colourAnswerLabel'
   | 'lowContrast'
-  | 'contrastShort'
+  | 'contrastOn'
+  | 'contrastNeeds'
   | 'fonts'
   | 'fontBody'
   | 'fontHeading'
@@ -417,7 +418,7 @@ function ContrastWarning({ words, found }: { words: ThemeWords; found: Shortfall
       <p>{words.lowContrast}</p>
       <ul>
         {found.map((shortfall) => (
-          <li key={`${shortfall.text} ${shortfall.on}`}>{words.contrastShort(name(shortfall.text), name(shortfall.on), shortfall.ratio.toFixed(2), String(shortfall.minimum))}</li>
+          <li key={`${shortfall.text} ${shortfall.on}`}>{`${name(shortfall.text)} ${words.contrastOn} ${name(shortfall.on)}: ${shortfall.ratio.toFixed(2)} : 1, ${words.contrastNeeds} ${shortfall.minimum} : 1`}</li>
         ))}
       </ul>
     </div>

@@ -248,9 +248,14 @@ export interface Chrome {
   colourAccentSecondary: string
   colourDanger: string
   colourAnswerLabel: string
-  /** The warning's heading, and one line of it: what is drawn on what, its contrast and the minimum (issue #64). */
+  /**
+   * The warning's heading, and the two words of one line of it -- "<text> on <page>: 2.49 : 1,
+   * needs 4.5 : 1" (issue #64). Strings, not a function: the panel says the line in the browser,
+   * where a function from the server cannot go.
+   */
   lowContrast: string
-  contrastShort: (text: string, on: string, ratio: string, minimum: string) => string
+  contrastOn: string
+  contrastNeeds: string
   fonts: string
   fontBody: string
   fontHeading: string
@@ -449,7 +454,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourDanger: 'Prohibited and errors',
     colourAnswerLabel: 'Button text',
     lowContrast: 'Hard to read on the public page:',
-    contrastShort: (text, on, ratio, minimum) => `${text} on ${on}: ${ratio} : 1, needs ${minimum} : 1`,
+    contrastOn: 'on',
+    contrastNeeds: 'needs',
     fonts: 'Fonts',
     fontBody: 'Running text',
     fontHeading: 'Headings',
@@ -646,7 +652,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourDanger: 'Verboden en fouten',
     colourAnswerLabel: 'Knoptekst',
     lowContrast: 'Slecht leesbaar op de publieke pagina:',
-    contrastShort: (text, on, ratio, minimum) => `${text} op ${on}: ${ratio} : 1, nodig is ${minimum} : 1`,
+    contrastOn: 'op',
+    contrastNeeds: 'nodig is',
     fonts: 'Lettertypen',
     fontBody: 'Lopende tekst',
     fontHeading: 'Koppen',

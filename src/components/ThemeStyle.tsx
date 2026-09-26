@@ -7,6 +7,7 @@
  * `precedence` is what makes React hoist the element into `<head>` from wherever the page
  * renders it, and what keeps it to one element per document.
  */
+import { createHash } from 'node:crypto'
 import { themeStyle, type ThemeHref } from '../theme.ts'
 import type { Tree } from '../tree/loader.ts'
 import { themeHref } from '../url.ts'
@@ -27,7 +28,13 @@ export function ThemeStyle({ tree, href = themeHref }: { tree: Pick<Tree, 'id' |
         React would otherwise entity-escape the CSS, which a `<style>` element does not
         decode.
       */}
-      <style precedence="high" href="elsa-theme" dangerouslySetInnerHTML={{ __html: theme.css }} />
+      {/*
+        **[#144]** The `href` names the content, not the element: React keeps a hoisted style by
+        its `href` and never rewrites one it has placed, so in the editor a changed Theme would
+        stay unpainted until a reload. A new string is a new element after the old one, whose
+        every declaration it overrides; a page that never changes its Theme still has one.
+      */}
+      <style precedence="high" href={`elsa-theme-${createHash('sha256').update(theme.css).digest('hex').slice(0, 12)}`} dangerouslySetInnerHTML={{ __html: theme.css }} />
       {tree && theme.icon && <link rel="icon" href={href(tree.id, theme.icon)} />}
     </>
   )
