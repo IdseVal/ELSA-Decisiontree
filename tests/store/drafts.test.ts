@@ -15,7 +15,7 @@ import type { StoreError } from '../../src/store/errors.ts'
 import { openStore, type Store } from '../../src/store/index.ts'
 import { treeBytes } from '../../src/tree/serialise.ts'
 import { ADMIN } from './admin.ts'
-import { GIF, PNG, SVG, TEXT } from './pictures.ts'
+import { GIF, PNG, SVG, TEXT, WEBP } from './pictures.ts'
 
 let accountsFile: string
 let data: string
@@ -543,5 +543,82 @@ describe('an uneditable Tree (19.5)', () => {
     expect(entry.blocking.map((v) => v.rule)).toEqual(['V-JSON'])
     expect((await refusal(drafts.write(cees, 't', 'start', { path: 'title.en', value: 'x' }))).status).toBe(409)
     expect((await refusal(drafts.publish(cees, 't', true))).status).toBe(409)
+  })
+})
+
+describe('**[#144]** the Theme (33.8)', () => {
+  /** A real WOFF2 font, from the example Tree. */
+  const woff2 = (): Promise<Buffer> => readFile(path.join('trees', 'ai-act-example', 'theme', 'nova-square-400.woff2'))
+  const colours = {
+    background: '#ffffff',
+    surface: '#f0f3f7',
+    text: '#2d2e33',
+    'text-muted': '#696a6e',
+    accent: '#ffc600',
+    'accent-secondary': '#159a2f',
+    danger: '#e44e56',
+  }
+
+  test('a logo or a font is uploaded into theme/, typed by its bytes and named by the server; anything else is refused', async () => {
+    await drafts.create(cees, 't', ['en', 'nl'], { en: 'T', nl: 'T' })
+    const logo = await drafts.uploadThemeFile(cees, 't', PNG, '../Lab Logo.PNG')
+    expect(logo.file).toMatch(/^lab-logo-[0-9a-f]{8}\.png$/)
+    expect(await readFile(file('t', path.join('theme', logo.file)))).toEqual(PNG)
+    const font = await drafts.uploadThemeFile(cees, 't', await woff2(), 'Nova Square.ttf')
+    expect(font.file).toMatch(/^nova-square-[0-9a-f]{8}\.woff2$/)
+    for (const bytes of [SVG, TEXT, GIF]) expect((await refusal(drafts.uploadThemeFile(cees, 't', bytes, 'logo.png'))).status).toBe(415)
+    expect((await refusal(drafts.uploadThemeFile(cees, 't', Buffer.alloc(5 * 1024 * 1024 + 1), 'big.woff2'))).status).toBe(413)
+    expect((await refusal(drafts.uploadThemeFile(dirk, 't', PNG, 'logo.png'))).status).toBe(403)
+  })
+
+  test('each part is written whole: seven colours or a 422, a logo with its alt text, a font family with its files and licence', async () => {
+    await drafts.create(cees, 't', ['en', 'nl'], { en: 'T', nl: 'T' })
+    const written = await drafts.write(cees, 't', null, { path: 'theme.colours', value: colours })
+    expect(written.manifest!.theme!.colours).toEqual(colours)
+
+    const { danger: _danger, ...six } = colours
+    for (const value of [six, { ...colours, text: '#FFFFFF' }, { ...colours, primary: '#000000' }, 'red']) {
+      expect(await refusal(drafts.write(cees, 't', null, { path: 'theme.colours', value }))).toMatchObject({ status: 422 })
+    }
+    expect(drafts.draft(cees, 't').manifest.theme!.colours).toEqual(colours)
+
+    const light = (await drafts.uploadThemeFile(cees, 't', PNG, 'logo.png')).file
+    const logo = await drafts.write(cees, 't', null, { path: 'theme.logo', value: { light, alt: { en: 'The lab', nl: '' } } })
+    expect(logo.manifest!.theme!.logo).toEqual({ light, alt: { en: 'The lab', nl: '' } })
+    // An alt text still to write is a to-do, as any missing text is (19.2).
+    expect(logo.violations).toContainEqual(expect.objectContaining({ keyPath: 'theme.logo.alt.nl', rule: 'V-L10N', advisory: true }))
+    expect((await refusal(drafts.write(cees, 't', null, { path: 'theme.logo', value: { light: 'missing.png', alt: { en: 'x' } } }))).rules).toContain('V-THEME')
+    expect((await refusal(drafts.write(cees, 't', null, { path: 'theme.logo', value: { light } }))).status).toBe(422)
+
+    const face = (await drafts.uploadThemeFile(cees, 't', await woff2(), 'nova.woff2')).file
+    const family = { family: 'Nova Square', role: 'heading', files: [{ file: face, weight: '400', style: 'normal' }], licence: 'SIL Open Font License 1.1' }
+    expect((await drafts.write(cees, 't', null, { path: 'theme.fonts', value: [family] })).manifest!.theme!.fonts).toEqual([family])
+    expect((await refusal(drafts.write(cees, 't', null, { path: 'theme.fonts', value: [{ ...family, licence: '' }] }))).status).toBe(422)
+    // A logo is never a font file (tree-format.md 3.6).
+    expect((await refusal(drafts.write(cees, 't', null, { path: 'theme.logo', value: { light: face, alt: { en: 'x' } } }))).status).toBe(422)
+    expect(Object.keys(JSON.parse(await text('t', 'draft.json')).theme)).toEqual(['logo', 'fonts', 'colours'])
+  })
+
+  test('null removes a part; the last one removed takes the theme key with it; any other theme path is V-KEYS', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    await drafts.write(cees, 't', null, { path: 'theme.colours', value: colours })
+    expect((await refusal(drafts.write(cees, 't', null, { path: 'theme.colours.text', value: '#000000' }))).rules).toEqual(['V-KEYS'])
+    expect((await refusal(drafts.write(cees, 't', 'start', { path: 'theme.colours', value: '#000000' }))).rules).toEqual(['V-KEYS'])
+    await drafts.write(cees, 't', null, { path: 'theme.colours', value: null })
+    expect(JSON.parse(await text('t', 'draft.json'))).not.toHaveProperty('theme')
+  })
+
+  test('published, the Theme and its files reach the public copy; a file it does not name stays private', async () => {
+    await smallTree('t')
+    const light = (await drafts.uploadThemeFile(cees, 't', PNG, 'logo.png')).file
+    const loose = (await drafts.uploadThemeFile(cees, 't', WEBP, 'draft.webp')).file
+    await drafts.write(cees, 't', null, { path: 'theme.logo', value: { light, alt: { en: 'Lab', nl: 'Lab' } } })
+    await drafts.write(cees, 't', null, { path: 'theme.colours', value: colours })
+    expect(drafts.draft(cees, 't').themePath(light)).toBe(file('t', path.join('theme', light)))
+    await drafts.publish(cees, 't', true)
+    const published = store.published('t')!
+    expect(published.manifest.theme).toEqual({ logo: { light, alt: { en: 'Lab', nl: 'Lab' } }, colours })
+    expect(published.themePath(light)).not.toBeNull()
+    expect(published.themePath(loose)).toBeNull()
   })
 })

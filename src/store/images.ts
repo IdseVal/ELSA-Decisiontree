@@ -1,13 +1,14 @@
 /**
  * An uploaded picture (docs/specs/application.md 22.6; ADR-132-editor-api decision 7): its
  * type and size read from its first bytes, and the name the server gives it. Pure: the store
- * writes the file.
+ * writes the file. **[#144]** And an uploaded theme file (33.8): a logo or a font, typed and
+ * named by the same rules.
  *
  * The type is never taken from the client's file name or declared type -- a `.png` that is a
  * GIF is a GIF -- and SVG is not accepted at all: it is a document that can carry script.
  */
 import { createHash } from 'node:crypto'
-import { isImageFile } from '../tree/validate.ts'
+import { isImageFile, isThemeFile } from '../tree/validate.ts'
 
 /** 22.6: one file of at most 5 MiB per request. */
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
@@ -88,6 +89,23 @@ function webp(bytes: Uint8Array, view: DataView, ascii: (start: number, length: 
   return width > 0 && height > 0 ? { extension: 'webp', width, height } : null
 }
 
+/** **[#144]** What the first bytes say a theme file is: a logo (PNG or WebP) or a font (woff2). */
+export type ThemeKind = 'png' | 'webp' | 'woff2'
+
+/**
+ * **[#144]** The theme file `bytes` hold (33.8), or null for anything else. A logo is PNG or
+ * WebP, sniffed as a picture is; SVG is refused here as it is for pictures (22.6), though
+ * tree-format.md 3.6 allows it in a hand-made Tree, because the editor has no way to show a
+ * creator that a file is only a picture. `.ico` is the tab icon's, which the panel does not
+ * offer. A font is WOFF2, whose file begins with the signature `wOF2`.
+ */
+export function sniffTheme(bytes: Uint8Array): ThemeKind | null {
+  const picture = sniff(bytes)?.extension
+  if (picture === 'png' || picture === 'webp') return picture
+  if (bytes.length >= 48 && String.fromCharCode(...bytes.subarray(0, 4)) === 'wOF2') return 'woff2'
+  return null
+}
+
 /**
  * The server's name for an upload (22.6): the client's name without its extension,
  * lower-cased, every run of characters outside `[a-z0-9]` one hyphen, no hyphen at either
@@ -99,6 +117,20 @@ function webp(bytes: Uint8Array, view: DataView, ascii: (start: number, length: 
  * the check is the second of 5.5's two, kept so that a change here cannot open a path.
  */
 export function imageName(clientName: string, bytes: Uint8Array, extension: Sniffed['extension']): string {
+  const name = serverName(clientName, bytes, extension, 'image')
+  if (!isImageFile(name)) throw new Error(`"${name}" is not an image file name of tree-format.md 3.5`)
+  return name
+}
+
+/** **[#144]** The server's name for a theme file: `imageName`'s rule, checked against tree-format.md 3.6. */
+export function themeName(clientName: string, bytes: Uint8Array, extension: ThemeKind): string {
+  const name = serverName(clientName, bytes, extension, 'theme')
+  if (!isThemeFile(name)) throw new Error(`"${name}" is not a theme file name of tree-format.md 3.6`)
+  return name
+}
+
+/** `<stem>-<8 hex of the SHA-256>.<extension>`, the stem `fallback` when nothing of the client's name is left. */
+function serverName(clientName: string, bytes: Uint8Array, extension: string, fallback: string): string {
   const withoutExtension = clientName.replace(/\.[^.]*$/, '')
   const stem =
     withoutExtension
@@ -106,9 +138,7 @@ export function imageName(clientName: string, bytes: Uint8Array, extension: Snif
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .slice(0, 100)
-      .replace(/-+$/, '') || 'image'
+      .replace(/-+$/, '') || fallback
   const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 8)
-  const name = `${stem}-${hash}.${extension}`
-  if (!isImageFile(name)) throw new Error(`"${name}" is not an image file name of tree-format.md 3.5`)
-  return name
+  return `${stem}-${hash}.${extension}`
 }

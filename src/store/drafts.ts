@@ -23,7 +23,7 @@ import { isId, isImageFile, validateTree, type Mapping, type RawTree } from '../
 import type { Account, Accounts } from './accounts.ts'
 import { applyField, applyOperation, createNode, deleteNode, freshNodeId, newDraft, type Field, type Operation } from './edits.ts'
 import { malformed, StoreError } from './errors.ts'
-import { imageName, MAX_IMAGE_BYTES, sniff } from './images.ts'
+import { imageName, MAX_IMAGE_BYTES, sniff, sniffTheme, themeName } from './images.ts'
 import { mayCreate, permit, type Action, type TreeMeta } from './permissions.ts'
 import { writeAtomic } from './write.ts'
 
@@ -85,6 +85,11 @@ export interface Drafts {
   uploadImage(by: Account, id: string, bytes: Uint8Array, clientName: string): Promise<{ file: string; width: number; height: number }>
   removeImage(by: Account, id: string, file: string): Promise<void>
   draftImagePath(by: Account, id: string, file: string): string
+  /**
+   * **[#144]** One logo or font file into the Tree's `theme/` (33.8), typed by its bytes and
+   * named by the server as a picture is (22.6). Referencing it is a write of the Theme part.
+   */
+  uploadThemeFile(by: Account, id: string, bytes: Uint8Array, clientName: string): Promise<{ file: string }>
   /** Puts a Tree folder the store has just imported (17.4) into the set this module holds. */
   adopt(id: string): Promise<void>
 }
@@ -461,6 +466,26 @@ export async function openDrafts(
         await rm(path.join(tree.dir, 'images', file), { force: true })
         tree.images.delete(file)
       })
+    },
+
+    async uploadThemeFile(by, id, bytes, clientName) {
+      const tree = allowed(by, id, 'upload')
+      editable(tree)
+      if (bytes.length > MAX_IMAGE_BYTES) throw new StoreError(413, 'too-large')
+      const kind = sniffTheme(bytes)
+      if (!kind) throw new StoreError(415, 'type')
+      const file = themeName(clientName, bytes, kind)
+      const folder = path.join(tree.dir, 'theme')
+      const target = path.resolve(folder, file)
+      // 5.5's second check, as for a picture: whatever the name, the file lands inside theme/.
+      if (path.dirname(target) !== path.resolve(folder)) throw malformed(id, 'file', 'V-THEME', 'not a file of theme/')
+      await serial(tree, async () => {
+        if (tree.themeFiles.has(file)) return
+        await mkdir(folder, { recursive: true })
+        await writeAtomic(target, bytes)
+        tree.themeFiles.add(file)
+      })
+      return { file }
     },
 
     draftImagePath(by, id, file) {
