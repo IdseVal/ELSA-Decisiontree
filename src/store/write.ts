@@ -21,7 +21,7 @@ const queues = new Map<string, Promise<void>>()
  * which does not stop the writes queued behind it.
  */
 export function writeAtomic(file: string, data: string | Uint8Array): Promise<void> {
-  const target = path.resolve(file)
+  const target = path.resolve(/* turbopackIgnore: true */ file)
   const previous = queues.get(target) ?? Promise.resolve()
   const next = previous.catch(() => undefined).then(() => replace(target, data))
   queues.set(target, next)

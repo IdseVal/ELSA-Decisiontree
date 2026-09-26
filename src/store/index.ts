@@ -63,7 +63,7 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
   const root = path.resolve(/* turbopackIgnore: true */ dataDir)
   await checkUsable(root)
   await takeLock(root)
-  const treesDir = path.join(root, 'trees')
+  const treesDir = path.join(/* turbopackIgnore: true */ root, 'trees')
   await removeTemporaries(root, treesDir)
   if (!(await isFolder(treesDir))) await seed(seedDirectory(env), treesDir)
 
@@ -120,14 +120,14 @@ export async function importTree(folder: string, treesDir: string, creator: stri
   await mkdir(staging, { recursive: true })
   const published = await readFile(path.join(/* turbopackIgnore: true */ source, 'tree.json'))
   // Copied, not rewritten, so the published copy and the draft are the file's own bytes (15.3).
-  await cp(path.join(/* turbopackIgnore: true */ source, 'tree.json'), path.join(staging, 'tree.json'), {
+  await cp(path.join(/* turbopackIgnore: true */ source, 'tree.json'), path.join(/* turbopackIgnore: true */ staging, 'tree.json'), {
     preserveTimestamps: true,
   })
-  await writeAtomic(path.join(staging, 'draft.json'), published)
-  for (const sub of ['images', 'theme']) {
-    const from = path.join(/* turbopackIgnore: true */ source, sub)
-    if (await isFolder(from)) await cp(from, path.join(staging, sub), { recursive: true, preserveTimestamps: true })
-  }
+  await writeAtomic(path.join(/* turbopackIgnore: true */ staging, 'draft.json'), published)
+  // The two names are spelled out rather than looped over, as in the loader: a `path.join`
+  // whose last segment is a variable makes Turbopack trace the whole project into the build.
+  await copyFolder(path.join(/* turbopackIgnore: true */ source, 'images'), path.join(/* turbopackIgnore: true */ staging, 'images'))
+  await copyFolder(path.join(/* turbopackIgnore: true */ source, 'theme'), path.join(/* turbopackIgnore: true */ staging, 'theme'))
   const now = new Date().toISOString()
   const meta = {
     creator,
@@ -139,7 +139,7 @@ export async function importTree(folder: string, treesDir: string, creator: stri
     publishCount: 1,
     revision: 0,
   }
-  await writeAtomic(path.join(staging, 'meta.json'), `${JSON.stringify(meta, null, 2)}\n`)
+  await writeAtomic(path.join(/* turbopackIgnore: true */ staging, 'meta.json'), `${JSON.stringify(meta, null, 2)}\n`)
   await rename(staging, target)
   return openTree(target)
 }
@@ -173,7 +173,7 @@ async function checkUsable(root: string): Promise<void> {
  * restarted with the same pid finds.
  */
 async function takeLock(root: string): Promise<void> {
-  const file = path.join(root, 'lock')
+  const file = path.join(/* turbopackIgnore: true */ root, 'lock')
   const holder = Number((await readText(file))?.trim())
   if (Number.isInteger(holder) && holder > 0 && holder !== process.pid && isAlive(holder)) {
     throw new Error(`ELSA_DATA_DIR=${root} is in use by process ${holder}; one process per data directory`)
@@ -193,7 +193,7 @@ function isAlive(pid: number): boolean {
 
 /** Deletes what an interrupted write or seed left behind: every `.tmp`, file or folder (17.3). */
 async function removeTemporaries(root: string, treesDir: string): Promise<void> {
-  const folders = [root, treesDir, ...(await listFolders(treesDir)).map((id) => path.join(treesDir, id))]
+  const folders = [root, treesDir, ...(await listFolders(treesDir)).map((id) => path.join(/* turbopackIgnore: true */ treesDir, id))]
   for (const folder of folders) {
     for (const name of await listNames(folder)) {
       if (name.endsWith('.tmp')) await rm(path.join(/* turbopackIgnore: true */ folder, name), { recursive: true, force: true })
@@ -221,6 +221,11 @@ async function seed(seedDir: string, treesDir: string): Promise<void> {
     }
   }
   await rename(staging, treesDir)
+}
+
+/** Copies the folder `from` whole to `to`, timestamps kept; nothing when there is none. */
+async function copyFolder(from: string, to: string): Promise<void> {
+  if (await isFolder(from)) await cp(from, to, { recursive: true, preserveTimestamps: true })
 }
 
 function messageOf(error: unknown): string {
