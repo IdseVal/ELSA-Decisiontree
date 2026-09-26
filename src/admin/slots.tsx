@@ -32,6 +32,15 @@ function editorWords(ui: Chrome): EditorWords {
     sessionExpired: ui.sessionExpired,
     publicBehind: ui.publicBehind,
     toOverview: ui.toOverview,
+    close: ui.close,
+    mark: ui.mark,
+    unmark: ui.unmark,
+    cannotMarkHere: ui.cannotMarkHere,
+    explainerLimit: ui.explainerLimit,
+    term: ui.term,
+    explanation: ui.explanation,
+    markedIn: ui.markedIn,
+    notMarkedIn: ui.notMarkedIn,
   }
 }
 
@@ -40,6 +49,9 @@ const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|options\[\d
 
 /** Which paths hold a localised text: the page's language is appended to their key path (22.2). */
 const LOCALISED = /^(title|description|sources\[\d+\]\.label|options\[\d+\]\.title)$/
+
+/** What a click or Enter on a marked term dispatches in the editor (32.3). */
+const TERM_EVENT = 'elsa-term'
 
 const KINDS: Source['kind'][] = ['legal', 'case-law', 'literature']
 const OUTCOMES: Outcome[] = ['not-applicable', 'applicable', 'prohibited', 'refer']
@@ -69,7 +81,7 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
         return <Field {...common} select={kinds} label={ui.sourceKind} />
       }
       if (path === 'description') {
-        return <Field {...common} rich rendered={rendered} explainers={node.explainers as Explainer[]} />
+        return <Field {...common} rich rendered={rendered} explainers={node.explainers as Explainer[]} termEvent={TERM_EVENT} markerWords={{ mark: ui.mark, cannotMarkHere: ui.cannotMarkHere, explainerLimit: ui.explainerLimit }} />
       }
       return <Field {...common} />
     },
@@ -99,6 +111,7 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
       }
       return <Operation nodeId={node.id} change={{ op: 'remove-source', index }} label={ui.removeSource} className="admin-submit" />
     },
+    onTermClick: TERM_EVENT,
   }
   return { treeId: address.treeId, links, languages, words, slots }
 }

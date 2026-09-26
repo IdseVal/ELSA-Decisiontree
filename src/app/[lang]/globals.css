@@ -2810,3 +2810,78 @@ fieldset:disabled .admin-submit {
 .editor-session-panel .admin-form {
   width: 100%;
 }
+
+/*
+ * [#141] The `mark` button under the counter pill on the description's rim (32.1): the rim's
+ * 52 pixels, drawn as a tag. A refused mark stays hoverable, for its title says why.
+ */
+.editor-mark {
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--accent-secondary-read);
+  border-radius: 8px;
+  background: var(--elsa-background);
+  color: var(--elsa-text);
+  font: inherit;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.editor-mark:hover {
+  background: var(--elsa-surface);
+}
+
+.editor-mark[aria-disabled='true'] {
+  border-color: var(--rule);
+  color: var(--elsa-text-muted);
+  cursor: not-allowed;
+}
+
+/*
+ * The explainer Sheet (32.2): one explainer in every language. The right padding is the rim's,
+ * where each field's counter pill stands inside the panel (28.3).
+ */
+.explainer-sheet {
+  align-items: stretch;
+  gap: 8px;
+  width: 440px;
+  padding-right: 64px;
+}
+
+.explainer-sheet h2 {
+  margin: 0;
+  font-family: var(--elsa-font-heading);
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.explainer-language {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.explainer-language > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.explainer-language > summary .editor-tag {
+  width: 32px;
+}
+
+.explainer-language > .editor-row + .editor-row {
+  margin-top: 6px;
+}
+
+.explainer-marked--not {
+  color: var(--danger-read);
+}
+
+.explainer-controls {
+  justify-content: space-between;
+}
