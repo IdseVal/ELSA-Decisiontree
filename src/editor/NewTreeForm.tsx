@@ -14,6 +14,7 @@ import { countedLength, isId, isLanguageTag } from '../tree/grammar.ts'
 import { Field } from './AccountForms.tsx'
 import { useHydrated } from './hydrated.ts'
 import { send, type Answer } from './request.ts'
+import { proposedId } from './slug.ts'
 
 /** The chrome words the form says; strings, because a client component takes no module. */
 export interface NewTreeWords {
@@ -48,19 +49,6 @@ const ROOT = 'start'
 interface Refusal {
   field: 'id' | 'languages' | 'form'
   text: string
-}
-
-/**
- * The id proposed from a title (27.1): lower-cased, every run of characters outside
- * `[a-z0-9]` one hyphen, no hyphen at either end, at most 64 characters.
- */
-export function proposedId(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+/, '')
-    .slice(0, 64)
-    .replace(/-+$/, '')
 }
 
 /**
