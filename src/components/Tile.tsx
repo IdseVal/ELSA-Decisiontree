@@ -32,8 +32,12 @@ export function Tile({
         {logo && (
           <img className="tile-logo" src={themeHref(tree.id, logo.light)} alt={text(logo.alt, shown, 'theme.logo.alt')} />
         )}
-        <span className="tile-title">{text(manifest.title, shown, 'tree.title')}</span>
-        {description && <span className="tile-description">{description}</span>}
+        <span className="tile-title" data-clamp="">{text(manifest.title, shown, 'tree.title')}</span>
+        {description && (
+          <span className="tile-description" data-clamp="">
+            {description}
+          </span>
+        )}
         <span className="tile-languages">
           {manifest.languages.map((language) => (
             <span key={language} className="tile-language">

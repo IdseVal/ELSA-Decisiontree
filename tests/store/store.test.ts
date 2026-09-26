@@ -136,6 +136,20 @@ describe('which Trees are served (18.3, 23.1)', () => {
     for (const id of ['no-such-tree', ...RESERVED_TREE_IDS, '..', '']) expect(store.published(id)).toBeNull()
   })
 
+  test('a published folder placed by hand under a reserved id is refused, not served', async () => {
+    // Served, it would boot and be unreachable: /admin, /schemas and the two retired file
+    // addresses are routes of their own (4.3).
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
+    await cp(path.join(data, 'trees', 'cycle'), path.join(data, 'trees', 'theme'), { recursive: true })
+
+    const store = await openStore(data, {})
+
+    expect(store.publishedIds()).toEqual(['cycle'])
+    expect(store.refused()).toEqual([{ id: 'theme', reason: 'Tree "theme": "theme" is a reserved word (application.md 4.3)' }])
+  })
+
   test('zero Trees is a valid store', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
 

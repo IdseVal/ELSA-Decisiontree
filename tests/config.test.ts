@@ -1,83 +1,35 @@
 /**
- * What a deployment configures (docs/specs/application.md section 2, docs/deployment.md):
- * the Tree it serves -- exactly one, no default, and a deployment that names no usable Tree
- * refuses to start with a message that says what it did find -- and the public base URL its
- * readers reach it at.
+ * What a deployment configures (docs/specs/application.md 17.1, docs/deployment.md): the
+ * data directory its one store lives in -- whose refusals are tests/store/store.test.ts's
+ * -- and the public base URL its readers reach it at.
  */
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { describe, expect, test } from 'vitest'
-import { baseUrl, openConfiguredTree, publicBaseUrl, servedTree, treeLastmod, type Environment } from '../src/config.ts'
+import { afterAll, describe, expect, test, vi } from 'vitest'
+import { baseUrl, publicBaseUrl, store, type Environment } from '../src/config.ts'
 
-const here = path.dirname(fileURLToPath(import.meta.url))
-const treesDir = path.join(here, '..', 'trees')
-const fixturesDir = path.join(here, 'fixtures')
+describe('the configured store', () => {
+  let dataDir: string
 
-/** The error message, or '' when the Tree opened. */
-async function refusal(env: Environment): Promise<string> {
-  return openConfiguredTree(env).then(
-    () => '',
-    (error: Error) => error.message,
-  )
-}
-
-describe('the configured Tree', () => {
-  test('ELSA_TREE names the folder under ELSA_TREES_DIR that is served', async () => {
-    const tree = await openConfiguredTree({ ELSA_TREE: 'ai-act-example', ELSA_TREES_DIR: treesDir })
-
-    expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.languages).toEqual(['en', 'nl'])
+  afterAll(async () => {
+    await rm(dataDir, { recursive: true, force: true })
   })
 
-  test('ELSA_TREES_DIR defaults to trees/ under the working directory', async () => {
-    const tree = await openConfiguredTree({ ELSA_TREE: 'ai-act-example' })
+  test('the process opens its store once, however many bundles ask for it', async () => {
+    // store() reads the real environment, the way the server does.
+    dataDir = await mkdtemp(path.join(tmpdir(), 'elsa-config-'))
+    process.env.ELSA_DATA_DIR = dataDir
+    vi.spyOn(console, 'log').mockImplementation(() => {})
 
-    expect(tree.id).toBe('ai-act-example')
-  })
-
-  test('the process opens and validates its Tree once', async () => {
-    // servedTree reads the real environment, the way the server does.
-    process.env.ELSA_TREE = 'ai-act-example'
-
-    // The Node page asks for the served Tree on every request; it must not re-read the folder.
-    expect(await servedTree()).toBe(await servedTree())
-  })
-})
-
-describe('a deployment that names no usable Tree refuses to start', () => {
-  test('there is no default Tree', async () => {
-    const message = await refusal({ ELSA_TREES_DIR: treesDir })
-
-    expect(message).toContain('ELSA_TREE is not set')
-    expect(message).toContain('ai-act-example')
-  })
-
-  // Each word is a route's own path segment under /[lang]/, so /[lang]/images/...,
-  // /[lang]/theme/... and -- **[#121]** -- /[lang]/schemas/... outrank /[lang]/[tree] in
-  // the router: a deployment named after any of them would boot and then be permanently
-  // unreachable (application.md 4.3).
-  test.for(['images', 'theme', 'schemas'])('the reserved word %s is refused before anything is read', async (id) => {
-    const message = await refusal({ ELSA_TREE: id, ELSA_TREES_DIR: treesDir })
-
-    expect(message).toContain('reserved')
-    expect(message).toContain(id)
-    expect(message).toContain('ai-act-example')
-  })
-
-  test('a missing folder is refused, and the message lists the Tree ids found', async () => {
-    const message = await refusal({ ELSA_TREE: 'no-such-tree', ELSA_TREES_DIR: treesDir })
-
-    expect(message).toContain('no-such-tree')
-    expect(message).toContain('is not a folder')
-    expect(message).toContain('Tree ids found')
-    expect(message).toContain('ai-act-example')
-  })
-
-  test('an invalid Tree is refused, with every violation in the message', async () => {
-    const message = await refusal({ ELSA_TREE: 'v-image', ELSA_TREES_DIR: path.join(fixturesDir, 'invalid') })
-
-    expect(message).toContain('V-IMAGE')
-    expect(message).toContain('start')
+    // Every route asks for the store on every request; it must not re-open the directory,
+    // and a second copy of this module -- Next.js bundles instrumentation apart -- must get
+    // the same store, which is why it is held on globalThis.
+    const first = await store()
+    vi.resetModules()
+    const again = await (await import('../src/config.ts')).store()
+    expect(again).toBe(first)
+    expect(first.publishedIds()).toEqual(['ai-act-applicability-agrifood', 'ai-act-example'])
   })
 })
 
@@ -165,36 +117,5 @@ describe('the base a findability document is built against (16)', () => {
   test('only `https` makes an https origin', () => {
     expect(origin({ host: 'elsa.example.org', 'x-forwarded-proto': 'HTTPS' })).toBe('http://elsa.example.org')
     expect(origin({ host: 'elsa.example.org', 'x-forwarded-proto': 'javascript' })).toBe('http://elsa.example.org')
-  })
-})
-
-describe('the date the sitemap reports (ELSA_TREE_LASTMOD, 16.2)', () => {
-  test('a deployment that names none leaves the Tree file to answer', () => {
-    expect(treeLastmod({})).toBeUndefined()
-    expect(treeLastmod({ ELSA_TREE_LASTMOD: '  ' })).toBeUndefined()
-  })
-
-  test('an ISO date is read as written', () => {
-    expect(treeLastmod({ ELSA_TREE_LASTMOD: '2026-09-21' })).toBe('2026-09-21')
-    expect(treeLastmod({ ELSA_TREE_LASTMOD: ' 2026-09-21 ' })).toBe('2026-09-21')
-  })
-
-  test('anything that is not a day of the calendar is refused at start', () => {
-    // A search engine that catches a site lying about lastmod stops reading it for that
-    // site, so a typo is a server that does not start rather than a wrong date on every URL.
-    const refused = (value: string): string => {
-      try {
-        treeLastmod({ ELSA_TREE_LASTMOD: value })
-        return ''
-      } catch (error) {
-        return (error as Error).message
-      }
-    }
-
-    expect(refused('21-09-2026')).toContain('is not a YYYY-MM-DD date')
-    expect(refused('2026-09-21T10:00:00Z')).toContain('is not a YYYY-MM-DD date')
-    expect(refused('yesterday')).toContain('is not a YYYY-MM-DD date')
-    expect(refused('2026-02-30')).toContain('is not a day of the calendar')
-    expect(refused('2026-13-01')).toContain('is not a day of the calendar')
   })
 })

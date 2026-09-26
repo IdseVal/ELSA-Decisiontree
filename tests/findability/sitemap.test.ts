@@ -1,8 +1,9 @@
 /**
- * `sitemap.xml` (docs/specs/application.md 16.2, ADR-118-sitemap-and-alternates): one
- * `<url>` per Node per declared language, every `<loc>` the same string the page head
- * carries, and the alternates that relate the two languages -- or none at all for a Tree
- * that declares one.
+ * `sitemap.xml` (docs/specs/application.md 16.2, 23.4, ADR-118-sitemap-and-alternates):
+ * the overview's two addresses, then one `<url>` per Node per declared language of every
+ * served Tree, every `<loc>` the same string the page head carries, and the alternates
+ * that relate the languages -- or none at all for a Tree that declares one. **[#134]** A
+ * hidden Tree's id appears nowhere in it, and `lastmod` is per Tree.
  *
  * That the document parses is asserted here structurally and in a real XML parser by
  * `tests/browser/findability.spec.ts`, which fetches it from the served application.
@@ -13,7 +14,8 @@ import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { lastmodDate, sitemapXml } from '../../src/findability/sitemap.ts'
 import { openTree, type Tree } from '../../src/tree/loader.ts'
-import { addressSet } from '../../src/url.ts'
+import { addressSet, overviewAddressSet } from '../../src/url.ts'
+import { HIDDEN_ID, servedWithHiddenTree } from './hidden-tree.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const base = new URL('https://elsa.example.org')
@@ -27,9 +29,17 @@ beforeAll(async () => {
   awkwardTree = await openTree(path.join(here, '..', 'fixtures', 'findability'))
 })
 
+/** The overview's two addresses, which open every sitemap (23.4). */
+const OVERVIEW = ['https://elsa.example.org/', 'https://elsa.example.org/?lang=nl']
+
 /** The text of every `<loc>`, in document order. */
 function locations(document: string): string[] {
   return [...document.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1]!)
+}
+
+/** The `<loc>`s after the overview's two: the Nodes'. */
+function nodeLocations(document: string): string[] {
+  return locations(document).slice(OVERVIEW.length)
 }
 
 /** The `hreflang` and `href` of every alternate of the `<url>` whose `<loc>` is `url`. */
@@ -42,30 +52,31 @@ function alternatesOf(document: string, url: string): Array<{ hreflang: string; 
 }
 
 describe('which pages the sitemap lists', () => {
-  test('one <url> per Node per declared language, and nothing else', () => {
-    const document = sitemapXml(tree, base, '2026-09-21')
+  test('the overview, then one <url> per Node per declared language, and nothing else', () => {
+    const document = sitemapXml([tree], base)
     const nodes = tree.nodeIds().length
     const languages = tree.manifest.languages.length
 
     expect(nodes).toBe(7)
     expect(languages).toBe(2)
-    expect(document.match(/<url>/g)).toHaveLength(nodes * languages)
-    expect(locations(document)).toHaveLength(nodes * languages)
+    expect(document.match(/<url>/g)).toHaveLength(2 + nodes * languages)
+    expect(locations(document).slice(0, 2)).toEqual(OVERVIEW)
+    expect(nodeLocations(document)).toHaveLength(nodes * languages)
   })
 
-  test("every <loc> is that Node's address set entry, absolute, and the two agree", () => {
-    const document = sitemapXml(tree, base, null)
+  test("every <loc> is that page's address set entry, absolute, and the two agree", () => {
+    const document = sitemapXml([tree], base)
     const expected = tree.nodeIds().flatMap((id) => addressSet(tree, id, base).addresses.map((entry) => entry.url))
 
-    expect(locations(document)).toEqual(expected)
+    expect(locations(document)).toEqual([...overviewAddressSet(base).addresses.map((entry) => entry.url), ...expected])
     for (const url of locations(document)) expect(url.startsWith('https://elsa.example.org/')).toBe(true)
   })
 
   test('the Trail, the assets and the documents of 15 and 16 are not listed', () => {
-    const document = sitemapXml(tree, base, null)
+    const document = sitemapXml([tree], base)
 
     // A Node's own page and nothing that leads to it: /<tree>/<node>, never /<tree>/a/b.
-    for (const url of locations(document)) {
+    for (const url of nodeLocations(document)) {
       expect(new URL(url).pathname.split('/').filter(Boolean), url).toHaveLength(2)
     }
     const listed = locations(document).join(' ')
@@ -73,11 +84,37 @@ describe('which pages the sitemap lists', () => {
       expect(listed, absent).not.toContain(absent)
     }
   })
+
+  test("every served Tree, in the order given -- the store's id order -- each in file order", () => {
+    const document = sitemapXml([tree, dutchTree], base)
+    const expected = [tree, dutchTree].flatMap((each) =>
+      each.nodeIds().flatMap((id) => addressSet(each, id, base).addresses.map((entry) => entry.url)),
+    )
+
+    expect(nodeLocations(document)).toEqual(expected)
+  })
+
+  test('a hidden Tree of the store appears nowhere: not one <url>, not its id', async () => {
+    const { trees, remove } = await servedWithHiddenTree()
+    try {
+      const document = sitemapXml(trees, base)
+
+      expect(trees.map((each) => each.id)).toEqual(['ai-act-example'])
+      expect(document).not.toContain(HIDDEN_ID)
+      expect(locations(document)).toHaveLength(2 + 7 * 2)
+    } finally {
+      await remove()
+    }
+  })
+
+  test('no Tree at all is still a sitemap: the overview', () => {
+    expect(locations(sitemapXml([], base))).toEqual(OVERVIEW)
+  })
 })
 
 describe('the alternates', () => {
   test('each <url> repeats the whole set: both languages and x-default', () => {
-    const document = sitemapXml(tree, base, null)
+    const document = sitemapXml([tree], base)
     const english = 'https://elsa.example.org/ai-act-example/start'
 
     expect(alternatesOf(document, english)).toEqual([
@@ -91,7 +128,7 @@ describe('the alternates', () => {
   })
 
   test('the sets are the address set of that Node, for every Node', () => {
-    const document = sitemapXml(tree, base, null)
+    const document = sitemapXml([tree], base)
 
     for (const id of tree.nodeIds()) {
       const { addresses, alternates } = addressSet(tree, id, base)
@@ -99,12 +136,25 @@ describe('the alternates', () => {
     }
   })
 
-  test('a Tree that declares one language emits no alternates at all', () => {
-    const document = sitemapXml(dutchTree, base, null)
+  test('the overview relates its two chrome languages, English the x-default', () => {
+    const document = sitemapXml([], base)
 
-    expect(document).not.toContain('xhtml:link')
-    expect(document).not.toContain('x-default')
-    expect(locations(document)).toEqual(
+    for (const url of OVERVIEW) {
+      expect(alternatesOf(document, url)).toEqual([
+        { hreflang: 'en', url: OVERVIEW[0] },
+        { hreflang: 'nl', url: OVERVIEW[1] },
+        { hreflang: 'x-default', url: OVERVIEW[0] },
+      ])
+    }
+  })
+
+  test('a Tree that declares one language emits no alternates for its Nodes', () => {
+    const document = sitemapXml([dutchTree], base)
+    const nodes = document.split('<url>').slice(1 + OVERVIEW.length).join('<url>')
+
+    expect(nodes).not.toContain('xhtml:link')
+    expect(nodes).not.toContain('x-default')
+    expect(nodeLocations(document)).toEqual(
       dutchTree.nodeIds().map((id) => `https://elsa.example.org/single-language/${id}`),
     )
   })
@@ -123,18 +173,20 @@ describe('lastmod', () => {
     await utimes(path.join(treeDir(), 'tree.json'), mtime, mtime)
   })
 
-  test('ELSA_TREE_LASTMOD wins, for a pipeline that does not preserve timestamps', () => {
-    expect(lastmodDate(awkwardTree, '2026-09-21')).toBe('2026-09-21')
+  test("the Tree file's modification time, as a UTC date", () => {
+    expect(lastmodDate(awkwardTree)).toBe(mtime.toISOString().slice(0, 10))
   })
 
-  test("otherwise the Tree file's modification time, as a UTC date", () => {
-    expect(lastmodDate(awkwardTree, undefined)).toBe(mtime.toISOString().slice(0, 10))
-  })
+  test("every <url> of a Tree carries that Tree's date, and the overview none", () => {
+    // Per Tree (23.4): a Tree that did not change must not claim to have when another published.
+    const older = { ...tree, lastModified: new Date('2026-01-02T12:00:00Z') }
+    const newer = { ...dutchTree, lastModified: new Date('2026-09-21T12:00:00Z') }
+    const document = sitemapXml([older, newer], base)
+    const blocks = document.split('<url>').slice(1)
 
-  test('every <url> carries the same date: there is one file', () => {
-    const document = sitemapXml(tree, base, '2026-09-21')
-
-    expect(document.match(/<lastmod>2026-09-21<\/lastmod>/g)).toHaveLength(locations(document).length)
+    expect(blocks.slice(0, OVERVIEW.length).join('')).not.toContain('<lastmod>')
+    expect(document.match(/<lastmod>2026-01-02<\/lastmod>/g)).toHaveLength(older.nodeIds().length * 2)
+    expect(document.match(/<lastmod>2026-09-21<\/lastmod>/g)).toHaveLength(newer.nodeIds().length)
   })
 
   test('a date that cannot be trusted is left out rather than guessed', async () => {
@@ -144,14 +196,14 @@ describe('lastmod', () => {
     await utimes(path.join(treeDir(), 'tree.json'), future, future)
     const reopened = await openTree(treeDir())
 
-    expect(lastmodDate(reopened, undefined)).toBeNull()
-    expect(sitemapXml(reopened, base, null)).not.toContain('<lastmod>')
+    expect(lastmodDate(reopened)).toBeNull()
+    expect(sitemapXml([reopened], base)).not.toContain('<lastmod>')
   })
 })
 
 describe('the document itself', () => {
   test('the declaration, the namespaces and the root element', () => {
-    const document = sitemapXml(tree, base, null)
+    const document = sitemapXml([tree], base)
 
     expect(document.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n')).toBe(true)
     expect(document).toContain(
@@ -161,7 +213,7 @@ describe('the document itself', () => {
   })
 
   test('every element opened is closed, in order', () => {
-    const document = sitemapXml(tree, base, '2026-09-21')
+    const document = sitemapXml([tree, dutchTree], base)
     const open: string[] = []
 
     for (const [, closing, name, selfClosing] of document.matchAll(/<(\/?)([a-z:]+)[^>]*?(\/?)>/g)) {
@@ -177,7 +229,7 @@ describe('the document itself', () => {
     // Nothing of a Tree's text reaches a sitemap -- it holds ids and dates -- and this is
     // the test that fails the day something does: every `&` is an entity and every `<`
     // opens a tag of this document.
-    const document = sitemapXml(awkwardTree, base, '2026-09-21')
+    const document = sitemapXml([awkwardTree], base)
     const tags = document.match(/<[^>]*>/g) ?? []
 
     expect(awkwardTree.manifest.title.en).toContain('&')
@@ -186,14 +238,16 @@ describe('the document itself', () => {
     expect(document).not.toContain('</script>')
   })
 
-  test('a Tree too large for one sitemap fails loudly rather than truncating', () => {
-    // 16.2: the protocol allows 50,000 URLs. A generator that quietly dropped the rest
-    // would hide pages from a crawler with nothing to see in the output.
-    const huge = {
+  test('Trees too large together for one sitemap fail loudly rather than truncating', () => {
+    // 16.2, 23.4: the protocol allows 50,000 URLs, now a sum over the Trees. A generator
+    // that quietly dropped the rest would hide pages from a crawler with nothing to see.
+    const half = {
       ...tree,
-      nodeIds: () => Array.from({ length: 25_001 }, (_ignored, index) => `node-${index}`),
+      nodeIds: () => Array.from({ length: 12_500 }, (_ignored, index) => `node-${index}`),
     }
 
-    expect(() => sitemapXml(huge, base, null)).toThrow(/50000|50,000/)
+    // 2 + 12,500 x 2 x 2 = 50,002, where one of them alone is 25,002.
+    expect(() => sitemapXml([half], base)).not.toThrow()
+    expect(() => sitemapXml([half, half], base)).toThrow(/50000|50,000/)
   })
 })

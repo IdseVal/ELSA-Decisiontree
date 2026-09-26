@@ -64,7 +64,8 @@ export function llmsTxt(trees: LlmsTree[], base: URL): string {
     ...trees.map(({ tree, rootDescription }) => {
       const { title, description, defaultLanguage: lang } = tree.manifest
       const summary = description ? text(description, lang, 'tree.description') : rootDescription
-      return entry(oneLine(text(title, lang, 'tree.title')), url(rootHref(tree, lang)), plainDescription(summary).reduced)
+      // The description as written, with no period of this file's added to its own.
+      return `- [${oneLine(text(title, lang, 'tree.title'))}](${url(rootHref(tree, lang))}): ${plainDescription(summary).reduced}`
     }),
     '',
     '## The datasets',
