@@ -73,7 +73,8 @@ it may change after creation. The manifest's `description` is a field of its own
    a tag added there is a manifest write of `languages` -- which is not a field path of
    22.2, so **this round does not offer it**; the languages a Tree declares are fixed at
    creation, the form says so (`languagesFixed`), and adding one later is filed with #144's
-   kind of visibility (below). Removing a language is likewise not offered.
+   kind of visibility: issue **#147**, `proposed`. Removing a language is likewise not
+   offered.
 
 ## Alternatives rejected
 
