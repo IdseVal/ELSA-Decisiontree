@@ -69,12 +69,46 @@ export function sendChange(treeId: string, nodeId: string, change: Change): Prom
   return postNode(treeId, change.create)
 }
 
+/** What the upload route answers on 201 (22.6): the server's file name and the picture's size. */
+export interface Uploaded {
+  file: string
+  width: number
+  height: number
+}
+
+/**
+ * `POST /admin/api/trees/<t>/images` with one file as `multipart/form-data` (22.6), the one
+ * body of the editor that is not JSON; the browser writes the boundary. Never rejects.
+ */
+export async function uploadImage(treeId: string, file: File): Promise<{ status: number; body: Uploaded | Refusal | null }> {
+  const form = new FormData()
+  form.append('file', file)
+  return (await send('POST', imagesUrl(treeId), form)) as { status: number; body: Uploaded | Refusal | null }
+}
+
+/**
+ * `DELETE /admin/api/trees/<t>/images/<file>` (22.6): best effort after a cancelled attach or
+ * a removed Image, so its answer -- a 409 while the file is named somewhere -- is the caller's
+ * to ignore (31.2, 31.4). Never rejects.
+ */
+export async function deleteImage(treeId: string, file: string): Promise<Answer> {
+  return send('DELETE', `${imagesUrl(treeId)}/${encodeURIComponent(file)}`)
+}
+
+function imagesUrl(treeId: string): string {
+  return `/admin/api/trees/${encodeURIComponent(treeId)}/images`
+}
+
 async function request(method: string, url: string, body: unknown): Promise<Answer> {
+  return send(method, url, JSON.stringify(body))
+}
+
+async function send(method: string, url: string, body?: string | FormData): Promise<Answer> {
   try {
     const response = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      headers: typeof body === 'string' ? { 'Content-Type': 'application/json' } : undefined,
+      body,
       credentials: 'same-origin',
     })
     const text = await response.text()

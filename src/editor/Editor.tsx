@@ -33,6 +33,8 @@ const SHOWN_MS = 5_000
 
 /** What the fields reach through context. */
 export interface EditorApi {
+  /** The Tree the page edits: the upload route and the admin image route name it (22.6). */
+  treeId: string
   lang: string
   words: EditorWords
   /** After a 403, 404 or 409: every region read-only (29.4). */
@@ -52,7 +54,8 @@ export interface EditorApi {
   /**
    * An operation of 22.2, written at once; `focusKey` names the field to focus once the page
    * has re-rendered. **[#139]** `then` hears the answer -- a 2xx as applied, a refusal -- so a
-   * structure control can navigate to the Node it made or show why it was refused (30).
+   * structure control can navigate to the Node it made or show why it was refused (30), and a
+   * removed Image's file is deleted only once its entry is gone (31.4).
    */
   operate(nodeId: string, change: Change, focusKey?: string, then?: (answer: Answer) => void): void
   hasWrite(nodeId: string, keyPath: string): boolean
@@ -60,6 +63,8 @@ export interface EditorApi {
   setCurrent(field: { nodeId: string; keyPath: string } | null): void
   /** A blocking rule caught before sending -- V-HTML -- shown as a refusal at the field (28.5). */
   refuseLocally(nodeId: string, keyPath: string, violation: Violation): void
+  /** **[#140]** What the upload route refused, said in the indicator (31.6); null clears it. */
+  refusePicture(message: string | null): void
   /** Opens the explainer Sheet of the explainer `id` of the Node `nodeId` (32.2). */
   openExplainer(nodeId: string, id: string): void
 }
@@ -124,6 +129,7 @@ export function Editor({
   const [focused, setFocused] = useState<{ nodeId: string; keyPath: string } | null>(null)
   const [lastEdited, setLastEdited] = useState<{ nodeId: string; keyPath: string } | null>(null)
   const [focusKey, setFocusKey] = useState<string | null>(null)
+  const [pictureRefused, setPictureRefused] = useState<string | null>(null)
   const [version, setVersion] = useState(0)
   const [explainer, setExplainer] = useState<{ nodeId: string; id: string } | null>(null)
   const openExplainer = useCallback((nodeId: string, id: string) => setExplainer({ nodeId, id }), [])
@@ -168,8 +174,8 @@ export function Editor({
         }
         // An accepted value clears the field's refusal, unless the field refused a newer one
         // itself while this write was in flight: only a changed value clears that (29.4).
-        const accepted = write.key
-        if (accepted !== null) setRefusals(({ [accepted]: gone, ...rest }) => (gone?.local ? { ...rest, [accepted]: gone } : rest))
+        const written = write.key
+        if (written !== null) setRefusals(({ [written]: gone, ...rest }) => (gone?.local ? { ...rest, [written]: gone } : rest))
         setPublicBehind(response.tree.published && !response.tree.publicCopyCurrent)
         setVersion((v) => v + 1)
         // The shape changed: the server components draw the new list; the fields keep their state.
@@ -211,6 +217,19 @@ export function Editor({
     return () => clearTimeout(timer)
   }, [queueState.savedAt, changedUntil])
 
+  // A file dropped beside a picker does nothing (31.1): the browser would open it in place of the editor.
+  useEffect(() => {
+    const ignore = (event: DragEvent): void => {
+      if (event.dataTransfer?.types.includes('Files')) event.preventDefault()
+    }
+    window.addEventListener('dragover', ignore)
+    window.addEventListener('drop', ignore)
+    return () => {
+      window.removeEventListener('dragover', ignore)
+      window.removeEventListener('drop', ignore)
+    }
+  }, [])
+
   // The browser's one confirmation while a write is not accepted (29.5).
   useEffect(() => {
     const ask = (event: BeforeUnloadEvent): void => {
@@ -223,6 +242,7 @@ export function Editor({
 
   const api = useMemo<EditorApi>(
     () => ({
+      treeId,
       lang,
       words,
       readOnly: notEditable !== null,
@@ -244,6 +264,7 @@ export function Editor({
       operate: (nodeId, change, focus, then) => {
         if (notEditable !== null) return
         setFocusKey(focus ?? null)
+        setPictureRefused(null)
         queue.current!.operation(nodeId, change, then)
       },
       hasWrite: (nodeId, keyPath) => queue.current!.hasWrite(nodeId, keyPath),
@@ -254,9 +275,10 @@ export function Editor({
         queue.current!.drop(nodeId, keyPath)
         setRefusals((held) => ({ ...held, [keyOf(nodeId, keyPath)]: { violations: [violation], code: 'blocking', local: true } }))
       },
+      refusePicture: setPictureRefused,
       openExplainer,
     }),
-    [lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, openExplainer],
+    [treeId, lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, openExplainer],
   )
 
   const current = focused ?? lastEdited
@@ -267,6 +289,7 @@ export function Editor({
     changedElsewhere: changedUntil > Date.now(),
     message: current ? api.violationsAt(current.nodeId, current.keyPath)[0] ?? null : null,
     refusedCode: current ? (refusals[keyOf(current.nodeId, current.keyPath)]?.code ?? null) : null,
+    pictureRefused,
     retry: () => queue.current!.retry(),
   }
 
@@ -309,6 +332,8 @@ interface IndicatorState {
   message: Violation | null
   /** The code of a refusal at that field that carried no violation. */
   refusedCode: string | null
+  /** What the upload route refused, in the chrome language (31.6). */
+  pictureRefused: string | null
   retry: () => void
 }
 
@@ -318,9 +343,9 @@ const IndicatorContext = createContext<IndicatorState | null>(null)
 export function SaveIndicator({ words }: { words: EditorWords }) {
   const state = useContext(IndicatorContext)
   if (!state) throw new Error('outside the Editor')
-  const { queue, notEditable, publicBehind, changedElsewhere, message, refusedCode } = state
+  const { queue, notEditable, publicBehind, changedElsewhere, message, refusedCode, pictureRefused } = state
   const refused = message !== null && !(message.advisory ?? true)
-  const notSaved = notEditable !== null || queue.failure !== null || refused || refusedCode !== null
+  const notSaved = notEditable !== null || queue.failure !== null || refused || refusedCode !== null || pictureRefused !== null
   const recent = queue.savedAt !== null && queue.savedAt + SHOWN_MS > Date.now()
 
   let word: string
@@ -344,6 +369,7 @@ export function SaveIndicator({ words }: { words: EditorWords }) {
       </>,
     )
   }
+  if (pictureRefused !== null) parts.push(pictureRefused)
   if (message !== null) {
     parts.push(
       <span className="editor-violation" data-rule={message.rule}>
