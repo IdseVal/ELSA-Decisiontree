@@ -102,6 +102,6 @@ it may change after creation. The manifest's `description` is a field of its own
 - `tests/browser/creators-overview.spec.ts` (#137) asserts the proposal from the title,
   the fixed-id sentence, each error at its field against the route, and the landing on
   `/admin/trees/<id>/start`.
-- A `proposed` issue, "Editor: add or remove a language of an existing Tree", is filed by
-  the run that lands this ADR, `Depends on: #136, #138`, so the owner decides by promoting
-  it or leaving it.
+- The `proposed` issue **#147**, "Editor: add or remove a language of an existing Tree",
+  was filed by the run that lands this ADR, `Depends on: #136, #138`, so the owner decides
+  by promoting it or leaving it.

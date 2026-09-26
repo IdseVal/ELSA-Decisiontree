@@ -107,5 +107,5 @@ decision 6): #139 and #142 share no component file.
 - The `Depends on:` line of #138 is corrected on the issue in this run; the table above
   is those lines. `ADR-132-build-order.md`'s row for #138 is superseded by this ADR's;
   the rest of it stands.
-- The `proposed` issue `ADR-133-new-tree-form.md` files (adding or removing a language of
-  an existing Tree) carries `Depends on: #136, #138` and is on nobody's path.
+- The `proposed` issue #147 (adding or removing a language of an existing Tree,
+  `ADR-133-new-tree-form.md`) carries `Depends on: #136, #138` and is on nobody's path.

@@ -73,8 +73,8 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    may carry none, 5.6: the store's `set-terminal` on a Node with Options is a V-TERMINAL
    blocking refusal, 422, which the Sheet shows and the creator removes the Options first).
    On a Terminal the badge is a **select** of the four (the field `terminal.outcome`); the
-   top panel's "This step" section holds `removeEnd` (`remove-terminal`), after which the
-   Node is without Links again and decision 2 applies.
+   **step menu** (decision 8) holds `removeEnd` (`remove-terminal`), after which the Node
+   is without Links again and decision 2 applies.
 
 5. **The side-bubble `+` is one more control in the fan.** On a question Node and on an
    explanation Node shown as the centre, the fan of Option buttons (10.3) gets, in the
@@ -120,9 +120,13 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    The graph the format allows -- two Answers to one Node, one aside under several Nodes --
    is what this makes: nothing is copied.
 
-8. **A Node is deleted from its own page**, in the top panel's "This step" section
-   (`deleteStep`, then a confirmation in place naming the step's title, `confirmDelete`),
-   sending `DELETE .../nodes/<n>` (22.1); the store removes every Answer and Option that
+8. **A Node is deleted from its own page, from the step menu on the rim.** In edit mode
+   the Bubble's rim above holds, in the half of the band right of the up arrow (the
+   Terminal's badge has the left half, 10.1), one 24-pixel round button `stepMenu` (`...`)
+   that opens a Sheet with the step's id in `text-muted` and its two actions: `removeEnd`
+   on a Terminal (decision 4) and `deleteStep` on every Node but the root, the latter
+   followed by a confirmation in place naming the step's title (`confirmDelete`), which
+   sends `DELETE .../nodes/<n>` (22.1); the store removes every Answer and Option that
    names it in the same write (22.4), and the response's `also` says which Nodes lost a
    Link. The editor then goes to the parent (`trailHref` of the entry above) or, with no
    Trail, to the root. The root Node has no `deleteStep` (409 anyway). **An Answer's or an
@@ -167,13 +171,12 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
 ## Consequences
 
 - #139 builds `src/editor/Structure.tsx` (the three buttons, the outcome Sheet, the
-  side-bubble `+`, the link menu, the picker) and the "This step" section of the panel's
-  `Panel.tsx` with #142 (the panel's frame is #142's; `deleteStep` and `removeEnd` are
-  #139's inside it: #139 lands the section with its two controls, #142 the panel around
-  it, and the two share one file, which `ADR-133-build-order.md` names).
+  side-bubble `+`, the link menu, the picker) and `StepMenu.tsx` (the rim's `...`), each
+  mounted through a slot of the `edit` seam (`ADR-133-reuse-rule.md`, decision 2), so #139
+  edits no server component and shares no file with #140 to #142 but `src/chrome.ts`.
 - `src/chrome.ts` gains `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`,
-  `changeTarget`, `removeLink`, `linkMenu`, `deleteStep`, `removeEnd`, `confirm`,
-  `cancel` (#139).
+  `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`,
+  `confirmDelete`, `confirm`, `cancel` (#139).
 - `tests/browser/structure.spec.ts` (#139) asserts: from an empty root, `+ Yes` lands on a
   new empty Node whose up arrow returns; `treeEndsHere` with an outcome shows the badge;
   the side `+` opens the new Overlay editable and the Option's title edits on the button;

@@ -2,7 +2,9 @@
 
 - Status: ACCEPTED (frozen) -- 2026-09-26
 - Issue: #133 -- Architecture: freeze the editor contracts
-- Spec: `docs/specs/application.md` section 33 (new)
+- Spec: `docs/specs/application.md` section 33 (new). The title's "five sections" reads
+  four -- Publish, collaborators, this Tree, administrator -- since decision 6 moved the
+  step's controls to the rim.
 - Depends on: `docs/adrs/ADR-132-draft-and-publish.md` (Publish, unpublish, 19.4),
   `ADR-132-roles-and-permissions.md` (who may do what; invitations from a list),
   `ADR-132-editor-api.md` (the routes), `ADR-133-admin-routes.md` (the chrome bar),
@@ -64,10 +66,6 @@ never scrolls.
    |  Languages  EN NL (fixed)            |
    |  Public link  /ai-act-example        |  <- when published
    |--------------------------------------|
-   |  THIS STEP                           |
-   |  n-4k2p1q                            |
-   |  [Remove end]  [Delete this step]    |
-   |--------------------------------------|
    |  ADMINISTRATOR                       |  <- the administrator only
    |  Hand over to [ account v ] [Go]     |
    |  [Delete this tree]  (hidden only)   |
@@ -111,11 +109,10 @@ never scrolls.
    decision 6); the id; the public link when published. This section is where #144's
    Theme panel would go, if the owner promotes it.
 
-6. **This step.** The Node's id in `text-muted`; `removeEnd` on a Terminal and `deleteStep`
-   on every Node but the root, both from `ADR-133-structure-editing.md` (decisions 4 and
-   8); `deleteStep` asks once in place, like unpublishing. Inside an open Overlay the
-   panel is closed (one Sheet at a time), so "this step" is always the centre; an aside is
-   deleted from its own page.
+6. **The step's own controls are not in this panel.** `removeEnd` and `deleteStep` are on
+   the Bubble's rim, in the step menu of `ADR-133-structure-editing.md` decision 8, beside
+   the step they act on; this panel is about the Tree, so that #139 and #142 share no
+   file and a creator looking for "delete this step" looks at the step.
 
 7. **Administrator.** Shown to the administrator only: `handOver` with a `<select>` of every
    active account and a button (`PUT .../creator`), after which the section's list shows
@@ -153,13 +150,12 @@ never scrolls.
 
 ## Consequences
 
-- #142 builds `src/editor/Panel.tsx` (sections 1 to 5, the button, the confirmations) and
-  the "This step" section's frame; #139 lands `removeEnd` and `deleteStep` inside it
-  (`ADR-133-build-order.md` names the shared file).
+- #142 builds `src/editor/Panel.tsx` (the four sections, the button, the confirmations);
+  no other issue edits it.
 - `src/chrome.ts` gains `treeState`, `publish`, `todoCount`, `todoBefore`, `publishedAt`,
   `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`,
   `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`,
-  `fixed`, `thisStep`, `handOver`, `deleteTree`, `unpublishFirst`, `confirmDelete` (#142).
+  `fixed`, `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` (#142).
 - `tests/browser/panel.spec.ts` (#142) asserts: the button's label and count on a fresh
   Tree; publishing a Tree with a missing text is refused and the to-do line links to the
   Node; publishing a complete one shows the public link and the public overview lists it;
