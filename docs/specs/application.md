@@ -2027,7 +2027,14 @@ the `<link rel="icon">`) from wherever a page puts it -- React hoists it into `<
 the `precedence` attribute. The public Node page emits its published Tree's Theme; the editor
 its **draft's** (24.3); the overview, the four Tree-less admin pages, the 403 and the 404
 pages the default of 13.4. Everything below about the string is unchanged; #134 moves the
-emission (`ADR-133-admin-routes.md`, decision 6).
+emission (`ADR-133-admin-routes.md`, decision 6). **[#144]** The element's `href` is
+`elsa-theme-<12 hex of the CSS's SHA-256>`, not the constant `elsa-theme`: React keeps a
+hoisted style by its `href` and never rewrites one it has placed, so an editor whose draft's
+Theme changed would keep the old colours until a reload. A new string is a new element after
+the old one, which it overrides declaration for declaration; a page whose Theme does not
+change still has exactly one. The editor addresses the draft's fonts, icon and logo through
+`GET /admin/api/trees/<t>/theme/<file>` (33.8), because the public route serves only what the
+published copy names.
 
 ```css
 @font-face { font-family: 'Open Sans'; font-weight: 400; font-style: normal;
@@ -3146,7 +3153,7 @@ framework's. The prefix is `/admin/api/` and not `/api/admin/` so that the cooki
 | `GET /admin/api/trees` | the caller's `TreeEntry` list (administrator: all) | `[...]` |
 | `POST /admin/api/trees` | `{ id, languages, title }`: folder, `meta.json`, a draft with one root Node `start` | 201; 409 taken; 422 reserved or malformed |
 | `GET /admin/api/trees/<t>` | the `TreeEntry`: meta, manifest, `published`, `servable`, violations | 200 |
-| `PATCH /admin/api/trees/<t>` | one manifest field `{ path, value }`: `title.<lang>`, `description.<lang>`, `root` | `WriteResponse` |
+| `PATCH /admin/api/trees/<t>` | one manifest field `{ path, value }`: `title.<lang>`, `description.<lang>`, `root`; **[#144]** or one part of the Theme, `theme.logo`, `theme.fonts`, `theme.colours`, whole or `null` (33.8) | `WriteResponse` |
 | `DELETE /admin/api/trees/<t>` | hidden Trees only | 204; 409 |
 | `PUT /admin/api/trees/<t>/published` | `{ published: boolean }` (19.3) | 200 `{ published, publishedAt }`; 409 `{ violations }` |
 | `PUT /admin/api/trees/<t>/creator` | `{ accountId }` | 200 `meta` |
@@ -3158,6 +3165,8 @@ framework's. The prefix is `/admin/api/` and not `/api/admin/` so that the cooki
 | `POST /admin/api/trees/<t>/images` | `multipart/form-data`, one file (22.6) | 201 `{ file, width, height }`; 413; 415; 422 |
 | `DELETE /admin/api/trees/<t>/images/<file>` | an unreferenced file | 204; 409 while referenced |
 | `GET /admin/api/trees/<t>/images/<file>` | a draft's picture, to a reader with a role (22.6) | the file with 5.3's headers + `no-store`; 403; 404 |
+| `POST /admin/api/trees/<t>/theme` | **[#144]** `multipart/form-data`, one logo or font file (33.8) | 201 `{ file }`; 413; 415; 422 |
+| `GET /admin/api/trees/<t>/theme/<file>` | **[#144]** a file the draft's Theme names, to a reader with a role (33.8) | the file with 5.5's headers + `no-store`; 403; 404 |
 
 Status codes for every route: **401** no or invalid session; **403** `permit` said no, or
 20.6 failed; **404** unknown Tree or Node (for a caller with a role); **409** a state
@@ -3998,8 +4007,8 @@ the old one as a collaborator (21.4). A collaborator sees the list and no contro
 
 Two fields for the page's language -- the manifest's `title` (80) and `description` (600 and
 8 lines, rich, as source) -- with the rim's counter and tags beside them; the declared
-languages as tags with `fixed` (#147); the id; the public link when published. #144's Theme
-panel, if promoted, goes here.
+languages as tags with `fixed` (#147); the id; the public link when published. **[#144]** The Theme panel of 33.8 closes the
+section.
 
 ### 33.6 Administrator
 
@@ -4011,6 +4020,53 @@ hidden and disabled with `unpublishFirst` while published (21.2), asking once
 
 The step's controls (30.8, on the rim). The overview has no panel: its chrome bar holds the
 name and `logout`; each tile's state is on the tile (26.4).
+
+### 33.8 The Theme panel
+
+**[#144], new -- 2026-09-27.** The owner promoted #144 (core document 10.35). A Tree made in
+the editor had no Theme, and the only way to give it one was files placed on the server by
+hand. The panel is where `ADR-133-top-panel.md` decision 5 put it: the end of "This Tree".
+It edits the three parts of `tree-format.md` 4.3 and nothing a Theme does not carry (no `dark`
+logo variant, no tab `icon`, no logo `url`; a hand-made Theme's are kept as they are).
+
+- **Each part is written whole.** `PATCH /admin/api/trees/<t> { path: 'theme.logo' |
+  'theme.fonts' | 'theme.colours', value }` replaces that part, and `value: null` removes it;
+  the last part removed takes `theme` with it (V-EMPTY). A part is not written a key at a time
+  because it is complete or absent (4.3): the schema and V-THEME judge the part as sent, and
+  a half palette or a family without its licence is the 422 of 22.3 with nothing stored. The
+  key order of the stored part is the byte form's (3.7). A part is one field for 22.5: two
+  people changing the colours at once get the later palette.
+- **Files go up first.** `POST /admin/api/trees/<t>/theme` takes one file by 22.6's rules --
+  5 MiB, the type from the first bytes, the server's name (`<stem>-<8 hex>.<extension>`,
+  checked against 3.6 and resolved inside `theme/`) -- and answers `{ file }`. A logo is PNG
+  or WebP; a font is WOFF2 (the signature `wOF2`); anything else is 415, **SVG included**,
+  as for pictures: a hand-made Tree may still ship an SVG logo, but the editor offers no way
+  to tell a creator that an uploaded one is only a picture. The part that names the file is
+  written after. A file no Theme names is served neither by the public route (5.5) nor by
+  the admin one, which resolves through the draft's `themePath`.
+- **The logo**: upload, and a new logo's `alt` is `""` in every declared language -- a to-do
+  line per language (19.2, V-L10N advisory), written in the panel in the page's language as
+  every field is (28.2), saved when the field is left. Replace and remove.
+- **The colours**: `chooseColours` writes the frontend's default palette (13.4) as the
+  Tree's, so nothing on screen changes until a colour does; then a picker per role, each
+  change saved 400 ms after the last so a dragged picker is one write. `defaultColours`
+  removes the part.
+- **The fonts**: per role, `body` then `heading` (4.3.2), a family name, a licence line and a
+  first WOFF2 file with its weight (a number or a range, verbatim) and style; then more
+  files, a file removed (the last one removes the family), the name and licence edited.
+- **Seen at once.** Every answer refreshes the page, so the draft's `<style>` (13.1, amended)
+  and the chrome bar's logo follow; after publishing (19.3) the public page shows the same.
+- **The contrast warning.** As the colours change, the panel checks the pairings the public
+  page is held to by `tests/first-tree/contrast.spec.ts` (issue #64): `text` and
+  `text-muted` on `background` and on `surface` at 4.5 : 1, and the Answer label -- whichever
+  of `text` and `background` 13.1 letters it with -- on `accent-secondary` at 3 : 1 (10.3). A
+  shortfall is listed beside the pickers with the ratio and the minimum, and the palette is
+  stored all the same: 4.3.3 leaves contrast to the Theme's author and the validator does not
+  measure it, so the panel warns and never refuses. `src/contrast.ts` holds the rule.
+- **Who.** Anyone who may edit the Tree (21.2): the creator, a collaborator, the
+  administrator. The upload is 21.2's `upload` and the part write its `edit`.
+- **Not done.** A replaced or removed logo's or font's file stays in `theme/`: the public
+  route never serves it (5.5), and no publish sweeps theme files as it sweeps pictures (22.6).
 
 ## 34. The reuse rule
 
@@ -4101,6 +4157,10 @@ function per row of 22.1 used; `src/editor/slug.ts` derives ids. Nothing in `src
 reads the file system, the environment or a request. `src/components/` imports of
 `src/editor/` only the `EditMode` type.
 
+**[#144]** A fifth: `src/contrast.ts`, the WCAG maths and the contrast rule of 33.8, pure
+and dependency-free, which `theme.ts` derives its readable-on colours from and the Theme panel
+warns with, so the rule has one definition. `imports.test.ts` asserts it with the others.
+
 **[#141] As built**: exactly **four** modules. `Field.tsx` also imports
 `src/components/Explainer.tsx`, a client component that imports only React: 32.3 and
 `ADR-133` decision 3 require a marked description to render through the same `Explainer`
@@ -4182,6 +4242,7 @@ published, creator `anna`; `hidden-draft` hidden from `tests/fixtures/full-node`
 | `tests/browser/upload.spec.ts` | 31, and the public page's requests against 11.5 after publishing | #140 |
 | `tests/editor/slug.test.ts`, `tests/browser/marking.spec.ts` | 32; `explainer.spec.ts` untouched and green | #141 |
 | `tests/browser/panel.spec.ts` | 33, with the public overview's tiles before and after publishing | #142 |
+| `tests/browser/theme-panel.spec.ts`, `tests/contrast.test.ts` | 33.8: a logo, colours and a font through the panel, seen at once in the editor and after publishing on the public page; the contrast warning; the refusals. `theme.spec.ts` untouched and green | #144 |
 | `tests/browser/admin.spec.ts` | The walk of #143, screenshots under `docs/screenshots/editor/` | #143 |
 | `views.test.tsx` | 34.8 | #138 |
 
