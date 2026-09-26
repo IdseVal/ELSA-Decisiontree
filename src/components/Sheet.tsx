@@ -70,6 +70,7 @@ export function Sheet({
   onPage,
   open = false,
   cross = false,
+  name = 'sheet',
   ref,
 }: {
   /** What the control says: chrome, already in its own `lang` where it needs one. */
@@ -96,6 +97,13 @@ export function Sheet({
    * the panel's controls, and the focus stays on the summary that was pressed.
    */
   cross?: boolean
+  /**
+   * The exclusive group of `<details name>`: one name for every Sheet, so opening one closes
+   * any other. **[#138]** The group is exclusive across nesting too, so a Sheet inside
+   * another's panel -- a Source's `...` and `+ addSource` in an Overlay's Interior -- names
+   * a group of its own, or opening it would close the Overlay around it.
+   */
+  name?: string
   ref?: Ref<SheetHandle>
 }) {
   const details = useRef<HTMLDetailsElement>(null)
@@ -165,17 +173,21 @@ export function Sheet({
   const onKeyDown = (event: KeyboardEvent<HTMLDetailsElement>): void => {
     if (event.key !== 'Escape') return
     // One Escape closes one Sheet: the Overlay around a Sheet its Interior holds stays open.
+    // Stopped for React's tree, and marked consumed for the document listeners below: React's
+    // root is the document, where stopping the propagation reaches no other listener (#138).
     event.stopPropagation()
+    event.preventDefault()
     close()
   }
 
   // An Overlay the URL opened has the focus on the page, not on its cross (10.9), so Escape
-  // is also heard from anywhere on the page. A Sheet with the focus in it has already
-  // stopped the event above; only the one open Sheet does anything. Attached once: `close`
-  // reads nothing but refs, so the first render's is as good as any later one's.
+  // is also heard from anywhere on the page. A Sheet with the focus in it has consumed the
+  // event above, and an open Sheet around it stays open; otherwise only the one open Sheet
+  // does anything. Attached once: `close` reads nothing but refs, so the first render's is
+  // as good as any later one's.
   useEffect(() => {
     const onAnyKeyDown = (event: globalThis.KeyboardEvent): void => {
-      if (event.key === 'Escape' && details.current?.open) close()
+      if (event.key === 'Escape' && !event.defaultPrevented && details.current?.open) close()
     }
     document.addEventListener('keydown', onAnyKeyDown)
     return () => document.removeEventListener('keydown', onAnyKeyDown)
@@ -213,7 +225,7 @@ export function Sheet({
   // One name for every Sheet: opening one closes any other, so without the script, where no
   // backdrop keeps the page from a second click, two panels are never laid over each other.
   return (
-    <details className={`sheet ${className}`} name="sheet" open={open} ref={details} onKeyDown={onKeyDown} onToggle={onToggle}>
+    <details className={`sheet ${className}`} name={name} open={open} ref={details} onKeyDown={onKeyDown} onToggle={onToggle}>
       <summary className="sheet-open">{summary}</summary>
       {enhanced && <div className="sheet-backdrop" onClick={close} />}
       <div className="sheet-panel">

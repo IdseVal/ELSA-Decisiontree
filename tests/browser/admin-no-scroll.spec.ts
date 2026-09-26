@@ -4,8 +4,11 @@
  * on the pages #135 builds -- the login page, the 403 page, the account page, and the
  * accounts page with more accounts than its box shows, plain and with each of its Sheets
  * open. The accounts list is a `[data-scroll-box]`, the exemption 10.6 names for it; the
- * document never scrolls. **[#137]** And the creators' overview with fifteen tiles and the
+ * document never scrolls. **[#137]** And the creators' overview with sixteen tiles and the
  * + tile, and the new-Tree form with three languages, whose boxes are two more carriers.
+ * **[#138]** And the editor on `hidden-draft`'s full Node in `en` and `nl` (28.6, 35.4):
+ * plain, with the Overlay of the first Options open, with the description in its source
+ * state, with a Source's Sheet open, and with the session Sheet.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -38,13 +41,18 @@ const VIEWPORTS = [
 
 const LANGUAGES = ['en', 'nl'] as const
 
-/** **[#137]** The Trees of 35.3 for the overview's box: the example and `tree-01` to `tree-14`, published. */
+/**
+ * The Trees of 35.3: **[#137]** the example and `tree-01` to `tree-14`, published, for the
+ * overview's box; **[#138]** and `hidden-draft`, the full Node's Tree the editor's rows open,
+ * a sixteenth tile with the `hidden` mark on the creators' overview.
+ */
 const TREES = [
   { folder: path.join(repo, 'trees', 'ai-act-example') },
   ...Array.from({ length: 14 }, (_ignored, index) => ({
     folder: path.join(repo, 'tests', 'fixtures', 'single-language'),
     id: `tree-${String(index + 1).padStart(2, '0')}`,
   })),
+  { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true },
 ]
 
 /** Twenty accounts with the longest name 20.1 allows among them: more rows than the box holds. */
@@ -88,7 +96,8 @@ async function measure(page: Page): Promise<Measured> {
     for (const el of document.querySelectorAll('*')) {
       // The exemption of 10.6, and a clamp: the caller's name cut with an ellipsis in the
       // chrome bar, which `data-clamp` marks as the overview's tile titles are marked (26.1).
-      if (el.matches('[data-scroll-box], [data-clamp]')) continue
+      // **[#138]** And the Carousel strip, 10.6's first exemption, which the editor's Bubble carries.
+      if (el.matches('[data-scroll-box], [data-clamp], [data-carousel-strip]')) continue
       if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1) {
         overflowing.push(`${name(el)} holds ${el.scrollWidth}x${el.scrollHeight} in ${el.clientWidth}x${el.clientHeight}`)
       }
@@ -159,11 +168,11 @@ for (const lang of LANGUAGES) {
     await everywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), '/admin/accounts', 'accounts page', lang, 200)
   })
 
-  test(`the creators' overview with fifteen tiles and the + tile, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
+  test(`the creators' overview with sixteen tiles and the + tile, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
     test.slow()
     const page = await loggedIn(browser, 'admin', ADMIN_PASSWORD)
     await everywhere(page, '/admin', "creators' overview", lang, 200)
-    await expect(page.locator('.tile')).toHaveCount(16)
+    await expect(page.locator('.tile')).toHaveCount(TREES.length + 1)
   })
 
   test(`the new-Tree form with three languages, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
@@ -181,3 +190,71 @@ for (const lang of LANGUAGES) {
     }
   })
 }
+
+/** The editor's page at every viewport, in every state 28.6 names for this issue (35.4). */
+async function editorEverywhere(page: Page, lang: string): Promise<void> {
+  const address = `/admin/trees/hidden-draft/full${lang === 'en' ? '' : '?lang=nl'}`
+  for (const [width, height] of VIEWPORTS) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(`${origin}${address}`))?.status()).toBe(200)
+    await expect(page.locator('main')).toBeVisible()
+    record(await measure(page), 'editor', lang, viewport, '')
+
+    // The description in its source state, with the pill on the rim (28.3, 28.5).
+    const description = page.locator('[data-field="full description.en"], [data-field="full description.nl"]').filter({ visible: true })
+    // At the floor the notice stands in for the view (10.4): no field and no Sheet to open.
+    if ((await description.count()) === 0) continue
+    await description.click()
+    await expect(description.locator('textarea')).toBeFocused()
+    record(await measure(page), 'editor', lang, viewport, 'description source')
+    await page.keyboard.press('Escape')
+    await description.locator('textarea').blur()
+
+    // A Source's Sheet, where its line is on screen; below the guarantee the block is a Sheet itself.
+    const source = page.locator('.source-sheet').filter({ visible: true }).first().locator('.sheet-open')
+    if (await source.isVisible()) {
+      await source.click()
+      await expect(page.locator('.source-editor').filter({ visible: true })).toBeVisible()
+      record(await measure(page), 'editor', lang, viewport, 'source Sheet')
+      await page.keyboard.press('Escape')
+    }
+
+    // The Overlays of the first Options, as the public no-scroll test opens them.
+    const sheets = page.locator('details.overlay')
+    for (let i = 0; i < Math.min(await sheets.count(), 2); i += 1) {
+      // The Overlay's own control, not the `+ addSource` or `...` Sheets' inside its Interior.
+      const control = sheets.nth(i).locator(':scope > .sheet-open')
+      if (!(await control.isVisible())) continue
+      // On the picture: the title beside it is a field now, and a click on it edits.
+      await control.locator('.option-image').click()
+      await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeVisible()
+      record(await measure(page), 'editor', lang, viewport, `Overlay ${i + 1}`)
+      await page.keyboard.press('Escape')
+      await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeHidden()
+    }
+  }
+}
+
+for (const lang of LANGUAGES) {
+  test(`the editor on the full Node, ${lang}, never scrolls at any viewport of 10.6, in every state (28.6)`, async ({ browser }) => {
+    test.slow()
+    await editorEverywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), lang)
+  })
+}
+
+test('the editor with the session Sheet open never scrolls at the guarantee and on a phone (29.6)', async ({ browser }) => {
+  // Not the floor: there the notice stands in for the view and no field can be typed in (10.4).
+  for (const [width, height] of [VIEWPORTS[0], VIEWPORTS[8]] as const) {
+    const page = await loggedIn(browser, 'admin', ADMIN_PASSWORD)
+    await page.setViewportSize({ width, height })
+    await page.goto(`${origin}/admin/trees/hidden-draft/full`)
+    await page.context().clearCookies()
+    const title = page.locator('[data-field="full title.en"] textarea')
+    await title.click()
+    await title.press('End')
+    await title.type('!')
+    await expect(page.getByRole('dialog')).toBeVisible()
+    record(await measure(page), 'editor', 'en', `${width}x${height}`, 'session Sheet')
+  }
+})
