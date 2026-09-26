@@ -4,7 +4,8 @@
  * `docs/deployment.md` gives):
  *
  * - nothing about the reader is stored or sent anywhere (docs/CORE_DOCUMENT.md section 8):
- *   no cookie, and no request to any host but this one;
+ *   no cookie, and no request to any host but this one; **[#135]** and a creator's one
+ *   cookie never leaves the admin area (application.md 20.5);
  * - the public base URL the deployment is configured with is the one the server writes
  *   into the absolute links it emits about a page, and a deployment that names none gets
  *   the same addresses on the request's own origin (a second server, started without the
@@ -18,6 +19,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { DATA_DIR, NO_BASE_URL_ORIGIN, PUBLIC_BASE_URL } from '../../playwright.config.ts'
+import { ADMIN_PASSWORD } from '../store/admin.ts'
 import { arrived } from './arrived.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -245,5 +247,91 @@ test.describe('the dataset endpoint (15)', () => {
     // The route serves the published set, not the folder (15.1, the theme route's rule).
     expect((await request.get('/schemas/elsa-tree-3.json')).status()).toBe(404)
     expect((await request.get('/schemas/../package.json')).status()).not.toBe(200)
+  })
+})
+
+/**
+ * **[#135]** The logged-in half of the sweep (application.md 20.5, 35.5): the one cookie of
+ * this application stays in the admin area. After a login in the same browser, every public
+ * route of 4.1, 15 and 16 is asked for without a `Cookie` header and answers no
+ * `Set-Cookie`; every admin page answers none either, with and without the session, and
+ * carries 20.9's two headers; and the login is the only response of the whole run that set
+ * a cookie -- the logout's clearing value aside -- with every attribute of 20.4 present.
+ */
+const PUBLIC_ROUTES = [
+  '/',
+  '/?lang=nl',
+  '/ai-act-example',
+  START,
+  `${START}/prohibited-practices?lang=nl`,
+  '/ai-act-example/images/eu-map.png',
+  '/ai-act-example/theme/example-lab-logo.svg',
+  ...DOCUMENT_ROUTES,
+]
+const ADMIN_PAGES = ['/admin', '/admin/account', '/admin/accounts', '/admin/trees/ai-act-example/start', '/admin?lang=nl']
+
+test.describe('the logged-in half of the sweep (20.5)', () => {
+  test('after a login, no public route is sent the cookie or answers one; only login and logout ever set one', async ({ page, context, baseURL }) => {
+    const seen = watch(page)
+    const cookieSentTo: string[] = []
+    const reads: Promise<void>[] = []
+    page.on('request', (request: Request) => {
+      reads.push(
+        request.allHeaders().then((headers) => {
+          if (headers['cookie'] !== undefined) cookieSentTo.push(new URL(request.url()).pathname)
+        }),
+      )
+    })
+
+    await page.goto('/admin')
+    await page.getByLabel('Name').fill('admin')
+    await page.getByLabel('Password').fill(ADMIN_PASSWORD)
+    await page.getByRole('button', { name: 'Sign in' }).click()
+    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible()
+    expect(await context.cookies()).toHaveLength(1)
+
+    for (const route of PUBLIC_ROUTES) {
+      const answer = await page.goto(route)
+      expect(answer?.status(), route).toBe(200)
+    }
+    for (const route of ADMIN_PAGES) {
+      const answer = await page.goto(route)
+      const headers = await answer!.allHeaders()
+      expect(headers['x-robots-tag'], route).toBe('noindex, nofollow')
+      expect(headers['cache-control'], route).toBe('no-store')
+    }
+    await page.goto('/admin')
+    await page.getByRole('button', { name: 'Log out' }).click()
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
+
+    await seen.settled()
+    while (reads.length > 0) await Promise.all(reads.splice(0))
+    // Only admin paths were ever sent the cookie: `Path=/admin` keeps it home.
+    expect(cookieSentTo.filter((pathname) => pathname !== '/admin' && !pathname.startsWith('/admin/'))).toEqual([])
+    expect(cookieSentTo.length).toBeGreaterThan(0)
+    const origin = new URL(baseURL!).origin
+    expect(seen.setCookie).toEqual([
+      expect.stringMatching(
+        new RegExp(`^${origin}/admin/api/login: elsa-admin-session=[A-Za-z0-9_-]{43}; HttpOnly; Secure; SameSite=Strict; Path=/admin; Max-Age=1209600$`),
+      ),
+      `${origin}/admin/api/logout: elsa-admin-session=; HttpOnly; Secure; SameSite=Strict; Path=/admin; Max-Age=0`,
+    ])
+    expect(await context.cookies()).toEqual([])
+  })
+
+  test('without a session every admin page answers no cookie and 20.9 headers', async ({ page, context }) => {
+    const seen = watch(page)
+
+    for (const route of ADMIN_PAGES) {
+      const answer = await page.goto(route)
+      const headers = await answer!.allHeaders()
+      expect(answer?.status(), route).toBe(200)
+      expect(headers['x-robots-tag'], route).toBe('noindex, nofollow')
+      expect(headers['cache-control'], route).toBe('no-store')
+    }
+
+    await seen.settled()
+    expect(seen.setCookie).toEqual([])
+    expect(await context.cookies()).toEqual([])
   })
 })
