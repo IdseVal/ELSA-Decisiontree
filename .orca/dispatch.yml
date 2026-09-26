@@ -19,7 +19,9 @@ dispatcher:
                                      # local processes doing real work; 3 keeps a laptop
                                      # usable. Raise it on a workstation if you like --
                                      # idle hoarding is gone, this only bounds LIVE work.
-  max_run_minutes: 60                # hard wall-clock ceiling per run; then kill + breaker (30 until 2026-09-14, 45 until 09-15:
+  max_run_minutes: 90                # hard wall-clock ceiling per run; then kill + breaker (30 until 2026-09-14, 45 until 09-15:
+                                    # 60 until 2026-09-26: the editor round's Implementer runs (#134, #135, #136) each
+                                    # hit 60 min mid-work and needed a second cycle just to finish and open the PR)
                                      # fix runs that merge dev and re-run 130+ browser tests were killed at 30 and 45 with work done)
   max_run_minutes_complex: 90        # v0.2.10: the ceiling for runs of a `complex` issue (60 until 2026-09-19:
                                      # #80's Overlay runs on the most capable model were killed at 60 three times)
