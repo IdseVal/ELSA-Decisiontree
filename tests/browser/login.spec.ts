@@ -12,7 +12,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
-import { ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
+import { ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login, me } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -78,7 +78,7 @@ test.describe('the login page at every admin address (24.2, 25.1)', () => {
 
   test('a wrong name and a wrong password say the same thing; the name is kept, the password cleared', async ({ page }) => {
     await page.goto(`${origin}/admin`)
-    const error = page.getByRole('alert')
+    const error = page.getByRole('main').getByRole('alert')
 
     await signIn(page, 'nobody-by-this-name', 'some password here')
     await expect(error).toHaveText('Wrong name or password.')
@@ -95,14 +95,14 @@ test.describe('the login page at every admin address (24.2, 25.1)', () => {
     await page.goto(`${origin}/admin`)
     for (let failure = 1; failure <= 5; failure += 1) {
       await signIn(page, LOCKED.login, `wrong password ${failure}`)
-      await expect(page.getByRole('alert')).toHaveText('Wrong name or password.')
+      await expect(page.getByRole('main').getByRole('alert')).toHaveText('Wrong name or password.')
       // The line is re-set on each answer: wait until this answer's was drawn.
       await expect(page.getByLabel('Password')).toHaveValue('')
     }
 
     await signIn(page, LOCKED.login, LOCKED.password)
 
-    await expect(page.getByRole('alert')).toHaveText('Too many attempts. Try again in a few minutes.')
+    await expect(page.getByRole('main').getByRole('alert')).toHaveText('Too many attempts. Try again in a few minutes.')
   })
 
   test('the right password reloads the address asked for, and the cookie carries every flag (20.4)', async ({ page, context }) => {
@@ -128,7 +128,9 @@ test.describe('the login page at every admin address (24.2, 25.1)', () => {
 
     await page.goto(`${origin}/admin`)
 
-    await expect(page.getByText('The editor needs JavaScript. Switch it on to sign in and edit.')).toBeVisible()
+    // Read through the page: Playwright's own text matching skips a `noscript`'s content,
+    // which a browser without script lays out -- as `innerText` shows.
+    expect(await page.locator('main').evaluate((main: HTMLElement) => main.innerText)).toContain('The editor needs JavaScript. Switch it on to sign in and edit.')
     await expect(page.getByLabel('Name')).toBeDisabled()
     await context.close()
   })
@@ -157,8 +159,10 @@ test.describe('with a session', () => {
 
   test('the API answers 401 without a session and the caller with one', async ({ page }) => {
     expect((await page.request.get(`${origin}/admin/api/me`)).status()).toBe(401)
-    expect((await login(page, origin, CEES.login, CEES.password)).status()).toBe(204)
-    expect(await (await page.request.get(`${origin}/admin/api/me`)).json()).toMatchObject({ login: 'cees', administrator: false })
+    const { status, cookie } = await login(page, origin, CEES.login, CEES.password)
+    expect(status).toBe(204)
+    const caller = await page.request.get(`${origin}/admin/api/me`, { headers: { Cookie: cookie } })
+    expect(await caller.json()).toEqual({ id: expect.stringMatching(/^[0-9a-f]{32}$/), name: 'Cees', login: 'cees', administrator: false })
   })
 
   test('the accounts page is the 403 page for an account that is not the administrator (24.2)', async ({ page }) => {
@@ -188,8 +192,8 @@ test.describe('with a session', () => {
     // A second session of the same account, which a password change must end (20.4).
     const other = await browser.newContext()
     const otherPage = await other.newPage()
-    await login(otherPage, origin, CEES.login, CEES.password)
-    expect((await otherPage.request.get(`${origin}/admin/api/me`)).status()).toBe(200)
+    const second = await login(otherPage, origin, CEES.login, CEES.password)
+    expect(await me(otherPage, origin, second.cookie)).toBe(200)
 
     await passwordCard.getByLabel('Current password').fill(CEES.password)
     await passwordCard.getByLabel('New password', { exact: true }).fill('cees second password')
@@ -210,9 +214,10 @@ test.describe('with a session', () => {
     await expect(passwordCard.getByRole('alert')).toHaveCount(0)
     secrets.add('cees second password')
 
-    expect((await page.request.get(`${origin}/admin/api/me`)).status()).toBe(200)
-    expect((await otherPage.request.get(`${origin}/admin/api/me`)).status()).toBe(401)
-    expect((await login(otherPage, origin, CEES.login, 'cees second password')).status()).toBe(204)
+    const [kept] = await page.context().cookies()
+    expect(await me(page, origin, `elsa-admin-session=${kept!.value}`)).toBe(200)
+    expect(await me(otherPage, origin, second.cookie)).toBe(401)
+    expect((await login(otherPage, origin, CEES.login, 'cees second password')).status).toBe(204)
     await other.close()
   })
 
@@ -246,16 +251,17 @@ test.describe('with a session', () => {
 
     const bram = await browser.newContext()
     const bramPage = await bram.newPage()
-    expect((await login(bramPage, origin, 'bram', 'brams first password')).status()).toBe(204)
+    const bramSession = await login(bramPage, origin, 'bram', 'brams first password')
+    expect(bramSession.status).toBe(204)
 
     await bramRow.getByRole('button', { name: 'Deactivate' }).click()
     await expect(page.locator('.admin-row[data-login="bram"]')).toContainText('Deactivated')
-    expect((await bramPage.request.get(`${origin}/admin/api/me`)).status()).toBe(401)
-    expect((await login(bramPage, origin, 'bram', 'brams first password')).status()).toBe(401)
+    expect(await me(bramPage, origin, bramSession.cookie)).toBe(401)
+    expect((await login(bramPage, origin, 'bram', 'brams first password')).status).toBe(401)
 
     await page.locator('.admin-row[data-login="bram"]').getByRole('button', { name: 'Reactivate' }).click()
     await expect(page.locator('.admin-row[data-login="bram"]')).toContainText('Active')
-    expect((await login(bramPage, origin, 'bram', 'brams first password')).status()).toBe(204)
+    expect((await login(bramPage, origin, 'bram', 'brams first password')).status).toBe(204)
     await bram.close()
   })
 })
@@ -280,7 +286,7 @@ test.describe('CSRF (20.6)', () => {
   })
 
   test('a JSON write from another origin is refused, even with a session in the browser', async ({ page }) => {
-    await login(page, origin, 'admin', ADMIN_PASSWORD)
+    const { cookie } = await login(page, origin, 'admin', ADMIN_PASSWORD)
     await page.goto(`${otherOrigin}/`)
 
     const status = await page.evaluate(async (target) => {
@@ -299,7 +305,7 @@ test.describe('CSRF (20.6)', () => {
     }, origin)
 
     expect([0, 403]).toContain(status)
-    const names = (await (await page.request.get(`${origin}/admin/api/accounts`)).json()) as { login: string }[]
+    const names = (await (await page.request.get(`${origin}/admin/api/accounts`, { headers: { Cookie: cookie } })).json()) as { login: string }[]
     expect(names.map((account) => account.login)).not.toContain('mallory')
   })
 })

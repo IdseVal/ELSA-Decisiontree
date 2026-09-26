@@ -7,7 +7,7 @@
 import { randomBytes } from 'node:crypto'
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import type { APIResponse, Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import { hashPassword, type Account } from '../../src/store/accounts.ts'
 import { ADMIN_PASSWORD } from '../store/admin.ts'
 import { dataDir, type StoreTree } from './serve.ts'
@@ -49,18 +49,32 @@ export async function buildDataDir({ trees, accounts }: { trees: StoreTree[]; ac
 export const ADMIN_ENV = { ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD }
 
 /**
- * Logs `login` in through `page.request`, so the cookie lands in the page's context (35.2).
- * The request comes from no page, so it carries the `Origin` the CSRF check wants from a
- * client that sends no `Sec-Fetch-Site` (20.6) -- as `curl` must.
+ * Logs `name` in through `page.request` and puts the session cookie into the page's browser
+ * context, so the pages the test opens next carry it (35.2). The request comes from no page,
+ * so it carries the `Origin` the CSRF check wants from a client that sends no
+ * `Sec-Fetch-Site` (20.6) -- as `curl` must.
+ *
+ * Answers the status and the `Cookie` header the session travels in: Playwright's request
+ * context keeps no `Secure` cookie on plain http, so an API call a test makes itself passes
+ * the header (`me`), while the browser -- to which `127.0.0.1` is a secure context -- keeps
+ * it as a deployment's readers' browsers do.
  */
-export function login(page: Page, origin: string, name: string, password: string): Promise<APIResponse> {
-  return page.request.post(`${origin}/admin/api/login`, {
+export async function login(page: Page, origin: string, name: string, password: string): Promise<{ status: number; cookie: string }> {
+  const response = await page.request.post(`${origin}/admin/api/login`, {
     headers: { Origin: origin, 'Content-Type': 'application/json' },
     data: { login: name, password },
   })
+  const setCookie = response.headersArray().find((header) => header.name.toLowerCase() === 'set-cookie')?.value ?? ''
+  const token = /^elsa-admin-session=([^;]+)/.exec(setCookie)?.[1] ?? ''
+  if (token) {
+    await page.context().addCookies([
+      { name: 'elsa-admin-session', value: token, domain: new URL(origin).hostname, path: '/admin', httpOnly: true, secure: true, sameSite: 'Strict' },
+    ])
+  }
+  return { status: response.status(), cookie: `elsa-admin-session=${token}` }
 }
 
-/** Ends the page's session through the API. */
-export function logout(page: Page, origin: string): Promise<APIResponse> {
-  return page.request.post(`${origin}/admin/api/logout`, { headers: { Origin: origin } })
+/** `GET /admin/api/me` with the session `cookie`: the caller's status, 200 or 401. */
+export async function me(page: Page, origin: string, cookie: string): Promise<number> {
+  return (await page.request.get(`${origin}/admin/api/me`, { headers: { Cookie: cookie } })).status()
 }

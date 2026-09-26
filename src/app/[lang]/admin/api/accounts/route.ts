@@ -4,7 +4,7 @@
  */
 import { authenticated, bodyOf, json, refuse } from '../../../../../admin/authenticated.ts'
 import { store } from '../../../../../config.ts'
-import { AccountError, publicOf } from '../../../../../store/accounts.ts'
+import { isAccountError, publicOf } from '../../../../../store/accounts.ts'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +28,7 @@ export async function POST(request: Request): Promise<Response> {
     )
     return json(publicOf(account), 201)
   } catch (error) {
-    if (error instanceof AccountError) return refuse(error.status, error.message, error.field)
+    if (isAccountError(error)) return refuse(error.status, error.message, error.field)
     throw error
   }
 }

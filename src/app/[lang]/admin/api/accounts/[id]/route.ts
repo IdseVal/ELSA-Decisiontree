@@ -6,7 +6,7 @@
  */
 import { authenticated, bodyOf, json, refuse } from '../../../../../../admin/authenticated.ts'
 import { store } from '../../../../../../config.ts'
-import { AccountError, publicOf, type AccountChange } from '../../../../../../store/accounts.ts'
+import { isAccountError, publicOf, type AccountChange } from '../../../../../../store/accounts.ts'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +22,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (body.active === false || body.password !== undefined) await sessions.endAll(account.id, session)
     return json(publicOf(account))
   } catch (error) {
-    if (error instanceof AccountError) return refuse(error.status, error.message, error.field)
+    if (isAccountError(error)) return refuse(error.status, error.message, error.field)
     throw error
   }
 }

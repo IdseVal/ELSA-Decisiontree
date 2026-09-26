@@ -54,9 +54,19 @@ export class AccountError extends Error {
 
   constructor(status: AccountError['status'], field: AccountError['field'], code: string) {
     super(code)
+    this.name = 'AccountError'
     this.status = status
     this.field = field
   }
+}
+
+/**
+ * Whether `error` is an `AccountError`. By name, not `instanceof`: Next.js bundles the
+ * startup hook and each route apart, so the store's copy of this class -- the one that
+ * throws -- is not the route's copy (the reason `config.ts` holds the store on `globalThis`).
+ */
+export function isAccountError(error: unknown): error is AccountError {
+  return error instanceof Error && error.name === 'AccountError'
 }
 
 /** The accounts of one data directory (20.4's interface, and the two members the screens need). */
