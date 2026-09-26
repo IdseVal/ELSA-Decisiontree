@@ -25,8 +25,12 @@
  */
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js'
 import { explainerMarks } from '../markdown.ts'
+import { countedLength, estimatedLines } from './measure.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
 import schemaDocument from '../../schemas/elsa-tree-4.json' with { type: 'json' }
+
+/** **[#138]** The measuring rule of 3.8 lives in `measure.ts`; re-exported so no caller changes. */
+export { countedLength, countedText, estimatedLines } from './measure.ts'
 
 /** Which reading of section 7: every rule blocking, or the Draft column's (19.2). */
 export type Mode = 'published' | 'draft'
@@ -84,8 +88,6 @@ const IMAGE_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(png|jpg|jpeg|gif|webp|svg)$/
 const THEME_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|webp|ico|woff2)$/
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/
 const RAW_HTML = /<[a-zA-Z/!]/
-const MARKDOWN_LINK = /\[([^\]]*)\]\([^)]*\)/g
-const LIST_ITEM = /^(-\s|\d+\.\s)/
 
 /** The maximum lengths and counts of tree-format.md 5.7; the same for every language. */
 const MAX = {
@@ -112,9 +114,6 @@ const MAX = {
   fontFiles: 8,
 }
 
-/** The width the estimated line count of rich text assumes (tree-format.md 3.8, 5.7). */
-const CHARS_PER_LINE = 75
-
 /** Tree-format.md 3.1: lowercase letters, digits, single hyphens, at most 64 characters. */
 export function isId(value: unknown): value is string {
   return typeof value === 'string' && value.length <= 64 && ID.test(value)
@@ -132,43 +131,6 @@ export function isThemeFile(value: unknown): value is string {
 
 export function isMapping(value: unknown): value is Mapping {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-/**
- * Tree-format.md 3.8 steps 1 and 2: what a length rule is measured on -- the text
- * trimmed, with every Markdown link replaced by the words the reader sees.
- */
-export function countedText(text: string): string {
-  return text.trim().replace(MARKDOWN_LINK, '$1')
-}
-
-/** Tree-format.md 3.8 step 3: the length in Unicode code points, not bytes. */
-export function countedLength(text: string): number {
-  return [...countedText(text)].length
-}
-
-/**
- * Tree-format.md 3.8: how many lines this rich text takes when a renderer lays it out at
- * `CHARS_PER_LINE`. Blocks are paragraphs and list items; a run of blank lines between
- * two blocks costs one line of paragraph spacing.
- */
-export function estimatedLines(text: string): number {
-  const blocks: string[] = []
-  let breaks = 0
-  let afterBlank = false
-  for (const raw of countedText(text).split('\n')) {
-    const line = raw.trim()
-    if (line === '') {
-      if (blocks.length > 0 && !afterBlank) breaks += 1
-      afterBlank = true
-      continue
-    }
-    if (afterBlank || blocks.length === 0 || LIST_ITEM.test(line)) blocks.push(line)
-    else blocks[blocks.length - 1] += ` ${line}`
-    afterBlank = false
-  }
-  const lines = blocks.reduce((sum, block) => sum + Math.max(1, Math.ceil([...block].length / CHARS_PER_LINE)), 0)
-  return lines + breaks
 }
 
 /**

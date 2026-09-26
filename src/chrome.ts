@@ -123,6 +123,29 @@ export interface Chrome {
   loginInvalid: string
   loginTaken: string
   passwordLength: string
+  /** **[#138]** The editor's Source controls (28.1): the add button, the `...` Sheet's title, its fields and its remove button. */
+  addSource: string
+  editSource: string
+  removeSource: string
+  sourceKind: string
+  sourceUrl: string
+  /** **[#138]** The `legal` kind in the kind select; on the public page the heading `sources` says it (ADR-78-sources-heading). */
+  sourceLegal: string
+  /** **[#138]** The accessible name of a Terminal's outcome select, drawn as the badge (28.1). */
+  outcome: string
+  /** **[#138]** The counter pill on the rim (28.3): the accessible names of its two numbers. */
+  characters: string
+  lines: string
+  /** **[#138]** The autosave indicator (29.3 to 29.7) and the session Sheet (29.6). */
+  saving: string
+  saved: string
+  notSaved: string
+  retrying: string
+  retry: string
+  notEditable: string
+  changedElsewhere: string
+  sessionExpired: string
+  publicBehind: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -201,6 +224,24 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     loginInvalid: 'Use 2 to 64 lowercase letters, digits and single hyphens.',
     loginTaken: 'This name is taken.',
     passwordLength: 'A password is 12 to 256 characters.',
+    addSource: 'Add a source',
+    editSource: 'Edit this source',
+    removeSource: 'Remove this source',
+    sourceKind: 'Kind',
+    sourceUrl: 'Link',
+    sourceLegal: 'Legal',
+    outcome: 'Outcome',
+    characters: 'characters',
+    lines: 'lines',
+    saving: 'Saving',
+    saved: 'Saved',
+    notSaved: 'Not saved',
+    retrying: 'retrying',
+    retry: 'Retry now',
+    notEditable: 'This tree can no longer be edited here',
+    changedElsewhere: 'changed by a collaborator',
+    sessionExpired: 'Your session has expired. Sign in to keep editing; nothing typed is lost.',
+    publicBehind: 'the public copy is behind',
   },
   nl: {
     yes: 'Ja',
@@ -277,6 +318,24 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     loginInvalid: 'Gebruik 2 tot 64 kleine letters, cijfers en enkele koppeltekens.',
     loginTaken: 'Deze naam is al in gebruik.',
     passwordLength: 'Een wachtwoord is 12 tot 256 tekens.',
+    addSource: 'Bron toevoegen',
+    editSource: 'Deze bron bewerken',
+    removeSource: 'Deze bron verwijderen',
+    sourceKind: 'Soort',
+    sourceUrl: 'Link',
+    sourceLegal: 'Juridisch',
+    outcome: 'Uitkomst',
+    characters: 'tekens',
+    lines: 'regels',
+    saving: 'Opslaan',
+    saved: 'Opgeslagen',
+    notSaved: 'Niet opgeslagen',
+    retrying: 'opnieuw proberen',
+    retry: 'Nu opnieuw',
+    notEditable: 'Deze boom kan hier niet meer worden bewerkt',
+    changedElsewhere: 'gewijzigd door een medewerker',
+    sessionExpired: 'Uw sessie is verlopen. Log in om verder te werken; niets van wat u typte gaat verloren.',
+    publicBehind: 'de openbare versie loopt achter',
   },
 }
 
