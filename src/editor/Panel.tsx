@@ -64,9 +64,6 @@ export type PanelRole = 'creator' | 'collaborator' | 'administrator'
 /** The button's four states (33.1), each its dot's colour. */
 type Shown = 'hidden' | 'published' | 'notServable' | 'publicBehind'
 
-/** Where the placeholder `nodeHref` holds a Node's id; upper case, so never a Node's own id (tree-format.md 3.1). */
-export const NODE_PLACEHOLDER = 'NODE'
-
 function shownOf(tree: TreeState): Shown {
   if (!tree.published) return 'hidden'
   if (!tree.servable) return 'notServable'
@@ -117,8 +114,8 @@ export function Panel({
   names: Record<string, string>
   /** The Nodes' titles in the page's language, by id, for the to-do lines. */
   titles: Record<string, string>
-  /** A Node's editor page, with `NODE_PLACEHOLDER` where its id goes. */
-  nodeHref: string
+  /** A Node's editor page: what goes before its id and what after (the language's query). */
+  nodeHref: { before: string; after: string }
   /** The Tree's root URL on the public site (4.1). */
   publicHref: string
   languages: string[]
@@ -183,8 +180,13 @@ export function Panel({
         setTodo([])
         setTree({ published: true, publicCopyCurrent: true, servable: true, advisory: 0 })
       } else if (answer.status === 409 && answer.body && 'violations' in answer.body) {
-        // Refused: the switch stays off and the full validation's list is the to-do list (19.3).
-        setTodo(answer.body.violations ?? [])
+        // Refused: the switch stays off (19.3). The full validation stops at the schema, whose
+        // lines name `tree.json` and a JSON Pointer, not a Node; the draft's advisory list names
+        // the same gaps by Node, so that is the to-do list while it has any.
+        const refused = answer.body.violations ?? []
+        const entry = await panelCalls.entry(treeId)
+        const held = entry.status === 200 && entry.body && 'advisory' in entry.body ? entry.body.advisory : []
+        setTodo(held.length > 0 ? held : refused)
       } else setError({ where: 'publish', text: words.requestFailed })
     })
 
@@ -307,7 +309,7 @@ export function Panel({
                   {violation.file === 'manifest' || violation.file === 'tree.json' ? (
                     <span className="panel-todo-where">{words.thisTree}</span>
                   ) : (
-                    <a className="panel-todo-where" href={nodeHref.replace(NODE_PLACEHOLDER, encodeURIComponent(violation.file))}>
+                    <a className="panel-todo-where" href={`${nodeHref.before}${encodeURIComponent(violation.file)}${nodeHref.after}`}>
                       {titles[violation.file] || violation.file}
                     </a>
                   )}

@@ -15,7 +15,7 @@ import { store } from '../../../../../../config.ts'
 import { Editor, SaveIndicator } from '../../../../../../editor/Editor.tsx'
 import { editorLinks } from '../../../../../../editor/links.ts'
 import { LogoutButton } from '../../../../../../editor/LogoutButton.tsx'
-import { NODE_PLACEHOLDER, Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
+import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
 import { centreOf, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
 import type { Account } from '../../../../../../store/accounts.ts'
 import type { TreeEntry } from '../../../../../../store/drafts.ts'
@@ -142,6 +142,8 @@ function TopPanel({
   const names = Object.fromEntries(people.map((id) => [id, accounts.get(id)?.name ?? id]))
   const titles = Object.fromEntries(entry.advisory.map((violation) => [violation.file, draft.getTitle(violation.file)?.[address.lang] ?? '']))
   const words = panelWords(ui)
+  // Upper case is never a Node id (tree-format.md 3.1): the one place the id goes in the address.
+  const [before, after] = editorLinks().node({ ...address, trail: [], nodeId: 'NODE' }).split('NODE') as [string, string]
   const uiLang = chromeLang(address.lang)
   return (
     <Sheet
@@ -164,7 +166,7 @@ function TopPanel({
             accounts={accounts.listActive()}
             names={names}
             titles={titles}
-            nodeHref={editorLinks().node({ ...address, trail: [], nodeId: NODE_PLACEHOLDER })}
+            nodeHref={{ before, after }}
             publicHref={rootHref(draft, address.lang)}
             languages={draft.manifest.languages}
             overviewHref={adminHref('/admin', chromeLanguage(address.lang))}
