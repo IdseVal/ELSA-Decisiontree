@@ -12,11 +12,13 @@
  * servers it started when its suite ends.
  */
 import { spawn, type ChildProcess } from 'node:child_process'
+import { closeSync, openSync } from 'node:fs'
 import { cp, mkdir, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { importTree } from '../../src/store/index.ts'
+import { ADMIN_PASSWORD } from '../store/admin.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 
@@ -78,24 +80,32 @@ export async function serve(treesDir: string, treeId: string, port: number): Pro
  * Throws when something already answers on `port`: the new server would die of EADDRINUSE,
  * and the wait below would take the stranger's answer for its own -- a spec would then
  * measure a page it never asked for, and pass.
+ *
+ * **[#135]** `log`, when given, is the file the server's standard output and error go to,
+ * so a spec can read what the server logged (20.8); otherwise both are dropped.
  */
-export async function serveStore(dir: string, port: number, env: Record<string, string> = {}): Promise<string> {
+export async function serveStore(dir: string, port: number, env: Record<string, string> = {}, log?: string): Promise<string> {
   const origin = `http://127.0.0.1:${port}`
   if (await answers(origin)) throw new Error(`${port} is already serving; ${dir} needs a port of its own`)
+  const output = log ? openSync(log, 'w') : null
   const server = spawn(process.execPath, [path.join('.next', 'standalone', 'server.js')], {
     cwd: repo,
-    stdio: 'ignore',
+    stdio: output === null ? 'ignore' : ['ignore', output, output],
     env: {
       ...process.env,
       ELSA_DATA_DIR: dir,
       ELSA_SEED_DIR: await scratch(),
       ELSA_BASE_URL: '',
+      // **[#135]** A store without an administrator does not start without it (20.3).
+      ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD,
       NEXT_TELEMETRY_DISABLED: '1',
       PORT: String(port),
       HOSTNAME: '127.0.0.1',
       ...env,
     },
   })
+  // The child holds its own copy of the file; this one is not needed past the spawn.
+  if (output !== null) closeSync(output)
   started.push(server)
   let exited = false
   server.on('exit', () => {

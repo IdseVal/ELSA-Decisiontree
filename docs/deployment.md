@@ -44,7 +44,7 @@ saved automatically and published with a toggle. What that changes on a server:
 | The data | `trees/`, copied by an author, read-only to the service | **`ELSA_DATA_DIR`** (`/opt/elsa-decisiontree/data`): one writable folder, owned by the `elsa` user, holding `accounts.json`, `sessions.json` and `trees/<id>/` with the draft, the published `tree.json`, `images/` and `theme/`. Outside `app/`, so a release never touches it. **Required; no default.** (#134; `application.md` 17) |
 | Which Tree is served | `ELSA_TREE` names one | Every **published** Tree of the data directory; `/` is an overview of them. `ELSA_TREE`, `ELSA_TREES_DIR` and `ELSA_TREE_LASTMOD` are **retired, and the server refuses to start while any is set**, naming the replacement. (#134; `application.md` 18) |
 | The repository's Trees | copied by hand | **`ELSA_SEED_DIR`** (default `trees` beside `server.js`, which the build already carries) is imported into the data directory **at the first start only**, published, owned by the administrator. Later: `npm run store -- import <folder>` from the checkout, with the service stopped. (#134, #136; `application.md` 17.4) |
-| The administrator | none | **`ELSA_ADMIN_PASSWORD`**, at least 12 characters, in `/etc/elsa-decisiontree.env`, which becomes **mode `0600`**: at every start it creates the `admin` account or resets its password. **Remove it from the file after the first start**; set it again only to recover a lost password. Never a default, never printed. (#135; `application.md` 20.3) |
+| The administrator | none | **`ELSA_ADMIN_PASSWORD`**, 12 to 256 characters, in `/etc/elsa-decisiontree.env`, which becomes **mode `0600`**: at every start it creates the `admin` account or resets its password. **Remove it from the file after the first start**; set it again only to recover a lost password. Never a default, never printed. **Done in #135**: see [the administrator and the login](#the-administrator-and-the-login). (`application.md` 20.3) |
 | Updating a Tree | validate, `rsync`, restart | Through the editor at `/admin`; no restart. The `rsync` procedure below is retired by #136. |
 | Backups | the repository | **`rsync -a` or `tar` of `ELSA_DATA_DIR`**, running or stopped: every file in it is replaced atomically, so each file in a copy is whole. Stop the service for a copy exact to the write. Restore is copying the folder back. (`application.md` 17.4) |
 | Moving a Tree between deployments | copy the folder | Copy `trees/<id>/tree.json`, `images/` and `theme/` out (not `draft.json`, not `meta.json`) and import them on the other side. |
@@ -61,9 +61,10 @@ in the application and nothing to edit in the source.
 
 | Variable | Required | Meaning |
 |---|---|---|
-| `ELSA_DATA_DIR` | **yes** | **[#134]** The one writable folder that is the whole state of the deployment: `trees/<tree-id>/` per Tree, and the `lock` of the one process that has it open. There is no default; the server refuses to start when it is unset, is not a folder, cannot be written, or is held by another live process. Keep it outside `app/`, so a release never touches it (`docs/specs/application.md` 17). |
+| `ELSA_DATA_DIR` | **yes** | **[#134]** The one writable folder that is the whole state of the deployment: `trees/<tree-id>/` per Tree, **[#135]** `accounts.json` (the accounts, with password hashes) and `sessions.json` (the logged-in sessions, as hashes of their tokens), and the `lock` of the one process that has it open. There is no default; the server refuses to start when it is unset, is not a folder, cannot be written, or is held by another live process. Keep it outside `app/`, so a release never touches it (`docs/specs/application.md` 17). |
 | `ELSA_SEED_DIR` | no | **[#134]** Read at the **first start only** -- when `$ELSA_DATA_DIR/trees/` does not exist yet -- and every Tree folder in it that validates is imported, published. Defaults to `trees` under the working directory, which the build already carries. Never read again (`application.md` 17.4). |
 | `ELSA_BASE_URL` | no | The address readers reach this deployment at, e.g. `https://elsa.example.org` -- the reverse proxy's address, not the one the process listens on. It must be a bare origin: `http` or `https`, no path, no query. **[#120]** It is now the address `robots.txt`, `sitemap.xml` and every page's canonical and `hreflang` links advertise -- **[#121]** and `llms.txt` and every page's dataset link -- so a deployment that sets none advertises the address each request arrived on instead. See [share links and the base URL](#share-links-and-the-base-url). |
+| `ELSA_ADMIN_PASSWORD` | **at the first start** | **[#135]** The password of the administrator, the account `admin` that may do everything in the admin area and is the one that creates every other account. 12 to 256 characters. Read at **every** start: with no administrator yet it creates one, with one it **replaces** its password. So set it for the first start, then **remove it** -- while it is set it wins over a password changed at `/admin/account` -- and set it again only to recover a lost password. Never printed; the log says `administrator password set from ELSA_ADMIN_PASSWORD; remove the variable`. A first start without it refuses to start (`application.md` 20.3). |
 | `ELSA_TREE`, `ELSA_TREES_DIR`, `ELSA_TREE_LASTMOD` | **must be unset** | **[#134]** Retired: a deployment serves every published Tree of its data directory, with an overview at `/`. Set, the server refuses to start and names what replaced the variable, so a 1.0 environment file is corrected rather than half-read (`application.md` 18). |
 | `PORT` | no | The TCP port the process listens on. Defaults to 3000. |
 | `HOSTNAME` | no | The address it listens on. Defaults to `0.0.0.0`. Behind a reverse proxy set `127.0.0.1`, so nothing but the proxy can reach the process. |
@@ -211,11 +212,15 @@ sudo chmod 0750 /opt/elsa-decisiontree/data
 
 ```sh
 sudo cp /tmp/elsa-src/deploy/elsa-decisiontree.env.example /etc/elsa-decisiontree.env
-sudo chmod 0644 /etc/elsa-decisiontree.env
-sudoedit /etc/elsa-decisiontree.env     # set ELSA_DATA_DIR and ELSA_BASE_URL
+# [#135] Readable by root alone: at the first start it holds the administrator's password.
+# systemd reads it as root before it drops to the elsa user, so the service needs no more.
+sudo chown root:root /etc/elsa-decisiontree.env
+sudo chmod 0600 /etc/elsa-decisiontree.env
+sudoedit /etc/elsa-decisiontree.env     # set ELSA_DATA_DIR, ELSA_BASE_URL and ELSA_ADMIN_PASSWORD
 ```
 
-The file holds no secret -- the application has none -- so it needs no special protection.
+**[#135]** The file holds one secret, `ELSA_ADMIN_PASSWORD`, and only until the first start
+has run: remove the line then ([the administrator and the login](#the-administrator-and-the-login)).
 
 ### 5. Run it as a service
 
@@ -228,7 +233,10 @@ systemctl status elsa-decisiontree
 journalctl -u elsa-decisiontree -n 20
 ```
 
-The first start prints one `Seeded Tree "<id>" from .../trees` line per Tree it imported.
+The first start prints `administrator password set from ELSA_ADMIN_PASSWORD; remove the
+variable` -- **[#135]** do so now: `sudoedit /etc/elsa-decisiontree.env`, delete the line,
+`sudo systemctl restart elsa-decisiontree` -- and one `Seeded Tree "<id>" from .../trees` line
+per Tree it imported, each owned by the administrator.
 Every start then prints one `Serving Tree "<id>" (en, nl)` line per Tree served, and
 `Reached at https://elsa.example.org` when `ELSA_BASE_URL` is set. A published Tree that
 fails validation is **not served, and the others are**: its broken rules are printed after
@@ -303,6 +311,43 @@ Two things a proxy in front of this application must not do: shorten the request
 share link carries the whole Trail and may reach about 3.3 kB, within the defaults of both
 proxies above), and add a cookie of its own.
 
+**[#135] The login needs HTTPS in front of the process.** The session cookie is `Secure`
+(`application.md` 20.4): a browser keeps it only from an `https://` address -- or from
+`localhost` and `127.0.0.1`, which browsers treat as secure. At `http://<server>:3000` from
+another machine the login answers 204 and the browser drops the cookie, so every page shows
+the login form again, and nothing says why. The proxy above is what makes `/admin` work; the
+flag never comes off. The proxy must also pass the browser's `Origin` and `Sec-Fetch-Site`
+headers through unchanged (both examples do): every write under `/admin` is refused with
+403 without them (`application.md` 20.6).
+
+### The administrator and the login
+
+**[#135]** The admin area is `https://<your host>/admin`. A visitor without a session sees
+the login page at whatever `/admin` address they asked for, and lands on it once logged in.
+
+1. **The first start** creates the account `admin` with the password `ELSA_ADMIN_PASSWORD`
+   gives it ([step 4](#4-configure-it)). Log in at `/admin` with the name `admin`.
+2. **Remove the variable** from `/etc/elsa-decisiontree.env` and restart. While it is set,
+   every start sets the password back to it, over one changed at `/admin/account`.
+3. **Every other account** is made by the administrator at `/admin/accounts`: a display
+   name, a login name (lowercase letters, digits and single hyphens) and a first password
+   of 12 to 256 characters, handed over out of band. The holder changes it at
+   `/admin/account`. There is no self-registration, no mail and no reset by mail: a
+   forgotten password is set again by the administrator on the same page.
+4. **An account is deactivated, never deleted**: it cannot log in, its sessions end at once,
+   and the Trees it made stay. The administrator cannot be deactivated.
+5. **A lost administrator password**: set `ELSA_ADMIN_PASSWORD` again, restart, log in,
+   remove it, restart.
+
+Five wrong passwords for one name lock that name for 15 minutes; more than 60 failed logins
+in a minute across all names lock the login for one minute. Both answer 429 and the page
+says "Too many attempts". A session ends after 12 hours without a request, and after 14
+days in any case; logging out ends it at once.
+
+The journal gets `account <id> logged in`, `login failed for account <id>` or `... for an
+unknown name`, the locks, the logouts and every account change, by account id. Never a
+password, a token, a name typed into the login form, or a client address.
+
 ### The dataset is public
 
 **[#121]** A deployment serves every published Tree as a dataset as well as a walk, at
@@ -337,6 +382,7 @@ docker run -d --name elsa \
   -v elsa-data:/data \
   -e ELSA_DATA_DIR=/data \
   -e ELSA_BASE_URL=https://elsa.example.org \
+  --env-file /etc/elsa-admin.env \
   elsa-decisiontree
 
 docker logs elsa
@@ -345,6 +391,13 @@ curl -s http://127.0.0.1:3000/ai-act-applicability-agrifood/start | head -20
 
 `--restart unless-stopped` is what the systemd unit's `Restart=always` is. TLS is the same
 reverse proxy as above, pointed at the published port.
+
+**[#135]** `/etc/elsa-admin.env` is a `0600` file holding the one line
+`ELSA_ADMIN_PASSWORD=...`, so the password is not in the shell's history or on the command
+line. Only the first run needs it: once `docker logs elsa` shows `administrator password set
+from ELSA_ADMIN_PASSWORD; remove the variable`, re-create the container without
+`--env-file` (the volume keeps the account). A container's environment cannot be edited in
+place, and every restart of the same container would set the password back.
 
 The volume is the data directory, and the container is disposable around it: removing
 and re-running the container keeps every Tree. The image carries the Trees that were in the
@@ -438,6 +491,13 @@ curl -sD - -o /dev/null http://127.0.0.1:3000/ai-act-applicability-agrifood/star
 curl -sD - -o /dev/null http://127.0.0.1:3000/ | grep -i set-cookie
 # (no output)
 
+# [#135] The one cookie is the login's, kept to /admin with every flag. The Origin is what
+# a browser sends; without it the write is refused (403).
+curl -sD - -o /dev/null -X POST http://127.0.0.1:3000/admin/api/login \
+  -H 'Origin: https://elsa.example.org' -H 'Content-Type: application/json' \
+  -d '{"login":"admin","password":"<the administrator password>"}' | grep -i set-cookie
+# set-cookie: elsa-admin-session=...; HttpOnly; Secure; SameSite=Strict; Path=/admin; Max-Age=1209600
+
 # Every address the page points a browser at. Only paths on this server appear
 # (/_next/..., /<tree-id>/images/...). The eur-lex.europa.eu links are Sources: a link a
 # reader may click, never something the page fetches.
@@ -447,7 +507,9 @@ curl -s http://127.0.0.1:3000/ai-act-applicability-agrifood/start \
 
 `npm run test:browser` asserts both in a real browser
 (`tests/browser/deployment.spec.ts`): it walks the app and fails if any cookie is set or if
-the browser asks any host but the one serving the page. That the app writes nothing to the
+the browser asks any host but the one serving the page. **[#135]** It then logs in, walks
+every public route again, and fails if the browser sent the session cookie to any of them
+or any answered a cookie: `Path=/admin` keeps it in the admin area. That the app writes nothing to the
 reader's local or session storage is asserted by the walks in `tests/browser/`.
 
 ## When it does not start
@@ -461,6 +523,8 @@ reader's local or session storage is asserted by the walks in `tests/browser/`.
 | `ELSA_DATA_DIR=... cannot be written` | The folder is not owned by `elsa` (step 3). |
 | `ELSA_DATA_DIR=... is in use by process N; one process per data directory` | A second copy of the service, or a container, has the same folder open. A lock left by a process that is gone is taken over by itself. |
 | `ELSA_TREE is set, and is retired: ...`, and the same for `ELSA_TREES_DIR` and `ELSA_TREE_LASTMOD` | **[#134]** A 1.0 environment file. Remove the line; the message names what replaced it. |
+| `ELSA_ADMIN_PASSWORD is not set and there is no administrator: ...` | **[#135]** A first start, or a data directory whose `accounts.json` was removed. Set the variable for one start ([step 4](#4-configure-it)). |
+| `ELSA_ADMIN_PASSWORD must be 12 to 256 characters` | **[#135]** The password is too short or too long. |
 | `ELSA_BASE_URL=... is not an absolute URL` | The base URL has no scheme -- `elsa.example.org` rather than `https://elsa.example.org`. |
 | `ELSA_BASE_URL=...: only http and https are served` | The base URL names another scheme. |
 | `ELSA_BASE_URL=... must be a bare origin` | The base URL carries a path, a query or a fragment. |

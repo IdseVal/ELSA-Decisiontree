@@ -217,6 +217,15 @@ export function overviewHref(lang: ChromeLanguage): string {
 }
 
 /**
+ * **[#135]** An address of the admin area's Tree-less pages, `/admin...`, in the chrome
+ * language `lang` (24.1): the query only for a language other than the first, as the
+ * overview's.
+ */
+export function adminHref(path: string, lang: ChromeLanguage): string {
+  return lang === CHROME_LANGUAGES[0] ? path : `${path}?lang=${lang}`
+}
+
+/**
  * **[#134]** The overview's address set (16.3, 23.2): one address per chrome language and
  * the `hreflang` set relating them, which the page head and the sitemap both render.
  */

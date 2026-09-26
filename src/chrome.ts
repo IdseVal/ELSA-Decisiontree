@@ -80,6 +80,49 @@ export interface Chrome {
   newTree: string
   /** **[#134]** The link on the 404 page: the overview, since a Tree-less page has no root to start again from. */
   toOverview: string
+  /** **[#135]** The admin area's pages without the script: every action is a JSON request (24.2). */
+  needsJavaScript: string
+  /** **[#135]** The 403 page (24.2). */
+  forbiddenTitle: string
+  forbiddenText: string
+  /** **[#135]** The admin chrome bar (24.3): the logout button, the link to the account page and to the accounts page. */
+  logout: string
+  account: string
+  accounts: string
+  /** **[#135]** The login page (25.1). */
+  signIn: string
+  login: string
+  password: string
+  loginFailed: string
+  loginLocked: string
+  loginHelp: string
+  requestFailed: string
+  /** **[#135]** The account page (25.2). */
+  yourName: string
+  changePassword: string
+  currentPassword: string
+  newPassword: string
+  repeatPassword: string
+  passwordsDiffer: string
+  wrongPassword: string
+  sessionsEnded: string
+  /** **[#135]** The accounts page (25.3). */
+  newAccount: string
+  create: string
+  deactivate: string
+  reactivate: string
+  active: string
+  deactivated: string
+  administrator: string
+  setPassword: string
+  save: string
+  /** **[#135]** The new-account Sheet's label for the display name, beside `login` (25.3). */
+  displayName: string
+  /** **[#135]** A refused field of the account forms (422): the rule it broke (20.1, 20.2). */
+  nameLength: string
+  loginInvalid: string
+  loginTaken: string
+  passwordLength: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -123,6 +166,41 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     noTrees: 'No decision tree is published here yet.',
     newTree: 'New tree',
     toOverview: 'All decision trees',
+    needsJavaScript: 'The editor needs JavaScript. Switch it on to sign in and edit.',
+    forbiddenTitle: 'Not yours to open',
+    forbiddenText: 'Your account has no access to this page.',
+    logout: 'Log out',
+    account: 'Your account',
+    accounts: 'Accounts',
+    signIn: 'Sign in',
+    login: 'Name',
+    password: 'Password',
+    loginFailed: 'Wrong name or password.',
+    loginLocked: 'Too many attempts. Try again in a few minutes.',
+    loginHelp: 'Ask your administrator for an account or a new password.',
+    requestFailed: 'The server could not be reached. Try again.',
+    yourName: 'Your name',
+    changePassword: 'Change password',
+    currentPassword: 'Current password',
+    newPassword: 'New password',
+    repeatPassword: 'New password again',
+    passwordsDiffer: 'The two new passwords differ.',
+    wrongPassword: 'The current password is wrong.',
+    sessionsEnded: 'Your other sessions end when you change it.',
+    newAccount: 'New account',
+    create: 'Create',
+    deactivate: 'Deactivate',
+    reactivate: 'Reactivate',
+    active: 'Active',
+    deactivated: 'Deactivated',
+    administrator: 'Administrator',
+    setPassword: 'Set password',
+    save: 'Save',
+    displayName: 'Display name',
+    nameLength: 'A name is 1 to 80 characters.',
+    loginInvalid: 'Use 2 to 64 lowercase letters, digits and single hyphens.',
+    loginTaken: 'This name is taken.',
+    passwordLength: 'A password is 12 to 256 characters.',
   },
   nl: {
     yes: 'Ja',
@@ -164,6 +242,41 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     noTrees: 'Hier is nog geen beslisboom gepubliceerd.',
     newTree: 'Nieuwe boom',
     toOverview: 'Alle beslisbomen',
+    needsJavaScript: 'De editor heeft JavaScript nodig. Zet het aan om in te loggen en te bewerken.',
+    forbiddenTitle: 'Geen toegang',
+    forbiddenText: 'Uw account heeft geen toegang tot deze pagina.',
+    logout: 'Uitloggen',
+    account: 'Uw account',
+    accounts: 'Accounts',
+    signIn: 'Inloggen',
+    login: 'Naam',
+    password: 'Wachtwoord',
+    loginFailed: 'Verkeerde naam of wachtwoord.',
+    loginLocked: 'Te veel pogingen. Probeer het over een paar minuten opnieuw.',
+    loginHelp: 'Vraag uw beheerder om een account of een nieuw wachtwoord.',
+    requestFailed: 'De server is niet bereikbaar. Probeer het opnieuw.',
+    yourName: 'Uw naam',
+    changePassword: 'Wachtwoord wijzigen',
+    currentPassword: 'Huidig wachtwoord',
+    newPassword: 'Nieuw wachtwoord',
+    repeatPassword: 'Nieuw wachtwoord nogmaals',
+    passwordsDiffer: 'De twee nieuwe wachtwoorden verschillen.',
+    wrongPassword: 'Het huidige wachtwoord klopt niet.',
+    sessionsEnded: 'Uw andere sessies eindigen als u het wijzigt.',
+    newAccount: 'Nieuw account',
+    create: 'Aanmaken',
+    deactivate: 'Deactiveren',
+    reactivate: 'Heractiveren',
+    active: 'Actief',
+    deactivated: 'Gedeactiveerd',
+    administrator: 'Beheerder',
+    setPassword: 'Wachtwoord instellen',
+    save: 'Opslaan',
+    displayName: 'Weergavenaam',
+    nameLength: 'Een naam is 1 tot 80 tekens.',
+    loginInvalid: 'Gebruik 2 tot 64 kleine letters, cijfers en enkele koppeltekens.',
+    loginTaken: 'Deze naam is al in gebruik.',
+    passwordLength: 'Een wachtwoord is 12 tot 256 tekens.',
   },
 }
 
