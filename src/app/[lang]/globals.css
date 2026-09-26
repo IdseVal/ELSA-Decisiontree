@@ -3362,6 +3362,270 @@ fieldset:disabled .admin-submit {
   }
 }
 
+/* --- the top panel (33) ------------------------------------------------------------ */
+
+/* The button (33.1): a dot and the state, in the chrome bar's pill; the dot says the state's colour. */
+.panel-sheet > .sheet-open {
+  padding: 3px 12px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.panel-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.panel-state-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--elsa-text-muted);
+}
+
+.panel-state--published .panel-state-dot {
+  background: var(--elsa-accent-secondary);
+}
+
+.panel-state--publicBehind .panel-state-dot {
+  background: var(--elsa-accent);
+}
+
+.panel-state--notServable .panel-state-dot {
+  background: var(--elsa-danger);
+}
+
+/* The chrome bar lifts over the page while its panel is open, so the scrim covers the Bubble too. */
+.editor-chrome:has(.panel-sheet[open]) {
+  z-index: 12;
+}
+
+/* A Sheet down the right edge (33.2): 400 pixels, from under the chrome bar to above the disclaimer. */
+.panel-sheet > .sheet-panel {
+  inset: var(--chrome-row) 0 var(--disclaimer-row) auto;
+  width: min(400px, 100%);
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  align-items: stretch;
+  border-radius: 24px 0 0 24px;
+}
+
+.panel-sheet > .sheet-panel > .sheet-page {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.panel-sheet > .sheet-panel > .sheet-page > div {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The body is a scroll box (26.3): the document never scrolls, the list of people and to-dos may. */
+.panel-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 16px 20px 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.panel-heading {
+  margin: 4px 48px 12px 0;
+  font-family: var(--elsa-font-heading);
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--rule-soft);
+}
+
+.panel-section h3 {
+  margin: 0;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--elsa-text-muted);
+}
+
+.panel-section p {
+  margin: 0;
+}
+
+.panel-switch-row,
+.panel-actions,
+.panel-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+/* The switch (33.3): a 40 x 22 track whose knob slides right when the Tree is published. */
+.panel-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--elsa-background);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), border-color 160ms var(--ease);
+}
+
+.panel-switch[aria-checked='true'] {
+  border-color: var(--elsa-accent-secondary);
+  background: var(--elsa-accent-secondary);
+}
+
+.panel-switch:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.panel-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--elsa-text-muted);
+  transition: transform 160ms var(--ease);
+}
+
+.panel-switch[aria-checked='true'] > .panel-switch-knob {
+  transform: translateX(18px);
+  background: var(--elsa-on-accent-secondary);
+}
+
+.panel-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.panel-facts dt {
+  color: var(--elsa-text-muted);
+}
+
+.panel-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.panel-todo-heading {
+  font-weight: 600;
+}
+
+.panel-todo,
+.panel-people {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panel-todo li {
+  overflow-wrap: anywhere;
+}
+
+.panel-todo-where {
+  font-weight: 600;
+}
+
+.panel-todo-remove {
+  margin-left: 8px;
+}
+
+.panel-people li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.panel-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.panel-remove {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  color: var(--elsa-text);
+  background: var(--elsa-surface);
+  cursor: pointer;
+}
+
+.panel-remove svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+
+.panel-remove:hover {
+  border-color: var(--danger-read);
+}
+
+.panel-select {
+  flex: 1 1 10rem;
+  min-width: 0;
+  min-height: 36px;
+}
+
+.panel-form .admin-submit:disabled,
+.panel-actions .admin-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.panel-tag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 0 6px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge. */
+@media (max-width: 479px) {
+  .panel-sheet > .sheet-panel {
+    bottom: 0;
+    border-radius: 0;
+  }
+}
+
 /* The enlarged view's four controls (31.3): one row of pills under the credit. */
 .editor-image-controls {
   display: flex;

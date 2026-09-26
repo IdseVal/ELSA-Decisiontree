@@ -78,6 +78,9 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
+/** The Tree's state at load: a hidden draft (22.1). */
+const HIDDEN = { advisory: 0, published: false, publicCopyCurrent: true, servable: false }
+
 /** A write response carrying `node`, as the store answers a field write (22.3). */
 const responseWith = (stored: DraftNode, violations: unknown[] = []) => ({
   revision: 2,
@@ -89,7 +92,7 @@ const responseWith = (stored: DraftNode, violations: unknown[] = []) => ({
 function mount(draft: DraftNode, field: Parameters<typeof Field>[0]): void {
   act(() => {
     root.render(
-      <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} published={false} publicCopyCurrent>
+      <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
         <h1>
           <Field {...field} />
         </h1>
@@ -219,7 +222,7 @@ describe('the response repaints (29.7)', () => {
     const draft = node('Mine', 'Mine too')
     act(() => {
       root.render(
-        <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} published={false} publicCopyCurrent>
+        <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
           <Field nodeId="start" path="title" lang="en" value="Mine" limit={{ characters: 80 }} words={fieldWords} />
           <Field nodeId="start" path="description" lang="en" value="Mine too" limit={{ characters: 150, lines: 2 }} rich words={fieldWords} />
         </Editor>,
@@ -254,7 +257,7 @@ describe('a refused value stays on screen (29.4)', () => {
     const draft = node('Mine', 'Mine too')
     act(() => {
       root.render(
-        <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} published={false} publicCopyCurrent>
+        <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
           <Field nodeId="start" path="title" lang="en" value="Mine" limit={{ characters: 80 }} words={fieldWords} />
           <Field nodeId="start" path="description" lang="en" value="Mine too" limit={{ characters: 150, lines: 2 }} rich words={fieldWords} />
         </Editor>,
@@ -352,7 +355,7 @@ describe('the add-Source form (28.1)', () => {
   function mountForm(): void {
     act(() => {
       root.render(
-        <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node('T', 'D') }} violations={[]} published={false} publicCopyCurrent>
+        <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node('T', 'D') }} violations={[]} tree={HIDDEN}>
           <details className="sheet" open>
             <summary>+ addSource</summary>
             <AddSourceForm nodeId="start" focusPath="sources[0].label.en" kinds={kinds} words={{ addSource: 'addSource', sourceKind: 'sourceKind', sourceUrl: 'sourceUrl' }} />
@@ -417,7 +420,7 @@ describe('[#141] marking a term (32.1, 32.2, 32.4)', () => {
   function mountDescription(draft: DraftNode): void {
     act(() => {
       root.render(
-        <Editor treeId="t" lang="en" languages={['en']} words={sheetWords as EditorWords} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} published={false} publicCopyCurrent>
+        <Editor treeId="t" lang="en" languages={['en']} words={sheetWords as EditorWords} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
           <Field nodeId="start" path="description" lang="en" value={draft.description.en!} limit={{ characters: 150, lines: 2 }} rich explainers={draft.explainers} termEvent="elsa-term" markerWords={markerWords} words={fieldWords} />
         </Editor>,
       )

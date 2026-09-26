@@ -174,6 +174,32 @@ export interface Chrome {
   explanation: string
   markedIn: string
   notMarkedIn: string
+  /** **[#142]** The top panel (33): its button and heading, the four sections, the confirmations. */
+  treeState: string
+  publish: string
+  todoCount: string
+  todoBefore: string
+  publishedAt: string
+  publicLink: string
+  publicBehindBecause: string
+  notServableBecause: string
+  confirmUnpublish: string
+  confirm: string
+  cancel: string
+  removeStep: string
+  collaborators: string
+  creator: string
+  invite: string
+  cannotInvite: string
+  removeCollaborator: string
+  chooseAccount: string
+  thisTree: string
+  fixed: string
+  handOver: string
+  handOverTo: string
+  deleteTree: string
+  unpublishFirst: string
+  confirmDeleteTree: string
   /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button, the side-bubble `+`, and the two choices of its Sheet. */
   treeEndsHere: string
   newSideBubble: string
@@ -189,8 +215,6 @@ export interface Chrome {
   removeEnd: string
   /** The confirmation named with the step's title: a function, so a language may order the sentence its own way (3.2). */
   confirmDelete: (title: string) => string
-  confirm: string
-  cancel: string
   /** **[#139]** The picker (30.6): its heading, and the placeholder of the new side-bubble's title. */
   pickTarget: string
   sideBubbleTitle: string
@@ -325,6 +349,31 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Explanation',
     markedIn: 'Marked in the text',
     notMarkedIn: 'Not marked in the text',
+    treeState: 'Tree',
+    publish: 'Publish',
+    todoCount: 'things to do',
+    todoBefore: 'To do before publishing:',
+    publishedAt: 'Published',
+    publicLink: 'Public link',
+    publicBehindBecause: 'The public copy stays as it was until these are done:',
+    notServableBecause: 'The public page is not served because of:',
+    confirmUnpublish: 'Hide this tree? Links to it will stop working until it is published again.',
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    removeStep: 'remove',
+    collaborators: 'Collaborators',
+    creator: 'creator',
+    invite: 'Invite',
+    cannotInvite: 'This account cannot be invited.',
+    removeCollaborator: 'Remove',
+    chooseAccount: 'Choose an account',
+    thisTree: 'This tree',
+    fixed: 'fixed',
+    handOver: 'Hand over',
+    handOverTo: 'Hand over to',
+    deleteTree: 'Delete this tree',
+    unpublishFirst: 'Hide it first to delete it.',
+    confirmDeleteTree: 'Delete this tree and its pictures for good? This cannot be undone.',
     treeEndsHere: 'Tree ends here',
     newSideBubble: 'New side bubble',
     createNew: 'Create a new one',
@@ -336,8 +385,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     deleteStep: 'Delete this step',
     removeEnd: 'Does not end here after all',
     confirmDelete: (title) => `Delete "${title}"? What it led to stays.`,
-    confirm: 'Confirm',
-    cancel: 'Cancel',
     pickTarget: 'Which step?',
     sideBubbleTitle: 'The side bubble\u2019s title',
     addPicture: 'Add a picture',
@@ -467,6 +514,31 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Uitleg',
     markedIn: 'Gemarkeerd in de tekst',
     notMarkedIn: 'Niet gemarkeerd in de tekst',
+    treeState: 'Boom',
+    publish: 'Publiceren',
+    todoCount: 'punten te doen',
+    todoBefore: 'Te doen voor publicatie:',
+    publishedAt: 'Gepubliceerd',
+    publicLink: 'Openbare link',
+    publicBehindBecause: 'De openbare versie blijft zoals ze was tot dit is gedaan:',
+    notServableBecause: 'De openbare pagina wordt niet getoond vanwege:',
+    confirmUnpublish: 'Deze boom verbergen? Links ernaar werken niet meer tot hij weer gepubliceerd is.',
+    confirm: 'Bevestigen',
+    cancel: 'Annuleren',
+    removeStep: 'verwijderen',
+    collaborators: 'Medewerkers',
+    creator: 'maker',
+    invite: 'Uitnodigen',
+    cannotInvite: 'Dit account kan niet worden uitgenodigd.',
+    removeCollaborator: 'Verwijderen',
+    chooseAccount: 'Kies een account',
+    thisTree: 'Deze boom',
+    fixed: 'vast',
+    handOver: 'Overdragen',
+    handOverTo: 'Overdragen aan',
+    deleteTree: 'Deze boom verwijderen',
+    unpublishFirst: 'Verberg hem eerst om hem te verwijderen.',
+    confirmDeleteTree: 'Deze boom en zijn afbeeldingen voorgoed verwijderen? Dit kan niet ongedaan worden.',
     treeEndsHere: 'Boom eindigt hier',
     newSideBubble: 'Nieuwe zijbubbel',
     createNew: 'Een nieuwe maken',
@@ -478,8 +550,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     deleteStep: 'Deze stap verwijderen',
     removeEnd: 'Eindigt hier toch niet',
     confirmDelete: (title) => `"${title}" verwijderen? Waar die heen leidde blijft.`,
-    confirm: 'Bevestigen',
-    cancel: 'Annuleren',
     pickTarget: 'Welke stap?',
     sideBubbleTitle: 'De titel van de zijbubbel',
     addPicture: 'Afbeelding toevoegen',

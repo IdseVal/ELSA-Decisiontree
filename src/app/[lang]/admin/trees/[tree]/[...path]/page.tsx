@@ -2,22 +2,27 @@ import { forbidden, notFound } from 'next/navigation'
 import { pageSession } from '../../../../../../admin/authenticated.ts'
 import { editMode } from '../../../../../../admin/slots.tsx'
 import { loginWords } from '../../../../../../admin/words.ts'
-import { chrome, chromeLang, chromeLanguage } from '../../../../../../chrome.ts'
+import { chrome, chromeLang, chromeLanguage, type Chrome } from '../../../../../../chrome.ts'
+import { sheetWords } from '../../../../../../components/Bubble.tsx'
 import { Disclaimer } from '../../../../../../components/Disclaimer.tsx'
 import { LanguageSwitch } from '../../../../../../components/LanguageSwitch.tsx'
 import { LoginPage } from '../../../../../../components/LoginPage.tsx'
 import { Logo } from '../../../../../../components/Logo.tsx'
+import { Sheet } from '../../../../../../components/Sheet.tsx'
 import { ThemeStyle } from '../../../../../../components/ThemeStyle.tsx'
 import { TreeView } from '../../../../../../components/TreeView.tsx'
 import { store } from '../../../../../../config.ts'
 import { Editor, SaveIndicator } from '../../../../../../editor/Editor.tsx'
 import { editorLinks } from '../../../../../../editor/links.ts'
 import { LogoutButton } from '../../../../../../editor/LogoutButton.tsx'
+import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
 import { centreOf, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
+import type { Account } from '../../../../../../store/accounts.ts'
+import type { TreeEntry } from '../../../../../../store/drafts.ts'
 import { isStoreError } from '../../../../../../store/errors.ts'
 import type { Draft } from '../../../../../../tree/loader.ts'
 import type { DraftNode } from '../../../../../../tree/types.ts'
-import { adminHref, parseUrl } from '../../../../../../url.ts'
+import { adminHref, parseUrl, rootHref, type PageAddress } from '../../../../../../url.ts'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,7 +45,7 @@ export default async function EditorPage({ params }: Props) {
   const { lang: segment, tree: treeId, path } = await params
   const session = await pageSession()
   if (!session) return <LoginPage lang={chromeLanguage(segment)} />
-  const { drafts } = await store()
+  const { drafts, accounts } = await store()
   let draft: Draft
   try {
     drafts.permitted(session.account, treeId, 'read')
@@ -96,8 +101,7 @@ export default async function EditorPage({ params }: Props) {
       adminHref={adminHref('/admin', uiLang)}
       nodes={nodes}
       violations={draft.advisory.filter((violation) => violation.file in nodes)}
-      published={entry.published}
-      publicCopyCurrent={entry.publicCopyCurrent}
+      tree={{ advisory: entry.advisory.length, published: entry.published, publicCopyCurrent: entry.publicCopyCurrent, servable: entry.servable }}
     >
       {/* The draft's Theme, so a colour changed in the draft is seen before publishing (13.1, ADR-133-admin-routes 6). */}
       <ThemeStyle tree={draft} />
@@ -107,6 +111,7 @@ export default async function EditorPage({ params }: Props) {
         <div className="page-controls">
           <LanguageSwitch address={address} languages={draft.manifest.languages} edit={edit} />
           <SaveIndicator words={edit.words} />
+          <TopPanel entry={entry} draft={draft} address={address} caller={session.account} accounts={accounts} ui={ui} />
           <nav className="admin-nav" aria-label={ui.account} lang={chromeLang(address.lang)}>
             <a className="admin-link" href={adminHref('/admin/account', uiLang)} data-clamp="">
               {session.account.name}
@@ -124,6 +129,107 @@ export default async function EditorPage({ params }: Props) {
       <Disclaimer lang={address.lang} />
     </Editor>
   )
+}
+
+/**
+ * The top panel (33): the button in the chrome bar and the Sheet it opens down the right
+ * edge, drawn by `Panel` from what the page read -- the entry, the accounts, the titles the
+ * to-do lines name -- and one Sheet among the page's others, so opening it closes an open
+ * Overlay (10.5).
+ */
+function TopPanel({
+  entry,
+  draft,
+  address,
+  caller,
+  accounts,
+  ui,
+}: {
+  entry: TreeEntry
+  draft: Draft
+  address: PageAddress
+  caller: Account
+  accounts: { get(id: string): Account | null; all(): Account[]; listActive(): Pick<Account, 'id' | 'name' | 'login'>[] }
+  ui: Chrome
+}) {
+  const role: PanelRole = caller.administrator ? 'administrator' : entry.meta.creator === caller.id ? 'creator' : 'collaborator'
+  const people = [entry.meta.creator, ...entry.meta.collaborators]
+  const names = Object.fromEntries(people.map((id) => [id, accounts.get(id)?.name ?? id]))
+  const titles = Object.fromEntries(entry.advisory.map((violation) => [violation.file, draft.getTitle(violation.file)?.[address.lang] ?? '']))
+  const words = panelWords(ui)
+  // Upper case is never a Node id (tree-format.md 3.1): the one place the id goes in the address.
+  const [before, after] = editorLinks().node({ ...address, trail: [], nodeId: 'NODE' }).split('NODE') as [string, string]
+  const uiLang = chromeLang(address.lang)
+  return (
+    <Sheet
+      className="panel-sheet"
+      summary={
+        <span lang={uiLang}>
+          <PanelButton words={words} />
+        </span>
+      }
+      pages={[
+        <div key="panel" lang={uiLang}>
+          <Panel
+            treeId={draft.id}
+            words={words}
+            role={role}
+            administratorId={accounts.all().find((account) => account.administrator)?.id ?? ''}
+            meta={{ creator: entry.meta.creator, collaborators: entry.meta.collaborators, publishedAt: entry.meta.publishedAt }}
+            publishedAt={entry.meta.publishedAt ?? null}
+            advisory={entry.advisory}
+            accounts={accounts.listActive()}
+            names={names}
+            titles={titles}
+            nodeHref={{ before, after }}
+            publicHref={rootHref(draft, address.lang)}
+            languages={draft.manifest.languages}
+            overviewHref={adminHref('/admin', chromeLanguage(address.lang))}
+          />
+        </div>,
+      ]}
+      words={sheetWords(ui)}
+      uiLang={uiLang}
+      cross
+    />
+  )
+}
+
+/** The chrome strings the panel says (33, the keys of ADR-133-top-panel's consequences). */
+function panelWords(ui: Chrome): PanelWords {
+  return {
+    treeState: ui.treeState,
+    publish: ui.publish,
+    todoCount: ui.todoCount,
+    todoBefore: ui.todoBefore,
+    publishedAt: ui.publishedAt,
+    publicLink: ui.publicLink,
+    publicBehindBecause: ui.publicBehindBecause,
+    notServableBecause: ui.notServableBecause,
+    confirmUnpublish: ui.confirmUnpublish,
+    confirm: ui.confirm,
+    cancel: ui.cancel,
+    removeStep: ui.removeStep,
+    collaborators: ui.collaborators,
+    creator: ui.creator,
+    invite: ui.invite,
+    cannotInvite: ui.cannotInvite,
+    removeCollaborator: ui.removeCollaborator,
+    chooseAccount: ui.chooseAccount,
+    thisTree: ui.thisTree,
+    fixed: ui.fixed,
+    handOver: ui.handOver,
+    handOverTo: ui.handOverTo,
+    deleteTree: ui.deleteTree,
+    unpublishFirst: ui.unpublishFirst,
+    confirmDeleteTree: ui.confirmDeleteTree,
+    published: ui.published,
+    hidden: ui.hidden,
+    languages: ui.languages,
+    treeId: ui.treeId,
+    administrator: ui.administrator,
+    requestFailed: ui.requestFailed,
+  }
 }
 
 /** An uneditable Tree (19.5): the blocking violations of its hand-edited draft, and the way out. */
