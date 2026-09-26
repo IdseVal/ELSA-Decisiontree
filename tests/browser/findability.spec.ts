@@ -8,17 +8,21 @@
  * engine that finds the two disagreeing drops the `hreflang` annotation altogether, with
  * nothing broken on screen and nothing logged.
  *
- * **[#121]** adds the dataset link of the head and `llms.txt`; **[#122]** the JSON-LD.
+ * **[#121]** adds the dataset link of the head and `llms.txt`; **[#122]** the JSON-LD;
+ * **[#134]** the overview's head, and a store of several Trees with one hidden: its id
+ * nowhere in the documents, every route of 23.1 answering it as an unknown id, `lastmod`
+ * per Tree (23.7).
  */
 import { expect, test, type Page } from '@playwright/test'
+import { utimes } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { NO_BASE_URL_ORIGIN, PUBLIC_BASE_URL } from '../../playwright.config.ts'
 import type { Graph, Dataset, WebPage } from '../../src/findability/jsonld.ts'
 import { plainDescription } from '../../src/markdown.ts'
 import { openTree, type Tree } from '../../src/tree/loader.ts'
-import { addressSet } from '../../src/url.ts'
-import { BASE_PORT, serve, stopServers } from './serve.ts'
+import { addressSet, overviewAddressSet } from '../../src/url.ts'
+import { BASE_PORT, dataDir, serve, serveStore, stopServers } from './serve.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const base = new URL(PUBLIC_BASE_URL)
@@ -122,7 +126,15 @@ test("the head's canonical, the sitemap's <loc> and the JSON-LD's @id are one st
 }) => {
   const document = await (await request.get('/sitemap.xml')).text()
   const locations = [...document.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1]!)
+  // **[#134]** The overview's two addresses first; they carry no JSON-LD this round (23.2).
+  const overview = locations.splice(0, 2)
 
+  expect(overview).toEqual(overviewAddressSet(base).addresses.map((address) => address.url))
+  for (const url of overview) {
+    await page.goto(url.replace(PUBLIC_BASE_URL, '') || '/')
+    await expect(page.locator('link[rel="canonical"]'), url).toHaveAttribute('href', url)
+    await expect(page.locator('script[type="application/ld+json"]'), url).toHaveCount(0)
+  }
   expect(locations).toHaveLength(tree.nodeIds().length * tree.manifest.languages.length)
   for (const url of locations) {
     await page.goto(url.replace(PUBLIC_BASE_URL, ''))
@@ -154,8 +166,8 @@ test("the sitemap parses in the browser's XML parser and holds the alternates", 
 
   expect(parsed.error).toBeNull()
   expect(parsed.root).toBe('urlset')
-  expect(parsed.urls).toBe(tree.nodeIds().length * tree.manifest.languages.length)
-  expect(parsed.firstLoc).toBe(addressSet(tree, tree.manifest.root, base).addresses[0]!.url)
+  expect(parsed.urls).toBe(2 + tree.nodeIds().length * tree.manifest.languages.length)
+  expect(parsed.firstLoc).toBe(overviewAddressSet(base).addresses[0]!.url)
   expect(parsed.alternates).toEqual(['en', 'nl', 'x-default'])
 })
 
@@ -228,7 +240,9 @@ test('llms.txt answers as plain text and its dataset link resolves', async ({ re
   // Markdown content under a plain-text media type, which is what the convention's readers
   // expect: `text/markdown` is not reliably handled by the middle of the internet.
   expect(answer.headers()['content-type']).toBe('text/plain; charset=utf-8')
-  expect(file.split('\n')[0]).toBe(`# ${tree.manifest.title.en}`)
+  // **[#134]** The deployment's H1, a chrome string, where 1.0 wrote the one Tree's title (23.5).
+  expect(file.split('\n')[0]).toBe('# ELSA decision trees')
+  expect(file).toContain(`- [${tree.manifest.title.en}](${PUBLIC_BASE_URL}/ai-act-example/start):`)
   expect(file).toContain(`(${PUBLIC_BASE_URL}/ai-act-example/tree.json)`)
   expect(file).toContain(`(${PUBLIC_BASE_URL}/sitemap.xml)`)
   expect(file).toContain('https://creativecommons.org/licenses/by/4.0/')
@@ -371,4 +385,119 @@ test("the awkward Tree's Dataset survives its own manifest title", async ({ page
   expect(dataset!.description).toContain('The first question')
   // Two legal Sources at one URL against one at another: the most frequent wins (16.4).
   expect(dataset!.isBasedOn).toBe('https://eur-lex.europa.eu/eli/reg/2024/1689/oj')
+})
+
+/**
+ * **[#134]** The overview's head (23.2): its title and description are chrome, its canonical
+ * link its own address in the page's chrome language, `hreflang` for both and `x-default`,
+ * and no JSON-LD this round.
+ */
+test("the overview's head: chrome title and description, its own canonical, the two languages", async ({ page }) => {
+  const { addresses, alternates: expected } = overviewAddressSet(base)
+
+  for (const { lang, url } of addresses) {
+    await page.goto(lang === 'en' ? '/' : `/?lang=${lang}`)
+
+    await expect(page.locator('html'), url).toHaveAttribute('lang', lang)
+    await expect(page.locator('link[rel="canonical"]'), url).toHaveAttribute('href', url)
+    // The attribute as written, the string the sitemap must repeat: the browser's resolved
+    // `href` would add the slash that `https://host` leaves out.
+    const written = await page
+      .locator('link[rel="alternate"][hreflang]')
+      .evaluateAll((links) => links.map((link) => ({ hreflang: link.getAttribute('hreflang') ?? '', url: link.getAttribute('href') ?? '' })))
+    expect(written, url).toEqual(expected)
+    await expect(page, url).toHaveTitle(lang === 'en' ? 'ELSA decision trees' : 'ELSA-beslisbomen')
+    await expect(page.locator('meta[name="description"]'), url).toHaveAttribute('content', /beslisbomen|decision trees/)
+    await expect(page.locator('script[type="application/ld+json"]'), url).toHaveCount(0)
+    // No Tree content beyond the titles on the tiles: the dataset link is a Node page's.
+    await expect(page.locator('link[type="application/json"]'), url).toHaveCount(0)
+  }
+})
+
+test.describe('a store of several Trees, one of them hidden (23.7)', () => {
+  const HIDDEN = 'hidden-tree'
+  const PORT = BASE_PORT + 61
+  let origin: string
+  /** The published Trees, as the store opens them: what the documents must list, and all they may. */
+  let published: Tree[]
+
+  test.beforeAll(async () => {
+    const example = path.join(here, '..', '..', 'trees', 'ai-act-example')
+    const cycle = path.join(here, '..', 'fixtures', 'cycle')
+    const dir = await dataDir([
+      { folder: example },
+      { folder: cycle, id: 'second-tree' },
+      { folder: example, id: HIDDEN, hidden: true },
+    ])
+    // Two publishes on two days: `lastmod` must say each Tree's own (23.4).
+    await utimes(path.join(dir, 'trees', 'ai-act-example', 'tree.json'), new Date('2026-01-02T12:00:00Z'), new Date('2026-01-02T12:00:00Z'))
+    await utimes(path.join(dir, 'trees', 'second-tree', 'tree.json'), new Date('2026-03-04T12:00:00Z'), new Date('2026-03-04T12:00:00Z'))
+    published = [await openTree(path.join(dir, 'trees', 'ai-act-example')), await openTree(path.join(dir, 'trees', 'second-tree'))]
+    origin = await serveStore(dir, PORT)
+  })
+
+  test("the sitemap lists exactly the published Trees' Nodes, each Tree with its own lastmod", async ({ request }) => {
+    const document = await (await request.get(`${origin}/sitemap.xml`)).text()
+    const locations = [...document.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1]!)
+    const own = new URL(origin)
+    const expected = published.flatMap((each) =>
+      each.nodeIds().flatMap((id) => addressSet(each, id, own).addresses.map((address) => address.url)),
+    )
+
+    expect(document).not.toContain(HIDDEN)
+    expect(locations.slice(2)).toEqual(expected)
+    // The count of 23.4: the overview's two, then Nodes times languages summed over the published Trees.
+    expect(locations).toHaveLength(2 + published.reduce((sum, each) => sum + each.nodeIds().length * each.manifest.languages.length, 0))
+    for (const block of document.split('<url>').slice(1)) {
+      const loc = /<loc>([^<]*)<\/loc>/.exec(block)![1]!
+      const lastmod = /<lastmod>([^<]*)<\/lastmod>/.exec(block)?.[1] ?? null
+      const expectedDate = loc.includes('/ai-act-example/') ? '2026-01-02' : loc.includes('/second-tree/') ? '2026-03-04' : null
+      expect(lastmod, loc).toBe(expectedDate)
+    }
+  })
+
+  test('llms.txt and the overview name the published Trees and not the hidden one', async ({ page, request }) => {
+    const llms = await (await request.get(`${origin}/llms.txt`)).text()
+    expect(llms).not.toContain(HIDDEN)
+    expect(llms).toContain(`(${origin}/second-tree/tree.json)`)
+
+    await page.goto(`${origin}/`)
+    await expect(page.locator('a.tile')).toHaveCount(2)
+    expect(await page.locator('a.tile').evaluateAll((tiles) => tiles.map((tile) => tile.getAttribute('data-tree')))).toEqual([
+      'ai-act-example',
+      'second-tree',
+    ])
+    expect(await page.content()).not.toContain(HIDDEN)
+  })
+
+  test('every public route answers the hidden Tree exactly as an id that was never a Tree', async ({ request }) => {
+    // The hidden Tree is a copy of the example Tree less its published file: its draft, its
+    // pictures and its fonts are on disk under the hidden id, and only the store says no.
+    const routes = (id: string): string[] => [
+      `/${id}`,
+      `/${id}/start`,
+      `/${id}/start?lang=nl`,
+      `/${id}/tree.json`,
+      `/${id}/images/eu-map.png`,
+      `/${id}/theme/nova-square-400.woff2`,
+    ]
+    const never = 'never-a-tree'
+    const hiddenRoutes = routes(HIDDEN)
+    const neverRoutes = routes(never)
+    for (const [index, route] of hiddenRoutes.entries()) {
+      const [hidden, unknown] = await Promise.all([
+        request.get(`${origin}${route}`, { maxRedirects: 0 }),
+        request.get(`${origin}${neverRoutes[index]}`, { maxRedirects: 0 }),
+      ])
+      expect(hidden.status(), route).toBe(404)
+      expect(unknown.status(), neverRoutes[index]).toBe(404)
+      // The same headers by name and by value, less the two that are per response.
+      const comparable = (headers: Record<string, string>): Record<string, string> =>
+        Object.fromEntries(Object.entries(headers).filter(([name]) => name !== 'date' && name !== 'etag'))
+      expect(comparable(hidden.headers()), route).toEqual(comparable(unknown.headers()))
+      // The same page, but for the path the caller typed, which the 404 page's language switch keeps.
+      const body = (text: string, id: string): string => text.replaceAll(id, '<id>')
+      expect(body(await hidden.text(), HIDDEN), route).toBe(body(await unknown.text(), never))
+    }
+  })
 })

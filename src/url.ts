@@ -221,7 +221,11 @@ export function overviewHref(lang: ChromeLanguage): string {
  * the `hreflang` set relating them, which the page head and the sitemap both render.
  */
 export function overviewAddressSet(base: URL): AddressSet {
-  const addresses = CHROME_LANGUAGES.map((lang) => ({ lang, url: absolute(overviewHref(lang), base) }))
+  // The root as the bare origin, `https://host` and not `https://host/`: one address either
+  // way, but Next.js writes it so into the head, and the head and the sitemap must say one
+  // string for one page or the `hreflang` set is dropped (16.3).
+  const at = (lang: ChromeLanguage): string => (lang === CHROME_LANGUAGES[0] ? base.origin : absolute(overviewHref(lang), base))
+  const addresses = CHROME_LANGUAGES.map((lang) => ({ lang, url: at(lang) }))
   return {
     addresses,
     alternates: [

@@ -201,10 +201,10 @@ test('open the root Node, follow yes, open one Option: one payload per navigatio
   // address bar at that moment: the main image is not lazy (10.3), so the arriving page asks
   // for it as soon as it is drawn, before the router has written its address.
   for (const [index, entry] of recorded.entries()) {
-    if (!entry.url.startsWith('/images/')) continue
+    if (!entry.url.startsWith('/ai-act-example/images/')) continue
     const page = recorded.slice(0, index).findLast((r) => pages.includes(r))!
     const node = page.url.replace(/[?&]_rsc=[^&]*$/, '')
-    expect(await allowedImages(node), `${entry.url} requested after ${node} (on ${entry.on})`).toContain(entry.url.slice('/images/'.length))
+    expect(await allowedImages(node), `${entry.url} requested after ${node} (on ${entry.on})`).toContain(entry.url.slice('/ai-act-example/images/'.length))
   }
 
   await mkdir(RESULTS, { recursive: true })

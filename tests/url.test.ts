@@ -194,13 +194,13 @@ describe('building an address', () => {
     expect(overviewHref('nl')).toBe('/?lang=nl')
     expect(overviewAddressSet(base)).toEqual({
       addresses: [
-        { lang: 'en', url: 'https://elsa.example.org/' },
+        { lang: 'en', url: 'https://elsa.example.org' },
         { lang: 'nl', url: 'https://elsa.example.org/?lang=nl' },
       ],
       alternates: [
-        { hreflang: 'en', url: 'https://elsa.example.org/' },
+        { hreflang: 'en', url: 'https://elsa.example.org' },
         { hreflang: 'nl', url: 'https://elsa.example.org/?lang=nl' },
-        { hreflang: 'x-default', url: 'https://elsa.example.org/' },
+        { hreflang: 'x-default', url: 'https://elsa.example.org' },
       ],
     })
   })

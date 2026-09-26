@@ -30,7 +30,7 @@ beforeAll(async () => {
 })
 
 /** The overview's two addresses, which open every sitemap (23.4). */
-const OVERVIEW = ['https://elsa.example.org/', 'https://elsa.example.org/?lang=nl']
+const OVERVIEW = ['https://elsa.example.org', 'https://elsa.example.org/?lang=nl']
 
 /** The text of every `<loc>`, in document order. */
 function locations(document: string): string[] {
@@ -69,7 +69,7 @@ describe('which pages the sitemap lists', () => {
     const expected = tree.nodeIds().flatMap((id) => addressSet(tree, id, base).addresses.map((entry) => entry.url))
 
     expect(locations(document)).toEqual([...overviewAddressSet(base).addresses.map((entry) => entry.url), ...expected])
-    for (const url of locations(document)) expect(url.startsWith('https://elsa.example.org/')).toBe(true)
+    for (const url of locations(document)) expect(new URL(url).origin).toBe('https://elsa.example.org')
   })
 
   test('the Trail, the assets and the documents of 15 and 16 are not listed', () => {

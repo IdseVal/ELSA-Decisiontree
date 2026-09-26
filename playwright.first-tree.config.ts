@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
 
 /**
@@ -13,7 +14,8 @@ import { defineConfig, devices } from '@playwright/test'
  * It is a second configuration rather than a second project inside
  * `playwright.config.ts` because a Playwright server serves one Tree at a time: the
  * default config serves `trees/ai-act-example`, which is what `tests/browser/` asserts
- * against, and this one serves the Tree the owner authored. Both start the standalone
+ * against, and this one serves the Tree the owner authored -- each from a data directory
+ * holding that Tree alone. Both start the standalone
  * server a deployment runs, so what the tests see -- and what the screenshots show -- is
  * what a deployment serves.
  *
@@ -36,6 +38,13 @@ import { defineConfig, devices } from '@playwright/test'
  * the command CI runs, cannot spare (docs/specs/application.md section 7).
  */
 const PORT = Number(process.env.ELSA_TEST_PORT ?? 3118)
+
+/**
+ * **[#134]** The server's data directory, built fresh before it starts and holding the first
+ * Tree alone (application.md 18.1; `tests/browser/data-dir.ts`). Absolute, because the
+ * standalone server moves into its own folder before it reads the variable.
+ */
+const DATA_DIR = path.resolve('tests', 'first-tree', '.data', String(PORT))
 
 export default defineConfig({
   testDir: './tests/first-tree',
@@ -60,12 +69,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && node .next/standalone/server.js',
+    command: `node tests/browser/data-dir.ts "${DATA_DIR}" trees/ai-act-applicability-agrifood && npm run build && node .next/standalone/server.js`,
     url: `http://127.0.0.1:${PORT}/ai-act-applicability-agrifood/start`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
     env: {
-      ELSA_TREE: 'ai-act-applicability-agrifood',
+      ELSA_DATA_DIR: DATA_DIR,
       NEXT_TELEMETRY_DISABLED: '1',
       // The standalone server reads where to listen from the environment, not from flags.
       PORT: String(PORT),

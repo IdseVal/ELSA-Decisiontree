@@ -302,7 +302,7 @@ for (const [nodeId, steps] of Object.entries(PICTURE_NODES)) {
     // Its own main image and one file per Option button, the target's main image; the closed
     // Overlays' strips are lazy and ask for nothing. Nine on `annex-i-legislation`, as
     // ADR-78-fan-out-and-option-picture.md's Consequences count it.
-    const pictures = asked.filter((url) => new URL(url).pathname.startsWith('/images/'))
+    const pictures = asked.filter((url) => new URL(url).pathname.startsWith(`/${TREE}/images/`))
     expect(new Set(pictures).size, 'a picture asked for twice').toBe(pictures.length)
     expect(pictures.length).toBe(1 + options)
     if (nodeId === 'annex-i-legislation') expect(pictures.length).toBe(9)
@@ -681,7 +681,7 @@ for (const [width, height] of VIEWPORTS) {
       await arrived(page, pageUrl(toAnnexI, lang))
       await page.waitForLoadState('networkidle')
       page.off('request', record)
-      const pictures = asked.filter((line) => line.includes(' /images/'))
+      const pictures = asked.filter((line) => line.includes(` /${TREE}/images/`))
       requests87.push(
         `- ${lang}, ${width} x ${height}: ${asked.length} requests, ${pictures.length} of them image files`,
         ...asked.map((line) => `  - \`${line}\``),

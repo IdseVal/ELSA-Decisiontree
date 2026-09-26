@@ -173,7 +173,7 @@ test.describe('the keyboard', () => {
     // The Interior's order (10.3): the main image, a plain link to its file here, then the heading.
     await page.keyboard.press('Tab')
     expect(await focused(page)).toBe('a.main-image')
-    await expect(page.locator(':focus')).toHaveAttribute('href', '/images/scoreboard.png')
+    await expect(page.locator(':focus')).toHaveAttribute('href', '/ai-act-example/images/scoreboard.png')
     await expect(page.locator(':focus')).not.toHaveAttribute('data-enlarge')
     await page.keyboard.press('Tab')
     expect(await focused(page)).toBe('a')

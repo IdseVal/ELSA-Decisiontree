@@ -1454,7 +1454,9 @@ a.language:hover,
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 280px);
+  /* 280 wide, as many as fit; a box narrower than one column -- a phone with a scrollbar --
+     gets one column of its own width rather than a row wider than itself. */
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 280px));
   gap: 20px;
   margin: 0;
   padding: 0;
@@ -1472,7 +1474,6 @@ a.language:hover,
   display: flex;
   flex-direction: column;
   gap: 4px;
-  width: 280px;
   height: 160px;
   padding: 12px 15px;
   border: 1px solid var(--rule);
