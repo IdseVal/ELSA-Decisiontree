@@ -2824,7 +2824,8 @@ fieldset:disabled .admin-submit {
   justify-content: center;
   color: var(--elsa-text-muted);
   font-size: 24px;
-  line-height: 1;
+  /* The glyph's own height: a line of 1 would cut its ascent, which counts as overflow (10.6). */
+  line-height: normal;
   cursor: pointer;
 }
 
@@ -2856,7 +2857,13 @@ fieldset:disabled .admin-submit {
   height: 100%;
   margin: 0;
   opacity: 0;
+  font-size: 0;
   cursor: inherit;
+}
+
+/* Unseen, but its button and its "no file" text would be wider than a 48-pixel `+` (10.6). */
+.editor-picker-input::file-selector-button {
+  display: none;
 }
 
 .editor-picker--strip {
@@ -2917,6 +2924,11 @@ fieldset:disabled .admin-submit {
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--elsa-text-muted);
+}
+
+/* The labels' column is as wide as the longer of the two words, "Beschrijving" included. */
+.editor-attach-form .editor-row {
+  grid-template-columns: auto minmax(0, 1fr);
 }
 
 .editor-attach-form .sheet-controls {
