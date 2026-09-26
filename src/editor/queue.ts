@@ -120,9 +120,26 @@ export class WriteQueue {
     return this.pending.has(key) || this.queue.some((write) => write.key === key)
   }
 
+  /**
+   * The field refused a value before sending (28.5): its older value, waiting out its 600 ms
+   * or queued behind the request in flight, does not go. The request in flight is answered
+   * as any other.
+   */
+  drop(nodeId: string, keyPath: string): void {
+    const key = keyOf(nodeId, keyPath)
+    const waiting = this.pending.get(key)
+    if (waiting) {
+      clearTimeout(waiting.timer)
+      this.pending.delete(key)
+    }
+    const kept = this.queue.filter((write, index) => write.key !== key || (index === 0 && this.inFlight))
+    this.queue.splice(0, this.queue.length, ...kept)
+    this.changed()
+  }
+
   /** Whether anything is not yet accepted: what `beforeunload` asks about (29.5). */
   busy(): boolean {
-    return this.pending.size > 0 || this.queue.length > 0
+    return this.state().saving
   }
 
   /** The `retry` button: the failed write goes now (29.5). */

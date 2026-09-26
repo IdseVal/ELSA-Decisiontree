@@ -67,6 +67,8 @@ interface Refused {
   violations: Violation[]
   /** The refusal's code where it carried no violation: a 413, a malformed body. */
   code: string | null
+  /** Caught at the field before sending (28.5): newer than any write of the field still in flight. */
+  local: boolean
 }
 
 export function Editor({
@@ -149,8 +151,10 @@ export function Editor({
           setChanged((held) => ({ ...held, ...marks }))
           setChangedUntil(now + SHOWN_MS)
         }
+        // An accepted value clears the field's refusal, unless the field refused a newer one
+        // itself while this write was in flight: only a changed value clears that (29.4).
         const accepted = write.key
-        if (accepted !== null) setRefusals(({ [accepted]: _gone, ...rest }) => rest)
+        if (accepted !== null) setRefusals(({ [accepted]: gone, ...rest }) => (gone?.local ? { ...rest, [accepted]: gone } : rest))
         setPublicBehind(response.tree.published && !response.tree.publicCopyCurrent)
         setVersion((v) => v + 1)
         // The shape changed: the server components draw the new list; the fields keep their state.
@@ -169,7 +173,7 @@ export function Editor({
       // 422 and the rest: a refusal, kept at the field until its value changes (29.4).
       const key = write.key ?? keyOf(write.nodeId, '')
       const violations = body && 'violations' in body ? (body.violations ?? []) : []
-      setRefusals((held) => ({ ...held, [key]: { violations, code: body && 'error' in body ? (body.error ?? null) : String(status) } }))
+      setRefusals((held) => ({ ...held, [key]: { violations, code: body && 'error' in body ? (body.error ?? null) : String(status), local: false } }))
     },
     [router],
   )
@@ -229,7 +233,9 @@ export function Editor({
       setCurrent: setFocused,
       refuseLocally: (nodeId, keyPath, violation) => {
         setLastEdited({ nodeId, keyPath })
-        setRefusals((held) => ({ ...held, [keyOf(nodeId, keyPath)]: { violations: [violation], code: 'blocking' } }))
+        // The older value the field still had waiting would be saved behind the refused one.
+        queue.current!.drop(nodeId, keyPath)
+        setRefusals((held) => ({ ...held, [keyOf(nodeId, keyPath)]: { violations: [violation], code: 'blocking', local: true } }))
       },
     }),
     [lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed],

@@ -20,8 +20,9 @@
  * that language (28.3). The rim is drawn from the page's body, fixed, beside the Bubble or
  * the Overlay the field is in, so it takes no pixel from the text area and nothing on the
  * page grows (28.6). Over the maximum the pill and the outline turn `danger`; typing never
- * stops (28.4). A refused write keeps the value on screen (29.4); a value a collaborator
- * changed under the field is outlined `accent` for five seconds (29.7).
+ * stops (28.4). A refused write keeps the value on screen, and no response repaints it until
+ * it changes (29.4); a value a collaborator changed under the field is outlined `accent` for
+ * five seconds (29.7).
  *
  * Imports of `src/`: `tree/measure.ts`, `tree/grammar.ts` and `markdown.ts`, and types (34.4).
  */
@@ -107,11 +108,15 @@ export function Field({
   const area = useRef<HTMLTextAreaElement>(null)
   const [rim, setRim] = useState<{ top: number; left: number } | null>(null)
 
+  const violations = api.violationsAt(nodeId, keyPath)
+  const refused = violations.some((violation) => !(violation.advisory ?? true))
+
   // The repaint rule of 29.7: a response's value replaces the screen's unless the field is
-  // being edited or holds a value not yet accepted.
+  // being edited, holds a value not yet accepted, or holds a refused one -- that stays until
+  // it changes, whatever another field's response brought (29.4).
   const server = valueAt(api.nodes[nodeId], path, lang)
   useEffect(() => {
-    if (server === undefined || focused || api.hasWrite(nodeId, keyPath) || server === text) return
+    if (server === undefined || focused || refused || api.hasWrite(nodeId, keyPath) || server === text) return
     setText(server)
     setDirty(true)
     // The screen follows the store; the text it shows is the store's, not this render's.
@@ -141,8 +146,6 @@ export function Field({
     return () => window.removeEventListener('resize', place)
   }, [focused, text, limit])
 
-  const violations = api.violationsAt(nodeId, keyPath)
-  const refused = violations.some((violation) => !(violation.advisory ?? true))
   const length = countedLength(text)
   const lines = limit?.lines !== undefined ? estimatedLines(text) : null
   const over = limit !== null && (length > limit.characters || (lines !== null && lines > limit.lines!))

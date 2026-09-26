@@ -187,6 +187,38 @@ describe('a failed request is retried (29.5)', () => {
   })
 })
 
+describe('a value refused at the field (28.5)', () => {
+  test('drop takes the field\u2019s waiting and queued values out, not the one in flight nor another field\u2019s', async () => {
+    const { sent, send } = fakeSend()
+    const { queue, last } = queueWith(send)
+
+    queue.field('start', 'description.en', 'a')
+    queue.flush('start', 'description.en')
+    queue.field('start', 'description.en', 'a<')
+    queue.flush('start', 'description.en')
+    queue.field('start', 'title.en', 'T')
+    queue.field('start', 'description.en', 'a< ')
+    expect(sent).toHaveLength(1)
+
+    queue.drop('start', 'description.en')
+    expect(queue.hasWrite('start', 'description.en')).toBe(true)
+    expect(queue.hasWrite('start', 'title.en')).toBe(true)
+    sent[0]!.answer(ok)
+    await settled()
+    expect(queue.hasWrite('start', 'description.en')).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS)
+    expect(sent.map((s) => s.write.change)).toEqual([
+      { path: 'description.en', value: 'a' },
+      { path: 'title.en', value: 'T' },
+    ])
+    sent[1]!.answer(ok)
+    await settled()
+    expect(last().saving).toBe(false)
+    expect(queue.busy()).toBe(false)
+  })
+})
+
 describe('a session that expires (29.6)', () => {
   test('a 401 pauses the queue with the write kept, and resume sends the same request again', async () => {
     const { sent, send } = fakeSend()

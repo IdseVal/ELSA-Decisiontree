@@ -6,7 +6,8 @@
  * `markdown.test.ts` measures and the full Node's; a plain field turns a line break into a
  * space and blurs on Enter; the description shows the rendered text until it is focused and
  * the source while it is; `<` before a letter is refused at the field before anything is
- * sent; and a response's value repaints a field that is not being edited. The add-Source
+ * sent; a response's value repaints a field that is not being edited, and never one holding a
+ * refused value, which stays with its `danger` state. The add-Source
  * form sends `add-source` only once a URL is typed, with no placeholder, and closes its Sheet.
  */
 import { act } from 'react'
@@ -246,6 +247,100 @@ describe('the response repaints (29.7)', () => {
     expect(container.querySelectorAll('textarea')[0]!.value).toBe('Theirs')
     expect(container.querySelector('.editor-field--changed')?.getAttribute('data-field')).toBe('start title.en')
     expect(container.querySelectorAll('textarea')[1]!.value).toBe('Mine too, edited')
+  })
+})
+
+describe('a refused value stays on screen (29.4)', () => {
+  test('a write the store refused is not repainted by another field\u2019s accepted write; the danger state stays', async () => {
+    const draft = node('Mine', 'Mine too')
+    act(() => {
+      root.render(
+        <Editor treeId="t" lang="en" words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} published={false} publicCopyCurrent>
+          <Field nodeId="start" path="title" lang="en" value="Mine" limit={{ characters: 80 }} words={fieldWords} />
+          <Field nodeId="start" path="description" lang="en" value="Mine too" limit={{ characters: 150, lines: 2 }} rich words={fieldWords} />
+        </Editor>,
+      )
+    })
+    // The store refuses the title and accepts the description; the Node it answers with holds the old title.
+    answer = (body) =>
+      (body as { path: string }).path === 'title.en'
+        ? new Response(JSON.stringify({ error: 'blocking', violations: [{ file: 'start', keyPath: 'title.en', rule: 'V-PLAIN', message: 'refused', advisory: false }] }), { status: 422 })
+        : new Response(JSON.stringify(responseWith({ ...draft, description: { en: 'Mine too, edited', nl: 'x' } })), { status: 200 })
+
+    const title = container.querySelectorAll('textarea')[0]!
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(title, 'Refused')
+      title.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await act(() => vi.advanceTimersByTimeAsync(700))
+    expect(sent.map((s) => s.body)).toEqual([{ path: 'title.en', value: 'Refused' }])
+    expect(container.querySelector('.editor-field--refused')?.getAttribute('data-field')).toBe('start title.en')
+
+    const description = container.querySelector<HTMLElement>('.editor-rendered')!
+    act(() => description.focus())
+    act(() => {
+      description.dispatchEvent(new FocusEvent('focus'))
+    })
+    const area = container.querySelectorAll('textarea')[1]!
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(area, 'Mine too, edited')
+      area.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await act(() => vi.advanceTimersByTimeAsync(700))
+    await act(() => vi.advanceTimersByTimeAsync(0))
+
+    expect(sent).toHaveLength(2)
+    expect(container.querySelectorAll('textarea')[0]!.value).toBe('Refused')
+    expect(container.querySelector('.editor-field--refused')?.getAttribute('data-field')).toBe('start title.en')
+    expect(container.querySelectorAll('textarea')[1]!.value).toBe('Mine too, edited')
+  })
+
+  test('a value refused at the field drops the older one waiting; an older one in flight does not clear the refusal when accepted', async () => {
+    // A fetch the test releases, so a write can be in flight while the next value is typed.
+    let release: (() => void) | null = null
+    vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body)) as unknown
+      sent.push({ url, body })
+      return new Promise<Response>((resolve) => {
+        release = () => resolve(answer(body))
+      })
+    })
+    mount(node('T', 'Plain.'), { nodeId: 'start', path: 'description', lang: 'en', value: 'Plain.', limit: { characters: 150, lines: 2 }, rich: true, words: fieldWords })
+    focus()
+
+    // Waiting: `x<` is a legal value, `x<b` is refused 100 ms later; neither goes.
+    type('Plain. x<')
+    await act(() => vi.advanceTimersByTimeAsync(100))
+    type('Plain. x<b')
+    await act(() => vi.advanceTimersByTimeAsync(1000))
+    expect(sent).toEqual([])
+    expect(container.querySelector('.editor-field--refused')).not.toBeNull()
+
+    // In flight: `a<` goes, `a<b` is refused while it is out, and its acceptance changes nothing on screen.
+    answer = () => new Response(JSON.stringify(responseWith(node('T', 'Plain. a<'))), { status: 200 })
+    type('Plain. a<')
+    await act(() => vi.advanceTimersByTimeAsync(700))
+    expect(sent.map((s) => s.body)).toEqual([{ path: 'description.en', value: 'Plain. a<' }])
+    expect(container.querySelector('.editor-field--refused')).toBeNull()
+    type('Plain. a<b')
+    expect(container.querySelector('.editor-field--refused')).not.toBeNull()
+    await act(async () => {
+      release!()
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(container.querySelector('.editor-field--refused')).not.toBeNull()
+    expect(textarea().value).toBe('Plain. a<b')
+
+    // On blur nothing waits, so nothing goes, and the store's `a<` does not repaint the field.
+    act(() => {
+      const element = textarea()
+      element.blur()
+      element.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+    })
+    await act(() => vi.advanceTimersByTimeAsync(1000))
+    expect(sent).toHaveLength(1)
+    expect(container.querySelector('.editor-field--refused')).not.toBeNull()
+    expect(container.querySelector('.editor-rendered')!.textContent).toContain('Plain. a<b')
   })
 })
 
