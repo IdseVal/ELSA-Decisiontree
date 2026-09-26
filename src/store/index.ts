@@ -6,22 +6,20 @@
  *
  * This is the read side (#134): the data directory, its lock, the seed at first start, and
  * the set of published Trees every public route works from. **[#135]** Accounts, sessions and
- * the login rate limit are members of `Store`; drafts and writes (#136) join them.
+ * the login rate limit are members of `Store`. **[#136]** The drafts and every write to a Tree
+ * are `drafts.ts`'s, the member `drafts`.
  */
 import { cp, mkdir, readdir, readFile, rename, rm, stat, access, constants } from 'node:fs/promises'
 import path from 'node:path'
 import type { Environment } from '../config.ts'
 import { openTree, type Tree } from '../tree/loader.ts'
 import { openAccounts, type Accounts } from './accounts.ts'
+import { openDrafts, RESERVED_TREE_IDS, type Drafts } from './drafts.ts'
 import { loginLimit, type LoginLimit } from './login-limit.ts'
 import { openSessions, type Sessions } from './sessions.ts'
 import { writeAtomic } from './write.ts'
 
-/**
- * Tree ids that would collide with a route (application.md 4.3): the two moved-from file
- * addresses, the schema, and the admin area's whole prefix.
- */
-export const RESERVED_TREE_IDS: readonly string[] = ['images', 'theme', 'schemas', 'admin']
+export { RESERVED_TREE_IDS }
 
 /** The 1.0 variables and what replaced each; set, the server refuses to start (17.1). */
 const RETIRED: Readonly<Record<string, string>> = {
@@ -59,6 +57,8 @@ export interface Store {
   sessions: Sessions
   /** **[#135]** The two counters of the login route (20.7). */
   loginLimit: LoginLimit
+  /** **[#136]** Every Tree's draft, its writes, publishing and the roles (19, 21, 22). */
+  drafts: Drafts
 }
 
 /**
@@ -102,17 +102,24 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
     }
   }
 
+  const swap = (id: string, tree: Tree | null): void => {
+    if (tree) served.set(id, tree)
+    else served.delete(id)
+    // A Tree refused at start and published again by a valid write is refused no longer (18.3).
+    const at = refused.findIndex((entry) => entry.id === id)
+    if (at >= 0) refused.splice(at, 1)
+  }
+  const drafts = await openDrafts(treesDir, accounts, swap, (id) => served.has(id))
+
   return {
     published: (id) => served.get(id) ?? null,
     publishedIds: () => [...served.keys()].sort(),
     refused: () => [...refused],
-    swap: (id, tree) => {
-      if (tree) served.set(id, tree)
-      else served.delete(id)
-    },
+    swap,
     accounts,
     sessions,
     loginLimit: loginLimit(),
+    drafts,
   }
 }
 

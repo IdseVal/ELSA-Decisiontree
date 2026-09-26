@@ -81,8 +81,30 @@ is empty: the download **is** the dataset, not an export of it.
 `ELSA_TREE`, `ELSA_TREES_DIR` and `ELSA_TREE_LASTMOD` are retired: set, the server refuses
 to start and says what replaced them. A Tree is published exactly when its folder in the
 data directory holds a `tree.json`. To serve your own Tree, put its folder next to
-`trees/ai-act-example/` before the first start, or copy it into `$ELSA_DATA_DIR/trees/`
-with the server stopped (`docs/deployment.md`).
+`trees/ai-act-example/` before the first start, or import it later with the server stopped:
+
+```sh
+ELSA_DATA_DIR=.elsa-data npm run store -- import path/to/my-tree   # published, the administrator its creator
+```
+
+Back up the data directory and nothing else; `docs/deployment.md` says how, and how to move
+a Tree from one deployment to another.
+
+## Edit Trees in the app
+
+Behind the login at `/admin`, every active account may create a Tree; its creator invites
+collaborators, and the administrator may do everything on every Tree. Every field is saved
+as it is typed into the Tree's **draft** (`draft.json`, the same `elsa-tree/4` file, allowed
+to be unfinished); the draft becomes public only when its creator publishes it and it
+validates in full, and while it is published every save that keeps it valid is public at
+once (`docs/specs/application.md` 19).
+
+The editor's server interface is plain JSON under `/admin/api/trees` (`application.md` 22.1):
+create a Tree, read and write one field or one operation on one Node, create and delete
+Nodes, publish and unpublish, invite and remove collaborators, hand a Tree over, delete a
+hidden Tree, and upload a picture (PNG, JPEG, GIF or WebP, at most 5 MiB, named by the
+server). Every request needs a session; every write is checked on the server against the
+roles of `application.md` 21 and answers the violations of the format at the field they name.
 
 ## Test
 

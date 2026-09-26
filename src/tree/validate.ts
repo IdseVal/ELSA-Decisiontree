@@ -15,11 +15,21 @@
  * Every failing rule inside a pass is collected; nothing stops at the first
  * (ADR-4-validity-rules). The file system belongs to loader.ts, which reports V-DIR and
  * V-JSON before this module is reached.
+ *
+ * **[#136]** A draft (application.md 19.2, ADR-132-draft-and-publish decision 2) is checked
+ * by the same two passes in `draft` mode: the schema is a draft schema derived from the
+ * published one in code, and every violation is tagged blocking or advisory by the Draft
+ * column of section 7. In that mode the content pass meets what the draft schema lets
+ * through -- a Node without `title` or `description`, an Answer pair with one key, an empty
+ * string in a localised text or a credit -- and reports each as an advisory.
  */
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js'
 import { explainerMarks } from '../markdown.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
 import schemaDocument from '../../schemas/elsa-tree-4.json' with { type: 'json' }
+
+/** Which reading of section 7: every rule blocking, or the Draft column's (19.2). */
+export type Mode = 'published' | 'draft'
 
 /** A parsed JSON object whose shape is not yet trusted. */
 export type Mapping = Record<string, unknown>
@@ -41,6 +51,34 @@ export interface RawTree {
  * at run time (ADR-118-json-schema, decision 7).
  */
 const validateShape = new Ajv2020({ allErrors: true }).compile(schemaDocument)
+
+/**
+ * **[#136]** The draft schema (application.md 19.2): the published schema with exactly two
+ * `minLength` keywords dropped -- a language whose text is not written yet, a picture whose
+ * credit is not written yet -- and `title`, `description` out of a Node's `required` and
+ * `yes`, `no` out of `answers`'. Every other keyword stays, because each is the only place
+ * a rule the Draft column keeps blocking is enforced. Derived, never a second file, so it
+ * cannot drift from the first.
+ */
+export function draftSchema(published: Mapping): Mapping {
+  const schema = structuredClone(published) as { $defs: Record<string, Mapping & { required?: string[] }> }
+  const defs = schema.$defs
+  delete (defs.localisedText!.additionalProperties as Mapping).minLength
+  delete ((defs.image!.properties as Mapping).credit as Mapping).minLength
+  defs.node!.required = defs.node!.required!.filter((key) => key !== 'title' && key !== 'description')
+  defs.answers!.required = defs.answers!.required!.filter((key) => key !== 'yes' && key !== 'no')
+  return schema
+}
+
+const validateDraftShape = new Ajv2020({ allErrors: true }).compile(draftSchema(schemaDocument as Mapping))
+
+/**
+ * The rules whose every violation is advisory in a draft (tree-format.md 7, Draft column):
+ * completeness and size. A rule split between the two columns -- V-ROOT, V-ANSWERS,
+ * V-OPTIONS, V-NODE, V-IMAGE, V-EXPLAINER, V-COUNT on explainers, and V-L10N's undeclared
+ * language -- is tagged where it is found; every other rule is blocking.
+ */
+const ADVISORY = new Set(['V-L10N', 'V-LENGTH', 'V-LINES', 'V-COUNT', 'V-REACH', 'V-ORPHAN', 'V-MARK'])
 
 const IMAGE_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(png|jpg|jpeg|gif|webp|svg)$/
 const THEME_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|webp|ico|woff2)$/
@@ -143,16 +181,22 @@ export function nodeKind(node: Mapping): NodeKind {
   return 'explanation'
 }
 
-/** Runs both passes and returns every violation found. */
-export function validateTree(tree: RawTree): Violation[] {
-  const shape = shapeViolations(tree.tree)
-  return shape.length > 0 ? shape : contentViolations(tree)
+/**
+ * Runs both passes and returns every violation found. In `draft` mode **[#136]** each
+ * carries `advisory`: false for a violation the store never lets onto disk, true for one of
+ * the creator's to-do list (19.2); in `published` mode none carries it.
+ */
+export function validateTree(tree: RawTree, mode: Mode = 'published'): Violation[] {
+  const shape = shapeViolations(tree.tree, mode)
+  const found = shape.length > 0 ? shape : contentViolations(tree, mode)
+  return mode === 'draft' ? found : found.map(({ advisory: _advisory, ...violation }) => violation)
 }
 
-/** The schema pass: the rules section 7 marks `schema` in its Where column. */
-function shapeViolations(tree: Mapping): Violation[] {
-  if (validateShape(tree)) return []
-  return (validateShape.errors ?? []).map(toViolation)
+/** The schema pass: the rules section 7 marks `schema` in its Where column. Every one blocks. */
+function shapeViolations(tree: Mapping, mode: Mode): Violation[] {
+  const validate = mode === 'draft' ? validateDraftShape : validateShape
+  if (validate(tree)) return []
+  return (validate.errors ?? []).map((error) => ({ ...toViolation(error), advisory: false }))
 }
 
 /**
@@ -173,7 +217,7 @@ function toViolation(error: ErrorObject): Violation {
 }
 
 /** The content pass: the rules section 7 marks `rules`, on a Tree whose shape is known good. */
-function contentViolations(tree: RawTree): Violation[] {
+function contentViolations(tree: RawTree, mode: Mode): Violation[] {
   const out: Violation[] = []
   // The whole file, manifest fields and `nodes` together (3.7); `manifest` below is the
   // `where` of a violation the manifest's own fields cause, which is not the same thing.
@@ -182,6 +226,7 @@ function contentViolations(tree: RawTree): Violation[] {
     languages: top.languages as string[],
     images: tree.images,
     themeFiles: tree.themeFiles,
+    draft: mode === 'draft',
   }
 
   const c = new DocumentChecker('manifest', context, out)
@@ -197,7 +242,7 @@ function contentViolations(tree: RawTree): Violation[] {
     const id = node.id as string
     const nodeChecker = new DocumentChecker(id, context, out)
     const shape = checkNode(nodeChecker, node)
-    if (shapes.has(id)) nodeChecker.fail('id', 'V-NODE', `"${id}" is the id of two Nodes`)
+    if (shapes.has(id)) nodeChecker.fail('id', 'V-NODE', `"${id}" is the id of two Nodes`, false)
     else shapes.set(id, shape)
   }
   checkGraph(out, top.root as string, shapes)
@@ -208,6 +253,8 @@ interface Context {
   languages: string[]
   images: Set<string>
   themeFiles: Set<string>
+  /** **[#136]** Read under the draft schema: `title`, `description`, an Answer or a credit may be missing or empty. */
+  draft: boolean
 }
 
 /** An outgoing Link, kept for the rules that need every Node to have been read. */
@@ -239,8 +286,9 @@ class DocumentChecker {
     this.out = out
   }
 
-  fail(keyPath: string, rule: string, message: string): void {
-    this.out.push({ file: this.where, keyPath, rule, message })
+  /** `advisory` is the Draft column's (19.2); dropped again in published mode. */
+  fail(keyPath: string, rule: string, message: string, advisory = ADVISORY.has(rule)): void {
+    this.out.push({ file: this.where, keyPath, rule, message, advisory })
   }
 
   /**
@@ -270,7 +318,7 @@ class DocumentChecker {
     }
     for (const lang of Object.keys(localised)) {
       if (!this.context.languages.includes(lang)) {
-        this.fail(`${keyPath}.${lang}`, 'V-L10N', `"${lang}" is not a language the manifest declares`)
+        this.fail(`${keyPath}.${lang}`, 'V-L10N', `"${lang}" is not a language the manifest declares`, false)
       }
     }
   }
@@ -281,9 +329,9 @@ class DocumentChecker {
     if (length > max) this.fail(keyPath, 'V-LENGTH', `${length} characters; at most ${max}`)
   }
 
-  /** V-COUNT: a list within the maximum entries of 5.7. */
-  count(value: unknown[], keyPath: string, max: number): void {
-    if (value.length > max) this.fail(keyPath, 'V-COUNT', `${value.length} entries; at most ${max}`)
+  /** V-COUNT: a list within the maximum entries of 5.7; `advisory` false where the Draft column blocks the count. */
+  count(value: unknown[], keyPath: string, max: number, advisory = true): void {
+    if (value.length > max) this.fail(keyPath, 'V-COUNT', `${value.length} entries; at most ${max}`, advisory)
   }
 
   hasImage(file: string): boolean {
@@ -336,12 +384,15 @@ function checkFonts(c: DocumentChecker, fonts: Mapping[]): void {
 }
 
 function checkNode(c: DocumentChecker, node: Mapping): NodeShape {
-  c.localised(node.title, 'title', false, MAX.title)
-  c.localised(node.description, 'description', true, MAX.nodeDescription, MAX.nodeLines)
+  // Only the draft schema lets a Node through without these two (19.2).
+  if ('title' in node) c.localised(node.title, 'title', false, MAX.title)
+  else c.fail('title', 'V-NODE', 'no title yet', true)
+  if ('description' in node) c.localised(node.description, 'description', true, MAX.nodeDescription, MAX.nodeLines)
+  else c.fail('description', 'V-NODE', 'no description yet', true)
   const sourceIds = checkSources(c, node.sources as Mapping[] | undefined)
   checkImages(c, node.images as Mapping[] | undefined, sourceIds)
-  checkMarks(c, node.description, 'explainers' in node ? checkExplainers(c, node.explainers as Mapping[]) : [])
-  const answers = 'answers' in node ? answerLinks(node.answers as Mapping) : []
+  checkMarks(c, node.description ?? {}, 'explainers' in node ? checkExplainers(c, node.explainers as Mapping[]) : [])
+  const answers = 'answers' in node ? answerLinks(c, node.answers as Mapping) : []
   const options = 'options' in node ? checkOptions(c, node.options as Mapping[]) : []
   return { kind: nodeKind(node), answers, options }
 }
@@ -371,16 +422,32 @@ function checkImages(c: DocumentChecker, images: Mapping[] | undefined, sourceId
     const file = image.file as string
     if (!c.hasImage(file)) c.fail(`${at}.file`, 'V-IMAGE', `"${file}" is not in the Tree's images/ folder`)
     c.localised(image.description, `${at}.description`, false, MAX.imageDescription)
-    c.length(image.credit as string, `${at}.credit`, MAX.credit)
+    // Only the draft schema lets an empty credit through (19.2).
+    if (image.credit === '') c.fail(`${at}.credit`, 'V-IMAGE', 'no credit yet', true)
+    else c.length(image.credit as string, `${at}.credit`, MAX.credit)
     if ('source' in image && !sourceIds.has(image.source as string)) {
       c.fail(`${at}.source`, 'V-IMAGE', 'source must name the id of a Source on this Node')
     }
   })
 }
 
-/** The Answers as Links; whether each target exists and is of the right kind is checkGraph's. */
-function answerLinks(answers: Mapping): Link[] {
-  return (['yes', 'no'] as const).map((key) => ({ keyPath: `answers.${key}`, target: answers[key] as string }))
+/**
+ * The Answers as Links; whether each target exists and is of the right kind is checkGraph's.
+ * Only the draft schema lets one of the pair be missing (19.2), or both: `answers: {}` is
+ * V-EMPTY, which the draft schema no longer sees once `required` is relaxed, so it is said here.
+ */
+function answerLinks(c: DocumentChecker, answers: Mapping): Link[] {
+  const links: Link[] = []
+  for (const key of ['yes', 'no'] as const) {
+    const target = answers[key]
+    if (typeof target === 'string') links.push({ keyPath: `answers.${key}`, target })
+  }
+  if (links.length === 0) c.fail('answers', 'V-EMPTY', 'answers holds no Answer; remove the key', false)
+  else if (links.length === 1) {
+    const missing = links[0]!.keyPath === 'answers.yes' ? 'no' : 'yes'
+    c.fail(`answers.${missing}`, 'V-ANSWERS', `no "${missing}" Answer yet`, true)
+  }
+  return links
 }
 
 /** V-OPTIONS, the half that needs only this list: distinct targets, and 5.7's limits. */
@@ -392,7 +459,7 @@ function checkOptions(c: DocumentChecker, options: Mapping[]): Link[] {
     c.localised(option.title, `${at}.title`, false, MAX.optionTitle)
     const target = option.target as string
     if (links.some((link) => link.target === target)) {
-      c.fail(`${at}.target`, 'V-OPTIONS', `"${target}" is the target of two Options in this list`)
+      c.fail(`${at}.target`, 'V-OPTIONS', `"${target}" is the target of two Options in this list`, false)
     } else {
       links.push({ keyPath: `${at}.target`, target })
     }
@@ -405,12 +472,12 @@ function checkOptions(c: DocumentChecker, options: Mapping[]): Link[] {
  * a mark may name, each with its place in the list, for `checkMarks`.
  */
 function checkExplainers(c: DocumentChecker, explainers: Mapping[]): Array<{ id: string; keyPath: string }> {
-  c.count(explainers, 'explainers', MAX.explainers)
+  c.count(explainers, 'explainers', MAX.explainers, false)
   const known: Array<{ id: string; keyPath: string }> = []
   explainers.forEach((explainer, i) => {
     const at = `explainers[${i}]`
     const id = explainer.id as string
-    if (known.some((seen) => seen.id === id)) c.fail(`${at}.id`, 'V-EXPLAINER', `explainer id "${id}" is used twice on this Node`)
+    if (known.some((seen) => seen.id === id)) c.fail(`${at}.id`, 'V-EXPLAINER', `explainer id "${id}" is used twice on this Node`, false)
     else known.push({ id, keyPath: at })
     c.localised(explainer.term, `${at}.term`, false, MAX.explainerTerm)
     c.localised(explainer.text, `${at}.text`, false, MAX.explainerText)
@@ -439,7 +506,7 @@ function checkMarks(c: DocumentChecker, description: unknown, explainers: Array<
     }
     for (const { id, keyPath } of explainers ?? []) {
       if (!marks.some((mark) => mark.id === id)) {
-        c.fail(keyPath, 'V-EXPLAINER', `"${id}" is not marked in ${at}; write [words](#${id}) where the term occurs`)
+        c.fail(keyPath, 'V-EXPLAINER', `"${id}" is not marked in ${at}; write [words](#${id}) where the term occurs`, true)
       }
     }
   }
@@ -447,24 +514,24 @@ function checkMarks(c: DocumentChecker, description: unknown, explainers: Array<
 
 /** The rules that need every Node: V-ROOT, Link targets, V-ORPHAN, V-REACH. */
 function checkGraph(out: Violation[], root: string, shapes: Map<string, NodeShape>): void {
-  const fail = (where: string, keyPath: string, rule: string, message: string): void => {
-    out.push({ file: where, keyPath, rule, message })
+  const fail = (where: string, keyPath: string, rule: string, message: string, advisory = ADVISORY.has(rule)): void => {
+    out.push({ file: where, keyPath, rule, message, advisory })
   }
   const kindOf = (id: string): NodeKind | undefined => shapes.get(id)?.kind
 
-  if (!shapes.has(root)) fail('manifest', 'root', 'V-ROOT', `"${root}" is not a Node of this Tree`)
-  else if (kindOf(root) === 'explanation') fail('manifest', 'root', 'V-ROOT', `"${root}" is an explanation Node; root must be a question Node or a Terminal`)
+  if (!shapes.has(root)) fail('manifest', 'root', 'V-ROOT', `"${root}" is not a Node of this Tree`, false)
+  else if (kindOf(root) === 'explanation') fail('manifest', 'root', 'V-ROOT', `"${root}" is an explanation Node; root must be a question Node or a Terminal`, true)
 
   const optionTargets = new Set<string>()
   for (const [id, shape] of shapes) {
     for (const { keyPath, target } of shape.answers) {
-      if (!shapes.has(target)) fail(id, keyPath, 'V-ANSWERS', `"${target}" is not a Node of this Tree`)
-      else if (kindOf(target) === 'explanation') fail(id, keyPath, 'V-ANSWERS', `"${target}" is an explanation Node; an Answer must lead to a question Node or a Terminal`)
+      if (!shapes.has(target)) fail(id, keyPath, 'V-ANSWERS', `"${target}" is not a Node of this Tree`, false)
+      else if (kindOf(target) === 'explanation') fail(id, keyPath, 'V-ANSWERS', `"${target}" is an explanation Node; an Answer must lead to a question Node or a Terminal`, true)
     }
     for (const { keyPath, target } of shape.options) {
       const kind = kindOf(target)
-      if (kind === undefined) fail(id, keyPath, 'V-OPTIONS', `"${target}" is not a Node of this Tree`)
-      else if (kind !== 'explanation') fail(id, keyPath, 'V-OPTIONS', `"${target}" is a ${kind} Node; an Option must lead to an explanation Node`)
+      if (kind === undefined) fail(id, keyPath, 'V-OPTIONS', `"${target}" is not a Node of this Tree`, false)
+      else if (kind !== 'explanation') fail(id, keyPath, 'V-OPTIONS', `"${target}" is a ${kind} Node; an Option must lead to an explanation Node`, true)
       optionTargets.add(target)
     }
   }

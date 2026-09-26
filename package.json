@@ -18,7 +18,8 @@
     "test:first-tree": "playwright test --config=playwright.first-tree.config.ts",
     "typecheck": "tsc --noEmit",
     "validate": "node scripts/validate.ts",
-    "migrate": "node scripts/migrate-tree.ts"
+    "migrate": "node scripts/migrate-tree.ts",
+    "store": "node scripts/store.ts"
   },
   "dependencies": {
     "ajv": "^8.20.0",
