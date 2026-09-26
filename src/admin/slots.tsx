@@ -91,6 +91,7 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
         return (
           <Sheet
             className="source-sheet source-sheet--add"
+            name="source-sheet"
             summary={<span lang={uiLang}>{`+ ${ui.addSource}`}</span>}
             pages={[
               <AddSourceForm

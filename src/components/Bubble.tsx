@@ -322,6 +322,7 @@ function Sources({
           {field(node, `${at}.label`, source.label[lang] ?? '', LIMIT.sourceLabel)}{' '}
           <Sheet
             className="source-sheet"
+            name="source-sheet"
             summary={<span aria-label={ui.editSource} lang={uiLang}>…</span>}
             pages={[
               <div key="source" className="source-editor" lang={uiLang}>

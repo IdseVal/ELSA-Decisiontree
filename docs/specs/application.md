@@ -3597,7 +3597,9 @@ path of 22.2 and the limit of 5.7:
 
 A plain field is one line: Enter blurs it, a pasted line break becomes a space (V-PLAIN is
 blocking). A region is the box the public text takes, outlined 1 pixel in `rule` inside the
-box on hover and focus only.
+box on hover and focus only. **[#138] As built**: a Source's `...` and `+ addSource` are
+Sheets of their own `<details name>` group, because the group is exclusive across nesting:
+opened inside an Overlay's Interior, they leave the Overlay open.
 
 ```
 +--------------------------------------------------------------------------------+ 44

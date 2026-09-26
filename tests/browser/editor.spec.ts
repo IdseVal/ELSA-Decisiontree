@@ -112,6 +112,23 @@ test.describe('the regions in place (28.1, 34.7)', () => {
     await expect(page.locator('.up-arrow')).toHaveCount(0)
   })
 
+  test('a Sheet inside an Overlay -- + addSource, a Source\u2019s ... -- opens without closing the Overlay around it (28.1)', async ({ browser }) => {
+    const { page } = await loggedIn(browser, ANNA)
+    await page.goto(`${origin}/admin/trees/hidden-draft/full`)
+    const overlay = page.locator('details.overlay').first()
+    await overlay.locator(':scope > .sheet-open .option-image').click()
+    const panel = overlay.locator(':scope > .sheet-panel')
+    await expect(panel).toBeVisible()
+    // The Overlay's target has room for a Source: its `+ addSource` is a Sheet of its own group.
+    const add = panel.locator('.source-sheet--add').filter({ visible: true }).first()
+    await add.locator(':scope > .sheet-open').click()
+    await expect(add.locator('.editor-url')).toBeFocused()
+    await expect(panel).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(add.locator(':scope > .sheet-panel')).toBeHidden()
+    await expect(panel).toBeVisible()
+  })
+
   test('a Terminal shows its outcome as a select drawn as the badge (28.1)', async ({ browser }) => {
     const { page, cookie } = await loggedIn(browser, ANNA)
     await page.goto(`${origin}/admin/trees/hidden-draft/full/applies`)
