@@ -9,7 +9,8 @@
  * Its fields stay disabled until the script runs: without it, a submit would send the
  * password as a form the server refuses (20.6), and the page says why in a `<noscript>`.
  */
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
+import { useHydrated } from './hydrated.ts'
 import { send } from './request.ts'
 
 /** The chrome words the form says; strings, because a client component takes no module. */
@@ -23,12 +24,11 @@ export interface LoginWords {
 }
 
 export function LoginForm({ words }: { words: LoginWords }) {
-  const [enhanced, setEnhanced] = useState(false)
+  const enhanced = useHydrated()
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  useEffect(() => setEnhanced(true), [])
 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
@@ -45,7 +45,7 @@ export function LoginForm({ words }: { words: LoginWords }) {
   }
 
   return (
-    <form className="admin-form" onSubmit={submit}>
+    <form className="admin-form" method="post" onSubmit={submit}>
       <fieldset disabled={!enhanced || busy}>
         <label className="admin-field">
           <span>{words.login}</span>

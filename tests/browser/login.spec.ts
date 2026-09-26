@@ -159,6 +159,30 @@ test.describe('with a session', () => {
     expect(replayed.status()).toBe(401)
   })
 
+  test('without JavaScript no account form can be submitted, so no password reaches an address (20.8, 24.2)', async ({ browser }) => {
+    // What a submit before the script has loaded would also meet: the server's markup.
+    const context = await browser.newContext({ javaScriptEnabled: false })
+    const page = await context.newPage()
+    await login(page, origin, 'admin', ADMIN_PASSWORD)
+
+    for (const address of ['/admin/account', '/admin/accounts']) {
+      await page.goto(`${origin}${address}`)
+      expect(await page.locator('main').evaluate((main: HTMLElement) => main.innerText), address).toContain('The editor needs JavaScript.')
+      const forms = page.locator('form')
+      expect(await forms.count(), address).toBeGreaterThan(0)
+      for (const form of await forms.all()) {
+        // Were a form submitted anyway, the browser's own submit is a POST, never a query string.
+        await expect(form).toHaveAttribute('method', 'post')
+        await expect(form.locator('fieldset')).toHaveAttribute('disabled', '')
+        for (const field of await form.locator('input:not([hidden])').all()) await expect(field).toBeDisabled()
+      }
+      const submit = page.locator('form button[type="submit"]:visible').first()
+      if (await submit.count()) await submit.click({ force: true })
+      expect(new URL(page.url()).search, address).toBe('')
+    }
+    await context.close()
+  })
+
   test('the API answers 401 without a session and the caller with one', async ({ page }) => {
     expect((await page.request.get(`${origin}/admin/api/me`)).status()).toBe(401)
     const { status, cookie } = await login(page, origin, CEES.login, CEES.password)

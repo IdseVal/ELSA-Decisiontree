@@ -30,6 +30,9 @@ export default async function AccountsPage({ params }: { params: Promise<{ lang:
       <AdminChrome lang={lang} account={session.account} />
       <main className="admin-page">
         <h1 className="admin-heading">{ui.accounts}</h1>
+        <noscript>
+          <p className="admin-note">{ui.needsJavaScript}</p>
+        </noscript>
         <AccountsList accounts={accounts} words={accountWords(lang)} />
       </main>
       <Disclaimer lang={lang} />

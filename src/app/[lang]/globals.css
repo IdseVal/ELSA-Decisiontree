@@ -1843,7 +1843,8 @@ fieldset:disabled .admin-submit {
   }
 
   .admin-card .admin-form,
-  .admin-card .admin-form fieldset {
+  .admin-card .admin-form fieldset,
+  .admin-card.admin-form fieldset {
     gap: 4px;
   }
 

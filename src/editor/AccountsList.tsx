@@ -5,12 +5,14 @@
  * ADR-133-login-and-account-pages decision 5): `newAccount` opens a Sheet with the three
  * fields of a new account; below it one row per account in a scroll box, each but the
  * administrator's with `deactivate` / `reactivate` and `setPassword`. Nothing is deleted,
- * and no hash or session is shown, because no route answers one.
+ * and no hash or session is shown, because no route answers one. The two forms are
+ * disabled until the script runs (`useHydrated`).
  */
 import { useState, type FormEvent } from 'react'
 import { Sheet } from '../components/Sheet.tsx'
-import { refusalOf, type AccountWords, type Refusal } from './account-words.ts'
+import { refusalAt, refusalOf, type AccountWords, type Refusal } from './account-words.ts'
 import { Field } from './AccountForms.tsx'
+import { useHydrated } from './hydrated.ts'
 import { send } from './request.ts'
 
 /** One row: what the page may show of an account. */
@@ -74,6 +76,7 @@ function ActiveToggle({ account, words }: { account: AccountRow; words: AccountW
 }
 
 function NewAccount({ words }: { words: AccountWords }) {
+  const enhanced = useHydrated()
   const [name, setName] = useState('')
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
@@ -84,26 +87,28 @@ function NewAccount({ words }: { words: AccountWords }) {
     setRefusal(refused)
     if (!refused) window.location.reload()
   }
-  const at = (field: string): string | undefined => (refusal && (refusal.field ?? 'password') === field ? refusal.text : undefined)
   return (
-    <form className="admin-form" onSubmit={submit}>
-      <Field label={words.displayName} error={at('name')}>
-        <input name="name" required maxLength={80} autoComplete="off" value={name} onChange={(event) => setName(event.target.value)} />
-      </Field>
-      <Field label={words.login} error={at('login')}>
-        <input name="login" required autoComplete="off" autoCapitalize="none" spellCheck={false} value={login} onChange={(event) => setLogin(event.target.value)} />
-      </Field>
-      <Field label={words.password} error={at('password')}>
-        <input name="password" type="text" required autoComplete="off" maxLength={256} value={password} onChange={(event) => setPassword(event.target.value)} />
-      </Field>
-      <button type="submit" className="admin-submit">
-        {words.create}
-      </button>
+    <form className="admin-form" method="post" onSubmit={submit}>
+      <fieldset disabled={!enhanced}>
+        <Field label={words.displayName} error={refusalAt(refusal, 'name')}>
+          <input name="name" required maxLength={80} autoComplete="off" value={name} onChange={(event) => setName(event.target.value)} />
+        </Field>
+        <Field label={words.login} error={refusalAt(refusal, 'login')}>
+          <input name="login" required autoComplete="off" autoCapitalize="none" spellCheck={false} value={login} onChange={(event) => setLogin(event.target.value)} />
+        </Field>
+        <Field label={words.password} error={refusalAt(refusal, 'password')}>
+          <input name="password" type="text" required autoComplete="off" maxLength={256} value={password} onChange={(event) => setPassword(event.target.value)} />
+        </Field>
+        <button type="submit" className="admin-submit">
+          {words.create}
+        </button>
+      </fieldset>
     </form>
   )
 }
 
 function SetPassword({ account, words }: { account: AccountRow; words: AccountWords }) {
+  const enhanced = useHydrated()
   const [password, setPassword] = useState('')
   const [refusal, setRefusal] = useState<Refusal | null>(null)
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -113,13 +118,15 @@ function SetPassword({ account, words }: { account: AccountRow; words: AccountWo
     if (!refused) window.location.reload()
   }
   return (
-    <form className="admin-form" onSubmit={submit}>
-      <Field label={`${words.password} (${account.login})`} error={refusal?.text}>
-        <input name="password" type="text" required autoComplete="off" maxLength={256} value={password} onChange={(event) => setPassword(event.target.value)} />
-      </Field>
-      <button type="submit" className="admin-submit">
-        {words.setPassword}
-      </button>
+    <form className="admin-form" method="post" onSubmit={submit}>
+      <fieldset disabled={!enhanced}>
+        <Field label={`${words.password} (${account.login})`} error={refusal?.text}>
+          <input name="password" type="text" required autoComplete="off" maxLength={256} value={password} onChange={(event) => setPassword(event.target.value)} />
+        </Field>
+        <button type="submit" className="admin-submit">
+          {words.setPassword}
+        </button>
+      </fieldset>
     </form>
   )
 }
