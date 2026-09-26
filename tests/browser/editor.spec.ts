@@ -394,6 +394,7 @@ test.describe('an empty root Node, and the rim\u2019s tags (28.2, 28.3)', () => 
     expect((await nodeOf(page, cookie, 'fresh-sources', 'start')).sources).toHaveLength(0)
     await url.fill('https://eur-lex.europa.eu/eli/reg/2024/1689/oj')
     await expect(add).toBeEnabled()
+    await shoot(page, 'add-source-sheet')
     await url.press('Enter')
     const label = field(page, 'start', 'sources[0].label.en').locator('textarea')
     await expect(label).toBeFocused()
