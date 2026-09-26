@@ -64,12 +64,15 @@ export function parseUrl(path: string, lang: string, tree: Readable<Node | Draft
  * Tree's default (4.3). The segment the router writes when no language was asked for needs
  * no branch of its own -- no Tree declares it, so this rule already answers for it.
  */
-export function contentLanguage(tree: Pick<Readable<Node | DraftNode>, 'manifest'>, lang: string): string {
+export function contentLanguage(tree: Pick<Tree, 'manifest'>, lang: string): string {
   return tree.manifest.languages.includes(lang) ? lang : tree.manifest.defaultLanguage
 }
 
-/** The URL of the Tree's root Node: where `/<tree-id>` and the Tree's overview tile lead (4.1, 23.2). */
-export function rootHref(tree: Tree, lang: string): string {
+/**
+ * The URL of the Tree's root Node: where `/<tree-id>` and the Tree's overview tile lead (4.1,
+ * 23.2). **[#137]** A draft's manifest is enough, for the creators' overview.
+ */
+export function rootHref(tree: Pick<Tree, 'id' | 'manifest'>, lang: string): string {
   return nodeHref({
     treeId: tree.id,
     trail: [],
@@ -77,6 +80,14 @@ export function rootHref(tree: Tree, lang: string): string {
     lang: contentLanguage(tree, lang),
     defaultLang: tree.manifest.defaultLanguage,
   })
+}
+
+/**
+ * **[#137]** The editor of the Tree's root Node: its public address behind `/admin/trees`
+ * (24.1), where a tile of the creators' overview the caller has a role on leads (26.4).
+ */
+export function editorRootHref(tree: Pick<Tree, 'id' | 'manifest'>, lang: string): string {
+  return `/admin/trees${rootHref(tree, lang)}`
 }
 
 /** The page `a` itself: its Trail, its Node and its language. This is the share link. */

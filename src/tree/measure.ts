@@ -4,27 +4,18 @@
  * from `validate.ts` (ADR-133-bubble-edited-in-place decision 4) so that the editor's
  * counter in the browser and the validator on the server run the same twenty lines: this
  * module is pure -- no `node:` module, no `ajv`, no schema -- and `validate.ts` re-exports
- * the three names, so nothing that imported them changes.
+ * the three names, so nothing that imported them changes. The counted text and its length
+ * are **[#137]**'s `grammar.ts` (the new-Tree form checks a title's length with the id and
+ * tag grammars); said here too, so the counter's callers name one module.
  */
+import { countedText } from './grammar.ts'
 
-const MARKDOWN_LINK = /\[([^\]]*)\]\([^)]*\)/g
+export { countedLength, countedText } from './grammar.ts'
+
 const LIST_ITEM = /^(-\s|\d+\.\s)/
 
 /** The width the estimated line count of rich text assumes (tree-format.md 3.8, 5.7). */
 const CHARS_PER_LINE = 75
-
-/**
- * Tree-format.md 3.8 steps 1 and 2: what a length rule is measured on -- the text
- * trimmed, with every Markdown link replaced by the words the reader sees.
- */
-export function countedText(text: string): string {
-  return text.trim().replace(MARKDOWN_LINK, '$1')
-}
-
-/** Tree-format.md 3.8 step 3: the length in Unicode code points, not bytes. */
-export function countedLength(text: string): number {
-  return [...countedText(text)].length
-}
 
 /**
  * Tree-format.md 3.8: how many lines this rich text takes when a renderer lays it out at

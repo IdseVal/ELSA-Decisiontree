@@ -146,6 +146,25 @@ export interface Chrome {
   changedElsewhere: string
   sessionExpired: string
   publicBehind: string
+  /** **[#137]** The state mark on a tile of the creators' overview (26.4). */
+  published: string
+  hidden: string
+  notServable: string
+  /** **[#137]** The new-Tree form (27.1) and its refusals at the field (27.2). */
+  treeId: string
+  treeIdHint: string
+  treeIdFixed: string
+  treeIdTaken: string
+  treeIdReserved: string
+  languages: string
+  addLanguage: string
+  makeDefault: string
+  default: string
+  languagesFixed: string
+  title: string
+  /** **[#137] added in the build**: the cross on a language tag, and the tag grammar a refused tag is told (27.1). */
+  removeLanguage: string
+  languageHint: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -242,6 +261,22 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     changedElsewhere: 'changed by a collaborator',
     sessionExpired: 'Your session has expired. Sign in to keep editing; nothing typed is lost.',
     publicBehind: 'the public copy is behind',
+    published: 'Published',
+    hidden: 'Hidden',
+    notServable: 'Not served',
+    treeId: 'Address name',
+    treeIdHint: 'Lowercase letters, digits and single hyphens; at most 64.',
+    treeIdFixed: 'The address name never changes after the tree is created: it is in every link to it.',
+    treeIdTaken: 'A tree with this address name exists.',
+    treeIdReserved: 'This word is reserved by the site. Choose another.',
+    languages: 'Languages',
+    addLanguage: 'Add',
+    makeDefault: 'Make default',
+    default: 'default',
+    languagesFixed: 'The languages cannot be changed after the tree is created.',
+    title: 'Title',
+    removeLanguage: 'Remove',
+    languageHint: 'A language tag such as en, nl or pt-br.',
   },
   nl: {
     yes: 'Ja',
@@ -336,6 +371,22 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     changedElsewhere: 'gewijzigd door een medewerker',
     sessionExpired: 'Uw sessie is verlopen. Log in om verder te werken; niets van wat u typte gaat verloren.',
     publicBehind: 'de openbare versie loopt achter',
+    published: 'Gepubliceerd',
+    hidden: 'Verborgen',
+    notServable: 'Niet getoond',
+    treeId: 'Adresnaam',
+    treeIdHint: 'Kleine letters, cijfers en enkele koppeltekens; hoogstens 64.',
+    treeIdFixed: 'De adresnaam verandert nooit nadat de boom is aangemaakt: hij staat in elke link ernaartoe.',
+    treeIdTaken: 'Er bestaat al een boom met deze adresnaam.',
+    treeIdReserved: 'Dit woord is gereserveerd door de site. Kies een ander.',
+    languages: 'Talen',
+    addLanguage: 'Toevoegen',
+    makeDefault: 'Maak standaard',
+    default: 'standaard',
+    languagesFixed: 'De talen kunnen niet worden gewijzigd nadat de boom is aangemaakt.',
+    title: 'Titel',
+    removeLanguage: 'Verwijderen',
+    languageHint: 'Een taalcode zoals en, nl of pt-br.',
   },
 }
 

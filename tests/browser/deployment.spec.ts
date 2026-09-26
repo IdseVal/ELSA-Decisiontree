@@ -268,7 +268,7 @@ const PUBLIC_ROUTES = [
   '/ai-act-example/theme/example-lab-logo.svg',
   ...DOCUMENT_ROUTES,
 ]
-const ADMIN_PAGES = ['/admin', '/admin/account', '/admin/accounts', '/admin/trees/ai-act-example/start', '/admin?lang=nl']
+const ADMIN_PAGES = ['/admin', '/admin/new', '/admin/account', '/admin/accounts', '/admin/trees/ai-act-example/start', '/admin?lang=nl']
 
 test.describe('the logged-in half of the sweep (20.5)', () => {
   test('after a login, no public route is sent the cookie or answers one; only login and logout ever set one', async ({ page, context, baseURL }) => {

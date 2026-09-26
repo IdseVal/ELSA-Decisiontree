@@ -1,8 +1,9 @@
 /**
  * **[#138]** The import rule of docs/specs/application.md 34.4 (ADR-133-reuse-rule decision
  * 4), read off the files: the editor's client components import, of `src/`, exactly
- * `src/tree/measure.ts` and `src/markdown.ts` at run time -- type-only imports are erased
- * -- and those two are pure: no `node:` module, no `ajv`, no schema. `writes.ts` is the one
+ * `src/tree/measure.ts`, `src/tree/grammar.ts` (**[#137]**) and `src/markdown.ts` at run
+ * time -- type-only imports are erased -- and those three are pure: no `node:` module, no
+ * `ajv`, no schema. `writes.ts` is the one
  * module under `src/editor/` that calls `fetch`. And `src/components/` imports of
  * `src/editor/` only the `EditMode` types.
  */
@@ -29,8 +30,8 @@ async function files(dir: string): Promise<string[]> {
 }
 
 describe('the editor’s client components (34.4)', () => {
-  test('import of src/ only tree/measure.ts and markdown.ts at run time, and of their own folder', async () => {
-    const allowed = new Set(['tree/measure.ts', 'markdown.ts'])
+  test('import of src/ only tree/measure.ts, tree/grammar.ts and markdown.ts at run time, and of their own folder', async () => {
+    const allowed = new Set(['tree/measure.ts', 'tree/grammar.ts', 'markdown.ts'])
     for (const file of await files(path.join(src, 'editor'))) {
       const text = await readFile(file, 'utf8')
       if (!text.startsWith("'use client'")) continue
@@ -45,12 +46,12 @@ describe('the editor’s client components (34.4)', () => {
     }
   })
 
-  test('the two modules they import are pure: no node: module, no ajv, no schema', async () => {
-    for (const name of ['tree/measure.ts', 'markdown.ts']) {
+  test('the three modules they import are pure: no node: module, no ajv, no schema', async () => {
+    for (const name of ['tree/measure.ts', 'tree/grammar.ts', 'markdown.ts']) {
       const imports = runtimeImports(await readFile(path.join(src, name), 'utf8'))
       expect(imports.filter((i) => i.startsWith('node:') || i.includes('ajv') || i.includes('schemas/')), name).toEqual([])
       for (const relative of imports.filter((i) => i.startsWith('.'))) {
-        expect(['tree/measure.ts'], `${name} imports ${relative}`).toContain(resolved(path.join(src, name), relative))
+        expect(['tree/measure.ts', 'tree/grammar.ts'], `${name} imports ${relative}`).toContain(resolved(path.join(src, name), relative))
       }
     }
   })

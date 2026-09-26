@@ -25,12 +25,18 @@
  */
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js'
 import { explainerMarks } from '../markdown.ts'
-import { countedLength, estimatedLines } from './measure.ts'
+import { countedLength, isId } from './grammar.ts'
+import { estimatedLines } from './measure.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
 import schemaDocument from '../../schemas/elsa-tree-4.json' with { type: 'json' }
 
-/** **[#138]** The measuring rule of 3.8 lives in `measure.ts`; re-exported so no caller changes. */
-export { countedLength, countedText, estimatedLines } from './measure.ts'
+/**
+ * **[#137]** The grammars and the counted length of 3.8 moved to `grammar.ts`, which a client
+ * component can import; **[#138]** the estimated line count to `measure.ts`. Both are said
+ * here as before, so no caller changes.
+ */
+export { countedLength, countedText, isId } from './grammar.ts'
+export { estimatedLines } from './measure.ts'
 
 /** Which reading of section 7: every rule blocking, or the Draft column's (19.2). */
 export type Mode = 'published' | 'draft'
@@ -86,7 +92,6 @@ const ADVISORY = new Set(['V-L10N', 'V-LENGTH', 'V-LINES', 'V-COUNT', 'V-REACH',
 
 const IMAGE_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(png|jpg|jpeg|gif|webp|svg)$/
 const THEME_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|webp|ico|woff2)$/
-const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/
 const RAW_HTML = /<[a-zA-Z/!]/
 
 /** The maximum lengths and counts of tree-format.md 5.7; the same for every language. */
@@ -112,11 +117,6 @@ const MAX = {
   explainerText: 200,
   fontFamilies: 2,
   fontFiles: 8,
-}
-
-/** Tree-format.md 3.1: lowercase letters, digits, single hyphens, at most 64 characters. */
-export function isId(value: unknown): value is string {
-  return typeof value === 'string' && value.length <= 64 && ID.test(value)
 }
 
 /** Tree-format.md 3.5: a bare lowercase image file name, at most 128 characters. */

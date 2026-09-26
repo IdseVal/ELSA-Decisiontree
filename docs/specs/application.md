@@ -263,7 +263,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 |---|---|
 | #134 | `siteTitle` (the overview's and `llms.txt`'s H1, 23.5, 24.3), `noTrees`, `newTree` |
 | #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language) |
-| #137 | `published`, `hidden`, `notServable`, `treeId`, `treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`, `languages`, `addLanguage`, `makeDefault`, `default`, `languagesFixed`, `title` |
+| #137 | `published`, `hidden`, `notServable`, `treeId`, `treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`, `languages`, `addLanguage`, `makeDefault`, `default`, `languagesFixed`, `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
 | #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
 | #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused` |
@@ -828,7 +828,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── loader.ts        openTree and the Tree interface (5.1); [#132] the draft mode and the derived draft schema (19.2)
 │   │   ├── validate.ts      the rules of tree-format.md section 7; [#132] and the draft mode's blocking/advisory tag
 │   │   └── types.ts         the types of elsa-tree/4 (5.1)
-│   ├── editor/              [#133] the editor's client components, leaves (34.4); import measure.ts and markdown.ts only
+│   ├── editor/              [#133] the editor's client components, leaves (34.4); import measure.ts, grammar.ts and markdown.ts only
 │   │   ├── mode.ts          the EditMode type and the slots (34.1, 34.2); server side
 │   │   ├── links.ts         the admin Links: the /admin/trees prefix, adminImageHref (34.3); server side
 │   │   ├── Editor.tsx       client: the provider -- the write queue, the indicator, the session Sheet (29)
@@ -842,6 +842,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── Marker.tsx, ExplainerSheet.tsx    client: marking and the explainer Sheet (32)
 │   │   └── Panel.tsx        client: the top panel (33)
 │   ├── tree/measure.ts      [#133] countedText, countedLength, estimatedLines, moved from validate.ts (28.4); pure
+│   ├── tree/grammar.ts      [#137] isId, isLanguageTag, countedText, countedLength: the grammars a form checks before it sends (27.1, 28.4); pure, imports nothing
 │   ├── session.ts           [#135] authenticated(): the session resolved for a route handler or a page (20.4, 20.6)
 │   └── instrumentation.ts   startup validation (5.4)
 ├── schemas/elsa-tree-4.json [#118] the format's JSON Schema, served at /schemas/ (15.1)
@@ -4061,9 +4062,10 @@ is unchanged but for `adminImageHref`.
 Under `src/editor/`, leaves: `Editor` (the provider: the queue, the indicator, the session
 Sheet, 29), `Field`, `ImageSlot`, `AttachSheet`, `Structure`, `StepMenu`, `Marker`,
 `ExplainerSheet`, `Panel`, `LoginForm`, `NewTreeForm`; they take strings and ids and reach
-the queue through context. Of `src/` they import **exactly two modules**: `src/tree/measure.ts`
-and `src/markdown.ts`, both pure (no `node:` module, no `ajv`, no schema; a test asserts
-it). `src/editor/writes.ts` is the one caller of `fetch` against `/admin/api/`, one
+the queue through context. Of `src/` they import **exactly three modules**: `src/tree/measure.ts`,
+`src/tree/grammar.ts` (**[#137]** the id and tag grammars with the counted length, which
+`measure.ts` builds on) and `src/markdown.ts`, all pure (no `node:` module, no `ajv`, no
+schema; a test asserts it). `src/editor/writes.ts` is the one caller of `fetch` against `/admin/api/`, one
 function per row of 22.1 used; `src/editor/slug.ts` derives ids. Nothing in `src/editor/`
 reads the file system, the environment or a request. `src/components/` imports of
 `src/editor/` only the `EditMode` type.
@@ -4134,7 +4136,7 @@ published, creator `anna`; `hidden-draft` hidden from `tests/fixtures/full-node`
 |---|---|---|
 | `tests/browser/overview.spec.ts` | 26.1 to 26.3 on `/`: one tile per published Tree, the link, a hidden Tree absent, the box scrolls and the document does not, `noTrees` | #134 |
 | `tests/browser/login.spec.ts` | 24.2, 25: the fields, the one error, the lock, the reload to the address asked for, `<noscript>`, the 403 page, the account and accounts pages, logout | #135 |
-| `tests/browser/admin-no-scroll.spec.ts` | 10.6's exact test at its ten viewports over the admin pages with `[data-scroll-box]` exempted: login, 403, account, accounts (#135); the creators' overview with fifteen tiles, the form with three languages (#137); the editor on `hidden-draft`'s full Node in `en` and `nl` with each Sheet open in turn and the description in its source state (#138; each later issue adds its Sheets) | #135, #137 to #142 |
+| `tests/browser/admin-no-scroll.spec.ts` | 10.6's exact test at its ten viewports over the admin pages with `[data-scroll-box]` exempted: login, 403, account, accounts (#135); the creators' overview with sixteen tiles, the form with three languages (#137); the editor on `hidden-draft`'s full Node in `en` and `nl` with each Sheet open in turn and the description in its source state (#138; each later issue adds its Sheets) | #135, #137 to #142 |
 | `tests/browser/creators-overview.spec.ts` | 26.4, 27: who sees what, the two groups, the + tile absent for a visitor, the form's proposal, errors and landing | #137 |
 | `tests/editor/field.test.tsx`, `queue.test.ts`, `imports.test.ts` | 28.4, 28.5; 29.1, 29.2, 29.5, 29.6 against a fake `fetch`; 34.4's import rule | #138 |
 | `tests/browser/editor.spec.ts` | 28, 29: the regions; a title saved and public after publishing through #136's route; past 80, the same rule id as `npm run validate --draft`; `nl` edited without touching `en`; the tags; the indicator's states; a refused write kept; two contexts and `changedElsewhere`; the session Sheet | #138 |

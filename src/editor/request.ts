@@ -7,7 +7,8 @@
 /** The API's answer: its status and its JSON body, if it had one; null when the request never got one. */
 export interface Answer {
   status: number
-  body: { error?: string; field?: string | null } | null
+  /** `field` names where the accounts routes refuse; `violations` where the Tree routes do (22.3). */
+  body: { error?: string; field?: string | null; violations?: { keyPath: string }[] } | null
 }
 
 /** Sends `body` to `url` with `method`; resolves null on a network failure, never rejects. */
