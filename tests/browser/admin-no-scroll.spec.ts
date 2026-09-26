@@ -18,7 +18,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { expect, test, type Browser, type Page } from '@playwright/test'
+import { expect, test, type Browser, type Locator, type Page } from '@playwright/test'
 import { ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
@@ -241,6 +241,52 @@ for (const lang of LANGUAGES) {
   test(`the editor on the full Node, ${lang}, never scrolls at any viewport of 10.6, in every state (28.6)`, async ({ browser }) => {
     test.slow()
     await editorEverywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), lang)
+  })
+}
+
+/**
+ * **[#139]** The structure's Sheets (30) at every viewport (28.6): on an explanation Node that
+ * is the centre, the end Sheet, the fan's `+` on each of its pages, and the step menu; on the
+ * full Node, an Answer's and an Option's link menu, the picker included. Each is opened, measured
+ * and closed with Escape, which also puts its form back on its first page.
+ */
+async function structureEverywhere(page: Page, lang: string): Promise<void> {
+  const query = lang === 'en' ? '' : '?lang=nl'
+  const open = async (control: Locator, what: string, viewport: string, inside?: () => Promise<void>): Promise<void> => {
+    if (!(await control.isVisible())) return
+    await control.click()
+    if (inside) await inside()
+    record(await measure(page), 'editor, structure', lang, viewport, what)
+    await page.keyboard.press('Escape')
+  }
+  for (const [width, height] of VIEWPORTS) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(`${origin}/admin/trees/hidden-draft/opt-three${query}`))?.status()).toBe(200)
+    await expect(page.locator('main')).toBeVisible()
+    record(await measure(page), 'editor, structure', lang, viewport, '')
+    await open(page.locator('.structure-end > .sheet-open'), 'end Sheet', viewport)
+    const side = page.locator('.options > li.options-add > .side-add > .sheet-open')
+    const sideForm = page.locator('.structure-form--side').filter({ visible: true })
+    await open(side, 'side-bubble Sheet', viewport)
+    await open(side, 'side-bubble Sheet, new title', viewport, () => sideForm.locator('.admin-submit').first().click())
+    await open(side, 'side-bubble Sheet, picker', viewport, () => sideForm.locator('.admin-submit').nth(1).click())
+    await open(page.locator('.step-menu > .sheet-open'), 'step menu', viewport, () => page.locator('.structure-form--step .admin-submit').first().click())
+
+    expect((await page.goto(`${origin}/admin/trees/hidden-draft/full${query}`))?.status()).toBe(200)
+    await expect(page.locator('main')).toBeVisible()
+    const linkForm = page.locator('.structure-form--link').filter({ visible: true })
+    await open(page.locator('.link-menu--yes > .sheet-open'), 'link menu, Answer', viewport)
+    await open(page.locator('.link-menu--yes > .sheet-open'), 'link menu, Answer, picker', viewport, () => linkForm.locator('.admin-submit').first().click())
+    await open(page.locator('.link-menu--option > .sheet-open').first(), 'link menu, Option', viewport)
+    await open(page.locator('.link-menu--option > .sheet-open').first(), 'link menu, Option, picker', viewport, () => linkForm.locator('.admin-submit').first().click())
+  }
+}
+
+for (const lang of LANGUAGES) {
+  test(`the structure's Sheets, ${lang}, never scroll at any viewport of 10.6 (30, 28.6)`, async ({ browser }) => {
+    test.slow()
+    await structureEverywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), lang)
   })
 }
 

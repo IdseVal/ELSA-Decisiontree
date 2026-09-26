@@ -14,7 +14,7 @@
  */
 import { useRef } from 'react'
 import { useEditor } from './Editor.tsx'
-import { deleteImage } from './writes.ts'
+import { deleteImage, type Answer } from './writes.ts'
 
 /**
  * The DOM event that turns the enlarged view to `detail` -- the page the picture is on after
@@ -53,11 +53,14 @@ export function ImageControls({
   }
 
   const move = (to: number): void => {
-    api.operate(nodeId, { op: 'move-image', from: index, to }, undefined, () => turn(to))
+    api.operate(nodeId, { op: 'move-image', from: index, to }, undefined, (answer) => {
+      if (applied(answer)) turn(to)
+    })
   }
 
   const remove = (): void => {
-    api.operate(nodeId, { op: 'remove-image', index }, undefined, () => {
+    api.operate(nodeId, { op: 'remove-image', index }, undefined, (answer) => {
+      if (!applied(answer)) return
       void deleteImage(api.treeId, file)
       // The last picture gone, the enlarged view goes with the Carousel's band.
       if (count > 1) turn(Math.min(index, count - 2))
@@ -86,4 +89,9 @@ export function ImageControls({
       </button>
     </div>
   )
+}
+
+/** Whether the store accepted the operation: a refusal leaves the pictures as they were. */
+function applied(answer: Answer): boolean {
+  return answer.status >= 200 && answer.status < 300
 }

@@ -6,8 +6,21 @@
  */
 import type { DraftNode, Manifest, Violation } from '../tree/types.ts'
 
-/** One field or one operation on one Node (22.2). */
-export type Change = { path: string; value: string } | { op: string; [argument: string]: unknown }
+/**
+ * **[#139]** `POST .../nodes` (22.1, 30.2 to 30.4): a Node and the Link to it from `from.node`
+ * in one write -- an Answer or an Option, the Option's title in the page's language -- or,
+ * with `link: 'end'`, `from.node` made a Terminal with `outcome`.
+ */
+export interface Creation {
+  from: { node: string; link: 'yes' | 'no' | 'option' | 'end'; outcome?: string }
+  title?: Record<string, string>
+}
+
+/**
+ * One field or one operation on one Node (22.2); **[#139]** or a creation, or the Node's
+ * deletion (30.8), which the editor sends with the other verbs of 22.1 through the same queue.
+ */
+export type Change = { path: string; value: string } | { op: string; [argument: string]: unknown } | { create: Creation } | { delete: true }
 
 /** The write response of 22.3, as the browser reads it. */
 export interface WriteResponse {
@@ -37,6 +50,23 @@ export interface Answer {
 /** `PATCH /admin/api/trees/<t>/nodes/<n>` with one change (22.1). Never rejects. */
 export async function patchNode(treeId: string, nodeId: string, change: Change): Promise<Answer> {
   return request('PATCH', `/admin/api/trees/${encodeURIComponent(treeId)}/nodes/${encodeURIComponent(nodeId)}`, change)
+}
+
+/** **[#139]** `POST /admin/api/trees/<t>/nodes` (22.1): the 201 carries the new Node, and its parent in `also`. Never rejects. */
+export async function postNode(treeId: string, creation: Creation): Promise<Answer> {
+  return request('POST', `/admin/api/trees/${encodeURIComponent(treeId)}/nodes`, creation)
+}
+
+/** **[#139]** `DELETE /admin/api/trees/<t>/nodes/<n>` (22.1): `node` null, the Nodes that lost a Link in `also`. Never rejects. */
+export async function deleteNode(treeId: string, nodeId: string): Promise<Answer> {
+  return request('DELETE', `/admin/api/trees/${encodeURIComponent(treeId)}/nodes/${encodeURIComponent(nodeId)}`, {})
+}
+
+/** **[#139]** Sends one change of the queue with the verb of 22.1 it takes (29.2: one queue for every write). */
+export function sendChange(treeId: string, nodeId: string, change: Change): Promise<Answer> {
+  if ('op' in change || 'path' in change) return patchNode(treeId, nodeId, change)
+  if ('delete' in change) return deleteNode(treeId, nodeId)
+  return postNode(treeId, change.create)
 }
 
 /** What the upload route answers on 201 (22.6): the server's file name and the picture's size. */

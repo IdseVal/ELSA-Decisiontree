@@ -165,6 +165,26 @@ export interface Chrome {
   /** **[#137] added in the build**: the cross on a language tag, and the tag grammar a refused tag is told (27.1). */
   removeLanguage: string
   languageHint: string
+  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button, the side-bubble `+`, and the two choices of its Sheet. */
+  treeEndsHere: string
+  newSideBubble: string
+  createNew: string
+  linkExisting: string
+  /** **[#139]** The link menu of an Answer or Option button (30.6, 30.7): its name and its two actions. */
+  linkMenu: string
+  changeTarget: string
+  removeLink: string
+  /** **[#139]** The step menu on the rim (30.8): its name, its two actions, and the confirmation of a delete. */
+  stepMenu: string
+  deleteStep: string
+  removeEnd: string
+  /** The confirmation named with the step's title: a function, so a language may order the sentence its own way (3.2). */
+  confirmDelete: (title: string) => string
+  confirm: string
+  cancel: string
+  /** **[#139]** The picker (30.6): its heading, and the placeholder of the new side-bubble's title. */
+  pickTarget: string
+  sideBubbleTitle: string
   /** **[#140]** The editor's pictures (31): the pickers, the attach Sheet, the enlarged view's four controls, the picker's two refusals. */
   addPicture: string
   attach: string
@@ -174,8 +194,7 @@ export interface Chrome {
   removeImage: string
   fileTooLarge: string
   fileTypeRefused: string
-  /** **[#140] added in the build**: the attach Sheet's second button and its description field's label (31.2). */
-  cancel: string
+  /** **[#140] added in the build**: the attach Sheet's description field's label (31.2); its second button is #139's `cancel`. */
   imageDescription: string
 }
 
@@ -289,6 +308,21 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     title: 'Title',
     removeLanguage: 'Remove',
     languageHint: 'A language tag such as en, nl or pt-br.',
+    treeEndsHere: 'Tree ends here',
+    newSideBubble: 'New side bubble',
+    createNew: 'Create a new one',
+    linkExisting: 'Link an existing one',
+    linkMenu: 'This link',
+    changeTarget: 'Lead somewhere else',
+    removeLink: 'Remove this link',
+    stepMenu: 'This step',
+    deleteStep: 'Delete this step',
+    removeEnd: 'Does not end here after all',
+    confirmDelete: (title) => `Delete "${title}"? What it led to stays.`,
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    pickTarget: 'Which step?',
+    sideBubbleTitle: 'The side bubble\u2019s title',
     addPicture: 'Add a picture',
     attach: 'Attach',
     makeMain: 'Make main picture',
@@ -297,7 +331,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeImage: 'Remove this picture',
     fileTooLarge: 'This file is too large: at most 5 MiB.',
     fileTypeRefused: 'This file type is refused: PNG, JPEG, GIF or WebP.',
-    cancel: 'Cancel',
     imageDescription: 'Description',
   },
   nl: {
@@ -409,6 +442,21 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     title: 'Titel',
     removeLanguage: 'Verwijderen',
     languageHint: 'Een taalcode zoals en, nl of pt-br.',
+    treeEndsHere: 'Boom eindigt hier',
+    newSideBubble: 'Nieuwe zijbubbel',
+    createNew: 'Een nieuwe maken',
+    linkExisting: 'Een bestaande koppelen',
+    linkMenu: 'Deze koppeling',
+    changeTarget: 'Ergens anders heen',
+    removeLink: 'Deze koppeling verwijderen',
+    stepMenu: 'Deze stap',
+    deleteStep: 'Deze stap verwijderen',
+    removeEnd: 'Eindigt hier toch niet',
+    confirmDelete: (title) => `"${title}" verwijderen? Waar die heen leidde blijft.`,
+    confirm: 'Bevestigen',
+    cancel: 'Annuleren',
+    pickTarget: 'Welke stap?',
+    sideBubbleTitle: 'De titel van de zijbubbel',
     addPicture: 'Afbeelding toevoegen',
     attach: 'Toevoegen',
     makeMain: 'Hoofdafbeelding maken',
@@ -417,7 +465,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeImage: 'Deze afbeelding verwijderen',
     fileTooLarge: 'Dit bestand is te groot: hoogstens 5 MiB.',
     fileTypeRefused: 'Dit bestandstype wordt geweigerd: PNG, JPEG, GIF of WebP.',
-    cancel: 'Annuleren',
     imageDescription: 'Beschrijving',
   },
 }

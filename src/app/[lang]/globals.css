@@ -2811,6 +2811,42 @@ fieldset:disabled .admin-submit {
   width: 100%;
 }
 
+/* --- the structure (30): the row's buttons, the side-bubble +, the link and step menus --- */
+
+/*
+ * The buttons of 30.1 that create: the Answer button's shape, outlined in `accent-secondary`
+ * on `surface` instead of filled, so a button that creates is told from one that leads. Three
+ * of 400 with the row's 20-pixel gaps are 1240 of its 1260; the `+` for the one Answer a
+ * half-question lacks takes that Answer's 620.
+ */
+.structure {
+  flex: 0 1 400px;
+  width: 400px;
+  max-width: 100%;
+  min-height: 60px;
+  padding: 6px 20px;
+  border: 2px solid var(--elsa-accent-secondary);
+  border-radius: 999px;
+  background: var(--elsa-surface);
+  color: var(--accent-secondary-read);
+  font-family: var(--elsa-font-heading);
+  font-size: 19px;
+  line-height: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: box-shadow 160ms var(--ease);
+}
+
+.structure:hover,
+.structure-end > .sheet-open:hover {
+  box-shadow: 0 0 0 2px var(--elsa-background), 0 0 0 4px var(--elsa-accent-secondary);
+}
+
+.structure:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /*
  * [#140] The two pickers (31.1). The empty slot keeps the faint circle's box and adds a `+`;
  * the strip's is a 48-pixel dashed thumbnail after the last one, or alone in the middle
@@ -2938,6 +2974,317 @@ fieldset:disabled .admin-submit {
 .editor-attach-form .admin-submit:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* The `+` for the missing Answer stands where that Answer would: `+ Yes` left of `No: ...`. */
+.structure--lone {
+  flex-basis: 620px;
+  width: 620px;
+}
+
+.structure--yes {
+  order: -1;
+}
+
+/* The `treeEndsHere` Sheet's control is the middle button of the three. */
+.structure-end {
+  flex: 0 1 400px;
+  width: 400px;
+  max-width: 100%;
+}
+
+.structure-end > .sheet-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 60px;
+  padding: 6px 20px;
+  border: 2px solid var(--elsa-accent-secondary);
+  border-radius: 999px;
+  background: var(--elsa-surface);
+  color: var(--accent-secondary-read);
+  font-family: var(--elsa-font-heading);
+  font-size: 19px;
+  line-height: 24px;
+  font-weight: 700;
+  white-space: normal;
+  transition: box-shadow 160ms var(--ease);
+}
+
+/* A Node without Links offers the three buttons, not the public `startAgain` (30.1). */
+.answers:has(> .structure-end) > .answer--start-again {
+  display: none;
+}
+
+/* The link menus lie on the buttons' outer ends and take no room in the row. */
+.answers:has(> .link-menu) {
+  position: relative;
+}
+
+.link-menu {
+  position: absolute;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+}
+
+.link-menu--yes {
+  top: calc(50% - 12px);
+  left: 14px;
+}
+
+.link-menu--no {
+  top: calc(50% - 12px);
+  right: 14px;
+}
+
+/* An Option's, in the empty corner its button's 48-pixel radius leaves at the outer end. */
+.options > li > .link-menu--option {
+  display: var(--fan, block);
+  top: 0;
+}
+
+.options > li[data-side="right"] > .link-menu--option {
+  right: 0;
+}
+
+.options > li[data-side="left"] > .link-menu--option {
+  left: 0;
+}
+
+/* The `...` of a link menu and of the step menu: one 24-pixel round control. */
+.link-menu > .sheet-open,
+.step-menu > .sheet-open {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: var(--elsa-surface);
+  color: var(--elsa-text-muted);
+  font-size: 14px;
+  /* Taller than the glyph's content area, so the word holds nothing larger than itself (10.6). */
+  line-height: 20px;
+  font-weight: 700;
+}
+
+.link-menu > .sheet-open:hover,
+.step-menu > .sheet-open:hover {
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
+}
+
+/* The step menu (30.8): in the half of the band right of the up arrow, as the badge has the left half. */
+.step-menu {
+  position: absolute;
+  top: 2px;
+  left: calc(50% + var(--up-size) / 2);
+  right: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  height: 24px;
+}
+
+/*
+ * The side-bubble `+` (30.4): one more button of the fan, the Option button's size, dashed in
+ * `rule`, the `+` where the picture is and `newSideBubble` where the title is.
+ */
+.options > li > .side-add {
+  display: block;
+}
+
+.side-add > .sheet-open {
+  display: var(--fan, flex);
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--option-h);
+  padding: 0 11px;
+  border: 1px dashed var(--rule);
+  border-radius: 48px;
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--elsa-text-muted);
+  background: var(--elsa-surface);
+  text-align: left;
+  white-space: normal;
+  transition: border-color 160ms var(--ease), color 160ms var(--ease);
+}
+
+.side-add > .sheet-open:hover {
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
+  background: var(--elsa-surface);
+}
+
+.options > li[data-side="left"] > .side-add > .sheet-open {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.side-add-plus {
+  display: grid;
+  place-items: center;
+  border-style: dashed;
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* After an Overlay's list of second-level Options: the dashed pill of an operation (30.5). */
+.side-add--list {
+  display: inline;
+}
+
+.side-add--list > .sheet-open {
+  display: inline-block;
+  width: auto;
+  min-height: 0;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: var(--small);
+  line-height: 18px;
+}
+
+/* The Sheets' pages: the outcomes, the picker, the confirmations. */
+.structure-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 360px;
+  max-width: 100%;
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+.structure-form form {
+  display: contents;
+}
+
+.structure-form h2,
+.structure-picker h2 {
+  margin: 0;
+  font-family: var(--elsa-font-heading);
+  font-size: 18px;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+.structure-id {
+  margin: 0;
+  color: var(--elsa-text-muted);
+}
+
+.structure-confirm {
+  margin: 0;
+}
+
+.structure-outcomes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.structure-outcomes label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+/* The badge's own look, in the list instead of on the rim. */
+.structure-outcome.outcome {
+  position: static;
+  margin: 0;
+  max-width: none;
+}
+
+.structure-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.structure-error {
+  margin: 0;
+}
+
+.admin-submit--danger {
+  background: var(--elsa-danger);
+  color: var(--elsa-background);
+}
+
+.structure-link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.structure-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+/* The picker's list: a carrier of `data-scroll-box` (26.3), so a long draft never grows the panel past the page. */
+.structure-picker-list {
+  max-height: min(320px, 50vh);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+
+.structure-picker-list li + li {
+  border-top: 1px solid var(--rule-soft);
+}
+
+.structure-pick {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 4px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--elsa-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.structure-pick:hover {
+  background: var(--wash);
+}
+
+.structure-pick-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.structure-pick-id {
+  flex: none;
+  color: var(--elsa-text-muted);
+}
+
+/* Below 480 pixels the row's buttons show their words alone, as the Answer buttons do (10.3). */
+@media (max-width: 479px) {
+  .structure,
+  .structure-end > .sheet-open {
+    padding: 6px 8px;
+    font-size: 16px;
+  }
 }
 
 /* The enlarged view's four controls (31.3): one row of pills under the credit. */

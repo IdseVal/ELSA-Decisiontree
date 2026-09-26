@@ -22,7 +22,7 @@ import { fieldValues, keyOf } from './fields.ts'
 import { LoginForm, type LoginWords } from './LoginForm.tsx'
 import type { EditorWords } from './mode.ts'
 import { WriteQueue, type QueueState, type Write } from './queue.ts'
-import { patchNode, type Answer, type Change, type WriteResponse } from './writes.ts'
+import { sendChange, type Answer, type Change, type WriteResponse } from './writes.ts'
 
 /** How long the saved time, an accent outline and `changedElsewhere` stay (29.3, 29.7). */
 const SHOWN_MS = 5_000
@@ -49,10 +49,11 @@ export interface EditorApi {
   flush(nodeId: string, keyPath: string): void
   /**
    * An operation of 22.2, written at once; `focusKey` names the field to focus once the page
-   * has re-rendered, and `accepted` runs once the store has accepted it: a removed Image's
-   * file can only be deleted after its entry is gone (31.4).
+   * has re-rendered. **[#139]** `then` hears the answer -- a 2xx as applied, a refusal -- so a
+   * structure control can navigate to the Node it made or show why it was refused (30), and a
+   * removed Image's file is deleted only once its entry is gone (31.4).
    */
-  operate(nodeId: string, change: Change, focusKey?: string, accepted?: () => void): void
+  operate(nodeId: string, change: Change, focusKey?: string, then?: (answer: Answer) => void): void
   hasWrite(nodeId: string, keyPath: string): boolean
   /** The field being edited, whose message the indicator shows (28.4); null clears the focus, not the last edited. */
   setCurrent(field: { nodeId: string; keyPath: string } | null): void
@@ -120,8 +121,6 @@ export function Editor({
   const [lastEdited, setLastEdited] = useState<{ nodeId: string; keyPath: string } | null>(null)
   const [focusKey, setFocusKey] = useState<string | null>(null)
   const [pictureRefused, setPictureRefused] = useState<string | null>(null)
-  // What runs once an operation is accepted, by the change it sent (the queue hands it back).
-  const whenAccepted = useRef(new Map<Change, () => void>())
   const [version, setVersion] = useState(0)
   const [, tick] = useState(0)
   // The latest Nodes, for the diff of 29.7 inside the queue's callback.
@@ -131,10 +130,7 @@ export function Editor({
   const apply = useCallback(
     (write: Write, answer: Answer): void => {
       const { status, body } = answer
-      const accepted = whenAccepted.current.get(write.change)
-      if (status !== 401) whenAccepted.current.delete(write.change)
       if (status >= 200 && status < 300 && body && 'node' in body) {
-        accepted?.()
         const response = body as WriteResponse
         const arrived = [response, ...(response.also ?? [])].filter((r) => r.node !== null)
         const next = { ...known.current }
@@ -173,12 +169,14 @@ export function Editor({
         setVersion((v) => v + 1)
         // The shape changed: the server components draw the new list; the fields keep their state.
         if (write.key === null) router.refresh()
+        write.then?.(answer)
         return
       }
       if (status === 401) {
         setSessionExpired(true)
         return
       }
+      write.then?.(answer)
       if (status === 403 || status === 404 || status === 409) {
         const code = body && 'error' in body ? (body.error ?? null) : null
         setNotEditable(code ?? String(status))
@@ -194,7 +192,7 @@ export function Editor({
 
   const queue = useRef<WriteQueue | null>(null)
   if (queue.current === null) {
-    queue.current = new WriteQueue((write) => patchNode(treeId, write.nodeId, write.change), {
+    queue.current = new WriteQueue((write) => sendChange(treeId, write.nodeId, write.change), {
       onState: setQueueState,
       onAnswer: (write, answer) => apply(write, answer),
     })
@@ -252,12 +250,11 @@ export function Editor({
         queue.current!.field(nodeId, keyPath, value)
       },
       flush: (nodeId, keyPath) => queue.current!.flush(nodeId, keyPath),
-      operate: (nodeId, change, focus, accepted) => {
+      operate: (nodeId, change, focus, then) => {
         if (notEditable !== null) return
         setFocusKey(focus ?? null)
         setPictureRefused(null)
-        if (accepted) whenAccepted.current.set(change, accepted)
-        queue.current!.operation(nodeId, change)
+        queue.current!.operation(nodeId, change, then)
       },
       hasWrite: (nodeId, keyPath) => queue.current!.hasWrite(nodeId, keyPath),
       setCurrent: setFocused,
