@@ -79,7 +79,7 @@ afterEach(() => {
 function mount(children: React.ReactNode, files: string[] = []): void {
   act(() => {
     root.render(
-      <Editor treeId="t" lang="en" words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node(files) }} violations={[]} published={false} publicCopyCurrent>
+      <Editor treeId="t" lang="en" languages={['en']} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node(files) }} violations={[]} published={false} publicCopyCurrent>
         <SaveIndicator words={words} />
         {children}
       </Editor>,

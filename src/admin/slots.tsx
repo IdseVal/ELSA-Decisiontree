@@ -59,6 +59,15 @@ function editorWords(ui: Chrome): EditorWords {
     sessionExpired: ui.sessionExpired,
     publicBehind: ui.publicBehind,
     toOverview: ui.toOverview,
+    close: ui.close,
+    mark: ui.mark,
+    unmark: ui.unmark,
+    cannotMarkHere: ui.cannotMarkHere,
+    explainerLimit: ui.explainerLimit,
+    term: ui.term,
+    explanation: ui.explanation,
+    markedIn: ui.markedIn,
+    notMarkedIn: ui.notMarkedIn,
   }
 }
 
@@ -70,6 +79,9 @@ const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.desc
 
 /** The most Images a Node may hold (V-COUNT, 5.7): the strip's `+` is absent at that many (31.1). */
 const MAX_IMAGES = 10
+
+/** What a click or Enter on a marked term dispatches in the editor (32.3). */
+const TERM_EVENT = 'elsa-term'
 
 const KINDS: Source['kind'][] = ['legal', 'case-law', 'literature']
 const OUTCOMES: Outcome[] = ['not-applicable', 'applicable', 'prohibited', 'refer']
@@ -132,7 +144,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
         return <Field {...common} select={kinds} label={ui.sourceKind} />
       }
       if (path === 'description') {
-        return <Field {...common} rich rendered={rendered} explainers={node.explainers as Explainer[]} />
+        return <Field {...common} rich rendered={rendered} explainers={node.explainers as Explainer[]} termEvent={TERM_EVENT} markerWords={{ mark: ui.mark, cannotMarkHere: ui.cannotMarkHere, explainerLimit: ui.explainerLimit }} />
       }
       return <Field {...common} />
     },
@@ -174,6 +186,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       const words = { makeMain: ui.makeMain, moveEarlier: ui.moveEarlier, moveLater: ui.moveLater, removeImage: ui.removeImage }
       return <ImageControls nodeId={node.id} index={index} count={node.images.length} file={node.images[index]!.file} words={words} />
     },
+    onTermClick: TERM_EVENT,
 
     // The three situations of 30.1: a Terminal or a Node with both Answers takes the public
     // row; one Answer, the `+` for the other at 620; none, `+ Yes`, `treeEndsHere`, `+ No`.

@@ -186,7 +186,6 @@ export function Interior({
       )}
 
       {field?.(node, 'description', node.description[lang] ?? '', LIMIT.description, explainer) ?? explainer}
-      {edit?.slots.mark?.()}
 
       {(node.sources.length > 0 || edit?.slots.operation !== undefined) && (
         <Sources

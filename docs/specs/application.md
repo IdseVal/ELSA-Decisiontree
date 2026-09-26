@@ -4068,8 +4068,17 @@ that are not fields. The types are `src/editor/mode.ts`.
 | `linkMenu(node, link)` | `TreeView` (each Answer and Option button) | `Structure` (#139) |
 | `sideAdd(node)` | `TreeView` (the fan; the Overlay's list) | `Structure` (#139) |
 | `stepMenu(node)` | `Bubble` (the rim above) | `StepMenu` (#139) |
-| `mark()` | `Interior` (the description's rim) | `Marker` (#141) |
+| ~~`mark()`~~ | not built (**[#141] As built** below) | `Marker`, drawn by the description's `Field` (#141) |
 | `onTermClick` | `Explainer` | #141 |
+
+**[#141] As built**: there is no `mark()` slot. The `mark` button acts on the source's
+selection, and only the description's `Field` holds its textarea, so that `Field` draws
+`Marker` on its own rim (`src/editor/Field.tsx`) and `EditorSlots` has no `mark` member
+(`src/editor/mode.ts`). `Bubble.tsx` (`Interior`) lost its `{edit?.slots.mark?.()}` call:
+one line removed from a server component, the one edit #141 makes to one, against the
+rule above that #139 to #142 never make it. `onTermClick` is built as the table says: the
+name of a DOM event (`src/admin/slots.tsx`), which `Explainer` dispatches on a click, and
+on Enter, on a term.
 
 ### 34.3 The addresses and the pictures
 
@@ -4091,6 +4100,13 @@ schema; a test asserts it). `src/editor/writes.ts` is the one caller of `fetch` 
 function per row of 22.1 used; `src/editor/slug.ts` derives ids. Nothing in `src/editor/`
 reads the file system, the environment or a request. `src/components/` imports of
 `src/editor/` only the `EditMode` type.
+
+**[#141] As built**: exactly **four** modules. `Field.tsx` also imports
+`src/components/Explainer.tsx`, a client component that imports only React: 32.3 and
+`ADR-133` decision 3 require a marked description to render through the same `Explainer`
+after an edit as on the public page, so the description's `Field` shows its text through
+it rather than a copy. `tests/editor/imports.test.ts` asserts the four and that
+`Explainer.tsx` imports nothing but `react`.
 
 ### 34.5 What edit mode does not render
 
