@@ -229,6 +229,41 @@ export interface Chrome {
   fileTypeRefused: string
   /** **[#140] added in the build**: the attach Sheet's description field's label (31.2); its second button is #139's `cancel`. */
   imageDescription: string
+  /** **[#144]** The Theme panel in the top panel's "This Tree" section (33.8): its three parts and their controls. */
+  theme: string
+  logo: string
+  logoAlt: string
+  uploadLogo: string
+  replaceLogo: string
+  removeLogo: string
+  colours: string
+  chooseColours: string
+  defaultColours: string
+  /** The seven colour roles (tree-format.md 4.3.3), by what each paints, and the Answer label the contrast rule also measures. */
+  colourBackground: string
+  colourSurface: string
+  colourText: string
+  colourTextMuted: string
+  colourAccent: string
+  colourAccentSecondary: string
+  colourDanger: string
+  colourAnswerLabel: string
+  /** The warning's heading, and one line of it: what is drawn on what, its contrast and the minimum (issue #64). */
+  lowContrast: string
+  contrastShort: (text: string, on: string, ratio: string, minimum: string) => string
+  fonts: string
+  fontBody: string
+  fontHeading: string
+  fontFamily: string
+  fontLicence: string
+  fontFile: string
+  fontWeight: string
+  fontItalic: string
+  addFont: string
+  addFontFile: string
+  removeFont: string
+  removeFontFile: string
+  themeFileRefused: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -396,6 +431,38 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fileTooLarge: 'This file is too large: at most 5 MiB.',
     fileTypeRefused: 'This file type is refused: PNG, JPEG, GIF or WebP.',
     imageDescription: 'Description',
+    theme: 'Theme',
+    logo: 'Logo',
+    logoAlt: 'Alternative text',
+    uploadLogo: 'Upload a logo',
+    replaceLogo: 'Replace the logo',
+    removeLogo: 'Remove the logo',
+    colours: 'Colours',
+    chooseColours: 'Choose colours',
+    defaultColours: 'Back to the default colours',
+    colourBackground: 'Page',
+    colourSurface: 'Bubble',
+    colourText: 'Text',
+    colourTextMuted: 'Secondary text',
+    colourAccent: 'Accent',
+    colourAccentSecondary: 'Buttons and links',
+    colourDanger: 'Prohibited and errors',
+    colourAnswerLabel: 'Button text',
+    lowContrast: 'Hard to read on the public page:',
+    contrastShort: (text, on, ratio, minimum) => `${text} on ${on}: ${ratio} : 1, needs ${minimum} : 1`,
+    fonts: 'Fonts',
+    fontBody: 'Running text',
+    fontHeading: 'Headings',
+    fontFamily: 'Family name',
+    fontLicence: 'Licence',
+    fontFile: 'WOFF2 file',
+    fontWeight: 'Weight',
+    fontItalic: 'Italic',
+    addFont: 'Add the font',
+    addFontFile: 'Add a file',
+    removeFont: 'Remove this font',
+    removeFontFile: 'Remove',
+    themeFileRefused: 'This file type is refused: PNG or WebP for a logo, WOFF2 for a font.',
   },
   nl: {
     yes: 'Ja',
@@ -561,6 +628,38 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fileTooLarge: 'Dit bestand is te groot: hoogstens 5 MiB.',
     fileTypeRefused: 'Dit bestandstype wordt geweigerd: PNG, JPEG, GIF of WebP.',
     imageDescription: 'Beschrijving',
+    theme: 'Thema',
+    logo: 'Logo',
+    logoAlt: 'Alternatieve tekst',
+    uploadLogo: 'Een logo uploaden',
+    replaceLogo: 'Logo vervangen',
+    removeLogo: 'Logo verwijderen',
+    colours: 'Kleuren',
+    chooseColours: 'Kleuren kiezen',
+    defaultColours: 'Terug naar de standaardkleuren',
+    colourBackground: 'Pagina',
+    colourSurface: 'Bubbel',
+    colourText: 'Tekst',
+    colourTextMuted: 'Bijtekst',
+    colourAccent: 'Accent',
+    colourAccentSecondary: 'Knoppen en links',
+    colourDanger: 'Verboden en fouten',
+    colourAnswerLabel: 'Knoptekst',
+    lowContrast: 'Slecht leesbaar op de publieke pagina:',
+    contrastShort: (text, on, ratio, minimum) => `${text} op ${on}: ${ratio} : 1, nodig is ${minimum} : 1`,
+    fonts: 'Lettertypen',
+    fontBody: 'Lopende tekst',
+    fontHeading: 'Koppen',
+    fontFamily: 'Familienaam',
+    fontLicence: 'Licentie',
+    fontFile: 'WOFF2-bestand',
+    fontWeight: 'Gewicht',
+    fontItalic: 'Cursief',
+    addFont: 'Lettertype toevoegen',
+    addFontFile: 'Bestand toevoegen',
+    removeFont: 'Dit lettertype verwijderen',
+    removeFontFile: 'Verwijderen',
+    themeFileRefused: 'Dit bestandstype wordt geweigerd: PNG of WebP voor een logo, WOFF2 voor een lettertype.',
   },
 }
 
