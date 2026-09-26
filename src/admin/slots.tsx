@@ -1,7 +1,9 @@
 /**
  * The editor page's `EditMode` (docs/specs/application.md 34.1, 34.2): the words the
  * editor's client components say and the slots of #138 -- `field` for every text and select
- * of 28.1 that this issue edits, `operation` for the two Source operations. Later issues
+ * of 28.1 that this issue edits, `operation` for the two Source operations -- and of #140:
+ * `imageSlot` and `stripAdd`, the two pickers of 31.1, and `enlargedControls`, the four
+ * controls under a picture in the enlarged view (31.3). Later issues
  * add their slot functions to the object this module builds, one line each (ADR-133-build-order).
  *
  * Server side: it reads the chrome and builds client elements with string props.
@@ -12,6 +14,8 @@ import { OUTCOME_LABEL, sheetWords, SOURCE_LABEL } from '../components/Bubble.ts
 import { Sheet } from '../components/Sheet.tsx'
 import { editorLinks } from '../editor/links.ts'
 import { AddSourceForm, Field, Operation, type FieldWords, type OtherLanguage } from '../editor/Field.tsx'
+import { ImageControls } from '../editor/ImageControls.tsx'
+import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
 import type { Explainer, NodeContent, Outcome, Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
@@ -35,11 +39,14 @@ function editorWords(ui: Chrome): EditorWords {
   }
 }
 
-/** The paths this issue edits in place; an Image's texts wait for #140 (the issue's task 1). */
-const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|options\[\d+\]\.title|terminal\.outcome)$/
+/** The paths edited in place: #138's, and **[#140]** an Image's two texts in the enlarged view (31.3). */
+const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|images\[\d+\]\.(description|credit)|options\[\d+\]\.title|terminal\.outcome)$/
 
 /** Which paths hold a localised text: the page's language is appended to their key path (22.2). */
-const LOCALISED = /^(title|description|sources\[\d+\]\.label|options\[\d+\]\.title)$/
+const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title)$/
+
+/** The most Images a Node may hold (V-COUNT, 5.7): the strip's `+` is absent at that many (31.1). */
+const MAX_IMAGES = 10
 
 const KINDS: Source['kind'][] = ['legal', 'case-law', 'literature']
 const OUTCOMES: Outcome[] = ['not-applicable', 'applicable', 'prohibited', 'refer']
@@ -56,6 +63,17 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
   const outcomes = OUTCOMES.map((outcome) => ({ value: outcome, label: ui[OUTCOME_LABEL[outcome]] }))
   // The badge leaves `legal` unlabelled under its heading (ADR-78); a select must name every kind.
   const kinds = KINDS.map((kind) => ({ value: kind, label: ui[SOURCE_LABEL[kind] ?? 'sourceLegal'] }))
+  const pickerWords: PickerWords = {
+    addPicture: ui.addPicture,
+    fileTooLarge: ui.fileTooLarge,
+    fileTypeRefused: ui.fileTypeRefused,
+    credit: ui.credit,
+    imageDescription: ui.imageDescription,
+    attach: ui.attach,
+    cancel: ui.cancel,
+  }
+  // The admin image route's folder: the attach Sheet shows a picture no Node names yet (31.2).
+  const images = links.image(address.treeId, '')
 
   const slots: EditorSlots = {
     field(node, path, value, limit, rendered) {
@@ -98,6 +116,18 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
         )
       }
       return <Operation nodeId={node.id} change={{ op: 'remove-source', index }} label={ui.removeSource} className="admin-submit" />
+    },
+    imageSlot(node) {
+      return <ImageSlot nodeId={node.id} place="slot" images={images} words={pickerWords} />
+    },
+    stripAdd(node) {
+      // A Node with no Image has the slot's `+` only; at ten, none (31.1).
+      if (node.images.length === 0 || node.images.length >= MAX_IMAGES) return null
+      return <ImageSlot nodeId={node.id} place="strip" images={images} words={pickerWords} />
+    },
+    enlargedControls(node, index) {
+      const words = { makeMain: ui.makeMain, moveEarlier: ui.moveEarlier, moveLater: ui.moveLater, removeImage: ui.removeImage }
+      return <ImageControls nodeId={node.id} index={index} count={node.images.length} file={node.images[index]!.file} words={words} />
     },
   }
   return { treeId: address.treeId, links, languages, words, slots }

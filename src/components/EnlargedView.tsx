@@ -15,6 +15,14 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Sheet, type SheetHandle, type SheetWords } from './Sheet.tsx'
 
+/**
+ * **[#140]** The DOM event the editor's image controls dispatch inside the enlarged view once
+ * a picture has moved, its detail the page the picture is on now (31.3). The same string as
+ * `TURN_EVENT` in `src/editor/ImageControls.tsx`: neither folder imports the other (34.4).
+ * Nothing on a public page dispatches it.
+ */
+const TURN_EVENT = 'elsa-enlarged-turn'
+
 /** One picture of the Node, its texts already in the content language. */
 export interface EnlargedImage {
   /** The image route's URL for the file, `/images/<file>` (5.3). */
@@ -106,16 +114,25 @@ export function EnlargedView({
       setSelected(index + 1)
     }
 
+    const onTurn = (event: Event): void => {
+      const page = (event as CustomEvent<number>).detail
+      setSelected(page)
+      sheet.current?.turn(page)
+    }
+
     thumbnails.forEach((thumbnail, index) => (thumbnail.tabIndex = index === 0 ? 0 : -1))
+    frame.addEventListener(TURN_EVENT, onTurn)
     frame.addEventListener('click', onClick)
     frame.addEventListener('keydown', onKeyDown)
     frame.addEventListener('focusin', onFocusIn)
     return () => {
+      frame.removeEventListener(TURN_EVENT, onTurn)
       frame.removeEventListener('click', onClick)
       frame.removeEventListener('keydown', onKeyDown)
       frame.removeEventListener('focusin', onFocusIn)
     }
-  }, [])
+    // Again when the editor adds or removes a picture: the strip's thumbnails are other elements then.
+  }, [images.length])
 
   return (
     <>

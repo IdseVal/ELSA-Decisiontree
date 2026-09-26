@@ -53,6 +53,8 @@ export interface SheetWords {
  */
 export interface SheetHandle {
   open: (page: number) => void
+  /** **[#140]** Turns the open Sheet to `page`: the enlarged view follows a picture the editor moved. */
+  turn: (page: number) => void
 }
 
 /** How many entries one page of the panel holds: 8 titles of up to three lines fit 640 px. */
@@ -159,6 +161,9 @@ export function Sheet({
       element.open = true
       // Into the panel, so Escape reaches the Sheet and a screen reader is where the Image is.
       element.querySelector<HTMLElement>('.sheet-close')?.focus()
+    },
+    turn: (to) => {
+      if (details.current?.open) turnTo(to)
     },
   }))
 

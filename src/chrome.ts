@@ -165,6 +165,18 @@ export interface Chrome {
   /** **[#137] added in the build**: the cross on a language tag, and the tag grammar a refused tag is told (27.1). */
   removeLanguage: string
   languageHint: string
+  /** **[#140]** The editor's pictures (31): the pickers, the attach Sheet, the enlarged view's four controls, the picker's two refusals. */
+  addPicture: string
+  attach: string
+  makeMain: string
+  moveEarlier: string
+  moveLater: string
+  removeImage: string
+  fileTooLarge: string
+  fileTypeRefused: string
+  /** **[#140] added in the build**: the attach Sheet's second button and its description field's label (31.2). */
+  cancel: string
+  imageDescription: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -277,6 +289,16 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     title: 'Title',
     removeLanguage: 'Remove',
     languageHint: 'A language tag such as en, nl or pt-br.',
+    addPicture: 'Add a picture',
+    attach: 'Attach',
+    makeMain: 'Make main picture',
+    moveEarlier: 'Move earlier',
+    moveLater: 'Move later',
+    removeImage: 'Remove this picture',
+    fileTooLarge: 'This file is too large: at most 5 MiB.',
+    fileTypeRefused: 'This file type is refused: PNG, JPEG, GIF or WebP.',
+    cancel: 'Cancel',
+    imageDescription: 'Description',
   },
   nl: {
     yes: 'Ja',
@@ -387,6 +409,16 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     title: 'Titel',
     removeLanguage: 'Verwijderen',
     languageHint: 'Een taalcode zoals en, nl of pt-br.',
+    addPicture: 'Afbeelding toevoegen',
+    attach: 'Toevoegen',
+    makeMain: 'Hoofdafbeelding maken',
+    moveEarlier: 'Naar voren',
+    moveLater: 'Naar achteren',
+    removeImage: 'Deze afbeelding verwijderen',
+    fileTooLarge: 'Dit bestand is te groot: hoogstens 5 MiB.',
+    fileTypeRefused: 'Dit bestandstype wordt geweigerd: PNG, JPEG, GIF of WebP.',
+    cancel: 'Annuleren',
+    imageDescription: 'Beschrijving',
   },
 }
 
