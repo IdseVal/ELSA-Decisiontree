@@ -400,11 +400,11 @@ test("every Annex Option's picture is its target's first Image, on screen with a
       const image = (await tree.getNode(option.target))!.images[0]
       expect(image, `${option.target} carries no Image`).toBeDefined()
       // On the Option's button, and in the Overlay the button opens (application.md 10.3, 10.9).
-      expect(shown, `${option.target}: not on its Option's button`).toContain(imageHref(image!.file))
+      expect(shown, `${option.target}: not on its Option's button`).toContain(imageHref(tree.id, image!.file))
       await expect(
         page.locator(`.overlay-interior[data-node="${option.target}"] a.main-image`),
         option.target,
-      ).toHaveAttribute('href', imageHref(image!.file))
+      ).toHaveAttribute('href', imageHref(tree.id, image!.file))
       expect(image!.credit, `${option.target}: ${image!.file} has no licence in its credit`).toMatch(OPEN_LICENCE)
       checked += 1
     }

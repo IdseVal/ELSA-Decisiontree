@@ -51,7 +51,7 @@ function contrast(a: string, b: string): number {
 describe('the seven roles become the seven properties', () => {
   test('a themed Tree emits exactly the manifest values', () => {
     const colours = themedTree.manifest.theme!.colours!
-    const { css } = themeStyle(themedTree.manifest.theme)
+    const { css } = themeStyle(themedTree.manifest.theme, themedTree.id)
 
     for (const [role, value] of Object.entries(colours)) {
       expect(property(css, role), role).toBe(value)
@@ -59,7 +59,7 @@ describe('the seven roles become the seven properties', () => {
   })
 
   test('a Tree with no Theme emits the default palette, not an empty block', () => {
-    const { css } = themeStyle(plainTree.manifest.theme)
+    const { css } = themeStyle(plainTree.manifest.theme, plainTree.id)
 
     expect(plainTree.manifest.theme).toBeUndefined()
     for (const [role, value] of Object.entries(DEFAULT_COLOURS)) {
@@ -68,7 +68,7 @@ describe('the seven roles become the seven properties', () => {
   })
 
   test('there is no eighth role', () => {
-    const { css } = themeStyle(themedTree.manifest.theme)
+    const { css } = themeStyle(themedTree.manifest.theme, themedTree.id)
     const emitted = [...css.matchAll(/--elsa-([a-z-]+):/g)].map((match) => match[1]!)
 
     // The seven of tree-format.md 4.3.3, the four derived of 13.1, and the two font roles.
@@ -100,7 +100,7 @@ describe('the four values CSS cannot compute', () => {
     ['danger', 'on-danger'],
   ] as const)('%s: the better-contrasting of text and background', ([role, derived]) => {
     const colours = themedTree.manifest.theme!.colours!
-    const { css } = themeStyle(themedTree.manifest.theme)
+    const { css } = themeStyle(themedTree.manifest.theme, themedTree.id)
     const on = colours[role]
 
     const better = contrast(colours.text, on) >= contrast(colours.background, on) ? colours.text : colours.background
@@ -114,15 +114,15 @@ describe('the four values CSS cannot compute', () => {
     const light = { ...DEFAULT_COLOURS, background: '#ffffff', text: '#2d2e33', accent: '#ffc600' }
     const dark = { ...DEFAULT_COLOURS, background: '#161a1d', text: '#eef1f2', accent: '#ffc600' }
 
-    expect(property(themeStyle({ colours: light }).css, 'on-accent')).toBe('#2d2e33')
-    expect(property(themeStyle({ colours: dark }).css, 'on-accent')).toBe('#161a1d')
+    expect(property(themeStyle({ colours: light }, 'a-tree').css, 'on-accent')).toBe('#2d2e33')
+    expect(property(themeStyle({ colours: dark }, 'a-tree').css, 'on-accent')).toBe('#161a1d')
   })
 
   test.for([
     ['a light palette', { ...DEFAULT_COLOURS, background: '#ffffff', text: '#2d2e33' }, '#2d2e33'],
     ['a dark palette', { ...DEFAULT_COLOURS, background: '#161a1d', text: '#eef1f2' }, '#161a1d'],
   ] as const)('the scrim is the dark end of %s', ([, colours, expected]) => {
-    expect(property(themeStyle({ colours }).css, 'scrim')).toBe(expected)
+    expect(property(themeStyle({ colours }, 'a-tree').css, 'scrim')).toBe(expected)
   })
 
   test('the scrim is never lighter than the page it lies over, whichever Theme is served', () => {
@@ -137,7 +137,7 @@ describe('the four values CSS cannot compute', () => {
     ]
 
     for (const colours of palettes) {
-      const scrim = property(themeStyle({ colours }).css, 'scrim')!
+      const scrim = property(themeStyle({ colours }, 'a-tree').css, 'scrim')!
 
       expect(luminance(scrim)).toBeLessThanOrEqual(luminance(colours.background))
       expect(luminance(scrim)).toBeLessThanOrEqual(luminance(colours.text))
@@ -148,13 +148,13 @@ describe('the four values CSS cannot compute', () => {
 describe('the fonts', () => {
   test('one @font-face per file, weight and style verbatim, served from the Tree', () => {
     const families = themedTree.manifest.theme!.fonts!
-    const { css } = themeStyle(themedTree.manifest.theme)
+    const { css } = themeStyle(themedTree.manifest.theme, themedTree.id)
 
     for (const family of families) {
       for (const face of family.files) {
         const rule = [...css.matchAll(/@font-face\{([^}]*)\}/g)]
           .map((match) => match[1]!)
-          .find((body) => body.includes(`url('/theme/${face.file}')`))
+          .find((body) => body.includes(`url('/ai-act-example/theme/${face.file}')`))
 
         expect(rule, face.file).toBeDefined()
         expect(rule).toContain(`font-family:'${family.family}'`)
@@ -169,7 +169,7 @@ describe('the fonts', () => {
 
   test('each role becomes its property, and a role the Tree omits gets its documented fallback', () => {
     const families = themedTree.manifest.theme!.fonts!
-    const { css } = themeStyle(themedTree.manifest.theme)
+    const { css } = themeStyle(themedTree.manifest.theme, themedTree.id)
     const body = families.find((family) => family.role === 'body')
     const heading = families.find((family) => family.role === 'heading')
 
@@ -191,14 +191,14 @@ describe('the fonts', () => {
           files: [{ file: 'open-sans-400.woff2', weight: '400', style: 'normal' }],
         },
       ],
-    })
+    }, 'a-tree')
 
     expect(property(css, 'font-body')).toBe(`'Open Sans', ${DEFAULT_FONT_STACK}`)
     expect(property(css, 'font-heading')).toBe('var(--elsa-font-body)')
   })
 
   test('a Tree with no fonts gets the default stack for both roles', () => {
-    const { css } = themeStyle(plainTree.manifest.theme)
+    const { css } = themeStyle(plainTree.manifest.theme, plainTree.id)
 
     expect(property(css, 'font-body')).toBe(DEFAULT_FONT_STACK)
     expect(property(css, 'font-heading')).toBe('var(--elsa-font-body)')
@@ -210,7 +210,7 @@ describe('the parts are independent (13.4)', () => {
   const theme = (): Theme => structuredClone(themedTree.manifest.theme!)
 
   test('colours only: those colours, the default stack, no logo', () => {
-    const { css } = themeStyle({ colours: theme().colours })
+    const { css } = themeStyle({ colours: theme().colours }, 'a-tree')
 
     expect(property(css, 'accent')).toBe(themedTree.manifest.theme!.colours!.accent)
     expect(property(css, 'font-body')).toBe(DEFAULT_FONT_STACK)
@@ -218,14 +218,14 @@ describe('the parts are independent (13.4)', () => {
   })
 
   test('fonts only: the default palette, those families', () => {
-    const { css } = themeStyle({ fonts: theme().fonts })
+    const { css } = themeStyle({ fonts: theme().fonts }, 'a-tree')
 
     expect(property(css, 'background')).toBe(DEFAULT_COLOURS.background)
     expect(css).toContain('@font-face')
   })
 
   test('logo only: the default palette and stack, that logo', () => {
-    const { css } = themeStyle({ logo: theme().logo })
+    const { css } = themeStyle({ logo: theme().logo }, 'a-tree')
 
     expect(property(css, 'background')).toBe(DEFAULT_COLOURS.background)
     expect(property(css, 'font-body')).toBe(DEFAULT_FONT_STACK)
@@ -249,7 +249,7 @@ describe('the logo variant is derived from the palette, never declared (13.1)', 
 
   test('a dark palette shows the dark variant, and says so to the browser', () => {
     expect(themeLogo({ logo, colours: dark })?.file).toBe('dark.svg')
-    expect(themeStyle({ logo, colours: dark }).css).toContain('color-scheme:dark')
+    expect(themeStyle({ logo, colours: dark }, 'a-tree').css).toContain('color-scheme:dark')
   })
 
   test('a dark palette with no dark variant still shows the light one', () => {
@@ -262,7 +262,7 @@ describe('the logo variant is derived from the palette, never declared (13.1)', 
 
     expect(shown?.alt).toEqual(logo.alt)
     expect(shown?.url).toBe(logo.url)
-    expect(themeStyle({ logo }).icon).toBe('icon.png')
+    expect(themeStyle({ logo }, 'a-tree').icon).toBe('icon.png')
   })
 })
 
@@ -272,7 +272,7 @@ describe('escaping: the one place author text becomes code (13.3)', () => {
   })
 
   test("a family name is quoted, with ' and \\ escaped", () => {
-    const { css } = themeStyle(family("O'Neill\\Sans"))
+    const { css } = themeStyle(family("O'Neill\\Sans"), 'a-tree')
 
     expect(property(css, 'font-body')).toBe(`'O\\'Neill\\\\Sans', ${DEFAULT_FONT_STACK}`)
   })
@@ -280,13 +280,13 @@ describe('escaping: the one place author text becomes code (13.3)', () => {
   test('a family name with a space in it is ordinary and is emitted', () => {
     // The first Tree's own families are "Open Sans" and "Nova Square": refusing a space
     // would refuse every real font name.
-    expect(property(themeStyle(family('Open Sans')).css, 'font-body')).toBe(`'Open Sans', ${DEFAULT_FONT_STACK}`)
+    expect(property(themeStyle(family('Open Sans'), 'a-tree').css, 'font-body')).toBe(`'Open Sans', ${DEFAULT_FONT_STACK}`)
   })
 
   test.for([';', '{', '}', '<', '\n', String.fromCharCode(1)])(
     'a family name holding %j is refused, and its faces with it',
     (character) => {
-      const { css } = themeStyle(family(`Bad${character}Sans`))
+      const { css } = themeStyle(family(`Bad${character}Sans`), 'a-tree')
 
       expect(property(css, 'font-body')).toBe(DEFAULT_FONT_STACK)
       expect(css).not.toContain('@font-face')
@@ -298,7 +298,7 @@ describe('escaping: the one place author text becomes code (13.3)', () => {
     'a colour that is not #rrggbb is refused, and the default for that role used: %j',
     (value) => {
       const colours = { ...DEFAULT_COLOURS, accent: value } as Colours
-      const { css } = themeStyle({ colours })
+      const { css } = themeStyle({ colours }, 'a-tree')
 
       expect(property(css, 'accent')).toBe(DEFAULT_COLOURS.accent)
       // The other six of the block are untouched: only the role that failed falls back.
@@ -308,7 +308,7 @@ describe('escaping: the one place author text becomes code (13.3)', () => {
 
   test('nothing that could close the element is ever emitted', () => {
     // Belt and braces: every part above is escaped, so this can only fire if one is not.
-    for (const style of [themeStyle(themedTree.manifest.theme), themeStyle(family('</style><script>'))]) {
+    for (const style of [themeStyle(themedTree.manifest.theme, themedTree.id), themeStyle(family('</style><script>'), 'a-tree')]) {
       expect(style.css.toLowerCase()).not.toContain('</style')
     }
   })

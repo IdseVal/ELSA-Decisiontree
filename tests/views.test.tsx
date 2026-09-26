@@ -187,20 +187,20 @@ describe('the tree layer', () => {
     const html = await view('/ai-act-example/prohibited-practices')
     const fan = part(html, 'ul', 'options')
     expect(fan).toContain(
-      '<summary class="sheet-open"><img class="option-image" src="/images/scoreboard.png" alt="A scoreboard ranking people" width="48" height="48" loading="lazy"/><span class="option-title">Social scoring</span></summary>',
+      '<summary class="sheet-open"><img class="option-image" src="/ai-act-example/images/scoreboard.png" alt="A scoreboard ranking people" width="48" height="48" loading="lazy"/><span class="option-title">Social scoring</span></summary>',
     )
     // Since #84 the second Option's target carries an Image too: no empty slot in this Tree
     // (the `overlay` fixture shows one, below).
     expect(fan.match(/<img class="option-image"/g)).toHaveLength(2)
-    expect(fan).toContain('<img class="option-image" src="/images/emotion-recognition.png"')
+    expect(fan).toContain('<img class="option-image" src="/ai-act-example/images/emotion-recognition.png"')
     expect(fan).not.toContain('option-image--empty')
     // In the Overlay it is a plain link to the file: the enlarged view is the centre Node's (10.9).
-    expect(fan).toContain('<a class="main-image" href="/images/scoreboard.png" aria-labelledby=')
+    expect(fan).toContain('<a class="main-image" href="/ai-act-example/images/scoreboard.png" aria-labelledby=')
     expect(html).not.toContain('class="thumbnail"')
 
     // As the centre, which only a path with no parent makes it, it is the Bubble's main image.
     const own = await view('/ai-act-example/social-scoring')
-    expect(part(own, 'article', 'bubble')).toContain('<a class="main-image" href="/images/scoreboard.png" data-enlarge="0"')
+    expect(part(own, 'article', 'bubble')).toContain('<a class="main-image" href="/ai-act-example/images/scoreboard.png" data-enlarge="0"')
   })
 
   test('carries the notice for a window at or below the floor, with a sentence per short dimension (10.4)', async () => {
@@ -228,8 +228,8 @@ describe('the main image', () => {
     const bubble = part(await view('/carousel/five?lang=nl'), 'article', 'bubble')
 
     expect(bubble).toContain(
-      '<a class="main-image" href="/images/orchard.svg" data-enlarge="0" aria-labelledby="main-image-enlarge main-image-picture" aria-describedby="main-image-credit">' +
-        '<img id="main-image-picture" src="/images/orchard.svg" alt="Een boomgaard met drie appelbomen onder een gele zon" width="90" height="60"/></a>',
+      '<a class="main-image" href="/carousel/images/orchard.svg" data-enlarge="0" aria-labelledby="main-image-enlarge main-image-picture" aria-describedby="main-image-credit">' +
+        '<img id="main-image-picture" src="/carousel/images/orchard.svg" alt="Een boomgaard met drie appelbomen onder een gele zon" width="90" height="60"/></a>',
     )
     expect(bubble).toContain('<span hidden="" id="main-image-enlarge">Vergroten</span>')
     expect(bubble).toContain('<span hidden="" id="main-image-credit">Drawing: Example Studio, CC0 1.0</span>')
@@ -248,7 +248,7 @@ describe('the main image', () => {
   test('a neighbour frame keeps the slot and names no image file (11.4)', async () => {
     // The Bubble a neighbour frame draws: `two` has Images of its own.
     const node = (await trees.get('carousel')!.getNode('two'))!
-    const html = renderToStaticMarkup(<Bubble node={node} lang="en" ui={chrome('en')} uiLang={undefined} idPrefix="n0-" pictures={false} up={null} />)
+    const html = renderToStaticMarkup(<Bubble node={node} treeId="carousel" lang="en" ui={chrome('en')} uiLang={undefined} idPrefix="n0-" pictures={false} up={null} />)
     expect(html).toContain('<div class="bubble-text"><span class="main-image main-image--withheld" aria-hidden="true"></span><h1 id="n0-node-title">')
     expect(html).not.toContain('/images/')
   })
@@ -261,14 +261,14 @@ describe('the Carousel', () => {
     // Focusable in the markup, named: the arrow keys scroll it without a script (12.2, 12.3).
     expect(strip).toContain('<ul class="carousel-strip" tabindex="0" aria-labelledby="images-label" data-carousel-strip="">')
     expect(all(strip, /<a class="thumbnail" href="([^"]*)"/g)).toEqual([
-      '/images/greenhouse.svg',
-      '/images/drone.svg',
-      '/images/tractor.svg',
-      '/images/harbour.svg',
+      '/carousel/images/greenhouse.svg',
+      '/carousel/images/drone.svg',
+      '/carousel/images/tractor.svg',
+      '/carousel/images/harbour.svg',
     ])
     // Loaded lazily, at the size the strip draws them, so no page asks for what it does not show (12.4).
     expect(strip).toContain(
-      '<img id="carousel-image-0" src="/images/greenhouse.svg" alt="Two greenhouses with rows of seedlings and a shed beside them" width="48" height="48" loading="lazy"/>',
+      '<img id="carousel-image-0" src="/carousel/images/greenhouse.svg" alt="Two greenhouses with rows of seedlings and a shed beside them" width="48" height="48" loading="lazy"/>',
     )
     expect(strip.match(/loading="lazy"/g)).toHaveLength(4)
   })
@@ -302,7 +302,7 @@ describe('the Carousel', () => {
   test("the full Node's strip holds nine: its ten Images less the main one (12.1)", async () => {
     const node = (await trees.get('full-node')!.getNode('full'))!
     const strip = part(await view('/full-node/full?lang=nl'), 'ul', 'carousel-strip')
-    expect(all(strip, /<a class="thumbnail" href="([^"]*)"/g)).toEqual(node.images.slice(1).map((image) => `/images/${image.file}`))
+    expect(all(strip, /<a class="thumbnail" href="([^"]*)"/g)).toEqual(node.images.slice(1).map((image) => `/full-node/images/${image.file}`))
     expect(strip.match(/<li>/g)).toHaveLength(9)
   })
 
@@ -315,7 +315,7 @@ describe('the Carousel', () => {
     expect(html).toContain('<span hidden="" id="images-label">Afbeeldingen</span>')
     expect(html).toContain('<span hidden="" id="carousel-enlarge">Vergroten</span>')
     expect(html).toContain(
-      '<a class="thumbnail" href="/images/drone.svg" data-enlarge="2" aria-labelledby="carousel-enlarge carousel-image-1" aria-describedby="carousel-credit-1">',
+      '<a class="thumbnail" href="/carousel/images/drone.svg" data-enlarge="2" aria-labelledby="carousel-enlarge carousel-image-1" aria-describedby="carousel-credit-1">',
     )
     expect(html).toContain('<span hidden="" id="carousel-credit-1">Drawing: Example Illustrator, via Example Commons, CC BY-SA 4.0</span>')
     expect(html).toContain('alt="Een drone die een akker van bovenaf scant"')
@@ -340,9 +340,9 @@ describe('the Carousel', () => {
     expect(sheet.match(/<figure class="sheet-figure">/g)).toHaveLength(10)
     // Without the script every page after the first is a disclosure: nine of them.
     expect(sheet.match(/<details class="sheet-more">/g)).toHaveLength(9)
-    expect(all(sheet, /<img src="([^"]*)"/g)).toEqual(node.images.map((image) => `/images/${image.file}`))
+    expect(all(sheet, /<img src="([^"]*)"/g)).toEqual(node.images.map((image) => `/full-node/images/${image.file}`))
     for (const image of node.images) {
-      expect(sheet).toContain(`<img src="/images/${image.file}" alt="${image.description.en}" loading="lazy"/>`)
+      expect(sheet).toContain(`<img src="/full-node/images/${image.file}" alt="${image.description.en}" loading="lazy"/>`)
       expect(sheet).toContain(
         `<figcaption><p>${image.description.en}</p><p class="credit"><span class="kind">Credit</span> ${image.credit}</p></figcaption>`,
       )
@@ -355,7 +355,7 @@ describe('the Bubble', () => {
     const html = await view('/ai-act-example/start')
     const bubble = part(html, 'article', 'bubble')
 
-    expect(bubble).toContain('<a class="main-image" href="/images/eu-map.png"')
+    expect(bubble).toContain('<a class="main-image" href="/ai-act-example/images/eu-map.png"')
     expect(bubble).toContain('<h1 id="node-title">Is your AI system within the reach of the AI Act?</h1>')
     expect(bubble).toContain('<p>The AI Act reaches AI systems')
     expect(bubble).toContain('<strong>placed on the market')
@@ -518,10 +518,10 @@ describe('a question Node with Options', () => {
     const html = await view('/full-node/full')
     // `opt-one` leads with one.png: the same file its Overlay's Interior will show (11.4).
     expect(part(html, 'ul', 'options')).toContain(
-      '<summary class="sheet-open"><img class="option-image" src="/images/one.png" alt="Option one, first picture" width="48" height="48" loading="lazy"/><span class="option-title">Option one: a title of sixty characters, the most it may be.</span></summary>',
+      '<summary class="sheet-open"><img class="option-image" src="/full-node/images/one.png" alt="Option one, first picture" width="48" height="48" loading="lazy"/><span class="option-title">Option one: a title of sixty characters, the most it may be.</span></summary>',
     )
     // Only the target's first picture is on the button, and its Overlay's main image is that same file (10.9, 11.5).
-    expect(new Set(all(part(html, 'ul', 'options').split('</li>')[0]!, /"(\/images\/[^"]*)"/g))).toEqual(new Set(['/images/one.png']))
+    expect(new Set(all(part(html, 'ul', 'options').split('</li>')[0]!, /"(\/full-node\/images\/[^"]*)"/g))).toEqual(new Set(['/full-node/images/one.png']))
     // A target without Images, on an Option without any: the empty slot (the fixture's four small asides).
     const five = part(await view('/overlay/five'), 'ul', 'options')
     expect(five.match(/<span class="option-image option-image--empty"><\/span>/g)).toHaveLength(4)

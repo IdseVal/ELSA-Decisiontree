@@ -89,7 +89,7 @@ async function page(tree: Tree, url: string, theme = tree.manifest.theme): Promi
   return renderToStaticMarkup(
     <>
       <header className="page-chrome">
-        <Logo theme={theme} title={tree.manifest.title} lang={address.lang} />
+        <Logo treeId={tree.id} theme={theme} title={tree.manifest.title} lang={address.lang} />
         <LanguageSwitch address={address} languages={tree.manifest.languages} />
       </header>
       <main>
@@ -133,7 +133,7 @@ describe.for(FIXTURES)('a Tree in $name', ({ name, themed, disclaimerIn }) => {
 
   test('its Theme, or its absence, becomes a full set of custom properties', async () => {
     const tree = await openTree(path.join(here, 'fixtures', name))
-    const { css } = themeStyle(tree.manifest.theme)
+    const { css } = themeStyle(tree.manifest.theme, tree.id)
 
     // Never an empty block and never a missing one: a Tree with no Theme is a first-class
     // case, not an error path (application.md 13.4).
@@ -168,7 +168,7 @@ describe.for(FIXTURES)('a Tree in $name', ({ name, themed, disclaimerIn }) => {
 
       expect(html, what).not.toContain('undefined')
       expect(html, what).not.toContain('[object Object]')
-      if (theme.logo) expect(asRead(html), what).toContain(`src="/theme/${theme.logo.light}"`)
+      if (theme.logo) expect(asRead(html), what).toContain(`src="/${name}/theme/${theme.logo.light}"`)
       else expect(asRead(html), what).toContain(title)
     }
   })
