@@ -233,6 +233,14 @@ async function editorEverywhere(page: Page, lang: string): Promise<void> {
       await page.keyboard.press('Escape')
       await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeHidden()
     }
+
+    // **[#142]** The top panel (33.2): its body is a scroll box, the document does not scroll.
+    const panel = page.locator('.panel-sheet')
+    await panel.locator(':scope > .sheet-open').click()
+    await expect(panel.locator(':scope > .sheet-panel')).toBeVisible()
+    record(await measure(page), 'editor', lang, viewport, 'top panel')
+    await page.keyboard.press('Escape')
+    await expect(panel.locator(':scope > .sheet-panel')).toBeHidden()
   }
 }
 
