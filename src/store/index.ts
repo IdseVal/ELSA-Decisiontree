@@ -5,13 +5,16 @@
  * `src/tree/` knows nothing of it.
  *
  * This is the read side (#134): the data directory, its lock, the seed at first start, and
- * the set of published Trees every public route works from. Accounts and sessions (#135)
- * and drafts and writes (#136) join it as members of `Store`.
+ * the set of published Trees every public route works from. **[#135]** Accounts, sessions and
+ * the login rate limit are members of `Store`; drafts and writes (#136) join them.
  */
 import { cp, mkdir, readdir, readFile, rename, rm, stat, access, constants } from 'node:fs/promises'
 import path from 'node:path'
 import type { Environment } from '../config.ts'
 import { openTree, type Tree } from '../tree/loader.ts'
+import { openAccounts, type Accounts } from './accounts.ts'
+import { loginLimit, type LoginLimit } from './login-limit.ts'
+import { openSessions, type Sessions } from './sessions.ts'
 import { writeAtomic } from './write.ts'
 
 /**
@@ -50,13 +53,21 @@ export interface Store {
    * autosave, so the set follows the store without a restart (18.2).
    */
   swap(id: string, tree: Tree | null): void
+  /** **[#135]** The accounts of `accounts.json` (20.1 to 20.3). */
+  accounts: Accounts
+  /** **[#135]** The sessions of `sessions.json` (20.4). */
+  sessions: Sessions
+  /** **[#135]** The two counters of the login route (20.7). */
+  loginLimit: LoginLimit
 }
 
 /**
  * Opens the data directory `dataDir` (17.5): refuses the retired variables, checks the
- * folder, takes the lock, deletes what a crash left, seeds on the first start, and opens
- * every published Tree. Rejects only when the directory itself is unusable; one Tree that
- * fails validation is refused, reported, and not served (18.3).
+ * folder, takes the lock, deletes what a crash left, **[#135]** opens the accounts and sets
+ * the administrator's password from `ELSA_ADMIN_PASSWORD` (20.3), seeds on the first start,
+ * and opens every published Tree. Rejects when the directory itself is unusable or the
+ * administrator has no password; one Tree that fails validation is refused, reported, and
+ * not served (18.3).
  */
 export async function openStore(dataDir: string, env: Environment): Promise<Store> {
   refuseRetired(env)
@@ -65,7 +76,10 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
   await takeLock(root)
   const treesDir = path.join(/* turbopackIgnore: true */ root, 'trees')
   await removeTemporaries(root, treesDir)
-  if (!(await isFolder(treesDir))) await seed(seedDirectory(env), treesDir)
+  const accounts = await openAccounts(root, env)
+  const admin = accounts.all().find((account) => account.administrator)!
+  if (!(await isFolder(treesDir))) await seed(seedDirectory(env), treesDir, admin.id)
+  await nameCreator(treesDir, admin.id)
 
   const served = new Map<string, Tree>()
   const refused: Refused[] = []
@@ -92,6 +106,9 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
       if (tree) served.set(id, tree)
       else served.delete(id)
     },
+    accounts,
+    sessions: await openSessions(root, accounts),
+    loginLimit: loginLimit(),
   }
 }
 
@@ -104,8 +121,8 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
  * The folder is assembled beside its final place and renamed into it, so a crash never
  * leaves half a Tree under a real id.
  *
- * `creator` is an account id, or null while the store has no accounts: the administrator
- * account arrives with #135, which names it on the Trees this seed left without one.
+ * `creator` is an account id: the administrator's at the seed (17.4). **[#135]** A Tree a
+ * #134 store seeded before there were accounts has `null`, which `openStore` replaces.
  */
 export async function importTree(folder: string, treesDir: string, creator: string | null): Promise<Tree> {
   const source = path.resolve(/* turbopackIgnore: true */ folder)
@@ -207,20 +224,39 @@ async function removeTemporaries(root: string, treesDir: string): Promise<void> 
  * seeds again rather than leaving half a store that is never seeded. A folder that cannot
  * be imported is skipped, and the reason printed.
  */
-async function seed(seedDir: string, treesDir: string): Promise<void> {
+async function seed(seedDir: string, treesDir: string, creator: string): Promise<void> {
   const staging = `${treesDir}.tmp`
   await mkdir(staging, { recursive: true })
   const ids = await listFolders(seedDir)
   if (ids.length === 0) console.warn(`No Tree to seed in ${seedDir}; the store starts empty`)
   for (const id of ids) {
     try {
-      await importTree(path.join(/* turbopackIgnore: true */ seedDir, id), staging, null)
+      await importTree(path.join(/* turbopackIgnore: true */ seedDir, id), staging, creator)
       console.log(`Seeded Tree "${id}" from ${seedDir}`)
     } catch (error) {
       console.error(`Not seeded: ${messageOf(error)}`)
     }
   }
   await rename(staging, treesDir)
+}
+
+/**
+ * **[#135]** Names `creator` -- the administrator -- on every Tree whose `meta.json` names
+ * none: the Trees a store seeded before accounts existed (#134), or a test imported without
+ * one. Every Tree has a creator from then on (21.1).
+ */
+async function nameCreator(treesDir: string, creator: string): Promise<void> {
+  for (const id of await listFolders(treesDir)) {
+    const file = path.join(/* turbopackIgnore: true */ treesDir, id, 'meta.json')
+    const text = await readText(file)
+    if (text === null) continue
+    const meta = JSON.parse(text) as { creator: string | null; updatedBy: string | null }
+    if (meta.creator !== null) continue
+    meta.creator = creator
+    meta.updatedBy ??= creator
+    await writeAtomic(file, `${JSON.stringify(meta, null, 2)}
+`)
+  }
 }
 
 /** Copies the folder `from` whole to `to`, timestamps kept; nothing when there is none. */
