@@ -72,3 +72,36 @@ describe('per deployment', () => {
     expect(limit.check('anna')).toEqual({ locked: false })
   })
 })
+
+describe('simultaneous attempts', () => {
+  test('count from when they begin: five running guesses on a name hold back the sixth', () => {
+    for (let attempt = 1; attempt <= 5; attempt += 1) expect(limit.begin('anna')).toEqual({ locked: false })
+
+    expect(limit.begin('anna')).toEqual({ locked: true, retryAfter: 1 })
+    // Another name is not held back with it.
+    expect(limit.begin('bram')).toEqual({ locked: false })
+    for (let attempt = 1; attempt <= 4; attempt += 1) expect(limit.fail('anna')).toBeNull()
+    expect(limit.fail('anna')).toBe('name')
+    expect(limit.begin('anna')).toEqual({ locked: true, retryAfter: NAME_LOCK_MS / 1000 })
+  })
+
+  test('a success ends its attempt and the count; a guess still running keeps its place', () => {
+    for (let attempt = 1; attempt <= 5; attempt += 1) limit.begin('anna')
+    limit.succeed('anna')
+
+    // Four still running, and nothing failed yet: one more may begin, not two.
+    expect(limit.begin('anna')).toEqual({ locked: false })
+    expect(limit.begin('anna')).toEqual({ locked: true, retryAfter: 1 })
+    for (let attempt = 1; attempt <= 5; attempt += 1) limit.succeed('anna')
+    expect(limit.check('anna')).toEqual({ locked: false })
+  })
+
+  test('across names, no more attempts run at once than the route lock allows to fail', () => {
+    let begun = 0
+    for (let attempt = 1; attempt <= 3 * ROUTE_FAILURES; attempt += 1) if (!limit.begin(`name-${attempt}`).locked) begun += 1
+
+    expect(begun).toBe(ROUTE_FAILURES + 1)
+    for (let attempt = 1; attempt <= ROUTE_FAILURES + 1; attempt += 1) limit.fail(`name-${attempt}`)
+    expect(limit.check('anna')).toEqual({ locked: true, retryAfter: ROUTE_WINDOW_MS / 1000 })
+  })
+})

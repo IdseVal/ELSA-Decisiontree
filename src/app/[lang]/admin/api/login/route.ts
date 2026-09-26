@@ -20,10 +20,17 @@ export async function POST(request: Request): Promise<Response> {
   const { accounts, sessions, loginLimit } = await store()
 
   const key = login.trim().toLowerCase()
-  const verdict = loginLimit.check(key)
+  // Counted from here, so simultaneous guesses cannot all pass before the first one fails (20.7).
+  const verdict = loginLimit.begin(key)
   if (verdict.locked) return json(REFUSED, 429, { 'Retry-After': String(verdict.retryAfter) })
 
-  const account = await accounts.authenticate(login, password)
+  let account
+  try {
+    account = await accounts.authenticate(login, password)
+  } catch (error) {
+    loginLimit.fail(key)
+    throw error
+  }
   if (!account) {
     const lock = loginLimit.fail(key)
     if (lock === 'route') console.log('login route locked for one minute: more than 60 failures in a minute')
