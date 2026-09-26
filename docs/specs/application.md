@@ -266,7 +266,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | #137 | `published`, `hidden`, `notServable`, `treeId`, `treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`, `languages`, `addLanguage`, `makeDefault`, `default`, `languagesFixed`, `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
 | #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
-| #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused` |
+| #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused`; **[#140] added in the build**: `cancel` (the attach Sheet's second button, 31.2 -- the same word #139's row names, so whichever branch merges second keeps one) and `imageDescription` (the label of its description field; `credit` labels the other) |
 | #141 | `mark`, `unmark`, `cannotMarkHere`, `explainerLimit`, `term`, `explanation`, `markedIn`, `notMarkedIn` |
 | #142 | `treeState`, `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, `fixed`, `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
 
@@ -3873,6 +3873,11 @@ picker staying put. The tenth Image's `+` is absent, so V-COUNT is not asked for
 
 The upload's `{ width, height }` feed the enlarged view's `<img width height>`; the strip's
 48 x 48 and the main image's 3 : 2 box are the stylesheet's.
+
+**[#140] As built**: the upload's `{ width, height }` are the attach Sheet's `<img width
+height>`. The enlarged view's pictures are drawn from the Node, and an Image entry of the
+format carries no size (`tree-format.md` 5.2), so after the attach its `<img>` has none, as
+on the public page.
 
 ### 31.8 Not offered
 
