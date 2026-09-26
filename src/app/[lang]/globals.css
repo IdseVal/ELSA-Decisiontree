@@ -2697,7 +2697,9 @@ fieldset:disabled .admin-submit {
   vertical-align: baseline;
 }
 
-.editor-operation {
+/* The `+ addSource` control is a Sheet's summary drawn as the dashed pill of an operation (28.1). */
+.editor-operation,
+.source-sheet--add > .sheet-open {
   padding: 0 10px;
   border: 1px dashed var(--rule);
   border-radius: 999px;
@@ -2709,7 +2711,8 @@ fieldset:disabled .admin-submit {
   cursor: pointer;
 }
 
-.editor-operation:hover {
+.editor-operation:hover,
+.source-sheet--add > .sheet-open:hover {
   color: var(--elsa-text);
   border-color: var(--accent-secondary-read);
 }
@@ -2745,8 +2748,33 @@ fieldset:disabled .admin-submit {
   background: var(--elsa-background);
 }
 
+/* The URL of a Source to add (28.1): the one input of the editor that is not a field. */
+.editor-url {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--elsa-background);
+  color: var(--elsa-text);
+  font: inherit;
+  font-size: var(--small);
+}
+
+.editor-url[aria-invalid='true'] {
+  border-color: var(--danger-read);
+}
+
+/* The editor's controls shrink before the bar grows: nothing in it may wrap to a second line (28.6). */
+.editor-chrome .page-controls {
+  min-width: 0;
+}
+
 /* The indicator (29.3): one line of at most 320 pixels in the chrome bar, cut with an ellipsis. */
 .editor-status {
+  flex: 0 1 auto;
+  min-width: 0;
   max-width: 320px;
   overflow: hidden;
   white-space: nowrap;

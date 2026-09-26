@@ -23,13 +23,14 @@
  * stops (28.4). A refused write keeps the value on screen (29.4); a value a collaborator
  * changed under the field is outlined `accent` for five seconds (29.7).
  *
- * Imports of `src/`: `tree/measure.ts` and `markdown.ts`, and types (34.4).
+ * Imports of `src/`: `tree/measure.ts`, `tree/grammar.ts` and `markdown.ts`, and types (34.4).
  */
-import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { richTextToHtml } from '../markdown.ts'
+import { isUrl } from '../tree/grammar.ts'
 import { countedLength, estimatedLines } from '../tree/measure.ts'
-import type { Explainer, Violation } from '../tree/types.ts'
+import type { Explainer, Source, Violation } from '../tree/types.ts'
 import { useEditor } from './Editor.tsx'
 import { keyOf, plainLine, RAW_HTML, valueAt } from './fields.ts'
 import type { FieldLimit } from './mode.ts'
@@ -299,10 +300,102 @@ function hostOf(element: HTMLElement): Element | null {
   )
 }
 
+/** The chrome words the add-Source Sheet says (28.1); strings, because a client component takes no module. */
+export interface AddSourceWords {
+  addSource: string
+  sourceKind: string
+  sourceUrl: string
+}
+
 /**
- * A button that sends one operation of 22.2 at once (29.1): `+ addSource`, `removeSource`.
- * `focusPath` names the field, on the same Node, that takes the focus once the page has
- * re-rendered with the result.
+ * The page of the `+ addSource` Sheet (28.1): the kind of the Source to add and its URL.
+ * `add-source` goes only once a URL in the schema's grammar is typed, because the schema
+ * requires one and a made-up address would be silent content on a published page; it goes
+ * with an empty label and the kind chosen, the Sheet closes, and the new label takes the
+ * focus once the page has re-rendered (`focusPath`, on this Node). Enter in the URL sends
+ * it; the button stays disabled, and the input is marked invalid, while the URL is not one.
+ */
+export function AddSourceForm({
+  nodeId,
+  focusPath,
+  kinds,
+  words,
+}: {
+  nodeId: string
+  /** The new Source's label in the page's language: `sources[n].label.<lang>`. */
+  focusPath: string
+  kinds: { value: Source['kind']; label: string }[]
+  words: AddSourceWords
+}) {
+  const api = useEditor()
+  const form = useRef<HTMLFormElement>(null)
+  const urlInput = useRef<HTMLInputElement>(null)
+  const [kind, setKind] = useState<Source['kind']>(kinds[0]?.value ?? 'legal')
+  const [url, setUrl] = useState('')
+  const valid = isUrl(url.trim())
+
+  // The URL takes the focus when the Sheet opens: it is the one thing the Source needs.
+  useEffect(() => {
+    const details = form.current?.closest('details')
+    if (!details) return
+    const onToggle = (): void => {
+      if (details.open) urlInput.current?.focus()
+    }
+    details.addEventListener('toggle', onToggle)
+    return () => details.removeEventListener('toggle', onToggle)
+  }, [])
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault()
+    if (!valid || api.readOnly) return
+    api.operate(nodeId, { op: 'add-source', kind, label: {}, url: url.trim() }, keyOf(nodeId, focusPath))
+    const details = event.currentTarget.closest('details')
+    if (details) details.open = false
+    setUrl('')
+  }
+
+  return (
+    <form ref={form} className="source-editor source-editor--add" noValidate onSubmit={onSubmit}>
+      <h2>{words.addSource}</h2>
+      <label className="editor-row">
+        <span>{words.sourceKind}</span>
+        <select
+          className="editor-select"
+          value={kind}
+          disabled={api.readOnly}
+          onChange={(event: ChangeEvent<HTMLSelectElement>) => setKind(kinds.find((choice) => choice.value === event.target.value)?.value ?? kind)}
+        >
+          {kinds.map((choice) => (
+            <option key={choice.value} value={choice.value}>
+              {choice.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="editor-row">
+        <span>{words.sourceUrl}</span>
+        <input
+          ref={urlInput}
+          className="editor-url"
+          type="url"
+          inputMode="url"
+          value={url}
+          disabled={api.readOnly}
+          aria-invalid={url !== '' && !valid ? true : undefined}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => setUrl(event.target.value)}
+        />
+      </label>
+      <button type="submit" className="admin-submit" disabled={!valid || api.readOnly}>
+        {words.addSource}
+      </button>
+    </form>
+  )
+}
+
+/**
+ * A button that sends one operation of 22.2 at once (29.1): `removeSource`. `focusPath`
+ * names the field, on the same Node, that takes the focus once the page has re-rendered
+ * with the result.
  */
 export function Operation({
   nodeId,

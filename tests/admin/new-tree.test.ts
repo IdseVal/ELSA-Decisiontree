@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { editorHref, proposedId, refusalOf, type NewTreeWords } from '../../src/editor/NewTreeForm.tsx'
-import { isId } from '../../src/tree/grammar.ts'
+import { isId, isUrl } from '../../src/tree/grammar.ts'
 
 const WORDS = {
   treeIdTaken: 'taken',
@@ -73,5 +73,12 @@ describe('refusalOf', () => {
     expect(refusalOf(null, WORDS)).toEqual({ field: 'form', text: 'failed' })
     expect(refusalOf({ status: 500, body: null }, WORDS)).toEqual({ field: 'form', text: 'failed' })
     expect(refusalOf({ status: 401, body: { error: 'unauthenticated' } }, WORDS)).toEqual({ field: 'form', text: 'failed' })
+  })
+})
+
+describe('the URL grammar the add-Source Sheet checks before it sends (28.1, the schema\u2019s url)', () => {
+  it('an absolute http(s) URL with a host passes; a bare scheme, a space, another scheme or no scheme does not', () => {
+    for (const url of ['https://example.org', 'http://a.b/c?d=e#f', 'https://eur-lex.europa.eu/eli/reg/2024/1689/oj']) expect(isUrl(url), url).toBe(true)
+    for (const url of ['https://', 'https://a b', 'ftp://example.org', 'example.org', '', 42, null]) expect(isUrl(url), String(url)).toBe(false)
   })
 })

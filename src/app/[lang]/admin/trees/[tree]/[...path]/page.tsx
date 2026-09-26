@@ -86,7 +86,8 @@ export default async function EditorPage({ params }: Props) {
     >
       {/* The draft's Theme, so a colour changed in the draft is seen before publishing (13.1, ADR-133-admin-routes 6). */}
       <ThemeStyle tree={draft} />
-      <header className="page-chrome editor-chrome">
+      {/* An admin bar too: below 480 pixels it gives up the title and the current language, as #135 decided (10.6). */}
+      <header className="page-chrome admin-chrome editor-chrome">
         <Logo treeId={draft.id} theme={draft.manifest.theme} title={draft.manifest.title} lang={address.lang} />
         <div className="page-controls">
           <LanguageSwitch address={address} languages={draft.manifest.languages} edit={edit} />

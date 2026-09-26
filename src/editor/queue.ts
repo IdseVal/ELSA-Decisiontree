@@ -12,6 +12,7 @@
  * decides what the creator sees. Pure and timer-driven, so `tests/editor/queue.test.ts`
  * drives it with a fake `send` and fake timers.
  */
+import { keyOf } from './fields.ts'
 import type { Answer, Change } from './writes.ts'
 
 /** One write of the queue: the Node, the change, and the field it is for (null for an operation). */
@@ -86,9 +87,8 @@ export class WriteQueue {
 
   /** A field's value changed: written 600 ms after the last change, or on `flush` (29.1). */
   field(nodeId: string, keyPath: string, value: string): void {
-    const key = `${nodeId} ${keyPath}`
-    const path = keyPath
-    const write: Write = { nodeId, change: { path, value }, key }
+    const key = keyOf(nodeId, keyPath)
+    const write: Write = { nodeId, change: { path: keyPath, value }, key }
     const waiting = this.pending.get(key)
     if (waiting) clearTimeout(waiting.timer)
     const timer = setTimeout(() => {
@@ -101,7 +101,7 @@ export class WriteQueue {
 
   /** The field lost the focus: what it holds goes now (29.1). */
   flush(nodeId: string, keyPath: string): void {
-    const key = `${nodeId} ${keyPath}`
+    const key = keyOf(nodeId, keyPath)
     const waiting = this.pending.get(key)
     if (!waiting) return
     clearTimeout(waiting.timer)
@@ -116,7 +116,7 @@ export class WriteQueue {
 
   /** Whether a value of this field is typed and not yet accepted: the repaint rule of 29.7 leaves it alone. */
   hasWrite(nodeId: string, keyPath: string): boolean {
-    const key = `${nodeId} ${keyPath}`
+    const key = keyOf(nodeId, keyPath)
     return this.pending.has(key) || this.queue.some((write) => write.key === key)
   }
 

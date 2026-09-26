@@ -7,9 +7,11 @@
  * Server side: it reads the chrome and builds client elements with string props.
  */
 import type { ReactNode } from 'react'
-import { chrome, type Chrome } from '../chrome.ts'
+import { chrome, chromeLang, type Chrome } from '../chrome.ts'
+import { sheetWords } from '../components/Bubble.tsx'
+import { Sheet } from '../components/Sheet.tsx'
 import { editorLinks } from '../editor/links.ts'
-import { Field, Operation, type FieldWords, type OtherLanguage } from '../editor/Field.tsx'
+import { AddSourceForm, Field, Operation, type FieldWords, type OtherLanguage } from '../editor/Field.tsx'
 import type { EditMode, EditorSlots, EditorWords, FieldLimit } from '../editor/mode.ts'
 import type { Explainer, NodeContent, Outcome, Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
@@ -56,13 +58,11 @@ const LOCALISED = /^(title|description|sources\[\d+\]\.label|options\[\d+\]\.tit
 const KINDS: Source['kind'][] = ['legal', 'case-law', 'literature']
 const OUTCOMES: Outcome[] = ['not-applicable', 'applicable', 'prohibited', 'refer']
 
-/** A new Source (28.1): the `legal` kind, an empty label -- and a URL, because the schema requires one and the Sheet is where it is set. */
-export const NEW_SOURCE_URL = 'https://example.org/'
-
 /** The edit mode of the page at `address`, whose draft declares `languages`. */
 export function editMode(address: PageAddress, languages: string[]): EditMode {
   const lang = address.lang
   const ui = chrome(lang)
+  const uiLang = chromeLang(lang)
   const words = editorWords(lang)
   const links = editorLinks()
   const fieldWords: FieldWords = { missingText: words.missingText, characters: words.characters, lines: words.lines }
@@ -85,13 +85,25 @@ export function editMode(address: PageAddress, languages: string[]): EditMode {
       return <Field {...common} />
     },
     operation(node: NodeContent, op, index): ReactNode {
+      // `+ addSource` is a Sheet holding the kind and the URL: the schema requires a URL, so
+      // nothing is sent before one is typed (28.1); the new label then takes the focus.
       if (op === 'add-source') {
         return (
-          <Operation
-            nodeId={node.id}
-            change={{ op: 'add-source', kind: 'legal', label: {}, url: NEW_SOURCE_URL }}
-            label={`+ ${ui.addSource}`}
-            focusPath={`sources[${node.sources.length}].label.${lang}`}
+          <Sheet
+            className="source-sheet source-sheet--add"
+            summary={<span lang={uiLang}>{`+ ${ui.addSource}`}</span>}
+            pages={[
+              <AddSourceForm
+                key="add"
+                nodeId={node.id}
+                focusPath={`sources[${node.sources.length}].label.${lang}`}
+                kinds={KINDS.map((kind) => ({ value: kind, label: kindLabel(ui, kind) }))}
+                words={{ addSource: ui.addSource, sourceKind: ui.sourceKind, sourceUrl: ui.sourceUrl }}
+              />,
+            ]}
+            words={sheetWords(ui)}
+            uiLang={uiLang}
+            idPrefix={`${node.id}-add-source-`}
           />
         )
       }

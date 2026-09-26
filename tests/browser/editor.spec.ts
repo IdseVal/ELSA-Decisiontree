@@ -346,7 +346,7 @@ test.describe('an empty root Node, and the rim\u2019s tags (28.2, 28.3)', () => 
     await expect(title).toHaveValue('')
     await expect(title).toHaveAttribute('placeholder', 'Text missing in this language')
     await expect(field(page, 'start', 'description.en')).toContainText('Text missing in this language')
-    await expect(page.getByRole('button', { name: '+ Add a source' })).toBeVisible()
+    await expect(page.locator('.source-sheet--add .sheet-open')).toHaveText('+ Add a source')
     await expect(page.locator('[data-field]')).toHaveCount(2)
     await shoot(page, 'editor-empty-root')
 
@@ -366,22 +366,37 @@ test.describe('an empty root Node, and the rim\u2019s tags (28.2, 28.3)', () => 
     expect((await nodeOf(page, cookie, 'fresh', 'start')).title).toEqual({ en: 'The first question', nl: 'De eerste vraag' })
   })
 
-  test('the full Node, written in both languages, shows no tag; + addSource adds a Source and focuses its label; the Sheet removes it', async ({ browser }) => {
+  test('the full Node, written in both languages, shows no tag; + addSource takes a URL first, adds the Source and focuses its label; the Sheet removes it', async ({ browser }) => {
     const { page, cookie } = await loggedIn(browser, ANNA)
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     await field(page, 'full', 'title.en').locator('textarea').click()
     await expect(page.locator('.editor-pill')).toBeVisible()
     await expect(page.locator('.editor-tag')).toHaveCount(0)
-    // Three Sources already: no add button (5.7).
-    await expect(page.getByRole('button', { name: '+ Add a source' })).toHaveCount(0)
+    // Three Sources already: no add control (5.7).
+    await expect(page.locator('.source-sheet--add')).toHaveCount(0)
 
     // A Tree of this test's own: a failed test restarts the worker, and its server with it.
     expect((await api(page, cookie, 'POST', '/trees', { id: 'fresh-sources', languages: ['en'], title: { en: 'Sources' } })).status()).toBe(201)
     await page.goto(`${origin}/admin/trees/fresh-sources/start`)
-    await page.getByRole('button', { name: '+ Add a source' }).click()
+    // The control opens a Sheet with the URL focused; nothing is sent, and the button stays
+    // disabled, until a URL of the schema's grammar is typed (28.1). No placeholder address.
+    await page.locator('.source-sheet--add .sheet-open').click()
+    const url = page.locator('.source-editor--add .editor-url')
+    await expect(url).toBeFocused()
+    const add = page.locator('.source-editor--add button[type="submit"]')
+    await expect(add).toBeDisabled()
+    await url.fill('not a url')
+    await expect(url).toHaveAttribute('aria-invalid', 'true')
+    await expect(add).toBeDisabled()
+    expect((await nodeOf(page, cookie, 'fresh-sources', 'start')).sources).toHaveLength(0)
+    await url.fill('https://eur-lex.europa.eu/eli/reg/2024/1689/oj')
+    await expect(add).toBeEnabled()
+    await url.press('Enter')
     const label = field(page, 'start', 'sources[0].label.en').locator('textarea')
     await expect(label).toBeFocused()
-    expect((await nodeOf(page, cookie, 'fresh-sources', 'start')).sources).toHaveLength(1)
+    await expect(page.locator('.source-editor--add')).toBeHidden()
+    const [source] = (await nodeOf(page, cookie, 'fresh-sources', 'start')).sources
+    expect(source).toMatchObject({ kind: 'legal', label: {}, url: 'https://eur-lex.europa.eu/eli/reg/2024/1689/oj' })
     await label.fill('Article 1')
     await expect(status(page)).toContainText(/^Saved \d/)
     await page.locator('.source-sheet').first().locator('.sheet-open').click()

@@ -296,14 +296,14 @@ export function SaveIndicator({ words }: { words: EditorWords }) {
   const notSaved = notEditable !== null || queue.failure !== null || refused || refusedCode !== null
   const recent = queue.savedAt !== null && queue.savedAt + SHOWN_MS > Date.now()
 
-  let state1: string
+  let word: string
   let tone = ''
   if (notSaved) {
-    state1 = words.notSaved
+    word = words.notSaved
     tone = ' editor-status--danger'
-  } else if (queue.saving || queue.paused) state1 = words.saving
-  else if (queue.savedAt !== null) state1 = recent ? `${words.saved} ${new Date(queue.savedAt).toLocaleTimeString()}` : words.saved
-  else state1 = ''
+  } else if (queue.saving || queue.paused) word = words.saving
+  else if (queue.savedAt !== null) word = recent ? `${words.saved} ${new Date(queue.savedAt).toLocaleTimeString()}` : words.saved
+  else word = ''
 
   const parts: ReactNode[] = []
   if (notEditable !== null) parts.push(`${words.notEditable} (${notEditable})`)
@@ -329,7 +329,7 @@ export function SaveIndicator({ words }: { words: EditorWords }) {
 
   return (
     <div className={`editor-status${tone}`} role="status" data-saving={queue.saving || undefined} data-clamp="">
-      <span className="editor-status-word">{state1}</span>
+      <span className="editor-status-word">{word}</span>
       {parts.map((part, index) => (
         <span key={index} className="editor-status-part">
           {' · '}

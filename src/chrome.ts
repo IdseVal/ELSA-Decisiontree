@@ -123,7 +123,7 @@ export interface Chrome {
   loginInvalid: string
   loginTaken: string
   passwordLength: string
-  /** **[#138]** The editor's Source controls (28.1): the add button, the `...` Sheet's title, its fields and its remove button. */
+  /** **[#138]** The editor's Source controls (28.1): the add Sheet's control, title and button; the `...` Sheet's title, its fields and its remove button. */
   addSource: string
   editSource: string
   removeSource: string

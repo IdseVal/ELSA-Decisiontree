@@ -6,13 +6,14 @@
  * `markdown.test.ts` measures and the full Node's; a plain field turns a line break into a
  * space and blurs on Enter; the description shows the rendered text until it is focused and
  * the source while it is; `<` before a letter is refused at the field before anything is
- * sent; and a response's value repaints a field that is not being edited.
+ * sent; and a response's value repaints a field that is not being edited. The add-Source
+ * form sends `add-source` only once a URL is typed, with no placeholder, and closes its Sheet.
  */
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { Editor } from '../../src/editor/Editor.tsx'
-import { Field } from '../../src/editor/Field.tsx'
+import { AddSourceForm, Field } from '../../src/editor/Field.tsx'
 import type { EditorWords } from '../../src/editor/mode.ts'
 import { countedLength, estimatedLines } from '../../src/tree/measure.ts'
 import type { DraftNode } from '../../src/tree/types.ts'
@@ -245,5 +246,71 @@ describe('the response repaints (29.7)', () => {
     expect(container.querySelectorAll('textarea')[0]!.value).toBe('Theirs')
     expect(container.querySelector('.editor-field--changed')?.getAttribute('data-field')).toBe('start title.en')
     expect(container.querySelectorAll('textarea')[1]!.value).toBe('Mine too, edited')
+  })
+})
+
+describe('the add-Source form (28.1)', () => {
+  const kinds = [
+    { value: 'legal' as const, label: 'Legal' },
+    { value: 'case-law' as const, label: 'Case law' },
+  ]
+
+  function mountForm(): void {
+    act(() => {
+      root.render(
+        <Editor treeId="t" lang="en" words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node('T', 'D') }} violations={[]} published={false} publicCopyCurrent>
+          <details className="sheet" open>
+            <summary>+ addSource</summary>
+            <AddSourceForm nodeId="start" focusPath="sources[0].label.en" kinds={kinds} words={{ addSource: 'addSource', sourceKind: 'sourceKind', sourceUrl: 'sourceUrl' }} />
+          </details>
+        </Editor>,
+      )
+    })
+  }
+
+  const input = (): HTMLInputElement => container.querySelector('input.editor-url')!
+  const button = (): HTMLButtonElement => container.querySelector('button[type="submit"]')!
+
+  function typeUrl(value: string): void {
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input(), value)
+      input().dispatchEvent(new Event('input', { bubbles: true }))
+    })
+  }
+
+  test('nothing is sent and the button stays disabled until a URL of the schema\u2019s grammar is typed; no placeholder', () => {
+    mountForm()
+    expect(button().disabled).toBe(true)
+    expect(input().getAttribute('aria-invalid')).toBeNull()
+
+    typeUrl('not a url')
+    expect(input().getAttribute('aria-invalid')).toBe('true')
+    expect(button().disabled).toBe(true)
+    act(() => {
+      container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    })
+    expect(sent).toEqual([])
+
+    typeUrl('https://eur-lex.europa.eu/eli/reg/2024/1689/oj')
+    expect(input().getAttribute('aria-invalid')).toBeNull()
+    expect(button().disabled).toBe(false)
+  })
+
+  test('the submit sends add-source at once with the kind chosen, an empty label and the URL, and closes the Sheet', async () => {
+    mountForm()
+    act(() => {
+      const select = container.querySelector('select')!
+      Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')!.set!.call(select, 'case-law')
+      select.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    typeUrl(' https://example.com/ruling ')
+    act(() => {
+      container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    })
+    await act(() => vi.advanceTimersByTimeAsync(0))
+
+    expect(sent.map((s) => s.body)).toEqual([{ op: 'add-source', kind: 'case-law', label: {}, url: 'https://example.com/ruling' }])
+    expect(container.querySelector('details')!.open).toBe(false)
+    expect(input().value).toBe('')
   })
 })
