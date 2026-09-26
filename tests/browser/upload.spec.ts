@@ -5,7 +5,8 @@
  * the title, stored under the Tree's `images/` and served by the admin image route; after
  * publishing through #136's route it is on the public page, whose image requests are exactly
  * 11.5's set. A second picture lands in the strip through its `+`; `makeMain` swaps the two;
- * `removeImage` empties the strip and deletes the file. A credit left empty attaches nothing,
+ * `removeImage` empties the strip and deletes the file. A file dropped on the slot is uploaded
+ * as a picked one is. A credit left empty attaches nothing,
  * and `cancel` deletes the upload; an SVG and a 6 MiB file are refused at the picker in the
  * indicator; the Option button's picture appears the moment an aside's main image is
  * attached in its Overlay; every `<img>` of the editor is under the admin image route.
@@ -253,6 +254,34 @@ test.describe('the strip and the enlarged view (31.1, 31.3, 31.4)', () => {
     // Named by nothing now, and never published: the best-effort delete removed it (31.4).
     await expect.poll(() => stored('two-pictures', first)).toBe(false)
     expect(await stored('two-pictures', second)).toBe(true)
+  })
+})
+
+test.describe('dropping a file (31.1)', () => {
+  test('a file dropped on the slot opens the attach Sheet; dropped anywhere else it does nothing', async ({ browser }) => {
+    const { page, cookie } = await loggedIn(browser)
+    await freshTree(page, cookie, 'dropped')
+    await page.goto(`${origin}/admin/trees/dropped/start`)
+    const bytes = [...COVERED.buffer]
+    const drop = async (selector: string): Promise<void> => {
+      const transfer = await page.evaluateHandle((data) => {
+        const dataTransfer = new DataTransfer()
+        dataTransfer.items.add(new File([new Uint8Array(data)], 'dropped.png', { type: 'image/png' }))
+        return dataTransfer
+      }, bytes)
+      await page.dispatchEvent(selector, 'dragover', { dataTransfer: transfer })
+      await page.dispatchEvent(selector, 'drop', { dataTransfer: transfer })
+    }
+
+    await drop('.bubble h1')
+    await expect(page).toHaveURL(`${origin}/admin/trees/dropped/start`)
+    await expect(attachPanel(page)).toHaveCount(0)
+
+    await drop('.bubble .editor-picker--slot')
+    await expect(attachPanel(page)).toBeVisible()
+    await expect(attachPanel(page).locator('figcaption')).toHaveText(/^dropped-[0-9a-f]{8}\.png$/)
+    await attachPanel(page).getByRole('button', { name: 'Cancel' }).click()
+    await expect(attachPanel(page)).toHaveCount(0)
   })
 })
 
