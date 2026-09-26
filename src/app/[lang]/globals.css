@@ -2603,7 +2603,7 @@ fieldset:disabled .admin-submit {
 }
 
 .editor-status code {
-  font-family: inherit;
+  font: inherit;
   font-weight: 700;
 }
 
