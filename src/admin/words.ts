@@ -5,6 +5,7 @@
 import { chrome } from '../chrome.ts'
 import type { AccountWords } from '../editor/account-words.ts'
 import type { LoginWords } from '../editor/LoginForm.tsx'
+import type { NewTreeWords } from '../editor/NewTreeForm.tsx'
 
 export function loginWords(lang: string): LoginWords {
   const { login, password, signIn, loginFailed, loginLocked, requestFailed } = chrome(lang)
@@ -43,5 +44,28 @@ export function accountWords(lang: string): AccountWords {
     previous: ui.previous,
     next: ui.next,
     opensInNewTab: ui.opensInNewTab,
+  }
+}
+
+/** **[#137]** The new-Tree form's words (27.1, 27.2). */
+export function newTreeWords(lang: string): NewTreeWords {
+  const ui = chrome(lang)
+  return {
+    newTree: ui.newTree,
+    treeId: ui.treeId,
+    treeIdHint: ui.treeIdHint,
+    treeIdFixed: ui.treeIdFixed,
+    treeIdTaken: ui.treeIdTaken,
+    treeIdReserved: ui.treeIdReserved,
+    languages: ui.languages,
+    addLanguage: ui.addLanguage,
+    makeDefault: ui.makeDefault,
+    default: ui.default,
+    removeLanguage: ui.removeLanguage,
+    languageHint: ui.languageHint,
+    languagesFixed: ui.languagesFixed,
+    title: ui.title,
+    create: ui.create,
+    requestFailed: ui.requestFailed,
   }
 }

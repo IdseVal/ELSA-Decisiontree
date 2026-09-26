@@ -4,7 +4,8 @@
  * on the pages #135 builds -- the login page, the 403 page, the account page, and the
  * accounts page with more accounts than its box shows, plain and with each of its Sheets
  * open. The accounts list is a `[data-scroll-box]`, the exemption 10.6 names for it; the
- * document never scrolls.
+ * document never scrolls. **[#137]** And the creators' overview with fifteen tiles and the
+ * + tile, and the new-Tree form with three languages, whose boxes are two more carriers.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -37,6 +38,15 @@ const VIEWPORTS = [
 
 const LANGUAGES = ['en', 'nl'] as const
 
+/** **[#137]** The Trees of 35.3 for the overview's box: the example and `tree-01` to `tree-14`, published. */
+const TREES = [
+  { folder: path.join(repo, 'trees', 'ai-act-example') },
+  ...Array.from({ length: 14 }, (_ignored, index) => ({
+    folder: path.join(repo, 'tests', 'fixtures', 'single-language'),
+    id: `tree-${String(index + 1).padStart(2, '0')}`,
+  })),
+]
+
 /** Twenty accounts with the longest name 20.1 allows among them: more rows than the box holds. */
 const ACCOUNTS = [
   { login: 'cees', name: 'Cees', password: 'cees first password' },
@@ -57,7 +67,7 @@ const rows: string[] = []
 let origin: string
 
 test.beforeAll(async () => {
-  origin = await serveStore(await buildDataDir({ trees: [], accounts: ACCOUNTS }), PORT, ADMIN_ENV)
+  origin = await serveStore(await buildDataDir({ trees: TREES, accounts: ACCOUNTS }), PORT, ADMIN_ENV)
 })
 
 test.afterAll(async () => {
@@ -147,5 +157,27 @@ for (const lang of LANGUAGES) {
   test(`the accounts page with twenty-one accounts, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
     test.slow()
     await everywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), '/admin/accounts', 'accounts page', lang, 200)
+  })
+
+  test(`the creators' overview with fifteen tiles and the + tile, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
+    test.slow()
+    const page = await loggedIn(browser, 'admin', ADMIN_PASSWORD)
+    await everywhere(page, '/admin', "creators' overview", lang, 200)
+    await expect(page.locator('.tile')).toHaveCount(16)
+  })
+
+  test(`the new-Tree form with three languages, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
+    test.slow()
+    const page = await loggedIn(browser, 'cees', 'cees first password')
+    for (const [width, height] of VIEWPORTS) {
+      await page.setViewportSize({ width, height })
+      await page.goto(`${origin}/admin/new${lang === 'en' ? '' : `?lang=${lang}`}`)
+      // The page's language is the one tag; the other chrome language and a third make three.
+      await page.locator('.new-tree-add button', { hasText: /^(en|nl)$/ }).click()
+      await page.locator('.new-tree-add input').fill('pt-br')
+      await page.locator('.new-tree-add input').press('Enter')
+      await expect(page.locator('.new-tree-tag')).toHaveCount(3)
+      record(await measure(page), 'new-Tree form, three languages', lang, `${width}x${height}`, '')
+    }
   })
 }

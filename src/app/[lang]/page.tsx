@@ -35,7 +35,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         </div>
       </header>
       <main className="overview-page">
-        <Overview trees={trees} lang={lang} />
+        <Overview tiles={trees.map((tree) => ({ tree }))} lang={lang} />
       </main>
       <Disclaimer lang={lang} />
     </>
