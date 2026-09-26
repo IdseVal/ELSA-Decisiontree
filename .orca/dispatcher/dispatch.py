@@ -1760,6 +1760,20 @@ def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                              issue.number, model, hold)
                 continue
             s.pop("run", None)
+            # v0.2.18: the run may have ended without a PR because the issue's `Depends on:`
+            # line now names an open issue -- often the run itself added it after reading
+            # the ADRs (#144 gained #142 that way on 2026-09-26). The issue did nothing
+            # wrong: refund the cycle and let it wait as a plain candidate. Before this the
+            # retry ignored the line, spent a cycle on the same finding and paged the owner.
+            unmet_now = [n for n in issue.depends_on
+                         if n not in obs.issues or obs.issues[n].state != "CLOSED"]
+            if unmet_now:
+                s["cycle"] = max(0, int(s.get("cycle", 0)) - 1)
+                s.pop("retried", None)
+                state.save()
+                log.info("issue #%s: run ended without a PR and the issue now waits on %s "
+                         "-> cycle refunded, no retry", issue.number, unmet_now)
+                continue
             if bool(d["retry_empty_run"]) and not s.get("retried"):
                 cycle = int(s.get("cycle", 0)) + 1
                 if cycle > max_cycles:

@@ -21,6 +21,12 @@ export interface Write {
   change: Change
   /** `<node id> <key path>` for a field, so a newer value of the same field replaces an older one not yet sent. */
   key: string | null
+  /**
+   * **[#139]** What the control that sent an operation does with its answer, once the page
+   * has applied it: a structure button navigates to the Node it made (30.2, 30.4), the end
+   * Sheet shows a refusal (30.3). Not told of a 401: the write goes again after the sign-in.
+   */
+  then?: (answer: Answer) => void
 }
 
 /** What the indicator draws (29.3, 29.5, 29.6). */
@@ -109,9 +115,9 @@ export class WriteQueue {
     this.enqueue(waiting.write)
   }
 
-  /** An operation is written at once (29.1). */
-  operation(nodeId: string, change: Change): void {
-    this.enqueue({ nodeId, change, key: null })
+  /** An operation is written at once (29.1); `then` hears its answer (`Write`). */
+  operation(nodeId: string, change: Change, then?: (answer: Answer) => void): void {
+    this.enqueue({ nodeId, change, key: null, then })
   }
 
   /** Whether a value of this field is typed and not yet accepted: the repaint rule of 29.7 leaves it alone. */

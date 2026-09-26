@@ -174,6 +174,26 @@ export interface Chrome {
   explanation: string
   markedIn: string
   notMarkedIn: string
+  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button, the side-bubble `+`, and the two choices of its Sheet. */
+  treeEndsHere: string
+  newSideBubble: string
+  createNew: string
+  linkExisting: string
+  /** **[#139]** The link menu of an Answer or Option button (30.6, 30.7): its name and its two actions. */
+  linkMenu: string
+  changeTarget: string
+  removeLink: string
+  /** **[#139]** The step menu on the rim (30.8): its name, its two actions, and the confirmation of a delete. */
+  stepMenu: string
+  deleteStep: string
+  removeEnd: string
+  /** The confirmation named with the step's title: a function, so a language may order the sentence its own way (3.2). */
+  confirmDelete: (title: string) => string
+  confirm: string
+  cancel: string
+  /** **[#139]** The picker (30.6): its heading, and the placeholder of the new side-bubble's title. */
+  pickTarget: string
+  sideBubbleTitle: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -294,6 +314,21 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Explanation',
     markedIn: 'Marked in the text',
     notMarkedIn: 'Not marked in the text',
+    treeEndsHere: 'Tree ends here',
+    newSideBubble: 'New side bubble',
+    createNew: 'Create a new one',
+    linkExisting: 'Link an existing one',
+    linkMenu: 'This link',
+    changeTarget: 'Lead somewhere else',
+    removeLink: 'Remove this link',
+    stepMenu: 'This step',
+    deleteStep: 'Delete this step',
+    removeEnd: 'Does not end here after all',
+    confirmDelete: (title) => `Delete "${title}"? What it led to stays.`,
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    pickTarget: 'Which step?',
+    sideBubbleTitle: 'The side bubble\u2019s title',
   },
   nl: {
     yes: 'Ja',
@@ -412,6 +447,21 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Uitleg',
     markedIn: 'Gemarkeerd in de tekst',
     notMarkedIn: 'Niet gemarkeerd in de tekst',
+    treeEndsHere: 'Boom eindigt hier',
+    newSideBubble: 'Nieuwe zijbubbel',
+    createNew: 'Een nieuwe maken',
+    linkExisting: 'Een bestaande koppelen',
+    linkMenu: 'Deze koppeling',
+    changeTarget: 'Ergens anders heen',
+    removeLink: 'Deze koppeling verwijderen',
+    stepMenu: 'Deze stap',
+    deleteStep: 'Deze stap verwijderen',
+    removeEnd: 'Eindigt hier toch niet',
+    confirmDelete: (title) => `"${title}" verwijderen? Waar die heen leidde blijft.`,
+    confirm: 'Bevestigen',
+    cancel: 'Annuleren',
+    pickTarget: 'Welke stap?',
+    sideBubbleTitle: 'De titel van de zijbubbel',
   },
 }
 
