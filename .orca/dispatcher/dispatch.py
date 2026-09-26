@@ -2094,6 +2094,7 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                                                             f"branch, resolves the conflicts, and pushes.")))
                 for k in ("fix", "fix_done_seen", "blocked_handled"):
                     s.pop(k, None)
+                s["conflict_block"] = True   # v0.2.19: the merge run below spends no cycle
                 state.save()
                 continue  # the blocked branch dispatches on the next tick
 
@@ -2127,10 +2128,16 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                     log.debug("PR #%s: blocked; CI run %s still going -> fix run waits for the Reviewer's list",
                               pr.number, ci["id"])
                     continue
+                # v0.2.19: a block the dispatcher applied itself because the PR CONFLICTS with
+                # the base branch is not a failed attempt: the merge run spends no cycle. Three
+                # parallel PRs (#154-#156) each made the others conflict on every merge, and
+                # #155 reached cycle 3/3 with one Reviewer remark to spare.
+                conflict_merge = bool(s.pop("conflict_block", None)) and pr.conflicting
                 cycle = 1
                 if issue:
                     si = state.issue(issue.number)
-                    cycle = int(si.get("cycle", 1)) + 1
+                    cycle = (max(1, int(si.get("cycle", 1))) if conflict_merge
+                             else int(si.get("cycle", 1)) + 1)
                     si["cycle"] = cycle
                 if cycle > max_cycles:
                     def _esc(pr=pr, issue=issue):
@@ -2163,8 +2170,9 @@ def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
                                                       cfg["branches"]["base"]))
                         def _fix(wt=wt, brief=brief, log_name=log_name, model=model):
                             return spawn_headless(wt.path, brief, log_name, cfg, model)
-                        pid = act(f"PR #{pr.number}: blocked -> dispatch fix run (cycle {cycle}/{max_cycles}, "
-                                  f"model {model or 'CLI default'})", _fix)
+                        kind = "conflict merge" if conflict_merge else "fix"
+                        pid = act(f"PR #{pr.number}: blocked -> dispatch {kind} run (cycle {cycle}/{max_cycles}"
+                                  f"{', not counted' if conflict_merge else ''}, model {model or 'CLI default'})", _fix)
                         if pid:
                             s["fix"] = {"pid": pid, "started": now_ms(), "log": log_name, "model": model,
                                         "head_oid": pr.head_oid}
