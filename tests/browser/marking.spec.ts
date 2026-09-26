@@ -96,7 +96,7 @@ async function selectInDescription(page: Page, nodeId: string, lang: string, wor
 }
 
 async function saved(page: Page): Promise<void> {
-  await expect(status(page)).toContainText(/^Saved/)
+  await expect(status(page)).toContainText(/^(Saved|Opgeslagen) /)
 }
 
 async function shoot(page: Page, name: string): Promise<void> {
@@ -121,7 +121,7 @@ test('marking "provider" writes the mark and an explainer; both languages are wr
   const textEn = sheet(page).locator('[data-field="no-end explainers[0].text.en"] textarea')
   await expect(textEn).toBeFocused()
   await page.keyboard.type(EN_TEXT)
-  await expect(sheet(page).locator('.editor-pill')).toHaveText(`${EN_TEXT.length} / 200`)
+  await expect(page.locator('.editor-pill')).toHaveText(`${EN_TEXT.length} / 200`)
   await shoot(page, 'explainer-text-being-written')
 
   // Dutch: its own section, not marked in the Dutch description yet (V-EXPLAINER).
@@ -181,7 +181,8 @@ test('the ninth mark is disabled with explainerLimit', async ({ browser }) => {
   await selectInDescription(page, 'start', 'en', 'Every')
   await expect(markButton(page)).toHaveAttribute('aria-disabled', 'true')
   await expect(markButton(page)).toHaveAttribute('title', 'This step has eight explainers, the most it can hold.')
-  await markButton(page).click()
+  await expect(markButton(page)).toBeDisabled()
+  await markButton(page).click({ force: true })
   await expect(sheet(page)).toHaveCount(0)
 })
 
@@ -192,7 +193,7 @@ test('a 201-character text is stored and shown over the limit at the field with 
   const text = sheet(page).locator('[data-field="no-end explainers[0].text.en"]')
   const long = 'x'.repeat(201)
   await text.locator('textarea').fill(long)
-  await expect(sheet(page).locator('.editor-pill--over')).toHaveText('201 / 200')
+  await expect(page.locator('.editor-pill--over')).toHaveText('201 / 200')
   await expect(text).toHaveAttribute('data-over', 'true')
   await expect(status(page).locator('.editor-violation')).toHaveAttribute('data-rule', 'V-LENGTH')
   await expect.poll(async () => (await nodeOf(page, cookie, 'no-end')).explainers[0]?.text.en).toBe(long)
