@@ -3004,6 +3004,11 @@ receives no `Set-Cookie`, and `/admin/api/login` is asserted to be the **only** 
 run that ever set one, with every attribute of 20.4 present. The CORS permission of 15.2
 stays safe for the reason 15.2 gives; this rule is what keeps that reason true.
 
+**[#135] As built.** `POST /admin/api/logout` also answers a `Set-Cookie`: the clearing
+value (`Max-Age=0`, the same attributes) that 20.4 requires of a logout, and that 35.5
+already names beside the login. The sweep asserts the login and that clearing value as the
+only two setters of the run, not the login alone; neither is a public route.
+
 ### 20.6 CSRF
 
 Every `POST`, `PUT`, `PATCH` and `DELETE` under `/admin` -- the login route included -- is
