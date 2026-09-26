@@ -9,7 +9,7 @@
  */
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
-import type { Explainer, Image, LocalisedText, Manifest, Node, Option, Outcome, Source, Theme, Violation } from './types.ts'
+import type { DraftNode, Explainer, Image, LocalisedText, Manifest, Node, Option, Outcome, Source, Theme, Violation } from './types.ts'
 import { isId, isImageFile, isMapping, isThemeFile, nodeKind, validateTree, type Mapping, type RawTree } from './validate.ts'
 
 /**
@@ -85,14 +85,41 @@ export interface Tree {
 }
 
 /**
+ * **[#136]** A Tree's draft (application.md 19.2): `draft.json` read under the Draft column
+ * of section 7, indexed as a `Tree` is. What differs is the Node, which may still lack a
+ * title, a description or one Answer, and the list of advisory violations it is held with.
+ */
+export interface Draft extends Omit<Tree, 'getNode' | 'filePath' | 'lastModified'> {
+  getNode(id: string): Promise<DraftNode | null>
+  /** The whole draft's to-do list: every advisory violation, after opening. */
+  readonly advisory: Violation[]
+  /** Absolute path of `draft.json`. */
+  readonly filePath: string
+}
+
+/**
  * Reads and validates the Tree folder `dir` once (tree-format.md section 7) and builds the
  * Node and title indexes. Rejects with `TreeInvalid` listing every violation.
+ *
+ * **[#136]** With `{ draft: true }` it reads `draft.json` under the draft rules instead
+ * (application.md 19.2) and answers a `Draft` holding the advisory list; it rejects with
+ * `TreeInvalid` only for the blocking violations -- a draft the store would never have
+ * written, which makes the Tree uneditable (19.5).
  */
-export async function openTree(dir: string): Promise<Tree> {
+export async function openTree(dir: string): Promise<Tree>
+export async function openTree(dir: string, options: { draft: true }): Promise<Draft>
+export async function openTree(dir: string, options?: { draft: true }): Promise<Tree | Draft> {
   const root = path.resolve(dir)
   const id = path.basename(root)
   const violations: Violation[] = []
-  const raw = await readTree(root, id, violations)
+  if (options?.draft) {
+    const raw = await readTree(root, id, violations, 'draft.json')
+    if (raw) violations.push(...validateTree(raw, 'draft'))
+    const blocking = violations.filter((violation) => !violation.advisory)
+    if (!raw || blocking.length > 0) throw new TreeInvalid(id, blocking)
+    return draftOf(raw, root, violations)
+  }
+  const raw = await readTree(root, id, violations, 'tree.json')
   if (raw) violations.push(...validateTree(raw))
   if (!raw || violations.length > 0) throw new TreeInvalid(id, violations)
 
@@ -120,14 +147,42 @@ export async function openTree(dir: string): Promise<Tree> {
   }
 }
 
-/** Reads and parses the Tree folder, reporting V-DIR and V-JSON. */
-async function readTree(root: string, id: string, violations: Violation[]): Promise<RawTree | null> {
+/**
+ * **[#136]** A draft that passed every blocking rule (application.md 19.2), indexed: what
+ * `openTree(dir, { draft: true })` answers, and what the store builds from the draft it holds
+ * in memory after each write without reading the file back. `advisory` is the draft's
+ * violations, every one advisory. Every cast below is backed by the draft schema.
+ */
+export function draftOf(raw: RawTree, root: string, advisory: Violation[]): Draft {
+  const manifest = toManifest(raw.tree)
+  const nodes = new Map<string, DraftNode>()
+  for (const node of raw.tree.nodes as Mapping[]) nodes.set(node.id as string, toDraftNode(node))
+  const themeReferences = referencedThemeFiles(manifest.theme)
+  return {
+    id: raw.id,
+    manifest,
+    advisory,
+    filePath: path.join(root, 'draft.json'),
+    getNode: async (nodeId) => (isId(nodeId) ? (nodes.get(nodeId) ?? null) : null),
+    getTitle: (nodeId) => nodes.get(nodeId)?.title ?? null,
+    nodeIds: () => [...nodes.keys()],
+    // Every picture of the folder, named or not: the editor shows an upload before it is
+    // attached (application.md 22.6, 31.2). Only the admin area reaches a draft.
+    imagePath: (file) => (isImageFile(file) && raw.images.has(file) ? path.join(root, 'images', file) : null),
+    themePath: (file) =>
+      isThemeFile(file) && themeReferences.has(file) && raw.themeFiles.has(file) ? path.join(root, 'theme', file) : null,
+  }
+}
+
+/** Reads and parses the Tree folder's `name` -- `tree.json`, or a draft's `draft.json` -- reporting V-DIR and V-JSON. */
+async function readTree(root: string, id: string, violations: Violation[], name: 'tree.json' | 'draft.json'): Promise<RawTree | null> {
   const fail = (where: string, rule: string, message: string): void => {
     violations.push({ file: where, keyPath: '', rule, message })
   }
-  const text = await readText(path.join(root, 'tree.json'))
+  // Spelled out rather than joined from `name`: see the two folders below.
+  const text = await readText(name === 'tree.json' ? path.join(root, 'tree.json') : path.join(root, 'draft.json'))
   if (!isId(id)) fail('', 'V-DIR', `folder name "${id}" is not an id: lowercase letters, digits and single hyphens`)
-  if (text === null) fail('tree.json', 'V-DIR', 'tree.json is missing')
+  if (text === null) fail(name, 'V-DIR', `${name} is missing`)
   // The two names are spelled out rather than looped over: a `path.join` whose last segment
   // is a variable makes Turbopack trace the whole project into the standalone build.
   if (await isFile(path.join(root, 'images'))) fail('images', 'V-DIR', 'images must be a folder, not a file')
@@ -313,6 +368,28 @@ function toManifest(raw: Mapping): Manifest {
     metadata: raw.metadata as Manifest['metadata'],
     theme: raw.theme as Theme | undefined,
   }
+}
+
+/**
+ * **[#136]** A draft's Node as the editor receives it: as `toNode`, and a `title` or
+ * `description` not written yet is an empty localised text, as an absent list is an empty
+ * array; `answers` holds the Answers there are.
+ */
+function toDraftNode(raw: Mapping): DraftNode {
+  const node = {
+    id: raw.id as string,
+    title: (raw.title as LocalisedText | undefined) ?? {},
+    description: (raw.description as LocalisedText | undefined) ?? {},
+    metadata: raw.metadata as Node['metadata'],
+    sources: (raw.sources as Source[] | undefined) ?? [],
+    images: (raw.images as Image[] | undefined) ?? [],
+    options: (raw.options as Option[] | undefined) ?? [],
+    explainers: (raw.explainers as Explainer[] | undefined) ?? [],
+    kind: nodeKind(raw),
+  }
+  if ('answers' in raw) return { ...node, answers: raw.answers as DraftNode['answers'] }
+  if ('terminal' in raw) return { ...node, outcome: (raw.terminal as { outcome: Outcome }).outcome }
+  return node
 }
 
 function toNode(raw: Mapping): Node {

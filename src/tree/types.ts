@@ -111,6 +111,17 @@ export type Node = {
   | { kind: 'explanation' }
 )
 
+/**
+ * **[#136]** A Node of a draft (docs/specs/application.md 19.2): a `Node` whose `answers` may
+ * lack a key and whose localised texts may lack a language or hold an empty string for one
+ * -- a `title` or `description` not written yet is `{}` -- and nothing else different.
+ */
+export type DraftNode = Omit<Node, 'kind'> & {
+  kind: NodeKind
+  answers?: { yes?: string; no?: string }
+  outcome?: Outcome
+}
+
 /** One broken validity rule of docs/specs/tree-format.md section 7. */
 export interface Violation {
   /**
@@ -128,4 +139,9 @@ export interface Violation {
   /** The rule id, e.g. `V-ANSWERS`, or `schema` for a shape failure the schema reports. */
   rule: string
   message: string
+  /**
+   * **[#136]** Set on a draft's violations only (application.md 19.2): true for one of the
+   * creator's to-do list, which the draft holds; false for one the store never writes.
+   */
+  advisory?: boolean
 }
