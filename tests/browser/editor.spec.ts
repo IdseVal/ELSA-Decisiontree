@@ -101,7 +101,7 @@ test.describe('the regions in place (28.1, 34.7)', () => {
     // The Overlay's Interior is edited in place too (28.1): its target's fields are on the page.
     await expect(page.locator('[data-field="opt-one title.en"]')).toHaveCount(1)
     // The main image and the strip: pictures from the admin image route, no field (task 1: #140's).
-    await expect(page.locator('.main-image img')).toHaveAttribute('src', /^\/admin\/api\/trees\/hidden-draft\/images\//)
+    await expect(page.locator('.main-image img').first()).toHaveAttribute('src', /^\/admin\/api\/trees\/hidden-draft\/images\//)
     expect(await page.locator('.carousel-strip .thumbnail').count()).toBe(9)
     await expect(page.locator('[data-field^="full images"]')).toHaveCount(0)
     // Nothing slides in the editor (34.5).

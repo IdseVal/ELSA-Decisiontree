@@ -186,7 +186,8 @@ async function editorEverywhere(page: Page, lang: string): Promise<void> {
     for (let i = 0; i < Math.min(await sheets.count(), 2); i += 1) {
       const control = sheets.nth(i).locator('.sheet-open')
       if (!(await control.isVisible())) continue
-      await control.click()
+      // On the picture: the title beside it is a field now, and a click on it edits.
+      await control.locator('.option-image').click()
       await expect(sheets.nth(i).locator('.sheet-panel')).toBeVisible()
       record(await measure(page), 'editor', lang, viewport, `Overlay ${i + 1}`)
       await page.keyboard.press('Escape')
@@ -202,8 +203,9 @@ for (const lang of LANGUAGES) {
   })
 }
 
-test('the editor with the session Sheet open never scrolls at the guarantee and at the floor (29.6)', async ({ browser }) => {
-  for (const [width, height] of [VIEWPORTS[0], VIEWPORTS[9]] as const) {
+test('the editor with the session Sheet open never scrolls at the guarantee and on a phone (29.6)', async ({ browser }) => {
+  // Not the floor: there the notice stands in for the view and no field can be typed in (10.4).
+  for (const [width, height] of [VIEWPORTS[0], VIEWPORTS[8]] as const) {
     const page = await loggedIn(browser, 'admin', ADMIN_PASSWORD)
     await page.setViewportSize({ width, height })
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
