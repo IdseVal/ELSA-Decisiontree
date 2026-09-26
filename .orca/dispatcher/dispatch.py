@@ -1557,6 +1557,21 @@ def worktree_path(name: str, res: Optional[dict[str, Any]]) -> Optional[str]:
     return None
 
 
+def headless_env(d: dict[str, Any]) -> dict[str, str]:
+    """The environment of a headless run (v0.2.17).
+
+    A run that backgrounds a command and ends its turn to wait for it is a failed run at
+    full cost (the CI Verifier on PR #149 did exactly that): the CLI is told to refuse
+    background tasks altogether, and the foreground Bash ceiling is raised so a 20-minute
+    suite fits without one. `bash_timeout_minutes` (config, default 40) sets the ceiling."""
+    env = dict(os.environ)
+    ms = str(int(float(d.get("bash_timeout_minutes", 40)) * 60_000))
+    env.setdefault("CLAUDE_CODE_DISABLE_BACKGROUND_TASKS", "1")
+    env.setdefault("BASH_DEFAULT_TIMEOUT_MS", ms)
+    env.setdefault("BASH_MAX_TIMEOUT_MS", ms)
+    return env
+
+
 def spawn_headless(workdir: str, brief: Path, log_name: str, cfg: dict[str, Any],
                    model: str = "") -> Optional[int]:
     """Start a run-to-completion `claude -p` process in the worktree. Returns the PID.
@@ -1585,7 +1600,7 @@ def spawn_headless(workdir: str, brief: Path, log_name: str, cfg: dict[str, Any]
     try:
         proc = subprocess.Popen(
             cmd, cwd=workdir, stdin=subprocess.DEVNULL,
-            stdout=logf, stderr=subprocess.STDOUT, **kwargs,
+            stdout=logf, stderr=subprocess.STDOUT, env=headless_env(d), **kwargs,
         )
     except (FileNotFoundError, OSError) as exc:
         log.error("cannot start %s: %s (set dispatcher.claude_cmd to an absolute path?)", cmd[0], exc)

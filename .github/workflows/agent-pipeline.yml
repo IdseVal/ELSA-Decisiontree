@@ -151,8 +151,10 @@ jobs:
           FIRST RULE, before anything else: you run headless, and your run ENDS when your turn
           ends. Never run a command in the background (no `run_in_background`, no Monitor, no
           "I'll wait for the notification"): nothing re-invokes you, and a turn that ends
-          waiting is a failed run at full cost. Run every suite in the FOREGROUND with a
-          timeout of up to 25 minutes, read its result, and only then decide.
+          waiting is a failed run at full cost. Run every suite in the FOREGROUND with an
+          explicit `timeout` (the ceiling is 40 minutes; the no-scroll spec needs about 20, so
+          pass 1500000 or more), read its result, and only then decide. Backgrounding is
+          refused by the CLI in this job.
 
           You are the VERIFIER for pull request #__PR__
           into `dev`. You are a fresh, independent, adversarial check on an
@@ -239,6 +241,10 @@ jobs:
           # never drift with the action's default.
           claude_args: "--max-turns 120 --allowedTools Bash,Read,Glob,Grep,Skill --model sonnet"   # 80 until 2026-09-19: a re-measure of every page hit it
           show_full_output: true
+          # v0.2.17: the CLI itself refuses background tasks (the Verifier on PR #149 backgrounded
+          # both suites and ended its turn waiting), and a foreground command may run 40 minutes:
+          # the no-scroll spec alone takes about 20, and the tool's default ceiling is 10.
+          settings: '{"env": {"CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1", "BASH_DEFAULT_TIMEOUT_MS": "2400000", "BASH_MAX_TIMEOUT_MS": "2400000"}, "permissions": {"deny": ["Bash(run_in_background:true)", "Monitor"]}}'
           prompt: ${{ steps.vbrief.outputs.prompt }}
 
   review:
@@ -293,8 +299,10 @@ jobs:
           FIRST RULE, before anything else: you run headless, and your run ENDS when your turn
           ends. Never run a command in the background (no `run_in_background`, no Monitor, no
           "I'll wait for the notification"): nothing re-invokes you, and a turn that ends
-          waiting is a failed run at full cost. Run every suite in the FOREGROUND with a
-          timeout of up to 25 minutes, read its result, and only then decide.
+          waiting is a failed run at full cost. Run every suite in the FOREGROUND with an
+          explicit `timeout` (the ceiling is 40 minutes; the no-scroll spec needs about 20, so
+          pass 1500000 or more), read its result, and only then decide. Backgrounding is
+          refused by the CLI in this job.
 
           You are the REVIEWER for pull request #__PR__
           into `dev`. You are the last gate before integration. Fresh context, headless,
@@ -386,6 +394,10 @@ jobs:
           github_token: ${{ github.token }}
           claude_args: "--max-turns 40 --allowedTools Bash,Read,Glob,Grep,Skill --model opus"
           show_full_output: true
+          # v0.2.17: the CLI itself refuses background tasks (the Verifier on PR #149 backgrounded
+          # both suites and ended its turn waiting), and a foreground command may run 40 minutes:
+          # the no-scroll spec alone takes about 20, and the tool's default ceiling is 10.
+          settings: '{"env": {"CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1", "BASH_DEFAULT_TIMEOUT_MS": "2400000", "BASH_MAX_TIMEOUT_MS": "2400000"}, "permissions": {"deny": ["Bash(run_in_background:true)", "Monitor"]}}'
           prompt: ${{ steps.brief.outputs.prompt }}
 
       - name: Reviewer agent
@@ -402,6 +414,10 @@ jobs:
           # v0.2.7: the transcript is the only way to learn WHY a run posted nothing.
           # Actions masks the secrets; what the agent reads is the repository.
           show_full_output: true
+          # v0.2.17: the CLI itself refuses background tasks (the Verifier on PR #149 backgrounded
+          # both suites and ended its turn waiting), and a foreground command may run 40 minutes:
+          # the no-scroll spec alone takes about 20, and the tool's default ceiling is 10.
+          settings: '{"env": {"CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1", "BASH_DEFAULT_TIMEOUT_MS": "2400000", "BASH_MAX_TIMEOUT_MS": "2400000"}, "permissions": {"deny": ["Bash(run_in_background:true)", "Monitor"]}}'
           prompt: ${{ steps.brief.outputs.prompt }}
 
       - name: Did the Reviewer decide?
@@ -429,6 +445,10 @@ jobs:
           github_token: ${{ github.token }}
           claude_args: "--max-turns 60 --allowedTools Bash,Read,Glob,Grep,Skill --model opus"
           show_full_output: true
+          # v0.2.17: the CLI itself refuses background tasks (the Verifier on PR #149 backgrounded
+          # both suites and ended its turn waiting), and a foreground command may run 40 minutes:
+          # the no-scroll spec alone takes about 20, and the tool's default ceiling is 10.
+          settings: '{"env": {"CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1", "BASH_DEFAULT_TIMEOUT_MS": "2400000", "BASH_MAX_TIMEOUT_MS": "2400000"}, "permissions": {"deny": ["Bash(run_in_background:true)", "Monitor"]}}'
           prompt: ${{ steps.brief.outputs.prompt }}
 
       - name: Fail the run if there is still no decision

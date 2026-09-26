@@ -31,6 +31,8 @@ dispatcher:
                                      # scheduled task runs with a minimal PATH anyway
   permission_args: ["--dangerously-skip-permissions"]   # see "How a headless run works"
   extra_args: []                     # appended to EVERY headless run, after the policy's
+  bash_timeout_minutes: 40          # v0.2.17: foreground Bash ceiling of a headless run (the no-scroll
+                                    # spec takes ~20); background tasks are refused by the CLI
                                      # --model flag (v0.2.5: the model comes from `models:`
                                      # below; a --model here would override it -- don't)
   interactive_agent: claude          # Orca agent id for interviews launched WITHOUT a
