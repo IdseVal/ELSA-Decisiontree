@@ -1819,9 +1819,10 @@ fieldset:disabled .admin-submit {
   font-weight: 700;
 }
 
+/* A 48-pixel glyph on the font's own line: the heading stack's ascent and descent take 56. */
 .tile-plus {
   font-size: 48px;
-  line-height: 48px;
+  line-height: normal;
   font-weight: 400;
   color: var(--accent-secondary-read);
 }
