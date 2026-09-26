@@ -25,6 +25,7 @@ export interface AccountWords {
   save: string
   login: string
   password: string
+  displayName: string
   nameLength: string
   loginInvalid: string
   loginTaken: string

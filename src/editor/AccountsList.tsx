@@ -22,12 +22,12 @@ export interface AccountRow {
   administrator: boolean
 }
 
-export function AccountsList({ accounts, words, nameLabel }: { accounts: AccountRow[]; words: AccountWords; nameLabel: string }) {
+export function AccountsList({ accounts, words }: { accounts: AccountRow[]; words: AccountWords }) {
   const sheetWords = { close: words.close, previous: words.previous, next: words.next, opensInNewTab: words.opensInNewTab }
   return (
     <>
       <div className="admin-toolbar">
-        <Sheet summary={words.newAccount} pages={[<NewAccount key="new" words={words} nameLabel={nameLabel} />]} words={sheetWords} uiLang={undefined} className="account-sheet" />
+        <Sheet summary={words.newAccount} pages={[<NewAccount key="new" words={words} />]} words={sheetWords} uiLang={undefined} className="account-sheet" />
       </div>
       <div className="admin-list" data-scroll-box="" tabIndex={0}>
         <ul>
@@ -73,7 +73,7 @@ function ActiveToggle({ account, words }: { account: AccountRow; words: AccountW
   )
 }
 
-function NewAccount({ words, nameLabel }: { words: AccountWords; nameLabel: string }) {
+function NewAccount({ words }: { words: AccountWords }) {
   const [name, setName] = useState('')
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
@@ -87,7 +87,7 @@ function NewAccount({ words, nameLabel }: { words: AccountWords; nameLabel: stri
   const at = (field: string): string | undefined => (refusal && (refusal.field ?? 'password') === field ? refusal.text : undefined)
   return (
     <form className="admin-form" onSubmit={submit}>
-      <Field label={nameLabel} error={at('name')}>
+      <Field label={words.displayName} error={at('name')}>
         <input name="name" required maxLength={80} autoComplete="off" value={name} onChange={(event) => setName(event.target.value)} />
       </Field>
       <Field label={words.login} error={at('login')}>

@@ -116,6 +116,8 @@ export interface Chrome {
   administrator: string
   setPassword: string
   save: string
+  /** **[#135]** The new-account Sheet's label for the display name, beside `login` (25.3). */
+  displayName: string
   /** **[#135]** A refused field of the account forms (422): the rule it broke (20.1, 20.2). */
   nameLength: string
   loginInvalid: string
@@ -194,6 +196,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     administrator: 'Administrator',
     setPassword: 'Set password',
     save: 'Save',
+    displayName: 'Display name',
     nameLength: 'A name is 1 to 80 characters.',
     loginInvalid: 'Use 2 to 64 lowercase letters, digits and single hyphens.',
     loginTaken: 'This name is taken.',
@@ -269,6 +272,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     administrator: 'Beheerder',
     setPassword: 'Wachtwoord instellen',
     save: 'Opslaan',
+    displayName: 'Weergavenaam',
     nameLength: 'Een naam is 1 tot 80 tekens.',
     loginInvalid: 'Gebruik 2 tot 64 kleine letters, cijfers en enkele koppeltekens.',
     loginTaken: 'Deze naam is al in gebruik.',

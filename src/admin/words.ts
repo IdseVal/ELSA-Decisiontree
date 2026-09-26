@@ -33,6 +33,7 @@ export function accountWords(lang: string): AccountWords {
     save: ui.save,
     login: ui.login,
     password: ui.password,
+    displayName: ui.displayName,
     nameLength: ui.nameLength,
     loginInvalid: ui.loginInvalid,
     loginTaken: ui.loginTaken,

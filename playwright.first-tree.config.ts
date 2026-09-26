@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
+import { ADMIN_PASSWORD } from './tests/store/admin.ts'
 
 /**
  * The browser walk of the FIRST Tree (`npm run test:first-tree`), issue #23.
@@ -75,6 +76,8 @@ export default defineConfig({
     timeout: 240_000,
     env: {
       ELSA_DATA_DIR: DATA_DIR,
+      // **[#135]** A store without an administrator does not start without it (20.3).
+      ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD,
       NEXT_TELEMETRY_DISABLED: '1',
       // The standalone server reads where to listen from the environment, not from flags.
       PORT: String(PORT),
