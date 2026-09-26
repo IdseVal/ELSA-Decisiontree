@@ -7,7 +7,7 @@
  * arrived with a third-party Tree must not be able to run script on this origin. The
  * theme route's headers (5.5) make it inert even when it is opened directly.
  */
-import { themeLogo } from '../theme.ts'
+import { themeLogo, type ThemeHref } from '../theme.ts'
 import type { LocalisedText, Theme } from '../tree/types.ts'
 import { themeHref } from '../url.ts'
 import { chrome, chromeLang, text } from '../chrome.ts'
@@ -18,12 +18,15 @@ export function Logo({
   /** The Tree's title: what stands in for a logo the Theme does not give. */
   title,
   lang,
+  href = themeHref,
 }: {
   /** The Tree the logo is of: its theme files are under its id (application.md 18.1). */
   treeId: string
   theme: Theme | undefined
   title: LocalisedText
   lang: string
+  /** **[#144]** How the logo's file is addressed: the editor's draft through the admin route. */
+  href?: ThemeHref
 }) {
   const logo = themeLogo(theme)
   if (!logo) return <span className="tree-title">{text(title, lang, 'tree.title')}</span>
@@ -31,7 +34,7 @@ export function Logo({
   const image = (
     <img
       className="logo"
-      src={themeHref(treeId, logo.file)}
+      src={href(treeId, logo.file)}
       // The lab's name, from the Theme (tree-format.md 4.3.1) and in the language on screen.
       alt={text(logo.alt, lang, 'theme.logo.alt')}
     />

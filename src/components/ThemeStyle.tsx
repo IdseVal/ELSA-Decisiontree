@@ -7,14 +7,18 @@
  * `precedence` is what makes React hoist the element into `<head>` from wherever the page
  * renders it, and what keeps it to one element per document.
  */
-import { themeStyle } from '../theme.ts'
+import { themeStyle, type ThemeHref } from '../theme.ts'
 import type { Tree } from '../tree/loader.ts'
 import { themeHref } from '../url.ts'
 
-/** `tree` is the Tree the page shows -- **[#138]** or the editor's draft; null on a page that shows none, which takes the default (13.4). */
-export function ThemeStyle({ tree }: { tree: Pick<Tree, 'id' | 'manifest'> | null }) {
+/**
+ * `tree` is the Tree the page shows -- **[#138]** or the editor's draft; null on a page that
+ * shows none, which takes the default (13.4). **[#144]** `href` addresses its files: the
+ * editor passes the admin route's, which serves the draft's.
+ */
+export function ThemeStyle({ tree, href = themeHref }: { tree: Pick<Tree, 'id' | 'manifest'> | null; href?: ThemeHref }) {
   // The default names no font file, so it needs no Tree id to address one.
-  const theme = tree ? themeStyle(tree.manifest.theme, tree.id) : themeStyle(undefined, '')
+  const theme = tree ? themeStyle(tree.manifest.theme, tree.id, href) : themeStyle(undefined, '')
   return (
     <>
       {/*
@@ -24,7 +28,7 @@ export function ThemeStyle({ tree }: { tree: Pick<Tree, 'id' | 'manifest'> | nul
         decode.
       */}
       <style precedence="high" href="elsa-theme" dangerouslySetInnerHTML={{ __html: theme.css }} />
-      {tree && theme.icon && <link rel="icon" href={themeHref(tree.id, theme.icon)} />}
+      {tree && theme.icon && <link rel="icon" href={href(tree.id, theme.icon)} />}
     </>
   )
 }

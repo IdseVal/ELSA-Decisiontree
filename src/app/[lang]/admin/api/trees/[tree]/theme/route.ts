@@ -1,8 +1,8 @@
 /**
- * `POST /admin/api/trees/<t>/images` (docs/specs/application.md 22.6): one picture as
- * `multipart/form-data`. Refused above 5 MiB (413) before more than that is read; the type is
- * read from the bytes (415 for anything but PNG, JPEG, GIF and WebP, SVG included); the name
- * is the server's. Attaching it to a Node is the separate `add-image` operation.
+ * **[#144]** `POST /admin/api/trees/<t>/theme` (docs/specs/application.md 33.8): one logo or
+ * font file as `multipart/form-data`, by the upload rules of 22.6 -- refused above 5 MiB
+ * (413), typed by its bytes (415 for anything but PNG, WebP and WOFF2), named by the server.
+ * Naming it in the Theme is the separate write of the part (`PATCH .../trees/<t>`).
  */
 import { json } from '../../../../../../../admin/authenticated.ts'
 import { answered, caller, uploadedFile } from '../../../../../../../admin/requests.ts'
@@ -17,6 +17,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ tre
     who.drafts.permitted(who.account, tree, 'upload')
     const file = await uploadedFile(request)
     if (file instanceof Response) return file
-    return json(await who.drafts.uploadImage(who.account, tree, file.bytes, file.name), 201)
+    return json(await who.drafts.uploadThemeFile(who.account, tree, file.bytes, file.name), 201)
   })
 }
