@@ -4,14 +4,10 @@
  * calls `authenticated` first, which resolves the session and, for a writing method, applies
  * the CSRF check -- and answers 401 or 403 itself.
  */
+import { headers } from 'next/headers'
 import { baseUrl, store, type Environment } from '../config.ts'
 import type { Session } from '../store/sessions.ts'
-
-/** The headers of every response under `/admin` (20.9); the proxy sets them too, for pages. */
-export const ADMIN_HEADERS: Readonly<Record<string, string>> = {
-  'X-Robots-Tag': 'noindex, nofollow',
-  'Cache-Control': 'no-store',
-}
+import { ADMIN_HEADERS } from './headers.ts'
 
 /** A JSON answer with 20.9's headers; `body` undefined answers no body (204). */
 export function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
@@ -73,4 +69,13 @@ export async function bodyOf(request: Request): Promise<Record<string, unknown> 
   } catch {
     return null
   }
+}
+
+/**
+ * The live session of the request an admin page renders for, or null (24.2): the page then
+ * renders the login form in its place. Every admin page asks for itself, never a layout,
+ * because a client navigation can render a page without its layouts.
+ */
+export async function pageSession(): Promise<Session | null> {
+  return (await store()).sessions.resolve((await headers()).get('cookie'))
 }

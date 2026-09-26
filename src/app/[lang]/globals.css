@@ -1562,6 +1562,261 @@ a.language:hover,
   }
 }
 
+/* --- the admin area's Tree-less pages (24.3, 25) ----------------------------------- */
+
+/*
+ * The login page, the account page and the accounts page, in the default Theme (25): a card
+ * of the Option button's look -- `surface`, outlined in the rule shade -- centred in the row
+ * between the chrome bar and the disclaimer. Everything is sized to fit that row at the
+ * floor, 320 x 480, where it is 408 pixels tall: the document never scrolls (10.6).
+ */
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.admin-page--centred {
+  justify-content: center;
+}
+
+.admin-heading {
+  margin: 0;
+  font-family: var(--elsa-font-heading);
+  font-size: var(--title);
+  line-height: var(--title-line);
+}
+
+.admin-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.admin-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 360px;
+  max-width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--elsa-surface);
+}
+
+.admin-card h1,
+.admin-card h2 {
+  margin: 0;
+  font-family: var(--elsa-font-heading);
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.admin-form,
+.admin-form fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* A label beside its field, as the sketch of 25.1 draws it. */
+.admin-field {
+  display: grid;
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  font-size: var(--small);
+  line-height: 16px;
+}
+
+.admin-field input {
+  min-width: 0;
+  height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--elsa-background);
+  color: var(--elsa-text);
+  font: inherit;
+  font-size: var(--body);
+}
+
+.admin-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* One button per card, in the Answer buttons' fill (25.1), at a height the card can hold. */
+.admin-submit {
+  min-height: 36px;
+  padding: 6px 16px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--elsa-accent-secondary);
+  color: var(--elsa-on-accent-secondary);
+  font-family: var(--elsa-font-heading);
+  font-size: var(--body);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+fieldset:disabled .admin-submit {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.admin-error,
+.admin-hint,
+.admin-note,
+.admin-help {
+  margin: 0;
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+/* The one error line (25.1): its line always kept, so the card does not jump when it fills. */
+.admin-form > .admin-error {
+  min-height: var(--small-line);
+}
+
+.admin-error {
+  color: var(--danger-read);
+}
+
+.admin-hint,
+.admin-note,
+.admin-help {
+  color: var(--elsa-text-muted);
+}
+
+.admin-help {
+  max-width: 360px;
+  text-align: center;
+}
+
+/* The chrome bar's account controls (24.3): links, and the logout button dressed as one. */
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.admin-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.admin-nav > a.admin-link:first-child {
+  overflow: hidden;
+  max-width: 12rem;
+  text-overflow: ellipsis;
+}
+
+.admin-toolbar {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 960px;
+}
+
+/* The accounts list: a carrier of `data-scroll-box` (10.6, 26.3). */
+.admin-list {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 960px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--elsa-surface);
+}
+
+.admin-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 8px 16px;
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+.admin-row + .admin-row {
+  border-top: 1px solid var(--rule-soft);
+}
+
+.admin-row-name {
+  flex: 1 1 10rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.admin-row-login,
+.admin-row-state {
+  color: var(--elsa-text-muted);
+}
+
+.admin-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The account Sheets hold a form, not a list: a card's width on the panel. */
+.account-sheet .sheet-page {
+  width: min(360px, 100vw - 80px);
+}
+
+@media (max-width: 479px) {
+  .admin-page {
+    padding: 8px;
+  }
+
+  .admin-card {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .admin-field {
+    grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
+  }
+
+  .admin-nav > a.admin-link:first-child {
+    max-width: 5rem;
+  }
+}
+
 /* --- below the floor: the notice (10.4, 10.5 step 7) ------------------------------- */
 
 .minimum-size {

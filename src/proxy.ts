@@ -8,14 +8,23 @@
  * next.config.ts, sees the public path, and restates it as a request header the layout and
  * the 404 page read with `headers()`. It is set on every request, over whatever the client
  * sent under that name, so the header is always the server's and never the reader's.
+ *
+ * **[#135]** It also gives every response under `/admin` the two headers of 20.9 -- a page,
+ * a 403, a 404 or an API answer alike -- so that no admin address is indexed or cached.
  */
 import { NextResponse, type NextRequest } from 'next/server'
+import { ADMIN_HEADERS } from './admin/headers.ts'
 import { REQUEST_PATH_HEADER } from './url.ts'
 
 export function proxy(request: NextRequest): NextResponse {
   const headers = new Headers(request.headers)
-  headers.set(REQUEST_PATH_HEADER, request.nextUrl.pathname + request.nextUrl.search)
-  return NextResponse.next({ request: { headers } })
+  const { pathname, search } = request.nextUrl
+  headers.set(REQUEST_PATH_HEADER, pathname + search)
+  const response = NextResponse.next({ request: { headers } })
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    for (const [name, value] of Object.entries(ADMIN_HEADERS)) response.headers.set(name, value)
+  }
+  return response
 }
 
 /** Every path but Next.js's own files, which render no page (as the rewrites of next.config.ts). */
