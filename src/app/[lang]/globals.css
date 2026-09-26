@@ -2922,6 +2922,135 @@ fieldset:disabled .admin-submit {
   cursor: default;
 }
 
+/*
+ * [#140] The two pickers (31.1). The empty slot keeps the faint circle's box and adds a `+`;
+ * the strip's is a 48-pixel dashed thumbnail after the last one, or alone in the middle
+ * where the Node has one Image. The file input covers each, transparent, so a click, the
+ * keyboard and a drop all land on the input's own control.
+ */
+.editor-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--elsa-text-muted);
+  font-size: 24px;
+  /* The glyph's own height: a line of 1 would cut its ascent, which counts as overflow (10.6). */
+  line-height: normal;
+  cursor: pointer;
+}
+
+.editor-picker:hover,
+.editor-picker--over {
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
+}
+
+.editor-picker--over {
+  border-style: dashed;
+  background: var(--elsa-background);
+}
+
+.editor-picker:has(:focus-visible) {
+  outline: 2px solid var(--accent-secondary-read);
+  outline-offset: 2px;
+}
+
+.editor-picker[aria-busy='true'] {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.editor-picker-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  font-size: 0;
+  cursor: inherit;
+}
+
+/* Unseen, but its button and its "no file" text would be wider than a 48-pixel `+` (10.6). */
+.editor-picker-input::file-selector-button {
+  display: none;
+}
+
+.editor-picker--strip {
+  grid-row: 1;
+  grid-column: 2;
+  width: 48px;
+  height: 48px;
+  border: 1px dashed var(--rule);
+  border-radius: 50%;
+  background: var(--elsa-surface);
+}
+
+.carousel-strip ~ .editor-picker--strip {
+  grid-column: 3;
+  justify-self: start;
+}
+
+/* Below the guarantee the strip is its 20-pixel pill (10.5, step 1), and the `+` a pill beside it. */
+@media (max-height: 639px), (max-width: 479px) {
+  .carousel > .editor-picker--strip {
+    grid-column: 3;
+    justify-self: start;
+    width: 20px;
+    height: 20px;
+    margin-left: 8px;
+    font-size: 14px;
+  }
+}
+
+/* The attach Sheet (31.2): the picture as large as the panel allows above the file name, then the two fields. */
+.editor-attach-panel {
+  width: 400px;
+}
+
+.editor-attach-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+.editor-attach-figure img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 300px);
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.editor-attach-figure figcaption {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--elsa-text-muted);
+}
+
+/* The labels' column is as wide as the longer of the two words, "Beschrijving" included. */
+.editor-attach-form .editor-row {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.editor-attach-form .sheet-controls {
+  justify-content: center;
+}
+
+.editor-attach-form .admin-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* The `+` for the missing Answer stands where that Answer would: `+ Yes` left of `No: ...`. */
 .structure--lone {
   flex-basis: 620px;
@@ -3495,4 +3624,13 @@ fieldset:disabled .admin-submit {
     bottom: 0;
     border-radius: 0;
   }
+}
+
+/* The enlarged view's four controls (31.3): one row of pills under the credit. */
+.editor-image-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
 }

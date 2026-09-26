@@ -8,13 +8,14 @@
  * + tile, and the new-Tree form with three languages, whose boxes are two more carriers.
  * **[#138]** And the editor on `hidden-draft`'s full Node in `en` and `nl` (28.6, 35.4):
  * plain, with the Overlay of the first Options open, with the description in its source
- * state, with a Source's Sheet open, and with the session Sheet.
+ * state, with a Source's Sheet open, and with the session Sheet. **[#140]** And the enlarged
+ * view as the Image's editor, and the attach Sheet.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
  * running its tests. Every row goes to `tests/browser/.results/admin-no-scroll.md`.
  */
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Locator, type Page } from '@playwright/test'
@@ -294,6 +295,55 @@ for (const lang of LANGUAGES) {
   test(`the structure's Sheets, ${lang}, never scroll at any viewport of 10.6 (30, 28.6)`, async ({ browser }) => {
     test.slow()
     await structureEverywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), lang)
+  })
+}
+
+/**
+ * **[#140]** The picture Sheets (31.2, 31.3): the enlarged view as the Image's editor, on the
+ * full Node's main image, and the attach Sheet after an upload into the empty slot of a
+ * Terminal, cancelled again so the draft is as it was.
+ */
+for (const lang of LANGUAGES) {
+  test(`the editor's picture Sheets, ${lang}, never scroll at any viewport of 10.6 (31.2, 31.3)`, async ({ browser }) => {
+    test.slow()
+    const page = await loggedIn(browser, 'admin', ADMIN_PASSWORD)
+    const query = lang === 'en' ? '' : '?lang=nl'
+    const picture = { name: 'covered.png', mimeType: 'image/png', buffer: await readFile(path.join(repo, 'trees', 'ai-act-example', 'images', 'covered.png')) }
+    // One picture on the other Terminal, for the strip's `+` beside no strip; the nl run finds it there.
+    await page.setViewportSize({ width: 1280, height: 640 })
+    await page.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply`)
+    const slot = page.locator('.bubble .editor-picker--slot')
+    if ((await slot.count()) > 0) {
+      await slot.locator('input[type="file"]').setInputFiles(picture)
+      await page.locator('.editor-attach-panel input').first().fill('Drawing: ELSA lab')
+      await page.locator('.editor-attach-panel button[type="submit"]').click()
+      await expect(page.locator('.carousel > .editor-picker--strip')).toBeVisible()
+    }
+    for (const [width, height] of VIEWPORTS) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      await page.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`)
+      if (await page.locator('.carousel > .editor-picker--strip').isVisible()) record(await measure(page), 'editor', lang, viewport, 'strip +')
+      await page.goto(`${origin}/admin/trees/hidden-draft/full${query}`)
+      const main = page.locator('.bubble .main-image')
+      // At the floor the notice stands in for the view (10.4): no picture to open.
+      if (!(await main.isVisible())) continue
+      await main.click()
+      const enlarged = page.locator('.carousel-sheet > .sheet-panel')
+      await expect(enlarged.locator('.editor-image-controls')).toBeVisible()
+      record(await measure(page), 'editor', lang, viewport, 'enlarged view')
+      await page.keyboard.press('Escape')
+
+      await page.goto(`${origin}/admin/trees/hidden-draft/full/applies${query}`)
+      // The empty slot as a picker, plain (31.1).
+      record(await measure(page), 'editor', lang, viewport, 'empty slot')
+      await page.locator('.bubble .editor-picker--slot input[type="file"]').setInputFiles(picture)
+      const attach = page.locator('.editor-attach-panel')
+      await expect(attach).toBeVisible()
+      record(await measure(page), 'editor', lang, viewport, 'attach Sheet')
+      await attach.locator('button[type="button"]').click()
+      await expect(attach).toHaveCount(0)
+    }
   })
 }
 
