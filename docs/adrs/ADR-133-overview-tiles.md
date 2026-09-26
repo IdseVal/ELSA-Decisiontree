@@ -94,10 +94,13 @@ inside its own box while the document never does (12.2).
    is a native scroll container, so it works without JavaScript and by the keyboard. It is
    marked `data-scroll-box`, and the element walk of `no-scroll.spec.ts` skips an element
    carrying that attribute as it skips `[data-carousel-strip]`. The same box, with the same
-   attribute and the same rule, holds the accounts list (`ADR-133-login-and-account-pages.md`)
-   and the new-Tree form (`ADR-133-new-tree-form.md`), the two other things the format does
-   not bound. Nothing else may carry the attribute: an editor page, a Sheet, a panel is
-   bounded by the format and fits or is a defect.
+   attribute and the same rule, holds the three other things the format does not bound:
+   the accounts list (`ADR-133-login-and-account-pages.md`), the new-Tree form
+   (`ADR-133-new-tree-form.md`, a title field per language) and the body of the top panel
+   (`ADR-133-top-panel.md`: a collaborator per account, a to-do line per violation).
+   Nothing else may carry the attribute: the Bubble, an Overlay, the enlarged view, the
+   explainer Sheet and every other Sheet of the editor hold what the format bounds, and fit
+   or are a defect (10.6).
 
 6. **Zero Trees.** The public overview with no served Tree shows one sentence, `noTrees`, in
    the chrome language (23.2); the creators' overview shows the + tile alone.
