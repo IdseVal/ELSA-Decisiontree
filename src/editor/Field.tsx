@@ -24,17 +24,27 @@
  * it changes (29.4); a value a collaborator changed under the field is outlined `accent` for
  * five seconds (29.7).
  *
- * Imports of `src/`: `tree/measure.ts`, `tree/grammar.ts` and `markdown.ts`, and types (34.4).
+ * **[#141]** The description's rim shows, under the pill, the `mark` button while a selection
+ * lies in the source (32.1): pressing it adds the explainer, writes the mark and opens the
+ * explainer Sheet. Its rendered state is the public `Explainer` on the same markup, so a
+ * marked term opens its panel on hover and focus, and a click or Enter on it opens the Sheet
+ * (32.3).
+ *
+ * Imports of `src/`: `tree/measure.ts`, `tree/grammar.ts`, `markdown.ts` and
+ * `components/Explainer.tsx`, and types (34.4).
  */
 import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { Explainer as ExplainerText } from '../components/Explainer.tsx'
 import { richTextToHtml } from '../markdown.ts'
 import { isUrl } from '../tree/grammar.ts'
 import { countedLength, estimatedLines } from '../tree/measure.ts'
 import type { Explainer, Source, Violation } from '../tree/types.ts'
 import { useEditor } from './Editor.tsx'
 import { keyOf, plainLine, RAW_HTML, valueAt } from './fields.ts'
+import { marked, Marker, markRefusal, trimmedSelection, type MarkerWords } from './Marker.tsx'
 import type { FieldLimit } from './mode.ts'
+import { explainerId } from './slug.ts'
 import type { Change } from './writes.ts'
 
 /** The rim is 60 pixels wide, the outline included (10.1); the pill and the tags fit in it. */
@@ -67,6 +77,8 @@ export function Field({
   label,
   className = '',
   classByValue = false,
+  termEvent,
+  markerWords,
   words,
 }: {
   nodeId: string
@@ -94,6 +106,10 @@ export function Field({
   className?: string
   /** Whether `<className>--<value>` is added too: the badge's colour follows its outcome. */
   classByValue?: boolean
+  /** The description: the event a marked term dispatches when clicked, which opens its Sheet (32.3). */
+  termEvent?: string
+  /** The description: the `mark` button's words; without them the rim has no button (32.1). */
+  markerWords?: MarkerWords
   words: FieldWords
 }) {
   const api = useEditor()
@@ -105,6 +121,7 @@ export function Field({
   const root = useRef<HTMLSpanElement>(null)
   const area = useRef<HTMLTextAreaElement>(null)
   const [rim, setRim] = useState<{ top: number; left: number } | null>(null)
+  const [selection, setSelection] = useState<[number, number]>([0, 0])
 
   const violations = api.violationsAt(nodeId, keyPath)
   const refused = violations.some((violation) => !(violation.advisory ?? true))
@@ -120,6 +137,19 @@ export function Field({
     // The screen follows the store; the text it shows is the store's, not this render's.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [server, api.version])
+
+  // A marked term asks for its Sheet with a DOM event from inside the rendered text (32.3).
+  const { openExplainer } = api
+  useEffect(() => {
+    const element = root.current
+    if (!termEvent || !element) return
+    const onTerm = (event: Event): void => {
+      const id = (event as CustomEvent<{ id: string }>).detail.id
+      if (id) openExplainer(nodeId, id)
+    }
+    element.addEventListener(termEvent, onTerm)
+    return () => element.removeEventListener(termEvent, onTerm)
+  }, [termEvent, nodeId, openExplainer])
 
   // The field an operation created takes the focus once the page has re-rendered (28.1).
   useEffect(() => {
@@ -210,6 +240,23 @@ export function Field({
     )
   }
 
+  // The Node's explainers as the last response left them: a term marked a moment ago has its
+  // panel before the server's render of the page catches up.
+  const nodeExplainers = api.nodes[nodeId]?.explainers ?? explainers
+  const [from, to] = trimmedSelection(text, selection[0], selection[1])
+  const newId = explainerId(text.slice(from, to), nodeExplainers.map((explainer) => explainer.id))
+  const refusal = markRefusal(text, from, to, nodeExplainers.length, newId)
+  // 32.1: add the explainer, then the description with its mark, in that order in the queue.
+  const onMark = (): void => {
+    if (lang === null) return
+    const focusKey = keyOf(nodeId, `explainers[${nodeExplainers.length}].text.${lang}`)
+    api.operate(nodeId, { op: 'add-explainer', id: newId, term: { [lang]: text.slice(from, to) }, text: { [lang]: '' } }, focusKey)
+    commit(marked(text, from, to, newId))
+    api.flush(nodeId, keyPath)
+    setSelection([0, 0])
+    api.openExplainer(nodeId, newId)
+  }
+
   const editing = !rich || focused
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
     if (!rich && event.key === 'Enter') {
@@ -238,6 +285,7 @@ export function Field({
               onFocus={onFocus}
               onBlur={onBlur}
               onKeyDown={onKeyDown}
+              onSelect={(event) => setSelection([event.currentTarget.selectionStart, event.currentTarget.selectionEnd])}
               onChange={(event: ChangeEvent<HTMLTextAreaElement>) => commit(rich ? event.target.value : plainLine(event.target.value))}
             />
           </span>
@@ -245,7 +293,10 @@ export function Field({
           <span
             className="editor-rendered"
             tabIndex={api.readOnly ? -1 : 0}
-            onFocus={() => setFocused(true)}
+            // A term inside takes the focus for its panel (10.8); only the region itself opens the source.
+            onFocus={(event) => {
+              if (event.target === event.currentTarget) setFocused(true)
+            }}
             onClick={(event) => {
               // A marked term keeps its own click (#141); anywhere else opens the source.
               if (!(event.target instanceof Element && event.target.closest('.term'))) setFocused(true)
@@ -254,7 +305,7 @@ export function Field({
             {text.trim() === '' ? (
               <span className="prose editor-placeholder">{words.missingText}</span>
             ) : dirty || rendered === undefined ? (
-              <div className="prose" dangerouslySetInnerHTML={{ __html: richTextToHtml(text, { explainers, lang: lang ?? '', idPrefix: '' }) }} />
+              <ExplainerText html={richTextToHtml(text, { explainers: nodeExplainers, lang: lang ?? '', idPrefix: '' })} termEvent={termEvent} />
             ) : (
               rendered
             )}
@@ -283,6 +334,7 @@ export function Field({
                     {other.lang}
                   </a>
                 ))}
+            {markerWords !== undefined && from < to && <Marker refusal={refusal} onMark={onMark} words={markerWords} />}
           </span>,
           document.body,
         )}

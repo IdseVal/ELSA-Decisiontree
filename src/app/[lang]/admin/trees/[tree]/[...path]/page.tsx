@@ -95,6 +95,7 @@ export default async function EditorPage({ params }: Props) {
     <Editor
       treeId={treeId}
       lang={address.lang}
+      languages={draft.manifest.languages}
       words={edit.words}
       loginWords={loginWords(address.lang)}
       adminHref={adminHref('/admin', uiLang)}

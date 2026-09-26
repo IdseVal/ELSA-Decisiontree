@@ -64,19 +64,20 @@ export interface EditorSlots {
   sideAdd?(node: Node | DraftNode): ReactNode
   /** The `...` on the rim above, with `removeEnd` and `deleteStep` (#139). */
   stepMenu?(node: Node | DraftNode): ReactNode
-  /** The mark button on the description's rim (#141). */
-  mark?(): ReactNode
   /**
    * The name of the DOM event a click on a marked term dispatches instead of toggling its
-   * panel (#141 opens the explainer Sheet on it). A string, because a client component takes
-   * no function across the seam.
+   * panel: the description's `Field` opens the explainer Sheet on it (32.3). A string,
+   * because a client component takes no function across the seam. **[#141]** The `mark`
+   * button needs the source's selection, which only the description's `Field` holds, so the
+   * `Field` draws it on its own rim and there is no `mark()` slot.
    */
   onTermClick?: string
 }
 
 /**
  * The chrome strings the editor's client components read through `words` (3.2, 34.1): the
- * field's three and the indicator's and the session Sheet's. The slots hand every other
+ * field's three, the indicator's and the session Sheet's, and **[#141]** the `mark` button's
+ * and the explainer Sheet's. The slots hand every other
  * string -- a select's labels, the add-Source Sheet's -- straight from the chrome.
  */
 export type EditorWords = Pick<
@@ -94,4 +95,13 @@ export type EditorWords = Pick<
   | 'sessionExpired'
   | 'publicBehind'
   | 'toOverview'
+  | 'close'
+  | 'mark'
+  | 'unmark'
+  | 'cannotMarkHere'
+  | 'explainerLimit'
+  | 'term'
+  | 'explanation'
+  | 'markedIn'
+  | 'notMarkedIn'
 >

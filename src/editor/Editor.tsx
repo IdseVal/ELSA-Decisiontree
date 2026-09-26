@@ -13,12 +13,16 @@
  * the field being edited, `publicBehind` on a published Tree whose public copy is behind,
  * and `changedElsewhere` for five seconds after a collaborator's value arrived (29.7).
  *
+ * **[#141]** It also holds which explainer's Sheet is open, of which Node (32.2): the `mark`
+ * button and a click on a marked term open it, from wherever on the page the description is.
+ *
  * Imports of `src/`: types, and nothing else (34.4).
  */
 import { useRouter } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { DraftNode, Violation } from '../tree/types.ts'
 import { fieldValues, keyOf } from './fields.ts'
+import { ExplainerSheet } from './ExplainerSheet.tsx'
 import { LoginForm, type LoginWords } from './LoginForm.tsx'
 import type { EditorWords } from './mode.ts'
 import { WriteQueue, type QueueState, type Write } from './queue.ts'
@@ -56,6 +60,8 @@ export interface EditorApi {
   setCurrent(field: { nodeId: string; keyPath: string } | null): void
   /** A blocking rule caught before sending -- V-HTML -- shown as a refusal at the field (28.5). */
   refuseLocally(nodeId: string, keyPath: string, violation: Violation): void
+  /** Opens the explainer Sheet of the explainer `id` of the Node `nodeId` (32.2). */
+  openExplainer(nodeId: string, id: string): void
   /** **[#142]** The Tree's state as the page's load and the last response left it: what the panel's button says (33.1). */
   tree: TreeState
   /** **[#142]** The panel's own answers -- publish, unpublish, a re-read -- which no write response carries. */
@@ -90,6 +96,7 @@ interface Refused {
 export function Editor({
   treeId,
   lang,
+  languages,
   words,
   loginWords,
   adminHref,
@@ -101,6 +108,8 @@ export function Editor({
   treeId: string
   /** The page's language: what every field edits (28.2). */
   lang: string
+  /** The draft's declared languages, in the manifest's order: the explainer Sheet's sections (32.2). */
+  languages: string[]
   words: EditorWords
   loginWords: LoginWords
   /** `/admin` in the chrome language: the link out of the session Sheet (29.6). */
@@ -127,6 +136,8 @@ export function Editor({
   const [lastEdited, setLastEdited] = useState<{ nodeId: string; keyPath: string } | null>(null)
   const [focusKey, setFocusKey] = useState<string | null>(null)
   const [version, setVersion] = useState(0)
+  const [explainer, setExplainer] = useState<{ nodeId: string; id: string } | null>(null)
+  const openExplainer = useCallback((nodeId: string, id: string) => setExplainer({ nodeId, id }), [])
   const [, tick] = useState(0)
   // The latest Nodes, for the diff of 29.7 inside the queue's callback.
   const known = useRef(initialNodes)
@@ -254,10 +265,11 @@ export function Editor({
         queue.current!.drop(nodeId, keyPath)
         setRefusals((held) => ({ ...held, [keyOf(nodeId, keyPath)]: { violations: [violation], code: 'blocking', local: true } }))
       },
+      openExplainer,
       tree,
       setTree: (change) => setTreeState((held) => ({ ...held, ...change })),
     }),
-    [lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, tree],
+    [lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, openExplainer, tree],
   )
 
   const current = focused ?? lastEdited
@@ -275,6 +287,9 @@ export function Editor({
     <EditorContext.Provider value={api}>
       <IndicatorContext.Provider value={indicator}>
         {children}
+        {explainer !== null && (
+          <ExplainerSheet nodeId={explainer.nodeId} id={explainer.id} languages={languages} onClose={() => setExplainer(null)} />
+        )}
         {sessionExpired && (
           <div className="editor-session">
             <div className="sheet-backdrop" />

@@ -9,6 +9,9 @@
  * sent; a response's value repaints a field that is not being edited, and never one holding a
  * refused value, which stays with its `danger` state. The add-Source
  * form sends `add-source` only once a URL is typed, with no placeholder, and closes its Sheet.
+ * **[#141]** The description's `mark` button sends `add-explainer` and then the marked
+ * description, is refused where 32.1 says, and a click on a marked term opens the explainer
+ * Sheet, whose `unmark` takes the mark out and removes the explainer.
  */
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -89,7 +92,7 @@ const responseWith = (stored: DraftNode, violations: unknown[] = []) => ({
 function mount(draft: DraftNode, field: Parameters<typeof Field>[0]): void {
   act(() => {
     root.render(
-      <Editor treeId="t" lang="en" words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
+      <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
         <h1>
           <Field {...field} />
         </h1>
@@ -219,7 +222,7 @@ describe('the response repaints (29.7)', () => {
     const draft = node('Mine', 'Mine too')
     act(() => {
       root.render(
-        <Editor treeId="t" lang="en" words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
+        <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
           <Field nodeId="start" path="title" lang="en" value="Mine" limit={{ characters: 80 }} words={fieldWords} />
           <Field nodeId="start" path="description" lang="en" value="Mine too" limit={{ characters: 150, lines: 2 }} rich words={fieldWords} />
         </Editor>,
@@ -254,7 +257,7 @@ describe('a refused value stays on screen (29.4)', () => {
     const draft = node('Mine', 'Mine too')
     act(() => {
       root.render(
-        <Editor treeId="t" lang="en" words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
+        <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
           <Field nodeId="start" path="title" lang="en" value="Mine" limit={{ characters: 80 }} words={fieldWords} />
           <Field nodeId="start" path="description" lang="en" value="Mine too" limit={{ characters: 150, lines: 2 }} rich words={fieldWords} />
         </Editor>,
@@ -352,7 +355,7 @@ describe('the add-Source form (28.1)', () => {
   function mountForm(): void {
     act(() => {
       root.render(
-        <Editor treeId="t" lang="en" words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node('T', 'D') }} violations={[]} tree={HIDDEN}>
+        <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node('T', 'D') }} violations={[]} tree={HIDDEN}>
           <details className="sheet" open>
             <summary>+ addSource</summary>
             <AddSourceForm nodeId="start" focusPath="sources[0].label.en" kinds={kinds} words={{ addSource: 'addSource', sourceKind: 'sourceKind', sourceUrl: 'sourceUrl' }} />
@@ -406,5 +409,82 @@ describe('the add-Source form (28.1)', () => {
     expect(sent.map((s) => s.body)).toEqual([{ op: 'add-source', kind: 'case-law', label: {}, url: 'https://example.com/ruling' }])
     expect(container.querySelector('details')!.open).toBe(false)
     expect(input().value).toBe('')
+  })
+})
+
+describe('[#141] marking a term (32.1, 32.2, 32.4)', () => {
+  const markerWords = { mark: 'mark', cannotMarkHere: 'cannotMarkHere', explainerLimit: 'explainerLimit' }
+  const sheetWords = { ...words, close: 'close', unmark: 'unmark', term: 'term', explanation: 'explanation', markedIn: 'markedIn', notMarkedIn: 'notMarkedIn' }
+  const plainNode = (description: string, explainers: DraftNode['explainers'] = []): DraftNode => ({ ...node('T', description), description: { en: description }, explainers })
+
+  function mountDescription(draft: DraftNode): void {
+    act(() => {
+      root.render(
+        <Editor treeId="t" lang="en" languages={['en']} words={sheetWords as EditorWords} loginWords={loginWords} adminHref="/admin" nodes={{ start: draft }} violations={[]} tree={HIDDEN}>
+          <Field nodeId="start" path="description" lang="en" value={draft.description.en!} limit={{ characters: 150, lines: 2 }} rich explainers={draft.explainers} termEvent="elsa-term" markerWords={markerWords} words={fieldWords} />
+        </Editor>,
+      )
+    })
+  }
+
+  function select(start: number, end: number): void {
+    act(() => {
+      textarea().setSelectionRange(start, end)
+      document.dispatchEvent(new Event('selectionchange'))
+      textarea().dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }))
+    })
+  }
+
+  const markButton = (): HTMLButtonElement | null => document.querySelector('.editor-mark')
+
+  test('no button without a selection; the selection marked writes the explainer, then the description with its mark, and opens the Sheet', async () => {
+    mountDescription(plainNode('Are you a provider here?'))
+    focus()
+    expect(markButton()).toBeNull()
+
+    // A double click takes the space after the word; the mark does not.
+    select(10, 19)
+    expect(markButton()?.getAttribute('aria-disabled')).toBeNull()
+    act(() => markButton()!.click())
+    await act(() => vi.advanceTimersByTimeAsync(100))
+
+    expect(sent.map((s) => s.body)).toEqual([
+      { op: 'add-explainer', id: 'provider', term: { en: 'provider' }, text: { en: '' } },
+      { path: 'description.en', value: 'Are you a [provider](#provider) here?' },
+    ])
+    expect(document.querySelector('[role="dialog"] h2')?.textContent).toBe('provider')
+  })
+
+  test('a selection inside strong text is refused with cannotMarkHere, and a ninth explainer with explainerLimit', () => {
+    mountDescription(plainNode('A **strong** word and a plain one.'))
+    focus()
+    select(4, 10)
+    expect(markButton()?.getAttribute('aria-disabled')).toBe('true')
+    expect(markButton()?.title).toBe('cannotMarkHere')
+    act(() => markButton()!.click())
+    expect(sent).toEqual([])
+
+    act(() => root.unmount())
+    root = createRoot(container)
+    const eight = Array.from({ length: 8 }, (_, i) => ({ id: `e${i}`, term: { en: `e${i}` }, text: { en: 'x' } }))
+    mountDescription(plainNode('A plain word.', eight))
+    focus()
+    select(2, 7)
+    expect(markButton()?.title).toBe('explainerLimit')
+  })
+
+  test('a click on a marked term opens its Sheet, and unmark in the last marking language removes the explainer', async () => {
+    const provider = { id: 'provider', term: { en: 'provider' }, text: { en: 'Someone.' } }
+    mountDescription(plainNode('A [provider](#provider) here.', [provider]))
+    // The rendered state: a click on the term does not open the source.
+    act(() => (container.querySelector('.term') as HTMLElement).click())
+    expect(container.querySelector('.editor-field--rich textarea')).toBeNull()
+    expect(document.querySelector('[role="dialog"] h2')?.textContent).toBe('provider')
+    expect(document.querySelector('.explainer-marked')?.textContent).toBe('markedIn')
+
+    act(() => (Array.from(document.querySelectorAll('[role="dialog"] button')).find((b) => b.textContent === 'unmark') as HTMLButtonElement).click())
+    await act(() => vi.advanceTimersByTimeAsync(100))
+    expect(sent.map((s) => s.body)).toEqual([{ path: 'description.en', value: 'A provider here.' }, { op: 'remove-explainer', id: 'provider' }])
+    expect(document.querySelector('[role="dialog"]')).toBeNull()
   })
 })

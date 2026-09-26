@@ -165,6 +165,15 @@ export interface Chrome {
   /** **[#137] added in the build**: the cross on a language tag, and the tag grammar a refused tag is told (27.1). */
   removeLanguage: string
   languageHint: string
+  /** **[#141]** Marking a term and the explainer Sheet (32): the rim's button and why it is disabled, the Sheet's field labels, whether a language marks the explainer, and the Sheet's remove. */
+  mark: string
+  unmark: string
+  cannotMarkHere: string
+  explainerLimit: string
+  term: string
+  explanation: string
+  markedIn: string
+  notMarkedIn: string
   /** **[#142]** The top panel (33): its button and heading, the four sections, the confirmations. */
   treeState: string
   publish: string
@@ -321,6 +330,14 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     title: 'Title',
     removeLanguage: 'Remove',
     languageHint: 'A language tag such as en, nl or pt-br.',
+    mark: 'Mark',
+    unmark: 'Unmark',
+    cannotMarkHere: 'Select words on one line, outside emphasis, bold text, links and other marks.',
+    explainerLimit: 'This step has eight explainers, the most it can hold.',
+    term: 'Term',
+    explanation: 'Explanation',
+    markedIn: 'Marked in the text',
+    notMarkedIn: 'Not marked in the text',
     treeState: 'Tree',
     publish: 'Publish',
     todoCount: 'things to do',
@@ -469,6 +486,14 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     title: 'Titel',
     removeLanguage: 'Verwijderen',
     languageHint: 'Een taalcode zoals en, nl of pt-br.',
+    mark: 'Markeren',
+    unmark: 'Markering weghalen',
+    cannotMarkHere: 'Kies woorden op één regel, buiten nadruk, vette tekst, links en andere markeringen.',
+    explainerLimit: 'Deze stap heeft acht uitleggen, het meeste dat hij kan bevatten.',
+    term: 'Term',
+    explanation: 'Uitleg',
+    markedIn: 'Gemarkeerd in de tekst',
+    notMarkedIn: 'Niet gemarkeerd in de tekst',
     treeState: 'Boom',
     publish: 'Publiceren',
     todoCount: 'punten te doen',

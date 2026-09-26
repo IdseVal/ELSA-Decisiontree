@@ -65,7 +65,7 @@ stay green untouched (#138's DONE WHEN).
    | `linkMenu(node, link)` | `TreeView` (each Answer and Option button) | The `...` control; `Structure` (#139) |
    | `sideAdd(node)` | `TreeView` (the fan; the Overlay's list) | The side-bubble `+`; `Structure` (#139) |
    | `stepMenu(node)` | `Bubble` (the rim above) | The `...` with `removeEnd` and `deleteStep`; `StepMenu` (#139) |
-   | `mark()` | `Interior` (the description's rim) | The mark button; `Marker` (#141) |
+   | `mark()` | `Interior` (the description's rim) | The mark button; `Marker` (#141). **[#141] As built**: no slot; the description's `Field` draws `Marker` (`application.md` 34.2) |
    | `onTermClick` | `Explainer` | Open the explainer Sheet instead of the tap toggle; (#141) |
 
    A slot's function is a server-side function returning a React element (the client
