@@ -1808,6 +1808,163 @@ fieldset:disabled .admin-submit {
   width: min(360px, 100vw - 80px);
 }
 
+/* --- the creators' overview and the new-Tree form (26.4, 27) ----------------------- */
+
+/* The + tile (26.4): the tile's box outlined dashed, a 48-pixel `+`, the words under it. */
+.tile--new {
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  font-family: var(--elsa-font-heading);
+  font-weight: 700;
+}
+
+.tile-plus {
+  font-size: 48px;
+  line-height: 48px;
+  font-weight: 400;
+  color: var(--accent-secondary-read);
+}
+
+/* The state mark in the bottom right corner (26.4): a dot and one word. */
+.tile-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.tile-state-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.tile-state--published {
+  color: var(--accent-secondary-read);
+}
+
+.tile-state--hidden {
+  color: var(--elsa-text-muted);
+}
+
+.tile-state--notServable {
+  color: var(--danger-read);
+}
+
+/* The new-Tree form's box: a carrier of `data-scroll-box` (26.3), since a title per language grows it. */
+.admin-scroll {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  padding: 2px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.admin-card.new-tree {
+  width: 520px;
+}
+
+.new-tree-address {
+  margin-top: -6px;
+  overflow-wrap: anywhere;
+}
+
+.new-tree-label {
+  font-size: var(--small);
+  line-height: 16px;
+}
+
+.new-tree-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.new-tree-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px 2px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+.new-tree-tag-name {
+  font-weight: 700;
+}
+
+.new-tree-default {
+  color: var(--elsa-text-muted);
+}
+
+.new-tree-remove {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.new-tree-remove:hover {
+  background: var(--wash);
+}
+
+.new-tree-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.new-tree-add input {
+  width: 7rem;
+  min-width: 0;
+  height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--elsa-background);
+  color: var(--elsa-text);
+  font: inherit;
+  font-size: var(--body);
+}
+
+.new-tree-button {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
+  font: inherit;
+  font-size: var(--small);
+  cursor: pointer;
+}
+
+.new-tree-button:hover {
+  border-color: var(--accent-read);
+  background: var(--wash);
+}
+
 /*
  * A phone: the bar holds the language switch, the caller's name, `accounts` and `logout` in
  * 320 pixels only by giving up the site's title and the switch's current language, which is
