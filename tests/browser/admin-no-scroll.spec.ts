@@ -203,6 +203,8 @@ async function editorEverywhere(page: Page, lang: string): Promise<void> {
 
     // The description in its source state, with the pill on the rim (28.3, 28.5).
     const description = page.locator('[data-field="full description.en"], [data-field="full description.nl"]').filter({ visible: true })
+    // At the floor the notice stands in for the view (10.4): no field and no Sheet to open.
+    if ((await description.count()) === 0) continue
     await description.click()
     await expect(description.locator('textarea')).toBeFocused()
     record(await measure(page), 'editor', lang, viewport, 'description source')
@@ -221,14 +223,15 @@ async function editorEverywhere(page: Page, lang: string): Promise<void> {
     // The Overlays of the first Options, as the public no-scroll test opens them.
     const sheets = page.locator('details.overlay')
     for (let i = 0; i < Math.min(await sheets.count(), 2); i += 1) {
-      const control = sheets.nth(i).locator('.sheet-open')
+      // The Overlay's own control, not the `+ addSource` or `...` Sheets' inside its Interior.
+      const control = sheets.nth(i).locator(':scope > .sheet-open')
       if (!(await control.isVisible())) continue
       // On the picture: the title beside it is a field now, and a click on it edits.
       await control.locator('.option-image').click()
-      await expect(sheets.nth(i).locator('.sheet-panel')).toBeVisible()
+      await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeVisible()
       record(await measure(page), 'editor', lang, viewport, `Overlay ${i + 1}`)
       await page.keyboard.press('Escape')
-      await expect(sheets.nth(i).locator('.sheet-panel')).toBeHidden()
+      await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeHidden()
     }
   }
 }
