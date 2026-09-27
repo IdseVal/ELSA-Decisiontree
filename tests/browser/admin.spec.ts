@@ -125,10 +125,11 @@ async function signIn(page: Page, login: string, password: string): Promise<void
   await page.getByRole('button', { name: /^(Sign in|Inloggen)$/ }).click()
   const response = await answered
   expect(response.status()).toBe(204)
-  // The one cookie of 20.4, with every attribute it names and no `Domain`; the token is
-  // replaced before the value is recorded, since the record is committed.
+  // The one cookie of 20.4, with every attribute it names and no `Domain` -- and **[#162]** no
+  // `Secure`, since this server is plain HTTP; the token is replaced before the value is
+  // recorded, since the record is committed.
   const setCookie = (await response.allHeaders())['set-cookie'] ?? ''
-  expect(setCookie).toMatch(/^elsa-admin-session=[A-Za-z0-9_-]{43}; HttpOnly; Secure; SameSite=Strict; Path=\/admin; Max-Age=\d+$/)
+  expect(setCookie).toMatch(/^elsa-admin-session=[A-Za-z0-9_-]{43}; HttpOnly; SameSite=Strict; Path=\/admin; Max-Age=\d+$/)
   cookies.push(setCookie.replace(/^elsa-admin-session=[^;]+/, 'elsa-admin-session=<token>'))
 }
 
