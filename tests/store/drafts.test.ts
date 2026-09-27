@@ -689,6 +689,8 @@ describe('**[#147]** the languages of an existing Tree (22.2, 33.5)', () => {
     // Each English text written is one to-do fewer.
     const written = await drafts.write(cees, 'nl-tree', 'start', { path: 'title.en', value: 'Start' })
     expect(written.tree.advisory).toBe(before + 10)
+    // What removing each language would take away (33.5): the texts written in it.
+    expect(drafts.entry(cees, 'nl-tree').written).toEqual({ nl: 10, en: 1 })
   })
 
   test('remove-language drops the tag and every text under it; a text only in that language keeps the rest as to-dos', async () => {

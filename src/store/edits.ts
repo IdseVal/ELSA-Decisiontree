@@ -304,7 +304,7 @@ export function applyLanguageOperation(tree: Mapping, operation: Operation): str
  * descriptions, Option titles and explainers. Answers the ids of the Nodes for which `visit`
  * said it changed something.
  */
-function eachText(tree: Mapping, visit: (text: Mapping) => boolean): string[] {
+export function eachText(tree: Mapping, visit: (text: Mapping) => boolean): string[] {
   const logo = (tree.theme as Mapping | undefined)?.logo as Mapping | undefined
   for (const text of [tree.title, tree.description, logo?.alt]) if (text) visit(text as Mapping)
   const changed: string[] = []
