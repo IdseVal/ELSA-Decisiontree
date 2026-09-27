@@ -162,7 +162,8 @@ export interface Chrome {
   addLanguage: string
   makeDefault: string
   default: string
-  languagesFixed: string
+  /** **[#147]** Replaces `languagesFixed`: a Tree's languages change in the top panel (33.5). */
+  languagesLater: string
   title: string
   /** **[#137] added in the build**: the cross on a language tag, and the tag grammar a refused tag is told (27.1). */
   removeLanguage: string
@@ -196,7 +197,8 @@ export interface Chrome {
   removeCollaborator: string
   chooseAccount: string
   thisTree: string
-  fixed: string
+  /** **[#147]** Removing a language asks once and names what goes (33.5): `{language}` and `{count}` are filled in. */
+  confirmRemoveLanguage: string
   handOver: string
   handOverTo: string
   deleteTree: string
@@ -380,7 +382,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     addLanguage: 'Add',
     makeDefault: 'Make default',
     default: 'default',
-    languagesFixed: 'The languages cannot be changed after the tree is created.',
+    languagesLater: 'Languages can be added or removed later, in the tree’s panel.',
     title: 'Title',
     removeLanguage: 'Remove',
     languageHint: 'A language tag such as en, nl or pt-br.',
@@ -411,7 +413,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeCollaborator: 'Remove',
     chooseAccount: 'Choose an account',
     thisTree: 'This tree',
-    fixed: 'fixed',
+    confirmRemoveLanguage: 'Remove {language}? The {count} texts written in it will be deleted.',
     handOver: 'Hand over',
     handOverTo: 'Hand over to',
     deleteTree: 'Delete this tree',
@@ -579,7 +581,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     addLanguage: 'Toevoegen',
     makeDefault: 'Maak standaard',
     default: 'standaard',
-    languagesFixed: 'De talen kunnen niet worden gewijzigd nadat de boom is aangemaakt.',
+    languagesLater: 'Talen kunnen later worden toegevoegd of verwijderd, in het paneel van de boom.',
     title: 'Titel',
     removeLanguage: 'Verwijderen',
     languageHint: 'Een taalcode zoals en, nl of pt-br.',
@@ -610,7 +612,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeCollaborator: 'Verwijderen',
     chooseAccount: 'Kies een account',
     thisTree: 'Deze boom',
-    fixed: 'vast',
+    confirmRemoveLanguage: '{language} verwijderen? De {count} teksten die erin geschreven zijn worden gewist.',
     handOver: 'Overdragen',
     handOverTo: 'Overdragen aan',
     deleteTree: 'Deze boom verwijderen',

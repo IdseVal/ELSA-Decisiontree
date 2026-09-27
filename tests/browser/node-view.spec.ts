@@ -55,6 +55,20 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
   await arrived(page, '/ai-act-example/start')
 })
 
+test('the arrow at the top left leads out of the Tree to the overview, in the language on screen (#163)', async ({ page }) => {
+  await page.goto('/ai-act-example/start/prohibited-practices')
+  const back = page.getByRole('link', { name: 'All decision trees' })
+  // At the top left: before the Tree's mark, the first thing in the chrome bar.
+  await expect(page.locator('.page-chrome a').first()).toHaveClass('back-to-overview')
+  await back.click()
+  await expect(page).toHaveURL('/')
+  await expect(page.locator('.tile')).toHaveCount(1)
+
+  await page.goto('/ai-act-example/start/prohibited-practices?lang=nl')
+  await page.getByRole('link', { name: 'Alle beslisbomen' }).click()
+  await expect(page).toHaveURL('/?lang=nl')
+})
+
 test('no answers a different Node than yes', async ({ page }) => {
   await page.goto(START)
   await page.locator('.answer--no').click()

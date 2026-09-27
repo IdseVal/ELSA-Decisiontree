@@ -21,7 +21,7 @@ import { treeBytes } from '../tree/serialise.ts'
 import type { DraftNode, LocalisedText, Manifest, Violation } from '../tree/types.ts'
 import { isId, isImageFile, validateTree, type Mapping, type RawTree } from '../tree/validate.ts'
 import type { Account, Accounts } from './accounts.ts'
-import { applyField, applyOperation, createNode, deleteNode, freshNodeId, newDraft, type Field, type Operation } from './edits.ts'
+import { applyField, applyLanguageOperation, applyOperation, createNode, eachText, deleteNode, freshNodeId, newDraft, type Field, type Operation } from './edits.ts'
 import { malformed, StoreError } from './errors.ts'
 import { imageName, MAX_IMAGE_BYTES, sniff, sniffTheme, themeName } from './images.ts'
 import { mayCreate, permit, type Action, type TreeMeta } from './permissions.ts'
@@ -43,6 +43,11 @@ export interface TreeEntry {
   advisory: Violation[]
   /** The draft's blocking violations: non-empty only for an uneditable Tree (19.5). */
   blocking: Violation[]
+  /**
+   * **[#147]** How many localised texts hold a written string, per declared language: what
+   * removing a language would take away, which the panel names before it asks (33.5).
+   */
+  written: Record<string, number>
 }
 
 /** The answer to every write (22.3). */
@@ -175,6 +180,7 @@ export async function openDrafts(
       publicCopyCurrent: tree.publicCopyCurrent,
       advisory: tree.advisory,
       blocking: tree.blocking,
+      written: tree.raw ? writtenTexts(tree.raw) : {},
     }
   }
 
@@ -314,8 +320,9 @@ export async function openDrafts(
         let also: string[] = []
         const draft = await commit(by, tree, (next) => {
           if ('op' in change) {
-            if (nodeId === null) throw malformed('manifest', '', 'V-KEYS', 'the manifest takes fields only')
-            also = applyOperation(next, nodeId, change as Operation, () => freshNodeId(next))
+            // **[#147]** The manifest's operations are the three on its languages (22.2).
+            if (nodeId === null) also = applyLanguageOperation(next, change as Operation)
+            else also = applyOperation(next, nodeId, change as Operation, () => freshNodeId(next))
           } else {
             applyField(next, nodeId, change as Field)
           }
@@ -515,6 +522,16 @@ export async function openDrafts(
 /** The draft as the validator reads it: the parsed file and the two folders' names. */
 function rawOf(tree: Held, raw: Mapping): RawTree {
   return { id: tree.id, tree: raw, images: tree.images, themeFiles: tree.themeFiles }
+}
+
+/** **[#147]** The number of localised texts with a non-empty string, per declared language. */
+function writtenTexts(raw: Mapping): Record<string, number> {
+  const written: Record<string, number> = Object.fromEntries((raw.languages as string[]).map((lang) => [lang, 0]))
+  eachText(raw, (text) => {
+    for (const lang of Object.keys(written)) if (typeof text[lang] === 'string' && text[lang] !== '') written[lang]! += 1
+    return false
+  })
+  return written
 }
 
 /** Every picture a draft's Nodes name. */

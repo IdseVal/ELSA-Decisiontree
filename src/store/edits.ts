@@ -12,6 +12,7 @@
  * the format names.
  */
 import { randomBytes } from 'node:crypto'
+import { isLanguageTag } from '../tree/grammar.ts'
 import { isId, type Mapping } from '../tree/validate.ts'
 import { malformed, StoreError } from './errors.ts'
 
@@ -248,6 +249,80 @@ export function applyOperation(tree: Mapping, nodeId: string, operation: Operati
     default:
       throw fail('', `"${String(operation.op)}" is not an operation of the editor's interface`)
   }
+}
+
+/** **[#147]** The manifest's operations (22.2): the three on its languages. */
+const LANGUAGE_OPERATIONS = ['add-language', 'remove-language', 'set-default-language']
+
+/**
+ * **[#147]** One of the manifest's three language operations (33.5), applied across the
+ * draft. `add-language` appends the tag and writes `""` for it into every localised text of
+ * the manifest and every Node, so V-L10N lists each as a to-do (19.2); `remove-language`
+ * drops the tag and every text under it, and is 409 for the default language -- which is
+ * also the only one when one is left; `set-default-language` moves the tag to the front
+ * (3.3). Answers the ids of the Nodes whose texts changed, for the write response's `also`.
+ */
+export function applyLanguageOperation(tree: Mapping, operation: Operation): string[] {
+  const languages = tree.languages as string[]
+  const { tag } = operation
+  const fail = (message: string): StoreError => malformed('manifest', 'languages', 'V-LANG', message)
+  if (!LANGUAGE_OPERATIONS.includes(operation.op)) {
+    throw malformed('manifest', '', 'V-KEYS', `"${String(operation.op)}" is not an operation on the manifest`)
+  }
+  if (!isLanguageTag(tag)) throw fail('a language is a lowercase BCP 47 tag such as "en" or "pt-br" (tree-format.md 3.3)')
+  switch (operation.op) {
+    case 'add-language':
+      if (languages.includes(tag)) throw fail(`"${tag}" is declared already`)
+      tree.languages = [...languages, tag]
+      return eachText(tree, (text) => {
+        text[tag] = ''
+        return true
+      })
+    case 'remove-language': {
+      if (!languages.includes(tag)) throw fail(`"${tag}" is not a language the manifest declares`)
+      if (languages[0] === tag) throw new StoreError(409, 'default-language')
+      const rest = languages.filter((other) => other !== tag)
+      tree.languages = rest
+      return eachText(tree, (text) => {
+        if (!(tag in text)) return false
+        delete text[tag]
+        // A text written only in the removed language is left with the rest as to-dos, never the `{}` V-EMPTY blocks.
+        if (Object.keys(text).length === 0) for (const other of rest) text[other] = ''
+        return true
+      })
+    }
+    default: // set-default-language
+      if (!languages.includes(tag)) throw fail(`"${tag}" is not a language the manifest declares`)
+      tree.languages = [tag, ...languages.filter((other) => other !== tag)]
+      return []
+  }
+}
+
+/**
+ * **[#147]** Calls `visit` on every localised text of the draft (3.3, 3.4): the manifest's
+ * title, description and logo text, and each Node's title, description, Source labels, Image
+ * descriptions, Option titles and explainers. Answers the ids of the Nodes for which `visit`
+ * said it changed something.
+ */
+export function eachText(tree: Mapping, visit: (text: Mapping) => boolean): string[] {
+  const logo = (tree.theme as Mapping | undefined)?.logo as Mapping | undefined
+  for (const text of [tree.title, tree.description, logo?.alt]) if (text) visit(text as Mapping)
+  const changed: string[] = []
+  for (const node of tree.nodes as Mapping[]) {
+    const list = (key: string): Mapping[] => (node[key] as Mapping[] | undefined) ?? []
+    const texts = [
+      node.title,
+      node.description,
+      ...list('sources').map((source) => source.label),
+      ...list('images').map((image) => image.description),
+      ...list('options').map((option) => option.title),
+      ...list('explainers').flatMap((explainer) => [explainer.term, explainer.text]),
+    ]
+    let touched = false
+    for (const text of texts) if (text && visit(text as Mapping)) touched = true
+    if (touched) changed.push(node.id as string)
+  }
+  return changed
 }
 
 /**

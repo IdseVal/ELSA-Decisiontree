@@ -263,12 +263,12 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 |---|---|
 | #134 | `siteTitle` (the overview's and `llms.txt`'s H1, 23.5, 24.3), `noTrees`, `newTree` |
 | #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language); **[#162]** `sessionNotKept` (a login the browser kept no cookie of, 25.1) |
-| #137 | `published`, `hidden`, `notServable`, `treeId`, `treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`, `languages`, `addLanguage`, `makeDefault`, `default`, `languagesFixed`, `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
+| #137 | `published`, `hidden`, `notServable`, `treeId`, `treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`, `languages`, `addLanguage`, `makeDefault`, `default`, ~~`languagesFixed`~~ (**[#147]** replaced by `languagesLater`: the languages change in the top panel, 33.5), `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
 | #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
 | #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused`; **[#140] added in the build**: `cancel` (the attach Sheet's second button, 31.2 -- the same word #139's row names, so whichever branch merges second keeps one) and `imageDescription` (the label of its description field; `credit` labels the other) |
 | #141 | `mark`, `unmark`, `cannotMarkHere`, `explainerLimit`, `term`, `explanation`, `markedIn`, `notMarkedIn` |
-| #142 | `treeState`, `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, `fixed`, `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
+| #142 | `treeState`, `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, ~~`fixed`~~ (**[#147]** gone: the languages are the tag control of 33.5), `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -3155,8 +3155,8 @@ framework's. The prefix is `/admin/api/` and not `/api/admin/` so that the cooki
 | `PATCH /admin/api/accounts/<id>` | administrator: `name`, `active`, `password`; self: `name`, `password` + `currentPassword` | 200; 403; 422 |
 | `GET /admin/api/trees` | the caller's `TreeEntry` list (administrator: all) | `[...]` |
 | `POST /admin/api/trees` | `{ id, languages, title }`: folder, `meta.json`, a draft with one root Node `start` | 201; 409 taken; 422 reserved or malformed |
-| `GET /admin/api/trees/<t>` | the `TreeEntry`: meta, manifest, `published`, `servable`, violations | 200 |
-| `PATCH /admin/api/trees/<t>` | one manifest field `{ path, value }`: `title.<lang>`, `description.<lang>`, `root`; **[#144]** or one part of the Theme, `theme.logo`, `theme.fonts`, `theme.colours`, whole or `null` (33.8) | `WriteResponse` |
+| `GET /admin/api/trees/<t>` | the `TreeEntry`: meta, manifest, `published`, `servable`, violations; **[#147]** and `written`, the number of localised texts holding a non-empty string per declared language (33.5) | 200 |
+| `PATCH /admin/api/trees/<t>` | one manifest field `{ path, value }`: `title.<lang>`, `description.<lang>`, `root`; **[#144]** or one part of the Theme, `theme.logo`, `theme.fonts`, `theme.colours`, whole or `null` (33.8); **[#147]** or one language operation `{ op, tag }` (22.2) | `WriteResponse`, with every Node whose texts changed in `also` |
 | `DELETE /admin/api/trees/<t>` | hidden Trees only | 204; 409 |
 | `PUT /admin/api/trees/<t>/published` | `{ published: boolean }` (19.3) | 200 `{ published, publishedAt }`; 409 `{ violations }` |
 | `PUT /admin/api/trees/<t>/creator` | `{ accountId }` | 200 `meta` |
@@ -3182,7 +3182,17 @@ The screens -- `/admin`, `/admin/trees/<t>/...` -- are #133's and render inside 
 
 ### 22.2 The unit of a write
 
-**One field or one operation on one Node**; the manifest takes fields only.
+**One field or one operation on one Node**; the manifest takes fields only. **[#147]** The owner promoted #147
+(2026-09-27): the manifest takes three operations too, each on its `languages` and applied across the
+whole draft in one write through the Tree's queue -- `add-language { tag }` appends the tag and
+writes `""` for it into every localised text of the manifest and every Node (V-L10N then lists
+each as a to-do, 19.2); `remove-language { tag }` drops the tag and every text under it, a text
+left with no language getting `""` for each remaining one (never the `{}` V-EMPTY blocks), and
+is **409** while the tag is the default language, which is also the only one when one is left;
+`set-default-language { tag }` moves the tag to the front (3.3) and changes no text. A tag that is
+malformed, or already declared (`add`), or not declared (`remove`, `set-default`) is 422 with
+V-LANG; any other operation on the manifest is 422 with V-KEYS. `also` names every Node whose
+texts changed. Any role that edits may send them (21.2), as for any other manifest field.
 
 - A **field** is a key path the format defines: `title.<lang>`, `description.<lang>`,
   `sources[i].label.<lang>`, `sources[i].url`, `sources[i].kind`, `images[i].description.<lang>`,
@@ -3566,7 +3576,7 @@ One card of 520 pixels in a scroll box (26.3), holding in this order:
 | Field | Contract |
 |---|---|
 | `treeId` | The id grammar of `tree-format.md` 3.1, with `treeIdHint` under it and the address the Tree will have (`/<id>/start`) shown live. **Proposed by the script from the first title typed** (lower-cased, every run outside `[a-z0-9]` → one hyphen, trimmed, cut to 64) until the creator edits the field. Under it, `treeIdFixed`: **the id never changes after creation** -- it is the folder name (17.2) and is in every URL and share link (4.1). No rename exists on any route. |
-| `languages` | A row of tags with a field to add one (the tag grammar of 3.3, checked in the script); `en` and `nl` as one-click buttons; a `remove` cross on every tag but the last; `makeDefault` on every tag but the first. **The first tag is the default language** (3.3), marked `default`. Opens with the page's chrome language as its one tag. `languagesFixed`: the languages cannot be changed after creation in this round (#147, `proposed`). |
+| `languages` | A row of tags with a field to add one (the tag grammar of 3.3, checked in the script); `en` and `nl` as one-click buttons; a `remove` cross on every tag but the last; `makeDefault` on every tag but the first. **The first tag is the default language** (3.3), marked `default`. Opens with the page's chrome language as its one tag. ~~`languagesFixed`: the languages cannot be changed after creation in this round (#147, `proposed`).~~ **[#147]** `languagesLater`: languages can be added or removed later, in the top panel (33.5). The control is `src/editor/LanguageTags.tsx`, shared with the panel. |
 | `title`, per language | One field per tag in tag order, labelled by the tag, with the 80-character counter of 28.4. May be left empty in a language: then V-L10N's to-do (19.2). |
 | `create` | One button in the Answer buttons' style. |
 
@@ -3686,7 +3696,7 @@ edited in its Sheet.
 ### 28.7 Not offered
 
 A Node's `metadata` (19.6); a Source's `id` and an Image's `source`; the manifest's `root`;
-the languages after creation (#147); a step counter (5.8: text in the title); cropping or
+~~the languages after creation (#147)~~ (**[#147]** in the top panel, 33.5); a step counter (5.8: text in the title); cropping or
 resizing (31.8); a Theme (#144).
 
 ## 29. Autosave
@@ -4010,7 +4020,13 @@ the old one as a collaborator (21.4). A collaborator sees the list and no contro
 
 Two fields for the page's language -- the manifest's `title` (80) and `description` (600 and
 8 lines, rich, as source) -- with the rim's counter and tags beside them; the declared
-languages as tags with `fixed` (#147); the id; the public link when published. **[#144]** The Theme panel of 33.8 closes the
+languages as tags ~~with `fixed` (#147)~~ -- **[#147]** the new-Tree form's control (27.1): a field and
+`en`/`nl` buttons to add one, `makeDefault` on every tag but the first, and a remove cross on every tag
+but the default (so never on the last); removing asks once in place, naming the number of texts
+written in that language (`confirmRemoveLanguage`, from the entry's `written`), and each is one
+write of 22.2 after which the page is drawn again, at the address of the language it shows
+when that is now the default, or at the default's when it was removed; the rim's tags (28.3)
+follow the declared languages; the id; the public link when published. **[#144]** The Theme panel of 33.8 closes the
 section.
 
 ### 33.6 Administrator
