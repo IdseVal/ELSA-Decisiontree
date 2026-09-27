@@ -104,6 +104,8 @@ to carry the same Trail and the same `?lang`.
    `src/components/`, is the only caller of `themeStyle`; React hoists the element into
    `<head>` from wherever it is rendered, which is what the `precedence` attribute is for,
    and the layout keeps `<link rel="icon">` out of it by the same move (the page emits it).
+   **[#144]** The `href` is no longer the constant `elsa-theme` but the CSS's hash, plus the
+   draft revision in the editor, so a changed Theme repaints without a reload (13.1).
    The rules of 13.3 and the test of `theme.spec.ts` are unchanged; `stylesheet.test.ts` is
    unchanged. How `<html lang>` is set for a page whose Tree the root layout cannot see is
    the same problem, and its mechanism is #134's inside this contract: `<html lang>` on a

@@ -2028,11 +2028,14 @@ the `precedence` attribute. The public Node page emits its published Tree's Them
 its **draft's** (24.3); the overview, the four Tree-less admin pages, the 403 and the 404
 pages the default of 13.4. Everything below about the string is unchanged; #134 moves the
 emission (`ADR-133-admin-routes.md`, decision 6). **[#144]** The element's `href` is
-`elsa-theme-<12 hex of the CSS's SHA-256>`, not the constant `elsa-theme`: React keeps a
-hoisted style by its `href` and never rewrites one it has placed, so an editor whose draft's
-Theme changed would keep the old colours until a reload. A new string is a new element after
-the old one, which it overrides declaration for declaration; a page whose Theme does not
-change still has exactly one. The editor addresses the draft's fonts, icon and logo through
+`elsa-theme-<12 hex of the CSS's SHA-256>`, and in the editor `elsa-theme-<hash>-<draft
+revision>` (22.3), not the constant `elsa-theme`: React keeps a hoisted style by its `href`
+where it stands and never rewrites, moves or removes one it has placed, so an editor whose
+draft's Theme changed would keep the old colours until a reload -- and with the hash alone, a
+Theme going A, B, A would find A's element still before B's and keep showing B. Every write
+raises the revision, so every write is a new element after all the old ones, which it
+overrides declaration for declaration; the editor gets one more element per write, and a page
+whose Theme does not change still has exactly one. The editor addresses the draft's fonts, icon and logo through
 `GET /admin/api/trees/<t>/theme/<file>` (33.8), because the public route serves only what the
 published copy names.
 
@@ -4157,16 +4160,16 @@ function per row of 22.1 used; `src/editor/slug.ts` derives ids. Nothing in `src
 reads the file system, the environment or a request. `src/components/` imports of
 `src/editor/` only the `EditMode` type.
 
-**[#144]** A fifth: `src/contrast.ts`, the WCAG maths and the contrast rule of 33.8, pure
-and dependency-free, which `theme.ts` derives its readable-on colours from and the Theme panel
-warns with, so the rule has one definition. `imports.test.ts` asserts it with the others.
-
 **[#141] As built**: exactly **four** modules. `Field.tsx` also imports
 `src/components/Explainer.tsx`, a client component that imports only React: 32.3 and
 `ADR-133` decision 3 require a marked description to render through the same `Explainer`
 after an edit as on the public page, so the description's `Field` shows its text through
 it rather than a copy. `tests/editor/imports.test.ts` asserts the four and that
 `Explainer.tsx` imports nothing but `react`.
+
+**[#144]** A fifth, after #141's four, so **five** modules in all: `src/contrast.ts`, the WCAG maths and the contrast rule of 33.8, pure
+and dependency-free, which `theme.ts` derives its readable-on colours from and the Theme panel
+warns with, so the rule has one definition. `imports.test.ts` asserts it with the others.
 
 ### 34.5 What edit mode does not render
 
