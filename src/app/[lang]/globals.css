@@ -2479,6 +2479,8 @@ fieldset:disabled .admin-submit {
    * At the floor the bar holds two language names, the share button and the logo in 320
    * pixels: `English`, `Nederlands` and `Kopieer link` at 11 pixels are 200 or more in a
    * wide face, so the pills keep 5 pixels of padding and the logo at most 70 (22vw).
+   * **[#163]** The way back to the overview takes 30 of them before the logo, which gives
+   * back 12: the first Tree's Dutch bar was 4 pixels too wide without that.
    */
   .language,
   .share {
@@ -2487,7 +2489,7 @@ fieldset:disabled .admin-submit {
   }
 
   .logo {
-    max-width: 22vw;
+    max-width: calc(22vw - 12px);
   }
 
   .page-brand {
