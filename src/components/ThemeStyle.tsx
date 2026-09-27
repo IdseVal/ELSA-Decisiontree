@@ -5,7 +5,7 @@
  * only caller of `themeStyle`.
  *
  * `precedence` is what makes React hoist the element into `<head>` from wherever the page
- * renders it, and what keeps it to one element per document.
+ * renders it, and what keeps it to one element per `href`.
  */
 import { createHash } from 'node:crypto'
 import { themeStyle, type ThemeHref } from '../theme.ts'
