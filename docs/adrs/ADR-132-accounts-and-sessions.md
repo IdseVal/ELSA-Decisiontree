@@ -8,6 +8,8 @@
   routes**, and this ADR is what keeps it true), `ADR-5-testing-approach.md`
   (`deployment.spec.ts` gains the logged-in half of the no-cookie sweep)
 - Depends on: `docs/adrs/ADR-132-data-directory.md`
+- Amended 2026-09-27 by issue #162 (the owner's decision on PR #165): **decision 6's
+  `Secure` comes off on a plain-HTTP deployment.** See the [#162] note there.
 
 ## Context
 
@@ -83,7 +85,14 @@ reset by e-mail, no invitation by e-mail, and no reason to hold an e-mail addres
    ```
 
    `HttpOnly`: no script reads it. `Secure`: HTTPS only; development on `localhost` is a
-   secure context to every browser, so the flag never comes off. **`SameSite=Strict`**,
+   secure context to every browser, so the flag never comes off. **[#162]** Amended: the
+   flag is on when the request arrived over TLS, carries `x-forwarded-proto: https`, or
+   `ELSA_BASE_URL` starts with `https://`, and off otherwise. A deployment run over plain
+   HTTP on a private network could not be logged into at all -- a browser keeps a `Secure`
+   cookie from no plain-HTTP address but `localhost` -- and there the flag protected
+   nothing, since every request of that deployment travels in clear anyway. The logout
+   cookie follows the same rule, and the session check never reads the flag. HTTPS stays
+   the advised deployment (`docs/deployment.md`). **`SameSite=Strict`**,
    not `Lax`: `Lax` sends the cookie on a top-level navigation from another site, which
    is the one hole a same-site cookie leaves open, and the admin area has no cross-site
    entry that needs the session -- a creator who arrives at `/admin/...` from a link

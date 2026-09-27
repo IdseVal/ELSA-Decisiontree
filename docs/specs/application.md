@@ -2980,7 +2980,7 @@ Set-Cookie: elsa-admin-session=<token>; HttpOnly; Secure; SameSite=Strict; Path=
 | Attribute | Why |
 |---|---|
 | `HttpOnly` | No script reads it. |
-| `Secure` | HTTPS only. `localhost` is a secure context in every browser, so development keeps the flag. |
+| `Secure` | HTTPS only. `localhost` is a secure context in every browser, so development keeps the flag. **[#162]** Only on a deployment reached over HTTPS: the request arrived over TLS, carries `x-forwarded-proto: https`, or `ELSA_BASE_URL` starts with `https://`. On a plain-HTTP deployment the flag is left off, because a browser keeps a `Secure` cookie from no address there but `localhost`, so nobody could log in, and the flag would protect nothing: every request of that deployment travels in clear. The logout cookie follows the same rule; the session check never reads the flag. HTTPS remains strongly advised (`docs/deployment.md`). |
 | `SameSite=Strict` | `Lax` would send it on a cross-site top-level navigation, the one hole a same-site cookie leaves. The admin area has no cross-site entry that needs the session: a creator arriving from a link sees the login page and is sent on to the page asked for. |
 | `Path=/admin` | The browser never sends it to a public route, so no public route can read, log or echo it. This is why the API is `/admin/api/...` (22.1). |
 | no `Domain` | Host-only. |
