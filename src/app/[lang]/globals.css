@@ -173,6 +173,41 @@ a {
   line-height: 0;
 }
 
+/* **[#163]** The way out to the overview and the Tree's mark, held together at the left. */
+.page-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* The up arrow's look (10.2), smaller and pointing left: the way back, out of the Tree. */
+.back-to-overview {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--elsa-on-accent-secondary);
+  background: var(--elsa-accent-secondary);
+  transition: box-shadow 160ms var(--ease);
+}
+
+.back-to-overview svg {
+  width: 60%;
+  height: 60%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.back-to-overview:hover {
+  box-shadow: 0 0 0 2px var(--elsa-background), 0 0 0 4px var(--elsa-accent-secondary);
+}
+
 /* What a Tree with no logo shows in the same place (application.md 13.4). */
 .tree-title {
   font-family: var(--elsa-font-heading);
@@ -2444,6 +2479,8 @@ fieldset:disabled .admin-submit {
    * At the floor the bar holds two language names, the share button and the logo in 320
    * pixels: `English`, `Nederlands` and `Kopieer link` at 11 pixels are 200 or more in a
    * wide face, so the pills keep 5 pixels of padding and the logo at most 70 (22vw).
+   * **[#163]** The way back to the overview takes 30 of them before the logo, which gives
+   * back 12: the first Tree's Dutch bar was 4 pixels too wide without that.
    */
   .language,
   .share {
@@ -2452,7 +2489,16 @@ fieldset:disabled .admin-submit {
   }
 
   .logo {
-    max-width: 22vw;
+    max-width: calc(22vw - 12px);
+  }
+
+  .page-brand {
+    gap: 6px;
+  }
+
+  .back-to-overview {
+    width: 24px;
+    height: 24px;
   }
 
   /* A Tree without a logo names itself in two short lines rather than one long one. */

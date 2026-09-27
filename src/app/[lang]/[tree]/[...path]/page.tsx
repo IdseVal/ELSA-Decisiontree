@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { chrome, chromeLang, text } from '../../../../chrome.ts'
+import { chrome, chromeLang, chromeLanguage, text } from '../../../../chrome.ts'
+import { BackToOverview } from '../../../../components/BackToOverview.tsx'
 import { Disclaimer } from '../../../../components/Disclaimer.tsx'
 import { LanguageSwitch } from '../../../../components/LanguageSwitch.tsx'
 import { Logo } from '../../../../components/Logo.tsx'
@@ -13,7 +14,7 @@ import { graphScript, pageGraph } from '../../../../findability/jsonld.ts'
 import { plainDescription } from '../../../../markdown.ts'
 import { loadPage } from '../../../../neighbourhood.ts'
 import type { Tree } from '../../../../tree/loader.ts'
-import { absolute, addressSet, datasetHref, parseUrl, type PageAddress } from '../../../../url.ts'
+import { absolute, addressSet, datasetHref, overviewHref, parseUrl, type PageAddress } from '../../../../url.ts'
 
 /**
  * The Node page, `/<tree-id>/<...trail>/<node-id>` (docs/specs/application.md 4.1). The
@@ -52,12 +53,15 @@ export default async function NodePage(props: Props) {
         page in another language is built from the whole address -- this Trail, this Node.
       */}
       <header className="page-chrome">
-        <Logo
-          treeId={found.tree.id}
-          theme={found.tree.manifest.theme}
-          title={found.tree.manifest.title}
-          lang={found.address.lang}
-        />
+        <div className="page-brand">
+          <BackToOverview href={overviewHref(chromeLanguage(found.address.lang))} lang={found.address.lang} />
+          <Logo
+            treeId={found.tree.id}
+            theme={found.tree.manifest.theme}
+            title={found.tree.manifest.title}
+            lang={found.address.lang}
+          />
+        </div>
         <div className="page-controls">
           <LanguageSwitch address={found.address} languages={found.tree.manifest.languages} />
           <ShareButton ui={shareWords(found.address.lang)} uiLang={chromeLang(found.address.lang)} />
