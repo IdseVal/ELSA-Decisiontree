@@ -3453,7 +3453,7 @@ Answer buttons' style; one error line with `role="alert"`; under the card the se
 
 | Response of `POST /admin/api/login` | Shown |
 |---|---|
-| 204 | The current address is reloaded (24.2). **[#162]** First `GET /admin/api/me` asks whether the browser kept the cookie; a 401 there shows `sessionNotKept` instead of the reload, because a browser drops the `Secure` cookie (20.4) at a plain-`http://` address that is not `localhost`, and the reload would show the form again with nothing said. Not in the session Sheet (29.6): the editor it opens in was reached with a kept cookie. |
+| 204 | The current address is reloaded (24.2). **[#162]** First `GET /admin/api/me` asks whether the browser kept the cookie; a 401 there shows `sessionNotKept` instead of the reload, because a browser that blocks cookies, or is sent a `Secure` one at a plain-`http://` address (20.4), drops it, and the reload would show the form again with nothing said. Not in the session Sheet (29.6): the editor it opens in was reached with a kept cookie. |
 | 401 | `loginFailed` -- one string for a wrong name **and** a wrong password (20.7). The password field is cleared; the name is kept. |
 | 429 | `loginLocked` ("Too many attempts. Try again in a few minutes."). |
 | network failure, 5xx | `requestFailed`. |

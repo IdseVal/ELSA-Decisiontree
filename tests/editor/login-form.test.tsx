@@ -2,8 +2,8 @@
 /**
  * **[#162]** The login form (docs/specs/application.md 20.4, 25.1) after a 204: it asks
  * `/admin/api/me` whether the browser kept the session cookie before it reloads the address.
- * A browser drops the `Secure` cookie at a plain-`http://` address that is not `localhost`,
- * and the reload would then show the same form again with nothing said; the form says
+ * A browser that blocks cookies, or is sent a `Secure` one at a plain-`http://` address, drops
+ * it, and the reload would then show the same form again with nothing said; the form says
  * `sessionNotKept` instead.
  */
 import { act } from 'react'

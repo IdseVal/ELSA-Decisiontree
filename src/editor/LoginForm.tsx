@@ -9,8 +9,8 @@
  * Its fields stay disabled until the script runs: without it, a submit would send the
  * password as a form the server refuses (20.6), and the page says why in a `<noscript>`.
  *
- * **[#162]** Before the reload it asks `/admin/api/me` whether the browser kept the cookie: at a
- * plain-`http://` address that is not `localhost` a browser drops the `Secure` cookie (20.4),
+ * **[#162]** Before the reload it asks `/admin/api/me` whether the browser kept the cookie: one
+ * that blocks cookies, or is sent a `Secure` one at a plain-`http://` address (20.4), drops it,
  * and the reload would show this form again with nothing said, so the form says why instead.
  *
  * **[#138]** In the editor's session Sheet (29.6) `onSuccess` takes the place of the reload:

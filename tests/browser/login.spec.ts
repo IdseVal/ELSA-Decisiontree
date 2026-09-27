@@ -125,7 +125,7 @@ test.describe('the login page at every admin address (24.2, 25.1)', () => {
   })
 
   test('[#162] a login whose cookie the browser drops says why, rather than showing the form again in silence', async ({ page, context }) => {
-    // What a browser does at a plain-http address that is not localhost: the 204 arrives, the Secure cookie does not stay.
+    // What a browser does when it blocks cookies, or is sent a Secure one at a plain-http address: the 204 arrives, the cookie does not stay.
     await page.route(`${origin}/admin/api/login`, async (route) => {
       const response = await route.fetch()
       // `route.fetch` shares the context's cookie jar, so the cookie it stored is dropped from there too.
@@ -139,7 +139,7 @@ test.describe('the login page at every admin address (24.2, 25.1)', () => {
     await signIn(page, CEES.login, CEES.password)
 
     await expect(page.getByRole('main').getByRole('alert')).toHaveText(
-      'Your name and password are right, but this browser did not keep the session: the admin area needs an https:// address, or localhost.',
+      'Your name and password are right, but this browser did not keep the session. Allow cookies for this site, or open it at the address it is published at.',
     )
     await expect(page.getByLabel('Name')).toHaveValue(CEES.login)
     await expect(page.getByLabel('Password')).toHaveValue('')
