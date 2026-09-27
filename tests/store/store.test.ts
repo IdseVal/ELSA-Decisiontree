@@ -155,7 +155,7 @@ describe('which Trees are served (18.3, 23.1)', () => {
     const first = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await folder() })
     const admin = first.accounts.all().find((account) => account.administrator)!
     const anna = await first.accounts.create(admin, 'Anna', 'anna', 'annas first password')
-    const cookieOf = async (account: typeof admin): Promise<string> => (await first.sessions.start(account)).cookie.split(';')[0]!
+    const cookieOf = async (account: typeof admin): Promise<string> => (await first.sessions.start(account, true)).cookie.split(';')[0]!
     const adminCookie = await cookieOf(admin)
     const annaCookie = await cookieOf(anna)
 

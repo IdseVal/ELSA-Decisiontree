@@ -16,12 +16,17 @@ import { writeAtomic } from './write.ts'
 export const COOKIE_NAME = 'elsa-admin-session'
 
 /**
- * Every attribute of the one cookie (20.4), in one constant with one test: `HttpOnly` (no
- * script reads it), `Secure` (HTTPS; `localhost` is a secure context), `SameSite=Strict`
- * (never on a cross-site request), `Path=/admin` (never sent to a public route). No
- * `Domain`, so it is host-only.
+ * Every attribute of the one cookie (20.4), in one place with one test: `HttpOnly` (no
+ * script reads it), `SameSite=Strict` (never on a cross-site request), `Path=/admin` (never
+ * sent to a public route). No `Domain`, so it is host-only.
+ *
+ * **[#162]** `Secure` only when `secure`: the deployment is reached over HTTPS
+ * (`servedOverHttps` in config.ts). On a plain-HTTP deployment a browser would drop a
+ * `Secure` cookie from any address but `localhost`, and the flag would protect nothing there.
  */
-export const COOKIE_ATTRIBUTES = 'HttpOnly; Secure; SameSite=Strict; Path=/admin'
+export function cookieAttributes(secure: boolean): string {
+  return `HttpOnly; ${secure ? 'Secure; ' : ''}SameSite=Strict; Path=/admin`
+}
 
 const MINUTE = 60_000
 const HOUR = 60 * MINUTE
@@ -47,18 +52,20 @@ export interface Session {
 
 /** The sessions of one data directory (20.4's interface, and the two ends the account rules need). */
 export interface Sessions {
-  /** A new session for `account`, and the `Set-Cookie` value that carries it. */
-  start(account: Account): Promise<{ cookie: string; session: Session }>
+  /** A new session for `account`, and the `Set-Cookie` value that carries it, `Secure` when `secure`. */
+  start(account: Account, secure: boolean): Promise<{ cookie: string; session: Session }>
   /** The live session the `Cookie` header carries; null when absent, unknown, expired or deactivated. */
   resolve(cookieHeader: string | null): Promise<Session | null>
-  /** Deletes `session` and answers the clearing `Set-Cookie` value. */
-  end(session: Session): Promise<{ cookie: string }>
+  /** Deletes `session` and answers the clearing `Set-Cookie` value, `Secure` when `secure`. */
+  end(session: Session, secure: boolean): Promise<{ cookie: string }>
   /** Deletes every session of `accountId` but `keep`'s: deactivation, a password change (20.4). */
   endAll(accountId: string, keep?: Session): Promise<void>
 }
 
 /** The `Set-Cookie` value that ends the session in the browser: the same attributes, `Max-Age=0`. */
-export const CLEARING_COOKIE = `${COOKIE_NAME}=; ${COOKIE_ATTRIBUTES}; Max-Age=0`
+export function clearingCookie(secure: boolean): string {
+  return `${COOKIE_NAME}=; ${cookieAttributes(secure)}; Max-Age=0`
+}
 
 function sha256(token: string): string {
   return createHash('sha256').update(token).digest('base64url')
@@ -96,7 +103,7 @@ export async function openSessions(root: string, accounts: Accounts, now: () => 
     })
 
   return {
-    async start(account) {
+    async start(account, secure) {
       const token = randomBytes(32).toString('base64url')
       const at = now()
       const record: SessionRecord = {
@@ -109,7 +116,7 @@ export async function openSessions(root: string, accounts: Accounts, now: () => 
       records.push(record)
       await save()
       return {
-        cookie: `${COOKIE_NAME}=${token}; ${COOKIE_ATTRIBUTES}; Max-Age=${ABSOLUTE_MS / 1000}`,
+        cookie: `${COOKIE_NAME}=${token}; ${cookieAttributes(secure)}; Max-Age=${ABSOLUTE_MS / 1000}`,
         session: { tokenHash: record.tokenHash, account },
       }
     },
@@ -129,10 +136,10 @@ export async function openSessions(root: string, accounts: Accounts, now: () => 
       return { tokenHash: record.tokenHash, account }
     },
 
-    async end(session) {
+    async end(session, secure) {
       records = records.filter((record) => record.tokenHash !== session.tokenHash)
       await save()
-      return { cookie: CLEARING_COOKIE }
+      return { cookie: clearingCookie(secure) }
     },
 
     async endAll(accountId, keep) {
