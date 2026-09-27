@@ -1,6 +1,7 @@
 /**
  * `/admin/api/trees/<t>` (docs/specs/application.md 22.1): `GET` the Tree's entry -- meta,
- * manifest, state and violations; `PATCH { path, value }` one manifest field; `DELETE` a
+ * manifest, state and violations; `PATCH { path, value }` one manifest field, or **[#147]**
+ * `{ op, tag }` one of the three language operations; `DELETE` a
  * hidden Tree, which its creator or the administrator may.
  */
 import { json } from '../../../../../../admin/authenticated.ts'
@@ -25,7 +26,8 @@ export async function PATCH(request: Request, { params }: Context): Promise<Resp
     who.drafts.permitted(who.account, tree, 'edit')
     const body = await limitedBody(request)
     if (body instanceof Response) return body
-    return json(await who.drafts.write(who.account, tree, null, { path: body.path as string, value: body.value }))
+    const change = typeof body.op === 'string' ? { ...body, op: body.op } : { path: body.path as string, value: body.value }
+    return json(await who.drafts.write(who.account, tree, null, change))
   })
 }
 

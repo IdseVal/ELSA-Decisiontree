@@ -21,7 +21,7 @@ import { treeBytes } from '../tree/serialise.ts'
 import type { DraftNode, LocalisedText, Manifest, Violation } from '../tree/types.ts'
 import { isId, isImageFile, validateTree, type Mapping, type RawTree } from '../tree/validate.ts'
 import type { Account, Accounts } from './accounts.ts'
-import { applyField, applyOperation, createNode, deleteNode, freshNodeId, newDraft, type Field, type Operation } from './edits.ts'
+import { applyField, applyLanguageOperation, applyOperation, createNode, deleteNode, freshNodeId, newDraft, type Field, type Operation } from './edits.ts'
 import { malformed, StoreError } from './errors.ts'
 import { imageName, MAX_IMAGE_BYTES, sniff, sniffTheme, themeName } from './images.ts'
 import { mayCreate, permit, type Action, type TreeMeta } from './permissions.ts'
@@ -314,8 +314,9 @@ export async function openDrafts(
         let also: string[] = []
         const draft = await commit(by, tree, (next) => {
           if ('op' in change) {
-            if (nodeId === null) throw malformed('manifest', '', 'V-KEYS', 'the manifest takes fields only')
-            also = applyOperation(next, nodeId, change as Operation, () => freshNodeId(next))
+            // **[#147]** The manifest's operations are the three on its languages (22.2).
+            if (nodeId === null) also = applyLanguageOperation(next, change as Operation)
+            else also = applyOperation(next, nodeId, change as Operation, () => freshNodeId(next))
           } else {
             applyField(next, nodeId, change as Field)
           }
