@@ -106,7 +106,7 @@ export default async function EditorPage({ params }: Props) {
       tree={{ advisory: entry.advisory.length, published: entry.published, publicCopyCurrent: entry.publicCopyCurrent, servable: entry.servable }}
     >
       {/* The draft's Theme, so a colour changed in the draft is seen before publishing (13.1, ADR-133-admin-routes 6). */}
-      <ThemeStyle tree={draft} href={adminThemeHref} />
+      <ThemeStyle tree={draft} href={adminThemeHref} revision={entry.meta.revision} />
       {/* An admin bar too: below 480 pixels it gives up the title and the current language, as #135 decided (10.6). */}
       <header className="page-chrome admin-chrome editor-chrome">
         <Logo treeId={draft.id} theme={draft.manifest.theme} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />

@@ -176,6 +176,13 @@ export function ThemePanel({
     }, COLOUR_SETTLE_MS)
   }
 
+  // A colour still settling would otherwise land after the default and write the old palette back.
+  const defaultColours = (): Promise<boolean> => {
+    clearTimeout(settle.current ?? undefined)
+    settle.current = null
+    return save('colours', null)
+  }
+
   const families = theme.fonts ?? []
   const saveFamilies = (next: FontFamily[]): Promise<boolean> => save('fonts', next.length > 0 ? next : null)
 
@@ -214,7 +221,7 @@ export function ThemePanel({
               ))}
             </div>
             <ContrastWarning words={words} found={shortfalls(colours)} />
-            <button type="button" className="admin-link" disabled={disabled} onClick={() => save('colours', null)}>
+            <button type="button" className="admin-link" disabled={disabled} onClick={defaultColours}>
               {words.defaultColours}
             </button>
           </>

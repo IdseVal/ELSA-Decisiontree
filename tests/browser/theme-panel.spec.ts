@@ -250,3 +250,26 @@ test('back to the default colours: the part is removed and the default palette r
   await expect(themePanel(page).getByRole('button', { name: 'Choose colours' })).toBeVisible()
   await expect.poll(() => property(page, '--elsa-background')).not.toBe('#fdf1d8')
 })
+
+test('back to the default colours without a reload: the default returns on screen, not the colour before it', async ({ browser }) => {
+  // The default's element is placed first; a changed colour's comes after it. Going back must
+  // paint the default again although an element with its CSS is already in <head>.
+  const { page } = await loggedIn(browser, ANNA)
+  await page.goto(`${origin}${EDITOR}`)
+  const defaultBackground = await property(page, '--elsa-background')
+  await openPanel(page)
+  const chosen = themeWrite(page)
+  await themePanel(page).getByRole('button', { name: 'Choose colours' }).click()
+  expect((await chosen).status()).toBe(200)
+
+  const changed = themeWrite(page)
+  await themePanel(page).locator('input[type="color"][data-role="background"]').fill('#fdf1d8')
+  expect((await changed).status()).toBe(200)
+  await expect.poll(() => property(page, '--elsa-background')).toBe('#fdf1d8')
+
+  const removed = themeWrite(page)
+  await themePanel(page).getByRole('button', { name: 'Back to the default colours' }).click()
+  expect((await removed).status()).toBe(200)
+  await expect(themePanel(page).getByRole('button', { name: 'Choose colours' })).toBeVisible()
+  await expect.poll(() => property(page, '--elsa-background')).toBe(defaultBackground)
+})
