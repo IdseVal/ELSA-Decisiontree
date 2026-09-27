@@ -259,5 +259,5 @@ test('**[#159]** keys typed right after mark, before the store has answered add-
   await expect(textEn).toHaveValue(EN_TEXT)
   await page.keyboard.press('Escape')
   await saved(page)
-  expect((await nodeOf(page, cookie, 'no-end')).explainers).toEqual([{ id: 'walk', term: { en: 'walk' }, text: { en: EN_TEXT } }])
+  expect((await nodeOf(page, cookie, 'no-end')).explainers).toEqual([{ id: 'walk', term: { en: 'walk', nl: '' }, text: { en: EN_TEXT, nl: '' } }])
 })

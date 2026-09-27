@@ -48,9 +48,13 @@ export function ExplainerSheet({
   const descriptionPath = `description.${lang}`
 
   // The focus comes into the Sheet: to a field an operation named (the `text` of a term just
-  // marked, 32.1), else to the close button, so Escape and Tab start here.
+  // marked, 32.1), else to the close button, so Escape and Tab start here. A term just marked
+  // opens the Sheet before the store answers add-explainer, and its field comes with the
+  // answer: until then the panel holds the focus, as the explanation typed at once would
+  // otherwise press `close` with its first space and be lost (#159).
   useEffect(() => {
-    if (!panel.current?.contains(document.activeElement)) close.current?.focus()
+    if (panel.current?.contains(document.activeElement)) return
+    ;(explainer ? close.current : panel.current)?.focus()
   }, [])
 
   // Escape closes the Sheet; an open explainer panel hears it first and takes the first one (10.8).
@@ -79,7 +83,7 @@ export function ExplainerSheet({
   return (
     <div className="editor-explainer">
       <div className="sheet-backdrop" onClick={onClose} />
-      <div ref={panel} className="sheet-panel explainer-sheet" role="dialog" aria-modal="true" aria-labelledby="explainer-sheet-title">
+      <div ref={panel} className="sheet-panel explainer-sheet" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="explainer-sheet-title">
         <h2 id="explainer-sheet-title" lang={lang}>
           {explainer?.term[lang]?.trim() || id}
         </h2>

@@ -2850,6 +2850,11 @@ fieldset:disabled .admin-submit {
   padding-right: 64px;
 }
 
+/* The panel holds the focus only while its explainer is on its way (#159): no ring for that. */
+.explainer-sheet:focus-visible {
+  outline: none;
+}
+
 .explainer-sheet h2 {
   margin: 0;
   font-family: var(--elsa-font-heading);
