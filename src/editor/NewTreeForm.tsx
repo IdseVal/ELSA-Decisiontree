@@ -9,10 +9,11 @@
  *
  * Disabled until the script runs, as every admin form (`useHydrated`).
  */
-import { useState, type FormEvent, type KeyboardEvent } from 'react'
-import { countedLength, isId, isLanguageTag } from '../tree/grammar.ts'
+import { useState, type FormEvent } from 'react'
+import { countedLength, isId } from '../tree/grammar.ts'
 import { Field } from './AccountForms.tsx'
 import { useHydrated } from './hydrated.ts'
+import { LanguageTags } from './LanguageTags.tsx'
 import { send, type Answer } from './request.ts'
 import { proposedId } from './slug.ts'
 
@@ -30,7 +31,7 @@ export interface NewTreeWords {
   default: string
   removeLanguage: string
   languageHint: string
-  languagesFixed: string
+  languagesLater: string
   title: string
   create: string
   requestFailed: string
@@ -38,9 +39,6 @@ export interface NewTreeWords {
 
 /** The title's limit (tree-format.md 5.7): a counter, not a wall -- past it is a to-do (19.2). */
 const TITLE_MAX = 80
-
-/** The two languages offered with one click: the chrome's (ADR-133-new-tree-form decision 1). */
-const OFFERED = ['en', 'nl']
 
 /** Every Tree the route creates starts at this one empty Node (19.2, 27.2). */
 const ROOT = 'start'
@@ -81,7 +79,6 @@ export function NewTreeForm({ lang, words }: { lang: string; words: NewTreeWords
   const [proposedFrom, setProposedFrom] = useState<string | null>(null)
   const [languages, setLanguages] = useState([lang])
   const [titles, setTitles] = useState<Record<string, string>>({})
-  const [tag, setTag] = useState('')
   const [refusal, setRefusal] = useState<Refusal | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -93,22 +90,9 @@ export function NewTreeForm({ lang, words }: { lang: string; words: NewTreeWords
     }
   }
 
-  const addTag = (candidate: string): void => {
-    const added = candidate.trim().toLowerCase()
-    if (!isLanguageTag(added)) {
-      setRefusal({ field: 'languages', text: words.languageHint })
-      return
-    }
-    if (!languages.includes(added)) setLanguages([...languages, added])
-    setTag('')
+  const addLanguage = (added: string): void => {
+    setLanguages([...languages, added])
     if (refusal?.field === 'languages') setRefusal(null)
-  }
-
-  const addOnEnter = (event: KeyboardEvent<HTMLInputElement>): void => {
-    // Enter in the tag field adds the tag; it does not create the Tree.
-    if (event.key !== 'Enter') return
-    event.preventDefault()
-    addTag(tag)
   }
 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -154,61 +138,17 @@ export function NewTreeForm({ lang, words }: { lang: string; words: NewTreeWords
         </p>
         <p className="admin-note">{words.treeIdFixed}</p>
 
-        <div className="admin-field-group" role="group" aria-labelledby="new-tree-languages">
-          <span className="new-tree-label" id="new-tree-languages">
-            {words.languages}
-          </span>
-          <ul className="new-tree-tags">
-            {languages.map((language, index) => (
-              <li key={language} className="new-tree-tag" data-language={language}>
-                <span className="new-tree-tag-name">{language}</span>
-                {index === 0 ? (
-                  <span className="new-tree-default">{words.default}</span>
-                ) : (
-                  <button
-                    type="button"
-                    className="admin-link"
-                    onClick={() => setLanguages([language, ...languages.filter((other) => other !== language)])}
-                  >
-                    {words.makeDefault}
-                  </button>
-                )}
-                {languages.length > 1 && (
-                  <button
-                    type="button"
-                    className="new-tree-remove"
-                    aria-label={`${words.removeLanguage} ${language}`}
-                    onClick={() => setLanguages(languages.filter((other) => other !== language))}
-                  >
-                    ×
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-          <div className="new-tree-add">
-            <input
-              name="language"
-              aria-label={words.addLanguage}
-              autoCapitalize="none"
-              spellCheck={false}
-              value={tag}
-              onChange={(event) => setTag(event.target.value)}
-              onKeyDown={addOnEnter}
-            />
-            <button type="button" className="new-tree-button" onClick={() => addTag(tag)}>
-              {words.addLanguage}
-            </button>
-            {OFFERED.filter((offered) => !languages.includes(offered)).map((offered) => (
-              <button key={offered} type="button" className="new-tree-button" onClick={() => addTag(offered)}>
-                {offered}
-              </button>
-            ))}
-          </div>
-          <p className={at('languages') ? 'admin-error' : 'admin-note'} role={at('languages') ? 'alert' : undefined}>
-            {at('languages') ?? words.languagesFixed}
-          </p>
-        </div>
+        <LanguageTags
+          id="new-tree-languages"
+          languages={languages}
+          words={words}
+          removable={() => languages.length > 1}
+          onAdd={addLanguage}
+          onRemove={(language) => setLanguages(languages.filter((other) => other !== language))}
+          onMakeDefault={(language) => setLanguages([language, ...languages.filter((other) => other !== language)])}
+          note={words.languagesLater}
+          error={at('languages')}
+        />
 
         {languages.map((language) => {
           const value = titles[language] ?? ''

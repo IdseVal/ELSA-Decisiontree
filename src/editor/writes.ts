@@ -76,6 +76,8 @@ export interface EntryAnswer {
   servable: boolean
   publicCopyCurrent: boolean
   advisory: Violation[]
+  /** **[#147]** How many texts are written in each declared language (33.5). */
+  written: Record<string, number>
 }
 
 /** **[#142]** One active account of `GET /admin/api/accounts`, for an invitation (21.4). */
@@ -100,6 +102,9 @@ export const panelCalls = {
     request('DELETE', `${treeUrl(treeId)}/collaborators/${encodeURIComponent(accountId)}`) as Promise<Typed<EntryAnswer['meta']>>,
   handOver: (treeId: string, accountId: string) => request('PUT', `${treeUrl(treeId)}/creator`, { accountId }) as Promise<Typed<EntryAnswer['meta']>>,
   deleteTree: (treeId: string) => request('DELETE', treeUrl(treeId)),
+  /** **[#147]** One of the manifest's three language operations (22.2, 33.5), answered with the write response. */
+  language: (treeId: string, op: 'add-language' | 'remove-language' | 'set-default-language', tag: string) =>
+    request('PATCH', treeUrl(treeId), { op, tag }) as Promise<Typed<WriteResponse>>,
   deleteNode,
 }
 
