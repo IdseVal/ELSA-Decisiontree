@@ -186,6 +186,8 @@ function TopPanel({
             nodeHref={{ before, after }}
             publicHref={rootHref(draft, address.lang)}
             languages={draft.manifest.languages}
+            lang={address.lang}
+            written={entry.written}
             overviewHref={adminHref('/admin', chromeLanguage(address.lang))}
             theme={
               <ThemePanel
@@ -230,7 +232,12 @@ function panelWords(ui: Chrome): PanelWords {
     removeCollaborator: ui.removeCollaborator,
     chooseAccount: ui.chooseAccount,
     thisTree: ui.thisTree,
-    fixed: ui.fixed,
+    confirmRemoveLanguage: ui.confirmRemoveLanguage,
+    addLanguage: ui.addLanguage,
+    makeDefault: ui.makeDefault,
+    default: ui.default,
+    removeLanguage: ui.removeLanguage,
+    languageHint: ui.languageHint,
     handOver: ui.handOver,
     handOverTo: ui.handOverTo,
     deleteTree: ui.deleteTree,

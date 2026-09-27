@@ -12,6 +12,11 @@
  * the button follows a publish at once. The to-do list and the accounts are re-read when the
  * panel opens (33.3, 33.4); nothing polls.
  *
+ * **[#147]** "This Tree" holds the Tree's languages as the new-Tree form's tags: adding one,
+ * removing one after asking once, making one the default. Each is a write across the whole
+ * draft, so the page is drawn again after it -- at a new address when the language it was
+ * shown in has gone or become the default.
+ *
  * The panel hides what a role may not do (21.2); the server decides (21.3), and a refusal
  * is shown, not routed around. Imports of `src/`: types, and nothing else (34.4).
  */
@@ -20,6 +25,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import type { Chrome } from '../chrome.ts'
 import type { Violation } from '../tree/types.ts'
 import { useEditor, type TreeState } from './Editor.tsx'
+import { LanguageTags, type LanguageTagWords } from './LanguageTags.tsx'
 import { panelCalls, type AccountAnswer, type EntryAnswer } from './writes.ts'
 
 /** The chrome strings the panel says, as strings. */
@@ -44,7 +50,7 @@ export type PanelWords = Pick<
   | 'removeCollaborator'
   | 'chooseAccount'
   | 'thisTree'
-  | 'fixed'
+  | 'confirmRemoveLanguage'
   | 'handOver'
   | 'handOverTo'
   | 'deleteTree'
@@ -56,7 +62,8 @@ export type PanelWords = Pick<
   | 'treeId'
   | 'administrator'
   | 'requestFailed'
->
+> &
+  LanguageTagWords
 
 /** The caller's role on this Tree (21.1): the administrator's wins over any other it has. */
 export type PanelRole = 'creator' | 'collaborator' | 'administrator'
@@ -96,7 +103,9 @@ export function Panel({
   titles,
   nodeHref,
   publicHref,
-  languages,
+  languages: initialLanguages,
+  lang,
+  written: initialWritten,
   overviewHref,
   theme,
 }: {
@@ -120,6 +129,10 @@ export function Panel({
   /** The Tree's root URL on the public site (4.1). */
   publicHref: string
   languages: string[]
+  /** **[#147]** The language the page is shown in: kept on the address after a language write while it is declared. */
+  lang: string
+  /** **[#147]** The written texts per declared language at load, which removing one names (33.5). */
+  written: Record<string, number>
   /** `/admin` in the chrome language: where a deleted Tree's editor goes. */
   overviewHref: string
   /** **[#144]** The Theme panel, at the end of "This Tree" (33.5, 33.8). */
@@ -133,8 +146,11 @@ export function Panel({
   const [todo, setTodo] = useState(advisory)
   const [accounts, setAccounts] = useState(initialAccounts)
   const [asking, setAsking] = useState<'unpublish' | 'delete' | null>(null)
+  const [languages, setLanguages] = useState(initialLanguages)
+  const [written, setWritten] = useState(initialWritten)
+  const [removing, setRemoving] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<{ where: 'publish' | 'invite' | 'handOver' | 'admin'; text: string } | null>(null)
+  const [error, setError] = useState<{ where: 'publish' | 'invite' | 'handOver' | 'languages' | 'admin'; text: string } | null>(null)
   const body = useRef<HTMLDivElement>(null)
   const manages = role !== 'collaborator'
 
@@ -145,6 +161,7 @@ export function Panel({
     const reread = async (): Promise<void> => {
       if (!sheet.open) return
       setAsking(null)
+      setRemoving(null)
       setError(null)
       const [entry, listed] = await Promise.all([panelCalls.entry(treeId), panelCalls.accounts()])
       if (entry.status === 200 && entry.body && 'meta' in entry.body) {
@@ -152,6 +169,7 @@ export function Panel({
         setMeta(read.meta)
         setPublishedAt(read.meta.publishedAt ?? null)
         setTodo(read.advisory)
+        setWritten(read.written)
         setTree({ advisory: read.advisory.length, published: read.published, publicCopyCurrent: read.publicCopyCurrent, servable: read.servable })
       }
       if (listed.status === 200 && Array.isArray(listed.body)) setAccounts(listed.body)
@@ -220,6 +238,40 @@ export function Panel({
         setTree({ advisory: Math.max(0, tree.advisory - todo.filter((violation) => violation.file === nodeId).length) })
         router.refresh()
       } else setError({ where: 'publish', text: words.requestFailed })
+    })
+
+  /**
+   * **[#147]** One language write (33.5). The page is drawn again after it: the rim's tags and
+   * the explainer Sheet follow the declared languages, and the to-do list and the counts are
+   * re-read. A page shown in a language that has gone, or that is the default now, moves to
+   * the address of the language it shows (4.1: the default's address has no `lang`).
+   */
+  const changeLanguages = (op: Parameters<typeof panelCalls.language>[1], tag: string): Promise<void> =>
+    run(async () => {
+      setRemoving(null)
+      const answer = await panelCalls.language(treeId, op, tag)
+      if (answer.status !== 200 || !answer.body || !('manifest' in answer.body) || !answer.body.manifest) {
+        const refused = answer.status === 422 ? words.languageHint : words.requestFailed
+        setError({ where: 'languages', text: refused })
+        return
+      }
+      const declared = answer.body.manifest.languages
+      setLanguages(declared)
+      setTree(answer.body.tree)
+      const address = new URL(window.location.href)
+      const shown = declared.includes(lang) ? lang : declared[0]!
+      if (shown === declared[0]) address.searchParams.delete('lang')
+      else address.searchParams.set('lang', shown)
+      if (address.href !== window.location.href) {
+        window.location.assign(address.href)
+        return
+      }
+      const entry = await panelCalls.entry(treeId)
+      if (entry.status === 200 && entry.body && 'written' in entry.body) {
+        setTodo(entry.body.advisory)
+        setWritten(entry.body.written)
+      }
+      router.refresh()
     })
 
   const deleteTree = (): Promise<void> =>
@@ -371,16 +423,32 @@ export function Panel({
 
       <section className="panel-section" aria-labelledby="panel-tree">
         <h3 id="panel-tree">{words.thisTree}</h3>
+        {removing === null ? (
+          <LanguageTags
+            id="panel-languages"
+            languages={languages}
+            words={words}
+            removable={(index) => index > 0}
+            onAdd={(tag) => changeLanguages('add-language', tag)}
+            onRemove={setRemoving}
+            onMakeDefault={(tag) => changeLanguages('set-default-language', tag)}
+            error={error?.where === 'languages' ? error.text : undefined}
+            disabled={busy}
+          />
+        ) : (
+          <div className="panel-ask" data-removing={removing}>
+            <p>{words.confirmRemoveLanguage.replace('{language}', removing).replace('{count}', String(written[removing] ?? 0))}</p>
+            <div className="panel-actions">
+              <button type="button" className="admin-submit admin-submit--danger" disabled={busy} onClick={() => changeLanguages('remove-language', removing)}>
+                {words.confirm}
+              </button>
+              <button type="button" className="admin-link" onClick={() => setRemoving(null)}>
+                {words.cancel}
+              </button>
+            </div>
+          </div>
+        )}
         <dl className="panel-facts">
-          <dt>{words.languages}</dt>
-          <dd>
-            {languages.map((language) => (
-              <span key={language} className="panel-tag">
-                {language}
-              </span>
-            ))}{' '}
-            <span className="admin-row-login">({words.fixed})</span>
-          </dd>
           <dt>{words.treeId}</dt>
           <dd>
             <code>{treeId}</code>

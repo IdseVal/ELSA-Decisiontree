@@ -622,3 +622,143 @@ describe('**[#144]** the Theme (33.8)', () => {
     expect(published.themePath(loose)).toBeNull()
   })
 })
+
+describe('**[#147]** the languages of an existing Tree (22.2, 33.5)', () => {
+  /**
+   * A Dutch Tree with a localised text of every kind, 10 in all: the manifest's title,
+   * description and logo text; on `start` a title, a description, a Source label, an
+   * explainer's term and text and an Option title; and the Option's Node's title. Answers
+   * the Option's Node's id.
+   */
+  async function dutchTree(): Promise<string> {
+    await drafts.create(cees, 'nl-tree', ['nl'], { nl: 'Boom' })
+    await drafts.write(cees, 'nl-tree', null, { path: 'description.nl', value: 'Over de boom.' })
+    const light = (await drafts.uploadThemeFile(cees, 'nl-tree', PNG, 'logo.png')).file
+    await drafts.write(cees, 'nl-tree', null, { path: 'theme.logo', value: { light, alt: { nl: 'Lab' } } })
+    await drafts.write(cees, 'nl-tree', 'start', { path: 'title.nl', value: 'Begin' })
+    await drafts.write(cees, 'nl-tree', 'start', { path: 'description.nl', value: 'Een [term](#term).' })
+    await drafts.write(cees, 'nl-tree', 'start', { op: 'add-source', kind: 'legal', label: { nl: 'Wet' }, url: 'https://example.org/wet' })
+    await drafts.write(cees, 'nl-tree', 'start', { op: 'add-explainer', id: 'term', term: { nl: 'term' }, text: { nl: 'Uitleg.' } })
+    return (await drafts.createNode(cees, 'nl-tree', { node: 'start', link: 'option' }, { nl: 'Zijpad' })).node!.id
+  }
+
+  const l10n = (id: string): string[] =>
+    drafts
+      .entry(cees, id)
+      .advisory.filter((violation) => violation.rule === 'V-L10N')
+      .map((violation) => `${violation.file} ${violation.keyPath}`)
+      .sort()
+
+  test('add-language writes "" for the tag into every localised text, each a to-do, and also names every Node changed', async () => {
+    const aside = await dutchTree()
+    expect(l10n('nl-tree')).toEqual([])
+    const before = drafts.entry(cees, 'nl-tree').advisory.length
+    const response = await drafts.write(cees, 'nl-tree', null, { op: 'add-language', tag: 'en' })
+
+    expect(response.node).toBeNull()
+    expect(response.manifest!.languages).toEqual(['nl', 'en'])
+    expect(response.manifest!.title).toEqual({ nl: 'Boom', en: '' })
+    expect(response.manifest!.theme!.logo!.alt).toEqual({ nl: 'Lab', en: '' })
+    expect(response.also!.map((also) => also.node!.id).sort()).toEqual([aside, 'start'].sort())
+    const start = response.also!.find((also) => also.node!.id === 'start')!.node!
+    expect(start.title).toEqual({ nl: 'Begin', en: '' })
+    expect(start.sources![0]!.label).toEqual({ nl: 'Wet', en: '' })
+    expect(start.explainers![0]).toMatchObject({ term: { nl: 'term', en: '' }, text: { nl: 'Uitleg.', en: '' } })
+    expect(start.options![0]!.title).toEqual({ nl: 'Zijpad', en: '' })
+    expect(l10n('nl-tree')).toEqual(
+      [
+        'manifest title.en',
+        'manifest description.en',
+        'manifest theme.logo.alt.en',
+        'start title.en',
+        'start description.en',
+        'start sources[0].label.en',
+        'start explainers[0].term.en',
+        'start explainers[0].text.en',
+        'start options[0].title.en',
+        `${aside} title.en`,
+      ].sort(),
+    )
+    // Ten texts, and the explainer's mark, which the new, empty description does not carry yet (V-EXPLAINER).
+    expect(response.violations.length + response.also!.reduce((sum, also) => sum + also.violations.length, 0)).toBe(response.tree.advisory)
+    expect(response.tree.advisory).toBe(before + 11)
+    const stored = JSON.parse(await text('nl-tree', 'draft.json'))
+    expect(stored.languages).toEqual(['nl', 'en'])
+    expect(stored.nodes[0].title).toEqual({ nl: 'Begin', en: '' })
+
+    // Each English text written is one to-do fewer.
+    const written = await drafts.write(cees, 'nl-tree', 'start', { path: 'title.en', value: 'Start' })
+    expect(written.tree.advisory).toBe(before + 10)
+    // What removing each language would take away (33.5): the texts written in it.
+    expect(drafts.entry(cees, 'nl-tree').written).toEqual({ nl: 10, en: 1 })
+  })
+
+  test('remove-language drops the tag and every text under it; a text only in that language keeps the rest as to-dos', async () => {
+    const aside = await dutchTree()
+    await drafts.write(cees, 'nl-tree', null, { op: 'add-language', tag: 'en' })
+    await drafts.write(cees, 'nl-tree', 'start', { path: 'title.en', value: 'Start' })
+    await drafts.write(cees, 'nl-tree', null, { op: 'set-default-language', tag: 'en' })
+    const response = await drafts.write(cees, 'nl-tree', null, { op: 'remove-language', tag: 'nl' })
+
+    expect(response.manifest!.languages).toEqual(['en'])
+    expect(response.manifest!.title).toEqual({ en: '' })
+    expect(response.also!.map((also) => also.node!.id).sort()).toEqual([aside, 'start'].sort())
+    const start = response.also!.find((also) => also.node!.id === 'start')!.node!
+    expect(start.title).toEqual({ en: 'Start' })
+    expect(start.explainers![0]).toMatchObject({ term: { en: '' }, text: { en: '' } })
+    expect(await text('nl-tree', 'draft.json')).not.toContain('"nl"')
+    expect(drafts.entry(cees, 'nl-tree').blocking).toEqual([])
+
+    // A text the draft holds in the removed language only is left with the others as "", never {}.
+    await drafts.write(cees, 'nl-tree', null, { op: 'add-language', tag: 'de' })
+    await drafts.write(cees, 'nl-tree', null, { op: 'set-default-language', tag: 'de' })
+    const draftFile = file('nl-tree', 'draft.json')
+    const held = JSON.parse(await text('nl-tree', 'draft.json'))
+    held.nodes[0].title = { en: 'Start' }
+    await writeFile(draftFile, treeBytes(held))
+    const reopened = (await openStore(data, { ...ADMIN, ELSA_SEED_DIR: data })).drafts
+    const again = await reopened.write(cees, 'nl-tree', null, { op: 'remove-language', tag: 'en' })
+    expect(again.also!.find((also) => also.node!.id === 'start')!.node!.title).toEqual({ de: '' })
+  })
+
+  test('set-default-language moves the tag to the front and changes no text', async () => {
+    await dutchTree()
+    await drafts.write(cees, 'nl-tree', null, { op: 'add-language', tag: 'en' })
+    await drafts.write(cees, 'nl-tree', null, { op: 'add-language', tag: 'de' })
+    const before = JSON.parse(await text('nl-tree', 'draft.json'))
+    const response = await drafts.write(cees, 'nl-tree', null, { op: 'set-default-language', tag: 'de' })
+    expect(response.manifest!.languages).toEqual(['de', 'nl', 'en'])
+    expect(response.also).toBeUndefined()
+    const after = JSON.parse(await text('nl-tree', 'draft.json'))
+    expect(after.languages).toEqual(['de', 'nl', 'en'])
+    expect(after.nodes).toEqual(before.nodes)
+  })
+
+  test('the default language, and so the only one, is 409; an undeclared, declared or malformed tag is 422; nothing is stored', async () => {
+    await dutchTree()
+    const alone = await text('nl-tree', 'draft.json')
+    expect(await refusal(drafts.write(cees, 'nl-tree', null, { op: 'remove-language', tag: 'nl' }))).toEqual({ status: 409, code: 'default-language', rules: [] })
+    expect(await text('nl-tree', 'draft.json')).toBe(alone)
+    await drafts.write(cees, 'nl-tree', null, { op: 'add-language', tag: 'en' })
+    const added = await text('nl-tree', 'draft.json')
+    expect((await refusal(drafts.write(cees, 'nl-tree', null, { op: 'remove-language', tag: 'nl' }))).status).toBe(409)
+    for (const change of [
+      { op: 'add-language', tag: 'en' },
+      { op: 'add-language', tag: 'EN GB' },
+      { op: 'add-language' },
+      { op: 'remove-language', tag: 'de' },
+      { op: 'set-default-language', tag: 'de' },
+    ]) {
+      expect(await refusal(drafts.write(cees, 'nl-tree', null, change)), JSON.stringify(change)).toMatchObject({ status: 422, rules: ['V-LANG'] })
+    }
+    expect((await refusal(drafts.write(cees, 'nl-tree', null, { op: 'rename-language', tag: 'en' }))).rules).toEqual(['V-KEYS'])
+    expect(await text('nl-tree', 'draft.json')).toBe(added)
+  })
+
+  test('a collaborator may change the languages; an account without a role may not', async () => {
+    await dutchTree()
+    await drafts.addCollaborator(cees, 'nl-tree', dirk.id)
+    expect((await drafts.write(dirk, 'nl-tree', null, { op: 'add-language', tag: 'en' })).manifest!.languages).toEqual(['nl', 'en'])
+    expect((await refusal(drafts.write(erik, 'nl-tree', null, { op: 'add-language', tag: 'de' }))).status).toBe(403)
+  })
+})
