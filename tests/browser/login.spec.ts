@@ -124,6 +124,28 @@ test.describe('the login page at every admin address (24.2, 25.1)', () => {
     expect(cookie).toMatchObject({ name: 'elsa-admin-session', path: '/admin', httpOnly: true, secure: true, sameSite: 'Strict' })
   })
 
+  test('[#162] a login whose cookie the browser drops says why, rather than showing the form again in silence', async ({ page, context }) => {
+    // What a browser does at a plain-http address that is not localhost: the 204 arrives, the Secure cookie does not stay.
+    await page.route(`${origin}/admin/api/login`, async (route) => {
+      const response = await route.fetch()
+      // `route.fetch` shares the context's cookie jar, so the cookie it stored is dropped from there too.
+      await context.clearCookies()
+      const headers = { ...response.headers() }
+      delete headers['set-cookie']
+      await route.fulfill({ response, headers })
+    })
+    await page.goto(`${origin}/admin`)
+
+    await signIn(page, CEES.login, CEES.password)
+
+    await expect(page.getByRole('main').getByRole('alert')).toHaveText(
+      'Your name and password are right, but this browser did not keep the session: the admin area needs an https:// address, or localhost.',
+    )
+    await expect(page.getByLabel('Name')).toHaveValue(CEES.login)
+    await expect(page.getByLabel('Password')).toHaveValue('')
+    expect(await context.cookies()).toEqual([])
+  })
+
   test('without JavaScript the page says the editor needs it, and its fields cannot be used', async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
