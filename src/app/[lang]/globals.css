@@ -3680,6 +3680,8 @@ fieldset:disabled .admin-submit {
   width: 100%;
   opacity: 0;
   cursor: pointer;
+  /* Its own button and file name are never seen, and at any size would be wider than the link it covers (10.6). */
+  font-size: 0;
 }
 
 .theme-file[data-disabled] {
