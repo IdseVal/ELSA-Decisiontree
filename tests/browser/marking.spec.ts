@@ -236,3 +236,28 @@ test('unmark in one language leaves the explainer and the Sheet says notMarkedIn
   expect('explainers' in published).toBe(false)
   expect(published.description).toEqual({ en: EN_DESCRIPTION, nl: NL_DESCRIPTION })
 })
+
+test('**[#159]** keys typed right after mark, before the store has answered add-explainer, do not close the Sheet', async ({ browser }) => {
+  const { page, cookie } = await loggedIn(browser)
+  expect((await api(page, cookie, 'PATCH', '/trees/marking/nodes/no-end', { path: 'description.en', value: 'The walk ends here.' })).status()).toBe(200)
+  await page.goto(`${origin}/admin/trees/marking/start/no-end`)
+  // A slow server or network: the answer to add-explainer comes 1.5 s after the request.
+  await page.route('**/admin/api/trees/marking/nodes/no-end', async (route) => {
+    if (route.request().postData()?.includes('add-explainer')) await new Promise((resolve) => setTimeout(resolve, 1500))
+    await route.continue()
+  })
+
+  await selectInDescription(page, 'no-end', 'en', 'walk')
+  await markButton(page).click()
+  await expect(sheet(page)).toBeVisible()
+  await page.keyboard.type('The one')
+
+  const textEn = sheet(page).locator('[data-field="no-end explainers[0].text.en"] textarea')
+  await expect(textEn).toBeFocused()
+  await expect(sheet(page)).toHaveCount(1)
+  await page.keyboard.type(EN_TEXT)
+  await expect(textEn).toHaveValue(EN_TEXT)
+  await page.keyboard.press('Escape')
+  await saved(page)
+  expect((await nodeOf(page, cookie, 'no-end')).explainers).toEqual([{ id: 'walk', term: { en: 'walk', nl: '' }, text: { en: EN_TEXT, nl: '' } }])
+})
