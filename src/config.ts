@@ -123,6 +123,24 @@ export function baseUrl(requestHeaders: Headers, env: Environment = process.env)
   return new URL(origin)
 }
 
+/**
+ * **[#162]** Whether this request reached the deployment over HTTPS, and so whether the session
+ * cookie is `Secure` (application.md 20.4): it arrived over TLS, a proxy in front says
+ * `x-forwarded-proto: https`, or ELSA_BASE_URL is an `https://` address. Otherwise the
+ * deployment is plain HTTP, where a browser keeps no `Secure` cookie from any address but
+ * `localhost` and nobody could log in.
+ *
+ * A client can set the header itself, but only to put the flag on; a request that reached the
+ * process in clear was readable on the way whatever the cookie says.
+ */
+export function servedOverHttps(request: Request, env: Environment = process.env): boolean {
+  return (
+    new URL(request.url).protocol === 'https:' ||
+    first(request.headers.get('x-forwarded-proto')) === 'https' ||
+    publicBaseUrl(env)?.protocol === 'https:'
+  )
+}
+
 /** A host or a scheme as one value: what stands before the first comma of a proxy's list. */
 function first(header: string | null): string | null {
   return header?.split(',')[0]?.trim() || null

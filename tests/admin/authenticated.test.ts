@@ -139,8 +139,22 @@ describe('the routes, through authenticated (22.1)', () => {
 
     const out = await call(logout, 'POST', '/admin/api/logout', { ...same, Cookie: cookie })
     expect(out.status).toBe(204)
-    expect(out.headers.get('set-cookie')).toBe('elsa-admin-session=; HttpOnly; Secure; SameSite=Strict; Path=/admin; Max-Age=0')
+    // No ELSA_BASE_URL and no proxy: a plain-HTTP deployment, so no Secure (#162).
+    expect(out.headers.get('set-cookie')).toBe('elsa-admin-session=; HttpOnly; SameSite=Strict; Path=/admin; Max-Age=0')
     expect((await call(me, 'GET', '/admin/api/me', { Cookie: cookie })).status).toBe(401)
+  })
+
+  test('[#162] behind an HTTPS proxy the login and the logout cookie are Secure; over plain HTTP neither is', async () => {
+    for (const [headers, flag] of [[{ 'x-forwarded-proto': 'https' }, 'Secure; '], [{}, '']] as const) {
+      const right = await call(login, 'POST', '/admin/api/login', { ...same, ...headers }, { login: 'admin', password: ADMIN_PASSWORD })
+      const setCookie = right.headers.get('set-cookie')!
+      expect(setCookie).toMatch(new RegExp(`^elsa-admin-session=[A-Za-z0-9_-]{43}; HttpOnly; ${flag}SameSite=Strict; Path=/admin; Max-Age=1209600$`))
+      const cookie = setCookie.split(';')[0]!
+      expect((await call(me, 'GET', '/admin/api/me', { Cookie: cookie })).status).toBe(200)
+
+      const out = await call(logout, 'POST', '/admin/api/logout', { ...same, ...headers, Cookie: cookie })
+      expect(out.headers.get('set-cookie')).toBe(`elsa-admin-session=; HttpOnly; ${flag}SameSite=Strict; Path=/admin; Max-Age=0`)
+    }
   })
 
   test('the fifth wrong password locks the name: 429 with Retry-After, the same body as a 401', async () => {

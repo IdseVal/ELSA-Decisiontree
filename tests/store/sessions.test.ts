@@ -1,5 +1,5 @@
 /**
- * Sessions (docs/specs/application.md 20.4): the cookie constant, the token only as a hash
+ * Sessions (docs/specs/application.md 20.4): the cookie's attributes, the token only as a hash
  * on disk, idle and absolute expiry on a clock the test moves, the sweep, and the ends.
  */
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -9,8 +9,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { openAccounts, type Account, type Accounts } from '../../src/store/accounts.ts'
 import {
   ABSOLUTE_MS,
-  CLEARING_COOKIE,
-  COOKIE_ATTRIBUTES,
+  clearingCookie,
+  cookieAttributes,
   COOKIE_NAME,
   IDLE_MS,
   openSessions,
@@ -51,17 +51,28 @@ function cookieFor(setCookie: string): string {
 
 describe('the cookie (20.4)', () => {
   test('carries every attribute ADR-132 decided, by name, and no Domain', () => {
-    const attributes = COOKIE_ATTRIBUTES.split('; ')
-    expect(attributes).toEqual(['HttpOnly', 'Secure', 'SameSite=Strict', 'Path=/admin'])
-    expect(COOKIE_ATTRIBUTES).not.toMatch(/domain/i)
+    expect(cookieAttributes(true).split('; ')).toEqual(['HttpOnly', 'Secure', 'SameSite=Strict', 'Path=/admin'])
+    expect(cookieAttributes(true)).not.toMatch(/domain/i)
     expect(COOKIE_NAME).toBe('elsa-admin-session')
   })
 
-  test('start answers the token with Max-Age of the absolute expiry; the clearing value has Max-Age=0', async () => {
-    const { cookie } = await sessions.start(anna)
+  test('[#162] on a plain-HTTP deployment only Secure comes off', () => {
+    expect(cookieAttributes(false).split('; ')).toEqual(['HttpOnly', 'SameSite=Strict', 'Path=/admin'])
+  })
 
-    expect(cookie).toMatch(new RegExp(`^elsa-admin-session=[A-Za-z0-9_-]{43}; ${COOKIE_ATTRIBUTES}; Max-Age=${ABSOLUTE_MS / 1000}$`))
-    expect(CLEARING_COOKIE).toBe(`elsa-admin-session=; ${COOKIE_ATTRIBUTES}; Max-Age=0`)
+  test('start answers the token with Max-Age of the absolute expiry; the clearing value has Max-Age=0', async () => {
+    for (const secure of [true, false]) {
+      const { cookie } = await sessions.start(anna, secure)
+
+      expect(cookie).toMatch(new RegExp(`^elsa-admin-session=[A-Za-z0-9_-]{43}; ${cookieAttributes(secure)}; Max-Age=${ABSOLUTE_MS / 1000}$`))
+      expect(clearingCookie(secure)).toBe(`elsa-admin-session=; ${cookieAttributes(secure)}; Max-Age=0`)
+    }
+  })
+
+  test('[#162] a session started without Secure resolves as any other: the check never reads the flag', async () => {
+    const { cookie } = await sessions.start(anna, false)
+
+    expect((await sessions.resolve(cookieFor(cookie)))?.account.id).toBe(anna.id)
   })
 
   test('tokenOf finds the session among other cookies and nothing in a header without it', () => {
@@ -74,7 +85,7 @@ describe('the cookie (20.4)', () => {
 
 describe('the record (20.4)', () => {
   test('holds the hash of the token, never the token', async () => {
-    const { cookie } = await sessions.start(anna)
+    const { cookie } = await sessions.start(anna, true)
     const token = tokenOf(cookieFor(cookie))!
 
     const file = await readFile(path.join(dir, 'sessions.json'), 'utf8')
@@ -85,8 +96,8 @@ describe('the record (20.4)', () => {
   })
 
   test('two logins are two tokens: a login never reuses one', async () => {
-    const first = await sessions.start(anna)
-    const second = await sessions.start(anna)
+    const first = await sessions.start(anna, true)
+    const second = await sessions.start(anna, true)
 
     expect(cookieFor(first.cookie)).not.toBe(cookieFor(second.cookie))
     expect(await sessions.resolve(cookieFor(first.cookie))).toMatchObject({ account: { id: anna.id } })
@@ -94,14 +105,14 @@ describe('the record (20.4)', () => {
   })
 
   test('an unknown or absent token resolves to nothing', async () => {
-    await sessions.start(anna)
+    await sessions.start(anna, true)
 
     expect(await sessions.resolve(null)).toBeNull()
     expect(await sessions.resolve('elsa-admin-session=not-a-token')).toBeNull()
   })
 
   test('survives a restart: a second process on the same folder resolves it', async () => {
-    const { cookie } = await sessions.start(anna)
+    const { cookie } = await sessions.start(anna, true)
 
     const again = await openSessions(dir, accounts, () => clock)
 
@@ -111,7 +122,7 @@ describe('the record (20.4)', () => {
 
 describe('expiry (20.4)', () => {
   test('12 hours idle ends it', async () => {
-    const { cookie } = await sessions.start(anna)
+    const { cookie } = await sessions.start(anna, true)
 
     clock += IDLE_MS - 1000
     expect(await sessions.resolve(cookieFor(cookie))).not.toBeNull()
@@ -123,7 +134,7 @@ describe('expiry (20.4)', () => {
   })
 
   test('14 days ends it however active it was', async () => {
-    const { cookie } = await sessions.start(anna)
+    const { cookie } = await sessions.start(anna, true)
 
     for (let hour = 1; hour < 14 * 24; hour += 1) {
       clock += 60 * 60 * 1000
@@ -134,7 +145,7 @@ describe('expiry (20.4)', () => {
   })
 
   test('lastSeen is written at most once per five minutes', async () => {
-    const { cookie } = await sessions.start(anna)
+    const { cookie } = await sessions.start(anna, true)
     const lastSeen = async (): Promise<string> => JSON.parse(await readFile(path.join(dir, 'sessions.json'), 'utf8'))[0].lastSeen
 
     clock += REFRESH_MS - 1000
@@ -146,10 +157,10 @@ describe('expiry (20.4)', () => {
   })
 
   test('expired records are swept at the next write', async () => {
-    await sessions.start(anna)
+    await sessions.start(anna, true)
     clock += IDLE_MS + 1000
 
-    await sessions.start(admin)
+    await sessions.start(admin, true)
 
     const records = JSON.parse(await readFile(path.join(dir, 'sessions.json'), 'utf8'))
     expect(records.map((record: { accountId: string }) => record.accountId)).toEqual([admin.id])
@@ -158,16 +169,16 @@ describe('expiry (20.4)', () => {
 
 describe('ending sessions (20.4)', () => {
   test('end deletes the record', async () => {
-    const { cookie, session } = await sessions.start(anna)
+    const { cookie, session } = await sessions.start(anna, true)
 
-    expect(await sessions.end(session)).toEqual({ cookie: CLEARING_COOKIE })
+    expect(await sessions.end(session, true)).toEqual({ cookie: clearingCookie(true) })
     expect(await sessions.resolve(cookieFor(cookie))).toBeNull()
   })
 
   test("endAll ends every session of the account but the one kept, and no one else's", async () => {
-    const kept = await sessions.start(anna)
-    const other = await sessions.start(anna)
-    const admins = await sessions.start(admin)
+    const kept = await sessions.start(anna, true)
+    const other = await sessions.start(anna, true)
+    const admins = await sessions.start(admin, true)
 
     await sessions.endAll(anna.id, kept.session)
 
@@ -177,7 +188,7 @@ describe('ending sessions (20.4)', () => {
   })
 
   test('a deactivated account resolves to nothing even before its records are removed', async () => {
-    const { cookie } = await sessions.start(anna)
+    const { cookie } = await sessions.start(anna, true)
 
     await accounts.update(admin, anna.id, { active: false })
 

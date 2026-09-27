@@ -97,6 +97,8 @@ export interface Chrome {
   loginLocked: string
   loginHelp: string
   requestFailed: string
+  /** **[#162]** A 204 whose cookie the browser did not keep: cookies blocked, or a `Secure` cookie at a plain-HTTP address (20.4). */
+  sessionNotKept: string
   /** **[#135]** The account page (25.2). */
   yourName: string
   changePassword: string
@@ -327,6 +329,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     loginLocked: 'Too many attempts. Try again in a few minutes.',
     loginHelp: 'Ask your administrator for an account or a new password.',
     requestFailed: 'The server could not be reached. Try again.',
+    sessionNotKept: 'Your name and password are right, but this browser did not keep the session. Allow cookies for this site, or open it at the address it is published at.',
     yourName: 'Your name',
     changePassword: 'Change password',
     currentPassword: 'Current password',
@@ -525,6 +528,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     loginLocked: 'Te veel pogingen. Probeer het over een paar minuten opnieuw.',
     loginHelp: 'Vraag uw beheerder om een account of een nieuw wachtwoord.',
     requestFailed: 'De server is niet bereikbaar. Probeer het opnieuw.',
+    sessionNotKept: 'Uw naam en wachtwoord kloppen, maar deze browser heeft de sessie niet bewaard. Sta cookies toe voor deze site, of open hem op het adres waarop hij gepubliceerd is.',
     yourName: 'Uw naam',
     changePassword: 'Wachtwoord wijzigen',
     currentPassword: 'Huidig wachtwoord',

@@ -262,7 +262,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | Issue | Keys |
 |---|---|
 | #134 | `siteTitle` (the overview's and `llms.txt`'s H1, 23.5, 24.3), `noTrees`, `newTree` |
-| #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language) |
+| #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language); **[#162]** `sessionNotKept` (a login the browser kept no cookie of, 25.1) |
 | #137 | `published`, `hidden`, `notServable`, `treeId`, `treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`, `languages`, `addLanguage`, `makeDefault`, `default`, ~~`languagesFixed`~~ (**[#147]** replaced by `languagesLater`: the languages change in the top panel, 33.5), `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
 | #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
@@ -2980,7 +2980,7 @@ Set-Cookie: elsa-admin-session=<token>; HttpOnly; Secure; SameSite=Strict; Path=
 | Attribute | Why |
 |---|---|
 | `HttpOnly` | No script reads it. |
-| `Secure` | HTTPS only. `localhost` is a secure context in every browser, so development keeps the flag. |
+| `Secure` | HTTPS only. `localhost` is a secure context in every browser, so development keeps the flag. **[#162]** Only on a deployment reached over HTTPS: the request arrived over TLS, carries `x-forwarded-proto: https`, or `ELSA_BASE_URL` starts with `https://`. On a plain-HTTP deployment the flag is left off, because a browser keeps a `Secure` cookie from no address there but `localhost`, so nobody could log in, and the flag would protect nothing: every request of that deployment travels in clear. The logout cookie follows the same rule; the session check never reads the flag. HTTPS remains strongly advised (`docs/deployment.md`). |
 | `SameSite=Strict` | `Lax` would send it on a cross-site top-level navigation, the one hole a same-site cookie leaves. The admin area has no cross-site entry that needs the session: a creator arriving from a link sees the login page and is sent on to the page asked for. |
 | `Path=/admin` | The browser never sends it to a public route, so no public route can read, log or echo it. This is why the API is `/admin/api/...` (22.1). |
 | no `Domain` | Host-only. |
@@ -3463,7 +3463,7 @@ Answer buttons' style; one error line with `role="alert"`; under the card the se
 
 | Response of `POST /admin/api/login` | Shown |
 |---|---|
-| 204 | The current address is reloaded (24.2). |
+| 204 | The current address is reloaded (24.2). **[#162]** First `GET /admin/api/me` asks whether the browser kept the cookie; a 401 there shows `sessionNotKept` instead of the reload, because a browser that blocks cookies, or is sent a `Secure` one at a plain-`http://` address (20.4), drops it, and the reload would show the form again with nothing said. Not in the session Sheet (29.6): the editor it opens in was reached with a kept cookie. |
 | 401 | `loginFailed` -- one string for a wrong name **and** a wrong password (20.7). The password field is cleared; the name is kept. |
 | 429 | `loginLocked` ("Too many attempts. Try again in a few minutes."). |
 | network failure, 5xx | `requestFailed`. |

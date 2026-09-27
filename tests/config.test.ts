@@ -7,7 +7,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterAll, describe, expect, test, vi } from 'vitest'
-import { baseUrl, publicBaseUrl, store, type Environment } from '../src/config.ts'
+import { baseUrl, publicBaseUrl, servedOverHttps, store, type Environment } from '../src/config.ts'
 
 describe('the configured store', () => {
   let dataDir: string
@@ -118,5 +118,28 @@ describe('the base a findability document is built against (16)', () => {
   test('only `https` makes an https origin', () => {
     expect(origin({ host: 'elsa.example.org', 'x-forwarded-proto': 'HTTPS' })).toBe('http://elsa.example.org')
     expect(origin({ host: 'elsa.example.org', 'x-forwarded-proto': 'javascript' })).toBe('http://elsa.example.org')
+  })
+})
+
+describe('[#162] whether the session cookie is Secure (20.4)', () => {
+  const secure = (url: string, headers: Record<string, string> = {}, env: Environment = {}): boolean =>
+    servedOverHttps(new Request(url, { headers }), env)
+
+  test('a request that arrived over TLS', () => {
+    expect(secure('https://elsa.example.org/admin/api/login')).toBe(true)
+  })
+
+  test('a proxy in front that says x-forwarded-proto: https, the first value of a list', () => {
+    expect(secure('http://127.0.0.1:3000/admin/api/login', { 'x-forwarded-proto': 'https' })).toBe(true)
+    expect(secure('http://127.0.0.1:3000/admin/api/login', { 'x-forwarded-proto': 'https, http' })).toBe(true)
+  })
+
+  test('an https:// ELSA_BASE_URL, whatever the request says', () => {
+    expect(secure('http://127.0.0.1:3000/admin/api/login', { 'x-forwarded-proto': 'http' }, { ELSA_BASE_URL: 'https://elsa.example.org' })).toBe(true)
+  })
+
+  test('plain HTTP: none of the three', () => {
+    expect(secure('http://100.85.247.121:3000/admin/api/login')).toBe(false)
+    expect(secure('http://100.85.247.121:3000/admin/api/login', { 'x-forwarded-proto': 'http' }, { ELSA_BASE_URL: 'http://100.85.247.121:3000' })).toBe(false)
   })
 })

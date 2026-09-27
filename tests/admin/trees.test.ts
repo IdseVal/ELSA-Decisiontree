@@ -42,7 +42,7 @@ beforeAll(async () => {
   accounts.collaborator = await opened.accounts.create(admin, 'Dirk', 'dirk', 'dirks first password')
   accounts['another account'] = await opened.accounts.create(admin, 'Erik', 'erik', 'eriks first password')
   for (const [role, account] of Object.entries(accounts)) {
-    cookies[role] = (await opened.sessions.start(account)).cookie.split(';')[0]!
+    cookies[role] = (await opened.sessions.start(account, true)).cookie.split(';')[0]!
   }
   const base = '../../src/app/[lang]/admin/api/trees'
   routes = {

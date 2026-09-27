@@ -5,7 +5,7 @@
  * exists. The CSRF check applies here too, against login CSRF.
  */
 import { bodyOf, csrfRefusal, json, refuse } from '../../../../../admin/authenticated.ts'
-import { store } from '../../../../../config.ts'
+import { servedOverHttps, store } from '../../../../../config.ts'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,9 +42,10 @@ export async function POST(request: Request): Promise<Response> {
   }
   loginLimit.succeed(key)
   // A login never keeps a token it was sent: a live session is replaced (20.4).
+  const secure = servedOverHttps(request)
   const previous = await sessions.resolve(request.headers.get('cookie'))
-  if (previous) await sessions.end(previous)
-  const { cookie } = await sessions.start(account)
+  if (previous) await sessions.end(previous, secure)
+  const { cookie } = await sessions.start(account, secure)
   console.log(`account ${account.id} logged in`)
   return json(undefined, 204, { 'Set-Cookie': cookie })
 }

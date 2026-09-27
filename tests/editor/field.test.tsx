@@ -27,7 +27,7 @@ import type { DraftNode } from '../../src/tree/types.ts'
 const words = Object.fromEntries(
   ['missingText', 'characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview'].map((key) => [key, key]),
 ) as EditorWords
-const loginWords = { login: 'login', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '' }
+const loginWords = { login: 'login', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
 const fieldWords = { missingText: 'Text missing in this language', characters: 'characters', lines: 'lines' }
 
 /** The strings `markdown.test.ts` renders, and the full Node's two texts at the maximum. */

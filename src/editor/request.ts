@@ -12,7 +12,7 @@ export interface Answer {
 }
 
 /** Sends `body` to `url` with `method`; resolves null on a network failure, never rejects. */
-export async function send(method: 'POST' | 'PATCH', url: string, body?: unknown): Promise<Answer | null> {
+export async function send(method: 'GET' | 'POST' | 'PATCH', url: string, body?: unknown): Promise<Answer | null> {
   try {
     const response = await fetch(url, {
       method,

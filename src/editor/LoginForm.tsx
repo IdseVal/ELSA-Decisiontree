@@ -9,6 +9,10 @@
  * Its fields stay disabled until the script runs: without it, a submit would send the
  * password as a form the server refuses (20.6), and the page says why in a `<noscript>`.
  *
+ * **[#162]** Before the reload it asks `/admin/api/me` whether the browser kept the cookie: one
+ * that blocks cookies, or is sent a `Secure` one at a plain-`http://` address (20.4), drops it,
+ * and the reload would show this form again with nothing said, so the form says why instead.
+ *
  * **[#138]** In the editor's session Sheet (29.6) `onSuccess` takes the place of the reload:
  * the Sheet closes and the queue resumes with the same requests, so nothing typed is lost.
  */
@@ -24,6 +28,7 @@ export interface LoginWords {
   loginFailed: string
   loginLocked: string
   requestFailed: string
+  sessionNotKept: string
 }
 
 export function LoginForm({ words, onSuccess }: { words: LoginWords; /** What a 204 does instead of reloading the address (29.6). */ onSuccess?: () => void }) {
@@ -38,14 +43,22 @@ export function LoginForm({ words, onSuccess }: { words: LoginWords; /** What a 
     setBusy(true)
     const answer = await send('POST', '/admin/api/login', { login, password })
     if (answer?.status === 204) {
-      if (onSuccess) onSuccess()
-      else window.location.reload()
-      return
+      // The Sheet opens only in an editor a session already reached, so its cookie is kept.
+      if (onSuccess) return onSuccess()
+      if ((await send('GET', '/admin/api/me'))?.status !== 401) return window.location.reload()
     }
     setBusy(false)
     // The name is kept and the password cleared, whatever the refusal (25.1).
     setPassword('')
-    setError(answer?.status === 401 ? words.loginFailed : answer?.status === 429 ? words.loginLocked : words.requestFailed)
+    setError(
+      answer?.status === 204
+        ? words.sessionNotKept
+        : answer?.status === 401
+          ? words.loginFailed
+          : answer?.status === 429
+            ? words.loginLocked
+            : words.requestFailed,
+    )
   }
 
   return (

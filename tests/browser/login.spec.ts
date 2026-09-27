@@ -107,7 +107,9 @@ test.describe('the login page at every admin address (24.2, 25.1)', () => {
     await expect(page.getByRole('main').getByRole('alert')).toHaveText('Too many attempts. Try again in a few minutes.')
   })
 
-  test('the right password reloads the address asked for, and the cookie carries every flag (20.4)', async ({ page, context }) => {
+  test('the right password reloads the address asked for, and behind HTTPS the cookie carries every flag (20.4)', async ({ page, context }) => {
+    // **[#162]** What a TLS proxy in front says; the server under test is plain HTTP otherwise.
+    await page.route(`${origin}/admin/api/login`, (route) => route.continue({ headers: { ...route.request().headers(), 'x-forwarded-proto': 'https' } }))
     await page.goto(`${origin}/admin/account`)
     const answered = page.waitForResponse((response) => response.url() === `${origin}/admin/api/login`)
 
@@ -122,6 +124,53 @@ test.describe('the login page at every admin address (24.2, 25.1)', () => {
     expect(page.url()).toBe(`${origin}/admin/account`)
     const [cookie] = await context.cookies()
     expect(cookie).toMatchObject({ name: 'elsa-admin-session', path: '/admin', httpOnly: true, secure: true, sameSite: 'Strict' })
+  })
+
+  test('[#162] a login whose cookie the browser drops says why, rather than showing the form again in silence', async ({ page, context }) => {
+    // What a browser does when it blocks cookies, or is sent a Secure one at a plain-http address: the 204 arrives, the cookie does not stay.
+    await page.route(`${origin}/admin/api/login`, async (route) => {
+      const response = await route.fetch()
+      // `route.fetch` shares the context's cookie jar, so the cookie it stored is dropped from there too.
+      await context.clearCookies()
+      const headers = { ...response.headers() }
+      delete headers['set-cookie']
+      await route.fulfill({ response, headers })
+    })
+    await page.goto(`${origin}/admin`)
+
+    await signIn(page, CEES.login, CEES.password)
+
+    await expect(page.getByRole('main').getByRole('alert')).toHaveText(
+      'Your name and password are right, but this browser did not keep the session. Allow cookies for this site, or open it at the address it is published at.',
+    )
+    await expect(page.getByLabel('Name')).toHaveValue(CEES.login)
+    await expect(page.getByLabel('Password')).toHaveValue('')
+    expect(await context.cookies()).toEqual([])
+  })
+
+  test('[#162] over plain HTTP at an address that is not localhost the login keeps a session, without Secure', async ({ playwright }) => {
+    // The owner's demo: another machine, plain http. The name resolves to this server, so the
+    // page is the same one, at an address a browser keeps no Secure cookie from.
+    const browser = await playwright.chromium.launch({ args: ['--host-resolver-rules=MAP elsa-plain.test 127.0.0.1'] })
+    try {
+      const page = await browser.newPage()
+      const plain = origin.replace('127.0.0.1', 'elsa-plain.test')
+      await page.goto(`${plain}/admin/account`)
+      expect(await page.evaluate(() => window.isSecureContext)).toBe(false)
+      const answered = page.waitForResponse((response) => response.url() === `${plain}/admin/api/login`)
+
+      await signIn(page, CEES.login, CEES.password)
+
+      const setCookie = (await (await answered).allHeaders())['set-cookie']!
+      expect(setCookie).toMatch(/^elsa-admin-session=[A-Za-z0-9_-]{43}; HttpOnly; SameSite=Strict; Path=\/admin; Max-Age=1209600$/)
+      secrets.add(setCookie.split(';')[0]!.split('=')[1]!)
+      await expect(page.getByRole('heading', { name: 'Your name' })).toBeVisible()
+      expect(page.url()).toBe(`${plain}/admin/account`)
+      const [cookie] = await page.context().cookies()
+      expect(cookie).toMatchObject({ name: 'elsa-admin-session', domain: 'elsa-plain.test', path: '/admin', httpOnly: true, secure: false, sameSite: 'Strict' })
+    } finally {
+      await browser.close()
+    }
   })
 
   test('without JavaScript the page says the editor needs it, and its fields cannot be used', async ({ browser }) => {
@@ -151,7 +200,8 @@ test.describe('with a session', () => {
 
     const response = await answered
     expect(response.status()).toBe(204)
-    expect((await response.allHeaders())['set-cookie']).toBe('elsa-admin-session=; HttpOnly; Secure; SameSite=Strict; Path=/admin; Max-Age=0')
+    // The server under test is plain HTTP, so the clearing cookie is not Secure either (#162).
+    expect((await response.allHeaders())['set-cookie']).toBe('elsa-admin-session=; HttpOnly; SameSite=Strict; Path=/admin; Max-Age=0')
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
     expect(await context.cookies()).toEqual([])
     // The token itself is dead on the server, not only gone from the browser.

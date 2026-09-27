@@ -48,7 +48,7 @@ saved automatically and published with a toggle. What that changes on a server:
 | Backups | the repository | **`rsync -a` or `tar` of `ELSA_DATA_DIR`**, running or stopped: every file in it is replaced atomically, so each file in a copy is whole. Stop the service for a copy exact to the write. Restore is copying the folder back. (`application.md` 17.4) |
 | Moving a Tree between deployments | copy the folder | Copy `trees/<id>/tree.json`, `images/` and `theme/` out (not `draft.json`, not `meta.json`) and `npm run store -- import` them on the other side. **Done in #136.** |
 | The container | `-e ELSA_TREE=...` | `-v /srv/elsa-data:/data -e ELSA_DATA_DIR=/data -e ELSA_ADMIN_PASSWORD=...` on the first run; the `Dockerfile` changes with #134 and #135. |
-| Cookies | none, anywhere | One session cookie, `HttpOnly; Secure; SameSite=Strict; Path=/admin`, on the admin routes only; **the public routes still set none**, and the `curl` check below still prints nothing. A proxy must pass `/admin` through unchanged and still add no cookie of its own. (`application.md` 20) |
+| Cookies | none, anywhere | One session cookie, `HttpOnly; Secure; SameSite=Strict; Path=/admin` (**[#162]** without `Secure` on a plain-HTTP deployment), on the admin routes only; **the public routes still set none**, and the `curl` check below still prints nothing. A proxy must pass `/admin` through unchanged and still add no cookie of its own. (`application.md` 20) |
 | The journal | one line per start | Also: logins by account id, lockouts, publishes and account changes. Never a password, a token, a name typed into the login form, or a client address. (`application.md` 20.8) |
 
 ---
@@ -310,14 +310,24 @@ Two things a proxy in front of this application must not do: shorten the request
 share link carries the whole Trail and may reach about 3.3 kB, within the defaults of both
 proxies above), and add a cookie of its own.
 
-**[#135] The login needs HTTPS in front of the process.** The session cookie is `Secure`
-(`application.md` 20.4): a browser keeps it only from an `https://` address -- or from
-`localhost` and `127.0.0.1`, which browsers treat as secure. At `http://<server>:3000` from
-another machine the login answers 204 and the browser drops the cookie, so every page shows
-the login form again, and nothing says why. The proxy above is what makes `/admin` work; the
-flag never comes off. The proxy must also pass the browser's `Origin` and `Sec-Fetch-Site`
-headers through unchanged (both examples do): every write under `/admin` is refused with
-403 without them (`application.md` 20.6).
+**[#162] HTTPS in front of the process is strongly advised for the login.** The session
+cookie is `Secure` (`application.md` 20.4) when the deployment is reached over HTTPS: the
+request arrived over TLS, the proxy sends `x-forwarded-proto: https` (Caddy does; the nginx
+example does not), or `ELSA_BASE_URL` starts with `https://` -- which is why both examples
+end with setting it. **Without HTTPS the login still works**, at `http://<server>:3000` from another
+machine too: the flag is then left off, because a browser would keep a `Secure` cookie from
+no plain-HTTP address but `localhost`. The session cookie then travels in clear, like the
+password typed into the login form and every page of that deployment -- anyone on the
+network path can read it and log in as that account. Run plain HTTP only on a network you
+trust, such as a private VPN.
+
+If a browser still keeps no cookie -- it blocks cookies, or a `Secure` one reached it at a
+plain-`http://` address because `ELSA_BASE_URL` says `https://` -- the login form says so
+(`sessionNotKept`) and keeps the name, rather than showing itself again in silence.
+
+The proxy must also pass the browser's `Origin` and `Sec-Fetch-Site` headers through
+unchanged (both examples do): every write under `/admin` is refused with 403 without them
+(`application.md` 20.6).
 
 ### The administrator and the login
 
@@ -544,7 +554,8 @@ curl -sD - -o /dev/null http://127.0.0.1:3000/ | grep -i set-cookie
 # (no output)
 
 # [#135] The one cookie is the login's, kept to /admin with every flag. The Origin is what
-# a browser sends; without it the write is refused (403).
+# a browser sends; without it the write is refused (403). [#162] Secure because
+# ELSA_BASE_URL is https://; a plain-HTTP deployment answers the same line without it.
 curl -sD - -o /dev/null -X POST http://127.0.0.1:3000/admin/api/login \
   -H 'Origin: https://elsa.example.org' -H 'Content-Type: application/json' \
   -d '{"login":"admin","password":"<the administrator password>"}' | grep -i set-cookie

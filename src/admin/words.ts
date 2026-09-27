@@ -8,8 +8,8 @@ import type { LoginWords } from '../editor/LoginForm.tsx'
 import type { NewTreeWords } from '../editor/NewTreeForm.tsx'
 
 export function loginWords(lang: string): LoginWords {
-  const { login, password, signIn, loginFailed, loginLocked, requestFailed } = chrome(lang)
-  return { login, password, signIn, loginFailed, loginLocked, requestFailed }
+  const { login, password, signIn, loginFailed, loginLocked, requestFailed, sessionNotKept } = chrome(lang)
+  return { login, password, signIn, loginFailed, loginLocked, requestFailed, sessionNotKept }
 }
 
 export function accountWords(lang: string): AccountWords {
