@@ -3,9 +3,11 @@
  * ADR-132-editor-api decision 7): the type from the first bytes and never the name, SVG
  * refused, and a server-side name that matches tree-format.md 3.5 whatever the client sent.
  */
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import { imageName, sniff } from '../../src/store/images.ts'
-import { isImageFile } from '../../src/tree/validate.ts'
+import { imageName, sniff, sniffTheme, themeName } from '../../src/store/images.ts'
+import { isImageFile, isThemeFile } from '../../src/tree/validate.ts'
 import { GIF, JPEG, PNG, SVG, TEXT, WEBP } from './pictures.ts'
 
 describe('sniff: the type and the size from the bytes', () => {
@@ -48,5 +50,22 @@ describe('imageName: the server names the file', () => {
   test('the same bytes get the same name; other bytes another', () => {
     expect(imageName('logo.png', PNG, 'png')).toBe(imageName('logo.png', PNG, 'png'))
     expect(imageName('logo.png', PNG, 'png')).not.toBe(imageName('logo.png', GIF, 'png'))
+  })
+})
+
+describe('**[#144]** sniffTheme and themeName: a theme file (33.8)', () => {
+  test('a logo is PNG or WebP, a font WOFF2; SVG, GIF, JPEG and text are not theme files', async () => {
+    const font = await readFile(path.join('trees', 'ai-act-example', 'theme', 'nova-square-400.woff2'))
+    expect(sniffTheme(PNG)).toBe('png')
+    expect(sniffTheme(WEBP)).toBe('webp')
+    expect(sniffTheme(font)).toBe('woff2')
+    for (const bytes of [SVG, GIF, JPEG, TEXT, font.subarray(0, 20)]) expect(sniffTheme(bytes)).toBeNull()
+  })
+
+  test('the name follows imageName’s rule and matches tree-format.md 3.6', () => {
+    const name = themeName('../Open Sans (Bold).TTF', PNG, 'woff2')
+    expect(name).toMatch(/^open-sans-bold-[0-9a-f]{8}\.woff2$/)
+    expect(isThemeFile(name)).toBe(true)
+    expect(themeName('', PNG, 'png')).toMatch(/^theme-[0-9a-f]{8}\.png$/)
   })
 })

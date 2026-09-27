@@ -36,7 +36,8 @@ derived values -- a hover shade, the text colour on an accent button -- to this 
 
 1. **One `<style>` element, emitted by the root layout on every page**, built by
    `src/theme.ts` and by nothing else. It holds the `@font-face` rules and a `:root`
-   block of `--elsa-*` custom properties.
+   block of `--elsa-*` custom properties. **[#144]** The editor gets one more such element
+   per draft write, each after the last and overriding it (application.md 13.1).
 2. **The seven colour roles become `--elsa-<role>` verbatim.** There is no eighth.
 3. **Three colours are derived at render time**, because CSS cannot compute contrast:
    `--elsa-on-accent`, `--elsa-on-accent-secondary`, `--elsa-on-danger`, each whichever

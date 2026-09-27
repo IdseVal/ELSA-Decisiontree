@@ -3618,6 +3618,135 @@ fieldset:disabled .admin-submit {
   text-transform: uppercase;
 }
 
+/* **[#144]** The Theme panel (33.8), at the end of "This Tree": three parts, each a small heading and its controls. */
+.theme-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.theme-panel h4,
+.theme-panel h5,
+.theme-panel h6 {
+  margin: 0;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  font-weight: 700;
+}
+
+.theme-panel h4 {
+  font-size: var(--body);
+}
+
+.theme-part,
+.theme-font,
+.theme-font-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.theme-part .admin-field,
+.theme-font-form .admin-field {
+  align-self: stretch;
+}
+
+.theme-weight {
+  grid-template-columns: max-content 4.5rem;
+}
+
+/* The logo on the page's own background, at most the chrome bar's height, as the bar shows it. */
+.theme-logo {
+  max-width: 100%;
+  max-height: 44px;
+  padding: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--elsa-background);
+}
+
+/* A file input dressed as a link: the label is the control, the input itself is invisible. */
+.theme-file {
+  position: relative;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.theme-file input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  /* Its own button and file name are never seen, and at any size would be wider than the link it covers (10.6). */
+  font-size: 0;
+}
+
+.theme-file[data-disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* The seven pickers in two columns: a swatch and the word for what it paints. */
+.theme-colours {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  align-self: stretch;
+}
+
+.theme-colour {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+.theme-colour input {
+  flex: none;
+  width: 32px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.theme-contrast {
+  align-self: stretch;
+  padding: 6px 8px;
+  border-left: 3px solid var(--danger-read);
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+.theme-contrast ul,
+.theme-font-files {
+  margin: 0;
+  padding: 0 0 0 16px;
+}
+
+.theme-font-files {
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+.theme-font-files .admin-link {
+  margin-left: 8px;
+}
+
+.theme-italic {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--small);
+}
+
 /* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge. */
 @media (max-width: 479px) {
   .panel-sheet > .sheet-panel {

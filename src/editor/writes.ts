@@ -4,7 +4,7 @@
  * the editor uses. A JSON body as `application/json` from this origin, which is what the
  * CSRF layer of 20.6 wants and no HTML form can send.
  */
-import type { DraftNode, Manifest, Violation } from '../tree/types.ts'
+import type { DraftNode, Manifest, Theme, Violation } from '../tree/types.ts'
 
 /**
  * **[#139]** `POST .../nodes` (22.1, 30.2 to 30.4): a Node and the Link to it from `from.node`
@@ -137,6 +137,22 @@ export async function uploadImage(treeId: string, file: File): Promise<{ status:
  */
 export async function deleteImage(treeId: string, file: string): Promise<Answer> {
   return send('DELETE', `${imagesUrl(treeId)}/${encodeURIComponent(file)}`)
+}
+
+/**
+ * **[#144]** The Theme panel's calls (33.8): `PATCH /admin/api/trees/<t>` with one part of the
+ * Theme, whole, or null to remove it -- answered with the write response, the manifest in it
+ * -- and `POST /admin/api/trees/<t>/theme` with one logo or font file, answered with the
+ * server's name. Neither rejects.
+ */
+export const themeCalls = {
+  write: <Part extends keyof Theme>(treeId: string, part: Part, value: Theme[Part] | null) =>
+    request('PATCH', treeUrl(treeId), { path: `theme.${part}`, value }) as Promise<Typed<WriteResponse>>,
+  upload: async (treeId: string, file: File): Promise<Typed<{ file: string }>> => {
+    const form = new FormData()
+    form.append('file', file)
+    return (await send('POST', `${treeUrl(treeId)}/theme`, form)) as Typed<{ file: string }>
+  },
 }
 
 function imagesUrl(treeId: string): string {

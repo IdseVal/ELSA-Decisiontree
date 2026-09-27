@@ -15,6 +15,7 @@ import { describe, expect, test } from 'vitest'
 import { DEFAULT_COLOURS, DEFAULT_FONT_STACK, themeLogo, themeStyle } from '../src/theme.ts'
 import { openTree } from '../src/tree/loader.ts'
 import type { Colours, Theme } from '../src/tree/types.ts'
+import { adminThemeHref } from '../src/url.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 
@@ -165,6 +166,13 @@ describe('the fonts', () => {
         expect(rule).toContain('font-display:swap')
       }
     }
+  })
+
+  test('**[#144]** in the editor the faces come from the admin route, which serves the draft’s files', () => {
+    const { css } = themeStyle(themedTree.manifest.theme, themedTree.id, adminThemeHref)
+    const face = themedTree.manifest.theme!.fonts![0]!.files[0]!.file
+    expect(css).toContain(`url('/admin/api/trees/ai-act-example/theme/${face}')`)
+    expect(css).not.toContain("url('/ai-act-example/theme/")
   })
 
   test('each role becomes its property, and a role the Tree omits gets its documented fallback', () => {

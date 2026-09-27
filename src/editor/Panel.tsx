@@ -16,7 +16,7 @@
  * is shown, not routed around. Imports of `src/`: types, and nothing else (34.4).
  */
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import type { Chrome } from '../chrome.ts'
 import type { Violation } from '../tree/types.ts'
 import { useEditor, type TreeState } from './Editor.tsx'
@@ -98,6 +98,7 @@ export function Panel({
   publicHref,
   languages,
   overviewHref,
+  theme,
 }: {
   treeId: string
   words: PanelWords
@@ -121,6 +122,8 @@ export function Panel({
   languages: string[]
   /** `/admin` in the chrome language: where a deleted Tree's editor goes. */
   overviewHref: string
+  /** **[#144]** The Theme panel, at the end of "This Tree" (33.5, 33.8). */
+  theme?: ReactNode
 }) {
   const router = useRouter()
   const { tree, setTree } = useEditor()
@@ -393,6 +396,7 @@ export function Panel({
             </>
           )}
         </dl>
+        {theme}
       </section>
 
       {role === 'administrator' && (

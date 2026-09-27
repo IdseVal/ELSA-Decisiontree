@@ -13,6 +13,7 @@
  * it cannot compare luminance either. Hover shades, borders, washes and the backdrop's
  * opacity are derived in CSS with `color-mix()` from those; this is not a colour system.
  */
+import { luminance, readableOn } from './contrast.ts'
 import { themeHref } from './url.ts'
 import type { Colours, LocalisedText, Theme } from './tree/types.ts'
 
@@ -64,6 +65,9 @@ export interface ResolvedLogo {
   url?: string
 }
 
+/** How a page addresses a theme file: `themeHref` on the public site, `adminThemeHref` in the editor. */
+export type ThemeHref = (treeId: string, file: string) => string
+
 /** What `ThemeStyle` puts in `<head>`. The logo is `themeLogo`'s, for the chrome bar. */
 export interface ThemeStyle {
   /** The CSS of the one `<style>` element: `@font-face` rules and the `:root` block. */
@@ -76,16 +80,17 @@ export interface ThemeStyle {
  * The Theme of the Tree `treeId`, or its absence, as the page's style. Each of the three
  * parts is taken whole or not at all: a palette is designed as a set, so half a Theme is
  * never merged with half a default (13.4). `treeId` is read only for the fonts' addresses,
- * which are under the Tree's id (18.1).
+ * which are under the Tree's id (18.1); **[#144]** `href` builds them, the admin route's in
+ * the editor, whose draft's fonts the public route does not serve.
  */
-export function themeStyle(theme: Theme | undefined, treeId: string): ThemeStyle {
-  const css = build(theme, paletteOf(theme?.colours), treeId)
+export function themeStyle(theme: Theme | undefined, treeId: string, href: ThemeHref = themeHref): ThemeStyle {
+  const css = build(theme, paletteOf(theme?.colours), treeId, href)
 
   return {
     // Every part above is escaped, so this can only fire if one of them stops escaping.
     // The default look is then emitted whole rather than nothing: a page with no custom
     // properties at all would have no colour left to fall back on.
-    css: css.toLowerCase().includes('</style') ? build(undefined, DEFAULT_COLOURS, treeId) : css,
+    css: css.toLowerCase().includes('</style') ? build(undefined, DEFAULT_COLOURS, treeId, href) : css,
     icon: theme?.logo?.icon,
   }
 }
@@ -106,8 +111,8 @@ export function themeLogo(theme: Theme | undefined): ResolvedLogo | undefined {
 }
 
 /** The `@font-face` rules and the `:root` block, in that order. */
-function build(theme: Theme | undefined, colours: Colours, treeId: string): string {
-  return [...fontFaces(theme, treeId), rootBlock(colours, theme)].join('\n')
+function build(theme: Theme | undefined, colours: Colours, treeId: string, href: ThemeHref): string {
+  return [...fontFaces(theme, treeId, href), rootBlock(colours, theme)].join('\n')
 }
 
 /**
@@ -158,14 +163,14 @@ function rootBlock(colours: Colours, theme: Theme | undefined): string {
  * family takes its faces with it: serving a font under a name the page cannot use would
  * only cost the reader the download.
  */
-function fontFaces(theme: Theme | undefined, treeId: string): string[] {
+function fontFaces(theme: Theme | undefined, treeId: string, href: ThemeHref): string[] {
   return (theme?.fonts ?? []).flatMap((family) => {
     const name = quoteFamily(family.family)
     if (!name) return []
     return family.files.map(
       (face) =>
         `@font-face{font-family:${name};font-weight:${face.weight};font-style:${face.style};` +
-        `src:url('${themeHref(treeId, face.file)}') format('woff2');font-display:swap}`,
+        `src:url('${href(treeId, face.file)}') format('woff2');font-display:swap}`,
     )
   })
 }
@@ -189,28 +194,7 @@ function isDark(colours: Colours): boolean {
   return luminance(colours.background) < 0.5
 }
 
-/** Whichever of `text` and `background` reads better on `colour` (13.1). */
-function readableOn(colour: string, colours: Colours): string {
-  return contrast(colours.text, colour) >= contrast(colours.background, colour) ? colours.text : colours.background
-}
-
 /** Whichever of two `#rrggbb` colours is the darker; `a` when they are equally light. */
 function darkerOf(a: string, b: string): string {
   return luminance(a) <= luminance(b) ? a : b
-}
-
-/** The WCAG 2 relative luminance of `#rrggbb`. */
-function luminance(hex: string): number {
-  const channel = (from: number): number => {
-    const value = parseInt(hex.slice(from, from + 2), 16) / 255
-    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
-  }
-  return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5)
-}
-
-/** The WCAG 2 contrast ratio between two `#rrggbb` colours, 1 to 21. */
-function contrast(a: string, b: string): number {
-  const first = luminance(a)
-  const second = luminance(b)
-  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05)
 }

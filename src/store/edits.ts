@@ -31,6 +31,13 @@ export interface Operation {
 const MANIFEST_FIELD = /^(?:(title|description)\.([^.[\]]+)|root)$/
 
 /**
+ * **[#144]** The Theme's three parts (tree-format.md 4.3; application.md 33.8): each written
+ * whole or removed, never a key at a time, because each part is complete or absent and a
+ * write that left half a palette would be refused by the schema anyway.
+ */
+const THEME_PART = /^theme\.(logo|fonts|colours)$/
+
+/**
  * A Node's fields (22.2), each with the key path's segments as capture groups. A language
  * segment is anything without a dot or a bracket, then checked against the declared ones.
  */
@@ -81,6 +88,8 @@ export function applyField(tree: Mapping, nodeId: string | null, field: Field): 
   const where = nodeId ?? 'manifest'
   const { path, value } = field
   if (typeof path !== 'string') throw malformed(where, '', 'V-KEYS', 'a field write names a path')
+  const part = nodeId === null ? THEME_PART.exec(path)?.[1] : undefined
+  if (part) return setThemePart(tree, part, value)
   if (typeof value !== 'string') throw malformed(where, path, 'schema', 'a field holds a string')
   const segments = nodeId === null ? manifestSegments(path) : nodeSegments(path)
   if (!segments) throw malformed(where, path, 'V-KEYS', `"${path}" is not a field the editor writes`)
@@ -108,6 +117,19 @@ export function applyField(tree: Mapping, nodeId: string | null, field: Field): 
   // An Image's `source` is optional: emptied, the key goes, as the format writes an absent field (3.7).
   if (last === 'source' && value === '') delete holder.source
   else holder[last] = value
+}
+
+/**
+ * **[#144]** One part of the Theme replaced by `value`, or removed by null. What the part holds
+ * is the validator's to judge (V-THEME, the schema); the last part removed takes `theme` with
+ * it, since no empty object is ever written (22.4, V-EMPTY).
+ */
+function setThemePart(tree: Mapping, part: string, value: unknown): void {
+  const theme = { ...((tree.theme as Mapping | undefined) ?? {}) }
+  if (value === null) delete theme[part]
+  else theme[part] = value
+  if (Object.keys(theme).length > 0) tree.theme = theme
+  else delete tree.theme
 }
 
 function manifestSegments(path: string): Array<string | number> | null {

@@ -16,13 +16,15 @@ import { Editor, SaveIndicator } from '../../../../../../editor/Editor.tsx'
 import { editorLinks } from '../../../../../../editor/links.ts'
 import { LogoutButton } from '../../../../../../editor/LogoutButton.tsx'
 import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
+import { ThemePanel, type ThemeWords } from '../../../../../../editor/ThemePanel.tsx'
 import { centreOf, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
 import type { Account } from '../../../../../../store/accounts.ts'
 import type { TreeEntry } from '../../../../../../store/drafts.ts'
 import { isStoreError } from '../../../../../../store/errors.ts'
+import { DEFAULT_COLOURS } from '../../../../../../theme.ts'
 import type { Draft } from '../../../../../../tree/loader.ts'
 import type { DraftNode } from '../../../../../../tree/types.ts'
-import { adminHref, parseUrl, rootHref, type PageAddress } from '../../../../../../url.ts'
+import { adminHref, adminThemeHref, parseUrl, rootHref, type PageAddress } from '../../../../../../url.ts'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,10 +106,10 @@ export default async function EditorPage({ params }: Props) {
       tree={{ advisory: entry.advisory.length, published: entry.published, publicCopyCurrent: entry.publicCopyCurrent, servable: entry.servable }}
     >
       {/* The draft's Theme, so a colour changed in the draft is seen before publishing (13.1, ADR-133-admin-routes 6). */}
-      <ThemeStyle tree={draft} />
+      <ThemeStyle tree={draft} href={adminThemeHref} revision={entry.meta.revision} />
       {/* An admin bar too: below 480 pixels it gives up the title and the current language, as #135 decided (10.6). */}
       <header className="page-chrome admin-chrome editor-chrome">
-        <Logo treeId={draft.id} theme={draft.manifest.theme} title={draft.manifest.title} lang={address.lang} />
+        <Logo treeId={draft.id} theme={draft.manifest.theme} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
         <div className="page-controls">
           <LanguageSwitch address={address} languages={draft.manifest.languages} edit={edit} />
           <SaveIndicator words={edit.words} />
@@ -185,6 +187,17 @@ function TopPanel({
             publicHref={rootHref(draft, address.lang)}
             languages={draft.manifest.languages}
             overviewHref={adminHref('/admin', chromeLanguage(address.lang))}
+            theme={
+              <ThemePanel
+                treeId={draft.id}
+                lang={address.lang}
+                languages={draft.manifest.languages}
+                words={themeWords(ui)}
+                theme={draft.manifest.theme}
+                defaults={DEFAULT_COLOURS}
+                filesHref={adminThemeHref(draft.id, '')}
+              />
+            }
           />
         </div>,
       ]}
@@ -228,6 +241,48 @@ function panelWords(ui: Chrome): PanelWords {
     languages: ui.languages,
     treeId: ui.treeId,
     administrator: ui.administrator,
+    requestFailed: ui.requestFailed,
+  }
+}
+
+/** **[#144]** The chrome strings the Theme panel says (33.8). */
+function themeWords(ui: Chrome): ThemeWords {
+  return {
+    theme: ui.theme,
+    logo: ui.logo,
+    logoAlt: ui.logoAlt,
+    uploadLogo: ui.uploadLogo,
+    replaceLogo: ui.replaceLogo,
+    removeLogo: ui.removeLogo,
+    colours: ui.colours,
+    chooseColours: ui.chooseColours,
+    defaultColours: ui.defaultColours,
+    colourBackground: ui.colourBackground,
+    colourSurface: ui.colourSurface,
+    colourText: ui.colourText,
+    colourTextMuted: ui.colourTextMuted,
+    colourAccent: ui.colourAccent,
+    colourAccentSecondary: ui.colourAccentSecondary,
+    colourDanger: ui.colourDanger,
+    colourAnswerLabel: ui.colourAnswerLabel,
+    lowContrast: ui.lowContrast,
+    contrastOn: ui.contrastOn,
+    contrastNeeds: ui.contrastNeeds,
+    fonts: ui.fonts,
+    fontBody: ui.fontBody,
+    fontHeading: ui.fontHeading,
+    fontFamily: ui.fontFamily,
+    fontLicence: ui.fontLicence,
+    fontFile: ui.fontFile,
+    fontWeight: ui.fontWeight,
+    fontItalic: ui.fontItalic,
+    addFont: ui.addFont,
+    addFontFile: ui.addFontFile,
+    removeFont: ui.removeFont,
+    removeFontFile: ui.removeFontFile,
+    fileTooLarge: ui.fileTooLarge,
+    themeFileRefused: ui.themeFileRefused,
+    notSaved: ui.notSaved,
     requestFailed: ui.requestFailed,
   }
 }

@@ -7,6 +7,7 @@ import { store } from '../config.ts'
 import type { Drafts } from '../store/drafts.ts'
 import { isStoreError } from '../store/errors.ts'
 import type { Account } from '../store/accounts.ts'
+import { MAX_IMAGE_BYTES } from '../store/images.ts'
 import { authenticated, json, refuse } from './authenticated.ts'
 
 /** 22.2: a JSON body of at most 64 kB. */
@@ -62,6 +63,28 @@ export async function readCapped(request: Request, max: number): Promise<Uint8Ar
     reader.releaseLock()
   }
   return Buffer.concat(chunks)
+}
+
+/** Room for the multipart boundaries and part headers around one file of the limit. */
+const MULTIPART_OVERHEAD = 16 * 1024
+
+/**
+ * The one file of an upload's `multipart/form-data` body, as bytes and the client's name, or
+ * its refusal: 413 above 5 MiB before more than that is read, 422 for a body with no file
+ * (22.6). **[#144]** The picture route's and the theme route's alike.
+ */
+export async function uploadedFile(request: Request): Promise<{ bytes: Uint8Array; name: string } | Response> {
+  const body = await readCapped(request, MAX_IMAGE_BYTES + MULTIPART_OVERHEAD)
+  if (body === null) return refuse(413, 'too-large')
+  let file: File | null = null
+  try {
+    const form = await new Response(new Blob([body as Uint8Array<ArrayBuffer>]), { headers: { 'Content-Type': request.headers.get('content-type') ?? '' } }).formData()
+    file = [...form.values()].find((value): value is File => typeof value !== 'string') ?? null
+  } catch {
+    return refuse(422, 'malformed')
+  }
+  if (!file) return refuse(422, 'malformed', 'file')
+  return { bytes: new Uint8Array(await file.arrayBuffer()), name: file.name }
 }
 
 /**
