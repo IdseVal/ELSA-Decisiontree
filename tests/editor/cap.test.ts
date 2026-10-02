@@ -39,6 +39,13 @@ describe('a text past the limit is cut at the limit', () => {
     expect(capped(full, ...input(full, 40, 'c'), TITLE)).toEqual({ text: full, caret: 40 })
   })
 
+  test('a space at the limit does nothing either, though 3.8 trims it from the count', () => {
+    const full = 'a'.repeat(80)
+    expect(capped(full, ...input(full, 80, ' '), TITLE).text).toBe(full)
+    expect(capped(full, ...input(full, 0, ' '), TITLE).text).toBe(full)
+    expect(capped('a'.repeat(79), ...input('a'.repeat(79), 79, '  b'), TITLE).text).toBe(`${'a'.repeat(79)} `)
+  })
+
   test('a paste is cut to what fits, at the caret, and what followed the caret stays', () => {
     const before = `${'a'.repeat(30)}${'z'.repeat(40)}`
     const { text, caret } = capped(before, ...input(before, 30, '0123456789ABCDEF'), TITLE)

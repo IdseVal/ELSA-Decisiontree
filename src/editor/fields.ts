@@ -17,13 +17,24 @@ export function plainLine(text: string): string {
 }
 
 /**
+ * The length the cap holds a field to: the counted length of tree-format.md 3.8 with the
+ * whitespace at either end counted as well. 3.8 trims it, so by the counted length alone a
+ * space at the cap would go in -- and the next, and be stored -- where a key at the cap is to
+ * do nothing (28.4, amended).
+ */
+function cappedLength(text: string): number {
+  return countedLength(`.${text}.`) - 2
+}
+
+/**
  * **[#172]** Whether `text` may stand in a field of `limit` that held `before`: within the
  * limit as the validator measures it (tree-format.md 3.8 -- code points of the counted text,
- * and the estimated lines where the limit has them), or no longer by either measure than
- * `before`, so that a text already over its limit can shrink and never grow (28.4).
+ * its outer whitespace included, and the estimated lines where the limit has them), or no
+ * longer by either measure than `before`, so that a text already over its limit can shrink
+ * and never grow (28.4).
  */
 export function fitsLimit(text: string, limit: FieldLimit, before: string): boolean {
-  if (countedLength(text) > Math.max(limit.characters, countedLength(before))) return false
+  if (cappedLength(text) > Math.max(limit.characters, cappedLength(before))) return false
   return limit.lines === undefined || estimatedLines(text) <= Math.max(limit.lines, estimatedLines(before))
 }
 
