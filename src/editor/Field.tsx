@@ -43,7 +43,7 @@ import { isUrl } from '../tree/grammar.ts'
 import { countedLength, estimatedLines } from '../tree/measure.ts'
 import type { Explainer, Source, Violation } from '../tree/types.ts'
 import { useEditor } from './Editor.tsx'
-import { capped, keyOf, plainLine, RAW_HTML, valueAt } from './fields.ts'
+import { capped, cutTo, keyOf, plainLine, RAW_HTML, valueAt } from './fields.ts'
 import { marked, Marker, markRefusal, trimmedSelection, type MarkerWords } from './Marker.tsx'
 import type { FieldLimit } from './mode.ts'
 import { explainerId } from './slug.ts'
@@ -97,6 +97,7 @@ export function Field({
   termEvent,
   markerWords,
   placeholder = '',
+  follower,
   words,
 }: {
   nodeId: string
@@ -130,6 +131,13 @@ export function Field({
   markerWords?: MarkerWords
   /** **[#172]** What belongs in the field, shown while it is empty (28.2): "Title", "Text". */
   placeholder?: string
+  /**
+   * **[#177]** A field of another Node whose text follows this one's, in the same language
+   * (30.5, amended): an aside's title leads its Option button's on the centre, which takes each
+   * new title cut to its own limit as long as it was empty, or this title cut so, when the
+   * editing began. A title edited on the button itself stops following.
+   */
+  follower?: { nodeId: string; path: string; limit: FieldLimit }
   words: FieldWords
 }) {
   const api = useEditor()
@@ -141,6 +149,10 @@ export function Field({
   const root = useRef<HTMLSpanElement>(null)
   const area = useRef<HTMLTextAreaElement>(null)
   const [rim, setRim] = useState<{ top: number; left: number } | null>(null)
+  // **[#177]** Decided when the editing begins: one field has the focus at a time, so nothing on
+  // this page writes the follower while this one is being typed in.
+  const following = useRef(false)
+  const followerPath = follower && lang !== null ? `${follower.path}.${lang}` : null
   const [selection, setSelection] = useState<[number, number]>([0, 0])
 
   const violations = api.violationsAt(nodeId, keyPath)
@@ -217,17 +229,25 @@ export function Field({
       api.refuseLocally(nodeId, keyPath, violation)
       return
     }
+    // The follower first, so the field the indicator names as last edited is this one (28.4).
+    if (following.current && follower && followerPath) api.write(follower.nodeId, followerPath, cutTo(next, follower.limit))
     api.write(nodeId, keyPath, next)
   }
 
   const onFocus = (): void => {
     setFocused(true)
     api.setCurrent({ nodeId, keyPath })
+    if (follower && followerPath) {
+      const theirs = valueAt(api.nodes[follower.nodeId], follower.path, lang) ?? ''
+      following.current = !api.hasWrite(follower.nodeId, followerPath) && (theirs === '' || theirs === cutTo(text, follower.limit))
+    }
   }
   const onBlur = (): void => {
     setFocused(false)
     api.setCurrent(null)
     api.flush(nodeId, keyPath)
+    // With it: a structure write sent next -- the side bubble's delete -- must not overtake it (29.2).
+    if (follower && followerPath) api.flush(follower.nodeId, followerPath)
   }
   // A click inside a summary would toggle the Overlay the button opens; the field takes it.
   const onClick = (event: MouseEvent): void => {

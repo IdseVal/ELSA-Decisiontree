@@ -6,7 +6,7 @@
  * description its estimated lines. A text already over its limit may shrink and never grow.
  */
 import { describe, expect, test } from 'vitest'
-import { capped, fitsLimit } from '../../src/editor/fields.ts'
+import { capped, cutTo, fitsLimit } from '../../src/editor/fields.ts'
 import { countedLength, estimatedLines } from '../../src/tree/measure.ts'
 
 const TITLE = { characters: 80 }
@@ -143,5 +143,20 @@ describe('a deletion that would lengthen the counted text', () => {
     const before = `${'x'.repeat(140)} [term](https://example.org/)`
     const at = before.indexOf(']')
     expect(capped(before, ...input(before, at, '', 1), DESCRIPTION).text).toBe(before)
+  })
+})
+
+describe('**[#177]** cutTo: an aside title as its Option button takes it (30.5, amended)', () => {
+  const OPTION = { characters: 60 }
+
+  test('a title within the button limit is taken whole; an empty one stays empty', () => {
+    expect(cutTo('An aside', OPTION)).toBe('An aside')
+    expect(cutTo('', OPTION)).toBe('')
+  })
+
+  test('a longer title is cut after the last whole character that fits the 60', () => {
+    const title = `${'w'.repeat(59)}\u{1F44D}\u{1F3FD} and more words to reach eighty characters`
+    expect(cutTo(title, OPTION)).toBe('w'.repeat(59))
+    expect(cutTo('x'.repeat(80), OPTION)).toBe('x'.repeat(60))
   })
 })
