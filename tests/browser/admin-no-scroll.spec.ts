@@ -9,9 +9,11 @@
  * **[#138]** And the editor on `hidden-draft`'s full Node in `en` and `nl` (28.6, 35.4):
  * plain, with the Overlay of the first Options open, with the description in its source
  * state, with a Source's Sheet open, and with the session Sheet. **[#140]** And the enlarged
- * view as the Image's editor, and the attach Sheet. **[#176]** And the settings panel and the
- * to-do bubble, opened from the two controls that float at the top right, at every viewport
- * the floor's included; and the to-do bubble with a list longer than the window.
+ * view as the Image's editor, and the attach Sheet. **[#174]** And each of their information
+ * hints open, and the strip's `+` with its label shown, beside no strip and beside a full one.
+ * **[#176]** And the settings panel and the to-do bubble, opened from the two controls that
+ * float at the top right, at every viewport the floor's included; and the to-do bubble with a
+ * list longer than the window.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -319,8 +321,63 @@ for (const lang of LANGUAGES) {
 /**
  * **[#140]** The picture Sheets (31.2, 31.3): the enlarged view as the Image's editor, on the
  * full Node's main image, and the attach Sheet after an upload into the empty slot of a
- * Terminal, cancelled again so the draft is as it was.
+ * Terminal, cancelled again so the draft is as it was. **[#174]** Each with every information
+ * hint open in turn, and the strip's `+` with its label shown: beside no strip, and beside the
+ * widest strip, on an explanation Node given nine pictures, where the label has the least room
+ * -- that one plain too, and at the widths of `NARROW` as well.
  */
+
+/** Opens each information hint in `scope` in turn by focus and measures the page with it open. */
+async function eachHint(page: Page, scope: Locator, lang: string, viewport: string, what: string): Promise<void> {
+  const marks = scope.locator('.hint-mark').filter({ visible: true })
+  for (let i = 0; i < (await marks.count()); i += 1) {
+    await marks.nth(i).focus()
+    await expect(scope.locator('.hint-panel[data-open]')).toBeVisible()
+    record(await measure(page), 'editor', lang, viewport, `${what}, hint ${i + 1}`)
+    await page.keyboard.press('Escape')
+    await expect(scope.locator('.hint-panel[data-open]')).toHaveCount(0)
+  }
+}
+
+/** Shows the strip's `+` label by hovering the `+`, where there is one, and measures the page. */
+async function plusLabel(page: Page, lang: string, viewport: string, what: string): Promise<void> {
+  const plus = page.locator('.carousel > .editor-picker--strip')
+  if (!(await plus.isVisible())) return
+  await plus.hover()
+  await expect(page.locator('.carousel > .editor-picker-room > .editor-picker-label')).toBeVisible()
+  record(await measure(page), 'editor', lang, viewport, what)
+  await page.mouse.move(0, 0)
+}
+
+/**
+ * **[#174]** Widths 10.6 does not list, beside the widest strip: there the band's third column
+ * leaves the `+` label less than 110 pixels, and it stands left of the `+` (31.1). On PR #187
+ * the Reviewer measured it leaving the band from 550 to 680 wide in en and to 720 in nl. Each
+ * language's rows start where the disclaimer holds its one line: narrower, it takes a second,
+ * which its 28-pixel row does not hold whatever the carousel does, as the pull request records.
+ * In Liberation Sans, the CI runner's face, that line is 608.5 pixels in nl and needs a window
+ * of 641, so 640 is too narrow; in en it is 545.6 and needs 578. (Segoe UI needs 639 and 570.)
+ */
+const NARROW = {
+  en: [
+    [600, 800],
+    [620, 640],
+    [640, 640],
+    [640, 800],
+    [660, 640],
+    [660, 800],
+    [700, 640],
+    [720, 800],
+    [760, 640],
+  ],
+  nl: [
+    [660, 640],
+    [660, 800],
+    [700, 640],
+    [720, 800],
+    [760, 640],
+  ],
+} as const
 for (const lang of LANGUAGES) {
   test(`the editor's picture Sheets, ${lang}, never scroll at any viewport of 10.6 (31.2, 31.3)`, async ({ browser }) => {
     test.slow()
@@ -337,19 +394,56 @@ for (const lang of LANGUAGES) {
       await page.locator('.editor-attach-panel button[type="submit"]').click()
       await expect(page.locator('.carousel > .editor-picker--strip')).toBeVisible()
     }
+    // [#174] Nine pictures on an explanation Node: a strip at its widest, and the `+` after it.
+    const widest = `${origin}/admin/api/trees/hidden-draft/nodes/opt-one`
+    // The request context keeps no `Secure` cookie on plain http: the session travels in the header (admin.ts).
+    const { cookie } = await login(page, origin, 'admin', ADMIN_PASSWORD)
+    const headers = { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' }
+    const pictures = ((await (await page.request.get(widest, { headers })).json()) as { node: { images: unknown[] } }).node.images.length
+    for (const file of ['two.png', 'three.png', 'four.png', 'five.png', 'six.png', 'seven.png', 'eight.png', 'nine.png'].slice(pictures - 1)) {
+      const added = await page.request.patch(widest, { headers, data: JSON.stringify({ op: 'add-image', file, credit: 'Drawing: ELSA lab', description: { en: file } }) })
+      expect(added.status(), file).toBe(200)
+    }
+    for (const [width, height] of NARROW[lang]) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      await page.goto(`${origin}/admin/trees/hidden-draft/opt-one${query}`)
+      await expect(page.locator('.carousel > .editor-picker--strip')).toBeVisible()
+      record(await measure(page), 'editor', lang, viewport, 'widest strip +')
+      await plusLabel(page, lang, viewport, 'widest strip +, its label')
+    }
     for (const [width, height] of VIEWPORTS) {
       const viewport = `${width}x${height}`
       await page.setViewportSize({ width, height })
       await page.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`)
       if (await page.locator('.carousel > .editor-picker--strip').isVisible()) record(await measure(page), 'editor', lang, viewport, 'strip +')
+      await plusLabel(page, lang, viewport, 'strip +, its label')
+      await page.goto(`${origin}/admin/trees/hidden-draft/opt-one${query}`)
+      if (await page.locator('.carousel > .editor-picker--strip').isVisible()) record(await measure(page), 'editor', lang, viewport, 'widest strip +')
+      await plusLabel(page, lang, viewport, 'widest strip +, its label')
       await page.goto(`${origin}/admin/trees/hidden-draft/full${query}`)
       const main = page.locator('.bubble .main-image')
       // At the floor the notice stands in for the view (10.4): no picture to open.
-      if (!(await main.isVisible())) continue
+      if (!(await main.isVisible())) {
+        // [#174] Where the main image is given up (10.5, step 5) the strip's `+` still uploads:
+        // the attach Sheet and its hints at a phone's width, from the Terminal's pill.
+        await page.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`)
+        const plus = page.locator('.carousel > .editor-picker--strip')
+        if (!(await plus.isVisible())) continue
+        await plus.locator('input[type="file"]').setInputFiles(picture)
+        const attach = page.locator('.editor-attach-panel')
+        await expect(attach).toBeVisible()
+        record(await measure(page), 'editor', lang, viewport, 'attach Sheet, from the +')
+        await eachHint(page, attach, lang, viewport, 'attach Sheet, from the +')
+        await attach.locator('.sheet-controls button[type="button"]').click()
+        await expect(attach).toHaveCount(0)
+        continue
+      }
       await main.click()
       const enlarged = page.locator('.carousel-sheet > .sheet-panel')
       await expect(enlarged.locator('.editor-image-controls')).toBeVisible()
       record(await measure(page), 'editor', lang, viewport, 'enlarged view')
+      await eachHint(page, enlarged, lang, viewport, 'enlarged view')
       await page.keyboard.press('Escape')
 
       await page.goto(`${origin}/admin/trees/hidden-draft/full/applies${query}`)
@@ -359,7 +453,8 @@ for (const lang of LANGUAGES) {
       const attach = page.locator('.editor-attach-panel')
       await expect(attach).toBeVisible()
       record(await measure(page), 'editor', lang, viewport, 'attach Sheet')
-      await attach.locator('button[type="button"]').click()
+      await eachHint(page, attach, lang, viewport, 'attach Sheet')
+      await attach.locator('.sheet-controls button[type="button"]').click()
       await expect(attach).toHaveCount(0)
     }
   })

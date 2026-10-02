@@ -77,7 +77,8 @@ with the Planner's proposed resolution.
    takes four only hyphenated in the page's language, and five without, which do not fit
    the 80: the button grows to 102, so the 96 is a minimum (`application.md` 10.3 and
    10.7, amended). *Amended 2026-10-02 (issue #175, the owner in #169):* the button is
-   236 x 100, the largest at 1280 x 640 that leaves room for a focused button's ring, and its
+   236 x 100, the largest at 1280 x 640 that leaves room for a focused button's ring at a
+   Bubble of 416 (at #174's 401 the rows of a side of four stand 0.25 apart), and its
    picture fills its inner end -- a circle as tall as the button, centred on the end's curve,
    the outline drawn under it -- with the title at 15 pixels on 18-pixel lines, at most five
    hyphenated in the page's language (six, and a button of 108, where the browser has no

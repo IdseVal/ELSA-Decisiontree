@@ -19,6 +19,7 @@ import { OUTCOME_LABEL, sheetWords, SOURCE_LABEL } from '../components/Bubble.ts
 import { Sheet } from '../components/Sheet.tsx'
 import { editorLinks } from '../editor/links.ts'
 import { AddSourceForm, Field, Operation, type FieldWords, type OtherLanguage } from '../editor/Field.tsx'
+import { Hint } from '../editor/Hint.tsx'
 import { ImageControls } from '../editor/ImageControls.tsx'
 import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
@@ -96,6 +97,9 @@ const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.desc
 /** The most Images a Node may hold (V-COUNT, 5.7): the strip's `+` is absent at that many (31.1). */
 const MAX_IMAGES = 10
 
+/** **[#174]** An Image's two texts, which the enlarged view shows with a hint behind their labels (31.3). */
+const IMAGE_TEXT = /^images\[(\d+)\]\.(credit|description)$/
+
 /** What a click or Enter on a marked term dispatches in the editor (32.3). */
 const TERM_EVENT = 'elsa-term'
 
@@ -146,6 +150,10 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     cancel: ui.cancel,
     placeholderCredit: ui.placeholderCredit,
     placeholderImageDescription: ui.placeholderImageDescription,
+    addExtraPicture: ui.addExtraPicture,
+    hint: ui.hint,
+    creditHint: ui.creditHint,
+    imageDescriptionHint: ui.imageDescriptionHint,
   }
   // The admin image route's folder: the attach Sheet shows a picture no Node names yet (31.2).
   const images = links.image(address.treeId, '')
@@ -163,6 +171,17 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       }
       if (path === 'description') {
         return <Field {...common} rich rendered={rendered} explainers={node.explainers as Explainer[]} termEvent={TERM_EVENT} markerWords={{ mark: ui.mark, cannotMarkHere: ui.cannotMarkHere, explainerLimit: ui.explainerLimit }} />
+      }
+      // [#174] The enlarged view's label is the Carousel's; the hint behind it is the editor's.
+      const image = IMAGE_TEXT.exec(path)
+      if (image) {
+        const credit = image[2] === 'credit'
+        return (
+          <>
+            <Hint id={`${node.id}-images-${image[1]}-${image[2]}-hint`} text={credit ? ui.creditHint : ui.imageDescriptionHint} name={ui.hint} />{' '}
+            <Field {...common} />
+          </>
+        )
       }
       return <Field {...common} />
     },

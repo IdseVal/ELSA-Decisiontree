@@ -267,9 +267,10 @@ describe('the Carousel', () => {
       '/carousel/images/tractor.svg',
       '/carousel/images/harbour.svg',
     ])
-    // Loaded lazily, at the size the strip draws them, so no page asks for what it does not show (12.4).
+    // Loaded lazily, at the size the strip draws them, so no page asks for what it does not show (12.4):
+    // 67 pixels since #174.
     expect(strip).toContain(
-      '<img id="carousel-image-0" src="/carousel/images/greenhouse.svg" alt="Two greenhouses with rows of seedlings and a shed beside them" width="48" height="48" loading="lazy"/>',
+      '<img id="carousel-image-0" src="/carousel/images/greenhouse.svg" alt="Two greenhouses with rows of seedlings and a shed beside them" width="67" height="67" loading="lazy"/>',
     )
     expect(strip.match(/loading="lazy"/g)).toHaveLength(4)
   })
