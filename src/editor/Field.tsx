@@ -372,10 +372,14 @@ export function Field({
   )
 }
 
-/** The element whose right rim the counter stands on: the Overlay's Interior, else the frame's Bubble, else the Sheet panel. */
+/**
+ * The element whose right rim the counter stands on: the Overlay's panel, else the frame's
+ * Bubble, else the Sheet panel. **[#172]** The Overlay's panel, not its Interior: the Interior
+ * is the text area, and a pill on its right edge stood on the text's last words.
+ */
 function hostOf(element: HTMLElement): Element | null {
   return (
-    element.closest('.overlay-interior') ??
+    element.closest('.overlay-interior')?.closest('.sheet-panel') ??
     element.closest('.tree-frame')?.querySelector('.bubble') ??
     element.closest('.sheet-panel') ??
     element.closest('.bubble') ??
