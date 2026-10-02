@@ -190,7 +190,8 @@ a git pack (a fresh repository holding only the folder, `git gc --aggressive`, `
 the object store this checkout shares held 29.72 MiB packed on the same day. In the
 **container image** the run stage gains the same 345,116 bytes on its file system, a
 **378,880-byte** layer as a tar and about **339 KB** gzip'd as a registry stores it (339,475
-and 339,498 bytes in two runs: the tar carries the files' times); WOFF2 is Brotli-compressed already, so neither git nor gzip wins much back. A Tree
+bytes; the tar holds the files' times, so a layer built another day is not byte for byte the
+same); WOFF2 is Brotli-compressed already, so neither git nor gzip wins much back. A Tree
 that takes a family gains 59 to 110 KB in its own `theme/` (the family's two files and its
 licence text); a reader's browser fetches 26 to 50 KB for the upright face, once an hour at
 most (5.5).
@@ -230,7 +231,7 @@ most (5.5).
   fits and is small; Roboto is the neo-grotesque that also matches Android's system face, and
   a fifth family was not needed.
 - **More than four**, or one per kind of identity a lab might want. Each family is another
-  60 to 110 KB in every release and another face to keep measured; a lab with its own identity
+  59 to 110 KB in every release and another face to keep measured; a lab with its own identity
   uploads its own files, which the dropdown keeps (`ADR-171-font-dropdown.md`).
 
 ## Consequences

@@ -8,6 +8,7 @@
 > none of them is part of the application. This is a record, not a contract: the contracts
 > are the specs and the ADRs. Section 3's second script, `badge-room.mjs`, was run on the
 > same day with the same tools by the fix run that answered the review of pull request #185.
+> The end of section 5, with `upstream_woff2.py`, was added the same day by the next fix run.
 
 ## 1. The Terminals of the repository
 
@@ -786,6 +787,117 @@ open-sans                     | check 400/700/italic: true | Niet van toepassing
 roboto                       normal:loaded italic:loaded | check 400/700/italic: true | Niet van toepassing 172.0px; Elders geregeld 145.5px; Ethisch aanvaardbaar 192.1px; Seek legal advice 155.3px
 atkinson-hyperlegible-next    | check 400/700/italic: true | Niet van toepassing 177.8px; Elders geregeld 150.0px; Ethisch aanvaardbaar 196.0px; Seek legal advice 160.1px
 faustina                     normal:loaded italic:loaded | check 400/700/italic: true | Niet van toepassing 170.2px; Elders geregeld 144.8px; Ethisch aanvaardbaar 190.8px; Seek legal advice 153.1px
+```
+
+**The figures the ADR sets the library against.** Added on the same day by the fix run that
+answered the review of head `7a1fa76`. That review found four figures of
+`ADR-171-font-library.md` that this record did not hold.
+
+Per family, the two WOFF2 files and the licence text of the output above add up to: Open Sans
+92,089 bytes, Roboto 109,810, Atkinson Hyperlegible Next 59,275, Faustina 83,942. That is the
+59 to 110 KB a Tree gains in its own `theme/` when it takes a family. The upright file alone
+is 25,688 to 50,252 bytes, the 26 to 50 KB a reader's browser fetches.
+
+The first Tree's own Open Sans, the precedent the ADR names:
+
+```
+$ wc -c trees/ai-act-applicability-agrifood/theme/open-sans-*.woff2
+18640 trees/ai-act-applicability-agrifood/theme/open-sans-400.woff2
+18620 trees/ai-act-applicability-agrifood/theme/open-sans-600.woff2
+18204 trees/ai-act-applicability-agrifood/theme/open-sans-700.woff2
+55464 total
+```
+
+The object store this checkout shares with its worktrees, beside the library's 324 KiB pack:
+
+```
+$ git count-objects -vH
+count: 4602
+size: 32.54 MiB
+in-pack: 4299
+packs: 6
+size-pack: 29.72 MiB
+prune-packable: 66
+garbage: 0
+size-garbage: 0 bytes
+```
+
+The rejected alternative "the upstream variable fonts unchanged": `upstream_woff2.py`
+downloads the eight inputs at the ADR's commit and checks each against the ADR's SHA-256.
+It then saves each one unchanged as WOFF2, without touching `head.modified`, as the recipe
+does. Run as `python upstream_woff2.py <work folder>`. Two runs gave identical output.
+
+```python
+"""The upstream variable fonts of ADR-171-font-library.md, unchanged, as WOFF2: the rejected
+alternative "the upstream variable fonts unchanged (no subset)", measured against the library.
+
+Usage: python upstream_woff2.py <work folder>
+Downloads the eight inputs from github.com/google/fonts at the ADR's commit into the work
+folder, checks each against the ADR's SHA-256, and saves each unchanged as WOFF2 in memory,
+without touching head.modified, as the recipe saves the library.
+"""
+import hashlib
+import io
+import os
+import sys
+import urllib.parse
+import urllib.request
+
+from fontTools.ttLib import TTFont
+
+COMMIT = '9710da1eacb3be272583c3224dcb70f9da6eadbb'
+INPUTS = [  # library id, path in google/fonts, SHA-256 (ADR-171-font-library.md decision 3), library WOFF2 bytes
+    ('open-sans', 'ofl/opensans/OpenSans[wdth,wght].ttf', '36643644f318a812aab2d2ed3bb98f8cf0872527f835fe9398d95fe6b9adb878', 42904),
+    ('open-sans', 'ofl/opensans/OpenSans-Italic[wdth,wght].ttf', 'fe269381e992f32e135801740998544d6235061e37c93ec067ad2be3edd5b17b', 44796),
+    ('roboto', 'ofl/roboto/Roboto[wdth,wght].ttf', 'd7598e12c5dbef095ff8272cfc55da0250bd07fbdecbac8a530b9b277872a134', 50252),
+    ('roboto', 'ofl/roboto/Roboto-Italic[wdth,wght].ttf', '9725a847af6b460ffca162ae66d20dad48b01876137947180b42d7dcd7887182', 55164),
+    ('atkinson-hyperlegible-next', 'ofl/atkinsonhyperlegiblenext/AtkinsonHyperlegibleNext[wght].ttf', '5a455d1cfa099b601ab70751bb9673e8fe1854dc4500c80e1a220d0d75e31745', 25688),
+    ('atkinson-hyperlegible-next', 'ofl/atkinsonhyperlegiblenext/AtkinsonHyperlegibleNext-Italic[wght].ttf', 'ce9cffed32742ad2d9238c561a93220385e5934cdc02b8eb4097a50efa957dc6', 29156),
+    ('faustina', 'ofl/faustina/Faustina[wght].ttf', '2ce2606f0ee1d493873c24818a391e02606ee76ac924b3d985cbb820c0a53ea5', 38648),
+    ('faustina', 'ofl/faustina/Faustina-Italic[wght].ttf', '215b9bf63da0c9584b5a0aa8e2270da6a2b62c1281f5c39089613c3aaeffa2be', 40904),
+]
+
+work = sys.argv[1]
+os.makedirs(work, exist_ok=True)
+families: dict[str, list[int]] = {}
+for fid, path, digest, library in INPUTS:
+    local = os.path.join(work, os.path.basename(path))
+    if not os.path.exists(local):
+        url = f'https://raw.githubusercontent.com/google/fonts/{COMMIT}/' + urllib.parse.quote(path)
+        with urllib.request.urlopen(url, timeout=60) as response:
+            open(local, 'wb').write(response.read())
+    source = open(local, 'rb').read()
+    assert hashlib.sha256(source).hexdigest() == digest, f'{path}: not the ADR\'s input'
+    font = TTFont(io.BytesIO(source), recalcTimestamp=False)  # as the recipe: head.modified kept
+    font.flavor = 'woff2'
+    out = io.BytesIO()
+    font.save(out)
+    woff2 = len(out.getvalue())
+    print(f'{path:<72} ttf {len(source):>7}  woff2 unchanged {woff2:>7}  library {library:>6}')
+    totals = families.setdefault(fid, [0, 0])
+    totals[0] += woff2
+    totals[1] += library
+for fid, (unchanged, library) in families.items():
+    print(f'{fid:<28} two files unchanged {unchanged:>8}  library {library:>7}  {unchanged / library:.1f} times')
+print(f'{"the four families":<28} unchanged {sum(t[0] for t in families.values()):>8}  library {sum(t[1] for t in families.values()):>7}')
+```
+
+Output:
+
+```
+ofl/opensans/OpenSans[wdth,wght].ttf                                     ttf  532636  woff2 unchanged  280576  library  42904
+ofl/opensans/OpenSans-Italic[wdth,wght].ttf                              ttf  583992  woff2 unchanged  313860  library  44796
+ofl/roboto/Roboto[wdth,wght].ttf                                         ttf  488584  woff2 unchanged  222128  library  50252
+ofl/roboto/Roboto-Italic[wdth,wght].ttf                                  ttf  530944  woff2 unchanged  256268  library  55164
+ofl/atkinsonhyperlegiblenext/AtkinsonHyperlegibleNext[wght].ttf          ttf  114552  woff2 unchanged   48188  library  25688
+ofl/atkinsonhyperlegiblenext/AtkinsonHyperlegibleNext-Italic[wght].ttf   ttf  123916  woff2 unchanged   52692  library  29156
+ofl/faustina/Faustina[wght].ttf                                          ttf  118468  woff2 unchanged   49780  library  38648
+ofl/faustina/Faustina-Italic[wght].ttf                                   ttf  120744  woff2 unchanged   52360  library  40904
+open-sans                    two files unchanged   594436  library   87700  6.8 times
+roboto                       two files unchanged   478396  library  105416  4.5 times
+atkinson-hyperlegible-next   two files unchanged   100880  library   54844  1.8 times
+faustina                     two files unchanged   102140  library   79552  1.3 times
+the four families            unchanged  1275852  library  327512
 ```
 
 ## 6. The licence list
