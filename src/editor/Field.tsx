@@ -249,9 +249,11 @@ export function Field({
     // With it: a structure write sent next -- the side bubble's delete -- must not overtake it (29.2).
     if (follower && followerPath) api.flush(follower.nodeId, followerPath)
   }
-  // A click inside a summary would toggle the Overlay the button opens; the field takes it.
+  // A click inside a summary would toggle the Overlay the button opens, and **[#177]** one inside
+  // a link -- the Overlay's heading, which links to the aside's address (10.9) -- would follow
+  // it and reload the page under the creator; the field takes it.
   const onClick = (event: MouseEvent): void => {
-    if (root.current?.closest('summary')) event.preventDefault()
+    if (root.current?.closest('summary, a')) event.preventDefault()
   }
 
   if (select) {
