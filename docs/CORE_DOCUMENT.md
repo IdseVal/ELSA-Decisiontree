@@ -512,7 +512,10 @@ owner's words leave a choice:
   its side child; on a new Node, "yes", "no" and "tree ends here" buttons that create the
   next Node and move the editor to it. PROPOSED: "tree ends here" is the Terminal of 3.1
   with its outcome; "yes" and "no" are the Answers; the side-bubble is an Option; nothing
-  new enters the format, which stays `elsa-tree/4` (10.21). **[#133] Confirmed as
+  new enters the format, which stays `elsa-tree/4` (10.21; **[#169]** no longer: the
+  Terminal carries the ending's words in place of an outcome, owner 2026-10-02, and the
+  file that holds them is `elsa-tree/5`, decided by the Architect on #171; 3.1,
+  `docs/specs/tree-format.md` 5.5, 12.7). **[#133] Confirmed as
   proposed by the Architect (2026-09-26):** a Node without Links offers `+ Yes`, `Tree ends
   here` and `+ No` in the Answer row; a fresh yes or no creates its target and the editor
   navigates to it; "tree ends here" asks for one of the four outcomes (**[#169]** asks for
@@ -589,9 +592,11 @@ owner's words leave a choice:
     the panel it opens. PROPOSED: the Tree's state stays visible at a glance, as a state
     (#176).
   - **Made by other issues, under the same mark.** The other changes of #169 to this
-    document are #171's and #173's: the ending of a Tree as a typed text (3.1; "nothing
-    new enters the format, which stays `elsa-tree/4`" and "asks for one of the four
-    outcomes" above; 5; 10.10) by #171, and the heading "Sources" (3.2) by #173.
+    document are #171's and #173's. #171's: the ending of a Tree as a typed text and the
+    format `elsa-tree/5` that carries it (3.1; "nothing new enters the format, which
+    stays `elsa-tree/4`" and "asks for one of the four outcomes" above; 5; 10.10, 10.21),
+    and the Theme's font and licence dropdowns (10.35). #173's: the heading "Sources"
+    (3.2).
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
