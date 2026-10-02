@@ -4507,6 +4507,7 @@ release that carries `elsa-tree/5`.
 | `tests/browser/structure.spec.ts` | `treeEndsHere` asks for the words, its counter shows the 20; `confirm` puts the badge on the rim; after publishing (#136's route) the public page's badge holds the same words, in `en` and in `nl` |
 | `tests/browser/no-scroll.spec.ts` | its Terminal rows unchanged, and one row more: a fixture Terminal whose `label` is 20 characters of wide capitals ("Mandatory safeguards" / "Waarborgen verplicht") at its ten viewports and at 480 x 640, asserting 10.6's rule and that the badge is one line (its box 24 pixels tall). The runner draws the default stack in Liberation Sans, Arial's metrics (`src/theme.ts`), where 36.1 measured the English one at 188.7 pixels of the 198 |
 | `tests/chrome.test.ts` | the outcome row goes (7) |
+| the tests that name the old number | found on 2026-10-02 by searching `elsa-tree-4` and `elsa-tree/4` under `tests/`: `carousel.spec.ts`, `deployment.spec.ts` (its `SCHEMA` constant and the `describedby` header it expects), `draft-rules.test.ts`, `llms.test.ts`, `loader.test.ts`, `migrate-tree.test.ts`, `neighbourhood.test.ts`, `store/drafts.test.ts`, `store/store.test.ts`, `url.test.ts`, `views.test.tsx` -- each now names `/5`; and `draft-rules.test.ts`'s "a wrong format" case, which writes `elsa-tree/5`, writes a format that is wrong after #179 (`elsa-tree/6`) |
 
 #179's pull request also pastes, from a command, the Terminals counted before the conversion
 against the endings carrying a `label` after it: 108 and 107, as `tree-format.md` 12.7.3
