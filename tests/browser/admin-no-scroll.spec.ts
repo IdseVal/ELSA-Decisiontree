@@ -7,11 +7,14 @@
  * document never scrolls. **[#137]** And the creators' overview with sixteen tiles and the
  * + tile, and the new-Tree form with three languages, whose boxes are two more carriers.
  * **[#138]** And the editor on `hidden-draft`'s full Node in `en` and `nl` (28.6, 35.4):
- * plain, with the Overlay of the first Options open, with the description in its source
- * state, with a Source's Sheet open, and with the session Sheet. **[#140]** And the enlarged
+ * plain, with the Overlay of the first Options open -- **[#177]** and with its `deleteSideBubble`
+ * asking -- with the description in its source state, with a Source's Sheet open, and with
+ * the session Sheet. **[#140]** And the enlarged
  * view as the Image's editor, and the attach Sheet. **[#176]** And the settings panel and the
  * to-do bubble, opened from the two controls that float at the top right, at every viewport
- * the floor's included; and the to-do bubble with a list longer than the window.
+ * the floor's included; and the to-do bubble with a list longer than the window. **[#177]**
+ * And a side bubble at every maximum opened by its address at every viewport: plain, with its
+ * delete asking, and below the guarantee with its Sources' Sheet open.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -76,9 +79,13 @@ interface Measured {
 
 const rows: string[] = []
 let origin: string
+/** **[#177]** A store of its own for the side bubble at every maximum, so the overview's tiles above stay what they are. */
+let overlayOrigin: string
 
 test.beforeAll(async () => {
   origin = await serveStore(await buildDataDir({ trees: TREES, accounts: ACCOUNTS }), PORT, ADMIN_ENV)
+  const overlay = [{ folder: path.join(repo, 'tests', 'fixtures', 'overlay'), hidden: true }]
+  overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [] }), PORT + 1, ADMIN_ENV)
 })
 
 test.afterAll(async () => {
@@ -237,6 +244,11 @@ async function editorEverywhere(page: Page, lang: string): Promise<void> {
       await control.locator('.option-image').click()
       await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeVisible()
       record(await measure(page), 'editor', lang, viewport, `Overlay ${i + 1}`)
+      // **[#177]** Its delete asks in place, at the panel's foot (30.7); the answer is never given here.
+      const remove = sheets.nth(i).locator('.side-delete')
+      await remove.locator('.side-delete-button').click()
+      await expect(remove.locator('.structure-confirm')).toBeVisible()
+      record(await measure(page), 'editor', lang, viewport, `Overlay ${i + 1}, delete asked`)
       await page.keyboard.press('Escape')
       await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeHidden()
     }
@@ -272,9 +284,10 @@ for (const lang of LANGUAGES) {
 
 /**
  * **[#139]** The structure's Sheets (30) at every viewport (28.6): on an explanation Node that
- * is the centre, the end Sheet, the fan's `+` on each of its pages, and the step menu; on the
- * full Node, an Answer's and an Option's link menu, the picker included. Each is opened, measured
- * and closed with Escape, which also puts its form back on its first page.
+ * is the centre, the end Sheet and the step menu; on the full Node, an Answer's and an Option's
+ * link menu, the picker included. Each is opened, measured and closed with Escape, which also
+ * puts its form back on its first page. **[#177]** The fan's `+` opens no Sheet any more: one
+ * click creates (30.4, amended), and the side bubble it opens is measured with the Overlays.
  */
 async function structureEverywhere(page: Page, lang: string): Promise<void> {
   const query = lang === 'en' ? '' : '?lang=nl'
@@ -292,11 +305,6 @@ async function structureEverywhere(page: Page, lang: string): Promise<void> {
     await expect(page.locator('main')).toBeVisible()
     record(await measure(page), 'editor, structure', lang, viewport, '')
     await open(page.locator('.structure-end > .sheet-open'), 'end Sheet', viewport)
-    const side = page.locator('.options > li.options-add > .side-add > .sheet-open')
-    const sideForm = page.locator('.structure-form--side').filter({ visible: true })
-    await open(side, 'side-bubble Sheet', viewport)
-    await open(side, 'side-bubble Sheet, new title', viewport, () => sideForm.locator('.admin-submit').first().click())
-    await open(side, 'side-bubble Sheet, picker', viewport, () => sideForm.locator('.admin-submit').nth(1).click())
     await open(page.locator('.step-menu > .sheet-open'), 'step menu', viewport, () => page.locator('.structure-form--step .admin-submit').first().click())
 
     expect((await page.goto(`${origin}/admin/trees/hidden-draft/full${query}`))?.status()).toBe(200)
@@ -424,3 +432,42 @@ test('the to-do bubble with a list longer than the window never scrolls the docu
     await expect(sheet.locator(':scope > .sheet-panel')).toBeHidden()
   }
 })
+
+/**
+ * **[#177]** The side bubble at every maximum -- `tests/fixtures/overlay/`'s `big`: eight Options of
+ * its own, three Sources, the longest title and description -- opened by its address in the
+ * editor at every viewport of 10.6 (30.5, 30.7): plain; below the guarantee with its Sources'
+ * Sheet open, where they are edited as the Bubble's are (28.6); and with `deleteSideBubble`
+ * asking, which takes more of the panel's foot than the button. The answer is never given.
+ */
+for (const lang of LANGUAGES) {
+  test(`a side bubble at every maximum, opened by its address, ${lang}, never scrolls at any viewport of 10.6 (30.5, 30.7, 28.6)`, async ({ browser }) => {
+    test.slow()
+    const page = await (await browser.newContext()).newPage()
+    expect((await login(page, overlayOrigin, 'admin', ADMIN_PASSWORD)).status).toBe(204)
+    for (const [width, height] of VIEWPORTS) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(`${overlayOrigin}/admin/trees/overlay/five/big${lang === 'en' ? '' : '?lang=nl'}`))?.status()).toBe(200)
+      await expect(page.locator('main')).toBeVisible()
+      const panel = page.locator('details.overlay[open] > .sheet-panel')
+      // At the floor the notice stands in for the view (10.4): no side bubble to measure.
+      if (!(await panel.isVisible())) continue
+      // Drawn after hydration: the controls below listen from here on.
+      await expect(page.locator('details.overlay[open] > .sheet-backdrop')).toBeAttached()
+      record(await measure(page), 'side bubble at every maximum', lang, viewport, '')
+      const sources = panel.locator('.sources-sheet')
+      if (await sources.locator(':scope > .sheet-open').isVisible()) {
+        await sources.locator(':scope > .sheet-open').click()
+        await expect(sources.locator(':scope > .sheet-panel')).toBeVisible()
+        record(await measure(page), 'side bubble at every maximum', lang, viewport, 'its Sources Sheet')
+        await page.keyboard.press('Escape')
+        await expect(sources.locator(':scope > .sheet-panel')).toBeHidden()
+        await expect(panel).toBeVisible()
+      }
+      await panel.locator('.side-delete-button').click()
+      await expect(panel.locator('.side-delete .structure-confirm')).toBeVisible()
+      record(await measure(page), 'side bubble at every maximum', lang, viewport, 'delete asked')
+    }
+  })
+}

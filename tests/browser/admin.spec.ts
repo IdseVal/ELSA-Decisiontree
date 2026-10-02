@@ -323,20 +323,19 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   await endHere(page, 'not-applicable')
   await step(page, '16-creator-no-node-ends-here')
 
-  // The side bubble (30.4), edited in its Overlay (30.5).
+  // The side bubble (30.4), edited in its Overlay (30.5). **[#177]** One click on the fan's +
+  // opens it, empty: its title is typed in it, and the button's follows (30.4, 30.5, amended).
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor('start'))
-  const add = page.locator('.options > li.options-add > .side-add')
-  await add.locator(':scope > .sheet-open').click()
-  const side = page.locator('.structure-form--side').filter({ visible: true })
-  await side.getByRole('button', { name: 'Create a new one' }).click()
-  await side.locator('.structure-title').fill('What is placing on the market?')
-  await step(page, '17-creator-side-bubble-sheet')
-  await side.getByRole('button', { name: 'Confirm' }).click()
+  await page.locator('.options > li.options-add > .side-add').click()
   asideId = await landedOn(page, `/admin/trees/${tree}/start`)
   const overlay = page.locator(`.options > li:has(.overlay-interior[data-node="${asideId}"]) > details.overlay`)
   await expect(overlay).toHaveAttribute('open', '')
-  await expect(field(page, asideId, 'title.en').locator('textarea')).toHaveValue('What is placing on the market?')
+  // Drawn after hydration: the fields listen from here on.
+  await expect(overlay.locator(':scope > .sheet-backdrop')).toBeAttached()
+  await expect(field(page, asideId, 'title.en').locator('textarea')).toHaveValue('')
+  await write(page, asideId, 'title.en', 'What is placing on the market?')
+  await expect(field(page, 'start', 'options[0].title.en').locator('textarea')).toHaveValue('What is placing on the market?')
   await write(page, asideId, 'description.en', 'Making a system available on the EU market for the first time.')
   await step(page, '18-creator-side-bubble-edited-in-overlay')
 
