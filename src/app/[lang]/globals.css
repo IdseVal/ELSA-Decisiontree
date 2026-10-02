@@ -536,7 +536,7 @@ a.language:hover,
  * The foot of the text area is kept clear where the text leaves room: the curve narrows the
  * Bubble there, and a line of Sources drawn in it crosses the outline. The picture wins
  * over it (#102): its shrink weight is ten thousand times the picture's, so it yields
- * first, and all of it -- a Node at every maximum keeps 9.6 of its 24 pixels (10.7). (Not
+ * first, and all of it -- a Node at every maximum keeps 0.6 of its 24 pixels (10.7). (Not
  * 1 against 0.0001: shrink factors that sum below one absorb only that share of the overflow.)
  */
 .bubble-text::after {
