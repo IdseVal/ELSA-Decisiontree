@@ -7,6 +7,8 @@
 - Spec: `docs/specs/application.md` 33.8, 37.5 (new); `docs/specs/tree-format.md` 4.3.2
   (unchanged: `licence` stays a string of at most 200 characters)
 - Depends on: nothing; used by `ADR-171-font-library.md` and `ADR-171-font-dropdown.md`
+- Measurements: `docs/research/issue-171-measurements.md` section 6 (the SPDX pages and the
+  stored strings' lengths)
 
 ## Context
 

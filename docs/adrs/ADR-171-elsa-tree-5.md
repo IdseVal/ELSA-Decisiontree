@@ -7,6 +7,8 @@
   `docs/specs/application.md` 15.1, 17.4, 18.3, 19.1, 36.4 (new);
   `schemas/elsa-tree-5.json` (new, frozen here)
 - Depends on: `docs/adrs/ADR-171-ending-text.md` (what changes in the file)
+- Measurements: `docs/research/issue-171-measurements.md` sections 1 and 2 (the Terminal
+  counts and the conversion run in memory, with their scripts and outputs)
 - Amends: `ADR-118-json-schema.md` decision 2 (the route serves both schema files),
   `ADR-132-data-directory.md` (the store converts what it opens, 17.4),
   `ADR-132-draft-and-publish.md` (the draft is `/5`, its schema derived from `/5`'s),

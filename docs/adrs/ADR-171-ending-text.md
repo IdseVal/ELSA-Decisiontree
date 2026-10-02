@@ -16,6 +16,8 @@
   40 chrome characters become the Tree's 20)
 - Depends on: `docs/adrs/ADR-171-elsa-tree-5.md` (the format number and the conversion this
   change needs)
+- Measurements: `docs/research/issue-171-measurements.md` section 3 (the badge's room and
+  every width below, with the script that measured them)
 
 ## Context
 

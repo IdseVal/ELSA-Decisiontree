@@ -186,9 +186,8 @@ def build(ttf_path):
 a git pack (a fresh repository holding only the folder, `git gc --aggressive`, `size-pack`);
 the object store this checkout shares held 29.72 MiB packed on the same day. In the
 **container image** the run stage gains the same 345,116 bytes on its file system, a
-**378,880-byte** layer as a tar and about **339 KB** gzip'd as a registry stores it (339,498
-bytes in the recorded run; the tar carries the files' times, so a rerun differs by a few
-bytes); WOFF2 is Brotli-compressed already, so neither git nor gzip wins much back. A Tree
+**378,880-byte** layer as a tar and about **339 KB** gzip'd as a registry stores it (339,475
+and 339,498 bytes in two runs: the tar carries the files' times); WOFF2 is Brotli-compressed already, so neither git nor gzip wins much back. A Tree
 that takes a family gains 59 to 110 KB in its own `theme/` (the family's two files and its
 licence text); a reader's browser fetches 26 to 50 KB for the upright face, once an hour at
 most (5.5).
