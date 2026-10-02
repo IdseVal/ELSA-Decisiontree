@@ -3720,12 +3720,13 @@ And each field's box has, empty and filled, the size its text takes at the limit
 drawn, in lines of its own line height: the title and the description two (5.7), and three
 below 480 pixels wide, where a text at its limit takes three; an Option's title three, the
 lines 5.7 gives its 60 characters in a humanist face (the button holds four, but a box of
-four would start under the `...` in its corner); an explainer's explanation, a plain field of
-200 (32.2), five, and seven below 480 pixels, and its term one, two below 480 pixels; every
-other field one, a Source's label as wide as its 60 characters. So the box neither grows nor
-shrinks while the creator types, and it stays inside its parent: the Bubble's text area, the
-Overlay, the Option button or the Sheet. A text stored over its limit is shown whole: its box
-grows past these lines to hold it.
+four would start under the `...` in its corner); an Image's description and credit in the
+enlarged view, 120 each (31.3), two, and three below 480 pixels; an explainer's explanation,
+a plain field of 200 (32.2), five, and seven below 480 pixels, and its term one, two below
+480 pixels; every other field one, a Source's label as wide as its 60 characters. So the box
+neither grows nor shrinks while the creator types, and it stays inside its parent: the
+Bubble's text area, the Overlay, the Option button or the Sheet. A text stored over its limit
+is shown whole: its box grows past these lines to hold it.
 
 ### 28.5 The description: source text
 
