@@ -2042,8 +2042,9 @@ met (10.26; PROPOSED for the owner on #78).
 
 **Amended 2026-10-02 (#174, by the owner in #169):** the thumbnails are **67-pixel** round
 pictures (48 x 1.4) at a **75-pixel pitch**, in a box of at most **383 pixels** centred on the
-Bubble -- five of them and 8 pixels of padding at each end, inside the 400 where the Bubble's
-lower outline is straight -- so **five are visible**; more scroll. The box no longer has its
+Bubble -- five of them and 8 pixels of padding at each end -- so **five are visible**; more
+scroll. At the guaranteed viewport the Bubble's lower outline is straight across its middle
+359 (10.1) and has risen 0.4 of a pixel at the box's ends, 12 into the curve. The box no longer has its
 vertical centre on the outline: its upper 24 pixels lie in the Bubble's lower rim, 2 clear of
 the text area as before, and its lower 43 fill the strip band (10.1). The exemption of 10.6
 is the same, for the same box.

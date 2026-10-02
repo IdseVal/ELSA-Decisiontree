@@ -56,7 +56,7 @@
   /*
    * The rim: the band between the text area (640 x 349) and the curve, 60 across and 26
    * down (10.1). The Bubble's 2-pixel outline is part of that band, so the padding inside
-   * it is 2 less, and the text area measures exactly 640 x 364.
+   * it is 2 less, and the text area measures exactly 640 x 349.
    */
   --rim-x: 58px;
   --rim-y: 24px;
@@ -394,12 +394,12 @@ a.language:hover,
 
 /*
  * Five 67-pixel pictures at a 75-pixel pitch and 8 pixels of padding at each end: 383
- * pixels (12.2, amended 2026-10-02 by #174: seven of 48 in 400 until then), inside the
- * 400 where the Bubble's lower outline is straight; fewer pictures make a shorter strip,
- * centred on the Bubble. It is the one
- * element allowed to scroll, sideways, in its own box (10.6);
- * the scrollbar is not drawn, because the band has no height for one and the strip is
- * moved by the arrow keys, the wheel and a swipe.
+ * pixels (12.2, amended 2026-10-02 by #174: seven of 48 in 400 until then), centred on
+ * the Bubble; fewer pictures make a shorter strip. At the guaranteed 401 the Bubble's lower
+ * outline is straight across its middle 359 and has risen 0.4 of a pixel at the strip's
+ * ends, 12 into the curve. It is the one element allowed to scroll, sideways, in its own
+ * box (10.6); the scrollbar is not drawn, because the band has no height for one and the
+ * strip is moved by the arrow keys, the wheel and a swipe.
  */
 .carousel-strip {
   display: flex;
@@ -936,15 +936,17 @@ a.language:hover,
  * the button's centre is (i + 1/2) H / m - H / 2 from the Bubble's centre, and its inner
  * edge 20 pixels outside the outline at that height, at (380 - R) + sqrt(R^2 - y^2) + 20
  * from the centre line, R = H / 2 the radius and 380 - R half the Bubble's straight middle.
- * At the spec's 416 that is the fan of 10.3: the middle buttons furthest out, the top and
- * bottom ones nearer, 104 of pitch on a side of four (10.3's 111.5 was #78's, at a Bubble of
- * 446). A button is 232 x 96; on a row shorter than four of them the pitch shrinks and so
- * does the button, to the row's quarter, down to the 80 pixels its four lines of label take.
+ * At the guaranteed 401 that is the fan of 10.3: the middle buttons furthest out, the top
+ * and bottom ones nearer, 100.25 of pitch on a side of four (104 from a Bubble of 416, 655
+ * pixels tall; 10.3's 111.5 was #78's, at a Bubble of 446). A button is 232 x 96; on a row
+ * shorter than four of them the pitch shrinks and so does the button, to the row's quarter,
+ * down to the 80 pixels its four lines of label take.
  *
  * The 96 is a minimum, not a height: a title of 60 characters can take five lines where the
  * browser has no hyphenation dictionary for the page's `lang` (see `.option-title`), and a
- * button that holds them is 102 tall, still 2 clear of its neighbour at the pitch of a side of
- * four. It grows downward from the row's top: that button's centre sits 3 below the curve,
+ * button that holds them is 102 tall. At the guaranteed pitch of a side of four it overlaps
+ * its neighbour by 1.75 pixels; from a Bubble of 416 it stands 2 clear (10.3, amended by
+ * #174). It grows downward from the row's top: that button's centre sits 3 below the curve,
  * which no eye finds. It is not centred by a transform, because a transform on the item
  * would make it the containing block of the panel and the backdrop
  * (`position: fixed`), which would then lie inside the item instead of over the page.
@@ -2518,9 +2520,9 @@ fieldset:disabled .admin-submit {
   }
 
   /*
-   * The strip is its control alone, as at step 1: a 48-pixel strip needs 24 pixels of the
-   * lower rim, which is 10 here, and the full Node of 10.6 at 360 x 640 has not the 14 to
-   * give. The 20-pixel pill is centred on the outline, 10 in the rim.
+   * The strip is its control alone, as at step 1: a strip of 67-pixel thumbnails (48 until
+   * #174) needs 24 pixels of the lower rim, which is 10 here, and the full Node of 10.6 at
+   * 360 x 640 has not the 14 to give. The 20-pixel pill is centred on the outline, 10 in the rim.
    */
   :root {
     --strip-row: 20px;
