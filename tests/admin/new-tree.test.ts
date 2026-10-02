@@ -1,15 +1,15 @@
 /**
  * The new-Tree form's rules that need no browser (docs/specs/application.md 27.1, 27.2): the
- * editor's address it lands on and which field a refusal of
- * `POST /admin/api/trees` is shown at. The form itself is `creators-overview.spec.ts`'s.
+ * editor's address it lands on, **[#168]** the address it creates the Tree at without asking,
+ * and where a refusal of `POST /admin/api/trees` is shown. The form itself is
+ * `creators-overview.spec.ts`'s.
  */
 import { describe, expect, it } from 'vitest'
-import { editorHref, refusalOf, type NewTreeWords } from '../../src/editor/NewTreeForm.tsx'
+import { createTree, editorHref, refusalOf, type NewTreeWords } from '../../src/editor/NewTreeForm.tsx'
+import type { Answer } from '../../src/editor/request.ts'
 import { isUrl } from '../../src/tree/grammar.ts'
 
 const WORDS = {
-  treeIdTaken: 'taken',
-  treeIdReserved: 'reserved',
   languageHint: 'tag',
   requestFailed: 'failed',
 } as NewTreeWords
@@ -31,14 +31,6 @@ describe('refusalOf', () => {
     expect(refusalOf({ status: 201, body: null }, WORDS)).toBeNull()
   })
 
-  it('shows a taken id and a reserved word at the id', () => {
-    expect(refusalOf({ status: 409, body: { error: 'tree-id-taken' } }, WORDS)).toEqual({ field: 'id', text: 'taken' })
-    expect(refusalOf({ status: 422, body: { error: 'malformed', violations: [{ keyPath: 'id' }] } }, WORDS)).toEqual({
-      field: 'id',
-      text: 'reserved',
-    })
-  })
-
   it('shows a refused tag at the languages, from the route and from the schema', () => {
     expect(refusalOf({ status: 422, body: { error: 'malformed', violations: [{ keyPath: 'languages' }] } }, WORDS)).toEqual({
       field: 'languages',
@@ -54,6 +46,51 @@ describe('refusalOf', () => {
     expect(refusalOf(null, WORDS)).toEqual({ field: 'form', text: 'failed' })
     expect(refusalOf({ status: 500, body: null }, WORDS)).toEqual({ field: 'form', text: 'failed' })
     expect(refusalOf({ status: 401, body: { error: 'unauthenticated' } }, WORDS)).toEqual({ field: 'form', text: 'failed' })
+  })
+})
+
+describe('createTree (#168)', () => {
+  /** A route that answers each posted id from `answers`, 201 for any other, and records what it was sent. */
+  function route(answers: Record<string, Answer | null>) {
+    const sent: { id: string; languages: string[]; title: Record<string, string> }[] = []
+    const post = async (creation: (typeof sent)[number]): Promise<Answer | null> => {
+      sent.push(creation)
+      return creation.id in answers ? answers[creation.id]! : { status: 201, body: null }
+    }
+    return { sent, post }
+  }
+  const TAKEN: Answer = { status: 409, body: { error: 'tree-id-taken' } }
+  const RESERVED: Answer = { status: 422, body: { error: 'malformed', violations: [{ keyPath: 'id' }] } }
+
+  it("creates the Tree at its title's address, the title the default language's and empty in the others", async () => {
+    const { sent, post } = route({})
+    expect(await createTree('Data Act: does it apply?', ['nl', 'en'], post)).toEqual({ id: 'data-act-does-it-apply', answer: { status: 201, body: null } })
+    expect(sent).toEqual([{ id: 'data-act-does-it-apply', languages: ['nl', 'en'], title: { nl: 'Data Act: does it apply?', en: '' } }])
+  })
+
+  it('follows a taken address and a reserved word with the next, without asking', async () => {
+    const taken = route({ 'ai-act-example': TAKEN, 'ai-act-example-2': TAKEN })
+    expect((await createTree('AI Act example', ['en'], taken.post)).id).toBe('ai-act-example-3')
+    expect(taken.sent.map((creation) => creation.id)).toEqual(['ai-act-example', 'ai-act-example-2', 'ai-act-example-3'])
+
+    const reserved = route({ admin: RESERVED })
+    expect((await createTree('Admin', ['en'], reserved.post)).id).toBe('admin-2')
+  })
+
+  it('stops at any other refusal, and after twenty refused addresses, with the last answer', async () => {
+    const languages: Answer = { status: 422, body: { error: 'blocking', violations: [{ keyPath: '/languages/1' }] } }
+    const refused = route({ tree: languages })
+    expect(await createTree('?!', ['en', 'x'], refused.post)).toEqual({ id: 'tree', answer: languages })
+    expect(refused.sent).toHaveLength(1)
+
+    const failed = route({ tree: null })
+    expect((await createTree('', ['en'], failed.post)).answer).toBeNull()
+
+    const sent: string[] = []
+    const always = await createTree('Busy', ['en'], async (creation) => (sent.push(creation.id), TAKEN))
+    expect(sent).toHaveLength(20)
+    expect(always).toEqual({ id: 'busy-20', answer: TAKEN })
+    expect(refusalOf(always.answer, WORDS)).toEqual({ field: 'form', text: 'failed' })
   })
 })
 
