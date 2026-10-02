@@ -246,6 +246,12 @@ test.describe('autosave (29)', () => {
     const draft = await openTree(path.join(dir, 'trees', 'hidden-draft'), { draft: true })
     expect(draft.advisory.find((v) => v.file === 'full' && v.keyPath === 'description.en')).toMatchObject({ rule: 'V-LINES' })
 
+    // **[#172]** Over by its lines, it does not grow by its characters either: keys at its end do nothing (28.4, amended).
+    await area.press('Control+End')
+    await page.keyboard.type(' and more words', { delay: 5 })
+    await expect(area).toHaveValue(three)
+    await expect(page.locator('.editor-pill')).toHaveText(`${three.length} / 1503 / 2`)
+
     // Blurred, the rendered form: a list of one item.
     await page.keyboard.press('Tab')
     await expect(field(page, 'full', 'description.en').locator('.prose li')).toHaveText('and a list item under it')

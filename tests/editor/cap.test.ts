@@ -108,6 +108,34 @@ describe('a text already over its limit (stored before #172, or by another route
     const { text } = capped(over, ...input(over, 0, 'yyyyy', 2), TITLE)
     expect(text).toBe(`yy${'x'.repeat(91)}`)
   })
+
+  test('over by its lines, it cannot be lengthened by its characters either (the Reviewer of #184 typed 27 keys into it)', () => {
+    // The description `editor.spec.ts` stores: well within 150 characters, over its 2 lines.
+    const three = 'One paragraph.\n\n- and a list item under it'
+    expect(countedLength(three)).toBe(42)
+    expect(estimatedLines(three)).toBe(3)
+    expect(fitsLimit(`${three}x`, DESCRIPTION, three)).toBe(false)
+    expect(capped(three, ...input(three, three.length, 'x'), DESCRIPTION)).toEqual({ text: three, caret: three.length })
+    expect(capped(three, ...input(three, 0, 'A longer opening. '), DESCRIPTION).text).toBe(three)
+    // It can be shortened, and an edit that brings it within both measures is taken, as is a key after that.
+    expect(capped(three, ...input(three, 39, '', 3), DESCRIPTION).text).toBe(three.slice(0, 39))
+    const two = capped(three, ...input(three, 14, '', 1), DESCRIPTION).text
+    expect(two).toBe('One paragraph.\n- and a list item under it')
+    expect(estimatedLines(two)).toBe(2)
+    expect(capped(two, ...input(two, two.length, 's'), DESCRIPTION).text).toBe(`${two}s`)
+  })
+
+  test('over by both, an edit is taken only if it is no longer by either', () => {
+    const long = 'x'.repeat(160)
+    expect(estimatedLines(long)).toBe(3)
+    // Fewer characters on as many lines: taken. Fewer characters on more lines: refused.
+    const shorter = `${'x'.repeat(70)}\n\n${'x'.repeat(70)}`
+    expect(estimatedLines(shorter)).toBe(3)
+    expect(fitsLimit(shorter, DESCRIPTION, long)).toBe(true)
+    const more = `${'x'.repeat(50)}\n\n${'x'.repeat(50)}\n\n${'x'.repeat(50)}`
+    expect(estimatedLines(more)).toBe(5)
+    expect(fitsLimit(more, DESCRIPTION, long)).toBe(false)
+  })
 })
 
 describe('a deletion that would lengthen the counted text', () => {

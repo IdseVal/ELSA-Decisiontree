@@ -20,22 +20,25 @@ export function plainLine(text: string): string {
  * The length the cap holds a field to: the counted length of tree-format.md 3.8 with the
  * whitespace at either end counted as well. 3.8 trims it, so by the counted length alone a
  * space at the cap would go in -- and the next, and be stored -- where a key at the cap is to
- * do nothing (28.4, amended).
+ * do nothing (28.4, amended). What `trim` takes is whitespace of one UTF-16 unit each, so its
+ * length is its count of code points.
  */
 function cappedLength(text: string): number {
-  return countedLength(`.${text}.`) - 2
+  return countedLength(text) + text.length - text.trim().length
 }
 
 /**
  * **[#172]** Whether `text` may stand in a field of `limit` that held `before`: within the
- * limit as the validator measures it (tree-format.md 3.8 -- code points of the counted text,
- * its outer whitespace included, and the estimated lines where the limit has them), or no
- * longer by either measure than `before`, so that a text already over its limit can shrink
- * and never grow (28.4).
+ * limit by every measure the validator takes (tree-format.md 3.8 -- code points of the
+ * counted text, its outer whitespace included, and the estimated lines where the limit has
+ * them), or no longer than `before` by any of them. A text already over its limit by one
+ * measure can therefore shrink and never grow, by that measure or by the other (28.4): a
+ * description of three lines and 42 characters takes no 43rd.
  */
 export function fitsLimit(text: string, limit: FieldLimit, before: string): boolean {
-  if (cappedLength(text) > Math.max(limit.characters, cappedLength(before))) return false
-  return limit.lines === undefined || estimatedLines(text) <= Math.max(limit.lines, estimatedLines(before))
+  const within = cappedLength(text) <= limit.characters && (limit.lines === undefined || estimatedLines(text) <= limit.lines)
+  const noLonger = cappedLength(text) <= cappedLength(before) && (limit.lines === undefined || estimatedLines(text) <= estimatedLines(before))
+  return within || noLonger
 }
 
 /** Splits a text into what a reader sees as characters, so a cut never takes half of one (3.8). */
@@ -58,14 +61,14 @@ export function capped(previous: string, next: string, caret: number, limit: Fie
   const bound = Math.min(caret, previous.length - after.length)
   let start = 0
   while (start < bound && previous[start] === next[start]) start += 1
-  const before = next.slice(0, start)
-  if (!previous.endsWith(after) || !fits(before + after)) return { text: previous, caret: previous.length - after.length }
+  const prefix = next.slice(0, start)
+  if (!previous.endsWith(after) || !fits(prefix + after)) return { text: previous, caret: previous.length - after.length }
   let kept = ''
   for (const { segment } of graphemes.segment(next.slice(start, caret))) {
-    if (!fits(before + kept + segment + after)) break
+    if (!fits(prefix + kept + segment + after)) break
     kept += segment
   }
-  return { text: before + kept + after, caret: start + kept.length }
+  return { text: prefix + kept + after, caret: start + kept.length }
 }
 
 /** The queue's key of one field of one Node. */
