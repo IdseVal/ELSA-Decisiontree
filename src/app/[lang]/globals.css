@@ -2838,10 +2838,11 @@ fieldset:disabled .admin-submit {
 
 /*
  * **[#172]** A Sheet's field is an input of the admin area's one look (`.admin-field input`): at
- * least 32 pixels tall, 16-pixel text on 20-pixel lines -- a phone zooms into anything smaller --
- * 8 pixels in, a 1-pixel `rule` border of radius 4 on the page's background, and the page's
- * focus ring (`:focus-visible`) rather than a region's inset outline. The explanation of an
- * explainer is the one Sheet field of several lines: its 200 characters at the limit (32.2).
+ * least 32 pixels tall, 8 pixels in, a 1-pixel `rule` border of radius 4 on the page's
+ * background, and the page's focus ring (`:focus-visible`) rather than a region's inset
+ * outline; its text the Sheet's own 13 pixels on 20-pixel lines, as its label's. The
+ * explanation of an explainer is the one Sheet field of several lines: its 200 characters at
+ * the limit (32.2).
  */
 .editor-row .editor-field:not(:has(> select)) {
   --field-lines: 1;
@@ -2851,7 +2852,6 @@ fieldset:disabled .admin-submit {
   border: 1px solid var(--rule);
   border-radius: 4px;
   background: var(--elsa-background);
-  font-size: var(--body);
   line-height: 20px;
 }
 
@@ -2885,7 +2885,6 @@ fieldset:disabled .admin-submit {
   width: 100%;
   height: 32px;
   padding: 0 8px;
-  font-size: var(--body);
 }
 
 /* The URL of a Source to add (28.1): the one input of the editor that is not a field. */
@@ -2899,7 +2898,7 @@ fieldset:disabled .admin-submit {
   background: var(--elsa-background);
   color: var(--elsa-text);
   font: inherit;
-  font-size: var(--body);
+  font-size: var(--small);
 }
 
 .editor-url[aria-invalid='true'] {
@@ -3181,6 +3180,23 @@ fieldset:disabled .admin-submit {
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--elsa-text-muted);
+}
+
+/*
+ * **[#172]** One label column for both rows, as wide as the longer word ("Beschrijving"), so the
+ * two inputs line up and keep the width a credit needs; each row a subgrid of the form's.
+ */
+.editor-attach-form {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.editor-attach-form > * {
+  grid-column: 1 / -1;
+}
+
+.editor-attach-form .editor-row {
+  grid-template-columns: subgrid;
 }
 
 .editor-attach-form .sheet-controls {
