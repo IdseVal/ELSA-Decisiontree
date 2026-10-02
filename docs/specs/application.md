@@ -29,7 +29,8 @@
 > | 16.4, 16.5 | Unchanged, stated: neither read the outcome, and neither reads the label. |
 > | 17.4, 18.3 | The store converts an `elsa-tree/4` file when it opens it (36.4). |
 > | 19.1, 19.7, 22.1, 22.2 | The draft is `elsa-tree/5`; `link: 'end'` carries `label`; the field is `terminal.label.<lang>`; the manifest gains `use-library-font`; the theme upload answers the font's family name. |
-> | 28.1, 28.6, 30.1, 30.3, 34.2 | The ending's words are a field on the rim; `treeEndsHere` asks for them. |
+> | 28.1, 28.6, 30, 30.1, 30.3, 34.2 | The ending's words are a field on the rim; `treeEndsHere` asks for them; section 30's opening no longer says nothing enters the format. |
+> | 4.1, 6, 8, 15.2, 17.2, 19.2 | Where they name `elsa-tree/4` or its schema as the current one, a short mark: `/5` from #179. |
 > | 33.8 | The family name and the licence line become dropdowns (37). |
 > | 35.4 | The test rows of #179 and #180 (36.5, 37.6). |
 > | 36, 37 | New. |
@@ -324,6 +325,7 @@ Admin area  /admin/...                                           [#132] the scre
             /admin/trees/<tree-id>/<id-1>/.../<id-n>[?lang=<tag>]   [#133] the editor: the Node page's grammar behind the prefix (24.1)
 Dataset     /<tree-id>/tree.json                                 [#118]
 Schema      /schemas/elsa-tree-4.json                            [#118]
+            /schemas/elsa-tree-5.json                            [#171] the schema of elsa-tree/5; both are served (15.1)
 Crawlers    /robots.txt                                          [#118]
 Sitemap     /sitemap.xml                                         [#118]
 Agents      /llms.txt                                            [#118]
@@ -783,7 +785,7 @@ deploy; an hour of a stale font is the same trade the images make.
 ```
 .
 ├── docs/                    core document, specs, ADRs, research (unchanged)
-├── trees/                   Tree data: one folder per Tree (elsa-tree/4)
+├── trees/                   Tree data: one folder per Tree (elsa-tree/4; [#171] elsa-tree/5 from #179)
 │   └── ai-act-example/      tree.json, images/, theme/ -- the development default
 ├── src/
 │   ├── app/                 Next.js routes (thin); all of them under [lang] (4.4)
@@ -859,7 +861,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   ├── tree/                the Tree loader module
 │   │   ├── loader.ts        openTree and the Tree interface (5.1); [#132] the draft mode and the derived draft schema (19.2)
 │   │   ├── validate.ts      the rules of tree-format.md section 7; [#132] and the draft mode's blocking/advisory tag
-│   │   └── types.ts         the types of elsa-tree/4 (5.1)
+│   │   └── types.ts         the types of elsa-tree/4 (5.1); [#171] of elsa-tree/5 from #179
 │   ├── admin/               [#135] the admin pages' server-side helpers: authenticated.ts, headers.ts, requests.ts, words.ts
 │   │   └── slots.tsx        [#138] the editor page's EditMode: the words and the slot functions of 34.2; later issues add theirs here
 │   ├── editor/              [#133] the editor's client components, leaves (34.4); import measure.ts, grammar.ts and markdown.ts only
@@ -1069,10 +1071,10 @@ back.
 | Core document | Where it is met |
 |---|---|
 | 1 **[#118]** findable by search engines, dataset indexes and AI crawlers | section 16 in full: 16.1 robots, 16.2 sitemap, 16.3 hreflang and description, 16.4 JSON-LD, 16.5 `llms.txt` |
-| 3.1 **[#118]** JSON only, one format from one schema, written by tools | `tree-format.md` (`elsa-tree/4`), 3.7 and 3.9; 5.1, 5.2 |
+| 3.1 **[#118]** JSON only, one format from one schema, written by tools | `tree-format.md` (`elsa-tree/4`; **[#171]** `elsa-tree/5`), 3.7 and 3.9; 5.1, 5.2 |
 | 8 **[#118]** the Tree data is public under CC BY 4.0, served with no cookie and no account | 15.2: the licence in a `Link` header on the bytes themselves, and the no-cookie sweep -- `tests/browser/deployment.spec.ts` (section 7) -- extended to every route of 15 and 16 |
 | 10.21 **[#118]** superseded: hand-editability is no longer the criterion | `tree-format.md` 3.7, 3.9; `docs/adrs/ADR-118-json-serialisation.md` |
-| 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`); 5.1, 5.2 |
+| 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`; **[#171]** `elsa-tree/5`); 5.1, 5.2 |
 | 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
 | 3.1 / 9 images only for the Node on screen | 11.4, 12.4; **[#75]** 11.5 names the one exception per Option (core document 10.29) |
 | 3.1 text has a maximum length | `tree-format.md` 5.7, confirmed against this layout in 10.7 (**[#75]** again, with two pixels to spare: core document 10.28) |
@@ -2282,11 +2284,11 @@ where the schema is a constant of the build.
 
 ### 15.2 The headers
 
-| Header | `tree.json` | `elsa-tree-4.json` | Why |
+| Header | `tree.json` | `elsa-tree-4.json` (**[#171]** and `elsa-tree-5.json`, 15.1) | Why |
 |---|---|---|---|
 | `Content-Type` | `application/json; charset=utf-8` | the same | What it is. |
 | `Link` (licence) | `<https://creativecommons.org/licenses/by/4.0/>; rel="license"` | `<https://opensource.org/license/mit>; rel="license"` | The licence travels with the bytes, not only with the page that links to them -- a crawler that fetches only the JSON never sees a page. The Tree is content (CC BY 4.0, `CONTENT-LICENSE`); the schema is a file of the repository and is code (MIT, `LICENSE`). Core document 8. |
-| `Link` (contract) | `</schemas/elsa-tree-4.json>; rel="describedby"` | -- | The contract is one hop from the data for a tool that reads headers and not bodies. |
+| `Link` (contract) | `</schemas/elsa-tree-4.json>; rel="describedby"`; **[#171]** `</schemas/elsa-tree-5.json>` from #179, the route writing `SCHEMA_HREF` (36.2) | -- | The contract is one hop from the data for a tool that reads headers and not bodies. |
 | `Cache-Control` | `public, max-age=3600` | the same | The same hour as an image or a font (5.3, 5.5). A Tree that changes is a deploy. |
 | `ETag` | a strong tag over the bytes; `If-None-Match` answers `304` | the same | A crawler that re-fetches daily should download again only when something changed. |
 | `Access-Control-Allow-Origin` | `*` | the same | A dataset is meant to be fetched by other sites, notebooks and tools. Safe here in a way it is not on most origins: there is no cookie, no session, no account and no header that carries authority, so a cross-origin read reaches nothing a plain `curl` does not (core document 4, 8). **`Access-Control-Allow-Credentials` is never sent**, and this is not a precedent for any future route that gains a credential. |
@@ -2704,6 +2706,7 @@ $ELSA_DATA_DIR/
     ├── meta.json                { creator, collaborators, createdAt, updatedAt, updatedBy,
     │                              publishedAt, publishCount, revision }
     ├── draft.json               the draft (19): elsa-tree/4 JSON in the byte form of tree-format.md 3.7
+    │                              [#171] elsa-tree/5 from #179 (19.1)
     ├── tree.json                the published copy: present if and only if the Tree is published;
     │                              always a Tree that validated in full (19.3)
     ├── images/                  every uploaded picture: the draft's and the published copy's (22.6)
@@ -2888,7 +2891,8 @@ is the contract; the reasoning is the ADR's. The mechanism, so that one validato
 both:
 
 - **Schema half**: at start the loader derives a **draft schema** from
-  `schemas/elsa-tree-4.json` in code and compiles both. The derivation drops **two
+  `schemas/elsa-tree-4.json` (**[#171]** `schemas/elsa-tree-5.json` from #179, 19.1) in code
+  and compiles both. The derivation drops **two
   keywords** -- the `minLength` on `$defs/localisedText`'s `additionalProperties` and the
   `minLength` on `$defs/image/properties/credit` -- and removes `title` and `description`
   from a Node's `required` and `yes` and `no` from `answers`'. **Every other `minLength`,
@@ -3867,6 +3871,9 @@ push**: a collaborator's write is seen on this page's next write or a reload.
 **[#133], new -- 2026-09-26.** Confirms core document 3.4's PROPOSED reading: "yes" and
 "no" are the Answers, "tree ends here" the Terminal with its outcome, the side-bubble an
 Option; nothing new enters `elsa-tree/4`. Recorded in `docs/adrs/ADR-133-structure-editing.md`.
+**[#171]** No longer, since 2026-10-02 (the owner, #169): "tree ends here" makes the Terminal
+with the ending's own words in place of an outcome, and the words enter the format, which
+becomes `elsa-tree/5` (`tree-format.md` 5.5, 12.7; 30.3, 36), as core document 3.4 now says.
 
 ### 30.1 The three situations of a Node's Links, in the Answer row
 
@@ -4451,6 +4458,7 @@ outcome afterwards, and nothing but `tree-format.md` 12.7's conversion knows its
 | `src/tree/loader.ts` | reads `raw.terminal.outcome` into the Node and the `DraftNode`; `Manifest['format']` `elsa-tree/4` | reads `raw.terminal.label`; `elsa-tree/5` |
 | `src/tree/validate.ts` | compiles `schemas/elsa-tree-4.json`, derives the draft schema from it; no rule reads the outcome | compiles `schemas/elsa-tree-5.json` and derives the draft schema from it (19.2); `checkNode` checks a Terminal's `label` as the plain localised text it is -- V-L10N, V-PLAIN, V-LENGTH at `terminal.label.<lang>`, 20 in `MAX` |
 | `src/tree/serialise.ts` | key order `terminal: ['outcome']` | `terminal: ['label']` |
+| `src/tree/grammar.ts` | names `schemas/elsa-tree-4.json` in a comment, on the schema's `url` pattern | names `schemas/elsa-tree-5.json` |
 | `src/store/edits.ts` | the field `terminal.outcome`; `set-terminal { outcome }`; `link: 'end'` writes `{ outcome }`; `newDraft` writes `/schemas/elsa-tree-4.json` and `elsa-tree/4`; the language operations' `eachText` walks no Terminal | the field `terminal.label.<lang>`; `set-terminal { label }` and `link: 'end'` write `{ label }`, `""` for every language not given; `newDraft` writes `/5`; `eachText` includes a Terminal's `label` |
 | `src/store/drafts.ts` | `createNode(..., from: { ...; outcome? })` | `from: { ...; label? }` (19.7) |
 | `src/store/index.ts` | opens what it finds | converts an `elsa-tree/4` file before it opens it, and in `importTree`'s staging copy (36.4) |
@@ -4472,7 +4480,7 @@ outcome afterwards, and nothing but `tree-format.md` 12.7's conversion knows its
 | `scripts/migrate-tree.ts` | 12.6's byte form | also 12.7 |
 | `schemas/elsa-tree-4.json` | the enum of four | unchanged, kept, served |
 | `schemas/elsa-tree-5.json` | -- | frozen by #171 |
-| `docs/specs/tree-format.md`, this document | 5.5, 5.7, 7, 8 and 9; 3.2, 5.1, 7, 10.1, 10.3, 19.7, 22.1, 22.2, 28.1, 28.6, 30.1, 30.3, 34.2 | amended by #171, each passage marked **[#171]** |
+| `docs/specs/tree-format.md`, this document | 4, 5.5, 5.7, 7, 8 and 9; 3.2, 4.1, 5.1, 6, 7, 8, 10.1, 10.3, 15.1, 15.2, 17.2, 19.1, 19.2, 19.7, 22.1, 22.2, 28.1, 28.6, 30, 30.1, 30.3, 34.2 | amended by #171, each passage marked **[#171]** |
 
 ### 36.3 The editor asks for the words
 

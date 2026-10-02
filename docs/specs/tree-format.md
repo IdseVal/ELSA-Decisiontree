@@ -538,7 +538,8 @@ records the decision and the rejected alternatives.
 
 (The last two values are placeholders for this illustration only; `"..."` is not a key of
 anything.) The `languages` array is shown on one line for readability here; the canonical
-byte form of 3.7 puts one element per line, as section 8 shows.
+byte form of 3.7 puts one element per line, as section 8 shows. **[#171]** The first two
+lines name `elsa-tree/5` and its schema since 2026-10-02; they named `/4` before.
 
 | Key | Required | Type | Meaning |
 |---|---|---|---|
@@ -1620,6 +1621,9 @@ text has one key:
   ]
 }
 ```
+
+**[#171]** The first two lines name `elsa-tree/5` and its schema since 2026-10-02; they
+named `/4` before.
 
 Writing `"title": "Valt uw AI-systeem ..."` as a bare string instead of an object is
 **not** allowed even for one language (rule V-L10N): a localised text is always an
