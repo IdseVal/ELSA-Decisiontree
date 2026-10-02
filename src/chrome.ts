@@ -134,7 +134,7 @@ export interface Chrome {
   removeSource: string
   sourceKind: string
   sourceUrl: string
-  /** **[#138]** The `legal` kind in the kind select; on the public page the heading `sources` says it (ADR-78-sources-heading). */
+  /** **[#138]** The `legal` kind in the kind select; the public page labels no `legal` Source (ADR-78-sources-heading, decision 2). */
   sourceLegal: string
   /** **[#138]** The accessible name of a Terminal's outcome select, drawn as the badge (28.1). */
   outcome: string
@@ -288,7 +288,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     yes: 'Yes',
     no: 'No',
     options: 'What this covers',
-    sources: 'Legal sources',
+    sources: 'Sources',
     sourceCaseLaw: 'Case law',
     sourceLiterature: 'Literature',
     images: 'Images',
@@ -486,7 +486,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     yes: 'Ja',
     no: 'Nee',
     options: 'Wat hieronder valt',
-    sources: 'Juridische bronnen',
+    sources: 'Bronnen',
     sourceCaseLaw: 'Rechtspraak',
     sourceLiterature: 'Literatuur',
     images: 'Afbeeldingen',
