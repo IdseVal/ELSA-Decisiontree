@@ -18,6 +18,9 @@ const COPY: ReadonlyArray<readonly [from: string, to: string]> = [
   // read at request time, not imported. The Tree folders are deliberately not here -- they
   // are read at run time from the data directory, where the schema is a constant of the build.
   ['schemas', '.next/standalone/schemas'],
+  // **[#180]** The font library (application.md 37.1), which the store copies a family out of
+  // into a Tree's theme/ at run time: read, never imported, so left behind like `schemas`.
+  ['fonts', '.next/standalone/fonts'],
 ]
 
 if (!existsSync('.next/standalone')) {
