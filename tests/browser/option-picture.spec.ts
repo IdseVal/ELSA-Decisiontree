@@ -9,7 +9,9 @@
  * Node's eight Options (`tests/fixtures/full-node/`), the first Tree's eight on
  * `annex-i-legislation`, the overlay fixture's empty slots, and the `+` on either side.
  * Below 1280 the buttons of 10.5's steps 2 and 3 stay what they were before #175: 200 x 96
- * without a picture, the label 12 pixels from each end, at 16 on 20 -- the `+` too.
+ * without a picture, the label 12 pixels from each end, at 16 on 20 -- the `+` too. In the
+ * editor an Option title's box is the lines its 60 characters take in the label (28.4,
+ * amended): five of 18 in the fan, 90 pixels, and three of 20 below 1280, 60.
  *
  * Each page's measurements are printed, which is what the pull request quotes. The
  * screenshots the issue asks for go to `docs/screenshots/issue-175/` under `ELSA_SHOTS=1`,
@@ -29,11 +31,11 @@ const PORT = BASE_PORT + 160
 const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
 const FIRST_TREE = 'ai-act-applicability-agrifood'
 
-/** 10.3, amended by #175: the button, and the picture as tall as it. */
-const BUTTON = { width: 236, height: 100 }
+/** 10.3, amended by #175: the button, and the picture as tall as it; in the editor, the title's box of five lines of 18 (28.4). */
+const BUTTON = { width: 236, height: 100, titleBox: 90 }
 
-/** 10.5's steps 2 and 3, which #175 left as they were: no picture, 176 of label between 12 of padding each side. */
-const STRAIGHT = { width: 200, height: 96, padding: 12, type: '16px on 20px' }
+/** 10.5's steps 2 and 3, which #175 left as they were: no picture, 176 of label between 12 of padding each side; the title's box three lines of 20. */
+const STRAIGHT = { width: 200, height: 96, padding: 12, type: '16px on 20px', titleBox: 60 }
 
 let origin: string
 
@@ -56,7 +58,8 @@ test.afterAll(async () => {
 
 /**
  * One button as measured: its box, its picture's box, the picture's distance from the button's
- * top, bottom and inner edge, and the label's from the inner and the outer edge, with its type.
+ * top, bottom and inner edge, the label's from the inner and the outer edge, with its type, and
+ * the height of the title's box in the editor (null on the public page and for the `+`).
  */
 interface Measured {
   side: string
@@ -68,6 +71,7 @@ interface Measured {
   bottom: number
   inner: number
   label: { inner: number; outer: number; type: string }
+  titleBox: number | null
 }
 
 /** Every drawn Option button of the centre and the fan's `+`, measured. */
@@ -82,6 +86,7 @@ async function measure(page: Page): Promise<Measured[]> {
         const picture = button.querySelector('.option-image')!.getBoundingClientRect()
         const title = button.querySelector('.option-title')!
         const label = title.getBoundingClientRect()
+        const field = title.querySelector('.editor-field')
         const { fontSize, lineHeight } = getComputedStyle(title)
         const side = button.closest('li')!.dataset.side ?? ''
         const round = (n: number) => Math.round(n * 100) / 100
@@ -98,6 +103,7 @@ async function measure(page: Page): Promise<Measured[]> {
           bottom: round(box.bottom - picture.bottom),
           inner: fromInner(picture),
           label: { inner: fromInner(label), outer: fromOuter(label), type: `${fontSize} on ${lineHeight}` },
+          titleBox: field ? round(field.getBoundingClientRect().height) : null,
         }
       }),
     )
@@ -126,7 +132,8 @@ async function measurePage(page: Page, url: string, name: string, count: number,
 
 /** The size and the contour of every button on `url`, as `measurePage` says. */
 async function expectContour(page: Page, url: string, name: string, count: number, shot?: string): Promise<void> {
-  const show = (b: Measured) => `${b.width} x ${b.height}, picture ${b.picture.width} x ${b.picture.height}, from top ${b.top}, bottom ${b.bottom}, inner end ${b.inner}`
+  const show = (b: Measured) =>
+    `${b.width} x ${b.height}, picture ${b.picture.width} x ${b.picture.height}, from top ${b.top}, bottom ${b.bottom}, inner end ${b.inner}${b.titleBox === null ? '' : `, title box ${b.titleBox}`}`
   const measured = await measurePage(page, url, name, count, show, shot)
   // Soft, so one run measures and shoots every page however many buttons fail.
   for (const button of measured) {
@@ -138,15 +145,18 @@ async function expectContour(page: Page, url: string, name: string, count: numbe
     expect.soft(Math.abs(button.top), what).toBeLessThanOrEqual(1)
     expect.soft(Math.abs(button.bottom), what).toBeLessThanOrEqual(1)
     expect.soft(Math.abs(button.inner), what).toBeLessThanOrEqual(1)
+    if (button.titleBox !== null) expect.soft(button.titleBox, what).toBe(BUTTON.titleBox)
   }
 }
 
 /**
  * Below 1280, every button on `url` as `measurePage` says: 200 x 96, its label 12 from the
- * inner end and at least 12 from the outer one (a short label ends before it), at 16 on 20.
+ * inner end and at least 12 from the outer one (a short label ends before it), at 16 on 20,
+ * and in the editor its title's box three lines.
  */
 async function expectStraight(page: Page, url: string, name: string, count: number): Promise<void> {
-  const show = (b: Measured) => `${b.width} x ${b.height}, label from the inner end ${b.label.inner}, the outer ${b.label.outer}, ${b.label.type}`
+  const show = (b: Measured) =>
+    `${b.width} x ${b.height}, label from the inner end ${b.label.inner}, the outer ${b.label.outer}, ${b.label.type}${b.titleBox === null ? '' : `, title box ${b.titleBox}`}`
   const measured = await measurePage(page, url, name, count, show)
   for (const button of measured) {
     const what = `${name}: ${button.side} "${button.title}"`
@@ -155,6 +165,7 @@ async function expectStraight(page: Page, url: string, name: string, count: numb
     expect.soft(Math.abs(button.label.inner - STRAIGHT.padding), what).toBeLessThanOrEqual(1)
     expect.soft(button.label.outer, what).toBeGreaterThanOrEqual(STRAIGHT.padding - 1)
     expect.soft(button.label.type, what).toBe(STRAIGHT.type)
+    if (button.titleBox !== null) expect.soft(button.titleBox, what).toBe(STRAIGHT.titleBox)
   }
 }
 
@@ -181,7 +192,7 @@ for (const [width, height] of [
       await expectContour(page, '/overlay/five', 'the overlay fixture’s five, four empty slots', 5)
     })
 
-    test('in the editor, eight Options: the same buttons; and the side-bubble + fills its end, on the left as on the right', async ({ page }) => {
+    test('in the editor, eight Options: the same buttons, the box of each title five lines; and the side-bubble + fills its end, on the left as on the right', async ({ page }) => {
       expect((await login(page, origin, ANNA.login, ANNA.password)).status).toBe(204)
       await expectContour(page, '/admin/trees/full-node/full', 'the full Node, editor', 8, 'full-node-editor')
       await expectContour(page, `/admin/trees/${FIRST_TREE}/annex-i-legislation`, 'annex-i-legislation, editor', 8, 'annex-i-legislation-editor')
@@ -196,7 +207,7 @@ for (const [width, height] of [
 test.describe('at 1279 x 720, step 2 of 10.5', () => {
   test.use({ viewport: { width: 1279, height: 720 } })
 
-  test('the straight columns: every Option button and the + 200 x 96 without a picture, the label 12 from each end', async ({ page }) => {
+  test('the straight columns: every Option button and the + 200 x 96 without a picture, the label 12 from each end, the box of an editor title three lines', async ({ page }) => {
     await expectStraight(page, '/full-node/full', 'the full Node, public', 8)
     expect((await login(page, origin, ANNA.login, ANNA.password)).status).toBe(204)
     await expectStraight(page, '/admin/trees/full-node/full', 'the full Node, editor', 8)
