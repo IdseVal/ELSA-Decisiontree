@@ -15,7 +15,7 @@
  * Laid over the page from the document's body, so a Sheet it was opened from -- an Overlay --
  * neither clips it nor closes under it.
  *
- * Imports of `src/`: `tree/measure.ts`, and types (34.4).
+ * Imports of `src/`: nothing but its own folder (34.4).
  */
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'

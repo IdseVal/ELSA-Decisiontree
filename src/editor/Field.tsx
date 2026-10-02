@@ -295,8 +295,9 @@ export function Field({
     <>
       <span ref={root} className={state} data-field={key} data-over={over || undefined} onClick={onClick}>
         {editing ? (
-          // The grid and the mirror in `data-value` size the box to its text where the browser
-          // has no `field-sizing`; both take the same font, so they break lines alike.
+          // The grid and the mirror in `data-value` make the box taller than its lines (28.4) for a
+          // text that needs more, as one stored over its limit; both take the same font, so they
+          // break lines alike.
           <span className="editor-text" data-value={`${text} `}>
             <textarea
               ref={area}
