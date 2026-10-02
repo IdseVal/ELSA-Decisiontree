@@ -1,7 +1,7 @@
 # Core document
 
 > Populated by deep interview with the project owner. Nothing here is inferred.
-> Status: AGREED -- 2026-09-23 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17 and 2026-09-21)
+> Status: AGREED -- 2026-10-02 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17, 2026-09-21 and 2026-09-23)
 > The owner noted the document may change in future; changes go through a revision round and a PR.
 >
 > **Revision of 2026-09-09 (issue #35).** After seeing version 0.1 of the tool the owner
@@ -43,7 +43,7 @@
 > How the points became issues is `docs/adrs/ADR-169-tree-creation-ui-round.md`; the work
 > is issues #171 to #181.
 
-Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21 and 2026-09-23.
+Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23 and 2026-10-02.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
 Items marked **PROPOSED** are the Planner's wording, waiting for the owner to confirm or correct.
 
@@ -499,8 +499,8 @@ owner's words leave a choice:
   navigates to it; "tree ends here" asks for one of the four outcomes; the side-bubble `+`
   creates an Option and its explanation Node and opens it, editable, in the Overlay of 3.2;
   an Answer or an Option may also be pointed at an existing Node, since the data is a
-  graph (**[#169]** no longer offered by the editor, below); a step is deleted
-  from its own page and a step nothing reaches stays until
+  graph (**[#169]** PROPOSED: no longer offered by the editor, below); a step is
+  deleted from its own page and a step nothing reaches stays until
   someone deletes it. Every field is edited where the end user sees it, one language at a
   time (the language switch), with the limits of 3.1 shown live and never stopping a
   keystroke (**[#169]** reversed, below); images are uploaded where they
@@ -549,11 +549,14 @@ owner's words leave a choice:
     editor no longer offers to point an Answer or an Option at an existing Node. The data
     stays a graph, and a Tree in which two buttons lead to one Node keeps working (#177,
     #178; `docs/adrs/ADR-169-tree-creation-ui-round.md` decision 5).
-  - **The Theme paints the Tree, not the editor's own bars.** "Changing the color
-    features are great, but don't make it change the sidebar or header colors, that makes
-    it very difficult to follow the UI." In the editor the Tree's Theme paints what a
-    visitor will see; the editor's header bar, panel and Sheets keep the plain default
-    look of 3.2. The public page is still the Tree's Theme throughout (#180).
+  - **The Tree's colours leave the editor's header bar and side panel alone.** "Changing
+    the color features are great, but don't make it change the sidebar or header colors,
+    that makes it very difficult to follow the UI." In the editor the Tree's colours no
+    longer reach the header bar and the side panel. PROPOSED, as #180 words it (the owner
+    named the colours of those two parts and no more): the default fonts there too; the
+    editor's other Sheets, the to-do bubble and the floating controls likewise; the logo
+    in the header bar stays the Tree's; the public page is unchanged, the Tree's Theme
+    throughout (#180; `docs/adrs/ADR-169-tree-creation-ui-round.md` decision 5).
   - **The settings button says what it opens and floats; the to-do list is its own
     bubble.** "Why does it say hidden? Say what opens when that button is clicked,
     'Decision-tree settings'"; "The to-do before publishing is ok to have somewhere, but
@@ -563,10 +566,10 @@ owner's words leave a choice:
     longer named by the Tree's state; the Publish toggle and the collaborators stay in
     the panel it opens. PROPOSED: the Tree's state stays visible at a glance, as a state
     (#176).
-
-  The other changes of #169 to this document -- the ending of a Tree as a typed text
-  (3.1, "asks for one of the four outcomes" above, 5, 10.10) and the heading "Sources"
-  (3.2) -- are made by #171 and #173, under the same mark.
+  - **Made by other issues, under the same mark.** The other changes of #169 to this
+    document are #171's and #173's: the ending of a Tree as a typed text (3.1; "nothing
+    new enters the format, which stays `elsa-tree/4`" and "asks for one of the four
+    outcomes" above; 5; 10.10) by #171, and the heading "Sources" (3.2) by #173.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).

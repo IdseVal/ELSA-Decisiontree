@@ -4,7 +4,7 @@
 - Issue: #169 -- Issues for the tree creation UI (the owner's instruction)
 - Issues filed: #171 to #181
 - Specs affected: none rewritten here; each filed issue amends, dated and additive, the sections it changes
-- Core document: 3.4 amended here, marked `[#169]`, for the four decisions of #133 that #172, #176, #177, #178 and #180 reverse (decision 6); #171 amends 3.1, the 3.4 sentence "asks for one of the four outcomes", 5 and 10.10, and #173 amends 3.2
+- Core document: 3.4 amended here, marked `[#169]`, for the four decisions of #133 that #172, #176, #177, #178 and #180 reverse (decision 6); #171 amends 3.1, the 3.4 sentences "nothing new enters the format, which stays `elsa-tree/4`" and "asks for one of the four outcomes", 5 and 10.10, and #173 amends 3.2
 
 ## Context
 
@@ -26,10 +26,11 @@ names, in its TASK, the spec sections it amends and the ADR decisions it superse
 #172 `ADR-133-bubble-edited-in-place.md` decision 5 and its rejected alternative
 (`maxlength`); #176 `ADR-133-top-panel.md`; #177 and #178 `ADR-133-structure-editing.md`;
 #180 `ADR-133-admin-routes.md` decision 6; #171 the closed set of outcomes of
-`ADR-4-terminal-marker.md`; #173 `ADR-78-sources-heading.md` decision 1. The core
-document is the one place a build issue does not amend: section 3.4 is amended in this
-pull request (decision 6), and the items the architecture issue and the heading issue
-change are amended by #171 and #173.
+`ADR-4-terminal-marker.md`; #173 `ADR-78-sources-heading.md` decision 1. No build
+issue amends the core document except #173, for the heading in 3.2: the four decisions
+of section 3.4 that the other build issues reverse are amended in this pull request
+(decision 6), and the passages on the ending of a Tree are amended by the architecture
+issue, #171.
 
 ## Decision
 
@@ -81,7 +82,9 @@ change are amended by #171 and #173.
    - #171: "let the user enter a text to display on the button" -- "the button" is read
      as the outcome badge on the Bubble's rim, where the four fixed words are shown today.
      That reading sizes the format change: the length limit of the typed text is "chosen
-     so that the text fits the badge on the rim".
+     so that the text fits the badge on the rim". The owner's "wordcap" is read as a
+     maximum number of characters, measured as every other limit of the format is
+     (`tree-format.md` 3.8), not as a number of words.
    - #173: only the heading changes. The kind label `Legal`, dropped in #78 "because the
      heading says it", is not brought back; the disclaimer and the site's description keep
      their legal words. The run lists them for the owner.
@@ -95,8 +98,10 @@ change are amended by #171 and #173.
      A Source's own `...` stays: it is not one of the dots the owner named.
    - #176: the Publish switch stays in the settings panel; the Tree's state (hidden,
      published) stays visible at a glance, as a state and not as a button's name.
-   - #180: the Theme still paints the whole public page; in the editor it paints the Tree
-     and not the editor's own bars, panel and Sheets.
+   - #180: the owner named the colours of "the sidebar or header". The issue reads the
+     rest: the default fonts there as well as the default colours; the editor's other
+     Sheets, the to-do bubble and the floating controls likewise; the logo in the header
+     bar stays the Tree's; the Theme still paints the whole public page.
    - #175: "the image circle ... fills the outer edge of the side bubble (so it follows
      the contours of the side-bubble ...)" -- "the outer edge" is read as the button's
      outline. The picture stays at the button's inner end, where it is today
@@ -115,8 +120,12 @@ change are amended by #171 and #173.
    passage now carries a `[#169]` mark and a new bullet of 3.4 states the change with the
    owner's words, the way `ADR-75-presentation-changes.md` decision 1 and
    `ADR-131-version-1-0-and-the-editor-round.md` decision 3 revised the core document
-   before the build. The two consequences the owner did not name -- no pointing at an
-   existing Node, the Tree's state still visible -- are marked PROPOSED there.
+   before the build. Only what the owner said is stated there as decided. The three
+   readings the owner did not name are marked PROPOSED there: no pointing at an existing
+   Node (also at the mark in the sentence it changes); the Tree's state still visible;
+   and, of the Theme, everything beyond the colours of the header bar and the side panel
+   -- the default fonts, the other Sheets and floating controls, the logo that stays the
+   Tree's, the public page unchanged (decision 5, #180).
 
 ## Alternatives rejected
 
@@ -143,9 +152,9 @@ change are amended by #171 and #173.
   named above describe what is on `dev`, which is correct. Core document 3.4 states the
   owner's four changes from the moment this merges, ahead of the build, as the core
   document did in the rounds of #75 and #131.
-- #171's amendment of "asks for one of the four outcomes" lands in the paragraph of 3.4
-  that carries two of this pull request's marks; whichever merges second resolves the
-  overlap keeping both.
+- #171's amendments of "nothing new enters the format, which stays `elsa-tree/4`" and
+  "asks for one of the four outcomes" land in the paragraph of 3.4 that carries two of
+  this pull request's marks; whichever merges second resolves the overlap keeping both.
 - The editor loses two abilities it has today (linking an existing step as a side bubble,
   re-pointing a button), by the owner's request to remove the controls that carried them.
   The server routes for both stay (`application.md` 22.1).
