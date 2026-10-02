@@ -1158,8 +1158,8 @@ that file is byte-identical to the block below.
 reads `/4`. #179 converts the file by 12.7, changes the one sentence of the manifest's
 `description` that names the format by hand (as 12.6.2 did once), and replaces the block
 with the result in the same commit. The `elsa-tree/5` form differs from the block in exactly
-these lines -- produced by 12.7 on 2026-10-02, valid against `schemas/elsa-tree-5.json`, 11,226
-bytes against the block's 11,050:
+these lines -- produced by 12.7 on 2026-10-02, valid against `schemas/elsa-tree-5.json`, 11,230
+bytes against the block's 11,054:
 
 ```diff
 -  "$schema": "/schemas/elsa-tree-4.json",
