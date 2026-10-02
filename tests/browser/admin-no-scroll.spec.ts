@@ -352,18 +352,32 @@ async function plusLabel(page: Page, lang: string, viewport: string, what: strin
 /**
  * **[#174]** Widths 10.6 does not list, beside the widest strip: there the band's third column
  * leaves the `+` label less than 110 pixels, and it stands left of the `+` (31.1). On PR #187
- * the Reviewer measured it leaving the band from 550 to 680 wide in en and to 720 in nl. These
- * start at 640: narrower, the disclaimer takes a second line in nl (in en below 600), which its
- * 28-pixel row does not hold whatever the carousel does, as the pull request records.
+ * the Reviewer measured it leaving the band from 550 to 680 wide in en and to 720 in nl. Each
+ * language's rows start where the disclaimer holds its one line: narrower, it takes a second,
+ * which its 28-pixel row does not hold whatever the carousel does, as the pull request records.
+ * In Liberation Sans, the CI runner's face, that line is 608.5 pixels in nl and needs a window
+ * of 641, so 640 is too narrow; in en it is 545.6 and needs 578. (Segoe UI needs 639 and 570.)
  */
-const NARROW = [
-  [640, 640],
-  [640, 800],
-  [660, 640],
-  [700, 640],
-  [720, 800],
-  [760, 640],
-] as const
+const NARROW = {
+  en: [
+    [600, 800],
+    [620, 640],
+    [640, 640],
+    [640, 800],
+    [660, 640],
+    [660, 800],
+    [700, 640],
+    [720, 800],
+    [760, 640],
+  ],
+  nl: [
+    [660, 640],
+    [660, 800],
+    [700, 640],
+    [720, 800],
+    [760, 640],
+  ],
+} as const
 for (const lang of LANGUAGES) {
   test(`the editor's picture Sheets, ${lang}, never scroll at any viewport of 10.6 (31.2, 31.3)`, async ({ browser }) => {
     test.slow()
@@ -390,7 +404,7 @@ for (const lang of LANGUAGES) {
       const added = await page.request.patch(widest, { headers, data: JSON.stringify({ op: 'add-image', file, credit: 'Drawing: ELSA lab', description: { en: file } }) })
       expect(added.status(), file).toBe(200)
     }
-    for (const [width, height] of NARROW) {
+    for (const [width, height] of NARROW[lang]) {
       const viewport = `${width}x${height}`
       await page.setViewportSize({ width, height })
       await page.goto(`${origin}/admin/trees/hidden-draft/opt-one${query}`)
