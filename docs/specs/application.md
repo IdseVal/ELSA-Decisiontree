@@ -2885,6 +2885,11 @@ writes an empty array or object (22.4), so V-EMPTY stays blocking with no except
 **`draft.json` always passes the draft schema and every blocking rule**: what the store
 refuses (22.3) it never writes, so a draft can always be opened, indexed and shown.
 
+**Amended 2026-10-02 (#175):** one size rule is refused at the write: a write that would give
+a Node a **ninth Option** answers 422 with `V-COUNT` and stores nothing (22.3 and 30.4,
+amended the same day). `tree-format.md` 7's V-COUNT row records the exception in its Draft
+cell.
+
 ### 19.3 Publish
 
 `PUT /admin/api/trees/<t>/published { published: true }` runs the **full** validation --

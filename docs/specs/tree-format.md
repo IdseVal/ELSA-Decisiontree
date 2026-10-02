@@ -1046,7 +1046,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-HTML | rules | no raw HTML in rich text: the sequence `<` followed by a letter, `/` or `!` is rejected. | blocking |
 | V-LENGTH | rules | every text field within the maximum characters of 5.7, per language, measured as 3.8 says. The message names the field, the language, the actual length and the maximum. | advisory |
 | V-LINES | rules | every rich text within its estimated lines (3.8, 5.7): 2 for a Node description, 8 for the Tree's, per language. The message names the estimate and the maximum. | advisory |
-| V-COUNT | rules | every array within the maximum entries of 5.7. | advisory |
+| V-COUNT | rules | every array within the maximum entries of 5.7. | advisory. **Amended 2026-10-02 (#175):** blocking for a ninth Option: a write that would add one is refused with V-COUNT and stores nothing (`application.md` 22.3 and 30.4, amended the same day); a file that already holds nine, written by hand, still opens with it advisory |
 
 ### Node level
 
