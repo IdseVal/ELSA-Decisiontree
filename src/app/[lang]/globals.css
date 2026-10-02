@@ -989,7 +989,6 @@ a.language:hover,
   gap: 6px;
   padding: 0 10px 0 0;
   border: 0;
-  border-radius: 999px;
   font-size: 15px;
   line-height: 18px;
 }
@@ -3338,14 +3337,9 @@ fieldset:disabled .admin-submit {
 .side-add > .sheet-open {
   display: var(--fan, flex);
   align-items: center;
-  gap: 8px;
   width: 100%;
   min-height: var(--option-h);
-  padding: 0 11px;
   border: 1px dashed var(--rule);
-  border-radius: 48px;
-  font-size: 16px;
-  line-height: 20px;
   color: var(--elsa-text-muted);
   background: var(--elsa-surface);
   text-align: left;
