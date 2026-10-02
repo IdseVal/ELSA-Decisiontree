@@ -36,6 +36,12 @@
 > section 3.4. The decision to rework in place and how the change reaches the specs is
 > `docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`; the work is issues #132 to
 > #144.
+>
+> **Revision of 2026-10-02 (issue #169).** The owner walked the editor and wrote, in issue
+> #169, fifteen points on the tree creation interface. Every passage that changed is
+> marked **[#169]** and quotes or cites #169; nothing else in this document was touched.
+> How the points became issues is `docs/adrs/ADR-169-tree-creation-ui-round.md`; the work
+> is issues #171 to #181.
 
 Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21 and 2026-09-23.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
@@ -493,10 +499,10 @@ owner's words leave a choice:
   navigates to it; "tree ends here" asks for one of the four outcomes; the side-bubble `+`
   creates an Option and its explanation Node and opens it, editable, in the Overlay of 3.2;
   an Answer or an Option may also be pointed at an existing Node, since the data is a
-  graph; a step is deleted from its own page and a step nothing reaches stays until
+  graph (**[#169]** no longer offered by the editor, below); a step is deleted from its own page and a step nothing reaches stays until
   someone deletes it. Every field is edited where the end user sees it, one language at a
   time (the language switch), with the limits of 3.1 shown live and never stopping a
-  keystroke; images are uploaded where they appear and attached only with a credit; a term
+  keystroke (**[#169]** reversed, below); images are uploaded where they appear and attached only with a credit; a term
   is marked by selecting it. `docs/adrs/ADR-133-structure-editing.md`,
   `ADR-133-bubble-edited-in-place.md`, `ADR-133-images-in-the-editor.md`,
   `ADR-133-explainers-in-the-editor.md`; `docs/specs/application.md` 28 to 32.
@@ -518,12 +524,46 @@ owner's words leave a choice:
   mechanism of 3.2; no second look. **[#133] Decided by the Architect (2026-09-26):** the
   pages that show no Tree -- the overview, the login, the account pages, the new-Tree form
   -- carry the plain default look of 3.2 with the site's name where a logo would be; the
-  editor carries the Tree's own Theme; the Publish toggle and the collaborators are in a
-  panel that opens from a button at the top right of the editor's bar showing the Tree's
-  state. The editor reuses the end-user components through one optional setting, so the
+  editor carries the Tree's own Theme (**[#169]** narrowed, below); the Publish toggle and
+  the collaborators are in a panel that opens from a button at the top right of the
+  editor's bar showing the Tree's state (**[#169]** changed, below). The editor reuses the end-user components through one optional setting, so the
   end-user pages are unchanged (10.36, 10.37 for the two things this required that the
   owner did not say). `docs/adrs/ADR-133-top-panel.md`, `ADR-133-reuse-rule.md`;
   `docs/specs/application.md` 33, 34.
+- **[#169] What the owner changed after walking the editor (owner, #169, 2026-10-02).**
+  Four of the Architect's decisions above are changed by the owner's words in #169; where
+  this bullet and a sentence above disagree, this bullet holds.
+  - **Typing stops at the limit.** "Also make sure the input boxes are nicely sized for
+    what will come inside of them, so they fit nicely inside the bubble the way they
+    should and the don't grow on inputs, they should just stop at the cap." A field has
+    the size of what it may hold and accepts nothing beyond its limit of 3.1; the limit is
+    still shown live. This replaces "never stopping a keystroke" (#172).
+  - **No dots on the buttons that lead on, and the side-bubble `+` just opens.** "The
+    side bubble should just open the side bubble"; "There are also some dots ... far out
+    of the next steps of the decisiontree, don't have that there, if a user wants to
+    delete a tree step he has to do it inside that tree step." PROPOSED, as the
+    consequence of removing the controls that carried it (the owner did not name it): the
+    editor no longer offers to point an Answer or an Option at an existing Node. The data
+    stays a graph, and a Tree in which two buttons lead to one Node keeps working (#177,
+    #178; `docs/adrs/ADR-169-tree-creation-ui-round.md` decision 5).
+  - **The Theme paints the Tree, not the editor's own bars.** "Changing the color
+    features are great, but don't make it change the sidebar or header colors, that makes
+    it very difficult to follow the UI." In the editor the Tree's Theme paints what a
+    visitor will see; the editor's header bar, panel and Sheets keep the plain default
+    look of 3.2. The public page is still the Tree's Theme throughout (#180).
+  - **The settings button says what it opens and floats; the to-do list is its own
+    bubble.** "Why does it say hidden? Say what opens when that button is clicked,
+    'Decision-tree settings'"; "The to-do before publishing is ok to have somewhere, but
+    not in the sidepane and not on top, make it a bubble on the top right (not in the
+    header bar). I also want the 'Decision-tree settings' button to be a hover top right,
+    but not in the header bar." The button no longer sits in the editor's bar and is no
+    longer named by the Tree's state; the Publish toggle and the collaborators stay in
+    the panel it opens. PROPOSED: the Tree's state stays visible at a glance, as a state
+    (#176).
+
+  The other changes of #169 to this document -- the ending of a Tree as a typed text
+  (3.1, "asks for one of the four outcomes" above, 5, 10.10) and the heading "Sources"
+  (3.2) -- are made by #171 and #173, under the same mark.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
