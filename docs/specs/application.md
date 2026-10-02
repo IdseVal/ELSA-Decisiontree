@@ -231,7 +231,7 @@ add keys; every key exists in both languages or the build fails.
 |---|---|
 | `yes`, `no` | The two Answer Branches below the Bubble (10.3). |
 | `options` | The accessible name of the group of Option Branches beside the Bubble. |
-| `sources`, `sourceCaseLaw`, `sourceLiterature` | The heading over the Sources -- **[#75]** "Legal sources" / "Juridische bronnen" -- and the two kind labels still shown beside an entry (10.3). `sourceLegal` is gone: under that heading it repeated it. **[#169] Amended 2026-10-02 (#173, by the owner):** the heading says **"Sources" / "Bronnen"**, because the tool is for ethical and social Trees as well as legal ones; the two kind labels are unchanged (`ADR-173-sources-heading.md`). |
+| `sources`, `sourceCaseLaw`, `sourceLiterature` | The heading over the Sources -- **[#75]** "Legal sources" / "Juridische bronnen" -- and the two kind labels still shown beside an entry (10.3). `sourceLegal` is gone: under that heading it repeated it. **[#169] Amended 2026-10-02 (#173, by the owner):** the heading says **"Sources" / "Bronnen"**; the two kind labels are unchanged (`ADR-173-sources-heading.md`). |
 | `images`, `enlarge`, `close` | The Carousel strip's accessible name, the name of every picture's link, and the close cross of every Sheet, the Overlay included (sections 10.9, 12). |
 | ~~`trail`, `start`~~ | **[#75]** Gone with the drawn Trail (10.2). |
 | `share`, `copied` | The share button and its confirmation. |

@@ -11,8 +11,9 @@
 ## Context
 
 The owner (#169, 2026-10-02): "Instead of "Legal sources", the app should just say
-"sources"", and in the same list: "This graph creation tool is not just for Legal trees,
-also for ethical or social trees, so we want to keep the graph creator useable for all."
+"sources"", and, in the same list, on the ending of a Tree (#171, #179): "This graph
+creation tool is not just for Legal trees, also for ethical or social trees, so we want
+to keep the graph creator useable for all."
 
 `ADR-78-sources-heading.md` decision 1 put a chrome heading over the Sources, the key
 `sources`, with the owner's words of #75: `Legal sources` and `Juridische bronnen`. The
@@ -42,8 +43,8 @@ ethical or a social Tree called its sources legal.
 
 ## Alternatives rejected
 
-- **"Sources" in English, "Juridische bronnen" kept in Dutch.** The owner's reason is
-  what the tool is for, and that is the same in every language.
+- **"Sources" in English, "Juridische bronnen" kept in Dutch.** Not what was asked: the
+  owner asked for the plain word, "sources", and #173 names it in Dutch: "Bronnen".
 - **The heading as content in the Tree, so a legal Tree could keep "Legal sources".**
   Rejected for ADR-78's reason: words that are the same on every Node are chrome
   (`application.md` section 3), and the format has no field for them.
