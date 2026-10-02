@@ -3327,8 +3327,8 @@ fieldset:disabled .admin-submit {
 
 /*
  * Below the guarantee the strip is its 20-pixel pill (10.5, step 1), and the `+` a pill beside
- * it. [#174] Its label stands on the band's foot and, where it needs a second line, grows up
- * over the Bubble rather than down out of the band (10.6). Where the column leaves it less
+ * it. [#174] Its label stands on the band's foot and rises over the Bubble rather than down out
+ * of the band (10.6): 2 pixels on one line, 18 on two (31.1). Where the column leaves it less
  * than 110 pixels right of the `+` -- on a phone -- it stands left of the `+`, over the
  * enlarged view's control, on one line.
  */

@@ -174,7 +174,7 @@ test.describe('the strip’s + says what it adds (31.1)', () => {
       await expect(page.locator('.editor-picker-label')).toHaveCount(0)
     })
 
-    test(`beside nine pictures its label holds its words and stays in the band at every width from 360: right of the + where its column leaves 110 pixels, left of it on one line where it does not, ${lang}`, async ({ browser }) => {
+    test(`beside nine pictures its label holds its words at every width from 360, in the band from 480 and at most 18 over the Bubble beside the pill: right of the + where its column leaves 110 pixels, left of it on one line where it does not, ${lang}`, async ({ browser }) => {
       const { page, cookie } = await loggedIn(browser)
       // `done` has one picture: eight more make nine, the most with a `+`, and the strip its widest, 383 (12.2).
       // Described in both languages, so that they add nothing to the to-do list the later screenshots show.
@@ -202,16 +202,18 @@ test.describe('the strip’s + says what it adds (31.1)', () => {
             return { x, y, width, height, right, bottom }
           }
           const carousel = el.closest('.carousel')!
-          return { label: box(el), plus: box(el.parentElement!.previousElementSibling!), room: box(el.parentElement!), carousel: box(carousel), strip: box(carousel.querySelector('.carousel-strip')!), sw: el.scrollWidth, cw: el.clientWidth, sh: el.scrollHeight, ch: el.clientHeight }
+          return { label: box(el), plus: box(el.parentElement!.previousElementSibling!), room: box(el.parentElement!), carousel: box(carousel), strip: box(carousel.querySelector('.carousel-strip')!), text: box(carousel.parentElement!.querySelector(':scope > .bubble .bubble-text')!), sw: el.scrollWidth, cw: el.clientWidth, sh: el.scrollHeight, ch: el.clientHeight }
         })
         const where = `${width} x 640: the label ${m.label.width} x ${m.label.height} at ${m.label.x}, the + at ${m.plus.x}, its column ${m.room.width}`
         const right = m.label.x >= m.plus.right - 0.5
-        record(`editor, \`done\` with nine pictures, ${lang}, ${width} x 640`, 'the + label', [`${right ? 'right' : 'left'} of the +, ${m.label.width} x ${m.label.height}, its column ${m.room.width}`])
-        // Inside `.carousel`, which nothing may leave (10.6) -- beside the pill it may grow up over
-        // the Bubble, never down -- and holding its words: none is broken.
+        const over = pill ? `, ${m.carousel.y - m.label.y} over the Bubble, ${Math.max(0, m.text.bottom - m.label.y)} of them over its text area` : ''
+        record(`editor, \`done\` with nine pictures, ${lang}, ${width} x 640`, 'the + label', [`${right ? 'right' : 'left'} of the +, ${m.label.width} x ${m.label.height}, its column ${m.room.width}${over}`])
+        // Inside `.carousel`, which nothing may leave (10.6) -- beside the 20-pixel pill it stands on
+        // the band's foot, 2 over the Bubble on one line and 18 on two, never below (31.1) -- and
+        // holding its words: none is broken.
         expect(m.label.x, where).toBeGreaterThanOrEqual(m.carousel.x - 1)
         expect(m.label.right, where).toBeLessThanOrEqual(m.carousel.right + 1)
-        if (!pill) expect(m.label.y, where).toBeGreaterThanOrEqual(m.carousel.y - 1)
+        expect(m.label.y, where).toBeGreaterThanOrEqual(m.carousel.y - (pill ? 18 : 0) - 1)
         expect(m.label.bottom, where).toBeLessThanOrEqual(m.carousel.bottom + 1)
         expect(m.sw, where).toBeLessThanOrEqual(m.cw + 1)
         expect(m.sh, where).toBeLessThanOrEqual(m.ch + 1)

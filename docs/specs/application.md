@@ -4099,9 +4099,11 @@ words as a small label beside it, out of the flow, in the band's third column: r
 `+`, wrapping between words and never inside one; where that column leaves it less than 110
 pixels right of the `+` -- beside a long strip on a narrower window (below 790 pixels wide
 beside the widest strip), or beside the 20-pixel pill on a phone -- left of the `+` instead,
-on one line, over the strip's end or the enlarged view's control. So it never leaves the band
-(10.6). Beside the pill below the guarantee it stands on the band's foot, and a second line
-grows upward over the Bubble. Hidden, it takes no room. The label is not read twice (the name
+on one line, over the strip's end or the enlarged view's control. So from 480 pixels wide and
+640 tall it never leaves the band (10.6). Below that the band is the pill's 20 pixels, and the
+label, standing on its foot, rises above it over the Bubble: 2 pixels on one line, 18 on two.
+Two lines reach 16 pixels into the text area below 480 wide, and 2 from 480. Out of the flow,
+it moves nothing. Hidden, it takes no room. The label is not read twice (the name
 says it) and takes no pointer. The empty slot keeps `addPicture`, "Add a picture", and its
 tooltip.
 
