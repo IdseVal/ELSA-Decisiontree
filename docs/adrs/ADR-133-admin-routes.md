@@ -1,6 +1,10 @@
 # ADR-133-admin-routes: the admin area is five pages under `/admin`, all inside `[lang]`; the editor's address is the public grammar behind `/admin/trees`; the login page is rendered in place of any admin page a visitor asks for; the admin area needs JavaScript; every page emits its own Theme
 
 - Status: ACCEPTED (frozen) -- 2026-09-26
+- Superseded in part by `ADR-176-floating-settings-and-to-do.md` -- 2026-10-02 (issue #176): in
+  decision 7, the link to `/admin/account` says "Account" with the caller's name as its
+  description, and the editor's bar no longer holds the panel's button, which floats under it.
+  The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 24 (new); 4.1, 4.3, 6, 13.1 and 14 amended
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the admin addresses join the grammar behind the

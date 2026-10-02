@@ -202,6 +202,8 @@ async function endHere(page: Page, outcome: string): Promise<void> {
 const panelButton = (page: Page) => page.locator('.panel-sheet > .sheet-open')
 const panel = (page: Page) => page.locator('.panel-sheet > .sheet-panel')
 const publishSwitch = (page: Page) => panel(page).getByRole('switch', { name: /^(Publish|Publiceren)$/ })
+/** **[#176]** The to-do list is a bubble of its own at the top right, which a refused publish points at (33.3). */
+const todoBubble = (page: Page) => page.locator('.todo-sheet > .sheet-panel')
 
 /** Opens the top panel (33.1) once it has re-read the accounts it offers. */
 async function openPanel(page: Page): Promise<void> {
@@ -368,11 +370,13 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   await expect(panel(page).locator('.panel-people li')).toHaveText([`${CREATOR.name} (creator)`, COLLABORATOR.name])
   await step(page, '20-creator-collaborator-invited')
 
-  // Publish with a text missing: refused, the missing text named and linked (33.3, 19.3).
+  // Publish with a text missing: refused, the missing text named and linked (33.3, 19.3), in
+  // **[#176]** the to-do bubble the Publish section points at.
   await publishSwitch(page).click()
-  const todo = panel(page).locator('.panel-todo li')
-  await expect(todo.first()).toBeVisible()
   await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
+  await panel(page).getByRole('alert').getByRole('button', { name: 'See what to do' }).click()
+  const todo = todoBubble(page).locator('.todo-list li')
+  await expect(todo.first()).toBeVisible()
   await expect(todo.locator(`a[href^="/admin/trees/${tree}/${noId}"], a[href*="/${noId}"]`).first()).toBeVisible()
   await step(page, '21-creator-publish-refused')
   expect((await page.request.get(`${origin}/${tree}/start`)).status()).toBe(404)
@@ -384,7 +388,7 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   await openPanel(page)
   await publishSwitch(page).click()
   await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'true')
-  await expect(panelButton(page)).toHaveText('Published')
+  await expect(panelButton(page)).toHaveAccessibleName('Decision-tree settings: Published')
   await step(page, '22-creator-published')
   expect((await page.request.get(`${origin}/${tree}/start`)).status()).toBe(200)
   await page.context().close()

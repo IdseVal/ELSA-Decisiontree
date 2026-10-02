@@ -16,6 +16,9 @@
  * **[#141]** It also holds which explainer's Sheet is open, of which Node (32.2): the `mark`
  * button and a click on a marked term open it, from wherever on the page the description is.
  *
+ * **[#176]** And the request to open the to-do bubble, which the panel's refused publish makes
+ * (33.3): the two are Sheets of their own at the top right, and only this provider holds both.
+ *
  * Imports of `src/`: types, and nothing else (34.4).
  */
 import { useRouter } from 'next/navigation'
@@ -71,6 +74,10 @@ export interface EditorApi {
   tree: TreeState
   /** **[#142]** The panel's own answers -- publish, unpublish, a re-read -- which no write response carries. */
   setTree(change: Partial<TreeState>): void
+  /** **[#176]** Opens the to-do bubble on `list`, not re-read: what a refused publish answered (33.3). */
+  openTodo(list: Violation[]): void
+  /** **[#176]** The last `openTodo`'s list, a new object each time: what the to-do bubble's opening effect keys on. */
+  todoAsked: { list: Violation[] } | null
 }
 
 /** **[#142]** The whole Tree's state of 22.3's `tree`, and whether the public routes serve it (18.3). */
@@ -144,6 +151,7 @@ export function Editor({
   const [version, setVersion] = useState(0)
   const [explainer, setExplainer] = useState<{ nodeId: string; id: string } | null>(null)
   const openExplainer = useCallback((nodeId: string, id: string) => setExplainer({ nodeId, id }), [])
+  const [todoAsked, setTodoAsked] = useState<{ list: Violation[] } | null>(null)
   const [, tick] = useState(0)
   // The latest Nodes, for the diff of 29.7 inside the queue's callback.
   const known = useRef(initialNodes)
@@ -290,8 +298,10 @@ export function Editor({
       openExplainer,
       tree,
       setTree: (change) => setTreeState((held) => ({ ...held, ...change })),
+      openTodo: (list) => setTodoAsked({ list }),
+      todoAsked,
     }),
-    [treeId, lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, openExplainer, tree],
+    [treeId, lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, openExplainer, tree, todoAsked],
   )
 
   const current = focused ?? lastEdited

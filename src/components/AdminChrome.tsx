@@ -1,8 +1,10 @@
 /**
  * The chrome bar of the admin area's Tree-less pages (docs/specs/application.md 24.3;
  * ADR-133-admin-routes decision 7): the site's title where a logo would be, the language
- * switch of the chrome languages and -- with a session -- the caller's name as a link to
- * the account page, the accounts page for the administrator, and the logout button.
+ * switch of the chrome languages and -- with a session -- the link to the account page, the
+ * accounts page for the administrator, and the logout button. **[#176]** The account link
+ * says `account`, "Account"; the caller's name is its description and tooltip
+ * (ADR-176-floating-settings-and-to-do).
  */
 import { headers } from 'next/headers'
 import { chrome, type ChromeLanguage } from '../chrome.ts'
@@ -22,10 +24,8 @@ export async function AdminChrome({ lang, account }: { lang: ChromeLanguage; acc
         <ChromeLanguageSwitch lang={lang} href={(language) => adminHref(here, language)} />
         {account && (
           <nav className="admin-nav" aria-label={ui.account}>
-            {/* Cut with an ellipsis where the bar has no room for an 80-character name: a clamp
-                is the design, and `data-clamp` is how the no-scroll walk reads it (26.1). */}
-            <a className="admin-link" href={adminHref('/admin/account', lang)} data-clamp="">
-              {account.name}
+            <a className="admin-link" href={adminHref('/admin/account', lang)} title={account.name}>
+              {ui.account}
             </a>
             {account.administrator && (
               <a className="admin-link" href={adminHref('/admin/accounts', lang)}>

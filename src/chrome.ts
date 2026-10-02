@@ -85,7 +85,10 @@ export interface Chrome {
   /** **[#135]** The 403 page (24.2). */
   forbiddenTitle: string
   forbiddenText: string
-  /** **[#135]** The admin chrome bar (24.3): the logout button, the link to the account page and to the accounts page. */
+  /**
+   * **[#135]** The admin chrome bar (24.3): the logout button, the link to the account page and to the accounts page.
+   * **[#176]** `account` is the link's own word now, "Account"; the account's name is its description.
+   */
   logout: string
   account: string
   accounts: string
@@ -171,8 +174,7 @@ export interface Chrome {
   explanation: string
   markedIn: string
   notMarkedIn: string
-  /** **[#142]** The top panel (33): its button and heading, the four sections, the confirmations. */
-  treeState: string
+  /** **[#142]** The top panel (33): its sections and the confirmations; **[#176]** its button and heading say `settings`. */
   publish: string
   todoCount: string
   todoBefore: string
@@ -267,6 +269,18 @@ export interface Chrome {
   removeFont: string
   removeFontFile: string
   themeFileRefused: string
+  /**
+   * **[#176]** The floating controls (33.1, 33.3, amended): the settings button and the panel's
+   * title; the to-do control's words for one thing (`todoCount` says them for more) and at zero,
+   * which its bubble's empty list says too; a refused publish's sentence in the panel and the
+   * button that opens the to-do bubble from it. Strings, not a function of the count: the
+   * control counts in the browser, where a function from the server cannot go.
+   */
+  settings: string
+  todoCountOne: string
+  todoNone: string
+  publishRefused: string
+  showTodo: string
   /** **[#174]** What the strip's `+` says beside it and is named by (31.1), and the information hint behind an Image's two fields: its name and its two explanations (31.2, 31.3). */
   addExtraPicture: string
   hint: string
@@ -319,7 +333,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     forbiddenTitle: 'Not yours to open',
     forbiddenText: 'Your account has no access to this page.',
     logout: 'Log out',
-    account: 'Your account',
+    account: 'Account',
     accounts: 'Accounts',
     signIn: 'Sign in',
     login: 'Name',
@@ -388,7 +402,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Explanation',
     markedIn: 'Marked in the text',
     notMarkedIn: 'Not marked in the text',
-    treeState: 'Tree',
     publish: 'Publish',
     todoCount: 'things to do',
     todoBefore: 'To do before publishing:',
@@ -468,6 +481,11 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeFont: 'Remove this font',
     removeFontFile: 'Remove',
     themeFileRefused: 'This file type is refused: PNG or WebP for a logo, WOFF2 for a font.',
+    settings: 'Decision-tree settings',
+    todoCountOne: 'thing to do',
+    todoNone: 'Nothing to do',
+    publishRefused: 'Not published: some things must be done first.',
+    showTodo: 'See what to do',
     addExtraPicture: 'Add an extra image',
     hint: 'Why this is asked',
     creditHint: 'The maker and the licence of a picture must be named, for copyright reasons. The credit is shown with the enlarged picture.',
@@ -517,7 +535,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     forbiddenTitle: 'Geen toegang',
     forbiddenText: 'Uw account heeft geen toegang tot deze pagina.',
     logout: 'Uitloggen',
-    account: 'Uw account',
+    account: 'Account',
     accounts: 'Accounts',
     signIn: 'Inloggen',
     login: 'Naam',
@@ -586,7 +604,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Uitleg',
     markedIn: 'Gemarkeerd in de tekst',
     notMarkedIn: 'Niet gemarkeerd in de tekst',
-    treeState: 'Boom',
     publish: 'Publiceren',
     todoCount: 'punten te doen',
     todoBefore: 'Te doen voor publicatie:',
@@ -666,6 +683,11 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeFont: 'Dit lettertype verwijderen',
     removeFontFile: 'Verwijderen',
     themeFileRefused: 'Dit bestandstype wordt geweigerd: PNG of WebP voor een logo, WOFF2 voor een lettertype.',
+    settings: 'Beslisboominstellingen',
+    todoCountOne: 'punt te doen',
+    todoNone: 'Niets te doen',
+    publishRefused: 'Niet gepubliceerd: eerst moet er nog iets gebeuren.',
+    showTodo: 'Bekijk wat er te doen is',
     addExtraPicture: 'Extra afbeelding toevoegen',
     hint: 'Waarom dit gevraagd wordt',
     creditHint: 'De maker en de licentie van een afbeelding moeten genoemd worden, vanwege het auteursrecht. De bronvermelding staat bij de vergrote afbeelding.',

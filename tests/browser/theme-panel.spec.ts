@@ -64,6 +64,8 @@ async function shoot(page: Page, name: string): Promise<void> {
 
 const button = (page: Page) => page.locator('.panel-sheet > .sheet-open')
 const panel = (page: Page) => page.locator('.panel-sheet > .sheet-panel')
+/** **[#176]** The to-do control, which counts what the logo's alternative texts leave to do (33.3). */
+const todo = (page: Page) => page.locator('.todo-sheet > .sheet-open')
 const themePanel = (page: Page) => panel(page).locator('[data-theme-panel]')
 /** The chrome bar's own logo, not a copy in a neighbour frame (the bar is the page's first header). */
 const barLogo = (page: Page) => page.locator('.editor-chrome > img.logo, .editor-chrome > a > img.logo')
@@ -102,14 +104,14 @@ test('a logo uploaded with its alternative text shows at once in the editor’s 
   expect(await barLogo(page).evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true)
 
   // Its alternative text is still to write: the to-do count went up by the two languages.
-  await expect(button(page)).toHaveText('Hidden (2)')
+  await expect(todo(page)).toHaveAccessibleName('2 things to do')
   const alt = themePanel(page).getByLabel(/Alternative text/)
   await alt.fill('ELSA Lab for food')
   const saved = themeWrite(page)
   await alt.blur()
   expect((await saved).status()).toBe(200)
   await expect(barLogo(page)).toHaveAttribute('alt', 'ELSA Lab for food')
-  await expect(button(page)).toHaveText('Hidden (1)')
+  await expect(todo(page)).toHaveAccessibleName('1 thing to do')
 
   // The other language, in the editor in that language (28.2).
   await page.goto(`${origin}${EDITOR}?lang=nl`)
@@ -120,7 +122,8 @@ test('a logo uploaded with its alternative text shows at once in the editor’s 
   await altNl.blur()
   expect((await savedNl).status()).toBe(200)
   await expect(barLogo(page)).toHaveAttribute('alt', 'ELSA Lab voor voedsel')
-  await expect(button(page)).toHaveText('Verborgen')
+  await expect(todo(page)).toHaveAccessibleName('Niets te doen')
+  await expect(button(page)).toHaveAccessibleName('Beslisboominstellingen: Verborgen')
 })
 
 test('the colours: chosen from the default palette, changed by role, the draft’s style following; the contrast warning comes and goes', async ({ browser }) => {
