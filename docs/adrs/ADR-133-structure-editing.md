@@ -6,6 +6,11 @@
   side-bubble `+` creates the side bubble and opens it, with no Sheet, so neither `createNew` nor
   `linkExisting` is offered from it, and an Overlay offers no `+`. The rest stands, but for
   decision 6's heading link (see the note there).
+- Superseded in part by `ADR-178-step-buttons.md` (decision 7, and in decision 8 the step menu,
+  with decision 4's `removeEnd` in it) -- 2026-10-02 (issue #178): a red cross and "Tree does not
+  end here after all" stand beside the up arrow in place of the step menu, and no Answer or Option
+  button carries a `...`, so the editor no longer re-points a button at an existing Node and no
+  longer removes a Link alone. Decision 8's delete and decision 9 stand.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 30 (new)
 - Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`, `ADR-171-elsa-tree-5.md`):
@@ -144,7 +149,12 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    explanation Node), shown at the button and in the to-do list, because the picker cannot
    know a Node's kind from its title and the editor does not read every Node to find out.
    The graph the format allows -- two Answers to one Node, one aside under several Nodes --
-   is what this makes: nothing is copied.
+   is what this makes: nothing is copied. **Superseded by ADR-178 (2026-10-02):** by the owner's
+   word in #169 ("There are also some dots ... far out of the next steps of the decisiontree,
+   don't have that there"), no Answer or Option button carries a `...`: the link menu, the
+   picker and `removeLink` are gone, and the editor no longer offers to point a button at an
+   existing Node. A Tree that already has two Answers to one Node keeps working, and the routes
+   stay in the API (`ADR-178-step-buttons.md` decision 5, application.md 30.6, 30.7).
 
 8. **A Node is deleted from its own page, from the step menu on the rim.** In edit mode
    the Bubble's rim above holds, in the half of the band right of the up arrow (the
@@ -160,6 +170,13 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    the draft. What a deleted Node led to -- its own Answer targets and asides -- stays too,
    reported by V-REACH where nothing else reaches it (decision 9): a delete removes one
    step, never a sub-tree, because the same Nodes may be reached from elsewhere.
+   **Superseded in part by ADR-178 (2026-10-02):** by the owner's word in #169 ("just make two
+   buttons a red cross to delete the step, or if it applys, 'tree does not end here after all'"),
+   there is no step menu: a red cross on every Node but the root, which asks once and deletes as
+   above, and on a Terminal "Tree does not end here after all" (`removeEnd`), stand in the band
+   above the Bubble beside the up arrow; the step's id is shown no more
+   (`ADR-178-step-buttons.md` decisions 1 to 4, application.md 30.8). `removeLink` is gone with
+   decision 7.
 
 9. **A Node nothing reaches stays until someone deletes it.** After a `removeLink` or a
    `deleteStep`, a Node that no Answer and no Option names any more is reported by V-REACH

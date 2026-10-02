@@ -295,7 +295,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language); **[#162]** `sessionNotKept` (a login the browser kept no cookie of, 25.1); **[#176]** `account` says "Account" now, the link's own word (24.3) |
 | #137 | `published`, `hidden`, `notServable`, `treeId`, ~~`treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`~~ (**[#168]** removed with the address field, 27.1; `treeId` stays, the top panel names the address with it), `languages`, `addLanguage`, `makeDefault`, `default`, ~~`languagesFixed`~~ (**[#147]** replaced by `languagesLater`: the languages change in the top panel, 33.5; **[#168]** `languagesLater` removed: the form says no sentence), `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
-| #139 | `treeEndsHere`, `newSideBubble`, `createNew`, ~~`linkExisting`~~ (**[#177]** gone with the Sheet behind the side-bubble `+`, 30.4, and with it `sideBubbleTitle`, which the build had added for the Sheet's field), `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
+| #139 | `treeEndsHere`, `newSideBubble`, ~~`createNew`~~, ~~`linkExisting`~~ (**[#177]** gone with the Sheet behind the side-bubble `+`, 30.4, and with it `sideBubbleTitle`, which the build had added for the Sheet's field), ~~`changeTarget`, `removeLink`, `linkMenu`, `stepMenu`~~ (**[#178]** gone with the link menus, the picker -- whose `createNew` it was -- and the step menu, 30.6, 30.8), `deleteStep` (**[#178]** the red cross's name and hover text), `removeEnd` (**[#178]** "Tree does not end here after all" / "Boom eindigt hier toch niet", the button's words), `confirmDelete`, `confirm`, `cancel`; **[#178]** `confirmDeleteUntitled` (the cross's question on a step without a title yet, 30.8) |
 | #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused`; **[#140] added in the build**: `cancel` (the attach Sheet's second button, 31.2 -- the same word #139's row names, so whichever branch merges second keeps one) and `imageDescription` (the label of its description field; `credit` labels the other) |
 | #141 | `mark`, `unmark`, `cannotMarkHere`, `explainerLimit`, `term`, `explanation`, `markedIn`, `notMarkedIn` |
 | #142 | ~~`treeState`~~ (**[#176]** gone: the panel's title is `settings`, 33.2), `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, ~~`fixed`~~ (**[#147]** gone: the languages are the tag control of 33.5), `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
@@ -880,7 +880,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── LoginForm.tsx    client: the login card, on the login page and in the session Sheet (25.1, 29.6)
 │   │   ├── NewTreeForm.tsx  client: the new-Tree form (27)
 │   │   ├── ImageSlot.tsx, AttachSheet.tsx     client: the pickers and the attach dialog (31)
-│   │   ├── Structure.tsx, StepMenu.tsx       client: the three buttons, the side +, the link menu, the picker, the step menu (30)
+│   │   ├── Structure.tsx, StepButtons.tsx    client: the three buttons, the side +, the side bubble's delete; [#178] the step's red cross and "Tree does not end here after all", in place of StepMenu.tsx, the link menu and the picker (30)
 │   │   ├── Marker.tsx, ExplainerSheet.tsx    client: marking and the explainer Sheet (32)
 │   │   └── Panel.tsx        client: the top panel (33)
 │   ├── tree/measure.ts      [#133] countedText, countedLength, estimatedLines, moved from validate.ts (28.4); pure
@@ -1466,7 +1466,7 @@ outline (section 12), the chrome bar and disclaimer unchanged.
   its picture **fills its inner end**: a circle as tall as the button, 100 across, centred on
   the end's curve, touching the outline at the top, at the bottom and at the end towards the
   Bubble (on the left of the Bubble that end is the right, as before; the picture does not
-  move to the outer end, where the editor's link menu stands, 30.6). The empty slot of a
+  move to the outer end, where the editor's link menu stands, 30.6; **[#178]** none stands there since 2026-10-02). The empty slot of a
   target without Images fills the same end, and so does the editor's `+` (30.4, amended the
   same day). The outline is drawn under the picture, which covers it there. Then a 6-pixel gap
   and the title at **15 pixels on 18-pixel lines, at most five lines**, in the **120 pixels**
@@ -3938,6 +3938,18 @@ opened inside an Overlay's Interior, they leave the Overlay open.
 +--------------------------------------------------------------------------------+
 ```
 
+**Amended 2026-10-02 (#178, the owner in #169):** the band above the Bubble holds no step menu
+`(...)`. On a step that ends the tree, under a Trail, at 1280 x 640, it holds beside the up arrow
+"Tree does not end here after all" and the red cross, and at its right #176's floating controls
+(33.1, 33.3); the badge stays in the rim below (10.1). Below 1000 pixels wide the cross stands
+right of the arrow (30.8, amended):
+
+```
++--------------------------------------------------------------------------------+ 44
+| [Tree does not end here after all] (x) ( ^ )           (3) to do  (*) Settings |  56  the step's two buttons beside the arrow; the floating controls (33.1), abbreviated
+|                     .----'  ( DOES NOT APPLY )   '----.                        |      the badge in the rim (10.1)
+```
+
 ### 28.2 One language at a time
 
 The chrome bar's `LanguageSwitch` (unchanged) lists the draft's declared languages; the
@@ -4016,7 +4028,8 @@ where the label is still 176 pixels at 16 on 20, the box stays **three**. A box 
 start under the `...` of the Option's link menu (30.6): the menu's 24 x 24 in the button's
 outer top corner lies over the box's outer top corner, 14 pixels wide and 19 high, where a
 first line that runs the label's full width ends. Issue #178 takes the `...` off the
-side-bubble buttons. Where the browser has no hyphenation dictionary for the page's language,
+side-bubble buttons (**[#178]** taken off, 2026-10-02: no Answer or Option button carries one,
+30.6; the boxes keep their lines). Where the browser has no hyphenation dictionary for the page's language,
 a title of long words can take six lines (10.7, amended), and its box grows to 108 with the
 button: 10.3's known cost, in the editor too.
 
@@ -4038,7 +4051,9 @@ to-do control under the bar at the top right, in the band beside the up arrow (3
 Answer row (30.2); the side `+` in the fan's next free slot (30.5); the strip's `+` in the
 strip band (31.1); the outcome select where the badge is (**[#171]** the ending's field,
 36.3); the step menu on the rim above
-(30.8); everything else in a Sheet. `tests/fixtures/full-node/` as a draft fits in the editor
+(30.8) (**[#178]** the step's two buttons in the band above the Bubble, beside the up arrow, out
+of the Bubble's box, and the cross's question in a panel over the Bubble while it is asked, 30.8,
+amended); everything else in a Sheet. `tests/fixtures/full-node/` as a draft fits in the editor
 as on the public page; `admin-no-scroll.spec.ts` measures it with every Sheet open (35.4).
 Below the guarantee the editor gives things up in 10.5's order; a collapsed Sources block is
 edited in its Sheet.
@@ -4128,6 +4143,11 @@ becomes `elsa-tree/5` (`tree-format.md` 5.5, 12.7; 30.3, 36), as core document 3
 | one Answer | The filled button for it (`Yes: <title>`, 620 x 60) and the outlined `+` for the other. |
 | both Answers | The public row. |
 | `terminal` | `startAgain`, as public; the badge on the rim is a select of the four outcomes (`terminal.outcome`). **[#171]** The badge on the rim is the ending's words as a field (`terminal.label.<lang>`, 36.3); no outcome is offered anywhere. |
+
+**Amended 2026-10-02 (#178, the owner in #169):** no button of the row carries a `...`: the
+filled button of one Answer and the two of the public row have no link menu (30.6). On a
+`terminal`, "Tree does not end here after all" (`removeEnd`) stands in the band above the Bubble,
+left of the up arrow (30.8), and gives the row the three outlined buttons back at once.
 
 ### 30.2 Creating an Answer target
 
@@ -4254,6 +4274,22 @@ V-OPTIONS advisory) at the button and in the to-do: the picker cannot know a kin
 title and the editor reads no Node to find out. Two Answers may reach one Node; one aside
 may hang under several Nodes; nothing is copied.
 
+**Amended 2026-10-02 (#178, by the owner, #169):** "There are also some dots ... far out of the
+next steps of the decisiontree, don't have that there, if a user wants to delete a tree step he
+has to do it inside that tree step." **No Answer or Option button carries a `...`**, in the
+centre or in an Overlay: the link menu, `changeTarget`, the picker with its `createNew`, and
+`removeLink` (30.7) are gone, with their words (3.2) and their styles. So **the editor no longer
+offers to point a button at an existing step**, which `changeTarget` did -- PROPOSED, as the
+consequence of removing the control that carried it, which the owner did not name (core document
+3.4, `[#169]`; `ADR-169-tree-creation-ui-round.md` decision 5). A Tree that already has two
+buttons leading to one step keeps working: the editor draws it, follows it and publishes it as
+before; it only stops offering to make one. `set-answer`, `add-option`, `remove-answer` and
+`remove-option` stay in the editor's server interface (22.1, 22.2): the side bubble's delete
+still sends `remove-option` (30.7); the editor sends the other three no more. The editor page no
+longer builds the picker's index of every Node of the draft (`nodeIds()`, `getTitle`): the side
+bubble's delete names its aside from the Node the page reads for its Overlay (34.7). Recorded in
+`docs/adrs/ADR-178-step-buttons.md`, which supersedes ADR-133-structure-editing decision 7.
+
 ### 30.7 Removing a Link
 
 `removeLink` removes the Answer or the Option; **the target stays** in the draft.
@@ -4276,6 +4312,16 @@ URL opens one level deeper (10.9) has no delete, its Option not being this step'
 first aside's own page it is that page's side bubble and has one. `removeLink` above is
 unchanged by #177.
 
+**Amended 2026-10-02 (#178, by the owner, #169):** "if a user wants to delete a tree step he has
+to do it inside that tree step." `removeLink` is gone with the link menu (30.6). **A yes or a no**
+goes with the step it leads to: the creator opens that step and uses its red cross (30.8), and
+the delete removes the Answer from the step before in the same write (22.4), which shows its `+`
+again (30.1). **A side bubble** goes with `deleteSideBubble` (above). What either led to stays in
+the draft (30.9). Where `removeLink` took the Link alone and left its target, these take the
+target too -- but for an aside another step leads to, which only loses this step's Option
+(above) -- so where two Answers lead to one step, its cross takes both with it; the editor
+removes neither alone any more.
+
 ### 30.8 The step menu: deleting a Node
 
 In edit mode the rim above holds, in the half of the band **right** of the up arrow (the
@@ -4286,11 +4332,50 @@ every Link to it goes in the same write; `also` says which Nodes lost one) → t
 to the parent (`trailHref`) or, with no Trail, to the root. A delete removes **one step,
 never a sub-tree**: what it led to stays.
 
+**Amended 2026-10-02 (#178, by the owner, #169):** "Instead of the ... dots on the top right with
+options, just make two buttons a red cross to delete the step, or if it applys, 'tree does not
+end here after all'." **No step menu.** Two buttons stand in its place, in the band above the
+Bubble, beside the up arrow, out of the Bubble's box (10.1):
+
+- **The red cross**, `deleteStep`, on every step but the root: a round button outlined in
+  `danger` with a cross in `danger`, filled `danger` under the pointer and while it asks, named
+  "Delete this step" ("Deze stap verwijderen") for a screen reader and on hover, its `title`.
+  One click asks, in place: a panel hung under the band, in the middle of the Bubble, over the
+  Sheets' veil, says `confirmDelete` with the step's title as it stands then -- the last
+  response's, so a title typed a moment before is the one named -- or, for a step without a
+  title in the page's language, `confirmDeleteUntitled` ("Delete this step? It has no title yet.
+  What it led to stays."), and offers `confirm` and `cancel`, the focus on `cancel`. Escape,
+  `cancel` or a click on the veil keep the step and give the focus back to the cross; `confirm`
+  deletes as above, and a refusal is said in the panel. The root has no cross (409 anyway).
+- **"Tree does not end here after all"** (`removeEnd`, "Boom eindigt hier toch niet"), on a step
+  that ends the tree only: outlined in `accent-secondary`, as `treeEndsHere` is, in the band's
+  small type. It sends `remove-terminal` at once, as the menu's `removeEnd` did; the page repaints
+  (29.7), the row offers the three buttons (30.1), and the button goes with the ending. A refusal
+  -- a collaborator removed the ending first -- is said under it. A root that ends the tree has
+  this button alone.
+- **Where they stand.** The words left of the arrow, against it; the cross right of it, where the
+  `...` stood, below 1000 pixels wide; from 1000, where #176's floating controls show their words
+  in the band right of the arrow (33.1), left of it, between the arrow and the words. There the
+  controls leave 46.5 pixels right of the arrow at 1000 x 700 in Dutch with three things to do
+  (measured in Segoe UI), and a longer state word or count leaves fewer. On the
+  arrow's middle, 32 tall, where the arrow stands above the outline; below 640 pixels of height,
+  in the middle of the band, 24 tall in its 26 with the words on one line of 11 pixels, and 32
+  tall in a phone's 40; below 480 pixels wide the words take two lines of 11 pixels. So at every
+  viewport of 10.6 where the tree view shows, and on both sides of 1000 wide, 640 tall and 480
+  wide, they cover no part of the up arrow, the Bubble, an Option button or the floating controls
+  (`tests/browser/step-buttons.spec.ts`); at the floor the notice stands in for the tree view, and
+  for them (10.4).
+- **The step's id**, which the menu showed in `text-muted`, is dropped: it is in the page's
+  address (4.1) and nowhere else on the screen.
+
+Recorded in `docs/adrs/ADR-178-step-buttons.md`, which supersedes ADR-133-structure-editing
+decision 8's step menu.
+
 ### 30.9 Orphans
 
 A Node nothing reaches any more is V-REACH's advisory (19.2): listed in the panel's to-do
-with a link to its editor page, where `deleteStep` is; **never deleted by the editor on its
-own**. Publish refuses while one exists.
+with a link to its editor page, where `deleteStep` is (**[#178]** its red cross, 30.8); **never
+deleted by the editor on its own**. Publish refuses while one exists.
 
 ## 31. Images in the editor
 
@@ -4456,7 +4541,8 @@ top right, but not in the header bar"). Recorded in
   stands lower and the controls stay under the bar). It is in
   no row of 10.1 and not in the bar's `header`: a fixed box, so no row moves and it is no
   element's overflow (10.6). At 1280 x 640 it covers no part of the Bubble, the up arrow, an
-  Option button or its link menu, nor at any other viewport of 10.6 where the tree view shows
+  Option button or its link menu (**[#178]** gone, 30.6; the step's two buttons beside the
+  arrow stay clear of it, 30.8), nor at any other viewport of 10.6 where the tree view shows
   (`tests/browser/floating-controls.spec.ts` measures the boxes on the full Node at a 49-entry
   Trail). Below 640 pixels of height, where that band is 26 (10.5), it is 24 tall and one under
   the bar; on a phone's band of 40, 32 and four under it; 8 from the edge below 480 wide.
@@ -4708,10 +4794,10 @@ that are not fields. The types are `src/editor/mode.ts`.
 | `stripAdd(node)` | `Carousel` | `ImageSlot` (#140) |
 | `enlargedControls(node, index)` | `EnlargedView` | #140 |
 | `structure(node)` | `TreeView` (the Answer row) | `Structure` (#139) |
-| `linkMenu(node, link)` | `TreeView` (each Answer and Option button) | `Structure` (#139) |
+| ~~`linkMenu(node, link)`~~ | ~~`TreeView` (each Answer and Option button)~~ **[#178]** gone, 30.6 | ~~`Structure` (#139)~~ |
 | `sideAdd(node)` | `TreeView` (the fan; ~~the Overlay's list~~, **[#177]** on the centre only, 30.5) | `Structure` (#139) |
 | `sideDelete(node, index)` | **[#177]** `TreeView` (the foot of the Overlay of the Node's Option `index`) | `Structure` (#177, 30.7) |
-| `stepMenu(node)` | `Bubble` (the rim above) | `StepMenu` (#139) |
+| ~~`stepMenu(node)`~~ **[#178]** `stepButtons(node)` | `Bubble` (~~the rim above~~ **[#178]** the band above, beside the up arrow, 30.8) | ~~`StepMenu` (#139)~~ **[#178]** `DeleteStep`, `RemoveEnd` of `StepButtons` |
 | ~~`mark()`~~ | not built (**[#141] As built** below) | `Marker`, drawn by the description's `Field` (#141) |
 | `onTermClick` | `Explainer` | #141 |
 
@@ -4735,7 +4821,7 @@ is unchanged but for `adminImageHref`.
 ### 34.4 The editor's client components
 
 Under `src/editor/`, leaves: `Editor` (the provider: the queue, the indicator, the session
-Sheet, 29), `Field`, `ImageSlot`, `AttachSheet`, `Structure`, `StepMenu`, `Marker`,
+Sheet, 29), `Field`, `ImageSlot`, `AttachSheet`, `Structure`, `StepMenu` (**[#178]** `StepButtons`), `Marker`,
 `ExplainerSheet`, `Panel`, `LoginForm`, `NewTreeForm`; they take strings and ids and reach
 the queue through context. Of `src/` they import **exactly three modules**: `src/tree/measure.ts`,
 `src/tree/grammar.ts` (**[#137]** the id and tag grammars with the counted length, which
