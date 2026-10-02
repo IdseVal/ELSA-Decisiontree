@@ -85,7 +85,10 @@ export interface Chrome {
   /** **[#135]** The 403 page (24.2). */
   forbiddenTitle: string
   forbiddenText: string
-  /** **[#135]** The admin chrome bar (24.3): the logout button, the link to the account page and to the accounts page. */
+  /**
+   * **[#135]** The admin chrome bar (24.3): the logout button, the link to the account page and to the accounts page.
+   * **[#176]** `account` is the link's own word now, "Account"; the account's name is its description.
+   */
   logout: string
   account: string
   accounts: string
@@ -314,7 +317,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     forbiddenTitle: 'Not yours to open',
     forbiddenText: 'Your account has no access to this page.',
     logout: 'Log out',
-    account: 'Your account',
+    account: 'Account',
     accounts: 'Accounts',
     signIn: 'Sign in',
     login: 'Name',
@@ -508,7 +511,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     forbiddenTitle: 'Geen toegang',
     forbiddenText: 'Uw account heeft geen toegang tot deze pagina.',
     logout: 'Uitloggen',
-    account: 'Uw account',
+    account: 'Account',
     accounts: 'Accounts',
     signIn: 'Inloggen',
     login: 'Naam',

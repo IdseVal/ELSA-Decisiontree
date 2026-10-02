@@ -115,8 +115,9 @@ export default async function EditorPage({ params }: Props) {
           <SaveIndicator words={edit.words} />
           <TopPanel entry={entry} draft={draft} address={address} caller={session.account} accounts={accounts} ui={ui} />
           <nav className="admin-nav" aria-label={ui.account} lang={chromeLang(address.lang)}>
-            <a className="admin-link" href={adminHref('/admin/account', uiLang)} data-clamp="">
-              {session.account.name}
+            {/* **[#176]** The link says what it is; whose account, its description and tooltip (24.3). */}
+            <a className="admin-link" href={adminHref('/admin/account', uiLang)} title={session.account.name}>
+              {ui.account}
             </a>
             <LogoutButton label={ui.logout} to={adminHref('/admin', uiLang)} />
           </nav>
