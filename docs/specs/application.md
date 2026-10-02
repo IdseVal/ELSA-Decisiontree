@@ -3985,10 +3985,12 @@ button is the control, with no Sheet behind it: it sends `POST .../nodes { from:
 declared language (22.4) -- and navigates to `<path>/<new id>` as before, where the new side
 bubble's Overlay is open with every field empty and named by its placeholder (28.2); the title,
 the text, the picture and the Sources are entered there (30.5). `createNew` and `linkExisting`
-are no longer offered from the `+`: the editor stops hanging an existing step under a Node as
-its side bubble (core document 3.4, `[#169]`; `ADR-169-tree-creation-ui-round.md` decision 5),
-and `add-option { target }` stays in the API (22.2). Recorded in
-`docs/adrs/ADR-177-side-bubble-editing.md`, which supersedes ADR-133-structure-editing decision 5.
+are no longer offered from the `+`: the `+` stops hanging an existing step under a Node as its
+side bubble (core document 3.4, `[#169]`; `ADR-169-tree-creation-ui-round.md` decision 5). An
+Option's link menu still does, when `changeTarget` re-points the Option with `add-option {
+target }` (30.6); that menu goes with #178 (ADR-169 decision 5). `add-option { target }` stays
+in the API (22.2). Recorded in `docs/adrs/ADR-177-side-bubble-editing.md`, which supersedes
+ADR-133-structure-editing decision 5 and the `+ newSideBubble` of its decision 6.
 
 ### 30.5 An aside is edited in the Overlay
 
@@ -4009,9 +4011,16 @@ in the side bubble?"
 - **The button's title follows the aside's.** The Option's title (60, on the button) and the
   aside's (80, in the Overlay) stay two fields of the format. While the creator types the
   aside's title, the Option button's title on the centre takes each new text cut to 60 whole
-  characters (`cutTo`, measured as 28.4 measures), for as long as it was empty, or the aside's
-  title so cut, when the editing began; once a creator has edited the words on the button they
-  stay as written. The two are two field writes of the one queue (29.2), flushed together on blur.
+  characters (`cutTo`, measured as 28.4 measures), for as long as, when the editing began, it
+  was empty or the aside's title so cut, and no write of the button's title was waiting in the
+  queue (typed or followed, and not yet answered, 29.2). That last condition is there because
+  the page holds the button's title as the last response left it (29.7): a write still waiting
+  may be the creator's own words on the button, which the aside's title must not overwrite. So
+  a title focused again while the button's write is still unanswered -- offline, or retrying
+  (29.5) -- does not move the button. Words a creator has edited on the button stay as written.
+  Once the two differ, either way, the button does not follow again unless its words are
+  emptied, or made the title so cut, by hand. The two are two field writes of the one queue
+  (29.2), flushed together on blur.
 - **The fields are the Bubble's**: the same `Field`, so the placeholders, the box sizes and the
   stop at the limit of 28.2 and 28.4 (#172) hold in the Overlay as on the Bubble. A click in the
   title no longer follows the heading's link around it (10.9): that link reloaded the page, and

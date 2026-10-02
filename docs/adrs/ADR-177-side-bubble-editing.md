@@ -24,16 +24,23 @@ ADR-133-structure-editing decision 5 made the fan's `+` open a Sheet with two ch
 Overlay's list of second-level Options a last entry, `+ newSideBubble`. A side bubble was
 removed through its button's `...` menu (`removeLink`), which leaves its Node in the draft.
 
-Reproduced on `dev` before this change, and on the `dev` of 2026-09-27 the owner walked:
+Measured before this change, each where it is said:
 
 - Below 564 pixels of height or 792 of width, step 6 of 10.5 hides every inline `.sources` block
   and shows the collapsed copy the Bubble renders. An Overlay rendered none, so a side bubble's
-  Sources -- their lines and `+ addSource` -- were on no part of the page there.
+  Sources -- their lines and `+ addSource` -- were on no part of the page there. Reproduced on
+  `dev` as of 2026-10-02 and on the `dev` of 2026-09-27 the owner walked (`6be87db`), alike.
 - In the editor the Overlay's title field stands inside its heading's link to the aside's
   address (10.9). A click in it followed the link: the page reloaded, two frame navigations per
-  click, and the field lost the focus before a key was typed.
+  click, and the field lost the focus before a key was typed. Measured on this branch's build
+  before that fix (`de1d607`), whose heading markup and `Field` click handling were `dev`'s, not
+  on a build of `dev` itself.
 - Opening a Sheet inside an Overlay's panel ran the Overlay's own `onToggle` too, which put the
   focus on the Overlay's cross, so one Escape closed the side bubble instead of that Sheet.
+  Measured on the side bubble's Sources Sheet, which this change adds, and not on `dev`. Read,
+  not measured: `Sheet.onToggle` takes the same path on `dev` for a Source's `...` Sheet inside
+  an Overlay, which exists since #138; the `+ addSource` Sheet hides it by focusing its own URL
+  field.
 
 ## Decision
 
@@ -45,8 +52,14 @@ Reproduced on `dev` before this change, and on the `dev` of 2026-09-27 the owner
    and `add-option { target }` stays in the API.
 2. **The Option button's title follows the aside's.** They stay two fields of the format (60 and
    80 characters). While the aside's title is typed, the button's takes each new text cut to 60
-   whole characters, as long as it was empty, or the aside's title so cut, when the editing began.
-   A title edited on the button itself stays as written.
+   whole characters, as long as, when the editing began, it was empty or the aside's title so
+   cut, and no write of the button's title was waiting in the queue (29.2). The page's copy of the
+   button's title (`api.nodes`) is the last response's, so a write still waiting may be the
+   creator's own words on the button, which the aside's title must not overwrite. A title edited
+   on the button itself stays as written. So a title focused again while the button's write is
+   still unanswered -- offline, or retrying (29.5) -- does not move the button; and once the two
+   differ, either way, the button does not follow again unless its words are emptied, or made the
+   title so cut, by hand.
 3. **No `+` in an Overlay.** Second-level Options a Tree has are still listed and still open
    (10.9). An aside opened as its own page is the centre, and its fan has the `+`.
 4. **The side bubble's fields are the Bubble's**: the same `Field`, with #172's placeholders,

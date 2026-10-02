@@ -134,8 +134,9 @@ export function Field({
   /**
    * **[#177]** A field of another Node whose text follows this one's, in the same language
    * (30.5, amended): an aside's title leads its Option button's on the centre, which takes each
-   * new title cut to its own limit as long as it was empty, or this title cut so, when the
-   * editing began. A title edited on the button itself stops following.
+   * new title cut to its own limit as long as, when the editing began, it was empty or this
+   * title cut so, and no write of it was waiting. A title edited on the button itself stops
+   * following.
    */
   follower?: { nodeId: string; path: string; limit: FieldLimit }
   words: FieldWords
@@ -238,6 +239,8 @@ export function Field({
     setFocused(true)
     api.setCurrent({ nodeId, keyPath })
     if (follower && followerPath) {
+      // `api.nodes` is the last response's: a write of the follower still waiting may be the
+      // creator's own words on the button, which this title must not overwrite (30.5).
       const theirs = valueAt(api.nodes[follower.nodeId], follower.path, lang) ?? ''
       following.current = !api.hasWrite(follower.nodeId, followerPath) && (theirs === '' || theirs === cutTo(text, follower.limit))
     }
