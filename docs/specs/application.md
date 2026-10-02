@@ -3651,6 +3651,15 @@ page's language (4.1) is the one every field edits and saves under. A field with
 that language is an empty region showing `missingText` as a placeholder in `text-muted`,
 never saved as such.
 
+**Amended 2026-10-02 (#172, by the owner, #169):** "The placeholder texts say 'Text missing
+in this language', I want it to say what belongs in the respective field like (title,
+content)." An empty field's placeholder names what belongs in it, in the chrome language:
+the Node's title `placeholderTitle` ("Title"), its description `placeholderText` ("Text"), a
+Source's label and link, an Option's title, an Image's description and credit, an
+explainer's term and explanation, the logo's alternative text (the `placeholder*` keys of
+`src/chrome.ts`). No field shows `missingText` any more; whether a language still lacks a
+text stays where it was, on the rim's tags (28.3) and in the to-do list (33.3).
+
 ### 28.3 The rim: the counter and the missing languages
 
 While a field has the focus the **right rim** (60 pixels, 10.1) shows at the field's height a
@@ -3671,6 +3680,25 @@ to-do list (33.3). Publish is the wall (19.3). A description past two estimated 
 therefore **stored and marked, never refused**: a field is refused (422, 29.4) only by a
 blocking rule -- V-HTML, V-PLAIN, the schema -- and V-LENGTH and V-LINES are the advisories
 the write carries back.
+
+**Amended 2026-10-02 (#172, by the owner, #169):** "make sure the input boxes are nicely
+sized for what will come inside of them, so they fit nicely inside the bubble the way they
+should and the don't grow on inputs, they should just stop at the cap." **Typing stops at a
+limit.** A field accepts no character beyond its maximum, measured as above (`countedLength`;
+for the description also `estimatedLines`): a further key does nothing, and a paste is cut
+after the last whole character that fits -- a character of several code points (3.8) is kept
+whole or not at all (`capped` in `src/editor/fields.ts`). The counter pill stays and shows
+where the creator is. A text that is **already** over its limit -- stored before this
+amendment, or by another route (a hand-made file, the API) -- is shown whole and marked as
+above, can be shortened and cannot be lengthened. The store is unchanged: a write over a
+limit is still stored with its advisory (22.3), so the paragraph above still describes what
+the server does; only the field no longer sends one. The attach Sheet's credit and
+description (31.2) and the logo's alternative text (33.8) stop at their 120, 120 and 80 alike.
+And each field's box has, empty and filled, the size its text takes at the limit where it is
+drawn -- the title and the description two lines (5.7), an Option's title the lines its
+button holds, a plain field elsewhere one line -- so the box neither grows nor shrinks while
+the creator types, and it stays inside its parent: the Bubble's text area, the Overlay, the
+Option button or the Sheet.
 
 ### 28.5 The description: source text
 

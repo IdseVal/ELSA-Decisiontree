@@ -62,7 +62,9 @@ fragment target in that text (5.9).
    is the one every field edits and saves under (`<field>.<lang>`). One language at a
    time, by construction: a field holds one string. A field whose text is missing or empty
    in the page's language is an empty region showing `missingText` as a placeholder in
-   `text-muted`, never saved as such; typing into it writes the language.
+   `text-muted`, never saved as such; typing into it writes the language. **[#172] Amended
+   2026-10-02 by the owner:** the placeholder names what belongs in the field ("Title",
+   "Text"), not `missingText` (application.md 28.2).
 
 3. **The rim shows which languages still lack a text.** While a field has the focus, the
    right rim (60 pixels wide, 10.1) shows at the field's height a **counter pill** and,
@@ -92,7 +94,11 @@ fragment target in that text (5.9).
    was the last edited (`ADR-133-autosave.md`, decision 3), and in the top panel's to-do
    list for as long as it holds. Nothing is truncated, nothing is lost: the owner asked
    for the limits *live* (#138), which means shown. The one place a limit is a wall is
-   Publish (19.3).
+   Publish (19.3). **[#172] Amended 2026-10-02 by the owner (#169):** typing stops at the
+   limit -- a key past it does nothing, a paste is cut -- and a text already over it can
+   shrink but not grow; the store still stores and reports an over-limit write from another
+   route (application.md 28.4). The alternative rejected below, `maxlength`, stays rejected
+   for its units: the cap counts as the validator counts.
 
 6. **The description is edited as its source text.** Blurred, the region shows the rendered
    text -- `richTextToHtml` on the client, the same function the server used, with the
