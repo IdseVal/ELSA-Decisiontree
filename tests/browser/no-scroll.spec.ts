@@ -16,7 +16,8 @@
  * the two Nodes with Images of `tests/fixtures/carousel/` (issue #43), the eight explainers
  * at every maximum of `tests/fixtures/explainers/` (issue #83), and the longest Node of the
  * first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55), and
- * **[#134]** the overview with fifteen tiles (26.3) -- each in
+ * **[#134]** the overview with fifteen tiles (26.3), **[#180]** and the full Node again in each
+ * family of the font library, set in both roles (application.md 37.6) -- each in
  * both languages, and each again with every Sheet it offers open -- the Overlay of each
  * Option among them -- every Image it carries enlarged and every explainer panel it marks
  * opened by focus, with and without JavaScript -- and each in the middle of a slide
@@ -33,7 +34,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { FONT_LIBRARY } from '../../src/fonts.ts'
 import { openTree } from '../../src/tree/loader.ts'
+import { ADMIN_PASSWORD } from '../store/admin.ts'
+import { login } from './admin.ts'
 import { arrived, escapeUrlOpened } from './arrived.ts'
 import { BASE_PORT, dataDir, serve, serveStore, stopServers } from './serve.ts'
 
@@ -57,6 +61,8 @@ const EXPLAINERS_PORT = FULL_NODE_PORT + 7
 // Its own port: on the trigger test's, that test measured this fixture's 404 page and passed (PR #99).
 const OVERLAY_PORT = FULL_NODE_PORT + 8
 const OVERLAY_NO_SCRIPT_PORT = FULL_NODE_PORT + 9
+/** **[#180]** The first of four: the full-node fixture in each family of the font library. */
+const LIBRARY_PORT = FULL_NODE_PORT + 15
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -627,6 +633,38 @@ for (const lang of LANGUAGES) {
   test(`the full Node at a 49-entry Trail, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
     test.slow()
     await measureSliding(page, `${await fullNodeSlidingOrigin()}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+}
+
+/**
+ * **[#180]** The full-node fixture with the library family `family` in both roles (37.6): served,
+ * then set as the administrator through the editor's own write, `use-library-font` (37.3),
+ * which the published copy follows (19.4).
+ */
+async function inLibraryFamily(page: Page, family: string, port: number): Promise<string> {
+  const origin = await served(fixtures, 'full-node', port)
+  const { cookie } = await login(page, origin, 'admin', ADMIN_PASSWORD)
+  for (const role of ['body', 'heading']) {
+    const response = await page.request.patch(`${origin}/admin/api/trees/full-node`, { headers: { Origin: origin, Cookie: cookie }, data: { op: 'use-library-font', role, family } })
+    expect(response.status(), `use-library-font ${role} ${family}`).toBe(200)
+  }
+  return origin
+}
+
+// 37.1's width rule in the browser (ADR-171-font-library decision 2): every family the application
+// ships is no wider than Open Sans, so the Node at every maximum of the format still fits in it.
+for (const [index, family] of FONT_LIBRARY.entries()) {
+  test(`the full Node at a 49-entry Trail in ${family.family}, both roles, never scrolls at 1280x640 or 360x640`, async ({ page }) => {
+    test.slow()
+    const origin = await inLibraryFamily(page, family.id, LIBRARY_PORT + index)
+    await page.goto(`${origin}${FULL_NODE_URL}`)
+    for (const role of ['body', 'heading']) expect(await page.evaluate((name) => getComputedStyle(document.documentElement).getPropertyValue(name), `--elsa-font-${role}`)).toContain(`'${family.family}'`)
+    for (const lang of LANGUAGES) {
+      await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, `full Node in ${family.family}`, lang, true, [[1280, 640], [360, 640]])
+      // Measured in the family, not in a fallback: its upright face was loaded for the text.
+      const loaded = await page.evaluate((name) => [...document.fonts].filter((face) => face.family.replace(/["']/g, '') === name && face.style === 'normal' && face.status === 'loaded').length, family.family)
+      expect(loaded, `${family.family}'s upright face loaded`).toBeGreaterThan(0)
+    }
   })
 }
 
