@@ -482,6 +482,7 @@ def load_config() -> dict[str, Any]:
     cfg["models"] = m
     m.setdefault("default", "opus")
     m.setdefault("complex", "fable")
+    m.setdefault("effort", {})   # v0.2.20: model name -> CLI effort level; absent = the model's default
     m.setdefault("complex_label", LABEL_COMPLEX)
     m.setdefault("capped_hold_minutes", MODEL_HOLD_MINUTES)   # v0.2.9
     # `models.interview` deliberately has NO default: absence means "ask the owner at onboard".
@@ -516,6 +517,16 @@ def model_for(labels: set[str], cfg: dict[str, Any]) -> str:
     if complex_label(cfg) in labels:
         return str(m.get("complex") or "")
     return str(m.get("default") or "")
+
+
+def effort_for(model: str, cfg: dict[str, Any]) -> str:
+    """THE EFFORT POLICY (v0.2.20). `models.effort` maps a model, named as `models:` names
+    it (`opus`, `fable`, a full id), to the CLI's `--effort` level. Opus 5.5 runs at
+    `medium` unless told otherwise, and `max` cannot be a saved default -- the CLI takes it
+    only per session -- so the flag goes on every launch. A model with no entry gets no
+    flag: its own default."""
+    e = cfg["models"].get("effort")
+    return str(e.get(model) or "") if isinstance(e, dict) and model else ""
 
 
 def run_ceiling_minutes(labels: set[str], cfg: dict[str, Any]) -> float:
@@ -1584,6 +1595,9 @@ def spawn_headless(workdir: str, brief: Path, log_name: str, cfg: dict[str, Any]
     cmd = [d["claude_cmd"], "-p", one_liner(brief), "--output-format", "json", *d["permission_args"]]
     if model:
         cmd += ["--model", model]
+    effort = effort_for(model, cfg)
+    if effort:
+        cmd += ["--effort", effort]   # v0.2.20, before extra_args like --model: the last one wins
     cmd += list(d["extra_args"])
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
     log_path = run_log_path(log_name)
@@ -2785,6 +2799,8 @@ def cmd_doctor(cfg: dict[str, Any], fix: bool) -> int:
         val = m.get(key)
         ok(f"{key}: {val} -- {what}") if val else \
             ok(f"{key}: EMPTY -- {what} use the CLI's default model (whatever /model last set!)")
+    for name, level in sorted((m.get("effort") or {}).items()):
+        ok(f"effort: {name} runs at `{level}` (--effort on every launch)")
     if m.get("interview"):
         ok(f"interview: {m['interview']} -- the interactive Planner sessions")
     else:
@@ -2934,6 +2950,7 @@ def cmd_onboard(cfg: dict[str, Any]) -> int:
     # and start the agent ourselves in a terminal there (`orca terminal create --command`,
     # the route Orca documents for "a fresh agent in an existing worktree"). The command
     # runs in the user's shell, where the bare `claude` shim resolves.
+    interview_effort = f" --effort {effort_for(interview_model, cfg)}" if effort_for(interview_model, cfg) else ""
     res = act(f"create {what} worktree (interactive Planner on model {interview_model})",
               lambda: orca_create_worktree(name, base, None, activate=True))
     if DRY_RUN:
@@ -2944,9 +2961,9 @@ def cmd_onboard(cfg: dict[str, Any]) -> int:
     path = worktree_path(name, res)
     if not path:
         print(f"worktree {name} created but its path is unknown; start the Planner by hand there:\n"
-              f"  claude --model {interview_model} \"{one_liner(brief)}\"")
+              f"  claude --model {interview_model}{interview_effort} \"{one_liner(brief)}\"")
         return 1
-    command = f'claude --model {interview_model} "{one_liner(brief)}"'
+    command = f'claude --model {interview_model}{interview_effort} "{one_liner(brief)}"'
     term = orca_json(["terminal", "create", "--worktree", f"path:{path}",
                       "--title", f"Planner ({what})", "--command", command, "--focus"])
     if not term:

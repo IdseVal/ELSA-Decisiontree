@@ -181,3 +181,12 @@ model, add the `complex` label BEFORE `ready`. To change the fleet, edit `models
 A model that is out of usage credits (v0.2.9) shows in `status` as a hold on that model
 alone; the others run. Remove `complex` from an issue to run it on the default model
 meanwhile; to lift the hold early, delete `model_holds.<model>` in `state.json`.
+
+## Effort (v0.2.20)
+
+`models.effort` in `.orca/dispatch.yml` maps a model, named as `models:` names it, to the CLI's
+`--effort` level; the dispatcher passes it on every headless run and on the interactive interview.
+It ships as `opus: max`: Opus 5.5 runs at `medium` by default, and `max` cannot be saved as a
+default (the CLI accepts it per session only). The three Opus steps of `agent-pipeline.yml` carry
+`--effort max` in their `claude_args`. Fable and Sonnet runs have no entry and keep their defaults.
+Expect longer and costlier Opus runs; `status` shows the measured cost per run.

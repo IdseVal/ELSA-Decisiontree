@@ -112,6 +112,10 @@ models:
   complex: fable
   complex_label: complex
   interview: opus
+  effort:                            # v0.2.20: `--effort` per model, named as above. Opus 5.5 runs at
+    opus: max                        # `medium` by default and `max` is session-only, so it goes on every
+                                     # launch. No entry = the model's own default (fable, sonnet).
+                                     # CI (agent-pipeline.yml) carries the same flag on its Opus steps.
   capped_hold_minutes: 360           # v0.2.9: a model that is out of usage credits is re-tried this often
   # CI (agent-pipeline.yml, not read from here): the Verifier runs on `sonnet` since v0.2.11 --
   # its work is mechanical (run, compare, count); the Reviewer, the last gate, stays on `opus`.
