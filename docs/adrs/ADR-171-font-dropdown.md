@@ -76,6 +76,14 @@ real name.
    no name field and no file controls, because it is complete as shipped and changing either
    would make it something the library is not. The Tree's own family keeps today's controls:
    its name and licence editable, files added and removed, the last one removing the family.
+   **A new name for it is held to decision 5**: a name the other role's family has, with other
+   files, is refused with `fontNameTaken` at the field. The panel cannot tell one design whose
+   faces are split between the roles from two designs whose faces the browser would mix, so
+   it refuses every new pairing of a name with a second set of files, whichever way it comes:
+   an upload, a library choice or a rename. A write that keeps a role's name is never refused
+   for it, so a pairing that exists stays as it is. The first Tree's two roles share
+   "Open Sans" over disjoint files (400 and 600 for running text, 700 for headings), and
+   their licences, files and names stay editable.
 7. **How the panel tells them apart**: a role's entry **is** library family X when its
    `family`, its `files` (each name, weight and style) and its `licence` equal what
    `use-library-font` writes for X -- the names are content hashes, so this is exact. Anything
