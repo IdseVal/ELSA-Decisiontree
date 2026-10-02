@@ -258,13 +258,15 @@ test('the screenshots of #172: an empty root, texts at their limits in the Bubbl
     const attach = page.locator('.editor-attach-panel')
     await expect(attach).toBeVisible()
     await shoot(page, `attach-sheet-${size}`)
-    await attach.locator('button[type="button"]').click()
+    // `cancel`, among the Sheet's controls: **[#174]** each field's hint is a button too.
+    await attach.locator('.sheet-controls button[type="button"]').click()
     await expect(attach).toHaveCount(0)
 
     // The top panel.
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     await page.locator('.panel-sheet > .sheet-open').click()
-    await expect(page.locator('.panel-body')).toBeVisible()
+    // Its own body: since #176 the to-do bubble's Sheet has a `.panel-body` as well.
+    await expect(page.locator('.panel-sheet .panel-body')).toBeVisible()
     await shoot(page, `top-panel-${size}`)
   }
 })
