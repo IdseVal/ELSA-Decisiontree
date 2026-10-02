@@ -7,8 +7,14 @@
 - Spec: `docs/specs/tree-format.md` 3.4, 3.7, 4.3.3, 5, 5.5, 5.7, 7 (V-TERMINAL, V-LENGTH);
   `docs/specs/application.md` 3.2, 5.1, 10.1, 10.3, 10.5, 22.1, 22.2, 28.1, 30.1, 30.3
 - Supersedes in part: `docs/adrs/ADR-4-terminal-marker.md` -- the closed set of four outcomes
-  and its consequence "the frontend ships a styling table with four rows". Its two other
-  decisions stand: a Terminal is marked explicitly, and a Node's kind is derived.
+  and its consequence "the frontend ships a styling table with four rows"; and its rejected
+  alternative "Free-text outcome" for the words, not for styling: the marker carries free
+  text, which nothing styles by its value (decision 4), and a value the frontend would have
+  to style stays rejected (Alternatives rejected, the neutral tone). Its rejection of
+  "`terminal: true` without an outcome" stands -- the marker carries the words (decision 1)
+  -- but not its reason, "every end of the walk would look the same": every ending is drawn
+  alike (decision 4), and its words tell the endings apart. Its two other decisions stand: a
+  Terminal is marked explicitly, and a Node's kind is derived.
 - Amends: `ADR-133-structure-editing.md` decision 4 (`treeEndsHere` asks for a text, not one
   of four), `ADR-133-bubble-edited-in-place.md` decision 1's rim row (a text field, not a
   select), `ADR-132-editor-api.md` decisions 2 and 3 (`link: 'end'` carries `label`; the field
