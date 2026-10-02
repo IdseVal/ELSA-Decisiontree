@@ -89,7 +89,11 @@ export default async function EditorPage({ params }: Props) {
   // a Node read (30.6), and the address of every Node the page carries.
   const index = draft.nodeIds().map((id) => ({ id, title: draft.getTitle(id)?.[address.lang] ?? '' }))
   const addresses = Object.fromEntries([centre, ...centre.chain, ...asides].map((entry) => [entry.node.id, entry.address]))
-  const edit = editMode(address, draft.manifest.languages, { index, addresses, root: draft.manifest.root, centre: centre.node.id })
+  // **[#177]** Which asides another Node leads to as well, from the index's ids, never a Node read (30.7, 34.7).
+  const centreId = centre.node.id
+  const options = centre.node.options.map((option) => option.target)
+  const shared = options.filter((target) => draft.referrers(target).some((id) => id !== centreId))
+  const edit = editMode(address, draft.manifest.languages, { index, addresses, root: draft.manifest.root, centre: centreId, options, shared })
   const entry = drafts.entry(session.account, treeId)
   const nodes = Object.fromEntries([centre.node, ...centre.chain.map((aside) => aside.node), ...asides.map((aside) => aside.node)].map((node) => [node.id, node]))
   const ui = chrome(address.lang)

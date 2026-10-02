@@ -74,11 +74,14 @@ interface Measured {
   titleBox: number | null
 }
 
-/** Every drawn Option button of the centre and the fan's `+`, measured. */
+/**
+ * Every drawn Option button of the centre and the fan's `+`, measured. **[#177]** The `+` is a
+ * button of its own, not the summary of a Sheet, so it is named whole, as the stylesheet does.
+ */
 async function measure(page: Page): Promise<Measured[]> {
   await page.evaluate(() => document.fonts.ready)
   return page
-    .locator('.tree-frame:not([inert]) .options > li > :is(.overlay, .side-add) > .sheet-open')
+    .locator('.tree-frame:not([inert]) :is(.options > li > .overlay > .sheet-open, .options > li > .side-add)')
     .filter({ visible: true })
     .evaluateAll((buttons) =>
       buttons.map((button) => {

@@ -71,6 +71,15 @@ export function capped(previous: string, next: string, caret: number, limit: Fie
   return { text: prefix + kept + after, caret: start + kept.length }
 }
 
+/**
+ * **[#177]** `text` cut to `limit` as a field of that limit would take it typed or pasted whole:
+ * the longest run of whole characters from its start that fits (28.4). What an Option button's
+ * title is given when it follows its aside's, whose limit is longer (30.5, amended).
+ */
+export function cutTo(text: string, limit: FieldLimit): string {
+  return capped('', text, text.length, limit).text
+}
+
 /** The queue's key of one field of one Node. */
 export function keyOf(nodeId: string, keyPath: string): string {
   return `${nodeId} ${keyPath}`

@@ -295,12 +295,13 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language); **[#162]** `sessionNotKept` (a login the browser kept no cookie of, 25.1); **[#176]** `account` says "Account" now, the link's own word (24.3) |
 | #137 | `published`, `hidden`, `notServable`, `treeId`, ~~`treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`~~ (**[#168]** removed with the address field, 27.1; `treeId` stays, the top panel names the address with it), `languages`, `addLanguage`, `makeDefault`, `default`, ~~`languagesFixed`~~ (**[#147]** replaced by `languagesLater`: the languages change in the top panel, 33.5; **[#168]** `languagesLater` removed: the form says no sentence), `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
-| #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
+| #139 | `treeEndsHere`, `newSideBubble`, `createNew`, ~~`linkExisting`~~ (**[#177]** gone with the Sheet behind the side-bubble `+`, 30.4, and with it `sideBubbleTitle`, which the build had added for the Sheet's field), `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
 | #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused`; **[#140] added in the build**: `cancel` (the attach Sheet's second button, 31.2 -- the same word #139's row names, so whichever branch merges second keeps one) and `imageDescription` (the label of its description field; `credit` labels the other) |
 | #141 | `mark`, `unmark`, `cannotMarkHere`, `explainerLimit`, `term`, `explanation`, `markedIn`, `notMarkedIn` |
 | #142 | ~~`treeState`~~ (**[#176]** gone: the panel's title is `settings`, 33.2), `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, ~~`fixed`~~ (**[#147]** gone: the languages are the tag control of 33.5), `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
 | #174 | `addExtraPicture` (the strip's `+`, its name and the label beside it, 31.1), `hint`, `creditHint`, `imageDescriptionHint` (the information hint behind an Image's two fields: its name and its two explanations, 31.2, 31.3) |
 | #176 | `settings` (the floating button and the panel's title, 33.1, 33.2), `todoCountOne` (the to-do control's words for one thing; `todoCount` says them for more, 33.3), `todoNone` (the control at zero, and its bubble's empty list), `publishRefused` and `showTodo` (a refused publish's sentence in the panel and the button to the to-do bubble, 33.3) |
+| #177 | `deleteSideBubble` (the button at the foot of an opened side bubble, 30.7), `confirmDeleteSideBubble` (its confirmation, a function of the side bubble's title), `confirmDeleteUntitledSideBubble` (the same without a title), `sideBubbleStays` (what the confirmation adds where another step leads to the side bubble too) |
 | **[#171]** #179 | `endingText` ("Text of the ending" / "Tekst van het einde": the `treeEndsHere` Sheet's field and the empty badge field's placeholder, 36.3); **gone**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, and #138's `outcome`; **reworded**: #144's `colourDanger`, "Errors" / "Fouten" (36.1) |
 | **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5; **[#180] added in the build**: the Theme panel's hints (33.8), `colourBackgroundHint`, `colourSurfaceHint`, `colourTextHint`, `colourTextMutedHint`, `colourAccentHint`, `colourAccentSecondaryHint`, `colourDangerHint`, `contrastHint`, `logoAltHint`, `fontBodyHint`, `fontHeadingHint`, `fontLicenceHint`, `fontFileHint`, named by #174's `hint` |
 
@@ -3100,6 +3101,7 @@ export interface Draft extends Omit<Tree, 'getNode' | 'filePath' | 'lastModified
   readonly advisory: Violation[]        // the whole draft's to-do list, after opening
   readonly blocking: Violation[]        // non-empty only for an uneditable Tree (19.5)
   readonly filePath: string             // draft.json
+  referrers(id: string): string[]       // [#177] the ids of the Nodes whose Answers or Options name id, in file order (30.7): ids, never Nodes, as nodeIds (5.1)
 }
 type DraftNode = Omit<Node, 'answers'> & { answers?: { yes?: string; no?: string } }
 // and any LocalisedText may lack a language or hold "" for one; nothing else differs from Node
@@ -4194,6 +4196,23 @@ link: 'option' } }` on a Node that has eight Options answer 22.3's 422 with `V-C
 the advisory V-COUNT of 19.2. Re-pointing an Option at eight (30.6) removes before it adds and
 still lands. A Tree file with nine, written by hand, stays V-COUNT's, as before.
 
+**Amended 2026-10-02 (#177, by the owner, #169):** "The side bubble should just open the side
+bubble, where the title and the text inputs, and the image can be entered, following the same
+rules for input boxes as the main bubble." **One click on the `+` opens the side bubble.** The
+button is the control, with no Sheet behind it, and keeps #175's shape (above): it sends `POST
+.../nodes { from: { node, link: 'option' } }` with no title -- the Node and the Option in one
+write, each titled `""` in every declared language (22.4) -- and navigates to `<path>/<new id>`
+as before, where the new side bubble's Overlay is open with every field empty and named by its
+placeholder (28.2); the title, the text, the picture and the Sources are entered there (30.5).
+At eight Options there is no `+`, and that write, with no title as with one, is refused as
+#175's amendment says. `createNew` and `linkExisting`
+are no longer offered from the `+`: the `+` stops hanging an existing step under a Node as its
+side bubble (core document 3.4, `[#169]`; `ADR-169-tree-creation-ui-round.md` decision 5). An
+Option's link menu still does, when `changeTarget` re-points the Option with `add-option {
+target }` (30.6); that menu goes with #178 (ADR-169 decision 5). `add-option { target }` stays
+in the API (22.2). Recorded in `docs/adrs/ADR-177-side-bubble-editing.md`, which supersedes
+ADR-133-structure-editing decision 5 and the `+ newSideBubble` of its decision 6.
+
 ### 30.5 An aside is edited in the Overlay
 
 The Overlay's Interior (10.9) is rendered by the same component with the `edit` seam: its
@@ -4203,6 +4222,51 @@ Option button. The Overlay's list of second-level Options stays plain links and 
 entry, `+ newSideBubble`, which creates a second-level Option and navigates to the deeper
 address. The Overlay's heading link (10.9) leads to the aside's own page, where it gets a fan,
 its own asides and its step menu. Nothing is edited in two places.
+
+**Amended 2026-10-02 (#177, by the owner, #169):** "There is a 'new side bubble' button in the
+side bubble pane, this does not belong there", and "Sources are for some reason not entereable
+in the side bubble?"
+- **No `+ newSideBubble` in an Overlay.** The second-level Options a Tree has are still listed
+  and still open (10.9); the editor only stops offering to create one there. An aside opened as
+  its own page (`/admin/trees/<t>/<aside id>`) is the centre, and its fan has the `+` (30.4).
+- **The aside's own page is out of the Overlay's reach (an open point).** In the editor the
+  Overlay's heading link leads to the same page, `/admin/trees/<t>/<the centre's path>/<aside
+  id>`, which renders the centre with this Overlay open (10.9) -- not to the aside's own page
+  the paragraph above names, as built before #177 too; a click in it is now the title field's
+  (below); and the Overlay's `+` is gone. What leads to the aside's own page is then a line of
+  the to-do list (33.3), while the aside still has something to do, or its address typed in the
+  address bar. So, until the owner decides otherwise, two things cannot be done from the
+  editor's UI for a side bubble with nothing left to do: giving it a side bubble of its own (a
+  second-level side bubble), which the Overlay's `+` did before #177; and replacing or removing
+  its picture once attached, which the Overlay has never offered (there the picture is a link
+  to its file) and the aside's own page does as the centre's (31.3). #177's task 4 counted on
+  reaching that page "through its heading link". #177 reports this and builds no way there.
+- **The button's title follows the aside's.** The Option's title (60, on the button) and the
+  aside's (80, in the Overlay) stay two fields of the format. While the creator types the
+  aside's title, the Option button's title on the centre takes each new text cut to 60 whole
+  characters (`cutTo`, measured as 28.4 measures), for as long as, when the editing began, it
+  was empty or the aside's title so cut, and no write of the button's title was waiting in the
+  queue (typed or followed, and not yet answered, 29.2). That last condition is there because
+  the page holds the button's title as the last response left it (29.7): a write still waiting
+  may be the creator's own words on the button, which the aside's title must not overwrite. So
+  a title focused again while the button's write is still unanswered -- offline, or retrying
+  (29.5) -- does not move the button. Words a creator has edited on the button stay as written.
+  Once the two differ, either way, the button does not follow again unless its words are
+  emptied, or made the title so cut, by hand. The two are two field writes of the one queue
+  (29.2), flushed together on blur.
+- **The fields are the Bubble's**: the same `Field`, so the placeholders, the box sizes and the
+  stop at the limit of 28.2 and 28.4 (#172) hold in the Overlay as on the Bubble. A click in the
+  title no longer follows the heading's link around it (10.9): that link reloaded the page, and
+  the title could not be entered with the mouse.
+- **The Sources are entered as the centre's (28.1)**: in the panel at and above the guarantee,
+  and below it -- under 564 pixels of height or 792 of width, where step 6 of 10.5 hides every
+  inline Sources block -- in their collapsed Sheet, as 28.6 has the Bubble's, of a `<details
+  name>` group of its own (`sources-sheet`), so that it opens inside the Overlay without closing
+  it and the Source Sheets it holds do not close it. Before, an editor's Overlay had no collapsed
+  copy, and below those sizes its Sources -- their lines and `+ addSource` -- were on no part of
+  the page: the owner's finding, reproduced on `dev` as of 2026-09-27 and as of 2026-10-02. The
+  public Overlay is as it was: it has no collapsed copy, and below those sizes it shows no
+  Sources (10.5's step 6 as built since #80).
 
 ### 30.6 Re-pointing: the link menu and the picker
 
@@ -4220,6 +4284,24 @@ may hang under several Nodes; nothing is copied.
 ### 30.7 Removing a Link
 
 `removeLink` removes the Answer or the Option; **the target stays** in the draft.
+
+**Amended 2026-10-02 (#177, by the owner, #169):** "there should be below in the middle a
+'Delete side-bubble' button, which deletes the one that is opened." The Overlay of each of the
+centre's Options ends, at the foot of its panel and in its middle, with `deleteSideBubble`,
+outlined in `danger` (the `sideDelete` slot, 34.2). It asks once, in place, naming the side
+bubble's title as it stands then (`confirmDeleteSideBubble`, or `confirmDeleteUntitledSideBubble`
+before it has one), the focus on `cancel`; `confirm` then
+- deletes the aside's Node -- `DELETE .../nodes/<aside id>` (22.4), which removes this step's
+  Option, and every other Link to it, in the same write -- when no other Node leads to it;
+- removes only this step's Option -- `remove-option { target }` -- when another Node leads to the
+  aside as well, which the confirmation says (`sideBubbleStays`); the aside stays there. The page
+  knows it from the draft's index, `Draft.referrers` (19.2): ids, never a Node read (34.7).
+
+Then the editor goes to the step's own address: the Overlay closes, and the fan closes the gap.
+What the aside led to stays in the draft, as for every deleted step (30.8, 30.9). The Overlay a
+URL opens one level deeper (10.9) has no delete, its Option not being this step's; on the
+first aside's own page it is that page's side bubble and has one. `removeLink` above is
+unchanged by #177.
 
 ### 30.8 The step menu: deleting a Node
 
@@ -4678,7 +4760,8 @@ that are not fields. The types are `src/editor/mode.ts`.
 | `enlargedControls(node, index)` | `EnlargedView` | #140 |
 | `structure(node)` | `TreeView` (the Answer row) | `Structure` (#139) |
 | `linkMenu(node, link)` | `TreeView` (each Answer and Option button) | `Structure` (#139) |
-| `sideAdd(node)` | `TreeView` (the fan; the Overlay's list) | `Structure` (#139) |
+| `sideAdd(node)` | `TreeView` (the fan; ~~the Overlay's list~~, **[#177]** on the centre only, 30.5) | `Structure` (#139) |
+| `sideDelete(node, index)` | **[#177]** `TreeView` (the foot of the Overlay of the Node's Option `index`) | `Structure` (#177, 30.7) |
 | `stepMenu(node)` | `Bubble` (the rim above) | `StepMenu` (#139) |
 | ~~`mark()`~~ | not built (**[#141] As built** below) | `Marker`, drawn by the description's `Field` (#141) |
 | `onTermClick` | `Explainer` | #141 |

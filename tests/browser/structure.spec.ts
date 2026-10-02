@@ -2,10 +2,12 @@
  * **[#139]** The structure editing, in a browser (docs/specs/application.md 30, 35.4;
  * ADR-133-structure-editing): from an empty root, `+ Yes` lands on a new empty Node whose up
  * arrow returns; `treeEndsHere` with an outcome shows the badge; the side `+` opens the new
- * Overlay editable and the Option's title edits on the button, and the Overlay's own `+`
- * makes a second-level aside; `changeTarget` to an existing Node makes two Answers reach one
- * Node and the published walk (through #136's route) follows both; `createNew` from the
- * picker; `removeLink` leaves an orphan the draft reports; `linkExisting` hangs it back;
+ * Overlay editable and the Option's title edits on the button, and **[#177]** a second-level
+ * aside is made from the aside's own page, the Overlay offering no `+` (30.4, 30.5, amended;
+ * `side-bubble.spec.ts` has the rest of #177); `changeTarget` to an existing Node makes two
+ * Answers reach one Node and the published walk (through #136's route) follows both;
+ * `createNew` from the picker; `removeLink` leaves an orphan the draft reports, which the API
+ * hangs back (**[#177]** the editor no longer offers `linkExisting`);
  * `deleteStep` goes to the parent and the parent's button is gone, or to the root with no
  * Trail; a Node with Options is refused an end and the Sheet says so; the ninth Option's `+`
  * is absent; and the count of Nodes created equals the count in the published `tree.json`.
@@ -231,46 +233,48 @@ test('+ No makes the second Answer; the new Node gets its own two Answers, each 
   expect((await nodeOf(page, cookie, n2)).answers).toEqual({ yes: n2a, no: n2b })
 })
 
-test('the side-bubble + creates an Option and its aside and lands on the Overlay, open and editable; the Option’s title edits on the button; the Overlay’s own + makes a second-level aside (30.4, 30.5)', async ({ browser }) => {
+/**
+ * **[#177]** Types the title of the aside in the Overlay its creation opened, key by key, and
+ * leaves it: its Option button's title follows it (30.5, amended).
+ */
+async function titleAside(page: Page, id: string, title: string): Promise<void> {
+  // Drawn after hydration: the field listens from here on.
+  await expect(page.locator('details.overlay[open] > .sheet-backdrop')).toBeAttached()
+  const area = page.locator(`[data-field="${id} title.en"] textarea`)
+  await expect(area).toHaveValue('')
+  await area.click()
+  await page.keyboard.type(title, { delay: 5 })
+  await area.blur()
+}
+
+test('the side-bubble + creates an Option and its aside at one click and lands on the Overlay, open and editable; the Option’s title follows the aside’s and edits on the button; a second-level aside is made from the aside’s own page (30.4, 30.5)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor(['start']))
   const add = page.locator('.options > li.options-add > .side-add')
   await expect(add).toHaveCount(1)
-  await expect(add.locator(':scope > .sheet-open .option-title')).toHaveText('New side bubble')
-  await add.locator(':scope > .sheet-open').click()
-  const form = page.locator('.structure-form--side').filter({ visible: true })
-  await form.getByRole('button', { name: 'Create a new one' }).click()
-  const title = form.locator('.structure-title')
-  await expect(title).toBeFocused()
-  await title.fill('An aside')
-  await form.getByRole('button', { name: 'Confirm' }).click()
+  await expect(add.locator('.option-title')).toHaveText('New side bubble')
+  await add.click()
   a1 = await landed(page, `/admin/trees/${TREE}/start`)
 
   // The aside's address under this page renders the page with the new Overlay open (10.9, 30.4).
   const overlay = page.locator(`.options > li:has(.overlay-interior[data-node="${a1}"]) > details.overlay`)
   await expect(overlay).toHaveAttribute('open', '')
-  await expect(page.locator(`[data-field="${a1} title.en"] textarea`)).toHaveValue('An aside')
+  await titleAside(page, a1, 'An aside')
   await expect(page.locator(`[data-field="start options[0].title.en"] textarea`)).toHaveValue('An aside')
   await shoot(page, 'side-bubble-overlay')
-  expect((await nodeOf(page, cookie, 'start')).options).toEqual([{ title: { en: 'An aside' }, target: a1 }])
-  expect((await nodeOf(page, cookie, a1)).title).toEqual({ en: 'An aside' })
+  await expect.poll(async () => (await nodeOf(page, cookie, 'start')).options).toEqual([{ title: { en: 'An aside' }, target: a1 }])
+  await expect.poll(async () => (await nodeOf(page, cookie, a1)).title).toEqual({ en: 'An aside' })
 
-  // The Overlay's list gains `+ newSideBubble`, in a Sheet of its own group, which navigates to the deeper address.
-  const deeper = overlay.locator(':scope > .sheet-panel .side-add--list')
-  await deeper.locator(':scope > .sheet-open').click()
-  await expect(overlay.locator(':scope > .sheet-panel')).toBeVisible()
-  const deeperForm = page.locator('.structure-form--side').filter({ visible: true })
-  await deeperForm.getByRole('button', { name: 'Create a new one' }).click()
-  await deeperForm.locator('.structure-title').fill('A deeper aside')
-  await deeperForm.getByRole('button', { name: 'Confirm' }).click()
-  a2 = await landed(page, `/admin/trees/${TREE}/start/${a1}`)
+  // **[#177]** The Overlay offers no `+` (30.5, amended): the aside's own page is the centre, and its fan's makes the deeper aside.
+  await expect(overlay.locator('.side-add')).toHaveCount(0)
+  await page.goto(editor([a1]))
+  await page.locator('.options > li.options-add > .side-add').click()
+  a2 = await landed(page, `/admin/trees/${TREE}/${a1}`)
   await expect(page.locator(`.overlay-interior[data-node="${a2}"]`)).toBeVisible()
-  await expect(page.locator(`[data-field="${a2} title.en"] textarea`)).toHaveValue('A deeper aside')
-  expect((await nodeOf(page, cookie, a1)).options).toEqual([{ title: { en: 'A deeper aside' }, target: a2 }])
+  await titleAside(page, a2, 'A deeper aside')
+  await expect.poll(async () => (await nodeOf(page, cookie, a1)).options).toEqual([{ title: { en: 'A deeper aside' }, target: a2 }])
 
-  // Closed with the cross; then the Option's title, edited on the button, is the Option's, not the aside's (30.5).
-  await page.locator('details.overlay[open] > .sheet-panel > .sheet-close').first().click()
-  await expect(page.locator('details.overlay[open]')).toHaveCount(0)
+  // Then the Option's title, edited on the button, is the Option's, not the aside's (30.5).
   await page.goto(editor(['start']))
   const button = page.locator('[data-field="start options[0].title.en"] textarea')
   await button.click()
@@ -355,7 +359,7 @@ test('deleteStep from the step menu: confirmed with the title, the editor goes t
   expect((await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH')).toEqual([])
 })
 
-test('removeLink removes the Option and leaves its target in the draft as an orphan; linkExisting hangs it back from the picker (30.6, 30.7, 30.9)', async ({ browser }) => {
+test('removeLink removes the Option and leaves its target in the draft as an orphan, which the API hangs back (30.6, 30.7, 30.9)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor(['start']))
   const item = page.locator('.options > li').filter({ has: page.locator(`.overlay-interior[data-node="${a1}"]`) })
@@ -373,13 +377,11 @@ test('removeLink removes the Option and leaves its target in the draft as an orp
   expect(todo.filter((v) => v.rule === 'V-ORPHAN').map((v) => v.file)).toEqual([a1])
   expect(todo.filter((v) => v.rule === 'V-REACH').map((v) => v.file)).toEqual([a2])
 
-  await page.locator('.options > li.options-add > .side-add > .sheet-open').click()
-  const form = page.locator('.structure-form--side').filter({ visible: true })
-  await form.getByRole('button', { name: 'Link an existing one' }).click()
-  await form.locator('.structure-pick').filter({ hasText: a1 }).click()
-  await expect(status(page)).toContainText(/^Saved \d/)
+  // **[#177]** The editor no longer offers `linkExisting` (30.4, amended; ADR-169-tree-creation-ui-round
+  // decision 5); the API's `add-option` still links an existing Node, and hangs a1 back for the walk below.
+  expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/start`, { op: 'add-option', target: a1, title: { en: 'An aside' } })).status()).toBe(200)
+  await page.goto(editor(['start']))
   await expect(page.locator(`.overlay-interior[data-node="${a1}"]`)).toHaveCount(1)
-  // The Option's title is the aside's, as the picker showed it (30.6); nothing was copied but that.
   expect((await nodeOf(page, cookie, 'start')).options).toEqual([{ title: { en: 'An aside' }, target: a1 }])
   expect((await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH' || v.rule === 'V-ORPHAN')).toEqual([])
 })
@@ -397,22 +399,21 @@ test('a Node with Options cannot end: the Sheet shows the refusal and the Node i
   expect((await nodeOf(page, cookie, a1)).outcome).toBeUndefined()
 })
 
-test('the ninth Option’s + is absent: the full Node with eight Options has no side-bubble + and every button its link menu (30.4, 30.6)', async ({ browser }) => {
+test('the ninth Option’s + is absent: the full Node with eight Options has no side-bubble + and every button its link menu; no Overlay has one (30.4, 30.5, 30.6)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(`${origin}/admin/trees/hidden-draft/full`)
   await expect(page.locator('.options > li')).toHaveCount(8)
   await expect(page.locator('.options > li.options-add')).toHaveCount(0)
   await expect(page.locator('.link-menu--option')).toHaveCount(8)
-  // Each of the eight Overlays' lists still has its own `+` (30.5), for its aside; **[#175]** and
-  // no `+` on the page is the centre's: every one stands in an Overlay's panel.
-  await expect(page.locator('.side-add--list')).toHaveCount(8)
-  await expect(page.locator('.side-add')).toHaveCount(8)
-  await expect(page.locator('.overlay > .sheet-panel .side-add--list')).toHaveCount(8)
+  // **[#177]** None of the eight Overlays offers a `+` any more (30.5, amended): before, each list ended in one.
+  await expect(page.locator('.side-add')).toHaveCount(0)
   // **[#175]** Nor does a ninth get past the editor: the store refuses both writes that would
   // add one, with 22.3's 422 and V-COUNT, and the Node keeps its eight.
   const ninth = [
     await api(page, cookie, 'PATCH', '/trees/hidden-draft/nodes/full', { op: 'add-option', title: { en: 'A ninth' } }),
     await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'full', link: 'option' }, title: { en: 'A ninth' } }),
+    // **[#177]** The `+`'s own write, which sends no title (30.4, amended).
+    await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'full', link: 'option' } }),
   ]
   for (const refused of ninth) {
     expect(refused.status()).toBe(422)
@@ -422,9 +423,9 @@ test('the ninth Option’s + is absent: the full Node with eight Options has no 
   }
   const full = await api(page, cookie, 'GET', '/trees/hidden-draft/nodes/full')
   expect(((await full.json()) as { node: DraftNode }).node.options).toHaveLength(8)
-  // An Overlay's list gains `+ newSideBubble` (30.5), and an explanation Node that is the centre gets the fan's `+` and the three buttons (30.1, 30.4).
   await page.goto(`${origin}/admin/trees/hidden-draft/full/opt-one`)
-  await expect(page.locator('details.overlay[open] .side-add--list')).toHaveCount(1)
+  await expect(page.locator('details.overlay[open] .side-add')).toHaveCount(0)
+  // An explanation Node that is the centre gets the fan's `+` and the three buttons (30.1, 30.4).
   await page.goto(`${origin}/admin/trees/hidden-draft/opt-three`)
   await expect(page.locator('.options > li.options-add > .side-add')).toHaveCount(1)
   await expectChoice(page)

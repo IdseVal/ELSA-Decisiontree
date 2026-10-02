@@ -26,7 +26,8 @@
  * **[#138]** With `edit` (34.1) it draws a draft: every address through `edit.links`, an
  * Option's title through the `field` slot, and the structure slots of 34.2 where their
  * controls belong -- `structure` in the Answer row, `linkMenu` beside each Answer and Option
- * button, `sideAdd` in the fan's next free slot and after an Overlay's list. The Node type
+ * button, `sideAdd` in the fan's next free slot, and **[#177]** `sideDelete` at the bottom of
+ * each of the fan's Overlays. The Node type
  * follows the Tree read (`Readable`): a `Node` on the public page, a `DraftNode` in the
  * editor, whose Links are read through `linksOf` either way (34.6). Absent, not one
  * attribute differs.
@@ -229,7 +230,8 @@ function UpArrow({ view }: { view: View }) {
  * explanation Nodes' addresses is what the fan collapses to (10.5, step 4).
  *
  * **[#138]** In edit mode the `sideAdd` slot takes the fan's next free slot, as one more
- * entry after the last Option, and the `linkMenu` slot stands in each entry beside its button.
+ * entry after the last Option, and the `linkMenu` slot stands in each entry beside its button;
+ * **[#177]** the `sideDelete` slot closes each Option's Overlay.
  */
 function Options({ node, view }: { node: AnyNode; view: View }) {
   const { address, ui, uiLang, idPrefix, asides, open, links, edit } = view
@@ -270,6 +272,7 @@ function Options({ node, view }: { node: AnyNode; view: View }) {
                   open={target !== null && open?.href === target.href}
                   view={view}
                   idPrefix={`${idPrefix}a${index}-`}
+                  remove={edit?.slots.sideDelete?.(node, index)}
                 />
                 {edit?.slots.linkMenu?.(node, { kind: 'option', index })}
               </li>
@@ -333,7 +336,8 @@ function optionPicture(target: Aside<AnyNode> | null, treeId: string, lang: stri
  * target's title -- and whose one page is the target's Interior, its heading a link to the
  * target's own address, with the target's own Options under it as plain links to the deeper
  * addresses. In a neighbour frame the button stands with an empty slot and no page behind it
- * (11.3, 11.4).
+ * (11.3, 11.4). **[#177]** In edit mode `remove`, the `sideDelete` slot's control, stands
+ * last, under them.
  */
 function Overlay({
   title,
@@ -343,6 +347,7 @@ function Overlay({
   unbuttoned = false,
   view,
   idPrefix,
+  remove,
 }: {
   /** The target's title; in edit mode the Option's title as a field (28.1). */
   title: ReactNode
@@ -355,6 +360,8 @@ function Overlay({
   unbuttoned?: boolean
   view: View
   idPrefix: string
+  /** **[#177]** Edit mode's `deleteSideBubble`, at the bottom of the page (30.7); absent elsewhere. */
+  remove?: ReactNode
 }) {
   const { ui, uiLang, links, edit } = view
   const lang = view.address.lang
@@ -397,7 +404,7 @@ function Overlay({
                     </ul>
                   </>
                 )}
-                {edit?.slots.sideAdd?.(aside.node)}
+                {remove}
               </div>,
             ]
           : []
