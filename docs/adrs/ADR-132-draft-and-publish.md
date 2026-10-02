@@ -4,6 +4,10 @@
 - Issue: #132 -- Architecture: freeze the store for the editor round
 - Spec: `docs/specs/application.md` section 19 (new); 5.1 amended; `docs/specs/tree-format.md`
   7 and 10 amended
+- Amended 2026-10-02 by issue #171 (`ADR-171-elsa-tree-5.md`): the draft is an
+  `elsa-tree/5` file and its schema is derived from `schemas/elsa-tree-5.json` by the same
+  two keywords and two `required` lists; V-TERMINAL's blocking half is the shape of
+  `terminal` (its one key, `label`), no longer the outcome set.
 - Amends: `docs/adrs/ADR-4-validity-rules.md` ("reject the whole Tree" stands for the
   published copy; a draft is held with its violations listed),
   `ADR-118-json-schema.md` (a second compiled schema, derived from the first at start,
