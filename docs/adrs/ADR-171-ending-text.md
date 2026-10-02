@@ -162,8 +162,10 @@ running page (`application.md` 10.1, amended 2026-09-18): the numbers are the pa
   321 pixels wide. Rejected for now: between 480 and 791 the editor's step controls take the
   right half of the band (`application.md` 30.8; #178 replaces them), below 640 pixels tall
   the arrow's foot stands in the band, and the Terminal would need re-measuring at every
-  width there. A later issue can take it if 19 proves short; the format's number would not
-  change for a longer limit alone, as #102's cut showed for a shorter one.
+  width there. A later issue can take it if 19 proves short. A longer limit is a change to
+  the limits, which `tree-format.md` section 10 publishes as a new format number,
+  `elsa-tree/6`; the one exception on record is #102's cut, which the owner took under an
+  unchanged number (`tree-format.md` 5.7).
 - **20 characters** (this ADR's first version), at the same tracking. One character more, but
   three of the seven 20-character endings measured take a second line in DejaVu Sans Bold at
   480 to 491 pixels wide. Nothing scrolls -- the badge is placed on the rim and grows with its
