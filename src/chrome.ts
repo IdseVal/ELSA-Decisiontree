@@ -216,11 +216,10 @@ export interface Chrome {
   deleteTree: string
   unpublishFirst: string
   confirmDeleteTree: string
-  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button, the side-bubble `+`, and the two choices of its Sheet. */
+  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button, the side-bubble `+`, and the picker's way to a new Node. */
   treeEndsHere: string
   newSideBubble: string
   createNew: string
-  linkExisting: string
   /** **[#139]** The link menu of an Answer or Option button (30.6, 30.7): its name and its two actions. */
   linkMenu: string
   changeTarget: string
@@ -231,9 +230,8 @@ export interface Chrome {
   removeEnd: string
   /** The confirmation named with the step's title: a function, so a language may order the sentence its own way (3.2). */
   confirmDelete: (title: string) => string
-  /** **[#139]** The picker (30.6): its heading, and the placeholder of the new side-bubble's title. */
+  /** **[#139]** The picker (30.6): its heading. */
   pickTarget: string
-  sideBubbleTitle: string
   /** **[#140]** The editor's pictures (31): the pickers, the attach Sheet, the enlarged view's four controls, the picker's two refusals. */
   addPicture: string
   attach: string
@@ -302,6 +300,16 @@ export interface Chrome {
   hint: string
   creditHint: string
   imageDescriptionHint: string
+  /**
+   * **[#177]** The delete at the bottom of an opened side bubble (30.7, amended): the button, its
+   * confirmation named with the side bubble's title -- a function, so a language may order the
+   * sentence its own way (3.2) -- and without a title, and what it adds where another step leads
+   * to the side bubble too.
+   */
+  deleteSideBubble: string
+  confirmDeleteSideBubble: (title: string) => string
+  confirmDeleteUntitledSideBubble: string
+  sideBubbleStays: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -455,7 +463,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     treeEndsHere: 'Tree ends here',
     newSideBubble: 'New side bubble',
     createNew: 'Create a new one',
-    linkExisting: 'Link an existing one',
     linkMenu: 'This link',
     changeTarget: 'Lead somewhere else',
     removeLink: 'Remove this link',
@@ -464,7 +471,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeEnd: 'Does not end here after all',
     confirmDelete: (title) => `Delete "${title}"? What it led to stays.`,
     pickTarget: 'Which step?',
-    sideBubbleTitle: 'The side bubble\u2019s title',
     addPicture: 'Add a picture',
     attach: 'Attach',
     makeMain: 'Make main picture',
@@ -516,6 +522,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     hint: 'Why this is asked',
     creditHint: 'The maker and the licence of a picture must be named, for copyright reasons. The credit is shown with the enlarged picture.',
     imageDescriptionHint: 'A screen reader says this in place of the picture, for people who cannot see it.',
+    deleteSideBubble: 'Delete side bubble',
+    confirmDeleteSideBubble: (title) => `Delete the side bubble "${title}"?`,
+    confirmDeleteUntitledSideBubble: 'Delete this side bubble? It has no title yet.',
+    sideBubbleStays: 'Another step leads to it too: it stays there.',
   },
   nl: {
     yes: 'Ja',
@@ -667,7 +677,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     treeEndsHere: 'Boom eindigt hier',
     newSideBubble: 'Nieuwe zijbubbel',
     createNew: 'Een nieuwe maken',
-    linkExisting: 'Een bestaande koppelen',
     linkMenu: 'Deze koppeling',
     changeTarget: 'Ergens anders heen',
     removeLink: 'Deze koppeling verwijderen',
@@ -676,7 +685,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeEnd: 'Eindigt hier toch niet',
     confirmDelete: (title) => `"${title}" verwijderen? Waar die heen leidde blijft.`,
     pickTarget: 'Welke stap?',
-    sideBubbleTitle: 'De titel van de zijbubbel',
     addPicture: 'Afbeelding toevoegen',
     attach: 'Toevoegen',
     makeMain: 'Hoofdafbeelding maken',
@@ -728,6 +736,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     hint: 'Waarom dit gevraagd wordt',
     creditHint: 'De maker en de licentie van een afbeelding moeten genoemd worden, vanwege het auteursrecht. De bronvermelding staat bij de vergrote afbeelding.',
     imageDescriptionHint: 'Een schermlezer leest dit voor in plaats van de afbeelding, voor wie die niet kan zien.',
+    deleteSideBubble: 'Zijbubbel verwijderen',
+    confirmDeleteSideBubble: (title) => `De zijbubbel "${title}" verwijderen?`,
+    confirmDeleteUntitledSideBubble: 'Deze zijbubbel verwijderen? Hij heeft nog geen titel.',
+    sideBubbleStays: 'Een andere stap leidt er ook heen: daar blijft hij staan.',
   },
 }
 

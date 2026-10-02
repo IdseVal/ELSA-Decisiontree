@@ -1,6 +1,11 @@
 # ADR-133-structure-editing: a Node without Links offers three buttons in the Answer row; a fresh yes or no creates its target and navigates to it without a slide; the side-bubble + creates an Option and opens its aside for editing in the Overlay; an Answer or an Option may be re-pointed at an existing Node; a Node is deleted from its own page and an orphan stays until someone deletes it
 
 - Status: ACCEPTED (frozen) -- 2026-09-26; confirms the PROPOSED reading of core document 3.4
+- Superseded in part by `ADR-177-side-bubble-editing.md` (decision 5, and in decision 6 the last
+  entry of the Overlay's list, `+ newSideBubble`) -- 2026-10-02 (issue #177): one click on the
+  side-bubble `+` creates the side bubble and opens it, with no Sheet, so neither `createNew` nor
+  `linkExisting` is offered from it, and an Overlay offers no `+`. The rest stands, but for
+  decision 6's heading link (see the note there).
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 30 (new)
 - Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`, `ADR-171-elsa-tree-5.md`):
@@ -94,7 +99,13 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    `add-option { target }`. After a creation the editor navigates to **the aside's
    address** under this page -- `<the page's path>/<new id>` -- which by 10.9 renders this
    same page with the new Overlay open: the creator is looking at the side-bubble they
-   just made, editable.
+   just made, editable. **Superseded by ADR-177 (2026-10-02):** by the owner's word in #169
+   ("The side bubble should just open the side bubble"), the `+` opens no Sheet: one click
+   sends `POST .../nodes { from: { node, link: 'option' } }` with no title, the Node and the
+   Option each titled `""` in one write, and the editor goes to the aside's address as above,
+   where the side bubble's title, text, picture and Sources are entered. `linkExisting` is no
+   longer offered from the `+`, as `ADR-169-tree-creation-ui-round.md` decision 5 reads #177
+   (`ADR-177-side-bubble-editing.md` decision 1, application.md 30.4).
 
 6. **An aside is edited in the Overlay, in place.** The Overlay of 10.9 holds the target's
    Interior rendered by the same component as the Bubble's, so with the `edit` seam its
@@ -108,7 +119,16 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    renders the deeper Overlay). The Overlay's heading link to the explanation Node's own
    address is where a creator goes to give an aside Options of its own with the fan, or to
    delete it (decision 8). Nothing is edited in two places: the centre's fields are on the
-   Bubble, the aside's in its Overlay, the Option's title on its button.
+   Bubble, the aside's in its Overlay, the Option's title on its button. **Superseded by
+   ADR-177 (2026-10-02):** by the owner's word in #169 ("There is a 'new side bubble' button in
+   the side bubble pane, this does not belong there"), the Overlay's list has no last entry
+   `+ newSideBubble`; the second-level Options a Tree has are still listed and still open, and
+   an aside opened as its own page keeps its fan's `+` (`ADR-177-side-bubble-editing.md`
+   decision 3, application.md 30.5). The heading link is no way to the aside's own page in the
+   editor: as built before #177 too, it leads to the aside's address under the page, as in
+   decision 5, which renders the same page with the Overlay open (10.9); and a click in it is
+   now its title field's (ADR-177 decision 4). ADR-177's Consequences record what that leaves out of the editor's reach, as an
+   open point.
 
 7. **An Answer or an Option may be pointed at an existing Node.** Every Answer button and
    every Option button carries, in edit mode, a small `...` control at its outer end

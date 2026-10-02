@@ -91,6 +91,12 @@ export interface Tree {
  */
 export interface Draft extends Omit<Tree, 'getNode' | 'filePath' | 'lastModified'> {
   getNode(id: string): Promise<DraftNode | null>
+  /**
+   * **[#177]** The ids of the Nodes whose Answers or Options name `id`, in file order: whether
+   * another step also leads to a side bubble its delete would take away (application.md 30.7).
+   * Ids, not Nodes, from the index built at opening, as `nodeIds` and the titles are (5.1).
+   */
+  referrers(id: string): string[]
   /** The whole draft's to-do list: every advisory violation, after opening. */
   readonly advisory: Violation[]
   /** Absolute path of `draft.json`. */
@@ -169,7 +175,16 @@ export async function openTree(dir: string, options?: { draft: true }): Promise<
 export function draftOf(raw: RawTree, root: string, advisory: Violation[]): Draft {
   const manifest = toManifest(raw.tree)
   const nodes = new Map<string, DraftNode>()
-  for (const node of raw.tree.nodes as Mapping[]) nodes.set(node.id as string, toDraftNode(node))
+  const referrers = new Map<string, Set<string>>()
+  for (const node of raw.tree.nodes as Mapping[]) {
+    const drafted = toDraftNode(node)
+    nodes.set(drafted.id, drafted)
+    for (const target of [...Object.values(drafted.answers ?? {}), ...drafted.options.map((option) => option.target)]) {
+      if (target === undefined) continue
+      if (!referrers.has(target)) referrers.set(target, new Set())
+      referrers.get(target)!.add(drafted.id)
+    }
+  }
   const themeReferences = referencedThemeFiles(manifest.theme)
   return {
     id: raw.id,
@@ -179,6 +194,7 @@ export function draftOf(raw: RawTree, root: string, advisory: Violation[]): Draf
     getNode: async (nodeId) => (isId(nodeId) ? (nodes.get(nodeId) ?? null) : null),
     getTitle: (nodeId) => nodes.get(nodeId)?.title ?? null,
     nodeIds: () => [...nodes.keys()],
+    referrers: (nodeId) => [...(referrers.get(nodeId) ?? [])],
     // Every picture of the folder, named or not: the editor shows an upload before it is
     // attached (application.md 22.6, 31.2). Only the admin area reaches a draft.
     imagePath: (file) => (isImageFile(file) && raw.images.has(file) ? path.join(root, 'images', file) : null),

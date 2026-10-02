@@ -1060,8 +1060,13 @@ a.language:hover,
  * what keeps it winning: without it the left padding would win, and below 1280 the buttons on
  * the left of the Bubble would lose their 12 pixels at the inner end, as the `+` there once
  * did (#175).
+ *
+ * **[#177]** The `+` is a button of its own, not an Overlay's summary, so each is named whole
+ * inside `:is()`, which gives both the (0,3,1) of the longer. That is what keeps this size on
+ * the `+`: its own rule in the editor's section, (0,2,1), comes later, and its `font: inherit`
+ * would take the size back at an equal specificity.
  */
-.options > li > :is(.overlay, .side-add) > .sheet-open {
+:is(.options > li > .overlay > .sheet-open, .options > li > .side-add) {
   position: relative;
   isolation: isolate;
   gap: 6px;
@@ -1072,7 +1077,7 @@ a.language:hover,
 }
 
 .overlay > .sheet-open::before,
-.options > li > .side-add > .sheet-open::before {
+.options > li > .side-add::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -1097,7 +1102,7 @@ a.language:hover,
   text-align: right;
 }
 
-.options > li[data-side="left"] > :is(.overlay, .side-add) > .sheet-open {
+:is(.options > li[data-side="left"] > .overlay > .sheet-open, .options > li[data-side="left"] > .side-add) {
   padding: 0 0 0 10px;
 }
 
@@ -2320,7 +2325,7 @@ fieldset:disabled .admin-submit {
   }
 
   /* Without the picture the button is 10.5's as it was before #175: 176 of label, 16 on 20. */
-  .options > li[data-side] > :is(.overlay, .side-add) > .sheet-open {
+  :is(.options > li[data-side] > .overlay > .sheet-open, .options > li[data-side] > .side-add) {
     padding: 0 12px;
     font-size: 16px;
     line-height: 20px;
@@ -3619,46 +3624,52 @@ fieldset:disabled .admin-submit {
 
 /*
  * The side-bubble `+` (30.4): one more button of the fan, the Option button's size, dashed in
- * `rule`, the `+` where the picture is and `newSideBubble` where the title is.
+ * `rule`, the `+` where the picture is and `newSideBubble` where the title is. **[#177]** The
+ * button itself, which creates at one click: no Sheet behind it (30.4, amended). Not being a
+ * Sheet's `.sheet-open`, it sets the round ends and the page's type itself; the size of both
+ * is the fan's shape's, with the Options (#175).
  */
 .options > li > .side-add {
-  display: block;
-}
-
-.side-add > .sheet-open {
   display: var(--fan, flex);
   align-items: center;
   width: 100%;
   min-height: var(--option-h);
-  border: 1px dashed var(--rule);
+  margin: 0;
+  border-radius: 999px;
+  font: inherit;
   color: var(--elsa-text-muted);
   background: var(--elsa-surface);
   text-align: left;
   white-space: normal;
-  transition: border-color 160ms var(--ease), color 160ms var(--ease);
+  cursor: pointer;
+  transition: color 160ms var(--ease);
 }
 
-.side-add > .sheet-open:hover {
+.options > li > .side-add:hover:enabled {
   color: var(--elsa-text);
-  border-color: var(--accent-secondary-read);
-  background: var(--elsa-surface);
+}
+
+/* Held down while the creation is on its way, and on a Tree that cannot be edited (29.4). */
+.options > li > .side-add:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 /*
- * **[#175]** In the fan it has the Option button's shape (`.options > li > :is(.overlay,
- * .side-add)`, with the Options): its slot fills the inner end, and its dashed outline is
- * drawn under the slot as the Option button's is, so the slot's own dashed ring is the end's
- * outline and no end is drawn twice.
+ * **[#175]** In the fan it has the Option button's shape (`:is(.options > li > .overlay >
+ * .sheet-open, .options > li > .side-add)`, with the Options): its slot fills the inner end,
+ * and its dashed outline is drawn under the slot as the Option button's is, so the slot's own
+ * dashed ring is the end's outline and no end is drawn twice.
  */
-.options > li > .side-add > .sheet-open::before {
+.options > li > .side-add::before {
   border-style: dashed;
 }
 
-.options > li > .side-add > .sheet-open:hover::before {
+.options > li > .side-add:hover:enabled::before {
   border-color: var(--accent-secondary-read);
 }
 
-.options > li[data-side="left"] > .side-add > .sheet-open {
+.options > li[data-side="left"] > .side-add {
   flex-direction: row-reverse;
   text-align: right;
 }
@@ -3671,19 +3682,44 @@ fieldset:disabled .admin-submit {
   line-height: 1;
 }
 
-/* After an Overlay's list of second-level Options: the dashed pill of an operation (30.5). */
-.side-add--list {
-  display: inline;
+/*
+ * **[#177]** `deleteSideBubble`, below in the middle of an opened side bubble (30.7): last on the
+ * Overlay's page, which the free height above it pushes to the panel's lower edge. Outlined in
+ * `danger` while it only asks, filled once it is the confirmation's own button, so that the
+ * one red block on the panel is the one that deletes.
+ */
+.side-delete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  text-align: center;
 }
 
-.side-add--list > .sheet-open {
-  display: inline-block;
-  width: auto;
-  min-height: 0;
-  padding: 0 10px;
+.side-delete-button {
+  min-height: 32px;
+  padding: 4px 16px;
+  border: 1px solid var(--danger-read);
   border-radius: 999px;
-  font-size: var(--small);
-  line-height: 18px;
+  color: var(--danger-read);
+  background: var(--elsa-surface);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease);
+}
+
+.side-delete-button:hover:enabled {
+  color: var(--elsa-background);
+  background: var(--elsa-danger);
+}
+
+.side-delete .structure-actions {
+  justify-content: center;
 }
 
 /* The Sheets' pages: the outcomes, the picker, the confirmations. */
@@ -3696,10 +3732,6 @@ fieldset:disabled .admin-submit {
   max-width: 100%;
   font-size: var(--small);
   line-height: var(--small-line);
-}
-
-.structure-form form {
-  display: contents;
 }
 
 .structure-form h2,

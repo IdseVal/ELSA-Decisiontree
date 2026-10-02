@@ -60,8 +60,10 @@ export interface EditorSlots {
   structure?(node: Node | DraftNode): ReactNode
   /** The `...` control of an Answer or Option button (#139). */
   linkMenu?(node: Node | DraftNode, link: LinkRef): ReactNode
-  /** The side-bubble `+` in the fan's next free slot, and after an Overlay's list (#139). */
+  /** The side-bubble `+` in the fan's next free slot (#139); **[#177]** on the centre only, no longer after an Overlay's list. */
   sideAdd?(node: Node | DraftNode): ReactNode
+  /** **[#177]** `deleteSideBubble` at the bottom of the Overlay the Node's Option `index` opens (30.7). */
+  sideDelete?(node: Node | DraftNode, index: number): ReactNode
   /** The `...` on the rim above, with `removeEnd` and `deleteStep` (#139). */
   stepMenu?(node: Node | DraftNode): ReactNode
   /**
