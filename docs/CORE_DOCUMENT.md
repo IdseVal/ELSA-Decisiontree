@@ -499,10 +499,12 @@ owner's words leave a choice:
   navigates to it; "tree ends here" asks for one of the four outcomes; the side-bubble `+`
   creates an Option and its explanation Node and opens it, editable, in the Overlay of 3.2;
   an Answer or an Option may also be pointed at an existing Node, since the data is a
-  graph (**[#169]** no longer offered by the editor, below); a step is deleted from its own page and a step nothing reaches stays until
+  graph (**[#169]** no longer offered by the editor, below); a step is deleted
+  from its own page and a step nothing reaches stays until
   someone deletes it. Every field is edited where the end user sees it, one language at a
   time (the language switch), with the limits of 3.1 shown live and never stopping a
-  keystroke (**[#169]** reversed, below); images are uploaded where they appear and attached only with a credit; a term
+  keystroke (**[#169]** reversed, below); images are uploaded where they
+  appear and attached only with a credit; a term
   is marked by selecting it. `docs/adrs/ADR-133-structure-editing.md`,
   `ADR-133-bubble-edited-in-place.md`, `ADR-133-images-in-the-editor.md`,
   `ADR-133-explainers-in-the-editor.md`; `docs/specs/application.md` 28 to 32.
@@ -526,7 +528,8 @@ owner's words leave a choice:
   -- carry the plain default look of 3.2 with the site's name where a logo would be; the
   editor carries the Tree's own Theme (**[#169]** narrowed, below); the Publish toggle and
   the collaborators are in a panel that opens from a button at the top right of the
-  editor's bar showing the Tree's state (**[#169]** changed, below). The editor reuses the end-user components through one optional setting, so the
+  editor's bar showing the Tree's state (**[#169]** changed, below). The editor reuses
+  the end-user components through one optional setting, so the
   end-user pages are unchanged (10.36, 10.37 for the two things this required that the
   owner did not say). `docs/adrs/ADR-133-top-panel.md`, `ADR-133-reuse-rule.md`;
   `docs/specs/application.md` 33, 34.
