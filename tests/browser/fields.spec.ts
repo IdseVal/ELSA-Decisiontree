@@ -264,7 +264,7 @@ test('the screenshots of #172: an empty root, texts at their limits in the Bubbl
     // The top panel.
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     await page.locator('.panel-sheet > .sheet-open').click()
-    await expect(page.locator('.panel-body')).toBeVisible()
+    await expect(page.locator('.panel-sheet .panel-body')).toBeVisible()
     await shoot(page, `top-panel-${size}`)
   }
 })
