@@ -2366,6 +2366,14 @@ fieldset:disabled .admin-submit {
   .sources-collapsed {
     display: block;
   }
+
+  /*
+   * **[#177]** Not an Overlay's in the editor: it has no collapsed copy (10.9), so its Sources stay
+   * where they are edited, as 28.1 has them, or a side bubble's could not be entered at all.
+   */
+  .overlay-interior > .sources--editing {
+    display: block;
+  }
 }
 
 /* Step 7 -- the type scale steps down, 16 -> 15 -> 14 -> 13, never below 13. */
