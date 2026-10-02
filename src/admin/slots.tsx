@@ -47,7 +47,6 @@ export interface Structure {
 /** The chrome strings the editor's client components read through `words`, as strings. */
 function editorWords(ui: Chrome): EditorWords {
   return {
-    missingText: ui.missingText,
     characters: ui.characters,
     lines: ui.lines,
     saving: ui.saving,
@@ -67,6 +66,8 @@ function editorWords(ui: Chrome): EditorWords {
     explainerLimit: ui.explainerLimit,
     term: ui.term,
     explanation: ui.explanation,
+    placeholderTerm: ui.placeholderTerm,
+    placeholderExplanation: ui.placeholderExplanation,
     markedIn: ui.markedIn,
     notMarkedIn: ui.notMarkedIn,
   }
@@ -74,6 +75,21 @@ function editorWords(ui: Chrome): EditorWords {
 
 /** The paths edited in place: #138's, and **[#140]** an Image's two texts in the enlarged view (31.3). */
 const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|images\[\d+\]\.(description|credit)|options\[\d+\]\.title|terminal\.outcome)$/
+
+/**
+ * **[#172]** What belongs in the field at a path, its placeholder while it is empty (28.2,
+ * amended): the chrome word for it, or none for a select.
+ */
+function placeholderOf(path: string, ui: Chrome): string {
+  if (path === 'title') return ui.placeholderTitle
+  if (path === 'description') return ui.placeholderText
+  if (/^sources\[\d+\]\.label$/.test(path)) return ui.placeholderSourceLabel
+  if (/^sources\[\d+\]\.url$/.test(path)) return ui.placeholderUrl
+  if (/^options\[\d+\]\.title$/.test(path)) return ui.placeholderOptionTitle
+  if (/^images\[\d+\]\.description$/.test(path)) return ui.placeholderImageDescription
+  if (/^images\[\d+\]\.credit$/.test(path)) return ui.placeholderCredit
+  return ''
+}
 
 /** Which paths hold a localised text: the page's language is appended to their key path (22.2). */
 const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title)$/
@@ -119,7 +135,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
   }
   /** The picker's list for a Node: every other Node (30.6). */
   const otherNodes = (nodeId: string): Pickable[] => structure.index.filter((entry) => entry.id !== nodeId)
-  const fieldWords: FieldWords = { missingText: words.missingText, characters: words.characters, lines: words.lines }
+  const fieldWords: FieldWords = { characters: words.characters, lines: words.lines }
   const others: OtherLanguage[] = languages.filter((other) => other !== lang).map((other) => ({ lang: other, href: links.withLang(address, other) }))
   const outcomes = OUTCOMES.map((outcome) => ({ value: outcome, label: ui[OUTCOME_LABEL[outcome]] }))
   // The badge leaves `legal` unlabelled under its heading (ADR-78); a select must name every kind.
@@ -132,6 +148,8 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     imageDescription: ui.imageDescription,
     attach: ui.attach,
     cancel: ui.cancel,
+    placeholderCredit: ui.placeholderCredit,
+    placeholderImageDescription: ui.placeholderImageDescription,
     addExtraPicture: ui.addExtraPicture,
     hint: ui.hint,
     creditHint: ui.creditHint,
@@ -144,7 +162,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     field(node, path, value, limit, rendered) {
       if (!EDITED.test(path)) return null
       const localised = LOCALISED.test(path)
-      const common = { nodeId: node.id, path, lang: localised ? lang : null, value, limit, others, words: fieldWords }
+      const common = { nodeId: node.id, path, lang: localised ? lang : null, value, limit, others, placeholder: placeholderOf(path, ui), words: fieldWords }
       if (path === 'terminal.outcome') {
         return <Field {...common} select={outcomes} label={ui.outcome} className="outcome" classByValue />
       }

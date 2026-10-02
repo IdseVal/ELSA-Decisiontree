@@ -22,7 +22,12 @@ import type { Chrome } from '../chrome.ts'
 import { shortfalls, type Shortfall } from '../contrast.ts'
 import type { ColourRole, Colours, FontFamily, Logo, Theme } from '../tree/types.ts'
 import { useEditor } from './Editor.tsx'
+import { heldToLimit } from './Field.tsx'
+import type { FieldLimit } from './mode.ts'
 import { themeCalls, type Refusal, type Typed, type WriteResponse } from './writes.ts'
+
+/** **[#172]** The logo's alternative text is 80 characters (tree-format.md 5.7): its typing stops there (28.4). */
+const ALT_LIMIT: FieldLimit = { characters: 80 }
 
 /** The chrome strings the Theme panel says. */
 export type ThemeWords = Pick<
@@ -30,6 +35,7 @@ export type ThemeWords = Pick<
   | 'theme'
   | 'logo'
   | 'logoAlt'
+  | 'placeholderLogoAlt'
   | 'uploadLogo'
   | 'replaceLogo'
   | 'removeLogo'
@@ -318,7 +324,10 @@ function FilePicker({ label, accept, disabled, onFile }: { label: string; accept
   )
 }
 
-/** The logo's alternative text in the page's language, saved when the field is left (28.2). */
+/**
+ * The logo's alternative text in the page's language, saved when the field is left (28.2);
+ * **[#172]** it says what belongs in it while empty and its typing stops at 80 (28.4).
+ */
 function AltText({ words, lang, value, disabled, onSave }: { words: ThemeWords; lang: string; value: string; disabled: boolean; onSave: (value: string) => void }) {
   const [text, setText] = useState(value)
   return (
@@ -326,7 +335,14 @@ function AltText({ words, lang, value, disabled, onSave }: { words: ThemeWords; 
       <span>
         {words.logoAlt} <span className="panel-tag">{lang}</span>
       </span>
-      <input lang={lang} value={text} disabled={disabled} onChange={(event) => setText(event.currentTarget.value)} onBlur={() => text !== value && onSave(text)} />
+      <input
+        lang={lang}
+        value={text}
+        placeholder={words.placeholderLogoAlt}
+        disabled={disabled}
+        onChange={(event) => setText(heldToLimit(event.currentTarget, text, event.currentTarget.value, ALT_LIMIT))}
+        onBlur={() => text !== value && onSave(text)}
+      />
     </label>
   )
 }

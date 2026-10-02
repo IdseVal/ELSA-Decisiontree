@@ -186,13 +186,21 @@ test('the ninth mark is disabled with explainerLimit', async ({ browser }) => {
   await expect(sheet(page)).toHaveCount(0)
 })
 
-test('a 201-character text is stored and shown over the limit at the field with V-LENGTH, and Publish is refused with V-LENGTH', async ({ browser }) => {
+// **[#172]** Typing stops at the limit (28.4, amended 2026-10-02): this test typed 201 characters
+// and found them stored. A text over 200 now comes from another route -- the API here -- and is
+// shown whole and marked; a key at its end does nothing.
+test('a 201-character text stored by another route is shown over the limit at the field with V-LENGTH, cannot grow, and Publish is refused with V-LENGTH', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
+  const long = 'x'.repeat(201)
+  expect((await api(page, cookie, 'PATCH', '/trees/marking/nodes/no-end', { path: 'explainers[0].text.en', value: long })).status()).toBe(200)
   await page.goto(`${origin}/admin/trees/marking/start/no-end`)
   await field(page, 'no-end', 'description.en').locator('.term').click()
   const text = sheet(page).locator('[data-field="no-end explainers[0].text.en"]')
-  const long = 'x'.repeat(201)
-  await text.locator('textarea').fill(long)
+  await expect(text.locator('textarea')).toHaveValue(long)
+  await text.locator('textarea').click()
+  await page.keyboard.press('Control+End')
+  await page.keyboard.type('y')
+  await expect(text.locator('textarea')).toHaveValue(long)
   await expect(page.locator('.editor-pill--over')).toHaveText('201 / 200')
   await expect(text).toHaveAttribute('data-over', 'true')
   await expect(status(page).locator('.editor-violation')).toHaveAttribute('data-rule', 'V-LENGTH')

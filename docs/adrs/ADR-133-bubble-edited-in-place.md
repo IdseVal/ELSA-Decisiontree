@@ -1,6 +1,9 @@
 # ADR-133-bubble-edited-in-place: every field is an editable region where the end user sees it; the language switch is the editing switch; the counters count as the validator counts and typing never stops at a limit; the description is edited as its source text; the no-scroll rule stands and every control the editor adds lives outside the text area
 
 - Status: ACCEPTED (frozen) -- 2026-09-26
+- Superseded in part by `ADR-172-typing-stops-at-the-limit.md` (decision 5 and the rejected
+  alternative "Stopping the keystroke at the maximum (`maxlength`)") -- 2026-10-02 (issue
+  #172). The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 28 (new); 3.2 amended (new keys)
 - Amends: `docs/adrs/ADR-38-no-scroll.md` (the rule holds in the editor; what the editor
@@ -62,7 +65,9 @@ fragment target in that text (5.9).
    is the one every field edits and saves under (`<field>.<lang>`). One language at a
    time, by construction: a field holds one string. A field whose text is missing or empty
    in the page's language is an empty region showing `missingText` as a placeholder in
-   `text-muted`, never saved as such; typing into it writes the language.
+   `text-muted`, never saved as such; typing into it writes the language. **[#172] Amended
+   2026-10-02 by the owner:** the placeholder names what belongs in the field ("Title",
+   "Text"), not `missingText` (application.md 28.2).
 
 3. **The rim shows which languages still lack a text.** While a field has the focus, the
    right rim (60 pixels wide, 10.1) shows at the field's height a **counter pill** and,
@@ -92,7 +97,8 @@ fragment target in that text (5.9).
    was the last edited (`ADR-133-autosave.md`, decision 3), and in the top panel's to-do
    list for as long as it holds. Nothing is truncated, nothing is lost: the owner asked
    for the limits *live* (#138), which means shown. The one place a limit is a wall is
-   Publish (19.3).
+   Publish (19.3). **Superseded by ADR-172 (2026-10-02):** by the owner's word in #169,
+   typing stops at the limit (`ADR-172-typing-stops-at-the-limit.md`, application.md 28.4).
 
 6. **The description is edited as its source text.** Blurred, the region shows the rendered
    text -- `richTextToHtml` on the client, the same function the server used, with the
@@ -137,7 +143,9 @@ fragment target in that text (5.9).
 - **Stopping the keystroke at the maximum (`maxlength`).** It would make the counter
   pointless, lose a pasted paragraph at its 151st character, and count in UTF-16 units
   where 3.8 counts code points. #132 rejected the store-side form of it for the same
-  reason.
+  reason. **Superseded by ADR-172 (2026-10-02):** the keystroke now stops at the maximum,
+  cut by `countedLength` and not by `maxlength`; that ADR says what became of each of
+  these three reasons.
 - **Refusing the write at the limit and keeping it only on screen.** A creator who leaves
   the page loses the text; the draft is the place text is safe.
 - **A per-field language tab inside the region** (edit `en` and `nl` of the title side by
