@@ -4590,7 +4590,11 @@ add-a-font form:
 A role's entry **is** library family X when its `family`, its `files` (name, weight, style)
 and its `licence` equal what `use-library-font` writes for X; anything else is the Tree's
 own. A library family shows its licence, fixed, and no other control. The Tree's own family
-keeps 33.8's controls: its name and licence edited, files added and removed.
+keeps 33.8's controls: its name and licence edited, files added and removed. Choosing a
+library family is refused with `fontNameTaken` (37.4), before anything is sent, when the other
+role's family has that family's name and is not that library family -- the first Tree's
+headings, say, while its running text keeps its own Open Sans: the library's `400 700` would
+overlap the other set's faces under one name.
 
 ### 37.3 `use-library-font`
 
@@ -4622,9 +4626,10 @@ unchanged), which answers `201 { file, family? }`. `family` is the font's own fa
 by `woff2FamilyName` (`src/store/woff2.ts`, pure): the WOFF2 table directory walked, the table
 stream decompressed with Node's Brotli -- never past the header's `totalSfntSize` and never past
 64 MiB -- and the `name` table's typographic family (name ID 16), else its family (name ID 1),
-from the Windows Unicode records, English (`0x0409`) first, then the Macintosh Roman ones;
-trimmed; and given only when it is 1 to 64 characters with none of 13.3's refused characters.
-Any malformation answers `null`, and the route then answers no `family`. The four library
+from the Windows Unicode records only, English (`0x0409`) first; trimmed; and given only when
+it is 1 to 64 characters with none of 13.3's refused characters. Any malformation answers
+`null`, and so does a font whose family name is in Macintosh records only; the route then
+answers no `family`, and the name field stays empty for the creator to fill. The four library
 files answer "Open Sans", "Roboto", "Atkinson Hyperlegible Next" and "Faustina" (Faustina by
 name ID 16; its ID 1 is "Faustina Light", the name of its upstream default instance).
 
@@ -4666,6 +4671,6 @@ licence is the `OFL-1.1` string, fixed.
 | `tests/fonts.test.ts` | every file of `FONT_LIBRARY` is in `fonts/<id>/` with its SHA-256; every file in `fonts/` is listed, an `OFL.txt` or the README; every name passes 3.6's font grammar; every licence id is in `FONT_LICENCES`; every stored licence string is at most 200 characters and ends with its SPDX address |
 | `tests/store/woff2.test.ts` | the four library files answer their names; a truncated file, a file of zeros and a WOFF2 without a `name` table answer `null` |
 | `tests/store/drafts.test.ts` | `use-library-font` copies the two files and the licence text and writes the entry of 37.3; choosing it twice writes the same bytes; it replaces the role's entry and keeps `body` before `heading`; an unknown family is 422 and copies nothing; a collaborator may, a reader without a role may not (21.2) |
-| `tests/browser/theme-panel.spec.ts` | the two selects and their entries; choosing a library family is seen at once in the editor and, after publishing, the public page fetches it from the Tree's own address (`theme.spec.ts`'s same-origin rule holds); an upload proposes the font's name, takes a licence from the list and from "Another licence…", and refuses a name the other role uses for other files; the first Tree's hand-made line shows as "Another licence…" |
+| `tests/browser/theme-panel.spec.ts` | the two selects and their entries; choosing a library family is seen at once in the editor and, after publishing, the public page fetches it from the Tree's own address (`theme.spec.ts`'s same-origin rule holds); an upload proposes the font's name, takes a licence from the list and from "Another licence…", and refuses a name the other role uses for other files; choosing the library's Open Sans for the first Tree's headings is refused the same way, with nothing sent; the first Tree's hand-made line shows as "Another licence…" |
 | `tests/browser/no-scroll.spec.ts` | one row more: the full-node fixture with each library family set in both roles, at 1280 x 640 and 360 x 640, in `en` and `nl` -- the browser's proof of 37.1's width rule |
 | the release | #180's pull request lists `.next/standalone/fonts/` after `npm run build`, and pastes the hashes it committed against `ADR-171-font-library.md` decision 3 |

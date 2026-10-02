@@ -48,17 +48,21 @@ real name.
    creating `theme` and `fonts` when absent; then the draft is validated and answered as any
    write (22.3). An unknown family id or role is 422 (V-THEME); permission is 21.2's `edit`,
    and the copy happens only after it. Choosing the same family again writes the same bytes.
-   A part is one field for 22.5, so two people choosing at once get the later choice.
+   A part is one field for 22.5, so two people choosing at once get the later choice. The
+   panel refuses the choice with `fontNameTaken`, before anything is sent, when the other
+   role's family has the library family's name and is not that library family: as decision
+   5 says of an upload, two `@font-face` sets under one name are one family to the browser,
+   and the library's weights `400 700` would overlap the other set's faces.
 3. **Choosing the role's empty choice** writes the `theme.fonts` part without that role's
    entry, or `null` when none is left, exactly as 33.8's removal does today.
 4. **Choosing `fontUpload`** opens the file picker; the file goes up through `POST
    /admin/api/trees/<t>/theme` under 22.6's rules, unchanged, and **the answer gains
    `family`**: the uploaded font's own family name, read by the server from the WOFF2's
-   `name` table -- the typographic family (name ID 16), else the family (name ID 1); the
-   Windows Unicode records first, English (`0x0409`) before any other language, then the
-   Macintosh Roman ones -- trimmed, and only when it is 1 to 64 characters with none of the
-   characters 13.3 refuses in a family name (a control character, `;`, `{`, `}`, `<`).
-   Otherwise `family` is absent. Under the dropdown the panel then shows what an uploaded
+   `name` table -- the typographic family (name ID 16), else the family (name ID 1); from the
+   Windows Unicode records only, English (`0x0409`) before any other language -- trimmed, and
+   only when it is 1 to 64 characters with none of the characters 13.3 refuses in a family
+   name (a control character, `;`, `{`, `}`, `<`). Otherwise `family` is absent, and the name
+   field stays empty for the creator to fill. Under the dropdown the panel then shows what an uploaded
    family needs before it is written: the name field holding that name (empty, with its
    placeholder, when absent), the licence dropdown (`ADR-171-licence-dropdown.md`), the file's
    weight and its style as today (33.8), and `addFont`. When the family is written, the
@@ -103,6 +107,10 @@ real name.
   `@font-face` set more.
 - **Reading weight and style from the file too.** Not asked; the panel's weight and style
   fields stay as #144 built them, and #180 explains them with a hint.
+- **The Macintosh Roman records as a fallback** (this ADR's first version). Only a legacy font
+  carries its family name there and not in the Windows records; for it the field stays empty
+  and the creator types the name, as #144 had it. Without them `woff2FamilyName` decodes one
+  encoding, UTF-16, and #180 has one kind of record to write and test.
 
 ## Consequences
 
