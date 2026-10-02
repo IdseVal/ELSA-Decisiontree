@@ -7,13 +7,13 @@
  *
  * What is refused here is what the format's key set refuses before anything is applied: a
  * path the format does not define (V-KEYS), a language the manifest does not declare
- * (V-L10N), an index or a Node that is not there. Everything else -- a wrong type, a bad
- * URL, an Answer on a Terminal -- is left to the validator, which answers it with the rule
- * the format names.
+ * (V-L10N), an index or a Node that is not there -- and **[#175]** a ninth Option, the one
+ * count the store closes at the write. Everything else -- a wrong type, a bad URL, an Answer
+ * on a Terminal -- is left to the validator, which answers it with the rule the format names.
  */
 import { randomBytes } from 'node:crypto'
 import { isLanguageTag } from '../tree/grammar.ts'
-import { isId, type Mapping } from '../tree/validate.ts'
+import { isId, MAX, type Mapping } from '../tree/validate.ts'
 import { malformed, StoreError } from './errors.ts'
 
 /** One field: a key path the format defines, and the string it becomes (22.2). */
@@ -210,6 +210,7 @@ export function applyOperation(tree: Mapping, nodeId: string, operation: Operati
       return []
     }
     case 'add-option': {
+      roomForOption(node, nodeId)
       const title = localisedInput(operation.title ?? {}, languages, nodeId, 'options')
       if (operation.target !== undefined) {
         append(node, 'options', { title, target: operation.target })
@@ -351,6 +352,7 @@ export function createNode(
       return id
     }
     case 'option': {
+      roomForOption(parent, from.node)
       const text = localisedInput(title ?? {}, languages, id, 'title')
       createEmptyNode(tree, id, text)
       append(parent, 'options', { title: structuredClone(text), target: id })
@@ -409,6 +411,20 @@ export function freshNodeId(tree: Mapping, requested?: unknown): string {
     const id = `n-${[...randomBytes(6)].map((byte) => alphabet[byte % 32]).join('')}`
     if (!taken.has(id)) return id
   }
+}
+
+/**
+ * **[#175]** Refuses a ninth Option on `node` (tree-format.md 5.7) as a blocking write: 422,
+ * nothing stored (22.3). Eight is a cap no write passes, not only the number the fan draws,
+ * and V-COUNT is advisory in a draft (19.2), so the validator alone would store the ninth as
+ * a to-do. A hand-made file with nine stays V-COUNT's, as before.
+ */
+function roomForOption(node: Mapping, nodeId: string): void {
+  const count = ((node.options as Mapping[] | undefined) ?? []).length
+  if (count < MAX.options) return
+  throw new StoreError(422, 'blocking', [
+    { file: nodeId, keyPath: 'options', rule: 'V-COUNT', message: `${count + 1} entries; at most ${MAX.options}`, advisory: false },
+  ])
 }
 
 /** A Node with nothing in it yet (30.2): an id, a version, and a title when one was given. */

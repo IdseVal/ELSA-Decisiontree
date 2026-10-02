@@ -704,9 +704,10 @@ for (const [width, height] of VIEWPORTS) {
         }),
       )
       await expect(page.locator('.options img.option-image')).toHaveCount(buttons.length)
-      expect(new Set(buttons.map((b) => b.font))).toEqual(new Set(['16px']))
+      // 15 since #175: the picture fills the button's inner end and leaves the title 120 pixels (10.3, amended).
+      expect(new Set(buttons.map((b) => b.font))).toEqual(new Set(['15px']))
       await noScroll(page, 'annex-i-legislation-2, the fan', lang, [
-        `${buttons.length} Option buttons ${buttons[0]!.w} x ${buttons[0]!.h}, titles at 16px, left edges ${buttons.map((b) => b.x).join(', ')}`,
+        `${buttons.length} Option buttons ${buttons[0]!.w} x ${buttons[0]!.h}, titles at 15px, left edges ${buttons.map((b) => b.x).join(', ')}`,
       ])
       await shot87(page, '8-4-annex-i-legislation-2-fan', lang)
 
