@@ -3172,15 +3172,18 @@ fieldset:disabled .admin-submit {
 /*
  * [#174] What the strip's `+` adds, said beside it on hover and on keyboard focus (31.1): in
  * the band's third column, right of the `+`, as wide as that column leaves and wrapping in
- * it, so it never reaches past the band (10.6). Hidden, not removed: showing it moves
- * nothing. Not the pointer's: the `+` under it stays the one target.
+ * it, so it never reaches past the band (10.6). Out of the flow, with that column's grid
+ * area as its box: showing it, or a second line of it, moves and grows nothing. Not the
+ * pointer's: the `+` under it stays the one target.
  */
 .editor-picker-label {
+  position: absolute;
   grid-row: 1;
   grid-column: 3;
-  justify-self: start;
+  top: 50%;
+  left: 8px;
   max-width: calc(100% - 8px);
-  margin-left: 8px;
+  translate: 0 -50%;
   padding: 2px 8px;
   border: 1px solid var(--rule);
   border-radius: 8px;
@@ -3195,8 +3198,8 @@ fieldset:disabled .admin-submit {
 
 /* After a strip the `+` stands in that column itself, and the label after it. */
 .carousel-strip ~ .editor-picker-label {
+  left: calc(67px + 8px);
   max-width: calc(100% - 67px - 8px);
-  margin-left: calc(67px + 8px);
 }
 
 .editor-picker--strip:is(:hover, :has(:focus-visible)) + .editor-picker-label {
@@ -3219,9 +3222,11 @@ fieldset:disabled .admin-submit {
   }
 
   .carousel > .editor-picker-label {
-    align-self: end;
+    top: auto;
+    bottom: 0;
+    left: 36px;
     max-width: calc(100% - 36px);
-    margin-left: 36px;
+    translate: none;
   }
 }
 

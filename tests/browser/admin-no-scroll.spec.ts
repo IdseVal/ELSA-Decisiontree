@@ -346,8 +346,10 @@ for (const lang of LANGUAGES) {
     }
     // [#174] Nine pictures on an explanation Node: a strip at its widest, and the `+` after it.
     const widest = `${origin}/admin/api/trees/hidden-draft/nodes/opt-one`
-    const headers = { Origin: origin, 'Content-Type': 'application/json' }
-    const pictures = ((await (await page.request.get(widest)).json()) as { node: { images: unknown[] } }).node.images.length
+    // The request context keeps no `Secure` cookie on plain http: the session travels in the header (admin.ts).
+    const { cookie } = await login(page, origin, 'admin', ADMIN_PASSWORD)
+    const headers = { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' }
+    const pictures = ((await (await page.request.get(widest, { headers })).json()) as { node: { images: unknown[] } }).node.images.length
     for (const file of ['two.png', 'three.png', 'four.png', 'five.png', 'six.png', 'seven.png', 'eight.png', 'nine.png'].slice(pictures - 1)) {
       const added = await page.request.patch(widest, { headers, data: JSON.stringify({ op: 'add-image', file, credit: 'Drawing: ELSA lab', description: { en: file } }) })
       expect(added.status(), file).toBe(200)
@@ -363,7 +365,21 @@ for (const lang of LANGUAGES) {
       await page.goto(`${origin}/admin/trees/hidden-draft/full${query}`)
       const main = page.locator('.bubble .main-image')
       // At the floor the notice stands in for the view (10.4): no picture to open.
-      if (!(await main.isVisible())) continue
+      if (!(await main.isVisible())) {
+        // [#174] Where the main image is given up (10.5, step 5) the strip's `+` still uploads:
+        // the attach Sheet and its hints at a phone's width, from the Terminal's pill.
+        await page.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`)
+        const plus = page.locator('.carousel > .editor-picker--strip')
+        if (!(await plus.isVisible())) continue
+        await plus.locator('input[type="file"]').setInputFiles(picture)
+        const attach = page.locator('.editor-attach-panel')
+        await expect(attach).toBeVisible()
+        record(await measure(page), 'editor', lang, viewport, 'attach Sheet, from the +')
+        await eachHint(page, attach, lang, viewport, 'attach Sheet, from the +')
+        await attach.locator('.sheet-controls button[type="button"]').click()
+        await expect(attach).toHaveCount(0)
+        continue
+      }
       await main.click()
       const enlarged = page.locator('.carousel-sheet > .sheet-panel')
       await expect(enlarged.locator('.editor-image-controls')).toBeVisible()
