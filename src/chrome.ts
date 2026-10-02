@@ -302,6 +302,36 @@ export interface Chrome {
   hint: string
   creditHint: string
   imageDescriptionHint: string
+  /**
+   * **[#180]** The font dropdown per role and the licence dropdown (37.2, 37.4, 37.5): the role's
+   * empty choice, the two groups, the upload entry, the refusal of a name the other role uses
+   * for other files, and the licence entry with a free line.
+   */
+  fontDefault: string
+  fontSameAsBody: string
+  fontLibraryGroup: string
+  fontOwnGroup: string
+  fontUpload: string
+  fontNameTaken: string
+  licenceOther: string
+  /**
+   * **[#180]** The Theme panel's information hints (#169): what each colour role paints, what
+   * the contrast warning measures, what the logo's alternative text is for, what each font role
+   * sets, why a font needs a licence, and what an uploaded file's weight and style say.
+   */
+  colourBackgroundHint: string
+  colourSurfaceHint: string
+  colourTextHint: string
+  colourTextMutedHint: string
+  colourAccentHint: string
+  colourAccentSecondaryHint: string
+  colourDangerHint: string
+  contrastHint: string
+  logoAltHint: string
+  fontBodyHint: string
+  fontHeadingHint: string
+  fontLicenceHint: string
+  fontFileHint: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -516,6 +546,26 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     hint: 'Why this is asked',
     creditHint: 'The maker and the licence of a picture must be named, for copyright reasons. The credit is shown with the enlarged picture.',
     imageDescriptionHint: 'A screen reader says this in place of the picture, for people who cannot see it.',
+    fontDefault: "Default: the reader's own font",
+    fontSameAsBody: 'Same as running text',
+    fontLibraryGroup: 'Fonts that come with the app',
+    fontOwnGroup: "This tree's own",
+    fontUpload: 'Upload a font file…',
+    fontNameTaken: 'The other role uses this name for other files.',
+    licenceOther: 'Another licence…',
+    colourBackgroundHint: 'The page behind the bubble, the bar at its top and the side-bubble buttons.',
+    colourSurfaceHint: 'The bubble that holds each step, and the panels that open over the page, such as an enlarged picture.',
+    colourTextHint: 'The titles and texts in the bubble, the Sources under their heading included. It must read well on Page and on Bubble.',
+    colourTextMutedHint: "Quieter text: the Sources heading, a picture's credit, the disclaimer and the language buttons. It must read well on Page and on Bubble too.",
+    colourAccentHint: 'The outline around the bubble, and the badge on an ending.',
+    colourAccentSecondaryHint: 'The Yes and No buttons, the arrow back and Start again; a link shows it when you point at it. The words on the buttons are in Text or Page, whichever reads better.',
+    colourDangerHint: 'Errors: a text over its limit or refused while you edit it. On the public page, an ending marked prohibited.',
+    contrastHint: 'Text needs enough difference from what is behind it to be read, also by people who see less well. These pairs fall below the WCAG minimum; your colours are saved all the same.',
+    logoAltHint: 'A screen reader says this in place of the logo, for people who cannot see it: usually the name of the lab.',
+    fontBodyHint: 'The font of the running text: descriptions, Sources, the side-bubble buttons and captions.',
+    fontHeadingHint: "The font of the titles: the tree's name, each step's title, the Sources heading and the words on the Yes and No buttons.",
+    fontLicenceHint: 'A font is shared with this tree, so its licence must allow that, and the tree says which it is. A font whose licence you cannot name does not belong in it.',
+    fontFileHint: 'The weight is how bold this file draws: 400 regular, 700 bold, or a range such as 400 700 for a variable font. Tick Italic when the file is the slanted face.',
   },
   nl: {
     yes: 'Ja',
@@ -728,6 +778,26 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     hint: 'Waarom dit gevraagd wordt',
     creditHint: 'De maker en de licentie van een afbeelding moeten genoemd worden, vanwege het auteursrecht. De bronvermelding staat bij de vergrote afbeelding.',
     imageDescriptionHint: 'Een schermlezer leest dit voor in plaats van de afbeelding, voor wie die niet kan zien.',
+    fontDefault: 'Standaard: het lettertype van de lezer',
+    fontSameAsBody: 'Zelfde als lopende tekst',
+    fontLibraryGroup: 'Lettertypen van de app',
+    fontOwnGroup: 'Eigen aan deze boom',
+    fontUpload: 'Een lettertypebestand uploaden…',
+    fontNameTaken: 'De andere rol gebruikt deze naam voor andere bestanden.',
+    licenceOther: 'Een andere licentie…',
+    colourBackgroundHint: 'De pagina achter de bubbel, de balk erboven en de knoppen van de zijbubbels.',
+    colourSurfaceHint: 'De bubbel waarin elke stap staat, en de panelen die over de pagina opengaan, zoals een vergrote afbeelding.',
+    colourTextHint: 'De titels en teksten in de bubbel, de bronnen onder hun kop inbegrepen. Ze moeten goed leesbaar zijn op Pagina en op Bubbel.',
+    colourTextMutedHint: 'Rustiger tekst: de kop Bronnen, de bronvermelding van een afbeelding, de disclaimer en de taalknoppen. Ook die moet goed leesbaar zijn op Pagina en op Bubbel.',
+    colourAccentHint: 'De rand om de bubbel, en het label op een einde.',
+    colourAccentSecondaryHint: 'De knoppen Ja en Nee, de pijl terug en Opnieuw beginnen; een link krijgt deze kleur als je ernaar wijst. De woorden op de knoppen staan in Tekst of Pagina, wat het best leesbaar is.',
+    colourDangerHint: 'Fouten: een tekst boven zijn limiet of geweigerd terwijl je hem bewerkt. Op de publieke pagina een einde dat als verboden is gemarkeerd.',
+    contrastHint: 'Tekst moet genoeg verschillen van wat erachter staat om leesbaar te zijn, ook voor wie minder goed ziet. Deze paren blijven onder het WCAG-minimum; je kleuren worden toch bewaard.',
+    logoAltHint: 'Een schermlezer leest dit voor in plaats van het logo, voor wie het niet kan zien: meestal de naam van het lab.',
+    fontBodyHint: 'Het lettertype van de lopende tekst: beschrijvingen, bronnen, de knoppen van de zijbubbels en bijschriften.',
+    fontHeadingHint: 'Het lettertype van de titels: de naam van de boom, de titel van elke stap, de kop Bronnen en de woorden op de knoppen Ja en Nee.',
+    fontLicenceHint: 'Een lettertype wordt met deze boom gedeeld, dus de licentie moet dat toestaan, en de boom zegt welke het is. Een lettertype waarvan je de licentie niet kunt noemen, hoort er niet in.',
+    fontFileHint: 'Het gewicht is hoe vet dit bestand tekent: 400 normaal, 700 vet, of een bereik zoals 400 700 voor een variabel lettertype. Vink Cursief aan als het bestand de schuine letter is.',
   },
 }
 

@@ -4352,6 +4352,25 @@ fieldset:disabled .admin-submit {
   font-size: var(--small);
 }
 
+/* **[#180]** A font role: its name and hint on one line, its dropdown under them across the panel (37.2). */
+.theme-font-head {
+  display: flex;
+  align-items: center;
+}
+
+.theme-font > .panel-select {
+  flex: none;
+  align-self: stretch;
+}
+
+/* A library family's licence: fixed, said rather than offered (37.5). */
+.theme-font-licence {
+  margin: 0;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text-muted);
+}
+
 /* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge, and the to-do bubble may. */
 @media (max-width: 479px) {
   .panel-sheet > .sheet-panel {

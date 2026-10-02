@@ -17,6 +17,7 @@ import { editorLinks } from '../../../../../../editor/links.ts'
 import { LogoutButton } from '../../../../../../editor/LogoutButton.tsx'
 import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
 import { ThemePanel, type ThemeWords } from '../../../../../../editor/ThemePanel.tsx'
+import { FONT_LIBRARY, FONT_LICENCES, libraryEntry } from '../../../../../../fonts.ts'
 import { Todo, TodoButton, type TodoWords } from '../../../../../../editor/Todo.tsx'
 import { centreOf, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
 import type { Account } from '../../../../../../store/accounts.ts'
@@ -203,6 +204,8 @@ function TopPanel({
                 theme={draft.manifest.theme}
                 defaults={DEFAULT_COLOURS}
                 filesHref={adminThemeHref(draft.id, '')}
+                library={FONT_LIBRARY.map((family) => ({ id: family.id, entry: libraryEntry(family, 'body') }))}
+                licences={FONT_LICENCES}
               />
             }
           />
@@ -297,7 +300,7 @@ function panelWords(ui: Chrome): PanelWords {
   }
 }
 
-/** **[#144]** The chrome strings the Theme panel says (33.8). */
+/** **[#144]** The chrome strings the Theme panel says (33.8); **[#180]** the dropdowns' and the hints' too (37). */
 function themeWords(ui: Chrome): ThemeWords {
   return {
     theme: ui.theme,
@@ -337,6 +340,27 @@ function themeWords(ui: Chrome): ThemeWords {
     themeFileRefused: ui.themeFileRefused,
     notSaved: ui.notSaved,
     requestFailed: ui.requestFailed,
+    hint: ui.hint,
+    fontDefault: ui.fontDefault,
+    fontSameAsBody: ui.fontSameAsBody,
+    fontLibraryGroup: ui.fontLibraryGroup,
+    fontOwnGroup: ui.fontOwnGroup,
+    fontUpload: ui.fontUpload,
+    fontNameTaken: ui.fontNameTaken,
+    licenceOther: ui.licenceOther,
+    colourBackgroundHint: ui.colourBackgroundHint,
+    colourSurfaceHint: ui.colourSurfaceHint,
+    colourTextHint: ui.colourTextHint,
+    colourTextMutedHint: ui.colourTextMutedHint,
+    colourAccentHint: ui.colourAccentHint,
+    colourAccentSecondaryHint: ui.colourAccentSecondaryHint,
+    colourDangerHint: ui.colourDangerHint,
+    contrastHint: ui.contrastHint,
+    logoAltHint: ui.logoAltHint,
+    fontBodyHint: ui.fontBodyHint,
+    fontHeadingHint: ui.fontHeadingHint,
+    fontLicenceHint: ui.fontLicenceHint,
+    fontFileHint: ui.fontFileHint,
   }
 }
 
