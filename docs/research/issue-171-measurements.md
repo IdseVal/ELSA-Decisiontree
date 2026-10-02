@@ -1,4 +1,4 @@
-# Issue #171: what the ending's 20 characters and the font library rest on
+# Issue #171: what the ending's 19 characters and the font library rest on
 
 > Measured on 2026-10-02 by the architect run for issue #171, on Windows 11 with Node 22.18.0,
 > Playwright 1.62.1 (its Chromium), Python 3.13.5, fontTools 4.60.0 and the `brotli` module
@@ -6,7 +6,8 @@
 > `docs/specs/` cite is here, with the script that produced it and its output as it ran.
 > The scripts read this repository at the commit they ran on and a work folder outside it;
 > none of them is part of the application. This is a record, not a contract: the contracts
-> are the specs and the ADRs.
+> are the specs and the ADRs. Section 3's second script, `badge-room.mjs`, was run on the
+> same day with the same tools by the fix run that answered the review of pull request #185.
 
 ## 1. The Terminals of the repository
 
@@ -252,7 +253,7 @@ the converted example against elsa-tree-5.json: valid
   refused  $schema naming elsa-tree-4.json: /$schema must match pattern "^(?:/|https?://[^\s/?#]+(?:/[^\s?#]*)?/)schemas/elsa-tree-5\.json$"
 ```
 
-## 3. The ending badge: its room, and the width of 20 characters
+## 3. The ending badge: its room, and the width of 19 and 20 characters
 
 **The room**, from `src/app/[lang]/globals.css` as it stands on `dev`: the badge (`.outcome`)
 is absolutely placed in the Bubble's padding box with `right: calc(50% + var(--up-size) / 2)`
@@ -271,10 +272,13 @@ calc(100% - 24px)`. So:
 
 **The text**, measured by `badge-final.mjs` in Chromium in the badge's own style -- 11 px,
 weight 700, capitals, 14 px of padding and a 1 px border each side -- at its tracking of
-0.12 em and at 0.04 em, for fifteen distinct endings of 18 to 20 characters, in every face a
-badge can be drawn in: the library's four (section 5), Arial Bold and Segoe UI Bold (the
-default stack's faces on Windows; Liberation Sans, which the CI runner draws, has Arial's
-metrics) and DejaVu Sans Bold 2.37 (the widest fallback, `application.md` 10.7). Run as
+0.12 em and at 0.04 em, for fifteen distinct endings of 18 to 20 characters, in seven faces:
+the library's four (section 5), Arial Bold and Segoe UI Bold (the default stack's faces on
+Windows; Liberation Sans, which the CI runner draws, has Arial's metrics) and DejaVu Sans Bold
+2.37 (the widest fallback, `application.md` 10.7). Not measured: San Francisco, the face the
+default stack names first on Apple's systems (`-apple-system`, `BlinkMacSystemFont`,
+`src/theme.ts`), and Helvetica Neue, which it names fifth; neither is installed on the
+machine these scripts ran on. Run as
 `node badge-final.mjs <repository> <work folder>`, with the library built (section 5) and
 `ref/DejaVuSans-Bold.ttf` from the `dejavu-fonts-ttf-2.37.zip` release in the work folder.
 
@@ -356,8 +360,166 @@ in Arial Bold, one in Open Sans and in Segoe UI Bold; at 0.04 em none does in an
 DejaVu Sans Bold, where three of the seven 20-character endings do, by at most 5.9 pixels --
 a second line between 480 and 491 pixels wide. `Niet van toepassing`, the longest word the
 conversion writes, is 178.0 pixels in Open Sans at 0.12 em, the 178 that issue #82 measured
-on the running page. Hence `ADR-171-ending-text.md` decisions 2 and 6: 20 characters, and
-0.04 em below 792 pixels wide.
+on the running page. The first version of `ADR-171-ending-text.md` took 20 characters and
+0.04 em below 792 pixels wide from this, and counted DejaVu Sans Bold's second line as
+harmless; the review of pull request #185 found that it is not, and the next script measures
+it.
+
+**The badge in place, and 19 characters.** The widths above are each badge alone, on one line.
+`badge-room.mjs` places the same fifteen endings where and as `globals.css` places the badge --
+absolutely, in the padding box of the Bubble at a 480-pixel window, with the stylesheet's
+`border-box` sizing -- so a text wider than the room wraps as it would on the page, and it reads
+each badge's height: 24 pixels is one line, 46 is two. The band above the text area is 24
+pixels inside the outline (`--rim-y`) and the badge stands 2 pixels down in it, so a second line
+reaches 24 pixels into the text area, over the title, which is the text area's first line
+below 792 pixels wide (`application.md` 10.5's step 5 hides the main image there). It adds one
+face, DejaVu Sans as installed, and names the face Chromium drew each row in, since a machine
+without the face a row names draws another. Run as `node badge-room.mjs <repository> <work
+folder>` in the work folder of `badge-final.mjs`, built again for this run: `library.py`
+(section 5) gave every file the hash it shows there, and `ref/DejaVuSans-Bold.ttf` is the 2.37
+release's.
+
+```js
+// The ending badge as globals.css places it (.outcome) in the Bubble's padding box at a 480-pixel
+// window: 444 pixels wide, so the badge's room is 198. The fifteen endings of badge-final.mjs, in
+// the same faces and in an installed DejaVu Sans, at 0.04 em (the tracking below 792 pixels
+// wide) and 0.12 em; each badge's height says whether it holds one line (24) or takes a second
+// (46), and each row names the face Chromium drew it in. Usage: node badge-room.mjs <repo>
+// <work folder>. (issue #171, the review of PR #185)
+import { createRequire } from 'node:module'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
+const [repo, work] = process.argv.slice(2)
+const require = createRequire(path.join(repo, 'package.json'))
+const { chromium } = require('@playwright/test')
+
+const url = (file, type) => `url(data:font/${type};base64,${readFileSync(path.join(work, file)).toString('base64')})`
+const faces = [
+  ['Open Sans (library)', `@font-face{font-family:'F1';font-weight:400 700;src:${url('library/fonts/open-sans/open-sans-normal.woff2', 'woff2')}}`, "'F1'"],
+  ['Roboto (library)', `@font-face{font-family:'F2';font-weight:400 700;src:${url('library/fonts/roboto/roboto-normal.woff2', 'woff2')}}`, "'F2'"],
+  ['Atkinson Hyperlegible Next (library)', `@font-face{font-family:'F3';font-weight:400 700;src:${url('library/fonts/atkinson-hyperlegible-next/atkinson-hyperlegible-next-normal.woff2', 'woff2')}}`, "'F3'"],
+  ['Faustina (library)', `@font-face{font-family:'F4';font-weight:400 700;src:${url('library/fonts/faustina/faustina-normal.woff2', 'woff2')}}`, "'F4'"],
+  ['DejaVu Sans Bold 2.37', `@font-face{font-family:'F5';font-weight:700;src:${url('ref/DejaVuSans-Bold.ttf', 'ttf')}}`, "'F5'"],
+  ['Arial Bold (Windows)', '', 'Arial'],
+  ['Segoe UI Bold (Windows)', '', "'Segoe UI'"],
+  ['DejaVu Sans Bold (installed)', '', "'DejaVu Sans'"],
+]
+const endings = [
+  'Vergunning vereist',
+  'Niet van toepassing', 'Maatregelen vereist', 'Hoog risico: melden', 'Wettelijk verboden!',
+  'Mandatory safeguard', 'Women at work only!', 'Moderate to high MW',
+  'Raadpleeg een jurist', 'Ethisch aanvaardbaar', 'Waarborgen verplicht', 'Mandatory safeguards',
+  'Seek specialist help', 'Not an AI system yet', 'Zulässig mit Auflage',
+]
+// .outcome of globals.css, with --up-size 48px and the stylesheet's border-box sizing; the box is
+// the padding box of a 448-pixel Bubble (a 480 window less the page inset of 16 a side) inside
+// its two 2-pixel borders. The probe, a badge of many short words, fills the room.
+const outcome = (tracking) => `position:absolute;top:2px;left:0;right:calc(50% + 24px);width:fit-content;max-width:calc(50% - 24px);margin:0 auto;padding:0 14px;border:1px solid;border-radius:999px;font-size:11px;line-height:22px;font-weight:700;letter-spacing:${tracking};text-transform:uppercase`
+const box = 'position:relative;width:444px;height:60px'
+const html = `<!doctype html><html><head><style>*,*::before,*::after{box-sizing:border-box}
+${faces.map(([, css]) => css).join('\n')}</style></head><body>
+${faces.map(([name, , stack]) => ['0.04em', '0.12em'].map((t) => endings.map((e) => `<div style="${box};font-family:${stack}"><p data-face="${name}" data-tracking="${t}" style="${outcome(t)}">${e}</p></div>`).join('')).join('\n')).join('\n')}
+<div style="${box}"><p id="probe" style="${outcome('0.04em')}">${'WWW '.repeat(30)}</p></div>
+</body></html>`
+
+const browser = await chromium.launch()
+const page = await browser.newPage()
+await page.setContent(html)
+await page.evaluate(() => document.fonts.ready)
+const room = await page.evaluate(() => document.getElementById('probe').getBoundingClientRect().width)
+const badges = await page.evaluate(() => [...document.querySelectorAll('p[data-face]')].map((p) => {
+  const r = p.getBoundingClientRect()
+  return { face: p.dataset.face, tracking: p.dataset.tracking, text: p.textContent, n: [...p.textContent].length, width: r.width, height: r.height }
+}))
+// The face Chromium drew each row in, from the DevTools protocol: a stack names a face, and a
+// machine without it draws another.
+const cdp = await page.context().newCDPSession(page)
+await cdp.send('DOM.enable')
+await cdp.send('CSS.enable')
+const { root } = await cdp.send('DOM.getDocument', { depth: -1 })
+const drawnIn = {}
+for (const [face] of faces) {
+  const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector: `p[data-face="${face}"]` })
+  const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId })
+  drawnIn[face] = fonts.map((f) => f.familyName).join(' + ')
+}
+await browser.close()
+
+console.log(`the badge's room at a 480-pixel window: ${room.toFixed(1)} pixels`)
+for (const [face] of faces) {
+  for (const tracking of ['0.04em', '0.12em']) {
+    const rows = badges.filter((b) => b.face === face && b.tracking === tracking)
+    const of19 = rows.filter((b) => b.n <= 19)
+    const widest19 = of19.reduce((a, b) => (b.width > a.width ? b : a))
+    const two = rows.filter((b) => b.height > 30).map((b) => `${b.text} (${b.n}) ${b.height.toFixed(0)}px tall`)
+    console.log(`${face.padEnd(38)} ${tracking}  drawn in ${drawnIn[face]}  widest of at most 19: ${widest19.text} ${widest19.width.toFixed(1)}  one line: ${rows.length - two.length}/${rows.length}  two lines: ${two.length ? two.join(', ') : 'none'}`)
+  }
+}
+// Liberation Sans, which the CI runner draws the default stack in, has Arial's metrics.
+const arial = badges.filter((b) => b.face === 'Arial Bold (Windows)' && b.tracking === '0.04em')
+console.log(`each ending in Arial Bold at 0.04em: ${arial.map((b) => `${b.text} (${b.n}) ${b.width.toFixed(1)}`).join(', ')}`)
+```
+
+Output on Windows 11, as `badge-final.mjs` ran (DejaVu Sans is not installed there, so its
+last two rows are drawn in a fallback):
+
+```
+the badge's room at a 480-pixel window: 198.0 pixels
+Open Sans (library)                    0.04em  drawn in Open Sans  widest of at most 19: Mandatory safeguard 178.2  one line: 15/15  two lines: none
+Open Sans (library)                    0.12em  drawn in Open Sans  widest of at most 19: Mandatory safeguard 195.0  one line: 14/15  two lines: Mandatory safeguards (20) 46px tall
+Roboto (library)                       0.04em  drawn in Roboto  widest of at most 19: Mandatory safeguard 170.2  one line: 15/15  two lines: none
+Roboto (library)                       0.12em  drawn in Roboto  widest of at most 19: Mandatory safeguard 186.9  one line: 15/15  two lines: none
+Atkinson Hyperlegible Next (library)   0.04em  drawn in Atkinson Hyperlegible Next  widest of at most 19: Mandatory safeguard 172.8  one line: 15/15  two lines: none
+Atkinson Hyperlegible Next (library)   0.12em  drawn in Atkinson Hyperlegible Next  widest of at most 19: Mandatory safeguard 189.5  one line: 15/15  two lines: none
+Faustina (library)                     0.04em  drawn in Faustina Light  widest of at most 19: Mandatory safeguard 169.3  one line: 15/15  two lines: none
+Faustina (library)                     0.12em  drawn in Faustina Light  widest of at most 19: Mandatory safeguard 186.0  one line: 15/15  two lines: none
+DejaVu Sans Bold 2.37                  0.04em  drawn in DejaVu Sans  widest of at most 19: Mandatory safeguard 195.5  one line: 12/15  two lines: Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall
+DejaVu Sans Bold 2.37                  0.12em  drawn in DejaVu Sans  widest of at most 19: Maatregelen vereist 198.0  one line: 3/15  two lines: Maatregelen vereist (19) 46px tall, Wettelijk verboden! (19) 46px tall, Mandatory safeguard (19) 46px tall, Women at work only! (19) 46px tall, Moderate to high MW (19) 46px tall, Raadpleeg een jurist (20) 46px tall, Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall, Seek specialist help (20) 46px tall, Not an AI system yet (20) 46px tall, Zulässig mit Auflage (20) 46px tall
+Arial Bold (Windows)                   0.04em  drawn in Arial  widest of at most 19: Mandatory safeguard 181.0  one line: 15/15  two lines: none
+Arial Bold (Windows)                   0.12em  drawn in Arial  widest of at most 19: Mandatory safeguard 197.7  one line: 12/15  two lines: Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall
+Segoe UI Bold (Windows)                0.04em  drawn in Segoe UI  widest of at most 19: Mandatory safeguard 175.4  one line: 15/15  two lines: none
+Segoe UI Bold (Windows)                0.12em  drawn in Segoe UI  widest of at most 19: Mandatory safeguard 192.1  one line: 14/15  two lines: Mandatory safeguards (20) 46px tall
+DejaVu Sans Bold (installed)           0.04em  drawn in Times New Roman  widest of at most 19: Mandatory safeguard 181.7  one line: 15/15  two lines: none
+DejaVu Sans Bold (installed)           0.12em  drawn in Times New Roman  widest of at most 19: Mandatory safeguard 198.0  one line: 11/15  two lines: Mandatory safeguard (19) 46px tall, Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall
+each ending in Arial Bold at 0.04em: Vergunning vereist (18) 162.6, Niet van toepassing (19) 163.0, Maatregelen vereist (19) 172.6, Hoog risico: melden (19) 166.1, Wettelijk verboden! (19) 169.8, Mandatory safeguard (19) 181.0, Women at work only! (19) 172.4, Moderate to high MW (19) 171.8, Raadpleeg een jurist (20) 175.7, Ethisch aanvaardbaar (20) 183.6, Waarborgen verplicht (20) 186.1, Mandatory safeguards (20) 188.7, Seek specialist help (20) 169.0, Not an AI system yet (20) 166.8, Zulässig mit Auflage (20) 172.2
+```
+
+Output in Linux, in the `mcr.microsoft.com/playwright:v1.62.1-noble` image -- its Chromium,
+the repository's `@playwright/test` 1.62.1, and `fonts-dejavu-core` 2.37-8 installed with
+`apt-get` -- where `Arial` resolves to Liberation Sans, as on the CI runner, and `Segoe UI`, not
+installed, to a fallback:
+
+```
+the badge's room at a 480-pixel window: 198.0 pixels
+Open Sans (library)                    0.04em  drawn in Open Sans  widest of at most 19: Mandatory safeguard 178.4  one line: 15/15  two lines: none
+Open Sans (library)                    0.12em  drawn in Open Sans  widest of at most 19: Mandatory safeguard 195.1  one line: 14/15  two lines: Mandatory safeguards (20) 46px tall
+Roboto (library)                       0.04em  drawn in Roboto  widest of at most 19: Mandatory safeguard 170.4  one line: 15/15  two lines: none
+Roboto (library)                       0.12em  drawn in Roboto  widest of at most 19: Mandatory safeguard 187.1  one line: 15/15  two lines: none
+Atkinson Hyperlegible Next (library)   0.04em  drawn in Atkinson Hyperlegible Next  widest of at most 19: Mandatory safeguard 173.4  one line: 15/15  two lines: none
+Atkinson Hyperlegible Next (library)   0.12em  drawn in Atkinson Hyperlegible Next  widest of at most 19: Mandatory safeguard 190.1  one line: 14/15  two lines: Mandatory safeguards (20) 46px tall
+Faustina (library)                     0.04em  drawn in Faustina Light  widest of at most 19: Mandatory safeguard 170.4  one line: 15/15  two lines: none
+Faustina (library)                     0.12em  drawn in Faustina Light  widest of at most 19: Mandatory safeguard 187.1  one line: 15/15  two lines: none
+DejaVu Sans Bold 2.37                  0.04em  drawn in DejaVu Sans  widest of at most 19: Mandatory safeguard 197.4  one line: 12/15  two lines: Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall
+DejaVu Sans Bold 2.37                  0.12em  drawn in DejaVu Sans  widest of at most 19: Maatregelen vereist 198.0  one line: 3/15  two lines: Maatregelen vereist (19) 46px tall, Wettelijk verboden! (19) 46px tall, Mandatory safeguard (19) 46px tall, Women at work only! (19) 46px tall, Moderate to high MW (19) 46px tall, Raadpleeg een jurist (20) 46px tall, Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall, Seek specialist help (20) 46px tall, Not an AI system yet (20) 46px tall, Zulässig mit Auflage (20) 46px tall
+Arial Bold (Windows)                   0.04em  drawn in Liberation Sans  widest of at most 19: Mandatory safeguard 181.0  one line: 15/15  two lines: none
+Arial Bold (Windows)                   0.12em  drawn in Liberation Sans  widest of at most 19: Mandatory safeguard 197.7  one line: 12/15  two lines: Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall
+Segoe UI Bold (Windows)                0.04em  drawn in Liberation Serif  widest of at most 19: Mandatory safeguard 181.7  one line: 15/15  two lines: none
+Segoe UI Bold (Windows)                0.12em  drawn in Liberation Serif  widest of at most 19: Mandatory safeguard 198.0  one line: 11/15  two lines: Mandatory safeguard (19) 46px tall, Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall
+DejaVu Sans Bold (installed)           0.04em  drawn in DejaVu Sans  widest of at most 19: Mandatory safeguard 195.5  one line: 12/15  two lines: Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall
+DejaVu Sans Bold (installed)           0.12em  drawn in DejaVu Sans  widest of at most 19: Maatregelen vereist 198.0  one line: 3/15  two lines: Maatregelen vereist (19) 46px tall, Wettelijk verboden! (19) 46px tall, Mandatory safeguard (19) 46px tall, Women at work only! (19) 46px tall, Moderate to high MW (19) 46px tall, Raadpleeg een jurist (20) 46px tall, Ethisch aanvaardbaar (20) 46px tall, Waarborgen verplicht (20) 46px tall, Mandatory safeguards (20) 46px tall, Seek specialist help (20) 46px tall, Not an AI system yet (20) 46px tall, Zulässig mit Auflage (20) 46px tall
+each ending in Arial Bold at 0.04em: Vergunning vereist (18) 162.6, Niet van toepassing (19) 163.0, Maatregelen vereist (19) 172.6, Hoog risico: melden (19) 166.1, Wettelijk verboden! (19) 169.8, Mandatory safeguard (19) 181.0, Women at work only! (19) 172.4, Moderate to high MW (19) 171.8, Raadpleeg een jurist (20) 175.7, Ethisch aanvaardbaar (20) 183.6, Waarborgen verplicht (20) 186.1, Mandatory safeguards (20) 188.7, Seek specialist help (20) 169.0, Not an AI system yet (20) 166.8, Zulässig mit Auflage (20) 172.2
+```
+
+Read with the room: at 0.04 em every ending of at most 19 characters holds one line in every
+face of the default stack and the library that was measured, on Windows and in Linux. The
+widest, `Mandatory safeguard` in DejaVu Sans Bold, is 195.5 of the 198 pixels on Windows, from the
+release's file, and in Linux where DejaVu Sans is installed; and 197.4 where Linux draws the
+release's file as a web font, as a Tree's Theme would serve it. Three of the seven 20-character endings take a second line in DejaVu Sans Bold
+on both systems, a badge 46 pixels tall. At 0.12 em, 19 characters hold one line in every face
+of the stack and the library but DejaVu Sans Bold, where five of the seven endings of 19 take a
+second line, and Arial Bold's widest, like Liberation Sans's, is 197.7. Hence
+`ADR-171-ending-text.md` decisions 2 and 6: 19 characters, and 0.04 em below 792 pixels wide.
 
 ## 4. The candidate families
 

@@ -4,7 +4,7 @@
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 30 (new)
 - Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`): decision 4's Sheet asks for
-  the ending's words -- one plain field, at most 20 characters -- instead of one of four
+  the ending's words -- one plain field, at most 19 characters -- instead of one of four
   outcomes, and the badge on a Terminal's rim is that field, not a select
   (`application.md` 30.3, 36.3). The four outcomes are offered nowhere.
 - Amends: `docs/adrs/ADR-78-overlay.md` (the Overlay is also where an aside is edited),

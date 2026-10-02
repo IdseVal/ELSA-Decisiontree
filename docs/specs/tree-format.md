@@ -9,7 +9,7 @@
 >
 > **[#171] What this version is (2026-10-02).** `elsa-tree/5` is `elsa-tree/4` with **one
 > change**: a Terminal's marker carries the ending's own words, `terminal.label` -- a plain
-> localised text of at most 20 characters -- in place of `terminal.outcome`, one of four fixed
+> localised text of at most 19 characters -- in place of `terminal.outcome`, one of four fixed
 > values (5.5, 5.7, rule V-TERMINAL). The owner, on #169: "When tree ends here is chosen, just
 > let the user enter a text to display on the button (with a wordcap obviously). This graph
 > creation tool is not just for Legal trees, also for ethical or social trees, so we want to
@@ -863,7 +863,7 @@ words:
 
 | Key | Required | Type | Meaning |
 |---|---|---|---|
-| `label` | yes | localised text, plain, at most 20 characters (5.7) | How the walk ends, in the author's words, shown on the Terminal's badge on the rim of its Bubble (`docs/specs/application.md` 10.1, 36.1): "Does not apply", "Ethically acceptable", "Seek legal advice". It is not a category: every ending is drawn alike, in one colour, whatever it says. The Node's `title` and `description` carry the message; the label names the ending in a few words. |
+| `label` | yes | localised text, plain, at most 19 characters (5.7) | How the walk ends, in the author's words, shown on the Terminal's badge on the rim of its Bubble (`docs/specs/application.md` 10.1, 36.1): "Does not apply", "Ethically acceptable", "Seek legal advice". It is not a category: every ending is drawn alike, in one colour, whatever it says. The Node's `title` and `description` carry the message; the label names the ending in a few words. |
 
 `terminal` has no other key: an `outcome` is refused like any unknown key (V-KEYS, V-TERMINAL).
 A Terminal without words is not an ending a reader can see, so `label` is required, and
@@ -914,7 +914,7 @@ language**.
 | Node `title` (any language) | 80 characters | V-LENGTH |
 | Node `description` (any language) | 150 characters and 2 estimated lines (600 and 8 until #102) | V-LENGTH, V-LINES |
 | Option `title` (any language) | 60 characters | V-LENGTH |
-| **[#171]** Terminal `label` (any language) | 20 characters | V-LENGTH |
+| **[#171]** Terminal `label` (any language) | 19 characters | V-LENGTH |
 | Source `label` (any language) | 60 characters | V-LENGTH |
 | Image `description` (any language) | 120 characters | V-LENGTH |
 | Image `credit` | 120 characters | V-LENGTH |
@@ -977,7 +977,7 @@ to cut, by how much (`application.md` 10.7).
 | Option button labels | an Option button of 232 x 96 px beside the Bubble, with 152 px of label at 16 px on 20 px lines, up to four lines: an Option title of 60 characters is at most **3 lines** in a humanist face and 4 in DejaVu Sans, the widest fallback (80 px, inside the 96 px button). **Amended 2026-09-19 (#105, PR #109):** not for every title: in Open Sans the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" (54 characters) takes 4 lines only hyphenated in the page's language and 5 without, and its button then grows to 102 px; the limit stays 60 for the owner to judge (`application.md` 10.3 and 10.7, both amended). The Options fan out at most 4 a side at a pitch of 111.5 px: four buttons are 384 px of the Bubble's 446, so 8 Options fit without narrowing or wrapping (**Now**, #102: of the Bubble's 416, which still holds the 384). A question Node that carries both `answers` and `options` (section 5.6) puts its 2 Answer buttons below the Bubble and its Options beside it, so the two never share a row (`application.md` 10.3, 10.7; `docs/adrs/ADR-78-fan-out-and-option-picture.md`) |
 | Answer button labels, and the Trail | the label is the chrome word, a colon and a Node `title` of up to 80 characters (5.3, section 6): at most 86 characters in one run of 19 px bold on 24 px lines, in a 620 x 60 px button with 580 px of label, at least 43 characters per line in DejaVu Sans Bold: **2 lines** (48 px, inside the 60 px button). The 2 Answer buttons sit side by side in the 68 px Answer row. No Trail is drawn: the up arrow carries the parent's title as its accessible name only, so no Trail label has a width to fit; the format still does not bound a Trail's length, and a long one costs the screen nothing (`application.md` 10.2, 10.3, 10.7; `docs/adrs/ADR-78-answer-buttons-and-up-arrow.md`) |
 | Carousel | a strip of 48 px round thumbnails on the Bubble's lower outline, the Images after the main one, seven visible, no caption; the description is alternative text and the credit is shown in the enlarged view, where it fits one line at 13 px (`application.md` 12) |
-| **[#171]** Ending badge | the Terminal's `label` in a 24-pixel pill on the rim above the text area, in the half of the band left of the up arrow: 11 px bold capitals, 0.12 em tracking (0.04 em below 792 px wide), 14 px padding and a 1 px border each side. Its room is narrowest at 480 px wide: 198 px, 168 of text. Measured in Chromium on 2026-10-02, the widest 20-character ending tried ("Mandatory safeguards") is at most 188.7 px there in Arial Bold, Segoe UI Bold, Open Sans and the library's families (`application.md` 37.1), and `Niet van toepassing` (19), the longest word 12.7 writes, is 178 px in Open Sans at the full tracking: **20 characters, one line** at every width the layout guarantees in those faces. In DejaVu Sans Bold, the widest fallback, three of the seven 20-character endings tried (of fifteen endings of 18 to 20 characters) take a second line between 480 and 491 px wide (`application.md` 10.1, 36.1; `docs/adrs/ADR-171-ending-text.md`) |
+| **[#171]** Ending badge | the Terminal's `label` in a 24-pixel pill on the rim above the text area, in the half of the band left of the up arrow: 11 px bold capitals, 0.12 em tracking (0.04 em below 792 px wide), 14 px padding and a 1 px border each side. Its room is narrowest at 480 px wide: 198 px, 168 of text. Measured in Chromium on 2026-10-02 with the badge in place, on Windows and in Linux, every ending of up to 19 characters tried (of fifteen of 18 to 20 characters) holds one line there in every face measured: Arial Bold and Liberation Sans, Segoe UI Bold, Open Sans, the library's families (`application.md` 37.1) and DejaVu Sans Bold, the widest fallback, where the widest ("Mandatory safeguard") is 195.5 px, 197.4 as a web font in Linux; and `Niet van toepassing` (19), the longest word 12.7 writes, is 178 px in Open Sans at the full tracking: **19 characters, one line** at every width above the floor. At 20, three of the seven 20-character endings tried take a second line in DejaVu Sans Bold between 480 and 491 px wide, a badge 46 px tall over the title. Like every limit of this section it counts characters, not pixels: an ending of capitals wider than any tried can still take a second line (`application.md` 10.1, 36.1; `docs/adrs/ADR-171-ending-text.md`) |
 
 What these numbers do **not** promise: that a description written at the maximum in a
 wide font (a `heading`-role font is never used for it) or in a script with wider
@@ -1127,7 +1127,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-ANSWERS | schema, rules | `answers` with exactly the keys `yes` and `no` (schema), each a Node reference to an existing question Node or Terminal (rules). | blocking for a target that does not exist; advisory for one Answer missing, or a target that is not yet a question Node or Terminal |
 | V-OPTIONS | schema, rules | `options`, when present, a non-empty array; each entry with `title` and `target` and nothing else (schema; an `images` key on an Option fails V-KEYS); targets existing explanation Nodes, distinct within the array (rules). | blocking for a target that does not exist or is listed twice; advisory for a target that is not yet an explanation Node |
 | V-ORPHAN | rules | every explanation Node targeted by at least one Option (this is also implied by V-REACH, but gets its own message). | advisory |
-| V-TERMINAL | schema | **[#171]** `terminal` as an object whose one key is `label`, a localised text (schema); a Terminal has no `options`. The label's languages, its single line and its 20 characters are V-L10N, V-PLAIN and V-LENGTH on the key path `terminal.label.<lang>`, as for every text. Until 2026-10-02: `terminal` as an object whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`. | blocking (the shape); the label's empty languages and length are V-L10N's and V-LENGTH's advisories |
+| V-TERMINAL | schema | **[#171]** `terminal` as an object whose one key is `label`, a localised text (schema); a Terminal has no `options`. The label's languages, its single line and its 19 characters are V-L10N, V-PLAIN and V-LENGTH on the key path `terminal.label.<lang>`, as for every text. Until 2026-10-02: `terminal` as an object whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`. | blocking (the shape); the label's empty languages and length are V-L10N's and V-LENGTH's advisories |
 | V-SOURCE | schema, rules | every Source with a `kind` in `legal` / `case-law` / `literature`, a plain localised `label`, an absolute http(s) `url` and a valid `id` when present (schema); Source ids distinct within the Node (rules). | blocking |
 | V-IMAGE | schema, rules | every Image with a `file` matching 3.5, a plain localised `description` and a non-empty `credit` (schema); the file existing in the Tree's `images/`, and a `source`, if present, naming a Source id on the same Node (rules). | blocking for the shape, the grammar and a file not in `images/`; advisory for an empty `credit` or `description` |
 | V-EXPLAINER | schema, rules | `explainers`, when present, a non-empty array; each with a valid `id`, a plain localised `term` and a plain localised `text` (schema); ids distinct within the Node, at most 8 entries, the lengths of 5.7, and each marked at least once in the Node's `description` in every declared language (rules). | blocking for the shape, an id used twice and the count; advisory for a term not yet marked |
@@ -1672,7 +1672,7 @@ one, is shown in the frontend's plain default look.
 
 | Decision | ADR |
 |---|---|
-| A Terminal carries the ending's own words, `terminal.label`: plain, localised, required, at most 20 characters; the four outcomes go; every ending is drawn alike | `docs/adrs/ADR-171-ending-text.md` (supersedes the closed outcome set of `ADR-4-terminal-marker.md`) |
+| A Terminal carries the ending's own words, `terminal.label`: plain, localised, required, at most 19 characters; the four outcomes go; every ending is drawn alike | `docs/adrs/ADR-171-ending-text.md` (supersedes the closed outcome set of `ADR-4-terminal-marker.md`) |
 | The change of shape is a new format number with its own schema beside the old one; one conversion (12.7), run over the repository by #179 and over a deployment's data directory by the store when it opens | `docs/adrs/ADR-171-elsa-tree-5.md` |
 
 The Theme block did not change on #171; what the editor's font and licence dropdowns write
@@ -2121,17 +2121,18 @@ exactly the lines of section 8's diff changed.
 **Guaranteed.** Every Node, id, Node reference, text, Source, image and theme file name, Theme
 value and `metadata` value is what it was, so every URL, every shared link and every picture
 keeps working. Every Terminal keeps the words its badge showed, in every language, in the
-same place; the one new limit, 20 characters, is met by every word of the table (the longest,
-`Niet van toepassing`, is 19). A valid `elsa-tree/4` Tree converts to a valid `elsa-tree/5`
-Tree.
+same place; the one new limit, 19 characters, is met by every word of the table (the longest,
+`Niet van toepassing`, is exactly 19). A valid `elsa-tree/4` Tree converts to a valid
+`elsa-tree/5` Tree.
 
-**Not guaranteed, on purpose.** The badge's colour: every ending is now drawn alike, so the
-endings that were `not-applicable`, `applicable` or `prohibited` change colour and only
-`refer` endings look exactly as before (`docs/adrs/ADR-171-ending-text.md` decision 4). A
-Tree in a language other than English or Dutch gets the English words, because English is
-what its badge showed (3.1's fallback); its author translates them in the editor. A `/4` file
-that was not in the byte form of 3.7 is written in it. An `outcome` the table does not hold is
-left, and fails.
+**Not guaranteed, on purpose.** The badge's look. Every ending is now drawn alike, so the
+endings that were `not-applicable`, `applicable` or `prohibited` change colour
+(`docs/adrs/ADR-171-ending-text.md` decision 4); and below 792 pixels wide every badge's
+tracking tightens to 0.04 em (decision 6), `refer` endings included. Only a `refer` ending at
+792 pixels wide and wider looks exactly as before. A Tree in a language other than English or
+Dutch gets the English words, because English is what its badge showed (3.1's fallback); its
+author translates them in the editor. A `/4` file that was not in the byte form of 3.7 is
+written in it. An `outcome` the table does not hold is left, and fails.
 
 #### 12.7.3 What it does for the Trees and fixtures on `dev`
 

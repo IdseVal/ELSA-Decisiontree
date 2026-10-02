@@ -1,4 +1,4 @@
-# ADR-171-ending-text: a Terminal carries the creator's own text, `terminal.label`, at most 20 characters in every language, shown on the badge in one colour; the four fixed outcomes go
+# ADR-171-ending-text: a Terminal carries the creator's own text, `terminal.label`, at most 19 characters in every language, shown on the badge in one colour; the four fixed outcomes go
 
 - Status: ACCEPTED (frozen) -- 2026-10-02
 - Issue: #171 -- Architecture: freeze the free-text ending of a tree (in place of the four
@@ -19,7 +19,7 @@
   of four), `ADR-133-bubble-edited-in-place.md` decision 1's rim row (a text field, not a
   select), `ADR-132-editor-api.md` decisions 2 and 3 (`link: 'end'` carries `label`; the field
   is `terminal.label.<lang>`), `ADR-78-main-image-and-row-budget.md` decision 5 (the badge's
-  40 chrome characters become the Tree's 20)
+  40 chrome characters become the Tree's 19)
 - Depends on: `docs/adrs/ADR-171-elsa-tree-5.md` (the format number and the conversion this
   change needs)
 - Measurements: `docs/research/issue-171-measurements.md` section 3 (the badge's room and
@@ -58,17 +58,30 @@ themselves, which need no styling table at all.
 The narrowest room is **198 pixels, at 480 pixels wide**: 168 of text.
 
 **What the badge's text measures**, in Chromium (Playwright 1.62.1), in the badge's own
-style, for the longest word the conversion writes and for plausible endings of 19 and 20
-characters a creator might type (`Mandatory safeguards`, `Ethisch aanvaardbaar`,
-`Raadpleeg een jurist`, `Zulässig mit Auflage`, `Women at work only!` ...):
+style, for the longest word the conversion writes and for plausible endings of 18 to 20
+characters a creator might type (`Mandatory safeguard`, `Maatregelen vereist`,
+`Mandatory safeguards`, `Ethisch aanvaardbaar`, `Zulässig mit Auflage`, `Women at work
+only!` ...), each alone on one line:
 
-| Face | `Niet van toepassing` (19) | widest 20-character ending at 0.12 em | the same at 0.04 em |
-|---|---|---|---|
-| Open Sans (the first Tree; the library's) | 178.0 px | 202.3 | 184.7 |
-| Arial Bold (the default stack's metrics, `src/theme.ts`) | 179.8 | 206.3 | 188.7 |
-| Segoe UI Bold (Windows' face in the default stack) | 175.3 | 199.6 | 182.0 |
-| Roboto, Atkinson Hyperlegible Next, Faustina (the library, `ADR-171-font-library.md`) | 170.2 to 177.8 | 193.2 to 197.5 | 175.6 to 179.9 |
-| DejaVu Sans Bold (the widest fallback, 10.7) | 194.2 | 221.5 | 203.9 |
+| Face | `Niet van toepassing` (19) at 0.12 em | widest ending of 19 at 0.12 em | widest ending of 19 at 0.04 em | widest ending of 20 at 0.04 em |
+|---|---|---|---|---|
+| Open Sans (the first Tree; the library's) | 178.0 px | 195.0 | 178.2 | 184.7 |
+| Arial Bold (the default stack's metrics, `src/theme.ts`) | 179.8 | 197.7 | 181.0 | 188.7 |
+| Segoe UI Bold (Windows' face in the default stack) | 175.3 | 192.1 | 175.4 | 182.0 |
+| Roboto, Atkinson Hyperlegible Next, Faustina (the library, `ADR-171-font-library.md`) | 170.2 to 177.8 | 186.0 to 189.5 | 169.3 to 172.8 | 175.6 to 179.9 |
+| DejaVu Sans Bold (the widest fallback, 10.7) | 194.2 | 212.3 | 195.5 | 203.9 |
+
+**In place on the rim** -- the badge as `globals.css` positions it, in the Bubble at a
+480-pixel window -- a text wider than the 198 pixels takes a second line: the badge is then
+46 pixels tall instead of 24 and reaches 24 pixels into the text area, over the title, which
+is the text area's first line below 792 pixels wide (10.5's step 5 hides the main image
+there). In DejaVu Sans Bold that happens to three of the seven 20-character endings at 0.04 em,
+and to five of the seven 19-character endings at 0.12 em; to none of 19 at 0.04 em, in any
+face measured. The same script run in Linux Chromium (the Playwright image) gives the same
+lines: the library's faces, served as web fonts, measure up to 1.1 pixels wider there and
+DejaVu Sans Bold as a web font 1.9 wider -- its widest ending of 19 at 0.04 em is 197.4 --
+while an installed DejaVu Sans measures as on Windows. San Francisco and Helvetica Neue, the
+default stack's faces on Apple's systems, were not measured (the research record says why).
 
 The model of the same widths from the fonts' own advance widths (`hmtx`, no kerning) gives
 178.0 for Open Sans's `Niet van toepassing`, which is the 178 issue #82 measured on the
@@ -84,13 +97,18 @@ running page (`application.md` 10.1, amended 2026-09-18): the numbers are the pa
    draft an empty language is a to-do like every other (V-L10N advisory, `application.md`
    19.2). The key is `label` -- the word the format already uses for a short visible text on
    a control-like thing, a Source's link -- and it is the only key of `terminal`.
-2. **At most 20 characters**, counted by `tree-format.md` 3.8, per language, the same for
+2. **At most 19 characters**, counted by `tree-format.md` 3.8, per language, the same for
    every language (V-LENGTH; `tree-format.md` 5.7 gains the row). The number is the room
-   above: one line in the narrowest room, 198 pixels at 480 pixels wide, for every
-   20-character ending measured in every face 5.7 and `application.md` 10.7 hold the limits
-   in -- with decision 6's narrow-width tracking -- and at least 19, because the longest word
-   the conversion writes, `Niet van toepassing`, is 19. At the guarantee the room is 354
-   pixels and the widest 20-character ending measured is 206: nothing near the edge.
+   above: one line in the narrowest room, 198 pixels at 480 pixels wide, for every ending of
+   up to 19 characters measured, in every face measured -- DejaVu Sans Bold included, the
+   widest fallback, in which `application.md` 10.7 re-derives the buttons' widths -- with
+   decision 6's narrow-width tracking, on Windows and in Linux; the widest is `Mandatory
+   safeguard` in DejaVu Sans Bold, 195.5, and 197.4 where Linux draws DejaVu Sans Bold as a
+   web font. And 19 is the least the conversion allows: the longest word it writes,
+   `Niet van toepassing`, is 19. At the guarantee the room is 354 pixels and the widest
+   19-character ending measured is 212.3: nothing near the edge. Like every limit of 5.7 it
+   counts characters, not pixels: a run of capitals wider than any measured can still take
+   a second line at the narrowest widths.
 3. **`outcome` goes, entirely.** No optional hint survives beside `label`, and a file that
    still carries one is refused (V-KEYS by the schema's `additionalProperties`; V-TERMINAL).
 4. **Every ending is drawn in one colour**: the badge's text and outline, and the Terminal
@@ -103,22 +121,25 @@ running page (`application.md` 10.1, amended 2026-09-18): the numbers are the pa
    language, with no `lang` of its own, where it was the chrome word in the chrome language.
    The chrome keys `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`,
    `outcomeRefer` and `outcome` go; `endingText` comes ("Text of the ending" / "Tekst van het
-   einde": the Sheet's field label and the empty field's placeholder, both 20 characters or
+   einde": the Sheet's field label and the empty field's placeholder, both 19 characters or
    fewer, so the placeholder fits the badge too); the Theme panel's word for the `danger`
    role, `colourDanger`, becomes "Errors" / "Fouten".
 6. **The badge keeps its place, size and look** -- the pill, 11-pixel bold capitals, 0.12 em
    tracking, the half of the band left of the arrow, and #82's rule below 480 pixels -- so an
-   ending converted with its old word reads as it did. **One thing is added: below 792
-   pixels wide, where the Bubble narrows and 10.5's steps 5 to 7 fire together, the tracking
-   is 0.04 em.** It is what makes decision 2's 20 characters fit the 198 pixels at 480.
+   ending converted with its old word reads as it did, at 792 pixels wide and wider. **One
+   thing is added: below 792 pixels wide, where the Bubble narrows and 10.5's steps 5 to 7
+   fire together, the tracking is 0.04 em**, for every ending. It is what makes decision 2's
+   19 characters fit the 198 pixels at 480 in DejaVu Sans Bold, where five of the seven
+   19-character endings measured take a second line at 0.12 em; every other face measured
+   holds them at 0.12 em too, Arial Bold's widest with 0.3 pixels to spare.
 7. **The editor asks for the words, and only the words.** `treeEndsHere` opens a Sheet titled
    `treeEndsHere` holding one plain field, labelled `endingText`, in the page's language,
-   focused, with the counter `n / 20` and the field rules every field has (28.3, 28.4, as
+   focused, with the counter `n / 19` and the field rules every field has (28.3, 28.4, as
    #172 amends them); `confirm` is enabled once the field holds a character that is not white
    space, Enter confirms, `cancel` closes. `confirm` sends `POST .../nodes { from: { node,
    link: 'end', label: { <lang>: <text> } } }`; the store writes `terminal: { label }` with
    `""` for every other declared language (each a to-do). Afterwards the badge **is** that
-   field, in place on the rim (path `terminal.label.<lang>`, limit 20, the counter and the
+   field, in place on the rim (path `terminal.label.<lang>`, limit 19, the counter and the
    missing-language tags on the right rim, 28.3): blurred it shows the badge as the public
    page does; focused it shows the text as typed, without the capitals transform, so a
    creator sees what they write. The four outcomes are offered nowhere.
@@ -141,8 +162,19 @@ running page (`application.md` 10.1, amended 2026-09-18): the numbers are the pa
   321 pixels wide. Rejected for now: between 480 and 791 the editor's step controls take the
   right half of the band (`application.md` 30.8; #178 replaces them), below 640 pixels tall
   the arrow's foot stands in the band, and the Terminal would need re-measuring at every
-  width there. A later issue can take it if 20 proves short; the format's number would not
+  width there. A later issue can take it if 19 proves short; the format's number would not
   change for a longer limit alone, as #102's cut showed for a shorter one.
+- **20 characters** (this ADR's first version), at the same tracking. One character more, but
+  three of the seven 20-character endings measured take a second line in DejaVu Sans Bold at
+  480 to 491 pixels wide. Nothing scrolls -- the badge is placed on the rim and grows with its
+  text -- but the badge is then 46 pixels tall and covers the top of the title, against 10.1's
+  "Nothing on the rim takes a pixel from the text area", in the face 10.7 re-derives the
+  buttons' widths in. 19 holds one line there for every ending measured.
+- **19 characters at the unchanged 0.12 em**, with no rule for narrow widths. Every face
+  measured but DejaVu Sans Bold holds it, Arial Bold's widest with 0.3 pixels to spare; in
+  DejaVu Sans Bold five of the seven 19-character endings measured take a second line at 480
+  pixels wide, with the same overlap. A cap below 19 would refuse the conversion's own
+  `Niet van toepassing`.
 - **No cap, or the title's 80.** The badge is one line on the rim; 80 capitals are some 620
   pixels. The owner asked for a cap.
 - **A cap in words** (the owner's "wordcap" taken literally). Every other limit of the format
@@ -164,10 +196,11 @@ running page (`application.md` 10.1, amended 2026-09-18): the numbers are the pa
 - `ADR-4-terminal-marker.md`'s "the frontend ships a styling table with four rows and never
   needs another" ends: it ships one style.
 - The first Tree's four endings keep their words in both languages (`tree-format.md` 12.7.3);
-  `not-an-ai-system`, a `refer` ending, keeps its colour too. The other three change colour to
-  the accent's reading shade, and `prohibited` loses its `danger` outline. Before this ADR the
-  spec and the build already disagreed on those colours -- 10.3 said `danger` for
-  `prohibited` and `accent` otherwise, while #41 painted `not-applicable` in `text-muted` and
-  `applicable` in `accent-secondary` -- and both go.
+  `not-an-ai-system`, a `refer` ending, keeps its colour too, and at 792 pixels wide and wider
+  its whole look (below that, every ending's tracking tightens, decision 6). The other three
+  change colour to the accent's reading shade, and `prohibited` loses its `danger` outline.
+  Before this ADR the spec and the build already disagreed on those colours -- 10.3 said
+  `danger` for `prohibited` and `accent` otherwise, while #41 painted `not-applicable` in
+  `text-muted` and `applicable` in `accent-secondary` -- and both go.
 - `chrome.test.ts` loses its "every outcome badge is at most 40 characters" row: the words are
-  the Tree's now, and V-LENGTH holds them to 20.
+  the Tree's now, and V-LENGTH holds them to 19.

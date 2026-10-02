@@ -1020,7 +1020,7 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | `findability/jsonld.test.ts` **[#118]** (**#122**) | The `@graph` of 16.4 against the fixtures: the `Dataset` on the root page only and every other page referring to it by the same language-independent `@id`; the `Dataset`'s required `name` and `description`, and the fall back to the root Node's description when the manifest has none; `isBasedOn` as the most frequent `kind: legal` Source URL with ties by Node order, and **absent** on a Tree with no legal Source; a `WebPage` on every page; a `Question` with two `suggestedAnswer` entries on a question Node and **no `Question`** on a Terminal or an explanation Node; no `QAPage` and no `acceptedAnswer` anywhere. **And the escaping**, which is the rule of 13.3 at a second sink: a Tree whose Node title contains `</script>`, `<!--` and a lone `<` is rendered, and the emitted script's text is asserted to contain no `<` character at all, to parse as JSON, and to parse back to the original title. A test that only checks the parsed object would pass the tautology this freeze removed. |
 | `findability/llms.test.ts` **[#118]** (**#121**) | The generated `llms.txt` of 16.5 against the fixtures: the sections and their order; the H1 and the blockquote from the manifest in the **default** language, falling back to the root Node's description when the manifest has none; **no Node's title, description or Source appears anywhere in it** -- it is a signpost, and a test that fails when Tree content leaks into it is what keeps it one; every URL absolute; the dataset and schema entries, the root URL, the sitemap, the URL grammar line, the declared languages with the default marked, and both licences with the holder line; `text/plain` as the media type; **no `llms-full.txt` route exists** (16.5). |
 | `routing.test.ts` | The two rewrites of 4.4, read out of `next.config.ts` itself. |
-| `chrome.test.ts` | The table in 3.1; every key of 3.2 exists in both languages; **[#75]** every outcome badge is at most 40 characters (10.1) -- **[#171]** gone with the outcome words: the badge's words are the Tree's, held to 20 by V-LENGTH (36.1); `up(title)` contains the title it is given. |
+| `chrome.test.ts` | The table in 3.1; every key of 3.2 exists in both languages; **[#75]** every outcome badge is at most 40 characters (10.1) -- **[#171]** gone with the outcome words: the badge's words are the Tree's, held to 19 by V-LENGTH (36.1); `up(title)` contains the title it is given. |
 | `not-found.test.tsx` | The 404 page of 4.3. |
 | `neighbourhood.test.ts` **[v0.2]** | The set for each Node kind; **never more than 7 placements and 8 asides**; no id placed twice; a Link to an unknown id is dropped, not thrown; the Trail supplies `up` (the parent only), the Answers `down`, the Options the asides in Option order; an empty Trail has no `up`; there is no `side` direction (**[#75]**, 11.2). |
 | `theme.test.ts` **[v0.2]** | The emitted properties equal the manifest's values; a Tree with no Theme, and one with only `colours`, get the documented defaults for the rest; the three derived `--elsa-on-*` colours; a `family` containing `'`, `\` or `</style>` is escaped or refused; a colour that is not `#rrggbb` is refused rather than emitted. |
@@ -1178,7 +1178,7 @@ back.
 | **[#133]** The `edit` prop with `links` and named slots; `src/editor/` as leaves importing two pure modules; the editor page's bound of twelve | `docs/adrs/ADR-133-reuse-rule.md` |
 | **[#133]** A built data directory, one server per spec, one login helper, the admin pages under no-scroll, the sweep's admin half, the public suites unchanged | `docs/adrs/ADR-133-editor-testing.md` |
 | **[#133]** The lines of #137 to #144 confirmed; #138 gains #135; #138 lands every slot | `docs/adrs/ADR-133-build-order.md` |
-| **[#171]** A Terminal carries its own words, `terminal.label`, at most 20 characters; the four outcomes go; one colour for every ending; the badge's tracking tightens below 792; the editor asks for the words only | `docs/adrs/ADR-171-ending-text.md` |
+| **[#171]** A Terminal carries its own words, `terminal.label`, at most 19 characters; the four outcomes go; one colour for every ending; the badge's tracking tightens below 792; the editor asks for the words only | `docs/adrs/ADR-171-ending-text.md` |
 | **[#171]** `elsa-tree/5` with its own schema beside the `/4` one; one conversion, run over the repository and by the store when it opens | `docs/adrs/ADR-171-elsa-tree-5.md` |
 | **[#171]** Four OFL families shipped in `fonts/`, no wider than Open Sans, copied into a Tree with their licence text | `docs/adrs/ADR-171-font-library.md` |
 | **[#171]** A select per role: the default, the library, the Tree's own, "Upload a font file…"; `use-library-font`; an upload named after the font's own family name | `docs/adrs/ADR-171-font-dropdown.md` |
@@ -1271,11 +1271,11 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
   gives way by width alone, outside 10.5's numbered order.
 
   **Amended 2026-10-02 (#171, the owner's #169):** the badge holds the Terminal's own words,
-  its `label` in the page's language (`tree-format.md` 5.5), at most 20 characters, in place
+  its `label` in the page's language (`tree-format.md` 5.5), at most 19 characters, in place
   of a chrome word for one of four outcomes, and it is drawn in one colour for every ending.
   Its place, size and look stay; below 792 pixels wide its tracking is 0.04 em instead of
-  0.12, so that 20 characters hold one line in its narrowest room, 198 pixels at 480 wide
-  (36.1).
+  0.12, so that 19 characters hold one line in its narrowest room, 198 pixels at 480 wide, in
+  every face measured, DejaVu Sans Bold included (36.1).
 - **The curve and the text area.** The chord of the Bubble 26 pixels in is 523 pixels;
   at the title's top (94 in) it is 678, wider than the text area, and at the lowest
   Sources line (46 from the bottom) 585. The main image is centred and at most 90 wide;
@@ -1494,8 +1494,8 @@ Whichever step first makes the arrangement fit is where it stops.
   a Terminal's badge sits in is kept, so the badge still takes nothing from the text
   area. **[#171]** From the same width, 792 pixels, the badge's tracking is 0.04 em
   instead of 0.12, with steps 5 to 7 and by width alone: the type of the badge steps down
-  as the rest does, and its 20 characters hold one line in the half band's 198 pixels at
-  480 wide (36.1).
+  as the rest does, and its 19 characters hold one line in the half band's 198 pixels at
+  480 wide, in every face measured (36.1).
 
 **Amended 2026-09-19 (#102, by the owner):** one more thing gives way outside the numbered
 order, by height alone: **below 640 pixels tall the up arrow goes back onto the Bubble's
@@ -3715,7 +3715,7 @@ path of 22.2 and the limit of 5.7:
 | A Source's `...` Sheet | kind (a select), URL, `removeSource` | `sources[i].kind`, `sources[i].url` | -- |
 | After the last Source | `+ addSource` (absent at 3): a Sheet holding the kind and the URL, the URL focused | `add-source` with an empty label, the kind chosen and the URL typed; **[#138] as built**, nothing is sent before a URL of the schema's grammar is typed, because the schema requires one and a made-up address would be silent content | -- |
 | The rim of a Terminal | outcome, a select drawn as the badge | `terminal.outcome` | -- |
-| **[#171]** The rim of a Terminal, in place of the row above | the ending's words, a plain field drawn as the badge (36.3) | `terminal.label.<lang>` | 20, plain |
+| **[#171]** The rim of a Terminal, in place of the row above | the ending's words, a plain field drawn as the badge (36.3) | `terminal.label.<lang>` | 19, plain |
 | An Option button | the Option's title | `options[i].title.<lang>` | 60, plain |
 | The enlarged view | an Image's description, credit | `images[i].description.<lang>`, `images[i].credit` | 120, 120 (31.3) |
 | The explainer Sheet | term, text | `explainers[i].term.<lang>`, `explainers[i].text.<lang>` | 40, 200 (32.2) |
@@ -3900,7 +3900,7 @@ the Sheet): remove the Options first. `removeEnd` is in the step menu (30.8).
 
 **[#171] The Sheet asks for the ending's words instead** (2026-10-02; the owner, #169: "just
 let the user enter a text to display on the button (with a wordcap obviously)"): one plain
-field, `endingText`, in the page's language, its limit of 20 shown live; `confirm` →
+field, `endingText`, in the page's language, its limit of 19 shown live; `confirm` →
 `POST .../nodes { from: { node, link: 'end', label: { <lang>: <text> } } }`. 36.3 is the
 contract; the rest of this section stands, and #178 replaces the step menu's `removeEnd`.
 
@@ -4255,7 +4255,7 @@ that are not fields. The types are `src/editor/mode.ts`.
 
 | Slot | Called by | Fills it |
 |---|---|---|
-| `field(node, path, value, limit, rendered?)` | `Interior`, `Carousel`, `EnlargedView`, `TreeView` (Option titles), `Bubble` (outcome; **[#171]** the ending's `terminal.label`, limit 20, 36.3) | `Field` (#138) |
+| `field(node, path, value, limit, rendered?)` | `Interior`, `Carousel`, `EnlargedView`, `TreeView` (Option titles), `Bubble` (outcome; **[#171]** the ending's `terminal.label`, limit 19, 36.3) | `Field` (#138) |
 | `operation(node, op, index?)` | `Bubble` (`+ addSource` after the last Source; `removeSource` in a Source's Sheet) | the add-Source Sheet and `Operation` (#138) |
 | `imageSlot(node)` | `Interior` | `ImageSlot` (#140) |
 | `stripAdd(node)` | `Carousel` | `ImageSlot` (#140) |
@@ -4415,7 +4415,7 @@ chosen, just let the user enter a text to display on the button (with a wordcap 
 This graph creation tool is not just for Legal trees, also for ethical or social trees, so we
 want to keep the graph creator useable for all." The format is `elsa-tree/5`
 (`tree-format.md` 5.5, 5.7, 12.7): a Terminal carries `terminal.label`, its own words, plain,
-in every declared language, at most 20 characters, in place of one of four outcomes. Recorded
+in every declared language, at most 19 characters, in place of one of four outcomes. Recorded
 in `docs/adrs/ADR-171-ending-text.md` and `ADR-171-elsa-tree-5.md`. Built by #179.
 
 ### 36.1 The badge
@@ -4431,17 +4431,26 @@ in `docs/adrs/ADR-171-ending-text.md` and `ADR-171-elsa-tree-5.md`. Built by #17
   towards the text, `globals.css`), and the Terminal Bubble's outline in the same shade. No
   class per ending, and no `:has()` rule on the Bubble. The Theme's `danger` paints no public
   Node page any more (`tree-format.md` 4.3.3).
-- **Its room, and why 20**: the badge is at most `(Bubble width - 4) / 2 - 24` pixels wide in
+- **Its room, and why 19**: the badge is at most `(Bubble width - 4) / 2 - 24` pixels wide in
   the half band -- 354 at and above 792 pixels wide, down to **198 at 480**, the narrowest --
   and `width - 60` across the band below 480 (261 at 321, 300 at 360). Measured in Chromium on
-  2026-10-02 in the badge's own style: the widest 20-character ending tried ("Mandatory
-  safeguards", of fifteen of 18 to 20 characters in English, Dutch and German) is 188.7 pixels
-  at 0.04 em in Arial Bold, 184.7 in Open Sans, 182.0 in Segoe UI Bold and at most 179.9 in the
-  library's other three families (37.1); at 0.12 em the same text is 206.3 in Arial Bold, which is why the
-  tracking tightens. At the guarantee, 1280 x 640, the room is 354 and the same text 206.3: far
-  inside. In DejaVu Sans Bold, the widest fallback (10.7), three of the seven 20-character endings
-  tried take a second line between 480 and 491 pixels wide; nothing scrolls, because the badge
-  is placed on the rim and holds its own height.
+  2026-10-02 with the badge in place at a 480-pixel window, on Windows and in Linux, for
+  fifteen endings of 18 to 20 characters in English, Dutch and German: at 0.04 em every one of
+  up to 19 characters holds one line in every face measured. The widest, "Mandatory
+  safeguard", is 195.5 pixels in DejaVu Sans Bold, the widest fallback (10.7), 181.0 in Arial
+  Bold and Liberation Sans, 178.2 in Open Sans, 175.4 in Segoe UI Bold and at most 172.8 in the
+  library's other three families (37.1); Linux draws a web font up to 1.9 pixels wider, and
+  DejaVu Sans Bold as a web font there at 197.4, the widest of all. At 0.12 em five of the
+  seven 19-character endings take a second line in DejaVu Sans Bold, which is why the tracking
+  tightens. At the guarantee, 1280 x 640, the room is 354 and the widest 19-character ending
+  212.3: far inside.
+- **Why not 20**: three of the seven 20-character endings take a second line in DejaVu Sans
+  Bold at 480 to 491 pixels wide. Nothing scrolls -- the badge is placed on the rim and grows
+  with its text -- but a badge of two lines is 46 pixels tall and covers the top of the title,
+  which 10.1 does not allow. The limit counts characters, as every limit of `tree-format.md`
+  5.7 does: an ending of capitals wider than any measured can still take a second line at the
+  narrowest widths. San Francisco and Helvetica Neue, the default stack's faces on Apple's
+  systems, were not measured.
 - **Without JavaScript**: plain text in the server's markup, as the outcome word was (14).
 - **No other change to the page**: the Interior, `startAgain`, the up arrow and every
   measurement of 10 are as they were; `no-scroll.spec.ts` keeps its Terminal rows.
@@ -4456,7 +4465,7 @@ outcome afterwards, and nothing but `tree-format.md` 12.7's conversion knows its
 |---|---|---|
 | `src/tree/types.ts` | `type Outcome`; a Terminal `Node` has `outcome: Outcome`, a `DraftNode` `outcome?`; `linksOf(node).terminal` is the outcome | `Outcome` goes; a Terminal has `label: LocalisedText` (5.1), a `DraftNode` `label?`; `linksOf(node).terminal` is the label |
 | `src/tree/loader.ts` | reads `raw.terminal.outcome` into the Node and the `DraftNode`; `Manifest['format']` `elsa-tree/4` | reads `raw.terminal.label`; `elsa-tree/5` |
-| `src/tree/validate.ts` | compiles `schemas/elsa-tree-4.json`, derives the draft schema from it; no rule reads the outcome | compiles `schemas/elsa-tree-5.json` and derives the draft schema from it (19.2); `checkNode` checks a Terminal's `label` as the plain localised text it is -- V-L10N, V-PLAIN, V-LENGTH at `terminal.label.<lang>`, 20 in `MAX` |
+| `src/tree/validate.ts` | compiles `schemas/elsa-tree-4.json`, derives the draft schema from it; no rule reads the outcome | compiles `schemas/elsa-tree-5.json` and derives the draft schema from it (19.2); `checkNode` checks a Terminal's `label` as the plain localised text it is -- V-L10N, V-PLAIN, V-LENGTH at `terminal.label.<lang>`, 19 in `MAX` |
 | `src/tree/serialise.ts` | key order `terminal: ['outcome']` | `terminal: ['label']` |
 | `src/tree/grammar.ts` | names `schemas/elsa-tree-4.json` in a comment, on the schema's `url` pattern | names `schemas/elsa-tree-5.json` |
 | `src/store/edits.ts` | the field `terminal.outcome`; `set-terminal { outcome }`; `link: 'end'` writes `{ outcome }`; `newDraft` writes `/schemas/elsa-tree-4.json` and `elsa-tree/4`; the language operations' `eachText` walks no Terminal | the field `terminal.label.<lang>`; `set-terminal { label }` and `link: 'end'` write `{ label }`, `""` for every language not given; `newDraft` writes `/5`; `eachText` includes a Terminal's `label` |
@@ -4468,7 +4477,7 @@ outcome afterwards, and nothing but `tree-format.md` 12.7's conversion knows its
 | `src/editor/Structure.tsx` | `EndForm`: four radios and `confirm` | `EndForm`: one field and `confirm` (36.3) |
 | `src/editor/writes.ts` | `from.outcome` | `from.label` |
 | `src/editor/mode.ts` | names `terminal.outcome` in a comment | names `terminal.label` |
-| `src/admin/slots.tsx` | `EDITED` matches `terminal\.outcome`; `OUTCOMES` and their badge words; the field slot draws the outcome as a select; `EndForm` gets the four choices | matches `terminal\.label`; `OUTCOMES` goes; the field slot draws the ending as a plain field of limit 20; `EndForm` gets `endingText` |
+| `src/admin/slots.tsx` | `EDITED` matches `terminal\.outcome`; `OUTCOMES` and their badge words; the field slot draws the outcome as a select; `EndForm` gets the four choices | matches `terminal\.label`; `OUTCOMES` goes; the field slot draws the ending as a plain field of limit 19; `EndForm` gets `endingText` |
 | `src/components/Bubble.tsx` | `OUTCOME_LABEL`; `<p class="outcome outcome--<value>" lang={uiLang}>` with the chrome word | `OUTCOME_LABEL` goes; the badge holds `label[lang]`, one class, no `lang` |
 | `src/chrome.ts` | `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, `outcome`; `colourDanger` "Prohibited and errors" | gone; `endingText`; `colourDanger` "Errors" / "Fouten" (3.2) |
 | `src/app/[lang]/globals.css` | `.outcome--not-applicable` in `text-muted`, `--applicable` in `accent-secondary`, `--prohibited` in `danger`, `.bubble--terminal:has(.outcome--prohibited)` outlined in `danger`; `.editor-select.outcome`; `.structure-outcomes`, `.structure-outcome` | the per-ending rules go (36.1); the badge's 0.04 em below 792; the field's look in place of the select's; the radio list's rules go |
@@ -4486,7 +4495,7 @@ outcome afterwards, and nothing but `tree-format.md` 12.7's conversion knows its
 
 - **`treeEndsHere`** (the Answer row's middle button on a Node without Links, 30.1) opens a
   Sheet titled `treeEndsHere` holding **one plain field**, labelled `endingText`, in the page's
-  language, focused, with the counter `n / 20` on it as every field shows its limit (28.3,
+  language, focused, with the counter `n / 19` on it as every field shows its limit (28.3,
   28.4, as #172 amends them), and `confirm` and `cancel`. `confirm` is enabled once the field
   holds a character that is not white space; Enter confirms. It sends `POST
   /admin/api/trees/<t>/nodes { from: { node, link: 'end', label: { <lang>: <text> } } }`; the
@@ -4494,7 +4503,7 @@ outcome afterwards, and nothing but `tree-format.md` 12.7's conversion knows its
   to-do (V-L10N advisory, 19.2). A Node with Options cannot end: the 422 (V-TERMINAL) is shown
   in the Sheet, as before (30.3).
 - **Afterwards the badge is the field**, through the `field` slot (34.2), path
-  `terminal.label.<lang>`, limit 20, plain: blurred it is the badge as the public page draws
+  `terminal.label.<lang>`, limit 19, plain: blurred it is the badge as the public page draws
   it; focused it shows the text as typed, without the capitals transform, so a creator sees
   what they write; the counter and the missing-language tags stand on the right rim at the
   band's height (28.3); a language with no words shows `endingText` as its placeholder. The
@@ -4524,12 +4533,12 @@ release that carries `elsa-tree/5`.
 
 | File | Asserts |
 |---|---|
-| `tests/loader.test.ts` and its fixtures | a Terminal's `label` of 21 characters is V-LENGTH at `terminal.label.en` with "21 characters; at most 20"; a missing language is V-L10N; a line break is V-PLAIN; an `outcome` is refused by the schema at `/nodes/<i>/terminal`; every `invalid/<rule>` fixture still fails its own rule, `v-terminal`'s `maybe` included |
+| `tests/loader.test.ts` and its fixtures | a Terminal's `label` of 20 characters is V-LENGTH at `terminal.label.en` with "20 characters; at most 19"; a missing language is V-L10N; a line break is V-PLAIN; an `outcome` is refused by the schema at `/nodes/<i>/terminal`; every `invalid/<rule>` fixture still fails its own rule, `v-terminal`'s `maybe` included |
 | `tests/migrate-tree.test.ts` | 12.7 on a Tree whose four Terminals carry the four outcomes, in `en` and `nl`, gives the table's eight words; `nl-be` gets the Dutch words and `de` the English; an unknown outcome is left and reported; an absolute `$schema` URL is rewritten in place; a second run changes no byte; the byte form of 3.7 |
 | `tests/store/store.test.ts` | a data directory of `/4` files opens converted, served and editable, with one log line per file; a `/4` `tree.json` the conversion cannot carry is refused and left as it was; `importTree` of a `/4` folder converts its staging copy and leaves the source untouched |
 | `tests/store/drafts.test.ts` | `link: 'end'` with `label` writes `{ label }` with `""` for the other languages; the field `terminal.label.nl`; `set-terminal { label }`; `terminal.outcome` is 422; `add-language` writes `""` into a Terminal's `label` and `remove-language` removes its text |
-| `tests/browser/structure.spec.ts` | `treeEndsHere` asks for the words, its counter shows the 20; `confirm` puts the badge on the rim; after publishing (#136's route) the public page's badge holds the same words, in `en` and in `nl` |
-| `tests/browser/no-scroll.spec.ts` | its Terminal rows unchanged, and one row more: a fixture Terminal whose `label` is 20 characters of wide capitals ("Mandatory safeguards" / "Waarborgen verplicht") at its ten viewports and at 480 x 640, asserting 10.6's rule and that the badge is one line (its box 24 pixels tall). The runner draws the default stack in Liberation Sans, Arial's metrics (`src/theme.ts`), where 36.1 measured the English one at 188.7 pixels of the 198 |
+| `tests/browser/structure.spec.ts` | `treeEndsHere` asks for the words, its counter shows the 19; `confirm` puts the badge on the rim; after publishing (#136's route) the public page's badge holds the same words, in `en` and in `nl` |
+| `tests/browser/no-scroll.spec.ts` | its Terminal rows unchanged, and one row more: a fixture Terminal whose `label` is 19 characters of wide capitals ("Mandatory safeguard" / "Maatregelen vereist") at its ten viewports and at 480 x 640, asserting 10.6's rule and that the badge is one line (its box 24 pixels tall). The runner draws the default stack in Liberation Sans, Arial's metrics (`src/theme.ts`), where 36.1 measured the English one at 181.0 pixels of the 198 and the research record the Dutch one at 172.6 |
 | `tests/chrome.test.ts` | the outcome row goes (7) |
 | the tests that name the old number | found on 2026-10-02 by searching `elsa-tree-4` and `elsa-tree/4` under `tests/`: `carousel.spec.ts`, `deployment.spec.ts` (its `SCHEMA` constant and the `describedby` header it expects), `draft-rules.test.ts`, `llms.test.ts`, `loader.test.ts`, `migrate-tree.test.ts`, `neighbourhood.test.ts`, `store/drafts.test.ts`, `store/store.test.ts`, `url.test.ts`, `views.test.tsx` -- each now names `/5`; and `draft-rules.test.ts`'s "a wrong format" case, which writes `elsa-tree/5`, writes a format that is wrong after #179 (`elsa-tree/6`) |
 

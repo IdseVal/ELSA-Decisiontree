@@ -274,7 +274,7 @@
       }
     },
     "terminal": {
-      "description": "The explicit end-of-walk marker, carrying the ending's own text: `label`, a plain localised text shown on the Terminal's badge (tree-format.md 5.5). Its maximum of 20 characters is measured on the counted text of tree-format.md 3.8 and is therefore a content rule (V-LENGTH), like every other text limit. There is no `outcome`: the closed set of four of elsa-tree/4 is gone, and an `outcome` key is refused like any unknown key (V-KEYS, V-TERMINAL).",
+      "description": "The explicit end-of-walk marker, carrying the ending's own text: `label`, a plain localised text shown on the Terminal's badge (tree-format.md 5.5). Its maximum of 19 characters is measured on the counted text of tree-format.md 3.8 and is therefore a content rule (V-LENGTH), like every other text limit. There is no `outcome`: the closed set of four of elsa-tree/4 is gone, and an `outcome` key is refused like any unknown key (V-KEYS, V-TERMINAL).",
       "type": "object",
       "additionalProperties": false,
       "required": ["label"],

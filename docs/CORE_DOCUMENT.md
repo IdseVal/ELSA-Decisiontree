@@ -244,7 +244,7 @@ required was named.
   on the button (with a wordcap obviously). This graph creation tool is not just for Legal
   trees, also for ethical or social trees, so we want to keep the graph creator useable for
   all." The marker stays explicit; what it carries is the ending's words, per language, at
-  most 20 characters, shown on the Terminal's badge, every ending drawn alike. The four
+  most 19 characters, shown on the Terminal's badge, every ending drawn alike. The four
   fixed outcomes ("Does not apply", "Applies", "Prohibited", "Look elsewhere") were legal
   words an ethics or a social Tree cannot use; they go. Decided by the Architect on #171:
   `elsa-tree/5` (`docs/specs/tree-format.md` 5.5), every existing ending converted to the
@@ -519,7 +519,7 @@ owner's words leave a choice:
   proposed by the Architect (2026-09-26):** a Node without Links offers `+ Yes`, `Tree ends
   here` and `+ No` in the Answer row; a fresh yes or no creates its target and the editor
   navigates to it; "tree ends here" asks for one of the four outcomes (**[#169]** asks for
-  the ending's words instead -- one field, at most 20 characters, in the language being
+  the ending's words instead -- one field, at most 19 characters, in the language being
   edited -- and the four outcomes are offered nowhere, owner 2026-10-02; 3.1,
   `docs/specs/application.md` 36.3); the side-bubble `+`
   creates an Option and its explanation Node and opens it, editable, in the Overlay of 3.2;
@@ -804,7 +804,7 @@ Confirmed by the owner on 2026-09-03:
 | 10.7 | After the high-risk step. | -- | answered: general-purpose AI step, then Article 50 transparency step; nothing further for now (section 3.3) |
 | 10.8 | NON-scope. | -- | answered (section 4) |
 | 10.9 | Traversal after an Option's child Node. | -- | answered: explanation only; back via Trail; may be refined later |
-| 10.10 | Terminal marker. | -- | decided by Planner: explicit marker with outcome. **[#169] Revised by the owner (2026-10-02):** "When tree ends here is chosen, just let the user enter a text to display on the button (with a wordcap obviously). This graph creation tool is not just for Legal trees, also for ethical or social trees, so we want to keep the graph creator useable for all." The marker stays explicit; the outcome becomes the ending's own words. Decided by the Architect on #171: `terminal.label`, plain, per language, at most 20 characters -- the narrowest room the badge has, measured -- required, not empty once published; the four outcomes go and every ending is drawn in one colour; a new format number, `elsa-tree/5`, with every existing ending converted to the words its badge showed, in the repository by #179 and in a deployment's data directory by the store at its first start. `docs/specs/tree-format.md` 5.5, 5.7, 12.7; `docs/specs/application.md` 36; `docs/adrs/ADR-171-ending-text.md`, `ADR-171-elsa-tree-5.md` |
+| 10.10 | Terminal marker. | -- | decided by Planner: explicit marker with outcome. **[#169] Revised by the owner (2026-10-02):** "When tree ends here is chosen, just let the user enter a text to display on the button (with a wordcap obviously). This graph creation tool is not just for Legal trees, also for ethical or social trees, so we want to keep the graph creator useable for all." The marker stays explicit; the outcome becomes the ending's own words. Decided by the Architect on #171: `terminal.label`, plain, per language, at most 19 characters -- the narrowest room the badge has, measured -- required, not empty once published; the four outcomes go and every ending is drawn in one colour; a new format number, `elsa-tree/5`, with every existing ending converted to the words its badge showed, in the repository by #179 and in a deployment's data directory by the store at its first start. `docs/specs/tree-format.md` 5.5, 5.7, 12.7; `docs/specs/application.md` 36; `docs/adrs/ADR-171-ending-text.md`, `ADR-171-elsa-tree-5.md` |
 | 10.11 | Sources inline vs shared. | -- | inline (PROPOSED, from owner's "source parameter") |
 | 10.12 | Image credits. | -- | answered: required |
 | 10.13 | Hosting. | -- | answered: undecided between university server and Hetzner; plain Linux, no vendor lock-in |
