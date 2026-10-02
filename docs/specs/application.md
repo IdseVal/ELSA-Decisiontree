@@ -24,6 +24,7 @@
 > | 5.1 | `Outcome` goes; a Terminal Node carries `label: LocalisedText`; `Manifest['format']` is `elsa-tree/5`. |
 > | 6 | `fonts/`, `src/fonts.ts`, `src/store/woff2.ts`, `schemas/elsa-tree-5.json`. |
 > | 7 | `chrome.test.ts` loses its outcome row. |
+> | 9 | Five rows, one per ADR of #171. |
 > | 10.1, 10.3, 10.5 | The badge holds the Terminal's `label`, in one colour; below 792 pixels wide its tracking tightens. |
 > | 15.1 | The schema route serves `elsa-tree-5.json` and still `elsa-tree-4.json`. |
 > | 16.4, 16.5 | Unchanged, stated: neither read the outcome, and neither reads the label. |

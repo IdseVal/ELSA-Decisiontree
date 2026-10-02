@@ -1081,8 +1081,9 @@ every rule blocking, so nothing below changes for a reader of `tree.json`.
 Two tools answer between them, in this order, and neither translates the other's message
 (3.9):
 
-- **the schema** (`schemas/elsa-tree-4.json`) reports a shape failure with a JSON Pointer
-  into the file, e.g. `/nodes/3/options/2` -- *must NOT have additional properties*;
+- **the schema** (`schemas/elsa-tree-5.json`; **[#171]** `elsa-tree-4.json` until 2026-10-02)
+  reports a shape failure with a JSON Pointer into the file, e.g. `/nodes/3/options/2` --
+  *must NOT have additional properties*;
 - **the rules** report a content failure with the Tree id, the Node id (or `manifest`),
   the key path inside it (e.g. `options[2].target`, `description.nl`), the rule id below,
   and a plain-language message that, for a length rule, names the actual and the maximum.
