@@ -1680,6 +1680,7 @@ a.language:hover,
   line-height: 16px;
 }
 
+/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .admin-field input {
   min-width: 0;
   height: 32px;
@@ -1690,6 +1691,7 @@ a.language:hover,
   color: var(--elsa-text);
   font: inherit;
   font-size: var(--body);
+  text-overflow: ellipsis;
 }
 
 .admin-field-group {
@@ -1947,6 +1949,8 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   font: inherit;
   font-size: 18px;
+  /* **[#172]** A title of 80 is wider than the box: it ends in an ellipsis while it is not being typed in. */
+  text-overflow: ellipsis;
 }
 
 .new-tree-title input:focus-visible,
@@ -2874,7 +2878,7 @@ fieldset:disabled .admin-submit {
   line-height: var(--small-line);
 }
 
-/* **[#172]** The Sheet's own heading, as every Sheet's: not the Sources heading's small capitals around it. */
+/* **[#172]** The Sheet's own heading, as every Sheet's: not the Sources heading's small capitals around it, nor its centring. */
 .source-editor h2 {
   margin: 0;
   font-family: var(--elsa-font-heading);
@@ -2884,6 +2888,7 @@ fieldset:disabled .admin-submit {
   font-variant-caps: normal;
   letter-spacing: normal;
   color: var(--elsa-text);
+  text-align: start;
 }
 
 /* **[#172]** A label beside its field, its column as wide as the admin pages' (`.admin-field`), so every Sheet's fields line up. */
@@ -2947,6 +2952,7 @@ fieldset:disabled .admin-submit {
 }
 
 /* The URL of a Source to add (28.1): the one input of the editor that is not a field. */
+/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .editor-url {
   width: 100%;
   min-width: 0;
@@ -2958,6 +2964,7 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   font: inherit;
   font-size: var(--small);
+  text-overflow: ellipsis;
 }
 
 .editor-url[aria-invalid='true'] {
