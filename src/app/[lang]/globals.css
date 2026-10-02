@@ -2726,7 +2726,14 @@ fieldset:disabled .admin-submit {
 }
 
 .option-title .editor-field {
-  --field-lines: 3;
+  --field-lines: 5;
+}
+
+/* Below 1280 the straight columns' label is 176 at 16 on 20 again (10.5, step 2): 60 characters take three there. */
+@media (max-width: 1279px) {
+  .option-title .editor-field {
+    --field-lines: 3;
+  }
 }
 
 /* Below 480 pixels the text area is about 310 wide at the smallest type of 10.5: a title of 80, a description of 150 and an Image's 120 take three lines there. */
