@@ -319,7 +319,12 @@ required was named.
 - **[#75] A "Legal sources" heading (owner, #75).** "In the node bubble, I want the
   sources to have a header 'Legal sources' or 'Juridische bronnen' in Dutch, with the
   sources listed below that." The heading is chrome, in the chrome language; the Node's
-  Sources are listed under it.
+  Sources are listed under it. **[#169] Amended 2026-10-02 (owner, #169; built by
+  #173):** "Instead of 'Legal sources', the app should just say 'sources'", because
+  "This graph creation tool is not just for Legal trees, also for ethical or social
+  trees, so we want to keep the graph creator useable for all." The heading says
+  **"Sources"**, "Bronnen" in Dutch, on the public page and in the editor;
+  `docs/adrs/ADR-173-sources-heading.md`.
 - **[#75] The copy-link button just copies (owner, #75).** "The copy link button should
   just copy the link to the clipboard, whatever it is doing now is not good." One click
   puts the page's own link in the clipboard. Issue #86 finds out what it does now
