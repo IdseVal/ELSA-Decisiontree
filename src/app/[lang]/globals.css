@@ -2712,6 +2712,16 @@ fieldset:disabled .admin-submit {
  * Bubble's curve (10.1). An Image's description and credit in the enlarged view are two lines
  * of its caption: 120 characters take two there, as the fixture's do. A text stored over its
  * limit is still shown whole: the mirror grows the box past the minimum for it.
+ *
+ * **[#175]** (2026-10-02) In the fan an Option's label is 120 pixels at 15 on 18, where its 60
+ * characters take five lines hyphenated (10.7, amended), so its title's box is five there: 90
+ * of the button's 100, from 5 to 95. Below 1280 the straight columns' label is 176 at 16 on 20
+ * again (10.5, step 2), and the box stays three. A box of five does start under the `...`: the
+ * menu's 24 x 24 in the button's outer top corner lies over the box's outer top corner, 14 wide
+ * and 19 high, where a first line that runs the label's full width ends; #178 takes the `...`
+ * off the side-bubble buttons. Where the browser has no hyphenation dictionary for the page's
+ * language, a title of long words can take six lines, and the box grows to 108 with its button
+ * (10.3's known cost).
  */
 .editor-text,
 .editor-rendered {

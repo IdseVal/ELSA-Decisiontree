@@ -3932,6 +3932,20 @@ neither grows nor shrinks while the creator types, and it stays inside its paren
 Bubble's text area, the Overlay, the Option button or the Sheet. A text stored over its limit
 is shown whole: its box grows past these lines to hold it.
 
+**Amended 2026-10-02 (#175):** beside the Bubble, where the Option button's label is now 120
+pixels at 15 on 18-pixel lines (10.3 and 10.7, amended the same day), an Option title's box
+is **five** lines, 90 pixels of the button's 100: the lines 10.7 measures 60 characters take
+there, hyphenated in the page's language. Set into the field itself at 1280 x 640, in Open
+Sans, Verdana and Arial, the 146 Option titles 10.7 measures take the same lines as there, so
+the box stays 90, and the text area holds every one. In the straight columns and the row below 1280 (10.5, steps 2 and 3),
+where the label is still 176 pixels at 16 on 20, the box stays **three**. A box of five does
+start under the `...` of the Option's link menu (30.6): the menu's 24 x 24 in the button's
+outer top corner lies over the box's outer top corner, 14 pixels wide and 19 high, where a
+first line that runs the label's full width ends. Issue #178 takes the `...` off the
+side-bubble buttons. Where the browser has no hyphenation dictionary for the page's language,
+a title of long words can take six lines (10.7, amended), and its box grows to 108 with the
+button: 10.3's known cost, in the editor too.
+
 ### 28.5 The description: source text
 
 Blurred, the region shows the **rendered** text (`richTextToHtml` with the Node's explainers,
