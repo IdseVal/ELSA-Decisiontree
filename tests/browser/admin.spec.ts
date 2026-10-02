@@ -251,14 +251,12 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   await expect(plus).toBeVisible()
   await step(page, '06-creator-overview-plus-tile')
 
-  // The + tile and the form (26.4, 27): two languages, a title in each.
+  // The + tile and the form (26.4, 27): two languages, **[#168]** one title, the address the title's.
   await plus.click()
   await expect(page).toHaveURL(`${origin}/admin/new`)
   await page.locator('.new-tree-add').getByRole('button', { name: 'nl', exact: true }).click()
-  await page.getByLabel('Title (en)').fill('Does the walk reach the end?')
-  await page.getByLabel('Title (nl)').fill('Bereikt de wandeling het einde?')
-  tree = await page.getByLabel('Address name').inputValue()
-  expect(tree).toBe('does-the-walk-reach-the-end')
+  await page.getByLabel('Title', { exact: true }).fill('Does the walk reach the end?')
+  tree = 'does-the-walk-reach-the-end'
   await step(page, '07-creator-new-tree-form')
   await page.getByRole('button', { name: 'Create' }).click()
   await expect(page).toHaveURL(editor('start'))
