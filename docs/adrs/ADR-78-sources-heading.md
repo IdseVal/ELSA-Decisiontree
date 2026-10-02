@@ -1,6 +1,7 @@
 # ADR-78-sources-heading: the Sources sit under a chrome heading "Legal sources" / "Juridische bronnen" on one 20-pixel line, the `Legal` kind label goes because the heading says it, `Case law` and `Literature` stay, and the block is at most three lines of the text area
 
 - Status: ACCEPTED (frozen) -- 2026-09-17
+- Superseded in part by `ADR-173-sources-heading.md` (decision 1: the heading says `Sources` and `Bronnen`) -- 2026-10-02 (issue #173, the owner in #169). Decisions 2 to 4 stand.
 - Issue: #78 -- Architecture: freeze the contracts for the display changes of #75
 - Spec: `docs/specs/application.md` 3.2 (the `sources` key), 10.3, 10.5 (step 6), 10.7; `docs/specs/tree-format.md` 5.1, 5.7
 - Core document: 3.1 (Sources of three kinds), 3.2 ("A 'Legal sources' heading"), 10.20 (chrome languages)
