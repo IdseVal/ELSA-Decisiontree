@@ -882,11 +882,14 @@ a.language:hover,
  * The 100 is a minimum, not a height: a title that takes more lines than the button holds
  * grows it rather than overflow (#105). Hyphenated in the page's language, no title measured
  * takes more than five lines of 18 at 15 pixels; where the browser has no dictionary for the
- * language, a title of long words can take six, and the button is 108 -- on a side of four at
- * 1280 x 640, 4 over the next one, the known cost of 10.3 (amended). It grows downward from
- * the row's top. It is not centred by a transform, because a transform on the item would make
- * it the containing block of the panel and the backdrop (`position: fixed`), which would then
- * lie inside the item instead of over the page.
+ * language, a title of long words can take six, and the button is 108. On a side of four at
+ * 1280 x 640 that is the known cost of 10.3 (amended): in the top row the button lies 4 over
+ * the next one; in the bottom row it ends 6 below the list, which then holds content taller
+ * than itself (10.6); and in both the picture stays 100, 4 from the top and the bottom, short
+ * of filling the inner end. It grows downward from the row's top. It is not centred by a
+ * transform, because a transform on the item would make it the containing block of the panel
+ * and the backdrop (`position: fixed`), which would then lie inside the item instead of over
+ * the page.
  *
  * The item's box is the button and, at its inner end, the connector's 20 pixels, so that
  * the connector lies inside it and no element holds content wider than itself (10.6).

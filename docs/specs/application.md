@@ -1400,13 +1400,28 @@ outline (section 12), the chrome bar and disclaimer unchanged.
   **Amended 2026-10-02 (#175), the known cost:** where the reader's browser has no
   hyphenation dictionary for the page's language (#105's case), a title of long Dutch words
   can take **six** lines (10.7, amended), and its button grows to **108**, downward from the
-  row's top. On a side of four at 1280 x 640 that puts it **4 pixels over the next button**,
-  where #105's 102 stayed 2 clear: measured with `hyphens: manual`, the first Tree's
-  six-line Dutch title set in the top row of `annex-i-legislation`'s right side. At
-  1920 x 1080 the same button is 22 clear. On the first Tree as it stands no button reaches
-  another: its one six-line title in Open Sans, on `prohibited-practices-2`, is the last of
-  a side of three. The overlap is recorded as the known cost of 120 pixels at 15 on 18, for
-  the owner to decide whether it stands.
+  row's top. On a side of four at 1280 x 640 that costs three things. Measured with
+  `hyphens: manual` and the first Tree's six-line Dutch title set in a row of the right side:
+  on `annex-i-legislation` in Open Sans, and on the full Node of 10.6 in Verdana, which breaks
+  these titles' lines as DejaVu Sans does (10.7, amended):
+
+  - **In the top row** the button lies **4 pixels over the next one**, where #105's 102
+    stayed 2 clear.
+  - **In the bottom row** it ends **6 pixels below the fan**. The row's top is at 314 in any
+    face, so the button ends at 422, and the Options' list, as tall as the Bubble's 416, holds
+    content taller than itself: 422 in its 416, 423 in Open Sans, whose last line's text box
+    reaches a pixel lower. That breaks 10.6's rule, beyond its one-pixel tolerance. Before #175
+    the same row held #105's 102 to 418, 2 below the fan and 1 past the tolerance, and that
+    was not recorded either.
+  - **In both rows the picture stays 100 across**, 4 pixels from the top and the bottom of
+    the 108, so it no longer fills the inner end.
+
+  At 1920 x 1080 the same title is 22 clear of the next button in the top row and ends inside
+  the fan in the bottom row. On the first Tree as it stands no button reaches another or
+  leaves the fan: its one six-line title in Open Sans, on `prohibited-practices-2`, is the
+  last of a side of three and ends at 405 of the 416. Its picture, though, also stays 100, 4
+  from the top and the bottom. The whole cost is recorded here as the known cost of 120
+  pixels at 15 on 18, for the owner to decide whether it stands.
 - **The picture on an Option button is its target's main image** -- an image of another
   Node, which 11.5 allows for exactly this: one file per Option, the target's first
   Image, never its other Images (core document 10.29). An Option has no `images` of its
