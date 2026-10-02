@@ -351,17 +351,18 @@ async function plusLabel(page: Page, lang: string, viewport: string, what: strin
 
 /**
  * **[#174]** Widths 10.6 does not list, beside the widest strip: there the band's third column
- * leaves the `+` label less than 110 pixels, and it stands left of the `+` (31.1). The
- * Reviewer measured it leaving the band at all four on PR #187. Below 550 the `+` itself is
- * wider than that column, which the pull request records.
+ * leaves the `+` label less than 110 pixels, and it stands left of the `+` (31.1). On PR #187
+ * the Reviewer measured it leaving the band from 550 to 680 wide in en and to 720 in nl. These
+ * start at 640: narrower, the disclaimer takes a second line in nl (in en below 600), which its
+ * 28-pixel row does not hold whatever the carousel does, as the pull request records.
  */
 const NARROW = [
-  [560, 640],
-  [600, 800],
-  [620, 640],
+  [640, 640],
   [640, 800],
+  [660, 640],
   [700, 640],
-  [760, 800],
+  [720, 800],
+  [760, 640],
 ] as const
 for (const lang of LANGUAGES) {
   test(`the editor's picture Sheets, ${lang}, never scroll at any viewport of 10.6 (31.2, 31.3)`, async ({ browser }) => {

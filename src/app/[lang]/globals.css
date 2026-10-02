@@ -3309,9 +3309,10 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * Beside a strip on a narrower window the column leaves the label less than 110 pixels right
- * of the `+`, where its longest word would not fit: it stands left of the `+` instead, over
- * the strip's end, on one line, which the strip and the column before it always hold.
+ * Where the column leaves the label less than 110 pixels right of the `+` -- beside a long
+ * strip on a narrower window -- it stands left of the `+` instead, over the strip's end, on one
+ * line, which the strip and the column before it always hold. 110 holds its longest word,
+ * "afbeelding", 50 to 65 pixels in the usual faces, with its padding and room to spare.
  */
 @media (min-width: 480px) and (min-height: 640px) {
   @container (width < 185px) {
@@ -3327,7 +3328,9 @@ fieldset:disabled .admin-submit {
 /*
  * Below the guarantee the strip is its 20-pixel pill (10.5, step 1), and the `+` a pill beside
  * it. [#174] Its label stands on the band's foot and, where it needs a second line, grows up
- * over the Bubble rather than down out of the band (10.6).
+ * over the Bubble rather than down out of the band (10.6). Where the column leaves it less
+ * than 110 pixels right of the `+` -- on a phone -- it stands left of the `+`, over the
+ * enlarged view's control, on one line.
  */
 @media (max-height: 639px), (max-width: 479px) {
   .carousel > .editor-picker--strip {
@@ -3345,6 +3348,15 @@ fieldset:disabled .admin-submit {
     left: 36px;
     max-width: calc(100% - 36px);
     translate: none;
+  }
+
+  @container (width < 146px) {
+    .carousel > .editor-picker-room > .editor-picker-label {
+      left: auto;
+      right: 100%;
+      max-width: none;
+      white-space: nowrap;
+    }
   }
 }
 

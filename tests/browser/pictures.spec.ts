@@ -174,21 +174,24 @@ test.describe('the strip’s + says what it adds (31.1)', () => {
       await expect(page.locator('.editor-picker-label')).toHaveCount(0)
     })
 
-    test(`beside the widest strip its label stays in the band at every width from 480, in whole words: right of the + where its column leaves 110 pixels, left of it on one line where it does not, ${lang}`, async ({ browser }) => {
+    test(`beside nine pictures its label holds its words and stays in the band at every width from 360: right of the + where its column leaves 110 pixels, left of it on one line where it does not, ${lang}`, async ({ browser }) => {
       const { page, cookie } = await loggedIn(browser)
       // `done` has one picture: eight more make nine, the most with a `+`, and the strip its widest, 383 (12.2).
+      // Described in both languages, so that they add nothing to the to-do list the later screenshots show.
       const node = `${editorOrigin}/admin/api/trees/pictures/nodes/done`
       const headers = { Origin: editorOrigin, Cookie: cookie, 'Content-Type': 'application/json' }
       const pictures = ((await (await page.request.get(node, { headers })).json()) as { node: { images: unknown[] } }).node.images.length
       for (const file of ['barn.svg', 'channel.svg', 'drone.svg', 'greenhouse.svg', 'harbour.svg', 'orchard.svg', 'pump.svg', 'silo.svg'].slice(pictures - 1)) {
-        const added = await page.request.patch(node, { headers, data: JSON.stringify({ op: 'add-image', file, credit: 'Drawing: ELSA lab', description: { en: file } }) })
+        const added = await page.request.patch(node, { headers, data: JSON.stringify({ op: 'add-image', file, credit: 'Drawing: ELSA lab', description: { en: file, nl: file } }) })
         expect(added.status(), file).toBe(200)
       }
       await page.goto(`${editorOrigin}/admin/trees/pictures/done${lang === 'en' ? '' : '?lang=nl'}`)
       const plus = page.locator('.carousel > .editor-picker--strip')
       const label = page.locator('.carousel > .editor-picker-room > .editor-picker-label')
       await expect(page.locator('.carousel-strip .thumbnail')).toHaveCount(8)
-      for (let width = 480; width <= 1280; width += 10) {
+      // Below 480 the strip is its pill and the `+` a pill of 20 beside it (10.5, step 1).
+      for (let width = 360; width <= 1280; width += 10) {
+        const pill = width < 480
         await page.setViewportSize({ width, height: 640 })
         await expect(label).toBeHidden()
         await plus.hover()
@@ -204,31 +207,33 @@ test.describe('the strip’s + says what it adds (31.1)', () => {
         const where = `${width} x 640: the label ${m.label.width} x ${m.label.height} at ${m.label.x}, the + at ${m.plus.x}, its column ${m.room.width}`
         const right = m.label.x >= m.plus.right - 0.5
         record(`editor, \`done\` with nine pictures, ${lang}, ${width} x 640`, 'the + label', [`${right ? 'right' : 'left'} of the +, ${m.label.width} x ${m.label.height}, its column ${m.room.width}`])
-        // Inside `.carousel`, which nothing may leave (10.6), and holding its words: none is broken.
+        // Inside `.carousel`, which nothing may leave (10.6) -- beside the pill it may grow up over
+        // the Bubble, never down -- and holding its words: none is broken.
         expect(m.label.x, where).toBeGreaterThanOrEqual(m.carousel.x - 1)
         expect(m.label.right, where).toBeLessThanOrEqual(m.carousel.right + 1)
-        expect(m.label.y, where).toBeGreaterThanOrEqual(m.carousel.y - 1)
+        if (!pill) expect(m.label.y, where).toBeGreaterThanOrEqual(m.carousel.y - 1)
         expect(m.label.bottom, where).toBeLessThanOrEqual(m.carousel.bottom + 1)
         expect(m.sw, where).toBeLessThanOrEqual(m.cw + 1)
         expect(m.sh, where).toBeLessThanOrEqual(m.ch + 1)
         // Beside the `+`, level with it.
         expect(m.label.y, where).toBeLessThan(m.plus.bottom)
         expect(m.label.bottom, where).toBeGreaterThan(m.plus.y)
-        if (m.room.width >= 185) {
+        // 110 right of the `+`: 75 past the column's start beside the strip, 36 beside the pill.
+        if (m.room.width >= (pill ? 146 : 185)) {
           expect(right, `${where}: right of the +`).toBe(true)
         } else {
-          // Left of it, over the strip's end, on one line of 16.
+          // Left of it, on one line of 16; beside the strip, over the strip's end.
           expect(m.label.right, `${where}: left of the +`).toBeLessThanOrEqual(m.plus.x - 7.5)
-          expect(m.label.x, `${where}: over the strip`).toBeGreaterThanOrEqual(m.strip.x)
+          if (!pill) expect(m.label.x, `${where}: over the strip`).toBeGreaterThanOrEqual(m.strip.x)
           expect(m.label.height, `${where}: one line`).toBeLessThanOrEqual(16 + 4 + 2 + 1)
         }
         await page.mouse.move(5, 5)
       }
-      if (lang === 'en') {
-        await page.setViewportSize({ width: 640, height: 800 })
-        await plus.hover()
-        await shoot(page, 'strip-plus-hovered-640')
-      }
+      // Beside the strip at 640 wide, in en; beside the pill on a phone, in nl, the longer words.
+      const [width, height] = lang === 'en' ? [640, 800] : [390, 844]
+      await page.setViewportSize({ width, height })
+      await plus.hover()
+      await shoot(page, `strip-plus-hovered-${width}-${lang}`)
     })
   }
 })
