@@ -7,6 +7,9 @@
  * page's language; `cancel` deletes the uploaded file; a 413 and a 415 are said in the
  * indicator in the chrome's words; the enlarged view's controls are absent where they would
  * do nothing, and a removed Image's file is deleted only after `remove-image` was accepted.
+ * **[#174]** The strip's `+` is named, and labelled beside it, "Add an extra image" while the
+ * slot keeps "Add a picture"; the attach Sheet's two fields each carry a hint behind their
+ * label, described by its explanation.
  */
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -33,6 +36,10 @@ const pickerWords = {
   cancel: 'cancel',
   placeholderCredit: 'placeholderCredit',
   placeholderImageDescription: 'placeholderImageDescription',
+  addExtraPicture: 'addExtraPicture',
+  hint: 'hint',
+  creditHint: 'creditHint',
+  imageDescriptionHint: 'imageDescriptionHint',
 }
 const controlWords = { makeMain: 'makeMain', moveEarlier: 'moveEarlier', moveLater: 'moveLater', removeImage: 'removeImage' }
 
@@ -175,6 +182,50 @@ describe('the picker and the attach Sheet (31.1, 31.2)', () => {
     await settle()
     expect(sent.map((request) => `${request.method} ${request.url}`)).toEqual(['POST /admin/api/trees/t/images', 'DELETE /admin/api/trees/t/images/x-00000000.png'])
     expect(panel()).toBeNull()
+  })
+
+  test('[#174] the strip’s + is named and labelled addExtraPicture; the slot keeps addPicture', () => {
+    mount(<ImageSlot nodeId="start" place="strip" images="/admin/api/trees/t/images/" words={pickerWords} />)
+    const strip = container.querySelector('.editor-picker--strip')!
+    expect(strip.querySelector('input')!.getAttribute('aria-label')).toBe('addExtraPicture')
+    // The label beside it is seen, not read twice; no native tooltip says it a second time.
+    expect(strip.hasAttribute('title')).toBe(false)
+    // It stands in its room, the band's third column, the `+`'s next sibling (31.1).
+    const room = strip.nextElementSibling!
+    expect(room.className).toBe('editor-picker-room')
+    expect(room.getAttribute('aria-hidden')).toBe('true')
+    expect([...room.children].map((child) => child.className)).toEqual(['editor-picker-label'])
+    expect(room.textContent).toBe('addExtraPicture')
+
+    mount(<ImageSlot nodeId="start" place="slot" images="/admin/api/trees/t/images/" words={pickerWords} />)
+    const slot = container.querySelector('.editor-picker--slot')!
+    expect(slot.querySelector('input')!.getAttribute('aria-label')).toBe('addPicture')
+    expect(slot.getAttribute('title')).toBe('addPicture')
+    expect(container.querySelector('.editor-picker-room, .editor-picker-label')).toBeNull()
+  })
+
+  test('[#174] each field of the attach Sheet has a hint behind its label, described by why it is asked', async () => {
+    answer = () => new Response(JSON.stringify({ file: 'x-00000000.png', width: 1, height: 1 }), { status: 201 })
+    mount(<ImageSlot nodeId="start" place="slot" images="/admin/api/trees/t/images/" words={pickerWords} />)
+    await pick(png())
+    const sheet = panel()!
+    const rows = [...sheet.querySelectorAll('.editor-row')]
+    expect(rows).toHaveLength(2)
+    for (const [row, label, explanation] of [
+      [rows[0]!, 'credit', 'creditHint'],
+      [rows[1]!, 'imageDescription', 'imageDescriptionHint'],
+    ] as const) {
+      const input = row.querySelector('input')!
+      // The field is named by its label alone: the hint is a control beside it, not inside it.
+      expect(row.querySelector(`label[for="${input.id}"]`)!.textContent).toBe(label)
+      const mark = row.querySelector<HTMLButtonElement>('button.hint-mark')!
+      expect(mark.type).toBe('button')
+      expect(mark.getAttribute('aria-label')).toBe('hint')
+      const description = document.getElementById(mark.getAttribute('aria-describedby')!)!
+      expect(description.getAttribute('role')).toBe('tooltip')
+      expect(description.textContent).toBe(explanation)
+      expect(description.previousElementSibling).toBe(mark)
+    }
   })
 
   test.each([

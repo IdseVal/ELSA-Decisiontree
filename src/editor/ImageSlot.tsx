@@ -21,6 +21,8 @@ const ACCEPT = 'image/png, image/jpeg, image/gif, image/webp'
 /** The chrome words a picker says; strings, because a client component takes no module. */
 export interface PickerWords extends AttachWords {
   addPicture: string
+  /** **[#174]** The strip's `+`: its name, and the label beside it on hover and on keyboard focus. */
+  addExtraPicture: string
   fileTooLarge: string
   fileTypeRefused: string
 }
@@ -87,19 +89,27 @@ export function ImageSlot({
   }
 
   const shape = place === 'slot' ? 'main-image main-image--empty editor-picker editor-picker--slot' : 'editor-picker editor-picker--strip'
+  // The slot says "Add a picture"; the strip's `+` adds another and says so, beside it (#174).
+  const name = place === 'slot' ? words.addPicture : words.addExtraPicture
   return (
     <>
       <label
         className={`${shape}${over ? ' editor-picker--over' : ''}`}
-        title={words.addPicture}
+        title={place === 'slot' ? name : undefined}
         aria-busy={busy || undefined}
         onDragOver={onDragOver}
         onDragLeave={() => setOver(false)}
         onDrop={onDrop}
       >
-        <input ref={input} className="editor-picker-input" type="file" accept={ACCEPT} aria-label={words.addPicture} disabled={api.readOnly} onChange={onChange} />
+        <input ref={input} className="editor-picker-input" type="file" accept={ACCEPT} aria-label={name} disabled={api.readOnly} onChange={onChange} />
         <span aria-hidden="true">+</span>
       </label>
+      {/* Seen, not read: the input's own name says the same words. The room around them is the band's third column, which decides the side of the `+` they stand on (31.1). */}
+      {place === 'strip' && (
+        <span className="editor-picker-room" aria-hidden="true">
+          <span className="editor-picker-label">{name}</span>
+        </span>
+      )}
       {uploaded && (
         <AttachSheet
           nodeId={nodeId}

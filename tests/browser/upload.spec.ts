@@ -208,7 +208,8 @@ test.describe('the strip and the enlarged view (31.1, 31.3, 31.4)', () => {
     const add = page.locator('.carousel > .editor-picker--strip')
     await expect(add).toBeVisible()
     const box = (await add.boundingBox())!
-    expect([box.width, box.height]).toEqual([48, 48])
+    // The thumbnails' size, 67 pixels since #174 (31.1).
+    expect([box.width, box.height]).toEqual([67, 67])
     await upload(add, PROHIBITED)
     await attach(page, 'Drawing: two', 'The second picture')
     const second = (await nodeOf(page, cookie, 'two-pictures', 'start')).images[1]!.file

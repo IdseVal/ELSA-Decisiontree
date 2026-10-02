@@ -297,6 +297,11 @@ export interface Chrome {
   todoNone: string
   publishRefused: string
   showTodo: string
+  /** **[#174]** What the strip's `+` says beside it and is named by (31.1), and the information hint behind an Image's two fields: its name and its two explanations (31.2, 31.3). */
+  addExtraPicture: string
+  hint: string
+  creditHint: string
+  imageDescriptionHint: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -507,6 +512,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     todoNone: 'Nothing to do',
     publishRefused: 'Not published: some things must be done first.',
     showTodo: 'See what to do',
+    addExtraPicture: 'Add an extra image',
+    hint: 'Why this is asked',
+    creditHint: 'The maker and the licence of a picture must be named, for copyright reasons. The credit is shown with the enlarged picture.',
+    imageDescriptionHint: 'A screen reader says this in place of the picture, for people who cannot see it.',
   },
   nl: {
     yes: 'Ja',
@@ -715,6 +724,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     todoNone: 'Niets te doen',
     publishRefused: 'Niet gepubliceerd: eerst moet er nog iets gebeuren.',
     showTodo: 'Bekijk wat er te doen is',
+    addExtraPicture: 'Extra afbeelding toevoegen',
+    hint: 'Waarom dit gevraagd wordt',
+    creditHint: 'De maker en de licentie van een afbeelding moeten genoemd worden, vanwege het auteursrecht. De bronvermelding staat bij de vergrote afbeelding.',
+    imageDescriptionHint: 'Een schermlezer leest dit voor in plaats van de afbeelding, voor wie die niet kan zien.',
   },
 }
 

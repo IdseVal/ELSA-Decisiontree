@@ -299,6 +299,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused`; **[#140] added in the build**: `cancel` (the attach Sheet's second button, 31.2 -- the same word #139's row names, so whichever branch merges second keeps one) and `imageDescription` (the label of its description field; `credit` labels the other) |
 | #141 | `mark`, `unmark`, `cannotMarkHere`, `explainerLimit`, `term`, `explanation`, `markedIn`, `notMarkedIn` |
 | #142 | ~~`treeState`~~ (**[#176]** gone: the panel's title is `settings`, 33.2), `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, ~~`fixed`~~ (**[#147]** gone: the languages are the tag control of 33.5), `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
+| #174 | `addExtraPicture` (the strip's `+`, its name and the label beside it, 31.1), `hint`, `creditHint`, `imageDescriptionHint` (the information hint behind an Image's two fields: its name and its two explanations, 31.2, 31.3) |
 | #176 | `settings` (the floating button and the panel's title, 33.1, 33.2), `todoCountOne` (the to-do control's words for one thing; `todoCount` says them for more, 33.3), `todoNone` (the control at zero, and its bubble's empty list), `publishRefused` and `showTodo` (a refused publish's sentence in the panel and the button to the to-do bubble, 33.3) |
 | **[#171]** #179 | `endingText` ("Text of the ending" / "Tekst van het einde": the `treeEndsHere` Sheet's field and the empty badge field's placeholder, 36.3); **gone**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, and #138's `outcome`; **reworded**: #144's `colourDanger`, "Errors" / "Fouten" (36.1) |
 | **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5 |
@@ -1302,6 +1303,21 @@ Below 640 pixels tall the arrow goes back onto the outline and its band back to 
 before this amendment (10.5, amended the same day), so every height trigger of 10.5
 stands as it was measured.
 
+**Amended 2026-10-02 (#174, by the owner in #169: "Make the images that are listed there
+bigger(1.4x what they are now) (also in the main app)"):** the strip's thumbnails are **67**
+pixels (48 x 1.4 = 67.2), and the strip band grows from 28 to **43** to hold them. A
+thumbnail keeps its upper 24 pixels in the Bubble's lower rim, 2 clear of the text area as
+before, and hangs 43 into the band, down to the Answer row, whose buttons stand 4 below its
+top. Centred on the outline, as the 48-pixel ones were, it would take 9.5 pixels of the
+text area, which 10.7 has not to give. The Bubble gives the 15 pixels: at the guaranteed
+viewport the rows are **44 + 56 + 401 + 43 + 68 + 28 = 640**, the Bubble is 760 x 401
+(radius 200.5) and its text area **640 x 349**. The rim keeps its 60 by 26; the Bubble's
+straight middle is 359, and the chord at the lowest Sources line of a full text area (46
+from the bottom) 615. A taller window grows the Bubble as before, up to 520. Below 640
+pixels tall the strip is its 20-pixel pill in a band of 20, as before (10.5, step 1, which
+now frees 23 pixels), so nothing below the guarantee moves. `carousel.spec.ts` measures
+these rows on the full Node and on a Node of five pictures at 1280 x 640.
+
 ### 10.2 The up arrow: the way back
 
 The Trail is the ordered list of Nodes visited to get here, and it is the path in the
@@ -1361,6 +1377,11 @@ the same component, and its picture is two fifths of the Overlay's panel in the 
 now flow as one inline list (10.9). The title sits at one height on every Node again; a
 neighbour frame's withheld slot is the same box as the picture it stands for, so a slide
 has nothing to reflow.
+
+**Amended 2026-10-02 (#174):** at 1280 x 640 the picture is 160.4 of the Bubble's 401
+(10.1), the clear foot is 24 plus a quarter of every pixel the text area has over 349, and
+a Node at every maximum keeps 0.6 of it (10.7). The rule, two fifths of the Bubble, is the
+same; the Overlay's picture is unchanged.
 
 **[#169] Amended 2026-10-02 (#173, by the owner):** the chrome heading `sources` says
 **"Sources" / "Bronnen"** (3.2, `ADR-173-sources-heading.md`). That is the heading in the
@@ -1427,6 +1448,12 @@ outline (section 12), the chrome bar and disclaimer unchanged.
   (*i* + 0.5) x 416 / *m* - 208 and 172 + sqrt(208² - *y*²) + 20, and the pitch on a side
   of four is **104**: 8 clear of a 96-pixel button, 2 of a 102-pixel one. The figures
   above (446, 223, 157, 111.5, 15 and 9) are #78's and #105's, at a Bubble of 446.
+
+  **Amended 2026-10-02 (#174):** at the guaranteed viewport the Bubble is 401 (10.1), so
+  the pitch on a side of four is **100.25**: 4.25 clear of a 96-pixel button. A 102-pixel
+  one -- a title on five lines where the browser has no hyphenation dictionary for the
+  page's `lang` (10.7, amended by #105) -- overlaps its neighbour by 1.75 pixels at that
+  height, where it stood 2 clear; from 655 pixels tall, a Bubble of 416, it is as it was.
 - **The picture on an Option button is its target's main image** -- an image of another
   Node, which 11.5 allows for exactly this: one file per Option, the target's first
   Image, never its other Images (core document 10.29). An Option has no `images` of its
@@ -1625,6 +1652,26 @@ Both Trees' descriptions over the new limit were cut mechanically, in both langu
 the owner's answer scoped the change to the limit and the validator, and a Tree written
 to the old limit is told by V-LENGTH and V-LINES which field to cut, by how much.
 
+**Amended 2026-10-02 (#174): the limits hold at a strip band of 43, by 0.6 pixels.** The
+text area is **640 x 349** (10.1) and the main image two fifths of the Bubble's 401:
+
+| Inside the text area | Height | Derivation |
+|---|---|---|
+| Main image | 160.4 | Two fifths of the Bubble's 401. |
+| gap | 8 | |
+| Title | 56 | As above. |
+| gap | 8 | |
+| Description | 48 | What is left: 349 - 160.4 - 8 - 56 - 8 - 8 - 60 = **48.6**. Two 24-px lines are 48: **150 characters**, as before. |
+| gap | 8 | |
+| Sources | 60 | As above. |
+| | **348.4 of 349** | The 0.6 left is the clear foot of 10.3. |
+
+`carousel.spec.ts` measures the full Node at 1280 x 640: title 56, description 48, Sources
+60, the main image 160.36 tall and 0.64 of the text area left under the Sources. No limit
+moves and no Tree is re-cut. The 0.6 is all the band can still take: the description's two
+lines hold in every Bubble of 400 or more, so a band of 44 is the most the guarantee allows
+before the picture would give way there, which 10.3 does not allow.
+
 Five assumptions behind those numbers are re-derived by this layout. None moves a limit:
 
 **Amended 2026-09-19 (#102):** this table is #78's re-derivation, at the 446 Bubble and the
@@ -1707,7 +1754,8 @@ and marks each occurrence in the description as `[providers](#provider)`. Record
   otherwise, and shifted sideways so that it stays inside the text area: at and above the
   guaranteed viewport, since the panel is at most 148 pixels and the area 394, one of the
   two always fits (**amended 2026-09-19, #102:** the area is 364 now (10.1); either side
-  of any line of it still has 170 or more, so one still fits). Where neither fits -- an area 10.5 has shortened -- the panel takes the
+  of any line of it still has 170 or more, so one still fits; **amended 2026-10-02, #174:**
+  349, and 162 or more either side). Where neither fits -- an area 10.5 has shortened -- the panel takes the
   side with more room and lies against that edge of the text area, over the least of the
   text (amended 2026-09-18, #83). **Without
   JavaScript** the panel opens on hover and on focus by CSS alone (`:hover`, `:focus`),
@@ -2020,6 +2068,9 @@ A Node with fewer than two Images has no strip and no tab stop there; the strip 
 10.1 is reserved on every Node all the same, so the Bubble sits in the same place and the
 transition of section 11 has nothing to reflow.
 
+**Amended 2026-10-02 (#174):** that band is 43 pixels, where it was 28 (10.1), on every Node
+alike, with pictures or without.
+
 ### 12.2 The strip, and its one exemption from the no-scroll rule
 
 The strip is a horizontal row of the Node's second and later Images as **48-pixel round
@@ -2040,6 +2091,15 @@ text and, with the `enlarge` word, the thumbnail's accessible name; its `credit`
 thumbnail's accessible description (`aria-describedby`) and is shown whole in the
 enlarged view (12.3). That is where core document section 8's credit on every Image is
 met (10.26; PROPOSED for the owner on #78).
+
+**Amended 2026-10-02 (#174, by the owner in #169):** the thumbnails are **67-pixel** round
+pictures (48 x 1.4) at a **75-pixel pitch**, in a box of at most **383 pixels** centred on the
+Bubble -- five of them and 8 pixels of padding at each end -- so **five are visible**; more
+scroll. At the guaranteed viewport the Bubble's lower outline is straight across its middle
+359 (10.1) and has risen 0.4 of a pixel at the box's ends, 12 into the curve. The box no longer has its
+vertical centre on the outline: its upper 24 pixels lie in the Bubble's lower rim, 2 clear of
+the text area as before, and its lower 43 fill the strip band (10.1). The exemption of 10.6
+is the same, for the same box.
 
 ### 12.3 Keyboard and the enlarged view
 
@@ -4031,6 +4091,22 @@ own**. Publish refuses while one exists.
 
 Dropping anywhere else does nothing.
 
+**Amended 2026-10-02 (#174, by the owner in #169: "On the add a picture button, when
+however [hovered], show 'Add an extra image'"):** the strip's `+` is a thumbnail of **67** pixels, as the
+strip's are (12.2), its glyph 34 where it was 24. It is named `addExtraPicture`, "Add an
+extra image" / "Extra afbeelding toevoegen", and on hover and on keyboard focus shows those
+words as a small label beside it, out of the flow, in the band's third column: right of the
+`+`, wrapping between words and never inside one; where that column leaves it less than 110
+pixels right of the `+` -- beside a long strip on a narrower window (below 790 pixels wide
+beside the widest strip), or beside the 20-pixel pill on a phone -- left of the `+` instead,
+on one line, over the strip's end or the enlarged view's control. So from 480 pixels wide and
+640 tall it never leaves the band (10.6). Below that the band is the pill's 20 pixels, and the
+label, standing on its foot, rises above it over the Bubble: 2 pixels on one line, 18 on two.
+Two lines reach 16 pixels into the text area below 480 wide, and 2 from 480. Out of the flow,
+it moves nothing. Hidden, it takes no room. The label is not read twice (the name
+says it) and takes no pointer. The empty slot keeps `addPicture`, "Add a picture", and its
+tooltip.
+
 ### 31.2 Upload, then attach
 
 `POST .../images` (multipart, 22.6) → 201 → the **attach Sheet**: the picture (through the
@@ -4041,12 +4117,31 @@ the page repaints. `cancel` → `DELETE .../images/<file>` (a 409 is ignored). *
 attached without a credit** (core document 10.12, 10.26); the store's advisory for an empty
 one (19.2) is never exercised by the editor.
 
+**[#174]** Behind each field's label an **information hint** (`src/editor/Hint.tsx`): an "i"
+in a 16-pixel circle, a button named `hint` ("Why this is asked") and described by its
+explanation -- `creditHint` behind `credit`: the maker and the licence of a picture must be
+named, for copyright reasons, and the credit is shown with the enlarged picture;
+`imageDescriptionHint` behind `description`: a screen reader says it in place of the
+picture, for people who cannot see it. Hovering it, focusing it or tapping it opens the
+explanation in a small panel; leaving it, blur and Escape close it; one panel is open at a
+time. It is the explainer's panel of 10.8 on another trigger (`usePanelTriggers` in
+`src/components/Explainer.tsx`): placed inside the Sheet's panel, below the "i" where it fits
+and above it otherwise, and its Escape closes the hint before the Sheet hears the key, so a
+second Escape cancels the Sheet. Each row is a `<div>` holding the field's `<label for>` and
+the hint, so the field is named by its label alone. Other editor screens take the same
+component (the Theme panel, #180).
+
 ### 31.3 The enlarged view is the Image's editor
 
 The Sheet of 12.3, with the two lines under the picture as fields (`images[i].description.<lang>`,
 `images[i].credit`, counters and tags beside them) and four controls: `makeMain`
 (`move-image` to 0; absent on the main image), `moveEarlier`, `moveLater` (absent at the
 ends), `removeImage`. The slot and the strip repaint from the response.
+
+**[#174]** The description's line is labelled as the credit's is, `imageDescription` before
+the field, and the hint of 31.2 follows each label: the `field` slot answers
+`images[i].credit` and `images[i].description` with the hint and the `Field` together. The
+public enlarged view is unchanged.
 
 ### 31.4 Removing
 
@@ -4074,6 +4169,8 @@ The upload's `{ width, height }` feed the enlarged view's `<img width height>`; 
 height>`. The enlarged view's pictures are drawn from the Node, and an Image entry of the
 format carries no size (`tree-format.md` 5.2), so after the attach its `<img>` has none, as
 on the public page.
+
+**Amended 2026-10-02 (#174):** the strip's are 67 x 67.
 
 ### 31.8 Not offered
 
