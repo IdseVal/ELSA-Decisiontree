@@ -3,6 +3,9 @@
 - Status: ACCEPTED (frozen) -- 2026-09-21
 - Issue: #118 -- Architecture: freeze the JSON-only Tree format (`elsa-tree/4`)
 - Spec: `docs/specs/tree-format.md` (`elsa-tree/4`), sections 1, 2, 3.7, 4, 5, 8, 12.6
+- Amended 2026-10-02 by issue #171 (`ADR-171-elsa-tree-5.md`): the byte-form tool of 12.6
+  (`scripts/migrate-tree.ts`) also runs 12.7, `elsa-tree/4` to `elsa-tree/5`; the byte form
+  is unchanged.
 - Supersedes: `docs/adrs/ADR-37-serialisation.md` (the YAML stream) and, with it, the
   YAML half of `docs/adrs/ADR-4-serialisation-format.md`. Everything those two decided
   that is not about YAML -- the single file per Tree, the `id` key as the one source of

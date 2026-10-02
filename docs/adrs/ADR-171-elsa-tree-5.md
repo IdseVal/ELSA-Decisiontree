@@ -9,6 +9,7 @@
 - Depends on: `docs/adrs/ADR-171-ending-text.md` (what changes in the file)
 - Amends: `ADR-118-json-schema.md` decision 2 (the route serves both schema files),
   `ADR-132-data-directory.md` (the store converts what it opens, 17.4),
+  `ADR-132-draft-and-publish.md` (the draft is `/5`, its schema derived from `/5`'s),
   `ADR-118-json-serialisation.md` (12.6's tool also runs 12.7)
 
 ## Context

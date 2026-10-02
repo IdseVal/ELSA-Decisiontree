@@ -3,6 +3,9 @@
 - Status: ACCEPTED (frozen) -- 2026-09-26
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 28 (new); 3.2 amended (new keys)
+- Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`): the rim of a Terminal holds
+  the ending's words as a plain field, `terminal.label.<lang>`, limit 20, in place of the
+  outcome select (`application.md` 28.1, 36.3).
 - Amends: `docs/adrs/ADR-38-no-scroll.md` (the rule holds in the editor; what the editor
   adds is placed on the rim and in the chrome bar), `ADR-78-main-image-and-row-budget.md`
   (nothing the editor draws takes a pixel from the text area), `ADR-37-length-limits.md`

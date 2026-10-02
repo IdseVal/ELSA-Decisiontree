@@ -3,6 +3,10 @@
 - Status: ACCEPTED (frozen) -- 2026-09-17
 - Issue: #78 -- Architecture: freeze the contracts for the display changes of #75
 - Spec: `docs/specs/application.md` 10.1, 10.3, 10.4, 10.5, 10.7; `docs/specs/tree-format.md` 5.2, 5.7
+- Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`): decision 5's badge holds the
+  Terminal's own words, at most 20 characters (`tree-format.md` 5.7), in place of a chrome
+  word of at most 40; its place on the rim is unchanged, and below 792 pixels wide its
+  tracking is 0.04 em (`application.md` 10.1, 36.1).
 - Core document: 3.1 (main image, PROPOSED first-Image reading), 3.2 ("A main image above the title"), open item **10.28** (decided here), 10.26 (the credit's place; `ADR-78-carousel.md`)
 - Supersedes in part: `ADR-38-tree-view.md` (decisions 1, 2, 7 and 9: the six rows, the rim's chrome, the Trail row), `ADR-37-length-limits.md` (decision 4: the vertical budget and the text area the limits derive from -- the limits themselves stand)
 - Built by: #81 (the Interior), #82 (the Answer row), #80 (the fan-out uses the middle row's height)

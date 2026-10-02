@@ -3,6 +3,11 @@
 - Status: ACCEPTED (frozen) -- 2026-09-23
 - Issue: #132 -- Architecture: freeze the store for the editor round
 - Spec: `docs/specs/application.md` section 22 (new); 4.1 and 6 amended
+- Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`, `ADR-171-font-dropdown.md`):
+  `link: 'end'` carries `label`, the ending's words, in place of `outcome`; the field
+  `terminal.outcome` becomes `terminal.label.<lang>` and `set-terminal` takes `label`; the
+  manifest takes a fourth operation, `use-library-font`; the theme upload answers
+  `{ file, family? }` (`application.md` 22.1, 22.2, 36, 37).
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the `/admin` prefix joins the grammar as one
   reserved word), `ADR-5-repository-layout.md` (`src/app/[lang]/admin/` and `src/store/`),
   `ADR-4-image-reference.md` (the file-name grammar of 3.5 is now applied server-side to an
