@@ -3,10 +3,12 @@
 - Status: ACCEPTED (frozen) -- 2026-09-26; confirms the PROPOSED reading of core document 3.4
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 30 (new)
-- Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`): decision 4's Sheet asks for
+- Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`, `ADR-171-elsa-tree-5.md`):
+  decision 1's Terminal carries the ending's words, not one of the four outcomes, and the
+  format they enter is `elsa-tree/5`, no longer `elsa-tree/4`; decision 4's Sheet asks for
   the ending's words -- one plain field, at most 19 characters -- instead of one of four
   outcomes, and the badge on a Terminal's rim is that field, not a select
-  (`application.md` 30.3, 36.3). The four outcomes are offered nowhere.
+  (`application.md` 30, 30.3, 36.3). The four outcomes are offered nowhere.
 - Amends: `docs/adrs/ADR-78-overlay.md` (the Overlay is also where an aside is edited),
   `ADR-38-transitions.md` (the editor does not slide), `ADR-78-answer-buttons-and-up-arrow.md`
   (the Answer row holds the structure buttons where the Answers are not yet made)

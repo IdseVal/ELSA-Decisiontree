@@ -1,6 +1,9 @@
 # ADR-133-reuse-rule: the editor renders the public components through one optional prop, `edit`, that names the addresses, the image route and the slots the editor's client components fill; absent on every public page, so the public markup is what it was; the editor's client components live in `src/editor/` and import two pure modules and nothing else of `src/`
 
 - Status: ACCEPTED (frozen) -- 2026-09-26
+- Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`): decision 2's `field` slot in
+  `Bubble` holds a Terminal's ending words, `terminal.label.<lang>`, limit 19, not its
+  outcome (`application.md` 34.2, 36.3).
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 34 (new); 1, 6, 10.9 and 11.2 amended
 - Amends: `docs/adrs/ADR-38-modules-and-tests.md` (the module table and the dependency

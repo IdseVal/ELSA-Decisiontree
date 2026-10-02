@@ -15,9 +15,10 @@
   -- but not its reason, "every end of the walk would look the same": every ending is drawn
   alike (decision 4), and its words tell the endings apart. Its two other decisions stand: a
   Terminal is marked explicitly, and a Node's kind is derived.
-- Amends: `ADR-133-structure-editing.md` decision 4 (`treeEndsHere` asks for a text, not one
-  of four), `ADR-133-bubble-edited-in-place.md` decision 1's rim row (a text field, not a
-  select), `ADR-132-editor-api.md` decisions 2 and 3 (`link: 'end'` carries `label`; the field
+- Amends: `ADR-133-structure-editing.md` decisions 1 and 4 (a Terminal carries words, and
+  `treeEndsHere` asks for a text, not one of four), `ADR-133-bubble-edited-in-place.md`
+  decision 1's rim row (a text field, not a select), `ADR-133-reuse-rule.md` decision 2 (the
+  `field` slot in `Bubble` holds the words), `ADR-132-editor-api.md` decisions 2 and 3 (`link: 'end'` carries `label`; the field
   is `terminal.label.<lang>`), `ADR-78-main-image-and-row-budget.md` decision 5 (the badge's
   40 chrome characters become the Tree's 19)
 - Depends on: `docs/adrs/ADR-171-elsa-tree-5.md` (the format number and the conversion this

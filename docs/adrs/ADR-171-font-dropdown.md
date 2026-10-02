@@ -8,7 +8,8 @@
 - Depends on: `docs/adrs/ADR-171-font-library.md` (the families and their copy),
   `ADR-171-licence-dropdown.md` (the licence an uploaded family states)
 - Amends: `ADR-132-editor-api.md` decision 3 (the manifest takes a fourth operation,
-  `use-library-font`; the theme upload's answer gains `family`)
+  `use-library-font`; the theme upload's answer gains `family`),
+  `ADR-5-repository-layout.md` (`src/store/woff2.ts`, decision 8)
 
 ## Context
 
