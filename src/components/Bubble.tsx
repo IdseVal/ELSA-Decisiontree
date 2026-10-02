@@ -324,6 +324,7 @@ function Sources({
           <Sheet
             className="source-sheet"
             name="source-sheet"
+            editorUi
             summary={<span aria-label={ui.editSource} lang={uiLang}>…</span>}
             pages={[
               <div key="source" className="source-editor" lang={uiLang}>

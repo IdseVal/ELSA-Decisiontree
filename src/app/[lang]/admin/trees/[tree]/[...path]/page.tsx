@@ -107,11 +107,16 @@ export default async function EditorPage({ params }: Props) {
       violations={draft.advisory.filter((violation) => violation.file in nodes)}
       tree={{ advisory: entry.advisory.length, published: entry.published, publicCopyCurrent: entry.publicCopyCurrent, servable: entry.servable }}
     >
-      {/* The draft's Theme, so a colour changed in the draft is seen before publishing (13.1, ADR-133-admin-routes 6). */}
-      <ThemeStyle tree={draft} href={adminThemeHref} revision={entry.meta.revision} />
+      {/*
+        The draft's Theme, so a colour changed in the draft is seen before publishing (13.1,
+        ADR-133-admin-routes 6); **[#180]** on the Tree, while the bar, the floating controls and
+        every editor Sheet -- what carries `data-editor-ui` -- keep the default look (24.3).
+      */}
+      <ThemeStyle tree={draft} href={adminThemeHref} revision={entry.meta.revision} editor />
       {/* An admin bar too: below 480 pixels it gives up the title and the current language, as #135 decided (10.6). */}
-      <header className="page-chrome admin-chrome editor-chrome">
-        <Logo treeId={draft.id} theme={draft.manifest.theme} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
+      <header className="page-chrome admin-chrome editor-chrome" data-editor-ui="">
+        {/* **[#180]** The Tree's logo on the default's bar: the variant for that bar's background, not the draft's (13.1). */}
+        <Logo treeId={draft.id} theme={draft.manifest.theme && { ...draft.manifest.theme, colours: undefined }} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
         <div className="page-controls">
           <LanguageSwitch address={address} languages={draft.manifest.languages} edit={edit} />
           <SaveIndicator words={edit.words} />
@@ -125,7 +130,7 @@ export default async function EditorPage({ params }: Props) {
         </div>
       </header>
       {/* **[#176]** Out of the bar, over the page under its top right corner, and next after it in the tab order (33.1). */}
-      <div className="editor-float">
+      <div className="editor-float" data-editor-ui="">
         <TodoSheet entry={entry} draft={draft} address={address} role={role} ui={ui} />
         <TopPanel entry={entry} draft={draft} address={address} role={role} accounts={accounts} ui={ui} />
       </div>

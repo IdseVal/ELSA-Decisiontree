@@ -192,6 +192,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
         return (
           <Sheet
             className="source-sheet source-sheet--add"
+            editorUi
             name="source-sheet"
             summary={<span lang={uiLang}>{`+ ${ui.addSource}`}</span>}
             pages={[
@@ -238,6 +239,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
           <AnswerAdd nodeId={node.id} link="yes" here={here} word={ui.yes} />
           <Sheet
             className="structure-end"
+            editorUi
             summary={<span lang={uiLang}>{ui.treeEndsHere}</span>}
             pages={[<EndForm key="end" nodeId={node.id} outcomes={outcomes} heading={ui.treeEndsHere} words={structureWords} />]}
             words={sheet}
@@ -267,6 +269,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       return (
         <Sheet
           className={`link-menu link-menu--${link.kind}`}
+          editorUi
           summary={<span aria-label={ui.linkMenu} lang={uiLang}>…</span>}
           pages={[<LinkMenuForm key="menu" nodeId={node.id} lang={lang} link={menu} here={here} nodes={otherNodes(node.id)} words={structureWords} />]}
           words={sheet}
@@ -285,6 +288,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       return (
         <Sheet
           className={`side-add${inOverlay ? ' side-add--list' : ''}`}
+          editorUi
           // Inside an Overlay's panel a Sheet names a group of its own, or opening it would close the Overlay.
           name={inOverlay ? 'side-sheet' : 'sheet'}
           summary={
@@ -319,6 +323,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       return (
         <Sheet
           className="step-menu"
+          editorUi
           summary={<span aria-label={ui.stepMenu} lang={uiLang}>…</span>}
           pages={[
             <StepMenuForm

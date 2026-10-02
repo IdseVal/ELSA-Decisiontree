@@ -83,7 +83,7 @@ export function ExplainerSheet({
   return (
     <div className="editor-explainer">
       <div className="sheet-backdrop" onClick={onClose} />
-      <div ref={panel} className="sheet-panel explainer-sheet" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="explainer-sheet-title">
+      <div ref={panel} className="sheet-panel explainer-sheet" data-editor-ui="" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="explainer-sheet-title">
         <h2 id="explainer-sheet-title" lang={lang}>
           {explainer?.term[lang]?.trim() || id}
         </h2>
