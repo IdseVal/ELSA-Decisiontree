@@ -3,10 +3,12 @@
  * editor's client components say and the slots of #138 -- `field` for every text and select
  * of 28.1 that this issue edits, `operation` for the two Source operations -- and **[#139]**
  * the four structure slots of 30: `structure` for the Answer row, `linkMenu` beside each
- * Answer and Option button, `sideAdd` in the fan and after an Overlay's list, `stepMenu` on
- * the rim. Each structure slot is a Sheet built here around a client form of
- * `src/editor/Structure.tsx` or `StepMenu.tsx`, with the addresses it navigates to and the
- * picker's index handed over as strings (34.4) -- and of #140: `imageSlot` and `stripAdd`,
+ * Answer and Option button, `sideAdd` in the fan, `stepMenu` on the rim. Each structure slot
+ * is a Sheet built here around a client form of `src/editor/Structure.tsx` or `StepMenu.tsx`,
+ * with the addresses it navigates to and the picker's index handed over as strings (34.4);
+ * **[#177]** the side-bubble `+` is a button alone, which creates at one click, and
+ * `sideDelete` puts `deleteSideBubble` at the bottom of an opened side bubble (30.4, 30.7,
+ * amended 2026-10-02) -- and of #140: `imageSlot` and `stripAdd`,
  * the two pickers of 31.1, and `enlargedControls`, the four controls under a picture in the
  * enlarged view (31.3). Later issues add their slot functions to the object this module
  * builds, one line each (ADR-133-build-order).
@@ -23,7 +25,7 @@ import { ImageControls } from '../editor/ImageControls.tsx'
 import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
 import { StepMenuForm } from '../editor/StepMenu.tsx'
-import { AnswerAdd, EndForm, LinkMenuForm, SideAddForm, type MenuLink, type Pickable, type StructureWords } from '../editor/Structure.tsx'
+import { AnswerAdd, EndForm, LinkMenuForm, SideAdd, SideDelete, type MenuLink, type Pickable, type StructureWords } from '../editor/Structure.tsx'
 import { MAX_ASIDES } from '../neighbourhood.ts'
 import { linksOf, type Explainer, type NodeContent, type Outcome, type Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
@@ -39,8 +41,15 @@ export interface Structure {
   index: Pickable[]
   addresses: Record<string, PageAddress>
   root: string
-  /** The centre's id: the `+` is the fan's on the centre and an Overlay's list entry on every other Node (30.4, 30.5). */
+  /** The centre's id: the side-bubble `+` is the fan's, on the centre only (30.4, 30.5). */
   centre: string
+  /**
+   * **[#177]** The targets of the centre's Options, in order: the asides whose titles the Option
+   * buttons' follow (30.5), and whose Overlays hold `deleteSideBubble` (30.7).
+   */
+  options: string[]
+  /** **[#177]** Those of them another Node leads to as well: their delete removes only the centre's Option (30.7). */
+  shared: string[]
 }
 
 /** The chrome strings the editor's client components read through `words`, as strings. */
@@ -96,8 +105,14 @@ const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.desc
 /** The most Images a Node may hold (V-COUNT, 5.7): the strip's `+` is absent at that many (31.1). */
 const MAX_IMAGES = 10
 
+/** The maximum length of an Option's title (tree-format.md 5.7): what a title that follows the aside's is cut to (30.5). */
+const OPTION_TITLE = { characters: 60 }
+
 /** What a click or Enter on a marked term dispatches in the editor (32.3). */
 const TERM_EVENT = 'elsa-term'
+
+/** Where the confirmation of 30.7 puts the title: a character no chrome sentence holds, cut at on the server. */
+const TITLE_MARK = '\u0000'
 
 const KINDS: Source['kind'][] = ['legal', 'case-law', 'literature']
 const OUTCOMES: Outcome[] = ['not-applicable', 'applicable', 'prohibited', 'refer']
@@ -116,12 +131,9 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     confirm: ui.confirm,
     cancel: ui.cancel,
     createNew: ui.createNew,
-    linkExisting: ui.linkExisting,
     changeTarget: ui.changeTarget,
     removeLink: ui.removeLink,
     pickTarget: ui.pickTarget,
-    sideBubbleTitle: ui.sideBubbleTitle,
-    newSideBubble: ui.newSideBubble,
     missingText: ui.missingText,
   }
   /** The page's own address of a Node it carries, or null for one it does not (a slot draws nothing then). */
@@ -164,6 +176,9 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       if (path === 'description') {
         return <Field {...common} rich rendered={rendered} explainers={node.explainers as Explainer[]} termEvent={TERM_EVENT} markerWords={{ mark: ui.mark, cannotMarkHere: ui.cannotMarkHere, explainerLimit: ui.explainerLimit }} />
       }
+      // **[#177]** An aside's title leads the title of its Option button on the centre, which follows it (30.5).
+      const option = path === 'title' && node.id !== structure.centre ? structure.options.indexOf(node.id) : -1
+      if (option >= 0) return <Field {...common} follower={{ nodeId: structure.centre, path: `options[${option}].title`, limit: OPTION_TITLE }} />
       return <Field {...common} />
     },
     operation(node: NodeContent, op, index): ReactNode {
@@ -257,37 +272,33 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       )
     },
 
-    // The side-bubble `+` (30.4): the fan's next free slot on the centre, the last entry of an
-    // Overlay's list on an aside; absent at eight Options and on a Terminal (5.6, 5.7).
+    // The side-bubble `+` (30.4): the fan's next free slot, on the centre; absent at eight
+    // Options and on a Terminal (5.6, 5.7). **[#177]** Not in an Overlay any more: an aside
+    // opened as its own page is the centre, and its fan has the `+` (30.5, amended).
     sideAdd(node) {
       const here = hereOf(node.id)
-      if (here === null || node.options.length >= MAX_ASIDES || linksOf(node).terminal !== undefined) return null
-      const inOverlay = node.id !== structure.centre
-      return (
-        <Sheet
-          className={`side-add${inOverlay ? ' side-add--list' : ''}`}
-          // Inside an Overlay's panel a Sheet names a group of its own, or opening it would close the Overlay.
-          name={inOverlay ? 'side-sheet' : 'sheet'}
-          summary={
-            inOverlay ? (
-              <span lang={uiLang}>{`+ ${ui.newSideBubble}`}</span>
-            ) : (
-              <>
-                <span className="option-image option-image--empty side-add-plus" aria-hidden="true">
-                  +
-                </span>
-                <span className="option-title" lang={uiLang}>
-                  {ui.newSideBubble}
-                </span>
-              </>
-            )
-          }
-          pages={[<SideAddForm key="side" nodeId={node.id} lang={lang} here={here} nodes={otherNodes(node.id)} words={structureWords} />]}
-          words={sheet}
-          uiLang={uiLang}
-          idPrefix={`${node.id}-side-`}
-        />
-      )
+      if (here === null || node.id !== structure.centre || node.options.length >= MAX_ASIDES || linksOf(node).terminal !== undefined) return null
+      return <SideAdd nodeId={node.id} here={here} word={ui.newSideBubble} wordLang={uiLang} />
+    },
+
+    // **[#177]** `deleteSideBubble` in the Overlay of each of the centre's Options (30.7): the
+    // aside's Node goes with the Option unless another Node leads to it too.
+    sideDelete(node, index) {
+      const here = hereOf(node.id)
+      const target = node.options[index]?.target
+      if (here === null || node.id !== structure.centre || target === undefined) return null
+      const [confirmBefore = '', confirmAfter = ''] = ui.confirmDeleteSideBubble(TITLE_MARK).split(TITLE_MARK)
+      const words = {
+        deleteSideBubble: ui.deleteSideBubble,
+        confirmBefore,
+        confirmAfter,
+        confirmUntitled: ui.confirmDeleteUntitledSideBubble,
+        stays: ui.sideBubbleStays,
+        confirm: ui.confirm,
+        cancel: ui.cancel,
+      }
+      const title = structure.index.find((entry) => entry.id === target)?.title ?? ''
+      return <SideDelete parentId={node.id} asideId={target} lang={lang} title={title} shared={structure.shared.includes(target)} centreHref={here} words={words} />
     },
 
     // The `...` on the rim above, right of the up arrow (30.8): `removeEnd` on a Terminal,

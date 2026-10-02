@@ -3382,37 +3382,42 @@ fieldset:disabled .admin-submit {
 
 /*
  * The side-bubble `+` (30.4): one more button of the fan, the Option button's size, dashed in
- * `rule`, the `+` where the picture is and `newSideBubble` where the title is.
+ * `rule`, the `+` where the picture is and `newSideBubble` where the title is. **[#177]** The
+ * button itself, which creates at one click: no Sheet behind it (30.4, amended).
  */
 .options > li > .side-add {
-  display: block;
-}
-
-.side-add > .sheet-open {
   display: var(--fan, flex);
   align-items: center;
   gap: 8px;
   width: 100%;
   min-height: var(--option-h);
+  margin: 0;
   padding: 0 11px;
   border: 1px dashed var(--rule);
   border-radius: 48px;
+  font: inherit;
   font-size: 16px;
   line-height: 20px;
   color: var(--elsa-text-muted);
   background: var(--elsa-surface);
   text-align: left;
   white-space: normal;
+  cursor: pointer;
   transition: border-color 160ms var(--ease), color 160ms var(--ease);
 }
 
-.side-add > .sheet-open:hover {
+.options > li > .side-add:hover:enabled {
   color: var(--elsa-text);
   border-color: var(--accent-secondary-read);
-  background: var(--elsa-surface);
 }
 
-.options > li[data-side="left"] > .side-add > .sheet-open {
+/* Held down while the creation is on its way, and on a Tree that cannot be edited (29.4). */
+.options > li > .side-add:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.options > li[data-side="left"] > .side-add {
   flex-direction: row-reverse;
   text-align: right;
 }
@@ -3425,19 +3430,44 @@ fieldset:disabled .admin-submit {
   line-height: 1;
 }
 
-/* After an Overlay's list of second-level Options: the dashed pill of an operation (30.5). */
-.side-add--list {
-  display: inline;
+/*
+ * **[#177]** `deleteSideBubble`, below in the middle of an opened side bubble (30.7): last on the
+ * Overlay's page, which the free height above it pushes to the panel's lower edge. Outlined in
+ * `danger` while it only asks, filled once it is the confirmation's own button, so that the
+ * one red block on the panel is the one that deletes.
+ */
+.side-delete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  text-align: center;
 }
 
-.side-add--list > .sheet-open {
-  display: inline-block;
-  width: auto;
-  min-height: 0;
-  padding: 0 10px;
+.side-delete-button {
+  min-height: 32px;
+  padding: 4px 16px;
+  border: 1px solid var(--danger-read);
   border-radius: 999px;
-  font-size: var(--small);
-  line-height: 18px;
+  color: var(--danger-read);
+  background: var(--elsa-surface);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease);
+}
+
+.side-delete-button:hover:enabled {
+  color: var(--elsa-background);
+  background: var(--elsa-danger);
+}
+
+.side-delete .structure-actions {
+  justify-content: center;
 }
 
 /* The Sheets' pages: the outcomes, the picker, the confirmations. */

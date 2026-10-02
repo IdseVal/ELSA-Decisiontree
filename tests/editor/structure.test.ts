@@ -2,8 +2,11 @@
  * **[#139]** The structure slots' decisions (docs/specs/application.md 30.1, 30.4, 30.6, 30.8),
  * read off the elements `editMode` builds without rendering them: which of the three
  * situations a Node's Links put it in, where the side-bubble `+` is drawn and where it is
- * absent, which Link gets a menu, and where a deletion goes. And the two pure helpers of
- * `Structure.tsx`: the address under a page, and a refusal's text.
+ * absent, which Link gets a menu, and where a deletion goes. **[#177]** And the side bubble's
+ * own (30.4, 30.5, 30.7, amended 2026-10-02): the `+` that creates at one click, on the centre
+ * only; `deleteSideBubble` in each of the centre's Overlays, which takes the aside's Node
+ * unless another Node leads to it; and the aside's title, which the Option button's follows.
+ * And the two pure helpers of `Structure.tsx`: the address under a page, and a refusal's text.
  */
 import type { ReactElement } from 'react'
 import { describe, expect, test } from 'vitest'
@@ -21,7 +24,7 @@ function node(id: string, extra: Partial<DraftNode> = {}): DraftNode {
   return { id, kind: 'explanation', title: { en: `Title of ${id}` }, description: {}, sources: [], images: [], options: [], explainers: [], ...extra } as DraftNode
 }
 
-const mode = editMode(start, ['en', 'nl'], {
+const structureOf = (shared: string[]) => ({
   index: [
     { id: 'start', title: 'Start' },
     { id: 'n-2', title: '' },
@@ -30,8 +33,11 @@ const mode = editMode(start, ['en', 'nl'], {
   addresses: { start, 'n-3': under2, 'a-1': aside },
   root: 'start',
   centre: 'start',
+  options: ['a-1'],
+  shared,
 })
-const { structure, linkMenu, sideAdd, stepMenu } = mode.slots
+const mode = editMode(start, ['en', 'nl'], structureOf([]))
+const { structure, linkMenu, sideAdd, sideDelete, stepMenu, field } = mode.slots
 
 /** The elements a slot's fragment or element holds, flat. */
 function children(element: ReactElement | null | undefined): ReactElement[] {
@@ -89,10 +95,14 @@ describe('the link menu (30.6)', () => {
 })
 
 describe('the side-bubble + (30.4, 30.5)', () => {
-  test('on the centre it is the fan’s, in the Sheets’ own group; on an aside it is the Overlay list’s, in a group of its own', () => {
-    expect(props(sideAdd!(node('start')) as ReactElement)).toMatchObject({ className: 'side-add', name: 'sheet' })
-    expect(props(sideAdd!(node('a-1')) as ReactElement)).toMatchObject({ className: 'side-add side-add--list', name: 'side-sheet' })
-    expect(props((props(sideAdd!(node('a-1')) as ReactElement).pages as ReactElement[])[0])).toMatchObject({ here: '/admin/trees/t/start/a-1' })
+  test('**[#177]** on the centre it is the fan’s button itself, no Sheet: it creates from the centre and lands under its address', () => {
+    const add = sideAdd!(node('start')) as ReactElement
+    expect(props(add)).toEqual({ nodeId: 'start', here: '/admin/trees/t/start', word: 'New side bubble', wordLang: undefined })
+    expect(props(add).pages).toBeUndefined()
+  })
+
+  test('**[#177]** an aside in an Overlay has none: its Overlay offers no new side bubble', () => {
+    expect(sideAdd!(node('a-1'))).toBeNull()
   })
 
   test('absent at eight Options, on a Terminal, and on a Node the page does not carry', () => {
@@ -100,6 +110,51 @@ describe('the side-bubble + (30.4, 30.5)', () => {
     expect(sideAdd!(node('start', { options: eight }))).toBeNull()
     expect(sideAdd!(node('start', { kind: 'terminal', outcome: 'applicable' }))).toBeNull()
     expect(sideAdd!(node('elsewhere'))).toBeNull()
+  })
+})
+
+describe('**[#177]** deleteSideBubble in the centre’s Overlays (30.7)', () => {
+  const centre = node('start', { kind: 'question', answers: { yes: 'n-2' }, options: [{ title: { en: 'An aside' }, target: 'a-1' }] })
+
+  test('the Overlay of each Option holds it: the aside goes with this step’s Option, and the page goes back to the step', () => {
+    const remove = sideDelete!(centre, 0) as ReactElement
+    expect(props(remove)).toMatchObject({ parentId: 'start', asideId: 'a-1', lang: 'en', title: 'An aside', shared: false, centreHref: '/admin/trees/t/start' })
+    // The confirmation names the title as it stands when it is asked: the sentence travels in two parts around it.
+    const words = props(remove).words as { confirmBefore: string; confirmAfter: string; deleteSideBubble: string; confirmUntitled: string }
+    expect(`${words.confirmBefore}An aside${words.confirmAfter}`).toBe('Delete the side bubble "An aside"?')
+    expect(words.deleteSideBubble).toBe('Delete side bubble')
+    expect(words.confirmUntitled).toBe('Delete this side bubble? It has no title yet.')
+  })
+
+  test('an aside another Node leads to as well is marked shared: only this step’s Option goes', () => {
+    const shared = editMode(start, ['en', 'nl'], structureOf(['a-1'])).slots.sideDelete!(centre, 0) as ReactElement
+    expect(props(shared)).toMatchObject({ shared: true })
+    expect((props(shared).words as { stays: string }).stays).toBe('Another step leads to it too: it stays there.')
+  })
+
+  test('in Dutch the sentence keeps its own order around the title', () => {
+    const nl = editMode({ ...start, lang: 'nl' }, ['en', 'nl'], structureOf([])).slots.sideDelete!(centre, 0) as ReactElement
+    const words = props(nl).words as { confirmBefore: string; confirmAfter: string; deleteSideBubble: string }
+    expect(`${words.confirmBefore}Een zijpad${words.confirmAfter}`).toBe('De zijbubbel "Een zijpad" verwijderen?')
+    expect(words.deleteSideBubble).toBe('Zijbubbel verwijderen')
+  })
+
+  test('none past the list, and none on a Node that is not the centre', () => {
+    expect(sideDelete!(centre, 1)).toBeNull()
+    expect(sideDelete!(node('a-1', { options: [{ title: { en: 'Deeper' }, target: 'n-2' }] }), 0)).toBeNull()
+  })
+})
+
+describe('**[#177]** the Option button’s title follows its aside’s (30.5)', () => {
+  test('the aside’s title field names the centre’s Option to it as its follower, held to the button’s 60', () => {
+    const title = field!(node('a-1'), 'title', 'An aside', { characters: 80 }) as ReactElement
+    expect(props(title).follower).toEqual({ nodeId: 'start', path: 'options[0].title', limit: { characters: 60 } })
+  })
+
+  test('the centre’s own title, an aside’s other fields and a Node the centre does not lead to have none', () => {
+    expect(props(field!(node('start'), 'title', 'Start', { characters: 80 }) as ReactElement).follower).toBeUndefined()
+    expect(props(field!(node('a-1'), 'description', '', { characters: 150, lines: 2 }) as ReactElement).follower).toBeUndefined()
+    expect(props(field!(node('n-2'), 'title', '', { characters: 80 }) as ReactElement).follower).toBeUndefined()
   })
 })
 
