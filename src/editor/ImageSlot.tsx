@@ -104,10 +104,10 @@ export function ImageSlot({
         <input ref={input} className="editor-picker-input" type="file" accept={ACCEPT} aria-label={name} disabled={api.readOnly} onChange={onChange} />
         <span aria-hidden="true">+</span>
       </label>
-      {/* Seen, not read: the input's own name says the same words. */}
+      {/* Seen, not read: the input's own name says the same words. The room around them is the band's third column, which decides the side of the `+` they stand on (31.1). */}
       {place === 'strip' && (
-        <span className="editor-picker-label" aria-hidden="true">
-          {name}
+        <span className="editor-picker-room" aria-hidden="true">
+          <span className="editor-picker-label">{name}</span>
         </span>
       )}
       {uploaded && (

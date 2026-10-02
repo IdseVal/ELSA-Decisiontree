@@ -190,16 +190,18 @@ describe('the picker and the attach Sheet (31.1, 31.2)', () => {
     expect(strip.querySelector('input')!.getAttribute('aria-label')).toBe('addExtraPicture')
     // The label beside it is seen, not read twice; no native tooltip says it a second time.
     expect(strip.hasAttribute('title')).toBe(false)
-    const label = strip.nextElementSibling!
-    expect(label.className).toBe('editor-picker-label')
-    expect(label.textContent).toBe('addExtraPicture')
-    expect(label.getAttribute('aria-hidden')).toBe('true')
+    // It stands in its room, the band's third column, the `+`'s next sibling (31.1).
+    const room = strip.nextElementSibling!
+    expect(room.className).toBe('editor-picker-room')
+    expect(room.getAttribute('aria-hidden')).toBe('true')
+    expect([...room.children].map((child) => child.className)).toEqual(['editor-picker-label'])
+    expect(room.textContent).toBe('addExtraPicture')
 
     mount(<ImageSlot nodeId="start" place="slot" images="/admin/api/trees/t/images/" words={pickerWords} />)
     const slot = container.querySelector('.editor-picker--slot')!
     expect(slot.querySelector('input')!.getAttribute('aria-label')).toBe('addPicture')
     expect(slot.getAttribute('title')).toBe('addPicture')
-    expect(container.querySelector('.editor-picker-label')).toBeNull()
+    expect(container.querySelector('.editor-picker-room, .editor-picker-label')).toBeNull()
   })
 
   test('[#174] each field of the attach Sheet has a hint behind its label, described by why it is asked', async () => {

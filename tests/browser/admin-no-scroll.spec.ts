@@ -323,7 +323,8 @@ for (const lang of LANGUAGES) {
  * full Node's main image, and the attach Sheet after an upload into the empty slot of a
  * Terminal, cancelled again so the draft is as it was. **[#174]** Each with every information
  * hint open in turn, and the strip's `+` with its label shown: beside no strip, and beside the
- * widest strip, on an explanation Node given nine pictures, where the label has the least room.
+ * widest strip, on an explanation Node given nine pictures, where the label has the least room
+ * -- that one plain too, and at the widths of `NARROW` as well.
  */
 
 /** Opens each information hint in `scope` in turn by focus and measures the page with it open. */
@@ -343,10 +344,25 @@ async function plusLabel(page: Page, lang: string, viewport: string, what: strin
   const plus = page.locator('.carousel > .editor-picker--strip')
   if (!(await plus.isVisible())) return
   await plus.hover()
-  await expect(page.locator('.carousel > .editor-picker-label')).toBeVisible()
+  await expect(page.locator('.carousel > .editor-picker-room > .editor-picker-label')).toBeVisible()
   record(await measure(page), 'editor', lang, viewport, what)
   await page.mouse.move(0, 0)
 }
+
+/**
+ * **[#174]** Widths 10.6 does not list, beside the widest strip: there the band's third column
+ * leaves the `+` label less than 110 pixels, and it stands left of the `+` (31.1). The
+ * Reviewer measured it leaving the band at all four on PR #187. Below 550 the `+` itself is
+ * wider than that column, which the pull request records.
+ */
+const NARROW = [
+  [560, 640],
+  [600, 800],
+  [620, 640],
+  [640, 800],
+  [700, 640],
+  [760, 800],
+] as const
 for (const lang of LANGUAGES) {
   test(`the editor's picture Sheets, ${lang}, never scroll at any viewport of 10.6 (31.2, 31.3)`, async ({ browser }) => {
     test.slow()
@@ -373,6 +389,14 @@ for (const lang of LANGUAGES) {
       const added = await page.request.patch(widest, { headers, data: JSON.stringify({ op: 'add-image', file, credit: 'Drawing: ELSA lab', description: { en: file } }) })
       expect(added.status(), file).toBe(200)
     }
+    for (const [width, height] of NARROW) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      await page.goto(`${origin}/admin/trees/hidden-draft/opt-one${query}`)
+      await expect(page.locator('.carousel > .editor-picker--strip')).toBeVisible()
+      record(await measure(page), 'editor', lang, viewport, 'widest strip +')
+      await plusLabel(page, lang, viewport, 'widest strip +, its label')
+    }
     for (const [width, height] of VIEWPORTS) {
       const viewport = `${width}x${height}`
       await page.setViewportSize({ width, height })
@@ -380,6 +404,7 @@ for (const lang of LANGUAGES) {
       if (await page.locator('.carousel > .editor-picker--strip').isVisible()) record(await measure(page), 'editor', lang, viewport, 'strip +')
       await plusLabel(page, lang, viewport, 'strip +, its label')
       await page.goto(`${origin}/admin/trees/hidden-draft/opt-one${query}`)
+      if (await page.locator('.carousel > .editor-picker--strip').isVisible()) record(await measure(page), 'editor', lang, viewport, 'widest strip +')
       await plusLabel(page, lang, viewport, 'widest strip +, its label')
       await page.goto(`${origin}/admin/trees/hidden-draft/full${query}`)
       const main = page.locator('.bubble .main-image')

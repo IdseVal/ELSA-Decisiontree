@@ -3266,16 +3266,25 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * [#174] What the strip's `+` adds, said beside it on hover and on keyboard focus (31.1): in
- * the band's third column, right of the `+`, as wide as that column leaves and wrapping in
- * it, so it never reaches past the band (10.6). Out of the flow, with that column's grid
- * area as its box: showing it, or a second line of it, moves and grows nothing. Not the
- * pointer's: the `+` under it stays the one target.
+ * [#174] What the strip's `+` adds, said beside it on hover and on keyboard focus (31.1). Its
+ * room is the band's third column: a box out of the flow, with that column's grid area as
+ * its own, which takes no pointer -- the `+` under it stays the one target -- and which the
+ * label asks how wide it is. The label is shown only then; hidden, it takes no room at all
+ * (10.6). Showing it, or a second line of it, moves and grows nothing.
  */
-.editor-picker-label {
+.editor-picker-room {
   position: absolute;
+  inset: 0;
   grid-row: 1;
   grid-column: 3;
+  container-type: inline-size;
+  pointer-events: none;
+}
+
+/* Right of the `+`, as wide as the column leaves and wrapping between words, never inside one. */
+.editor-picker-label {
+  display: none;
+  position: absolute;
   top: 50%;
   left: 8px;
   max-width: calc(100% - 8px);
@@ -3287,19 +3296,32 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   font-size: 12px;
   line-height: 16px;
-  overflow-wrap: anywhere;
-  visibility: hidden;
-  pointer-events: none;
 }
 
 /* After a strip the `+` stands in that column itself, and the label after it. */
-.carousel-strip ~ .editor-picker-label {
+.carousel-strip ~ .editor-picker-room > .editor-picker-label {
   left: calc(67px + 8px);
   max-width: calc(100% - 67px - 8px);
 }
 
-.editor-picker--strip:is(:hover, :has(:focus-visible)) + .editor-picker-label {
-  visibility: visible;
+.editor-picker--strip:is(:hover, :has(:focus-visible)) + .editor-picker-room > .editor-picker-label {
+  display: block;
+}
+
+/*
+ * Beside a strip on a narrower window the column leaves the label less than 110 pixels right
+ * of the `+`, where its longest word would not fit: it stands left of the `+` instead, over
+ * the strip's end, on one line, which the strip and the column before it always hold.
+ */
+@media (min-width: 480px) and (min-height: 640px) {
+  @container (width < 185px) {
+    .carousel-strip ~ .editor-picker-room > .editor-picker-label {
+      left: auto;
+      right: calc(100% + 8px);
+      max-width: none;
+      white-space: nowrap;
+    }
+  }
 }
 
 /*
@@ -3317,7 +3339,7 @@ fieldset:disabled .admin-submit {
     font-size: 14px;
   }
 
-  .carousel > .editor-picker-label {
+  .carousel > .editor-picker-room > .editor-picker-label {
     top: auto;
     bottom: 0;
     left: 36px;
