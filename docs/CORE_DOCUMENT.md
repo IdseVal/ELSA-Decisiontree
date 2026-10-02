@@ -594,8 +594,9 @@ owner's words leave a choice:
   - **Made by other issues, under the same mark.** The other changes of #169 to this
     document are #171's and #173's. #171's: the ending of a Tree as a typed text and the
     format `elsa-tree/5` that carries it (3.1; "nothing new enters the format, which
-    stays `elsa-tree/4`" and "asks for one of the four outcomes" above; 5; 10.10, 10.21),
-    and the Theme's font and licence dropdowns (10.35). #173's: the heading "Sources"
+    stays `elsa-tree/4`" and "asks for one of the four outcomes" above; "and the Tree
+    format" below, in what this round does not change; 5; 10.10, 10.21), and the Theme's
+    font and licence dropdowns (10.35). #173's: the heading "Sources"
     (3.2).
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
@@ -612,7 +613,11 @@ What this round does **not** change, so that nobody looks for it: the end-user p
 `version-1.0` shows them -- the Bubble, the up arrow, the Overlay, the Carousel, the
 explainers, the slide, the no-scroll rule, the Theme, the URL scheme with the Trail in
 the link, the share button, the language mechanism, the findability contracts of section
-1 -- and the Tree format. The overview page is a new page in front of them; where the
+1 -- and the Tree format (**[#169]** both with one exception since 2026-10-02, the ending of
+a walk, owner, #169, decided on #171: the format becomes `elsa-tree/5` for the Terminal's
+own words (3.1, 10.21), and the Terminal's badge on the end-user page shows those words,
+every ending in one colour, its letters set a little closer below 792 pixels wide;
+`docs/specs/application.md` 36.1). The overview page is a new page in front of them; where the
 round must touch existing code (the loader opening several Trees, the sitemap listing
 several) the change is additive. The issue's own OUT OF SCOPE is "changes to the existing
 app parts". Issue #132 freezes the store and the accounts, #133 the editor's screens;
@@ -661,12 +666,12 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 | **Link** | Any clickable connection from one Node to another. Two kinds: Answer and Option. | -- |
 | **Answer** | The yes or no Link on a Node; each leads to exactly one target Node. **[v0.2]** Its target is a **child** of the Node on screen. | yes/no, children |
 | **Option** (PROPOSED) | A named entry in a Node's list, with its own title and optional Images, leading to an explanation-only child Node. **[v0.2]** Its target is a **side child** of the Node on screen. **[#75]** Its button beside the Bubble shows the side child's main image and opens the side child in an Overlay; in `elsa-tree/3` an Option has no Images of its own (#78). | condition, area, listed item, side children, side-steps, side-nodes |
-| **Terminal** | A Node explicitly marked as ending the walk, with an outcome (e.g. "AI Act does not apply"). **[#169]** With the ending's own words in place of an outcome: a short text per language, written by its creator and shown on the Terminal's badge (3.1). | message, tree ends here |
+| **Terminal** | A Node explicitly marked as ending the walk, with an outcome (e.g. "AI Act does not apply"). **[#169]** (owner, 2026-10-02: "just let the user enter a text to display on the button (with a wordcap obviously)") With the ending's own words in place of an outcome: a short text per language, written by its creator and shown on the Terminal's badge (3.1). | message, tree ends here |
 | **Image** | A picture attached to a Node or an Option; has a description, a credit, and an optional pointer to a Source. Stored server-side in a dedicated images folder. **[v0.2]** Shown in the Carousel. | image, picture |
 | **Source** | A reference attached to a Node or Image, with a URL. Kinds: **legal**, **case law**, **literature**, labelled distinctly in the data. | legal reference, caselaw reference, literature reference, source parameter |
 | **Trail** | The ordered list of Nodes the user visited to reach the current Node; clickable to jump back. Carried in a shared link. **[v0.2]** Drawn as the Branches above the Bubble (was: a line upward). **[#75]** No longer drawn: the way back is the **up arrow**, one round button above the Bubble that goes to the entry directly above; the Trail itself stays in the URL. | the way back, line to previous items, path, the branches above, the pathing |
 | **Cross-link** | A Link from a Node to a Node in another Tree, or to a non-child Node in the same Tree. Future capability. | link different graphs, cross-link between graph items |
-| **Bubble** | **[v0.2]** The round view of the Node that is open: its title, description, Sources, outcome (**[#169]** a Terminal's ending words). Everything in it fits on screen without scrolling. | bubble, opened node |
+| **Bubble** | **[v0.2]** The round view of the Node that is open: its title, description, Sources, outcome (**[#169]**, 2026-10-02: a Terminal's ending words). Everything in it fits on screen without scrolling. | bubble, opened node |
 | **Branch** | **[v0.2]** A Link as drawn on screen: a line from the Bubble to a Trail entry above it, or out to a child or side child, labelled with the target's title, clickable. **[#75]** No Branches above any more: a Branch is an Answer button below the Bubble (both the same, in the logo's green) or a side child's button beside it (its main image and title, fanned out like a mind map). | branches above, branches going out, buttons |
 | **Carousel** | **[v0.2]** The strip of the open Node's Images below the Bubble, with controls to move between them. **[#75]** The Node's Images after the main image, at the lower edge of the Bubble: pictures only, no buttons, no caption. | image carrousell |
 | **Theme** | **[v0.2]** The logo, colours and fonts a Tree carries so the frontend shows that Tree's lab's identity. Files in the Tree's folder; nothing external. | styles and logo, their logo is displayed |
