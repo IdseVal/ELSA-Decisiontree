@@ -172,15 +172,23 @@ for (const [width, height] of [
   })
 }
 
-test('typing past the limit of a title, a description and an Option title stores exactly the limit, and the box keeps its height', async ({ page }) => {
+test('typing past the limit of a title, a description, an Option title and an Image description stores exactly the limit, and the box keeps its height', async ({ page }) => {
   const cookie = await editor(page, 1280, 640)
   await page.goto(`${origin}/admin/trees/hidden-draft/full`)
   const cases = [
     { keyPath: 'title.en', limit: 80, read: (node: DraftNode) => node.title.en! },
     { keyPath: 'description.en', limit: 150, read: (node: DraftNode) => node.description.en! },
     { keyPath: 'options[0].title.en', limit: 60, read: (node: DraftNode) => node.options[0]!.title.en! },
+    // An Image's description in the enlarged view (31.3), opened from the main image: its box was one line until its text took two.
+    {
+      keyPath: 'images[0].description.en',
+      limit: 120,
+      read: (node: DraftNode) => node.images[0]!.description.en!,
+      open: () => page.locator('.bubble .main-image').filter({ visible: true }).click(),
+    },
   ]
-  for (const { keyPath, limit, read } of cases) {
+  for (const { keyPath, limit, read, open } of cases) {
+    await open?.()
     const region = field(page, keyPath)
     const rendered = region.locator('.editor-rendered')
     if ((await rendered.count()) > 0) await rendered.click({ position: { x: 2, y: 2 } })

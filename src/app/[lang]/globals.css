@@ -2651,8 +2651,9 @@ fieldset:disabled .admin-submit {
  * creator types. Three, not the four the button could hold: a box of four starts at the
  * button's top edge, under the `...` of its corner. A Source's label is as wide as its 60
  * characters at the 90 a line of 5.7, its text from the start, so the line stays inside the
- * Bubble's curve (10.1). A text stored over its limit is still shown whole: the mirror grows
- * the box past the minimum for it.
+ * Bubble's curve (10.1). An Image's description and credit in the enlarged view are two lines
+ * of its caption: 120 characters take two there, as the fixture's do. A text stored over its
+ * limit is still shown whole: the mirror grows the box past the minimum for it.
  */
 .editor-text,
 .editor-rendered {
@@ -2661,7 +2662,8 @@ fieldset:disabled .admin-submit {
 
 .bubble h1 .editor-field,
 .overlay-interior > h2 .editor-field,
-.editor-field--rich {
+.editor-field--rich,
+.sheet-figure figcaption .editor-field {
   --field-lines: 2;
 }
 
@@ -2669,11 +2671,12 @@ fieldset:disabled .admin-submit {
   --field-lines: 3;
 }
 
-/* Below 480 pixels the text area is about 310 wide at the smallest type of 10.5: a title of 80 and a description of 150 take three lines there. */
+/* Below 480 pixels the text area is about 310 wide at the smallest type of 10.5: a title of 80, a description of 150 and an Image's 120 take three lines there. */
 @media (max-width: 479px) {
   .bubble h1 .editor-field,
   .overlay-interior > h2 .editor-field,
-  .editor-field--rich {
+  .editor-field--rich,
+  .sheet-figure figcaption .editor-field {
     --field-lines: 3;
   }
 }
