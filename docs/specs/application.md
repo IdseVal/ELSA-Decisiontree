@@ -4664,9 +4664,10 @@ information hints -- which #180 decides itself.
   the provenance, the recipe and the hashes of `ADR-171-font-library.md` decision 3. 345,116
   bytes in all: 324 KiB as a git pack, a gzip'd layer of about 339 KB in the container image.
 - **In a release**: `fonts/` beside `server.js` in `.next/standalone/` and in the image's
-  `/app`, as `trees/` is (6; `scripts/collect-standalone.ts`, `Dockerfile`); the store reads
-  it from the working directory. Not under `public/`: no library file is ever served from
-  the library, only as a file of a Tree.
+  `/app`, as `schemas/` is (6, 15.1): `scripts/collect-standalone.ts` copies it into the
+  standalone folder, which the `Dockerfile` copies whole, so the `Dockerfile` does not
+  change. The store reads it from the working directory. Not under `public/`: no library
+  file is ever served from the library, only as a file of a Tree.
 - **In code**: `src/fonts.ts`, pure: `FONT_LIBRARY` (id, CSS family name, licence id, files
   with weight, style and SHA-256) and `FONT_LICENCES` (37.5).
 

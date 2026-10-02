@@ -124,8 +124,11 @@ instance the stylesheet draws.
    the recipe, the tool versions and the hashes above, as `trees/*/theme/LICENCE.md` does for
    the Trees' own fonts. Not under `public/`: Next.js serves that folder at the site's root,
    and a library font must reach a page only as a file of a Tree. `next build`'s standalone
-   folder and the container image carry `fonts/` beside `server.js`, as they carry `trees/`;
-   the store reads it from the working directory.
+   folder and the container image carry `fonts/` beside `server.js`, as they carry `schemas/`
+   (`application.md` 15.1): `scripts/collect-standalone.ts` copies it into the standalone
+   folder, which the `Dockerfile` copies whole. The store reads it from the working
+   directory. `trees/` is no precedent: the standalone folder leaves the Tree folders out on
+   purpose, and only the `Dockerfile` copies them, as the seed.
 5. **The list is code**: `src/fonts.ts`, pure, exports `FONT_LIBRARY` -- per family its id
    (the folder's name), its CSS family name, its licence id, and its files with weight,
    style and SHA-256 -- in the order above, and the licence list of
