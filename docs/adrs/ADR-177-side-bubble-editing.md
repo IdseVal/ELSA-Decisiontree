@@ -105,5 +105,16 @@ Measured before this change, each where it is said:
   `admin-no-scroll.spec.ts` no longer go through the Sheet behind the `+`, and
   `admin-no-scroll.spec.ts` measures the side bubble at every maximum by its address.
 - The public Overlay still shows no Sources below 564 pixels of height or 792 of width.
+- **An open point: nothing in an Overlay leads to the aside's own page**, `/admin/trees/<t>/<aside
+  id>`. In the editor the heading link leads to the same page, `/admin/trees/<t>/<the centre's
+  path>/<aside id>` (10.9; built so before this change too), a click in it is the title field's
+  (decision 4), and the Overlay's `+` is gone (decision 3). What leads there is a line of the
+  to-do list (33.3), while the aside still has something to do, or its address typed in the
+  address bar. Until the owner decides otherwise, two things therefore cannot be done from the
+  editor's UI for a side bubble with nothing left to do: giving it a side bubble of its own,
+  which the Overlay's `+` did before this change; and replacing or removing its picture once
+  attached, which the Overlay has never offered and its own page does (31.3). #177's task 4
+  counted on reaching that page "through its heading link". Reported, not built here
+  (application.md 30.5).
 - #178 removes the `...` menus on the Answer and Option buttons next; the side bubble's delete
   is the way to remove one once they are gone.

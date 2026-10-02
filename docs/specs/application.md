@@ -4008,6 +4008,18 @@ in the side bubble?"
 - **No `+ newSideBubble` in an Overlay.** The second-level Options a Tree has are still listed
   and still open (10.9); the editor only stops offering to create one there. An aside opened as
   its own page (`/admin/trees/<t>/<aside id>`) is the centre, and its fan has the `+` (30.4).
+- **The aside's own page is out of the Overlay's reach (an open point).** In the editor the
+  Overlay's heading link leads to the same page, `/admin/trees/<t>/<the centre's path>/<aside
+  id>`, which renders the centre with this Overlay open (10.9) -- not to the aside's own page
+  the paragraph above names, as built before #177 too; a click in it is now the title field's
+  (below); and the Overlay's `+` is gone. What leads to the aside's own page is then a line of
+  the to-do list (33.3), while the aside still has something to do, or its address typed in the
+  address bar. So, until the owner decides otherwise, two things cannot be done from the
+  editor's UI for a side bubble with nothing left to do: giving it a side bubble of its own (a
+  second-level side bubble), which the Overlay's `+` did before #177; and replacing or removing
+  its picture once attached, which the Overlay has never offered (there the picture is a link
+  to its file) and the aside's own page does as the centre's (31.3). #177's task 4 counted on
+  reaching that page "through its heading link". #177 reports this and builds no way there.
 - **The button's title follows the aside's.** The Option's title (60, on the button) and the
   aside's (80, in the Overlay) stay two fields of the format. While the creator types the
   aside's title, the Option button's title on the centre takes each new text cut to 60 whole
