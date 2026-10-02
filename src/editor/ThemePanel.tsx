@@ -437,6 +437,8 @@ function FontRole({
   // Null: no upload under way; `choosing`: the file field is out; an `Uploaded`: the file is up, the family not yet written.
   const [upload, setUpload] = useState<'choosing' | Uploaded | null>(null)
   const [refused, setRefused] = useState<string | null>(null)
+  // A refused choice is told until the role's entry next changes, by this panel or a collaborator's write.
+  useEffect(() => setRefused(null), [family])
   const chosen = family && library.find((candidate) => isEntry(family, candidate.entry))
   const current = !family ? '' : chosen ? `library:${chosen.id}` : 'own'
   const heading = `theme-font-${role}`
@@ -623,7 +625,7 @@ function NewFamily({
           {refused}
         </p>
       )}
-      <LicencePicker licences={licences} words={words} value="" disabled={disabled} onChange={setLicence} />
+      <LicencePicker licences={licences} words={words} value={licence} disabled={disabled} onChange={setLicence} />
       <WeightAndStyle id={`theme-font-${role}-weight`} words={words} disabled={disabled} />
       <button type="submit" className="admin-submit" disabled={disabled}>
         {words.addFont}

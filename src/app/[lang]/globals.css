@@ -4352,7 +4352,11 @@ fieldset:disabled .admin-submit {
   font-size: var(--small);
 }
 
-/* **[#180]** A font role: its name and hint on one line, its dropdown under them across the panel (37.2). */
+/* **[#180]** A font role across the panel: its name and hint on one line, its dropdown under them (37.2). */
+.theme-part > .theme-font {
+  align-self: stretch;
+}
+
 .theme-font-head {
   display: flex;
   align-items: center;
