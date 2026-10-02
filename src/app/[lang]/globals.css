@@ -972,18 +972,29 @@ a.language:hover,
  * from the centre line, R = H / 2 the radius and 380 - R half the Bubble's straight middle.
  * At the guaranteed 401 that is the fan of 10.3: the middle buttons furthest out, the top
  * and bottom ones nearer, 100.25 of pitch on a side of four (104 from a Bubble of 416, 655
- * pixels tall; 10.3's 111.5 was #78's, at a Bubble of 446). A button is 232 x 96; on a row
- * shorter than four of them the pitch shrinks and so does the button, to the row's quarter,
- * down to the 80 pixels its four lines of label take.
+ * pixels tall; 10.3's 111.5 was #78's, at a Bubble of 446).
  *
- * The 96 is a minimum, not a height: a title of 60 characters can take five lines where the
- * browser has no hyphenation dictionary for the page's `lang` (see `.option-title`), and a
- * button that holds them is 102 tall. At the guaranteed pitch of a side of four it overlaps
- * its neighbour by 1.75 pixels; from a Bubble of 416 it stands 2 clear (10.3, amended by
- * #174). It grows downward from the row's top: that button's centre sits 3 below the curve,
- * which no eye finds. It is not centred by a transform, because a transform on the item
- * would make it the containing block of the panel and the backdrop
- * (`position: fixed`), which would then lie inside the item instead of over the page.
+ * A button is 236 x 100 (#175), the largest that fits at 1280 x 640 with room for its focus
+ * ring, 2 pixels wide and 2 off the outline, as measured at a Bubble of 416: a button at the
+ * Bubble's middle height -- the one of a side of one, the middle of a side of three -- has its
+ * inner edge at 400 and 240 to the window's edge, less the ring's 4; and on a side of four the
+ * pitch of 104, less 4, left a focused button's ring clear of its neighbour. At #174's 401 the
+ * middle button stands where it did, but on a side of four two buttons of 100 stand 0.25
+ * apart, and a focused button's ring reaches 3.75 into its neighbour; from 655 pixels tall it
+ * is clear again (10.3, amended). On a row shorter than four of them the pitch shrinks and so
+ * does the button, to the row's quarter.
+ *
+ * The 100 is a minimum, not a height: a title that takes more lines than the button holds
+ * grows it rather than overflow (#105). Hyphenated in the page's language, no title measured
+ * takes more than five lines of 18 at 15 pixels; where the browser has no dictionary for the
+ * language, a title of long words can take six, and the button is 108. On a side of four at
+ * 1280 x 640 that is the known cost of 10.3 (amended): in the top row the button lies 7.75
+ * over the next one (4 at a Bubble of 416); in the bottom row it ends 7.86 below the list
+ * (6 at 416), which then holds content taller than itself (10.6); and in both the picture
+ * stays 100, 4 from the top and the bottom, short of filling the inner end. It grows downward
+ * from the row's top. It is not centred by a transform, because a transform on the item would
+ * make it the containing block of the panel and the backdrop (`position: fixed`), which would
+ * then lie inside the item instead of over the page.
  *
  * The item's box is the button and, at its inner end, the connector's 20 pixels, so that
  * the connector lies inside it and no element holds content wider than itself (10.6).
@@ -998,12 +1009,12 @@ a.language:hover,
   --r: calc(var(--bubble-h) / 2);
   --y: calc((var(--i) + 0.5) * var(--bubble-h) / var(--m) - var(--r));
   --x: calc(380 - var(--r) + sqrt(var(--r) * var(--r) - var(--y) * var(--y)) + 20);
-  --option-h: min(96px, calc(100cqh / var(--m)));
+  --option-h: min(100px, calc(100cqh / var(--m)));
   display: var(--fan, block);
   position: absolute;
   box-sizing: border-box;
   top: calc(50% + var(--y) * 1px - var(--option-h) / 2);
-  width: calc(232px + var(--connector));
+  width: calc(236px + var(--connector));
   min-height: var(--option-h);
   pointer-events: auto;
 }
@@ -1046,33 +1057,72 @@ a.language:hover,
 }
 
 /*
- * The button is the Overlay's summary: the target's main image as a 48-pixel round picture
- * at the inner end, an 8-pixel gap, and the title at 16 pixels on 20-pixel lines, at most
- * four lines in the 152 pixels left of 232 (12 each side, the 1-pixel outline included).
- * Outlined in the rule shade, filled `surface`, a wash of `accent` on hover.
+ * The button is the Overlay's summary, a pill: the target's main image as a round picture
+ * filling the inner end, a 6-pixel gap, and the title at 15 pixels on 18-pixel lines, at most
+ * five lines in the 120 pixels left of 236 (100 of picture, 10 of padding at the outer end).
+ * Outlined in the rule shade, filled `surface`, a wash of `accent` on hover (#175).
+ *
+ * The picture's box is the inner end's own: a circle as tall as the button, centred on the
+ * end's curve, so it follows the outline there and is as big as the button allows (#175, the
+ * owner in #169). The outline is therefore drawn under the content (`::before`) rather than as
+ * a border: a border would sit outside the content box and leave a ring between picture and
+ * edge, or, overlapped by the picture, overflow the button by its width (10.6). Under the empty
+ * slot's own ring and the `+`'s dashed one it is hidden, so neither end is drawn twice.
+ *
+ * The type is a step down from 16: the picture takes 100 of the width the window's edge
+ * allows, and in the 120 left a title near the format's 60 characters takes five lines of 20
+ * at 16 pixels -- the whole 100, the text against the outline. At 15 on 18, hyphenated, it
+ * takes at most five, 90 pixels, and four in Arial's metrics, the default type's on Linux
+ * (10.7, amended).
  */
 .overlay > .sheet-open {
   display: var(--fan, flex);
   align-items: center;
-  gap: 8px;
   width: 100%;
   min-height: var(--option-h);
-  padding: 0 11px;
-  border: 1px solid var(--rule);
-  border-radius: 48px;
-  font-size: 16px;
-  line-height: 20px;
   color: var(--elsa-text);
   background: var(--elsa-surface);
   text-align: left;
   white-space: normal;
-  transition: border-color 160ms var(--ease), background-color 160ms var(--ease);
+  transition: background-color 160ms var(--ease);
+}
+
+/*
+ * The shape is the editor's side-bubble `+`'s too (30.4), written once for both, above step 2
+ * of 10.5. Step 2's restore below 1280 wins over this rule on specificity, (0,4,1) against
+ * (0,3,1), and over the left padding below, (0,4,1) too, by coming later. Its `[data-side]` is
+ * what keeps it winning: without it the left padding would win, and below 1280 the buttons on
+ * the left of the Bubble would lose their 12 pixels at the inner end, as the `+` there once
+ * did (#175).
+ */
+.options > li > :is(.overlay, .side-add) > .sheet-open {
+  position: relative;
+  isolation: isolate;
+  gap: 6px;
+  padding: 0 10px 0 0;
+  border: 0;
+  font-size: 15px;
+  line-height: 18px;
+}
+
+.overlay > .sheet-open::before,
+.options > li > .side-add > .sheet-open::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 1px solid var(--rule);
+  border-radius: inherit;
+  transition: border-color 160ms var(--ease);
 }
 
 .overlay > .sheet-open:hover {
   color: var(--elsa-text);
-  border-color: var(--accent-read);
   background: var(--wash);
+}
+
+.overlay > .sheet-open:hover::before {
+  border-color: var(--accent-read);
 }
 
 /* On the left of the Bubble the inner end is the right: the picture goes there, and the title reads towards it. */
@@ -1081,11 +1131,15 @@ a.language:hover,
   text-align: right;
 }
 
+.options > li[data-side="left"] > :is(.overlay, .side-add) > .sheet-open {
+  padding: 0 0 0 10px;
+}
+
 .option-image {
   flex: none;
   display: block;
-  width: 48px;
-  height: 48px;
+  width: var(--option-h);
+  height: var(--option-h);
   border-radius: 50%;
   object-fit: cover;
   background: var(--elsa-background);
@@ -1097,11 +1151,12 @@ a.language:hover,
 }
 
 /*
- * A Dutch compound can be longer than the label's 152 pixels: break it where the page's `lang`
+ * A Dutch compound can be longer than the label's 120 pixels: break it where the page's `lang`
  * allows, with a hyphen drawn (#104). `anywhere` stays the last resort for a word the
  * browser's dictionary finds no break in, so a title never overflows its button.
  * Without the hyphen the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" of
- * the first Tree takes five lines of Open Sans in the 152 pixels (#105).
+ * the first Tree took five lines of Open Sans in the 152 pixels of #105's button; in the 120
+ * of #175's, "Live biometrische ID in het openbaar voor rechtshandhaving" takes six (10.7).
  */
 .option-title {
   min-width: 0;
@@ -2290,11 +2345,19 @@ fieldset:disabled .admin-submit {
   .options > li {
     --x: 400;
     --connector: 0px;
+    --option-h: min(96px, calc(100cqh / var(--m)));
     width: 200px;
   }
 
   .options .option-image {
     display: none;
+  }
+
+  /* Without the picture the button is 10.5's as it was before #175: 176 of label, 16 on 20. */
+  .options > li[data-side] > :is(.overlay, .side-add) > .sheet-open {
+    padding: 0 12px;
+    font-size: 16px;
+    line-height: 20px;
   }
 }
 
@@ -2335,9 +2398,11 @@ fieldset:disabled .admin-submit {
  * (10.9). When: the row of step 3 has no height to take (below 744), or would not hold this
  * many buttons -- at once for five or more, at 1000, 770 and 520 for four, three and two,
  * as #41 measured -- which the markup says as `data-count`. By height at the guaranteed
- * width, where the fan's rows would be shorter than the four lines a label may take: four
- * a side need the 640 the guarantee gives, three a side 550. The control and the fan are
- * switched by the same conditions, so exactly one of them is on the page.
+ * width, where the fan's rows would be shorter than the five lines of 18, 90 pixels, a
+ * hyphenated title may take (#175): four a side need the 640 the guarantee gives, three a
+ * side 550, and where the editor's `+` adds a fourth to a side of three, its rows are 91 at
+ * 550. The control and the fan are switched by the same conditions, so exactly one of them is
+ * on the page.
  */
 @media (max-height: 639px) {
   .options[data-count="7"],
@@ -2752,6 +2817,16 @@ fieldset:disabled .admin-submit {
  * Bubble's curve (10.1). An Image's description and credit in the enlarged view are two lines
  * of its caption: 120 characters take two there, as the fixture's do. A text stored over its
  * limit is still shown whole: the mirror grows the box past the minimum for it.
+ *
+ * **[#175]** (2026-10-02) In the fan an Option's label is 120 pixels at 15 on 18, where its 60
+ * characters take five lines hyphenated (10.7, amended), so its title's box is five there: 90
+ * of the button's 100, from 5 to 95. Below 1280 the straight columns' label is 176 at 16 on 20
+ * again (10.5, step 2), and the box stays three. A box of five does start under the `...`: the
+ * menu's 24 x 24 in the button's outer top corner lies over the box's outer top corner, 14 wide
+ * and 19 high, where a first line that runs the label's full width ends; #178 takes the `...`
+ * off the side-bubble buttons. Where the browser has no hyphenation dictionary for the page's
+ * language, a title of long words can take six lines, and the box grows to 108 with its button
+ * (10.3's known cost).
  */
 .editor-text,
 .editor-rendered {
@@ -2766,7 +2841,14 @@ fieldset:disabled .admin-submit {
 }
 
 .option-title .editor-field {
-  --field-lines: 3;
+  --field-lines: 5;
+}
+
+/* Below 1280 the straight columns' label is 176 at 16 on 20 again (10.5, step 2): 60 characters take three there. */
+@media (max-width: 1279px) {
+  .option-title .editor-field {
+    --field-lines: 3;
+  }
 }
 
 /* Below 480 pixels the text area is about 310 wide at the smallest type of 10.5: a title of 80, a description of 150 and an Image's 120 take three lines there. */
@@ -3519,7 +3601,7 @@ fieldset:disabled .admin-submit {
   right: 14px;
 }
 
-/* An Option's, in the empty corner its button's 48-pixel radius leaves at the outer end. */
+/* An Option's, in the empty corner the button's round outer end leaves. */
 .options > li > .link-menu--option {
   display: var(--fan, block);
   top: 0;
@@ -3580,14 +3662,9 @@ fieldset:disabled .admin-submit {
 .side-add > .sheet-open {
   display: var(--fan, flex);
   align-items: center;
-  gap: 8px;
   width: 100%;
   min-height: var(--option-h);
-  padding: 0 11px;
   border: 1px dashed var(--rule);
-  border-radius: 48px;
-  font-size: 16px;
-  line-height: 20px;
   color: var(--elsa-text-muted);
   background: var(--elsa-surface);
   text-align: left;
@@ -3599,6 +3676,20 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   border-color: var(--accent-secondary-read);
   background: var(--elsa-surface);
+}
+
+/*
+ * **[#175]** In the fan it has the Option button's shape (`.options > li > :is(.overlay,
+ * .side-add)`, with the Options): its slot fills the inner end, and its dashed outline is
+ * drawn under the slot as the Option button's is, so the slot's own dashed ring is the end's
+ * outline and no end is drawn twice.
+ */
+.options > li > .side-add > .sheet-open::before {
+  border-style: dashed;
+}
+
+.options > li > .side-add > .sheet-open:hover::before {
+  border-color: var(--accent-secondary-read);
 }
 
 .options > li[data-side="left"] > .side-add > .sheet-open {

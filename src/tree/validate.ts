@@ -95,7 +95,7 @@ const THEME_FILE = /^[a-z0-9]+([._-][a-z0-9]+)*\.(svg|png|webp|ico|woff2)$/
 const RAW_HTML = /<[a-zA-Z/!]/
 
 /** The maximum lengths and counts of tree-format.md 5.7; the same for every language. */
-const MAX = {
+export const MAX = {
   title: 80,
   treeDescription: 600,
   treeLines: 8,

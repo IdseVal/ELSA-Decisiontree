@@ -8,6 +8,9 @@
   `elsa-tree/5` file and its schema is derived from `schemas/elsa-tree-5.json` by the same
   two keywords and two `required` lists; V-TERMINAL's blocking half is the shape of
   `terminal` (its one key, `label`), no longer the outcome set.
+- Amended 2026-10-02 by issue #175: decision 2's V-COUNT is blocking for a ninth Option,
+  refused at the write (`tree-format.md` 7's Draft cell; `application.md` 19.2, 22.3 and
+  30.4, amended).
 - Amends: `docs/adrs/ADR-4-validity-rules.md` ("reject the whole Tree" stands for the
   published copy; a draft is held with its violations listed),
   `ADR-118-json-schema.md` (a second compiled schema, derived from the first at start,
@@ -56,6 +59,10 @@ the validator and the loader two shapes to agree on, and #131 decided the format
    | V-SOURCE, V-IMAGE, V-EXPLAINER: shape, grammars, a file that is not in `images/`, an id used twice | V-IMAGE: an empty `credit` or `description`; V-EXPLAINER: a term not yet marked; V-MARK: a mark to an explainer that was removed |
    | V-PLAIN, V-HTML | V-REACH, V-ORPHAN |
    | V-THEME (the files exist, one family per role) | V-TITLE (a title whose every language is still empty: the key stays required and the empty strings are V-L10N's report -- nothing reports V-TITLE itself, section 7) |
+
+   *Amended 2026-10-02 (issue #175):* V-COUNT is blocking for a ninth Option: a write that
+   would add one is refused with V-COUNT and stores nothing; a hand-made file that already
+   holds nine still opens with it advisory (`tree-format.md` 7's Draft cell, amended).
 
    Two mechanisms make one validator do both, and neither is a second document. **The
    schema half**: at start the loader derives a **draft schema** from
