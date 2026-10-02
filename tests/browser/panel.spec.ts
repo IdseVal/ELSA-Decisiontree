@@ -6,7 +6,9 @@
  * once, then the root URL 404; inviting from the select and, as that account in a second
  * context, editing the Tree with the switch disabled; a third account's 403 on the editor
  * address; removing the collaborator and their next write refused; the administrator's
- * hand-over and `deleteTree` disabled while published.
+ * hand-over and `deleteTree` disabled while published. **[#176]** The button floats at the top
+ * right and says `settings` and the state; the count and the to-do lines are the to-do
+ * bubble's, which a refused publish points at (33.1, 33.3, amended).
  *
  * Against a data directory of the named Trees and accounts of 35.3 on a server of this
  * file's own. The tests run in order: each leaves the Tree as the next expects it. The
@@ -70,10 +72,13 @@ async function shoot(page: Page, name: string): Promise<void> {
   await page.screenshot({ path: path.join(SHOTS, `${name}.png`) })
 }
 
-/** The panel's button in the chrome bar, and the panel it opens. */
+/** The panel's button, and the panel it opens; **[#176]** both float at the top right, and the to-do list is a bubble of its own (33.3). */
 const button = (page: Page) => page.locator('.panel-sheet > .sheet-open')
 const panel = (page: Page) => page.locator('.panel-sheet > .sheet-panel')
 const publishSwitch = (page: Page) => panel(page).getByRole('switch', { name: 'Publish' })
+const todo = (page: Page) => page.locator('.todo-sheet > .sheet-open')
+const todoBubble = (page: Page) => page.locator('.todo-sheet > .sheet-panel')
+const things = (count: number): string => `${count} ${count === 1 ? 'thing' : 'things'} to do`
 
 /** Opens the panel and waits for the re-read of the entry and the accounts it does on opening (33.3). */
 async function openPanel(page: Page): Promise<void> {
@@ -96,17 +101,21 @@ test('a fresh Tree: the button says Hidden and the count; publishing it is refus
   expect(entry.advisory.length).toBeGreaterThan(0)
 
   await page.goto(`${origin}/admin/trees/fresh/start`)
-  await expect(button(page)).toHaveText(`Hidden (${entry.advisory.length})`)
+  await expect(button(page)).toHaveAccessibleName('Decision-tree settings: Hidden')
+  await expect(todo(page)).toHaveAccessibleName(things(entry.advisory.length))
   await expect(button(page).locator('.panel-state')).toHaveAttribute('data-state', 'hidden')
 
   await openPanel(page)
   await expect(panel(page).locator('.sheet-close--cross')).toBeFocused()
   await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
   await publishSwitch(page).click()
-  // Refused (19.3): the switch stays off, and the full validation's list is the to-do list.
-  await expect(panel(page).locator('.panel-todo li').first()).toBeVisible()
+  // Refused (19.3): the switch stays off, and the full validation's list is the to-do list,
+  // **[#176]** in the bubble the Publish section points at (33.3).
+  await expect(panel(page).getByRole('alert')).toBeVisible()
   await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
-  const line = panel(page).locator('.panel-todo li a[href="/admin/trees/fresh/start"]').first()
+  await panel(page).getByRole('alert').getByRole('button', { name: 'See what to do' }).click()
+  await expect(todoBubble(page).locator('.todo-list li').first()).toBeVisible()
+  const line = todoBubble(page).locator('.todo-list li a[href="/admin/trees/fresh/start"]').first()
   await expect(line).toBeVisible()
   await shoot(page, 'refused-publish')
   expect((await page.request.get(`${origin}/fresh/start`)).status()).toBe(404)
@@ -122,9 +131,9 @@ test('publishing a complete Tree: the switch turns on, the public link, the over
   console.log(`public overview tiles before publishing: ${JSON.stringify(before)}`)
 
   await page.goto(`${origin}/admin/trees/hidden-draft/full`)
-  await expect(button(page)).toHaveText('Hidden')
+  await expect(button(page)).toHaveAccessibleName('Decision-tree settings: Hidden')
+  await expect(todo(page)).toHaveAccessibleName('Nothing to do')
   await openPanel(page)
-  await expect(panel(page).locator('.panel-todo')).toHaveCount(0)
   await shoot(page, 'panel-off')
 
   await publishSwitch(page).click()
@@ -132,7 +141,7 @@ test('publishing a complete Tree: the switch turns on, the public link, the over
   const link = panel(page).locator('[data-public-link]')
   await expect(link).toHaveAttribute('href', '/hidden-draft/full')
   await expect(link).toHaveAttribute('target', '_blank')
-  await expect(button(page)).toHaveText('Published')
+  await expect(button(page)).toHaveAccessibleName('Decision-tree settings: Published')
   await expect(button(page).locator('.panel-state')).toHaveAttribute('data-state', 'published')
   await shoot(page, 'panel-on')
 
@@ -168,7 +177,7 @@ test('unpublishing asks once; cancel keeps it public, confirm hides it and the r
   await publishSwitch(page).click()
   await panel(page).locator('.panel-ask').getByRole('button', { name: 'Confirm' }).click()
   await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
-  await expect(button(page)).toHaveText('Hidden')
+  await expect(button(page)).toHaveAccessibleName('Decision-tree settings: Hidden')
   expect((await page.request.get(`${origin}/hidden-draft/full`)).status()).toBe(404)
   expect(await overviewTiles(page)).not.toContain('hidden-draft')
 })

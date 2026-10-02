@@ -68,6 +68,10 @@ const panel = (page: Page) => page.locator('.panel-sheet > .sheet-panel')
 const tags = (page: Page) => panel(page).locator('.new-tree-tag-name')
 const field = (page: Page, nodeId: string, keyPath: string) => page.locator(`[data-field="${nodeId} ${keyPath}"]`).filter({ visible: true })
 const publishSwitch = (page: Page) => panel(page).getByRole('switch')
+/** **[#176]** The to-do control and its bubble, at the top right beside the panel's button (33.3). */
+const todo = (page: Page) => page.locator('.todo-sheet > .sheet-open')
+const todoBubble = (page: Page) => page.locator('.todo-sheet > .sheet-panel')
+const things = (count: number): string => `${count} ${count === 1 ? 'thing' : 'things'} to do`
 
 async function openPanel(page: Page): Promise<void> {
   const reread = page.waitForResponse((response) => response.url().endsWith('/admin/api/accounts'))
@@ -76,7 +80,15 @@ async function openPanel(page: Page): Promise<void> {
   await reread
 }
 
-/** The advisory count the Tree's entry answers: what the button shows (33.1). */
+/** Opens the to-do bubble once it has re-read the list (33.3). */
+async function openTodo(page: Page): Promise<void> {
+  const reread = page.waitForResponse((response) => new URL(response.url()).pathname === `/admin/api/trees/${TREE}`)
+  await todo(page).click()
+  await expect(todoBubble(page)).toBeVisible()
+  await reread
+}
+
+/** The advisory count the Tree's entry answers: what the to-do control shows (33.3). */
 async function advisory(page: Page, cookie: string): Promise<number> {
   return ((await (await api(page, cookie, 'GET', `/trees/${TREE}`)).json()) as { advisory: unknown[] }).advisory.length
 }
@@ -137,14 +149,18 @@ test('a complete Dutch Tree: English added in the panel, one to-do per localised
   console.log(`to-do count before adding en: ${before}; after: ${after}; localised texts in draft.json: ${disk.texts}, of which empty in en: ${disk.empty}`)
   expect(disk.empty).toBe(disk.texts)
   expect(after - before).toBe(disk.texts)
-  await expect(button(page)).toHaveText(new RegExp(`\\(${after}\\)$`))
-  await expect(panel(page).locator('.panel-todo li')).toHaveCount(after)
-  await expect(panel(page).locator('.panel-todo li[data-rule="V-L10N"]')).toHaveCount(disk.texts)
+  // The page speaks Dutch, the Tree's default: the count leads the control's name in either language.
+  await expect(todo(page)).toHaveAccessibleName(new RegExp(`^${after} `))
+  await page.keyboard.press('Escape')
+  await expect(panel(page)).toBeHidden()
+  await openTodo(page)
+  await expect(todoBubble(page).locator('.todo-list li')).toHaveCount(after)
+  await expect(todoBubble(page).locator('.todo-list li[data-rule="V-L10N"]')).toHaveCount(disk.texts)
   await shoot(page, 'languages-todo-after-adding')
 
   // The rim of a Dutch field now carries the English tag (28.3), which leads to the English page.
   await page.keyboard.press('Escape')
-  await expect(panel(page)).toBeHidden()
+  await expect(todoBubble(page)).toBeHidden()
   await field(page, 'start', 'title.nl').locator('textarea').click()
   const tag = page.locator('.editor-tag')
   await expect(tag).toHaveText('en')
@@ -159,12 +175,16 @@ test('one English title written is one to-do fewer; Publish is refused until eve
   await title.click()
   await title.fill('Is it so')
   await expect(page.getByRole('status')).toContainText(/^Saved \d/)
-  await expect(button(page)).toHaveText(`Hidden (${before - 1})`)
+  await expect(button(page)).toHaveAccessibleName('Decision-tree settings: Hidden')
+  await expect(todo(page)).toHaveAccessibleName(things(before - 1))
 
   await openPanel(page)
   await publishSwitch(page).click()
-  await expect(panel(page).locator('.panel-todo li').first()).toBeVisible()
+  const pointer = panel(page).getByRole('alert')
+  await expect(pointer).toBeVisible()
   await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
+  await pointer.getByRole('button', { name: 'See what to do' }).click()
+  await expect(todoBubble(page).locator('.todo-list li').first()).toBeVisible()
   expect((await page.request.get(`${origin}/${TREE}/start`)).status()).toBe(404)
 
   // Every other English text written, the same switch publishes.
@@ -212,6 +232,6 @@ test('English made the default moves the page to its address; Dutch removed afte
   expect((await textsOnDisk('en')).texts).toBe(dutch.texts)
   expect(await readFile(path.join(dataDir, 'trees', TREE, 'draft.json'), 'utf8')).not.toContain('"nl"')
   // Still valid in full, so the public copy followed (19.4): no Dutch page is served any more.
-  await expect(button(page)).toHaveText('Published')
+  await expect(button(page)).toHaveAccessibleName('Decision-tree settings: Published')
   expect(await (await page.request.get(`${origin}/${TREE}/start`)).text()).toContain('Is it so')
 })
