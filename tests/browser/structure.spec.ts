@@ -156,7 +156,8 @@ test('the empty root offers + Yes, treeEndsHere and + No; + Yes lands on a new e
   q1 = await landed(page, `/admin/trees/${TREE}/start`)
   // The new Node arrives empty: no title, no description, the three buttons, the up arrow back (30.2).
   await expect(page.locator('h1 textarea')).toHaveValue('')
-  await expect(field(page, q1, 'description.en')).toContainText('Text missing in this language')
+  // **[#172]** The empty description names what belongs in it (28.2, amended).
+  await expect(field(page, q1, 'description.en')).toContainText('Text')
   await expectChoice(page)
   await expect(page.locator('.up-arrow')).toHaveAttribute('href', `/admin/trees/${TREE}/start`)
   await shoot(page, 'new-question-node')

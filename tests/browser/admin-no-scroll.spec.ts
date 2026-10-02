@@ -375,7 +375,8 @@ test('the editor with the session Sheet open never scrolls at the guarantee and 
     const title = page.locator('[data-field="full title.en"] textarea')
     await title.click()
     await title.press('End')
-    await title.type('!')
+    // **[#172]** A key past the title's 80 does nothing now (28.4, amended): a deletion is the edit that writes.
+    await title.press('Backspace')
     await expect(page.getByRole('dialog')).toBeVisible()
     record(await measure(page), 'editor', 'en', `${width}x${height}`, 'session Sheet')
   }

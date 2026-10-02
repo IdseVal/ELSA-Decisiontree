@@ -1680,6 +1680,7 @@ a.language:hover,
   line-height: 16px;
 }
 
+/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .admin-field input {
   min-width: 0;
   height: 32px;
@@ -1690,6 +1691,7 @@ a.language:hover,
   color: var(--elsa-text);
   font: inherit;
   font-size: var(--body);
+  text-overflow: ellipsis;
 }
 
 .admin-field-group {
@@ -1941,6 +1943,8 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   font: inherit;
   font-size: 18px;
+  /* **[#172]** A title of 80 is wider than the box: it ends in an ellipsis while it is not being typed in. */
+  text-overflow: ellipsis;
 }
 
 .new-tree-title input:focus-visible,
@@ -2633,9 +2637,55 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * The text box grows with its text: `field-sizing` where the browser has it, and under it
- * the grid whose hidden mirror -- the same text in the same font -- sets the row's height,
- * so the textarea is never taller or shorter than what it holds (10.6).
+ * **[#172]** A region has, empty and filled, the size its text takes at the limit where it is
+ * drawn (28.4, amended): `--field-lines` lines of its place's own line height -- two for the
+ * title and the description (tree-format.md 5.7), three for an Option's title, which is what
+ * its 60 characters take in the 152 pixels of its button (5.7: three in a humanist face), one
+ * for a Source's label and a Sheet's line -- so the box neither grows nor shrinks while the
+ * creator types. Three, not the four the button could hold: a box of four starts at the
+ * button's top edge, under the `...` of its corner. A Source's label is as wide as its 60
+ * characters at the 90 a line of 5.7, its text from the start, so the line stays inside the
+ * Bubble's curve (10.1). An Image's description and credit in the enlarged view are two lines
+ * of its caption: 120 characters take two there, as the fixture's do. A text stored over its
+ * limit is still shown whole: the mirror grows the box past the minimum for it.
+ */
+.editor-text,
+.editor-rendered {
+  min-height: calc(var(--field-lines, 1) * 1lh);
+}
+
+.bubble h1 .editor-field,
+.overlay-interior > h2 .editor-field,
+.editor-field--rich,
+.sheet-figure figcaption .editor-field {
+  --field-lines: 2;
+}
+
+.option-title .editor-field {
+  --field-lines: 3;
+}
+
+/* Below 480 pixels the text area is about 310 wide at the smallest type of 10.5: a title of 80, a description of 150 and an Image's 120 take three lines there. */
+@media (max-width: 479px) {
+  .bubble h1 .editor-field,
+  .overlay-interior > h2 .editor-field,
+  .editor-field--rich,
+  .sheet-figure figcaption .editor-field {
+    --field-lines: 3;
+  }
+}
+
+.sources .editor-field {
+  width: min(100%, 33em);
+  min-width: 0;
+  text-align: start;
+}
+
+/*
+ * The text box holds its text: the grid whose hidden mirror -- the same text in the same font --
+ * sets the row's height past the box's own lines, so the textarea fills the box and is never
+ * shorter than what it holds (10.6). **[#172]** It no longer sizes to its content: the box
+ * has the size of its limit (above).
  */
 .editor-text {
   display: grid;
@@ -2672,7 +2722,6 @@ fieldset:disabled .admin-submit {
   background: transparent;
   color: inherit;
   outline: none;
-  field-sizing: content;
 }
 
 .editor-input::placeholder {
@@ -2819,28 +2868,81 @@ fieldset:disabled .admin-submit {
   line-height: var(--small-line);
 }
 
+/* **[#172]** The Sheet's own heading, as every Sheet's: not the Sources heading's small capitals around it, nor its centring. */
 .source-editor h2 {
   margin: 0;
   font-family: var(--elsa-font-heading);
   font-size: 18px;
   line-height: 24px;
+  font-weight: 700;
+  font-variant-caps: normal;
+  letter-spacing: normal;
+  color: var(--elsa-text);
+  text-align: start;
 }
 
+/* **[#172]** A label beside its field, its column as wide as the admin pages' (`.admin-field`), so every Sheet's fields line up. */
 .editor-row {
   display: grid;
-  grid-template-columns: minmax(0, 5rem) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
   align-items: center;
   gap: 8px;
+  text-align: start;
 }
 
-.editor-row .editor-field {
-  padding: 4px 8px;
+/*
+ * **[#172]** A Sheet's field is an input of the admin area's one look (`.admin-field input`): at
+ * least 32 pixels tall, 8 pixels in, a 1-pixel `rule` border of radius 4 on the page's
+ * background, and the page's focus ring (`:focus-visible`) rather than a region's inset
+ * outline; its text the Sheet's own 13 pixels on 20-pixel lines, as its label's. The
+ * explanation of an explainer is the one Sheet field of several lines: its 200 characters at
+ * the limit (32.2).
+ */
+.editor-row .editor-field:not(:has(> select)) {
+  --field-lines: 1;
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 8px;
   border: 1px solid var(--rule);
   border-radius: 4px;
   background: var(--elsa-background);
+  line-height: 20px;
+}
+
+.editor-row .editor-field--focused:not(:has(> select)) {
+  box-shadow: none;
+  outline: 2px solid var(--accent-secondary-read);
+  outline-offset: 2px;
+}
+
+.editor-row .editor-field[data-field*='.text.'] {
+  --field-lines: 5;
+}
+
+/* A phone's Sheet is too narrow for a label beside a field: the label goes above, and the term and the explanation take the lines their limits take there. */
+@media (max-width: 479px) {
+  .editor-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .editor-row .editor-field[data-field*='.term.'] {
+    --field-lines: 2;
+  }
+
+  .editor-row .editor-field[data-field*='.text.'] {
+    --field-lines: 7;
+  }
+}
+
+.editor-row .editor-select {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
 }
 
 /* The URL of a Source to add (28.1): the one input of the editor that is not a field. */
+/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .editor-url {
   width: 100%;
   min-width: 0;
@@ -2852,6 +2954,7 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   font: inherit;
   font-size: var(--small);
+  text-overflow: ellipsis;
 }
 
 .editor-url[aria-invalid='true'] {
@@ -2935,10 +3038,11 @@ fieldset:disabled .admin-submit {
  * The explainer Sheet (32.2): one explainer in every language. The right padding is the rim's,
  * where each field's counter pill stands inside the panel (28.3).
  */
+/* **[#172]** 560 wide: a term of 40 characters is one line of its field (32.2). */
 .explainer-sheet {
   align-items: stretch;
   gap: 8px;
-  width: 440px;
+  width: 560px;
   padding-right: 64px;
 }
 
@@ -3134,9 +3238,24 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text-muted);
 }
 
-/* The labels' column is as wide as the longer of the two words, "Beschrijving" included. */
-.editor-attach-form .editor-row {
+/*
+ * **[#172]** One label column for both rows, as wide as the longer word ("Beschrijving"), so the
+ * two inputs line up and keep the width a credit needs; each row a subgrid of the form's. The
+ * label stays beside its input at every width, 8 pixels from it: a phone's 2-pixel gap is for
+ * a label stacked above its field, and a subgrid row takes its gap as the column gap.
+ */
+.editor-attach-form {
+  display: grid;
   grid-template-columns: auto minmax(0, 1fr);
+}
+
+.editor-attach-form > * {
+  grid-column: 1 / -1;
+}
+
+.editor-attach-form .editor-row {
+  grid-template-columns: subgrid;
+  gap: 8px;
 }
 
 .editor-attach-form .sheet-controls {

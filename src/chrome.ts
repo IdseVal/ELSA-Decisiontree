@@ -141,6 +141,22 @@ export interface Chrome {
   /** **[#138]** The counter pill on the rim (28.3): the accessible names of its two numbers. */
   characters: string
   lines: string
+  /**
+   * **[#172]** What belongs in each field, its placeholder while it is empty (28.2, amended
+   * 2026-10-02): the Node's title and text, a Source's name and link, an Option's title, an
+   * Image's description and credit, an explainer's term and explanation, the logo's
+   * alternative text.
+   */
+  placeholderTitle: string
+  placeholderText: string
+  placeholderSourceLabel: string
+  placeholderUrl: string
+  placeholderOptionTitle: string
+  placeholderImageDescription: string
+  placeholderCredit: string
+  placeholderTerm: string
+  placeholderExplanation: string
+  placeholderLogoAlt: string
   /** **[#138]** The autosave indicator (29.3 to 29.7) and the session Sheet (29.6). */
   saving: string
   saved: string
@@ -369,6 +385,16 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcome: 'Outcome',
     characters: 'characters',
     lines: 'lines',
+    placeholderTitle: 'Title',
+    placeholderText: 'Text',
+    placeholderSourceLabel: 'Name of the source',
+    placeholderUrl: 'https://…',
+    placeholderOptionTitle: 'Side bubble title',
+    placeholderImageDescription: 'What the picture shows',
+    placeholderCredit: 'Maker and licence',
+    placeholderTerm: 'Word or phrase',
+    placeholderExplanation: 'What it means',
+    placeholderLogoAlt: 'What the logo says',
     saving: 'Saving',
     saved: 'Saved',
     notSaved: 'Not saved',
@@ -567,6 +593,16 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcome: 'Uitkomst',
     characters: 'tekens',
     lines: 'regels',
+    placeholderTitle: 'Titel',
+    placeholderText: 'Tekst',
+    placeholderSourceLabel: 'Naam van de bron',
+    placeholderUrl: 'https://…',
+    placeholderOptionTitle: 'Titel van de zijbubbel',
+    placeholderImageDescription: 'Wat de afbeelding laat zien',
+    placeholderCredit: 'Maker en licentie',
+    placeholderTerm: 'Woord of begrip',
+    placeholderExplanation: 'Wat het betekent',
+    placeholderLogoAlt: 'Wat er in het logo staat',
     saving: 'Opslaan',
     saved: 'Opgeslagen',
     notSaved: 'Niet opgeslagen',
