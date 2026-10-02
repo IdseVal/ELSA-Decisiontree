@@ -1251,6 +1251,12 @@ Below 640 pixels tall the arrow goes back onto the outline and its band back to 
 before this amendment (10.5, amended the same day), so every height trigger of 10.5
 stands as it was measured.
 
+**Amended 2026-10-02 (#175, the owner in #169):** the 20 of gap and 240 of column beside the
+Bubble are now exactly what an Option button at the Bubble's middle height takes: its 20-pixel
+connector, the button's **236** and the 4 its focus ring needs (2 pixels wide, 2 off the
+outline), so its inner edge is 400 from the centre line and the ring ends at 640, the window's
+edge at 1280 (10.3, amended the same day). The rows and the columns do not move.
+
 ### 10.2 The up arrow: the way back
 
 The Trail is the ordered list of Nodes visited to get here, and it is the path in the
@@ -1370,6 +1376,26 @@ outline (section 12), the chrome bar and disclaimer unchanged.
   (*i* + 0.5) x 416 / *m* - 208 and 172 + sqrt(208² - *y*²) + 20, and the pitch on a side
   of four is **104**: 8 clear of a 96-pixel button, 2 of a 102-pixel one. The figures
   above (446, 223, 157, 111.5, 15 and 9) are #78's and #105's, at a Bubble of 446.
+
+  **Amended 2026-10-02 (#175, the owner in #169):** the button is **236 x 100**, a pill, and
+  its picture **fills its inner end**: a circle as tall as the button, 100 across, centred on
+  the end's curve, touching the outline at the top, at the bottom and at the end towards the
+  Bubble (on the left of the Bubble that end is the right, as before; the picture does not
+  move to the outer end, where the editor's link menu stands, 30.6). The empty slot of a
+  target without Images fills the same end, and so does the editor's `+` (30.4, amended the
+  same day). The outline is drawn under the picture, which covers it there. Then a 6-pixel gap
+  and the title at **15 pixels on 18-pixel lines, at most five lines**, in the **120 pixels**
+  left (236 less 100, 6 and 10 of padding at the outer end). 236 x 100 is the largest that
+  fits at 1280 x 640 with room for a focused button's ring, 2 pixels wide and 2 off the
+  outline: a button at the Bubble's middle height -- the one of a side of one, the middle one
+  of a side of three -- has its inner edge at 400 and 240 to the window's edge (10.1, amended),
+  and on a side of four the pitch of 104 leaves 4 between two buttons of 100. The type is a
+  step down from 16 because the picture takes 100 of the width: in the 120 left a title near
+  60 characters takes five lines of 20 at 16 pixels, the whole button, and at 15 on 18 at
+  most five, 90 pixels (10.7, amended). The 100 is a minimum as the 96 was. The figures above
+  (232, 96, 48, 8, 152, 16 on 20 and four lines) are #78's, #105's and #102's. Below 1280 the
+  straight columns of 10.5's step 2 keep their 200 x 96 without pictures, 176 pixels of label
+  and 16 on 20.
 - **The picture on an Option button is its target's main image** -- an image of another
   Node, which 11.5 allows for exactly this: one file per Option, the target's first
   Image, never its other Images (core document 10.29). An Option has no `images` of its
@@ -1595,6 +1621,17 @@ language (`hyphens: auto`, #104). The four lines of 10.3 therefore hold for a 60
 title only where the reader's browser has a hyphenation dictionary for the page's `lang`.
 Where it has none, the button grows to 102 (10.3, amended: the 96 is a minimum) instead
 of overflowing. The limit stays 60: the owner decides whether it should come down.
+
+**Amended 2026-10-02 (#175):** the Option row above moves with 10.3's amended button: 236 x
+100 with **120 px of label at 15 px on 18-px lines, up to five lines**, 90 of the 100. Measured
+in Chromium on Windows on the 146 Option titles of both Trees and the two fixtures that fan
+out Options, in both languages, hyphenated in the page's language: at most **five** lines in
+Open Sans (4 titles) and in Verdana (31), wider than Arial and the stand-in here for DejaVu
+Sans, which this machine lacks, and
+**four** in Arial and Segoe UI; Open Sans still takes at most five in 110 pixels, a margin for
+the few per cent wider it renders on Linux. At 16 px on 20 every one of those faces took five,
+100 pixels, the whole button. Four buttons on a side at the pitch of 104 are 400 of the
+Bubble's 416. Effect on the limits: none; an Option title keeps its 60 characters.
 
 ### 10.8 The explainer panel
 
@@ -3231,6 +3268,10 @@ interface WriteResponse {
   shape and stores nothing.
 - 403 no role; 404 unknown Tree or Node; 409 uneditable Tree (19.5).
 
+**Amended 2026-10-02 (#175):** one count of 5.7 is refused, not stored: a write that would give
+a Node a **ninth Option** answers 422 with `V-COUNT` and stores nothing (30.4, amended the same
+day).
+
 ### 22.4 Structural writes
 
 One operation, applied whole: creating a Node from a parent writes the Node **and** the
@@ -3816,6 +3857,15 @@ eight Options. It opens a Sheet: `createNew` (one field, the title in the page's
 title in one write) or `linkExisting` (the picker, 30.6 → `add-option { target }`). After a
 creation the editor navigates to **the aside's address under this page**,
 `<path>/<new id>`, which by 10.9 renders this page with the new Overlay open.
+
+**Amended 2026-10-02 (#175, the owner in #169):** in the fan the `+` button is the Option
+button's **236 x 100** (10.3, amended the same day), its `+` in a slot that fills the inner end
+as an Option's picture does, the dashed outline drawn under it. **Eight is a cap no write
+passes**, not only the number the fan draws: `add-option` and `POST .../nodes { from: { node,
+link: 'option' } }` on a Node that has eight Options answer 22.3's 422 with `V-COUNT`
+(`options`, "9 entries; at most 8") and store nothing -- before #175 they stored the ninth with
+the advisory V-COUNT of 19.2. Re-pointing an Option at eight (30.6) removes before it adds and
+still lands. A Tree file with nine, written by hand, stays V-COUNT's, as before.
 
 ### 30.5 An aside is edited in the Overlay
 
