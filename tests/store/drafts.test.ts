@@ -346,13 +346,7 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
       () => drafts.createNode(cees, 't', { node: 'start', link: 'option' }, { en: 'Ninth, created' }),
     ]
     for (const write of ninth) {
-      const refused = await Promise.resolve()
-        .then(write)
-        .then(
-          () => null,
-          (error: StoreError) => error,
-        )
-      expect(refused).toMatchObject({
+      await expect(write()).rejects.toMatchObject({
         status: 422,
         message: 'blocking',
         violations: [{ file: 'start', keyPath: 'options', rule: 'V-COUNT', message: '9 entries; at most 8', advisory: false }],
