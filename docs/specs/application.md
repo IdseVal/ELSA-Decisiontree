@@ -1391,11 +1391,22 @@ outline (section 12), the chrome bar and disclaimer unchanged.
   of a side of three -- has its inner edge at 400 and 240 to the window's edge (10.1, amended),
   and on a side of four the pitch of 104 leaves 4 between two buttons of 100. The type is a
   step down from 16 because the picture takes 100 of the width: in the 120 left a title near
-  60 characters takes five lines of 20 at 16 pixels, the whole button, and at 15 on 18 at
-  most five, 90 pixels (10.7, amended). The 100 is a minimum as the 96 was. The figures above
-  (232, 96, 48, 8, 152, 16 on 20 and four lines) are #78's, #105's and #102's. Below 1280 the
-  straight columns of 10.5's step 2 keep their 200 x 96 without pictures, 176 pixels of label
-  and 16 on 20.
+  60 characters takes five lines of 20 at 16 pixels, the whole button, and at 15 on 18,
+  hyphenated in the page's language, at most five, 90 pixels (10.7, amended). The 100 is a
+  minimum as the 96 was. The figures above (232, 96, 48, 8, 152, 16 on 20 and four lines) are
+  #78's, #105's and #102's. Below 1280 the straight columns of 10.5's step 2 keep their
+  200 x 96 without pictures, 176 pixels of label and 16 on 20.
+
+  **Amended 2026-10-02 (#175), the known cost:** where the reader's browser has no
+  hyphenation dictionary for the page's language (#105's case), a title of long Dutch words
+  can take **six** lines (10.7, amended), and its button grows to **108**, downward from the
+  row's top. On a side of four at 1280 x 640 that puts it **4 pixels over the next button**,
+  where #105's 102 stayed 2 clear: measured with `hyphens: manual`, the first Tree's
+  six-line Dutch title set in the top row of `annex-i-legislation`'s right side. At
+  1920 x 1080 the same button is 22 clear. On the first Tree as it stands no button reaches
+  another: its one six-line title in Open Sans, on `prohibited-practices-2`, is the last of
+  a side of three. The overlap is recorded as the known cost of 120 pixels at 15 on 18, for
+  the owner to decide whether it stands.
 - **The picture on an Option button is its target's main image** -- an image of another
   Node, which 11.5 allows for exactly this: one file per Option, the target's first
   Image, never its other Images (core document 10.29). An Option has no `images` of its
@@ -1632,6 +1643,31 @@ Sans, which this machine lacks, and
 the few per cent wider it renders on Linux. At 16 px on 20 every one of those faces took five,
 100 pixels, the whole button. Four buttons on a side at the pitch of 104 are 400 of the
 Bubble's 416. Effect on the limits: none; an Option title keeps its 60 characters.
+
+**Amended 2026-10-02 (#175), without a hyphenation dictionary:** the five lines above hold
+only hyphenated. The same 146 titles, laid out alone in 120 pixels at 15 on 18 with
+`hyphens: manual` -- #105's case, a browser with no dictionary for the page's language --
+in Chromium on Windows and on Linux (the Playwright container, `v1.62.1-noble`, with DejaVu
+Sans and Liberation Sans installed), take these lines:
+
+| Face | Hyphenated | No dictionary |
+|---|---|---|
+| Open Sans, Windows | at most 5 (4 titles) | **6 for 1** title, 5 for 13 |
+| Open Sans, Linux | at most 5 (2) | **6 for 1**, 5 for 7 |
+| DejaVu Sans, Linux; Verdana, Windows | at most 5 (31) | **6 for 3**, 5 for 35 |
+| Liberation Sans, Linux; Arial, Windows | at most 4 | at most 5 (6) |
+| Segoe UI, Windows | at most 4 | at most 5 (5) |
+
+The six-line titles are the first Tree's Dutch: "Live biometrische ID in het openbaar voor
+rechtshandhaving" (`prohibited-practices-2`) in every face of those rows, and in DejaVu
+Sans and Verdana also "Goedkeuring van motorvoertuigen en aanhangwagens"
+(`annex-i-legislation-3`) and "2. Systemen die synthetische content genereren (aanbieder)"
+(`transparency-obligations`). Six lines are 108 pixels, and the button grows to hold them
+(10.3, amended, which records what that costs on a side of four). On the first Tree's own
+pages, measured the same way at 1280 x 640 and 1920 x 1080, the one button that grows in
+its face, Open Sans, is 108 tall and the last of its side; in Verdana's metrics the other
+two are the top of a side of two, 100 clear of the next at 1280 x 640. Effect on the
+limits: none; whether the 60 characters should come down stays the owner's, as #105 left it.
 
 ### 10.8 The explainer panel
 

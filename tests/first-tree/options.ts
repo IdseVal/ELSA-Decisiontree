@@ -9,8 +9,9 @@ import { openTree } from '../../src/tree/loader.ts'
 const TREE = 'ai-act-applicability-agrifood'
 
 /**
- * docs/specs/application.md 10.3: an Option title takes at most five lines of the fan's
- * button, whose picture leaves it 120 pixels (#175; four in the 152 before it).
+ * docs/specs/application.md 10.3: an Option title, hyphenated in the page's language, takes at
+ * most five lines of the fan's button, whose picture leaves it 120 pixels (#175; four in the
+ * 152 before it). This browser has the dictionaries; without them a title can take six (10.7).
  */
 export const MAX_LINES = 5
 
