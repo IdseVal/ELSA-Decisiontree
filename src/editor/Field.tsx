@@ -284,6 +284,12 @@ export function Field({
       event.currentTarget.blur()
     }
   }
+  // **[#172]** A summary opens its details on the keyup of a space typed anywhere inside it:
+  // an Option's title is typed inside its button's summary, and its first space opened the
+  // Overlay and took the focus. The space is already in the text by then.
+  const onKeyUp = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
+    if (event.key === ' ' && root.current?.closest('summary')) event.preventDefault()
+  }
 
   return (
     <>
@@ -305,6 +311,7 @@ export function Field({
               onFocus={onFocus}
               onBlur={onBlur}
               onKeyDown={onKeyDown}
+              onKeyUp={onKeyUp}
               onSelect={(event) => setSelection([event.currentTarget.selectionStart, event.currentTarget.selectionEnd])}
               onChange={(event: ChangeEvent<HTMLTextAreaElement>) => {
                 const next = heldToLimit(event.target, text, rich ? event.target.value : plainLine(event.target.value), limit)
