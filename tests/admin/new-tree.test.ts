@@ -62,32 +62,39 @@ describe('createTree (#168)', () => {
   const TAKEN: Answer = { status: 409, body: { error: 'tree-id-taken' } }
   const RESERVED: Answer = { status: 422, body: { error: 'malformed', violations: [{ keyPath: 'id' }] } }
 
-  it("creates the Tree at its title's address, the title the default language's and empty in the others", async () => {
+  it("creates the Tree at its default language's title's address, a language without a title empty", async () => {
     const { sent, post } = route({})
-    expect(await createTree('Data Act: does it apply?', ['nl', 'en'], post)).toEqual({ id: 'data-act-does-it-apply', answer: { status: 201, body: null } })
-    expect(sent).toEqual([{ id: 'data-act-does-it-apply', languages: ['nl', 'en'], title: { nl: 'Data Act: does it apply?', en: '' } }])
+    const titles = { en: 'Data Act: does it apply?', nl: 'Is de Dataverordening van toepassing?', de: 'Gilt der Data Act?' }
+    expect(await createTree(titles, ['nl', 'en', 'fr'], post)).toEqual({ id: 'is-de-dataverordening-van-toepassing', answer: { status: 201, body: null } })
+    expect(sent).toEqual([
+      {
+        id: 'is-de-dataverordening-van-toepassing',
+        languages: ['nl', 'en', 'fr'],
+        title: { nl: 'Is de Dataverordening van toepassing?', en: 'Data Act: does it apply?', fr: '' },
+      },
+    ])
   })
 
   it('follows a taken address and a reserved word with the next, without asking', async () => {
     const taken = route({ 'ai-act-example': TAKEN, 'ai-act-example-2': TAKEN })
-    expect((await createTree('AI Act example', ['en'], taken.post)).id).toBe('ai-act-example-3')
+    expect((await createTree({ en: 'AI Act example' }, ['en'], taken.post)).id).toBe('ai-act-example-3')
     expect(taken.sent.map((creation) => creation.id)).toEqual(['ai-act-example', 'ai-act-example-2', 'ai-act-example-3'])
 
     const reserved = route({ admin: RESERVED })
-    expect((await createTree('Admin', ['en'], reserved.post)).id).toBe('admin-2')
+    expect((await createTree({ en: 'Admin' }, ['en'], reserved.post)).id).toBe('admin-2')
   })
 
   it('stops at any other refusal, and after twenty refused addresses, with the last answer', async () => {
     const languages: Answer = { status: 422, body: { error: 'blocking', violations: [{ keyPath: '/languages/1' }] } }
     const refused = route({ tree: languages })
-    expect(await createTree('?!', ['en', 'x'], refused.post)).toEqual({ id: 'tree', answer: languages })
+    expect(await createTree({ en: '?!' }, ['en', 'x'], refused.post)).toEqual({ id: 'tree', answer: languages })
     expect(refused.sent).toHaveLength(1)
 
     const failed = route({ tree: null })
-    expect((await createTree('', ['en'], failed.post)).answer).toBeNull()
+    expect((await createTree({}, ['en'], failed.post)).answer).toBeNull()
 
     const sent: string[] = []
-    const always = await createTree('Busy', ['en'], async (creation) => (sent.push(creation.id), TAKEN))
+    const always = await createTree({ en: 'Busy' }, ['en'], async (creation) => (sent.push(creation.id), TAKEN))
     expect(sent).toHaveLength(20)
     expect(always).toEqual({ id: 'busy-20', answer: TAKEN })
     expect(refusalOf(always.answer, WORDS)).toEqual({ field: 'form', text: 'failed' })

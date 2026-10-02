@@ -133,7 +133,7 @@ test.describe('the new-Tree form (27)', () => {
     await page.screenshot({ path: path.join(SHOTS_168, 'new-tree-form.png') })
   })
 
-  test('adds, orders and removes languages: the first is the default, the last cannot be removed; one title throughout', async ({ browser }) => {
+  test('adds, orders and removes languages: the first is the default, the last cannot be removed; a title for each added one', async ({ browser }) => {
     const page = await loggedIn(browser, ANNA.login, ANNA.password)
     await page.goto(`${origin}/admin/new`)
     const tags = page.locator('.new-tree-tag-name')
@@ -143,9 +143,10 @@ test.describe('the new-Tree form (27)', () => {
     await page.getByLabel('Add', { exact: true }).fill('pt-br')
     await page.getByLabel('Add', { exact: true }).press('Enter')
     await expect(tags).toHaveText(['en', 'nl', 'pt-br'])
-    await expect(page.getByLabel(/^Title/)).toHaveCount(1)
-    await page.getByLabel('Title', { exact: true }).fill('Does the AI Act apply?')
-    await expect(page.locator('.new-tree-count')).toHaveText('22 / 80')
+    await expect(page.getByLabel(/^Title/)).toHaveCount(3)
+    await page.getByLabel('Title (en)').fill('Does the AI Act apply?')
+    await page.getByLabel('Title (nl)').fill('Is de AI-verordening van toepassing?')
+    await expect(page.locator('.new-tree-count')).toHaveText(['22 / 80', '36 / 80', '0 / 80'])
     await page.screenshot({ path: path.join(SHOTS_168, 'new-tree-form-three-languages.png') })
 
     await page.locator('.new-tree-tag[data-language="pt-br"]').getByRole('button', { name: 'Make default' }).click()
@@ -161,6 +162,8 @@ test.describe('the new-Tree form (27)', () => {
     await page.getByRole('button', { name: 'Remove nl' }).click()
     await expect(tags).toHaveText(['pt-br'])
     await expect(page.getByRole('button', { name: 'Remove pt-br' })).toHaveCount(0)
+    await expect(page.getByLabel(/^Title/)).toHaveCount(1)
+    await expect(page.getByLabel('Title', { exact: true })).toHaveAttribute('lang', 'pt-br')
   })
 
   test('sends nothing without a title', async ({ browser }) => {
@@ -208,7 +211,8 @@ test.describe('the new-Tree form (27)', () => {
     await expect(page).toHaveURL(`${origin}/admin/new`)
 
     await page.locator('.new-tree-add').getByRole('button', { name: 'nl', exact: true }).click()
-    await page.getByLabel('Title', { exact: true }).fill('Data Act: does it apply?')
+    await page.getByLabel('Title (en)').fill('Data Act: does it apply?')
+    await page.getByLabel('Title (nl)').fill('Is de Dataverordening van toepassing?')
     await page.getByRole('button', { name: 'Create' }).click()
 
     // The editor of the root Node; #138 builds it, so until then its address is all there is.
@@ -232,9 +236,11 @@ test.describe('the new-Tree form (27)', () => {
     await page.goto(`${origin}/admin/new?lang=nl`)
     await page.locator('.new-tree-add').getByRole('button', { name: 'en', exact: true }).click()
     await page.locator('.new-tree-tag[data-language="en"]').getByRole('button', { name: 'Maak standaard' }).click()
-    await page.getByLabel('Titel', { exact: true }).fill('Tweede boom')
+    await page.getByLabel('Titel (en)').fill('Second tree')
+    await page.getByLabel('Titel (nl)').fill('Tweede boom')
     await page.getByRole('button', { name: 'Aanmaken' }).click()
 
-    await expect(page).toHaveURL(`${origin}/admin/trees/tweede-boom/start?lang=nl`)
+    // The address is the default language's title's.
+    await expect(page).toHaveURL(`${origin}/admin/trees/second-tree/start?lang=nl`)
   })
 })

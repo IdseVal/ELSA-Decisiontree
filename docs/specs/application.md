@@ -3572,16 +3572,18 @@ Trees: `noTrees` on `/`; the + tile alone on `/admin`.
 ### 27.1 The form, `/admin/new`
 
 **[#168], changed by the owner -- 2026-10-02**: the form was too hard to read for the core
-audience. It now holds **one title, the languages and `create`**, in that order, each a label over its
-control, with no sentence of explanation. The creator is **never asked for the address**:
-it is the title's (`treeIdOf` in `src/editor/slug.ts`: the proposal below, with accents
-folded to their letters, `tree` when nothing is left), and an address the route refuses --
-taken, or a reserved word -- is followed by `-2`, `-3`, ... until one is created (at most
-20 tries). The one title is the **default language's**; the other languages start with an
-empty title, the to-do V-L10N reports (19.2), filled in the top panel (33.5). The title is
-required: an empty form sends nothing. The id still never changes after creation
-(ADR-133-new-tree-form decision 2); the form no longer says so. Struck below is what this
-replaces.
+audience. It now holds **the title, the languages and `create`**, in that order, each a
+label over its control, with no sentence of explanation: one field labelled `title` while
+the Tree has one language, and one more per language added, labelled by its tag -- because
+**as built, nothing edits a Tree's title after creation** (33.5's title field is not in the
+panel) and a declared language without a title keeps the Tree from being published (19.3).
+The default language's title is required: an empty form sends nothing. The creator is
+**never asked for the address**: it is the default language's title's (`treeIdOf` in
+`src/editor/slug.ts`: the proposal below, with accents folded to their letters, `tree` when
+nothing is left), and an address the route refuses -- taken, or a reserved word -- is
+followed by `-2`, `-3`, ... until one is created (at most 20 tries). The id still never
+changes after creation (ADR-133-new-tree-form decision 2); the form no longer says so.
+Struck below is what this replaces.
 
 One card of 520 pixels in a scroll box (26.3), holding in this order:
 
@@ -3589,7 +3591,7 @@ One card of 520 pixels in a scroll box (26.3), holding in this order:
 |---|---|
 | ~~`treeId`~~ **[#168]** removed | ~~The id grammar of `tree-format.md` 3.1, with `treeIdHint` under it and the address the Tree will have (`/<id>/start`) shown live. **Proposed by the script from the first title typed** (lower-cased, every run outside `[a-z0-9]` → one hyphen, trimmed, cut to 64) until the creator edits the field. Under it, `treeIdFixed`: **the id never changes after creation** -- it is the folder name (17.2) and is in every URL and share link (4.1). No rename exists on any route.~~ |
 | `languages` | A row of tags with a field to add one (the tag grammar of 3.3, checked in the script); `en` and `nl` as one-click buttons; a `remove` cross on every tag but the last; `makeDefault` on every tag but the first. **The first tag is the default language** (3.3), marked `default`. Opens with the page's chrome language as its one tag. ~~`languagesFixed`: the languages cannot be changed after creation in this round (#147, `proposed`).~~ **[#147]** `languagesLater`: languages can be added or removed later, in the top panel (33.5). The control is `src/editor/LanguageTags.tsx`, shared with the panel. **[#168]** No `languagesLater` under it. |
-| `title` | ~~One field per tag in tag order, labelled by the tag~~ **[#168]** One field, the default language's, labelled `title`, with the 80-character counter of 28.4 beside the label. Required. |
+| `title`, per language | One field per tag in tag order, labelled by the tag (**[#168]** labelled `title` alone while there is one tag, and placed first), with the 80-character counter of 28.4 (**[#168]** beside the label). May be left empty in a language other than the default: then V-L10N's to-do (19.2). **[#168]** The default's is required. |
 | `create` | One button in the Answer buttons' style. |
 
 The Tree's **description** is not here: it is a manifest field edited in the top panel

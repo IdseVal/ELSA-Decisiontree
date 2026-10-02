@@ -2,10 +2,12 @@
 
 /**
  * The new-Tree form behind the + tile (docs/specs/application.md 27; ADR-133-new-tree-form,
- * **[#168]** as the owner simplified it): one title, the languages, the first of them the
- * default, and `create`. The creator is never asked for an address: it is derived from the
- * title, and an address the route refuses -- taken, or a reserved word -- is followed by the
- * next (`treeIdOf`). It posts to `/admin/api/trees`, shows any other refusal with every value
+ * **[#168]** as the owner simplified it): the title, the languages, the first of them the
+ * default, and `create` -- one title field while the Tree has one language, one more for
+ * each language added, because nothing after creation edits a Tree's title (33.5 is not
+ * built) and an empty one keeps it from being published. The creator is never asked for an
+ * address: it is derived from the default language's title, and an address the route refuses
+ * -- taken, or a reserved word -- is followed by the next (`treeIdOf`). It posts to `/admin/api/trees`, shows any other refusal with every value
  * kept, and on 201 goes to the editor of the new Tree's root Node.
  *
  * Disabled until the script runs, as every admin form (`useHydrated`).
@@ -65,21 +67,21 @@ function addressRefused(answer: Answer | null): boolean {
 }
 
 /**
- * Creates the Tree titled `title` (27.2): the title is the default language's, the other
- * languages' titles start empty -- the to-do V-L10N reports (19.2) -- and the address is the
+ * Creates the Tree with `titles` in `languages` (27.2): a language without a title starts
+ * empty -- the to-do V-L10N reports (19.2) -- and the address is the default language's
  * title's, followed by the next while the route refuses it. Resolves with the last address
  * tried and the route's answer to it; `post` is the request, a parameter so a test can answer.
  */
 export async function createTree(
-  title: string,
+  titles: Record<string, string>,
   languages: string[],
   post: (creation: Creation) => Promise<Answer | null> = (creation) => send('POST', '/admin/api/trees', creation),
 ): Promise<{ id: string; answer: Answer | null }> {
-  const titles = Object.fromEntries(languages.map((language, index) => [language, index === 0 ? title : '']))
+  const title = Object.fromEntries(languages.map((language) => [language, titles[language] ?? '']))
   const refused: string[] = []
   for (;;) {
-    const id = treeIdOf(title, refused)
-    const answer = await post({ id, languages, title: titles })
+    const id = treeIdOf(title[languages[0]!]!, refused)
+    const answer = await post({ id, languages, title })
     refused.push(id)
     if (!addressRefused(answer) || refused.length === ATTEMPTS) return { id, answer }
   }
@@ -96,7 +98,7 @@ export function refusalOf(answer: Answer | null, words: NewTreeWords): Refusal |
 
 export function NewTreeForm({ lang, words }: { lang: string; words: NewTreeWords }) {
   const enhanced = useHydrated()
-  const [title, setTitle] = useState('')
+  const [titles, setTitles] = useState<Record<string, string>>({})
   const [languages, setLanguages] = useState([lang])
   const [refusal, setRefusal] = useState<Refusal | null>(null)
   const [busy, setBusy] = useState(false)
@@ -109,7 +111,7 @@ export function NewTreeForm({ lang, words }: { lang: string; words: NewTreeWords
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
     setBusy(true)
-    const { id, answer } = await createTree(title, languages)
+    const { id, answer } = await createTree(titles, languages)
     const refused = refusalOf(answer, words)
     if (!refused) {
       window.location.assign(editorHref(id, languages, lang))
@@ -125,23 +127,28 @@ export function NewTreeForm({ lang, words }: { lang: string; words: NewTreeWords
     <form className="admin-card admin-form new-tree" method="post" onSubmit={submit} aria-labelledby="new-tree">
       <h1 id="new-tree">{words.newTree}</h1>
       <fieldset disabled={!enhanced || busy}>
-        <div className="new-tree-title">
-          <label className="new-tree-label" htmlFor="new-tree-title">
-            {words.title}
-          </label>
-          <span className="new-tree-count" id="new-tree-title-count">
-            {countedLength(title)} / {TITLE_MAX}
-          </span>
-          <input
-            id="new-tree-title"
-            name="title"
-            lang={languages[0]}
-            required
-            aria-describedby="new-tree-title-count"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-          />
-        </div>
+        {languages.map((language, index) => {
+          const value = titles[language] ?? ''
+          return (
+            <div key={language} className="new-tree-title">
+              <label className="new-tree-label" htmlFor={`new-tree-title-${language}`}>
+                {languages.length === 1 ? words.title : `${words.title} (${language})`}
+              </label>
+              <span className="new-tree-count" id={`new-tree-count-${language}`}>
+                {countedLength(value)} / {TITLE_MAX}
+              </span>
+              <input
+                id={`new-tree-title-${language}`}
+                name={`title-${language}`}
+                lang={language}
+                required={index === 0}
+                aria-describedby={`new-tree-count-${language}`}
+                value={value}
+                onChange={(event) => setTitles({ ...titles, [language]: event.target.value })}
+              />
+            </div>
+          )
+        })}
 
         <LanguageTags
           id="new-tree-languages"
