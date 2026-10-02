@@ -3240,7 +3240,9 @@ fieldset:disabled .admin-submit {
 
 /*
  * **[#172]** One label column for both rows, as wide as the longer word ("Beschrijving"), so the
- * two inputs line up and keep the width a credit needs; each row a subgrid of the form's.
+ * two inputs line up and keep the width a credit needs; each row a subgrid of the form's. The
+ * label stays beside its input at every width, 8 pixels from it: a phone's 2-pixel gap is for
+ * a label stacked above its field, and a subgrid row takes its gap as the column gap.
  */
 .editor-attach-form {
   display: grid;
@@ -3253,6 +3255,7 @@ fieldset:disabled .admin-submit {
 
 .editor-attach-form .editor-row {
   grid-template-columns: subgrid;
+  gap: 8px;
 }
 
 .editor-attach-form .sheet-controls {
