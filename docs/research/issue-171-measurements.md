@@ -513,13 +513,14 @@ each ending in Arial Bold at 0.04em: Vergunning vereist (18) 162.6, Niet van toe
 
 Read with the room: at 0.04 em every ending of at most 19 characters holds one line in every
 face of the default stack and the library that was measured, on Windows and in Linux. The
-widest, `Mandatory safeguard` in DejaVu Sans Bold, is 195.5 of the 198 pixels on Windows, from the
-release's file, and in Linux where DejaVu Sans is installed; and 197.4 where Linux draws the
-release's file as a web font, as a Tree's Theme would serve it. Three of the seven 20-character endings take a second line in DejaVu Sans Bold
-on both systems, a badge 46 pixels tall. At 0.12 em, 19 characters hold one line in every face
-of the stack and the library but DejaVu Sans Bold, where five of the seven endings of 19 take a
-second line, and Arial Bold's widest, like Liberation Sans's, is 197.7. Hence
-`ADR-171-ending-text.md` decisions 2 and 6: 19 characters, and 0.04 em below 792 pixels wide.
+widest, `Mandatory safeguard` in DejaVu Sans Bold, is 195.5 of the 198 pixels on Windows, from
+the release's file, and in Linux where DejaVu Sans is installed; and 197.4 where Linux draws the
+release's file as a web font, as a Tree's Theme would serve it. Three of the seven 20-character
+endings take a second line in DejaVu Sans Bold on both systems, a badge 46 pixels tall. At 0.12
+em, 19 characters hold one line in every face of the stack and the library but DejaVu Sans Bold,
+where five of the seven endings of 19 take a second line, and Arial Bold's widest, like
+Liberation Sans's, is 197.7. Hence `ADR-171-ending-text.md` decisions 2 and 6: 19 characters,
+and 0.04 em below 792 pixels wide.
 
 ## 4. The candidate families
 
