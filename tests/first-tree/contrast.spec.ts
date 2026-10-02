@@ -148,6 +148,8 @@ test('**[#180]** the Sources’ lines are the Theme’s text on the Bubble, a li
     expect(m.background, m.text).toBe('#f0f3f7')
     expect(m.ratio, m.text).toBeGreaterThanOrEqual(MINIMUM)
   }
+  // The dot between two Sources is the lines' colour too, not the heading's muted one.
+  expect(await page.locator('.sources li + li').first().evaluate((item) => getComputedStyle(item, '::before').color)).toBe('rgb(45, 46, 51)')
   const underline = (selector: string) =>
     page.locator(selector).first().evaluate((el) => `${getComputedStyle(el).textDecorationLine} ${getComputedStyle(el).textDecorationColor} ${getComputedStyle(el).color}`)
   expect(await underline('.sources a')).toBe('underline rgb(45, 46, 51) rgb(45, 46, 51)')

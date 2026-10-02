@@ -387,7 +387,8 @@ test('[#180] after the palette changes, the editor’s bar, floating controls an
     await themePanel(page).locator(`input[type="color"][data-role="${role}"]`).fill(value)
     expect((await written).status()).toBe(200)
   }
-  await expect.poll(() => property(page, '--elsa-surface')).toBe('#212729')
+  // Every write repaints after its answer: wait for the last one's colours before reading the page.
+  await expect.poll(async () => [await property(page, '--elsa-background'), await property(page, '--elsa-surface'), await property(page, '--elsa-text')]).toEqual(['#161a1d', '#212729', '#eef1f2'])
   const after = await painted(page)
 
   testInfo.annotations.push({ type: 'measured', description: Object.keys(before).map((key) => `${key}: ${before[key]} -> ${after[key]}`).join('\n') })
@@ -396,12 +397,16 @@ test('[#180] after the palette changes, the editor’s bar, floating controls an
   expect(after.Bubble).toBe('rgb(238, 241, 242) on rgb(33, 39, 41), -apple-system')
   expect(before.Bubble).not.toBe(after.Bubble)
 
-  // The Sources' lines under their heading: the palette's text, as the Bubble's own text is.
+  // The Sources' lines under their heading -- each line, its kind and the dot between two -- in the palette's text, as the Bubble's own text is.
   await page.keyboard.press('Escape')
   await expect(panel(page)).toBeHidden()
-  const lines = await page.locator('.bubble .sources li').evaluateAll((items) => items.map((item) => getComputedStyle(item).color))
-  expect(lines.length).toBeGreaterThan(0)
-  expect(new Set(lines)).toEqual(new Set(['rgb(238, 241, 242)']))
+  const lines = await page.locator('.bubble .sources li').evaluateAll((items) =>
+    items.flatMap((item) => [getComputedStyle(item).color, ...(item.previousElementSibling ? [getComputedStyle(item, '::before').color] : [])]),
+  )
+  const kinds = await page.locator('.bubble .sources .kind').evaluateAll((items) => items.map((item) => getComputedStyle(item).color))
+  expect(lines.length).toBeGreaterThan(3)
+  expect(kinds).toHaveLength(2)
+  expect(new Set([...lines, ...kinds])).toEqual(new Set(['rgb(238, 241, 242)']))
 })
 
 test('[#180] a Tree with a dark palette: in the editor the bar and the open panel in the default look, the Bubble in the Tree’s; its public page whole in the Tree’s, the Sources in its text', async ({ browser }) => {
