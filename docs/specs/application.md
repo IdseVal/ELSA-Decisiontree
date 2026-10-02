@@ -262,13 +262,14 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | Issue | Keys |
 |---|---|
 | #134 | `siteTitle` (the overview's and `llms.txt`'s H1, 23.5, 24.3), `noTrees`, `newTree` |
-| #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language); **[#162]** `sessionNotKept` (a login the browser kept no cookie of, 25.1) |
+| #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language); **[#162]** `sessionNotKept` (a login the browser kept no cookie of, 25.1); **[#176]** `account` says "Account" now, the link's own word (24.3) |
 | #137 | `published`, `hidden`, `notServable`, `treeId`, ~~`treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`~~ (**[#168]** removed with the address field, 27.1; `treeId` stays, the top panel names the address with it), `languages`, `addLanguage`, `makeDefault`, `default`, ~~`languagesFixed`~~ (**[#147]** replaced by `languagesLater`: the languages change in the top panel, 33.5; **[#168]** `languagesLater` removed: the form says no sentence), `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
 | #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
 | #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused`; **[#140] added in the build**: `cancel` (the attach Sheet's second button, 31.2 -- the same word #139's row names, so whichever branch merges second keeps one) and `imageDescription` (the label of its description field; `credit` labels the other) |
 | #141 | `mark`, `unmark`, `cannotMarkHere`, `explainerLimit`, `term`, `explanation`, `markedIn`, `notMarkedIn` |
-| #142 | `treeState`, `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, ~~`fixed`~~ (**[#147]** gone: the languages are the tag control of 33.5), `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
+| #142 | ~~`treeState`~~ (**[#176]** gone: the panel's title is `settings`, 33.2), `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, ~~`fixed`~~ (**[#147]** gone: the languages are the tag control of 33.5), `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
+| #176 | `settings` (the floating button and the panel's title, 33.1, 33.2), `todoCountOne` (the to-do control's words for one thing; `todoCount` says them for more, 33.3), `todoNone` (the control at zero, and its bubble's empty list), `publishRefused` and `showTodo` (a refused publish's sentence in the panel and the button to the to-do bubble, 33.3) |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -1468,9 +1469,10 @@ one, still hold.
 with **one exception**: the Carousel strip, which scrolls horizontally inside its own
 400-pixel box on the Bubble's lower outline and is how the Carousel works without
 JavaScript (12.2). **[#133] And a second, of the same kind**: a `[data-scroll-box]`, which
-scrolls vertically inside its own bounds, carried by exactly the four things the format does
+scrolls vertically inside its own bounds, carried by exactly the ~~four~~ **[#176]** five things the format does
 not bound -- the overview's tile grid, the accounts list, the new-Tree form and the top
-panel's body (26.3) -- and by nothing on a Node page or in the editor's Bubble. The element
+panel's body (26.3), **[#176]** and the to-do bubble's body, which holds the list that left the
+panel's (33.3) -- and by nothing on a Node page or in the editor's Bubble. The element
 walk below skips both attributes; the document still never scrolls on any page. The document itself never scrolls at any size, including below the
 floor, including while a Sheet or an Overlay is open, including while an explainer
 panel is open, and including during a transition (core document 9, `[#75]`).
@@ -3417,8 +3419,8 @@ are #136's `permit`. `/admin/new` does not exist until #137.
 | Public Node page | The Tree's logo or title | language switch, share button | The published Tree's |
 | Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
 | Login page | `siteTitle` | language switch | The default |
-| Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, the caller's name (a link to `/admin/account`), `accounts` (administrator only, a link), `logout` | The default |
-| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), the panel button (33.1), the caller's name, `logout`. **No share button.** | **The draft's** |
+| Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
+| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). | **The draft's** |
 | The 404 and 403 pages | `siteTitle` | language switch | The default |
 
 **[#135]** Below 480 pixels wide the Tree-less admin pages' bar gives up `siteTitle` and the
@@ -3426,6 +3428,14 @@ current language's pill (not a link, and the language on screen) so that the swi
 name, `accounts` and `logout` fit 320 pixels; the name is cut with an ellipsis where it does
 not fit and carries `data-clamp`, which `admin-no-scroll.spec.ts` reads as the overview's
 walk reads a tile's title (26.1).
+
+**[#176], changed by the owner -- 2026-10-02** (#169: "next to it it says adminstrator, make it
+say 'Account' or at least make it say what it is"). On every admin page with a session -- the
+creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` and the editor -- the link
+to the account page says `account`, "Account" in English and in Dutch, and carries the caller's
+name as its `title`: its tooltip, and its accessible description. `accounts` and `logout` stay.
+The name is not in the bar any more, so nothing there is cut: the link carries no `data-clamp`.
+Recorded in `docs/adrs/ADR-176-floating-settings-and-to-do.md`.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
@@ -3540,9 +3550,10 @@ thirteenth is below the fold **of the box**.
 The grid's box is marked `data-scroll-box` and **scrolls vertically inside its own bounds**;
 the document never scrolls. It is a native scroll container (no script, keyboard-reachable).
 `no-scroll.spec.ts`'s element walk skips `[data-scroll-box]` as it skips
-`[data-carousel-strip]`. The attribute is carried by exactly four things, the ones the
+`[data-carousel-strip]`. The attribute is carried by exactly ~~four~~ **[#176]** five things, the ones the
 format does not bound: this grid, the accounts list (25.3), the new-Tree form (27.1) and the
-body of the top panel (33.2). Nothing else may carry it: the Bubble, an Overlay, every other
+body of the top panel (33.2); **[#176] amended 2026-10-02**, and the body of the to-do bubble
+(33.3), which holds the to-do list that left the panel's body. Nothing else may carry it: the Bubble, an Overlay, every other
 Sheet holds what the format bounds and fits or is a defect.
 
 ### 26.4 The creators' overview, `/admin`
@@ -3701,7 +3712,8 @@ control is `mark` (32.1).
 ### 28.6 The no-scroll rule in the editor
 
 Unchanged. Every control the editor adds is outside the text area: the counter and tags on
-the rim; the violation and the save state in the chrome bar; the structure buttons in the
+the rim; the violation and the save state in the chrome bar; **[#176]** the panel's button and the
+to-do control under the bar at the top right, in the band beside the up arrow (33.1, 33.3); the structure buttons in the
 Answer row (30.2); the side `+` in the fan's next free slot (30.5); the strip's `+` in the
 strip band (31.1); the outcome select where the badge is; the step menu on the rim above
 (30.8); everything else in a Sheet. `tests/fixtures/full-node/` as a draft fits in the editor
@@ -3733,7 +3745,7 @@ monotonically as seen from the page. The queue is the `Editor` provider's (34.4)
 
 ### 29.3 The indicator
 
-In the chrome bar between the language switch and the panel button, a `role="status"` region
+In the chrome bar between the language switch and ~~the panel button~~ **[#176]** the link to the account page (the panel's button left the bar, 33.1), a `role="status"` region
 of at most 320 pixels:
 
 | State | Shown |
@@ -3968,11 +3980,44 @@ is stable and shown only in the source and the Sheet's title while the term is e
 
 ### 33.1 The button
 
-Top right of the editor's chrome bar, before the caller's name: a dot and the Tree's state --
+~~Top right of the editor's chrome bar, before the caller's name: a dot and the Tree's state --
 `hidden` (`text-muted`), `published` (`accent-secondary`), `published` + `notServable`
 (`danger`, 18.3), `published` + `publicBehind` (`accent`, 19.4) -- and the to-do count in
-brackets when not zero: "Hidden (3)". From `GET /admin/api/trees/<t>` at load and every write
+brackets when not zero: "Hidden (3)".~~ From `GET /admin/api/trees/<t>` at load and every write
 response's `tree` afterwards (22.3).
+
+**[#176], changed by the owner -- 2026-10-02** (#169: "The UI names of the top right buttons
+don't make sense at all: Why does it say hidden? Say what opens when that button is clicked,
+'Decision-tree settings'", and "I also want the 'Decision-tree settings' button to be a hover
+top right, but not in the header bar"). Recorded in
+`docs/adrs/ADR-176-floating-settings-and-to-do.md`; struck above is what this replaces.
+
+- **Out of the bar, over the page.** The button floats under the chrome bar at the top right of
+  the editor's page, with the to-do control of 33.3 to its left: 32 pixels tall, 10 under the
+  bar and 16 from the right edge, which at the guarantee is the band beside the up arrow, the
+  arrow's middle its own (where a taller window gives the Bubble more room above it, the arrow
+  stands lower and the controls stay under the bar). It is in
+  no row of 10.1 and not in the bar's `header`: a fixed box, so no row moves and it is no
+  element's overflow (10.6). At 1280 x 640 it covers no part of the Bubble, the up arrow, an
+  Option button or its link menu, nor at any other viewport of 10.6 where the tree view shows
+  (`tests/browser/floating-controls.spec.ts` measures the boxes on the full Node at a 49-entry
+  Trail). Below 640 pixels of height, where that band is 26 (10.5), it is 24 tall and one under
+  the bar; on a phone's band of 40, 32 and four under it; 8 from the edge below 480 wide.
+- **It says what it opens**: a gear and `settings`, "Decision-tree settings"
+  ("Beslisboominstellingen"), **then the Tree's state as a tag**, set off by a hairline: a dot
+  and a word, a tile's mark (26.4) -- `hidden` (`text-muted`), `published`
+  (`accent-secondary`), `notServable` (`danger`, 18.3). A published Tree whose public copy is
+  behind (19.4) shows `published` with its dot in `accent`, and the indicator says
+  `publicBehind` (29.3). The count is the to-do control's (33.3).
+- **Its name** is `settings`, a colon and the state's word, then `, publicBehind` when that
+  applies -- "Decision-tree settings: Hidden" -- the same at every width.
+- **Below 1000 pixels** the words do not fit beside the arrow: the button is a 32-pixel round
+  button holding the gear, with the state's dot on its shoulder -- a ring for `hidden`, so the
+  state does not rest on its colour alone -- and keeps its whole name.
+- **Order and layers.** After the bar's last control in the tab order, behind the to-do
+  control. While its Sheet is closed it lies under any other Sheet's scrim -- an Overlay's, the
+  enlarged view's, a menu's -- and while it is open its box lifts over the page, so the scrim
+  covers the bar too, as the bar's own lift did while it held the button.
 
 ### 33.2 The panel
 
@@ -4009,6 +4054,22 @@ one Sheet at a time). Its body is a scroll box (26.3). Four sections:
 +--------------------------------------+
 ```
 
+**[#176] Amended 2026-10-02:** the panel is titled `settings`, the words of the button that
+opens it, and its Publish section holds the switch and no to-do list, which is a bubble of its
+own (33.3). The top of the sketch, as it is now; the other sections are as above:
+
+```
++--------------------------------------+
+|  Decision-tree settings           x  |
+|--------------------------------------|
+|  PUBLISH                             |
+|  [ o  ] Hidden                       |
+|  Not published: some things must be  |  <- after a refused publish (33.3)
+|  done first. See what to do          |  <- opens the to-do bubble
+|--------------------------------------|
+|  COLLABORATORS                       |
+```
+
 ### 33.3 Publish
 
 A `role="switch"` labelled `publish`. **On** → `PUT .../published { published: true }`: 200 →
@@ -4021,6 +4082,32 @@ page, then the message; a V-REACH line offers `remove`. Headed `publicBehindBeca
 servable. **Off** asks once: the switch becomes `confirmUnpublish` ("Hide this tree? Links to
 it will stop working until it is published again.") with `confirm` / `cancel` → `{ published:
 false }`. A collaborator sees the switch disabled, the list, no confirmation (21.2).
+
+**[#176], changed by the owner -- 2026-10-02** (#169: "The to-do before publishing is ok to have
+somewhere, but not in the sidepane and not on top, make it a bubble on the top right (not in the
+header bar)"). Recorded in `docs/adrs/ADR-176-floating-settings-and-to-do.md`.
+
+- **The to-do list leaves the panel for a bubble of its own.** Its control floats beside the
+  button of 33.1, to its left, of the same height: the count in a small round bubble filled with
+  `accent`, then `todoCount` -- "3 things to do", `todoCountOne` for one -- and at zero a quiet
+  tick, named `todoNone` ("Nothing to do"). Below 1000 pixels the round count alone. Its name is
+  the count and the words, the same at every width; the count follows every write response, as
+  the button's did (22.3).
+- **The bubble** is a Sheet under the two controls at the top right, 400 pixels wide at most and
+  as tall as its list, never past the disclaimer (below 480 wide, the bottom edge); its body is a
+  scroll box (26.3), as the panel's was. 10.5's rules hold: Escape, the cross, a click outside,
+  focus to the cross and back to the control, one Sheet at a time. Its heading is `todoBefore`,
+  or `publicBehindBecause` / `notServableBecause` as above, and its list is the to-do list
+  above, line for line -- the Node's title (or its id, or `thisTree` for the manifest and the
+  file) as a link to that Node's editor page, the message, `remove` on a V-REACH line for the
+  creator and the administrator -- or `todoNone` when it is empty. The list is re-read from `GET
+  .../trees/<t>` when the bubble opens, not when the panel does.
+- **The Publish switch stays in the panel.** A 409 keeps it off and the Publish section says
+  `publishRefused` ("Not published: some things must be done first.") with a button `showTodo`
+  ("See what to do") that opens the bubble -- closing the panel, one Sheet at a time -- on the
+  list the refusal answered, without re-reading it: as built (#142) that list is the draft's own
+  while it has any lines, because the full validation's lines name `tree.json` and a JSON Pointer
+  rather than a Node, and the response's otherwise.
 
 ### 33.4 Collaborators
 
@@ -4054,7 +4141,8 @@ hidden and disabled with `unpublishFirst` while published (21.2), asking once
 ### 33.7 Not here
 
 The step's controls (30.8, on the rim). The overview has no panel: its chrome bar holds the
-name and `logout`; each tile's state is on the tile (26.4).
+~~name~~ **[#176]** link `account`, the name its description (24.3), and `logout`, and neither
+control of 33.1 and 33.3 floats there (amended 2026-10-02); each tile's state is on the tile (26.4).
 
 ### 33.8 The Theme panel
 
