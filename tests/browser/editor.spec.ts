@@ -190,20 +190,28 @@ test.describe('autosave (29)', () => {
     expect((await api(page, cookie, 'PUT', '/trees/hidden-draft/published', { published: false })).status()).toBe(200)
   })
 
-  test('a title past 80 counted characters: the pill and the outline turn danger, typing goes on, the write is stored, and the indicator says the validator\u2019s own line', async ({ browser }) => {
+  // **[#172]** Typing stops at the limit (28.4, amended 2026-10-02): this test typed 93
+  // characters and found them stored. A title over 80 now comes from another route -- here the
+  // API, as a hand-made file or a write before #172 would leave it -- and is shown whole and marked.
+  test('a title stored past 80 counted characters: shown whole, the pill and the outline danger, the indicator says the validator\u2019s own line, and typing cannot lengthen it', async ({ browser }) => {
     const { page, cookie } = await loggedIn(browser, ANNA)
-    await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     const over = `${FULL_TITLE} and thirteen`
     expect([...over].length).toBe(93)
+    expect((await api(page, cookie, 'PATCH', '/trees/hidden-draft/nodes/full', { path: 'title.en', value: over })).status()).toBe(200)
+    await page.goto(`${origin}/admin/trees/hidden-draft/full`)
 
-    await retype(page, 'full', 'title.en', over)
+    const area = field(page, 'full', 'title.en').locator('textarea')
+    await expect(area).toHaveValue(over)
+    await area.click()
     const pill = page.locator('.editor-pill')
     await expect(pill).toHaveText('93 / 80')
     await expect(pill).toHaveClass(/editor-pill--over/)
     await expect(field(page, 'full', 'title.en')).toHaveClass(/editor-field--over/)
-    await expect(status(page)).toContainText(/^Saved \d/)
     const line = status(page).locator('.editor-violation')
     await expect(line).toHaveText('V-LENGTH title.en: 93 characters; at most 80')
+    await page.keyboard.press('End')
+    await page.keyboard.type('!')
+    await expect(area).toHaveValue(over)
     await shoot(page, 'field-at-limit')
 
     // Stored (28.4): the draft holds the text, and the validator's own line for the same
@@ -220,16 +228,17 @@ test.describe('autosave (29)', () => {
     await expect(status(page)).not.toContainText('V-LENGTH')
   })
 
-  test('a description past 2 estimated lines is stored and marked at the field with V-LINES, the same rule id as the validator\u2019s; nothing is truncated', async ({ browser }) => {
+  // **[#172]** As the title's above: a description past two lines now comes from another route.
+  test('a description stored past 2 estimated lines is shown whole and marked at the field with V-LINES, the same rule id as the validator\u2019s', async ({ browser }) => {
     const { page, cookie } = await loggedIn(browser, ANNA)
-    await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     const original = (await nodeOf(page, cookie, 'hidden-draft', 'full')).description.en!
     const three = 'One paragraph.\n\n- and a list item under it'
+    expect((await api(page, cookie, 'PATCH', '/trees/hidden-draft/nodes/full', { path: 'description.en', value: three })).status()).toBe(200)
+    await page.goto(`${origin}/admin/trees/hidden-draft/full`)
 
     await field(page, 'full', 'description.en').click()
     const area = field(page, 'full', 'description.en').locator('textarea')
-    await expect(area).toHaveValue(original)
-    await area.fill(three)
+    await expect(area).toHaveValue(three)
     await expect(page.locator('.editor-pill')).toHaveText(`${three.length} / 1503 / 2`)
     await expect(field(page, 'full', 'description.en')).toHaveClass(/editor-field--over/)
     await expect(status(page).locator('.editor-violation')).toHaveText('V-LINES description.en: 3 estimated lines; at most 2')
@@ -362,8 +371,9 @@ test.describe('an empty root Node, and the rim\u2019s tags (28.2, 28.3)', () => 
 
     const title = field(page, 'start', 'title.en').locator('textarea')
     await expect(title).toHaveValue('')
-    await expect(title).toHaveAttribute('placeholder', 'Text missing in this language')
-    await expect(field(page, 'start', 'description.en')).toContainText('Text missing in this language')
+    // **[#172]** Each names what belongs in it (28.2, amended): before, both said 'Text missing in this language'.
+    await expect(title).toHaveAttribute('placeholder', 'Title')
+    await expect(field(page, 'start', 'description.en')).toContainText('Text')
     // The one on this page: the neighbour frames the Slider pre-renders hold their own (11).
     await expect(page.locator('.source-sheet--add > .sheet-open').filter({ visible: true })).toHaveText('+ Add a source')
     await expect(page.locator('[data-field]')).toHaveCount(2)
