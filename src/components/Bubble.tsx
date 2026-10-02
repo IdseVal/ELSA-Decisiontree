@@ -23,7 +23,10 @@
  * shows one or the other: below the guaranteed viewport they collapse to one control (10.5,
  * step 6), and the markup must be present either way so the page is correct without
  * JavaScript (section 14). In the Bubble only: an Overlay is a Sheet already, and one Sheet
- * is open at a time, so its Sources stay inline at every size.
+ * is open at a time, so its Sources stay inline at every size. **[#177]** Except in the
+ * editor, where below the guarantee a side bubble's Sources are edited in their Sheet as the
+ * Bubble's are (28.6): the stylesheet hides every inline block there, and an Overlay without
+ * the copy left them nowhere to be entered.
  *
  * **[#138]** With `edit` (34.1) every text is drawn by the `field` slot where the public
  * text stands, the pictures come from `edit.links`, and the slots of 34.2 are called where
@@ -276,7 +279,9 @@ function MainImage({
  * **[#138]** In edit mode each line is its label as a field beside the `...` control that
  * opens the Source's Sheet -- its kind, its URL and `removeSource` -- and `+ addSource`
  * follows the last one while there is room (28.1). The collapsed Sheet holds the same
- * editable lines, so a collapsed block is edited in its Sheet (28.6).
+ * editable lines, so a collapsed block is edited in its Sheet (28.6). **[#177]** An Overlay's
+ * block has it too, in a group of its own: one of every Sheet's would close the Overlay around
+ * it, and one of the Source Sheets' would be closed by the Sheets it holds.
  */
 function Sources({
   node,
@@ -358,23 +363,22 @@ function Sources({
             {add && <li className="sources-add">{add}</li>}
           </ul>
         </section>
-        {collapsible && (
-          <div className="sources-collapsed">
-            <Sheet
-              className="sources-sheet"
-              summary={<span lang={uiLang}>{`${ui.sources} (${entries.length})`}</span>}
-              pages={[
-                <ul key="lines" className="sheet-list">
-                  {lines}
-                  {add && <li className="sources-add">{add}</li>}
-                </ul>,
-              ]}
-              words={words}
-              uiLang={uiLang}
-              idPrefix={idPrefix}
-            />
-          </div>
-        )}
+        <div className="sources-collapsed">
+          <Sheet
+            className="sources-sheet"
+            name={collapsible ? 'sheet' : 'sources-sheet'}
+            summary={<span lang={uiLang}>{`${ui.sources} (${entries.length})`}</span>}
+            pages={[
+              <ul key="lines" className="sheet-list">
+                {lines}
+                {add && <li className="sources-add">{add}</li>}
+              </ul>,
+            ]}
+            words={words}
+            uiLang={uiLang}
+            idPrefix={idPrefix}
+          />
+        </div>
       </>
     )
   }
