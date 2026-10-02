@@ -483,8 +483,8 @@ const CAROUSEL_PORT = BASE_PORT + 60
 
 /** The words the walk checks on screen, per language (src/chrome.ts, the Tree's explainer). */
 const WORDS_87 = {
-  en: { sources: 'Legal sources', provider: 'provider' },
-  nl: { sources: 'Juridische bronnen', provider: 'aanbieder' },
+  en: { sources: 'Sources', provider: 'provider' },
+  nl: { sources: 'Bronnen', provider: 'aanbieder' },
 } as const
 
 /** One page measured by the walk: 10.6's numbers and whatever the point adds. */

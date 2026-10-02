@@ -96,6 +96,8 @@ test.describe('the regions in place (28.1, 34.7)', () => {
     await expect(field(page, 'full', 'description.en').locator('.prose .term')).toHaveText('Bubble')
     await expect(field(page, 'full', 'sources[0].label.en').locator('textarea')).toHaveValue(/^Source 1/)
     await expect(field(page, 'full', 'sources[2].label.en').locator('textarea')).toHaveValue(/^Source 3/)
+    // The heading over them is the public page's chrome word (ADR-173-sources-heading).
+    await expect(page.locator('#sources-label')).toHaveText('Sources')
     await expect(field(page, 'full', 'options[0].title.en').locator('textarea')).toHaveValue(/^Option one/)
     await expect(field(page, 'full', 'options[7].title.en').locator('textarea')).toHaveValue(/^Option eight/)
     // The Overlay's Interior is edited in place too (28.1): its target's fields are on the page.
@@ -276,6 +278,7 @@ test.describe('autosave (29)', () => {
     await page.getByRole('link', { name: 'Nederlands' }).click()
     await expect(page).toHaveURL(`${origin}/admin/trees/hidden-draft/full?lang=nl`)
     await expect(page.locator('html')).toHaveAttribute('lang', 'nl')
+    await expect(page.locator('#sources-label')).toHaveText('Bronnen')
     await retype(page, 'full', 'title.nl', 'Een Nederlandse titel')
     await expect(status(page)).toContainText(/^Opgeslagen \d/)
 

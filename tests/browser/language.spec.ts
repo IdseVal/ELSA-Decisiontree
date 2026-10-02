@@ -24,7 +24,7 @@ const BOTH_LANGUAGES = [
   { what: 'Option', en: 'Emotion recognition at work', nl: 'Emotieherkenning op het werk' },
   { what: 'Source label', en: 'Article 5 AI Act', nl: 'Artikel 5 AI-verordening' },
   { what: 'Trail entry', en: 'Is your AI system within the reach', nl: 'Valt uw AI-systeem binnen het bereik' },
-  { what: 'chrome', en: 'Legal sources', nl: 'Juridische bronnen' },
+  { what: 'chrome', en: 'Sources', nl: 'Bronnen' },
 ]
 
 /** The alt text of the first Option button's picture: an Image description, which is content, not chrome. */

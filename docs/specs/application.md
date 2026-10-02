@@ -260,7 +260,7 @@ add keys; every key exists in both languages or the build fails.
 |---|---|
 | `yes`, `no` | The two Answer Branches below the Bubble (10.3). |
 | `options` | The accessible name of the group of Option Branches beside the Bubble. |
-| `sources`, `sourceCaseLaw`, `sourceLiterature` | The heading over the Sources -- **[#75]** "Legal sources" / "Juridische bronnen" -- and the two kind labels still shown beside an entry (10.3). `sourceLegal` is gone: under that heading it repeated it. |
+| `sources`, `sourceCaseLaw`, `sourceLiterature` | The heading over the Sources -- **[#75]** "Legal sources" / "Juridische bronnen" -- and the two kind labels still shown beside an entry (10.3). `sourceLegal` is gone: under that heading it repeated it. **[#169] Amended 2026-10-02 (#173, by the owner):** the heading says **"Sources" / "Bronnen"**; the two kind labels are unchanged (`ADR-173-sources-heading.md`). |
 | `images`, `enlarge`, `close` | The Carousel strip's accessible name, the name of every picture's link, and the close cross of every Sheet, the Overlay included (sections 10.9, 12). |
 | ~~`trail`, `start`~~ | **[#75]** Gone with the drawn Trail (10.2). |
 | `share`, `copied` | The share button and its confirmation. |
@@ -1183,6 +1183,7 @@ back.
 | **[#171]** Four OFL families shipped in `fonts/`, no wider than Open Sans, copied into a Tree with their licence text | `docs/adrs/ADR-171-font-library.md` |
 | **[#171]** A select per role: the default, the library, the Tree's own, "Upload a font file…"; `use-library-font`; an upload named after the font's own family name | `docs/adrs/ADR-171-font-dropdown.md` |
 | **[#171]** Six SPDX licences stored as name and text address; "Another licence…"; a library family's licence fixed | `docs/adrs/ADR-171-licence-dropdown.md` |
+| **[#169]** The heading over the Sources says "Sources" / "Bronnen"; the kind labels unchanged | `docs/adrs/ADR-173-sources-heading.md` |
 
 ## 10. The tree view
 
@@ -1358,6 +1359,12 @@ the same component, and its picture is two fifths of the Overlay's panel in the 
 now flow as one inline list (10.9). The title sits at one height on every Node again; a
 neighbour frame's withheld slot is the same box as the picture it stands for, so a slide
 has nothing to reflow.
+
+**[#169] Amended 2026-10-02 (#173, by the owner):** the chrome heading `sources` says
+**"Sources" / "Bronnen"** (3.2, `ADR-173-sources-heading.md`). That is the heading in the
+Bubble and in the Overlay, and the title of the collapsed control and of its Sheet, on the
+public page and in the editor. The kind prefixes are unchanged: `case-law` and
+`literature` only.
 
 `tree-format.md` 5.6 has three kinds and the frontend distinguishes five situations. In
 every one: the up arrow above where there is a Trail (10.2), the strip on the lower
