@@ -57,10 +57,10 @@ characters a creator might type (`Mandatory safeguards`, `Ethisch aanvaardbaar`,
 | Face | `Niet van toepassing` (19) | widest 20-character ending at 0.12 em | the same at 0.04 em |
 |---|---|---|---|
 | Open Sans (the first Tree; the library's) | 178.0 px | 202.3 | 184.7 |
-| Arial Bold (the default stack's metrics, `src/theme.ts`) | -- | 206.3 | 188.7 |
-| Segoe UI Bold (Windows' face in the default stack) | -- | 199.6 | 182.0 |
-| Roboto, Atkinson Hyperlegible Next, Bitter (the library, `ADR-171-font-library.md`) | 172.0 to 177.8 | 195.0 to 198.2 | 177.4 to 180.6 |
-| DejaVu Sans Bold (the widest fallback, 10.7) | 196.4 (fontTools) | 221.5 | 203.9 |
+| Arial Bold (the default stack's metrics, `src/theme.ts`) | 179.8 | 206.3 | 188.7 |
+| Segoe UI Bold (Windows' face in the default stack) | 175.3 | 199.6 | 182.0 |
+| Roboto, Atkinson Hyperlegible Next, Faustina (the library, `ADR-171-font-library.md`) | 170.2 to 177.8 | 193.2 to 197.5 | 175.6 to 179.9 |
+| DejaVu Sans Bold (the widest fallback, 10.7) | 194.2 | 221.5 | 203.9 |
 
 The model of the same widths from the fonts' own advance widths (`hmtx`, no kerning) gives
 178.0 for Open Sans's `Niet van toepassing`, which is the 178 issue #82 measured on the

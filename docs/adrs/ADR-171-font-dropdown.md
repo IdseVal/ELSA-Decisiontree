@@ -115,5 +115,6 @@ real name.
 - 22.1's theme-upload row answers `{ file, family? }` (201) and 22.2's manifest operations are
   four: the three on languages (#147) and `use-library-font`.
 - `tests/store/woff2.test.ts`: the four library files answer their names ("Open Sans",
-  "Roboto", "Atkinson Hyperlegible Next", "Bitter"); a truncated file, a file of zeros and a
+  "Roboto", "Atkinson Hyperlegible Next", "Faustina" -- Faustina by name ID 16, whose ID 1 is
+  "Faustina Light"); a truncated file, a file of zeros and a
   WOFF2 whose name table is missing answer `null`.

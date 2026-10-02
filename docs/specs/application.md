@@ -4412,9 +4412,9 @@ in `docs/adrs/ADR-171-ending-text.md` and `ADR-171-elsa-tree-5.md`. Built by #17
   the half band -- 354 at and above 792 pixels wide, down to **198 at 480**, the narrowest --
   and `width - 60` across the band below 480 (261 at 321, 300 at 360). Measured in Chromium on
   2026-10-02 in the badge's own style: the widest 20-character ending tried ("Mandatory
-  safeguards", of seventeen of 18 to 20 characters in English, Dutch and German) is 188.7 pixels
-  at 0.04 em in Arial Bold, 184.7 in Open Sans, 182.0 in Segoe UI Bold and at most 180.6 in the
-  library's families (37.1); at 0.12 em the same text is 206.3 in Arial Bold, which is why the
+  safeguards", of fifteen of 18 to 20 characters in English, Dutch and German) is 188.7 pixels
+  at 0.04 em in Arial Bold, 184.7 in Open Sans, 182.0 in Segoe UI Bold and at most 179.9 in the
+  library's other three families (37.1); at 0.12 em the same text is 206.3 in Arial Bold, which is why the
   tracking tightens. At the guarantee, 1280 x 640, the room is 354 and the same text 206.3: far
   inside. In DejaVu Sans Bold, the widest fallback (10.7), three of the seven 20-character endings
   tried take a second line between 480 and 491 pixels wide; nothing scrolls, because the badge
@@ -4528,12 +4528,12 @@ information hints -- which #180 decides itself.
 - **Four families**, each under the SIL Open Font License 1.1 with no Reserved Font Name,
   each no wider than Open Sans on the two Trees' own text at 400 and 700 (so every limit of
   `tree-format.md` 5.7 holds in them, as in the face it was measured in): **Open Sans**,
-  **Roboto**, **Atkinson Hyperlegible Next**, **Bitter**, in that order.
+  **Roboto**, **Atkinson Hyperlegible Next**, **Faustina**, in that order.
 - **In the repository**: `fonts/<id>/` -- `open-sans`, `roboto`, `atkinson-hyperlegible-next`,
-  `bitter` -- each holding `<id>-normal.woff2`, `<id>-italic.woff2` (variable, weight `400
+  `faustina` -- each holding `<id>-normal.woff2`, `<id>-italic.woff2` (variable, weight `400
   700`, Latin and Latin Extended) and the family's upstream `OFL.txt`; `fonts/README.md` with
-  the provenance, the recipe and the hashes of `ADR-171-font-library.md` decision 3. 390,938
-  bytes in all: 369 KiB as a git pack, a 385,122-byte gzip'd layer in the container image.
+  the provenance, the recipe and the hashes of `ADR-171-font-library.md` decision 3. 345,116
+  bytes in all: 324 KiB as a git pack, a gzip'd layer of about 339 KB in the container image.
 - **In a release**: `fonts/` beside `server.js` in `.next/standalone/` and in the image's
   `/app`, as `trees/` is (6; `scripts/collect-standalone.ts`, `Dockerfile`); the store reads
   it from the working directory. Not under `public/`: no library file is ever served from
@@ -4592,8 +4592,8 @@ stream decompressed with Node's Brotli -- never past the header's `totalSfntSize
 from the Windows Unicode records, English (`0x0409`) first, then the Macintosh Roman ones;
 trimmed; and given only when it is 1 to 64 characters with none of 13.3's refused characters.
 Any malformation answers `null`, and the route then answers no `family`. The four library
-files answer "Open Sans", "Roboto", "Atkinson Hyperlegible Next" and "Bitter" (Bitter by name
-ID 16; its ID 1 is "Bitter Thin").
+files answer "Open Sans", "Roboto", "Atkinson Hyperlegible Next" and "Faustina" (Faustina by
+name ID 16; its ID 1 is "Faustina Light", the name of its upstream default instance).
 
 Under the dropdown the panel then shows what the new family needs: the name field holding that
 name (or empty, with its placeholder), the licence dropdown (37.5), the file's weight and its

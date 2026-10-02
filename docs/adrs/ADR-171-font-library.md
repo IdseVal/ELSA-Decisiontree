@@ -1,4 +1,4 @@
-# ADR-171-font-library: the application ships four open-licence font families in `fonts/` -- Open Sans, Roboto, Atkinson Hyperlegible Next and Bitter, each under the SIL Open Font License 1.1 with no Reserved Font Name and each no wider than Open Sans -- and a family chosen from them is copied into the Tree's own `theme/` folder with its licence text
+# ADR-171-font-library: the application ships four open-licence font families in `fonts/` -- Open Sans, Roboto, Atkinson Hyperlegible Next and Faustina, each under the SIL Open Font License 1.1 with no Reserved Font Name and each no wider than Open Sans -- and a family chosen from them is copied into the Tree's own `theme/` folder with its licence text
 
 - Status: ACCEPTED (frozen) -- 2026-10-02
 - Issue: #171 -- Architecture: freeze the free-text ending of a tree (in place of the four
@@ -9,6 +9,8 @@
 - Depends on: `docs/adrs/ADR-171-licence-dropdown.md` (the licence string a library family
   stores); used by `ADR-171-font-dropdown.md`
 - Amends: `ADR-5-repository-layout.md` (`fonts/` at the root; `src/fonts.ts`)
+- Measurements: `docs/research/issue-171-measurements.md` (every number below, with the
+  scripts that produced it)
 
 ## Context
 
@@ -31,7 +33,8 @@ needs a list of families and a place their files come from, and four rules bound
 
 The precedent is the first Tree's own Open Sans: three static Latin subsets (400, 600, 700),
 55,464 bytes, copied from ai4sfs.org with the OFL text and recorded in its `theme/LICENCE.md`
-(issue #40).
+(issue #40), which also kept Nova Square out because its Reserved Font Name made a subset "a
+licence question this Tree does not need to raise".
 
 **Research, 2026-10-02.** The OFL's own page on web fonts ("Webfonts and Reserved Font Names",
 openfontlicense.org, updated 12 January 2026): a WOFF version keeps the font's name "only if
@@ -39,26 +42,30 @@ the original font data remains unchanged except for WOFF compression"; anything 
 subset -- is a Modified Version, and a Modified Version may not use a Reserved Font Name.
 Families with **no** Reserved Font Name may be subset and keep their name. Candidates were
 taken from `github.com/google/fonts` at commit `9710da1eacb3be272583c3224dcb70f9da6eadbb`
-(2026-09-30); each family's `OFL.txt` **and** its font file's own `name` table were read for
-a Reserved Font Name, and each was measured with fontTools 4.60.0 against Open Sans on the two
-Trees' own text: every Node title (at 700, the heading weight) and description (at 400) in
-English and Dutch, 9,423 + 9,796 description characters and 6,532 title characters, by the
-advance widths of the instance the stylesheet draws.
+(2026-09-30). For each, the copyright statement of its `OFL.txt` (the lines above the licence,
+since the licence text itself defines the term) **and** the copyright record of its font
+file's `name` table were read for a Reserved Font Name, and its width was measured with
+fontTools 4.60.0 against Open Sans, both built by the recipe below, on the two Trees' own text:
+every Node title (at 700, the heading weight) and description (at 400) in English and Dutch,
+19,219 description characters and 6,532 title characters, by the advance widths of the
+instance the stylesheet draws.
 
 | Family | Reserved Font Name | Running text, x Open Sans | Headings, x Open Sans | x-height | Kept |
 |---|---|---|---|---|---|
 | Open Sans | none | 1.000 (7.40 px a character at 16 px) | 1.000 | 0.535 | **yes** |
 | Roboto | none | 0.944 | 0.904 | 0.528 | **yes** |
 | Atkinson Hyperlegible Next | none | 0.949 | 0.952 | 0.496 | **yes** |
-| Bitter | none | 0.989 | 0.953 | 0.522 | **yes** |
+| Faustina | none | 0.879 | 0.879 | 0.494 | **yes** |
 | Public Sans | none | 0.990 | 0.959 | 0.517 | fits; a second neo-grotesque beside Roboto |
+| Andada Pro, Brygada 1918 | none | 0.984, 0.994 | 0.955, 0.967 | 0.494, 0.460 | fit; 178 and 113 KB against Faustina's 80 |
 | Inter | none | 1.017 | 0.985 | 0.546 | wider than Open Sans |
-| Literata | none | 1.018 | 1.029 | 0.507 | wider |
-| Gelasio, Besley | none | 0.951, 1.079 | 1.035, 1.099 | | wider |
-| Crimson Pro, Newsreader, Alegreya, Vollkorn | none | 0.853 to 0.934 | 0.832 to 0.950 | 0.420 to 0.458 | fit; small beside the sans at 16 px |
-| EB Garamond | none | 0.816 | 0.841 | 0.400 | 373 KB as subset; smallest x-height |
-| Source Serif 4 | **"Source"** in its font file's `name` table, though its `OFL.txt` on google/fonts names none | 0.958 | 0.931 | | the licence statements disagree |
-| Lato, Merriweather, Lora, IBM Plex Sans, Source Sans 3 | **yes** | | | | a subset may not keep the name |
+| Literata, Noto Serif | none | 1.018, 1.024 | 1.029, 1.020 | 0.507, 0.536 | wider |
+| Gelasio, Besley | none | 0.951, 1.079 | 1.035, 1.099 | 0.481, 0.520 | wider |
+| Crimson Pro, Newsreader, Alegreya, Vollkorn, Petrona | none | 0.853 to 0.934 | 0.832 to 0.950 | 0.420 to 0.458 | fit; small beside the sans at 16 px |
+| EB Garamond | none | 0.816 | 0.841 | 0.400 | 373 KB as a subset; the smallest x-height |
+| Bitter | **"Bitter Pro"**, in its `OFL.txt`'s copyright statement | 0.989 | 0.953 | 0.522 | a subset of a family with a reserved name |
+| Source Serif 4 | **"Source"**, in its font file's copyright record, though its `OFL.txt` on google/fonts names none | 0.958 | 0.931 | 0.475 | the two statements disagree |
+| Lato, Merriweather, Lora, IBM Plex Sans, Source Sans 3 | **yes**, in their `OFL.txt` | | | | a subset may not keep the name |
 
 ## Decision
 
@@ -66,15 +73,16 @@ advance widths of the instance the stylesheet draws.
    keep the format's limits: **Open Sans** (a humanist sans: the first Tree's face, and the
    face 5.7 measured the limits in), **Roboto** (a neo-grotesque; Android's own face),
    **Atkinson Hyperlegible Next** (a sans drawn by the Braille Institute for readers with low
-   vision) and **Bitter** (a slab serif drawn for reading on screens). Each is under the **SIL
-   Open Font License 1.1 with no Reserved Font Name** -- in its `OFL.txt` and in its font
-   file -- and declares `fsType` 0 (installable embedding).
+   vision) and **Faustina** (a text serif with an upright and an italic, narrow enough to
+   leave the limits room). Each is under the **SIL Open Font License 1.1 with no Reserved Font
+   Name** -- in its `OFL.txt`'s copyright statement and in its font file -- and declares
+   `fsType` 0 (installable embedding).
 2. **A family enters the library only if** it is under a licence of the licence list
-   (`ADR-171-licence-dropdown.md`) with no Reserved Font Name; it is **no wider than Open
-   Sans** at 400 and at 700 on the two Trees' own text, measured as above; it has an upright
-   and an italic covering weights 400 to 700 (the stylesheet uses 400, 600 and 700, and
-   `*emphasis*` is italic); and it covers Latin and Latin Extended. A family added later
-   meets the same four and is measured the same way, in its pull request.
+   (`ADR-171-licence-dropdown.md`) with no Reserved Font Name in either place; it is **no
+   wider than Open Sans** at 400 and at 700 on the two Trees' own text, measured as above; it
+   has an upright and an italic covering weights 400 to 700 (the stylesheet uses 400, 600 and
+   700, and `*emphasis*` is italic); and it covers Latin and Latin Extended. A family added
+   later meets the same four and is measured the same way, in its pull request.
 3. **Two files a family, built by one recipe** (below): each the upstream variable TTF with
    its weight axis limited to 400-700 and every other axis pinned at its default, subset to
    the `latin` and `latin-ext` Unicode ranges Google Fonts serves, **every `name` record and
@@ -94,9 +102,9 @@ advance widths of the instance the stylesheet draws.
    | `fonts/atkinson-hyperlegible-next/atkinson-hyperlegible-next-normal.woff2` | 25,688 | `9dc2c98eb9bc3522391fbaeb9dfe994dd50067ff738a568d87acce973c62b11a` |
    | `fonts/atkinson-hyperlegible-next/atkinson-hyperlegible-next-italic.woff2` | 29,156 | `aa55d8399746875ef8d3ef7a82ccc5d6a68331befc0517f3a42ad4b653fa6509` |
    | `fonts/atkinson-hyperlegible-next/OFL.txt` | 4,431 | `aca6a428580965d2297d1b718042dd427c2a9443ece3b0d02d758e161e0c4030` |
-   | `fonts/bitter/bitter-normal.woff2` | 62,768 | `c1e5f54fca0e954a0352dcd3f17eb9635bbb25ace5e82391b3a151cd4f156b99` |
-   | `fonts/bitter/bitter-italic.woff2` | 62,572 | `fec0614d02e8d5c01271ebf0d7cd2aabebfb014e1a9ec784906578940a431925` |
-   | `fonts/bitter/OFL.txt` | 4,424 | `152a1e283e23b42c4940da4c72f2f5bebaa17969cb77c76d7af05903846006f1` |
+   | `fonts/faustina/faustina-normal.woff2` | 38,648 | `a84c008b88322919d47e487af4ad88cff098481940d24b61a553327061d01efa` |
+   | `fonts/faustina/faustina-italic.woff2` | 40,904 | `5ab1ba6428cbbec0c11a6847869aa2a17bbc18fcd7472e7c7024a0c1af8d8d6a` |
+   | `fonts/faustina/OFL.txt` | 4,390 | `2d8f6a7be96a15fd2deaa8e6b5320cec6c253216b5a8f7e1becccfc51147b877` |
 
    The inputs, from `github.com/google/fonts` at `9710da1eacb3be272583c3224dcb70f9da6eadbb`:
    `ofl/opensans/OpenSans[wdth,wght].ttf` (532,636 bytes, `36643644f318a812aab2d2ed3bb98f8cf0872527f835fe9398d95fe6b9adb878`),
@@ -105,8 +113,8 @@ advance widths of the instance the stylesheet draws.
    `ofl/roboto/Roboto-Italic[wdth,wght].ttf` (530,944, `9725a847af6b460ffca162ae66d20dad48b01876137947180b42d7dcd7887182`),
    `ofl/atkinsonhyperlegiblenext/AtkinsonHyperlegibleNext[wght].ttf` (114,552, `5a455d1cfa099b601ab70751bb9673e8fe1854dc4500c80e1a220d0d75e31745`),
    `ofl/atkinsonhyperlegiblenext/AtkinsonHyperlegibleNext-Italic[wght].ttf` (123,916, `ce9cffed32742ad2d9238c561a93220385e5934cdc02b8eb4097a50efa957dc6`),
-   `ofl/bitter/Bitter[wght].ttf` (328,636, `ef2b9a711fb02f1e5823b34da1b7450e0fc76793b7d733a8b41006e24916d4a7`),
-   `ofl/bitter/Bitter-Italic[wght].ttf` (317,652, `5e6e0af503171c9d7b4be7a22c16f474d7a638cf83a80051d825bcc58d664bc3`),
+   `ofl/faustina/Faustina[wght].ttf` (118,468, `2ce2606f0ee1d493873c24818a391e02606ee76ac924b3d985cbb820c0a53ea5`),
+   `ofl/faustina/Faustina-Italic[wght].ttf` (120,744, `215b9bf63da0c9584b5a0aa8e2270da6a2b62c1281f5c39089613c3aaeffa2be`),
    and each family's `OFL.txt` beside them, copied unchanged. Open Sans's is byte-identical to
    the first Tree's `theme/ofl-open-sans.txt`.
 
@@ -135,8 +143,8 @@ advance widths of the instance the stylesheet draws.
    Tree's id (5.5), a moved Tree takes them (17.4), and nothing refers back to `fonts/`.
 
 **The recipe** (Python 3.13.5, fontTools 4.60.0, the `brotli` module 1.2.0), normative for
-the hashes above; `fonts/README.md` carries it, and CI never runs it -- the test checks the
-committed bytes:
+the hashes above -- this block, run as it stands, produced them; `fonts/README.md` carries it,
+and CI never runs it -- the test checks the committed bytes:
 
 ```python
 import io
@@ -173,15 +181,17 @@ def build(ttf_path):
     return out.getvalue()
 ```
 
-**What it adds, measured**: the four folders hold **390,938 bytes** (373,300 of WOFF2 and
-17,638 of licence text), plus `fonts/README.md`. In the **repository** that is **369 KiB** as
+**What it adds, measured**: the four folders hold **345,116 bytes** (327,512 of WOFF2 and
+17,604 of licence text), plus `fonts/README.md`. In the **repository** that is **324 KiB** as
 a git pack (a fresh repository holding only the folder, `git gc --aggressive`, `size-pack`);
 the object store this checkout shares held 29.72 MiB packed on the same day. In the
-**container image** the run stage gains the same 390,938 bytes on its file system, a
-**430,080-byte** layer as a tar and **385,122** bytes gzip'd as a registry stores it; WOFF2 is
-Brotli-compressed already, so neither git nor gzip wins much back. A Tree that takes a family
-gains 59 to 130 KB in its own `theme/` (the family's two files and its licence text); a
-reader's browser fetches 26 to 63 KB for the upright face, once an hour at most (5.5).
+**container image** the run stage gains the same 345,116 bytes on its file system, a
+**378,880-byte** layer as a tar and about **339 KB** gzip'd as a registry stores it (339,498
+bytes in the recorded run; the tar carries the files' times, so a rerun differs by a few
+bytes); WOFF2 is Brotli-compressed already, so neither git nor gzip wins much back. A Tree
+that takes a family gains 59 to 110 KB in its own `theme/` (the family's two files and its
+licence text); a reader's browser fetches 26 to 50 KB for the upright face, once an hour at
+most (5.5).
 
 ## Alternatives rejected
 
@@ -190,8 +200,8 @@ reader's browser fetches 26 to 63 KB for the upright face, once an hour at most 
 - **Family names resolved by the browser from Google Fonts or another CDN.** A request to a
   third party on every page (13.5, core document 9), and a Tree that is no longer whole.
 - **The upstream variable fonts unchanged** (the OFL's "WOFF version", no subset): Open Sans
-  alone is 594 KB as WOFF2 against 88 KB, and the four families 1.40 MB against 0.37. A page
-  of a Tree would carry two to seven times the font bytes, for scripts the Trees do not use; a
+  alone is 594 KB as WOFF2 against 88 KB, and the four families 1.28 MB against 0.33. A page
+  of a Tree would carry up to seven times the font bytes, for scripts the Trees do not use; a
   Greek or Cyrillic letter still renders, in the reader's own face, because the default stack
   follows every family (13.1).
 - **Static instances** (400, 700 and an italic): more files, and the stylesheet's 600 would
@@ -202,17 +212,23 @@ reader's browser fetches 26 to 63 KB for the upright face, once an hour at most 
 - **A served library**, named from the Theme by an application address instead of copied. The
   Tree stops being self-contained: a Tree moved to a deployment with another library, or an
   older release, would lose its fonts, and the dataset would name files it does not hold.
-- **Source Serif 4**, the strongest serif measured: its font file says "with Reserved Font Name
-  'Source'" where google/fonts' `OFL.txt` names none, and a subset of a family whose own file
-  reserves its name is exactly what the OFL forbids. **Lato, Merriweather, Lora, IBM Plex,
-  Source Sans 3**: Reserved Font Names. **Inter, Literata, Gelasio, Besley**: wider than Open
-  Sans, so a Node at the format's limits would no longer fit the Bubble in them. **Crimson
-  Pro, Newsreader, Alegreya, Vollkorn, EB Garamond**: they fit, but their x-heights (0.40 to
-  0.46 of the em against Open Sans's 0.535) make 16-pixel text look a size smaller than the
-  sans beside it, and EB Garamond is 373 KB. **Public Sans** fits and is small; Roboto is the
-  neo-grotesque that also matches Android's system face, and a fifth family was not needed.
+- **Bitter**, the slab serif first chosen: its `OFL.txt` reserves the name "Bitter Pro", and
+  its file carries the trademark notice "Bitter is a trademark of Sol Matas". Whether a subset
+  named "Bitter" uses the reserved "Bitter Pro" is exactly the licence question the first
+  Tree's `LICENCE.md` declined to raise for Nova Square; with Faustina beside it there is no
+  need to raise it. **Source Serif 4**, the strongest serif measured: its font file says "with
+  Reserved Font Name 'Source'" where google/fonts' `OFL.txt` names none, and a subset of a
+  family whose own file reserves its name is what the OFL forbids. **Lato, Merriweather, Lora,
+  IBM Plex, Source Sans 3**: Reserved Font Names. **Inter, Literata, Noto Serif, Gelasio,
+  Besley**: wider than Open Sans, so a Node at the format's limits would no longer fit the
+  Bubble in them. **Crimson Pro, Newsreader, Alegreya, Vollkorn, Petrona, EB Garamond**: they
+  fit, but their x-heights (0.40 to 0.46 of the em against Open Sans's 0.535) make 16-pixel
+  text look a size smaller than the sans beside it, and EB Garamond is 373 KB. **Andada Pro
+  and Brygada 1918** fit as Faustina does, at 2.2 and 1.4 times its bytes. **Public Sans**
+  fits and is small; Roboto is the neo-grotesque that also matches Android's system face, and
+  a fifth family was not needed.
 - **More than four**, or one per kind of identity a lab might want. Each family is another
-  100 KB in every release and another face to keep measured; a lab with its own identity
+  60 to 110 KB in every release and another face to keep measured; a lab with its own identity
   uploads its own files, which the dropdown keeps (`ADR-171-font-dropdown.md`).
 
 ## Consequences
