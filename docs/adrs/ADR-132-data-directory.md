@@ -4,6 +4,10 @@
 - Issue: #132 -- Architecture: freeze the store for the editor round
 - Spec: `docs/specs/application.md` section 17 (new); `docs/specs/tree-format.md` 2 and 10
   amended; `docs/deployment.md`
+- Amended 2026-10-02 by issue #171 (`ADR-171-elsa-tree-5.md`): the store converts every
+  `elsa-tree/4` `tree.json` and `draft.json` it finds before it opens any Tree, and
+  `importTree` converts a `/4` folder in its staging copy (`tree-format.md` 12.7;
+  `application.md` 36.4).
 - Amends: `docs/adrs/ADR-37-single-file-layout.md` (the Tree folder gains `draft.json` and
   `meta.json`, both ignored by the loader of the published file),
   `ADR-5-repository-layout.md` (`src/store/` joins `src/`), `ADR-5-testing-approach.md`

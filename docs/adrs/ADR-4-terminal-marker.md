@@ -1,6 +1,16 @@
 # ADR-4-terminal-marker: an explicit `terminal.outcome` from a closed set; Node kind is derived
 
-- Status: ACCEPTED (frozen) -- 2026-09-03
+- Status: ACCEPTED (frozen) -- 2026-09-03. **Superseded in part by
+  `ADR-171-ending-text.md`** (2026-10-02, issue #171): the closed set of four outcomes ends,
+  and with it "the frontend ships a styling table with four rows" -- a Terminal carries its
+  own words, `terminal.label`, in `elsa-tree/5`. Of the alternatives rejected below, the
+  rejection of a **free-text outcome** is superseded for the words and stands for styling:
+  the marker now carries free text, which nothing styles by its value, and a value the
+  frontend would have to style stays rejected. The rejection of **`terminal: true` without
+  an outcome** stands -- a Terminal still carries something, now its words -- but not its
+  reason: every ending is now drawn alike (`ADR-171-ending-text.md` decision 4), and its
+  words tell the endings apart. The explicit marker and the derived kind stand. Everything
+  below stands as the exact record of `elsa-tree/1` to `/4`.
 - Issue: #4 -- Architecture: freeze the Tree file format and schema
 - Spec: `docs/specs/tree-format.md`, sections 5.5, 5.6; rules V-KIND, V-TERMINAL
 
