@@ -14,6 +14,7 @@
  * opacity are derived in CSS with `color-mix()` from those; this is not a colour system.
  */
 import { luminance, readableOn } from './contrast.ts'
+import { refusedInFamily } from './tree/grammar.ts'
 import { themeHref } from './url.ts'
 import type { Colours, LocalisedText, Theme } from './tree/types.ts'
 
@@ -48,13 +49,6 @@ export const DEFAULT_FONT_STACK =
 
 /** A colour as the format writes it, re-checked here because this is the sink (13.3). */
 const COLOUR = /^#[0-9a-f]{6}$/
-
-/**
- * A family name this module refuses to quote: a control character (`Cc`, which includes a
- * newline), or one of the four characters that could end the declaration, the block or the
- * element the name is written into (13.3).
- */
-const UNQUOTABLE_FAMILY = /[;{}<\p{Cc}]/u
 
 /** The logo the page shows, already resolved to the variant this palette calls for. */
 export interface ResolvedLogo {
@@ -181,7 +175,7 @@ function fontFaces(theme: Theme | undefined, treeId: string, href: ThemeHref): s
  * sanitised: an author who wrote one meant something this format does not offer.
  */
 function quoteFamily(family: string): string | null {
-  if (UNQUOTABLE_FAMILY.test(family)) return null
+  if (refusedInFamily(family)) return null
   return `'${family.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
 }
 

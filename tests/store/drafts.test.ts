@@ -5,7 +5,7 @@
  * refused, the byte form of every write, the concurrency rule, publishing and the public
  * copy that follows, the roles, and the pictures.
  */
-import { copyFile, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { copyFile, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
@@ -620,6 +620,93 @@ describe('**[#144]** the Theme (33.8)', () => {
     expect(published.manifest.theme).toEqual({ logo: { light, alt: { en: 'Lab', nl: 'Lab' } }, colours })
     expect(published.themePath(light)).not.toBeNull()
     expect(published.themePath(loose)).toBeNull()
+  })
+})
+
+describe('**[#180]** a family of the font library (37.3), and an upload’s own family name (37.4)', () => {
+  const library = (name: string): Promise<Buffer> => readFile(path.join('fonts', name))
+  const use = (by: Account, role: unknown, family: unknown) => drafts.write(by, 't', null, { op: 'use-library-font', role, family })
+  /** Every file of the Tree's theme/ by name, with its bytes. */
+  async function themeFolder(): Promise<Record<string, Buffer>> {
+    const names = (await readdir(file('t', 'theme'))).sort()
+    return Object.fromEntries(await Promise.all(names.map(async (name) => [name, await readFile(file('t', path.join('theme', name)))] as const)))
+  }
+
+  test('use-library-font copies the two files and the licence text and writes the entry of 37.3', async () => {
+    await drafts.create(cees, 't', ['en', 'nl'], { en: 'T', nl: 'T' })
+    const written = await use(cees, 'heading', 'faustina')
+    expect(written.manifest!.theme!.fonts).toEqual([
+      {
+        family: 'Faustina',
+        role: 'heading',
+        files: [
+          { file: 'faustina-normal-a84c008b.woff2', weight: '400 700', style: 'normal' },
+          { file: 'faustina-italic-5ab1ba64.woff2', weight: '400 700', style: 'italic' },
+        ],
+        licence: 'SIL Open Font License 1.1 (https://spdx.org/licenses/OFL-1.1.html)',
+      },
+    ])
+    expect(await themeFolder()).toEqual({
+      'faustina-italic-5ab1ba64.woff2': await library('faustina/faustina-italic.woff2'),
+      'faustina-licence.txt': await library('faustina/OFL.txt'),
+      'faustina-normal-a84c008b.woff2': await library('faustina/faustina-normal.woff2'),
+    })
+    // The files are the Tree's now: its draft names them, and the licence text it does not (5.5).
+    const draft = drafts.draft(cees, 't')
+    expect(draft.themePath('faustina-normal-a84c008b.woff2')).toBe(file('t', path.join('theme', 'faustina-normal-a84c008b.woff2')))
+    expect(draft.themePath('faustina-licence.txt')).toBeNull()
+  })
+
+  test('choosing it twice writes the same bytes', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    await use(cees, 'body', 'open-sans')
+    const folder = await themeFolder()
+    const draft = await text('t', 'draft.json')
+    await use(cees, 'body', 'open-sans')
+    expect(await themeFolder()).toEqual(folder)
+    expect(await text('t', 'draft.json')).toBe(draft)
+  })
+
+  test('it replaces the role’s entry, keeps body before heading, and creates theme and fonts when absent', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    await drafts.write(cees, 't', null, { path: 'theme.colours', value: { background: '#ffffff', surface: '#f0f3f7', text: '#2d2e33', 'text-muted': '#696a6e', accent: '#ffc600', 'accent-secondary': '#159a2f', danger: '#e44e56' } })
+    const fonts = async (): Promise<string[]> => (JSON.parse(await text('t', 'draft.json')).theme.fonts as { role: string; family: string }[]).map(({ role, family }) => `${role} ${family}`)
+    await use(cees, 'heading', 'roboto')
+    expect(await fonts()).toEqual(['heading Roboto'])
+    await use(cees, 'body', 'open-sans')
+    expect(await fonts()).toEqual(['body Open Sans', 'heading Roboto'])
+    await use(cees, 'heading', 'atkinson-hyperlegible-next')
+    expect(await fonts()).toEqual(['body Open Sans', 'heading Atkinson Hyperlegible Next'])
+    expect(Object.keys(JSON.parse(await text('t', 'draft.json')).theme)).toEqual(['fonts', 'colours'])
+    // A replaced family's files stay in theme/, as 33.8's "Not done" says of any replaced font.
+    expect(Object.keys(await themeFolder())).toContain('roboto-normal-56802c51.woff2')
+  })
+
+  test('an unknown family or role is 422 with V-THEME, and nothing is copied or written', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    const before = await text('t', 'draft.json')
+    for (const [role, family] of [['body', 'comic-sans'], ['body', '../open-sans'], ['body', undefined], ['title', 'roboto'], [undefined, 'roboto']]) {
+      expect(await refusal(use(cees, role, family)), `${String(role)} ${String(family)}`).toMatchObject({ status: 422, rules: ['V-THEME'] })
+    }
+    expect(await readdir(file('t', '.'))).not.toContain('theme')
+    expect(await text('t', 'draft.json')).toBe(before)
+  })
+
+  test('a collaborator may; an account without a role may not, and copies nothing', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    expect((await refusal(use(erik, 'body', 'roboto'))).status).toBe(403)
+    expect(await readdir(file('t', '.'))).not.toContain('theme')
+    await drafts.addCollaborator(cees, 't', dirk.id)
+    expect((await use(dirk, 'body', 'roboto')).manifest!.theme!.fonts![0]!.family).toBe('Roboto')
+  })
+
+  test('a font’s upload answers its own family name; a logo’s and a font that states none answer the file alone', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    expect(await drafts.uploadThemeFile(cees, 't', await library('faustina/faustina-italic.woff2'), 'My Font.woff2')).toEqual({ file: 'my-font-5ab1ba64.woff2', family: 'Faustina' })
+    expect(await drafts.uploadThemeFile(cees, 't', PNG, 'logo.png')).toEqual({ file: expect.stringMatching(/^logo-[0-9a-f]{8}\.png$/) })
+    // A WOFF2 cut short is still a WOFF2 to the upload (its signature), but states no name.
+    const cut = (await library('roboto/roboto-normal.woff2')).subarray(0, 4096)
+    expect(await drafts.uploadThemeFile(cees, 't', cut, 'cut.woff2')).toEqual({ file: expect.stringMatching(/^cut-[0-9a-f]{8}\.woff2$/) })
   })
 })
 

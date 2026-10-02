@@ -13,6 +13,7 @@
  */
 import { randomBytes } from 'node:crypto'
 import { isLanguageTag } from '../tree/grammar.ts'
+import type { FontFamily } from '../tree/types.ts'
 import { isId, type Mapping } from '../tree/validate.ts'
 import { malformed, StoreError } from './errors.ts'
 
@@ -131,6 +132,18 @@ function setThemePart(tree: Mapping, part: string, value: unknown): void {
   else theme[part] = value
   if (Object.keys(theme).length > 0) tree.theme = theme
   else delete tree.theme
+}
+
+/**
+ * **[#180]** `family` as its role's entry of `theme.fonts` (37.3): it replaces that role's
+ * entry, `body` stays before `heading`, and `theme` and `fonts` are created when absent. What
+ * the entry holds is the validator's to judge, as for a part written whole.
+ */
+export function setFontFamily(tree: Mapping, family: FontFamily): void {
+  const theme = { ...((tree.theme as Mapping | undefined) ?? {}) }
+  const others = ((theme.fonts as Mapping[] | undefined) ?? []).filter((entry) => entry.role !== family.role)
+  theme.fonts = family.role === 'body' ? [family, ...others] : [...others, family]
+  tree.theme = theme
 }
 
 function manifestSegments(path: string): Array<string | number> | null {
