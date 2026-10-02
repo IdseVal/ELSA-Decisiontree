@@ -3,6 +3,9 @@
 - Status: ACCEPTED (frozen) -- 2026-09-21
 - Issue: #118 -- Architecture: freeze the JSON-only Tree format (`elsa-tree/4`)
 - Spec: `docs/specs/tree-format.md` 2, 3.9, 7; `docs/specs/application.md` 15.1
+- Amended 2026-10-02 by issue #171 (`ADR-171-elsa-tree-5.md`): `schemas/elsa-tree-5.json`
+  stands beside this ADR's file, as decision 1 foresaw, and the route of decision 2 serves
+  both; a Tree names `/5` (`tree-format.md` 3.9; `application.md` 15.1).
 - Depends on: `docs/adrs/ADR-118-json-serialisation.md`
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (`/schemas/<file>` joins the grammar of
   4.1; `schemas` joins the reserved Tree ids of 4.3, with its 404 row),
