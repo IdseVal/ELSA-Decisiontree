@@ -240,6 +240,7 @@ test('the settings panel holds the Publish switch and no to-do list; a refused p
   const pointer = settingsPanel(page).getByRole('alert')
   await expect(pointer).toContainText('Not published')
   await expect(publishSwitch(page)).toHaveAttribute('aria-checked', 'false')
+  await shoot(page, 'publish-refused-1280x640')
   expect((await page.request.get(`${origin}/hidden-draft/full`)).status()).toBe(404)
 
   await pointer.getByRole('button', { name: 'See what to do' }).click()
