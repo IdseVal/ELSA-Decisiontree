@@ -264,7 +264,8 @@ test('the administrator: deleteTree disabled while published, the hand-over, and
   await anna.page.goto(`${origin}/admin/trees/hidden-draft/full`)
   await openPanel(anna.page)
   await expect(publishSwitch(anna.page)).toBeDisabled()
-  await expect(panel(anna.page).locator('select')).toHaveCount(0)
+  // A collaborator now: no account select (33.4); the Theme part's dropdowns stay hers (33.8).
+  await expect(panel(anna.page).locator('select[data-select]')).toHaveCount(0)
 
   // Hidden again, the Tree may be deleted, after asking once; the editor goes to /admin.
   await publishSwitch(admin.page).click()
