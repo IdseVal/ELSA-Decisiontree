@@ -152,18 +152,12 @@ export interface Chrome {
   published: string
   hidden: string
   notServable: string
-  /** **[#137]** The new-Tree form (27.1) and its refusals at the field (27.2). */
+  /** **[#137]** The new-Tree form (27.1); **[#168]** the address is no longer asked, so `treeId` names it in the top panel only. */
   treeId: string
-  treeIdHint: string
-  treeIdFixed: string
-  treeIdTaken: string
-  treeIdReserved: string
   languages: string
   addLanguage: string
   makeDefault: string
   default: string
-  /** **[#147]** Replaces `languagesFixed`: a Tree's languages change in the top panel (33.5). */
-  languagesLater: string
   title: string
   /** **[#137] added in the build**: the cross on a language tag, and the tag grammar a refused tag is told (27.1). */
   removeLanguage: string
@@ -374,15 +368,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     hidden: 'Hidden',
     notServable: 'Not served',
     treeId: 'Address name',
-    treeIdHint: 'Lowercase letters, digits and single hyphens; at most 64.',
-    treeIdFixed: 'The address name never changes after the tree is created: it is in every link to it.',
-    treeIdTaken: 'A tree with this address name exists.',
-    treeIdReserved: 'This word is reserved by the site. Choose another.',
     languages: 'Languages',
     addLanguage: 'Add',
     makeDefault: 'Make default',
     default: 'default',
-    languagesLater: 'Languages can be added or removed later, in the tree’s panel.',
     title: 'Title',
     removeLanguage: 'Remove',
     languageHint: 'A language tag such as en, nl or pt-br.',
@@ -573,15 +562,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     hidden: 'Verborgen',
     notServable: 'Niet getoond',
     treeId: 'Adresnaam',
-    treeIdHint: 'Kleine letters, cijfers en enkele koppeltekens; hoogstens 64.',
-    treeIdFixed: 'De adresnaam verandert nooit nadat de boom is aangemaakt: hij staat in elke link ernaartoe.',
-    treeIdTaken: 'Er bestaat al een boom met deze adresnaam.',
-    treeIdReserved: 'Dit woord is gereserveerd door de site. Kies een ander.',
     languages: 'Talen',
     addLanguage: 'Toevoegen',
     makeDefault: 'Maak standaard',
     default: 'standaard',
-    languagesLater: 'Talen kunnen later worden toegevoegd of verwijderd, in het paneel van de boom.',
     title: 'Titel',
     removeLanguage: 'Verwijderen',
     languageHint: 'Een taalcode zoals en, nl of pt-br.',

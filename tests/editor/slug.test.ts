@@ -4,7 +4,7 @@
  * marks, with `-2`, `-3` while the id is taken on the Node.
  */
 import { describe, expect, it } from 'vitest'
-import { explainerId, proposedId } from '../../src/editor/slug.ts'
+import { explainerId, proposedId, treeIdOf } from '../../src/editor/slug.ts'
 import { isId } from '../../src/tree/grammar.ts'
 
 describe('proposedId', () => {
@@ -62,5 +62,26 @@ describe('explainerId', () => {
     const long = 'x'.repeat(64)
     expect(explainerId(long, [long])).toBe(`${'x'.repeat(62)}-2`)
     expect(isId(explainerId(long, [long]))).toBe(true)
+  })
+})
+
+describe('treeIdOf (#168)', () => {
+  it('derives a new Tree address from its title, accents folded to their letters', () => {
+    expect(treeIdOf('Does the AI Act apply?', [])).toBe('does-the-ai-act-apply')
+    expect(treeIdOf('Één wet, één café', [])).toBe('een-wet-een-cafe')
+  })
+
+  it('falls back to tree for a title without a letter or digit of the id alphabet', () => {
+    expect(treeIdOf('?!', [])).toBe('tree')
+    expect(treeIdOf('Закон', [])).toBe('tree')
+    expect(treeIdOf('?!', ['tree'])).toBe('tree-2')
+  })
+
+  it('appends -2, -3 past the addresses the route refused, within 64 characters', () => {
+    expect(treeIdOf('AI Act', ['ai-act'])).toBe('ai-act-2')
+    expect(treeIdOf('AI Act', ['ai-act', 'ai-act-2'])).toBe('ai-act-3')
+    expect(treeIdOf('Admin', ['admin'])).toBe('admin-2')
+    const long = 'x'.repeat(70)
+    expect(treeIdOf(long, ['x'.repeat(64)])).toBe(`${'x'.repeat(62)}-2`)
   })
 })
