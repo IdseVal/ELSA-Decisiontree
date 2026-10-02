@@ -980,8 +980,12 @@ a.language:hover,
 }
 
 /*
- * The shape is the editor's side-bubble `+`'s too (30.4), written once for both, and above
- * step 2 of 10.5, whose restore below 1280 has the same specificity and wins by coming later.
+ * The shape is the editor's side-bubble `+`'s too (30.4), written once for both, above step 2
+ * of 10.5. Step 2's restore below 1280 wins over this rule on specificity, (0,4,1) against
+ * (0,3,1), and over the left padding below, (0,4,1) too, by coming later. Its `[data-side]` is
+ * what keeps it winning: without it the left padding would win, and below 1280 the buttons on
+ * the left of the Bubble would lose their 12 pixels at the inner end, as the `+` there once
+ * did (#175).
  */
 .options > li > :is(.overlay, .side-add) > .sheet-open {
   position: relative;
@@ -2292,9 +2296,11 @@ fieldset:disabled .admin-submit {
  * (10.9). When: the row of step 3 has no height to take (below 744), or would not hold this
  * many buttons -- at once for five or more, at 1000, 770 and 520 for four, three and two,
  * as #41 measured -- which the markup says as `data-count`. By height at the guaranteed
- * width, where the fan's rows would be shorter than the four lines a label may take: four
- * a side need the 640 the guarantee gives, three a side 550. The control and the fan are
- * switched by the same conditions, so exactly one of them is on the page.
+ * width, where the fan's rows would be shorter than the five lines of 18, 90 pixels, a
+ * hyphenated title may take (#175): four a side need the 640 the guarantee gives, three a
+ * side 550, and where the editor's `+` adds a fourth to a side of three, its rows are 91 at
+ * 550. The control and the fan are switched by the same conditions, so exactly one of them is
+ * on the page.
  */
 @media (max-height: 639px) {
   .options[data-count="7"],
