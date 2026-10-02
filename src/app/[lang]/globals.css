@@ -1734,6 +1734,7 @@ a.language:hover,
   line-height: 16px;
 }
 
+/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .admin-field input {
   min-width: 0;
   height: 32px;
@@ -1744,6 +1745,7 @@ a.language:hover,
   color: var(--elsa-text);
   font: inherit;
   font-size: var(--body);
+  text-overflow: ellipsis;
 }
 
 .admin-field-group {
@@ -1826,12 +1828,6 @@ fieldset:disabled .admin-submit {
   text-underline-offset: 2px;
   white-space: nowrap;
   cursor: pointer;
-}
-
-.admin-nav > a.admin-link:first-child {
-  overflow: hidden;
-  max-width: 12rem;
-  text-overflow: ellipsis;
 }
 
 .admin-toolbar {
@@ -2001,6 +1997,8 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   font: inherit;
   font-size: 18px;
+  /* **[#172]** A title of 80 is wider than the box: it ends in an ellipsis while it is not being typed in. */
+  text-overflow: ellipsis;
 }
 
 .new-tree-title input:focus-visible,
@@ -2112,7 +2110,7 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * A phone: the bar holds the language switch, the caller's name, `accounts` and `logout` in
+ * A phone: the bar holds the language switch, `account`, `accounts` and `logout` in
  * 320 pixels only by giving up the site's title and the switch's current language, which is
  * not a link and is the language on screen anyway; the cards give up padding and gaps, so
  * the account page's two fit the floor's 408 pixels.
@@ -2125,10 +2123,6 @@ fieldset:disabled .admin-submit {
 
   .admin-nav {
     gap: 8px;
-  }
-
-  .admin-nav > a.admin-link:first-child {
-    max-width: 3.5rem;
   }
 
   .admin-page {
@@ -2707,9 +2701,55 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * The text box grows with its text: `field-sizing` where the browser has it, and under it
- * the grid whose hidden mirror -- the same text in the same font -- sets the row's height,
- * so the textarea is never taller or shorter than what it holds (10.6).
+ * **[#172]** A region has, empty and filled, the size its text takes at the limit where it is
+ * drawn (28.4, amended): `--field-lines` lines of its place's own line height -- two for the
+ * title and the description (tree-format.md 5.7), three for an Option's title, which is what
+ * its 60 characters take in the 152 pixels of its button (5.7: three in a humanist face), one
+ * for a Source's label and a Sheet's line -- so the box neither grows nor shrinks while the
+ * creator types. Three, not the four the button could hold: a box of four starts at the
+ * button's top edge, under the `...` of its corner. A Source's label is as wide as its 60
+ * characters at the 90 a line of 5.7, its text from the start, so the line stays inside the
+ * Bubble's curve (10.1). An Image's description and credit in the enlarged view are two lines
+ * of its caption: 120 characters take two there, as the fixture's do. A text stored over its
+ * limit is still shown whole: the mirror grows the box past the minimum for it.
+ */
+.editor-text,
+.editor-rendered {
+  min-height: calc(var(--field-lines, 1) * 1lh);
+}
+
+.bubble h1 .editor-field,
+.overlay-interior > h2 .editor-field,
+.editor-field--rich,
+.sheet-figure figcaption .editor-field {
+  --field-lines: 2;
+}
+
+.option-title .editor-field {
+  --field-lines: 3;
+}
+
+/* Below 480 pixels the text area is about 310 wide at the smallest type of 10.5: a title of 80, a description of 150 and an Image's 120 take three lines there. */
+@media (max-width: 479px) {
+  .bubble h1 .editor-field,
+  .overlay-interior > h2 .editor-field,
+  .editor-field--rich,
+  .sheet-figure figcaption .editor-field {
+    --field-lines: 3;
+  }
+}
+
+.sources .editor-field {
+  width: min(100%, 33em);
+  min-width: 0;
+  text-align: start;
+}
+
+/*
+ * The text box holds its text: the grid whose hidden mirror -- the same text in the same font --
+ * sets the row's height past the box's own lines, so the textarea fills the box and is never
+ * shorter than what it holds (10.6). **[#172]** It no longer sizes to its content: the box
+ * has the size of its limit (above).
  */
 .editor-text {
   display: grid;
@@ -2746,7 +2786,6 @@ fieldset:disabled .admin-submit {
   background: transparent;
   color: inherit;
   outline: none;
-  field-sizing: content;
 }
 
 .editor-input::placeholder {
@@ -2893,28 +2932,81 @@ fieldset:disabled .admin-submit {
   line-height: var(--small-line);
 }
 
+/* **[#172]** The Sheet's own heading, as every Sheet's: not the Sources heading's small capitals around it, nor its centring. */
 .source-editor h2 {
   margin: 0;
   font-family: var(--elsa-font-heading);
   font-size: 18px;
   line-height: 24px;
+  font-weight: 700;
+  font-variant-caps: normal;
+  letter-spacing: normal;
+  color: var(--elsa-text);
+  text-align: start;
 }
 
+/* **[#172]** A label beside its field, its column as wide as the admin pages' (`.admin-field`), so every Sheet's fields line up. */
 .editor-row {
   display: grid;
-  grid-template-columns: minmax(0, 5rem) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
   align-items: center;
   gap: 8px;
+  text-align: start;
 }
 
-.editor-row .editor-field {
-  padding: 4px 8px;
+/*
+ * **[#172]** A Sheet's field is an input of the admin area's one look (`.admin-field input`): at
+ * least 32 pixels tall, 8 pixels in, a 1-pixel `rule` border of radius 4 on the page's
+ * background, and the page's focus ring (`:focus-visible`) rather than a region's inset
+ * outline; its text the Sheet's own 13 pixels on 20-pixel lines, as its label's. The
+ * explanation of an explainer is the one Sheet field of several lines: its 200 characters at
+ * the limit (32.2).
+ */
+.editor-row .editor-field:not(:has(> select)) {
+  --field-lines: 1;
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 8px;
   border: 1px solid var(--rule);
   border-radius: 4px;
   background: var(--elsa-background);
+  line-height: 20px;
+}
+
+.editor-row .editor-field--focused:not(:has(> select)) {
+  box-shadow: none;
+  outline: 2px solid var(--accent-secondary-read);
+  outline-offset: 2px;
+}
+
+.editor-row .editor-field[data-field*='.text.'] {
+  --field-lines: 5;
+}
+
+/* A phone's Sheet is too narrow for a label beside a field: the label goes above, and the term and the explanation take the lines their limits take there. */
+@media (max-width: 479px) {
+  .editor-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .editor-row .editor-field[data-field*='.term.'] {
+    --field-lines: 2;
+  }
+
+  .editor-row .editor-field[data-field*='.text.'] {
+    --field-lines: 7;
+  }
+}
+
+.editor-row .editor-select {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
 }
 
 /* The URL of a Source to add (28.1): the one input of the editor that is not a field. */
+/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .editor-url {
   width: 100%;
   min-width: 0;
@@ -2926,6 +3018,7 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   font: inherit;
   font-size: var(--small);
+  text-overflow: ellipsis;
 }
 
 .editor-url[aria-invalid='true'] {
@@ -3009,10 +3102,11 @@ fieldset:disabled .admin-submit {
  * The explainer Sheet (32.2): one explainer in every language. The right padding is the rim's,
  * where each field's counter pill stands inside the panel (28.3).
  */
+/* **[#172]** 560 wide: a term of 40 characters is one line of its field (32.2). */
 .explainer-sheet {
   align-items: stretch;
   gap: 8px;
-  width: 440px;
+  width: 560px;
   padding-right: 64px;
 }
 
@@ -3208,9 +3302,24 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text-muted);
 }
 
-/* The labels' column is as wide as the longer of the two words, "Beschrijving" included. */
-.editor-attach-form .editor-row {
+/*
+ * **[#172]** One label column for both rows, as wide as the longer word ("Beschrijving"), so the
+ * two inputs line up and keep the width a credit needs; each row a subgrid of the form's. The
+ * label stays beside its input at every width, 8 pixels from it: a phone's 2-pixel gap is for
+ * a label stacked above its field, and a subgrid row takes its gap as the column gap.
+ */
+.editor-attach-form {
+  display: grid;
   grid-template-columns: auto minmax(0, 1fr);
+}
+
+.editor-attach-form > * {
+  grid-column: 1 / -1;
+}
+
+.editor-attach-form .editor-row {
+  grid-template-columns: subgrid;
+  gap: 8px;
 }
 
 .editor-attach-form .sheet-controls {
@@ -3542,45 +3651,218 @@ fieldset:disabled .admin-submit {
   }
 }
 
-/* --- the top panel (33) ------------------------------------------------------------ */
+/* --- the floating controls: the to-do bubble and the settings button (33.1, 33.3) ------ */
 
-/* The button (33.1): a dot and the state, in the chrome bar's pill; the dot says the state's colour. */
-.panel-sheet > .sheet-open {
-  padding: 3px 12px;
-  font-size: 12px;
-  line-height: 18px;
+/*
+ * **[#176]** Out of the chrome bar, over the page under its top right corner, in the band beside
+ * the up arrow that no row of 10.1 gives to anything else: there they cover no part of the
+ * Bubble, the arrow or an Option button. In the 56-pixel band above 640 pixels of height they
+ * are 32 tall and centred on the arrow; below it the band is 26 and they are 24, or 40 and 32
+ * where the rim is 10 (below 480 wide). Fixed, they move no row and are no element's overflow.
+ */
+:root {
+  --float-size: 32px;
+  --float-top: calc(var(--chrome-row) + 10px);
+  --float-right: 16px;
 }
 
-.panel-state {
-  display: inline-flex;
+/*
+ * Under every other Sheet's scrim while their own are closed, so one Sheet is open at a time on
+ * screen as in markup; lifted over the page while one of theirs is open, so that scrim covers
+ * the bar and the Bubble too, as the bar's own lift did while it held the button (#142).
+ */
+.editor-float {
+  position: fixed;
+  top: var(--float-top);
+  right: var(--float-right);
+  z-index: 1;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  white-space: nowrap;
+  gap: 8px;
 }
 
-.panel-state-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--elsa-text-muted);
+.editor-float:has(> .sheet[open]) {
+  z-index: 12;
 }
 
-.panel-state--published .panel-state-dot {
-  background: var(--elsa-accent-secondary);
+/* Each control a pill on `surface`, lifted off the page by a soft shadow mixed from the scrim. */
+.editor-float > .sheet > .sheet-open {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--float-size);
+  padding: 0 14px 0 10px;
+  color: var(--elsa-text);
+  background: var(--elsa-surface);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 8%, transparent),
+    0 8px 20px -10px color-mix(in srgb, var(--elsa-scrim) 45%, transparent);
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease), transform 160ms var(--ease);
 }
 
-.panel-state--publicBehind .panel-state-dot {
+.editor-float > .sheet > .sheet-open:hover {
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 8%, transparent),
+    0 12px 24px -10px color-mix(in srgb, var(--elsa-scrim) 55%, transparent);
+}
+
+.editor-float > .sheet > .sheet-open:active {
+  transform: translateY(1px);
+}
+
+.float-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.float-icon {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+}
+
+/* The count: a small round bubble in the Bubble's own outline colour, set in the pill's rounded end. */
+.editor-float > .todo-sheet > .sheet-open {
+  padding-left: 4px;
+}
+
+.todo-count {
+  display: grid;
+  place-items: center;
+  min-width: calc(var(--float-size) - 8px);
+  height: calc(var(--float-size) - 8px);
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--elsa-on-accent);
   background: var(--elsa-accent);
 }
 
-.panel-state--notServable .panel-state-dot {
-  background: var(--elsa-danger);
+/* Nothing to do: the pill closes to a circle around a quiet tick. */
+.editor-float > .todo-sheet > .sheet-open:has(.todo-count[data-count="0"]) {
+  width: var(--float-size);
+  padding: 0;
+  justify-content: center;
 }
 
-/* The chrome bar lifts over the page while its panel is open, so the scrim covers the Bubble too. */
-.editor-chrome:has(.panel-sheet[open]) {
-  z-index: 12;
+.todo-count[data-count="0"] {
+  min-width: 0;
+  padding: 0;
+  color: var(--elsa-text-muted);
+  background: none;
 }
+
+.todo-count svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The Tree's state after the settings label: a tile's mark (26.4), a dot and a word, set off by a hairline. */
+.panel-state {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 10px;
+  border-left: 1px solid var(--rule);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--elsa-text-muted);
+}
+
+.panel-state-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.panel-state--published {
+  color: var(--accent-secondary-read);
+}
+
+.panel-state--publicBehind {
+  color: var(--accent-read);
+}
+
+.panel-state--notServable {
+  color: var(--danger-read);
+}
+
+/*
+ * Below 1000 pixels the band beside the arrow is too narrow for the words: each control is a
+ * round button -- the count's bubble, or the gear with the state's dot on its shoulder -- and
+ * keeps its whole name, which never came from the words (33.1). With the word gone, the dot of
+ * a hidden Tree is a ring, so the state does not rest on its colour alone.
+ */
+@media (max-width: 999px) {
+  .float-words {
+    display: none;
+  }
+
+  .editor-float > .sheet > .sheet-open,
+  .editor-float > .todo-sheet > .sheet-open {
+    min-width: var(--float-size);
+    padding: 0 4px;
+    justify-content: center;
+  }
+
+  .panel-state {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    padding: 0;
+    border: 0;
+  }
+
+  .panel-state-dot {
+    width: 8px;
+    height: 8px;
+    box-shadow: 0 0 0 2px var(--elsa-surface);
+  }
+
+  .panel-state--hidden .panel-state-dot {
+    background: var(--elsa-surface);
+    box-shadow:
+      inset 0 0 0 1.5px currentColor,
+      0 0 0 2px var(--elsa-surface);
+  }
+}
+
+/* Below 640 pixels of height the band beside the arrow is 26 (10.5): the controls are 24, a pixel under the bar. */
+@media (max-height: 639px) {
+  :root {
+    --float-size: 24px;
+    --float-top: calc(var(--chrome-row) + 1px);
+  }
+}
+
+/* On a phone's 10-pixel rim that band is 40 (10.5): back to 32, four under the bar. */
+@media (max-height: 639px) and (max-width: 479px) {
+  :root {
+    --float-size: 32px;
+    --float-top: calc(var(--chrome-row) + 4px);
+  }
+}
+
+@media (max-width: 479px) {
+  :root {
+    --float-right: 8px;
+  }
+}
+
+/* --- the top panel (33) ------------------------------------------------------------ */
 
 /* A Sheet down the right edge (33.2): 400 pixels, from under the chrome bar to above the disclaimer. */
 .panel-sheet > .sheet-panel {
@@ -3595,19 +3877,36 @@ fieldset:disabled .admin-submit {
   border-radius: 24px 0 0 24px;
 }
 
-.panel-sheet > .sheet-panel > .sheet-page {
+/*
+ * **[#176]** The to-do bubble (33.3): a bubble under the two controls at the top right, as tall
+ * as its list and no taller than the room above the disclaimer.
+ */
+.todo-sheet > .sheet-panel {
+  inset: calc(var(--float-top) + var(--float-size) + 8px) var(--float-right) auto auto;
+  width: min(400px, 100% - 2 * var(--float-right));
+  height: auto;
+  max-width: none;
+  max-height: calc(100% - var(--float-top) - var(--float-size) - 16px - var(--disclaimer-row));
+  margin: 0;
+  padding: 0;
+  align-items: stretch;
+}
+
+.panel-sheet > .sheet-panel > .sheet-page,
+.todo-sheet > .sheet-panel > .sheet-page {
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
 }
 
-.panel-sheet > .sheet-panel > .sheet-page > div {
+.panel-sheet > .sheet-panel > .sheet-page > div,
+.todo-sheet > .sheet-panel > .sheet-page > div {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
 }
 
-/* The body is a scroll box (26.3): the document never scrolls, the list of people and to-dos may. */
+/* The body is a scroll box (26.3): the document never scrolls, the list of people -- **[#176]** or of to-dos, in its own bubble -- may. */
 .panel-body {
   flex: 1 1 auto;
   min-width: 0;
@@ -3709,11 +4008,11 @@ fieldset:disabled .admin-submit {
   overflow-wrap: anywhere;
 }
 
-.panel-todo-heading {
-  font-weight: 600;
+/* **[#176]** A refused publish's sentence, and the button to the to-do bubble in it (33.3). */
+.panel-refused {
+  color: var(--danger-read);
 }
 
-.panel-todo,
 .panel-people {
   display: flex;
   flex-direction: column;
@@ -3723,15 +4022,25 @@ fieldset:disabled .admin-submit {
   list-style: none;
 }
 
-.panel-todo li {
+/* **[#176]** The to-do bubble's lines (33.3): the step's title, bold, as the link to it, then the message. */
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.todo-list li {
   overflow-wrap: anywhere;
 }
 
-.panel-todo-where {
+.todo-where {
   font-weight: 600;
 }
 
-.panel-todo-remove {
+.todo-remove {
   margin-left: 8px;
 }
 
@@ -3927,11 +4236,15 @@ fieldset:disabled .admin-submit {
   font-size: var(--small);
 }
 
-/* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge. */
+/* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge, and the to-do bubble may. */
 @media (max-width: 479px) {
   .panel-sheet > .sheet-panel {
     bottom: 0;
     border-radius: 0;
+  }
+
+  .todo-sheet > .sheet-panel {
+    max-height: calc(100% - var(--float-top) - var(--float-size) - 16px);
   }
 }
 

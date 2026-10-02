@@ -402,15 +402,15 @@ describe('Sources', () => {
     }
   })
 
-  test('sit under the chrome heading, which names the group, in both chrome languages (ADR-78-sources-heading)', async () => {
+  test('sit under the chrome heading, which names the group, in both chrome languages (ADR-78-sources-heading, ADR-173-sources-heading)', async () => {
     expect(part(await view('/ai-act-example/social-scoring'), 'section', 'sources')).toMatch(
-      /^<section class="sources" aria-labelledby="sources-label"><h2 id="sources-label">Legal sources<\/h2>/,
+      /^<section class="sources" aria-labelledby="sources-label"><h2 id="sources-label">Sources<\/h2>/,
     )
     expect(part(await view('/ai-act-example/social-scoring?lang=nl'), 'section', 'sources')).toContain(
-      '<h2 id="sources-label">Juridische bronnen</h2>',
+      '<h2 id="sources-label">Bronnen</h2>',
     )
     // Content in German: the heading is English chrome, and says so (3.1).
-    expect(await view('/other-languages/start')).toContain('<h2 id="sources-label" lang="en">Legal sources</h2>')
+    expect(await view('/other-languages/start')).toContain('<h2 id="sources-label" lang="en">Sources</h2>')
   })
 
   test('carry the Case law and Literature labels, not the Legal one, and say that the link leaves the page', async () => {
@@ -423,14 +423,14 @@ describe('Sources', () => {
     expect(sources).toContain('<li><span class="kind">Literature</span> <a href="https://arxiv.org')
     expect(html).toContain('<span hidden="" id="sources-new-tab">opens in a new tab</span>')
     const nl = part(await view('/ai-act-example/social-scoring?lang=nl'), 'section', 'sources')
-    expect(nl).not.toContain('>Wetgeving</span>')
+    expect(nl).not.toContain('>Juridisch</span>')
     expect(nl).toContain('>Rechtspraak</span>')
   })
 
   test('are also in the Sheet they collapse to below the guarantee, titled by the same heading, as the same links (10.5, 14)', async () => {
     const sheet = part(await view('/ai-act-example/social-scoring'), 'div', 'sources-collapsed')
 
-    expect(sheet).toContain('<summary class="sheet-open"><span>Legal sources (3)</span></summary>')
+    expect(sheet).toContain('<summary class="sheet-open"><span>Sources (3)</span></summary>')
     expect(sheet.match(/target="_blank"/g)).toHaveLength(3)
     expect(sheet).toContain('href="https://arxiv.org/abs/2107.03721"')
     expect(sheet).not.toContain('>Legal</span>')
@@ -553,7 +553,7 @@ describe('the Overlay (10.9)', () => {
     expect(interior).toContain('<h2 id="a0-node-title"><a href="/ai-act-example/start/prohibited-practices/social-scoring">Social scoring</a></h2>')
     expect(interior).toContain('<div class="prose"><p>')
     // The Sources through the same component as the Bubble's, inline; not a second Sheet inside this one.
-    expect(interior).toContain('<section class="sources" aria-labelledby="a0-sources-label">')
+    expect(interior).toContain('<section class="sources" aria-labelledby="a0-sources-label"><h2 id="a0-sources-label">Sources</h2>')
     expect(interior).toContain('aria-describedby="a0-sources-new-tab"')
     expect(interior).not.toContain('sources-collapsed')
     // One page, so no paging and no nested disclosure without the script (14).

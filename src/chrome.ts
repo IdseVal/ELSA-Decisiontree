@@ -85,7 +85,10 @@ export interface Chrome {
   /** **[#135]** The 403 page (24.2). */
   forbiddenTitle: string
   forbiddenText: string
-  /** **[#135]** The admin chrome bar (24.3): the logout button, the link to the account page and to the accounts page. */
+  /**
+   * **[#135]** The admin chrome bar (24.3): the logout button, the link to the account page and to the accounts page.
+   * **[#176]** `account` is the link's own word now, "Account"; the account's name is its description.
+   */
   logout: string
   account: string
   accounts: string
@@ -131,13 +134,29 @@ export interface Chrome {
   removeSource: string
   sourceKind: string
   sourceUrl: string
-  /** **[#138]** The `legal` kind in the kind select; on the public page the heading `sources` says it (ADR-78-sources-heading). */
+  /** **[#138]** The `legal` kind in the kind select; the public page labels no `legal` Source (ADR-78-sources-heading, decision 2). */
   sourceLegal: string
   /** **[#138]** The accessible name of a Terminal's outcome select, drawn as the badge (28.1). */
   outcome: string
   /** **[#138]** The counter pill on the rim (28.3): the accessible names of its two numbers. */
   characters: string
   lines: string
+  /**
+   * **[#172]** What belongs in each field, its placeholder while it is empty (28.2, amended
+   * 2026-10-02): the Node's title and text, a Source's name and link, an Option's title, an
+   * Image's description and credit, an explainer's term and explanation, the logo's
+   * alternative text.
+   */
+  placeholderTitle: string
+  placeholderText: string
+  placeholderSourceLabel: string
+  placeholderUrl: string
+  placeholderOptionTitle: string
+  placeholderImageDescription: string
+  placeholderCredit: string
+  placeholderTerm: string
+  placeholderExplanation: string
+  placeholderLogoAlt: string
   /** **[#138]** The autosave indicator (29.3 to 29.7) and the session Sheet (29.6). */
   saving: string
   saved: string
@@ -171,8 +190,7 @@ export interface Chrome {
   explanation: string
   markedIn: string
   notMarkedIn: string
-  /** **[#142]** The top panel (33): its button and heading, the four sections, the confirmations. */
-  treeState: string
+  /** **[#142]** The top panel (33): its sections and the confirmations; **[#176]** its button and heading say `settings`. */
   publish: string
   todoCount: string
   todoBefore: string
@@ -267,6 +285,18 @@ export interface Chrome {
   removeFont: string
   removeFontFile: string
   themeFileRefused: string
+  /**
+   * **[#176]** The floating controls (33.1, 33.3, amended): the settings button and the panel's
+   * title; the to-do control's words for one thing (`todoCount` says them for more) and at zero,
+   * which its bubble's empty list says too; a refused publish's sentence in the panel and the
+   * button that opens the to-do bubble from it. Strings, not a function of the count: the
+   * control counts in the browser, where a function from the server cannot go.
+   */
+  settings: string
+  todoCountOne: string
+  todoNone: string
+  publishRefused: string
+  showTodo: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -274,7 +304,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     yes: 'Yes',
     no: 'No',
     options: 'What this covers',
-    sources: 'Legal sources',
+    sources: 'Sources',
     sourceCaseLaw: 'Case law',
     sourceLiterature: 'Literature',
     images: 'Images',
@@ -314,7 +344,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     forbiddenTitle: 'Not yours to open',
     forbiddenText: 'Your account has no access to this page.',
     logout: 'Log out',
-    account: 'Your account',
+    account: 'Account',
     accounts: 'Accounts',
     signIn: 'Sign in',
     login: 'Name',
@@ -355,6 +385,16 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcome: 'Outcome',
     characters: 'characters',
     lines: 'lines',
+    placeholderTitle: 'Title',
+    placeholderText: 'Text',
+    placeholderSourceLabel: 'Name of the source',
+    placeholderUrl: 'https://…',
+    placeholderOptionTitle: 'Side bubble title',
+    placeholderImageDescription: 'What the picture shows',
+    placeholderCredit: 'Maker and licence',
+    placeholderTerm: 'Word or phrase',
+    placeholderExplanation: 'What it means',
+    placeholderLogoAlt: 'What the logo says',
     saving: 'Saving',
     saved: 'Saved',
     notSaved: 'Not saved',
@@ -383,7 +423,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Explanation',
     markedIn: 'Marked in the text',
     notMarkedIn: 'Not marked in the text',
-    treeState: 'Tree',
     publish: 'Publish',
     todoCount: 'things to do',
     todoBefore: 'To do before publishing:',
@@ -463,12 +502,17 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeFont: 'Remove this font',
     removeFontFile: 'Remove',
     themeFileRefused: 'This file type is refused: PNG or WebP for a logo, WOFF2 for a font.',
+    settings: 'Decision-tree settings',
+    todoCountOne: 'thing to do',
+    todoNone: 'Nothing to do',
+    publishRefused: 'Not published: some things must be done first.',
+    showTodo: 'See what to do',
   },
   nl: {
     yes: 'Ja',
     no: 'Nee',
     options: 'Wat hieronder valt',
-    sources: 'Juridische bronnen',
+    sources: 'Bronnen',
     sourceCaseLaw: 'Rechtspraak',
     sourceLiterature: 'Literatuur',
     images: 'Afbeeldingen',
@@ -508,7 +552,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     forbiddenTitle: 'Geen toegang',
     forbiddenText: 'Uw account heeft geen toegang tot deze pagina.',
     logout: 'Uitloggen',
-    account: 'Uw account',
+    account: 'Account',
     accounts: 'Accounts',
     signIn: 'Inloggen',
     login: 'Naam',
@@ -549,6 +593,16 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcome: 'Uitkomst',
     characters: 'tekens',
     lines: 'regels',
+    placeholderTitle: 'Titel',
+    placeholderText: 'Tekst',
+    placeholderSourceLabel: 'Naam van de bron',
+    placeholderUrl: 'https://…',
+    placeholderOptionTitle: 'Titel van de zijbubbel',
+    placeholderImageDescription: 'Wat de afbeelding laat zien',
+    placeholderCredit: 'Maker en licentie',
+    placeholderTerm: 'Woord of begrip',
+    placeholderExplanation: 'Wat het betekent',
+    placeholderLogoAlt: 'Wat er in het logo staat',
     saving: 'Opslaan',
     saved: 'Opgeslagen',
     notSaved: 'Niet opgeslagen',
@@ -577,7 +631,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Uitleg',
     markedIn: 'Gemarkeerd in de tekst',
     notMarkedIn: 'Niet gemarkeerd in de tekst',
-    treeState: 'Boom',
     publish: 'Publiceren',
     todoCount: 'punten te doen',
     todoBefore: 'Te doen voor publicatie:',
@@ -657,6 +710,11 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeFont: 'Dit lettertype verwijderen',
     removeFontFile: 'Verwijderen',
     themeFileRefused: 'Dit bestandstype wordt geweigerd: PNG of WebP voor een logo, WOFF2 voor een lettertype.',
+    settings: 'Beslisboominstellingen',
+    todoCountOne: 'punt te doen',
+    todoNone: 'Niets te doen',
+    publishRefused: 'Niet gepubliceerd: eerst moet er nog iets gebeuren.',
+    showTodo: 'Bekijk wat er te doen is',
   },
 }
 

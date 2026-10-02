@@ -110,9 +110,10 @@ export function Bubble({
 }
 
 /**
- * The chrome key that labels a kind of Source. `legal` has none: under the heading "Legal
- * sources" the label only repeats it (ADR-78-sources-heading, decision 2). The editor's
- * select takes it too, and names `legal` itself.
+ * The chrome key that labels a kind of Source. `legal` has none: ADR-78-sources-heading
+ * dropped it (decision 2) while the heading said "legal", and ADR-173-sources-heading, which
+ * made the heading plain "Sources", left that for the owner to decide separately. The
+ * editor's select takes it too, and names `legal` itself.
  */
 export const SOURCE_LABEL: Partial<Record<Source['kind'], ChromeString>> = {
   'case-law': 'sourceCaseLaw',

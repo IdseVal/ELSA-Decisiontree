@@ -25,10 +25,10 @@ import type { DraftNode } from '../../src/tree/types.ts'
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const words = Object.fromEntries(
-  ['missingText', 'characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview'].map((key) => [key, key]),
+  ['characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview'].map((key) => [key, key]),
 ) as EditorWords
 const loginWords = { login: 'login', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
-const fieldWords = { missingText: 'Text missing in this language', characters: 'characters', lines: 'lines' }
+const fieldWords = { characters: 'characters', lines: 'lines' }
 
 /** The strings `markdown.test.ts` renders, and the full Node's two texts at the maximum. */
 const TEXTS = [
@@ -130,18 +130,48 @@ describe('the counter counts as the validator counts (28.4)', () => {
     expect(pill()).toBe(`${countedLength(text)} / 150${estimatedLines(text)} / 2`)
   })
 
-  test('a title past 80 is marked over, still holds its text, and its write goes with the whole text', async () => {
+  // **[#172]** Typing stops at the limit (28.4, amended 2026-10-02): before, it never did and
+  // this test held the whole 87 characters.
+  test('a title typed past 80 stops at 80, and its write goes with the 80', async () => {
     const long = `${'x'.repeat(78)} and more`
     mount(node('Short', 'D'), { nodeId: 'start', path: 'title', lang: 'en', value: 'Short', limit: { characters: 80 }, words: fieldWords })
     focus()
     type(long)
 
-    expect(pill()).toBe(`${countedLength(long)} / 80`)
-    expect(document.querySelector('.editor-pill--over')).not.toBeNull()
-    expect(container.querySelector('.editor-field--over')).not.toBeNull()
-    expect(textarea().value).toBe(long)
+    expect(textarea().value).toBe(long.slice(0, 80))
+    expect(pill()).toBe('80 / 80')
+    expect(document.querySelector('.editor-pill--over')).toBeNull()
+    expect(container.querySelector('.editor-field--over')).toBeNull()
     await act(() => vi.advanceTimersByTimeAsync(700))
-    expect(sent.map((s) => s.body)).toEqual([{ path: 'title.en', value: long }])
+    expect(sent.map((s) => s.body)).toEqual([{ path: 'title.en', value: long.slice(0, 80) }])
+  })
+
+  test('**[#172]** a title stored over 80 is shown whole and marked, can be shortened, and cannot be lengthened', async () => {
+    const stored = 'x'.repeat(93)
+    mount(node(stored, 'D'), { nodeId: 'start', path: 'title', lang: 'en', value: stored, limit: { characters: 80 }, words: fieldWords })
+    focus()
+
+    expect(textarea().value).toBe(stored)
+    expect(pill()).toBe('93 / 80')
+    expect(container.querySelector('.editor-field--over')).not.toBeNull()
+
+    type(`${stored}y`)
+    expect(textarea().value).toBe(stored)
+    type('x'.repeat(90))
+    expect(textarea().value).toBe('x'.repeat(90))
+    expect(pill()).toBe('90 / 80')
+    await act(() => vi.advanceTimersByTimeAsync(700))
+    expect(sent.map((s) => s.body)).toEqual([{ path: 'title.en', value: 'x'.repeat(90) }])
+  })
+
+  test('**[#172]** the description stops at its two estimated lines', () => {
+    const two = `${'x'.repeat(70)}\n- one`
+    mount(node('T', two), { nodeId: 'start', path: 'description', lang: 'en', value: two, limit: { characters: 150, lines: 2 }, rich: true, words: fieldWords })
+    focus()
+    type(`${two}\n- two`)
+
+    expect(estimatedLines(textarea().value)).toBe(2)
+    expect(pill()).toBe(`${countedLength(textarea().value)} / 1502 / 2`)
   })
 })
 
@@ -158,13 +188,22 @@ describe('a plain field is one line (28.1)', () => {
     expect(document.activeElement).not.toBe(textarea())
   })
 
-  test('a field with no text in the page language is an empty region with the placeholder, and nothing is written for it', async () => {
-    mount(node('T', 'D'), { nodeId: 'start', path: 'title', lang: 'nl', value: '', limit: { characters: 80 }, words: fieldWords })
+  test('a field with no text in the page language is an empty region naming what belongs in it, and nothing is written for it', async () => {
+    mount(node('T', 'D'), { nodeId: 'start', path: 'title', lang: 'nl', value: '', limit: { characters: 80 }, placeholder: 'Titel', words: fieldWords })
 
     expect(textarea().value).toBe('')
-    expect(textarea().placeholder).toBe(fieldWords.missingText)
+    // **[#172]** The field's own name, not `missingText` (28.2, amended).
+    expect(textarea().placeholder).toBe('Titel')
     await act(() => vi.advanceTimersByTimeAsync(1000))
     expect(sent).toEqual([])
+  })
+
+  test('**[#172]** the empty description names what belongs in it while it is not being edited, too', () => {
+    mount(node('T', ''), { nodeId: 'start', path: 'description', lang: 'en', value: '', limit: { characters: 150, lines: 2 }, rich: true, placeholder: 'Text', words: fieldWords })
+
+    expect(container.querySelector('.editor-placeholder')?.textContent).toBe('Text')
+    focus()
+    expect(textarea().placeholder).toBe('Text')
   })
 })
 

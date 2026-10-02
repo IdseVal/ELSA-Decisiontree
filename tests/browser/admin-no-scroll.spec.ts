@@ -9,7 +9,9 @@
  * **[#138]** And the editor on `hidden-draft`'s full Node in `en` and `nl` (28.6, 35.4):
  * plain, with the Overlay of the first Options open, with the description in its source
  * state, with a Source's Sheet open, and with the session Sheet. **[#140]** And the enlarged
- * view as the Image's editor, and the attach Sheet.
+ * view as the Image's editor, and the attach Sheet. **[#176]** And the settings panel and the
+ * to-do bubble, opened from the two controls that float at the top right, at every viewport
+ * the floor's included; and the to-do bubble with a list longer than the window.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -202,6 +204,10 @@ async function editorEverywhere(page: Page, lang: string): Promise<void> {
     await expect(page.locator('main')).toBeVisible()
     record(await measure(page), 'editor', lang, viewport, '')
 
+    // **[#142]** The top panel (33.2), and **[#176]** the to-do bubble (33.3), from the controls
+    // that float at the top right at every size, the floor's included: each body a scroll box.
+    await floatingSheets(page, 'editor', lang, viewport)
+
     // The description in its source state, with the pill on the rim (28.3, 28.5).
     const description = page.locator('[data-field="full description.en"], [data-field="full description.nl"]').filter({ visible: true })
     // At the floor the notice stands in for the view (10.4): no field and no Sheet to open.
@@ -234,14 +240,26 @@ async function editorEverywhere(page: Page, lang: string): Promise<void> {
       await page.keyboard.press('Escape')
       await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeHidden()
     }
+  }
+}
 
-    // **[#142]** The top panel (33.2): its body is a scroll box, the document does not scroll.
-    const panel = page.locator('.panel-sheet')
-    await panel.locator(':scope > .sheet-open').click()
-    await expect(panel.locator(':scope > .sheet-panel')).toBeVisible()
-    record(await measure(page), 'editor', lang, viewport, 'top panel')
+/**
+ * **[#176]** The two floating controls' Sheets on the editor page shown (33.2, 33.3), each opened
+ * from its control, measured once the re-read its opening makes has been answered, and closed.
+ */
+async function floatingSheets(page: Page, what: string, lang: string, viewport: string): Promise<void> {
+  for (const [name, rereads, sheetName] of [
+    ['panel-sheet', ['/admin/api/trees/', '/admin/api/accounts'], 'top panel'],
+    ['todo-sheet', ['/admin/api/trees/'], 'to-do bubble'],
+  ] as const) {
+    const sheet = page.locator(`.${name}`)
+    const answered = rereads.map((reread) => page.waitForResponse((response) => new URL(response.url()).pathname.startsWith(reread)))
+    await sheet.locator(':scope > .sheet-open').click()
+    await expect(sheet.locator(':scope > .sheet-panel')).toBeVisible()
+    await Promise.all(answered)
+    record(await measure(page), what, lang, viewport, sheetName)
     await page.keyboard.press('Escape')
-    await expect(panel.locator(':scope > .sheet-panel')).toBeHidden()
+    await expect(sheet.locator(':scope > .sheet-panel')).toBeHidden()
   }
 }
 
@@ -357,8 +375,52 @@ test('the editor with the session Sheet open never scrolls at the guarantee and 
     const title = page.locator('[data-field="full title.en"] textarea')
     await title.click()
     await title.press('End')
-    await title.type('!')
+    // **[#172]** A key past the title's 80 does nothing now (28.4, amended): a deletion is the edit that writes.
+    await title.press('Backspace')
     await expect(page.getByRole('dialog')).toBeVisible()
     record(await measure(page), 'editor', 'en', `${width}x${height}`, 'session Sheet')
+  }
+})
+
+/**
+ * **[#176]** The to-do bubble with a list longer than the window (33.3): a fresh Tree in two
+ * languages whose root was given eight side bubbles, and the first of them eight more, with an
+ * English title alone, so each is missing the rest of its texts (19.2). The bubble's body is a
+ * scroll box (26.3, amended) and holds the list; the document never scrolls, at the floor too.
+ */
+test('the to-do bubble with a list longer than the window never scrolls the document at any viewport of 10.6 (33.3)', async ({ browser }) => {
+  test.slow()
+  const page = await (await browser.newContext()).newPage()
+  const { status, cookie } = await login(page, origin, 'admin', ADMIN_PASSWORD)
+  expect(status).toBe(204)
+  const post = (route: string, data: unknown) =>
+    page.request.post(`${origin}/admin/api${route}`, { headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' }, data: JSON.stringify(data) })
+  expect((await post('/trees', { id: 'many-to-dos', languages: ['en', 'nl'], title: { en: 'Many to-dos', nl: 'Veel te doen' } })).status()).toBe(201)
+  const sides: string[] = []
+  for (const from of ['start', 'first side bubble']) {
+    for (let i = 1; i <= 8; i += 1) {
+      const created = await post('/trees/many-to-dos/nodes', { from: { node: from === 'start' ? from : sides[0], link: 'option' }, title: { en: `Side bubble ${i}` } })
+      expect(created.status()).toBe(201)
+      sides.push(((await created.json()) as { node: { id: string } }).node.id)
+    }
+  }
+  const entry = (await (await page.request.get(`${origin}/admin/api/trees/many-to-dos`, { headers: { Cookie: cookie } })).json()) as { advisory: unknown[] }
+  console.log(`many-to-dos has ${entry.advisory.length} things to do`)
+
+  for (const [width, height] of VIEWPORTS) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(`${origin}/admin/trees/many-to-dos/start`))?.status()).toBe(200)
+    const sheet = page.locator('.todo-sheet')
+    const answered = page.waitForResponse((response) => new URL(response.url()).pathname === '/admin/api/trees/many-to-dos')
+    await sheet.locator(':scope > .sheet-open').click()
+    await answered
+    await expect(sheet.locator('.todo-list li')).toHaveCount(entry.advisory.length)
+    const body = await sheet.locator('.panel-body').evaluate((element) => ({ holds: element.scrollHeight, shows: element.clientHeight }))
+    console.log(`${viewport}: the bubble's body holds ${body.holds} pixels of list in ${body.shows}`)
+    expect(body.holds, `${viewport}: the list is longer than the bubble, so the scroll box holds it`).toBeGreaterThan(body.shows + 1)
+    record(await measure(page), 'editor, many to-dos', 'en', viewport, 'to-do bubble')
+    await page.keyboard.press('Escape')
+    await expect(sheet.locator(':scope > .sheet-panel')).toBeHidden()
   }
 })
