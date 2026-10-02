@@ -3701,20 +3701,31 @@ the write carries back.
 sized for what will come inside of them, so they fit nicely inside the bubble the way they
 should and the don't grow on inputs, they should just stop at the cap." **Typing stops at a
 limit.** A field accepts no character beyond its maximum, measured as above (`countedLength`;
-for the description also `estimatedLines`): a further key does nothing, and a paste is cut
-after the last whole character that fits -- a character of several code points (3.8) is kept
-whole or not at all (`capped` in `src/editor/fields.ts`). The counter pill stays and shows
-where the creator is. A text that is **already** over its limit -- stored before this
+for the description also `estimatedLines`) with one difference: the cap also counts the
+whitespace at the start and the end of the text, which 3.8 trims and the pill does not
+count, so that a space typed at the limit does nothing instead of going in and being stored
+(`cappedLength`). A further key does nothing, and a paste is cut after the last whole
+character that fits -- a character of several code points (3.8) is kept whole or not at all
+(`capped` in `src/editor/fields.ts`). The counter pill stays and shows where the creator is.
+A text that is **already** over its limit by either measure -- stored before this
 amendment, or by another route (a hand-made file, the API) -- is shown whole and marked as
-above, can be shortened and cannot be lengthened. The store is unchanged: a write over a
-limit is still stored with its advisory (22.3), so the paragraph above still describes what
-the server does; only the field no longer sends one. The attach Sheet's credit and
-description (31.2) and the logo's alternative text (33.8) stop at their 120, 120 and 80 alike.
+above; an edit of it is taken only if it is within the limit by both measures or no longer
+than before by either, so it can be shortened and cannot be lengthened. The store is
+unchanged: a write over a limit is still stored with its advisory (22.3), so the paragraph
+above still describes what the server does; only the field no longer sends one. The attach
+Sheet's credit and description (31.2) and the logo's alternative text (33.8) stop at their
+120, 120 and 80 alike. Recorded in `docs/adrs/ADR-172-typing-stops-at-the-limit.md`, which
+supersedes ADR-133 decision 5.
 And each field's box has, empty and filled, the size its text takes at the limit where it is
-drawn -- the title and the description two lines (5.7), an Option's title the lines its
-button holds, a plain field elsewhere one line -- so the box neither grows nor shrinks while
-the creator types, and it stays inside its parent: the Bubble's text area, the Overlay, the
-Option button or the Sheet.
+drawn, in lines of its own line height: the title and the description two (5.7), and three
+below 480 pixels wide, where a text at its limit takes three; an Option's title three, the
+lines 5.7 gives its 60 characters in a humanist face (the button holds four, but a box of
+four would start under the `...` in its corner); an explainer's explanation, a plain field of
+200 (32.2), five, and seven below 480 pixels, and its term one, two below 480 pixels; every
+other field one, a Source's label as wide as its 60 characters. So the box neither grows nor
+shrinks while the creator types, and it stays inside its parent: the Bubble's text area, the
+Overlay, the Option button or the Sheet. A text stored over its limit is shown whole: its box
+grows past these lines to hold it.
 
 ### 28.5 The description: source text
 
