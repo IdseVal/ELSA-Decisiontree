@@ -22,7 +22,9 @@ export interface Shortfall {
  * The pairings the public page measures (`tests/first-tree/contrast.spec.ts`): running and
  * secondary text on the page and on the Bubble at WCAG 2.2 SC 1.4.3's 4.5 : 1, and the
  * Answer label -- 19-pixel bold, large text -- on its `accent-secondary` fill at 3 : 1
- * (10.3, ADR-78-answer-buttons-and-up-arrow decision 3).
+ * (10.3, ADR-78-answer-buttons-and-up-arrow decision 3). **[#180]** The Sources' lines under
+ * their heading are `text` on the Bubble now, inline and in their collapsed Sheet, whose panel
+ * is `surface` too: the second pairing holds them, and their heading stays the fourth's.
  */
 const RULE: readonly { text: Shortfall['text']; on: keyof Colours; minimum: number }[] = [
   { text: 'text', on: 'background', minimum: 4.5 },

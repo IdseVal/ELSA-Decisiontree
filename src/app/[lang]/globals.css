@@ -879,6 +879,22 @@ a.language:hover,
   color: var(--elsa-text-muted);
 }
 
+/*
+ * **[#180]** Under the heading the Sources are in the Theme's `text`, as the Node's own text is,
+ * inline and in their collapsed Sheet alike: a creator who picks a text colour for a dark or a
+ * coloured Bubble gets readable Sources (#169). The kind, the separator and the label take it;
+ * a link is told by its underline in that same colour, not by a second colour.
+ */
+.sources ul,
+.sources-sheet .sheet-list {
+  color: var(--elsa-text);
+}
+
+.sources .kind,
+.sources-sheet .kind {
+  color: inherit;
+}
+
 .sources ul {
   margin: 0;
   padding: 0;
@@ -892,7 +908,6 @@ a.language:hover,
 .sources li + li::before {
   content: "\00B7";
   margin: 0 8px;
-  color: var(--elsa-text-muted);
 }
 
 /*
@@ -909,8 +924,9 @@ a.language:hover,
   color: var(--elsa-text-muted);
 }
 
-.sources a {
-  text-decoration-color: var(--rule);
+.sources a,
+.sources-sheet .sheet-list a {
+  text-decoration: underline currentColor;
   text-underline-offset: 0.18em;
 }
 

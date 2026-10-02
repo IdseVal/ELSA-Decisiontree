@@ -135,6 +135,38 @@ test('the root: the Sources heading, the image credit in the enlarged view and t
   await expectReadable(page, '.carousel-sheet .credit')
 })
 
+test('**[#180]** the Sources’ lines are the Theme’s text on the Bubble, a link told by its underline in it, at 4.5 : 1, inline and collapsed', async ({ page }, testInfo) => {
+  await page.goto(ROOT)
+  await arrived(page, new RegExp(`${ROOT}$`))
+  const text = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--elsa-text').trim())
+  expect(text).toBe('#2d2e33')
+
+  const inline = await measure(page, '.sources li')
+  expect(inline.length).toBeGreaterThan(0)
+  for (const m of inline) {
+    expect(m.colour, m.text).toBe(text)
+    expect(m.background, m.text).toBe('#f0f3f7')
+    expect(m.ratio, m.text).toBeGreaterThanOrEqual(MINIMUM)
+  }
+  const underline = (selector: string) =>
+    page.locator(selector).first().evaluate((el) => `${getComputedStyle(el).textDecorationLine} ${getComputedStyle(el).textDecorationColor} ${getComputedStyle(el).color}`)
+  expect(await underline('.sources a')).toBe('underline rgb(45, 46, 51) rgb(45, 46, 51)')
+
+  // Below 792 pixels wide the Sources collapse to one control (10.5, step 6); its Sheet lists the same lines.
+  await page.setViewportSize({ width: 760, height: 640 })
+  await page.locator('.sources-sheet > .sheet-open').click()
+  const collapsed = await measure(page, '.sources-sheet .sheet-list li')
+  expect(collapsed.length).toBe(inline.length)
+  for (const m of collapsed) {
+    expect(m.colour, m.text).toBe(text)
+    expect(m.ratio, m.text).toBeGreaterThanOrEqual(MINIMUM)
+  }
+  expect(await underline('.sources-sheet .sheet-list a')).toBe('underline rgb(45, 46, 51) rgb(45, 46, 51)')
+
+  testInfo.annotations.push({ type: 'measured', description: [...inline, ...collapsed].map((m) => `"${m.text}" ${m.colour} on ${m.background} = ${m.ratio} : 1`).join('; ') })
+  console.log(testInfo.annotations.at(-1)!.description)
+})
+
 test('a Terminal at the end of a long walk: startAgain and the disclaimer are readable', async ({ page }) => {
   await page.goto(END_OF_WALK)
   await arrived(page, /\/end-of-walk$/)

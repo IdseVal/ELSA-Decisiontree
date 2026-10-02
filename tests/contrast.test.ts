@@ -47,4 +47,11 @@ describe('shortfalls', () => {
     const both = { ...FIRST_TREE, text: '#555555', background: '#aaaaaa', surface: '#aaaaaa', 'text-muted': '#555555', 'accent-secondary': '#808080' }
     expect(shortfalls(both).map(({ text }) => text)).toContain('on-accent-secondary')
   })
+
+  test('**[#180]** the Sources’ lines are text on the Bubble: a text colour too close to a coloured Bubble is warned there', () => {
+    // A green Bubble on a white page, with the dark text kept: readable on the page, not on the Bubble.
+    const found = shortfalls({ ...FIRST_TREE, surface: '#1e5b34', 'text-muted': '#e8efe9' })
+    expect(found.map(({ text, on }) => `${text} on ${on}`)).toEqual(['text on surface', 'text-muted on background'])
+    expect(found[0]!.minimum).toBe(4.5)
+  })
 })
