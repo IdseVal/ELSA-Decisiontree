@@ -155,23 +155,20 @@ for (const [width, height] of [
     await expect(field(page, 'explainers[0].text.en')).toBeVisible()
     expect(await outside(page, `${at}, the explainer Sheet`)).toEqual([])
 
-    // The enlarged view: an Image's description and credit.
+    // The enlarged view: an Image's description and credit, opened from the main image or, where
+    // the main image has gone, from the collapsed strip's `Image 1 of 10` (10.5).
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     const main = page.locator('.bubble .main-image').filter({ visible: true })
-    if ((await main.count()) > 0) {
-      await main.click()
-      await expect(field(page, 'images[0].credit')).toBeVisible()
-      expect(await outside(page, `${at}, the enlarged view`)).toEqual([])
-    }
+    await ((await main.count()) > 0 ? main : page.locator('.carousel-sheet > .sheet-open').filter({ visible: true })).click()
+    await expect(field(page, 'images[0].credit')).toBeVisible()
+    expect(await outside(page, `${at}, the enlarged view`)).toEqual([])
 
-    // The first Option's Overlay: its target's fields.
-    await page.goto(`${origin}/admin/trees/hidden-draft/full`)
-    const button = page.locator('.options > li > .overlay > .sheet-open').filter({ visible: true }).first()
-    if ((await button.count()) > 0) {
-      await button.locator('.option-image').click()
-      await expect(field(page, 'title.en', 'opt-one')).toBeVisible()
-      expect(await outside(page, `${at}, the first Option's Overlay`)).toEqual([])
-    }
+    // The first Option's Overlay, opened by its address (10.9): where the fan has collapsed, the
+    // `What this covers` Sheet lists the Option as a link to it (10.5).
+    await page.goto(`${origin}/admin/trees/hidden-draft/full/opt-one`)
+    await expect(field(page, 'title.en', 'opt-one')).toBeVisible()
+    await expect(field(page, 'description.en', 'opt-one')).toBeVisible()
+    expect(await outside(page, `${at}, the first Option's Overlay`)).toEqual([])
   })
 }
 
@@ -237,14 +234,14 @@ test('the screenshots of #172: an empty root, texts at their limits in the Bubbl
     await typeInto(page, 'description.en', 'full', WORDS.slice(0, 165))
     await expect(field(page, 'description.en').locator('textarea')).toHaveValue(WORDS.slice(0, 150))
     await shoot(page, `bubble-at-limits-${size}`)
-    const button = page.locator('.options > li > .overlay > .sheet-open').filter({ visible: true }).first()
-    if ((await button.count()) > 0) {
-      await button.locator('.option-image').click()
-      await typeInto(page, 'title.en', 'opt-one', WORDS.slice(0, 95))
-      await typeInto(page, 'description.en', 'opt-one', WORDS.slice(0, 165))
-      await expect(field(page, 'description.en', 'opt-one').locator('textarea')).toHaveValue(WORDS.slice(0, 150))
-      await shoot(page, `overlay-at-limits-${size}`)
-    }
+    // The Overlay is opened by its address (10.9), at 390 too, where the fan has collapsed; the
+    // page is left once the description is stored, so that no write is pending.
+    await expect.poll(async () => (await stored(page, cookie)).description.en).toBe(WORDS.slice(0, 150))
+    await page.goto(`${origin}/admin/trees/hidden-draft/full/opt-one`)
+    await typeInto(page, 'title.en', 'opt-one', WORDS.slice(0, 95))
+    await typeInto(page, 'description.en', 'opt-one', WORDS.slice(0, 165))
+    await expect(field(page, 'description.en', 'opt-one').locator('textarea')).toHaveValue(WORDS.slice(0, 150))
+    await shoot(page, `overlay-at-limits-${size}`)
 
     // The attach Sheet, after a picture is uploaded into a Terminal's empty slot, with its placeholders.
     await page.goto(`${origin}/admin/trees/hidden-draft/full/applies`)
