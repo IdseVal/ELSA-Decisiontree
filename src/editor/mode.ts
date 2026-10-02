@@ -76,13 +76,13 @@ export interface EditorSlots {
 
 /**
  * The chrome strings the editor's client components read through `words` (3.2, 34.1): the
- * field's three, the indicator's and the session Sheet's, and **[#141]** the `mark` button's
- * and the explainer Sheet's. The slots hand every other
- * string -- a select's labels, the add-Source Sheet's -- straight from the chrome.
+ * field's two, the indicator's and the session Sheet's, and **[#141]** the `mark` button's
+ * and the explainer Sheet's, **[#172]** its two placeholders among them. The slots hand every
+ * other string -- a select's labels, a field's placeholder, the add-Source Sheet's -- straight
+ * from the chrome.
  */
 export type EditorWords = Pick<
   Chrome,
-  | 'missingText'
   | 'characters'
   | 'lines'
   | 'saving'
@@ -102,6 +102,8 @@ export type EditorWords = Pick<
   | 'explainerLimit'
   | 'term'
   | 'explanation'
+  | 'placeholderTerm'
+  | 'placeholderExplanation'
   | 'markedIn'
   | 'notMarkedIn'
 >

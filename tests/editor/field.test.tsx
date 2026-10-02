@@ -28,7 +28,7 @@ const words = Object.fromEntries(
   ['missingText', 'characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview'].map((key) => [key, key]),
 ) as EditorWords
 const loginWords = { login: 'login', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
-const fieldWords = { missingText: 'Text missing in this language', characters: 'characters', lines: 'lines' }
+const fieldWords = { characters: 'characters', lines: 'lines' }
 
 /** The strings `markdown.test.ts` renders, and the full Node's two texts at the maximum. */
 const TEXTS = [
@@ -158,13 +158,22 @@ describe('a plain field is one line (28.1)', () => {
     expect(document.activeElement).not.toBe(textarea())
   })
 
-  test('a field with no text in the page language is an empty region with the placeholder, and nothing is written for it', async () => {
-    mount(node('T', 'D'), { nodeId: 'start', path: 'title', lang: 'nl', value: '', limit: { characters: 80 }, words: fieldWords })
+  test('a field with no text in the page language is an empty region naming what belongs in it, and nothing is written for it', async () => {
+    mount(node('T', 'D'), { nodeId: 'start', path: 'title', lang: 'nl', value: '', limit: { characters: 80 }, placeholder: 'Titel', words: fieldWords })
 
     expect(textarea().value).toBe('')
-    expect(textarea().placeholder).toBe(fieldWords.missingText)
+    // **[#172]** The field's own name, not `missingText` (28.2, amended).
+    expect(textarea().placeholder).toBe('Titel')
     await act(() => vi.advanceTimersByTimeAsync(1000))
     expect(sent).toEqual([])
+  })
+
+  test('**[#172]** the empty description names what belongs in it while it is not being edited, too', () => {
+    mount(node('T', ''), { nodeId: 'start', path: 'description', lang: 'en', value: '', limit: { characters: 150, lines: 2 }, rich: true, placeholder: 'Text', words: fieldWords })
+
+    expect(container.querySelector('.editor-placeholder')?.textContent).toBe('Text')
+    focus()
+    expect(textarea().placeholder).toBe('Text')
   })
 })
 

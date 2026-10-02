@@ -9,7 +9,8 @@
  * in the page's language, which may wait. `attach` sends `add-image` through the queue and the
  * page repaints from its response; `cancel`, Escape and the backdrop delete the file again,
  * so the folder holds no picture nobody named (a 409 -- the same bytes named elsewhere -- is
- * somebody's file, and ignored).
+ * somebody's file, and ignored). **[#172]** Each field says what belongs in it while it is
+ * empty, and its typing stops at its 120 characters, as a field's does (28.4, amended).
  *
  * Laid over the page from the document's body, so a Sheet it was opened from -- an Overlay --
  * neither clips it nor closes under it.
@@ -18,13 +19,14 @@
  */
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { countedLength } from '../tree/measure.ts'
 import { useEditor } from './Editor.tsx'
+import { heldToLimit } from './Field.tsx'
 import { plainLine } from './fields.ts'
+import type { FieldLimit } from './mode.ts'
 import { deleteImage, type Uploaded } from './writes.ts'
 
 /** The credit and the description are 120 characters each (tree-format.md 5.7). */
-const LIMIT = 120
+const LIMIT: FieldLimit = { characters: 120 }
 
 /** The chrome words the Sheet says; strings, because a client component takes no module. */
 export interface AttachWords {
@@ -32,6 +34,8 @@ export interface AttachWords {
   imageDescription: string
   attach: string
   cancel: string
+  placeholderCredit: string
+  placeholderImageDescription: string
 }
 
 export function AttachSheet({
@@ -54,9 +58,7 @@ export function AttachSheet({
   const credit = useRef<HTMLInputElement>(null)
   const [creditText, setCreditText] = useState('')
   const [description, setDescription] = useState('')
-  const creditOver = countedLength(creditText) > LIMIT
-  const descriptionOver = countedLength(description) > LIMIT
-  const attachable = creditText.trim() !== '' && !creditOver && !descriptionOver && !api.readOnly
+  const attachable = creditText.trim() !== '' && !api.readOnly
 
   useEffect(() => credit.current?.focus(), [])
 
@@ -96,9 +98,9 @@ export function AttachSheet({
               ref={credit}
               className="editor-url"
               value={creditText}
+              placeholder={words.placeholderCredit}
               required
-              aria-invalid={creditOver ? true : undefined}
-              onChange={(event) => setCreditText(plainLine(event.target.value))}
+              onChange={(event) => setCreditText(heldToLimit(event.target, creditText, plainLine(event.target.value), LIMIT))}
             />
           </label>
           <label className="editor-row">
@@ -107,8 +109,8 @@ export function AttachSheet({
               className="editor-url"
               lang={api.lang}
               value={description}
-              aria-invalid={descriptionOver ? true : undefined}
-              onChange={(event) => setDescription(plainLine(event.target.value))}
+              placeholder={words.placeholderImageDescription}
+              onChange={(event) => setDescription(heldToLimit(event.target, description, plainLine(event.target.value), LIMIT))}
             />
           </label>
           <div className="sheet-controls">

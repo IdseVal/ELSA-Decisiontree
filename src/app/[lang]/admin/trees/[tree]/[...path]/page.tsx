@@ -258,6 +258,7 @@ function themeWords(ui: Chrome): ThemeWords {
     theme: ui.theme,
     logo: ui.logo,
     logoAlt: ui.logoAlt,
+    placeholderLogoAlt: ui.placeholderLogoAlt,
     uploadLogo: ui.uploadLogo,
     replaceLogo: ui.replaceLogo,
     removeLogo: ui.removeLogo,

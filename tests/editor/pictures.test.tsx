@@ -31,6 +31,8 @@ const pickerWords = {
   imageDescription: 'imageDescription',
   attach: 'attach',
   cancel: 'cancel',
+  placeholderCredit: 'placeholderCredit',
+  placeholderImageDescription: 'placeholderImageDescription',
 }
 const controlWords = { makeMain: 'makeMain', moveEarlier: 'moveEarlier', moveLater: 'moveLater', removeImage: 'removeImage' }
 

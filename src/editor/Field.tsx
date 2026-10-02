@@ -19,8 +19,10 @@
  * tag per other declared language that has no text for this field, a link to the page in
  * that language (28.3). The rim is drawn from the page's body, fixed, beside the Bubble or
  * the Overlay the field is in, so it takes no pixel from the text area and nothing on the
- * page grows (28.6). Over the maximum the pill and the outline turn `danger`; typing never
- * stops (28.4). A refused write keeps the value on screen, and no response repaints it until
+ * page grows (28.6). **[#172]** Typing stops at the maximum: a key past it does nothing and a
+ * paste is cut there (28.4, amended 2026-10-02); a text stored over it is shown whole, its pill
+ * and outline `danger`, and may shrink but not grow. An empty field names what belongs in it
+ * (28.2, amended). A refused write keeps the value on screen, and no response repaints it until
  * it changes (29.4); a value a collaborator changed under the field is outlined `accent` for
  * five seconds (29.7).
  *
@@ -41,7 +43,7 @@ import { isUrl } from '../tree/grammar.ts'
 import { countedLength, estimatedLines } from '../tree/measure.ts'
 import type { Explainer, Source, Violation } from '../tree/types.ts'
 import { useEditor } from './Editor.tsx'
-import { keyOf, plainLine, RAW_HTML, valueAt } from './fields.ts'
+import { capped, keyOf, plainLine, RAW_HTML, valueAt } from './fields.ts'
 import { marked, Marker, markRefusal, trimmedSelection, type MarkerWords } from './Marker.tsx'
 import type { FieldLimit } from './mode.ts'
 import { explainerId } from './slug.ts'
@@ -52,9 +54,24 @@ const RIM_WIDTH = 60
 
 /** The chrome words a field says; strings, because a client component takes no module. */
 export interface FieldWords {
-  missingText: string
   characters: string
   lines: string
+}
+
+/**
+ * **[#172]** The text an input or a textarea holds after an input event, held to `limit`
+ * (28.4, amended): `proposed` -- the element's value, a plain field's line breaks already
+ * spaces -- where it fits, else cut by `capped`, and the element's value and caret set to the
+ * cut text so that a refused key leaves the caret where it was. No limit, no cut.
+ */
+export function heldToLimit(element: HTMLInputElement | HTMLTextAreaElement, previous: string, proposed: string, limit: FieldLimit | null): string {
+  const caret = element.selectionEnd ?? proposed.length
+  const held = limit === null ? { text: proposed, caret } : capped(previous, proposed, caret, limit)
+  if (held.text !== element.value) {
+    element.value = held.text
+    element.setSelectionRange(held.caret, held.caret)
+  }
+  return held.text
 }
 
 /** Another declared language: the tag's text and where it leads (28.3). */
@@ -79,6 +96,7 @@ export function Field({
   classByValue = false,
   termEvent,
   markerWords,
+  placeholder = '',
   words,
 }: {
   nodeId: string
@@ -110,6 +128,8 @@ export function Field({
   termEvent?: string
   /** The description: the `mark` button's words; without them the rim has no button (32.1). */
   markerWords?: MarkerWords
+  /** **[#172]** What belongs in the field, shown while it is empty (28.2): "Title", "Text". */
+  placeholder?: string
   words: FieldWords
 }) {
   const api = useEditor()
@@ -277,7 +297,7 @@ export function Field({
               className="editor-input"
               value={text}
               rows={1}
-              placeholder={words.missingText}
+              placeholder={placeholder}
               disabled={api.readOnly}
               autoFocus={rich}
               spellCheck
@@ -286,7 +306,10 @@ export function Field({
               onBlur={onBlur}
               onKeyDown={onKeyDown}
               onSelect={(event) => setSelection([event.currentTarget.selectionStart, event.currentTarget.selectionEnd])}
-              onChange={(event: ChangeEvent<HTMLTextAreaElement>) => commit(rich ? event.target.value : plainLine(event.target.value))}
+              onChange={(event: ChangeEvent<HTMLTextAreaElement>) => {
+                const next = heldToLimit(event.target, text, rich ? event.target.value : plainLine(event.target.value), limit)
+                if (next !== text) commit(next)
+              }}
             />
           </span>
         ) : (
@@ -303,7 +326,7 @@ export function Field({
             }}
           >
             {text.trim() === '' ? (
-              <span className="prose editor-placeholder">{words.missingText}</span>
+              <span className="prose editor-placeholder">{placeholder}</span>
             ) : dirty || rendered === undefined ? (
               <ExplainerText html={richTextToHtml(text, { explainers: nodeExplainers, lang: lang ?? '', idPrefix: '' })} termEvent={termEvent} />
             ) : (
