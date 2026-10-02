@@ -8,6 +8,8 @@
  * guaranteed viewport and at 1920 x 1080, on the public page and in the editor: the full
  * Node's eight Options (`tests/fixtures/full-node/`), the first Tree's eight on
  * `annex-i-legislation`, the overlay fixture's empty slots, and the `+` on either side.
+ * Below 1280 the buttons of 10.5's steps 2 and 3 stay what they were before #175: 200 x 96
+ * without a picture, the label 12 pixels from each end, at 16 on 20 -- the `+` too.
  *
  * Each page's measurements are printed, which is what the pull request quotes. The
  * screenshots the issue asks for go to `docs/screenshots/issue-175/` under `ELSA_SHOTS=1`,
@@ -30,6 +32,9 @@ const FIRST_TREE = 'ai-act-applicability-agrifood'
 /** 10.3, amended by #175: the button, and the picture as tall as it. */
 const BUTTON = { width: 236, height: 100 }
 
+/** 10.5's steps 2 and 3, which #175 left as they were: no picture, 176 of label between 12 of padding each side. */
+const STRAIGHT = { width: 200, height: 96, padding: 12, type: '16px on 20px' }
+
 let origin: string
 
 test.beforeAll(async () => {
@@ -49,7 +54,10 @@ test.afterAll(async () => {
   await stopServers()
 })
 
-/** One button as measured: its box, its picture's box, and the picture's distance from the button's top, bottom and inner edge. */
+/**
+ * One button as measured: its box, its picture's box, the picture's distance from the button's
+ * top, bottom and inner edge, and the label's from the inner and the outer edge, with its type.
+ */
 interface Measured {
   side: string
   title: string
@@ -59,6 +67,7 @@ interface Measured {
   top: number
   bottom: number
   inner: number
+  label: { inner: number; outer: number; type: string }
 }
 
 /** Every drawn Option button of the centre and the fan's `+`, measured. */
@@ -71,28 +80,35 @@ async function measure(page: Page): Promise<Measured[]> {
       buttons.map((button) => {
         const box = button.getBoundingClientRect()
         const picture = button.querySelector('.option-image')!.getBoundingClientRect()
+        const title = button.querySelector('.option-title')!
+        const label = title.getBoundingClientRect()
+        const { fontSize, lineHeight } = getComputedStyle(title)
         const side = button.closest('li')!.dataset.side ?? ''
         const round = (n: number) => Math.round(n * 100) / 100
+        // The inner end is the one towards the Bubble: the left on the right of it, the right on the left.
+        const fromInner = (rect: DOMRect) => round(side === 'right' ? rect.left - box.left : box.right - rect.right)
+        const fromOuter = (rect: DOMRect) => round(side === 'right' ? box.right - rect.right : rect.left - box.left)
         return {
           side,
-          title: button.querySelector('.option-title')?.textContent ?? '',
+          title: title.textContent ?? '',
           width: round(box.width),
           height: round(box.height),
           picture: { width: round(picture.width), height: round(picture.height) },
           top: round(picture.top - box.top),
           bottom: round(box.bottom - picture.bottom),
-          // The inner end is the one towards the Bubble: the left on the right of it, the right on the left.
-          inner: round(side === 'right' ? picture.left - box.left : box.right - picture.right),
+          inner: fromInner(picture),
+          label: { inner: fromInner(label), outer: fromOuter(label), type: `${fontSize} on ${lineHeight}` },
         }
       }),
     )
 }
 
 /**
- * The size and the contour of every button on `url`, with the numbers printed under `name`;
- * the page is shot as `shot` first, so a failing run still leaves the picture of what failed.
+ * Every button on `url`, measured, its `count` buttons on both sides of the Bubble (on the
+ * right alone for one), and what `show` makes of each printed per side under `name`; the page
+ * is shot as `shot` first, so a failing run still leaves the picture of what failed.
  */
-async function expectContour(page: Page, url: string, name: string, count: number, shot?: string): Promise<void> {
+async function measurePage(page: Page, url: string, name: string, count: number, show: (button: Measured) => string, shot?: string): Promise<Measured[]> {
   await page.goto(`${origin}${url}`)
   await expect(page.locator('.tree-frame:not([inert]) .options > li').filter({ visible: true })).toHaveCount(count)
   if (shot) await shoot(page, shot)
@@ -101,11 +117,17 @@ async function expectContour(page: Page, url: string, name: string, count: numbe
   for (const side of ['right', 'left']) {
     const on = measured.filter((button) => button.side === side)
     if (on.length === 0) continue
-    const sizes = [...new Set(on.map((b) => `${b.width} x ${b.height}, picture ${b.picture.width} x ${b.picture.height}, from top ${b.top}, bottom ${b.bottom}, inner end ${b.inner}`))]
-    console.log(`${viewport.width} x ${viewport.height} ${name}, ${on.length} on the ${side}: ${sizes.join(' | ')}`)
+    console.log(`${viewport.width} x ${viewport.height} ${name}, ${on.length} on the ${side}: ${[...new Set(on.map(show))].join(' | ')}`)
   }
   expect(measured).toHaveLength(count)
   expect(new Set(measured.map((button) => button.side))).toEqual(new Set(count > 1 ? ['right', 'left'] : ['right']))
+  return measured
+}
+
+/** The size and the contour of every button on `url`, as `measurePage` says. */
+async function expectContour(page: Page, url: string, name: string, count: number, shot?: string): Promise<void> {
+  const show = (b: Measured) => `${b.width} x ${b.height}, picture ${b.picture.width} x ${b.picture.height}, from top ${b.top}, bottom ${b.bottom}, inner end ${b.inner}`
+  const measured = await measurePage(page, url, name, count, show, shot)
   // Soft, so one run measures and shoots every page however many buttons fail.
   for (const button of measured) {
     const what = `${name}: ${button.side} "${button.title}"`
@@ -116,6 +138,23 @@ async function expectContour(page: Page, url: string, name: string, count: numbe
     expect.soft(Math.abs(button.top), what).toBeLessThanOrEqual(1)
     expect.soft(Math.abs(button.bottom), what).toBeLessThanOrEqual(1)
     expect.soft(Math.abs(button.inner), what).toBeLessThanOrEqual(1)
+  }
+}
+
+/**
+ * Below 1280, every button on `url` as `measurePage` says: 200 x 96, its label 12 from the
+ * inner end and at least 12 from the outer one (a short label ends before it), at 16 on 20.
+ */
+async function expectStraight(page: Page, url: string, name: string, count: number): Promise<void> {
+  const show = (b: Measured) => `${b.width} x ${b.height}, label from the inner end ${b.label.inner}, the outer ${b.label.outer}, ${b.label.type}`
+  const measured = await measurePage(page, url, name, count, show)
+  for (const button of measured) {
+    const what = `${name}: ${button.side} "${button.title}"`
+    expect.soft(button.width, what).toBe(STRAIGHT.width)
+    expect.soft(button.height, what).toBe(STRAIGHT.height)
+    expect.soft(Math.abs(button.label.inner - STRAIGHT.padding), what).toBeLessThanOrEqual(1)
+    expect.soft(button.label.outer, what).toBeGreaterThanOrEqual(STRAIGHT.padding - 1)
+    expect.soft(button.label.type, what).toBe(STRAIGHT.type)
   }
 }
 
@@ -153,3 +192,26 @@ for (const [width, height] of [
     })
   })
 }
+
+test.describe('at 1279 x 720, step 2 of 10.5', () => {
+  test.use({ viewport: { width: 1279, height: 720 } })
+
+  test('the straight columns: every Option button and the + 200 x 96 without a picture, the label 12 from each end', async ({ page }) => {
+    await expectStraight(page, '/full-node/full', 'the full Node, public', 8)
+    expect((await login(page, origin, ANNA.login, ANNA.password)).status).toBe(204)
+    await expectStraight(page, '/admin/trees/full-node/full', 'the full Node, editor', 8)
+    await expectStraight(page, '/admin/trees/full-node/opt-one', 'opt-one, editor: one Option and the +', 2)
+    await expectStraight(page, '/admin/trees/full-node/opt-three', 'opt-three, editor: the + alone', 1)
+  })
+})
+
+test.describe('at 1100 x 800, step 3 of 10.5', () => {
+  test.use({ viewport: { width: 1100, height: 800 } })
+
+  // Eight Options collapse below 1200 (step 4); the row under the Answers holds four or fewer.
+  test('the row under the Answers: the Option button and the + the same, on either side', async ({ page }) => {
+    expect((await login(page, origin, ANNA.login, ANNA.password)).status).toBe(204)
+    await expectStraight(page, '/admin/trees/full-node/opt-one', 'opt-one, editor: one Option and the +', 2)
+    await expectStraight(page, '/admin/trees/full-node/opt-three', 'opt-three, editor: the + alone', 1)
+  })
+})

@@ -965,23 +965,30 @@ a.language:hover,
  * five, 90 pixels, and four in Arial's metrics, the default type's on Linux (10.7, amended).
  */
 .overlay > .sheet-open {
-  position: relative;
-  isolation: isolate;
   display: var(--fan, flex);
   align-items: center;
-  gap: 6px;
   width: 100%;
   min-height: var(--option-h);
-  padding: 0 10px 0 0;
-  border: 0;
-  border-radius: 999px;
-  font-size: 15px;
-  line-height: 18px;
   color: var(--elsa-text);
   background: var(--elsa-surface);
   text-align: left;
   white-space: normal;
   transition: background-color 160ms var(--ease);
+}
+
+/*
+ * The shape is the editor's side-bubble `+`'s too (30.4), written once for both, and above
+ * step 2 of 10.5, whose restore below 1280 has the same specificity and wins by coming later.
+ */
+.options > li > :is(.overlay, .side-add) > .sheet-open {
+  position: relative;
+  isolation: isolate;
+  gap: 6px;
+  padding: 0 10px 0 0;
+  border: 0;
+  border-radius: 999px;
+  font-size: 15px;
+  line-height: 18px;
 }
 
 .overlay > .sheet-open::before,
@@ -1010,7 +1017,7 @@ a.language:hover,
   text-align: right;
 }
 
-.options > li[data-side="left"] > .overlay > .sheet-open {
+.options > li[data-side="left"] > :is(.overlay, .side-add) > .sheet-open {
   padding: 0 0 0 10px;
 }
 
@@ -3349,21 +3356,11 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * **[#175]** In the fan it has the Option button's shape: its slot fills the inner end, and
- * its dashed outline is drawn under the slot as the Option button's is, so the slot's own
- * dashed ring is the end's outline and no end is drawn twice.
+ * **[#175]** In the fan it has the Option button's shape (`.options > li > :is(.overlay,
+ * .side-add)`, with the Options): its slot fills the inner end, and its dashed outline is
+ * drawn under the slot as the Option button's is, so the slot's own dashed ring is the end's
+ * outline and no end is drawn twice.
  */
-.options > li > .side-add > .sheet-open {
-  position: relative;
-  isolation: isolate;
-  gap: 6px;
-  padding: 0 10px 0 0;
-  border: 0;
-  border-radius: 999px;
-  font-size: 15px;
-  line-height: 18px;
-}
-
 .options > li > .side-add > .sheet-open::before {
   border-style: dashed;
 }
@@ -3375,7 +3372,6 @@ fieldset:disabled .admin-submit {
 .options > li[data-side="left"] > .side-add > .sheet-open {
   flex-direction: row-reverse;
   text-align: right;
-  padding: 0 0 0 10px;
 }
 
 .side-add-plus {
