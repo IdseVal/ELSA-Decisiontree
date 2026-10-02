@@ -381,10 +381,11 @@ test.describe('names for assistive technology', () => {
     await page.goto(`${cycle}/cycle/first`)
     await expect(page.locator('.bubble .main-image--empty')).toBeVisible()
     await expect(page.locator('.bubble .main-image--empty')).toHaveAttribute('aria-hidden', 'true')
-    // A circle as tall as a picture would be there: two fifths of the Bubble (#102).
+    // A circle as tall as a picture would be there: two fifths of the Bubble (#102), which is
+    // 401 since the strip band holds 67-pixel thumbnails on every Node, pictures or none (#174).
     const box = (await page.locator('.bubble .main-image--empty').boundingBox())!
     expect(box.width).toBeCloseTo(box.height, 0)
-    expect(box.height).toBeCloseTo(0.4 * 416, 1)
+    expect(box.height).toBeCloseTo(0.4 * 401, 1)
   })
 
   for (const [lang, name] of [
