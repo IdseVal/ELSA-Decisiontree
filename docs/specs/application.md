@@ -263,7 +263,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 |---|---|
 | #134 | `siteTitle` (the overview's and `llms.txt`'s H1, 23.5, 24.3), `noTrees`, `newTree` |
 | #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language); **[#162]** `sessionNotKept` (a login the browser kept no cookie of, 25.1) |
-| #137 | `published`, `hidden`, `notServable`, `treeId`, `treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`, `languages`, `addLanguage`, `makeDefault`, `default`, ~~`languagesFixed`~~ (**[#147]** replaced by `languagesLater`: the languages change in the top panel, 33.5), `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
+| #137 | `published`, `hidden`, `notServable`, `treeId`, ~~`treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`~~ (**[#168]** removed with the address field, 27.1; `treeId` stays, the top panel names the address with it), `languages`, `addLanguage`, `makeDefault`, `default`, ~~`languagesFixed`~~ (**[#147]** replaced by `languagesLater`: the languages change in the top panel, 33.5; **[#168]** `languagesLater` removed: the form says no sentence), `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
 | #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
 | #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused`; **[#140] added in the build**: `cancel` (the attach Sheet's second button, 31.2 -- the same word #139's row names, so whichever branch merges second keeps one) and `imageDescription` (the label of its description field; `credit` labels the other) |
@@ -838,7 +838,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── queue.ts         [#138] the write queue: the debounce, one request in flight, the retry ladder, the pause (29.1, 29.5, 29.6); pure
 │   │   ├── fields.ts        [#138] a Node's fields by key path, the queue's key, the plain-line and V-HTML rules (22.2, 29.7); pure
 │   │   ├── writes.ts        the one caller of fetch against /admin/api/, one function per route used
-│   │   ├── slug.ts          the id proposed from a title or a selection (27.1, 32.1)
+│   │   ├── slug.ts          the id proposed from a title or a selection (27.1, 32.1); [#168] a new Tree's address
 │   │   ├── LoginForm.tsx    client: the login card, on the login page and in the session Sheet (25.1, 29.6)
 │   │   ├── NewTreeForm.tsx  client: the new-Tree form (27)
 │   │   ├── ImageSlot.tsx, AttachSheet.tsx     client: the pickers and the attach dialog (31)
@@ -3571,13 +3571,25 @@ Trees: `noTrees` on `/`; the + tile alone on `/admin`.
 
 ### 27.1 The form, `/admin/new`
 
+**[#168], changed by the owner -- 2026-10-02**: the form was too hard to read for the core
+audience. It now holds **one title, the languages and `create`**, in that order, each a label over its
+control, with no sentence of explanation. The creator is **never asked for the address**:
+it is the title's (`treeIdOf` in `src/editor/slug.ts`: the proposal below, with accents
+folded to their letters, `tree` when nothing is left), and an address the route refuses --
+taken, or a reserved word -- is followed by `-2`, `-3`, ... until one is created (at most
+20 tries). The one title is the **default language's**; the other languages start with an
+empty title, the to-do V-L10N reports (19.2), filled in the top panel (33.5). The title is
+required: an empty form sends nothing. The id still never changes after creation
+(ADR-133-new-tree-form decision 2); the form no longer says so. Struck below is what this
+replaces.
+
 One card of 520 pixels in a scroll box (26.3), holding in this order:
 
 | Field | Contract |
 |---|---|
-| `treeId` | The id grammar of `tree-format.md` 3.1, with `treeIdHint` under it and the address the Tree will have (`/<id>/start`) shown live. **Proposed by the script from the first title typed** (lower-cased, every run outside `[a-z0-9]` → one hyphen, trimmed, cut to 64) until the creator edits the field. Under it, `treeIdFixed`: **the id never changes after creation** -- it is the folder name (17.2) and is in every URL and share link (4.1). No rename exists on any route. |
-| `languages` | A row of tags with a field to add one (the tag grammar of 3.3, checked in the script); `en` and `nl` as one-click buttons; a `remove` cross on every tag but the last; `makeDefault` on every tag but the first. **The first tag is the default language** (3.3), marked `default`. Opens with the page's chrome language as its one tag. ~~`languagesFixed`: the languages cannot be changed after creation in this round (#147, `proposed`).~~ **[#147]** `languagesLater`: languages can be added or removed later, in the top panel (33.5). The control is `src/editor/LanguageTags.tsx`, shared with the panel. |
-| `title`, per language | One field per tag in tag order, labelled by the tag, with the 80-character counter of 28.4. May be left empty in a language: then V-L10N's to-do (19.2). |
+| ~~`treeId`~~ **[#168]** removed | ~~The id grammar of `tree-format.md` 3.1, with `treeIdHint` under it and the address the Tree will have (`/<id>/start`) shown live. **Proposed by the script from the first title typed** (lower-cased, every run outside `[a-z0-9]` → one hyphen, trimmed, cut to 64) until the creator edits the field. Under it, `treeIdFixed`: **the id never changes after creation** -- it is the folder name (17.2) and is in every URL and share link (4.1). No rename exists on any route.~~ |
+| `languages` | A row of tags with a field to add one (the tag grammar of 3.3, checked in the script); `en` and `nl` as one-click buttons; a `remove` cross on every tag but the last; `makeDefault` on every tag but the first. **The first tag is the default language** (3.3), marked `default`. Opens with the page's chrome language as its one tag. ~~`languagesFixed`: the languages cannot be changed after creation in this round (#147, `proposed`).~~ **[#147]** `languagesLater`: languages can be added or removed later, in the top panel (33.5). The control is `src/editor/LanguageTags.tsx`, shared with the panel. **[#168]** No `languagesLater` under it. |
+| `title` | ~~One field per tag in tag order, labelled by the tag~~ **[#168]** One field, the default language's, labelled `title`, with the 80-character counter of 28.4 beside the label. Required. |
 | `create` | One button in the Answer buttons' style. |
 
 The Tree's **description** is not here: it is a manifest field edited in the top panel
@@ -3588,9 +3600,11 @@ The Tree's **description** is not here: it is a manifest field edited in the top
 `POST /admin/api/trees { id, languages, title }` (22.1). 201 → the script goes to
 `/admin/trees/<id>/start` in the page's language when declared, else the Tree's default:
 the editor on the empty root Node (28), which is hidden until published (19). Errors at the
-field: 409 → `treeIdTaken`; 422 for a reserved word (`images`, `theme`, `schemas`, `admin`)
-→ `treeIdReserved`; 422 for a malformed id or tag → the hint in `danger` (the script checks
-both grammars before sending). Nothing is created on an error; the fields keep their values.
+field: ~~409 → `treeIdTaken`; 422 for a reserved word (`images`, `theme`, `schemas`, `admin`)
+→ `treeIdReserved`;~~ **[#168]** 409 and 422 for a reserved word → the next address is tried
+(27.1); 422 for a malformed tag → `languageHint` in `danger` at the languages (the script checks
+the grammar before sending); anything else → `requestFailed` under the button. Nothing is
+created on an error; the fields keep their values.
 
 ## 28. The editor: the Bubble edited in place
 
