@@ -16,7 +16,8 @@
  * float at the top right, at every viewport the floor's included; and the to-do bubble with a
  * list longer than the window. **[#177]** And a side bubble at every maximum opened by its
  * address at every viewport: plain, with its delete asking, and below the guarantee with its
- * Sources' Sheet open.
+ * Sources' Sheet open. **[#178]** And the step's buttons beside the up arrow, in place of the
+ * step menu and the link menus, plain and with the red cross's question asked.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -286,10 +287,12 @@ for (const lang of LANGUAGES) {
 
 /**
  * **[#139]** The structure's Sheets (30) at every viewport (28.6): on an explanation Node that
- * is the centre, the end Sheet and the step menu; on the full Node, an Answer's and an Option's
- * link menu, the picker included. Each is opened, measured and closed with Escape, which also
- * puts its form back on its first page. **[#177]** The fan's `+` opens no Sheet any more: one
- * click creates (30.4, amended), and the side bubble it opens is measured with the Overlays.
+ * is the centre, the end Sheet. Each is opened, measured and closed with Escape. **[#177]** The
+ * fan's `+` opens no Sheet any more: one click creates (30.4, amended), and the side bubble it
+ * opens is measured with the Overlays. **[#178]** The step menu and the link menus are gone
+ * (30.6, 30.8, amended): in their place the step's buttons beside the up arrow are measured --
+ * the red cross on that explanation Node, and the cross with "Tree does not end here after all"
+ * on a Terminal under a Trail -- each page also with the cross's question asked.
  */
 async function structureEverywhere(page: Page, lang: string): Promise<void> {
   const query = lang === 'en' ? '' : '?lang=nl'
@@ -300,6 +303,7 @@ async function structureEverywhere(page: Page, lang: string): Promise<void> {
     record(await measure(page), 'editor, structure', lang, viewport, what)
     await page.keyboard.press('Escape')
   }
+  const asked = () => expect(page.getByRole('alertdialog')).toBeVisible()
   for (const [width, height] of VIEWPORTS) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
@@ -307,20 +311,17 @@ async function structureEverywhere(page: Page, lang: string): Promise<void> {
     await expect(page.locator('main')).toBeVisible()
     record(await measure(page), 'editor, structure', lang, viewport, '')
     await open(page.locator('.structure-end > .sheet-open'), 'end Sheet', viewport)
-    await open(page.locator('.step-menu > .sheet-open'), 'step menu', viewport, () => page.locator('.structure-form--step .admin-submit').first().click())
+    await open(page.locator('.step-delete'), 'the cross, asking', viewport, asked)
 
-    expect((await page.goto(`${origin}/admin/trees/hidden-draft/full${query}`))?.status()).toBe(200)
+    expect((await page.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`))?.status()).toBe(200)
     await expect(page.locator('main')).toBeVisible()
-    const linkForm = page.locator('.structure-form--link').filter({ visible: true })
-    await open(page.locator('.link-menu--yes > .sheet-open'), 'link menu, Answer', viewport)
-    await open(page.locator('.link-menu--yes > .sheet-open'), 'link menu, Answer, picker', viewport, () => linkForm.locator('.admin-submit').first().click())
-    await open(page.locator('.link-menu--option > .sheet-open').first(), 'link menu, Option', viewport)
-    await open(page.locator('.link-menu--option > .sheet-open').first(), 'link menu, Option, picker', viewport, () => linkForm.locator('.admin-submit').first().click())
+    record(await measure(page), 'editor, structure', lang, viewport, 'a Terminal, its two buttons')
+    await open(page.locator('.step-delete'), 'a Terminal, the cross asking', viewport, asked)
   }
 }
 
 for (const lang of LANGUAGES) {
-  test(`the structure's Sheets, ${lang}, never scroll at any viewport of 10.6 (30, 28.6)`, async ({ browser }) => {
+  test(`the structure's Sheets and the step's buttons, ${lang}, never scroll at any viewport of 10.6 (30, 28.6)`, async ({ browser }) => {
     test.slow()
     await structureEverywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), lang)
   })
