@@ -3482,10 +3482,6 @@ fieldset:disabled .admin-submit {
   line-height: var(--small-line);
 }
 
-.structure-form form {
-  display: contents;
-}
-
 .structure-form h2,
 .structure-picker h2 {
   margin: 0;
