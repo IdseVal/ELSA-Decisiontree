@@ -1151,12 +1151,50 @@ produced by the procedure of 12.6 and validated against `schemas/elsa-tree-4.jso
 #119 converts `trees/ai-act-example/tree.yaml` into `trees/ai-act-example/tree.json`, and
 that file is byte-identical to the block below.
 
-**[#171]** The block is now its `elsa-tree/5` form (2026-10-02): 12.7 changed `$schema`,
-`format` and the three Terminals, each now carrying the words its badge showed, and -- by
-hand, as 12.6.2 did once -- the one sentence of the manifest's `description` that names the
-format. Validated against `schemas/elsa-tree-5.json`. Issue #179 converts
-`trees/ai-act-example/tree.json` the same way, and that file is byte-identical to the block
-below again.
+**[#171] The block below is still the `elsa-tree/4` file on `dev`, byte for byte, until
+#179 converts both together** (2026-10-02). `tests/migrate-tree.test.ts` holds the block and
+`trees/ai-act-example/tree.json` to each other, and the file must stay `/4` while the loader
+reads `/4`. #179 converts the file by 12.7, changes the one sentence of the manifest's
+`description` that names the format by hand (as 12.6.2 did once), and replaces the block
+with the result in the same commit. The `elsa-tree/5` form differs from the block in exactly
+these lines -- produced by 12.7 on 2026-10-02, valid against `schemas/elsa-tree-5.json`, 11,226
+bytes against the block's 11,050:
+
+```diff
+-  "$schema": "/schemas/elsa-tree-4.json",
+-  "format": "elsa-tree/4",
++  "$schema": "/schemas/elsa-tree-5.json",
++  "format": "elsa-tree/5",
+@@ "description" of the manifest
+-    "en": "A small example Tree that exercises every element of the `elsa-tree/4` format.\nIts legal content is simplified and not to be relied on.",
+-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/4`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
++    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
++    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+@@ "outside-scope"
+       "terminal": {
+-        "outcome": "not-applicable"
++        "label": {
++          "en": "Does not apply",
++          "nl": "Niet van toepassing"
++        }
+       }
+@@ "prohibited"
+       "terminal": {
+-        "outcome": "prohibited"
++        "label": {
++          "en": "Prohibited",
++          "nl": "Verboden"
++        }
+       }
+@@ "covered"
+       "terminal": {
+-        "outcome": "applicable"
++        "label": {
++          "en": "Applies",
++          "nl": "Van toepassing"
++        }
+       }
+```
 
 Folder layout:
 
@@ -1207,8 +1245,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-4.json",
+  "format": "elsa-tree/4",
   "languages": [
     "en",
     "nl"
@@ -1219,8 +1257,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
     "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
   },
   "description": {
-    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+    "en": "A small example Tree that exercises every element of the `elsa-tree/4` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/4`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
   "metadata": {
     "version": "2.0",
@@ -1339,10 +1377,7 @@ reader of the contract finds it; what an author needs to keep beside the data go
         }
       ],
       "terminal": {
-        "label": {
-          "en": "Does not apply",
-          "nl": "Niet van toepassing"
-        }
+        "outcome": "not-applicable"
       }
     },
     {
@@ -1508,10 +1543,7 @@ reader of the contract finds it; what an author needs to keep beside the data go
         }
       ],
       "terminal": {
-        "label": {
-          "en": "Prohibited",
-          "nl": "Verboden"
-        }
+        "outcome": "prohibited"
       }
     },
     {
@@ -1538,10 +1570,7 @@ reader of the contract finds it; what an author needs to keep beside the data go
         }
       ],
       "terminal": {
-        "label": {
-          "en": "Applies",
-          "nl": "Van toepassing"
-        }
+        "outcome": "applicable"
       }
     }
   ]
@@ -2079,8 +2108,9 @@ third party converts its own `/4` Tree the same way. The store runs the same fun
 files it opens (12.7.4).
 
 Verified on 2026-10-02 by running steps 1 to 8 in memory over the repository (12.7.3): the
-procedure is idempotent on its own output, and the example Tree's result is section 8's block
-byte for byte, once its description's sentence about the format is changed by hand.
+procedure is idempotent on its own output, and the example Tree's result, once its
+description's sentence about the format is changed by hand, is section 8's block with
+exactly the lines of section 8's diff changed.
 
 #### 12.7.2 What the procedure guarantees, and what it does not
 
@@ -2106,8 +2136,10 @@ and `tests/fixtures/`: 56 files, 108 Terminals in 55 of them (54 `not-applicable
 `applicable`, 2 `refer`, 2 `prohibited`, 1 `maybe`), the same 108 counted as `"outcome"` keys
 in the text. Issue #179 runs it and commits the result.
 
-- `trees/ai-act-example` (3 Terminals): converts to the file of section 8, once the
-  description's mention of the format is changed by hand.
+- `trees/ai-act-example` (3 Terminals): converts to section 8's block with the lines of its
+  diff changed, once the description's mention of the format is changed by hand; #179 puts
+  the result in the file and in section 8's block in one commit, which
+  `tests/migrate-tree.test.ts` holds byte-identical.
 - `trees/ai-act-applicability-agrifood` (4): converts and validates. Its endings read:
   `ai-act-does-not-apply` "Does not apply" / "Niet van toepassing", `end-of-walk` "Applies" /
   "Van toepassing", `not-an-ai-system` "Look elsewhere" / "Elders geregeld", `prohibited`
