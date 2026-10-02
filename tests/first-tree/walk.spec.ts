@@ -730,12 +730,16 @@ for (const [width, height] of VIEWPORTS) {
       const carousel = await page.evaluate(() => {
         const strip = document.querySelector('[data-carousel-strip]')!.getBoundingClientRect()
         return {
-          centre: Math.round(strip.top + strip.height / 2),
+          top: Math.round(strip.top),
+          bottom: Math.round(strip.bottom),
           outline: Math.round(document.querySelector('.bubble')!.getBoundingClientRect().bottom),
         }
       })
-      expect(Math.abs(carousel.centre - carousel.outline), "the strip on the Bubble's lower edge").toBeLessThanOrEqual(2)
-      await noScroll(page, 'carousel fixture, five Images', lang, [`strip centre y ${carousel.centre}, Bubble bottom ${carousel.outline}`])
+      // [#174] The 67-pixel strip straddles the lower edge, no longer centred on it: 24 above
+      // the outline, 2 clear of the text area, and 43 below it, in the strip band (12.2).
+      expect(Math.abs(carousel.outline - carousel.top - 24), "the strip on the Bubble's lower edge").toBeLessThanOrEqual(1)
+      expect(Math.abs(carousel.bottom - carousel.outline - 43), "the strip on the Bubble's lower edge").toBeLessThanOrEqual(1)
+      await noScroll(page, 'carousel fixture, five Images', lang, [`strip top y ${carousel.top}, bottom y ${carousel.bottom}, Bubble bottom ${carousel.outline}`])
       await shot87(page, '5-carousel-fixture', lang)
     })
   }
