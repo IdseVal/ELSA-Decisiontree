@@ -23,7 +23,22 @@ export function proposedId(text: string): string {
  */
 export function explainerId(selection: string, taken: string[]): string {
   const stem = proposedId(selection)
-  if (stem === '' || !taken.includes(stem)) return stem
+  return stem === '' ? stem : unused(stem, taken)
+}
+
+/**
+ * **[#168]** The address of a new Tree titled `title` (27.1): the proposed id of the title
+ * with its accents folded to their letters -- `Één wet` is `een-wet`, not `n-wet` -- or
+ * `tree` when no letter or digit is left, with `-2`, `-3`, ... appended past `taken`, the
+ * addresses the route has refused. The creator is never asked for it.
+ */
+export function treeIdOf(title: string, taken: string[]): string {
+  return unused(proposedId(title.normalize('NFKD').replace(/\p{M}/gu, '')) || 'tree', taken)
+}
+
+/** `stem`, or the first of `stem-2`, `stem-3`, ... not in `taken`, cut so it stays within 64. */
+function unused(stem: string, taken: string[]): string {
+  if (!taken.includes(stem)) return stem
   for (let n = 2; ; n += 1) {
     const suffix = `-${n}`
     const id = `${cut(stem, MAX_ID - suffix.length)}${suffix}`

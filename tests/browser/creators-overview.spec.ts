@@ -2,7 +2,7 @@
  * The creators' overview and the new-Tree form, in a browser (docs/specs/application.md
  * 26.4, 27; ADR-133-overview-tiles, ADR-133-new-tree-form): who sees which Tree, the two
  * groups and where each tile leads, the + tile absent for a visitor, and the form's
- * proposal, its refusals at the field and its landing -- against a fresh data directory on
+ * **[#168]** one title, the address it derives without asking, and its landing -- against a fresh data directory on
  * a server of this file's own. Each creator's hidden Tree is made through the route of #136,
  * as the form makes one, so its `meta.json` names the creator the store itself wrote.
  */
@@ -19,6 +19,8 @@ const SHOTS =
   process.env.ELSA_SHOTS === '1'
     ? path.join(repo, 'docs', 'screenshots', 'issue-137')
     : path.join(repo, 'tests', 'browser', '.results', 'shots')
+/** **[#168]** The simplified form's screenshots, tracked beside the issue that asked for it. */
+const SHOTS_168 = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-168') : SHOTS
 
 const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
 const CEES = { login: 'cees', name: 'Cees', password: 'cees first password' }
@@ -115,31 +117,23 @@ test.describe('which Trees, in what order, leading where (26.4)', () => {
 })
 
 test.describe('the new-Tree form (27)', () => {
-  test('opens with the page language as its one, default, tag', async ({ browser }) => {
+  test('asks a title and the languages only: the page language is its one, default, tag, and no address is asked', async ({ browser }) => {
     const page = await loggedIn(browser, ANNA.login, ANNA.password)
     await page.goto(`${origin}/admin/new?lang=nl`)
 
     await expect(page.locator('.new-tree-tag')).toHaveCount(1)
     await expect(page.locator('.new-tree-tag')).toHaveText('nlstandaard')
-    await expect(page.getByText('De adresnaam verandert nooit nadat de boom is aangemaakt: hij staat in elke link ernaartoe.')).toBeVisible()
-  })
+    await expect(page.getByLabel('Titel', { exact: true })).toBeVisible()
+    await expect(page.locator('.new-tree input')).toHaveCount(2)
+    await expect(page.locator('.new-tree')).not.toContainText('/start')
+    await expect(page.locator('.new-tree .admin-note, .new-tree .admin-hint')).toHaveCount(0)
 
-  test('proposes the id from the first title typed, live, until the creator edits the id', async ({ browser }) => {
-    const page = await loggedIn(browser, ANNA.login, ANNA.password)
     await page.goto(`${origin}/admin/new`)
-    const id = page.getByLabel('Address name')
-
-    await page.getByLabel('Title (en)').fill('Does the AI Act apply?')
-    await expect(id).toHaveValue('does-the-ai-act-apply')
-    await expect(page.locator('[data-address]')).toHaveText('/does-the-ai-act-apply/start')
-
-    await id.fill('my-own-id')
-    await page.getByLabel('Title (en)').fill('Something else')
-    await expect(id).toHaveValue('my-own-id')
-    await expect(page.locator('[data-address]')).toHaveText('/my-own-id/start')
+    await expect(page.getByLabel('Title', { exact: true })).toBeEnabled()
+    await page.screenshot({ path: path.join(SHOTS_168, 'new-tree-form.png') })
   })
 
-  test('adds, orders and removes languages: the first is the default, the last cannot be removed', async ({ browser }) => {
+  test('adds, orders and removes languages: the first is the default, the last cannot be removed; a title for each added one', async ({ browser }) => {
     const page = await loggedIn(browser, ANNA.login, ANNA.password)
     await page.goto(`${origin}/admin/new`)
     const tags = page.locator('.new-tree-tag-name')
@@ -149,7 +143,11 @@ test.describe('the new-Tree form (27)', () => {
     await page.getByLabel('Add', { exact: true }).fill('pt-br')
     await page.getByLabel('Add', { exact: true }).press('Enter')
     await expect(tags).toHaveText(['en', 'nl', 'pt-br'])
-    await expect(page.getByLabel(/^Title \(/)).toHaveCount(3)
+    await expect(page.getByLabel(/^Title/)).toHaveCount(3)
+    await page.getByLabel('Title (en)').fill('Does the AI Act apply?')
+    await page.getByLabel('Title (nl)').fill('Is de AI-verordening van toepassing?')
+    await expect(page.locator('.new-tree-count')).toHaveText(['22 / 80', '36 / 80', '0 / 80'])
+    await page.screenshot({ path: path.join(SHOTS_168, 'new-tree-form-three-languages.png') })
 
     await page.locator('.new-tree-tag[data-language="pt-br"]').getByRole('button', { name: 'Make default' }).click()
     await expect(tags).toHaveText(['pt-br', 'en', 'nl'])
@@ -164,49 +162,45 @@ test.describe('the new-Tree form (27)', () => {
     await page.getByRole('button', { name: 'Remove nl' }).click()
     await expect(tags).toHaveText(['pt-br'])
     await expect(page.getByRole('button', { name: 'Remove pt-br' })).toHaveCount(0)
+    await expect(page.getByLabel(/^Title/)).toHaveCount(1)
+    await expect(page.getByLabel('Title', { exact: true })).toHaveAttribute('lang', 'pt-br')
   })
 
-  test('refuses an id in use at the field, and creates nothing; the values are kept', async ({ browser }) => {
-    const page = await loggedIn(browser, ANNA.login, ANNA.password)
-    await page.goto(`${origin}/admin/new`)
-    await page.getByLabel('Title (en)').fill('Another AI Act tree')
-    await page.getByLabel('Address name').fill('ai-act-example')
-    const answered = page.waitForResponse((response) => response.url() === `${origin}/admin/api/trees`)
-    await page.getByRole('button', { name: 'Create' }).click()
-
-    expect((await answered).status()).toBe(409)
-    const field = page.locator('.admin-field-group').filter({ has: page.getByLabel('Address name') })
-    await expect(field.getByRole('alert')).toHaveText('A tree with this address name exists.')
-    await expect(page.getByLabel('Address name')).toHaveValue('ai-act-example')
-    await expect(page.getByLabel('Title (en)')).toHaveValue('Another AI Act tree')
-    await expect(page).toHaveURL(`${origin}/admin/new`)
-    await page.screenshot({ path: path.join(SHOTS, 'new-tree-form-id-taken.png') })
-  })
-
-  test('refuses a reserved word at the field', async ({ browser }) => {
-    const page = await loggedIn(browser, ANNA.login, ANNA.password)
-    await page.goto(`${origin}/admin/new`)
-    await page.getByLabel('Address name').fill('admin')
-    const answered = page.waitForResponse((response) => response.url() === `${origin}/admin/api/trees`)
-    await page.getByRole('button', { name: 'Create' }).click()
-
-    expect((await answered).status()).toBe(422)
-    await expect(page.locator('.new-tree').getByRole('alert')).toHaveText('This word is reserved by the site. Choose another.')
-  })
-
-  test('turns the hint to an error for a malformed id without sending it', async ({ browser }) => {
+  test('sends nothing without a title', async ({ browser }) => {
     const page = await loggedIn(browser, ANNA.login, ANNA.password)
     const sent: string[] = []
     page.on('request', (request) => {
       if (request.method() === 'POST') sent.push(request.url())
     })
     await page.goto(`${origin}/admin/new`)
-    await page.getByLabel('Address name').fill('Not--valid')
     await page.getByRole('button', { name: 'Create' }).click()
 
-    await expect(page.locator('.new-tree').getByRole('alert')).toHaveText('Lowercase letters, digits and single hyphens; at most 64.')
-    await expect(page.locator('.new-tree').getByRole('alert')).toHaveClass('admin-error')
+    await expect(page.getByLabel('Title', { exact: true })).toBeFocused()
+    await expect(page).toHaveURL(`${origin}/admin/new`)
     expect(sent).toEqual([])
+  })
+
+  test("creates the Tree at the next address when its title's is taken, without asking", async ({ browser }) => {
+    const page = await loggedIn(browser, CEES.login, CEES.password)
+    const answers: string[] = []
+    page.on('response', (response) => {
+      if (response.url() === `${origin}/admin/api/trees`) answers.push(`${response.status()} ${JSON.parse(response.request().postData()!).id}`)
+    })
+    await page.goto(`${origin}/admin/new`)
+    await page.getByLabel('Title', { exact: true }).fill('AI Act example')
+    await page.getByRole('button', { name: 'Create' }).click()
+
+    await expect(page).toHaveURL(`${origin}/admin/trees/ai-act-example-2/start`)
+    expect(answers).toEqual(['409 ai-act-example', '201 ai-act-example-2'])
+  })
+
+  test('creates the Tree at the next address when its title is a reserved word', async ({ browser }) => {
+    const page = await loggedIn(browser, CEES.login, CEES.password)
+    await page.goto(`${origin}/admin/new`)
+    await page.getByLabel('Title', { exact: true }).fill('Admin')
+    await page.getByRole('button', { name: 'Create' }).click()
+
+    await expect(page).toHaveURL(`${origin}/admin/trees/admin-2/start`)
   })
 
   test("creates the Tree hidden and lands in its editor; it is on the creator's overview and not on the public one", async ({ browser }) => {
@@ -219,7 +213,6 @@ test.describe('the new-Tree form (27)', () => {
     await page.locator('.new-tree-add').getByRole('button', { name: 'nl', exact: true }).click()
     await page.getByLabel('Title (en)').fill('Data Act: does it apply?')
     await page.getByLabel('Title (nl)').fill('Is de Dataverordening van toepassing?')
-    await expect(page.getByLabel('Address name')).toHaveValue('data-act-does-it-apply')
     await page.getByRole('button', { name: 'Create' }).click()
 
     // The editor of the root Node; #138 builds it, so until then its address is all there is.
@@ -243,9 +236,11 @@ test.describe('the new-Tree form (27)', () => {
     await page.goto(`${origin}/admin/new?lang=nl`)
     await page.locator('.new-tree-add').getByRole('button', { name: 'en', exact: true }).click()
     await page.locator('.new-tree-tag[data-language="en"]').getByRole('button', { name: 'Maak standaard' }).click()
+    await page.getByLabel('Titel (en)').fill('Second tree')
     await page.getByLabel('Titel (nl)').fill('Tweede boom')
     await page.getByRole('button', { name: 'Aanmaken' }).click()
 
-    await expect(page).toHaveURL(`${origin}/admin/trees/tweede-boom/start?lang=nl`)
+    // The address is the default language's title's.
+    await expect(page).toHaveURL(`${origin}/admin/trees/second-tree/start?lang=nl`)
   })
 })

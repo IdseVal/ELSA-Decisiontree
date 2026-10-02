@@ -52,18 +52,12 @@ export function newTreeWords(lang: string): NewTreeWords {
   const ui = chrome(lang)
   return {
     newTree: ui.newTree,
-    treeId: ui.treeId,
-    treeIdHint: ui.treeIdHint,
-    treeIdFixed: ui.treeIdFixed,
-    treeIdTaken: ui.treeIdTaken,
-    treeIdReserved: ui.treeIdReserved,
     languages: ui.languages,
     addLanguage: ui.addLanguage,
     makeDefault: ui.makeDefault,
     default: ui.default,
     removeLanguage: ui.removeLanguage,
     languageHint: ui.languageHint,
-    languagesLater: ui.languagesLater,
     title: ui.title,
     create: ui.create,
     requestFailed: ui.requestFailed,

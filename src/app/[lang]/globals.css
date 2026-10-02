@@ -1905,13 +1905,69 @@ fieldset:disabled .admin-submit {
   overflow-y: auto;
 }
 
+/*
+ * [#168] The new-Tree form as the owner simplified it: a title and the languages, each a
+ * label over its control, with room between them and no sentence of explanation; the
+ * address is the title's and never shown here.
+ */
 .admin-card.new-tree {
   width: 520px;
+  gap: 16px;
+  padding: 20px 24px 24px;
 }
 
-.new-tree-address {
-  margin-top: -6px;
-  overflow-wrap: anywhere;
+.admin-card.new-tree h1 {
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.new-tree fieldset {
+  gap: 20px;
+}
+
+.new-tree .admin-field-group {
+  gap: 8px;
+}
+
+.new-tree-title {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.new-tree-title input {
+  grid-column: 1 / -1;
+  min-width: 0;
+  height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--elsa-background);
+  color: var(--elsa-text);
+  font: inherit;
+  font-size: 18px;
+}
+
+.new-tree-title input:focus-visible,
+.new-tree .new-tree-add input:focus-visible {
+  border-color: var(--accent-read);
+}
+
+.new-tree-count {
+  color: var(--elsa-text-muted);
+  font-size: var(--small);
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.new-tree .new-tree-label {
+  font-weight: 700;
+}
+
+.new-tree .admin-submit {
+  min-height: 44px;
+  border-radius: 6px;
 }
 
 .new-tree-label {
