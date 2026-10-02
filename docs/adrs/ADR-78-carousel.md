@@ -6,6 +6,10 @@
 - Core document: 3.2 ("The Carousel: pictures only ..."), section 8 (every Image carries a credit), open item **10.26** (decided here, PROPOSED for the owner)
 - Supersedes in part: `ADR-38-carousel.md` (decisions 1, 2, 4, 5 and 8, and its #55 amendment), `ADR-37-images-carousel.md` (its "the caption under a picture is its description" and the Option pictures), `ADR-38-tree-view.md` (decision 6)
 - Built by: #81
+- Amended in part on issue #174 (the owner, #169), 2026-10-02: the thumbnails are 67 pixels
+  (decision 2's 48) at a 75-pixel pitch in a box of at most 383, five visible; their upper 24
+  pixels lie in the rim and their lower 43 in a strip band of 43 (decision 7's 28), so they
+  straddle the outline without being centred on it (`docs/specs/application.md` 10.1, 12.2)
 
 ## Context
 

@@ -720,11 +720,12 @@ test('the full Node keeps the text area 10.5 budgets, a 760 Bubble down to 1200 
   for (const [width, height] of [[1280, 640], [1280, 632], [1279, 640], [1200, 640], [1200, 632]] as const) {
     await page.setViewportSize({ width, height })
     expect((await page.goto(`${origin}${FULL_NODE_URL}`))?.status()).toBe(200)
-    // At 640 the up arrow stands 30 pixels above the Bubble and the text area is 364 (#102);
-    // below it the arrow is back on the outline, and step 1 frees 8 more, so 632 has 394.
+    // At 640 the up arrow stands 30 pixels above the Bubble and the text area is 364 (#102),
+    // 349 since the strip band holds 67-pixel thumbnails (#174); below it the arrow is back on
+    // the outline and the strip is its pill, so 632 has 394, as before.
     expect((await page.locator('.bubble').boundingBox())!.width, `${width}x${height}: the Bubble`).toBe(760)
     expect((await page.locator('.bubble-text').boundingBox())!.height, `${width}x${height}: the text area`).toBe(
-      height >= 640 ? 364 : 394,
+      height >= 640 ? 349 : 394,
     )
     const bubble = (await page.locator('.bubble').boundingBox())!
     const image = (await page.locator('.bubble .main-image').boundingBox())!

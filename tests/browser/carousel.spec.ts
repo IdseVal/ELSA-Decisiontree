@@ -143,8 +143,9 @@ test.describe('the rows of 10.1 at 1280 x 640', () => {
       const measured: Array<[row: string, spec: number, height: number]> = [
         ['chrome bar', 44, m.header.height],
         ['band above the Bubble', 56, m.bubble.top - m.header.bottom],
-        ['Bubble', 416, m.bubble.height],
-        ['strip band', 28, m.answers.top - m.bubble.bottom],
+        // [#174] The strip band holds the lower 43 pixels of a 67-pixel thumbnail; the Bubble gives the 15.
+        ['Bubble', 401, m.bubble.height],
+        ['strip band', 43, m.answers.top - m.bubble.bottom],
         ['Answers', 68, m.answers.height],
         ['disclaimer', 28, m.disclaimer.height],
       ]
@@ -153,52 +154,58 @@ test.describe('the rows of 10.1 at 1280 x 640', () => {
         rowTable.push(`| ${what} | ${row} | ${spec} | ${height} |`)
         expect.soft(height, `${what}: ${row}`).toBe(spec)
       }
-      // The Bubble 760 wide, its text area 640 x 364 (10.1, amended by #102).
+      // The Bubble 760 wide, its text area 640 x 349 (10.1, amended by #102 and #174).
       expect(m.bubble.width).toBe(760)
-      expect([m.text.width, m.text.height]).toEqual([640, 364])
-      rowTable.push(`| ${what} | text area | 640 x 364 | ${m.text.width} x ${m.text.height} |`)
+      expect([m.text.width, m.text.height]).toEqual([640, 349])
+      rowTable.push(`| ${what} | text area | 640 x 349 | ${m.text.width} x ${m.text.height} |`)
 
       // The Interior from the top of the text area: the main image, 3 : 2, two fifths of the
-      // Bubble's 416 (#102), gap 8, title, and the Sources ending inside it (10.7).
+      // Bubble's 401 (#102, #174), gap 8, title, and the Sources ending inside it (10.7).
       expect(m.mainImage!.top).toBe(m.text.top)
-      expect(m.mainImage!.height).toBeCloseTo(0.4 * 416, 1)
+      expect(m.mainImage!.height).toBeCloseTo(0.4 * 401, 1)
       expect(m.mainImage!.width).toBeCloseTo(1.5 * m.mainImage!.height, 0)
       expect(m.title.top - m.mainImage!.bottom).toBe(8)
-      rowTable.push(`| ${what} | main image | 166.4 tall, 3 : 2 | ${m.mainImage!.width} x ${m.mainImage!.height} |`)
+      rowTable.push(`| ${what} | main image | 160.4 tall, 3 : 2 | ${m.mainImage!.width} x ${m.mainImage!.height} |`)
       rowTable.push(`| ${what} | title | at most 56 | ${m.title.height} |`)
       rowTable.push(`| ${what} | description | at most 48 | ${m.prose.height} |`)
       if (m.sources) {
         rowTable.push(`| ${what} | Sources | at most 60 | ${m.sources.height} |`)
-        rowTable.push(`| ${what} | text area left under the Sources | at least 2 | ${m.text.bottom - m.sources.bottom} |`)
+        rowTable.push(`| ${what} | text area left under the Sources | at least 0 | ${m.text.bottom - m.sources.bottom} |`)
         expect(m.sources.height).toBeLessThanOrEqual(60)
         expect(m.sources.bottom).toBeLessThanOrEqual(m.text.bottom)
       }
 
-      // The thumbnails: 48 pixels, centred on the Bubble's bottom outline, 2 clear of the text
-      // area and 4 clear of the Answers; the strip at most 400 wide, centred on the Bubble (12.2).
+      // The thumbnails: 67 pixels since #174, their upper 24 above the Bubble's bottom outline,
+      // 2 clear of the text area, their lower 43 in the band, down to the Answer row; the
+      // strip at most 383 wide, centred on the Bubble (12.2).
       expect(m.thumbnails.length).toBeGreaterThan(0)
       for (const thumbnail of m.thumbnails.filter((t) => t.right > m.strip!.left && t.left < m.strip!.right)) {
-        expect([thumbnail.width, thumbnail.height]).toEqual([48, 48])
+        expect([thumbnail.width, thumbnail.height]).toEqual([67, 67])
         expect(thumbnail.top + 24).toBe(m.bubble.bottom)
         expect(thumbnail.top - m.text.bottom).toBe(2)
-        expect(m.answers.top - thumbnail.bottom).toBe(4)
+        expect(m.answers.top - thumbnail.bottom).toBe(0)
       }
-      expect(m.strip!.width).toBeLessThanOrEqual(400)
+      expect(m.strip!.width).toBeLessThanOrEqual(383)
       expect(Math.abs((m.strip!.left + m.strip!.right) / 2 - (m.bubble.left + m.bubble.right) / 2)).toBeLessThanOrEqual(1)
-      rowTable.push(`| ${what} | thumbnails | 48, centred on the outline | ${m.thumbnails[0]!.height}, centre ${m.thumbnails[0]!.top + 24 - m.bubble.bottom} from the outline |`)
-      rowTable.push(`| ${what} | strip | at most 400 wide | ${m.strip!.width} |`)
+      rowTable.push(`| ${what} | thumbnails | 67, 24 above the outline and 43 below | ${m.thumbnails[0]!.height}, ${m.bubble.bottom - m.thumbnails[0]!.top} above and ${m.thumbnails[0]!.bottom - m.bubble.bottom} below |`)
+      rowTable.push(`| ${what} | strip | at most 383 wide | ${m.strip!.width} |`)
     })
   }
 
-  test('seven thumbnails show and the full Node\'s other two scroll into view', async ({ page }) => {
+  test('five thumbnails show and the full Node\'s other four scroll into view (12.2, #174)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
     await page.goto(`${fullNode}/full-node/full`)
     const thumbnails = page.locator('.thumbnail')
     await expect(thumbnails).toHaveCount(9)
-    for (let i = 0; i < 7; i += 1) await expect(thumbnails.nth(i)).toBeInViewport({ ratio: 1 })
-    await expect(page.locator('[data-carousel-strip]')).toHaveJSProperty('clientWidth', 400)
     const strip = page.locator('[data-carousel-strip]')
-    expect(await strip.evaluate((el) => el.scrollWidth)).toBeGreaterThan(400)
+    await expect(strip).toHaveJSProperty('clientWidth', 383)
+    // Whole inside the strip's box, the first five; the sixth starts past its edge.
+    const box = (await strip.boundingBox())!
+    for (let i = 0; i < 9; i += 1) {
+      const thumbnail = (await thumbnails.nth(i).boundingBox())!
+      expect(thumbnail.x + thumbnail.width <= box.x + box.width, `thumbnail ${i + 1} whole in the box`).toBe(i < 5)
+    }
+    expect(await strip.evaluate((el) => el.scrollWidth)).toBeGreaterThan(383)
   })
 })
 
@@ -374,10 +381,11 @@ test.describe('names for assistive technology', () => {
     await page.goto(`${cycle}/cycle/first`)
     await expect(page.locator('.bubble .main-image--empty')).toBeVisible()
     await expect(page.locator('.bubble .main-image--empty')).toHaveAttribute('aria-hidden', 'true')
-    // A circle as tall as a picture would be there: two fifths of the Bubble (#102).
+    // A circle as tall as a picture would be there: two fifths of the Bubble (#102), which is
+    // 401 since the strip band holds 67-pixel thumbnails on every Node, pictures or none (#174).
     const box = (await page.locator('.bubble .main-image--empty').boundingBox())!
     expect(box.width).toBeCloseTo(box.height, 0)
-    expect(box.height).toBeCloseTo(0.4 * 416, 1)
+    expect(box.height).toBeCloseTo(0.4 * 401, 1)
   })
 
   for (const [lang, name] of [
