@@ -423,7 +423,7 @@ describe('Sources', () => {
     expect(sources).toContain('<li><span class="kind">Literature</span> <a href="https://arxiv.org')
     expect(html).toContain('<span hidden="" id="sources-new-tab">opens in a new tab</span>')
     const nl = part(await view('/ai-act-example/social-scoring?lang=nl'), 'section', 'sources')
-    expect(nl).not.toContain('>Wetgeving</span>')
+    expect(nl).not.toContain('>Juridisch</span>')
     expect(nl).toContain('>Rechtspraak</span>')
   })
 
