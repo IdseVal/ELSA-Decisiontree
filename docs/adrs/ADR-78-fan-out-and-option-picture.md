@@ -8,6 +8,7 @@
 - Built by: #80 (the fan-out), #79 (the format), #84 (the pictures move to their targets)
 - Amended in part by: `ADR-100-overlay-without-strip.md` (decision 2: an Overlay has no strip, so it has no strip pictures), 2026-09-19, issue #100
 - Amended 2026-09-19 by issue #105 (PR #109): decision 4's padding and its three lines
+- Amended 2026-10-02 by issue #175: decision 4's size, picture and type (`application.md` 10.3, amended)
 
 ## Context
 
@@ -75,7 +76,14 @@ with the Planner's proposed resolution.
    face: in Open Sans the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)"
    takes four only hyphenated in the page's language, and five without, which do not fit
    the 80: the button grows to 102, so the 96 is a minimum (`application.md` 10.3 and
-   10.7, amended).
+   10.7, amended). *Amended 2026-10-02 (issue #175, the owner in #169):* the button is
+   236 x 100, the largest at 1280 x 640 that leaves room for a focused button's ring at a
+   Bubble of 416 (at #174's 401 the rows of a side of four stand 0.25 apart), and its
+   picture fills its inner end -- a circle as tall as the button, centred on the end's curve,
+   the outline drawn under it -- with the title at 15 pixels on 18-pixel lines, at most five
+   hyphenated in the page's language (six, and a button of 108, where the browser has no
+   dictionary for it), in the 120 pixels the picture leaves (`application.md` 10.1, 10.3
+   and 10.7, amended).
 5. **Below the guarantee** (10.5): below 1280 pixels of width the fan straightens into
    two columns of 200 x 96 buttons without pictures (176 pixels of label, four lines at
    most) with 20-pixel gaps beside the Bubble (step 2, holds to 1200); below 1200 the

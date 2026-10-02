@@ -188,7 +188,7 @@ describe('the tree layer', () => {
     const html = await view('/ai-act-example/prohibited-practices')
     const fan = part(html, 'ul', 'options')
     expect(fan).toContain(
-      '<summary class="sheet-open"><img class="option-image" src="/ai-act-example/images/scoreboard.png" alt="A scoreboard ranking people" width="48" height="48" loading="lazy"/><span class="option-title">Social scoring</span></summary>',
+      '<summary class="sheet-open"><img class="option-image" src="/ai-act-example/images/scoreboard.png" alt="A scoreboard ranking people" width="100" height="100" loading="lazy"/><span class="option-title">Social scoring</span></summary>',
     )
     // Since #84 the second Option's target carries an Image too: no empty slot in this Tree
     // (the `overlay` fixture shows one, below).
@@ -516,11 +516,11 @@ describe('a question Node with Options', () => {
     expect(await view('/full-node/full')).toContain('data-count="8"')
   })
 
-  test("an Option button shows its target's main image, small, or the empty slot where the target has none (10.3)", async () => {
+  test("an Option button shows its target's main image, filling the button's inner end (#175), or the empty slot where the target has none (10.3)", async () => {
     const html = await view('/full-node/full')
     // `opt-one` leads with one.png: the same file its Overlay's Interior will show (11.4).
     expect(part(html, 'ul', 'options')).toContain(
-      '<summary class="sheet-open"><img class="option-image" src="/full-node/images/one.png" alt="Option one, first picture" width="48" height="48" loading="lazy"/><span class="option-title">Option one: a title of sixty characters, the most it may be.</span></summary>',
+      '<summary class="sheet-open"><img class="option-image" src="/full-node/images/one.png" alt="Option one, first picture" width="100" height="100" loading="lazy"/><span class="option-title">Option one: a title of sixty characters, the most it may be.</span></summary>',
     )
     // Only the target's first picture is on the button, and its Overlay's main image is that same file (10.9, 11.5).
     expect(new Set(all(part(html, 'ul', 'options').split('</li>')[0]!, /"(\/full-node\/images\/[^"]*)"/g))).toEqual(new Set(['/full-node/images/one.png']))

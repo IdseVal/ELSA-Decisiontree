@@ -332,11 +332,12 @@ function optionPicture(target: Aside<AnyNode> | null, treeId: string, lang: stri
 
 /**
  * One Option's Overlay (10.9): a Sheet whose control is the Option button -- the target's
- * main image as a 48-pixel round picture, or the empty slot, and the target's title -- and
- * whose one page is the target's Interior, its heading a link to the target's own address,
- * with the target's own Options under it as plain links to the deeper addresses. In a
- * neighbour frame the button stands with an empty slot and no page behind it (11.3, 11.4).
- * **[#177]** In edit mode `remove`, the `sideDelete` slot's control, stands last, under them.
+ * main image as a round picture filling the button's inner end, or the empty slot, and the
+ * target's title -- and whose one page is the target's Interior, its heading a link to the
+ * target's own address, with the target's own Options under it as plain links to the deeper
+ * addresses. In a neighbour frame the button stands with an empty slot and no page behind it
+ * (11.3, 11.4). **[#177]** In edit mode `remove`, the `sideDelete` slot's control, stands
+ * last, under them.
  */
 function Overlay({
   title,
@@ -350,7 +351,7 @@ function Overlay({
 }: {
   /** The target's title; in edit mode the Option's title as a field (28.1). */
   title: ReactNode
-  /** The 48-pixel picture on the button; null for the empty slot, and in a neighbour frame. */
+  /** The picture on the button, as tall as it (#175); null for the empty slot, and in a neighbour frame. */
   picture: { src: string; alt: string } | null
   /** The target as the page carries it; null in a neighbour frame. */
   aside: Aside<AnyNode> | null
@@ -372,7 +373,7 @@ function Overlay({
         <>
           {/* `option-image` is the name the first Tree's walk (tests/first-tree/walk.spec.ts) finds an Option's picture by. */}
           {picture ? (
-            <img className="option-image" src={picture.src} alt={picture.alt} width={48} height={48} loading="lazy" />
+            <img className="option-image" src={picture.src} alt={picture.alt} width={100} height={100} loading="lazy" />
           ) : (
             <span className="option-image option-image--empty" />
           )}

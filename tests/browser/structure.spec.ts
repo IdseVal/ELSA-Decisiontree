@@ -400,13 +400,29 @@ test('a Node with Options cannot end: the Sheet shows the refusal and the Node i
 })
 
 test('the ninth Option’s + is absent: the full Node with eight Options has no side-bubble + and every button its link menu; no Overlay has one (30.4, 30.5, 30.6)', async ({ browser }) => {
-  const { page } = await loggedIn(browser)
+  const { page, cookie } = await loggedIn(browser)
   await page.goto(`${origin}/admin/trees/hidden-draft/full`)
   await expect(page.locator('.options > li')).toHaveCount(8)
   await expect(page.locator('.options > li.options-add')).toHaveCount(0)
   await expect(page.locator('.link-menu--option')).toHaveCount(8)
   // **[#177]** None of the eight Overlays offers a `+` any more (30.5, amended): before, each list ended in one.
   await expect(page.locator('.side-add')).toHaveCount(0)
+  // **[#175]** Nor does a ninth get past the editor: the store refuses both writes that would
+  // add one, with 22.3's 422 and V-COUNT, and the Node keeps its eight.
+  const ninth = [
+    await api(page, cookie, 'PATCH', '/trees/hidden-draft/nodes/full', { op: 'add-option', title: { en: 'A ninth' } }),
+    await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'full', link: 'option' }, title: { en: 'A ninth' } }),
+    // **[#177]** The `+`'s own write, which sends no title (30.4, amended).
+    await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'full', link: 'option' } }),
+  ]
+  for (const refused of ninth) {
+    expect(refused.status()).toBe(422)
+    expect(((await refused.json()) as { violations: Violation[] }).violations).toEqual([
+      { file: 'full', keyPath: 'options', rule: 'V-COUNT', message: '9 entries; at most 8', advisory: false },
+    ])
+  }
+  const full = await api(page, cookie, 'GET', '/trees/hidden-draft/nodes/full')
+  expect(((await full.json()) as { node: DraftNode }).node.options).toHaveLength(8)
   await page.goto(`${origin}/admin/trees/hidden-draft/full/opt-one`)
   await expect(page.locator('details.overlay[open] .side-add')).toHaveCount(0)
   // An explanation Node that is the centre gets the fan's `+` and the three buttons (30.1, 30.4).

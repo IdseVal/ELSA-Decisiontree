@@ -1,12 +1,13 @@
 /**
  * Issue #104: no Option button of the first Tree cuts a word without a hyphen.
  *
- * A Dutch compound longer than an Option button's 152 pixels of label cannot fit one line at
- * 16 pixels (docs/specs/application.md 10.3), and the browser then broke it anywhere:
+ * A Dutch compound longer than an Option button's label cannot fit one line (120 pixels at 15
+ * pixels since #175, 152 at 16 before; docs/specs/application.md 10.3), and the browser then broke it anywhere:
  * "Gasverbrandingsto / estellen". For every Node of the first Tree that fans out Options, in
  * both languages at every viewport of 10.6 that draws the Option buttons, this finds each line
  * break of each Option title and fails on one that falls between two letters with no hyphen
- * drawn at the end of its line -- and on a title of more than 10.3's four lines.
+ * drawn at the end of its line -- and on a title of more lines than 10.3 gives it: five in the
+ * fan, four in the straight columns of 10.5's step 2.
  *
  * The hyphen `hyphens: auto` draws is not in the DOM text, so it is found where Chromium puts
  * it: a second client rect of the text node on the line it ends, just after the line's text.
@@ -19,7 +20,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
-import { MAX_LINES, nodesWithOptions } from './options.ts'
+import { MAX_LINES, MAX_LINES_COLUMN, nodesWithOptions } from './options.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const SHOTS =
@@ -88,7 +89,7 @@ for (const [width, height] of VIEWPORTS) {
         buttons += measured.length
         for (const m of measured) {
           for (const cut of m.cuts) failures.push(`${lang} ${id}: ${cut}`)
-          if (m.lines > MAX_LINES) failures.push(`${lang} ${id}: "${m.title}" takes ${m.lines} lines`)
+          if (m.lines > (width >= 1280 ? MAX_LINES : MAX_LINES_COLUMN)) failures.push(`${lang} ${id}: "${m.title}" takes ${m.lines} lines`)
         }
         if (id === 'annex-i-legislation-2' && lang === 'nl' && (width === 1280 || width === 1920)) {
           await page.screenshot({ path: path.join(SHOTS, `annex-i-legislation-2-nl-${width}x${height}.png`) })
