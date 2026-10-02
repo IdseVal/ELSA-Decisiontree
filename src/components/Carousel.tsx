@@ -1,6 +1,6 @@
 /**
- * The Carousel (docs/specs/application.md section 12, ADR-78-carousel): a strip of 48-pixel
- * round thumbnails straddling the Bubble's lower outline, holding the Node's Images after the
+ * The Carousel (docs/specs/application.md section 12, ADR-78-carousel): a strip of 67-pixel
+ * round thumbnails (48 until #174) straddling the Bubble's lower outline, holding the Node's Images after the
  * main one in the author's order. Pictures only: no buttons, no position text, nothing
  * written under them. A picture's description is its alternative text and its credit its
  * accessible description; both are shown, whole, in the enlarged view.
@@ -90,7 +90,7 @@ export function Carousel({
                   aria-labelledby={`carousel-enlarge carousel-image-${index}`}
                   aria-describedby={`carousel-credit-${index}`}
                 >
-                  <img id={`carousel-image-${index}`} src={image.href} alt={image.description} width={48} height={48} loading="lazy" />
+                  <img id={`carousel-image-${index}`} src={image.href} alt={image.description} width={67} height={67} loading="lazy" />
                 </a>
               </li>
             ))}
@@ -116,7 +116,9 @@ export function Carousel({
 /**
  * The enlarged view's captions in edit mode (28.1, 31.3): per Image, its description and its
  * credit as fields and the controls of #140 under them -- or null where no slot answers, so
- * the public caption stands.
+ * the public caption stands. **[#174]** Each field after its label, as the attach Sheet has
+ * them: the credit's is the public caption's, the description's is said here, and the
+ * information hint behind each comes with the field from the `field` slot.
  */
 function editedCaptions(node: NodeContent, lang: string, ui: Chrome, uiLang: string | undefined, edit: EditMode): (ReactNode | null)[] {
   const { field, enlargedControls } = edit.slots
@@ -128,7 +130,12 @@ function editedCaptions(node: NodeContent, lang: string, ui: Chrome, uiLang: str
     if (description === null && credit === null && controls === null) return null
     return (
       <>
-        <p>{description ?? text(image.description, lang, `${node.id}.images[${image.file}].description`)}</p>
+        <p>
+          <span className="kind" lang={uiLang}>
+            {ui.imageDescription}
+          </span>{' '}
+          {description ?? text(image.description, lang, `${node.id}.images[${image.file}].description`)}
+        </p>
         <p className="credit">
           <span className="kind" lang={uiLang}>
             {ui.credit}

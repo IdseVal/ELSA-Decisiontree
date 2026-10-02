@@ -2,8 +2,8 @@
  * The stylesheet: the tree view of docs/specs/application.md section 10, drawn.
  *
  * ONE SCREEN, SIX ROWS, NOTHING OUTSIDE THEM. The page is a grid whose rows are known before
- * any content is measured: chrome bar 44, the up arrow's band 56, the Bubble 416, the
- * strip band 28, Answers 68, disclaimer 28 -- the vertical budget of tree-format.md 5.7 as
+ * any content is measured: chrome bar 44, the up arrow's band 56, the Bubble 401, the
+ * strip band 43, Answers 68, disclaimer 28 -- the vertical budget of tree-format.md 5.7 as
  * 10.7 re-derives it, which is where every length limit of the format comes from. `html` and `body` are the viewport with `overflow: hidden`
  * (10.6); nothing here may be taller or wider than the box it is in, and
  * tests/browser/no-scroll.spec.ts measures every element to make sure.
@@ -38,12 +38,13 @@
   --danger-read: color-mix(in srgb, var(--elsa-danger) 70%, var(--elsa-text));
 
   /*
-   * The six rows of 10.1, at the guaranteed viewport: 44 + 56 + 416 + 28 + 68 + 28 = 640.
+   * The six rows of 10.1, at the guaranteed viewport: 44 + 56 + 401 + 43 + 68 + 28 = 640
+   * (the Bubble 416 and the strip band 28 until #174 made the thumbnails 67 pixels).
    * The Bubble's row is what is left, up to `--bubble-height`; beyond that the extra height
    * is shared above and below the tree.
    */
   --chrome-row: 44px;
-  --strip-row: 28px;
+  --strip-row: 43px;
   --answers-row: 68px;
   --disclaimer-row: 28px;
   --bubble-height: 520px;
@@ -53,15 +54,15 @@
   --gap: 20px;
   --bubble-width: 760px;
   /*
-   * The rim: the band between the text area (640 x 364) and the curve, 60 across and 26
+   * The rim: the band between the text area (640 x 349) and the curve, 60 across and 26
    * down (10.1). The Bubble's 2-pixel outline is part of that band, so the padding inside
    * it is 2 less, and the text area measures exactly 640 x 364.
    */
   --rim-x: 58px;
   --rim-y: 24px;
   /*
-   * A pill: the radius is half the Bubble's height whatever that height is (208 at the
-   * guaranteed 416), so the curve the fan of Option buttons follows (below) is one formula.
+   * A pill: the radius is half the Bubble's height whatever that height is (200.5 at the
+   * guaranteed 401), so the curve the fan of Option buttons follows (below) is one formula.
    * Where the Bubble narrows (792 and 480) the radius is fixed again, so its corners stay
    * clear of the text.
    */
@@ -69,7 +70,7 @@
   /*
    * The main image above the title (10.3, 10.7): two fifths of the Bubble's height on every
    * Node (#102, the owner's answer (b) on PR #110). It is sized from the text area it sits
-   * in, which is the Bubble less the rim above and below: 166.4 of 416 at the guaranteed
+   * in, which is the Bubble less the rim above and below: 160.4 of 401 at the guaranteed
    * viewport, 208 of 520 at the largest Bubble. tree-format.md 5.7 cuts the description to
    * what fits beside it. 30 pixels is the floor it can give way to where the text does not
    * fit after all -- a font wider than 5.7 assumes -- and never at the guarantee.
@@ -80,8 +81,9 @@
    * The foot of the text area the Interior keeps clear while it can (below): 24 pixels on
    * the guaranteed Bubble, and a quarter of every pixel the text area grows by, because a
    * taller Bubble is rounder and its curve cuts further into the area's lower corners.
+   * **[#174]** The guaranteed text area is 349 tall since the strip band is 43.
    */
-  --foot: calc(24px + (100% - 364px) / 4);
+  --foot: calc(24px + (100% - 349px) / 4);
   --page-inset: 0px;
   /*
    * The up arrow (10.2): a round button standing above the Bubble, its foot 6 pixels clear of
@@ -353,12 +355,14 @@ a.language:hover,
 /* --- the Carousel: the strip on the Bubble's lower outline (section 12) ----------- */
 
 /*
- * A band of 28 pixels under the Bubble on every Node, empty where the Node has fewer than
- * two Images (12.1), so the Bubble never moves. The strip is 48 pixels tall and pulled up
- * by half of that, so its thumbnails sit centred on the outline: the upper half in the
- * Bubble's lower rim, 2 pixels clear of the text area, the lower half in the band, 4 clear
- * of the Answer row (10.1). Its margin box is 24 pixels, inside the band, so nothing
- * overflows the frame (10.6).
+ * A band of 43 pixels under the Bubble on every Node, empty where the Node has fewer than
+ * two Images (12.1), so the Bubble never moves. The strip is 67 pixels tall -- 1.4 times
+ * the 48 it was until #174 -- and pulled up by 24, as the 48-pixel strip was: its
+ * thumbnails straddle the outline, their upper 24 pixels in the Bubble's lower rim, 2 clear
+ * of the text area, and their lower 43 in the band, down to the Answer row, whose buttons
+ * stand 4 below its top (10.1, amended 2026-10-02). Centred on the outline they would take
+ * 9.5 pixels of the text area, which the limits of 10.7 have not to give. Its margin box is
+ * 43 pixels, the band, so nothing overflows the frame (10.6).
  */
 .carousel {
   grid-area: carousel;
@@ -368,7 +372,7 @@ a.language:hover,
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   min-width: 0;
-  height: 48px;
+  height: 67px;
   margin-top: -24px;
 }
 
@@ -389,8 +393,10 @@ a.language:hover,
 }
 
 /*
- * Seven 48-pixel pictures at a 56-pixel pitch and 8 pixels of padding at each end: 400
- * pixels (12.2); fewer pictures make a shorter strip, centred on the Bubble. It is the one
+ * Five 67-pixel pictures at a 75-pixel pitch and 8 pixels of padding at each end: 383
+ * pixels (12.2, amended 2026-10-02 by #174: seven of 48 in 400 until then), inside the
+ * 400 where the Bubble's lower outline is straight; fewer pictures make a shorter strip,
+ * centred on the Bubble. It is the one
  * element allowed to scroll, sideways, in its own box (10.6);
  * the scrollbar is not drawn, because the band has no height for one and the strip is
  * moved by the arrow keys, the wheel and a swipe.
@@ -400,8 +406,8 @@ a.language:hover,
   flex: 0 1 auto;
   gap: 8px;
   min-width: 0;
-  max-width: 400px;
-  height: 48px;
+  max-width: 383px;
+  height: 67px;
   margin: 0;
   padding: 0 8px;
   list-style: none;
@@ -431,8 +437,8 @@ a.language:hover,
 
 .thumbnail img {
   display: block;
-  width: 48px;
-  height: 48px;
+  width: 67px;
+  height: 67px;
   border-radius: 50%;
   object-fit: cover;
   background: var(--elsa-surface);
@@ -687,6 +693,69 @@ a.language:hover,
 
 /* With the script, Explainer.tsx opens one panel at a time and places it beside its term. */
 .prose .explainer[data-open] {
+  display: block;
+}
+
+/* --- [#174] the information hint (31.2, 31.3) -------------------------------------- */
+
+/*
+ * A small "i" in a circle after a field's label, and the explainer's panel (10.8) for why the
+ * field is asked, which Explainer.tsx's script opens and places inside the Sheet the hint is
+ * in: below the "i" where it fits, above otherwise, never past the Sheet's panel (10.6).
+ */
+.hint-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  padding: 0;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent-secondary-read);
+  font: inherit;
+  font-family: var(--elsa-font-heading);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: -3px;
+  cursor: help;
+}
+
+.hint-mark:hover,
+.hint-mark:focus-visible,
+.hint-mark:has(+ .hint-panel[data-open]) {
+  background: var(--wash);
+}
+
+.hint-panel {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  width: min(280px, 100%);
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--elsa-surface);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 10%, transparent),
+    0 8px 24px -6px color-mix(in srgb, var(--elsa-scrim) 28%, transparent);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  white-space: normal;
+  hyphens: auto;
+  color: var(--elsa-text);
+  cursor: auto;
+}
+
+.hint-panel[data-open] {
   display: block;
 }
 
@@ -3031,8 +3100,8 @@ fieldset:disabled .admin-submit {
 
 /*
  * [#140] The two pickers (31.1). The empty slot keeps the faint circle's box and adds a `+`;
- * the strip's is a 48-pixel dashed thumbnail after the last one, or alone in the middle
- * where the Node has one Image. The file input covers each, transparent, so a click, the
+ * the strip's is a dashed thumbnail of the thumbnails' 67 pixels (48 until #174) after the
+ * last one, or alone in the middle where the Node has one Image. The file input covers each, transparent, so a click, the
  * keyboard and a drop all land on the input's own control.
  */
 .editor-picker {
@@ -3079,7 +3148,7 @@ fieldset:disabled .admin-submit {
   cursor: inherit;
 }
 
-/* Unseen, but its button and its "no file" text would be wider than a 48-pixel `+` (10.6). */
+/* Unseen, but its button and its "no file" text would be wider than a 67-pixel `+` (10.6). */
 .editor-picker-input::file-selector-button {
   display: none;
 }
@@ -3087,11 +3156,13 @@ fieldset:disabled .admin-submit {
 .editor-picker--strip {
   grid-row: 1;
   grid-column: 2;
-  width: 48px;
-  height: 48px;
+  width: 67px;
+  height: 67px;
   border: 1px dashed var(--rule);
   border-radius: 50%;
   background: var(--elsa-surface);
+  /* The glyph grows with its circle: 1.4 times the 24 it was in a circle of 48. */
+  font-size: 34px;
 }
 
 .carousel-strip ~ .editor-picker--strip {
@@ -3099,7 +3170,45 @@ fieldset:disabled .admin-submit {
   justify-self: start;
 }
 
-/* Below the guarantee the strip is its 20-pixel pill (10.5, step 1), and the `+` a pill beside it. */
+/*
+ * [#174] What the strip's `+` adds, said beside it on hover and on keyboard focus (31.1): in
+ * the band's third column, right of the `+`, as wide as that column leaves and wrapping in
+ * it, so it never reaches past the band (10.6). Hidden, not removed: showing it moves
+ * nothing. Not the pointer's: the `+` under it stays the one target.
+ */
+.editor-picker-label {
+  grid-row: 1;
+  grid-column: 3;
+  justify-self: start;
+  max-width: calc(100% - 8px);
+  margin-left: 8px;
+  padding: 2px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
+  font-size: 12px;
+  line-height: 16px;
+  overflow-wrap: anywhere;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* After a strip the `+` stands in that column itself, and the label after it. */
+.carousel-strip ~ .editor-picker-label {
+  max-width: calc(100% - 67px - 8px);
+  margin-left: calc(67px + 8px);
+}
+
+.editor-picker--strip:is(:hover, :has(:focus-visible)) + .editor-picker-label {
+  visibility: visible;
+}
+
+/*
+ * Below the guarantee the strip is its 20-pixel pill (10.5, step 1), and the `+` a pill beside
+ * it. [#174] Its label stands on the band's foot and, where it needs a second line, grows up
+ * over the Bubble rather than down out of the band (10.6).
+ */
 @media (max-height: 639px), (max-width: 479px) {
   .carousel > .editor-picker--strip {
     grid-column: 3;
@@ -3108,6 +3217,12 @@ fieldset:disabled .admin-submit {
     height: 20px;
     margin-left: 8px;
     font-size: 14px;
+  }
+
+  .carousel > .editor-picker-label {
+    align-self: end;
+    max-width: calc(100% - 36px);
+    margin-left: 36px;
   }
 }
 

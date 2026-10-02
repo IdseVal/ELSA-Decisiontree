@@ -21,6 +21,7 @@ import { createPortal } from 'react-dom'
 import { countedLength } from '../tree/measure.ts'
 import { useEditor } from './Editor.tsx'
 import { plainLine } from './fields.ts'
+import { Hint } from './Hint.tsx'
 import { deleteImage, type Uploaded } from './writes.ts'
 
 /** The credit and the description are 120 characters each (tree-format.md 5.7). */
@@ -32,6 +33,10 @@ export interface AttachWords {
   imageDescription: string
   attach: string
   cancel: string
+  /** **[#174]** The hint behind each field's label: its name, and why each is asked. */
+  hint: string
+  creditHint: string
+  imageDescriptionHint: string
 }
 
 export function AttachSheet({
@@ -90,27 +95,36 @@ export function AttachSheet({
           <figcaption id="attach-file">{uploaded.file}</figcaption>
         </figure>
         <form className="source-editor editor-attach-form" noValidate onSubmit={onSubmit}>
-          <label className="editor-row">
-            <span>{words.credit}</span>
+          {/* A row, not a label: the hint is a control of its own, and a label's text would name the field with it (#174). */}
+          <div className="editor-row">
+            <span>
+              <label htmlFor="attach-credit">{words.credit}</label>
+              <Hint id="attach-credit-hint" text={words.creditHint} name={words.hint} />
+            </span>
             <input
               ref={credit}
+              id="attach-credit"
               className="editor-url"
               value={creditText}
               required
               aria-invalid={creditOver ? true : undefined}
               onChange={(event) => setCreditText(plainLine(event.target.value))}
             />
-          </label>
-          <label className="editor-row">
-            <span>{words.imageDescription}</span>
+          </div>
+          <div className="editor-row">
+            <span>
+              <label htmlFor="attach-description">{words.imageDescription}</label>
+              <Hint id="attach-description-hint" text={words.imageDescriptionHint} name={words.hint} />
+            </span>
             <input
+              id="attach-description"
               className="editor-url"
               lang={api.lang}
               value={description}
               aria-invalid={descriptionOver ? true : undefined}
               onChange={(event) => setDescription(plainLine(event.target.value))}
             />
-          </label>
+          </div>
           <div className="sheet-controls">
             <button type="submit" className="admin-submit" disabled={!attachable}>
               {words.attach}
