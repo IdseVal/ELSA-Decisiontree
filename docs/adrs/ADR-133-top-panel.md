@@ -1,6 +1,11 @@
 # ADR-133-top-panel: one button at the top right of the editor's chrome bar, showing the Tree's state, opens a Sheet down the right edge with five sections -- Publish with its to-do list, collaborators, this Tree, this step, and the administrator's two actions; unpublishing asks once; a collaborator sees the panel with the creator's controls absent
 
 - Status: ACCEPTED (frozen) -- 2026-09-26
+- Superseded in part by `ADR-176-floating-settings-and-to-do.md` -- 2026-10-02 (issue #176): the
+  button leaves the chrome bar and floats under it, saying "Decision-tree settings" with the
+  state as a tag (decision 1, and the heading of decision 2's sketch); the to-do list leaves the
+  Publish section for a bubble of its own, at which a refused publish points (decision 3). The
+  rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 33 (new). The title's "five sections" reads
   four -- Publish, collaborators, this Tree, administrator -- since decision 6 moved the

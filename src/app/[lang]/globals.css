@@ -1774,12 +1774,6 @@ fieldset:disabled .admin-submit {
   cursor: pointer;
 }
 
-.admin-nav > a.admin-link:first-child {
-  overflow: hidden;
-  max-width: 12rem;
-  text-overflow: ellipsis;
-}
-
 .admin-toolbar {
   display: flex;
   justify-content: center;
@@ -2058,7 +2052,7 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * A phone: the bar holds the language switch, the caller's name, `accounts` and `logout` in
+ * A phone: the bar holds the language switch, `account`, `accounts` and `logout` in
  * 320 pixels only by giving up the site's title and the switch's current language, which is
  * not a link and is the language on screen anyway; the cards give up padding and gaps, so
  * the account page's two fit the floor's 408 pixels.
@@ -2071,10 +2065,6 @@ fieldset:disabled .admin-submit {
 
   .admin-nav {
     gap: 8px;
-  }
-
-  .admin-nav > a.admin-link:first-child {
-    max-width: 3.5rem;
   }
 
   .admin-page {
@@ -3469,45 +3459,218 @@ fieldset:disabled .admin-submit {
   }
 }
 
-/* --- the top panel (33) ------------------------------------------------------------ */
+/* --- the floating controls: the to-do bubble and the settings button (33.1, 33.3) ------ */
 
-/* The button (33.1): a dot and the state, in the chrome bar's pill; the dot says the state's colour. */
-.panel-sheet > .sheet-open {
-  padding: 3px 12px;
-  font-size: 12px;
-  line-height: 18px;
+/*
+ * **[#176]** Out of the chrome bar, over the page under its top right corner, in the band beside
+ * the up arrow that no row of 10.1 gives to anything else: there they cover no part of the
+ * Bubble, the arrow or an Option button. In the 56-pixel band above 640 pixels of height they
+ * are 32 tall and centred on the arrow; below it the band is 26 and they are 24, or 40 and 32
+ * where the rim is 10 (below 480 wide). Fixed, they move no row and are no element's overflow.
+ */
+:root {
+  --float-size: 32px;
+  --float-top: calc(var(--chrome-row) + 10px);
+  --float-right: 16px;
 }
 
-.panel-state {
-  display: inline-flex;
+/*
+ * Under every other Sheet's scrim while their own are closed, so one Sheet is open at a time on
+ * screen as in markup; lifted over the page while one of theirs is open, so that scrim covers
+ * the bar and the Bubble too, as the bar's own lift did while it held the button (#142).
+ */
+.editor-float {
+  position: fixed;
+  top: var(--float-top);
+  right: var(--float-right);
+  z-index: 1;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  white-space: nowrap;
+  gap: 8px;
 }
 
-.panel-state-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--elsa-text-muted);
+.editor-float:has(> .sheet[open]) {
+  z-index: 12;
 }
 
-.panel-state--published .panel-state-dot {
-  background: var(--elsa-accent-secondary);
+/* Each control a pill on `surface`, lifted off the page by a soft shadow mixed from the scrim. */
+.editor-float > .sheet > .sheet-open {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--float-size);
+  padding: 0 14px 0 10px;
+  color: var(--elsa-text);
+  background: var(--elsa-surface);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 8%, transparent),
+    0 8px 20px -10px color-mix(in srgb, var(--elsa-scrim) 45%, transparent);
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease), transform 160ms var(--ease);
 }
 
-.panel-state--publicBehind .panel-state-dot {
+.editor-float > .sheet > .sheet-open:hover {
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 8%, transparent),
+    0 12px 24px -10px color-mix(in srgb, var(--elsa-scrim) 55%, transparent);
+}
+
+.editor-float > .sheet > .sheet-open:active {
+  transform: translateY(1px);
+}
+
+.float-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.float-icon {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+}
+
+/* The count: a small round bubble in the Bubble's own outline colour, set in the pill's rounded end. */
+.editor-float > .todo-sheet > .sheet-open {
+  padding-left: 4px;
+}
+
+.todo-count {
+  display: grid;
+  place-items: center;
+  min-width: calc(var(--float-size) - 8px);
+  height: calc(var(--float-size) - 8px);
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--elsa-on-accent);
   background: var(--elsa-accent);
 }
 
-.panel-state--notServable .panel-state-dot {
-  background: var(--elsa-danger);
+/* Nothing to do: the pill closes to a circle around a quiet tick. */
+.editor-float > .todo-sheet > .sheet-open:has(.todo-count[data-count="0"]) {
+  width: var(--float-size);
+  padding: 0;
+  justify-content: center;
 }
 
-/* The chrome bar lifts over the page while its panel is open, so the scrim covers the Bubble too. */
-.editor-chrome:has(.panel-sheet[open]) {
-  z-index: 12;
+.todo-count[data-count="0"] {
+  min-width: 0;
+  padding: 0;
+  color: var(--elsa-text-muted);
+  background: none;
 }
+
+.todo-count svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The Tree's state after the settings label: a tile's mark (26.4), a dot and a word, set off by a hairline. */
+.panel-state {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 10px;
+  border-left: 1px solid var(--rule);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--elsa-text-muted);
+}
+
+.panel-state-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.panel-state--published {
+  color: var(--accent-secondary-read);
+}
+
+.panel-state--publicBehind {
+  color: var(--accent-read);
+}
+
+.panel-state--notServable {
+  color: var(--danger-read);
+}
+
+/*
+ * Below 1000 pixels the band beside the arrow is too narrow for the words: each control is a
+ * round button -- the count's bubble, or the gear with the state's dot on its shoulder -- and
+ * keeps its whole name, which never came from the words (33.1). With the word gone, the dot of
+ * a hidden Tree is a ring, so the state does not rest on its colour alone.
+ */
+@media (max-width: 999px) {
+  .float-words {
+    display: none;
+  }
+
+  .editor-float > .sheet > .sheet-open,
+  .editor-float > .todo-sheet > .sheet-open {
+    min-width: var(--float-size);
+    padding: 0 4px;
+    justify-content: center;
+  }
+
+  .panel-state {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    padding: 0;
+    border: 0;
+  }
+
+  .panel-state-dot {
+    width: 8px;
+    height: 8px;
+    box-shadow: 0 0 0 2px var(--elsa-surface);
+  }
+
+  .panel-state--hidden .panel-state-dot {
+    background: var(--elsa-surface);
+    box-shadow:
+      inset 0 0 0 1.5px currentColor,
+      0 0 0 2px var(--elsa-surface);
+  }
+}
+
+/* Below 640 pixels of height the band beside the arrow is 26 (10.5): the controls are 24, a pixel under the bar. */
+@media (max-height: 639px) {
+  :root {
+    --float-size: 24px;
+    --float-top: calc(var(--chrome-row) + 1px);
+  }
+}
+
+/* On a phone's 10-pixel rim that band is 40 (10.5): back to 32, four under the bar. */
+@media (max-height: 639px) and (max-width: 479px) {
+  :root {
+    --float-size: 32px;
+    --float-top: calc(var(--chrome-row) + 4px);
+  }
+}
+
+@media (max-width: 479px) {
+  :root {
+    --float-right: 8px;
+  }
+}
+
+/* --- the top panel (33) ------------------------------------------------------------ */
 
 /* A Sheet down the right edge (33.2): 400 pixels, from under the chrome bar to above the disclaimer. */
 .panel-sheet > .sheet-panel {
@@ -3522,19 +3685,36 @@ fieldset:disabled .admin-submit {
   border-radius: 24px 0 0 24px;
 }
 
-.panel-sheet > .sheet-panel > .sheet-page {
+/*
+ * **[#176]** The to-do bubble (33.3): a bubble under the two controls at the top right, as tall
+ * as its list and no taller than the room above the disclaimer.
+ */
+.todo-sheet > .sheet-panel {
+  inset: calc(var(--float-top) + var(--float-size) + 8px) var(--float-right) auto auto;
+  width: min(400px, 100% - 2 * var(--float-right));
+  height: auto;
+  max-width: none;
+  max-height: calc(100% - var(--float-top) - var(--float-size) - 16px - var(--disclaimer-row));
+  margin: 0;
+  padding: 0;
+  align-items: stretch;
+}
+
+.panel-sheet > .sheet-panel > .sheet-page,
+.todo-sheet > .sheet-panel > .sheet-page {
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
 }
 
-.panel-sheet > .sheet-panel > .sheet-page > div {
+.panel-sheet > .sheet-panel > .sheet-page > div,
+.todo-sheet > .sheet-panel > .sheet-page > div {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
 }
 
-/* The body is a scroll box (26.3): the document never scrolls, the list of people and to-dos may. */
+/* The body is a scroll box (26.3): the document never scrolls, the list of people -- **[#176]** or of to-dos, in its own bubble -- may. */
 .panel-body {
   flex: 1 1 auto;
   min-width: 0;
@@ -3636,11 +3816,11 @@ fieldset:disabled .admin-submit {
   overflow-wrap: anywhere;
 }
 
-.panel-todo-heading {
-  font-weight: 600;
+/* **[#176]** A refused publish's sentence, and the button to the to-do bubble in it (33.3). */
+.panel-refused {
+  color: var(--danger-read);
 }
 
-.panel-todo,
 .panel-people {
   display: flex;
   flex-direction: column;
@@ -3650,15 +3830,25 @@ fieldset:disabled .admin-submit {
   list-style: none;
 }
 
-.panel-todo li {
+/* **[#176]** The to-do bubble's lines (33.3): the step's title, bold, as the link to it, then the message. */
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.todo-list li {
   overflow-wrap: anywhere;
 }
 
-.panel-todo-where {
+.todo-where {
   font-weight: 600;
 }
 
-.panel-todo-remove {
+.todo-remove {
   margin-left: 8px;
 }
 
@@ -3854,11 +4044,15 @@ fieldset:disabled .admin-submit {
   font-size: var(--small);
 }
 
-/* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge. */
+/* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge, and the to-do bubble may. */
 @media (max-width: 479px) {
   .panel-sheet > .sheet-panel {
     bottom: 0;
     border-radius: 0;
+  }
+
+  .todo-sheet > .sheet-panel {
+    max-height: calc(100% - var(--float-top) - var(--float-size) - 16px);
   }
 }
 
