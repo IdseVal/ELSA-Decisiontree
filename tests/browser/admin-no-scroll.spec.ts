@@ -9,7 +9,8 @@
  * **[#138]** And the editor on `hidden-draft`'s full Node in `en` and `nl` (28.6, 35.4):
  * plain, with the Overlay of the first Options open, with the description in its source
  * state, with a Source's Sheet open, and with the session Sheet. **[#140]** And the enlarged
- * view as the Image's editor, and the attach Sheet.
+ * view as the Image's editor, and the attach Sheet. **[#174]** And each of their information
+ * hints open, and the strip's `+` with its label shown, beside no strip and beside a full one.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -301,8 +302,32 @@ for (const lang of LANGUAGES) {
 /**
  * **[#140]** The picture Sheets (31.2, 31.3): the enlarged view as the Image's editor, on the
  * full Node's main image, and the attach Sheet after an upload into the empty slot of a
- * Terminal, cancelled again so the draft is as it was.
+ * Terminal, cancelled again so the draft is as it was. **[#174]** Each with every information
+ * hint open in turn, and the strip's `+` with its label shown: beside no strip, and beside the
+ * widest strip, on an explanation Node given nine pictures, where the label has the least room.
  */
+
+/** Opens each information hint in `scope` in turn by focus and measures the page with it open. */
+async function eachHint(page: Page, scope: Locator, lang: string, viewport: string, what: string): Promise<void> {
+  const marks = scope.locator('.hint-mark').filter({ visible: true })
+  for (let i = 0; i < (await marks.count()); i += 1) {
+    await marks.nth(i).focus()
+    await expect(scope.locator('.hint-panel[data-open]')).toBeVisible()
+    record(await measure(page), 'editor', lang, viewport, `${what}, hint ${i + 1}`)
+    await page.keyboard.press('Escape')
+    await expect(scope.locator('.hint-panel[data-open]')).toHaveCount(0)
+  }
+}
+
+/** Shows the strip's `+` label by hovering the `+`, where there is one, and measures the page. */
+async function plusLabel(page: Page, lang: string, viewport: string, what: string): Promise<void> {
+  const plus = page.locator('.carousel > .editor-picker--strip')
+  if (!(await plus.isVisible())) return
+  await plus.hover()
+  await expect(page.locator('.carousel > .editor-picker-label')).toBeVisible()
+  record(await measure(page), 'editor', lang, viewport, what)
+  await page.mouse.move(0, 0)
+}
 for (const lang of LANGUAGES) {
   test(`the editor's picture Sheets, ${lang}, never scroll at any viewport of 10.6 (31.2, 31.3)`, async ({ browser }) => {
     test.slow()
@@ -319,11 +344,22 @@ for (const lang of LANGUAGES) {
       await page.locator('.editor-attach-panel button[type="submit"]').click()
       await expect(page.locator('.carousel > .editor-picker--strip')).toBeVisible()
     }
+    // [#174] Nine pictures on an explanation Node: a strip at its widest, and the `+` after it.
+    const widest = `${origin}/admin/api/trees/hidden-draft/nodes/opt-one`
+    const headers = { Origin: origin, 'Content-Type': 'application/json' }
+    const pictures = ((await (await page.request.get(widest)).json()) as { node: { images: unknown[] } }).node.images.length
+    for (const file of ['two.png', 'three.png', 'four.png', 'five.png', 'six.png', 'seven.png', 'eight.png', 'nine.png'].slice(pictures - 1)) {
+      const added = await page.request.patch(widest, { headers, data: JSON.stringify({ op: 'add-image', file, credit: 'Drawing: ELSA lab', description: { en: file } }) })
+      expect(added.status(), file).toBe(200)
+    }
     for (const [width, height] of VIEWPORTS) {
       const viewport = `${width}x${height}`
       await page.setViewportSize({ width, height })
       await page.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`)
       if (await page.locator('.carousel > .editor-picker--strip').isVisible()) record(await measure(page), 'editor', lang, viewport, 'strip +')
+      await plusLabel(page, lang, viewport, 'strip +, its label')
+      await page.goto(`${origin}/admin/trees/hidden-draft/opt-one${query}`)
+      await plusLabel(page, lang, viewport, 'widest strip +, its label')
       await page.goto(`${origin}/admin/trees/hidden-draft/full${query}`)
       const main = page.locator('.bubble .main-image')
       // At the floor the notice stands in for the view (10.4): no picture to open.
@@ -332,6 +368,7 @@ for (const lang of LANGUAGES) {
       const enlarged = page.locator('.carousel-sheet > .sheet-panel')
       await expect(enlarged.locator('.editor-image-controls')).toBeVisible()
       record(await measure(page), 'editor', lang, viewport, 'enlarged view')
+      await eachHint(page, enlarged, lang, viewport, 'enlarged view')
       await page.keyboard.press('Escape')
 
       await page.goto(`${origin}/admin/trees/hidden-draft/full/applies${query}`)
@@ -341,7 +378,8 @@ for (const lang of LANGUAGES) {
       const attach = page.locator('.editor-attach-panel')
       await expect(attach).toBeVisible()
       record(await measure(page), 'editor', lang, viewport, 'attach Sheet')
-      await attach.locator('button[type="button"]').click()
+      await eachHint(page, attach, lang, viewport, 'attach Sheet')
+      await attach.locator('.sheet-controls button[type="button"]').click()
       await expect(attach).toHaveCount(0)
     }
   })

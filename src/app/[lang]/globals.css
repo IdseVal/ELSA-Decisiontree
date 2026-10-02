@@ -750,7 +750,6 @@ a.language:hover,
   text-align: left;
   text-transform: none;
   white-space: normal;
-  hyphens: auto;
   color: var(--elsa-text);
   cursor: auto;
 }
