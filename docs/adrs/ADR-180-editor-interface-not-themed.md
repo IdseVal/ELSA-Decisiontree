@@ -33,11 +33,14 @@ bar and the panel turn dark under the pointer.
    disclaimer. The editor's own interface is what no visitor sees: the chrome bar, the
    floating controls with the panel and the to-do bubble they open, and the panel of every
    Sheet only the editor opens -- a Source's `...`, `+ addSource`, the end of a tree, a link's
-   and a step's menu, the side bubble's `+`, the explainer Sheet, the picture's attach Sheet,
-   the session Sheet. These keep the application's default colours and type stack whatever
-   the creator picks. The controls that stand in the Tree itself -- the fields, the Sheets'
-   own buttons in the Bubble and its rows -- are drawn as the Tree is, because they are where
-   the creator shapes what the visitor sees.
+   and a step's menu, the explainer Sheet, the picture's attach Sheet, the session Sheet.
+   These keep the application's default colours and type stack whatever the creator picks.
+   The controls that stand in the Tree itself -- the fields, the Sheets' own buttons in the
+   Bubble and its rows -- are drawn as the Tree is, because they are where the creator shapes
+   what the visitor sees. Since #177 two more controls are drawn this way, because neither
+   opens a panel and both stand on the Tree's colours (`ADR-177-side-bubble-editing.md`):
+   - the side-bubble `+` in the fan, which creates at one click with no Sheet behind it;
+   - `deleteSideBubble` at the foot of an Overlay, with the confirmation it asks in place.
 2. **One string still, built by `src/theme.ts`.** In the editor `themeStyle` writes the draft's
    `:root` block as before and, after it, the default palette and type stack again on
    `[data-editor-ui]`, which the bar, the floating controls and those Sheets' panels carry; the
@@ -82,5 +85,7 @@ changes: in the editor the draft's Theme reaches the Tree and not the editor's o
   palette; a dark Tree's editor shows `logo.light`, its public page `logo.dark`.
 - The to-do bubble's count is filled with the default's accent, not the draft's (33.3): it is
   part of the floating controls.
+- #177's `deleteSideBubble` is outlined in the draft's `danger`, and its confirmation's button
+  is filled with it. So `colourDangerHint` names that button among what the role paints.
 - A Sheet the editor adds later carries the attribute too: `Sheet`'s `editorUi`, or
   `data-editor-ui` on a panel it draws itself.

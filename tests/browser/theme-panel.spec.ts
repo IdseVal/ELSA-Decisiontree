@@ -424,6 +424,19 @@ test('[#180] a Tree with a dark palette: in the editor the bar and the open pane
   expect(look["Bubble's title"]).toBe("rgb(238, 241, 242) on rgba(0, 0, 0, 0), \"Nova Square\"")
   await shoot180(page, 'editor-dark-panel-open')
 
+  // #177's side-bubble `+` and an Overlay's `deleteSideBubble`, with the confirmation it asks in
+  // place, open no panel: they stand in the Tree, on its surface and in its colours (ADR-180 decision 1).
+  await page.goto(`${origin}/admin/trees/dark/start/prohibited-practices/social-scoring`)
+  const colours = (locator: Locator) => locator.evaluate((element) => `${getComputedStyle(element).color} on ${getComputedStyle(element).backgroundColor}`)
+  expect(await colours(page.locator('.options > li.options-add > .side-add'))).toBe('rgb(154, 165, 170) on rgb(33, 39, 41)')
+  const remove = page.locator('details.overlay[open] > .sheet-panel .side-delete')
+  expect(await colours(remove.locator('.side-delete-button'))).toMatch(/ on rgb\(33, 39, 41\)$/)
+  await remove.locator('.side-delete-button').click()
+  expect(await colours(remove.locator('.structure-confirm'))).toBe('rgb(238, 241, 242) on rgba(0, 0, 0, 0)')
+  expect(await colours(remove.getByRole('button', { name: 'Confirm' }))).toBe('rgb(22, 26, 29) on rgb(255, 138, 122)')
+  expect(await page.locator('[data-editor-ui] :is(.side-add, .side-delete)').count()).toBe(0)
+  await remove.getByRole('button', { name: 'Cancel' }).click()
+
   // The public page is the whole Tree's, as it was (24.3).
   const reader = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
   await reader.goto(`${origin}/dark/start`)
