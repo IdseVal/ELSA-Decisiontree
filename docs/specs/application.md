@@ -3996,11 +3996,15 @@ Dropping anywhere else does nothing.
 however [hovered], show 'Add an extra image'"):** the strip's `+` is a thumbnail of **67** pixels, as the
 strip's are (12.2), its glyph 34 where it was 24. It is named `addExtraPicture`, "Add an
 extra image" / "Extra afbeelding toevoegen", and on hover and on keyboard focus shows those
-words as a small label beside it: right of the `+`, in the band's third column, out of the
-flow and wrapping in that column, so that it never leaves the band (10.6); beside the
-20-pixel pill below the guarantee it stands on the band's foot and grows upward over the
-Bubble. The label is not read twice (the name says it) and takes no pointer. The empty slot
-keeps `addPicture`, "Add a picture", and its tooltip.
+words as a small label beside it, out of the flow, in the band's third column: right of the
+`+`, wrapping between words and never inside one; where that column leaves it less than 110
+pixels right of the `+` -- beside a long strip on a narrower window (below 790 pixels wide
+beside the widest strip), or beside the 20-pixel pill on a phone -- left of the `+` instead,
+on one line, over the strip's end or the enlarged view's control. So it never leaves the band
+(10.6). Beside the pill below the guarantee it stands on the band's foot, and a second line
+grows upward over the Bubble. Hidden, it takes no room. The label is not read twice (the name
+says it) and takes no pointer. The empty slot keeps `addPicture`, "Add a picture", and its
+tooltip.
 
 ### 31.2 Upload, then attach
 
