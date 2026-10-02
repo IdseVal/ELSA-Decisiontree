@@ -4,8 +4,10 @@
  * the size of its text at the limit where it is drawn, so it neither grows while the creator
  * types nor crosses its parent. Against `tests/fixtures/full-node/` as a hidden draft on a
  * server of this file's own; every count and box goes to `tests/browser/.results/fields.md`.
+ * The screenshots the issue asks for go to `docs/screenshots/issue-172/` under
+ * `ELSA_SHOTS=1`, the results folder otherwise (35.7).
  */
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -15,6 +17,7 @@ import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
+const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-172') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 160
 
 const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
@@ -31,6 +34,7 @@ test.beforeAll(async () => {
     accounts: [ANNA],
   })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
+  await mkdir(SHOTS, { recursive: true })
 })
 
 test.afterAll(async () => {
@@ -41,6 +45,22 @@ test.afterAll(async () => {
 
 /** The visible region of one field: the Bubble and its neighbour frames, and the Sources' collapsed copy, hold others (10.5, 11). */
 const field = (page: Page, keyPath: string, nodeId = 'full') => page.locator(`[data-field="${nodeId} ${keyPath}"]`).filter({ visible: true })
+
+async function shoot(page: Page, name: string): Promise<void> {
+  await page.evaluate(() => document.fonts.ready)
+  await page.screenshot({ path: path.join(SHOTS, `${name}.png`) })
+}
+
+/** Types `text` into a field from empty, key by key, opening a rich field's source first. */
+async function typeInto(page: Page, keyPath: string, nodeId: string, text: string): Promise<void> {
+  const region = field(page, keyPath, nodeId)
+  const rendered = region.locator('.editor-rendered')
+  if ((await rendered.count()) > 0) await rendered.click({ position: { x: 2, y: 2 } })
+  const area = region.locator('textarea')
+  await area.click()
+  await area.fill('')
+  await page.keyboard.type(text, { delay: 2 })
+}
 
 async function editor(page: Page, width: number, height: number): Promise<string> {
   await page.setViewportSize({ width, height })
@@ -188,5 +208,58 @@ test('typing past the limit of a title, a description and an Option title stores
     expect([...text].length).toBe(limit)
     expect(text).toBe(WORDS.slice(0, limit))
     expect(after).toBe(before)
+  }
+})
+
+test('the screenshots of #172: an empty root, texts at their limits in the Bubble and in an Overlay, the attach Sheet and the top panel', async ({ page }) => {
+  test.slow()
+  for (const [width, height] of [
+    [1280, 640],
+    [390, 844],
+  ] as const) {
+    const cookie = await editor(page, width, height)
+    const size = `${width}x${height}`
+    // An empty root Node: each field names what belongs in it (28.2, amended).
+    const fresh = `fresh-${width}`
+    const created = await page.request.fetch(`${origin}/admin/api/trees`, {
+      method: 'POST',
+      headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' },
+      data: JSON.stringify({ id: fresh, languages: ['en', 'nl'], title: { en: 'Fresh' } }),
+    })
+    expect(created.status()).toBe(201)
+    await page.goto(`${origin}/admin/trees/${fresh}/start`)
+    await expect(field(page, 'title.en', 'start').locator('textarea')).toHaveAttribute('placeholder', 'Title')
+    await shoot(page, `empty-root-${size}`)
+
+    // A title and a description typed to their limits, in the Bubble and in the first Option's Overlay.
+    await page.goto(`${origin}/admin/trees/hidden-draft/full`)
+    await typeInto(page, 'title.en', 'full', WORDS.slice(0, 95))
+    await typeInto(page, 'description.en', 'full', WORDS.slice(0, 165))
+    await expect(field(page, 'description.en').locator('textarea')).toHaveValue(WORDS.slice(0, 150))
+    await shoot(page, `bubble-at-limits-${size}`)
+    const button = page.locator('.options > li > .overlay > .sheet-open').filter({ visible: true }).first()
+    if ((await button.count()) > 0) {
+      await button.locator('.option-image').click()
+      await typeInto(page, 'title.en', 'opt-one', WORDS.slice(0, 95))
+      await typeInto(page, 'description.en', 'opt-one', WORDS.slice(0, 165))
+      await expect(field(page, 'description.en', 'opt-one').locator('textarea')).toHaveValue(WORDS.slice(0, 150))
+      await shoot(page, `overlay-at-limits-${size}`)
+    }
+
+    // The attach Sheet, after a picture is uploaded into a Terminal's empty slot, with its placeholders.
+    await page.goto(`${origin}/admin/trees/hidden-draft/full/applies`)
+    const picture = { name: 'covered.png', mimeType: 'image/png', buffer: await readFile(path.join(repo, 'trees', 'ai-act-example', 'images', 'covered.png')) }
+    await page.locator('.bubble .editor-picker--slot input[type="file"]').setInputFiles(picture)
+    const attach = page.locator('.editor-attach-panel')
+    await expect(attach).toBeVisible()
+    await shoot(page, `attach-sheet-${size}`)
+    await attach.locator('button[type="button"]').click()
+    await expect(attach).toHaveCount(0)
+
+    // The top panel.
+    await page.goto(`${origin}/admin/trees/hidden-draft/full`)
+    await page.locator('.panel-sheet > .sheet-open').click()
+    await expect(page.locator('.panel-body')).toBeVisible()
+    await shoot(page, `top-panel-${size}`)
   }
 })
