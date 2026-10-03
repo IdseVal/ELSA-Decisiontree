@@ -172,7 +172,8 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
 - **Showing "Editor" only to a visitor who is logged in, or pointing it at the login page or
   the editor by the session.** The public page would have to read the session cookie, which
   the browser never sends it (20.4) and which no public route may read (20.5; core document
-  8 and 9). `/admin` already tells the two cases apart.
+  9: "The account and the session exist on the admin routes and nowhere else"). `/admin`
+  already tells the two cases apart.
 - **Leading the button on `/admin` back to the page the visitor came from**, through the
   browser's history or the page that linked there. `/admin` is also opened from a bookmark
   or a typed address, where there is no such page, and a step back in the history may leave
