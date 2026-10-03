@@ -30,11 +30,6 @@ import type { Answer, Change, Refusal, WriteResponse } from './writes.ts'
 /** **[#179]** The ending's words are at most 19 characters (tree-format.md 5.7). */
 const ENDING_LIMIT: FieldLimit = { characters: 19 }
 
-/** The chrome words the structure controls say; strings, because a client component takes no module. */
-export interface StructureWords {
-  confirm: string
-}
-
 /**
  * The address of a Node under the page `here` (4.1): `/<here's path>/<id>`, the query
  * string kept, so a new Answer target is reached by `followHref` and a new aside by the
