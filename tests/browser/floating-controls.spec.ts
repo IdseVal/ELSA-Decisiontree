@@ -148,7 +148,6 @@ function layout(page: Page) {
       bubble: shown('.tree-frame .bubble'),
       up: shown('.tree-frame .up-arrow'),
       options: shown('.tree-frame .options > li'),
-      menus: shown('.tree-frame .options .link-menu'),
       window: { w: window.innerWidth, h: window.innerHeight },
     }
   })
@@ -178,7 +177,7 @@ test('the two controls float under the bar, outside the header, inside the windo
         expect(control.y, `${where}: the ${name} control is under the bar`).toBeGreaterThanOrEqual(at.header.y + at.header.h)
         expect(control.x, `${where}: the ${name} control is inside the window`).toBeGreaterThanOrEqual(0)
         expect(control.x + control.w, `${where}: the ${name} control is inside the window`).toBeLessThanOrEqual(at.window.w)
-        for (const box of [...at.bubble, ...at.up, ...at.options, ...at.menus]) {
+        for (const box of [...at.bubble, ...at.up, ...at.options]) {
           expect(overlap(control, box), `${where}: the ${name} control ${show(control)} overlaps ${show(box)}`).toBe(false)
         }
       }

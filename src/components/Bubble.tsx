@@ -97,7 +97,7 @@ export function Bubble({
     // `data-node` names the Node a Bubble draws, so a response can be counted in Nodes (11.5).
     <article className={`bubble bubble--${node.kind}`} lang={lang} data-node={node.id}>
       {up}
-      {edit?.slots.stepMenu?.(node)}
+      {edit?.slots.stepButtons?.(node)}
       {links.terminal !== undefined &&
         (edit?.slots.field?.(node, 'terminal.outcome', links.terminal, null) ?? (
           <p className={`outcome outcome--${links.terminal}`} lang={uiLang}>

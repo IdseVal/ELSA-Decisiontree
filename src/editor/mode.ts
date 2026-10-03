@@ -32,9 +32,6 @@ export interface FieldLimit {
   lines?: number
 }
 
-/** Which Link of a Node a link menu is for (30.6). */
-export type LinkRef = { kind: 'yes' | 'no' } | { kind: 'option'; index: number }
-
 /**
  * The slot table of 34.2. Each takes the Node it is drawn on, because a write names the
  * Node; the Interior and the Carousel know it as `NodeContent`, the tree view as a Node.
@@ -58,14 +55,16 @@ export interface EditorSlots {
   enlargedControls?(node: NodeContent, index: number): ReactNode
   /** The three buttons of the Answer row, or the `+` for the missing Answer (#139). */
   structure?(node: Node | DraftNode): ReactNode
-  /** The `...` control of an Answer or Option button (#139). */
-  linkMenu?(node: Node | DraftNode, link: LinkRef): ReactNode
   /** The side-bubble `+` in the fan's next free slot (#139); **[#177]** on the centre only, no longer after an Overlay's list. */
   sideAdd?(node: Node | DraftNode): ReactNode
   /** **[#177]** `deleteSideBubble` at the bottom of the Overlay the Node's Option `index` opens (30.7). */
   sideDelete?(node: Node | DraftNode, index: number): ReactNode
-  /** The `...` on the rim above, with `removeEnd` and `deleteStep` (#139). */
-  stepMenu?(node: Node | DraftNode): ReactNode
+  /**
+   * **[#178]** The step's two buttons in the band above the Bubble, beside the up arrow: the red
+   * cross, `deleteStep`, and on a Terminal `removeEnd` (30.8, amended). They replace #139's step
+   * menu on the rim; no Answer or Option button carries a menu any more (30.6, amended).
+   */
+  stepButtons?(node: Node | DraftNode): ReactNode
   /**
    * The name of the DOM event a click on a marked term dispatches instead of toggling its
    * panel: the description's `Field` opens the explainer Sheet on it (32.3). A string,
