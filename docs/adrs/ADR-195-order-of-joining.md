@@ -55,7 +55,9 @@ The owner asked for the collaborators "in the order in which they joined a decis
    whole. The file is rewritten atomically (17.3) only when this changed it, and nothing else
    in it moves -- `updatedAt`, `updatedBy` and `revision` stay, since no creator wrote. One log
    line per Tree it changed: `Recorded the order of joining of Tree "<id>" from its roles: <n>
-   accounts`.
+   accounts`. A `joined` that is not an array of strings is replaced the same way, as if it
+   were absent; a Tree folder without a `meta.json`, which the store reads with its defaults
+   (the administrator as creator), has `[creator]`, and so names nobody.
 
 4. **What that gives an existing Tree.** For a Tree never handed over, the creator first and
    the collaborators in the order they were invited -- the order of joining, since an
