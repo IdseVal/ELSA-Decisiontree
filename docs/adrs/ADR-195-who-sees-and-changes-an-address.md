@@ -81,8 +81,9 @@ requires 1 to 80 characters and nothing more.
    `emailHelp` under it, on every account's page but the administrator's. The administrator's
    page has no line there, as it has no `nameShownPublicly`
    (`ADR-195-names-on-public-routes.md` decision 5): the words would send it to itself, and it
-   changes its own address with its own row's `setEmail` (decision 6), on the accounts page its
-   bar links to from every admin page (`application.md` 24.3), or with `ELSA_ADMIN_EMAIL`. The
+   changes its own address with its own row's `setEmail` (decision 6), on the accounts page,
+   which the bar of that same account page links to (`application.md` 24.3), or with
+   `ELSA_ADMIN_EMAIL`. The
    hidden `username` field of the password form holds the address, so a password manager files
    the new password under it.
 
@@ -113,9 +114,9 @@ requires 1 to 80 characters and nothing more.
 - **Ending the account's sessions on a change of address.** Nothing about the credential that
   made them changed; the password is the secret, and its change already ends them (20.4).
 - **A line of its own under the administrator's address**, pointing to its row on the accounts
-  page. A key and two strings for one account, saying where a page is that the administrator's
-  bar links to on every admin page (`application.md` 24.3), and whose own row offers `setEmail`
-  as its one action.
+  page. A key and two strings for one account, saying where a page is that the bar of the
+  administrator's account page already links to (`application.md` 24.3), and whose own row
+  offers `setEmail` as its one action.
 
 ## Consequences
 

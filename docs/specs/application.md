@@ -5774,8 +5774,9 @@ account `ELSA_ADMIN_EMAIL`'s address and leaves no account without one.
   account's page but the administrator's, `emailHelp`, "Ask your administrator to change it." /
   "Vraag uw beheerder om het te wijzigen.". The administrator's page has no line under it, as
   it has no `nameShownPublicly` (39.8): the words would send it to itself, and it changes its
-  own address with its own row's `setEmail` on the accounts page, which its bar links to from
-  every admin page (24.3), or with `ELSA_ADMIN_EMAIL` (38.3). No key is added for it. The hidden
+  own address with its own row's `setEmail` on the accounts page, which the bar of that same
+  account page links to (`accounts`, 24.3), or with `ELSA_ADMIN_EMAIL` (38.3). No key is added
+  for it. The hidden
   `username` field of the password form holds the address, so a password manager files the new
   password under it; it is empty for an account without one.
 - **The accounts page (25.3)**, per row: the name; the address, one line cut with an ellipsis
