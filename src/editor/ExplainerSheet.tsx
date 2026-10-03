@@ -44,7 +44,7 @@ export function ExplainerSheet({
   const index = node?.explainers.findIndex((explainer) => explainer.id === id) ?? -1
   const explainer = index >= 0 ? node!.explainers[index] : undefined
   const order = languages.includes(lang) ? [lang, ...languages.filter((other) => other !== lang)] : languages
-  const fieldWords: FieldWords = { missingText: words.missingText, characters: words.characters, lines: words.lines }
+  const fieldWords: FieldWords = { characters: words.characters, lines: words.lines }
   const descriptionPath = `description.${lang}`
 
   // The focus comes into the Sheet: to a field an operation named (the `text` of a term just
@@ -98,11 +98,27 @@ export function ExplainerSheet({
                 </summary>
                 <label className="editor-row">
                   <span>{words.term}</span>
-                  <Field nodeId={nodeId} path={`explainers[${index}].term`} lang={language} value={explainer.term[language] ?? ''} limit={TERM_LIMIT} words={fieldWords} />
+                  <Field
+                    nodeId={nodeId}
+                    path={`explainers[${index}].term`}
+                    lang={language}
+                    value={explainer.term[language] ?? ''}
+                    limit={TERM_LIMIT}
+                    placeholder={words.placeholderTerm}
+                    words={fieldWords}
+                  />
                 </label>
                 <label className="editor-row">
                   <span>{words.explanation}</span>
-                  <Field nodeId={nodeId} path={`explainers[${index}].text`} lang={language} value={explainer.text[language] ?? ''} limit={TEXT_LIMIT} words={fieldWords} />
+                  <Field
+                    nodeId={nodeId}
+                    path={`explainers[${index}].text`}
+                    lang={language}
+                    value={explainer.text[language] ?? ''}
+                    limit={TEXT_LIMIT}
+                    placeholder={words.placeholderExplanation}
+                    words={fieldWords}
+                  />
                 </label>
               </details>
             )

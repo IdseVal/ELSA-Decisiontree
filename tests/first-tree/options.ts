@@ -8,8 +8,15 @@ import { openTree } from '../../src/tree/loader.ts'
 
 const TREE = 'ai-act-applicability-agrifood'
 
-/** docs/specs/application.md 10.3: an Option title takes at most four lines. */
-export const MAX_LINES = 4
+/**
+ * docs/specs/application.md 10.3: an Option title, hyphenated in the page's language, takes at
+ * most five lines of the fan's button, whose picture leaves it 120 pixels (#175; four in the
+ * 152 before it). This browser has the dictionaries; without them a title can take six (10.7).
+ */
+export const MAX_LINES = 5
+
+/** 10.5, step 2: at most four lines in the straight columns below 1280 pixels, whose 176 pixels #175 left alone. */
+export const MAX_LINES_COLUMN = 4
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 

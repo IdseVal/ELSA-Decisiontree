@@ -1,13 +1,28 @@
-# Tree file format -- `elsa-tree/4`
+# Tree file format -- `elsa-tree/5`
 
-> Status: FROZEN -- 2026-09-21 (issue #118); `elsa-tree/4` replaces `elsa-tree/3` (frozen
-> 2026-09-17, issue #78). This document is the interoperability contract: any Tree that
+> Status: FROZEN -- 2026-10-02 (issue #171); `elsa-tree/5` replaces `elsa-tree/4` (frozen
+> 2026-09-21, issue #118). This document is the interoperability contract: any Tree that
 > follows it loads in the ELSA decision-tree frontend without a code change. Its structural
-> half is published as a JSON Schema at `schemas/elsa-tree-4.json` (3.9), which the app
-> serves at `/schemas/elsa-tree-4.json`. Changing this contract requires a new
+> half is published as a JSON Schema at `schemas/elsa-tree-5.json` (3.9), which the app
+> serves at `/schemas/elsa-tree-5.json`. Changing this contract requires a new
 > `architecture` issue and a new format number.
 >
-> **What this version is.** `elsa-tree/4` is `elsa-tree/3` in JSON. **Only the
+> **[#171] What this version is (2026-10-02).** `elsa-tree/5` is `elsa-tree/4` with **one
+> change**: a Terminal's marker carries the ending's own words, `terminal.label` -- a plain
+> localised text of at most 19 characters -- in place of `terminal.outcome`, one of four fixed
+> values (5.5, 5.7, rule V-TERMINAL). The owner, on #169: "When tree ends here is chosen, just
+> let the user enter a text to display on the button (with a wordcap obviously). This graph
+> creation tool is not just for Legal trees, also for ethical or social trees, so we want to
+> keep the graph creator useable for all." Every other key, kind, limit, validity rule and the
+> byte form of 3.7 are `elsa-tree/4`'s, unchanged. The format number moved because the shape
+> of the file moved, as section 10 requires and as #102's limit cut did not need
+> (`docs/adrs/ADR-171-elsa-tree-5.md`); `schemas/elsa-tree-4.json` stays beside the new schema
+> and is still served. A `/4` Tree is converted by 12.7, which gives every Terminal the words
+> its badge showed. The decisions are `docs/adrs/ADR-171-ending-text.md` and
+> `ADR-171-elsa-tree-5.md`; section 11 has the table. Where this document still says
+> `elsa-tree/4` outside the passages marked **[#171]**, it describes what `/5` kept from it.
+>
+> **What `elsa-tree/4` was.** `elsa-tree/4` is `elsa-tree/3` in JSON. **Only the
 > serialisation changes.** Every field, every kind of Node, every closed set, every
 > validity rule about content and every limit of 5.7 is what it was -- the Node
 > description's 150 characters and 2 estimated lines included, which the owner cut under
@@ -58,7 +73,8 @@
 > Cross-links.
 >
 > **The migrations** are section 12: 12.1 to 12.4 from `elsa-tree/1`, 12.5 from
-> `elsa-tree/2`, and 12.6 from `elsa-tree/3` to this version.
+> `elsa-tree/2`, 12.6 from `elsa-tree/3` to `elsa-tree/4`, and **[#171]** 12.7 from
+> `elsa-tree/4` to this version.
 >
 > Vocabulary: the canonical names from `docs/CORE_DOCUMENT.md` section 5 -- **Tree**,
 > **Node**, **Link**, **Answer**, **Option**, **Terminal**, **Image**, **Source**,
@@ -128,7 +144,8 @@ every Tree points at it:
 
 | Path | Meaning |
 |---|---|
-| `schemas/elsa-tree-4.json` | The JSON Schema of this format (3.9). Served at `/schemas/elsa-tree-4.json`. Every `tree.json` names it in `$schema`. |
+| `schemas/elsa-tree-5.json` | **[#171]** The JSON Schema of this format (3.9). Served at `/schemas/elsa-tree-5.json`. Every `tree.json` names it in `$schema`. |
+| `schemas/elsa-tree-4.json` | The JSON Schema of `elsa-tree/4`. **[#171]** Kept where it is and still served at `/schemas/elsa-tree-4.json`, so a `/4` file a third party keeps has its contract to point at; no Tree this application serves names it (12.7). |
 
 Anything else inside a Tree folder (a `README.md`, a `NOTES.md`, a `drafts/` folder,
 a licence text next to a font, editor files) is ignored by the loader. **[#132]** Two
@@ -208,8 +225,8 @@ and everything under `metadata`.
 ### 3.4 Plain text and rich text
 
 - **Plain text** fields (`title`, an Option's `title`, a Source's `label`, an Image's
-  `description`, the logo's `alt`) are a single line: the string contains no line break
-  (rule V-PLAIN). Markdown is not interpreted in them.
+  `description`, the logo's `alt`, **[#171]** a Terminal's `label`) are a single line: the
+  string contains no line break (rule V-PLAIN). Markdown is not interpreted in them.
 - **Rich text** fields (a Node's `description`, the manifest's `description`) are a
   **single JSON string whose line breaks are written `\n`**, and may use this subset of
   [CommonMark](https://commonmark.org/): paragraphs separated by a blank line (`\n\n`),
@@ -291,9 +308,10 @@ reader may rely on. `docs/adrs/ADR-118-json-serialisation.md` has the reasoning.
 - **One top-level object.** Not an array, not a stream of objects. Its keys are
   `$schema`, `format`, the manifest fields and `nodes` (section 4).
 - **`$schema` is required and is written first.** Its value is the origin-relative path
-  `/schemas/elsa-tree-4.json`, or an absolute `http://` or `https://` URL whose path ends
-  with `/schemas/elsa-tree-4.json` for a Tree that publishes the schema elsewhere (rule
-  V-SCHEMA, 3.9). The loader never fetches it.
+  `/schemas/elsa-tree-5.json`, or an absolute `http://` or `https://` URL whose path ends
+  with `/schemas/elsa-tree-5.json` for a Tree that publishes the schema elsewhere (rule
+  V-SCHEMA, 3.9). The loader never fetches it. (**[#171]** `elsa-tree-4.json` until
+  2026-10-02.)
 - **No duplicate keys** in any object (rule V-JSON). Most parsers keep the last and say
   nothing, which is exactly the silent loss this rule exists to prevent. **This one rule
   needs a mechanism named, because the obvious one does not work.** A standard JSON
@@ -358,7 +376,8 @@ reader may rely on. `docs/adrs/ADR-118-json-serialisation.md` has the reasoning.
   `languages`, `root`, `title`, `description`, `metadata`, `theme`, `nodes` at the top
   level; per Node `id`, `title`, `description`, `metadata`, `sources`, `images`,
   `answers`, `options`, `explainers`, `terminal`; and inside every other object the order
-  its table in sections 4 and 5 gives. Inside `metadata`, `version` comes first and the
+  its table in sections 4 and 5 gives (**[#171]** inside `terminal`, `label` alone, 5.5).
+  Inside `metadata`, `version` comes first and the
   author's own keys keep the order they were written in. A localised text lists its
   languages in the order the manifest declares them.
 - **A `metadata` key made only of digits is refused** (V-META, and the schema's
@@ -428,11 +447,27 @@ names it in `$schema` (3.7). The format number is in the file name, so `elsa-tre
 be `schemas/elsa-tree-5.json` beside it and this file stays where it is: a Tree written
 today keeps a schema to point at after the next format lands.
 
+**[#171] `elsa-tree/5`'s schema is `schemas/elsa-tree-5.json`, served at
+`/schemas/elsa-tree-5.json`** (frozen 2026-10-02, issue #171): `schemas/elsa-tree-4.json` with
+nine lines changed -- the title, the `$schema` pattern, the `format` constant, and the
+`terminal` definition, which now requires `label` (a `localisedText`) and allows nothing else.
+Everything this section says about the `/4` schema holds for it, and the `/4` file stays
+where it is and is still served, as the paragraph above promised. Verified on 2026-10-02 with
+Ajv 2020 (the loader's validator): the example Tree of section 8 converted by 12.7 is valid;
+each of the 52 `tree.json` files of `trees/` and `tests/fixtures/` that 12.7 converts passes
+the `/5` schema or fails it only at the pointer of its own defect (the other four are
+12.7.3's); and twelve mutations of the example are each refused with a pointer -- an `outcome`
+in place of `label`, an `outcome` beside it, `terminal` with no key, an empty `label` in one
+language, `label` as a bare string, as `null` and as `{}`, a `label` key that is not a
+language tag, a Terminal with Options, a Terminal with Answers, `format` `elsa-tree/4`, and a
+`$schema` naming `elsa-tree-4.json`.
+
 **What the schema checks**, and therefore what any JSON Schema validator can check
 without this application -- with no plugin, because every grammar in it is a `pattern`
 and it uses no `format` keyword: types, which keys exist and which are required, no
 unknown keys at any level (V-KEYS), the closed sets (the three Source kinds, the four
-outcomes, the seven colour roles, the two font roles), the grammars of ids, language
+outcomes -- **[#171]** gone in `elsa-tree/5`, whose `terminal` holds a localised `label` --
+the seven colour roles, the two font roles), the grammars of ids, language
 tags, image and theme file names, colours, font weights and URLs, the absence of `null`
 and of empty lists (V-NULL, V-EMPTY), that `$schema` and `format` name this version
 (V-SCHEMA, V-FORMAT), and the two kind rules one Node object can state on its own: a
@@ -480,8 +515,8 @@ records the decision and the rejected alternatives.
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-4.json",
-  "format": "elsa-tree/4",
+  "$schema": "/schemas/elsa-tree-5.json",
+  "format": "elsa-tree/5",
   "languages": ["en", "nl"],
   "root": "start",
   "title": {
@@ -503,12 +538,13 @@ records the decision and the rejected alternatives.
 
 (The last two values are placeholders for this illustration only; `"..."` is not a key of
 anything.) The `languages` array is shown on one line for readability here; the canonical
-byte form of 3.7 puts one element per line, as section 8 shows.
+byte form of 3.7 puts one element per line, as section 8 shows. **[#171]** The first two
+lines name `elsa-tree/5` and its schema since 2026-10-02; they named `/4` before.
 
 | Key | Required | Type | Meaning |
 |---|---|---|---|
-| `$schema` | yes | string | The JSON Schema of this format (3.9), as the origin-relative path `/schemas/elsa-tree-4.json` or an absolute http(s) URL ending the same way. Written first. Not fetched by the loader. |
-| `format` | yes | string, exactly `elsa-tree/4` | The version of this contract the Tree is written against. A loader that does not know the value rejects the Tree. |
+| `$schema` | yes | string | The JSON Schema of this format (3.9), as the origin-relative path `/schemas/elsa-tree-5.json` or an absolute http(s) URL ending the same way. Written first. Not fetched by the loader. (**[#171]** `elsa-tree-4.json` until 2026-10-02.) |
+| `format` | yes | string, exactly `elsa-tree/5` | The version of this contract the Tree is written against. A loader that does not know the value rejects the Tree. (**[#171]** `elsa-tree/4` until 2026-10-02; such a file is converted by 12.7.) |
 | `languages` | yes | array of language tags, non-empty, distinct | The languages every localised text in the Tree provides. First entry is the default language. |
 | `root` | yes | Node reference | The Node the walk starts at. Must be a question Node or a Terminal, never an explanation Node. |
 | `title` | yes | localised text, plain, at most 80 characters | The Tree's name, shown by the frontend. |
@@ -640,6 +676,14 @@ an ordinary file in `theme/` that the Theme does not reference; the loader ignor
 
 Absent `fonts`: the frontend's default type stack, for both roles.
 
+**[#171] Nothing in this table changed for the editor's dropdowns** (2026-10-02). The Theme
+panel now offers, per role, a family of the application's own library or an uploaded one,
+and a licence from a list (`docs/specs/application.md` 37; `docs/adrs/ADR-171-font-library.md`,
+`ADR-171-font-dropdown.md`, `ADR-171-licence-dropdown.md`). What it writes is this table's: a
+family from the library is copied into `theme/` with its licence text and written as the four
+keys above, so a reader of the file cannot tell it from an uploaded one and needs nothing
+else to load it.
+
 #### 4.3.3 `colours`
 
 An object with **exactly** these seven keys, each a colour written as a string of `#`
@@ -654,7 +698,7 @@ shorthand.
 | `text-muted` | Secondary text: credits, the disclaimer, Source labels, the counter in a title. |
 | `accent` | The primary accent: the Bubble's outline, the Answer Branches, primary controls. |
 | `accent-secondary` | The secondary accent: the Option Branches, secondary controls, links. |
-| `danger` | The `prohibited` outcome and error states. |
+| `danger` | Error states. (**[#171]** And the `prohibited` outcome until `elsa-tree/5`, which has no outcomes: every ending is drawn alike, `docs/specs/application.md` 36.1. The role stays in the closed set; no public Node page uses it now, and the admin area paints its errors with it.) |
 
 The set is closed: no eighth key, no missing key (V-THEME). Everything else the
 frontend needs -- a hover shade, the text colour on an accent button, the colour of a
@@ -799,14 +843,36 @@ the owner's "(1/7)" example does for the seven jurisdiction categories.
 
 ### 5.5 Terminal marker
 
+**[#171] Rewritten for `elsa-tree/5` (2026-10-02).** The owner, on #169: "When tree ends here
+is chosen, just let the user enter a text to display on the button (with a wordcap
+obviously). This graph creation tool is not just for Legal trees, also for ethical or social
+trees, so we want to keep the graph creator useable for all."
+
 ```json
-"terminal": { "outcome": "not-applicable" }
+"terminal": {
+  "label": {
+    "en": "Does not apply",
+    "nl": "Niet van toepassing"
+  }
+}
 ```
 
 A Terminal ends the walk. The marker is explicit: "no outgoing Links" is *not* a
-Terminal, because explanation Nodes also have no Answers. `outcome` is one of four
-fixed values the frontend knows how to style; the Node's `title` and `description`
-carry the actual message.
+Terminal, because explanation Nodes also have no Answers. Its one key is the ending's own
+words:
+
+| Key | Required | Type | Meaning |
+|---|---|---|---|
+| `label` | yes | localised text, plain, at most 19 characters (5.7) | How the walk ends, in the author's words, shown on the Terminal's badge on the rim of its Bubble (`docs/specs/application.md` 10.1, 36.1): "Does not apply", "Ethically acceptable", "Seek legal advice". It is not a category: every ending is drawn alike, in one colour, whatever it says. The Node's `title` and `description` carry the message; the label names the ending in a few words. |
+
+`terminal` has no other key: an `outcome` is refused like any unknown key (V-KEYS, V-TERMINAL).
+A Terminal without words is not an ending a reader can see, so `label` is required, and
+`"terminal": {}` is refused anyway (V-EMPTY). Like every localised text it holds every
+declared language (V-L10N); in a draft a language may be empty, as a to-do
+(`docs/specs/application.md` 19.2). `docs/adrs/ADR-171-ending-text.md` has the reasoning.
+
+**Until `elsa-tree/5`** the marker was `"terminal": { "outcome": <value> }`, `outcome` one of
+four fixed values the frontend knew how to style (`docs/adrs/ADR-4-terminal-marker.md`):
 
 | `outcome` | Meaning | First-Tree example |
 |---|---|---|
@@ -815,7 +881,9 @@ carry the actual message.
 | `prohibited` | The system, as described, is not permitted. | "This is a prohibited practice." |
 | `refer` | This Tree has nothing further to say; the text refers the user elsewhere. | "Not an AI system under the Act; product-safety law applies instead." |
 
-The set is closed. A Tree that needs a fifth value needs a new format number.
+"The set is closed. A Tree that needs a fifth value needs a new format number." The owner's
+request removed the set rather than extending it, which is a new format number all the same
+(section 10): `elsa-tree/5`. 12.7 converts every `/4` Terminal to the words its badge showed.
 
 ### 5.6 The three kinds of Node
 
@@ -846,6 +914,7 @@ language**.
 | Node `title` (any language) | 80 characters | V-LENGTH |
 | Node `description` (any language) | 150 characters and 2 estimated lines (600 and 8 until #102) | V-LENGTH, V-LINES |
 | Option `title` (any language) | 60 characters | V-LENGTH |
+| **[#171]** Terminal `label` (any language) | 19 characters | V-LENGTH |
 | Source `label` (any language) | 60 characters | V-LENGTH |
 | Image `description` (any language) | 120 characters | V-LENGTH |
 | Image `credit` | 120 characters | V-LENGTH |
@@ -897,17 +966,18 @@ to cut, by how much (`application.md` 10.7).
 | Assumption | Value |
 |---|---|
 | Viewport the layout guarantees | 1280 x 640 CSS pixels: a 1366 x 768 laptop display, or a 1920 x 1080 one at 150 % scaling, minus browser tabs, address bar and taskbar |
-| Vertical budget at that height | chrome bar 44 + up-arrow band 26 + Bubble 446 + Carousel strip band 28 + Answer buttons 68 + disclaimer 28 = 640 (was: chrome 44 + Trail 64 + Bubble 360 + Branches 64 + Carousel 80 + disclaimer 28). **Now** (#102): chrome bar 44 + up-arrow band 56 + Bubble 416 + strip band 28 + Answer buttons 68 + disclaimer 28 = 640 |
-| Text area inside the Bubble | 640 x 394 CSS pixels, inside the curve and the padding of a 760 x 446 rounded Bubble (was 640 x 304 in 760 x 360). **Now** (#102): 640 x 364 in 760 x 416 |
-| Main image | 60 px tall, at most 90 wide, above the title; an empty slot of the same height on a Node without Images (`application.md` 10.3). **Now** (#102): two fifths of the Bubble's height, 166.4 px, in a 3 : 2 box |
+| Vertical budget at that height | chrome bar 44 + up-arrow band 26 + Bubble 446 + Carousel strip band 28 + Answer buttons 68 + disclaimer 28 = 640 (was: chrome 44 + Trail 64 + Bubble 360 + Branches 64 + Carousel 80 + disclaimer 28). **Now** (#102): chrome bar 44 + up-arrow band 56 + Bubble 416 + strip band 28 + Answer buttons 68 + disclaimer 28 = 640. **Now** (#174, 2026-10-02): chrome bar 44 + up-arrow band 56 + Bubble 401 + strip band 43 + Answer buttons 68 + disclaimer 28 = 640 |
+| Text area inside the Bubble | 640 x 394 CSS pixels, inside the curve and the padding of a 760 x 446 rounded Bubble (was 640 x 304 in 760 x 360). **Now** (#102): 640 x 364 in 760 x 416. **Now** (#174): 640 x 349 in 760 x 401 |
+| Main image | 60 px tall, at most 90 wide, above the title; an empty slot of the same height on a Node without Images (`application.md` 10.3). **Now** (#102): two fifths of the Bubble's height, 166.4 px, in a 3 : 2 box; 160.4 px of a Bubble of 401 since #174 |
 | Body text | 16 px, line height 24 px, average advance 8.5 px per character (Open Sans and similar humanist sans-serifs): **75 characters per line** |
 | Node title | 22 px, line height 28 px, about 55 characters per line: 80 characters is at most **2 lines** (56 px) |
-| Sources | a 20 px heading line ("Legal sources"), then 13 px on 20 px lines, about 90 characters per line: 3 labels of 60 characters with two kind prefixes and separators is at most **2 lines**: 60 px in all |
-| Description | what remains: 394 - 60 - 8 - 56 - 8 - 60 - 8 = 194 px, of which **8 lines** of 24 px = 192 are used, at 75 characters = 600 characters; 2 px spare. **Now** (#102): 364 - 166.4 - 8 - 56 - 8 - 60 - 8 = 57.6 px, of which **2 lines** of 24 px = 48 are used, at 75 characters = **150 characters**; 9.6 px spare |
-| Explainer panel | 320 px wide, 14 px text on 20 px lines, about 45 characters per line: a 200-character `text` is at most 5 lines, and the panel with its `term` heading and padding at most 148 px, which fits above or below any line of the 394 px text area (5.9). **Now** (#102): any line of the 364 px text area; 148 fits still |
-| Option button labels | an Option button of 232 x 96 px beside the Bubble, with 152 px of label at 16 px on 20 px lines, up to four lines: an Option title of 60 characters is at most **3 lines** in a humanist face and 4 in DejaVu Sans, the widest fallback (80 px, inside the 96 px button). **Amended 2026-09-19 (#105, PR #109):** not for every title: in Open Sans the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" (54 characters) takes 4 lines only hyphenated in the page's language and 5 without, and its button then grows to 102 px; the limit stays 60 for the owner to judge (`application.md` 10.3 and 10.7, both amended). The Options fan out at most 4 a side at a pitch of 111.5 px: four buttons are 384 px of the Bubble's 446, so 8 Options fit without narrowing or wrapping (**Now**, #102: of the Bubble's 416, which still holds the 384). A question Node that carries both `answers` and `options` (section 5.6) puts its 2 Answer buttons below the Bubble and its Options beside it, so the two never share a row (`application.md` 10.3, 10.7; `docs/adrs/ADR-78-fan-out-and-option-picture.md`) |
+| Sources | a 20 px heading line ("Legal sources"), then 13 px on 20 px lines, about 90 characters per line: 3 labels of 60 characters with two kind prefixes and separators is at most **2 lines**: 60 px in all. **[#169] Amended 2026-10-02 (#173, by the owner):** the heading line says "Sources" ("Bronnen" in Dutch, `application.md` 3.2); it is shorter on the same 20 px line, and the 60 px are unchanged |
+| Description | what remains: 394 - 60 - 8 - 56 - 8 - 60 - 8 = 194 px, of which **8 lines** of 24 px = 192 are used, at 75 characters = 600 characters; 2 px spare. **Now** (#102): 364 - 166.4 - 8 - 56 - 8 - 60 - 8 = 57.6 px, of which **2 lines** of 24 px = 48 are used, at 75 characters = **150 characters**; 9.6 px spare. **Now** (#174): 349 - 160.4 - 8 - 56 - 8 - 60 - 8 = 48.6 px, the same 2 lines and 150 characters; 0.6 px spare |
+| Explainer panel | 320 px wide, 14 px text on 20 px lines, about 45 characters per line: a 200-character `text` is at most 5 lines, and the panel with its `term` heading and padding at most 148 px, which fits above or below any line of the 394 px text area (5.9). **Now** (#102): any line of the 364 px text area; 148 fits still, and in the 349 px one of #174 |
+| Option button labels | an Option button of 232 x 96 px beside the Bubble, with 152 px of label at 16 px on 20 px lines, up to four lines: an Option title of 60 characters is at most **3 lines** in a humanist face and 4 in DejaVu Sans, the widest fallback (80 px, inside the 96 px button). **Amended 2026-09-19 (#105, PR #109):** not for every title: in Open Sans the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" (54 characters) takes 4 lines only hyphenated in the page's language and 5 without, and its button then grows to 102 px; the limit stays 60 for the owner to judge (`application.md` 10.3 and 10.7, both amended). The Options fan out at most 4 a side at a pitch of 111.5 px: four buttons are 384 px of the Bubble's 446, so 8 Options fit without narrowing or wrapping (**Now**, #102: of the Bubble's 416, which still holds the 384; #174: of 401, which still does). **Now** (#175, amended 2026-10-02): an Option button of **236 x 100 px** whose picture fills its inner end, 100 px across, with **120 px of label at 15 px on 18 px lines, up to five lines** (90 px, inside the 100 px button): a 60-character title takes at most 5 lines in Open Sans and Verdana and 4 in Arial and Segoe UI, measured on both Trees' and the fixtures' Option titles, hyphenated in the page's language; where the browser has no hyphenation dictionary, 6 for one title in Open Sans and three in DejaVu Sans, and the button grows to 108 px; four buttons on a side at the pitch of 104 px are 400 px of the Bubble's 416, and at #174's 401 the pitch is 100.25 px and the four stand 0.25 px apart; the limit stays 60 (`application.md` 10.3 and 10.7, amended). A question Node that carries both `answers` and `options` (section 5.6) puts its 2 Answer buttons below the Bubble and its Options beside it, so the two never share a row (`application.md` 10.3, 10.7; `docs/adrs/ADR-78-fan-out-and-option-picture.md`) |
 | Answer button labels, and the Trail | the label is the chrome word, a colon and a Node `title` of up to 80 characters (5.3, section 6): at most 86 characters in one run of 19 px bold on 24 px lines, in a 620 x 60 px button with 580 px of label, at least 43 characters per line in DejaVu Sans Bold: **2 lines** (48 px, inside the 60 px button). The 2 Answer buttons sit side by side in the 68 px Answer row. No Trail is drawn: the up arrow carries the parent's title as its accessible name only, so no Trail label has a width to fit; the format still does not bound a Trail's length, and a long one costs the screen nothing (`application.md` 10.2, 10.3, 10.7; `docs/adrs/ADR-78-answer-buttons-and-up-arrow.md`) |
-| Carousel | a strip of 48 px round thumbnails on the Bubble's lower outline, the Images after the main one, seven visible, no caption; the description is alternative text and the credit is shown in the enlarged view, where it fits one line at 13 px (`application.md` 12) |
+| Carousel | a strip of 48 px round thumbnails on the Bubble's lower outline, the Images after the main one, seven visible, no caption; the description is alternative text and the credit is shown in the enlarged view, where it fits one line at 13 px (`application.md` 12). **Now** (#174, 2026-10-02, by the owner in #169): 67 px thumbnails, 1.4 times as big, five visible in a box of 383 px, their upper 24 px in the Bubble's rim and their lower 43 in a strip band of 43 px (`application.md` 10.1, 12.2) |
+| **[#171]** Ending badge | the Terminal's `label` in a 24-pixel pill on the rim above the text area, in the half of the band left of the up arrow: 11 px bold capitals, 0.12 em tracking (0.04 em below 792 px wide), 14 px padding and a 1 px border each side. Its room is narrowest at 480 px wide: 198 px, 168 of text. Measured in Chromium on 2026-10-02 with the badge in place, on Windows and in Linux, every ending of up to 19 characters tried (of fifteen of 18 to 20 characters) holds one line there in every face measured: Arial Bold and Liberation Sans, Segoe UI Bold, Open Sans, the library's families (`application.md` 37.1) and DejaVu Sans Bold, the widest fallback, where the widest ("Mandatory safeguard") is 195.5 px, 197.4 as a web font in Linux; and `Niet van toepassing` (19), the longest word 12.7 writes, is 178 px in Open Sans at the full tracking: **19 characters, one line** at every width above the floor. At 20, three of the seven 20-character endings tried take a second line in DejaVu Sans Bold between 480 and 491 px wide, a badge 46 px tall over the title. Like every limit of this section it counts characters, not pixels: an ending of capitals wider than any tried can still take a second line (`application.md` 10.1, 36.1; `docs/adrs/ADR-171-ending-text.md`) |
 
 What these numbers do **not** promise: that a description written at the maximum in a
 wide font (a `heading`-role font is never used for it) or in a script with wider
@@ -1011,8 +1081,9 @@ every rule blocking, so nothing below changes for a reader of `tree.json`.
 Two tools answer between them, in this order, and neither translates the other's message
 (3.9):
 
-- **the schema** (`schemas/elsa-tree-4.json`) reports a shape failure with a JSON Pointer
-  into the file, e.g. `/nodes/3/options/2` -- *must NOT have additional properties*;
+- **the schema** (`schemas/elsa-tree-5.json`; **[#171]** `elsa-tree-4.json` until 2026-10-02)
+  reports a shape failure with a JSON Pointer into the file, e.g. `/nodes/3/options/2` --
+  *must NOT have additional properties*;
 - **the rules** report a content failure with the Tree id, the Node id (or `manifest`),
   the key path inside it (e.g. `options[2].target`, `description.nl`), the rule id below,
   and a plain-language message that, for a length rule, names the actual and the maximum.
@@ -1025,8 +1096,8 @@ The **Where** column below says which of the two a rule belongs to.
 |---|---|---|---|
 | V-DIR | rules | a folder name that is an id (3.1), containing `tree.json`. `images/` and `theme/`, when present, are folders. | blocking |
 | V-JSON | rules | a `tree.json` that parses as one JSON object (RFC 8259) in UTF-8 without a byte-order mark, with no duplicate key in any object. A file that does not parse is reported with the parser's position and nothing else is checked: unlike the YAML stream of `elsa-tree/3`, one JSON file is one document, so a syntax error anywhere is a syntax error everywhere. **The duplicate-key half is checked by a scan of the raw text, not by the parser**, which cannot see it (3.7 gives the mechanism and the measurement); it reports the first repeated key with its position. | blocking |
-| V-SCHEMA | schema | `$schema`, as the path `/schemas/elsa-tree-4.json` or an absolute http(s) URL whose path ends the same way (3.7). | blocking |
-| V-FORMAT | schema | `format` exactly `elsa-tree/4`. | blocking |
+| V-SCHEMA | schema | `$schema`, as the path `/schemas/elsa-tree-5.json` or an absolute http(s) URL whose path ends the same way (3.7). **[#171]** `elsa-tree-4.json` until 2026-10-02. | blocking |
+| V-FORMAT | schema | `format` exactly `elsa-tree/5`. **[#171]** `elsa-tree/4` until 2026-10-02; such a file is converted (12.7), never read as `/4`. | blocking |
 | V-NULL | schema | no `null` as the value of any key this format defines. An absent optional field is omitted. | blocking |
 | V-EMPTY | schema | no empty array and no empty object as the value of any key this format defines. Inside `metadata` the schema accepts both, as it accepts `null` there (V-NULL, 3.7). | blocking |
 | V-LANG | schema | `languages`: a non-empty array of valid language tags (3.3), distinct from each other. Distinctness is the schema's `uniqueItems`, not a content rule: a repeated tag is a shape failure, and one tool says it. | blocking |
@@ -1046,7 +1117,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-HTML | rules | no raw HTML in rich text: the sequence `<` followed by a letter, `/` or `!` is rejected. | blocking |
 | V-LENGTH | rules | every text field within the maximum characters of 5.7, per language, measured as 3.8 says. The message names the field, the language, the actual length and the maximum. | advisory |
 | V-LINES | rules | every rich text within its estimated lines (3.8, 5.7): 2 for a Node description, 8 for the Tree's, per language. The message names the estimate and the maximum. | advisory |
-| V-COUNT | rules | every array within the maximum entries of 5.7. | advisory |
+| V-COUNT | rules | every array within the maximum entries of 5.7. | advisory. **Amended 2026-10-02 (#175):** blocking for a ninth Option: a write that would add one is refused with V-COUNT and stores nothing (`application.md` 22.3 and 30.4, amended the same day); a file that already holds nine, written by hand, still opens with it advisory |
 
 ### Node level
 
@@ -1057,7 +1128,7 @@ The **Where** column below says which of the two a rule belongs to.
 | V-ANSWERS | schema, rules | `answers` with exactly the keys `yes` and `no` (schema), each a Node reference to an existing question Node or Terminal (rules). | blocking for a target that does not exist; advisory for one Answer missing, or a target that is not yet a question Node or Terminal |
 | V-OPTIONS | schema, rules | `options`, when present, a non-empty array; each entry with `title` and `target` and nothing else (schema; an `images` key on an Option fails V-KEYS); targets existing explanation Nodes, distinct within the array (rules). | blocking for a target that does not exist or is listed twice; advisory for a target that is not yet an explanation Node |
 | V-ORPHAN | rules | every explanation Node targeted by at least one Option (this is also implied by V-REACH, but gets its own message). | advisory |
-| V-TERMINAL | schema | `terminal` as an object whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`; a Terminal has no `options`. | blocking |
+| V-TERMINAL | schema | **[#171]** `terminal` as an object whose one key is `label`, a localised text (schema); a Terminal has no `options`. The label's languages, its single line and its 19 characters are V-L10N, V-PLAIN and V-LENGTH on the key path `terminal.label.<lang>`, as for every text. Until 2026-10-02: `terminal` as an object whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`. | blocking (the shape); the label's empty languages and length are V-L10N's and V-LENGTH's advisories |
 | V-SOURCE | schema, rules | every Source with a `kind` in `legal` / `case-law` / `literature`, a plain localised `label`, an absolute http(s) `url` and a valid `id` when present (schema); Source ids distinct within the Node (rules). | blocking |
 | V-IMAGE | schema, rules | every Image with a `file` matching 3.5, a plain localised `description` and a non-empty `credit` (schema); the file existing in the Tree's `images/`, and a `source`, if present, naming a Source id on the same Node (rules). | blocking for the shape, the grammar and a file not in `images/`; advisory for an empty `credit` or `description` |
 | V-EXPLAINER | schema, rules | `explainers`, when present, a non-empty array; each with a valid `id`, a plain localised `term` and a plain localised `text` (schema); ids distinct within the Node, at most 8 entries, the lengths of 5.7, and each marked at least once in the Node's `description` in every declared language (rules). | blocking for the shape, an id used twice and the count; advisory for a term not yet marked |
@@ -1081,6 +1152,51 @@ It is also the `elsa-tree/4` form of the `elsa-tree/3` example this section held
 produced by the procedure of 12.6 and validated against `schemas/elsa-tree-4.json`. Issue
 #119 converts `trees/ai-act-example/tree.yaml` into `trees/ai-act-example/tree.json`, and
 that file is byte-identical to the block below.
+
+**[#171] The block below is still the `elsa-tree/4` file on `dev`, byte for byte, until
+#179 converts both together** (2026-10-02). `tests/migrate-tree.test.ts` holds the block and
+`trees/ai-act-example/tree.json` to each other, and the file must stay `/4` while the loader
+reads `/4`. #179 converts the file by 12.7, changes the one sentence of the manifest's
+`description` that names the format by hand (as 12.6.2 did once), and replaces the block
+with the result in the same commit. The `elsa-tree/5` form differs from the block in exactly
+these lines -- produced by 12.7 on 2026-10-02, valid against `schemas/elsa-tree-5.json`, 11,230
+bytes against the block's 11,054:
+
+```diff
+-  "$schema": "/schemas/elsa-tree-4.json",
+-  "format": "elsa-tree/4",
++  "$schema": "/schemas/elsa-tree-5.json",
++  "format": "elsa-tree/5",
+@@ "description" of the manifest
+-    "en": "A small example Tree that exercises every element of the `elsa-tree/4` format.\nIts legal content is simplified and not to be relied on.",
+-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/4`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
++    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
++    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+@@ "outside-scope"
+       "terminal": {
+-        "outcome": "not-applicable"
++        "label": {
++          "en": "Does not apply",
++          "nl": "Niet van toepassing"
++        }
+       }
+@@ "prohibited"
+       "terminal": {
+-        "outcome": "prohibited"
++        "label": {
++          "en": "Prohibited",
++          "nl": "Verboden"
++        }
+       }
+@@ "covered"
+       "terminal": {
+-        "outcome": "applicable"
++        "label": {
++          "en": "Applies",
++          "nl": "Van toepassing"
++        }
+       }
+```
 
 Folder layout:
 
@@ -1478,8 +1594,8 @@ text has one key:
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-4.json",
-  "format": "elsa-tree/4",
+  "$schema": "/schemas/elsa-tree-5.json",
+  "format": "elsa-tree/5",
   "languages": [
     "nl"
   ],
@@ -1507,6 +1623,9 @@ text has one key:
 }
 ```
 
+**[#171]** The first two lines name `elsa-tree/5` and its schema since 2026-10-02; they
+named `/4` before.
+
 Writing `"title": "Valt uw AI-systeem ..."` as a bare string instead of an object is
 **not** allowed even for one language (rule V-L10N): a localised text is always an
 object, so that a second language can be added without changing the shape. The
@@ -1531,6 +1650,12 @@ one, is shown in the frontend's plain default look.
   as `elsa-tree/5`, with its own document and its own `schemas/elsa-tree-5.json` beside
   this one; a loader states which format numbers it accepts, and the older schema files
   stay where they are so that a Tree written today keeps something to point at.
+  **[#171] That happened on 2026-10-02:** `format: elsa-tree/5` is now the only accepted
+  value and `schemas/elsa-tree-5.json` the only schema a Tree may name; the loader accepts
+  `/5` alone, the store converts a `/4` file it finds (12.7), and `schemas/elsa-tree-4.json`
+  stays where it is, still served. The rule stands for the next change, which will be
+  `elsa-tree/6` -- with one exception on record, #102's cut of a limit, which the owner took
+  without one because the shape of the file did not change (5.7).
 - **Where an edited Tree is stored.** ~~The round after this one edits Trees through the
   frontend. Whether the edited `tree.json` is written back into the repository through
   git, or into a store of some other kind, is the owner's to define (core document open
@@ -1543,6 +1668,17 @@ one, is shown in the frontend's plain default look.
   Draft column.
 
 ## 11. Where each decision is recorded
+
+**[#171]** Decisions of `elsa-tree/5` (issue #171, 2026-10-02):
+
+| Decision | ADR |
+|---|---|
+| A Terminal carries the ending's own words, `terminal.label`: plain, localised, required, at most 19 characters; the four outcomes go; every ending is drawn alike | `docs/adrs/ADR-171-ending-text.md` (supersedes the closed outcome set of `ADR-4-terminal-marker.md`) |
+| The change of shape is a new format number with its own schema beside the old one; one conversion (12.7), run over the repository by #179 and over a deployment's data directory by the store when it opens | `docs/adrs/ADR-171-elsa-tree-5.md` |
+
+The Theme block did not change on #171; what the editor's font and licence dropdowns write
+into it is recorded in `docs/adrs/ADR-171-font-library.md`, `ADR-171-font-dropdown.md` and
+`ADR-171-licence-dropdown.md` (4.3.2).
 
 Decisions about a Tree in a deployment's store (issue #132; the format is unchanged):
 
@@ -1593,7 +1729,7 @@ Decisions carried over unchanged from `elsa-tree/1` (issue #4):
 |---|---|
 | Localised text as a per-language mapping, all declared languages required | `docs/adrs/ADR-4-localised-text.md` |
 | Id grammar, colon reserved for Cross-links | `docs/adrs/ADR-4-identifiers-and-cross-links.md` (the "file name is the id" part is amended by `ADR-37-serialisation.md`) |
-| Explicit terminal marker with a closed outcome set; Node kind derived | `docs/adrs/ADR-4-terminal-marker.md` |
+| Explicit terminal marker with a closed outcome set; Node kind derived | `docs/adrs/ADR-4-terminal-marker.md` (**[#171]** the closed set superseded by `ADR-171-ending-text.md`; the explicit marker and the derived kind stand) |
 | Images in the Tree's own `images/` folder, referenced by bare file name | `docs/adrs/ADR-4-image-reference.md` |
 | Strict validation: reject the whole Tree, report every violation | `docs/adrs/ADR-4-validity-rules.md` |
 | A Markdown subset for rich text | `docs/adrs/ADR-4-serialisation-format.md` (its YAML half is superseded by `ADR-118-json-serialisation.md`) |
@@ -1606,6 +1742,11 @@ Three conversions are recorded here. **12.6 is the one that runs now**: `elsa-tr
 still written in `elsa-tree/1` or `/2` is converted with **the last release that read
 YAML** -- the commit tagged before #119 merges -- and then by 12.6. No Tree in this
 repository is in that state.
+
+**[#171] Four, since 2026-10-02, and 12.7 is the one that runs now**: `elsa-tree/4` to
+`elsa-tree/5`, the ending's words in place of its outcome. It runs over the repository once
+(#179) and in every deployment, by the store, whenever it opens a `/4` file (12.7.4). A Tree
+in `elsa-tree/3` is converted by 12.6 and then by 12.7.
 
 **12.1 to 12.4: from `elsa-tree/1` to `elsa-tree/2`.**
 A Tree folder written against `elsa-tree/1` -- `tree.yaml` plus `nodes/<id>.yaml` files
@@ -1918,3 +2059,122 @@ section 8's block.
   one JSON file is one document. A syntax error anywhere is now a syntax error everywhere.
   That is a real loss of an author-facing property, and it is acceptable only because no
   author edits the file by hand any more -- which is the premise of this whole version.
+
+### 12.7 From `elsa-tree/4` to `elsa-tree/5`
+
+**[#171], new -- 2026-10-02.** Like 12.6 and unlike 12.1 to 12.5, the file is parsed and
+written again in the byte form of 3.7. It changes the format's two names of itself and every
+Terminal, and nothing else. `docs/adrs/ADR-171-elsa-tree-5.md` has the reasoning; issue #179
+builds it, in the module that writes the byte form (`src/tree/`), so the migration command
+and the store run one function.
+
+#### 12.7.1 The procedure
+
+Input: one `tree.json`, or a store's `draft.json`, as bytes. Output: the same file converted,
+or a report and no write.
+
+1. **Read the bytes with the loader's own reader** (3.7, V-JSON). A byte-order mark, a syntax
+   error or a duplicate key stops the job and nothing is written; it is reported by name,
+   with the key and its position, as 12.6's tool reports it.
+2. **Only an `elsa-tree/4` file is converted.** Any other `format` -- `elsa-tree/5` included --
+   does nothing and reports what it found. That is the procedure's idempotence: a converted
+   file is left alone.
+3. **`format`** becomes `elsa-tree/5`.
+4. **`$schema`**: `/schemas/elsa-tree-4.json`, or an http(s) URL whose path ends
+   `/schemas/elsa-tree-4.json`, gets `elsa-tree-5.json` in place of `elsa-tree-4.json` and no
+   other change. Any other value is left as it is, to fail V-SCHEMA as it did.
+5. **Every Terminal.** A `terminal` that is an object whose only key is `outcome`, holding
+   one of the four values, becomes `{ "label": { ... } }` with, for each language of
+   `languages` in its order, the word of the table below **in the chrome language of that
+   tag** -- Dutch for a tag whose primary subtag, before the first `-`, is `nl`, English for
+   every other (`docs/specs/application.md` 3.1's rule): the word the badge showed in that
+   language. A `terminal` of any other shape, or a file whose `languages` is not an array of
+   strings, is left exactly as it is and reported by Node id, to fail V-TERMINAL afterwards.
+
+   | `outcome` | English | Dutch |
+   |---|---|---|
+   | `not-applicable` | Does not apply | Niet van toepassing |
+   | `applicable` | Applies | Van toepassing |
+   | `prohibited` | Prohibited | Verboden |
+   | `refer` | Look elsewhere | Elders geregeld |
+
+   These are `src/chrome.ts`'s `outcomeNotApplicable`, `outcomeApplicable`,
+   `outcomeProhibited` and `outcomeRefer` as they stood on 2026-10-02. They are frozen here
+   because #179 removes them from the chrome: the conversion carries its own table.
+6. **Nothing else changes.** Every other key and value, and the order of `nodes`, is carried
+   across as it is.
+7. **Write** the result in the byte form of 3.7 -- `label` the only key of `terminal`, its
+   languages in the manifest's order.
+8. **Validate** the result against `schemas/elsa-tree-5.json` and the rules of section 7, and
+   **report every violation**. Shorten nothing, drop nothing, silence nothing.
+
+`scripts/migrate-tree.ts` runs it (`npm run migrate <tree-folder>`) beside 12.6's byte form; a
+third party converts its own `/4` Tree the same way. The store runs the same function on the
+files it opens (12.7.4).
+
+Verified on 2026-10-02 by running steps 1 to 8 in memory over the repository (12.7.3): the
+procedure is idempotent on its own output, and the example Tree's result, once its
+description's sentence about the format is changed by hand, is section 8's block with
+exactly the lines of section 8's diff changed.
+
+#### 12.7.2 What the procedure guarantees, and what it does not
+
+**Guaranteed.** Every Node, id, Node reference, text, Source, image and theme file name, Theme
+value and `metadata` value is what it was, so every URL, every shared link and every picture
+keeps working. Every Terminal keeps the words its badge showed, in every language, in the
+same place; the one new limit, 19 characters, is met by every word of the table (the longest,
+`Niet van toepassing`, is exactly 19). A valid `elsa-tree/4` Tree converts to a valid
+`elsa-tree/5` Tree.
+
+**Not guaranteed, on purpose.** The badge's look. Every ending is now drawn alike, so the
+endings that were `not-applicable`, `applicable` or `prohibited` change colour
+(`docs/adrs/ADR-171-ending-text.md` decision 4); and below 792 pixels wide every badge's
+tracking tightens to 0.04 em (decision 6), `refer` endings included. Only a `refer` ending at
+792 pixels wide and wider looks exactly as before. A Tree in a language other than English or
+Dutch gets the English words, because English is what its badge showed (3.1's fallback); its
+author translates them in the editor. A `/4` file that was not in the byte form of 3.7 is
+written in it. An `outcome` the table does not hold is left, and fails.
+
+#### 12.7.3 What it does for the Trees and fixtures on `dev`
+
+Measured on 2026-10-02 by running the procedure in memory over every `tree.json` of `trees/`
+and `tests/fixtures/`: 56 files, 108 Terminals in 55 of them (54 `not-applicable`, 49
+`applicable`, 2 `refer`, 2 `prohibited`, 1 `maybe`), the same 108 counted as `"outcome"` keys
+in the text. Issue #179 runs it and commits the result.
+
+- `trees/ai-act-example` (3 Terminals): converts to section 8's block with the lines of its
+  diff changed, once the description's mention of the format is changed by hand; #179 puts
+  the result in the file and in section 8's block in one commit, which
+  `tests/migrate-tree.test.ts` holds byte-identical.
+- `trees/ai-act-applicability-agrifood` (4): converts and validates. Its endings read:
+  `ai-act-does-not-apply` "Does not apply" / "Niet van toepassing", `end-of-walk` "Applies" /
+  "Van toepassing", `not-an-ai-system` "Look elsewhere" / "Elders geregeld", `prohibited`
+  "Prohibited" / "Verboden".
+- `tests/fixtures/single-language` (`nl`) gets Dutch words; `german-only` (`de`) and
+  `other-languages` (`de`, `fr`) get English ones, as their badges showed.
+- Every other fixture converts and fails the rule it was built to fail, or none: with the
+  two Trees, 52 files and 101 Terminals labelled.
+- `invalid/v-terminal`: its `maybe` is left as it is, which is `/5`'s form of its defect (no
+  `label`, an unknown key); the schema refuses it at `/nodes/3/terminal`.
+- Refused by step 1, and re-fitted by #179 by hand with their defect kept:
+  `broken/byte-order-mark` and `broken/duplicate-key` (2 Terminals each), and `invalid/v-json`
+  (none; its `format` and `$schema` lines only).
+- Not `elsa-tree/4`: `invalid/v-format`, which says `elsa-tree/3` (2 Terminals). #179 gives it
+  the `/5` `$schema` and labels by hand, so that its one defect is still the format.
+
+After #179, 107 Terminals carry a `label`, and the 108th, `v-terminal`'s, is the defect it was
+built to carry; and once the four are re-fitted by hand, no file under `trees/` or
+`tests/fixtures/` names `elsa-tree/4`.
+
+#### 12.7.4 What it does for a deployment's data directory
+
+`openStore` (`docs/specs/application.md` 17.5, 36.4) runs 12.7.1 on every `tree.json` and
+`draft.json` under `trees/` whose `format` is `elsa-tree/4`, **before it opens any Tree**, and
+logs one line per file it converted: `Converted Tree "<id>" <file> from elsa-tree/4 to
+elsa-tree/5: <n> endings`. A converted `draft.json` is written when it passes the draft schema
+and every blocking rule (`application.md` 19.2), a converted `tree.json` when it passes in full
+(19.3), each replaced atomically (17.3); `meta.json` is not touched, because no creator wrote.
+A file that would not pass is left as it was, and its Tree is refused (18.3) or uneditable
+(19.5) with the violations, until the administrator imports a repaired copy (17.4).
+`importTree` -- the seed, and `npm run store -- import` -- converts a `/4` folder's `tree.json`
+in its staging copy, never in the source folder.

@@ -85,7 +85,10 @@ export interface Chrome {
   /** **[#135]** The 403 page (24.2). */
   forbiddenTitle: string
   forbiddenText: string
-  /** **[#135]** The admin chrome bar (24.3): the logout button, the link to the account page and to the accounts page. */
+  /**
+   * **[#135]** The admin chrome bar (24.3): the logout button, the link to the account page and to the accounts page.
+   * **[#176]** `account` is the link's own word now, "Account"; the account's name is its description.
+   */
   logout: string
   account: string
   accounts: string
@@ -131,13 +134,29 @@ export interface Chrome {
   removeSource: string
   sourceKind: string
   sourceUrl: string
-  /** **[#138]** The `legal` kind in the kind select; on the public page the heading `sources` says it (ADR-78-sources-heading). */
+  /** **[#138]** The `legal` kind in the kind select; the public page labels no `legal` Source (ADR-78-sources-heading, decision 2). */
   sourceLegal: string
   /** **[#138]** The accessible name of a Terminal's outcome select, drawn as the badge (28.1). */
   outcome: string
   /** **[#138]** The counter pill on the rim (28.3): the accessible names of its two numbers. */
   characters: string
   lines: string
+  /**
+   * **[#172]** What belongs in each field, its placeholder while it is empty (28.2, amended
+   * 2026-10-02): the Node's title and text, a Source's name and link, an Option's title, an
+   * Image's description and credit, an explainer's term and explanation, the logo's
+   * alternative text.
+   */
+  placeholderTitle: string
+  placeholderText: string
+  placeholderSourceLabel: string
+  placeholderUrl: string
+  placeholderOptionTitle: string
+  placeholderImageDescription: string
+  placeholderCredit: string
+  placeholderTerm: string
+  placeholderExplanation: string
+  placeholderLogoAlt: string
   /** **[#138]** The autosave indicator (29.3 to 29.7) and the session Sheet (29.6). */
   saving: string
   saved: string
@@ -171,8 +190,7 @@ export interface Chrome {
   explanation: string
   markedIn: string
   notMarkedIn: string
-  /** **[#142]** The top panel (33): its button and heading, the four sections, the confirmations. */
-  treeState: string
+  /** **[#142]** The top panel (33): its sections and the confirmations; **[#176]** its button and heading say `settings`. */
   publish: string
   todoCount: string
   todoBefore: string
@@ -198,24 +216,20 @@ export interface Chrome {
   deleteTree: string
   unpublishFirst: string
   confirmDeleteTree: string
-  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button, the side-bubble `+`, and the two choices of its Sheet. */
+  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button and the side-bubble `+`. */
   treeEndsHere: string
   newSideBubble: string
-  createNew: string
-  linkExisting: string
-  /** **[#139]** The link menu of an Answer or Option button (30.6, 30.7): its name and its two actions. */
-  linkMenu: string
-  changeTarget: string
-  removeLink: string
-  /** **[#139]** The step menu on the rim (30.8): its name, its two actions, and the confirmation of a delete. */
-  stepMenu: string
+  /**
+   * **[#178]** The step's two buttons beside the up arrow (30.8, amended 2026-10-02): the red
+   * cross's name and hover text, the words of the button that removes the ending, and the
+   * confirmation of a delete.
+   */
   deleteStep: string
   removeEnd: string
   /** The confirmation named with the step's title: a function, so a language may order the sentence its own way (3.2). */
   confirmDelete: (title: string) => string
-  /** **[#139]** The picker (30.6): its heading, and the placeholder of the new side-bubble's title. */
-  pickTarget: string
-  sideBubbleTitle: string
+  /** **[#178]** The confirmation of a step without a title yet in the page's language. */
+  confirmDeleteUntitled: string
   /** **[#140]** The editor's pictures (31): the pickers, the attach Sheet, the enlarged view's four controls, the picker's two refusals. */
   addPicture: string
   attach: string
@@ -267,6 +281,33 @@ export interface Chrome {
   removeFont: string
   removeFontFile: string
   themeFileRefused: string
+  /**
+   * **[#176]** The floating controls (33.1, 33.3, amended): the settings button and the panel's
+   * title; the to-do control's words for one thing (`todoCount` says them for more) and at zero,
+   * which its bubble's empty list says too; a refused publish's sentence in the panel and the
+   * button that opens the to-do bubble from it. Strings, not a function of the count: the
+   * control counts in the browser, where a function from the server cannot go.
+   */
+  settings: string
+  todoCountOne: string
+  todoNone: string
+  publishRefused: string
+  showTodo: string
+  /** **[#174]** What the strip's `+` says beside it and is named by (31.1), and the information hint behind an Image's two fields: its name and its two explanations (31.2, 31.3). */
+  addExtraPicture: string
+  hint: string
+  creditHint: string
+  imageDescriptionHint: string
+  /**
+   * **[#177]** The delete at the bottom of an opened side bubble (30.7, amended): the button, its
+   * confirmation named with the side bubble's title -- a function, so a language may order the
+   * sentence its own way (3.2) -- and without a title, and what it adds where another step leads
+   * to the side bubble too.
+   */
+  deleteSideBubble: string
+  confirmDeleteSideBubble: (title: string) => string
+  confirmDeleteUntitledSideBubble: string
+  sideBubbleStays: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -274,7 +315,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     yes: 'Yes',
     no: 'No',
     options: 'What this covers',
-    sources: 'Legal sources',
+    sources: 'Sources',
     sourceCaseLaw: 'Case law',
     sourceLiterature: 'Literature',
     images: 'Images',
@@ -314,7 +355,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     forbiddenTitle: 'Not yours to open',
     forbiddenText: 'Your account has no access to this page.',
     logout: 'Log out',
-    account: 'Your account',
+    account: 'Account',
     accounts: 'Accounts',
     signIn: 'Sign in',
     login: 'Name',
@@ -355,6 +396,16 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcome: 'Outcome',
     characters: 'characters',
     lines: 'lines',
+    placeholderTitle: 'Title',
+    placeholderText: 'Text',
+    placeholderSourceLabel: 'Name of the source',
+    placeholderUrl: 'https://…',
+    placeholderOptionTitle: 'Side bubble title',
+    placeholderImageDescription: 'What the picture shows',
+    placeholderCredit: 'Maker and licence',
+    placeholderTerm: 'Word or phrase',
+    placeholderExplanation: 'What it means',
+    placeholderLogoAlt: 'What the logo says',
     saving: 'Saving',
     saved: 'Saved',
     notSaved: 'Not saved',
@@ -383,7 +434,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Explanation',
     markedIn: 'Marked in the text',
     notMarkedIn: 'Not marked in the text',
-    treeState: 'Tree',
     publish: 'Publish',
     todoCount: 'things to do',
     todoBefore: 'To do before publishing:',
@@ -410,17 +460,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteTree: 'Delete this tree and its pictures for good? This cannot be undone.',
     treeEndsHere: 'Tree ends here',
     newSideBubble: 'New side bubble',
-    createNew: 'Create a new one',
-    linkExisting: 'Link an existing one',
-    linkMenu: 'This link',
-    changeTarget: 'Lead somewhere else',
-    removeLink: 'Remove this link',
-    stepMenu: 'This step',
     deleteStep: 'Delete this step',
-    removeEnd: 'Does not end here after all',
+    removeEnd: 'Tree does not end here after all',
     confirmDelete: (title) => `Delete "${title}"? What it led to stays.`,
-    pickTarget: 'Which step?',
-    sideBubbleTitle: 'The side bubble\u2019s title',
+    confirmDeleteUntitled: 'Delete this step? It has no title yet. What it led to stays.',
     addPicture: 'Add a picture',
     attach: 'Attach',
     makeMain: 'Make main picture',
@@ -463,12 +506,25 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeFont: 'Remove this font',
     removeFontFile: 'Remove',
     themeFileRefused: 'This file type is refused: PNG or WebP for a logo, WOFF2 for a font.',
+    settings: 'Decision-tree settings',
+    todoCountOne: 'thing to do',
+    todoNone: 'Nothing to do',
+    publishRefused: 'Not published: some things must be done first.',
+    showTodo: 'See what to do',
+    addExtraPicture: 'Add an extra image',
+    hint: 'Why this is asked',
+    creditHint: 'The maker and the licence of a picture must be named, for copyright reasons. The credit is shown with the enlarged picture.',
+    imageDescriptionHint: 'A screen reader says this in place of the picture, for people who cannot see it.',
+    deleteSideBubble: 'Delete side bubble',
+    confirmDeleteSideBubble: (title) => `Delete the side bubble "${title}"?`,
+    confirmDeleteUntitledSideBubble: 'Delete this side bubble? It has no title yet.',
+    sideBubbleStays: 'Another step leads to it too: it stays there.',
   },
   nl: {
     yes: 'Ja',
     no: 'Nee',
     options: 'Wat hieronder valt',
-    sources: 'Juridische bronnen',
+    sources: 'Bronnen',
     sourceCaseLaw: 'Rechtspraak',
     sourceLiterature: 'Literatuur',
     images: 'Afbeeldingen',
@@ -508,7 +564,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     forbiddenTitle: 'Geen toegang',
     forbiddenText: 'Uw account heeft geen toegang tot deze pagina.',
     logout: 'Uitloggen',
-    account: 'Uw account',
+    account: 'Account',
     accounts: 'Accounts',
     signIn: 'Inloggen',
     login: 'Naam',
@@ -549,6 +605,16 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     outcome: 'Uitkomst',
     characters: 'tekens',
     lines: 'regels',
+    placeholderTitle: 'Titel',
+    placeholderText: 'Tekst',
+    placeholderSourceLabel: 'Naam van de bron',
+    placeholderUrl: 'https://…',
+    placeholderOptionTitle: 'Titel van de zijbubbel',
+    placeholderImageDescription: 'Wat de afbeelding laat zien',
+    placeholderCredit: 'Maker en licentie',
+    placeholderTerm: 'Woord of begrip',
+    placeholderExplanation: 'Wat het betekent',
+    placeholderLogoAlt: 'Wat er in het logo staat',
     saving: 'Opslaan',
     saved: 'Opgeslagen',
     notSaved: 'Niet opgeslagen',
@@ -577,7 +643,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     explanation: 'Uitleg',
     markedIn: 'Gemarkeerd in de tekst',
     notMarkedIn: 'Niet gemarkeerd in de tekst',
-    treeState: 'Boom',
     publish: 'Publiceren',
     todoCount: 'punten te doen',
     todoBefore: 'Te doen voor publicatie:',
@@ -604,17 +669,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteTree: 'Deze boom en zijn afbeeldingen voorgoed verwijderen? Dit kan niet ongedaan worden.',
     treeEndsHere: 'Boom eindigt hier',
     newSideBubble: 'Nieuwe zijbubbel',
-    createNew: 'Een nieuwe maken',
-    linkExisting: 'Een bestaande koppelen',
-    linkMenu: 'Deze koppeling',
-    changeTarget: 'Ergens anders heen',
-    removeLink: 'Deze koppeling verwijderen',
-    stepMenu: 'Deze stap',
     deleteStep: 'Deze stap verwijderen',
-    removeEnd: 'Eindigt hier toch niet',
+    removeEnd: 'Boom eindigt hier toch niet',
     confirmDelete: (title) => `"${title}" verwijderen? Waar die heen leidde blijft.`,
-    pickTarget: 'Welke stap?',
-    sideBubbleTitle: 'De titel van de zijbubbel',
+    confirmDeleteUntitled: 'Deze stap verwijderen? Hij heeft nog geen titel. Waar hij heen leidde blijft.',
     addPicture: 'Afbeelding toevoegen',
     attach: 'Toevoegen',
     makeMain: 'Hoofdafbeelding maken',
@@ -657,6 +715,19 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeFont: 'Dit lettertype verwijderen',
     removeFontFile: 'Verwijderen',
     themeFileRefused: 'Dit bestandstype wordt geweigerd: PNG of WebP voor een logo, WOFF2 voor een lettertype.',
+    settings: 'Beslisboominstellingen',
+    todoCountOne: 'punt te doen',
+    todoNone: 'Niets te doen',
+    publishRefused: 'Niet gepubliceerd: eerst moet er nog iets gebeuren.',
+    showTodo: 'Bekijk wat er te doen is',
+    addExtraPicture: 'Extra afbeelding toevoegen',
+    hint: 'Waarom dit gevraagd wordt',
+    creditHint: 'De maker en de licentie van een afbeelding moeten genoemd worden, vanwege het auteursrecht. De bronvermelding staat bij de vergrote afbeelding.',
+    imageDescriptionHint: 'Een schermlezer leest dit voor in plaats van de afbeelding, voor wie die niet kan zien.',
+    deleteSideBubble: 'Zijbubbel verwijderen',
+    confirmDeleteSideBubble: (title) => `De zijbubbel "${title}" verwijderen?`,
+    confirmDeleteUntitledSideBubble: 'Deze zijbubbel verwijderen? Hij heeft nog geen titel.',
+    sideBubbleStays: 'Een andere stap leidt er ook heen: daar blijft hij staan.',
   },
 }
 

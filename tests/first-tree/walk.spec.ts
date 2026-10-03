@@ -483,8 +483,8 @@ const CAROUSEL_PORT = BASE_PORT + 60
 
 /** The words the walk checks on screen, per language (src/chrome.ts, the Tree's explainer). */
 const WORDS_87 = {
-  en: { sources: 'Legal sources', provider: 'provider' },
-  nl: { sources: 'Juridische bronnen', provider: 'aanbieder' },
+  en: { sources: 'Sources', provider: 'provider' },
+  nl: { sources: 'Bronnen', provider: 'aanbieder' },
 } as const
 
 /** One page measured by the walk: 10.6's numbers and whatever the point adds. */
@@ -704,9 +704,10 @@ for (const [width, height] of VIEWPORTS) {
         }),
       )
       await expect(page.locator('.options img.option-image')).toHaveCount(buttons.length)
-      expect(new Set(buttons.map((b) => b.font))).toEqual(new Set(['16px']))
+      // 15 since #175: the picture fills the button's inner end and leaves the title 120 pixels (10.3, amended).
+      expect(new Set(buttons.map((b) => b.font))).toEqual(new Set(['15px']))
       await noScroll(page, 'annex-i-legislation-2, the fan', lang, [
-        `${buttons.length} Option buttons ${buttons[0]!.w} x ${buttons[0]!.h}, titles at 16px, left edges ${buttons.map((b) => b.x).join(', ')}`,
+        `${buttons.length} Option buttons ${buttons[0]!.w} x ${buttons[0]!.h}, titles at 15px, left edges ${buttons.map((b) => b.x).join(', ')}`,
       ])
       await shot87(page, '8-4-annex-i-legislation-2-fan', lang)
 
@@ -730,12 +731,16 @@ for (const [width, height] of VIEWPORTS) {
       const carousel = await page.evaluate(() => {
         const strip = document.querySelector('[data-carousel-strip]')!.getBoundingClientRect()
         return {
-          centre: Math.round(strip.top + strip.height / 2),
+          top: Math.round(strip.top),
+          bottom: Math.round(strip.bottom),
           outline: Math.round(document.querySelector('.bubble')!.getBoundingClientRect().bottom),
         }
       })
-      expect(Math.abs(carousel.centre - carousel.outline), "the strip on the Bubble's lower edge").toBeLessThanOrEqual(2)
-      await noScroll(page, 'carousel fixture, five Images', lang, [`strip centre y ${carousel.centre}, Bubble bottom ${carousel.outline}`])
+      // [#174] The 67-pixel strip straddles the lower edge, no longer centred on it: 24 above
+      // the outline, 2 clear of the text area, and 43 below it, in the strip band (12.2).
+      expect(Math.abs(carousel.outline - carousel.top - 24), "the strip on the Bubble's lower edge").toBeLessThanOrEqual(1)
+      expect(Math.abs(carousel.bottom - carousel.outline - 43), "the strip on the Bubble's lower edge").toBeLessThanOrEqual(1)
+      await noScroll(page, 'carousel fixture, five Images', lang, [`strip top y ${carousel.top}, bottom y ${carousel.bottom}, Bubble bottom ${carousel.outline}`])
       await shot87(page, '5-carousel-fixture', lang)
     })
   }

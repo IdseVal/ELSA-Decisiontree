@@ -329,6 +329,39 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
     expect((await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'end', outcome: 'refer' }))).status).toBe(422)
   })
 
+  test('**[#175]** a ninth Option is refused with V-COUNT and nothing is written, by add-option and by the structural write alike; re-pointing at eight still lands', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    const asides: string[] = []
+    for (let i = 1; i <= 8; i += 1) {
+      asides.push((await drafts.createNode(cees, 't', { node: 'start', link: 'option' }, { en: `Aside ${i}` })).node!.id)
+    }
+    const spare = (await drafts.createNode(cees, 't', { node: asides[0]!, link: 'option' }, { en: 'Spare' })).node!.id
+    const draft = await text('t', 'draft.json')
+    const meta = await text('t', 'meta.json')
+    expect(JSON.parse(draft).nodes[0].options).toHaveLength(8)
+
+    const ninth = [
+      () => drafts.write(cees, 't', 'start', { op: 'add-option', target: spare, title: { en: 'Ninth' } }),
+      () => drafts.write(cees, 't', 'start', { op: 'add-option', title: { en: 'Ninth, and a new aside' } }),
+      () => drafts.createNode(cees, 't', { node: 'start', link: 'option' }, { en: 'Ninth, created' }),
+    ]
+    for (const write of ninth) {
+      await expect(write()).rejects.toMatchObject({
+        status: 422,
+        message: 'blocking',
+        violations: [{ file: 'start', keyPath: 'options', rule: 'V-COUNT', message: '9 entries; at most 8', advisory: false }],
+      })
+    }
+    // Nothing written: no ninth Option, no new aside, no revision.
+    expect(await text('t', 'draft.json')).toBe(draft)
+    expect(await text('t', 'meta.json')).toBe(meta)
+
+    // The link menu re-points an Option by a removal and then an addition (30.6): the count never passes eight.
+    await drafts.write(cees, 't', 'start', { op: 'remove-option', target: asides[7]! })
+    await drafts.write(cees, 't', 'start', { op: 'add-option', target: spare, title: { en: 'Re-pointed' } })
+    expect(JSON.parse(await text('t', 'draft.json')).nodes[0].options.map((option: { target: string }) => option.target)).toEqual([...asides.slice(0, 7), spare])
+  })
+
   test('deleting a Node removes every Link to it in the same write; the root cannot be deleted', async () => {
     await drafts.create(cees, 't', ['en'], { en: 'T' })
     const target = (await drafts.createNode(cees, 't', { node: 'start', link: 'yes' })).node!.id

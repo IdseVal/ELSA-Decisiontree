@@ -2,13 +2,18 @@
  * **[#139]** The structure editing, in a browser (docs/specs/application.md 30, 35.4;
  * ADR-133-structure-editing): from an empty root, `+ Yes` lands on a new empty Node whose up
  * arrow returns; `treeEndsHere` with an outcome shows the badge; the side `+` opens the new
- * Overlay editable and the Option's title edits on the button, and the Overlay's own `+`
- * makes a second-level aside; `changeTarget` to an existing Node makes two Answers reach one
- * Node and the published walk (through #136's route) follows both; `createNew` from the
- * picker; `removeLink` leaves an orphan the draft reports; `linkExisting` hangs it back;
- * `deleteStep` goes to the parent and the parent's button is gone, or to the root with no
- * Trail; a Node with Options is refused an end and the Sheet says so; the ninth Option's `+`
+ * Overlay editable and the Option's title edits on the button, and **[#177]** a second-level
+ * aside is made from the aside's own page, the Overlay offering no `+` (30.4, 30.5, amended;
+ * `side-bubble.spec.ts` has the rest of #177); two Answers reaching one Node -- **[#178]** made
+ * through the API, the editor no longer offering it -- keep working and the published walk
+ * (through #136's route) follows both; the API's `remove-option` leaves an orphan the draft
+ * reports, and its `add-option` hangs it back (**[#177]** the editor no longer offers
+ * `linkExisting`); **[#178]** the step's red cross deletes after one confirmation and goes to
+ * the parent, whose `+` is back, or, from an orphan the to-do list leads to, to the root with no
+ * Trail, and "Tree does not end here after all" gives the three buttons back; no button carries a
+ * link menu; a Node with Options is refused an end and the Sheet says so; the ninth Option's `+`
  * is absent; and the count of Nodes created equals the count in the published `tree.json`.
+ * `step-buttons.spec.ts` has the rest of #178.
  *
  * One story, in order, on a Tree of this file's own; the fixture Tree `hidden-draft` stands
  * for the full Node with its eight Options. The screenshots the issue asks for go to
@@ -156,7 +161,8 @@ test('the empty root offers + Yes, treeEndsHere and + No; + Yes lands on a new e
   q1 = await landed(page, `/admin/trees/${TREE}/start`)
   // The new Node arrives empty: no title, no description, the three buttons, the up arrow back (30.2).
   await expect(page.locator('h1 textarea')).toHaveValue('')
-  await expect(field(page, q1, 'description.en')).toContainText('Text missing in this language')
+  // **[#172]** The empty description names what belongs in it (28.2, amended).
+  await expect(field(page, q1, 'description.en')).toContainText('Text')
   await expectChoice(page)
   await expect(page.locator('.up-arrow')).toHaveAttribute('href', `/admin/trees/${TREE}/start`)
   await shoot(page, 'new-question-node')
@@ -170,12 +176,11 @@ test('the empty root offers + Yes, treeEndsHere and + No; + Yes lands on a new e
   await expect(page.locator('.structure--no')).toHaveClass(/structure--lone/)
   await expect(page.locator('.structure--yes')).toHaveCount(0)
   await expect(page.locator('.structure-end')).toHaveCount(0)
-  // The link menu stands at the Answer that exists, and not where the `+` is (30.6).
-  await expect(page.locator('.link-menu--yes')).toHaveCount(1)
-  await expect(page.locator('.link-menu--no')).toHaveCount(0)
+  // **[#178]** No `...` at the Answer that exists, nor where the `+` is (30.6, amended).
+  await expect(page.locator('.link-menu')).toHaveCount(0)
 })
 
-test('treeEndsHere asks for the outcome and makes the Node a Terminal: the badge is the select, startAgain is the row, the buttons are gone (30.3)', async ({ browser }) => {
+test('treeEndsHere asks for the outcome and makes the Node a Terminal: the badge is the select, startAgain is the row, the buttons are gone; "Tree does not end here after all" gives them back (30.3, 30.8)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor(['start', q1]))
   await endHere(page, 'applicable')
@@ -189,17 +194,22 @@ test('treeEndsHere asks for the outcome and makes the Node a Terminal: the badge
   await shoot(page, 'terminal-with-outcome')
   expect((await nodeOf(page, cookie, q1)).outcome).toBe('applicable')
 
-  // The step menu of a Terminal offers `removeEnd`; the root has no `deleteStep` (30.8).
-  await page.locator('.step-menu > .sheet-open').click()
-  const menu = page.locator('.structure-form--step')
-  await expect(menu.locator('.structure-id')).toHaveText(q1)
-  await expect(menu.getByRole('button', { name: 'Does not end here after all' })).toBeVisible()
-  await expect(menu.getByRole('button', { name: 'Delete this step' })).toBeVisible()
-  await page.keyboard.press('Escape')
+  // **[#178]** Beside the up arrow, in place of the step menu: the red cross, and on a Terminal
+  // `removeEnd`, which gives the three buttons back at once; ended again, the story goes on (30.8, amended).
+  await expect(page.locator('.step-menu')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Delete this step' })).toBeVisible()
+  await page.getByRole('button', { name: 'Tree does not end here after all' }).click()
+  await expectChoice(page)
+  await expect(page.locator(`[data-field="${q1} terminal.outcome"]`)).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Tree does not end here after all' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Delete this step' })).toBeVisible()
+  expect((await nodeOf(page, cookie, q1)).outcome).toBeUndefined()
+  await endHere(page, 'applicable')
+  await expect(select).toHaveValue('applicable')
+  // The root has no cross (30.8).
   await page.goto(editor(['start']))
-  await page.locator('.step-menu > .sheet-open').click()
-  await expect(page.locator('.structure-form--step .structure-id')).toHaveText('start')
-  await expect(page.locator('.structure-form--step').getByRole('button', { name: 'Delete this step' })).toHaveCount(0)
+  await expect(page.locator('.bubble[data-node="start"]')).toBeVisible()
+  await expect(page.locator('.step-delete')).toHaveCount(0)
 })
 
 test('+ No makes the second Answer; the new Node gets its own two Answers, each ended; the parent row is then the public one (30.1, 30.2)', async ({ browser }) => {
@@ -222,54 +232,56 @@ test('+ No makes the second Answer; the new Node gets its own two Answers, each 
   await expect(page.locator(`[data-field="${n2b} terminal.outcome"] select`)).toHaveValue('refer')
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start', n2]))
-  // Both Answers: the public row, with a link menu on each (30.1, 30.6).
+  // Both Answers: the public row (30.1), **[#178]** with no link menu on either (30.6, amended).
   await expect(page.locator('.answer--yes')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${n2a}`)
   await expect(page.locator('.answer--no')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${n2b}`)
   await expect(page.locator('.structure, .structure-end')).toHaveCount(0)
-  await expect(page.locator('.link-menu--yes, .link-menu--no')).toHaveCount(2)
+  await expect(page.locator('.link-menu')).toHaveCount(0)
   expect((await nodeOf(page, cookie, n2)).answers).toEqual({ yes: n2a, no: n2b })
 })
 
-test('the side-bubble + creates an Option and its aside and lands on the Overlay, open and editable; the Option’s title edits on the button; the Overlay’s own + makes a second-level aside (30.4, 30.5)', async ({ browser }) => {
+/**
+ * **[#177]** Types the title of the aside in the Overlay its creation opened, key by key, and
+ * leaves it: its Option button's title follows it (30.5, amended).
+ */
+async function titleAside(page: Page, id: string, title: string): Promise<void> {
+  // Drawn after hydration: the field listens from here on.
+  await expect(page.locator('details.overlay[open] > .sheet-backdrop')).toBeAttached()
+  const area = page.locator(`[data-field="${id} title.en"] textarea`)
+  await expect(area).toHaveValue('')
+  await area.click()
+  await page.keyboard.type(title, { delay: 5 })
+  await area.blur()
+}
+
+test('the side-bubble + creates an Option and its aside at one click and lands on the Overlay, open and editable; the Option’s title follows the aside’s and edits on the button; a second-level aside is made from the aside’s own page (30.4, 30.5)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor(['start']))
   const add = page.locator('.options > li.options-add > .side-add')
   await expect(add).toHaveCount(1)
-  await expect(add.locator(':scope > .sheet-open .option-title')).toHaveText('New side bubble')
-  await add.locator(':scope > .sheet-open').click()
-  const form = page.locator('.structure-form--side').filter({ visible: true })
-  await form.getByRole('button', { name: 'Create a new one' }).click()
-  const title = form.locator('.structure-title')
-  await expect(title).toBeFocused()
-  await title.fill('An aside')
-  await form.getByRole('button', { name: 'Confirm' }).click()
+  await expect(add.locator('.option-title')).toHaveText('New side bubble')
+  await add.click()
   a1 = await landed(page, `/admin/trees/${TREE}/start`)
 
   // The aside's address under this page renders the page with the new Overlay open (10.9, 30.4).
   const overlay = page.locator(`.options > li:has(.overlay-interior[data-node="${a1}"]) > details.overlay`)
   await expect(overlay).toHaveAttribute('open', '')
-  await expect(page.locator(`[data-field="${a1} title.en"] textarea`)).toHaveValue('An aside')
+  await titleAside(page, a1, 'An aside')
   await expect(page.locator(`[data-field="start options[0].title.en"] textarea`)).toHaveValue('An aside')
   await shoot(page, 'side-bubble-overlay')
-  expect((await nodeOf(page, cookie, 'start')).options).toEqual([{ title: { en: 'An aside' }, target: a1 }])
-  expect((await nodeOf(page, cookie, a1)).title).toEqual({ en: 'An aside' })
+  await expect.poll(async () => (await nodeOf(page, cookie, 'start')).options).toEqual([{ title: { en: 'An aside' }, target: a1 }])
+  await expect.poll(async () => (await nodeOf(page, cookie, a1)).title).toEqual({ en: 'An aside' })
 
-  // The Overlay's list gains `+ newSideBubble`, in a Sheet of its own group, which navigates to the deeper address.
-  const deeper = overlay.locator(':scope > .sheet-panel .side-add--list')
-  await deeper.locator(':scope > .sheet-open').click()
-  await expect(overlay.locator(':scope > .sheet-panel')).toBeVisible()
-  const deeperForm = page.locator('.structure-form--side').filter({ visible: true })
-  await deeperForm.getByRole('button', { name: 'Create a new one' }).click()
-  await deeperForm.locator('.structure-title').fill('A deeper aside')
-  await deeperForm.getByRole('button', { name: 'Confirm' }).click()
-  a2 = await landed(page, `/admin/trees/${TREE}/start/${a1}`)
+  // **[#177]** The Overlay offers no `+` (30.5, amended): the aside's own page is the centre, and its fan's makes the deeper aside.
+  await expect(overlay.locator('.side-add')).toHaveCount(0)
+  await page.goto(editor([a1]))
+  await page.locator('.options > li.options-add > .side-add').click()
+  a2 = await landed(page, `/admin/trees/${TREE}/${a1}`)
   await expect(page.locator(`.overlay-interior[data-node="${a2}"]`)).toBeVisible()
-  await expect(page.locator(`[data-field="${a2} title.en"] textarea`)).toHaveValue('A deeper aside')
-  expect((await nodeOf(page, cookie, a1)).options).toEqual([{ title: { en: 'A deeper aside' }, target: a2 }])
+  await titleAside(page, a2, 'A deeper aside')
+  await expect.poll(async () => (await nodeOf(page, cookie, a1)).options).toEqual([{ title: { en: 'A deeper aside' }, target: a2 }])
 
-  // Closed with the cross; then the Option's title, edited on the button, is the Option's, not the aside's (30.5).
-  await page.locator('details.overlay[open] > .sheet-panel > .sheet-close').first().click()
-  await expect(page.locator('details.overlay[open]')).toHaveCount(0)
+  // Then the Option's title, edited on the button, is the Option's, not the aside's (30.5).
   await page.goto(editor(['start']))
   const button = page.locator('[data-field="start options[0].title.en"] textarea')
   await button.click()
@@ -279,20 +291,13 @@ test('the side-bubble + creates an Option and its aside and lands on the Overlay
   expect((await nodeOf(page, cookie, a1)).title.en).toBe('An aside')
 })
 
-test('changeTarget points an Answer at an existing Node from the picker, so two Answers reach one Node; the Node it left is an orphan the draft reports (30.6, 30.9)', async ({ browser }) => {
+test('**[#178]** two Answers reaching one Node, made through the API now that the editor offers no re-pointing, keep working in the editor; the Node it left is an orphan the draft reports (30.6, 30.9)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
+  // `set-answer` stays in the editor's server interface (22.1); the editor no longer sends it.
+  expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${n2}`, { op: 'set-answer', answer: 'no', target: q1 })).status()).toBe(200)
   await page.goto(editor(['start', n2]))
-  await page.locator('.link-menu--no > .sheet-open').click()
-  const menu = page.locator('.structure-form--link').filter({ visible: true })
-  await expect(menu.locator('h2')).toHaveText('No')
-  await menu.getByRole('button', { name: 'Lead somewhere else' }).click()
-  // Every Node of the draft but this one, by title and id, in file order (30.6): the index, never a Node read.
-  const ids = await menu.locator('.structure-pick-id').allTextContents()
-  expect(ids).toEqual(['start', q1, n2a, n2b, a1, a2].filter((id) => id !== n2))
-  await expect(menu.locator('.structure-pick').filter({ hasText: a1 })).toContainText('An aside')
-  await menu.locator('.structure-pick').filter({ hasText: q1 }).click()
-  await expect(status(page)).toContainText(/^Saved \d/)
   await expect(page.locator('.answer--no')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${q1}`)
+  await expect(page.locator('.link-menu')).toHaveCount(0)
   expect((await nodeOf(page, cookie, n2)).answers).toEqual({ yes: n2a, no: q1 })
   expect((await nodeOf(page, cookie, 'start')).answers!.yes).toBe(q1)
 
@@ -302,33 +307,14 @@ test('changeTarget points an Answer at an existing Node from the picker, so two 
   expect((await nodeOf(page, cookie, n2b)).outcome).toBe('refer')
 })
 
-test('createNew from the picker re-points an Answer at a fresh Node and lands there (30.6, 30.2)', async ({ browser }) => {
+test('**[#178]** the red cross on the step a yes leads to: one confirmation names its title, the editor goes to the parent, whose yes is free again and makes a fresh step (30.8, amended; 30.2)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
-  await page.goto(editor(['start', n2]))
-  await page.locator('.link-menu--yes > .sheet-open').click()
-  const menu = page.locator('.structure-form--link').filter({ visible: true })
-  await menu.getByRole('button', { name: 'Lead somewhere else' }).click()
-  await menu.getByRole('button', { name: 'Create a new one' }).click()
-  n2c = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
-  await expectChoice(page)
-  await endHere(page, 'not-applicable')
-  await expect(page.locator(`[data-field="${n2c} terminal.outcome"] select`)).toHaveValue('not-applicable')
-  expect((await nodeOf(page, cookie, n2)).answers).toEqual({ yes: n2c, no: q1 })
-  // n2a joins n2b among the orphans.
-  expect((await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH').map((v) => v.file).sort()).toEqual([n2a, n2b].sort())
-})
-
-test('deleteStep from the step menu: confirmed with the title, the editor goes to the parent, whose Link to it is gone; with no Trail, to the root (30.8)', async ({ browser }) => {
-  const { page, cookie } = await loggedIn(browser)
-  // Re-point n2's yes at n2a again, so n2a is deleted from under its parent and the parent loses a button.
-  expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${n2}`, { op: 'set-answer', answer: 'yes', target: n2a })).status()).toBe(200)
   await fill(page, cookie, n2a, 'Prohibited')
   await page.goto(editor(['start', n2, n2a]))
-  await page.locator('.step-menu > .sheet-open').click()
-  const menu = page.locator('.structure-form--step')
-  await menu.getByRole('button', { name: 'Delete this step' }).click()
-  await expect(menu.locator('.structure-confirm')).toHaveText('Delete "Prohibited"? What it led to stays.')
-  await menu.getByRole('button', { name: 'Confirm' }).click()
+  await page.getByRole('button', { name: 'Delete this step' }).click()
+  const question = page.getByRole('alertdialog')
+  await expect(question.locator('.structure-confirm')).toHaveText('Delete "Prohibited"? What it led to stays.')
+  await question.getByRole('button', { name: 'Confirm' }).click()
   await page.waitForURL(editor(['start', n2]))
   deleted.push(n2a)
   await expect(page.locator('.answer--yes')).toHaveCount(0)
@@ -336,33 +322,38 @@ test('deleteStep from the step menu: confirmed with the title, the editor goes t
   expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/${n2a}`)).status()).toBe(404)
   expect((await nodeOf(page, cookie, n2)).answers).toEqual({ no: q1 })
 
-  // Back to n2c, which nothing reaches meanwhile: `set-answer` from the picker, as before.
   await page.locator('.structure--yes').click()
-  const filler = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
-  expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${n2}`, { op: 'set-answer', answer: 'yes', target: n2c })).status()).toBe(200)
-  // The filler is an orphan now, as is n2b: each deleted from its own page, with no Trail, lands on the root.
-  for (const id of [filler, n2b]) {
-    await page.goto(editor([id]))
-    await expect(page.locator('.up-arrow')).toHaveCount(0)
-    await page.locator('.step-menu > .sheet-open').click()
-    await page.locator('.structure-form--step').getByRole('button', { name: 'Delete this step' }).click()
-    await page.locator('.structure-form--step').getByRole('button', { name: 'Confirm' }).click()
-    await page.waitForURL(editor(['start']))
-    deleted.push(id)
-    expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/${id}`)).status()).toBe(404)
-  }
+  n2c = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
+  await expectChoice(page)
+  await endHere(page, 'not-applicable')
+  await expect(page.locator(`[data-field="${n2c} terminal.outcome"] select`)).toHaveValue('not-applicable')
+  expect((await nodeOf(page, cookie, n2)).answers).toEqual({ yes: n2c, no: q1 })
+  // n2a is gone, so it is no orphan; n2b still is.
+  expect((await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH').map((v) => v.file)).toEqual([n2b])
+})
+
+test('**[#178]** an orphan is reached through the to-do list, where its line leads to its page; its cross deletes it there and, with no Trail, the editor goes to the root (30.8, 30.9)', async ({ browser }) => {
+  const { page, cookie } = await loggedIn(browser)
+  await page.goto(editor(['start']))
+  const todo = page.locator('.todo-sheet')
+  await todo.locator(':scope > .sheet-open').click()
+  const line = todo.locator('.todo-list li[data-rule="V-REACH"]')
+  await expect(line).toHaveCount(1)
+  await line.locator('a').click()
+  await page.waitForURL(editor([n2b]))
+  await expect(page.locator('.up-arrow')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Delete this step' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
+  await page.waitForURL(editor(['start']))
+  deleted.push(n2b)
+  expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/${n2b}`)).status()).toBe(404)
   expect((await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH')).toEqual([])
 })
 
-test('removeLink removes the Option and leaves its target in the draft as an orphan; linkExisting hangs it back from the picker (30.6, 30.7, 30.9)', async ({ browser }) => {
+test('**[#178]** the server interface keeps remove-option and add-option (22.1): an Option removed through the API leaves its target in the draft as an orphan, which add-option hangs back (30.7, 30.9)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
+  expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/start`, { op: 'remove-option', target: a1 })).status()).toBe(200)
   await page.goto(editor(['start']))
-  const item = page.locator('.options > li').filter({ has: page.locator(`.overlay-interior[data-node="${a1}"]`) })
-  await item.locator(':scope > .link-menu--option > .sheet-open').click()
-  const menu = page.locator('.structure-form--link').filter({ visible: true })
-  await expect(menu.locator('h2')).toHaveText('The aside, renamed on its button')
-  await menu.getByRole('button', { name: 'Remove this link' }).click()
-  await expect(status(page)).toContainText(/^Saved \d/)
   await expect(page.locator(`.overlay-interior[data-node="${a1}"]`)).toHaveCount(0)
   expect((await nodeOf(page, cookie, 'start')).options).toEqual([])
   expect((await nodeOf(page, cookie, a1)).title.en).toBe('An aside')
@@ -372,13 +363,11 @@ test('removeLink removes the Option and leaves its target in the draft as an orp
   expect(todo.filter((v) => v.rule === 'V-ORPHAN').map((v) => v.file)).toEqual([a1])
   expect(todo.filter((v) => v.rule === 'V-REACH').map((v) => v.file)).toEqual([a2])
 
-  await page.locator('.options > li.options-add > .side-add > .sheet-open').click()
-  const form = page.locator('.structure-form--side').filter({ visible: true })
-  await form.getByRole('button', { name: 'Link an existing one' }).click()
-  await form.locator('.structure-pick').filter({ hasText: a1 }).click()
-  await expect(status(page)).toContainText(/^Saved \d/)
+  // **[#177]** The editor no longer offers `linkExisting` (30.4, amended; ADR-169-tree-creation-ui-round
+  // decision 5); the API's `add-option` still links an existing Node, and hangs a1 back for the walk below.
+  expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/start`, { op: 'add-option', target: a1, title: { en: 'An aside' } })).status()).toBe(200)
+  await page.goto(editor(['start']))
   await expect(page.locator(`.overlay-interior[data-node="${a1}"]`)).toHaveCount(1)
-  // The Option's title is the aside's, as the picker showed it (30.6); nothing was copied but that.
   expect((await nodeOf(page, cookie, 'start')).options).toEqual([{ title: { en: 'An aside' }, target: a1 }])
   expect((await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH' || v.rule === 'V-ORPHAN')).toEqual([])
 })
@@ -396,17 +385,33 @@ test('a Node with Options cannot end: the Sheet shows the refusal and the Node i
   expect((await nodeOf(page, cookie, a1)).outcome).toBeUndefined()
 })
 
-test('the ninth Option’s + is absent: the full Node with eight Options has no side-bubble + and every button its link menu (30.4, 30.6)', async ({ browser }) => {
-  const { page } = await loggedIn(browser)
+test('the ninth Option’s + is absent: the full Node with eight Options has no side-bubble + and, **[#178]**, no button a link menu; no Overlay has one (30.4, 30.5, 30.6)', async ({ browser }) => {
+  const { page, cookie } = await loggedIn(browser)
   await page.goto(`${origin}/admin/trees/hidden-draft/full`)
   await expect(page.locator('.options > li')).toHaveCount(8)
   await expect(page.locator('.options > li.options-add')).toHaveCount(0)
-  await expect(page.locator('.link-menu--option')).toHaveCount(8)
-  // Each of the eight Overlays' lists still has its own `+` (30.5).
-  await expect(page.locator('.side-add--list')).toHaveCount(8)
-  // An Overlay's list gains `+ newSideBubble` (30.5), and an explanation Node that is the centre gets the fan's `+` and the three buttons (30.1, 30.4).
+  await expect(page.locator('.link-menu')).toHaveCount(0)
+  // **[#177]** None of the eight Overlays offers a `+` any more (30.5, amended): before, each list ended in one.
+  await expect(page.locator('.side-add')).toHaveCount(0)
+  // **[#175]** Nor does a ninth get past the editor: the store refuses both writes that would
+  // add one, with 22.3's 422 and V-COUNT, and the Node keeps its eight.
+  const ninth = [
+    await api(page, cookie, 'PATCH', '/trees/hidden-draft/nodes/full', { op: 'add-option', title: { en: 'A ninth' } }),
+    await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'full', link: 'option' }, title: { en: 'A ninth' } }),
+    // **[#177]** The `+`'s own write, which sends no title (30.4, amended).
+    await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'full', link: 'option' } }),
+  ]
+  for (const refused of ninth) {
+    expect(refused.status()).toBe(422)
+    expect(((await refused.json()) as { violations: Violation[] }).violations).toEqual([
+      { file: 'full', keyPath: 'options', rule: 'V-COUNT', message: '9 entries; at most 8', advisory: false },
+    ])
+  }
+  const full = await api(page, cookie, 'GET', '/trees/hidden-draft/nodes/full')
+  expect(((await full.json()) as { node: DraftNode }).node.options).toHaveLength(8)
   await page.goto(`${origin}/admin/trees/hidden-draft/full/opt-one`)
-  await expect(page.locator('details.overlay[open] .side-add--list')).toHaveCount(1)
+  await expect(page.locator('details.overlay[open] .side-add')).toHaveCount(0)
+  // An explanation Node that is the centre gets the fan's `+` and the three buttons (30.1, 30.4).
   await page.goto(`${origin}/admin/trees/hidden-draft/opt-three`)
   await expect(page.locator('.options > li.options-add > .side-add')).toHaveCount(1)
   await expectChoice(page)

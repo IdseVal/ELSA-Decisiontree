@@ -6,6 +6,36 @@
 > they consume is frozen separately in `docs/specs/tree-format.md` (`elsa-tree/3`, issue
 > #78; `elsa-tree/2` was issue #37).
 >
+> **Amended 2026-10-02 by issue #171** (`docs/adrs/ADR-171-*.md`), for two points the owner
+> listed on #169 after walking the editor: "When tree ends here is chosen, just let the user
+> enter a text to display on the button (with a wordcap obviously). This graph creation tool
+> is not just for Legal trees, also for ethical or social trees, so we want to keep the graph
+> creator useable for all." and "Make the font family selection a dropdown, but do give the
+> option to add a font by uploading a file. Make the license section a dropdown." The Tree
+> format becomes `elsa-tree/5` (`tree-format.md`): a Terminal carries its own words,
+> `terminal.label`, in place of one of four outcomes. **Sections 36 and 37 are new** and hold
+> the contracts; the sections below change where they named the outcome, the format number or
+> the font fields, each change marked **[#171]**. Built by #179 (the ending) and #180 (the
+> Theme panel); #178 (the step's controls) and #172 (the fields) are the neighbours they meet.
+>
+> | Section | #171 |
+> |---|---|
+> | 3.2 | Chrome loses the four outcome words and `outcome`; gains `endingText`, and #180's dropdown words; `colourDanger` says "Errors". |
+> | 5.1 | `Outcome` goes; a Terminal Node carries `label: LocalisedText`; `Manifest['format']` is `elsa-tree/5`. |
+> | 6 | `fonts/`, `src/fonts.ts`, `src/store/woff2.ts`, `schemas/elsa-tree-5.json`. |
+> | 7 | `chrome.test.ts` loses its outcome row. |
+> | 9 | Five rows, one per ADR of #171. |
+> | 10.1, 10.3, 10.5 | The badge holds the Terminal's `label`, in one colour; below 792 pixels wide its tracking tightens. |
+> | 15.1 | The schema route serves `elsa-tree-5.json` and still `elsa-tree-4.json`. |
+> | 16.4, 16.5 | Unchanged, stated: neither read the outcome, and neither reads the label. |
+> | 17.4, 18.3 | The store converts an `elsa-tree/4` file when it opens it (36.4). |
+> | 19.1, 19.7, 22.1, 22.2 | The draft is `elsa-tree/5`; `link: 'end'` carries `label`; the field is `terminal.label.<lang>`; the manifest gains `use-library-font`; the theme upload answers the font's family name. |
+> | 28.1, 28.6, 30, 30.1, 30.3, 34.2 | The ending's words are a field on the rim; `treeEndsHere` asks for them; section 30's opening no longer says nothing enters the format. |
+> | 4.1, 6, 8, 15.2, 17.2, 19.2 | Where they name `elsa-tree/4` or its schema as the current one, a short mark: `/5` from #179. |
+> | 33.8 | The family name and the licence line become dropdowns (37). |
+> | 35.4 | The test rows of #179 and #180 (36.5, 37.6). |
+> | 36, 37 | New. |
+>
 > **Re-frozen for the display changes of #75 -- 2026-09-17 (issue #78).** The owner saw
 > version 0.2 running and changed the presentation again (`docs/CORE_DOCUMENT.md`, revised
 > 2026-09-17, sections 3.1, 3.2, 5, 9, 10; `docs/adrs/ADR-75-presentation-changes.md`).
@@ -231,12 +261,12 @@ add keys; every key exists in both languages or the build fails.
 |---|---|
 | `yes`, `no` | The two Answer Branches below the Bubble (10.3). |
 | `options` | The accessible name of the group of Option Branches beside the Bubble. |
-| `sources`, `sourceCaseLaw`, `sourceLiterature` | The heading over the Sources -- **[#75]** "Legal sources" / "Juridische bronnen" -- and the two kind labels still shown beside an entry (10.3). `sourceLegal` is gone: under that heading it repeated it. |
+| `sources`, `sourceCaseLaw`, `sourceLiterature` | The heading over the Sources -- **[#75]** "Legal sources" / "Juridische bronnen" -- and the two kind labels still shown beside an entry (10.3). `sourceLegal` is gone: under that heading it repeated it. **[#169] Amended 2026-10-02 (#173, by the owner):** the heading says **"Sources" / "Bronnen"**; the two kind labels are unchanged (`ADR-173-sources-heading.md`). |
 | `images`, `enlarge`, `close` | The Carousel strip's accessible name, the name of every picture's link, and the close cross of every Sheet, the Overlay included (sections 10.9, 12). |
 | ~~`trail`, `start`~~ | **[#75]** Gone with the drawn Trail (10.2). |
 | `share`, `copied` | The share button and its confirmation. |
 | `language` | Label of the language switch. |
-| `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer` | Badge text for the four Terminal outcomes. |
+| ~~`outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`~~ | ~~Badge text for the four Terminal outcomes.~~ **[#171]** Gone (#179): the badge holds the Terminal's own `label`, Tree content in the content language (36.1). Their eight words live on only in `tree-format.md` 12.7's conversion table. |
 | ~~`explanationOnly`~~ | **[#75]** Gone with the `back` Branch: an explanation Node opens in an Overlay (10.9). |
 | `disclaimer` | The permanent "not legal advice" footer. |
 | `notFoundTitle`, `notFoundText` | The 404 page. |
@@ -262,13 +292,18 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | Issue | Keys |
 |---|---|
 | #134 | `siteTitle` (the overview's and `llms.txt`'s H1, 23.5, 24.3), `noTrees`, `newTree` |
-| #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language); **[#162]** `sessionNotKept` (a login the browser kept no cookie of, 25.1) |
+| #135 | `needsJavaScript`, `forbiddenTitle`, `forbiddenText`, `logout`, `account`, `accounts`, `signIn`, `login`, `password`, `loginFailed`, `loginLocked`, `loginHelp`, `requestFailed`, `yourName`, `changePassword`, `currentPassword`, `newPassword`, `repeatPassword`, `passwordsDiffer`, `wrongPassword`, `sessionsEnded`, `newAccount`, `create`, `deactivate`, `reactivate`, `deactivated`, `administrator`, `setPassword`, `save`; **[#135] added in the build**: `active` (the row's state beside `deactivated`, 25.3), `displayName` (the new-account Sheet's first field, since `login` says "Name"), and the four refusals of a field, `nameLength`, `loginInvalid`, `loginTaken`, `passwordLength` (the accounts routes answer a code, `AccountError`, which the screen says in the chrome language); **[#162]** `sessionNotKept` (a login the browser kept no cookie of, 25.1); **[#176]** `account` says "Account" now, the link's own word (24.3) |
 | #137 | `published`, `hidden`, `notServable`, `treeId`, ~~`treeIdHint`, `treeIdFixed`, `treeIdTaken`, `treeIdReserved`~~ (**[#168]** removed with the address field, 27.1; `treeId` stays, the top panel names the address with it), `languages`, `addLanguage`, `makeDefault`, `default`, ~~`languagesFixed`~~ (**[#147]** replaced by `languagesLater`: the languages change in the top panel, 33.5; **[#168]** `languagesLater` removed: the form says no sentence), `title`; **[#137] added in the build**: `removeLanguage` (the accessible name of a tag's `remove` cross, 27.1) and `languageHint` (the tag grammar, which a refused tag turns to `danger` as `treeIdHint` does for the id, 27.2) |
 | #138 | `addSource`, `removeSource`, `sourceKind`, `sourceUrl`, `outcome`, `characters`, `lines`, `saving`, `saved`, `notSaved`, `retrying`, `retry`, `notEditable`, `changedElsewhere`, `sessionExpired`, `publicBehind` |
-| #139 | `treeEndsHere`, `newSideBubble`, `createNew`, `linkExisting`, `changeTarget`, `removeLink`, `linkMenu`, `stepMenu`, `deleteStep`, `removeEnd`, `confirmDelete`, `confirm`, `cancel` |
+| #139 | `treeEndsHere`, `newSideBubble`, ~~`createNew`~~, ~~`linkExisting`~~ (**[#177]** gone with the Sheet behind the side-bubble `+`, 30.4, and with it `sideBubbleTitle`, which the build had added for the Sheet's field), ~~`changeTarget`, `removeLink`, `linkMenu`, `stepMenu`~~ (**[#178]** gone with the link menus, the picker -- whose `createNew` it was -- and the step menu, 30.6, 30.8), `deleteStep` (**[#178]** the red cross's name and hover text), `removeEnd` (**[#178]** "Tree does not end here after all" / "Boom eindigt hier toch niet", the button's words), `confirmDelete`, `confirm`, `cancel`; **[#178]** `confirmDeleteUntitled` (the cross's question on a step without a title yet, 30.8) |
 | #140 | `addPicture`, `attach`, `makeMain`, `moveEarlier`, `moveLater`, `removeImage`, `fileTooLarge`, `fileTypeRefused`; **[#140] added in the build**: `cancel` (the attach Sheet's second button, 31.2 -- the same word #139's row names, so whichever branch merges second keeps one) and `imageDescription` (the label of its description field; `credit` labels the other) |
 | #141 | `mark`, `unmark`, `cannotMarkHere`, `explainerLimit`, `term`, `explanation`, `markedIn`, `notMarkedIn` |
-| #142 | `treeState`, `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, ~~`fixed`~~ (**[#147]** gone: the languages are the tag control of 33.5), `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
+| #142 | ~~`treeState`~~ (**[#176]** gone: the panel's title is `settings`, 33.2), `publish`, `todoCount`, `todoBefore`, `publishedAt`, `publicLink`, `publicBehindBecause`, `notServableBecause`, `confirmUnpublish`, `collaborators`, `creator`, `invite`, `removeCollaborator`, `chooseAccount`, `thisTree`, ~~`fixed`~~ (**[#147]** gone: the languages are the tag control of 33.5), `handOver`, `deleteTree`, `unpublishFirst`, `confirmDeleteTree` |
+| #174 | `addExtraPicture` (the strip's `+`, its name and the label beside it, 31.1), `hint`, `creditHint`, `imageDescriptionHint` (the information hint behind an Image's two fields: its name and its two explanations, 31.2, 31.3) |
+| #176 | `settings` (the floating button and the panel's title, 33.1, 33.2), `todoCountOne` (the to-do control's words for one thing; `todoCount` says them for more, 33.3), `todoNone` (the control at zero, and its bubble's empty list), `publishRefused` and `showTodo` (a refused publish's sentence in the panel and the button to the to-do bubble, 33.3) |
+| #177 | `deleteSideBubble` (the button at the foot of an opened side bubble, 30.7), `confirmDeleteSideBubble` (its confirmation, a function of the side bubble's title), `confirmDeleteUntitledSideBubble` (the same without a title), `sideBubbleStays` (what the confirmation adds where another step leads to the side bubble too) |
+| **[#171]** #179 | `endingText` ("Text of the ending" / "Tekst van het einde": the `treeEndsHere` Sheet's field and the empty badge field's placeholder, 36.3); **gone**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, and #138's `outcome`; **reworded**: #144's `colourDanger`, "Errors" / "Fouten" (36.1) |
+| **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5 |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -294,6 +329,7 @@ Admin area  /admin/...                                           [#132] the scre
             /admin/trees/<tree-id>/<id-1>/.../<id-n>[?lang=<tag>]   [#133] the editor: the Node page's grammar behind the prefix (24.1)
 Dataset     /<tree-id>/tree.json                                 [#118]
 Schema      /schemas/elsa-tree-4.json                            [#118]
+            /schemas/elsa-tree-5.json                            [#171] the schema of elsa-tree/5; both are served (15.1)
 Crawlers    /robots.txt                                          [#118]
 Sitemap     /sitemap.xml                                         [#118]
 Agents      /llms.txt                                            [#118]
@@ -600,7 +636,7 @@ The types, in `src/tree/types.ts`, mirror `tree-format.md` with two normalisatio
 
 ```ts
 type LocalisedText = Record<string, string>              // language tag -> text
-interface Manifest { format: 'elsa-tree/4';           // [#119] elsa-tree/4 (issue #118) languages: string[]; defaultLanguage: string;
+interface Manifest { format: 'elsa-tree/5';           // [#171] elsa-tree/5 (issue #171); [#119] elsa-tree/4 (issue #118) languages: string[]; defaultLanguage: string;
                      root: string; title: LocalisedText; description?: LocalisedText;
                      metadata: { version: string; [key: string]: unknown };
                      theme?: Theme }                     // [v0.2]
@@ -614,14 +650,14 @@ interface Source { id?: string; kind: 'legal' | 'case-law' | 'literature'; label
 interface Image  { file: string; description: LocalisedText; credit: string; source?: string }
 interface Option { title: LocalisedText; target: string }   // [#75] no images of its own (tree-format.md 5.4)
 interface Explainer { id: string; term: LocalisedText; text: LocalisedText }   // [#75] tree-format.md 5.9
-type Outcome = 'not-applicable' | 'applicable' | 'prohibited' | 'refer'
+// [#171] `type Outcome` is gone: a Terminal carries its own words (tree-format.md 5.5).
 type Node = {
   id: string; title: LocalisedText; description: LocalisedText;
   metadata: { version: string; [key: string]: unknown };
   sources: Source[]; images: Image[]; options: Option[]; explainers: Explainer[]   // [#75]
 } & (
   | { kind: 'question'; answers: { yes: string; no: string } }
-  | { kind: 'terminal'; outcome: Outcome }
+  | { kind: 'terminal'; label: LocalisedText }      // [#171] was `outcome: Outcome`
   | { kind: 'explanation' }
 )
 ```
@@ -753,7 +789,7 @@ deploy; an hour of a stale font is the same trade the images make.
 ```
 .
 ├── docs/                    core document, specs, ADRs, research (unchanged)
-├── trees/                   Tree data: one folder per Tree (elsa-tree/4)
+├── trees/                   Tree data: one folder per Tree (elsa-tree/4; [#171] elsa-tree/5 from #179)
 │   └── ai-act-example/      tree.json, images/, theme/ -- the development default
 ├── src/
 │   ├── app/                 Next.js routes (thin); all of them under [lang] (4.4)
@@ -813,6 +849,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │                        streaming the image and theme routes share (5.3, 5.5)
 │   ├── url.ts               the URL scheme (4); [#118] the absolute form and a Node's alternates (16.3)
 │   ├── chrome.ts            chrome strings and fallback (3)
+│   ├── fonts.ts             [#171] FONT_LIBRARY and FONT_LICENCES: the font library's list and the licence list (37.1, 37.5); pure
 │   ├── config.ts            ELSA_TREE / ELSA_TREES_DIR; the one opened Tree; [#132] ELSA_DATA_DIR,
 │   │                        ELSA_SEED_DIR, ELSA_ADMIN_PASSWORD, the three retired variables refused (17.1)
 │   ├── store/               [#132] the store (17.5): the one module that opens ELSA_DATA_DIR
@@ -821,13 +858,14 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── sessions.ts      the token, the record, the cookie string, expiry (20.4)
 │   │   ├── permissions.ts   permit: the table of 21.2 as code (21.3)
 │   │   ├── drafts.ts        the writes of 22.2 to 22.5, publish and unpublish (19.3, 19.4), importTree
-│   │   └── images.ts        sniffing, naming, the file write, the unreferenced-file sweep (22.6)
+│   │   ├── images.ts        sniffing, naming, the file write, the unreferenced-file sweep (22.6)
+│   │   └── woff2.ts         [#171] woff2FamilyName: an uploaded font's own family name (37.4); pure
 │   ├── markdown.ts          rich-text subset -> safe HTML, with the explainer marks (10.8);
 │   │                        [#118] and -> plain text, and the 155-character description (16.3)
 │   ├── tree/                the Tree loader module
 │   │   ├── loader.ts        openTree and the Tree interface (5.1); [#132] the draft mode and the derived draft schema (19.2)
 │   │   ├── validate.ts      the rules of tree-format.md section 7; [#132] and the draft mode's blocking/advisory tag
-│   │   └── types.ts         the types of elsa-tree/4 (5.1)
+│   │   └── types.ts         the types of elsa-tree/4 (5.1); [#171] of elsa-tree/5 from #179
 │   ├── admin/               [#135] the admin pages' server-side helpers: authenticated.ts, headers.ts, requests.ts, words.ts
 │   │   └── slots.tsx        [#138] the editor page's EditMode: the words and the slot functions of 34.2; later issues add theirs here
 │   ├── editor/              [#133] the editor's client components, leaves (34.4); import measure.ts, grammar.ts and markdown.ts only
@@ -842,7 +880,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── LoginForm.tsx    client: the login card, on the login page and in the session Sheet (25.1, 29.6)
 │   │   ├── NewTreeForm.tsx  client: the new-Tree form (27)
 │   │   ├── ImageSlot.tsx, AttachSheet.tsx     client: the pickers and the attach dialog (31)
-│   │   ├── Structure.tsx, StepMenu.tsx       client: the three buttons, the side +, the link menu, the picker, the step menu (30)
+│   │   ├── Structure.tsx, StepButtons.tsx    client: the three buttons, the side +, the side bubble's delete; [#178] the step's red cross and "Tree does not end here after all", in place of StepMenu.tsx, the link menu and the picker (30)
 │   │   ├── Marker.tsx, ExplainerSheet.tsx    client: marking and the explainer Sheet (32)
 │   │   └── Panel.tsx        client: the top panel (33)
 │   ├── tree/measure.ts      [#133] countedText, countedLength, estimatedLines, moved from validate.ts (28.4); pure
@@ -850,6 +888,8 @@ deploy; an hour of a stale font is the same trade the images make.
 │   ├── session.ts           [#135] authenticated(): the session resolved for a route handler or a page (20.4, 20.6)
 │   └── instrumentation.ts   startup validation (5.4)
 ├── schemas/elsa-tree-4.json [#118] the format's JSON Schema, served at /schemas/ (15.1)
+├── schemas/elsa-tree-5.json [#171] elsa-tree/5's JSON Schema, frozen by #171; the /4 file stays beside it, still served (15.1)
+├── fonts/                   [#171] the font library (37.1): one folder per family -- two WOFF2 files and its OFL.txt -- and README.md
 ├── scripts/validate.ts      `npm run validate`; [#132] --draft
 ├── scripts/store.ts         [#132] `npm run store -- import <folder>` (17.4)
 ├── scripts/migrate-tree.ts  [#119] the canonical byte form of tree-format.md 3.7: what is
@@ -984,7 +1024,7 @@ is a unit test; a claim about *layout, motion or network* needs a browser.
 | `findability/jsonld.test.ts` **[#118]** (**#122**) | The `@graph` of 16.4 against the fixtures: the `Dataset` on the root page only and every other page referring to it by the same language-independent `@id`; the `Dataset`'s required `name` and `description`, and the fall back to the root Node's description when the manifest has none; `isBasedOn` as the most frequent `kind: legal` Source URL with ties by Node order, and **absent** on a Tree with no legal Source; a `WebPage` on every page; a `Question` with two `suggestedAnswer` entries on a question Node and **no `Question`** on a Terminal or an explanation Node; no `QAPage` and no `acceptedAnswer` anywhere. **And the escaping**, which is the rule of 13.3 at a second sink: a Tree whose Node title contains `</script>`, `<!--` and a lone `<` is rendered, and the emitted script's text is asserted to contain no `<` character at all, to parse as JSON, and to parse back to the original title. A test that only checks the parsed object would pass the tautology this freeze removed. |
 | `findability/llms.test.ts` **[#118]** (**#121**) | The generated `llms.txt` of 16.5 against the fixtures: the sections and their order; the H1 and the blockquote from the manifest in the **default** language, falling back to the root Node's description when the manifest has none; **no Node's title, description or Source appears anywhere in it** -- it is a signpost, and a test that fails when Tree content leaks into it is what keeps it one; every URL absolute; the dataset and schema entries, the root URL, the sitemap, the URL grammar line, the declared languages with the default marked, and both licences with the holder line; `text/plain` as the media type; **no `llms-full.txt` route exists** (16.5). |
 | `routing.test.ts` | The two rewrites of 4.4, read out of `next.config.ts` itself. |
-| `chrome.test.ts` | The table in 3.1; every key of 3.2 exists in both languages; **[#75]** every outcome badge is at most 40 characters (10.1); `up(title)` contains the title it is given. |
+| `chrome.test.ts` | The table in 3.1; every key of 3.2 exists in both languages; **[#75]** every outcome badge is at most 40 characters (10.1) -- **[#171]** gone with the outcome words: the badge's words are the Tree's, held to 19 by V-LENGTH (36.1); `up(title)` contains the title it is given. |
 | `not-found.test.tsx` | The 404 page of 4.3. |
 | `neighbourhood.test.ts` **[v0.2]** | The set for each Node kind; **never more than 7 placements and 8 asides**; no id placed twice; a Link to an unknown id is dropped, not thrown; the Trail supplies `up` (the parent only), the Answers `down`, the Options the asides in Option order; an empty Trail has no `up`; there is no `side` direction (**[#75]**, 11.2). |
 | `theme.test.ts` **[v0.2]** | The emitted properties equal the manifest's values; a Tree with no Theme, and one with only `colours`, get the documented defaults for the rest; the three derived `--elsa-on-*` colours; a `family` containing `'`, `\` or `</style>` is escaped or refused; a colour that is not `#rrggbb` is refused rather than emitted. |
@@ -1035,10 +1075,10 @@ back.
 | Core document | Where it is met |
 |---|---|
 | 1 **[#118]** findable by search engines, dataset indexes and AI crawlers | section 16 in full: 16.1 robots, 16.2 sitemap, 16.3 hreflang and description, 16.4 JSON-LD, 16.5 `llms.txt` |
-| 3.1 **[#118]** JSON only, one format from one schema, written by tools | `tree-format.md` (`elsa-tree/4`), 3.7 and 3.9; 5.1, 5.2 |
+| 3.1 **[#118]** JSON only, one format from one schema, written by tools | `tree-format.md` (`elsa-tree/4`; **[#171]** `elsa-tree/5`), 3.7 and 3.9; 5.1, 5.2 |
 | 8 **[#118]** the Tree data is public under CC BY 4.0, served with no cookie and no account | 15.2: the licence in a `Link` header on the bytes themselves, and the no-cookie sweep -- `tests/browser/deployment.spec.ts` (section 7) -- extended to every route of 15 and 16 |
 | 10.21 **[#118]** superseded: hand-editability is no longer the criterion | `tree-format.md` 3.7, 3.9; `docs/adrs/ADR-118-json-serialisation.md` |
-| 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`); 5.1, 5.2 |
+| 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`; **[#171]** `elsa-tree/5`); 5.1, 5.2 |
 | 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
 | 3.1 / 9 images only for the Node on screen | 11.4, 12.4; **[#75]** 11.5 names the one exception per Option (core document 10.29) |
 | 3.1 text has a maximum length | `tree-format.md` 5.7, confirmed against this layout in 10.7 (**[#75]** again, with two pixels to spare: core document 10.28) |
@@ -1142,6 +1182,12 @@ back.
 | **[#133]** The `edit` prop with `links` and named slots; `src/editor/` as leaves importing two pure modules; the editor page's bound of twelve | `docs/adrs/ADR-133-reuse-rule.md` |
 | **[#133]** A built data directory, one server per spec, one login helper, the admin pages under no-scroll, the sweep's admin half, the public suites unchanged | `docs/adrs/ADR-133-editor-testing.md` |
 | **[#133]** The lines of #137 to #144 confirmed; #138 gains #135; #138 lands every slot | `docs/adrs/ADR-133-build-order.md` |
+| **[#171]** A Terminal carries its own words, `terminal.label`, at most 19 characters; the four outcomes go; one colour for every ending; the badge's tracking tightens below 792; the editor asks for the words only | `docs/adrs/ADR-171-ending-text.md` |
+| **[#171]** `elsa-tree/5` with its own schema beside the `/4` one; one conversion, run over the repository and by the store when it opens | `docs/adrs/ADR-171-elsa-tree-5.md` |
+| **[#171]** Four OFL families shipped in `fonts/`, no wider than Open Sans, copied into a Tree with their licence text | `docs/adrs/ADR-171-font-library.md` |
+| **[#171]** A select per role: the default, the library, the Tree's own, "Upload a font file…"; `use-library-font`; an upload named after the font's own family name | `docs/adrs/ADR-171-font-dropdown.md` |
+| **[#171]** Six SPDX licences stored as name and text address; "Another licence…"; a library family's licence fixed | `docs/adrs/ADR-171-licence-dropdown.md` |
+| **[#169]** The heading over the Sources says "Sources" / "Bronnen"; the kind labels unchanged | `docs/adrs/ADR-173-sources-heading.md` |
 
 ## 10. The tree view
 
@@ -1228,6 +1274,13 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
   The Terminal's rim above grows to hold arrow and badge one above the other; still
   nothing on the rim takes a pixel from the text area. Like the Answer label of 10.3, this
   gives way by width alone, outside 10.5's numbered order.
+
+  **Amended 2026-10-02 (#171, the owner's #169):** the badge holds the Terminal's own words,
+  its `label` in the page's language (`tree-format.md` 5.5), at most 19 characters, in place
+  of a chrome word for one of four outcomes, and it is drawn in one colour for every ending.
+  Its place, size and look stay; below 792 pixels wide its tracking is 0.04 em instead of
+  0.12, so that 19 characters hold one line in its narrowest room, 198 pixels at 480 wide, in
+  every face measured, DejaVu Sans Bold included (36.1).
 - **The curve and the text area.** The chord of the Bubble 26 pixels in is 523 pixels;
   at the title's top (94 in) it is 678, wider than the text area, and at the lowest
   Sources line (46 from the bottom) 585. The main image is centred and at most 90 wide;
@@ -1250,6 +1303,27 @@ now 545, and at the lowest Sources line of a full text area (46 from the bottom)
 Below 640 pixels tall the arrow goes back onto the outline and its band back to 26, as
 before this amendment (10.5, amended the same day), so every height trigger of 10.5
 stands as it was measured.
+
+**Amended 2026-10-02 (#174, by the owner in #169: "Make the images that are listed there
+bigger(1.4x what they are now) (also in the main app)"):** the strip's thumbnails are **67**
+pixels (48 x 1.4 = 67.2), and the strip band grows from 28 to **43** to hold them. A
+thumbnail keeps its upper 24 pixels in the Bubble's lower rim, 2 clear of the text area as
+before, and hangs 43 into the band, down to the Answer row, whose buttons stand 4 below its
+top. Centred on the outline, as the 48-pixel ones were, it would take 9.5 pixels of the
+text area, which 10.7 has not to give. The Bubble gives the 15 pixels: at the guaranteed
+viewport the rows are **44 + 56 + 401 + 43 + 68 + 28 = 640**, the Bubble is 760 x 401
+(radius 200.5) and its text area **640 x 349**. The rim keeps its 60 by 26; the Bubble's
+straight middle is 359, and the chord at the lowest Sources line of a full text area (46
+from the bottom) 615. A taller window grows the Bubble as before, up to 520. Below 640
+pixels tall the strip is its 20-pixel pill in a band of 20, as before (10.5, step 1, which
+now frees 23 pixels), so nothing below the guarantee moves. `carousel.spec.ts` measures
+these rows on the full Node and on a Node of five pictures at 1280 x 640.
+
+**Amended 2026-10-02 (#175, the owner in #169):** the 20 of gap and 240 of column beside the
+Bubble are now exactly what an Option button at the Bubble's middle height takes: its 20-pixel
+connector, the button's **236** and the 4 its focus ring needs (2 pixels wide, 2 off the
+outline), so its inner edge is 400 from the centre line and the ring ends at 640, the window's
+edge at 1280 (10.3, amended the same day). The rows and the columns do not move.
 
 ### 10.2 The up arrow: the way back
 
@@ -1311,6 +1385,17 @@ now flow as one inline list (10.9). The title sits at one height on every Node a
 neighbour frame's withheld slot is the same box as the picture it stands for, so a slide
 has nothing to reflow.
 
+**Amended 2026-10-02 (#174):** at 1280 x 640 the picture is 160.4 of the Bubble's 401
+(10.1), the clear foot is 24 plus a quarter of every pixel the text area has over 349, and
+a Node at every maximum keeps 0.6 of it (10.7). The rule, two fifths of the Bubble, is the
+same; the Overlay's picture is unchanged.
+
+**[#169] Amended 2026-10-02 (#173, by the owner):** the chrome heading `sources` says
+**"Sources" / "Bronnen"** (3.2, `ADR-173-sources-heading.md`). That is the heading in the
+Bubble and in the Overlay, and the title of the collapsed control and of its Sheet, on the
+public page and in the editor. The kind prefixes are unchanged: `case-law` and
+`literature` only.
+
 `tree-format.md` 5.6 has three kinds and the frontend distinguishes five situations. In
 every one: the up arrow above where there is a Trail (10.2), the strip on the lower
 outline (section 12), the chrome bar and disclaimer unchanged.
@@ -1321,7 +1406,7 @@ outline (section 12), the chrome bar and disclaimer unchanged.
 | **question Node, no Options** | The same | The same two Answer buttons | Empty fans; the Bubble keeps its size and place |
 | **explanation Node, in an Overlay** (the ordinary case: an Option opened it, or its URL did, 10.9) | The parent's page is underneath, unchanged | -- | The Overlay holds the explanation Node's Interior and, under it, its own Options as a list of plain links (10.9) |
 | **explanation Node, as the centre** (a path with no question Node or Terminal before it, or **[#100]** one where 10.9's bounded centre rule stops on an explanation Node) | The Interior; the up arrow (10.2) when the path has an entry before it, none when it has not | **One button**, `startAgain`, in the Answer buttons' style, to the root Node with an empty Trail | Its Options, fanned out like a question Node's |
-| **Terminal** | The Interior, and on the rim the **outcome badge**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited` or `outcomeRefer`, coloured `danger` for `prohibited` and `accent` otherwise | **One button**, `startAgain`, in the Answer buttons' style. The way back is the up arrow (10.2); a Terminal that is the root shows `startAgain` alone | Nothing: a Terminal may not carry Options (`tree-format.md` 5.6) |
+| **Terminal** | The Interior, and on the rim the **outcome badge**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited` or `outcomeRefer`, coloured `danger` for `prohibited` and `accent` otherwise. **[#171]** The **ending badge**: the Terminal's `label` in the page's language, in the accent's reading shade for every ending, with the Bubble's outline in the same shade (36.1) | **One button**, `startAgain`, in the Answer buttons' style. The way back is the up arrow (10.2); a Terminal that is the root shows `startAgain` alone | Nothing: a Terminal may not carry Options (`tree-format.md` 5.6) |
 
 - **Every button shows its target's title**, taken from the title index (`getTitle`),
   never from a second Node read -- except an Option button, whose target the page has in
@@ -1370,6 +1455,70 @@ outline (section 12), the chrome bar and disclaimer unchanged.
   (*i* + 0.5) x 416 / *m* - 208 and 172 + sqrt(208² - *y*²) + 20, and the pitch on a side
   of four is **104**: 8 clear of a 96-pixel button, 2 of a 102-pixel one. The figures
   above (446, 223, 157, 111.5, 15 and 9) are #78's and #105's, at a Bubble of 446.
+
+  **Amended 2026-10-02 (#174):** at the guaranteed viewport the Bubble is 401 (10.1), so
+  the pitch on a side of four is **100.25**: 4.25 clear of a 96-pixel button. A 102-pixel
+  one -- a title on five lines where the browser has no hyphenation dictionary for the
+  page's `lang` (10.7, amended by #105) -- overlaps its neighbour by 1.75 pixels at that
+  height, where it stood 2 clear; from 655 pixels tall, a Bubble of 416, it is as it was.
+
+  **Amended 2026-10-02 (#175, the owner in #169):** the button is **236 x 100**, a pill, and
+  its picture **fills its inner end**: a circle as tall as the button, 100 across, centred on
+  the end's curve, touching the outline at the top, at the bottom and at the end towards the
+  Bubble (on the left of the Bubble that end is the right, as before; the picture does not
+  move to the outer end, where the editor's link menu stands, 30.6; **[#178]** none stands there since 2026-10-02). The empty slot of a
+  target without Images fills the same end, and so does the editor's `+` (30.4, amended the
+  same day). The outline is drawn under the picture, which covers it there. Then a 6-pixel gap
+  and the title at **15 pixels on 18-pixel lines, at most five lines**, in the **120 pixels**
+  left (236 less 100, 6 and 10 of padding at the outer end). 236 x 100 is the largest that
+  fits at 1280 x 640 with room for a focused button's ring, 2 pixels wide and 2 off the
+  outline: a button at the Bubble's middle height -- the one of a side of one, the middle one
+  of a side of three -- has its inner edge at 400 and 240 to the window's edge (10.1, amended),
+  and on a side of four the pitch of 104 leaves 4 between two buttons of 100. The type is a
+  step down from 16 because the picture takes 100 of the width: in the 120 left a title near
+  60 characters takes five lines of 20 at 16 pixels, the whole button, and at 15 on 18,
+  hyphenated in the page's language, at most five, 90 pixels (10.7, amended). The 100 is a
+  minimum as the 96 was. The figures above (232, 96, 48, 8, 152, 16 on 20 and four lines) are
+  #78's, #105's and #102's. Below 1280 the straight columns of 10.5's step 2 keep their
+  200 x 96 without pictures, 176 pixels of label and 16 on 20.
+
+  **Amended 2026-10-02 (#175), the known cost:** where the reader's browser has no
+  hyphenation dictionary for the page's language (#105's case), a title of long Dutch words
+  can take **six** lines (10.7, amended), and its button grows to **108**, downward from the
+  row's top. On a side of four at 1280 x 640 that costs three things. Measured with
+  `hyphens: manual` and the first Tree's six-line Dutch title set in a row of the right side:
+  on `annex-i-legislation` in Open Sans, and on the full Node of 10.6 in Verdana, which breaks
+  these titles' lines as DejaVu Sans does (10.7, amended):
+
+  - **In the top row** the button lies **4 pixels over the next one**, where #105's 102
+    stayed 2 clear.
+  - **In the bottom row** it ends **6 pixels below the fan**. The row's top is at 314 in any
+    face, so the button ends at 422, and the Options' list, as tall as the Bubble's 416, holds
+    content taller than itself: 422 in its 416, 423 in Open Sans, whose last line's text box
+    reaches a pixel lower. That breaks 10.6's rule, beyond its one-pixel tolerance. Before #175
+    the same row held #105's 102 to 418, 2 below the fan and 1 past the tolerance, and that
+    was not recorded either.
+  - **In both rows the picture stays 100 across**, 4 pixels from the top and the bottom of
+    the 108, so it no longer fills the inner end.
+
+  At 1920 x 1080 the same title is 22 clear of the next button in the top row and ends inside
+  the fan in the bottom row. On the first Tree as it stands no button reaches another or
+  leaves the fan: its one six-line title in Open Sans, on `prohibited-practices-2`, is the
+  last of a side of three and ends at 405 of the 416. Its picture, though, also stays 100, 4
+  from the top and the bottom. The whole cost is recorded here as the known cost of 120
+  pixels at 15 on 18, for the owner to decide whether it stands.
+
+  **Amended 2026-10-02 (#175, after #174):** at #174's guaranteed Bubble of 401 the pitch
+  on a side of four is 100.25, so two of the buttons above, 100 tall, stand **0.25** apart,
+  not 4, and a focused button's ring, 2 pixels wide and 2 off its outline, reaches 3.75 into
+  its neighbour there. From 655 pixels tall, a Bubble of 416, the 4 are back; the middle
+  button of a side of one or three stands where it did, its ring ending at the window's
+  edge. The known cost above grows with the 15 pixels the Bubble gave. Measured as above on
+  `annex-i-legislation` in Open Sans at 1280 x 640: the rows of a side of four stand 0.25
+  apart; in the top row the six-line button lies **7.75** over the next, and in the bottom
+  row, whose top is at 300.86, it ends at 408.86, **7.86** below the fan, the Options' list
+  holding 410 in its 401. The picture's cost is unchanged. At 1280 x 655 the figures are the
+  416's above again.
 - **The picture on an Option button is its target's main image** -- an image of another
   Node, which 11.5 allows for exactly this: one file per Option, the target's first
   Image, never its other Images (core document 10.29). An Option has no `images` of its
@@ -1444,7 +1593,10 @@ Whichever step first makes the arrangement fit is where it stops.
   its width step at 960 for the caption line are gone with the Trail and the caption.)
 - At the phone widths where the Bubble narrows, the rim narrows to 36 by 24 and the band
   a Terminal's badge sits in is kept, so the badge still takes nothing from the text
-  area.
+  area. **[#171]** From the same width, 792 pixels, the badge's tracking is 0.04 em
+  instead of 0.12, with steps 5 to 7 and by width alone: the type of the badge steps down
+  as the rest does, and its 19 characters hold one line in the half band's 198 pixels at
+  480 wide, in every face measured (36.1).
 
 **Amended 2026-09-19 (#102, by the owner):** one more thing gives way outside the numbered
 order, by height alone: **below 640 pixels tall the up arrow goes back onto the Bubble's
@@ -1468,9 +1620,10 @@ one, still hold.
 with **one exception**: the Carousel strip, which scrolls horizontally inside its own
 400-pixel box on the Bubble's lower outline and is how the Carousel works without
 JavaScript (12.2). **[#133] And a second, of the same kind**: a `[data-scroll-box]`, which
-scrolls vertically inside its own bounds, carried by exactly the four things the format does
+scrolls vertically inside its own bounds, carried by exactly the ~~four~~ **[#176]** five things the format does
 not bound -- the overview's tile grid, the accounts list, the new-Tree form and the top
-panel's body (26.3) -- and by nothing on a Node page or in the editor's Bubble. The element
+panel's body (26.3), **[#176]** and the to-do bubble's body, which holds the list that left the
+panel's (33.3) -- and by nothing on a Node page or in the editor's Bubble. The element
 walk below skips both attributes; the document still never scrolls on any page. The document itself never scrolls at any size, including below the
 floor, including while a Sheet or an Overlay is open, including while an explainer
 panel is open, and including during a transition (core document 9, `[#75]`).
@@ -1564,6 +1717,26 @@ Both Trees' descriptions over the new limit were cut mechanically, in both langu
 the owner's answer scoped the change to the limit and the validator, and a Tree written
 to the old limit is told by V-LENGTH and V-LINES which field to cut, by how much.
 
+**Amended 2026-10-02 (#174): the limits hold at a strip band of 43, by 0.6 pixels.** The
+text area is **640 x 349** (10.1) and the main image two fifths of the Bubble's 401:
+
+| Inside the text area | Height | Derivation |
+|---|---|---|
+| Main image | 160.4 | Two fifths of the Bubble's 401. |
+| gap | 8 | |
+| Title | 56 | As above. |
+| gap | 8 | |
+| Description | 48 | What is left: 349 - 160.4 - 8 - 56 - 8 - 8 - 60 = **48.6**. Two 24-px lines are 48: **150 characters**, as before. |
+| gap | 8 | |
+| Sources | 60 | As above. |
+| | **348.4 of 349** | The 0.6 left is the clear foot of 10.3. |
+
+`carousel.spec.ts` measures the full Node at 1280 x 640: title 56, description 48, Sources
+60, the main image 160.36 tall and 0.64 of the text area left under the Sources. No limit
+moves and no Tree is re-cut. The 0.6 is all the band can still take: the description's two
+lines hold in every Bubble of 400 or more, so a band of 44 is the most the guarantee allows
+before the picture would give way there, which 10.3 does not allow.
+
 Five assumptions behind those numbers are re-derived by this layout. None moves a limit:
 
 **Amended 2026-09-19 (#102):** this table is #78's re-derivation, at the 446 Bubble and the
@@ -1595,6 +1768,42 @@ language (`hyphens: auto`, #104). The four lines of 10.3 therefore hold for a 60
 title only where the reader's browser has a hyphenation dictionary for the page's `lang`.
 Where it has none, the button grows to 102 (10.3, amended: the 96 is a minimum) instead
 of overflowing. The limit stays 60: the owner decides whether it should come down.
+
+**Amended 2026-10-02 (#175):** the Option row above moves with 10.3's amended button: 236 x
+100 with **120 px of label at 15 px on 18-px lines, up to five lines**, 90 of the 100. Measured
+in Chromium on Windows on the 146 Option titles of both Trees and the two fixtures that fan
+out Options, in both languages, hyphenated in the page's language: at most **five** lines in
+Open Sans (4 titles) and in Verdana (31), wider than Arial and the stand-in here for DejaVu
+Sans, which this machine lacks, and
+**four** in Arial and Segoe UI; Open Sans still takes at most five in 110 pixels, a margin for
+the few per cent wider it renders on Linux. At 16 px on 20 every one of those faces took five,
+100 pixels, the whole button. Four buttons on a side at the pitch of 104 are 400 of the
+Bubble's 416. Effect on the limits: none; an Option title keeps its 60 characters.
+
+**Amended 2026-10-02 (#175), without a hyphenation dictionary:** the five lines above hold
+only hyphenated. The same 146 titles, laid out alone in 120 pixels at 15 on 18 with
+`hyphens: manual` -- #105's case, a browser with no dictionary for the page's language --
+in Chromium on Windows and on Linux (the Playwright container, `v1.62.1-noble`, with DejaVu
+Sans and Liberation Sans installed), take these lines:
+
+| Face | Hyphenated | No dictionary |
+|---|---|---|
+| Open Sans, Windows | at most 5 (4 titles) | **6 for 1** title, 5 for 13 |
+| Open Sans, Linux | at most 5 (2) | **6 for 1**, 5 for 7 |
+| DejaVu Sans, Linux; Verdana, Windows | at most 5 (31) | **6 for 3**, 5 for 35 |
+| Liberation Sans, Linux; Arial, Windows | at most 4 | at most 5 (6) |
+| Segoe UI, Windows | at most 4 | at most 5 (5) |
+
+The six-line titles are the first Tree's Dutch: "Live biometrische ID in het openbaar voor
+rechtshandhaving" (`prohibited-practices-2`) in every face of those rows, and in DejaVu
+Sans and Verdana also "Goedkeuring van motorvoertuigen en aanhangwagens"
+(`annex-i-legislation-3`) and "2. Systemen die synthetische content genereren (aanbieder)"
+(`transparency-obligations`). Six lines are 108 pixels, and the button grows to hold them
+(10.3, amended, which records what that costs on a side of four). On the first Tree's own
+pages, measured the same way at 1280 x 640 and 1920 x 1080, the one button that grows in
+its face, Open Sans, is 108 tall and the last of its side; in Verdana's metrics the other
+two are the top of a side of two, 100 clear of the next at 1280 x 640. Effect on the
+limits: none; whether the 60 characters should come down stays the owner's, as #105 left it.
 
 ### 10.8 The explainer panel
 
@@ -1646,7 +1855,8 @@ and marks each occurrence in the description as `[providers](#provider)`. Record
   otherwise, and shifted sideways so that it stays inside the text area: at and above the
   guaranteed viewport, since the panel is at most 148 pixels and the area 394, one of the
   two always fits (**amended 2026-09-19, #102:** the area is 364 now (10.1); either side
-  of any line of it still has 170 or more, so one still fits). Where neither fits -- an area 10.5 has shortened -- the panel takes the
+  of any line of it still has 170 or more, so one still fits; **amended 2026-10-02, #174:**
+  349, and 162 or more either side). Where neither fits -- an area 10.5 has shortened -- the panel takes the
   side with more room and lies against that edge of the text area, over the least of the
   text (amended 2026-09-18, #83). **Without
   JavaScript** the panel opens on hover and on focus by CSS alone (`:hover`, `:focus`),
@@ -1959,6 +2169,9 @@ A Node with fewer than two Images has no strip and no tab stop there; the strip 
 10.1 is reserved on every Node all the same, so the Bubble sits in the same place and the
 transition of section 11 has nothing to reflow.
 
+**Amended 2026-10-02 (#174):** that band is 43 pixels, where it was 28 (10.1), on every Node
+alike, with pictures or without.
+
 ### 12.2 The strip, and its one exemption from the no-scroll rule
 
 The strip is a horizontal row of the Node's second and later Images as **48-pixel round
@@ -1979,6 +2192,15 @@ text and, with the `enlarge` word, the thumbnail's accessible name; its `credit`
 thumbnail's accessible description (`aria-describedby`) and is shown whole in the
 enlarged view (12.3). That is where core document section 8's credit on every Image is
 met (10.26; PROPOSED for the owner on #78).
+
+**Amended 2026-10-02 (#174, by the owner in #169):** the thumbnails are **67-pixel** round
+pictures (48 x 1.4) at a **75-pixel pitch**, in a box of at most **383 pixels** centred on the
+Bubble -- five of them and 8 pixels of padding at each end -- so **five are visible**; more
+scroll. At the guaranteed viewport the Bubble's lower outline is straight across its middle
+359 (10.1) and has risen 0.4 of a pixel at the box's ends, 12 into the curve. The box no longer has its
+vertical centre on the outline: its upper 24 pixels lie in the Bubble's lower rim, 2 clear of
+the text area as before, and its lower 43 fill the strip band (10.1). The exemption of 10.6
+is the same, for the same box.
 
 ### 12.3 Keyboard and the enlarged view
 
@@ -2211,7 +2433,7 @@ the one URL that changes that. Recorded in `docs/adrs/ADR-118-dataset-endpoint.m
 | Route | Serves | 404 when |
 |---|---|---|
 | `GET /<tree-id>/tree.json` | The served Tree's own file, byte for byte (15.3). **[#132]** The store's published copy, `$ELSA_DATA_DIR/trees/<id>/tree.json` (23.6). | `<tree-id>` is not the Tree this deployment serves, by the rule 4.3 already gives for a Node page. **[#132]** Not a served Tree of the store: hidden, unservable, unknown or reserved alike (23.1). |
-| `GET /schemas/elsa-tree-4.json` | `schemas/elsa-tree-4.json`, the format's JSON Schema (`tree-format.md` 3.9). | The file name is not one this repository publishes. The route serves the published set, not the folder, exactly as the theme route serves what the Theme names and not what sits beside it (5.5). |
+| `GET /schemas/elsa-tree-4.json` | `schemas/elsa-tree-4.json`, the format's JSON Schema (`tree-format.md` 3.9). **[#171]** And `GET /schemas/elsa-tree-5.json`, `schemas/elsa-tree-5.json`, the schema of `elsa-tree/5`: the published set is the two names. The `/4` file stays served so that a `/4` Tree a third party keeps has its contract to point at; every Tree this application serves names `/5`, and the dataset endpoint's `describedby` link (15.2) and `llms.txt` (16.5) name `/5` through `SCHEMA_HREF`. | The file name is not one this repository publishes. The route serves the published set, not the folder, exactly as the theme route serves what the Theme names and not what sits beside it (5.5). |
 
 The Tree id is in the dataset's path, and not a bare `/tree.json`, for the reason every
 other public URL of this application carries it (`ADR-5-tree-selection.md`): the day a
@@ -2233,11 +2455,11 @@ where the schema is a constant of the build.
 
 ### 15.2 The headers
 
-| Header | `tree.json` | `elsa-tree-4.json` | Why |
+| Header | `tree.json` | `elsa-tree-4.json` (**[#171]** and `elsa-tree-5.json`, 15.1) | Why |
 |---|---|---|---|
 | `Content-Type` | `application/json; charset=utf-8` | the same | What it is. |
 | `Link` (licence) | `<https://creativecommons.org/licenses/by/4.0/>; rel="license"` | `<https://opensource.org/license/mit>; rel="license"` | The licence travels with the bytes, not only with the page that links to them -- a crawler that fetches only the JSON never sees a page. The Tree is content (CC BY 4.0, `CONTENT-LICENSE`); the schema is a file of the repository and is code (MIT, `LICENSE`). Core document 8. |
-| `Link` (contract) | `</schemas/elsa-tree-4.json>; rel="describedby"` | -- | The contract is one hop from the data for a tool that reads headers and not bodies. |
+| `Link` (contract) | `</schemas/elsa-tree-4.json>; rel="describedby"`; **[#171]** `</schemas/elsa-tree-5.json>` from #179, the route writing `SCHEMA_HREF` (36.2) | -- | The contract is one hop from the data for a tool that reads headers and not bodies. |
 | `Cache-Control` | `public, max-age=3600` | the same | The same hour as an image or a font (5.3, 5.5). A Tree that changes is a deploy. |
 | `ETag` | a strong tag over the bytes; `If-None-Match` answers `304` | the same | A crawler that re-fetches daily should download again only when something changed. |
 | `Access-Control-Allow-Origin` | `*` | the same | A dataset is meant to be fetched by other sites, notebooks and tools. Safe here in a way it is not on most origins: there is no cookie, no session, no account and no header that carries authority, so a cross-origin read reaches nothing a plain `curl` does not (core document 4, 8). **`Access-Control-Allow-Credentials` is never sent**, and this is not a precedent for any future route that gains a credential. |
@@ -2519,6 +2741,13 @@ opens an aside the reader comes back from, not an answer to the Node's question,
 `schema.org` has no term for that. They are ordinary links in the page and are crawled as
 such.
 
+**[#171] Unchanged by the ending's words (2026-10-02).** The graph never read a Terminal's
+`outcome`, and it does not read its `label`: a Terminal's `WebPage` keeps its `name` (the
+Node's title) and its `description` (the cut description), and the ending's few words, which
+the title states at length, are not mapped -- `schema.org` has no term for them that is not a
+misstatement (`Answer`, `Conclusion`). They are in the page's text, and the whole file is in
+the dataset.
+
 **The page is a `WebPage` and never a `QAPage` or an `FAQPage`.** Those types say the
 page is community question-and-answer or a frequently-asked-questions list; this is a
 step of a legal decision aid, and claiming a type to win a rich result would be a
@@ -2613,6 +2842,11 @@ no schema and no validator, and it is the copy that would drift.
 a signpost. Node titles, descriptions and Sources are in the pages, in the sitemap and in
 the dataset.
 
+**[#171]** So a Terminal's `label` is not in it either, as its `outcome` never was; the
+`## The dataset` entry names the schema through `SCHEMA_HREF`, which is
+`/schemas/elsa-tree-5.json` from #179 on. Its chrome paragraph -- a walk that "arrives at an
+outcome" -- uses the word in its ordinary sense and stays.
+
 ## 17. The store
 
 **[#132], new -- 2026-09-23.** The owner opened the editor round (core document 3.4, #131):
@@ -2643,6 +2877,7 @@ $ELSA_DATA_DIR/
     ├── meta.json                { creator, collaborators, createdAt, updatedAt, updatedBy,
     │                              publishedAt, publishCount, revision }
     ├── draft.json               the draft (19): elsa-tree/4 JSON in the byte form of tree-format.md 3.7
+    │                              [#171] elsa-tree/5 from #179 (19.1)
     ├── tree.json                the published copy: present if and only if the Tree is published;
     │                              always a Tree that validated in full (19.3)
     ├── images/                  every uploaded picture: the draft's and the published copy's (22.6)
@@ -2693,6 +2928,11 @@ transaction across two files and nothing needs one.
   back. Nothing outside it, and nothing in `app/`, holds state.
 - **Development**: `.env.development` sets `ELSA_DATA_DIR=.elsa-data` (gitignored); the
   seed default fills it from `trees/` at the first `next dev`; deleting the folder resets.
+- **[#171] An `elsa-tree/4` file is converted, not refused** (2026-10-02): `openStore`
+  converts every `/4` `tree.json` and `draft.json` before it opens any Tree, and `importTree`
+  converts a `/4` folder's file in its staging copy, by `tree-format.md` 12.7 (36.4). Back the
+  directory up before the first start of the release that carries `elsa-tree/5`; nothing
+  keeps the `/4` bytes.
 
 ### 17.5 The seam: `src/store/`
 
@@ -2777,6 +3017,10 @@ The start log prints one line per Tree served -- `Serving Tree "<id>" (<language
 block per Tree refused, one line for the administrator's password when set from the
 variable (20.3), and never a password, a token or a name typed into a form.
 
+**[#171]** Before it opens a Tree, the store converts the `elsa-tree/4` files it finds and
+logs one line per file converted (36.4). A `/4` file the conversion cannot carry is refused
+like any other that fails, with its violations.
+
 ### 18.4 What #134 changes in the earlier sections
 
 | Section | Change |
@@ -2803,6 +3047,12 @@ by the one writer the migration uses. Same `$schema`, same `format`, no new key.
 content -- who, when, the revision -- is `meta.json`'s (17.2). The format number stays
 `elsa-tree/4`; no case for a new one was found.
 
+**[#171]** It is an **`elsa-tree/5`** file from #179 on, like the published copy: the
+format's number moved for the ending's words (`tree-format.md` 5.5), not for anything the
+draft needs. The draft schema is derived from `schemas/elsa-tree-5.json` by the same two
+dropped keywords and two relaxed `required` lists, so a Terminal's `label` may hold an empty
+language in a draft (a to-do) and `terminal` still requires it.
+
 ### 19.2 The draft rules
 
 Every rule of `tree-format.md` section 7 is checked on a draft; **a named set is
@@ -2812,7 +3062,8 @@ is the contract; the reasoning is the ADR's. The mechanism, so that one validato
 both:
 
 - **Schema half**: at start the loader derives a **draft schema** from
-  `schemas/elsa-tree-4.json` in code and compiles both. The derivation drops **two
+  `schemas/elsa-tree-4.json` (**[#171]** `schemas/elsa-tree-5.json` from #179, 19.1) in code
+  and compiles both. The derivation drops **two
   keywords** -- the `minLength` on `$defs/localisedText`'s `additionalProperties` and the
   `minLength` on `$defs/image/properties/credit` -- and removes `title` and `description`
   from a Node's `required` and `yes` and `no` from `answers`'. **Every other `minLength`,
@@ -2833,6 +3084,7 @@ export interface Draft extends Omit<Tree, 'getNode' | 'filePath' | 'lastModified
   readonly advisory: Violation[]        // the whole draft's to-do list, after opening
   readonly blocking: Violation[]        // non-empty only for an uneditable Tree (19.5)
   readonly filePath: string             // draft.json
+  referrers(id: string): string[]       // [#177] the ids of the Nodes whose Answers or Options name id, in file order (30.7): ids, never Nodes, as nodeIds (5.1)
 }
 type DraftNode = Omit<Node, 'answers'> & { answers?: { yes?: string; no?: string } }
 // and any LocalisedText may lack a language or hold "" for one; nothing else differs from Node
@@ -2847,6 +3099,11 @@ writes an empty array or object (22.4), so V-EMPTY stays blocking with no except
 
 **`draft.json` always passes the draft schema and every blocking rule**: what the store
 refuses (22.3) it never writes, so a draft can always be opened, indexed and shown.
+
+**Amended 2026-10-02 (#175):** one size rule is refused at the write: a write that would give
+a Node a **ninth Option** answers 422 with `V-COUNT` and stores nothing (22.3 and 30.4,
+amended the same day). `tree-format.md` 7's V-COUNT row records the exception in its Draft
+cell.
 
 ### 19.3 Publish
 
@@ -2899,7 +3156,7 @@ export interface Drafts {
   list(by: Account): TreeEntry[]                             // the caller's; every Tree for the administrator
   draft(by: Account, id: string): Draft | null
   write(by: Account, id: string, target: Manifest | NodeId, change: Field | Operation): Promise<WriteResponse>   // 22.3
-  createNode(by: Account, id: string, from: { node: string; link: 'yes' | 'no' | 'option' | 'end'; outcome?: Outcome }, title?: LocalisedText): Promise<WriteResponse>
+  createNode(by: Account, id: string, from: { node: string; link: 'yes' | 'no' | 'option' | 'end'; label?: LocalisedText }, title?: LocalisedText): Promise<WriteResponse>   // [#171] `label` for 'end', was `outcome?: Outcome` (36.3)
   deleteNode(by: Account, id: string, nodeId: string): Promise<WriteResponse>
   publish(by: Account, id: string, published: boolean): Promise<TreeEntry>   // throws Invalid { violations } for 409
   delete(by: Account, id: string): Promise<void>                              // hidden Trees only
@@ -3156,19 +3413,19 @@ framework's. The prefix is `/admin/api/` and not `/api/admin/` so that the cooki
 | `GET /admin/api/trees` | the caller's `TreeEntry` list (administrator: all) | `[...]` |
 | `POST /admin/api/trees` | `{ id, languages, title }`: folder, `meta.json`, a draft with one root Node `start` | 201; 409 taken; 422 reserved or malformed |
 | `GET /admin/api/trees/<t>` | the `TreeEntry`: meta, manifest, `published`, `servable`, violations; **[#147]** and `written`, the number of localised texts holding a non-empty string per declared language (33.5) | 200 |
-| `PATCH /admin/api/trees/<t>` | one manifest field `{ path, value }`: `title.<lang>`, `description.<lang>`, `root`; **[#144]** or one part of the Theme, `theme.logo`, `theme.fonts`, `theme.colours`, whole or `null` (33.8); **[#147]** or one language operation `{ op, tag }` (22.2) | `WriteResponse`, with every Node whose texts changed in `also` |
+| `PATCH /admin/api/trees/<t>` | one manifest field `{ path, value }`: `title.<lang>`, `description.<lang>`, `root`; **[#144]** or one part of the Theme, `theme.logo`, `theme.fonts`, `theme.colours`, whole or `null` (33.8); **[#147]** or one language operation `{ op, tag }` (22.2); **[#171]** or `{ op: 'use-library-font', role, family }`, a family of the font library copied into the Tree and written as that role's (37.3) | `WriteResponse`, with every Node whose texts changed in `also` |
 | `DELETE /admin/api/trees/<t>` | hidden Trees only | 204; 409 |
 | `PUT /admin/api/trees/<t>/published` | `{ published: boolean }` (19.3) | 200 `{ published, publishedAt }`; 409 `{ violations }` |
 | `PUT /admin/api/trees/<t>/creator` | `{ accountId }` | 200 `meta` |
 | `PUT` / `DELETE /admin/api/trees/<t>/collaborators/<accountId>` | add; remove | 200 `meta`; 422 |
 | `GET /admin/api/trees/<t>/nodes/<n>` | one `DraftNode`, its advisory violations, the titles its Links need | 200; 404 |
-| `POST /admin/api/trees/<t>/nodes` | `{ from: { node, link: 'yes' \| 'no' \| 'option' }, title? }` creates the Node **and** the Link in one write; `link: 'end'` with `outcome` makes the parent a Terminal instead | 201 `WriteResponse` (+ the parent's as `also`) |
+| `POST /admin/api/trees/<t>/nodes` | `{ from: { node, link: 'yes' \| 'no' \| 'option' }, title? }` creates the Node **and** the Link in one write; `link: 'end'` with `outcome` makes the parent a Terminal instead -- **[#171]** with `label`, a localised text holding the page's language, in place of `outcome` (36.3) | 201 `WriteResponse` (+ the parent's as `also`) |
 | `PATCH /admin/api/trees/<t>/nodes/<n>` | one field `{ path, value }` or one operation `{ op, ... }` (22.2) | `WriteResponse` |
 | `DELETE /admin/api/trees/<t>/nodes/<n>` | the Node and every Link to it; never the root | 204 + `also`; 409 on the root |
 | `POST /admin/api/trees/<t>/images` | `multipart/form-data`, one file (22.6) | 201 `{ file, width, height }`; 413; 415; 422 |
 | `DELETE /admin/api/trees/<t>/images/<file>` | an unreferenced file | 204; 409 while referenced |
 | `GET /admin/api/trees/<t>/images/<file>` | a draft's picture, to a reader with a role (22.6) | the file with 5.3's headers + `no-store`; 403; 404 |
-| `POST /admin/api/trees/<t>/theme` | **[#144]** `multipart/form-data`, one logo or font file (33.8) | 201 `{ file }`; 413; 415; 422 |
+| `POST /admin/api/trees/<t>/theme` | **[#144]** `multipart/form-data`, one logo or font file (33.8) | 201 `{ file }`; 413; 415; 422. **[#171]** For a font, 201 `{ file, family? }`: `family` the font's own family name when its file states a usable one (37.4) |
 | `GET /admin/api/trees/<t>/theme/<file>` | **[#144]** a file the draft's Theme names, to a reader with a role (33.8) | the file with 5.5's headers + `no-store`; 403; 404 |
 
 Status codes for every route: **401** no or invalid session; **403** `permit` said no, or
@@ -3193,16 +3450,23 @@ is **409** while the tag is the default language, which is also the only one whe
 malformed, or already declared (`add`), or not declared (`remove`, `set-default`) is 422 with
 V-LANG; any other operation on the manifest is 422 with V-KEYS. `also` names every Node whose
 texts changed. Any role that edits may send them (21.2), as for any other manifest field.
+**[#171]** A fourth: `use-library-font { role, family }` copies a family of the font library
+into the Tree's `theme/` and writes it as that role's entry of `theme.fonts` (37.3); an unknown
+family or role is 422 with V-THEME. The three language operations also reach a Terminal's
+`label`, which is a localised text like every other (`add-language` writes `""` into it).
 
 - A **field** is a key path the format defines: `title.<lang>`, `description.<lang>`,
   `sources[i].label.<lang>`, `sources[i].url`, `sources[i].kind`, `images[i].description.<lang>`,
   `images[i].credit`, `images[i].source`, `explainers[i].term.<lang>`, `explainers[i].text.<lang>`,
   `options[i].title.<lang>`, `terminal.outcome`. Checked against the key set of
   `tree-format.md` 4 and 5 **before** anything is applied; any other path is 422 (V-KEYS).
+  **[#171]** `terminal.label.<lang>` in place of `terminal.outcome`, which is 422 (V-KEYS)
+  from #179 on.
 - An **operation** is one of a closed set: `add-source`, `remove-source`, `add-image` (an
   uploaded file), `remove-image`, `move-image`, `add-explainer`, `remove-explainer`,
   `add-option` (an existing explanation Node, or a new one), `remove-option`, `set-answer`
   (`yes` or `no` → an existing Node), `remove-answer`, `set-terminal`, `remove-terminal`.
+  **[#171]** `set-terminal` takes `label`, a localised text, in place of `outcome`.
 - **Limits on the request**: a body of at most **64 kB**; any string of at most **2,000
   code points** (the largest limit of 5.7 is 600). Above either, 413 or 422, nothing stored.
 
@@ -3230,6 +3494,10 @@ interface WriteResponse {
 - **A write that would break a blocking rule answers 422** with the same `Violation`
   shape and stores nothing.
 - 403 no role; 404 unknown Tree or Node; 409 uneditable Tree (19.5).
+
+**Amended 2026-10-02 (#175):** one count of 5.7 is refused, not stored: a write that would give
+a Node a **ninth Option** answers 422 with `V-COUNT` and stores nothing (30.4, amended the same
+day).
 
 ### 22.4 Structural writes
 
@@ -3417,8 +3685,8 @@ are #136's `permit`. `/admin/new` does not exist until #137.
 | Public Node page | The Tree's logo or title | language switch, share button | The published Tree's |
 | Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
 | Login page | `siteTitle` | language switch | The default |
-| Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, the caller's name (a link to `/admin/account`), `accounts` (administrator only, a link), `logout` | The default |
-| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), the panel button (33.1), the caller's name, `logout`. **No share button.** | **The draft's** |
+| Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
+| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). | **The draft's** |
 | The 404 and 403 pages | `siteTitle` | language switch | The default |
 
 **[#135]** Below 480 pixels wide the Tree-less admin pages' bar gives up `siteTitle` and the
@@ -3426,6 +3694,14 @@ current language's pill (not a link, and the language on screen) so that the swi
 name, `accounts` and `logout` fit 320 pixels; the name is cut with an ellipsis where it does
 not fit and carries `data-clamp`, which `admin-no-scroll.spec.ts` reads as the overview's
 walk reads a tile's title (26.1).
+
+**[#176], changed by the owner -- 2026-10-02** (#169: "next to it it says adminstrator, make it
+say 'Account' or at least make it say what it is"). On every admin page with a session -- the
+creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` and the editor -- the link
+to the account page says `account`, "Account" in English and in Dutch, and carries the caller's
+name as its `title`: its tooltip, and its accessible description. `accounts` and `logout` stay.
+The name is not in the bar any more, so nothing there is cut: the link carries no `data-clamp`.
+Recorded in `docs/adrs/ADR-176-floating-settings-and-to-do.md`.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
@@ -3540,9 +3816,10 @@ thirteenth is below the fold **of the box**.
 The grid's box is marked `data-scroll-box` and **scrolls vertically inside its own bounds**;
 the document never scrolls. It is a native scroll container (no script, keyboard-reachable).
 `no-scroll.spec.ts`'s element walk skips `[data-scroll-box]` as it skips
-`[data-carousel-strip]`. The attribute is carried by exactly four things, the ones the
+`[data-carousel-strip]`. The attribute is carried by exactly ~~four~~ **[#176]** five things, the ones the
 format does not bound: this grid, the accounts list (25.3), the new-Tree form (27.1) and the
-body of the top panel (33.2). Nothing else may carry it: the Bubble, an Overlay, every other
+body of the top panel (33.2); **[#176] amended 2026-10-02**, and the body of the to-do bubble
+(33.3), which holds the to-do list that left the panel's body. Nothing else may carry it: the Bubble, an Overlay, every other
 Sheet holds what the format bounds and fits or is a defect.
 
 ### 26.4 The creators' overview, `/admin`
@@ -3628,6 +3905,7 @@ path of 22.2 and the limit of 5.7:
 | A Source's `...` Sheet | kind (a select), URL, `removeSource` | `sources[i].kind`, `sources[i].url` | -- |
 | After the last Source | `+ addSource` (absent at 3): a Sheet holding the kind and the URL, the URL focused | `add-source` with an empty label, the kind chosen and the URL typed; **[#138] as built**, nothing is sent before a URL of the schema's grammar is typed, because the schema requires one and a made-up address would be silent content | -- |
 | The rim of a Terminal | outcome, a select drawn as the badge | `terminal.outcome` | -- |
+| **[#171]** The rim of a Terminal, in place of the row above | the ending's words, a plain field drawn as the badge (36.3) | `terminal.label.<lang>` | 19, plain |
 | An Option button | the Option's title | `options[i].title.<lang>` | 60, plain |
 | The enlarged view | an Image's description, credit | `images[i].description.<lang>`, `images[i].credit` | 120, 120 (31.3) |
 | The explainer Sheet | term, text | `explainers[i].term.<lang>`, `explainers[i].text.<lang>` | 40, 200 (32.2) |
@@ -3660,12 +3938,33 @@ opened inside an Overlay's Interior, they leave the Overlay open.
 +--------------------------------------------------------------------------------+
 ```
 
+**Amended 2026-10-02 (#178, the owner in #169):** the band above the Bubble holds no step menu
+`(...)`. On a step that ends the tree, under a Trail, at 1280 x 640, it holds beside the up arrow
+"Tree does not end here after all" and the red cross, and at its right #176's floating controls
+(33.1, 33.3); the badge stays in the rim below (10.1). Below 1000 pixels wide the cross stands
+right of the arrow (30.8, amended):
+
+```
++--------------------------------------------------------------------------------+ 44
+| [Tree does not end here after all] (x) ( ^ )           (3) to do  (*) Settings |  56  the step's two buttons beside the arrow; the floating controls (33.1), abbreviated
+|                     .----'  ( DOES NOT APPLY )   '----.                        |      the badge in the rim (10.1)
+```
+
 ### 28.2 One language at a time
 
 The chrome bar's `LanguageSwitch` (unchanged) lists the draft's declared languages; the
 page's language (4.1) is the one every field edits and saves under. A field with no text in
 that language is an empty region showing `missingText` as a placeholder in `text-muted`,
 never saved as such.
+
+**Amended 2026-10-02 (#172, by the owner, #169):** "The placeholder texts say 'Text missing
+in this language', I want it to say what belongs in the respective field like (title,
+content)." An empty field's placeholder names what belongs in it, in the chrome language:
+the Node's title `placeholderTitle` ("Title"), its description `placeholderText` ("Text"), a
+Source's label and link, an Option's title, an Image's description and credit, an
+explainer's term and explanation, the logo's alternative text (the `placeholder*` keys of
+`src/chrome.ts`). No field shows `missingText` any more; whether a language still lacks a
+text stays where it was, on the rim's tags (28.3) and in the to-do list (33.3).
 
 ### 28.3 The rim: the counter and the missing languages
 
@@ -3688,6 +3987,52 @@ therefore **stored and marked, never refused**: a field is refused (422, 29.4) o
 blocking rule -- V-HTML, V-PLAIN, the schema -- and V-LENGTH and V-LINES are the advisories
 the write carries back.
 
+**Amended 2026-10-02 (#172, by the owner, #169):** "make sure the input boxes are nicely
+sized for what will come inside of them, so they fit nicely inside the bubble the way they
+should and the don't grow on inputs, they should just stop at the cap." **Typing stops at a
+limit.** A field accepts no character beyond its maximum, measured as above (`countedLength`;
+for the description also `estimatedLines`) with one difference: the cap also counts the
+whitespace at the start and the end of the text, which 3.8 trims and the pill does not
+count, so that a space typed at the limit does nothing instead of going in and being stored
+(`cappedLength`). A further key does nothing, and a paste is cut after the last whole
+character that fits -- a character of several code points (3.8) is kept whole or not at all
+(`capped` in `src/editor/fields.ts`). The counter pill stays and shows where the creator is.
+A text that is **already** over its limit by either measure -- stored before this
+amendment, or by another route (a hand-made file, the API) -- is shown whole and marked as
+above; an edit of it is taken only if it is within the limit by both measures or no longer
+than before by either, so it can be shortened and cannot be lengthened. The store is
+unchanged: a write over a limit is still stored with its advisory (22.3), so the paragraph
+above still describes what the server does; only the field no longer sends one. The attach
+Sheet's credit and description (31.2) and the logo's alternative text (33.8) stop at their
+120, 120 and 80 alike. Recorded in `docs/adrs/ADR-172-typing-stops-at-the-limit.md`, which
+supersedes ADR-133 decision 5.
+And each field's box has, empty and filled, the size its text takes at the limit where it is
+drawn, in lines of its own line height: the title and the description two (5.7), and three
+below 480 pixels wide, where a text at its limit takes three; an Option's title three, the
+lines 5.7 gives its 60 characters in a humanist face (the button holds four, but a box of
+four would start under the `...` in its corner); an Image's description and credit in the
+enlarged view, 120 each (31.3), two, and three below 480 pixels; an explainer's explanation,
+a plain field of 200 (32.2), five, and seven below 480 pixels, and its term one, two below
+480 pixels; every other field one, a Source's label as wide as its 60 characters. So the box
+neither grows nor shrinks while the creator types, and it stays inside its parent: the
+Bubble's text area, the Overlay, the Option button or the Sheet. A text stored over its limit
+is shown whole: its box grows past these lines to hold it.
+
+**Amended 2026-10-02 (#175):** beside the Bubble, where the Option button's label is now 120
+pixels at 15 on 18-pixel lines (10.3 and 10.7, amended the same day), an Option title's box
+is **five** lines, 90 pixels of the button's 100: the lines 10.7 measures 60 characters take
+there, hyphenated in the page's language. Set into the field itself at 1280 x 640, in Open
+Sans, Verdana and Arial, the 146 Option titles 10.7 measures take the same lines as there, so
+the box stays 90, and the text area holds every one. In the straight columns and the row below 1280 (10.5, steps 2 and 3),
+where the label is still 176 pixels at 16 on 20, the box stays **three**. A box of five does
+start under the `...` of the Option's link menu (30.6): the menu's 24 x 24 in the button's
+outer top corner lies over the box's outer top corner, 14 pixels wide and 19 high, where a
+first line that runs the label's full width ends. Issue #178 takes the `...` off the
+side-bubble buttons (**[#178]** taken off, 2026-10-02: no Answer or Option button carries one,
+30.6; the boxes keep their lines). Where the browser has no hyphenation dictionary for the page's language,
+a title of long words can take six lines (10.7, amended), and its box grows to 108 with the
+button: 10.3's known cost, in the editor too.
+
 ### 28.5 The description: source text
 
 Blurred, the region shows the **rendered** text (`richTextToHtml` with the Node's explainers,
@@ -3701,10 +4046,14 @@ control is `mark` (32.1).
 ### 28.6 The no-scroll rule in the editor
 
 Unchanged. Every control the editor adds is outside the text area: the counter and tags on
-the rim; the violation and the save state in the chrome bar; the structure buttons in the
+the rim; the violation and the save state in the chrome bar; **[#176]** the panel's button and the
+to-do control under the bar at the top right, in the band beside the up arrow (33.1, 33.3); the structure buttons in the
 Answer row (30.2); the side `+` in the fan's next free slot (30.5); the strip's `+` in the
-strip band (31.1); the outcome select where the badge is; the step menu on the rim above
-(30.8); everything else in a Sheet. `tests/fixtures/full-node/` as a draft fits in the editor
+strip band (31.1); the outcome select where the badge is (**[#171]** the ending's field,
+36.3); the step menu on the rim above
+(30.8) (**[#178]** the step's two buttons in the band above the Bubble, beside the up arrow, out
+of the Bubble's box, and the cross's question in a panel over the Bubble while it is asked, 30.8,
+amended); everything else in a Sheet. `tests/fixtures/full-node/` as a draft fits in the editor
 as on the public page; `admin-no-scroll.spec.ts` measures it with every Sheet open (35.4).
 Below the guarantee the editor gives things up in 10.5's order; a collapsed Sources block is
 edited in its Sheet.
@@ -3733,7 +4082,7 @@ monotonically as seen from the page. The queue is the `Editor` provider's (34.4)
 
 ### 29.3 The indicator
 
-In the chrome bar between the language switch and the panel button, a `role="status"` region
+In the chrome bar between the language switch and ~~the panel button~~ **[#176]** the link to the account page (the panel's button left the bar, 33.1), a `role="status"` region
 of at most 320 pixels:
 
 | State | Shown |
@@ -3782,6 +4131,9 @@ push**: a collaborator's write is seen on this page's next write or a reload.
 **[#133], new -- 2026-09-26.** Confirms core document 3.4's PROPOSED reading: "yes" and
 "no" are the Answers, "tree ends here" the Terminal with its outcome, the side-bubble an
 Option; nothing new enters `elsa-tree/4`. Recorded in `docs/adrs/ADR-133-structure-editing.md`.
+**[#171]** No longer, since 2026-10-02 (the owner, #169): "tree ends here" makes the Terminal
+with the ending's own words in place of an outcome, and the words enter the format, which
+becomes `elsa-tree/5` (`tree-format.md` 5.5, 12.7; 30.3, 36), as core document 3.4 now says.
 
 ### 30.1 The three situations of a Node's Links, in the Answer row
 
@@ -3790,7 +4142,12 @@ Option; nothing new enters `elsa-tree/4`. Recorded in `docs/adrs/ADR-133-structu
 | no `answers`, no `terminal` (an explanation Node by 19.2, whatever its Options; the editor does not look for Options that point at it -- V-OPTIONS reports that case, advisory) | **Three outlined buttons** in the Answer buttons' style, `accent-secondary` outline on `surface`, 400 x 60 with 20-pixel gaps: `+ Yes`, `treeEndsHere`, `+ No`. The words alone below 480 pixels (10.3). |
 | one Answer | The filled button for it (`Yes: <title>`, 620 x 60) and the outlined `+` for the other. |
 | both Answers | The public row. |
-| `terminal` | `startAgain`, as public; the badge on the rim is a select of the four outcomes (`terminal.outcome`). |
+| `terminal` | `startAgain`, as public; the badge on the rim is a select of the four outcomes (`terminal.outcome`). **[#171]** The badge on the rim is the ending's words as a field (`terminal.label.<lang>`, 36.3); no outcome is offered anywhere. |
+
+**Amended 2026-10-02 (#178, the owner in #169):** no button of the row carries a `...`: the
+filled button of one Answer and the two of the public row have no link menu (30.6). On a
+`terminal`, "Tree does not end here after all" (`removeEnd`) stands in the band above the Bubble,
+left of the up arrow (30.8), and gives the row the three outlined buttons back at once.
 
 ### 30.2 Creating an Answer target
 
@@ -3806,6 +4163,12 @@ texts, `confirm` → `POST .../nodes { from: { node, link: 'end', outcome } }`. 
 repaints: the badge, `startAgain`. A Node with Options cannot end (V-TERMINAL, 422 shown in
 the Sheet): remove the Options first. `removeEnd` is in the step menu (30.8).
 
+**[#171] The Sheet asks for the ending's words instead** (2026-10-02; the owner, #169: "just
+let the user enter a text to display on the button (with a wordcap obviously)"): one plain
+field, `endingText`, in the page's language, its limit of 19 shown live; `confirm` →
+`POST .../nodes { from: { node, link: 'end', label: { <lang>: <text> } } }`. 36.3 is the
+contract; the rest of this section stands, and #178 replaces the step menu's `removeEnd`.
+
 ### 30.4 The side-bubble +
 
 On a question Node and on an explanation Node shown as the centre, the fan (10.3) gets in
@@ -3817,6 +4180,32 @@ title in one write) or `linkExisting` (the picker, 30.6 → `add-option { target
 creation the editor navigates to **the aside's address under this page**,
 `<path>/<new id>`, which by 10.9 renders this page with the new Overlay open.
 
+**Amended 2026-10-02 (#175, the owner in #169):** in the fan the `+` button is the Option
+button's **236 x 100** (10.3, amended the same day), its `+` in a slot that fills the inner end
+as an Option's picture does, the dashed outline drawn under it. **Eight is a cap no write
+passes**, not only the number the fan draws: `add-option` and `POST .../nodes { from: { node,
+link: 'option' } }` on a Node that has eight Options answer 22.3's 422 with `V-COUNT`
+(`options`, "9 entries; at most 8") and store nothing -- before #175 they stored the ninth with
+the advisory V-COUNT of 19.2. Re-pointing an Option at eight (30.6) removes before it adds and
+still lands. A Tree file with nine, written by hand, stays V-COUNT's, as before.
+
+**Amended 2026-10-02 (#177, by the owner, #169):** "The side bubble should just open the side
+bubble, where the title and the text inputs, and the image can be entered, following the same
+rules for input boxes as the main bubble." **One click on the `+` opens the side bubble.** The
+button is the control, with no Sheet behind it, and keeps #175's shape (above): it sends `POST
+.../nodes { from: { node, link: 'option' } }` with no title -- the Node and the Option in one
+write, each titled `""` in every declared language (22.4) -- and navigates to `<path>/<new id>`
+as before, where the new side bubble's Overlay is open with every field empty and named by its
+placeholder (28.2); the title, the text, the picture and the Sources are entered there (30.5).
+At eight Options there is no `+`, and that write, with no title as with one, is refused as
+#175's amendment says. `createNew` and `linkExisting`
+are no longer offered from the `+`: the `+` stops hanging an existing step under a Node as its
+side bubble (core document 3.4, `[#169]`; `ADR-169-tree-creation-ui-round.md` decision 5). An
+Option's link menu still does, when `changeTarget` re-points the Option with `add-option {
+target }` (30.6); that menu goes with #178 (ADR-169 decision 5). `add-option { target }` stays
+in the API (22.2). Recorded in `docs/adrs/ADR-177-side-bubble-editing.md`, which supersedes
+ADR-133-structure-editing decision 5 and the `+ newSideBubble` of its decision 6.
+
 ### 30.5 An aside is edited in the Overlay
 
 The Overlay's Interior (10.9) is rendered by the same component with the `edit` seam: its
@@ -3826,6 +4215,51 @@ Option button. The Overlay's list of second-level Options stays plain links and 
 entry, `+ newSideBubble`, which creates a second-level Option and navigates to the deeper
 address. The Overlay's heading link (10.9) leads to the aside's own page, where it gets a fan,
 its own asides and its step menu. Nothing is edited in two places.
+
+**Amended 2026-10-02 (#177, by the owner, #169):** "There is a 'new side bubble' button in the
+side bubble pane, this does not belong there", and "Sources are for some reason not entereable
+in the side bubble?"
+- **No `+ newSideBubble` in an Overlay.** The second-level Options a Tree has are still listed
+  and still open (10.9); the editor only stops offering to create one there. An aside opened as
+  its own page (`/admin/trees/<t>/<aside id>`) is the centre, and its fan has the `+` (30.4).
+- **The aside's own page is out of the Overlay's reach (an open point).** In the editor the
+  Overlay's heading link leads to the same page, `/admin/trees/<t>/<the centre's path>/<aside
+  id>`, which renders the centre with this Overlay open (10.9) -- not to the aside's own page
+  the paragraph above names, as built before #177 too; a click in it is now the title field's
+  (below); and the Overlay's `+` is gone. What leads to the aside's own page is then a line of
+  the to-do list (33.3), while the aside still has something to do, or its address typed in the
+  address bar. So, until the owner decides otherwise, two things cannot be done from the
+  editor's UI for a side bubble with nothing left to do: giving it a side bubble of its own (a
+  second-level side bubble), which the Overlay's `+` did before #177; and replacing or removing
+  its picture once attached, which the Overlay has never offered (there the picture is a link
+  to its file) and the aside's own page does as the centre's (31.3). #177's task 4 counted on
+  reaching that page "through its heading link". #177 reports this and builds no way there.
+- **The button's title follows the aside's.** The Option's title (60, on the button) and the
+  aside's (80, in the Overlay) stay two fields of the format. While the creator types the
+  aside's title, the Option button's title on the centre takes each new text cut to 60 whole
+  characters (`cutTo`, measured as 28.4 measures), for as long as, when the editing began, it
+  was empty or the aside's title so cut, and no write of the button's title was waiting in the
+  queue (typed or followed, and not yet answered, 29.2). That last condition is there because
+  the page holds the button's title as the last response left it (29.7): a write still waiting
+  may be the creator's own words on the button, which the aside's title must not overwrite. So
+  a title focused again while the button's write is still unanswered -- offline, or retrying
+  (29.5) -- does not move the button. Words a creator has edited on the button stay as written.
+  Once the two differ, either way, the button does not follow again unless its words are
+  emptied, or made the title so cut, by hand. The two are two field writes of the one queue
+  (29.2), flushed together on blur.
+- **The fields are the Bubble's**: the same `Field`, so the placeholders, the box sizes and the
+  stop at the limit of 28.2 and 28.4 (#172) hold in the Overlay as on the Bubble. A click in the
+  title no longer follows the heading's link around it (10.9): that link reloaded the page, and
+  the title could not be entered with the mouse.
+- **The Sources are entered as the centre's (28.1)**: in the panel at and above the guarantee,
+  and below it -- under 564 pixels of height or 792 of width, where step 6 of 10.5 hides every
+  inline Sources block -- in their collapsed Sheet, as 28.6 has the Bubble's, of a `<details
+  name>` group of its own (`sources-sheet`), so that it opens inside the Overlay without closing
+  it and the Source Sheets it holds do not close it. Before, an editor's Overlay had no collapsed
+  copy, and below those sizes its Sources -- their lines and `+ addSource` -- were on no part of
+  the page: the owner's finding, reproduced on `dev` as of 2026-09-27 and as of 2026-10-02. The
+  public Overlay is as it was: it has no collapsed copy, and below those sizes it shows no
+  Sources (10.5's step 6 as built since #80).
 
 ### 30.6 Re-pointing: the link menu and the picker
 
@@ -3840,9 +4274,53 @@ V-OPTIONS advisory) at the button and in the to-do: the picker cannot know a kin
 title and the editor reads no Node to find out. Two Answers may reach one Node; one aside
 may hang under several Nodes; nothing is copied.
 
+**Amended 2026-10-02 (#178, by the owner, #169):** "There are also some dots ... far out of the
+next steps of the decisiontree, don't have that there, if a user wants to delete a tree step he
+has to do it inside that tree step." **No Answer or Option button carries a `...`**, in the
+centre or in an Overlay: the link menu, `changeTarget`, the picker with its `createNew`, and
+`removeLink` (30.7) are gone, with their words (3.2) and their styles. So **the editor no longer
+offers to point a button at an existing step**, which `changeTarget` did -- PROPOSED, as the
+consequence of removing the control that carried it, which the owner did not name (core document
+3.4, `[#169]`; `ADR-169-tree-creation-ui-round.md` decision 5). A Tree that already has two
+buttons leading to one step keeps working: the editor draws it, follows it and publishes it as
+before; it only stops offering to make one. `set-answer`, `add-option`, `remove-answer` and
+`remove-option` stay in the editor's server interface (22.1, 22.2): the side bubble's delete
+still sends `remove-option` (30.7); the editor sends the other three no more. The editor page no
+longer builds the picker's index of every Node of the draft (`nodeIds()`, `getTitle`): the side
+bubble's delete names its aside from the Node the page reads for its Overlay (34.7). Recorded in
+`docs/adrs/ADR-178-step-buttons.md`, which supersedes ADR-133-structure-editing decision 7.
+
 ### 30.7 Removing a Link
 
 `removeLink` removes the Answer or the Option; **the target stays** in the draft.
+
+**Amended 2026-10-02 (#177, by the owner, #169):** "there should be below in the middle a
+'Delete side-bubble' button, which deletes the one that is opened." The Overlay of each of the
+centre's Options ends, at the foot of its panel and in its middle, with `deleteSideBubble`,
+outlined in `danger` (the `sideDelete` slot, 34.2). It asks once, in place, naming the side
+bubble's title as it stands then (`confirmDeleteSideBubble`, or `confirmDeleteUntitledSideBubble`
+before it has one), the focus on `cancel`; `confirm` then
+- deletes the aside's Node -- `DELETE .../nodes/<aside id>` (22.4), which removes this step's
+  Option, and every other Link to it, in the same write -- when no other Node leads to it;
+- removes only this step's Option -- `remove-option { target }` -- when another Node leads to the
+  aside as well, which the confirmation says (`sideBubbleStays`); the aside stays there. The page
+  knows it from the draft's index, `Draft.referrers` (19.2): ids, never a Node read (34.7).
+
+Then the editor goes to the step's own address: the Overlay closes, and the fan closes the gap.
+What the aside led to stays in the draft, as for every deleted step (30.8, 30.9). The Overlay a
+URL opens one level deeper (10.9) has no delete, its Option not being this step's; on the
+first aside's own page it is that page's side bubble and has one. `removeLink` above is
+unchanged by #177.
+
+**Amended 2026-10-02 (#178, by the owner, #169):** "if a user wants to delete a tree step he has
+to do it inside that tree step." `removeLink` is gone with the link menu (30.6). **A yes or a no**
+goes with the step it leads to: the creator opens that step and uses its red cross (30.8), and
+the delete removes the Answer from the step before in the same write (22.4), which shows its `+`
+again (30.1). **A side bubble** goes with `deleteSideBubble` (above). What either led to stays in
+the draft (30.9). Where `removeLink` took the Link alone and left its target, these take the
+target too -- but for an aside another step leads to, which only loses this step's Option
+(above) -- so where two Answers lead to one step, its cross takes both with it; the editor
+removes neither alone any more.
 
 ### 30.8 The step menu: deleting a Node
 
@@ -3854,11 +4332,50 @@ every Link to it goes in the same write; `also` says which Nodes lost one) → t
 to the parent (`trailHref`) or, with no Trail, to the root. A delete removes **one step,
 never a sub-tree**: what it led to stays.
 
+**Amended 2026-10-02 (#178, by the owner, #169):** "Instead of the ... dots on the top right with
+options, just make two buttons a red cross to delete the step, or if it applys, 'tree does not
+end here after all'." **No step menu.** Two buttons stand in its place, in the band above the
+Bubble, beside the up arrow, out of the Bubble's box (10.1):
+
+- **The red cross**, `deleteStep`, on every step but the root: a round button outlined in
+  `danger` with a cross in `danger`, filled `danger` under the pointer and while it asks, named
+  "Delete this step" ("Deze stap verwijderen") for a screen reader and on hover, its `title`.
+  One click asks, in place: a panel hung under the band, in the middle of the Bubble, over the
+  Sheets' veil, says `confirmDelete` with the step's title as it stands then -- the last
+  response's, so a title typed a moment before is the one named -- or, for a step without a
+  title in the page's language, `confirmDeleteUntitled` ("Delete this step? It has no title yet.
+  What it led to stays."), and offers `confirm` and `cancel`, the focus on `cancel`. Escape,
+  `cancel` or a click on the veil keep the step and give the focus back to the cross; `confirm`
+  deletes as above, and a refusal is said in the panel. The root has no cross (409 anyway).
+- **"Tree does not end here after all"** (`removeEnd`, "Boom eindigt hier toch niet"), on a step
+  that ends the tree only: outlined in `accent-secondary`, as `treeEndsHere` is, in the band's
+  small type. It sends `remove-terminal` at once, as the menu's `removeEnd` did; the page repaints
+  (29.7), the row offers the three buttons (30.1), and the button goes with the ending. A refusal
+  -- a collaborator removed the ending first -- is said under it. A root that ends the tree has
+  this button alone.
+- **Where they stand.** The words left of the arrow, against it; the cross right of it, where the
+  `...` stood, below 1000 pixels wide; from 1000, where #176's floating controls show their words
+  in the band right of the arrow (33.1), left of it, between the arrow and the words. There the
+  controls leave 46.5 pixels right of the arrow at 1000 x 700 in Dutch with three things to do
+  (measured in Segoe UI), and a longer state word or count leaves fewer. On the
+  arrow's middle, 32 tall, where the arrow stands above the outline; below 640 pixels of height,
+  in the middle of the band, 24 tall in its 26 with the words on one line of 11 pixels, and 32
+  tall in a phone's 40; below 480 pixels wide the words take two lines of 11 pixels. So at every
+  viewport of 10.6 where the tree view shows, and on both sides of 1000 wide, 640 tall and 480
+  wide, they cover no part of the up arrow, the Bubble, an Option button or the floating controls
+  (`tests/browser/step-buttons.spec.ts`); at the floor the notice stands in for the tree view, and
+  for them (10.4).
+- **The step's id**, which the menu showed in `text-muted`, is dropped: it is in the page's
+  address (4.1) and nowhere else on the screen.
+
+Recorded in `docs/adrs/ADR-178-step-buttons.md`, which supersedes ADR-133-structure-editing
+decision 8's step menu.
+
 ### 30.9 Orphans
 
 A Node nothing reaches any more is V-REACH's advisory (19.2): listed in the panel's to-do
-with a link to its editor page, where `deleteStep` is; **never deleted by the editor on its
-own**. Publish refuses while one exists.
+with a link to its editor page, where `deleteStep` is (**[#178]** its red cross, 30.8); **never
+deleted by the editor on its own**. Publish refuses while one exists.
 
 ## 31. Images in the editor
 
@@ -3873,6 +4390,22 @@ own**. Publish refuses while one exists.
 
 Dropping anywhere else does nothing.
 
+**Amended 2026-10-02 (#174, by the owner in #169: "On the add a picture button, when
+however [hovered], show 'Add an extra image'"):** the strip's `+` is a thumbnail of **67** pixels, as the
+strip's are (12.2), its glyph 34 where it was 24. It is named `addExtraPicture`, "Add an
+extra image" / "Extra afbeelding toevoegen", and on hover and on keyboard focus shows those
+words as a small label beside it, out of the flow, in the band's third column: right of the
+`+`, wrapping between words and never inside one; where that column leaves it less than 110
+pixels right of the `+` -- beside a long strip on a narrower window (below 790 pixels wide
+beside the widest strip), or beside the 20-pixel pill on a phone -- left of the `+` instead,
+on one line, over the strip's end or the enlarged view's control. So from 480 pixels wide and
+640 tall it never leaves the band (10.6). Below that the band is the pill's 20 pixels, and the
+label, standing on its foot, rises above it over the Bubble: 2 pixels on one line, 18 on two.
+Two lines reach 16 pixels into the text area below 480 wide, and 2 from 480. Out of the flow,
+it moves nothing. Hidden, it takes no room. The label is not read twice (the name
+says it) and takes no pointer. The empty slot keeps `addPicture`, "Add a picture", and its
+tooltip.
+
 ### 31.2 Upload, then attach
 
 `POST .../images` (multipart, 22.6) → 201 → the **attach Sheet**: the picture (through the
@@ -3883,12 +4416,31 @@ the page repaints. `cancel` → `DELETE .../images/<file>` (a 409 is ignored). *
 attached without a credit** (core document 10.12, 10.26); the store's advisory for an empty
 one (19.2) is never exercised by the editor.
 
+**[#174]** Behind each field's label an **information hint** (`src/editor/Hint.tsx`): an "i"
+in a 16-pixel circle, a button named `hint` ("Why this is asked") and described by its
+explanation -- `creditHint` behind `credit`: the maker and the licence of a picture must be
+named, for copyright reasons, and the credit is shown with the enlarged picture;
+`imageDescriptionHint` behind `description`: a screen reader says it in place of the
+picture, for people who cannot see it. Hovering it, focusing it or tapping it opens the
+explanation in a small panel; leaving it, blur and Escape close it; one panel is open at a
+time. It is the explainer's panel of 10.8 on another trigger (`usePanelTriggers` in
+`src/components/Explainer.tsx`): placed inside the Sheet's panel, below the "i" where it fits
+and above it otherwise, and its Escape closes the hint before the Sheet hears the key, so a
+second Escape cancels the Sheet. Each row is a `<div>` holding the field's `<label for>` and
+the hint, so the field is named by its label alone. Other editor screens take the same
+component (the Theme panel, #180).
+
 ### 31.3 The enlarged view is the Image's editor
 
 The Sheet of 12.3, with the two lines under the picture as fields (`images[i].description.<lang>`,
 `images[i].credit`, counters and tags beside them) and four controls: `makeMain`
 (`move-image` to 0; absent on the main image), `moveEarlier`, `moveLater` (absent at the
 ends), `removeImage`. The slot and the strip repaint from the response.
+
+**[#174]** The description's line is labelled as the credit's is, `imageDescription` before
+the field, and the hint of 31.2 follows each label: the `field` slot answers
+`images[i].credit` and `images[i].description` with the hint and the `Field` together. The
+public enlarged view is unchanged.
 
 ### 31.4 Removing
 
@@ -3916,6 +4468,8 @@ The upload's `{ width, height }` feed the enlarged view's `<img width height>`; 
 height>`. The enlarged view's pictures are drawn from the Node, and an Image entry of the
 format carries no size (`tree-format.md` 5.2), so after the attach its `<img>` has none, as
 on the public page.
+
+**Amended 2026-10-02 (#174):** the strip's are 67 x 67.
 
 ### 31.8 Not offered
 
@@ -3968,11 +4522,45 @@ is stable and shown only in the source and the Sheet's title while the term is e
 
 ### 33.1 The button
 
-Top right of the editor's chrome bar, before the caller's name: a dot and the Tree's state --
+~~Top right of the editor's chrome bar, before the caller's name: a dot and the Tree's state --
 `hidden` (`text-muted`), `published` (`accent-secondary`), `published` + `notServable`
 (`danger`, 18.3), `published` + `publicBehind` (`accent`, 19.4) -- and the to-do count in
-brackets when not zero: "Hidden (3)". From `GET /admin/api/trees/<t>` at load and every write
+brackets when not zero: "Hidden (3)".~~ From `GET /admin/api/trees/<t>` at load and every write
 response's `tree` afterwards (22.3).
+
+**[#176], changed by the owner -- 2026-10-02** (#169: "The UI names of the top right buttons
+don't make sense at all: Why does it say hidden? Say what opens when that button is clicked,
+'Decision-tree settings'", and "I also want the 'Decision-tree settings' button to be a hover
+top right, but not in the header bar"). Recorded in
+`docs/adrs/ADR-176-floating-settings-and-to-do.md`; struck above is what this replaces.
+
+- **Out of the bar, over the page.** The button floats under the chrome bar at the top right of
+  the editor's page, with the to-do control of 33.3 to its left: 32 pixels tall, 10 under the
+  bar and 16 from the right edge, which at the guarantee is the band beside the up arrow, the
+  arrow's middle its own (where a taller window gives the Bubble more room above it, the arrow
+  stands lower and the controls stay under the bar). It is in
+  no row of 10.1 and not in the bar's `header`: a fixed box, so no row moves and it is no
+  element's overflow (10.6). At 1280 x 640 it covers no part of the Bubble, the up arrow, an
+  Option button or its link menu (**[#178]** gone, 30.6; the step's two buttons beside the
+  arrow stay clear of it, 30.8), nor at any other viewport of 10.6 where the tree view shows
+  (`tests/browser/floating-controls.spec.ts` measures the boxes on the full Node at a 49-entry
+  Trail). Below 640 pixels of height, where that band is 26 (10.5), it is 24 tall and one under
+  the bar; on a phone's band of 40, 32 and four under it; 8 from the edge below 480 wide.
+- **It says what it opens**: a gear and `settings`, "Decision-tree settings"
+  ("Beslisboominstellingen"), **then the Tree's state as a tag**, set off by a hairline: a dot
+  and a word, a tile's mark (26.4) -- `hidden` (`text-muted`), `published`
+  (`accent-secondary`), `notServable` (`danger`, 18.3). A published Tree whose public copy is
+  behind (19.4) shows `published` with its dot in `accent`, and the indicator says
+  `publicBehind` (29.3). The count is the to-do control's (33.3).
+- **Its name** is `settings`, a colon and the state's word, then `, publicBehind` when that
+  applies -- "Decision-tree settings: Hidden" -- the same at every width.
+- **Below 1000 pixels** the words do not fit beside the arrow: the button is a 32-pixel round
+  button holding the gear, with the state's dot on its shoulder -- a ring for `hidden`, so the
+  state does not rest on its colour alone -- and keeps its whole name.
+- **Order and layers.** After the bar's last control in the tab order, behind the to-do
+  control. While its Sheet is closed it lies under any other Sheet's scrim -- an Overlay's, the
+  enlarged view's, a menu's -- and while it is open its box lifts over the page, so the scrim
+  covers the bar too, as the bar's own lift did while it held the button.
 
 ### 33.2 The panel
 
@@ -4009,6 +4597,22 @@ one Sheet at a time). Its body is a scroll box (26.3). Four sections:
 +--------------------------------------+
 ```
 
+**[#176] Amended 2026-10-02:** the panel is titled `settings`, the words of the button that
+opens it, and its Publish section holds the switch and no to-do list, which is a bubble of its
+own (33.3). The top of the sketch, as it is now; the other sections are as above:
+
+```
++--------------------------------------+
+|  Decision-tree settings           x  |
+|--------------------------------------|
+|  PUBLISH                             |
+|  [ o  ] Hidden                       |
+|  Not published: some things must be  |  <- after a refused publish (33.3)
+|  done first. See what to do          |  <- opens the to-do bubble
+|--------------------------------------|
+|  COLLABORATORS                       |
+```
+
 ### 33.3 Publish
 
 A `role="switch"` labelled `publish`. **On** → `PUT .../published { published: true }`: 200 →
@@ -4021,6 +4625,32 @@ page, then the message; a V-REACH line offers `remove`. Headed `publicBehindBeca
 servable. **Off** asks once: the switch becomes `confirmUnpublish` ("Hide this tree? Links to
 it will stop working until it is published again.") with `confirm` / `cancel` → `{ published:
 false }`. A collaborator sees the switch disabled, the list, no confirmation (21.2).
+
+**[#176], changed by the owner -- 2026-10-02** (#169: "The to-do before publishing is ok to have
+somewhere, but not in the sidepane and not on top, make it a bubble on the top right (not in the
+header bar)"). Recorded in `docs/adrs/ADR-176-floating-settings-and-to-do.md`.
+
+- **The to-do list leaves the panel for a bubble of its own.** Its control floats beside the
+  button of 33.1, to its left, of the same height: the count in a small round bubble filled with
+  `accent`, then `todoCount` -- "3 things to do", `todoCountOne` for one -- and at zero a quiet
+  tick, named `todoNone` ("Nothing to do"). Below 1000 pixels the round count alone. Its name is
+  the count and the words, the same at every width; the count follows every write response, as
+  the button's did (22.3).
+- **The bubble** is a Sheet under the two controls at the top right, 400 pixels wide at most and
+  as tall as its list, never past the disclaimer (below 480 wide, the bottom edge); its body is a
+  scroll box (26.3), as the panel's was. 10.5's rules hold: Escape, the cross, a click outside,
+  focus to the cross and back to the control, one Sheet at a time. Its heading is `todoBefore`,
+  or `publicBehindBecause` / `notServableBecause` as above, and its list is the to-do list
+  above, line for line -- the Node's title (or its id, or `thisTree` for the manifest and the
+  file) as a link to that Node's editor page, the message, `remove` on a V-REACH line for the
+  creator and the administrator -- or `todoNone` when it is empty. The list is re-read from `GET
+  .../trees/<t>` when the bubble opens, not when the panel does.
+- **The Publish switch stays in the panel.** A 409 keeps it off and the Publish section says
+  `publishRefused` ("Not published: some things must be done first.") with a button `showTodo`
+  ("See what to do") that opens the bubble -- closing the panel, one Sheet at a time -- on the
+  list the refusal answered, without re-reading it: as built (#142) that list is the draft's own
+  while it has any lines, because the full validation's lines name `tree.json` and a JSON Pointer
+  rather than a Node, and the response's otherwise.
 
 ### 33.4 Collaborators
 
@@ -4054,7 +4684,8 @@ hidden and disabled with `unpublishFirst` while published (21.2), asking once
 ### 33.7 Not here
 
 The step's controls (30.8, on the rim). The overview has no panel: its chrome bar holds the
-name and `logout`; each tile's state is on the tile (26.4).
+~~name~~ **[#176]** link `account`, the name its description (24.3), and `logout`, and neither
+control of 33.1 and 33.3 floats there (amended 2026-10-02); each tile's state is on the tile (26.4).
 
 ### 33.8 The Theme panel
 
@@ -4089,6 +4720,13 @@ logo variant, no tab `icon`, no logo `url`; a hand-made Theme's are kept as they
 - **The fonts**: per role, `body` then `heading` (4.3.2), a family name, a licence line and a
   first WOFF2 file with its weight (a number or a range, verbatim) and style; then more
   files, a file removed (the last one removes the family), the name and licence edited.
+  **[#171] The name and the licence become dropdowns** (2026-10-02; the owner, #169: "Make the
+  font family selection a dropdown, but do give the option to add a font by uploading a
+  file. Make the license section a dropdown."): per role a select of the default, the four
+  families the application ships, the Tree's own family and, last, "Upload a font file…"
+  (37.2); a family from the library is written by one store operation (37.3); an upload is
+  named after the font's own family name (37.4); its licence is chosen from six (37.5). The
+  files, weights, styles and removals of the Tree's own family stay as written here.
 - **Seen at once.** Every answer refreshes the page, so the draft's `<style>` (13.1, amended)
   and the chrome bar's logo follow; after publishing (19.3) the public page shows the same.
 - **The contrast warning.** As the colours change, the panel checks the pairings the public
@@ -4150,15 +4788,16 @@ that are not fields. The types are `src/editor/mode.ts`.
 
 | Slot | Called by | Fills it |
 |---|---|---|
-| `field(node, path, value, limit, rendered?)` | `Interior`, `Carousel`, `EnlargedView`, `TreeView` (Option titles), `Bubble` (outcome) | `Field` (#138) |
+| `field(node, path, value, limit, rendered?)` | `Interior`, `Carousel`, `EnlargedView`, `TreeView` (Option titles), `Bubble` (outcome; **[#171]** the ending's `terminal.label`, limit 19, 36.3) | `Field` (#138) |
 | `operation(node, op, index?)` | `Bubble` (`+ addSource` after the last Source; `removeSource` in a Source's Sheet) | the add-Source Sheet and `Operation` (#138) |
 | `imageSlot(node)` | `Interior` | `ImageSlot` (#140) |
 | `stripAdd(node)` | `Carousel` | `ImageSlot` (#140) |
 | `enlargedControls(node, index)` | `EnlargedView` | #140 |
 | `structure(node)` | `TreeView` (the Answer row) | `Structure` (#139) |
-| `linkMenu(node, link)` | `TreeView` (each Answer and Option button) | `Structure` (#139) |
-| `sideAdd(node)` | `TreeView` (the fan; the Overlay's list) | `Structure` (#139) |
-| `stepMenu(node)` | `Bubble` (the rim above) | `StepMenu` (#139) |
+| ~~`linkMenu(node, link)`~~ | ~~`TreeView` (each Answer and Option button)~~ **[#178]** gone, 30.6 | ~~`Structure` (#139)~~ |
+| `sideAdd(node)` | `TreeView` (the fan; ~~the Overlay's list~~, **[#177]** on the centre only, 30.5) | `Structure` (#139) |
+| `sideDelete(node, index)` | **[#177]** `TreeView` (the foot of the Overlay of the Node's Option `index`) | `Structure` (#177, 30.7) |
+| ~~`stepMenu(node)`~~ **[#178]** `stepButtons(node)` | `Bubble` (~~the rim above~~ **[#178]** the band above, beside the up arrow, 30.8) | ~~`StepMenu` (#139)~~ **[#178]** `DeleteStep`, `RemoveEnd` of `StepButtons` |
 | ~~`mark()`~~ | not built (**[#141] As built** below) | `Marker`, drawn by the description's `Field` (#141) |
 | `onTermClick` | `Explainer` | #141 |
 
@@ -4182,7 +4821,7 @@ is unchanged but for `adminImageHref`.
 ### 34.4 The editor's client components
 
 Under `src/editor/`, leaves: `Editor` (the provider: the queue, the indicator, the session
-Sheet, 29), `Field`, `ImageSlot`, `AttachSheet`, `Structure`, `StepMenu`, `Marker`,
+Sheet, 29), `Field`, `ImageSlot`, `AttachSheet`, `Structure`, `StepMenu` (**[#178]** `StepButtons`), `Marker`,
 `ExplainerSheet`, `Panel`, `LoginForm`, `NewTreeForm`; they take strings and ids and reach
 the queue through context. Of `src/` they import **exactly three modules**: `src/tree/measure.ts`,
 `src/tree/grammar.ts` (**[#137]** the id and tag grammars with the counted length, which
@@ -4280,6 +4919,8 @@ published, creator `anna`; `hidden-draft` hidden from `tests/fixtures/full-node`
 | `tests/browser/theme-panel.spec.ts`, `tests/contrast.test.ts` | 33.8: a logo, colours and a font through the panel, seen at once in the editor and after publishing on the public page; the contrast warning; the refusals. `theme.spec.ts` untouched and green | #144 |
 | `tests/browser/admin.spec.ts` | The walk of #143, screenshots under `docs/screenshots/editor/` | #143 |
 | `views.test.tsx` | 34.8 | #138 |
+| **[#171]** the rows of 36.5 | The ending's words: the rules, the conversion, the store's conversion at open, the Sheet, the public badge | #179 |
+| **[#171]** the rows of 37.6 | The font library, `use-library-font`, the upload's name, the dropdowns, the library in `no-scroll.spec.ts` | #180 |
 
 ### 35.5 The no-cookie sweep, extended
 
@@ -4300,3 +4941,278 @@ public spec in a #138 to #142 branch is a send-back.
 
 At 1280 x 640, by the spec under `ELSA_SHOTS=1`, into `docs/screenshots/issue-<n>/`, embedded
 in the PR pinned to a commit.
+
+## 36. The ending of a walk: the creator's words
+
+**[#171], new -- 2026-10-02.** The owner, walking the editor (#169): "When tree ends here is
+chosen, just let the user enter a text to display on the button (with a wordcap obviously).
+This graph creation tool is not just for Legal trees, also for ethical or social trees, so we
+want to keep the graph creator useable for all." The format is `elsa-tree/5`
+(`tree-format.md` 5.5, 5.7, 12.7): a Terminal carries `terminal.label`, its own words, plain,
+in every declared language, at most 19 characters, in place of one of four outcomes. Recorded
+in `docs/adrs/ADR-171-ending-text.md` and `ADR-171-elsa-tree-5.md`. Built by #179.
+
+### 36.1 The badge
+
+- **What it shows**: the Terminal's `label` in the page's content language, on the rim where
+  the outcome was (10.1): a 24-pixel pill in the band above the text area, in the half of the
+  band left of the up arrow, and across the band under the arrow's foot below 480 pixels wide
+  (#82). Its look is the outcome badge's: 11-pixel bold capitals (`text-transform: uppercase`,
+  in `--elsa-font-heading`), 14 pixels of padding and a 1-pixel border each side, tracking
+  0.12 em -- **0.04 em below 792 pixels wide**, where the Bubble narrows and 10.5's steps 5 to 7
+  fire. It is Tree content, so it carries no `lang` of its own; the page's is right.
+- **One colour for every ending**: the text and the border in `--accent-read` (the accent mixed
+  towards the text, `globals.css`), and the Terminal Bubble's outline in the same shade. No
+  class per ending, and no `:has()` rule on the Bubble. The Theme's `danger` paints no public
+  Node page any more (`tree-format.md` 4.3.3).
+- **Its room, and why 19**: the badge is at most `(Bubble width - 4) / 2 - 24` pixels wide in
+  the half band -- 354 at and above 792 pixels wide, down to **198 at 480**, the narrowest --
+  and `width - 60` across the band below 480 (261 at 321, 300 at 360). Measured in Chromium on
+  2026-10-02 with the badge in place at a 480-pixel window, on Windows and in Linux, for
+  fifteen endings of 18 to 20 characters in English, Dutch and German: at 0.04 em every one of
+  up to 19 characters holds one line in every face measured. The widest, "Mandatory
+  safeguard", is 195.5 pixels in DejaVu Sans Bold, the widest fallback (10.7), 181.0 in Arial
+  Bold and Liberation Sans, 178.2 in Open Sans, 175.4 in Segoe UI Bold and at most 172.8 in the
+  library's other three families (37.1); Linux draws a web font up to 1.9 pixels wider, and
+  DejaVu Sans Bold as a web font there at 197.4, the widest of all. At 0.12 em five of the
+  seven 19-character endings take a second line in DejaVu Sans Bold, which is why the tracking
+  tightens. At the guarantee, 1280 x 640, the room is 354 and the widest 19-character ending
+  212.3: far inside.
+- **Why not 20**: three of the seven 20-character endings take a second line in DejaVu Sans
+  Bold at 480 to 491 pixels wide. Nothing scrolls -- the badge is placed on the rim and grows
+  with its text -- but a badge of two lines is 46 pixels tall and covers the top of the title,
+  which 10.1 does not allow. The limit counts characters, as every limit of `tree-format.md`
+  5.7 does: an ending of capitals wider than any measured can still take a second line at the
+  narrowest widths. San Francisco and Helvetica Neue, the default stack's faces on Apple's
+  systems, were not measured.
+- **Without JavaScript**: plain text in the server's markup, as the outcome word was (14).
+- **No other change to the page**: the Interior, `startAgain`, the up arrow and every
+  measurement of 10 are as they were; `no-scroll.spec.ts` keeps its Terminal rows.
+
+### 36.2 Every reader of `terminal.outcome`, and what it does from #179 on
+
+Found on 2026-10-02 by searching `outcome` and the format number in `src/`, `scripts/`,
+`schemas/` and `docs/specs/`. #179 changes each row in one pull request; nothing reads the
+outcome afterwards, and nothing but `tree-format.md` 12.7's conversion knows its four values.
+
+| Where | Today | From #179 on |
+|---|---|---|
+| `src/tree/types.ts` | `type Outcome`; a Terminal `Node` has `outcome: Outcome`, a `DraftNode` `outcome?`; `linksOf(node).terminal` is the outcome | `Outcome` goes; a Terminal has `label: LocalisedText` (5.1), a `DraftNode` `label?`; `linksOf(node).terminal` is the label |
+| `src/tree/loader.ts` | reads `raw.terminal.outcome` into the Node and the `DraftNode`; `Manifest['format']` `elsa-tree/4` | reads `raw.terminal.label`; `elsa-tree/5` |
+| `src/tree/validate.ts` | compiles `schemas/elsa-tree-4.json`, derives the draft schema from it; no rule reads the outcome | compiles `schemas/elsa-tree-5.json` and derives the draft schema from it (19.2); `checkNode` checks a Terminal's `label` as the plain localised text it is -- V-L10N, V-PLAIN, V-LENGTH at `terminal.label.<lang>`, 19 in `MAX` |
+| `src/tree/serialise.ts` | key order `terminal: ['outcome']` | `terminal: ['label']` |
+| `src/tree/grammar.ts` | names `schemas/elsa-tree-4.json` in a comment, on the schema's `url` pattern | names `schemas/elsa-tree-5.json` |
+| `src/store/edits.ts` | the field `terminal.outcome`; `set-terminal { outcome }`; `link: 'end'` writes `{ outcome }`; `newDraft` writes `/schemas/elsa-tree-4.json` and `elsa-tree/4`; the language operations' `eachText` walks no Terminal | the field `terminal.label.<lang>`; `set-terminal { label }` and `link: 'end'` write `{ label }`, `""` for every language not given; `newDraft` writes `/5`; `eachText` includes a Terminal's `label` |
+| `src/store/drafts.ts` | `createNode(..., from: { ...; outcome? })` | `from: { ...; label? }` (19.7) |
+| `src/store/index.ts` | opens what it finds | converts an `elsa-tree/4` file before it opens it, and in `importTree`'s staging copy (36.4) |
+| `src/app/[lang]/admin/api/trees/[tree]/nodes/route.ts` | passes `from.outcome` | passes `from.label` |
+| `src/editor/fields.ts` | reads `terminal.outcome` as `node.outcome` | reads `terminal.label.<lang>` |
+| `src/editor/Field.tsx` | a select drawn as the badge, for the outcome (and as itself for a Source's kind) | the outcome's use goes; the Source kind's select stays; the ending is a plain field (36.3) |
+| `src/editor/Structure.tsx` | `EndForm`: four radios and `confirm` | `EndForm`: one field and `confirm` (36.3) |
+| `src/editor/writes.ts` | `from.outcome` | `from.label` |
+| `src/editor/mode.ts` | names `terminal.outcome` in a comment | names `terminal.label` |
+| `src/admin/slots.tsx` | `EDITED` matches `terminal\.outcome`; `OUTCOMES` and their badge words; the field slot draws the outcome as a select; `EndForm` gets the four choices | matches `terminal\.label`; `OUTCOMES` goes; the field slot draws the ending as a plain field of limit 19; `EndForm` gets `endingText` |
+| `src/components/Bubble.tsx` | `OUTCOME_LABEL`; `<p class="outcome outcome--<value>" lang={uiLang}>` with the chrome word | `OUTCOME_LABEL` goes; the badge holds `label[lang]` in one class, `outcome`, kept so that the specs which find the badge by it hold (36.5); no `lang` |
+| `src/chrome.ts` | `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, `outcome`; `colourDanger` "Prohibited and errors" | gone; `endingText`; `colourDanger` "Errors" / "Fouten" (3.2) |
+| `src/app/[lang]/globals.css` | `.outcome--not-applicable` in `text-muted`, `--applicable` in `accent-secondary`, `--prohibited` in `danger`, `.bubble--terminal:has(.outcome--prohibited)` outlined in `danger`; `.editor-select.outcome`; `.structure-outcomes`, `.structure-outcome` | the per-ending rules go (36.1); the badge's 0.04 em below 792; the field's look in place of the select's; the radio list's rules go |
+| `src/url.ts` | `SCHEMA_HREF` `/schemas/elsa-tree-4.json` | `/schemas/elsa-tree-5.json` |
+| `src/app/[lang]/schemas/[file]/route.ts` | `PUBLISHED` `elsa-tree-4.json` | both names (15.1) |
+| `src/app/[lang]/[tree]/tree.json/route.ts` | serves the file; `describedby` through `SCHEMA_HREF` | unchanged code: serves the `/5` file byte for byte, `label` and all |
+| `src/findability/jsonld.ts` | a comment, "A Terminal is an outcome, not a question"; reads no outcome | unchanged (16.4) |
+| `src/findability/llms.ts` | chrome prose, "arrives at an outcome"; names the schema through `SCHEMA_HREF` | unchanged code (16.5) |
+| `scripts/migrate-tree.ts` | 12.6's byte form | also 12.7 |
+| `schemas/elsa-tree-4.json` | the enum of four | unchanged, kept, served |
+| `schemas/elsa-tree-5.json` | -- | frozen by #171 |
+| `docs/specs/tree-format.md`, this document | 4, 5.5, 5.7, 7, 8 and 9; 3.2, 4.1, 5.1, 6, 7, 8, 10.1, 10.3, 15.1, 15.2, 17.2, 19.1, 19.2, 19.7, 22.1, 22.2, 28.1, 28.6, 30, 30.1, 30.3, 34.2 | amended by #171, each passage marked **[#171]** |
+
+### 36.3 The editor asks for the words
+
+- **`treeEndsHere`** (the Answer row's middle button on a Node without Links, 30.1) opens a
+  Sheet titled `treeEndsHere` holding **one plain field**, labelled `endingText`, in the page's
+  language, focused, with the counter `n / 19` on it as every field shows its limit (28.3,
+  28.4, as #172 amends them), and `confirm` and `cancel`. `confirm` is enabled once the field
+  holds a character that is not white space; Enter confirms. It sends `POST
+  /admin/api/trees/<t>/nodes { from: { node, link: 'end', label: { <lang>: <text> } } }`; the
+  store writes `terminal: { label }` with `""` for every other declared language, each a
+  to-do (V-L10N advisory, 19.2). A Node with Options cannot end: the 422 (V-TERMINAL) is shown
+  in the Sheet, as before (30.3).
+- **Afterwards the badge is the field**, through the `field` slot (34.2), path
+  `terminal.label.<lang>`, limit 19, plain: blurred it is the badge as the public page draws
+  it; focused it shows the text as typed, without the capitals transform, so a creator sees
+  what they write; the counter and the missing-language tags stand on the right rim at the
+  band's height (28.3); a language with no words shows `endingText` as its placeholder. The
+  region is the badge's own box, so nothing on the rim moves (28.6).
+- **No outcome is offered anywhere.** "Tree does not end here after all" -- #178's
+  replacement for the step menu's `removeEnd` -- sends `remove-terminal`; the words go with
+  the marker, and ending the Node again asks for them again.
+- **Words**: `endingText` is "Text of the ending" / "Tekst van het einde" (3.2), 18 and 19
+  characters, so the placeholder also fits the badge.
+
+### 36.4 A deployment's data directory
+
+`openStore` (17.5) converts, before it opens any Tree, every `tree.json` and `draft.json`
+under `$ELSA_DATA_DIR/trees/` whose `format` is `elsa-tree/4`, by `tree-format.md` 12.7.1, and
+writes the result atomically (17.3): a `draft.json` when it passes the draft schema and every
+blocking rule (19.2), a `tree.json` when it passes in full (19.3). It logs one line per file it
+converted -- `Converted Tree "<id>" <file> from elsa-tree/4 to elsa-tree/5: <n> endings` --
+and touches no `meta.json`, because no creator wrote. A file that would not pass is left as it
+was; its Tree is refused (18.3) or uneditable (19.5) with the violations, and the
+administrator's way out is the import command with a repaired file (17.4). `importTree` (the
+seed and `npm run store -- import`) converts a `/4` folder's `tree.json` in its staging copy
+and never writes into the source folder. Nothing keeps the `/4` bytes: `docs/deployment.md`
+gains one paragraph asking for a backup of the data directory before the first start of the
+release that carries `elsa-tree/5`.
+
+### 36.5 Tests (#179)
+
+| File | Asserts |
+|---|---|
+| `tests/loader.test.ts` and its fixtures | a Terminal's `label` of 20 characters is V-LENGTH at `terminal.label.en` with "20 characters; at most 19"; a missing language is V-L10N; a line break is V-PLAIN; an `outcome` is refused by the schema at `/nodes/<i>/terminal`; every `invalid/<rule>` fixture still fails its own rule, `v-terminal`'s `maybe` included |
+| `tests/migrate-tree.test.ts` | 12.7 on a Tree whose four Terminals carry the four outcomes, in `en` and `nl`, gives the table's eight words; `nl-be` gets the Dutch words and `de` the English; an unknown outcome is left and reported; an absolute `$schema` URL is rewritten in place; a second run changes no byte; the byte form of 3.7 |
+| `tests/store/store.test.ts` | a data directory of `/4` files opens converted, served and editable, with one log line per file; a `/4` `tree.json` the conversion cannot carry is refused and left as it was; `importTree` of a `/4` folder converts its staging copy and leaves the source untouched |
+| `tests/store/drafts.test.ts` | `link: 'end'` with `label` writes `{ label }` with `""` for the other languages; the field `terminal.label.nl`; `set-terminal { label }`; `terminal.outcome` is 422; `add-language` writes `""` into a Terminal's `label` and `remove-language` removes its text |
+| `tests/browser/structure.spec.ts` | `treeEndsHere` asks for the words, its counter shows the 19; `confirm` puts the badge on the rim; after publishing (#136's route) the public page's badge holds the same words, in `en` and in `nl` |
+| `tests/browser/no-scroll.spec.ts` | its Terminal rows unchanged, and one row more: a fixture Terminal whose `label` is 19 characters of wide capitals ("Mandatory safeguard" / "Maatregelen vereist") at its ten viewports and at 480 x 640, asserting 10.6's rule and that the badge is one line (its box 24 pixels tall). The runner draws the default stack in Liberation Sans, Arial's metrics (`src/theme.ts`), where 36.1 measured the English one at 181.0 pixels of the 198 and the research record the Dutch one at 172.6 |
+| `tests/chrome.test.ts` | the outcome row goes (7) |
+| the tests that name the old number | found on 2026-10-02 by searching `elsa-tree-4` and `elsa-tree/4` under `tests/`: `carousel.spec.ts`, `deployment.spec.ts` (its `SCHEMA` constant and the `describedby` header it expects), `draft-rules.test.ts`, `llms.test.ts`, `loader.test.ts`, `migrate-tree.test.ts`, `neighbourhood.test.ts`, `store/drafts.test.ts`, `store/store.test.ts`, `url.test.ts`, `views.test.tsx` -- each now names `/5`; and `draft-rules.test.ts`'s "a wrong format" case, which writes `elsa-tree/5`, writes a format that is wrong after #179 (`elsa-tree/6`) |
+| the tests that assert an outcome | found on 2026-10-02 by searching `outcome` under `tests/`; #179 changes each to the `label`. Today `admin/trees.test.ts`, `browser/admin-api.spec.ts` and `browser/languages.spec.ts` end a Tree with `link: 'end'` and an `outcome`; `editor/structure.test.ts` builds its Terminals with one; `ai-act-tree.test.ts` holds the first Tree's four Terminals to their outcomes (from #179 on, to the words 12.7 gave them); `browser/admin.spec.ts` ends its Tree through `treeEndsHere`'s four radios and reads the outcome's select (from #179 on, the one field, 36.3); `browser/editor.spec.ts` has "a Terminal shows its outcome as a select drawn as the badge (28.1)" (from #179 on, the field drawn as the badge); and `views.test.tsx`, in the row above for the number, reads the badge as `outcome outcome--<value>` with the chrome word (from #179 on, one class holding the Terminal's own words). The specs that find the badge by its class -- `node-view.spec.ts`, `tree-view.spec.ts`, `trail.spec.ts` and `first-tree/walk.spec.ts` -- keep their assertions: the class stays `outcome` (36.2), and 12.7 gives each converted Terminal the words its badge showed |
+
+#179's pull request also pastes, from a command, the Terminals counted before the conversion
+against the endings carrying a `label` after it: 108 and 107, as `tree-format.md` 12.7.3
+reconciles them.
+
+## 37. The font and licence dropdowns
+
+**[#171], new -- 2026-10-02.** The owner, on #169: "Make the font family selection a dropdown,
+but do give the option to add a font by uploading a file. Make the license section a
+dropdown." The Theme block of `tree-format.md` 4.3 does not change: what the panel writes is
+4.3.2's table. Recorded in `docs/adrs/ADR-171-font-library.md`, `ADR-171-font-dropdown.md` and
+`ADR-171-licence-dropdown.md`. Built by #180, with the rest of #169's point about the Theme
+panel -- the editor's own bars kept in the default look, the text colour on the Sources, the
+information hints -- which #180 decides itself.
+
+### 37.1 The library
+
+- **Four families**, each under the SIL Open Font License 1.1 with no Reserved Font Name,
+  each no wider than Open Sans on the two Trees' own text at 400 and 700 (so every limit of
+  `tree-format.md` 5.7 holds in them, as in the face it was measured in): **Open Sans**,
+  **Roboto**, **Atkinson Hyperlegible Next**, **Faustina**, in that order.
+- **In the repository**: `fonts/<id>/` -- `open-sans`, `roboto`, `atkinson-hyperlegible-next`,
+  `faustina` -- each holding `<id>-normal.woff2`, `<id>-italic.woff2` (variable, weight `400
+  700`, Latin and Latin Extended) and the family's upstream `OFL.txt`; `fonts/README.md` with
+  the provenance, the recipe and the hashes of `ADR-171-font-library.md` decision 3. 345,116
+  bytes in all: 324 KiB as a git pack, a gzip'd layer of about 339 KB in the container image.
+- **In a release**: `fonts/` beside `server.js` in `.next/standalone/` and in the image's
+  `/app`, as `schemas/` is (6, 15.1): `scripts/collect-standalone.ts` copies it into the
+  standalone folder, which the `Dockerfile` copies whole, so the `Dockerfile` does not
+  change. The store reads it from the working directory. Not under `public/`: no library
+  file is ever served from the library, only as a file of a Tree.
+- **In code**: `src/fonts.ts`, pure: `FONT_LIBRARY` (id, CSS family name, licence id, files
+  with weight, style and SHA-256) and `FONT_LICENCES` (37.5).
+
+### 37.2 The dropdown per role
+
+The fonts part of the Theme panel (33.8) shows one native `<select>` per role, `fontBody`
+("Running text") then `fontHeading` ("Headings"), in place of the family-name field and the
+add-a-font form:
+
+| Entry | What choosing it writes |
+|---|---|
+| `fontDefault`, "Default: the reader's own font" / "Standaard: het lettertype van de lezer" (running text); `fontSameAsBody`, "Same as running text" / "Zelfde als lopende tekst" (headings) | the `theme.fonts` part without that role's entry, or `null` when none is left (33.8) |
+| `<optgroup>` `fontLibraryGroup`, "Fonts that come with the app" / "Lettertypen van de app": the four families by name | `use-library-font` (37.3) |
+| `<optgroup>` `fontOwnGroup`, "This tree's own" / "Eigen aan deze boom": the role's family when it is not a library family -- uploaded, or hand-made like the first Tree's Open Sans | nothing: it is the current choice |
+| `fontUpload`, "Upload a font file…" / "Een lettertypebestand uploaden…", last | the file picker; then 37.4 |
+
+A role's entry **is** library family X when its `family`, its `files` (name, weight, style)
+and its `licence` equal what `use-library-font` writes for X; anything else is the Tree's own.
+A library family shows its licence, fixed, and no other control. The Tree's own family keeps
+33.8's controls: its name (a new name held to 37.4's `fontNameTaken`) and licence edited,
+files added and removed. Choosing a library family is refused with `fontNameTaken` (37.4),
+before anything is sent, when the other role's family has that family's name and is not that
+library family -- the first Tree's headings, say, while its running text keeps its own Open
+Sans: the library's `400 700` would overlap the other set's faces under one name.
+
+### 37.3 `use-library-font`
+
+`PATCH /admin/api/trees/<t> { op: 'use-library-font', role: 'body' | 'heading', family: '<library id>' }`
+(22.1, 22.2), permitted by 21.2's `edit`:
+
+1. The family's two WOFF2 files are copied into `$ELSA_DATA_DIR/trees/<t>/theme/` under
+   22.6's name -- `<stem>-<first 8 hex of the SHA-256>.woff2`, so `open-sans-normal-a01904f4.woff2`
+   -- each checked against `tree-format.md` 3.6 and resolved inside `theme/`, by the atomic
+   writer; a file already there with that name is the same bytes and is not written again.
+2. Its `OFL.txt` is copied beside them as `<library id>-licence.txt`, which the Theme does not
+   name and the theme route never serves (5.5).
+3. The role's entry of `theme.fonts` becomes `{ family, role, files: [{ file: <normal copy>,
+   weight: "400 700", style: "normal" }, { file: <italic copy>, weight: "400 700", style:
+   "italic" }], licence: "SIL Open Font License 1.1 (https://spdx.org/licenses/OFL-1.1.html)" }`,
+   replacing that role's previous entry; `body` stays before `heading`; `theme` and `fonts`
+   are created when absent.
+4. The draft is validated and answered as any write (22.3). An unknown family or role is 422
+   with V-THEME, before anything is copied.
+
+The files then belong to the Tree like an upload's: served under its id once published (5.5,
+18.1), taken along when it moves (17.4), and left in `theme/` when another family replaces
+them, as 33.8's "Not done" already says of a replaced font.
+
+### 37.4 An uploaded family's name
+
+`fontUpload` sends the chosen file through `POST /admin/api/trees/<t>/theme` (22.6's rules,
+unchanged), which answers `201 { file, family? }`. `family` is the font's own family name, read
+by `woff2FamilyName` (`src/store/woff2.ts`, pure): the WOFF2 table directory walked, the table
+stream decompressed with Node's Brotli -- never past the header's `totalSfntSize` and never past
+64 MiB -- and the `name` table's typographic family (name ID 16), else its family (name ID 1),
+from the Windows Unicode records only, English (`0x0409`) first; trimmed; and given only when
+it is 1 to 64 characters with none of 13.3's refused characters. Any malformation answers
+`null`, and so does a font whose family name is in Macintosh records only; the route then
+answers no `family`, and the name field stays empty for the creator to fill. The four library
+files answer "Open Sans", "Roboto", "Atkinson Hyperlegible Next" and "Faustina" (Faustina by
+name ID 16; its ID 1 is "Faustina Light", the name of its upstream default instance).
+
+Under the dropdown the panel then shows what the new family needs: the name field holding that
+name (or empty, with its placeholder), the licence dropdown (37.5), the file's weight and its
+style (33.8), and `addFont`. The name is at most 64 characters, refused at the field when it
+holds one of 13.3's characters, and refused with `fontNameTaken` ("The other role uses this
+name for other files." / "De andere rol gebruikt deze naam voor andere bestanden.") when the
+other role's family has that name and other files, because one name with two sets of files is
+one family to the browser. The family is written, as 33.8's part, when the name and the
+licence are given; the dropdown then shows it under `fontOwnGroup`.
+
+**The Tree's own family, renamed** in 33.8's name field, is held to the same rule: a name the
+other role's family has, with other files, is refused with `fontNameTaken` at the field,
+before anything is sent. A write that keeps a role's name is never refused for it. The first
+Tree's two roles share "Open Sans" over disjoint files (400 and 600 for running text, 700 for
+headings), and they stay editable as they are (`ADR-171-font-dropdown.md` decision 6).
+
+### 37.5 The licence dropdown
+
+For the Tree's own family, a native `<select>` in place of the licence line:
+
+| Shown | Stored in `licence` |
+|---|---|
+| SIL Open Font License 1.1 | `SIL Open Font License 1.1 (https://spdx.org/licenses/OFL-1.1.html)` |
+| Apache License 2.0 | `Apache License 2.0 (https://spdx.org/licenses/Apache-2.0.html)` |
+| Ubuntu Font Licence v1.0 | `Ubuntu Font Licence v1.0 (https://spdx.org/licenses/Ubuntu-font-1.0.html)` |
+| Bitstream Vera Font License | `Bitstream Vera Font License (https://spdx.org/licenses/Bitstream-Vera.html)` |
+| MIT License | `MIT License (https://spdx.org/licenses/MIT.html)` |
+| Creative Commons Zero v1.0 Universal | `Creative Commons Zero v1.0 Universal (https://spdx.org/licenses/CC0-1.0.html)` |
+| `licenceOther`, "Another licence…" / "Een andere licentie…" | the free line under the dropdown, as 33.8 had it: required, at most 200 characters |
+
+The names are SPDX's (licence list 3.29.0), the same in every language; each stored string is
+the name and the address of the licence's text, as 4.3.2 asks. The select shows the entry whose
+stored string equals the family's `licence` exactly, and "Another licence…" with the string in
+its field for anything else, so a hand-made line such as the first Tree's `SIL Open Font License
+1.1 (theme/ofl-open-sans.txt)` is shown and kept as written. A creator who cannot state a
+licence has nothing to choose: 4.3.2's rule stands, and #180's hint says so. A library family's
+licence is the `OFL-1.1` string, fixed.
+
+### 37.6 Tests (#180)
+
+| File | Asserts |
+|---|---|
+| `tests/fonts.test.ts` | every file of `FONT_LIBRARY` is in `fonts/<id>/` with its SHA-256; every file in `fonts/` is listed, an `OFL.txt` or the README; every name passes 3.6's font grammar; every licence id is in `FONT_LICENCES`; every stored licence string is at most 200 characters and ends with its SPDX address |
+| `tests/store/woff2.test.ts` | the four library files answer their names; a truncated file, a file of zeros and a WOFF2 without a `name` table answer `null` |
+| `tests/store/drafts.test.ts` | `use-library-font` copies the two files and the licence text and writes the entry of 37.3; choosing it twice writes the same bytes; it replaces the role's entry and keeps `body` before `heading`; an unknown family is 422 and copies nothing; a collaborator may, a reader without a role may not (21.2) |
+| `tests/browser/theme-panel.spec.ts` | the two selects and their entries; choosing a library family is seen at once in the editor and, after publishing, the public page fetches it from the Tree's own address (`theme.spec.ts`'s same-origin rule holds); an upload proposes the font's name, takes a licence from the list and from "Another licence…", and refuses a name the other role uses for other files; choosing the library's Open Sans for the first Tree's headings is refused the same way, with nothing sent; renaming a Tree's own family to the other role's name is refused the same way, and an edit that keeps the first Tree's shared name is not; the first Tree's hand-made line shows as "Another licence…" |
+| `tests/browser/no-scroll.spec.ts` | one row more: the full-node fixture with each library family set in both roles, at 1280 x 640 and 360 x 640, in `en` and `nl` -- the browser's proof of 37.1's width rule |
+| the release | #180's pull request lists `.next/standalone/fonts/` after `npm run build`, and pastes the hashes it committed against `ADR-171-font-library.md` decision 3 |

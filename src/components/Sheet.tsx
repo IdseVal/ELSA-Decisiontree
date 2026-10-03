@@ -27,6 +27,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
   type Ref,
+  type ToggleEvent,
 } from 'react'
 
 /** One link of the list a Sheet shows. */
@@ -198,7 +199,11 @@ export function Sheet({
     return () => document.removeEventListener('keydown', onAnyKeyDown)
   }, [])
 
-  const onToggle = (): void => {
+  const onToggle = (event: ToggleEvent<HTMLDetailsElement>): void => {
+    // **[#177]** React hands a toggle up its tree: a Sheet opened inside this one's panel -- a
+    // side bubble's Sources or a Source's `...` in an Overlay -- would put the focus on this
+    // one's cross, and the Escape meant for it would close this one instead.
+    if (event.target !== details.current) return
     if (details.current?.open) {
       turnTo(startAt.current ?? startPage)
       // Into the panel, so Escape reaches the Sheet and a screen reader is where the aside is (10.9).

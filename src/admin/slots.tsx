@@ -2,11 +2,14 @@
  * The editor page's `EditMode` (docs/specs/application.md 34.1, 34.2): the words the
  * editor's client components say and the slots of #138 -- `field` for every text and select
  * of 28.1 that this issue edits, `operation` for the two Source operations -- and **[#139]**
- * the four structure slots of 30: `structure` for the Answer row, `linkMenu` beside each
- * Answer and Option button, `sideAdd` in the fan and after an Overlay's list, `stepMenu` on
- * the rim. Each structure slot is a Sheet built here around a client form of
- * `src/editor/Structure.tsx` or `StepMenu.tsx`, with the addresses it navigates to and the
- * picker's index handed over as strings (34.4) -- and of #140: `imageSlot` and `stripAdd`,
+ * the structure slots of 30: `structure` for the Answer row and `sideAdd` in the fan, each
+ * built here around a client leaf of `src/editor/Structure.tsx`, with the addresses it
+ * navigates to handed over as strings (34.4); **[#177]** the side-bubble `+` is a button alone,
+ * which creates at one click, and `sideDelete` puts `deleteSideBubble` at the bottom of an
+ * opened side bubble (30.4, 30.7, amended 2026-10-02); **[#178]** `stepButtons` puts the step's
+ * red cross and, on a Terminal, "Tree does not end here after all" beside the up arrow, from
+ * `src/editor/StepButtons.tsx`, in place of the step menu, and no Answer or Option button has a
+ * link menu any more (30.6, 30.8, amended 2026-10-02) -- and of #140: `imageSlot` and `stripAdd`,
  * the two pickers of 31.1, and `enlargedControls`, the four controls under a picture in the
  * enlarged view (31.3). Later issues add their slot functions to the object this module
  * builds, one line each (ADR-133-build-order).
@@ -19,34 +22,41 @@ import { OUTCOME_LABEL, sheetWords, SOURCE_LABEL } from '../components/Bubble.ts
 import { Sheet } from '../components/Sheet.tsx'
 import { editorLinks } from '../editor/links.ts'
 import { AddSourceForm, Field, Operation, type FieldWords, type OtherLanguage } from '../editor/Field.tsx'
+import { Hint } from '../editor/Hint.tsx'
 import { ImageControls } from '../editor/ImageControls.tsx'
 import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
-import { StepMenuForm } from '../editor/StepMenu.tsx'
-import { AnswerAdd, EndForm, LinkMenuForm, SideAddForm, type MenuLink, type Pickable, type StructureWords } from '../editor/Structure.tsx'
+import { DeleteStep, RemoveEnd } from '../editor/StepButtons.tsx'
+import { AnswerAdd, EndForm, SideAdd, SideDelete, type StructureWords } from '../editor/Structure.tsx'
 import { MAX_ASIDES } from '../neighbourhood.ts'
 import { linksOf, type Explainer, type NodeContent, type Outcome, type Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
 
 /**
- * **[#139]** What the structure slots need of the page (30): the picker's index -- every
- * Node of the draft by id and title in the page's language, in file order, from `nodeIds()`
- * and `getTitle`, never a Node read (30.6) -- the address of every Node the page carries,
- * by id, from which a creation's destination and a deletion's way out are built, and the
- * root, which has no `deleteStep`.
+ * **[#139]** What the structure slots need of the page (30): the address of every Node the
+ * page carries, by id, from which a creation's destination and a deletion's way out are
+ * built, and the root, which has no `deleteStep`. **[#178]** No longer the picker's index of
+ * every Node of the draft: the picker is gone (30.6, amended).
  */
 export interface Structure {
-  index: Pickable[]
   addresses: Record<string, PageAddress>
   root: string
-  /** The centre's id: the `+` is the fan's on the centre and an Overlay's list entry on every other Node (30.4, 30.5). */
+  /** The centre's id: the side-bubble `+` is the fan's, on the centre only (30.4, 30.5). */
   centre: string
+  /**
+   * **[#177]** The targets of the centre's Options, in order: the asides whose titles the Option
+   * buttons' follow (30.5), and whose Overlays hold `deleteSideBubble` (30.7).
+   */
+  options: string[]
+  /** **[#177]** Those of them another Node leads to as well: their delete removes only the centre's Option (30.7). */
+  shared: string[]
+  /** **[#178]** Their titles in the page's language, by id: what their delete names (30.7). */
+  titles: Record<string, string>
 }
 
 /** The chrome strings the editor's client components read through `words`, as strings. */
 function editorWords(ui: Chrome): EditorWords {
   return {
-    missingText: ui.missingText,
     characters: ui.characters,
     lines: ui.lines,
     saving: ui.saving,
@@ -66,6 +76,8 @@ function editorWords(ui: Chrome): EditorWords {
     explainerLimit: ui.explainerLimit,
     term: ui.term,
     explanation: ui.explanation,
+    placeholderTerm: ui.placeholderTerm,
+    placeholderExplanation: ui.placeholderExplanation,
     markedIn: ui.markedIn,
     notMarkedIn: ui.notMarkedIn,
   }
@@ -74,14 +86,38 @@ function editorWords(ui: Chrome): EditorWords {
 /** The paths edited in place: #138's, and **[#140]** an Image's two texts in the enlarged view (31.3). */
 const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|images\[\d+\]\.(description|credit)|options\[\d+\]\.title|terminal\.outcome)$/
 
+/**
+ * **[#172]** What belongs in the field at a path, its placeholder while it is empty (28.2,
+ * amended): the chrome word for it, or none for a select.
+ */
+function placeholderOf(path: string, ui: Chrome): string {
+  if (path === 'title') return ui.placeholderTitle
+  if (path === 'description') return ui.placeholderText
+  if (/^sources\[\d+\]\.label$/.test(path)) return ui.placeholderSourceLabel
+  if (/^sources\[\d+\]\.url$/.test(path)) return ui.placeholderUrl
+  if (/^options\[\d+\]\.title$/.test(path)) return ui.placeholderOptionTitle
+  if (/^images\[\d+\]\.description$/.test(path)) return ui.placeholderImageDescription
+  if (/^images\[\d+\]\.credit$/.test(path)) return ui.placeholderCredit
+  return ''
+}
+
 /** Which paths hold a localised text: the page's language is appended to their key path (22.2). */
 const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title)$/
 
 /** The most Images a Node may hold (V-COUNT, 5.7): the strip's `+` is absent at that many (31.1). */
 const MAX_IMAGES = 10
 
+/** **[#174]** An Image's two texts, which the enlarged view shows with a hint behind their labels (31.3). */
+const IMAGE_TEXT = /^images\[(\d+)\]\.(credit|description)$/
+
+/** The maximum length of an Option's title (tree-format.md 5.7): what a title that follows the aside's is cut to (30.5). */
+const OPTION_TITLE = { characters: 60 }
+
 /** What a click or Enter on a marked term dispatches in the editor (32.3). */
 const TERM_EVENT = 'elsa-term'
+
+/** Where the confirmations of 30.7 and **[#178]** 30.8 put the title: a character no chrome sentence holds, cut at on the server. */
+const TITLE_MARK = '\u0000'
 
 const KINDS: Source['kind'][] = ['legal', 'case-law', 'literature']
 const OUTCOMES: Outcome[] = ['not-applicable', 'applicable', 'prohibited', 'refer']
@@ -94,28 +130,13 @@ export function editMode(address: PageAddress, languages: string[], structure: S
   const words = editorWords(ui)
   const links = editorLinks()
   const sheet = sheetWords(ui)
-  const structureWords: StructureWords = {
-    yes: ui.yes,
-    no: ui.no,
-    confirm: ui.confirm,
-    cancel: ui.cancel,
-    createNew: ui.createNew,
-    linkExisting: ui.linkExisting,
-    changeTarget: ui.changeTarget,
-    removeLink: ui.removeLink,
-    pickTarget: ui.pickTarget,
-    sideBubbleTitle: ui.sideBubbleTitle,
-    newSideBubble: ui.newSideBubble,
-    missingText: ui.missingText,
-  }
+  const structureWords: StructureWords = { confirm: ui.confirm }
   /** The page's own address of a Node it carries, or null for one it does not (a slot draws nothing then). */
   const hereOf = (nodeId: string): string | null => {
     const at = structure.addresses[nodeId]
     return at ? links.node(at) : null
   }
-  /** The picker's list for a Node: every other Node (30.6). */
-  const otherNodes = (nodeId: string): Pickable[] => structure.index.filter((entry) => entry.id !== nodeId)
-  const fieldWords: FieldWords = { missingText: words.missingText, characters: words.characters, lines: words.lines }
+  const fieldWords: FieldWords = { characters: words.characters, lines: words.lines }
   const others: OtherLanguage[] = languages.filter((other) => other !== lang).map((other) => ({ lang: other, href: links.withLang(address, other) }))
   const outcomes = OUTCOMES.map((outcome) => ({ value: outcome, label: ui[OUTCOME_LABEL[outcome]] }))
   // The badge leaves `legal` unlabelled under its heading (ADR-78); a select must name every kind.
@@ -128,6 +149,12 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     imageDescription: ui.imageDescription,
     attach: ui.attach,
     cancel: ui.cancel,
+    placeholderCredit: ui.placeholderCredit,
+    placeholderImageDescription: ui.placeholderImageDescription,
+    addExtraPicture: ui.addExtraPicture,
+    hint: ui.hint,
+    creditHint: ui.creditHint,
+    imageDescriptionHint: ui.imageDescriptionHint,
   }
   // The admin image route's folder: the attach Sheet shows a picture no Node names yet (31.2).
   const images = links.image(address.treeId, '')
@@ -136,7 +163,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     field(node, path, value, limit, rendered) {
       if (!EDITED.test(path)) return null
       const localised = LOCALISED.test(path)
-      const common = { nodeId: node.id, path, lang: localised ? lang : null, value, limit, others, words: fieldWords }
+      const common = { nodeId: node.id, path, lang: localised ? lang : null, value, limit, others, placeholder: placeholderOf(path, ui), words: fieldWords }
       if (path === 'terminal.outcome') {
         return <Field {...common} select={outcomes} label={ui.outcome} className="outcome" classByValue />
       }
@@ -146,6 +173,20 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       if (path === 'description') {
         return <Field {...common} rich rendered={rendered} explainers={node.explainers as Explainer[]} termEvent={TERM_EVENT} markerWords={{ mark: ui.mark, cannotMarkHere: ui.cannotMarkHere, explainerLimit: ui.explainerLimit }} />
       }
+      // [#174] The enlarged view's label is the Carousel's; the hint behind it is the editor's.
+      const image = IMAGE_TEXT.exec(path)
+      if (image) {
+        const credit = image[2] === 'credit'
+        return (
+          <>
+            <Hint id={`${node.id}-images-${image[1]}-${image[2]}-hint`} text={credit ? ui.creditHint : ui.imageDescriptionHint} name={ui.hint} />{' '}
+            <Field {...common} />
+          </>
+        )
+      }
+      // **[#177]** An aside's title leads the title of its Option button on the centre, which follows it (30.5).
+      const option = path === 'title' && node.id !== structure.centre ? structure.options.indexOf(node.id) : -1
+      if (option >= 0) return <Field {...common} follower={{ nodeId: structure.centre, path: `options[${option}].title`, limit: OPTION_TITLE }} />
       return <Field {...common} />
     },
     operation(node: NodeContent, op, index): ReactNode {
@@ -212,92 +253,58 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       )
     },
 
-    // The `...` at the outer end of an Answer or Option button (30.6): absent where the
-    // Answer is not yet made, since the row's `+` stands there.
-    linkMenu(node, link) {
-      const here = hereOf(node.id)
-      if (here === null) return null
-      let menu: MenuLink
-      if (link.kind === 'option') {
-        const option = node.options[link.index]
-        if (!option) return null
-        menu = { kind: 'option', target: option.target, title: option.title[lang] ?? '' }
-      } else {
-        if (linksOf(node)[link.kind] === undefined) return null
-        menu = { kind: link.kind }
-      }
-      const which = link.kind === 'option' ? `option${link.index}` : link.kind
-      return (
-        <Sheet
-          className={`link-menu link-menu--${link.kind}`}
-          summary={<span aria-label={ui.linkMenu} lang={uiLang}>…</span>}
-          pages={[<LinkMenuForm key="menu" nodeId={node.id} lang={lang} link={menu} here={here} nodes={otherNodes(node.id)} words={structureWords} />]}
-          words={sheet}
-          uiLang={uiLang}
-          idPrefix={`${node.id}-${which}-menu-`}
-        />
-      )
-    },
-
-    // The side-bubble `+` (30.4): the fan's next free slot on the centre, the last entry of an
-    // Overlay's list on an aside; absent at eight Options and on a Terminal (5.6, 5.7).
+    // The side-bubble `+` (30.4): the fan's next free slot, on the centre; absent at eight
+    // Options and on a Terminal (5.6, 5.7). **[#177]** Not in an Overlay any more: an aside
+    // opened as its own page is the centre, and its fan has the `+` (30.5, amended).
     sideAdd(node) {
       const here = hereOf(node.id)
-      if (here === null || node.options.length >= MAX_ASIDES || linksOf(node).terminal !== undefined) return null
-      const inOverlay = node.id !== structure.centre
-      return (
-        <Sheet
-          className={`side-add${inOverlay ? ' side-add--list' : ''}`}
-          // Inside an Overlay's panel a Sheet names a group of its own, or opening it would close the Overlay.
-          name={inOverlay ? 'side-sheet' : 'sheet'}
-          summary={
-            inOverlay ? (
-              <span lang={uiLang}>{`+ ${ui.newSideBubble}`}</span>
-            ) : (
-              <>
-                <span className="option-image option-image--empty side-add-plus" aria-hidden="true">
-                  +
-                </span>
-                <span className="option-title" lang={uiLang}>
-                  {ui.newSideBubble}
-                </span>
-              </>
-            )
-          }
-          pages={[<SideAddForm key="side" nodeId={node.id} lang={lang} here={here} nodes={otherNodes(node.id)} words={structureWords} />]}
-          words={sheet}
-          uiLang={uiLang}
-          idPrefix={`${node.id}-side-`}
-        />
-      )
+      if (here === null || node.id !== structure.centre || node.options.length >= MAX_ASIDES || linksOf(node).terminal !== undefined) return null
+      return <SideAdd nodeId={node.id} here={here} word={ui.newSideBubble} wordLang={uiLang} />
     },
 
-    // The `...` on the rim above, right of the up arrow (30.8): `removeEnd` on a Terminal,
-    // `deleteStep` on every Node but the root, which goes to the parent or, with no Trail, to the root.
-    stepMenu(node) {
+    // **[#177]** `deleteSideBubble` in the Overlay of each of the centre's Options (30.7): the
+    // aside's Node goes with the Option unless another Node leads to it too.
+    sideDelete(node, index) {
+      const here = hereOf(node.id)
+      const target = node.options[index]?.target
+      if (here === null || node.id !== structure.centre || target === undefined) return null
+      const [confirmBefore = '', confirmAfter = ''] = ui.confirmDeleteSideBubble(TITLE_MARK).split(TITLE_MARK)
+      const words = {
+        deleteSideBubble: ui.deleteSideBubble,
+        confirmBefore,
+        confirmAfter,
+        confirmUntitled: ui.confirmDeleteUntitledSideBubble,
+        stays: ui.sideBubbleStays,
+        confirm: ui.confirm,
+        cancel: ui.cancel,
+      }
+      return <SideDelete parentId={node.id} asideId={target} lang={lang} title={structure.titles[target] ?? ''} shared={structure.shared.includes(target)} centreHref={here} words={words} />
+    },
+
+    // **[#178]** The step's buttons beside the up arrow (30.8, amended): on a Terminal "Tree does
+    // not end here after all", and on every Node but the root the red cross, whose delete goes to
+    // the parent or, with no Trail, to the root. The root that is not a Terminal has neither.
+    stepButtons(node) {
       const at = structure.addresses[node.id]
       if (!at) return null
+      const root = node.id === structure.root
+      const terminal = linksOf(node).terminal !== undefined
+      if (root && !terminal) return null
       const parentHref = at.trail.length > 0 ? links.trail(at, at.trail.length - 1) : links.node({ ...at, trail: [], nodeId: structure.root })
-      const title = node.title[lang] || ui.missingText
+      const [confirmBefore = '', confirmAfter = ''] = ui.confirmDelete(TITLE_MARK).split(TITLE_MARK)
+      const words = {
+        deleteStep: ui.deleteStep,
+        confirmBefore,
+        confirmAfter,
+        confirmUntitled: ui.confirmDeleteUntitled,
+        confirm: ui.confirm,
+        cancel: ui.cancel,
+      }
       return (
-        <Sheet
-          className="step-menu"
-          summary={<span aria-label={ui.stepMenu} lang={uiLang}>…</span>}
-          pages={[
-            <StepMenuForm
-              key="step"
-              nodeId={node.id}
-              heading={title}
-              root={node.id === structure.root}
-              terminal={linksOf(node).terminal !== undefined}
-              parentHref={parentHref}
-              words={{ removeEnd: ui.removeEnd, deleteStep: ui.deleteStep, confirmDelete: ui.confirmDelete(title), confirm: ui.confirm, cancel: ui.cancel }}
-            />,
-          ]}
-          words={sheet}
-          uiLang={uiLang}
-          idPrefix={`${node.id}-step-`}
-        />
+        <>
+          {!root && <DeleteStep nodeId={node.id} lang={lang} title={node.title[lang] ?? ''} parentHref={parentHref} words={words} uiLang={uiLang} />}
+          {terminal && <RemoveEnd nodeId={node.id} word={ui.removeEnd} uiLang={uiLang} />}
+        </>
       )
     },
   }

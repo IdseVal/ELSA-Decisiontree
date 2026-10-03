@@ -1,11 +1,13 @@
 /**
- * Issue #105: every Option button of the first Tree is 232 x 96 with at most four lines of
- * title (docs/specs/application.md 10.3), in both languages, at the guaranteed viewport and at
- * 1920 x 1080 (10.6). The no-scroll test does not catch a fifth line: a button that grows to
- * hold it has content no taller than itself. `option-hyphens.spec.ts` counts the lines too;
- * this spec adds the button's size, which a fifth line changes, and the label's 152 pixels,
- * which 12 pixels of padding inside the 1-pixel outline had cut to 150 without moving a line
- * break of this Tree -- so only the width itself guards it.
+ * Issue #105: every Option button of the first Tree is the size of 10.3 with no more lines of
+ * title than it holds (docs/specs/application.md 10.3), in both languages, at the guaranteed
+ * viewport and at 1920 x 1080 (10.6). The no-scroll test does not catch a line too many: a
+ * button that grows to hold it has content no taller than itself. `option-hyphens.spec.ts`
+ * counts the lines too; this spec adds the button's size, which a line too many changes, and
+ * the label's width, which 12 pixels of padding inside the 1-pixel outline had once cut from
+ * 152 to 150 without moving a line break of this Tree -- so only the width itself guards it.
+ * **[#175]** The button is 236 x 100, its picture 100 across, the label 120 pixels at 15 on 18,
+ * at most five lines (232 x 96, 152 and four before).
  *
  * The Dutch `prohibited-practices` at 1280 x 640, whose "Seksueel beeldmateriaal zonder
  * toestemming (2-12-2026)" took five lines before #104 and #105, is saved as a screenshot:
@@ -25,17 +27,17 @@ const SHOTS =
     ? path.join(repo, 'docs', 'screenshots', 'issue-105')
     : path.join(repo, 'tests', 'first-tree', '.results', 'issue-105')
 
-/** 10.3: an Option button is 232 x 96, with 152 pixels of label. */
-const BUTTON_WIDTH = 232
-const BUTTON_HEIGHT = 96
-const LABEL_WIDTH = 152
+/** 10.3, amended by #175: an Option button is 236 x 100, with 120 pixels of label. */
+const BUTTON_WIDTH = 236
+const BUTTON_HEIGHT = 100
+const LABEL_WIDTH = 120
 
 for (const lang of ['en', 'nl'] as const) {
   for (const [width, height] of [
     [1280, 640],
     [1920, 1080],
   ] as const) {
-    test(`every Option button is 232 x 96 with at most four lines, ${lang} at ${width} x ${height}`, async ({ page }) => {
+    test(`every Option button is 236 x 100 with at most five lines, ${lang} at ${width} x ${height}`, async ({ page }) => {
       const ids = await nodesWithOptions()
       expect(ids.length).toBeGreaterThan(0)
       await page.setViewportSize({ width, height })

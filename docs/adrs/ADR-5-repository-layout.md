@@ -3,6 +3,13 @@
 - Status: ACCEPTED (frozen) -- 2026-09-03
 - Issue: #5 -- Architecture: freeze the application contracts
 - Spec: `docs/specs/application.md`, section 6
+- Amended 2026-10-02 by issue #171 (`ADR-171-font-library.md`, `ADR-171-font-dropdown.md`,
+  `ADR-171-elsa-tree-5.md`): `fonts/` joins `trees/` at the repository root -- the font
+  library, one folder per family with its two WOFF2 files and its `OFL.txt` (font-library
+  decision 4) -- and `src/` gains `fonts.ts` (the library's list and the licence list, pure;
+  font-library decision 5) and `store/woff2.ts` (an uploaded font's own family name, pure;
+  font-dropdown decision 8); `schemas/elsa-tree-5.json` stands beside
+  `schemas/elsa-tree-4.json` (elsa-tree-5 decision 2).
 - Amended 2026-09-21 by issue #118 (`ADR-118-dataset-endpoint.md`,
   `ADR-118-json-schema.md`, `ADR-118-crawler-access.md`,
   `ADR-118-sitemap-and-alternates.md`, `ADR-118-json-ld.md`, `ADR-118-llms-txt.md`):

@@ -1,16 +1,18 @@
 'use client'
 
 /**
- * The top panel (docs/specs/application.md 33; ADR-133-top-panel): the button in the editor's
- * chrome bar that says the Tree's state and its to-do count, and the body of the Sheet it
- * opens down the right edge -- Publish with its to-do list, the collaborators, this Tree, and
- * the administrator's two actions.
+ * The top panel (docs/specs/application.md 33; ADR-133-top-panel): the button that opens it and
+ * the body of the Sheet it opens down the right edge -- Publish, the collaborators, this Tree,
+ * and the administrator's two actions. **[#176]** The button floats under the chrome bar at the
+ * top right and says what it opens, `settings`, with the Tree's state as a tag after it; the
+ * to-do list left the Publish section for a bubble of its own (`Todo.tsx`), to which a refused
+ * publish points (ADR-176-floating-settings-and-to-do).
  *
  * The page draws both inside a `Sheet` (10.5: Escape, the cross, a click outside, one Sheet
  * at a time); this module draws what is in it. The state comes from the page's load and every
  * write response through the `Editor` (22.3), and the panel's own answers go back there, so
- * the button follows a publish at once. The to-do list and the accounts are re-read when the
- * panel opens (33.3, 33.4); nothing polls.
+ * the button follows a publish at once. The accounts are re-read when the panel opens (33.4);
+ * nothing polls.
  *
  * **[#147]** "This Tree" holds the Tree's languages as the new-Tree form's tags: adding one,
  * removing one after asking once, making one the default. Each is a write across the whole
@@ -31,18 +33,15 @@ import { panelCalls, type AccountAnswer, type EntryAnswer } from './writes.ts'
 /** The chrome strings the panel says, as strings. */
 export type PanelWords = Pick<
   Chrome,
-  | 'treeState'
+  | 'settings'
   | 'publish'
-  | 'todoCount'
-  | 'todoBefore'
+  | 'publishRefused'
+  | 'showTodo'
   | 'publishedAt'
   | 'publicLink'
-  | 'publicBehindBecause'
-  | 'notServableBecause'
   | 'confirmUnpublish'
   | 'confirm'
   | 'cancel'
-  | 'removeStep'
   | 'collaborators'
   | 'creator'
   | 'invite'
@@ -58,6 +57,8 @@ export type PanelWords = Pick<
   | 'confirmDeleteTree'
   | 'published'
   | 'hidden'
+  | 'notServable'
+  | 'publicBehind'
   | 'languages'
   | 'treeId'
   | 'administrator'
@@ -68,24 +69,37 @@ export type PanelWords = Pick<
 /** The caller's role on this Tree (21.1): the administrator's wins over any other it has. */
 export type PanelRole = 'creator' | 'collaborator' | 'administrator'
 
-/** The button's four states (33.1), each its dot's colour. */
+/** The Tree's four states (33.1), each its dot's colour. */
 type Shown = 'hidden' | 'published' | 'notServable' | 'publicBehind'
 
-function shownOf(tree: TreeState): Shown {
+export function shownOf(tree: TreeState): Shown {
   if (!tree.published) return 'hidden'
   if (!tree.servable) return 'notServable'
   return tree.publicCopyCurrent ? 'published' : 'publicBehind'
 }
 
-/** The button's label (33.1): a dot, the state and the to-do count in brackets when it is not zero. */
-export function PanelButton({ words }: { words: Pick<PanelWords, 'published' | 'hidden' | 'todoCount'> }) {
+/**
+ * The button (33.1, amended by #176): a gear and what it opens, `settings`, then the Tree's state
+ * as a tag -- a dot and a word, as a tile's mark (26.4). The public copy being behind is the
+ * dot's colour on `published`, and the indicator's words (29.3). Its name says both, the same at
+ * every width: below 1000 pixels the words give way to the gear and the dot.
+ */
+export function PanelButton({ words }: { words: Pick<PanelWords, 'settings' | 'published' | 'hidden' | 'notServable' | 'publicBehind'> }) {
   const { tree } = useEditor()
   const shown = shownOf(tree)
+  const state = shown === 'hidden' ? words.hidden : shown === 'notServable' ? words.notServable : words.published
+  const name = `${words.settings}: ${state}${shown === 'publicBehind' ? `, ${words.publicBehind}` : ''}`
   return (
-    <span className={`panel-state panel-state--${shown}`} data-state={shown}>
-      <span className="panel-state-dot" aria-hidden="true" />
-      {tree.published ? words.published : words.hidden}
-      {tree.advisory > 0 && <span aria-label={`${tree.advisory} ${words.todoCount}`}>{` (${tree.advisory})`}</span>}
+    <span className="float-control" role="img" aria-label={name}>
+      <svg className="float-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M6.4 2.7L6.9 0.9L9.1 0.9L9.6 2.7L10.6 3.1L12.2 2.2L13.8 3.8L12.9 5.4L13.3 6.4L15.1 6.9L15.1 9.1L13.3 9.6L12.9 10.6L13.8 12.2L12.2 13.8L10.6 12.9L9.6 13.3L9.1 15.1L6.9 15.1L6.4 13.3L5.4 12.9L3.8 13.8L2.2 12.2L3.1 10.6L2.7 9.6L0.9 9.1L0.9 6.9L2.7 6.4L3.1 5.4L2.2 3.8L3.8 2.2L5.4 3.1Z" />
+        <circle cx="8" cy="8" r="2.4" />
+      </svg>
+      <span className="float-words">{words.settings}</span>
+      <span className={`panel-state panel-state--${shown}`} data-state={shown}>
+        <span className="panel-state-dot" />
+        <span className="float-words">{state}</span>
+      </span>
     </span>
   )
 }
@@ -97,11 +111,8 @@ export function Panel({
   administratorId,
   meta: initialMeta,
   publishedAt: initialPublishedAt,
-  advisory,
   accounts: initialAccounts,
   names,
-  titles,
-  nodeHref,
   publicHref,
   languages: initialLanguages,
   lang,
@@ -116,16 +127,10 @@ export function Panel({
   administratorId: string
   meta: EntryAnswer['meta']
   publishedAt: string | null
-  /** The draft's advisory violations at load: the to-do list (19.2). */
-  advisory: Violation[]
   /** Every active account (21.4): what the selects offer. */
   accounts: AccountAnswer[]
   /** The names of the Tree's people at load, by id, a deactivated one's included: the list shows no one by id. */
   names: Record<string, string>
-  /** The Nodes' titles in the page's language, by id, for the to-do lines. */
-  titles: Record<string, string>
-  /** A Node's editor page: what goes before its id and what after (the language's query). */
-  nodeHref: { before: string; after: string }
   /** The Tree's root URL on the public site (4.1). */
   publicHref: string
   languages: string[]
@@ -139,11 +144,12 @@ export function Panel({
   theme?: ReactNode
 }) {
   const router = useRouter()
-  const { tree, setTree } = useEditor()
+  const { tree, setTree, openTodo } = useEditor()
   const [role, setRole] = useState(initialRole)
   const [meta, setMeta] = useState(initialMeta)
   const [publishedAt, setPublishedAt] = useState(initialPublishedAt)
-  const [todo, setTodo] = useState(advisory)
+  // **[#176]** What a refused publish answered: the to-do list the Publish section points at (33.3).
+  const [refused, setRefused] = useState<Violation[] | null>(null)
   const [accounts, setAccounts] = useState(initialAccounts)
   const [asking, setAsking] = useState<'unpublish' | 'delete' | null>(null)
   const [languages, setLanguages] = useState(initialLanguages)
@@ -154,7 +160,7 @@ export function Panel({
   const body = useRef<HTMLDivElement>(null)
   const manages = role !== 'collaborator'
 
-  // The to-do list and the accounts are re-read each time the Sheet around the panel opens (33.3, 33.4).
+  // The entry and the accounts are re-read each time the Sheet around the panel opens (33.3, 33.4).
   useEffect(() => {
     const sheet = body.current?.closest('details')
     if (!sheet) return
@@ -162,13 +168,13 @@ export function Panel({
       if (!sheet.open) return
       setAsking(null)
       setRemoving(null)
+      setRefused(null)
       setError(null)
       const [entry, listed] = await Promise.all([panelCalls.entry(treeId), panelCalls.accounts()])
       if (entry.status === 200 && entry.body && 'meta' in entry.body) {
         const read = entry.body
         setMeta(read.meta)
         setPublishedAt(read.meta.publishedAt ?? null)
-        setTodo(read.advisory)
         setWritten(read.written)
         setTree({ advisory: read.advisory.length, published: read.published, publicCopyCurrent: read.publicCopyCurrent, servable: read.servable })
       }
@@ -198,16 +204,18 @@ export function Panel({
       const answer = await panelCalls.publish(treeId, true)
       if (answer.status === 200 && answer.body && 'published' in answer.body) {
         setPublishedAt(answer.body.publishedAt)
-        setTodo([])
+        setRefused(null)
         setTree({ published: true, publicCopyCurrent: true, servable: true, advisory: 0 })
       } else if (answer.status === 409 && answer.body && 'violations' in answer.body) {
         // Refused: the switch stays off (19.3). The full validation stops at the schema, whose
         // lines name `tree.json` and a JSON Pointer, not a Node; the draft's advisory list names
         // the same gaps by Node, so that is the to-do list while it has any.
-        const refused = answer.body.violations ?? []
+        const violations = answer.body.violations ?? []
         const entry = await panelCalls.entry(treeId)
         const held = entry.status === 200 && entry.body && 'advisory' in entry.body ? entry.body.advisory : []
-        setTodo(held.length > 0 ? held : refused)
+        const list = held.length > 0 ? held : violations
+        setRefused(list)
+        setTree({ advisory: list.length })
       } else setError({ where: 'publish', text: words.requestFailed })
     })
 
@@ -230,21 +238,11 @@ export function Panel({
       } else setError({ where, text: answer.status === 422 ? refused : words.requestFailed })
     })
 
-  const removeNode = (nodeId: string): Promise<void> =>
-    run(async () => {
-      const answer = await panelCalls.deleteNode(treeId, nodeId)
-      if (answer.status >= 200 && answer.status < 300) {
-        setTodo((held) => held.filter((violation) => violation.file !== nodeId))
-        setTree({ advisory: Math.max(0, tree.advisory - todo.filter((violation) => violation.file === nodeId).length) })
-        router.refresh()
-      } else setError({ where: 'publish', text: words.requestFailed })
-    })
-
   /**
    * **[#147]** One language write (33.5). The page is drawn again after it: the rim's tags and
-   * the explainer Sheet follow the declared languages, and the to-do list and the counts are
-   * re-read. A page shown in a language that has gone, or that is the default now, moves to
-   * the address of the language it shows (4.1: the default's address has no `lang`).
+   * the explainer Sheet follow the declared languages, and the counts are re-read. A page shown
+   * in a language that has gone, or that is the default now, moves to the address of the
+   * language it shows (4.1: the default's address has no `lang`).
    */
   const changeLanguages = (op: Parameters<typeof panelCalls.language>[1], tag: string): Promise<void> =>
     run(async () => {
@@ -267,10 +265,7 @@ export function Panel({
         return
       }
       const entry = await panelCalls.entry(treeId)
-      if (entry.status === 200 && entry.body && 'written' in entry.body) {
-        setTodo(entry.body.advisory)
-        setWritten(entry.body.written)
-      }
+      if (entry.status === 200 && entry.body && 'written' in entry.body) setWritten(entry.body.written)
       router.refresh()
     })
 
@@ -296,14 +291,10 @@ export function Panel({
       </p>
     ) : null
 
-  const shown = shownOf(tree)
-  const todoHeading = shown === 'notServable' ? words.notServableBecause : shown === 'publicBehind' ? words.publicBehindBecause : words.todoBefore
-
   return (
     <div className="panel-body" ref={body} data-scroll-box="" tabIndex={0} aria-labelledby="panel-heading">
       <h2 id="panel-heading" className="panel-heading">
-        {`${words.treeState}: `}
-        <PanelButton words={words} />
+        {words.settings}
       </h2>
 
       <section className="panel-section" aria-labelledby="panel-publish">
@@ -336,6 +327,14 @@ export function Panel({
             <span>{tree.published ? words.published : words.hidden}</span>
           </div>
         )}
+        {refused !== null && (
+          <p className="panel-refused" role="alert">
+            {words.publishRefused}{' '}
+            <button type="button" className="admin-link" onClick={() => openTodo(refused)}>
+              {words.showTodo}
+            </button>
+          </p>
+        )}
         {errorAt('publish')}
         {tree.published && (
           <dl className="panel-facts">
@@ -354,30 +353,6 @@ export function Panel({
               </a>
             </dd>
           </dl>
-        )}
-        {todo.length > 0 && (
-          <>
-            <p className="panel-todo-heading">{todoHeading}</p>
-            <ul className="panel-todo">
-              {todo.map((violation, index) => (
-                <li key={`${violation.file} ${violation.keyPath} ${violation.rule} ${index}`} data-rule={violation.rule}>
-                  {violation.file === 'manifest' || violation.file === 'tree.json' ? (
-                    <span className="panel-todo-where">{words.thisTree}</span>
-                  ) : (
-                    <a className="panel-todo-where" href={`${nodeHref.before}${encodeURIComponent(violation.file)}${nodeHref.after}`}>
-                      {titles[violation.file] || violation.file}
-                    </a>
-                  )}
-                  {`: ${violation.message}`}
-                  {violation.rule === 'V-REACH' && manages && (
-                    <button type="button" className="admin-link panel-todo-remove" disabled={busy} onClick={() => removeNode(violation.file)}>
-                      {words.removeStep}
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </>
         )}
       </section>
 

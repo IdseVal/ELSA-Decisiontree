@@ -17,6 +17,7 @@ import { editorLinks } from '../../../../../../editor/links.ts'
 import { LogoutButton } from '../../../../../../editor/LogoutButton.tsx'
 import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
 import { ThemePanel, type ThemeWords } from '../../../../../../editor/ThemePanel.tsx'
+import { Todo, TodoButton, type TodoWords } from '../../../../../../editor/Todo.tsx'
 import { centreOf, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
 import type { Account } from '../../../../../../store/accounts.ts'
 import type { TreeEntry } from '../../../../../../store/drafts.ts'
@@ -83,15 +84,21 @@ export default async function EditorPage({ params }: Props) {
     asides.push({ node: target, href: editorLinks().node(at), address: at })
   }
   const page: NodePage<DraftNode> = { address, centre, neighbours: { placed: [], asides } }
-  // **[#139]** The structure slots' needs (30): the picker's index from the title index, never
-  // a Node read (30.6), and the address of every Node the page carries.
-  const index = draft.nodeIds().map((id) => ({ id, title: draft.getTitle(id)?.[address.lang] ?? '' }))
+  // **[#139]** The structure slots' needs (30): the address of every Node the page carries.
   const addresses = Object.fromEntries([centre, ...centre.chain, ...asides].map((entry) => [entry.node.id, entry.address]))
-  const edit = editMode(address, draft.manifest.languages, { index, addresses, root: draft.manifest.root, centre: centre.node.id })
+  // **[#177]** Which asides another Node leads to as well, from the index's ids, never a Node read (30.7, 34.7).
+  const centreId = centre.node.id
+  const options = centre.node.options.map((option) => option.target)
+  const shared = options.filter((target) => draft.referrers(target).some((id) => id !== centreId))
+  // **[#178]** The asides' titles, which their delete names, from the Nodes read above: the
+  // picker's index of every Node of the draft is gone with the picker (30.6, amended).
+  const titles = Object.fromEntries(asides.map((aside) => [aside.node.id, aside.node.title[address.lang] ?? '']))
+  const edit = editMode(address, draft.manifest.languages, { addresses, root: draft.manifest.root, centre: centreId, options, shared, titles })
   const entry = drafts.entry(session.account, treeId)
   const nodes = Object.fromEntries([centre.node, ...centre.chain.map((aside) => aside.node), ...asides.map((aside) => aside.node)].map((node) => [node.id, node]))
   const ui = chrome(address.lang)
   const uiLang = chromeLanguage(address.lang)
+  const role: PanelRole = session.account.administrator ? 'administrator' : entry.meta.creator === session.account.id ? 'creator' : 'collaborator'
 
   return (
     <Editor
@@ -113,15 +120,20 @@ export default async function EditorPage({ params }: Props) {
         <div className="page-controls">
           <LanguageSwitch address={address} languages={draft.manifest.languages} edit={edit} />
           <SaveIndicator words={edit.words} />
-          <TopPanel entry={entry} draft={draft} address={address} caller={session.account} accounts={accounts} ui={ui} />
           <nav className="admin-nav" aria-label={ui.account} lang={chromeLang(address.lang)}>
-            <a className="admin-link" href={adminHref('/admin/account', uiLang)} data-clamp="">
-              {session.account.name}
+            {/* **[#176]** The link says what it is; whose account, its description and tooltip (24.3). */}
+            <a className="admin-link" href={adminHref('/admin/account', uiLang)} title={session.account.name}>
+              {ui.account}
             </a>
             <LogoutButton label={ui.logout} to={adminHref('/admin', uiLang)} />
           </nav>
         </div>
       </header>
+      {/* **[#176]** Out of the bar, over the page under its top right corner, and next after it in the tab order (33.1). */}
+      <div className="editor-float">
+        <TodoSheet entry={entry} draft={draft} address={address} role={role} ui={ui} />
+        <TopPanel entry={entry} draft={draft} address={address} role={role} accounts={accounts} ui={ui} />
+      </div>
       <main>
         <noscript>
           <p className="admin-note">{ui.needsJavaScript}</p>
@@ -134,33 +146,29 @@ export default async function EditorPage({ params }: Props) {
 }
 
 /**
- * The top panel (33): the button in the chrome bar and the Sheet it opens down the right
- * edge, drawn by `Panel` from what the page read -- the entry, the accounts, the titles the
- * to-do lines name -- and one Sheet among the page's others, so opening it closes an open
- * Overlay (10.5).
+ * The top panel (33): the button and the Sheet it opens down the right edge, drawn by `Panel`
+ * from what the page read -- the entry, the accounts -- and one Sheet among the page's others,
+ * so opening it closes an open Overlay (10.5). **[#176]** The button floats at the top right,
+ * beside the to-do bubble's, out of the chrome bar (33.1).
  */
 function TopPanel({
   entry,
   draft,
   address,
-  caller,
+  role,
   accounts,
   ui,
 }: {
   entry: TreeEntry
   draft: Draft
   address: PageAddress
-  caller: Account
+  role: PanelRole
   accounts: { get(id: string): Account | null; all(): Account[]; listActive(): Pick<Account, 'id' | 'name' | 'login'>[] }
   ui: Chrome
 }) {
-  const role: PanelRole = caller.administrator ? 'administrator' : entry.meta.creator === caller.id ? 'creator' : 'collaborator'
   const people = [entry.meta.creator, ...entry.meta.collaborators]
   const names = Object.fromEntries(people.map((id) => [id, accounts.get(id)?.name ?? id]))
-  const titles = Object.fromEntries(entry.advisory.map((violation) => [violation.file, draft.getTitle(violation.file)?.[address.lang] ?? '']))
   const words = panelWords(ui)
-  // Upper case is never a Node id (tree-format.md 3.1): the one place the id goes in the address.
-  const [before, after] = editorLinks().node({ ...address, trail: [], nodeId: 'NODE' }).split('NODE') as [string, string]
   const uiLang = chromeLang(address.lang)
   return (
     <Sheet
@@ -179,11 +187,8 @@ function TopPanel({
             administratorId={accounts.all().find((account) => account.administrator)?.id ?? ''}
             meta={{ creator: entry.meta.creator, collaborators: entry.meta.collaborators, publishedAt: entry.meta.publishedAt }}
             publishedAt={entry.meta.publishedAt ?? null}
-            advisory={entry.advisory}
             accounts={accounts.listActive()}
             names={names}
-            titles={titles}
-            nodeHref={{ before, after }}
             publicHref={rootHref(draft, address.lang)}
             languages={draft.manifest.languages}
             lang={address.lang}
@@ -210,21 +215,59 @@ function TopPanel({
   )
 }
 
-/** The chrome strings the panel says (33, the keys of ADR-133-top-panel's consequences). */
-function panelWords(ui: Chrome): PanelWords {
-  return {
-    treeState: ui.treeState,
-    publish: ui.publish,
+/**
+ * **[#176]** The to-do bubble (33.3): the floating control that counts what is left to do and
+ * the Sheet it opens under it, drawn by `Todo` from what the page read -- the draft's advisory
+ * list and the titles its lines name.
+ */
+function TodoSheet({ entry, draft, address, role, ui }: { entry: TreeEntry; draft: Draft; address: PageAddress; role: PanelRole; ui: Chrome }) {
+  const titles = Object.fromEntries(entry.advisory.map((violation) => [violation.file, draft.getTitle(violation.file)?.[address.lang] ?? '']))
+  // Upper case is never a Node id (tree-format.md 3.1): the one place the id goes in the address.
+  const [before, after] = editorLinks().node({ ...address, trail: [], nodeId: 'NODE' }).split('NODE') as [string, string]
+  const words: TodoWords = {
     todoCount: ui.todoCount,
+    todoCountOne: ui.todoCountOne,
+    todoNone: ui.todoNone,
     todoBefore: ui.todoBefore,
-    publishedAt: ui.publishedAt,
-    publicLink: ui.publicLink,
     publicBehindBecause: ui.publicBehindBecause,
     notServableBecause: ui.notServableBecause,
+    thisTree: ui.thisTree,
+    removeStep: ui.removeStep,
+    requestFailed: ui.requestFailed,
+  }
+  const uiLang = chromeLang(address.lang)
+  return (
+    <Sheet
+      className="todo-sheet"
+      summary={
+        <span lang={uiLang}>
+          <TodoButton words={words} />
+        </span>
+      }
+      pages={[
+        <div key="todo" lang={uiLang}>
+          <Todo treeId={draft.id} words={words} advisory={entry.advisory} titles={titles} nodeHref={{ before, after }} manages={role !== 'collaborator'} />
+        </div>,
+      ]}
+      words={sheetWords(ui)}
+      uiLang={uiLang}
+      cross
+    />
+  )
+}
+
+/** The chrome strings the panel says (33, the keys of ADR-133-top-panel's consequences; **[#176]** `settings` and the refusal's two). */
+function panelWords(ui: Chrome): PanelWords {
+  return {
+    settings: ui.settings,
+    publish: ui.publish,
+    publishRefused: ui.publishRefused,
+    showTodo: ui.showTodo,
+    publishedAt: ui.publishedAt,
+    publicLink: ui.publicLink,
     confirmUnpublish: ui.confirmUnpublish,
     confirm: ui.confirm,
     cancel: ui.cancel,
-    removeStep: ui.removeStep,
     collaborators: ui.collaborators,
     creator: ui.creator,
     invite: ui.invite,
@@ -245,6 +288,8 @@ function panelWords(ui: Chrome): PanelWords {
     confirmDeleteTree: ui.confirmDeleteTree,
     published: ui.published,
     hidden: ui.hidden,
+    notServable: ui.notServable,
+    publicBehind: ui.publicBehind,
     languages: ui.languages,
     treeId: ui.treeId,
     administrator: ui.administrator,
@@ -258,6 +303,7 @@ function themeWords(ui: Chrome): ThemeWords {
     theme: ui.theme,
     logo: ui.logo,
     logoAlt: ui.logoAlt,
+    placeholderLogoAlt: ui.placeholderLogoAlt,
     uploadLogo: ui.uploadLogo,
     replaceLogo: ui.replaceLogo,
     removeLogo: ui.removeLogo,

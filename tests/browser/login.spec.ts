@@ -263,7 +263,8 @@ test.describe('with a session', () => {
     await nameCard.getByLabel('Your name').fill('Cees van Dam')
     await expect(nameCard.getByText('12 / 80')).toBeVisible()
     await nameCard.getByRole('button', { name: 'Save' }).click()
-    await expect(page.getByRole('link', { name: 'Cees van Dam' })).toBeVisible()
+    // **[#176]** The bar's link says "Account"; the name it shows on hover and to a screen reader is the new one (24.3).
+    await expect(page.locator('header').getByRole('link', { name: 'Account', exact: true })).toHaveAccessibleDescription('Cees van Dam')
 
     // A second session of the same account, which a password change must end (20.4).
     const other = await browser.newContext()

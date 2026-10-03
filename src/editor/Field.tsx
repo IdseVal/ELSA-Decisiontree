@@ -19,8 +19,10 @@
  * tag per other declared language that has no text for this field, a link to the page in
  * that language (28.3). The rim is drawn from the page's body, fixed, beside the Bubble or
  * the Overlay the field is in, so it takes no pixel from the text area and nothing on the
- * page grows (28.6). Over the maximum the pill and the outline turn `danger`; typing never
- * stops (28.4). A refused write keeps the value on screen, and no response repaints it until
+ * page grows (28.6). **[#172]** Typing stops at the maximum: a key past it does nothing and a
+ * paste is cut there (28.4, amended 2026-10-02); a text stored over it is shown whole, its pill
+ * and outline `danger`, and may shrink but not grow. An empty field names what belongs in it
+ * (28.2, amended). A refused write keeps the value on screen, and no response repaints it until
  * it changes (29.4); a value a collaborator changed under the field is outlined `accent` for
  * five seconds (29.7).
  *
@@ -41,7 +43,7 @@ import { isUrl } from '../tree/grammar.ts'
 import { countedLength, estimatedLines } from '../tree/measure.ts'
 import type { Explainer, Source, Violation } from '../tree/types.ts'
 import { useEditor } from './Editor.tsx'
-import { keyOf, plainLine, RAW_HTML, valueAt } from './fields.ts'
+import { capped, cutTo, keyOf, plainLine, RAW_HTML, valueAt } from './fields.ts'
 import { marked, Marker, markRefusal, trimmedSelection, type MarkerWords } from './Marker.tsx'
 import type { FieldLimit } from './mode.ts'
 import { explainerId } from './slug.ts'
@@ -52,9 +54,24 @@ const RIM_WIDTH = 60
 
 /** The chrome words a field says; strings, because a client component takes no module. */
 export interface FieldWords {
-  missingText: string
   characters: string
   lines: string
+}
+
+/**
+ * **[#172]** The text an input or a textarea holds after an input event, held to `limit`
+ * (28.4, amended): `proposed` -- the element's value, a plain field's line breaks already
+ * spaces -- where it fits, else cut by `capped`, and the element's value and caret set to the
+ * cut text so that a refused key leaves the caret where it was. No limit, no cut.
+ */
+export function heldToLimit(element: HTMLInputElement | HTMLTextAreaElement, previous: string, proposed: string, limit: FieldLimit | null): string {
+  const caret = element.selectionEnd ?? proposed.length
+  const held = limit === null ? { text: proposed, caret } : capped(previous, proposed, caret, limit)
+  if (held.text !== element.value) {
+    element.value = held.text
+    element.setSelectionRange(held.caret, held.caret)
+  }
+  return held.text
 }
 
 /** Another declared language: the tag's text and where it leads (28.3). */
@@ -79,6 +96,8 @@ export function Field({
   classByValue = false,
   termEvent,
   markerWords,
+  placeholder = '',
+  follower,
   words,
 }: {
   nodeId: string
@@ -110,6 +129,16 @@ export function Field({
   termEvent?: string
   /** The description: the `mark` button's words; without them the rim has no button (32.1). */
   markerWords?: MarkerWords
+  /** **[#172]** What belongs in the field, shown while it is empty (28.2): "Title", "Text". */
+  placeholder?: string
+  /**
+   * **[#177]** A field of another Node whose text follows this one's, in the same language
+   * (30.5, amended): an aside's title leads its Option button's on the centre, which takes each
+   * new title cut to its own limit as long as, when the editing began, it was empty or this
+   * title cut so, and no write of it was waiting. A title edited on the button itself stops
+   * following.
+   */
+  follower?: { nodeId: string; path: string; limit: FieldLimit }
   words: FieldWords
 }) {
   const api = useEditor()
@@ -121,6 +150,10 @@ export function Field({
   const root = useRef<HTMLSpanElement>(null)
   const area = useRef<HTMLTextAreaElement>(null)
   const [rim, setRim] = useState<{ top: number; left: number } | null>(null)
+  // **[#177]** Decided when the editing begins: one field has the focus at a time, so nothing on
+  // this page writes the follower while this one is being typed in.
+  const following = useRef(false)
+  const followerPath = follower && lang !== null ? `${follower.path}.${lang}` : null
   const [selection, setSelection] = useState<[number, number]>([0, 0])
 
   const violations = api.violationsAt(nodeId, keyPath)
@@ -197,21 +230,33 @@ export function Field({
       api.refuseLocally(nodeId, keyPath, violation)
       return
     }
+    // The follower first, so the field the indicator names as last edited is this one (28.4).
+    if (following.current && follower && followerPath) api.write(follower.nodeId, followerPath, cutTo(next, follower.limit))
     api.write(nodeId, keyPath, next)
   }
 
   const onFocus = (): void => {
     setFocused(true)
     api.setCurrent({ nodeId, keyPath })
+    if (follower && followerPath) {
+      // `api.nodes` is the last response's: a write of the follower still waiting may be the
+      // creator's own words on the button, which this title must not overwrite (30.5).
+      const theirs = valueAt(api.nodes[follower.nodeId], follower.path, lang) ?? ''
+      following.current = !api.hasWrite(follower.nodeId, followerPath) && (theirs === '' || theirs === cutTo(text, follower.limit))
+    }
   }
   const onBlur = (): void => {
     setFocused(false)
     api.setCurrent(null)
     api.flush(nodeId, keyPath)
+    // With it: a structure write sent next -- the side bubble's delete -- must not overtake it (29.2).
+    if (follower && followerPath) api.flush(follower.nodeId, followerPath)
   }
-  // A click inside a summary would toggle the Overlay the button opens; the field takes it.
+  // A click inside a summary would toggle the Overlay the button opens, and **[#177]** one inside
+  // a link -- the Overlay's heading, which links to the aside's address (10.9) -- would follow
+  // it and reload the page under the creator; the field takes it.
   const onClick = (event: MouseEvent): void => {
-    if (root.current?.closest('summary')) event.preventDefault()
+    if (root.current?.closest('summary, a')) event.preventDefault()
   }
 
   if (select) {
@@ -264,20 +309,27 @@ export function Field({
       event.currentTarget.blur()
     }
   }
+  // **[#172]** A summary opens its details on the keyup of a space typed anywhere inside it:
+  // an Option's title is typed inside its button's summary, and its first space opened the
+  // Overlay and took the focus. The space is already in the text by then.
+  const onKeyUp = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
+    if (event.key === ' ' && root.current?.closest('summary')) event.preventDefault()
+  }
 
   return (
     <>
       <span ref={root} className={state} data-field={key} data-over={over || undefined} onClick={onClick}>
         {editing ? (
-          // The grid and the mirror in `data-value` size the box to its text where the browser
-          // has no `field-sizing`; both take the same font, so they break lines alike.
+          // The grid and the mirror in `data-value` make the box taller than its lines (28.4) for a
+          // text that needs more, as one stored over its limit; both take the same font, so they
+          // break lines alike.
           <span className="editor-text" data-value={`${text} `}>
             <textarea
               ref={area}
               className="editor-input"
               value={text}
               rows={1}
-              placeholder={words.missingText}
+              placeholder={placeholder}
               disabled={api.readOnly}
               autoFocus={rich}
               spellCheck
@@ -285,8 +337,12 @@ export function Field({
               onFocus={onFocus}
               onBlur={onBlur}
               onKeyDown={onKeyDown}
+              onKeyUp={onKeyUp}
               onSelect={(event) => setSelection([event.currentTarget.selectionStart, event.currentTarget.selectionEnd])}
-              onChange={(event: ChangeEvent<HTMLTextAreaElement>) => commit(rich ? event.target.value : plainLine(event.target.value))}
+              onChange={(event: ChangeEvent<HTMLTextAreaElement>) => {
+                const next = heldToLimit(event.target, text, rich ? event.target.value : plainLine(event.target.value), limit)
+                if (next !== text) commit(next)
+              }}
             />
           </span>
         ) : (
@@ -303,7 +359,7 @@ export function Field({
             }}
           >
             {text.trim() === '' ? (
-              <span className="prose editor-placeholder">{words.missingText}</span>
+              <span className="prose editor-placeholder">{placeholder}</span>
             ) : dirty || rendered === undefined ? (
               <ExplainerText html={richTextToHtml(text, { explainers: nodeExplainers, lang: lang ?? '', idPrefix: '' })} termEvent={termEvent} />
             ) : (
@@ -342,10 +398,14 @@ export function Field({
   )
 }
 
-/** The element whose right rim the counter stands on: the Overlay's Interior, else the frame's Bubble, else the Sheet panel. */
+/**
+ * The element whose right rim the counter stands on: the Overlay's panel, else the frame's
+ * Bubble, else the Sheet panel. **[#172]** The Overlay's panel, not its Interior: the Interior
+ * is the text area, and a pill on its right edge stood on the text's last words.
+ */
 function hostOf(element: HTMLElement): Element | null {
   return (
-    element.closest('.overlay-interior') ??
+    element.closest('.overlay-interior')?.closest('.sheet-panel') ??
     element.closest('.tree-frame')?.querySelector('.bubble') ??
     element.closest('.sheet-panel') ??
     element.closest('.bubble') ??

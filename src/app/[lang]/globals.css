@@ -2,8 +2,8 @@
  * The stylesheet: the tree view of docs/specs/application.md section 10, drawn.
  *
  * ONE SCREEN, SIX ROWS, NOTHING OUTSIDE THEM. The page is a grid whose rows are known before
- * any content is measured: chrome bar 44, the up arrow's band 56, the Bubble 416, the
- * strip band 28, Answers 68, disclaimer 28 -- the vertical budget of tree-format.md 5.7 as
+ * any content is measured: chrome bar 44, the up arrow's band 56, the Bubble 401, the
+ * strip band 43, Answers 68, disclaimer 28 -- the vertical budget of tree-format.md 5.7 as
  * 10.7 re-derives it, which is where every length limit of the format comes from. `html` and `body` are the viewport with `overflow: hidden`
  * (10.6); nothing here may be taller or wider than the box it is in, and
  * tests/browser/no-scroll.spec.ts measures every element to make sure.
@@ -38,12 +38,13 @@
   --danger-read: color-mix(in srgb, var(--elsa-danger) 70%, var(--elsa-text));
 
   /*
-   * The six rows of 10.1, at the guaranteed viewport: 44 + 56 + 416 + 28 + 68 + 28 = 640.
+   * The six rows of 10.1, at the guaranteed viewport: 44 + 56 + 401 + 43 + 68 + 28 = 640
+   * (the Bubble 416 and the strip band 28 until #174 made the thumbnails 67 pixels).
    * The Bubble's row is what is left, up to `--bubble-height`; beyond that the extra height
    * is shared above and below the tree.
    */
   --chrome-row: 44px;
-  --strip-row: 28px;
+  --strip-row: 43px;
   --answers-row: 68px;
   --disclaimer-row: 28px;
   --bubble-height: 520px;
@@ -53,15 +54,15 @@
   --gap: 20px;
   --bubble-width: 760px;
   /*
-   * The rim: the band between the text area (640 x 364) and the curve, 60 across and 26
+   * The rim: the band between the text area (640 x 349) and the curve, 60 across and 26
    * down (10.1). The Bubble's 2-pixel outline is part of that band, so the padding inside
-   * it is 2 less, and the text area measures exactly 640 x 364.
+   * it is 2 less, and the text area measures exactly 640 x 349.
    */
   --rim-x: 58px;
   --rim-y: 24px;
   /*
-   * A pill: the radius is half the Bubble's height whatever that height is (208 at the
-   * guaranteed 416), so the curve the fan of Option buttons follows (below) is one formula.
+   * A pill: the radius is half the Bubble's height whatever that height is (200.5 at the
+   * guaranteed 401), so the curve the fan of Option buttons follows (below) is one formula.
    * Where the Bubble narrows (792 and 480) the radius is fixed again, so its corners stay
    * clear of the text.
    */
@@ -69,7 +70,7 @@
   /*
    * The main image above the title (10.3, 10.7): two fifths of the Bubble's height on every
    * Node (#102, the owner's answer (b) on PR #110). It is sized from the text area it sits
-   * in, which is the Bubble less the rim above and below: 166.4 of 416 at the guaranteed
+   * in, which is the Bubble less the rim above and below: 160.4 of 401 at the guaranteed
    * viewport, 208 of 520 at the largest Bubble. tree-format.md 5.7 cuts the description to
    * what fits beside it. 30 pixels is the floor it can give way to where the text does not
    * fit after all -- a font wider than 5.7 assumes -- and never at the guarantee.
@@ -80,8 +81,9 @@
    * The foot of the text area the Interior keeps clear while it can (below): 24 pixels on
    * the guaranteed Bubble, and a quarter of every pixel the text area grows by, because a
    * taller Bubble is rounder and its curve cuts further into the area's lower corners.
+   * **[#174]** The guaranteed text area is 349 tall since the strip band is 43.
    */
-  --foot: calc(24px + (100% - 364px) / 4);
+  --foot: calc(24px + (100% - 349px) / 4);
   --page-inset: 0px;
   /*
    * The up arrow (10.2): a round button standing above the Bubble, its foot 6 pixels clear of
@@ -353,12 +355,14 @@ a.language:hover,
 /* --- the Carousel: the strip on the Bubble's lower outline (section 12) ----------- */
 
 /*
- * A band of 28 pixels under the Bubble on every Node, empty where the Node has fewer than
- * two Images (12.1), so the Bubble never moves. The strip is 48 pixels tall and pulled up
- * by half of that, so its thumbnails sit centred on the outline: the upper half in the
- * Bubble's lower rim, 2 pixels clear of the text area, the lower half in the band, 4 clear
- * of the Answer row (10.1). Its margin box is 24 pixels, inside the band, so nothing
- * overflows the frame (10.6).
+ * A band of 43 pixels under the Bubble on every Node, empty where the Node has fewer than
+ * two Images (12.1), so the Bubble never moves. The strip is 67 pixels tall -- 1.4 times
+ * the 48 it was until #174 -- and pulled up by 24, as the 48-pixel strip was: its
+ * thumbnails straddle the outline, their upper 24 pixels in the Bubble's lower rim, 2 clear
+ * of the text area, and their lower 43 in the band, down to the Answer row, whose buttons
+ * stand 4 below its top (10.1, amended 2026-10-02). Centred on the outline they would take
+ * 9.5 pixels of the text area, which the limits of 10.7 have not to give. Its margin box is
+ * 43 pixels, the band, so nothing overflows the frame (10.6).
  */
 .carousel {
   grid-area: carousel;
@@ -368,7 +372,7 @@ a.language:hover,
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   min-width: 0;
-  height: 48px;
+  height: 67px;
   margin-top: -24px;
 }
 
@@ -389,19 +393,21 @@ a.language:hover,
 }
 
 /*
- * Seven 48-pixel pictures at a 56-pixel pitch and 8 pixels of padding at each end: 400
- * pixels (12.2); fewer pictures make a shorter strip, centred on the Bubble. It is the one
- * element allowed to scroll, sideways, in its own box (10.6);
- * the scrollbar is not drawn, because the band has no height for one and the strip is
- * moved by the arrow keys, the wheel and a swipe.
+ * Five 67-pixel pictures at a 75-pixel pitch and 8 pixels of padding at each end: 383
+ * pixels (12.2, amended 2026-10-02 by #174: seven of 48 in 400 until then), centred on
+ * the Bubble; fewer pictures make a shorter strip. At the guaranteed 401 the Bubble's lower
+ * outline is straight across its middle 359 and has risen 0.4 of a pixel at the strip's
+ * ends, 12 into the curve. It is the one element allowed to scroll, sideways, in its own
+ * box (10.6); the scrollbar is not drawn, because the band has no height for one and the
+ * strip is moved by the arrow keys, the wheel and a swipe.
  */
 .carousel-strip {
   display: flex;
   flex: 0 1 auto;
   gap: 8px;
   min-width: 0;
-  max-width: 400px;
-  height: 48px;
+  max-width: 383px;
+  height: 67px;
   margin: 0;
   padding: 0 8px;
   list-style: none;
@@ -431,8 +437,8 @@ a.language:hover,
 
 .thumbnail img {
   display: block;
-  width: 48px;
-  height: 48px;
+  width: 67px;
+  height: 67px;
   border-radius: 50%;
   object-fit: cover;
   background: var(--elsa-surface);
@@ -530,7 +536,7 @@ a.language:hover,
  * The foot of the text area is kept clear where the text leaves room: the curve narrows the
  * Bubble there, and a line of Sources drawn in it crosses the outline. The picture wins
  * over it (#102): its shrink weight is ten thousand times the picture's, so it yields
- * first, and all of it -- a Node at every maximum keeps 9.6 of its 24 pixels (10.7). (Not
+ * first, and all of it -- a Node at every maximum keeps 0.6 of its 24 pixels (10.7). (Not
  * 1 against 0.0001: shrink factors that sum below one absorb only that share of the overflow.)
  */
 .bubble-text::after {
@@ -687,6 +693,68 @@ a.language:hover,
 
 /* With the script, Explainer.tsx opens one panel at a time and places it beside its term. */
 .prose .explainer[data-open] {
+  display: block;
+}
+
+/* --- [#174] the information hint (31.2, 31.3) -------------------------------------- */
+
+/*
+ * A small "i" in a circle after a field's label, and the explainer's panel (10.8) for why the
+ * field is asked, which Explainer.tsx's script opens and places inside the Sheet the hint is
+ * in: below the "i" where it fits, above otherwise, never past the Sheet's panel (10.6).
+ */
+.hint-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  padding: 0;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent-secondary-read);
+  font: inherit;
+  font-family: var(--elsa-font-heading);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: -3px;
+  cursor: help;
+}
+
+.hint-mark:hover,
+.hint-mark:focus-visible,
+.hint-mark:has(+ .hint-panel[data-open]) {
+  background: var(--wash);
+}
+
+.hint-panel {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  width: min(280px, 100%);
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--elsa-surface);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 10%, transparent),
+    0 8px 24px -6px color-mix(in srgb, var(--elsa-scrim) 28%, transparent);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  white-space: normal;
+  color: var(--elsa-text);
+  cursor: auto;
+}
+
+.hint-panel[data-open] {
   display: block;
 }
 
@@ -868,18 +936,31 @@ a.language:hover,
  * the button's centre is (i + 1/2) H / m - H / 2 from the Bubble's centre, and its inner
  * edge 20 pixels outside the outline at that height, at (380 - R) + sqrt(R^2 - y^2) + 20
  * from the centre line, R = H / 2 the radius and 380 - R half the Bubble's straight middle.
- * At the spec's 416 that is the fan of 10.3: the middle buttons furthest out, the top and
- * bottom ones nearer, 104 of pitch on a side of four (10.3's 111.5 was #78's, at a Bubble of
- * 446). A button is 232 x 96; on a row shorter than four of them the pitch shrinks and so
- * does the button, to the row's quarter, down to the 80 pixels its four lines of label take.
+ * At the guaranteed 401 that is the fan of 10.3: the middle buttons furthest out, the top
+ * and bottom ones nearer, 100.25 of pitch on a side of four (104 from a Bubble of 416, 655
+ * pixels tall; 10.3's 111.5 was #78's, at a Bubble of 446).
  *
- * The 96 is a minimum, not a height: a title of 60 characters can take five lines where the
- * browser has no hyphenation dictionary for the page's `lang` (see `.option-title`), and a
- * button that holds them is 102 tall, still 2 clear of its neighbour at the pitch of a side of
- * four. It grows downward from the row's top: that button's centre sits 3 below the curve,
- * which no eye finds. It is not centred by a transform, because a transform on the item
- * would make it the containing block of the panel and the backdrop
- * (`position: fixed`), which would then lie inside the item instead of over the page.
+ * A button is 236 x 100 (#175), the largest that fits at 1280 x 640 with room for its focus
+ * ring, 2 pixels wide and 2 off the outline, as measured at a Bubble of 416: a button at the
+ * Bubble's middle height -- the one of a side of one, the middle of a side of three -- has its
+ * inner edge at 400 and 240 to the window's edge, less the ring's 4; and on a side of four the
+ * pitch of 104, less 4, left a focused button's ring clear of its neighbour. At #174's 401 the
+ * middle button stands where it did, but on a side of four two buttons of 100 stand 0.25
+ * apart, and a focused button's ring reaches 3.75 into its neighbour; from 655 pixels tall it
+ * is clear again (10.3, amended). On a row shorter than four of them the pitch shrinks and so
+ * does the button, to the row's quarter.
+ *
+ * The 100 is a minimum, not a height: a title that takes more lines than the button holds
+ * grows it rather than overflow (#105). Hyphenated in the page's language, no title measured
+ * takes more than five lines of 18 at 15 pixels; where the browser has no dictionary for the
+ * language, a title of long words can take six, and the button is 108. On a side of four at
+ * 1280 x 640 that is the known cost of 10.3 (amended): in the top row the button lies 7.75
+ * over the next one (4 at a Bubble of 416); in the bottom row it ends 7.86 below the list
+ * (6 at 416), which then holds content taller than itself (10.6); and in both the picture
+ * stays 100, 4 from the top and the bottom, short of filling the inner end. It grows downward
+ * from the row's top. It is not centred by a transform, because a transform on the item would
+ * make it the containing block of the panel and the backdrop (`position: fixed`), which would
+ * then lie inside the item instead of over the page.
  *
  * The item's box is the button and, at its inner end, the connector's 20 pixels, so that
  * the connector lies inside it and no element holds content wider than itself (10.6).
@@ -894,12 +975,12 @@ a.language:hover,
   --r: calc(var(--bubble-h) / 2);
   --y: calc((var(--i) + 0.5) * var(--bubble-h) / var(--m) - var(--r));
   --x: calc(380 - var(--r) + sqrt(var(--r) * var(--r) - var(--y) * var(--y)) + 20);
-  --option-h: min(96px, calc(100cqh / var(--m)));
+  --option-h: min(100px, calc(100cqh / var(--m)));
   display: var(--fan, block);
   position: absolute;
   box-sizing: border-box;
   top: calc(50% + var(--y) * 1px - var(--option-h) / 2);
-  width: calc(232px + var(--connector));
+  width: calc(236px + var(--connector));
   min-height: var(--option-h);
   pointer-events: auto;
 }
@@ -942,33 +1023,77 @@ a.language:hover,
 }
 
 /*
- * The button is the Overlay's summary: the target's main image as a 48-pixel round picture
- * at the inner end, an 8-pixel gap, and the title at 16 pixels on 20-pixel lines, at most
- * four lines in the 152 pixels left of 232 (12 each side, the 1-pixel outline included).
- * Outlined in the rule shade, filled `surface`, a wash of `accent` on hover.
+ * The button is the Overlay's summary, a pill: the target's main image as a round picture
+ * filling the inner end, a 6-pixel gap, and the title at 15 pixels on 18-pixel lines, at most
+ * five lines in the 120 pixels left of 236 (100 of picture, 10 of padding at the outer end).
+ * Outlined in the rule shade, filled `surface`, a wash of `accent` on hover (#175).
+ *
+ * The picture's box is the inner end's own: a circle as tall as the button, centred on the
+ * end's curve, so it follows the outline there and is as big as the button allows (#175, the
+ * owner in #169). The outline is therefore drawn under the content (`::before`) rather than as
+ * a border: a border would sit outside the content box and leave a ring between picture and
+ * edge, or, overlapped by the picture, overflow the button by its width (10.6). Under the empty
+ * slot's own ring and the `+`'s dashed one it is hidden, so neither end is drawn twice.
+ *
+ * The type is a step down from 16: the picture takes 100 of the width the window's edge
+ * allows, and in the 120 left a title near the format's 60 characters takes five lines of 20
+ * at 16 pixels -- the whole 100, the text against the outline. At 15 on 18, hyphenated, it
+ * takes at most five, 90 pixels, and four in Arial's metrics, the default type's on Linux
+ * (10.7, amended).
  */
 .overlay > .sheet-open {
   display: var(--fan, flex);
   align-items: center;
-  gap: 8px;
   width: 100%;
   min-height: var(--option-h);
-  padding: 0 11px;
-  border: 1px solid var(--rule);
-  border-radius: 48px;
-  font-size: 16px;
-  line-height: 20px;
   color: var(--elsa-text);
   background: var(--elsa-surface);
   text-align: left;
   white-space: normal;
-  transition: border-color 160ms var(--ease), background-color 160ms var(--ease);
+  transition: background-color 160ms var(--ease);
+}
+
+/*
+ * The shape is the editor's side-bubble `+`'s too (30.4), written once for both, above step 2
+ * of 10.5. Step 2's restore below 1280 wins over this rule on specificity, (0,4,1) against
+ * (0,3,1), and over the left padding below, (0,4,1) too, by coming later. Its `[data-side]` is
+ * what keeps it winning: without it the left padding would win, and below 1280 the buttons on
+ * the left of the Bubble would lose their 12 pixels at the inner end, as the `+` there once
+ * did (#175).
+ *
+ * **[#177]** The `+` is a button of its own, not an Overlay's summary, so each is named whole
+ * inside `:is()`, which gives both the (0,3,1) of the longer. That is what keeps this size on
+ * the `+`: its own rule in the editor's section, (0,2,1), comes later, and its `font: inherit`
+ * would take the size back at an equal specificity.
+ */
+:is(.options > li > .overlay > .sheet-open, .options > li > .side-add) {
+  position: relative;
+  isolation: isolate;
+  gap: 6px;
+  padding: 0 10px 0 0;
+  border: 0;
+  font-size: 15px;
+  line-height: 18px;
+}
+
+.overlay > .sheet-open::before,
+.options > li > .side-add::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 1px solid var(--rule);
+  border-radius: inherit;
+  transition: border-color 160ms var(--ease);
 }
 
 .overlay > .sheet-open:hover {
   color: var(--elsa-text);
-  border-color: var(--accent-read);
   background: var(--wash);
+}
+
+.overlay > .sheet-open:hover::before {
+  border-color: var(--accent-read);
 }
 
 /* On the left of the Bubble the inner end is the right: the picture goes there, and the title reads towards it. */
@@ -977,11 +1102,15 @@ a.language:hover,
   text-align: right;
 }
 
+:is(.options > li[data-side="left"] > .overlay > .sheet-open, .options > li[data-side="left"] > .side-add) {
+  padding: 0 0 0 10px;
+}
+
 .option-image {
   flex: none;
   display: block;
-  width: 48px;
-  height: 48px;
+  width: var(--option-h);
+  height: var(--option-h);
   border-radius: 50%;
   object-fit: cover;
   background: var(--elsa-background);
@@ -993,11 +1122,12 @@ a.language:hover,
 }
 
 /*
- * A Dutch compound can be longer than the label's 152 pixels: break it where the page's `lang`
+ * A Dutch compound can be longer than the label's 120 pixels: break it where the page's `lang`
  * allows, with a hyphen drawn (#104). `anywhere` stays the last resort for a word the
  * browser's dictionary finds no break in, so a title never overflows its button.
  * Without the hyphen the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" of
- * the first Tree takes five lines of Open Sans in the 152 pixels (#105).
+ * the first Tree took five lines of Open Sans in the 152 pixels of #105's button; in the 120
+ * of #175's, "Live biometrische ID in het openbaar voor rechtshandhaving" takes six (10.7).
  */
 .option-title {
   min-width: 0;
@@ -1680,6 +1810,7 @@ a.language:hover,
   line-height: 16px;
 }
 
+/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .admin-field input {
   min-width: 0;
   height: 32px;
@@ -1690,6 +1821,7 @@ a.language:hover,
   color: var(--elsa-text);
   font: inherit;
   font-size: var(--body);
+  text-overflow: ellipsis;
 }
 
 .admin-field-group {
@@ -1772,12 +1904,6 @@ fieldset:disabled .admin-submit {
   text-underline-offset: 2px;
   white-space: nowrap;
   cursor: pointer;
-}
-
-.admin-nav > a.admin-link:first-child {
-  overflow: hidden;
-  max-width: 12rem;
-  text-overflow: ellipsis;
 }
 
 .admin-toolbar {
@@ -1947,6 +2073,8 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   font: inherit;
   font-size: 18px;
+  /* **[#172]** A title of 80 is wider than the box: it ends in an ellipsis while it is not being typed in. */
+  text-overflow: ellipsis;
 }
 
 .new-tree-title input:focus-visible,
@@ -2058,7 +2186,7 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * A phone: the bar holds the language switch, the caller's name, `accounts` and `logout` in
+ * A phone: the bar holds the language switch, `account`, `accounts` and `logout` in
  * 320 pixels only by giving up the site's title and the switch's current language, which is
  * not a link and is the language on screen anyway; the cards give up padding and gaps, so
  * the account page's two fit the floor's 408 pixels.
@@ -2071,10 +2199,6 @@ fieldset:disabled .admin-submit {
 
   .admin-nav {
     gap: 8px;
-  }
-
-  .admin-nav > a.admin-link:first-child {
-    max-width: 3.5rem;
   }
 
   .admin-page {
@@ -2192,11 +2316,19 @@ fieldset:disabled .admin-submit {
   .options > li {
     --x: 400;
     --connector: 0px;
+    --option-h: min(96px, calc(100cqh / var(--m)));
     width: 200px;
   }
 
   .options .option-image {
     display: none;
+  }
+
+  /* Without the picture the button is 10.5's as it was before #175: 176 of label, 16 on 20. */
+  :is(.options > li[data-side] > .overlay > .sheet-open, .options > li[data-side] > .side-add) {
+    padding: 0 12px;
+    font-size: 16px;
+    line-height: 20px;
   }
 }
 
@@ -2237,9 +2369,11 @@ fieldset:disabled .admin-submit {
  * (10.9). When: the row of step 3 has no height to take (below 744), or would not hold this
  * many buttons -- at once for five or more, at 1000, 770 and 520 for four, three and two,
  * as #41 measured -- which the markup says as `data-count`. By height at the guaranteed
- * width, where the fan's rows would be shorter than the four lines a label may take: four
- * a side need the 640 the guarantee gives, three a side 550. The control and the fan are
- * switched by the same conditions, so exactly one of them is on the page.
+ * width, where the fan's rows would be shorter than the five lines of 18, 90 pixels, a
+ * hyphenated title may take (#175): four a side need the 640 the guarantee gives, three a
+ * side 550, and where the editor's `+` adds a fourth to a side of three, its rows are 91 at
+ * 550. The control and the fan are switched by the same conditions, so exactly one of them is
+ * on the page.
  */
 @media (max-height: 639px) {
   .options[data-count="7"],
@@ -2456,9 +2590,9 @@ fieldset:disabled .admin-submit {
   }
 
   /*
-   * The strip is its control alone, as at step 1: a 48-pixel strip needs 24 pixels of the
-   * lower rim, which is 10 here, and the full Node of 10.6 at 360 x 640 has not the 14 to
-   * give. The 20-pixel pill is centred on the outline, 10 in the rim.
+   * The strip is its control alone, as at step 1: a strip of 67-pixel thumbnails (48 until
+   * #174) needs 24 pixels of the lower rim, which is 10 here, and the full Node of 10.6 at
+   * 360 x 640 has not the 14 to give. The 20-pixel pill is centred on the outline, 10 in the rim.
    */
   :root {
     --strip-row: 20px;
@@ -2643,9 +2777,75 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * The text box grows with its text: `field-sizing` where the browser has it, and under it
- * the grid whose hidden mirror -- the same text in the same font -- sets the row's height,
- * so the textarea is never taller or shorter than what it holds (10.6).
+ * **[#172]** A region has, empty and filled, the size its text takes at the limit where it is
+ * drawn (28.4, amended): `--field-lines` lines of its place's own line height -- two for the
+ * title and the description (tree-format.md 5.7), three for an Option's title, which is what
+ * its 60 characters take in the 152 pixels of its button (5.7: three in a humanist face), one
+ * for a Source's label and a Sheet's line -- so the box neither grows nor shrinks while the
+ * creator types. Three, not the four the button could hold: a box of four starts at the
+ * button's top edge, under the `...` of its corner. A Source's label is as wide as its 60
+ * characters at the 90 a line of 5.7, its text from the start, so the line stays inside the
+ * Bubble's curve (10.1). An Image's description and credit in the enlarged view are two lines
+ * of its caption: 120 characters take two there, as the fixture's do. A text stored over its
+ * limit is still shown whole: the mirror grows the box past the minimum for it.
+ *
+ * **[#175]** (2026-10-02) In the fan an Option's label is 120 pixels at 15 on 18, where its 60
+ * characters take five lines hyphenated (10.7, amended), so its title's box is five there: 90
+ * of the button's 100, from 5 to 95. Below 1280 the straight columns' label is 176 at 16 on 20
+ * again (10.5, step 2), and the box stays three. A box of five does start under the `...`: the
+ * menu's 24 x 24 in the button's outer top corner lies over the box's outer top corner, 14 wide
+ * and 19 high, where a first line that runs the label's full width ends; #178 takes the `...`
+ * off the side-bubble buttons. Where the browser has no hyphenation dictionary for the page's
+ * language, a title of long words can take six lines, and the box grows to 108 with its button
+ * (10.3's known cost).
+ *
+ * **[#178]** (2026-10-02) The `...` is gone from every Answer and Option button (30.6, amended);
+ * the boxes keep the lines above.
+ */
+.editor-text,
+.editor-rendered {
+  min-height: calc(var(--field-lines, 1) * 1lh);
+}
+
+.bubble h1 .editor-field,
+.overlay-interior > h2 .editor-field,
+.editor-field--rich,
+.sheet-figure figcaption .editor-field {
+  --field-lines: 2;
+}
+
+.option-title .editor-field {
+  --field-lines: 5;
+}
+
+/* Below 1280 the straight columns' label is 176 at 16 on 20 again (10.5, step 2): 60 characters take three there. */
+@media (max-width: 1279px) {
+  .option-title .editor-field {
+    --field-lines: 3;
+  }
+}
+
+/* Below 480 pixels the text area is about 310 wide at the smallest type of 10.5: a title of 80, a description of 150 and an Image's 120 take three lines there. */
+@media (max-width: 479px) {
+  .bubble h1 .editor-field,
+  .overlay-interior > h2 .editor-field,
+  .editor-field--rich,
+  .sheet-figure figcaption .editor-field {
+    --field-lines: 3;
+  }
+}
+
+.sources .editor-field {
+  width: min(100%, 33em);
+  min-width: 0;
+  text-align: start;
+}
+
+/*
+ * The text box holds its text: the grid whose hidden mirror -- the same text in the same font --
+ * sets the row's height past the box's own lines, so the textarea fills the box and is never
+ * shorter than what it holds (10.6). **[#172]** It no longer sizes to its content: the box
+ * has the size of its limit (above).
  */
 .editor-text {
   display: grid;
@@ -2682,7 +2882,6 @@ fieldset:disabled .admin-submit {
   background: transparent;
   color: inherit;
   outline: none;
-  field-sizing: content;
 }
 
 .editor-input::placeholder {
@@ -2829,28 +3028,81 @@ fieldset:disabled .admin-submit {
   line-height: var(--small-line);
 }
 
+/* **[#172]** The Sheet's own heading, as every Sheet's: not the Sources heading's small capitals around it, nor its centring. */
 .source-editor h2 {
   margin: 0;
   font-family: var(--elsa-font-heading);
   font-size: 18px;
   line-height: 24px;
+  font-weight: 700;
+  font-variant-caps: normal;
+  letter-spacing: normal;
+  color: var(--elsa-text);
+  text-align: start;
 }
 
+/* **[#172]** A label beside its field, its column as wide as the admin pages' (`.admin-field`), so every Sheet's fields line up. */
 .editor-row {
   display: grid;
-  grid-template-columns: minmax(0, 5rem) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
   align-items: center;
   gap: 8px;
+  text-align: start;
 }
 
-.editor-row .editor-field {
-  padding: 4px 8px;
+/*
+ * **[#172]** A Sheet's field is an input of the admin area's one look (`.admin-field input`): at
+ * least 32 pixels tall, 8 pixels in, a 1-pixel `rule` border of radius 4 on the page's
+ * background, and the page's focus ring (`:focus-visible`) rather than a region's inset
+ * outline; its text the Sheet's own 13 pixels on 20-pixel lines, as its label's. The
+ * explanation of an explainer is the one Sheet field of several lines: its 200 characters at
+ * the limit (32.2).
+ */
+.editor-row .editor-field:not(:has(> select)) {
+  --field-lines: 1;
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 8px;
   border: 1px solid var(--rule);
   border-radius: 4px;
   background: var(--elsa-background);
+  line-height: 20px;
+}
+
+.editor-row .editor-field--focused:not(:has(> select)) {
+  box-shadow: none;
+  outline: 2px solid var(--accent-secondary-read);
+  outline-offset: 2px;
+}
+
+.editor-row .editor-field[data-field*='.text.'] {
+  --field-lines: 5;
+}
+
+/* A phone's Sheet is too narrow for a label beside a field: the label goes above, and the term and the explanation take the lines their limits take there. */
+@media (max-width: 479px) {
+  .editor-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .editor-row .editor-field[data-field*='.term.'] {
+    --field-lines: 2;
+  }
+
+  .editor-row .editor-field[data-field*='.text.'] {
+    --field-lines: 7;
+  }
+}
+
+.editor-row .editor-select {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
 }
 
 /* The URL of a Source to add (28.1): the one input of the editor that is not a field. */
+/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .editor-url {
   width: 100%;
   min-width: 0;
@@ -2862,6 +3114,7 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text);
   font: inherit;
   font-size: var(--small);
+  text-overflow: ellipsis;
 }
 
 .editor-url[aria-invalid='true'] {
@@ -2945,10 +3198,11 @@ fieldset:disabled .admin-submit {
  * The explainer Sheet (32.2): one explainer in every language. The right padding is the rim's,
  * where each field's counter pill stands inside the panel (28.3).
  */
+/* **[#172]** 560 wide: a term of 40 characters is one line of its field (32.2). */
 .explainer-sheet {
   align-items: stretch;
   gap: 8px;
-  width: 440px;
+  width: 560px;
   padding-right: 64px;
 }
 
@@ -2993,7 +3247,7 @@ fieldset:disabled .admin-submit {
   justify-content: space-between;
 }
 
-/* --- the structure (30): the row's buttons, the side-bubble +, the link and step menus --- */
+/* --- the structure (30): the row's buttons, the side-bubble +, the step's buttons ------- */
 
 /*
  * The buttons of 30.1 that create: the Answer button's shape, outlined in `accent-secondary`
@@ -3031,8 +3285,8 @@ fieldset:disabled .admin-submit {
 
 /*
  * [#140] The two pickers (31.1). The empty slot keeps the faint circle's box and adds a `+`;
- * the strip's is a 48-pixel dashed thumbnail after the last one, or alone in the middle
- * where the Node has one Image. The file input covers each, transparent, so a click, the
+ * the strip's is a dashed thumbnail of the thumbnails' 67 pixels (48 until #174) after the
+ * last one, or alone in the middle where the Node has one Image. The file input covers each, transparent, so a click, the
  * keyboard and a drop all land on the input's own control.
  */
 .editor-picker {
@@ -3079,7 +3333,7 @@ fieldset:disabled .admin-submit {
   cursor: inherit;
 }
 
-/* Unseen, but its button and its "no file" text would be wider than a 48-pixel `+` (10.6). */
+/* Unseen, but its button and its "no file" text would be wider than a 67-pixel `+` (10.6). */
 .editor-picker-input::file-selector-button {
   display: none;
 }
@@ -3087,11 +3341,13 @@ fieldset:disabled .admin-submit {
 .editor-picker--strip {
   grid-row: 1;
   grid-column: 2;
-  width: 48px;
-  height: 48px;
+  width: 67px;
+  height: 67px;
   border: 1px dashed var(--rule);
   border-radius: 50%;
   background: var(--elsa-surface);
+  /* The glyph grows with its circle: 1.4 times the 24 it was in a circle of 48. */
+  font-size: 34px;
 }
 
 .carousel-strip ~ .editor-picker--strip {
@@ -3099,7 +3355,73 @@ fieldset:disabled .admin-submit {
   justify-self: start;
 }
 
-/* Below the guarantee the strip is its 20-pixel pill (10.5, step 1), and the `+` a pill beside it. */
+/*
+ * [#174] What the strip's `+` adds, said beside it on hover and on keyboard focus (31.1). Its
+ * room is the band's third column: a box out of the flow, with that column's grid area as
+ * its own, which takes no pointer -- the `+` under it stays the one target -- and which the
+ * label asks how wide it is. The label is shown only then; hidden, it takes no room at all
+ * (10.6). Showing it, or a second line of it, moves and grows nothing.
+ */
+.editor-picker-room {
+  position: absolute;
+  inset: 0;
+  grid-row: 1;
+  grid-column: 3;
+  container-type: inline-size;
+  pointer-events: none;
+}
+
+/* Right of the `+`, as wide as the column leaves and wrapping between words, never inside one. */
+.editor-picker-label {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  max-width: calc(100% - 8px);
+  translate: 0 -50%;
+  padding: 2px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* After a strip the `+` stands in that column itself, and the label after it. */
+.carousel-strip ~ .editor-picker-room > .editor-picker-label {
+  left: calc(67px + 8px);
+  max-width: calc(100% - 67px - 8px);
+}
+
+.editor-picker--strip:is(:hover, :has(:focus-visible)) + .editor-picker-room > .editor-picker-label {
+  display: block;
+}
+
+/*
+ * Where the column leaves the label less than 110 pixels right of the `+` -- beside a long
+ * strip on a narrower window -- it stands left of the `+` instead, over the strip's end, on one
+ * line, which the strip and the column before it always hold. 110 holds its longest word,
+ * "afbeelding", 50 to 65 pixels in the usual faces, with its padding and room to spare.
+ */
+@media (min-width: 480px) and (min-height: 640px) {
+  @container (width < 185px) {
+    .carousel-strip ~ .editor-picker-room > .editor-picker-label {
+      left: auto;
+      right: calc(100% + 8px);
+      max-width: none;
+      white-space: nowrap;
+    }
+  }
+}
+
+/*
+ * Below the guarantee the strip is its 20-pixel pill (10.5, step 1), and the `+` a pill beside
+ * it. [#174] Its label stands on the band's foot and rises over the Bubble rather than down out
+ * of the band (10.6): 2 pixels on one line, 18 on two (31.1). Where the column leaves it less
+ * than 110 pixels right of the `+` -- on a phone -- it stands left of the `+`, over the
+ * enlarged view's control, on one line.
+ */
 @media (max-height: 639px), (max-width: 479px) {
   .carousel > .editor-picker--strip {
     grid-column: 3;
@@ -3108,6 +3430,23 @@ fieldset:disabled .admin-submit {
     height: 20px;
     margin-left: 8px;
     font-size: 14px;
+  }
+
+  .carousel > .editor-picker-room > .editor-picker-label {
+    top: auto;
+    bottom: 0;
+    left: 36px;
+    max-width: calc(100% - 36px);
+    translate: none;
+  }
+
+  @container (width < 146px) {
+    .carousel > .editor-picker-room > .editor-picker-label {
+      left: auto;
+      right: 100%;
+      max-width: none;
+      white-space: nowrap;
+    }
   }
 }
 
@@ -3144,9 +3483,24 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text-muted);
 }
 
-/* The labels' column is as wide as the longer of the two words, "Beschrijving" included. */
-.editor-attach-form .editor-row {
+/*
+ * **[#172]** One label column for both rows, as wide as the longer word ("Beschrijving"), so the
+ * two inputs line up and keep the width a credit needs; each row a subgrid of the form's. The
+ * label stays beside its input at every width, 8 pixels from it: a phone's 2-pixel gap is for
+ * a label stacked above its field, and a subgrid row takes its gap as the column gap.
+ */
+.editor-attach-form {
+  display: grid;
   grid-template-columns: auto minmax(0, 1fr);
+}
+
+.editor-attach-form > * {
+  grid-column: 1 / -1;
+}
+
+.editor-attach-form .editor-row {
+  grid-template-columns: subgrid;
+  gap: 8px;
 }
 
 .editor-attach-form .sheet-controls {
@@ -3199,111 +3553,215 @@ fieldset:disabled .admin-submit {
   display: none;
 }
 
-/* The link menus lie on the buttons' outer ends and take no room in the row. */
-.answers:has(> .link-menu) {
-  position: relative;
+/*
+ * **[#178]** The step's two buttons (30.8, amended 2026-10-02), in place of the step menu: in the
+ * band above the Bubble, beside the up arrow, out of the Bubble's box. "Tree does not end here
+ * after all" stands left of the arrow; the red cross right of it, where the step menu's `...`
+ * stood -- and from 1000 pixels, where the floating controls of 33.1 carry their words into the
+ * band right of the arrow (46.5 pixels left there at 1000 x 700 in Dutch), left of it, between
+ * the arrow and the ending's button. Placed from the Bubble's padding box, as the arrow is.
+ *
+ * On the band's line: the arrow's middle where the arrow stands above the outline, 32 pixels
+ * tall, as the floating controls are; below 640 pixels of height, where the arrow stands on the
+ * outline, the band's own middle, 24 tall in its 26 and 32 in a phone's 40 (10.5).
+ */
+.bubble {
+  --step-size: 32px;
+  --step-middle: calc(-2px - var(--up-clearance) - var(--up-size) / 2);
+  --step-gap: 8px;
+  /* From the arrow's edge to the window's left one, 8 pixels kept clear at each end. */
+  --step-room: calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap));
 }
 
-.link-menu {
+.step-delete,
+.step-end {
   position: absolute;
-  z-index: 2;
-  width: 24px;
-  height: 24px;
+  top: var(--step-middle);
+  z-index: 1;
+  translate: 0 -50%;
 }
 
-.link-menu--yes {
-  top: calc(50% - 12px);
-  left: 14px;
-}
-
-.link-menu--no {
-  top: calc(50% - 12px);
-  right: 14px;
-}
-
-/* An Option's, in the empty corner its button's 48-pixel radius leaves at the outer end. */
-.options > li > .link-menu--option {
-  display: var(--fan, block);
-  top: 0;
-}
-
-.options > li[data-side="right"] > .link-menu--option {
-  right: 0;
-}
-
-.options > li[data-side="left"] > .link-menu--option {
-  left: 0;
-}
-
-/* The `...` of a link menu and of the step menu: one 24-pixel round control. */
-.link-menu > .sheet-open,
-.step-menu > .sheet-open {
+/* The red cross: outlined in `danger` while it only asks, filled under the pointer and while it asks, as `deleteSideBubble` is (30.7). */
+.step-delete {
+  left: calc(50% + var(--up-size) / 2 + var(--step-gap));
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: var(--step-size);
+  height: var(--step-size);
   padding: 0;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--danger-read);
   border-radius: 50%;
+  color: var(--danger-read);
   background: var(--elsa-surface);
-  color: var(--elsa-text-muted);
-  font-size: 14px;
-  /* Taller than the glyph's content area, so the word holds nothing larger than itself (10.6). */
-  line-height: 20px;
-  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease);
 }
 
-.link-menu > .sheet-open:hover,
-.step-menu > .sheet-open:hover {
-  color: var(--elsa-text);
-  border-color: var(--accent-secondary-read);
+.step-delete svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
-/* The step menu (30.8): in the half of the band right of the up arrow, as the badge has the left half. */
-.step-menu {
+.step-delete:hover:enabled,
+.step-delete[aria-expanded="true"] {
+  color: var(--elsa-background);
+  background: var(--elsa-danger);
+}
+
+.step-delete:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/*
+ * "Tree does not end here after all": outlined in `accent-secondary` as `treeEndsHere` is, whose
+ * ending it takes back (30.1), set in the band's small type. Two lines where its room is narrower
+ * than its words: a phone's band holds them.
+ */
+.step-end {
+  right: calc(50% + var(--up-size) / 2 + var(--step-gap));
+  width: max-content;
+  max-width: var(--step-room);
+}
+
+.step-end > button {
+  display: block;
+  width: 100%;
+  min-height: var(--step-size);
+  padding: 7px 14px;
+  border: 1px solid var(--elsa-accent-secondary);
+  border-radius: calc(var(--step-size) / 2);
+  color: var(--accent-secondary-read);
+  background: var(--elsa-surface);
+  font: inherit;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 600;
+  text-align: center;
+  text-wrap: balance;
+  cursor: pointer;
+  transition: box-shadow 160ms var(--ease);
+}
+
+.step-end > button:hover:enabled {
+  box-shadow: 0 0 0 2px var(--elsa-background), 0 0 0 3px var(--elsa-accent-secondary);
+}
+
+.step-end > button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* A refusal -- a collaborator removed the ending first -- under the button, over the Bubble. */
+.step-end-error {
   position: absolute;
-  top: 2px;
-  left: calc(50% + var(--up-size) / 2);
+  top: calc(100% + 4px);
   right: 0;
-  z-index: 1;
+  width: max-content;
+  max-width: var(--step-room);
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--elsa-surface);
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+/* From 1000 pixels the cross stands left of the arrow, and the ending's button left of the cross. */
+@media (min-width: 1000px) {
+  .step-delete {
+    left: auto;
+    right: calc(50% + var(--up-size) / 2 + var(--step-gap));
+  }
+
+  .step-delete ~ .step-end {
+    right: calc(50% + var(--up-size) / 2 + 2 * var(--step-gap) + var(--step-size));
+    max-width: calc(var(--step-room) - var(--step-gap) - var(--step-size));
+  }
+}
+
+/*
+ * The question the cross asks (30.8, amended), hung under the step's band over the Sheets' veil,
+ * in the middle of the Bubble: in place, at the step it would delete. Inside the Bubble's box,
+ * so it is no element's overflow (10.6).
+ */
+.step-confirm {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  z-index: 10;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  max-width: min(400px, 100%);
+  margin: 0 auto;
+  padding: 16px 20px;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
+  font-size: var(--small);
+  line-height: var(--small-line);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.step-confirm .structure-actions {
   justify-content: center;
-  height: 24px;
 }
 
 /*
  * The side-bubble `+` (30.4): one more button of the fan, the Option button's size, dashed in
- * `rule`, the `+` where the picture is and `newSideBubble` where the title is.
+ * `rule`, the `+` where the picture is and `newSideBubble` where the title is. **[#177]** The
+ * button itself, which creates at one click: no Sheet behind it (30.4, amended). Not being a
+ * Sheet's `.sheet-open`, it sets the round ends and the page's type itself; the size of both
+ * is the fan's shape's, with the Options (#175).
  */
 .options > li > .side-add {
-  display: block;
-}
-
-.side-add > .sheet-open {
   display: var(--fan, flex);
   align-items: center;
-  gap: 8px;
   width: 100%;
   min-height: var(--option-h);
-  padding: 0 11px;
-  border: 1px dashed var(--rule);
-  border-radius: 48px;
-  font-size: 16px;
-  line-height: 20px;
+  margin: 0;
+  border-radius: 999px;
+  font: inherit;
   color: var(--elsa-text-muted);
   background: var(--elsa-surface);
   text-align: left;
   white-space: normal;
-  transition: border-color 160ms var(--ease), color 160ms var(--ease);
+  cursor: pointer;
+  transition: color 160ms var(--ease);
 }
 
-.side-add > .sheet-open:hover {
+.options > li > .side-add:hover:enabled {
   color: var(--elsa-text);
-  border-color: var(--accent-secondary-read);
-  background: var(--elsa-surface);
 }
 
-.options > li[data-side="left"] > .side-add > .sheet-open {
+/* Held down while the creation is on its way, and on a Tree that cannot be edited (29.4). */
+.options > li > .side-add:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/*
+ * **[#175]** In the fan it has the Option button's shape (`:is(.options > li > .overlay >
+ * .sheet-open, .options > li > .side-add)`, with the Options): its slot fills the inner end,
+ * and its dashed outline is drawn under the slot as the Option button's is, so the slot's own
+ * dashed ring is the end's outline and no end is drawn twice.
+ */
+.options > li > .side-add::before {
+  border-style: dashed;
+}
+
+.options > li > .side-add:hover:enabled::before {
+  border-color: var(--accent-secondary-read);
+}
+
+.options > li[data-side="left"] > .side-add {
   flex-direction: row-reverse;
   text-align: right;
 }
@@ -3316,22 +3774,47 @@ fieldset:disabled .admin-submit {
   line-height: 1;
 }
 
-/* After an Overlay's list of second-level Options: the dashed pill of an operation (30.5). */
-.side-add--list {
-  display: inline;
-}
-
-.side-add--list > .sheet-open {
-  display: inline-block;
-  width: auto;
-  min-height: 0;
-  padding: 0 10px;
-  border-radius: 999px;
+/*
+ * **[#177]** `deleteSideBubble`, below in the middle of an opened side bubble (30.7): last on the
+ * Overlay's page, which the free height above it pushes to the panel's lower edge. Outlined in
+ * `danger` while it only asks, filled once it is the confirmation's own button, so that the
+ * one red block on the panel is the one that deletes.
+ */
+.side-delete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
   font-size: var(--small);
-  line-height: 18px;
+  line-height: var(--small-line);
+  text-align: center;
 }
 
-/* The Sheets' pages: the outcomes, the picker, the confirmations. */
+.side-delete-button {
+  min-height: 32px;
+  padding: 4px 16px;
+  border: 1px solid var(--danger-read);
+  border-radius: 999px;
+  color: var(--danger-read);
+  background: var(--elsa-surface);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease);
+}
+
+.side-delete-button:hover:enabled {
+  color: var(--elsa-background);
+  background: var(--elsa-danger);
+}
+
+.side-delete .structure-actions {
+  justify-content: center;
+}
+
+/* The Sheets' pages: the outcomes, the confirmations. */
 .structure-form {
   display: flex;
   flex-direction: column;
@@ -3343,22 +3826,12 @@ fieldset:disabled .admin-submit {
   line-height: var(--small-line);
 }
 
-.structure-form form {
-  display: contents;
-}
-
-.structure-form h2,
-.structure-picker h2 {
+.structure-form h2 {
   margin: 0;
   font-family: var(--elsa-font-heading);
   font-size: 18px;
   line-height: 24px;
   overflow-wrap: anywhere;
-}
-
-.structure-id {
-  margin: 0;
-  color: var(--elsa-text-muted);
 }
 
 .structure-confirm {
@@ -3403,63 +3876,6 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-background);
 }
 
-.structure-link {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.structure-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 0;
-}
-
-/* The picker's list: a carrier of `data-scroll-box` (26.3), so a long draft never grows the panel past the page. */
-.structure-picker-list {
-  max-height: min(320px, 50vh);
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  list-style: none;
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-}
-
-.structure-picker-list li + li {
-  border-top: 1px solid var(--rule-soft);
-}
-
-.structure-pick {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 4px 10px;
-  border: 0;
-  background: transparent;
-  color: var(--elsa-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.structure-pick:hover {
-  background: var(--wash);
-}
-
-.structure-pick-title {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.structure-pick-id {
-  flex: none;
-  color: var(--elsa-text-muted);
-}
-
 /* Below 480 pixels the row's buttons show their words alone, as the Answer buttons do (10.3). */
 @media (max-width: 479px) {
   .structure,
@@ -3469,45 +3885,250 @@ fieldset:disabled .admin-submit {
   }
 }
 
-/* --- the top panel (33) ------------------------------------------------------------ */
+/*
+ * **[#178]** Below 640 pixels of height the step's buttons stand in the middle of the band, which
+ * the arrow's middle on the outline leaves 26 tall: 24 there, the ending's words on one line of
+ * 11 pixels; and in a phone's band of 40, 32, the words on two lines of 11 where they need them.
+ */
+@media (max-height: 639px) {
+  .bubble {
+    --step-size: 24px;
+    --step-middle: calc(-2px - var(--up-row) / 2);
+  }
 
-/* The button (33.1): a dot and the state, in the chrome bar's pill; the dot says the state's colour. */
-.panel-sheet > .sheet-open {
-  padding: 3px 12px;
-  font-size: 12px;
-  line-height: 18px;
+  .step-end > button {
+    padding: 4px 10px;
+    font-size: 11px;
+    line-height: 14px;
+    white-space: nowrap;
+  }
 }
 
-.panel-state {
-  display: inline-flex;
+@media (max-width: 479px) {
+  .bubble {
+    --step-size: 32px;
+  }
+
+  .step-end > button {
+    padding: 2px 10px;
+    font-size: 11px;
+    line-height: 14px;
+    white-space: normal;
+  }
+}
+
+/* --- the floating controls: the to-do bubble and the settings button (33.1, 33.3) ------ */
+
+/*
+ * **[#176]** Out of the chrome bar, over the page under its top right corner, in the band beside
+ * the up arrow that no row of 10.1 gives to anything else: there they cover no part of the
+ * Bubble, the arrow or an Option button. In the 56-pixel band above 640 pixels of height they
+ * are 32 tall and centred on the arrow; below it the band is 26 and they are 24, or 40 and 32
+ * where the rim is 10 (below 480 wide). Fixed, they move no row and are no element's overflow.
+ */
+:root {
+  --float-size: 32px;
+  --float-top: calc(var(--chrome-row) + 10px);
+  --float-right: 16px;
+}
+
+/*
+ * Under every other Sheet's scrim while their own are closed, so one Sheet is open at a time on
+ * screen as in markup; lifted over the page while one of theirs is open, so that scrim covers
+ * the bar and the Bubble too, as the bar's own lift did while it held the button (#142).
+ */
+.editor-float {
+  position: fixed;
+  top: var(--float-top);
+  right: var(--float-right);
+  z-index: 1;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  white-space: nowrap;
+  gap: 8px;
 }
 
-.panel-state-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--elsa-text-muted);
+.editor-float:has(> .sheet[open]) {
+  z-index: 12;
 }
 
-.panel-state--published .panel-state-dot {
-  background: var(--elsa-accent-secondary);
+/* Each control a pill on `surface`, lifted off the page by a soft shadow mixed from the scrim. */
+.editor-float > .sheet > .sheet-open {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--float-size);
+  padding: 0 14px 0 10px;
+  color: var(--elsa-text);
+  background: var(--elsa-surface);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 8%, transparent),
+    0 8px 20px -10px color-mix(in srgb, var(--elsa-scrim) 45%, transparent);
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease), transform 160ms var(--ease);
 }
 
-.panel-state--publicBehind .panel-state-dot {
+.editor-float > .sheet > .sheet-open:hover {
+  color: var(--elsa-text);
+  border-color: var(--accent-secondary-read);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 8%, transparent),
+    0 12px 24px -10px color-mix(in srgb, var(--elsa-scrim) 55%, transparent);
+}
+
+.editor-float > .sheet > .sheet-open:active {
+  transform: translateY(1px);
+}
+
+.float-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.float-icon {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+}
+
+/* The count: a small round bubble in the Bubble's own outline colour, set in the pill's rounded end. */
+.editor-float > .todo-sheet > .sheet-open {
+  padding-left: 4px;
+}
+
+.todo-count {
+  display: grid;
+  place-items: center;
+  min-width: calc(var(--float-size) - 8px);
+  height: calc(var(--float-size) - 8px);
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--elsa-on-accent);
   background: var(--elsa-accent);
 }
 
-.panel-state--notServable .panel-state-dot {
-  background: var(--elsa-danger);
+/* Nothing to do: the pill closes to a circle around a quiet tick. */
+.editor-float > .todo-sheet > .sheet-open:has(.todo-count[data-count="0"]) {
+  width: var(--float-size);
+  padding: 0;
+  justify-content: center;
 }
 
-/* The chrome bar lifts over the page while its panel is open, so the scrim covers the Bubble too. */
-.editor-chrome:has(.panel-sheet[open]) {
-  z-index: 12;
+.todo-count[data-count="0"] {
+  min-width: 0;
+  padding: 0;
+  color: var(--elsa-text-muted);
+  background: none;
 }
+
+.todo-count svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The Tree's state after the settings label: a tile's mark (26.4), a dot and a word, set off by a hairline. */
+.panel-state {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 10px;
+  border-left: 1px solid var(--rule);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--elsa-text-muted);
+}
+
+.panel-state-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.panel-state--published {
+  color: var(--accent-secondary-read);
+}
+
+.panel-state--publicBehind {
+  color: var(--accent-read);
+}
+
+.panel-state--notServable {
+  color: var(--danger-read);
+}
+
+/*
+ * Below 1000 pixels the band beside the arrow is too narrow for the words: each control is a
+ * round button -- the count's bubble, or the gear with the state's dot on its shoulder -- and
+ * keeps its whole name, which never came from the words (33.1). With the word gone, the dot of
+ * a hidden Tree is a ring, so the state does not rest on its colour alone.
+ */
+@media (max-width: 999px) {
+  .float-words {
+    display: none;
+  }
+
+  .editor-float > .sheet > .sheet-open,
+  .editor-float > .todo-sheet > .sheet-open {
+    min-width: var(--float-size);
+    padding: 0 4px;
+    justify-content: center;
+  }
+
+  .panel-state {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    padding: 0;
+    border: 0;
+  }
+
+  .panel-state-dot {
+    width: 8px;
+    height: 8px;
+    box-shadow: 0 0 0 2px var(--elsa-surface);
+  }
+
+  .panel-state--hidden .panel-state-dot {
+    background: var(--elsa-surface);
+    box-shadow:
+      inset 0 0 0 1.5px currentColor,
+      0 0 0 2px var(--elsa-surface);
+  }
+}
+
+/* Below 640 pixels of height the band beside the arrow is 26 (10.5): the controls are 24, a pixel under the bar. */
+@media (max-height: 639px) {
+  :root {
+    --float-size: 24px;
+    --float-top: calc(var(--chrome-row) + 1px);
+  }
+}
+
+/* On a phone's 10-pixel rim that band is 40 (10.5): back to 32, four under the bar. */
+@media (max-height: 639px) and (max-width: 479px) {
+  :root {
+    --float-size: 32px;
+    --float-top: calc(var(--chrome-row) + 4px);
+  }
+}
+
+@media (max-width: 479px) {
+  :root {
+    --float-right: 8px;
+  }
+}
+
+/* --- the top panel (33) ------------------------------------------------------------ */
 
 /* A Sheet down the right edge (33.2): 400 pixels, from under the chrome bar to above the disclaimer. */
 .panel-sheet > .sheet-panel {
@@ -3522,19 +4143,36 @@ fieldset:disabled .admin-submit {
   border-radius: 24px 0 0 24px;
 }
 
-.panel-sheet > .sheet-panel > .sheet-page {
+/*
+ * **[#176]** The to-do bubble (33.3): a bubble under the two controls at the top right, as tall
+ * as its list and no taller than the room above the disclaimer.
+ */
+.todo-sheet > .sheet-panel {
+  inset: calc(var(--float-top) + var(--float-size) + 8px) var(--float-right) auto auto;
+  width: min(400px, 100% - 2 * var(--float-right));
+  height: auto;
+  max-width: none;
+  max-height: calc(100% - var(--float-top) - var(--float-size) - 16px - var(--disclaimer-row));
+  margin: 0;
+  padding: 0;
+  align-items: stretch;
+}
+
+.panel-sheet > .sheet-panel > .sheet-page,
+.todo-sheet > .sheet-panel > .sheet-page {
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
 }
 
-.panel-sheet > .sheet-panel > .sheet-page > div {
+.panel-sheet > .sheet-panel > .sheet-page > div,
+.todo-sheet > .sheet-panel > .sheet-page > div {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
 }
 
-/* The body is a scroll box (26.3): the document never scrolls, the list of people and to-dos may. */
+/* The body is a scroll box (26.3): the document never scrolls, the list of people -- **[#176]** or of to-dos, in its own bubble -- may. */
 .panel-body {
   flex: 1 1 auto;
   min-width: 0;
@@ -3636,11 +4274,11 @@ fieldset:disabled .admin-submit {
   overflow-wrap: anywhere;
 }
 
-.panel-todo-heading {
-  font-weight: 600;
+/* **[#176]** A refused publish's sentence, and the button to the to-do bubble in it (33.3). */
+.panel-refused {
+  color: var(--danger-read);
 }
 
-.panel-todo,
 .panel-people {
   display: flex;
   flex-direction: column;
@@ -3650,15 +4288,25 @@ fieldset:disabled .admin-submit {
   list-style: none;
 }
 
-.panel-todo li {
+/* **[#176]** The to-do bubble's lines (33.3): the step's title, bold, as the link to it, then the message. */
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.todo-list li {
   overflow-wrap: anywhere;
 }
 
-.panel-todo-where {
+.todo-where {
   font-weight: 600;
 }
 
-.panel-todo-remove {
+.todo-remove {
   margin-left: 8px;
 }
 
@@ -3854,11 +4502,15 @@ fieldset:disabled .admin-submit {
   font-size: var(--small);
 }
 
-/* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge. */
+/* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge, and the to-do bubble may. */
 @media (max-width: 479px) {
   .panel-sheet > .sheet-panel {
     bottom: 0;
     border-radius: 0;
+  }
+
+  .todo-sheet > .sheet-panel {
+    max-height: calc(100% - var(--float-top) - var(--float-size) - 16px);
   }
 }
 

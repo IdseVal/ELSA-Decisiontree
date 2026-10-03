@@ -1,8 +1,24 @@
 # ADR-133-structure-editing: a Node without Links offers three buttons in the Answer row; a fresh yes or no creates its target and navigates to it without a slide; the side-bubble + creates an Option and opens its aside for editing in the Overlay; an Answer or an Option may be re-pointed at an existing Node; a Node is deleted from its own page and an orphan stays until someone deletes it
 
 - Status: ACCEPTED (frozen) -- 2026-09-26; confirms the PROPOSED reading of core document 3.4
+- Superseded in part by `ADR-177-side-bubble-editing.md` (decision 5, and in decision 6 the last
+  entry of the Overlay's list, `+ newSideBubble`) -- 2026-10-02 (issue #177): one click on the
+  side-bubble `+` creates the side bubble and opens it, with no Sheet, so neither `createNew` nor
+  `linkExisting` is offered from it, and an Overlay offers no `+`. The rest stands, but for
+  decision 6's heading link (see the note there).
+- Superseded in part by `ADR-178-step-buttons.md` (decision 7, and in decision 8 the step menu,
+  with decision 4's `removeEnd` in it) -- 2026-10-02 (issue #178): a red cross and "Tree does not
+  end here after all" stand beside the up arrow in place of the step menu, and no Answer or Option
+  button carries a `...`, so the editor no longer re-points a button at an existing Node and no
+  longer removes a Link alone. Decision 8's delete and decision 9 stand.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 30 (new)
+- Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`, `ADR-171-elsa-tree-5.md`):
+  decision 1's Terminal carries the ending's words, not one of the four outcomes, and the
+  format they enter is `elsa-tree/5`, no longer `elsa-tree/4`; decision 4's Sheet asks for
+  the ending's words -- one plain field, at most 19 characters -- instead of one of four
+  outcomes, and the badge on a Terminal's rim is that field, not a select
+  (`application.md` 30, 30.3, 36.3). The four outcomes are offered nowhere.
 - Amends: `docs/adrs/ADR-78-overlay.md` (the Overlay is also where an aside is edited),
   `ADR-38-transitions.md` (the editor does not slide), `ADR-78-answer-buttons-and-up-arrow.md`
   (the Answer row holds the structure buttons where the Answers are not yet made)
@@ -88,7 +104,13 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    `add-option { target }`. After a creation the editor navigates to **the aside's
    address** under this page -- `<the page's path>/<new id>` -- which by 10.9 renders this
    same page with the new Overlay open: the creator is looking at the side-bubble they
-   just made, editable.
+   just made, editable. **Superseded by ADR-177 (2026-10-02):** by the owner's word in #169
+   ("The side bubble should just open the side bubble"), the `+` opens no Sheet: one click
+   sends `POST .../nodes { from: { node, link: 'option' } }` with no title, the Node and the
+   Option each titled `""` in one write, and the editor goes to the aside's address as above,
+   where the side bubble's title, text, picture and Sources are entered. `linkExisting` is no
+   longer offered from the `+`, as `ADR-169-tree-creation-ui-round.md` decision 5 reads #177
+   (`ADR-177-side-bubble-editing.md` decision 1, application.md 30.4).
 
 6. **An aside is edited in the Overlay, in place.** The Overlay of 10.9 holds the target's
    Interior rendered by the same component as the Bubble's, so with the `edit` seam its
@@ -102,7 +124,16 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    renders the deeper Overlay). The Overlay's heading link to the explanation Node's own
    address is where a creator goes to give an aside Options of its own with the fan, or to
    delete it (decision 8). Nothing is edited in two places: the centre's fields are on the
-   Bubble, the aside's in its Overlay, the Option's title on its button.
+   Bubble, the aside's in its Overlay, the Option's title on its button. **Superseded by
+   ADR-177 (2026-10-02):** by the owner's word in #169 ("There is a 'new side bubble' button in
+   the side bubble pane, this does not belong there"), the Overlay's list has no last entry
+   `+ newSideBubble`; the second-level Options a Tree has are still listed and still open, and
+   an aside opened as its own page keeps its fan's `+` (`ADR-177-side-bubble-editing.md`
+   decision 3, application.md 30.5). The heading link is no way to the aside's own page in the
+   editor: as built before #177 too, it leads to the aside's address under the page, as in
+   decision 5, which renders the same page with the Overlay open (10.9); and a click in it is
+   now its title field's (ADR-177 decision 4). ADR-177's Consequences record what that leaves out of the editor's reach, as an
+   open point.
 
 7. **An Answer or an Option may be pointed at an existing Node.** Every Answer button and
    every Option button carries, in edit mode, a small `...` control at its outer end
@@ -118,7 +149,12 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    explanation Node), shown at the button and in the to-do list, because the picker cannot
    know a Node's kind from its title and the editor does not read every Node to find out.
    The graph the format allows -- two Answers to one Node, one aside under several Nodes --
-   is what this makes: nothing is copied.
+   is what this makes: nothing is copied. **Superseded by ADR-178 (2026-10-02):** by the owner's
+   word in #169 ("There are also some dots ... far out of the next steps of the decisiontree,
+   don't have that there"), no Answer or Option button carries a `...`: the link menu, the
+   picker and `removeLink` are gone, and the editor no longer offers to point a button at an
+   existing Node. A Tree that already has two Answers to one Node keeps working, and the routes
+   stay in the API (`ADR-178-step-buttons.md` decision 5, application.md 30.6, 30.7).
 
 8. **A Node is deleted from its own page, from the step menu on the rim.** In edit mode
    the Bubble's rim above holds, in the half of the band right of the up arrow (the
@@ -134,6 +170,13 @@ Option opens its target in the Overlay (10.9), the aside being pre-rendered on t
    the draft. What a deleted Node led to -- its own Answer targets and asides -- stays too,
    reported by V-REACH where nothing else reaches it (decision 9): a delete removes one
    step, never a sub-tree, because the same Nodes may be reached from elsewhere.
+   **Superseded in part by ADR-178 (2026-10-02):** by the owner's word in #169 ("just make two
+   buttons a red cross to delete the step, or if it applys, 'tree does not end here after all'"),
+   there is no step menu: a red cross on every Node but the root, which asks once and deletes as
+   above, and on a Terminal "Tree does not end here after all" (`removeEnd`), stand in the band
+   above the Bubble beside the up arrow; the step's id is shown no more
+   (`ADR-178-step-buttons.md` decisions 1 to 4, application.md 30.8). `removeLink` is gone with
+   decision 7.
 
 9. **A Node nothing reaches stays until someone deletes it.** After a `removeLink` or a
    `deleteStep`, a Node that no Answer and no Option names any more is reported by V-REACH

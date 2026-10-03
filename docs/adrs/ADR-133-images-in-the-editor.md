@@ -8,6 +8,10 @@
 - Depends on: `docs/adrs/ADR-132-editor-api.md` (the upload route, `add-image`,
   `remove-image`, `move-image`, the admin image route), `ADR-133-reuse-rule.md` (the image
   URL builder as a parameter), `ADR-133-bubble-edited-in-place.md`
+- Amended in part on issue #174 (the owner, #169), 2026-10-02: the strip's `+` is 67 pixels
+  and named "Add an extra image", which it shows beside it on hover and on keyboard focus
+  (decision 1); the attach Sheet's and the enlarged view's two fields carry an information
+  hint behind their labels (decisions 2 and 3) (`docs/specs/application.md` 31.1 to 31.3)
 
 ## Context
 

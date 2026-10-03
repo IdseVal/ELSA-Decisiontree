@@ -178,4 +178,24 @@ describe('openTree in draft mode (19.2)', () => {
       await rm(path.dirname(dir), { recursive: true, force: true })
     }
   })
+
+  test('**[#177]** referrers() answers the ids of the Nodes whose Answers or Options name a Node, in file order, and no Node', async () => {
+    const dir = path.join(await mkdtemp(path.join(tmpdir(), 'elsa-draft-')), 'a-tree')
+    try {
+      const tree = validTree()
+      delete node(tree, 'start').images
+      // A second step that also leads to the aside and to one of the ends: one aside under two Nodes (tree-format.md 5.4).
+      ;(tree.nodes as Mapping[]).push({ id: 'second', metadata: { version: '1' }, answers: { yes: 'yes-end' }, options: [{ title: { en: 'More', nl: 'Meer' }, target: 'aside' }] })
+      await mkdir(dir)
+      await writeFile(path.join(dir, 'draft.json'), treeBytes(tree))
+      const draft = await openTree(dir, { draft: true })
+      expect(draft.referrers('aside')).toEqual(['start', 'second'])
+      expect(draft.referrers('yes-end')).toEqual(['start', 'second'])
+      expect(draft.referrers('no-end')).toEqual(['start'])
+      expect(draft.referrers('start')).toEqual([])
+      expect(draft.referrers('no-such-node')).toEqual([])
+    } finally {
+      await rm(path.dirname(dir), { recursive: true, force: true })
+    }
+  })
 })

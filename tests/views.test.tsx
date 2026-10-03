@@ -188,7 +188,7 @@ describe('the tree layer', () => {
     const html = await view('/ai-act-example/prohibited-practices')
     const fan = part(html, 'ul', 'options')
     expect(fan).toContain(
-      '<summary class="sheet-open"><img class="option-image" src="/ai-act-example/images/scoreboard.png" alt="A scoreboard ranking people" width="48" height="48" loading="lazy"/><span class="option-title">Social scoring</span></summary>',
+      '<summary class="sheet-open"><img class="option-image" src="/ai-act-example/images/scoreboard.png" alt="A scoreboard ranking people" width="100" height="100" loading="lazy"/><span class="option-title">Social scoring</span></summary>',
     )
     // Since #84 the second Option's target carries an Image too: no empty slot in this Tree
     // (the `overlay` fixture shows one, below).
@@ -267,9 +267,10 @@ describe('the Carousel', () => {
       '/carousel/images/tractor.svg',
       '/carousel/images/harbour.svg',
     ])
-    // Loaded lazily, at the size the strip draws them, so no page asks for what it does not show (12.4).
+    // Loaded lazily, at the size the strip draws them, so no page asks for what it does not show (12.4):
+    // 67 pixels since #174.
     expect(strip).toContain(
-      '<img id="carousel-image-0" src="/carousel/images/greenhouse.svg" alt="Two greenhouses with rows of seedlings and a shed beside them" width="48" height="48" loading="lazy"/>',
+      '<img id="carousel-image-0" src="/carousel/images/greenhouse.svg" alt="Two greenhouses with rows of seedlings and a shed beside them" width="67" height="67" loading="lazy"/>',
     )
     expect(strip.match(/loading="lazy"/g)).toHaveLength(4)
   })
@@ -402,15 +403,15 @@ describe('Sources', () => {
     }
   })
 
-  test('sit under the chrome heading, which names the group, in both chrome languages (ADR-78-sources-heading)', async () => {
+  test('sit under the chrome heading, which names the group, in both chrome languages (ADR-78-sources-heading, ADR-173-sources-heading)', async () => {
     expect(part(await view('/ai-act-example/social-scoring'), 'section', 'sources')).toMatch(
-      /^<section class="sources" aria-labelledby="sources-label"><h2 id="sources-label">Legal sources<\/h2>/,
+      /^<section class="sources" aria-labelledby="sources-label"><h2 id="sources-label">Sources<\/h2>/,
     )
     expect(part(await view('/ai-act-example/social-scoring?lang=nl'), 'section', 'sources')).toContain(
-      '<h2 id="sources-label">Juridische bronnen</h2>',
+      '<h2 id="sources-label">Bronnen</h2>',
     )
     // Content in German: the heading is English chrome, and says so (3.1).
-    expect(await view('/other-languages/start')).toContain('<h2 id="sources-label" lang="en">Legal sources</h2>')
+    expect(await view('/other-languages/start')).toContain('<h2 id="sources-label" lang="en">Sources</h2>')
   })
 
   test('carry the Case law and Literature labels, not the Legal one, and say that the link leaves the page', async () => {
@@ -423,14 +424,14 @@ describe('Sources', () => {
     expect(sources).toContain('<li><span class="kind">Literature</span> <a href="https://arxiv.org')
     expect(html).toContain('<span hidden="" id="sources-new-tab">opens in a new tab</span>')
     const nl = part(await view('/ai-act-example/social-scoring?lang=nl'), 'section', 'sources')
-    expect(nl).not.toContain('>Wetgeving</span>')
+    expect(nl).not.toContain('>Juridisch</span>')
     expect(nl).toContain('>Rechtspraak</span>')
   })
 
   test('are also in the Sheet they collapse to below the guarantee, titled by the same heading, as the same links (10.5, 14)', async () => {
     const sheet = part(await view('/ai-act-example/social-scoring'), 'div', 'sources-collapsed')
 
-    expect(sheet).toContain('<summary class="sheet-open"><span>Legal sources (3)</span></summary>')
+    expect(sheet).toContain('<summary class="sheet-open"><span>Sources (3)</span></summary>')
     expect(sheet.match(/target="_blank"/g)).toHaveLength(3)
     expect(sheet).toContain('href="https://arxiv.org/abs/2107.03721"')
     expect(sheet).not.toContain('>Legal</span>')
@@ -515,11 +516,11 @@ describe('a question Node with Options', () => {
     expect(await view('/full-node/full')).toContain('data-count="8"')
   })
 
-  test("an Option button shows its target's main image, small, or the empty slot where the target has none (10.3)", async () => {
+  test("an Option button shows its target's main image, filling the button's inner end (#175), or the empty slot where the target has none (10.3)", async () => {
     const html = await view('/full-node/full')
     // `opt-one` leads with one.png: the same file its Overlay's Interior will show (11.4).
     expect(part(html, 'ul', 'options')).toContain(
-      '<summary class="sheet-open"><img class="option-image" src="/full-node/images/one.png" alt="Option one, first picture" width="48" height="48" loading="lazy"/><span class="option-title">Option one: a title of sixty characters, the most it may be.</span></summary>',
+      '<summary class="sheet-open"><img class="option-image" src="/full-node/images/one.png" alt="Option one, first picture" width="100" height="100" loading="lazy"/><span class="option-title">Option one: a title of sixty characters, the most it may be.</span></summary>',
     )
     // Only the target's first picture is on the button, and its Overlay's main image is that same file (10.9, 11.5).
     expect(new Set(all(part(html, 'ul', 'options').split('</li>')[0]!, /"(\/full-node\/images\/[^"]*)"/g))).toEqual(new Set(['/full-node/images/one.png']))
@@ -553,7 +554,7 @@ describe('the Overlay (10.9)', () => {
     expect(interior).toContain('<h2 id="a0-node-title"><a href="/ai-act-example/start/prohibited-practices/social-scoring">Social scoring</a></h2>')
     expect(interior).toContain('<div class="prose"><p>')
     // The Sources through the same component as the Bubble's, inline; not a second Sheet inside this one.
-    expect(interior).toContain('<section class="sources" aria-labelledby="a0-sources-label">')
+    expect(interior).toContain('<section class="sources" aria-labelledby="a0-sources-label"><h2 id="a0-sources-label">Sources</h2>')
     expect(interior).toContain('aria-describedby="a0-sources-new-tab"')
     expect(interior).not.toContain('sources-collapsed')
     // One page, so no paging and no nested disclosure without the script (14).

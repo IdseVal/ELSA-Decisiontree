@@ -2,13 +2,18 @@
  * **[#139]** The structure slots' decisions (docs/specs/application.md 30.1, 30.4, 30.6, 30.8),
  * read off the elements `editMode` builds without rendering them: which of the three
  * situations a Node's Links put it in, where the side-bubble `+` is drawn and where it is
- * absent, which Link gets a menu, and where a deletion goes. And the two pure helpers of
- * `Structure.tsx`: the address under a page, and a refusal's text.
+ * absent, and where a deletion goes. **[#178]** No Link gets a menu any more, and the step's
+ * red cross and "Tree does not end here after all" stand in place of the step menu (30.6, 30.8,
+ * amended 2026-10-02). **[#177]** And the side bubble's
+ * own (30.4, 30.5, 30.7, amended 2026-10-02): the `+` that creates at one click, on the centre
+ * only; `deleteSideBubble` in each of the centre's Overlays, which takes the aside's Node
+ * unless another Node leads to it; and the aside's title, which the Option button's follows.
+ * And the two pure helpers of `Structure.tsx`: the address under a page, and a refusal's text.
  */
 import type { ReactElement } from 'react'
 import { describe, expect, test } from 'vitest'
 import { editMode } from '../../src/admin/slots.tsx'
-import type { LinkRef } from '../../src/editor/mode.ts'
+import { DeleteStep, RemoveEnd } from '../../src/editor/StepButtons.tsx'
 import { refusalText, under } from '../../src/editor/Structure.tsx'
 import type { DraftNode } from '../../src/tree/types.ts'
 import type { PageAddress } from '../../src/url.ts'
@@ -21,17 +26,16 @@ function node(id: string, extra: Partial<DraftNode> = {}): DraftNode {
   return { id, kind: 'explanation', title: { en: `Title of ${id}` }, description: {}, sources: [], images: [], options: [], explainers: [], ...extra } as DraftNode
 }
 
-const mode = editMode(start, ['en', 'nl'], {
-  index: [
-    { id: 'start', title: 'Start' },
-    { id: 'n-2', title: '' },
-    { id: 'a-1', title: 'An aside' },
-  ],
+const structureOf = (shared: string[]) => ({
   addresses: { start, 'n-3': under2, 'a-1': aside },
   root: 'start',
   centre: 'start',
+  options: ['a-1'],
+  shared,
+  titles: { 'a-1': 'An aside' },
 })
-const { structure, linkMenu, sideAdd, stepMenu } = mode.slots
+const mode = editMode(start, ['en', 'nl'], structureOf([]))
+const { structure, sideAdd, sideDelete, stepButtons, field } = mode.slots
 
 /** The elements a slot's fragment or element holds, flat. */
 function children(element: ReactElement | null | undefined): ReactElement[] {
@@ -64,35 +68,22 @@ describe('the Answer row (30.1)', () => {
   })
 })
 
-describe('the link menu (30.6)', () => {
-  const half = node('start', { kind: 'question', answers: { yes: 'n-2' }, options: [{ title: { en: 'O' }, target: 'a-1' }] })
-  const menu = (link: LinkRef) => linkMenu!(half, link) as ReactElement | null
-
-  test('the Answer that exists has one; the one the + stands for has none', () => {
-    expect(props(menu({ kind: 'yes' }))).toMatchObject({ className: 'link-menu link-menu--yes' })
-    expect(menu({ kind: 'no' })).toBeNull()
-  })
-
-  test('an Option’s carries its target and its title; an index past the list has none', () => {
-    const page = (props(menu({ kind: 'option', index: 0 })).pages as ReactElement[])[0]
-    expect(props(page)).toMatchObject({ link: { kind: 'option', target: 'a-1', title: 'O' }, here: '/admin/trees/t/start' })
-    expect(menu({ kind: 'option', index: 1 })).toBeNull()
-  })
-
-  test('the picker lists every other Node of the index, in its order', () => {
-    const page = (props(menu({ kind: 'yes' })).pages as ReactElement[])[0]
-    expect(props(page).nodes).toEqual([
-      { id: 'n-2', title: '' },
-      { id: 'a-1', title: 'An aside' },
-    ])
+describe('**[#178]** no link menu (30.6, amended)', () => {
+  test('no Answer or Option button gets a `...`: the slot is gone, and with it the picker', () => {
+    expect('linkMenu' in mode.slots).toBe(false)
+    expect('stepMenu' in mode.slots).toBe(false)
   })
 })
 
 describe('the side-bubble + (30.4, 30.5)', () => {
-  test('on the centre it is the fan’s, in the Sheets’ own group; on an aside it is the Overlay list’s, in a group of its own', () => {
-    expect(props(sideAdd!(node('start')) as ReactElement)).toMatchObject({ className: 'side-add', name: 'sheet' })
-    expect(props(sideAdd!(node('a-1')) as ReactElement)).toMatchObject({ className: 'side-add side-add--list', name: 'side-sheet' })
-    expect(props((props(sideAdd!(node('a-1')) as ReactElement).pages as ReactElement[])[0])).toMatchObject({ here: '/admin/trees/t/start/a-1' })
+  test('**[#177]** on the centre it is the fan’s button itself, no Sheet: it creates from the centre and lands under its address', () => {
+    const add = sideAdd!(node('start')) as ReactElement
+    expect(props(add)).toEqual({ nodeId: 'start', here: '/admin/trees/t/start', word: 'New side bubble', wordLang: undefined })
+    expect(props(add).pages).toBeUndefined()
+  })
+
+  test('**[#177]** an aside in an Overlay has none: its Overlay offers no new side bubble', () => {
+    expect(sideAdd!(node('a-1'))).toBeNull()
   })
 
   test('absent at eight Options, on a Terminal, and on a Node the page does not carry', () => {
@@ -103,19 +94,100 @@ describe('the side-bubble + (30.4, 30.5)', () => {
   })
 })
 
-describe('the step menu (30.8)', () => {
-  test('the root has no deleteStep and a Terminal has removeEnd; a step under a Trail goes back to the entry above, the root to itself', () => {
-    const root = (props(stepMenu!(node('start', { kind: 'terminal', outcome: 'refer' })) as ReactElement).pages as ReactElement[])[0]
-    expect(props(root)).toMatchObject({ root: true, terminal: true, parentHref: '/admin/trees/t/start', heading: 'Title of start' })
-    const deep = (props(stepMenu!(node('n-3')) as ReactElement).pages as ReactElement[])[0]
-    expect(props(deep)).toMatchObject({ root: false, terminal: false, parentHref: '/admin/trees/t/start/n-2' })
-    expect((props(deep).words as { confirmDelete: string }).confirmDelete).toBe('Delete "Title of n-3"? What it led to stays.')
-    expect(stepMenu!(node('elsewhere'))).toBeNull()
+describe('**[#177]** deleteSideBubble in the centre’s Overlays (30.7)', () => {
+  const centre = node('start', { kind: 'question', answers: { yes: 'n-2' }, options: [{ title: { en: 'An aside' }, target: 'a-1' }] })
+
+  test('the Overlay of each Option holds it: the aside goes with this step’s Option, and the page goes back to the step', () => {
+    const remove = sideDelete!(centre, 0) as ReactElement
+    expect(props(remove)).toMatchObject({ parentId: 'start', asideId: 'a-1', lang: 'en', title: 'An aside', shared: false, centreHref: '/admin/trees/t/start' })
+    // The confirmation names the title as it stands when it is asked: the sentence travels in two parts around it.
+    const words = props(remove).words as { confirmBefore: string; confirmAfter: string; deleteSideBubble: string; confirmUntitled: string }
+    expect(`${words.confirmBefore}An aside${words.confirmAfter}`).toBe('Delete the side bubble "An aside"?')
+    expect(words.deleteSideBubble).toBe('Delete side bubble')
+    expect(words.confirmUntitled).toBe('Delete this side bubble? It has no title yet.')
   })
 
-  test('an empty title is said with the placeholder', () => {
-    const page = (props(stepMenu!(node('start', { title: {} })) as ReactElement).pages as ReactElement[])[0]
-    expect(props(page).heading).toBe('Text missing in this language')
+  test('an aside another Node leads to as well is marked shared: only this step’s Option goes', () => {
+    const shared = editMode(start, ['en', 'nl'], structureOf(['a-1'])).slots.sideDelete!(centre, 0) as ReactElement
+    expect(props(shared)).toMatchObject({ shared: true })
+    expect((props(shared).words as { stays: string }).stays).toBe('Another step leads to it too: it stays there.')
+  })
+
+  test('in Dutch the sentence keeps its own order around the title', () => {
+    const nl = editMode({ ...start, lang: 'nl' }, ['en', 'nl'], structureOf([])).slots.sideDelete!(centre, 0) as ReactElement
+    const words = props(nl).words as { confirmBefore: string; confirmAfter: string; deleteSideBubble: string }
+    expect(`${words.confirmBefore}Een zijpad${words.confirmAfter}`).toBe('De zijbubbel "Een zijpad" verwijderen?')
+    expect(words.deleteSideBubble).toBe('Zijbubbel verwijderen')
+  })
+
+  test('none past the list, and none on a Node that is not the centre', () => {
+    expect(sideDelete!(centre, 1)).toBeNull()
+    expect(sideDelete!(node('a-1', { options: [{ title: { en: 'Deeper' }, target: 'n-2' }] }), 0)).toBeNull()
+  })
+})
+
+describe('**[#177]** the Option button’s title follows its aside’s (30.5)', () => {
+  test('the aside’s title field names the centre’s Option to it as its follower, held to the button’s 60', () => {
+    const title = field!(node('a-1'), 'title', 'An aside', { characters: 80 }) as ReactElement
+    expect(props(title).follower).toEqual({ nodeId: 'start', path: 'options[0].title', limit: { characters: 60 } })
+  })
+
+  test('the centre’s own title, an aside’s other fields and a Node the centre does not lead to have none', () => {
+    expect(props(field!(node('start'), 'title', 'Start', { characters: 80 }) as ReactElement).follower).toBeUndefined()
+    expect(props(field!(node('a-1'), 'description', '', { characters: 150, lines: 2 }) as ReactElement).follower).toBeUndefined()
+    expect(props(field!(node('n-2'), 'title', '', { characters: 80 }) as ReactElement).follower).toBeUndefined()
+  })
+})
+
+describe('**[#178]** the step’s buttons beside the up arrow (30.8, amended)', () => {
+  /** The elements the slot's fragment holds, its absent ones dropped. */
+  const buttons = (drawn: unknown): ReactElement[] => children(drawn as ReactElement).filter((child): child is ReactElement => Boolean(child))
+
+  test('a step under a Trail that does not end has the red cross alone, which goes back to the entry above', () => {
+    const [cross, ...rest] = buttons(stepButtons!(node('n-3')))
+    expect(rest).toEqual([])
+    expect(cross!.type).toBe(DeleteStep)
+    expect(props(cross)).toMatchObject({ nodeId: 'n-3', lang: 'en', title: 'Title of n-3', parentHref: '/admin/trees/t/start/n-2' })
+  })
+
+  test('a step that ends has the cross and "Tree does not end here after all"', () => {
+    const [cross, end] = buttons(stepButtons!(node('n-3', { kind: 'terminal', outcome: 'refer' })))
+    expect(cross!.type).toBe(DeleteStep)
+    expect(end!.type).toBe(RemoveEnd)
+    expect(props(end)).toMatchObject({ nodeId: 'n-3', word: 'Tree does not end here after all' })
+  })
+
+  test('the first step has no cross: nothing at all when it does not end, the ending’s button alone when it does', () => {
+    expect(stepButtons!(node('start'))).toBeNull()
+    expect(stepButtons!(node('start', { kind: 'question', answers: { yes: 'n-2', no: 'a-1' } }))).toBeNull()
+    const [end, ...rest] = buttons(stepButtons!(node('start', { kind: 'terminal', outcome: 'refer' })))
+    expect(rest).toEqual([])
+    expect(end!.type).toBe(RemoveEnd)
+  })
+
+  test('a step with no Trail goes to the root once deleted; a Node the page does not carry gets nothing', () => {
+    const noTrail = editMode({ ...start, nodeId: 'n-3' }, ['en'], { ...structureOf([]), addresses: { 'n-3': { ...start, nodeId: 'n-3' } } }).slots
+    expect(props(buttons(noTrail.stepButtons!(node('n-3')))[0])).toMatchObject({ parentHref: '/admin/trees/t/start' })
+    expect(stepButtons!(node('elsewhere'))).toBeNull()
+  })
+
+  test('the cross is named "Delete this step"; the confirmation names the title around it, or says the step has none yet', () => {
+    const words = props(buttons(stepButtons!(node('n-3')))[0]).words as { deleteStep: string; confirmBefore: string; confirmAfter: string; confirmUntitled: string; confirm: string; cancel: string }
+    expect(words.deleteStep).toBe('Delete this step')
+    expect(`${words.confirmBefore}Title of n-3${words.confirmAfter}`).toBe('Delete "Title of n-3"? What it led to stays.')
+    expect(words.confirmUntitled).toBe('Delete this step? It has no title yet. What it led to stays.')
+    expect([words.confirm, words.cancel]).toEqual(['Confirm', 'Cancel'])
+    expect(props(buttons(stepButtons!(node('n-3', { title: {} })))[0]).title).toBe('')
+  })
+
+  test('in Dutch: the sentence keeps its own order around the title, and the ending’s button says it likewise', () => {
+    const nl = editMode({ ...under2, lang: 'nl' }, ['en', 'nl'], structureOf([])).slots
+    const [cross, end] = buttons(nl.stepButtons!(node('n-3', { kind: 'terminal', outcome: 'refer', title: { nl: 'Een stap' } })))
+    const words = props(cross).words as { deleteStep: string; confirmBefore: string; confirmAfter: string; confirmUntitled: string }
+    expect(words.deleteStep).toBe('Deze stap verwijderen')
+    expect(`${words.confirmBefore}Een stap${words.confirmAfter}`).toBe('"Een stap" verwijderen? Waar die heen leidde blijft.')
+    expect(words.confirmUntitled).toBe('Deze stap verwijderen? Hij heeft nog geen titel. Waar hij heen leidde blijft.')
+    expect(props(end).word).toBe('Boom eindigt hier toch niet')
   })
 })
 
