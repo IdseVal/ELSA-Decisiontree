@@ -561,8 +561,16 @@ test('[#180] a library family: seen at once in the editor, and once published fe
   await fontSelect(page, 'heading').selectOption('library:faustina')
   expect((await written).status()).toBe(200)
   await expect(fontSelect(page, 'heading')).toHaveValue('library:faustina')
-  // A library family shows its licence, fixed, and nothing else (37.2).
-  await expect(fontRole(page, 'heading').locator('.theme-font-licence')).toHaveText('Licence: SIL Open Font License 1.1')
+  // A library family shows its licence, fixed, and nothing else (37.2) but the licence's hint behind it (33.8).
+  const licenceLine = fontRole(page, 'heading').locator('.theme-font-licence')
+  expect(await licenceLine.evaluate((line) => [...line.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join(''))).toBe('Licence: SIL Open Font License 1.1')
+  const licenceMark = licenceLine.locator('.hint-mark')
+  await licenceMark.hover()
+  const licenceHint = page.locator(`[id="${await licenceMark.getAttribute('aria-describedby')}"]`)
+  await expect(licenceHint).toBeVisible()
+  await expect(licenceHint).toHaveText(EN.fontLicenceHint)
+  await page.mouse.move(0, 0)
+  await expect(licenceHint).toBeHidden()
   await expect(fontRole(page, 'heading').getByLabel('Family name')).toHaveCount(0)
   await expect.poll(() => property(page, '--elsa-font-heading')).toContain(`'${drafted('Faustina')}'`)
   await fetched

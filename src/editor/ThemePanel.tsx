@@ -516,6 +516,8 @@ function FontRole({
       {!upload && chosen && family && (
         <p className="theme-font-licence">
           {words.fontLicence}: {licences.find((licence) => licence.stored === family.licence)?.name ?? family.licence}
+          {/* The licence's hint, as behind the dropdown a Tree's own family shows (33.8). */}
+          <Hint id={`${heading}-licence-hint`} text={words.fontLicenceHint} name={words.hint} />
         </p>
       )}
 
