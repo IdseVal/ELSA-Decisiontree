@@ -1,14 +1,14 @@
 # ELSA decision tree
 
 A small web application that walks a reader through a legal decision tree, one **Node**
-at a time. It serves one **Tree** -- one `tree.json` file in the `elsa-tree/4` format
+at a time. It serves one **Tree** -- one `tree.json` file in the `elsa-tree/5` format
 ([`docs/specs/tree-format.md`](docs/specs/tree-format.md)), with its images and its theme
 beside it -- and holds its whole state in the URL: no database, no account, no cookie, no
 tracking.
 
 - What the project is for: [`docs/CORE_DOCUMENT.md`](docs/CORE_DOCUMENT.md)
 - The Tree file format, for anyone authoring a Tree: [`docs/specs/tree-format.md`](docs/specs/tree-format.md)
-- The structure half of that format as a JSON Schema: [`schemas/elsa-tree-4.json`](schemas/elsa-tree-4.json),
+- The structure half of that format as a JSON Schema: [`schemas/elsa-tree-5.json`](schemas/elsa-tree-5.json),
   which any validator checks. It carries no length limit and no list maximum: those are
   measured on counted text (`tree-format.md` 3.8, 5.7) and are reported by `npm run validate`,
   so run that too before you call a Tree finished.
@@ -60,7 +60,7 @@ none:
 | URL | What |
 |---|---|
 | `/<tree-id>/tree.json` | That Tree's published file, byte for byte, under CC BY 4.0 -- the licence is in a `Link` header on the bytes. Cross-origin reads are allowed; no cookie is set. |
-| `/schemas/elsa-tree-4.json` | The format's JSON Schema, which that file names in its own `$schema` key. MIT, like the rest of the code. |
+| `/schemas/elsa-tree-5.json` | The format's JSON Schema, which that file names in its own `$schema` key. MIT, like the rest of the code. `/schemas/elsa-tree-4.json`, the schema of the format before it, is served too. |
 | `/<tree-id>/images/<file>`, `/<tree-id>/theme/<file>` | That Tree's pictures and Theme files. |
 | `/llms.txt` | A short plain-text description of the site for an AI agent: what it is, where each Tree's dataset and the schema are, and how to address any step by URL. |
 | `/sitemap.xml`, `/robots.txt` | The overview and every Node of every published Tree in every language, and a crawler policy that allows everything. |
@@ -94,7 +94,7 @@ a Tree from one deployment to another.
 
 Behind the login at `/admin`, every active account may create a Tree; its creator invites
 collaborators, and the administrator may do everything on every Tree. Every field is saved
-as it is typed into the Tree's **draft** (`draft.json`, the same `elsa-tree/4` file, allowed
+as it is typed into the Tree's **draft** (`draft.json`, the same `elsa-tree/5` file, allowed
 to be unfinished); the draft becomes public only when its creator publishes it and it
 validates in full, and while it is published every save that keeps it valid is public at
 once (`docs/specs/application.md` 19).
