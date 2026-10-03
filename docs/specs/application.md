@@ -5861,7 +5861,15 @@ address".
   data directory, since the user names are not kept; set `ELSA_ADMIN_EMAIL`, without which the
   start refuses and the public pages stay down until it is set; read the lines the start logs;
   give every account they name an address at `/admin/accounts`, and tell each holder; remove
-  the variable. "When it does not start" quotes the refusals of 38.3.
+  the variable. Two more paths meet the same first start, and each says so where it is
+  written. "A container": the first run of the release on an existing volume needs
+  `ELSA_ADMIN_EMAIL` in its `--env-file` as a first run does, with the same backup first, and
+  is re-created without the file once the log shows the address set. "Importing a Tree, and
+  moving one between deployments": `npm run store -- import` opens the store as a start does
+  (`scripts/store.ts`, 17.4), so a checkout of the new release run against a store that
+  release has not started yet refuses without the variable, and with it converts the store
+  as that first start would; the new release is started once before its first import. "When
+  it does not start" quotes the refusals of 38.3.
 - **`deploy/elsa-decisiontree.env.example`**: `ELSA_ADMIN_EMAIL=` beside `ELSA_ADMIN_PASSWORD=`,
   empty, with a comment in the style of the password's.
 - **The `Dockerfile`**'s comment on the first run's `--env-file`, and **`README.md`**'s commands

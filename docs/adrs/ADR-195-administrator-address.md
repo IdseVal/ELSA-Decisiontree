@@ -120,4 +120,8 @@ of each deployment, and nothing the repository can know.
   container's first run, "The administrator and the login" and "Putting a new version of the
   application on the server" (38.9).
 - A deployment upgraded without the variable does not start, and says why: the public pages are
-  down until the deployer sets it. The deployment notes say so before the upgrade, not after.
+  down until the deployer sets it. The deployment notes say so before the upgrade, not after,
+  on each path that meets that first start: the plain server's upgrade, a container's first
+  run of the release on an existing volume, and `npm run store -- import`, which opens the
+  store as a start does (`scripts/store.ts`) and so refuses on a store the new release has not
+  started yet (38.9).

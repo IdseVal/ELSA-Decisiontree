@@ -49,7 +49,8 @@ files since #179 (36.4) -- and writes each file whole and atomically through one
    the administrator: `ELSA_ADMIN_EMAIL`, without which the start refuses and names it.
    `docs/deployment.md` writes both down in "Putting a new version of the application on the
    server", with a backup of the data directory before that first start, since the user names
-   are not kept (38.9).
+   are not kept, and says in "A container" and in "Importing a Tree" that a container's first
+   run of the release and the import command meet the same first start (38.9).
 
 4. **What the start logs**, ids and counts only (20.8): the start that converts, `accounts.json
    converted from user names to e-mail addresses: <n> accounts, <m> without an address`; and
