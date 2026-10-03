@@ -1,20 +1,34 @@
 /**
- * The rate limit on login (docs/specs/application.md 20.7; ADR-132-accounts-and-sessions
- * decision 10): two counters, in memory, and neither keyed by a client address.
+ * The rate limit on login (docs/specs/application.md 20.7, 38.7; ADR-132-accounts-and-sessions
+ * decision 10, ADR-195-login-by-email-address decision 8): two counters, in memory, and
+ * neither keyed by a client address.
  *
- * Per login name: 5 consecutive failures lock the name for 15 minutes; a success resets it.
- * Per deployment: more than 60 failures in one minute, across all names, lock the route for
- * one minute -- each attempt costs 64 MiB of scrypt, so this is also what keeps the box up.
+ * **[#196]** Per address typed -- the `name` the counters below are kept under is `loginKey` of
+ * the string a login carries: 5 consecutive failures lock it for 15 minutes; a success resets
+ * it. Per deployment: more than 60 failures in one minute, across all of them, lock the route
+ * for one minute -- each attempt costs 64 MiB of scrypt, so this is also what keeps the box up.
  *
  * An attempt counts from the moment it begins, not when its scrypt ends: otherwise any
  * number of simultaneous guesses would all pass the check before the first one failed.
  */
+import { normaliseEmail } from './accounts.ts'
 
 const MINUTE = 60_000
 export const NAME_FAILURES = 5
 export const NAME_LOCK_MS = 15 * MINUTE
 export const ROUTE_FAILURES = 60
 export const ROUTE_WINDOW_MS = MINUTE
+
+/**
+ * **[#196]** What a login's counters are keyed by (38.7): the address `normaliseEmail` makes of
+ * the string the request carries in `email`, or where it is no address, that string trimmed
+ * and lower-cased -- whether or not an account holds it. Every spelling the lookup reads as one
+ * address is one key: keyed by the string as typed, each placement of a line break, which the
+ * lookup removes, would be five more tries at the same account's password.
+ */
+export function loginKey(email: string): string {
+  return normaliseEmail(email) ?? email.trim().toLowerCase()
+}
 
 /** What `check` answers: go ahead, or the seconds until the lock lifts. */
 export type LimitVerdict = { locked: false } | { locked: true; retryAfter: number }

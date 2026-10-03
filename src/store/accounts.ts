@@ -1,7 +1,9 @@
 /**
- * Accounts (docs/specs/application.md 20.1 to 20.3, 20.8; ADR-132-accounts-and-sessions
- * decisions 1 to 5 and 11): who may enter the admin area, the password hash, and the one
- * administrator whose password is `ELSA_ADMIN_PASSWORD`.
+ * Accounts (docs/specs/application.md 20.1 to 20.3, 20.8, 38; ADR-132-accounts-and-sessions
+ * decisions 1 to 5 and 11; ADR-195-login-by-email-address, ADR-195-administrator-address,
+ * ADR-195-accounts-without-an-address, ADR-195-who-sees-and-changes-an-address): who may enter
+ * the admin area, by which e-mail address, the password hash, and the one administrator whose
+ * address is `ELSA_ADMIN_EMAIL` and whose password is `ELSA_ADMIN_PASSWORD`.
  *
  * `accounts.json` in the data directory is the whole record, read once at start and
  * rewritten whole through the store's one writer on every change. Nothing here returns a
@@ -13,14 +15,18 @@ import path from 'node:path'
 import type { Environment } from '../config.ts'
 import { writeAtomic } from './write.ts'
 
-/** One account (20.1). */
+/** One account (20.1, 38.2). */
 export interface Account {
   /** 16 random bytes as hex; never reused; what `meta.json` names. */
   id: string
-  /** Display name, plain text, 1 to 80 characters. */
+  /** Display name, plain text, 1 to 80 characters; no other account's (38.6). */
   name: string
-  /** A user name in the id grammar of tree-format.md 3.1, lower-cased on entry. */
-  login: string
+  /**
+   * **[#196]** The address the account logs in with, in the form `normaliseEmail` gives it
+   * (38.1); null only on an account a converted store of user names left without one, until
+   * the administrator gives it one (38.4).
+   */
+  email: string | null
   /** `scrypt$16$8$2$<salt>$<key>` (20.2). */
   passwordHash: string
   /** False: deactivated -- cannot log in, sessions ended, Trees kept. */
@@ -34,9 +40,10 @@ export interface Account {
 /** What a route may answer about an account: everything but the hash (25.3). */
 export type PublicAccount = Omit<Account, 'passwordHash'>
 
-/** The change `update` applies (22.1, `PATCH /admin/api/accounts/<id>`). */
+/** The change `update` applies (22.1, 38.2, `PATCH /admin/api/accounts/<id>`). */
 export interface AccountChange {
   name?: string
+  email?: string
   active?: boolean
   password?: string
   currentPassword?: string
@@ -44,13 +51,14 @@ export interface AccountChange {
 
 /**
  * A request the account rules refuse, with the status the route answers and the field the
- * screen shows it at (22.1, 25.2, 25.3). The message is a code the screen maps to a chrome
- * string -- `name-length`, `login-invalid`, `login-taken`, `password-length`,
- * `wrong-password`, `forbidden`, `not-found`, `malformed` -- never a sentence of its own.
+ * screen shows it at (22.1, 25.2, 25.3, 38.2). The message is a code the screen maps to a
+ * chrome string -- `name-length`, `name-taken`, `email-invalid`, `email-taken`,
+ * `password-length`, `wrong-password`, `forbidden`, `not-found`, `malformed` -- never a
+ * sentence of its own.
  */
 export class AccountError extends Error {
   readonly status: 403 | 404 | 422
-  readonly field: 'name' | 'login' | 'password' | 'currentPassword' | 'active' | null
+  readonly field: 'name' | 'email' | 'password' | 'currentPassword' | 'active' | null
 
   constructor(status: AccountError['status'], field: AccountError['field'], code: string) {
     super(code)
@@ -69,18 +77,21 @@ export function isAccountError(error: unknown): error is AccountError {
   return error instanceof Error && error.name === 'AccountError'
 }
 
-/** The accounts of one data directory (20.4's interface, and the two members the screens need). */
+/** The accounts of one data directory (20.4's interface as 38.2 leaves it, and the two members the screens need). */
 export interface Accounts {
-  /** The active account `login` names when `password` is its password; scrypt runs either way (20.2). */
-  authenticate(login: string, password: string): Promise<Account | null>
+  /**
+   * The active account `email` names when `password` is its password; scrypt runs either way
+   * (20.2), and an account without an address is never answered (38.4).
+   */
+  authenticate(email: string, password: string): Promise<Account | null>
   get(id: string): Account | null
-  /** The account a typed login names, active or not; for the log line of a lock (20.8). */
-  byLogin(login: string): Account | null
+  /** The account a typed address names, active or not; for the log line of a lock (38.8). */
+  byEmail(email: string): Account | null
   /** Every account, deactivated ones too, in creation order: the administrator's accounts page (25.3). */
   all(): Account[]
-  /** Active accounts for an invitation (21.4). */
-  listActive(): Pick<Account, 'id' | 'name' | 'login'>[]
-  create(by: Account, name: string, login: string, password: string): Promise<Account>
+  /** Active accounts for an invitation, by name and nothing else (21.4, 38.5). */
+  listActive(): Pick<Account, 'id' | 'name'>[]
+  create(by: Account, name: string, email: string, password: string): Promise<Account>
   update(by: Account, id: string, change: AccountChange): Promise<Account>
   /**
    * Whether this start gave the administrator a password other than the one it had, from
@@ -99,7 +110,7 @@ const SCRYPT: ScryptOptions = { N: 2 ** LOG2_N, r: R, p: P, maxmem: 128 * 1024 *
 
 /**
  * What a login that names no account is checked against, so that it costs what a real one
- * costs and the response time does not say whether the name exists (20.2). Its password is
+ * costs and the response time does not say whether the address exists (20.2). Its password is
  * not known to anyone: the key is random bytes, not a hash of anything.
  */
 export const DUMMY_HASH = `scrypt$${LOG2_N}$${R}$${P}$AAAAAAAAAAAAAAAAAAAAAA$${Buffer.alloc(KEY_BYTES, 7).toString('base64url')}`
@@ -107,12 +118,11 @@ export const DUMMY_HASH = `scrypt$${LOG2_N}$${R}$${P}$AAAAAAAAAAAAAAAAAAAAAA$${B
 export const PASSWORD_MIN = 12
 export const PASSWORD_MAX = 256
 export const NAME_MAX = 80
+/** **[#196]** The longest address a 256-octet SMTP path carries (38.1; RFC 5321 4.5.3.1.3, as RFC 3696 erratum 1690 states it). */
+export const EMAIL_MAX = 254
 
-/** The id grammar of tree-format.md 3.1, which a login follows (20.1). */
-const LOGIN = /^[a-z0-9]+(-[a-z0-9]+)*$/
-
-/** The administrator's login (20.3). */
-export const ADMIN_LOGIN = 'admin'
+/** **[#196]** The HTML Standard's *valid e-mail address*: the browser's own check of `<input type="email">` (38.1). */
+const EMAIL = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
 
 function derive(password: string, salt: Buffer, options: ScryptOptions): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -165,32 +175,75 @@ function checkName(name: unknown): string {
   return trimmed
 }
 
-/** A login as entered, lower-cased (20.1); null when it is not in the grammar. */
-export function normaliseLogin(login: unknown): string | null {
-  if (typeof login !== 'string') return null
-  const lower = login.trim().toLowerCase()
-  return lower.length >= 2 && lower.length <= 64 && LOGIN.test(lower) ? lower : null
+/** **[#196]** What two names are compared by (38.6): "Anna de Vries" and "anna  de vries" are one name. */
+function nameKey(name: string): string {
+  return name.normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase()
 }
 
 /**
- * Opens `accounts.json` in the data directory `root` and makes sure the administrator
- * exists with the password `ELSA_ADMIN_PASSWORD` gives it (20.3): created when there is none,
- * replaced when there is one and the variable is set to another password. Rejects -- the server does not start
- * -- when the variable is shorter than 12 characters, or absent while there is no
- * administrator. The variable's value is never printed.
+ * **[#196]** An address as given, in the one form it is stored and compared in (38.1); null for
+ * anything that is not one, which names no account. The value sanitisation of
+ * `<input type="email">` -- every line feed and carriage return removed, leading and trailing
+ * ASCII white space stripped -- then the browser's check and at most 254 characters, then every
+ * upper-case letter lowered. Checked before it is lowered: `toLowerCase` maps letters outside
+ * ASCII into it (the Kelvin sign to `k`), and those are no address.
+ */
+export function normaliseEmail(input: unknown): string | null {
+  if (typeof input !== 'string') return null
+  const value = input.replace(/[\n\r]/g, '').replace(/^[\t\n\f\r ]+|[\t\n\f\r ]+$/g, '')
+  return value.length <= EMAIL_MAX && EMAIL.test(value) ? value.toLowerCase() : null
+}
+
+/**
+ * Opens `accounts.json` in the data directory `root` and makes sure the administrator exists
+ * with the address `ELSA_ADMIN_EMAIL` and the password `ELSA_ADMIN_PASSWORD` give it, by 38.3's
+ * table: created when there is none, given or replaced when the variable is set to another
+ * value, kept when it is absent. **[#196]** A store of user names is converted first (38.4).
+ * Rejects -- the server does not start -- when a variable is not usable, or absent where the
+ * store needs it. Neither value is ever printed.
  */
 export async function openAccounts(root: string, env: Environment): Promise<Accounts> {
   const file = path.join(/* turbopackIgnore: true */ root, 'accounts.json')
   const accounts: Account[] = await readAccounts(file)
   const save = (): Promise<void> => writeAtomic(file, `${JSON.stringify(accounts, null, 2)}\n`)
+  let changed = false
 
   const password = env.ELSA_ADMIN_PASSWORD
+  // Absent includes empty, as for the password: the line the example file ships (38.3).
+  const adminEmail = env.ELSA_ADMIN_EMAIL ? normaliseEmail(env.ELSA_ADMIN_EMAIL) : undefined
+  if (adminEmail === null) {
+    throw new Error('ELSA_ADMIN_EMAIL is not an e-mail address: set it to the address the administrator will log in with (docs/deployment.md)')
+  }
+  if (password && ([...password].length < PASSWORD_MIN || [...password].length > PASSWORD_MAX)) {
+    throw new Error(`ELSA_ADMIN_PASSWORD must be ${PASSWORD_MIN} to ${PASSWORD_MAX} characters`)
+  }
   let admin = accounts.find((account) => account.administrator)
+  if (!admin) {
+    const missing = [adminEmail ? '' : 'ELSA_ADMIN_EMAIL', password ? '' : 'ELSA_ADMIN_PASSWORD'].filter(Boolean)
+    if (missing.length === 1) throw new Error(`${missing[0]} is not set and there is no administrator: set it for the first start (docs/deployment.md)`)
+    if (missing.length === 2) throw new Error(`${missing.join(' and ')} are not set and there is no administrator: set them for the first start (docs/deployment.md)`)
+  } else if (!admin.email && !adminEmail) {
+    throw new Error('ELSA_ADMIN_EMAIL is not set and the administrator has no e-mail address: set it to the address the administrator will log in with (docs/deployment.md)')
+  }
+  if (adminEmail && accounts.some((account) => account !== admin && account.email === adminEmail)) {
+    throw new Error('ELSA_ADMIN_EMAIL is the e-mail address of another account: set it to an address no other account has (docs/deployment.md)')
+  }
+
+  // **[#196]** A store written before #196 (38.4): every user name goes and no address is
+  // invented. The administrator's comes from ELSA_ADMIN_EMAIL below, required above.
+  const converted = accounts.filter((account) => 'login' in account)
+  for (const account of converted) {
+    delete (account as Account & { login?: unknown }).login
+    account.email ??= null
+  }
+  if (converted.length > 0) {
+    changed = true
+    const without = converted.filter((account) => !account.administrator && account.email === null).length
+    console.log(`accounts.json converted from user names to e-mail addresses: ${converted.length} accounts, ${without} without an address`)
+  }
+
   let adminPasswordReplaced = false
   if (password) {
-    if ([...password].length < PASSWORD_MIN || [...password].length > PASSWORD_MAX) {
-      throw new Error(`ELSA_ADMIN_PASSWORD must be ${PASSWORD_MIN} to ${PASSWORD_MAX} characters`)
-    }
     // The same password again is no reset: every restart with the variable left set would
     // otherwise log the administrator out.
     const unchanged = admin !== undefined && isCurrent(admin.passwordHash) && (await verifyPassword(password, admin.passwordHash))
@@ -200,27 +253,60 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
         admin.passwordHash = passwordHash
         adminPasswordReplaced = true
       } else {
-        admin = { id: newId(), name: 'Administrator', login: ADMIN_LOGIN, passwordHash, active: true, administrator: true, createdAt: new Date().toISOString() }
+        // Its address is given below: a first start without ELSA_ADMIN_EMAIL was refused above.
+        admin = { id: newId(), name: 'Administrator', email: null, passwordHash, active: true, administrator: true, createdAt: new Date().toISOString() }
         accounts.push(admin)
       }
-      await save()
+      changed = true
     }
     console.log('administrator password set from ELSA_ADMIN_PASSWORD; remove the variable')
-  } else if (!admin) {
-    throw new Error('ELSA_ADMIN_PASSWORD is not set and there is no administrator: set it for the first start (docs/deployment.md)')
+  }
+  // Given at a first start and to a converted administrator; replaced when it is another --
+  // the recovery of a forgotten address (38.3).
+  if (admin && adminEmail && admin.email !== adminEmail) {
+    admin.email = adminEmail
+    changed = true
+    console.log('administrator e-mail address set from ELSA_ADMIN_EMAIL; remove the variable')
+  }
+  if (changed) await save()
+
+  // Said at every start until the administrator ends it, by id and never by name (38.4, 38.6).
+  for (const account of accounts) {
+    if (!account.email) console.log(`account ${account.id} has no e-mail address: give it one at /admin/accounts`)
+  }
+  for (const [index, account] of accounts.entries()) {
+    for (const other of accounts.slice(index + 1)) {
+      if (nameKey(other.name) === nameKey(account.name)) console.log(`accounts ${account.id} and ${other.id} share a name: give one of them another`)
+    }
   }
 
   const byId = (id: string): Account | undefined => accounts.find((account) => account.id === id)
-  const byLogin = (login: string): Account | undefined => accounts.find((account) => account.login === login)
+  const byEmail = (email: unknown): Account | undefined => {
+    const address = normaliseEmail(email)
+    return address === null ? undefined : accounts.find((account) => account.email === address)
+  }
+  /**
+   * Refuses a name or an address that an account other than `self` has (38.1, 38.6). A name
+   * that is `self`'s own by its key is kept, never refused, even where a converted store left
+   * another account with it.
+   */
+  const refuseTaken = (self: Account | undefined, name: string | undefined, email: string | undefined): void => {
+    if (name !== undefined && (!self || nameKey(name) !== nameKey(self.name)) && accounts.some((other) => nameKey(other.name) === nameKey(name))) {
+      throw new AccountError(422, 'name', 'name-taken')
+    }
+    if (email !== undefined && accounts.some((other) => other !== self && other.email === email)) {
+      throw new AccountError(422, 'email', 'email-taken')
+    }
+  }
 
   return {
     adminPasswordReplaced,
 
-    async authenticate(login, password) {
-      const account = byLogin(normaliseLogin(login) ?? '')
+    async authenticate(email, password) {
+      const account = byEmail(email)
       const matches = await verifyPassword(password, account?.passwordHash ?? DUMMY_HASH)
       if (!account) {
-        console.log('login failed for an unknown name')
+        console.log('login failed for an unknown address')
         return null
       }
       if (!matches || !account.active) {
@@ -239,21 +325,25 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
     },
 
     get: (id) => byId(id) ?? null,
-    byLogin: (login) => byLogin(normaliseLogin(login) ?? '') ?? null,
+    byEmail: (email) => byEmail(email) ?? null,
     all: () => [...accounts],
-    listActive: () => accounts.filter((account) => account.active).map(({ id, name, login }) => ({ id, name, login })),
+    listActive: () => accounts.filter((account) => account.active).map(({ id, name }) => ({ id, name })),
 
-    async create(by, name, login, password) {
+    async create(by, name, email, password) {
       if (!by.administrator) throw new AccountError(403, null, 'forbidden')
       const checkedName = checkName(name)
-      const checkedLogin = normaliseLogin(login)
-      if (!checkedLogin) throw new AccountError(422, 'login', 'login-invalid')
-      if (byLogin(checkedLogin)) throw new AccountError(422, 'login', 'login-taken')
+      refuseTaken(undefined, checkedName, undefined)
+      const address = normaliseEmail(email)
+      if (!address) throw new AccountError(422, 'email', 'email-invalid')
+      refuseTaken(undefined, undefined, address)
+      const passwordHash = await hashPassword(checkPassword(password))
+      // Again after scrypt: a second creation sent at once passed the checks above too.
+      refuseTaken(undefined, checkedName, address)
       const account: Account = {
         id: newId(),
         name: checkedName,
-        login: checkedLogin,
-        passwordHash: await hashPassword(checkPassword(password)),
+        email: address,
+        passwordHash,
         active: true,
         administrator: false,
         createdAt: new Date().toISOString(),
@@ -271,6 +361,16 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
       if (!account) throw new AccountError(404, null, 'not-found')
       // Every field is checked before any is applied, so a refused field changes nothing.
       const name = change.name === undefined ? undefined : checkName(change.name)
+      refuseTaken(account, name, undefined)
+      let email: string | undefined
+      if (change.email !== undefined) {
+        // The administrator alone changes an address, the holder's own included (38.5).
+        if (!by.administrator) throw new AccountError(403, 'email', 'forbidden')
+        const address = normaliseEmail(change.email)
+        if (!address) throw new AccountError(422, 'email', 'email-invalid')
+        refuseTaken(account, undefined, address)
+        email = address
+      }
       if (change.active !== undefined) {
         if (typeof change.active !== 'boolean') throw new AccountError(422, 'active', 'malformed')
         if (!by.administrator) throw new AccountError(403, 'active', 'forbidden')
@@ -289,14 +389,17 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
         }
         passwordHash = await hashPassword(password)
       }
+      // Again after scrypt: another change may have taken the name or the address meanwhile.
+      refuseTaken(account, name, email)
       // Only the fields this change names, and only after the awaits: a copy taken before
       // scrypt ran would write back what another request changed meanwhile, a deactivation too.
       if (name !== undefined) account.name = name
+      if (email !== undefined) account.email = email
       if (change.active !== undefined) account.active = change.active
       if (passwordHash !== undefined) account.passwordHash = passwordHash
       await save()
-      // Fixed words, never the caller's keys: a request's text does not reach the log (20.8).
-      const what = (['name', 'active', 'password'] as const).filter((key) => change[key] !== undefined)
+      // Fixed words, never the caller's keys or values: a request's text does not reach the log (20.8, 38.8).
+      const what = (['name', 'email', 'active', 'password'] as const).filter((key) => change[key] !== undefined)
       console.log(`account ${account.id} changed (${what.join(', ')}) by account ${by.id} at ${new Date().toISOString()}`)
       return account
     },

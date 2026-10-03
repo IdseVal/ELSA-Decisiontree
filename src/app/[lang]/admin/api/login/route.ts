@@ -1,11 +1,12 @@
 /**
- * `POST /admin/api/login` (docs/specs/application.md 20.4, 20.6, 20.7, 22.1): `{ login,
- * password }` answers 204 and the session cookie, 401 for a wrong name or password, 429
- * while locked -- 401 and 429 with the same body, so the answer never says whether a name
- * exists. The CSRF check applies here too, against login CSRF.
+ * `POST /admin/api/login` (docs/specs/application.md 20.4, 20.6, 20.7, 22.1, 38.2): `{ email,
+ * password }` answers 204 and the session cookie, 401 for a wrong address or password, 429
+ * while locked -- 401 and 429 with the same body, so the answer never says whether an address
+ * has an account. The CSRF check applies here too, against login CSRF.
  */
 import { bodyOf, csrfRefusal, json, refuse } from '../../../../../admin/authenticated.ts'
 import { servedOverHttps, store } from '../../../../../config.ts'
+import { loginKey } from '../../../../../store/login-limit.ts'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,18 +16,19 @@ const REFUSED = { error: 'refused', field: null }
 export async function POST(request: Request): Promise<Response> {
   if (csrfRefusal(request)) return refuse(403, 'forbidden')
   const body = await bodyOf(request)
-  const login = typeof body?.login === 'string' ? body.login : ''
+  // A body that still sends `login` sends no address, and is answered as one that names no account (38.2).
+  const email = typeof body?.email === 'string' ? body.email : ''
   const password = typeof body?.password === 'string' ? body.password : ''
   const { accounts, sessions, loginLimit } = await store()
 
-  const key = login.trim().toLowerCase()
+  const key = loginKey(email)
   // Counted from here, so simultaneous guesses cannot all pass before the first one fails (20.7).
   const verdict = loginLimit.begin(key)
   if (verdict.locked) return json(REFUSED, 429, { 'Retry-After': String(verdict.retryAfter) })
 
   let account
   try {
-    account = await accounts.authenticate(login, password)
+    account = await accounts.authenticate(email, password)
   } catch (error) {
     loginLimit.fail(key)
     throw error
@@ -35,8 +37,9 @@ export async function POST(request: Request): Promise<Response> {
     const lock = loginLimit.fail(key)
     if (lock === 'route') console.log('login route locked for one minute: more than 60 failures in a minute')
     else if (lock === 'name') {
-      const named = accounts.byLogin(login)
-      console.log(`login locked for 15 minutes for ${named ? `account ${named.id}` : 'an unknown name'}`)
+      // By id or not at all: the address typed never reaches the log (38.8).
+      const named = accounts.byEmail(email)
+      console.log(`login locked for 15 minutes for ${named ? `account ${named.id}` : 'an unknown address'}`)
     }
     return json(REFUSED, 401)
   }
