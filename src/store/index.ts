@@ -146,7 +146,8 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
  * `elsa-tree/4` file is converted in the copy and stored as it was validated, and the source
  * folder is never written (36.4). One whose converted copy fails is refused with that copy's
  * violations, so the command names what to repair (12.7.1 step 8). Everything the loader
- * reads is copied as it stands, so the copy is refused for whatever the source would be.
+ * reads is copied as it stands -- `tree.json` when it is a file, the one way the loader reads
+ * it -- so the copy is refused for whatever the source would be.
  *
  * `creator` is an account id: the administrator's at the seed (17.4). **[#135]** A Tree a
  * #134 store seeded before there were accounts has `null`, which `openStore` replaces.
@@ -166,8 +167,9 @@ export async function importTree(folder: string, treesDir: string, creator: stri
   await mkdir(copy, { recursive: true })
   try {
     // Copied, not rewritten, so the published copy and the draft are the file's own bytes
-    // (15.3) -- unless it is elsa-tree/4, which the conversion rewrites in the copy.
-    if (await exists(path.join(/* turbopackIgnore: true */ source, 'tree.json'))) {
+    // (15.3) -- unless it is elsa-tree/4, which the conversion rewrites in the copy. A folder
+    // of that name is not copied: the loader reads it as no `tree.json`, as it reads the copy.
+    if (await isFile(path.join(/* turbopackIgnore: true */ source, 'tree.json'))) {
       await cp(path.join(/* turbopackIgnore: true */ source, 'tree.json'), path.join(/* turbopackIgnore: true */ copy, 'tree.json'), {
         preserveTimestamps: true,
       })

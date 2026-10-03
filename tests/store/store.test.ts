@@ -296,6 +296,11 @@ describe('importTree (17.4)', () => {
     // What the loader reads beside the file is copied as it stands, so a file named images is refused too.
     await expect(importTree(path.join(fixtures, 'invalid', 'v-dir'), treesDir, null)).rejects.toThrow('images must be a folder')
     await expect(importTree(path.join(fixtures, 'invalid', 'v-json'), treesDir, null)).rejects.toThrow('V-JSON')
+    // A folder named tree.json is no file to copy: the copy lacks it, as the loader finds the source.
+    const hollow = path.join(await seedOf([path.join(fixtures, 'carousel'), 'carousel']), 'carousel')
+    await rm(path.join(hollow, 'tree.json'))
+    await mkdir(path.join(hollow, 'tree.json'))
+    await expect(importTree(hollow, treesDir, null)).rejects.toThrow('carousel  tree.json  -  V-DIR  tree.json is missing')
     expect(await readdir(treesDir)).toEqual([])
   })
 
