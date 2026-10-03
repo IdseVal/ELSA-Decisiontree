@@ -63,9 +63,9 @@
 > it stands, and 10.22 records the one line its guarantee now lets be cut.
 >
 > **Revision of 2026-10-03 (issue #202).** The owner wrote, in issue #202, three ways
-> between pages that are missing: from the editor back to the overview at `/admin`; between
-> the public pages and `/admin`, both ways; and from the editor of a hidden Tree to a
-> preview of it as its readers will see it, and back. Every passage that changed is marked
+> between pages that are missing: from the editor back to "the top level interface";
+> between the public pages and `/admin`, both ways; and from the editor of a hidden Tree to
+> a preview of it as its readers will see it, and back. Every passage that changed is marked
 > **[#202]** and quotes or cites #202; nothing else in this document was touched. The
 > owner's words are held whole in section 3.4. How they became issues is
 > `docs/adrs/ADR-202-navigation-round.md`; the work is issues #203 to #206, and what the
@@ -700,37 +700,42 @@ owner's words leave a choice:
   > tree, how the end users will see it. Place the button top left (not in the header
   > bar). And from that view, in the same place a button that brings the user back to the
   > editor interface where he came from"
-  - **A way back from the editor to the creators' overview.** "The top level interface"
-    is read as the creators' overview at `/admin`, the page the owner's #131 calls "the
-    editing page, this is the same front page with the overview of datastructures"
-    (above). PROPOSED (the owner gave no place): the round arrow the public Node page has
-    carried at the left of its chrome bar since #163, in the same place in the editor's
-    bar, before the Tree's logo, with the same look and the same name ("All decision
-    trees"), leading to `/admin` (#203).
-  - **"Editor" on the public pages, and a way back from `/admin`.** The public overview and
-    every Node page carry, at the top right of the chrome bar, a button that says "Editor"
-    and leads to `/admin`. One address serves both of the owner's cases: `/admin` shows the
+  - **A way back from the editor to the top level.** PROPOSED: "the top level interface"
+    is the creators' overview at `/admin`, the first page of the admin area and the one
+    that lists the Trees a creator edits -- "the same front page with the overview of
+    datastructures" (#131, above); and, the owner having given no place, the button is the
+    round arrow the public Node page has carried at the left of its chrome bar since #163,
+    in the same place in the editor's bar, before the Tree's logo, with the same look and
+    the same name ("All decision trees"), leading to `/admin` (#203).
+  - **"Editor" on the public pages, and a way back from `/admin`.** The regular window
+    carries at the top right a button that says "Editor" and leads to `/admin`, and the
+    page at `/admin` carries, in the same place, a button that leads back to the regular
+    page. One address serves both of the owner's cases for "Editor": `/admin` shows the
     login page to a visitor without a session and the creators' overview to one with a
     session (above), so the public pages need not know who is logged in -- and must not,
     since the session exists on the admin routes and nowhere else (section 9) and no
-    public route reads or sets a cookie (`docs/specs/application.md` 20.5). The page at
-    `/admin` carries, in the same place, a button that leads back to the public pages.
-    PROPOSED (the owner's words leave these open): "the regular window" is the overview
-    and every Node page, not the 404 page; "Editor" is the same word in Dutch, as "Account" is
-    (#176); "the /Admin page" is the page at `/admin` in both its states -- the login page
-    and the creators' overview -- and no other admin page; the button back says "Website"
-    in English and in Dutch and leads to the overview, since `/admin` cannot know which
-    public page the visitor came from; each button is the last control at the right end
-    of its bar (#204).
+    public route reads or sets a cookie (`docs/specs/application.md` 20.5). PROPOSED (the
+    owner's words leave these open): "the regular window" is the overview and every Node
+    page, not the 404 page, which also answers admin addresses and has its own button to
+    the overview; "Editor" is the same word in Dutch, as "Account" is (#176); "the /Admin
+    page" is the page at `/admin` in both its states -- the login page and the creators'
+    overview -- and no other admin page; the button back says "Website" in English and in
+    Dutch and leads to the overview, the top of the public pages, rather than to the page
+    the visitor came from, since `/admin` is also opened from a bookmark or a typed
+    address; each button is the last control at the right end of its bar, in the look of
+    that bar's own controls; and below 480 pixels wide a Node page's bar gives up the
+    current language's pill for "Editor", as the admin area's bars have given it up since
+    #135, since "Editor" does not fit that bar at 320 pixels wide beside it (measured on
+    2026-10-03, `docs/adrs/ADR-202-navigation-round.md`; #204).
   - **A Preview of a hidden Tree.** In the editor of a Tree that is not published, a button
     at the top left, under the chrome bar and not in it, opens a preview of the Tree as its
     readers will see it once it is published; in the preview, in the same place, a button
     leads back to the editor. PROPOSED, for the Architect on #205 to confirm or replace:
     the preview is a page of the admin area, behind the login, for an account with a role
     on the Tree, and so never a public route, where section 9 allows a hidden Tree
-    nowhere; it opens in the same tab; the button is offered on a hidden Tree only, since
-    a published Tree's public page is that view and the settings panel links to it; "where
-    he came from" is the step and the language the preview was opened from; the buttons
+    nowhere; it opens in the same tab; the button is offered on a hidden Tree only, as the
+    owner's "In an unpublished tree" reads; "where he came from" is the step and the
+    language the preview was opened from; the buttons
     say "Preview" ("Voorbeeld") and "Back to the editor" ("Terug naar de editor"). Its
     address, what it shows of a draft that is not valid yet, its chrome bar and where its
     buttons stand under the no-scroll rule are 10.41, the Architect's on #205; #206
@@ -761,8 +766,9 @@ the Tree format, the JSON-LD or `llms.txt` if 10.40 puts the names there; 3.4 ab
 the overview, one line cut where its room ends, at the guaranteed size too (10.22), and put
 in none of the three, so the Tree format, the JSON-LD and `llms.txt`
 stay as they were; 10.40; **[#202]** and, of the pages alone, another since 2026-10-03,
-owner, #202: a button that says "Editor" at the top right of the overview and of every
-Node page, leading to `/admin`; the `[#202]` bullet above).
+owner, #202: a button that says "Editor" at the top right of the regular window, leading
+to `/admin` -- PROPOSED: the overview and every Node page, a Node page's bar giving up
+the current language's pill for it below 480 pixels wide; the `[#202]` bullet above).
 The overview page is a new page in front of them; where the
 round must touch existing code (the loader opening several Trees, the sitemap listing
 several) the change is additive. The issue's own OUT OF SCOPE is "changes to the existing
