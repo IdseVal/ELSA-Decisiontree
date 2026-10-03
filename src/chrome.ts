@@ -216,22 +216,20 @@ export interface Chrome {
   deleteTree: string
   unpublishFirst: string
   confirmDeleteTree: string
-  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button, the side-bubble `+`, and the picker's way to a new Node. */
+  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button and the side-bubble `+`. */
   treeEndsHere: string
   newSideBubble: string
-  createNew: string
-  /** **[#139]** The link menu of an Answer or Option button (30.6, 30.7): its name and its two actions. */
-  linkMenu: string
-  changeTarget: string
-  removeLink: string
-  /** **[#139]** The step menu on the rim (30.8): its name, its two actions, and the confirmation of a delete. */
-  stepMenu: string
+  /**
+   * **[#178]** The step's two buttons beside the up arrow (30.8, amended 2026-10-02): the red
+   * cross's name and hover text, the words of the button that removes the ending, and the
+   * confirmation of a delete.
+   */
   deleteStep: string
   removeEnd: string
   /** The confirmation named with the step's title: a function, so a language may order the sentence its own way (3.2). */
   confirmDelete: (title: string) => string
-  /** **[#139]** The picker (30.6): its heading. */
-  pickTarget: string
+  /** **[#178]** The confirmation of a step without a title yet in the page's language. */
+  confirmDeleteUntitled: string
   /** **[#140]** The editor's pictures (31): the pickers, the attach Sheet, the enlarged view's four controls, the picker's two refusals. */
   addPicture: string
   attach: string
@@ -492,15 +490,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteTree: 'Delete this tree and its pictures for good? This cannot be undone.',
     treeEndsHere: 'Tree ends here',
     newSideBubble: 'New side bubble',
-    createNew: 'Create a new one',
-    linkMenu: 'This link',
-    changeTarget: 'Lead somewhere else',
-    removeLink: 'Remove this link',
-    stepMenu: 'This step',
     deleteStep: 'Delete this step',
-    removeEnd: 'Does not end here after all',
+    removeEnd: 'Tree does not end here after all',
     confirmDelete: (title) => `Delete "${title}"? What it led to stays.`,
-    pickTarget: 'Which step?',
+    confirmDeleteUntitled: 'Delete this step? It has no title yet. What it led to stays.',
     addPicture: 'Add a picture',
     attach: 'Attach',
     makeMain: 'Make main picture',
@@ -726,15 +719,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteTree: 'Deze boom en zijn afbeeldingen voorgoed verwijderen? Dit kan niet ongedaan worden.',
     treeEndsHere: 'Boom eindigt hier',
     newSideBubble: 'Nieuwe zijbubbel',
-    createNew: 'Een nieuwe maken',
-    linkMenu: 'Deze koppeling',
-    changeTarget: 'Ergens anders heen',
-    removeLink: 'Deze koppeling verwijderen',
-    stepMenu: 'Deze stap',
     deleteStep: 'Deze stap verwijderen',
-    removeEnd: 'Eindigt hier toch niet',
+    removeEnd: 'Boom eindigt hier toch niet',
     confirmDelete: (title) => `"${title}" verwijderen? Waar die heen leidde blijft.`,
-    pickTarget: 'Welke stap?',
+    confirmDeleteUntitled: 'Deze stap verwijderen? Hij heeft nog geen titel. Waar hij heen leidde blijft.',
     addPicture: 'Afbeelding toevoegen',
     attach: 'Toevoegen',
     makeMain: 'Hoofdafbeelding maken',

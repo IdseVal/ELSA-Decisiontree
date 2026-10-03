@@ -85,15 +85,16 @@ export default async function EditorPage({ params }: Props) {
     asides.push({ node: target, href: editorLinks().node(at), address: at })
   }
   const page: NodePage<DraftNode> = { address, centre, neighbours: { placed: [], asides } }
-  // **[#139]** The structure slots' needs (30): the picker's index from the title index, never
-  // a Node read (30.6), and the address of every Node the page carries.
-  const index = draft.nodeIds().map((id) => ({ id, title: draft.getTitle(id)?.[address.lang] ?? '' }))
+  // **[#139]** The structure slots' needs (30): the address of every Node the page carries.
   const addresses = Object.fromEntries([centre, ...centre.chain, ...asides].map((entry) => [entry.node.id, entry.address]))
   // **[#177]** Which asides another Node leads to as well, from the index's ids, never a Node read (30.7, 34.7).
   const centreId = centre.node.id
   const options = centre.node.options.map((option) => option.target)
   const shared = options.filter((target) => draft.referrers(target).some((id) => id !== centreId))
-  const edit = editMode(address, draft.manifest.languages, { index, addresses, root: draft.manifest.root, centre: centreId, options, shared })
+  // **[#178]** The asides' titles, which their delete names, from the Nodes read above: the
+  // picker's index of every Node of the draft is gone with the picker (30.6, amended).
+  const titles = Object.fromEntries(asides.map((aside) => [aside.node.id, aside.node.title[address.lang] ?? '']))
+  const edit = editMode(address, draft.manifest.languages, { addresses, root: draft.manifest.root, centre: centreId, options, shared, titles })
   const entry = drafts.entry(session.account, treeId)
   const nodes = Object.fromEntries([centre.node, ...centre.chain.map((aside) => aside.node), ...asides.map((aside) => aside.node)].map((node) => [node.id, node]))
   const ui = chrome(address.lang)

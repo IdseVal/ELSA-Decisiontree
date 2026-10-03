@@ -2832,6 +2832,9 @@ fieldset:disabled .admin-submit {
  * off the side-bubble buttons. Where the browser has no hyphenation dictionary for the page's
  * language, a title of long words can take six lines, and the box grows to 108 with its button
  * (10.3's known cost).
+ *
+ * **[#178]** (2026-10-02) The `...` is gone from every Answer and Option button (30.6, amended);
+ * the boxes keep the lines above.
  */
 .editor-text,
 .editor-rendered {
@@ -3278,7 +3281,7 @@ fieldset:disabled .admin-submit {
   justify-content: space-between;
 }
 
-/* --- the structure (30): the row's buttons, the side-bubble +, the link and step menus --- */
+/* --- the structure (30): the row's buttons, the side-bubble +, the step's buttons ------- */
 
 /*
  * The buttons of 30.1 that create: the Answer button's shape, outlined in `accent-secondary`
@@ -3584,76 +3587,165 @@ fieldset:disabled .admin-submit {
   display: none;
 }
 
-/* The link menus lie on the buttons' outer ends and take no room in the row. */
-.answers:has(> .link-menu) {
-  position: relative;
+/*
+ * **[#178]** The step's two buttons (30.8, amended 2026-10-02), in place of the step menu: in the
+ * band above the Bubble, beside the up arrow, out of the Bubble's box. "Tree does not end here
+ * after all" stands left of the arrow; the red cross right of it, where the step menu's `...`
+ * stood -- and from 1000 pixels, where the floating controls of 33.1 carry their words into the
+ * band right of the arrow (46.5 pixels left there at 1000 x 700 in Dutch), left of it, between
+ * the arrow and the ending's button. Placed from the Bubble's padding box, as the arrow is.
+ *
+ * On the band's line: the arrow's middle where the arrow stands above the outline, 32 pixels
+ * tall, as the floating controls are; below 640 pixels of height, where the arrow stands on the
+ * outline, the band's own middle, 24 tall in its 26 and 32 in a phone's 40 (10.5).
+ */
+.bubble {
+  --step-size: 32px;
+  --step-middle: calc(-2px - var(--up-clearance) - var(--up-size) / 2);
+  --step-gap: 8px;
+  /* From the arrow's edge to the window's left one, 8 pixels kept clear at each end. */
+  --step-room: calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap));
 }
 
-.link-menu {
+.step-delete,
+.step-end {
   position: absolute;
-  z-index: 2;
-  width: 24px;
-  height: 24px;
+  top: var(--step-middle);
+  z-index: 1;
+  translate: 0 -50%;
 }
 
-.link-menu--yes {
-  top: calc(50% - 12px);
-  left: 14px;
-}
-
-.link-menu--no {
-  top: calc(50% - 12px);
-  right: 14px;
-}
-
-/* An Option's, in the empty corner the button's round outer end leaves. */
-.options > li > .link-menu--option {
-  display: var(--fan, block);
-  top: 0;
-}
-
-.options > li[data-side="right"] > .link-menu--option {
-  right: 0;
-}
-
-.options > li[data-side="left"] > .link-menu--option {
-  left: 0;
-}
-
-/* The `...` of a link menu and of the step menu: one 24-pixel round control. */
-.link-menu > .sheet-open,
-.step-menu > .sheet-open {
+/* The red cross: outlined in `danger` while it only asks, filled under the pointer and while it asks, as `deleteSideBubble` is (30.7). */
+.step-delete {
+  left: calc(50% + var(--up-size) / 2 + var(--step-gap));
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: var(--step-size);
+  height: var(--step-size);
   padding: 0;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--danger-read);
   border-radius: 50%;
+  color: var(--danger-read);
   background: var(--elsa-surface);
-  color: var(--elsa-text-muted);
-  font-size: 14px;
-  /* Taller than the glyph's content area, so the word holds nothing larger than itself (10.6). */
-  line-height: 20px;
-  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease);
 }
 
-.link-menu > .sheet-open:hover,
-.step-menu > .sheet-open:hover {
-  color: var(--elsa-text);
-  border-color: var(--accent-secondary-read);
+.step-delete svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
-/* The step menu (30.8): in the half of the band right of the up arrow, as the badge has the left half. */
-.step-menu {
+.step-delete:hover:enabled,
+.step-delete[aria-expanded="true"] {
+  color: var(--elsa-background);
+  background: var(--elsa-danger);
+}
+
+.step-delete:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/*
+ * "Tree does not end here after all": outlined in `accent-secondary` as `treeEndsHere` is, whose
+ * ending it takes back (30.1), set in the band's small type. Two lines where its room is narrower
+ * than its words: a phone's band holds them.
+ */
+.step-end {
+  right: calc(50% + var(--up-size) / 2 + var(--step-gap));
+  width: max-content;
+  max-width: var(--step-room);
+}
+
+.step-end > button {
+  display: block;
+  width: 100%;
+  min-height: var(--step-size);
+  padding: 7px 14px;
+  border: 1px solid var(--elsa-accent-secondary);
+  border-radius: calc(var(--step-size) / 2);
+  color: var(--accent-secondary-read);
+  background: var(--elsa-surface);
+  font: inherit;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 600;
+  text-align: center;
+  text-wrap: balance;
+  cursor: pointer;
+  transition: box-shadow 160ms var(--ease);
+}
+
+.step-end > button:hover:enabled {
+  box-shadow: 0 0 0 2px var(--elsa-background), 0 0 0 3px var(--elsa-accent-secondary);
+}
+
+.step-end > button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* A refusal -- a collaborator removed the ending first -- under the button, over the Bubble. */
+.step-end-error {
   position: absolute;
-  top: 2px;
-  left: calc(50% + var(--up-size) / 2);
+  top: calc(100% + 4px);
   right: 0;
-  z-index: 1;
+  width: max-content;
+  max-width: var(--step-room);
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--elsa-surface);
+  font-size: var(--small);
+  line-height: var(--small-line);
+}
+
+/* From 1000 pixels the cross stands left of the arrow, and the ending's button left of the cross. */
+@media (min-width: 1000px) {
+  .step-delete {
+    left: auto;
+    right: calc(50% + var(--up-size) / 2 + var(--step-gap));
+  }
+
+  .step-delete ~ .step-end {
+    right: calc(50% + var(--up-size) / 2 + 2 * var(--step-gap) + var(--step-size));
+    max-width: calc(var(--step-room) - var(--step-gap) - var(--step-size));
+  }
+}
+
+/*
+ * The question the cross asks (30.8, amended), hung under the step's band over the Sheets' veil,
+ * in the middle of the Bubble: in place, at the step it would delete. Inside the Bubble's box,
+ * so it is no element's overflow (10.6).
+ */
+.step-confirm {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  z-index: 10;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  max-width: min(400px, 100%);
+  margin: 0 auto;
+  padding: 16px 20px;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
+  font-size: var(--small);
+  line-height: var(--small-line);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.step-confirm .structure-actions {
   justify-content: center;
-  height: 24px;
 }
 
 /*
@@ -3756,7 +3848,7 @@ fieldset:disabled .admin-submit {
   justify-content: center;
 }
 
-/* The Sheets' pages: the outcomes, the picker, the confirmations. */
+/* The Sheets' pages: the outcomes, the confirmations. */
 .structure-form {
   display: flex;
   flex-direction: column;
@@ -3768,18 +3860,12 @@ fieldset:disabled .admin-submit {
   line-height: var(--small-line);
 }
 
-.structure-form h2,
-.structure-picker h2 {
+.structure-form h2 {
   margin: 0;
   font-family: var(--elsa-font-heading);
   font-size: 18px;
   line-height: 24px;
   overflow-wrap: anywhere;
-}
-
-.structure-id {
-  margin: 0;
-  color: var(--elsa-text-muted);
 }
 
 .structure-confirm {
@@ -3824,69 +3910,44 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-background);
 }
 
-.structure-link {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.structure-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 0;
-}
-
-/* The picker's list: a carrier of `data-scroll-box` (26.3), so a long draft never grows the panel past the page. */
-.structure-picker-list {
-  max-height: min(320px, 50vh);
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  list-style: none;
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-}
-
-.structure-picker-list li + li {
-  border-top: 1px solid var(--rule-soft);
-}
-
-.structure-pick {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 4px 10px;
-  border: 0;
-  background: transparent;
-  color: var(--elsa-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.structure-pick:hover {
-  background: var(--wash);
-}
-
-.structure-pick-title {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.structure-pick-id {
-  flex: none;
-  color: var(--elsa-text-muted);
-}
-
 /* Below 480 pixels the row's buttons show their words alone, as the Answer buttons do (10.3). */
 @media (max-width: 479px) {
   .structure,
   .structure-end > .sheet-open {
     padding: 6px 8px;
     font-size: 16px;
+  }
+}
+
+/*
+ * **[#178]** Below 640 pixels of height the step's buttons stand in the middle of the band, which
+ * the arrow's middle on the outline leaves 26 tall: 24 there, the ending's words on one line of
+ * 11 pixels; and in a phone's band of 40, 32, the words on two lines of 11 where they need them.
+ */
+@media (max-height: 639px) {
+  .bubble {
+    --step-size: 24px;
+    --step-middle: calc(-2px - var(--up-row) / 2);
+  }
+
+  .step-end > button {
+    padding: 4px 10px;
+    font-size: 11px;
+    line-height: 14px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 479px) {
+  .bubble {
+    --step-size: 32px;
+  }
+
+  .step-end > button {
+    padding: 2px 10px;
+    font-size: 11px;
+    line-height: 14px;
+    white-space: normal;
   }
 }
 

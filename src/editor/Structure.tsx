@@ -4,29 +4,24 @@
  * The structure editing (docs/specs/application.md 30; ADR-133-structure-editing), as the
  * client leaves of the structure slots: `AnswerAdd` is the `+ Yes` / `+ No` button of the
  * Answer row (30.1, 30.2); `EndForm` the page of the `treeEndsHere` Sheet, the four outcomes
- * and `confirm` (30.3); `LinkMenuForm` the page of an Answer's or an Option's `...` Sheet,
- * `changeTarget` with the picker and `removeLink` (30.6, 30.7). **[#177]** `SideAdd` is the
- * side-bubble `+` of the fan, which creates at one click (30.4), and `SideDelete` the
- * `deleteSideBubble` button at the bottom of an opened side bubble (30.7; ADR-177-side-bubble-
- * editing). The Sheets themselves are built server side by the slots, so a client component
- * takes strings and ids and reaches the queue through the editor's context (34.4).
+ * and `confirm` (30.3). **[#177]** `SideAdd` is the side-bubble `+` of the fan, which creates
+ * at one click (30.4), and `SideDelete` the `deleteSideBubble` button at the bottom of an
+ * opened side bubble (30.7; ADR-177-side-bubble-editing). **[#178]** The link menu of an Answer
+ * or an Option button and its picker are gone: the editor no longer re-points a button at an
+ * existing step (30.6, amended; ADR-178-step-buttons). The Sheets themselves are built server
+ * side by the slots, so a client component takes strings and ids and reaches the queue through
+ * the editor's context (34.4).
  *
  * A creation goes through the queue as every write does and, once applied, navigates to the
  * Node it made: `followHref` of a new Answer target, the aside's address under this page for
- * a new Option -- a plain navigation, never the slide (30.2, 34.5). A re-pointing or a removal
- * repaints the page from the response (29.7).
+ * a new Option -- a plain navigation, never the slide (30.2, 34.5). An end repaints the page
+ * from the response (29.7).
  *
  * Imports of `src/`: types, and nothing else (34.4).
  */
-import { useEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react'
 import { useEditor } from './Editor.tsx'
 import type { Answer, Change, Refusal, WriteResponse } from './writes.ts'
-
-/** A Node of the draft as the picker lists it (30.6): its id and its title in the page's language. */
-export interface Pickable {
-  id: string
-  title: string
-}
 
 /** One choice of the outcome Sheet: the outcome and its badge text (30.3). */
 export interface OutcomeChoice {
@@ -36,15 +31,7 @@ export interface OutcomeChoice {
 
 /** The chrome words the structure controls say; strings, because a client component takes no module. */
 export interface StructureWords {
-  yes: string
-  no: string
   confirm: string
-  cancel: string
-  createNew: string
-  changeTarget: string
-  removeLink: string
-  pickTarget: string
-  missingText: string
 }
 
 /**
@@ -199,130 +186,6 @@ export function EndForm({ nodeId, outcomes, heading, words }: { nodeId: string; 
         {words.confirm}
       </button>
     </form>
-  )
-}
-
-/**
- * The picker (30.6): every Node of the draft by its title in the page's language, in file
- * order, its id in `text-muted` beside it, the current Node excluded by the slot. Ids and
- * titles from the index, never Nodes, in a box that scrolls where the list is long (26.3).
- */
-function Picker({ nodes, words, head, onPick }: { nodes: Pickable[]; words: StructureWords; head?: ReactNode; onPick: (node: Pickable, button: HTMLElement) => void }) {
-  const api = useEditor()
-  return (
-    <div className="structure-picker">
-      <h2>{words.pickTarget}</h2>
-      {head}
-      <ul className="structure-picker-list" data-scroll-box="">
-        {nodes.map((node) => (
-          <li key={node.id}>
-            <button type="button" className="structure-pick" disabled={api.readOnly} onClick={(event) => onPick(node, event.currentTarget)}>
-              <span className="structure-pick-title">{node.title || words.missingText}</span> <span className="structure-pick-id">{node.id}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-/** Which Link a link menu is for (30.6): an Answer by its key, an Option by its target. */
-export type MenuLink = { kind: 'yes' | 'no' } | { kind: 'option'; target: string; title: string }
-
-/**
- * The page of an Answer's or an Option's `...` Sheet (30.6, 30.7): `changeTarget` opens
- * the picker -- for an Answer with `createNew` above it -- and `removeLink` removes the
- * Answer or the Option, the target staying in the draft. A new target of the wrong kind is
- * stored and reported by the store's advisory rule, at the button and in the to-do.
- */
-export function LinkMenuForm({ nodeId, lang, link, here, nodes, words }: { nodeId: string; lang: string; link: MenuLink; here: string; nodes: Pickable[]; words: StructureWords }) {
-  const api = useEditor()
-  const [picking, setPicking] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const root = useRef<HTMLDivElement>(null)
-  useResetOnClose(root, () => {
-    setPicking(false)
-    setError(null)
-  })
-
-  const send = (change: Change, form: Element | null, then?: (response: WriteResponse) => void): void => {
-    if (busy || api.readOnly) return
-    setBusy(true)
-    setError(null)
-    api.operate(nodeId, change, undefined, (answer) => {
-      setBusy(false)
-      if (!accepted(answer)) {
-        setError(refusalText(answer))
-        return
-      }
-      closeSheetAround(form)
-      setPicking(false)
-      then?.(answer.body)
-    })
-  }
-
-  const remove = (form: Element | null): void => {
-    send(link.kind === 'option' ? { op: 'remove-option', target: link.target } : { op: 'remove-answer', answer: link.kind }, form)
-  }
-
-  const rePoint = (target: Pickable, form: Element | null): void => {
-    if (link.kind !== 'option') {
-      send({ op: 'set-answer', answer: link.kind, target: target.id }, form)
-      return
-    }
-    // An Option is re-pointed by removing it and adding one to the new target with the same
-    // title (30.6): two writes, in order, through the one queue. The removal is sent first
-    // and its answer is not waited for: the addition is queued behind it (29.2).
-    if (busy || api.readOnly) return
-    api.operate(nodeId, { op: 'remove-option', target: link.target })
-    send({ op: 'add-option', target: target.id, title: link.title === '' ? {} : { [lang]: link.title } }, form)
-  }
-
-  const createNew = (form: Element | null): void => {
-    if (link.kind === 'option') return
-    send({ create: { from: { node: nodeId, link: link.kind } } }, form, (response) => {
-      if (response.node) goTo(under(here, response.node.id))
-    })
-  }
-
-  return (
-    <div ref={root} className="structure-form structure-form--link" data-mode={picking ? 'pick' : 'menu'}>
-      {picking ? (
-        <div className="structure-link">
-          <Picker
-            nodes={nodes}
-            words={words}
-            head={
-              link.kind === 'option' ? undefined : (
-                <button type="button" className="admin-submit" disabled={api.readOnly || busy} onClick={(event) => createNew(event.currentTarget)}>
-                  {words.createNew}
-                </button>
-              )
-            }
-            onPick={(target, button) => rePoint(target, button)}
-          />
-          <button type="button" className="admin-link" onClick={() => setPicking(false)}>
-            {words.cancel}
-          </button>
-        </div>
-      ) : (
-        <>
-          <h2>{link.kind === 'option' ? link.title || words.missingText : `${link.kind === 'yes' ? words.yes : words.no}`}</h2>
-          <button type="button" className="admin-submit" disabled={api.readOnly || busy} onClick={() => setPicking(true)}>
-            {words.changeTarget}
-          </button>
-          <button type="button" className="admin-submit admin-submit--danger" disabled={api.readOnly || busy} onClick={(event) => remove(event.currentTarget)}>
-            {words.removeLink}
-          </button>
-        </>
-      )}
-      {error !== null && (
-        <p className="admin-error structure-error" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
   )
 }
 

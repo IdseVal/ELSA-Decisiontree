@@ -2,13 +2,14 @@
  * The editor page's `EditMode` (docs/specs/application.md 34.1, 34.2): the words the
  * editor's client components say and the slots of #138 -- `field` for every text and select
  * of 28.1 that this issue edits, `operation` for the two Source operations -- and **[#139]**
- * the four structure slots of 30: `structure` for the Answer row, `linkMenu` beside each
- * Answer and Option button, `sideAdd` in the fan, `stepMenu` on the rim. Each structure slot
- * is a Sheet built here around a client form of `src/editor/Structure.tsx` or `StepMenu.tsx`,
- * with the addresses it navigates to and the picker's index handed over as strings (34.4);
- * **[#177]** the side-bubble `+` is a button alone, which creates at one click, and
- * `sideDelete` puts `deleteSideBubble` at the bottom of an opened side bubble (30.4, 30.7,
- * amended 2026-10-02) -- and of #140: `imageSlot` and `stripAdd`,
+ * the structure slots of 30: `structure` for the Answer row and `sideAdd` in the fan, each
+ * built here around a client leaf of `src/editor/Structure.tsx`, with the addresses it
+ * navigates to handed over as strings (34.4); **[#177]** the side-bubble `+` is a button alone,
+ * which creates at one click, and `sideDelete` puts `deleteSideBubble` at the bottom of an
+ * opened side bubble (30.4, 30.7, amended 2026-10-02); **[#178]** `stepButtons` puts the step's
+ * red cross and, on a Terminal, "Tree does not end here after all" beside the up arrow, from
+ * `src/editor/StepButtons.tsx`, in place of the step menu, and no Answer or Option button has a
+ * link menu any more (30.6, 30.8, amended 2026-10-02) -- and of #140: `imageSlot` and `stripAdd`,
  * the two pickers of 31.1, and `enlargedControls`, the four controls under a picture in the
  * enlarged view (31.3). Later issues add their slot functions to the object this module
  * builds, one line each (ADR-133-build-order).
@@ -25,21 +26,19 @@ import { Hint } from '../editor/Hint.tsx'
 import { ImageControls } from '../editor/ImageControls.tsx'
 import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
-import { StepMenuForm } from '../editor/StepMenu.tsx'
-import { AnswerAdd, EndForm, LinkMenuForm, SideAdd, SideDelete, type MenuLink, type Pickable, type StructureWords } from '../editor/Structure.tsx'
+import { DeleteStep, RemoveEnd } from '../editor/StepButtons.tsx'
+import { AnswerAdd, EndForm, SideAdd, SideDelete, type StructureWords } from '../editor/Structure.tsx'
 import { MAX_ASIDES } from '../neighbourhood.ts'
 import { linksOf, type Explainer, type NodeContent, type Outcome, type Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
 
 /**
- * **[#139]** What the structure slots need of the page (30): the picker's index -- every
- * Node of the draft by id and title in the page's language, in file order, from `nodeIds()`
- * and `getTitle`, never a Node read (30.6) -- the address of every Node the page carries,
- * by id, from which a creation's destination and a deletion's way out are built, and the
- * root, which has no `deleteStep`.
+ * **[#139]** What the structure slots need of the page (30): the address of every Node the
+ * page carries, by id, from which a creation's destination and a deletion's way out are
+ * built, and the root, which has no `deleteStep`. **[#178]** No longer the picker's index of
+ * every Node of the draft: the picker is gone (30.6, amended).
  */
 export interface Structure {
-  index: Pickable[]
   addresses: Record<string, PageAddress>
   root: string
   /** The centre's id: the side-bubble `+` is the fan's, on the centre only (30.4, 30.5). */
@@ -51,6 +50,8 @@ export interface Structure {
   options: string[]
   /** **[#177]** Those of them another Node leads to as well: their delete removes only the centre's Option (30.7). */
   shared: string[]
+  /** **[#178]** Their titles in the page's language, by id: what their delete names (30.7). */
+  titles: Record<string, string>
 }
 
 /** The chrome strings the editor's client components read through `words`, as strings. */
@@ -115,7 +116,7 @@ const OPTION_TITLE = { characters: 60 }
 /** What a click or Enter on a marked term dispatches in the editor (32.3). */
 const TERM_EVENT = 'elsa-term'
 
-/** Where the confirmation of 30.7 puts the title: a character no chrome sentence holds, cut at on the server. */
+/** Where the confirmations of 30.7 and **[#178]** 30.8 put the title: a character no chrome sentence holds, cut at on the server. */
 const TITLE_MARK = '\u0000'
 
 const KINDS: Source['kind'][] = ['legal', 'case-law', 'literature']
@@ -129,24 +130,12 @@ export function editMode(address: PageAddress, languages: string[], structure: S
   const words = editorWords(ui)
   const links = editorLinks()
   const sheet = sheetWords(ui)
-  const structureWords: StructureWords = {
-    yes: ui.yes,
-    no: ui.no,
-    confirm: ui.confirm,
-    cancel: ui.cancel,
-    createNew: ui.createNew,
-    changeTarget: ui.changeTarget,
-    removeLink: ui.removeLink,
-    pickTarget: ui.pickTarget,
-    missingText: ui.missingText,
-  }
+  const structureWords: StructureWords = { confirm: ui.confirm }
   /** The page's own address of a Node it carries, or null for one it does not (a slot draws nothing then). */
   const hereOf = (nodeId: string): string | null => {
     const at = structure.addresses[nodeId]
     return at ? links.node(at) : null
   }
-  /** The picker's list for a Node: every other Node (30.6). */
-  const otherNodes = (nodeId: string): Pickable[] => structure.index.filter((entry) => entry.id !== nodeId)
   const fieldWords: FieldWords = { characters: words.characters, lines: words.lines }
   const others: OtherLanguage[] = languages.filter((other) => other !== lang).map((other) => ({ lang: other, href: links.withLang(address, other) }))
   const outcomes = OUTCOMES.map((outcome) => ({ value: outcome, label: ui[OUTCOME_LABEL[outcome]] }))
@@ -266,34 +255,6 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       )
     },
 
-    // The `...` at the outer end of an Answer or Option button (30.6): absent where the
-    // Answer is not yet made, since the row's `+` stands there.
-    linkMenu(node, link) {
-      const here = hereOf(node.id)
-      if (here === null) return null
-      let menu: MenuLink
-      if (link.kind === 'option') {
-        const option = node.options[link.index]
-        if (!option) return null
-        menu = { kind: 'option', target: option.target, title: option.title[lang] ?? '' }
-      } else {
-        if (linksOf(node)[link.kind] === undefined) return null
-        menu = { kind: link.kind }
-      }
-      const which = link.kind === 'option' ? `option${link.index}` : link.kind
-      return (
-        <Sheet
-          className={`link-menu link-menu--${link.kind}`}
-          editorUi
-          summary={<span aria-label={ui.linkMenu} lang={uiLang}>…</span>}
-          pages={[<LinkMenuForm key="menu" nodeId={node.id} lang={lang} link={menu} here={here} nodes={otherNodes(node.id)} words={structureWords} />]}
-          words={sheet}
-          uiLang={uiLang}
-          idPrefix={`${node.id}-${which}-menu-`}
-        />
-      )
-    },
-
     // The side-bubble `+` (30.4): the fan's next free slot, on the centre; absent at eight
     // Options and on a Terminal (5.6, 5.7). **[#177]** Not in an Overlay any more: an aside
     // opened as its own page is the centre, and its fan has the `+` (30.5, amended).
@@ -319,37 +280,33 @@ export function editMode(address: PageAddress, languages: string[], structure: S
         confirm: ui.confirm,
         cancel: ui.cancel,
       }
-      const title = structure.index.find((entry) => entry.id === target)?.title ?? ''
-      return <SideDelete parentId={node.id} asideId={target} lang={lang} title={title} shared={structure.shared.includes(target)} centreHref={here} words={words} />
+      return <SideDelete parentId={node.id} asideId={target} lang={lang} title={structure.titles[target] ?? ''} shared={structure.shared.includes(target)} centreHref={here} words={words} />
     },
 
-    // The `...` on the rim above, right of the up arrow (30.8): `removeEnd` on a Terminal,
-    // `deleteStep` on every Node but the root, which goes to the parent or, with no Trail, to the root.
-    stepMenu(node) {
+    // **[#178]** The step's buttons beside the up arrow (30.8, amended): on a Terminal "Tree does
+    // not end here after all", and on every Node but the root the red cross, whose delete goes to
+    // the parent or, with no Trail, to the root. The root that is not a Terminal has neither.
+    stepButtons(node) {
       const at = structure.addresses[node.id]
       if (!at) return null
+      const root = node.id === structure.root
+      const terminal = linksOf(node).terminal !== undefined
+      if (root && !terminal) return null
       const parentHref = at.trail.length > 0 ? links.trail(at, at.trail.length - 1) : links.node({ ...at, trail: [], nodeId: structure.root })
-      const title = node.title[lang] || ui.missingText
+      const [confirmBefore = '', confirmAfter = ''] = ui.confirmDelete(TITLE_MARK).split(TITLE_MARK)
+      const words = {
+        deleteStep: ui.deleteStep,
+        confirmBefore,
+        confirmAfter,
+        confirmUntitled: ui.confirmDeleteUntitled,
+        confirm: ui.confirm,
+        cancel: ui.cancel,
+      }
       return (
-        <Sheet
-          className="step-menu"
-          editorUi
-          summary={<span aria-label={ui.stepMenu} lang={uiLang}>…</span>}
-          pages={[
-            <StepMenuForm
-              key="step"
-              nodeId={node.id}
-              heading={title}
-              root={node.id === structure.root}
-              terminal={linksOf(node).terminal !== undefined}
-              parentHref={parentHref}
-              words={{ removeEnd: ui.removeEnd, deleteStep: ui.deleteStep, confirmDelete: ui.confirmDelete(title), confirm: ui.confirm, cancel: ui.cancel }}
-            />,
-          ]}
-          words={sheet}
-          uiLang={uiLang}
-          idPrefix={`${node.id}-step-`}
-        />
+        <>
+          {!root && <DeleteStep nodeId={node.id} lang={lang} title={node.title[lang] ?? ''} parentHref={parentHref} words={words} uiLang={uiLang} />}
+          {terminal && <RemoveEnd nodeId={node.id} word={ui.removeEnd} uiLang={uiLang} />}
+        </>
       )
     },
   }

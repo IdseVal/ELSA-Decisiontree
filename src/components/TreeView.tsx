@@ -25,9 +25,9 @@
  *
  * **[#138]** With `edit` (34.1) it draws a draft: every address through `edit.links`, an
  * Option's title through the `field` slot, and the structure slots of 34.2 where their
- * controls belong -- `structure` in the Answer row, `linkMenu` beside each Answer and Option
- * button, `sideAdd` in the fan's next free slot, and **[#177]** `sideDelete` at the bottom of
- * each of the fan's Overlays. The Node type
+ * controls belong -- `structure` in the Answer row, `sideAdd` in the fan's next free slot, and
+ * **[#177]** `sideDelete` at the bottom of each of the fan's Overlays. **[#178]** No Answer or
+ * Option button carries a `linkMenu` any more (30.6, amended). The Node type
  * follows the Tree read (`Readable`): a `Node` on the public page, a `DraftNode` in the
  * editor, whose Links are read through `linksOf` either way (34.6). Absent, not one
  * attribute differs.
@@ -230,8 +230,7 @@ function UpArrow({ view }: { view: View }) {
  * explanation Nodes' addresses is what the fan collapses to (10.5, step 4).
  *
  * **[#138]** In edit mode the `sideAdd` slot takes the fan's next free slot, as one more
- * entry after the last Option, and the `linkMenu` slot stands in each entry beside its button;
- * **[#177]** the `sideDelete` slot closes each Option's Overlay.
+ * entry after the last Option; **[#177]** the `sideDelete` slot closes each Option's Overlay.
  */
 function Options({ node, view }: { node: AnyNode; view: View }) {
   const { address, ui, uiLang, idPrefix, asides, open, links, edit } = view
@@ -274,7 +273,6 @@ function Options({ node, view }: { node: AnyNode; view: View }) {
                   idPrefix={`${idPrefix}a${index}-`}
                   remove={edit?.slots.sideDelete?.(node, index)}
                 />
-                {edit?.slots.linkMenu?.(node, { kind: 'option', index })}
               </li>
             )
           })}
@@ -444,11 +442,9 @@ function Answers({ node, view }: { node: AnyNode; view: View }) {
           {answers.yes !== undefined && (
             <Branch className="answer answer--yes" {...sliding(links.follow(address, answers.yes))} {...labelled(ui.yes, answers.yes)} />
           )}
-          {edit?.slots.linkMenu?.(node, { kind: 'yes' })}
           {answers.no !== undefined && (
             <Branch className="answer answer--no" {...sliding(links.follow(address, answers.no))} {...labelled(ui.no, answers.no)} />
           )}
-          {edit?.slots.linkMenu?.(node, { kind: 'no' })}
         </>
       ) : (
         <Branch
