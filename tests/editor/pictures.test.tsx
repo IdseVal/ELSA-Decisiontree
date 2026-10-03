@@ -111,9 +111,9 @@ async function pick(file: File): Promise<void> {
   await settle()
 }
 
-/** Types into an input the way React hears it. */
-function type(input: HTMLInputElement, text: string): void {
-  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+/** Types into an input or **[#181]** a text box the way React hears it. */
+function type(input: HTMLInputElement | HTMLTextAreaElement, text: string): void {
+  const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input) as object, 'value')!.set!
   act(() => {
     setter.call(input, text)
     input.dispatchEvent(new Event('input', { bubbles: true }))
@@ -153,7 +153,8 @@ describe('the picker and the attach Sheet (31.1, 31.2)', () => {
     expect(sheet.querySelector('img')!.getAttribute('src')).toBe('/admin/api/trees/t/images/my-photo-0a1b2c3d.png')
     expect(sheet.querySelector('img')!.getAttribute('width')).toBe('300')
     expect(sheet.querySelector('figcaption')!.textContent).toBe('my-photo-0a1b2c3d.png')
-    const [credit, description] = [...sheet.querySelectorAll<HTMLInputElement>('input')]
+    // **[#181]** Boxes of three lines, as the enlarged view's credit and description are (28.4).
+    const [credit, description] = [...sheet.querySelectorAll<HTMLTextAreaElement>('textarea')]
     const attach = sheet.querySelector<HTMLButtonElement>('button[type="submit"]')!
     expect(attach.disabled).toBe(true)
     type(credit!, '   ')
@@ -181,6 +182,20 @@ describe('the picker and the attach Sheet (31.1, 31.2)', () => {
     await act(async () => cancel.click())
     await settle()
     expect(sent.map((request) => `${request.method} ${request.url}`)).toEqual(['POST /admin/api/trees/t/images', 'DELETE /admin/api/trees/t/images/x-00000000.png'])
+    expect(panel()).toBeNull()
+  })
+
+  test('[#181] Enter in a field attaches, as it did in a one-line input, and breaks no line', async () => {
+    answer = (method) => (method === 'POST' ? new Response(JSON.stringify({ file: 'x-00000000.png', width: 1, height: 1 }), { status: 201 }) : new Response(null, { status: 200 }))
+    mount(<ImageSlot nodeId="start" place="slot" images="/admin/api/trees/t/images/" words={pickerWords} />)
+    await pick(png())
+    const [credit] = [...panel()!.querySelectorAll<HTMLTextAreaElement>('textarea')]
+    type(credit!, 'Photo: Anna')
+    const enter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })
+    await act(async () => credit!.dispatchEvent(enter))
+    await settle()
+    expect(enter.defaultPrevented).toBe(true)
+    expect(sent[1]).toMatchObject({ method: 'PATCH', body: { op: 'add-image', file: 'x-00000000.png', credit: 'Photo: Anna' } })
     expect(panel()).toBeNull()
   })
 
@@ -215,7 +230,7 @@ describe('the picker and the attach Sheet (31.1, 31.2)', () => {
       [rows[0]!, 'credit', 'creditHint'],
       [rows[1]!, 'imageDescription', 'imageDescriptionHint'],
     ] as const) {
-      const input = row.querySelector('input')!
+      const input = row.querySelector('textarea')!
       // The field is named by its label alone: the hint is a control beside it, not inside it.
       expect(row.querySelector(`label[for="${input.id}"]`)!.textContent).toBe(label)
       const mark = row.querySelector<HTMLButtonElement>('button.hint-mark')!
