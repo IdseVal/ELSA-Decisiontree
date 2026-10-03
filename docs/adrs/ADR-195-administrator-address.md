@@ -42,6 +42,12 @@ of each deployment, and nothing the repository can know.
    | an administrator with an address | set to the same, or absent | changes nothing |
    | any | set to a value that is not an address (38.1), or to the address of another account | **refuses to start**, saying which, without the value |
 
+   **Absent includes empty**: `ELSA_ADMIN_EMAIL=` with nothing after it -- the line the
+   example file ships (decision 5), which a deployer may empty rather than remove -- is read as
+   absent, as an empty `ELSA_ADMIN_PASSWORD` is (`if (password)` in `openAccounts`). Any other
+   value is set, white space alone included, and refuses where it is not an address (the last
+   row).
+
 2. **The log says the variable was used, never its value**: `administrator e-mail address set
    from ELSA_ADMIN_EMAIL; remove the variable`, when the start gave or replaced the address,
    beside the password's line (20.3). An address is personal data, and 20.8 holds none.
