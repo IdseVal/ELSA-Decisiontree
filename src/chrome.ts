@@ -37,10 +37,6 @@ export interface Chrome {
   version: string
   /** Stands in for a text the Tree does not have in the language on screen (issue #9). */
   missingText: string
-  outcomeNotApplicable: string
-  outcomeApplicable: string
-  outcomeProhibited: string
-  outcomeRefer: string
   disclaimer: string
   notFoundTitle: string
   notFoundText: string
@@ -136,8 +132,6 @@ export interface Chrome {
   sourceUrl: string
   /** **[#138]** The `legal` kind in the kind select; the public page labels no `legal` Source (ADR-78-sources-heading, decision 2). */
   sourceLegal: string
-  /** **[#138]** The accessible name of a Terminal's outcome select, drawn as the badge (28.1). */
-  outcome: string
   /** **[#138]** The counter pill on the rim (28.3): the accessible names of its two numbers. */
   characters: string
   lines: string
@@ -308,6 +302,12 @@ export interface Chrome {
   confirmDeleteSideBubble: (title: string) => string
   confirmDeleteUntitledSideBubble: string
   sideBubbleStays: string
+  /**
+   * **[#179]** What the ending's words are called (36.3): the label of the `treeEndsHere` Sheet's
+   * one field, and the placeholder of an ending without words in the page's language. At most
+   * 19 characters in each language, so the placeholder fits the badge as the words do.
+   */
+  endingText: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -328,10 +328,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     language: 'Language',
     version: 'Version',
     missingText: 'Text missing in this language',
-    outcomeNotApplicable: 'Does not apply',
-    outcomeApplicable: 'Applies',
-    outcomeProhibited: 'Prohibited',
-    outcomeRefer: 'Look elsewhere',
     disclaimer:
       'This is not legal advice. Read the sources and consult a lawyer before you rely on an outcome.',
     notFoundTitle: 'This step does not exist',
@@ -393,7 +389,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     sourceKind: 'Kind',
     sourceUrl: 'Link',
     sourceLegal: 'Legal',
-    outcome: 'Outcome',
     characters: 'characters',
     lines: 'lines',
     placeholderTitle: 'Title',
@@ -488,7 +483,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourTextMuted: 'Secondary text',
     colourAccent: 'Accent',
     colourAccentSecondary: 'Buttons and links',
-    colourDanger: 'Prohibited and errors',
+    colourDanger: 'Errors',
     colourAnswerLabel: 'Button text',
     lowContrast: 'Hard to read on the public page:',
     contrastOn: 'on',
@@ -519,6 +514,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteSideBubble: (title) => `Delete the side bubble "${title}"?`,
     confirmDeleteUntitledSideBubble: 'Delete this side bubble? It has no title yet.',
     sideBubbleStays: 'Another step leads to it too: it stays there.',
+    endingText: 'Text of the ending',
   },
   nl: {
     yes: 'Ja',
@@ -537,10 +533,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     language: 'Taal',
     version: 'Versie',
     missingText: 'Tekst ontbreekt in deze taal',
-    outcomeNotApplicable: 'Niet van toepassing',
-    outcomeApplicable: 'Van toepassing',
-    outcomeProhibited: 'Verboden',
-    outcomeRefer: 'Elders geregeld',
     disclaimer:
       'Dit is geen juridisch advies. Lees de bronnen en raadpleeg een jurist voordat u op een uitkomst vertrouwt.',
     notFoundTitle: 'Deze stap bestaat niet',
@@ -602,7 +594,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     sourceKind: 'Soort',
     sourceUrl: 'Link',
     sourceLegal: 'Juridisch',
-    outcome: 'Uitkomst',
     characters: 'tekens',
     lines: 'regels',
     placeholderTitle: 'Titel',
@@ -697,7 +688,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourTextMuted: 'Bijtekst',
     colourAccent: 'Accent',
     colourAccentSecondary: 'Knoppen en links',
-    colourDanger: 'Verboden en fouten',
+    colourDanger: 'Fouten',
     colourAnswerLabel: 'Knoptekst',
     lowContrast: 'Slecht leesbaar op de publieke pagina:',
     contrastOn: 'op',
@@ -728,6 +719,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteSideBubble: (title) => `De zijbubbel "${title}" verwijderen?`,
     confirmDeleteUntitledSideBubble: 'Deze zijbubbel verwijderen? Hij heeft nog geen titel.',
     sideBubbleStays: 'Een andere stap leidt er ook heen: daar blijft hij staan.',
+    endingText: 'Tekst van het einde',
   },
 }
 

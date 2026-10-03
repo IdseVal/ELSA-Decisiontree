@@ -758,7 +758,7 @@ a.language:hover,
   display: block;
 }
 
-/* --- the rim: the up arrow and the outcome badge above (10.1) -------------------- */
+/* --- the rim: the up arrow and the ending badge above (10.1) --------------------- */
 
 /*
  * The way back (10.2), in the Answer buttons' style: filled with the walk's controls' colour
@@ -798,7 +798,11 @@ a.language:hover,
   box-shadow: 0 0 0 2px var(--elsa-background), 0 0 0 4px var(--elsa-accent-secondary);
 }
 
-/* The badge sits in the half of the band left of the arrow, so the two never meet (10.1). */
+/*
+ * The badge sits in the half of the band left of the arrow, so the two never meet (10.1).
+ * **[#179]** It holds the Terminal's own words, and every ending is drawn alike: the text,
+ * the border and the Terminal's outline in the accent's reading shade (36.1).
+ */
 .outcome {
   position: absolute;
   top: 2px;
@@ -820,24 +824,8 @@ a.language:hover,
   color: var(--accent-read);
 }
 
-.outcome--not-applicable {
-  color: var(--elsa-text-muted);
-}
-
-.outcome--applicable {
-  color: var(--accent-secondary-read);
-}
-
-.outcome--prohibited {
-  color: var(--danger-read);
-}
-
 .bubble--terminal {
   border-color: var(--accent-read);
-}
-
-.bubble--terminal:has(.outcome--prohibited) {
-  border-color: var(--elsa-danger);
 }
 
 /* --- Sources: a heading and two lines inside the text area, or one control (10.5, step 6) */
@@ -2540,6 +2528,14 @@ fieldset:disabled .admin-submit {
     --rim-x: 36px;
     --rim-y: 24px;
     --bubble-radius: 120px;
+  }
+
+  /*
+   * **[#179]** The badge's type steps down as the rest does: 19 characters hold one line in its
+   * room of 198 pixels at 480 wide, in every face measured, DejaVu Sans Bold included (36.1).
+   */
+  .outcome {
+    letter-spacing: 0.04em;
   }
 
   .overlay > .sheet-panel {
