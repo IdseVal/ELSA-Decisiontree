@@ -47,7 +47,8 @@ requires 1 to 80 characters and nothing more.
    administrator sets an address as it sets a password (25.3). The server refuses `email` from
    any other account, the holder included (403, field `email`). `ELSA_ADMIN_EMAIL` also sets
    the administrator's at a start (`ADR-195-administrator-address.md`). The holder's account
-   page shows the address read-only, with `emailHelp`: "Ask your administrator to change it."
+   page shows the address read-only, and on every account's page but the administrator's,
+   which changes its own (decision 5), `emailHelp`: "Ask your administrator to change it."
 
 3. **A change of address ends no session** and changes nothing else: a session belongs to an
    account and the password is unchanged (20.4). It is logged as every account change is,
@@ -67,8 +68,13 @@ requires 1 to 80 characters and nothing more.
    -- in the password card, one line cut with an
    ellipsis where it does not fit, the whole address its `title`; for a converted account
    without an address, `noEmail` there instead (`ADR-195-accounts-without-an-address.md`); and
-   `emailHelp` under it. The hidden `username` field of the password form holds the address, so
-   a password manager files the new password under it.
+   `emailHelp` under it, on every account's page but the administrator's. The administrator's
+   page has no line there, as it has no `nameShownPublicly`
+   (`ADR-195-names-on-public-routes.md` decision 5): the words would send it to itself, and it
+   changes its own address with its own row's `setEmail` (decision 6), on the accounts page its
+   bar links to from every admin page (`application.md` 24.3), or with `ELSA_ADMIN_EMAIL`. The
+   hidden `username` field of the password form holds the address, so a password manager files
+   the new password under it.
 
 6. **What the accounts page shows per row**: the name, the address -- one line, cut with an
    ellipsis, the whole address its `title`, or `noEmail` -- the state, and the actions:
@@ -96,6 +102,10 @@ requires 1 to 80 characters and nothing more.
   Vries" blind, and the public mention would name two people with one name.
 - **Ending the account's sessions on a change of address.** Nothing about the credential that
   made them changed; the password is the secret, and its change already ends them (20.4).
+- **A line of its own under the administrator's address**, pointing to its row on the accounts
+  page. A key and two strings for one account, saying where a page is that the administrator's
+  bar links to on every admin page (`application.md` 24.3), and whose own row offers `setEmail`
+  as its one action.
 
 ## Consequences
 

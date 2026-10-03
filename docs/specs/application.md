@@ -335,7 +335,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | **[#171]** #179 | `endingText` ("Text of the ending" / "Tekst van het einde": the `treeEndsHere` Sheet's field and the empty badge field's placeholder, 36.3); **gone**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, and #138's `outcome`; **reworded**: #144's `colourDanger`, "Errors" / "Fouten" (36.1) |
 | **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5; **[#180] added in the build**: the Theme panel's hints (33.8), `colourBackgroundHint`, `colourSurfaceHint`, `colourTextHint`, `colourTextMutedHint`, `colourAccentHint`, `colourAccentSecondaryHint`, `colourDangerHint`, `contrastHint`, `logoAltHint`, `fontBodyHint`, `fontHeadingHint`, `fontLicenceHint`, `fontFileHint`, named by #174's `hint`; **[#180] added in review**: `licenceOtherHint` (the hint behind the free licence line, 4.3.2's own sentence, 37.5; `ADR-171-licence-dropdown.md` decision 2) and `placeholderFontFamily` (the family-name field's placeholder while it is empty, 28.2, 37.4) |
 | #181 | **[#181] added in review**: `languageTag` ("Language tag" / "Taalcode": the name of the language control's field and its placeholder while it is empty, 27.1, 33.5; `addLanguage`, its button's word, named the field before) |
-| **[#195]** (2026-10-03) #196 | `email` ("E-mail address" / "E-mailadres": the login page's field, the field of the new-account and `setEmail` Sheets, the accounts page's column), `emailInvalid` ("Enter an e-mail address, such as name@example.org." / "Vul een e-mailadres in, zoals naam@example.org."), `emailTaken` ("Another account has this e-mail address." / "Een ander account heeft dit e-mailadres."), `nameTaken` ("Another account has this name." / "Een ander account heeft deze naam."), `setEmail` ("Set e-mail address" / "E-mailadres instellen", in the words of `setPassword`), `noEmail` ("No e-mail address yet" / "Nog geen e-mailadres"), `signedInWith(email)` ("You sign in with <address>." / "U logt in met <adres>."), `emailHelp` ("Ask your administrator to change it." / "Vraag uw beheerder om het te wijzigen."), 38.5 and 38.6; **gone**: `login`, `loginInvalid`, `loginTaken`; **reworded**: `loginFailed`, "Wrong e-mail address or password." / "Verkeerd e-mailadres of wachtwoord.", and `sessionNotKept`, which opens "Your e-mail address and password are right" / "Uw e-mailadres en wachtwoord kloppen" (25.1) |
+| **[#195]** (2026-10-03) #196 | `email` ("E-mail address" / "E-mailadres": the login page's field, the field of the new-account and `setEmail` Sheets, the accounts page's column), `emailInvalid` ("Enter an e-mail address, such as name@example.org." / "Vul een e-mailadres in, zoals naam@example.org."), `emailTaken` ("Another account has this e-mail address." / "Een ander account heeft dit e-mailadres."), `nameTaken` ("Another account has this name." / "Een ander account heeft deze naam."), `setEmail` ("Set e-mail address" / "E-mailadres instellen", in the words of `setPassword`), `noEmail` ("No e-mail address yet" / "Nog geen e-mailadres"), `signedInWith(email)` ("You sign in with <address>." / "U logt in met <adres>."), `emailHelp` ("Ask your administrator to change it." / "Vraag uw beheerder om het te wijzigen.": under the address on every account's page but the administrator's), 38.5 and 38.6; **gone**: `login`, `loginInvalid`, `loginTaken`; **reworded**: `loginFailed`, "Wrong e-mail address or password." / "Verkeerd e-mailadres of wachtwoord.", and `sessionNotKept`, which opens "Your e-mail address and password are right" / "Uw e-mailadres en wachtwoord kloppen" (25.1) |
 | **[#195]** (2026-10-03) #197 | `byAuthors(names)` ("By A, B and C" / "Door A, B en C": the mention, 39.4), `nameShownPublicly` (the account page's notice, 39.8) |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
@@ -3992,10 +3992,11 @@ its field; a 403 → `wrongPassword` at the current password. Under the button t
 `sessionsEnded` (20.4: every other session of the account ends).
 
 **Amended 2026-10-03 (#195):** the password card shows `signedInWith(email)` -- or `noEmail` --
-above its fields and `emailHelp` under it, and its hidden `username` field holds the address; an
-address is changed by the administrator only (38.5). A name another account has is refused,
-`name-taken` (38.6). Under the name field, on every account's page but the administrator's,
-`nameShownPublicly` (39.8).
+above its fields and, on every account's page but the administrator's, `emailHelp` under it,
+and its hidden `username` field holds the address; an address is changed by the administrator
+only, the administrator's own on its row of the accounts page (38.5). A name another account
+has is refused, `name-taken` (38.6). Under the name field, on every account's page but the
+administrator's, `nameShownPublicly` (39.8).
 
 ### 25.3 The accounts page, `/admin/accounts`
 
@@ -5759,8 +5760,12 @@ account `ELSA_ADMIN_EMAIL`'s address and leaves no account without one.
   `signedInWith(email)` -- "You sign in with <address>." / "U logt in met <adres>." -- one
   line, cut with an ellipsis where it does not fit and marked `data-clamp`, which
   `admin-no-scroll.spec.ts`'s walk skips (10.6), with the whole address as its `title`; for
-  a converted account without an address, `noEmail` there instead; under it `emailHelp`, "Ask
-  your administrator to change it." / "Vraag uw beheerder om het te wijzigen.". The hidden
+  a converted account without an address, `noEmail` there instead; under it, on every
+  account's page but the administrator's, `emailHelp`, "Ask your administrator to change it." /
+  "Vraag uw beheerder om het te wijzigen.". The administrator's page has no line under it, as
+  it has no `nameShownPublicly` (39.8): the words would send it to itself, and it changes its
+  own address with its own row's `setEmail` on the accounts page, which its bar links to from
+  every admin page (24.3), or with `ELSA_ADMIN_EMAIL` (38.3). No key is added for it. The hidden
   `username` field of the password form holds the address, so a password manager files the new
   password under it; it is empty for an account without one.
 - **The accounts page (25.3)**, per row: the name; the address, one line cut with an ellipsis
@@ -5853,7 +5858,7 @@ address".
 |---|---|
 | `tests/store/accounts.test.ts` | `normaliseEmail` on every row of 38.1's table; `create` lower-cases and refuses `email-invalid`, `email-taken` (also for an address a deactivated account holds) and `name-taken` (38.6's key: case, NFC and white space); `update`'s `email` from the administrator, and 403 from the holder; a change of address ends no session; `authenticate` by address in any case, and `null` -- scrypt run each time -- for a user name, for `admin` and for an account whose `email` is `null`; `listActive` answers `id` and `name` and nothing else; 38.3's table row by row, each refusal naming its variable and never its value, and each row that reads the variable absent again with `ELSA_ADMIN_EMAIL` set to the empty string; 38.4 on a directory written as `dev` writes it before #196 -- the administrator `admin` and two accounts with user names that share a name -- with its log lines, 38.6's included; a second start converts nothing and leaves the file's bytes as they were |
 | `tests/store/login-limit.test.ts` | `loginKey` and the counters keyed by it (38.7): five failures on `Anna@Example.org ` lock `anna@example.org`, and so do five spread over line-break variants of it -- a line feed inside the part before the `@`, a carriage return inside the domain, a line feed at the end -- each of which `loginKey` answers as `anna@example.org`; a string that is no address is keyed trimmed and lower-cased |
-| `tests/browser/login.spec.ts` | the login page logs in by address through the page, in `en` and `nl`; a wrong password and an unknown address show the same `loginFailed`, the address kept and the password cleared; the old user name, `admin` included, is refused with the same line; five failures on one address lock it, also on an address no account holds; the account page's address line and `emailHelp`; the accounts page's address column, `noEmail` and `setEmail`; the server's output holds no address (20.8, 38.8) |
+| `tests/browser/login.spec.ts` | the login page logs in by address through the page, in `en` and `nl`; a wrong password and an unknown address show the same `loginFailed`, the address kept and the password cleared; the old user name, `admin` included, is refused with the same line; five failures on one address lock it, also on an address no account holds; the account page's address line and `emailHelp`, and the administrator's account page with its address line and no `emailHelp`; the accounts page's address column, `noEmail` and `setEmail`; the server's output holds no address (20.8, 38.8) |
 | `tests/browser/admin-api.spec.ts` | `GET /admin/api/me` answers `email`; `GET /admin/api/accounts` answers `{ id, name }` and no `email`; `POST` and `PATCH` on the accounts as 38.2, the holder's `email` 403 |
 | `tests/browser/panel.spec.ts` | the invitation and hand-over selects show names only |
 | `tests/browser/admin-no-scroll.spec.ts` | the account page holding an address of 254 characters; the accounts page with the `setEmail` Sheet open; at its ten viewports |
