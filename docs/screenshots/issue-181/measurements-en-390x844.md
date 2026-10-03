@@ -24,6 +24,7 @@
 | 20-licence-dropdown | 844/844 | 390/390 | none | none | none | none |
 | 21-published | 844/844 | 390/390 | none | none | none | none |
 | 22-public-page | 844/844 | 390/390 | none | none | none | none |
+| 23-public-side-bubble | 844/844 | 390/390 | none | none | none | none |
 
 Done otherwise than through the page:
 
