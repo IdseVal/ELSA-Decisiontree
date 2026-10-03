@@ -16,8 +16,10 @@
  * - no field, button or line of text crossing the box it is drawn in (`outside`);
  * - no chrome word of the other language on the page (`otherLanguage`).
  *
- * Every row goes to `measurements.md` beside the screenshots, which go to
- * `docs/screenshots/issue-181/` under `ELSA_SHOTS=1` and the results folder otherwise (35.7).
+ * All four are asserted, and every row goes to `measurements-<lang>-<size>.md` beside the
+ * screenshots, which go to `docs/screenshots/issue-181/` under `ELSA_SHOTS=1` and the results
+ * folder otherwise (35.7). The two scroll boxes the walk opens, the to-do bubble and the
+ * settings panel, are audited at every scroll position as well (`sweep`).
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -292,8 +294,9 @@ interface Walk {
 }
 
 /**
- * One step's record: the screenshot `name` and the audit, the row kept for `measurements.md`
- * whether it passes or not, so a failing step still leaves its numbers.
+ * One step's record: the screenshot `name` and the audit, the row kept for
+ * `measurements-<lang>-<size>.md` whether it passes or not, so a failing step still leaves its
+ * numbers.
  */
 async function step(walk: Walk, name: string): Promise<void> {
   const { page, lang, size } = walk
@@ -310,9 +313,26 @@ async function step(walk: Walk, name: string): Promise<void> {
   expect.soft(m.doc.sh, `${where}: taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
   expect.soft(m.doc.sw, `${where}: wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
   expect.soft(m.overflowing, `${where}: elements whose content is larger than themselves`).toEqual([])
-  // **[#181]** Two of the owner's standard that no face changes: one control over another, a word left in the other language.
+  // **[#181]** The owner's standard: no control over another, nothing across its box, no word left in the other language.
   expect.soft(m.overlapping, `${where}: controls drawn over each other`).toEqual([])
+  expect.soft(m.outside, `${where}: fields, buttons and lines of text crossing their box`).toEqual([])
   expect.soft(m.otherLanguage, `${where}: chrome words of the other language`).toEqual([])
+}
+
+/**
+ * **[#181]** The controls of a scroll box (26.3) against what is drawn over them, wherever it is
+ * scrolled: the settings panel's slid under its cross at some scroll positions only (at 1280 x
+ * 640, 122 of 345), which one screenshot at one position meets or misses by the font's metrics.
+ */
+async function sweep(walk: Walk, box: Locator, what: string): Promise<void> {
+  const range = await box.evaluate((element) => element.scrollHeight - element.clientHeight)
+  for (let top = 0; ; top += 12) {
+    const at = Math.min(top, range)
+    await box.evaluate((element, y) => element.scrollTo(0, y), at)
+    const { overlapping } = await audit(walk.page, walk.lang)
+    expect.soft(overlapping, `${what} scrolled to ${at} of ${range} (${walk.lang}, ${walk.size}): controls drawn over each other`).toEqual([])
+    if (at === range) break
+  }
 }
 
 /** The page's own script is there: every Sheet draws its backdrop in the render after hydration. */
@@ -660,6 +680,7 @@ async function walkThrough(walk: Walk): Promise<void> {
   await reread
   await expect(todoBubble(page)).toBeVisible()
   await step(walk, '16-to-do-bubble')
+  await sweep(walk, todoBubble(page).locator('.panel-body'), 'the to-do bubble')
   await page.keyboard.press('Escape')
 
   // What is left, done: the No step again, ended; the other side bubbles named and written.
@@ -705,6 +726,8 @@ async function walkThrough(walk: Walk): Promise<void> {
   await body.getByLabel(ui.fontLicence, { exact: true }).selectOption({ label: 'SIL Open Font License 1.1' })
   await body.getByLabel(ui.fontLicence, { exact: true }).scrollIntoViewIfNeeded()
   await step(walk, '20-licence-dropdown')
+  // **[#181]** The panel at its longest, the upload's form open, at every scroll position.
+  await sweep(walk, panel(page).locator('.panel-body'), 'the settings panel')
   // **[#181]** The panel's fields and dropdowns in one size: the language field and the family name stood out at 16.
   const sizes = await panel(page)
     .locator('input:not([type="color"]):not([type="file"]):not([type="checkbox"]), select')
@@ -727,10 +750,16 @@ async function walkThrough(walk: Walk): Promise<void> {
   await arrived(page, `${origin}/${walk.tree}/start`)
   await page.mouse.move(1, 1)
   await step(walk, '22-public-page')
-  const publicOverlay = page.locator('details.overlay').filter({ visible: true }).first()
-  if (await publicOverlay.count()) {
-    await publicOverlay.locator(':scope > .sheet-open').click()
-    await expect(publicOverlay.locator(':scope > .sheet-panel')).toBeVisible()
-    await step(walk, '23-public-side-bubble')
+  // The first side bubble: its button in the fan; **[#181]** on a phone, where the Options are a
+  // list (10.5), its link there, which opens it at its own address (10.9).
+  const optionButton = page.locator('details.overlay').filter({ visible: true }).first()
+  if (await optionButton.count()) {
+    await optionButton.locator(':scope > .sheet-open').click()
+  } else {
+    await page.locator('.options-sheet > .sheet-open').filter({ visible: true }).click()
+    await page.locator('.options-sheet .sheet-list a').filter({ visible: true }).first().click()
+    await arrived(page, new RegExp(`/${walk.tree}/start/n-[a-z2-7]{6}$`))
   }
+  await expect(page.locator('details.overlay[open] > .sheet-panel').filter({ visible: true })).toBeVisible()
+  await step(walk, '23-public-side-bubble')
 }
