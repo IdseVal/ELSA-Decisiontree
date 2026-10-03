@@ -206,8 +206,9 @@ export async function importTree(folder: string, treesDir: string, creator: stri
  * result passes `mode`'s rules -- a draft its blocking ones (19.2), the published copy every
  * one (19.3) -- logging one line (36.4). A file that is not `/4`, that the loader would not
  * read, or whose conversion would not pass is left as it was: opening it then refuses the
- * Tree, or holds it uneditable, with its violations (18.3, 19.5). `meta.json` is not touched:
- * no creator wrote.
+ * Tree, or holds it uneditable, with its violations (18.3, 19.5). So is a file the disk will
+ * not take, with one line saying why: one Tree refused, never a start that fails. `meta.json`
+ * is not touched: no creator wrote.
  *
  * The result is checked as the loader checks a file, before a byte is written: the folder's
  * name and entries (V-DIR), then the schema and the rules against the files in `images/` and
@@ -228,7 +229,12 @@ async function convertFile(id: string, dir: string, file: string, mode: Mode): P
   }
   // In published mode no violation carries `advisory`, so every one of them stops the write.
   if (validateTree(raw, mode).some((violation) => !violation.advisory)) return
-  await writeAtomic(file, treeBytes(tree))
+  try {
+    await writeAtomic(file, treeBytes(tree))
+  } catch (error) {
+    console.error(`Not converted: Tree "${id}" ${path.basename(file)}: ${messageOf(error)}`)
+    return
+  }
   console.log(`Converted Tree "${id}" ${path.basename(file)} from elsa-tree/4 to elsa-tree/5: ${endings} endings`)
 }
 

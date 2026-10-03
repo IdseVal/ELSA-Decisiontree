@@ -15,6 +15,20 @@ import { importTree, openStore, RESERVED_TREE_IDS } from '../../src/store/index.
 import { writeAtomic } from '../../src/store/write.ts'
 import { ADMIN } from './admin.ts'
 
+// **[#179]** One file the disk refuses while the store converts it: the real writer for every
+// other file, and for every test that names none.
+const refusedWrite = vi.hoisted(() => ({ file: null as string | null }))
+vi.mock('../../src/store/write.ts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/store/write.ts')>()
+  return {
+    ...actual,
+    writeAtomic: (file: string, data: string | Uint8Array): Promise<void> =>
+      refusedWrite.file !== null && path.resolve(file) === refusedWrite.file
+        ? Promise.reject(new Error(`EIO: i/o error, open '${file}.tmp'`))
+        : actual.writeAtomic(file, data),
+  }
+})
+
 const here = path.dirname(fileURLToPath(import.meta.url))
 const fixtures = path.join(here, '..', 'fixtures')
 const trees = path.join(here, '..', '..', 'trees')
@@ -53,6 +67,7 @@ async function seedOf(...entries: Array<[from: string, id: string]>): Promise<st
 }
 
 afterEach(async () => {
+  refusedWrite.file = null
   vi.restoreAllMocks()
   for (const dir of made.splice(0)) await rm(dir, { recursive: true, force: true })
 })
@@ -314,6 +329,24 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
     log.mockClear()
     await openStore(data, ADMIN)
     expect(conversions(log)).toEqual([])
+  })
+
+  test('a file the disk will not take is left as it was, its Tree refused, and the start goes on (18.3)', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'carousel'), 'carousel'], [path.join(fixtures, 'cycle'), 'cycle']) })
+    const published = path.join(data, 'trees', 'cycle', 'tree.json')
+    await writeAs4(published, ['refer'])
+    const before = await readFile(published, 'utf8')
+    refusedWrite.file = published
+
+    const store = await openStore(data, ADMIN)
+
+    expect(errors.mock.calls.map((call) => String(call[0]))).toContain(`Not converted: Tree "cycle" tree.json: EIO: i/o error, open '${published}.tmp'`)
+    expect(await readFile(published, 'utf8')).toBe(before)
+    expect(store.publishedIds()).toEqual(['carousel'])
+    expect(store.refused().map(({ id }) => id)).toEqual(['cycle'])
   })
 
   test('a file the conversion cannot carry is left as it was: its Tree refused, or held uneditable (18.3, 19.5)', async () => {
