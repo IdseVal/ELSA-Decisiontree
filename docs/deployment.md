@@ -485,7 +485,10 @@ badge showed, and each file is replaced whole, with one line in the journal, `Co
 "<id>" <file> from elsa-tree/4 to elsa-tree/5: <n> endings` (`docs/specs/application.md` 36.4,
 `docs/specs/tree-format.md` 12.7). The conversion is not undone and nothing keeps the old
 bytes: the backup is the copy. A file it cannot convert is left as it was, and its Tree is not
-served, or not editable, with the reasons in the journal, until you import a repaired copy.
+served, or not editable, with the reasons in the journal, until you import a repaired copy:
+under `Not converted: Tree "<id>" <file>`, one line per violation of the converted file, as
+`npm run validate` prints them. The import command prints the same lines for a copy that
+still has one.
 
 ### Importing a Tree, and moving one between deployments
 

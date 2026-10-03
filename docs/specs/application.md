@@ -5151,6 +5151,14 @@ and never writes into the source folder. Nothing keeps the `/4` bytes: `docs/dep
 gains one paragraph asking for a backup of the data directory before the first start of the
 release that carries `elsa-tree/5`.
 
+**[#179] As built (2026-10-03).** The violations that stop a conversion are those of its
+result (`tree-format.md` 12.7.1 step 8). The start prints them in the format of 5.4 under
+`Not converted: Tree "<id>" <file>: the converted file would be invalid:`, and `importTree`
+refuses a `/4` folder with its converted copy's. The file itself stays `/4`, so the Tree's
+refusal and the draft's blocking list -- what the admin area shows -- are what opening that
+file answers: its schema's errors alone, because the schema answers first (`tree-format.md`
+3.9) and the content rules only for a file it accepts.
+
 ### 36.5 Tests (#179)
 
 | File | Asserts |
