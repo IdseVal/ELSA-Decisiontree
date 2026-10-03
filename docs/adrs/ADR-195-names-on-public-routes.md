@@ -5,11 +5,14 @@
 - Issue: #195 -- Architecture: freeze the login by e-mail address and password, and the
   mention of who authored a Tree, the collaborators in the order they joined it
 - Spec: `docs/specs/application.md` 39.7, 39.8 (new); 8, 15.3, 16.4, 16.5, 17.2, 17.5, 20.5,
-  23.1, 23.5, 25.2 amended or stated unchanged, marked **[#195]**
+  23.1, 23.5, 25.2, 35.5 amended or stated unchanged, marked **[#195]**
 - Amends: `ADR-132-hidden-trees-and-findability.md` decision 1 ("the store's public interface
   has no member that could return one": it gains one, which returns names only);
   `ADR-132-accounts-and-sessions.md` decision 1 (an account's name is shown in the admin area
-  and, for an Author, on the public pages of its Trees)
+  and, for an Author, on the public pages of its Trees); `ADR-133-login-and-account-pages.md`
+  decision 4 (the name card tells every account but the administrator that its name is
+  public, decision 5); `ADR-133-editor-testing.md` decision 5 (the no-cookie sweep of
+  `deployment.spec.ts` gains the account sweep, decision 6)
 - Depends on: `ADR-195-authors.md`, `ADR-195-the-mention.md`
 - Built by: #197
 

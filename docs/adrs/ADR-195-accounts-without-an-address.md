@@ -8,6 +8,8 @@
 - Supersedes: no earlier decision. The `login` it converts away is superseded by
   `ADR-195-login-by-email-address.md`; `ADR-132-accounts-and-sessions.md`'s rule that an
   account is deactivated and never deleted stands, and no account is deleted here either
+- Amends: `ADR-132-data-directory.md` decision 2 -- `accounts.json` holds an `email` per
+  account in place of `login`, converted once, at the first start of the release (decision 1)
 - Depends on: `ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`
 - Measurement: the live demo server's store, read on #194 (2026-10-03): one account, the
   administrator, login `admin`, display name `Administrator`

@@ -13,7 +13,8 @@
   release for a Tree that has none (`ADR-195-order-of-joining.md`); `accounts.json` holds an
   `email` per account in place of `login`, converted once at that start
   (`ADR-195-accounts-without-an-address.md`); `ELSA_ADMIN_EMAIL` joins the variables read at
-  every start (`ADR-195-administrator-address.md`; `application.md` 17.1, 17.2, 38.3, 38.4,
+  every start, and decision 7's import command, which opens the store as a start does, reads
+  it too (`ADR-195-administrator-address.md`; `application.md` 17.1, 17.2, 38.3, 38.4, 38.9,
   39.2).
 - Amends: `docs/adrs/ADR-37-single-file-layout.md` (the Tree folder gains `draft.json` and
   `meta.json`, both ignored by the loader of the published file),

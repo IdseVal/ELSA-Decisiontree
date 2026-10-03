@@ -12,6 +12,12 @@
   Sheet's `login`, and its rejected alternative "Letting the administrator change another
   account's login"; `ADR-133-top-panel.md` decision 4's "the login is shown in the select's
   option text" (application.md 33.4: "name, then login")
+- Amends: `ADR-132-editor-api.md` decision 2's route table -- `GET /admin/api/accounts`
+  answers `[{ id, name }]` where it answered `[{ id, name, login }]`, and `PATCH
+  /admin/api/accounts/<id>` takes `email` from the administrator alone (decisions 1 and 2);
+  `ADR-133-login-and-account-pages.md` decision 4 -- the account page shows the caller's
+  address, read-only, and `emailHelp` on every account's page but the administrator's
+  (decision 5)
 - Depends on: `ADR-195-login-by-email-address.md`
 - Built by: #196
 

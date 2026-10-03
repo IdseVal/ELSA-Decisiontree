@@ -67,7 +67,8 @@ The owner asked for the collaborators "in the order in which they joined a decis
    `[<the administrator's id>]`, and names nobody (`ADR-195-authors.md` decision 4).
 
 5. **`collaborators` keeps its meaning**: who is a collaborator now, in the order of
-   invitation, with 21.4's hand-over rule. The panel's list (33.4) reads it as before.
+   invitation, with 21.4's hand-over rule. The panel's list (33.4, `ADR-133-top-panel.md`
+   decision 4) reads it as before.
 
 ## Alternatives rejected
 

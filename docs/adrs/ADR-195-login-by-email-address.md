@@ -5,11 +5,18 @@
 - Issue: #195 -- Architecture: freeze the login by e-mail address and password, and the
   mention of who authored a Tree, the collaborators in the order they joined it
 - Spec: `docs/specs/application.md` 38.1, 38.2, 38.7, 38.8 (new); 20.1, 20.4, 20.7, 20.8,
-  22.1, 25.1 amended, each change marked **[#195]**
+  22.1, 25.1, 35.1 to 35.3 amended, each change marked **[#195]**
 - Supersedes: `ADR-132-accounts-and-sessions.md` decision 1's user name and its rejected
   alternative "E-mail address as login"; the "per login name" of its decision 10 and the
   "never the name typed" of its decision 11, restated here for an address.
-  `ADR-133-login-and-account-pages.md` decisions 1 and 3, where they name the field `login`
+  `ADR-133-login-and-account-pages.md` decisions 1 and 3, where they name the field `login`,
+  and decision 2's words "Wrong name or password."
+- Amends: `ADR-132-editor-api.md` decision 2's route table where it names the login -- `POST
+  /admin/api/login` takes `{ email, password }`, `GET /admin/api/me` answers `email`, `POST
+  /admin/api/accounts` takes `{ name, email, password }` (decision 7);
+  `ADR-133-editor-testing.md` decisions 1 to 3 -- the helper's accounts carry an address,
+  `login(page, ...)` posts `{ email, password }`, and the named accounts log in as
+  `anna@example.org`, `bram@example.org` and `cees@example.org` (Consequences)
 - Depends on: `ADR-132-accounts-and-sessions.md` (the hash, the session, the CSRF layers and
   the two counters, all of which stand)
 - Built by: #196

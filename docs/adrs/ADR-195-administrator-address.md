@@ -4,10 +4,15 @@
   administrator logs in with, and how a deployment supplies it) and amends 10.32
 - Issue: #195 -- Architecture: freeze the login by e-mail address and password, and the
   mention of who authored a Tree, the collaborators in the order they joined it
-- Spec: `docs/specs/application.md` 38.3, 38.9 (new); 17.1, 20.3 amended, marked **[#195]**
+- Spec: `docs/specs/application.md` 38.3, 38.9 (new); 17.1, 20.3, 35.2 amended, marked
+  **[#195]**
 - Supersedes: `ADR-132-accounts-and-sessions.md` decision 4's "login `admin`"; its decision 5
   (the password from `ELSA_ADMIN_PASSWORD`, read at every start) stands, and this decision
   gives the address the same rule
+- Amends: `ADR-132-data-directory.md` -- `ELSA_ADMIN_EMAIL` joins the variables a start reads,
+  and decision 7's import command, which opens the store as a start does, reads it too (38.9);
+  `ADR-133-editor-testing.md` decision 2 -- `serveStore` sets `ELSA_ADMIN_EMAIL=admin@example.org`
+  beside the password, as every server and every store a test starts does (decision 5)
 - Depends on: `ADR-195-login-by-email-address.md` (what an address is)
 - Value only the owner can choose: **the live demo server's administrator address** -- asked
   by #198 before it brings that server to a `dev` that carries #196

@@ -8,9 +8,10 @@
 - Spec: `docs/specs/application.md` 39.4, 39.5, 39.6 (new); 3.2, 10.1, 10.4, 10.5, 10.6, 24.3,
   26.1, 34.5 amended, marked **[#195]**
 - Amends: `ADR-133-overview-tiles.md` decision 1 (the tile's bottom row holds the mention),
-  `ADR-38-no-scroll.md` as 10.4 to 10.6 restate it (one line cut at the guarantee and given up
-  by its room, outside the fixed order and behind no control; a third kind of element the walk
-  skips, by the same reason as the second)
+  `ADR-133-admin-routes.md` decision 7 (the public Node page's bar is no longer unchanged: it
+  holds the mention), `ADR-38-no-scroll.md` as 10.4 to 10.6 restate it (one line cut at the
+  guarantee and given up by its room, outside the fixed order and behind no control; a third
+  kind of element the walk skips, by the same reason as the second)
 - Depends on: `ADR-195-authors.md` (who), `ADR-195-order-of-joining.md` (in what order)
 - Measurements: `docs/research/issue-195-measurements.md`
 - Built by: #197
