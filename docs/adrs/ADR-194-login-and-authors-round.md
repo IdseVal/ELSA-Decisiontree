@@ -1,13 +1,13 @@
-# ADR-194-login-and-authors-round: the owner's login by e-mail address, the authors on every Tree and the owner's own account are one architecture freeze, two build issues and one step on the demo server, filed `ready`
+# ADR-194-login-and-authors-round: the owner's login by e-mail address, the authors on every Tree and the owner's own account are one architecture freeze, two build issues and one step on the demo server, which the owner promoted to `ready`
 
 - Status: ACCEPTED -- 2026-10-03
 - Issue: #194 -- login credential should be email and password (the owner's instruction)
 - Issues filed: #195 to #198
 - Specs affected: none amended here; #195 amends the sections it decides, #196 and #197 what they build
 - Core document: amended here, marked `[#194]`: the preamble; a new bullet of 3.4 holding
-  the owner's words whole; the login page's sentence in 3.4; a PROPOSED row **Author** in
-  5; sections 8 and 9; 10.31 and 10.32. New open items 10.39 (the login) and 10.40 (the
-  authors), OPEN for #195
+  the owner's words whole; the login page's sentence in 3.4, and 3.4's passage on what the
+  round does not change; a PROPOSED row **Author** in 5; sections 8 and 9; 10.31 and
+  10.32. New open items 10.39 (the login) and 10.40 (the authors), OPEN for #195
 
 ## Context
 
@@ -68,9 +68,12 @@ published and one hidden, each created by the administrator and with no collabor
    shape of `meta.json`, and a public page whose every row is counted under the no-scroll
    rule (`application.md` 10.1). Both edit the one interface of 20.1 -- an account's
    `login` becomes an e-mail address, and its `name` stops being "shown in the admin area
-   only" -- so one run decides both. What the owner's words leave open is listed in #195's TASK and in core
-   document 10.39 (the login) and 10.40 (the authors), as 10.30 to 10.35 were listed for
-   #132.
+   only" -- so one run decides both. What the owner's words leave open is listed in
+   #195's TASK and in core document 10.39 (the login) and 10.40 (the authors), as 10.30
+   to 10.34 were listed for #132. What they do not leave open is not listed: they make no
+   exception for the administrator, so #195 decides which address the administrator logs
+   in with and how a deployment supplies it, not whether it logs in with one (core
+   document 3.4, 10.32, 10.39).
 
 3. **Order, by `Depends on:` lines only.** #195 waits for #194, so that this record --
    the `[#194]` passages, 10.39 and 10.40 -- is on `dev` before the Architect amends it:
@@ -83,10 +86,17 @@ published and one hidden, each created by the administrator and with no collabor
    into a `dev` on which its tests no longer log in. #198 waits for #196, whose login the
    owner's account needs.
 
-4. **All four are labelled `ready`**, not `proposed`, although the project's autonomy mode
-   is `propose`. The owner asked for issues "so that the they can be picked up", and the
-   dispatcher picks up only an issue labelled `ready`; the account that filed them is a
-   trusted promoter in `.orca/dispatch.yml`. None is labelled `complex`.
+4. **All four are labelled `ready`, by the owner.** The issues' timelines show the owner's
+   account, `IdseVal`, applying `ready` to #195 to #198 between 16:12:41Z and 16:12:43Z on
+   2026-10-03, while their bodies were still placeholders; the account that filed them,
+   `DeKnecht`, applied no `ready`, only `architecture` to #195 and `ui` to #196 and #197.
+   The project's autonomy mode is `propose`, in which an issue an agent files is labelled
+   `proposed`, never `ready` (`.orca/roles/planner.md`). This record does not read #194's
+   "so that the they can be picked up" as leave for an agent to label them `ready`, and is
+   no precedent for an agent doing so on a reading of the owner's words: the rounds filed
+   `ready` before it rested on the owner's explicit words (`ADR-75-presentation-changes.md`
+   decision 7, `ADR-169-tree-creation-ui-round.md` decision 4), and this one rests on the
+   owner's own promotion. None is labelled `complex`.
 
 5. **Where the owner's words leave a choice, the record says which reading was taken and
    does not widen the request.** Each is in core document 3.4's `[#194]` bullet, marked
@@ -115,20 +125,22 @@ published and one hidden, each created by the administrator and with no collabor
 6. **The core document is amended here for every passage the owner's words make
    untrue**, the lesson of #182's second round. Each passage carries a `[#194]` mark that
    points at the new bullet of 3.4, which holds the owner's words whole: the login page's
-   "a name, a password" (3.4); the account record's login and "nothing about a creator is
-   shown on a public page" (8); "nothing about a creator may reach a public page" (9); "a
-   user-name login" (10.31); the administrator's `admin` account (10.32). What is not the
-   owner's is marked PROPOSED (decision 5) or left to #195 as an open item; the new
-   vocabulary row **Author** is PROPOSED.
+   "a name, a password" (3.4); in 3.4's passage on what the round does not change, the
+   end-user pages and the Tree format, which the mention of who authored a Tree changes
+   wherever 10.40 places it (3.4); the account record's login and "nothing about a
+   creator is shown on a public page" (8); "nothing about a creator may reach a public
+   page" (9); "a user-name login" (10.31); the administrator's `admin` account (10.32).
+   What is not the owner's is marked PROPOSED (decision 5) or left to #195 as an open
+   item; the new vocabulary row **Author** is PROPOSED.
 
 ## Alternatives rejected
 
 - **Asking the owner first, with `needs-human`, about the details the words leave open.**
-  The administrator's login, what existing accounts get, where the mention stands and the
-  order after a hand-over are contracts: the Architect's to decide and the owner's to
-  overrule, as 10.31 and 10.32 were on #132. A value only the owner can choose -- an
-  address for the administrator account, if #195 needs one -- is asked by #195 or #198
-  once it is known to be needed.
+  Which address the administrator logs in with, what existing accounts get, where the
+  mention stands and the order after a hand-over are contracts: the Architect's to decide
+  and the owner's to overrule, as 10.31 and 10.32 were on #132. A value only the owner can
+  choose -- an address for the administrator account, if #195 needs one -- is asked by
+  #195 or #198 once it is known to be needed.
 - **Two architecture issues, one per point.** Both rewrite the `Account` interface of 20.1
   and the rule of core document 8 and 9; two runs on one interface and one rule are two
   pull requests in conflict.
@@ -145,10 +157,14 @@ published and one hidden, each created by the administrator and with no collabor
   the account would be made with a login the owner did not ask for and converted later;
   and the task of #194 is the issues.
 - **The owner's account in the repository** -- a seed, a test fixture, or the code that
-  makes the administrator. It would publish a personal address and a password's hash in a
-  public repository, and make the account on every deployment, where the owner asked for
-  one beside the admin account.
-- **Filing the issues `proposed`.** The owner asked for issues that can be picked up.
+  makes the administrator. It would publish a password's hash in a public repository, and
+  make the account on every deployment, where the owner asked for one beside the admin
+  account.
+- **Labelling the issues `proposed`.** In `propose` mode that is the label an agent gives
+  an issue it files, and promoting it to `ready` is the owner's step
+  (`.orca/roles/planner.md`). The owner took that step for all four before this run
+  labelled any of them (decision 4), so a `proposed` label would have contradicted the
+  owner's own promotion.
 
 ## Consequences
 
