@@ -167,7 +167,18 @@ function SetEmail({ account, words }: { account: AccountRow; words: AccountWords
     <form className="admin-form" method="post" onSubmit={submit} noValidate>
       <fieldset disabled={!enhanced}>
         <Field label={`${words.email} (${account.name})`} error={refusal?.text}>
-          <input name="email" type="email" required autoComplete="off" autoCapitalize="none" spellCheck={false} value={email} onChange={(event) => setEmail(event.target.value)} />
+          {/* It holds the current address, up to 254 characters, cut with the field's ellipsis (#172): a clamp, as the row's is. */}
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            data-clamp=""
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
         </Field>
         <button type="submit" className="admin-submit">
           {words.save}
