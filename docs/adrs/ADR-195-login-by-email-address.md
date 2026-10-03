@@ -83,10 +83,16 @@ and logs `login failed for an unknown name` or a lock "for an unknown name"
    login answers 401, a creation 422 `email-invalid`.
 
 8. **The rate limit counts per address typed** (20.7): its first counter is keyed by the
-   string typed into the field, trimmed and lower-cased -- whether or not it is an address and
-   whether or not an account holds it -- so five failures on one address lock it for 15
-   minutes, and an attempt on an address no account holds counts exactly as one on an address
-   an account holds. The per-deployment counter is unchanged. Still not per client address.
+   address the lookup reads, `loginKey(email)` in `src/store/login-limit.ts`:
+   `normaliseEmail(email) ?? email.trim().toLowerCase()` -- the address decision 5's function
+   makes of the string typed, and where that string is no address, the string trimmed and
+   lower-cased -- whether or not an account holds it. Every spelling the lookup reads as one
+   address is one key. Decision 2's sanitisation removes a line break anywhere in the string,
+   so a key made of the string as typed would give each placement of one five more tries at
+   the same account's password, and the lock would come down to the deployment's 60 a minute.
+   So five failures on one address lock it for 15 minutes, and an attempt on an address no
+   account holds counts exactly as one on an address an account holds. The per-deployment
+   counter is unchanged. Still not per client address.
 
 9. **The log never holds an address** (20.8): a failure is `login failed for account <id>` or
    `login failed for an unknown address`; a lock `login locked for 15 minutes for account
@@ -135,7 +141,8 @@ and logs `login failed for an unknown name` or a lock "for an unknown name"
 - `src/store/accounts.ts`: `normaliseEmail` in place of `normaliseLogin`, `byEmail` in place of
   `byLogin`, `email` in `Account` and `AccountChange`, the `AccountError` codes `email-invalid`
   and `email-taken` in place of `login-invalid` and `login-taken`, its field `email` in place
-  of `login`. `src/app/[lang]/admin/api/login/route.ts`, `me/route.ts`, `accounts/route.ts`,
+  of `login`. `src/store/login-limit.ts`: `loginKey` (decision 8), by which the login route
+  keys its counters. `src/app/[lang]/admin/api/login/route.ts`, `me/route.ts`, `accounts/route.ts`,
   `accounts/[id]/route.ts`; `src/editor/LoginForm.tsx`, `AccountForms.tsx`, `AccountsList.tsx`,
   `Panel.tsx`; `src/admin/words.ts`; `src/chrome.ts` (3.2's #196 row). All #196's.
 - Every test that logs in by user name moves to an address with the code it tests (38.10):

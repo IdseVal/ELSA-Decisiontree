@@ -3478,9 +3478,11 @@ across all names locks the route for one minute (429, `Retry-After`) -- each att
 no `X-Forwarded-For`, and an address is the one datum about a person this project has never
 held.
 
-**Amended 2026-10-03 (#195):** per **address typed**, not per login name: the string the request
-carries in `email`, trimmed and lower-cased, whether or not an account holds it (38.7). The
-per-deployment counter, the 401 and 429 with one body, and "not per client address" stand.
+**Amended 2026-10-03 (#195):** per **address typed**, not per login name: the address
+`normaliseEmail` makes of the string the request carries in `email`, or that string trimmed and
+lower-cased where it is no address, whether or not an account holds it, so that every spelling
+the lookup reads as one address counts against that address (38.7). The per-deployment counter,
+the 401 and 429 with one body, and "not per client address" stand.
 
 ### 20.8 Logging
 
@@ -5766,11 +5768,18 @@ account `ELSA_ADMIN_EMAIL`'s address and leaves no account without one.
 
 ### 38.7 The rate limit
 
-20.7, restated for an address. **Per address typed**: the first counter is keyed by the string
-the request carries in `email`, trimmed and lower-cased -- whether or not it is an address, and
-whether or not an account holds it -- so five consecutive failures on one address lock it for
-15 minutes, a success resets, and an attempt on an address no account holds counts exactly as
-one on an address an account holds. **Per deployment**: unchanged, more than 60 failed logins
+20.7, restated for an address. **Per address typed**: the first counter is keyed by the address
+the lookup reads, `loginKey(email)` in `src/store/login-limit.ts`, pure:
+`normaliseEmail(email) ?? email.trim().toLowerCase()` -- the address 38.1 makes of the string
+the request carries in `email`, and where that string is no address, the string trimmed and
+lower-cased -- whether or not an account holds it. The login route keys `begin`, `fail` and `succeed` by it. Every
+spelling that `authenticate` reads as one address is one key: 38.1's sanitisation removes a line
+feed or a carriage return anywhere in the string, so `anna@exam`, a line break and `ple.org`
+count against `anna@example.org`, as ` Anna@Example.org ` does. Keyed by the string as typed,
+each placement of a line break would be a new key, with five more tries at the same account's
+password, and the lock would come down to the deployment's 60 a minute. So five consecutive
+failures on one address lock it for 15 minutes, a success resets, and an attempt on an address
+no account holds counts exactly as one on an address an account holds. **Per deployment**: unchanged, more than 60 failed logins
 in one minute lock the route for one minute. A lock is 429, a wrong address or password 401,
 both with the same body. Still **not per client address**. Counting per account was rejected:
 an attempt on an unknown address would count nothing, and a lock that falls on a known address
@@ -5819,7 +5828,7 @@ address".
 | File | Asserts |
 |---|---|
 | `tests/store/accounts.test.ts` | `normaliseEmail` on every row of 38.1's table; `create` lower-cases and refuses `email-invalid`, `email-taken` (also for an address a deactivated account holds) and `name-taken` (38.6's key: case, NFC and white space); `update`'s `email` from the administrator, and 403 from the holder; a change of address ends no session; `authenticate` by address in any case, and `null` -- scrypt run each time -- for a user name, for `admin` and for an account whose `email` is `null`; `listActive` answers `id` and `name` and nothing else; 38.3's table row by row, each refusal naming its variable and never its value; 38.4 on a directory written as `dev` writes it before #196 -- the administrator `admin` and two accounts with user names that share a name -- with its log lines, 38.6's included; a second start converts nothing and leaves the file's bytes as they were |
-| `tests/store/login-limit.test.ts` | its counters, keyed by the address typed: five failures on `Anna@Example.org ` lock `anna@example.org` |
+| `tests/store/login-limit.test.ts` | `loginKey` and the counters keyed by it (38.7): five failures on `Anna@Example.org ` lock `anna@example.org`, and so do five spread over line-break variants of it -- a line feed inside the part before the `@`, a carriage return inside the domain, a line feed at the end -- each of which `loginKey` answers as `anna@example.org`; a string that is no address is keyed trimmed and lower-cased |
 | `tests/browser/login.spec.ts` | the login page logs in by address through the page, in `en` and `nl`; a wrong password and an unknown address show the same `loginFailed`, the address kept and the password cleared; the old user name, `admin` included, is refused with the same line; five failures on one address lock it, also on an address no account holds; the account page's address line and `emailHelp`; the accounts page's address column, `noEmail` and `setEmail`; the server's output holds no address (20.8, 38.8) |
 | `tests/browser/admin-api.spec.ts` | `GET /admin/api/me` answers `email`; `GET /admin/api/accounts` answers `{ id, name }` and no `email`; `POST` and `PATCH` on the accounts as 38.2, the holder's `email` 403 |
 | `tests/browser/panel.spec.ts` | the invitation and hand-over selects show names only |
