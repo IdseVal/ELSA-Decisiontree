@@ -2,20 +2,23 @@
 
 > Measured on 2026-10-03 by the run that filed the issues of #202, and on 2026-10-04 by its fix
 > run, after the review of pull request #207 found that the first run had measured nothing
-> between 479 and 768 pixels wide. Both measured the production build (`npm run build`) of `dev`
-> at `6d0ea4b`, served by `node .next/standalone/server.js` from a scratch data directory seeded
-> from the repository's `trees/` (`ELSA_SEED_DIR`), with `ELSA_ADMIN_PASSWORD` set for the
-> administrator, on Windows 11 with Node 22.18.0 and Playwright 1.62.1 (its Chromium). On
-> 2026-10-04 the same script also ran in Linux, in the `mcr.microsoft.com/playwright:v1.62.1-noble`
-> image (its Chromium 151.0.7922.34, with `fonts-dejavu-core` 2.37-8 installed), against the same
-> server, as `docs/research/issue-171-measurements.md` 3 measured the CI runner's faces: there the
-> default stack is drawn in Liberation Sans, as on the CI runner, where Windows draws it in Segoe
-> UI, and both draw the first Tree's own Open Sans (the closing lists of sections 3 and 4 name the
-> face each drew). Every number that `docs/adrs/ADR-202-navigation-round.md`, core document 3.4
-> `[#202]` and issue #204 cite is here, with the script that produced it, copied whole in section
-> 5, and its output as it ran on 2026-10-04 on each system, in sections 3 and 4. This is a record,
-> not a contract: #204 builds the buttons, amends `docs/specs/application.md`, and measures again
-> on its own build where a number decides a test.
+> between 479 and 768 pixels wide. The first run measured the production build (`npm run build`)
+> of `dev` at `6d0ea4b`; the fix run measured that build again and then `dev` at `748ebcc`, after
+> #196 and #200 had merged, and the two printed the same rows (section 1, "The runs"). Each was
+> served by `node .next/standalone/server.js` from a scratch data directory seeded from the
+> repository's `trees/` (`ELSA_SEED_DIR`), with `ELSA_ADMIN_PASSWORD` -- and on `748ebcc`
+> `ELSA_ADMIN_EMAIL` -- set for the administrator, on Windows 11 with Node 22.18.0 and Playwright
+> 1.62.1 (its Chromium). On 2026-10-04 the same script also ran in Linux, in the
+> `mcr.microsoft.com/playwright:v1.62.1-noble` image (its Chromium 151.0.7922.34, with
+> `fonts-dejavu-core` 2.37-8 installed), against the same servers, as
+> `docs/research/issue-171-measurements.md` 3 measured the CI runner's faces: there the default
+> stack is drawn in Liberation Sans, as on the CI runner, where Windows draws it in Segoe UI, and
+> both draw the first Tree's own Open Sans (the closing lists of sections 3 and 4 name the face
+> each drew). Every number that `docs/adrs/ADR-202-navigation-round.md`, core document 3.4
+> `[#202]` and 10.22, and issue #204 cite is here, with the script that produced it, copied whole
+> in section 5, and its output as it ran on `748ebcc` on each system, in sections 3 and 4. This is
+> a record, not a contract: #204 builds the buttons, amends `docs/specs/application.md`, and
+> measures again on its own build where a number decides a test.
 
 ## 1. What was measured
 
@@ -24,9 +27,10 @@
   "Website" at `/admin`, with the class of the share button (`share`: a pill with a border, the
   look of the public bars' own controls) or of the account link (`admin-link`: underlined text,
   the look of the admin bars' own). Nothing else on the page was changed, except in the columns
-  that say so, where the current language's pill (`.language--current`) -- and at `/admin` the
-  site's title too -- is hidden at every viewport; #204 is to hide them below 600 pixels wide
-  only (section 2).
+  and tables that say so. There the current language's pill (`.language--current`) is hidden at
+  every viewport -- and at `/admin` the site's title too -- where #204 is to hide the pill below
+  768 pixels wide on a Node page, and the title and the pill below 600 on the creators' overview
+  at `/admin` only (section 2); or the Tree's logo is drawn as wide as its cap (below).
 - ***room***: the width between the bar's first child -- the arrow and the Tree's mark on a
   Node page, the site's title elsewhere -- and its controls, the bar's gap taken off. Where the
   first child is hidden -- the site's title on the Tree-less admin bars below 480 pixels wide
@@ -41,51 +45,84 @@
 - **Pages**: the root Node pages of the two seeded Trees, both with a logo; the overview `/`;
   the login page at `/admin`, without a session; and the creators' overview at `/admin` as the
   administrator, whose bar holds the most controls -- the language switch, Account, Accounts and
-  Log out.
+  Log out. Then, in two tables of their own, the two root Node pages with the Tree's logo drawn
+  as wide as its cap. The format gives a logo's file no shape (`docs/specs/tree-format.md`
+  4.3.1), and the bar draws it 30 pixels tall and at most `min(18rem, 45vw)` wide, and
+  `calc(22vw - 12px)` below 480 (`.logo` in `src/app/[lang]/globals.css`: "a Theme's logo may be
+  any shape"), so a logo that wide is the widest a Theme can bring. The script draws it so by
+  asking for the window's width, which the cap cuts down; the closing lists give the cap.
 - **Viewports**: the ten of 10.6; 479 x 800, the widest window below 480; and, added on
   2026-10-04, twelve widths from 480 to 767, 800 tall: 480, 500, 520, 540, 560, 580, 599, 600,
-  620, 640, 700 and 767. From 480 up, nothing in a Node page's bar changes with the width but its
-  room, which grows by every pixel the window does (the rows from 480 to 2560): its pills keep 12
-  pixels on 18 with 12 of padding (`.language, .share` in `src/app/[lang]/globals.css`), the only
-  width query that touches the bar below 768 is `max-width: 479px`, and both seeded logos are 120
-  pixels wide at their 30 pixels tall (their files are 479 x 120 and 240 x 60), under the cap of
-  `min(18rem, 45vw)`, 216 at 480 wide. A logo wider than that cap at 30 tall would narrow with
-  the window; none was measured.
+  620, 640, 700 and 767. From 480 up, nothing in a Node page's bar beside a seeded logo changes
+  with the width but its room, which grows by every pixel the window does (the rows from 480 to
+  2560): its pills keep 12 pixels on 18 with 12 of padding (`.language, .share` in
+  `globals.css`), the only width query that touches the bar below 768 is `max-width: 479px`, and
+  both seeded logos are 120 pixels wide at their 30 pixels tall (their files are 479 x 120 and
+  240 x 60), under the cap, which is 216 at 480 wide and 288 from 640 up. A logo at its cap
+  widens with the window up to 640.
+- **Languages**: English and Dutch, the chrome's two and the seeded Trees' two. The current
+  language's pill names its language in that language -- "English", "Nederlands" -- so how wide
+  it is depends on the language. No Tree in a third language was measured.
 - **The closing list**, at 320 x 480 and at 480 x 800, as on `dev`: what each pill of the
-  language switch says and its width, the share button's width, the logo's width and its file's
-  size, and the face of the pills -- the first family their stack names ("Open Sans" for the
-  first Tree; for the second, the default stack's first, `-apple-system`, which neither system
-  has) and the face Chromium drew them in, as `CSS.getPlatformFontsForNode` names it. Then, at
-  320 x 480, where the controls of the bar at `/admin` stand.
+  language switch says and its width, the share button's width, the logo's width, its file's
+  size and its cap, and the face of the pills -- the first family their stack names ("Open Sans"
+  for the first Tree; for the second, the default stack's first, `-apple-system`, which neither
+  system has) and the face Chromium drew them in, as `CSS.getPlatformFontsForNode` names it.
+  Then, at 320 x 480, where the controls of the bar at `/admin` stand.
 - **The runs.** On 2026-10-03 the script ran three times, on Windows only, and printed the same
-  tables each time. On 2026-10-04 it was widened step by step and ran five times on each system;
-  sections 3 and 4 hold the fifth. The first printed the 110 rows of 2026-10-03 unchanged on
-  Windows, in the columns they had; every later run printed each row of the run before it
-  unchanged, and added only what the script had gained in between: the columns without the
-  site's title, the rows at 599 x 800, the face drawn.
+  tables each time. On 2026-10-04 it was widened step by step and ran seven times on each system,
+  six on `6d0ea4b` and the seventh on `748ebcc`, logging in by address as `dev` does since #196.
+  The first printed the 110 rows of 2026-10-03 unchanged on Windows, in the columns they had.
+  Every later run printed each row of the run before it unchanged, and added only what the
+  script had gained in between: the columns without the site's title and the lines on where the
+  controls at `/admin` stand (the second run), the rows at 599 x 800 (the third), the face drawn
+  (the fourth printed it empty, the fifth named it), and the tables with the logo at its cap and
+  the cap in the closing lists (the sixth). The seventh printed all 322 rows and both closing
+  lists of the sixth unchanged, on both systems: #196 and #200 changed nothing these bars draw
+  for the seeded Trees. Sections 3 and 4 are the seventh run.
 
 ## 2. What it shows
 
 Each pair of numbers is Windows' first, then the CI image's.
 
-**A Node page's bar.**
+**A Node page's bar, beside the seeded Trees' logos.**
 
 - From 480 pixels wide up, "Editor" in the share button's look fits beside the current
-  language's pill from 520 pixels wide (the second Tree in English) or 540 (the others), on both
-  systems; in the account link's look from 500 or 520. Narrower, the bar grows past the window,
-  to 540 pixels in a 480-pixel window in Dutch beside the first Tree's logo (539 in the CI
-  image). At 540 the share
-  button's look leaves 0.1 pixels in Dutch beside the first Tree's logo on Windows and 1.3 in the
-  CI image; at 560, 20.1 and 21.3; at 600, 60.1 to 85.1 on Windows and 61.3 to 82.5 in the CI
-  image, the least each time in Dutch beside the first Tree's logo.
+  language's pill only from 520 pixels wide (the second Tree in English) or 540 (the others), on
+  both systems, and in the account link's look from 500 or 520. Narrower, the bar grows past the
+  window, to 540 pixels in a 480-pixel window in Dutch beside the first Tree's logo (539 in the
+  CI image). At 540 the share button's look leaves 0.1 pixels in Dutch beside the first Tree's
+  logo on Windows and 1.3 in the CI image; at 600, 60.1 to 85.1 on Windows and 61.3 to 82.5 in
+  the CI image.
 - Below 480, as on 2026-10-03: with the pill, "Editor" does not fit at 320 x 480 in either look,
   beside either Tree's logo, in either language, nor at 360 x 640 in Dutch beside the first
   Tree's logo.
 - Without the current language's pill, "Editor" in the share button's look fits at every width
-  measured below 600: at 599 x 800 with 143.9 to 161.8 pixels to spare on Windows and 145.3 to
-  159.6 in the CI image, at 480 x 800 with 24.9 to 42.8 and 26.3 to 40.6, and at 320 x 480 with
-  26.8 to 43.3 and 22.6 to 41.3. The pill it gives up is 63.6 to 91 pixels wide at 480 x 800 and
-  46.5 to 72 at 320 x 480 (the closing lists).
+  measured below 768: at 767 x 800 with 311.9 to 329.8 pixels to spare on Windows and 313.3 to
+  327.6 in the CI image, at 480 x 800 with 24.9 to 42.8 and 26.3 to 40.6, and at 320 x 480 with
+  26.8 to 43.3 and 22.6 to 41.3. The pill it gives up is, at 480 x 800, 63.6 to 90.9 pixels wide
+  on Windows and 65.4 to 91 in the CI image, and at 320 x 480, 46.5 to 71.5 and 48.1 to 72 (the
+  closing lists).
+
+**A Node page's bar, beside a logo as wide as its cap.**
+
+- On `dev`, the bar does not hold such a logo from 480 pixels wide until 599 to 640, by Tree,
+  language and system; in Dutch beside the first Tree's controls it is wider than the window at
+  every width measured from 480 to 620, and fits at 640 with 1.3 pixels to spare on Windows and 2
+  in the CI image. Below 480 and from 640 up it holds it.
+- With "Editor" in the share button's look beside the pill, the bar holds such a logo only from
+  700 pixels wide, and in Dutch beside the first Tree's controls only from 767: at 700 that bar
+  is 708 pixels wide, 707 in the CI image. At 768 x 1024 it keeps 59.8 to 85.1 pixels on Windows and 61 to 82.5 in
+  the CI image.
+
+**"Editor" against the pill it replaces.** In every cell measured below 768 pixels wide that
+shows "Editor" without the current language's pill -- 192 on each system: the four Node page
+tables, both looks, both languages -- the bar holds the logo wherever `dev`'s bar holds it, with
+as much room or more, and where `dev`'s bar does not, it is no wider. From 480 up, the pill
+"English" leaves 0.2 to 2 pixels more than "Editor" takes, the least beside the first Tree's
+logo on Windows, and "Nederlands" 23.4 to 26 more. From 768 up, "Editor" fits beside the pill
+in every row, beside either logo: the least is 59.8 pixels on Windows and 61 in the CI image, in
+Dutch beside the first Tree's logo at its cap, at 768 x 1024.
 
 **The overview `/`.** "Editor" fits at every width in either look; at 320 x 480, the
 narrowest, the share button's look leaves 37.1 to 41.3 pixels on Windows and 24.9 to 30.7 in the
@@ -102,32 +139,30 @@ CI image.
   the title, the bar grows past the window or the title takes two or three lines up to 540 pixels
   wide on Windows and 560 in the CI image; "Website" fits from 560 on Windows (6.7 pixels to
   spare in Dutch) and from 580 in the CI image (14.7), and keeps 46.7 to 54.1 at 600 on Windows
-  and 34.7 to 39.5 in the CI image. In the share button's look it fits from 580 and from 600.
+  and 34.7 to 39.5 in the CI image. In the share button's look it fits from 580 on Windows and
+  from 599 in the CI image.
 - Without the site's title and the current language's pill, "Website" in the account link's
-  look fits the creators' overview at every width measured: at 480 x 800 with 131.2 pixels or more
-  on Windows and 130 in the CI image; below 480, where `dev` already hides both, with 18.2 to 27
-  at 320 x 480 on Windows and 17.2 to 25.8 in the CI image.
+  look fits the creators' overview at every width measured: at 480 x 800 with 131.2 pixels or
+  more on Windows and 130 in the CI image; below 480, where `dev` already hides both, with 18.2
+  to 27 at 320 x 480 on Windows and 17.2 to 25.8 in the CI image.
 - Below 480 the controls of the bar at `/admin` stand alone at its left end: at 320 x 480 the
   login page's from 8 to 79.7 pixels of 320 in English, and the administrator's from 8 to 243.8
   (Windows). `.page-chrome` spreads its children to its two ends (`justify-content:
   space-between`), and the site's title, the first, is hidden.
-
-**Where both buttons fit.** Of the widths measured, 580 is the narrowest at which each button
-fits beside everything its bar holds on `dev`, on both systems: there "Website" keeps 14.7 pixels
-in Dutch in the CI image, and "Editor" 40.1 in Dutch beside the first Tree's logo on Windows. At
-600 the least either keeps is 34.7 ("Website", Dutch, the CI image). The two systems differ by up
-to 14.6 pixels in the creators' overview's bar at 600 (54.1 against 39.5, "Website" in English)
-and by up to 2.9 in a Node page's (72.1 against 69.2, "Editor" beside the second Tree in Dutch).
+- Of the widths measured, 580 is the narrowest at which "Website" fits beside the title on both
+  systems, with 14.7 pixels to spare in Dutch in the CI image; at 600 the least is 34.7. The two
+  systems differ by up to 14.6 pixels in that bar at 600 (54.1 against 39.5, in English).
 
 **What the first run left out.** On 2026-10-03 this record measured nothing between 479 and 768
 pixels wide, and read its rows as "the current language's pill need give way below 480 only" and
 "neither the overview's bar nor the bar at `/admin` has to give anything up". The rows from 480
 to 767 show both untrue: with "Editor" beside the pill, a Node page's bar is wider than the
-window below 520 or 540 pixels wide, and with "Website" beside the title, the creators' overview's
-bar is wider than the window or wraps its title below 560 or 580. The overview's bar and the
-login page's hold their buttons at every width, as the first run said.
+window below 520 or 540 pixels wide beside the seeded logos, and up to 700 beside a logo at its
+cap; and with "Website" beside the title, the creators' overview's bar is wider than the window
+or wraps its title below 560 or 580. The overview's bar and the login page's hold their buttons
+at every width, as the first run said.
 
-## 3. The output on Windows, as it ran on 2026-10-04
+## 3. The output on Windows, as it ran on 2026-10-04 on `748ebcc`
 
 ### The root Node page of ai-act-applicability-agrifood
 
@@ -230,6 +265,108 @@ login page's hold their buttons at every width, as the first run said.
 | nl | 640 x 800 | 179.4 | 112.1 | 135.5 | 202.8 | 226.2 |
 | nl | 700 x 800 | 239.4 | 172.1 | 195.5 | 262.8 | 286.2 |
 | nl | 767 x 800 | 306.4 | 239.1 | 262.5 | 329.8 | 353.2 |
+
+### The root Node page of ai-act-applicability-agrifood, its logo drawn as wide as its cap
+
+| lang | viewport | room on dev | + "Editor", share look | + "Editor", share look, no current-language pill |
+|---|---|---|---|---|
+| en | 1280 x 640 | 656.5 | 587 | 656.7 |
+| en | 1366 x 768 | 742.5 | 673 | 742.7 |
+| en | 1920 x 1080 | 1296.5 | 1227 | 1296.7 |
+| en | 2560 x 1440 | 1936.5 | 1867 | 1936.7 |
+| en | 1280 x 800 | 656.5 | 587 | 656.7 |
+| en | 1024 x 768 | 400.5 | 331 | 400.7 |
+| en | 768 x 1024 | 144.5 | 75 | 144.7 |
+| en | 390 x 844 | 75.6 | 29 | 81.3 |
+| en | 360 x 640 | 52.2 | 5.6 | 58 |
+| en | 320 x 480 | 21 | 0 -- DOES NOT FIT: bar 346 in 320 | 26.8 |
+| en | 479 x 800 | 145 | 98.4 | 150.8 |
+| en | 480 x 800 | 0 -- DOES NOT FIT: bar 552 in 480 | 0 -- DOES NOT FIT: bar 621 in 480 | 0 -- DOES NOT FIT: bar 551 in 480 |
+| en | 500 x 800 | 0 -- DOES NOT FIT: bar 561 in 500 | 0 -- DOES NOT FIT: bar 630 in 500 | 0 -- DOES NOT FIT: bar 560 in 500 |
+| en | 520 x 800 | 0 -- DOES NOT FIT: bar 570 in 520 | 0 -- DOES NOT FIT: bar 639 in 520 | 0 -- DOES NOT FIT: bar 569 in 520 |
+| en | 540 x 800 | 0 -- DOES NOT FIT: bar 579 in 540 | 0 -- DOES NOT FIT: bar 648 in 540 | 0 -- DOES NOT FIT: bar 578 in 540 |
+| en | 560 x 800 | 0 -- DOES NOT FIT: bar 588 in 560 | 0 -- DOES NOT FIT: bar 657 in 560 | 0 -- DOES NOT FIT: bar 587 in 560 |
+| en | 580 x 800 | 0 -- DOES NOT FIT: bar 597 in 580 | 0 -- DOES NOT FIT: bar 666 in 580 | 0 -- DOES NOT FIT: bar 596 in 580 |
+| en | 599 x 800 | 0 -- DOES NOT FIT: bar 605 in 599 | 0 -- DOES NOT FIT: bar 675 in 599 | 0 -- DOES NOT FIT: bar 605 in 599 |
+| en | 600 x 800 | 0 -- DOES NOT FIT: bar 606 in 600 | 0 -- DOES NOT FIT: bar 675 in 600 | 0 -- DOES NOT FIT: bar 605 in 600 |
+| en | 620 x 800 | 5.5 | 0 -- DOES NOT FIT: bar 684 in 620 | 5.7 |
+| en | 640 x 800 | 16.5 | 0 -- DOES NOT FIT: bar 693 in 640 | 16.7 |
+| en | 700 x 800 | 76.5 | 7 | 76.7 |
+| en | 767 x 800 | 143.5 | 74 | 143.7 |
+| nl | 1280 x 640 | 641.3 | 571.8 | 666.7 |
+| nl | 1366 x 768 | 727.3 | 657.8 | 752.7 |
+| nl | 1920 x 1080 | 1281.3 | 1211.8 | 1306.7 |
+| nl | 2560 x 1440 | 1921.3 | 1851.8 | 1946.7 |
+| nl | 1280 x 800 | 641.3 | 571.8 | 666.7 |
+| nl | 1024 x 768 | 385.3 | 315.8 | 410.7 |
+| nl | 768 x 1024 | 129.3 | 59.8 | 154.7 |
+| nl | 390 x 844 | 61.7 | 15 | 90.5 |
+| nl | 360 x 640 | 38.3 | 0 -- DOES NOT FIT: bar 368 in 360 | 67.1 |
+| nl | 320 x 480 | 7.1 | 0 -- DOES NOT FIT: bar 360 in 320 | 35.9 |
+| nl | 479 x 800 | 131.1 | 84.5 | 159.9 |
+| nl | 480 x 800 | 0 -- DOES NOT FIT: bar 567 in 480 | 0 -- DOES NOT FIT: bar 636 in 480 | 0 -- DOES NOT FIT: bar 541 in 480 |
+| nl | 500 x 800 | 0 -- DOES NOT FIT: bar 576 in 500 | 0 -- DOES NOT FIT: bar 645 in 500 | 0 -- DOES NOT FIT: bar 550 in 500 |
+| nl | 520 x 800 | 0 -- DOES NOT FIT: bar 585 in 520 | 0 -- DOES NOT FIT: bar 654 in 520 | 0 -- DOES NOT FIT: bar 559 in 520 |
+| nl | 540 x 800 | 0 -- DOES NOT FIT: bar 594 in 540 | 0 -- DOES NOT FIT: bar 663 in 540 | 0 -- DOES NOT FIT: bar 568 in 540 |
+| nl | 560 x 800 | 0 -- DOES NOT FIT: bar 603 in 560 | 0 -- DOES NOT FIT: bar 672 in 560 | 0 -- DOES NOT FIT: bar 577 in 560 |
+| nl | 580 x 800 | 0 -- DOES NOT FIT: bar 612 in 580 | 0 -- DOES NOT FIT: bar 681 in 580 | 0 -- DOES NOT FIT: bar 586 in 580 |
+| nl | 599 x 800 | 0 -- DOES NOT FIT: bar 620 in 599 | 0 -- DOES NOT FIT: bar 690 in 599 | 4.1 |
+| nl | 600 x 800 | 0 -- DOES NOT FIT: bar 621 in 600 | 0 -- DOES NOT FIT: bar 690 in 600 | 4.7 |
+| nl | 620 x 800 | 0 -- DOES NOT FIT: bar 630 in 620 | 0 -- DOES NOT FIT: bar 699 in 620 | 15.7 |
+| nl | 640 x 800 | 1.3 | 0 -- DOES NOT FIT: bar 708 in 640 | 26.7 |
+| nl | 700 x 800 | 61.3 | 0 -- DOES NOT FIT: bar 708 in 700 | 86.7 |
+| nl | 767 x 800 | 128.3 | 58.8 | 153.7 |
+
+### The root Node page of ai-act-example, its logo drawn as wide as its cap
+
+| lang | viewport | room on dev | + "Editor", share look | + "Editor", share look, no current-language pill |
+|---|---|---|---|---|
+| en | 1280 x 640 | 664.5 | 597.1 | 664.8 |
+| en | 1366 x 768 | 750.5 | 683.1 | 750.8 |
+| en | 1920 x 1080 | 1304.5 | 1237.1 | 1304.8 |
+| en | 2560 x 1440 | 1944.5 | 1877.1 | 1944.8 |
+| en | 1280 x 800 | 664.5 | 597.1 | 664.8 |
+| en | 1024 x 768 | 408.5 | 341.1 | 408.8 |
+| en | 768 x 1024 | 152.5 | 85.1 | 152.8 |
+| en | 390 x 844 | 82.9 | 38.2 | 88.7 |
+| en | 360 x 640 | 59.5 | 14.8 | 65.3 |
+| en | 320 x 480 | 28.3 | 0 -- DOES NOT FIT: bar 336 in 320 | 34.1 |
+| en | 479 x 800 | 152.4 | 107.7 | 158.2 |
+| en | 480 x 800 | 0 -- DOES NOT FIT: bar 544 in 480 | 0 -- DOES NOT FIT: bar 611 in 480 | 0 -- DOES NOT FIT: bar 543 in 480 |
+| en | 500 x 800 | 0 -- DOES NOT FIT: bar 553 in 500 | 0 -- DOES NOT FIT: bar 620 in 500 | 0 -- DOES NOT FIT: bar 552 in 500 |
+| en | 520 x 800 | 0 -- DOES NOT FIT: bar 562 in 520 | 0 -- DOES NOT FIT: bar 629 in 520 | 0 -- DOES NOT FIT: bar 561 in 520 |
+| en | 540 x 800 | 0 -- DOES NOT FIT: bar 571 in 540 | 0 -- DOES NOT FIT: bar 638 in 540 | 0 -- DOES NOT FIT: bar 570 in 540 |
+| en | 560 x 800 | 0 -- DOES NOT FIT: bar 580 in 560 | 0 -- DOES NOT FIT: bar 647 in 560 | 0 -- DOES NOT FIT: bar 579 in 560 |
+| en | 580 x 800 | 0 -- DOES NOT FIT: bar 589 in 580 | 0 -- DOES NOT FIT: bar 656 in 580 | 0 -- DOES NOT FIT: bar 588 in 580 |
+| en | 599 x 800 | 1.9 | 0 -- DOES NOT FIT: bar 664 in 599 | 2.2 |
+| en | 600 x 800 | 2.5 | 0 -- DOES NOT FIT: bar 665 in 600 | 2.8 |
+| en | 620 x 800 | 13.5 | 0 -- DOES NOT FIT: bar 674 in 620 | 13.8 |
+| en | 640 x 800 | 24.5 | 0 -- DOES NOT FIT: bar 683 in 640 | 24.8 |
+| en | 700 x 800 | 84.5 | 17.1 | 84.8 |
+| en | 767 x 800 | 151.5 | 84.1 | 151.8 |
+| nl | 1280 x 640 | 651.4 | 584.1 | 674.8 |
+| nl | 1366 x 768 | 737.4 | 670.1 | 760.8 |
+| nl | 1920 x 1080 | 1291.4 | 1224.1 | 1314.8 |
+| nl | 2560 x 1440 | 1931.4 | 1864.1 | 1954.8 |
+| nl | 1280 x 800 | 651.4 | 584.1 | 674.8 |
+| nl | 1024 x 768 | 395.4 | 328.1 | 418.8 |
+| nl | 768 x 1024 | 139.4 | 72.1 | 162.8 |
+| nl | 390 x 844 | 71 | 26.3 | 97.9 |
+| nl | 360 x 640 | 47.6 | 2.9 | 74.5 |
+| nl | 320 x 480 | 16.4 | 0 -- DOES NOT FIT: bar 348 in 320 | 43.3 |
+| nl | 479 x 800 | 140.4 | 95.7 | 167.4 |
+| nl | 480 x 800 | 0 -- DOES NOT FIT: bar 557 in 480 | 0 -- DOES NOT FIT: bar 624 in 480 | 0 -- DOES NOT FIT: bar 533 in 480 |
+| nl | 500 x 800 | 0 -- DOES NOT FIT: bar 566 in 500 | 0 -- DOES NOT FIT: bar 633 in 500 | 0 -- DOES NOT FIT: bar 542 in 500 |
+| nl | 520 x 800 | 0 -- DOES NOT FIT: bar 575 in 520 | 0 -- DOES NOT FIT: bar 642 in 520 | 0 -- DOES NOT FIT: bar 551 in 520 |
+| nl | 540 x 800 | 0 -- DOES NOT FIT: bar 584 in 540 | 0 -- DOES NOT FIT: bar 651 in 540 | 0 -- DOES NOT FIT: bar 560 in 540 |
+| nl | 560 x 800 | 0 -- DOES NOT FIT: bar 593 in 560 | 0 -- DOES NOT FIT: bar 660 in 560 | 0 -- DOES NOT FIT: bar 569 in 560 |
+| nl | 580 x 800 | 0 -- DOES NOT FIT: bar 602 in 580 | 0 -- DOES NOT FIT: bar 669 in 580 | 1.8 |
+| nl | 599 x 800 | 0 -- DOES NOT FIT: bar 610 in 599 | 0 -- DOES NOT FIT: bar 677 in 599 | 12.3 |
+| nl | 600 x 800 | 0 -- DOES NOT FIT: bar 611 in 600 | 0 -- DOES NOT FIT: bar 678 in 600 | 12.8 |
+| nl | 620 x 800 | 0.4 | 0 -- DOES NOT FIT: bar 687 in 620 | 23.8 |
+| nl | 640 x 800 | 11.4 | 0 -- DOES NOT FIT: bar 696 in 640 | 34.8 |
+| nl | 700 x 800 | 71.4 | 4.1 | 94.8 |
+| nl | 767 x 800 | 138.4 | 71.1 | 161.8 |
 
 ### The overview, /
 
@@ -386,20 +523,20 @@ login page's hold their buttons at every width, as the first run said.
 
 ### The language switch and the logo on the root Node pages, and the controls at /admin below 480, as on dev
 
-- 320 x 480, ai-act-applicability-agrifood, en: "English" (the current language) 48.4, "Nederlands" 71.5; the share button 58.7; the logo 58.4 (its file 479 x 120); the pills' face: "Open Sans", drawn in Open Sans
-- 320 x 480, ai-act-applicability-agrifood, nl: "English" 48.4, "Nederlands" (the current language) 71.5; the share button 72.7; the logo 58.4 (its file 479 x 120); the pills' face: "Open Sans", drawn in Open Sans
-- 320 x 480, ai-act-example, en: "English" (the current language) 46.5, "Nederlands" 67.7; the share button 57.1; the logo 58.4 (its file 240 x 60); the pills' face: -apple-system, drawn in Segoe UI
-- 320 x 480, ai-act-example, nl: "English" 46.5, "Nederlands" (the current language) 67.7; the share button 69.1; the logo 58.4 (its file 240 x 60); the pills' face: -apple-system, drawn in Segoe UI
-- 480 x 800, ai-act-applicability-agrifood, en: "English" (the current language) 65.7, "Nederlands" 90.9; the share button 77; the logo 119.8 (its file 479 x 120); the pills' face: "Open Sans", drawn in Open Sans
-- 480 x 800, ai-act-applicability-agrifood, nl: "English" 65.7, "Nederlands" (the current language) 90.9; the share button 92.2; the logo 119.8 (its file 479 x 120); the pills' face: "Open Sans", drawn in Open Sans
-- 480 x 800, ai-act-example, en: "English" (the current language) 63.6, "Nederlands" 86.7; the share button 75.2; the logo 120 (its file 240 x 60); the pills' face: -apple-system, drawn in Segoe UI
-- 480 x 800, ai-act-example, nl: "English" 63.6, "Nederlands" (the current language) 86.7; the share button 88.3; the logo 120 (its file 240 x 60); the pills' face: -apple-system, drawn in Segoe UI
+- 320 x 480, ai-act-applicability-agrifood, en: "English" (the current language) 48.4, "Nederlands" 71.5; the share button 58.7; the logo 58.4 (its file 479 x 120; its cap 58.4); the pills' face: "Open Sans", drawn in Open Sans
+- 320 x 480, ai-act-applicability-agrifood, nl: "English" 48.4, "Nederlands" (the current language) 71.5; the share button 72.7; the logo 58.4 (its file 479 x 120; its cap 58.4); the pills' face: "Open Sans", drawn in Open Sans
+- 320 x 480, ai-act-example, en: "English" (the current language) 46.5, "Nederlands" 67.7; the share button 57.1; the logo 58.4 (its file 240 x 60; its cap 58.4); the pills' face: -apple-system, drawn in Segoe UI
+- 320 x 480, ai-act-example, nl: "English" 46.5, "Nederlands" (the current language) 67.7; the share button 69.1; the logo 58.4 (its file 240 x 60; its cap 58.4); the pills' face: -apple-system, drawn in Segoe UI
+- 480 x 800, ai-act-applicability-agrifood, en: "English" (the current language) 65.7, "Nederlands" 90.9; the share button 77; the logo 119.8 (its file 479 x 120; its cap 216); the pills' face: "Open Sans", drawn in Open Sans
+- 480 x 800, ai-act-applicability-agrifood, nl: "English" 65.7, "Nederlands" (the current language) 90.9; the share button 92.2; the logo 119.8 (its file 479 x 120; its cap 216); the pills' face: "Open Sans", drawn in Open Sans
+- 480 x 800, ai-act-example, en: "English" (the current language) 63.6, "Nederlands" 86.7; the share button 75.2; the logo 120 (its file 240 x 60; its cap 216); the pills' face: -apple-system, drawn in Segoe UI
+- 480 x 800, ai-act-example, nl: "English" 63.6, "Nederlands" (the current language) 86.7; the share button 88.3; the logo 120 (its file 240 x 60; its cap 216); the pills' face: -apple-system, drawn in Segoe UI
 - 320 x 480, /admin, the login page, en: the bar from 0 to 320, its controls from 8 to 79.7
 - 320 x 480, /admin, the login page, nl: the bar from 0 to 320, its controls from 8 to 58.5
 - 320 x 480, /admin, the administrator's creators' overview, en: the bar from 0 to 320, its controls from 8 to 243.8
 - 320 x 480, /admin, the administrator's creators' overview, nl: the bar from 0 to 320, its controls from 8 to 235
 
-## 4. The output in the CI runner's faces, as it ran on 2026-10-04
+## 4. The output in the CI runner's faces, as it ran on 2026-10-04 on `748ebcc`
 
 The same script in the `mcr.microsoft.com/playwright:v1.62.1-noble` image, against the server of
 section 3, which listened on every interface (`HOSTNAME=0.0.0.0`) so that the image reached it at
@@ -506,6 +643,108 @@ section 3, which listened on every interface (`HOSTNAME=0.0.0.0`) so that the im
 | nl | 640 x 800 | 176.6 | 109.2 | 132.6 | 200.6 | 224 |
 | nl | 700 x 800 | 236.6 | 169.2 | 192.6 | 260.6 | 284 |
 | nl | 767 x 800 | 303.6 | 236.2 | 259.6 | 327.6 | 351 |
+
+### The root Node page of ai-act-applicability-agrifood, its logo drawn as wide as its cap
+
+| lang | viewport | room on dev | + "Editor", share look | + "Editor", share look, no current-language pill |
+|---|---|---|---|---|
+| en | 1280 x 640 | 657 | 588 | 658 |
+| en | 1366 x 768 | 743 | 674 | 744 |
+| en | 1920 x 1080 | 1297 | 1228 | 1298 |
+| en | 2560 x 1440 | 1937 | 1868 | 1938 |
+| en | 1280 x 800 | 657 | 588 | 658 |
+| en | 1024 x 768 | 401 | 332 | 402 |
+| en | 768 x 1024 | 145 | 76 | 146 |
+| en | 390 x 844 | 72.2 | 24.2 | 77.2 |
+| en | 360 x 640 | 48.8 | 0.8 | 53.8 |
+| en | 320 x 480 | 17.6 | 0 -- DOES NOT FIT: bar 350 in 320 | 22.6 |
+| en | 479 x 800 | 141.6 | 93.6 | 146.6 |
+| en | 480 x 800 | 0 -- DOES NOT FIT: bar 551 in 480 | 0 -- DOES NOT FIT: bar 620 in 480 | 0 -- DOES NOT FIT: bar 550 in 480 |
+| en | 500 x 800 | 0 -- DOES NOT FIT: bar 560 in 500 | 0 -- DOES NOT FIT: bar 629 in 500 | 0 -- DOES NOT FIT: bar 559 in 500 |
+| en | 520 x 800 | 0 -- DOES NOT FIT: bar 569 in 520 | 0 -- DOES NOT FIT: bar 638 in 520 | 0 -- DOES NOT FIT: bar 568 in 520 |
+| en | 540 x 800 | 0 -- DOES NOT FIT: bar 578 in 540 | 0 -- DOES NOT FIT: bar 647 in 540 | 0 -- DOES NOT FIT: bar 577 in 540 |
+| en | 560 x 800 | 0 -- DOES NOT FIT: bar 587 in 560 | 0 -- DOES NOT FIT: bar 656 in 560 | 0 -- DOES NOT FIT: bar 586 in 560 |
+| en | 580 x 800 | 0 -- DOES NOT FIT: bar 596 in 580 | 0 -- DOES NOT FIT: bar 665 in 580 | 0 -- DOES NOT FIT: bar 595 in 580 |
+| en | 599 x 800 | 0 -- DOES NOT FIT: bar 605 in 599 | 0 -- DOES NOT FIT: bar 674 in 599 | 0 -- DOES NOT FIT: bar 604 in 599 |
+| en | 600 x 800 | 0 -- DOES NOT FIT: bar 605 in 600 | 0 -- DOES NOT FIT: bar 674 in 600 | 0 -- DOES NOT FIT: bar 604 in 600 |
+| en | 620 x 800 | 6 | 0 -- DOES NOT FIT: bar 683 in 620 | 7 |
+| en | 640 x 800 | 17 | 0 -- DOES NOT FIT: bar 692 in 640 | 18 |
+| en | 700 x 800 | 77 | 8 | 78 |
+| en | 767 x 800 | 144 | 75 | 145 |
+| nl | 1280 x 640 | 642 | 573 | 668 |
+| nl | 1366 x 768 | 728 | 659 | 754 |
+| nl | 1920 x 1080 | 1282 | 1213 | 1308 |
+| nl | 2560 x 1440 | 1922 | 1853 | 1948 |
+| nl | 1280 x 800 | 642 | 573 | 668 |
+| nl | 1024 x 768 | 386 | 317 | 412 |
+| nl | 768 x 1024 | 130 | 61 | 156 |
+| nl | 390 x 844 | 58.2 | 10.2 | 86.2 |
+| nl | 360 x 640 | 34.8 | 0 -- DOES NOT FIT: bar 373 in 360 | 62.8 |
+| nl | 320 x 480 | 3.6 | 0 -- DOES NOT FIT: bar 364 in 320 | 31.6 |
+| nl | 479 x 800 | 127.6 | 79.6 | 155.6 |
+| nl | 480 x 800 | 0 -- DOES NOT FIT: bar 566 in 480 | 0 -- DOES NOT FIT: bar 635 in 480 | 0 -- DOES NOT FIT: bar 540 in 480 |
+| nl | 500 x 800 | 0 -- DOES NOT FIT: bar 575 in 500 | 0 -- DOES NOT FIT: bar 644 in 500 | 0 -- DOES NOT FIT: bar 549 in 500 |
+| nl | 520 x 800 | 0 -- DOES NOT FIT: bar 584 in 520 | 0 -- DOES NOT FIT: bar 653 in 520 | 0 -- DOES NOT FIT: bar 558 in 520 |
+| nl | 540 x 800 | 0 -- DOES NOT FIT: bar 593 in 540 | 0 -- DOES NOT FIT: bar 662 in 540 | 0 -- DOES NOT FIT: bar 567 in 540 |
+| nl | 560 x 800 | 0 -- DOES NOT FIT: bar 602 in 560 | 0 -- DOES NOT FIT: bar 671 in 560 | 0 -- DOES NOT FIT: bar 576 in 560 |
+| nl | 580 x 800 | 0 -- DOES NOT FIT: bar 611 in 580 | 0 -- DOES NOT FIT: bar 680 in 580 | 0 -- DOES NOT FIT: bar 585 in 580 |
+| nl | 599 x 800 | 0 -- DOES NOT FIT: bar 620 in 599 | 0 -- DOES NOT FIT: bar 689 in 599 | 5.5 |
+| nl | 600 x 800 | 0 -- DOES NOT FIT: bar 620 in 600 | 0 -- DOES NOT FIT: bar 689 in 600 | 6 |
+| nl | 620 x 800 | 0 -- DOES NOT FIT: bar 629 in 620 | 0 -- DOES NOT FIT: bar 698 in 620 | 17 |
+| nl | 640 x 800 | 2 | 0 -- DOES NOT FIT: bar 707 in 640 | 28 |
+| nl | 700 x 800 | 62 | 0 -- DOES NOT FIT: bar 707 in 700 | 88 |
+| nl | 767 x 800 | 129 | 60 | 155 |
+
+### The root Node page of ai-act-example, its logo drawn as wide as its cap
+
+| lang | viewport | room on dev | + "Editor", share look | + "Editor", share look, no current-language pill |
+|---|---|---|---|---|
+| en | 1280 x 640 | 661.9 | 594.5 | 663.9 |
+| en | 1366 x 768 | 747.9 | 680.5 | 749.9 |
+| en | 1920 x 1080 | 1301.9 | 1234.5 | 1303.9 |
+| en | 2560 x 1440 | 1941.9 | 1874.5 | 1943.9 |
+| en | 1280 x 800 | 661.9 | 594.5 | 663.9 |
+| en | 1024 x 768 | 405.9 | 338.5 | 407.9 |
+| en | 768 x 1024 | 149.9 | 82.5 | 151.9 |
+| en | 390 x 844 | 80.6 | 35.9 | 87.9 |
+| en | 360 x 640 | 57.2 | 12.5 | 64.5 |
+| en | 320 x 480 | 26 | 0 -- DOES NOT FIT: bar 339 in 320 | 33.3 |
+| en | 479 x 800 | 150 | 105.3 | 157.4 |
+| en | 480 x 800 | 0 -- DOES NOT FIT: bar 546 in 480 | 0 -- DOES NOT FIT: bar 613 in 480 | 0 -- DOES NOT FIT: bar 544 in 480 |
+| en | 500 x 800 | 0 -- DOES NOT FIT: bar 555 in 500 | 0 -- DOES NOT FIT: bar 622 in 500 | 0 -- DOES NOT FIT: bar 553 in 500 |
+| en | 520 x 800 | 0 -- DOES NOT FIT: bar 564 in 520 | 0 -- DOES NOT FIT: bar 631 in 520 | 0 -- DOES NOT FIT: bar 562 in 520 |
+| en | 540 x 800 | 0 -- DOES NOT FIT: bar 573 in 540 | 0 -- DOES NOT FIT: bar 640 in 540 | 0 -- DOES NOT FIT: bar 571 in 540 |
+| en | 560 x 800 | 0 -- DOES NOT FIT: bar 582 in 560 | 0 -- DOES NOT FIT: bar 649 in 560 | 0 -- DOES NOT FIT: bar 580 in 560 |
+| en | 580 x 800 | 0 -- DOES NOT FIT: bar 591 in 580 | 0 -- DOES NOT FIT: bar 658 in 580 | 0 -- DOES NOT FIT: bar 589 in 580 |
+| en | 599 x 800 | 0 -- DOES NOT FIT: bar 600 in 599 | 0 -- DOES NOT FIT: bar 667 in 599 | 1.4 |
+| en | 600 x 800 | 0 | 0 -- DOES NOT FIT: bar 667 in 600 | 1.9 |
+| en | 620 x 800 | 10.9 | 0 -- DOES NOT FIT: bar 676 in 620 | 12.9 |
+| en | 640 x 800 | 21.9 | 0 -- DOES NOT FIT: bar 685 in 640 | 23.9 |
+| en | 700 x 800 | 81.9 | 14.5 | 83.9 |
+| en | 767 x 800 | 148.9 | 81.5 | 150.9 |
+| nl | 1280 x 640 | 648.6 | 581.2 | 672.6 |
+| nl | 1366 x 768 | 734.6 | 667.2 | 758.6 |
+| nl | 1920 x 1080 | 1288.6 | 1221.2 | 1312.6 |
+| nl | 2560 x 1440 | 1928.6 | 1861.2 | 1952.6 |
+| nl | 1280 x 800 | 648.6 | 581.2 | 672.6 |
+| nl | 1024 x 768 | 392.6 | 325.2 | 416.6 |
+| nl | 768 x 1024 | 136.6 | 69.2 | 160.6 |
+| nl | 390 x 844 | 68.4 | 23.6 | 95.9 |
+| nl | 360 x 640 | 45 | 0.2 | 72.5 |
+| nl | 320 x 480 | 13.8 | 0 -- DOES NOT FIT: bar 351 in 320 | 41.3 |
+| nl | 479 x 800 | 137.8 | 93 | 165.3 |
+| nl | 480 x 800 | 0 -- DOES NOT FIT: bar 559 in 480 | 0 -- DOES NOT FIT: bar 627 in 480 | 0 -- DOES NOT FIT: bar 535 in 480 |
+| nl | 500 x 800 | 0 -- DOES NOT FIT: bar 568 in 500 | 0 -- DOES NOT FIT: bar 636 in 500 | 0 -- DOES NOT FIT: bar 544 in 500 |
+| nl | 520 x 800 | 0 -- DOES NOT FIT: bar 577 in 520 | 0 -- DOES NOT FIT: bar 645 in 520 | 0 -- DOES NOT FIT: bar 553 in 520 |
+| nl | 540 x 800 | 0 -- DOES NOT FIT: bar 586 in 540 | 0 -- DOES NOT FIT: bar 654 in 540 | 0 -- DOES NOT FIT: bar 562 in 540 |
+| nl | 560 x 800 | 0 -- DOES NOT FIT: bar 595 in 560 | 0 -- DOES NOT FIT: bar 663 in 560 | 0 -- DOES NOT FIT: bar 571 in 560 |
+| nl | 580 x 800 | 0 -- DOES NOT FIT: bar 604 in 580 | 0 -- DOES NOT FIT: bar 672 in 580 | 0 |
+| nl | 599 x 800 | 0 -- DOES NOT FIT: bar 613 in 599 | 0 -- DOES NOT FIT: bar 680 in 599 | 10 |
+| nl | 600 x 800 | 0 -- DOES NOT FIT: bar 613 in 600 | 0 -- DOES NOT FIT: bar 681 in 600 | 10.6 |
+| nl | 620 x 800 | 0 -- DOES NOT FIT: bar 622 in 620 | 0 -- DOES NOT FIT: bar 690 in 620 | 21.6 |
+| nl | 640 x 800 | 8.6 | 0 -- DOES NOT FIT: bar 699 in 640 | 32.6 |
+| nl | 700 x 800 | 68.6 | 1.2 | 92.6 |
+| nl | 767 x 800 | 135.6 | 68.2 | 159.6 |
 
 ### The overview, /
 
@@ -662,14 +901,14 @@ section 3, which listened on every interface (`HOSTNAME=0.0.0.0`) so that the im
 
 ### The language switch and the logo on the root Node pages, and the controls at /admin below 480, as on dev
 
-- 320 x 480, ai-act-applicability-agrifood, en: "English" (the current language) 49, "Nederlands" 72; the share button 61; the logo 58.4 (its file 479 x 120); the pills' face: "Open Sans", drawn in Open Sans
-- 320 x 480, ai-act-applicability-agrifood, nl: "English" 49, "Nederlands" (the current language) 72; the share button 75; the logo 58.4 (its file 479 x 120); the pills' face: "Open Sans", drawn in Open Sans
-- 320 x 480, ai-act-example, en: "English" (the current language) 48.1, "Nederlands" 68.3; the share button 57.3; the logo 58.4 (its file 240 x 60); the pills' face: -apple-system, drawn in Liberation Sans
-- 320 x 480, ai-act-example, nl: "English" 48.1, "Nederlands" (the current language) 68.3; the share button 69.5; the logo 58.4 (its file 240 x 60); the pills' face: -apple-system, drawn in Liberation Sans
-- 480 x 800, ai-act-applicability-agrifood, en: "English" (the current language) 66, "Nederlands" 91; the share button 76; the logo 119.8 (its file 479 x 120); the pills' face: "Open Sans", drawn in Open Sans
-- 480 x 800, ai-act-applicability-agrifood, nl: "English" 66, "Nederlands" (the current language) 91; the share button 91; the logo 119.8 (its file 479 x 120); the pills' face: "Open Sans", drawn in Open Sans
-- 480 x 800, ai-act-example, en: "English" (the current language) 65.4, "Nederlands" 87.4; the share button 75.4; the logo 120 (its file 240 x 60); the pills' face: -apple-system, drawn in Liberation Sans
-- 480 x 800, ai-act-example, nl: "English" 65.4, "Nederlands" (the current language) 87.4; the share button 88.7; the logo 120 (its file 240 x 60); the pills' face: -apple-system, drawn in Liberation Sans
+- 320 x 480, ai-act-applicability-agrifood, en: "English" (the current language) 49, "Nederlands" 72; the share button 61; the logo 58.4 (its file 479 x 120; its cap 58.4); the pills' face: "Open Sans", drawn in Open Sans
+- 320 x 480, ai-act-applicability-agrifood, nl: "English" 49, "Nederlands" (the current language) 72; the share button 75; the logo 58.4 (its file 479 x 120; its cap 58.4); the pills' face: "Open Sans", drawn in Open Sans
+- 320 x 480, ai-act-example, en: "English" (the current language) 48.1, "Nederlands" 68.3; the share button 57.3; the logo 58.4 (its file 240 x 60; its cap 58.4); the pills' face: -apple-system, drawn in Liberation Sans
+- 320 x 480, ai-act-example, nl: "English" 48.1, "Nederlands" (the current language) 68.3; the share button 69.5; the logo 58.4 (its file 240 x 60; its cap 58.4); the pills' face: -apple-system, drawn in Liberation Sans
+- 480 x 800, ai-act-applicability-agrifood, en: "English" (the current language) 66, "Nederlands" 91; the share button 76; the logo 119.8 (its file 479 x 120; its cap 216); the pills' face: "Open Sans", drawn in Open Sans
+- 480 x 800, ai-act-applicability-agrifood, nl: "English" 66, "Nederlands" (the current language) 91; the share button 91; the logo 119.8 (its file 479 x 120; its cap 216); the pills' face: "Open Sans", drawn in Open Sans
+- 480 x 800, ai-act-example, en: "English" (the current language) 65.4, "Nederlands" 87.4; the share button 75.4; the logo 120 (its file 240 x 60; its cap 216); the pills' face: -apple-system, drawn in Liberation Sans
+- 480 x 800, ai-act-example, nl: "English" 65.4, "Nederlands" (the current language) 87.4; the share button 88.7; the logo 120 (its file 240 x 60; its cap 216); the pills' face: -apple-system, drawn in Liberation Sans
 - 320 x 480, /admin, the login page, en: the bar from 0 to 320, its controls from 8 to 80.3
 - 320 x 480, /admin, the login page, nl: the bar from 0 to 320, its controls from 8 to 60.1
 - 320 x 480, /admin, the administrator's creators' overview, en: the bar from 0 to 320, its controls from 8 to 244.1
@@ -677,24 +916,24 @@ section 3, which listened on every interface (`HOSTNAME=0.0.0.0`) so that the im
 
 ## 5. The script
 
-Run as `node measure.mjs http://127.0.0.1:<port> <the administrator's password>` from the
-repository's root against the server above, and in the image as `node /work/measure.mjs
-http://host.docker.internal:<port> <the administrator's password>` from `/work`, which held a copy
-of the repository's `node_modules/playwright-core` and a `package.json` of `{"type":"module"}`.
-It logs in as `admin`, as `dev` did on 2026-10-04. Once #196 has merged, the administrator logs in
-with the address the server reads from `ELSA_ADMIN_EMAIL`, and the script takes that address as
-a third argument and posts `{ email, password }`, as `login()` in `tests/browser/admin.ts` does on
-#196's branch; that path has not run.
+Run as `node measure.mjs http://127.0.0.1:<port> <the administrator's password> <the
+administrator's address>` from the repository's root against the server above, and in the image
+as `node /work/measure.mjs http://host.docker.internal:<port> <the administrator's password> <the
+administrator's address>` from `/work`, which held a copy of the repository's
+`node_modules/playwright-core` and a `package.json` of `{"type":"module"}`. The address is the
+one the server read from `ELSA_ADMIN_EMAIL`, and the script posts it as `{ email, password }`, as
+`login()` in `tests/browser/admin.ts` does since #196. On `6d0ea4b`, before #196, the runs gave no
+address, and the script logged in by the name `admin`.
 
 ```js
 // Issue #202: the room in the chrome bars for #204's "Editor" and "Website", on the production
 // build of dev. A scratch script of the filing run, widened by its fix run (PR #207, cycle 2) to
-// the widths between 480 and 767, copied whole into docs/research/issue-202-bar-room.md and
-// deleted. Usage, from a folder whose node_modules holds playwright-core -- the repository, or
-// the CI image's /work:
+// the widths between 480 and 767 and to a logo as wide as its cap, copied whole into
+// docs/research/issue-202-bar-room.md and deleted. Usage, from a folder whose node_modules holds
+// playwright-core -- the repository, or the CI image's /work:
 //   node measure.mjs <origin> <the administrator's password> [<the administrator's address>]
-// Without an address it logs in as `admin`, as dev did on 2026-10-04; once #196 has merged, the
-// login takes the address the server was started with in ELSA_ADMIN_EMAIL.
+// With an address it logs in by address, as dev does since #196; without one, by the name
+// `admin`, as dev did before #196.
 import { createRequire } from 'node:module'
 import path from 'node:path'
 
@@ -717,16 +956,19 @@ const VIEWPORTS = [
 /**
  * The room in the page's chrome bar, after drawing `add` -- an `<a>` with a class of the bar's
  * own controls -- at the end of its controls, after hiding the current language's pill when
- * `hideCurrent`, and after hiding the bar's first child -- the site's title at `/admin` -- when
- * `hideTitle`. Room: between the bar's first child and its controls, the bar's gap taken off;
+ * `hideCurrent`, after hiding the bar's first child -- the site's title at `/admin` -- when
+ * `hideTitle`, and after drawing the Tree's logo as wide as its cap allows when `logoAtCap`. Room: between the bar's first child and its controls, the bar's gap taken off;
  * where the first child is hidden (the Tree-less admin bars below 480, or `hideTitle`), after
  * the controls, which then stand alone at the left. Fits: the bar no wider than the window,
  * nothing in the bar wider or taller than itself, and no text in it on more than one line.
  */
-async function measure(page, add, hideCurrent, hideTitle) {
-  return page.evaluate(({ add, hideCurrent, hideTitle }) => {
+async function measure(page, add, hideCurrent, hideTitle, logoAtCap) {
+  return page.evaluate(({ add, hideCurrent, hideTitle, logoAtCap }) => {
     const bar = document.querySelector('header.page-chrome')
     const controls = bar.querySelector(':scope > .page-controls')
+    // A logo of any shape is drawn no wider than `.logo`'s max-width: asked for the window's
+    // width, it is drawn exactly that wide, as the widest logo a Theme can bring.
+    if (logoAtCap) bar.querySelector('img.logo').style.width = '100vw'
     if (hideTitle) bar.firstElementChild.style.display = 'none'
     if (hideCurrent) for (const pill of controls.querySelectorAll('.language--current')) pill.closest('li').style.display = 'none'
     if (add) {
@@ -761,12 +1003,12 @@ async function measure(page, add, hideCurrent, hideTitle) {
     if (wide) return `${cell} -- DOES NOT FIT: bar ${Math.round(box.width)} in ${window.innerWidth}`
     if (wrapped.length) return `${cell} -- WRAPS: ${wrapped.join(', ')}`
     return cell
-  }, { add, hideCurrent, hideTitle })
+  }, { add, hideCurrent, hideTitle, logoAtCap })
 }
 
 const browser = await chromium.launch()
 const tables = []
-async function table(context, title, address, variants) {
+async function table(context, title, address, variants, logoAtCap = false) {
   const rows = [`### ${title}`, '', `| lang | viewport | room on dev | ${variants.map((v) => v.label).join(' | ')} |`, `|---|---|---|${variants.map(() => '---|').join('')}`]
   const page = await context.newPage()
   for (const lang of ['en', 'nl']) {
@@ -775,10 +1017,10 @@ async function table(context, title, address, variants) {
       const url = new URL(address, origin)
       if (lang === 'nl') url.searchParams.set('lang', 'nl')
       await page.goto(url.href, { waitUntil: 'load' })
-      const cells = [await measure(page, null, false, false)]
+      const cells = [await measure(page, null, false, false, logoAtCap)]
       for (const v of variants) {
         await page.reload({ waitUntil: 'load' })
-        cells.push(await measure(page, v.add, v.hideCurrent, v.hideTitle))
+        cells.push(await measure(page, v.add, v.hideCurrent, v.hideTitle, logoAtCap))
       }
       rows.push(`| ${lang} | ${w} x ${h} | ${cells.join(' | ')} |`)
     }
@@ -799,6 +1041,9 @@ const node = [
 const visitor = await browser.newContext()
 await table(visitor, 'The root Node page of ai-act-applicability-agrifood', '/ai-act-applicability-agrifood', node)
 await table(visitor, 'The root Node page of ai-act-example', '/ai-act-example', node)
+const capped = [node[0], node[2]]
+await table(visitor, 'The root Node page of ai-act-applicability-agrifood, its logo drawn as wide as its cap', '/ai-act-applicability-agrifood', capped, true)
+await table(visitor, 'The root Node page of ai-act-example, its logo drawn as wide as its cap', '/ai-act-example', capped, true)
 await table(visitor, 'The overview, /', '/', node.slice(0, 2))
 const atAdmin = [
   { label: '+ "Website", account-link look', add: website('admin-link'), hideCurrent: false },
@@ -834,8 +1079,12 @@ for (const [w, h] of [[320, 480], [480, 800]]) {
           .map((li) => `"${li.textContent.trim()}"${li.querySelector('.language--current') ? ' (the current language)' : ''} ${width(li)}`)
           .join(', ')
         const logo = bar.querySelector('img.logo')
+        const drawn = width(logo)
+        logo.style.width = '100vw'
+        const cap = width(logo)
+        logo.style.width = ''
         const face = getComputedStyle(bar.querySelector('.language-switch li')).fontFamily.split(',')[0]
-        return `${switchPills}; the share button ${width(bar.querySelector('.share'))}; the logo ${width(logo)} (its file ${logo.naturalWidth} x ${logo.naturalHeight}); the pills' face: ${face}`
+        return `${switchPills}; the share button ${width(bar.querySelector('.share'))}; the logo ${drawn} (its file ${logo.naturalWidth} x ${logo.naturalHeight}; its cap ${cap}); the pills' face: ${face}`
       })
       await cdp.send('DOM.enable')
       await cdp.send('CSS.enable')
