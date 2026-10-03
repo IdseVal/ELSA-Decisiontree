@@ -4,8 +4,8 @@
 - **Amended 2026-10-03 by issue #195**: decisions 1 and 2 name accounts by e-mail address --
   the helper's table gives each account an address, `login(page, ...)` posts `{ email,
   password }`, the named accounts log in as `anna@example.org`, `bram@example.org` and
-  `cees@example.org`, and every server a test starts gets `ELSA_ADMIN_EMAIL=admin@example.org`
-  beside its password (`ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`;
+  `cees@example.org`, and every server and every store a test starts gets
+  `ELSA_ADMIN_EMAIL=admin@example.org` beside its password (`ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`;
   `application.md` 35.1 to 35.3, 38.10). The no-cookie sweep of decision 4 gains the account
   sweep of `ADR-195-names-on-public-routes.md` decision 6.
 - Issue: #133 -- Architecture: freeze the editor contracts

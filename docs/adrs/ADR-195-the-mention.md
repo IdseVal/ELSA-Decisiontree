@@ -86,8 +86,9 @@ after two tags on `/` and 107 to 125 when the creators' overview adds its state 
 
 4. **What that gives at the viewports of 10.6** (measured, the record's section 2): beside a
    120-pixel logo the mention is drawn at every viewport from 768 x 1024 up -- three names
-   whole at 1280 x 640 in both languages, and at 768 x 1024 in English; in Dutch cut there by
-   15 pixels -- and not drawn at 390 x 844 and 360 x 640, where 30 to 75 pixels are left.
+   whole at 1280 x 640 in both languages, and at 768 x 1024 in English; in Dutch at 768 x 1024
+   cut by 15 pixels beside the first Tree's logo, and whole, with 11 to spare, beside the
+   example Tree's -- and not drawn at 390 x 844 and 360 x 640, where 30 to 75 pixels are left.
    Beside an 80-character title it is drawn at 1024 x 768 and up and not below. At the floor,
    the notice stands in for the page (10.4). On a phone, then, a reader meets the Authors on
    the Tree's tile: there one name is whole at every width, on both overviews, and three are
@@ -142,7 +143,8 @@ after two tags on `/` and 107 to 125 when the creators' overview adds its state 
   header, between `.page-brand` and `.page-controls`, and `Tile` in its bottom row.
   `src/app/[lang]/globals.css` holds the size container and the cut. `src/chrome.ts` gains
   `byAuthors`. #197's.
-- `no-scroll.spec.ts` and `admin-no-scroll.spec.ts` skip `.page-chrome [data-clamp]`;
+- `no-scroll.spec.ts` skips `.page-chrome [data-clamp]`; `admin-no-scroll.spec.ts` and #181's
+  `creation-walk.spec.ts` skip every `[data-clamp]` already (39.6);
   `tests/browser/authors.spec.ts` (new) measures the mention where 10.6 measures pages (39.9).
 - A reader of the repository's Trees on the demo server sees no mention until a Tree is handed
   to a person's account (`ADR-195-authors.md` decision 4).

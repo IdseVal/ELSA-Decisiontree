@@ -19,7 +19,7 @@
 > | Section | #195 |
 > |---|---|
 > | 3.2 | #196's keys for the address and for one name per account; #197's `byAuthors` and `nameShownPublicly`. |
-> | 6 | `src/components/Authors.tsx` and `src/store/authors.ts`; `config.ts` reads `ELSA_ADMIN_EMAIL`. |
+> | 6 | `src/components/Authors.tsx` and `src/store/authors.ts`; `accounts.ts` reads `ELSA_ADMIN_EMAIL` from the environment `config.ts` hands the store. |
 > | 7 | The editor round's row names 38.10 and 39.9. |
 > | 8, 9 | Rows for the login by address and for the mention; eight `ADR-195-*` rows. |
 > | 10.1, 10.4 to 10.6 | The chrome bar of a Node page holds the mention, the one line cut at the guarantee, given up by its room outside the fixed order; the walk skips its cut line. |
@@ -886,7 +886,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   ├── fonts.ts             [#171] FONT_LIBRARY and FONT_LICENCES: the font library's list and the licence list (37.1, 37.5); pure
 │   ├── config.ts            ELSA_TREE / ELSA_TREES_DIR; the one opened Tree; [#132] ELSA_DATA_DIR,
 │   │                        ELSA_SEED_DIR, ELSA_ADMIN_PASSWORD, the three retired variables refused (17.1);
-│   │                        [#195] ELSA_ADMIN_EMAIL (38.3)
+│   │                        [#195] ELSA_ADMIN_EMAIL (38.3), handed on as the password is: accounts.ts reads both
 │   ├── store/               [#132] the store (17.5): the one module that opens ELSA_DATA_DIR
 │   │   ├── index.ts         openStore, the atomic writer and its queues, the lock, the seed (17.3, 17.4)
 │   │   ├── accounts.ts      accounts, scrypt, the login rate limit (20.1 to 20.3, 20.7); [#195] by
@@ -5211,8 +5211,8 @@ now serves a fixture folder through a seeded store, 18.4): `ELSA_DATA_DIR` the d
 from `BASE_PORT`. `login(page, login)` posts the password through `page.request` so the
 cookie lands in the context; `logout(page)`. Two accounts at once: two contexts.
 **[#195] (2026-10-03)** `login(page, origin, email, password)` posts `{ email, password }`,
-and every server a test starts sets `ELSA_ADMIN_EMAIL=admin@example.org` beside its password
-(38.10).
+and every server and every store a test starts sets `ELSA_ADMIN_EMAIL=admin@example.org` beside
+its password (38.10).
 
 ### 35.3 The named accounts and Trees
 
@@ -5696,8 +5696,9 @@ and a creation 422 `email-invalid`.
 - **The account itself is unchanged**: one account, `administrator: true`, display name
   `Administrator` at creation, the flag set by the server alone and never by a request.
 - **No address in the repository is a real one.** `deploy/elsa-decisiontree.env.example` names
-  the variable and leaves it empty, as it leaves the password; every server a test starts sets
-  `ELSA_ADMIN_EMAIL=admin@example.org`, a domain RFC 2606 reserves for examples (38.10).
+  the variable and leaves it empty, as it leaves the password; every server and every store a
+  test starts sets `ELSA_ADMIN_EMAIL=admin@example.org`, a domain RFC 2606 reserves for
+  examples (38.10).
 - **The live demo server's address is the owner's to choose.** That server, the production
   build of `dev` at http://petercelie:3000, holds one account, the administrator, with the
   user name `admin` (measured on #194). The first start of a release that carries #196 refuses
@@ -5845,7 +5846,6 @@ address".
 - **The `Dockerfile`**'s comment on the first run's `--env-file`, and **`README.md`**'s commands
   for a first start, name both variables; "log in as `admin`" becomes "log in with that
   address".
-- **`src/config.ts`**'s `Environment` names the variable.
 
 ### 38.10 Tests (#196)
 
@@ -5858,7 +5858,7 @@ address".
 | `tests/browser/panel.spec.ts` | the invitation and hand-over selects show names only |
 | `tests/browser/admin-no-scroll.spec.ts` | the account page holding an address of 254 characters; the accounts page with the `setEmail` Sheet open; at its ten viewports |
 | `tests/browser/deployment.spec.ts` | logs in by address; 20.5 and 35.5 hold unchanged |
-| every test that logs in | `tests/browser/admin.ts`: `buildDataDir`'s accounts carry `email`, and `login(page, origin, email, password)` posts `{ email, password }`; 35.3's accounts log in as `admin@example.org`, `anna@example.org`, `bram@example.org` and `cees@example.org`; every server a test starts -- `playwright.config.ts`, `playwright.first-tree.config.ts`, `tests/browser/serve.ts`, `tests/store/admin.ts`'s `ADMIN` and `tests/browser/admin.ts`'s `ADMIN_ENV` -- sets `ELSA_ADMIN_EMAIL=admin@example.org` beside its password. `git grep -n "login" -- tests` and `git grep -n "'admin'" -- tests` find them |
+| every test that logs in | `tests/browser/admin.ts`: `buildDataDir`'s accounts carry `email`, and `login(page, origin, email, password)` posts `{ email, password }`; 35.3's accounts log in as `admin@example.org`, `anna@example.org`, `bram@example.org` and `cees@example.org`; every server and every store a test starts sets `ELSA_ADMIN_EMAIL=admin@example.org` beside its password: `playwright.config.ts`, `playwright.first-tree.config.ts`, `tests/browser/serve.ts`, `tests/store/admin.ts`'s `ADMIN`, `tests/browser/admin.ts`'s `ADMIN_ENV`, and the five unit tests that set the password themselves -- `tests/admin/authenticated.test.ts`, `tests/admin/trees.test.ts`, `tests/config.test.ts`, `tests/store/import-command.test.ts` and `tests/theme-route.test.ts`; `accounts.test.ts` and `store.test.ts` set the two as each case needs (38.3's table). `git grep -n ELSA_ADMIN_PASSWORD -- tests playwright.config.ts playwright.first-tree.config.ts` finds every one, and `git grep -n "login" -- tests` and `git grep -n "'admin'" -- tests` find the logins |
 
 #196's pull request pastes, each from a command, the accounts of a copy of a store written by
 `dev` before #196 -- its administrator among them -- before the first start of the new
@@ -6002,11 +6002,12 @@ hidden Tree's included, and `store.authors(id)` for the other published Trees, a
 
 - **What that gives at the viewports of 10.6**, measured on `dev` (the research record, section
   2): beside a 120-pixel logo the mention is drawn at every viewport from 768 x 1024 up --
-  three names whole at 1280 x 640 in both languages and at 768 x 1024 in English, cut there in
-  Dutch -- and not drawn at 390 x 844 and 360 x 640, where 30 to 75 pixels are left. Beside an
-  80-character title it is drawn at 1024 x 768 and above and not below. At and below the floor
-  the notice stands in for the page (10.4). On a phone a reader meets the Authors on the Tree's
-  tile (39.5).
+  three names whole at 1280 x 640 in both languages and at 768 x 1024 in English; in Dutch at
+  768 x 1024 cut beside the first Tree's logo (297 pixels in 282) and whole beside the example
+  Tree's (280 in 291) -- and not drawn at 390 x 844 and 360 x 640, where 30 to 75 pixels are
+  left. Beside an 80-character title it is drawn at 1024 x 768 and above and not below. At and
+  below the floor the notice stands in for the page (10.4). On a phone a reader meets the
+  Authors on the Tree's tile (39.5).
 - **Without JavaScript** the mention is the server's markup and its rules are the
   stylesheet's: there is nothing to run (14).
 - **A Tree without an Author** -- one whose only role holder is the administrator -- has no

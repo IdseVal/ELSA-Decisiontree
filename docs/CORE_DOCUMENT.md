@@ -670,7 +670,7 @@ owner's words leave a choice:
     at http://petercelie:3000, whose administrator account is the one the owner's #162
     was about; its temporary password handed over out of band, as every first password is
     (10.31), and written into no file of the repository, no issue, no pull request and no
-    log (#198). **[#195]** Not decided on #195, which confirms and replaces none of these
+    log (#198). **[#195]** Not decided on #195 (2026-10-03), which confirms and replaces none of these
     readings; #198 acts on them. Two of #195's decisions meet them: names are one per account
     (10.39), and "Idse Val" is no other account's; and the demo server's administrator needs
     an address of its own before that server can run the new login, which #198 asks the
@@ -809,7 +809,7 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
   tracking, no analytics. **[#131] For end users, unchanged.** For **creators** (3.4)
   the owner asks for accounts with a name, a login and permissions, which means: an
   account record (name, login, a password hash, never the password; **[#194]** the
-  login is an e-mail address, owner 2026-10-03, 3.4; **[#195]** seen by its holder and the
+  login is an e-mail address, owner 2026-10-03, 3.4; **[#195]** decided 2026-10-03: seen by its holder and the
   administrator only, and in no log, 10.39), a session that
   a cookie carries, and a record of who created which Tree and who was invited to it.
   PROPOSED, for the Architect to freeze on #132: the session cookie is set on the

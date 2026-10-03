@@ -10,7 +10,8 @@
   `name` and `login`" and "the one place a creator sees another account's login";
   `ADR-133-login-and-account-pages.md` decision 5's row "name, login" and its new-account
   Sheet's `login`, and its rejected alternative "Letting the administrator change another
-  account's login"; `ADR-133-top-panel.md`'s select of "name, then login"
+  account's login"; `ADR-133-top-panel.md` decision 4's "the login is shown in the select's
+  option text" (application.md 33.4: "name, then login")
 - Depends on: `ADR-195-login-by-email-address.md`
 - Built by: #196
 
@@ -21,8 +22,8 @@ account's name and login. The account page (25.2) shows none, but its password f
 login in a hidden `username` field for password managers. The invitation and hand-over selects
 of a Tree's settings panel (33.4, `AccountSelect` in `src/editor/Panel.tsx`) show "name ·
 login" for every active account, to every logged-in account, through `GET
-/admin/api/accounts` -- "to tell two of one name apart" (21.4; `ADR-132-roles-and-permissions.md`
-decision 4). Nobody changes a login: 22.1 offers `name`, `active` and `password`, and
+/admin/api/accounts` (21.4; `ADR-132-roles-and-permissions.md` decision 4), "because two people
+may share a name" (`ADR-133-top-panel.md` decision 4). Nobody changes a login: 22.1 offers `name`, `active` and `password`, and
 `ADR-133-login-and-account-pages.md` rejected the administrator changing one, "not asked for".
 
 A login that becomes an e-mail address is a different thing to show. It is personal data, and

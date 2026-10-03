@@ -10,7 +10,7 @@
 - Spec: `docs/specs/application.md` section 33 (new). The title's "five sections" reads
   four -- Publish, collaborators, this Tree, administrator -- since decision 6 moved the
   step's controls to the rim.
-- **Amended 2026-10-03 by issue #195**: decision 3's select shows each account's name and no
+- **Amended 2026-10-03 by issue #195**: decision 4's select shows each account's name and no
   login -- the login is an e-mail address, which only its holder and the administrator see --
   and two accounts no longer share a name (`ADR-195-who-sees-and-changes-an-address.md`); so
   the sentence "the login is shown in the select's option text" and the alternative rejected

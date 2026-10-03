@@ -63,10 +63,11 @@ of each deployment, and nothing the repository can know.
    account's is to its holder (38.5).
 
 5. **No address in the repository is a real one.** The environment file's example names the
-   variable and leaves it empty, as it leaves the password. The tests set
-   `ELSA_ADMIN_EMAIL=admin@example.org` beside their `ELSA_ADMIN_PASSWORD`
-   (`tests/store/admin.ts`, `playwright.config.ts`, `tests/browser/serve.ts`): `example.org` is
-   reserved for examples (RFC 2606).
+   variable and leaves it empty, as it leaves the password. Every server and every store a
+   test starts sets `ELSA_ADMIN_EMAIL=admin@example.org` beside its `ELSA_ADMIN_PASSWORD`;
+   38.10 names each one, and
+   `git grep -n ELSA_ADMIN_PASSWORD -- tests playwright.config.ts playwright.first-tree.config.ts`
+   finds them all. `example.org` is reserved for examples (RFC 2606).
 
 6. **The live demo server's address is a value only the owner can choose.** That server -- the
    production build of `dev` behind http://petercelie:3000 -- holds one account, the
@@ -107,8 +108,8 @@ of each deployment, and nothing the repository can know.
 ## Consequences
 
 - `src/store/accounts.ts`: `openAccounts` reads `ELSA_ADMIN_EMAIL` with `ELSA_ADMIN_PASSWORD`,
-  by the table above; `ADMIN_LOGIN` goes. `src/config.ts`'s `Environment` names the variable.
-  #196's.
+  by the table above, from the environment `src/config.ts` hands the store, as it reads the
+  password; `ADMIN_LOGIN` goes. #196's.
 - `deploy/elsa-decisiontree.env.example` gains `ELSA_ADMIN_EMAIL=` beside
   `ELSA_ADMIN_PASSWORD=`; `docs/deployment.md` names it in its configuration table, step 4, the
   container's first run, "The administrator and the login" and "Putting a new version of the
