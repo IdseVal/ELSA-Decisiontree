@@ -383,7 +383,7 @@ function sameFiles(a: readonly FontFile[], b: readonly FontFile[]): boolean {
 
 /** **[#180]** Whether a role's entry is the library family `entry` (37.2): its name, its files and its licence, whatever its role. */
 function isEntry(family: FontFamily, entry: FontFamily): boolean {
-  return family.family === entry.family && family.licence === entry.licence && family.files.length === entry.files.length && family.files.every((face, i) => face.file === entry.files[i]!.file && face.weight === entry.files[i]!.weight && face.style === entry.files[i]!.style)
+  return family.family === entry.family && family.licence === entry.licence && sameFiles(family.files, entry.files)
 }
 
 /**
