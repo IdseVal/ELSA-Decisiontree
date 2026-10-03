@@ -8,7 +8,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
-import schema from '../schemas/elsa-tree-4.json' with { type: 'json' }
+import schema from '../schemas/elsa-tree-5.json' with { type: 'json' }
 import { copyName, FONT_LIBRARY, FONT_LICENCES, libraryEntry } from '../src/fonts.ts'
 
 const FONTS = fileURLToPath(new URL('../fonts', import.meta.url))
