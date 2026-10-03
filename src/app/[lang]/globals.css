@@ -236,6 +236,19 @@ a {
   font-weight: 600;
 }
 
+/*
+ * **[#200]** A title may be 80 characters, and below 600 pixels wide that is more lines than the
+ * bar is tall: it is cut to the two the bar holds, with an ellipsis, as a tile's title is (26.1).
+ * A word longer than the room breaks rather than being clipped unseen.
+ */
+.tree-title[data-clamp] {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
 .page-controls {
   display: flex;
   align-items: center;

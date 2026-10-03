@@ -695,8 +695,9 @@ for (const lang of LANGUAGES) {
  * three windows below 600 pixels wide where #195 measured that title running out of the bar
  * (`docs/research/issue-195-measurements.md` 2). At every one the bar is its row's 44 pixels,
  * 36 below 480 wide, and holds nothing taller or wider than itself; the title lies inside it in
- * at most the two lines it holds -- 20 pixels each, 14 below 480 -- cut with an ellipsis, and
- * its whole text is its `title` and its accessible name.
+ * at most the two lines it holds -- 20 pixels each, 14 below 480 -- cut with an ellipsis and
+ * never sideways, and its whole text is its `title`, its accessible name and what the bar reads
+ * to a screen reader.
  */
 const LONG_TITLE_URL = '/long-title/start'
 const BELOW_600 = [[560, 800], [520, 800], [480, 640]] as const
@@ -730,11 +731,24 @@ for (const lang of LANGUAGES) {
       expect(box.y, `${where}: the title's top, inside the bar`).toBeGreaterThanOrEqual(bar.y)
       expect(box.y + box.height, `${where}: the title's bottom, inside the bar`).toBeLessThanOrEqual(bar.y + bar.height)
       expect(box.height, `${where}: the title in at most two lines`).toBeLessThanOrEqual(2 * (width < 480 ? 14 : 20))
+      // The walk skips the title, so its one way out is checked here: by lines, under the ellipsis.
+      expect(await title.evaluate((el) => el.scrollWidth - el.clientWidth), `${where}: the title wider than itself`).toBeLessThanOrEqual(1)
       await expect(title, where).toHaveAttribute('data-clamp', '')
-      await expect(title, where).toHaveText(whole)
       await expect(title, where).toHaveAttribute('title', whole)
       await expect(title, where).toHaveAccessibleName(whole)
+      // The cut is the layout's alone: what a screen reader reads in the bar is the whole title.
+      expect(await page.locator('header.page-chrome').ariaSnapshot(), where).toContain(`- text: ${whole}`)
     }
+
+    // A title may be one word of 80 letters: a word longer than the room breaks onto the next
+    // line instead of running out of the box sideways, past the ellipsis.
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(url)
+    const sideways = await page.locator('.page-chrome .tree-title').evaluate((el) => {
+      el.textContent = 'x'.repeat(80)
+      return el.scrollWidth - el.clientWidth
+    })
+    expect(sideways, `${what} (${lang}) at 390x844, one word of 80 letters: the title wider than itself`).toBeLessThanOrEqual(1)
   })
 }
 

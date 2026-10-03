@@ -3,6 +3,10 @@
  * logo shows its own title as text in the same place, so the bar is never empty and the
  * frontend still carries no lab's mark of its own (core document section 9).
  *
+ * **[#200]** That title may be 80 characters, more lines than the bar is tall below 600 pixels
+ * wide; the stylesheet cuts it to the bar's two lines with an ellipsis, so the element carries
+ * the whole of it as its `title` and is marked `data-clamp`, cut text, as a tile's title is (26.1).
+ *
  * The file is shown through `<img>`, never inlined: an SVG is a document, and one that
  * arrived with a third-party Tree must not be able to run script on this origin. The
  * theme route's headers (5.5) make it inert even when it is opened directly.
@@ -29,7 +33,14 @@ export function Logo({
   href?: ThemeHref
 }) {
   const logo = themeLogo(theme)
-  if (!logo) return <span className="tree-title">{text(title, lang, 'tree.title')}</span>
+  if (!logo) {
+    const name = text(title, lang, 'tree.title')
+    return (
+      <span className="tree-title" data-clamp="" title={name}>
+        {name}
+      </span>
+    )
+  }
 
   const image = (
     <img
