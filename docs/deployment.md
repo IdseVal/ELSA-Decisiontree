@@ -33,7 +33,9 @@ The shape on disk, for both:
 > server's steps, the container and the start messages. **#135** (the administrator's
 > password and the login) and **#136** (the store's write path, the import command, backups
 > and moving a Tree) have rewritten what is theirs. The decisions are
-> `docs/adrs/ADR-132-*.md` and `docs/specs/application.md` 17 to 23.
+> `docs/adrs/ADR-132-*.md` and `docs/specs/application.md` 17 to 23. **#196** (the login by
+> e-mail address, `docs/adrs/ADR-195-*.md` and `application.md` 38) has rewritten the
+> administrator's variables, the login, and the upgrade that converts a store of user names.
 
 The application becomes a **writer**: Trees are created and edited in the app behind a login,
 saved automatically and published with a toggle. What that changes on a server:
@@ -43,13 +45,13 @@ saved automatically and published with a toggle. What that changes on a server:
 | The data | `trees/`, copied by an author, read-only to the service | **`ELSA_DATA_DIR`** (`/opt/elsa-decisiontree/data`): one writable folder, owned by the `elsa` user, holding `accounts.json`, `sessions.json` and `trees/<id>/` with the draft, the published `tree.json`, `images/` and `theme/`. Outside `app/`, so a release never touches it. **Required; no default.** (#134; `application.md` 17) |
 | Which Tree is served | `ELSA_TREE` names one | Every **published** Tree of the data directory; `/` is an overview of them. `ELSA_TREE`, `ELSA_TREES_DIR` and `ELSA_TREE_LASTMOD` are **retired, and the server refuses to start while any is set**, naming the replacement. (#134; `application.md` 18) |
 | The repository's Trees | copied by hand | **`ELSA_SEED_DIR`** (default `trees` beside `server.js`, which the build already carries) is imported into the data directory **at the first start only**, published, owned by the administrator. Later: `npm run store -- import <folder>` from the checkout, with the service stopped. (#134, #136; `application.md` 17.4) |
-| The administrator | none | **`ELSA_ADMIN_PASSWORD`**, 12 to 256 characters, in `/etc/elsa-decisiontree.env`, which becomes **mode `0600`**: at every start it creates the `admin` account or resets its password. **Remove it from the file after the first start**; set it again only to recover a lost password. Never a default, never printed. **Done in #135**: see [the administrator and the login](#the-administrator-and-the-login). (`application.md` 20.3) |
+| The administrator | none | **`ELSA_ADMIN_PASSWORD`**, 12 to 256 characters, in `/etc/elsa-decisiontree.env`, which becomes **mode `0600`**: at every start it creates the administrator or resets its password. **[#196]** Beside it **`ELSA_ADMIN_EMAIL`**, the e-mail address the administrator logs in with, read at every start the same way. **Remove both from the file after the first start**; set them again only to recover a lost password or a forgotten address. Never a default, never printed. **Done in #135 and #196**: see [the administrator and the login](#the-administrator-and-the-login). (`application.md` 20.3, 38.3) |
 | Updating a Tree | validate, `rsync`, restart | Through the editor at `/admin`; no restart. **Done in #136**: see [changing, importing, moving and backing up a Tree](#changing-importing-moving-and-backing-up-a-tree). |
 | Backups | the repository | **`rsync -a` or `tar` of `ELSA_DATA_DIR`**, running or stopped: every file in it is replaced atomically, so each file in a copy is whole. Stop the service for a copy exact to the write. Restore is copying the folder back. (`application.md` 17.4) |
 | Moving a Tree between deployments | copy the folder | Copy `trees/<id>/tree.json`, `images/` and `theme/` out (not `draft.json`, not `meta.json`) and `npm run store -- import` them on the other side. **Done in #136.** |
-| The container | `-e ELSA_TREE=...` | `-v /srv/elsa-data:/data -e ELSA_DATA_DIR=/data -e ELSA_ADMIN_PASSWORD=...` on the first run; the `Dockerfile` changes with #134 and #135. |
+| The container | `-e ELSA_TREE=...` | `-v /srv/elsa-data:/data -e ELSA_DATA_DIR=/data`, and **[#196]** `ELSA_ADMIN_EMAIL` and `ELSA_ADMIN_PASSWORD` from an `--env-file` on the first run; the `Dockerfile` changes with #134 and #135. |
 | Cookies | none, anywhere | One session cookie, `HttpOnly; Secure; SameSite=Strict; Path=/admin` (**[#162]** without `Secure` on a plain-HTTP deployment), on the admin routes only; **the public routes still set none**, and the `curl` check below still prints nothing. A proxy must pass `/admin` through unchanged and still add no cookie of its own. (`application.md` 20) |
-| The journal | one line per start | Also: logins by account id, lockouts, publishes and account changes. Never a password, a token, a name typed into the login form, or a client address. (`application.md` 20.8) |
+| The journal | one line per start | Also: logins by account id, lockouts, publishes and account changes. Never a password, a token, **[#196]** an e-mail address -- typed into the login form or an account's -- or a client address. (`application.md` 20.8, 38.8) |
 
 ---
 
@@ -63,7 +65,8 @@ in the application and nothing to edit in the source.
 | `ELSA_DATA_DIR` | **yes** | **[#134]** The one writable folder that is the whole state of the deployment: `trees/<tree-id>/` per Tree, **[#135]** `accounts.json` (the accounts, with password hashes) and `sessions.json` (the logged-in sessions, as hashes of their tokens), and the `lock` of the one process that has it open. There is no default; the server refuses to start when it is unset, is not a folder, cannot be written, or is held by another live process. Keep it outside `app/`, so a release never touches it (`docs/specs/application.md` 17). |
 | `ELSA_SEED_DIR` | no | **[#134]** Read at the **first start only** -- when `$ELSA_DATA_DIR/trees/` does not exist yet -- and every Tree folder in it that validates is imported, published. Defaults to `trees` under the working directory, which the build already carries. Never read again (`application.md` 17.4). |
 | `ELSA_BASE_URL` | no | The address readers reach this deployment at, e.g. `https://elsa.example.org` -- the reverse proxy's address, not the one the process listens on. It must be a bare origin: `http` or `https`, no path, no query. **[#120]** It is now the address `robots.txt`, `sitemap.xml` and every page's canonical and `hreflang` links advertise -- **[#121]** and `llms.txt` and every page's dataset link -- so a deployment that sets none advertises the address each request arrived on instead. See [share links and the base URL](#share-links-and-the-base-url). |
-| `ELSA_ADMIN_PASSWORD` | **at the first start** | **[#135]** The password of the administrator, the account `admin` that may do everything in the admin area and is the one that creates every other account. 12 to 256 characters. Read at **every** start: with no administrator yet it creates one, with one it **replaces** its password. So set it for the first start, then **remove it** -- while it is set it wins over a password changed at `/admin/account` -- and set it again only to recover a lost password. Never printed; the log says `administrator password set from ELSA_ADMIN_PASSWORD; remove the variable`. A first start without it refuses to start (`application.md` 20.3). |
+| `ELSA_ADMIN_PASSWORD` | **at the first start** | **[#135]** The password of the administrator, the account that may do everything in the admin area and is the one that creates every other account. 12 to 256 characters. Read at **every** start: with no administrator yet it creates one, with one it **replaces** its password. So set it for the first start, then **remove it** -- while it is set it wins over a password changed at `/admin/account` -- and set it again only to recover a lost password. Never printed; the log says `administrator password set from ELSA_ADMIN_PASSWORD; remove the variable`. A first start without it refuses to start (`application.md` 20.3). |
+| `ELSA_ADMIN_EMAIL` | **at the first start, and at the first start of the release that logs in by e-mail address (#196)** | **[#196]** The e-mail address the administrator logs in with: an address as a browser's e-mail field checks one, at most 254 characters, kept in lower case. Nothing is ever sent to it. Read at **every** start, as the password is: with no administrator yet it creates one with this address and that password; with an administrator that has no address -- a data directory an earlier release wrote, whose accounts had user names -- it gives it this one; with an administrator that has another address it **replaces** it. So set it for the first start, then **remove it** -- while it is set it wins over an address changed at `/admin/accounts` -- and set it again only to recover a forgotten address. Empty is the same as absent. Never printed; the log says `administrator e-mail address set from ELSA_ADMIN_EMAIL; remove the variable` when the start gave or replaced the address. A first start without it refuses to start, and so does the first start of this release on a data directory of user names ([putting a new version](#putting-a-new-version-of-the-application-on-the-server); `application.md` 38.3). |
 | `ELSA_TREE`, `ELSA_TREES_DIR`, `ELSA_TREE_LASTMOD` | **must be unset** | **[#134]** Retired: a deployment serves every published Tree of its data directory, with an overview at `/`. Set, the server refuses to start and names what replaced the variable, so a 1.0 environment file is corrected rather than half-read (`application.md` 18). |
 | `PORT` | no | The TCP port the process listens on. Defaults to 3000. |
 | `HOSTNAME` | no | The address it listens on. Defaults to `0.0.0.0`. Behind a reverse proxy set `127.0.0.1`, so nothing but the proxy can reach the process. |
@@ -215,11 +218,13 @@ sudo cp /tmp/elsa-src/deploy/elsa-decisiontree.env.example /etc/elsa-decisiontre
 # systemd reads it as root before it drops to the elsa user, so the service needs no more.
 sudo chown root:root /etc/elsa-decisiontree.env
 sudo chmod 0600 /etc/elsa-decisiontree.env
-sudoedit /etc/elsa-decisiontree.env     # set ELSA_DATA_DIR, ELSA_BASE_URL and ELSA_ADMIN_PASSWORD
+sudoedit /etc/elsa-decisiontree.env     # set ELSA_DATA_DIR, ELSA_BASE_URL, ELSA_ADMIN_EMAIL and ELSA_ADMIN_PASSWORD
 ```
 
 **[#135]** The file holds one secret, `ELSA_ADMIN_PASSWORD`, and only until the first start
 has run: remove the line then ([the administrator and the login](#the-administrator-and-the-login)).
+**[#196]** The same goes for `ELSA_ADMIN_EMAIL`, the address the administrator will log in with:
+not a secret, but read at every start like the password, so it goes with it.
 
 ### 5. Run it as a service
 
@@ -233,7 +238,8 @@ journalctl -u elsa-decisiontree -n 20
 ```
 
 The first start prints `administrator password set from ELSA_ADMIN_PASSWORD; remove the
-variable` -- **[#135]** do so now: `sudoedit /etc/elsa-decisiontree.env`, delete the line,
+variable` and **[#196]** `administrator e-mail address set from ELSA_ADMIN_EMAIL; remove the
+variable` -- **[#135]** do so now: `sudoedit /etc/elsa-decisiontree.env`, delete both lines,
 `sudo systemctl restart elsa-decisiontree` -- and one `Seeded Tree "<id>" from .../trees` line
 per Tree it imported, each owned by the administrator.
 Every start then prints one `Serving Tree "<id>" (en, nl)` line per Tree served, and
@@ -334,28 +340,40 @@ unchanged (both examples do): every write under `/admin` is refused with 403 wit
 **[#135]** The admin area is `https://<your host>/admin`. A visitor without a session sees
 the login page at whatever `/admin` address they asked for, and lands on it once logged in.
 
-1. **The first start** creates the account `admin` with the password `ELSA_ADMIN_PASSWORD`
-   gives it ([step 4](#4-configure-it)). Log in at `/admin` with the name `admin`.
-2. **Remove the variable** from `/etc/elsa-decisiontree.env` and restart. While it is set,
-   every start sets the password back to it, over one changed at `/admin/account`.
-3. **Every other account** is made by the administrator at `/admin/accounts`: a display
-   name, a login name (lowercase letters, digits and single hyphens) and a first password
-   of 12 to 256 characters, handed over out of band. The holder changes it at
-   `/admin/account`. There is no self-registration, no mail and no reset by mail: a
-   forgotten password is set again by the administrator on the same page.
+**[#196]** Every account logs in with an **e-mail address** and its password, the
+administrator's included. The address is only what a person types to log in: the application
+sends no mail, to it or anywhere (`docs/specs/application.md` 38).
+
+1. **The first start** creates the administrator with the address `ELSA_ADMIN_EMAIL` and the
+   password `ELSA_ADMIN_PASSWORD` give it ([step 4](#4-configure-it)). Log in at `/admin` with
+   that address.
+2. **Remove both variables** from `/etc/elsa-decisiontree.env` and restart. While they are set,
+   every start sets them back, over a password changed at `/admin/account` and an address
+   changed at `/admin/accounts`.
+3. **Every other account** is made by the administrator at `/admin/accounts`: a display name,
+   which no other account may have, an e-mail address, which no other account may have
+   either, and a first password of 12 to 256 characters, handed over out of band. The holder
+   changes its name and its password at `/admin/account`; **its address only the
+   administrator changes**, with the account's `Set e-mail address` at `/admin/accounts`, its
+   own included. There is no self-registration, no mail and no reset by mail: a forgotten
+   password is set again by the administrator on the same page.
 4. **An account is deactivated, never deleted**: it cannot log in, its sessions end at once,
    and the Trees it made stay. The administrator cannot be deactivated.
 5. **A lost administrator password**: set `ELSA_ADMIN_PASSWORD` again, restart, log in,
    remove it, restart.
+6. **[#196] A forgotten administrator address**: set `ELSA_ADMIN_EMAIL` to the address the
+   administrator is to log in with, restart, log in with it, remove it, restart.
 
-Five wrong passwords for one name lock that name for 15 minutes; more than 60 failed logins
-in a minute across all names lock the login for one minute. Both answer 429 and the page
-says "Too many attempts". A session ends after 12 hours without a request, and after 14
-days in any case; logging out ends it at once.
+Five wrong passwords for one address lock that address for 15 minutes, whether an account has
+it or not; more than 60 failed logins in a minute across all addresses lock the login for one
+minute. Both answer 429 and the page says "Too many attempts". A session ends after 12 hours
+without a request, and after 14 days in any case; logging out ends it at once. A change of
+address ends no session.
 
 The journal gets `account <id> logged in`, `login failed for account <id>` or `... for an
-unknown name`, the locks, the logouts and every account change, by account id. Never a
-password, a token, a name typed into the login form, or a client address.
+unknown address`, the locks, the logouts and every account change, by account id. Never a
+password, a token, an e-mail address -- the one typed into the login form or any account's,
+the administrator's included -- or a client address.
 
 ### The dataset is public
 
@@ -402,12 +420,28 @@ curl -s http://127.0.0.1:3000/ai-act-applicability-agrifood/start | head -20
 `--restart unless-stopped` is what the systemd unit's `Restart=always` is. TLS is the same
 reverse proxy as above, pointed at the published port.
 
-**[#135]** `/etc/elsa-admin.env` is a `0600` file holding the one line
-`ELSA_ADMIN_PASSWORD=...`, so the password is not in the shell's history or on the command
-line. Only the first run needs it: once `docker logs elsa` shows `administrator password set
-from ELSA_ADMIN_PASSWORD; remove the variable`, re-create the container without
-`--env-file` (the volume keeps the account). A container's environment cannot be edited in
-place, and every restart of the same container would set the password back.
+**[#135]** `/etc/elsa-admin.env` is a `0600` file holding the lines
+`ELSA_ADMIN_PASSWORD=...` and **[#196]** `ELSA_ADMIN_EMAIL=...`, so the password is not in the
+shell's history or on the command line. Only the first run needs them: once `docker logs elsa`
+shows `administrator password set from ELSA_ADMIN_PASSWORD; remove the variable` and
+`administrator e-mail address set from ELSA_ADMIN_EMAIL; remove the variable`, re-create the
+container without `--env-file` (the volume keeps the account). A container's environment
+cannot be edited in place, and every restart of the same container would set both back.
+
+**[#196] The first run of the release that logs in by e-mail address, on a volume an earlier
+release wrote**, is that release's first start on it ([putting a new version](#putting-a-new-version-of-the-application-on-the-server)):
+it converts the volume's accounts from user names to addresses, and refuses to start without
+`ELSA_ADMIN_EMAIL`. So it needs `ELSA_ADMIN_EMAIL` in its `--env-file`, as a first run does,
+and the same backup first, here of the volume:
+
+```sh
+docker run --rm --user root -v elsa-data:/data:ro -v /var/backups:/backup \
+  elsa-decisiontree tar -C / -czf /backup/elsa-data-before-email-login.tar.gz data
+```
+
+Once `docker logs elsa` shows `administrator e-mail address set from ELSA_ADMIN_EMAIL; remove
+the variable`, give the accounts it names an address and re-create the container without the
+file, as after a first run.
 
 The volume is the data directory, and the container is disposable around it: removing
 and re-running the container keeps every Tree. The image carries the Trees that were in the
@@ -507,6 +541,12 @@ sudo systemctl start elsa-decisiontree
 journalctl -u elsa-decisiontree -n 5      # "Serving Tree ..." for the imported Tree
 ```
 
+**[#196]** The command opens the data directory as a start does (`scripts/store.ts`). A
+checkout of the release that logs in by e-mail address, run against a data directory that
+release has not started yet, therefore refuses without `ELSA_ADMIN_EMAIL`, and with it converts
+the accounts as that first start would: start the new release once ([putting a new
+version](#putting-a-new-version-of-the-application-on-the-server)) before its first import.
+
 The folder's name is the Tree's id. The command copies `tree.json`, `images/` and `theme/`,
 writes a `draft.json` that is a byte copy of `tree.json` and a `meta.json` naming **this
 deployment's administrator** as the creator, and the Tree is published from the next start.
@@ -550,6 +590,48 @@ sudo systemctl restart elsa-decisiontree
 `data/` is untouched by this: a release replaces the application folder and the service
 writes the data folder, which is why they are two folders. The new release's `trees/` is
 not read again; it only seeds a data directory that is still empty.
+
+**[#196] The first start of the release that logs in by e-mail address** converts the accounts
+of a data directory an earlier release wrote, once, before it reads any of them
+(`docs/specs/application.md` 38.4). Every account's user name goes, and no address is invented:
+the administrator gets the address `ELSA_ADMIN_EMAIL` gives it, every other account none until
+the administrator gives it one. Each account keeps its name, its password, its state, its
+Trees and, until it expires, the session it had. Before that start:
+
+1. **Back up the data directory** ([what to back up](#what-to-back-up)): the user names are not
+   kept, and the backup is their only copy.
+
+   ```sh
+   sudo tar -C /opt/elsa-decisiontree -czf /var/backups/elsa-data-before-email-login.tar.gz data
+   ```
+
+2. **Set `ELSA_ADMIN_EMAIL`** in `/etc/elsa-decisiontree.env` to the address the administrator
+   will log in with. Without it the start refuses with `ELSA_ADMIN_EMAIL is not set and the
+   administrator has no e-mail address: ...`, and the public pages stay down until it is set
+   and the service restarted.
+3. **Put the release on the server** as above, and **read the lines the start logs**:
+
+   ```sh
+   journalctl -u elsa-decisiontree -n 30
+   # accounts.json converted from user names to e-mail addresses: 3 accounts, 2 without an address
+   # administrator e-mail address set from ELSA_ADMIN_EMAIL; remove the variable
+   # account 6a1f... has no e-mail address: give it one at /admin/accounts
+   # account 0c9e... has no e-mail address: give it one at /admin/accounts
+   ```
+
+   An account without an address cannot log in, and is otherwise whole: every start names it,
+   by id, until it has one. Two accounts of one name are left as they are -- from this release
+   on, no account is given a name another account has -- and every start says `accounts <id>
+   and <id> share a name: give one of them another` until one of them is renamed.
+4. **Give every account the start names an address**: log in at `/admin` with the
+   administrator's address and its password, open `/admin/accounts`, where those accounts say
+   "No e-mail address yet", and use their row's `Set e-mail address`. Tell each holder, who logs
+   in with that address and the password they had.
+5. **Remove `ELSA_ADMIN_EMAIL`** from the file and restart, as after a first start.
+
+A container meets the same first start when the release first runs on an existing volume
+([a container](#a-container)), and so does the import command
+([importing a Tree](#importing-a-tree-and-moving-one-between-deployments)).
 
 ## Checking what the deployment sends
 
@@ -599,8 +681,11 @@ reader's local or session storage is asserted by the walks in `tests/browser/`.
 | `ELSA_DATA_DIR=... cannot be written` | The folder is not owned by `elsa` (step 3). |
 | `ELSA_DATA_DIR=... is in use by process N; one process per data directory` | A second copy of the service, or a container, has the same folder open. A lock left by a process that is gone is taken over by itself. |
 | `ELSA_TREE is set, and is retired: ...`, and the same for `ELSA_TREES_DIR` and `ELSA_TREE_LASTMOD` | **[#134]** A 1.0 environment file. Remove the line; the message names what replaced it. |
-| `ELSA_ADMIN_PASSWORD is not set and there is no administrator: ...` | **[#135]** A first start, or a data directory whose `accounts.json` was removed. Set the variable for one start ([step 4](#4-configure-it)). |
+| `ELSA_ADMIN_PASSWORD is not set and there is no administrator: ...`, **[#196]** `ELSA_ADMIN_EMAIL is not set and there is no administrator: ...`, or `ELSA_ADMIN_EMAIL and ELSA_ADMIN_PASSWORD are not set and there is no administrator: ...` | **[#135]** A first start, or a data directory whose `accounts.json` was removed. Set the variables it names for one start ([step 4](#4-configure-it)). |
 | `ELSA_ADMIN_PASSWORD must be 12 to 256 characters` | **[#135]** The password is too short or too long. |
+| `ELSA_ADMIN_EMAIL is not set and the administrator has no e-mail address: set it to the address the administrator will log in with (docs/deployment.md)` | **[#196]** The first start of the release that logs in by e-mail address, on a data directory an earlier release wrote. Set it ([putting a new version](#putting-a-new-version-of-the-application-on-the-server)). |
+| `ELSA_ADMIN_EMAIL is not an e-mail address: ...` | **[#196]** The value is not an address as a browser's e-mail field checks one, or is longer than 254 characters. The message does not repeat it. |
+| `ELSA_ADMIN_EMAIL is the e-mail address of another account: ...` | **[#196]** Another account has that address. Set the administrator's own, or give the other account another address first. |
 | `ELSA_BASE_URL=... is not an absolute URL` | The base URL has no scheme -- `elsa.example.org` rather than `https://elsa.example.org`. |
 | `ELSA_BASE_URL=...: only http and https are served` | The base URL names another scheme. |
 | `ELSA_BASE_URL=... must be a bare origin` | The base URL carries a path, a query or a fragment. |

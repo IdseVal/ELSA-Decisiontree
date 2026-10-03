@@ -9,7 +9,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Page } from '@playwright/test'
-import { ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
+import { ADMIN_EMAIL, ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -22,8 +22,8 @@ const SHOTS =
 /** **[#168]** The simplified form's screenshots, tracked beside the issue that asked for it. */
 const SHOTS_168 = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-168') : SHOTS
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
-const CEES = { login: 'cees', name: 'Cees', password: 'cees first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+const CEES = { email: 'cees@example.org', name: 'Cees', password: 'cees first password' }
 
 let origin: string
 
@@ -56,8 +56,8 @@ function tileIds(page: Page): Promise<string[]> {
 test.beforeAll(async ({ browser }) => {
   const dir = await buildDataDir({ trees: [{ folder: path.join(repo, 'trees', 'ai-act-example') }], accounts: [ANNA, CEES] })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
-  await createHidden(browser, ANNA.login, ANNA.password, 'anna-draft', "Anna's draft")
-  await createHidden(browser, CEES.login, CEES.password, 'cees-draft', "Cees's draft")
+  await createHidden(browser, ANNA.email, ANNA.password, 'anna-draft', "Anna's draft")
+  await createHidden(browser, CEES.email, CEES.password, 'cees-draft', "Cees's draft")
 })
 
 test.afterAll(async () => {
@@ -66,7 +66,7 @@ test.afterAll(async () => {
 
 test.describe('which Trees, in what order, leading where (26.4)', () => {
   test("a creator sees their hidden Tree first, then every other published one, and not another creator's hidden Tree", async ({ browser }) => {
-    const page = await loggedIn(browser, ANNA.login, ANNA.password)
+    const page = await loggedIn(browser, ANNA.email, ANNA.password)
     await page.goto(`${origin}/admin`)
 
     // Own before the rest, although `ai-act-example` sorts before `anna-draft`.
@@ -82,7 +82,7 @@ test.describe('which Trees, in what order, leading where (26.4)', () => {
   })
 
   test('the administrator sees every Tree, hidden ones of both creators, each leading to its editor', async ({ browser }) => {
-    const page = await loggedIn(browser, 'admin', ADMIN_PASSWORD)
+    const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
     await page.goto(`${origin}/admin`)
 
     expect(await tileIds(page)).toEqual(['ai-act-example', 'anna-draft', 'cees-draft'])
@@ -91,7 +91,7 @@ test.describe('which Trees, in what order, leading where (26.4)', () => {
   })
 
   test('the + tile is first, top left, and leads to the form in the page language', async ({ browser }) => {
-    const page = await loggedIn(browser, CEES.login, CEES.password)
+    const page = await loggedIn(browser, CEES.email, CEES.password)
     await page.goto(`${origin}/admin?lang=nl`)
 
     const first = page.locator('.tiles > li').first().locator('a')
@@ -118,7 +118,7 @@ test.describe('which Trees, in what order, leading where (26.4)', () => {
 
 test.describe('the new-Tree form (27)', () => {
   test('asks a title and the languages only: the page language is its one, default, tag, and no address is asked', async ({ browser }) => {
-    const page = await loggedIn(browser, ANNA.login, ANNA.password)
+    const page = await loggedIn(browser, ANNA.email, ANNA.password)
     await page.goto(`${origin}/admin/new?lang=nl`)
 
     await expect(page.locator('.new-tree-tag')).toHaveCount(1)
@@ -134,7 +134,7 @@ test.describe('the new-Tree form (27)', () => {
   })
 
   test('adds, orders and removes languages: the first is the default, the last cannot be removed; a title for each added one', async ({ browser }) => {
-    const page = await loggedIn(browser, ANNA.login, ANNA.password)
+    const page = await loggedIn(browser, ANNA.email, ANNA.password)
     await page.goto(`${origin}/admin/new`)
     const tags = page.locator('.new-tree-tag-name')
 
@@ -167,7 +167,7 @@ test.describe('the new-Tree form (27)', () => {
   })
 
   test('sends nothing without a title', async ({ browser }) => {
-    const page = await loggedIn(browser, ANNA.login, ANNA.password)
+    const page = await loggedIn(browser, ANNA.email, ANNA.password)
     const sent: string[] = []
     page.on('request', (request) => {
       if (request.method() === 'POST') sent.push(request.url())
@@ -181,7 +181,7 @@ test.describe('the new-Tree form (27)', () => {
   })
 
   test("creates the Tree at the next address when its title's is taken, without asking", async ({ browser }) => {
-    const page = await loggedIn(browser, CEES.login, CEES.password)
+    const page = await loggedIn(browser, CEES.email, CEES.password)
     const answers: string[] = []
     page.on('response', (response) => {
       if (response.url() === `${origin}/admin/api/trees`) answers.push(`${response.status()} ${JSON.parse(response.request().postData()!).id}`)
@@ -195,7 +195,7 @@ test.describe('the new-Tree form (27)', () => {
   })
 
   test('creates the Tree at the next address when its title is a reserved word', async ({ browser }) => {
-    const page = await loggedIn(browser, CEES.login, CEES.password)
+    const page = await loggedIn(browser, CEES.email, CEES.password)
     await page.goto(`${origin}/admin/new`)
     await page.getByLabel('Title', { exact: true }).fill('Admin')
     await page.getByRole('button', { name: 'Create' }).click()
@@ -204,7 +204,7 @@ test.describe('the new-Tree form (27)', () => {
   })
 
   test("creates the Tree hidden and lands in its editor; it is on the creator's overview and not on the public one", async ({ browser }) => {
-    const page = await loggedIn(browser, ANNA.login, ANNA.password)
+    const page = await loggedIn(browser, ANNA.email, ANNA.password)
     await page.goto(`${origin}/admin`)
     await page.screenshot({ path: path.join(SHOTS, 'creators-overview.png') })
     await page.locator('.tile--new').click()
@@ -232,7 +232,7 @@ test.describe('the new-Tree form (27)', () => {
   })
 
   test('lands in the page language when the new Tree declares it', async ({ browser }) => {
-    const page = await loggedIn(browser, ANNA.login, ANNA.password)
+    const page = await loggedIn(browser, ANNA.email, ANNA.password)
     await page.goto(`${origin}/admin/new?lang=nl`)
     await page.locator('.new-tree-add').getByRole('button', { name: 'en', exact: true }).click()
     await page.locator('.new-tree-tag[data-language="en"]').getByRole('button', { name: 'Maak standaard' }).click()

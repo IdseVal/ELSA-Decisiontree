@@ -37,8 +37,8 @@ const PORT = BASE_PORT + 140
 const TREE = 'hidden-draft'
 const EDITOR = `/admin/trees/${TREE}/full`
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
-const DORA = { login: 'dora', name: 'Dora', password: 'doras first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+const DORA = { email: 'dora@example.org', name: 'Dora', password: 'doras first password' }
 
 /** The first Tree's logo and the example Tree's heading font: real files of the types the panel takes. */
 const LOGO = path.join(repo, 'trees', 'ai-act-applicability-agrifood', 'theme', 'elsa-lab-logo.png')
@@ -53,12 +53,12 @@ test.beforeAll(async () => {
   await mkdir(SHOTS_180, { recursive: true })
   const dir = await buildDataDir({
     trees: [
-      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: TREE, hidden: true, creator: ANNA.login },
+      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: TREE, hidden: true, creator: ANNA.email },
       // [#180] A Tree with no Theme, the example Tree's dark palette, the first Tree's shared Open Sans, and one for the library.
-      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'plain', hidden: true, creator: ANNA.login },
-      { folder: path.join(repo, 'trees', 'ai-act-example'), id: 'dark', creator: ANNA.login },
-      { folder: path.join(repo, 'trees', 'ai-act-applicability-agrifood'), id: 'first', hidden: true, creator: ANNA.login },
-      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'library', hidden: true, creator: ANNA.login },
+      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'plain', hidden: true, creator: ANNA.email },
+      { folder: path.join(repo, 'trees', 'ai-act-example'), id: 'dark', creator: ANNA.email },
+      { folder: path.join(repo, 'trees', 'ai-act-applicability-agrifood'), id: 'first', hidden: true, creator: ANNA.email },
+      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'library', hidden: true, creator: ANNA.email },
     ],
     accounts: [ANNA, DORA],
   })
@@ -69,9 +69,9 @@ test.afterAll(async () => {
   await stopServers()
 })
 
-async function loggedIn(browser: Browser, who: { login: string; password: string }): Promise<{ page: Page; cookie: string }> {
+async function loggedIn(browser: Browser, who: { email: string; password: string }): Promise<{ page: Page; cookie: string }> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
-  const { status, cookie } = await login(page, origin, who.login, who.password)
+  const { status, cookie } = await login(page, origin, who.email, who.password)
   expect(status).toBe(204)
   return { page, cookie }
 }

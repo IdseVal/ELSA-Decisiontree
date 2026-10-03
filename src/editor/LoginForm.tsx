@@ -2,9 +2,13 @@
 
 /**
  * The login form (docs/specs/application.md 25.1; ADR-133-login-and-account-pages
- * decisions 1 to 3): a name, a password, one button, and one error line. It posts JSON to
- * `/admin/api/login` and, on 204, reloads the address the reader asked for (24.2) -- no
- * redirect and no return address to validate.
+ * decisions 1 to 3): **[#196]** an e-mail address (38.5), a password, one button, and one error
+ * line. It posts JSON to `/admin/api/login` and, on 204, reloads the address the reader asked
+ * for (24.2) -- no redirect and no return address to validate.
+ *
+ * **[#196]** The form is `noValidate`: the browser's own message about a value that is not an
+ * address, in the browser's language, never stands in for the one error line; such a value is
+ * sent, and answered 401 as an address that names no account is.
  *
  * Its fields stay disabled until the script runs: without it, a submit would send the
  * password as a form the server refuses (20.6), and the page says why in a `<noscript>`.
@@ -22,7 +26,7 @@ import { send } from './request.ts'
 
 /** The chrome words the form says; strings, because a client component takes no module. */
 export interface LoginWords {
-  login: string
+  email: string
   password: string
   signIn: string
   loginFailed: string
@@ -33,7 +37,7 @@ export interface LoginWords {
 
 export function LoginForm({ words, onSuccess }: { words: LoginWords; /** What a 204 does instead of reloading the address (29.6). */ onSuccess?: () => void }) {
   const enhanced = useHydrated()
-  const [login, setLogin] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -41,14 +45,14 @@ export function LoginForm({ words, onSuccess }: { words: LoginWords; /** What a 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
     setBusy(true)
-    const answer = await send('POST', '/admin/api/login', { login, password })
+    const answer = await send('POST', '/admin/api/login', { email, password })
     if (answer?.status === 204) {
       // The Sheet opens only in an editor a session already reached, so its cookie is kept.
       if (onSuccess) return onSuccess()
       if ((await send('GET', '/admin/api/me'))?.status !== 401) return window.location.reload()
     }
     setBusy(false)
-    // The name is kept and the password cleared, whatever the refusal (25.1).
+    // The address is kept and the password cleared, whatever the refusal (25.1).
     setPassword('')
     setError(
       answer?.status === 204
@@ -62,18 +66,19 @@ export function LoginForm({ words, onSuccess }: { words: LoginWords; /** What a 
   }
 
   return (
-    <form className="admin-form" method="post" onSubmit={submit}>
+    <form className="admin-form" method="post" onSubmit={submit} noValidate>
       <fieldset disabled={!enhanced || busy}>
         <label className="admin-field">
-          <span>{words.login}</span>
+          <span>{words.email}</span>
           <input
-            name="login"
+            name="email"
+            type="email"
             autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}
             required
-            value={login}
-            onChange={(event) => setLogin(event.target.value)}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
           />
         </label>
         <label className="admin-field">

@@ -1,6 +1,7 @@
 /**
- * `/admin/api/accounts` (docs/specs/application.md 20.1, 21.4, 22.1): `GET` the active
- * accounts, for an invitation; `POST` a new account, the administrator only.
+ * `/admin/api/accounts` (docs/specs/application.md 20.1, 21.4, 22.1, 38.2): `GET` the active
+ * accounts by name, for an invitation -- no address, which only its holder and the
+ * administrator see (38.5); `POST` a new account with its address, the administrator only.
  */
 import { authenticated, bodyOf, json, refuse } from '../../../../../admin/authenticated.ts'
 import { store } from '../../../../../config.ts'
@@ -23,7 +24,7 @@ export async function POST(request: Request): Promise<Response> {
     const account = await (await store()).accounts.create(
       session.account,
       body.name as string,
-      body.login as string,
+      body.email as string,
       body.password as string,
     )
     return json(publicOf(account), 201)

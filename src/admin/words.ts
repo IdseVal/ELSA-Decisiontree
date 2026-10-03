@@ -8,8 +8,8 @@ import type { LoginWords } from '../editor/LoginForm.tsx'
 import type { NewTreeWords } from '../editor/NewTreeForm.tsx'
 
 export function loginWords(lang: string): LoginWords {
-  const { login, password, signIn, loginFailed, loginLocked, requestFailed, sessionNotKept } = chrome(lang)
-  return { login, password, signIn, loginFailed, loginLocked, requestFailed, sessionNotKept }
+  const { email, password, signIn, loginFailed, loginLocked, requestFailed, sessionNotKept } = chrome(lang)
+  return { email, password, signIn, loginFailed, loginLocked, requestFailed, sessionNotKept }
 }
 
 export function accountWords(lang: string): AccountWords {
@@ -32,13 +32,17 @@ export function accountWords(lang: string): AccountWords {
     administrator: ui.administrator,
     setPassword: ui.setPassword,
     save: ui.save,
-    login: ui.login,
+    email: ui.email,
     password: ui.password,
     displayName: ui.displayName,
     nameLength: ui.nameLength,
-    loginInvalid: ui.loginInvalid,
-    loginTaken: ui.loginTaken,
+    nameTaken: ui.nameTaken,
+    emailInvalid: ui.emailInvalid,
+    emailTaken: ui.emailTaken,
     passwordLength: ui.passwordLength,
+    setEmail: ui.setEmail,
+    noEmail: ui.noEmail,
+    emailHelp: ui.emailHelp,
     requestFailed: ui.requestFailed,
     close: ui.close,
     previous: ui.previous,

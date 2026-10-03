@@ -13,7 +13,7 @@ import { LoginForm } from '../../src/editor/LoginForm.tsx'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
-const words = { login: 'login', password: 'password', signIn: 'signIn', loginFailed: 'loginFailed', loginLocked: 'loginLocked', requestFailed: 'requestFailed', sessionNotKept: 'sessionNotKept' }
+const words = { email: 'email', password: 'password', signIn: 'signIn', loginFailed: 'loginFailed', loginLocked: 'loginLocked', requestFailed: 'requestFailed', sessionNotKept: 'sessionNotKept' }
 
 let root: Root
 let container: HTMLDivElement
@@ -38,10 +38,10 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-/** Types a name and a password and submits the form, then lets its requests answer. */
+/** Types an address and a password and submits the form, then lets its requests answer. */
 async function signIn(): Promise<void> {
   act(() => root.render(<LoginForm words={words} />))
-  for (const [name, value] of [['login', 'admin'], ['password', 'a long password']]) {
+  for (const [name, value] of [['email', 'admin@example.org'], ['password', 'a long password']]) {
     const input = container.querySelector<HTMLInputElement>(`input[name="${name}"]`)!
     act(() => {
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, value)
@@ -55,14 +55,14 @@ async function signIn(): Promise<void> {
 
 const error = (): string => container.querySelector('[role="alert"]')!.textContent!
 
-test('a 204 whose cookie the browser did not keep says sessionNotKept, keeps the name and clears the password', async () => {
+test('a 204 whose cookie the browser did not keep says sessionNotKept, keeps the address and clears the password', async () => {
   meStatus = 401
 
   await signIn()
 
   expect(requests).toEqual(['POST /admin/api/login', 'GET /admin/api/me'])
   expect(error()).toBe('sessionNotKept')
-  expect(container.querySelector<HTMLInputElement>('input[name="login"]')!.value).toBe('admin')
+  expect(container.querySelector<HTMLInputElement>('input[name="email"]')!.value).toBe('admin@example.org')
   expect(container.querySelector<HTMLInputElement>('input[name="password"]')!.value).toBe('')
   expect(container.querySelector('fieldset')!.disabled).toBe(false)
 })

@@ -37,7 +37,7 @@ const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screensh
 const ENDING_SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-179') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 130
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 const TREE = 'built'
 /** A new Node's id is the server's: `n-` and six base32 characters (22.4). */
 const NEW_ID = /n-[a-z2-7]{6}/
@@ -54,7 +54,7 @@ test.beforeAll(async () => {
   await mkdir(SHOTS, { recursive: true })
   await mkdir(ENDING_SHOTS, { recursive: true })
   const dir = await buildDataDir({
-    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.login }],
+    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.email }],
     accounts: [ANNA],
   })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
@@ -76,7 +76,7 @@ function api(page: Page, cookie: string, method: string, route: string, data?: u
 /** A page logged in as Anna, at 1280 x 640, and the cookie for API calls of its own. */
 async function loggedIn(browser: Browser): Promise<{ page: Page; cookie: string }> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
-  const { status, cookie } = await login(page, origin, ANNA.login, ANNA.password)
+  const { status, cookie } = await login(page, origin, ANNA.email, ANNA.password)
   expect(status).toBe(204)
   return { page, cookie }
 }

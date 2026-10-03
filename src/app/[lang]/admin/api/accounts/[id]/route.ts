@@ -1,8 +1,9 @@
 /**
- * `PATCH /admin/api/accounts/<id>` (docs/specs/application.md 20.1, 20.4, 22.1): the
- * administrator changes `name`, `active` or `password`; an account changes its own `name`,
- * or its `password` with `currentPassword`. Deactivating an account ends its sessions; a
- * password change ends every session of the account but the caller's own.
+ * `PATCH /admin/api/accounts/<id>` (docs/specs/application.md 20.1, 20.4, 22.1, 38.2, 38.5):
+ * the administrator changes `name`, `email`, `active` or `password`; an account changes its own
+ * `name`, or its `password` with `currentPassword`, and never its `email` (403). Deactivating an
+ * account ends its sessions; a password change ends every session of the account but the
+ * caller's own; a change of address ends none.
  */
 import { authenticated, bodyOf, json, refuse } from '../../../../../../admin/authenticated.ts'
 import { store } from '../../../../../../config.ts'
@@ -17,8 +18,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!body) return refuse(422, 'malformed')
   const { id } = await params
   const { accounts, sessions } = await store()
-  // The four fields of 22.1 and nothing else of the body goes on.
-  const change: AccountChange = { name: body.name, active: body.active, password: body.password, currentPassword: body.currentPassword } as AccountChange
+  // The five fields of 22.1 and 38.2 and nothing else of the body goes on.
+  const change: AccountChange = {
+    name: body.name,
+    email: body.email,
+    active: body.active,
+    password: body.password,
+    currentPassword: body.currentPassword,
+  } as AccountChange
   try {
     const account = await accounts.update(session.account, id, change)
     if (change.active === false || change.password !== undefined) await sessions.endAll(account.id, session)

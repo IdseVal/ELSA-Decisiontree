@@ -33,9 +33,9 @@ const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-176') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 115
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
-const BRAM = { login: 'bram', name: 'Bram', password: 'brams first password' }
-const ADMIN = { login: 'admin', name: 'Administrator', password: ADMIN_PASSWORD }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+const BRAM = { email: 'bram@example.org', name: 'Bram', password: 'brams first password' }
+const ADMIN = { email: 'admin@example.org', name: 'Administrator', password: ADMIN_PASSWORD }
 
 /** The Option targets whose Dutch title is emptied: one advisory V-L10N line each (19.2). */
 const EMPTIED = ['opt-one', 'opt-two', 'opt-three']
@@ -87,11 +87,11 @@ test.beforeAll(async ({ browser }) => {
   const full = path.join(repo, 'tests', 'fixtures', 'full-node')
   const dir = await buildDataDir({
     trees: [
-      { folder: full, id: 'hidden-draft', hidden: true, creator: ANNA.login, collaborators: [BRAM.login] },
-      { folder: full, id: 'tidy', hidden: true, creator: ANNA.login },
-      { folder: full, id: 'todo-before', hidden: true, creator: ANNA.login },
-      { folder: full, id: 'behind', creator: ANNA.login },
-      { folder: full, id: 'unservable', creator: ANNA.login },
+      { folder: full, id: 'hidden-draft', hidden: true, creator: ANNA.email, collaborators: [BRAM.email] },
+      { folder: full, id: 'tidy', hidden: true, creator: ANNA.email },
+      { folder: full, id: 'todo-before', hidden: true, creator: ANNA.email },
+      { folder: full, id: 'behind', creator: ANNA.email },
+      { folder: full, id: 'unservable', creator: ANNA.email },
     ],
     accounts: [ANNA, BRAM],
   })
@@ -121,9 +121,9 @@ function api(page: Page, cookie: string, method: string, route: string, data?: u
 }
 
 /** A page logged in as `who`, at 1280 x 640, and the cookie for API calls of its own. */
-async function loggedIn(browser: Browser, who: { login: string; password: string }): Promise<{ page: Page; cookie: string }> {
+async function loggedIn(browser: Browser, who: { email: string; password: string }): Promise<{ page: Page; cookie: string }> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
-  const { status, cookie } = await login(page, origin, who.login, who.password)
+  const { status, cookie } = await login(page, origin, who.email, who.password)
   expect(status).toBe(204)
   return { page, cookie }
 }

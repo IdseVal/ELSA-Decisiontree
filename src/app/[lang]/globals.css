@@ -1914,6 +1914,14 @@ fieldset:disabled .admin-submit {
   text-align: center;
 }
 
+/* **[#196]** The account page's address line (38.5): one line, cut with an ellipsis, `data-clamp`. */
+.account-email {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* The chrome bar's account controls (24.3): links, and the logout button dressed as one. */
 .admin-nav {
   display: flex;
@@ -1976,8 +1984,12 @@ fieldset:disabled .admin-submit {
   border-top: 1px solid var(--rule-soft);
 }
 
+/*
+ * **[#196]** A fixed share, and the address column the row's free room: every row's address
+ * starts at one edge, whatever actions follow it -- the administrator's row has one (38.5).
+ */
 .admin-row-name {
-  flex: 1 1 10rem;
+  flex: 0 1 12rem;
   min-width: 0;
   overflow-wrap: anywhere;
   font-weight: 600;
@@ -1988,8 +2000,26 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text-muted);
 }
 
+/*
+ * **[#196]** The address column (38.5): one line, cut with an ellipsis -- `data-clamp`, the whole
+ * address in its title -- and `noEmail` in the muted shade where a converted store left none.
+ */
+.admin-row-email {
+  flex: 1 1 14rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-row-email--none {
+  color: var(--elsa-text-muted);
+}
+
+/* **[#196]** Three actions on a row now (38.5): on a phone they take a second line rather than more width. */
 .admin-row-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
 }
@@ -2254,6 +2284,32 @@ fieldset:disabled .admin-submit {
 
   .admin-field {
     grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
+  }
+}
+
+/*
+ * **[#196]** A phone at the floor's height: the account page's password card holds two lines
+ * more (38.5), the address and `emailHelp`, so its cards give up the height their fields,
+ * buttons and lines keep above it, and the two still fit the 408 pixels (10.6). The labels
+ * take back the column they have on a wider screen, where "Nieuw wachtwoord nogmaals" needs
+ * two lines and not three.
+ */
+@media (max-width: 479px) and (max-height: 539px) {
+  .admin-cards .admin-field {
+    grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
+  }
+
+  .admin-cards .admin-field input {
+    height: 28px;
+  }
+
+  .admin-cards .admin-submit {
+    min-height: 32px;
+  }
+
+  .admin-cards .admin-hint,
+  .admin-cards .admin-note {
+    line-height: 16px;
   }
 }
 

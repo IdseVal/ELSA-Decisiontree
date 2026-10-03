@@ -90,7 +90,8 @@ export interface Chrome {
   accounts: string
   /** **[#135]** The login page (25.1). */
   signIn: string
-  login: string
+  /** **[#196]** The address field of the login page and of the new-account and `setEmail` Sheets, and the accounts page's column (38.5). */
+  email: string
   password: string
   loginFailed: string
   loginLocked: string
@@ -117,13 +118,20 @@ export interface Chrome {
   administrator: string
   setPassword: string
   save: string
-  /** **[#135]** The new-account Sheet's label for the display name, beside `login` (25.3). */
+  /** **[#135]** The new-account Sheet's label for the display name, beside **[#196]** `email` (25.3). */
   displayName: string
-  /** **[#135]** A refused field of the account forms (422): the rule it broke (20.1, 20.2). */
+  /** **[#135]** A refused field of the account forms (422): the rule it broke (20.1, 20.2, **[#196]** 38.1, 38.6). */
   nameLength: string
-  loginInvalid: string
-  loginTaken: string
+  nameTaken: string
+  emailInvalid: string
+  emailTaken: string
   passwordLength: string
+  /** **[#196]** The accounts page's row action and its Sheet (38.5), and a row whose account a converted store left without an address (38.4). */
+  setEmail: string
+  noEmail: string
+  /** **[#196]** The account page's address line (38.5), and the sentence under it on every page but the administrator's. */
+  signedInWith: (email: string) => string
+  emailHelp: string
   /** **[#138]** The editor's Source controls (28.1): the add Sheet's control, title and button; the `...` Sheet's title, its fields and its remove button. */
   addSource: string
   editSource: string
@@ -393,13 +401,13 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     account: 'Account',
     accounts: 'Accounts',
     signIn: 'Sign in',
-    login: 'Name',
+    email: 'E-mail address',
     password: 'Password',
-    loginFailed: 'Wrong name or password.',
+    loginFailed: 'Wrong e-mail address or password.',
     loginLocked: 'Too many attempts. Try again in a few minutes.',
     loginHelp: 'Ask your administrator for an account or a new password.',
     requestFailed: 'The server could not be reached. Try again.',
-    sessionNotKept: 'Your name and password are right, but this browser did not keep the session. Allow cookies for this site, or open it at the address it is published at.',
+    sessionNotKept: 'Your e-mail address and password are right, but this browser did not keep the session. Allow cookies for this site, or open it at the address it is published at.',
     yourName: 'Your name',
     changePassword: 'Change password',
     currentPassword: 'Current password',
@@ -419,9 +427,14 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     save: 'Save',
     displayName: 'Display name',
     nameLength: 'A name is 1 to 80 characters.',
-    loginInvalid: 'Use 2 to 64 lowercase letters, digits and single hyphens.',
-    loginTaken: 'This name is taken.',
+    nameTaken: 'Another account has this name.',
+    emailInvalid: 'Enter an e-mail address, such as name@example.org.',
+    emailTaken: 'Another account has this e-mail address.',
     passwordLength: 'A password is 12 to 256 characters.',
+    setEmail: 'Set e-mail address',
+    noEmail: 'No e-mail address yet',
+    signedInWith: (email) => `You sign in with ${email}.`,
+    emailHelp: 'Ask your administrator to change it.',
     addSource: 'Add a source',
     editSource: 'Edit this source',
     removeSource: 'Remove this source',
@@ -621,13 +634,13 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     account: 'Account',
     accounts: 'Accounts',
     signIn: 'Inloggen',
-    login: 'Naam',
+    email: 'E-mailadres',
     password: 'Wachtwoord',
-    loginFailed: 'Verkeerde naam of wachtwoord.',
+    loginFailed: 'Verkeerd e-mailadres of wachtwoord.',
     loginLocked: 'Te veel pogingen. Probeer het over een paar minuten opnieuw.',
     loginHelp: 'Vraag uw beheerder om een account of een nieuw wachtwoord.',
     requestFailed: 'De server is niet bereikbaar. Probeer het opnieuw.',
-    sessionNotKept: 'Uw naam en wachtwoord kloppen, maar deze browser heeft de sessie niet bewaard. Sta cookies toe voor deze site, of open hem op het adres waarop hij gepubliceerd is.',
+    sessionNotKept: 'Uw e-mailadres en wachtwoord kloppen, maar deze browser heeft de sessie niet bewaard. Sta cookies toe voor deze site, of open hem op het adres waarop hij gepubliceerd is.',
     yourName: 'Uw naam',
     changePassword: 'Wachtwoord wijzigen',
     currentPassword: 'Huidig wachtwoord',
@@ -647,9 +660,14 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     save: 'Opslaan',
     displayName: 'Weergavenaam',
     nameLength: 'Een naam is 1 tot 80 tekens.',
-    loginInvalid: 'Gebruik 2 tot 64 kleine letters, cijfers en enkele koppeltekens.',
-    loginTaken: 'Deze naam is al in gebruik.',
+    nameTaken: 'Een ander account heeft deze naam.',
+    emailInvalid: 'Vul een e-mailadres in, zoals naam@example.org.',
+    emailTaken: 'Een ander account heeft dit e-mailadres.',
     passwordLength: 'Een wachtwoord is 12 tot 256 tekens.',
+    setEmail: 'E-mailadres instellen',
+    noEmail: 'Nog geen e-mailadres',
+    signedInWith: (email) => `U logt in met ${email}.`,
+    emailHelp: 'Vraag uw beheerder om het te wijzigen.',
     addSource: 'Bron toevoegen',
     editSource: 'Deze bron bewerken',
     removeSource: 'Deze bron verwijderen',

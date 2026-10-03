@@ -169,7 +169,7 @@ function TopPanel({
   draft: Draft
   address: PageAddress
   role: PanelRole
-  accounts: { get(id: string): Account | null; all(): Account[]; listActive(): Pick<Account, 'id' | 'name' | 'login'>[] }
+  accounts: { get(id: string): Account | null; all(): Account[]; listActive(): Pick<Account, 'id' | 'name'>[] }
   ui: Chrome
 }) {
   const people = [entry.meta.creator, ...entry.meta.collaborators]

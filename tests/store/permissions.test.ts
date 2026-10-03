@@ -11,7 +11,7 @@ import { mayCreate, permit, type Action, type TreeMeta } from '../../src/store/p
 const account = (id: string, administrator = false, active = true): Account => ({
   id,
   name: id,
-  login: id,
+  email: `${id}@example.org`,
   passwordHash: '',
   active,
   administrator,

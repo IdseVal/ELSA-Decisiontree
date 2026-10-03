@@ -12,7 +12,7 @@ import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
 import { store } from '../../src/config.ts'
 import type { Account } from '../../src/store/accounts.ts'
 import type { Store } from '../../src/store/index.ts'
-import { ADMIN_PASSWORD } from '../store/admin.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
 import { GIF, PNG, SVG } from '../store/pictures.ts'
 
 const HOST = 'http://127.0.0.1:3000'
@@ -31,6 +31,7 @@ beforeAll(async () => {
   data = await mkdtemp(path.join(tmpdir(), 'elsa-trees-api-'))
   // The routes read the store the environment names, as a deployment's do; one per process.
   process.env.ELSA_DATA_DIR = data
+  process.env.ELSA_ADMIN_EMAIL = ADMIN_EMAIL
   process.env.ELSA_ADMIN_PASSWORD = ADMIN_PASSWORD
   process.env.ELSA_SEED_DIR = data
   delete process.env.ELSA_BASE_URL
@@ -38,9 +39,9 @@ beforeAll(async () => {
   opened = await store()
   const admin = opened.accounts.all().find((account) => account.administrator)!
   accounts.administrator = admin
-  accounts.creator = await opened.accounts.create(admin, 'Cees', 'cees', 'cees first password')
-  accounts.collaborator = await opened.accounts.create(admin, 'Dirk', 'dirk', 'dirks first password')
-  accounts['another account'] = await opened.accounts.create(admin, 'Erik', 'erik', 'eriks first password')
+  accounts.creator = await opened.accounts.create(admin, 'Cees', 'cees@example.org', 'cees first password')
+  accounts.collaborator = await opened.accounts.create(admin, 'Dirk', 'dirk@example.org', 'dirks first password')
+  accounts['another account'] = await opened.accounts.create(admin, 'Erik', 'erik@example.org', 'eriks first password')
   for (const [role, account] of Object.entries(accounts)) {
     cookies[role] = (await opened.sessions.start(account, true)).cookie.split(';')[0]!
   }

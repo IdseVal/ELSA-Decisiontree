@@ -27,7 +27,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Locator, type Page } from '@playwright/test'
-import { ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
+import { ADMIN_EMAIL, ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -64,11 +64,17 @@ const TREES = [
   { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true },
 ]
 
+/**
+ * **[#196]** Cees signs in with the longest address 38.1 allows, 254 characters, so the account
+ * page's address line and the accounts page's column and `setEmail` Sheet hold it (38.10).
+ */
+const CEES = { email: `${'c'.repeat(242)}@example.org`, name: 'Cees', password: 'cees first password' }
+
 /** Twenty accounts with the longest name 20.1 allows among them: more rows than the box holds. */
 const ACCOUNTS = [
-  { login: 'cees', name: 'Cees', password: 'cees first password' },
+  CEES,
   ...Array.from({ length: 19 }, (_ignored, index) => ({
-    login: `creator-${index + 1}`,
+    email: `creator-${index + 1}@example.org`,
     name: index === 0 ? 'W'.repeat(80) : `Creator number ${index + 1}`,
     password: 'a creators password',
   })),
@@ -169,28 +175,28 @@ for (const lang of LANGUAGES) {
   })
 
   test(`the 403 page, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
-    await everywhere(await loggedIn(browser, 'cees', 'cees first password'), '/admin/accounts', '403 page', lang, 403)
+    await everywhere(await loggedIn(browser, CEES.email, CEES.password), '/admin/accounts', '403 page', lang, 403)
   })
 
   test(`the account page, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
-    await everywhere(await loggedIn(browser, 'cees', 'cees first password'), '/admin/account', 'account page', lang, 200)
+    await everywhere(await loggedIn(browser, CEES.email, CEES.password), '/admin/account', 'account page', lang, 200)
   })
 
   test(`the accounts page with twenty-one accounts, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
     test.slow()
-    await everywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), '/admin/accounts', 'accounts page', lang, 200)
+    await everywhere(await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), '/admin/accounts', 'accounts page', lang, 200)
   })
 
   test(`the creators' overview with sixteen tiles and the + tile, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
     test.slow()
-    const page = await loggedIn(browser, 'admin', ADMIN_PASSWORD)
+    const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
     await everywhere(page, '/admin', "creators' overview", lang, 200)
     await expect(page.locator('.tile')).toHaveCount(TREES.length + 1)
   })
 
   test(`the new-Tree form with three languages, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
     test.slow()
-    const page = await loggedIn(browser, 'cees', 'cees first password')
+    const page = await loggedIn(browser, CEES.email, CEES.password)
     for (const [width, height] of VIEWPORTS) {
       await page.setViewportSize({ width, height })
       await page.goto(`${origin}/admin/new${lang === 'en' ? '' : `?lang=${lang}`}`)
@@ -281,7 +287,7 @@ async function floatingSheets(page: Page, what: string, lang: string, viewport: 
 for (const lang of LANGUAGES) {
   test(`the editor on the full Node, ${lang}, never scrolls at any viewport of 10.6, in every state (28.6)`, async ({ browser }) => {
     test.slow()
-    await editorEverywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), lang)
+    await editorEverywhere(await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), lang)
   })
 }
 
@@ -323,7 +329,7 @@ async function structureEverywhere(page: Page, lang: string): Promise<void> {
 for (const lang of LANGUAGES) {
   test(`the structure's Sheets and the step's buttons, ${lang}, never scroll at any viewport of 10.6 (30, 28.6)`, async ({ browser }) => {
     test.slow()
-    await structureEverywhere(await loggedIn(browser, 'admin', ADMIN_PASSWORD), lang)
+    await structureEverywhere(await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), lang)
   })
 }
 
@@ -390,7 +396,7 @@ const NARROW = {
 for (const lang of LANGUAGES) {
   test(`the editor's picture Sheets, ${lang}, never scroll at any viewport of 10.6 (31.2, 31.3)`, async ({ browser }) => {
     test.slow()
-    const page = await loggedIn(browser, 'admin', ADMIN_PASSWORD)
+    const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
     const query = lang === 'en' ? '' : '?lang=nl'
     const picture = { name: 'covered.png', mimeType: 'image/png', buffer: await readFile(path.join(repo, 'trees', 'ai-act-example', 'images', 'covered.png')) }
     // One picture on the other Terminal, for the strip's `+` beside no strip; the nl run finds it there.
@@ -406,7 +412,7 @@ for (const lang of LANGUAGES) {
     // [#174] Nine pictures on an explanation Node: a strip at its widest, and the `+` after it.
     const widest = `${origin}/admin/api/trees/hidden-draft/nodes/opt-one`
     // The request context keeps no `Secure` cookie on plain http: the session travels in the header (admin.ts).
-    const { cookie } = await login(page, origin, 'admin', ADMIN_PASSWORD)
+    const { cookie } = await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)
     const headers = { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' }
     const pictures = ((await (await page.request.get(widest, { headers })).json()) as { node: { images: unknown[] } }).node.images.length
     for (const file of ['two.png', 'three.png', 'four.png', 'five.png', 'six.png', 'seven.png', 'eight.png', 'nine.png'].slice(pictures - 1)) {
@@ -472,7 +478,7 @@ for (const lang of LANGUAGES) {
 test('the editor with the session Sheet open never scrolls at the guarantee and on a phone (29.6)', async ({ browser }) => {
   // Not the floor: there the notice stands in for the view and no field can be typed in (10.4).
   for (const [width, height] of [VIEWPORTS[0], VIEWPORTS[8]] as const) {
-    const page = await loggedIn(browser, 'admin', ADMIN_PASSWORD)
+    const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
     await page.setViewportSize({ width, height })
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     await page.context().clearCookies()
@@ -495,7 +501,7 @@ test('the editor with the session Sheet open never scrolls at the guarantee and 
 test('the to-do bubble with a list longer than the window never scrolls the document at any viewport of 10.6 (33.3)', async ({ browser }) => {
   test.slow()
   const page = await (await browser.newContext()).newPage()
-  const { status, cookie } = await login(page, origin, 'admin', ADMIN_PASSWORD)
+  const { status, cookie } = await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)
   expect(status).toBe(204)
   const post = (route: string, data: unknown) =>
     page.request.post(`${origin}/admin/api${route}`, { headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' }, data: JSON.stringify(data) })
@@ -540,7 +546,7 @@ for (const lang of LANGUAGES) {
   test(`a side bubble at every maximum, opened by its address, ${lang}, never scrolls at any viewport of 10.6 (30.5, 30.7, 28.6)`, async ({ browser }) => {
     test.slow()
     const page = await (await browser.newContext()).newPage()
-    expect((await login(page, overlayOrigin, 'admin', ADMIN_PASSWORD)).status).toBe(204)
+    expect((await login(page, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
     for (const [width, height] of VIEWPORTS) {
       const viewport = `${width}x${height}`
       await page.setViewportSize({ width, height })

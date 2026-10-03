@@ -9,21 +9,32 @@ import { AccountForms } from '../../../../editor/AccountForms.tsx'
 
 export const dynamic = 'force-dynamic'
 
-/** `/admin/account` (docs/specs/application.md 25.2): any logged-in account's own name and password. */
+/**
+ * `/admin/account` (docs/specs/application.md 25.2): any logged-in account's own name and
+ * password, and **[#196]** the address it signs in with, which only the administrator changes (38.5).
+ */
 export default async function AccountPage({ params }: { params: Promise<{ lang: string }> }) {
   const lang = chromeLanguage((await params).lang)
   const session = await pageSession()
   if (!session) return <LoginPage lang={lang} />
-  const { id, name, login } = session.account
+  const { id, name, email, administrator } = session.account
+  const ui = chrome(lang)
   return (
     <>
       <ThemeStyle tree={null} />
       <AdminChrome lang={lang} account={session.account} />
       <main className="admin-page admin-page--centred">
         <noscript>
-          <p className="admin-note">{chrome(lang).needsJavaScript}</p>
+          <p className="admin-note">{ui.needsJavaScript}</p>
         </noscript>
-        <AccountForms id={id} name={name} login={login} words={accountWords(lang)} />
+        <AccountForms
+          id={id}
+          name={name}
+          email={email}
+          emailLine={email === null ? ui.noEmail : ui.signedInWith(email)}
+          administrator={administrator}
+          words={accountWords(lang)}
+        />
       </main>
       <Disclaimer lang={lang} />
     </>

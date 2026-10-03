@@ -20,7 +20,7 @@ const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-172') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 160
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 
 /** Ordinary words, so the text wraps as a creator's would; long enough to pass every limit typed here. */
 const WORDS = 'The quick brown fox jumps over the lazy dog, then rests a while. '.repeat(3)
@@ -30,7 +30,7 @@ const rows: string[] = []
 
 test.beforeAll(async () => {
   const dir = await buildDataDir({
-    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.login }],
+    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.email }],
     accounts: [ANNA],
   })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
@@ -64,7 +64,7 @@ async function typeInto(page: Page, keyPath: string, nodeId: string, text: strin
 
 async function editor(page: Page, width: number, height: number): Promise<string> {
   await page.setViewportSize({ width, height })
-  const { status, cookie } = await login(page, origin, ANNA.login, ANNA.password)
+  const { status, cookie } = await login(page, origin, ANNA.email, ANNA.password)
   expect(status).toBe(204)
   return cookie
 }

@@ -28,7 +28,7 @@ const repo = fileURLToPath(new URL('../..', import.meta.url))
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-175') : path.join(repo, 'tests', 'browser', '.results', 'shots')
 const PORT = BASE_PORT + 160
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 const FIRST_TREE = 'ai-act-applicability-agrifood'
 
 /** 10.3, amended by #175: the button, and the picture as tall as it; in the editor, the title's box of five lines of 18 (28.4). */
@@ -43,9 +43,9 @@ test.beforeAll(async () => {
   await mkdir(SHOTS, { recursive: true })
   const dir = await buildDataDir({
     trees: [
-      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), creator: ANNA.login },
+      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), creator: ANNA.email },
       { folder: path.join(repo, 'tests', 'fixtures', 'overlay') },
-      { folder: path.join(repo, 'trees', FIRST_TREE), creator: ANNA.login },
+      { folder: path.join(repo, 'trees', FIRST_TREE), creator: ANNA.email },
     ],
     accounts: [ANNA],
   })
@@ -196,7 +196,7 @@ for (const [width, height] of [
     })
 
     test('in the editor, eight Options: the same buttons, the box of each title five lines; and the side-bubble + fills its end, on the left as on the right', async ({ page }) => {
-      expect((await login(page, origin, ANNA.login, ANNA.password)).status).toBe(204)
+      expect((await login(page, origin, ANNA.email, ANNA.password)).status).toBe(204)
       await expectContour(page, '/admin/trees/full-node/full', 'the full Node, editor', 8, 'full-node-editor')
       await expectContour(page, `/admin/trees/${FIRST_TREE}/annex-i-legislation`, 'annex-i-legislation, editor', 8, 'annex-i-legislation-editor')
       // One Option on the right and the `+` in the next free slot, the left (30.4); with none, the `+` on the right.
@@ -212,7 +212,7 @@ test.describe('at 1279 x 720, step 2 of 10.5', () => {
 
   test('the straight columns: every Option button and the + 200 x 96 without a picture, the label 12 from each end, the box of an editor title three lines', async ({ page }) => {
     await expectStraight(page, '/full-node/full', 'the full Node, public', 8)
-    expect((await login(page, origin, ANNA.login, ANNA.password)).status).toBe(204)
+    expect((await login(page, origin, ANNA.email, ANNA.password)).status).toBe(204)
     await expectStraight(page, '/admin/trees/full-node/full', 'the full Node, editor', 8)
     await expectStraight(page, '/admin/trees/full-node/opt-one', 'opt-one, editor: one Option and the +', 2)
     await expectStraight(page, '/admin/trees/full-node/opt-three', 'opt-three, editor: the + alone', 1)
@@ -224,7 +224,7 @@ test.describe('at 1100 x 800, step 3 of 10.5', () => {
 
   // Eight Options collapse below 1200 (step 4); the row under the Answers holds four or fewer.
   test('the row under the Answers: the Option button and the + the same, on either side', async ({ page }) => {
-    expect((await login(page, origin, ANNA.login, ANNA.password)).status).toBe(204)
+    expect((await login(page, origin, ANNA.email, ANNA.password)).status).toBe(204)
     await expectStraight(page, '/admin/trees/full-node/opt-one', 'opt-one, editor: one Option and the +', 2)
     await expectStraight(page, '/admin/trees/full-node/opt-three', 'opt-three, editor: the + alone', 1)
   })

@@ -5,6 +5,12 @@
  * decision 4): the caller's name, with a live counter to 80, and the password, changed with
  * the current one. Both `PATCH /admin/api/accounts/<own id>`, and both disabled until the
  * script runs (`useHydrated`).
+ *
+ * **[#196]** The password card also says which address the account signs in with, read-only
+ * (38.5, ADR-195-who-sees-and-changes-an-address decision 5): one line cut with an ellipsis, the
+ * whole address its title -- or `noEmail` for an account a converted store left without one --
+ * and under it, on every page but the administrator's, `emailHelp`. Only the administrator
+ * changes an address, its own with its row's `setEmail` on the accounts page.
  */
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { refusalAt, refusalOf, type AccountWords, type Refusal } from './account-words.ts'
@@ -13,7 +19,22 @@ import { send } from './request.ts'
 
 const NAME_MAX = 80
 
-export function AccountForms({ id, name, login, words }: { id: string; name: string; login: string; words: AccountWords }) {
+export function AccountForms({
+  id,
+  name,
+  email,
+  emailLine,
+  administrator,
+  words,
+}: {
+  id: string
+  name: string
+  email: string | null
+  /** `signedInWith(email)` in the chrome language, or `noEmail`: a function of the address, so the page says it. */
+  emailLine: string
+  administrator: boolean
+  words: AccountWords
+}) {
   const url = `/admin/api/accounts/${encodeURIComponent(id)}`
   const enhanced = useHydrated()
   const [newName, setNewName] = useState(name)
@@ -61,9 +82,13 @@ export function AccountForms({ id, name, login, words }: { id: string; name: str
       </form>
       <form className="admin-card admin-form" method="post" onSubmit={savePassword} aria-labelledby="change-password">
         <h2 id="change-password">{words.changePassword}</h2>
+        <p className="admin-note account-email" data-clamp="" title={email ?? undefined}>
+          {emailLine}
+        </p>
+        {!administrator && <p className="admin-note">{words.emailHelp}</p>}
         <fieldset disabled={!enhanced}>
           {/* For the browser's password manager: which account this password belongs to. */}
-          <input type="text" name="username" autoComplete="username" value={login} readOnly hidden />
+          <input type="text" name="username" autoComplete="username" value={email ?? ''} readOnly hidden />
           <Field label={words.currentPassword} error={refusalAt(passwordRefusal, 'currentPassword')}>
             <input name="currentPassword" type="password" autoComplete="current-password" required value={current} onChange={(event) => setCurrent(event.target.value)} />
           </Field>

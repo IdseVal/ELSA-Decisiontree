@@ -28,7 +28,7 @@ const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-178') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 175
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 const TREE = 'hidden-draft'
 
 /**
@@ -68,7 +68,7 @@ test.describe.configure({ mode: 'serial' })
 test.beforeAll(async ({ browser }) => {
   await mkdir(SHOTS, { recursive: true })
   const full = path.join(repo, 'tests', 'fixtures', 'full-node')
-  const dir = await buildDataDir({ trees: [{ folder: full, id: TREE, hidden: true, creator: ANNA.login }], accounts: [ANNA] })
+  const dir = await buildDataDir({ trees: [{ folder: full, id: TREE, hidden: true, creator: ANNA.email }], accounts: [ANNA] })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
   const { page, cookie } = await loggedIn(browser)
   // A Node is made from a parent's Link (22.4): made under an aside, pointed at the full Node,
@@ -104,7 +104,7 @@ function api(page: Page, cookie: string, method: string, route: string, data?: u
 /** A page logged in as Anna, at 1280 x 640, and the cookie for API calls of its own. */
 async function loggedIn(browser: Browser): Promise<{ page: Page; cookie: string }> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
-  const { status, cookie } = await login(page, origin, ANNA.login, ANNA.password)
+  const { status, cookie } = await login(page, origin, ANNA.email, ANNA.password)
   expect(status).toBe(204)
   return { page, cookie }
 }

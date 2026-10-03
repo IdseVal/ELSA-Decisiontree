@@ -23,7 +23,7 @@ export default async function AccountsPage({ params }: { params: Promise<{ lang:
   const ui = chrome(lang)
   const accounts = (await store()).accounts
     .all()
-    .map(({ id, name, login, active, administrator }) => ({ id, name, login, active, administrator }))
+    .map(({ id, name, email, active, administrator }) => ({ id, name, email, active, administrator }))
   return (
     <>
       <ThemeStyle tree={null} />

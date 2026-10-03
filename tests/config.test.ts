@@ -20,6 +20,7 @@ describe('the configured store', () => {
     // store() reads the real environment, the way the server does.
     dataDir = await mkdtemp(path.join(tmpdir(), 'elsa-config-'))
     process.env.ELSA_DATA_DIR = dataDir
+    process.env.ELSA_ADMIN_EMAIL = 'admin@example.org'
     process.env.ELSA_ADMIN_PASSWORD = 'test administrator password'
     vi.spyOn(console, 'log').mockImplementation(() => {})
 
