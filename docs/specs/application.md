@@ -2268,7 +2268,8 @@ editor's own interface.** The owner, on #169: "Changing the color features are g
 don't make it change the sidebar or header colors, that makes it very difficult to follow the
 UI." In the editor `themeStyle` writes, after the draft's `:root` block, the default palette and
 type stack of 13.4 again on `[data-editor-ui]`: the attribute of the chrome bar, the floating
-controls (33.1, 33.3) and the panel of every Sheet only the editor opens (24.3, amended). The
+controls (33.1, 33.3), the panel of every Sheet only the editor opens and **[#178]** the panel the
+step's red cross asks in (24.3, amended). The
 stylesheet derives its shades there again and gives those elements their own text colour and
 face, since what they would inherit from the page is the draft's. Everything else on the page
 -- behind the Bubble, the Bubble and its buttons, the Overlay, the strip, the disclaimer -- is
@@ -3729,6 +3730,14 @@ the to-do bubble they open, and the panel of every editor Sheet keep the default
 whatever the creator picks (13.1, amended). The bar's logo stays the Tree's, in the variant for
 the default's light bar: `logo.light`. The public page is unchanged: there the whole page is the
 Tree's Theme. Recorded in `docs/adrs/ADR-180-editor-interface-not-themed.md`.
+
+**[#180], amended 2026-10-03, after #177 and #178 merged first.** What the editor puts in the Tree
+itself is drawn as the Tree is: the fields; the Sheets' own buttons in the Bubble and its rows;
+#177's side-bubble `+` in the fan, which opens no Sheet; `deleteSideBubble` at the foot of an
+Overlay, with the confirmation it asks there in place (30.7); and #178's red cross and "Tree does
+not end here after all" beside the up arrow (30.8). The question the cross asks is a panel hung
+over the Sheets' veil, as the step menu's Sheet was, and keeps the default look: the editor's
+own, like the panel of every editor Sheet. Recorded in decision 1 of the same ADR.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`

@@ -437,6 +437,22 @@ test('[#180] a Tree with a dark palette: in the editor the bar and the open pane
   expect(await page.locator('[data-editor-ui] :is(.side-add, .side-delete)').count()).toBe(0)
   await remove.getByRole('button', { name: 'Cancel' }).click()
 
+  // #178's red cross and 'Tree does not end here after all' stand beside the up arrow, on the
+  // page behind the Bubble, in the Tree's colours; the question the cross asks is a panel over the
+  // Sheets' veil, the editor's own as the step menu's Sheet was, in the default look (ADR-180 decision 1).
+  await page.goto(`${origin}/admin/trees/dark/start/prohibited-practices/prohibited`)
+  const cross = page.locator('.step-delete')
+  expect(await colours(cross)).toMatch(/ on rgb\(33, 39, 41\)$/)
+  expect(await colours(page.locator('.step-end > button'))).toMatch(/ on rgb\(33, 39, 41\)$/)
+  expect(await page.locator('[data-editor-ui] :is(.step-delete, .step-end)').count()).toBe(0)
+  await cross.click()
+  const question = page.locator('.step-confirm[data-editor-ui]')
+  await expect(question).toBeVisible()
+  expect(await colours(question)).toBe('rgb(20, 24, 28) on rgb(255, 255, 255)')
+  expect(await colours(question.getByRole('button', { name: 'Confirm' }))).toBe('rgb(251, 250, 246) on rgb(138, 47, 38)')
+  await question.getByRole('button', { name: 'Cancel' }).click()
+  await expect(question).toHaveCount(0)
+
   // The public page is the whole Tree's, as it was (24.3).
   const reader = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
   await reader.goto(`${origin}/dark/start`)

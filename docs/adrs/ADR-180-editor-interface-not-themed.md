@@ -4,12 +4,14 @@
 - Issue: #180 -- Theme panel: colours that leave the editor's own bars alone, the text colour
   on the Sources, font and licence dropdowns, information hints
 - Owner's request: #169 (2026-10-02)
-- Spec: `docs/specs/application.md` 13.1, 24.3 and 33.8, amended 2026-10-02
+- Spec: `docs/specs/application.md` 13.1, 24.3 and 33.8, amended 2026-10-02; 13.1 and 24.3
+  again on 2026-10-03, after #177 and #178 merged first
 - Supersedes in part: `ADR-133-admin-routes.md` decision 6 -- "the editor emits its **draft's**
   Theme" -- for the editor's own interface. What stands and what changes is below.
 - Depends on: `ADR-38-theme-delivery.md` (the one `<style>` string of `src/theme.ts`, the
   stylesheet that names no colour), `ADR-176-floating-settings-and-to-do.md` (the floating
-  controls), `ADR-133-top-panel.md` (the panel)
+  controls), `ADR-133-top-panel.md` (the panel), `ADR-177-side-bubble-editing.md` and
+  `ADR-178-step-buttons.md` (the editor's controls that merged before this decision)
 
 ## Context
 
@@ -32,15 +34,27 @@ bar and the panel turn dark under the pointer.
    Option and Answer buttons, the Overlay, the pictures' strip and the enlarged view, the
    disclaimer. The editor's own interface is what no visitor sees: the chrome bar, the
    floating controls with the panel and the to-do bubble they open, and the panel of every
-   Sheet only the editor opens -- a Source's `...`, `+ addSource`, the end of a tree, a link's
-   and a step's menu, the explainer Sheet, the picture's attach Sheet, the session Sheet.
-   These keep the application's default colours and type stack whatever the creator picks.
+   Sheet only the editor opens -- a Source's `...`, `+ addSource`, the end of a tree, ~~a link's
+   and a step's menu~~ (**[#178]** gone, below), the explainer Sheet, the picture's attach
+   Sheet, the session Sheet -- and **[#178]** the panel the step's red cross asks in. These
+   keep the application's default colours and type stack whatever the creator picks.
    The controls that stand in the Tree itself -- the fields, the Sheets' own buttons in the
    Bubble and its rows -- are drawn as the Tree is, because they are where the creator shapes
    what the visitor sees. Since #177 two more controls are drawn this way, because neither
    opens a panel and both stand on the Tree's colours (`ADR-177-side-bubble-editing.md`):
    - the side-bubble `+` in the fan, which creates at one click with no Sheet behind it;
    - `deleteSideBubble` at the foot of an Overlay, with the confirmation it asks in place.
+
+   **[#178], 2026-10-03.** #178 took away every link menu and the step menu
+   (`ADR-178-step-buttons.md`), two of the Sheets listed above. What replaced the step menu
+   divides as the menu did, its button in the Tree and its panel the editor's own:
+   - the step's red cross and "Tree does not end here after all" stand beside the up arrow, in
+     the band above the Bubble, as the arrow does and as the menu's `...` did. Neither is a
+     Sheet: they are drawn as the Tree is;
+   - the question the cross asks is a panel hung over the Sheets' veil, as the menu's Sheet
+     panel was, and only the editor opens it. It carries `data-editor-ui` and keeps the default
+     look, its `confirm` filled with the default's `danger`. #177's question is drawn as the Tree
+     is because it stands in the Overlay itself, in place; this one has a panel of its own.
 2. **One string still, built by `src/theme.ts`.** In the editor `themeStyle` writes the draft's
    `:root` block as before and, after it, the default palette and type stack again on
    `[data-editor-ui]`, which the bar, the floating controls and those Sheets' panels carry; the
@@ -82,10 +96,14 @@ changes: in the editor the draft's Theme reaches the Tree and not the editor's o
 - `tests/browser/theme-panel.spec.ts` measures it: after the palette of a Tree with no Theme
   changes to a dark one, the bar, its account link, the two floating controls, the panel and
   the panel's heading are painted exactly as before, while the Bubble and its Sources take the
-  palette; a dark Tree's editor shows `logo.light`, its public page `logo.dark`.
+  palette; a dark Tree's editor shows `logo.light`, its public page `logo.dark`. On the dark
+  Tree, #177's `+` and delete and #178's cross and words take the draft's colours under no
+  `[data-editor-ui]`, and the cross's question is painted in the default.
 - The to-do bubble's count is filled with the default's accent, not the draft's (33.3): it is
   part of the floating controls.
 - #177's `deleteSideBubble` is outlined in the draft's `danger`, and its confirmation's button
-  is filled with it. So `colourDangerHint` names that button among what the role paints.
+  is filled with it; #178's red cross is outlined in it too, and filled with it under the
+  pointer. So `colourDangerHint` names "the buttons that delete a step or a side bubble" among
+  what the role paints. The cross's question is filled with the default's `danger`.
 - A Sheet the editor adds later carries the attribute too: `Sheet`'s `editorUi`, or
   `data-editor-ui` on a panel it draws itself.
