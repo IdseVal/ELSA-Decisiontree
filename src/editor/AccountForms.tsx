@@ -11,6 +11,10 @@
  * whole address its title -- or `noEmail` for an account a converted store left without one --
  * and under it, on every page but the administrator's, `emailHelp`. Only the administrator
  * changes an address, its own with its row's `setEmail` on the accounts page.
+ *
+ * **[#197]** The name card says, under the field, on every page but the administrator's, that the
+ * name is shown on the public pages of the Trees its holder authors (39.8,
+ * ADR-195-names-on-public-routes decision 5): it was the admin area's alone until then.
  */
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { refusalAt, refusalOf, type AccountWords, type Refusal } from './account-words.ts'
@@ -75,6 +79,7 @@ export function AccountForms({
           <Field label={words.yourName} error={refusalAt(nameRefusal, 'name')} hint={`${[...newName].length} / ${NAME_MAX}`}>
             <input name="name" required maxLength={NAME_MAX} value={newName} onChange={(event) => setNewName(event.target.value)} />
           </Field>
+          {!administrator && <p className="admin-note">{words.nameShownPublicly}</p>}
           <button type="submit" className="admin-submit">
             {words.save}
           </button>

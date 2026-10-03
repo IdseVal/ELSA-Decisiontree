@@ -7,6 +7,7 @@ import { Overview } from '../../../components/Overview.tsx'
 import type { TileState } from '../../../components/Tile.tsx'
 import { ThemeStyle } from '../../../components/ThemeStyle.tsx'
 import { store } from '../../../config.ts'
+import { authorsOf } from '../../../store/authors.ts'
 import type { TreeEntry } from '../../../store/drafts.ts'
 import { adminHref, editorRootHref } from '../../../url.ts'
 
@@ -17,7 +18,9 @@ export const dynamic = 'force-dynamic'
  * creators' overview with one. **[#137]** The + tile first; then the Trees the caller has a
  * role on -- every Tree for the administrator -- published or hidden, each leading to its
  * editor; then every other published Tree, leading to its public page. Each group in `id`
- * order, each tile with its state mark.
+ * order, each tile with its state mark. **[#197]** And with its Tree's Authors (39.5): from the
+ * roles of a Tree the caller has one on, a hidden one's included, and otherwise as `/` has them
+ * (39.3).
  */
 export default async function AdminHome({ params }: { params: Promise<{ lang: string }> }) {
   const lang = chromeLanguage((await params).lang)
@@ -33,8 +36,9 @@ export default async function AdminHome({ params }: { params: Promise<{ lang: st
       // An uneditable draft has no manifest to name its root: the Tree's address redirects there (24.1).
       href: entry.manifest ? editorRootHref({ id: entry.id, manifest: entry.manifest }, lang) : `/admin/trees/${entry.id}`,
       state: stateOf(entry),
+      authors: authorsOf(entry.meta, served.accounts),
     })),
-    ...others.map((id) => ({ tree: served.published(id)!, state: 'published' as const })),
+    ...others.map((id) => ({ tree: served.published(id)!, state: 'published' as const, authors: served.authors(id) })),
   ]
   return (
     <>

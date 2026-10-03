@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { chrome, chromeLang, chromeLanguage, text } from '../../../../chrome.ts'
+import { Authors } from '../../../../components/Authors.tsx'
 import { BackToOverview } from '../../../../components/BackToOverview.tsx'
 import { Disclaimer } from '../../../../components/Disclaimer.tsx'
 import { LanguageSwitch } from '../../../../components/LanguageSwitch.tsx'
@@ -32,6 +33,8 @@ export default async function NodePage(props: Props) {
   const page = await loadPage(found.tree, found.address)
   if (!page) notFound()
   const script = await jsonLd(found.tree, found.address)
+  // **[#197]** Who authored the Tree, in the order they joined it: the one thing about an account a public page shows (39.8).
+  const authors = (await store()).authors(found.tree.id)
 
   return (
     <>
@@ -62,6 +65,7 @@ export default async function NodePage(props: Props) {
             lang={found.address.lang}
           />
         </div>
+        <Authors names={authors} lang={found.address.lang} />
         <div className="page-controls">
           <LanguageSwitch address={found.address} languages={found.tree.manifest.languages} />
           <ShareButton ui={shareWords(found.address.lang)} uiLang={chromeLang(found.address.lang)} />
