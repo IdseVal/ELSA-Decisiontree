@@ -5,7 +5,8 @@
   on the Sources, font and licence dropdowns, information hints
 - Owner's request: #169 (2026-10-02)
 - Spec: `docs/specs/application.md` 13.1, 24.3 and 33.8, amended 2026-10-02; 13.1 and 24.3
-  again on 2026-10-03, after #177 and #178 merged first
+  again on 2026-10-03, after #177 and #178 merged first; 13.1 once more on 2026-10-03, in review
+  (the draft's family names in the editor, decision 2)
 - Supersedes in part: `ADR-133-admin-routes.md` decision 6 -- "the editor emits its **draft's**
   Theme" -- for the editor's own interface. What stands and what changes is below.
 - Depends on: `ADR-38-theme-delivery.md` (the one `<style>` string of `src/theme.ts`, the
@@ -62,6 +63,19 @@ bar and the panel turn dark under the pointer.
    those elements their own text colour and face, since what they would inherit from the page
    is the draft's. No colour and no family name enters the stylesheet (13.5); the default block
    is built from the same constants as a Tree without a Theme, so 13.3's escaping is unchanged.
+
+   **[#180] review, 2026-10-03.** In the editor `themeStyle` also writes each of the draft's
+   family names under one constant prefix, `DRAFT_FAMILY_PREFIX` (`elsa-draft `), in its
+   `@font-face` rules and its `:root` block alike. An `@font-face` family hides an installed face
+   of the same name (CSS Fonts 4, the `font-family` descriptor), and the default stack names faces
+   a draft may name too: the library ships Roboto (37.1). Without the prefix, a draft with the
+   library's Roboto, or a family named Arial or "Helvetica Neue", drew the bar, the floating
+   controls, the panel and every editor Sheet in the draft's file wherever the stack reached that
+   name -- on Linux, ChromeOS and Android, where the faces before Roboto are missing. One prefix
+   for every name, not one per role, so two roles that share a name still share one family, as
+   the first Tree's two sets of Open Sans do on the public page. The prefix is this module's own
+   constant and holds nothing 13.3 escapes. The public page writes the names as the Tree gives
+   them.
 3. **The logo in the bar stays the Tree's**, and its variant is the one for the bar it now
    stands on: the default's light background, so `logo.light` -- by 13.1's own rule, that the
    variant follows the background behind it. A dark Theme's white logo on the default's bar
@@ -90,6 +104,11 @@ changes: in the editor the draft's Theme reaches the Tree and not the editor's o
   building, which "looks exactly like the final datastructure" (core document 3.4).
 - **The dark variant of the logo in the default's bar.** It is drawn for a dark background;
   on the default's light bar a white mark disappears.
+- **[#180] review: refusing a draft family named after a face of the default stack.** The
+  library itself ships Roboto (37.1), and a browser matches family names without regard to
+  case, so the refusal would take a library family away and still have to list every spelling.
+- **[#180] review: a prefix per role.** The first Tree names Open Sans for both roles with
+  different files; per role they would be two families in the editor and one on the public page.
 
 ## Consequences
 
@@ -98,7 +117,11 @@ changes: in the editor the draft's Theme reaches the Tree and not the editor's o
   the panel's heading are painted exactly as before, while the Bubble and its Sources take the
   palette; a dark Tree's editor shows `logo.light`, its public page `logo.dark`. On the dark
   Tree, #177's `+` and delete and #178's cross and words take the draft's colours under no
-  `[data-editor-ui]`, and the cross's question is painted in the default.
+  `[data-editor-ui]`, and the cross's question is painted in the default. **[#180] review,
+  2026-10-03:** on the same Tree the panels of `+ addSource`, a Source's `...`, the end of a tree,
+  the explainer, the attach and the session Sheets are held to the default's text on its surface
+  in the whole default stack, their headings too; `tests/theme.test.ts` holds the editor's names
+  for the draft's families apart from every name of that stack.
 - The to-do bubble's count is filled with the default's accent, not the draft's (33.3): it is
   part of the floating controls.
 - #177's `deleteSideBubble` is outlined in the draft's `danger`, and its confirmation's button

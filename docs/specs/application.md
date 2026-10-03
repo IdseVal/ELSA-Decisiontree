@@ -2290,6 +2290,13 @@ the draft's. No colour or family literal enters the stylesheet: the second block
 no second block. Recorded in `docs/adrs/ADR-180-editor-interface-not-themed.md`. **[#180]**
 Also: under their heading the Sources are drawn in `text`, label, kind and dot alike, and a link
 is told by an underline in that colour, not by a second colour (`ADR-180-sources-text-colour.md`).
+**[#180] Amended 2026-10-03, in review.** In the editor `themeStyle` also writes each of the
+draft's family names under one constant prefix, `elsa-draft `, in its `@font-face` rules and its
+`:root` block alike. An `@font-face` family hides an installed face of the same name, and the
+default stack of 13.4 names faces a draft may name too -- the library ships Roboto (37.1) -- so
+without the prefix the editor's own interface was drawn in the draft's file wherever the stack
+reached that name. One prefix for every name, not one per role, so two roles that share a name
+still share one family. The public page writes the names as the Tree gives them.
 
 ```css
 @font-face { font-family: 'Open Sans'; font-weight: 400; font-style: normal;
