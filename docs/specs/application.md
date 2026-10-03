@@ -3460,11 +3460,12 @@ servable Tree, in that Tree's mention on its Node pages and on its tile on the p
 and nothing else** -- no address, no id, no role, no time of joining, no other account's name,
 the administrator's included; a hidden Tree's names reach no public route (39.8). The test is
 this file's: `tests/browser/deployment.spec.ts` gains the **account sweep**, every public route
-of 4.1, 15, 16 and 23 walked over a data directory whose accounts have known addresses and ids,
-asserting that no response holds an address or an id, that the name of an Author of a hidden Tree
-only is in none, and that the published Tree's Authors' names stand, in the markup of its Node
-pages and of the overview with every `<script>` element removed but the JSON-LD's, inside a
-mention's element and nowhere else (39.9). The cookie sweep stands as it is.
+of 4.1, 15, 16 and 23 walked over a data directory whose accounts have known addresses, ids and
+names, asserting that no response holds an address or an id, that the names of an Author of a
+hidden Tree only, of an account with no role and of the administrator are in none, and that the
+published Tree's Authors' names stand, in the markup of its Node pages and of the overview with
+every `<script>` element removed but the JSON-LD's, inside a mention's element and nowhere else
+(39.9). The cookie sweep stands as it is.
 
 ### 20.6 CSRF
 
@@ -5261,8 +5262,9 @@ with and without a session, answers no `Set-Cookie` -- only `POST /admin/api/log
 saved a field, the walk of every public route of 4.1, 15 and 16 still sends no `Cookie` and
 receives no `Set-Cookie`. The admin pages are a second array in the same file.
 **[#195] (2026-10-03)** And the account sweep of 20.5, amended, and 39.9: no public response
-holds an account's address or id, and an Author's name stands, in a page's markup with its
-`<script>` elements removed but the JSON-LD's, only inside a mention's element (39.9).
+holds an account's address or id, or the name of an account that is no Author of a published
+Tree, and an Author's name stands, in a page's markup with its `<script>` elements removed but
+the JSON-LD's, only inside a mention's element (39.9).
 
 ### 35.6 The public suites run unchanged
 
@@ -6122,5 +6124,5 @@ the Bubble, and 10.7's limits stand.
 | `tests/browser/authors.spec.ts` (new) | the mention on a Node page and on the tiles of both overviews, in `en` and `nl`, at 10.6's ten viewports: one name and three, beside a logo and beside an 80-character title, and a Tree of eight Authors whose names do not fit; the order after a hand-over, and after a removal and a second invitation; one line, inside the bar, and the mark and the controls where they stand on the same page of a Tree without Authors; drawn, cut -- its `title` whole -- and not drawn as 39.4 and 39.5 say; no element for a Tree whose only role holder is the administrator, and none in the editor; the same markup without JavaScript; the screenshots of 35.7 |
 | `tests/browser/no-scroll.spec.ts` | the walk skips `.page-chrome [data-clamp]` (39.6); one row more: the example Tree's root Node with three Authors whose names are 80 characters each, the longest 20.1 allows, at its ten viewports, in `en` and `nl` |
 | `tests/browser/overview.spec.ts`, `creators-overview.spec.ts` | the tile's mention, and a tile with no Authors as before |
-| `tests/browser/deployment.spec.ts` | the account sweep: a data directory whose accounts have known addresses and ids -- an Author of a published Tree, an Author of a hidden Tree only, an account with no role, the administrator -- and a walk of every public route of 4.1, 15, 16 and 23: the overview in both languages, every Node page of the published Tree in both languages, its `tree.json`, the schema, `robots.txt`, `sitemap.xml`, `llms.txt`, an image and a theme file, and the hidden Tree's root address, which is the 404. No response, headers or body, holds any account's address or id, and the hidden-only Author's name is in none: every byte is read, the scripts included. The published Tree's Authors' names are in its Node pages and the overview, and in no other response; in each of those, read as its markup with every `<script>` element removed but the JSON-LD's, they stand only inside a mention's element. The inline React payload (`self.__next_f.push(...)`) repeats a server component's text for hydration, so the names stand there too, as the disclaimer's sentence does: four times in the body of `/ai-act-example/start`, once without its scripts |
+| `tests/browser/deployment.spec.ts` | the account sweep: a data directory whose accounts have known addresses, ids and names -- an Author of a published Tree, an Author of a hidden Tree only, an account with no role, the administrator -- each name one that no Tree, chrome string or page holds, the administrator renamed so through `PATCH` on its own account before the walk, since the server creates it as `Administrator`, a word the chrome holds; and a walk of every public route of 4.1, 15, 16 and 23: the overview in both languages, every Node page of the published Tree in both languages, its `tree.json`, the schema, `robots.txt`, `sitemap.xml`, `llms.txt`, an image and a theme file, and the hidden Tree's root address, which is the 404. No response, headers or body, holds any account's address or id, and the names of the hidden-only Author, of the account with no role and of the administrator are in none: every byte is read, the scripts included. The published Tree's Authors' names are in its Node pages and the overview, and in no other response; in each of those, read as its markup with every `<script>` element removed but the JSON-LD's, they stand only inside a mention's element. The inline React payload (`self.__next_f.push(...)`) repeats a server component's text for hydration, so the names stand there too, as the disclaimer's sentence does: four times in the body of `/ai-act-example/start`, once without its scripts |
 | `tests/browser/login.spec.ts` | the account page's `nameShownPublicly`, and its absence on the administrator's |

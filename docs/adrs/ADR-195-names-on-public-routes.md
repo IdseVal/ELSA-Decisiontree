@@ -63,14 +63,18 @@ byte, under CC BY 4.0 (15); the JSON-LD, whose `Dataset` names as `creator` the 
 
 6. **The test** is `tests/browser/deployment.spec.ts`, which already sweeps every public route
    (20.5), and gains, with #197, the account sweep: a data directory whose accounts have known
-   addresses and ids -- an Author of a published Tree, an Author of a hidden Tree only, an
-   account with no role, the administrator -- and a walk of every public route of 4.1, 15, 16
-   and 23: the overview in both languages; every Node page of the published Tree in both
+   addresses, ids and names -- an Author of a published Tree, an Author of a hidden Tree only,
+   an account with no role, the administrator -- and a walk of every public route of 4.1, 15,
+   16 and 23: the overview in both languages; every Node page of the published Tree in both
    languages; its `tree.json`; the schema; `robots.txt`; `sitemap.xml`; `llms.txt`; an image and
-   a theme file; and the hidden Tree's root address, which is the 404. It asserts that no
-   response, headers or body, holds any account's address or id; that the hidden-only Author's
-   name is in none, every byte read; and that the published Tree's Authors' names are in its
-   Node pages and the overview, and in no other response. In each of those, the names are read
+   a theme file; and the hidden Tree's root address, which is the 404. Each account's name is
+   one that no Tree, chrome string or page holds; the server creates the administrator as
+   `Administrator`, a word the chrome holds, so the test renames it through `PATCH` on its own
+   account before the walk. It asserts that no response, headers or body, holds any account's
+   address or id; that the names of the hidden-only Author, of the account with no role and of
+   the administrator are in none, every byte read -- decision 2's rule whole, not only its
+   addresses and ids; and that the published Tree's Authors' names are in its Node pages and
+   the overview, and in no other response. In each of those, the names are read
    in its markup with every `<script>` element removed but the JSON-LD's: there they stand only
    inside a mention's element, and the markup without the mention's elements holds none of
    them. The scripts are taken out because the inline React payload
