@@ -3152,8 +3152,9 @@ fieldset:disabled .admin-submit {
   padding: 0 8px;
 }
 
-/* The URL of a Source to add (28.1): the one input of the editor that is not a field. */
-/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
+/* The editor's inputs that are not fields: the URL of a Source to add (28.1), **[#140]** a picture's
+   credit and description in the attach Sheet, and **[#179]** the ending's words (36.3). */
+/* **[#172]** Their text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .editor-url {
   width: 100%;
   min-width: 0;
