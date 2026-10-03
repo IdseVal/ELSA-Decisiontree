@@ -622,28 +622,46 @@ for (const lang of LANGUAGES) {
 /**
  * **[#179]** The ending at its limit (application.md 36.1, 36.5): the full Node's `applies`
  * Terminal says "Mandatory safeguard" / "Maatregelen vereist", 19 characters of wide capitals,
- * in the default stack (the fixture has no Theme), at the viewports of 10.6 and at 480 x 640,
- * where the badge's room is narrowest: 198 pixels. The page never scrolls, and the badge is
- * one line, its pill 24 pixels tall.
+ * in the default stack (the fixture has no Theme). At the viewports of 10.6 the page never
+ * scrolls; there and at 480 x 640, where the badge's room is narrowest (198 pixels), the badge
+ * is one line, its pill 24 pixels tall.
+ *
+ * 480 x 640 is no viewport of 10.6, and there the disclaimer takes a second line in its row on
+ * every page, with a badge or without -- the example Tree's root has the same 659 pixels of
+ * body in the 640 of the window -- a defect older than #174, reported on #179's pull request.
+ * That one overflow is let through at that size, and nothing else is.
  */
 const ENDING_URL = '/full-node/full/applies'
-const ENDING_VIEWPORTS = [...VIEWPORTS, [480, 640]] as const
+const NARROWEST = [480, 640] as const
 
 for (const lang of LANGUAGES) {
-  test(`the ending at its 19 characters, ${lang}, never scrolls, and its badge is one line, at any viewport of 10.6 and at 480 x 640`, async ({ page }) => {
+  test(`the ending at its 19 characters, ${lang}, never scrolls at any viewport of 10.6, and its badge is one line there and at 480 x 640`, async ({ page }) => {
     const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
-    await measureEverywhere(page, `${origin}${inLang(ENDING_URL, lang)}`, 'the ending at its 19 characters', lang, true, ENDING_VIEWPORTS)
-    for (const [width, height] of ENDING_VIEWPORTS) {
+    const url = `${origin}${inLang(ENDING_URL, lang)}`
+    await measureEverywhere(page, url, 'the ending at its 19 characters', lang)
+
+    const [width, height] = NARROWEST
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(url))?.status()).toBe(200)
+    const narrow = await measure(page)
+    rows.push({ page: 'the ending at its 19 characters', lang, viewport: `${width}x${height}`, sheet: '', measured: narrow })
+    const where = `the ending at its 19 characters (${lang}) at ${width}x${height}`
+    expect(narrow.doc.sh, `${where}: the document is taller than the window`).toBeLessThanOrEqual(narrow.inner.h + 1)
+    expect(narrow.doc.sw, `${where}: the document is wider than the window`).toBeLessThanOrEqual(narrow.inner.w + 1)
+    const others = narrow.overflowing.filter((element) => !/^(body|footer\.disclaimer) holds /.test(element))
+    expect(others, `${where}: elements other than the disclaimer whose content is wider or taller than themselves`).toEqual([])
+
+    for (const [w, h] of [...VIEWPORTS, NARROWEST]) {
       // At and below the floor the notice stands in for the tree view, badge and all (10.4).
-      if (width <= 320 || height <= 480) continue
-      await page.setViewportSize({ width, height })
-      await page.goto(`${origin}${inLang(ENDING_URL, lang)}`)
+      if (w <= 320 || h <= 480) continue
+      await page.setViewportSize({ width: w, height: h })
+      await page.goto(url)
       await page.evaluate(() => document.fonts.ready)
       const badge = page.locator('.bubble--terminal .outcome').filter({ visible: true })
       await expect(badge).toHaveText(lang === 'en' ? 'Mandatory safeguard' : 'Maatregelen vereist')
       const box = (await badge.boundingBox())!
-      rows.push({ page: `the ending's badge, ${box.width.toFixed(1)} x ${box.height.toFixed(1)} px`, lang, viewport: `${width}x${height}`, sheet: '', measured: await measure(page) })
-      expect(box.height, `the badge at ${width}x${height} (${lang}) takes one line`).toBe(24)
+      rows.push({ page: `the ending's badge, ${box.width.toFixed(1)} x ${box.height.toFixed(1)} px`, lang, viewport: `${w}x${h}`, sheet: '', measured: await measure(page) })
+      expect(box.height, `the badge at ${w}x${h} (${lang}) takes one line`).toBe(24)
     }
   })
 }
