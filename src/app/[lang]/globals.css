@@ -4228,9 +4228,11 @@ fieldset:disabled .admin-submit {
   min-height: 0;
 }
 
+/* **[#181]** The heading above the body, out of its scroll box. */
 .panel-sheet > .sheet-panel > .sheet-page > div,
 .todo-sheet > .sheet-panel > .sheet-page > div {
   display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -4239,46 +4241,46 @@ fieldset:disabled .admin-submit {
 .panel-body {
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
   padding: 0 20px 20px;
   overflow-x: hidden;
   overflow-y: auto;
-  /* **[#181]** A control the focus scrolls to stops below the heading's band, not under it. */
-  scroll-padding-top: 64px;
 }
 
 /*
- * **[#181]** The heading is a band across the top that stays while the body scrolls, and the
- * cross stands in it: the cross stood over the body, and the body's controls slid under it (at
- * 1280 x 640, Invite and Hand over, at 122 of the panel's 345 scroll positions). The band ends 20
- * pixels below the cross, more than half the panel's tallest control (36), so a control half
- * under the band is never under the cross. Its rule lies on the first section's, and stays once
- * that has scrolled away. It holds the body's top padding: a sticky box stops below its scroll
- * box's padding, where the body's controls would show above it.
+ * **[#181]** The heading is a band across the top, above the body's scroll box, and the cross
+ * stands in it: the cross stood over the body, and the body's controls slid under it as it
+ * scrolled (at 1280 x 640, Invite and Hand over, at 122 of the panel's 345 scroll positions). Out
+ * of the scroll box, the band has nothing pass under it, however many lines its heading takes:
+ * the to-do bubble's take two or three in some states, languages and widths, and a band inside
+ * the box hid the line the focus had scrolled to. It ends 20 pixels below the cross, so a control
+ * the body has half scrolled away is cut off at the band's rule, well clear of the cross.
  */
 .panel-heading {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  margin: 0 -20px;
+  flex: none;
+  margin: 0;
   padding: 16px 68px 24px 20px;
-  background: var(--elsa-surface);
-  box-shadow: 0 1px 0 var(--rule-soft);
+  border-bottom: 1px solid var(--rule-soft);
   font-family: var(--elsa-font-heading);
   font-size: 18px;
   line-height: 24px;
 }
 
-/* **[#181]** The cross over the band, level with the heading at every width: 4 below 792 is the Overlay's, for its narrow padding. */
+/* **[#181]** The cross in the band, level with the heading at every width: 4 below 792 is the Overlay's, for its narrow padding. */
 .panel-sheet > .sheet-panel > .sheet-close--cross,
 .todo-sheet > .sheet-panel > .sheet-close--cross {
   top: 12px;
   right: 12px;
-  z-index: 2;
 }
 
-/* **[#181]** The to-do list starts below the band's rule, as the panel's first section does inside its own padding. */
-.todo-sheet .panel-heading {
-  margin-bottom: 12px;
+/* **[#181]** The band's rule is the first section's: the section's own would draw a second under it. */
+.panel-body > .panel-section:first-child {
+  border-top: 0;
+}
+
+/* **[#181]** The to-do list starts 12 below the band's rule, as the panel's first section does inside its own padding. */
+.todo-sheet .panel-body {
+  padding-top: 12px;
 }
 
 .panel-section {

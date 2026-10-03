@@ -216,8 +216,9 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
       while (box && box !== document.body && !isBox(box)) box = box.parentElement
       return box === document.body ? null : box
     }
-    const crossing = (r: DOMRect, q: DOMRect): string | null => {
-      const by = [q.left - r.left, r.right - q.right, q.top - r.top, r.bottom - q.bottom].map((d) => Math.round(d * 10) / 10)
+    // **[#181]** A scroll box's content passes its top and bottom as it scrolls (26.3): there, only its sides are edges.
+    const crossing = (r: DOMRect, q: DOMRect, scrolls = false): string | null => {
+      const by = [q.left - r.left, r.right - q.right, scrolls ? 0 : q.top - r.top, scrolls ? 0 : r.bottom - q.bottom].map((d) => Math.round(d * 10) / 10)
       return by.some((d) => d > 1) ? `left ${by[0]}, right ${by[1]}, top ${by[2]}, bottom ${by[3]}` : null
     }
     const outside: string[] = []
@@ -226,7 +227,7 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
       if (!shown(el) || el.closest('.step-delete, .step-end')) continue
       const box = boxOf(el.parentElement)
       if (!box || !shown(box)) continue
-      const by = crossing(el.getBoundingClientRect(), box.getBoundingClientRect())
+      const by = crossing(el.getBoundingClientRect(), box.getBoundingClientRect(), box.matches('[data-scroll-box]'))
       if (by) outside.push(`${name(el)} out of ${name(box)}: ${by}`)
     }
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)

@@ -4702,14 +4702,22 @@ own (33.3). The top of the sketch, as it is now; the other sections are as above
 |  COLLABORATORS                       |
 ```
 
-**[#181] Amended 2026-10-03:** the heading is a band across the top of the panel that stays
-while the body scrolls under it, with a rule below it, and the cross stands in that band, 12
+**[#181] Amended 2026-10-03:** the heading is a band across the top of the panel, above the
+body's scroll box and not in it, with a rule below it, and the cross stands in that band, 12
 pixels from the corner at every width. The cross stood over the body, so the body's controls
 slid under it as it scrolled: on the full-Node fixture at 1280 x 640, Invite and Hand over, at
-122 of the panel's 345 scroll positions. The band ends 20 pixels below the cross, more than half
-the panel's tallest control (36), so a control half under the band is never under the cross,
-and the focus scrolls a control to below the band. The to-do bubble's heading (33.3) is the
-same band. `creation-walk.spec.ts` audits both at every scroll position.
+122 of the panel's 345 scroll positions. The body scrolls below the band, so nothing it holds
+passes under the band or the cross, and a control the focus scrolls to stops inside the body's
+view, below the band, however many lines the heading takes. The to-do bubble's heading (33.3)
+is the same band, and takes two or three lines in some of its states, languages and widths:
+"The public copy stays as it was until these are done:" two at 1280 x 640, the Dutch three at
+360 x 640 on the CI runner's font. A first version of the band stood inside the scroll box,
+which kept the focus below it by a scroll padding as tall as a heading of one line, so under a
+heading of two or three lines the focused line stopped under the band. The band ends 20 pixels
+below the cross: a control the body has half scrolled away is cut off at the band's rule, well
+clear of the cross. `creation-walk.spec.ts` audits both boxes at every scroll position, and
+`floating-controls.spec.ts` walks the focus up both with Shift+Tab under every heading the
+bubble shows, in both languages, at 1280 x 640, 1920 x 1080, 390 x 844 and 360 x 640.
 
 ### 33.3 Publish
 
