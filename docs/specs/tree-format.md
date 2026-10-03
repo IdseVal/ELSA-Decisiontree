@@ -2181,6 +2181,14 @@ After #179, 107 Terminals carry a `label`, and the 108th, `v-terminal`'s, is the
 built to carry; and once the four are re-fitted by hand, no file under `trees/` or
 `tests/fixtures/` names `elsa-tree/4`.
 
+**[#179] As built (2026-10-03).** `npm run migrate` over the 56 folders converted 51 files and
+labelled 99 Terminals, not 101. Besides the three files step 1 stops on, it refused
+`broken/metadata-all-digits` (2 Terminals) by 12.6.1 step 5, which refuses a `metadata` key
+made only of digits -- and rightly: written in the byte form, that file's key `"2024"` moves in
+front of `"version"` (3.7), which would change more than the conversion. #179 re-fitted it by
+hand as it did the four above, with its defect kept. So 99 Terminals were labelled by the
+command and 8 by hand: the 107 above.
+
 #### 12.7.4 What it does for a deployment's data directory
 
 `openStore` (`docs/specs/application.md` 17.5, 36.4) runs 12.7.1 on every `tree.json` and
