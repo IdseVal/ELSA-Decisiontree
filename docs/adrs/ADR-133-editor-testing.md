@@ -1,6 +1,13 @@
 # ADR-133-editor-testing: one browser spec per build issue against a data directory the helper builds from fixtures and a table of accounts; one login helper; the admin pages measured by the no-scroll test with the scroll boxes exempted; the no-cookie sweep asserts the public routes still set none and the login route alone sets one; the public suites run unchanged
 
 - Status: ACCEPTED (frozen) -- 2026-09-26
+- **Amended 2026-10-03 by issue #195**: decisions 1 and 2 name accounts by e-mail address --
+  the helper's table gives each account an address, `login(page, ...)` posts `{ email,
+  password }`, the named accounts log in as `anna@example.org`, `bram@example.org` and
+  `cees@example.org`, and every server a test starts gets `ELSA_ADMIN_EMAIL=admin@example.org`
+  beside its password (`ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`;
+  `application.md` 35.1 to 35.3, 38.10). The no-cookie sweep of decision 4 gains the account
+  sweep of `ADR-195-names-on-public-routes.md` decision 6.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 35 (new); 7 amended
 - Amends: `docs/adrs/ADR-5-testing-approach.md` and `ADR-38-modules-and-tests.md` (the

@@ -1,6 +1,12 @@
 # ADR-132-hidden-trees-and-findability: a hidden or unknown Tree is the same 404 on every public route; one sitemap, one `robots.txt` and one `llms.txt` over every served Tree; one `Dataset` per Tree on its own root page; `lastmod` per Tree from the store
 
 - Status: ACCEPTED (frozen) -- 2026-09-23; restates core document 9's hidden-Tree bullet as a contract
+- **Amended 2026-10-03 by issue #195**: decision 1's "the store's public interface has no
+  member that could return one" -- a draft, a `meta.json`, `accounts.json` -- gains its one
+  exception, `authors(id)`, which reads both and answers the names of a servable published
+  Tree's Authors and nothing else, and `[]` for a hidden, unservable, unknown or reserved id,
+  one case as here (`ADR-195-names-on-public-routes.md` decision 4). Every 404 of this ADR
+  stands.
 - Issue: #132 -- Architecture: freeze the store for the editor round
 - Spec: `docs/specs/application.md` section 23 (new); 4.3, 15 and 16 amended
 - Amends: `docs/adrs/ADR-118-crawler-access.md`, `ADR-118-sitemap-and-alternates.md`,

@@ -8,6 +8,13 @@
   `elsa-tree/4` `tree.json` and `draft.json` it finds before it opens any Tree, and
   `importTree` converts a `/4` folder in its staging copy (`tree-format.md` 12.7;
   `application.md` 36.4).
+- Amended 2026-10-03 by issue #195: `meta.json` gains `joined`, every account that has held a
+  role on the Tree in the order in which it first did, filled in at the first start of the
+  release for a Tree that has none (`ADR-195-order-of-joining.md`); `accounts.json` holds an
+  `email` per account in place of `login`, converted once at that start
+  (`ADR-195-accounts-without-an-address.md`); `ELSA_ADMIN_EMAIL` joins the variables read at
+  every start (`ADR-195-administrator-address.md`; `application.md` 17.1, 17.2, 38.3, 38.4,
+  39.2).
 - Amends: `docs/adrs/ADR-37-single-file-layout.md` (the Tree folder gains `draft.json` and
   `meta.json`, both ignored by the loader of the published file),
   `ADR-5-repository-layout.md` (`src/store/` joins `src/`), `ADR-5-testing-approach.md`

@@ -1,6 +1,10 @@
 # ADR-133-overview-tiles: one tile per Tree in a grid that scrolls inside its own box; the creators' overview is the same page with the + tile first, a state mark on every tile, the creator's own Trees before the rest; a creator sees every published Tree and the hidden ones they have a role on
 
 - Status: ACCEPTED (frozen) -- 2026-09-26; confirms the PROPOSED reading of core document 3.4
+- **Amended 2026-10-03 by issue #195**: decision 1's bottom row of language tags also holds
+  the mention of the Tree's Authors, after the tags and before the creators' state mark, one
+  line cut where its room ends and not drawn under 80 pixels (`ADR-195-the-mention.md`;
+  `application.md` 26.1, 39.5). The tile's size, its other rows and the grid stand.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 26 (new); 10.6 and 23.2 amended
 - Amends: `docs/adrs/ADR-38-no-scroll.md` (decision 4: a second exempted scroll container),

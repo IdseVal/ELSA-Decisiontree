@@ -1,6 +1,18 @@
 # ADR-133-login-and-account-pages: the login page is one card with two fields and one error; the account page changes the caller's own name and password; the accounts page is the administrator's list with a create form and two row actions, all in the default Theme
 
 - Status: ACCEPTED (frozen) -- 2026-09-26
+- **Superseded in part 2026-10-03 by issue #195** (the owner's #194: "To login should be based
+  on an email and a password"). The field of decisions 1 and 3 is an e-mail address: labelled
+  `email`, `type="email"` with `autocomplete="username"`, in a form the browser does not check,
+  sent as `{ email, password }` (`ADR-195-login-by-email-address.md` decision 10); decision 1's
+  drawing says "Name" where the field says "E-mail address". Decision 2's `loginFailed` says
+  "Wrong e-mail address or password.". Decision 4's account page shows the caller's address,
+  read-only, and tells an Author that its name is public (`ADR-195-who-sees-and-changes-an-address.md`
+  decision 5, `ADR-195-names-on-public-routes.md` decision 5). Decision 5's rows show the
+  address where they showed the login, its Sheet asks for `email`, and every row gains
+  `setEmail`, the administrator's own row's only action; with it the alternative rejected
+  "Letting the administrator change another account's login" is superseded
+  (`ADR-195-who-sees-and-changes-an-address.md`). The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 25 (new)
 - Depends on: `docs/adrs/ADR-133-admin-routes.md` (the addresses, the chrome bar, the
