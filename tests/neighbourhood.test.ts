@@ -192,7 +192,7 @@ describe('which Nodes surround the centre', () => {
     // cycle among question Nodes is not an error (tree-format.md section 7), and it is what
     // the `cycle` fixture is for: deduplication leaves a Branch without a slide, and no
     // Trail repeats a Node (application.md 11.3). The fixture said so in a comment until
-    // #119; elsa-tree/4 has none, so it is said here, where a reader of the test meets it.
+    // #119; the JSON of elsa-tree/4 and /5 has none, so it is said here, where a reader of the test meets it.
     const cycle = await openTree(path.join(here, 'fixtures', 'cycle'))
     const { address, node } = await at(cycle, '/cycle/first/second/third')
     const { placed } = await neighbourhood(cycle, address, node)

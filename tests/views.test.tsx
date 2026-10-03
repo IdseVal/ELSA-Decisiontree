@@ -161,7 +161,7 @@ describe('the tree layer', () => {
     // `third`'s `yes` is `second`, which the parent placed `up` at its own shorter address:
     // a cycle among question Nodes, which section 7 allows. `second`'s `yes` and `no` name
     // one target, which 5.3 allows, so both its Branches lead to `third`. The `cycle`
-    // fixture carried both sentences as a comment until #119; elsa-tree/4 has no comments.
+    // fixture carried both sentences as a comment until #119; the JSON of elsa-tree/4 and /5 has no comments.
     expect(await answers('/cycle/first/second/third')).toEqual([
       ['answer--yes', '/cycle/first/second/third/second', false],
       ['answer--no', '/cycle/first/second/third/done', true],
@@ -663,18 +663,30 @@ describe('an explanation Node as the centre (only a path with no parent in it, 1
 })
 
 describe('a Terminal', () => {
-  test('shows its outcome as a badge on the rim, outside the text area, and offers no yes or no', async () => {
+  test('**[#179]** shows its own words as a badge on the rim, outside the text area, and offers no yes or no', async () => {
     const html = await view('/ai-act-example/start/outside-scope')
 
-    expect(part(html, 'article', 'bubble')).toContain('<p class="outcome outcome--not-applicable">Does not apply</p>')
+    expect(part(html, 'article', 'bubble')).toContain('<p class="outcome">Does not apply</p>')
     expect(part(html, 'div', 'bubble-text')).not.toContain('class="outcome')
     expect(html).not.toContain('answer--yes')
     expect(html).not.toContain('answer--no')
   })
 
-  test('each outcome gets its own name and style', async () => {
-    expect(await view('/ai-act-example/prohibited')).toContain('class="outcome outcome--prohibited">Prohibited</p>')
-    expect(await view('/ai-act-example/covered')).toContain('class="outcome outcome--applicable">Applies</p>')
+  test('**[#179]** every ending is drawn alike: one class, holding the Terminal\'s words in the page\'s language (36.1)', async () => {
+    expect(await view('/ai-act-example/prohibited')).toContain('<p class="outcome">Prohibited</p>')
+    expect(await view('/ai-act-example/covered')).toContain('<p class="outcome">Applies</p>')
+    expect(await view('/ai-act-example/covered?lang=nl')).toContain('<p class="outcome">Van toepassing</p>')
+    for (const url of ['/ai-act-example/prohibited', '/ai-act-example/covered', '/ai-act-example/start/outside-scope']) {
+      expect(await view(url), url).not.toMatch(/outcome--/)
+    }
+  })
+
+  test('**[#179]** the words are Tree content: no lang of their own, where the chrome speaks another language', async () => {
+    // 12.7 gave the German Tree the English words its badges showed; they are its text now.
+    const html = await view('/other-languages/anwendbar?lang=de')
+
+    expect(part(html, 'article', 'bubble')).toContain('<p class="outcome">Applies</p>')
+    expect(html).toContain('<span class="branch-word" lang="en">Start again</span>')
   })
 
   test('offers startAgain to the root with an empty Trail, and the up arrow back to the Trail entry above', async () => {
@@ -701,7 +713,7 @@ describe('a Terminal', () => {
 })
 
 describe('the chrome speaks its own language beside content it does not speak', () => {
-  test('the Branch words, the group names and the badge carry lang="en" on a German page', async () => {
+  test('the Branch words and the group names carry lang="en" on a German page', async () => {
     const html = await view('/other-languages/inverkehrbringen/start?lang=de')
 
     expect(html).toContain('<span class="branch-word" lang="en">Yes</span>')
@@ -713,7 +725,7 @@ describe('the chrome speaks its own language beside content it does not speak', 
   test('and stays silent about it where the chrome and the content agree', async () => {
     const html = await view('/ai-act-example/start/outside-scope?lang=nl')
 
-    expect(html).toContain('<p class="outcome outcome--not-applicable">Niet van toepassing</p>')
+    expect(html).toContain('<p class="outcome">Niet van toepassing</p>')
     expect(html).toContain('<span hidden="" id="up-label">Terug naar: ')
     expect(html).toContain('<span class="branch-word">Opnieuw beginnen</span>')
   })
@@ -820,7 +832,7 @@ describe('the reuse rule (application.md 34.8, ADR-133-reuse-rule decision 8)', 
     const words = Object.fromEntries(
       Object.keys({
         missingText: 0, characters: 0, lines: 0, addSource: 0, editSource: 0, removeSource: 0, sourceKind: 0, sourceUrl: 0, sourceLegal: 0,
-        sourceCaseLaw: 0, sourceLiterature: 0, outcome: 0, outcomeNotApplicable: 0, outcomeApplicable: 0, outcomeProhibited: 0, outcomeRefer: 0,
+        sourceCaseLaw: 0, sourceLiterature: 0,
         saving: 0, saved: 0, notSaved: 0, retrying: 0, retry: 0, notEditable: 0, changedElsewhere: 0, sessionExpired: 0, publicBehind: 0, toOverview: 0,
       }).map((key) => [key, key]),
     ) as unknown as EditMode['words']

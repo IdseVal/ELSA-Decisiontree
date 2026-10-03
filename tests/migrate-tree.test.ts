@@ -379,7 +379,7 @@ describe('the conversion from elsa-tree/4 to elsa-tree/5 (tree-format.md 12.7)',
       prohibited: { nl: 'Verboden', en: 'Prohibited' },
       refer: { nl: 'Elders geregeld', en: 'Look elsewhere' },
     }
-    const expected = { ...tree, $schema: '/schemas/elsa-tree-5.json', format: 'elsa-tree/5' }
+    const expected: Record<string, unknown> = { ...tree, $schema: '/schemas/elsa-tree-5.json', format: 'elsa-tree/5' }
     expected.nodes = (tree.nodes as Array<Record<string, unknown>>).map((node) =>
       'terminal' in node ? { ...node, terminal: { label: words[node.id as string] } } : node,
     )

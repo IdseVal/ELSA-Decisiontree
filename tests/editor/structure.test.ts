@@ -60,7 +60,18 @@ describe('the Answer row (30.1)', () => {
 
   test('both Answers, or an end: the public row, nothing added', () => {
     expect(structure!(node('start', { kind: 'question', answers: { yes: 'n-2', no: 'a-1' } }))).toBeNull()
-    expect(structure!(node('start', { kind: 'terminal', outcome: 'refer' }))).toBeNull()
+    expect(structure!(node('start', { kind: 'terminal', label: { en: 'Look elsewhere' } }))).toBeNull()
+  })
+
+  test('**[#179]** the end Sheet asks for the words, in the page\'s language, and offers no outcome (36.3)', () => {
+    const [, end] = children(structure!(node('start')) as ReactElement)
+    const [page] = props(end).pages as ReactElement[]
+    expect(props(page)).toEqual({
+      nodeId: 'start',
+      lang: 'en',
+      heading: 'Tree ends here',
+      words: { endingText: 'Text of the ending', characters: 'characters', confirm: 'Confirm', cancel: 'Cancel' },
+    })
   })
 
   test('a Node the page does not carry gets nothing: there is no address to go to', () => {
@@ -89,7 +100,7 @@ describe('the side-bubble + (30.4, 30.5)', () => {
   test('absent at eight Options, on a Terminal, and on a Node the page does not carry', () => {
     const eight = Array.from({ length: 8 }, (_, i) => ({ title: { en: `O${i}` }, target: `o-${i}` }))
     expect(sideAdd!(node('start', { options: eight }))).toBeNull()
-    expect(sideAdd!(node('start', { kind: 'terminal', outcome: 'applicable' }))).toBeNull()
+    expect(sideAdd!(node('start', { kind: 'terminal', label: { en: 'Applies' } }))).toBeNull()
     expect(sideAdd!(node('elsewhere'))).toBeNull()
   })
 })
@@ -132,6 +143,14 @@ describe('**[#177]** the Option button’s title follows its aside’s (30.5)', 
     expect(props(title).follower).toEqual({ nodeId: 'start', path: 'options[0].title', limit: { characters: 60 } })
   })
 
+  test('**[#179]** a Terminal\'s words are a plain field of 19 in the page\'s language, drawn as the badge, the placeholder endingText (36.3)', () => {
+    const words = field!(node('n-3', { kind: 'terminal', label: { en: 'Applies' } }), 'terminal.label', 'Applies', { characters: 19 }) as ReactElement
+    expect(props(words)).toMatchObject({ nodeId: 'n-3', path: 'terminal.label', lang: 'en', value: 'Applies', limit: { characters: 19 }, className: 'outcome', placeholder: 'Text of the ending' })
+    expect(props(words)).not.toHaveProperty('select')
+    // The old field is no field: the slot draws nothing for it.
+    expect(field!(node('n-3'), 'terminal.outcome', 'refer', null)).toBeNull()
+  })
+
   test('the centre’s own title, an aside’s other fields and a Node the centre does not lead to have none', () => {
     expect(props(field!(node('start'), 'title', 'Start', { characters: 80 }) as ReactElement).follower).toBeUndefined()
     expect(props(field!(node('a-1'), 'description', '', { characters: 150, lines: 2 }) as ReactElement).follower).toBeUndefined()
@@ -151,7 +170,7 @@ describe('**[#178]** the step’s buttons beside the up arrow (30.8, amended)', 
   })
 
   test('a step that ends has the cross and "Tree does not end here after all"', () => {
-    const [cross, end] = buttons(stepButtons!(node('n-3', { kind: 'terminal', outcome: 'refer' })))
+    const [cross, end] = buttons(stepButtons!(node('n-3', { kind: 'terminal', label: { en: 'Look elsewhere' } })))
     expect(cross!.type).toBe(DeleteStep)
     expect(end!.type).toBe(RemoveEnd)
     expect(props(end)).toMatchObject({ nodeId: 'n-3', word: 'Tree does not end here after all' })
@@ -160,7 +179,7 @@ describe('**[#178]** the step’s buttons beside the up arrow (30.8, amended)', 
   test('the first step has no cross: nothing at all when it does not end, the ending’s button alone when it does', () => {
     expect(stepButtons!(node('start'))).toBeNull()
     expect(stepButtons!(node('start', { kind: 'question', answers: { yes: 'n-2', no: 'a-1' } }))).toBeNull()
-    const [end, ...rest] = buttons(stepButtons!(node('start', { kind: 'terminal', outcome: 'refer' })))
+    const [end, ...rest] = buttons(stepButtons!(node('start', { kind: 'terminal', label: { en: 'Look elsewhere' } })))
     expect(rest).toEqual([])
     expect(end!.type).toBe(RemoveEnd)
   })
@@ -182,7 +201,7 @@ describe('**[#178]** the step’s buttons beside the up arrow (30.8, amended)', 
 
   test('in Dutch: the sentence keeps its own order around the title, and the ending’s button says it likewise', () => {
     const nl = editMode({ ...under2, lang: 'nl' }, ['en', 'nl'], structureOf([])).slots
-    const [cross, end] = buttons(nl.stepButtons!(node('n-3', { kind: 'terminal', outcome: 'refer', title: { nl: 'Een stap' } })))
+    const [cross, end] = buttons(nl.stepButtons!(node('n-3', { kind: 'terminal', label: { nl: 'Elders geregeld' }, title: { nl: 'Een stap' } })))
     const words = props(cross).words as { deleteStep: string; confirmBefore: string; confirmAfter: string; confirmUntitled: string }
     expect(words.deleteStep).toBe('Deze stap verwijderen')
     expect(`${words.confirmBefore}Een stap${words.confirmAfter}`).toBe('"Een stap" verwijderen? Waar die heen leidde blijft.')
