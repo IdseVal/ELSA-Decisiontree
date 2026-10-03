@@ -23,13 +23,17 @@ export interface AccountWords {
   administrator: string
   setPassword: string
   save: string
-  login: string
+  email: string
   password: string
   displayName: string
   nameLength: string
-  loginInvalid: string
-  loginTaken: string
+  nameTaken: string
+  emailInvalid: string
+  emailTaken: string
   passwordLength: string
+  setEmail: string
+  noEmail: string
+  emailHelp: string
   requestFailed: string
   close: string
   previous: string
@@ -56,14 +60,16 @@ export function refusalOf(answer: Answer | null, words: AccountWords): Refusal |
   const text =
     code === 'name-length'
       ? words.nameLength
-      : code === 'login-invalid'
-        ? words.loginInvalid
-        : code === 'login-taken'
-          ? words.loginTaken
-          : code === 'password-length'
-            ? words.passwordLength
-            : code === 'wrong-password'
-              ? words.wrongPassword
-              : words.requestFailed
+      : code === 'name-taken'
+        ? words.nameTaken
+        : code === 'email-invalid'
+          ? words.emailInvalid
+          : code === 'email-taken'
+            ? words.emailTaken
+            : code === 'password-length'
+              ? words.passwordLength
+              : code === 'wrong-password'
+                ? words.wrongPassword
+                : words.requestFailed
   return { field, text }
 }

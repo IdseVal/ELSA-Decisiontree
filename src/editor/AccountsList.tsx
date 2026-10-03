@@ -5,8 +5,13 @@
  * ADR-133-login-and-account-pages decision 5): `newAccount` opens a Sheet with the three
  * fields of a new account; below it one row per account in a scroll box, each but the
  * administrator's with `deactivate` / `reactivate` and `setPassword`. Nothing is deleted,
- * and no hash or session is shown, because no route answers one. The two forms are
- * disabled until the script runs (`useHydrated`).
+ * and no hash or session is shown, because no route answers one. The forms are disabled
+ * until the script runs (`useHydrated`).
+ *
+ * **[#196]** Each row shows the account's address, one line cut with an ellipsis -- or `noEmail`
+ * -- and offers `setEmail`, the administrator's own row's one action (38.5,
+ * ADR-195-who-sees-and-changes-an-address decision 6). Every address field is `type="email"` in a
+ * form marked `noValidate`, so the server's refusal is the one shown at the field.
  */
 import { useState, type FormEvent } from 'react'
 import { Sheet } from '../components/Sheet.tsx'
@@ -19,7 +24,7 @@ import { send } from './request.ts'
 export interface AccountRow {
   id: string
   name: string
-  login: string
+  email: string | null
   active: boolean
   administrator: boolean
 }
@@ -34,25 +39,41 @@ export function AccountsList({ accounts, words }: { accounts: AccountRow[]; word
       <div className="admin-list" data-scroll-box="" tabIndex={0}>
         <ul>
           {accounts.map((account) => (
-            <li key={account.id} className="admin-row" data-login={account.login}>
+            <li key={account.id} className="admin-row" data-email={account.email ?? undefined}>
               <span className="admin-row-name">{account.name}</span>
-              <span className="admin-row-login">{account.login}</span>
+              {account.email === null ? (
+                <span className="admin-row-email admin-row-email--none">{words.noEmail}</span>
+              ) : (
+                <span className="admin-row-email" data-clamp="" title={account.email}>
+                  {account.email}
+                </span>
+              )}
               <span className="admin-row-state">
                 {account.administrator ? words.administrator : account.active ? words.active : words.deactivated}
               </span>
-              {!account.administrator && (
-                <span className="admin-row-actions">
-                  <ActiveToggle account={account} words={words} />
-                  <Sheet
-                    summary={words.setPassword}
-                    pages={[<SetPassword key="password" account={account} words={words} />]}
-                    words={sheetWords}
-                    uiLang={undefined}
-                    className="account-sheet"
-                    idPrefix={`${account.id}-`}
-                  />
-                </span>
-              )}
+              <span className="admin-row-actions">
+                {!account.administrator && (
+                  <>
+                    <ActiveToggle account={account} words={words} />
+                    <Sheet
+                      summary={words.setPassword}
+                      pages={[<SetPassword key="password" account={account} words={words} />]}
+                      words={sheetWords}
+                      uiLang={undefined}
+                      className="account-sheet"
+                      idPrefix={`${account.id}-`}
+                    />
+                  </>
+                )}
+                <Sheet
+                  summary={words.setEmail}
+                  pages={[<SetEmail key="email" account={account} words={words} />]}
+                  words={sheetWords}
+                  uiLang={undefined}
+                  className="account-sheet"
+                  idPrefix={`${account.id}-email-`}
+                />
+              </span>
             </li>
           ))}
         </ul>
@@ -78,23 +99,23 @@ function ActiveToggle({ account, words }: { account: AccountRow; words: AccountW
 function NewAccount({ words }: { words: AccountWords }) {
   const enhanced = useHydrated()
   const [name, setName] = useState('')
-  const [login, setLogin] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [refusal, setRefusal] = useState<Refusal | null>(null)
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
-    const refused = refusalOf(await send('POST', '/admin/api/accounts', { name, login, password }), words)
+    const refused = refusalOf(await send('POST', '/admin/api/accounts', { name, email, password }), words)
     setRefusal(refused)
     if (!refused) window.location.reload()
   }
   return (
-    <form className="admin-form" method="post" onSubmit={submit}>
+    <form className="admin-form" method="post" onSubmit={submit} noValidate>
       <fieldset disabled={!enhanced}>
         <Field label={words.displayName} error={refusalAt(refusal, 'name')}>
           <input name="name" required maxLength={80} autoComplete="off" value={name} onChange={(event) => setName(event.target.value)} />
         </Field>
-        <Field label={words.login} error={refusalAt(refusal, 'login')}>
-          <input name="login" required autoComplete="off" autoCapitalize="none" spellCheck={false} value={login} onChange={(event) => setLogin(event.target.value)} />
+        <Field label={words.email} error={refusalAt(refusal, 'email')}>
+          <input name="email" type="email" required autoComplete="off" autoCapitalize="none" spellCheck={false} value={email} onChange={(event) => setEmail(event.target.value)} />
         </Field>
         <Field label={words.password} error={refusalAt(refusal, 'password')}>
           <input name="password" type="text" required autoComplete="off" maxLength={256} value={password} onChange={(event) => setPassword(event.target.value)} />
@@ -120,11 +141,36 @@ function SetPassword({ account, words }: { account: AccountRow; words: AccountWo
   return (
     <form className="admin-form" method="post" onSubmit={submit}>
       <fieldset disabled={!enhanced}>
-        <Field label={`${words.password} (${account.login})`} error={refusal?.text}>
+        <Field label={`${words.password} (${account.name})`} error={refusal?.text}>
           <input name="password" type="text" required autoComplete="off" maxLength={256} value={password} onChange={(event) => setPassword(event.target.value)} />
         </Field>
         <button type="submit" className="admin-submit">
           {words.setPassword}
+        </button>
+      </fieldset>
+    </form>
+  )
+}
+
+/** **[#196]** The address, set by the administrator alone and without a current password (38.5). */
+function SetEmail({ account, words }: { account: AccountRow; words: AccountWords }) {
+  const enhanced = useHydrated()
+  const [email, setEmail] = useState(account.email ?? '')
+  const [refusal, setRefusal] = useState<Refusal | null>(null)
+  const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault()
+    const refused = refusalOf(await send('PATCH', `/admin/api/accounts/${encodeURIComponent(account.id)}`, { email }), words)
+    setRefusal(refused)
+    if (!refused) window.location.reload()
+  }
+  return (
+    <form className="admin-form" method="post" onSubmit={submit} noValidate>
+      <fieldset disabled={!enhanced}>
+        <Field label={`${words.email} (${account.name})`} error={refusal?.text}>
+          <input name="email" type="email" required autoComplete="off" autoCapitalize="none" spellCheck={false} value={email} onChange={(event) => setEmail(event.target.value)} />
+        </Field>
+        <button type="submit" className="admin-submit">
+          {words.save}
         </button>
       </fieldset>
     </form>

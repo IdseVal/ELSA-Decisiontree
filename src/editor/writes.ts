@@ -81,11 +81,10 @@ export interface EntryAnswer {
   written: Record<string, number>
 }
 
-/** **[#142]** One active account of `GET /admin/api/accounts`, for an invitation (21.4). */
+/** **[#142]** One active account of `GET /admin/api/accounts`, for an invitation (21.4): **[#196]** its name and no address (38.5). */
 export interface AccountAnswer {
   id: string
   name: string
-  login: string
 }
 
 /**

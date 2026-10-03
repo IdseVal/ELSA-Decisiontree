@@ -486,7 +486,10 @@ export function Panel({
   )
 }
 
-/** A `<select>` of accounts by name, the login after it to tell two of one name apart (33.4). */
+/**
+ * A `<select>` of accounts by name (33.4). **[#196]** The name alone: no account's address, which
+ * only its holder and the administrator see, and no two accounts share a name (38.5, 38.6).
+ */
 function AccountSelect({ name, label, accounts, disabled }: { name: string; label: string; accounts: AccountAnswer[]; disabled: boolean }) {
   return (
     <select name="account" className="editor-select panel-select" aria-label={label} data-select={name} defaultValue="" disabled={disabled}>
@@ -495,7 +498,7 @@ function AccountSelect({ name, label, accounts, disabled }: { name: string; labe
       </option>
       {accounts.map((account) => (
         <option key={account.id} value={account.id}>
-          {`${account.name} · ${account.login}`}
+          {account.name}
         </option>
       ))}
     </select>
