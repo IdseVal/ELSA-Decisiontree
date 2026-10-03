@@ -12,7 +12,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
-import { DEFAULT_COLOURS, DEFAULT_FONT_STACK, themeLogo, themeStyle } from '../src/theme.ts'
+import { DEFAULT_COLOURS, DEFAULT_FONT_STACK, DRAFT_FAMILY_PREFIX, themeLogo, themeStyle } from '../src/theme.ts'
 import { openTree } from '../src/tree/loader.ts'
 import type { Colours, Theme } from '../src/tree/types.ts'
 import { adminThemeHref } from '../src/url.ts'
@@ -211,6 +211,56 @@ describe('the fonts', () => {
     expect(property(css, 'font-body')).toBe(DEFAULT_FONT_STACK)
     expect(property(css, 'font-heading')).toBe('var(--elsa-font-body)')
     expect(css).not.toContain('@font-face')
+  })
+})
+
+describe('**[#180]** in the editor the draft’s families never take a name of the default stack', () => {
+  /** Each name of `DEFAULT_FONT_STACK`, unquoted: a family a draft may give, as the library's Roboto. */
+  const STACK_NAMES = DEFAULT_FONT_STACK.split(',').map((name) => name.trim().replace(/^"(.*)"$/, '$1'))
+
+  /** The family name of every `@font-face` rule in `css`, unquoted. */
+  function faceNames(css: string): string[] {
+    return [...css.matchAll(/@font-face\{font-family:'((?:[^'\\]|\\.)*)'/g)].map((match) => match[1]!)
+  }
+
+  const bodyFamily = (name: string): Theme => ({
+    fonts: [{ family: name, role: 'body', licence: 'x', files: [{ file: 'f.woff2', weight: '400', style: 'normal' }] }],
+  })
+
+  // An @font-face family hides an installed face of the same name, and a browser matches family
+  // names without regard to case; the editor's own interface is drawn in this stack (ADR-180).
+  test.for(STACK_NAMES)('a draft family named %j gets no @font-face under any name of the stack', (name) => {
+    const faces = faceNames(themeStyle(bodyFamily(name), 'a-tree', adminThemeHref, { editor: true }).css)
+
+    expect(faces).toHaveLength(1)
+    expect(faces.filter((face) => STACK_NAMES.some((stacked) => stacked.toLowerCase() === face.toLowerCase()))).toEqual([])
+  })
+
+  test('the Tree still gets its families: each role names the same family its @font-face rules declare', () => {
+    const { css } = themeStyle({ fonts: [...bodyFamily('Roboto').fonts!, { family: 'Faustina', role: 'heading', licence: 'x', files: [{ file: 'g.woff2', weight: '400', style: 'normal' }] }] }, 'a-tree', adminThemeHref, { editor: true })
+
+    expect(faceNames(css)).toEqual([`${DRAFT_FAMILY_PREFIX}Roboto`, `${DRAFT_FAMILY_PREFIX}Faustina`])
+    expect(property(css, 'font-body')).toBe(`'${DRAFT_FAMILY_PREFIX}Roboto', ${DEFAULT_FONT_STACK}`)
+    expect(property(css, 'font-heading')).toBe(`'${DRAFT_FAMILY_PREFIX}Faustina', var(--elsa-font-body)`)
+  })
+
+  test('per name, not per role: the first Tree’s two sets of Open Sans are still one family', async () => {
+    const firstTree = await openTree(path.join(here, '..', 'trees', 'ai-act-applicability-agrifood'))
+    const { css } = themeStyle(firstTree.manifest.theme, firstTree.id, adminThemeHref, { editor: true })
+
+    expect(firstTree.manifest.theme!.fonts!.map((family) => family.family)).toEqual(['Open Sans', 'Open Sans'])
+    expect(new Set(faceNames(css))).toEqual(new Set([`${DRAFT_FAMILY_PREFIX}Open Sans`]))
+    expect(property(css, 'font-body')).toBe(`'${DRAFT_FAMILY_PREFIX}Open Sans', ${DEFAULT_FONT_STACK}`)
+    expect(property(css, 'font-heading')).toBe(`'${DRAFT_FAMILY_PREFIX}Open Sans', var(--elsa-font-body)`)
+  })
+
+  test('the editor’s own interface is in the default stack; the public page names the families as the Tree does', () => {
+    const editor = themeStyle(bodyFamily('Roboto'), 'a-tree', adminThemeHref, { editor: true }).css
+    const ui = editor.slice(editor.indexOf('[data-editor-ui]{'))
+
+    expect(property(ui, 'font-body')).toBe(DEFAULT_FONT_STACK)
+    expect(property(ui, 'font-heading')).toBe('var(--elsa-font-body)')
+    expect(faceNames(themeStyle(bodyFamily('Roboto'), 'a-tree').css)).toEqual(['Roboto'])
   })
 })
 

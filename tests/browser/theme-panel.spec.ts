@@ -25,6 +25,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Locator, type Page } from '@playwright/test'
 import { chrome } from '../../src/chrome.ts'
+import { DRAFT_FAMILY_PREFIX } from '../../src/theme.ts'
 import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
@@ -104,6 +105,9 @@ function themeWrite(page: Page, tree = TREE) {
 function property(page: Page, name: string): Promise<string> {
   return page.evaluate((property) => getComputedStyle(document.documentElement).getPropertyValue(property).trim(), name)
 }
+
+/** **[#180]** A draft's family as the editor names it, apart from every face of the default stack (13.1, amended). */
+const drafted = (family: string): string => `${DRAFT_FAMILY_PREFIX}${family}`
 
 test('a logo uploaded with its alternative text shows at once in the editor’s chrome bar', async ({ browser }) => {
   const { page } = await loggedIn(browser, ANNA)
@@ -199,9 +203,10 @@ test('a heading font with its file and licence; the draft’s @font-face is serv
   await heading.getByRole('button', { name: 'Add the font' }).click()
   expect((await written).status()).toBe(200)
   await expect(heading.locator('.theme-font-files li')).toHaveCount(1)
-  await expect.poll(() => property(page, '--elsa-font-heading')).toContain("'Nova Square'")
+  // **[#180]** In the editor under the draft's own name for it (13.1, amended).
+  await expect.poll(() => property(page, '--elsa-font-heading')).toContain(`'${drafted('Nova Square')}'`)
   await expect
-    .poll(() => page.evaluate(async () => (await document.fonts.load("20px 'Nova Square'")).length))
+    .poll(() => page.evaluate(async (name) => (await document.fonts.load(`20px '${name}'`)).length, drafted('Nova Square')))
     .toBeGreaterThan(0)
 
   await heading.scrollIntoViewIfNeeded()
@@ -425,7 +430,7 @@ test('[#180] a Tree with a dark palette: in the editor the bar and the open pane
   // The draft's heading font is the Tree's, and the panel's heading is not in it.
   expect(look["panel's heading"]).toBe('rgb(20, 24, 28) on rgba(0, 0, 0, 0), -apple-system')
   expect(look.Bubble).toBe('rgb(238, 241, 242) on rgb(33, 39, 41), -apple-system')
-  expect(look["Bubble's title"]).toBe("rgb(238, 241, 242) on rgba(0, 0, 0, 0), \"Nova Square\"")
+  expect(look["Bubble's title"]).toBe(`rgb(238, 241, 242) on rgba(0, 0, 0, 0), "${drafted('Nova Square')}"`)
   await shoot180(page, 'editor-dark-panel-open')
 
   // #177's side-bubble `+` and an Overlay's `deleteSideBubble`, with the confirmation it asks in
@@ -559,9 +564,9 @@ test('[#180] a library family: seen at once in the editor, and once published fe
   // A library family shows its licence, fixed, and nothing else (37.2).
   await expect(fontRole(page, 'heading').locator('.theme-font-licence')).toHaveText('Licence: SIL Open Font License 1.1')
   await expect(fontRole(page, 'heading').getByLabel('Family name')).toHaveCount(0)
-  await expect.poll(() => property(page, '--elsa-font-heading')).toContain("'Faustina'")
+  await expect.poll(() => property(page, '--elsa-font-heading')).toContain(`'${drafted('Faustina')}'`)
   await fetched
-  expect(await page.evaluate(async () => (await document.fonts.load("700 22px 'Faustina'")).length)).toBeGreaterThan(0)
+  expect(await page.evaluate(async (name) => (await document.fonts.load(`700 22px '${name}'`)).length, drafted('Faustina'))).toBeGreaterThan(0)
 
   await panel(page).getByRole('switch', { name: 'Publish' }).click()
   await expect(panel(page).getByRole('switch', { name: 'Publish' })).toHaveAttribute('aria-checked', 'true')
@@ -609,8 +614,8 @@ test('[#180] an upload proposes the font’s own name, takes a licence from “A
   await expect(body.getByLabel('Licence', { exact: true })).toHaveValue('other')
   await expect(body.getByLabel(EN.licenceOther)).toHaveValue('SIL Open Font License 1.1 (theme/ofl-nova-square.txt)')
   // The uploaded font still works: the draft's stylesheet names it and the browser loads it.
-  await expect.poll(() => property(page, '--elsa-font-body')).toContain("'Nova Square'")
-  expect(await page.evaluate(async () => (await document.fonts.load("16px 'Nova Square'")).length)).toBeGreaterThan(0)
+  await expect.poll(() => property(page, '--elsa-font-body')).toContain(`'${drafted('Nova Square')}'`)
+  expect(await page.evaluate(async (name) => (await document.fonts.load(`16px '${name}'`)).length, drafted('Nova Square'))).toBeGreaterThan(0)
 })
 
 test('[#180] an upload whose font states no name leaves the name field empty with its placeholder; after a failed upload the file field is empty again', async ({ browser }) => {
