@@ -625,10 +625,10 @@ owner's words leave a choice:
   `docs/adrs/ADR-194-login-and-authors-round.md`.
   - **An e-mail address and a password log in.** An account logs in with its e-mail
     address and its password, in place of the user name the Architect chose on #132
-    (10.31). The application still sends no mail (section 7, 10.31):
-    #194 asks for an address to log in with, not for anything to be sent to it. What the
-    administrator logs in with, what becomes of an account that has a user name and no
-    address, and who sees an address are 10.39, the Architect's on #195; #196 builds it.
+    (10.31). The application still sends no mail (section 7, 10.31): #194 asks for an
+    address to log in with, not for anything to be sent to it. What the administrator
+    logs in with, what becomes of an account that has a user name and no address, and
+    who sees an address are 10.39, the Architect's on #195; #196 builds it.
   - **Every Tree names who authored it.** "Graph" is one of the owner's words for a Tree
     (section 5). This reverses, for the mention the owner asked for, the rule of sections
     8 and 9 that nothing about a creator reaches a public page. PROPOSED (the owner named
