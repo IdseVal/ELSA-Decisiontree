@@ -25,7 +25,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Locator, type Page } from '@playwright/test'
 import { chrome } from '../../src/chrome.ts'
-import { DRAFT_FAMILY_PREFIX } from '../../src/theme.ts'
+import { DEFAULT_FONT_STACK, DRAFT_FAMILY_PREFIX } from '../../src/theme.ts'
 import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
@@ -365,6 +365,28 @@ async function painted(page: Page): Promise<Record<string, string>> {
   })
 }
 
+/** The default look's text on its surface, in its whole type stack: a panel of the editor's own (13.4). */
+const DEFAULT_PANEL = `rgb(20, 24, 28) on rgb(255, 255, 255), ${DEFAULT_FONT_STACK}`
+/** The same text on a heading in such a panel, where the draft's heading family would show. */
+const DEFAULT_HEADING = `rgb(20, 24, 28) on rgba(0, 0, 0, 0), ${DEFAULT_FONT_STACK}`
+
+/**
+ * Holds every element `selector` matches -- a closed Sheet's panel too, which the DOM keeps --
+ * and each heading in it to the default look: text on fill, and the face, the whole stack.
+ * Answers what it measured, for the annotation.
+ */
+async function expectDefaultLook(page: Page, selector: string): Promise<string> {
+  const looks = await page.locator(selector).evaluateAll((panels) =>
+    panels.map((panel) => [panel, ...panel.querySelectorAll('h2')].map((element) => `${getComputedStyle(element).color} on ${getComputedStyle(element).backgroundColor}, ${getComputedStyle(element).fontFamily}`)),
+  )
+  expect(looks.length, selector).toBeGreaterThan(0)
+  for (const [own, ...headings] of looks) {
+    expect(own, selector).toBe(DEFAULT_PANEL)
+    for (const heading of headings) expect(heading, `${selector} h2`).toBe(DEFAULT_HEADING)
+  }
+  return `${selector}: ${looks.length} × ${looks[0]!.join(' / ')}`
+}
+
 /** The entries of a dropdown as a reader meets them: each group's label, then its options. */
 function entries(select: Locator): Promise<string[]> {
   return select.evaluate((element: HTMLSelectElement) =>
@@ -418,7 +440,7 @@ test('[#180] after the palette changes, the editor’s bar, floating controls an
   expect(new Set([...lines, ...kinds])).toEqual(new Set(['rgb(238, 241, 242)']))
 })
 
-test('[#180] a Tree with a dark palette: in the editor the bar and the open panel in the default look, the Bubble in the Tree’s; its public page whole in the Tree’s, the Sources in its text', async ({ browser }) => {
+test('[#180] a Tree with a dark palette: in the editor the bar, the open panel and every editor panel in the default look, the Bubble in the Tree’s; its public page whole in the Tree’s, the Sources in its text', async ({ browser }, testInfo) => {
   const { page } = await loggedIn(browser, ANNA)
   await page.goto(`${origin}/admin/trees/dark/start`)
   // The Tree's logo, in the variant for the default's light bar, not the dark palette's white one (13.1).
@@ -432,6 +454,28 @@ test('[#180] a Tree with a dark palette: in the editor the bar and the open pane
   expect(look.Bubble).toBe('rgb(238, 241, 242) on rgb(33, 39, 41), -apple-system')
   expect(look["Bubble's title"]).toBe(`rgb(238, 241, 242) on rgba(0, 0, 0, 0), "${drafted('Nova Square')}"`)
   await shoot180(page, 'editor-dark-panel-open')
+
+  // The panel of every Sheet only the editor opens keeps that look too, in its headings as well,
+  // where the draft's Nova Square would show (ADR-180 decision 1). A closed Sheet's panel is in the
+  // DOM; the explainer, attach, end-of-tree and session panels are opened.
+  const measured: string[] = []
+  await page.keyboard.press('Escape')
+  await expect(panel(page)).toBeHidden()
+  measured.push(await expectDefaultLook(page, '.source-sheet--add > .sheet-panel'))
+  measured.push(await expectDefaultLook(page, '.source-sheet:not(.source-sheet--add) > .sheet-panel'))
+  await page.locator('[data-field="start description.en"] .term').filter({ visible: true }).first().click()
+  const explainer = page.locator('.explainer-sheet')
+  await expect(explainer).toBeVisible()
+  measured.push(await expectDefaultLook(page, '.explainer-sheet'))
+  await explainer.getByRole('button', { name: 'Close' }).click()
+  await expect(explainer).toHaveCount(0)
+  // A picture chosen at the strip's `+` opens the attach panel; cancel deletes the upload again.
+  await page.locator('.editor-picker--strip').filter({ visible: true }).locator('input[type="file"]').setInputFiles(LOGO)
+  const attach = page.locator('.editor-attach-panel')
+  await expect(attach).toBeVisible()
+  measured.push(await expectDefaultLook(page, '.editor-attach-panel'))
+  await attach.getByRole('button', { name: 'Cancel' }).click()
+  await expect(attach).toHaveCount(0)
 
   // #177's side-bubble `+` and an Overlay's `deleteSideBubble`, with the confirmation it asks in
   // place, open no panel: they stand in the Tree, on its surface and in its colours (ADR-180 decision 1).
@@ -462,6 +506,29 @@ test('[#180] a Tree with a dark palette: in the editor the bar and the open pane
   await question.getByRole('button', { name: 'Cancel' }).click()
   await expect(question).toHaveCount(0)
 
+  // 'Tree does not end here after all' gives the end-of-tree Sheet back, whose panel is the editor's
+  // own; the step is then ended again, as it was.
+  await page.locator('.step-end > button').click()
+  const endSheet = page.locator('.structure-end > .sheet-open')
+  await expect(endSheet).toBeVisible()
+  measured.push(await expectDefaultLook(page, '.structure-end > .sheet-panel'))
+  await endSheet.click()
+  const end = page.locator('.structure-form--end')
+  await end.locator('input[value="prohibited"]').check()
+  await end.getByRole('button', { name: 'Confirm' }).click()
+  await expect(page.locator('.step-end > button')).toBeVisible()
+
+  // A write the server answers 401 opens the session panel (Editor.tsx); nothing reaches the store.
+  await page.route((url) => url.pathname.startsWith('/admin/api/trees/dark'), (route) => (route.request().method() === 'PATCH' ? route.fulfill({ status: 401, json: { error: 'unauthenticated' } }) : route.continue()))
+  const title = page.locator('[data-field="prohibited title.en"] textarea').filter({ visible: true })
+  await title.fill('This is a prohibited practice, asked again')
+  await title.blur()
+  await expect(page.locator('.editor-session-panel')).toBeVisible()
+  measured.push(await expectDefaultLook(page, '.editor-session-panel'))
+  await page.close()
+  testInfo.annotations.push({ type: 'measured', description: measured.join('\n') })
+  console.log(`the editor's own panels on the dark Tree, as painted:\n${measured.join('\n')}`)
+
   // The public page is the whole Tree's, as it was (24.3).
   const reader = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
   await reader.goto(`${origin}/dark/start`)
@@ -476,6 +543,14 @@ test('[#180] a Tree with a dark palette: in the editor the bar and the open pane
   expect(await reader.locator('.bubble .sources h2').evaluate((heading) => getComputedStyle(heading).color)).toBe('rgb(154, 165, 170)')
   await reader.evaluate(() => document.fonts.ready)
   await reader.locator('.bubble').screenshot({ path: path.join(SHOTS_180, 'sources-dark.png') })
+
+  // Below 792 pixels wide they collapse to one Sheet (10.5); its kinds are in the Theme's text too.
+  const inlineKinds = await reader.locator('.bubble .sources .kind').allTextContents()
+  await reader.setViewportSize({ width: 760, height: 640 })
+  await reader.locator('.sources-sheet > .sheet-open').click()
+  const kinds = await reader.locator('.sources-sheet .sheet-list .kind').evaluateAll((items) => items.map((item) => `${item.textContent} ${getComputedStyle(item).color}`))
+  expect(inlineKinds).toHaveLength(2)
+  expect(kinds).toEqual(inlineKinds.map((kind) => `${kind} rgb(238, 241, 242)`))
 })
 
 test('[#180] the two font dropdowns and their entries; the first Tree’s hand-made licence line shows as “Another licence…”', async ({ browser }) => {
