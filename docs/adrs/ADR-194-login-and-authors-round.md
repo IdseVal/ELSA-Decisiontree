@@ -62,20 +62,21 @@ published and one hidden, each created by the administrator and with no collabor
 
 2. **One architecture issue, #195, for the two points that touch a contract.** Point 1
    changes the `Account` record, the `Accounts` interface, the login and account routes
-   and the administrator of `ADR-132-accounts-and-sessions.md`, a frozen decision a build
-   run may not supersede on its own (`.orca/roles/implementer.md`: stop and ask rather
-   than guess). Point 2 changes the rule of core document 8 and 9 and of `application.md`
-   17.2 and 20.1, the shape of `meta.json`, and a public page whose every row is counted
-   under the no-scroll rule (`application.md` 10.1). Both edit the one interface of 20.1
-   -- `login` goes, and `name` stops being "shown in the admin area only" -- so one run
-   decides both. What the owner's words leave open is listed in #195's TASK and in core
+   and the administrator of `ADR-132-accounts-and-sessions.md`, a frozen decision that a
+   build run reports and does not route around (`.orca/roles/implementer.md`). Point 2
+   changes the rule of core document 8 and 9 and of `application.md` 17.2 and 20.1, the
+   shape of `meta.json`, and a public page whose every row is counted under the no-scroll
+   rule (`application.md` 10.1). Both edit the one interface of 20.1 -- an account's
+   `login` becomes an e-mail address, and its `name` stops being "shown in the admin area
+   only" -- so one run decides both. What the owner's words leave open is listed in #195's TASK and in core
    document 10.39 (the login) and 10.40 (the authors), as 10.30 to 10.35 were listed for
    #132.
 
 3. **Order, by `Depends on:` lines only.** #195 waits for #194, so that this record --
    the `[#194]` passages, 10.39 and 10.40 -- is on `dev` before the Architect amends it:
    in the round of #169, #171 and #172 were dispatched while that round's record (#182)
-   was still in review, and its corrections reached them only as comments. #196 waits for
+   was still in review, and what its review corrected reached those two runs after they
+   had started, as edited issue bodies and comments. #196 waits for
    #195. #197 waits for #195 and #196: #196 moves logging in from a user name to an
    address in every test that logs in and changes the list a creator invites from, and
    #197's browser tests log in and invite; built side by side, one of the two would merge
@@ -99,8 +100,8 @@ published and one hidden, each created by the administrator and with no collabor
    - Each author is named by the name of their account -- the name every creator has
      (3.4, #131) -- and by nothing else: not the address, not the account's id.
    - "To login should be based on an email and a password" changes what a person types to
-     log in. The application still sends no mail (core document 7, 10.31), and no issue
-     sends any.
+     log in. The application still sends no mail (core document 7, 10.31), and none of
+     the four issues adds any.
    - "a placeholder account next to the admin account for me": an ordinary account, not
      a second administrator (20.3 allows one), named "Idse Val" as the core document names
      the owner, made on the demo server the owner's #162 was about, its temporary password
@@ -133,7 +134,8 @@ published and one hidden, each created by the administrator and with no collabor
   pull requests in conflict.
 - **No architecture issue.** A build run would have had to supersede
   `ADR-132-accounts-and-sessions.md` decision 1 and choose a row of the public page under
-  the no-scroll rule on its own; the implementer role tells it to stop and ask instead.
+  the no-scroll rule on its own; the implementer role tells it to report a contradiction
+  with a spec and to ask rather than build its best guess.
 - **One build issue for the login and the authors together.** They change different parts
   of the application -- the accounts, the login and their pages; `meta.json` and the
   public page -- with different tests, and one run would carry both under one run's time
