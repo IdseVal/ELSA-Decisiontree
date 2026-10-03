@@ -332,12 +332,10 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
     async create(by, name, email, password) {
       if (!by.administrator) throw new AccountError(403, null, 'forbidden')
       const checkedName = checkName(name)
-      refuseTaken(undefined, checkedName, undefined)
       const address = normaliseEmail(email)
       if (!address) throw new AccountError(422, 'email', 'email-invalid')
-      refuseTaken(undefined, undefined, address)
       const passwordHash = await hashPassword(checkPassword(password))
-      // Again after scrypt: a second creation sent at once passed the checks above too.
+      // After scrypt, not before: a second creation sent at once is refused here, by the first.
       refuseTaken(undefined, checkedName, address)
       const account: Account = {
         id: newId(),
@@ -361,14 +359,12 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
       if (!account) throw new AccountError(404, null, 'not-found')
       // Every field is checked before any is applied, so a refused field changes nothing.
       const name = change.name === undefined ? undefined : checkName(change.name)
-      refuseTaken(account, name, undefined)
       let email: string | undefined
       if (change.email !== undefined) {
         // The administrator alone changes an address, the holder's own included (38.5).
         if (!by.administrator) throw new AccountError(403, 'email', 'forbidden')
         const address = normaliseEmail(change.email)
         if (!address) throw new AccountError(422, 'email', 'email-invalid')
-        refuseTaken(account, undefined, address)
         email = address
       }
       if (change.active !== undefined) {
@@ -389,7 +385,7 @@ export async function openAccounts(root: string, env: Environment): Promise<Acco
         }
         passwordHash = await hashPassword(password)
       }
-      // Again after scrypt: another change may have taken the name or the address meanwhile.
+      // After scrypt, not before: another change may have taken the name or the address meanwhile.
       refuseTaken(account, name, email)
       // Only the fields this change names, and only after the awaits: a copy taken before
       // scrypt ran would write back what another request changed meanwhile, a deactivation too.
