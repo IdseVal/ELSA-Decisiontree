@@ -5819,7 +5819,10 @@ but never on an unknown one says which exists, which the one body was built neve
 
 20.8, restated for an address. A failure is `login failed for account <id>` or `login failed
 for an unknown address`; a lock `login locked for 15 minutes for account <id>` or `login locked
-for 15 minutes for an unknown address`; a success `account <id> logged in`, as before. **Never
+for 15 minutes for an unknown address`; a success `account <id> logged in`, as before. Each is
+written where it is today: the two failures by `authenticate` (`src/store/accounts.ts`), the
+locks and the success by the login route (`route.ts`), which finds a lock's account with
+`byEmail` (38.2). **Never
 an address**: not the address typed, not an account's -- the administrator's included -- in any
 line, at any level. An account change names the fields it changed, `email` among them, never
 their values (38.5); the start names `ELSA_ADMIN_EMAIL`, never its value (38.3), and counts and

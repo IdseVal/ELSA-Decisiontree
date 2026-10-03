@@ -5,7 +5,7 @@
 - Spec: `docs/specs/application.md`, sections 10.4, 10.5, 10.6, 10.7
 - Core document: 3.2, section 9 ("the page must never scroll"), open item **10.22**
 - **Amended 2026-10-03 by issue #195** (the owner's #194: "graphs should have a small mention
-  by who it was authored"): decision 2's "no label truncated" and decision 3's fixed order,
+  by who it was authored"): decision 1's "no label truncated" and decision 3's fixed order,
   each thing given up "reachable behind one control", have one exception, the line that names
   a Tree's Authors in the chrome bar of its Node pages. It is cut with an ellipsis where its room ends, at 1280 x 640 too, and not
   drawn where under 80 pixels are left -- by its room, not by a step of the order -- and it

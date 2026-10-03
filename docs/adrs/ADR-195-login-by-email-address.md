@@ -35,11 +35,14 @@ now decided what is held. The application still sends no mail (core document 7, 
 #194 does not ask it to: the address is what a person types to log in, and nothing is ever
 sent to it.
 
-What the code does today, read on `dev` at `b6d9566`: `src/store/accounts.ts` holds `login`
-per account, lower-cased on entry, unique, in the id grammar (`normaliseLogin`);
-`POST /admin/api/login` reads `body.login`, keys the rate limit on `login.trim().toLowerCase()`
-and logs `login failed for an unknown name` or a lock "for an unknown name"
-(`src/app/[lang]/admin/api/login/route.ts`).
+What the code does today, read on `dev` at `b6d9566` (unchanged at `5d52832`):
+`src/store/accounts.ts` holds `login` per account, lower-cased on entry, unique, in the id
+grammar (`normaliseLogin`), and its `authenticate` logs each failure, `login failed for
+account <id>` or `login failed for an unknown name`. `POST /admin/api/login`
+(`src/app/[lang]/admin/api/login/route.ts`) reads `body.login`, keys the rate limit on
+`login.trim().toLowerCase()`, and logs the rest: a lock, `login locked for 15 minutes for
+account <id>` or "for an unknown name" (the account found by `byLogin`), the route's lock of
+one minute, and a success, `account <id> logged in`.
 
 ## Decision
 
@@ -102,10 +105,11 @@ and logs `login failed for an unknown name` or a lock "for an unknown name"
    counter is unchanged. Still not per client address.
 
 9. **The log never holds an address** (20.8): a failure is `login failed for account <id>` or
-   `login failed for an unknown address`; a lock `login locked for 15 minutes for account
-   <id>` or `... for an unknown address`. Never the address typed, never an account's address
-   -- the administrator's included: the start's line names the variable, not its value
-   (`ADR-195-administrator-address.md`) -- in any line, at any level.
+   `login failed for an unknown address`, written by `authenticate` as today's two are; a lock
+   `login locked for 15 minutes for account <id>` or `... for an unknown address`, written by
+   the login route, which finds the account with `byEmail`. Never the address typed, never an
+   account's address -- the administrator's included: the start's line names the variable,
+   not its value (`ADR-195-administrator-address.md`) -- in any line, at any level.
 
 10. **The login page's field** (25.1, `ADR-133-login-and-account-pages.md` decision 1): labelled
     `email` ("E-mail address" / "E-mailadres"), `type="email"` -- the keyboard of a phone, and
@@ -148,8 +152,10 @@ and logs `login failed for an unknown name` or a lock "for an unknown name"
 - `src/store/accounts.ts`: `normaliseEmail` in place of `normaliseLogin`, `byEmail` in place of
   `byLogin`, `email` in `Account` and `AccountChange`, the `AccountError` codes `email-invalid`
   and `email-taken` in place of `login-invalid` and `login-taken`, its field `email` in place
-  of `login`. `src/store/login-limit.ts`: `loginKey` (decision 8), by which the login route
-  keys its counters. `src/app/[lang]/admin/api/login/route.ts`, `me/route.ts`, `accounts/route.ts`,
+  of `login`, and `authenticate`'s two failure lines (decision 9). `src/store/login-limit.ts`:
+  `loginKey` (decision 8), by which the login route keys its counters.
+  `src/app/[lang]/admin/api/login/route.ts` (the body, the key and the lock's line),
+  `me/route.ts`, `accounts/route.ts`,
   `accounts/[id]/route.ts`; `src/editor/LoginForm.tsx`, `AccountForms.tsx`, `AccountsList.tsx`,
   `Panel.tsx`; `src/admin/words.ts`; `src/chrome.ts` (3.2's #196 row). All #196's.
 - Every test that logs in by user name moves to an address with the code it tests (38.10):
