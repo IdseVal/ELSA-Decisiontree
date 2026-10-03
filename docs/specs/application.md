@@ -953,7 +953,19 @@ app  ->  editor (the pages mount Editor, LoginForm, NewTreeForm, Panel and build
 components  ->  editor (the EditMode type only; a slot's element is handed in, never imported)  [#133]
 editor  ->  tree/measure, markdown (both pure), and nothing else in src/                          [#133]
 app  ->  session  ->  store (sessions.resolve)                                                    [#135]
+store  ->  fonts (FONT_LIBRARY, libraryEntry, copyName), at run time                             [#180]
+theme  ->  tree/grammar (refusedInFamily)                                                         [#180]
+app  ->  fonts (the editor page: the library and the licence list, for the Theme panel)          [#180]
+fonts  ->  tree/types                                                                             [#180]
 ```
+
+- **[#180] Amended 2026-10-03: three edges #180 adds.** `src/store/drafts.ts` imports
+  `src/fonts.ts` at run time: `use-library-font` reads the library's list, the entry it writes
+  and the server names of its files there (37.3). So the line `store -> tree ..., nothing else
+  in src/` now reads: `tree`, and the pure `fonts.ts`. `src/theme.ts` imports `refusedInFamily`
+  from `src/tree/grammar.ts` (13.3, amended), and the editor's page imports `fonts.ts` to hand
+  the library and the licence list to the Theme panel as props. `fonts.ts` is pure and imports
+  only types of `tree/`.
 
 - **[#133] `src/editor/` is a leaf, like the four client components.** Its modules take
   strings and ids, reach the write queue through React context, and import of `src/` the
@@ -2365,6 +2377,14 @@ module allowed to build that string and it holds every rule:
   `themePath` (5.5) before any file is opened.
 
 `theme.test.ts` (section 7) is written against this list.
+
+**[#180] Amended 2026-10-03.** `theme.ts` is still the only module that builds the string, but it
+no longer holds every rule itself. The characters a family name may not hold are declared once,
+as `refusedInFamily` in `src/tree/grammar.ts`, because three places refuse the same ones: `theme.ts`
+where it builds the string, the Theme panel's name field before anything is sent, and the
+upload's name reader (`src/store/woff2.ts`), which proposes no name holding one (37.4).
+`theme.ts` imports it and applies it at the sink as before. The other three rules are unchanged
+and stay in `theme.ts`.
 
 ### 13.4 A Tree without a Theme, or with half of one
 
