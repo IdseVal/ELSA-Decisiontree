@@ -15,7 +15,7 @@ const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/
 const REFUSED_IN_FAMILY = /[;{}<\p{Cc}]/u
 const LANGUAGE_TAG = /^[a-z]{2,3}(-[a-z0-9]{2,8})*$/
 const MARKDOWN_LINK = /\[([^\]]*)\]\([^)]*\)/g
-/** The schema's `url` pattern (schemas/elsa-tree-4.json): a scheme, a non-empty host, no whitespace. */
+/** The schema's `url` pattern (schemas/elsa-tree-5.json): a scheme, a non-empty host, no whitespace. */
 const URL_PATTERN = /^https?:\/\/[^\s/?#]+(?:[/?#][^\s]*)?$/
 
 /** Tree-format.md 3.1: lowercase letters, digits, single hyphens, at most 64 characters. */

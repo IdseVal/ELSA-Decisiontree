@@ -221,7 +221,7 @@ test("a marked term is the Answer buttons' green on the Bubble, 3.31 : 1, the sh
   }
 })
 
-/** A page of each kind the first Tree has: a question with Images, many Options, an explanation, both Terminal outcomes. */
+/** A page of each kind the first Tree has: a question with Images, many Options, an explanation, two of its Terminals. */
 const EVERY_KIND = [
   ROOT,
   `/${TREE}/annex-i-legislation`,

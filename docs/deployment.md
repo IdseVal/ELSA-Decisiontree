@@ -363,7 +363,8 @@ password, a token, a name typed into the login form, or a client address.
 `https://<your host>/<tree-id>/tree.json` -- the Tree file itself, byte for byte, under
 CC BY 4.0, with the licence in a `Link` header on the bytes and `Access-Control-Allow-Origin: *`
 so another lab's page or a notebook can fetch it (`docs/specs/application.md` 15). The
-format's JSON Schema is beside it at `/schemas/elsa-tree-4.json`, and `/llms.txt` is the
+format's JSON Schema is beside it at `/schemas/elsa-tree-5.json` (**[#179]** the schema of
+`elsa-tree/4`, the format before it, stays at `/schemas/elsa-tree-4.json`), and `/llms.txt` is the
 short plain-text description that points an AI agent at every Tree's and at the schema. A
 Tree that is not published is in none of them: its `tree.json`, its pages and its pictures
 answer 404, the same answer as an id that does not exist.
@@ -448,7 +449,7 @@ its next write would replace it.
 ├── sessions.json         the live login sessions, by the hash of their token
 └── trees/<tree-id>/
     ├── meta.json         creator, collaborators, times, publish count, revision
-    ├── draft.json        the draft the editor writes: the same elsa-tree/4 file, maybe unfinished
+    ├── draft.json        the draft the editor writes: the same elsa-tree/5 file, maybe unfinished
     ├── tree.json         the published copy; present exactly when the Tree is published
     ├── images/           every uploaded picture, the draft's and the published copy's
     └── theme/            the Theme's files
@@ -476,6 +477,18 @@ sudo systemctl start elsa-decisiontree
 
 `accounts.json` and `sessions.json` hold password hashes and session-token hashes: keep the
 backup where only an administrator can read it, as you keep `/etc/elsa-decisiontree.env`.
+
+**[#179] Take this backup before the first start of the release that carries `elsa-tree/5`.**
+At that start, before it opens any Tree, the server converts every `elsa-tree/4` `tree.json`
+and `draft.json` in the data directory to `elsa-tree/5`: each end of a walk gets the words its
+badge showed, and each file is replaced whole, with one line in the journal, `Converted Tree
+"<id>" <file> from elsa-tree/4 to elsa-tree/5: <n> endings` (`docs/specs/application.md` 36.4,
+`docs/specs/tree-format.md` 12.7). The conversion is not undone and nothing keeps the old
+bytes: the backup is the copy. A file it cannot convert is left as it was, and its Tree is not
+served, or not editable, with the reasons in the journal, until you import a repaired copy:
+under `Not converted: Tree "<id>" <file>`, one line per violation of the converted file, as
+`npm run validate` prints them. The import command prints the same lines for a copy that
+still has one.
 
 ### Importing a Tree, and moving one between deployments
 

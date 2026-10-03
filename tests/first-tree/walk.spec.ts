@@ -107,7 +107,7 @@ const WALKS: Record<string, Step[]> = {
   ],
 }
 
-/** The ids explicitly marked as Terminals in the Tree (`terminal.outcome`). */
+/** The ids explicitly marked as Terminals in the Tree (`terminal`, **[#179]** holding each one's words). */
 const TERMINALS = ['ai-act-does-not-apply', 'not-an-ai-system', 'prohibited', 'end-of-walk']
 
 /** The page for a walk: the path is the Trail, and `lang` is omitted for the default (4.1). */

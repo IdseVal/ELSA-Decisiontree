@@ -2,6 +2,7 @@
  * The store's read side (docs/specs/application.md 17, 18.3, 23.7): the seed at first
  * start and never again, a hidden Tree out of the set, an invalid published Tree refused
  * and the rest served, the lock, whole files in order, and the three retired variables.
+ * **[#179]** And the conversion of `elsa-tree/4` files, at the start and at an import (36.4).
  */
 import { spawn } from 'node:child_process'
 import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
@@ -12,7 +13,22 @@ import { afterEach, describe, expect, test, vi } from 'vitest'
 import { openConfiguredStore } from '../../src/config.ts'
 import { importTree, openStore, RESERVED_TREE_IDS } from '../../src/store/index.ts'
 import { writeAtomic } from '../../src/store/write.ts'
+import { TreeInvalid } from '../../src/tree/loader.ts'
 import { ADMIN } from './admin.ts'
+
+// **[#179]** One file the disk refuses while the store converts it: the real writer for every
+// other file, and for every test that names none.
+const refusedWrite = vi.hoisted(() => ({ file: null as string | null }))
+vi.mock('../../src/store/write.ts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/store/write.ts')>()
+  return {
+    ...actual,
+    writeAtomic: (file: string, data: string | Uint8Array): Promise<void> =>
+      refusedWrite.file !== null && path.resolve(file) === refusedWrite.file
+        ? Promise.reject(new Error(`EIO: i/o error, open '${file}.tmp'`))
+        : actual.writeAtomic(file, data),
+  }
+})
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const fixtures = path.join(here, '..', 'fixtures')
@@ -27,6 +43,30 @@ async function folder(): Promise<string> {
   return dir
 }
 
+/**
+ * **[#179]** Writes the Tree file `file` back as the `elsa-tree/4` file it would have been before
+ * #179: its two names of itself, and each Terminal's marker an `outcome`, from `outcomes` in order.
+ */
+async function writeAs4(file: string, outcomes: string[]): Promise<void> {
+  const tree = JSON.parse(await readFile(file, 'utf8')) as { $schema: string; format: string; nodes: Array<{ terminal?: unknown }> }
+  tree.$schema = '/schemas/elsa-tree-4.json'
+  tree.format = 'elsa-tree/4'
+  for (const node of tree.nodes) if (node.terminal) node.terminal = { outcome: outcomes.shift() }
+  await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
+}
+
+/** **[#179]** Writes the Tree file `file` back after `edit` has changed what it holds. */
+async function rewrite(file: string, edit: (tree: { nodes: Array<Record<string, unknown>> }) => unknown): Promise<void> {
+  const tree = JSON.parse(await readFile(file, 'utf8')) as { nodes: Array<Record<string, unknown>> }
+  edit(tree)
+  await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
+}
+
+/** The lines `log` was called with that say a file was converted (36.4). */
+function conversions(log: { mock: { calls: unknown[][] } }): string[] {
+  return log.mock.calls.map((call) => String(call[0])).filter((line) => line.startsWith('Converted'))
+}
+
 /** A seed folder holding a copy of each named fixture, under its own id. */
 async function seedOf(...entries: Array<[from: string, id: string]>): Promise<string> {
   const seed = await folder()
@@ -35,6 +75,7 @@ async function seedOf(...entries: Array<[from: string, id: string]>): Promise<st
 }
 
 afterEach(async () => {
+  refusedWrite.file = null
   vi.restoreAllMocks()
   for (const dir of made.splice(0)) await rm(dir, { recursive: true, force: true })
 })
@@ -120,7 +161,7 @@ describe('which Trees are served (18.3, 23.1)', () => {
     const seed = await seedOf([path.join(fixtures, 'cycle'), 'cycle'], [path.join(fixtures, 'carousel'), 'carousel'])
     const data = await folder()
     await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
-    await writeFile(path.join(data, 'trees', 'cycle', 'tree.json'), '{ "format": "elsa-tree/4" ')
+    await writeFile(path.join(data, 'trees', 'cycle', 'tree.json'), '{ "format": "elsa-tree/5" ')
 
     const store = await openStore(data, ADMIN)
 
@@ -222,6 +263,230 @@ describe('importTree (17.4)', () => {
     const reserved = await seedOf([path.join(fixtures, 'cycle'), 'schemas'])
     await expect(importTree(path.join(reserved, 'schemas'), treesDir, null)).rejects.toThrow('reserved word')
     expect(await readdir(treesDir)).toEqual(['cycle'])
+  })
+
+  test('**[#179]** an elsa-tree/4 folder is converted in its staging copy, and the source is not written (36.4)', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const source = path.join(await seedOf([path.join(fixtures, 'carousel'), 'carousel']), 'carousel')
+    await writeAs4(path.join(source, 'tree.json'), ['refer'])
+    const before = await readFile(path.join(source, 'tree.json'))
+    const treesDir = await folder()
+
+    const tree = await importTree(source, treesDir, null)
+
+    expect(await tree.getNode('done')).toMatchObject({ kind: 'terminal', label: { en: 'Look elsewhere', nl: 'Elders geregeld' } })
+    expect(conversions(log)).toEqual(['Converted Tree "carousel" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings'])
+    expect(await readFile(path.join(source, 'tree.json'))).toEqual(before)
+    const stored = await readFile(path.join(treesDir, 'carousel', 'tree.json'), 'utf8')
+    expect(JSON.parse(stored)).toMatchObject({ $schema: '/schemas/elsa-tree-5.json', format: 'elsa-tree/5' })
+    expect(await readFile(path.join(treesDir, 'carousel', 'draft.json'), 'utf8')).toBe(stored)
+    expect(await readdir(treesDir)).toEqual(['carousel'])
+  })
+
+  test('**[#179]** a folder refused is refused as before, from its copy, and nothing is left behind', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const treesDir = await folder()
+    const source = path.join(await seedOf([path.join(fixtures, 'carousel'), 'carousel']), 'carousel')
+    await writeAs4(path.join(source, 'tree.json'), ['maybe'])
+    const before = await readFile(path.join(source, 'tree.json'))
+
+    // An outcome the conversion cannot carry: the converted copy keeps it, and fails.
+    await expect(importTree(source, treesDir, null)).rejects.toThrow('Tree "carousel" is invalid')
+    expect(await readFile(path.join(source, 'tree.json'))).toEqual(before)
+    // What the loader reads beside the file is copied as it stands, so a file named images is refused too.
+    await expect(importTree(path.join(fixtures, 'invalid', 'v-dir'), treesDir, null)).rejects.toThrow('images must be a folder')
+    await expect(importTree(path.join(fixtures, 'invalid', 'v-json'), treesDir, null)).rejects.toThrow('V-JSON')
+    // A folder named tree.json is no file to copy: the copy lacks it, as the loader finds the source.
+    const hollow = path.join(await seedOf([path.join(fixtures, 'carousel'), 'carousel']), 'carousel')
+    await rm(path.join(hollow, 'tree.json'))
+    await mkdir(path.join(hollow, 'tree.json'))
+    await expect(importTree(hollow, treesDir, null)).rejects.toThrow('carousel  tree.json  -  V-DIR  tree.json is missing')
+    expect(await readdir(treesDir)).toEqual([])
+  })
+
+  test("**[#179]** an elsa-tree/4 folder whose converted copy fails is refused with that copy's violations, and nothing is left behind (12.7.1 step 8)", async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const treesDir = await folder()
+    const source = path.join(await seedOf([path.join(fixtures, 'carousel'), 'carousel']), 'carousel')
+    const file = path.join(source, 'tree.json')
+    await writeAs4(file, ['refer'])
+    // A title one character over 5.7's limit: a content rule, which the /4 file's own schema errors would hide.
+    const tree = JSON.parse(await readFile(file, 'utf8')) as { title: { en: string } }
+    tree.title.en = 'T'.repeat(81)
+    await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
+    const before = await readFile(file)
+
+    await expect(importTree(source, treesDir, null)).rejects.toThrow(TreeInvalid)
+    await expect(importTree(source, treesDir, null)).rejects.toMatchObject({
+      violations: [{ file: 'manifest', keyPath: 'title.en', rule: 'V-LENGTH', message: '81 characters; at most 80' }],
+    })
+    expect(await readFile(file)).toEqual(before)
+    expect(await readdir(treesDir)).toEqual([])
+  })
+
+  test('**[#179]** an elsa-tree/4 folder whose shape the byte form cannot carry is refused with the schema\'s violation, not a TypeError (12.7.1 step 8)', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const treesDir = await folder()
+    const source = path.join(await seedOf([path.join(fixtures, 'carousel'), 'carousel']), 'carousel')
+    const file = path.join(source, 'tree.json')
+    await writeAs4(file, ['refer'])
+    const four = await readFile(file, 'utf8')
+    // The writer of 3.7 walks every list key's value as a list of objects: an object where a
+    // list is, at a Node or at the top, and a list holding null each make it throw.
+    const shapes: Array<[edit: (tree: { nodes: Array<Record<string, unknown>> }) => unknown, keyPath: string, message: string]> = [
+      [(tree) => (tree.nodes[0]!.sources = {}), '/nodes/0/sources', 'must be array'],
+      [(tree) => (tree.nodes[0]!.images = [null]), '/nodes/0/images/0', 'must be object'],
+      [(tree) => Object.assign(tree, { nodes: {} }), '/nodes', 'must be array'],
+    ]
+    for (const [edit, keyPath, message] of shapes) {
+      await writeFile(file, four)
+      await rewrite(file, edit)
+      const before = await readFile(file)
+
+      await expect(importTree(source, treesDir, null)).rejects.toMatchObject({
+        name: 'TreeInvalid',
+        violations: [{ file: 'tree.json', keyPath, rule: 'schema', message }],
+      })
+      expect(await readFile(file)).toEqual(before)
+      expect(await readdir(treesDir)).toEqual([])
+    }
+  })
+})
+
+describe('**[#179]** a data directory written by a release before elsa-tree/5 (36.4)', () => {
+  test('its elsa-tree/4 files are converted before any Tree is opened, one line each, and the Trees are served and editable', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'carousel'), 'carousel'], [path.join(fixtures, 'cycle'), 'cycle']) })
+    for (const id of ['carousel', 'cycle']) {
+      await writeAs4(path.join(data, 'trees', id, 'tree.json'), ['prohibited'])
+      await writeAs4(path.join(data, 'trees', id, 'draft.json'), ['prohibited'])
+    }
+    const meta = await readFile(path.join(data, 'trees', 'cycle', 'meta.json'), 'utf8')
+    log.mockClear()
+
+    const store = await openStore(data, ADMIN)
+
+    expect(conversions(log)).toEqual([
+      'Converted Tree "carousel" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings',
+      'Converted Tree "carousel" draft.json from elsa-tree/4 to elsa-tree/5: 1 endings',
+      'Converted Tree "cycle" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings',
+      'Converted Tree "cycle" draft.json from elsa-tree/4 to elsa-tree/5: 1 endings',
+    ])
+    expect(store.publishedIds()).toEqual(['carousel', 'cycle'])
+    expect(await store.published('carousel')!.getNode('done')).toMatchObject({ kind: 'terminal', label: { en: 'Prohibited', nl: 'Verboden' } })
+    const converted = await readFile(path.join(data, 'trees', 'carousel', 'tree.json'), 'utf8')
+    expect(JSON.parse(converted)).toMatchObject({ $schema: '/schemas/elsa-tree-5.json', format: 'elsa-tree/5' })
+    // The two copies converted alike, so the public copy is still the draft's (19.4).
+    expect(await readFile(path.join(data, 'trees', 'carousel', 'draft.json'), 'utf8')).toBe(converted)
+    // No creator wrote.
+    expect(await readFile(path.join(data, 'trees', 'cycle', 'meta.json'), 'utf8')).toBe(meta)
+    const admin = store.accounts.all().find((account) => account.administrator)!
+    expect(store.drafts.entry(admin, 'carousel')).toMatchObject({ publicCopyCurrent: true, blocking: [] })
+    const written = await store.drafts.write(admin, 'carousel', 'done', { path: 'terminal.label.en', value: 'Not allowed' })
+    expect(written.node!.label).toEqual({ en: 'Not allowed', nl: 'Verboden' })
+
+    // Converted once: the next start finds nothing to do.
+    log.mockClear()
+    await openStore(data, ADMIN)
+    expect(conversions(log)).toEqual([])
+  })
+
+  test('a file the disk will not take is left as it was, its Tree refused, and the start goes on (18.3)', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'carousel'), 'carousel'], [path.join(fixtures, 'cycle'), 'cycle']) })
+    const published = path.join(data, 'trees', 'cycle', 'tree.json')
+    await writeAs4(published, ['refer'])
+    const before = await readFile(published, 'utf8')
+    refusedWrite.file = published
+
+    const store = await openStore(data, ADMIN)
+
+    expect(errors.mock.calls.map((call) => String(call[0]))).toContain(`Not converted: Tree "cycle" tree.json: EIO: i/o error, open '${published}.tmp'`)
+    expect(await readFile(published, 'utf8')).toBe(before)
+    expect(store.publishedIds()).toEqual(['carousel'])
+    expect(store.refused().map(({ id }) => id)).toEqual(['cycle'])
+  })
+
+  test('a file the conversion cannot carry is left as it was: its Tree refused, or held uneditable (18.3, 19.5)', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'carousel'), 'carousel'], [path.join(fixtures, 'cycle'), 'cycle']) })
+    const published = path.join(data, 'trees', 'cycle', 'tree.json')
+    const draft = path.join(data, 'trees', 'carousel', 'draft.json')
+    await writeAs4(published, ['maybe'])
+    await writeAs4(draft, ['maybe'])
+    const before = [await readFile(published, 'utf8'), await readFile(draft, 'utf8')]
+    log.mockClear()
+
+    const store = await openStore(data, ADMIN)
+
+    expect(conversions(log)).toEqual([])
+    expect(errors.mock.calls.map((call) => String(call[0]).split('\n')[0])).toEqual([
+      'Not converted: Tree "carousel" draft.json: the converted file would be invalid:',
+      'Not converted: Tree "cycle" tree.json: the converted file would be invalid:',
+    ])
+    expect([await readFile(published, 'utf8'), await readFile(draft, 'utf8')]).toEqual(before)
+    expect(store.publishedIds()).toEqual(['carousel'])
+    expect(store.refused().map(({ id }) => id)).toEqual(['cycle'])
+    const admin = store.accounts.all().find((account) => account.administrator)!
+    expect(store.drafts.entry(admin, 'carousel').manifest).toBeNull()
+  })
+
+  test('a file whose converted result breaks a rule is left as it was, and the start prints the violations that stopped it (12.7.1 step 8)', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'carousel'), 'carousel'], [path.join(fixtures, 'cycle'), 'cycle']) })
+    const dir = path.join(data, 'trees', 'carousel')
+    const files = [path.join(dir, 'tree.json'), path.join(dir, 'draft.json')]
+    for (const file of files) await writeAs4(file, ['refer'])
+    // A picture missing from images/: a content rule, which the /4 file's own schema errors would
+    // hide, and one a draft is held to as well (19.2).
+    await rm(path.join(dir, 'images', 'barn.svg'))
+    const before = await Promise.all(files.map((file) => readFile(file, 'utf8')))
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const store = await openStore(data, ADMIN)
+
+    const missing = `carousel  two  images[0].file  V-IMAGE  "barn.svg" is not in the Tree's images/ folder`
+    expect(errors.mock.calls.map((call) => String(call[0]))).toEqual([
+      `Not converted: Tree "carousel" tree.json: the converted file would be invalid:\n${missing}`,
+      `Not converted: Tree "carousel" draft.json: the converted file would be invalid:\n${missing}`,
+    ])
+    expect(await Promise.all(files.map((file) => readFile(file, 'utf8')))).toEqual(before)
+    expect(store.publishedIds()).toEqual(['cycle'])
+    expect(store.refused().map(({ id }) => id)).toEqual(['carousel'])
+  })
+
+  test('a file whose shape the byte form cannot carry is left as it was, and the start prints the schema\'s violation, not a TypeError (12.7.1 step 8)', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'carousel'), 'carousel'], [path.join(fixtures, 'cycle'), 'cycle']) })
+    const dir = path.join(data, 'trees', 'carousel')
+    const files = [path.join(dir, 'tree.json'), path.join(dir, 'draft.json')]
+    for (const file of files) {
+      await writeAs4(file, ['refer'])
+      await rewrite(file, (tree) => (tree.nodes[0]!.sources = {}))
+    }
+    const before = await Promise.all(files.map((file) => readFile(file, 'utf8')))
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const store = await openStore(data, ADMIN)
+
+    // The draft schema drops no `type` (19.2), so the draft is stopped by the same violation.
+    const shape = 'carousel  tree.json  /nodes/0/sources  schema  must be array'
+    expect(errors.mock.calls.map((call) => String(call[0]))).toEqual([
+      `Not converted: Tree "carousel" tree.json: the converted file would be invalid:\n${shape}`,
+      `Not converted: Tree "carousel" draft.json: the converted file would be invalid:\n${shape}`,
+    ])
+    expect(await Promise.all(files.map((file) => readFile(file, 'utf8')))).toEqual(before)
+    expect(store.publishedIds()).toEqual(['cycle'])
+    expect(store.refused().map(({ id }) => id)).toEqual(['carousel'])
+    const admin = store.accounts.all().find((account) => account.administrator)!
+    expect(store.drafts.entry(admin, 'carousel').manifest).toBeNull()
   })
 })
 

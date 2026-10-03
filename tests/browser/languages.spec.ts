@@ -126,11 +126,11 @@ test('a complete Dutch Tree: English added in the panel, one to-do per localised
     expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${node}`, { path: 'description.nl', value: `Over ${words}.` })).status()).toBe(200)
   }
   await fill('start', 'Is het zo')
-  for (const [link, outcome] of [['yes', 'applicable'], ['no', 'not-applicable']] as const) {
+  for (const [link, words] of [['yes', 'Van toepassing'], ['no', 'Niet van toepassing']] as const) {
     const created = (await (await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link } })).json()) as { node: { id: string } }
     ends.push(created.node.id)
     await fill(created.node.id, link === 'yes' ? 'Ja dus' : 'Nee dus')
-    expect((await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: created.node.id, link: 'end', outcome } })).status()).toBe(201)
+    expect((await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: created.node.id, link: 'end', label: { nl: words } } })).status()).toBe(201)
   }
   expect(await advisory(page, cookie)).toBe(0)
 
@@ -194,6 +194,8 @@ test('one English title written is one to-do fewer; Publish is refused until eve
     for (const key of ['title.en', 'description.en']) {
       expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${end}`, { path: key, value: `${key} of ${end}` })).status()).toBe(200)
     }
+    // **[#179]** A Terminal's words are one English text more (22.2).
+    expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${end}`, { path: 'terminal.label.en', value: 'It ends here' })).status()).toBe(200)
   }
   expect(await advisory(page, cookie)).toBe(0)
   await page.reload()

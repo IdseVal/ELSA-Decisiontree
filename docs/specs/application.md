@@ -885,6 +885,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   └── Panel.tsx        client: the top panel (33)
 │   ├── tree/measure.ts      [#133] countedText, countedLength, estimatedLines, moved from validate.ts (28.4); pure
 │   ├── tree/grammar.ts      [#137] isId, isLanguageTag, countedText, countedLength: the grammars a form checks before it sends (27.1, 28.4); pure, imports nothing
+│   ├── tree/convert.ts      [#179] convertTree: tree-format.md 12.7.1, elsa-tree/4 to elsa-tree/5, which the migration and the store both run (36.4); pure
 │   ├── session.ts           [#135] authenticated(): the session resolved for a route handler or a page (20.4, 20.6)
 │   └── instrumentation.ts   startup validation (5.4)
 ├── schemas/elsa-tree-4.json [#118] the format's JSON Schema, served at /schemas/ (15.1)
@@ -5150,6 +5151,14 @@ and never writes into the source folder. Nothing keeps the `/4` bytes: `docs/dep
 gains one paragraph asking for a backup of the data directory before the first start of the
 release that carries `elsa-tree/5`.
 
+**[#179] As built (2026-10-03).** The violations that stop a conversion are those of its
+result (`tree-format.md` 12.7.1 step 8). The start prints them in the format of 5.4 under
+`Not converted: Tree "<id>" <file>: the converted file would be invalid:`, and `importTree`
+refuses a `/4` folder with its converted copy's. The file itself stays `/4`, so the Tree's
+refusal and the draft's blocking list -- what the admin area shows -- are what opening that
+file answers: its schema's errors alone, because the schema answers first (`tree-format.md`
+3.9) and the content rules only for a file it accepts.
+
 ### 36.5 Tests (#179)
 
 | File | Asserts |
@@ -5167,6 +5176,17 @@ release that carries `elsa-tree/5`.
 #179's pull request also pastes, from a command, the Terminals counted before the conversion
 against the endings carrying a `label` after it: 108 and 107, as `tree-format.md` 12.7.3
 reconciles them.
+
+**[#179] As built (2026-10-03).** The no-scroll row is `tests/fixtures/full-node`'s `applies`
+Terminal, which says "Mandatory safeguard" / "Maatregelen vereist": that fixture holds every
+maximum of the format at once, and has no Theme, so the runner draws it in the default stack.
+At 480 x 640, which is no viewport of 10.6, the disclaimer takes a second line in its 28-pixel
+row on every page -- the example Tree's root, which has no badge, has the same 659 pixels of
+body in a window of 640, and so does `dev` before #179 (measured on e196d0d) -- a defect #179
+reports and does not fix. So
+at that size the row asserts that the document fits, that nothing but the disclaimer and the
+body it overflows holds more than itself, and that the badge is one line; 10.6's rule is
+asserted in full at the ten viewports.
 
 ## 37. The font and licence dropdowns
 

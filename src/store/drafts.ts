@@ -83,7 +83,7 @@ export interface Drafts {
   draft(by: Account, id: string): Draft
   node(by: Account, id: string, nodeId: string): Promise<NodeView>
   write(by: Account, id: string, nodeId: string | null, change: Field | Operation): Promise<WriteResponse>
-  createNode(by: Account, id: string, from: { node: unknown; link: unknown; outcome?: unknown }, title?: unknown, nodeId?: unknown): Promise<WriteResponse>
+  createNode(by: Account, id: string, from: { node: unknown; link: unknown; label?: unknown }, title?: unknown, nodeId?: unknown): Promise<WriteResponse>
   deleteNode(by: Account, id: string, nodeId: string): Promise<WriteResponse>
   publish(by: Account, id: string, published: boolean): Promise<TreeEntry>
   delete(by: Account, id: string): Promise<void>

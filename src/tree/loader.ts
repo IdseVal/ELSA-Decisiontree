@@ -9,8 +9,8 @@
  */
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
-import type { DraftNode, Explainer, Image, LocalisedText, Manifest, Node, Option, Outcome, Source, Theme, Violation } from './types.ts'
-import { isId, isImageFile, isMapping, isThemeFile, nodeKind, validateTree, type Mapping, type RawTree } from './validate.ts'
+import type { DraftNode, Explainer, Image, LocalisedText, Manifest, Node, Option, Source, Theme, Violation } from './types.ts'
+import { isId, isImageFile, isMapping, isThemeFile, nodeKind, validateTree, type Mapping, type Mode, type RawTree } from './validate.ts'
 
 /**
  * Thrown by `openTree` for a Tree that breaks any validity rule; carries every violation.
@@ -132,13 +132,13 @@ export async function openTree(dir: string, options?: { draft: true }): Promise<
   const id = path.basename(root)
   const violations: Violation[] = []
   if (options?.draft) {
-    const raw = await readTree(root, id, violations, 'draft.json')
+    const raw = await readTree(root, id, violations, 'draft.json', await readText(path.join(root, 'draft.json')))
     if (raw) violations.push(...validateTree(raw, 'draft'))
     const blocking = violations.filter((violation) => !violation.advisory)
     if (!raw || blocking.length > 0) throw new TreeInvalid(id, blocking)
     return draftOf(raw, root, violations)
   }
-  const raw = await readTree(root, id, violations, 'tree.json')
+  const raw = await readTree(root, id, violations, 'tree.json', await readText(path.join(root, 'tree.json')))
   if (raw) violations.push(...validateTree(raw))
   if (!raw || violations.length > 0) throw new TreeInvalid(id, violations)
 
@@ -164,6 +164,21 @@ export async function openTree(dir: string, options?: { draft: true }): Promise<
         ? path.join(root, 'theme', file)
         : null,
   }
+}
+
+/**
+ * **[#179]** The violations `openTree` would answer if `text` were the Tree folder `dir`'s
+ * `tree.json` -- or, in `draft` mode, its `draft.json`, the advisory ones among them -- asked
+ * before a byte of it is written: the store writes a converted file only when it passes
+ * (application.md 36.4). The folder is read as the loader reads it, so this is the loader's
+ * one answer to "would this file open here", not a second one that can drift from it.
+ */
+export async function violationsOf(dir: string, text: string, mode: Mode): Promise<Violation[]> {
+  const root = path.resolve(dir)
+  const violations: Violation[] = []
+  const raw = await readTree(root, path.basename(root), violations, mode === 'draft' ? 'draft.json' : 'tree.json', text)
+  if (raw) violations.push(...validateTree(raw, mode))
+  return violations
 }
 
 /**
@@ -203,13 +218,15 @@ export function draftOf(raw: RawTree, root: string, advisory: Violation[]): Draf
   }
 }
 
-/** Reads and parses the Tree folder's `name` -- `tree.json`, or a draft's `draft.json` -- reporting V-DIR and V-JSON. */
-async function readTree(root: string, id: string, violations: Violation[], name: 'tree.json' | 'draft.json'): Promise<RawTree | null> {
+/**
+ * Parses `text`, the Tree folder's `name` -- `tree.json`, or a draft's `draft.json`; null when
+ * it could not be read -- reporting V-DIR and V-JSON. The caller reads the file, spelling
+ * its path out rather than joining it from `name`: see the two folders below.
+ */
+async function readTree(root: string, id: string, violations: Violation[], name: 'tree.json' | 'draft.json', text: string | null): Promise<RawTree | null> {
   const fail = (where: string, rule: string, message: string): void => {
     violations.push({ file: where, keyPath: '', rule, message })
   }
-  // Spelled out rather than joined from `name`: see the two folders below.
-  const text = await readText(name === 'tree.json' ? path.join(root, 'tree.json') : path.join(root, 'draft.json'))
   if (!isId(id)) fail('', 'V-DIR', `folder name "${id}" is not an id: lowercase letters, digits and single hyphens`)
   if (text === null) fail(name, 'V-DIR', `${name} is missing`)
   // The two names are spelled out rather than looped over: a `path.join` whose last segment
@@ -388,7 +405,7 @@ function referencedThemeFiles(theme: Theme | undefined): Set<string> {
 function toManifest(raw: Mapping): Manifest {
   const languages = raw.languages as string[]
   return {
-    format: 'elsa-tree/4',
+    format: 'elsa-tree/5',
     languages,
     defaultLanguage: languages[0]!,
     root: raw.root as string,
@@ -417,7 +434,7 @@ function toDraftNode(raw: Mapping): DraftNode {
     kind: nodeKind(raw),
   }
   if ('answers' in raw) return { ...node, answers: raw.answers as DraftNode['answers'] }
-  if ('terminal' in raw) return { ...node, outcome: (raw.terminal as { outcome: Outcome }).outcome }
+  if ('terminal' in raw) return { ...node, label: (raw.terminal as { label: LocalisedText }).label }
   return node
 }
 
@@ -436,7 +453,7 @@ function toNode(raw: Mapping): Node {
     case 'question':
       return { ...common, kind: 'question', answers: raw.answers as { yes: string; no: string } }
     case 'terminal':
-      return { ...common, kind: 'terminal', outcome: (raw.terminal as { outcome: Outcome }).outcome }
+      return { ...common, kind: 'terminal', label: (raw.terminal as { label: LocalisedText }).label }
     case 'explanation':
       return { ...common, kind: 'explanation' }
   }

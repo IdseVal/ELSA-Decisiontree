@@ -2,8 +2,8 @@
  * One Node as the Bubble (docs/specs/application.md 10.1, 10.3): the round element in the
  * centre of the tree view, holding the Node's Interior in its text area; above it the up
  * arrow where the page has a way back; and on its rim -- outside the text area, so the
- * format's length limits stand -- the one chrome element a Node kind adds: a Terminal's
- * outcome badge above. (An explanation Node's hint went with the side slide,
+ * format's length limits stand -- the one element a Node kind adds: a Terminal's ending
+ * badge above, **[#179]** holding the Terminal's own words. (An explanation Node's hint went with the side slide,
  * 10.9: an explanation Node opens in an Overlay, and is the centre only when a path names
  * no parent for it.)
  *
@@ -36,18 +36,10 @@ import type { ReactNode } from 'react'
 import { text, type Chrome, type ChromeString } from '../chrome.ts'
 import type { EditMode } from '../editor/mode.ts'
 import { richTextToHtml } from '../markdown.ts'
-import { linksOf, type DraftNode, type Node, type NodeContent, type Outcome, type Source } from '../tree/types.ts'
+import { linksOf, type DraftNode, type Node, type NodeContent, type Source } from '../tree/types.ts'
 import { PUBLIC_LINKS } from '../url.ts'
 import { Explainer } from './Explainer.tsx'
 import { Sheet, type SheetWords } from './Sheet.tsx'
-
-/** The chrome key that names each Terminal outcome (tree-format.md 5.5); the editor's select takes it too. */
-export const OUTCOME_LABEL: Record<Outcome, ChromeString> = {
-  'not-applicable': 'outcomeNotApplicable',
-  applicable: 'outcomeApplicable',
-  prohibited: 'outcomeProhibited',
-  refer: 'outcomeRefer',
-}
 
 /** The maximum lengths of tree-format.md 5.7 the Interior's fields are counted against (28.1). */
 const LIMIT = {
@@ -56,6 +48,7 @@ const LIMIT = {
   sourceLabel: { characters: 60 },
   imageDescription: { characters: 120 },
   credit: { characters: 120 },
+  terminalLabel: { characters: 19 },
 } as const
 
 /** The most Sources a Node may hold (5.7): `+ addSource` is absent at that many. */
@@ -98,11 +91,11 @@ export function Bubble({
     <article className={`bubble bubble--${node.kind}`} lang={lang} data-node={node.id}>
       {up}
       {edit?.slots.stepButtons?.(node)}
+      {/* **[#179]** The ending's own words, Tree content in the page's language (36.1); the class
+          is still `outcome`, one class for every ending. */}
       {links.terminal !== undefined &&
-        (edit?.slots.field?.(node, 'terminal.outcome', links.terminal, null) ?? (
-          <p className={`outcome outcome--${links.terminal}`} lang={uiLang}>
-            {ui[OUTCOME_LABEL[links.terminal]]}
-          </p>
+        (edit?.slots.field?.(node, 'terminal.label', links.terminal[lang] ?? '', LIMIT.terminalLabel) ?? (
+          <p className="outcome">{text(links.terminal, lang, `${node.id}.terminal.label`)}</p>
         ))}
 
       <div className="bubble-text">

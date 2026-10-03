@@ -429,16 +429,17 @@ describe('the content of the first Tree', () => {
       for (const id of terminals) expect(reached.has(id), `${id} cannot be reached by answering`).toBe(true)
     })
 
-    test('the four Terminals carry the outcomes the walk earns', () => {
-      const outcome = (id: string): string => {
+    // **[#179]** The words 12.7 gave the four outcomes the walk earns: their badges' words (12.7.3).
+    test('the four Terminals carry the words their badges showed', () => {
+      const words = (id: string): Record<string, string> => {
         const node = nodes.get(id)!
         expect(node.kind, `${id} is not a Terminal`).toBe('terminal')
-        return (node as Node & { kind: 'terminal' }).outcome
+        return (node as Node & { kind: 'terminal' }).label
       }
-      expect(outcome('ai-act-does-not-apply')).toBe('not-applicable')
-      expect(outcome('not-an-ai-system')).toBe('refer')
-      expect(outcome('prohibited')).toBe('prohibited')
-      expect(outcome('end-of-walk')).toBe('applicable')
+      expect(words('ai-act-does-not-apply')).toEqual({ en: 'Does not apply', nl: 'Niet van toepassing' })
+      expect(words('not-an-ai-system')).toEqual({ en: 'Look elsewhere', nl: 'Elders geregeld' })
+      expect(words('prohibited')).toEqual({ en: 'Prohibited', nl: 'Verboden' })
+      expect(words('end-of-walk')).toEqual({ en: 'Applies', nl: 'Van toepassing' })
     })
 
     test('a high-risk finding carries on into the general-purpose AI and transparency steps', () => {

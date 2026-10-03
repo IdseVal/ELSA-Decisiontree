@@ -2,7 +2,7 @@
 
 `tree.json` is section 8 of `docs/specs/tree-format.md` verbatim -- byte for byte, which
 `tests/migrate-tree.test.ts` and the section's own words hold it to: the complete example
-Tree of the `elsa-tree/4` contract, in English and Dutch. It is the development default
+Tree of the `elsa-tree/5` contract, in English and Dutch. It is the development default
 and the Tree the loader tests load, so it is kept identical to the spec -- change the
 spec first, then this file. Its legal content is simplified and not to be relied on.
 
@@ -10,6 +10,11 @@ Issue #119 converted it from `elsa-tree/3` by the procedure of 12.6. One sentenc
 with it, and only because it is about the format rather than about the AI Act: the
 manifest description said "every element of the `elsa-tree/3` format" and now says
 `elsa-tree/4` (12.6.2). Nothing else in the Tree differs by a character.
+
+Issue #179 converted it from `elsa-tree/4` to `elsa-tree/5` by the procedure of 12.7: its
+three Terminals carry the words their badges showed, `terminal.label` in place of
+`terminal.outcome`, and the same sentence of the description now says `elsa-tree/5`, changed
+by hand as before.
 
 It was written rather than converted from its `elsa-tree/1` folder, as
 `docs/specs/tree-format.md` 12.3 asks (#39): its old Nodes exceeded the new length

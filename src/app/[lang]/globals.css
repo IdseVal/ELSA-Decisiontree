@@ -776,7 +776,7 @@ a.language:hover,
   display: block;
 }
 
-/* --- the rim: the up arrow and the outcome badge above (10.1) -------------------- */
+/* --- the rim: the up arrow and the ending badge above (10.1) --------------------- */
 
 /*
  * The way back (10.2), in the Answer buttons' style: filled with the walk's controls' colour
@@ -816,7 +816,11 @@ a.language:hover,
   box-shadow: 0 0 0 2px var(--elsa-background), 0 0 0 4px var(--elsa-accent-secondary);
 }
 
-/* The badge sits in the half of the band left of the arrow, so the two never meet (10.1). */
+/*
+ * The badge sits in the half of the band left of the arrow, so the two never meet (10.1).
+ * **[#179]** It holds the Terminal's own words, and every ending is drawn alike: the text,
+ * the border and the Terminal's outline in the accent's reading shade (36.1).
+ */
 .outcome {
   position: absolute;
   top: 2px;
@@ -838,24 +842,8 @@ a.language:hover,
   color: var(--accent-read);
 }
 
-.outcome--not-applicable {
-  color: var(--elsa-text-muted);
-}
-
-.outcome--applicable {
-  color: var(--accent-secondary-read);
-}
-
-.outcome--prohibited {
-  color: var(--danger-read);
-}
-
 .bubble--terminal {
   border-color: var(--accent-read);
-}
-
-.bubble--terminal:has(.outcome--prohibited) {
-  border-color: var(--elsa-danger);
 }
 
 /* --- Sources: a heading and two lines inside the text area, or one control (10.5, step 6) */
@@ -2576,6 +2564,14 @@ fieldset:disabled .admin-submit {
     --bubble-radius: 120px;
   }
 
+  /*
+   * **[#179]** The badge's type steps down as the rest does: 19 characters hold one line in its
+   * room of 198 pixels at 480 wide, in every face measured, DejaVu Sans Bold included (36.1).
+   */
+  .outcome {
+    letter-spacing: 0.04em;
+  }
+
   .overlay > .sheet-panel {
     padding: 8px 12px;
   }
@@ -2940,7 +2936,7 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text-muted);
 }
 
-/* A select drawn where the badge or the kind stood: the same box, the browser's arrow kept. */
+/* A select drawn where the kind stood: the same box, the browser's arrow kept. */
 .editor-select {
   max-width: 100%;
   font: inherit;
@@ -2952,12 +2948,33 @@ fieldset:disabled .admin-submit {
   cursor: pointer;
 }
 
-/* The outcome badge as a select (28.1): the badge's own look, the select's behaviour. */
-.editor-select.outcome {
+/*
+ * **[#179]** A Terminal's words as a field (36.3): the region is the badge's own box, placed and
+ * drawn by `.outcome`, and as wide as what it shows -- the words, or the placeholder -- so that,
+ * blurred, it is the badge as the public page draws it and nothing on the rim moves. The mirror
+ * sets the box; the text box lies over it, so it adds no width of its own. Focused, the words
+ * are shown as typed, without the capitals.
+ */
+.editor-field.outcome {
+  border-radius: 999px;
+}
+
+.editor-field.outcome .editor-text {
+  position: relative;
+  width: auto;
+}
+
+.editor-field.outcome .editor-text::after {
+  width: auto;
+}
+
+.editor-field.outcome .editor-input {
   position: absolute;
-  appearance: none;
-  padding: 0 14px;
-  cursor: pointer;
+  inset: 0;
+}
+
+.editor-field--focused.outcome {
+  text-transform: none;
 }
 
 /*
@@ -3135,8 +3152,9 @@ fieldset:disabled .admin-submit {
   padding: 0 8px;
 }
 
-/* The URL of a Source to add (28.1): the one input of the editor that is not a field. */
-/* **[#172]** Its text, longer than the box, ends in an ellipsis while it is not being typed in. */
+/* The editor's inputs that are not fields: the URL of a Source to add (28.1), **[#140]** a picture's
+   credit and description in the attach Sheet, and **[#179]** the ending's words (36.3). */
+/* **[#172]** Their text, longer than the box, ends in an ellipsis while it is not being typed in. */
 .editor-url {
   width: 100%;
   min-width: 0;
@@ -3848,7 +3866,7 @@ fieldset:disabled .admin-submit {
   justify-content: center;
 }
 
-/* The Sheets' pages: the outcomes, the confirmations. */
+/* The Sheets' pages: **[#179]** the ending's words, the confirmations. */
 .structure-form {
   display: flex;
   flex-direction: column;
@@ -3872,27 +3890,17 @@ fieldset:disabled .admin-submit {
   margin: 0;
 }
 
-.structure-outcomes {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.structure-outcomes label {
+/* **[#179]** The ending's field, and its counter on it as on every field's rim (36.3). */
+.structure-ending-field {
   display: flex;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
+  gap: 8px;
 }
 
-/* The badge's own look, in the list instead of on the rim. */
-.structure-outcome.outcome {
-  position: static;
-  margin: 0;
-  max-width: none;
+.structure-ending-count.editor-pill {
+  flex-direction: row;
+  width: auto;
+  padding: 1px 8px;
 }
 
 .structure-actions {

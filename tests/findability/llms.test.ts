@@ -100,7 +100,7 @@ describe('the Trees', () => {
     const lines = section(await generate([example, dutch]), 'The Trees')
 
     expect(lines).toEqual([
-      `- [${example.manifest.title.en}](https://elsa.example.org/ai-act-example/start): A small example Tree that exercises every element of the \`elsa-tree/4\` format. Its legal content is simplified and not to be relied on.`,
+      `- [${example.manifest.title.en}](https://elsa.example.org/ai-act-example/start): A small example Tree that exercises every element of the \`elsa-tree/5\` format. Its legal content is simplified and not to be relied on.`,
       `- [${dutch.manifest.title.nl}](https://elsa.example.org/single-language/${dutch.manifest.root}): ${lines[1]!.split('): ')[1]}`,
     ])
     // A Dutch-default Tree is listed in Dutch: its own language, not the chrome's.
@@ -146,7 +146,7 @@ describe('what the file points at', () => {
     expect(lines).toHaveLength(3)
     expect(lines[0]).toContain(`- [${example.manifest.title.en}: the Tree file](https://elsa.example.org/ai-act-example/tree.json):`)
     expect(lines[1]).toContain('(https://elsa.example.org/single-language/tree.json):')
-    expect(lines[2]).toContain('- [The JSON Schema](https://elsa.example.org/schemas/elsa-tree-4.json):')
+    expect(lines[2]).toContain('- [The JSON Schema](https://elsa.example.org/schemas/elsa-tree-5.json):')
   })
 
   test('walking a Tree gives the overview, the sitemap and the URL grammar', async () => {

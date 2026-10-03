@@ -405,13 +405,13 @@ test('published, the side bubble walks on the public page: its button with its t
     expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${id}`, change)).status()).toBe(200)
   }
   // The rest of a Tree Publish takes (19.3): the root's two Answers, each an end, and every text.
-  for (const [link, outcome] of [
-    ['yes', 'applicable'],
-    ['no', 'not-applicable'],
+  for (const [link, words] of [
+    ['yes', 'Applies'],
+    ['no', 'Does not apply'],
   ] as const) {
-    const made = (await (await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link }, title: { en: `It is ${outcome}` } })).json()) as { node: { id: string } }
-    expect((await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: made.node.id, link: 'end', outcome } })).status()).toBe(201)
-    await write(made.node.id, { path: 'description.en', value: `The Act is ${outcome} here.` })
+    const made = (await (await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link }, title: { en: `It ends: ${words}` } })).json()) as { node: { id: string } }
+    expect((await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: made.node.id, link: 'end', label: { en: words } } })).status()).toBe(201)
+    await write(made.node.id, { path: 'description.en', value: `The Act: ${words}.` })
   }
   await write('start', { path: 'title.en', value: 'Is it placed on the market?' })
   await write('start', { path: 'description.en', value: 'The first question.' })

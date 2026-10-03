@@ -9,7 +9,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import schemaDocument from '../schemas/elsa-tree-4.json' with { type: 'json' }
+import schemaDocument from '../schemas/elsa-tree-5.json' with { type: 'json' }
 import { openTree, TreeInvalid } from '../src/tree/loader.ts'
 import { treeBytes } from '../src/tree/serialise.ts'
 import { draftSchema, validateTree, type Mapping } from '../src/tree/validate.ts'
@@ -18,8 +18,8 @@ import { draftSchema, validateTree, type Mapping } from '../src/tree/validate.ts
 function validTree(): Mapping {
   const text = (en: string): Record<string, string> => ({ en, nl: `${en} (nl)` })
   return {
-    $schema: '/schemas/elsa-tree-4.json',
-    format: 'elsa-tree/4',
+    $schema: '/schemas/elsa-tree-5.json',
+    format: 'elsa-tree/5',
     languages: ['en', 'nl'],
     root: 'start',
     title: text('A Tree'),
@@ -34,8 +34,8 @@ function validTree(): Mapping {
         answers: { yes: 'yes-end', no: 'no-end' },
         options: [{ title: text('More'), target: 'aside' }],
       },
-      { id: 'yes-end', title: text('Yes'), description: text('Yes.'), metadata: { version: '1' }, terminal: { outcome: 'applicable' } },
-      { id: 'no-end', title: text('No'), description: text('No.'), metadata: { version: '1' }, terminal: { outcome: 'not-applicable' } },
+      { id: 'yes-end', title: text('Yes'), description: text('Yes.'), metadata: { version: '1' }, terminal: { label: text('Applies') } },
+      { id: 'no-end', title: text('No'), description: text('No.'), metadata: { version: '1' }, terminal: { label: text('Does not apply') } },
       { id: 'aside', title: text('Aside'), description: text('An aside.'), metadata: { version: '1' } },
     ],
   }
@@ -43,6 +43,8 @@ function validTree(): Mapping {
 
 type Nodes = Array<Record<string, unknown>>
 const node = (tree: Mapping, id: string): Record<string, unknown> => (tree.nodes as Nodes).find((n) => n.id === id)!
+/** **[#179]** The words of the Terminal `id` (tree-format.md 5.5). */
+const label = (tree: Mapping, id: string): Record<string, string> => (node(tree, id).terminal as { label: Record<string, string> }).label
 
 function check(tree: Mapping, mode: 'draft' | 'published') {
   return validateTree({ id: 't', tree, images: new Set(['photo.png']), themeFiles: new Set() }, mode)
@@ -70,13 +72,17 @@ const ADVISORY: Array<[string, string, (tree: Mapping) => void]> = [
   ['an empty image description', 'V-L10N', (t) => ((((node(t, 'start').images as Nodes)[0]!).description as Record<string, string>).en = '')],
   ['an explainer not marked', 'V-EXPLAINER', (t) => (node(t, 'start').explainers = [{ id: 'term', term: { en: 'a', nl: 'b' }, text: { en: 'c', nl: 'd' } }])],
   ['a mark to a removed explainer', 'V-MARK', (t) => ((node(t, 'start').description as Record<string, string>).en = 'See [this](#gone).')],
-  ['an unreachable Node', 'V-REACH', (t) => (t.nodes as Nodes).push({ id: 'lost', title: { en: 'a', nl: 'b' }, description: { en: 'a', nl: 'b' }, metadata: { version: '1' }, terminal: { outcome: 'refer' } })],
+  ['an unreachable Node', 'V-REACH', (t) => (t.nodes as Nodes).push({ id: 'lost', title: { en: 'a', nl: 'b' }, description: { en: 'a', nl: 'b' }, metadata: { version: '1' }, terminal: { label: { en: 'a', nl: 'b' } } })],
   ['an aside no Option targets', 'V-ORPHAN', (t) => delete node(t, 'start').options],
+  // **[#179]** V-TERMINAL's Draft column: the words' empty languages and length advise.
+  ['an ending not written yet in one language', 'V-L10N', (t) => (label(t, 'yes-end').nl = '')],
+  ['an ending over its 19 characters', 'V-LENGTH', (t) => (label(t, 'yes-end').en = 'Mandatory safeguards')],
 ]
 
 /** One state per blocking row: refused in a draft as in full. */
 const BLOCKING: Array<[string, string, (tree: Mapping) => void]> = [
-  ['a wrong format', 'schema', (t) => (t.format = 'elsa-tree/5')],
+  // **[#179]** `/5` is the right one now.
+  ['a wrong format', 'schema', (t) => (t.format = 'elsa-tree/6')],
   ['a null', 'schema', (t) => (node(t, 'aside').metadata = null)],
   ['an empty array', 'schema', (t) => (node(t, 'aside').sources = [])],
   ['an empty languages list', 'schema', (t) => (t.languages = [])],
@@ -86,6 +92,11 @@ const BLOCKING: Array<[string, string, (tree: Mapping) => void]> = [
   ['an empty answers object', 'V-EMPTY', (t) => (node(t, 'start').answers = {})],
   ['an id used twice', 'V-NODE', (t) => (node(t, 'no-end').id = 'yes-end')],
   ['a Terminal with Options', 'schema', (t) => (node(t, 'yes-end').options = [{ title: { en: 'a', nl: 'b' }, target: 'aside' }])],
+  // **[#179]** V-TERMINAL's shape blocks: the words are required, and an outcome is no key of /5.
+  ['an outcome in place of the words', 'schema', (t) => (node(t, 'yes-end').terminal = { outcome: 'applicable' })],
+  ['an outcome beside the words', 'schema', (t) => ((node(t, 'yes-end').terminal as Mapping).outcome = 'applicable')],
+  ['an ending without words', 'schema', (t) => (node(t, 'yes-end').terminal = {})],
+  ['an ending on two lines', 'V-PLAIN', (t) => (label(t, 'yes-end').en = 'Does not\napply')],
   ['an Answer to nothing', 'V-ANSWERS', (t) => ((node(t, 'start').answers as Record<string, string>).no = 'nowhere')],
   ['an Option to nothing', 'V-OPTIONS', (t) => (((node(t, 'start').options as Nodes)[0]!).target = 'nowhere')],
   ['an Option listed twice', 'V-OPTIONS', (t) => (node(t, 'start').options = [{ title: { en: 'a', nl: 'b' }, target: 'aside' }, { title: { en: 'c', nl: 'd' }, target: 'aside' }])],

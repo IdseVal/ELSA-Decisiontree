@@ -1,6 +1,12 @@
 /**
- * `npm run migrate <tree-folder>`: writes a Tree's `tree.json` in the canonical byte form
- * of docs/specs/tree-format.md 3.7 and validates the result.
+ * `npm run migrate <tree-folder>`: converts a Tree's `tree.json` from `elsa-tree/4` to
+ * `elsa-tree/5` (docs/specs/tree-format.md 12.7), writes it in the canonical byte form of
+ * 3.7 and validates the result.
+ *
+ * **[#179]** The conversion is `convertTree` of `src/tree/convert.ts`, the function the store
+ * runs on the files it opens (application.md 36.4), between the read of 12.7.1 step 1 and
+ * the write of step 7. A file that is not `elsa-tree/4` -- `elsa-tree/5` included -- is not
+ * converted, and the report says what format it found; the byte form is written all the same.
  *
  * This is what is left of the migration of section 12 after issue #119 ran it. Its steps 5
  * to 8 -- the key order, the byte form, the read-back and the validation -- are these; its
@@ -24,6 +30,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { formatViolation, openTree, readTreeText, TreeInvalid } from '../src/tree/loader.ts'
 import type { Violation } from '../src/tree/types.ts'
+import { convertTree, type Conversion } from '../src/tree/convert.ts'
 import { bytes, treeBytes, VALUE } from '../src/tree/serialise.ts'
 import { isMapping } from '../src/tree/validate.ts'
 
@@ -34,6 +41,12 @@ export interface Migration {
   rewritten: boolean
   /** The Node ids written, in the order they stand in `nodes`. */
   ids: string[]
+  /**
+   * **[#179]** What the conversion of 12.7 did: the file's own `format` -- only an
+   * `elsa-tree/4` file is converted (12.7.1 step 2) -- the Terminals given their words, and
+   * those left as they were. Null when the job stopped before it, for one of the `notes`.
+   */
+  conversion: Omit<Conversion, 'tree'> | null
   /**
    * What stopped the job before anything was written (12.6.1): a text the loader will not
    * read -- a syntax error, a byte-order mark or a duplicate key (step 1) -- a `metadata`
@@ -62,15 +75,16 @@ export interface Migration {
 export async function migrateTree(dir: string): Promise<Migration> {
   const file = path.join(path.resolve(dir), 'tree.json')
   const before = await readFile(file, 'utf8').catch(() => null)
-  if (before === null) return { rewritten: false, ids: [], notes: [`${path.basename(file)} is missing`], violations: [] }
+  if (before === null) return { rewritten: false, ids: [], conversion: null, notes: [`${path.basename(file)} is missing`], violations: [] }
 
   const { value: parsed, problem } = readTreeText(before)
-  if (problem !== null) return { rewritten: false, ids: [], notes: [problem], violations: [] }
+  if (problem !== null) return { rewritten: false, ids: [], conversion: null, notes: [problem], violations: [] }
 
   const stopped = refusals(parsed)
-  if (stopped.length > 0) return { rewritten: false, ids: [], notes: stopped, violations: [] }
+  if (stopped.length > 0) return { rewritten: false, ids: [], conversion: null, notes: stopped, violations: [] }
 
-  const tree = parsed as Record<string, unknown>
+  const { tree: converted, ...conversion } = convertTree(parsed as Record<string, unknown>)
+  const tree = converted ?? (parsed as Record<string, unknown>)
   const after = treeBytes(tree)
   if (after !== before) await writeFile(file, after, 'utf8')
 
@@ -78,6 +92,7 @@ export async function migrateTree(dir: string): Promise<Migration> {
   return {
     rewritten: after !== before,
     ids: nodes.map((node) => String(node.id)),
+    conversion,
     notes: [],
     violations: await validated(path.dirname(file)),
   }
@@ -163,16 +178,20 @@ async function validated(dir: string): Promise<Violation[]> {
   }
 }
 
-/** The report: one line per note, one per violation, then one line of summary. */
+/** The report: one line per note, per Terminal left as it was and per violation, then one line of summary. */
 function report(treeId: string, migration: Migration): void {
   for (const note of migration.notes) console.error(`${treeId}  ${note}`)
+  for (const left of migration.conversion?.left ?? []) console.error(`${treeId}  ${left}`)
   for (const violation of migration.violations) console.error(formatViolation(treeId, violation))
-  if (migration.notes.length > 0) return
+  if (migration.conversion === null) return
   const counts = new Map<string, number>()
   for (const violation of migration.violations) counts.set(violation.rule, (counts.get(violation.rule) ?? 0) + 1)
   const summary = [...counts].map(([rule, count]) => `${count} ${rule}`).join(', ')
   const wrote = migration.rewritten ? 'rewritten' : 'already in the canonical byte form'
-  console.log(`${treeId}: ${migration.ids.length} Nodes, ${wrote}; ${summary || 'valid'}`)
+  const { format, endings } = migration.conversion
+  // 12.7.1 step 2: a file that is not `elsa-tree/4` is reported with what it found.
+  const converted = format === 'elsa-tree/4' ? `converted from elsa-tree/4 to elsa-tree/5, ${endings} endings` : `format ${JSON.stringify(format)}, not converted`
+  console.log(`${treeId}: ${converted}; ${migration.ids.length} Nodes, ${wrote}; ${summary || 'valid'}`)
 }
 
 async function main(): Promise<void> {

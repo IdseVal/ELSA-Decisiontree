@@ -1198,6 +1198,12 @@ bytes against the block's 11,054:
        }
 ```
 
+**[#179] Done (2026-10-03).** #179 converted `trees/ai-act-example/tree.json` by 12.7, changed
+its description's sentence about the format by hand, and put the result in the block below in
+the same commit: the `elsa-tree/5` file, byte for byte, differing from the `elsa-tree/4` block
+it replaces in exactly the lines of the diff above, and valid against
+`schemas/elsa-tree-5.json`.
+
 Folder layout:
 
 ```
@@ -1247,8 +1253,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-4.json",
-  "format": "elsa-tree/4",
+  "$schema": "/schemas/elsa-tree-5.json",
+  "format": "elsa-tree/5",
   "languages": [
     "en",
     "nl"
@@ -1259,8 +1265,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
     "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
   },
   "description": {
-    "en": "A small example Tree that exercises every element of the `elsa-tree/4` format.\nIts legal content is simplified and not to be relied on.",
-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/4`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
   "metadata": {
     "version": "2.0",
@@ -1379,7 +1385,10 @@ reader of the contract finds it; what an author needs to keep beside the data go
         }
       ],
       "terminal": {
-        "outcome": "not-applicable"
+        "label": {
+          "en": "Does not apply",
+          "nl": "Niet van toepassing"
+        }
       }
     },
     {
@@ -1545,7 +1554,10 @@ reader of the contract finds it; what an author needs to keep beside the data go
         }
       ],
       "terminal": {
-        "outcome": "prohibited"
+        "label": {
+          "en": "Prohibited",
+          "nl": "Verboden"
+        }
       }
     },
     {
@@ -1572,7 +1584,10 @@ reader of the contract finds it; what an author needs to keep beside the data go
         }
       ],
       "terminal": {
-        "outcome": "applicable"
+        "label": {
+          "en": "Applies",
+          "nl": "Van toepassing"
+        }
       }
     }
   ]
@@ -2165,6 +2180,14 @@ in the text. Issue #179 runs it and commits the result.
 After #179, 107 Terminals carry a `label`, and the 108th, `v-terminal`'s, is the defect it was
 built to carry; and once the four are re-fitted by hand, no file under `trees/` or
 `tests/fixtures/` names `elsa-tree/4`.
+
+**[#179] As built (2026-10-03).** `npm run migrate` over the 56 folders converted 51 files and
+labelled 99 Terminals, not 101. Besides the three files step 1 stops on, it refused
+`broken/metadata-all-digits` (2 Terminals) by 12.6.1 step 5, which refuses a `metadata` key
+made only of digits -- and rightly: written in the byte form, that file's key `"2024"` moves in
+front of `"version"` (3.7), which would change more than the conversion. #179 re-fitted it by
+hand as it did the four above, with its defect kept. So 99 Terminals were labelled by the
+command and 8 by hand: the 107 above.
 
 #### 12.7.4 What it does for a deployment's data directory
 

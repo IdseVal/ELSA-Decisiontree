@@ -52,7 +52,7 @@ describe('a Tree in two languages', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/4')
+    expect(tree.manifest.format).toBe('elsa-tree/5')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
@@ -159,16 +159,17 @@ describe('a Tree in two languages', () => {
     expect(node!.kind).toBe('explanation')
     expect(node!.sources.map((source) => source.kind)).toEqual(['legal', 'case-law', 'literature'])
     expect(node!).not.toHaveProperty('answers')
-    expect(node!).not.toHaveProperty('outcome')
+    expect(node!).not.toHaveProperty('label')
   })
 
-  test('a Terminal carries its outcome', async () => {
+  test('**[#179]** a Terminal carries its own words in every language (tree-format.md 5.5)', async () => {
     const tree = await openTree(exampleTree)
     const node = await tree.getNode('prohibited')
 
     expect(node!.kind).toBe('terminal')
     if (node!.kind !== 'terminal') throw new Error('unreachable')
-    expect(node!.outcome).toBe('prohibited')
+    expect(node!.label).toEqual({ en: 'Prohibited', nl: 'Verboden' })
+    expect(node!).not.toHaveProperty('outcome')
     expect(node!.options).toEqual([])
   })
 
@@ -500,7 +501,7 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
       ],
     ],
     [
-      // The half of V-TERMINAL that `invalid/v-terminal/` (a bad outcome) does not reach.
+      // The half of V-TERMINAL that `invalid/v-terminal/` (an outcome, which /5 has no key for) does not reach.
       // The schema states it as `options: false` under `dependentSchemas.terminal`, so the
       // pointer names the key and the words are the schema's (tree-format.md 3.9).
       'terminal-with-options',
@@ -522,7 +523,7 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
       ],
     ],
     [
-      // The one rule of elsa-tree/4 a valid elsa-tree/3 Tree could trip (12.6.2). Ajv says
+      // The one rule of elsa-tree/4 (and /5) a valid elsa-tree/3 Tree could trip (12.6.2). Ajv says
       // it twice, once for the `not` and once for the key it fired on; both are the schema's.
       'metadata-all-digits',
       [
@@ -752,6 +753,70 @@ describe('the Node index the sitemap reads (#118)', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.filePath).toBe(path.join(exampleTree, 'tree.json'))
-    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/4')
+    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/5')
+  })
+})
+
+describe('**[#179]** a Terminal\'s words are a plain localised text of at most 19 characters (V-TERMINAL, application.md 36.5)', () => {
+  /** The violations of a copy of `carousel`, whose one Terminal `done` (the fourth Node) is given `terminal`. */
+  async function withTerminal(terminal: unknown): Promise<Violation[]> {
+    const work = await mkdtemp(path.join(tmpdir(), 'elsa-ending-'))
+    try {
+      const dir = path.join(work, 'carousel')
+      await cp(fixture('carousel'), dir, { recursive: true })
+      const file = path.join(dir, 'tree.json')
+      const tree = JSON.parse(await readFile(file, 'utf8')) as { nodes: Array<Record<string, unknown>> }
+      expect(tree.nodes[3]!.id).toBe('done')
+      tree.nodes[3]!.terminal = terminal
+      await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
+      return await violationsOf(dir)
+    } finally {
+      await rm(work, { recursive: true, force: true })
+    }
+  }
+
+  test('19 characters are within the limit, and 20 are V-LENGTH at terminal.label.<lang>', async () => {
+    const tree = await openTree(fixture('carousel'))
+    expect((await tree.getNode('done'))!).toMatchObject({ label: { en: 'Does not apply', nl: 'Niet van toepassing' } })
+
+    expect(await withTerminal({ label: { en: 'Mandatory safeguards', nl: 'Maatregelen vereist' } })).toEqual([
+      { file: 'done', keyPath: 'terminal.label.en', rule: 'V-LENGTH', message: '20 characters; at most 19' },
+    ])
+  })
+
+  test('a language missing or only spaces is V-L10N, and one the manifest does not declare too', async () => {
+    expect(await withTerminal({ label: { en: 'Applies' } })).toEqual([
+      { file: 'done', keyPath: 'terminal.label.nl', rule: 'V-L10N', message: 'missing or empty text for the declared language "nl"' },
+    ])
+    expect(await withTerminal({ label: { en: 'Applies', nl: '   ' } })).toEqual([
+      { file: 'done', keyPath: 'terminal.label.nl', rule: 'V-L10N', message: 'missing or empty text for the declared language "nl"' },
+    ])
+    expect(await withTerminal({ label: { en: 'Applies', nl: 'Van toepassing', de: 'Gilt' } })).toEqual([
+      { file: 'done', keyPath: 'terminal.label.de', rule: 'V-L10N', message: '"de" is not a language the manifest declares' },
+    ])
+  })
+
+  test('a line break is V-PLAIN: the words are one line', async () => {
+    expect(await withTerminal({ label: { en: 'Does not\napply', nl: 'Niet van toepassing' } })).toEqual([
+      { file: 'done', keyPath: 'terminal.label.en', rule: 'V-PLAIN', message: 'plain text must be a single line' },
+    ])
+  })
+
+  test('an outcome is refused by the schema at the Terminal, in place of the words or beside them', async () => {
+    expect(await withTerminal({ outcome: 'not-applicable' })).toEqual([
+      { file: 'tree.json', keyPath: '/nodes/3/terminal', rule: 'schema', message: "must have required property 'label'" },
+      { file: 'tree.json', keyPath: '/nodes/3/terminal', rule: 'schema', message: 'must NOT have additional properties: "outcome"' },
+    ])
+    expect(await withTerminal({ label: { en: 'Applies', nl: 'Van toepassing' }, outcome: 'applicable' })).toEqual([
+      { file: 'tree.json', keyPath: '/nodes/3/terminal', rule: 'schema', message: 'must NOT have additional properties: "outcome"' },
+    ])
+    expect(await withTerminal({})).toEqual([{ file: 'tree.json', keyPath: '/nodes/3/terminal', rule: 'schema', message: "must have required property 'label'" }])
+  })
+
+  test("v-terminal's maybe is its defect still: an outcome where the words belong", async () => {
+    expect(await violationsOf(fixture('invalid', 'v-terminal'))).toEqual([
+      { file: 'tree.json', keyPath: '/nodes/3/terminal', rule: 'schema', message: "must have required property 'label'" },
+      { file: 'tree.json', keyPath: '/nodes/3/terminal', rule: 'schema', message: 'must NOT have additional properties: "outcome"' },
+    ])
   })
 })

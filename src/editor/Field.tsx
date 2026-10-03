@@ -12,7 +12,9 @@
  * edited -- the public element it was given, or its own render of the source after an edit
  * -- and the source, the Markdown subset of 3.4 as written, while it is; `<` followed by a
  * letter, `/` or `!` is refused at the field before sending (28.5). A **select** is a Source's
- * kind or a Terminal's outcome, drawn as the badge.
+ * kind. **[#179]** A Terminal's words are a plain field drawn as the badge, its region the
+ * badge's own box: blurred it is the badge as the public page draws it, focused it shows the
+ * words as typed (36.3).
  *
  * While the field has the focus the right rim shows the counter pill -- `n / max`, counted
  * by the validator's own functions, and `lines / 2` for the description -- and under it one
@@ -93,7 +95,6 @@ export function Field({
   select,
   label,
   className = '',
-  classByValue = false,
   termEvent,
   markerWords,
   placeholder = '',
@@ -101,7 +102,7 @@ export function Field({
   words,
 }: {
   nodeId: string
-  /** The key path of 22.2 without its language: `title`, `sources[1].label`, `terminal.outcome`. */
+  /** The key path of 22.2 without its language: `title`, `sources[1].label`, `terminal.label`. */
   path: string
   /** The page's language for a localised text (28.2); null for a text that is not localised. */
   lang: string | null
@@ -121,10 +122,8 @@ export function Field({
   select?: Array<{ value: string; label: string }>
   /** The accessible name of a select. */
   label?: string
-  /** Extra classes on a select: the outcome badge's. */
+  /** **[#179]** Extra classes on the region: `outcome`, which draws a Terminal's words as its badge (36.3). */
   className?: string
-  /** Whether `<className>--<value>` is added too: the badge's colour follows its outcome. */
-  classByValue?: boolean
   /** The description: the event a marked term dispatches when clicked, which opens its Sheet (32.3). */
   termEvent?: string
   /** The description: the `mark` button's words; without them the rim has no button (32.1). */
@@ -218,6 +217,7 @@ export function Field({
     refused ? 'editor-field--refused' : '',
     changed ? 'editor-field--changed' : '',
     rich ? 'editor-field--rich' : '',
+    className,
   ]
     .filter(Boolean)
     .join(' ')
@@ -260,11 +260,10 @@ export function Field({
   }
 
   if (select) {
-    const classes = ['editor-select', className, classByValue && className ? `${className}--${text}` : ''].filter(Boolean).join(' ')
     return (
       <span ref={root} className={state} data-field={key} onClick={onClick}>
         <select
-          className={classes}
+          className="editor-select"
           value={text}
           aria-label={label}
           disabled={api.readOnly}
@@ -322,8 +321,11 @@ export function Field({
         {editing ? (
           // The grid and the mirror in `data-value` make the box taller than its lines (28.4) for a
           // text that needs more, as one stored over its limit; both take the same font, so they
-          // break lines alike.
-          <span className="editor-text" data-value={`${text} `}>
+          // break lines alike. **[#179]** An empty field's mirror holds its placeholder, so a box
+          // sized by its text -- the badge's (36.3) -- is as wide as what it shows; and only a rich
+          // text's mirror ends in a space, which a last line break needs to take a line: a plain
+          // text has no line break, and the space would widen the badge by its width.
+          <span className="editor-text" data-value={`${text === '' ? placeholder : text}${rich ? ' ' : ''}`}>
             <textarea
               ref={area}
               className="editor-input"

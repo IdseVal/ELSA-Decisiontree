@@ -3,8 +3,8 @@
 /**
  * The structure editing (docs/specs/application.md 30; ADR-133-structure-editing), as the
  * client leaves of the structure slots: `AnswerAdd` is the `+ Yes` / `+ No` button of the
- * Answer row (30.1, 30.2); `EndForm` the page of the `treeEndsHere` Sheet, the four outcomes
- * and `confirm` (30.3). **[#177]** `SideAdd` is the side-bubble `+` of the fan, which creates
+ * Answer row (30.1, 30.2); `EndForm` the page of the `treeEndsHere` Sheet, **[#179]** one field
+ * for the ending's words, `confirm` and `cancel` (30.3, 36.3). **[#177]** `SideAdd` is the side-bubble `+` of the fan, which creates
  * at one click (30.4), and `SideDelete` the `deleteSideBubble` button at the bottom of an
  * opened side bubble (30.7; ADR-177-side-bubble-editing). **[#178]** The link menu of an Answer
  * or an Option button and its picker are gone: the editor no longer re-points a button at an
@@ -17,22 +17,18 @@
  * a new Option -- a plain navigation, never the slide (30.2, 34.5). An end repaints the page
  * from the response (29.7).
  *
- * Imports of `src/`: types, and nothing else (34.4).
+ * Imports of `src/`: types and **[#179]** `tree/measure.ts`, for the ending's counter (34.4).
  */
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react'
+import { countedLength } from '../tree/measure.ts'
 import { useEditor } from './Editor.tsx'
+import { heldToLimit } from './Field.tsx'
+import { plainLine } from './fields.ts'
+import type { FieldLimit } from './mode.ts'
 import type { Answer, Change, Refusal, WriteResponse } from './writes.ts'
 
-/** One choice of the outcome Sheet: the outcome and its badge text (30.3). */
-export interface OutcomeChoice {
-  value: string
-  label: string
-}
-
-/** The chrome words the structure controls say; strings, because a client component takes no module. */
-export interface StructureWords {
-  confirm: string
-}
+/** **[#179]** The ending's words are at most 19 characters (tree-format.md 5.7). */
+const ENDING_LIMIT: FieldLimit = { characters: 19 }
 
 /**
  * The address of a Node under the page `here` (4.1): `/<here's path>/<id>`, the query
@@ -140,51 +136,98 @@ export function SideAdd({ nodeId, here, word, wordLang }: { nodeId: string; here
   )
 }
 
+/** **[#179]** The chrome words the `treeEndsHere` Sheet says (36.3); strings, because a client component takes no module. */
+export interface EndWords {
+  endingText: string
+  characters: string
+  confirm: string
+  cancel: string
+}
+
 /**
- * The page of the `treeEndsHere` Sheet (30.3): the four outcomes as radio choices and
- * `confirm`, which makes the Node a Terminal. A refusal -- a Node with Options cannot end --
- * is shown on the Sheet; on success the page repaints and this Sheet is gone with the row.
+ * The page of the `treeEndsHere` Sheet (30.3): **[#179]** one plain field for the ending's
+ * words in the page's language `lang`, focused when the Sheet opens, its typing stopped at 19
+ * characters with the counter on it as every field's (28.3, 28.4), and `confirm`, enabled once
+ * it holds a character that is not white space -- Enter is the same -- which makes the Node a
+ * Terminal with those words (36.3). `cancel` closes the Sheet, and a Sheet closed opens empty
+ * again. A refusal -- a Node with Options cannot end -- is shown on the Sheet; on success the
+ * page repaints and this Sheet is gone with the row.
  */
-export function EndForm({ nodeId, outcomes, heading, words }: { nodeId: string; outcomes: OutcomeChoice[]; heading: string; words: StructureWords }) {
+export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang: string; heading: string; words: EndWords }) {
   const api = useEditor()
-  const [outcome, setOutcome] = useState(outcomes[0]?.value ?? '')
+  const root = useRef<HTMLFormElement>(null)
+  const input = useRef<HTMLInputElement>(null)
+  const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const confirmable = text.trim() !== '' && !busy && !api.readOnly
+  useResetOnClose(root, () => {
+    setText('')
+    setError(null)
+  })
+
+  // The field takes the focus when the Sheet opens: the words are the one thing an end needs.
+  useEffect(() => {
+    const details = input.current?.closest('details')
+    if (!details) return
+    const onToggle = (): void => {
+      if (details.open) input.current?.focus()
+    }
+    details.addEventListener('toggle', onToggle)
+    return () => details.removeEventListener('toggle', onToggle)
+  }, [])
 
   const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
-    if (busy || api.readOnly) return
+    if (!confirmable) return
     setBusy(true)
     setError(null)
     const form = event.currentTarget
-    api.operate(nodeId, { create: { from: { node: nodeId, link: 'end', outcome } } }, undefined, (answer) => {
+    api.operate(nodeId, { create: { from: { node: nodeId, link: 'end', label: { [lang]: text.trim() } } } }, undefined, (answer) => {
       setBusy(false)
       if (accepted(answer)) closeSheetAround(form)
       else setError(refusalText(answer))
     })
   }
 
+  const id = `${nodeId}-ending-text`
   return (
-    <form className="structure-form structure-form--end" noValidate onSubmit={onSubmit}>
+    <form ref={root} className="structure-form structure-form--end" noValidate onSubmit={onSubmit}>
       <h2>{heading}</h2>
-      <ul className="structure-outcomes" role="radiogroup" aria-label={heading}>
-        {outcomes.map((choice) => (
-          <li key={choice.value}>
-            <label>
-              <input type="radio" name={`${nodeId}-outcome`} value={choice.value} checked={outcome === choice.value} onChange={() => setOutcome(choice.value)} />
-              <span className={`outcome outcome--${choice.value} structure-outcome`}>{choice.label}</span>
-            </label>
-          </li>
-        ))}
-      </ul>
+      {/* A row, not a label: the counter is no part of the field's name. */}
+      <div className="editor-row">
+        <label htmlFor={id}>{words.endingText}</label>
+        <span className="structure-ending-field">
+          <input
+            ref={input}
+            id={id}
+            className="editor-url"
+            lang={lang}
+            value={text}
+            placeholder={words.endingText}
+            disabled={api.readOnly}
+            onChange={(event) => setText(heldToLimit(event.target, text, plainLine(event.target.value), ENDING_LIMIT))}
+          />
+          <span className="editor-pill structure-ending-count">
+            <span aria-label={words.characters}>
+              {countedLength(text)} / {ENDING_LIMIT.characters}
+            </span>
+          </span>
+        </span>
+      </div>
       {error !== null && (
         <p className="admin-error structure-error" role="alert">
           {error}
         </p>
       )}
-      <button type="submit" className="admin-submit" disabled={api.readOnly || busy}>
-        {words.confirm}
-      </button>
+      <div className="structure-actions">
+        <button type="submit" className="admin-submit" disabled={!confirmable}>
+          {words.confirm}
+        </button>
+        <button type="button" className="admin-link" onClick={(event) => closeSheetAround(event.currentTarget)}>
+          {words.cancel}
+        </button>
+      </div>
     </form>
   )
 }

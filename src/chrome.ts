@@ -37,10 +37,6 @@ export interface Chrome {
   version: string
   /** Stands in for a text the Tree does not have in the language on screen (issue #9). */
   missingText: string
-  outcomeNotApplicable: string
-  outcomeApplicable: string
-  outcomeProhibited: string
-  outcomeRefer: string
   disclaimer: string
   notFoundTitle: string
   notFoundText: string
@@ -136,8 +132,6 @@ export interface Chrome {
   sourceUrl: string
   /** **[#138]** The `legal` kind in the kind select; the public page labels no `legal` Source (ADR-78-sources-heading, decision 2). */
   sourceLegal: string
-  /** **[#138]** The accessible name of a Terminal's outcome select, drawn as the badge (28.1). */
-  outcome: string
   /** **[#138]** The counter pill on the rim (28.3): the accessible names of its two numbers. */
   characters: string
   lines: string
@@ -342,6 +336,12 @@ export interface Chrome {
   fontLicenceHint: string
   licenceOtherHint: string
   fontFileHint: string
+  /**
+   * **[#179]** What the ending's words are called (36.3): the label of the `treeEndsHere` Sheet's
+   * one field, and the placeholder of an ending without words in the page's language. At most
+   * 19 characters in each language, so the placeholder fits the badge as the words do.
+   */
+  endingText: string
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -362,10 +362,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     language: 'Language',
     version: 'Version',
     missingText: 'Text missing in this language',
-    outcomeNotApplicable: 'Does not apply',
-    outcomeApplicable: 'Applies',
-    outcomeProhibited: 'Prohibited',
-    outcomeRefer: 'Look elsewhere',
     disclaimer:
       'This is not legal advice. Read the sources and consult a lawyer before you rely on an outcome.',
     notFoundTitle: 'This step does not exist',
@@ -427,7 +423,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     sourceKind: 'Kind',
     sourceUrl: 'Link',
     sourceLegal: 'Legal',
-    outcome: 'Outcome',
     characters: 'characters',
     lines: 'lines',
     placeholderTitle: 'Title',
@@ -522,7 +517,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourTextMuted: 'Secondary text',
     colourAccent: 'Accent',
     colourAccentSecondary: 'Buttons and links',
-    colourDanger: 'Prohibited and errors',
+    colourDanger: 'Errors',
     colourAnswerLabel: 'Button text',
     lowContrast: 'Hard to read on the public page:',
     contrastOn: 'on',
@@ -567,7 +562,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourTextMutedHint: "Quieter text: the Sources heading, a picture's credit, the disclaimer and the language buttons. It must read well on Page and on Bubble too.",
     colourAccentHint: 'The outline around the bubble, and the badge on an ending.',
     colourAccentSecondaryHint: 'The Yes and No buttons, the arrow back and Start again; a link shows it when you point at it. The words on the buttons are in Text or Page, whichever reads better.',
-    colourDangerHint: 'Errors: a text over its limit or refused while you edit it. Also the buttons that delete a step or a side bubble. On the public page, an ending marked prohibited.',
+    colourDangerHint: 'Errors: a text over its limit or refused while you edit it. Also the buttons that delete a step or a side bubble.',
     contrastHint: 'Text needs enough difference from what is behind it to be read, also by people who see less well. These pairs fall below the WCAG minimum; your colours are saved all the same.',
     logoAltHint: 'A screen reader says this in place of the logo, for people who cannot see it: usually the name of the lab.',
     fontBodyHint: 'The font of the running text: descriptions, Sources, the side-bubble buttons and captions.',
@@ -575,6 +570,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontLicenceHint: 'A font is shared with this tree, so its licence must allow that, and the tree says which it is. A font whose licence you cannot name does not belong in it.',
     licenceOtherHint: 'The licence under which this font is redistributed with the tree, and where its text is.',
     fontFileHint: 'The weight is how bold this file draws: 400 regular, 700 bold, or a range such as 400 700 for a variable font. Tick Italic when the file is the slanted face.',
+    endingText: 'Text of the ending',
   },
   nl: {
     yes: 'Ja',
@@ -593,10 +589,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     language: 'Taal',
     version: 'Versie',
     missingText: 'Tekst ontbreekt in deze taal',
-    outcomeNotApplicable: 'Niet van toepassing',
-    outcomeApplicable: 'Van toepassing',
-    outcomeProhibited: 'Verboden',
-    outcomeRefer: 'Elders geregeld',
     disclaimer:
       'Dit is geen juridisch advies. Lees de bronnen en raadpleeg een jurist voordat u op een uitkomst vertrouwt.',
     notFoundTitle: 'Deze stap bestaat niet',
@@ -658,7 +650,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     sourceKind: 'Soort',
     sourceUrl: 'Link',
     sourceLegal: 'Juridisch',
-    outcome: 'Uitkomst',
     characters: 'tekens',
     lines: 'regels',
     placeholderTitle: 'Titel',
@@ -753,7 +744,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourTextMuted: 'Bijtekst',
     colourAccent: 'Accent',
     colourAccentSecondary: 'Knoppen en links',
-    colourDanger: 'Verboden en fouten',
+    colourDanger: 'Fouten',
     colourAnswerLabel: 'Knoptekst',
     lowContrast: 'Slecht leesbaar op de publieke pagina:',
     contrastOn: 'op',
@@ -798,7 +789,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     colourTextMutedHint: 'Rustiger tekst: de kop Bronnen, de bronvermelding van een afbeelding, de disclaimer en de taalknoppen. Ook die moet goed leesbaar zijn op Pagina en op Bubbel.',
     colourAccentHint: 'De rand om de bubbel, en het label op een einde.',
     colourAccentSecondaryHint: 'De knoppen Ja en Nee, de pijl terug en Opnieuw beginnen; een link krijgt deze kleur als je ernaar wijst. De woorden op de knoppen staan in Tekst of Pagina, wat het best leesbaar is.',
-    colourDangerHint: 'Fouten: een tekst boven zijn limiet of geweigerd terwijl je hem bewerkt. Ook de knoppen die een stap of een zijbubbel verwijderen. Op de publieke pagina een einde dat als verboden is gemarkeerd.',
+    colourDangerHint: 'Fouten: een tekst boven zijn limiet of geweigerd terwijl je hem bewerkt. Ook de knoppen die een stap of een zijbubbel verwijderen.',
     contrastHint: 'Tekst moet genoeg verschillen van wat erachter staat om leesbaar te zijn, ook voor wie minder goed ziet. Deze paren blijven onder het WCAG-minimum; je kleuren worden toch bewaard.',
     logoAltHint: 'Een schermlezer leest dit voor in plaats van het logo, voor wie het niet kan zien: meestal de naam van het lab.',
     fontBodyHint: 'Het lettertype van de lopende tekst: beschrijvingen, bronnen, de knoppen van de zijbubbels en bijschriften.',
@@ -806,6 +797,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontLicenceHint: 'Een lettertype wordt met deze boom gedeeld, dus de licentie moet dat toestaan, en de boom zegt welke het is. Een lettertype waarvan je de licentie niet kunt noemen, hoort er niet in.',
     licenceOtherHint: 'De licentie waaronder dit lettertype met de boom verder wordt verspreid, en waar de tekst ervan staat.',
     fontFileHint: 'Het gewicht is hoe vet dit bestand tekent: 400 normaal, 700 vet, of een bereik zoals 400 700 voor een variabel lettertype. Vink Cursief aan als het bestand de schuine letter is.',
+    endingText: 'Tekst van het einde',
   },
 }
 

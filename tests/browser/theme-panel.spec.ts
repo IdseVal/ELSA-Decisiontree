@@ -507,14 +507,14 @@ test('[#180] a Tree with a dark palette: in the editor the bar, the open panel a
   await expect(question).toHaveCount(0)
 
   // 'Tree does not end here after all' gives the end-of-tree Sheet back, whose panel is the editor's
-  // own; the step is then ended again, as it was.
+  // own; the step is then ended again, **[#179]** with the English words it had.
   await page.locator('.step-end > button').click()
   const endSheet = page.locator('.structure-end > .sheet-open')
   await expect(endSheet).toBeVisible()
   measured.push(await expectDefaultLook(page, '.structure-end > .sheet-panel'))
   await endSheet.click()
   const end = page.locator('.structure-form--end')
-  await end.locator('input[value="prohibited"]').check()
+  await end.getByRole('textbox', { name: EN.endingText }).fill('Prohibited')
   await end.getByRole('button', { name: 'Confirm' }).click()
   await expect(page.locator('.step-end > button')).toBeVisible()
 

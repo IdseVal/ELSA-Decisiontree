@@ -55,21 +55,10 @@ describe('the chrome strings', () => {
     }
   })
 
-  test("the badge fits the Bubble's rim: at most 80 characters (application.md 10.1)", () => {
-    // The badge sits in the band between the text area and the Bubble's curve, which holds
-    // about 80 characters of 13-pixel text; it is chrome, so its length is this file's to
-    // keep and not an author's. (The explanation hint went with the Option slide, 10.9.)
-    for (const language of CHROME_LANGUAGES) {
-      const ui = chrome(language)
-      for (const key of [
-        'outcomeNotApplicable',
-        'outcomeApplicable',
-        'outcomeProhibited',
-        'outcomeRefer',
-      ] as const) {
-        expect([...ui[key]].length, `${language}.${key}`).toBeLessThanOrEqual(80)
-      }
-    }
+  // **[#179]** The badge's words are the Tree's now, held to 19 characters by V-LENGTH
+  // (application.md 36.1), so the row that held the four chrome words to the rim is gone.
+  test('the ending\'s placeholder fits the badge as its words do: at most 19 characters (36.3)', () => {
+    for (const language of CHROME_LANGUAGES) expect([...chrome(language).endingText].length, language).toBeLessThanOrEqual(19)
   })
 
   test('the two languages hold exactly the same keys', () => {

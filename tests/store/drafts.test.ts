@@ -92,8 +92,8 @@ async function smallTree(id: string): Promise<{ yes: string; no: string }> {
   const no = (await drafts.createNode(cees, id, { node: 'start', link: 'no' })).node!.id
   await fill(yes, 'Yes')
   await fill(no, 'No')
-  await drafts.createNode(cees, id, { node: yes, link: 'end', outcome: 'applicable' })
-  await drafts.createNode(cees, id, { node: no, link: 'end', outcome: 'not-applicable' })
+  await drafts.createNode(cees, id, { node: yes, link: 'end', label: { en: 'Applies', nl: 'Van toepassing' } })
+  await drafts.createNode(cees, id, { node: no, link: 'end', label: { en: 'Does not apply', nl: 'Niet van toepassing' } })
   return { yes, no }
 }
 
@@ -103,8 +103,8 @@ describe('creating a Tree (22.1, 27.2)', () => {
     expect(entry).toMatchObject({ id: 'my-tree', published: false, servable: false, blocking: [] })
     expect(entry.meta).toMatchObject({ creator: cees.id, collaborators: [], publishCount: 0, revision: 0 })
     expect(JSON.parse(await text('my-tree', 'draft.json'))).toEqual({
-      $schema: '/schemas/elsa-tree-4.json',
-      format: 'elsa-tree/4',
+      $schema: '/schemas/elsa-tree-5.json',
+      format: 'elsa-tree/5',
       languages: ['nl', 'en'],
       root: 'start',
       title: { nl: 'Mijn boom', en: '' },
@@ -152,7 +152,7 @@ describe('the unit of a write (22.2)', () => {
     await drafts.write(cees, 't', 'start', { op: 'add-image', file: picture, credit: 'C' })
     await drafts.write(cees, 't', 'start', { op: 'add-explainer', id: 'term', term: { en: 'a' }, text: { en: 'b' } })
     const aside = (await drafts.createNode(cees, 't', { node: 'start', link: 'option' }, { en: 'O' })).node!.id
-    const end = (await drafts.createNode(cees, 't', { node: aside, link: 'end', outcome: 'refer' })).node!.id
+    const end = (await drafts.createNode(cees, 't', { node: aside, link: 'end', label: { en: 'Look elsewhere' } })).node!.id
     expect(end).toBe(aside)
     await drafts.write(cees, 't', aside, { op: 'remove-terminal' })
 
@@ -186,10 +186,10 @@ describe('the unit of a write (22.2)', () => {
     expect(start.explainers).toEqual([{ id: 'term', term: { en: 'a', nl: 'term' }, text: { en: 'explained', nl: '' } }])
     expect(start.options).toEqual([{ title: { en: 'O', nl: 'Optie' }, target: aside }])
 
-    // terminal.outcome, on a Terminal
-    await drafts.createNode(cees, 't', { node: aside, link: 'end', outcome: 'refer' })
-    await drafts.write(cees, 't', aside, { path: 'terminal.outcome', value: 'prohibited' })
-    expect(JSON.parse(await text('t', 'draft.json')).nodes[1].terminal).toEqual({ outcome: 'prohibited' })
+    // **[#179]** terminal.label.<lang>, on a Terminal: the ending's words in one language (36.3)
+    await drafts.createNode(cees, 't', { node: aside, link: 'end', label: { en: 'Look elsewhere' } })
+    await drafts.write(cees, 't', aside, { path: 'terminal.label.nl', value: 'Elders geregeld' })
+    expect(JSON.parse(await text('t', 'draft.json')).nodes[1].terminal).toEqual({ label: { en: 'Look elsewhere', nl: 'Elders geregeld' } })
     // An Image's source, emptied, is removed rather than written empty.
     await drafts.write(cees, 't', 'start', { path: 'images[0].source', value: '' })
     expect(JSON.parse(await text('t', 'draft.json')).nodes[0].images[0]).not.toHaveProperty('source')
@@ -252,7 +252,10 @@ describe('the unit of a write (22.2)', () => {
       ['start', { op: 'add-image', file: 'not-uploaded.png', credit: 'c' }, 'V-IMAGE'],
       ['start', { op: 'add-source', kind: 'rumour', label: { en: 'l' }, url: 'https://example.org' }, 'schema'],
       ['start', { op: 'add-source', kind: 'legal', label: { en: 'l' }, url: 'javascript:alert(1)' }, 'schema'],
-      ['start', { op: 'set-terminal', outcome: 'maybe' }, 'schema'],
+      // **[#179]** An outcome is no ending: without words there is nothing to write (22.2).
+      ['start', { op: 'set-terminal', outcome: 'refer' }, 'schema'],
+      ['start', { op: 'set-terminal', label: 'Refer' }, 'schema'],
+      ['start', { op: 'set-terminal', label: { en: 'two\nlines' } }, 'V-PLAIN'],
     ]
     for (const [node, change, rule] of cases) {
       const refused = await refusal(drafts.write(cees, 't', node, change as never))
@@ -299,15 +302,15 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
     await op({ op: 'remove-option', target: aside })
 
     const end = (await drafts.createNode(cees, 't', { node: 'start', link: 'yes' })).node!.id
-    await drafts.createNode(cees, 't', { node: end, link: 'end', outcome: 'applicable' })
+    await drafts.createNode(cees, 't', { node: end, link: 'end', label: { en: 'Applies' } })
     await op({ op: 'set-answer', answer: 'no', target: end })
     expect((await start()).answers).toEqual({ yes: end, no: end })
     await op({ op: 'remove-answer', answer: 'yes' })
     await op({ op: 'remove-answer', answer: 'no' })
     expect(await start()).not.toHaveProperty('answers')
 
-    await op({ op: 'set-terminal', outcome: 'refer' })
-    expect((await start()).terminal).toEqual({ outcome: 'refer' })
+    await op({ op: 'set-terminal', label: { en: 'Look elsewhere' } })
+    expect((await start()).terminal).toEqual({ label: { en: 'Look elsewhere' } })
     await op({ op: 'remove-terminal' })
     expect(await start()).not.toHaveProperty('terminal')
 
@@ -326,7 +329,30 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
     expect((await drafts.createNode(cees, 't', { node: 'start', link: 'no' }, undefined, 'my-step')).node!.id).toBe('my-step')
     expect((await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'option' }, undefined, 'my-step'))).status).toBe(409)
     // An end on a Node with Answers is refused: a question Node is not a Terminal (V-KIND).
-    expect((await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'end', outcome: 'refer' }))).status).toBe(422)
+    expect((await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'end', label: { en: 'Ends' } }))).status).toBe(422)
+  })
+
+  test('**[#179]** an end holds the words it was given and "" for every other language, each a to-do; the outcome is gone from the interface', async () => {
+    await drafts.create(cees, 't', ['en', 'nl'], { en: 'T', nl: 'T' })
+    // An end without words is no end: an outcome alone is refused, and nothing is written.
+    const outcomeOnly = { node: 'start', link: 'end', outcome: 'refer' }
+    expect((await refusal(drafts.createNode(cees, 't', outcomeOnly))).status).toBe(422)
+    expect(JSON.parse(await text('t', 'draft.json')).nodes[0]).not.toHaveProperty('terminal')
+
+    const response = await drafts.createNode(cees, 't', { node: 'start', link: 'end', label: { nl: 'Maatregelen vereist' } })
+
+    expect(response.node).toMatchObject({ id: 'start', kind: 'terminal', label: { en: '', nl: 'Maatregelen vereist' } })
+    expect(JSON.parse(await text('t', 'draft.json')).nodes[0].terminal).toEqual({ label: { en: '', nl: 'Maatregelen vereist' } })
+    expect(response.violations).toContainEqual({ file: 'start', keyPath: 'terminal.label.en', rule: 'V-L10N', message: 'missing or empty text for the declared language "en"', advisory: true })
+    // The limit is the validator's advisory, as for every text (22.3): stored, and named.
+    const long = await drafts.write(cees, 't', 'start', { path: 'terminal.label.en', value: 'Mandatory safeguards' })
+    expect(long.violations).toContainEqual({ file: 'start', keyPath: 'terminal.label.en', rule: 'V-LENGTH', message: '20 characters; at most 19', advisory: true })
+    expect(JSON.parse(await text('t', 'draft.json')).nodes[0].terminal.label.en).toBe('Mandatory safeguards')
+
+    // `terminal.outcome` is no field of 22.2 any more.
+    expect(await refusal(drafts.write(cees, 't', 'start', { path: 'terminal.outcome', value: 'refer' }))).toMatchObject({ status: 422, rules: ['V-KEYS'] })
+    expect(await refusal(drafts.write(cees, 't', 'start', { path: 'terminal.label', value: 'Refer' }))).toMatchObject({ status: 422, rules: ['V-KEYS'] })
+    expect(await refusal(drafts.write(cees, 't', 'start', { path: 'terminal.label.de', value: 'Anders' }))).toMatchObject({ status: 422, rules: ['V-L10N'] })
   })
 
   test('**[#175]** a ninth Option is refused with V-COUNT and nothing is written, by add-option and by the structural write alike; re-pointing at eight still lands', async () => {
@@ -568,7 +594,7 @@ describe('pictures (22.6)', () => {
 describe('an uneditable Tree (19.5)', () => {
   test('a hand-edited draft that breaks a blocking rule is held, reported, and refuses every write with 409', async () => {
     await drafts.create(cees, 't', ['en'], { en: 'T' })
-    await writeFile(file('t', 'draft.json'), '{ "format": "elsa-tree/4", "format": "twice" }\n')
+    await writeFile(file('t', 'draft.json'), '{ "format": "elsa-tree/5", "format": "twice" }\n')
     store = await openStore(data, ADMIN)
     drafts = store.drafts
     const entry = drafts.entry(cees, 't')
@@ -865,6 +891,25 @@ describe('**[#147]** the languages of an existing Tree (22.2, 33.5)', () => {
     const reopened = (await openStore(data, { ...ADMIN, ELSA_SEED_DIR: data })).drafts
     const again = await reopened.write(cees, 'nl-tree', null, { op: 'remove-language', tag: 'en' })
     expect(again.also!.find((also) => also.node!.id === 'start')!.node!.title).toEqual({ de: '' })
+  })
+
+  test('**[#179]** a Terminal\'s words are one localised text more: add-language writes "" into them, remove-language takes its text out (22.2)', async () => {
+    await drafts.create(cees, 'end-tree', ['nl'], { nl: 'Boom' })
+    const end = (await drafts.createNode(cees, 'end-tree', { node: 'start', link: 'yes' })).node!.id
+    await drafts.createNode(cees, 'end-tree', { node: end, link: 'end', label: { nl: 'Verboden' } })
+
+    const added = await drafts.write(cees, 'end-tree', null, { op: 'add-language', tag: 'en' })
+
+    expect(added.also!.find((also) => also.node!.id === end)!.node!.label).toEqual({ nl: 'Verboden', en: '' })
+    expect(l10n('end-tree')).toContain(`${end} terminal.label.en`)
+
+    await drafts.write(cees, 'end-tree', end, { path: 'terminal.label.en', value: 'Prohibited' })
+    await drafts.write(cees, 'end-tree', null, { op: 'set-default-language', tag: 'en' })
+    const removed = await drafts.write(cees, 'end-tree', null, { op: 'remove-language', tag: 'nl' })
+
+    expect(removed.also!.find((also) => also.node!.id === end)!.node!.label).toEqual({ en: 'Prohibited' })
+    const stored = JSON.parse(await text('end-tree', 'draft.json')) as { nodes: Array<{ id: string; terminal?: unknown }> }
+    expect(stored.nodes.find((node) => node.id === end)!.terminal).toEqual({ label: { en: 'Prohibited' } })
   })
 
   test('set-default-language moves the tag to the front and changes no text', async () => {
