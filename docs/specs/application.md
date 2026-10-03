@@ -304,6 +304,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | #177 | `deleteSideBubble` (the button at the foot of an opened side bubble, 30.7), `confirmDeleteSideBubble` (its confirmation, a function of the side bubble's title), `confirmDeleteUntitledSideBubble` (the same without a title), `sideBubbleStays` (what the confirmation adds where another step leads to the side bubble too) |
 | **[#171]** #179 | `endingText` ("Text of the ending" / "Tekst van het einde": the `treeEndsHere` Sheet's field and the empty badge field's placeholder, 36.3); **gone**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, and #138's `outcome`; **reworded**: #144's `colourDanger`, "Errors" / "Fouten" (36.1) |
 | **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5; **[#180] added in the build**: the Theme panel's hints (33.8), `colourBackgroundHint`, `colourSurfaceHint`, `colourTextHint`, `colourTextMutedHint`, `colourAccentHint`, `colourAccentSecondaryHint`, `colourDangerHint`, `contrastHint`, `logoAltHint`, `fontBodyHint`, `fontHeadingHint`, `fontLicenceHint`, `fontFileHint`, named by #174's `hint`; **[#180] added in review**: `licenceOtherHint` (the hint behind the free licence line, 4.3.2's own sentence, 37.5; `ADR-171-licence-dropdown.md` decision 2) and `placeholderFontFamily` (the family-name field's placeholder while it is empty, 28.2, 37.4) |
+| #181 | **[#181] added in review**: `languageTag` ("Language tag" / "Taalcode": the name of the language control's field and its placeholder while it is empty, 27.1, 33.5; `addLanguage`, its button's word, named the field before) |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -1903,6 +1904,14 @@ decides core document 10.27.
   is an explanation Node at every maximum with eight Options, 10.6 measures it, and
   `overlay.spec.ts` measures its picture at two fifths of the panel, which no-scroll alone
   cannot see.
+
+  **[#181] Amended 2026-10-03:** below 792 pixels wide, where the panel's padding is 8 and 12
+  and the cross stands 4 pixels from its corner, the cross is 24 pixels into the panel's text,
+  over the title's first line, so the title keeps 24 pixels from each side: on a phone a long
+  title's link ran under the cross (on the CI runner the fixture's 80 characters at 390 x 844,
+  the first line to x 355, the cross from x 345). Kept clear on both sides, the title stays
+  centred, and the editor's title field keeps the box the public title takes (28.1).
+  `overlay.spec.ts` checks that no line of that title lies under the cross at 390 x 844.
 - **How it closes:** the cross, Escape, a click outside it. Focus moves to the cross on
   open and returns to the Option button on close. One Sheet is open at a time, so
   opening an Overlay closes any other Sheet and opening another Overlay closes this one.
@@ -3931,7 +3940,7 @@ One card of 520 pixels in a scroll box (26.3), holding in this order:
 | Field | Contract |
 |---|---|
 | ~~`treeId`~~ **[#168]** removed | ~~The id grammar of `tree-format.md` 3.1, with `treeIdHint` under it and the address the Tree will have (`/<id>/start`) shown live. **Proposed by the script from the first title typed** (lower-cased, every run outside `[a-z0-9]` → one hyphen, trimmed, cut to 64) until the creator edits the field. Under it, `treeIdFixed`: **the id never changes after creation** -- it is the folder name (17.2) and is in every URL and share link (4.1). No rename exists on any route.~~ |
-| `languages` | A row of tags with a field to add one (the tag grammar of 3.3, checked in the script); `en` and `nl` as one-click buttons; a `remove` cross on every tag but the last; `makeDefault` on every tag but the first. **The first tag is the default language** (3.3), marked `default`. Opens with the page's chrome language as its one tag. ~~`languagesFixed`: the languages cannot be changed after creation in this round (#147, `proposed`).~~ **[#147]** `languagesLater`: languages can be added or removed later, in the top panel (33.5). The control is `src/editor/LanguageTags.tsx`, shared with the panel. **[#168]** No `languagesLater` under it. |
+| `languages` | A row of tags with a field to add one (the tag grammar of 3.3, checked in the script); `en` and `nl` as one-click buttons; a `remove` cross on every tag but the last; `makeDefault` on every tag but the first. **The first tag is the default language** (3.3), marked `default`. Opens with the page's chrome language as its one tag. ~~`languagesFixed`: the languages cannot be changed after creation in this round (#147, `proposed`).~~ **[#147]** `languagesLater`: languages can be added or removed later, in the top panel (33.5). The control is `src/editor/LanguageTags.tsx`, shared with the panel. **[#168]** No `languagesLater` under it. **[#181]** The field is named `languageTag` ("Language tag"), and says it while it is empty: named by its button's word, `addLanguage` ("Add"), it did not say what it takes. |
 | `title`, per language | One field per tag in tag order, labelled by the tag (**[#168]** labelled `title` alone while there is one tag, and placed first), with the 80-character counter of 28.4 (**[#168]** beside the label). May be left empty in a language other than the default: then V-L10N's to-do (19.2). **[#168]** The default's is required. |
 | `create` | One button in the Answer buttons' style. |
 
@@ -4096,6 +4105,18 @@ side-bubble buttons (**[#178]** taken off, 2026-10-02: no Answer or Option butto
 30.6; the boxes keep their lines). Where the browser has no hyphenation dictionary for the page's language,
 a title of long words can take six lines (10.7, amended), and its box grows to 108 with the
 button: 10.3's known cost, in the editor too.
+
+**Amended 2026-10-03 (#181, the walk of #169's points under the owner's standard, "don't exceed
+their parent boxes"):** the attach Sheet's credit and description (31.2), 120 each, are **three**
+lines at every width, each with its label above it, where they were one line beside a column of
+labels. The one-line field scrolled a credit longer than itself out of its own box: 10.6's test
+failed at the walk's step 03 in Dutch at 1280 x 640 and 1920 x 1080 ("ELSA-project, voorlopige
+afbeelding", 238 pixels wide in a field of 229) and at 390 x 844 in both languages. Across the
+Sheet 120 characters take three lines at 13 pixels on lines of 20, so each box is those three
+lines whether empty or full, its text wrapped and never scrolled: the walk holds a credit and a
+description of 120 characters in their boxes at all three sizes in both languages. The text is
+still one plain line: Enter attaches, as it did in the one-line field, and breaks no line. The
+picture gives up the height (31.2, amended the same day).
 
 ### 28.5 The description: source text
 
@@ -4494,6 +4515,11 @@ second Escape cancels the Sheet. Each row is a `<div>` holding the field's `<lab
 the hint, so the field is named by its label alone. Other editor screens take the same
 component (the Theme panel, #180).
 
+**Amended 2026-10-03 (#181):** the picture gives up the height the two fields take at three lines
+each with their labels above them (28.4, amended the same day): it is at most the window's
+height less 430 pixels, where it was less 300, so the Sheet still fits the window and never
+scrolls (10.6).
+
 ### 31.3 The enlarged view is the Image's editor
 
 The Sheet of 12.3, with the two lines under the picture as fields (`images[i].description.<lang>`,
@@ -4676,6 +4702,23 @@ own (33.3). The top of the sketch, as it is now; the other sections are as above
 |--------------------------------------|
 |  COLLABORATORS                       |
 ```
+
+**[#181] Amended 2026-10-03:** the heading is a band across the top of the panel, above the
+body's scroll box and not in it, with a rule below it, and the cross stands in that band, 12
+pixels from the corner at every width. The cross stood over the body, so the body's controls
+slid under it as it scrolled: on the full-Node fixture at 1280 x 640, Invite and Hand over, at
+122 of the panel's 345 scroll positions. The body scrolls below the band, so nothing it holds
+passes under the band or the cross, and a control the focus scrolls to stops inside the body's
+view, below the band, however many lines the heading takes. The to-do bubble's heading (33.3)
+is the same band, and takes two or three lines in some of its states, languages and widths:
+"The public copy stays as it was until these are done:" two at 1280 x 640, the Dutch three at
+360 x 640 on the CI runner's font. A first version of the band stood inside the scroll box,
+which kept the focus below it by a scroll padding as tall as a heading of one line, so under a
+heading of two or three lines the focused line stopped under the band. The band ends 20 pixels
+below the cross: a control the body has half scrolled away is cut off at the band's rule, well
+clear of the cross. `creation-walk.spec.ts` audits both boxes at every scroll position, and
+`floating-controls.spec.ts` walks the focus up both with Shift+Tab under every heading the
+bubble shows, in both languages, at 1280 x 640, 1920 x 1080, 390 x 844 and 360 x 640.
 
 ### 33.3 Publish
 

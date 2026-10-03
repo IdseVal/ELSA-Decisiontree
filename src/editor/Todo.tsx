@@ -130,39 +130,43 @@ export function Todo({
   const shown = shownOf(tree)
   const heading = shown === 'notServable' ? words.notServableBecause : shown === 'publicBehind' ? words.publicBehindBecause : words.todoBefore
 
+  // **[#181]** The heading above the scroll box, as the panel's: it takes two or three lines in some
+  // states, languages and widths, and nothing the focus scrolls to passes under it (33.2, amended).
   return (
-    <div className="panel-body" ref={body} data-scroll-box="" tabIndex={0} aria-labelledby="todo-heading">
+    <>
       <h2 id="todo-heading" className="panel-heading">
         {heading}
       </h2>
-      {todo.length === 0 ? (
-        <p>{words.todoNone}</p>
-      ) : (
-        <ul className="todo-list">
-          {todo.map((violation, index) => (
-            <li key={`${violation.file} ${violation.keyPath} ${violation.rule} ${index}`} data-rule={violation.rule}>
-              {violation.file === 'manifest' || violation.file === 'tree.json' ? (
-                <span className="todo-where">{words.thisTree}</span>
-              ) : (
-                <a className="todo-where" href={`${nodeHref.before}${encodeURIComponent(violation.file)}${nodeHref.after}`}>
-                  {titles[violation.file] || violation.file}
-                </a>
-              )}
-              {`: ${violation.message}`}
-              {violation.rule === 'V-REACH' && manages && (
-                <button type="button" className="admin-link todo-remove" disabled={busy} onClick={() => removeNode(violation.file)}>
-                  {words.removeStep}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-      {error !== null && (
-        <p className="admin-error" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
+      <div className="panel-body" ref={body} data-scroll-box="" tabIndex={0} aria-labelledby="todo-heading">
+        {todo.length === 0 ? (
+          <p>{words.todoNone}</p>
+        ) : (
+          <ul className="todo-list">
+            {todo.map((violation, index) => (
+              <li key={`${violation.file} ${violation.keyPath} ${violation.rule} ${index}`} data-rule={violation.rule}>
+                {violation.file === 'manifest' || violation.file === 'tree.json' ? (
+                  <span className="todo-where">{words.thisTree}</span>
+                ) : (
+                  <a className="todo-where" href={`${nodeHref.before}${encodeURIComponent(violation.file)}${nodeHref.after}`}>
+                    {titles[violation.file] || violation.file}
+                  </a>
+                )}
+                {`: ${violation.message}`}
+                {violation.rule === 'V-REACH' && manages && (
+                  <button type="button" className="admin-link todo-remove" disabled={busy} onClick={() => removeNode(violation.file)}>
+                    {words.removeStep}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {error !== null && (
+          <p className="admin-error" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    </>
   )
 }

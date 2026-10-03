@@ -13,11 +13,18 @@
  * `hidden-draft` is the full Node with three Dutch titles emptied -- three things to do -- and
  * `tidy` the full Node as it is, with none. The screenshots the issue asks for go to
  * `docs/screenshots/issue-176/` under `ELSA_SHOTS=1`, the results folder otherwise (35.7).
+ *
+ * **[#181]** And the focus never stops under the heading of the to-do bubble or the panel (33.2,
+ * amended): walked up each with Shift+Tab, under each heading the bubble shows -- `todo-before`,
+ * `behind` and `unservable` are the full Node with all eleven Dutch titles emptied, hidden, behind
+ * its public copy (19.4), and refused at start (18.3) -- in both languages, at the sizes of #181's
+ * walk and at 360 x 640.
  */
-import { mkdir } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { expect, test, type APIResponse, type Browser, type Page } from '@playwright/test'
+import { expect, test, type APIResponse, type Browser, type Locator, type Page } from '@playwright/test'
+import { chrome } from '../../src/chrome.ts'
 import { ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
@@ -49,9 +56,31 @@ const VIEWPORTS = [
   [360, 640],
 ] as const
 
+/** **[#181]** A Tree per heading of the to-do bubble (33.3), each with eleven things to do. */
+const HEADED = [
+  ['todo-before', 'todoBefore'],
+  ['behind', 'publicBehindBecause'],
+  ['unservable', 'notServableBecause'],
+] as const
+
+/** **[#181]** The sizes of #181's walk, and the smallest of 10.6 the editor shows at. */
+const WALKED = [
+  [1280, 640],
+  [1920, 1080],
+  [390, 844],
+  [360, 640],
+] as const
+
 let origin: string
 
 test.describe.configure({ mode: 'serial' })
+
+/** **[#181]** Every Dutch title of the Tree file `file` emptied, as the editor's write of an empty field leaves it (22.3). */
+async function emptyDutchTitles(file: string): Promise<void> {
+  const tree = JSON.parse(await readFile(file, 'utf8')) as { nodes: { title: Record<string, string> }[] }
+  for (const node of tree.nodes) node.title.nl = ''
+  await writeFile(file, JSON.stringify(tree))
+}
 
 test.beforeAll(async ({ browser }) => {
   await mkdir(SHOTS, { recursive: true })
@@ -60,9 +89,15 @@ test.beforeAll(async ({ browser }) => {
     trees: [
       { folder: full, id: 'hidden-draft', hidden: true, creator: ANNA.login, collaborators: [BRAM.login] },
       { folder: full, id: 'tidy', hidden: true, creator: ANNA.login },
+      { folder: full, id: 'todo-before', hidden: true, creator: ANNA.login },
+      { folder: full, id: 'behind', creator: ANNA.login },
+      { folder: full, id: 'unservable', creator: ANNA.login },
     ],
     accounts: [ANNA, BRAM],
   })
+  // **[#181]** The drafts without their Dutch titles; `unservable`'s public copy too, which the store refuses at start (18.3).
+  for (const [id] of HEADED) await emptyDutchTitles(path.join(dir, 'trees', id, 'draft.json'))
+  await emptyDutchTitles(path.join(dir, 'trees', 'unservable', 'tree.json'))
   origin = await serveStore(dir, PORT, ADMIN_ENV)
   const { page, cookie } = await loggedIn(browser, ANNA)
   for (const id of EMPTIED) expect((await api(page, cookie, 'PATCH', `/trees/hidden-draft/nodes/${id}`, { path: 'title.nl', value: '' })).status()).toBe(200)
@@ -375,4 +410,81 @@ test('screenshots: the editor at rest, the to-do bubble open, the settings panel
     await expect(page.locator('.tile--new')).toBeVisible()
     await shoot(page, `creators-overview-${size}`)
   }
+})
+
+/** **[#181]** Where the control with the focus lies, against the heading of its Sheet and the view of its scroll box; null outside the box. */
+function focused(page: Page) {
+  return page.evaluate(() => {
+    const control = document.activeElement
+    const body = control?.closest('.panel-body')
+    if (!control || !body || control === body) return null
+    const round = (n: number): number => Math.round(n * 10) / 10
+    const rect = control.getBoundingClientRect()
+    const heading = body.closest('.sheet-panel')!.querySelector('.panel-heading')!.getBoundingClientRect()
+    const view = body.getBoundingClientRect()
+    return {
+      name: `${control.tagName.toLowerCase()} "${(control.getAttribute('aria-label') ?? control.textContent ?? '').trim().slice(0, 24)}"`,
+      top: round(rect.top),
+      bottom: round(rect.bottom),
+      headingBottom: round(heading.bottom),
+      headingLines: Math.round((heading.height - 40) / 24),
+      viewTop: round(view.top),
+      viewBottom: round(view.bottom),
+      scrolled: body.scrollTop,
+    }
+  })
+}
+
+/**
+ * **[#181]** Puts the focus on the last control of `sheet`'s scroll box and walks it up with
+ * Shift+Tab to the first: each control the focus reaches lies below the heading and inside the
+ * box's view, as far as the box scrolled it. Answers the walk, for the log.
+ */
+async function walkFocusUp(page: Page, sheet: Locator, where: string): Promise<string> {
+  await sheet.locator('.panel-body').evaluate((body) => {
+    const controls = [...body.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled)')]
+    controls.filter((control) => control.getClientRects().length > 0).at(-1)!.focus()
+  })
+  let steps = 0
+  let deepest = 0
+  let lines = 0
+  for (let at = await focused(page); at; at = await focused(page)) {
+    const said = `${where}: ${at.name} at ${at.top} to ${at.bottom}, scrolled ${at.scrolled}`
+    expect.soft(at.top, `${said}, under the heading, which ends at ${at.headingBottom}`).toBeGreaterThanOrEqual(at.headingBottom - 0.5)
+    expect.soft(at.top, `${said}, above the box's view from ${at.viewTop}`).toBeGreaterThanOrEqual(at.viewTop - 0.5)
+    expect.soft(at.bottom, `${said}, below the box's view to ${at.viewBottom}`).toBeLessThanOrEqual(at.viewBottom + 0.5)
+    steps += 1
+    deepest = Math.max(deepest, at.scrolled)
+    lines = at.headingLines
+    expect(steps, `${where}: the focus walked up without leaving the box`).toBeLessThan(200)
+    await page.keyboard.press('Shift+Tab')
+  }
+  expect(steps, `${where}: the focus reached no control`).toBeGreaterThan(0)
+  return `${where}: heading of ${lines} line${lines === 1 ? '' : 's'}, ${steps} controls, scrolled to ${deepest}`
+}
+
+test('[#181] the focus never stops under the heading of the to-do bubble or the settings panel: walked up with Shift+Tab under every heading, in both languages, at the walk’s sizes and at 360 x 640', async ({
+  browser,
+}) => {
+  test.setTimeout(240_000)
+  const { page } = await loggedIn(browser, ANNA)
+  const walked: string[] = []
+  for (const lang of ['en', 'nl'] as const) {
+    const ui = chrome(lang)
+    for (const [width, height] of WALKED) {
+      await page.setViewportSize({ width, height })
+      for (const [id, heading] of HEADED) {
+        await page.goto(`${origin}/admin/trees/${id}/full${lang === 'en' ? '' : '?lang=nl'}`)
+        await openTodo(page)
+        await expect(todoBubble(page).getByRole('heading', { level: 2 })).toHaveText(ui[heading])
+        await expect(todoBubble(page).locator('.todo-list li')).toHaveCount(11)
+        walked.push(await walkFocusUp(page, todoBubble(page), `${lang} ${width}x${height}, the to-do bubble under ${heading}`))
+        await page.keyboard.press('Escape')
+      }
+      await openSettings(page)
+      walked.push(await walkFocusUp(page, settingsPanel(page), `${lang} ${width}x${height}, the settings panel`))
+      await page.keyboard.press('Escape')
+    }
+  }
+  console.log(walked.join('\n'))
 })

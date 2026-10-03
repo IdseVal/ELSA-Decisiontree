@@ -399,7 +399,7 @@ for (const lang of LANGUAGES) {
     const slot = page.locator('.bubble .editor-picker--slot')
     if ((await slot.count()) > 0) {
       await slot.locator('input[type="file"]').setInputFiles(picture)
-      await page.locator('.editor-attach-panel input').first().fill('Drawing: ELSA lab')
+      await page.locator('.editor-attach-panel textarea').first().fill('Drawing: ELSA lab')
       await page.locator('.editor-attach-panel button[type="submit"]').click()
       await expect(page.locator('.carousel > .editor-picker--strip')).toBeVisible()
     }

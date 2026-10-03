@@ -291,166 +291,21 @@ export function Panel({
       </p>
     ) : null
 
+  // **[#181]** The heading above the scroll box, not in it: nothing the body scrolls, or the focus
+  // scrolls to, passes under the heading or the cross in it (33.2, amended).
   return (
-    <div className="panel-body" ref={body} data-scroll-box="" tabIndex={0} aria-labelledby="panel-heading">
+    <>
       <h2 id="panel-heading" className="panel-heading">
         {words.settings}
       </h2>
-
-      <section className="panel-section" aria-labelledby="panel-publish">
-        <h3 id="panel-publish">{words.publish}</h3>
-        {asking === 'unpublish' ? (
-          <div className="panel-ask">
-            <p>{words.confirmUnpublish}</p>
-            <div className="panel-actions">
-              <button type="button" className="admin-submit" disabled={busy} onClick={unpublish}>
-                {words.confirm}
-              </button>
-              <button type="button" className="admin-link" onClick={() => setAsking(null)}>
-                {words.cancel}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="panel-switch-row">
-            <button
-              type="button"
-              role="switch"
-              className="panel-switch"
-              aria-checked={tree.published}
-              aria-label={words.publish}
-              disabled={!manages || busy}
-              onClick={() => (tree.published ? setAsking('unpublish') : void publish())}
-            >
-              <span className="panel-switch-knob" aria-hidden="true" />
-            </button>
-            <span>{tree.published ? words.published : words.hidden}</span>
-          </div>
-        )}
-        {refused !== null && (
-          <p className="panel-refused" role="alert">
-            {words.publishRefused}{' '}
-            <button type="button" className="admin-link" onClick={() => openTodo(refused)}>
-              {words.showTodo}
-            </button>
-          </p>
-        )}
-        {errorAt('publish')}
-        {tree.published && (
-          <dl className="panel-facts">
-            {publishedAt && (
-              <>
-                <dt>{words.publishedAt}</dt>
-                <dd>
-                  <time dateTime={publishedAt}>{new Date(publishedAt).toLocaleString()}</time>
-                </dd>
-              </>
-            )}
-            <dt>{words.publicLink}</dt>
-            <dd>
-              <a href={publicHref} target="_blank" rel="noopener noreferrer" data-public-link="">
-                {publicHref}
-              </a>
-            </dd>
-          </dl>
-        )}
-      </section>
-
-      <section className="panel-section" aria-labelledby="panel-collaborators">
-        <h3 id="panel-collaborators">{words.collaborators}</h3>
-        <ul className="panel-people">
-          <li data-account={meta.creator}>
-            <span className="panel-name">{nameOf(meta.creator)}</span> <span className="admin-row-login">({words.creator})</span>
-          </li>
-          {meta.collaborators.map((id) => (
-            <li key={id} data-account={id}>
-              <span className="panel-name">{nameOf(id)}</span>
-              {manages && (
-                <button
-                  type="button"
-                  className="panel-remove"
-                  aria-label={`${words.removeCollaborator} ${nameOf(id)}`}
-                  disabled={busy}
-                  onClick={() => changeMeta('invite', () => panelCalls.remove(treeId, id), words.requestFailed)}
-                >
-                  <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M3 3l10 10M13 3L3 13" />
-                  </svg>
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-        {manages && (
-          <form className="panel-form" onSubmit={(event) => submitted(event, (id) => changeMeta('invite', () => panelCalls.invite(treeId, id), words.cannotInvite))}>
-            <AccountSelect name="invite" label={words.chooseAccount} accounts={invitable} disabled={busy} />
-            <button type="submit" className="admin-submit" disabled={busy || invitable.length === 0}>
-              {words.invite}
-            </button>
-          </form>
-        )}
-        {errorAt('invite')}
-        {role === 'creator' && (
-          <HandOver words={words} accounts={heirs} disabled={busy} onSubmit={(event) => submitted(event, (id) => changeMeta('handOver', () => panelCalls.handOver(treeId, id), words.cannotInvite))} />
-        )}
-        {errorAt('handOver')}
-      </section>
-
-      <section className="panel-section" aria-labelledby="panel-tree">
-        <h3 id="panel-tree">{words.thisTree}</h3>
-        {removing === null ? (
-          <LanguageTags
-            id="panel-languages"
-            languages={languages}
-            words={words}
-            removable={(index) => index > 0}
-            onAdd={(tag) => changeLanguages('add-language', tag)}
-            onRemove={setRemoving}
-            onMakeDefault={(tag) => changeLanguages('set-default-language', tag)}
-            error={error?.where === 'languages' ? error.text : undefined}
-            disabled={busy}
-          />
-        ) : (
-          <div className="panel-ask" data-removing={removing}>
-            <p>{words.confirmRemoveLanguage.replace('{language}', removing).replace('{count}', String(written[removing] ?? 0))}</p>
-            <div className="panel-actions">
-              <button type="button" className="admin-submit admin-submit--danger" disabled={busy} onClick={() => changeLanguages('remove-language', removing)}>
-                {words.confirm}
-              </button>
-              <button type="button" className="admin-link" onClick={() => setRemoving(null)}>
-                {words.cancel}
-              </button>
-            </div>
-          </div>
-        )}
-        <dl className="panel-facts">
-          <dt>{words.treeId}</dt>
-          <dd>
-            <code>{treeId}</code>
-          </dd>
-          {tree.published && (
-            <>
-              <dt>{words.publicLink}</dt>
-              <dd>
-                <a href={publicHref} target="_blank" rel="noopener noreferrer">
-                  {publicHref}
-                </a>
-              </dd>
-            </>
-          )}
-        </dl>
-        {theme}
-      </section>
-
-      {role === 'administrator' && (
-        <section className="panel-section" aria-labelledby="panel-administrator">
-          <h3 id="panel-administrator">{words.administrator}</h3>
-          <HandOver words={words} accounts={heirs} disabled={busy} onSubmit={(event) => submitted(event, (id) => changeMeta('admin', () => panelCalls.handOver(treeId, id), words.cannotInvite))} />
-          {asking === 'delete' ? (
+      <div className="panel-body" ref={body} data-scroll-box="" tabIndex={0} aria-labelledby="panel-heading">
+        <section className="panel-section" aria-labelledby="panel-publish">
+          <h3 id="panel-publish">{words.publish}</h3>
+          {asking === 'unpublish' ? (
             <div className="panel-ask">
-              <p>{words.confirmDeleteTree}</p>
+              <p>{words.confirmUnpublish}</p>
               <div className="panel-actions">
-                <button type="button" className="admin-submit admin-submit--danger" disabled={busy} onClick={deleteTree}>
+                <button type="button" className="admin-submit" disabled={busy} onClick={unpublish}>
                   {words.confirm}
                 </button>
                 <button type="button" className="admin-link" onClick={() => setAsking(null)}>
@@ -459,27 +314,175 @@ export function Panel({
               </div>
             </div>
           ) : (
-            <div className="panel-actions">
+            <div className="panel-switch-row">
               <button
                 type="button"
-                className="admin-submit admin-submit--danger"
-                disabled={busy || tree.published}
-                aria-describedby={tree.published ? 'panel-unpublish-first' : undefined}
-                onClick={() => setAsking('delete')}
+                role="switch"
+                className="panel-switch"
+                aria-checked={tree.published}
+                aria-label={words.publish}
+                disabled={!manages || busy}
+                onClick={() => (tree.published ? setAsking('unpublish') : void publish())}
               >
-                {words.deleteTree}
+                <span className="panel-switch-knob" aria-hidden="true" />
               </button>
-              {tree.published && (
-                <span id="panel-unpublish-first" className="admin-row-login">
-                  {words.unpublishFirst}
-                </span>
-              )}
+              <span>{tree.published ? words.published : words.hidden}</span>
             </div>
           )}
-          {errorAt('admin')}
+          {refused !== null && (
+            <p className="panel-refused" role="alert">
+              {words.publishRefused}{' '}
+              <button type="button" className="admin-link" onClick={() => openTodo(refused)}>
+                {words.showTodo}
+              </button>
+            </p>
+          )}
+          {errorAt('publish')}
+          {tree.published && (
+            <dl className="panel-facts">
+              {publishedAt && (
+                <>
+                  <dt>{words.publishedAt}</dt>
+                  <dd>
+                    <time dateTime={publishedAt}>{new Date(publishedAt).toLocaleString()}</time>
+                  </dd>
+                </>
+              )}
+              <dt>{words.publicLink}</dt>
+              <dd>
+                <a href={publicHref} target="_blank" rel="noopener noreferrer" data-public-link="">
+                  {publicHref}
+                </a>
+              </dd>
+            </dl>
+          )}
         </section>
-      )}
-    </div>
+
+        <section className="panel-section" aria-labelledby="panel-collaborators">
+          <h3 id="panel-collaborators">{words.collaborators}</h3>
+          <ul className="panel-people">
+            <li data-account={meta.creator}>
+              <span className="panel-name">{nameOf(meta.creator)}</span> <span className="admin-row-login">({words.creator})</span>
+            </li>
+            {meta.collaborators.map((id) => (
+              <li key={id} data-account={id}>
+                <span className="panel-name">{nameOf(id)}</span>
+                {manages && (
+                  <button
+                    type="button"
+                    className="panel-remove"
+                    aria-label={`${words.removeCollaborator} ${nameOf(id)}`}
+                    disabled={busy}
+                    onClick={() => changeMeta('invite', () => panelCalls.remove(treeId, id), words.requestFailed)}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
+                      <path d="M3 3l10 10M13 3L3 13" />
+                    </svg>
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          {manages && (
+            <form className="panel-form" onSubmit={(event) => submitted(event, (id) => changeMeta('invite', () => panelCalls.invite(treeId, id), words.cannotInvite))}>
+              <AccountSelect name="invite" label={words.chooseAccount} accounts={invitable} disabled={busy} />
+              <button type="submit" className="admin-submit" disabled={busy || invitable.length === 0}>
+                {words.invite}
+              </button>
+            </form>
+          )}
+          {errorAt('invite')}
+          {role === 'creator' && (
+            <HandOver words={words} accounts={heirs} disabled={busy} onSubmit={(event) => submitted(event, (id) => changeMeta('handOver', () => panelCalls.handOver(treeId, id), words.cannotInvite))} />
+          )}
+          {errorAt('handOver')}
+        </section>
+
+        <section className="panel-section" aria-labelledby="panel-tree">
+          <h3 id="panel-tree">{words.thisTree}</h3>
+          {removing === null ? (
+            <LanguageTags
+              id="panel-languages"
+              languages={languages}
+              words={words}
+              removable={(index) => index > 0}
+              onAdd={(tag) => changeLanguages('add-language', tag)}
+              onRemove={setRemoving}
+              onMakeDefault={(tag) => changeLanguages('set-default-language', tag)}
+              error={error?.where === 'languages' ? error.text : undefined}
+              disabled={busy}
+            />
+          ) : (
+            <div className="panel-ask" data-removing={removing}>
+              <p>{words.confirmRemoveLanguage.replace('{language}', removing).replace('{count}', String(written[removing] ?? 0))}</p>
+              <div className="panel-actions">
+                <button type="button" className="admin-submit admin-submit--danger" disabled={busy} onClick={() => changeLanguages('remove-language', removing)}>
+                  {words.confirm}
+                </button>
+                <button type="button" className="admin-link" onClick={() => setRemoving(null)}>
+                  {words.cancel}
+                </button>
+              </div>
+            </div>
+          )}
+          <dl className="panel-facts">
+            <dt>{words.treeId}</dt>
+            <dd>
+              <code>{treeId}</code>
+            </dd>
+            {tree.published && (
+              <>
+                <dt>{words.publicLink}</dt>
+                <dd>
+                  <a href={publicHref} target="_blank" rel="noopener noreferrer">
+                    {publicHref}
+                  </a>
+                </dd>
+              </>
+            )}
+          </dl>
+          {theme}
+        </section>
+
+        {role === 'administrator' && (
+          <section className="panel-section" aria-labelledby="panel-administrator">
+            <h3 id="panel-administrator">{words.administrator}</h3>
+            <HandOver words={words} accounts={heirs} disabled={busy} onSubmit={(event) => submitted(event, (id) => changeMeta('admin', () => panelCalls.handOver(treeId, id), words.cannotInvite))} />
+            {asking === 'delete' ? (
+              <div className="panel-ask">
+                <p>{words.confirmDeleteTree}</p>
+                <div className="panel-actions">
+                  <button type="button" className="admin-submit admin-submit--danger" disabled={busy} onClick={deleteTree}>
+                    {words.confirm}
+                  </button>
+                  <button type="button" className="admin-link" onClick={() => setAsking(null)}>
+                    {words.cancel}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="panel-actions">
+                <button
+                  type="button"
+                  className="admin-submit admin-submit--danger"
+                  disabled={busy || tree.published}
+                  aria-describedby={tree.published ? 'panel-unpublish-first' : undefined}
+                  onClick={() => setAsking('delete')}
+                >
+                  {words.deleteTree}
+                </button>
+                {tree.published && (
+                  <span id="panel-unpublish-first" className="admin-row-login">
+                    {words.unpublishFirst}
+                  </span>
+                )}
+              </div>
+            )}
+            {errorAt('admin')}
+          </section>
+        )}
+      </div>
+    </>
   )
 }
 

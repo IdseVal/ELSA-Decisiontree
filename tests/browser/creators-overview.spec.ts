@@ -140,8 +140,8 @@ test.describe('the new-Tree form (27)', () => {
 
     await expect(page.getByRole('button', { name: 'Remove en' })).toHaveCount(0)
     await page.locator('.new-tree-add').getByRole('button', { name: 'nl', exact: true }).click()
-    await page.getByLabel('Add', { exact: true }).fill('pt-br')
-    await page.getByLabel('Add', { exact: true }).press('Enter')
+    await page.getByLabel('Language tag', { exact: true }).fill('pt-br')
+    await page.getByLabel('Language tag', { exact: true }).press('Enter')
     await expect(tags).toHaveText(['en', 'nl', 'pt-br'])
     await expect(page.getByLabel(/^Title/)).toHaveCount(3)
     await page.getByLabel('Title (en)').fill('Does the AI Act apply?')
@@ -153,7 +153,7 @@ test.describe('the new-Tree form (27)', () => {
     await expect(tags).toHaveText(['pt-br', 'en', 'nl'])
     await expect(page.locator('.new-tree-tag').first()).toContainText('default')
 
-    await page.getByLabel('Add', { exact: true }).fill('Not a tag')
+    await page.getByLabel('Language tag', { exact: true }).fill('Not a tag')
     await page.getByRole('button', { name: 'Add', exact: true }).click()
     await expect(page.locator('.new-tree').getByRole('alert')).toHaveText('A language tag such as en, nl or pt-br.')
     await expect(tags).toHaveText(['pt-br', 'en', 'nl'])

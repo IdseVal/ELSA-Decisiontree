@@ -32,7 +32,7 @@ const panelWords = said([
   'settings', 'publish', 'publishRefused', 'showTodo', 'publishedAt', 'publicLink', 'confirmUnpublish', 'confirm', 'cancel', 'collaborators', 'creator',
   'invite', 'cannotInvite', 'removeCollaborator', 'chooseAccount', 'thisTree', 'confirmRemoveLanguage', 'handOver', 'handOverTo', 'deleteTree',
   'unpublishFirst', 'confirmDeleteTree', 'published', 'hidden', 'notServable', 'publicBehind', 'languages', 'treeId', 'administrator', 'requestFailed',
-  'addLanguage', 'makeDefault', 'default', 'removeLanguage', 'languageHint',
+  'addLanguage', 'makeDefault', 'default', 'removeLanguage', 'languageHint', 'languageTag',
 ]) as PanelWords
 
 const missing = (file: string): Violation => ({ file, keyPath: 'title.nl', rule: 'V-L10N', message: `${file} has no Dutch title`, advisory: true })

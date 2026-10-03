@@ -28,6 +28,7 @@ export interface NewTreeWords {
   default: string
   removeLanguage: string
   languageHint: string
+  languageTag: string
   title: string
   create: string
   requestFailed: string
