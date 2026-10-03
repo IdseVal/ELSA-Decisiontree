@@ -195,7 +195,7 @@ export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang
     <form ref={root} className="structure-form structure-form--end" noValidate onSubmit={onSubmit}>
       <h2>{heading}</h2>
       {/* A row, not a label: the counter is no part of the field's name. */}
-      <div className="editor-row structure-ending">
+      <div className="editor-row">
         <label htmlFor={id}>{words.endingText}</label>
         <span className="structure-ending-field">
           <input
