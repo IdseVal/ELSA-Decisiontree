@@ -3541,7 +3541,7 @@ fieldset:disabled .admin-submit {
   width: auto;
   height: auto;
   max-width: 100%;
-  /* **[#181]** The two fields' three lines and their labels above them take 130 more than one line each did. */
+  /* **[#181]** The two fields' three lines and their labels above them take 130 more than one line each did (31.2, amended). */
   max-height: calc(100vh - 430px);
   border-radius: 12px;
   object-fit: contain;
@@ -3560,8 +3560,8 @@ fieldset:disabled .admin-submit {
  * label column ("Bronvermelding") a field kept 171 pixels of a phone's Sheet and 213 of a wide
  * one, where a credit of 120 characters takes five lines and four. Across the Sheet it takes
  * three, at 13 pixels on lines of 20, in the faces of 28.4, and each field is those three lines
- * whether empty or full (28.4, amended): the credit's and the description's 120 as the enlarged
- * view's are, a plain line wrapped and never scrolled out of its box.
+ * whether empty or full (28.4, amended by #181): the credit's and the description's 120 as the
+ * enlarged view's are, a plain line wrapped and never scrolled out of its box.
  */
 .editor-attach-form .editor-row {
   grid-template-columns: minmax(0, 1fr);

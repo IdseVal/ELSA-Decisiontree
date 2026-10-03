@@ -11,9 +11,10 @@
  * so the folder holds no picture nobody named (a 409 -- the same bytes named elsewhere -- is
  * somebody's file, and ignored). **[#172]** Each field says what belongs in it while it is
  * empty, and its typing stops at its 120 characters, as a field's does (28.4, amended).
- * **[#181]** And each is a box of the lines those 120 characters take, as the enlarged view's
- * credit and description are: a one-line input scrolled a longer credit out of its own box.
- * Enter still attaches, as it did in the input: the text is one plain line.
+ * **[#181]** And each is a box of the three lines those 120 characters take across the Sheet,
+ * its label above it, as the enlarged view's credit and description are boxes of their lines
+ * (28.4 and 31.2, amended by #181): a one-line input scrolled a longer credit out of its own
+ * box. Enter still attaches, as it did in the input: the text is one plain line.
  *
  * Laid over the page from the document's body, so a Sheet it was opened from -- an Overlay --
  * neither clips it nor closes under it.

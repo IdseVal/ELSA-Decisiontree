@@ -1903,6 +1903,14 @@ decides core document 10.27.
   is an explanation Node at every maximum with eight Options, 10.6 measures it, and
   `overlay.spec.ts` measures its picture at two fifths of the panel, which no-scroll alone
   cannot see.
+
+  **[#181] Amended 2026-10-03:** below 792 pixels wide, where the panel's padding is 8 and 12
+  and the cross stands 4 pixels from its corner, the cross is 24 pixels into the panel's text,
+  over the title's first line, so the title keeps 24 pixels from each side: on a phone a long
+  title's link ran under the cross (on the CI runner the fixture's 80 characters at 390 x 844,
+  the first line to x 355, the cross from x 345). Kept clear on both sides, the title stays
+  centred, and the editor's title field keeps the box the public title takes (28.1).
+  `overlay.spec.ts` checks that no line of that title lies under the cross at 390 x 844.
 - **How it closes:** the cross, Escape, a click outside it. Focus moves to the cross on
   open and returns to the Option button on close. One Sheet is open at a time, so
   opening an Overlay closes any other Sheet and opening another Overlay closes this one.
@@ -4097,6 +4105,18 @@ side-bubble buttons (**[#178]** taken off, 2026-10-02: no Answer or Option butto
 a title of long words can take six lines (10.7, amended), and its box grows to 108 with the
 button: 10.3's known cost, in the editor too.
 
+**Amended 2026-10-03 (#181, the walk of #169's points under the owner's standard, "don't exceed
+their parent boxes"):** the attach Sheet's credit and description (31.2), 120 each, are **three**
+lines at every width, each with its label above it, where they were one line beside a column of
+labels. The one-line field scrolled a credit longer than itself out of its own box: 10.6's test
+failed at the walk's step 03 in Dutch at 1280 x 640 and 1920 x 1080 ("ELSA-project, voorlopige
+afbeelding", 238 pixels wide in a field of 229) and at 390 x 844 in both languages. Across the
+Sheet 120 characters take three lines at 13 pixels on lines of 20, so each box is those three
+lines whether empty or full, its text wrapped and never scrolled: the walk holds a credit and a
+description of 120 characters in their boxes at all three sizes in both languages. The text is
+still one plain line: Enter attaches, as it did in the one-line field, and breaks no line. The
+picture gives up the height (31.2, amended the same day).
+
 ### 28.5 The description: source text
 
 Blurred, the region shows the **rendered** text (`richTextToHtml` with the Node's explainers,
@@ -4494,6 +4514,11 @@ second Escape cancels the Sheet. Each row is a `<div>` holding the field's `<lab
 the hint, so the field is named by its label alone. Other editor screens take the same
 component (the Theme panel, #180).
 
+**Amended 2026-10-03 (#181):** the picture gives up the height the two fields take at three lines
+each with their labels above them (28.4, amended the same day): it is at most the window's
+height less 430 pixels, where it was less 300, so the Sheet still fits the window and never
+scrolls (10.6).
+
 ### 31.3 The enlarged view is the Image's editor
 
 The Sheet of 12.3, with the two lines under the picture as fields (`images[i].description.<lang>`,
@@ -4676,6 +4701,15 @@ own (33.3). The top of the sketch, as it is now; the other sections are as above
 |--------------------------------------|
 |  COLLABORATORS                       |
 ```
+
+**[#181] Amended 2026-10-03:** the heading is a band across the top of the panel that stays
+while the body scrolls under it, with a rule below it, and the cross stands in that band, 12
+pixels from the corner at every width. The cross stood over the body, so the body's controls
+slid under it as it scrolled: on the full-Node fixture at 1280 x 640, Invite and Hand over, at
+122 of the panel's 345 scroll positions. The band ends 20 pixels below the cross, more than half
+the panel's tallest control (36), so a control half under the band is never under the cross,
+and the focus scrolls a control to below the band. The to-do bubble's heading (33.3) is the
+same band. `creation-walk.spec.ts` audits both at every scroll position.
 
 ### 33.3 Publish
 
