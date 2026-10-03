@@ -336,6 +336,24 @@ async function sweep(walk: Walk, box: Locator, what: string): Promise<void> {
   }
 }
 
+/**
+ * **[#181]** The language field names what it takes and says it while it is empty, in a
+ * placeholder that fits its box: the audit's scroll measure does not see a placeholder.
+ */
+async function expectLanguageField(walk: Walk, scope: Page | Locator): Promise<void> {
+  const { ui } = walk
+  const field = scope.getByRole('textbox', { name: ui.languageTag, exact: true })
+  await expect(field).toHaveAttribute('placeholder', ui.languageTag)
+  const fit = await field.evaluate((element) => {
+    const input = element as HTMLInputElement
+    const style = getComputedStyle(input)
+    const context = document.createElement('canvas').getContext('2d')!
+    context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+    return { text: context.measureText(input.placeholder).width, room: input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) }
+  })
+  expect.soft(fit.text, `${walk.lang}, ${walk.size}: the language field's placeholder is wider than its room of ${fit.room}`).toBeLessThanOrEqual(fit.room)
+}
+
 /** The page's own script is there: every Sheet draws its backdrop in the render after hydration. */
 async function hydrated(page: Page): Promise<void> {
   await expect(page.locator('details.sheet > .sheet-backdrop').first()).toBeAttached()
@@ -565,6 +583,8 @@ async function walkThrough(walk: Walk): Promise<void> {
   await signIn(walk)
   await page.locator('a.tile--new').click()
   await expect(page).toHaveURL(new RegExp(`/admin/new`))
+  // **[#181]** The language field says what it takes: its button's word named it.
+  await expectLanguageField(walk, page)
   await page.locator(`#new-tree-title-${lang}`).fill(`${words.tree} (${walk.size})`)
   await page.getByRole('button', { name: ui.create, exact: true }).click()
   await page.waitForURL(/\/admin\/trees\/[^/]+\/start/, { timeout: 20_000 })
@@ -699,6 +719,8 @@ async function walkThrough(walk: Walk): Promise<void> {
 
   // The settings panel (33.1, 33.2), the colours (33.8, #180) and the fonts (37).
   await openPanel(page)
+  // **[#181]** The panel's language field too: the new-Tree form's control (27.1, 33.5).
+  await expectLanguageField(walk, panel(page))
   await step(walk, '17-settings-panel')
   const chosen = themeWrite(walk)
   await themePanel(page).getByRole('button', { name: ui.chooseColours, exact: true }).click()

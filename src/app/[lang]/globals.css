@@ -2186,7 +2186,8 @@ fieldset:disabled .admin-submit {
 }
 
 .new-tree-add input {
-  width: 7rem;
+  /* **[#181]** Room for its placeholder, `languageTag`: "Language tag" at 16 takes 110 pixels in DejaVu Sans, 97 in Segoe UI. */
+  width: 9rem;
   min-width: 0;
   height: 32px;
   padding: 4px 8px;

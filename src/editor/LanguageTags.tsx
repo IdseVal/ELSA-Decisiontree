@@ -6,7 +6,9 @@
  * panel's "This Tree" section, which is "the same control". The first tag is the default
  * language (tree-format.md 3.3), marked `default`; every other tag offers `makeDefault`; a
  * cross removes a tag where the caller allows it. The tag grammar is checked here before a
- * tag is handed on; `en` and `nl`, the chrome's, are offered with one click.
+ * tag is handed on; `en` and `nl`, the chrome's, are offered with one click. **[#181]** The
+ * field is named, and says while it is empty, what it takes (`languageTag`): its button's word
+ * named it before.
  *
  * The caller holds the list and decides what a click does: the form changes its own state,
  * the panel sends a write.
@@ -22,6 +24,7 @@ export interface LanguageTagWords {
   default: string
   removeLanguage: string
   languageHint: string
+  languageTag: string
 }
 
 /** The two languages offered with one click: the chrome's (ADR-133-new-tree-form decision 1). */
@@ -111,7 +114,8 @@ export function LanguageTags({
       <div className="new-tree-add">
         <input
           name="language"
-          aria-label={words.addLanguage}
+          aria-label={words.languageTag}
+          placeholder={words.languageTag}
           autoCapitalize="none"
           spellCheck={false}
           value={tag}

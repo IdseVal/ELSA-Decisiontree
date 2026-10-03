@@ -58,6 +58,7 @@ export function newTreeWords(lang: string): NewTreeWords {
     default: ui.default,
     removeLanguage: ui.removeLanguage,
     languageHint: ui.languageHint,
+    languageTag: ui.languageTag,
     title: ui.title,
     create: ui.create,
     requestFailed: ui.requestFailed,
