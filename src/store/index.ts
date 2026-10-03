@@ -7,12 +7,16 @@
  * This is the read side (#134): the data directory, its lock, the seed at first start, and
  * the set of published Trees every public route works from. **[#135]** Accounts, sessions and
  * the login rate limit are members of `Store`. **[#136]** The drafts and every write to a Tree
- * are `drafts.ts`'s, the member `drafts`.
+ * are `drafts.ts`'s, the member `drafts`. **[#179]** Every `elsa-tree/4` file it finds or imports
+ * is converted to `elsa-tree/5` before it is opened (application.md 36.4).
  */
 import { cp, mkdir, readdir, readFile, rename, rm, stat, access, constants } from 'node:fs/promises'
 import path from 'node:path'
 import type { Environment } from '../config.ts'
-import { openTree, type Tree } from '../tree/loader.ts'
+import { convertTree } from '../tree/convert.ts'
+import { openTree, readTreeText, type Tree } from '../tree/loader.ts'
+import { treeBytes } from '../tree/serialise.ts'
+import { isId, isMapping, validateTree, type Mode } from '../tree/validate.ts'
 import { openAccounts, type Accounts } from './accounts.ts'
 import { openDrafts, RESERVED_TREE_IDS, type Drafts } from './drafts.ts'
 import { loginLimit, type LoginLimit } from './login-limit.ts'
@@ -84,6 +88,14 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
   if (accounts.adminPasswordReplaced) await sessions.endAll(admin.id)
   if (!(await isFolder(treesDir))) await seed(seedDirectory(env), treesDir, admin.id)
   const refused: Refused[] = await nameCreator(treesDir, admin.id)
+  // **[#179]** Before any Tree is opened: a release that reads elsa-tree/5 converts what an
+  // earlier one wrote (36.4). Each file on its own, so a draft that converts is not held back
+  // by a published copy that cannot, or the other way round.
+  for (const id of await listFolders(treesDir)) {
+    const dir = path.join(/* turbopackIgnore: true */ treesDir, id)
+    await convertFile(id, dir, path.join(/* turbopackIgnore: true */ dir, 'tree.json'), 'published')
+    await convertFile(id, dir, path.join(/* turbopackIgnore: true */ dir, 'draft.json'), 'draft')
+  }
 
   const served = new Map<string, Tree>()
   for (const id of await listFolders(treesDir)) {
@@ -127,10 +139,13 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
  * Copies the Tree folder `folder` into `treesDir` as a published store Tree (17.4): its
  * `tree.json`, `images/` and `theme/`, a `draft.json` that is a byte copy of `tree.json`,
  * and a `meta.json` naming `creator`. Rejects for a reserved id, an id already in the store
- * and a Tree that fails validation in full, before anything is written.
+ * and a Tree that fails validation in full, and leaves nothing behind.
  *
  * The folder is assembled beside its final place and renamed into it, so a crash never
- * leaves half a Tree under a real id.
+ * leaves half a Tree under a real id. **[#179]** The copy is validated, not the source: an
+ * `elsa-tree/4` file is converted in the copy and stored as it was validated, and the source
+ * folder is never written (36.4). Everything the loader reads is copied as it stands, so the
+ * copy is refused for whatever the source would be.
  *
  * `creator` is an account id: the administrator's at the seed (17.4). **[#135]** A Tree a
  * #134 store seeded before there were accounts has `null`, which `openStore` replaces.
@@ -141,21 +156,33 @@ export async function importTree(folder: string, treesDir: string, creator: stri
   if (RESERVED_TREE_IDS.includes(id)) throw new Error(`Tree "${id}": "${id}" is a reserved word (application.md 4.3)`)
   const target = path.join(/* turbopackIgnore: true */ treesDir, id)
   if (await exists(target)) throw new Error(`Tree "${id}": the store already has a Tree with this id`)
-  await openTree(source)
 
+  // The copy is a folder named by the id inside the staging folder, so the loader reads it as
+  // it reads the Tree: its name is checked too (V-DIR).
   const staging = `${target}.tmp`
+  const copy = path.join(/* turbopackIgnore: true */ staging, id)
   await rm(staging, { recursive: true, force: true })
-  await mkdir(staging, { recursive: true })
-  const published = await readFile(path.join(/* turbopackIgnore: true */ source, 'tree.json'))
-  // Copied, not rewritten, so the published copy and the draft are the file's own bytes (15.3).
-  await cp(path.join(/* turbopackIgnore: true */ source, 'tree.json'), path.join(/* turbopackIgnore: true */ staging, 'tree.json'), {
-    preserveTimestamps: true,
-  })
-  await writeAtomic(path.join(/* turbopackIgnore: true */ staging, 'draft.json'), published)
-  // The two names are spelled out rather than looped over, as in the loader: a `path.join`
-  // whose last segment is a variable makes Turbopack trace the whole project into the build.
-  await copyFolder(path.join(/* turbopackIgnore: true */ source, 'images'), path.join(/* turbopackIgnore: true */ staging, 'images'))
-  await copyFolder(path.join(/* turbopackIgnore: true */ source, 'theme'), path.join(/* turbopackIgnore: true */ staging, 'theme'))
+  await mkdir(copy, { recursive: true })
+  try {
+    // Copied, not rewritten, so the published copy and the draft are the file's own bytes
+    // (15.3) -- unless it is elsa-tree/4, which the conversion rewrites in the copy.
+    if (await exists(path.join(/* turbopackIgnore: true */ source, 'tree.json'))) {
+      await cp(path.join(/* turbopackIgnore: true */ source, 'tree.json'), path.join(/* turbopackIgnore: true */ copy, 'tree.json'), {
+        preserveTimestamps: true,
+      })
+    }
+    // The two names are spelled out rather than looped over, as in the loader: a `path.join`
+    // whose last segment is a variable makes Turbopack trace the whole project into the build.
+    await copyEntry(path.join(/* turbopackIgnore: true */ source, 'images'), path.join(/* turbopackIgnore: true */ copy, 'images'))
+    await copyEntry(path.join(/* turbopackIgnore: true */ source, 'theme'), path.join(/* turbopackIgnore: true */ copy, 'theme'))
+    await convertFile(id, copy, path.join(/* turbopackIgnore: true */ copy, 'tree.json'), 'published')
+    await openTree(copy)
+  } catch (error) {
+    await rm(staging, { recursive: true, force: true })
+    throw error
+  }
+  const published = await readFile(path.join(/* turbopackIgnore: true */ copy, 'tree.json'))
+  await writeAtomic(path.join(/* turbopackIgnore: true */ copy, 'draft.json'), published)
   const now = new Date().toISOString()
   const meta = {
     creator,
@@ -167,9 +194,42 @@ export async function importTree(folder: string, treesDir: string, creator: stri
     publishCount: 1,
     revision: 0,
   }
-  await writeAtomic(path.join(/* turbopackIgnore: true */ staging, 'meta.json'), `${JSON.stringify(meta, null, 2)}\n`)
-  await rename(staging, target)
+  await writeAtomic(path.join(/* turbopackIgnore: true */ copy, 'meta.json'), `${JSON.stringify(meta, null, 2)}\n`)
+  await rename(copy, target)
+  await rm(staging, { recursive: true, force: true })
   return openTree(target)
+}
+
+/**
+ * **[#179]** Converts `file`, the `tree.json` or `draft.json` of the Tree folder `dir`, from
+ * `elsa-tree/4` to `elsa-tree/5` by tree-format.md 12.7.1, and replaces it atomically when the
+ * result passes `mode`'s rules -- a draft its blocking ones (19.2), the published copy every
+ * one (19.3) -- logging one line (36.4). A file that is not `/4`, that the loader would not
+ * read, or whose conversion would not pass is left as it was: opening it then refuses the
+ * Tree, or holds it uneditable, with its violations (18.3, 19.5). `meta.json` is not touched:
+ * no creator wrote.
+ *
+ * The result is checked as the loader checks a file, before a byte is written: the folder's
+ * name and entries (V-DIR), then the schema and the rules against the files in `images/` and
+ * `theme/`.
+ */
+async function convertFile(id: string, dir: string, file: string, mode: Mode): Promise<void> {
+  const text = await readText(file)
+  const value = text === null ? null : readTreeText(text).value
+  if (!isMapping(value)) return
+  const { tree, endings } = convertTree(value)
+  if (tree === null) return
+  if (!isId(id) || (await isFile(path.join(/* turbopackIgnore: true */ dir, 'images'))) || (await isFile(path.join(/* turbopackIgnore: true */ dir, 'theme')))) return
+  const raw = {
+    id,
+    tree,
+    images: new Set(await listFiles(path.join(/* turbopackIgnore: true */ dir, 'images'))),
+    themeFiles: new Set(await listFiles(path.join(/* turbopackIgnore: true */ dir, 'theme'))),
+  }
+  // In published mode no violation carries `advisory`, so every one of them stops the write.
+  if (validateTree(raw, mode).some((violation) => !violation.advisory)) return
+  await writeAtomic(file, treeBytes(tree))
+  console.log(`Converted Tree "${id}" ${path.basename(file)} from elsa-tree/4 to elsa-tree/5: ${endings} endings`)
 }
 
 /** Refuses a 1.0 environment rather than half-reading it (17.1). */
@@ -282,13 +342,26 @@ async function nameCreator(treesDir: string, creator: string): Promise<Refused[]
   return broken
 }
 
-/** Copies the folder `from` whole to `to`, timestamps kept; nothing when there is none. */
-async function copyFolder(from: string, to: string): Promise<void> {
-  if (await isFolder(from)) await cp(from, to, { recursive: true, preserveTimestamps: true })
+/**
+ * Copies `from` -- a Tree's `images/` or `theme/` -- whole to `to`, timestamps kept; nothing
+ * when there is none. **[#179]** A file of that name is copied too, so that the copy fails
+ * V-DIR as the source does.
+ */
+async function copyEntry(from: string, to: string): Promise<void> {
+  if (await exists(from)) await cp(from, to, { recursive: true, preserveTimestamps: true })
 }
 
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
+}
+
+/** The plain files directly inside `dir`, as the loader lists `images/` and `theme/`; none when it cannot be read. */
+async function listFiles(dir: string): Promise<string[]> {
+  try {
+    return (await readdir(dir, { withFileTypes: true })).filter((entry) => entry.isFile()).map((entry) => entry.name)
+  } catch {
+    return []
+  }
 }
 
 async function listNames(dir: string): Promise<string[]> {

@@ -50,7 +50,7 @@ const NODE_FIELDS: RegExp[] = [
   /^(images)\[(\d+)\]\.(credit|source)$/,
   /^(explainers)\[(\d+)\]\.(term|text)\.([^.[\]]+)$/,
   /^(options)\[(\d+)\]\.(title)\.([^.[\]]+)$/,
-  /^(terminal)\.(outcome)$/,
+  /^(terminal)\.(label)\.([^.[\]]+)$/,
 ]
 
 /** The keys whose value is a localised text: the segment after one of them is a language. */
@@ -63,8 +63,8 @@ const LOCALISED = new Set(['title', 'description', 'label', 'term', 'text'])
  */
 export function newDraft(languages: string[], title: Mapping): Mapping {
   return {
-    $schema: '/schemas/elsa-tree-4.json',
-    format: 'elsa-tree/4',
+    $schema: '/schemas/elsa-tree-5.json',
+    format: 'elsa-tree/5',
     languages,
     root: 'start',
     title: localisedInput(title, languages, 'manifest', 'title'),
@@ -241,7 +241,7 @@ export function applyOperation(tree: Mapping, nodeId: string, operation: Operati
       return []
     }
     case 'set-terminal':
-      node.terminal = { outcome: operation.outcome }
+      node.terminal = { label: localisedInput(operation.label, languages, nodeId, 'terminal.label') }
       return []
     case 'remove-terminal':
       if (!('terminal' in node)) throw fail('terminal', 'this Node is not a Terminal')
@@ -302,8 +302,8 @@ export function applyLanguageOperation(tree: Mapping, operation: Operation): str
 /**
  * **[#147]** Calls `visit` on every localised text of the draft (3.3, 3.4): the manifest's
  * title, description and logo text, and each Node's title, description, Source labels, Image
- * descriptions, Option titles and explainers. Answers the ids of the Nodes for which `visit`
- * said it changed something.
+ * descriptions, Option titles and explainers, and **[#179]** a Terminal's words (22.2). Answers
+ * the ids of the Nodes for which `visit` said it changed something.
  */
 export function eachText(tree: Mapping, visit: (text: Mapping) => boolean): string[] {
   const logo = (tree.theme as Mapping | undefined)?.logo as Mapping | undefined
@@ -318,6 +318,7 @@ export function eachText(tree: Mapping, visit: (text: Mapping) => boolean): stri
       ...list('images').map((image) => image.description),
       ...list('options').map((option) => option.title),
       ...list('explainers').flatMap((explainer) => [explainer.term, explainer.text]),
+      (node.terminal as Mapping | undefined)?.label,
     ]
     let touched = false
     for (const text of texts) if (text && visit(text as Mapping)) touched = true
@@ -329,12 +330,13 @@ export function eachText(tree: Mapping, visit: (text: Mapping) => boolean): stri
 /**
  * Creates a Node and the Link to it from `from.node` in one write (22.4): an Answer (`yes`,
  * `no`) or an Option, the new Node empty but for `title`. `end` creates no Node: it gives
- * `from.node` a terminal with `outcome` (30.3). Answers the id of the Node the response is
+ * `from.node` a terminal holding **[#179]** the ending's words, `from.label`, with `""` for
+ * every declared language it lacks (30.3, 36.3). Answers the id of the Node the response is
  * about -- the new one, or `from.node` for an end.
  */
 export function createNode(
   tree: Mapping,
-  from: { node: unknown; link: unknown; outcome?: unknown },
+  from: { node: unknown; link: unknown; label?: unknown },
   title: unknown,
   id: string,
 ): string {
@@ -343,7 +345,7 @@ export function createNode(
   const languages = tree.languages as string[]
   switch (from.link) {
     case 'end':
-      parent.terminal = { outcome: from.outcome }
+      parent.terminal = { label: localisedInput(from.label, languages, from.node, 'terminal.label') }
       return from.node
     case 'yes':
     case 'no': {

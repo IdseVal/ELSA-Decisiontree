@@ -111,9 +111,9 @@ async function freshTree(): Promise<{ id: string; yes: string; picture: string }
   await fill('start')
   const yes = (await drafts.createNode(creator, id, { node: 'start', link: 'yes' })).node!.id
   const no = (await drafts.createNode(creator, id, { node: 'start', link: 'no' })).node!.id
-  for (const [node, outcome] of [[yes, 'applicable'], [no, 'refer']] as const) {
+  for (const [node, words] of [[yes, 'Applies'], [no, 'Look elsewhere']] as const) {
     await fill(node)
-    await drafts.createNode(creator, id, { node, link: 'end', outcome })
+    await drafts.createNode(creator, id, { node, link: 'end', label: { en: words } })
   }
   await drafts.addCollaborator(creator, id, accounts.collaborator!.id)
   const picture = (await drafts.uploadImage(creator, id, GIF, 'picture.gif')).file
