@@ -6,6 +6,36 @@
 > they consume is frozen separately in `docs/specs/tree-format.md` (`elsa-tree/3`, issue
 > #78; `elsa-tree/2` was issue #37).
 >
+> **Amended 2026-10-03 by issue #195** (`docs/adrs/ADR-195-*.md`), for the owner's words on
+> #194 (core document 3.4 `[#194]`): "To login should be based on an email and a password, and
+> graphs should have a small mention by who it was authored, if multiple collaborators in the
+> order in which they joined a decision-tree." An account logs in with an e-mail address in
+> place of a user name, the administrator's included, and a Tree's pages name the accounts that
+> authored it. **Sections 38 and 39 are new** and hold the contracts; the sections below change
+> where they named the login, the administrator's `admin`, the keys of `meta.json` or what may
+> reach a public page, each change marked **[#195]** and dated. Built by #196 (the login) and
+> #197 (the Authors, after #196); the owner's own account, #198, changes no contract.
+>
+> | Section | #195 |
+> |---|---|
+> | 3.2 | #196's keys for the address and for one name per account; #197's `byAuthors` and `nameShownPublicly`. |
+> | 6 | `src/components/Authors.tsx` and `src/store/authors.ts`; `config.ts` reads `ELSA_ADMIN_EMAIL`. |
+> | 7 | The editor round's row names 38.10 and 39.9. |
+> | 8, 9 | Rows for the login by address and for the mention; eight `ADR-195-*` rows. |
+> | 10.1, 10.6 | The chrome bar of a Node page holds the mention; the walk skips its cut line. |
+> | 15.3, 16.4, 16.5, 23.5 | Unchanged, stated: no name enters `tree.json`, the JSON-LD or `llms.txt` (39.7). |
+> | 17.1, 17.2, 17.4, 17.5 | `ELSA_ADMIN_EMAIL`; `accounts.json`'s `email` and `meta.json`'s `joined`, each converted at the start; the store's `authors(id)`. |
+> | 20.1, 20.3 to 20.5, 20.7, 20.8 | The address in place of the login; the administrator's from `ELSA_ADMIN_EMAIL`; the interface; what about an account may reach a public route, and its test; the rate limit and the log for an address. |
+> | 21.1, 21.2, 21.4 | A Tree's roles are what its mention names; an address changed by the administrator alone; the list answers names; an invitation and a hand-over append to `joined`. |
+> | 22.1 | The bodies of the login and account routes (38.2). |
+> | 23.1 | The store's public interface gains `authors(id)`, which answers names only. |
+> | 24.3, 26.1 | The mention in the public Node page's bar and on a tile's bottom row. |
+> | 25.1 to 25.3 | The login page's field; the address on the account and accounts pages, `setEmail`; one name per account; the notice that a name is public. |
+> | 33.4 | The invitation and hand-over selects show names only. |
+> | 34.5 | Edit mode renders no mention. |
+> | 35.1 to 35.5 | The test accounts log in by address; the rows of #196 and #197; the account sweep. |
+> | 38, 39 | New. |
+>
 > **Amended 2026-10-02 by issue #171** (`docs/adrs/ADR-171-*.md`), for two points the owner
 > listed on #169 after walking the editor: "When tree ends here is chosen, just let the user
 > enter a text to display on the button (with a wordcap obviously). This graph creation tool
@@ -304,6 +334,8 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | #177 | `deleteSideBubble` (the button at the foot of an opened side bubble, 30.7), `confirmDeleteSideBubble` (its confirmation, a function of the side bubble's title), `confirmDeleteUntitledSideBubble` (the same without a title), `sideBubbleStays` (what the confirmation adds where another step leads to the side bubble too) |
 | **[#171]** #179 | `endingText` ("Text of the ending" / "Tekst van het einde": the `treeEndsHere` Sheet's field and the empty badge field's placeholder, 36.3); **gone**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, and #138's `outcome`; **reworded**: #144's `colourDanger`, "Errors" / "Fouten" (36.1) |
 | **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5; **[#180] added in the build**: the Theme panel's hints (33.8), `colourBackgroundHint`, `colourSurfaceHint`, `colourTextHint`, `colourTextMutedHint`, `colourAccentHint`, `colourAccentSecondaryHint`, `colourDangerHint`, `contrastHint`, `logoAltHint`, `fontBodyHint`, `fontHeadingHint`, `fontLicenceHint`, `fontFileHint`, named by #174's `hint`; **[#180] added in review**: `licenceOtherHint` (the hint behind the free licence line, 4.3.2's own sentence, 37.5; `ADR-171-licence-dropdown.md` decision 2) and `placeholderFontFamily` (the family-name field's placeholder while it is empty, 28.2, 37.4) |
+| **[#195]** #196 | `email` ("E-mail address" / "E-mailadres": the login page's field, the field of the new-account and `setEmail` Sheets, the accounts page's column), `emailInvalid` ("Enter an e-mail address of at most 254 characters." / "Vul een e-mailadres in van hoogstens 254 tekens."), `emailTaken` ("Another account has this e-mail address." / "Een ander account heeft dit e-mailadres."), `nameTaken` ("Another account has this name." / "Een ander account heeft deze naam."), `setEmail` ("Change e-mail address" / "E-mailadres wijzigen"), `noEmail` ("No e-mail address yet" / "Nog geen e-mailadres"), `signedInWith(email)` ("You sign in with <address>." / "U logt in met <adres>."), `emailHelp` ("Ask your administrator to change it." / "Vraag uw beheerder om het te wijzigen."), 38.5 and 38.6; **gone**: `login`, `loginInvalid`, `loginTaken`; **reworded**: `loginFailed`, "Wrong e-mail address or password." / "Verkeerd e-mailadres of wachtwoord.", and `sessionNotKept`, which opens "Your e-mail address and password are right" / "Uw e-mailadres en wachtwoord kloppen" (25.1) |
+| **[#195]** #197 | `byAuthors(names)` ("By A, B and C" / "Door A, B en C": the mention, 39.4), `nameShownPublicly` (the account page's notice, 39.8) |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -834,6 +866,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── ThemeStyle.tsx   [#133] server: the one <style> element of 13.1, emitted by every page
 │   │   │                    for the Tree it shows or the default (24.3); the root layout emits none
 │   │   ├── Tile.tsx         [#133] server: one Tree on the overview (26.1)
+│   │   ├── Authors.tsx      [#195] server: the mention of a Tree's Authors, in the chrome bar and on a tile (39.4, 39.5)
 │   │   ├── Overview.tsx     [#133] server: the tile grid in its scroll box, public or creators' (26.2, 26.4)
 │   │   ├── ShareButton.tsx  client, unchanged
 │   │   ├── LanguageSwitch.tsx  unchanged
@@ -851,10 +884,13 @@ deploy; an hour of a stale font is the same trade the images make.
 │   ├── chrome.ts            chrome strings and fallback (3)
 │   ├── fonts.ts             [#171] FONT_LIBRARY and FONT_LICENCES: the font library's list and the licence list (37.1, 37.5); pure
 │   ├── config.ts            ELSA_TREE / ELSA_TREES_DIR; the one opened Tree; [#132] ELSA_DATA_DIR,
-│   │                        ELSA_SEED_DIR, ELSA_ADMIN_PASSWORD, the three retired variables refused (17.1)
+│   │                        ELSA_SEED_DIR, ELSA_ADMIN_PASSWORD, the three retired variables refused (17.1);
+│   │                        [#195] ELSA_ADMIN_EMAIL (38.3)
 │   ├── store/               [#132] the store (17.5): the one module that opens ELSA_DATA_DIR
 │   │   ├── index.ts         openStore, the atomic writer and its queues, the lock, the seed (17.3, 17.4)
-│   │   ├── accounts.ts      accounts, scrypt, the login rate limit (20.1 to 20.3, 20.7)
+│   │   ├── accounts.ts      accounts, scrypt, the login rate limit (20.1 to 20.3, 20.7); [#195] by
+│   │   │                    e-mail address, and the conversion of a store of user names (38)
+│   │   ├── authors.ts       [#195] authorsOf: a Tree's Authors' names, in the order of joining (39.3); pure
 │   │   ├── sessions.ts      the token, the record, the cookie string, expiry (20.4)
 │   │   ├── permissions.ts   permit: the table of 21.2 as code (21.3)
 │   │   ├── drafts.ts        the writes of 22.2 to 22.5, publish and unpublish (19.3, 19.4), importTree
@@ -1023,7 +1059,7 @@ detail, not a second place to look.
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. **[#132]** A browser spec that needs its own server starts it with `ELSA_DATA_DIR` a fresh temporary directory and `ELSA_SEED_DIR` the fixture's parent folder (17.1), not with `ELSA_TREE`; `tests/browser/serve.ts` does it. The rows the round adds are in 23.7. Never hand-built `Node` objects; **[#118]** and never a Tree file parsed by the test itself -- a test that wants a Tree opens it through the loader, whatever the serialisation is. (This row read "never YAML read by a test" until #118; the fixtures become `tree.json` with #119, and the rule was never about YAML.) |
 | Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). **[#118]** `tests/fixtures/findability/` (**#120** creates it, **#122** extends it): a two-language Tree whose manifest has **no `description`**, so the `Dataset` and `llms.txt` fall back to the root Node's; whose `title` and one Node `title` carry `&`, `<`, `>`, `"` and a literal `</script>`, so the XML escaping of 16.2 and the JSON escaping of 16.4 are exercised rather than assumed; with one Node holding two `kind: legal` Sources at one URL and one at another, so `isBasedOn`'s most-frequent rule has something to choose; one Node with **no** Source at all; a Terminal and an explanation Node, so the "no `Question`" half of 16.4 has a subject; and a description over 155 counted characters whose 155th character falls inside a word, for the cut. The single-language half of 16.2 and 16.5 uses `tests/fixtures/single-language/`, which already exists. **[#122]** Two corrections to this row, made in building it. The Node title also carries `<!--`, the second sequence 16.4's sink refuses, which this row named for the test but not for the fixture. And **the over-155 description is not in this fixture, because the format forbids it**: a Node `description` is at most 150 counted characters and a Tree `description` is rich text whose reduction is shorter still (`tree-format.md` 5.7), so no valid Tree can exercise steps 3 and 4 of 16.3 -- which is 16.3's own point, that the cut does not fire for a conforming Tree. The cut is asserted on strings in `markdown.test.ts`, where it can be. **[#122]** `tests/fixtures/tied-sources/` is new: one language, two `kind: legal` Sources at two URLs with one citation each, and a `literature` and a `case-law` Source that no count of legal Sources may see -- the tie 16.4 breaks by first occurrence in Node order, which no other fixture can produce. |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
-| **[#133]** The editor round's tests | Section 35: a data directory built by `tests/browser/admin.ts` from fixtures and a table of accounts, never committed; one server per spec through `serveStore`; one login helper; the admin pages under the no-scroll test with `[data-scroll-box]` exempted (26.3); one spec per build issue (35.4); the sweep's admin half (35.5); the public suites run unchanged (35.6). |
+| **[#133]** The editor round's tests | Section 35: a data directory built by `tests/browser/admin.ts` from fixtures and a table of accounts, never committed; one server per spec through `serveStore`; one login helper; the admin pages under the no-scroll test with `[data-scroll-box]` exempted (26.3); one spec per build issue (35.4); the sweep's admin half (35.5); the public suites run unchanged (35.6). **[#195]** And, from 2026-10-03, 38.10 and 39.9: the login by e-mail address and the Authors. |
 
 **Which tests are unit and which need a browser.** The rule is: a claim about *markup*
 is a unit test; a claim about *layout, motion or network* needs a browser.
@@ -1116,7 +1152,7 @@ back.
 | 4 / 8 no accounts, cookies, tracking, analytics, database | 1 (no cookie, no telemetry), 2 (files only), 5. **[#132]** For end users unchanged: 20.5 (no public route sets or reads a cookie; the sweep). For creators: 20 (accounts, one cookie on `/admin`), 17 (JSON files, no database server). |
 | 3.4 **[#132]** many Trees, an overview in front, every share link kept | 18, 23.2 |
 | 3.4 **[#132]** saved automatically; hidden until Publish; a published Tree follows every valid save | 19 |
-| 3.4 / 8 **[#132]** creators with a name, a login, an administrator over every Tree; nothing about a creator on a public page or in a Tree file | 20, 17.2 |
+| 3.4 / 8 **[#132]** creators with a name, a login, an administrator over every Tree; nothing about a creator on a public page or in a Tree file | 20, 17.2; **[#195]** the login an e-mail address (38), and an Author's name on its Tree's pages and nowhere else (39.8) |
 | 3.4 / 9 **[#132]** every write checked on the server for that account and that Tree | 21, 22.1 |
 | 9 **[#132]** a hidden Tree on no public route, in no document | 23.1 |
 | 10.30 to 10.34 **[#132]** | 17, 20.1, 20.3, 19.4, 18 |
@@ -1134,6 +1170,9 @@ back.
 | 3.4 **[#133]** similar styling for every new page | 24.3 (the chrome bar, the disclaimer, the default Theme), 25, 26.1 |
 | 3.2 / 9 **[#133]** the page never scrolls, on the new pages too | 26.3 (the scroll box, the second exemption), 28.6, 35.4 |
 | 3.4 **[#133]** the end-user pages unchanged in behaviour | 34.1, 34.5, 34.8, 35.6 |
+| 3.4 **[#194]** an e-mail address and a password log in, the administrator's included; still no mail | **[#195]** (2026-10-03) 38: the address 38.1, the administrator's 38.3, a store of user names 38.4, who sees and who changes one 38.5 |
+| 3.4 / 8 / 9 **[#194]** every Tree names who authored it, the collaborators in the order they joined it; nothing else about an account on a public page | **[#195]** (2026-10-03) 39: who 39.1, the order 39.2, where 39.4 and 39.5; what may reach a public route 20.5 and 39.8, with `deployment.spec.ts`'s account sweep |
+| 10.39, 10.40 **[#194]** | **[#195]** 38, 39 |
 
 ## 9. Where each decision is recorded
 
@@ -1144,7 +1183,7 @@ back.
 | **[#132]** Every published Tree served; `ELSA_TREE` gone; the loader per folder, the store the set; an invalid Tree unserved, not fatal; image and theme files under the Tree id | `docs/adrs/ADR-132-many-trees-per-deployment.md` |
 | **[#132]** `ELSA_DATA_DIR`: JSON files, an atomic writer with a queue per file, one process; the seed at first start; import, move, back up | `docs/adrs/ADR-132-data-directory.md` |
 | **[#132]** The draft is the same file under a named advisory set; Publish copies it when valid in full; every valid save of a published Tree is public at once | `docs/adrs/ADR-132-draft-and-publish.md` |
-| **[#132]** Accounts by the administrator, user name and scrypt; `ELSA_ADMIN_PASSWORD`; one `HttpOnly; Secure; SameSite=Strict; Path=/admin` cookie; three-layer CSRF; a login rate limit; the public routes set no cookie | `docs/adrs/ADR-132-accounts-and-sessions.md` |
+| **[#132]** Accounts by the administrator, user name and scrypt; `ELSA_ADMIN_PASSWORD`; one `HttpOnly; Secure; SameSite=Strict; Path=/admin` cookie; three-layer CSRF; a login rate limit; the public routes set no cookie | `docs/adrs/ADR-132-accounts-and-sessions.md` -- **superseded in part [#195]**: an e-mail address in place of the user name, the administrator's from `ELSA_ADMIN_EMAIL` (`ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`) |
 | **[#132]** Creator, collaborator, administrator; one table; `permit` on every request; invitations from a list | `docs/adrs/ADR-132-roles-and-permissions.md` |
 | **[#132]** Route handlers under `/admin/api`; a field or one Node operation per write; the Node as stored in every answer; last write wins per field; sniffed, renamed, capped uploads | `docs/adrs/ADR-132-editor-api.md` |
 | **[#132]** One 404 for hidden, unservable, unknown and reserved; one sitemap, `robots.txt` and `llms.txt` over every served Tree; `lastmod` per Tree | `docs/adrs/ADR-132-hidden-trees-and-findability.md` |
@@ -1183,7 +1222,7 @@ back.
 | **[#118]** `llms.txt` generated from the manifest; no `llms-full.txt`, because `tree.json` is it | `docs/adrs/ADR-118-llms-txt.md` |
 | **[#118]** The order of the four build issues #119 to #122 | `docs/adrs/ADR-118-build-order.md` |
 | **[#133]** Five admin pages under `[lang]`; the editor's address is the public grammar behind `/admin/trees`; the login page rendered in place; JavaScript required; every page emits its own Theme | `docs/adrs/ADR-133-admin-routes.md` |
-| **[#133]** The login card with one error; the account page; the administrator's accounts page | `docs/adrs/ADR-133-login-and-account-pages.md` |
+| **[#133]** The login card with one error; the account page; the administrator's accounts page | `docs/adrs/ADR-133-login-and-account-pages.md` -- **superseded in part [#195]**: the field an e-mail address; the address on the account and accounts pages (`ADR-195-login-by-email-address.md`, `ADR-195-who-sees-and-changes-an-address.md`) |
 | **[#133]** The tile and the grid in a scroll box (the second exemption); the + tile; the state mark; two groups; every published Tree plus one's own hidden ones | `docs/adrs/ADR-133-overview-tiles.md` |
 | **[#133]** The new-Tree form: an id that never changes, the languages with the first as default, a title per language; the editor on the root Node next | `docs/adrs/ADR-133-new-tree-form.md` |
 | **[#133]** Every field a region in place; the language switch as the editing switch; counters by the validator's functions, typing never stopped; the description as source; the no-scroll rule kept | `docs/adrs/ADR-133-bubble-edited-in-place.md` |
@@ -1203,6 +1242,14 @@ back.
 | **[#169]** The heading over the Sources says "Sources" / "Bronnen"; the kind labels unchanged | `docs/adrs/ADR-173-sources-heading.md` |
 | **[#180]** In the editor the draft's Theme paints the Tree; the bar, the floating controls and every editor Sheet keep the default; the bar's logo in its light variant | `docs/adrs/ADR-180-editor-interface-not-themed.md` |
 | **[#180]** Under their heading the Sources are `text`, label, kind and dot; a link told by an underline in it | `docs/adrs/ADR-180-sources-text-colour.md` |
+| **[#195]** An e-mail address in place of the user name: the browser's own check, at most 254 characters, lower-cased, one account per address; the rate limit per address typed; no address in the log | `docs/adrs/ADR-195-login-by-email-address.md` |
+| **[#195]** The administrator's address from `ELSA_ADMIN_EMAIL`, read at every start; none invented; the demo server's the owner's to choose | `docs/adrs/ADR-195-administrator-address.md` |
+| **[#195]** A store of user names converted at the first start; an account without an address waits for the administrator | `docs/adrs/ADR-195-accounts-without-an-address.md` |
+| **[#195]** An address seen by its holder and the administrator and changed by the administrator; the invitation list by name; one account per name | `docs/adrs/ADR-195-who-sees-and-changes-an-address.md` |
+| **[#195]** The Authors: the creator and the collaborators who hold a role now, never the administrator, in the order each first joined, by name alone | `docs/adrs/ADR-195-authors.md` |
+| **[#195]** `meta.json`'s `joined`, appended to and never reordered, filled in from the roles at the start | `docs/adrs/ADR-195-order-of-joining.md` |
+| **[#195]** "By A, B and C": one line in the chrome bar of a Node page and on the tile, cut where its room ends, not drawn under 80 pixels | `docs/adrs/ADR-195-the-mention.md` |
+| **[#195]** The names in the mention and nowhere else; nothing else about an account on a public route; `authors(id)`; the account sweep | `docs/adrs/ADR-195-names-on-public-routes.md` |
 
 ## 10. The tree view
 
@@ -1259,7 +1306,7 @@ One screen, six rows, nothing outside them. The picture at the guaranteed viewpo
 
 | Row | Height at the guarantee | Holds |
 |---|---|---|
-| chrome bar | 44 | The Theme's logo (or the Tree's title as text), the language switch, the share button. Unchanged. |
+| chrome bar | 44 | The Theme's logo (or the Tree's title as text), the language switch, the share button. Unchanged. **[#195]** (2026-10-03) And, between the mark and the controls, the mention of the Tree's Authors: one line in the bar's free room that takes no pixel from the rest and is not drawn where under 80 pixels are left (39.4). |
 | up-arrow band | 26 | The **up arrow** (10.2), a 48-pixel round button centred on the Bubble's top outline: 24 pixels of it above the outline, 2 clear of the chrome bar. Empty on a Node with no Trail; the band stays. |
 | Bubble | 446 | The **Bubble**, 760 x 446, radius 223, between the two fans of Option buttons (10.3): 240 of column, 20 of gap, the Bubble, 20, 240. |
 | strip band | 28 | The **Carousel** strip (section 12): 48-pixel thumbnails centred on the Bubble's bottom outline, 24 of them below it, 4 clear of the Answer row. Reserved on every Node; empty where the Node has fewer than two Images. |
@@ -1642,6 +1689,11 @@ panel's (33.3) -- and by nothing on a Node page or in the editor's Bubble. The e
 walk below skips both attributes; the document still never scrolls on any page. The document itself never scrolls at any size, including below the
 floor, including while a Sheet or an Overlay is open, including while an explainer
 panel is open, and including during a transition (core document 9, `[#75]`).
+
+**Amended 2026-10-03 (#195, the owner's #194):** one more element is skipped, for the reason a
+tile's cut title is: the line that names a Tree's Authors in the chrome bar of a Node page,
+`.page-chrome [data-clamp]`, whose ellipsis is the design (39.4, 39.6). The walk still checks the
+bar and everything else in it.
 
 **The test.** `tests/browser/no-scroll.spec.ts`, Playwright, in the contract (section
 7). For each viewport in the list below, for each page in the list below, after the page
@@ -2543,6 +2595,10 @@ What 5.2's restated "never" means here is said there and is worth repeating in o
 no page fetches this route, no client component knows it exists, and the bound on what a
 page may carry is exactly what it was.
 
+**[#195] Unchanged by the Authors (2026-10-03).** The file carries no name: the names of a
+Tree's Authors are on its pages and in none of its files (17.2, 39.7), so a rename or an
+invitation changes neither its bytes nor its `version`.
+
 ## 16. Findability
 
 **[#118], new -- 2026-09-21.** Every Node is already a server-rendered page with real
@@ -2794,6 +2850,12 @@ the title states at length, are not mapped -- `schema.org` has no term for them 
 misstatement (`Answer`, `Conclusion`). They are in the page's text, and the whole file is in
 the dataset.
 
+**[#195] Unchanged by the Authors (2026-10-03).** The `Dataset`'s `creator` stays the
+Organization of `CONTENT-LICENSE`'s holder line, and no `author` and no `Person` is added for the
+accounts a Tree's pages name: a machine-readable claim about who wrote a dataset is what search
+engines and dataset indexes harvest and keep, and the owner asked for a mention on the Tree, not
+for that (39.7).
+
 **The page is a `WebPage` and never a `QAPage` or an `FAQPage`.** Those types say the
 page is community question-and-answer or a frequently-asked-questions list; this is a
 step of a legal decision aid, and claiming a type to win a rich result would be a
@@ -2893,6 +2955,8 @@ the dataset.
 `/schemas/elsa-tree-5.json` from #179 on. Its chrome paragraph -- a walk that "arrives at an
 outcome" -- uses the word in its ordinary sense and stays.
 
+**[#195]** Nor an Author's name (2026-10-03): the pages it points to hold the mention (39.7).
+
 ## 17. The store
 
 **[#132], new -- 2026-09-23.** The owner opened the editor round (core document 3.4, #131):
@@ -2907,6 +2971,7 @@ application is therefore a writer, and this section says where it writes. Record
 | `ELSA_DATA_DIR` | **yes** | The one writable folder that is the whole state of a deployment. No default. The server refuses to start when it is unset, is not a folder, or cannot be written. Outside `app/`, so a release never touches it. |
 | `ELSA_SEED_DIR` | no | Read at the **first start only** -- when `$ELSA_DATA_DIR/trees/` does not exist -- and every Tree folder in it is imported, published, with the administrator as creator. Default `trees` under the working directory, which the standalone build already carries. Never read again. |
 | `ELSA_ADMIN_PASSWORD` | at first start | Section 20.3. |
+| `ELSA_ADMIN_EMAIL` | at first start, and at the first start of the release that carries #196 | **[#195]** (2026-10-03) The administrator's e-mail address, read at every start: section 38.3. |
 | `ELSA_TREE`, `ELSA_TREES_DIR`, `ELSA_TREE_LASTMOD` | **must be unset** | Retired (section 18). Set, the server refuses to start and names the replacement, so a 1.0 environment file is corrected rather than silently half-read. |
 
 `ELSA_BASE_URL`, `PORT`, `HOSTNAME`, `NODE_ENV` and `NEXT_TELEMETRY_DISABLED` are as in
@@ -2917,11 +2982,12 @@ section 1 and `docs/deployment.md`.
 ```
 $ELSA_DATA_DIR/
 ├── lock                         the pid of the one process that has this directory open
-├── accounts.json                every account (20.1)
+├── accounts.json                every account (20.1); [#195] each with its e-mail address (38)
 ├── sessions.json                every live session record (20.4)
 └── trees/<tree-id>/
     ├── meta.json                { creator, collaborators, createdAt, updatedAt, updatedBy,
     │                              publishedAt, publishCount, revision }
+    │                              [#195] and joined, the order of joining (39.2)
     ├── draft.json               the draft (19): elsa-tree/4 JSON in the byte form of tree-format.md 3.7
     │                              [#171] elsa-tree/5 from #179 (19.1)
     ├── tree.json                the published copy: present if and only if the Tree is published;
@@ -2936,7 +3002,9 @@ $ELSA_DATA_DIR/
   or absent.
 - **Nothing about an account is in `tree.json` or `draft.json`.** Creator, collaborators
   and who last wrote are `meta.json`'s; `tree.json` is the public dataset of section 15
-  and carries no name (core document 8).
+  and carries no name (core document 8). **[#195]** Still none (2026-10-03): the names of a
+  Tree's Authors are on its pages, read from `meta.json` and `accounts.json`, and in none of its
+  files (39.7).
 - The store's files are **JSON**. No database library (`node:sqlite` is experimental on
   Node 22 by its own warning; every native alternative wants a compiler on the server,
   core document 7), no database server (core document 10.16). The numbers are a lab's: a
@@ -2979,6 +3047,11 @@ transaction across two files and nothing needs one.
   converts a `/4` folder's file in its staging copy, by `tree-format.md` 12.7 (36.4). Back the
   directory up before the first start of the release that carries `elsa-tree/5`; nothing
   keeps the `/4` bytes.
+- **[#195] A store of user names, and a `meta.json` without `joined`, are converted, not
+  refused** (2026-10-03): `openAccounts` converts `accounts.json` before anything reads an
+  account (38.4), and the start fills in `joined` from the roles before any Tree is opened
+  (39.2). Back the directory up before the first start of the release that carries #196: the
+  user names are not kept.
 
 ### 17.5 The seam: `src/store/`
 
@@ -2990,11 +3063,14 @@ export function openStore(dataDir: string, env: Environment): Promise<Store>
 // Locks, reads accounts.json and sessions.json, opens every published Tree through
 // openTree, opens every draft in draft mode, seeds on first start, sets the
 // administrator's password (20.3). Never throws for one bad Tree (18.3).
+// [#195] Also gives the administrator its address (38.3), converts a store of user names
+// (38.4) and fills in meta.json's joined (39.2).
 
 export interface Store {
   // the read side, every public route's (#134)
   published(id: string): Tree | null          // a servable published Tree; null for hidden, unservable, unknown, reserved
   publishedIds(): string[]                    // in id order
+  authors(id: string): string[]               // [#195] a servable published Tree's Authors' names; [] otherwise (39.8)
   // accounts and sessions (#135, section 20)
   readonly accounts: Accounts
   readonly sessions: Sessions
@@ -3243,6 +3319,14 @@ interface Account {
 - **An account is deactivated, never deleted**: `meta.json` files name it. Its Trees stay;
   the administrator hands them over (21).
 
+**Amended 2026-10-03 (#195, the owner's #194: "To login should be based on an email and a
+password").** `login` is replaced by **`email`**, an e-mail address (38.1, 38.2), and the first
+bullet no longer holds: the owner decided that the address is held, and still no mail is sent.
+The administrator creates every account with a name, an address and a first password, and is the
+one who changes an address (38.5); no two accounts carry one name (38.6). `name` is shown in the
+admin area and, for an Author, on the public pages of its Trees (39.8). An account a converted
+store left without an address cannot log in until the administrator gives it one (38.4).
+
 ### 20.2 The password hash
 
 **`scrypt` from `node:crypto`**: N = 2^16, r = 8, p = 2, `maxmem` 128 MiB, 16 random bytes
@@ -3269,6 +3353,13 @@ in the admin area. Under 12 characters, or absent when no administrator exists, 
 start. **Never a default, never generated and printed**; the log says `administrator
 password set from ELSA_ADMIN_PASSWORD; remove the variable` and no more. The environment
 file that holds it is `0600`.
+
+**Amended 2026-10-03 (#195):** the administrator logs in with an e-mail address like every
+account, not with `admin`. The address is **`ELSA_ADMIN_EMAIL`**'s, read at every start as the
+password is, by the table of 38.3: it creates the administrator with the password, gives a
+converted administrator its address and replaces a forgotten one; while the administrator has no
+address, a start without it refuses. The repository invents none, and the live demo server's is
+the owner's to choose (38.3).
 
 ### 20.4 Sessions
 
@@ -3312,6 +3403,10 @@ export interface Sessions {
 }
 ```
 
+**[#195] (2026-10-03)** From #196: `authenticate(email, password)`, `byEmail` in place of the
+built `byLogin`, `listActive()` answering `id` and `name`, `create(by, name, email, password)`,
+and `email` among `update`'s change (38.2).
+
 ### 20.5 The public routes set no cookie
 
 **A rule of section 8, with its test named.** No route outside `/admin` sends
@@ -3326,6 +3421,18 @@ stays safe for the reason 15.2 gives; this rule is what keeps that reason true.
 value (`Max-Age=0`, the same attributes) that 20.4 requires of a logout, and that 35.5
 already names beside the login. The sweep asserts the login and that clearing value as the
 only two setters of the run, not the login alone; neither is a public route.
+
+**Amended 2026-10-03 (#195, the owner's #194).** The rule of core document 8 and 9 that this
+section carries has the owner's one exception: who authored a Tree is mentioned on it. Restated:
+**a public route may hold, about an account, exactly the `name` of each Author of a published,
+servable Tree, in that Tree's mention on its Node pages and on its tile on the public overview,
+and nothing else** -- no address, no id, no role, no time of joining, no other account's name,
+the administrator's included; a hidden Tree's names reach no public route (39.8). The test is
+this file's: `tests/browser/deployment.spec.ts` gains the **account sweep**, every public route
+of 4.1, 15, 16 and 23 walked over a data directory whose accounts have known addresses and ids,
+asserting that no response holds an address or an id, that the name of an Author of a hidden Tree
+only is in none, and that the published Tree's Authors' names stand inside the mention's element
+and nowhere else (39.9). The cookie sweep stands as it is.
 
 ### 20.6 CSRF
 
@@ -3362,6 +3469,10 @@ across all names locks the route for one minute (429, `Retry-After`) -- each att
 no `X-Forwarded-For`, and an address is the one datum about a person this project has never
 held.
 
+**Amended 2026-10-03 (#195):** per **address typed**, not per login name: the string the request
+carries in `email`, trimmed and lower-cased, whether or not an account holds it (38.7). The
+per-deployment counter, the 401 and 429 with one body, and "not per client address" stand.
+
 ### 20.8 Logging
 
 To standard output: a login success (`account <id> logged in`); a failure (`login failed
@@ -3370,6 +3481,10 @@ is the commonest place a password lands in a log); a lock; a logout; every accou
 permission and publish change with the acting account's id, the Tree id and the time.
 **Never**: a password, a token or its hash, a request body, a client address, a field's
 text.
+
+**Amended 2026-10-03 (#195):** `login failed for an unknown address`, and a lock likewise; never
+an e-mail address -- the address typed, or any account's, the administrator's included -- in any
+line (38.8).
 
 ### 20.9 Headers on `/admin`
 
@@ -3390,6 +3505,10 @@ was handed it), a **collaborator** (in `meta.json`'s `collaborators`), the
 different Trees. Every active account may create a Tree; a deactivated account may do
 nothing.
 
+**[#195] (2026-10-03)** A Tree's roles are also what its public mention names: its creator and
+its collaborators, never the administrator, in the order in which each first joined it (39.1,
+39.2).
+
 ### 21.2 The table
 
 | Action | Creator | Collaborator | Administrator |
@@ -3404,7 +3523,8 @@ nothing.
 | Delete the Tree -- **hidden Trees only** | yes | no | yes |
 | Manage accounts | no | no | yes |
 | Change own name and password | yes | yes | yes |
-| See the active accounts list (name, login), for an invitation | yes | yes | yes |
+| See the active accounts list (name, ~~login~~ **[#195]** no address, 38.5), for an invitation | yes | yes | yes |
+| **[#195]** Change an account's e-mail address (38.5) | no | no | yes: every account's, its own included |
 
 A published Tree has share links, a dataset URL and sitemap entries out; **delete is two
 steps** -- unpublish, then delete -- and 409 while published. A collaborator edits but does
@@ -3436,6 +3556,12 @@ deactivated account is 422; adding an existing collaborator is 200.
 **Handing over** sets `creator` to the named account and adds the old creator as a
 collaborator, so nothing they could see disappears under them.
 
+**Amended 2026-10-03 (#195):** the list answers each active account's `id` and `name` and
+nothing else -- no address, which only its holder and the administrator see (38.5) -- and names
+are one per account, so a name tells two accounts apart (38.6). An invitation appends the
+invited account to `meta.json`'s `joined`, and a hand-over the new creator, each when it is new
+to the Tree; the old creator keeps its place there (39.2).
+
 ## 22. The editor's server interface
 
 **[#132], new -- 2026-09-23.** Recorded in `docs/adrs/ADR-132-editor-api.md`.
@@ -3450,12 +3576,12 @@ framework's. The prefix is `/admin/api/` and not `/api/admin/` so that the cooki
 
 | Method and path | Does | Answers |
 |---|---|---|
-| `POST /admin/api/login` | `{ login, password }` | 204 + cookie; 401; 429 |
+| `POST /admin/api/login` | `{ login, password }`; **[#195]** `{ email, password }` from #196 (38.2) | 204 + cookie; 401; 429 |
 | `POST /admin/api/logout` | ends the session | 204 + clearing cookie |
-| `GET /admin/api/me` | the caller | `{ id, name, login, administrator }` |
-| `GET /admin/api/accounts` | active accounts, for an invitation (21.4) | `[{ id, name, login }]` |
-| `POST /admin/api/accounts` | administrator: `{ name, login, password }` | 201; 422 |
-| `PATCH /admin/api/accounts/<id>` | administrator: `name`, `active`, `password`; self: `name`, `password` + `currentPassword` | 200; 403; 422 |
+| `GET /admin/api/me` | the caller | `{ id, name, login, administrator }`; **[#195]** `email` in place of `login` (38.2) |
+| `GET /admin/api/accounts` | active accounts, for an invitation (21.4) | `[{ id, name, login }]`; **[#195]** `[{ id, name }]` (38.5) |
+| `POST /admin/api/accounts` | administrator: `{ name, login, password }`; **[#195]** `{ name, email, password }` (38.2) | 201; 422 |
+| `PATCH /admin/api/accounts/<id>` | administrator: `name`, `active`, `password`; self: `name`, `password` + `currentPassword`; **[#195]** and `email` from the administrator alone, 403 from anyone else (38.5) | 200; 403; 422 |
 | `GET /admin/api/trees` | the caller's `TreeEntry` list (administrator: all) | `[...]` |
 | `POST /admin/api/trees` | `{ id, languages, title }`: folder, `meta.json`, a draft with one root Node `start` | 201; 409 taken; 422 reserved or malformed |
 | `GET /admin/api/trees/<t>` | the `TreeEntry`: meta, manifest, `published`, `servable`, violations; **[#147]** and `written`, the number of localised texts holding a non-empty string per declared language (33.5) | 200 |
@@ -3608,6 +3734,11 @@ return one. Unpublishing makes all of it true in one call (19.3); the hour of
 `Cache-Control` on files and documents is the one delay, the same hour a Tree update always
 had.
 
+**Amended 2026-10-03 (#195):** one member of the public interface reads `meta.json` and
+`accounts.json`, and answers names only: `authors(id)`, the names of a servable published Tree's
+Authors, and `[]` for every id `published(id)` answers `null` for, one case as above (39.8). No
+member answers a draft, a `meta.json` or an account.
+
 ### 23.2 The overview, `/`
 
 Every served Tree: its title in the page's language when declared, else in its default
@@ -3643,7 +3774,8 @@ in its default language>](<root URL>): <description reduced by 16.3 steps 1 and 
 root Node's>`; then 16.5's sections with one line per Tree where they named one (`## The
 datasets`: every `tree.json` and the one schema; `## Walking a Tree`: the overview, the
 sitemap, the grammar line; `## Languages`: per Tree, default marked; `## Licence`
-unchanged). Still a signpost: no Node's text, no `llms-full.txt`.
+unchanged). Still a signpost: no Node's text, no `llms-full.txt`; **[#195]** and no Author's
+name (2026-10-03, 39.7).
 
 ### 23.6 JSON-LD and the dataset
 
@@ -3728,7 +3860,7 @@ are #136's `permit`. `/admin/new` does not exist until #137.
 
 | Page | Left | Right | Theme |
 |---|---|---|---|
-| Public Node page | The Tree's logo or title | language switch, share button | The published Tree's |
+| Public Node page | The Tree's logo or title; **[#195]** then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button | The published Tree's |
 | Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
 | Login page | `siteTitle` | language switch | The default |
 | Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
@@ -3812,6 +3944,13 @@ The form is one client component, `LoginForm` (`src/editor/LoginForm.tsx`), whic
 editor also mounts in a Sheet when a session expires (29.6). It sends
 `application/json`; a `<noscript>` shows `needsJavaScript` in its place (24.2).
 
+**Amended 2026-10-03 (#195, the owner's #194):** the text field is `email` -- "E-mail address" /
+"E-mailadres" -- `type="email"` with `autocomplete="username"`, in a form marked `noValidate`,
+sent as `{ email, password }`; the drawing's "Name" reads "E-mail address". `loginFailed` says
+"Wrong e-mail address or password." -- one string for a wrong address and a wrong password --
+the address is kept and the password cleared, and `sessionNotKept` opens "Your e-mail address and
+password are right" (38.1, 38.5; 3.2's #196 row).
+
 ### 25.2 The account page, `/admin/account`
 
 Any logged-in account. Two cards of 25.1's shape: **`yourName`** -- one field, 1 to 80
@@ -3820,6 +3959,12 @@ characters with a live counter (20.1), `save` → `PATCH /admin/api/accounts/<ow
 checked before sending: `passwordsDiffer`), `save` → `{ password, currentPassword }`. A 422 at
 its field; a 403 → `wrongPassword` at the current password. Under the button the sentence
 `sessionsEnded` (20.4: every other session of the account ends).
+
+**Amended 2026-10-03 (#195):** the password card shows `signedInWith(email)` -- or `noEmail` --
+above its fields and `emailHelp` under it, and its hidden `username` field holds the address; an
+address is changed by the administrator only (38.5). A name another account has is refused,
+`name-taken` (38.6). Under the name field, on every account's page but the administrator's,
+`nameShownPublicly` (39.8).
 
 ### 25.3 The accounts page, `/admin/accounts`
 
@@ -3830,6 +3975,11 @@ a **scroll box** (26.3) with one row per account: name, login, `active` / `deact
 password }`). `newAccount` opens a Sheet with `name`, `login`, `password` and `create` (`POST
 /admin/api/accounts`); a 422 at its field. Nothing is deleted (20.1); no hash, token or
 session is shown, because no route answers one.
+
+**Amended 2026-10-03 (#195):** each row shows the address where it showed the login -- one line
+cut with an ellipsis, the whole address its `title` -- or `noEmail`; every row gains `setEmail`,
+the administrator's own row's only action; the new-account Sheet asks for `displayName`, `email`
+and `password`; `setPassword`'s Sheet names the account by its name (38.5).
 
 ## 26. The overview: tiles, the + tile, which Trees
 
@@ -3850,6 +4000,11 @@ manifest's, through `plainDescription(...).cut` (16.3), at most 155 characters -
 on 20-pixel lines, at most three lines, or nothing; the **languages** as upper-case tags.
 Every tile is drawn in **the page's Theme** (the default): the logo is the identity, not the
 palette.
+
+**Amended 2026-10-03 (#195, the owner's #194):** the bottom row of language tags also holds the
+mention of the Tree's Authors, after the tags and before the creators' state mark (26.4), at the
+tags' type: one line, cut where its room ends and not drawn under 80 pixels, taking no pixel
+from the tags or the mark. The tile's size and its other rows stand (39.5).
 
 ### 26.2 The grid
 
@@ -4726,6 +4881,11 @@ and not the administrator (name, then login in `text-muted`), `invite` (`PUT
 `<select>` and a button (`PUT .../creator`), after which the list shows the new creator and
 the old one as a collaborator (21.4). A collaborator sees the list and no controls.
 
+**Amended 2026-10-03 (#195):** the `<select>` -- here and in 33.6 -- shows each account's name and
+no login: the login is an e-mail address, which only its holder and the administrator see, and
+two accounts no longer share a name (38.5, 38.6). The list's order and its controls stand; the
+public mention reads `meta.json`'s `joined`, not this list (39.2).
+
 ### 33.5 This Tree
 
 Two fields for the page's language -- the manifest's `title` (80) and `description` (600 and
@@ -4935,7 +5095,8 @@ warns with, so the rule has one definition. `imports.test.ts` asserts it with th
 No neighbour frames, no `data-slide` (every control a plain link; no slide); no JSON-LD, no
 `hreflang`, canonical or dataset link (`noindex`, 20.9); no share button. The strip, the
 enlarged view, the Overlays and the explainer panels render as on the public page, plus
-the slots.
+the slots. **[#195] (2026-10-03)** No mention of the Tree's Authors: the editor's bar is its
+own interface, and the panel lists the same accounts (39.7).
 
 ### 34.6 The types
 
@@ -4974,6 +5135,8 @@ the creator and the collaborators by login; per account, login, name and passwor
 writes `accounts.json` (hashes by the format of 20.2; `tests/store/accounts.test.ts`
 authenticates against a directory it built, tying the two), `meta.json` per Tree, an empty
 `sessions.json`. Draft-only states come from `tests/fixtures/drafts/<state>/` (23.7).
+**[#195] (2026-10-03)** From #196 an account is named by its e-mail address: per account,
+`email`, name and password, and each Tree's roles by address (38.10).
 
 ### 35.2 One server per spec, one login helper
 
@@ -4982,6 +5145,9 @@ now serves a fixture folder through a seeded store, 18.4): `ELSA_DATA_DIR` the d
 `ELSA_SEED_DIR` an empty folder, `ELSA_ADMIN_PASSWORD` from the table, a port at an offset
 from `BASE_PORT`. `login(page, login)` posts the password through `page.request` so the
 cookie lands in the context; `logout(page)`. Two accounts at once: two contexts.
+**[#195] (2026-10-03)** `login(page, origin, email, password)` posts `{ email, password }`,
+and every server a test starts sets `ELSA_ADMIN_EMAIL=admin@example.org` beside its password
+(38.10).
 
 ### 35.3 The named accounts and Trees
 
@@ -4989,6 +5155,9 @@ cookie lands in the context; `logout(page)`. Two accounts at once: two contexts.
 published, creator `anna`; `hidden-draft` hidden from `tests/fixtures/full-node`, creator
 `anna`, collaborator `bram`; `tree-01` to `tree-14` published from
 `tests/fixtures/single-language`, for the overview's box.
+**[#195] (2026-10-03)** From #196 the four log in as `admin@example.org`, `anna@example.org`,
+`bram@example.org` and `cees@example.org`, in a domain RFC 2606 reserves for examples, so no
+real person's address is in the repository (38.10).
 
 ### 35.4 The files, per build issue
 
@@ -5009,6 +5178,8 @@ published, creator `anna`; `hidden-draft` hidden from `tests/fixtures/full-node`
 | `views.test.tsx` | 34.8 | #138 |
 | **[#171]** the rows of 36.5 | The ending's words: the rules, the conversion, the store's conversion at open, the Sheet, the public badge | #179 |
 | **[#171]** the rows of 37.6 | The font library, `use-library-font`, the upload's name, the dropdowns, the library in `no-scroll.spec.ts` | #180 |
+| **[#195]** the rows of 38.10 | The login by e-mail address: the check, the start's table, the conversion, the routes, the pages, every test that logs in | #196 |
+| **[#195]** the rows of 39.9 | The Authors: `joined`, `authorsOf`, `authors(id)`, the mention, the no-scroll rule with it, the account sweep | #197 |
 
 ### 35.5 The no-cookie sweep, extended
 
@@ -5017,6 +5188,9 @@ with and without a session, answers no `Set-Cookie` -- only `POST /admin/api/log
 `POST /admin/api/logout` ever do -- and carries 20.9's two headers; and after the editor has
 saved a field, the walk of every public route of 4.1, 15 and 16 still sends no `Cookie` and
 receives no `Set-Cookie`. The admin pages are a second array in the same file.
+**[#195] (2026-10-03)** And the account sweep of 20.5, amended, and 39.9: no public response
+holds an account's address or id, and an Author's name stands only inside the mention's
+element.
 
 ### 35.6 The public suites run unchanged
 
