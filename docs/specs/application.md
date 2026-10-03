@@ -5611,3 +5611,235 @@ address".
 #196's pull request pastes, each from a command, the accounts of a copy of a store written by
 `dev` before #196 -- its administrator among them -- before the first start of the new
 release, after it, and those of them that log in with an address.
+
+## 39. Who authored a Tree: the Authors and the mention
+
+**[#195], new -- 2026-10-03.** The owner, in #194: "graphs should have a small mention by who
+it was authored, if multiple collaborators in the order in which they joined a
+decision-tree." "Graph" is one of the owner's words for a Tree (core document 5). This reverses,
+for that mention and nothing else, the rule of core document 8 and 9 that nothing about a
+creator reaches a public page (39.8). Decides core document 10.40 and the row **Author** of its
+section 5. Recorded in `docs/adrs/ADR-195-authors.md`, `ADR-195-order-of-joining.md`,
+`ADR-195-the-mention.md` and `ADR-195-names-on-public-routes.md`; the room the mention has was
+measured on `dev` and is recorded in `docs/research/issue-195-measurements.md`. Built by #197,
+after #196.
+
+### 39.1 Who is named
+
+- **The Authors of a Tree are the accounts that hold a role on it now** -- its creator and each
+  of its collaborators (21.1) -- **except the administrator**, **in the order in which each
+  first joined the Tree** (39.2). This is core document 3.4 `[#194]`'s PROPOSED reading,
+  confirmed, with one precision: the account that made the Tree comes first while it is on the
+  Tree, and keeps that place after it hands the Tree over.
+- **A collaborator removed is no longer named.** The mention names the team the Tree has; the
+  creator and the administrator decide who is on it (21.2). Invited again, the account is
+  named in the place it first joined, not at the end.
+- **A deactivated account is named while it holds its role.** Deactivating decides who may log
+  in, not who wrote the Tree (20.1: "its Trees stay"). A name comes off a Tree the way a role
+  does: the panel's remove cross for a collaborator (33.4); for a creator, a hand-over, after
+  which it is a collaborator that can be removed (21.4).
+- **The administrator is never named**, whatever role a `meta.json` gives it: the creator the
+  seed and the import command name (17.1, 17.4), the creator of a Tree created while logged in
+  as the administrator, or a collaborator after it hands such a Tree over (21.4). A Tree whose
+  only role holder is the administrator names nobody, and shows no mention, until it is handed
+  to the account of a person who authored it (21.4, 33.6) -- on the live demo server, each of
+  its three Trees.
+- **Each Author is shown by its account's `name` alone**: never its address, its id, its role
+  or when it joined. Names are one per account (38.6), so no two Authors look alike.
+- **The row Author of core document 5 is this one**: an account. Every account but the
+  administrator's that writes a Tree's content in the editor holds a role on it, so for a Tree
+  made in the editor the Authors are its authors in the sense of core document 1, 2 and 3.1. A
+  Tree whose content came as files -- the seed, an import, another lab's Tree moved in (17.1,
+  17.4) -- has authors with no account here, and names none until it is handed to the account
+  of one.
+
+### 39.2 The order of joining: `joined`
+
+`meta.json` gains **`joined: string[]`** (17.2): the id of every account that has been the
+Tree's creator or one of its collaborators, in the order in which each first became one.
+
+| When | `joined` |
+|---|---|
+| A Tree is created in the editor (`create`, 27.2) | `[creator]` |
+| The seed or the import command copies a Tree in (`importTree`, 17.4) | `[creator]`, the account it names; `[]` when it names none (a test's import), until the start names the administrator and fills it in (below) |
+| A collaborator is invited (`addCollaborator`) | its id appended, unless already there |
+| A collaborator is removed (`removeCollaborator`) | unchanged |
+| A Tree is handed over (`handOver`) | the new creator's id appended, unless already there; the old creator's stays where it is |
+| Anything else | unchanged |
+
+- **An id is never removed and never moved.** `joined` holds every id of `creator` and
+  `collaborators`, and may hold more: those that held a role once. It is written by the same
+  write as the role change it records, through the Tree's queue (17.3).
+- **`collaborators` keeps its meaning**: who is a collaborator now, in the order of
+  invitation, with 21.4's hand-over rule. The panel reads it as before (33.4).
+- **At every start**, after `nameCreator` names the administrator where a `meta.json` names no
+  creator (17.4) and before any Tree is opened: a `meta.json` without `joined` -- every Tree of
+  a store written before #197 -- or with a `joined` that is not an array of strings gets one,
+  the creator, then the collaborators in their list's order, each once; and any id of `creator`
+  or `collaborators` that a `joined` lacks is appended to it in that order, so a store seeded
+  before accounts existed (#134) and a hand-edited file come out whole. The file is rewritten
+  atomically (17.3) only when this changed it, and nothing else in it moves -- `updatedAt`,
+  `updatedBy` and `revision` stay, since no creator wrote. One log line per Tree it changed:
+  `Recorded the order of joining of Tree "<id>" from its roles: <n> accounts`. A Tree folder
+  without a `meta.json` is read with today's defaults (the administrator as creator) and
+  `joined` `[creator]`, which names nobody.
+- **What that gives an existing Tree.** A Tree never handed over: the creator first and the
+  collaborators in the order they were invited, which is the order of joining, since an
+  invitation is the joining. A Tree handed over before #197: the current creator first and the
+  old one where 21.4 put it, at the end -- the store never recorded more, and nothing reorders
+  `joined` afterwards. On the live demo server each of the three Trees gets `[<the
+  administrator's id>]`, and names nobody (39.1).
+- `TreeMeta` (`src/store/permissions.ts`) gains `joined`, so `TreeEntry.meta` carries it to the
+  admin area, ids only; no screen shows it.
+
+### 39.3 `authorsOf`
+
+```ts
+// src/store/authors.ts, pure
+export function authorsOf(
+  meta: Pick<TreeMeta, 'creator' | 'collaborators' | 'joined'>,
+  accounts: Pick<Accounts, 'get'>,
+): string[]
+```
+
+The names, in `joined`'s order, of its ids that are the creator or a collaborator now, whose
+account exists and is not the administrator. It is the whole rule of 39.1; nothing else decides
+who is named. The store's `authors(id)` calls it for the public routes (39.8); the creators'
+overview calls it for the Trees the caller has a role on, with each one's `TreeEntry.meta`, a
+hidden Tree's included, and `store.authors(id)` for the other published Trees, as `/` does.
+
+### 39.4 The mention in the chrome bar
+
+- **The words**: `byAuthors(names)` (3.2) -- "By Anna de Vries", "By Anna de Vries and Bram
+  Jansen", "By Anna de Vries, Bram Jansen and Cees Bakker"; in Dutch "Door Anna de Vries",
+  "Door Anna de Vries en Bram Jansen", "Door Anna de Vries, Bram Jansen en Cees Bakker": the
+  names in the order of 39.1, a comma between all but the last two, which "and" / "en" joins.
+  Chrome, in the chrome language (3.1), so the element carries that language's `lang` where the
+  page's content language is another (`chromeLang`, as the disclaimer); the names as their
+  accounts hold them, plain text.
+- **Where**: every public Node page of a published Tree that has an Author, in the chrome bar,
+  between `.page-brand` -- the way back to the overview and the Tree's mark, its logo or its
+  title as text -- and `.page-controls` -- the language switch and the share button (24.3).
+- **How**: `<div class="authors-room"><p class="authors" data-clamp title="<the whole
+  text>">…</p></div>`, drawn by `src/components/Authors.tsx`, a server component. The room is
+  a flex item that takes the bar's free space (`flex: 1 1 0; min-width: 0`) and is a size
+  container (`container-type: inline-size`); its own negative left margin cancels the bar's
+  gap and the line's left margin gives it back, so the room takes no pixel when it holds
+  nothing, and the mark and the controls stand where they stand on the same page without it.
+  The line: one line in `text-muted`, `--small` (13 pixels on 20, the size of a Tree's title
+  written in the bar as text), and below 480 pixels wide 11 on 14, where the bar's pills are 11
+  and its gap 8; `white-space: nowrap`, cut with an ellipsis where the room ends.
+- **When the names do not fit**: the line is cut, and the cut takes the last to join; no count
+  is shown and nothing is reordered. Its whole text is the `title`, and a screen reader reads
+  the whole text. **Where the line's room is under 80 pixels it is not drawn at all**, so that
+  no "By…" stands alone: `@container (width < 96px)` hides it at 480 pixels wide and above,
+  where the bar's gap is 16, and `(width < 88px)` below, where it is 8. "Door Idse Val" is 76
+  to 80 pixels at 13 in the faces measured.
+
+```
++--------------------------------------------------------------------------------+  44
+| (<) [logo]  By Anna de Vries, Bram Jansen and Cees Bakker   [language] [share] |
++--------------------------------------------------------------------------------+
+ 16  30 10 120 16 |<---- the mention's room: 809 ---->| 16 |<---- 247 ---->| 16  = 1280
+```
+
+(The first Tree in English at 1280 x 640: the three names take 289 of the 809.)
+
+- **What that gives at the viewports of 10.6**, measured on `dev` (the research record, section
+  2): beside a 120-pixel logo the mention is drawn at every viewport from 768 x 1024 up --
+  three names whole at 1280 x 640 in both languages and at 768 x 1024 in English, cut there in
+  Dutch -- and not drawn at 390 x 844 and 360 x 640, where 30 to 75 pixels are left. Beside an
+  80-character title it is drawn at 1024 x 768 and above and not below. At and below the floor
+  the notice stands in for the page (10.4). On a phone a reader meets the Authors on the Tree's
+  tile (39.5).
+- **Without JavaScript** the mention is the server's markup and its rules are the
+  stylesheet's: there is nothing to run (14).
+- **A Tree without an Author** -- one whose only role holder is the administrator -- has no
+  element at all: its bar is what it is today.
+
+### 39.5 The mention on a tile
+
+- **Where**: the Tree's tile on the public overview and on the creators' overview (26.1, 26.4),
+  in its bottom row, after the language tags and before the creators' state mark.
+- **How**: `<span class="tile-authors-room"><span class="tile-authors" data-clamp title="<the
+  whole text>">…</span></span>`, the words of 39.4, at the tags' type -- 11 pixels on 16 -- in
+  `text-muted`; a size container taking the row's free space, its negative margin cancelling the
+  row's gap of 4, so the tags and the state mark stand where they stand without it; one line,
+  cut with an ellipsis, and not drawn where its room is under 80 pixels (`@container (width <
+  84px)`, the gap included). Where the tile carries
+  the Tree's language in `lang` (23.2), the mention carries the chrome language's, as the state
+  mark does.
+
+```
++--------------------------------+   +--------------------------------+
+| [logo]                         |   | [logo]                         |
+| Does the EU AI Act apply to    |   | Does the EU AI Act apply to    |
+| my agrifood AI system?         |   | my agrifood AI system?         |
+| A decision tree for the ...    |   | A decision tree for the ...    |
+| EN NL  By Idse Val             |   | EN NL  By Idse Val  o Published|
++--------------------------------+   +--------------------------------+
+               on /                              on /admin
+```
+
+- **Measured** (the research record, section 3): the row is 248 pixels at every viewport; after
+  two tags 187 are free on `/`, and 107 to 125 beside the creators' state mark. One name is
+  whole on both overviews at every width; three are cut.
+- **A Tree without an Author** has no element: its tile is what it is today.
+
+### 39.6 The no-scroll rule
+
+The cut line is the design, not an overflow. `no-scroll.spec.ts`'s element walk skips
+`.page-chrome [data-clamp]` as it skips `[data-scroll-box] [data-clamp]`, which already covers
+the tiles' mention inside the grid's scroll box (26.3); `admin-no-scroll.spec.ts` skips every
+`[data-clamp]` already. The walk still checks the bar and everything else in it, and #197's
+`authors.spec.ts` checks the mention itself (39.9). Nothing changes in the rows of 10.1 or in
+the Bubble, and 10.7's limits stand.
+
+### 39.7 Nowhere else
+
+- **Not in the editor**: its bar is the editor's own interface (24.3, #180), its right side the
+  editor's controls, and the panel's Collaborators section lists the same accounts (33.4).
+  34.5 lists it among what edit mode does not render.
+- **Not on the 404 and 403 pages.**
+- **Not in `tree.json`**: 17.2 stands, the file carries no name, and its format stays
+  `elsa-tree/5`; 15.3's byte-identity is unchanged. A list of authors in the file was rejected:
+  a format change for a mention the owner asked to see on the Tree; a Tree moved to another
+  deployment (17.4) would carry the source's account names into a store whose accounts they are
+  not; and every rename would change the dataset's bytes and its `version` (19.6).
+- **Not in the JSON-LD**: 16.4's `creator` stays the Organization, and no `author` and no
+  `Person` is added. A machine-readable claim about who wrote a dataset is what search engines
+  and dataset indexes harvest and keep, and the owner did not ask for one.
+- **Not in `llms.txt`** (16.5, 23.5), the sitemap (16.2, 23.4), a `<meta name="author">`, a
+  header or an image's text.
+
+### 39.8 What about an account reaches a public route
+
+- **Exactly the `name` of each Author of a published, servable Tree**, in that Tree's mention
+  on its Node pages and on its tile on the public overview. **Nothing else about any account**:
+  no address, no id, no role, no time of joining, and no name of an account that is no Author of
+  a published Tree -- the administrator's included. **A hidden Tree's names reach no public
+  route**: the public overview lists published Trees only, and a hidden Tree's Node pages are
+  the 404 of 23.1.
+- **The store's public interface gains exactly one member that reads `meta.json` and
+  `accounts.json`**: `authors(id: string): string[]` (17.5), `authorsOf` of the servable
+  published Tree `id`, and `[]` for every id `published(id)` answers `null` for -- hidden,
+  unservable, unknown or reserved, one case as 23.1 has it. It answers names and nothing else;
+  no member answers a draft, a `meta.json` or an account.
+- **The holder is told.** The account page's name card (25.2) says, under the field, on every
+  account's page but the administrator's, `nameShownPublicly`: "Shown on the public pages of the
+  trees you create or collaborate on." / "Wordt getoond op de openbare pagina's van de bomen die
+  u maakt of waaraan u meewerkt." An account's name was the admin area's alone until this
+  round (20.1).
+
+### 39.9 Tests (#197)
+
+| File | Asserts |
+|---|---|
+| `tests/store/authors.test.ts` (new) | `authorsOf`: `joined`'s order; a removed collaborator absent and, invited again, in its first place; a deactivated account present; the administrator absent as creator and as collaborator; an id of `joined` with no role now absent; an unknown account skipped; `[]` for a Tree whose only role holder is the administrator |
+| `tests/store/drafts.test.ts` | 39.2's table: `create`; `addCollaborator`, twice for one account (one entry); `removeCollaborator`; `handOver` to a new account (appended once, the old creator in place) and to a collaborator (no new entry) |
+| `tests/store/store.test.ts` | the start of 39.2: a `meta.json` without `joined` gets the creator and then the collaborators, with its log line; a `joined` that lacks a role holder gets it appended; a `joined` that is not an array is replaced; a complete one is not rewritten, its bytes unchanged; `updatedAt`, `updatedBy` and `revision` unchanged; `importTree` writes `[creator]`; `store.authors(id)` answers the names for a published Tree and `[]` for a hidden, an unservable, an unknown and a reserved id |
+| `tests/chrome.test.ts` | `byAuthors` for one, two, three and five names, in both languages |
+| `tests/browser/authors.spec.ts` (new) | the mention on a Node page and on the tiles of both overviews, in `en` and `nl`, at 10.6's ten viewports: one name and three, beside a logo and beside an 80-character title, and a Tree of eight Authors whose names do not fit; one line, inside the bar, and the mark and the controls where they stand on the same page of a Tree without Authors; drawn, cut and not drawn as 39.4 and 39.5 say; no element for a Tree whose only role holder is the administrator, and none in the editor; the screenshots of 35.7 |
+| `tests/browser/no-scroll.spec.ts` | 10.6's rule over its pages with three Authors on the Tree, at its ten viewports, the walk skipping `.page-chrome [data-clamp]` (39.6) |
+| `tests/browser/deployment.spec.ts` | the account sweep: a data directory whose accounts have known addresses and ids -- an Author of a published Tree, an Author of a hidden Tree only, an account with no role, the administrator -- and a walk of every public route of 4.1, 15, 16 and 23: the overview in both languages, every Node page of the published Tree in both languages, its `tree.json`, the schema, `robots.txt`, `sitemap.xml`, `llms.txt`, an image and a theme file, and the hidden Tree's root address, which is the 404. No response, headers or body, holds any account's address or id; the hidden-only Author's name is in none; the published Tree's Authors' names are in its Node pages and the overview, in each only inside the mention's element, and in no other response |
+| `tests/browser/login.spec.ts` | the account page's `nameShownPublicly`, and its absence on the administrator's |
