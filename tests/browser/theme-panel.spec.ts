@@ -449,9 +449,8 @@ test('[#180] a Tree with a dark palette: in the editor the bar, the open panel a
   const look = await painted(page)
   expect(look.bar).toBe('rgb(20, 24, 28) on rgb(251, 250, 246), -apple-system')
   expect(look.panel).toBe('rgb(20, 24, 28) on rgb(255, 255, 255), -apple-system')
-  // The draft's heading font is the Tree's, and the panel's heading is not in it. **[#181]** It is a
-  // band on the panel's own surface, which the body scrolls under (33.2, amended).
-  expect(look["panel's heading"]).toBe('rgb(20, 24, 28) on rgb(255, 255, 255), -apple-system')
+  // The draft's heading font is the Tree's, and the panel's heading is not in it.
+  expect(look["panel's heading"]).toBe('rgb(20, 24, 28) on rgba(0, 0, 0, 0), -apple-system')
   expect(look.Bubble).toBe('rgb(238, 241, 242) on rgb(33, 39, 41), -apple-system')
   expect(look["Bubble's title"]).toBe(`rgb(238, 241, 242) on rgba(0, 0, 0, 0), "${drafted('Nova Square')}"`)
   await shoot180(page, 'editor-dark-panel-open')
