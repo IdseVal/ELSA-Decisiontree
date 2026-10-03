@@ -229,7 +229,7 @@ export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang
         <button type="submit" className="admin-submit" disabled={!confirmable}>
           {words.confirm}
         </button>
-        <button type="button" className="admin-submit" onClick={(event) => closeSheetAround(event.currentTarget)}>
+        <button type="button" className="admin-link" onClick={(event) => closeSheetAround(event.currentTarget)}>
           {words.cancel}
         </button>
       </div>

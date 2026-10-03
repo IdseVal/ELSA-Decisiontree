@@ -322,8 +322,10 @@ export function Field({
           // The grid and the mirror in `data-value` make the box taller than its lines (28.4) for a
           // text that needs more, as one stored over its limit; both take the same font, so they
           // break lines alike. **[#179]** An empty field's mirror holds its placeholder, so a box
-          // sized by its text -- the badge's (36.3) -- is as wide as what it shows.
-          <span className="editor-text" data-value={`${text === '' ? placeholder : text} `}>
+          // sized by its text -- the badge's (36.3) -- is as wide as what it shows; and only a rich
+          // text's mirror ends in a space, which a last line break needs to take a line: a plain
+          // text has no line break, and the space would widen the badge by its width.
+          <span className="editor-text" data-value={`${text === '' ? placeholder : text}${rich ? ' ' : ''}`}>
             <textarea
               ref={area}
               className="editor-input"

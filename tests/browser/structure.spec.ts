@@ -222,6 +222,7 @@ test('**[#179]** treeEndsHere asks for the ending\'s words and makes the Node a 
   await expect(form).toBeHidden()
   expect((await nodeOf(page, cookie, q1)).label).toBeUndefined()
   await page.locator('.structure-end > .sheet-open').click()
+  await expect(input).toBeFocused()
   await expect(input).toHaveValue('')
   await page.keyboard.type('Applies', { delay: 5 })
   await page.keyboard.press('Enter')
@@ -546,7 +547,8 @@ test('**[#179]** an ending typed to its limit in English and in Dutch is the bad
   const en = badge(page, step)
   await expect(en.locator('textarea')).toHaveValue('Mandatory safeguard')
   expect(await en.evaluate((element) => getComputedStyle(element).textTransform)).toBe('uppercase')
-  expect((await en.boundingBox())!.height).toBe(24)
+  const blurred = (await en.boundingBox())!
+  expect(blurred.height).toBe(24)
   expect(await words()).toEqual({ en: 'Mandatory safeguard', nl: '' })
   // A language without the words is a to-do (19.2): one line, for this step.
   await page.locator('.todo-sheet > .sheet-open').click()
@@ -576,9 +578,10 @@ test('**[#179]** an ending typed to its limit in English and in Dutch is the bad
   await expect(nl.locator('textarea')).toHaveValue('Maatregelen vereist')
   await expect(page.locator('.editor-rim .editor-pill')).toHaveText('19 / 19')
   await expect(page.locator('.editor-rim .editor-tag')).toHaveCount(0)
+  await expect.poll(words).toEqual({ en: 'Mandatory safeguard', nl: 'Maatregelen vereist' })
+  await expect(status(page)).toContainText(/^Opgeslagen \d/)
   await shoot(page, 'ending-at-its-limit-editor-nl', ENDING_SHOTS)
   await nl.locator('textarea').blur()
-  await expect.poll(words).toEqual({ en: 'Mandatory safeguard', nl: 'Maatregelen vereist' })
 
   // Published (19.3), the public page's badge holds the same words, in both languages.
   const published = await call('PUT', '/published', { published: true })
@@ -588,7 +591,10 @@ test('**[#179]** an ending typed to its limit in English and in Dutch is the bad
     await expect(page.locator('[data-field]')).toHaveCount(0)
     const shown = page.locator('.bubble--terminal .outcome').filter({ visible: true })
     await expect(shown).toHaveText(expected)
-    expect((await shown.boundingBox())!.height, lang).toBe(24)
+    const box = (await shown.boundingBox())!
+    expect(box.height, lang).toBe(24)
+    // The field in the editor, blurred, was this badge: the same box, so nothing on the rim moves (36.3).
+    if (lang === 'en') for (const side of ['x', 'y', 'width', 'height'] as const) expect(Math.abs(box[side] - blurred[side]), side).toBeLessThan(0.5)
     await shoot(page, `ending-at-its-limit-public-${lang}`, ENDING_SHOTS)
   }
 })
