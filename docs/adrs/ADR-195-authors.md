@@ -61,7 +61,9 @@ no collaborator (measured on #194).
 
 5. **Each Author is shown by its account's `name` alone** -- never its address, its id, its
    role or when it joined. One account per name (`ADR-195-who-sees-and-changes-an-address.md`
-   decision 4) makes no two Authors look alike.
+   decision 4) makes no two Authors look alike, but two accounts that a converted store left
+   with one name (`ADR-195-accounts-without-an-address.md` decision 5): until one of them is
+   renamed, the mention names them alike, on every Tree either of them authors.
 
 6. **The row Author of core document 5** is decided: an account a Tree names as one who
    authored it -- its Creator and each of its Collaborators, never the Administrator, in the

@@ -3353,9 +3353,10 @@ interface Account {
 password").** `login` is replaced by **`email`**, an e-mail address (38.1, 38.2), and the first
 bullet no longer holds: the owner decided that the address is held, and still no mail is sent.
 The administrator creates every account with a name, an address and a first password, and is the
-one who changes an address (38.5); no two accounts carry one name (38.6). `name` is shown in the
-admin area and, for an Author, on the public pages of its Trees (39.8). An account a converted
-store left without an address cannot log in until the administrator gives it one (38.4).
+one who changes an address (38.5); no account is given a name another account carries (38.6).
+`name` is shown in the admin area and, for an Author, on the public pages of its Trees (39.8).
+An account a converted store left without an address cannot log in until the administrator
+gives it one (38.4).
 
 ### 20.2 The password hash
 
@@ -3590,8 +3591,10 @@ deactivated account is 422; adding an existing collaborator is 200.
 collaborator, so nothing they could see disappears under them.
 
 **Amended 2026-10-03 (#195):** the list answers each active account's `id` and `name` and
-nothing else -- no address, which only its holder and the administrator see (38.5) -- and names
-are one per account, so a name tells two accounts apart (38.6). An invitation appends the
+nothing else -- no address, which only its holder and the administrator see (38.5) -- and no
+account is given a name another account carries, so a name tells two accounts apart (38.6),
+but for two that a converted store left with one name, until one of them is renamed. An
+invitation appends the
 invited account to `meta.json`'s `joined`, and a hand-over the new creator, each when it is new
 to the Tree; the old creator keeps its place there (39.2).
 
@@ -4951,8 +4954,9 @@ the old one as a collaborator (21.4). A collaborator sees the list and no contro
 
 **Amended 2026-10-03 (#195):** the `<select>` -- here and in 33.6 -- shows each account's name and
 no login: the login is an e-mail address, which only its holder and the administrator see, and
-two accounts no longer share a name (38.5, 38.6). The list's order and its controls stand; the
-public mention reads `meta.json`'s `joined`, not this list (39.2).
+no account is given a name another account carries (38.5, 38.6) -- two share one only where a
+converted store left them so, until one of them is renamed. The list's order and its controls
+stand; the public mention reads `meta.json`'s `joined`, not this list (39.2).
 
 ### 33.5 This Tree
 
@@ -5787,9 +5791,12 @@ account `ELSA_ADMIN_EMAIL`'s address and leaves no account without one.
 
 ### 38.6 One account per name
 
-- **No two accounts, active or not, carry one name.** With no address in the invitation list, a
-  name is what tells two accounts apart, and the public mention names Authors by these names
-  (39), so it never names two people alike either.
+- **No two accounts, active or not, carry one name**, but two that a converted store already
+  held (the last bullet), until one of them is renamed. With no address in the invitation list,
+  a name is what tells two accounts apart, and the public mention names Authors by these names
+  (39). So the mention names no two people alike, but those two: until one of them is renamed,
+  the invitation list shows them alike, and so does the mention, on every Tree either of them
+  authors.
 - **Names are compared by a key**: `name.normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase()`,
   so "Anna de Vries" and "anna  de vries" are one name. A name is still stored as given,
   trimmed (20.1).
@@ -5909,7 +5916,9 @@ after #196.
   to the account of a person who authored it (21.4, 33.6) -- on the live demo server, each of
   its three Trees.
 - **Each Author is shown by its account's `name` alone**: never its address, its id, its role
-  or when it joined. Names are one per account (38.6), so no two Authors look alike.
+  or when it joined. Names are one per account (38.6), so no two Authors look alike, but two
+  accounts that a converted store left with one name: until one of them is renamed, the mention
+  names them alike, on every Tree either of them authors (38.6).
 - **The row Author of core document 5 is this one**: an account. Every account but the
   administrator's that writes a Tree's content in the editor holds a role on it, so for a Tree
   made in the editor the Authors are its authors in the sense of core document 1, 2 and 3.1. A
@@ -6019,7 +6028,7 @@ hidden Tree's included, and `store.authors(id)` for the other published Trees, a
   Tree's (280 in 291) -- and not drawn at 390 x 844 and 360 x 640, where 30 to 75 pixels are
   left. Beside an 80-character title it is drawn at 1024 x 768 and above and not below. At and
   below the floor the notice stands in for the page (10.4). On a phone a reader meets the
-  Authors on the Tree's tile (39.5).
+  Authors on the Tree's tile (39.5), whose line is cut where its own room ends.
 - **Without JavaScript** the mention is the server's markup and its rules are the
   stylesheet's: there is nothing to run (14).
 - **A Tree without an Author** -- one whose only role holder is the administrator -- has no

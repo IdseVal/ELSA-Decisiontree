@@ -61,13 +61,17 @@ requires 1 to 80 characters and nothing more.
    `account <id> changed (email) by account <id> at <time>`, the word and never the value.
 
 4. **One account per name.** With no address in the lists, a name is what tells two accounts
-   apart, so no two accounts -- active or not -- carry one name. Names are compared after
-   Unicode NFC normalisation, with runs of white space as one space and without regard to case,
-   so "Anna de Vries" and "anna  de vries" are one name; a name is still stored as given,
+   apart, so no two accounts -- active or not -- carry one name, but two that a converted store
+   already held, until one of them is renamed (`ADR-195-accounts-without-an-address.md`
+   decision 5). Names are compared after Unicode NFC normalisation, with runs of white space as
+   one space and without regard to case, so "Anna de Vries" and "anna  de vries" are one name;
+   a name is still stored as given,
    trimmed (20.1). A creation or a rename -- the holder's on the account page, the
    administrator's through `PATCH` -- that gives an account a name another account has is
    refused, 422 `name-taken` at the field. The public mention names Authors by these names
-   (39), so it never names two people alike either.
+   (39), so it names no two people alike either, but those two: until one of them is renamed,
+   the invitation list shows them alike, and so does the mention, on every Tree either of them
+   authors.
 
 5. **What the account page shows**: the line `signedInWith(email)` -- "You sign in with
    <address>." / "U logt in met <adres>.", in the words of `signIn`, "Sign in" / "Inloggen"

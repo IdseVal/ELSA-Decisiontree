@@ -12,11 +12,12 @@
   step's controls to the rim.
 - **Amended 2026-10-03 by issue #195**: decision 4's select shows each account's name and no
   login -- the login is an e-mail address, which only its holder and the administrator see --
-  and two accounts no longer share a name (`ADR-195-who-sees-and-changes-an-address.md`); so
-  the sentence "the login is shown in the select's option text" and the alternative rejected
-  "Showing collaborators' logins in the list", whose reason was two people of one name, no
-  longer hold. The list's order and controls stand; the public mention reads `meta.json`'s
-  `joined`, not this list (`ADR-195-order-of-joining.md`).
+  and no account is given a name another account carries
+  (`ADR-195-who-sees-and-changes-an-address.md`; two share one only where a converted store left
+  them so, until one of them is renamed); so the sentence "the login is shown in the select's
+  option text" and the alternative rejected "Showing collaborators' logins in the list", whose
+  reason was two people of one name, no longer hold. The list's order and controls stand; the
+  public mention reads `meta.json`'s `joined`, not this list (`ADR-195-order-of-joining.md`).
 - Depends on: `docs/adrs/ADR-132-draft-and-publish.md` (Publish, unpublish, 19.4),
   `ADR-132-roles-and-permissions.md` (who may do what; invitations from a list),
   `ADR-132-editor-api.md` (the routes), `ADR-133-admin-routes.md` (the chrome bar),
