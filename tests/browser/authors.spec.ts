@@ -364,6 +364,8 @@ for (const lang of LANGUAGES) {
           expect(box.top + box.height, `${where}: inside the bar`).toBeLessThanOrEqual(m.bar.top + m.bar.height + 0.5)
           expect(box.left, `${where}: after the mark`).toBeGreaterThanOrEqual(m.brand.left + m.brand.width + m.gap - 0.5)
           expect(box.left + box.width, `${where}: before the controls`).toBeLessThanOrEqual(m.controls.left - m.gap + 0.5)
+          const middle = (of: Box): number => of.top + of.height / 2
+          expect(Math.abs(middle(box) - middle(m.controls)), `${where}: on the controls' middle`).toBeLessThanOrEqual(0.5)
         }
         // What 39.4 says this gives: beside a 120-pixel logo drawn from 768 x 1024 up and not on a
         // phone; beside an 80-character title drawn from 1024 x 768 up and not below.
@@ -420,6 +422,8 @@ for (const lang of LANGUAGES) {
             expect(box.left + box.width, `${where}: before the state mark, inside the row`).toBeLessThanOrEqual(end + 0.5)
             expect(box.top, `${where}: on the tags' line`).toBeGreaterThanOrEqual(tile.row.top)
             expect(box.top + box.height, `${where}: on the tags' line`).toBeLessThanOrEqual(tile.row.top + tile.row.height + 0.5)
+            const middle = (of: Box): number => of.top + of.height / 2
+            expect(Math.abs(middle(box) - middle(last)), `${where}: on the tags' middle`).toBeLessThanOrEqual(0.5)
           }
           // 39.5, measured: one name is whole on both overviews at every width, three are cut.
           expect(shown, where).toBe(authors.length === 1 ? 'whole' : 'cut')
@@ -428,6 +432,47 @@ for (const lang of LANGUAGES) {
     }
   })
 }
+
+/**
+ * The threshold itself, to the pixel (39.4, 39.5): the mark, or the tags' row, given as much
+ * padding as leaves the line a room of exactly 80 pixels and then 79 -- in the bar at the
+ * guarantee, where its gap is 16, and below 480 wide, where it is 8, and on a tile, where it is 4.
+ */
+test('the line is drawn in a room of 80 pixels and not in one of 79: in the bar on either side of 480 wide, and on a tile (39.4, 39.5)', async ({ page }) => {
+  const shown = async (padded: string, room: string, gapOf: string, line: string, target: number): Promise<boolean> => {
+    const free = await page.evaluate(
+      ([room, gapOf]) => document.querySelector(room)!.getBoundingClientRect().width - parseFloat(getComputedStyle(document.querySelector(gapOf)!).columnGap),
+      [room, gapOf] as const,
+    )
+    await page.locator(padded).evaluate((element, padding) => ((element as HTMLElement).style.paddingRight = `${padding}px`), free - target)
+    const left = await page.evaluate(
+      ([room, gapOf]) => document.querySelector(room)!.getBoundingClientRect().width - parseFloat(getComputedStyle(document.querySelector(gapOf)!).columnGap),
+      [room, gapOf] as const,
+    )
+    expect(Math.abs(left - target), `${padded} padded to leave ${target}: ${left} left`).toBeLessThanOrEqual(0.01)
+    const visible = await page.locator(line).isVisible()
+    await page.locator(padded).evaluate((element) => ((element as HTMLElement).style.paddingRight = ''))
+    return visible
+  }
+  for (const [width, height] of [
+    [1280, 640],
+    [479, 640],
+  ] as const) {
+    await page.setViewportSize({ width, height })
+    await page.goto(`${origin}/example-three`)
+    await page.evaluate(() => document.fonts.ready)
+    const bar = ['header.page-chrome > .page-brand', 'header.page-chrome > .authors-room', 'header.page-chrome', 'header.page-chrome .authors'] as const
+    expect(await shown(...bar, 80), `the bar at ${width}x${height}, 80 pixels`).toBe(true)
+    expect(await shown(...bar, 79), `the bar at ${width}x${height}, 79 pixels`).toBe(false)
+  }
+  await page.setViewportSize({ width: 1280, height: 640 })
+  await page.goto(`${origin}/`)
+  await page.evaluate(() => document.fonts.ready)
+  const tile = 'a.tile[data-tree="example-three"]'
+  const row = [`${tile} .tile-languages`, `${tile} .tile-authors-room`, `${tile} .tile-languages`, `${tile} .tile-authors`] as const
+  expect(await shown(...row, 80), 'the tile, 80 pixels').toBe(true)
+  expect(await shown(...row, 79), 'the tile, 79 pixels').toBe(false)
+})
 
 test('the order of joining after a hand-over: the account that made the Tree stays first, and one removed is named no more (39.1, 39.2)', async ({ browser }) => {
   const page = await browser.newPage()
