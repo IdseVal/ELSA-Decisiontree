@@ -173,7 +173,7 @@ export async function openTree(dir: string, options?: { draft: true }): Promise<
  * (application.md 36.4). The folder is read as the loader reads it, so this is the loader's
  * one answer to "would this file open here", not a second one that can drift from it.
  */
-export async function violationsOf(dir: string, text: string, mode: Mode = 'published'): Promise<Violation[]> {
+export async function violationsOf(dir: string, text: string, mode: Mode): Promise<Violation[]> {
   const root = path.resolve(dir)
   const violations: Violation[] = []
   const raw = await readTree(root, path.basename(root), violations, mode === 'draft' ? 'draft.json' : 'tree.json', text)
