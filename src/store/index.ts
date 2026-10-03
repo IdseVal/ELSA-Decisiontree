@@ -211,8 +211,12 @@ export async function importTree(folder: string, treesDir: string, creator: stri
  * a write the disk refuses rejects with the disk's error. `meta.json` is not touched: no
  * creator wrote.
  *
- * The result is checked by the loader, as the bytes it would read in `dir`, before a byte is
- * written.
+ * The result is checked by the loader, as the text it would read in `dir`, before the writer
+ * of 3.7 runs, because that writer trusts the shapes it walks: it maps whatever sits under a
+ * list key, so `"sources": {}` would make it throw a `TypeError` that names no rule. Only a
+ * result whose every shape the schema accepted reaches it -- the draft schema drops no
+ * `type` (19.2) -- and it changes nothing but the order of keys, which no rule reads: the
+ * file written holds what was checked.
  */
 async function convertFile(id: string, dir: string, file: string, mode: Mode): Promise<void> {
   const text = await readText(file)
@@ -220,11 +224,10 @@ async function convertFile(id: string, dir: string, file: string, mode: Mode): P
   if (!isMapping(value)) return
   const { tree, endings } = convertTree(value)
   if (tree === null) return
-  const bytes = treeBytes(tree)
   // In published mode no violation carries `advisory`, so every one of them stops the write.
-  const blocking = (await violationsOf(dir, bytes, mode)).filter((violation) => !violation.advisory)
+  const blocking = (await violationsOf(dir, JSON.stringify(tree), mode)).filter((violation) => !violation.advisory)
   if (blocking.length > 0) throw new TreeInvalid(id, blocking)
-  await writeAtomic(file, bytes)
+  await writeAtomic(file, treeBytes(tree))
   console.log(`Converted Tree "${id}" ${path.basename(file)} from elsa-tree/4 to elsa-tree/5: ${endings} endings`)
 }
 

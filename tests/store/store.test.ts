@@ -55,6 +55,13 @@ async function writeAs4(file: string, outcomes: string[]): Promise<void> {
   await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
 }
 
+/** **[#179]** Writes the Tree file `file` back after `edit` has changed what it holds. */
+async function rewrite(file: string, edit: (tree: { nodes: Array<Record<string, unknown>> }) => unknown): Promise<void> {
+  const tree = JSON.parse(await readFile(file, 'utf8')) as { nodes: Array<Record<string, unknown>> }
+  edit(tree)
+  await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
+}
+
 /** The lines `log` was called with that say a file was converted (36.4). */
 function conversions(log: { mock: { calls: unknown[][] } }): string[] {
   return log.mock.calls.map((call) => String(call[0])).filter((line) => line.startsWith('Converted'))
@@ -311,6 +318,34 @@ describe('importTree (17.4)', () => {
     expect(await readFile(file)).toEqual(before)
     expect(await readdir(treesDir)).toEqual([])
   })
+
+  test('**[#179]** an elsa-tree/4 folder whose shape the byte form cannot carry is refused with the schema\'s violation, not a TypeError (12.7.1 step 8)', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const treesDir = await folder()
+    const source = path.join(await seedOf([path.join(fixtures, 'carousel'), 'carousel']), 'carousel')
+    const file = path.join(source, 'tree.json')
+    await writeAs4(file, ['refer'])
+    const four = await readFile(file, 'utf8')
+    // The writer of 3.7 walks every list key's value as a list of objects: an object where a
+    // list is, at a Node or at the top, and a list holding null each make it throw.
+    const shapes: Array<[edit: (tree: { nodes: Array<Record<string, unknown>> }) => unknown, keyPath: string, message: string]> = [
+      [(tree) => (tree.nodes[0]!.sources = {}), '/nodes/0/sources', 'must be array'],
+      [(tree) => (tree.nodes[0]!.images = [null]), '/nodes/0/images/0', 'must be object'],
+      [(tree) => Object.assign(tree, { nodes: {} }), '/nodes', 'must be array'],
+    ]
+    for (const [edit, keyPath, message] of shapes) {
+      await writeFile(file, four)
+      await rewrite(file, edit)
+      const before = await readFile(file)
+
+      await expect(importTree(source, treesDir, null)).rejects.toMatchObject({
+        name: 'TreeInvalid',
+        violations: [{ file: 'tree.json', keyPath, rule: 'schema', message }],
+      })
+      expect(await readFile(file)).toEqual(before)
+      expect(await readdir(treesDir)).toEqual([])
+    }
+  })
 })
 
 describe('**[#179]** a data directory written by a release before elsa-tree/5 (36.4)', () => {
@@ -419,6 +454,34 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
     expect(await Promise.all(files.map((file) => readFile(file, 'utf8')))).toEqual(before)
     expect(store.publishedIds()).toEqual(['cycle'])
     expect(store.refused().map(({ id }) => id)).toEqual(['carousel'])
+  })
+
+  test('a file whose shape the byte form cannot carry is left as it was, and the start prints the schema\'s violation, not a TypeError (12.7.1 step 8)', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'carousel'), 'carousel'], [path.join(fixtures, 'cycle'), 'cycle']) })
+    const dir = path.join(data, 'trees', 'carousel')
+    const files = [path.join(dir, 'tree.json'), path.join(dir, 'draft.json')]
+    for (const file of files) {
+      await writeAs4(file, ['refer'])
+      await rewrite(file, (tree) => (tree.nodes[0]!.sources = {}))
+    }
+    const before = await Promise.all(files.map((file) => readFile(file, 'utf8')))
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const store = await openStore(data, ADMIN)
+
+    // The draft schema drops no `type` (19.2), so the draft is stopped by the same violation.
+    const shape = 'carousel  tree.json  /nodes/0/sources  schema  must be array'
+    expect(errors.mock.calls.map((call) => String(call[0]))).toEqual([
+      `Not converted: Tree "carousel" tree.json: the converted file would be invalid:\n${shape}`,
+      `Not converted: Tree "carousel" draft.json: the converted file would be invalid:\n${shape}`,
+    ])
+    expect(await Promise.all(files.map((file) => readFile(file, 'utf8')))).toEqual(before)
+    expect(store.publishedIds()).toEqual(['cycle'])
+    expect(store.refused().map(({ id }) => id)).toEqual(['carousel'])
+    const admin = store.accounts.all().find((account) => account.administrator)!
+    expect(store.drafts.entry(admin, 'carousel').manifest).toBeNull()
   })
 })
 
