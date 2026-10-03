@@ -2,12 +2,13 @@
  * The writer of docs/specs/tree-format.md 3.7 (`scripts/migrate-tree.ts`, `npm run
  * migrate`): what is left of the migration of section 12 after issue #119 ran it, and the
  * one contract that is worth stating only if it is tested -- **writing a Tree that was
- * just read changes no byte** (12.6.1, Idempotence).
+ * just read changes no byte** (12.6.1, Idempotence). **[#179]** And the conversion of 12.7,
+ * from `elsa-tree/4` to `elsa-tree/5`, which it runs before it writes.
  *
  * Every Tree it writes is read back through `openTree`, as section 7 requires; no test
  * builds a `Node` by hand.
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -94,9 +95,9 @@ describe('the canonical byte form is stable (tree-format.md 3.7, 12.6.1)', () =>
   })
 
   test('bytes is two-space indentation and one trailing line feed, and nothing else', () => {
-    const written = bytes({ format: 'elsa-tree/4', languages: ['en', 'nl'] })
+    const written = bytes({ format: 'elsa-tree/5', languages: ['en', 'nl'] })
 
-    expect(written).toBe('{\n  "format": "elsa-tree/4",\n  "languages": [\n    "en",\n    "nl"\n  ]\n}\n')
+    expect(written).toBe('{\n  "format": "elsa-tree/5",\n  "languages": [\n    "en",\n    "nl"\n  ]\n}\n')
   })
 
   test('a non-ASCII character is written as itself, not as an escape', async () => {
@@ -230,7 +231,7 @@ describe('the writer reports what the loader would', () => {
 
     const migration = await migrateTree(target)
 
-    expect(migration).toEqual({ rewritten: false, ids: [], notes: [note], violations: [] })
+    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, notes: [note], violations: [] })
     expect(await readFile(file, 'utf8')).toBe(before)
   })
 
@@ -261,7 +262,7 @@ describe('the writer reports what the loader would', () => {
 
     const migration = await migrateTree(target)
 
-    expect(migration).toEqual({ rewritten: false, ids: [], notes: [note], violations: [] })
+    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, notes: [note], violations: [] })
     expect(await readFile(file, 'utf8')).toBe(before)
     // The file is the evidence, so it must still be the file the loader refuses, with the
     // same message: the writer and the loader answer "may this be read" the same way.
@@ -286,7 +287,169 @@ describe('the writer reports what the loader would', () => {
   test('a folder that holds no tree.json is reported, not crashed on', async () => {
     const migration = await migrateTree(work)
 
-    expect(migration).toEqual({ rewritten: false, ids: [], notes: ['tree.json is missing'], violations: [] })
+    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, notes: ['tree.json is missing'], violations: [] })
+  })
+})
+
+/**
+ * **[#179]** An `elsa-tree/4` Tree whose four Terminals carry the four outcomes, every text in
+ * `languages`, as a parsed file. Written out here because no file of the repository is `/4`
+ * any more (tree-format.md 12.7.3), and in the key order of 3.7, so that what the writer
+ * changes is the conversion and nothing else.
+ */
+function treeOf4(languages: string[]): Record<string, unknown> {
+  const text = (words: string): Record<string, string> => Object.fromEntries(languages.map((lang) => [lang, `${words} (${lang})`]))
+  const question = (id: string, yes: string, no: string) => ({ id, title: text(`Question ${id}`), description: text('A question.'), metadata: { version: '1' }, answers: { yes, no } })
+  const end = (id: string, outcome: unknown) => ({ id, title: text(`End ${id}`), description: text('An end.'), metadata: { version: '1' }, terminal: { outcome } })
+  return {
+    $schema: '/schemas/elsa-tree-4.json',
+    format: 'elsa-tree/4',
+    languages,
+    root: 'start',
+    title: text('Four endings'),
+    metadata: { version: '1' },
+    nodes: [
+      question('start', 'second', 'not-applicable'),
+      end('not-applicable', 'not-applicable'),
+      question('second', 'third', 'applicable'),
+      end('applicable', 'applicable'),
+      question('third', 'prohibited', 'refer'),
+      end('prohibited', 'prohibited'),
+      end('refer', 'refer'),
+    ],
+  }
+}
+
+/** `tree` written as a Tree folder `four-endings` under the temporary directory. */
+async function writeTree(tree: unknown): Promise<string> {
+  const target = path.join(work, 'four-endings')
+  await mkdir(target, { recursive: true })
+  await writeFile(path.join(target, 'tree.json'), `${JSON.stringify(tree, null, 2)}\n`, 'utf8')
+  return target
+}
+
+/** Each Terminal's marker in the written file, by Node id. */
+async function terminalsOf(dir: string): Promise<Record<string, unknown>> {
+  const tree = JSON.parse(await readFile(path.join(dir, 'tree.json'), 'utf8')) as { nodes: Array<Record<string, unknown>> }
+  return Object.fromEntries(tree.nodes.filter((node) => 'terminal' in node).map((node) => [node.id, node.terminal]))
+}
+
+describe('the conversion from elsa-tree/4 to elsa-tree/5 (tree-format.md 12.7)', () => {
+  test('the four outcomes become the eight words their badges showed, in en and nl', async () => {
+    const target = await writeTree(treeOf4(['en', 'nl']))
+
+    const migration = await migrateTree(target)
+
+    expect(migration.conversion).toEqual({ format: 'elsa-tree/4', endings: 4, left: [] })
+    expect(migration.violations).toEqual([])
+    expect(await terminalsOf(target)).toEqual({
+      'not-applicable': { label: { en: 'Does not apply', nl: 'Niet van toepassing' } },
+      applicable: { label: { en: 'Applies', nl: 'Van toepassing' } },
+      prohibited: { label: { en: 'Prohibited', nl: 'Verboden' } },
+      refer: { label: { en: 'Look elsewhere', nl: 'Elders geregeld' } },
+    })
+    const written = JSON.parse(await readFile(path.join(target, 'tree.json'), 'utf8')) as Record<string, unknown>
+    expect([written.$schema, written.format]).toEqual(['/schemas/elsa-tree-5.json', 'elsa-tree/5'])
+  })
+
+  test('a tag whose primary subtag is nl gets the Dutch words, and every other the English (3.1)', async () => {
+    const target = await writeTree(treeOf4(['nl-be', 'de']))
+
+    const migration = await migrateTree(target)
+
+    expect(migration.violations).toEqual([])
+    expect(await terminalsOf(target)).toEqual({
+      'not-applicable': { label: { 'nl-be': 'Niet van toepassing', de: 'Does not apply' } },
+      applicable: { label: { 'nl-be': 'Van toepassing', de: 'Applies' } },
+      prohibited: { label: { 'nl-be': 'Verboden', de: 'Prohibited' } },
+      refer: { label: { 'nl-be': 'Elders geregeld', de: 'Look elsewhere' } },
+    })
+  })
+
+  test('the result is in the byte form of 3.7: the label the one key, its languages in the manifest\'s order', async () => {
+    const tree = treeOf4(['nl', 'en'])
+    const target = await writeTree(tree)
+
+    await migrateTree(target)
+
+    // The file by hand: the /4 one with its two names and its Terminals changed, and no other byte.
+    const words: Record<string, { nl: string; en: string }> = {
+      'not-applicable': { nl: 'Niet van toepassing', en: 'Does not apply' },
+      applicable: { nl: 'Van toepassing', en: 'Applies' },
+      prohibited: { nl: 'Verboden', en: 'Prohibited' },
+      refer: { nl: 'Elders geregeld', en: 'Look elsewhere' },
+    }
+    const expected = { ...tree, $schema: '/schemas/elsa-tree-5.json', format: 'elsa-tree/5' }
+    expected.nodes = (tree.nodes as Array<Record<string, unknown>>).map((node) =>
+      'terminal' in node ? { ...node, terminal: { label: words[node.id as string] } } : node,
+    )
+    expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(bytes(expected as Parameters<typeof bytes>[0]))
+  })
+
+  test('a second run changes no byte, and says the file is elsa-tree/5 already (12.7.1 step 2)', async () => {
+    const target = await writeTree(treeOf4(['en', 'nl']))
+    await migrateTree(target)
+    const converted = await readFile(path.join(target, 'tree.json'), 'utf8')
+
+    const again = await migrateTree(target)
+
+    expect(again.rewritten).toBe(false)
+    expect(again.conversion).toEqual({ format: 'elsa-tree/5', endings: 0, left: [] })
+    expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(converted)
+  })
+
+  test.each([
+    ['the origin-relative path', '/schemas/elsa-tree-4.json', '/schemas/elsa-tree-5.json'],
+    ['an absolute URL, in place', 'https://lab.example.org/elsa/schemas/elsa-tree-4.json', 'https://lab.example.org/elsa/schemas/elsa-tree-5.json'],
+    ['a value that is not /4\'s, which is left as it is', 'https://lab.example.org/schemas/elsa-tree-4.json?v=4', 'https://lab.example.org/schemas/elsa-tree-4.json?v=4'],
+  ])('$schema as %s (12.7.1 step 4)', async (_name, before, after) => {
+    const target = await writeTree({ ...treeOf4(['en']), $schema: before })
+
+    const migration = await migrateTree(target)
+
+    const written = JSON.parse(await readFile(path.join(target, 'tree.json'), 'utf8')) as Record<string, unknown>
+    expect(written.$schema).toBe(after)
+    // A value left as it is fails V-SCHEMA as it did; the others leave the Tree valid.
+    expect(migration.violations.map((violation) => violation.keyPath)).toEqual(before === after ? ['/$schema'] : [])
+  })
+
+  test.each([
+    ['an outcome the table does not hold', { outcome: 'maybe' }, 'it is not one of the four outcomes'],
+    ['an outcome named like an object\'s own member', { outcome: 'toString' }, 'it is not one of the four outcomes'],
+    ['an outcome beside another key', { outcome: 'refer', note: 'x' }, 'it is not one of the four outcomes'],
+    ['a marker that is not an object', 'refer', 'it is not one of the four outcomes'],
+  ])('%s is left as it is and reported, to fail V-TERMINAL', async (_name, terminal, why) => {
+    const tree = treeOf4(['en', 'nl'])
+    ;(tree.nodes as Array<Record<string, unknown>>)[6]!.terminal = terminal
+
+    const target = await writeTree(tree)
+    const migration = await migrateTree(target)
+
+    expect(migration.conversion).toEqual({ format: 'elsa-tree/4', endings: 3, left: [`"refer": terminal ${JSON.stringify(terminal)} left as it is, ${why}`] })
+    expect((await terminalsOf(target)).refer).toEqual(terminal)
+    expect(migration.violations.length).toBeGreaterThan(0)
+    expect(migration.violations.every((violation) => violation.rule === 'schema' && violation.keyPath.startsWith('/nodes/6/terminal'))).toBe(true)
+  })
+
+  test('every Terminal of a file whose languages is not a list of strings is left and reported', async () => {
+    const target = await writeTree({ ...treeOf4(['en']), languages: 'en' })
+
+    const migration = await migrateTree(target)
+
+    expect(migration.conversion?.endings).toBe(0)
+    expect(migration.conversion?.left).toEqual(
+      ['not-applicable', 'applicable', 'prohibited', 'refer'].map((id) => `"${id}": terminal {"outcome":"${id}"} left as it is, languages is not a list of language tags`),
+    )
+    expect(migration.violations.some((violation) => violation.keyPath === '/languages')).toBe(true)
+  })
+
+  test('a file in another format is not converted, and the report says what it found', async () => {
+    const target = await writeTree({ ...treeOf4(['en']), format: 'elsa-tree/3' })
+
+    const migration = await migrateTree(target)
+
+    expect(migration.conversion).toEqual({ format: 'elsa-tree/3', endings: 0, left: [] })
+    expect(Object.values(await terminalsOf(target))).toEqual([{ outcome: 'not-applicable' }, { outcome: 'applicable' }, { outcome: 'prohibited' }, { outcome: 'refer' }])
   })
 })
 

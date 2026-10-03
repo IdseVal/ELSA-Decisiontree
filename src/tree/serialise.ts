@@ -26,7 +26,7 @@ const ORDER = {
   answers: ['yes', 'no'],
   option: ['title', 'target'],
   explainer: ['id', 'term', 'text'],
-  terminal: ['outcome'],
+  terminal: ['label'],
 } as const satisfies Record<string, readonly string[]>
 
 export type ObjectName = keyof typeof ORDER

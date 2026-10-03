@@ -28,7 +28,7 @@ import { explainerMarks } from '../markdown.ts'
 import { countedLength, isId } from './grammar.ts'
 import { estimatedLines } from './measure.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
-import schemaDocument from '../../schemas/elsa-tree-4.json' with { type: 'json' }
+import schemaDocument from '../../schemas/elsa-tree-5.json' with { type: 'json' }
 
 /**
  * **[#137]** The grammars and the counted length of 3.8 moved to `grammar.ts`, which a client
@@ -103,6 +103,8 @@ export const MAX = {
   nodeDescription: 150,
   nodeLines: 2,
   optionTitle: 60,
+  /* The badge's words: one line in its narrowest room, 198 pixels at 480 wide (application.md 36.1, #171). */
+  terminalLabel: 19,
   sourceLabel: 60,
   imageDescription: 120,
   credit: 120,
@@ -356,6 +358,9 @@ function checkNode(c: DocumentChecker, node: Mapping): NodeShape {
   checkMarks(c, node.description ?? {}, 'explainers' in node ? checkExplainers(c, node.explainers as Mapping[]) : [])
   const answers = 'answers' in node ? answerLinks(c, node.answers as Mapping) : []
   const options = 'options' in node ? checkOptions(c, node.options as Mapping[]) : []
+  // **[#179]** The ending's words are a plain localised text like any other (V-TERMINAL): the
+  // schema has said `label` is there, and the rules say its languages, its line and its length.
+  if ('terminal' in node) c.localised((node.terminal as Mapping).label, 'terminal.label', false, MAX.terminalLabel)
   return { kind: nodeKind(node), answers, options }
 }
 

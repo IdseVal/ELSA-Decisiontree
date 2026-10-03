@@ -9,7 +9,7 @@
  */
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
-import type { DraftNode, Explainer, Image, LocalisedText, Manifest, Node, Option, Outcome, Source, Theme, Violation } from './types.ts'
+import type { DraftNode, Explainer, Image, LocalisedText, Manifest, Node, Option, Source, Theme, Violation } from './types.ts'
 import { isId, isImageFile, isMapping, isThemeFile, nodeKind, validateTree, type Mapping, type RawTree } from './validate.ts'
 
 /**
@@ -388,7 +388,7 @@ function referencedThemeFiles(theme: Theme | undefined): Set<string> {
 function toManifest(raw: Mapping): Manifest {
   const languages = raw.languages as string[]
   return {
-    format: 'elsa-tree/4',
+    format: 'elsa-tree/5',
     languages,
     defaultLanguage: languages[0]!,
     root: raw.root as string,
@@ -417,7 +417,7 @@ function toDraftNode(raw: Mapping): DraftNode {
     kind: nodeKind(raw),
   }
   if ('answers' in raw) return { ...node, answers: raw.answers as DraftNode['answers'] }
-  if ('terminal' in raw) return { ...node, outcome: (raw.terminal as { outcome: Outcome }).outcome }
+  if ('terminal' in raw) return { ...node, label: (raw.terminal as { label: LocalisedText }).label }
   return node
 }
 
@@ -436,7 +436,7 @@ function toNode(raw: Mapping): Node {
     case 'question':
       return { ...common, kind: 'question', answers: raw.answers as { yes: string; no: string } }
     case 'terminal':
-      return { ...common, kind: 'terminal', outcome: (raw.terminal as { outcome: Outcome }).outcome }
+      return { ...common, kind: 'terminal', label: (raw.terminal as { label: LocalisedText }).label }
     case 'explanation':
       return { ...common, kind: 'explanation' }
   }
