@@ -11,6 +11,12 @@
 > spec and the ADRs. Windows draws the default stack in Arial and the first Tree in its own
 > Open Sans; Linux draws web fonts up to 1.9 pixels wider (`issue-171-measurements.md` 3), so a
 > build issue measures again where a number decides a test.
+>
+> **Measured again on 2026-10-03 by the fix run of pull request #201**, after `dev` gained #181
+> (`5d52832`). #181 changed the stylesheet for the editor, the new-Tree form and the Overlay's title
+> below 792 pixels. On the same machine, Node and Playwright, the script of section 4 was copied
+> out of this record and run alone against the production build of the branch merged with that
+> `dev`. It printed the 124 table lines of sections 2 and 3 exactly as they stand here.
 
 ## 1. What was measured
 
