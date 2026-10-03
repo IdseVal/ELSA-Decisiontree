@@ -750,7 +750,9 @@ for (const lang of LANGUAGES) {
     })
     const where = `${what} (${lang}) at 390x844, its title one word of 80 letters`
     expect(sideways, `${where}: the title wider than itself`).toBeLessThanOrEqual(1)
-    assertFits(await measure(page), where)
+    const oneWord = await measure(page)
+    rows.push({ page: `${what}, its title one word of 80 letters`, lang, viewport: '390x844', sheet: '', measured: oneWord })
+    assertFits(oneWord, where)
   })
 }
 
