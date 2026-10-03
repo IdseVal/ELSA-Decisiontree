@@ -1,5 +1,5 @@
 {
-  "$schema": "/schemas/elsa-tree-4.json",
+  "$schema": "/schemas/elsa-tree-5.json",
   "format": "elsa-tree/3",
   "languages": [
     "en"
@@ -80,7 +80,9 @@
         "version": "1.0"
       },
       "terminal": {
-        "outcome": "not-applicable"
+        "label": {
+          "en": "Does not apply"
+        }
       }
     },
     {
@@ -95,7 +97,9 @@
         "version": "1.0"
       },
       "terminal": {
-        "outcome": "applicable"
+        "label": {
+          "en": "Applies"
+        }
       }
     }
   ]

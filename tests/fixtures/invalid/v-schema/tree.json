@@ -1,6 +1,6 @@
 {
   "$schema": "/schemas/elsa-tree-3.json",
-  "format": "elsa-tree/4",
+  "format": "elsa-tree/5",
   "languages": [
     "en"
   ],
@@ -80,7 +80,9 @@
         "version": "1.0"
       },
       "terminal": {
-        "outcome": "not-applicable"
+        "label": {
+          "en": "Does not apply"
+        }
       }
     },
     {
@@ -95,7 +97,9 @@
         "version": "1.0"
       },
       "terminal": {
-        "outcome": "applicable"
+        "label": {
+          "en": "Applies"
+        }
       }
     }
   ]

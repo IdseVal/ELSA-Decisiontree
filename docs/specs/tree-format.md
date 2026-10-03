@@ -1198,6 +1198,12 @@ bytes against the block's 11,054:
        }
 ```
 
+**[#179] Done (2026-10-03).** #179 converted `trees/ai-act-example/tree.json` by 12.7, changed
+its description's sentence about the format by hand, and put the result in the block below in
+the same commit: the `elsa-tree/5` file, byte for byte, differing from the `elsa-tree/4` block
+it replaces in exactly the lines of the diff above, and valid against
+`schemas/elsa-tree-5.json`.
+
 Folder layout:
 
 ```
@@ -1247,8 +1253,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-4.json",
-  "format": "elsa-tree/4",
+  "$schema": "/schemas/elsa-tree-5.json",
+  "format": "elsa-tree/5",
   "languages": [
     "en",
     "nl"
@@ -1259,8 +1265,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
     "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
   },
   "description": {
-    "en": "A small example Tree that exercises every element of the `elsa-tree/4` format.\nIts legal content is simplified and not to be relied on.",
-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/4`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
   "metadata": {
     "version": "2.0",
@@ -1379,7 +1385,10 @@ reader of the contract finds it; what an author needs to keep beside the data go
         }
       ],
       "terminal": {
-        "outcome": "not-applicable"
+        "label": {
+          "en": "Does not apply",
+          "nl": "Niet van toepassing"
+        }
       }
     },
     {
@@ -1545,7 +1554,10 @@ reader of the contract finds it; what an author needs to keep beside the data go
         }
       ],
       "terminal": {
-        "outcome": "prohibited"
+        "label": {
+          "en": "Prohibited",
+          "nl": "Verboden"
+        }
       }
     },
     {
@@ -1572,7 +1584,10 @@ reader of the contract finds it; what an author needs to keep beside the data go
         }
       ],
       "terminal": {
-        "outcome": "applicable"
+        "label": {
+          "en": "Applies",
+          "nl": "Van toepassing"
+        }
       }
     }
   ]
