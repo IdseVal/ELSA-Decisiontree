@@ -7,11 +7,13 @@
 > set for the administrator. Every number that `docs/adrs/ADR-202-navigation-round.md`, core
 > document 3.4 `[#202]` and issue #204 cite is here, with the script that produced it, copied
 > whole in section 3, and its output as it ran, in section 2. The script was a scratch file of
-> that run and was deleted; it ran twice, and the two runs printed the same tables. This is a
-> record, not a contract: #204 builds the buttons, amends `docs/specs/application.md` 24.3, and
-> measures again where a number decides a test. Windows draws the default stack in Arial and the
-> first Tree in its own Open Sans; Linux draws web fonts up to 1.9 pixels wider
-> (`issue-171-measurements.md` 3).
+> that run and was deleted; it ran three times, the last with the closing list added, and the
+> three printed the same tables. This is a record, not a contract: #204 builds the buttons,
+> amends `docs/specs/application.md` 24.3, and measures again where a number decides a test.
+> Windows draws the default stack -- the bar's controls on the overview, at `/admin` and on the
+> second Tree's pages -- in Segoe UI, and the first Tree's in its own Open Sans; the CI runner
+> draws the default stack in Liberation Sans, which has Arial's metrics
+> (`issue-171-measurements.md` 3), so its widths differ.
 
 ## 1. What was measured
 
@@ -35,17 +37,23 @@
   administrator, whose bar holds the most controls -- the language switch, Account, Accounts and
   Log out.
 - **Viewports**: the ten of 10.6, then 479 x 800, the widest window below 480.
+- **The closing list**, at 320 x 480 as on `dev`: what each pill of the language switch says
+  and its width, the logo's width, and the first family the bar's computed font names --
+  "Open Sans" for the first Tree, and for the second the default stack's first,
+  `-apple-system`, which Windows does not have, so that Chromium draws Segoe UI.
 
 ## 2. The output, as it ran
 
 What it shows:
 
-- "Editor" does not fit a Node page's bar at 320 x 480, in either language, beside either
-  Tree's logo: the bar grows to 330 to 360 pixels. Nor at 360 x 640 in Dutch beside the first
-  Tree's logo: 362 to 368. In both looks.
-- With the current language's pill given up -- 48.4 pixels for "English", 71.5 for
-  "Nederlands" at 320 x 480 -- "Editor" in the share button's look fits every viewport, with
-  26.8 to 43.3 pixels to spare at 320 x 480.
+- "Editor", in either look, does not fit a Node page's bar at 320 x 480, in either language,
+  beside either Tree's logo: the bar grows to 330 to 360 pixels (336 to 360 in the share
+  button's look). Nor at 360 x 640 in Dutch beside the first Tree's logo: 362 in the account
+  link's look, 368 in the share button's.
+- With the current language's pill given up -- at 320 x 480, 48.4 pixels for "English" and
+  71.5 for "Nederlands" beside the first Tree, 46.5 and 67.7 beside the second -- "Editor" in
+  the share button's look fits every viewport, with 26.8 to 43.3 pixels to spare at 320 x 480.
+  The logo is 58.4 pixels wide there beside either Tree.
 - At 390 x 844 and below, a Node page's bar has 7.1 to 82.9 pixels of room on `dev`; "Editor"
   takes about 45 to 47 pixels of it, its gap included, in the share button's look, and about
   38 to 40 in the account link's (each the difference of two rooms rounded to a tenth).
@@ -189,10 +197,12 @@ What it shows:
 | nl | 320 x 480 | 77 | 27 | 22.1 |
 | nl | 479 x 800 | 236 | 186 | 181.1 |
 
-### The language switch on the root Node page of ai-act-applicability-agrifood at 320 x 480
+### The language switch and the logo on the root Node pages at 320 x 480, as on dev
 
-- en: "English" (the current language) 48.4 pixels, "Nederlands" 71.5 pixels
-- nl: "English" 48.4 pixels, "Nederlands" (the current language) 71.5 pixels
+- ai-act-applicability-agrifood, en: "English" (the current language) 48.4, "Nederlands" 71.5; the logo 58.4 (its font: "Open Sans")
+- ai-act-applicability-agrifood, nl: "English" 48.4, "Nederlands" (the current language) 71.5; the logo 58.4 (its font: "Open Sans")
+- ai-act-example, en: "English" (the current language) 46.5, "Nederlands" 67.7; the logo 58.4 (its font: -apple-system)
+- ai-act-example, nl: "English" 46.5, "Nederlands" (the current language) 67.7; the logo 58.4 (its font: -apple-system)
 
 ## 3. The script
 
@@ -297,18 +307,23 @@ await table(admin, "The creators' overview at /admin, as the administrator (four
   { label: '+ "Website", account-link look', add: website('admin-link'), hideCurrent: false },
   { label: '+ "Website", share look', add: website('share'), hideCurrent: false },
 ])
-// What the language switch's pills say, and how wide they are, at the floor.
-const pills = ['### The language switch on the root Node page of ai-act-applicability-agrifood at 320 x 480', '']
+// What the language switch's pills say, how wide they are, and how wide the logo is, at the floor.
+const pills = ['### The language switch and the logo on the root Node pages at 320 x 480, as on dev', '']
 const floor = await visitor.newPage()
 await floor.setViewportSize({ width: 320, height: 480 })
-for (const lang of ['en', 'nl']) {
-  await floor.goto(`${origin}/ai-act-applicability-agrifood${lang === 'nl' ? '?lang=nl' : ''}`, { waitUntil: 'load' })
-  const said = await floor.evaluate(() =>
-    [...document.querySelectorAll('header.page-chrome .language-switch li')]
-      .map((li) => `"${li.textContent.trim()}"${li.querySelector('.language--current') ? ' (the current language)' : ''} ${Math.round(li.getBoundingClientRect().width * 10) / 10} pixels`)
-      .join(', '),
-  )
-  pills.push(`- ${lang}: ${said}`)
+for (const tree of ['ai-act-applicability-agrifood', 'ai-act-example']) {
+  for (const lang of ['en', 'nl']) {
+    await floor.goto(`${origin}/${tree}${lang === 'nl' ? '?lang=nl' : ''}`, { waitUntil: 'load' })
+    const said = await floor.evaluate(() => {
+      const bar = document.querySelector('header.page-chrome')
+      const width = (el) => Math.round(el.getBoundingClientRect().width * 10) / 10
+      const switchPills = [...bar.querySelectorAll('.language-switch li')]
+        .map((li) => `"${li.textContent.trim()}"${li.querySelector('.language--current') ? ' (the current language)' : ''} ${width(li)}`)
+        .join(', ')
+      return `${switchPills}; the logo ${width(bar.querySelector('img.logo'))} (its font: ${getComputedStyle(bar.querySelector('.language-switch li')).fontFamily.split(',')[0]})`
+    })
+    pills.push(`- ${tree}, ${lang}: ${said}`)
+  }
 }
 tables.push(pills.join('\n'))
 await browser.close()
