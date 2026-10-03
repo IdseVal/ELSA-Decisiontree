@@ -574,7 +574,18 @@ function UploadField({ id, words, disabled, onFile }: { id: string; words: Theme
   return (
     <div className="admin-field theme-upload">
       <label htmlFor={id}>{words.fontFile}</label>
-      <input ref={input} id={id} type="file" accept=".woff2,font/woff2" disabled={disabled} onChange={(event) => onFile(event.currentTarget.files?.[0])} />
+      <input
+        ref={input}
+        id={id}
+        type="file"
+        accept=".woff2,font/woff2"
+        disabled={disabled}
+        onChange={(event) => {
+          onFile(event.currentTarget.files?.[0])
+          // Cleared, as FilePicker is: after a refusal the field stays, and the same file chosen again must be a change.
+          event.currentTarget.value = ''
+        }}
+      />
     </div>
   )
 }
