@@ -1,7 +1,7 @@
 # Core document
 
 > Populated by deep interview with the project owner. Nothing here is inferred.
-> Status: AGREED -- 2026-10-02 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17, 2026-09-21 and 2026-09-23)
+> Status: AGREED -- 2026-10-03 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23 and 2026-10-02)
 > The owner noted the document may change in future; changes go through a revision round and a PR.
 >
 > **Revision of 2026-09-09 (issue #35).** After seeing version 0.1 of the tool the owner
@@ -49,8 +49,17 @@
 > selection a dropdown, but do give the option to add a font by uploading a file. Make the
 > license section a dropdown." Those decisions are `docs/adrs/ADR-171-*.md`; their work is
 > #179 and #180.
+>
+> **Revision of 2026-10-03 (issue #194).** The owner wrote, in issue #194, that an account
+> logs in with an e-mail address and a password; that every Tree carries a small mention
+> of who authored it, several in the order in which they joined it; and asked for an
+> account of their own beside the administrator's. Every passage that changed
+> is marked **[#194]** and quotes or cites #194; nothing else in this document was
+> touched. The owner's words are held whole in section 3.4. How they became issues is
+> `docs/adrs/ADR-194-login-and-authors-round.md`; the work is issues #195 to #198, and
+> what the words leave open is 10.39 and 10.40, for the Architect on #195.
 
-Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23 and 2026-10-02.
+Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02 and 2026-10-03.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
 Items marked **PROPOSED** are the Planner's wording, waiting for the owner to confirm or correct.
 
@@ -499,8 +508,9 @@ owner's words leave a choice:
   link keeps working (10.34, decided by the Architect on #132).
 - **`/admin` behind a login**: the login page first; once logged in, the same overview with
   a **+ tile at the top left** that creates a new Tree. **[#133] Decided by the Architect
-  (2026-09-26):** the login page is one card with a name, a password and one error that
-  never says which was wrong; it is shown at whatever admin address a visitor asked for and
+  (2026-09-26):** the login page is one card with a name, a password (**[#194]** an e-mail
+  address and a password, owner 2026-10-03, below) and one error that never says which was
+  wrong; it is shown at whatever admin address a visitor asked for and
   that address opens on success. The creators' overview shows every published Tree plus
   the hidden ones the creator made or collaborates on (the administrator sees all), the
   creator's own first, each tile marked published or hidden, the + tile first. The + tile
@@ -601,6 +611,42 @@ owner's words leave a choice:
     format" below, in what this round does not change; 5; 10.10, 10.21), and the Theme's
     font and licence dropdowns (10.35). #173's: the heading "Sources"
     (3.2).
+- **[#194] Logging in by e-mail address, the authors on every Tree, and the owner's own
+  account (owner, #194, 2026-10-03).** The owner's words, whole:
+
+  > "To login should be based on an email and a password, and graphs should have a small
+  > mention by who it was authored, if multiple collaborators in the order in which they
+  > joined a decision-tree. You can make a placeholder account next to the admin account
+  > for me: idse.val@wur.nl is email, you can create a temporary password for me, I will
+  > change it when we get there."
+
+  Where this bullet and a sentence above, or sections 8, 9 and 10.31, disagree, this
+  bullet holds. How the three points became issues is
+  `docs/adrs/ADR-194-login-and-authors-round.md`.
+  - **An e-mail address and a password log in.** An account logs in with its e-mail
+    address and its password, in place of the user name the Architect chose on #132
+    (10.31). The application still sends no mail (section 7, 10.31):
+    #194 asks for an address to log in with, not for anything to be sent to it. What the
+    administrator logs in with, what becomes of an account that has a user name and no
+    address, and who sees an address are 10.39, the Architect's on #195; #196 builds it.
+  - **Every Tree names who authored it.** "Graph" is one of the owner's words for a Tree
+    (section 5). This reverses, for the mention the owner asked for, the rule of sections
+    8 and 9 that nothing about a creator reaches a public page. PROPOSED (the owner named
+    the collaborators and no other role): the authors are the Tree's creator and its
+    collaborators, in the order in which they joined it, so the creator who made the Tree
+    comes first; each is named by the name of their account (the name every creator has,
+    above) and by nothing else -- not the address, not the account's id. Where the
+    mention stands, how the order of joining is kept, what it does after a hand-over, for
+    an account that has left the Tree and for the administrator, and whether the names go
+    beyond the page are 10.40, the Architect's on #195; #197 builds it.
+  - **The owner's own account.** An account for the owner beside the administrator's,
+    with the address `idse.val@wur.nl` and a temporary password the owner will change.
+    PROPOSED: an ordinary account, not a second administrator (there is one, 10.32), named
+    "Idse Val" as this document names the owner; made on the demo server that serves `dev`
+    at http://petercelie:3000, whose administrator account is the one the owner's #162
+    was about; its temporary password handed over out of band, as every first password is
+    (10.31), and written into no file of the repository, no issue, no pull request and no
+    log (#198).
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
@@ -683,6 +729,7 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 | **Explainer** | **[#75]** A short explanation of one term in a Node's text, declared in the Tree data per language and shown in a small panel when the term is hovered (or focused, or tapped). | small explainer, hoverable, explainer |
 | **Creator** | **[#131]** An account that created a Tree: edits it, invites Collaborators to it, publishes it. | creator, our potential creators |
 | **Collaborator** | **[#131]** An account a Creator invited to a Tree; edits it. | collaborators |
+| **Author** (PROPOSED) | **[#194]** An account named on a Tree as one who authored it: its Creator and its Collaborators, in the order in which they joined it, each shown by the account's name alone (3.4, 10.40). | who it was authored, collaborators in the order in which they joined |
 | **Administrator** | **[#131]** The one account with every permission on every Tree, present and future, whoever created it. | admin account |
 | **Overview** | **[#131]** The page before a Tree: every published Tree, one tile each; for a logged-in Creator the same page with the + tile. | page with an overview of all available datastructures, front page |
 | **Editor** | **[#131]** The admin area's view of a Node: what the end user sees, every field editable in place. | editing page, editing mode, the same editor |
@@ -726,12 +773,15 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 - **Nothing about the user is collected or stored**: no accounts, no cookies, no
   tracking, no analytics. **[#131] For end users, unchanged.** For **creators** (3.4)
   the owner asks for accounts with a name, a login and permissions, which means: an
-  account record (name, login, a password hash, never the password), a session that
+  account record (name, login, a password hash, never the password; **[#194]** the
+  login is an e-mail address, owner 2026-10-03, 3.4), a session that
   a cookie carries, and a record of who created which Tree and who was invited to it.
   PROPOSED, for the Architect to freeze on #132: the session cookie is set on the
   admin routes only, with the flags a session cookie must have, and **no public route
   ever sets a cookie** -- the sweep in `tests/browser/deployment.spec.ts` stays a
-  contract; nothing about a creator is shown on a public page or written into a
+  contract; nothing about a creator is shown on a public page (**[#194]** but who
+  authored a Tree, mentioned on it, owner 2026-10-03; PROPOSED by their names alone,
+  3.4; the rest is 10.40) or written into a
   Tree file (the file is the public dataset of the bullet below); no analytics, no
   tracking, for anyone.
 - The app **must display a permanently visible "not legal advice" disclaimer**.
@@ -786,7 +836,10 @@ Confirmed by the owner on 2026-09-03:
   and fonts come from the loaded Tree, so a third-party Tree shows its own (#35).
 - **[#131] A public route must never set a cookie**, and nothing about a creator may
   reach a public page or a Tree file (section 8). The account and the session exist
-  on the admin routes and nowhere else.
+  on the admin routes and nowhere else. **[#194]** One exception, the owner's
+  (2026-10-03): who authored a Tree is mentioned on it (3.4; PROPOSED by their names
+  alone; where, and whether in the Tree file, is 10.40). Nothing else about an account
+  reaches a public page.
 - **[#131] A hidden Tree must never appear on a public route**: not on the overview,
   not at a Node URL, not in the sitemap, the dataset endpoint, the JSON-LD or
   `llms.txt`, and none of its images or theme files (3.4).
@@ -828,11 +881,13 @@ Confirmed by the owner on 2026-09-03:
 | 10.27 | **[#75]** The address of an open Overlay (3.2): does opening a side child change the URL, and what does the URL of an explanation Node show when it is opened directly or from a shared link? Every Node must stay reachable by URL and the Trail must stay in the link (3.2). | Architect | decided by Architect (2026-09-17, issue #78): opening or closing an Overlay does not change the address; the URL of an explanation Node renders its parent's page with that Overlay open, the parent being the path entry before it (the last question Node or Terminal in the path is the centre, the entries after it are the aside chain, the last of them open), so every existing link keeps working and an explanation Node reached by two Options has a URL under each; a path with no parent at all (`/<tree>/<explanation-id>`) shows the explanation Node as the centre. A second-level Option is a plain link to the deeper address. `docs/specs/application.md` 10.9, `docs/adrs/ADR-78-overlay.md`. Amended by Architect (2026-09-19, issue #100): the centre is found in at most the path's last three entries, so a page reads at most 17 Nodes for every path; it is an explanation Node when three or more explanation Nodes end the path (the third from the end) or when the path ignores adjacency; and an Overlay has no strip. `docs/adrs/ADR-100-bounded-centre.md`, `docs/adrs/ADR-100-overlay-without-strip.md` |
 | 10.28 | **[#75]** The row budget and the length limits after the main image (3.1, 3.2): the main image takes height inside the Bubble, the Trail row's height is freed, the Carousel moves to the Bubble's lower edge and loses its caption line. Do the description's 600 characters and 8 lines survive, or do the limits change -- which would re-cut the first Tree a second time (3.3, item 8)? | Architect; Idse if content must be cut | decided by Architect (2026-09-17, issue #78): **the limits survive, by two pixels.** The rows are chrome bar 44, up-arrow band 26, Bubble 446 (text area 640 x 394), strip band 28, Answers 68, disclaimer 28; the Interior is main image 60, title 56, description 192 (8 lines, 600 characters), Sources 60 (heading and two lines), three gaps of 8 = 392. The main image is 60 pixels tall, the largest size that keeps every limit; each further 24 pixels would cost one line, 75 characters, of description and a new format number, and is the owner's to ask for. No Tree is re-cut. **Amended 2026-09-19 (#102, by the owner; answer (b) on PR #110):** the owner asked for the pixels -- a main image of two fifths of the Bubble, the description cut to 150 characters and 2 lines, both Trees cut mechanically -- and took them **without a new format number**: the change is scoped to the limit and the validator, the shape of a Tree file is unchanged, and V-LENGTH and V-LINES tell a Tree written to the old limit what to cut; `elsa-tree/3` stands. `docs/specs/application.md` 10.1, 10.7, `docs/specs/tree-format.md` 5.7, `docs/adrs/ADR-78-main-image-and-row-budget.md` |
 | 10.30 | **[#118]** Where a Tree is stored once it is edited through the frontend (3.1, section 4). The round after #118 to #122 makes Trees editable in the app, which is the stated reason the data moved to JSON. Today a Tree is plain files in the repository (3.1, 10.16) and a change is a deploy. When an editor writes a Tree back, is the destination still **a file per Tree committed through git** -- which keeps the review, the history and the "no database" rule of 10.16 -- or **a store of another kind**, which would reopen 10.16? The question is only about where the bytes live: the format is the same file either way, and nothing in `elsa-tree/4` depends on the answer (`docs/specs/tree-format.md` section 10). | Idse | **OPEN** -- raised by the Architect on 2026-09-21 (issue #118) because the owner's reason for JSON names that round. Not asked of the owner yet; it is the first question of that round, not of this one. **[#131] The round is open (owner, 2026-09-23, issue #131) and the question is now #132's.** The owner's "saved automatically" and "hidden until Publish" (3.4) rule out a deploy per edit; the constraint that stands is 10.16's reason: no database server. PROPOSED: a writable data directory outside the release, one folder per Tree holding its draft, its published `tree.json`, `images/` and `theme/`, with the repository's `trees/` as seed and fixtures; store metadata (published flag, owner, collaborators) outside `tree.json`, which stays the public dataset. **[#132] Decided by the Architect (2026-09-23), as proposed:** `ELSA_DATA_DIR`, one folder per Tree (`meta.json`, `draft.json`, the published `tree.json` whose presence *is* the published state, `images/`, `theme/`), plus `accounts.json` and `sessions.json`; **JSON files, no database library** (`node:sqlite` is experimental on Node 22 by its own warning) and no database server; one process is the only writer, every file replaced atomically through a queue per file; `trees/` seeds the store at the first start and `npm run store -- import` later; a deployer backs up the one folder. `docs/adrs/ADR-132-data-directory.md`; `docs/specs/application.md` 17 |
-| 10.31 | **[#131]** Who creates accounts, and what "invite collaborators with an account" adds (3.4). | Idse | PROPOSED: the administrator creates every account in the admin area (name, login, password); there is no self-registration; an invitation adds an existing account to a Tree by name. To be confirmed or corrected by the owner; frozen by the Architect on #132 if the owner is silent. **[#132] Frozen as proposed (2026-09-23):** the administrator creates every account (name, a user-name login, a first password handed over out of band); no self-registration, no mail; an account is deactivated, never deleted; an invitation adds an existing active account picked from a list of names. `docs/adrs/ADR-132-accounts-and-sessions.md`, `ADR-132-roles-and-permissions.md`; `docs/specs/application.md` 20, 21 |
-| 10.32 | **[#131]** How the administrator's first credential is set (3.4: "Make sure we start by having an admin account"). | Idse | PROPOSED: from an environment variable read at first start, or a command run on the server; never a default password, never printed to a log. **[#132] Frozen (2026-09-23):** `ELSA_ADMIN_PASSWORD`, read at every start -- creates the `admin` account when none exists, replaces its password when set -- so a lost password is recovered by set, restart, remove; at least 12 characters or the server refuses to start; never a default, never generated, never logged (the log says the variable was used and should be removed). Not a command: a container has no terminal. `docs/adrs/ADR-132-accounts-and-sessions.md`; `docs/specs/application.md` 20.3 |
+| 10.31 | **[#131]** Who creates accounts, and what "invite collaborators with an account" adds (3.4). | Idse | PROPOSED: the administrator creates every account in the admin area (name, login, password); there is no self-registration; an invitation adds an existing account to a Tree by name. To be confirmed or corrected by the owner; frozen by the Architect on #132 if the owner is silent. **[#132] Frozen as proposed (2026-09-23):** the administrator creates every account (name, a user-name login (**[#194]** an e-mail address instead, owner 2026-10-03; 3.4, 10.39), a first password handed over out of band); no self-registration, no mail; an account is deactivated, never deleted; an invitation adds an existing active account picked from a list of names. `docs/adrs/ADR-132-accounts-and-sessions.md`, `ADR-132-roles-and-permissions.md`; `docs/specs/application.md` 20, 21 |
+| 10.32 | **[#131]** How the administrator's first credential is set (3.4: "Make sure we start by having an admin account"). | Idse | PROPOSED: from an environment variable read at first start, or a command run on the server; never a default password, never printed to a log. **[#132] Frozen (2026-09-23):** `ELSA_ADMIN_PASSWORD`, read at every start -- creates the `admin` account (**[#194]** what it logs in with once a login is an e-mail address: 10.39) when none exists, replaces its password when set -- so a lost password is recovered by set, restart, remove; at least 12 characters or the server refuses to start; never a default, never generated, never logged (the log says the variable was used and should be removed). Not a command: a container has no terminal. `docs/adrs/ADR-132-accounts-and-sessions.md`; `docs/specs/application.md` 20.3 |
 | 10.33 | **[#131]** What an autosave does to a Tree that is already published (3.4). | Idse | PROPOSED: a draft that validates in full is what publishing copies to the public copy; while the toggle is on, every valid save reaches the public at once, and an invalid draft (an Answer without a target yet) leaves the last valid public copy in place until the draft is valid again; turning the toggle off hides the Tree at once. **[#132] Frozen as proposed (2026-09-23):** the draft is the same `elsa-tree/4` file with a named set of rules advisory (completeness and size) and the rest blocking; Publish copies it to `tree.json` only when every rule passes and otherwise shows the violations; while published, every write that leaves the draft fully valid replaces the public copy in the same call, and an invalid one leaves the last valid copy with the editor told; the toggle off deletes the public copy and the Tree is 404 at once. `docs/adrs/ADR-132-draft-and-publish.md`; `docs/specs/application.md` 19; `tree-format.md` 7 (Draft column) |
 | 10.34 | **[#131]** One deployment now serves many Trees (3.4; supersedes 10.19): the published ones, with the overview page in front; what becomes of `ELSA_TREE`, how the loader follows the store without a restart, and how the findability documents of section 1 list several Trees. | Architect | ~~**OPEN** -- decided on #132~~ **[#132] Decided by the Architect (2026-09-23):** a deployment serves every published Tree of its store and `/` is the overview; `ELSA_TREE` is dropped and refuses to start when set (no single-Tree pin: one Tree is an overview of one tile); `ELSA_TREES_DIR` becomes `ELSA_SEED_DIR`, read once; the loader still opens one folder and the store holds the set, swapped in place by the write path because the process is the only writer -- no restart, no file watcher; a Tree that fails validation at start is not served and the rest are, the process exiting only for an unusable data directory; `admin` joins the reserved ids; every Node URL, share link and dataset URL keeps working, and the one public address that moves is a Tree's image and theme files, which gain the Tree id because a bare `/images/<file>` names nothing with two Trees. One sitemap, `robots.txt` and `llms.txt` over every served Tree, `lastmod` per Tree, one `Dataset` per Tree on its root page; a hidden Tree is the same 404 as an unknown id everywhere. `docs/adrs/ADR-132-many-trees-per-deployment.md`, `ADR-132-hidden-trees-and-findability.md`; `docs/specs/application.md` 18, 23 |
 | 10.35 | **[#131]** Whether a Tree made in the editor can be given a Theme (3.1: the look travels with the Tree). The owner did not ask; without it a new Tree has the plain default look and the only way to a logo is files placed on the server by hand. | Idse | ~~**OPEN** -- filed as #144, `proposed`, so the owner decides by promoting it or leaving it~~ **[#144] Promoted by the owner (2026-09-23) and built:** a Theme panel at the end of the top panel's "This Tree" section uploads a logo with its alternative text, sets the seven colours by role with the public page's contrast rule warned about, and adds a font family per role with its files and licence line; each part is written whole or removed, so it is complete or absent as 4.3 of the format asks. `docs/specs/application.md` 33.8. **[#169] The fonts and the licence become dropdowns (owner, 2026-10-02):** "Make the font family selection a dropdown, but do give the option to add a font by uploading a file. Make the license section a dropdown." Decided by the Architect on #171: the application ships four open families -- Open Sans, Roboto, Atkinson Hyperlegible Next, Faustina, each under the SIL Open Font License 1.1 with no Reserved Font Name and no wider than the face the length limits were measured in -- in `fonts/`, and a family chosen is copied into the Tree's own `theme/` with its licence text, so nothing is fetched from a third party and the Tree stays whole; per role a dropdown of the default, those four, the Tree's own family and, last, "Upload a font file…", an upload named after the font's own family name; the licence a dropdown of six SPDX licences, with "Another licence…" for the rest. The format does not change. `docs/specs/application.md` 37; `docs/adrs/ADR-171-font-library.md`, `ADR-171-font-dropdown.md`, `ADR-171-licence-dropdown.md` |
 | 10.36 | **[#133]** The no-scroll rule (3.2, section 9) on the new pages, where the number of Trees on the overview, of accounts and of to-do lines in the Publish panel is not bounded by the format the way a Node's text is. | Architect; Idse may overrule | decided by Architect (2026-09-26): the rule holds on every page -- the document never scrolls -- and the four unbounded lists (the overview's tiles, the accounts list, the new-Tree form's title fields, the panel's body) scroll inside their own box, exactly as the Carousel strip already does inside its row with the owner's acceptance (10.6); the editor's Bubble adds nothing to the text area and fits as the public page fits. `docs/adrs/ADR-133-overview-tiles.md` decision 5, `ADR-133-bubble-edited-in-place.md` decision 7; `docs/specs/application.md` 26.3, 28.6. Paging the tiles was the alternative |
 | 10.37 | **[#133]** JavaScript in the admin area. The end-user pages work without it (3.2, `application.md` 14); the editor's every action -- logging in, autosave, upload -- is a request the browser's script makes, and the store's request format refuses a plain form by design (#132). | Architect; Idse may overrule | decided by Architect (2026-09-26): the admin area needs JavaScript and says so in one sentence where its first control would be; the end-user pages' guarantee is unchanged. A form-encoded login for a reader without script would widen #132's request contract for a page that cannot edit anything without script anyway. `docs/adrs/ADR-133-admin-routes.md` decision 5; `docs/specs/application.md` 24.2, 14 |
 | 10.38 | **[#133]** Adding or removing a language of an existing Tree (3.1: the languages are declared once and every text must carry each). The editor of this round fixes them at creation; the owner did not ask for more. | Idse | ~~**OPEN** -- filed as #147, `proposed`, so the owner decides by promoting it or leaving it (`docs/adrs/ADR-133-new-tree-form.md` decision 6)~~ **[#147] Promoted by the owner (2026-09-27) and built:** the top panel's "This Tree" section holds the languages as the new-Tree form's tags -- add one, make one the default, remove one after a confirmation that names the texts that go; each is one store operation across the whole draft, and a language added is an empty text in every field, listed as a to-do until written. `docs/specs/application.md` 22.2, 33.5 |
+| 10.39 | **[#194]** Logging in by e-mail address (3.4, owner 2026-10-03). What an address must be to be accepted, and whether case counts; what the administrator logs in with, since the owner gave no address for it and the owner's own goes to an account of its own; what the first start of the new release does with an account that has a user name and no address (the demo server of 3.4 `[#194]` has one: the administrator); who sees an address -- the accounts page, and the invitation list, which shows every active account's login to every logged-in account today (`docs/specs/application.md` 21.4, 33.4) -- and who may change one; the rate limit and the log lines for an address (20.7, 20.8). | Architect; Idse may overrule | **OPEN** -- decided on #195 |
+| 10.40 | **[#194]** The mention of who authored a Tree (3.4, owner 2026-10-03). Who is named where the owner's words leave it open: a collaborator removed, a deactivated account, the administrator (the creator of every seeded Tree, `docs/specs/application.md` 17.1), a Tree handed over; how the order of joining is kept, since `meta.json` lists collaborators in the order they were invited and a hand-over puts the old creator at the end of that list (21.4); what the mention shows when the names do not fit; where it stands -- a Tree's pages, its overview tile, the editor -- under the no-scroll rule of section 9; whether the names also go into `tree.json`, the JSON-LD or `llms.txt`, which carry none today (section 8, `application.md` 17.2). | Architect; Idse may overrule | **OPEN** -- decided on #195 |
