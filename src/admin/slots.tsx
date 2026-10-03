@@ -196,6 +196,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
         return (
           <Sheet
             className="source-sheet source-sheet--add"
+            editorUi
             name="source-sheet"
             summary={<span lang={uiLang}>{`+ ${ui.addSource}`}</span>}
             pages={[
@@ -242,6 +243,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
           <AnswerAdd nodeId={node.id} link="yes" here={here} word={ui.yes} />
           <Sheet
             className="structure-end"
+            editorUi
             summary={<span lang={uiLang}>{ui.treeEndsHere}</span>}
             pages={[<EndForm key="end" nodeId={node.id} outcomes={outcomes} heading={ui.treeEndsHere} words={structureWords} />]}
             words={sheet}

@@ -695,7 +695,7 @@ shorthand.
 | `background` | The page behind everything. |
 | `surface` | The Bubble and other raised areas (the Carousel, the chrome bar). |
 | `text` | Running text and titles on `background` and `surface`. |
-| `text-muted` | Secondary text: credits, the disclaimer, Source labels, the counter in a title. |
+| `text-muted` | Secondary text: credits, the disclaimer, Source labels, the counter in a title. (**[#180]** 2026-10-02: of the Sources, the heading only; the lines under it are drawn in `text`, `docs/adrs/ADR-180-sources-text-colour.md`.) |
 | `accent` | The primary accent: the Bubble's outline, the Answer Branches, primary controls. |
 | `accent-secondary` | The secondary accent: the Option Branches, secondary controls, links. |
 | `danger` | Error states. (**[#171]** And the `prohibited` outcome until `elsa-tree/5`, which has no outcomes: every ending is drawn alike, `docs/specs/application.md` 36.1. The role stays in the closed set; no public Node page uses it now, and the admin area paints its errors with it.) |

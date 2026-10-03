@@ -11,17 +11,28 @@
  * own. The tests run in order: each leaves the Tree as the next expects it. The screenshots
  * the issue asks for go to `docs/screenshots/issue-144/` under `ELSA_SHOTS=1`, the results
  * folder otherwise (35.7).
+ *
+ * **[#180]** And, on four more Trees of the same data directory, issue #180's: the editor's own
+ * bar and panel in the default look whatever the palette; the Sources in the Theme's text; the
+ * font and licence dropdowns of application.md 37, with a library family served from the Tree's
+ * own address once published; the refusals of `fontNameTaken`, on the first Tree's shared
+ * Open Sans among them; an upload whose font states no name; and every information hint. Its
+ * screenshots go to `docs/screenshots/issue-180/` under `ELSA_SHOTS=1`; run them alone with
+ * `--grep "\[#180\]"`, so issue #144's are not taken again.
  */
 import { mkdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { expect, test, type Browser, type Page } from '@playwright/test'
+import { expect, test, type Browser, type Locator, type Page } from '@playwright/test'
+import { chrome } from '../../src/chrome.ts'
+import { DEFAULT_FONT_STACK, DRAFT_FAMILY_PREFIX } from '../../src/theme.ts'
 import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-144') : path.join(RESULTS, 'shots')
+const SHOTS_180 = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-180') : path.join(RESULTS, 'shots', 'issue-180')
 const PORT = BASE_PORT + 140
 const TREE = 'hidden-draft'
 const EDITOR = `/admin/trees/${TREE}/full`
@@ -39,8 +50,16 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async () => {
   await mkdir(SHOTS, { recursive: true })
+  await mkdir(SHOTS_180, { recursive: true })
   const dir = await buildDataDir({
-    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: TREE, hidden: true, creator: ANNA.login }],
+    trees: [
+      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: TREE, hidden: true, creator: ANNA.login },
+      // [#180] A Tree with no Theme, the example Tree's dark palette, the first Tree's shared Open Sans, and one for the library.
+      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'plain', hidden: true, creator: ANNA.login },
+      { folder: path.join(repo, 'trees', 'ai-act-example'), id: 'dark', creator: ANNA.login },
+      { folder: path.join(repo, 'trees', 'ai-act-applicability-agrifood'), id: 'first', hidden: true, creator: ANNA.login },
+      { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'library', hidden: true, creator: ANNA.login },
+    ],
     accounts: [ANNA, DORA],
   })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
@@ -78,14 +97,17 @@ async function openPanel(page: Page): Promise<void> {
 }
 
 /** Waits for the Theme's next part write to be answered, and for the page to repaint after it. */
-function themeWrite(page: Page) {
-  return page.waitForResponse((response) => response.request().method() === 'PATCH' && response.url().endsWith(`/admin/api/trees/${TREE}`))
+function themeWrite(page: Page, tree = TREE) {
+  return page.waitForResponse((response) => response.request().method() === 'PATCH' && response.url().endsWith(`/admin/api/trees/${tree}`))
 }
 
 /** A custom property of the page's `:root`, as the draft's or the published Theme set it. */
 function property(page: Page, name: string): Promise<string> {
   return page.evaluate((property) => getComputedStyle(document.documentElement).getPropertyValue(property).trim(), name)
 }
+
+/** **[#180]** A draft's family as the editor names it, apart from every face of the default stack (13.1, amended). */
+const drafted = (family: string): string => `${DRAFT_FAMILY_PREFIX}${family}`
 
 test('a logo uploaded with its alternative text shows at once in the editor’s chrome bar', async ({ browser }) => {
   const { page } = await loggedIn(browser, ANNA)
@@ -170,16 +192,21 @@ test('a heading font with its file and licence; the draft’s @font-face is serv
   await page.goto(`${origin}${EDITOR}`)
   await openPanel(page)
   const heading = themePanel(page).locator('[data-font-role="heading"]')
-  await heading.getByLabel('Family name').fill('Nova Square')
-  await heading.getByLabel('Licence').fill('SIL Open Font License 1.1')
+  // **[#180]** Through the dropdown's last entry: the font's own name is proposed (37.4), the licence chosen from the list (37.5).
+  await heading.getByRole('combobox', { name: 'Headings' }).selectOption({ label: 'Upload a font file…' })
+  const uploaded = page.waitForResponse((response) => response.request().method() === 'POST' && response.url().endsWith(`/admin/api/trees/${TREE}/theme`))
   await heading.getByLabel('WOFF2 file').setInputFiles(FONT)
+  expect((await uploaded).status()).toBe(201)
+  await expect(heading.getByLabel('Family name')).toHaveValue('Nova Square')
+  await heading.getByLabel('Licence', { exact: true }).selectOption({ label: 'SIL Open Font License 1.1' })
   const written = themeWrite(page)
   await heading.getByRole('button', { name: 'Add the font' }).click()
   expect((await written).status()).toBe(200)
   await expect(heading.locator('.theme-font-files li')).toHaveCount(1)
-  await expect.poll(() => property(page, '--elsa-font-heading')).toContain("'Nova Square'")
+  // **[#180]** In the editor under the draft's own name for it (13.1, amended).
+  await expect.poll(() => property(page, '--elsa-font-heading')).toContain(`'${drafted('Nova Square')}'`)
   await expect
-    .poll(() => page.evaluate(async () => (await document.fonts.load("20px 'Nova Square'")).length))
+    .poll(() => page.evaluate(async (name) => (await document.fonts.load(`20px '${name}'`)).length, drafted('Nova Square')))
     .toBeGreaterThan(0)
 
   await heading.scrollIntoViewIfNeeded()
@@ -276,3 +303,458 @@ test('back to the default colours without a reload: the default returns on scree
   await expect(themePanel(page).getByRole('button', { name: 'Choose colours' })).toBeVisible()
   await expect.poll(() => property(page, '--elsa-background')).toBe(defaultBackground)
 })
+
+// --- [#180] the editor's own interface, the Sources, the dropdowns, the hints ---------------
+
+/** Every chrome string of both languages, for the hints' and the dropdowns' words. */
+const EN = chrome('en')
+const NL = chrome('nl')
+
+/**
+ * The hint keys of the Theme part (#169), in the order the panel shows them on a Tree with a logo,
+ * colours and a heading font of its own, whose hand-made licence line stands under "Another licence…".
+ */
+const HINTS = [
+  'logoAltHint',
+  'colourBackgroundHint',
+  'colourSurfaceHint',
+  'colourTextHint',
+  'colourTextMutedHint',
+  'colourAccentHint',
+  'colourAccentSecondaryHint',
+  'colourDangerHint',
+  'contrastHint',
+  'fontBodyHint',
+  'fontHeadingHint',
+  'fontLicenceHint',
+  'licenceOtherHint',
+  'fontFileHint',
+] as const
+
+async function shoot180(page: Page, name: string): Promise<void> {
+  await page.evaluate(() => document.fonts.ready)
+  await page.screenshot({ path: path.join(SHOTS_180, `${name}.png`) })
+}
+
+/** One role's part of the fonts, and its dropdown, named by the role's heading (37.2). */
+const fontRole = (page: Page, role: 'body' | 'heading') => themePanel(page).locator(`[data-font-role="${role}"]`)
+const fontSelect = (page: Page, role: 'body' | 'heading') => fontRole(page, role).getByRole('combobox', { name: role === 'body' ? 'Running text' : 'Headings' })
+
+/**
+ * What the editor paints its own interface and the Tree in: text on fill and the first family
+ * of each, as the browser computed them.
+ */
+async function painted(page: Page): Promise<Record<string, string>> {
+  return page.evaluate(() => {
+    const look = (selector: string): string => {
+      const element = document.querySelector(selector)
+      if (!element) return 'absent'
+      const style = getComputedStyle(element)
+      return `${style.color} on ${style.backgroundColor}, ${style.fontFamily.split(',')[0]}`
+    }
+    return {
+      bar: look('header.editor-chrome'),
+      'bar link': look('header.editor-chrome .admin-link'),
+      'settings button': look('.editor-float .panel-sheet > .sheet-open'),
+      'to-do button': look('.editor-float .todo-sheet > .sheet-open'),
+      panel: look('.panel-sheet > .sheet-panel'),
+      "panel's heading": look('.panel-sheet .panel-heading'),
+      Bubble: look('.bubble'),
+      "Bubble's title": look('.bubble h1'),
+    }
+  })
+}
+
+/** The default look's text on its surface, in its whole type stack: a panel of the editor's own (13.4). */
+const DEFAULT_PANEL = `rgb(20, 24, 28) on rgb(255, 255, 255), ${DEFAULT_FONT_STACK}`
+/** The same text on a heading in such a panel, where the draft's heading family would show. */
+const DEFAULT_HEADING = `rgb(20, 24, 28) on rgba(0, 0, 0, 0), ${DEFAULT_FONT_STACK}`
+
+/**
+ * Holds every element `selector` matches -- a closed Sheet's panel too, which the DOM keeps --
+ * and each heading in it to the default look: text on fill, and the face, the whole stack.
+ * Answers what it measured, for the annotation.
+ */
+async function expectDefaultLook(page: Page, selector: string): Promise<string> {
+  const looks = await page.locator(selector).evaluateAll((panels) =>
+    panels.map((panel) => [panel, ...panel.querySelectorAll('h2')].map((element) => `${getComputedStyle(element).color} on ${getComputedStyle(element).backgroundColor}, ${getComputedStyle(element).fontFamily}`)),
+  )
+  expect(looks.length, selector).toBeGreaterThan(0)
+  for (const [own, ...headings] of looks) {
+    expect(own, selector).toBe(DEFAULT_PANEL)
+    for (const heading of headings) expect(heading, `${selector} h2`).toBe(DEFAULT_HEADING)
+  }
+  return `${selector}: ${looks.length} × ${looks[0]!.join(' / ')}`
+}
+
+/** The entries of a dropdown as a reader meets them: each group's label, then its options. */
+function entries(select: Locator): Promise<string[]> {
+  return select.evaluate((element: HTMLSelectElement) =>
+    [...element.querySelectorAll('optgroup, option')].map((entry) => (entry instanceof HTMLOptGroupElement ? `[${entry.label}]` : entry.textContent ?? '')).filter((text) => text !== ''),
+  )
+}
+
+/**
+ * A dropdown laid open in the page for a screenshot: the browser draws a native select's list
+ * outside the page, where no screenshot reaches, so the list is shown in place instead.
+ */
+async function laidOpen(select: Locator): Promise<void> {
+  await select.evaluate((element: HTMLSelectElement) => {
+    element.size = element.querySelectorAll('optgroup, option').length
+  })
+}
+
+test('[#180] after the palette changes, the editor’s bar, floating controls and panel are painted as for a Tree without a Theme, the Bubble and its Sources in the palette', async ({ browser }, testInfo) => {
+  const { page } = await loggedIn(browser, ANNA)
+  await page.goto(`${origin}/admin/trees/plain/full`)
+  await openPanel(page)
+  const before = await painted(page)
+
+  const chosen = themeWrite(page, 'plain')
+  await themePanel(page).getByRole('button', { name: 'Choose colours' }).click()
+  expect((await chosen).status()).toBe(200)
+  for (const [role, value] of [['background', '#161a1d'], ['surface', '#212729'], ['text', '#eef1f2']] as const) {
+    const written = themeWrite(page, 'plain')
+    await themePanel(page).locator(`input[type="color"][data-role="${role}"]`).fill(value)
+    expect((await written).status()).toBe(200)
+  }
+  // Every write repaints after its answer: wait for the last one's colours before reading the page.
+  await expect.poll(async () => [await property(page, '--elsa-background'), await property(page, '--elsa-surface'), await property(page, '--elsa-text')]).toEqual(['#161a1d', '#212729', '#eef1f2'])
+  const after = await painted(page)
+
+  testInfo.annotations.push({ type: 'measured', description: Object.keys(before).map((key) => `${key}: ${before[key]} -> ${after[key]}`).join('\n') })
+  console.log(`no Theme -> a dark palette, as painted:\n${testInfo.annotations.at(-1)!.description}`)
+  for (const key of ['bar', 'bar link', 'settings button', 'to-do button', 'panel', "panel's heading"]) expect(after[key], key).toBe(before[key])
+  expect(after.Bubble).toBe('rgb(238, 241, 242) on rgb(33, 39, 41), -apple-system')
+  expect(before.Bubble).not.toBe(after.Bubble)
+
+  // The Sources' lines under their heading -- each line, its kind and the dot between two -- in the palette's text, as the Bubble's own text is.
+  await page.keyboard.press('Escape')
+  await expect(panel(page)).toBeHidden()
+  const lines = await page.locator('.bubble .sources li').evaluateAll((items) =>
+    items.flatMap((item) => [getComputedStyle(item).color, ...(item.previousElementSibling ? [getComputedStyle(item, '::before').color] : [])]),
+  )
+  const kinds = await page.locator('.bubble .sources .kind').evaluateAll((items) => items.map((item) => getComputedStyle(item).color))
+  expect(lines.length).toBeGreaterThan(3)
+  expect(kinds).toHaveLength(2)
+  expect(new Set([...lines, ...kinds])).toEqual(new Set(['rgb(238, 241, 242)']))
+})
+
+test('[#180] a Tree with a dark palette: in the editor the bar, the open panel and every editor panel in the default look, the Bubble in the Tree’s; its public page whole in the Tree’s, the Sources in its text', async ({ browser }, testInfo) => {
+  const { page } = await loggedIn(browser, ANNA)
+  await page.goto(`${origin}/admin/trees/dark/start`)
+  // The Tree's logo, in the variant for the default's light bar, not the dark palette's white one (13.1).
+  await expect(page.locator('header.editor-chrome img.logo')).toHaveAttribute('src', '/admin/api/trees/dark/theme/example-lab-logo.svg')
+  await openPanel(page)
+  const look = await painted(page)
+  expect(look.bar).toBe('rgb(20, 24, 28) on rgb(251, 250, 246), -apple-system')
+  expect(look.panel).toBe('rgb(20, 24, 28) on rgb(255, 255, 255), -apple-system')
+  // The draft's heading font is the Tree's, and the panel's heading is not in it.
+  expect(look["panel's heading"]).toBe('rgb(20, 24, 28) on rgba(0, 0, 0, 0), -apple-system')
+  expect(look.Bubble).toBe('rgb(238, 241, 242) on rgb(33, 39, 41), -apple-system')
+  expect(look["Bubble's title"]).toBe(`rgb(238, 241, 242) on rgba(0, 0, 0, 0), "${drafted('Nova Square')}"`)
+  await shoot180(page, 'editor-dark-panel-open')
+
+  // The panel of every Sheet only the editor opens keeps that look too, in its headings as well,
+  // where the draft's Nova Square would show (ADR-180 decision 1). A closed Sheet's panel is in the
+  // DOM; the explainer, attach, end-of-tree and session panels are opened.
+  const measured: string[] = []
+  await page.keyboard.press('Escape')
+  await expect(panel(page)).toBeHidden()
+  measured.push(await expectDefaultLook(page, '.source-sheet--add > .sheet-panel'))
+  measured.push(await expectDefaultLook(page, '.source-sheet:not(.source-sheet--add) > .sheet-panel'))
+  await page.locator('[data-field="start description.en"] .term').filter({ visible: true }).first().click()
+  const explainer = page.locator('.explainer-sheet')
+  await expect(explainer).toBeVisible()
+  measured.push(await expectDefaultLook(page, '.explainer-sheet'))
+  await explainer.getByRole('button', { name: 'Close' }).click()
+  await expect(explainer).toHaveCount(0)
+  // A picture chosen at the strip's `+` opens the attach panel; cancel deletes the upload again.
+  await page.locator('.editor-picker--strip').filter({ visible: true }).locator('input[type="file"]').setInputFiles(LOGO)
+  const attach = page.locator('.editor-attach-panel')
+  await expect(attach).toBeVisible()
+  measured.push(await expectDefaultLook(page, '.editor-attach-panel'))
+  await attach.getByRole('button', { name: 'Cancel' }).click()
+  await expect(attach).toHaveCount(0)
+
+  // #177's side-bubble `+` and an Overlay's `deleteSideBubble`, with the confirmation it asks in
+  // place, open no panel: they stand in the Tree, on its surface and in its colours (ADR-180 decision 1).
+  await page.goto(`${origin}/admin/trees/dark/start/prohibited-practices/social-scoring`)
+  const colours = (locator: Locator) => locator.evaluate((element) => `${getComputedStyle(element).color} on ${getComputedStyle(element).backgroundColor}`)
+  expect(await colours(page.locator('.options > li.options-add > .side-add'))).toBe('rgb(154, 165, 170) on rgb(33, 39, 41)')
+  const remove = page.locator('details.overlay[open] > .sheet-panel .side-delete')
+  expect(await colours(remove.locator('.side-delete-button'))).toMatch(/ on rgb\(33, 39, 41\)$/)
+  await remove.locator('.side-delete-button').click()
+  expect(await colours(remove.locator('.structure-confirm'))).toBe('rgb(238, 241, 242) on rgba(0, 0, 0, 0)')
+  expect(await colours(remove.getByRole('button', { name: 'Confirm' }))).toBe('rgb(22, 26, 29) on rgb(255, 138, 122)')
+  expect(await page.locator('[data-editor-ui] :is(.side-add, .side-delete)').count()).toBe(0)
+  await remove.getByRole('button', { name: 'Cancel' }).click()
+
+  // #178's red cross and 'Tree does not end here after all' stand beside the up arrow, on the
+  // page behind the Bubble, in the Tree's colours; the question the cross asks is a panel over the
+  // Sheets' veil, the editor's own as the step menu's Sheet was, in the default look (ADR-180 decision 1).
+  await page.goto(`${origin}/admin/trees/dark/start/prohibited-practices/prohibited`)
+  const cross = page.locator('.step-delete')
+  expect(await colours(cross)).toMatch(/ on rgb\(33, 39, 41\)$/)
+  expect(await colours(page.locator('.step-end > button'))).toMatch(/ on rgb\(33, 39, 41\)$/)
+  expect(await page.locator('[data-editor-ui] :is(.step-delete, .step-end)').count()).toBe(0)
+  await cross.click()
+  const question = page.locator('.step-confirm[data-editor-ui]')
+  await expect(question).toBeVisible()
+  expect(await colours(question)).toBe('rgb(20, 24, 28) on rgb(255, 255, 255)')
+  expect(await colours(question.getByRole('button', { name: 'Confirm' }))).toBe('rgb(251, 250, 246) on rgb(138, 47, 38)')
+  await question.getByRole('button', { name: 'Cancel' }).click()
+  await expect(question).toHaveCount(0)
+
+  // 'Tree does not end here after all' gives the end-of-tree Sheet back, whose panel is the editor's
+  // own; the step is then ended again, as it was.
+  await page.locator('.step-end > button').click()
+  const endSheet = page.locator('.structure-end > .sheet-open')
+  await expect(endSheet).toBeVisible()
+  measured.push(await expectDefaultLook(page, '.structure-end > .sheet-panel'))
+  await endSheet.click()
+  const end = page.locator('.structure-form--end')
+  await end.locator('input[value="prohibited"]').check()
+  await end.getByRole('button', { name: 'Confirm' }).click()
+  await expect(page.locator('.step-end > button')).toBeVisible()
+
+  // A write the server answers 401 opens the session panel (Editor.tsx); nothing reaches the store.
+  await page.route((url) => url.pathname.startsWith('/admin/api/trees/dark'), (route) => (route.request().method() === 'PATCH' ? route.fulfill({ status: 401, json: { error: 'unauthenticated' } }) : route.continue()))
+  const title = page.locator('[data-field="prohibited title.en"] textarea').filter({ visible: true })
+  await title.fill('This is a prohibited practice, asked again')
+  await title.blur()
+  await expect(page.locator('.editor-session-panel')).toBeVisible()
+  measured.push(await expectDefaultLook(page, '.editor-session-panel'))
+  await page.close()
+  testInfo.annotations.push({ type: 'measured', description: measured.join('\n') })
+  console.log(`the editor's own panels on the dark Tree, as painted:\n${measured.join('\n')}`)
+
+  // The public page is the whole Tree's, as it was (24.3).
+  const reader = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
+  await reader.goto(`${origin}/dark/start`)
+  await expect(reader.locator('.page-chrome img.logo')).toHaveAttribute('src', '/dark/theme/example-lab-logo-white.svg')
+  expect(await reader.locator('.page-chrome').evaluate((bar) => `${getComputedStyle(bar).color} on ${getComputedStyle(bar).backgroundColor}`)).toBe('rgb(238, 241, 242) on rgb(22, 26, 29)')
+  await shoot180(reader, 'public-dark')
+
+  // A Node with three Sources: the lines in the Theme's text, each link underlined in it.
+  await reader.goto(`${origin}/dark/social-scoring`)
+  const links = await reader.locator('.bubble .sources a').evaluateAll((items) => items.map((item) => `${getComputedStyle(item).color} ${getComputedStyle(item).textDecorationLine} ${getComputedStyle(item).textDecorationColor}`))
+  expect(links).toEqual(Array(3).fill('rgb(238, 241, 242) underline rgb(238, 241, 242)'))
+  expect(await reader.locator('.bubble .sources h2').evaluate((heading) => getComputedStyle(heading).color)).toBe('rgb(154, 165, 170)')
+  await reader.evaluate(() => document.fonts.ready)
+  await reader.locator('.bubble').screenshot({ path: path.join(SHOTS_180, 'sources-dark.png') })
+
+  // Below 792 pixels wide they collapse to one Sheet (10.5); its kinds are in the Theme's text too.
+  const inlineKinds = await reader.locator('.bubble .sources .kind').allTextContents()
+  await reader.setViewportSize({ width: 760, height: 640 })
+  await reader.locator('.sources-sheet > .sheet-open').click()
+  const kinds = await reader.locator('.sources-sheet .sheet-list .kind').evaluateAll((items) => items.map((item) => `${item.textContent} ${getComputedStyle(item).color}`))
+  expect(inlineKinds).toHaveLength(2)
+  expect(kinds).toEqual(inlineKinds.map((kind) => `${kind} rgb(238, 241, 242)`))
+})
+
+test('[#180] the two font dropdowns and their entries; the first Tree’s hand-made licence line shows as “Another licence…”', async ({ browser }) => {
+  const { page } = await loggedIn(browser, ANNA)
+  await page.goto(`${origin}/admin/trees/first/start`)
+  await openPanel(page)
+  const library = ['[Fonts that come with the app]', 'Open Sans', 'Roboto', 'Atkinson Hyperlegible Next', 'Faustina']
+  expect(await entries(fontSelect(page, 'body'))).toEqual([EN.fontDefault, ...library, `[${EN.fontOwnGroup}]`, 'Open Sans', EN.fontUpload])
+  expect(await entries(fontSelect(page, 'heading'))).toEqual([EN.fontSameAsBody, ...library, `[${EN.fontOwnGroup}]`, 'Open Sans', EN.fontUpload])
+  // Hand-made, so the Tree's own: neither role is the library's Open Sans.
+  await expect(fontSelect(page, 'body')).toHaveValue('own')
+  await expect(fontSelect(page, 'heading')).toHaveValue('own')
+
+  const licence = fontRole(page, 'body').getByLabel('Licence', { exact: true })
+  expect(await entries(licence)).toEqual([
+    'SIL Open Font License 1.1',
+    'Apache License 2.0',
+    'Ubuntu Font Licence v1.0',
+    'Bitstream Vera Font License',
+    'MIT License',
+    'Creative Commons Zero v1.0 Universal',
+    EN.licenceOther,
+  ])
+  await expect(licence).toHaveValue('other')
+  await expect(fontRole(page, 'body').getByLabel(EN.licenceOther)).toHaveValue('SIL Open Font License 1.1 (theme/ofl-open-sans.txt)')
+
+  await fontRole(page, 'body').scrollIntoViewIfNeeded()
+  await laidOpen(fontSelect(page, 'body'))
+  await shoot180(page, 'font-dropdown-open')
+  await page.goto(`${origin}/admin/trees/first/start`)
+  await openPanel(page)
+  await fontRole(page, 'body').getByLabel('Licence', { exact: true }).scrollIntoViewIfNeeded()
+  await laidOpen(fontRole(page, 'body').getByLabel('Licence', { exact: true }))
+  await shoot180(page, 'licence-dropdown-open')
+})
+
+test('[#180] the first Tree: the library’s Open Sans for its headings is refused, nothing sent; an edit that keeps the shared name is saved; a rename to the other role’s name is refused, nothing sent', async ({ browser }) => {
+  const { page } = await loggedIn(browser, ANNA)
+  await page.goto(`${origin}/admin/trees/first/start`)
+  await openPanel(page)
+  const sent: string[] = []
+  page.on('request', (request) => {
+    if (request.method() !== 'GET') sent.push(`${request.method()} ${new URL(request.url()).pathname}`)
+  })
+  const heading = fontRole(page, 'heading')
+
+  // The running text keeps its own Open Sans: the library's 400 700 would overlap its faces under one name (37.2).
+  await fontSelect(page, 'heading').selectOption('library:open-sans')
+  await expect(heading.getByRole('alert')).toHaveText(EN.fontNameTaken)
+  await expect(fontSelect(page, 'heading')).toHaveValue('own')
+  expect(sent).toEqual([])
+
+  // An edit that keeps the shared name: the headings' licence from the list.
+  const kept = themeWrite(page, 'first')
+  await heading.getByLabel('Licence', { exact: true }).selectOption({ label: 'SIL Open Font License 1.1' })
+  expect((await kept).status()).toBe(200)
+  expect(sent).toEqual(['PATCH /admin/api/trees/first'])
+
+  // Away from the shared name, saved; back to it, refused: a new pairing of the name with other files.
+  const name = heading.getByLabel('Family name')
+  await name.fill('Open Sans Display')
+  const renamed = themeWrite(page, 'first')
+  await name.blur()
+  expect((await renamed).status()).toBe(200)
+  sent.length = 0
+  await heading.getByLabel('Family name').fill('Open Sans')
+  await heading.getByLabel('Family name').blur()
+  await expect(heading.getByRole('alert')).toHaveText(EN.fontNameTaken)
+  expect(sent).toEqual([])
+  const stored = (await (await page.request.get(`${origin}/admin/api/trees/first`, { headers: { Cookie: (await loggedIn(browser, ANNA)).cookie } })).json()) as { manifest: { theme: { fonts: { role: string; family: string; licence: string }[] } } }
+  expect(stored.manifest.theme.fonts.map(({ role, family, licence }) => `${role} ${family} ${licence}`)).toEqual([
+    'body Open Sans SIL Open Font License 1.1 (theme/ofl-open-sans.txt)',
+    'heading Open Sans Display SIL Open Font License 1.1 (https://spdx.org/licenses/OFL-1.1.html)',
+  ])
+})
+
+test('[#180] a library family: seen at once in the editor, and once published fetched from the Tree’s own address, nothing from another host', async ({ browser }, testInfo) => {
+  const { page } = await loggedIn(browser, ANNA)
+  await page.goto(`${origin}/admin/trees/library/full`)
+  await openPanel(page)
+  const fetched = page.waitForRequest((request) => request.url().endsWith('/admin/api/trees/library/theme/faustina-normal-a84c008b.woff2'))
+  const written = themeWrite(page, 'library')
+  await fontSelect(page, 'heading').selectOption('library:faustina')
+  expect((await written).status()).toBe(200)
+  await expect(fontSelect(page, 'heading')).toHaveValue('library:faustina')
+  // A library family shows its licence, fixed, and nothing else (37.2) but the licence's hint behind it (33.8).
+  const licenceLine = fontRole(page, 'heading').locator('.theme-font-licence')
+  expect(await licenceLine.evaluate((line) => [...line.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent).join(''))).toBe('Licence: SIL Open Font License 1.1')
+  const licenceMark = licenceLine.locator('.hint-mark')
+  await licenceMark.hover()
+  const licenceHint = page.locator(`[id="${await licenceMark.getAttribute('aria-describedby')}"]`)
+  await expect(licenceHint).toBeVisible()
+  await expect(licenceHint).toHaveText(EN.fontLicenceHint)
+  await page.mouse.move(0, 0)
+  await expect(licenceHint).toBeHidden()
+  await expect(fontRole(page, 'heading').getByLabel('Family name')).toHaveCount(0)
+  await expect.poll(() => property(page, '--elsa-font-heading')).toContain(`'${drafted('Faustina')}'`)
+  await fetched
+  expect(await page.evaluate(async (name) => (await document.fonts.load(`700 22px '${name}'`)).length, drafted('Faustina'))).toBeGreaterThan(0)
+
+  await panel(page).getByRole('switch', { name: 'Publish' }).click()
+  await expect(panel(page).getByRole('switch', { name: 'Publish' })).toHaveAttribute('aria-checked', 'true')
+  const reader = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
+  const asked: string[] = []
+  reader.on('request', (request) => void asked.push(request.url()))
+  await reader.goto(`${origin}/library/full`)
+  await reader.waitForLoadState('networkidle')
+  expect(await reader.evaluate(async () => (await document.fonts.load("700 22px 'Faustina'")).length)).toBeGreaterThan(0)
+  testInfo.annotations.push({ type: 'requests', description: asked.join('\n') })
+  console.log(`requests while loading /library/full:\n${asked.map((url) => `  ${url}`).join('\n')}`)
+  expect(asked.filter((url) => new URL(url).host !== new URL(origin).host)).toEqual([])
+  expect(asked).toContain(`${origin}/library/theme/faustina-normal-a84c008b.woff2`)
+})
+
+test('[#180] an upload proposes the font’s own name, takes a licence from “Another licence…”, and refuses a name the other role uses for other files', async ({ browser }) => {
+  const { page } = await loggedIn(browser, ANNA)
+  await page.goto(`${origin}/admin/trees/library/full`)
+  await openPanel(page)
+  const body = fontRole(page, 'body')
+  await fontSelect(page, 'body').selectOption({ label: EN.fontUpload })
+  const uploaded = page.waitForResponse((response) => response.request().method() === 'POST' && response.url().endsWith('/admin/api/trees/library/theme'))
+  await body.getByLabel('WOFF2 file').setInputFiles(FONT)
+  expect((await uploaded).status()).toBe(201)
+  expect(((await (await uploaded).json()) as { family?: string }).family).toBe('Nova Square')
+  await expect(body.getByLabel('Family name')).toHaveValue('Nova Square')
+
+  // The headings are the library's Faustina: the same name over this file is refused, nothing sent.
+  const sent: string[] = []
+  page.on('request', (request) => {
+    if (request.method() !== 'GET') sent.push(`${request.method()} ${new URL(request.url()).pathname}`)
+  })
+  await body.getByLabel('Family name').fill('faustina')
+  await body.getByLabel('Licence', { exact: true }).selectOption({ label: EN.licenceOther })
+  await body.getByLabel(EN.licenceOther).fill('SIL Open Font License 1.1 (theme/ofl-nova-square.txt)')
+  await body.getByRole('button', { name: 'Add the font' }).click()
+  await expect(body.getByRole('alert')).toHaveText(EN.fontNameTaken)
+  expect(sent).toEqual([])
+
+  await body.getByLabel('Family name').fill('Nova Square')
+  const written = themeWrite(page, 'library')
+  await body.getByRole('button', { name: 'Add the font' }).click()
+  expect((await written).status()).toBe(200)
+  await expect(fontSelect(page, 'body')).toHaveValue('own')
+  await expect(body.getByLabel('Licence', { exact: true })).toHaveValue('other')
+  await expect(body.getByLabel(EN.licenceOther)).toHaveValue('SIL Open Font License 1.1 (theme/ofl-nova-square.txt)')
+  // The uploaded font still works: the draft's stylesheet names it and the browser loads it.
+  await expect.poll(() => property(page, '--elsa-font-body')).toContain(`'${drafted('Nova Square')}'`)
+  expect(await page.evaluate(async (name) => (await document.fonts.load(`16px '${name}'`)).length, drafted('Nova Square'))).toBeGreaterThan(0)
+})
+
+test('[#180] an upload whose font states no name leaves the name field empty with its placeholder; after a failed upload the file field is empty again', async ({ browser }) => {
+  const { page } = await loggedIn(browser, ANNA)
+  await page.goto(`${origin}/admin/trees/plain/full`)
+  await openPanel(page)
+  const heading = fontRole(page, 'heading')
+  await fontSelect(page, 'heading').selectOption({ label: EN.fontUpload })
+  // A WOFF2 cut short is still a WOFF2 to the upload, by its signature, but states no name (37.4).
+  const cut = { name: 'cut.woff2', mimeType: 'font/woff2', buffer: (await readFile(path.join(repo, 'fonts', 'roboto', 'roboto-normal.woff2'))).subarray(0, 4096) }
+  const field = heading.getByLabel('WOFF2 file')
+
+  // The network fails the first time: the field stays for another try, holding no file, so the same file chosen again is a change.
+  const upload = `${origin}/admin/api/trees/plain/theme`
+  await page.route(upload, (route) => route.abort())
+  await field.setInputFiles(cut)
+  await expect(themePanel(page).getByRole('alert')).toHaveText(EN.requestFailed)
+  expect(await field.evaluate((input: HTMLInputElement) => `${input.files?.length} "${input.value}"`)).toBe('0 ""')
+  await page.unroute(upload)
+
+  const uploaded = page.waitForResponse((response) => response.request().method() === 'POST' && response.url() === upload)
+  await field.setInputFiles(cut)
+  expect((await uploaded).status()).toBe(201)
+  expect((await (await uploaded).json()) as { file: string; family?: string }).not.toHaveProperty('family')
+  await expect(heading.getByLabel('Family name')).toHaveValue('')
+  await expect(heading.getByLabel('Family name')).toHaveAttribute('placeholder', EN.placeholderFontFamily)
+})
+
+for (const [lang, words] of [['en', EN], ['nl', NL]] as const) {
+  test(`[#180] every information hint of the Theme part opens and says its sentence, ${lang}`, async ({ browser }) => {
+    const { page } = await loggedIn(browser, ANNA)
+    await page.goto(`${origin}/admin/trees/dark/start${lang === 'nl' ? '?lang=nl' : ''}`)
+    await openPanel(page)
+    // A secondary text too dark for the dark page, so the contrast warning is out with its hint.
+    if (lang === 'en') {
+      const written = themeWrite(page, 'dark')
+      await themePanel(page).locator('input[type="color"][data-role="text-muted"]').fill('#3a4044')
+      expect((await written).status()).toBe(200)
+    }
+    await expect(themePanel(page).locator('[data-contrast-warning]')).toBeVisible()
+
+    const marks = themePanel(page).locator('.hint-mark')
+    await expect(marks).toHaveCount(HINTS.length)
+    const said: string[] = []
+    for (let i = 0; i < HINTS.length; i += 1) {
+      const mark = marks.nth(i)
+      await mark.scrollIntoViewIfNeeded()
+      await mark.hover()
+      const hint = page.locator(`[id="${await mark.getAttribute('aria-describedby')}"]`)
+      await expect(hint).toBeVisible()
+      await expect(mark).toHaveAccessibleName(words.hint)
+      said.push((await hint.textContent()) ?? '')
+      if (lang === 'en' && (HINTS[i] === 'colourSurfaceHint' || HINTS[i] === 'fontLicenceHint')) await shoot180(page, `hint-${HINTS[i]}`)
+      await page.mouse.move(0, 0)
+      await expect(hint).toBeHidden()
+    }
+    expect(said).toEqual(HINTS.map((key) => words[key]))
+  })
+}

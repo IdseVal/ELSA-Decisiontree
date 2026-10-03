@@ -17,6 +17,7 @@ import { editorLinks } from '../../../../../../editor/links.ts'
 import { LogoutButton } from '../../../../../../editor/LogoutButton.tsx'
 import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
 import { ThemePanel, type ThemeWords } from '../../../../../../editor/ThemePanel.tsx'
+import { FONT_LIBRARY, FONT_LICENCES, libraryEntry } from '../../../../../../fonts.ts'
 import { Todo, TodoButton, type TodoWords } from '../../../../../../editor/Todo.tsx'
 import { centreOf, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
 import type { Account } from '../../../../../../store/accounts.ts'
@@ -112,11 +113,16 @@ export default async function EditorPage({ params }: Props) {
       violations={draft.advisory.filter((violation) => violation.file in nodes)}
       tree={{ advisory: entry.advisory.length, published: entry.published, publicCopyCurrent: entry.publicCopyCurrent, servable: entry.servable }}
     >
-      {/* The draft's Theme, so a colour changed in the draft is seen before publishing (13.1, ADR-133-admin-routes 6). */}
-      <ThemeStyle tree={draft} href={adminThemeHref} revision={entry.meta.revision} />
+      {/*
+        The draft's Theme, so a colour changed in the draft is seen before publishing (13.1,
+        ADR-133-admin-routes 6); **[#180]** on the Tree, while the bar, the floating controls and
+        every editor Sheet -- what carries `data-editor-ui` -- keep the default look (24.3).
+      */}
+      <ThemeStyle tree={draft} href={adminThemeHref} revision={entry.meta.revision} editor />
       {/* An admin bar too: below 480 pixels it gives up the title and the current language, as #135 decided (10.6). */}
-      <header className="page-chrome admin-chrome editor-chrome">
-        <Logo treeId={draft.id} theme={draft.manifest.theme} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
+      <header className="page-chrome admin-chrome editor-chrome" data-editor-ui="">
+        {/* **[#180]** The Tree's logo on the default's bar: the variant for that bar's background, not the draft's (13.1). */}
+        <Logo treeId={draft.id} theme={draft.manifest.theme && { ...draft.manifest.theme, colours: undefined }} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
         <div className="page-controls">
           <LanguageSwitch address={address} languages={draft.manifest.languages} edit={edit} />
           <SaveIndicator words={edit.words} />
@@ -130,7 +136,7 @@ export default async function EditorPage({ params }: Props) {
         </div>
       </header>
       {/* **[#176]** Out of the bar, over the page under its top right corner, and next after it in the tab order (33.1). */}
-      <div className="editor-float">
+      <div className="editor-float" data-editor-ui="">
         <TodoSheet entry={entry} draft={draft} address={address} role={role} ui={ui} />
         <TopPanel entry={entry} draft={draft} address={address} role={role} accounts={accounts} ui={ui} />
       </div>
@@ -203,6 +209,8 @@ function TopPanel({
                 theme={draft.manifest.theme}
                 defaults={DEFAULT_COLOURS}
                 filesHref={adminThemeHref(draft.id, '')}
+                library={FONT_LIBRARY.map((family) => ({ id: family.id, entry: libraryEntry(family, 'body') }))}
+                licences={FONT_LICENCES}
               />
             }
           />
@@ -297,7 +305,7 @@ function panelWords(ui: Chrome): PanelWords {
   }
 }
 
-/** **[#144]** The chrome strings the Theme panel says (33.8). */
+/** **[#144]** The chrome strings the Theme panel says (33.8); **[#180]** the dropdowns' and the hints' too (37). */
 function themeWords(ui: Chrome): ThemeWords {
   return {
     theme: ui.theme,
@@ -337,6 +345,29 @@ function themeWords(ui: Chrome): ThemeWords {
     themeFileRefused: ui.themeFileRefused,
     notSaved: ui.notSaved,
     requestFailed: ui.requestFailed,
+    hint: ui.hint,
+    fontDefault: ui.fontDefault,
+    fontSameAsBody: ui.fontSameAsBody,
+    fontLibraryGroup: ui.fontLibraryGroup,
+    fontOwnGroup: ui.fontOwnGroup,
+    fontUpload: ui.fontUpload,
+    fontNameTaken: ui.fontNameTaken,
+    licenceOther: ui.licenceOther,
+    placeholderFontFamily: ui.placeholderFontFamily,
+    colourBackgroundHint: ui.colourBackgroundHint,
+    colourSurfaceHint: ui.colourSurfaceHint,
+    colourTextHint: ui.colourTextHint,
+    colourTextMutedHint: ui.colourTextMutedHint,
+    colourAccentHint: ui.colourAccentHint,
+    colourAccentSecondaryHint: ui.colourAccentSecondaryHint,
+    colourDangerHint: ui.colourDangerHint,
+    contrastHint: ui.contrastHint,
+    logoAltHint: ui.logoAltHint,
+    fontBodyHint: ui.fontBodyHint,
+    fontHeadingHint: ui.fontHeadingHint,
+    fontLicenceHint: ui.fontLicenceHint,
+    licenceOtherHint: ui.licenceOtherHint,
+    fontFileHint: ui.fontFileHint,
   }
 }
 

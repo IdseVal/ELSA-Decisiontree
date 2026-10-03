@@ -36,7 +36,9 @@ export interface DeleteStepWords {
 /**
  * The red cross (30.8, amended). A click asks, in a panel hung under the step's band over the
  * Sheets' veil, with the focus on `cancel`; `confirm` deletes. Escape, `cancel` and a click on
- * the veil keep the step and give the focus back to the cross.
+ * the veil keep the step and give the focus back to the cross. **[#180]** The cross stands on
+ * the Tree's colours, as the up arrow beside it; the panel is the editor's own, as the step
+ * menu's Sheet was, and keeps the default look (`data-editor-ui`, ADR-180 decision 1).
  */
 export function DeleteStep({
   nodeId,
@@ -116,7 +118,7 @@ export function DeleteStep({
       {confirming && (
         <>
           <div className="sheet-backdrop" onClick={cancel} />
-          <div className="step-confirm" role="alertdialog" aria-labelledby={question} lang={uiLang} onKeyDown={onKeyDown}>
+          <div className="step-confirm" data-editor-ui="" role="alertdialog" aria-labelledby={question} lang={uiLang} onKeyDown={onKeyDown}>
             <p id={question} className="structure-confirm">
               {named === '' ? words.confirmUntitled : `${words.confirmBefore}${named}${words.confirmAfter}`}
             </p>

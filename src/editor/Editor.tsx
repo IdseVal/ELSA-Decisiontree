@@ -326,7 +326,7 @@ export function Editor({
         {sessionExpired && (
           <div className="editor-session">
             <div className="sheet-backdrop" />
-            <div className="sheet-panel editor-session-panel" role="dialog" aria-modal="true" aria-labelledby="session-expired">
+            <div className="sheet-panel editor-session-panel" data-editor-ui="" role="dialog" aria-modal="true" aria-labelledby="session-expired">
               <h2 id="session-expired">{words.sessionExpired}</h2>
               <LoginForm
                 words={loginWords}

@@ -203,7 +203,8 @@ test('inviting an account from the select; logged in as it, the Tree is editable
   await openPanel(dora.page)
   await expect(publishSwitch(dora.page)).toBeDisabled()
   await expect(panel(dora.page).locator('.panel-people li')).toHaveText(['Anna (creator)', 'Bram', 'Dora'])
-  await expect(panel(dora.page).locator('select')).toHaveCount(0)
+  // No account select, to invite or to hand over (33.4); **[#180]** the Theme part's font and licence dropdowns are a collaborator's to use (33.8).
+  await expect(panel(dora.page).locator('select[data-select]')).toHaveCount(0)
   await expect(panel(dora.page).locator('.panel-remove')).toHaveCount(0)
   await dora.page.keyboard.press('Escape')
   await expect(panel(dora.page)).toBeHidden()
@@ -263,7 +264,8 @@ test('the administrator: deleteTree disabled while published, the hand-over, and
   await anna.page.goto(`${origin}/admin/trees/hidden-draft/full`)
   await openPanel(anna.page)
   await expect(publishSwitch(anna.page)).toBeDisabled()
-  await expect(panel(anna.page).locator('select')).toHaveCount(0)
+  // A collaborator now: no account select (33.4); the Theme part's dropdowns stay hers (33.8).
+  await expect(panel(anna.page).locator('select[data-select]')).toHaveCount(0)
 
   // Hidden again, the Tree may be deleted, after asking once; the editor goes to /admin.
   await publishSwitch(admin.page).click()

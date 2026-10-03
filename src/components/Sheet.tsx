@@ -74,6 +74,7 @@ export function Sheet({
   open = false,
   cross = false,
   name = 'sheet',
+  editorUi = false,
   ref,
 }: {
   /** What the control says: chrome, already in its own `lang` where it needs one. */
@@ -107,6 +108,11 @@ export function Sheet({
    * a group of its own, or opening it would close the Overlay around it.
    */
   name?: string
+  /**
+   * **[#180]** A Sheet of the editor's own interface: its panel keeps the default look whatever
+   * the draft's Theme (application.md 24.3). Absent on every public page.
+   */
+  editorUi?: boolean
   ref?: Ref<SheetHandle>
 }) {
   const details = useRef<HTMLDetailsElement>(null)
@@ -238,7 +244,7 @@ export function Sheet({
     <details className={`sheet ${className}`} name={name} open={open} ref={details} onKeyDown={onKeyDown} onToggle={onToggle}>
       <summary className="sheet-open">{summary}</summary>
       {enhanced && <div className="sheet-backdrop" onClick={close} />}
-      <div className="sheet-panel">
+      <div className="sheet-panel" data-editor-ui={editorUi ? '' : undefined}>
         {enhanced && cross && (
           <button type="button" className="sheet-close sheet-close--cross" onClick={close} aria-label={words.close}>
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
