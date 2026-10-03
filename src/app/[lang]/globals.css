@@ -22,8 +22,14 @@
  * mixed from them here with `color-mix()`, and `stylesheet.test.ts` keeps it that way.
  */
 
-:root {
-  /* The derived shades: a proportion of colours the Theme chose, so they follow its palette. */
+/*
+ * The derived shades: a proportion of colours the Theme chose, so they follow its palette.
+ * **[#180]** Declared again where the editor's own interface begins, whose palette is the
+ * default's (application.md 13.1, 24.3): a shade computed on `:root` alone would carry the
+ * draft's colours into it.
+ */
+:root,
+[data-editor-ui] {
   --rule: color-mix(in srgb, var(--elsa-text) 18%, transparent);
   --rule-soft: color-mix(in srgb, var(--elsa-text) 9%, transparent);
   --wash: color-mix(in srgb, var(--elsa-accent) 14%, var(--elsa-background));
@@ -36,7 +42,19 @@
   --accent-read: color-mix(in srgb, var(--elsa-accent) 45%, var(--elsa-text));
   --accent-secondary-read: color-mix(in srgb, var(--elsa-accent-secondary) 65%, var(--elsa-text));
   --danger-read: color-mix(in srgb, var(--elsa-danger) 70%, var(--elsa-text));
+}
 
+/*
+ * **[#180]** The editor's own interface -- its chrome bar, its floating controls, the panels of
+ * its Sheets -- in the default look whatever the draft's Theme (24.3). What it would inherit
+ * from the page is the draft's text colour and face, so it takes its own.
+ */
+[data-editor-ui] {
+  color: var(--elsa-text);
+  font-family: var(--elsa-font-body);
+}
+
+:root {
   /*
    * The six rows of 10.1, at the guaranteed viewport: 44 + 56 + 401 + 43 + 68 + 28 = 640
    * (the Bubble 416 and the strip band 28 until #174 made the thumbnails 67 pixels).
@@ -849,6 +867,22 @@ a.language:hover,
   color: var(--elsa-text-muted);
 }
 
+/*
+ * **[#180]** Under the heading the Sources are in the Theme's `text`, as the Node's own text is,
+ * inline and in their collapsed Sheet alike: a creator who picks a text colour for a dark or a
+ * coloured Bubble gets readable Sources (#169). The kind, the separator and the label take it;
+ * a link is told by its underline in that same colour, not by a second colour.
+ */
+.sources ul,
+.sources-sheet .sheet-list {
+  color: var(--elsa-text);
+}
+
+.sources .kind,
+.sources-sheet .kind {
+  color: inherit;
+}
+
 .sources ul {
   margin: 0;
   padding: 0;
@@ -862,7 +896,6 @@ a.language:hover,
 .sources li + li::before {
   content: "\00B7";
   margin: 0 8px;
-  color: var(--elsa-text-muted);
 }
 
 /*
@@ -879,8 +912,9 @@ a.language:hover,
   color: var(--elsa-text-muted);
 }
 
-.sources a {
-  text-decoration-color: var(--rule);
+.sources a,
+.sources-sheet .sheet-list a {
+  text-decoration: underline currentColor;
   text-underline-offset: 0.18em;
 }
 
@@ -4507,6 +4541,29 @@ fieldset:disabled .admin-submit {
   align-items: center;
   gap: 4px;
   font-size: var(--small);
+}
+
+/* **[#180]** A font role across the panel: its name and hint on one line, its dropdown under them (37.2). */
+.theme-part > .theme-font {
+  align-self: stretch;
+}
+
+.theme-font-head {
+  display: flex;
+  align-items: center;
+}
+
+.theme-font > .panel-select {
+  flex: none;
+  align-self: stretch;
+}
+
+/* A library family's licence: fixed, said rather than offered (37.5). */
+.theme-font-licence {
+  margin: 0;
+  font-size: var(--small);
+  line-height: var(--small-line);
+  color: var(--elsa-text-muted);
 }
 
 /* Below 480 pixels the disclaimer's row has no fixed height: the panel runs to the bottom edge, and the to-do bubble may. */

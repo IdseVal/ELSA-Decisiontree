@@ -16,11 +16,12 @@ import { themeHref } from '../url.ts'
  * `tree` is the Tree the page shows -- **[#138]** or the editor's draft; null on a page that
  * shows none, which takes the default (13.4). **[#144]** `href` addresses its files: the
  * editor passes the admin route's, which serves the draft's. `revision` is the editor's draft
- * revision (22.3), which every write raises.
+ * revision (22.3), which every write raises. **[#180]** `editor` keeps the editor's own
+ * interface -- whatever carries `data-editor-ui` -- in the default look (13.1, 24.3).
  */
-export function ThemeStyle({ tree, href = themeHref, revision }: { tree: Pick<Tree, 'id' | 'manifest'> | null; href?: ThemeHref; revision?: number }) {
+export function ThemeStyle({ tree, href = themeHref, revision, editor = false }: { tree: Pick<Tree, 'id' | 'manifest'> | null; href?: ThemeHref; revision?: number; editor?: boolean }) {
   // The default names no font file, so it needs no Tree id to address one.
-  const theme = tree ? themeStyle(tree.manifest.theme, tree.id, href) : themeStyle(undefined, '')
+  const theme = tree ? themeStyle(tree.manifest.theme, tree.id, href, { editor }) : themeStyle(undefined, '')
   return (
     <>
       {/*

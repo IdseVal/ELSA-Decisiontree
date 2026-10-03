@@ -5,6 +5,10 @@
   decision 7, the link to `/admin/account` says "Account" with the caller's name as its
   description, and the editor's bar no longer holds the panel's button, which floats under it.
   The rest stands.
+- Superseded in part by `ADR-180-editor-interface-not-themed.md` -- 2026-10-02 (issue #180): in
+  decision 6, the editor's draft Theme paints the Tree and not the editor's own interface --
+  its bar, its floating controls and the panels of its Sheets keep the default look. Every page
+  still emits its own Theme, once, through `ThemeStyle`; the rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 24 (new); 4.1, 4.3, 6, 13.1 and 14 amended
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the admin addresses join the grammar behind the
@@ -120,6 +124,12 @@ to carry the same Trail and the same `?lang`.
    `[tree]` segment and one for the rest -- and #134 takes the first that measures green in
    `next dev` and in the standalone server, and records which in an amendment to this ADR.
    What is frozen is the contract, not the file.
+   **Superseded in part -- 2026-10-02, by `ADR-180-editor-interface-not-themed.md` (issue #180):**
+   the editor still emits its draft's Theme, once, through `ThemeStyle`, and the public page and
+   the Tree-less pages are unchanged; but in the editor the draft's Theme reaches the Tree -- the
+   page behind the Bubble, the Bubble, its buttons, the Overlay, the strip -- and not the
+   editor's own interface: the chrome bar, the floating controls and the panel of every editor
+   Sheet keep the default of 13.4, and the bar's logo is the variant for that default's bar.
 
 7. **The chrome bar of each page.** The public Node page's bar is unchanged. The four
    Tree-less admin pages show, where the logo would be, the chrome string `siteTitle` (the

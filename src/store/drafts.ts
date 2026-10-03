@@ -14,17 +14,20 @@
  * Every member takes the acting account and calls `permit` itself (21.3), so a route that
  * forgot the check is caught here.
  */
+import { createHash } from 'node:crypto'
 import { mkdir, readdir, readFile, rename, rm } from 'node:fs/promises'
 import path from 'node:path'
+import { copyName, FONT_LIBRARY, libraryEntry } from '../fonts.ts'
 import { draftOf, openTree, type Draft, type Tree } from '../tree/loader.ts'
 import { treeBytes } from '../tree/serialise.ts'
 import type { DraftNode, LocalisedText, Manifest, Violation } from '../tree/types.ts'
-import { isId, isImageFile, validateTree, type Mapping, type RawTree } from '../tree/validate.ts'
+import { isId, isImageFile, isThemeFile, validateTree, type Mapping, type RawTree } from '../tree/validate.ts'
 import type { Account, Accounts } from './accounts.ts'
-import { applyField, applyLanguageOperation, applyOperation, createNode, eachText, deleteNode, freshNodeId, newDraft, type Field, type Operation } from './edits.ts'
+import { applyField, applyLanguageOperation, applyOperation, createNode, eachText, deleteNode, freshNodeId, newDraft, setFontFamily, type Field, type Operation } from './edits.ts'
 import { malformed, StoreError } from './errors.ts'
 import { imageName, MAX_IMAGE_BYTES, sniff, sniffTheme, themeName } from './images.ts'
 import { mayCreate, permit, type Action, type TreeMeta } from './permissions.ts'
+import { woff2FamilyName } from './woff2.ts'
 import { writeAtomic } from './write.ts'
 
 /** What the admin area is told about one Tree (22.1): its record, its state, its to-do list. */
@@ -93,8 +96,10 @@ export interface Drafts {
   /**
    * **[#144]** One logo or font file into the Tree's `theme/` (33.8), typed by its bytes and
    * named by the server as a picture is (22.6). Referencing it is a write of the Theme part.
+   * **[#180]** A font's answer also carries `family`, the font's own family name, when its
+   * file states a usable one (37.4).
    */
-  uploadThemeFile(by: Account, id: string, bytes: Uint8Array, clientName: string): Promise<{ file: string }>
+  uploadThemeFile(by: Account, id: string, bytes: Uint8Array, clientName: string): Promise<{ file: string; family?: string }>
   /** Puts a Tree folder the store has just imported (17.4) into the set this module holds. */
   adopt(id: string): Promise<void>
 }
@@ -316,6 +321,7 @@ export async function openDrafts(
 
     async write(by, id, nodeId, change) {
       const tree = allowed(by, id, 'edit')
+      if (nodeId === null && 'op' in change && change.op === 'use-library-font') return useLibraryFont(by, tree, change as Operation)
       return serial(tree, async () => {
         let also: string[] = []
         const draft = await commit(by, tree, (next) => {
@@ -492,7 +498,8 @@ export async function openDrafts(
         await writeAtomic(target, bytes)
         tree.themeFiles.add(file)
       })
-      return { file }
+      const family = kind === 'woff2' ? woff2FamilyName(bytes) : null
+      return family === null ? { file } : { file, family }
     },
 
     draftImagePath(by, id, file) {
@@ -506,6 +513,44 @@ export async function openDrafts(
       held.set(id, tree)
       if (tree.published) swap(id, await openTree(tree.dir))
     },
+  }
+
+  /**
+   * **[#180]** `use-library-font` (37.3): the library family's two files copied into the Tree's
+   * `theme/` under their server names and its licence text beside them, then the role's entry
+   * written and validated as any write is. An unknown family or role is refused, and an
+   * uneditable Tree is 409, before anything is copied.
+   */
+  async function useLibraryFont(by: Account, tree: Held, operation: Operation): Promise<WriteResponse> {
+    const library = FONT_LIBRARY.find((family) => family.id === operation.family)
+    const { role } = operation
+    if (!library) throw malformed('manifest', 'theme.fonts', 'V-THEME', `"${String(operation.family)}" is not a family of the font library`)
+    if (role !== 'body' && role !== 'heading') throw malformed('manifest', 'theme.fonts', 'V-THEME', "role is 'body' or 'heading'")
+    editable(tree)
+    return serial(tree, async () => {
+      const folder = path.resolve(tree.dir, 'theme')
+      // Read from the working directory, where a release carries the library beside server.js (37.1).
+      const shipped = path.join(process.cwd(), 'fonts', library.id)
+      await mkdir(folder, { recursive: true })
+      for (const face of library.files) {
+        const file = copyName(face)
+        const target = path.resolve(folder, file)
+        // 5.5's two checks, as for an upload: the grammar of 3.6, and a path inside theme/.
+        if (!isThemeFile(file) || path.dirname(target) !== folder) throw malformed(tree.id, 'file', 'V-THEME', 'not a file of theme/')
+        // The name is a content hash: a file of that name is these bytes already.
+        if (tree.themeFiles.has(file)) continue
+        const bytes = await readFile(path.join(shipped, face.file))
+        // A library file that is not the one listed would be copied under another file's hash.
+        if (createHash('sha256').update(bytes).digest('hex') !== face.sha256) throw new Error(`fonts/${library.id}/${face.file} is not the file src/fonts.ts lists`)
+        await writeAtomic(target, bytes)
+        tree.themeFiles.add(file)
+      }
+      const licence = `${library.id}-licence.txt`
+      await writeAtomic(path.join(folder, licence), await readFile(path.join(shipped, 'OFL.txt')))
+      tree.themeFiles.add(licence)
+      const draft = await commit(by, tree, (next) => setFontFamily(next, libraryEntry(library, role)))
+      return respond(tree, draft, null)
+    })
   }
 
   /** After a publish, the pictures neither the draft nor the published copy names go (22.6). */

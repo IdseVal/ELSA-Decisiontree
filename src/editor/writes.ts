@@ -154,10 +154,14 @@ export async function deleteImage(treeId: string, file: string): Promise<Answer>
 export const themeCalls = {
   write: <Part extends keyof Theme>(treeId: string, part: Part, value: Theme[Part] | null) =>
     request('PATCH', treeUrl(treeId), { path: `theme.${part}`, value }) as Promise<Typed<WriteResponse>>,
-  upload: async (treeId: string, file: File): Promise<Typed<{ file: string }>> => {
+  /** **[#180]** A family of the font library copied into the Tree and written as `role`'s (37.3). */
+  useLibraryFont: (treeId: string, role: 'body' | 'heading', family: string) =>
+    request('PATCH', treeUrl(treeId), { op: 'use-library-font', role, family }) as Promise<Typed<WriteResponse>>,
+  /** **[#180]** A font's answer carries `family`, the font's own name, when its file states a usable one (37.4). */
+  upload: async (treeId: string, file: File): Promise<Typed<{ file: string; family?: string }>> => {
     const form = new FormData()
     form.append('file', file)
-    return (await send('POST', `${treeUrl(treeId)}/theme`, form)) as Typed<{ file: string }>
+    return (await send('POST', `${treeUrl(treeId)}/theme`, form)) as Typed<{ file: string; family?: string }>
   },
 }
 

@@ -14,6 +14,7 @@
  * opacity are derived in CSS with `color-mix()` from those; this is not a colour system.
  */
 import { luminance, readableOn } from './contrast.ts'
+import { refusedInFamily } from './tree/grammar.ts'
 import { themeHref } from './url.ts'
 import type { Colours, LocalisedText, Theme } from './tree/types.ts'
 
@@ -50,11 +51,21 @@ export const DEFAULT_FONT_STACK =
 const COLOUR = /^#[0-9a-f]{6}$/
 
 /**
- * A family name this module refuses to quote: a control character (`Cc`, which includes a
- * newline), or one of the four characters that could end the declaration, the block or the
- * element the name is written into (13.3).
+ * **[#180]** Where the editor's own interface begins: its chrome bar, its floating controls and
+ * the panels of its Sheets carry the attribute, and keep the default look whatever the draft's
+ * Theme (application.md 13.1, 24.3; ADR-180-editor-interface-not-themed).
  */
-const UNQUOTABLE_FAMILY = /[;{}<\p{Cc}]/u
+const EDITOR_UI = '[data-editor-ui]'
+
+/**
+ * **[#180]** What the editor writes before each of the draft's family names, in its `@font-face`
+ * rules and its `:root` block alike. An `@font-face` family hides an installed face of the same
+ * name, and a draft may name a face of `DEFAULT_FONT_STACK` -- the library ships Roboto -- which
+ * would then draw the editor's own interface in the draft's file where the stack reaches that
+ * name. No name of the stack begins with this. One prefix for every name, not one per role, so
+ * two roles that share a name still share one family, as on the public page.
+ */
+export const DRAFT_FAMILY_PREFIX = 'elsa-draft '
 
 /** The logo the page shows, already resolved to the variant this palette calls for. */
 export interface ResolvedLogo {
@@ -70,7 +81,7 @@ export type ThemeHref = (treeId: string, file: string) => string
 
 /** What `ThemeStyle` puts in `<head>`. The logo is `themeLogo`'s, for the chrome bar. */
 export interface ThemeStyle {
-  /** The CSS of the one `<style>` element: `@font-face` rules and the `:root` block. */
+  /** The CSS of the one `<style>` element: `@font-face` rules and the `:root` block; **[#180]** in the editor, the block of its own interface. */
   css: string
   /** The tab icon's theme file name, when the Theme names one. */
   icon?: string
@@ -81,16 +92,19 @@ export interface ThemeStyle {
  * parts is taken whole or not at all: a palette is designed as a set, so half a Theme is
  * never merged with half a default (13.4). `treeId` is read only for the fonts' addresses,
  * which are under the Tree's id (18.1); **[#144]** `href` builds them, the admin route's in
- * the editor, whose draft's fonts the public route does not serve.
+ * the editor, whose draft's fonts the public route does not serve. **[#180]** `editor` adds
+ * the default look for the editor's own interface: the Theme paints the Tree, not the bars
+ * and panels a creator works in. It also names the draft's families apart from that look's
+ * type stack (`DRAFT_FAMILY_PREFIX`).
  */
-export function themeStyle(theme: Theme | undefined, treeId: string, href: ThemeHref = themeHref): ThemeStyle {
-  const css = build(theme, paletteOf(theme?.colours), treeId, href)
+export function themeStyle(theme: Theme | undefined, treeId: string, href: ThemeHref = themeHref, { editor = false }: { editor?: boolean } = {}): ThemeStyle {
+  const css = build(theme, paletteOf(theme?.colours), treeId, href, editor)
 
   return {
     // Every part above is escaped, so this can only fire if one of them stops escaping.
     // The default look is then emitted whole rather than nothing: a page with no custom
     // properties at all would have no colour left to fall back on.
-    css: css.toLowerCase().includes('</style') ? build(undefined, DEFAULT_COLOURS, treeId, href) : css,
+    css: css.toLowerCase().includes('</style') ? build(undefined, DEFAULT_COLOURS, treeId, href, editor) : css,
     icon: theme?.logo?.icon,
   }
 }
@@ -110,9 +124,18 @@ export function themeLogo(theme: Theme | undefined): ResolvedLogo | undefined {
   return { file: (dark && logo.dark) || logo.light, alt: logo.alt, url: logo.url }
 }
 
-/** The `@font-face` rules and the `:root` block, in that order. */
-function build(theme: Theme | undefined, colours: Colours, treeId: string, href: ThemeHref): string {
-  return [...fontFaces(theme, treeId, href), rootBlock(colours, theme)].join('\n')
+/**
+ * The `@font-face` rules and the `:root` block, in that order; **[#180]** in the editor, then
+ * the default palette and type stack again on the elements of its own interface, which every
+ * element inside them inherits in place of the draft's (13.4). The two blocks select different
+ * elements, so neither overrides the other whatever their order. In the editor the draft's
+ * families are named under `DRAFT_FAMILY_PREFIX`, so none hides a face of that stack.
+ */
+function build(theme: Theme | undefined, colours: Colours, treeId: string, href: ThemeHref, editor: boolean): string {
+  const prefix = editor ? DRAFT_FAMILY_PREFIX : ''
+  const blocks = [...fontFaces(theme, treeId, href, prefix), block(':root', colours, theme, prefix)]
+  if (editor) blocks.push(block(EDITOR_UI, DEFAULT_COLOURS, undefined, ''))
+  return blocks.join('\n')
 }
 
 /**
@@ -130,11 +153,11 @@ function paletteOf(colours: Colours | undefined): Colours {
 }
 
 /**
- * The `:root` block: the seven roles, the four derived values, the two font stacks and
- * `color-scheme`.
+ * The block of `selector`: the seven roles, the four derived values, the two font stacks and
+ * `color-scheme`. **[#180]** Each family is named with `prefix` before it, as `fontFaces` names it.
  */
-function rootBlock(colours: Colours, theme: Theme | undefined): string {
-  const families = new Map((theme?.fonts ?? []).map((family) => [family.role, quoteFamily(family.family)]))
+function block(selector: string, colours: Colours, theme: Theme | undefined, prefix: string): string {
+  const families = new Map((theme?.fonts ?? []).map((family) => [family.role, quoteFamily(family.family, prefix)]))
   const body = families.get('body')
   const heading = families.get('heading')
   const declarations = [
@@ -155,17 +178,17 @@ function rootBlock(colours: Colours, theme: Theme | undefined): string {
     // and scrollbars.
     `color-scheme:${isDark(colours) ? 'dark' : 'light'}`,
   ]
-  return `:root{\n  ${declarations.join(';\n  ')}\n}`
+  return `${selector}{\n  ${declarations.join(';\n  ')}\n}`
 }
 
 /**
  * One `@font-face` per file of every family whose name can be quoted safely. A refused
  * family takes its faces with it: serving a font under a name the page cannot use would
- * only cost the reader the download.
+ * only cost the reader the download. **[#180]** Each is named with `prefix` before it.
  */
-function fontFaces(theme: Theme | undefined, treeId: string, href: ThemeHref): string[] {
+function fontFaces(theme: Theme | undefined, treeId: string, href: ThemeHref, prefix: string): string[] {
   return (theme?.fonts ?? []).flatMap((family) => {
-    const name = quoteFamily(family.family)
+    const name = quoteFamily(family.family, prefix)
     if (!name) return []
     return family.files.map(
       (face) =>
@@ -179,10 +202,11 @@ function fontFaces(theme: Theme | undefined, treeId: string, href: ThemeHref): s
  * A family name as a single-quoted CSS string, or null when it must not be emitted at all.
  * A name holding a control character, `;`, `{`, `}` or `<` is refused rather than
  * sanitised: an author who wrote one meant something this format does not offer.
+ * **[#180]** `prefix` is this module's own, `''` or `DRAFT_FAMILY_PREFIX`, and needs no escape.
  */
-function quoteFamily(family: string): string | null {
-  if (UNQUOTABLE_FAMILY.test(family)) return null
-  return `'${family.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
+function quoteFamily(family: string, prefix: string): string | null {
+  if (refusedInFamily(family)) return null
+  return `'${prefix}${family.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
 }
 
 /**

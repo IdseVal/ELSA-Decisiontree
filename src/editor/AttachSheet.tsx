@@ -91,7 +91,7 @@ export function AttachSheet({
   return createPortal(
     <div className="editor-attach" onKeyDown={onKeyDown}>
       <div className="sheet-backdrop" onClick={cancel} />
-      <div className="sheet-panel editor-attach-panel" role="dialog" aria-modal="true" aria-labelledby="attach-file">
+      <div className="sheet-panel editor-attach-panel" data-editor-ui="" role="dialog" aria-modal="true" aria-labelledby="attach-file">
         <figure className="editor-attach-figure">
           <img src={src} alt="" width={uploaded.width} height={uploaded.height} />
           <figcaption id="attach-file">{uploaded.file}</figcaption>

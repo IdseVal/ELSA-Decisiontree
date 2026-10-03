@@ -303,7 +303,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | #176 | `settings` (the floating button and the panel's title, 33.1, 33.2), `todoCountOne` (the to-do control's words for one thing; `todoCount` says them for more, 33.3), `todoNone` (the control at zero, and its bubble's empty list), `publishRefused` and `showTodo` (a refused publish's sentence in the panel and the button to the to-do bubble, 33.3) |
 | #177 | `deleteSideBubble` (the button at the foot of an opened side bubble, 30.7), `confirmDeleteSideBubble` (its confirmation, a function of the side bubble's title), `confirmDeleteUntitledSideBubble` (the same without a title), `sideBubbleStays` (what the confirmation adds where another step leads to the side bubble too) |
 | **[#171]** #179 | `endingText` ("Text of the ending" / "Tekst van het einde": the `treeEndsHere` Sheet's field and the empty badge field's placeholder, 36.3); **gone**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, and #138's `outcome`; **reworded**: #144's `colourDanger`, "Errors" / "Fouten" (36.1) |
-| **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5 |
+| **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5; **[#180] added in the build**: the Theme panel's hints (33.8), `colourBackgroundHint`, `colourSurfaceHint`, `colourTextHint`, `colourTextMutedHint`, `colourAccentHint`, `colourAccentSecondaryHint`, `colourDangerHint`, `contrastHint`, `logoAltHint`, `fontBodyHint`, `fontHeadingHint`, `fontLicenceHint`, `fontFileHint`, named by #174's `hint`; **[#180] added in review**: `licenceOtherHint` (the hint behind the free licence line, 4.3.2's own sentence, 37.5; `ADR-171-licence-dropdown.md` decision 2) and `placeholderFontFamily` (the family-name field's placeholder while it is empty, 28.2, 37.4) |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -954,7 +954,19 @@ app  ->  editor (the pages mount Editor, LoginForm, NewTreeForm, Panel and build
 components  ->  editor (the EditMode type only; a slot's element is handed in, never imported)  [#133]
 editor  ->  tree/measure, markdown (both pure), and nothing else in src/                          [#133]
 app  ->  session  ->  store (sessions.resolve)                                                    [#135]
+store  ->  fonts (FONT_LIBRARY, libraryEntry, copyName), at run time                             [#180]
+theme  ->  tree/grammar (refusedInFamily)                                                         [#180]
+app  ->  fonts (the editor page: the library and the licence list, for the Theme panel)          [#180]
+fonts  ->  tree/types                                                                             [#180]
 ```
+
+- **[#180] Amended 2026-10-03: three edges #180 adds.** `src/store/drafts.ts` imports
+  `src/fonts.ts` at run time: `use-library-font` reads the library's list, the entry it writes
+  and the server names of its files there (37.3). So the line `store -> tree ..., nothing else
+  in src/` now reads: `tree`, and the pure `fonts.ts`. `src/theme.ts` imports `refusedInFamily`
+  from `src/tree/grammar.ts` (13.3, amended), and the editor's page imports `fonts.ts` to hand
+  the library and the licence list to the Theme panel as props. `fonts.ts` is pure and imports
+  only types of `tree/`.
 
 - **[#133] `src/editor/` is a leaf, like the four client components.** Its modules take
   strings and ids, reach the write queue through React context, and import of `src/` the
@@ -1189,6 +1201,8 @@ back.
 | **[#171]** A select per role: the default, the library, the Tree's own, "Upload a font file…"; `use-library-font`; an upload named after the font's own family name | `docs/adrs/ADR-171-font-dropdown.md` |
 | **[#171]** Six SPDX licences stored as name and text address; "Another licence…"; a library family's licence fixed | `docs/adrs/ADR-171-licence-dropdown.md` |
 | **[#169]** The heading over the Sources says "Sources" / "Bronnen"; the kind labels unchanged | `docs/adrs/ADR-173-sources-heading.md` |
+| **[#180]** In the editor the draft's Theme paints the Tree; the bar, the floating controls and every editor Sheet keep the default; the bar's logo in its light variant | `docs/adrs/ADR-180-editor-interface-not-themed.md` |
+| **[#180]** Under their heading the Sources are `text`, label, kind and dot; a link told by an underline in it | `docs/adrs/ADR-180-sources-text-colour.md` |
 
 ## 10. The tree view
 
@@ -2262,6 +2276,29 @@ whose Theme does not change still has exactly one. The editor addresses the draf
 `GET /admin/api/trees/<t>/theme/<file>` (33.8), because the public route serves only what the
 published copy names.
 
+**[#180] Amended 2026-10-02: in the editor the draft's Theme reaches the Tree, not the
+editor's own interface.** The owner, on #169: "Changing the color features are great, but
+don't make it change the sidebar or header colors, that makes it very difficult to follow the
+UI." In the editor `themeStyle` writes, after the draft's `:root` block, the default palette and
+type stack of 13.4 again on `[data-editor-ui]`: the attribute of the chrome bar, the floating
+controls (33.1, 33.3), the panel of every Sheet only the editor opens and **[#178]** the panel the
+step's red cross asks in (24.3, amended). The
+stylesheet derives its shades there again and gives those elements their own text colour and
+face, since what they would inherit from the page is the draft's. Everything else on the page
+-- behind the Bubble, the Bubble and its buttons, the Overlay, the strip, the disclaimer -- is
+the draft's. No colour or family literal enters the stylesheet: the second block is built from
+13.4's constants, so 13.3 and 13.5 are unchanged. The public page and the Tree-less pages write
+no second block. Recorded in `docs/adrs/ADR-180-editor-interface-not-themed.md`. **[#180]**
+Also: under their heading the Sources are drawn in `text`, label, kind and dot alike, and a link
+is told by an underline in that colour, not by a second colour (`ADR-180-sources-text-colour.md`).
+**[#180] Amended 2026-10-03, in review.** In the editor `themeStyle` also writes each of the
+draft's family names under one constant prefix, `elsa-draft `, in its `@font-face` rules and its
+`:root` block alike. An `@font-face` family hides an installed face of the same name, and the
+default stack of 13.4 names faces a draft may name too -- the library ships Roboto (37.1) -- so
+without the prefix the editor's own interface was drawn in the draft's file wherever the stack
+reached that name. One prefix for every name, not one per role, so two roles that share a name
+still share one family. The public page writes the names as the Tree gives them.
+
 ```css
 @font-face { font-family: 'Open Sans'; font-weight: 400; font-style: normal;
              src: url('/theme/open-sans-400.woff2') format('woff2'); font-display: swap }
@@ -2348,6 +2385,14 @@ module allowed to build that string and it holds every rule:
   `themePath` (5.5) before any file is opened.
 
 `theme.test.ts` (section 7) is written against this list.
+
+**[#180] Amended 2026-10-03.** `theme.ts` is still the only module that builds the string, but it
+no longer holds every rule itself. The characters a family name may not hold are declared once,
+as `refusedInFamily` in `src/tree/grammar.ts`, because three places refuse the same ones: `theme.ts`
+where it builds the string, the Theme panel's name field before anything is sent, and the
+upload's name reader (`src/store/woff2.ts`), which proposes no name holding one (37.4).
+`theme.ts` imports it and applies it at the sink as before. The other three rules are unchanged
+and stay in `theme.ts`.
 
 ### 13.4 A Tree without a Theme, or with half of one
 
@@ -3687,7 +3732,7 @@ are #136's `permit`. `/admin/new` does not exist until #137.
 | Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
 | Login page | `siteTitle` | language switch | The default |
 | Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
-| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). | **The draft's** |
+| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4) |
 | The 404 and 403 pages | `siteTitle` | language switch | The default |
 
 **[#135]** Below 480 pixels wide the Tree-less admin pages' bar gives up `siteTitle` and the
@@ -3703,6 +3748,24 @@ to the account page says `account`, "Account" in English and in Dutch, and carri
 name as its `title`: its tooltip, and its accessible description. `accounts` and `logout` stay.
 The name is not in the bar any more, so nothing there is cut: the link carries no `data-clamp`.
 Recorded in `docs/adrs/ADR-176-floating-settings-and-to-do.md`.
+
+**[#180], changed by the owner -- 2026-10-02** (#169: "Changing the color features are great,
+but don't make it change the sidebar or header colors, that makes it very difficult to follow
+the UI."). In the editor the draft's Theme paints the Tree -- what a visitor will see: the page
+behind the Bubble, the Bubble, the Option and Answer buttons, the Overlay, the pictures' strip
+-- and not the editor's own interface: the chrome bar, the floating controls with the panel and
+the to-do bubble they open, and the panel of every editor Sheet keep the default of 13.4
+whatever the creator picks (13.1, amended). The bar's logo stays the Tree's, in the variant for
+the default's light bar: `logo.light`. The public page is unchanged: there the whole page is the
+Tree's Theme. Recorded in `docs/adrs/ADR-180-editor-interface-not-themed.md`.
+
+**[#180], amended 2026-10-03, after #177 and #178 merged first.** What the editor puts in the Tree
+itself is drawn as the Tree is: the fields; the Sheets' own buttons in the Bubble and its rows;
+#177's side-bubble `+` in the fan, which opens no Sheet; `deleteSideBubble` at the foot of an
+Overlay, with the confirmation it asks there in place (30.7); and #178's red cross and "Tree does
+not end here after all" beside the up arrow (30.8). The question the cross asks is a panel hung
+over the Sheets' veil, as the step menu's Sheet was, and keeps the default look: the editor's
+own, like the panel of every editor Sheet. Recorded in decision 1 of the same ADR.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
@@ -4741,6 +4804,30 @@ logo variant, no tab `icon`, no logo `url`; a hand-made Theme's are kept as they
   administrator. The upload is 21.2's `upload` and the part write its `edit`.
 - **Not done.** A replaced or removed logo's or font's file stays in `theme/`: the public
   route never serves it (5.5), and no publish sweeps theme files as it sweeps pictures (22.6).
+
+**[#180], built -- 2026-10-02.** The owner, on #169, after the three points of 24.3, 13.1 and
+37: "Give all items in this menu that deserver it an explanatory hoverable i with a circle
+around it."
+
+- **The panel keeps the default look.** It is the editor's own interface (24.3, amended): a
+  colour changed repaints the Tree behind the panel, never the panel or the bar.
+- **Information hints**, #174's "i" (31.2): behind each of the seven colour roles, what it
+  paints; behind the contrast warning, what it measures and that the palette is stored all the
+  same; behind the logo's alternative text, what it is for; behind each font role, what it
+  sets; behind the licence, why a font needs one and that a font whose licence cannot be named
+  does not belong in the Tree (4.3.2); behind a font file's weight, what the weight and the
+  style say. One or two sentences each, in English and Dutch: the hint keys of 3.2.
+- **The contrast warning and the Sources.** The Sources' lines are `text` on the Bubble now
+  (13.1, amended), a pairing the warning already checks at 4.5 : 1; no pairing is added.
+- **As built, where 37 left room.** Choosing "Upload a font file…" shows the file field under
+  the dropdown and asks the browser for its picker at once: where the choice carries the user's
+  activation the picker opens, and the field stays to be clicked where it does not. `fontNameTaken`
+  compares names as a browser matches a family name, without regard to case. A character 13.3
+  refuses is not taken into a name field at all, and typing stops at 64, as every field stops at
+  its limit (28.4). An upload's licence starts unchosen. A library family's licence is said as a
+  line, "Licence: SIL Open Font License 1.1". The store checks a library file's SHA-256 before
+  it copies it: a release whose `fonts/` was altered answers 500 rather than writing other bytes
+  under the listed name. A WOFF2 collection (`ttcf`) proposes no name.
 
 ## 34. The reuse rule
 

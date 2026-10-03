@@ -19,14 +19,17 @@ dispatcher:
                                      # local processes doing real work; 3 keeps a laptop
                                      # usable. Raise it on a workstation if you like --
                                      # idle hoarding is gone, this only bounds LIVE work.
-  max_run_minutes: 150               # hard wall-clock ceiling per run; then kill + breaker (30 until 2026-09-14, 45 until 09-15:
+  max_run_minutes: 210               # hard wall-clock ceiling per run; then kill + breaker (30 until 2026-09-14, 45 until 09-15:
                                      # 90 until 2026-10-02: with Opus at effort max (v0.2.20) the first runs of the
                                      # tree-creation round (#171, #172, #173) were still working at 60 min;
                                      # 120 for two hours that day: #175 then took 95 min and #174 was at 107 and working;
+                                     # 150 until 2026-10-03: #179 (the ending as free text, a format conversion) was committing
+                                     # its screenshots at 133 min with the final suites still to run;
+                                     # 180 for half an hour: the same run was still on its last unit-test pass at 163 min)
                                     # 60 until 2026-09-26: the editor round's Implementer runs (#134, #135, #136) each
                                     # hit 60 min mid-work and needed a second cycle just to finish and open the PR)
                                      # fix runs that merge dev and re-run 130+ browser tests were killed at 30 and 45 with work done)
-  max_run_minutes_complex: 150       # v0.2.10: the ceiling for runs of a `complex` issue (90 until 2026-10-02, 60 until 2026-09-19:
+  max_run_minutes_complex: 210       # v0.2.10: the ceiling for runs of a `complex` issue (90 until 2026-10-02, 60 until 2026-09-19:
                                      # #80's Overlay runs on the most capable model were killed at 60 three times)
   retry_empty_run: true              # one fresh retry when a run exits without a PR
   tick_deadline_minutes: 10          # v0.2.13: a tick longer than this exits the process; the task restarts it
