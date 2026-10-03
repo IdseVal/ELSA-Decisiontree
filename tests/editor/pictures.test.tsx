@@ -111,12 +111,12 @@ async function pick(file: File): Promise<void> {
   await settle()
 }
 
-/** Types into an input or **[#181]** a text box the way React hears it. */
-function type(input: HTMLInputElement | HTMLTextAreaElement, text: string): void {
-  const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input) as object, 'value')!.set!
+/** Types into a text box the way React hears it: **[#181]** the attach Sheet's two fields are text boxes. */
+function type(area: HTMLTextAreaElement, text: string): void {
+  const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!
   act(() => {
-    setter.call(input, text)
-    input.dispatchEvent(new Event('input', { bubbles: true }))
+    setter.call(area, text)
+    area.dispatchEvent(new Event('input', { bubbles: true }))
   })
 }
 

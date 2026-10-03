@@ -135,14 +135,15 @@ interface Audit {
 /**
  * The chrome strings of the other language that this one says differently: one of them on a
  * page in `lang` is a word left untranslated (#181's "a word left in one language only").
- * Templates, single letters and words both languages share are not looked for.
+ * Templates and words both languages share are not looked for; the short ones are, "Ja" and
+ * "No" among them.
  */
 function otherWords(lang: Lang): string[] {
   const own = chrome(lang) as unknown as Record<string, unknown>
   const other = chrome(lang === 'en' ? 'nl' : 'en') as unknown as Record<string, unknown>
   const words = new Set<string>()
   for (const [key, value] of Object.entries(other)) {
-    if (typeof value !== 'string' || value === own[key] || value.length < 3 || /[{}]/.test(value)) continue
+    if (typeof value !== 'string' || value === own[key] || /[{}]/.test(value)) continue
     words.add(value.trim())
   }
   return [...words]
@@ -590,7 +591,7 @@ async function walkThrough(walk: Walk): Promise<void> {
   await page.waitForURL(/\/admin\/trees\/[^/]+\/start/, { timeout: 20_000 })
   walk.tree = new URL(page.url()).pathname.split('/')[3] ?? ''
   await hydrated(page)
-  // API calls of the walk's own -- a detour, a node read -- carry the session in the header (admin.ts).
+  // The walk's own API call -- a side bubble made where the page shows no `+`, a detour -- carries the session in the header (admin.ts).
   const { cookie } = await login(page, origin, CREATOR.login, CREATOR.password)
   await step(walk, '01-empty-step')
 

@@ -3174,7 +3174,8 @@ fieldset:disabled .admin-submit {
 
 /* The editor's inputs that are not fields: the URL of a Source to add (28.1), **[#140]** a picture's
    credit and description in the attach Sheet, and **[#179]** the ending's words (36.3). */
-/* **[#172]** Their text, longer than the box, ends in an ellipsis while it is not being typed in. */
+/* **[#172]** Their text, longer than the box, ends in an ellipsis while it is not being typed in;
+   **[#181]** but for the credit and the description, boxes of three lines that wrap it (28.4). */
 .editor-url {
   width: 100%;
   min-width: 0;
