@@ -12,6 +12,12 @@ export interface TreeMeta {
   creator: string
   /** Account ids of the collaborators, in the order they were invited. */
   collaborators: string[]
+  /**
+   * **[#197]** The order of joining (39.2): the id of every account that has been the creator or
+   * a collaborator, in the order in which each first became one. Appended to, never reordered,
+   * never shortened; the order the Tree's Authors are named in (39.1).
+   */
+  joined: string[]
   createdAt: string
   updatedAt: string
   /** The account id of the last write's author. */

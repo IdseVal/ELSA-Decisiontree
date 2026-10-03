@@ -8,7 +8,9 @@
  * the set of published Trees every public route works from. **[#135]** Accounts, sessions and
  * the login rate limit are members of `Store`. **[#136]** The drafts and every write to a Tree
  * are `drafts.ts`'s, the member `drafts`. **[#179]** Every `elsa-tree/4` file it finds or imports
- * is converted to `elsa-tree/5` before it is opened (application.md 36.4).
+ * is converted to `elsa-tree/5` before it is opened (application.md 36.4). **[#197]** Every
+ * `meta.json` records the order in which its Tree's accounts joined it (39.2), and `authors`
+ * names a published Tree's Authors to the public routes (39.8).
  */
 import { cp, mkdir, readdir, readFile, rename, rm, stat, access, constants } from 'node:fs/promises'
 import path from 'node:path'
@@ -18,6 +20,7 @@ import { formatViolation, openTree, readTreeText, TreeInvalid, violationsOf, typ
 import { treeBytes } from '../tree/serialise.ts'
 import { isMapping, type Mode } from '../tree/validate.ts'
 import { openAccounts, type Accounts } from './accounts.ts'
+import { authorsOf } from './authors.ts'
 import { openDrafts, RESERVED_TREE_IDS, type Drafts } from './drafts.ts'
 import { loginLimit, type LoginLimit } from './login-limit.ts'
 import { openSessions, type Sessions } from './sessions.ts'
@@ -41,12 +44,21 @@ export interface Refused {
   reason: string
 }
 
-/** What the routes ask of the store. Nothing here can return a draft, a `meta.json` or an account (23.1). */
+/**
+ * What the routes ask of the store. Nothing here can return a draft, a `meta.json` or an account
+ * (23.1); **[#197]** `authors` reads the two files for names, and answers nothing else (39.8).
+ */
 export interface Store {
   /** A servable published Tree; null for a hidden, unservable, unknown or reserved id. */
   published(id: string): Tree | null
   /** Every servable published Tree's id, in id order. */
   publishedIds(): string[]
+  /**
+   * **[#197]** The names of the Authors of the servable published Tree `id`, in the order they
+   * joined it (39.3); `[]` for every id `published` answers null for, one case as 23.1 has it.
+   * The one member a public route reads an account through, and it answers names only (39.8).
+   */
+  authors(id: string): string[]
   /** The published Trees that failed validation at start, in id order (18.3). */
   refused(): Refused[]
   /**
@@ -89,6 +101,9 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
   if (accounts.adminPasswordReplaced) await sessions.endAll(admin.id)
   if (!(await isFolder(treesDir))) await seed(seedDirectory(env), treesDir, admin.id)
   const refused: Refused[] = await nameCreator(treesDir, admin.id)
+  // **[#197]** After the creators are named and before any Tree is opened: a store written before
+  // #197 records each Tree's order of joining from its roles (39.2).
+  await recordJoining(treesDir)
   // **[#179]** Before any Tree is opened: a release that reads elsa-tree/5 converts what an
   // earlier one wrote (36.4). Each file on its own, so a draft that converts is not held back
   // by a published copy that cannot, or the other way round.
@@ -122,11 +137,16 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
     const at = refused.findIndex((entry) => entry.id === id)
     if (at >= 0) refused.splice(at, 1)
   }
-  const drafts = await openDrafts(treesDir, accounts, swap, (id) => served.has(id))
+  const { drafts, roles } = await openDrafts(treesDir, accounts, swap, (id) => served.has(id))
 
   return {
     published: (id) => served.get(id) ?? null,
     publishedIds: () => [...served.keys()].sort(),
+    authors: (id) => {
+      // Gated on the served set, so a hidden Tree's names reach no public route (39.8).
+      const held = served.has(id) ? roles(id) : null
+      return held ? authorsOf(held, accounts) : []
+    },
     refused: () => [...refused],
     swap,
     accounts,
@@ -152,6 +172,8 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
  *
  * `creator` is an account id: the administrator's at the seed (17.4). **[#135]** A Tree a
  * #134 store seeded before there were accounts has `null`, which `openStore` replaces.
+ * **[#197]** `joined` records it as the first to join, or no one for `null`, until the start
+ * names the administrator and records it (39.2).
  */
 export async function importTree(folder: string, treesDir: string, creator: string | null): Promise<Tree> {
   const source = path.resolve(/* turbopackIgnore: true */ folder)
@@ -191,6 +213,7 @@ export async function importTree(folder: string, treesDir: string, creator: stri
   const meta = {
     creator,
     collaborators: [],
+    joined: creator === null ? [] : [creator],
     createdAt: now,
     updatedAt: now,
     updatedBy: creator,
@@ -361,6 +384,40 @@ async function nameCreator(treesDir: string, creator: string): Promise<Refused[]
     await writeAtomic(file, `${JSON.stringify(meta, null, 2)}\n`)
   }
   return broken
+}
+
+/**
+ * **[#197]** Records the order of joining in every `meta.json` that lacks it, from the roles it
+ * names (39.2): a `joined` that is absent, or not an array of strings, becomes the creator and
+ * then the collaborators in their list's order, each once; and any of those ids a `joined` lacks
+ * is appended to it, in that order, so that a store seeded before accounts existed and a
+ * hand-edited file come out whole. The file is rewritten atomically only when this changed it,
+ * with nothing else in it moved -- `updatedAt`, `updatedBy` and `revision` stay, since no creator
+ * wrote -- and one line is logged per Tree. A `meta.json` that is missing, or not a JSON object,
+ * is not touched: `nameCreator` reported the second, and the drafts read the first with defaults.
+ */
+async function recordJoining(treesDir: string): Promise<void> {
+  for (const id of await listFolders(treesDir)) {
+    const file = path.join(/* turbopackIgnore: true */ treesDir, id, 'meta.json')
+    const text = await readText(file)
+    if (text === null) continue
+    let meta: unknown
+    try {
+      meta = JSON.parse(text)
+    } catch {
+      continue
+    }
+    if (!isMapping(meta)) continue
+    const stored = meta.joined
+    const joined = Array.isArray(stored) && stored.every((entry) => typeof entry === 'string') ? [...(stored as string[])] : []
+    const collaborators = Array.isArray(meta.collaborators) ? (meta.collaborators as unknown[]) : []
+    for (const holder of [meta.creator, ...collaborators]) {
+      if (typeof holder === 'string' && !joined.includes(holder)) joined.push(holder)
+    }
+    if (Array.isArray(stored) && joined.length === stored.length && joined.every((entry, at) => entry === stored[at])) continue
+    await writeAtomic(file, `${JSON.stringify({ ...meta, joined }, null, 2)}\n`)
+    console.log(`Recorded the order of joining of Tree "${id}" from its roles: ${joined.length} accounts`)
+  }
 }
 
 /**
