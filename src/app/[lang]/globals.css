@@ -899,6 +899,14 @@ a.language:hover,
 }
 
 /*
+ * **[#181]** The editor's `+ addSource` follows the Sources and is none of them: no separator
+ * before it, which wrapped with it to the start of its line as a lone dot.
+ */
+.sources li.sources-add::before {
+  content: none;
+}
+
+/*
  * Its own line height, not the line's: a smaller inline box that inherits the 20-pixel
  * line height sits lower on the baseline than the line's strut and stretches the line by
  * a pixel or two, which over three lines of Sources is the budget of 10.7 missed.
@@ -2580,6 +2588,15 @@ fieldset:disabled .admin-submit {
     top: 4px;
     right: 4px;
   }
+
+  /*
+   * **[#181]** The cross stands 24 into the panel's text here, over the first line: the title's
+   * field, as wide as the panel, lay under it, and so did a long title's last words. It keeps
+   * clear of the cross on both sides, so the title stays centred.
+   */
+  .overlay-interior > h2:has(.editor-field) {
+    margin-inline: 24px;
+  }
 }
 
 /*
@@ -3522,7 +3539,8 @@ fieldset:disabled .admin-submit {
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: calc(100vh - 300px);
+  /* **[#181]** The two fields' three lines and their labels above them take 130 more than one line each did. */
+  max-height: calc(100vh - 430px);
   border-radius: 12px;
   object-fit: contain;
 }
@@ -3536,23 +3554,24 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * **[#172]** One label column for both rows, as wide as the longer word ("Beschrijving"), so the
- * two inputs line up and keep the width a credit needs; each row a subgrid of the form's. The
- * label stays beside its input at every width, 8 pixels from it: a phone's 2-pixel gap is for
- * a label stacked above its field, and a subgrid row takes its gap as the column gap.
+ * **[#181]** Each label above its field, as a phone's Sheet has them, at every width: beside a
+ * label column ("Bronvermelding") a field kept 171 pixels of a phone's Sheet and 213 of a wide
+ * one, where a credit of 120 characters takes five lines and four. Across the Sheet it takes
+ * three, at 13 pixels on lines of 20, in the faces of 28.4, and each field is those three lines
+ * whether empty or full (28.4, amended): the credit's and the description's 120 as the enlarged
+ * view's are, a plain line wrapped and never scrolled out of its box.
  */
-.editor-attach-form {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-}
-
-.editor-attach-form > * {
-  grid-column: 1 / -1;
-}
-
 .editor-attach-form .editor-row {
-  grid-template-columns: subgrid;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+
+.editor-attach-form .editor-url {
+  height: auto;
+  padding: 5px 8px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+  resize: none;
 }
 
 .editor-attach-form .sheet-controls {
@@ -4448,6 +4467,16 @@ fieldset:disabled .admin-submit {
 .theme-part .admin-field,
 .theme-font-form .admin-field {
   align-self: stretch;
+}
+
+/*
+ * **[#181]** A field of the panel in the panel's small type, as its dropdowns are: the language
+ * to add and the font's family name and weight stood out at the login page's and the new-Tree
+ * form's 16.
+ */
+.panel-body .admin-field input,
+.panel-body .new-tree-add input {
+  font-size: var(--small);
 }
 
 .theme-weight {

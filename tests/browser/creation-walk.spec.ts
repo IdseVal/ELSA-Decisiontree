@@ -33,10 +33,16 @@ const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-181') : path.join(RESULTS, 'shots', 'issue-181')
 const PORT = BASE_PORT + 180
 
-const CREATOR = { login: 'carla', name: 'Carla', password: 'carlas first password' }
+const CREATOR = {
+  login: 'carla',
+  name: 'Carla',
+  password: 'carlas first password',
+}
 const IMAGES = path.join(repo, 'trees', 'ai-act-example', 'images')
 const FONT = path.join(repo, 'trees', 'ai-act-example', 'theme', 'nova-square-400.woff2')
 const LAW = 'https://eur-lex.europa.eu/eli/reg/2024/1689/oj'
+/** A credit of the 120 characters the format allows (tree-format.md 5.7), in words as a credit has them. */
+const FULL_CREDIT = 'Photograph by Maria van den Berg-Oosterhuis for the ELSA Lab, licensed CC BY-SA 4.0, cropped and recoloured by the team.'
 
 type Lang = 'en' | 'nl'
 
@@ -91,9 +97,6 @@ const WORDS = {
 } as const
 
 let origin: string
-const rows: string[] = []
-/** What a walk could not do through the page, and did otherwise: each a finding for the pull request. */
-const detours: string[] = []
 
 test.beforeAll(async () => {
   await mkdir(SHOTS, { recursive: true })
@@ -102,16 +105,21 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   await stopServers()
-  const table = [
-    '| Step | lang | viewport | document h/inner h | document w/inner w | overflowing | overlapping controls | crossing their box | words of the other language |',
-    '|---|---|---|---|---|---|---|---|---|',
-    ...rows,
-  ]
-  await writeFile(
-    path.join(SHOTS, 'measurements.md'),
-    `${table.join('\n')}\n${detours.length ? `\nDone otherwise than through the page:\n\n${detours.map((d) => `- ${d}`).join('\n')}\n` : ''}`,
-  )
 })
+
+/**
+ * A walk's rows, written to a file of its own when it ends, passed or not: a failed walk
+ * restarts the worker, and with it anything a file shared by the six would have held.
+ */
+async function writeRows(walk: Walk): Promise<void> {
+  const table = [
+    '| Step | document h/inner h | document w/inner w | overflowing | overlapping controls | crossing their box | words of the other language |',
+    '|---|---|---|---|---|---|---|',
+    ...walk.rows,
+  ]
+  const detours = walk.detours.length ? `\nDone otherwise than through the page:\n\n${walk.detours.map((d) => `- ${d}`).join('\n')}\n` : ''
+  await writeFile(path.join(SHOTS, `measurements-${walk.lang}-${walk.size}.md`), `# ${walk.lang}, ${walk.size}\n\n${table.join('\n')}\n${detours}`)
+}
 
 interface Audit {
   doc: { sh: number; sw: number }
@@ -147,7 +155,10 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
   await page.evaluate(() => document.fonts.ready)
   return page.evaluate((other) => {
     const name = (el: Element): string => {
-      const classes = [...el.classList].slice(0, 2).map((c) => `.${c}`).join('')
+      const classes = [...el.classList]
+        .slice(0, 2)
+        .map((c) => `.${c}`)
+        .join('')
       const field = el.closest('[data-field]')?.getAttribute('data-field')
       return `${el.tagName.toLowerCase()}${classes}${field && !classes ? `[${field}]` : ''}`
     }
@@ -196,12 +207,7 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
     // A box: what draws an edge around what it holds -- a fill, a border, a clip.
     const isBox = (el: Element): boolean => {
       const s = getComputedStyle(el)
-      return (
-        s.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
-        parseFloat(s.borderTopWidth) > 0 ||
-        parseFloat(s.borderLeftWidth) > 0 ||
-        s.overflow !== 'visible'
-      )
+      return s.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(s.borderTopWidth) > 0 || parseFloat(s.borderLeftWidth) > 0 || s.overflow !== 'visible'
     }
     const boxOf = (el: Element | null): Element | null => {
       let box = el
@@ -214,7 +220,8 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
     }
     const outside: string[] = []
     for (const el of document.querySelectorAll('textarea, input:not([type="hidden"]), select, button')) {
-      if (!shown(el)) continue
+      // The step's two buttons stand in the band above the Bubble, out of its box by design (30.8).
+      if (!shown(el) || el.closest('.step-delete, .step-end')) continue
       const box = boxOf(el.parentElement)
       if (!box || !shown(box)) continue
       const by = crossing(el.getBoundingClientRect(), box.getBoundingClientRect())
@@ -259,7 +266,10 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
     const d = document.documentElement
     const b = document.body
     return {
-      doc: { sh: Math.max(d.scrollHeight, b.scrollHeight), sw: Math.max(d.scrollWidth, b.scrollWidth) },
+      doc: {
+        sh: Math.max(d.scrollHeight, b.scrollHeight),
+        sw: Math.max(d.scrollWidth, b.scrollWidth),
+      },
       inner: { h: window.innerHeight, w: window.innerWidth },
       overflowing,
       overlapping,
@@ -269,13 +279,16 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
   }, otherWords(lang))
 }
 
-/** One walk: its language, its viewport, the Tree it makes. */
+/** One walk: its language, its viewport, the Tree it makes, and what it measured. */
 interface Walk {
   page: Page
   lang: Lang
   ui: Chrome
   size: string
   tree: string
+  rows: string[]
+  /** What the walk could not do through the page, and did otherwise: each a finding for the pull request. */
+  detours: string[]
 }
 
 /**
@@ -285,16 +298,21 @@ interface Walk {
 async function step(walk: Walk, name: string): Promise<void> {
   const { page, lang, size } = walk
   await page.evaluate(() => document.fonts.ready)
-  await page.screenshot({ path: path.join(SHOTS, `${name}-${lang}-${size}.png`) })
+  await page.screenshot({
+    path: path.join(SHOTS, `${name}-${lang}-${size}.png`),
+  })
   const m = await audit(page, lang)
   const cell = (list: string[]) => list.join('; ').replace(/\|/g, '/') || 'none'
-  rows.push(
-    `| ${name} | ${lang} | ${size} | ${m.doc.sh}/${m.inner.h} | ${m.doc.sw}/${m.inner.w} | ${cell(m.overflowing)} | ${cell(m.overlapping)} | ${cell(m.outside)} | ${cell(m.otherLanguage)} |`,
+  walk.rows.push(
+    `| ${name} | ${m.doc.sh}/${m.inner.h} | ${m.doc.sw}/${m.inner.w} | ${cell(m.overflowing)} | ${cell(m.overlapping)} | ${cell(m.outside)} | ${cell(m.otherLanguage)} |`,
   )
   const where = `${name} (${lang}, ${size})`
   expect.soft(m.doc.sh, `${where}: taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
   expect.soft(m.doc.sw, `${where}: wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
   expect.soft(m.overflowing, `${where}: elements whose content is larger than themselves`).toEqual([])
+  // **[#181]** Two of the owner's standard that no face changes: one control over another, a word left in the other language.
+  expect.soft(m.overlapping, `${where}: controls drawn over each other`).toEqual([])
+  expect.soft(m.otherLanguage, `${where}: chrome words of the other language`).toEqual([])
 }
 
 /** The page's own script is there: every Sheet draws its backdrop in the render after hydration. */
@@ -334,7 +352,7 @@ async function write(walk: Walk, nodeId: string, keyPath: string, text: string):
 
 /** The id at the end of the page's address, where a creation just navigated (30.2, 30.4). */
 async function landed(page: Page, from: string): Promise<string> {
-  await page.waitForURL((url) => url.pathname.startsWith(`${from}/`) && url.pathname.split('/').length === from.split('/').length + 1)
+  await page.waitForURL((url) => url.pathname.startsWith(`${from}/`) && url.pathname.split('/').length === from.split('/').length + 1, { timeout: 20_000 })
   const id = new URL(page.url()).pathname.split('/').pop() ?? ''
   expect(id).toMatch(/^n-[a-z2-7]{6}$/)
   await hydrated(page)
@@ -351,7 +369,11 @@ async function open(walk: Walk, ...nodeIds: string[]): Promise<void> {
 
 /** A picture of the example Tree, as a file the page's input takes. */
 async function picture(file: string): Promise<{ name: string; mimeType: string; buffer: Buffer }> {
-  return { name: file, mimeType: 'image/png', buffer: await readFile(path.join(IMAGES, file)) }
+  return {
+    name: file,
+    mimeType: 'image/png',
+    buffer: await readFile(path.join(IMAGES, file)),
+  }
 }
 
 /**
@@ -443,9 +465,13 @@ async function newSideBubble(walk: Walk, cookie: string, number: number): Promis
     await sideAdd(page).click()
     return landed(page, `/admin/trees/${walk.tree}/start`)
   }
-  detours.push(`${walk.lang} ${walk.size}: side bubble ${number} through the API -- the fan's + is not on screen at ${number - 1} side bubbles`)
+  walk.detours.push(`side bubble ${number} through the API -- the fan's + is not on screen at ${number - 1} side bubbles`)
   const created = await page.request.post(`${origin}/admin/api/trees/${walk.tree}/nodes`, {
-    headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' },
+    headers: {
+      Origin: origin,
+      Cookie: cookie,
+      'Content-Type': 'application/json',
+    },
     data: JSON.stringify({ from: { node: 'start', link: 'option' } }),
   })
   expect(created.status()).toBe(201)
@@ -485,189 +511,226 @@ async function signIn(walk: Walk): Promise<void> {
 
 async function creator(browser: Browser, lang: Lang, width: number, height: number): Promise<Walk> {
   const page = await (await browser.newContext({ viewport: { width, height } })).newPage()
-  return { page, lang, ui: chrome(lang), size: `${width}x${height}`, tree: '' }
+  return {
+    page,
+    lang,
+    ui: chrome(lang),
+    size: `${width}x${height}`,
+    tree: '',
+    rows: [],
+    detours: [],
+  }
 }
 
 for (const { lang, width, height } of WALKS) {
   test(`the creator's walk, ${lang}, at ${width} x ${height}`, async ({ browser }) => {
     test.setTimeout(420_000)
     const walk = await creator(browser, lang, width, height)
-    const { page, ui } = walk
-    const words = WORDS[lang]
-    const query = lang === 'en' ? '' : '?lang=nl'
-
-    // Sign in, and the + tile's form: one language, the walk's own (27.1).
-    await page.goto(`${origin}/admin${query}`)
-    await signIn(walk)
-    await page.locator('a.tile--new').click()
-    await expect(page).toHaveURL(new RegExp(`/admin/new`))
-    await page.locator(`#new-tree-title-${lang}`).fill(`${words.tree} (${walk.size})`)
-    await page.getByRole('button', { name: ui.create, exact: true }).click()
-    await page.waitForURL(/\/admin\/trees\/[^/]+\/start/)
-    walk.tree = new URL(page.url()).pathname.split('/')[3] ?? ''
-    await hydrated(page)
-    // API calls of the walk's own -- a detour, a node read -- carry the session in the header (admin.ts).
-    const { cookie } = await login(page, origin, CREATOR.login, CREATOR.password)
-    await step(walk, '01-empty-step')
-
-    // The first step: title and text (28.1, 28.2), then a picture with its credit and description (31.2).
-    await write(walk, 'start', `title.${lang}`, words.title)
-    await write(walk, 'start', `description.${lang}`, words.text)
-    await step(walk, '02-title-and-text')
-    const bubble = page.locator('.tree-frame:not([aria-hidden]) .bubble').first()
-    const first = await attachPicture(walk, page.locator('main'), 'covered.png', async (attach) => {
-      await attach.locator('.hint-mark').first().hover()
-      await expect(page.locator('.hint-panel[data-open]')).toBeVisible()
-      await step(walk, '03-attach-sheet-credit-hint')
-      await page.mouse.move(1, 1)
-    })
-    if (!first) detours.push(`${lang} ${walk.size}: no picture picker on the empty first step`)
-    await step(walk, '04-main-picture')
-
-    // Two more pictures from the strip's `+`, "Add an extra image" on hover (31.1, #174).
-    const plus = page.locator('.carousel > .editor-picker--strip').filter({ visible: true }).first()
-    if (await plus.count()) {
-      await plus.hover()
-      await step(walk, '05-add-an-extra-image')
-      await page.mouse.move(1, 1)
+    try {
+      await walkThrough(walk)
+    } finally {
+      await writeRows(walk)
+      await walk.page.context().close()
     }
-    for (const file of ['eu-map.png', 'scoreboard.png']) {
-      if (!(await attachPicture(walk, page.locator('main'), file))) detours.push(`${lang} ${walk.size}: no picture picker for ${file}`)
-    }
-    await page.mouse.move(1, 1)
-    await step(walk, '06-three-pictures')
-
-    // A Source (28.1): its link, then its name.
-    await addSource(walk, page.locator('main'), 'start', () => step(walk, '07-source-added'))
-    await page.keyboard.press('Escape')
-
-    // Yes and no (30.2): each a new step, landed on; back with the up arrow.
-    await page.locator('.structure--yes').click()
-    const yesId = await landed(page, `/admin/trees/${walk.tree}/start`)
-    await page.locator('.up-arrow').click()
-    await page.waitForURL(editor(walk, 'start') + query)
-    await hydrated(page)
-    await page.locator('.structure--no').click()
-    const noId = await landed(page, `/admin/trees/${walk.tree}/start`)
-    await open(walk, 'start')
-    await step(walk, '08-yes-and-no')
-
-    // A step filled and ended with typed words (30.3, 36.3), its two buttons beside the arrow (30.8).
-    await open(walk, 'start', yesId)
-    await write(walk, yesId, `title.${lang}`, words.yesTitle)
-    await write(walk, yesId, `description.${lang}`, words.yesText)
-    await endHere(walk, yesId, words.yesEnding, () => step(walk, '09-ending-typed'))
-    await step(walk, '10-step-ends-here')
-
-    // Eight side bubbles (30.4), the first filled in its Overlay: title, text, picture, Source (30.5).
-    const asides: string[] = []
-    asides.push(await newSideBubble(walk, cookie, 1))
-    const overlay = page.locator('details.overlay[open] > .sheet-panel')
-    await expect(overlay).toBeVisible()
-    await step(walk, '11-new-side-bubble')
-    await write(walk, asides[0]!, `title.${lang}`, words.asideTitle)
-    await write(walk, asides[0]!, `description.${lang}`, words.asideText)
-    if (!(await attachPicture(walk, overlay, 'emotion-recognition.png'))) detours.push(`${lang} ${walk.size}: no picture picker in the side bubble`)
-    await addSource(walk, overlay, asides[0]!)
-    await page.keyboard.press('Escape')
-    if (!(await overlay.isVisible())) await open(walk, 'start', asides[0]!)
-    await step(walk, '12-side-bubble-filled')
-    for (let n = 2; n <= 8; n += 1) asides.push(await newSideBubble(walk, cookie, n))
-    await open(walk, 'start')
-    await expect(sideAdd(page)).toHaveCount(0)
-    await step(walk, '13-eight-side-bubbles')
-
-    // A side bubble deleted from its own Overlay (30.7).
-    const last = asides.pop()!
-    await open(walk, 'start', last)
-    await overlay.locator('.side-delete-button').click()
-    await expect(overlay.locator('.side-delete .structure-confirm')).toBeVisible()
-    await step(walk, '14-delete-side-bubble-asked')
-    await overlay.locator('.side-delete').getByRole('button', { name: ui.confirm, exact: true }).click()
-    await page.waitForURL((url) => url.pathname === `/admin/trees/${walk.tree}/start`)
-    await hydrated(page)
-
-    // A step deleted with its red cross (30.8): the No step, made again after.
-    await open(walk, 'start', noId)
-    await page.locator('.step-delete').click()
-    await expect(page.getByRole('alertdialog')).toBeVisible()
-    await step(walk, '15-delete-step-asked')
-    await page.getByRole('alertdialog').getByRole('button', { name: ui.confirm, exact: true }).click()
-    await page.waitForURL((url) => url.pathname === `/admin/trees/${walk.tree}/start`)
-    await hydrated(page)
-    await expect(page.locator('.structure--no')).toBeVisible()
-
-    // The to-do bubble (33.3), with what is left to do.
-    const reread = page.waitForResponse((response) => new URL(response.url()).pathname === `/admin/api/trees/${walk.tree}`, { timeout: 20_000 })
-    await todoButton(page).click()
-    await reread
-    await expect(todoBubble(page)).toBeVisible()
-    await step(walk, '16-to-do-bubble')
-    await page.keyboard.press('Escape')
-
-    // What is left, done: the No step again, ended; the other side bubbles named and written.
-    await page.locator('.structure--no').click()
-    const noAgain = await landed(page, `/admin/trees/${walk.tree}/start`)
-    await write(walk, noAgain, `title.${lang}`, words.noTitle)
-    await write(walk, noAgain, `description.${lang}`, words.noText)
-    await endHere(walk, noAgain, words.noEnding)
-    for (const [index, aside] of asides.slice(1).entries()) {
-      await open(walk, 'start', aside)
-      await write(walk, aside, `title.${lang}`, `${words.otherAside} ${index + 2}`)
-      await write(walk, aside, `description.${lang}`, words.otherText)
-    }
-    await open(walk, 'start')
-
-    // The settings panel (33.1, 33.2), the colours (33.8, #180) and the fonts (37).
-    await openPanel(page)
-    await step(walk, '17-settings-panel')
-    const chosen = themeWrite(walk)
-    await themePanel(page).getByRole('button', { name: ui.chooseColours, exact: true }).click()
-    expect((await chosen).status()).toBe(200)
-    for (const [role, value] of [
-      ['background', '#fdf1d8'],
-      ['accent', '#8a3b12'],
-      ['accent-secondary', '#1d6b8a'],
-    ] as const) {
-      const picked = themeWrite(walk)
-      await themePanel(page).locator(`input[type="color"][data-role="${role}"]`).fill(value)
-      expect((await picked).status()).toBe(200)
-    }
-    await themePanel(page).locator('input[type="color"][data-role="background"]').scrollIntoViewIfNeeded()
-    await step(walk, '18-colours-changed')
-    const heading = themePanel(page).locator('[data-font-role="heading"]')
-    const font = themeWrite(walk)
-    await heading.getByRole('combobox').selectOption('library:faustina')
-    expect((await font).status()).toBe(200)
-    await heading.scrollIntoViewIfNeeded()
-    await step(walk, '19-font-from-the-dropdown')
-    const body = themePanel(page).locator('[data-font-role="body"]')
-    await body.getByRole('combobox').selectOption({ label: ui.fontUpload })
-    await body.getByLabel(ui.fontFile, { exact: true }).setInputFiles(FONT)
-    await expect(body.getByLabel(ui.fontFamily, { exact: true })).toHaveValue('Nova Square')
-    await body.getByLabel(ui.fontLicence, { exact: true }).selectOption({ label: 'SIL Open Font License 1.1' })
-    await body.getByLabel(ui.fontLicence, { exact: true }).scrollIntoViewIfNeeded()
-    await step(walk, '20-licence-dropdown')
-    const added = themeWrite(walk)
-    await body.getByRole('button', { name: ui.addFont, exact: true }).click()
-    expect((await added).status()).toBe(200)
-
-    // Publish (33.3), and the public page.
-    await themePanel(page).evaluate((element) => element.closest('[data-scroll-box]')?.scrollTo(0, 0))
-    const publish = panel(page).getByRole('switch', { name: ui.publish, exact: true })
-    await publish.click()
-    await expect(publish).toHaveAttribute('aria-checked', 'true')
-    await step(walk, '21-published')
-    await page.goto(`${origin}/${walk.tree}/start`)
-    await arrived(page, `${origin}/${walk.tree}/start`)
-    await page.mouse.move(1, 1)
-    await step(walk, '22-public-page')
-    const publicOverlay = page.locator('details.overlay').filter({ visible: true }).first()
-    if (await publicOverlay.count()) {
-      await publicOverlay.locator(':scope > .sheet-open').click()
-      await expect(publicOverlay.locator(':scope > .sheet-panel')).toBeVisible()
-      await step(walk, '23-public-side-bubble')
-    }
-    await page.context().close()
   })
+}
+
+/** The walk of the issue, in its order, as one creator. */
+async function walkThrough(walk: Walk): Promise<void> {
+  const { page, ui, lang } = walk
+  const words = WORDS[lang]
+  // Sign in, and the + tile's form: one language, the walk's own (27.1).
+  await page.goto(`${origin}/admin${lang === 'en' ? '' : '?lang=nl'}`)
+  await signIn(walk)
+  await page.locator('a.tile--new').click()
+  await expect(page).toHaveURL(new RegExp(`/admin/new`))
+  await page.locator(`#new-tree-title-${lang}`).fill(`${words.tree} (${walk.size})`)
+  await page.getByRole('button', { name: ui.create, exact: true }).click()
+  await page.waitForURL(/\/admin\/trees\/[^/]+\/start/, { timeout: 20_000 })
+  walk.tree = new URL(page.url()).pathname.split('/')[3] ?? ''
+  await hydrated(page)
+  // API calls of the walk's own -- a detour, a node read -- carry the session in the header (admin.ts).
+  const { cookie } = await login(page, origin, CREATOR.login, CREATOR.password)
+  await step(walk, '01-empty-step')
+
+  // The first step: title and text (28.1, 28.2), then a picture with its credit and description (31.2).
+  await write(walk, 'start', `title.${lang}`, words.title)
+  await write(walk, 'start', `description.${lang}`, words.text)
+  await step(walk, '02-title-and-text')
+  const first = await attachPicture(walk, page.locator('main'), 'covered.png', async (attach) => {
+    // **[#181]** Each field holds its 120 characters in its own box, wrapped, as the enlarged view's do (28.4).
+    for (const label of [ui.credit, ui.imageDescription]) {
+      const box = attach.getByLabel(label, { exact: true })
+      const typed = await box.inputValue()
+      await box.fill(FULL_CREDIT)
+      expect(await box.inputValue()).toHaveLength(120)
+      const held = await box.evaluate((element) => ({ sw: element.scrollWidth, cw: element.clientWidth, sh: element.scrollHeight, ch: element.clientHeight }))
+      expect.soft(held.sw, `${label}: 120 characters wider than the box`).toBeLessThanOrEqual(held.cw + 1)
+      expect.soft(held.sh, `${label}: 120 characters taller than the box`).toBeLessThanOrEqual(held.ch + 1)
+      await box.fill(typed)
+    }
+    await attach.locator('.hint-mark').first().hover()
+    await expect(page.locator('.hint-panel[data-open]')).toBeVisible()
+    await step(walk, '03-attach-sheet-credit-hint')
+    await page.mouse.move(1, 1)
+  })
+  if (!first) walk.detours.push(`no picture picker on the empty first step`)
+  await step(walk, '04-main-picture')
+
+  // Two more pictures from the strip's `+`, "Add an extra image" on hover (31.1, #174).
+  const plus = page.locator('.carousel > .editor-picker--strip').filter({ visible: true }).first()
+  if (await plus.count()) {
+    await plus.hover()
+    await step(walk, '05-add-an-extra-image')
+    await page.mouse.move(1, 1)
+  }
+  for (const file of ['eu-map.png', 'scoreboard.png']) {
+    if (!(await attachPicture(walk, page.locator('main'), file))) walk.detours.push(`no picture picker for ${file}`)
+  }
+  await page.mouse.move(1, 1)
+  await step(walk, '06-three-pictures')
+
+  // A Source (28.1): its link, then its name.
+  await addSource(walk, page.locator('main'), 'start', () => step(walk, '07-source-added'))
+  await page.keyboard.press('Escape')
+  // **[#181]** `+ addSource` is no Source: no separator before it, which began its line as a lone dot.
+  const separators = await page.locator('.sources li.sources-add').evaluateAll((items) => items.map((item) => getComputedStyle(item, '::before').content))
+  expect(separators.length).toBeGreaterThan(0)
+  for (const content of separators) expect(content).toBe('none')
+
+  // Yes and no (30.2): each a new step, landed on; back with the up arrow.
+  await page.locator('.structure--yes').click()
+  const yesId = await landed(page, `/admin/trees/${walk.tree}/start`)
+  await page.locator('.up-arrow').click()
+  await page.waitForURL((url) => url.pathname === `/admin/trees/${walk.tree}/start`, { timeout: 20_000 })
+  await hydrated(page)
+  await page.locator('.structure--no').click()
+  const noId = await landed(page, `/admin/trees/${walk.tree}/start`)
+  await open(walk, 'start')
+  await step(walk, '08-yes-and-no')
+
+  // A step filled and ended with typed words (30.3, 36.3), its two buttons beside the arrow (30.8).
+  await open(walk, 'start', yesId)
+  await write(walk, yesId, `title.${lang}`, words.yesTitle)
+  await write(walk, yesId, `description.${lang}`, words.yesText)
+  await endHere(walk, yesId, words.yesEnding, () => step(walk, '09-ending-typed'))
+  await step(walk, '10-step-ends-here')
+
+  // Eight side bubbles (30.4), the first filled in its Overlay: title, text, picture, Source (30.5).
+  const asides: string[] = []
+  asides.push(await newSideBubble(walk, cookie, 1))
+  const overlay = page.locator('details.overlay[open] > .sheet-panel')
+  await expect(overlay).toBeVisible()
+  await step(walk, '11-new-side-bubble')
+  await write(walk, asides[0]!, `title.${lang}`, words.asideTitle)
+  await write(walk, asides[0]!, `description.${lang}`, words.asideText)
+  if (!(await attachPicture(walk, overlay, 'emotion-recognition.png'))) walk.detours.push(`no picture picker in the side bubble`)
+  await addSource(walk, overlay, asides[0]!)
+  await page.keyboard.press('Escape')
+  if (!(await overlay.isVisible())) await open(walk, 'start', asides[0]!)
+  await step(walk, '12-side-bubble-filled')
+  for (let n = 2; n <= 8; n += 1) asides.push(await newSideBubble(walk, cookie, n))
+  await open(walk, 'start')
+  await expect(sideAdd(page)).toHaveCount(0)
+  await step(walk, '13-eight-side-bubbles')
+
+  // A side bubble deleted from its own Overlay (30.7).
+  const last = asides.pop()!
+  await open(walk, 'start', last)
+  await overlay.locator('.side-delete-button').click()
+  await expect(overlay.locator('.side-delete .structure-confirm')).toBeVisible()
+  await step(walk, '14-delete-side-bubble-asked')
+  await overlay.locator('.side-delete').getByRole('button', { name: ui.confirm, exact: true }).click()
+  await page.waitForURL((url) => url.pathname === `/admin/trees/${walk.tree}/start`, { timeout: 20_000 })
+  await hydrated(page)
+
+  // A step deleted with its red cross (30.8): the No step, made again after.
+  await open(walk, 'start', noId)
+  await page.locator('.step-delete').click()
+  await expect(page.getByRole('alertdialog')).toBeVisible()
+  await step(walk, '15-delete-step-asked')
+  await page.getByRole('alertdialog').getByRole('button', { name: ui.confirm, exact: true }).click()
+  await page.waitForURL((url) => url.pathname === `/admin/trees/${walk.tree}/start`, { timeout: 20_000 })
+  await hydrated(page)
+  await expect(page.locator('.structure--no')).toBeVisible()
+
+  // The to-do bubble (33.3), with what is left to do.
+  const reread = page.waitForResponse((response) => new URL(response.url()).pathname === `/admin/api/trees/${walk.tree}`, { timeout: 20_000 })
+  await todoButton(page).click()
+  await reread
+  await expect(todoBubble(page)).toBeVisible()
+  await step(walk, '16-to-do-bubble')
+  await page.keyboard.press('Escape')
+
+  // What is left, done: the No step again, ended; the other side bubbles named and written.
+  await page.locator('.structure--no').click()
+  const noAgain = await landed(page, `/admin/trees/${walk.tree}/start`)
+  await write(walk, noAgain, `title.${lang}`, words.noTitle)
+  await write(walk, noAgain, `description.${lang}`, words.noText)
+  await endHere(walk, noAgain, words.noEnding)
+  for (const [index, aside] of asides.slice(1).entries()) {
+    await open(walk, 'start', aside)
+    await write(walk, aside, `title.${lang}`, `${words.otherAside} ${index + 2}`)
+    await write(walk, aside, `description.${lang}`, words.otherText)
+  }
+  await open(walk, 'start')
+
+  // The settings panel (33.1, 33.2), the colours (33.8, #180) and the fonts (37).
+  await openPanel(page)
+  await step(walk, '17-settings-panel')
+  const chosen = themeWrite(walk)
+  await themePanel(page).getByRole('button', { name: ui.chooseColours, exact: true }).click()
+  expect((await chosen).status()).toBe(200)
+  for (const [role, value] of [
+    ['background', '#fdf1d8'],
+    ['accent', '#8a3b12'],
+    ['accent-secondary', '#1d6b8a'],
+  ] as const) {
+    const picked = themeWrite(walk)
+    await themePanel(page).locator(`input[type="color"][data-role="${role}"]`).fill(value)
+    expect((await picked).status()).toBe(200)
+  }
+  await themePanel(page).locator('input[type="color"][data-role="background"]').scrollIntoViewIfNeeded()
+  await step(walk, '18-colours-changed')
+  const heading = themePanel(page).locator('[data-font-role="heading"]')
+  const font = themeWrite(walk)
+  await heading.getByRole('combobox').selectOption('library:faustina')
+  expect((await font).status()).toBe(200)
+  await heading.scrollIntoViewIfNeeded()
+  await step(walk, '19-font-from-the-dropdown')
+  const body = themePanel(page).locator('[data-font-role="body"]')
+  await body.getByRole('combobox').selectOption({ label: ui.fontUpload })
+  await body.getByLabel(ui.fontFile, { exact: true }).setInputFiles(FONT)
+  await expect(body.getByLabel(ui.fontFamily, { exact: true })).toHaveValue('Nova Square')
+  await body.getByLabel(ui.fontLicence, { exact: true }).selectOption({ label: 'SIL Open Font License 1.1' })
+  await body.getByLabel(ui.fontLicence, { exact: true }).scrollIntoViewIfNeeded()
+  await step(walk, '20-licence-dropdown')
+  // **[#181]** The panel's fields and dropdowns in one size: the language field and the family name stood out at 16.
+  const sizes = await panel(page)
+    .locator('input:not([type="color"]):not([type="file"]):not([type="checkbox"]), select')
+    .evaluateAll((controls) => [...new Set(controls.filter((control) => control.getClientRects().length > 0).map((control) => getComputedStyle(control).fontSize))])
+  expect(sizes).toHaveLength(1)
+  const added = themeWrite(walk)
+  await body.getByRole('button', { name: ui.addFont, exact: true }).click()
+  expect((await added).status()).toBe(200)
+
+  // Publish (33.3), and the public page.
+  await themePanel(page).evaluate((element) => element.closest('[data-scroll-box]')?.scrollTo(0, 0))
+  const publish = panel(page).getByRole('switch', {
+    name: ui.publish,
+    exact: true,
+  })
+  await publish.click()
+  await expect(publish).toHaveAttribute('aria-checked', 'true')
+  await step(walk, '21-published')
+  await page.goto(`${origin}/${walk.tree}/start`)
+  await arrived(page, `${origin}/${walk.tree}/start`)
+  await page.mouse.move(1, 1)
+  await step(walk, '22-public-page')
+  const publicOverlay = page.locator('details.overlay').filter({ visible: true }).first()
+  if (await publicOverlay.count()) {
+    await publicOverlay.locator(':scope > .sheet-open').click()
+    await expect(publicOverlay.locator(':scope > .sheet-panel')).toBeVisible()
+    await step(walk, '23-public-side-bubble')
+  }
 }
