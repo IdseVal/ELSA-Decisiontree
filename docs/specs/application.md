@@ -22,7 +22,7 @@
 > | 6 | `src/components/Authors.tsx` and `src/store/authors.ts`; `config.ts` reads `ELSA_ADMIN_EMAIL`. |
 > | 7 | The editor round's row names 38.10 and 39.9. |
 > | 8, 9 | Rows for the login by address and for the mention; eight `ADR-195-*` rows. |
-> | 10.1, 10.6 | The chrome bar of a Node page holds the mention; the walk skips its cut line. |
+> | 10.1, 10.4 to 10.6 | The chrome bar of a Node page holds the mention, the one line cut at the guarantee, given up by its room outside the fixed order; the walk skips its cut line. |
 > | 15.3, 16.4, 16.5, 23.5 | Unchanged, stated: no name enters `tree.json`, the JSON-LD or `llms.txt` (39.7). |
 > | 17.1, 17.2, 17.4, 17.5 | `ELSA_ADMIN_EMAIL`; `accounts.json`'s `email` and `meta.json`'s `joined`, each converted at the start; the store's `authors(id)`. |
 > | 20.1, 20.3 to 20.5, 20.7, 20.8 | The address in place of the login; the administrator's from `ELSA_ADMIN_EMAIL`; the interface; what about an account may reach a public route, and its test; the rate limit and the log for an address. |
@@ -1609,6 +1609,14 @@ is `tree-format.md` 5.7's assumption, confirmed here (10.7). 320 x 480 is smalle
 display in current use, so the notice is a backstop for a resized desktop window, not
 the mobile experience.
 
+**Amended 2026-10-03 (#195, the owner's #194):** one line may be cut at the guaranteed
+viewport and above it: the mention of a Tree's Authors in the chrome bar of its Node pages
+(39.4). The number of Authors has no bound, so where their names need more room than the bar
+leaves between the Tree's mark and the controls, the line ends in an ellipsis -- three names
+of 80 characters at 1280 x 640, or eight Authors, as 39.9's tests have it -- with its whole
+text as its `title`, read whole by a screen reader. It takes no pixel from anything else, and
+every other text and label keeps its designed size, whole.
+
 ### 10.5 Below the guarantee: the degradation order
 
 The owner's rule is absolute: no scrolling, ever. So the layout does not shrink text
@@ -1675,6 +1683,17 @@ and step 5 freed it and its gap, 68; they are historical. Measured at this layou
 area (the picture and its gap of 8), and at 1280 x 631 the Bubble of 445 has no picture.
 Step 5 frees more than it did, so the triggers, which `no-scroll.spec.ts` proves at every
 one, still hold.
+
+**Amended 2026-10-03 (#195, the owner's #194):** one more thing gives way outside the numbered
+order, by its own room: the mention of a Tree's Authors in the chrome bar (39.4). It is cut
+with an ellipsis where the bar's free room ends, at the guarantee too (10.4), and is not drawn
+where that room is under 80 pixels: on a phone beside a logo, and beside a title of 80
+characters at the viewports of 10.6 below 1024 x 768 (39.4). No width or height triggers it,
+and nothing in the table moves for it, since it takes no pixel from the mark or the controls.
+It is **behind no control** -- a Sheet of the Authors behind one was rejected
+(`ADR-195-the-mention.md`) -- so where the line is cut, its whole text is its `title`, and
+where it is not drawn, the page names no Author: the reader meets them on the Tree's tile on
+the overview (39.5), whose line is cut where its own room ends.
 
 ### 10.6 The no-scroll rule, and the exact test
 
@@ -5968,7 +5987,9 @@ hidden Tree's included, and `store.authors(id)` for the other published Trees, a
   no "By…" stands alone: `@container (width < 96px)` hides it at 480 pixels wide and above,
   where the bar's gap is 16, and `(width < 88px)` below, where it is 8. "Door Idse Val" is 76
   to 80 pixels at 13 in the faces measured. Container queries are already in the stylesheet,
-  for the label beside the strip's `+` in the editor (31.1).
+  for the label beside the strip's `+` in the editor (31.1). This is the one line 10.4 lets be
+  cut at the guarantee, and it gives way by its room, outside 10.5's order and behind no
+  control (both amended, as is core document 10.22).
 
 ```
 +--------------------------------------------------------------------------------+  44

@@ -1,14 +1,16 @@
 # ADR-195-the-mention: "By A, B and C" / "Door A, B en C", one small line in the chrome bar of a Tree's pages between its mark and the controls, and on its tile's bottom row; cut where its room ends, not drawn where under 80 pixels are left, and taking no pixel from anything else
 
 - Status: ACCEPTED (frozen) -- 2026-10-03; decides core document 10.40 (what the mention shows,
-  what it does when the names do not fit, and where it stands under the no-scroll rule)
+  what it does when the names do not fit, and where it stands under the no-scroll rule) and
+  amends 10.22 (the one line cut at the guarantee, outside the fixed order)
 - Issue: #195 -- Architecture: freeze the login by e-mail address and password, and the
   mention of who authored a Tree, the collaborators in the order they joined it
-- Spec: `docs/specs/application.md` 39.4, 39.5, 39.6 (new); 3.2, 10.1, 10.6, 24.3, 26.1, 34.5
-  amended, marked **[#195]**
+- Spec: `docs/specs/application.md` 39.4, 39.5, 39.6 (new); 3.2, 10.1, 10.4, 10.5, 10.6, 24.3,
+  26.1, 34.5 amended, marked **[#195]**
 - Amends: `ADR-133-overview-tiles.md` decision 1 (the tile's bottom row holds the mention),
-  `ADR-38-no-scroll.md` as 10.6 restates it (a third kind of element the walk skips, by the
-  same reason as the second)
+  `ADR-38-no-scroll.md` as 10.4 to 10.6 restate it (one line cut at the guarantee and given up
+  by its room, outside the fixed order and behind no control; a third kind of element the walk
+  skips, by the same reason as the second)
 - Depends on: `ADR-195-authors.md` (who), `ADR-195-order-of-joining.md` (in what order)
 - Measurements: `docs/research/issue-195-measurements.md`
 - Built by: #197
@@ -101,7 +103,9 @@ after two tags on `/` and 107 to 125 when the creators' overview adds its state 
    `data-clamp`, and 10.6's walk skips a `[data-clamp]` in the chrome bar as it skips one in a
    scroll box (26.1). The walk still checks the bar and everything else in it; the spec of
    #197 checks the mention itself -- one line, inside the bar, the mark and the controls where
-   they stand without it.
+   they stand without it. It is the one text that 10.4 lets be cut at the guaranteed
+   viewport, and the one thing that 10.5 lets give way by its room rather than by a step,
+   behind no control: both say so, amended, and so does core document 10.22.
 
 7. **Without JavaScript** the mention is the server's markup and its rules are the stylesheet's
    (a size container, 39.4): nothing to run.
