@@ -92,8 +92,8 @@ export function keyOf(nodeId: string, keyPath: string): string {
  */
 export function valueAt(node: DraftNode | undefined, path: string, lang: string | null): string | undefined {
   if (!node) return undefined
-  // The draft's `terminal.outcome` is read as `outcome` (toDraftNode).
-  const found = path === 'terminal.outcome' ? node.outcome : walk(node, path)
+  // **[#179]** The draft's `terminal.label` is read as `label` (toDraftNode).
+  const found = path === 'terminal.label' ? node.label : walk(node, path)
   if (lang === null) return typeof found === 'string' ? found : undefined
   const localised = found as LocalisedText | undefined
   const text = localised?.[lang]
@@ -136,6 +136,6 @@ export function fieldValues(node: DraftNode): Record<string, string> {
     localised(`explainers[${i}].term`, explainer.term)
     localised(`explainers[${i}].text`, explainer.text)
   })
-  if (node.outcome !== undefined) out['terminal.outcome'] = node.outcome
+  localised('terminal.label', node.label)
   return out
 }

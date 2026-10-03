@@ -2902,7 +2902,7 @@ fieldset:disabled .admin-submit {
   color: var(--elsa-text-muted);
 }
 
-/* A select drawn where the badge or the kind stood: the same box, the browser's arrow kept. */
+/* A select drawn where the kind stood: the same box, the browser's arrow kept. */
 .editor-select {
   max-width: 100%;
   font: inherit;
@@ -2914,12 +2914,33 @@ fieldset:disabled .admin-submit {
   cursor: pointer;
 }
 
-/* The outcome badge as a select (28.1): the badge's own look, the select's behaviour. */
-.editor-select.outcome {
+/*
+ * **[#179]** A Terminal's words as a field (36.3): the region is the badge's own box, placed and
+ * drawn by `.outcome`, and as wide as what it shows -- the words, or the placeholder -- so that,
+ * blurred, it is the badge as the public page draws it and nothing on the rim moves. The mirror
+ * sets the box; the text box lies over it, so it adds no width of its own. Focused, the words
+ * are shown as typed, without the capitals.
+ */
+.editor-field.outcome {
+  border-radius: 999px;
+}
+
+.editor-field.outcome .editor-text {
+  position: relative;
+  width: auto;
+}
+
+.editor-field.outcome .editor-text::after {
+  width: auto;
+}
+
+.editor-field.outcome .editor-input {
   position: absolute;
-  appearance: none;
-  padding: 0 14px;
-  cursor: pointer;
+  inset: 0;
+}
+
+.editor-field--focused.outcome {
+  text-transform: none;
 }
 
 /*
@@ -3810,7 +3831,7 @@ fieldset:disabled .admin-submit {
   justify-content: center;
 }
 
-/* The Sheets' pages: the outcomes, the confirmations. */
+/* The Sheets' pages: **[#179]** the ending's words, the confirmations. */
 .structure-form {
   display: flex;
   flex-direction: column;
@@ -3834,27 +3855,17 @@ fieldset:disabled .admin-submit {
   margin: 0;
 }
 
-.structure-outcomes {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.structure-outcomes label {
+/* **[#179]** The ending's field, and its counter on it as on every field's rim (36.3). */
+.structure-ending-field {
   display: flex;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
+  gap: 8px;
 }
 
-/* The badge's own look, in the list instead of on the rim. */
-.structure-outcome.outcome {
-  position: static;
-  margin: 0;
-  max-width: none;
+.structure-ending-count.editor-pill {
+  flex-direction: row;
+  width: auto;
+  padding: 1px 8px;
 }
 
 .structure-actions {

@@ -18,7 +18,7 @@
  */
 import type { ReactNode } from 'react'
 import { chrome, chromeLang, type Chrome } from '../chrome.ts'
-import { OUTCOME_LABEL, sheetWords, SOURCE_LABEL } from '../components/Bubble.tsx'
+import { sheetWords, SOURCE_LABEL } from '../components/Bubble.tsx'
 import { Sheet } from '../components/Sheet.tsx'
 import { editorLinks } from '../editor/links.ts'
 import { AddSourceForm, Field, Operation, type FieldWords, type OtherLanguage } from '../editor/Field.tsx'
@@ -27,9 +27,9 @@ import { ImageControls } from '../editor/ImageControls.tsx'
 import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
 import { DeleteStep, RemoveEnd } from '../editor/StepButtons.tsx'
-import { AnswerAdd, EndForm, SideAdd, SideDelete, type StructureWords } from '../editor/Structure.tsx'
+import { AnswerAdd, EndForm, SideAdd, SideDelete } from '../editor/Structure.tsx'
 import { MAX_ASIDES } from '../neighbourhood.ts'
-import { linksOf, type Explainer, type NodeContent, type Outcome, type Source } from '../tree/types.ts'
+import { linksOf, type Explainer, type NodeContent, type Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
 
 /**
@@ -83,8 +83,11 @@ function editorWords(ui: Chrome): EditorWords {
   }
 }
 
-/** The paths edited in place: #138's, and **[#140]** an Image's two texts in the enlarged view (31.3). */
-const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|images\[\d+\]\.(description|credit)|options\[\d+\]\.title|terminal\.outcome)$/
+/**
+ * The paths edited in place: #138's, **[#140]** an Image's two texts in the enlarged view (31.3),
+ * and **[#179]** a Terminal's words on its badge (36.3).
+ */
+const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|images\[\d+\]\.(description|credit)|options\[\d+\]\.title|terminal\.label)$/
 
 /**
  * **[#172]** What belongs in the field at a path, its placeholder while it is empty (28.2,
@@ -98,11 +101,12 @@ function placeholderOf(path: string, ui: Chrome): string {
   if (/^options\[\d+\]\.title$/.test(path)) return ui.placeholderOptionTitle
   if (/^images\[\d+\]\.description$/.test(path)) return ui.placeholderImageDescription
   if (/^images\[\d+\]\.credit$/.test(path)) return ui.placeholderCredit
+  if (path === 'terminal.label') return ui.endingText
   return ''
 }
 
 /** Which paths hold a localised text: the page's language is appended to their key path (22.2). */
-const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title)$/
+const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title|terminal\.label)$/
 
 /** The most Images a Node may hold (V-COUNT, 5.7): the strip's `+` is absent at that many (31.1). */
 const MAX_IMAGES = 10
@@ -120,7 +124,6 @@ const TERM_EVENT = 'elsa-term'
 const TITLE_MARK = '\u0000'
 
 const KINDS: Source['kind'][] = ['legal', 'case-law', 'literature']
-const OUTCOMES: Outcome[] = ['not-applicable', 'applicable', 'prohibited', 'refer']
 
 /** The edit mode of the page at `address`, whose draft declares `languages`; `structure` for the slots of 30. */
 export function editMode(address: PageAddress, languages: string[], structure: Structure): EditMode {
@@ -130,7 +133,6 @@ export function editMode(address: PageAddress, languages: string[], structure: S
   const words = editorWords(ui)
   const links = editorLinks()
   const sheet = sheetWords(ui)
-  const structureWords: StructureWords = { confirm: ui.confirm }
   /** The page's own address of a Node it carries, or null for one it does not (a slot draws nothing then). */
   const hereOf = (nodeId: string): string | null => {
     const at = structure.addresses[nodeId]
@@ -138,7 +140,6 @@ export function editMode(address: PageAddress, languages: string[], structure: S
   }
   const fieldWords: FieldWords = { characters: words.characters, lines: words.lines }
   const others: OtherLanguage[] = languages.filter((other) => other !== lang).map((other) => ({ lang: other, href: links.withLang(address, other) }))
-  const outcomes = OUTCOMES.map((outcome) => ({ value: outcome, label: ui[OUTCOME_LABEL[outcome]] }))
   // The badge leaves `legal` unlabelled under its heading (ADR-78); a select must name every kind.
   const kinds = KINDS.map((kind) => ({ value: kind, label: ui[SOURCE_LABEL[kind] ?? 'sourceLegal'] }))
   const pickerWords: PickerWords = {
@@ -164,9 +165,8 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       if (!EDITED.test(path)) return null
       const localised = LOCALISED.test(path)
       const common = { nodeId: node.id, path, lang: localised ? lang : null, value, limit, others, placeholder: placeholderOf(path, ui), words: fieldWords }
-      if (path === 'terminal.outcome') {
-        return <Field {...common} select={outcomes} label={ui.outcome} className="outcome" classByValue />
-      }
+      // **[#179]** The ending's words, drawn as the badge they are on the public page (36.3).
+      if (path === 'terminal.label') return <Field {...common} className="outcome" />
       if (path.endsWith('.kind')) {
         return <Field {...common} select={kinds} label={ui.sourceKind} />
       }
@@ -243,7 +243,15 @@ export function editMode(address: PageAddress, languages: string[], structure: S
           <Sheet
             className="structure-end"
             summary={<span lang={uiLang}>{ui.treeEndsHere}</span>}
-            pages={[<EndForm key="end" nodeId={node.id} outcomes={outcomes} heading={ui.treeEndsHere} words={structureWords} />]}
+            pages={[
+              <EndForm
+                key="end"
+                nodeId={node.id}
+                lang={lang}
+                heading={ui.treeEndsHere}
+                words={{ endingText: ui.endingText, characters: ui.characters, confirm: ui.confirm, cancel: ui.cancel }}
+              />,
+            ]}
             words={sheet}
             uiLang={uiLang}
             idPrefix={`${node.id}-end-`}

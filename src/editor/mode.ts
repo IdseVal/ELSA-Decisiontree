@@ -39,7 +39,7 @@ export interface FieldLimit {
 export interface EditorSlots {
   /**
    * Every text of 28.1 and the two selects, in place of the public text: `path` is the key
-   * path of 22.2 without its language (`title`, `sources[1].label`, `terminal.outcome`),
+   * path of 22.2 without its language (`title`, `sources[1].label`, `terminal.label`),
    * `value` the text in the page's language, `limit` the maximum of 5.7 or null for a select
    * and a URL. `rendered` is the public element the region shows while it is not being
    * edited, where that element carries a script of its own (the description's explainers).

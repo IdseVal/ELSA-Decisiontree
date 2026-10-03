@@ -9,10 +9,11 @@ import type { DraftNode, Manifest, Theme, Violation } from '../tree/types.ts'
 /**
  * **[#139]** `POST .../nodes` (22.1, 30.2 to 30.4): a Node and the Link to it from `from.node`
  * in one write -- an Answer or an Option, the Option's title in the page's language -- or,
- * with `link: 'end'`, `from.node` made a Terminal with `outcome`.
+ * with `link: 'end'`, `from.node` made a Terminal with **[#179]** `label`, the ending's words
+ * in the page's language (36.3).
  */
 export interface Creation {
-  from: { node: string; link: 'yes' | 'no' | 'option' | 'end'; outcome?: string }
+  from: { node: string; link: 'yes' | 'no' | 'option' | 'end'; label?: Record<string, string> }
   title?: Record<string, string>
 }
 
