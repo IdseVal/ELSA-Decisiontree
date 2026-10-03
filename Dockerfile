@@ -30,8 +30,8 @@ COPY --from=build /build/.next/standalone ./
 COPY --from=build /build/trees ./trees
 # ELSA_DATA_DIR has no default (application.md 17.1): mount a volume and name it when the
 # image is run, e.g. `docker run -v /srv/elsa-data:/data -e ELSA_DATA_DIR=/data`. The first
-# run also needs ELSA_ADMIN_PASSWORD (application.md 20.3), passed with --env-file and left
-# out of every later run (docs/deployment.md, "A container"). The folder
+# run also needs ELSA_ADMIN_EMAIL and ELSA_ADMIN_PASSWORD (application.md 20.3, 38.3), passed
+# with --env-file and left out of every later run (docs/deployment.md, "A container"). The folder
 # exists and belongs to `node` so that a fresh named volume mounted there is writable.
 RUN mkdir /data && chown node:node /data
 USER node

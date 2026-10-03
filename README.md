@@ -35,17 +35,18 @@ npm ci
 The application serves every published Tree of its data directory, `ELSA_DATA_DIR`. There
 is no default: the server refuses to start when the variable is unset or names a folder it
 cannot write. The first start fills the folder from `trees/`, every Tree published, and
-creates the administrator from `ELSA_ADMIN_PASSWORD` (12 characters or more; there is no
-default, so a first start without it refuses to start). Later starts need it no more.
+creates the administrator from `ELSA_ADMIN_EMAIL`, the e-mail address it logs in with, and
+`ELSA_ADMIN_PASSWORD` (12 characters or more). There is no default for either, so a first
+start without them refuses to start. Later starts need them no more.
 
 ```sh
-ELSA_ADMIN_PASSWORD='choose a password' npm run dev   # development; .env.development points at .elsa-data/
+ELSA_ADMIN_EMAIL=you@example.org ELSA_ADMIN_PASSWORD='choose a password' npm run dev   # development; .env.development points at .elsa-data/
 mkdir -p /tmp/elsa-data
-npm run build && ELSA_DATA_DIR=/tmp/elsa-data ELSA_ADMIN_PASSWORD='choose a password' npm start
+npm run build && ELSA_DATA_DIR=/tmp/elsa-data ELSA_ADMIN_EMAIL=you@example.org ELSA_ADMIN_PASSWORD='choose a password' npm start
 ```
 
 Then open `http://localhost:3000/` -- the overview of every published Tree, one tile each --
-or `http://localhost:3000/admin` to log in as `admin`.
+or `http://localhost:3000/admin` to log in with that address.
 The URL of a Node is `/<tree-id>/<node-id>`, e.g. `/ai-act-example/start`. Deleting the
 data directory resets it: the next start seeds it again. `npm run build` also copies the
 client bundle, the stylesheet and `schemas/` into `.next/standalone/`, so that folder plus
