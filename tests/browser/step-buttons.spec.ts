@@ -318,11 +318,11 @@ test('"Tree does not end here after all" gives the three structure buttons back 
   await expect(page.locator('.structure--no')).toHaveText('+ No')
   await expect(page.locator('.answer--start-again')).toBeHidden()
   await expect(endButton(page)).toHaveCount(0)
-  await expect(page.locator('[data-field="does-not-apply terminal.outcome"]')).toHaveCount(0)
+  await expect(page.locator('[data-field="does-not-apply terminal.label.en"]')).toHaveCount(0)
   await expect(cross(page)).toBeVisible()
   const node = await nodeOf(page, cookie, 'does-not-apply')
   expect(node.kind).toBe('explanation')
-  expect(node.outcome).toBeUndefined()
+  expect(node.label).toBeUndefined()
 })
 
 test('the cross deletes after one confirmation and lands on the parent, whose yes is free again', async ({ browser }) => {

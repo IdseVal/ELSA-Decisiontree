@@ -15,7 +15,8 @@
  * (the Overlay of an explanation Node at every maximum with eight Options of its own, 10.9),
  * the two Nodes with Images of `tests/fixtures/carousel/` (issue #43), the eight explainers
  * at every maximum of `tests/fixtures/explainers/` (issue #83), and the longest Node of the
- * first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55), and
+ * first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55),
+ * **[#179]** the full Node's Terminal whose words are at their 19 characters, and
  * **[#134]** the overview with fifteen tiles (26.3) -- each in
  * both languages, and each again with every Sheet it offers open -- the Overlay of each
  * Option among them -- every Image it carries enlarged and every explainer panel it marks
@@ -615,6 +616,35 @@ for (const lang of LANGUAGES) {
     test.slow()
     const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+}
+
+/**
+ * **[#179]** The ending at its limit (application.md 36.1, 36.5): the full Node's `applies`
+ * Terminal says "Mandatory safeguard" / "Maatregelen vereist", 19 characters of wide capitals,
+ * in the default stack (the fixture has no Theme), at the viewports of 10.6 and at 480 x 640,
+ * where the badge's room is narrowest: 198 pixels. The page never scrolls, and the badge is
+ * one line, its pill 24 pixels tall.
+ */
+const ENDING_URL = '/full-node/full/applies'
+const ENDING_VIEWPORTS = [...VIEWPORTS, [480, 640]] as const
+
+for (const lang of LANGUAGES) {
+  test(`the ending at its 19 characters, ${lang}, never scrolls, and its badge is one line, at any viewport of 10.6 and at 480 x 640`, async ({ page }) => {
+    const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
+    await measureEverywhere(page, `${origin}${inLang(ENDING_URL, lang)}`, 'the ending at its 19 characters', lang, true, ENDING_VIEWPORTS)
+    for (const [width, height] of ENDING_VIEWPORTS) {
+      // At and below the floor the notice stands in for the tree view, badge and all (10.4).
+      if (width <= 320 || height <= 480) continue
+      await page.setViewportSize({ width, height })
+      await page.goto(`${origin}${inLang(ENDING_URL, lang)}`)
+      await page.evaluate(() => document.fonts.ready)
+      const badge = page.locator('.bubble--terminal .outcome').filter({ visible: true })
+      await expect(badge).toHaveText(lang === 'en' ? 'Mandatory safeguard' : 'Maatregelen vereist')
+      const box = (await badge.boundingBox())!
+      rows.push({ page: `the ending's badge, ${box.width.toFixed(1)} x ${box.height.toFixed(1)} px`, lang, viewport: `${width}x${height}`, sheet: '', measured: await measure(page) })
+      expect(box.height, `the badge at ${width}x${height} (${lang}) takes one line`).toBe(24)
+    }
   })
 }
 

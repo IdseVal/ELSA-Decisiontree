@@ -154,17 +154,22 @@ export interface EndWords {
  * words in the page's language `lang`, focused when the Sheet opens, its typing stopped at 19
  * characters with the counter on it as every field's (28.3, 28.4), and `confirm`, enabled once
  * it holds a character that is not white space -- Enter is the same -- which makes the Node a
- * Terminal with those words (36.3). `cancel` closes the Sheet. A refusal -- a Node with Options
- * cannot end -- is shown on the Sheet; on success the page repaints and this Sheet is gone
- * with the row.
+ * Terminal with those words (36.3). `cancel` closes the Sheet, and a Sheet closed opens empty
+ * again. A refusal -- a Node with Options cannot end -- is shown on the Sheet; on success the
+ * page repaints and this Sheet is gone with the row.
  */
 export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang: string; heading: string; words: EndWords }) {
   const api = useEditor()
+  const root = useRef<HTMLFormElement>(null)
   const input = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const confirmable = text.trim() !== '' && !busy && !api.readOnly
+  useResetOnClose(root, () => {
+    setText('')
+    setError(null)
+  })
 
   // The field takes the focus when the Sheet opens: the words are the one thing an end needs.
   useEffect(() => {
@@ -192,7 +197,7 @@ export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang
 
   const id = `${nodeId}-ending-text`
   return (
-    <form className="structure-form structure-form--end" noValidate onSubmit={onSubmit}>
+    <form ref={root} className="structure-form structure-form--end" noValidate onSubmit={onSubmit}>
       <h2>{heading}</h2>
       {/* A row, not a label: the counter is no part of the field's name. */}
       <div className="editor-row structure-ending">

@@ -132,18 +132,21 @@ test.describe('the regions in place (28.1, 34.7)', () => {
     await expect(panel).toBeVisible()
   })
 
-  test('a Terminal shows its outcome as a select drawn as the badge (28.1)', async ({ browser }) => {
+  test('**[#179]** a Terminal shows its words as a plain field drawn as the badge, edited in place (28.1, 36.3)', async ({ browser }) => {
     const { page, cookie } = await loggedIn(browser, ANNA)
     await page.goto(`${origin}/admin/trees/hidden-draft/full/applies`)
-    // The badge is placed absolutely on the rim; its region has no box of its own to be visible by.
-    const select = page.locator('[data-field="applies terminal.outcome"] select')
+    // The region is the badge's own box, placed on the rim as the public badge is.
+    const words = page.locator('[data-field="applies terminal.label.en"]')
+    const area = words.locator('textarea')
 
-    await expect(select).toHaveValue('applicable')
-    await expect(select).toHaveClass(/outcome--applicable/)
-    await select.selectOption('refer')
+    await expect(area).toHaveValue('Mandatory safeguard')
+    await expect(words).toHaveClass(/outcome/)
+    await expect(page.locator('.bubble select')).toHaveCount(0)
+    await area.click()
+    await area.fill('A safeguard')
     await expect(status(page)).toContainText('Saved')
-    expect((await nodeOf(page, cookie, 'hidden-draft', 'applies')).outcome).toBe('refer')
-    await select.selectOption('applicable')
+    expect((await nodeOf(page, cookie, 'hidden-draft', 'applies')).label).toEqual({ en: 'A safeguard', nl: 'Maatregelen vereist' })
+    await area.fill('Mandatory safeguard')
     await expect(status(page)).toContainText('Saved')
   })
 

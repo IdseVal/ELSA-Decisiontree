@@ -189,14 +189,15 @@ async function landedOn(page: Page, from: string): Promise<string> {
   return id
 }
 
-/** `treeEndsHere` with `outcome` (30.3). */
-async function endHere(page: Page, outcome: string): Promise<void> {
+/** `treeEndsHere` with the ending's `words`, typed into its one field (30.3; **[#179]** 36.3). */
+async function endHere(page: Page, words: string): Promise<void> {
   await page.locator('.structure-end > .sheet-open').click()
   const form = page.locator('.structure-form--end')
   await expect(form).toBeVisible()
-  await form.locator(`input[value="${outcome}"]`).check()
+  await expect(form.getByRole('textbox')).toBeFocused()
+  await page.keyboard.type(words, { delay: 5 })
   await form.getByRole('button', { name: /^(Confirm|Bevestigen)$/ }).click()
-  await expect(page.locator(`[data-field="${new URL(page.url()).pathname.split('/').pop()} terminal.outcome"] select`)).toBeVisible()
+  await expect(page.locator(`[data-field="${new URL(page.url()).pathname.split('/').pop()} terminal.label.en"] textarea`)).toHaveValue(words)
 }
 
 const panelButton = (page: Page) => page.locator('.panel-sheet > .sheet-open')
@@ -303,24 +304,24 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   await expect(field(page, 'start', 'description.en').locator('.term')).toHaveText('provider')
   await step(page, '13-creator-explainer-marked')
 
-  // Yes: a new Node, landed on, that ends the Tree with an outcome (30.2, 30.3).
+  // Yes: a new Node, landed on, that ends the Tree with its words (30.2, 30.3).
   await page.locator('.structure--yes').click()
   yesId = await landedOn(page, `/admin/trees/${tree}/start`)
   await expect(page.locator('h1 textarea')).toHaveValue('')
   await step(page, '14-creator-landed-on-yes-node')
   await write(page, yesId, 'title.en', 'The AI Act applies to you')
   await write(page, yesId, 'description.en', 'As the provider you carry the obligations of the Act.')
-  await endHere(page, 'applicable')
+  await endHere(page, 'Applies')
   await step(page, '15-creator-yes-node-ends-here')
 
-  // No, from the root: the same, with the other outcome.
+  // No, from the root: the same, with other words.
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor('start'))
   await page.locator('.structure--no').click()
   noId = await landedOn(page, `/admin/trees/${tree}/start`)
   await write(page, noId, 'title.en', 'The AI Act does not apply to you')
   await write(page, noId, 'description.en', 'Without placing a system on the market you are not its provider.')
-  await endHere(page, 'not-applicable')
+  await endHere(page, 'Does not apply')
   await step(page, '16-creator-no-node-ends-here')
 
   // The side bubble (30.4), edited in its Overlay (30.5). **[#177]** One click on the fan's +

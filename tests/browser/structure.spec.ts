@@ -1,7 +1,8 @@
 /**
  * **[#139]** The structure editing, in a browser (docs/specs/application.md 30, 35.4;
  * ADR-133-structure-editing): from an empty root, `+ Yes` lands on a new empty Node whose up
- * arrow returns; `treeEndsHere` with an outcome shows the badge; the side `+` opens the new
+ * arrow returns; `treeEndsHere` asks for the ending's words, **[#179]** one field stopping at
+ * 19 characters, and the badge is then their field (36.3); the side `+` opens the new
  * Overlay editable and the Option's title edits on the button, and **[#177]** a second-level
  * aside is made from the aside's own page, the Overlay offering no `+` (30.4, 30.5, amended;
  * `side-bubble.spec.ts` has the rest of #177); two Answers reaching one Node -- **[#178]** made
@@ -13,11 +14,14 @@
  * Trail, and "Tree does not end here after all" gives the three buttons back; no button carries a
  * link menu; a Node with Options is refused an end and the Sheet says so; the ninth Option's `+`
  * is absent; and the count of Nodes created equals the count in the published `tree.json`.
- * `step-buttons.spec.ts` has the rest of #178.
+ * `step-buttons.spec.ts` has the rest of #178. **[#179]** Last, on a Tree of two languages, an
+ * ending typed to its limit in English and in Dutch, edited in place, and the public badge
+ * holding the same words once it is published (36.5).
  *
  * One story, in order, on a Tree of this file's own; the fixture Tree `hidden-draft` stands
  * for the full Node with its eight Options. The screenshots the issue asks for go to
- * `docs/screenshots/issue-139/` under `ELSA_SHOTS=1`, the results folder otherwise (35.7).
+ * `docs/screenshots/issue-139/` under `ELSA_SHOTS=1`, **[#179]** the ending's to
+ * `docs/screenshots/issue-179/`, and both to the results folder otherwise (35.7).
  */
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
@@ -30,6 +34,7 @@ import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-139') : path.join(RESULTS, 'shots')
+const ENDING_SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-179') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 130
 
 const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
@@ -47,6 +52,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async () => {
   await mkdir(SHOTS, { recursive: true })
+  await mkdir(ENDING_SHOTS, { recursive: true })
   const dir = await buildDataDir({
     trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.login }],
     accounts: [ANNA],
@@ -107,18 +113,25 @@ async function landed(page: Page, from: string): Promise<string> {
   return id
 }
 
-/** Opens `treeEndsHere` on the centre, chooses `outcome` and confirms (30.3). */
-async function endHere(page: Page, outcome: string): Promise<void> {
+/**
+ * Opens `treeEndsHere` on the centre, types the ending's `words` into its one field, key by
+ * key, and confirms (30.3; **[#179]** 36.3).
+ */
+async function endHere(page: Page, words: string): Promise<void> {
   await page.locator('.structure-end > .sheet-open').click()
   const form = page.locator('.structure-form--end')
   await expect(form).toBeVisible()
-  await form.locator(`input[value="${outcome}"]`).check()
+  await expect(form.getByRole('textbox')).toBeFocused()
+  await page.keyboard.type(words, { delay: 5 })
   await form.getByRole('button', { name: 'Confirm' }).click()
 }
 
-async function shoot(page: Page, name: string): Promise<void> {
+/** **[#179]** The ending's words on the rim, in `lang`: the field drawn as the badge (36.3). */
+const badge = (page: Page, nodeId: string, lang = 'en') => page.locator(`[data-field="${nodeId} terminal.label.${lang}"]`)
+
+async function shoot(page: Page, name: string, folder = SHOTS): Promise<void> {
   await page.evaluate(() => document.fonts.ready)
-  await page.screenshot({ path: path.join(SHOTS, `${name}.png`) })
+  await page.screenshot({ path: path.join(folder, `${name}.png`) })
 }
 
 /** The three outlined buttons of a Node without Links (30.1). */
@@ -180,19 +193,48 @@ test('the empty root offers + Yes, treeEndsHere and + No; + Yes lands on a new e
   await expect(page.locator('.link-menu')).toHaveCount(0)
 })
 
-test('treeEndsHere asks for the outcome and makes the Node a Terminal: the badge is the select, startAgain is the row, the buttons are gone; "Tree does not end here after all" gives them back (30.3, 30.8)', async ({ browser }) => {
+test('**[#179]** treeEndsHere asks for the ending\'s words and makes the Node a Terminal: the badge is their field, startAgain is the row, the buttons are gone; "Tree does not end here after all" gives them back (30.3, 30.8, 36.3)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor(['start', q1]))
-  await endHere(page, 'applicable')
-  const select = page.locator(`[data-field="${q1} terminal.outcome"] select`)
-  await expect(select).toHaveValue('applicable')
-  await expect(select).toHaveClass(/outcome--applicable/)
+  await page.locator('.structure-end > .sheet-open').click()
+  const form = page.locator('.structure-form--end')
+  // One field, named and focused, its placeholder saying what belongs in it, its counter at
+  // the limit's 19; no outcome is offered (36.3).
+  const input = form.getByRole('textbox', { name: 'Text of the ending' })
+  await expect(input).toBeFocused()
+  await expect(input).toHaveAttribute('placeholder', 'Text of the ending')
+  await expect(form.locator('input')).toHaveCount(1)
+  await expect(form.locator('.structure-ending-count')).toHaveText('0 / 19')
+  // `confirm` waits for a character that is not white space, and so does Enter.
+  const confirm = form.getByRole('button', { name: 'Confirm' })
+  await expect(confirm).toBeDisabled()
+  await page.keyboard.type('   ')
+  await expect(confirm).toBeDisabled()
+  await page.keyboard.press('Enter')
+  await expect(form).toBeVisible()
+  // Typing stops at the limit (28.4): the twentieth character does nothing.
+  await input.fill('')
+  await page.keyboard.type('Mandatory safeguards', { delay: 5 })
+  await expect(input).toHaveValue('Mandatory safeguard')
+  await expect(form.locator('.structure-ending-count')).toHaveText('19 / 19')
+  // `cancel` closes the Sheet, writes nothing, and the Sheet opens empty again.
+  await form.getByRole('button', { name: 'Cancel' }).click()
+  await expect(form).toBeHidden()
+  expect((await nodeOf(page, cookie, q1)).label).toBeUndefined()
+  await page.locator('.structure-end > .sheet-open').click()
+  await expect(input).toHaveValue('')
+  await page.keyboard.type('Applies', { delay: 5 })
+  await page.keyboard.press('Enter')
+
+  const words = badge(page, q1)
+  await expect(words.locator('textarea')).toHaveValue('Applies')
+  await expect(words).toHaveClass(/outcome/)
   await expect(page.locator('.answer--start-again')).toBeVisible()
   await expect(page.locator('.structure, .structure-end')).toHaveCount(0)
   // A Terminal carries no `+` in the fan (5.6).
   await expect(page.locator('.side-add')).toHaveCount(0)
-  await shoot(page, 'terminal-with-outcome')
-  expect((await nodeOf(page, cookie, q1)).outcome).toBe('applicable')
+  await shoot(page, 'terminal-with-words')
+  expect((await nodeOf(page, cookie, q1)).label).toEqual({ en: 'Applies' })
 
   // **[#178]** Beside the up arrow, in place of the step menu: the red cross, and on a Terminal
   // `removeEnd`, which gives the three buttons back at once; ended again, the story goes on (30.8, amended).
@@ -200,12 +242,13 @@ test('treeEndsHere asks for the outcome and makes the Node a Terminal: the badge
   await expect(page.getByRole('button', { name: 'Delete this step' })).toBeVisible()
   await page.getByRole('button', { name: 'Tree does not end here after all' }).click()
   await expectChoice(page)
-  await expect(page.locator(`[data-field="${q1} terminal.outcome"]`)).toHaveCount(0)
+  await expect(badge(page, q1)).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Tree does not end here after all' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Delete this step' })).toBeVisible()
-  expect((await nodeOf(page, cookie, q1)).outcome).toBeUndefined()
-  await endHere(page, 'applicable')
-  await expect(select).toHaveValue('applicable')
+  expect((await nodeOf(page, cookie, q1)).label).toBeUndefined()
+  // The words went with the marker: ended again, the Sheet asks for them again (36.3).
+  await endHere(page, 'Applies')
+  await expect(words.locator('textarea')).toHaveValue('Applies')
   // The root has no cross (30.8).
   await page.goto(editor(['start']))
   await expect(page.locator('.bubble[data-node="start"]')).toBeVisible()
@@ -221,15 +264,15 @@ test('+ No makes the second Answer; the new Node gets its own two Answers, each 
 
   await page.locator('.structure--yes').click()
   n2a = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
-  await endHere(page, 'prohibited')
-  await expect(page.locator(`[data-field="${n2a} terminal.outcome"] select`)).toHaveValue('prohibited')
+  await endHere(page, 'Prohibited')
+  await expect(badge(page, n2a).locator('textarea')).toHaveValue('Prohibited')
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start', n2]))
 
   await page.locator('.structure--no').click()
   n2b = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
-  await endHere(page, 'refer')
-  await expect(page.locator(`[data-field="${n2b} terminal.outcome"] select`)).toHaveValue('refer')
+  await endHere(page, 'Look elsewhere')
+  await expect(badge(page, n2b).locator('textarea')).toHaveValue('Look elsewhere')
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start', n2]))
   // Both Answers: the public row (30.1), **[#178]** with no link menu on either (30.6, amended).
@@ -304,7 +347,7 @@ test('**[#178]** two Answers reaching one Node, made through the API now that th
   // n2b is reached by nothing now: V-REACH, advisory, at the Node (30.9); it is not deleted.
   const orphan = (await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH').map((v) => v.file)
   expect(orphan).toEqual([n2b])
-  expect((await nodeOf(page, cookie, n2b)).outcome).toBe('refer')
+  expect((await nodeOf(page, cookie, n2b)).label).toEqual({ en: 'Look elsewhere' })
 })
 
 test('**[#178]** the red cross on the step a yes leads to: one confirmation names its title, the editor goes to the parent, whose yes is free again and makes a fresh step (30.8, amended; 30.2)', async ({ browser }) => {
@@ -325,8 +368,8 @@ test('**[#178]** the red cross on the step a yes leads to: one confirmation name
   await page.locator('.structure--yes').click()
   n2c = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
   await expectChoice(page)
-  await endHere(page, 'not-applicable')
-  await expect(page.locator(`[data-field="${n2c} terminal.outcome"] select`)).toHaveValue('not-applicable')
+  await endHere(page, 'Does not apply')
+  await expect(badge(page, n2c).locator('textarea')).toHaveValue('Does not apply')
   expect((await nodeOf(page, cookie, n2)).answers).toEqual({ yes: n2c, no: q1 })
   // n2a is gone, so it is no orphan; n2b still is.
   expect((await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH').map((v) => v.file)).toEqual([n2b])
@@ -376,13 +419,13 @@ test('a Node with Options cannot end: the Sheet shows the refusal and the Node i
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor([a1]))
   await expectChoice(page)
-  await endHere(page, 'refer')
+  await endHere(page, 'Look elsewhere')
   const error = page.locator('.structure-form--end .structure-error')
   await expect(error).toBeVisible()
   await expect(error).not.toHaveText('')
   console.log(`refused end on a Node with Options: ${await error.textContent()}`)
   await expect(page.locator('.structure-form--end')).toBeVisible()
-  expect((await nodeOf(page, cookie, a1)).outcome).toBeUndefined()
+  expect((await nodeOf(page, cookie, a1)).label).toBeUndefined()
 })
 
 test('the ninth Option’s + is absent: the full Node with eight Options has no side-bubble + and, **[#178]**, no button a link menu; no Overlay has one (30.4, 30.5, 30.6)', async ({ browser }) => {
@@ -463,4 +506,89 @@ test('published through #136’s route, the walk on the public page follows both
   await expect(page).toHaveURL(`${origin}/${TREE}/start/${a1}/${a2}`)
   await expect(page.locator('.overlay-interior[data-node]').last()).toHaveAttribute('data-node', a2)
   await shoot(page, 'public-walk-after-publish')
+})
+
+/** **[#179]** The ending's own Tree, in two languages (36.5). */
+const ENDING = 'ending'
+
+test('**[#179]** an ending typed to its limit in English and in Dutch is the badge in the editor, with a to-do while a language lacks it, and, published through #136\'s route, the public badge in both (36.3, 36.5)', async ({ browser }) => {
+  const { page, cookie } = await loggedIn(browser)
+  const call = (method: string, route: string, data?: unknown) => api(page, cookie, method, `/trees/${ENDING}${route}`, data)
+  expect((await api(page, cookie, 'POST', '/trees', { id: ENDING, languages: ['en', 'nl'], title: { en: 'An ending', nl: 'Een einde' } })).status()).toBe(201)
+  const create = async (link: 'yes' | 'no'): Promise<string> => ((await (await call('POST', '/nodes', { from: { node: 'start', link } })).json()) as { node: { id: string } }).node.id
+  const step = await create('yes')
+  const other = await create('no')
+  for (const [id, en, nl] of [
+    ['start', 'Is a safeguard needed?', 'Is een maatregel nodig?'],
+    [step, 'A safeguard is needed', 'Een maatregel is nodig'],
+    [other, 'No safeguard is needed', 'Geen maatregel nodig'],
+  ] as const) {
+    for (const [path, value] of [['title.en', en], ['title.nl', nl], ['description.en', `${en}.`], ['description.nl', `${nl}.`]]) {
+      expect((await call('PATCH', `/nodes/${id}`, { path, value })).status()).toBe(200)
+    }
+  }
+  expect((await call('POST', '/nodes', { from: { node: other, link: 'end', label: { en: 'Does not apply', nl: 'Niet van toepassing' } } })).status()).toBe(201)
+  const words = async (): Promise<DraftNode['label']> => ((await (await call('GET', `/nodes/${step}`)).json()) as { node: DraftNode }).node.label
+
+  // English: the Sheet, typed past the limit, which the twentieth character does not pass.
+  await page.goto(`${origin}/admin/trees/${ENDING}/start/${step}`)
+  await page.locator('.structure-end > .sheet-open').click()
+  const form = page.locator('.structure-form--end')
+  const input = form.getByRole('textbox', { name: 'Text of the ending' })
+  await expect(input).toBeFocused()
+  await page.keyboard.type('Mandatory safeguards', { delay: 5 })
+  await expect(input).toHaveValue('Mandatory safeguard')
+  await expect(form.locator('.structure-ending-count')).toHaveText('19 / 19')
+  await shoot(page, 'tree-ends-here-asks-for-the-words', ENDING_SHOTS)
+  await form.getByRole('button', { name: 'Confirm' }).click()
+
+  // The badge is the field: blurred, the public badge's capitals on one line of the pill's 24 pixels.
+  const en = badge(page, step)
+  await expect(en.locator('textarea')).toHaveValue('Mandatory safeguard')
+  expect(await en.evaluate((element) => getComputedStyle(element).textTransform)).toBe('uppercase')
+  expect((await en.boundingBox())!.height).toBe(24)
+  expect(await words()).toEqual({ en: 'Mandatory safeguard', nl: '' })
+  // A language without the words is a to-do (19.2): one line, for this step.
+  await page.locator('.todo-sheet > .sheet-open').click()
+  const todo = page.locator('.todo-list li')
+  await expect(todo).toHaveCount(1)
+  await expect(todo).toHaveAttribute('data-rule', 'V-L10N')
+  await expect(todo).toContainText('A safeguard is needed: missing or empty text for the declared language "nl"')
+  await page.keyboard.press('Escape')
+  // Focused, the words as typed, the counter and the missing language's tag on the right rim (28.3).
+  await en.locator('textarea').click()
+  expect(await en.evaluate((element) => getComputedStyle(element).textTransform)).toBe('none')
+  await expect(page.locator('.editor-rim .editor-pill')).toHaveText('19 / 19')
+  await expect(page.locator('.editor-rim .editor-tag')).toHaveText('nl')
+  await page.keyboard.press('End')
+  await page.keyboard.type('s')
+  await expect(en.locator('textarea')).toHaveValue('Mandatory safeguard')
+  await shoot(page, 'ending-at-its-limit-editor-en', ENDING_SHOTS)
+  await en.locator('textarea').blur()
+
+  // Dutch: the same step in the other language, its words not written yet, written in place.
+  await page.goto(`${origin}/admin/trees/${ENDING}/start/${step}?lang=nl`)
+  const nl = badge(page, step, 'nl')
+  await expect(nl.locator('textarea')).toHaveValue('')
+  await expect(nl.locator('textarea')).toHaveAttribute('placeholder', 'Tekst van het einde')
+  await nl.locator('textarea').click()
+  await page.keyboard.type('Maatregelen vereisten', { delay: 5 })
+  await expect(nl.locator('textarea')).toHaveValue('Maatregelen vereist')
+  await expect(page.locator('.editor-rim .editor-pill')).toHaveText('19 / 19')
+  await expect(page.locator('.editor-rim .editor-tag')).toHaveCount(0)
+  await shoot(page, 'ending-at-its-limit-editor-nl', ENDING_SHOTS)
+  await nl.locator('textarea').blur()
+  await expect.poll(words).toEqual({ en: 'Mandatory safeguard', nl: 'Maatregelen vereist' })
+
+  // Published (19.3), the public page's badge holds the same words, in both languages.
+  const published = await call('PUT', '/published', { published: true })
+  expect(published.status(), await published.text()).toBe(200)
+  for (const [lang, expected] of [['en', 'Mandatory safeguard'], ['nl', 'Maatregelen vereist']] as const) {
+    await page.goto(`${origin}/${ENDING}/start/${step}${lang === 'en' ? '' : '?lang=nl'}`)
+    await expect(page.locator('[data-field]')).toHaveCount(0)
+    const shown = page.locator('.bubble--terminal .outcome').filter({ visible: true })
+    await expect(shown).toHaveText(expected)
+    expect((await shown.boundingBox())!.height, lang).toBe(24)
+    await shoot(page, `ending-at-its-limit-public-${lang}`, ENDING_SHOTS)
+  }
 })

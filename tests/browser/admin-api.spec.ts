@@ -64,13 +64,13 @@ test('a creator builds, publishes and unpublishes a Tree through the API; the pu
   expect(((await refused.json()) as { violations: unknown[] }).violations.length).toBeGreaterThan(0)
 
   const ends: string[] = []
-  for (const [link, outcome] of [['yes', 'applicable'], ['no', 'refer']] as const) {
+  for (const [link, words] of [['yes', 'Applies'], ['no', 'Look elsewhere']] as const) {
     const node = await api(page, anna, 'POST', '/trees/api-tree/nodes', { from: { node: 'start', link } })
     expect(node.status()).toBe(201)
     const id = ((await node.json()) as { node: { id: string } }).node.id
     ends.push(id)
     await fill(id, `Ends ${link}`)
-    expect((await api(page, anna, 'POST', '/trees/api-tree/nodes', { from: { node: id, link: 'end', outcome } })).status()).toBe(201)
+    expect((await api(page, anna, 'POST', '/trees/api-tree/nodes', { from: { node: id, link: 'end', label: { en: words } } })).status()).toBe(201)
   }
   expect((await page.request.get(`${origin}/api-tree/start`)).status()).toBe(404)
 
