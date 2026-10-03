@@ -2590,11 +2590,13 @@ fieldset:disabled .admin-submit {
   }
 
   /*
-   * **[#181]** The cross stands 24 into the panel's text here, over the first line: the title's
-   * field, as wide as the panel, lay under it, and so did a long title's last words. It keeps
-   * clear of the cross on both sides, so the title stays centred.
+   * **[#181]** The cross stands 24 into the panel's text here, over the first line: the editor's
+   * title field, as wide as the panel, lay under it, and so did a long title's link on the public
+   * page (the 80 characters of `tests/fixtures/overlay/` at 390 x 844). The title keeps clear of
+   * the cross on both sides, so it stays centred, and in the editor and on the public page alike,
+   * so the field's region is the box the public title takes (28.1).
    */
-  .overlay-interior > h2:has(.editor-field) {
+  .overlay-interior > h2 {
     margin-inline: 24px;
   }
 }
