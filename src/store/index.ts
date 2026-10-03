@@ -14,9 +14,9 @@ import { cp, mkdir, readdir, readFile, rename, rm, stat, access, constants } fro
 import path from 'node:path'
 import type { Environment } from '../config.ts'
 import { convertTree } from '../tree/convert.ts'
-import { openTree, readTreeText, type Tree } from '../tree/loader.ts'
+import { formatViolation, openTree, readTreeText, TreeInvalid, violationsOf, type Tree } from '../tree/loader.ts'
 import { treeBytes } from '../tree/serialise.ts'
-import { isId, isMapping, validateTree, type Mode } from '../tree/validate.ts'
+import { isMapping, type Mode } from '../tree/validate.ts'
 import { openAccounts, type Accounts } from './accounts.ts'
 import { openDrafts, RESERVED_TREE_IDS, type Drafts } from './drafts.ts'
 import { loginLimit, type LoginLimit } from './login-limit.ts'
@@ -93,8 +93,8 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
   // by a published copy that cannot, or the other way round.
   for (const id of await listFolders(treesDir)) {
     const dir = path.join(/* turbopackIgnore: true */ treesDir, id)
-    await convertFile(id, dir, path.join(/* turbopackIgnore: true */ dir, 'tree.json'), 'published')
-    await convertFile(id, dir, path.join(/* turbopackIgnore: true */ dir, 'draft.json'), 'draft')
+    await convertAtStart(id, dir, path.join(/* turbopackIgnore: true */ dir, 'tree.json'), 'published')
+    await convertAtStart(id, dir, path.join(/* turbopackIgnore: true */ dir, 'draft.json'), 'draft')
   }
 
   const served = new Map<string, Tree>()
@@ -144,8 +144,9 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
  * The folder is assembled beside its final place and renamed into it, so a crash never
  * leaves half a Tree under a real id. **[#179]** The copy is validated, not the source: an
  * `elsa-tree/4` file is converted in the copy and stored as it was validated, and the source
- * folder is never written (36.4). Everything the loader reads is copied as it stands, so the
- * copy is refused for whatever the source would be.
+ * folder is never written (36.4). One whose converted copy fails is refused with that copy's
+ * violations, so the command names what to repair (12.7.1 step 8). Everything the loader
+ * reads is copied as it stands, so the copy is refused for whatever the source would be.
  *
  * `creator` is an account id: the administrator's at the seed (17.4). **[#135]** A Tree a
  * #134 store seeded before there were accounts has `null`, which `openStore` replaces.
@@ -204,15 +205,14 @@ export async function importTree(folder: string, treesDir: string, creator: stri
  * **[#179]** Converts `file`, the `tree.json` or `draft.json` of the Tree folder `dir`, from
  * `elsa-tree/4` to `elsa-tree/5` by tree-format.md 12.7.1, and replaces it atomically when the
  * result passes `mode`'s rules -- a draft its blocking ones (19.2), the published copy every
- * one (19.3) -- logging one line (36.4). A file that is not `/4`, that the loader would not
- * read, or whose conversion would not pass is left as it was: opening it then refuses the
- * Tree, or holds it uneditable, with its violations (18.3, 19.5). So is a file the disk will
- * not take, with one line saying why: one Tree refused, never a start that fails. `meta.json`
- * is not touched: no creator wrote.
+ * one (19.3) -- logging one line (36.4). A file that is not `/4`, or that the loader would not
+ * read, is left as it is, for opening it to answer. A result that would not pass is not
+ * written: it rejects with a `TreeInvalid` holding the violations that stopped it (step 8), as
+ * a write the disk refuses rejects with the disk's error. `meta.json` is not touched: no
+ * creator wrote.
  *
- * The result is checked as the loader checks a file, before a byte is written: the folder's
- * name and entries (V-DIR), then the schema and the rules against the files in `images/` and
- * `theme/`.
+ * The result is checked by the loader, as the bytes it would read in `dir`, before a byte is
+ * written.
  */
 async function convertFile(id: string, dir: string, file: string, mode: Mode): Promise<void> {
   const text = await readText(file)
@@ -220,22 +220,31 @@ async function convertFile(id: string, dir: string, file: string, mode: Mode): P
   if (!isMapping(value)) return
   const { tree, endings } = convertTree(value)
   if (tree === null) return
-  if (!isId(id) || (await isFile(path.join(/* turbopackIgnore: true */ dir, 'images'))) || (await isFile(path.join(/* turbopackIgnore: true */ dir, 'theme')))) return
-  const raw = {
-    id,
-    tree,
-    images: new Set(await listFiles(path.join(/* turbopackIgnore: true */ dir, 'images'))),
-    themeFiles: new Set(await listFiles(path.join(/* turbopackIgnore: true */ dir, 'theme'))),
-  }
+  const bytes = treeBytes(tree)
   // In published mode no violation carries `advisory`, so every one of them stops the write.
-  if (validateTree(raw, mode).some((violation) => !violation.advisory)) return
-  try {
-    await writeAtomic(file, treeBytes(tree))
-  } catch (error) {
-    console.error(`Not converted: Tree "${id}" ${path.basename(file)}: ${messageOf(error)}`)
-    return
-  }
+  const blocking = (await violationsOf(dir, bytes, mode)).filter((violation) => !violation.advisory)
+  if (blocking.length > 0) throw new TreeInvalid(id, blocking)
+  await writeAtomic(file, bytes)
   console.log(`Converted Tree "${id}" ${path.basename(file)} from elsa-tree/4 to elsa-tree/5: ${endings} endings`)
+}
+
+/**
+ * **[#179]** `convertFile` at the start (36.4). A file it does not convert is left as it was
+ * and reported, never thrown: one Tree refused or held uneditable, never a start that fails
+ * (18.3). The report is the violations that stopped the conversion, in the format of 5.4
+ * (12.7.1 step 8) -- not the `/4` file's own, which opening it answers with the schema alone,
+ * before any content rule -- or the disk's refusal.
+ */
+async function convertAtStart(id: string, dir: string, file: string, mode: Mode): Promise<void> {
+  try {
+    await convertFile(id, dir, file, mode)
+  } catch (error) {
+    const why =
+      error instanceof TreeInvalid
+        ? `the converted file would be invalid:\n${error.violations.map((violation) => formatViolation(id, violation)).join('\n')}`
+        : messageOf(error)
+    console.error(`Not converted: Tree "${id}" ${path.basename(file)}: ${why}`)
+  }
 }
 
 /** Refuses a 1.0 environment rather than half-reading it (17.1). */
@@ -359,15 +368,6 @@ async function copyEntry(from: string, to: string): Promise<void> {
 
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
-}
-
-/** The plain files directly inside `dir`, as the loader lists `images/` and `theme/`; none when it cannot be read. */
-async function listFiles(dir: string): Promise<string[]> {
-  try {
-    return (await readdir(dir, { withFileTypes: true })).filter((entry) => entry.isFile()).map((entry) => entry.name)
-  } catch {
-    return []
-  }
 }
 
 async function listNames(dir: string): Promise<string[]> {
