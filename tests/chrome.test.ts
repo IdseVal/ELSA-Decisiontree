@@ -5,9 +5,13 @@
 import { describe, expect, test } from 'vitest'
 import { chrome, chromeLanguage, CHROME_LANGUAGES, type Chrome } from '../src/chrome.ts'
 
-/** What a key says: its string, or, for a key that takes numbers, what it says of some. */
-function said(value: Chrome[keyof Chrome]): string {
-  return typeof value === 'function' ? (value as (...n: number[]) => string)(2, 5) : value
+/**
+ * What a key says: its string, or, for a key that takes a value, what it says of one --
+ * **[#197]** a list of names for `byAuthors`, numbers for the rest.
+ */
+function said(key: keyof Chrome, value: Chrome[keyof Chrome]): string {
+  if (typeof value !== 'function') return value
+  return key === 'byAuthors' ? (value as (names: string[]) => string)(['Anna de Vries']) : (value as (...n: number[]) => string)(2, 5)
 }
 
 describe('the chrome language follows the content language', () => {
@@ -41,7 +45,7 @@ describe('the chrome strings', () => {
     expect(keys.length).toBeGreaterThan(0)
     for (const language of CHROME_LANGUAGES) {
       for (const key of keys) {
-        expect(said(chrome(language)[key]), `${language}.${key}`).toMatch(/\S/)
+        expect(said(key, chrome(language)[key]), `${language}.${key}`).toMatch(/\S/)
       }
     }
   })
@@ -63,5 +67,25 @@ describe('the chrome strings', () => {
 
   test('the two languages hold exactly the same keys', () => {
     expect(Object.keys(chrome('nl')).sort()).toEqual(Object.keys(chrome('en')).sort())
+  })
+
+  // **[#197]** The mention of a Tree's Authors (39.4): the names in their order, a comma between
+  // all but the last two, which the language's own "and" joins.
+  test('byAuthors names one, two, three and five Authors in their order, in both languages (39.4)', () => {
+    const names = ['Anna de Vries', 'Bram Jansen', 'Cees Bakker', 'Dirk Visser', 'Erik de Boer']
+    const by = (language: string, count: number): string => chrome(language).byAuthors(names.slice(0, count))
+    expect(by('en', 1)).toBe('By Anna de Vries')
+    expect(by('en', 2)).toBe('By Anna de Vries and Bram Jansen')
+    expect(by('en', 3)).toBe('By Anna de Vries, Bram Jansen and Cees Bakker')
+    expect(by('en', 5)).toBe('By Anna de Vries, Bram Jansen, Cees Bakker, Dirk Visser and Erik de Boer')
+    expect(by('nl', 1)).toBe('Door Anna de Vries')
+    expect(by('nl', 2)).toBe('Door Anna de Vries en Bram Jansen')
+    expect(by('nl', 3)).toBe('Door Anna de Vries, Bram Jansen en Cees Bakker')
+    expect(by('nl', 5)).toBe('Door Anna de Vries, Bram Jansen, Cees Bakker, Dirk Visser en Erik de Boer')
+  })
+
+  test("nameShownPublicly says the account page's notice in both languages (39.8)", () => {
+    expect(chrome('en').nameShownPublicly).toBe('Shown on the public pages of the trees you create or collaborate on.')
+    expect(chrome('nl').nameShownPublicly).toBe("Wordt getoond op de openbare pagina's van de bomen die u maakt of waaraan u meewerkt.")
   })
 })
