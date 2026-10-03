@@ -311,7 +311,8 @@ export interface Chrome {
   /**
    * **[#180]** The font dropdown per role and the licence dropdown (37.2, 37.4, 37.5): the role's
    * empty choice, the two groups, the upload entry, the refusal of a name the other role uses
-   * for other files, and the licence entry with a free line.
+   * for other files, and the licence entry with a free line; and the family-name field's
+   * placeholder while it is empty (28.2, 37.4).
    */
   fontDefault: string
   fontSameAsBody: string
@@ -320,10 +321,12 @@ export interface Chrome {
   fontUpload: string
   fontNameTaken: string
   licenceOther: string
+  placeholderFontFamily: string
   /**
    * **[#180]** The Theme panel's information hints (#169): what each colour role paints, what
    * the contrast warning measures, what the logo's alternative text is for, what each font role
-   * sets, why a font needs a licence, and what an uploaded file's weight and style say.
+   * sets, why a font needs a licence, what the free licence line asks for, and what an uploaded
+   * file's weight and style say.
    */
   colourBackgroundHint: string
   colourSurfaceHint: string
@@ -337,6 +340,7 @@ export interface Chrome {
   fontBodyHint: string
   fontHeadingHint: string
   fontLicenceHint: string
+  licenceOtherHint: string
   fontFileHint: string
 }
 
@@ -556,6 +560,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontUpload: 'Upload a font file…',
     fontNameTaken: 'The other role uses this name for other files.',
     licenceOther: 'Another licence…',
+    placeholderFontFamily: 'Name of the font',
     colourBackgroundHint: 'The page behind the bubble, the bar at its top and the side-bubble buttons.',
     colourSurfaceHint: 'The bubble that holds each step, and the panels that open over the page, such as an enlarged picture.',
     colourTextHint: 'The titles and texts in the bubble, the Sources under their heading included. It must read well on Page and on Bubble.',
@@ -568,6 +573,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontBodyHint: 'The font of the running text: descriptions, Sources, the side-bubble buttons and captions.',
     fontHeadingHint: "The font of the titles: the tree's name, each step's title, the Sources heading and the words on the Yes and No buttons.",
     fontLicenceHint: 'A font is shared with this tree, so its licence must allow that, and the tree says which it is. A font whose licence you cannot name does not belong in it.',
+    licenceOtherHint: 'The licence under which this font is redistributed with the tree, and where its text is.',
     fontFileHint: 'The weight is how bold this file draws: 400 regular, 700 bold, or a range such as 400 700 for a variable font. Tick Italic when the file is the slanted face.',
   },
   nl: {
@@ -785,6 +791,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontUpload: 'Een lettertypebestand uploaden…',
     fontNameTaken: 'De andere rol gebruikt deze naam voor andere bestanden.',
     licenceOther: 'Een andere licentie…',
+    placeholderFontFamily: 'Naam van het lettertype',
     colourBackgroundHint: 'De pagina achter de bubbel, de balk erboven en de knoppen van de zijbubbels.',
     colourSurfaceHint: 'De bubbel waarin elke stap staat, en de panelen die over de pagina opengaan, zoals een vergrote afbeelding.',
     colourTextHint: 'De titels en teksten in de bubbel, de bronnen onder hun kop inbegrepen. Ze moeten goed leesbaar zijn op Pagina en op Bubbel.',
@@ -797,6 +804,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontBodyHint: 'Het lettertype van de lopende tekst: beschrijvingen, bronnen, de knoppen van de zijbubbels en bijschriften.',
     fontHeadingHint: 'Het lettertype van de titels: de naam van de boom, de titel van elke stap, de kop Bronnen en de woorden op de knoppen Ja en Nee.',
     fontLicenceHint: 'Een lettertype wordt met deze boom gedeeld, dus de licentie moet dat toestaan, en de boom zegt welke het is. Een lettertype waarvan je de licentie niet kunt noemen, hoort er niet in.',
+    licenceOtherHint: 'De licentie waaronder dit lettertype met de boom verder wordt verspreid, en waar de tekst ervan staat.',
     fontFileHint: 'Het gewicht is hoe vet dit bestand tekent: 400 normaal, 700 vet, of een bereik zoals 400 700 voor een variabel lettertype. Vink Cursief aan als het bestand de schuine letter is.',
   },
 }

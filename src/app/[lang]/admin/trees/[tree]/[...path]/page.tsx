@@ -353,6 +353,7 @@ function themeWords(ui: Chrome): ThemeWords {
     fontUpload: ui.fontUpload,
     fontNameTaken: ui.fontNameTaken,
     licenceOther: ui.licenceOther,
+    placeholderFontFamily: ui.placeholderFontFamily,
     colourBackgroundHint: ui.colourBackgroundHint,
     colourSurfaceHint: ui.colourSurfaceHint,
     colourTextHint: ui.colourTextHint,
@@ -365,6 +366,7 @@ function themeWords(ui: Chrome): ThemeWords {
     fontBodyHint: ui.fontBodyHint,
     fontHeadingHint: ui.fontHeadingHint,
     fontLicenceHint: ui.fontLicenceHint,
+    licenceOtherHint: ui.licenceOtherHint,
     fontFileHint: ui.fontFileHint,
   }
 }

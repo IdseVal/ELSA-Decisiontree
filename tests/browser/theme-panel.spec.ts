@@ -16,9 +16,9 @@
  * bar and panel in the default look whatever the palette; the Sources in the Theme's text; the
  * font and licence dropdowns of application.md 37, with a library family served from the Tree's
  * own address once published; the refusals of `fontNameTaken`, on the first Tree's shared
- * Open Sans among them; and every information hint. Its screenshots go to
- * `docs/screenshots/issue-180/` under `ELSA_SHOTS=1`; run them alone with `--grep "\[#180\]"`,
- * so issue #144's are not taken again.
+ * Open Sans among them; an upload whose font states no name; and every information hint. Its
+ * screenshots go to `docs/screenshots/issue-180/` under `ELSA_SHOTS=1`; run them alone with
+ * `--grep "\[#180\]"`, so issue #144's are not taken again.
  */
 import { mkdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -305,7 +305,10 @@ test('back to the default colours without a reload: the default returns on scree
 const EN = chrome('en')
 const NL = chrome('nl')
 
-/** The hint keys of the Theme part (#169), in the order the panel shows them on a Tree with a logo, colours and a heading font of its own. */
+/**
+ * The hint keys of the Theme part (#169), in the order the panel shows them on a Tree with a logo,
+ * colours and a heading font of its own, whose hand-made licence line stands under "Another licence…".
+ */
 const HINTS = [
   'logoAltHint',
   'colourBackgroundHint',
@@ -319,6 +322,7 @@ const HINTS = [
   'fontBodyHint',
   'fontHeadingHint',
   'fontLicenceHint',
+  'licenceOtherHint',
   'fontFileHint',
 ] as const
 
@@ -607,6 +611,32 @@ test('[#180] an upload proposes the font’s own name, takes a licence from “A
   // The uploaded font still works: the draft's stylesheet names it and the browser loads it.
   await expect.poll(() => property(page, '--elsa-font-body')).toContain("'Nova Square'")
   expect(await page.evaluate(async () => (await document.fonts.load("16px 'Nova Square'")).length)).toBeGreaterThan(0)
+})
+
+test('[#180] an upload whose font states no name leaves the name field empty with its placeholder; after a failed upload the file field is empty again', async ({ browser }) => {
+  const { page } = await loggedIn(browser, ANNA)
+  await page.goto(`${origin}/admin/trees/plain/full`)
+  await openPanel(page)
+  const heading = fontRole(page, 'heading')
+  await fontSelect(page, 'heading').selectOption({ label: EN.fontUpload })
+  // A WOFF2 cut short is still a WOFF2 to the upload, by its signature, but states no name (37.4).
+  const cut = { name: 'cut.woff2', mimeType: 'font/woff2', buffer: (await readFile(path.join(repo, 'fonts', 'roboto', 'roboto-normal.woff2'))).subarray(0, 4096) }
+  const field = heading.getByLabel('WOFF2 file')
+
+  // The network fails the first time: the field stays for another try, holding no file, so the same file chosen again is a change.
+  const upload = `${origin}/admin/api/trees/plain/theme`
+  await page.route(upload, (route) => route.abort())
+  await field.setInputFiles(cut)
+  await expect(themePanel(page).getByRole('alert')).toHaveText(EN.requestFailed)
+  expect(await field.evaluate((input: HTMLInputElement) => `${input.files?.length} "${input.value}"`)).toBe('0 ""')
+  await page.unroute(upload)
+
+  const uploaded = page.waitForResponse((response) => response.request().method() === 'POST' && response.url() === upload)
+  await field.setInputFiles(cut)
+  expect((await uploaded).status()).toBe(201)
+  expect((await (await uploaded).json()) as { file: string; family?: string }).not.toHaveProperty('family')
+  await expect(heading.getByLabel('Family name')).toHaveValue('')
+  await expect(heading.getByLabel('Family name')).toHaveAttribute('placeholder', EN.placeholderFontFamily)
 })
 
 for (const [lang, words] of [['en', EN], ['nl', NL]] as const) {

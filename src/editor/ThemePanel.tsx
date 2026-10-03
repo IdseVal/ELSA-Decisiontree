@@ -91,6 +91,7 @@ export type ThemeWords = Pick<
   | 'fontUpload'
   | 'fontNameTaken'
   | 'licenceOther'
+  | 'placeholderFontFamily'
   | 'colourBackgroundHint'
   | 'colourSurfaceHint'
   | 'colourTextHint'
@@ -103,6 +104,7 @@ export type ThemeWords = Pick<
   | 'fontBodyHint'
   | 'fontHeadingHint'
   | 'fontLicenceHint'
+  | 'licenceOtherHint'
   | 'fontFileHint'
 >
 
@@ -647,7 +649,8 @@ function NewFamily({
 
 /**
  * **[#180]** The family-name field (37.4): its typing stops at 64 characters, and a character 13.3
- * refuses is not taken at all -- the field keeps what it held, the caret where it was.
+ * refuses is not taken at all -- the field keeps what it held, the caret where it was. Empty, as
+ * after an upload whose font states no name, its placeholder says what belongs in it (28.2).
  */
 function NameInput({ id, words, value, disabled, onChange, onBlur }: { id: string; words: ThemeWords; value: string; disabled: boolean; onChange: (value: string) => void; onBlur?: () => void }) {
   return (
@@ -656,6 +659,7 @@ function NameInput({ id, words, value, disabled, onChange, onBlur }: { id: strin
       <input
         id={id}
         value={value}
+        placeholder={words.placeholderFontFamily}
         required
         disabled={disabled}
         onChange={(event) => {
@@ -700,7 +704,8 @@ function FamilyName({ id, words, value, disabled, taken, onSave }: { id: string;
 
 /**
  * **[#180]** The licence dropdown (37.5): the six licences by name, then "Another licence…" with
- * the free line under it, required and at most 200 characters. It shows the entry whose stored
+ * the free line under it, required and at most 200 characters, its hint tree-format.md 4.3.2's
+ * own sentence (ADR-171-licence-dropdown decision 2). It shows the entry whose stored
  * string is `value` exactly, and "Another licence…" with `value` in its line for anything else,
  * so a hand-made line is shown and kept as written. A listed licence is told at once; the free
  * line when it is left.
@@ -744,7 +749,10 @@ function LicencePicker({ licences, words, value, disabled, onChange }: { licence
       </div>
       {other && (
         <div className="admin-field">
-          <label htmlFor={`${id}-line`}>{words.licenceOther}</label>
+          <span>
+            <label htmlFor={`${id}-line`}>{words.licenceOther}</label>
+            <Hint id={`${id}-line-hint`} text={words.licenceOtherHint} name={words.hint} />
+          </span>
           <input
             id={`${id}-line`}
             name="licence"
