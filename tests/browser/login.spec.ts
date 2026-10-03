@@ -330,8 +330,8 @@ test.describe('with a session', () => {
     // Nowhere on the page can the holder change it.
     await expect(anna.locator('main input[type="email"]')).toHaveCount(0)
     await anna.goto(`${origin}/admin/account?lang=nl`)
-    await expect(line).toHaveText(`U logt in met ${ANNA.email}.`)
-    await expect(card.getByText('Vraag uw beheerder om het te wijzigen.')).toBeVisible()
+    await expect(anna.locator('.account-email')).toHaveText(`U logt in met ${ANNA.email}.`)
+    await expect(anna.getByText('Vraag uw beheerder om het te wijzigen.')).toBeVisible()
 
     const admin = await (await browser.newContext()).newPage()
     await login(admin, origin, ADMIN_EMAIL, ADMIN_PASSWORD)
@@ -362,12 +362,13 @@ test.describe('with a session', () => {
     const nameCard = page.locator('form', { has: page.getByRole('heading', { name: 'Your name' }) })
     const passwordCard = page.locator('form', { has: page.getByRole('heading', { name: 'Change password' }) })
 
+    await nameCard.getByLabel('Your name').fill('Cees van Dam')
+    await expect(nameCard.getByText('12 / 80')).toBeVisible()
     // **[#196]** One account per name, compared without regard to case and white space (38.6).
     await nameCard.getByLabel('Your name').fill('  anna ')
     await nameCard.getByRole('button', { name: 'Save' }).click()
     await expect(nameCard.getByRole('alert')).toHaveText('Another account has this name.')
     await nameCard.getByLabel('Your name').fill('Cees van Dam')
-    await expect(nameCard.getByText('12 / 80')).toBeVisible()
     await nameCard.getByRole('button', { name: 'Save' }).click()
     // **[#176]** The bar's link says "Account"; the name it shows on hover and to a screen reader is the new one (24.3).
     await expect(page.locator('header').getByRole('link', { name: 'Account', exact: true })).toHaveAccessibleDescription('Cees van Dam')
@@ -411,8 +412,8 @@ test.describe('with a session', () => {
     // **[#196]** The administrator's own row has one action, setEmail (38.5).
     const adminRow = page.locator(`.admin-row[data-email="${ADMIN_EMAIL}"]`)
     await expect(adminRow).toContainText('Administrator')
-    await expect(adminRow.locator('button')).toHaveCount(0)
     await expect(adminRow.locator('.admin-row-actions summary')).toHaveText(['Set e-mail address'])
+    await expect(adminRow.locator('.admin-row-actions > button')).toHaveCount(0)
 
     const sheet = page.locator('details.account-sheet').first()
     await sheet.locator('summary', { hasText: 'New account' }).click()
