@@ -358,9 +358,12 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   await page.goto(`${editor('start', yesId)}?lang=nl`)
   await write(page, yesId, 'title.nl', 'De AI-verordening is op u van toepassing')
   await write(page, yesId, 'description.nl', 'Als aanbieder draagt u de verplichtingen van de verordening.')
+  // **[#179]** The ending's words are a text of their own in each language, written on the badge (36.3).
+  await write(page, yesId, 'terminal.label.nl', 'Van toepassing')
   await page.goto(`${editor('start', noId)}?lang=nl`)
   // The No Node's Dutch description is left empty: the publish below must refuse it.
   await write(page, noId, 'title.nl', 'De AI-verordening is niet op u van toepassing')
+  await write(page, noId, 'terminal.label.nl', 'Niet van toepassing')
 
   // The collaborator, invited from the top panel (33.4).
   await page.goto(editor('start'))

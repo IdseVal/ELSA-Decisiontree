@@ -141,7 +141,9 @@ test.describe('the regions in place (28.1, 34.7)', () => {
 
     await expect(area).toHaveValue('Mandatory safeguard')
     await expect(words).toHaveClass(/outcome/)
-    await expect(page.locator('.bubble select')).toHaveCount(0)
+    // No select is the badge any more; the Sources' kinds keep theirs (36.2).
+    await expect(page.locator('[data-field="applies terminal.outcome"]')).toHaveCount(0)
+    await expect(words.locator('select')).toHaveCount(0)
     await area.click()
     await area.fill('A safeguard')
     await expect(status(page)).toContainText('Saved')
