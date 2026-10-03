@@ -628,7 +628,7 @@ for (const lang of LANGUAGES) {
  *
  * 480 x 640 is no viewport of 10.6, and there the disclaimer takes a second line in its row on
  * every page, with a badge or without -- the example Tree's root has the same 659 pixels of
- * body in the 640 of the window -- a defect older than #174, reported on #179's pull request.
+ * body in the 640 of the window, as on `dev` before #179 -- a defect reported on #179's pull request.
  * That one overflow is let through at that size, and nothing else is.
  */
 const ENDING_URL = '/full-node/full/applies'

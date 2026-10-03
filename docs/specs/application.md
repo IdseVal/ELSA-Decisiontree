@@ -5087,7 +5087,8 @@ Terminal, which says "Mandatory safeguard" / "Maatregelen vereist": that fixture
 maximum of the format at once, and has no Theme, so the runner draws it in the default stack.
 At 480 x 640, which is no viewport of 10.6, the disclaimer takes a second line in its 28-pixel
 row on every page -- the example Tree's root, which has no badge, has the same 659 pixels of
-body in a window of 640 -- a defect older than #174, which #179 reports and does not fix. So
+body in a window of 640, and so does `dev` before #179 (measured on e196d0d) -- a defect #179
+reports and does not fix. So
 at that size the row asserts that the document fits, that nothing but the disclaimer and the
 body it overflows holds more than itself, and that the badge is one line; 10.6's rule is
 asserted in full at the ten viewports.
