@@ -724,9 +724,9 @@ owner's words leave a choice:
     the visitor came from, since `/admin` is also opened from a bookmark or a typed
     address; each button is the last control at the right end of its bar, in the look of
     that bar's own controls; and below 480 pixels wide a Node page's bar gives up the
-    current language's pill for "Editor", as the admin area's bars have given it up since
-    #135, since "Editor" does not fit that bar at 320 pixels wide beside it (measured on
-    2026-10-03, `docs/adrs/ADR-202-navigation-round.md`; #204).
+    current language's pill for "Editor", as the Tree-less admin pages' bar has given it up
+    since #135, since "Editor" does not fit that bar at 320 pixels wide beside it (measured
+    on 2026-10-03, `docs/adrs/ADR-202-navigation-round.md`; #204).
   - **A Preview of a hidden Tree.** In the editor of a Tree that is not published, a button
     at the top left, under the chrome bar and not in it, opens a preview of the Tree as its
     readers will see it once it is published; in the preview, in the same place, a button

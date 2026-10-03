@@ -55,10 +55,11 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
   gap included, in the share button's look (38 to 40 in the account link's). At 320 x 480
   the bar then grows past the window in both languages and beside both Trees' logos, to
   330 to 360 pixels, and at 360 x 640 in Dutch beside the first Tree's logo, to 362 to
-  368, which the no-scroll rule forbids (10.6). The current language's pill is 48
-  ("English") or 71 ("Nederlands") pixels wide; with it given up below 480, as the
-  Tree-less admin pages' bar has given it up since #135 (24.3), "Editor" fits every
-  viewport below 480 with 27 to 43 pixels to spare at 320. The overview's bar keeps 37 to
+  368, which the no-scroll rule forbids (10.6). At 320 x 480 the current language's pill
+  is 48.4 ("English") or 71.5 ("Nederlands") pixels wide beside the first Tree, 46.5 or 67.7
+  beside the second; with it given up below 480, as the Tree-less admin pages' bar has
+  given it up since #135 (24.3), "Editor" in the share button's look fits every viewport
+  below 480, with 27 to 43 pixels to spare at 320. The overview's bar keeps 37 to
   48 pixels at 320 x 480 with "Editor" in it, and the bar at `/admin` keeps 13 to 27 with
   "Website" beside the administrator's four controls, so neither needs to give anything
   up. The method, the script and every row are `docs/research/issue-202-bar-room.md`.
@@ -123,8 +124,8 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
      at a time measures that bar.
    - #204 also waits for #203. Both amend 24.3's table and add a line to the header of
      `ADR-133-admin-routes.md`; one after the other, neither merges into the other's lines.
-     It costs #204 nothing: #203 can start when #196 merges, and #197, which #204 waits for
-     as well, only then.
+     It costs #204 little: #203 and #197, which #204 waits for as well, can both start when
+     #196 merges, and #203 is the smaller.
    - #205 waits for #202 only. It changes no code and measures the editor, not the bars
      #196, #197 and #200 change, so it can run beside them.
    - #206 waits for #205 and for #203: both edit the editor's page and the styles of its
@@ -178,7 +179,8 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
 6. **The core document is amended here for every passage the owner's words make untrue.**
    One is: 3.4's passage on what the round does not change, among them the end-user pages,
    which gain the "Editor" button and, below 480 pixels wide on a Node page, give up the
-   current language's pill for it (the latter PROPOSED, decision 5). It carries a `[#202]`
+   current language's pill for it (the pages it stands on, and the pill, PROPOSED, decision
+   5). It carries a `[#202]`
    mark pointing at the new bullet of 3.4, which holds the owner's words whole with the
    readings of decision 5. Nothing else the core document says is made untrue by the
    owner's words: the editor's arrow and the button on `/admin` add to pages whose controls
@@ -225,12 +227,14 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
   sets of controls, and the second to merge would measure it again.
 - **#203 beside #196.** See decision 3.
 - **Making room for "Editor" below 480 pixels wide with the Tree's logo, or with an icon.**
-  At 320 x 480 in Dutch the first Tree's bar has 7.1 pixels of room and needs 45 to 47:
-  the logo, 58 pixels wide there, would keep about a third of its width. An icon that says
-  nothing would not say "Editor", as the owner asked, and an icon button and its gap still
-  take more than 7 pixels. The current language's pill is the one thing in the bar that is
-  neither a control nor the Tree's mark, and the admin area's bars already give it up
-  below 480 (24.3, #135).
+  At 320 x 480 in Dutch the first Tree's bar has 7.1 pixels of room, and "Editor" takes
+  about 47 there: the logo, 58.4 pixels wide there (its maximum at that size,
+  `calc(22vw - 12px)`), would keep about a third of its width. An icon that says nothing
+  would not say "Editor", as the owner asked, and an icon button and its gap still take
+  more than 7 pixels. The current language's pill is the one thing in the bar that is
+  neither a control nor the Tree's mark -- but for #197's mention, which gives way by its
+  own room already (39.4) -- and the Tree-less admin pages' bar already gives it up below
+  480 (24.3, #135).
 - **Labelling the issues `proposed`.** The owner said `ready`, in the issue.
 
 ## Consequences
