@@ -9,6 +9,12 @@
   decision 6, the editor's draft Theme paints the Tree and not the editor's own interface --
   its bar, its floating controls and the panels of its Sheets keep the default look. Every page
   still emits its own Theme, once, through `ThemeStyle`; the rest stands.
+- **Amended 2026-10-03 by issue #195** (the owner's #194: "graphs should have a small mention
+  by who it was authored"): in decision 7, the public Node page's bar is no longer unchanged.
+  Between the Tree's mark and the controls it holds the mention of the Tree's Authors, one
+  line cut where its room ends and not drawn where under 80 pixels are left
+  (`ADR-195-the-mention.md`; `application.md` 24.3, 39.4). The Tree-less admin pages' bars and
+  the editor's bar are unchanged: the editor shows no mention. The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 24 (new); 4.1, 4.3, 6, 13.1 and 14 amended
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the admin addresses join the grammar behind the

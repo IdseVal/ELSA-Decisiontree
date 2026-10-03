@@ -10,6 +10,18 @@
 - Depends on: `docs/adrs/ADR-132-data-directory.md`
 - Amended 2026-09-27 by issue #162 (the owner's decision on PR #165): **decision 6's
   `Secure` comes off on a plain-HTTP deployment.** See the [#162] note there.
+- **Superseded in part 2026-10-03 by issue #195**, for the owner's decision on #194 ("To login
+  should be based on an email and a password"). Decision 1's **user name** and its alternative
+  rejected, **"E-mail address as login"**, are superseded: an account logs in with an e-mail
+  address (`ADR-195-login-by-email-address.md`), and its `name` is shown in the admin area and,
+  for an Author of a published Tree, on that Tree's public pages
+  (`ADR-195-names-on-public-routes.md`). Decision 4's **login `admin`** is superseded: the
+  administrator's address is `ELSA_ADMIN_EMAIL`'s, read at every start as decision 5's password
+  is (`ADR-195-administrator-address.md`). Decision 10's counter **"per login name"** counts per
+  address typed, and decision 11's **"never the name typed"** is never the address typed
+  (`ADR-195-login-by-email-address.md` decisions 8 and 9). The hash, the administrator's
+  password, the session, the cookie, the CSRF layers, the counters' numbers and the headers
+  stand; the text below is the record of #132.
 
 ## Context
 

@@ -8,6 +8,12 @@
   `terminal.outcome` becomes `terminal.label.<lang>` and `set-terminal` takes `label`; the
   manifest takes a fourth operation, `use-library-font`; the theme upload answers
   `{ file, family? }` (`application.md` 22.1, 22.2, 36, 37).
+- Amended 2026-10-03 by issue #195 (`ADR-195-login-by-email-address.md`,
+  `ADR-195-who-sees-and-changes-an-address.md`): `POST /admin/api/login` takes `{ email,
+  password }`; `GET /admin/api/me` answers `email` in place of `login`; `GET
+  /admin/api/accounts` answers `{ id, name }`; `POST /admin/api/accounts` takes `email`, and
+  `PATCH /admin/api/accounts/<id>` takes `email` from the administrator (`application.md` 22.1,
+  38.2).
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the `/admin` prefix joins the grammar as one
   reserved word), `ADR-5-repository-layout.md` (`src/app/[lang]/admin/` and `src/store/`),
   `ADR-4-image-reference.md` (the file-name grammar of 3.5 is now applied server-side to an
