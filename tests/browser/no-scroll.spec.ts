@@ -741,14 +741,16 @@ for (const lang of LANGUAGES) {
     }
 
     // A title may be one word of 80 letters: a word longer than the room breaks onto the next
-    // line instead of running out of the box sideways, past the ellipsis.
+    // line, under the ellipsis, instead of holding the bar and the page open to its width.
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(url)
     const sideways = await page.locator('.page-chrome .tree-title').evaluate((el) => {
       el.textContent = 'x'.repeat(80)
       return el.scrollWidth - el.clientWidth
     })
-    expect(sideways, `${what} (${lang}) at 390x844, one word of 80 letters: the title wider than itself`).toBeLessThanOrEqual(1)
+    const where = `${what} (${lang}) at 390x844, its title one word of 80 letters`
+    expect(sideways, `${where}: the title wider than itself`).toBeLessThanOrEqual(1)
+    assertFits(await measure(page), where)
   })
 }
 
