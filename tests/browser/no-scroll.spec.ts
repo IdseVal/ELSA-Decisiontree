@@ -17,6 +17,8 @@
  * at every maximum of `tests/fixtures/explainers/` (issue #83), and the longest Node of the
  * first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55),
  * **[#179]** the full Node's Terminal whose words are at their 19 characters,
+ * **[#200]** the page of a Tree with no logo and a title of 80 characters, which the chrome bar
+ * shows as text, at three windows below 600 pixels wide too,
  * **[#134]** the overview with fifteen tiles (26.3), **[#180]** and the full Node again in each
  * family of the font library, set in both roles (application.md 37.6) -- each in
  * both languages, and each again with every Sheet it offers open -- the Overlay of each
@@ -62,6 +64,8 @@ const EXPLAINERS_PORT = FULL_NODE_PORT + 7
 // Its own port: on the trigger test's, that test measured this fixture's 404 page and passed (PR #99).
 const OVERLAY_PORT = FULL_NODE_PORT + 8
 const OVERLAY_NO_SCRIPT_PORT = FULL_NODE_PORT + 9
+/** **[#200]** The long-title fixture: a Tree with no logo and a title of 80 characters. */
+const LONG_TITLE_PORT = FULL_NODE_PORT + 14
 /** **[#180]** The first of four: the full-node fixture in each family of the font library. */
 const LIBRARY_PORT = FULL_NODE_PORT + 15
 
@@ -199,8 +203,10 @@ async function measure(page: Page): Promise<Measured> {
       // The two exemptions: the Carousel strip scrolls sideways inside its own row (12.2),
       // and **[#134]** the overview's box scrolls down inside its own bounds (26.3). A tile's
       // title and description inside that box are clamped to their lines by 26.1: a cut
-      // with an ellipsis is the design, and `data-clamp` names exactly those two.
-      if (el.matches('[data-carousel-strip], [data-scroll-box], [data-scroll-box] [data-clamp]')) continue
+      // with an ellipsis is the design, and `data-clamp` names exactly those two. **[#200]** So
+      // is a cut in the chrome bar: a Tree's title as text, cut to the two lines the bar holds,
+      // and from #197 the line naming its Authors (39.6). The bar itself is still measured.
+      if (el.matches('[data-carousel-strip], [data-scroll-box], [data-scroll-box] [data-clamp], .page-chrome [data-clamp]')) continue
       const b = box(el)
       if (b.sh > b.ch + 1 || b.sw > b.cw + 1) {
         overflowing.push(`${name(el)} holds ${b.sw}x${b.sh} in ${b.cw}x${b.ch}`)
@@ -226,6 +232,20 @@ function assertFits(m: Measured, where: string): void {
   expect(m.body.sh, `${where}: the body is taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
   expect(m.body.sw, `${where}: the body is wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
   expect(m.overflowing, `${where}: elements whose content is wider or taller than themselves`).toEqual([])
+}
+
+/**
+ * The assertions of 10.6 at a window that is none of its viewports and where the disclaimer
+ * takes a second line in its row on every page -- 480 x 640, 520 x 800 and 560 x 800 among
+ * them, in both languages -- a defect reported on #179's pull request: the document still
+ * fits the window, and nothing but the disclaimer and the body it runs out of holds more
+ * than itself.
+ */
+function assertFitsBesideTheDisclaimer(m: Measured, where: string): void {
+  expect(m.doc.sh, `${where}: the document is taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
+  expect(m.doc.sw, `${where}: the document is wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
+  const others = m.overflowing.filter((element) => !/^(body|footer\.disclaimer) holds /.test(element))
+  expect(others, `${where}: elements other than the disclaimer whose content is wider or taller than themselves`).toEqual([])
 }
 
 /**
@@ -651,11 +671,7 @@ for (const lang of LANGUAGES) {
     expect((await page.goto(url))?.status()).toBe(200)
     const narrow = await measure(page)
     rows.push({ page: 'the ending at its 19 characters', lang, viewport: `${width}x${height}`, sheet: '', measured: narrow })
-    const where = `the ending at its 19 characters (${lang}) at ${width}x${height}`
-    expect(narrow.doc.sh, `${where}: the document is taller than the window`).toBeLessThanOrEqual(narrow.inner.h + 1)
-    expect(narrow.doc.sw, `${where}: the document is wider than the window`).toBeLessThanOrEqual(narrow.inner.w + 1)
-    const others = narrow.overflowing.filter((element) => !/^(body|footer\.disclaimer) holds /.test(element))
-    expect(others, `${where}: elements other than the disclaimer whose content is wider or taller than themselves`).toEqual([])
+    assertFitsBesideTheDisclaimer(narrow, `the ending at its 19 characters (${lang}) at ${width}x${height}`)
 
     for (const [w, h] of [...VIEWPORTS, NARROWEST]) {
       // At and below the floor the notice stands in for the tree view, badge and all (10.4).
@@ -668,6 +684,56 @@ for (const lang of LANGUAGES) {
       const box = (await badge.boundingBox())!
       rows.push({ page: `the ending's badge, ${box.width.toFixed(1)} x ${box.height.toFixed(1)} px`, lang, viewport: `${w}x${h}`, sheet: '', measured: await measure(page) })
       expect(box.height, `the badge at ${w}x${h} (${lang}) takes one line`).toBe(24)
+    }
+  })
+}
+
+/**
+ * **[#200]** The chrome bar of a Tree whose Theme names no logo, so that the bar shows its title
+ * as text (13.2, 13.4), and whose title is as long as the format allows, 80 characters
+ * (`tree-format.md` 5.7): `tests/fixtures/long-title/`, at the viewports of 10.6 and at the
+ * three windows below 600 pixels wide where #195 measured that title running out of the bar
+ * (`docs/research/issue-195-measurements.md` 2). At every one the bar is its row's 44 pixels,
+ * 36 below 480 wide, and holds nothing taller or wider than itself; the title lies inside it in
+ * at most the two lines it holds -- 20 pixels each, 14 below 480 -- cut with an ellipsis, and
+ * its whole text is its `title` and its accessible name.
+ */
+const LONG_TITLE_URL = '/long-title/start'
+const BELOW_600 = [[560, 800], [520, 800], [480, 640]] as const
+
+for (const lang of LANGUAGES) {
+  test(`a Tree with no logo and an 80-character title, ${lang}, never scrolls at any viewport of 10.6 or at three below 600 wide, its title cut to the bar's two lines`, async ({ page }) => {
+    test.slow()
+    const what = 'a Tree with no logo and an 80-character title'
+    const whole = (await openTree(path.join(fixtures, 'long-title'))).manifest.title[lang]!
+    expect([...whole], `the fixture's title in ${lang}`).toHaveLength(80)
+    const url = `${await served(fixtures, 'long-title', LONG_TITLE_PORT)}${inLang(LONG_TITLE_URL, lang)}`
+    await measureEverywhere(page, url, what, lang)
+
+    for (const [width, height] of BELOW_600) {
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(url))?.status()).toBe(200)
+      const m = await measure(page)
+      rows.push({ page: what, lang, viewport: `${width}x${height}`, sheet: '', measured: m })
+      assertFitsBesideTheDisclaimer(m, `${what} (${lang}) at ${width}x${height}`)
+    }
+
+    for (const [width, height] of [...VIEWPORTS, ...BELOW_600]) {
+      const where = `${what} (${lang}) at ${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(url))?.status()).toBe(200)
+      await page.evaluate(() => document.fonts.ready)
+      const bar = (await page.locator('header.page-chrome').boundingBox())!
+      expect(bar.height, `${where}: the bar`).toBe(width < 480 ? 36 : 44)
+      const title = page.locator('.page-chrome .tree-title')
+      const box = (await title.boundingBox())!
+      expect(box.y, `${where}: the title's top, inside the bar`).toBeGreaterThanOrEqual(bar.y)
+      expect(box.y + box.height, `${where}: the title's bottom, inside the bar`).toBeLessThanOrEqual(bar.y + bar.height)
+      expect(box.height, `${where}: the title in at most two lines`).toBeLessThanOrEqual(2 * (width < 480 ? 14 : 20))
+      await expect(title, where).toHaveAttribute('data-clamp', '')
+      await expect(title, where).toHaveText(whole)
+      await expect(title, where).toHaveAttribute('title', whole)
+      await expect(title, where).toHaveAccessibleName(whole)
     }
   })
 }
