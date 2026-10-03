@@ -334,8 +334,8 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | #177 | `deleteSideBubble` (the button at the foot of an opened side bubble, 30.7), `confirmDeleteSideBubble` (its confirmation, a function of the side bubble's title), `confirmDeleteUntitledSideBubble` (the same without a title), `sideBubbleStays` (what the confirmation adds where another step leads to the side bubble too) |
 | **[#171]** #179 | `endingText` ("Text of the ending" / "Tekst van het einde": the `treeEndsHere` Sheet's field and the empty badge field's placeholder, 36.3); **gone**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited`, `outcomeRefer`, and #138's `outcome`; **reworded**: #144's `colourDanger`, "Errors" / "Fouten" (36.1) |
 | **[#171]** #180 | `fontDefault`, `fontSameAsBody`, `fontLibraryGroup`, `fontOwnGroup`, `fontUpload`, `fontNameTaken`, `licenceOther`, with the strings of 37.2, 37.4 and 37.5; **[#180] added in the build**: the Theme panel's hints (33.8), `colourBackgroundHint`, `colourSurfaceHint`, `colourTextHint`, `colourTextMutedHint`, `colourAccentHint`, `colourAccentSecondaryHint`, `colourDangerHint`, `contrastHint`, `logoAltHint`, `fontBodyHint`, `fontHeadingHint`, `fontLicenceHint`, `fontFileHint`, named by #174's `hint`; **[#180] added in review**: `licenceOtherHint` (the hint behind the free licence line, 4.3.2's own sentence, 37.5; `ADR-171-licence-dropdown.md` decision 2) and `placeholderFontFamily` (the family-name field's placeholder while it is empty, 28.2, 37.4) |
-| **[#195]** #196 | `email` ("E-mail address" / "E-mailadres": the login page's field, the field of the new-account and `setEmail` Sheets, the accounts page's column), `emailInvalid` ("Enter an e-mail address, such as name@example.org." / "Vul een e-mailadres in, zoals naam@example.org."), `emailTaken` ("Another account has this e-mail address." / "Een ander account heeft dit e-mailadres."), `nameTaken` ("Another account has this name." / "Een ander account heeft deze naam."), `setEmail` ("Set e-mail address" / "E-mailadres instellen", in the words of `setPassword`), `noEmail` ("No e-mail address yet" / "Nog geen e-mailadres"), `signedInWith(email)` ("You sign in with <address>." / "U logt in met <adres>."), `emailHelp` ("Ask your administrator to change it." / "Vraag uw beheerder om het te wijzigen."), 38.5 and 38.6; **gone**: `login`, `loginInvalid`, `loginTaken`; **reworded**: `loginFailed`, "Wrong e-mail address or password." / "Verkeerd e-mailadres of wachtwoord.", and `sessionNotKept`, which opens "Your e-mail address and password are right" / "Uw e-mailadres en wachtwoord kloppen" (25.1) |
-| **[#195]** #197 | `byAuthors(names)` ("By A, B and C" / "Door A, B en C": the mention, 39.4), `nameShownPublicly` (the account page's notice, 39.8) |
+| **[#195]** (2026-10-03) #196 | `email` ("E-mail address" / "E-mailadres": the login page's field, the field of the new-account and `setEmail` Sheets, the accounts page's column), `emailInvalid` ("Enter an e-mail address, such as name@example.org." / "Vul een e-mailadres in, zoals naam@example.org."), `emailTaken` ("Another account has this e-mail address." / "Een ander account heeft dit e-mailadres."), `nameTaken` ("Another account has this name." / "Een ander account heeft deze naam."), `setEmail` ("Set e-mail address" / "E-mailadres instellen", in the words of `setPassword`), `noEmail` ("No e-mail address yet" / "Nog geen e-mailadres"), `signedInWith(email)` ("You sign in with <address>." / "U logt in met <adres>."), `emailHelp` ("Ask your administrator to change it." / "Vraag uw beheerder om het te wijzigen."), 38.5 and 38.6; **gone**: `login`, `loginInvalid`, `loginTaken`; **reworded**: `loginFailed`, "Wrong e-mail address or password." / "Verkeerd e-mailadres of wachtwoord.", and `sessionNotKept`, which opens "Your e-mail address and password are right" / "Uw e-mailadres en wachtwoord kloppen" (25.1) |
+| **[#195]** (2026-10-03) #197 | `byAuthors(names)` ("By A, B and C" / "Door A, B en C": the mention, 39.4), `nameShownPublicly` (the account page's notice, 39.8) |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -1152,7 +1152,7 @@ back.
 | 4 / 8 no accounts, cookies, tracking, analytics, database | 1 (no cookie, no telemetry), 2 (files only), 5. **[#132]** For end users unchanged: 20.5 (no public route sets or reads a cookie; the sweep). For creators: 20 (accounts, one cookie on `/admin`), 17 (JSON files, no database server). |
 | 3.4 **[#132]** many Trees, an overview in front, every share link kept | 18, 23.2 |
 | 3.4 **[#132]** saved automatically; hidden until Publish; a published Tree follows every valid save | 19 |
-| 3.4 / 8 **[#132]** creators with a name, a login, an administrator over every Tree; nothing about a creator on a public page or in a Tree file | 20, 17.2; **[#195]** the login an e-mail address (38), and an Author's name on its Tree's pages and nowhere else (39.8) |
+| 3.4 / 8 **[#132]** creators with a name, a login, an administrator over every Tree; nothing about a creator on a public page or in a Tree file | 20, 17.2; **[#195]** (2026-10-03) the login an e-mail address (38), and an Author's name on its Tree's pages and nowhere else (39.8) |
 | 3.4 / 9 **[#132]** every write checked on the server for that account and that Tree | 21, 22.1 |
 | 9 **[#132]** a hidden Tree on no public route, in no document | 23.1 |
 | 10.30 to 10.34 **[#132]** | 17, 20.1, 20.3, 19.4, 18 |
@@ -1172,7 +1172,7 @@ back.
 | 3.4 **[#133]** the end-user pages unchanged in behaviour | 34.1, 34.5, 34.8, 35.6 |
 | 3.4 **[#194]** an e-mail address and a password log in, the administrator's included; still no mail | **[#195]** (2026-10-03) 38: the address 38.1, the administrator's 38.3, a store of user names 38.4, who sees and who changes one 38.5 |
 | 3.4 / 8 / 9 **[#194]** every Tree names who authored it, the collaborators in the order they joined it; nothing else about an account on a public page | **[#195]** (2026-10-03) 39: who 39.1, the order 39.2, where 39.4 and 39.5; what may reach a public route 20.5 and 39.8, with `deployment.spec.ts`'s account sweep |
-| 10.39, 10.40 **[#194]** | **[#195]** 38, 39 |
+| 10.39, 10.40 **[#194]** | **[#195]** (2026-10-03) 38, 39 |
 
 ## 9. Where each decision is recorded
 
@@ -1183,7 +1183,7 @@ back.
 | **[#132]** Every published Tree served; `ELSA_TREE` gone; the loader per folder, the store the set; an invalid Tree unserved, not fatal; image and theme files under the Tree id | `docs/adrs/ADR-132-many-trees-per-deployment.md` |
 | **[#132]** `ELSA_DATA_DIR`: JSON files, an atomic writer with a queue per file, one process; the seed at first start; import, move, back up | `docs/adrs/ADR-132-data-directory.md` |
 | **[#132]** The draft is the same file under a named advisory set; Publish copies it when valid in full; every valid save of a published Tree is public at once | `docs/adrs/ADR-132-draft-and-publish.md` |
-| **[#132]** Accounts by the administrator, user name and scrypt; `ELSA_ADMIN_PASSWORD`; one `HttpOnly; Secure; SameSite=Strict; Path=/admin` cookie; three-layer CSRF; a login rate limit; the public routes set no cookie | `docs/adrs/ADR-132-accounts-and-sessions.md` -- **superseded in part [#195]**: an e-mail address in place of the user name, the administrator's from `ELSA_ADMIN_EMAIL` (`ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`) |
+| **[#132]** Accounts by the administrator, user name and scrypt; `ELSA_ADMIN_PASSWORD`; one `HttpOnly; Secure; SameSite=Strict; Path=/admin` cookie; three-layer CSRF; a login rate limit; the public routes set no cookie | `docs/adrs/ADR-132-accounts-and-sessions.md` -- **superseded in part [#195]** (2026-10-03): an e-mail address in place of the user name, the administrator's from `ELSA_ADMIN_EMAIL` (`ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`) |
 | **[#132]** Creator, collaborator, administrator; one table; `permit` on every request; invitations from a list | `docs/adrs/ADR-132-roles-and-permissions.md` |
 | **[#132]** Route handlers under `/admin/api`; a field or one Node operation per write; the Node as stored in every answer; last write wins per field; sniffed, renamed, capped uploads | `docs/adrs/ADR-132-editor-api.md` |
 | **[#132]** One 404 for hidden, unservable, unknown and reserved; one sitemap, `robots.txt` and `llms.txt` over every served Tree; `lastmod` per Tree | `docs/adrs/ADR-132-hidden-trees-and-findability.md` |
@@ -1222,7 +1222,7 @@ back.
 | **[#118]** `llms.txt` generated from the manifest; no `llms-full.txt`, because `tree.json` is it | `docs/adrs/ADR-118-llms-txt.md` |
 | **[#118]** The order of the four build issues #119 to #122 | `docs/adrs/ADR-118-build-order.md` |
 | **[#133]** Five admin pages under `[lang]`; the editor's address is the public grammar behind `/admin/trees`; the login page rendered in place; JavaScript required; every page emits its own Theme | `docs/adrs/ADR-133-admin-routes.md` |
-| **[#133]** The login card with one error; the account page; the administrator's accounts page | `docs/adrs/ADR-133-login-and-account-pages.md` -- **superseded in part [#195]**: the field an e-mail address; the address on the account and accounts pages (`ADR-195-login-by-email-address.md`, `ADR-195-who-sees-and-changes-an-address.md`) |
+| **[#133]** The login card with one error; the account page; the administrator's accounts page | `docs/adrs/ADR-133-login-and-account-pages.md` -- **superseded in part [#195]** (2026-10-03): the field an e-mail address; the address on the account and accounts pages (`ADR-195-login-by-email-address.md`, `ADR-195-who-sees-and-changes-an-address.md`) |
 | **[#133]** The tile and the grid in a scroll box (the second exemption); the + tile; the state mark; two groups; every published Tree plus one's own hidden ones | `docs/adrs/ADR-133-overview-tiles.md` |
 | **[#133]** The new-Tree form: an id that never changes, the languages with the first as default, a title per language; the editor on the root Node next | `docs/adrs/ADR-133-new-tree-form.md` |
 | **[#133]** Every field a region in place; the language switch as the editing switch; counters by the validator's functions, typing never stopped; the description as source; the no-scroll rule kept | `docs/adrs/ADR-133-bubble-edited-in-place.md` |
@@ -1242,14 +1242,14 @@ back.
 | **[#169]** The heading over the Sources says "Sources" / "Bronnen"; the kind labels unchanged | `docs/adrs/ADR-173-sources-heading.md` |
 | **[#180]** In the editor the draft's Theme paints the Tree; the bar, the floating controls and every editor Sheet keep the default; the bar's logo in its light variant | `docs/adrs/ADR-180-editor-interface-not-themed.md` |
 | **[#180]** Under their heading the Sources are `text`, label, kind and dot; a link told by an underline in it | `docs/adrs/ADR-180-sources-text-colour.md` |
-| **[#195]** An e-mail address in place of the user name: the browser's own check, at most 254 characters, lower-cased, one account per address; the rate limit per address typed; no address in the log | `docs/adrs/ADR-195-login-by-email-address.md` |
-| **[#195]** The administrator's address from `ELSA_ADMIN_EMAIL`, read at every start; none invented; the demo server's the owner's to choose | `docs/adrs/ADR-195-administrator-address.md` |
-| **[#195]** A store of user names converted at the first start; an account without an address waits for the administrator | `docs/adrs/ADR-195-accounts-without-an-address.md` |
-| **[#195]** An address seen by its holder and the administrator and changed by the administrator; the invitation list by name; one account per name | `docs/adrs/ADR-195-who-sees-and-changes-an-address.md` |
-| **[#195]** The Authors: the creator and the collaborators who hold a role now, never the administrator, in the order each first joined, by name alone | `docs/adrs/ADR-195-authors.md` |
-| **[#195]** `meta.json`'s `joined`, appended to and never reordered, filled in from the roles at the start | `docs/adrs/ADR-195-order-of-joining.md` |
-| **[#195]** "By A, B and C": one line in the chrome bar of a Node page and on the tile, cut where its room ends, not drawn under 80 pixels | `docs/adrs/ADR-195-the-mention.md` |
-| **[#195]** The names in the mention and nowhere else; nothing else about an account on a public route; `authors(id)`; the account sweep | `docs/adrs/ADR-195-names-on-public-routes.md` |
+| **[#195]** (2026-10-03) An e-mail address in place of the user name: the browser's own check, at most 254 characters, lower-cased, one account per address; the rate limit per address typed; no address in the log | `docs/adrs/ADR-195-login-by-email-address.md` |
+| **[#195]** (2026-10-03) The administrator's address from `ELSA_ADMIN_EMAIL`, read at every start; none invented; the demo server's the owner's to choose | `docs/adrs/ADR-195-administrator-address.md` |
+| **[#195]** (2026-10-03) A store of user names converted at the first start; an account without an address waits for the administrator | `docs/adrs/ADR-195-accounts-without-an-address.md` |
+| **[#195]** (2026-10-03) An address seen by its holder and the administrator and changed by the administrator; the invitation list by name; one account per name | `docs/adrs/ADR-195-who-sees-and-changes-an-address.md` |
+| **[#195]** (2026-10-03) The Authors: the creator and the collaborators who hold a role now, never the administrator, in the order each first joined, by name alone | `docs/adrs/ADR-195-authors.md` |
+| **[#195]** (2026-10-03) `meta.json`'s `joined`, appended to and never reordered, filled in from the roles at the start | `docs/adrs/ADR-195-order-of-joining.md` |
+| **[#195]** (2026-10-03) "By A, B and C": one line in the chrome bar of a Node page and on the tile, cut where its room ends, not drawn under 80 pixels | `docs/adrs/ADR-195-the-mention.md` |
+| **[#195]** (2026-10-03) The names in the mention and nowhere else; nothing else about an account on a public route; `authors(id)`; the account sweep | `docs/adrs/ADR-195-names-on-public-routes.md` |
 
 ## 10. The tree view
 
@@ -3063,14 +3063,14 @@ export function openStore(dataDir: string, env: Environment): Promise<Store>
 // Locks, reads accounts.json and sessions.json, opens every published Tree through
 // openTree, opens every draft in draft mode, seeds on first start, sets the
 // administrator's password (20.3). Never throws for one bad Tree (18.3).
-// [#195] Also gives the administrator its address (38.3), converts a store of user names
+// [#195] (2026-10-03) Also gives the administrator its address (38.3), converts a store of user names
 // (38.4) and fills in meta.json's joined (39.2).
 
 export interface Store {
   // the read side, every public route's (#134)
   published(id: string): Tree | null          // a servable published Tree; null for hidden, unservable, unknown, reserved
   publishedIds(): string[]                    // in id order
-  authors(id: string): string[]               // [#195] a servable published Tree's Authors' names; [] otherwise (39.8)
+  authors(id: string): string[]               // [#195] (2026-10-03) a servable published Tree's Authors' names; [] otherwise (39.8)
   // accounts and sessions (#135, section 20)
   readonly accounts: Accounts
   readonly sessions: Sessions
@@ -3523,8 +3523,8 @@ its collaborators, never the administrator, in the order in which each first joi
 | Delete the Tree -- **hidden Trees only** | yes | no | yes |
 | Manage accounts | no | no | yes |
 | Change own name and password | yes | yes | yes |
-| See the active accounts list (name, ~~login~~ **[#195]** no address, 38.5), for an invitation | yes | yes | yes |
-| **[#195]** Change an account's e-mail address (38.5) | no | no | yes: every account's, its own included |
+| See the active accounts list (name, ~~login~~ **[#195]** (2026-10-03) no address, 38.5), for an invitation | yes | yes | yes |
+| **[#195]** (2026-10-03) Change an account's e-mail address (38.5) | no | no | yes: every account's, its own included |
 
 A published Tree has share links, a dataset URL and sitemap entries out; **delete is two
 steps** -- unpublish, then delete -- and 409 while published. A collaborator edits but does
@@ -3576,12 +3576,12 @@ framework's. The prefix is `/admin/api/` and not `/api/admin/` so that the cooki
 
 | Method and path | Does | Answers |
 |---|---|---|
-| `POST /admin/api/login` | `{ login, password }`; **[#195]** `{ email, password }` from #196 (38.2) | 204 + cookie; 401; 429 |
+| `POST /admin/api/login` | `{ login, password }`; **[#195]** (2026-10-03) `{ email, password }` from #196 (38.2) | 204 + cookie; 401; 429 |
 | `POST /admin/api/logout` | ends the session | 204 + clearing cookie |
-| `GET /admin/api/me` | the caller | `{ id, name, login, administrator }`; **[#195]** `email` in place of `login` (38.2) |
-| `GET /admin/api/accounts` | active accounts, for an invitation (21.4) | `[{ id, name, login }]`; **[#195]** `[{ id, name }]` (38.5) |
-| `POST /admin/api/accounts` | administrator: `{ name, login, password }`; **[#195]** `{ name, email, password }` (38.2) | 201; 422 |
-| `PATCH /admin/api/accounts/<id>` | administrator: `name`, `active`, `password`; self: `name`, `password` + `currentPassword`; **[#195]** and `email` from the administrator alone, 403 from anyone else (38.5) | 200; 403; 422 |
+| `GET /admin/api/me` | the caller | `{ id, name, login, administrator }`; **[#195]** (2026-10-03) `email` in place of `login` (38.2) |
+| `GET /admin/api/accounts` | active accounts, for an invitation (21.4) | `[{ id, name, login }]`; **[#195]** (2026-10-03) `[{ id, name }]` (38.5) |
+| `POST /admin/api/accounts` | administrator: `{ name, login, password }`; **[#195]** (2026-10-03) `{ name, email, password }` (38.2) | 201; 422 |
+| `PATCH /admin/api/accounts/<id>` | administrator: `name`, `active`, `password`; self: `name`, `password` + `currentPassword`; **[#195]** (2026-10-03) and `email` from the administrator alone, 403 from anyone else (38.5) | 200; 403; 422 |
 | `GET /admin/api/trees` | the caller's `TreeEntry` list (administrator: all) | `[...]` |
 | `POST /admin/api/trees` | `{ id, languages, title }`: folder, `meta.json`, a draft with one root Node `start` | 201; 409 taken; 422 reserved or malformed |
 | `GET /admin/api/trees/<t>` | the `TreeEntry`: meta, manifest, `published`, `servable`, violations; **[#147]** and `written`, the number of localised texts holding a non-empty string per declared language (33.5) | 200 |
@@ -3860,7 +3860,7 @@ are #136's `permit`. `/admin/new` does not exist until #137.
 
 | Page | Left | Right | Theme |
 |---|---|---|---|
-| Public Node page | The Tree's logo or title; **[#195]** then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button | The published Tree's |
+| Public Node page | The Tree's logo or title; **[#195]** (2026-10-03) then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button | The published Tree's |
 | Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
 | Login page | `siteTitle` | language switch | The default |
 | Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
@@ -5178,8 +5178,8 @@ real person's address is in the repository (38.10).
 | `views.test.tsx` | 34.8 | #138 |
 | **[#171]** the rows of 36.5 | The ending's words: the rules, the conversion, the store's conversion at open, the Sheet, the public badge | #179 |
 | **[#171]** the rows of 37.6 | The font library, `use-library-font`, the upload's name, the dropdowns, the library in `no-scroll.spec.ts` | #180 |
-| **[#195]** the rows of 38.10 | The login by e-mail address: the check, the start's table, the conversion, the routes, the pages, every test that logs in | #196 |
-| **[#195]** the rows of 39.9 | The Authors: `joined`, `authorsOf`, `authors(id)`, the mention, the no-scroll rule with it, the account sweep | #197 |
+| **[#195]** (2026-10-03) the rows of 38.10 | The login by e-mail address: the check, the start's table, the conversion, the routes, the pages, every test that logs in | #196 |
+| **[#195]** (2026-10-03) the rows of 39.9 | The Authors: `joined`, `authorsOf`, `authors(id)`, the mention, the no-scroll rule with it, the account sweep | #197 |
 
 ### 35.5 The no-cookie sweep, extended
 
