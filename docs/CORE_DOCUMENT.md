@@ -61,6 +61,15 @@
 > on 2026-10-03: `docs/adrs/ADR-195-*.md`, `docs/specs/application.md` 38 and 39; their work
 > is #196 and #197, every PROPOSED reading of 3.4 `[#194]` that #195 settled says so where
 > it stands, and 10.22 records the one line its guarantee now lets be cut.
+>
+> **Revision of 2026-10-03 (issue #202).** The owner wrote, in issue #202, three ways
+> between pages that are missing: from the editor back to the overview at `/admin`; between
+> the public pages and `/admin`, both ways; and from the editor of a hidden Tree to a
+> preview of it as its readers will see it, and back. Every passage that changed is marked
+> **[#202]** and quotes or cites #202; nothing else in this document was touched. The
+> owner's words are held whole in section 3.4. How they became issues is
+> `docs/adrs/ADR-202-navigation-round.md`; the work is issues #203 to #206, and what the
+> words leave open about the preview is 10.41, for the Architect on #205.
 
 Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02 and 2026-10-03.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
@@ -675,6 +684,57 @@ owner's words leave a choice:
     another account carries (10.39), and "Idse Val" is no other account's; and the demo
     server's administrator needs an address of its own before that server can run the new
     login, which #198 asks the owner for (10.39).
+- **[#202] The ways between the pages: back from the editor, between the public pages and
+  `/admin`, and a preview of a hidden Tree (owner, #202, 2026-10-03).** Where this bullet
+  and a sentence above or below it disagree, this bullet holds. How the three points
+  became issues is `docs/adrs/ADR-202-navigation-round.md`. The owner's words, whole:
+  > "I am still missing a back to the top level interface button in the tree editor
+  > interface /admin/trees/...
+  >
+  > From the regular window, I want top right a button that says Editor and that directs
+  > to the login, or if user is logged in, moves to the editor interface on /admin. From
+  > the /Admin page I want a button that routes back to the regular page, in the same
+  > place.
+  >
+  > In an unpublished tree, I want a button that routes to a window with a preview of the
+  > tree, how the end users will see it. Place the button top left (not in the header
+  > bar). And from that view, in the same place a button that brings the user back to the
+  > editor interface where he came from"
+  - **A way back from the editor to the creators' overview.** "The top level interface"
+    is read as the creators' overview at `/admin`, the page the owner's #131 calls "the
+    editing page, this is the same front page with the overview of datastructures"
+    (above). PROPOSED (the owner gave no place): the round arrow the public Node page has
+    carried at the left of its chrome bar since #163, in the same place in the editor's
+    bar, before the Tree's logo, with the same look and the same name ("All decision
+    trees"), leading to `/admin` (#203).
+  - **"Editor" on the public pages, and a way back from `/admin`.** The public overview and
+    every Node page carry, at the top right of the chrome bar, a button that says "Editor"
+    and leads to `/admin`. One address serves both of the owner's cases: `/admin` shows the
+    login page to a visitor without a session and the creators' overview to one with a
+    session (above), so the public pages need not know who is logged in -- and must not,
+    since the session exists on the admin routes and nowhere else (section 9) and no
+    public route reads or sets a cookie (`docs/specs/application.md` 20.5). The page at
+    `/admin` carries, in the same place, a button that leads back to the public pages.
+    PROPOSED (the owner's words leave these open): "the regular window" is the overview
+    and every Node page, not the 404 page; "Editor" is the same word in Dutch, as "Account" is
+    (#176); "the /Admin page" is the page at `/admin` in both its states -- the login page
+    and the creators' overview -- and no other admin page; the button back says "Website"
+    in English and in Dutch and leads to the overview, since `/admin` cannot know which
+    public page the visitor came from; each button is the last control at the right end
+    of its bar (#204).
+  - **A Preview of a hidden Tree.** In the editor of a Tree that is not published, a button
+    at the top left, under the chrome bar and not in it, opens a preview of the Tree as its
+    readers will see it once it is published; in the preview, in the same place, a button
+    leads back to the editor. PROPOSED, for the Architect on #205 to confirm or replace:
+    the preview is a page of the admin area, behind the login, for an account with a role
+    on the Tree, and so never a public route, where section 9 allows a hidden Tree
+    nowhere; it opens in the same tab; the button is offered on a hidden Tree only, since
+    a published Tree's public page is that view and the settings panel links to it; "where
+    he came from" is the step and the language the preview was opened from; the buttons
+    say "Preview" ("Voorbeeld") and "Back to the editor" ("Terug naar de editor"). Its
+    address, what it shows of a draft that is not valid yet, its chrome bar and where its
+    buttons stand under the no-scroll rule are 10.41, the Architect's on #205; #206
+    builds it.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
@@ -700,7 +760,9 @@ the Tree format, the JSON-LD or `llms.txt` if 10.40 puts the names there; 3.4 ab
 **[#195]** placed on 2026-10-03 in the chrome bar of a Tree's Node pages and on its tile on
 the overview, one line cut where its room ends, at the guaranteed size too (10.22), and put
 in none of the three, so the Tree format, the JSON-LD and `llms.txt`
-stay as they were; 10.40).
+stay as they were; 10.40; **[#202]** and, of the pages alone, another since 2026-10-03,
+owner, #202: a button that says "Editor" at the top right of the overview and of every
+Node page, leading to `/admin`; the `[#202]` bullet above).
 The overview page is a new page in front of them; where the
 round must touch existing code (the loader opening several Trees, the sitemap listing
 several) the change is additive. The issue's own OUT OF SCOPE is "changes to the existing
@@ -770,6 +832,7 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 | **Editor** | **[#131]** The admin area's view of a Node: what the end user sees, every field editable in place. | editing page, editing mode, the same editor |
 | **Draft** (PROPOSED) | **[#131]** A Tree as its Creators have it: saved on every change, not necessarily valid, never public. | hidden mode |
 | **Published** | **[#131]** A Tree whose Creator turned the Publish toggle on: served on the public routes. A Tree that is not is **hidden**. | publish, hidden mode |
+| **Preview** (PROPOSED) | **[#202]** A hidden Tree's Draft shown as its readers will see it once it is Published: a page of the admin area, behind the login, opened from the Editor and left for it (3.4, 10.41). | a window with a preview of the tree, how the end users will see it |
 
 ## 6. Data sources and their constraints
 
@@ -933,3 +996,4 @@ Confirmed by the owner on 2026-09-03:
 | 10.38 | **[#133]** Adding or removing a language of an existing Tree (3.1: the languages are declared once and every text must carry each). The editor of this round fixes them at creation; the owner did not ask for more. | Idse | ~~**OPEN** -- filed as #147, `proposed`, so the owner decides by promoting it or leaving it (`docs/adrs/ADR-133-new-tree-form.md` decision 6)~~ **[#147] Promoted by the owner (2026-09-27) and built:** the top panel's "This Tree" section holds the languages as the new-Tree form's tags -- add one, make one the default, remove one after a confirmation that names the texts that go; each is one store operation across the whole draft, and a language added is an empty text in every field, listed as a to-do until written. `docs/specs/application.md` 22.2, 33.5 |
 | 10.39 | **[#194]** Logging in by e-mail address (3.4, owner 2026-10-03). What an address must be to be accepted, and whether case counts; which address the administrator logs in with, as every account logs in with one (3.4), and how a deployment supplies it, since the owner gave none for it and the owner's own goes to an account of its own; what the first start of the new release does with an account that has a user name and no address (the demo server of 3.4 `[#194]` has one: the administrator); who sees an address -- the accounts page, and the invitation list, which shows every active account's login to every logged-in account today (`docs/specs/application.md` 21.4, 33.4) -- and who may change one; the rate limit and the log lines for an address (20.7, 20.8). | Architect; Idse may overrule | ~~**OPEN** -- decided on #195~~ **[#195] Decided by the Architect (2026-10-03):** **an address** is what the browser's own e-mail field accepts (the HTML Standard's *valid e-mail address*), at most 254 characters, lower-cased when given, so case never counts, and held by one account only; `email` replaces `login` in the account and in every route. **The administrator's** comes from `ELSA_ADMIN_EMAIL`, read at every start as `ELSA_ADMIN_PASSWORD` is -- it creates the administrator, gives a converted one its address, replaces a forgotten one, and the start refuses while the administrator has none -- and the repository invents none: the live demo server's is a value only the owner can choose, which #198 asks for. **A store of user names** is converted at the first start of the release: the administrator takes the variable's address; every other account has none and cannot log in until the administrator gives it one on the accounts page, and is otherwise whole; `docs/deployment.md` writes both ways back, with a backup first. **Who sees an address**: its holder, on the account page, and the administrator, on the accounts page; nobody else -- the list a creator invites from shows names, so no account is given a name another account carries, and two that a converted store already held are logged at every start until one of them is renamed. **Who changes one**: the administrator alone, for every account, without a current password; the holder asks the administrator (the nearest call of the four: the owner may give the holder that change, with the current password, without moving anything else). **The rate limit** counts per address typed, whether or not an account holds it, and **the log** holds no address. `docs/adrs/ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`, `ADR-195-accounts-without-an-address.md`, `ADR-195-who-sees-and-changes-an-address.md`; `docs/specs/application.md` 38; built by #196 |
 | 10.40 | **[#194]** The mention of who authored a Tree (3.4, owner 2026-10-03). Who is named where the owner's words leave it open: a collaborator removed, a deactivated account, the administrator (the creator of every seeded Tree, `docs/specs/application.md` 17.1), a Tree handed over; whether the mention names the accounts of the PROPOSED row **Author** (section 5) or, as sections 1, 2 and 3.1 use *author*, whoever writes a Tree's content; how the order of joining is kept, since `meta.json` lists collaborators in the order they were invited and a hand-over adds the old creator as a collaborator (21.4) at the end of that list (`handOver` in `src/store/drafts.ts`); what the mention shows when the names do not fit; where it stands -- a Tree's pages, its overview tile, the editor -- under the no-scroll rule of section 9; whether the names also go into `tree.json`, the JSON-LD or `llms.txt`, which carry none today (section 8, `application.md` 17.2). | Architect; Idse may overrule | ~~**OPEN** -- decided on #195~~ **[#195] Decided by the Architect (2026-10-03):** **who** -- the Tree's creator and its collaborators who hold that role now, **never the administrator**, in the order in which each **first** joined the Tree, each by the name of the account alone: 3.4's PROPOSED reading, confirmed. A collaborator removed is no longer named and, invited again, keeps its first place; a deactivated account is still named; after a hand-over the account that made the Tree keeps its place. The row **Author** of section 5 is that account: for a Tree made in the editor, its authors in the sense of sections 1, 2 and 3.1; a seeded Tree, whose authors have no account here, names nobody until it is handed to the account of one -- on the live demo server, each of its three. **The order** is kept in `meta.json`'s new `joined`, appended to and never reordered, filled in from the roles at the first start. **The mention** says "By A, B and C" / "Door A, B en C" on one small line in the chrome bar of every Node page of the Tree, between its mark and the controls, and on its tile on both overviews; when the names do not fit it is cut where its room ends, the last to join first, and where under 80 pixels are left it is not drawn -- so on a phone a reader meets it on the tile, whose line is cut where its own room ends; nothing in the Bubble or its rows moves. **Not** in the editor, and the names go **nowhere else**: not `tree.json`, the JSON-LD or `llms.txt`; a hidden Tree's names on no public route; the account sweep of `tests/browser/deployment.spec.ts` proves that no address, no account id and no name but a published Tree's Authors' reaches a public route. `docs/adrs/ADR-195-authors.md`, `ADR-195-order-of-joining.md`, `ADR-195-the-mention.md`, `ADR-195-names-on-public-routes.md`; `docs/specs/application.md` 39; built by #197 |
+| 10.41 | **[#202]** The **Preview** of a hidden Tree (3.4, owner 2026-10-03). Its address, which the admin area's addresses do not include (`docs/specs/application.md` 24.1); who may open it, and what it answers without a session or a role, for an unknown id, for an uneditable Tree and for a Tree published since it was opened; how the public components draw a draft through it -- the addresses and the pictures the reuse rule gives them (34), the neighbour frames and the slide the editor never renders, the Theme, the chrome bar (the arrow of #163, the language switch, the share button, the mention of the Authors, #204's "Editor") and the page's head -- and what a reader sees of a draft that is not valid yet: a missing title or text in a language, a step without Answers or an end, an ending without words, a picture without a credit; where its button and the way back stand under the no-scroll rule of section 9, beside the up arrow, the step's buttons and the editor's floating controls; what "where he came from" returns to; and whether the PROPOSED readings of 3.4 `[#202]` and of the row **Preview** (section 5) stand. | Architect; Idse may overrule | **OPEN** -- for the Architect on #205; built by #206 |
