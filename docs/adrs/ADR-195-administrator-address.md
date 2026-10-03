@@ -86,6 +86,15 @@ of each deployment, and nothing the repository can know.
   `ADR-132-accounts-and-sessions.md` decision 5 gives for the password holds for the address.
 - **The variable read at the first start only.** No way back for a forgotten address but
   editing `accounts.json` by hand; decision 5 of ADR-132 rejected the same for the password.
+- **Starting without it**, the administrator left without an address and unable to log in until
+  a later start gives it one, so that the public pages stay up through an upgrade -- what
+  `ADR-195-accounts-without-an-address.md` decision 2 does for every other account. Every other
+  account waits for the administrator, who gives it an address on the accounts page; the
+  administrator waits for nobody inside the application, and on a converted store no account
+  could log in at all, the administrator's included, until the deployer restarted with the
+  variable anyway. An upgrade is a start a deployer is present for: a refusal that names the
+  variable is read at once, where an admin area nobody can enter is found when someone next
+  needs it.
 - **The owner's address, idse.val@wur.nl, for the administrator.** The owner gave it for an
   account of the owner's own, beside the administrator's (#194, #198).
 

@@ -62,7 +62,8 @@ requires 1 to 80 characters and nothing more.
    (39), so it never names two people alike either.
 
 5. **What the account page shows**: the line `signedInWith(email)` -- "You sign in with
-   <address>." / "U meldt zich aan met <adres>." -- in the password card, one line cut with an
+   <address>." / "U logt in met <adres>.", in the words of `signIn`, "Sign in" / "Inloggen"
+   -- in the password card, one line cut with an
    ellipsis where it does not fit, the whole address its `title`; for a converted account
    without an address, `noEmail` there instead (`ADR-195-accounts-without-an-address.md`); and
    `emailHelp` under it. The hidden `username` field of the password form holds the address, so

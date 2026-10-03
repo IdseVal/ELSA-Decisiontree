@@ -6,6 +6,9 @@
 - Issue: #195 -- Architecture: freeze the login by e-mail address and password, and the
   mention of who authored a Tree, the collaborators in the order they joined it
 - Spec: `docs/specs/application.md` 39.1 (new); 20.1, 21.1 amended, marked **[#195]**
+- Supersedes: no earlier decision. What the owner's #194 itself reverses -- core document 8
+  and 9's "nothing about a creator may reach a public page" -- is restated for the mention by
+  `ADR-195-names-on-public-routes.md`
 - Depends on: `ADR-132-roles-and-permissions.md` (the roles, the hand-over),
   `ADR-195-order-of-joining.md` (the order), `ADR-195-who-sees-and-changes-an-address.md`
   decision 4 (one account per name)

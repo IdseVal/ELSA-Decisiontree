@@ -21,8 +21,9 @@ else of the page was changed:
   or the title as text) and the controls (the language switch and the share button), taking
   the free room of the bar (`flex: 1 1 0`), its own left margin cancelling the bar's gap so
   that it takes no pixel when it holds nothing; a size container (`container-type:
-  inline-size`), whose one line -- 13 pixels on 20 in `text-muted`, 11 on 14 below 480 pixels
-  wide as the bar's pills -- is cut with an ellipsis where the box ends, and is not drawn where
+  inline-size`), whose one line -- 13 pixels on 20 in `text-muted` (the bar's `--small`), 11
+  on 14 below 480 pixels wide, the size of the bar's pills there -- is cut with an ellipsis
+  where the box ends, and is not drawn where
   the box leaves it under 80 pixels. *room* is the width the line has, the bar's gap taken off.
 - Two mentions per page: one name ("By Idse Val" / "Door Idse Val") and three ("By Anna de
   Vries, Bram Jansen and Cees Bakker" / "Door Anna de Vries, Bram Jansen en Cees Bakker"), each

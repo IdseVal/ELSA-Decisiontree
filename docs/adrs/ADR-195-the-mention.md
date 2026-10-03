@@ -39,13 +39,15 @@ after two tags on `/` and 107 to 125 when the creators' overview adds its state 
    "By Anna de Vries", "By Anna de Vries and Bram Jansen", "By Anna de Vries, Bram Jansen and
    Cees Bakker"; in Dutch "Door Anna de Vries", "Door Anna de Vries en Bram Jansen", "Door Anna
    de Vries, Bram Jansen en Cees Bakker": the names in the order of `ADR-195-authors.md`, a
-   comma between all but the last two, which "and" / "en" joins. Chrome language, by 3.1; the
-   names as their accounts hold them.
+   comma between all but the last two, which "and" / "en" joins. Chrome language, by 3.1, so
+   the element carries the chrome language's `lang` where the page's content language is
+   another, as the disclaimer does; the names as their accounts hold them.
 
 2. **Where: two places, and no other.**
    - **The chrome bar of every Node page of a published Tree**, between the Tree's mark and the
-     controls, on one line in the bar's small type -- 13 pixels on 20, 11 on 14 below 480
-     pixels wide, as the bar's pills -- in `text-muted`:
+     controls, on one line in the bar's small type -- `--small`, 13 pixels on 20, the size of a
+     Tree's title written in the bar as text; 11 on 14 below 480 pixels wide, where the bar's
+     pills are 11 too -- in `text-muted`:
 
      ```
      +--------------------------------------------------------------------------------+  44

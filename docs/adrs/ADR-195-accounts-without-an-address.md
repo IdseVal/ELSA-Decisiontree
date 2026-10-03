@@ -5,6 +5,9 @@
 - Issue: #195 -- Architecture: freeze the login by e-mail address and password, and the
   mention of who authored a Tree, the collaborators in the order they joined it
 - Spec: `docs/specs/application.md` 38.4, 38.9 (new); 17.4, 20.1 amended, marked **[#195]**
+- Supersedes: no earlier decision. The `login` it converts away is superseded by
+  `ADR-195-login-by-email-address.md`; `ADR-132-accounts-and-sessions.md`'s rule that an
+  account is deactivated and never deleted stands, and no account is deleted here either
 - Depends on: `ADR-195-login-by-email-address.md`, `ADR-195-administrator-address.md`
 - Measurement: the live demo server's store, read on #194 (2026-10-03): one account, the
   administrator, login `admin`, display name `Administrator`
