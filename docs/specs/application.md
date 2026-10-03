@@ -6010,8 +6010,11 @@ hidden Tree's included, and `store.authors(id)` for the other published Trees, a
 
 The cut line is the design, not an overflow. `no-scroll.spec.ts`'s element walk skips
 `.page-chrome [data-clamp]` as it skips `[data-scroll-box] [data-clamp]`, which already covers
-the tiles' mention inside the grid's scroll box (26.3); `admin-no-scroll.spec.ts` skips every
-`[data-clamp]` already. The walk still checks the bar and everything else in it, and #197's
+the tiles' mention inside the grid's scroll box (26.3), and still checks the bar and everything
+else in it. `admin-no-scroll.spec.ts` skips every `[data-clamp]` already, and so does #181's
+`creation-walk.spec.ts`, in its 10.6 audit and in its audit of text crossing its box: the Tree
+it makes has one Author, the walk's own account, so its public steps, 22 and 23, draw the
+mention where 39.4 gives it room, and the walk needs no change for it. #197's
 `authors.spec.ts` checks the mention itself (39.9). Nothing changes in the rows of 10.1 or in
 the Bubble, and 10.7's limits stand.
 
