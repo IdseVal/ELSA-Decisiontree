@@ -66,9 +66,16 @@ byte, under CC BY 4.0 (15); the JSON-LD, whose `Dataset` names as `creator` the 
    languages; its `tree.json`; the schema; `robots.txt`; `sitemap.xml`; `llms.txt`; an image and
    a theme file; and the hidden Tree's root address, which is the 404. It asserts that no
    response, headers or body, holds any account's address or id; that the hidden-only Author's
-   name is in none; and that the published Tree's Authors' names are in its Node pages and the
-   overview, in each only inside the mention's element (the page without that element holds
-   none of them), and in no other response.
+   name is in none, every byte read; and that the published Tree's Authors' names are in its
+   Node pages and the overview, and in no other response. In each of those, the names are read
+   in its markup with every `<script>` element removed but the JSON-LD's: there they stand only
+   inside a mention's element, and the markup without the mention's elements holds none of
+   them. The scripts are taken out because the inline React payload
+   (`self.__next_f.push(...)`) repeats a server component's text for hydration, and
+   `Authors.tsx` is one: the disclaimer's sentence stands four times in the body of
+   `/ai-act-example/start` and once without its scripts. The JSON-LD stays in, since it must
+   hold no name (decision 1). Addresses and ids are asserted absent from every byte, the
+   scripts included.
 
 ## Alternatives rejected
 
