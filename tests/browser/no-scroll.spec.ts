@@ -37,7 +37,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { FONT_LIBRARY } from '../../src/fonts.ts'
 import { openTree } from '../../src/tree/loader.ts'
-import { ADMIN_PASSWORD } from '../store/admin.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
 import { login } from './admin.ts'
 import { arrived, escapeUrlOpened } from './arrived.ts'
 import { BASE_PORT, dataDir, serve, serveStore, stopServers } from './serve.ts'
@@ -691,7 +691,7 @@ for (const lang of LANGUAGES) {
  */
 async function inLibraryFamily(page: Page, family: string, port: number): Promise<string> {
   const origin = await served(fixtures, 'full-node', port)
-  const { cookie } = await login(page, origin, 'admin', ADMIN_PASSWORD)
+  const { cookie } = await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)
   for (const role of ['body', 'heading']) {
     const response = await page.request.patch(`${origin}/admin/api/trees/full-node`, { headers: { Origin: origin, Cookie: cookie }, data: { op: 'use-library-font', role, family } })
     expect(response.status(), `use-library-font ${role} ${family}`).toBe(200)

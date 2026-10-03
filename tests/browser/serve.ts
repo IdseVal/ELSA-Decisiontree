@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { importTree } from '../../src/store/index.ts'
-import { ADMIN_PASSWORD } from '../store/admin.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 
@@ -96,7 +96,8 @@ export async function serveStore(dir: string, port: number, env: Record<string, 
       ELSA_DATA_DIR: dir,
       ELSA_SEED_DIR: await scratch(),
       ELSA_BASE_URL: '',
-      // **[#135]** A store without an administrator does not start without it (20.3).
+      // **[#135]** A store without an administrator does not start without them (20.3, **[#196]** 38.3).
+      ELSA_ADMIN_EMAIL: ADMIN_EMAIL,
       ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD,
       NEXT_TELEMETRY_DISABLED: '1',
       PORT: String(port),

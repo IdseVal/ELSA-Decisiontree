@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
-import { ADMIN_PASSWORD } from './tests/store/admin.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from './tests/store/admin.ts'
 
 /**
  * Browser tests (`npm run test:browser`). docs/specs/application.md section 7 leaves these
@@ -67,7 +67,8 @@ export default defineConfig({
       timeout: 240_000,
       env: {
         ELSA_DATA_DIR: main.dir,
-        // **[#135]** A store without an administrator does not start without it (20.3).
+        // **[#135]** A store without an administrator does not start without them (20.3, **[#196]** 38.3).
+        ELSA_ADMIN_EMAIL: ADMIN_EMAIL,
         ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD,
         NEXT_TELEMETRY_DISABLED: '1',
         // The standalone server reads where to listen from the environment, not from flags.
@@ -83,6 +84,7 @@ export default defineConfig({
       timeout: 60_000,
       env: {
         ELSA_DATA_DIR: noBaseUrl.dir,
+        ELSA_ADMIN_EMAIL: ADMIN_EMAIL,
         ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD,
         NEXT_TELEMETRY_DISABLED: '1',
         PORT: String(PORT + 1),

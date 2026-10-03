@@ -10,12 +10,12 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { expect, test, type APIResponse, type Page } from '@playwright/test'
-import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
+import { ADMIN_EMAIL, ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const PORT = BASE_PORT + 90
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
-const CEES = { login: 'cees', name: 'Cees', password: 'cees first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+const CEES = { email: 'cees@example.org', name: 'Cees', password: 'cees first password' }
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64')
 const SVG = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>')
 
@@ -47,7 +47,7 @@ function expectNotCacheable(response: APIResponse): void {
 }
 
 test('a creator builds, publishes and unpublishes a Tree through the API; the public routes follow at once', async ({ page }) => {
-  const anna = (await login(page, origin, ANNA.login, ANNA.password)).cookie
+  const anna = (await login(page, origin, ANNA.email, ANNA.password)).cookie
   const created = await api(page, anna, 'POST', '/trees', { id: 'api-tree', languages: ['en'], title: { en: 'Built by API' } })
   expect(created.status()).toBe(201)
   expectNotCacheable(created)
@@ -100,8 +100,8 @@ test('the refusals: no session, another account, no Origin, an SVG; a draft pict
   expect(noSession.status()).toBe(401)
   expectNotCacheable(noSession)
 
-  const anna = (await login(page, origin, ANNA.login, ANNA.password)).cookie
-  const cees = (await login(page, origin, CEES.login, CEES.password)).cookie
+  const anna = (await login(page, origin, ANNA.email, ANNA.password)).cookie
+  const cees = (await login(page, origin, CEES.email, CEES.password)).cookie
   expect((await api(page, anna, 'POST', '/trees', { id: 'annas-tree', languages: ['en'], title: { en: 'Anna' } })).status()).toBe(201)
 
   const foreign = await api(page, cees, 'GET', '/trees/annas-tree')
@@ -133,4 +133,48 @@ test('the refusals: no session, another account, no Origin, an SVG; a draft pict
   expectNotCacheable(draftPicture)
   expect((await page.request.get(`${origin}/admin/api/trees/annas-tree/images/${file}`, { headers: { Cookie: cees } })).status()).toBe(403)
   expect((await page.request.get(`${origin}/annas-tree/images/${file}`)).status()).toBe(404)
+})
+
+test("**[#196]** the accounts by address (38.2, 38.5): me answers the caller's own, the list names alone, POST and PATCH take email, and the holder's is 403", async ({ page }) => {
+  const admin = (await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)).cookie
+  const cees = (await login(page, origin, CEES.email, CEES.password)).cookie
+
+  expect(await (await api(page, cees, 'GET', '/me')).json()).toEqual({ id: expect.stringMatching(/^[0-9a-f]{32}$/), name: 'Cees', email: CEES.email, administrator: false })
+  // To any logged-in account, every active account's id and name, and no address (21.4).
+  const list = await api(page, cees, 'GET', '/accounts')
+  const listed = (await list.json()) as Record<string, unknown>[]
+  expect(listed.map((entry) => Object.keys(entry))).toEqual(listed.map(() => ['id', 'name']))
+  expect(listed.map(({ name }) => name).sort()).toEqual(['Administrator', 'Anna', 'Cees'])
+  expect(await list.text()).not.toContain('@')
+
+  const created = await api(page, admin, 'POST', '/accounts', { name: 'Dora', email: ' Dora@Example.org ', password: 'doras first password' })
+  expect(created.status()).toBe(201)
+  const dora = (await created.json()) as { id: string }
+  expect(dora).toEqual({ id: expect.stringMatching(/^[0-9a-f]{32}$/), name: 'Dora', email: 'dora@example.org', active: true, administrator: false, createdAt: expect.any(String) })
+  for (const [body, field, error] of [
+    [{ name: 'Erik', email: 'erik', password: 'eriks first password' }, 'email', 'email-invalid'],
+    // A body that still sends `login` sends no address.
+    [{ name: 'Erik', login: 'erik', password: 'eriks first password' }, 'email', 'email-invalid'],
+    [{ name: 'Erik', email: 'DORA@example.org', password: 'eriks first password' }, 'email', 'email-taken'],
+    [{ name: ' dora ', email: 'erik@example.org', password: 'eriks first password' }, 'name', 'name-taken'],
+  ] as const) {
+    const refused = await api(page, admin, 'POST', '/accounts', body)
+    expect(refused.status(), JSON.stringify(body)).toBe(422)
+    expect(await refused.json()).toEqual({ error, field })
+  }
+
+  // The holder may not change its own address; the administrator may, and that ends no session.
+  const doraSession = (await login(page, origin, 'dora@example.org', 'doras first password')).cookie
+  const own = await api(page, doraSession, 'PATCH', `/accounts/${dora.id}`, { email: 'dora.v@example.org' })
+  expect(own.status()).toBe(403)
+  expect(await own.json()).toEqual({ error: 'forbidden', field: 'email' })
+  const changed = await api(page, admin, 'PATCH', `/accounts/${dora.id}`, { email: 'Dora.V@Example.org' })
+  expect(changed.status()).toBe(200)
+  expect(await changed.json()).toMatchObject({ id: dora.id, email: 'dora.v@example.org' })
+  expect((await api(page, doraSession, 'GET', '/me')).status()).toBe(200)
+  expect((await login(page, origin, 'dora@example.org', 'doras first password')).status).toBe(401)
+  expect((await login(page, origin, 'dora.v@example.org', 'doras first password')).status).toBe(204)
+  const taken = await api(page, admin, 'PATCH', `/accounts/${dora.id}`, { email: CEES.email })
+  expect(taken.status()).toBe(422)
+  expect(await taken.json()).toEqual({ error: 'email-taken', field: 'email' })
 })

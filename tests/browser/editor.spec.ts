@@ -27,9 +27,9 @@ const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-138') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 100
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
-const BRAM = { login: 'bram', name: 'Bram', password: 'brams first password' }
-const CEES = { login: 'cees', name: 'Cees', password: 'cees first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+const BRAM = { email: 'bram@example.org', name: 'Bram', password: 'brams first password' }
+const CEES = { email: 'cees@example.org', name: 'Cees', password: 'cees first password' }
 
 /** The full Node's title, exactly eighty characters (tests/fixtures/full-node). */
 const FULL_TITLE = 'The full Node: a title of exactly eighty characters, the most it may be The ful.'
@@ -40,7 +40,7 @@ let dir: string
 test.beforeAll(async () => {
   await mkdir(SHOTS, { recursive: true })
   dir = await buildDataDir({
-    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.login, collaborators: [BRAM.login] }],
+    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.email, collaborators: [BRAM.email] }],
     accounts: [ANNA, BRAM, CEES],
   })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
@@ -60,9 +60,9 @@ function api(page: Page, cookie: string, method: string, route: string, data?: u
 }
 
 /** A page logged in as `who`, at 1280 x 640, and the cookie for API calls of its own. */
-async function loggedIn(browser: Browser, who: { login: string; password: string }): Promise<{ page: Page; cookie: string }> {
+async function loggedIn(browser: Browser, who: { email: string; password: string }): Promise<{ page: Page; cookie: string }> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
-  const { status, cookie } = await login(page, origin, who.login, who.password)
+  const { status, cookie } = await login(page, origin, who.email, who.password)
   expect(status).toBe(204)
   return { page, cookie }
 }
@@ -367,7 +367,7 @@ test.describe('autosave (29)', () => {
     await expect(sheet.getByRole('link', { name: 'All decision trees' })).toHaveAttribute('href', '/admin')
     await expect(field(page, 'full', 'options[0].title.en').locator('textarea')).toHaveValue('Option one, after lunch')
 
-    await sheet.getByLabel('Name').fill(ANNA.login)
+    await sheet.getByLabel('E-mail address').fill(ANNA.email)
     await sheet.getByLabel('Password').fill(ANNA.password)
     await sheet.getByRole('button', { name: 'Sign in' }).click()
     await expect(sheet).toBeHidden()

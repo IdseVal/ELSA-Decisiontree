@@ -32,9 +32,9 @@ beforeAll(async () => {
   const template = await mkdtemp(path.join(tmpdir(), 'elsa-drafts-accounts-'))
   const opened = await openStore(template, { ...ADMIN, ELSA_SEED_DIR: template })
   const administrator = opened.accounts.all().find((account) => account.administrator)!
-  await opened.accounts.create(administrator, 'Cees', 'cees', 'cees first password')
-  await opened.accounts.create(administrator, 'Dirk', 'dirk', 'dirks first password')
-  await opened.accounts.create(administrator, 'Erik', 'erik', 'eriks first password')
+  await opened.accounts.create(administrator, 'Cees', 'cees@example.org', 'cees first password')
+  await opened.accounts.create(administrator, 'Dirk', 'dirk@example.org', 'dirks first password')
+  await opened.accounts.create(administrator, 'Erik', 'erik@example.org', 'eriks first password')
   accountsFile = path.join(template, 'accounts.json')
 })
 
@@ -49,11 +49,11 @@ beforeEach(async () => {
   await copyFile(accountsFile, path.join(data, 'accounts.json'))
   store = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: data })
   drafts = store.drafts
-  const byLogin = (login: string): Account => store.accounts.byLogin(login)!
-  admin = byLogin('admin')
-  cees = byLogin('cees')
-  dirk = byLogin('dirk')
-  erik = byLogin('erik')
+  const byEmail = (email: string): Account => store.accounts.byEmail(email)!
+  admin = byEmail(ADMIN.ELSA_ADMIN_EMAIL)
+  cees = byEmail('cees@example.org')
+  dirk = byEmail('dirk@example.org')
+  erik = byEmail('erik@example.org')
 })
 
 afterEach(async () => {

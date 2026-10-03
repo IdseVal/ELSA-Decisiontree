@@ -36,7 +36,7 @@ const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screensh
 const PORT = BASE_PORT + 180
 
 const CREATOR = {
-  login: 'carla',
+  email: 'carla@example.org',
   name: 'Carla',
   password: 'carlas first password',
 }
@@ -543,7 +543,7 @@ function themeWrite(walk: Walk): Promise<Response> {
 async function signIn(walk: Walk): Promise<void> {
   const { page, ui } = walk
   const answered = page.waitForResponse((response) => response.url() === `${origin}/admin/api/login`, { timeout: 20_000 })
-  await page.getByLabel(ui.login, { exact: true }).fill(CREATOR.login)
+  await page.getByLabel(ui.email, { exact: true }).fill(CREATOR.email)
   await page.getByLabel(ui.password, { exact: true }).fill(CREATOR.password)
   await page.getByRole('button', { name: ui.signIn, exact: true }).click()
   expect((await answered).status()).toBe(204)
@@ -592,7 +592,7 @@ async function walkThrough(walk: Walk): Promise<void> {
   walk.tree = new URL(page.url()).pathname.split('/')[3] ?? ''
   await hydrated(page)
   // The walk's own API call -- a side bubble made where the page shows no `+`, a detour -- carries the session in the header (admin.ts).
-  const { cookie } = await login(page, origin, CREATOR.login, CREATOR.password)
+  const { cookie } = await login(page, origin, CREATOR.email, CREATOR.password)
   await step(walk, '01-empty-step')
 
   // The first step: title and text (28.1, 28.2), then a picture with its credit and description (31.2).

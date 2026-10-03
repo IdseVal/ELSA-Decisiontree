@@ -22,7 +22,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Page, type Response } from '@playwright/test'
-import { ADMIN_PASSWORD } from './admin.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from './admin.ts'
 import { arrived } from './arrived.ts'
 import { BASE_PORT, dataDir, serveStore, stopServers } from './serve.ts'
 
@@ -31,8 +31,8 @@ const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'editor') : path.join(RESULTS, 'shots', 'editor')
 const PORT = BASE_PORT + 110
 
-const CREATOR = { login: 'carla', name: 'Carla', password: 'carlas first password' }
-const COLLABORATOR = { login: 'dirk', name: 'Dirk', password: 'dirks first password' }
+const CREATOR = { email: 'carla@example.org', name: 'Carla', password: 'carlas first password' }
+const COLLABORATOR = { email: 'dirk@example.org', name: 'Dirk', password: 'dirks first password' }
 
 const COVERED = path.join(repo, 'trees', 'ai-act-example', 'images', 'covered.png')
 
@@ -118,9 +118,9 @@ async function step(page: Page, name: string): Promise<void> {
 }
 
 /** Signs in on the login page by its form (25.1), keeping the cookie the response set. */
-async function signIn(page: Page, login: string, password: string): Promise<void> {
+async function signIn(page: Page, email: string, password: string): Promise<void> {
   const answered = page.waitForResponse((response) => response.url() === `${origin}/admin/api/login`)
-  await page.getByLabel(/^(Name|Naam)$/).fill(login)
+  await page.getByLabel(/^(E-mail address|E-mailadres)$/).fill(email)
   await page.getByLabel(/^(Password|Wachtwoord)$/).fill(password)
   await page.getByRole('button', { name: /^(Sign in|Inloggen)$/ }).click()
   const response = await answered
@@ -221,7 +221,7 @@ test('1. the administrator logs in, creates a creator and a collaborator, and lo
   await page.goto(`${origin}/admin`)
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
   await step(page, '01-admin-login-page')
-  await signIn(page, 'admin', ADMIN_PASSWORD)
+  await signIn(page, ADMIN_EMAIL, ADMIN_PASSWORD)
   await expect(page.locator('.tile--new')).toBeVisible()
   await step(page, '02-admin-overview-empty')
 
@@ -231,11 +231,11 @@ test('1. the administrator logs in, creates a creator and a collaborator, and lo
     const sheet = page.locator('details.account-sheet').first()
     await sheet.locator('summary', { hasText: 'New account' }).click()
     await sheet.getByLabel('Display name').fill(account.name)
-    await sheet.getByLabel('Name', { exact: true }).fill(account.login)
+    await sheet.getByLabel('E-mail address', { exact: true }).fill(account.email)
     await sheet.getByLabel('Password', { exact: true }).fill(account.password)
     if (account === CREATOR) await step(page, '03-admin-new-account-sheet')
     await sheet.getByRole('button', { name: 'Create' }).click()
-    const row = page.locator(`.admin-row[data-login="${account.login}"]`)
+    const row = page.locator(`.admin-row[data-email="${account.email}"]`)
     await expect(row).toContainText(account.name)
     await expect(row).toContainText('Active')
   }
@@ -249,7 +249,7 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   test.setTimeout(300_000)
   const page = await person(browser)
   await page.goto(`${origin}/admin`)
-  await signIn(page, CREATOR.login, CREATOR.password)
+  await signIn(page, CREATOR.email, CREATOR.password)
   const plus = page.locator('.tiles > li').first().locator('a.tile--new')
   await expect(plus).toBeVisible()
   await step(page, '06-creator-overview-plus-tile')
@@ -368,7 +368,7 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   // The collaborator, invited from the top panel (33.4).
   await page.goto(editor('start'))
   await openPanel(page)
-  await panel(page).locator('select[data-select="invite"]').selectOption({ label: `${COLLABORATOR.name} · ${COLLABORATOR.login}` })
+  await panel(page).locator('select[data-select="invite"]').selectOption({ label: COLLABORATOR.name })
   await panel(page).getByRole('button', { name: 'Invite' }).click()
   await expect(panel(page).locator('.panel-people li')).toHaveText([`${CREATOR.name} (creator)`, COLLABORATOR.name])
   await step(page, '20-creator-collaborator-invited')
@@ -400,7 +400,7 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
 test('3. the collaborator opens the Tree, changes a title, and sees it live on the public page', async ({ browser }) => {
   const page = await person(browser)
   await page.goto(`${origin}/admin`)
-  await signIn(page, COLLABORATOR.login, COLLABORATOR.password)
+  await signIn(page, COLLABORATOR.email, COLLABORATOR.password)
   const tile = page.locator(`.tile[data-tree="${tree}"]`)
   await expect(tile).toBeVisible()
   await expect(page.locator('.tile--new')).toBeVisible()

@@ -34,7 +34,7 @@ beforeEach(async () => {
   made.push(dir)
   accounts = await openAccounts(dir, ADMIN)
   admin = accounts.all()[0]!
-  anna = await accounts.create(admin, 'Anna', 'anna', 'annas first password')
+  anna = await accounts.create(admin, 'Anna', 'anna@example.org', 'annas first password')
   clock = Date.parse('2026-09-26T12:00:00Z')
   sessions = await openSessions(dir, accounts, () => clock)
 })

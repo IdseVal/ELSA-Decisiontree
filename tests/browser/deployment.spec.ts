@@ -19,7 +19,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { DATA_DIR, NO_BASE_URL_ORIGIN, PUBLIC_BASE_URL } from '../../playwright.config.ts'
-import { ADMIN_PASSWORD } from '../store/admin.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
 import { arrived } from './arrived.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -293,7 +293,7 @@ test.describe('the logged-in half of the sweep (20.5)', () => {
     })
 
     await page.goto('/admin')
-    await page.getByLabel('Name').fill('admin')
+    await page.getByLabel('E-mail address').fill(ADMIN_EMAIL)
     await page.getByLabel('Password').fill(ADMIN_PASSWORD)
     await page.getByRole('button', { name: 'Sign in' }).click()
     await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible()

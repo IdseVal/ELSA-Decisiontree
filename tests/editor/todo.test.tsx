@@ -25,7 +25,7 @@ function said<K extends string>(keys: K[]): Record<K, string> {
 }
 
 const editorWords = said(['missingText', 'saving', 'saved', 'notSaved', 'publicBehind', 'toOverview', 'close']) as unknown as EditorWords
-const loginWords = { login: 'login', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
+const loginWords = { email: 'email', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
 const sheetWords = said(['close', 'previous', 'next', 'opensInNewTab'])
 const todoWords: TodoWords = said(['todoCount', 'todoCountOne', 'todoNone', 'todoBefore', 'publicBehindBecause', 'notServableBecause', 'thisTree', 'removeStep', 'requestFailed'])
 const panelWords = said([

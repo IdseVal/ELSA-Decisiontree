@@ -22,7 +22,7 @@ const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-147') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 150
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 const TREE = 'nl-boom'
 
 let origin: string
@@ -53,7 +53,7 @@ function api(page: Page, cookie: string, method: string, route: string, data?: u
 
 async function loggedIn(browser: Browser): Promise<{ page: Page; cookie: string }> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
-  const { status, cookie } = await login(page, origin, ANNA.login, ANNA.password)
+  const { status, cookie } = await login(page, origin, ANNA.email, ANNA.password)
   expect(status).toBe(204)
   return { page, cookie }
 }

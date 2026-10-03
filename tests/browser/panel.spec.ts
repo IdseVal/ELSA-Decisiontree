@@ -19,7 +19,7 @@ import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type APIResponse, type Browser, type Page } from '@playwright/test'
-import { ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
+import { ADMIN_EMAIL, ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -27,11 +27,11 @@ const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-142') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 105
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
-const BRAM = { login: 'bram', name: 'Bram', password: 'brams first password' }
-const CEES = { login: 'cees', name: 'Cees', password: 'cees first password' }
-const DORA = { login: 'dora', name: 'Dora', password: 'doras first password' }
-const ADMIN = { login: 'admin', password: ADMIN_PASSWORD }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+const BRAM = { email: 'bram@example.org', name: 'Bram', password: 'brams first password' }
+const CEES = { email: 'cees@example.org', name: 'Cees', password: 'cees first password' }
+const DORA = { email: 'dora@example.org', name: 'Dora', password: 'doras first password' }
+const ADMIN = { email: ADMIN_EMAIL, password: ADMIN_PASSWORD }
 
 let origin: string
 
@@ -40,7 +40,7 @@ test.describe.configure({ mode: 'serial' })
 test.beforeAll(async () => {
   await mkdir(SHOTS, { recursive: true })
   const dir = await buildDataDir({
-    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.login, collaborators: [BRAM.login] }],
+    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.email, collaborators: [BRAM.email] }],
     accounts: [ANNA, BRAM, CEES, DORA],
   })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
@@ -60,9 +60,9 @@ function api(page: Page, cookie: string, method: string, route: string, data?: u
 }
 
 /** A page logged in as `who`, at 1280 x 640, and the cookie for API calls of its own. */
-async function loggedIn(browser: Browser, who: { login: string; password: string }): Promise<{ page: Page; cookie: string }> {
+async function loggedIn(browser: Browser, who: { email: string; password: string }): Promise<{ page: Page; cookie: string }> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
-  const { status, cookie } = await login(page, origin, who.login, who.password)
+  const { status, cookie } = await login(page, origin, who.email, who.password)
   expect(status).toBe(204)
   return { page, cookie }
 }
@@ -189,13 +189,15 @@ test('inviting an account from the select; logged in as it, the Tree is editable
   const people = panel(page).locator('.panel-people')
   await expect(people.locator('li')).toHaveText(['Anna (creator)', 'Bram'])
   const select = panel(page).locator('select[data-select="invite"]')
-  // Every active account not on the Tree and not the administrator (33.4).
-  await expect(select.locator('option:not([value=""])')).toHaveText(['Cees · cees', 'Dora · dora'])
+  // Every active account not on the Tree and not the administrator (33.4), **[#196]** by its
+  // name alone: no address, which only its holder and the administrator see (38.5).
+  await expect(select.locator('option:not([value=""])')).toHaveText(['Cees', 'Dora'])
+  expect(await select.locator('option').allTextContents()).not.toContainEqual(expect.stringContaining('@'))
 
-  await select.selectOption({ label: 'Dora · dora' })
+  await select.selectOption({ label: 'Dora' })
   await panel(page).getByRole('button', { name: 'Invite' }).click()
   await expect(people.locator('li')).toHaveText(['Anna (creator)', 'Bram', 'Dora'])
-  await expect(select.locator('option:not([value=""])')).toHaveText(['Cees · cees'])
+  await expect(select.locator('option:not([value=""])')).toHaveText(['Cees'])
   await shoot(page, 'collaborators-after-invite')
 
   const dora = await loggedIn(browser, DORA)
@@ -256,7 +258,10 @@ test('the administrator: deleteTree disabled while published, the hand-over, and
   // The administrator has every right: the invite controls, and every active account to hand over to.
   await expect(panel(admin.page).locator('select[data-select="invite"]')).toHaveCount(1)
 
-  await section.locator('select').selectOption({ label: 'Bram · bram' })
+  // **[#196]** The hand-over select by name alone too (33.6, 38.5).
+  const handOver = section.locator('select')
+  expect(await handOver.locator('option').allTextContents()).not.toContainEqual(expect.stringContaining('@'))
+  await handOver.selectOption({ label: 'Bram' })
   await section.getByRole('button', { name: 'Hand over' }).click()
   await expect(admin.page.locator('.panel-people li')).toHaveText(['Bram (creator)', 'Anna'])
 

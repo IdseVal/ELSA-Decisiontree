@@ -25,6 +25,9 @@ import {
 import { openSessions } from '../../src/store/sessions.ts'
 import { ADMIN, ADMIN_EMAIL, ADMIN_PASSWORD } from './admin.ts'
 
+// A hash costs about 150 ms of scrypt (20.2), and a row of 38.3's table or the conversion runs a dozen.
+vi.setConfig({ testTimeout: 30_000 })
+
 const made: string[] = []
 let logged: string[]
 

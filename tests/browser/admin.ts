@@ -16,8 +16,8 @@ export { ADMIN_EMAIL, ADMIN_PASSWORD }
 
 /** One account of a test data directory, besides the administrator the server creates. */
 export interface TestAccount {
-  /** **[#196]** The address it logs in with (35.1, 38.10). */
-  email: string
+  /** **[#196]** The address it logs in with (35.1, 38.10); null as a converted store leaves an account (38.4). */
+  email: string | null
   name: string
   password: string
   active?: boolean

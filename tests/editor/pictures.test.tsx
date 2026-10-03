@@ -25,7 +25,7 @@ import type { DraftNode } from '../../src/tree/types.ts'
 const words = Object.fromEntries(
   ['characters', 'lines', 'saving', 'saved', 'notSaved', 'retrying', 'retry', 'notEditable', 'changedElsewhere', 'sessionExpired', 'publicBehind', 'toOverview'].map((key) => [key, key]),
 ) as EditorWords
-const loginWords = { login: 'login', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
+const loginWords = { email: 'email', password: 'password', signIn: 'signIn', loginFailed: '', loginLocked: '', requestFailed: '', sessionNotKept: '' }
 const pickerWords = {
   addPicture: 'addPicture',
   fileTooLarge: 'fileTooLarge',

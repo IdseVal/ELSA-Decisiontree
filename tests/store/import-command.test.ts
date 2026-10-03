@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, expect, test } from 'vitest'
-import { ADMIN_PASSWORD } from './admin.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from './admin.ts'
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
 let data: string
@@ -29,7 +29,7 @@ afterAll(async () => {
 function run(folder: string): { status: number | null; output: string } {
   const result = spawnSync(process.execPath, ['scripts/store.ts', 'import', folder], {
     cwd: root,
-    env: { ...process.env, ELSA_DATA_DIR: data, ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD, ELSA_SEED_DIR: seed },
+    env: { ...process.env, ELSA_DATA_DIR: data, ELSA_ADMIN_EMAIL: ADMIN_EMAIL, ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD, ELSA_SEED_DIR: seed },
     encoding: 'utf8',
   })
   return { status: result.status, output: result.stdout + result.stderr }

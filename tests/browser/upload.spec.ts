@@ -28,7 +28,7 @@ const RESULTS = path.join(repo, 'tests', 'browser', '.results')
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-140') : path.join(RESULTS, 'shots')
 const PORT = BASE_PORT + 105
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 
 /** Two real pictures of different bytes, 960 x 640, from the example Tree. */
 const COVERED = { name: 'Covered Photo.PNG', mimeType: 'image/png', buffer: Buffer.alloc(0) }
@@ -42,7 +42,7 @@ test.beforeAll(async () => {
   COVERED.buffer = await readFile(path.join(repo, 'trees', 'ai-act-example', 'images', 'covered.png'))
   PROHIBITED.buffer = await readFile(path.join(repo, 'trees', 'ai-act-example', 'images', 'prohibited.png'))
   dir = await buildDataDir({
-    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'pictures', hidden: true, creator: ANNA.login }],
+    trees: [{ folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'pictures', hidden: true, creator: ANNA.email }],
     accounts: [ANNA],
   })
   origin = await serveStore(dir, PORT, ADMIN_ENV)
@@ -63,7 +63,7 @@ function api(page: Page, cookie: string, method: string, route: string, data?: u
 
 async function loggedIn(browser: Browser): Promise<{ page: Page; cookie: string }> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 640 } })).newPage()
-  const { status, cookie } = await login(page, origin, ANNA.login, ANNA.password)
+  const { status, cookie } = await login(page, origin, ANNA.email, ANNA.password)
   expect(status).toBe(204)
   return { page, cookie }
 }

@@ -28,7 +28,7 @@ const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screensh
 /** Clear of every other spec's offsets, which end at +150. */
 const PORT = BASE_PORT + 160
 
-const ANNA = { login: 'anna', name: 'Anna', password: 'annas first password' }
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 
 /** The words of src/chrome.ts the tests look for, per chrome language. */
 const WORDS = {
@@ -61,7 +61,7 @@ test.beforeAll(async () => {
   expect(started, 'the carousel fixture is a valid Tree').not.toBeNull()
   publicOrigin = started!
   const dir = await buildDataDir({
-    trees: [{ folder: path.join(fixtures, 'carousel'), id: 'pictures', hidden: true, creator: ANNA.login }],
+    trees: [{ folder: path.join(fixtures, 'carousel'), id: 'pictures', hidden: true, creator: ANNA.email }],
     accounts: [ANNA],
   })
   editorOrigin = await serveStore(dir, PORT + 1, ADMIN_ENV)
@@ -75,7 +75,7 @@ test.afterAll(async () => {
 
 async function loggedIn(browser: Browser, options: { hasTouch?: boolean } = {}): Promise<{ page: Page; cookie: string }> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 640 }, ...options })).newPage()
-  const { status, cookie } = await login(page, editorOrigin, ANNA.login, ANNA.password)
+  const { status, cookie } = await login(page, editorOrigin, ANNA.email, ANNA.password)
   expect(status).toBe(204)
   return { page, cookie }
 }

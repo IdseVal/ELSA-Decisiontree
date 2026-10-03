@@ -195,7 +195,7 @@ describe('which Trees are served (18.3, 23.1)', () => {
     const data = await folder()
     const first = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await folder() })
     const admin = first.accounts.all().find((account) => account.administrator)!
-    const anna = await first.accounts.create(admin, 'Anna', 'anna', 'annas first password')
+    const anna = await first.accounts.create(admin, 'Anna', 'anna@example.org', 'annas first password')
     const cookieOf = async (account: typeof admin): Promise<string> => (await first.sessions.start(account, true)).cookie.split(';')[0]!
     const adminCookie = await cookieOf(admin)
     const annaCookie = await cookieOf(anna)
@@ -204,6 +204,11 @@ describe('which Trees are served (18.3, 23.1)', () => {
     const again = await openStore(data, ADMIN)
     expect(again.accounts.adminPasswordReplaced).toBe(false)
     expect(await again.sessions.resolve(adminCookie)).not.toBeNull()
+
+    // **[#196]** Nor is a new address from ELSA_ADMIN_EMAIL: a change of address ends no session (38.3, 38.5).
+    const readdressed = await openStore(data, { ELSA_ADMIN_EMAIL: 'root@example.org' })
+    expect(readdressed.accounts.adminPasswordReplaced).toBe(false)
+    expect(await readdressed.sessions.resolve(adminCookie)).toMatchObject({ account: { id: admin.id, email: 'root@example.org' } })
 
     // The recovery of a leaked password: the old sessions end with it (20.4).
     const reset = await openStore(data, { ELSA_ADMIN_PASSWORD: 'a brand new password' })
