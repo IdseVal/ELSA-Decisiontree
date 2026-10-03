@@ -5,13 +5,13 @@
  * refused, the byte form of every write, the concurrency rule, publishing and the public
  * copy that follows, the roles, and the pictures.
  */
-import { copyFile, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { Account } from '../../src/store/accounts.ts'
 import type { Drafts } from '../../src/store/drafts.ts'
-import type { StoreError } from '../../src/store/errors.ts'
+import { isStoreError, type StoreError } from '../../src/store/errors.ts'
 import { openStore, type Store } from '../../src/store/index.ts'
 import { treeBytes } from '../../src/tree/serialise.ts'
 import { ADMIN } from './admin.ts'
@@ -688,6 +688,32 @@ describe('**[#180]** a family of the font library (37.3), and an upload’s own 
     const draft = drafts.draft(cees, 't')
     expect(draft.themePath('faustina-normal-a84c008b.woff2')).toBe(file('t', path.join('theme', 'faustina-normal-a84c008b.woff2')))
     expect(draft.themePath('faustina-licence.txt')).toBeNull()
+  })
+
+  test('a release whose library file is not the one src/fonts.ts lists answers 500: nothing is copied, no entry written (33.8)', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    const draft = await text('t', 'draft.json')
+    // The working directory, where a release carries the library, with Roboto's first file one byte off.
+    const release = await mkdtemp(path.join(tmpdir(), 'elsa-release-'))
+    const cwd = vi.spyOn(process, 'cwd').mockReturnValue(release)
+    try {
+      const roboto = path.join(release, 'fonts', 'roboto')
+      await mkdir(roboto, { recursive: true })
+      for (const name of ['roboto-normal.woff2', 'roboto-italic.woff2', 'OFL.txt']) await copyFile(path.join('fonts', 'roboto', name), path.join(roboto, name))
+      const altered = await readFile(path.join(roboto, 'roboto-normal.woff2'))
+      altered[1000] = altered[1000]! ^ 1
+      await writeFile(path.join(roboto, 'roboto-normal.woff2'), altered)
+
+      const thrown = await use(cees, 'body', 'roboto').catch((error: unknown) => error)
+      // Not a refusal, which the route answers with its status: a bug, thrown on to the framework's 500 (requests.ts).
+      expect(isStoreError(thrown)).toBe(false)
+      expect((thrown as Error).message).toBe('fonts/roboto/roboto-normal.woff2 is not the file src/fonts.ts lists')
+    } finally {
+      cwd.mockRestore()
+      await rm(release, { recursive: true, force: true })
+    }
+    expect(await text('t', 'draft.json')).toBe(draft)
+    expect(await readdir(file('t', 'theme')).catch(() => [])).toEqual([])
   })
 
   test('choosing it twice writes the same bytes', async () => {

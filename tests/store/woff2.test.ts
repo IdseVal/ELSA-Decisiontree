@@ -82,9 +82,17 @@ function base128(value: number): number[] {
   return out
 }
 
-/** A WOFF2 file holding `tables`, each under an arbitrary tag and untransformed, in one Brotli stream. */
-function woff2(tables: [tag: string, data: Uint8Array][]): Uint8Array {
-  const directory = tables.flatMap(([tag, data]) => [0x3f, ...[...tag].map((c) => c.charCodeAt(0)), ...base128(data.length)])
+/**
+ * A WOFF2 file holding `tables`, each under an arbitrary tag, in one Brotli stream: untransformed,
+ * or with transform version 1 where the third member says so, its transformed length its length.
+ */
+function woff2(tables: [tag: string, data: Uint8Array, transformed?: boolean][]): Uint8Array {
+  const directory = tables.flatMap(([tag, data, transformed = false]) => [
+    transformed ? 0x7f : 0x3f,
+    ...[...tag].map((c) => c.charCodeAt(0)),
+    ...base128(data.length),
+    ...(transformed ? base128(data.length) : []),
+  ])
   const stream = brotliCompressSync(Buffer.concat(tables.map(([, data]) => data)))
   const header = new Uint8Array(48)
   const view = new DataView(header.buffer)
@@ -141,6 +149,18 @@ describe('built files', () => {
     const odd = table.slice()
     new DataView(odd.buffer).setUint16(6 + 8, 15)
     expect(woff2FamilyName(woff2([['name', odd]]))).toBeNull()
+  })
+
+  test('a font collection answers null: its fonts have a name each', () => {
+    const bytes = withName([{ nameId: 1, text: 'Lab Sans' }])
+    new DataView(bytes.buffer, bytes.byteOffset).setUint32(4, 0x74746366) // the flavor 'ttcf'
+    expect(woff2FamilyName(bytes)).toBeNull()
+  })
+
+  test('a transformed name table answers null: no version of the format defines one', () => {
+    const table = nameTable([{ nameId: 1, text: 'Lab Sans' }])
+    expect(woff2FamilyName(woff2([['head', HEAD], ['name', table]]))).toBe('Lab Sans')
+    expect(woff2FamilyName(woff2([['head', HEAD], ['name', table, true]]))).toBeNull()
   })
 
   test('a stream that is not Brotli answers null', () => {
