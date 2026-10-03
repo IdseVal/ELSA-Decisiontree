@@ -19,7 +19,7 @@
 > | Section | #195 |
 > |---|---|
 > | 3.2 | #196's keys for the address and for one name per account; #197's `byAuthors` and `nameShownPublicly`. |
-> | 6 | `src/components/Authors.tsx` and `src/store/authors.ts`; `accounts.ts` reads `ELSA_ADMIN_EMAIL` from the environment `config.ts` hands the store. |
+> | 6 | `src/components/Authors.tsx` and `src/store/authors.ts`; `accounts.ts` reads `ELSA_ADMIN_EMAIL` from the environment `config.ts` hands the store; `login-limit.ts`, which has held the rate limit since #135, gains `loginKey`. |
 > | 7 | The editor round's row names 38.10 and 39.9. |
 > | 8, 9 | Rows for the login by address and for the mention; eight `ADR-195-*` rows. |
 > | 10.1, 10.4 to 10.6 | The chrome bar of a Node page holds the mention, the one line cut at the guarantee, given up by its room outside the fixed order; the walk skips its cut line. |
@@ -889,8 +889,10 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │                        [#195] ELSA_ADMIN_EMAIL (38.3), handed on as the password is: accounts.ts reads both
 │   ├── store/               [#132] the store (17.5): the one module that opens ELSA_DATA_DIR
 │   │   ├── index.ts         openStore, the atomic writer and its queues, the lock, the seed (17.3, 17.4)
-│   │   ├── accounts.ts      accounts, scrypt, the login rate limit (20.1 to 20.3, 20.7); [#195] by
-│   │   │                    e-mail address, and the conversion of a store of user names (38)
+│   │   ├── accounts.ts      accounts, scrypt (20.1 to 20.3); [#195] by e-mail address, normaliseEmail,
+│   │   │                    and the conversion of a store of user names (38)
+│   │   ├── login-limit.ts   [#135] the login rate limit's two counters, in memory (20.7);
+│   │   │                    [#195] loginKey (pure): the address they are keyed by (38.7)
 │   │   ├── authors.ts       [#195] authorsOf: a Tree's Authors' names, in the order of joining (39.3); pure
 │   │   ├── sessions.ts      the token, the record, the cookie string, expiry (20.4)
 │   │   ├── permissions.ts   permit: the table of 21.2 as code (21.3)
@@ -5603,8 +5605,10 @@ document 10.39. Recorded in `docs/adrs/ADR-195-login-by-email-address.md`,
   holds is refused, 422 `email-taken` at the field.
 - **One function holds the rule**: `normaliseEmail(input: unknown): string | null` in
   `src/store/accounts.ts`, pure, answering the sanitised, lower-cased address or `null`.
-  `create`, `update`, the start's reading of `ELSA_ADMIN_EMAIL` and `authenticate` call it;
-  nothing else checks an address, and a string it answers `null` for names no account.
+  `create`, `update`, the start's reading of `ELSA_ADMIN_EMAIL`, `authenticate`, and `byEmail`,
+  which reads a typed address for a lock's log line (38.2, 38.8), call it; so does `loginKey`
+  in `src/store/login-limit.ts`, which keys the rate limit by the address it answers (38.7).
+  Nothing else checks an address, and a string it answers `null` for names no account.
   `normaliseLogin`, the id grammar it held a login to, and `ADMIN_LOGIN` go.
 
 | Given | `normaliseEmail` answers |

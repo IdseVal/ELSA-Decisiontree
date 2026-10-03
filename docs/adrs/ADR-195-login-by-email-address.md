@@ -74,8 +74,10 @@ one minute, and a success, `account <id> logged in`.
 5. **One function holds the rule**: `normaliseEmail(input: unknown): string | null` in
    `src/store/accounts.ts`, pure, answering the sanitised, lower-cased address or `null`. The
    store's `create` and `update`, the start's reading of `ELSA_ADMIN_EMAIL`
-   (`ADR-195-administrator-address.md`) and `authenticate`'s lookup call it; nothing else
-   checks an address. A string it answers `null` for names no account.
+   (`ADR-195-administrator-address.md`), `authenticate`'s lookup, and `byEmail`, which reads a
+   typed address for a lock's log line (decisions 6 and 9), call it; so does `loginKey`, which
+   keys the rate limit by the address it answers (decision 8). Nothing else checks an address.
+   A string it answers `null` for names no account.
 
 6. **The interface** (20.4, restated in 38.2): `authenticate(email, password)`, which runs
    scrypt either way (20.2) and never answers an account that has no address
