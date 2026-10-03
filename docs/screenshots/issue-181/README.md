@@ -1,9 +1,14 @@
 # Issue #181: the owner's fifteen points of #169, walked as one interface
 
 Taken 2026-10-03 on Windows 11 with the headless Chromium of Playwright 1.62.1, from `dev` at
-ff21fdd (#172 to #180 merged) plus this branch's fixes, built at 182b222 with `npm run build`
-and served by the standalone server. 138 screenshots: 23 steps in each walk, step 23 (the public
-side bubble) included on a phone since the second review round.
+ff21fdd (#172 to #180 merged) plus this branch's fixes, built with `npm run build` and served
+by the standalone server. 138 screenshots: 23 steps in each walk, step 23 (the public side
+bubble) included on a phone since the second review round. Steps 16 to 21, which show the to-do
+bubble and the settings panel, were retaken in the third round, on the build of 138ce98. The
+other steps are from the build of 182b222: the third round changed nothing they show, and their
+retakes differed only in the autosave's time stamp, a text caret and a focus ring caught at
+another moment of its transition (a pixel diff: no pixel below the bar changed by more than 64
+of 255 levels, except where that ring is).
 
 `ELSA_SHOTS=1 npx playwright test tests/browser/creation-walk.spec.ts` takes them (without
 `ELSA_SHOTS=1` they go to the gitignored `tests/browser/.results/shots/issue-181/`). Six walks,
@@ -20,7 +25,9 @@ other, controls and text crossing the box they are drawn in, and chrome words of
 language. The walk asserts all four. It also audits its two scroll boxes, the to-do bubble and
 the settings panel, at every scroll position 12 pixels apart, and asserts that no control is
 drawn over another at any of them. Every row reads `none` in every column, here and in the
-Linux container that reproduces the CI runner's fonts.
+Linux container that reproduces the CI runner's fonts (the Playwright noble image with
+`fonts-dejavu-core`, so the editor's `system-ui` is DejaVu Sans), in the third round as in the
+second.
 
 | # | The owner's point (#169) | Screenshot | Built by | Verdict |
 |---|---|---|---|---|
@@ -35,8 +42,8 @@ Linux container that reproduces the CI runner's fonts.
 | 9 | Bigger side bubbles, a cap of 8, the picture circle on the button's contour | `13-eight-side-bubbles-*`, `22-public-page-*` | #175 | As asked at 1280 and 1920: eight buttons and no + at eight. **Not reachable on a phone**: at 390 wide the + is gone from two side bubbles on (finding A). |
 | 10 | "Tree ends here" asks for a text with a cap | `09-ending-typed-*`, `10-step-ends-here-*` | #171, #179 | As asked: one field with a live "14 / 19", the words on the badge. |
 | 11 | A red cross and "Tree does not end here after all" in place of the dots; no dots on the next steps | `10-step-ends-here-*`, `15-delete-step-asked-*`, `13-eight-side-bubbles-*` | #178 | As asked: no `...` on any step, Answer or side-bubble button. A Source keeps its own `...` (its kind and link). |
-| 12 | Every input and font elegant, nothing exceeding its parent box | the whole walk, `measurements-*.md` | #172, and this issue | Five defects fixed here (below); the rest are findings for the owner. |
-| 13 | Top-right names that say what opens: "Decision-tree settings", "Account" | `01-empty-step-*`, `17-settings-panel-*` | #176 | As asked. |
+| 12 | Every input and font elegant, nothing exceeding its parent box | the whole walk, `measurements-*.md` | #172, and this issue | Six defects fixed here (below); the rest are findings for the owner. |
+| 13 | Top-right names that say what opens: "Decision-tree settings", "Account" | `01-empty-step-*`, `17-settings-panel-*` | #176 | As asked. The panel's language field is now named for what it takes, too (fix 6). |
 | 14 | The to-do a bubble at the top right, the settings button floating, neither in the header bar | `01-empty-step-*`, `16-to-do-bubble-*` | #176 | As asked. **Differs in Dutch**: the to-do lines are the validator's English messages (finding B). |
 | 15 | Colours that leave the bars alone; the text colour on the Sources; font and licence dropdowns with upload; hints | `18-colours-changed-*`, `19-font-from-the-dropdown-*`, `20-licence-dropdown-*`, `22-public-page-*` | #171, #180 | As asked: the bar and the panel keep the default look, the Sources take the text colour, Faustina from the dropdown, an uploaded WOFF2 with its licence from the dropdown, an "i" behind each part. The panel's cross lay over its controls when the panel was scrolled (on CI's fonts at step 18, 1280 x 640); fixed here, fix 5. |
 
@@ -63,9 +70,34 @@ Linux container that reproduces the CI runner's fonts.
    stood over the panel's scroll box, so Invite and Hand over slid under it: CI's walk failed at
    step 18 at 1280 x 640 (`button.sheet-close.sheet-close--cross and button.admin-submit by
    24x12`, reproduced in the Linux container), and on the full-Node fixture here they lay under
-   it at 122 of the panel's 345 scroll positions. The heading is now a band across the top that
-   stays while the body scrolls under it, with the cross in it (33.2, amended); the to-do bubble's
-   heading is the same band. Guards: the walk's sweep of both scroll boxes, and step 18 itself.
+   it at 122 of the panel's 345 scroll positions. The heading is now a band across the top, above
+   the body's scroll box and not in it, with the cross in it (33.2, amended); the to-do bubble's
+   heading is the same band. The body scrolls below the band, so a control the focus scrolls to
+   stops below it however many lines the heading takes. (The second round's band stood inside the
+   scroll box and kept the focus below it by a scroll padding as tall as a heading of one line;
+   the to-do bubble's heading takes two lines in English at 1280 x 640 and three in Dutch at 360 x
+   640 on CI's font, and there a focused line stopped under the band.) Guards: the walk's sweep of
+   both scroll boxes, step 18 itself, and `floating-controls.spec.ts`, which walks the focus up
+   both boxes with Shift+Tab under each of the bubble's three headings, in both languages, at
+   1280 x 640, 1920 x 1080, 390 x 844 and 360 x 640: no control the focus reaches lies under the
+   heading or out of the box's view. On the second round's band it fails there.
+6. **The language field did not say what it takes** (the second round's finding G). It had no
+   placeholder, and its name was "Add", its button's word. It is now named "Language tag"
+   ("Taalcode") and says so while it is empty, in the settings panel and in the new-Tree form,
+   which share it; at 9rem, where it was 7, the placeholder fits at 16 pixels (on the form "Language
+   tag" took 96.5 pixels of 94). Guard: the walk checks the name, the placeholder and its fit in
+   both places.
+
+## For the owner to confirm: a change to the public page
+
+Fix 2 changes the end-user Overlay, which the core document (3.4) lists among what this round does
+not change. Below 792 pixels wide the side bubble's title keeps 24 pixels from each side on the
+public page too, so the editor's title field keeps the box the public title takes (28.1), and a
+long title's link no longer runs under the cross. On the overlay fixture's 80-character title at
+390 x 844, dev draws two lines, the first to x 353 under the cross at x 345 to 377; this branch
+draws three, the longest to x 311, so the Overlay's content starts one line lower.
+`public-overlay-title-dev-en-390x844.png` (dev's look: this branch's build with the rule switched
+off) and `public-overlay-title-this-pr-en-390x844.png`.
 
 ## Found and not fixed (for the owner to turn into issues)
 
@@ -86,8 +118,7 @@ Linux container that reproduces the CI runner's fonts.
   `13-eight-side-bubbles-*` beside `22-public-page-*`.
 - **F.** On the public page a side bubble whose step has no picture shows an empty circle.
   `22-public-page-*`.
-- **G.** The settings panel's language field has no placeholder and is named "Add", its
-  button's word. `17-settings-panel-*`.
+- (G, the language field's name, is fixed here: fix 6.)
 - **H.** On a phone a picture just attached is hidden at once (10.5, step 5), where the empty
   slot was shown; only "Image 1 of 3" says it is there. `12-side-bubble-filled-*-390x844`.
 - **I.** After publishing the settings panel shows the public link twice, under Publish and
