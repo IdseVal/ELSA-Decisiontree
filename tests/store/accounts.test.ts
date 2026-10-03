@@ -208,15 +208,15 @@ describe('the administrator (20.3, **[#196]** 38.3)', () => {
     for (const email of absent) {
       const dir = await folder()
       await expect(openAccounts(dir, { ...email, ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD })).rejects.toThrow(
-        'ELSA_ADMIN_EMAIL is not set and there is no administrator: set it for the first start (docs/deployment.md)',
+        new Error('ELSA_ADMIN_EMAIL is not set and there is no administrator: set it for the first start (docs/deployment.md)'),
       )
       await expect(openAccounts(dir, email)).rejects.toThrow(
-        'ELSA_ADMIN_EMAIL and ELSA_ADMIN_PASSWORD are not set and there is no administrator: set them for the first start (docs/deployment.md)',
+        new Error('ELSA_ADMIN_EMAIL and ELSA_ADMIN_PASSWORD are not set and there is no administrator: set them for the first start (docs/deployment.md)'),
       )
       await expect(readFile(path.join(dir, 'accounts.json'))).rejects.toMatchObject({ code: 'ENOENT' })
     }
     await expect(openAccounts(await folder(), { ELSA_ADMIN_EMAIL: ADMIN_EMAIL })).rejects.toThrow(
-      'ELSA_ADMIN_PASSWORD is not set and there is no administrator: set it for the first start (docs/deployment.md)',
+      new Error('ELSA_ADMIN_PASSWORD is not set and there is no administrator: set it for the first start (docs/deployment.md)'),
     )
     await expect(openAccounts(await folder(), { ...ADMIN, ELSA_ADMIN_PASSWORD: 'eleven char' })).rejects.toThrow('12 to 256 characters')
   })
@@ -274,12 +274,12 @@ describe('the administrator (20.3, **[#196]** 38.3)', () => {
   })
 
   test("set to a value that is no address, or to another account's address: refuses, saying which, without the value", async () => {
-    // White space alone is set, not absent, and is no address.
+    // White space alone is set, not absent, and is no address. The message is the whole of it: no value.
     for (const value of ['admin', '   ', 'anna@', 'anna b@example.org']) {
       for (const dir of [await folder(), (await fresh()).dir]) {
         const refusal = openAccounts(dir, { ELSA_ADMIN_EMAIL: value, ELSA_ADMIN_PASSWORD: ADMIN_PASSWORD })
         await expect(refusal).rejects.toThrow(
-          'ELSA_ADMIN_EMAIL is not an e-mail address: set it to the address the administrator will log in with (docs/deployment.md)',
+          new Error('ELSA_ADMIN_EMAIL is not an e-mail address: set it to the address the administrator will log in with (docs/deployment.md)'),
         )
       }
     }
@@ -291,7 +291,9 @@ describe('the administrator (20.3, **[#196]** 38.3)', () => {
     )
     // And at a first start, on a directory whose other accounts were written before it.
     const built = await buildDataDir({ trees: [], accounts: [{ email: 'anna@example.org', name: 'Anna', password: 'annas first password' }] })
-    await expect(openAccounts(built, { ...ADMIN, ELSA_ADMIN_EMAIL: 'anna@example.org' })).rejects.toThrow('ELSA_ADMIN_EMAIL is the e-mail address of another account')
+    await expect(openAccounts(built, { ...ADMIN, ELSA_ADMIN_EMAIL: 'anna@example.org' })).rejects.toThrow(
+      new Error('ELSA_ADMIN_EMAIL is the e-mail address of another account: set it to an address no other account has (docs/deployment.md)'),
+    )
   })
 
   test('a later start without the password keeps it; with it, replaces it -- the recovery path', async () => {

@@ -68,10 +68,11 @@ export interface Store {
 /**
  * Opens the data directory `dataDir` (17.5): refuses the retired variables, checks the
  * folder, takes the lock, deletes what a crash left, **[#135]** opens the accounts and sets
- * the administrator's password from `ELSA_ADMIN_PASSWORD` (20.3), seeds on the first start,
- * and opens every published Tree. Rejects when the directory itself is unusable or the
- * administrator has no password; one Tree that fails validation is refused, reported, and
- * not served (18.3).
+ * the administrator's password from `ELSA_ADMIN_PASSWORD` (20.3) -- **[#196]** and its address
+ * from `ELSA_ADMIN_EMAIL` (38.3), after converting a store of user names (38.4) -- seeds on the
+ * first start, and opens every published Tree. Rejects when the directory itself is unusable or
+ * the administrator has no password or no address; one Tree that fails validation is refused,
+ * reported, and not served (18.3).
  */
 export async function openStore(dataDir: string, env: Environment): Promise<Store> {
   refuseRetired(env)
