@@ -49,14 +49,16 @@ files since #179 (36.4) -- and writes each file whole and atomically through one
    server", with a backup of the data directory before that first start, since the user names
    are not kept (38.9).
 
-4. **What the start logs**, ids and counts only (20.8): `accounts.json converted from user
-   names to e-mail addresses: <n> accounts, <m> without an address`, and per account left
-   without one, `account <id> has no e-mail address: give it one at /admin/accounts`.
+4. **What the start logs**, ids and counts only (20.8): the start that converts, `accounts.json
+   converted from user names to e-mail addresses: <n> accounts, <m> without an address`; and
+   every start, per account that has no address yet, `account <id> has no e-mail address: give
+   it one at /admin/accounts` -- a state the administrator is to end, so it is said until it
+   ends, not once.
 
 5. **Two accounts of one name in a converted store** -- names are one per account from #196 on
    (`ADR-195-who-sees-and-changes-an-address.md` decision 4), and were not before -- are left
-   as they are: nothing is renamed, the start logs `accounts <id> and <id> share a name: give
-   one of them another`, and every name given from then on is held to the rule.
+   as they are: nothing is renamed, every start logs `accounts <id> and <id> share a name: give
+   one of them another` while they do, and every name given from then on is held to the rule.
 
 6. **On the live demo server** the conversion meets one account, the administrator, so it
    gives that account `ELSA_ADMIN_EMAIL`'s address and leaves no account without one.

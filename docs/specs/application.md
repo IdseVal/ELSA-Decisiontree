@@ -5323,3 +5323,291 @@ licence is the `OFL-1.1` string, fixed.
 | `tests/browser/theme-panel.spec.ts` | the two selects and their entries; choosing a library family is seen at once in the editor and, after publishing, the public page fetches it from the Tree's own address (`theme.spec.ts`'s same-origin rule holds); an upload proposes the font's name, takes a licence from the list and from "Another licence…", and refuses a name the other role uses for other files; choosing the library's Open Sans for the first Tree's headings is refused the same way, with nothing sent; renaming a Tree's own family to the other role's name is refused the same way, and an edit that keeps the first Tree's shared name is not; the first Tree's hand-made line shows as "Another licence…" |
 | `tests/browser/no-scroll.spec.ts` | one row more: the full-node fixture with each library family set in both roles, at 1280 x 640 and 360 x 640, in `en` and `nl` -- the browser's proof of 37.1's width rule |
 | the release | #180's pull request lists `.next/standalone/fonts/` after `npm run build`, and pastes the hashes it committed against `ADR-171-font-library.md` decision 3 |
+
+## 38. Logging in by e-mail address
+
+**[#195], new -- 2026-10-03.** The owner, in #194: "To login should be based on an email and a
+password". An account logs in with an e-mail address and its password, in place of the user
+name of 20.1, and so does the administrator: the owner's words make no exception (core
+document 3.4 `[#194]`, 10.32). The application still sends no mail (core document 7, 10.31):
+the address is what a person types to log in, and nothing is ever sent to it. Decides core
+document 10.39. Recorded in `docs/adrs/ADR-195-login-by-email-address.md`,
+`ADR-195-administrator-address.md`, `ADR-195-accounts-without-an-address.md` and
+`ADR-195-who-sees-and-changes-an-address.md`. Built by #196. Where an earlier section says
+`login`, this section holds; each such section carries a **[#195]** mark that points here.
+
+### 38.1 The address
+
+- **`email` replaces `login`** in `Account` (38.2), in the change `update` applies, in every
+  body and answer of 22.1 that named it, and on the screens of 25. The field is named for what
+  it holds.
+- **What counts as an address: the browser's own check.** A string that, after the value
+  sanitisation of the HTML Standard's `<input type="email">` -- every line feed and carriage
+  return removed, leading and trailing ASCII white space stripped -- matches that standard's
+  *valid e-mail address* (WHATWG HTML, "E-mail state"):
+
+  ```
+  /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+  ```
+
+  and is **at most 254 characters**, the longest address a 256-octet SMTP path carries (RFC
+  5321 4.5.3.1.3, as RFC 3696 erratum 1690 states the limit). Nothing else is required of it:
+  no dot in the domain, no known top-level domain, no lookup, no limit of its own on the part
+  before the `@`. The pattern is ASCII, so every address is.
+- **Lower-cased on entry, then compared byte for byte.** Every upper-case ASCII letter is
+  lowered wherever an address is given -- a creation, a change, `ELSA_ADMIN_EMAIL` (38.3), a
+  login -- so `Idse.Val@WUR.nl` and `idse.val@wur.nl` are one address, stored once, in the
+  second form.
+- **One account per address**, deactivated accounts included: an address names one account,
+  and a deactivated account may be reactivated with it (20.1). An address another account
+  holds is refused, 422 `email-taken` at the field.
+- **One function holds the rule**: `normaliseEmail(input: unknown): string | null` in
+  `src/store/accounts.ts`, pure, answering the sanitised, lower-cased address or `null`.
+  `create`, `update`, the start's reading of `ELSA_ADMIN_EMAIL` and `authenticate` call it;
+  nothing else checks an address, and a string it answers `null` for names no account.
+  `normaliseLogin`, the id grammar it held a login to, and `ADMIN_LOGIN` go.
+
+| Given | `normaliseEmail` answers |
+|---|---|
+| `idse.val@wur.nl` | `idse.val@wur.nl` |
+| ` Idse.Val@WUR.nl ` (white space around it), or with a line break inside it | `idse.val@wur.nl` |
+| `anna+trees@example.org`, `o'brien@example.org` | the same |
+| `bram@localhost` (no dot in the domain) | the same |
+| an address of 254 characters | the same, lower-cased |
+| an address of 255 characters | `null` |
+| `admin`, an empty string, a number, `null` | `null` |
+| `anna@`, `@example.org`, `anna@@example.org` | `null` |
+| `anna b@example.org`, `"anna b"@example.org` | `null` |
+| `anna@-example.org`, `anna@exa_mple.org`, `anna@example..org` | `null` |
+| `jürgen@example.de`, `anna@exämple.org` | `null`: not ASCII |
+
+### 38.2 The interface and the routes
+
+20.1's record and 20.4's interface, as #196 leaves them (`src/store/accounts.ts`):
+
+```ts
+interface Account {
+  id: string               // unchanged
+  name: string             // display name, 1 to 80 characters, one per account (38.6); shown in the
+                           // admin area and, for an Author, on its Trees' public pages (39.8)
+  email: string | null     // 38.1; null only on an account a converted store left without one,
+                           // until the administrator gives it one (38.4)
+  passwordHash: string     // unchanged (20.2)
+  active: boolean          // unchanged
+  administrator: boolean   // unchanged (20.3)
+  createdAt: string        // unchanged
+}
+
+export interface Accounts {
+  authenticate(email: string, password: string): Promise<Account | null>  // scrypt runs either way (20.2);
+                                                                          // never answers an account whose email is null
+  get(id: string): Account | null
+  byEmail(email: string): Account | null    // in place of byLogin: the account a typed address names,
+                                            // active or not, for a lock's log line (38.8)
+  all(): Account[]                          // as built by #135: every account, for the accounts page (25.3)
+  listActive(): Pick<Account, 'id' | 'name'>[]   // 21.4: no address (38.5)
+  create(by: Account, name: string, email: string, password: string): Promise<Account>
+  update(by: Account, id: string, change: { name?: string; email?: string; active?: boolean;
+                                            password?: string; currentPassword?: string }): Promise<Account>
+  readonly adminPasswordReplaced: boolean   // as built by #135, unchanged
+}
+```
+
+`AccountError`'s codes `email-invalid` and `email-taken`, at the field `email`, replace
+`login-invalid` and `login-taken` at `login`; `name-taken` (38.6) joins them, at `name`.
+
+| Method and path | Takes | Answers |
+|---|---|---|
+| `POST /admin/api/login` | `{ email, password }` | As before: 204 and the cookie; 401; 429; the two refusals with one body (20.7) |
+| `GET /admin/api/me` | -- | `{ id, name, email, administrator }`: the caller's own address |
+| `GET /admin/api/accounts` | -- | `[{ id, name }]`, every active account, to any logged-in account (38.5) |
+| `POST /admin/api/accounts` | the administrator: `{ name, email, password }` | 201, the account without its hash; 422 at `name` (`name-length`, `name-taken`), at `email` (`email-invalid`, `email-taken`) or at `password` (`password-length`) |
+| `PATCH /admin/api/accounts/<id>` | the administrator: `name`, `email`, `active`, `password`; the holder: `name`, and `password` with `currentPassword` | 200, the account without its hash; 403 at `email` when anyone but the administrator sends it, the holder included; 422 as above |
+
+Every answer that carried `login` carries `email` in its place, but `GET /admin/api/accounts`,
+which carries neither. A body that still sends `login` sends no address: the login answers 401
+and a creation 422 `email-invalid`.
+
+### 38.3 The administrator's address
+
+**`ELSA_ADMIN_EMAIL`**, an environment variable read **at every start**, as
+`ELSA_ADMIN_PASSWORD` is (20.3), checked and lower-cased by `normaliseEmail`:
+
+| The store holds | `ELSA_ADMIN_EMAIL` | The start |
+|---|---|---|
+| no administrator | set, with `ELSA_ADMIN_PASSWORD` | creates the administrator with that address and that password |
+| no administrator | absent, or the password absent | **refuses to start**, naming each variable that is missing |
+| an administrator without an address: a store of user names (38.4) | set | gives it that address |
+| an administrator without an address | absent | **refuses to start**: `ELSA_ADMIN_EMAIL is not set and the administrator has no e-mail address: set it to the address the administrator will log in with (docs/deployment.md)` |
+| an administrator with an address | set to another | **replaces** it: the recovery of a forgotten address, as the password's -- set, restart, log in, remove |
+| an administrator with an address | set to the same, or absent | changes nothing |
+| any | set to a value that is not an address (38.1), or to another account's address | **refuses to start**, saying which of the two, without the value |
+
+- **The log names the variable, never its value**: `administrator e-mail address set from
+  ELSA_ADMIN_EMAIL; remove the variable` when the start gave or replaced the address, beside
+  the password's line of 20.3.
+- **Removed after the first start, like the password.** It is not a secret, but while it is
+  set it wins at every start over a change made on the accounts page (38.5), which is what
+  makes it the way back. `docs/deployment.md` says to remove both and to set the address again
+  only to recover it (38.9).
+- **The account itself is unchanged**: one account, `administrator: true`, display name
+  `Administrator` at creation, the flag set by the server alone and never by a request.
+- **No address in the repository is a real one.** `deploy/elsa-decisiontree.env.example` names
+  the variable and leaves it empty, as it leaves the password; every server a test starts sets
+  `ELSA_ADMIN_EMAIL=admin@example.org`, a domain RFC 2606 reserves for examples (38.10).
+- **The live demo server's address is the owner's to choose.** That server, the production
+  build of `dev` at http://petercelie:3000, holds one account, the administrator, with the
+  user name `admin` (measured on #194). The first start of a release that carries #196 refuses
+  there until the variable is set. #198 asks the owner for the address on #198, with
+  `needs-human`, before it brings the server to that release, and never chooses one itself.
+
+### 38.4 A store of user names
+
+Every store written before #196 holds a `login` per account and no address. At every start,
+before anything reads an account, `openAccounts` converts each record that holds `login` and
+no `email`:
+
+- the administrator's `email` becomes `ELSA_ADMIN_EMAIL`'s, which the start requires for it
+  (38.3, the fourth row);
+- every other account's becomes `null`: no setting can give it its address, and none is
+  invented;
+- `login` is removed from every record; `id`, `name`, `passwordHash`, `active`,
+  `administrator` and `createdAt` stay as they were.
+
+The file is written once, atomically (17.3), and a later start finds nothing to convert. The
+start logs, ids and counts only (38.8): `accounts.json converted from user names to e-mail
+addresses: <n> accounts, <m> without an address`.
+
+**An account without an address cannot log in, and is otherwise whole.** `authenticate` never
+answers it, so an attempt for it is a 401 like any other. It stays active, keeps its roles on
+every Tree, is in `listActive` and so can be invited, and a session it held before the upgrade
+stays valid until it expires (20.4): a session names an account, not a login. Every start
+logs, while it has none, `account <id> has no e-mail address: give it one at /admin/accounts`.
+
+**The way back**, every one written in `docs/deployment.md` (38.9): for an account without an
+address, the administrator gives it one on the accounts page, where it is marked `noEmail`,
+through `setEmail` (38.5), and tells its holder, who logs in with that address and the password
+they had. For the administrator, `ELSA_ADMIN_EMAIL`, without which the start refuses and names
+it. The user names are not kept, so a deployer backs the data directory up before that first
+start.
+
+On the live demo server the conversion meets one account, the administrator, so it gives that
+account `ELSA_ADMIN_EMAIL`'s address and leaves no account without one.
+
+### 38.5 Who sees an address, and who changes it
+
+- **Who sees one.** Its **holder**: on the account page, and in `GET /admin/api/me`. The
+  **administrator**: every account's, on the accounts page, and in the answers of `POST
+  /admin/api/accounts` and `PATCH /admin/api/accounts/<id>`. **Nobody else**: `GET
+  /admin/api/accounts` answers `{ id, name }`; the invitation and hand-over selects of 33.4 and
+  33.6 show names; no public route and no log line holds one (38.8, 39.8).
+- **Who changes one: the administrator alone**, for every account, its own included. A row
+  action `setEmail` on the accounts page opens a Sheet titled `setEmail` with one field,
+  `email`, holding the current address (empty for `noEmail`), and `save` sends `PATCH
+  /admin/api/accounts/<id> { email }`; a 422 `email-invalid` or `email-taken` is shown at the
+  field. No current password is asked: the administrator sets an address as it sets a password
+  (25.3). The server refuses `email` from any other account, the holder included: 403 at
+  `email`. `ELSA_ADMIN_EMAIL` also sets the administrator's at a start (38.3).
+- **A change of address ends no session** and changes nothing else: a session belongs to an
+  account, and the password is unchanged (20.4). It is logged as every account change is,
+  `account <id> changed (email) by account <id> at <time>`: the word, never the value.
+- **The account page (25.2)**: in the password card, above its fields, the line
+  `signedInWith(email)` -- "You sign in with <address>." / "U logt in met <adres>." -- one
+  line, cut with an ellipsis where it does not fit, with the whole address as its `title`; for
+  a converted account without an address, `noEmail` there instead; under it `emailHelp`, "Ask
+  your administrator to change it." / "Vraag uw beheerder om het te wijzigen.". The hidden
+  `username` field of the password form holds the address, so a password manager files the new
+  password under it; it is empty for an account without one.
+- **The accounts page (25.3)**, per row: the name; the address, one line cut with an ellipsis
+  with the whole address as its `title`, or `noEmail` in `text-muted`; the state; and the
+  actions -- `deactivate` / `reactivate`, `setPassword` and `setEmail` on every row but the
+  administrator's, `setEmail` alone on the administrator's. `setPassword`'s Sheet names the
+  account by its name where it named it by its login. The new-account Sheet asks for
+  `displayName`, `email` and `password`.
+- **The address field**, wherever one is typed -- the login page, the new-account Sheet, the
+  `setEmail` Sheet -- is `type="email"`, with `autocapitalize="none"` and `spellcheck="false"`,
+  in a form marked `noValidate`: the browser's own message about a value that is not an
+  address, in the browser's language, never stands in for the line the screen shows. On the
+  login page the field's `autocomplete` is `username`; in the two Sheets it is `off`.
+
+### 38.6 One account per name
+
+- **No two accounts, active or not, carry one name.** With no address in the invitation list, a
+  name is what tells two accounts apart, and the public mention names Authors by these names
+  (39), so it never names two people alike either.
+- **Names are compared by a key**: `name.normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase()`,
+  so "Anna de Vries" and "anna  de vries" are one name. A name is still stored as given,
+  trimmed (20.1).
+- **A creation or a rename** -- the holder's on the account page, the administrator's through
+  `PATCH` -- that gives an account a name whose key another account's name has is refused,
+  422 `name-taken` at the field. A change that keeps an account's own name is never refused.
+- **A converted store** (38.4) whose accounts share a name is left as it is: nothing is
+  renamed; every start logs `accounts <id> and <id> share a name: give one of them another`
+  while they do; every name given from then on is held to the rule.
+
+### 38.7 The rate limit
+
+20.7, restated for an address. **Per address typed**: the first counter is keyed by the string
+the request carries in `email`, trimmed and lower-cased -- whether or not it is an address, and
+whether or not an account holds it -- so five consecutive failures on one address lock it for
+15 minutes, a success resets, and an attempt on an address no account holds counts exactly as
+one on an address an account holds. **Per deployment**: unchanged, more than 60 failed logins
+in one minute lock the route for one minute. A lock is 429, a wrong address or password 401,
+both with the same body. Still **not per client address**. Counting per account was rejected:
+an attempt on an unknown address would count nothing, and a lock that falls on a known address
+but never on an unknown one says which exists, which the one body was built never to say.
+
+### 38.8 The log
+
+20.8, restated for an address. A failure is `login failed for account <id>` or `login failed
+for an unknown address`; a lock `login locked for 15 minutes for account <id>` or `login locked
+for 15 minutes for an unknown address`; a success `account <id> logged in`, as before. **Never
+an address**: not the address typed, not an account's -- the administrator's included -- in any
+line, at any level. An account change names the fields it changed, `email` among them, never
+their values (38.5); the start names `ELSA_ADMIN_EMAIL`, never its value (38.3), and counts and
+ids, never an address (38.4, 38.6). 20.8's list of what is never logged gains "an e-mail
+address".
+
+### 38.9 What a deployer reads
+
+#196 changes, with the code it changes:
+
+- **`docs/deployment.md`**: the configuration table gains `ELSA_ADMIN_EMAIL` beside
+  `ELSA_ADMIN_PASSWORD` -- required at a first start and at the first start of the release
+  that carries #196, read at every start, removed afterwards, the log line of 38.3 -- and the
+  table at the top, step 4 (the environment file) and "A container" (the first run's
+  `--env-file`) name it with the password. "The administrator and the login" says that the
+  administrator logs in with the address `ELSA_ADMIN_EMAIL` gave it; that every other account is
+  made with a display name, an e-mail address and a first password, and that the administrator
+  changes an address at `/admin/accounts` and the holder does not; how a forgotten
+  administrator address is recovered (set, restart, log in, remove); that five wrong passwords
+  for one address lock that address; and that the journal says "an unknown address" and never
+  holds an address. "Putting a new version of the application on the server" says what the
+  first start of the release does to an existing store (38.4) before it happens: back up the
+  data directory, since the user names are not kept; set `ELSA_ADMIN_EMAIL`, without which the
+  start refuses and the public pages stay down until it is set; read the lines the start logs;
+  give every account they name an address at `/admin/accounts`, and tell each holder; remove
+  the variable. "When it does not start" quotes the refusals of 38.3.
+- **`deploy/elsa-decisiontree.env.example`**: `ELSA_ADMIN_EMAIL=` beside `ELSA_ADMIN_PASSWORD=`,
+  empty, with a comment in the style of the password's.
+- **The `Dockerfile`**'s comment on the first run's `--env-file`, and **`README.md`**'s commands
+  for a first start, name both variables; "log in as `admin`" becomes "log in with that
+  address".
+- **`src/config.ts`**'s `Environment` names the variable.
+
+### 38.10 Tests (#196)
+
+| File | Asserts |
+|---|---|
+| `tests/store/accounts.test.ts` | `normaliseEmail` on every row of 38.1's table; `create` lower-cases and refuses `email-invalid`, `email-taken` (also for an address a deactivated account holds) and `name-taken` (38.6's key: case, NFC and white space); `update`'s `email` from the administrator, and 403 from the holder; a change of address ends no session; `authenticate` by address in any case, and `null` -- scrypt run each time -- for a user name, for `admin` and for an account whose `email` is `null`; `listActive` answers `id` and `name` and nothing else; 38.3's table row by row, each refusal naming its variable and never its value; 38.4 on a directory written as `dev` writes it before #196 -- the administrator `admin` and two accounts with user names that share a name -- with its log lines, 38.6's included; a second start converts nothing and leaves the file's bytes as they were |
+| `tests/store/login-limit.test.ts` | its counters, keyed by an address |
+| `tests/browser/login.spec.ts` | the login page logs in by address through the page, in `en` and `nl`; a wrong password and an unknown address show the same `loginFailed`, the address kept and the password cleared; the old user name, `admin` included, is refused with the same line; five failures on one address lock it, also on an address no account holds; the account page's address line and `emailHelp`; the accounts page's address column, `noEmail` and `setEmail`; the server's output holds no address (20.8, 38.8) |
+| `tests/browser/admin-api.spec.ts` | `GET /admin/api/me` answers `email`; `GET /admin/api/accounts` answers `{ id, name }` and no `email`; `POST` and `PATCH` on the accounts as 38.2, the holder's `email` 403 |
+| `tests/browser/panel.spec.ts` | the invitation and hand-over selects show names only |
+| `tests/browser/admin-no-scroll.spec.ts` | the account page holding an address of 254 characters; the accounts page with the `setEmail` Sheet open; at its ten viewports |
+| `tests/browser/deployment.spec.ts` | logs in by address; 20.5 and 35.5 hold unchanged |
+| every test that logs in | `tests/browser/admin.ts`: `buildDataDir`'s accounts carry `email`, and `login(page, origin, email, password)` posts `{ email, password }`; 35.3's accounts log in as `admin@example.org`, `anna@example.org`, `bram@example.org` and `cees@example.org`; every server a test starts -- `playwright.config.ts`, `playwright.first-tree.config.ts`, `tests/browser/serve.ts`, `tests/store/admin.ts`'s `ADMIN` and `tests/browser/admin.ts`'s `ADMIN_ENV` -- sets `ELSA_ADMIN_EMAIL=admin@example.org` beside its password. `git grep -n "login" -- tests` and `git grep -n "'admin'" -- tests` find them |
+
+#196's pull request pastes, each from a command, the accounts of a copy of a store written by
+`dev` before #196 -- its administrator among them -- before the first start of the new
+release, after it, and those of them that log in with an address.
