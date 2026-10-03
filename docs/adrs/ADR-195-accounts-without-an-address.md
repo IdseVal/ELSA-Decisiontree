@@ -78,8 +78,9 @@ files since #179 (36.4) -- and writes each file whole and atomically through one
   log in with an address that is not theirs.
 - **The old user name kept in the record** (a `formerLogin` beside a missing address) to tell
   the administrator whose account it is. A field for a case the one measured deployment does
-  not have; the display name, one per account from this release on, tells the administrator
-  who made the account whose it is.
+  not have. The display name tells the administrator who made the account whose it is, but for
+  two that a converted store left with one name (decision 5): those are the case this field
+  would serve, and the start names both by id until one of them is renamed.
 - **A conversion command run before the first start.** A container has no terminal, and the
   store already converts what it opens (36.4).
 

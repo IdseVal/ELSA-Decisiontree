@@ -72,7 +72,7 @@ byte, under CC BY 4.0 (15); the JSON-LD, whose `Dataset` names as `creator` the 
    `Administrator`, a word the chrome holds, so the test renames it through `PATCH` on its own
    account before the walk. It asserts that no response, headers or body, holds any account's
    address or id; that the names of the hidden-only Author, of the account with no role and of
-   the administrator are in none, every byte read -- decision 2's rule whole, not only its
+   the administrator are in none, every byte read -- decision 2's rule on names, not only on
    addresses and ids; and that the published Tree's Authors' names are in its Node pages and
    the overview, and in no other response. In each of those, the names are read
    in its markup with every `<script>` element removed but the JSON-LD's: there they stand only

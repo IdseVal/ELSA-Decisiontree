@@ -640,8 +640,8 @@ owner's words leave a choice:
     of the release converts a store of user names, the administrator taking the variable's
     address and every other account waiting, unable to log in, until the administrator
     gives it one; an address is seen by its holder and the administrator only, and changed
-    by the administrator; the list a creator invites from shows names, so names are one per
-    account (10.39; `docs/specs/application.md` 38).
+    by the administrator; the list a creator invites from shows names, so no account is
+    given a name another account carries (10.39; `docs/specs/application.md` 38).
   - **Every Tree names who authored it.** "Graph" is one of the owner's words for a Tree
     (section 5). This reverses, for the mention the owner asked for, the rule of sections
     8 and 9 that nothing about a creator reaches a public page. PROPOSED (the owner named
@@ -671,10 +671,10 @@ owner's words leave a choice:
     was about; its temporary password handed over out of band, as every first password is
     (10.31), and written into no file of the repository, no issue, no pull request and no
     log (#198). **[#195]** Not decided on #195 (2026-10-03), which confirms and replaces none of these
-    readings; #198 acts on them. Two of #195's decisions meet them: names are one per account
-    (10.39), and "Idse Val" is no other account's; and the demo server's administrator needs
-    an address of its own before that server can run the new login, which #198 asks the
-    owner for (10.39).
+    readings; #198 acts on them. Two of #195's decisions meet them: no account is given a name
+    another account carries (10.39), and "Idse Val" is no other account's; and the demo
+    server's administrator needs an address of its own before that server can run the new
+    login, which #198 asks the owner for (10.39).
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).

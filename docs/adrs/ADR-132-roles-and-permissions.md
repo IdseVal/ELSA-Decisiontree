@@ -2,8 +2,9 @@
 
 - Status: ACCEPTED (frozen) -- 2026-09-23; restates core document 9's last bullet as a contract
 - **Amended 2026-10-03 by issue #195**: decision 4's list answers each active account's `id`
-  and `name`, no login and no address, and the invitation shows names, which are one per
-  account (`ADR-195-who-sees-and-changes-an-address.md`); the table's last row reads "(name)".
+  and `name`, no login and no address, and the invitation shows names, and no account is given
+  a name another account carries (`ADR-195-who-sees-and-changes-an-address.md`); the table's
+  last row reads "(name)".
   Decision 5's hand-over also appends the new creator to `meta.json`'s `joined` when it is new
   to the Tree (`ADR-195-order-of-joining.md`). A Tree's roles are also what its public mention
   names, the administrator excepted (`ADR-195-authors.md`).

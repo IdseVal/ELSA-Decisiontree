@@ -5638,8 +5638,9 @@ document 10.39. Recorded in `docs/adrs/ADR-195-login-by-email-address.md`,
 ```ts
 interface Account {
   id: string               // unchanged
-  name: string             // display name, 1 to 80 characters, one per account (38.6); shown in the
-                           // admin area and, for an Author, on its Trees' public pages (39.8)
+  name: string             // display name, 1 to 80 characters, refused where another account has it
+                           // (38.6); shown in the admin area and, for an Author, on its Trees'
+                           // public pages (39.8)
   email: string | null     // 38.1; null only on an account a converted store left without one,
                            // until the administrator gives it one (38.4)
   passwordHash: string     // unchanged (20.2)
@@ -5927,9 +5928,9 @@ after #196.
   to the account of a person who authored it (21.4, 33.6) -- on the live demo server, each of
   its three Trees.
 - **Each Author is shown by its account's `name` alone**: never its address, its id, its role
-  or when it joined. Names are one per account (38.6), so no two Authors look alike, but two
-  accounts that a converted store left with one name: until one of them is renamed, the mention
-  names them alike, on every Tree either of them authors (38.6).
+  or when it joined. No account is given a name another account carries (38.6), so no two
+  Authors look alike, but two accounts that a converted store left with one name: until one of
+  them is renamed, the mention names them alike, on every Tree either of them authors (38.6).
 - **The row Author of core document 5 is this one**: an account. Every account but the
   administrator's that writes a Tree's content in the editor holds a role on it, so for a Tree
   made in the editor the Authors are its authors in the sense of core document 1, 2 and 3.1. A
