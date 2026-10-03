@@ -289,6 +289,7 @@ function panelWords(ui: Chrome): PanelWords {
     default: ui.default,
     removeLanguage: ui.removeLanguage,
     languageHint: ui.languageHint,
+    languageTag: ui.languageTag,
     handOver: ui.handOver,
     handOverTo: ui.handOverTo,
     deleteTree: ui.deleteTree,

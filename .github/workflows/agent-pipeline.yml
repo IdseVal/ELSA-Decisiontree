@@ -254,7 +254,8 @@ jobs:
       needs.classify.result == 'success' &&
       (needs.verify.result == 'success' || needs.verify.result == 'skipped')
     runs-on: ubuntu-latest
-    timeout-minutes: 60   # 30 until 2026-09-19: a Reviewer round on a 30-file PR was cancelled at 30
+    timeout-minutes: 90   # 30 until 2026-09-19: a Reviewer round on a 30-file PR was cancelled at 30;
+                          # 60 until 2026-10-03: at effort max the review of PR #193 (the #181 walk) was cancelled at 60
     steps:
       - uses: actions/checkout@v4
         with:

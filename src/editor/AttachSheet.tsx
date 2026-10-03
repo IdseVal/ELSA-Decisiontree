@@ -11,6 +11,10 @@
  * so the folder holds no picture nobody named (a 409 -- the same bytes named elsewhere -- is
  * somebody's file, and ignored). **[#172]** Each field says what belongs in it while it is
  * empty, and its typing stops at its 120 characters, as a field's does (28.4, amended).
+ * **[#181]** And each is a box of the three lines those 120 characters take across the Sheet,
+ * its label above it, as the enlarged view's credit and description are boxes of their lines
+ * (28.4 and 31.2, amended by #181): a one-line input scrolled a longer credit out of its own
+ * box. Enter still attaches, as it did in the input: the text is one plain line.
  *
  * Laid over the page from the document's body, so a Sheet it was opened from -- an Overlay --
  * neither clips it nor closes under it.
@@ -60,7 +64,7 @@ export function AttachSheet({
   onClose: () => void
 }) {
   const api = useEditor()
-  const credit = useRef<HTMLInputElement>(null)
+  const credit = useRef<HTMLTextAreaElement>(null)
   const [creditText, setCreditText] = useState('')
   const [description, setDescription] = useState('')
   const attachable = creditText.trim() !== '' && !api.readOnly
@@ -78,6 +82,13 @@ export function AttachSheet({
     const text = description.trim()
     api.operate(nodeId, { op: 'add-image', file: uploaded.file, credit: creditText.trim(), description: text === '' ? {} : { [api.lang]: text } })
     onClose()
+  }
+
+  // A plain line: Enter submits, as it did in a one-line input, and never breaks the line.
+  const onEnter = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
+    if (event.key !== 'Enter') return
+    event.preventDefault()
+    event.currentTarget.form?.requestSubmit()
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
@@ -103,13 +114,15 @@ export function AttachSheet({
               <label htmlFor="attach-credit">{words.credit}</label>
               <Hint id="attach-credit-hint" text={words.creditHint} name={words.hint} />
             </span>
-            <input
+            <textarea
               ref={credit}
               id="attach-credit"
               className="editor-url"
+              rows={3}
               value={creditText}
               placeholder={words.placeholderCredit}
               required
+              onKeyDown={onEnter}
               onChange={(event) => setCreditText(heldToLimit(event.target, creditText, plainLine(event.target.value), LIMIT))}
             />
           </div>
@@ -118,12 +131,14 @@ export function AttachSheet({
               <label htmlFor="attach-description">{words.imageDescription}</label>
               <Hint id="attach-description-hint" text={words.imageDescriptionHint} name={words.hint} />
             </span>
-            <input
+            <textarea
               id="attach-description"
               className="editor-url"
+              rows={3}
               lang={api.lang}
               value={description}
               placeholder={words.placeholderImageDescription}
+              onKeyDown={onEnter}
               onChange={(event) => setDescription(heldToLimit(event.target, description, plainLine(event.target.value), LIMIT))}
             />
           </div>

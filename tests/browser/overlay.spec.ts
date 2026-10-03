@@ -120,6 +120,9 @@ test.describe('opening and closing', () => {
   })
 })
 
+/** The overlay fixture's server, started by the first test that asks for it: `serve` refuses a port that already answers. */
+let overlayFixture: Promise<string | null> | undefined
+
 test.describe('the Interior in an Overlay', () => {
   test("is laid out as the Bubble's: the Sources heading in its small capitals, not the title's size, and the content from the top (10.3, 10.9)", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
@@ -147,7 +150,8 @@ test.describe('the Interior in an Overlay', () => {
   // No-scroll alone cannot catch a picture that gives way: the panel absorbs the shortfall
   // into it silently. The fixture's `big` Node is every maximum an Overlay holds (10.9).
   test('the main image keeps two fifths of the panel in the Overlay at every maximum (#102)', async ({ page }) => {
-    const origin = await serve(path.join(repo, 'tests', 'fixtures'), 'overlay', OVERLAY_PORT)
+    overlayFixture ??= serve(path.join(repo, 'tests', 'fixtures'), 'overlay', OVERLAY_PORT)
+    const origin = await overlayFixture
     expect(origin, 'the overlay fixture is a valid Tree').not.toBeNull()
     for (const [width, height] of [[1280, 640], [1920, 1080]] as const) {
       await page.setViewportSize({ width, height })
@@ -157,6 +161,28 @@ test.describe('the Interior in an Overlay', () => {
       const image = (await page.locator('.overlay[open] .main-image').boundingBox())!
       expect(await page.locator('.overlay[open] .overlay-options li').count()).toBe(8)
       expect(image.height, `${width}x${height}`).toBeCloseTo(0.4 * panel.height, 0)
+    }
+  })
+
+  // **[#181]** Below 792 pixels the cross stands 24 into the panel's text, over the title's first
+  // line: on a phone the fixture's title of 80 characters, a link, ran under it.
+  test('[#181] below 792 pixels the title keeps clear of the cross: no line of the 80 characters of `big` under it at 390 x 844', async ({ page }) => {
+    overlayFixture ??= serve(path.join(repo, 'tests', 'fixtures'), 'overlay', OVERLAY_PORT)
+    const origin = await overlayFixture
+    expect(origin, 'the overlay fixture is a valid Tree').not.toBeNull()
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(`${origin}/overlay/five/big`)
+    await page.evaluate(() => document.fonts.ready)
+    const cross = (await page.locator('.overlay[open] > .sheet-panel > .sheet-close--cross').boundingBox())!
+    const lines = await page
+      .locator('.overlay[open] .overlay-interior > h2 a')
+      .evaluate((link) => [...link.getClientRects()].map(({ left, top, right, bottom }) => ({ left, top, right, bottom })))
+    // Wrapped, so its lines run out to the cross's side of the panel.
+    expect(lines.length).toBeGreaterThan(1)
+    for (const line of lines) {
+      const across = Math.min(line.right, cross.x + cross.width) - Math.max(line.left, cross.x)
+      const down = Math.min(line.bottom, cross.y + cross.height) - Math.max(line.top, cross.y)
+      expect(across > 1 && down > 1, `a line of the title at x ${line.left}-${line.right}, y ${line.top}-${line.bottom} under the cross`).toBe(false)
     }
   })
 })
