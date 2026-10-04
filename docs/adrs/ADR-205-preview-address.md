@@ -11,7 +11,8 @@
   marked **[#205]**
 - Amends: `ADR-133-admin-routes.md` decision 1 ("The admin area is exactly these addresses":
   the preview's two join them) and decision 5 (the admin area needs JavaScript, but for the
-  preview, whose markup is the public page's)
+  preview, whose markup is the public page's); core document 10.37, which decides the same
+  sentence, carries a dated **[#205]** note for it
 - Depends on: `ADR-133-admin-routes.md` (the admin area's addresses, the login page in place,
   the 403 page), `ADR-132-hidden-trees-and-findability.md` (a hidden Tree on no public route),
   `ADR-132-roles-and-permissions.md` (who may read a draft)
