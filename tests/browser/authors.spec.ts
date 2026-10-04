@@ -13,17 +13,16 @@
  * 35.7, under `docs/screenshots/issue-197/` with `ELSA_SHOTS=1`.
  *
  * One server of this file's own, on a data directory built with accounts (35.1): copies of the
- * example Tree, whose logo is 120 pixels wide, and of the full-node fixture, which has no logo,
- * given a title of the format's 80 characters, each with one Author, three, eight or none. Every
- * measurement is written to `tests/browser/.results/authors.md`, so the pull request can paste it.
+ * example Tree, whose logo is 120 pixels wide, and of `tests/fixtures/long-title/` (#200), which
+ * has no logo and a title of the format's 80 characters, each with one Author, three, eight or
+ * none. Every measurement is written to `tests/browser/.results/authors.md`, so the pull request
+ * can paste it.
  */
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Page } from '@playwright/test'
 import { chrome } from '../../src/chrome.ts'
-import { treeBytes } from '../../src/tree/serialise.ts'
 import { ADMIN_ENV, buildDataDir, login, type TestAccount } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
@@ -69,12 +68,6 @@ const FIVE = [
 /** The Author of a hidden Tree, and of nothing else. */
 const DORA = account('Dora Kwast', 'dora@example.org')
 
-/** A title of the format's 80 characters in both languages (`tree-format.md` 5.7), for a Tree the bar names in text. */
-const LONG_TITLE = {
-  en: 'Does the EU AI Act apply to my AI system and which of its duties follow from it?',
-  nl: 'Geldt de EU AI-verordening voor mijn AI-systeem, en welke plichten volgen er nu?',
-}
-
 /** The published Trees whose Authors this file never changes, each with its Authors in the order they joined it. */
 const AUTHORED: Record<string, TestAccount[]> = {
   'example-one': [ANNA],
@@ -90,7 +83,6 @@ const TWIN = (id: string): string => (id.startsWith('example-') ? 'example-nobod
 let origin: string
 /** Each account's id, by its address: what the API names an account by. */
 let ids: Map<string, string>
-let longFolder: string
 
 /** One row of the table the pull request pastes. */
 interface Row {
@@ -105,14 +97,14 @@ interface Row {
 const rows: Row[] = []
 
 test.beforeAll(async () => {
-  longFolder = await longTitleTree()
   const example = path.join(repo, 'trees', 'ai-act-example')
+  const long = path.join(repo, 'tests', 'fixtures', 'long-title')
   const roles = (authors: TestAccount[]) => ({ creator: authors[0]!.email!, collaborators: authors.slice(1).map((author) => author.email!) })
   const dir = await buildDataDir({
     trees: [
-      ...Object.entries(AUTHORED).map(([id, authors]) => ({ folder: id.startsWith('example-') ? example : longFolder, id, ...roles(authors) })),
+      ...Object.entries(AUTHORED).map(([id, authors]) => ({ folder: id.startsWith('example-') ? example : long, id, ...roles(authors) })),
       { folder: example, id: 'example-nobody' },
-      { folder: longFolder, id: 'long-nobody' },
+      { folder: long, id: 'long-nobody' },
       { folder: example, id: 'handed-over', ...roles([ANNA, BRAM]) },
       { folder: example, id: 'rejoined', ...roles([ANNA, BRAM, CEES]) },
       { folder: path.join(repo, 'tests', 'fixtures', 'german-only'), id: 'german-one', ...roles([ANNA]) },
@@ -127,7 +119,6 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   await stopServers()
-  await rm(path.dirname(longFolder), { recursive: true, force: true })
   await mkdir(RESULTS, { recursive: true })
   const table = [
     '| place | Tree | lang | viewport | room | mention |',
@@ -136,20 +127,6 @@ test.afterAll(async () => {
   ]
   await writeFile(path.join(RESULTS, 'authors.md'), `${table.join('\n')}\n`)
 })
-
-/**
- * A copy of `tests/fixtures/full-node/`, whose Theme names no logo, with `LONG_TITLE`: the bar
- * names it in text (13.4), which leaves the mention the least room a Tree's mark leaves (39.4).
- */
-async function longTitleTree(): Promise<string> {
-  const folder = path.join(await mkdtemp(path.join(tmpdir(), 'elsa-authors-')), 'long-title')
-  await cp(path.join(repo, 'tests', 'fixtures', 'full-node'), folder, { recursive: true })
-  const file = path.join(folder, 'tree.json')
-  const tree = JSON.parse(await readFile(file, 'utf8'))
-  tree.title = LONG_TITLE
-  await writeFile(file, treeBytes(tree))
-  return folder
-}
 
 /** `address` in `lang`: the query of 4.1, left out for English, every Tree's default here. */
 function inLang(address: string, lang: string): string {
