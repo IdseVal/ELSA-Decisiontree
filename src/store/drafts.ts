@@ -136,13 +136,17 @@ interface Held {
  * Opens the drafts of every Tree folder in `treesDir` (17.5). A folder whose draft breaks a
  * blocking rule is held as uneditable (19.5), never a start that fails. `swap` is the public
  * set's; `servable` says whether a published Tree passed at start (18.3).
+ *
+ * **[#197]** Answers the drafts with `roles`: the roles a held Tree has now, or null for an id
+ * it holds none for. The store's `authors` reads it for a published Tree (39.8); it is no member
+ * of `Drafts`, so nothing a route is given answers a `meta.json` without a permission.
  */
 export async function openDrafts(
   treesDir: string,
   accounts: Accounts,
   swap: Swap,
   servable: (id: string) => boolean,
-): Promise<Drafts> {
+): Promise<{ drafts: Drafts; roles: (id: string) => Readonly<Pick<TreeMeta, 'creator' | 'collaborators' | 'joined'>> | null }> {
   const held = new Map<string, Held>()
   const admin = (): Account => accounts.all().find((account) => account.administrator)!
   for (const id of await listFolders(treesDir)) {
@@ -246,7 +250,7 @@ export async function openDrafts(
     console.log(`${new Date().toISOString()} account ${by.id} ${what} Tree "${id}"`)
   }
 
-  return {
+  const drafts: Drafts = {
     permitted(by, id, action) {
       allowed(by, id, action)
     },
@@ -267,7 +271,7 @@ export async function openDrafts(
       const tree: Held = {
         id,
         dir,
-        meta: { creator: by.id, collaborators: [], createdAt: now, updatedAt: now, updatedBy: by.id, publishCount: 0, revision: 0 },
+        meta: { creator: by.id, collaborators: [], joined: [by.id], createdAt: now, updatedAt: now, updatedBy: by.id, publishCount: 0, revision: 0 },
         raw,
         advisory: found,
         blocking: [],
@@ -413,9 +417,9 @@ export async function openDrafts(
         if (!next || !next.active) throw malformed('meta', 'creator', 'account', 'not an active account')
         const old = tree.meta.creator
         const collaborators = tree.meta.collaborators.filter((account) => account !== to)
-        // The old creator keeps what they could see (21.4).
+        // The old creator keeps what they could see (21.4), and **[#197]** its place in the order of joining (39.2).
         if (old !== to && !collaborators.includes(old)) collaborators.push(old)
-        tree.meta = { ...tree.meta, creator: to, collaborators }
+        tree.meta = { ...tree.meta, creator: to, collaborators, joined: joining(tree.meta.joined, to) }
         await writeMeta(tree)
         log(by, `handed to account ${to}`, id)
         return entryOf(tree)
@@ -430,7 +434,7 @@ export async function openDrafts(
           throw malformed('meta', 'collaborators', 'account', 'not an account that can be invited')
         }
         if (!tree.meta.collaborators.includes(accountId)) {
-          tree.meta = { ...tree.meta, collaborators: [...tree.meta.collaborators, accountId] }
+          tree.meta = { ...tree.meta, collaborators: [...tree.meta.collaborators, accountId], joined: joining(tree.meta.joined, accountId) }
           await writeMeta(tree)
           log(by, `invited account ${accountId} to`, id)
         }
@@ -514,6 +518,7 @@ export async function openDrafts(
       if (tree.published) swap(id, await openTree(tree.dir))
     },
   }
+  return { drafts, roles: (id) => held.get(id)?.meta ?? null }
 
   /**
    * **[#180]** `use-library-font` (37.3): the library family's two files copied into the Tree's
@@ -586,6 +591,14 @@ function namedImages(raw: Mapping): Set<string> {
 }
 
 /**
+ * **[#197]** `joined` after `id` took a role on the Tree (39.2): appended when it is new to the
+ * Tree; an account that held a role before keeps the place it first joined in.
+ */
+function joining(joined: string[], id: string): string[] {
+  return joined.includes(id) ? joined : [...joined, id]
+}
+
+/**
  * One Tree folder as `openDrafts` holds it: `meta.json` (a folder without one is the
  * administrator's), the draft under the draft rules, the two folders' file names, and
  * whether the published copy is the draft's bytes.
@@ -603,6 +616,9 @@ async function load(treesDir: string, id: string, administrator: string): Promis
   const meta: TreeMeta = {
     creator: administrator,
     collaborators: [],
+    // **[#197]** A folder without a meta.json: the administrator alone, who is never named (39.2).
+    // Every meta.json that is a JSON object holds its own by now, recorded at the start where it had none.
+    joined: [administrator],
     createdAt: now,
     updatedAt: now,
     updatedBy: administrator,

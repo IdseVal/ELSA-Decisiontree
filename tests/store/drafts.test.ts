@@ -554,6 +554,31 @@ describe('roles: invitations and handing over (21.4)', () => {
   })
 })
 
+describe('**[#197]** the order of joining, `joined` (39.2)', () => {
+  test('create records the creator; an invitation appends once; a removal and a second invitation leave it as it was', async () => {
+    expect((await drafts.create(cees, 't', ['en'], { en: 'T' })).meta.joined).toEqual([cees.id])
+    await drafts.addCollaborator(cees, 't', dirk.id)
+    await drafts.addCollaborator(cees, 't', erik.id)
+    expect((await drafts.addCollaborator(cees, 't', dirk.id)).meta.joined).toEqual([cees.id, dirk.id, erik.id])
+    expect((await drafts.removeCollaborator(cees, 't', dirk.id)).meta).toMatchObject({ collaborators: [erik.id], joined: [cees.id, dirk.id, erik.id] })
+    expect((await drafts.addCollaborator(cees, 't', dirk.id)).meta).toMatchObject({ collaborators: [erik.id, dirk.id], joined: [cees.id, dirk.id, erik.id] })
+    // Anything else leaves it as it is: a write of the draft.
+    expect((await drafts.write(cees, 't', 'start', { path: 'title.en', value: 'Start' })).revision).toBe(1)
+    // Written by the write that changed the roles, into the Tree's meta.json (17.3).
+    expect(JSON.parse(await text('t', 'meta.json'))).toMatchObject({ collaborators: [erik.id, dirk.id], joined: [cees.id, dirk.id, erik.id], revision: 1 })
+  })
+
+  test('a hand-over to a new account appends it once and leaves the old creator in place; to a collaborator it adds nothing', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    await drafts.addCollaborator(cees, 't', dirk.id)
+    expect((await drafts.handOver(cees, 't', dirk.id)).meta).toMatchObject({ creator: dirk.id, collaborators: [cees.id], joined: [cees.id, dirk.id] })
+    expect((await drafts.handOver(dirk, 't', erik.id)).meta).toMatchObject({ creator: erik.id, collaborators: [cees.id, dirk.id], joined: [cees.id, dirk.id, erik.id] })
+    // Back to the account that made it: no new entry, and nothing moves.
+    expect((await drafts.handOver(erik, 't', cees.id)).meta).toMatchObject({ creator: cees.id, collaborators: [dirk.id, erik.id], joined: [cees.id, dirk.id, erik.id] })
+    expect(JSON.parse(await text('t', 'meta.json')).joined).toEqual([cees.id, dirk.id, erik.id])
+  })
+})
+
 describe('pictures (22.6)', () => {
   test('an upload is named by the server, once per content, and refused by type and size', async () => {
     await drafts.create(cees, 't', ['en'], { en: 'T' })

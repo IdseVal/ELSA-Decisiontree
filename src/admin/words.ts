@@ -43,6 +43,7 @@ export function accountWords(lang: string): AccountWords {
     setEmail: ui.setEmail,
     noEmail: ui.noEmail,
     emailHelp: ui.emailHelp,
+    nameShownPublicly: ui.nameShownPublicly,
     requestFailed: ui.requestFailed,
     close: ui.close,
     previous: ui.previous,

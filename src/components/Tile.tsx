@@ -10,11 +10,15 @@
  * **[#137]** On the creators' overview (26.4) a tile also carries its Tree's state in the
  * bottom right corner, may lead to the editor instead of the public page, and may show a
  * draft: a hidden Tree's manifest, or none for a draft no longer editable (19.5).
+ *
+ * **[#197]** Its bottom row names the Tree's Authors after the language tags and before the state
+ * mark (39.5), on both overviews.
  */
 import { chrome, text } from '../chrome.ts'
 import { plainDescription } from '../markdown.ts'
 import type { Manifest } from '../tree/types.ts'
 import { contentLanguage, rootHref, themeHref } from '../url.ts'
+import { TileAuthors } from './Authors.tsx'
 
 /** The state mark of 26.4: `notServable` is a published Tree the public routes refused (18.3). */
 export type TileState = 'published' | 'hidden' | 'notServable'
@@ -27,11 +31,14 @@ export function Tile({
   href,
   /** The state mark; none on the public overview. */
   state,
+  /** **[#197]** The names of the Tree's Authors, in the order they joined it; none, no mention (39.5). */
+  authors = [],
 }: {
   tree: { id: string; manifest: Manifest | null }
   lang: string
   href?: string
   state?: TileState
+  authors?: string[]
 }) {
   const { manifest } = tree
   // The Tree's own language when it does not declare the page's, marked on the tile (23.2).
@@ -65,6 +72,7 @@ export function Tile({
               {language.toUpperCase()}
             </span>
           ))}
+          <TileAuthors names={authors} lang={lang} marked={shown !== lang} />
           {state && <StateMark state={state} lang={lang} marked={shown !== lang} />}
         </span>
       </a>

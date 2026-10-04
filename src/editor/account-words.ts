@@ -34,6 +34,7 @@ export interface AccountWords {
   setEmail: string
   noEmail: string
   emailHelp: string
+  nameShownPublicly: string
   requestFailed: string
   close: string
   previous: string
