@@ -1,24 +1,24 @@
 # Issue #202: the room in the chrome bars for the "Editor" and "Website" buttons
 
-> Measured on 2026-10-03 by the run that filed the issues of #202, and on 2026-10-04 by its fix
-> run, after the review of pull request #207 found that the first run had measured nothing
-> between 479 and 768 pixels wide. The first run measured the production build (`npm run build`)
-> of `dev` at `6d0ea4b`; the fix run measured that build again and then `dev` at `748ebcc`, after
-> #196 and #200 had merged, and the two printed the same rows (section 1, "The runs"). Each was
-> served by `node .next/standalone/server.js` from a scratch data directory seeded from the
-> repository's `trees/` (`ELSA_SEED_DIR`), with `ELSA_ADMIN_PASSWORD` -- and on `748ebcc`
-> `ELSA_ADMIN_EMAIL` -- set for the administrator, on Windows 11 with Node 22.18.0 and Playwright
-> 1.62.1 (its Chromium). On 2026-10-04 the same script also ran in Linux, in the
-> `mcr.microsoft.com/playwright:v1.62.1-noble` image (its Chromium 151.0.7922.34, with
-> `fonts-dejavu-core` 2.37-8 installed), against the same servers, as
+> Measured on 2026-10-03 (UTC, as GitHub dates the merges) by the run that filed the issues of
+> #202, and the same day by its fix run, after the review of pull request #207 found that the
+> first run had measured nothing between 479 and 768 pixels wide. The first run measured the
+> production build (`npm run build`) of `dev` at `6d0ea4b`; the fix run measured that build
+> again and then `dev` at `748ebcc`, after #196 and #200 had merged, and the two printed the
+> same rows (section 1, "The runs"). Each was served by `node .next/standalone/server.js` from a
+> scratch data directory seeded from the repository's `trees/` (`ELSA_SEED_DIR`), with
+> `ELSA_ADMIN_PASSWORD` -- and on `748ebcc` `ELSA_ADMIN_EMAIL` -- set for the administrator, on
+> Windows 11 with Node 22.18.0 and Playwright 1.62.1 (its Chromium). The fix run also ran the
+> same script in Linux, in the `mcr.microsoft.com/playwright:v1.62.1-noble` image (its Chromium
+> 151.0.7922.34, with `fonts-dejavu-core` 2.37-8 installed), against the same servers, as
 > `docs/research/issue-171-measurements.md` 3 measured the CI runner's faces: there the default
-> stack is drawn in Liberation Sans, as on the CI runner, where Windows draws it in Segoe UI, and
-> both draw the first Tree's own Open Sans (the closing lists of sections 3 and 4 name the face
-> each drew). Every number that `docs/adrs/ADR-202-navigation-round.md`, core document 3.4
-> `[#202]` and 10.22, and issue #204 cite is here, with the script that produced it, copied whole
-> in section 5, and its output as it ran on `748ebcc` on each system, in sections 3 and 4. This is
-> a record, not a contract: #204 builds the buttons, amends `docs/specs/application.md`, and
-> measures again on its own build where a number decides a test.
+> stack is drawn in Liberation Sans, as on the CI runner, where Windows draws it in Segoe UI,
+> and both draw the first Tree's own Open Sans (the closing lists of sections 3 and 4 name the
+> face each drew). Every number that `docs/adrs/ADR-202-navigation-round.md`, core document 3.4
+> `[#202]` and 10.22, and issue #204 cite is here, with the script that produced it, copied
+> whole in section 5, and its output as it ran on `748ebcc` on each system, in sections 3 and 4.
+> This is a record, not a contract: #204 builds the buttons, amends `docs/specs/application.md`,
+> and measures again on its own build where a number decides a test.
 
 ## 1. What was measured
 
@@ -27,21 +27,24 @@
   "Website" at `/admin`, with the class of the share button (`share`: a pill with a border, the
   look of the public bars' own controls) or of the account link (`admin-link`: underlined text,
   the look of the admin bars' own). Nothing else on the page was changed, except in the columns
-  and tables that say so. There the current language's pill (`.language--current`) is hidden at
-  every viewport -- and at `/admin` the site's title too -- where #204 is to hide the pill below
-  768 pixels wide on a Node page, and the title and the pill below 600 on the creators' overview
-  at `/admin` only (section 2); or the Tree's logo is drawn as wide as its cap (below).
-- ***room***: the width between the bar's first child -- the arrow and the Tree's mark on a
-  Node page, the site's title elsewhere -- and its controls, the bar's gap taken off. Where the
-  first child is hidden -- the site's title on the Tree-less admin bars below 480 pixels wide
+  and tables that say so. There the current language's pill is hidden at every viewport -- the
+  list item that holds `.language--current`, and with it one of the switch's 4-pixel gaps -- and
+  at `/admin` the site's title too, where #204 is to hide them below 768 pixels wide on a Node
+  page, and below 600 on the creators' overview at `/admin` only (section 2); or the Tree's logo
+  is drawn as wide as its cap (below). `dev`'s own rule for the Tree-less admin bars below 480
+  hides the pill alone (#135) and keeps its item and gap, which the columns of `/admin` that
+  hide nothing show as they are.
+- ***room***: the width between the bar's first child -- the arrow and the Tree's mark on a Node
+  page, the site's title elsewhere -- and its controls, the bar's gap taken off. Where the first
+  child is hidden -- the site's title on the Tree-less admin bars below 480 pixels wide
   (`application.md` 24.3, #135), or in a column that hides it -- the width after the controls,
   which then stand alone at the left.
-- ***DOES NOT FIT***: the bar is wider than the window, the body is wider than the window, or
-  an element of the bar has content wider or taller than itself (10.6). Once nothing in the bar
-  can shrink any more, the bar grows past the window: "bar 346 in 320" is that width.
-  ***WRAPS***: nothing overflows, but a text of the bar is drawn on more than one line -- in
-  these rows only ever the site's title -- where #204's bars are one row. The first run checked
-  neither the heights nor the lines; its rows came out the same with both checks (below).
+- ***DOES NOT FIT***: the bar is wider than the window, the body is wider than the window, or an
+  element of the bar has content wider or taller than itself (10.6). Once nothing in the bar can
+  shrink any more, the bar grows past the window: "bar 346 in 320" is that width. ***WRAPS***:
+  nothing overflows, but a text of the bar is drawn on more than one line -- in these rows only
+  ever the site's title -- where #204's bars are one row. The first run checked neither the
+  heights nor the lines; its rows came out the same with both checks (below).
 - **Pages**: the root Node pages of the two seeded Trees, both with a logo; the overview `/`;
   the login page at `/admin`, without a session; and the creators' overview at `/admin` as the
   administrator, whose bar holds the most controls -- the language switch, Account, Accounts and
@@ -51,35 +54,37 @@
   `calc(22vw - 12px)` below 480 (`.logo` in `src/app/[lang]/globals.css`: "a Theme's logo may be
   any shape"), so a logo that wide is the widest a Theme can bring. The script draws it so by
   asking for the window's width, which the cap cuts down; the closing lists give the cap.
-- **Viewports**: the ten of 10.6; 479 x 800, the widest window below 480; and, added on
-  2026-10-04, twelve widths from 480 to 767, 800 tall: 480, 500, 520, 540, 560, 580, 599, 600,
-  620, 640, 700 and 767. From 480 up, nothing in a Node page's bar beside a seeded logo changes
-  with the width but its room, which grows by every pixel the window does (the rows from 480 to
-  2560): its pills keep 12 pixels on 18 with 12 of padding (`.language, .share` in
-  `globals.css`), the only width query that touches the bar below 768 is `max-width: 479px`, and
-  both seeded logos are 120 pixels wide at their 30 pixels tall (their files are 479 x 120 and
-  240 x 60), under the cap, which is 216 at 480 wide and 288 from 640 up. A logo at its cap
-  widens with the window up to 640.
+- **Viewports**: the ten of 10.6; 479 x 800, the widest window below 480; and, added by the fix
+  run, twelve widths from 480 to 767, 800 tall: 480, 500, 520, 540, 560, 580, 599, 600, 620,
+  640, 700 and 767 -- 599 and 600 either side of the creators' overview's width of section 2,
+  767 and 10.6's 768 x 1024 either side of a Node page's. From 480 up, nothing in a Node page's
+  bar beside a seeded logo changes with the width but its room, which grows by every pixel the
+  window does (the rows from 480 to 2560): its pills keep 12 pixels on 18 with 12 of padding
+  (`.language, .share` in `globals.css`), the only width query that touches the bar below 768 is
+  `max-width: 479px`, and both seeded logos are 120 pixels wide at their 30 pixels tall (their
+  files are 479 x 120 and 240 x 60), under the cap, which is 216 at 480 wide and 288 from 640
+  up. A logo at its cap widens with the window up to 640.
 - **Languages**: English and Dutch, the chrome's two and the seeded Trees' two. The current
   language's pill names its language in that language -- "English", "Nederlands" -- so how wide
-  it is depends on the language. No Tree in a third language was measured.
+  it is depends on the language. No Tree in another language, with a third language, or in one
+  language only was measured.
 - **The closing list**, at 320 x 480 and at 480 x 800, as on `dev`: what each pill of the
   language switch says and its width, the share button's width, the logo's width, its file's
   size and its cap, and the face of the pills -- the first family their stack names ("Open Sans"
   for the first Tree; for the second, the default stack's first, `-apple-system`, which neither
   system has) and the face Chromium drew them in, as `CSS.getPlatformFontsForNode` names it.
   Then, at 320 x 480, where the controls of the bar at `/admin` stand.
-- **The runs.** On 2026-10-03 the script ran three times, on Windows only, and printed the same
-  tables each time. On 2026-10-04 it was widened step by step and ran seven times on each system,
-  six on `6d0ea4b` and the seventh on `748ebcc`, logging in by address as `dev` does since #196.
-  The first printed the 110 rows of 2026-10-03 unchanged on Windows, in the columns they had.
-  Every later run printed each row of the run before it unchanged, and added only what the
-  script had gained in between: the columns without the site's title and the lines on where the
-  controls at `/admin` stand (the second run), the rows at 599 x 800 (the third), the face drawn
-  (the fourth printed it empty, the fifth named it), and the tables with the logo at its cap and
-  the cap in the closing lists (the sixth). The seventh printed all 322 rows and both closing
-  lists of the sixth unchanged, on both systems: #196 and #200 changed nothing these bars draw
-  for the seeded Trees. Sections 3 and 4 are the seventh run.
+- **The runs.** In the filing run the script ran three times, on Windows only, and printed the
+  same tables each time. The fix run widened it step by step and ran it seven times on each
+  system, six on `6d0ea4b` and the seventh on `748ebcc`, logging in by address as `dev` does
+  since #196. The first printed the 110 rows of the filing run unchanged on Windows, in the
+  columns they had. Every later run printed each row of the run before it unchanged, and added only what
+  the script had gained in between: the columns without the site's title and the lines on where
+  the controls at `/admin` stand (the second run), the rows at 599 x 800 (the third), the face
+  drawn (the fourth printed it empty, the fifth named it), and the tables with the logo at its
+  cap and the cap in the closing lists (the sixth). The seventh printed all 322 rows and both
+  closing lists of the sixth unchanged, on both systems: #196 and #200 changed nothing these
+  bars draw for the seeded Trees. Sections 3 and 4 are the seventh run.
 
 ## 2. What it shows
 
@@ -94,7 +99,7 @@ Each pair of numbers is Windows' first, then the CI image's.
   CI image). At 540 the share button's look leaves 0.1 pixels in Dutch beside the first Tree's
   logo on Windows and 1.3 in the CI image; at 600, 60.1 to 85.1 on Windows and 61.3 to 82.5 in
   the CI image.
-- Below 480, as on 2026-10-03: with the pill, "Editor" does not fit at 320 x 480 in either look,
+- Below 480, as the filing run found: with the pill, "Editor" does not fit at 320 x 480 in either look,
   beside either Tree's logo, in either language, nor at 360 x 640 in Dutch beside the first
   Tree's logo.
 - Without the current language's pill, "Editor" in the share button's look fits at every width
@@ -108,21 +113,36 @@ Each pair of numbers is Windows' first, then the CI image's.
 
 - On `dev`, the bar does not hold such a logo from 480 pixels wide until 599 to 640, by Tree,
   language and system; in Dutch beside the first Tree's controls it is wider than the window at
-  every width measured from 480 to 620, and fits at 640 with 1.3 pixels to spare on Windows and 2
-  in the CI image. Below 480 and from 640 up it holds it.
+  every width measured from 480 to 620, and fits at 640 with 1.3 pixels to spare on Windows and
+  2 in the CI image. Below 480 and from 640 up it holds it.
 - With "Editor" in the share button's look beside the pill, the bar holds such a logo only from
   700 pixels wide, and in Dutch beside the first Tree's controls only from 767: at 700 that bar
-  is 708 pixels wide, 707 in the CI image. At 768 x 1024 it keeps 59.8 to 85.1 pixels on Windows and 61 to 82.5 in
-  the CI image.
+  is 708 pixels wide, 707 in the CI image. At 768 x 1024 it keeps 59.8 to 85.1 pixels on Windows
+  and 61 to 82.5 in the CI image.
 
 **"Editor" against the pill it replaces.** In every cell measured below 768 pixels wide that
-shows "Editor" without the current language's pill -- 192 on each system: the four Node page
-tables, both looks, both languages -- the bar holds the logo wherever `dev`'s bar holds it, with
-as much room or more, and where `dev`'s bar does not, it is no wider. From 480 up, the pill
-"English" leaves 0.2 to 2 pixels more than "Editor" takes, the least beside the first Tree's
-logo on Windows, and "Nederlands" 23.4 to 26 more. From 768 up, "Editor" fits beside the pill
-in every row, beside either logo: the least is 59.8 pixels on Windows and 61 in the CI image, in
-Dutch beside the first Tree's logo at its cap, at 768 x 1024.
+shows "Editor" without the current language's pill -- 192 on each system: 128 in the two tables
+beside the seeded logos, both looks, and 64 in the two beside a logo at its cap, the share
+button's look; both languages -- the bar holds the logo wherever `dev`'s bar holds it, with as
+much room or more, and where `dev`'s bar does not, it is no wider. That rests on the hidden
+pill's list item and gap. In the share button's look, from 480 up, the item "English" with its
+gap leaves 0.2 to 0.3 pixels more than "Editor" with its gap takes on Windows and 1 to 2 in the CI image, and
+"Nederlands" 23.4 to 25.4 and 24 to 26; below 480, 5.7 to 5.8 and 5 to 7.4, and 26.9 to 28.8 and
+27.5 to 28. The account link's look leaves more: 23.5 or more from 480 up, 12.2 or more below.
+Hiding the pill alone, as `dev` does below 480 at `/admin`, would keep 4 pixels of gap, and from
+480 up "English" would then leave less than "Editor" takes. From 768 up, "Editor" fits beside
+the pill in every row, beside either logo: the least is 59.8 pixels on Windows and 61 in the CI
+image, in Dutch beside the first Tree's logo at its cap, at 768 x 1024.
+
+**What these rows do not cover.** They hold for Trees in English and Dutch, two languages each.
+A current language whose own name is drawn narrower than "Editor" gives up less room than
+"Editor" takes. A third language adds a pill: from 768 up, beside a logo at its cap, "Editor"
+leaves 59.8 pixels in Dutch beside the first Tree's controls, and a third pill wider than that,
+with its gap, takes the bar past the window there, where `dev`'s bar holds it. Neither was
+measured; nor does `dev`'s bar hold a third pill on a phone, where it keeps 3.6 to 28.3 pixels
+at 320 x 480 beside the seeded logos (both systems) and the narrowest pill there is 46.5 wide.
+A Tree in one language has one pill, the current language's, so giving it up empties the
+language switch.
 
 **The overview `/`.** "Editor" fits at every width in either look; at 320 x 480, the
 narrowest, the share button's look leaves 37.1 to 41.3 pixels on Windows and 24.9 to 30.7 in the
@@ -136,15 +156,15 @@ CI image.
 - The administrator's creators' overview, on `dev` as it is, already draws its title -- "ELSA
   decision trees", "ELSA-beslisbomen" -- on two lines at 480 x 800 on Windows, and at 480 and
   500 x 800 in the CI image, in both languages. With "Website" in the account link's look beside
-  the title, the bar grows past the window or the title takes two or three lines up to 540 pixels
-  wide on Windows and 560 in the CI image; "Website" fits from 560 on Windows (6.7 pixels to
-  spare in Dutch) and from 580 in the CI image (14.7), and keeps 46.7 to 54.1 at 600 on Windows
-  and 34.7 to 39.5 in the CI image. In the share button's look it fits from 580 on Windows and
-  from 599 in the CI image.
-- Without the site's title and the current language's pill, "Website" in the account link's
-  look fits the creators' overview at every width measured: at 480 x 800 with 131.2 pixels or
-  more on Windows and 130 in the CI image; below 480, where `dev` already hides both, with 18.2
-  to 27 at 320 x 480 on Windows and 17.2 to 25.8 in the CI image.
+  the title, the bar grows past the window or the title takes two or three lines up to 540
+  pixels wide on Windows and 560 in the CI image; "Website" fits from 560 on Windows (6.7 pixels
+  to spare in Dutch) and from 580 in the CI image (14.7), and keeps 46.7 to 54.1 at 600 on
+  Windows and 34.7 to 39.5 in the CI image. In the share button's look it fits from 580 on
+  Windows and from 599 in the CI image.
+- Without the site's title and the current language's pill, "Website" in the account link's look
+  fits the creators' overview at every width measured: at 480 x 800 with 131.2 pixels or more on
+  Windows and 130 in the CI image; below 480, where `dev` already hides both, with 18.2 to 27 at
+  320 x 480 on Windows and 17.2 to 25.8 in the CI image.
 - Below 480 the controls of the bar at `/admin` stand alone at its left end: at 320 x 480 the
   login page's from 8 to 79.7 pixels of 320 in English, and the administrator's from 8 to 243.8
   (Windows). `.page-chrome` spreads its children to its two ends (`justify-content:
@@ -153,8 +173,8 @@ CI image.
   systems, with 14.7 pixels to spare in Dutch in the CI image; at 600 the least is 34.7. The two
   systems differ by up to 14.6 pixels in that bar at 600 (54.1 against 39.5, in English).
 
-**What the first run left out.** On 2026-10-03 this record measured nothing between 479 and 768
-pixels wide, and read its rows as "the current language's pill need give way below 480 only" and
+**What the first run left out.** The filing run measured nothing between 479 and 768 pixels
+wide, and read its rows as "the current language's pill need give way below 480 only" and
 "neither the overview's bar nor the bar at `/admin` has to give anything up". The rows from 480
 to 767 show both untrue: with "Editor" beside the pill, a Node page's bar is wider than the
 window below 520 or 540 pixels wide beside the seeded logos, and up to 700 beside a logo at its
@@ -162,7 +182,7 @@ cap; and with "Website" beside the title, the creators' overview's bar is wider 
 or wraps its title below 560 or 580. The overview's bar and the login page's hold their buttons
 at every width, as the first run said.
 
-## 3. The output on Windows, as it ran on 2026-10-04 on `748ebcc`
+## 3. The output on Windows, as it ran on `748ebcc`
 
 ### The root Node page of ai-act-applicability-agrifood
 
@@ -536,7 +556,7 @@ at every width, as the first run said.
 - 320 x 480, /admin, the administrator's creators' overview, en: the bar from 0 to 320, its controls from 8 to 243.8
 - 320 x 480, /admin, the administrator's creators' overview, nl: the bar from 0 to 320, its controls from 8 to 235
 
-## 4. The output in the CI runner's faces, as it ran on 2026-10-04 on `748ebcc`
+## 4. The output in the CI runner's faces, as it ran on `748ebcc`
 
 The same script in the `mcr.microsoft.com/playwright:v1.62.1-noble` image, against the server of
 section 3, which listened on every interface (`HOSTNAME=0.0.0.0`) so that the image reached it at
