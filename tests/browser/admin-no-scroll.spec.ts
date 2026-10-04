@@ -302,10 +302,11 @@ for (const lang of LANGUAGES) {
 /**
  * **[#203]** The editor's bar with the arrow at its left (24.3), beside the two marks
  * `hidden-draft`'s short title does not try: the example Tree's logo, and an 80-character title
- * as text, cut to the bar's two lines (#200). Plain, at every viewport of 10.6. Then the bar alone
- * at widths 10.6 does not list, from 480 up, where on the CI runner the disclaimer's second line
- * fails the whole page on `dev` already (`NARROW` above): the arrow held the example Tree's logo
- * 4 to 17 pixels past a window of 480 until the logo kept 380 pixels less than the window.
+ * as text, cut to the bar's two lines (#200). Plain, at every viewport of 10.6. Then at four
+ * widths 10.6 does not list, from 480 up, the bar alone: below 578 (en) and 641 (nl) the
+ * disclaimer's second line fails the whole page on the CI runner, on `dev` too (`NARROW` above).
+ * Without the logo's maximum width there, the arrow held the example Tree's bar 4 to 17 pixels
+ * past a window of 480.
  */
 const BAR_WIDTHS = [480, 560, 640, 767] as const
 for (const lang of LANGUAGES) {
