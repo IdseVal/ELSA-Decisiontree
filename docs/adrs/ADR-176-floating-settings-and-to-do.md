@@ -1,6 +1,11 @@
 # ADR-176-floating-settings-and-to-do: the panel's button and a to-do bubble float under the editor's chrome bar at the top right; the button says "Decision-tree settings" with the Tree's state as a tag; the to-do list leaves the panel for the bubble, at which a refused publish points; the link to the account page says "Account"
 
 - Status: ACCEPTED -- 2026-10-02
+- **Amended 2026-10-04 by issue #205** (`ADR-205-preview-buttons.md`): in decision 6, in the editor
+  of a hidden Tree the preview button, under the bar at the top left, comes between the bar's last
+  control and the to-do control in the tab order; the two floating controls still come after the
+  bar, the to-do control first, and the preview button lies under every Sheet's scrim as they do
+  while their Sheets are closed. The rest stands.
 - Issue: #176 -- Editor top right: a floating 'Decision-tree settings' button and a floating
   to-do bubble outside the header bar, and an account link that says 'Account' (from the
   owner's walk of the editor, #169)
