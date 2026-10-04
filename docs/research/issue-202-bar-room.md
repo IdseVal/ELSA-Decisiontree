@@ -138,11 +138,12 @@ Windows and 61 in the CI image, in Dutch beside the first Tree's logo at its cap
 A current language whose own name is drawn narrower than "Editor" gives up less room than
 "Editor" takes. A third language adds a pill: from 768 up, beside a logo at its cap, "Editor"
 leaves 59.8 pixels in Dutch beside the first Tree's controls, and a third pill wider than that,
-with its gap, takes the bar past the window there, where `dev`'s bar holds it. Neither was
-measured; nor does `dev`'s bar hold a third pill on a phone, where it keeps 3.6 to 28.3 pixels
-at 320 x 480 beside the seeded logos (both systems) and the narrowest pill there is 46.5 wide.
-A Tree in one language has one pill, the current language's, so giving it up empties the
-language switch.
+with its gap, takes the bar past the window there, where `dev`'s bar, without "Editor", has
+about 69 pixels more. A width at which the bar held a third pill beside such a logo would depend
+on how wide that pill is, which is the language's own name. Neither was measured. Nor does
+`dev`'s bar hold a third pill at 320 x 480, where it keeps 3.6 to 28.3 pixels beside the seeded
+logos (both systems) and the narrowest pill measured there is 46.5 wide. A Tree in one language
+has one pill, the current language's, so giving it up empties the language switch.
 
 **The overview `/`.** "Editor" fits at every width in either look; at 320 x 480, the
 narrowest, the share button's look leaves 37.1 to 41.3 pixels on Windows and 24.9 to 30.7 in the

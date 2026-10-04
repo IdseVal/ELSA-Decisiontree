@@ -81,13 +81,13 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
   edit setting of the reuse rule (34), without the neighbour frames and the slide (34.5),
   and keeps its own interface in the default look (24.3, #180). No page shows a hidden Tree
   as its readers will see it.
-- **Three open issues work in the same places.** #196 builds the login by e-mail address:
-  it changes the login page at `/admin` and the `login()` that every browser test that logs
-  in calls (`tests/browser/admin.ts`, 35.2). #197 puts the mention of a Tree's Authors in
-  the Node page's bar, in the room between the Tree's mark and the controls (39.4). #200
-  cuts a long title written in the same bar. #196 and #200 were dispatched at 20:36Z and 20:37Z on
-  2026-10-03, minutes before this run, and merged at 23:07Z and 23:41Z the same day, while this
-  pull request was in review.
+- **Three issues open when this round was filed work in the same places.** #196 built the
+  login by e-mail address: it changed the login page at `/admin` and the `login()` that
+  every browser test that logs in calls (`tests/browser/admin.ts`, 35.2). #197 puts the
+  mention of a Tree's Authors in the Node page's bar, in the room between the Tree's mark
+  and the controls (39.4). #200 cut a long title written in the same bar to two lines. #196
+  and #200 were dispatched at 20:36Z and 20:37Z on 2026-10-03, minutes before this run, and
+  merged at 23:07Z and 23:41Z the same day, while this pull request was in review.
 
 ## Decision
 
@@ -311,11 +311,13 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
 - The width of 768 is measured for Trees in English and Dutch, two languages each. In a Tree
   whose current language's own name is drawn narrower than "Editor", the pill gives up less
   room than "Editor" takes; in a Tree of three languages, a third pill stands in the bar from
-  768 up, where "Editor" leaves 59.8 pixels beside a logo at its cap. Neither is measured,
-  and no width covers every number of languages: `dev`'s own bar does not hold a third pill
-  on a phone, where it keeps at most 28.3 pixels at 320 x 480 beside the seeded logos, and
-  the narrowest pill there is 46.5. They are reported in the pull request of #202, for the
-  owner to weigh; #204 leaves them out of scope.
+  768 up, where "Editor" leaves 59.8 pixels beside a logo at its cap and `dev`'s bar about
+  69 more. Neither is measured. A width that held a third pill beside such a logo would
+  depend on how wide that pill is, which is the language's own name, so no one width covers
+  every set of languages; nor does `dev`'s own bar hold a third pill at 320 x 480, where it
+  keeps at most 28.3 pixels beside the seeded logos and the narrowest pill measured there is
+  46.5. They are reported in the pull request of #202, for the owner to weigh; #204 leaves
+  them out of scope.
 - #205 runs while #203 and #204 wait, and amends some of the same lines: 24.1 and 24.3, and
   the header of `ADR-133-admin-routes.md`, for decision 1's addresses where #203 and #204
   mark decision 7. Whichever merges second keeps both, as `ADR-169-tree-creation-ui-round.md`
