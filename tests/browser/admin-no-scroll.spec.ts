@@ -17,7 +17,9 @@
  * list longer than the window. **[#177]** And a side bubble at every maximum opened by its
  * address at every viewport: plain, with its delete asking, and below the guarantee with its
  * Sources' Sheet open. **[#178]** And the step's buttons beside the up arrow, in place of the
- * step menu and the link menus, plain and with the red cross's question asked.
+ * step menu and the link menus, plain and with the red cross's question asked. **[#203]** And the
+ * editor's bar with the arrow at its left, beside the example Tree's logo and beside an
+ * 80-character title; and the bar alone at four widths 10.6 does not list.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -88,12 +90,18 @@ interface Measured {
 
 const rows: string[] = []
 let origin: string
-/** **[#177]** A store of its own for the side bubble at every maximum, so the overview's tiles above stay what they are. */
+/**
+ * **[#177]** A store of its own for the side bubble at every maximum, so the overview's tiles above
+ * stay what they are; **[#203]** and for the Tree with an 80-character title, for the same reason.
+ */
 let overlayOrigin: string
 
 test.beforeAll(async () => {
   origin = await serveStore(await buildDataDir({ trees: TREES, accounts: ACCOUNTS }), PORT, ADMIN_ENV)
-  const overlay = [{ folder: path.join(repo, 'tests', 'fixtures', 'overlay'), hidden: true }]
+  const overlay = [
+    { folder: path.join(repo, 'tests', 'fixtures', 'overlay'), hidden: true },
+    { folder: path.join(repo, 'tests', 'fixtures', 'long-title'), hidden: true },
+  ]
   overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [] }), PORT + 1, ADMIN_ENV)
 })
 
@@ -106,13 +114,13 @@ test.afterAll(async () => {
   )
 })
 
-/** 10.6's numbers on the laid-out page, once its fonts have settled. */
-async function measure(page: Page): Promise<Measured> {
+/** 10.6's numbers on the laid-out page, once its fonts have settled; **[#203]** the walk over the elements `scope` selects. */
+async function measure(page: Page, scope = '*'): Promise<Measured> {
   await page.evaluate(() => document.fonts.ready)
-  return page.evaluate(() => {
+  return page.evaluate((scope) => {
     const name = (el: Element): string => `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`
     const overflowing: string[] = []
-    for (const el of document.querySelectorAll('*')) {
+    for (const el of document.querySelectorAll(scope)) {
       // The exemption of 10.6, and a clamp: the caller's name cut with an ellipsis in the
       // chrome bar, which `data-clamp` marks as the overview's tile titles are marked (26.1).
       // **[#138]** And the Carousel strip, 10.6's first exemption, which the editor's Bubble carries.
@@ -128,7 +136,7 @@ async function measure(page: Page): Promise<Measured> {
       inner: { h: window.innerHeight, w: window.innerWidth },
       overflowing,
     }
-  })
+  }, scope)
 }
 
 function record(m: Measured, what: string, lang: string, viewport: string, sheet: string): void {
@@ -288,6 +296,44 @@ for (const lang of LANGUAGES) {
   test(`the editor on the full Node, ${lang}, never scrolls at any viewport of 10.6, in every state (28.6)`, async ({ browser }) => {
     test.slow()
     await editorEverywhere(await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), lang)
+  })
+}
+
+/**
+ * **[#203]** The editor's bar with the arrow at its left (24.3), beside the two marks
+ * `hidden-draft`'s short title does not try: the example Tree's logo, and an 80-character title
+ * as text, cut to the bar's two lines (#200). Plain, at every viewport of 10.6. Then the bar alone
+ * at widths 10.6 does not list, from 480 up, where on the CI runner the disclaimer's second line
+ * fails the whole page on `dev` already (`NARROW` above): the arrow held the example Tree's logo
+ * 4 to 17 pixels past a window of 480 until the logo kept 380 pixels less than the window.
+ */
+const BAR_WIDTHS = [480, 560, 640, 767] as const
+for (const lang of LANGUAGES) {
+  test(`the editor's bar with the arrow, beside a logo and beside an 80-character title, ${lang}, never scrolls at any viewport of 10.6 (24.3, 28.6)`, async ({ browser }) => {
+    const query = lang === 'en' ? '' : '?lang=nl'
+    const long = await (await browser.newContext()).newPage()
+    expect((await login(long, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+    const editors = [
+      [await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), `${origin}/admin/trees/ai-act-example/start${query}`, 'editor, a logo'],
+      [long, `${overlayOrigin}/admin/trees/long-title/start${query}`, 'editor, an 80-character title'],
+    ] as const
+    for (const [page, address, what] of editors) {
+      for (const [width, height] of VIEWPORTS) {
+        await page.setViewportSize({ width, height })
+        expect((await page.goto(address))?.status()).toBe(200)
+        await expect(page.locator('main')).toBeVisible()
+        record(await measure(page), what, lang, `${width}x${height}`, '')
+      }
+      for (const width of BAR_WIDTHS) {
+        const viewport = `${width}x800`
+        await page.setViewportSize({ width, height: 800 })
+        expect((await page.goto(address))?.status()).toBe(200)
+        const bar = await measure(page, 'header.editor-chrome, header.editor-chrome *')
+        rows.push(`| ${what} | ${lang} | ${viewport} | the bar alone | - | ${bar.doc.sw}/${bar.inner.w} | ${bar.overflowing.join('; ') || 'none'} |`)
+        expect(bar.doc.sw, `${what} (${lang}) at ${viewport}: wider than the window`).toBeLessThanOrEqual(bar.inner.w + 1)
+        expect(bar.overflowing, `${what} (${lang}) at ${viewport}: elements of the bar whose content is larger than themselves`).toEqual([])
+      }
+    }
   })
 }
 
