@@ -6,6 +6,35 @@
 > they consume is frozen separately in `docs/specs/tree-format.md` (`elsa-tree/3`, issue
 > #78; `elsa-tree/2` was issue #37).
 >
+> **Amended 2026-10-04 by issue #205** (`docs/adrs/ADR-205-*.md`), for the owner's words on #202
+> (core document 3.4 `[#202]`): "In an unpublished tree, I want a button that routes to a window
+> with a preview of the tree, how the end users will see it. Place the button top left (not in the
+> header bar). And from that view, in the same place a button that brings the user back to the
+> editor interface where he came from". **Section 40 is new** and holds the contract: the preview's
+> address and what it answers, what it draws and in which Theme, its chrome bar, its two buttons,
+> the way there and back, and what it shows of a draft that is not valid yet. The sections below
+> change where they listed the admin area's addresses and answers, the pages' bars, what edit mode
+> draws, the editor's tab order, its autosave or #178's ending button, each change marked
+> **[#205]** and dated. The room at the top left is measured in
+> `docs/research/issue-205-top-left-room.md`. Built by #206, after #203, #197 and #204.
+>
+> | Section | #205 |
+> |---|---|
+> | 3.2 | #206's keys, `preview` and `backToEditor`. |
+> | 4.1, 4.3 | The preview's two addresses; the rows that name an editor address hold for the preview's. |
+> | 6 | The preview's two page files, `src/admin/preview.ts`, `src/components/NodeChrome.tsx`, `src/editor/PreviewButton.tsx`; `links.ts` gains `previewLinks()`, `neighbourhood.ts` `draftCentre`. |
+> | 7, 8, 9 | The editor round's row names 40.9; rows for the preview; seven `ADR-205-*` rows. |
+> | 11.2 | `neighbourhood` and `loadPage` take a `Readable<N>`; seventeen stands. |
+> | 13.1 | The preview emits the draft's Theme as the editor does, and it paints the whole page. |
+> | 24.1, 24.2, 24.3 | The preview's addresses, its answers and its needing no script; its bar, and the editor's preview button; `<html lang>` on both. |
+> | 29.2, 29.5 | The queue can be waited for; the preview button never asks the `beforeunload` question. |
+> | 30.8 | On a hidden Tree the ending's button keeps out of the preview button's column below 1000 pixels wide and is a round icon below 640. |
+> | 33.1 | The preview button comes between the bar and the floating controls in the tab order. |
+> | 34.1, 34.3, 34.5, 34.7 | The preview passes an `edit` with no slot and its own `links`, and renders the neighbour frames and the slide within seventeen Nodes; `draftCentre`. |
+> | 35.4 | The rows of 40.9. |
+> | 39.4, 39.7 | The mention is drawn in the preview's bar too. |
+> | 40 | New. |
+>
 > **Amended 2026-10-03 by issue #195** (`docs/adrs/ADR-195-*.md`), for the owner's words on
 > #194 (core document 3.4 `[#194]`): "To login should be based on an email and a password, and
 > graphs should have a small mention by who it was authored, if multiple collaborators in the
@@ -337,6 +366,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | #181 | **[#181] added in review**: `languageTag` ("Language tag" / "Taalcode": the name of the language control's field and its placeholder while it is empty, 27.1, 33.5; `addLanguage`, its button's word, named the field before) |
 | **[#195]** (2026-10-03) #196 | `email` ("E-mail address" / "E-mailadres": the login page's field, the field of the new-account and `setEmail` Sheets, the accounts page's column), `emailInvalid` ("Enter an e-mail address, such as name@example.org." / "Vul een e-mailadres in, zoals naam@example.org."), `emailTaken` ("Another account has this e-mail address." / "Een ander account heeft dit e-mailadres."), `nameTaken` ("Another account has this name." / "Een ander account heeft deze naam."), `setEmail` ("Set e-mail address" / "E-mailadres instellen", in the words of `setPassword`), `noEmail` ("No e-mail address yet" / "Nog geen e-mailadres"), `signedInWith(email)` ("You sign in with <address>." / "U logt in met <adres>."), `emailHelp` ("Ask your administrator to change it." / "Vraag uw beheerder om het te wijzigen.": under the address on every account's page but the administrator's), 38.5 and 38.6; **gone**: `login`, `loginInvalid`, `loginTaken`; **reworded**: `loginFailed`, "Wrong e-mail address or password." / "Verkeerd e-mailadres of wachtwoord.", and `sessionNotKept`, which opens "Your e-mail address and password are right" / "Uw e-mailadres en wachtwoord kloppen" (25.1) |
 | **[#195]** (2026-10-03) #197 | `byAuthors(names)` ("By A, B and C" / "Door A, B en C": the mention, 39.4), `nameShownPublicly` (the account page's notice, 39.8) |
+| **[#205]** (2026-10-04) #206 | `preview` ("Preview" / "Voorbeeld": the preview button in the editor of a hidden Tree, its words from 1000 pixels wide, its name and its `title`, 40.5), `backToEditor` ("Back to the editor" / "Terug naar de editor": the way back in the preview, likewise) |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -360,6 +390,8 @@ Admin area  /admin/...                                           [#132] the scre
             /admin/new  /admin/account  /admin/accounts          [#133] the new-Tree form, the account page, the accounts page (27, 25)
             /admin/trees/<tree-id>   ->  the root Node's editor  [#133] 307, like /<tree-id>
             /admin/trees/<tree-id>/<id-1>/.../<id-n>[?lang=<tag>]   [#133] the editor: the Node page's grammar behind the prefix (24.1)
+            /admin/preview/<tree-id>   ->  the root Node's preview  [#205] 307, like /<tree-id> (40.1)
+            /admin/preview/<tree-id>/<id-1>/.../<id-n>[?lang=<tag>] [#205] the preview of a hidden Tree: the Node page's grammar behind the prefix (40.1)
 Dataset     /<tree-id>/tree.json                                 [#118]
 Schema      /schemas/elsa-tree-4.json                            [#118]
             /schemas/elsa-tree-5.json                            [#171] the schema of elsa-tree/5; both are served (15.1)
@@ -377,6 +409,11 @@ Redirects   /<tree-id>   ->  /<tree-id>/<root-id>[?lang=...]      307
   resolves now resolves differently**. `/admin` is one reserved word for the whole admin
   area (4.3, 22.1); `/` is the overview (23.2). The Node page, the Trail in the path, the
   share link and `?lang` are unchanged, by the owner's instruction.
+
+- **[#205]** (2026-10-04) `/admin/preview/...` is the preview of a hidden Tree (40.1): the public
+  grammar behind a sixth word of the admin area, beside `new`, `account`, `accounts`, `trees` and
+  `api`. No Tree id stands there, so it collides with no address and reserves no Tree id; a
+  published Tree's preview answers a 307 to its editor. No public address changes.
 
 - **[#118]** The five new routes are sections 15 and 16. None of them collides with
   anything: `tree.json`, `robots.txt`, `sitemap.xml` and `llms.txt` contain a dot and so
@@ -465,6 +502,12 @@ The first Image of `start`:
 | **[#133]** An admin page the caller may not see: an editor address of a Tree they have no role on, `/admin/accounts` for a non-administrator, a reserved or unknown Tree id under `/admin/trees/` for a non-administrator | The **403 page** (`forbiddenTitle`, `forbiddenText`, a link to `/admin`), status 403, in the chrome language; never the login page and never a 404 (21.3, 24.2). |
 | **[#133]** An editor address whose path is not a Node of the draft, for a caller with a role | The 404 page above, status 404. |
 | The 404 page | A small page in the chrome language (`notFoundTitle`, `notFoundText`) with a link to `/<tree-id>/<root-id>`, HTTP status 404. The status is always in the response; the **body** may require JavaScript -- see below. Next.js renders `not-found.tsx` without params, so it cannot know the content language; it therefore takes the chrome language 3.1 resolves from the **Tree's default** language, which is `en` or `nl` and never an arbitrary tag. Because the page renders inside the `[lang]` layout, `<html lang>` around it is the resolved content language of the request -- what `src/url.ts` makes of the segment (4.4): a language the Tree declares, or the Tree's default -- exactly as on every other page, in the document the reader ends up with (for this one page that is the painted document, see below). Every element this page renders carries the chrome language above as its own `lang`: that is 3.1's second half, and the reason each element's own `lang` is never a false statement about the text under it. |
+
+**[#205]** (2026-10-04) The two rows of an editor address hold for a preview address too (40.1):
+`/admin/preview/<tree-id>/...` of a Tree the caller has no role on, or of a reserved or unknown id,
+is the 403 page for a caller without the administrator flag and the 404 page for the
+administrator; a path that is not a Node of the draft, the 404 page; and a published Tree's
+preview answers a 307 to its editor at the same path and `?lang`.
 
 **The 404 body may require JavaScript** (amended 2026-09-05, PR #17). Next.js answers a
 `notFound()` raised inside a dynamically rendered route with its own error shell
@@ -843,7 +886,9 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │       │   ├── account/page.tsx      [#133] the caller's name and password (25.2)
 │   │       │   ├── accounts/page.tsx     [#133] the administrator's accounts page (25.3)
 │   │       │   ├── trees/[tree]/page.tsx [#133] 307 to the root Node's editor
-│   │       │   └── trees/[tree]/[...path]/page.tsx   [#133] the editor: authenticated -> permit -> draft -> TreeView with edit (34.7)
+│   │       │   ├── trees/[tree]/[...path]/page.tsx   [#133] the editor: authenticated -> permit -> draft -> TreeView with edit (34.7)
+│   │       │   ├── preview/[tree]/page.tsx           [#205] 307 to the root Node's preview (40.1)
+│   │       │   └── preview/[tree]/[...path]/page.tsx [#205] the preview: authenticated -> permit -> draft -> TreeView with the preview's edit (40.2)
 │   │       ├── [tree]/tree.json/route.ts [#118] the dataset endpoint (15)
 │   │       ├── schemas/[file]/route.ts   [#118] the published JSON Schema (15.1)
 │   │       ├── robots.txt/route.ts       [#118] 16.1 (the Sitemap line and the agents)
@@ -868,6 +913,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   │                    for the Tree it shows or the default (24.3); the root layout emits none
 │   │   ├── Tile.tsx         [#133] server: one Tree on the overview (26.1)
 │   │   ├── Authors.tsx      [#195] server: the mention of a Tree's Authors, in the chrome bar and on a tile (39.4, 39.5)
+│   │   ├── NodeChrome.tsx   [#205] server: the public Node page's chrome bar, which the preview draws too (40.4)
 │   │   ├── Overview.tsx     [#133] server: the tile grid in its scroll box, public or creators' (26.2, 26.4)
 │   │   ├── ShareButton.tsx  client, unchanged
 │   │   ├── LanguageSwitch.tsx  unchanged
@@ -877,7 +923,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── sitemap.ts       sitemap.xml: one <url> per Node per language, with the alternates (16.2)
 │   │   ├── jsonld.ts        the @graph: the Dataset, the WebPage, the Question (16.4)
 │   │   └── llms.ts          llms.txt (16.5)
-│   ├── neighbourhood.ts     [v0.2] which Nodes surround this one: placed up and down, and the asides (11)
+│   ├── neighbourhood.ts     [v0.2] which Nodes surround this one: placed up and down, and the asides (11); [#205] over a draft too, and draftCentre (40.2)
 │   ├── theme.ts             [v0.2] a Theme -> CSS custom properties and @font-face; the default (13)
 │   ├── assets.ts            [v0.2] one file of the Tree as a response: the headers and the
 │   │                        streaming the image and theme routes share (5.3, 5.5)
@@ -906,10 +952,11 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── validate.ts      the rules of tree-format.md section 7; [#132] and the draft mode's blocking/advisory tag
 │   │   └── types.ts         the types of elsa-tree/4 (5.1); [#171] of elsa-tree/5 from #179
 │   ├── admin/               [#135] the admin pages' server-side helpers: authenticated.ts, headers.ts, requests.ts, words.ts
-│   │   └── slots.tsx        [#138] the editor page's EditMode: the words and the slot functions of 34.2; later issues add theirs here
+│   │   ├── slots.tsx        [#138] the editor page's EditMode: the words and the slot functions of 34.2; later issues add theirs here
+│   │   └── preview.ts       [#205] the preview's EditMode with no slot, and the draft as the preview reads it, with 40.7's placeholders (40.2, 40.7)
 │   ├── editor/              [#133] the editor's client components, leaves (34.4); import measure.ts, grammar.ts and markdown.ts only
 │   │   ├── mode.ts          the EditMode type and the slots (34.1, 34.2); server side
-│   │   ├── links.ts         the admin Links: the /admin/trees prefix, adminImageHref (34.3); server side
+│   │   ├── links.ts         the admin Links: the /admin/trees prefix, adminImageHref (34.3); server side; [#205] and the preview's, /admin/preview (40.1)
 │   │   ├── Editor.tsx       client: the provider -- the write queue, the indicator, the session Sheet (29)
 │   │   ├── Field.tsx        client: one editable region, plain or source, with its counter (28); the add-Source form and the Operation button
 │   │   ├── queue.ts         [#138] the write queue: the debounce, one request in flight, the retry ladder, the pause (29.1, 29.5, 29.6); pure
@@ -921,6 +968,7 @@ deploy; an hour of a stale font is the same trade the images make.
 │   │   ├── ImageSlot.tsx, AttachSheet.tsx     client: the pickers and the attach dialog (31)
 │   │   ├── Structure.tsx, StepButtons.tsx    client: the three buttons, the side +, the side bubble's delete; [#178] the step's red cross and "Tree does not end here after all", in place of StepMenu.tsx, the link menu and the picker (30)
 │   │   ├── Marker.tsx, ExplainerSheet.tsx    client: marking and the explainer Sheet (32)
+│   │   ├── PreviewButton.tsx  [#205] client: the preview button, drawn while the Tree is hidden, waiting for the queue (40.5, 40.6)
 │   │   └── Panel.tsx        client: the top panel (33)
 │   ├── tree/measure.ts      [#133] countedText, countedLength, estimatedLines, moved from validate.ts (28.4); pure
 │   ├── tree/grammar.ts      [#137] isId, isLanguageTag, countedText, countedLength: the grammars a form checks before it sends (27.1, 28.4); pure, imports nothing
@@ -1062,7 +1110,7 @@ detail, not a second place to look.
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. **[#132]** A browser spec that needs its own server starts it with `ELSA_DATA_DIR` a fresh temporary directory and `ELSA_SEED_DIR` the fixture's parent folder (17.1), not with `ELSA_TREE`; `tests/browser/serve.ts` does it. The rows the round adds are in 23.7. Never hand-built `Node` objects; **[#118]** and never a Tree file parsed by the test itself -- a test that wants a Tree opens it through the loader, whatever the serialisation is. (This row read "never YAML read by a test" until #118; the fixtures become `tree.json` with #119, and the rule was never about YAML.) |
 | Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). **[#118]** `tests/fixtures/findability/` (**#120** creates it, **#122** extends it): a two-language Tree whose manifest has **no `description`**, so the `Dataset` and `llms.txt` fall back to the root Node's; whose `title` and one Node `title` carry `&`, `<`, `>`, `"` and a literal `</script>`, so the XML escaping of 16.2 and the JSON escaping of 16.4 are exercised rather than assumed; with one Node holding two `kind: legal` Sources at one URL and one at another, so `isBasedOn`'s most-frequent rule has something to choose; one Node with **no** Source at all; a Terminal and an explanation Node, so the "no `Question`" half of 16.4 has a subject; and a description over 155 counted characters whose 155th character falls inside a word, for the cut. The single-language half of 16.2 and 16.5 uses `tests/fixtures/single-language/`, which already exists. **[#122]** Two corrections to this row, made in building it. The Node title also carries `<!--`, the second sequence 16.4's sink refuses, which this row named for the test but not for the fixture. And **the over-155 description is not in this fixture, because the format forbids it**: a Node `description` is at most 150 counted characters and a Tree `description` is rich text whose reduction is shorter still (`tree-format.md` 5.7), so no valid Tree can exercise steps 3 and 4 of 16.3 -- which is 16.3's own point, that the cut does not fire for a conforming Tree. The cut is asserted on strings in `markdown.test.ts`, where it can be. **[#122]** `tests/fixtures/tied-sources/` is new: one language, two `kind: legal` Sources at two URLs with one citation each, and a `literature` and a `case-law` Source that no count of legal Sources may see -- the tie 16.4 breaks by first occurrence in Node order, which no other fixture can produce. |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
-| **[#133]** The editor round's tests | Section 35: a data directory built by `tests/browser/admin.ts` from fixtures and a table of accounts, never committed; one server per spec through `serveStore`; one login helper; the admin pages under the no-scroll test with `[data-scroll-box]` exempted (26.3); one spec per build issue (35.4); the sweep's admin half (35.5); the public suites run unchanged (35.6). **[#195]** And, from 2026-10-03, 38.10 and 39.9: the login by e-mail address and the Authors. |
+| **[#133]** The editor round's tests | Section 35: a data directory built by `tests/browser/admin.ts` from fixtures and a table of accounts, never committed; one server per spec through `serveStore`; one login helper; the admin pages under the no-scroll test with `[data-scroll-box]` exempted (26.3); one spec per build issue (35.4); the sweep's admin half (35.5); the public suites run unchanged (35.6). **[#195]** And, from 2026-10-03, 38.10 and 39.9: the login by e-mail address and the Authors. **[#205]** And, from 2026-10-04, 40.9: the preview of a hidden Tree. |
 
 **Which tests are unit and which need a browser.** The rule is: a claim about *markup*
 is a unit test; a claim about *layout, motion or network* needs a browser.
@@ -1176,6 +1224,9 @@ back.
 | 3.4 **[#194]** an e-mail address and a password log in, the administrator's included; still no mail | **[#195]** (2026-10-03) 38: the address 38.1, the administrator's 38.3, a store of user names 38.4, who sees and who changes one 38.5 |
 | 3.4 / 8 / 9 **[#194]** every Tree names who authored it, the collaborators in the order they joined it; nothing else about an account on a public page | **[#195]** (2026-10-03) 39: who 39.1, the order 39.2, where 39.4 and 39.5; what may reach a public route 20.5 and 39.8, with `deployment.spec.ts`'s account sweep |
 | 10.39, 10.40 **[#194]** | **[#195]** (2026-10-03) 38, 39 |
+| 3.4 / 5 **[#202]** a preview of a hidden Tree as its readers will see it, from a button at the top left of its editor, not in the bar, and a way back in the same place | **[#205]** (2026-10-04) 40: the address and its answers 40.1, what it draws 40.2 and 40.3, its bar 40.4, the two buttons 40.5, the way there and back 40.6, an unfinished draft 40.7 |
+| 9 **[#202]** a hidden Tree on no public route, with its preview | **[#205]** (2026-10-04) 40.1, 40.8: the preview under `/admin`, and every public address of a hidden Tree the 404 of 4.3 after it as before, with `deployment.spec.ts`'s and `findability.spec.ts`'s sweeps (40.9) |
+| 10.41 **[#202]** | **[#205]** (2026-10-04) 40 |
 
 ## 9. Where each decision is recorded
 
@@ -1199,7 +1250,7 @@ back.
 | `src/` modules, `trees/`, `tests/`; dependency direction | `docs/adrs/ADR-5-repository-layout.md`, amended by `ADR-38-modules-and-tests.md` and, **[#118]**, by the six `ADR-118-*` decisions that add files: `src/findability/`, five route files, a member each on `url.ts` and `markdown.ts` |
 | Vitest; fixtures through the loader; the interoperability test | `docs/adrs/ADR-5-testing-approach.md`, amended by `ADR-38-modules-and-tests.md` and, **[#118]**, by the same six: four `tests/findability/` unit files, `findability.spec.ts`, one fixture, and `deployment.spec.ts` as a contract of #118 |
 | **[v0.2]** The tree view: a Bubble in the centre, the Trail above, Answers below, Options beside | `docs/adrs/ADR-38-tree-view.md` |
-| **[v0.2]** The neighbourhood: at most 16 neighbours, in the page payload, never the Tree | `docs/adrs/ADR-38-neighbourhood.md` |
+| **[v0.2]** The neighbourhood: at most 16 neighbours, in the page payload, never the Tree | `docs/adrs/ADR-38-neighbourhood.md` -- **amended [#205]** (2026-10-04): it reads a draft too, for the preview, within the same seventeen (`ADR-205-preview-drawing.md`) |
 | **[v0.2]** The slide transition: the tree layer moves, the URL is the plain link's | `docs/adrs/ADR-38-transitions.md` |
 | **[v0.2]** The guaranteed viewport, the no-scroll rule, the degradation order, the test | `docs/adrs/ADR-38-no-scroll.md` |
 | **[v0.2]** The Carousel: a scroll-snap strip of this Node's Images, enlarged in a Sheet (amended 2026-09-14, #55: and its Options' first pictures) | `docs/adrs/ADR-38-carousel.md` |
@@ -1224,17 +1275,17 @@ back.
 | **[#118]** The JSON-LD: one `@graph`, a `Dataset` by `@id`, a `Question` as the page's `mainEntity`, no `QAPage` | `docs/adrs/ADR-118-json-ld.md` |
 | **[#118]** `llms.txt` generated from the manifest; no `llms-full.txt`, because `tree.json` is it | `docs/adrs/ADR-118-llms-txt.md` |
 | **[#118]** The order of the four build issues #119 to #122 | `docs/adrs/ADR-118-build-order.md` |
-| **[#133]** Five admin pages under `[lang]`; the editor's address is the public grammar behind `/admin/trees`; the login page rendered in place; JavaScript required; every page emits its own Theme | `docs/adrs/ADR-133-admin-routes.md` |
+| **[#133]** Five admin pages under `[lang]`; the editor's address is the public grammar behind `/admin/trees`; the login page rendered in place; JavaScript required; every page emits its own Theme | `docs/adrs/ADR-133-admin-routes.md` -- **amended [#205]** (2026-10-04): the preview's two addresses, the one admin page that needs no script, its bar, and `<html lang>` on an editor or preview address (`ADR-205-preview-address.md`, `ADR-205-preview-drawing.md`, `ADR-205-preview-bar.md`) |
 | **[#133]** The login card with one error; the account page; the administrator's accounts page | `docs/adrs/ADR-133-login-and-account-pages.md` -- **superseded in part [#195]** (2026-10-03): the field an e-mail address; the address on the account and accounts pages (`ADR-195-login-by-email-address.md`, `ADR-195-who-sees-and-changes-an-address.md`) |
 | **[#133]** The tile and the grid in a scroll box (the second exemption); the + tile; the state mark; two groups; every published Tree plus one's own hidden ones | `docs/adrs/ADR-133-overview-tiles.md` |
 | **[#133]** The new-Tree form: an id that never changes, the languages with the first as default, a title per language; the editor on the root Node next | `docs/adrs/ADR-133-new-tree-form.md` |
 | **[#133]** Every field a region in place; the language switch as the editing switch; counters by the validator's functions, typing never stopped; the description as source; the no-scroll rule kept | `docs/adrs/ADR-133-bubble-edited-in-place.md` |
-| **[#133]** 600 ms and blur through one queue; the indicator; a refused write kept; retries; the login Sheet on 401; the response repaints; no polling | `docs/adrs/ADR-133-autosave.md` |
+| **[#133]** 600 ms and blur through one queue; the indicator; a refused write kept; retries; the login Sheet on 401; the response repaints; no polling | `docs/adrs/ADR-133-autosave.md` -- **amended [#205]** (2026-10-04): the queue can be waited for, and the preview button waits for it (`ADR-205-way-there-and-back.md`) |
 | **[#133]** Three outlined buttons; plain navigation on creation; the side + opening its aside in the Overlay; re-pointing through a picker; the step menu on the rim; orphans kept | `docs/adrs/ADR-133-structure-editing.md` |
 | **[#133]** The slot and the strip's + as pickers; the credit required before attaching; the enlarged view as the Image's editor; the admin image route | `docs/adrs/ADR-133-images-in-the-editor.md` |
 | **[#133]** Marking a selection in the source; the id from the selection; the explainer Sheet per language; unmarking; the title plain | `docs/adrs/ADR-133-explainers-in-the-editor.md` |
 | **[#133]** The panel as a Sheet down the right edge: Publish with the to-do list, collaborators, this Tree, the administrator; unpublishing asks once | `docs/adrs/ADR-133-top-panel.md` |
-| **[#133]** The `edit` prop with `links` and named slots; `src/editor/` as leaves importing two pure modules; the editor page's bound of twelve | `docs/adrs/ADR-133-reuse-rule.md` |
+| **[#133]** The `edit` prop with `links` and named slots; `src/editor/` as leaves importing two pure modules; the editor page's bound of twelve | `docs/adrs/ADR-133-reuse-rule.md` -- **amended [#205]** (2026-10-04): the preview passes an `edit` with no slot and its own `links`, and its page renders the neighbour frames and the slide within seventeen Nodes (`ADR-205-preview-drawing.md`) |
 | **[#133]** A built data directory, one server per spec, one login helper, the admin pages under no-scroll, the sweep's admin half, the public suites unchanged | `docs/adrs/ADR-133-editor-testing.md` |
 | **[#133]** The lines of #137 to #144 confirmed; #138 gains #135; #138 lands every slot | `docs/adrs/ADR-133-build-order.md` |
 | **[#171]** A Terminal carries its own words, `terminal.label`, at most 19 characters; the four outcomes go; one colour for every ending; the badge's tracking tightens below 792; the editor asks for the words only | `docs/adrs/ADR-171-ending-text.md` |
@@ -1251,8 +1302,15 @@ back.
 | **[#195]** (2026-10-03) An address seen by its holder and the administrator and changed by the administrator; the invitation list by name; one account per name | `docs/adrs/ADR-195-who-sees-and-changes-an-address.md` |
 | **[#195]** (2026-10-03) The Authors: the creator and the collaborators who hold a role now, never the administrator, in the order each first joined, by name alone | `docs/adrs/ADR-195-authors.md` |
 | **[#195]** (2026-10-03) `meta.json`'s `joined`, appended to and never reordered, filled in from the roles at the start | `docs/adrs/ADR-195-order-of-joining.md` |
-| **[#195]** (2026-10-03) "By A, B and C": one line in the chrome bar of a Node page and on the tile, cut where its room ends, not drawn under 80 pixels | `docs/adrs/ADR-195-the-mention.md` |
+| **[#195]** (2026-10-03) "By A, B and C": one line in the chrome bar of a Node page and on the tile, cut where its room ends, not drawn under 80 pixels | `docs/adrs/ADR-195-the-mention.md` -- **amended [#205]** (2026-10-04): drawn in the preview's bar too (`ADR-205-preview-bar.md`) |
 | **[#195]** (2026-10-03) The names in the mention and nowhere else; nothing else about an account on a public route; `authors(id)`; the account sweep | `docs/adrs/ADR-195-names-on-public-routes.md` |
+| **[#205]** (2026-10-04) The preview at `/admin/preview/<tree-id>/<path>`: the public grammar behind a sixth word; the editor's answers without a session or a role; a published Tree's preview a 307 to its editor; no script needed | `docs/adrs/ADR-205-preview-address.md` |
+| **[#205]** (2026-10-04) The draft through the public components by the reuse rule's one setting with no slot; the neighbour frames and the slide within seventeen Nodes; the draft's Theme on the whole page; a head for no crawler; `<html lang>` the content language for a caller with a role | `docs/adrs/ADR-205-preview-drawing.md` |
+| **[#205]** (2026-10-04) The preview's bar is the public Node page's, by one component: the arrow to `/admin`, the mark, the mention, the switch; no share button, no "Editor" | `docs/adrs/ADR-205-preview-bar.md` |
+| **[#205]** (2026-10-04) What a reader would see of an unfinished draft, a bracketed placeholder where it has no text yet, no to-do count | `docs/adrs/ADR-205-unfinished-draft.md` |
+| **[#205]** (2026-10-04) "Preview" and "Back to the editor" under the bar at the top left, the floating controls' mirror, in words from 1000 pixels wide, first after the bar in the tab order | `docs/adrs/ADR-205-preview-buttons.md` |
+| **[#205]** (2026-10-04) On a hidden Tree the ending's button keeps out of the preview button's column below 1000 pixels wide and is a round icon below 640 | `docs/adrs/ADR-205-ending-button-on-a-hidden-tree.md` |
+| **[#205]** (2026-10-04) The same tab once the autosave holds nothing unaccepted; the way back to the step and language on screen; the button while the Tree is hidden | `docs/adrs/ADR-205-way-there-and-back.md` |
 
 ## 10. The tree view
 
@@ -2156,6 +2214,12 @@ Given the centre Node and the Trail that reached it:
   interface does not change to serve it (5.1): a page may call `getNode` at most 17
   times, and `getTree` does not exist to call.
 
+**[#205]** (2026-10-04) `neighbourhood` and `loadPage` take a `Readable<N>`, as `centreOf` does
+(34.6), and read a Node's Links through `linksOf`, and `Placed` carries the Node type of the Tree
+read, as `Aside` does: the preview of a hidden Tree draws a draft's neighbourhood (40.2), where a
+question step may hold one Answer, which is placed, and no other. Seventeen stands, for the preview
+as for every page; no public caller changes.
+
 ### 11.3 How they arrive, and the slide
 
 **The neighbours are already in the page.** The server renders the placed neighbours
@@ -2380,6 +2444,11 @@ default stack of 13.4 names faces a draft may name too -- the library ships Robo
 without the prefix the editor's own interface was drawn in the draft's file wherever the stack
 reached that name. One prefix for every name, not one per role, so two roles that share a name
 still share one family. The public page writes the names as the Tree gives them.
+**[#205] Amended 2026-10-04: the preview of a hidden Tree emits the draft's Theme as the editor
+does, and it paints the whole page.** `ThemeStyle` with the draft, `adminThemeHref` and `editor`,
+and no `revision`, since nothing writes on the page (40.3). There only the way back carries
+`data-editor-ui` (40.5), so the draft's Theme paints the chrome bar and everything else, as the
+published Tree's paints a public page; the bar's logo is the variant for the draft's background.
 
 ```css
 @font-face { font-family: 'Open Sans'; font-weight: 400; font-style: normal;
@@ -3855,8 +3924,18 @@ screens (17 to 23); sections 24 to 35 freeze the screens. Recorded in
 /admin/accounts                            the administrator's accounts page; the 403 page for anyone else (25.3)
 /admin/trees/<tree-id>                     307 to the editor of the root Node, like /<tree-id>
 /admin/trees/<tree-id>/<id-1>/.../<id-n>[?lang=<tag>]   the editor: the grammar of 4.1 behind the prefix, 1 <= n <= 50
+/admin/preview/<tree-id>                   [#205] 307 to the preview of the root Node (40.1)
+/admin/preview/<tree-id>/<id-1>/.../<id-n>[?lang=<tag>] [#205] the preview of a hidden Tree: the grammar of 4.1 behind the prefix (40.1)
 /admin/api/...                             the route handlers of 22.1
 ```
+
+**[#205]** (2026-10-04) The preview of a hidden Tree is a sixth word under `/admin`, beside `new`,
+`account`, `accounts`, `trees` and `api` (40.1): its address is the editor's with `/admin/preview`
+in place of `/admin/trees`, and its `Links` prefix the four addresses so (34.3). In the editor and
+in the preview `<html lang>` is the content language, as the last bullet below says, by the root
+layout's rule of 40.3 for a caller with a role on the Tree; on `dev` the layout gives an editor
+address the chrome language of the `[lang]` segment, `en` around a Bubble in German (the research
+record of #205, section 5), which 40.3's rule corrects.
 
 - **The editor's address is the public address behind `/admin/trees`.** The same
   `parseUrl`, the same Trail, the same 50-id limit, the same `?lang`; so `trailHref` (the
@@ -3893,6 +3972,12 @@ screens (17 to 23); sections 24 to 35 freeze the screens. Recorded in
 page until the editor (#138) replaces its file; the 403 and 404 rows above that need a role
 are #136's `permit`. `/admin/new` does not exist until #137.
 
+**[#205]** (2026-10-04) The preview's address (40.1) answers as an editor address in every row
+above but the last: JavaScript disabled, it is the public page's markup, which needs none (14), and
+carries no `needsJavaScript` sentence -- the one admin page that does not. And two more answers: a
+published Tree's preview is a 307 to its editor at the same path and `?lang`; an uneditable Tree's
+(19.5) is the page the editor's address shows for it.
+
 ### 24.3 The chrome bar and the Theme, per page
 
 | Page | Left | Right | Theme |
@@ -3901,7 +3986,8 @@ are #136's `permit`. `/admin/new` does not exist until #137.
 | Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
 | Login page | `siteTitle` | language switch | The default |
 | Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
-| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4) |
+| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). **[#205]** (2026-10-04) On a hidden Tree the preview button floats under the bar at the top left, not in it (40.5). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4); **[#205]** the preview button too |
+| **[#205]** (2026-10-04) The preview of a hidden Tree (40.4) | #163's arrow, leading to `/admin`; the draft's logo or title, as the public page; then the mention of its Authors (39.4) | language switch, the current language's pill at every width. **No share button, no "Editor".** The way back floats under the bar at the top left, not in it (40.5). | **The draft's**, on the whole page as on a public page; the way back the default (13.4) |
 | The 404 and 403 pages | `siteTitle` | language switch | The default |
 
 **[#135]** Below 480 pixels wide the Tree-less admin pages' bar gives up `siteTitle` and the
@@ -3940,7 +4026,9 @@ The disclaimer footer stands on every page. **Every page emits its own Theme, on
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
 is the content language on a Node page and in the editor, the chrome language on every other
 page; the mechanism by which the root layout learns it with many Trees is #134's inside this
-contract (`ADR-133-admin-routes.md`, decision 6), recorded as an amendment there.
+contract (`ADR-133-admin-routes.md`, decision 6), recorded as an amendment there. **[#205]**
+(2026-10-04) And in the preview, the content language too; for an editor or preview address the
+layout learns it from the draft, for a caller with a role on the Tree, by 40.3's rule.
 
 ## 25. The login page, the account page and the accounts page
 
@@ -4349,6 +4437,10 @@ Every write of the page -- field or operation, the Node's, an Overlay's, the man
 goes through one client queue, one request in flight, in order; `revision` (22.3) rises
 monotonically as seen from the page. The queue is the `Editor` provider's (34.4).
 
+**[#205]** (2026-10-04) The queue can be waited for: `EditorApi.settle()` writes at once every field
+value waiting out its 600 ms (`WriteQueue.flushAll()`) and resolves when the queue next holds nothing
+not yet accepted. The preview button waits on it before it leaves the page (40.6).
+
 ### 29.3 The indicator
 
 In the chrome bar between the language switch and ~~the panel button~~ **[#176]** the link to the account page (the panel's button left the bar, 33.1), a `role="status"` region
@@ -4379,6 +4471,10 @@ A network failure or 5xx is retried after 5, 10, 20, 40, 60 seconds and every 60
 indicator at `notSaved` and `retrying` with a `retry` button. While the queue holds a write
 not yet accepted, leaving the page asks the browser's one `beforeunload` confirmation. The
 queue is memory only; the indicator is what says so.
+
+**[#205]** (2026-10-04) The preview button never asks it: it leaves only when the queue holds
+nothing not yet accepted, and waits until then (40.6). A refused value (29.4) is in no queue: the
+button does not wait for it, and it goes with the page, as on a reload.
 
 ### 29.6 A session that expires
 
@@ -4640,6 +4736,18 @@ Bubble, beside the up arrow, out of the Bubble's box (10.1):
 Recorded in `docs/adrs/ADR-178-step-buttons.md`, which supersedes ADR-133-structure-editing
 decision 8's step menu.
 
+**Amended 2026-10-04 (#205, for the preview button the owner placed at the top left, #202):** in
+the editor of a hidden Tree, while the preview button is on the page, "Tree does not end here after
+all" gives way to it in the band. Below 1000 pixels wide its `max-width` is the band left of the
+arrow less the preview button's column and a gap; below 640 pixels wide it is a round button of the
+cross's size, outlined in `accent-secondary`, with a glyph of the Tree going on, its name and its
+`title` its words, `removeEnd`, where the words stood (40.5). Below 640 the band left of the arrow
+cannot hold the preview button and the words on their lines; from 640 to 999 the words keep their
+one line on every Tree measured (the research record of #205, section 2). From 1000 pixels wide,
+and on a published Tree at every width, the button is as above. Recorded in
+`docs/adrs/ADR-205-ending-button-on-a-hidden-tree.md`, which amends `ADR-178-step-buttons.md`
+decision 2.
+
 ### 30.9 Orphans
 
 A Node nothing reaches any more is V-REACH's advisory (19.2): listed in the panel's to-do
@@ -4834,7 +4942,10 @@ top right, but not in the header bar"). Recorded in
 - **Order and layers.** After the bar's last control in the tab order, behind the to-do
   control. While its Sheet is closed it lies under any other Sheet's scrim -- an Overlay's, the
   enlarged view's, a menu's -- and while it is open its box lifts over the page, so the scrim
-  covers the bar too, as the bar's own lift did while it held the button.
+  covers the bar too, as the bar's own lift did while it held the button. **[#205]** (2026-10-04)
+  In the editor of a hidden Tree the preview button, at the top left under the bar, comes between
+  the bar's last control and the to-do control in the tab order, and lies under every Sheet's
+  scrim as the two do while their Sheets are closed (40.5).
 
 ### 33.2 The panel
 
@@ -5094,6 +5205,10 @@ export interface Links {
 }
 ```
 
+**[#205]** (2026-10-04) The preview of a hidden Tree (40.2) passes an `edit` whose `links` are its own
+(34.3) and whose `slots` are `{}`: by this section and 34.8 the components then draw the public
+markup with the preview's addresses. It is the same setting, not a second one.
+
 ### 34.2 The slots
 
 Named places where the editor adds something; each a server-side function returning an
@@ -5137,7 +5252,9 @@ Every component builds an address or a picture URL through `links` = `edit?.link
 PUBLIC_LINKS`, where `PUBLIC_LINKS` is the five functions of `src/url.ts` as they are. The
 editor's `links` (`src/editor/links.ts`, server side) prefixes the four addresses with
 `/admin/trees` (24.1) and makes `image` `adminImageHref(treeId, file)` (22.6). `src/url.ts`
-is unchanged but for `adminImageHref`.
+is unchanged but for `adminImageHref`. **[#205]** (2026-10-04) A third, the preview's,
+`previewLinks()` in the same file: the four addresses behind `/admin/preview` and `image`
+`adminImageHref` (40.1).
 
 ### 34.4 The editor's client components
 
@@ -5169,7 +5286,11 @@ No neighbour frames, no `data-slide` (every control a plain link; no slide); no 
 `hreflang`, canonical or dataset link (`noindex`, 20.9); no share button. The strip, the
 enlarged view, the Overlays and the explainer panels render as on the public page, plus
 the slots. **[#195] (2026-10-03)** No mention of the Tree's Authors: the editor's bar is its
-own interface, and the panel lists the same accounts (39.7).
+own interface, and the panel lists the same accounts (39.7). **[#205]** (2026-10-04) These are the
+editor's page's choices, not the components': the preview's page passes the same setting and
+renders the neighbour frames and the slide, within seventeen Nodes, and the mention in its bar;
+like the editor it renders no JSON-LD, `hreflang`, canonical or dataset link and no share button
+(40.2 to 40.4).
 
 ### 34.6 The types
 
@@ -5186,7 +5307,10 @@ and their tests run unchanged.
 store.drafts.draft(by, id) → parseUrl → centreOf → the asides by id → TreeView`: the centre
 and its chain (at most 3), its Option targets (at most 8), the titles of its Answer targets
 from the index -- **at most twelve Nodes**, under 11.2's seventeen; `neighbourhood()` is not
-called. The picker (30.6) carries ids and titles, never Nodes.
+called. The picker (30.6) carries ids and titles, never Nodes. **[#205]** (2026-10-04) The rule
+that makes a fresh step a yes or a no made the centre -- inline in this page since #139 -- moves to
+`src/neighbourhood.ts` as `draftCentre`, which this page and the preview's call (40.2). This page's
+bound stays twelve; the preview's is a public page's seventeen.
 
 ### 34.8 The rule's tests
 
@@ -5253,6 +5377,7 @@ real person's address is in the repository (38.10).
 | **[#171]** the rows of 37.6 | The font library, `use-library-font`, the upload's name, the dropdowns, the library in `no-scroll.spec.ts` | #180 |
 | **[#195]** (2026-10-03) the rows of 38.10 | The login by e-mail address: the check, the start's table, the conversion, the routes, the pages, every test that logs in | #196 |
 | **[#195]** (2026-10-03) the rows of 39.9 | The Authors: `joined`, `authorsOf`, `authors(id)`, the mention, the no-scroll rule with it, the account sweep | #197 |
+| **[#205]** (2026-10-04) the rows of 40.9 | The preview of a hidden Tree: its address and answers, what it draws, its bar, its two buttons and the ending's button beside them, the way there and back, an unfinished draft; the editor's tab order; the sweeps of 23.7 and 35.5 with a preview drawn | #206 |
 
 ### 35.5 The no-cookie sweep, extended
 
@@ -6005,6 +6130,9 @@ hidden Tree's included, and `store.authors(id)` for the other published Trees, a
 - **Where**: every public Node page of a published Tree that has an Author, in the chrome bar,
   between `.page-brand` -- the way back to the overview and the Tree's mark, its logo or its
   title as text -- and `.page-controls` -- the language switch and the share button (24.3).
+  **[#205]** (2026-10-04) And in the bar of the preview of a hidden Tree, which is this bar (40.4),
+  from `authorsOf` of the Tree's `TreeEntry.meta` (39.3): there the readers of the preview -- accounts
+  with a role on the Tree -- see it as its readers will once it is published.
 - **How**: `<div class="authors-room"><p class="authors" data-clamp title="<the whole
   text>">…</p></div>`, drawn by `src/components/Authors.tsx`, a server component. The room is
   a flex item that takes the bar's free space (`flex: 1 1 0; min-width: 0`) and is a size
@@ -6091,7 +6219,9 @@ the Bubble, and 10.7's limits stand.
 
 - **Not in the editor**: its bar is the editor's own interface (24.3, #180), its right side the
   editor's controls, and the panel's Collaborators section lists the same accounts (33.4).
-  34.5 lists it among what edit mode does not render.
+  34.5 lists it among what edit mode does not render. **[#205]** (2026-10-04) The preview's bar
+  is the readers', and draws it (40.4); the preview is an admin page, so a hidden Tree's names
+  still reach no public route (39.8).
 - **Not on the 404 and 403 pages.**
 - **Not in `tree.json`**: 17.2 stands, the file carries no name, and its format stays
   `elsa-tree/5`; 15.3's byte-identity is unchanged. A list of authors in the file was rejected:
