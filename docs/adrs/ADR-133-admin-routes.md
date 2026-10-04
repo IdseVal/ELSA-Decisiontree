@@ -19,8 +19,9 @@
   that routes to a window with a preview of the tree"): in decision 1, the admin area's addresses
   gain the preview's two, `/admin/preview/<tree-id>` and `/admin/preview/<tree-id>/<path>`, the
   public grammar behind a sixth word (`ADR-205-preview-address.md`); in decision 5, the preview is
-  the one admin page that needs no script, its markup being the public page's (the same ADR); in
-  decision 6, `<html lang>` on an editor or preview address is the content language, which the
+  an admin page that needs no script, its markup being the public page's (the same ADR); in
+  decision 6, the preview emits its draft's Theme as the editor does and it paints the whole page,
+  and `<html lang>` on an editor or preview address is the content language, which the
   root layout resolves from the draft for a caller with a role (`ADR-205-preview-drawing.md`); in
   decision 7, the preview's bar is the public Node page's, drawn by the same component, with the
   arrow leading to `/admin` and without the share button and "Editor" (`ADR-205-preview-bar.md`).

@@ -7,7 +7,7 @@
   role on the Tree, and never a public route
 - Issue: #205 -- Architecture: the preview of a hidden Tree as its readers will see it -- its
   address, what it shows of an unfinished draft, and its two buttons at the top left
-- Spec: `docs/specs/application.md` 40.1 and 40.8 (new); 4.1, 4.3, 24.1, 24.2 and 6 amended,
+- Spec: `docs/specs/application.md` 40.1 and 40.8 (new); 4.1, 4.3, 6, 14, 24.1 and 24.2 amended,
   marked **[#205]**
 - Amends: `ADR-133-admin-routes.md` decision 1 ("The admin area is exactly these addresses":
   the preview's two join them) and decision 5 (the admin area needs JavaScript, but for the
@@ -56,9 +56,10 @@ on the Tree, the 403 page (24.2, 21.3).
    `/admin/trees/` and now `/admin/preview/` -- so it collides with nothing and reserves no
    Tree id.
 
-2. **Who may open it, and what it answers.** The page is `authenticated → permit('read') →
-   draft`, as the editor's (34.7): a role on the Tree -- its creator, a collaborator, the
-   administrator -- reads its draft (21.2).
+2. **Who may open it, and what it answers.** The page is `authenticated → permit('read') → draft
+   → parseUrl`, as the editor's (34.7), and then the 307 of a published Tree: a role on the Tree --
+   its creator, a collaborator, the administrator -- reads its draft (21.2), and a path that is not
+   a Node of the draft is the 404 page before the Tree's state is asked.
 
    | Case | Answer |
    |---|---|
@@ -85,9 +86,9 @@ on the Tree, the 403 page (24.2, 21.3).
 
 4. **The preview needs no script.** Its markup is the public page's (`ADR-205-preview-drawing.md`
    decision 1), whose every control is a link or a disclosure without JavaScript (section 14):
-   the walk, the Sheets, the language switch, the way back. It is the one admin page that
-   carries no `needsJavaScript` sentence (24.2). The login page shown at its address without a
-   session needs script, as at every admin address.
+   the walk, the Sheets, the language switch, the way back. It carries no `needsJavaScript`
+   sentence, which 24.2 and 14 have an admin page show in place of its first control. The login
+   page shown at its address without a session needs script, as at every admin address.
 
 5. **Never a public route.** The preview is under `/admin`, behind `Path=/admin`, `noindex` and
    `no-store`; its pictures and theme files come from the admin routes that serve a draft's to a

@@ -26,11 +26,20 @@ drawn as the Tree is), so a Theme decides how wide its words are.
 The owner placed the preview button at the top left of the editor of a hidden Tree
 (`ADR-205-preview-buttons.md`); #178's place left of the arrow was not the owner's (#169: "just
 make two buttons a red cross to delete the step, or if it applys, 'tree does not end here after
-all'"). Measured with the preview button drawn in: from 1000 pixels wide its words stand 90.4
-pixels or more from the ending's button; below 1000, as an icon, it meets the ending's button at
-360 x 640, 480 x 640, 480 x 639, 479 x 639 and 321 pixels wide -- every width measured below 640
-where both stand on the band's line -- and nowhere from 640 up. At 390 x 844 and 768 x 1024 the
-arrow stands lower and the step's buttons with it, and the two do not meet.
+all'"). Measured with the preview button drawn in (the research record, section 2): from 1000
+pixels wide its words stand 90.4 pixels or more from the ending's button; as an icon it meets the
+ending's button where the ending's words take two lines and reach to 8 pixels from the window's
+edge -- at 480 x 640, 360 x 640 and 321 pixels wide -- and where their one line of 11 pixels, below
+640 pixels tall, is longer than the room beside it -- at 480 x 639 and 479 x 639 in English -- and
+at no width measured from 639 up. At 390 x 844 and 768 x 1024 the arrow stands lower and the
+step's buttons with it, and the two do not meet. With the room of decision 1 alone and no icon
+(the record, section 7): at 700 pixels tall the ending's button keeps clear of the preview button
+at every width measured from 481 to 640; at 639 pixels tall, where #178 holds its words on one
+line (`white-space: nowrap`), the English words spill out of their box at 481 pixels wide on every
+Tree measured, and at 500 on the first Tree on Windows and on every Tree in the CI runner's faces,
+reach to 2 pixels of its border at 520 and have 1 pixel to spare at 540 (the first Tree, on
+Windows); and at 321 pixels wide they take three or four lines and stand out of the band, over the
+bar and the Bubble.
 
 ## Decision
 
@@ -41,20 +50,28 @@ way to the preview button in the band:
 1. **Below 1000 pixels wide its room is the band left of the arrow less the preview button's
    column**: `max-width: calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap) - var(--float-right)
    - var(--float-size))` -- the arrow's half, a gap of 8 to it, the preview button's place from the
-   edge and its width, and a gap of 8 to it. So the two boxes cannot overlap, whatever face a
-   Theme draws the words in: a wider face takes a second line of 13 pixels, which the band holds
-   from 640 pixels of height up (48 pixels in its 56, as at 480 x 640 on `dev`). On every Tree
-   measured the words keep their one line from 640 to 999 pixels wide: the room is 232 pixels at
-   640 x 700 and 240 at 640 x 639, and the widest one line measured is 227.4.
+   edge and its width, and a gap to it of 8 (6 below 640 pixels tall from 480 wide, where the
+   button's icon box is 26 wide for a `--float-size` of 24). So from 640 pixels of height up the
+   two boxes cannot overlap, whatever face a Theme draws the words in: a wider face takes a second
+   line of 13 pixels, which the band holds (48 pixels in its 56, as at 480 x 640 on `dev`). Below
+   640 pixels tall, where #178 holds the words on one line, they stand apart by the measure: one
+   line of 189 pixels at the most, in a room of 240 at 640 x 639; a face that drew that line wider
+   than its room would spill out of the button's box, as it would on `dev` in a narrower room. On
+   every Tree measured the words keep their one line from 640 to 999 pixels wide: the room is 232
+   pixels at 640 x 700 and 240 at 640 x 639, and the widest one line measured is 227.4.
 2. **Below 640 pixels wide it is a round button of the cross's size**, `--step-size` -- 32 pixels;
    24 below 640 pixels of height from 480 wide -- outlined in `accent-secondary` as its words are,
    holding a 16-pixel glyph of the Tree going on (one stroke down from the top that splits at the
    middle into two strokes to the lower corners) in `accent-secondary`'s reading shade, in the
    cross's stroke (2 pixels, round caps). Its name and its `title` are its words, `removeEnd`, at
    every width, as the cross's are `deleteStep` (30.8); it stands where the words stood, left of
-   the arrow and against it. Below 640 the band left of the arrow cannot hold the preview button,
-   the words on their lines and the gaps between them -- the words alone take it all on two lines
-   -- and a third line does not fit a phone's band of 40 below 640 pixels of height.
+   the arrow and against it. Below 640 the room of decision 1 does not hold the words on every
+   Tree measured at every height: below 640 pixels tall their line spills out of the button from
+   500 pixels wide down and fills it to 2 pixels of its border at 520, and at 321 pixels wide they
+   stand out of the band on three or four lines (the record, section 7). 640 is the narrowest of
+   the band's widths -- 10.5's step 7 has its sizes at 640 -- at which that room holds them with
+   room to spare at both heights: 232 pixels for the widest line, 227.4, at 640 x 700, with a
+   second line for a wider face, and 240 for 189 at 640 x 639.
 3. **From 1000 pixels wide it is as #178 left it**, its words left of the cross, which stands left
    of the arrow: the preview button's words stand 90.4 / 92.7 pixels or more from it.
 
@@ -66,16 +83,22 @@ tightest at 640 x 700, 12.6 pixels from the preview button on Windows, 17 in the
 
 ## Alternatives rejected
 
-- **The words at every width, in a narrower room.** Below 640 pixels wide they would take three
-  lines and more: at 321 pixels the room left for them would be 80.5 pixels, and a third line of 11
-  pixels (48 tall with its padding) does not fit a phone's band of 40 below 640 pixels of height,
-  where it would stand over the bar and the Bubble -- as `step-buttons.spec.ts` would then find on
-  `hidden-draft`, a hidden Tree, at 479 x 639 and 321 x 481.
+- **The words at every width, in a narrower room.** At 321 pixels wide the room is 80.5 pixels:
+  the words take three or four lines and stand out of the band, over the bar and the Bubble, as
+  `step-buttons.spec.ts` would then find on `hidden-draft`, a hidden Tree, at 321 x 481 and
+  321 x 700; and below 640 pixels tall they spill out of their box at 481 and 500 pixels wide (the
+  record, section 7).
+- **A lower width, 520 or 540**, the narrowest at which the words stay inside their box beside the
+  preview button below 640 pixels tall on every Tree measured. At 520 they reach to 2 pixels of its
+  border, and at 540 the room is one pixel wider than the line (the first Tree, on Windows): a face
+  a little wider than Open Sans would spill. At 640 the room is 51 pixels wider.
 - **The ending's button an icon below 1000, as the floating controls are.** From 640 to 999 pixels
   its words fit beside the preview button on every Tree measured, with 12.6 pixels or more to
-  spare; the owner's words for it are kept wherever they fit.
+  spare; the owner's words for it are kept from 640 up, where they fit at both heights with room to
+  spare.
 - **The preview button giving way instead** -- hidden, or moved, on a step that ends. The owner
-  placed it at the top left, on every step of a hidden Tree; #178's place was a reading.
+  placed it at the top left of the editor of an unpublished Tree, a step that ends being one of its
+  pages; #178's place left of the arrow was #178's reading, not the owner's words.
 - **The ending's button moved right of the arrow, or into the Answer row.** Right of the arrow the
   cross and the two floating controls leave 34 pixels between them at 360 x 640 and 14.5 at 321
   pixels wide, where a 32-pixel button and its two gaps of 8 need 48 (the research record, section
@@ -85,7 +108,8 @@ tightest at 640 x 700, 12.6 pixels from the preview button on Windows, 17 in the
   preview button is not on the page and the words fit as #178 measured them.
 - **A width rule of 640 without the room of decision 1.** From 640 the one line fits on every Tree
   measured, by 12.6 pixels at the least; a Theme whose face is wider would push the words under the
-  preview button. Decision 1 makes the boxes apart by construction.
+  preview button. Decision 1 keeps the boxes apart by construction from 640 pixels of height up,
+  where a wider face takes a second line.
 
 ## Consequences
 

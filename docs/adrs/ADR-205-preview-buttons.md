@@ -37,9 +37,10 @@ band's breakpoints, in English and Dutch, on Windows and in the CI runner's face
 record, section 2): it meets nothing on a step that does not end, in words or as an icon, in the
 editor (128.5 pixels of room or more); on the public page, nothing as an icon, and in words
 "Back to the editor" (151.2 to 152 pixels) and "Terug naar de editor" (166.3, 166.4) meet the up
-arrow at 360 x 640 and 321 pixels wide. On a step that ends, in the editor, from 1000 pixels wide
-the words stand 90.4 pixels or more from the ending's button, and below 1000 the button meets it
-wherever both stand on the band's line -- as an icon only below 640 pixels wide.
+arrow at 360 x 640 and 321 pixels wide. On a step that ends, in the editor, from 999 pixels wide up
+the words stand 90.4 pixels or more from the ending's button; narrower, the button meets it where
+the ending's button reaches its column -- in words from 640 x 700 down, as an icon only below 640
+pixels wide.
 
 ## Decision
 
@@ -64,7 +65,8 @@ wherever both stand on the band's line -- as an icon only below 640 pixels wide.
      `0 14px 0 10px`. Measured: "Preview" 94.2 / 96.3 pixels wide, "Voorbeeld" 109 / 108.6,
      "Back to the editor" 152 / 151.2, "Terug naar de editor" 166.3 / 166.4.
    - **Below 1000**: the icon alone, centred in a box `--float-size` wide with 4 pixels of padding
-     -- 32 by 32, and 26 by 24 below 640 tall -- as the floating controls are below 1000.
+     -- 32 by 32, and 26 by 24 below 640 tall from 480 wide -- as the floating controls are below
+     1000.
    - **The icons**, 16-pixel line icons in the stroke of the floating controls' `.float-icon`
      (1.25 pixels, round joins, no fill): for the preview an eye -- an almond outline and a round
      pupil; for the way back a pencil, drawn from the lower left to the upper right.

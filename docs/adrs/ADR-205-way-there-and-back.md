@@ -8,8 +8,8 @@
 - Issue: #205 -- Architecture: the preview of a hidden Tree as its readers will see it -- its
   address, what it shows of an unfinished draft, and its two buttons at the top left
 - Spec: `docs/specs/application.md` 40.6 (new); 29.2 and 29.5 amended, marked **[#205]**
-- Amends: `ADR-133-autosave.md` (the queue gains one way to be waited for; the `beforeunload`
-  confirmation is unchanged and never comes from the preview button)
+- Amends: `ADR-133-autosave.md` decisions 2 and 5 (the queue gains one way to be waited for; the
+  `beforeunload` confirmation is unchanged and never comes from the preview button)
 - Depends on: `ADR-205-preview-address.md`, `ADR-205-preview-buttons.md`, `ADR-133-autosave.md`
 - Built by: #206
 
@@ -33,7 +33,8 @@ of `/admin/trees` (`ADR-205-preview-address.md`).
 ## Decision
 
 1. **The same tab.** The preview button is a link to the preview of the editor's own address --
-   the same Trail, Node and `?lang`, an open Overlay's included -- followed in the same tab. A
+   the same Trail, Node and `?lang`, and an Overlay the address names (one opened by a click is not
+   in the address, 10.9) -- followed in the same tab. A
    click with a modifier that opens a new tab or window is the browser's, as for any link. The
    owner's "routes to a window" names where the button leads, and "brings the user back" a return
    to the editor, not a second window to close.
@@ -57,8 +58,8 @@ of `/admin/trees` (`ADR-205-preview-address.md`).
    not show it.
 
 4. **The way back leads to the editor of what the preview shows.** It is a link to the editor at
-   the preview's own address: the step and the language on screen, with their Trail and an open
-   Overlay -- `/admin/trees` and the same path and `?lang` (`editorLinks().node`). Where the
+   the preview's own address: the step and the language on screen, with their Trail and an Overlay
+   the address names -- `/admin/trees` and the same path and `?lang` (`editorLinks().node`). Where the
    reader has not walked on, that is the step and the language the preview was opened from: where
    they came from. Where they walked on, or switched the language, it is the editor of the step
    they look at, in that language -- where a creator who saw something to change in the preview

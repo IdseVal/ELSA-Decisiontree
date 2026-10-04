@@ -12,9 +12,10 @@
 - Amends: `ADR-133-reuse-rule.md` decisions 3 (a third `Links`, the preview's), 5 (what edit mode
   does not render is the editor page's choice; the preview's page renders the neighbour frames
   and the slide) and 7 (the preview's page reads at most seventeen Nodes, as a public page);
-  `ADR-38-neighbourhood.md` (`neighbourhood` reads a draft too, within the same seventeen);
-  `ADR-133-admin-routes.md` decision 6 (`<html lang>` on an editor or preview address is the
-  content language, resolved from the draft for a caller with a role)
+  `ADR-38-neighbourhood.md` decisions 1 and 5 (`neighbourhood` reads a draft too, through the same
+  `getNode`, within the same seventeen); `ADR-133-admin-routes.md` decision 6 (the preview emits its
+  draft's Theme as the editor does, on the whole page; and `<html lang>` on an editor or preview
+  address is the content language, resolved from the draft for a caller with a role)
 - Depends on: `ADR-205-preview-address.md`, `ADR-133-reuse-rule.md`, `ADR-133-structure-editing.md`
   (decision 3 and its rejected slide), `ADR-180-editor-interface-not-themed.md` (the editor's own
   interface in the default look)
@@ -61,7 +62,8 @@ edited.
    preview takes the cost it named:
    - `neighbourhood` and `loadPage` take a `Readable<N>`, as `centreOf` does (34.6), and read
      a Node's Links through `linksOf`, so a draft's question step with one Answer places that
-     one; public callers, and `neighbourhood.test.ts`, are unchanged.
+     one; public callers are unchanged, and the assertions `neighbourhood.test.ts` holds run as
+     they are.
    - The page applies the editor's centre rule for a draft between `centreOf` and
      `neighbourhood` (#139, inline in the editor's page today, moved into `src/neighbourhood.ts`
      as `draftCentre` and called by both pages): a Node at the end of the path is an aside only

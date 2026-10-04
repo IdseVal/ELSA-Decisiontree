@@ -7,8 +7,8 @@
 - Spec: `docs/specs/application.md` 40.4 (new); 24.3, 39.4, 39.7 and 6 amended, marked
   **[#205]**
 - Amends: `ADR-133-admin-routes.md` decision 7 (each page's bar: the preview's is the public Node
-  page's, as this ADR draws it); `ADR-195-the-mention.md` (the mention is drawn in the preview's
-  bar too, where 39.4 and 39.7 name the public Node pages and not the editor)
+  page's, as this ADR draws it); `ADR-195-the-mention.md` decisions 2 ("Where: two places, and no
+  other": a third, the preview's bar) and 5 ("Nowhere else": not the preview)
 - Depends on: `ADR-205-preview-drawing.md` (the draft's Theme on the whole page, the preview's
   `Links`), `ADR-195-the-mention.md`, `ADR-195-authors.md` (the mention, and who it names)
 - Measurements: `docs/research/issue-205-top-left-room.md` (section 2, the public bar's room
@@ -21,7 +21,9 @@ The public Node page's bar holds, at the left, #163's round arrow back to the pu
 `/` (`BackToOverview`, named `toOverview`, "All decision trees") and the Tree's logo, or its
 title as text in two lines at most (#200); at the right the language switch -- a pill per
 declared language, the current one included -- and the share button, which copies the page's own
-address (4.1, 24.3). #197 is building the mention of the Tree's Authors between the two (39.4);
+address (4.1, 24.3). #197 built the mention of the Tree's Authors between the two (39.4; merged
+on 2026-10-04 at `0a43073`, after the research record was measured, its rules reaching neither
+the band nor the tree view);
 #204 is to add "Editor", a link to `/admin`, at the right end, and to give up the current
 language's pill below 768 pixels wide to make room for it (core document 3.4 `[#202]`, PROPOSED).
 The editor's bar is the editor's own interface, in the default look: the draft's logo (its
@@ -68,8 +70,9 @@ record, section 2).
    to make room for "Editor" (#204's TASK 3), which this bar does not hold: the preview's bar
    holds the public bar's controls but two, and has 57.1 pixels or more of room beyond `dev`'s
    public bar wherever the tree view shows (the research record, section 2), so whatever fits
-   there fits here. `NodeChrome` takes whether to draw the share button and "Editor", and a
-   rule that #204 writes for a bar holding "Editor" does not reach a bar without it.
+   there fits here. `NodeChrome` takes whether to draw the share button and "Editor"; #204's rule
+   for the pill is for a bar holding "Editor", and #206, which builds after #204, keys it to the
+   bar that draws "Editor" where #204 keyed it otherwise, so that it does not reach this bar.
 
 ## Alternatives rejected
 

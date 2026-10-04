@@ -87,8 +87,9 @@ list -- the draft's advisory violations -- is the editor's, in a bubble at its t
   will see, which is what the owner asked for; the editor has the list, in the bubble the owner
   placed at its top right (#169: "make it a bubble on the top right"), and the way back leads
   there.
-- **Refusing to preview a draft with violations** (the to-do list in its place). The owner wants
-  to see the Tree as it grows; most of its life a draft has a to-do.
+- **Refusing to preview a draft with violations** (the to-do list in its place). Most of its life
+  a draft has things to do, and the owner asked to see a hidden Tree "how the end users will see
+  it" before it is published.
 - **The Tree's default language in place of a missing one**, as a tile of the overview shows a
   title not declared in the page's language (23.2). It hides the gap: the creator would read the
   English and not see that the Dutch is missing.

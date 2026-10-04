@@ -1,7 +1,8 @@
 # ADR-133-autosave: a field is written 600 ms after the last keystroke and on blur, through one queue per page; the chrome bar says saving, saved or not saved; a refused write keeps the value on screen; the response repaints every field not being edited; a session that expires opens the login form in a Sheet
 
 - Status: ACCEPTED (frozen) -- 2026-09-26
-- **Amended 2026-10-04 by issue #205** (`ADR-205-way-there-and-back.md`): the queue can be waited
+- **Amended 2026-10-04 by issue #205** (`ADR-205-way-there-and-back.md`): in decisions 2 and 5, the
+  queue can be waited
   for -- `EditorApi.settle()` writes every field waiting out its 600 ms and resolves when nothing
   is left not yet accepted -- and the preview button waits on it before it leaves the page, so the
   `beforeunload` confirmation never comes from that button. The rest stands.
