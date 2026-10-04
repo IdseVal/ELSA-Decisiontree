@@ -3901,7 +3901,7 @@ are #136's `permit`. `/admin/new` does not exist until #137.
 | Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
 | Login page | `siteTitle` | language switch | The default |
 | Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
-| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4) |
+| The editor | **[#203]** (2026-10-04) The arrow of #163, `toOverview`, a link to the creators' overview `/admin` in the chrome language; then the draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4) |
 | The 404 and 403 pages | `siteTitle` | language switch | The default |
 
 **[#135]** Below 480 pixels wide the Tree-less admin pages' bar gives up `siteTitle` and the
@@ -3935,6 +3935,23 @@ Overlay, with the confirmation it asks there in place (30.7); and #178's red cro
 not end here after all" beside the up arrow (30.8). The question the cross asks is a panel hung
 over the Sheets' veil, as the step menu's Sheet was, and keeps the default look: the editor's
 own, like the panel of every editor Sheet. Recorded in decision 1 of the same ADR.
+
+**[#203], the owner's #202 -- 2026-10-04** ("I am still missing a back to the top level interface
+button in the tree editor interface /admin/trees/..."). The editor's bar opens with the round
+arrow the public Node page has carried at the left of its bar since #163
+(`src/components/BackToOverview.tsx`), held with the draft's logo or title in one `.page-brand`
+group: a link to the creators' overview, `/admin` in the chrome language -- where `logout` goes --
+named `toOverview` ("All decision trees", "Alle beslisbomen"), 30 pixels across and 24 below 480
+pixels wide. That this is the top level the owner meant, and this its place and look, is the
+PROPOSED reading of core document 3.4 `[#202]`. The bar holds it on one line at every viewport of
+10.6 -- and at every width from 320 to 1280 pixels, measured in English and Dutch beside the
+example Tree's logo, a logo as wide as its cap and an 80-character title -- by two rules of the
+editor's bar alone: the group takes the room the controls leave, so a title as text is cut to its
+two lines (#200) rather than squeezing `account` and `logout` past their words, as an
+80-character title did at 768 x 1024 before the arrow too; and from 480 pixels wide up a logo is
+at least 380 pixels narrower than the window, the room the bar's padding, the arrow and the
+controls of a Tree in two languages take, as #164 made the arrow's room on the Node page with the
+logo's maximum width at the floor. Recorded in `docs/adrs/ADR-133-admin-routes.md`.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
