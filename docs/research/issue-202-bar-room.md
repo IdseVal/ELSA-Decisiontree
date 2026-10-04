@@ -145,11 +145,16 @@ up, beside a logo at its cap, "Editor" leaves 59.8 pixels in Dutch beside the fi
 controls, and a third pill wider than that, with its gap, takes the bar past the window there,
 where `dev`'s bar, without "Editor", has about 69 pixels more. A width at which the bar held a
 third pill beside such a logo would depend on how wide that pill is, which is the language's own
-name. Neither was measured. Nor does `dev`'s bar hold a third pill at 320 x 480, where it keeps
-3.6 to 28.3 pixels beside the seeded logos (both systems) and the narrowest pill measured there
-is 46.5 wide. A Tree in one language has one pill, the current language's, so giving it up
-empties the language switch. Core document 10.42 asks the owner about these Trees, and about
-`dev`'s own bar beside a third pill at 320 x 480 and beside a logo as wide as its cap.
+name. Neither was measured. Nor does `dev`'s bar hold a third pill no narrower than the
+narrowest measured -- 46.5 pixels below 480 and 63.6 from 480 up on Windows, 48.1 and 65.4 in
+the CI image, each with a gap of 4 -- beside the seeded logos: at 320 x 480 it keeps 3.6 to 28.3
+pixels (both systems), at 360 x 640 in Dutch 34.8 to 47.6 (and in the CI image 48.8 in English
+beside the first Tree's logo), at 480 and 500 x 800 at most 52.5, and at 520 x 800 at most 65.3
+in all but the second Tree in English; beside a logo as wide as its cap it holds none up to 640
+pixels wide, nor at 700 in Dutch beside the first Tree's controls, or beside the second's in the
+CI image. A Tree in one language has one pill, the current language's, so giving it up empties
+the language switch. Core document 10.42 asks the owner about these Trees, and about `dev`'s own
+bar beside a third pill and beside a logo as wide as its cap.
 
 **The overview `/`.** "Editor" fits at every width in either look; at 320 x 480, the
 narrowest, the share button's look leaves 37.1 to 41.3 pixels on Windows and 24.9 to 30.7 in the
