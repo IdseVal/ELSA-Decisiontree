@@ -307,8 +307,8 @@ for (const lang of LANGUAGES) {
  * languages, whose third pill leaves it the least room (`tests/fixtures/wide-logo/`); and an
  * 80-character title as text, cut to the bar's two lines (#200). Plain, at every viewport of 10.6.
  * Then at four widths 10.6 does not list, from 480 up, the bar alone: below 578 (en) and 641 (nl)
- * the disclaimer's second line fails the whole page on the CI runner, on `dev` too (`NARROW`
- * below). Each page is measured with the arrow in the bar, which on `dev` it is not.
+ * the disclaimer's second line fails the whole page on the CI runner, as it did before #203
+ * (`NARROW` below). Each page is measured with the arrow in the bar, which before #203 it was not.
  */
 const BAR_WIDTHS = [480, 560, 640, 767] as const
 for (const lang of LANGUAGES) {

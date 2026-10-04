@@ -3370,8 +3370,8 @@ fieldset:disabled .admin-submit {
 
 /*
  * **[#203]** The way out and the Tree's mark take the room the controls leave. Shrunk in proportion
- * with the controls, an 80-character title squeezed `account` and `logout` past their words on
- * `dev`, without the arrow, from 480 pixels wide up to 793 to 845, 768 x 1024 among them; here it is
+ * with the controls, an 80-character title squeezed `account` and `logout` past their words before
+ * #203, without the arrow, from 480 pixels wide up to 793 to 845, 768 x 1024 among them; now it is
  * cut to its two lines (#200) instead.
  */
 .editor-chrome .page-brand {
@@ -3382,8 +3382,8 @@ fieldset:disabled .admin-submit {
  * **[#203]** And the logo takes at most the room the group has beside the arrow, below its caps: the
  * way #164 made the arrow's room on the Node page, by the logo's maximum width. As a percentage it
  * adds nothing to the least width the bar needs, so a logo never holds the bar past the window; it
- * is drawn whole and smaller, and the controls keep their room. On `dev`, without the arrow, a logo
- * at its cap held the editor's bar open from 480 pixels wide up to 588 to 609 in a Tree of two
+ * is drawn whole and smaller, and the controls keep their room. Before #203, without the arrow, a
+ * logo at its cap held the editor's bar open from 480 pixels wide up to 588 to 609 in a Tree of two
  * languages, and up to 685 to 697 in a Tree of three.
  */
 .editor-chrome .page-brand > .logo,
