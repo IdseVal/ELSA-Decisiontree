@@ -342,6 +342,36 @@ test.describe('with a session', () => {
     await expect(admin.getByText('Ask your administrator to change it.')).toHaveCount(0)
   })
 
+  test("**[#197]** the name card says the name is shown on the public pages, under the field, on every account's page but the administrator's (39.8)", async ({ browser }) => {
+    const anna = await (await browser.newContext()).newPage()
+    await login(anna, origin, ANNA.email, ANNA.password)
+    const card = anna.locator('form', { has: anna.locator('h1') })
+    for (const [lang, words] of [
+      ['en', 'Shown on the public pages of the trees you create or collaborate on.'],
+      ['nl', "Wordt getoond op de openbare pagina's van de bomen die u maakt of waaraan u meewerkt."],
+    ] as const) {
+      await anna.goto(`${origin}/admin/account${lang === 'en' ? '' : '?lang=nl'}`)
+      const notice = card.locator('.admin-note')
+      await expect(notice).toHaveText(words)
+      await expect(notice).toBeVisible()
+      // Under the field and its counter, above the card's button (25.2).
+      const field = (await card.locator('.admin-field-group').boundingBox())!
+      const said = (await notice.boundingBox())!
+      const button = (await card.locator('button[type="submit"]').boundingBox())!
+      expect(said.y, lang).toBeGreaterThanOrEqual(field.y + field.height)
+      expect(said.y + said.height, lang).toBeLessThanOrEqual(button.y)
+    }
+
+    const admin = await (await browser.newContext()).newPage()
+    await login(admin, origin, ADMIN_EMAIL, ADMIN_PASSWORD)
+    for (const lang of ['en', 'nl']) {
+      await admin.goto(`${origin}/admin/account${lang === 'en' ? '' : '?lang=nl'}`)
+      await expect(admin.locator('form', { has: admin.locator('h1') }).locator('input[name="name"]')).toBeVisible()
+      await expect(admin.locator('form', { has: admin.locator('h1') }).locator('.admin-note')).toHaveCount(0)
+      await expect(admin.getByText(/^(Shown on the public pages|Wordt getoond op de openbare)/)).toHaveCount(0)
+    }
+  })
+
   test("**[#196]** an account a converted store left without an address keeps the session it had, and its page says noEmail (38.4)", async ({ page, context }) => {
     await context.addCookies([
       { name: 'elsa-admin-session', value: henkToken, domain: new URL(origin).hostname, path: '/admin', httpOnly: true, secure: true, sameSite: 'Strict' },

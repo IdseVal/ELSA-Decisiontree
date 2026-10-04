@@ -3,10 +3,12 @@
  * one tile per published Tree in id order and no tile for a hidden one, each tile a link
  * to its Tree's root Node in the page's language or the Tree's default, the grid's box that
  * scrolls while the document never does, and `noTrees` when nothing is published.
+ * **[#197]** And a tile's mention of its Tree's Authors beside a tile without one (39.5).
  *
  * Served from data directories of its own (`serve.ts`): the named Trees of 35.3 -- the
  * example Tree, `tree-01` to `tree-14` from `tests/fixtures/single-language`, and
- * `hidden-draft` hidden -- and an empty one. The screenshots of the issue are taken of a
+ * `hidden-draft` hidden, **[#197]** `tree-01` made by an account (`admin.ts`) and the rest the
+ * administrator's -- and an empty one. The screenshots of the issue are taken of a
  * third, of the repository's two Trees and ten fixtures, so that the tiles differ; they are
  * written to `docs/screenshots/issue-134/` under `ELSA_SHOTS=1` only, the convention of
  * `tree-view.spec.ts`.
@@ -16,6 +18,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
 import { openTree } from '../../src/tree/loader.ts'
+import { ADMIN_ENV, buildDataDir } from './admin.ts'
 import { BASE_PORT, dataDir, serveStore, stopServers } from './serve.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -34,18 +37,25 @@ const SHOWCASE_PORT = BASE_PORT + 72
 /** `tree-01` to `tree-14` (35.3): enough tiles that the box has something to scroll. */
 const NUMBERED = Array.from({ length: 14 }, (_ignored, index) => `tree-${String(index + 1).padStart(2, '0')}`)
 
+/** **[#197]** The account that made `tree-01`: its one Author (39.1). */
+const ANNA = { email: 'anna@example.org', name: 'Anna de Vries', password: 'annas first password' }
+
 let named: string
 let empty: string
 let showcase: string
 
 test.beforeAll(async () => {
   named = await serveStore(
-    await dataDir([
-      { folder: path.join(repo, 'trees', 'ai-act-example') },
-      ...NUMBERED.map((id) => ({ folder: path.join(fixtures, 'single-language'), id })),
-      { folder: path.join(fixtures, 'full-node'), id: 'hidden-draft', hidden: true },
-    ]),
+    await buildDataDir({
+      trees: [
+        { folder: path.join(repo, 'trees', 'ai-act-example') },
+        ...NUMBERED.map((id) => ({ folder: path.join(fixtures, 'single-language'), id, ...(id === 'tree-01' ? { creator: ANNA.email } : {}) })),
+        { folder: path.join(fixtures, 'full-node'), id: 'hidden-draft', hidden: true },
+      ],
+      accounts: [ANNA],
+    }),
     NAMED_PORT,
+    ADMIN_ENV,
   )
   empty = await serveStore(await dataDir([]), EMPTY_PORT)
   showcase = await serveStore(
@@ -95,6 +105,26 @@ test("a tile links to its root Node in the page's language, or the Tree's defaul
 
   await numbered.click()
   await expect(page).toHaveURL(`${named}/tree-01/${root}`)
+})
+
+test("**[#197]** a tile names its Tree's Authors after its tags, in the page's language, and a tile with none is as before (39.5)", async ({ page }) => {
+  const authored = page.locator('a.tile[data-tree="tree-01"]')
+  const mention = authored.locator('.tile-languages > .tile-authors-room > .tile-authors')
+
+  await page.goto(`${named}/`)
+  await expect(mention).toHaveText('By Anna de Vries')
+  await expect(mention).toHaveAttribute('title', 'By Anna de Vries')
+  await expect(mention).toHaveAttribute('data-clamp', '')
+  // The tile speaks the Tree's Dutch, marked (23.2); its mention the page's English, marked too.
+  await expect(authored).toHaveAttribute('lang', 'nl')
+  await expect(mention).toHaveAttribute('lang', 'en')
+  // The administrator's Trees name nobody: their rows are the tags alone, as before (39.1).
+  await expect(page.locator('a.tile[data-tree="ai-act-example"] .tile-languages')).toHaveText('ENNL')
+  await expect(page.locator('.tile-authors-room')).toHaveCount(1)
+
+  await page.goto(`${named}/?lang=nl`)
+  await expect(mention).toHaveText('Door Anna de Vries')
+  await expect(mention).not.toHaveAttribute('lang', /./)
 })
 
 test('the box scrolls and the document does not: twelve tiles in view at 1280 x 640, the thirteenth below', async ({
