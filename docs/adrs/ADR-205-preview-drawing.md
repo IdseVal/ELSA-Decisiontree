@@ -64,9 +64,8 @@ edited.
      through `linksOf`, so a draft's question step with one Answer places that one; public
      callers are unchanged, and the assertions `neighbourhood.test.ts` holds run as they are.
      `loadPage`, whose only caller among the pages is the public Node page, is not widened:
-     the preview's page
-     calls `centreOf`, `draftCentre` and `neighbourhood` itself, as the editor's page calls
-     `centreOf` itself.
+     the preview's page calls `centreOf`, `draftCentre` and `neighbourhood` itself, as the
+     editor's page calls `centreOf` itself.
    - The page applies the editor's centre rule for a draft between `centreOf` and
      `neighbourhood` (#139, inline in the editor's page today, moved into `src/neighbourhood.ts`
      as `draftCentre` and called by both pages): a Node at the end of the path is an aside only
@@ -145,4 +144,6 @@ edited.
 - `application.md` 11.2's signature, 13.1, 24.1's last bullet, 24.3, 34.1, 34.3, 34.5 and 34.7
   carry dated notes; section 40.2 and 40.3 are the contract.
 - `views.test.tsx`, `neighbourhood.test.ts`, `tests/admin/preview.test.ts` and
-  `tests/browser/preview.spec.ts` (#206) assert the decisions (40.9).
+  `tests/browser/preview.spec.ts` (#206) assert the decisions (40.9); decision 5 for a caller
+  with a role, a caller without a session and an account logged in with no role on the Tree, at
+  a preview and an editor address, on a path of the draft and on one that is not.

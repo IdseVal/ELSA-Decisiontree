@@ -130,5 +130,6 @@ on the Tree, the 403 page (24.2, 21.3).
   preview's too; 24.1 gains the addresses and 24.2 the rows for a published Tree and for script;
   section 6 gains `src/app/[lang]/admin/preview/[tree]/page.tsx` and `[...path]/page.tsx`.
 - `tests/browser/preview.spec.ts` (#206) asserts every row of decision 2's table, the 307s, the
-  headers and the absence of `Set-Cookie`; `deployment.spec.ts` and `findability.spec.ts` add
-  the preview to their sweeps (40.9).
+  headers and the absence of `Set-Cookie`, and decision 4 with JavaScript disabled: the preview
+  draws the Node, its links walk, and no page of the walk holds the `needsJavaScript` sentence;
+  `deployment.spec.ts` and `findability.spec.ts` add the preview to their sweeps (40.9).
