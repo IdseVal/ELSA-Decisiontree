@@ -77,8 +77,10 @@ const AUTHORED: Record<string, TestAccount[]> = {
   'long-three': [ANNA, BRAM, CEES],
 }
 
-/** Each of them beside the same Tree without an Author: its only role holder the administrator. */
-const TWIN = (id: string): string => (id.startsWith('example-') ? 'example-nobody' : 'long-nobody')
+/** The same Tree as the authored Tree `id`, without an Author: its only role holder the administrator. */
+function twinOf(id: string): string {
+  return id.startsWith('example-') ? 'example-nobody' : 'long-nobody'
+}
 
 let origin: string
 /** Each account's id, by its address: what the API names an account by. */
@@ -319,7 +321,7 @@ for (const lang of LANGUAGES) {
       for (const [id, authors] of Object.entries(AUTHORED)) {
         const where = `${id} (${lang}) at ${viewport}`
         const m = await barAt(page, `${origin}${inLang(`/${id}`, lang)}`)
-        const twin = twins.get(TWIN(id))!
+        const twin = twins.get(twinOf(id))!
         // The room takes no pixel: the bar, the mark and the controls as on the Tree without Authors.
         expectSameBox(m.bar, twin.bar, `${where}: the bar`)
         expectSameBox(m.brand, twin.brand, `${where}: the way back and the mark`)
@@ -351,6 +353,7 @@ for (const lang of LANGUAGES) {
         }
         if (id.startsWith('long-')) expect(m.line!.drawn, `${where}: beside the 80-character title`).toBe(width >= 1024)
         if (viewport === '1280x640' && id === 'example-three') expect(shown, `${where}: three names whole at the guarantee`).toBe('whole')
+        if (viewport === '768x1024' && id === 'example-three' && lang === 'en') expect(shown, `${where}: three names whole beside the logo`).toBe('whole')
         if (viewport === '1280x640' && id === 'example-eight') expect(shown, `${where}: eight names do not fit`).toBe('cut')
       }
     }
@@ -378,7 +381,7 @@ for (const lang of LANGUAGES) {
         for (const [id, authors] of Object.entries(AUTHORED)) {
           const where = `the tile of ${id} on ${overview} (${lang}) at ${viewport}`
           const tile = tiles[id]!
-          const twin = tiles[TWIN(id)]!
+          const twin = tiles[twinOf(id)]!
           expectSameBox(tile.row, twin.row, `${where}: the row`)
           expect(tile.tags.length, `${where}: the tags`).toBe(twin.tags.length)
           tile.tags.forEach((tag, at) => expectSameBox(tag, twin.tags[at]!, `${where}: tag ${at + 1}`))
@@ -449,6 +452,35 @@ test('the line is drawn in a room of 80 pixels and not in one of 79: in the bar 
   const row = [`${tile} .tile-languages`, `${tile} .tile-authors-room`, `${tile} .tile-languages`, `${tile} .tile-authors`] as const
   expect(await shown(...row, 80), 'the tile, 80 pixels').toBe(true)
   expect(await shown(...row, 79), 'the tile, 79 pixels').toBe(false)
+})
+
+/**
+ * Between 479 and 480 pixels wide -- a zoomed window's width -- no media query of the phone's
+ * matches, and the bar keeps its gap of 16: the line must not be drawn there under 80 pixels
+ * either (39.4). Chromium gives a frame, and a window it emulates, a whole number of pixels, so no
+ * page here can be that wide; what is measured is the stylesheet the page loads. The two rules
+ * that leave the line out stand under media conditions that are each other's complement, so every
+ * width, fractions included, has exactly one of them.
+ */
+test("the two rules that leave the line out cover every width between them, a zoomed window's fractions included (39.4)", async ({ page }) => {
+  await page.goto(`${origin}/example-three`)
+  const hiding = await page.evaluate(() => {
+    const found: string[] = []
+    const walk = (rules: CSSRuleList, media: string): void => {
+      for (const rule of rules) {
+        if (rule instanceof CSSMediaRule) walk(rule.cssRules, rule.conditionText)
+        else if (rule.constructor.name === 'CSSContainerRule') {
+          const inner = [...(rule as CSSGroupingRule).cssRules]
+          const hides = inner.some((style) => style instanceof CSSStyleRule && style.selectorText === '.authors' && style.style.display === 'none')
+          if (hides) found.push(`${media} | ${(rule as CSSGroupingRule & { conditionText: string }).conditionText}`)
+        }
+      }
+    }
+    for (const sheet of document.styleSheets) walk(sheet.cssRules, 'all')
+    return found.sort()
+  })
+  // As Chromium writes them out: `(width < 88px)` is `not (min-width: 88px)`.
+  expect(hiding).toEqual(['(max-width: 479px) | not (min-width: 88px)', 'not all and (max-width: 479px) | not (min-width: 96px)'])
 })
 
 test('the order of joining after a hand-over: the account that made the Tree stays first, and one removed is named no more (39.1, 39.2)', async ({ browser }) => {
