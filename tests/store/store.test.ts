@@ -633,11 +633,14 @@ describe('**[#197]** the order of joining at the start (39.2), and the one publi
     }
     await rm(path.join(data, 'trees', 'hidden', 'tree.json'))
     await writeFile(path.join(data, 'trees', 'unservable', 'tree.json'), '{ "format": "elsa-tree/5" ')
+    // A published Tree placed by hand under a reserved id, with roles: held by the drafts, refused by the start.
+    await cp(path.join(data, 'trees', 'published'), path.join(data, 'trees', 'theme'), { recursive: true })
 
     const store = await openStore(data, ADMIN)
 
     expect(store.authors('published')).toEqual(['Anna de Vries', 'Bram Jansen'])
-    for (const id of ['hidden', 'unservable', 'no-such-tree', ...RESERVED_TREE_IDS, '..', '']) {
+    expect(store.refused().map(({ id }) => id).sort()).toEqual(['theme', 'unservable'])
+    for (const id of ['hidden', 'unservable', 'theme', 'no-such-tree', ...RESERVED_TREE_IDS, '..', '']) {
       expect(store.published(id), id).toBeNull()
       expect(store.authors(id), id).toEqual([])
     }

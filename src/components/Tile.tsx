@@ -16,9 +16,9 @@
  */
 import { chrome, text } from '../chrome.ts'
 import { plainDescription } from '../markdown.ts'
-import { TileAuthors } from './Authors.tsx'
 import type { Manifest } from '../tree/types.ts'
 import { contentLanguage, rootHref, themeHref } from '../url.ts'
+import { TileAuthors } from './Authors.tsx'
 
 /** The state mark of 26.4: `notServable` is a published Tree the public routes refused (18.3). */
 export type TileState = 'published' | 'hidden' | 'notServable'

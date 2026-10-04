@@ -617,7 +617,7 @@ async function load(treesDir: string, id: string, administrator: string): Promis
     creator: administrator,
     collaborators: [],
     // **[#197]** A folder without a meta.json: the administrator alone, who is never named (39.2).
-    // Every meta.json holds its own by now, recorded at the start where it had none.
+    // Every meta.json that is a JSON object holds its own by now, recorded at the start where it had none.
     joined: [administrator],
     createdAt: now,
     updatedAt: now,
