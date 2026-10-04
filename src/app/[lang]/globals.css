@@ -3369,27 +3369,37 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * **[#203]** The way out and the Tree's mark take the room the controls leave, and never less than
- * the two need. Shrunk in proportion with the controls, an 80-character title squeezed `account`
- * and `logout` past their words from 480 pixels wide up to 793 to 845, 768 x 1024 among them, with
- * the arrow and without it; here it is cut to its two lines (#200) instead.
+ * **[#203]** The way out and the Tree's mark take the room the controls leave. Shrunk in proportion
+ * with the controls, an 80-character title squeezed `account` and `logout` past their words on
+ * `dev`, without the arrow, from 480 pixels wide up to 793 to 845, 768 x 1024 among them; here it is
+ * cut to its two lines (#200) instead.
  */
 .editor-chrome .page-brand {
   flex: 1 1 0;
-  min-width: auto;
 }
 
 /*
- * **[#203]** From 480 pixels wide up the logo keeps what the rest of the editor's bar leaves: the
- * window less 380 pixels -- 48 of padding and gaps, the arrow's 40, up to 289 for the controls of
- * a Tree in two languages (two pills, `account`, `logout`), and 3 to spare -- as #164 made the
- * arrow's room on the Node page with the logo's maximum width at the floor. Without it the arrow
- * held the example Tree's bar 4 to 17 pixels past a window of 480, and a logo at its cap past
- * windows up to 664 wide.
+ * **[#203]** And the logo takes at most the room the group has beside the arrow, below its caps: the
+ * way #164 made the arrow's room on the Node page, by the logo's maximum width. As a percentage it
+ * adds nothing to the least width the bar needs, so a logo never holds the bar past the window; it
+ * is drawn whole and smaller, and the controls keep their room. On `dev`, without the arrow, a logo
+ * at its cap held the editor's bar open from 480 pixels wide up to 588 to 609 in a Tree of two
+ * languages, and up to 685 to 697 in a Tree of three.
  */
+.editor-chrome .page-brand > .logo,
+.editor-chrome .page-brand > .logo-link {
+  min-width: 0;
+}
+
 @media not all and (max-width: 479px) {
   .editor-chrome .logo {
-    max-width: min(18rem, 45vw, 100vw - 380px);
+    max-width: min(18rem, 45vw, 100%);
+  }
+}
+
+@media (max-width: 479px) {
+  .editor-chrome .logo {
+    max-width: min(22vw - 12px, 100%);
   }
 }
 
