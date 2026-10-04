@@ -6419,9 +6419,10 @@ section 2), so the preview's bar holds wherever `dev`'s public bar does.
   tall; 32 below 640 tall and 480 wide -- a pill on `surface`, a 1-pixel `rule` border, their soft
   shadow, `text` in 13 pixels on 20, in the default face: each carries `data-editor-ui` (13.1,
   #180). Under the pointer, their hover. **From 1000 pixels wide**: a 16-pixel line icon, a gap of
-  8, the words, padding `0 14px 0 10px`. **Below 1000**: the icon alone, centred in a box
-  `--float-size` wide with 4 of padding (32 by 32; 26 by 24 below 640 tall from 480 wide). The
-  icons, in
+  8, the words, padding `0 14px 0 10px`. **Below 1000**: the icon alone, centred, with
+  `min-width: var(--float-size)` and padding `0 4px`, as the floating controls have below 1000
+  (`.editor-float`): 32 by 32, and 26 by 24 below 640 tall from 480 wide, where the icon, its
+  padding and its border take 26 of a `--float-size` of 24. The icons, in
   `.float-icon`'s stroke (1.25, round joins, no fill): an eye -- an almond outline and a round pupil
   -- for the preview, a pencil from the lower left to the upper right for the way back. The name is
   the words at every width (`aria-label`), and so is the `title`. Classes: `preview-button` in the

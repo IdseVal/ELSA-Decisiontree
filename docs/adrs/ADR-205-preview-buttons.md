@@ -64,9 +64,10 @@ pixels wide.
    - **From 1000 pixels wide**: a 16-pixel line icon, a gap of 8, the words; padding
      `0 14px 0 10px`. Measured: "Preview" 94.2 / 96.3 pixels wide, "Voorbeeld" 109 / 108.6,
      "Back to the editor" 152 / 151.2, "Terug naar de editor" 166.3 / 166.4.
-   - **Below 1000**: the icon alone, centred in a box `--float-size` wide with 4 pixels of padding
-     -- 32 by 32, and 26 by 24 below 640 tall from 480 wide -- as the floating controls are below
-     1000.
+   - **Below 1000**: the icon alone, centred, with `min-width: var(--float-size)` and padding
+     `0 4px`, as the floating controls have below 1000 (`.editor-float`) -- 32 by 32, and 26 by
+     24 below 640 tall from 480 wide, where the icon, its padding and its border take 26 of a
+     `--float-size` of 24.
    - **The icons**, 16-pixel line icons in the stroke of the floating controls' `.float-icon`
      (1.25 pixels, round joins, no fill): for the preview an eye -- an almond outline and a round
      pupil; for the way back a pencil, drawn from the lower left to the upper right.
