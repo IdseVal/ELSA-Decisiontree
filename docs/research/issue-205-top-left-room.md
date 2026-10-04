@@ -1650,7 +1650,9 @@ console.log(out.join('\n'))
 ## 7. The room alone, from 481 to 640 pixels wide and at a phone's sizes
 
 Run on 2026-10-04 as `node .elsa-data/issue-205/run-between.ts 13950`: `run.ts` with `between.mjs` in
-place of `measure.mjs`, on the same build, on Windows and in the CI image. ***ITS WORDS SPILL***:
+place of `measure.mjs`, on the same build, on Windows and in the CI image. The copy below kept
+`run.ts`'s usage line, naming `run.ts`, when it ran; that comment line is corrected to
+`run-between.ts` here, and nothing else in the script changed. ***ITS WORDS SPILL***:
 the words reach past the button's box; ***OUT OF THE BAND***: the button's box reaches above the
 bar's bottom or below the Bubble's top.
 
@@ -2016,7 +2018,7 @@ bar's bottom or below the Bubble's top.
 // Issue #205: runs between.mjs against the production build of dev, on Windows and in the CI
 // runner's faces. A scratch script of the architect's run, copied whole into
 // docs/research/issue-205-top-left-room.md. Run from the repository's root after `npm run build`:
-//   node .elsa-data/issue-205/run.ts <port>
+//   node .elsa-data/issue-205/run-between.ts <port>
 // It builds a data directory with tests/browser/admin.ts's own `buildDataDir` -- the full Node
 // and the two seeded Trees, each once hidden and once published, Anna their creator -- serves it
 // with tests/browser/serve.ts's `serveStore`, listening on every interface so that the
