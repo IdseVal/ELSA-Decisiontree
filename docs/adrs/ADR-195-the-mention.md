@@ -3,6 +3,11 @@
 - Status: ACCEPTED (frozen) -- 2026-10-03; decides core document 10.40 (what the mention shows,
   what it does when the names do not fit, and where it stands under the no-scroll rule) and
   amends 10.22 (the one line cut at the guarantee, outside the fixed order)
+- **Amended 2026-10-04 by issue #205** (`ADR-205-preview-bar.md`): the mention is drawn in the bar
+  of the preview of a hidden Tree too, which is the public Node page's bar, from the Tree's
+  `TreeEntry.meta`, as its readers will see it once it is published; the preview is an admin page,
+  so a hidden Tree's names still reach no public route. The editor still draws none. The rest
+  stands.
 - Issue: #195 -- Architecture: freeze the login by e-mail address and password, and the
   mention of who authored a Tree, the collaborators in the order they joined it
 - Spec: `docs/specs/application.md` 39.4, 39.5, 39.6 (new); 3.2, 10.1, 10.4, 10.5, 10.6, 24.3,

@@ -4,6 +4,13 @@
 - Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`): decision 2's `field` slot in
   `Bubble` holds a Terminal's ending words, `terminal.label.<lang>`, limit 19, not its
   outcome (`application.md` 34.2, 36.3).
+- **Amended 2026-10-04 by issue #205** (`ADR-205-preview-drawing.md`): the preview of a hidden Tree
+  passes the same `edit` with no slot and its own `links` -- decision 3 gains a third `Links`,
+  `previewLinks()`, behind `/admin/preview` -- and, by decision 1 and the test of decision 8, the
+  components draw the public markup with its addresses; decision 5's list is the editor page's,
+  and the preview's page renders the neighbour frames and the slide; decision 7's bound of twelve
+  is the editor's, and the preview's page reads at most seventeen Nodes, as a public page. The
+  one optional prop stays one. The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 34 (new); 1, 6, 10.9 and 11.2 amended
 - Amends: `docs/adrs/ADR-38-modules-and-tests.md` (the module table and the dependency

@@ -15,6 +15,16 @@
   line cut where its room ends and not drawn where under 80 pixels are left
   (`ADR-195-the-mention.md`; `application.md` 24.3, 39.4). The Tree-less admin pages' bars and
   the editor's bar are unchanged: the editor shows no mention. The rest stands.
+- **Amended 2026-10-04 by issue #205** (the owner's #202: "In an unpublished tree, I want a button
+  that routes to a window with a preview of the tree"): in decision 1, the admin area's addresses
+  gain the preview's two, `/admin/preview/<tree-id>` and `/admin/preview/<tree-id>/<path>`, the
+  public grammar behind a sixth word (`ADR-205-preview-address.md`); in decision 5, the preview is
+  the one admin page that needs no script, its markup being the public page's (the same ADR); in
+  decision 6, `<html lang>` on an editor or preview address is the content language, which the
+  root layout resolves from the draft for a caller with a role (`ADR-205-preview-drawing.md`); in
+  decision 7, the preview's bar is the public Node page's, drawn by the same component, with the
+  arrow leading to `/admin` and without the share button and "Editor" (`ADR-205-preview-bar.md`).
+  The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 24 (new); 4.1, 4.3, 6, 13.1 and 14 amended
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the admin addresses join the grammar behind the

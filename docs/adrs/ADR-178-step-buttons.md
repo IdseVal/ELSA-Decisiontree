@@ -1,6 +1,12 @@
 # ADR-178-step-buttons: a red cross and 'Tree does not end here after all' stand beside the up arrow in place of the step menu, and no Answer or Option button carries a `...`, so the editor no longer re-points a button at an existing step
 
 - Status: ACCEPTED -- 2026-10-02
+- **Amended 2026-10-04 by issue #205** (`ADR-205-ending-button-on-a-hidden-tree.md`): in decision 2,
+  in the editor of a hidden Tree, while the preview button the owner placed at the top left is on
+  the page, "Tree does not end here after all" keeps out of its column below 1000 pixels wide
+  and is a round button of the cross's size with a glyph, named by its words, below 640. From 1000
+  pixels wide, and on a published Tree at every width, it stands as decision 2 says. The rest
+  stands.
 - Issue: #178 -- Editor: a red cross and 'Tree does not end here after all' in place of the step's ... menu, and no ... on the yes, no and side-bubble buttons
 - Spec: `docs/specs/application.md` 28.1 (the drawing), 28.6, 30.1, 30.6, 30.7 and 30.8, each amended 2026-10-02; 3.2 (the keys), 28.4, 30.9, 33.1, 34.2 and 34.4 with them
 - Supersedes: `docs/adrs/ADR-133-structure-editing.md` decision 7 (the link menu and the picker), and in decision 8 the step menu on the rim with its `removeEnd` (decision 4 names it)
