@@ -1684,7 +1684,8 @@ a.language:hover,
 /*
  * **[#213]** A column: the creators' overview's `<noscript>` sentence (24.2), laid out only
  * without script, takes its line from the box under it rather than pushing the box past the
- * disclaimer. With script the box is the column's one item.
+ * disclaimer -- the box, a scroll container, shrinks to what is left. With script the box is
+ * the column's one item.
  */
 .overview-page {
   display: flex;
@@ -1699,8 +1700,7 @@ a.language:hover,
  * 3 x 160 + 2 x 20 = 520 of 520.
  */
 .overview {
-  flex: 1 1 auto;
-  min-height: 0;
+  height: 100%;
   padding: 24px;
   overflow-x: hidden;
   overflow-y: auto;
