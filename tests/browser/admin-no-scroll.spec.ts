@@ -18,8 +18,8 @@
  * address at every viewport: plain, with its delete asking, and below the guarantee with its
  * Sources' Sheet open. **[#178]** And the step's buttons beside the up arrow, in place of the
  * step menu and the link menus, plain and with the red cross's question asked. **[#203]** And the
- * editor's bar with the arrow at its left, beside the example Tree's logo and beside an
- * 80-character title; and the bar alone at four widths 10.6 does not list.
+ * editor's bar with the arrow at its left, beside the example Tree's logo, a wide logo in a Tree of
+ * three languages and an 80-character title; and the bar alone at four widths 10.6 does not list.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -92,7 +92,8 @@ const rows: string[] = []
 let origin: string
 /**
  * **[#177]** A store of its own for the side bubble at every maximum, so the overview's tiles above
- * stay what they are; **[#203]** and for the Tree with an 80-character title, for the same reason.
+ * stay what they are; **[#203]** and for the Trees with a wide logo and with an 80-character title,
+ * for the same reason.
  */
 let overlayOrigin: string
 
@@ -100,6 +101,7 @@ test.beforeAll(async () => {
   origin = await serveStore(await buildDataDir({ trees: TREES, accounts: ACCOUNTS }), PORT, ADMIN_ENV)
   const overlay = [
     { folder: path.join(repo, 'tests', 'fixtures', 'overlay'), hidden: true },
+    { folder: path.join(repo, 'tests', 'fixtures', 'wide-logo'), hidden: true },
     { folder: path.join(repo, 'tests', 'fixtures', 'long-title'), hidden: true },
   ]
   overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [] }), PORT + 1, ADMIN_ENV)
@@ -300,35 +302,38 @@ for (const lang of LANGUAGES) {
 }
 
 /**
- * **[#203]** The editor's bar with the arrow at its left (24.3), beside the two marks
- * `hidden-draft`'s short title does not try: the example Tree's logo, and an 80-character title
- * as text, cut to the bar's two lines (#200). Plain, at every viewport of 10.6. Then at four
- * widths 10.6 does not list, from 480 up, the bar alone: below 578 (en) and 641 (nl) the
- * disclaimer's second line fails the whole page on the CI runner, on `dev` too (`NARROW` above).
- * Without the logo's maximum width there, the arrow held the example Tree's bar 4 to 17 pixels
- * past a window of 480.
+ * **[#203]** The editor's bar with the arrow at its left (24.3), beside the marks `hidden-draft`'s
+ * short title does not try: the example Tree's logo; a logo at its cap in a Tree of three
+ * languages, whose third pill leaves it the least room (`tests/fixtures/wide-logo/`); and an
+ * 80-character title as text, cut to the bar's two lines (#200). Plain, at every viewport of 10.6.
+ * Then at four widths 10.6 does not list, from 480 up, the bar alone: below 578 (en) and 641 (nl)
+ * the disclaimer's second line fails the whole page on the CI runner, on `dev` too (`NARROW`
+ * below). Each page is measured with the arrow in the bar, which on `dev` it is not.
  */
 const BAR_WIDTHS = [480, 560, 640, 767] as const
 for (const lang of LANGUAGES) {
-  test(`the editor's bar with the arrow, beside a logo and beside an 80-character title, ${lang}, never scrolls at any viewport of 10.6 (24.3, 28.6)`, async ({ browser }) => {
+  test(`the editor's bar with the arrow, beside a logo, a wide logo in three languages and an 80-character title, ${lang}, never scrolls at any viewport of 10.6 (24.3, 28.6)`, async ({ browser }) => {
     const query = lang === 'en' ? '' : '?lang=nl'
-    const long = await (await browser.newContext()).newPage()
-    expect((await login(long, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+    const other = await (await browser.newContext()).newPage()
+    expect((await login(other, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
     const editors = [
       [await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), `${origin}/admin/trees/ai-act-example/start${query}`, 'editor, a logo'],
-      [long, `${overlayOrigin}/admin/trees/long-title/start${query}`, 'editor, an 80-character title'],
+      [other, `${overlayOrigin}/admin/trees/wide-logo/start${query}`, 'editor, a wide logo, three languages'],
+      [other, `${overlayOrigin}/admin/trees/long-title/start${query}`, 'editor, an 80-character title'],
     ] as const
     for (const [page, address, what] of editors) {
+      const arrow = page.locator('header.editor-chrome > .page-brand > a.back-to-overview')
       for (const [width, height] of VIEWPORTS) {
         await page.setViewportSize({ width, height })
         expect((await page.goto(address))?.status()).toBe(200)
-        await expect(page.locator('main')).toBeVisible()
+        await expect(arrow).toBeVisible()
         record(await measure(page), what, lang, `${width}x${height}`, '')
       }
       for (const width of BAR_WIDTHS) {
         const viewport = `${width}x800`
         await page.setViewportSize({ width, height: 800 })
         expect((await page.goto(address))?.status()).toBe(200)
+        await expect(arrow).toBeVisible()
         const bar = await measure(page, 'header.editor-chrome, header.editor-chrome *')
         rows.push(`| ${what} | ${lang} | ${viewport} | the bar alone | - | ${bar.doc.sw}/${bar.inner.w} | ${bar.overflowing.join('; ') || 'none'} |`)
         expect(bar.doc.sw, `${what} (${lang}) at ${viewport}: wider than the window`).toBeLessThanOrEqual(bar.inner.w + 1)
