@@ -3391,10 +3391,8 @@ fieldset:disabled .admin-submit {
   min-width: 0;
 }
 
-@media not all and (max-width: 479px) {
-  .editor-chrome .logo {
-    max-width: min(18rem, 45vw, 100%);
-  }
+.editor-chrome .logo {
+  max-width: min(18rem, 45vw, 100%);
 }
 
 @media (max-width: 479px) {
