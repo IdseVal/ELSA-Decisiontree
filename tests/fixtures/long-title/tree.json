@@ -1,0 +1,80 @@
+{
+  "$schema": "/schemas/elsa-tree-5.json",
+  "format": "elsa-tree/5",
+  "languages": [
+    "en",
+    "nl"
+  ],
+  "root": "start",
+  "title": {
+    "en": "Does the EU AI Act apply to my AI system, and which of its obligations follow?xx",
+    "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem, en welke plichten?xxx"
+  },
+  "description": {
+    "en": "A Tree with no Theme, so no logo, and a title of the 80 characters the format allows in each language: the chrome bar shows the title as text.",
+    "nl": "Een boom zonder Theme, dus zonder logo, met een titel van de 80 tekens die het formaat in elke taal toestaat: de balk bovenaan toont de titel als tekst."
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does the Act apply?",
+        "nl": "Is de verordening van toepassing?"
+      },
+      "description": {
+        "en": "The root of a Tree whose own title is as long as the format allows.",
+        "nl": "Het begin van een boom waarvan de eigen titel zo lang is als het formaat toestaat."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "applies",
+        "no": "does-not-apply"
+      }
+    },
+    {
+      "id": "applies",
+      "title": {
+        "en": "The Act applies",
+        "nl": "De verordening is van toepassing"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "label": {
+          "en": "Applies",
+          "nl": "Van toepassing"
+        }
+      }
+    },
+    {
+      "id": "does-not-apply",
+      "title": {
+        "en": "The Act does not apply",
+        "nl": "De verordening is niet van toepassing"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "label": {
+          "en": "Does not apply",
+          "nl": "Niet van toepassing"
+        }
+      }
+    }
+  ]
+}
