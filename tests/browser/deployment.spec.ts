@@ -9,7 +9,10 @@
  * - the public base URL the deployment is configured with is the one the server writes
  *   into the absolute links it emits about a page, and a deployment that names none gets
  *   the same addresses on the request's own origin (a second server, started without the
- *   variable -- **[#118]**, application.md 16).
+ *   variable -- **[#118]**, application.md 16);
+ * - **[#197]** about an account, a public route holds the name of each Author of a published
+ *   Tree in that Tree's mention, and nothing else: no address, no id, no other name
+ *   (application.md 39.8; a server of the account sweep's own).
  *
  * A browser is the only place these can be measured: a cookie a client script sets and a
  * font a stylesheet fetches are both invisible in the markup the server sends.
@@ -20,7 +23,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { DATA_DIR, NO_BASE_URL_ORIGIN, PUBLIC_BASE_URL } from '../../playwright.config.ts'
 import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
+import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
 import { arrived } from './arrived.ts'
+import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const START = '/ai-act-example/start'
@@ -342,5 +347,116 @@ test.describe('the logged-in half of the sweep (20.5)', () => {
     await seen.settled()
     expect(seen.setCookie).toEqual([])
     expect(await context.cookies()).toEqual([])
+  })
+})
+
+/**
+ * **[#197]** The account sweep (application.md 20.5, 35.5, 39.8, 39.9;
+ * ADR-195-names-on-public-routes decision 6). A data directory of its own, whose accounts have
+ * known addresses, ids and names, each name one that no Tree, chrome string or page holds: the
+ * two Authors of the published example Tree, the Author of a hidden Tree only, an account with
+ * no role, and the administrator -- which the server creates as `Administrator`, a word the
+ * chrome holds, so it is renamed through `PATCH` on its own account before the walk. Then every
+ * public route of 4.1, 15, 16 and 23 is read whole, headers and body, scripts included: no
+ * response holds an address or an id; none holds the name of the hidden Tree's Author, of the
+ * account with no role or of the administrator; and the published Tree's Authors' names are in
+ * its Node pages and the overview and in no other response. In those, read as markup with every
+ * `<script>` element removed but the JSON-LD's -- the inline React payload repeats a server
+ * component's text for hydration -- they stand only inside a mention's element.
+ */
+test.describe('the account sweep (39.8)', () => {
+  const PORT = BASE_PORT + 190
+  const TREE = 'ai-act-example'
+  const HIDDEN = 'hidden-tree'
+  const FIRST = { email: 'first.author@example.org', name: 'Quillon Zarvath', password: 'first author password' }
+  const SECOND = { email: 'second.author@example.org', name: 'Yselmira Thorncastle', password: 'second author password' }
+  const HIDDEN_ONLY = { email: 'hidden.author@example.org', name: 'Rufina Xelbrook', password: 'hidden author password' }
+  const NO_ROLE = { email: 'no.role@example.org', name: 'Sorvin Plaxter', password: 'no role password' }
+  const ADMIN_NAME = 'Tolvane Quarrick'
+  const repo = fileURLToPath(new URL('../..', import.meta.url))
+  let origin: string
+  let dir: string
+
+  test.beforeAll(async () => {
+    dir = await buildDataDir({
+      trees: [
+        { folder: path.join(repo, 'trees', TREE), creator: FIRST.email, collaborators: [SECOND.email] },
+        { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: HIDDEN, hidden: true, creator: HIDDEN_ONLY.email },
+      ],
+      accounts: [FIRST, SECOND, HIDDEN_ONLY, NO_ROLE],
+    })
+    origin = await serveStore(dir, PORT, ADMIN_ENV)
+  })
+
+  test.afterAll(async () => {
+    await stopServers()
+  })
+
+  /** `html` with every `<script>` element taken out but the JSON-LD's, which must hold no name (39.7). */
+  function withoutScripts(html: string): string {
+    return html.replace(/<script\b(?![^>]*type="application\/ld\+json")[^>]*>[\s\S]*?<\/script>/g, '')
+  }
+
+  /** `markup` with the mention's elements taken out: the bar's room and the tile's (39.4, 39.5). */
+  function withoutMentions(markup: string): string {
+    return markup.replace(/<div class="authors-room">[\s\S]*?<\/div>/g, '').replace(/<span class="tile-authors-room">[\s\S]*?<\/span><\/span>/g, '')
+  }
+
+  test("no public response holds an address or an id, nor a name but an Author's, and that only in its mention", async ({ page, request }) => {
+    test.slow()
+    // The administrator's id, and the new name it gives itself, as any holder does (22.1, 38.5).
+    const { cookie } = await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)
+    const me = (await (await page.request.get(`${origin}/admin/api/me`, { headers: { Cookie: cookie } })).json()) as { id: string }
+    const renamed = await page.request.patch(`${origin}/admin/api/accounts/${me.id}`, { headers: { Origin: origin, Cookie: cookie }, data: { name: ADMIN_NAME } })
+    expect(renamed.status()).toBe(200)
+    const accounts = JSON.parse(await readFile(path.join(dir, 'accounts.json'), 'utf8')) as { id: string; email: string; name: string }[]
+    expect(accounts.map(({ name }) => name).sort()).toEqual([ADMIN_NAME, FIRST.name, SECOND.name, HIDDEN_ONLY.name, NO_ROLE.name].sort())
+    const secrets = [...accounts.map(({ email }) => email), ...accounts.map(({ id }) => id)]
+    expect(secrets).toEqual(expect.arrayContaining([ADMIN_EMAIL, me.id]))
+    const unnamed = [HIDDEN_ONLY.name, NO_ROLE.name, ADMIN_NAME]
+    const authors = [FIRST.name, SECOND.name]
+
+    // Every public route of 4.1, 15, 16 and 23: the overview in both languages, every Node page
+    // of the published Tree in both, the redirect to its root, its file, the two schemas, the
+    // three documents, an image and a theme file, and the hidden Tree's addresses: the 404.
+    const file = JSON.parse(await readFile(path.join(repo, 'trees', TREE, 'tree.json'), 'utf8')) as { root: string; nodes: { id: string }[] }
+    const nodes = file.nodes.map(({ id }) => id)
+    const pages = ['/', '/?lang=nl', ...nodes.flatMap((node) => [`/${TREE}/${node}`, `/${TREE}/${node}?lang=nl`])]
+    const others = [
+      `/${TREE}`,
+      DATASET,
+      SCHEMA,
+      '/schemas/elsa-tree-4.json',
+      '/robots.txt',
+      '/sitemap.xml',
+      '/llms.txt',
+      `/${TREE}/images/eu-map.png`,
+      `/${TREE}/theme/example-lab-logo.svg`,
+      `/${HIDDEN}`,
+      `/${HIDDEN}/full`,
+    ]
+    expect(nodes).toHaveLength(7)
+
+    for (const route of [...pages, ...others]) {
+      const answer = await request.get(`${origin}${route}`, { maxRedirects: 0 })
+      expect(answer.status(), route).toBe(route.startsWith(`/${HIDDEN}`) ? 404 : route === `/${TREE}` ? 307 : 200)
+      const body = await answer.body()
+      const headers = answer.headersArray().map(({ name, value }) => `${name}: ${value}`).join('\n')
+      // Every byte, as bytes: an address, an id and a name are ASCII here.
+      const bytes = `${headers}\n\n${body.toString('latin1')}`
+      for (const secret of secrets) expect(bytes.includes(secret), `${route} holds ${secret}`).toBe(false)
+      for (const name of unnamed) expect(bytes.includes(name), `${route} holds the name ${name}`).toBe(false)
+      if (!pages.includes(route)) {
+        for (const name of authors) expect(bytes.includes(name), `${route} holds the Author's name ${name}`).toBe(false)
+        continue
+      }
+      // A Node page or the overview: the names, and in its markup only inside the mention.
+      const markup = withoutScripts(body.toString('utf8'))
+      expect((markup.match(/class="(tile-)?authors-room"/g) ?? []).length, `${route}: one mention, the bar's or the tile's`).toBe(1)
+      for (const name of authors) {
+        expect(markup.includes(name), `${route} names ${name}`).toBe(true)
+        expect(withoutMentions(markup).includes(name), `${route} holds ${name} outside the mention`).toBe(false)
+      }
+    }
   })
 })

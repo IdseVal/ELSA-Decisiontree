@@ -355,6 +355,19 @@ export interface Chrome {
    * while it is empty. Its button's word, `addLanguage`, named it before.
    */
   languageTag: string
+  /**
+   * **[#197]** The mention of a Tree's Authors (39.4, 39.5): "By" and the names in the order they
+   * joined it, a comma between all but the last two, which the language's own "and" joins. A
+   * function of the names, as `up` is of a title (3.2).
+   */
+  byAuthors: (names: string[]) => string
+  /** **[#197]** The account page's notice under the name field, on every page but the administrator's (39.8). */
+  nameShownPublicly: string
+}
+
+/** **[#197]** `names` as one list, a comma between all but the last two, which `and` joins (39.4). */
+function listed(names: string[], and: string): string {
+  return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} ${and} ${names.at(-1)}`
 }
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
@@ -590,6 +603,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontFileHint: 'The weight is how bold this file draws: 400 regular, 700 bold, or a range such as 400 700 for a variable font. Tick Italic when the file is the slanted face.',
     endingText: 'Text of the ending',
     languageTag: 'Language tag',
+    byAuthors: (names) => `By ${listed(names, 'and')}`,
+    nameShownPublicly: 'Shown on the public pages of the trees you create or collaborate on.',
   },
   nl: {
     yes: 'Ja',
@@ -823,6 +838,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     fontFileHint: 'Het gewicht is hoe vet dit bestand tekent: 400 normaal, 700 vet, of een bereik zoals 400 700 voor een variabel lettertype. Vink Cursief aan als het bestand de schuine letter is.',
     endingText: 'Tekst van het einde',
     languageTag: 'Taalcode',
+    byAuthors: (names) => `Door ${listed(names, 'en')}`,
+    nameShownPublicly: "Wordt getoond op de openbare pagina's van de bomen die u maakt of waaraan u meewerkt.",
   },
 }
 

@@ -495,6 +495,165 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
   })
 })
 
+describe('**[#197]** the order of joining at the start (39.2), and the one public member that names Authors (39.8)', () => {
+  /** The lines `log` was called with that say a Tree's order of joining was recorded (39.2). */
+  function recorded(log: { mock: { calls: unknown[][] } }): string[] {
+    return log.mock.calls.map((call) => String(call[0])).filter((line) => line.startsWith('Recorded the order of joining'))
+  }
+
+  /**
+   * A data directory seeded with the carousel fixture under each of `ids`, and three accounts
+   * besides the administrator: what a store written before #197 holds once its `meta.json`s are
+   * edited below. Answers the ids of the four accounts.
+   */
+  async function seeded(...ids: string[]): Promise<{ data: string; admin: string; anna: string; bram: string; cees: string }> {
+    const data = await folder()
+    const first = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf(...ids.map((id): [string, string] => [path.join(fixtures, 'carousel'), id])) })
+    const admin = first.accounts.all().find((account) => account.administrator)!
+    const make = async (name: string, email: string): Promise<string> => (await first.accounts.create(admin, name, email, `${email} password`)).id
+    return {
+      data,
+      admin: admin.id,
+      anna: await make('Anna de Vries', 'anna@example.org'),
+      bram: await make('Bram Jansen', 'bram@example.org'),
+      cees: await make('Cees Bakker', 'cees@example.org'),
+    }
+  }
+
+  /** Writes the `meta.json` of Tree `id` back after `edit` has changed it, by hand; answers the file. */
+  async function editMeta(data: string, id: string, edit: (meta: Record<string, unknown>) => void): Promise<string> {
+    const file = path.join(data, 'trees', id, 'meta.json')
+    const meta = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>
+    edit(meta)
+    await writeFile(file, `${JSON.stringify(meta, null, 2)}\n`)
+    return file
+  }
+
+  test('a meta.json without joined gets the creator and then the collaborators, each once, with one line; nothing else in it moves', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { data, anna, bram, cees } = await seeded('old')
+    const file = await editMeta(data, 'old', (meta) => {
+      delete meta.joined
+      Object.assign(meta, { creator: anna, collaborators: [cees, anna, bram], updatedAt: '2026-01-02T03:04:05.000Z', updatedBy: bram, revision: 7 })
+    })
+    const before = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>
+    log.mockClear()
+
+    const store = await openStore(data, ADMIN)
+
+    expect(recorded(log)).toEqual(['Recorded the order of joining of Tree "old" from its roles: 3 accounts'])
+    const after = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>
+    // updatedAt, updatedBy and revision stay, since no creator wrote; every key keeps its place.
+    expect(after).toEqual({ ...before, joined: [anna, cees, bram] })
+    expect(Object.keys(after)).toEqual([...Object.keys(before), 'joined'])
+    expect(store.authors('old')).toEqual(['Anna de Vries', 'Cees Bakker', 'Bram Jansen'])
+  })
+
+  test('a joined that lacks a role holder gets it appended; one that is not an array of strings is replaced', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { data, admin, anna, bram, cees } = await seeded('lacking', 'not-a-list', 'not-strings')
+    const roles = { creator: anna, collaborators: [bram, cees] }
+    await editMeta(data, 'lacking', (meta) => Object.assign(meta, roles, { joined: [cees, admin] }))
+    await editMeta(data, 'not-a-list', (meta) => Object.assign(meta, roles, { joined: bram }))
+    await editMeta(data, 'not-strings', (meta) => Object.assign(meta, roles, { joined: [bram, 7] }))
+    log.mockClear()
+
+    const store = await openStore(data, ADMIN)
+
+    expect(recorded(log)).toEqual([
+      'Recorded the order of joining of Tree "lacking" from its roles: 4 accounts',
+      'Recorded the order of joining of Tree "not-a-list" from its roles: 3 accounts',
+      'Recorded the order of joining of Tree "not-strings" from its roles: 3 accounts',
+    ])
+    const joined = async (id: string): Promise<unknown> => JSON.parse(await readFile(path.join(data, 'trees', id, 'meta.json'), 'utf8')).joined
+    // The administrator, who held a role once, keeps its place, and is never named (39.1).
+    expect(await joined('lacking')).toEqual([cees, admin, anna, bram])
+    expect(store.authors('lacking')).toEqual(['Cees Bakker', 'Anna de Vries', 'Bram Jansen'])
+    expect(await joined('not-a-list')).toEqual([anna, bram, cees])
+    expect(await joined('not-strings')).toEqual([anna, bram, cees])
+  })
+
+  test('a complete joined is not rewritten, its bytes unchanged, and no line is logged', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { data, admin, anna, bram } = await seeded('seeded', 'complete')
+    // One that holds more than the roles: an account removed after it joined.
+    const file = await editMeta(data, 'complete', (meta) => Object.assign(meta, { creator: anna, collaborators: [], joined: [bram, anna] }))
+    const bytes = await readFile(file)
+    const seededBytes = await readFile(path.join(data, 'trees', 'seeded', 'meta.json'))
+    log.mockClear()
+
+    const store = await openStore(data, ADMIN)
+
+    expect(recorded(log)).toEqual([])
+    expect(await readFile(file)).toEqual(bytes)
+    // The seed recorded its creator, the administrator, when it imported the Tree.
+    expect(await readFile(path.join(data, 'trees', 'seeded', 'meta.json'))).toEqual(seededBytes)
+    expect(JSON.parse(seededBytes.toString()).joined).toEqual([admin])
+    expect(store.authors('seeded')).toEqual([])
+    expect(store.authors('complete')).toEqual(['Anna de Vries'])
+  })
+
+  test('importTree records the creator it names, and none when it names none, which the start fills in after naming the administrator', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const data = await folder()
+    const treesDir = path.join(data, 'trees')
+    await importTree(path.join(fixtures, 'cycle'), treesDir, 'an-account-id')
+    await importTree(path.join(fixtures, 'carousel'), treesDir, null)
+    const joined = async (id: string): Promise<unknown> => JSON.parse(await readFile(path.join(treesDir, id, 'meta.json'), 'utf8')).joined
+    expect(await joined('cycle')).toEqual(['an-account-id'])
+    expect(await joined('carousel')).toEqual([])
+
+    // A store seeded before accounts existed (#134), or a test's import: the start names the
+    // administrator as the creator, then records it.
+    const store = await openStore(data, ADMIN)
+
+    const admin = store.accounts.all().find((account) => account.administrator)!
+    expect(await joined('carousel')).toEqual([admin.id])
+    expect(recorded(log)).toEqual(['Recorded the order of joining of Tree "carousel" from its roles: 1 accounts'])
+  })
+
+  test('a Tree folder without a meta.json is the administrator\'s, with joined [creator], and names nobody', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { data, admin } = await seeded('bare')
+    await rm(path.join(data, 'trees', 'bare', 'meta.json'))
+
+    const store = await openStore(data, ADMIN)
+
+    expect(store.publishedIds()).toEqual(['bare'])
+    expect(store.drafts.entry(store.accounts.get(admin)!, 'bare').meta).toMatchObject({ creator: admin, joined: [admin] })
+    expect(store.authors('bare')).toEqual([])
+  })
+
+  test('authors(id) answers the names of a servable published Tree, read as its roles change, and [] for every id published(id) is null for', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { data, anna, bram, cees } = await seeded('published', 'hidden', 'unservable')
+    for (const id of ['published', 'hidden', 'unservable']) {
+      await editMeta(data, id, (meta) => Object.assign(meta, { creator: anna, collaborators: [bram], joined: [anna, bram] }))
+    }
+    await rm(path.join(data, 'trees', 'hidden', 'tree.json'))
+    await writeFile(path.join(data, 'trees', 'unservable', 'tree.json'), '{ "format": "elsa-tree/5" ')
+    // A published Tree placed by hand under a reserved id, with roles: held by the drafts, refused by the start.
+    await cp(path.join(data, 'trees', 'published'), path.join(data, 'trees', 'theme'), { recursive: true })
+
+    const store = await openStore(data, ADMIN)
+
+    expect(store.authors('published')).toEqual(['Anna de Vries', 'Bram Jansen'])
+    expect(store.refused().map(({ id }) => id).sort()).toEqual(['theme', 'unservable'])
+    for (const id of ['hidden', 'unservable', 'theme', 'no-such-tree', ...RESERVED_TREE_IDS, '..', '']) {
+      expect(store.published(id), id).toBeNull()
+      expect(store.authors(id), id).toEqual([])
+    }
+    // The roles as the editor changes them, without a restart; and nothing once unpublished.
+    const annaAccount = store.accounts.get(anna)!
+    await store.drafts.addCollaborator(annaAccount, 'published', cees)
+    await store.drafts.removeCollaborator(annaAccount, 'published', bram)
+    expect(store.authors('published')).toEqual(['Anna de Vries', 'Cees Bakker'])
+    await store.drafts.publish(annaAccount, 'published', false)
+    expect(store.authors('published')).toEqual([])
+  })
+})
+
 describe('the data directory itself (17.1, 17.3)', () => {
   test('the lock refuses a second process while the first lives, and is taken over after it', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})

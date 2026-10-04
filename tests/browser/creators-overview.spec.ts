@@ -104,6 +104,25 @@ test.describe('which Trees, in what order, leading where (26.4)', () => {
     expect([box.x, box.y]).toEqual([grid.x, grid.y])
   })
 
+  test("**[#197]** a tile names its Tree's Authors before the state mark, a hidden Tree's included, and a Tree of the administrator's names nobody (39.3, 39.5)", async ({ browser }) => {
+    const anna = await loggedIn(browser, ANNA.email, ANNA.password)
+    await anna.goto(`${origin}/admin`)
+    const own = anna.locator('.tile[data-tree="anna-draft"]')
+    await expect(own.locator('.tile-authors')).toHaveText('By Anna')
+    await expect(own.locator('.tile-authors')).toHaveAttribute('title', 'By Anna')
+    const mention = (await own.locator('.tile-authors').boundingBox())!
+    const mark = (await own.locator('.tile-state').boundingBox())!
+    expect(mention.x + mention.width).toBeLessThanOrEqual(mark.x)
+    // The example Tree's only role holder is the administrator: no element, the row as before.
+    await expect(anna.locator('.tile[data-tree="ai-act-example"] .tile-authors-room')).toHaveCount(0)
+
+    const admin = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
+    await admin.goto(`${origin}/admin?lang=nl`)
+    await expect(admin.locator('.tile[data-tree="cees-draft"] .tile-authors')).toHaveText('Door Cees')
+    await expect(admin.locator('.tile[data-tree="anna-draft"] .tile-authors')).toHaveText('Door Anna')
+    await expect(admin.locator('.tile[data-tree="ai-act-example"] .tile-authors-room')).toHaveCount(0)
+  })
+
   test('a visitor without a session sees no + tile: the login page at /admin, the public overview at /', async ({ page }) => {
     await page.goto(`${origin}/admin`)
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
@@ -222,7 +241,10 @@ test.describe('the new-Tree form (27)', () => {
     expect(await tileIds(page)).toEqual(['anna-draft', 'data-act-does-it-apply', 'ai-act-example'])
     const created = page.locator('.tile[data-tree="data-act-does-it-apply"]')
     await expect(created.locator('.tile-title')).toHaveText('Data Act: does it apply?')
-    await expect(created.locator('.tile-languages')).toHaveText('ENNLHidden')
+    // **[#197]** Its row: the tags, then its Author -- the creator who made it -- and its state (39.5).
+    await expect(created.locator('.tile-language')).toHaveText(['EN', 'NL'])
+    await expect(created.locator('.tile-authors')).toHaveText('By Anna')
+    await expect(created.locator('.tile-state')).toHaveText('Hidden')
     await page.screenshot({ path: path.join(SHOTS, 'creators-overview-with-new-tree.png') })
 
     await page.goto(`${origin}/`)

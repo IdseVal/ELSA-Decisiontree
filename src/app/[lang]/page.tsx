@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic'
 /**
  * **[#134]** The overview, `/` (docs/specs/application.md 23.2, 26.1 to 26.3): one tile per
  * served Tree in id order, in the chrome language the page asks for, in the default Theme.
- * It no longer redirects to a Tree (18.1).
+ * It no longer redirects to a Tree (18.1). **[#197]** Each tile names its Tree's Authors (39.5).
  */
 export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
   const lang = chromeLanguage((await params).lang)
@@ -35,7 +35,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         </div>
       </header>
       <main className="overview-page">
-        <Overview tiles={trees.map((tree) => ({ tree }))} lang={lang} />
+        <Overview tiles={trees.map((tree) => ({ tree, authors: served.authors(tree.id) }))} lang={lang} />
       </main>
       <Disclaimer lang={lang} />
     </>

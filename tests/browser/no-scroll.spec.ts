@@ -19,6 +19,7 @@
  * **[#179]** the full Node's Terminal whose words are at their 19 characters,
  * **[#200]** the page of a Tree with no logo and a title of 80 characters, which the chrome bar
  * shows as text, at three windows below 600 pixels wide too,
+ * **[#197]** the example Tree's root Node with three Authors whose names are 80 characters each,
  * **[#134]** the overview with fifteen tiles (26.3), **[#180]** and the full Node again in each
  * family of the font library, set in both roles (application.md 37.6) -- each in
  * both languages, and each again with every Sheet it offers open -- the Overlay of each
@@ -40,7 +41,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import { FONT_LIBRARY } from '../../src/fonts.ts'
 import { openTree } from '../../src/tree/loader.ts'
 import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
-import { login } from './admin.ts'
+import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
 import { arrived, escapeUrlOpened } from './arrived.ts'
 import { BASE_PORT, dataDir, serve, serveStore, stopServers } from './serve.ts'
 
@@ -68,6 +69,8 @@ const OVERLAY_NO_SCRIPT_PORT = FULL_NODE_PORT + 9
 const LONG_TITLE_PORT = FULL_NODE_PORT + 14
 /** **[#180]** The first of four: the full-node fixture in each family of the font library. */
 const LIBRARY_PORT = FULL_NODE_PORT + 15
+/** **[#197]** The example Tree with three Authors whose names are 80 characters each. */
+const AUTHORS_PORT = FULL_NODE_PORT + 10
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -582,6 +585,45 @@ test.describe('the overview', () => {
 function inLang(url: string, lang: string): string {
   return lang === 'en' ? url : `${url}?lang=${lang}`
 }
+
+/**
+ * **[#197]** The mention of a Tree's Authors at its longest (application.md 39.6, 39.9): the
+ * example Tree's root Node with three Authors whose names are 80 characters each, the most 20.1
+ * allows -- the last one word, which no space breaks -- on a server of a data directory of its
+ * own (35.1). The line is cut where its room ends at every viewport it is drawn at, and at the
+ * guarantee too (10.4): the walk skips it, and measures the bar and everything else in it.
+ */
+test.describe('three Authors of 80 characters', () => {
+  const NAMES = [
+    'Anna Maria Theodora Wilhelmina van den Bosch tot Oud-Wassenaar en de Vries-Janse',
+    'Bartholomeus Johannes Hendrikus Cornelis van der Heijden-Oldenbarnevelt de Smits',
+    'Wolfeschlegelsteinhausenbergerdorffwelchevoralternwarengewissenhaftschaferswesen',
+  ]
+  const accounts = NAMES.map((name, at) => ({ email: `author-${at + 1}@example.org`, name, password: `author ${at + 1} password` }))
+  let origin: string
+
+  test.beforeAll(async () => {
+    const [creator, ...collaborators] = accounts.map(({ email }) => email)
+    const dir = await buildDataDir({ trees: [{ folder: path.join(trees, 'ai-act-example'), creator, collaborators }], accounts })
+    origin = await serveStore(dir, AUTHORS_PORT, ADMIN_ENV)
+  })
+
+  for (const lang of LANGUAGES) {
+    test(`the root Node with three Authors of 80 characters, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+      test.slow()
+      for (const name of NAMES) expect([...name], name).toHaveLength(80)
+      const url = `${origin}${inLang(EXAMPLE_PAGES[1].url, lang)}`
+      await measureEverywhere(page, url, 'root Node, three Authors of 80 characters', lang)
+      // Not a row measured without its mention: drawn and cut at the guarantee.
+      await page.setViewportSize({ width: 1280, height: 640 })
+      await page.goto(url)
+      const line = page.locator('header.page-chrome .authors')
+      await expect(line).toBeVisible()
+      await expect(line).toHaveAttribute('title', new RegExp(NAMES[2]!))
+      expect(await line.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true)
+    })
+  }
+})
 
 for (const { what, url } of EXAMPLE_PAGES) {
   for (const lang of LANGUAGES) {
