@@ -3269,6 +3269,29 @@ fieldset:disabled .admin-submit {
   min-width: 0;
 }
 
+/*
+ * **[#203]** The way out and the Tree's mark take the room the controls leave, and never less than
+ * the two need. Shrunk in proportion with the controls, an 80-character title squeezed `account`
+ * and `logout` past their words at 768 pixels wide, with the arrow and without it; here it is cut
+ * to its two lines (#200) instead.
+ */
+.editor-chrome .page-brand {
+  flex: 1 1 0;
+  min-width: auto;
+}
+
+/*
+ * **[#203]** From 480 pixels wide up the editor's controls -- two pills, `account`, `logout` -- take
+ * up to 289 pixels, and the arrow 40 beside the logo: the logo keeps the rest, 380 less than the
+ * window, as #164 made the arrow's room on the Node page at the floor. Without it the example
+ * Tree's logo held the bar 4 to 17 pixels past a window of 480, and a logo at its cap until 665.
+ */
+@media not all and (max-width: 479px) {
+  .editor-chrome .logo {
+    max-width: min(18rem, 45vw, 100vw - 380px);
+  }
+}
+
 /* The indicator (29.3): one line of at most 320 pixels in the chrome bar, cut with an ellipsis. */
 .editor-status {
   flex: 0 1 auto;
