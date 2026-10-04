@@ -166,7 +166,7 @@ where needed, on every page, in both languages, on both systems; at 639 pixels t
 holds its words on one line of 11 pixels (`white-space: nowrap`), the English words spill out of
 their box at 481 pixels wide on every page, and at 500 on the first Tree on Windows and on every page
 in the CI image; at 520 they reach to 2 pixels of its border (the first Tree, Windows: the words to
-226 in a box to 228), and at 540 the room is 190 for a line of 189. At a phone's sizes the words
+226 in a box to 228), and at 540 the room is 190 for a line of 189 (section 7's probe). At a phone's sizes the words
 keep clear at 479 x 639, 390 x 844 and 360 x 640, on two lines or three; at 321 x 700 and
 321 x 481 they take three or four lines and stand out of the band, over the bar and the Bubble:
 in English on every page, on both systems; in Dutch at 321 x 481 on every page, and at 321 x 700
@@ -2151,6 +2151,75 @@ for (const [what, address] of PAGES) {
 }
 await browser.close()
 console.log(out.join('\n'))
+```
+
+### The first Tree's row, probed
+
+Run on 2026-10-04 as `node .elsa-data/issue-205/run-probe.ts`, on the same build, on Windows: the first
+Tree's ending's button in English with the room alone, at 1000, 540, 520 and 500 x 639 -- its box, its
+`scrollWidth` and `clientWidth`, its words' extent, its padding and its `max-width`. At 540 the box is 189
+wide in a room of 190; at 520 the words end at 226 in a box that ends at 228; at 500 the scroll width
+passes the client width.
+
+```
+1000 639 {"box":[247,436],"scrollW":187,"clientW":187,"text":[[258,425]],"pad":"4px 10px","ws":"nowrap","fs":"11px","maxW":"420px"}
+540 639 {"box":[49,238],"scrollW":187,"clientW":187,"text":[[60,227]],"pad":"4px 10px","ws":"nowrap","fs":"11px","maxW":"190px"}
+520 639 {"box":[48,228],"scrollW":178,"clientW":178,"text":[[59,226]],"pad":"4px 10px","ws":"nowrap","fs":"11px","maxW":"180px"}
+500 639 {"box":[48,218],"scrollW":177,"clientW":168,"text":[[59,226]],"pad":"4px 10px","ws":"nowrap","fs":"11px","maxW":"170px"}
+```
+
+```ts
+// Issue #205: runs probe.mjs against the production build of dev on Windows, on a store holding the
+// first Tree hidden, Anna its creator. Usage, from the repository's root: node .elsa-data/issue-205/run-probe.ts
+import { spawnSync } from 'node:child_process'
+import { writeFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { ADMIN_ENV, buildDataDir } from '../../tests/browser/admin.ts'
+import { serveStore, stopServers } from '../../tests/browser/serve.ts'
+const here = path.dirname(fileURLToPath(import.meta.url))
+const repo = path.resolve(here, '..', '..')
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+const dir = await buildDataDir({ trees: [{ folder: path.join(repo, 'trees', 'ai-act-applicability-agrifood'), id: 'agrifood-hidden', hidden: true, creator: ANNA.email }], accounts: [ANNA] })
+try {
+  const origin = await serveStore(dir, 13950, ADMIN_ENV)
+  const run = spawnSync(process.execPath, [path.join(here, 'probe.mjs'), origin, ANNA.email, ANNA.password], { cwd: repo, encoding: 'utf8' })
+  writeFileSync(path.join(here, 'probe.md'), run.stdout + run.stderr)
+  console.log(run.stdout + run.stderr)
+} finally { await stopServers() }
+```
+
+```js
+// Issue #205: the first Tree's ending's button below 640 pixels tall, with the room of 40.5's first
+// rule alone: its box, its scroll and client widths, its words' extent, its padding and its
+// max-width, at 1000, 540, 520 and 500 pixels wide. A scratch script of the architect's run, copied
+// whole into docs/research/issue-205-top-left-room.md. Usage, from the repository's root:
+//   node probe.mjs <origin> <anna's address> <anna's password>
+import { createRequire } from 'node:module'
+import path from 'node:path'
+const require = createRequire(path.join(process.cwd(), 'package.json'))
+const { chromium } = require('playwright-core')
+const [origin, email, password] = process.argv.slice(2)
+const browser = await chromium.launch()
+const context = await browser.newContext()
+await context.request.post(`${origin}/admin/api/login`, { headers: { Origin: origin, 'Content-Type': 'application/json' }, data: { email, password } })
+const page = await context.newPage()
+for (const [w, h] of [[1000, 639], [540, 639], [520, 639], [500, 639]]) {
+  await page.setViewportSize({ width: w, height: h })
+  await page.goto(`${origin}/admin/trees/agrifood-hidden/start/article-2-exclusions/ai-act-does-not-apply`, { waitUntil: 'load' })
+  await page.evaluate(() => document.fonts.ready)
+  console.log(w, h, JSON.stringify(await page.evaluate(() => {
+    const end = document.querySelector('.tree-frame .step-end')
+    end.style.maxWidth = 'calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap) - var(--float-right) - var(--float-size))'
+    const b = end.querySelector('button')
+    const cs = getComputedStyle(b)
+    const range = document.createRange(); range.selectNodeContents(b)
+    const t = [...range.getClientRects()].map((r) => [Math.round(r.left * 10) / 10, Math.round(r.right * 10) / 10])
+    const box = b.getBoundingClientRect()
+    return { box: [box.left, box.right], scrollW: b.scrollWidth, clientW: b.clientWidth, text: t, pad: cs.padding, ws: cs.whiteSpace, fs: cs.fontSize, maxW: getComputedStyle(end).maxWidth }
+  })))
+}
+await browser.close()
 ```
 
 ## 8. The scripts
