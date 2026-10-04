@@ -14,7 +14,8 @@
  * address column, `noEmail` and `setEmail`; and no address in the server's log (38.8).
  *
  * **[#213]** And the `<noscript>` sentence once on every admin page a reader without script
- * opens, in `en` and `nl`: the creators' overview and an uneditable Tree's editor address too.
+ * opens, in `en` and `nl`, where that reader sees it: the creators' overview and an uneditable
+ * Tree's editor address too, whose screenshots the pull request shows.
  */
 import { createHash, randomBytes } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -32,6 +33,8 @@ const OTHER_PORT = BASE_PORT + 81
 const LOG = path.join(RESULTS, 'login-server.log')
 /** The screenshots **[#196]**'s pull request asks for: the tracked set under `ELSA_SHOTS=1`, the results folder otherwise. */
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-196') : path.join(RESULTS, 'shots')
+/** **[#213]**'s, the same way. */
+const SHOTS_213 = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-213') : path.join(RESULTS, 'shots')
 
 const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 const CEES = { email: 'cees@example.org', name: 'Cees', password: 'cees first password' }
@@ -569,36 +572,74 @@ test.describe('**[#213]** without JavaScript every admin page says once that the
       const context = await browser.newContext({ javaScriptEnabled: false })
       const page = await context.newPage()
       const query = lang === 'en' ? '' : '?lang=nl'
-      /** Asserts, softly so that one run names every page that fails, the sentence once and in `main`, before its every control. */
-      const saysItOnce = async (what: string): Promise<void> => {
-        const said = await page.evaluate((sentences) => {
-          // What a reader without script reads: `innerText` holds a `noscript`'s laid-out content, which Playwright's text matching skips.
-          const text = document.body.innerText
-          const notes = [...document.querySelectorAll('main noscript > p.admin-note')]
-          const controls = [...document.querySelectorAll('main :is(a[href], button, input, select, textarea, summary)')]
-          return {
-            en: text.split(sentences.en).length - 1,
-            nl: text.split(sentences.nl).length - 1,
-            notes: notes.map((note) => note.textContent),
-            // 24.2's "in place of its first control": the controls of `main` the note follows.
-            controlsBefore: notes[0] ? controls.filter((control) => control.compareDocumentPosition(notes[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).length : null,
-          }
-        }, NEEDS_JAVASCRIPT)
-        expect.soft(said, what).toEqual({ en: lang === 'en' ? 1 : 0, nl: lang === 'nl' ? 1 : 0, notes: [NEEDS_JAVASCRIPT[lang]], controlsBefore: 0 })
+      /**
+       * Opens `address` at the guarantee and at the floor of 10.6 and asserts, softly so that one
+       * run names every page that fails: the sentence once, in a note of `main` before its every
+       * control, where a reader sees it; and every scroll box of `main` still ending inside it.
+       */
+      const saysItOnce = async (address: string, only: string, what: string): Promise<void> => {
+        for (const [width, height] of [[1280, 640], [320, 480]] as const) {
+          await page.setViewportSize({ width, height })
+          expect((await page.goto(`${origin}${address}${query}`))?.status(), what).toBe(200)
+          await expect(page.locator(only), what).toHaveCount(1)
+          const said = await page.evaluate((sentences) => {
+            // What a reader without script reads: `innerText` holds a `noscript`'s laid-out content, which Playwright's text matching skips.
+            const text = document.body.innerText
+            const main = document.querySelector('main')!.getBoundingClientRect()
+            const inMain = (box: DOMRect): boolean => box.top >= main.top - 1 && box.bottom <= main.bottom + 1
+            const notes = [...document.querySelectorAll('main noscript > p.admin-note')]
+            const controls = [...document.querySelectorAll('main :is(a[href], button, input, select, textarea, summary)')]
+            const note = notes[0]?.getBoundingClientRect()
+            const tile = document.querySelector('main .tile')?.getBoundingClientRect()
+            return {
+              en: text.split(sentences.en).length - 1,
+              nl: text.split(sentences.nl).length - 1,
+              notes: notes.map((element) => element.textContent),
+              // 24.2's "in place of its first control": the controls of `main` the note follows.
+              controlsBefore: notes[0] ? controls.filter((control) => control.compareDocumentPosition(notes[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).length : null,
+              // Not cut off by `main` or the window.
+              seen: note ? inMain(note) && note.top >= 0 && note.bottom <= innerHeight && note.left >= 0 && note.right <= innerWidth : null,
+              // The note's line comes out of a scroll box, never out of the disclaimer's row.
+              boxesInMain: [...document.querySelectorAll('main [data-scroll-box]')].every((box) => inMain(box.getBoundingClientRect())),
+              // On the creators' overview its words start where the tiles do.
+              inLineWithTiles: note && tile ? Math.abs(note.left + parseFloat(getComputedStyle(notes[0]!).paddingLeft) - tile.left) <= 1 : null,
+            }
+          }, NEEDS_JAVASCRIPT)
+          expect.soft(said, `${what} at ${width} x ${height}`).toEqual({
+            en: lang === 'en' ? 1 : 0,
+            nl: lang === 'nl' ? 1 : 0,
+            notes: [NEEDS_JAVASCRIPT[lang]],
+            controlsBefore: 0,
+            seen: true,
+            boxesInMain: true,
+            inLineWithTiles: only === '.tile--new' ? true : null,
+          })
+        }
       }
 
-      expect((await page.goto(`${origin}/admin${query}`))?.status()).toBe(200)
-      await expect(page.locator('#sign-in')).toBeVisible()
-      await saysItOnce('the login page')
+      await saysItOnce('/admin', '#sign-in', 'the login page')
       expect((await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
-      for (const [address, only, what] of PAGES) {
-        expect((await page.goto(`${origin}${address}${query}`))?.status(), what).toBe(200)
-        await expect(page.locator(only), what).toHaveCount(1)
-        await saysItOnce(what)
-      }
+      for (const [address, only, what] of PAGES) await saysItOnce(address, only, what)
       await context.close()
     })
   }
+
+  test("the creators' overview and an uneditable Tree without JavaScript, for the pull request (#213)", async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false })
+    const page = await context.newPage()
+    await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)
+    for (const lang of ['en', 'nl']) {
+      for (const [width, height] of [[1280, 640], [320, 480]] as const) {
+        await page.setViewportSize({ width, height })
+        for (const [name, address] of [['overview', '/admin'], ['uneditable', `/admin/trees/${HAND_EDITED}/start`]]) {
+          await page.goto(`${origin}${address}${lang === 'en' ? '' : '?lang=nl'}`)
+          await page.evaluate(() => document.fonts.ready)
+          await page.screenshot({ path: path.join(SHOTS_213, `${name}-${lang}-${width}x${height}.png`) })
+        }
+      }
+    }
+    await context.close()
+  })
 })
 
 test.describe('CSRF (20.6)', () => {
