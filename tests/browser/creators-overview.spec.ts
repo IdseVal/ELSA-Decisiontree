@@ -241,7 +241,10 @@ test.describe('the new-Tree form (27)', () => {
     expect(await tileIds(page)).toEqual(['anna-draft', 'data-act-does-it-apply', 'ai-act-example'])
     const created = page.locator('.tile[data-tree="data-act-does-it-apply"]')
     await expect(created.locator('.tile-title')).toHaveText('Data Act: does it apply?')
-    await expect(created.locator('.tile-languages')).toHaveText('ENNLHidden')
+    // **[#197]** Its row: the tags, then its Author -- the creator who made it -- and its state (39.5).
+    await expect(created.locator('.tile-language')).toHaveText(['EN', 'NL'])
+    await expect(created.locator('.tile-authors')).toHaveText('By Anna')
+    await expect(created.locator('.tile-state')).toHaveText('Hidden')
     await page.screenshot({ path: path.join(SHOTS, 'creators-overview-with-new-tree.png') })
 
     await page.goto(`${origin}/`)
