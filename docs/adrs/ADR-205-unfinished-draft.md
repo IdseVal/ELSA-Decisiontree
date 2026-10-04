@@ -5,7 +5,10 @@
   end, an ending without words, a picture without a credit)
 - Issue: #205 -- Architecture: the preview of a hidden Tree as its readers will see it -- its
   address, what it shows of an unfinished draft, and its two buttons at the top left
-- Spec: `docs/specs/application.md` 40.7 (new); 3.2 amended, marked **[#205]**
+- Spec: `docs/specs/application.md` 40.7 (new). 3.2 is not amended for it: its placeholders are
+  chrome keys `src/chrome.ts` already holds -- `missingText` (issue #9, what `text()` draws),
+  `endingText` (3.2's #171 row, 36.3) and `placeholderCredit` (one of #172's `placeholder*` keys,
+  28.2)
 - Amends: nothing frozen. `text()` (3.2's `missingText`, issue #9) and the public components are
   unchanged; the preview writes its placeholders before they draw
 - Depends on: `ADR-132-draft-and-publish.md` (a draft's advisory rules), `ADR-205-preview-drawing.md`
@@ -122,7 +125,8 @@ list -- the draft's advisory violations -- is the editor's, in a bubble at its t
 - `src/admin/preview.ts` (new, #206): the draft as the preview reads it -- `getNode`, `getTitle` and
   `manifest` answering copies with decision 2's placeholders for the language on screen -- beside
   `previewMode`.
-- `application.md` 3.2's table gains #206's row; 40.7 is the contract.
+- `application.md` 40.7 is the contract. 3.2 gains no key for it: its row for #206 holds the two
+  buttons' words alone (`ADR-205-preview-buttons.md`).
 - `tests/admin/preview.test.ts` and `tests/browser/preview.spec.ts` (#206) assert each placeholder,
   the one Answer centred in its row, `startAgain` below a fresh step, no to-do count on the page,
   and nothing logged
