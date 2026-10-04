@@ -48,33 +48,34 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
   cookie (20.5; core document 8 and 9). `/admin` shows the login page to a visitor without
   a session and the creators' overview to one with a session (24.1, 24.2).
 - **The room in the bars**, measured on the production build of `dev` -- `6d0ea4b`, and on
-  2026-10-04 `748ebcc` too, after #196 and #200 merged, with the same rows -- the two seeded
-  Trees in English and in Dutch, at the ten viewports of 10.6, at 479 x 800 and, on
-  2026-10-04, at twelve widths from 480 to 767 pixels, with a control saying "Editor" or
-  "Website" drawn into the bars' controls in the share button's look and in the account
-  link's, beside the seeded Trees' logos and beside a logo drawn as wide as its cap, on
-  Windows and in the CI runner's faces (`docs/research/issue-202-bar-room.md`, which holds the
-  method, the script and every row; its section 2 sums them up). The format gives a logo's
-  file no shape (`docs/specs/tree-format.md` 4.3.1), and the bar draws it at most
-  `min(18rem, 45vw)` wide. From 480 pixels wide up, a Node page's bar holds "Editor" in the
-  share button's look beside the current language's pill only from 520 or 540 pixels wide
-  beside the seeded logos -- at 540 with 0.1 pixels to spare in Dutch beside the first
+  `748ebcc` too, after #196 and #200 merged, with the same rows -- the two seeded Trees in
+  English and in Dutch, at the ten viewports of 10.6, at 479 x 800 and, in a second run
+  after this pull request's review, at twelve widths from 480 to 767 pixels, with a control
+  saying "Editor" or "Website" drawn into the bars' controls in the share button's look and
+  in the account link's, beside the seeded Trees' logos and beside a logo drawn as wide as
+  its cap, on Windows and in the CI runner's faces (`docs/research/issue-202-bar-room.md`,
+  which holds the method, the script and every row; its section 2 sums them up). The format
+  gives a logo's file no shape (`docs/specs/tree-format.md` 4.3.1), and the bar draws it at
+  most `min(18rem, 45vw)` wide. From 480 pixels wide up, a Node page's bar holds "Editor" in
+  the share button's look beside the current language's pill only from 520 or 540 pixels
+  wide beside the seeded logos -- at 540 with 0.1 pixels to spare in Dutch beside the first
   Tree's logo on Windows, 1.3 in the CI runner's faces -- and only from 700 or 767 beside a
   logo as wide as its cap; narrower, the bar grows past the window, which the no-scroll rule
   forbids at any size (10.6). From 768 up it holds "Editor" beside the pill and either logo,
-  with 59.8 pixels or more. Without the pill, "Editor" never makes the bar wider than it is
-  on `dev`: in each of the 192 cells measured below 768 on each system, the pill it gives up,
-  "English" or "Nederlands", took at least as much room; a language whose own name is
-  shorter than "Editor" would give up less, and none was measured. On `dev` itself a logo
-  as wide as its cap takes the bar past the window from 480 pixels wide until 599 to 640.
-  The creators' overview at `/admin`, as the administrator, holds "Website" in the account
-  link's look beside its title only from 560 pixels wide on Windows and 580 in the CI
-  runner's faces, and with 34.7 or more at 600; narrower, the bar grows past the window or
-  its title takes two or three lines -- on `dev` it already takes two at 480 -- while
-  without the title and the current language's pill it keeps 130 pixels or more from 480
-  up. The overview's bar holds "Editor", and the login page's "Website", at every width.
-  Below 480 the Tree-less admin pages' bar hides the site's title (24.3, #135), and its
-  controls then stand alone at its left end.
+  with 59.8 pixels or more. Without the pill -- its list item, and with it one of the
+  switch's 4-pixel gaps -- "Editor" made the bar no wider than on `dev` in any of the 192
+  cells measured below 768 on each system: the item "English" or "Nederlands" took at least
+  as much room. Those are two-language Trees in English and Dutch; a current language whose
+  own name is drawn narrower than "Editor" would give up less, a third language adds a pill,
+  and neither was measured. On `dev` itself a logo as wide as its cap takes the bar past the
+  window from 480 pixels wide until 599 to 640. The creators' overview at `/admin`, as the
+  administrator, holds "Website" in the account link's look beside its title only from 560
+  pixels wide on Windows and 580 in the CI runner's faces, and with 34.7 or more at 600;
+  narrower, the bar grows past the window or its title takes two or three lines -- on `dev`
+  it already takes two at 480 -- while without the title and the current language's pill it
+  keeps 130 pixels or more from 480 up. The overview's bar holds "Editor", and the login
+  page's "Website", at every width. Below 480 the Tree-less admin pages' bar hides the
+  site's title (24.3, #135), and its controls then stand alone at its left end.
 - **A hidden Tree** is on no public route (core document 9; 23.1, under which no public
   route reads a draft). The editor draws its draft through the public components with the
   edit setting of the reuse rule (34), without the neighbour frames and the slide (34.5),
@@ -85,7 +86,8 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
   in calls (`tests/browser/admin.ts`, 35.2). #197 puts the mention of a Tree's Authors in
   the Node page's bar, in the room between the Tree's mark and the controls (39.4). #200
   cuts a long title written in the same bar. #196 and #200 were dispatched at 20:36Z and 20:37Z on
-  2026-10-03, minutes before this run.
+  2026-10-03, minutes before this run, and merged at 23:07Z and 23:41Z the same day, while this
+  pull request was in review.
 
 ## Decision
 
@@ -166,10 +168,10 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
      left, before the Tree's logo -- with the same look and the same name, `toOverview`,
      since the editor "looks exactly like the final datastructure" (#131). The 403 page, the page of an uneditable Tree and the expired
      session's Sheet already link to `/admin` under that name.
-   - #204: "the regular window" is the overview and every Node page of a published Tree,
-     the pages a reader walks, and not the 404 page, which also answers addresses of the
-     admin area (24.2) and has a button of its own that leads to the overview. The button
-     says "Editor" in English and in Dutch, as the account link says "Account" in both since
+   - #204: "the regular window" is the overview and every Node page of a published Tree, the
+     pages a reader walks, and not the 404 page, which also answers addresses of the admin
+     area (24.2) and has a button of its own that leads to the overview. The button says
+     "Editor" in English and in Dutch, as the account link says "Account" in both since
      #176. "The /Admin page" is the page at `/admin` in both its states, as the owner's #131
      describes it ("if we go to our page on /admin, we will first be shown a login page,
      once logged in we are shown the editing page"), and no other admin page. The button
@@ -178,18 +180,20 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
      below). "In the same place": each button is the last control at the right end of its
      bar at every width, in the look of that bar's own controls -- a pill like the share
      button on the public bars, a link like `account` on the bar at `/admin`; below 480
-     pixels wide, where the bar at `/admin` hides the site's title, its controls stand at its
-     right end too, and not at the left as on `dev`. Below 768 pixels wide a Node page's bar
-     gives up the current language's pill for "Editor": there "Editor" takes no more room
-     than the pill "English" or "Nederlands" did, so the bar holds whatever logo it held on
-     `dev`, and from 768 up "Editor" fits beside the pill whatever the logo (the
-     measurements above). Below 600
-     pixels wide the bar of the creators' overview at `/admin` gives up the site's title and
-     the current language's pill for "Website", as the Tree-less admin pages' bar has given
-     both up below 480 since #135: that bar holds nothing a Tree brings, and at 600 "Website"
-     keeps 34.7 pixels or more beside the title, on Windows and in the CI runner's faces. The
-     login page at `/admin` keeps its title from 480 up, beside which "Website" fits. Other
-     widths are alternatives rejected below.
+     pixels wide, where the bar at `/admin` hides the site's title, its controls stand at
+     its right end too, and not at the left as on `dev`. Below 768 pixels wide a Node page's
+     bar gives up the current language's pill for "Editor" -- the pill's list item, and with
+     it the switch's gap, and in a Tree of one language, whose switch holds that pill alone,
+     the whole switch, so that no empty landmark stays. In a Tree in English and Dutch,
+     "Editor" there takes no more room than the item "English" or "Nederlands" did, so the
+     bar holds whatever logo it held on `dev`, and from 768 up "Editor" fits beside the pill
+     whatever the logo (the measurements above; the languages they leave out are a
+     consequence below). Below 600 pixels wide the bar of the creators' overview at `/admin`
+     gives up the site's title and the current language's pill for "Website", as the
+     Tree-less admin pages' bar has given both up below 480 since #135: that bar holds
+     nothing a Tree brings, and at 600 "Website" keeps 34.7 pixels or more beside the title,
+     on Windows and in the CI runner's faces. The login page at `/admin` keeps its title
+     from 480 up, beside which "Website" fits. Other widths are alternatives rejected below.
    - #205 confirms or replaces: the preview is a page of the admin area, behind the login,
      for an account with a role on the Tree -- never a public route, which core document 9
      rules out; it opens in the same tab; the button is offered on a hidden Tree only, as the
@@ -303,8 +307,15 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
 - A logo as wide as its cap takes a Node page's bar past the window on `dev` from 480 pixels
   wide until 599 to 640 (the measurements above). #202 did not ask about it, and this round
   leaves it as it is: below 768 #204's bar, in English and in Dutch, is never wider than
-  `dev`'s. It is reported in
-  the pull request of #202.
+  `dev`'s. It is reported in the pull request of #202.
+- The width of 768 is measured for Trees in English and Dutch, two languages each. In a Tree
+  whose current language's own name is drawn narrower than "Editor", the pill gives up less
+  room than "Editor" takes; in a Tree of three languages, a third pill stands in the bar from
+  768 up, where "Editor" leaves 59.8 pixels beside a logo at its cap. Neither is measured,
+  and no width covers every number of languages: `dev`'s own bar does not hold a third pill
+  on a phone, where it keeps at most 28.3 pixels at 320 x 480 beside the seeded logos, and
+  the narrowest pill there is 46.5. They are reported in the pull request of #202, for the
+  owner to weigh; #204 leaves them out of scope.
 - #205 runs while #203 and #204 wait, and amends some of the same lines: 24.1 and 24.3, and
   the header of `ADR-133-admin-routes.md`, for decision 1's addresses where #203 and #204
   mark decision 7. Whichever merges second keeps both, as `ADR-169-tree-creation-ui-round.md`
