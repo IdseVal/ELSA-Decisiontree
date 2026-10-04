@@ -6430,8 +6430,8 @@ section 2), so the preview's bar holds wherever `dev`'s public bar does.
 - **The ending's button gives way on a hidden Tree.** While the preview button is on the editor's
   page (`:root:has(.preview-button)`), "Tree does not end here after all" (30.8) keeps out of its
   column:
-  - below 1000 pixels wide its `max-width` is `calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap)
-    - var(--float-right) - var(--float-size))`: the band left of the arrow less the preview button,
+  - below 1000 pixels wide its `max-width` is `calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap) -
+    var(--float-right) - var(--float-size))`: the band left of the arrow less the preview button,
     with a gap of 8 to the arrow and of 8 to the button (6 below 640 tall from 480 wide, where the
     button's icon box is 26 wide). From 640 pixels of height up the boxes cannot overlap whatever
     face a Theme draws the words in (a wider one takes a second line of 13 pixels, 48 tall in the

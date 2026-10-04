@@ -49,8 +49,8 @@ On the editor's page of a hidden Tree -- while the preview button is on the page
 way to the preview button in the band:
 
 1. **Below 1000 pixels wide its room is the band left of the arrow less the preview button's
-   column**: `max-width: calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap) - var(--float-right)
-   - var(--float-size))` -- the arrow's half, a gap of 8 to it, the preview button's place from the
+   column**: `max-width: calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap) - var(--float-right) -
+   var(--float-size))` -- the arrow's half, a gap of 8 to it, the preview button's place from the
    edge and its width, and a gap to it of 8 (6 below 640 pixels tall from 480 wide, where the
    button's icon box is 26 wide for a `--float-size` of 24). So from 640 pixels of height up the
    two boxes cannot overlap, whatever face a Theme draws the words in: a wider face takes a second
