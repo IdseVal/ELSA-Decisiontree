@@ -65,8 +65,14 @@ list -- the draft's advisory violations -- is the editor's, in a bubble at its t
    authoring error `text()` reports.
 
 3. **A step without Answers or an end is drawn as it stands.** A question step with one Answer
-   shows that Answer's button alone, in its place -- yes at the left, no at the right -- and the
-   other place empty. A step with neither -- a fresh step a yes or a no made, or a root not yet
+   shows that Answer's button alone, centred in the Answer row, as the public row draws one
+   button (`.answers { justify-content: center }`, `src/app/[lang]/globals.css`), the way it
+   draws `startAgain` (10.3). The button's own word says which Answer it is -- "Yes" or "No",
+   with the target's title, and the word alone below 480 pixels wide (10.3) -- and nothing stands
+   for the other. No stylesheet rule is added for it: in the editor the lone Answer keeps its
+   side because the `structure` slot's outlined `+` for the other stands in the other place
+   (30.1; `.structure--lone`, `.structure--yes`), and the preview has no slot. A step with
+   neither -- a fresh step a yes or a no made, or a root not yet
    given any -- is the centre where its path ends (the editor's centre rule,
    `ADR-205-preview-drawing.md` decision 2) and shows `startAgain` below it, as the public tree
    view draws an explanation Node shown as the centre (10.3). Nothing more says it is unfinished.
@@ -101,6 +107,12 @@ list -- the draft's advisory violations -- is the editor's, in a bubble at its t
   not fit or would say something untrue.
 - **`[Text of the ending]` in the badge, bracketed like the others.** 20 and 21 characters, past
   the 19 the badge's room was measured for (36.1).
+- **The lone Answer kept at its side** -- yes at the left, no at the right, the other place
+  empty -- as the editor's row has it. It takes a stylesheet rule of the preview's own, keyed so
+  that it misses `startAgain`, which stands alone in the same row, for a state no reader meets:
+  one Answer missing is advisory in a draft (V-ANSWERS, `tree-format.md` 7), and a published Tree
+  passes every rule (19.3). The button's word already names the Answer it is, and the public row
+  draws a lone button centred.
 - **Teaching `text()` that `""` is missing too.** A change to every public page for a state no
   published Tree holds, and the server would log every missing text of a draft as an error at
   every preview.
@@ -112,5 +124,6 @@ list -- the draft's advisory violations -- is the editor's, in a bubble at its t
   `previewMode`.
 - `application.md` 3.2's table gains #206's row; 40.7 is the contract.
 - `tests/admin/preview.test.ts` and `tests/browser/preview.spec.ts` (#206) assert each placeholder,
-  the one Answer, `startAgain` below a fresh step, no to-do count on the page, and nothing logged
+  the one Answer centred in its row, `startAgain` below a fresh step, no to-do count on the page,
+  and nothing logged
   (40.9).
