@@ -6136,3 +6136,270 @@ the Bubble, and 10.7's limits stand.
 | `tests/browser/overview.spec.ts`, `creators-overview.spec.ts` | the tile's mention, and a tile with no Authors as before |
 | `tests/browser/deployment.spec.ts` | the account sweep: a data directory whose accounts have known addresses, ids and names -- an Author of a published Tree, an Author of a hidden Tree only, an account with no role, the administrator -- each name one that no Tree, chrome string or page holds, the administrator renamed so through `PATCH` on its own account before the walk, since the server creates it as `Administrator`, a word the chrome holds; and a walk of every public route of 4.1, 15, 16 and 23: the overview in both languages, every Node page of the published Tree in both languages, its `tree.json`, the schema, `robots.txt`, `sitemap.xml`, `llms.txt`, an image and a theme file, and the hidden Tree's root address, which is the 404. No response, headers or body, holds any account's address or id, and the names of the hidden-only Author, of the account with no role and of the administrator are in none: every byte is read, the scripts included. The published Tree's Authors' names are in its Node pages and the overview, and in no other response; in each of those, read as its markup with every `<script>` element removed but the JSON-LD's, they stand only inside a mention's element. The inline React payload (`self.__next_f.push(...)`) repeats a server component's text for hydration, so the names stand there too, as the disclaimer's sentence does: four times in the body of `/ai-act-example/start`, once without its scripts |
 | `tests/browser/login.spec.ts` | the account page's `nameShownPublicly`, and its absence on the administrator's |
+
+## 40. The preview of a hidden Tree
+
+**[#205], new -- 2026-10-04.** The owner, in #202: "In an unpublished tree, I want a button that
+routes to a window with a preview of the tree, how the end users will see it. Place the button top
+left (not in the header bar). And from that view, in the same place a button that brings the user
+back to the editor interface where he came from". A hidden Tree is on no public route (core
+document 9; 23.1), and the editor draws it with its editing controls and without the public page's
+motion (34.5), so its creators never saw it as its readers will. Decides core document 10.41 and
+the row **Preview** of its section 5. Recorded in `docs/adrs/ADR-205-preview-address.md`,
+`ADR-205-preview-drawing.md`, `ADR-205-preview-bar.md`, `ADR-205-unfinished-draft.md`,
+`ADR-205-preview-buttons.md`, `ADR-205-ending-button-on-a-hidden-tree.md` and
+`ADR-205-way-there-and-back.md`; the room at the top left was measured on `dev` and is recorded in
+`docs/research/issue-205-top-left-room.md`. Built by #206, after #203, #197 and #204 (40.4).
+
+### 40.1 The address, and what it answers
+
+```
+/admin/preview/<tree-id>                                 307 to the preview of the root Node, ?lang kept
+/admin/preview/<tree-id>/<id-1>/.../<id-n>[?lang=<tag>]  the preview: the grammar of 4.1, 1 <= n <= 50
+```
+
+- **The public grammar behind `/admin/preview`**, as the editor's is behind `/admin/trees` (24.1):
+  the same `parseUrl` against the draft, the same Trail, the same 50 ids, the same `?lang`. The
+  preview's `Links`, `previewLinks()` in `src/editor/links.ts` beside `editorLinks()`, prefix the
+  four addresses with `/admin/preview` and make every picture `adminImageHref` (22.6): the up
+  arrow, the Answer buttons, the language switch, an Overlay's heading and links and `startAgain`
+  keep the reader in the preview. `preview` is a sixth word under `/admin`, beside `new`,
+  `account`, `accounts`, `trees` and `api`; no Tree id stands there, so it collides with nothing and
+  reserves no Tree id.
+- **What it answers.** The page is `authenticated → permit('read') → draft`, as the editor's
+  (34.7): a role on the Tree reads its draft (21.2).
+
+| Case | Answer |
+|---|---|
+| No session | The login page at that address, 200, `noindex`, reloading it on success (24.2). |
+| A role on a hidden Tree | The preview (40.2 to 40.7). |
+| No role on the Tree | The 403 page (21.3, 24.2). |
+| A reserved or unknown Tree id | 403 for a caller without the administrator flag, 404 for the administrator (24.2). |
+| A path that is not a Node of the draft | The 404 page, for a caller with a role (24.2). |
+| An uneditable Tree (19.5) | The page the editor's address shows for it: its blocking violations under `notEditable`, and the link to `/admin` (`toOverview`). |
+| A published Tree -- published while its editor stood open elsewhere, or a preview reloaded after publishing | **307 to the editor at the same path and `?lang`**, `/admin/trees/<tree-id>/<id-1>/.../<id-n>[?lang]`, built from the address `parseUrl` accepted. The preview is a hidden Tree's; a published Tree's readers' view is its public page, which the settings panel links (33.3). |
+
+- Every answer carries 20.9's two headers (the proxy) and none sets a cookie (20.5, 35.5).
+- **It needs no script.** Its markup is the public page's (40.2), whose controls are links and
+  disclosures without JavaScript (14): the one admin page with no `needsJavaScript` sentence
+  (24.2). The login page at its address needs script, as at every admin address.
+- `/admin/preview` with no Tree id, or with more after it than the grammar, is no page of 24.1.
+
+### 40.2 What it draws: the reuse rule's one setting, with no slot
+
+- **The draft through the public components.** The page passes `edit` = `previewMode(...)`
+  (`src/admin/preview.ts`): an `EditMode` whose `links` are `previewLinks()` and whose `slots` are
+  `{}`; its `treeId`, `languages` and `words` are the editor's, which no component reads without a
+  slot. By 34.1 and 34.8 the components then draw the public markup with the preview's addresses:
+  no field, no structure control, no step button, no `[data-field]`, no `contenteditable`, no
+  `editor-` class. No component changes, and the reuse rule keeps its one setting (core document
+  3.4: "through one optional setting").
+- **The page**: `authenticated → permit('read') → store.drafts.draft → 307 if published (40.1) →
+  parseUrl → centreOf → draftCentre → neighbourhood → TreeView`, over the draft as 40.7 reads it.
+  - `draftCentre` (`src/neighbourhood.ts`) is the editor's rule for a draft, moved out of the
+    editor's page, which calls it too: a Node at the end of the path is an aside only where the
+    entry before names it as an Option; any other explanation Node there is the centre (#139). A
+    fresh step a yes or a no made is the centre in the preview as in the editor.
+  - `neighbourhood` and `loadPage` take a `Readable<N>`, as `centreOf` does (34.6), and read a
+    Node's Links through `linksOf`: a draft's question step with one Answer places that one. Public
+    callers and `neighbourhood.test.ts` are unchanged.
+  - Every `href` the page carries -- the chain's, the placements', the asides' -- is
+    `previewLinks().node(address)`, as the editor's page gives the chain and the asides theirs
+    (34.7), so `Slider` finds the placement a control names (11.3).
+- **The neighbour frames and the slide run**, as on the public page (11): the readers walk the Tree
+  with them. The page reads **at most seventeen Nodes** (11.2), the bound of a public page; a frame
+  names no picture (11.4); the centre's pictures and an open Overlay's are asked of the admin image
+  route, file for file as 11.5 lists them for a public page.
+
+### 40.3 The Theme, the head and `<html lang>`
+
+- **The draft's Theme on the whole page**, as a public page has its Tree's (13.1): the chrome bar
+  (40.4), the page behind the Bubble, the Bubble and its buttons, the Overlay, the strip, the
+  disclaimer. The bar's logo is the variant for the draft's background (13.2), not the editor's
+  `logo.light`; the tab's icon is the draft's. `ThemeStyle` emits it as the editor's page does --
+  `tree` the draft, `href` `adminThemeHref` (the public theme route serves only a published copy's
+  files), `editor`, so that the second block of 13.1 (#180) gives `[data-editor-ui]` the default
+  look -- and with no `revision`, since nothing writes on the page. On the preview only the way back
+  carries `data-editor-ui` (40.5).
+- **The head**: `noindex, nofollow` (20.9: the admin layout's `<meta>`, the proxy's header); the
+  `<title>` the public Node page's, "<the step's title> - <the Tree's title>", 40.7's placeholder
+  standing in where the draft lacks one; no JSON-LD, no canonical link, no `hreflang` alternates, no
+  dataset link, no `<meta name="description">` -- no crawler reads the page, and each names a public
+  address that answers 404 while the Tree is hidden (23.1).
+- **`<html lang>` is the content language**, as on the public page. The root layout's `htmlLang`
+  resolves an address under `/admin/preview/` or `/admin/trees/` from the draft for a caller with a
+  role on its Tree -- the page's session, `permitted('read')`, the draft, `parseUrl` -- and gives
+  anyone else the chrome language of the `[lang]` segment, as it gives every admin address on `dev`,
+  so that no one without a role learns which languages a hidden Tree declares. One rule for both
+  addresses: it makes the editor's `<html lang>` what 24.1 says, which on `dev` it is not for a draft
+  in a language the chrome does not speak (`en` around a Bubble in German, the research record,
+  section 5) nor for a Dutch-first draft opened without `?lang`.
+
+### 40.4 The chrome bar
+
+The public Node page's bar, by the same component: #206 moves the public Node page's `<header>`
+into `src/components/NodeChrome.tsx`, which that page and the preview both render, and the public
+page's markup stays what it was. In the preview, in the draft's Theme and with no `data-editor-ui`:
+
+```
++--------------------------------------------------------------------------------+  44
+| (<) [logo]  By Anna de Vries and Bram Jansen            [English] [Nederlands]  |  the chrome bar
++--------------------------------------------------------------------------------+
+|  [/ Back to the editor]                  ( ^ )                                  |  the band (40.5)
+```
+
+| Place | What | Unlike the public page |
+|---|---|---|
+| Left | #163's arrow (`BackToOverview`), named `toOverview` | It leads to the creators' overview, `adminHref('/admin', <chrome language>)`, as #203's arrow in the editor does: `/` lists no hidden Tree (23.2). |
+| Left | The Tree's logo, in the variant for the draft's background, or its title as text in two lines at most (13.2, #200) | -- |
+| Between | The mention of its Authors (39.4), from `authorsOf` of the draft's `TreeEntry.meta` (39.3), cut and given up by its room as there; none where the Tree has no Author | -- (the editor draws none, 39.7) |
+| Right | The language switch over the draft's declared languages, each link `previewLinks().withLang` | The current language's pill stays at every width. |
+| Right | -- | **No share button**: it copies the page's own address (4.1), an admin address here -- sharing a preview -- and the public address of a hidden Tree answers 404 (23.1). **No "Editor"** (#204): it leads to `/admin`, where the arrow leads, and beside "Back to the editor" a button named "Editor" that leads elsewhere would contradict it. |
+
+`NodeChrome` takes whether to draw the share button and "Editor", so a rule #204 writes for a bar
+that holds "Editor" -- the current language's pill given up below 768 -- does not reach this bar.
+Without its share button the public bar has 57.1 to 92.2 pixels more room on Windows and 57.2 to 91
+in the CI runner's faces at every viewport of 10.6 where the tree view shows (the research record,
+section 2), so the preview's bar holds wherever `dev`'s public bar does.
+
+### 40.5 The two buttons
+
+- **The words** (3.2): `preview`, "Preview" / "Voorbeeld"; `backToEditor`, "Back to the editor" /
+  "Terug naar de editor".
+- **Where**: each a link in a fixed box under the chrome bar at the top left, not in it --
+  `top: var(--float-top)`, `left: var(--float-right)`: 10 pixels under the bar and 16 from the left
+  edge; one under the bar below 640 pixels of height, four under it below 640 tall and 480 wide; 8
+  from the edge below 480 wide -- the mirror at the left of the floating controls at the right
+  (33.1), on the up arrow's middle at the guarantee. Not in the `header`, in no row of 10.1: fixed,
+  it moves no row and is no element's overflow (10.6). The **preview button** stands in the editor
+  of a hidden Tree (40.6); the **way back** stands in the preview exactly there: "in the same
+  place".
+- **Size and look: the floating controls'** (33.1). `var(--float-size)` tall -- 32; 24 below 640
+  tall; 32 below 640 tall and 480 wide -- a pill on `surface`, a 1-pixel `rule` border, their soft
+  shadow, `text` in 13 pixels on 20, in the default face: each carries `data-editor-ui` (13.1,
+  #180). Under the pointer, their hover. **From 1000 pixels wide**: a 16-pixel line icon, a gap of
+  8, the words, padding `0 14px 0 10px`. **Below 1000**: the icon alone, centred in a box
+  `--float-size` wide with 4 of padding (32 by 32; 26 by 24 below 640 tall). The icons, in
+  `.float-icon`'s stroke (1.25, round joins, no fill): an eye -- an almond outline and a round pupil
+  -- for the preview, a pencil from the lower left to the upper right for the way back. The name is
+  the words at every width (`aria-label`), and so is the `title`. Classes: `preview-button` in the
+  editor, `preview-back` in the preview, drawn by one rule set.
+- **Layer**: `z-index: 1`, as the floating controls' box while their Sheets are closed: under every
+  Sheet's scrim, over the page.
+- **Tab order**: the preview button right after the bar's last control (`logout`), before the to-do
+  control -- the band's left end, then its right end; the floating controls still come after the
+  bar, the to-do control first. The way back right after the preview's bar's last control, before
+  the tree view.
+- **The ending's button gives way on a hidden Tree.** While the preview button is on the editor's
+  page (`:root:has(.preview-button)`), "Tree does not end here after all" (30.8) keeps out of its
+  column:
+  - below 1000 pixels wide its `max-width` is `calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap)
+    - var(--float-right) - var(--float-size))`: the band left of the arrow less the preview button
+    and a gap of 8 each side, so the boxes cannot overlap whatever face a Theme draws the words in
+    (a wider one takes a second line of 13 pixels, 48 tall in the band's 56); on every Tree measured
+    it keeps its one line from 640 to 999 pixels wide (232 pixels of room at 640 x 700, 240 at
+    640 x 639; the widest one line, 227.4);
+  - below 640 pixels wide it is a round button of the cross's size, `--step-size` (32; 24 below 640
+    tall from 480 wide), outlined in `accent-secondary`, holding a 16-pixel glyph of the Tree going
+    on -- one stroke down from the top, splitting at the middle into two strokes to the lower
+    corners -- in `accent-secondary`'s reading shade, in the cross's stroke (2 pixels, round caps);
+    its name and `title` its words, `removeEnd`; where the words stood, left of the arrow, against
+    it;
+  - from 1000 pixels wide, and on a published Tree at every width, it is as 30.8 has it.
+- **They cover nothing.** At every viewport of 10.6 where the tree view shows, in both languages,
+  and on both sides of 1000 wide, 640 tall, 640 wide and 480 wide and at the narrowest windows above
+  the floor, the two buttons cover no part of the up arrow, the step's buttons (the cross, the
+  ending's button), the Bubble (whose box holds the badge), an Option button or the control the
+  Options collapse to, or the floating controls, and stand under the bar, inside the window. Measured
+  as drawn on `dev`'s build -- the full Node with eight Options and the cross, steps that end in the
+  first Tree's Open Sans and in the default face, eight Options of the first Tree, on the editor's
+  page and on the public page -- clear in all 440 rows above the floor, on Windows and in the CI
+  runner's faces; the tightest at 640 x 700, 12.6 and 17 pixels from the ending's button (the
+  research record, section 2, column "the rule").
+- **At and below the floor** (10.4) both stay, as the floating controls do: icons with their names,
+  inside the window, under the bar; at 320 x 480 clear of the notice's text in both languages
+  (section 6 of the record, on Windows).
+
+### 40.6 The way there and back
+
+- **The same tab.** The preview button is a link to the preview of the editor's own address -- its
+  Trail, Node and `?lang`, an open Overlay's included -- followed in the same tab; a modified click
+  opens a tab as for any link.
+- **The click waits for the autosave.** A plain click writes at once every field value waiting out
+  its 600 ms (29.1), then follows the link as soon as the queue holds nothing not yet accepted --
+  at once when it holds nothing -- so the preview shows every value the store accepted and the
+  page's `beforeunload` confirmation (29.5) never comes from the button. While it waits (a write in
+  flight, one waiting for its retry, a session that expired: 29.5, 29.6) the button carries
+  `aria-busy="true"` at 60 % opacity, as the band's disabled buttons (30.8), a second click adds
+  nothing, and the indicator says why (29.3). `EditorApi.settle(): Promise<void>` does it: it
+  flushes every waiting field (`WriteQueue.flushAll()`) and resolves when `busy()` is next false.
+- **A refused value** (29.4) is in no queue and not waited for: the preview shows what the store
+  holds, and the value goes with the page, as on a reload.
+- **The way back** is a link to the editor at the preview's own address: the step and the language
+  on screen, with their Trail and an open Overlay -- `editorLinks().node(address)`. Where the reader
+  has not walked on, the step and the language the preview was opened from; where they walked on or
+  switched the language, the editor of what they see.
+- **The preview button follows the Tree's state on the page**: drawn while the `Editor`'s
+  `tree.published` is false (33.1), gone when the creator publishes from the panel, back when they
+  unpublish, without a reload; never on a published Tree's editor.
+
+### 40.7 A draft that is not valid yet
+
+- **What a reader would see, and nothing more**: no to-do count, no banner, no mark on a step. The
+  to-do list is the editor's (33.3), one click away by the way back.
+- **A placeholder where the draft has no text yet**, in the text's own place. For a localised text
+  the draft lacks in the language on screen -- its key absent, the language absent, or `""` --
+  `[` `missingText` `]` in the chrome language, as `text()` draws a missing text on a public page
+  (3.2, issue #9): "[Text missing in this language]" / "[Tekst ontbreekt in deze taal]". So for a
+  step's title and text, a Source's label, an Option's title, an explainer's term and text, a
+  picture's description, the logo's alternative text and the Tree's title, and wherever another
+  element shows one: an Answer button's label, the up arrow's name, an Overlay's heading, the tab's
+  title. Two exceptions:
+
+| Text | The preview shows | Why |
+|---|---|---|
+| The ending's words (a Terminal's `label`), in the badge | `endingText`: "Text of the ending" / "Tekst van het einde" | The badge holds 19 characters (36.1); the bracketed placeholder is 31. The editor's empty badge field shows these words (36.3). |
+| A picture's credit, in the enlarged view and as its description for a screen reader (12.3) | `[` `placeholderCredit` `]`: "[Maker and licence]" / "[Maker en licentie]" | A credit is one text for every language (`tree-format.md` 5.2): "in this language" would be untrue. |
+
+- Every placeholder is within the limit of the text it stands for (`tree-format.md` 5.7), so a
+  draft within the format's limits fits as a valid Tree does. The preview's page writes them into
+  the copies of the Nodes, of the title index's answers and of the manifest that it hands the
+  components, for the language on screen only (`previewDraft(draft, lang)`, `src/admin/preview.ts`):
+  no public component changes, `text()` meets no missing text, and the server logs nothing for them.
+- **A step without Answers or an end** is drawn as it stands: a question step with one Answer shows
+  that Answer's button alone, in its place; a step with neither -- a fresh step, or a root not given
+  any -- is the centre where its path ends (`draftCentre`, 40.2) and shows `startAgain` below it, as
+  an explanation Node shown as the centre (10.3).
+- **Every other advisory rule** -- V-LENGTH and V-LINES (shown whole, as in the editor, 28.4), V-COUNT,
+  V-REACH, V-ORPHAN, V-EXPLAINER, V-MARK, the target kinds of V-ANSWERS and V-OPTIONS -- is drawn as
+  the public components draw it, nothing added. The no-scroll guarantee covers the drafts within the
+  format's limits, as it covers valid Trees (10.6) and drafts in the editor (28.6).
+
+### 40.8 What does not change
+
+- **Hidden means hidden.** The preview is under `/admin` -- behind `Path=/admin` (20.4), `noindex`
+  and `no-store` (20.9) -- and its pictures and theme files come from the admin routes (22.6, 33.8).
+  No public route reads a draft (23.1): after a preview of a hidden Tree, its every public address
+  answers the 404 of 4.3 as before, and `robots.txt`, the sitemap, `llms.txt` and the overview are
+  unchanged (23.3 to 23.5). Core document 9 stands as written.
+- **The public pages**: the Node page's markup is what it was (`NodeChrome` renders the same); 34.8's
+  tests hold it.
+- **The editor**, but for the preview button, the ending's button on a hidden Tree below 1000
+  pixels wide (40.5), the tab order after its bar (40.5) and `<html lang>` (40.3). Its address,
+  autosave, slots and bound (34.7, twelve Nodes) are unchanged.
+
+### 40.9 Tests (#206)
+
+| File | Asserts |
+|---|---|
+| `tests/browser/preview.spec.ts` (new) | 40.1: every row of the table -- the login page at the preview's address and its reload, the 403 page, 403 and 404 for an unknown and a reserved id by role, the 404 of a path not in the draft, the uneditable page, the 307 of `/admin/preview/<tree-id>` with `?lang` kept, the 307 of a published Tree's preview to its editor -- each with 20.9's headers and no `Set-Cookie`. 40.2: no `[data-field]`, `contenteditable` or `editor-` class in the tree view; every link of the walk under `/admin/preview/`, every picture from `/admin/api/trees/<t>/images/`, every theme file from `/admin/api/trees/<t>/theme/`; an Answer slides (`data-slide`, its frame in the payload, one payload per navigation) to the target's preview, and the up arrow back; at most seventeen `data-node` in a response; a fresh step reached by its yes is the centre. 40.3: the draft's colours on the bar and the page and the default's on the way back; `noindex`; no JSON-LD, canonical, `hreflang`, dataset link or description; the `<title>`; `<html lang>` the content language on the preview and the editor of `tests/fixtures/german-only` and of a Dutch-first draft, and the chrome language's for a caller without a session. 40.4: the arrow to `/admin` and `/admin?lang=nl` named `toOverview`; the logo; the mention of three Authors; the switch's links; no share button, no "Editor"; the current pill at 480 x 800 and 767 x 800. 40.5: the two links' names, `title`s and addresses in both languages; words at 1000 x 700 and an icon at 999 x 700; the tab order `logout`, preview, to-do, settings; the boxes of both buttons at every viewport of the research record's column "the rule", in both languages, on the full Node under a first step, on its No and on the root, clear of the up arrow, the cross, the ending's button, the Bubble, every Option button, the Options' control and the floating controls; the ending's button an icon named `removeEnd` at 639 x 700 and 360 x 640 on a hidden Tree, its words at 640 x 700, and its words at 360 x 640 on a published Tree; at 320 x 480 both buttons icons inside the window. 40.6: a title typed and the preview pressed at once shows the title in the preview, with no dialog; with the write route failing the button stays busy and does not leave; a refused value is not waited for; the way back after two steps and a switch to Dutch leads to the editor of that step in Dutch; the button goes on a publish from the panel and comes back on an unpublish, without a reload; none on a published Tree's editor. 40.7: on a draft with an empty Dutch title and description, a question step with one Answer, a fresh step, a Terminal without Dutch words and a picture without a credit or a description: each placeholder of 40.7 in its place, the one Answer in its place, `startAgain` below the fresh step, no to-do count, and no "Tree text missing" line in the server's log. The screenshots of 35.7, and those #206's DONE WHEN names |
+| `tests/browser/admin-no-scroll.spec.ts` | 10.6's walk at its ten viewports in both languages on the preview of `hidden-draft`'s full Node -- plain, with each of its first two Overlays open, and on 40.7's unfinished draft -- and on the editor of a hidden Tree with the preview button, its step that ends included |
+| `tests/browser/floating-controls.spec.ts` | Its tab test: from `logout`, Tab reaches the preview button, then the to-do control, then the settings button (amended row) |
+| `tests/browser/step-buttons.spec.ts` | Unchanged and green: on `hidden-draft`, a hidden Tree, its boxes hold with the ending's button as 40.5 draws it |
+| `tests/browser/deployment.spec.ts` | 35.5's admin pages gain the preview's two addresses, with and without a session: no `Set-Cookie`, 20.9's headers; after a preview of the hidden Tree is drawn, the walk of every public route sends no `Cookie` and receives no `Set-Cookie` |
+| `tests/browser/findability.spec.ts` | After a preview of the hidden Tree is drawn, its id is still in no sitemap, `llms.txt` or overview, and every route of 23.1 answers 404 for it as for an unknown id, its draft's pictures and theme files included |
+| `tests/views.test.tsx` | 34.8's second assertion with the preview's `edit` (no slot, `previewLinks()`): the public markup but for the addresses, each the public one behind `/admin/preview` or a picture on the admin image route |
+| `tests/neighbourhood.test.ts` | `neighbourhood` over a draft: one Answer placed where one exists; `draftCentre` as the editor's page applied it |
+| `tests/admin/preview.test.ts` (new) | `previewLinks`: the four addresses behind `/admin/preview`, `?lang` kept, the 50-id cap, `adminImageHref`; `previewDraft`: every placeholder of 40.7 for the language on screen, the other languages and the present texts untouched, nothing of the draft itself changed |
+| `tests/editor/queue.test.ts` | `flushAll` and the wait of 40.6: at once when nothing waits; after a field's 600 ms are cut short; after the write in flight is answered; not while a write waits for its retry, until it is accepted |
+| `tests/chrome.test.ts` | `preview` and `backToEditor` in both languages |
