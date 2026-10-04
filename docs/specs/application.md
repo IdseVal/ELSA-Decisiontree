@@ -4743,9 +4743,9 @@ all" gives way to it in the band. Below 1000 pixels wide its `max-width` is the 
 arrow less the preview button's column and a gap; below 640 pixels wide it is a round button of the
 cross's size, outlined in `accent-secondary`, with a glyph of the Tree going on, its name and its
 `title` its words, `removeEnd`, where the words stood (40.5). Below 640, with that room alone, the
-words spill out of their box below 640 pixels tall from 500 pixels wide down and stand out of the
-band at 321 pixels wide; from 640 to 999 they keep their one line on every Tree measured (the
-research record of #205, sections 2 and 7). From 1000 pixels wide,
+English words spill out of their box below 640 pixels tall at 481 and 500 pixels wide and stand
+out of the band at 321 pixels wide; from 640 to 999 they keep their one line on every Tree
+measured (the research record of #205, sections 2 and 7). From 1000 pixels wide,
 and on a published Tree at every width, the button is as above. Recorded in
 `docs/adrs/ADR-205-ending-button-on-a-hidden-tree.md`, which amends `ADR-178-step-buttons.md`
 decision 2.
@@ -6435,16 +6435,18 @@ section 2), so the preview's bar holds wherever `dev`'s public bar does.
     with a gap of 8 to the arrow and of 8 to the button (6 below 640 tall from 480 wide, where the
     button's icon box is 26 wide). From 640 pixels of height up the boxes cannot overlap whatever
     face a Theme draws the words in (a wider one takes a second line of 13 pixels, 48 tall in the
-    band's 56); below 640 tall, where #178 holds the words on one line, they stand apart by the
-    measure; on every Tree measured they keep their one line from 640 to 999 pixels wide (232 pixels
+    band's 56); below 640 tall the boxes stay apart too, and whether the words' one line, which
+    #178 holds there, stays inside its box is the measure's; on every Tree measured they keep their
+    one line from 640 to 999 pixels wide (232 pixels
     of room at 640 x 700, 240 at 640 x 639; the widest one line, 227.4, at 11 pixels 189);
   - below 640 pixels wide it is a round button of the cross's size, `--step-size` (32; 24 below 640
     tall from 480 wide), outlined in `accent-secondary`, holding a 16-pixel glyph of the Tree going
     on -- one stroke down from the top, splitting at the middle into two strokes to the lower
     corners -- in `accent-secondary`'s reading shade, in the cross's stroke (2 pixels, round caps);
     its name and `title` its words, `removeEnd`; where the words stood, left of the arrow, against
-    it. Below 640 the room alone does not hold the words on every Tree: they spill out of their box
-    below 640 tall from 500 wide down and stand out of the band at 321 wide (the record, section 7);
+    it. Below 640 the room alone does not hold the words at every size: in English they spill out of
+    their box below 640 tall at 481 and 500 wide, and they stand out of the band at 321 wide, though
+    they keep clear at 479 x 639, 390 x 844 and 360 x 640 (the record, section 7);
   - from 1000 pixels wide, and on a published Tree at every width, it is as 30.8 has it.
 - **They cover nothing.** At every viewport of 10.6 where the tree view shows, in both languages,
   and on both sides of 1000 wide, 640 tall, 640 wide and 480 wide and at the narrowest windows above
@@ -6527,7 +6529,8 @@ section 2), so the preview's bar holds wherever `dev`'s public bar does.
 - **The public pages**: the Node page's markup is what it was (`NodeChrome` renders the same); the
   public suites, run unchanged (35.6), hold it.
 - **The editor**, but for the preview button and the tab order after its bar (40.5), the ending's
-  button on a hidden Tree below 1000 pixels wide (40.5), its queue's `settle()` (40.6), the centre
+  button on a hidden Tree below 1000 pixels wide (40.5), `EditorApi.settle()` and its queue's
+  `flushAll()` (40.6), the centre
   rule moved to `draftCentre` with nothing it does changed (40.2), and `<html lang>` (40.3). Its
   address, its writes, its slots and its bound of twelve Nodes (34.7) are unchanged.
 
