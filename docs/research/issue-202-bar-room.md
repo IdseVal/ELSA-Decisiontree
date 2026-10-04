@@ -15,8 +15,9 @@
 > stack is drawn in Liberation Sans, as on the CI runner, where Windows draws it in Segoe UI,
 > and both draw the first Tree's own Open Sans (the closing lists of sections 3 and 4 name the
 > face each drew). Every number that `docs/adrs/ADR-202-navigation-round.md`, core document 3.4
-> `[#202]` and 10.22, and issue #204 cite is here, with the script that produced it, copied
-> whole in section 5, and its output as it ran on `748ebcc` on each system, in sections 3 and 4.
+> `[#202]`, 10.22 and 10.42, and issue #204 cite is here, with the script that produced it,
+> copied whole in section 5, and its output as it ran on `748ebcc` on each system, in sections 3
+> and 4.
 > This is a record, not a contract: #204 builds the buttons, amends `docs/specs/application.md`,
 > and measures again on its own build where a number decides a test.
 
@@ -134,16 +135,21 @@ of gap, and from 480 up "English" would then leave less than "Editor" takes. Fro
 "Editor" fits beside the pill in every row, beside either logo: the least is 59.8 pixels on
 Windows and 61 in the CI image, in Dutch beside the first Tree's logo at its cap, at 768 x 1024.
 
-**What these rows do not cover.** They hold for Trees in English and Dutch, two languages each.
-A current language whose own name is drawn narrower than "Editor" gives up less room than
-"Editor" takes. A third language adds a pill: from 768 up, beside a logo at its cap, "Editor"
-leaves 59.8 pixels in Dutch beside the first Tree's controls, and a third pill wider than that,
-with its gap, takes the bar past the window there, where `dev`'s bar, without "Editor", has
-about 69 pixels more. A width at which the bar held a third pill beside such a logo would depend
-on how wide that pill is, which is the language's own name. Neither was measured. Nor does
-`dev`'s bar hold a third pill at 320 x 480, where it keeps 3.6 to 28.3 pixels beside the seeded
-logos (both systems) and the narrowest pill measured there is 46.5 wide. A Tree in one language
-has one pill, the current language's, so giving it up empties the language switch.
+**What these rows do not cover.** They hold for Trees in English and Dutch, two languages each,
+in the faces named in the closing lists. In the share button's look from 480 up, "English" with
+its gap gives up only 0.2 to 0.3 pixels more than "Editor" takes on Windows, and 1 to 2 in the
+CI image, so a current language whose own name is drawn narrower than "English" may give up less
+room than "Editor" takes, and so may "English" drawn in another face -- a Theme's own, or the
+default stack as a system other than these two draws it. A third language adds a pill: from 768
+up, beside a logo at its cap, "Editor" leaves 59.8 pixels in Dutch beside the first Tree's
+controls, and a third pill wider than that, with its gap, takes the bar past the window there,
+where `dev`'s bar, without "Editor", has about 69 pixels more. A width at which the bar held a
+third pill beside such a logo would depend on how wide that pill is, which is the language's own
+name. Neither was measured. Nor does `dev`'s bar hold a third pill at 320 x 480, where it keeps
+3.6 to 28.3 pixels beside the seeded logos (both systems) and the narrowest pill measured there
+is 46.5 wide. A Tree in one language has one pill, the current language's, so giving it up
+empties the language switch. Core document 10.42 asks the owner about these Trees, and about
+`dev`'s own bar beside a third pill at 320 x 480 and beside a logo as wide as its cap.
 
 **The overview `/`.** "Editor" fits at every width in either look; at 320 x 480, the
 narrowest, the share button's look leaves 37.1 to 41.3 pixels on Windows and 24.9 to 30.7 in the
@@ -944,7 +950,11 @@ administrator's address>` from `/work`, which held a copy of the repository's
 `node_modules/playwright-core` and a `package.json` of `{"type":"module"}`. The address is the
 one the server read from `ELSA_ADMIN_EMAIL`, and the script posts it as `{ email, password }`, as
 `login()` in `tests/browser/admin.ts` does since #196. On `6d0ea4b`, before #196, the runs gave no
-address, and the script logged in by the name `admin`.
+address, and the script logged in by the name `admin`. Two of its comments were corrected on
+2026-10-04, after the runs and the review of `7e82dc0`: the one above `VIEWPORTS`, which still
+spoke of one width chosen and of a bar that changes with the width only in its room, untrue
+beside a logo at its cap; and the one above `measure`, which now says that the pill goes with its
+list item, as the code has it, and breaks one line of 172 characters. Its code is as it ran.
 
 ```js
 // Issue #202: the room in the chrome bars for #204's "Editor" and "Website", on the production
@@ -963,9 +973,9 @@ const { chromium } = require('playwright-core')
 
 const [origin, password, email] = process.argv.slice(2)
 /**
- * The ten viewports of 10.6, then 479 x 800, the widest window below 480, then the widths from
- * 480 to 767, where nothing in a Node page's bar changes with the width but the room, with 599
- * and 600 either side of the width the fix run chose.
+ * The ten viewports of 10.6, then 479 x 800, the widest window below 480, then twelve widths
+ * from 480 to 767: 599 and 600 either side of the creators' overview's width of ADR-202
+ * decision 5, and 767 and 10.6's 768 x 1024 either side of a Node page's.
  */
 const VIEWPORTS = [
   [1280, 640], [1366, 768], [1920, 1080], [2560, 1440], [1280, 800],
@@ -976,9 +986,10 @@ const VIEWPORTS = [
 
 /**
  * The room in the page's chrome bar, after drawing `add` -- an `<a>` with a class of the bar's
- * own controls -- at the end of its controls, after hiding the current language's pill when
- * `hideCurrent`, after hiding the bar's first child -- the site's title at `/admin` -- when
- * `hideTitle`, and after drawing the Tree's logo as wide as its cap allows when `logoAtCap`. Room: between the bar's first child and its controls, the bar's gap taken off;
+ * own controls -- at the end of its controls, after hiding the current language's pill with its
+ * list item when `hideCurrent`, after hiding the bar's first child -- the site's title at
+ * `/admin` -- when `hideTitle`, and after drawing the Tree's logo as wide as its cap allows when
+ * `logoAtCap`. Room: between the bar's first child and its controls, the bar's gap taken off;
  * where the first child is hidden (the Tree-less admin bars below 480, or `hideTitle`), after
  * the controls, which then stand alone at the left. Fits: the bar no wider than the window,
  * nothing in the bar wider or taller than itself, and no text in it on more than one line.
