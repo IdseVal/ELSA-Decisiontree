@@ -323,7 +323,7 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
   768 x 1024: either side of decision 5's two widths.
 - A logo as wide as its cap takes a Node page's bar past the window on `dev` from 480 pixels
   wide until 599 to 640 (the measurements above). #202 did not ask about it, and this round
-  does not fix it: below 768 #204's bar, in the Trees and faces measured, in English and
+  does not fix it, and below 768 #204's bar, in the Trees and faces measured, in English and
   Dutch, is never wider than `dev`'s. Core document 10.42 names it for the owner, beside the
   Trees of the next point.
 - The width of 768 is measured for Trees in English and Dutch, two languages each, in the
@@ -338,16 +338,18 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
   third pill beside such a logo would depend on how wide that pill is, which is the
   language's own name, so no one width covers every set of languages. Nor does `dev`'s own
   bar hold a third pill no narrower than the narrowest measured, beside the seeded logos, at
-  320 x 480, at 360 x 640 in Dutch -- two viewports of 10.6 -- or from 480 to 500 or 520
-  pixels wide (the research record, section 2). For a Tree of either kind decision 5's
-  reading does not hold core document 9's first bullet, which protects "languages other
-  than English and Dutch", as `dev`'s bar does not for a third pill or a logo at its cap;
-  and they are not only third-party files: the new-Tree form and the top panel take any
-  number of languages (`application.md` 27.1, 33.5), and the Theme panel a logo whose shape
-  it does not check (33.8). Core document 10.42 asks the owner whether a Node page's bar
-  must hold that bullet for all four, or may fail to for now, as `dev`'s does for the last
-  two; 3.4's bullet and 10.22's mark cite it. #204 builds decision 5's reading and leaves
-  them out of its scope; an answer on #204 before it is built reaches its run.
+  320 x 480, at 360 x 640 in Dutch (in the CI runner's faces in English beside the first
+  Tree's logo too) -- two viewports of 10.6 -- or from 480 to 500 or 520 pixels wide (the
+  research record, section 2), where #204's bar keeps as much room or more, in the Trees and
+  faces measured. For a Tree of either kind decision 5's reading does not hold core document
+  9's first bullet, which protects "languages other than English and Dutch", as `dev`'s bar
+  does not for a third pill or a logo at its cap; and they are not only third-party files:
+  the new-Tree form and the top panel take any number of languages (`application.md` 27.1,
+  33.5), and the Theme panel a logo whose shape it does not check (33.8). Core document
+  10.42 asks the owner whether a Node page's bar must hold that bullet for all four, or may
+  fail to for now, as `dev`'s does for the last two; 3.4's bullet and 10.22's mark cite it.
+  #204 builds decision 5's reading and leaves them out of its scope; an answer on #204
+  before it is built reaches its run.
 - #205 runs while #203 and #204 wait, and amends some of the same lines: 24.1 and 24.3, and
   the header of `ADR-133-admin-routes.md`, for decision 1's addresses where #203 and #204
   mark decision 7. Whichever merges second keeps both, as `ADR-169-tree-creation-ui-round.md`

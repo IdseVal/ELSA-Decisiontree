@@ -150,8 +150,8 @@ narrowest measured -- 46.5 pixels below 480 and 63.6 from 480 up on Windows, 48.
 the CI image, each with a gap of 4 -- beside the seeded logos: at 320 x 480 it keeps 3.6 to 28.3
 pixels (both systems), at 360 x 640 in Dutch 34.8 to 47.6 (and in the CI image 48.8 in English
 beside the first Tree's logo), at 480 and 500 x 800 at most 52.5, and at 520 x 800 at most 65.3
-in all but the second Tree in English; beside a logo as wide as its cap it holds none up to 640
-pixels wide, nor at 700 in Dutch beside the first Tree's controls, or beside the second's in the
+in all but the second Tree in English; beside a logo as wide as its cap it holds none from 480
+up to 640 pixels wide, nor at 700 in Dutch beside the first Tree's controls, or beside the second's in the
 CI image. A Tree in one language has one pill, the current language's, so giving it up empties
 the language switch. Core document 10.42 asks the owner about these Trees, and about `dev`'s own
 bar beside a third pill and beside a logo as wide as its cap.
