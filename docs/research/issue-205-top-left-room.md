@@ -13,7 +13,8 @@
 > last list names the face each drew). Every number that `docs/adrs/ADR-205-*.md` and
 > `docs/specs/application.md` 40 cite is here, with the scripts that produced it, copied whole in
 > section 7, and their output as it ran on each system, in sections 3 and 4. Section 5 is the
-> check of `<html lang>` that 40.3 cites, and section 6 the floor's notice, on Windows.
+> check of `<html lang>` that 40.3 cites, and section 6 the floor's notice and the band right of
+> the arrow, on Windows.
 > This is a record, not a contract: #206 builds the preview and its two buttons and measures them
 > again on its own build, in `tests/browser/preview.spec.ts` (40.9).
 
@@ -78,14 +79,17 @@
   800 x 480 and 300 x 400, on the full Node's No in the editor and on the public page, in both
   languages, the boxes of the notice's text lines, of the floating controls, and of the button
   drawn as an icon at the top left as above.
+- **The band right of the arrow**, by a third script on Windows (`right.mjs`, section 6): below
+  1000 pixels wide, in the editor on the full Node's No, the red cross's box, the floating
+  controls' and the room between them.
 - **The runs.** The script ran four times on each system on 2026-10-04: the first without the
   column `the rule` and at nineteen viewports; the second with that column and the four
   viewports either side of 640 wide; the third and fourth after two corrections to its last
   section, the face of the drawn button, which the first three printed empty for most rows (the
   probe was laid out off the page's grid, then not yet laid out when it was asked). Every table
   row the four printed was the same in each run that printed it but for the first step's id, a
-  fresh one per run; sections 3 and 4 are the fourth. `floor.mjs` and `check-lang.ts` ran after
-  them, on the same build, on Windows.
+  fresh one per run; sections 3 and 4 are the fourth. `floor.mjs`, `right.mjs` and `check-lang.ts`
+  ran after them, on the same build, on Windows.
 
 ## 2. What it shows
 
@@ -147,6 +151,10 @@ below the floor both ways, the notice's first line begins at 34.5 (36.4 in Dutch
 button's 8 to 40. On `dev` the floating controls at the top right already stand over the end of
 the notice's first line at 320 x 480 and 320 x 700 (238 to 272 over a line from 232.8 to 275.5,
 61 to 78 tall, in English) and at 300 x 400.
+
+**Right of the arrow, below 1000 pixels wide** (section 6, on Windows), the red cross and the
+floating controls leave 345.5 pixels between them at 999 x 700, 86 at 480 x 640, 34 at 360 x 640
+and 14.5 at 321 pixels wide, in both languages.
 
 **The faces.** The button's words were drawn in Segoe UI on Windows and in Liberation Sans in the
 CI image, the default stack's faces; the ending's button in Segoe UI Semibold and Liberation Sans
@@ -1404,7 +1412,7 @@ try {
 }
 ```
 
-## 6. The floor's notice
+## 6. The floor's notice, and the band right of the arrow
 
 Run on 2026-10-04 as `node .elsa-data/issue-205/run-floor.ts 13950` from the repository's root, on
 the same build, on Windows. ***OVER THE NOTICE***: the box overlaps one of the notice's text lines.
@@ -1508,6 +1516,100 @@ for (const [what, address] of [['the editor', `/admin/trees/hidden-draft/${top}/
         return `${lines.map(show).join(', ')} | ${floating.map(show).join(', ') || 'none'}${fmeets ? ' -- OVER THE NOTICE' : ''} | ${show(b)}${lines.some(meets) ? ' -- OVER THE NOTICE' : ' -- clear of it'}`
       })} |`)
     }
+  }
+}
+await browser.close()
+console.log(out.join('\n'))
+```
+
+Run on 2026-10-04 as `node .elsa-data/issue-205/run-right.ts 13950`: `run-floor.ts` with `right.mjs` in
+place of `floor.mjs`, on the same build, on Windows.
+
+| lang | viewport | the cross | the floating controls | room between them |
+|---|---|---|---|---|
+| en | 999 x 700 | 531.5..563.5 x 54..86 | 909..943 x 54..86, 951..983 x 54..86 | 345.5 |
+| en | 768 x 1024 | 416..448 x 186.5..218.5 | 678..712 x 54..86, 720..752 x 54..86 | 230 |
+| en | 639 x 700 | 351.5..383.5 x 54..86 | 549..583 x 54..86, 591..623 x 54..86 | 165.5 |
+| en | 480 x 640 | 272..304 x 54..86 | 390..424 x 54..86, 432..464 x 54..86 | 86 |
+| en | 390 x 844 | 227..259 x 104.5..136.5 | 308..342 x 46..78, 350..382 x 46..78 | 49 |
+| en | 360 x 640 | 212..244 x 46..78 | 278..312 x 46..78, 320..352 x 46..78 | 34 |
+| en | 321 x 700 | 192.5..224.5 x 46..78 | 239..273 x 46..78, 281..313 x 46..78 | 14.5 |
+| en | 321 x 481 | 192.5..224.5 x 40..72 | 239..273 x 40..72, 281..313 x 40..72 | 14.5 |
+| nl | 999 x 700 | 531.5..563.5 x 54..86 | 909..943 x 54..86, 951..983 x 54..86 | 345.5 |
+| nl | 768 x 1024 | 416..448 x 186.5..218.5 | 678..712 x 54..86, 720..752 x 54..86 | 230 |
+| nl | 639 x 700 | 351.5..383.5 x 54..86 | 549..583 x 54..86, 591..623 x 54..86 | 165.5 |
+| nl | 480 x 640 | 272..304 x 54..86 | 390..424 x 54..86, 432..464 x 54..86 | 86 |
+| nl | 390 x 844 | 227..259 x 104.5..136.5 | 308..342 x 46..78, 350..382 x 46..78 | 49 |
+| nl | 360 x 640 | 212..244 x 46..78 | 278..312 x 46..78, 320..352 x 46..78 | 34 |
+| nl | 321 x 700 | 192.5..224.5 x 46..78 | 239..273 x 46..78, 281..313 x 46..78 | 14.5 |
+| nl | 321 x 481 | 192.5..224.5 x 40..72 | 239..273 x 40..72, 281..313 x 40..72 | 14.5 |
+
+```ts
+// Issue #205: runs right.mjs as run.ts runs measure.mjs, on Windows only. Usage, from the repository's root:
+//   node .elsa-data/issue-205/run-floor.ts <port>
+import { spawnSync } from 'node:child_process'
+import { writeFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { ADMIN_ENV, buildDataDir } from '../../tests/browser/admin.ts'
+import { serveStore, stopServers } from '../../tests/browser/serve.ts'
+
+const here = path.dirname(fileURLToPath(import.meta.url))
+const repo = path.resolve(here, '..', '..')
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+const full = path.join(repo, 'tests', 'fixtures', 'full-node')
+const dir = await buildDataDir({ trees: [{ folder: full, id: 'hidden-draft', hidden: true, creator: ANNA.email }, { folder: full, id: 'full-public', creator: ANNA.email }], accounts: [ANNA] })
+try {
+  const origin = await serveStore(dir, Number(process.argv[2] ?? 13950), ADMIN_ENV)
+  const login = await fetch(`${origin}/admin/api/login`, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: ANNA.email, password: ANNA.password }) })
+  const cookie = (login.headers.get('set-cookie') ?? '').split(';')[0]!
+  const api = async (method: string, route: string, data: unknown) => {
+    const response = await fetch(`${origin}/admin/api${route}`, { method, headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    if (response.status >= 300) throw new Error(`${method} ${route} answered ${response.status}`)
+    return response.json() as Promise<{ node?: { id: string } }>
+  }
+  const top = (await api('POST', '/trees/hidden-draft/nodes', { from: { node: 'opt-two', link: 'yes' } })).node!.id
+  await api('PATCH', `/trees/hidden-draft/nodes/${top}`, { op: 'set-answer', answer: 'yes', target: 'full' })
+  await api('PATCH', '/trees/hidden-draft/nodes/opt-two', { op: 'remove-answer', answer: 'yes' })
+  await api('PATCH', '/trees/hidden-draft', { path: 'root', value: top })
+  const run = spawnSync(process.execPath, [path.join(here, 'right.mjs'), origin, ANNA.email, ANNA.password, top], { cwd: repo, encoding: 'utf8' })
+  writeFileSync(path.join(here, 'right.md'), run.stdout + run.stderr)
+  console.log(run.stdout + run.stderr)
+} finally {
+  await stopServers()
+}
+```
+
+```js
+// Issue #205: the band right of the up arrow below 1000 pixels wide, in the editor of a hidden Tree
+// on a step that ends: the red cross and the two floating controls, and the room between them. A
+// scratch script of the architect's run, copied whole into docs/research/issue-205-top-left-room.md.
+// Usage, as floor.mjs: node right.mjs <origin> <anna's address> <anna's password> <the first step's id>
+import { createRequire } from 'node:module'
+import path from 'node:path'
+
+const require = createRequire(path.join(process.cwd(), 'package.json'))
+const { chromium } = require('playwright-core')
+const [origin, email, password, top] = process.argv.slice(2)
+const browser = await chromium.launch()
+const context = await browser.newContext()
+const answer = await context.request.post(`${origin}/admin/api/login`, { headers: { Origin: origin, 'Content-Type': 'application/json' }, data: { email, password } })
+if (answer.status() !== 204) throw new Error(`login answered ${answer.status()}`)
+const page = await context.newPage()
+const out = ['| lang | viewport | the cross | the floating controls | room between them |', '|---|---|---|---|---|']
+for (const lang of ['en', 'nl']) {
+  for (const [w, h] of [[999, 700], [768, 1024], [639, 700], [480, 640], [390, 844], [360, 640], [321, 700], [321, 481]]) {
+    await page.setViewportSize({ width: w, height: h })
+    await page.goto(`${origin}/admin/trees/hidden-draft/${top}/full/does-not-apply${lang === 'nl' ? '?lang=nl' : ''}`, { waitUntil: 'load' })
+    await page.evaluate(() => document.fonts.ready)
+    out.push(`| ${lang} | ${w} x ${h} | ${await page.evaluate(() => {
+      const r = (x) => Math.round(x * 10) / 10
+      const show = (b) => `${r(b.left)}..${r(b.right)} x ${r(b.top)}..${r(b.bottom)}`
+      const cross = document.querySelector('.tree-frame .step-delete').getBoundingClientRect()
+      const floating = [...document.querySelectorAll('.editor-float > .sheet > .sheet-open')].map((e) => e.getBoundingClientRect())
+      const first = Math.min(...floating.map((f) => f.left))
+      return `${show(cross)} | ${floating.map(show).join(', ')} | ${r(first - cross.right)}`
+    })} |`)
   }
 }
 await browser.close()
