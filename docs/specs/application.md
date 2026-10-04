@@ -4040,11 +4040,21 @@ rather than squeezing `account` and `logout` past their words, as an 80-characte
 768 x 1024 before the arrow too; and a logo is at most as wide as the room the group has beside the
 arrow, below its caps -- the room #164 made for the arrow on the Node page by the logo's maximum
 width -- so it is drawn smaller rather than hold the bar open. Measured at every width from 320 to
-1280 pixels, in English and Dutch, nothing in the bar overflows in a Tree of two languages beside a
-short title, an 80-character title, the example Tree's logo or a logo at its cap, nor in a Tree of
-three beside either logo; in a Tree of four languages the bar is still wider than the window from
-320 to at most 342 pixels wide and from 480 to at most 521, all widths at which it was without the
-arrow too.
+1280 pixels, in English and Dutch, on Windows and in the CI runner's faces, with the autosave
+indicator empty, as on a page opened before any save, and saying "Saved" ("Opgeslagen"), as it does
+for the rest of the session after a first save (29.3). With the indicator empty nothing in the bar
+overflows in a Tree of two languages beside a short title, an 80-character title, the example
+Tree's logo or a logo at its cap, nor in a Tree of three beside either logo or a title as text; with
+"Saved", in none of those of two languages. From 480 pixels wide up the bar is wider than the window
+at no width at which it was not before #203, and at far fewer. Below 480 the editor gives up a title
+written as text, so in a Tree with no logo nothing gives the arrow's 24 pixels and the bar's gap of 8
+back: there the bar is wider than the window in a band of up to 32 pixels' width at which it was not
+before #203. With the indicator empty that is so in a Tree of four or five languages, from 320 to
+336 pixels wide in English and to 327 in Dutch in one of four; after a first save in a Tree of three
+to five, from 320 to 342 in Dutch in one of three, and from 341 to 372 in English and from 366 to 397
+in Dutch in one of four (the CI runner's faces). Below 480 every other Tree measured is nowhere wider
+than before #203. Whether the editor's bar must give that room back, and how, the owner is asked
+on #214 (2026-10-04).
 Recorded in `docs/adrs/ADR-133-admin-routes.md`.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
