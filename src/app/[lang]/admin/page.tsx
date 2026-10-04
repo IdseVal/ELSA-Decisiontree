@@ -45,6 +45,10 @@ export default async function AdminHome({ params }: { params: Promise<{ lang: st
       <ThemeStyle tree={null} />
       <AdminChrome lang={lang} account={session.account} />
       <main className="overview-page">
+        {/* **[#213]** The logout button above is a request the script makes (24.2). */}
+        <noscript>
+          <p className="admin-note">{chrome(lang).needsJavaScript}</p>
+        </noscript>
         {/* The grid's box is labelled by the page's heading, as on the public overview. */}
         <h1 hidden id="site-title">
           {chrome(lang).siteTitle}

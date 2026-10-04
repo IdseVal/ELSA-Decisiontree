@@ -1681,7 +1681,14 @@ a.language:hover,
   margin: 0;
 }
 
+/*
+ * **[#213]** A column: the creators' overview's `<noscript>` sentence (24.2), laid out only
+ * without script, takes its line from the box under it rather than pushing the box past the
+ * disclaimer. With script the box is the column's one item.
+ */
 .overview-page {
+  display: flex;
+  flex-direction: column;
   padding: 0;
 }
 
@@ -1692,10 +1699,16 @@ a.language:hover,
  * 3 x 160 + 2 x 20 = 520 of 520.
  */
 .overview {
-  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 24px;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+/* **[#213]** The sentence at the box's inset, in line with the tiles. */
+.overview-page .admin-note {
+  padding: 24px 24px 0;
 }
 
 .tiles {
@@ -1836,6 +1849,10 @@ a.language:hover,
 @media (max-width: 359px) {
   .overview {
     padding: 16px;
+  }
+
+  .overview-page .admin-note {
+    padding: 16px 16px 0;
   }
 }
 
