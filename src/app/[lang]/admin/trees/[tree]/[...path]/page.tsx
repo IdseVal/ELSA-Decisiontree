@@ -3,6 +3,7 @@ import { pageSession } from '../../../../../../admin/authenticated.ts'
 import { editMode } from '../../../../../../admin/slots.tsx'
 import { loginWords } from '../../../../../../admin/words.ts'
 import { chrome, chromeLang, chromeLanguage, type Chrome } from '../../../../../../chrome.ts'
+import { BackToOverview } from '../../../../../../components/BackToOverview.tsx'
 import { sheetWords } from '../../../../../../components/Bubble.tsx'
 import { Disclaimer } from '../../../../../../components/Disclaimer.tsx'
 import { LanguageSwitch } from '../../../../../../components/LanguageSwitch.tsx'
@@ -121,8 +122,12 @@ export default async function EditorPage({ params }: Props) {
       <ThemeStyle tree={draft} href={adminThemeHref} revision={entry.meta.revision} editor />
       {/* An admin bar too: below 480 pixels it gives up the title and the current language, as #135 decided (10.6). */}
       <header className="page-chrome admin-chrome editor-chrome" data-editor-ui="">
-        {/* **[#180]** The Tree's logo on the default's bar: the variant for that bar's background, not the draft's (13.1). */}
-        <Logo treeId={draft.id} theme={draft.manifest.theme && { ...draft.manifest.theme, colours: undefined }} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
+        {/* **[#203]** The way out, as on the Node page: here to the creators' overview, where the Trees a creator edits are. */}
+        <div className="page-brand">
+          <BackToOverview href={adminHref('/admin', uiLang)} lang={address.lang} />
+          {/* **[#180]** The Tree's logo on the default's bar: the variant for that bar's background, not the draft's (13.1). */}
+          <Logo treeId={draft.id} theme={draft.manifest.theme && { ...draft.manifest.theme, colours: undefined }} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
+        </div>
         <div className="page-controls">
           <LanguageSwitch address={address} languages={draft.manifest.languages} edit={edit} />
           <SaveIndicator words={edit.words} />
