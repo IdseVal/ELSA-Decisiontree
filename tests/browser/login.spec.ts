@@ -12,6 +12,9 @@
  * old user names -- `admin` included -- refused with the one line, the lock per address typed,
  * also on an address no account holds; the account page's address line, the accounts page's
  * address column, `noEmail` and `setEmail`; and no address in the server's log (38.8).
+ *
+ * **[#213]** And the `<noscript>` sentence once on every admin page a reader without script
+ * opens, in `en` and `nl`: the creators' overview and an uneditable Tree's editor address too.
  */
 import { createHash, randomBytes } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -35,6 +38,8 @@ const CEES = { email: 'cees@example.org', name: 'Cees', password: 'cees first pa
 const LOCKED = { email: 'lotte@example.org', name: 'Lotte', password: 'lottes first password' }
 /** **[#196]** An account a converted store left without an address (38.4), holding a session from before. */
 const HENK = { email: null, name: 'Henk', password: 'henks first password' }
+/** **[#213]** A hidden Tree whose draft a hand edit broke: uneditable (19.5). */
+const HAND_EDITED = 'hand-edited'
 
 let origin: string
 let otherOrigin: string
@@ -48,7 +53,10 @@ const addresses = new Set<string>([ADMIN_EMAIL, ANNA.email, CEES.email, LOCKED.e
 test.beforeAll(async () => {
   const { mkdir } = await import('node:fs/promises')
   await mkdir(RESULTS, { recursive: true })
-  const dir = await buildDataDir({ trees: [{ folder: path.join(repo, 'trees', 'ai-act-example') }], accounts: [ANNA, CEES, LOCKED, HENK] })
+  const trees = [{ folder: path.join(repo, 'trees', 'ai-act-example') }, { folder: path.join(repo, 'tests', 'fixtures', 'single-language'), id: HAND_EDITED, hidden: true }]
+  const dir = await buildDataDir({ trees, accounts: [ANNA, CEES, LOCKED, HENK] })
+  // **[#213]** One key twice: a blocking rule broken (V-JSON), as by an edit outside the editor.
+  await writeFile(path.join(dir, 'trees', HAND_EDITED, 'draft.json'), '{ "format": "elsa-tree/5", "format": "twice" }\n')
   // sessions.json as the release before #196 wrote it for a login of Henk's: the token's hash and his account's id (20.4).
   const henk = (JSON.parse(await readFile(path.join(dir, 'accounts.json'), 'utf8')) as { id: string; name: string }[]).find(({ name }) => name === HENK.name)!
   const now = Date.now()
@@ -538,6 +546,59 @@ test.describe('with a session', () => {
     await adminRow.locator('summary', { hasText: 'Set e-mail address' }).click()
     await expect(adminRow.getByLabel('E-mail address (Administrator)')).toHaveValue(ADMIN_EMAIL)
   })
+})
+
+test.describe('**[#213]** without JavaScript every admin page says once that the editor needs it (24.2)', () => {
+  /** `needsJavaScript` in the two chrome languages (3.2). */
+  const NEEDS_JAVASCRIPT = {
+    en: 'The editor needs JavaScript. Switch it on to sign in and edit.',
+    nl: 'De editor heeft JavaScript nodig. Zet het aan om in te loggen en te bewerken.',
+  }
+  /** Each page with a session, and what only that page holds: the login page shown in its place is not taken for it. */
+  const PAGES = [
+    ['/admin', '.tile--new', "the creators' overview"],
+    ['/admin/new', '#new-tree', 'the new-Tree form'],
+    ['/admin/account', '#your-name', 'the account page'],
+    ['/admin/accounts', 'h1.admin-heading', 'the accounts page'],
+    ['/admin/trees/ai-act-example/start', '.editor-chrome', 'the editor'],
+    [`/admin/trees/${HAND_EDITED}/start`, '#uneditable', "an uneditable Tree's editor address"],
+  ] as const
+
+  for (const lang of ['en', 'nl'] as const) {
+    test(`in ${lang}: the login page, the creators' overview, the form, the account and accounts pages, the editor and an uneditable Tree`, async ({ browser }) => {
+      const context = await browser.newContext({ javaScriptEnabled: false })
+      const page = await context.newPage()
+      const query = lang === 'en' ? '' : '?lang=nl'
+      /** Asserts, softly so that one run names every page that fails, the sentence once and in `main`, before its every control. */
+      const saysItOnce = async (what: string): Promise<void> => {
+        const said = await page.evaluate((sentences) => {
+          // What a reader without script reads: `innerText` holds a `noscript`'s laid-out content, which Playwright's text matching skips.
+          const text = document.body.innerText
+          const notes = [...document.querySelectorAll('main noscript > p.admin-note')]
+          const controls = [...document.querySelectorAll('main :is(a[href], button, input, select, textarea, summary)')]
+          return {
+            en: text.split(sentences.en).length - 1,
+            nl: text.split(sentences.nl).length - 1,
+            notes: notes.map((note) => note.textContent),
+            // 24.2's "in place of its first control": the controls of `main` the note follows.
+            controlsBefore: notes[0] ? controls.filter((control) => control.compareDocumentPosition(notes[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).length : null,
+          }
+        }, NEEDS_JAVASCRIPT)
+        expect.soft(said, what).toEqual({ en: lang === 'en' ? 1 : 0, nl: lang === 'nl' ? 1 : 0, notes: [NEEDS_JAVASCRIPT[lang]], controlsBefore: 0 })
+      }
+
+      expect((await page.goto(`${origin}/admin${query}`))?.status()).toBe(200)
+      await expect(page.locator('#sign-in')).toBeVisible()
+      await saysItOnce('the login page')
+      expect((await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+      for (const [address, only, what] of PAGES) {
+        expect((await page.goto(`${origin}${address}${query}`))?.status(), what).toBe(200)
+        await expect(page.locator(only), what).toHaveCount(1)
+        await saysItOnce(what)
+      }
+      await context.close()
+    })
+  }
 })
 
 test.describe('CSRF (20.6)', () => {
