@@ -22,7 +22,7 @@
 > |---|---|
 > | 3.2 | #206's keys, `preview` and `backToEditor`. |
 > | 4.1, 4.3 | The preview's two addresses; the rows that name an editor address hold for the preview's. |
-> | 6 | The preview's two page files, `src/admin/preview.ts`, `src/components/NodeChrome.tsx`, `src/editor/PreviewButton.tsx`; `links.ts` gains `previewLinks()`, `neighbourhood.ts` `draftCentre`. |
+> | 6 | The preview's two page files, `src/admin/preview.ts`, `src/components/NodeChrome.tsx`, `src/editor/PreviewButton.tsx`; `links.ts` gains `previewLinks()`, `neighbourhood.ts` `draftCentre`, `queue.ts` `flushAll()`, `Editor.tsx` `settle()`; `StepButtons.tsx` draws the ending's icon, and `layout.tsx`'s `htmlLang` reads a draft. |
 > | 7, 8, 9 | The editor round's row names 40.9; rows for the preview; seven `ADR-205-*` rows. |
 > | 11.2 | `neighbourhood` takes a `Readable<N>`; `loadPage` is unchanged; seventeen stands. |
 > | 13.1 | The preview emits the draft's Theme as the editor does, and it paints the whole page. |
@@ -871,7 +871,9 @@ deploy; an hour of a stale font is the same trade the images make.
 │   ├── app/                 Next.js routes (thin); all of them under [lang] (4.4)
 │   │   └── [lang]/          no src/app/layout.tsx exists: this level is the root
 │   │       ├── layout.tsx   the ROOT layout: html shell with `lang` from the segment,
-│   │       │                the Theme's <style> block (13), chrome bar, disclaimer
+│   │       │                the Theme's <style> block (13), chrome bar, disclaimer;
+│   │       │                [#205] htmlLang: an editor or preview address's content
+│   │       │                language, from the draft, for a caller with a role (40.3)
 │   │       ├── page.tsx     `/` -> redirect to the root Node
 │   │       ├── not-found.tsx  the 404 page
 │   │       ├── globals.css  the stylesheet: no colour literal, no font-family literal (13)
@@ -957,16 +959,16 @@ deploy; an hour of a stale font is the same trade the images make.
 │   ├── editor/              [#133] the editor's client components, leaves (34.4); import measure.ts, grammar.ts and markdown.ts only
 │   │   ├── mode.ts          the EditMode type and the slots (34.1, 34.2); server side
 │   │   ├── links.ts         the admin Links: the /admin/trees prefix, adminImageHref (34.3); server side; [#205] and the preview's, /admin/preview (40.1)
-│   │   ├── Editor.tsx       client: the provider -- the write queue, the indicator, the session Sheet (29)
+│   │   ├── Editor.tsx       client: the provider -- the write queue, the indicator, the session Sheet (29); [#205] EditorApi.settle(), which the preview button waits on (29.2, 40.6)
 │   │   ├── Field.tsx        client: one editable region, plain or source, with its counter (28); the add-Source form and the Operation button
-│   │   ├── queue.ts         [#138] the write queue: the debounce, one request in flight, the retry ladder, the pause (29.1, 29.5, 29.6); pure
+│   │   ├── queue.ts         [#138] the write queue: the debounce, one request in flight, the retry ladder, the pause (29.1, 29.5, 29.6); pure; [#205] flushAll(): every field waiting out its 600 ms written at once (29.2, 40.6)
 │   │   ├── fields.ts        [#138] a Node's fields by key path, the queue's key, the plain-line and V-HTML rules (22.2, 29.7); pure
 │   │   ├── writes.ts        the one caller of fetch against /admin/api/, one function per route used
 │   │   ├── slug.ts          the id proposed from a title or a selection (27.1, 32.1); [#168] a new Tree's address
 │   │   ├── LoginForm.tsx    client: the login card, on the login page and in the session Sheet (25.1, 29.6)
 │   │   ├── NewTreeForm.tsx  client: the new-Tree form (27)
 │   │   ├── ImageSlot.tsx, AttachSheet.tsx     client: the pickers and the attach dialog (31)
-│   │   ├── Structure.tsx, StepButtons.tsx    client: the three buttons, the side +, the side bubble's delete; [#178] the step's red cross and "Tree does not end here after all", in place of StepMenu.tsx, the link menu and the picker (30)
+│   │   ├── Structure.tsx, StepButtons.tsx    client: the three buttons, the side +, the side bubble's delete; [#178] the step's red cross and "Tree does not end here after all", in place of StepMenu.tsx, the link menu and the picker (30); [#205] on a hidden Tree below 640 pixels wide, the ending's button a round icon, the glyph of the Tree going on (30.8, 40.5)
 │   │   ├── Marker.tsx, ExplainerSheet.tsx    client: marking and the explainer Sheet (32)
 │   │   ├── PreviewButton.tsx  [#205] client: the preview button, drawn while the Tree is hidden, waiting for the queue (40.5, 40.6)
 │   │   └── Panel.tsx        client: the top panel (33)

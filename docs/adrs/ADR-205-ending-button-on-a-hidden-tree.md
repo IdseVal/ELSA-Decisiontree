@@ -4,7 +4,8 @@
   button stands under the no-scroll rule, beside the step's buttons)
 - Issue: #205 -- Architecture: the preview of a hidden Tree as its readers will see it -- its
   address, what it shows of an unfinished draft, and its two buttons at the top left
-- Spec: `docs/specs/application.md` 40.5 (new, its last part); 30.8 amended, marked **[#205]**
+- Spec: `docs/specs/application.md` 40.5 (new, its last part); 6 and 30.8 amended, marked
+  **[#205]**
 - Amends: `ADR-178-step-buttons.md` decision 2 (where the ending's button stands, and its words
   below 640 pixels wide on a hidden Tree)
 - Depends on: `ADR-205-preview-buttons.md` (the preview button's box), `ADR-178-step-buttons.md`

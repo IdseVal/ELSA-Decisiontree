@@ -7,7 +7,7 @@
   language the preview was opened from" with the step and the language the preview shows
 - Issue: #205 -- Architecture: the preview of a hidden Tree as its readers will see it -- its
   address, what it shows of an unfinished draft, and its two buttons at the top left
-- Spec: `docs/specs/application.md` 40.6 (new); 29.2 and 29.5 amended, marked **[#205]**
+- Spec: `docs/specs/application.md` 40.6 (new); 6, 29.2 and 29.5 amended, marked **[#205]**
 - Amends: `ADR-133-autosave.md` decisions 2 and 5 (the queue gains one way to be waited for; the
   `beforeunload` confirmation is unchanged and never comes from the preview button)
 - Depends on: `ADR-205-preview-address.md`, `ADR-205-preview-buttons.md`, `ADR-133-autosave.md`
