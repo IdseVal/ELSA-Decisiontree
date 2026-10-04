@@ -101,7 +101,9 @@ edited.
    `/admin/trees/` from the draft for a caller with a role on its Tree -- the page's session,
    `permitted('read')`, the draft, `parseUrl` -- and gives anyone else the chrome language of
    the `[lang]` segment, as it gives every admin address today, so that the language a hidden
-   Tree declares reaches nobody without a role. One rule for both addresses: it also makes the
+   Tree declares reaches nobody without a role. Where a caller with a role asks for a path that
+   names no Node of the draft (the 404 page) or for a draft that cannot be opened (19.5), it gives
+   the chrome language of the segment too. One rule for both addresses: it also makes the
    editor's `<html lang>` what 24.1 says, which on `dev` it is not for a draft in a language the
    chrome does not speak (the research record, section 5: `en` around a Bubble in German) nor, by
    the same rule read in `src/app/[lang]/layout.tsx`, for a draft whose default language is Dutch
@@ -139,8 +141,7 @@ edited.
   (`ADR-205-unfinished-draft.md`); `src/editor/links.ts` gains `PREVIEW_PREFIX` and
   `previewLinks()`; `src/neighbourhood.ts` gains `draftCentre`, and `neighbourhood` takes a
   `Readable<N>` (`loadPage` is unchanged); the editor's page calls `draftCentre` where it has the
-  rule inline;
-  `src/app/[lang]/layout.tsx`'s `htmlLang` gains the admin rule of decision 5.
+  rule inline; `src/app/[lang]/layout.tsx`'s `htmlLang` gains the admin rule of decision 5.
 - `application.md` 11.2's signature, 13.1, 24.1's last bullet, 24.3, 34.1, 34.3, 34.5 and 34.7
   carry dated notes; section 40.2 and 40.3 are the contract.
 - `views.test.tsx`, `neighbourhood.test.ts`, `tests/admin/preview.test.ts` and

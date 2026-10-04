@@ -66,8 +66,8 @@ pixels wide.
      "Back to the editor" 152 / 151.2, "Terug naar de editor" 166.3 / 166.4.
    - **Below 1000**: the icon alone, centred, with `min-width: var(--float-size)` and padding
      `0 4px`, as the floating controls have below 1000 (`.editor-float`) -- 32 by 32, and 26 by
-     24 below 640 tall from 480 wide, where the icon, its padding and its border take 26 of a
-     `--float-size` of 24.
+     24 below 640 tall from 480 wide, where the icon, its padding and its border take 26, two
+     more than a `--float-size` of 24.
    - **The icons**, 16-pixel line icons in the stroke of the floating controls' `.float-icon`
      (1.25 pixels, round joins, no fill): for the preview an eye -- an almond outline and a round
      pupil; for the way back a pencil, drawn from the lower left to the upper right.

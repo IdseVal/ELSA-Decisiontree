@@ -76,9 +76,8 @@
 > their work is #206; every PROPOSED reading of the preview in 3.4 `[#202]` and in the row
 > **Preview** of section 5 says, where it stands, whether #205 confirmed or replaced it, and
 > 10.41 is decided. Three decided sentences the preview departs from carry a dated **[#205]**
-> note where they stand: 10.37's "the admin area needs JavaScript", and "not in the editor; and
-> the names go nowhere else", said of the Authors' mention in 3.4's `[#194]` bullet (#195's
-> confirmation) and in 10.40.
+> note where they stand: 10.37's "the admin area needs JavaScript", and "the names go nowhere
+> else", said of the Authors' names in 3.4's `[#194]` bullet (#195's confirmation) and in 10.40.
 
 Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02 and 2026-10-03.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.

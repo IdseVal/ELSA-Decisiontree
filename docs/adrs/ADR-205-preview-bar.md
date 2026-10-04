@@ -9,8 +9,8 @@
 - Amends: `ADR-133-admin-routes.md` decision 7 (each page's bar: the preview's is the public Node
   page's, as this ADR draws it); `ADR-195-the-mention.md` decisions 2 ("Where: two places, and no
   other": a third, the preview's bar) and 5 ("Nowhere else": not the preview); and in the core
-  document, "not in the editor; and the names go nowhere else", said of the mention in 3.4's
-  `[#194]` bullet and in 10.40, carries a dated **[#205]** note for it
+  document, "the names go nowhere else", said of the Authors' names in 3.4's `[#194]` bullet and
+  in 10.40, carries a dated **[#205]** note for it
 - Depends on: `ADR-205-preview-drawing.md` (the draft's Theme on the whole page, the preview's
   `Links`), `ADR-195-the-mention.md`, `ADR-195-authors.md` (the mention, and who it names)
 - Measurements: `docs/research/issue-205-top-left-room.md` (section 2, the public bar's room
