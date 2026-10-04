@@ -3943,15 +3943,18 @@ arrow the public Node page has carried at the left of its bar since #163
 group: a link to the creators' overview, `/admin` in the chrome language -- where `logout` goes --
 named `toOverview` ("All decision trees", "Alle beslisbomen"), 30 pixels across and 24 below 480
 pixels wide. That this is the top level the owner meant, and this its place and look, is the
-PROPOSED reading of core document 3.4 `[#202]`. The bar holds it on one line at every viewport of
-10.6 -- and at every width from 320 to 1280 pixels, measured in English and Dutch beside the
-example Tree's logo, a logo as wide as its cap and an 80-character title -- by two rules of the
-editor's bar alone: the group takes the room the controls leave, so a title as text is cut to its
-two lines (#200) rather than squeezing `account` and `logout` past their words, as an
-80-character title did at 768 x 1024 before the arrow too; and from 480 pixels wide up a logo is
-at least 380 pixels narrower than the window, the room the bar's padding, the arrow and the
-controls of a Tree in two languages take, as #164 made the arrow's room on the Node page with the
-logo's maximum width at the floor. Recorded in `docs/adrs/ADR-133-admin-routes.md`.
+PROPOSED reading of core document 3.4 `[#202]`. Two rules of the editor's bar alone make its room:
+the group takes the room the controls leave, so a title as text is cut to its two lines (#200)
+rather than squeezing `account` and `logout` past their words, as an 80-character title did at
+768 x 1024 before the arrow too; and a logo is at most as wide as the room the group has beside the
+arrow, below its caps -- the room #164 made for the arrow on the Node page by the logo's maximum
+width -- so it is drawn smaller rather than hold the bar open. Measured at every width from 320 to
+1280 pixels, in English and Dutch, nothing in the bar overflows in a Tree of two languages beside a
+short title, an 80-character title, the example Tree's logo or a logo at its cap, nor in a Tree of
+three beside either logo; in a Tree of four languages the bar is still wider than the window from
+320 to at most 342 pixels wide and from 480 to at most 521, all widths at which it was without the
+arrow too.
+Recorded in `docs/adrs/ADR-133-admin-routes.md`.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`

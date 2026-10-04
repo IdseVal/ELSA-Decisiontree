@@ -4,8 +4,8 @@
  * the left of the editor's chrome bar, before the draft's logo or title, named `toOverview` in
  * the chrome language and leading to `/admin` in it -- the creators' overview, with its + tile.
  *
- * Against a data directory of the named accounts and Trees of 35.3 on a server of this file's
- * own: `hidden-draft` names itself with its title, the example Tree with its logo. The
+ * Against a data directory of two of the named Trees of 35.3, both Anna's, on a server of this
+ * file's own: `hidden-draft` names itself with its title, the example Tree with its logo. The
  * screenshots the issue asks for go to `docs/screenshots/issue-203/` under `ELSA_SHOTS=1`, the
  * results folder otherwise (35.7).
  */
