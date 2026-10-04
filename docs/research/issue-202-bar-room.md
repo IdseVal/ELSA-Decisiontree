@@ -78,13 +78,13 @@
   same tables each time. The fix run widened it step by step and ran it seven times on each
   system, six on `6d0ea4b` and the seventh on `748ebcc`, logging in by address as `dev` does
   since #196. The first printed the 110 rows of the filing run unchanged on Windows, in the
-  columns they had. Every later run printed each row of the run before it unchanged, and added only what
-  the script had gained in between: the columns without the site's title and the lines on where
-  the controls at `/admin` stand (the second run), the rows at 599 x 800 (the third), the face
-  drawn (the fourth printed it empty, the fifth named it), and the tables with the logo at its
-  cap and the cap in the closing lists (the sixth). The seventh printed all 322 rows and both
-  closing lists of the sixth unchanged, on both systems: #196 and #200 changed nothing these
-  bars draw for the seeded Trees. Sections 3 and 4 are the seventh run.
+  columns they had. Every later run printed each row of the run before it unchanged, and added
+  only what the script had gained in between: the columns without the site's title and the lines
+  on where the controls at `/admin` stand (the second run), the rows at 599 x 800 (the third),
+  the face drawn (the fourth printed it empty, the fifth named it), and the tables with the logo
+  at its cap and the cap in the closing lists (the sixth). The seventh printed all 322 rows and
+  both closing lists of the sixth unchanged, on both systems: #196 and #200 changed nothing
+  these bars draw for the seeded Trees. Sections 3 and 4 are the seventh run.
 
 ## 2. What it shows
 
@@ -99,9 +99,9 @@ Each pair of numbers is Windows' first, then the CI image's.
   CI image). At 540 the share button's look leaves 0.1 pixels in Dutch beside the first Tree's
   logo on Windows and 1.3 in the CI image; at 600, 60.1 to 85.1 on Windows and 61.3 to 82.5 in
   the CI image.
-- Below 480, as the filing run found: with the pill, "Editor" does not fit at 320 x 480 in either look,
-  beside either Tree's logo, in either language, nor at 360 x 640 in Dutch beside the first
-  Tree's logo.
+- Below 480, as the filing run found: with the pill, "Editor" does not fit at 320 x 480 in
+  either look, beside either Tree's logo, in either language, nor at 360 x 640 in Dutch beside
+  the first Tree's logo.
 - Without the current language's pill, "Editor" in the share button's look fits at every width
   measured below 768: at 767 x 800 with 311.9 to 329.8 pixels to spare on Windows and 313.3 to
   327.6 in the CI image, at 480 x 800 with 24.9 to 42.8 and 26.3 to 40.6, and at 320 x 480 with
@@ -126,13 +126,13 @@ beside the seeded logos, both looks, and 64 in the two beside a logo at its cap,
 button's look; both languages -- the bar holds the logo wherever `dev`'s bar holds it, with as
 much room or more, and where `dev`'s bar does not, it is no wider. That rests on the hidden
 pill's list item and gap. In the share button's look, from 480 up, the item "English" with its
-gap leaves 0.2 to 0.3 pixels more than "Editor" with its gap takes on Windows and 1 to 2 in the CI image, and
-"Nederlands" 23.4 to 25.4 and 24 to 26; below 480, 5.7 to 5.8 and 5 to 7.4, and 26.9 to 28.8 and
-27.5 to 28. The account link's look leaves more: 23.5 or more from 480 up, 12.2 or more below.
-Hiding the pill alone, as `dev` does below 480 at `/admin`, would keep 4 pixels of gap, and from
-480 up "English" would then leave less than "Editor" takes. From 768 up, "Editor" fits beside
-the pill in every row, beside either logo: the least is 59.8 pixels on Windows and 61 in the CI
-image, in Dutch beside the first Tree's logo at its cap, at 768 x 1024.
+gap leaves 0.2 to 0.3 pixels more than "Editor" with its gap takes on Windows and 1 to 2 in the
+CI image, and "Nederlands" 23.4 to 25.4 and 24 to 26; below 480, 5.7 to 5.8 and 5 to 7.4, and
+26.9 to 28.8 and 27.5 to 28. The account link's look leaves more: 23.5 or more from 480 up, 12.2
+or more below. Hiding the pill alone, as `dev` does below 480 at `/admin`, would keep 4 pixels
+of gap, and from 480 up "English" would then leave less than "Editor" takes. From 768 up,
+"Editor" fits beside the pill in every row, beside either logo: the least is 59.8 pixels on
+Windows and 61 in the CI image, in Dutch beside the first Tree's logo at its cap, at 768 x 1024.
 
 **What these rows do not cover.** They hold for Trees in English and Dutch, two languages each.
 A current language whose own name is drawn narrower than "Editor" gives up less room than
