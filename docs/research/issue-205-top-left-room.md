@@ -88,6 +88,8 @@
   tall and at 479 x 639, 390 x 844, 360 x 640, 321 x 700 and 321 x 481, on the three pages that
   end: its box, its lines, whether its words spill out of its box, whether it stands out of the
   band (over the bar or the Bubble), and whether it meets the button.
+  A probe (`probe.mjs`, the end of section 7) read the first Tree's English row at 500, 520 and
+  540 x 639 more closely: the button's box, its scroll and client widths, its words' extent.
 - **The runs.** `measure.mjs` ran five times on each system on 2026-10-04: the first without the
   column `the rule` and at nineteen viewports; the second with that column and the four
   viewports either side of 640 wide; the third and fourth after two corrections to its last
@@ -96,7 +98,8 @@
   after a doubled word in its output ("to the the window's right edge") was corrected. Every
   table row the five printed was the same in each run that printed it but for that word and the
   first step's id, a fresh one per run; sections 3 and 4 are the fifth. `floor.mjs`, `right.mjs`
-  and `check-lang.ts` ran on Windows and `between.mjs` on both systems, on the same build.
+  `check-lang.ts` and `probe.mjs` ran on Windows and `between.mjs` on both systems, on the same
+  build.
 - **`dev` moved on** while this was measured: #197 merged at `0a43073`, adding the mention of a
   Tree's Authors to the public bar and two rules for the account page's cards; none of its rules
   reaches the band above the Bubble, the step's buttons, the floating controls or the tree view,
