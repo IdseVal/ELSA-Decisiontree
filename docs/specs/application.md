@@ -24,7 +24,7 @@
 > | 4.1, 4.3 | The preview's two addresses; the rows that name an editor address hold for the preview's. |
 > | 6 | The preview's two page files, `src/admin/preview.ts`, `src/components/NodeChrome.tsx`, `src/editor/PreviewButton.tsx`; `links.ts` gains `previewLinks()`, `neighbourhood.ts` `draftCentre`. |
 > | 7, 8, 9 | The editor round's row names 40.9; rows for the preview; seven `ADR-205-*` rows. |
-> | 11.2 | `neighbourhood` and `loadPage` take a `Readable<N>`; seventeen stands. |
+> | 11.2 | `neighbourhood` takes a `Readable<N>`; `loadPage` is unchanged; seventeen stands. |
 > | 13.1 | The preview emits the draft's Theme as the editor does, and it paints the whole page. |
 > | 14, 24.1, 24.2, 24.3 | The preview's addresses, its answers and its needing no script; its bar, and the editor's preview button; `<html lang>` on both. |
 > | 29.2, 29.5 | The queue can be waited for; the preview button never asks the `beforeunload` question. |
@@ -2214,11 +2214,12 @@ Given the centre Node and the Trail that reached it:
   interface does not change to serve it (5.1): a page may call `getNode` at most 17
   times, and `getTree` does not exist to call.
 
-**[#205]** (2026-10-04) `neighbourhood` and `loadPage` take a `Readable<N>`, as `centreOf` does
-(34.6), and read a Node's Links through `linksOf`, and `Placed` carries the Node type of the Tree
-read, as `Aside` does: the preview of a hidden Tree draws a draft's neighbourhood (40.2), where a
-question step may hold one Answer, which is placed, and no other. Seventeen stands, for the preview
-as for every page; no public caller changes.
+**[#205]** (2026-10-04) `neighbourhood` takes a `Readable<N>`, as `centreOf` does (34.6), and
+reads a Node's Links through `linksOf`, and `Placed` carries the Node type of the Tree read, as
+`Aside` does: the preview of a hidden Tree draws a draft's neighbourhood (40.2), where a question
+step may hold one Answer, which is placed, and no other. `loadPage` is unchanged: the public Node
+page is the only page that calls it, and the preview's page calls `centreOf`, `draftCentre` and
+`neighbourhood` itself. Seventeen stands, for the preview as for every page; no public caller changes.
 
 ### 11.3 How they arrive, and the slide
 
@@ -6334,9 +6335,11 @@ the row **Preview** of its section 5. Recorded in `docs/adrs/ADR-205-preview-add
     editor's page, which calls it too: a Node at the end of the path is an aside only where the
     entry before names it as an Option; any other explanation Node there is the centre (#139). A
     fresh step a yes or a no made is the centre in the preview as in the editor.
-  - `neighbourhood` and `loadPage` take a `Readable<N>`, as `centreOf` does (34.6), and read a
-    Node's Links through `linksOf`: a draft's question step with one Answer places that one. Public
-    callers are unchanged, and the assertions `neighbourhood.test.ts` holds run as they are.
+  - `neighbourhood` takes a `Readable<N>`, as `centreOf` does (34.6), and reads a Node's Links
+    through `linksOf`: a draft's question step with one Answer places that one. Public callers are
+    unchanged, and the assertions `neighbourhood.test.ts` holds run as they are. `loadPage`, whose
+    only caller among the pages is the public Node page, is unchanged: this page calls `centreOf`,
+    `draftCentre` and `neighbourhood` itself.
   - Every `href` the page carries -- the chain's, the placements', the asides' -- is
     `previewLinks().node(address)`, as the editor's page gives the chain and the asides theirs
     (34.7), so `Slider` finds the placement a control names (11.3).

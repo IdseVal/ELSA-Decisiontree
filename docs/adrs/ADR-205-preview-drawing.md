@@ -60,10 +60,13 @@ edited.
    **seventeen** Nodes (11.2), never more. The editor's reason against the slide, a motion the
    creator does not walk in, does not hold where the creator walks the Tree as a reader, and the
    preview takes the cost it named:
-   - `neighbourhood` and `loadPage` take a `Readable<N>`, as `centreOf` does (34.6), and read
-     a Node's Links through `linksOf`, so a draft's question step with one Answer places that
-     one; public callers are unchanged, and the assertions `neighbourhood.test.ts` holds run as
-     they are.
+   - `neighbourhood` takes a `Readable<N>`, as `centreOf` does (34.6), and reads a Node's Links
+     through `linksOf`, so a draft's question step with one Answer places that one; public
+     callers are unchanged, and the assertions `neighbourhood.test.ts` holds run as they are.
+     `loadPage`, whose only caller among the pages is the public Node page, is not widened:
+     the preview's page
+     calls `centreOf`, `draftCentre` and `neighbourhood` itself, as the editor's page calls
+     `centreOf` itself.
    - The page applies the editor's centre rule for a draft between `centreOf` and
      `neighbourhood` (#139, inline in the editor's page today, moved into `src/neighbourhood.ts`
      as `draftCentre` and called by both pages): a Node at the end of the path is an aside only
@@ -135,8 +138,9 @@ edited.
 
 - `src/admin/preview.ts` (new): `previewMode`, and the draft as the preview reads it
   (`ADR-205-unfinished-draft.md`); `src/editor/links.ts` gains `PREVIEW_PREFIX` and
-  `previewLinks()`; `src/neighbourhood.ts` gains `draftCentre`, and `neighbourhood` and `loadPage`
-  take a `Readable<N>`; the editor's page calls `draftCentre` where it has the rule inline;
+  `previewLinks()`; `src/neighbourhood.ts` gains `draftCentre`, and `neighbourhood` takes a
+  `Readable<N>` (`loadPage` is unchanged); the editor's page calls `draftCentre` where it has the
+  rule inline;
   `src/app/[lang]/layout.tsx`'s `htmlLang` gains the admin rule of decision 5.
 - `application.md` 11.2's signature, 13.1, 24.1's last bullet, 24.3, 34.1, 34.3, 34.5 and 34.7
   carry dated notes; section 40.2 and 40.3 are the contract.

@@ -3,9 +3,8 @@
 - Status: ACCEPTED (frozen) -- 2026-09-10
 - Superseded in part by `ADR-78-overlay.md` (the `side` direction, decisions 1 and 3), `ADR-78-answer-buttons-and-up-arrow.md` (two `up` becomes one), `ADR-78-fan-out-and-option-picture.md` (decisions 7 and 8: the Option picture) -- 2026-09-17 (issue #78). The rest stands as the 0.2 record.
 - **Amended 2026-10-04 by issue #205** (`ADR-205-preview-drawing.md`): in decisions 1 and 5,
-  `neighbourhood` and
-  `loadPage` take a `Readable<N>` and read Links through `linksOf`, so that the preview of a
-  hidden Tree draws a draft's neighbourhood; the bound of seventeen Nodes a page may carry is
+  `neighbourhood` takes a `Readable<N>` and reads Links through `linksOf`, so that the preview of
+  a hidden Tree draws a draft's neighbourhood; the bound of seventeen Nodes a page may carry is
   unchanged, for the preview as for every page. The rest stands.
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 5 and 11
