@@ -12,9 +12,9 @@
 > where Windows draws it in Segoe UI, and both draw the first Tree's own Open Sans (section 2's
 > last list names the face each drew). Every number that `docs/adrs/ADR-205-*.md` and
 > `docs/specs/application.md` 40 cite is here, with the scripts that produced it, copied whole in
-> section 7, and their output as it ran on each system, in sections 3 and 4. Section 5 is the
-> check of `<html lang>` that 40.3 cites, and section 6 the floor's notice and the band right of
-> the arrow, on Windows.
+> section 8, and their output as it ran on each system, in sections 3 and 4. Section 5 is the
+> check of `<html lang>` that 40.3 cites, section 6 the floor's notice and the band right of the
+> arrow, on Windows, and section 7 the room alone, on both systems.
 > This is a record, not a contract: #206 builds the preview and its two buttons and measures them
 > again on its own build, in `tests/browser/preview.spec.ts` (40.9).
 
@@ -82,14 +82,26 @@
 - **The band right of the arrow**, by a third script on Windows (`right.mjs`, section 6): below
   1000 pixels wide, in the editor on the full Node's No, the red cross's box, the floating
   controls' and the room between them.
-- **The runs.** The script ran four times on each system on 2026-10-04: the first without the
+- **The room alone**, by a fourth script on both systems (`between.mjs`, section 7): the ending's
+  button with the first half of the rule only -- its `max-width` less the button's column -- and
+  no icon, beside the button drawn as an icon, from 481 to 640 pixels wide at 700 and 639 pixels
+  tall and at 479 x 639, 390 x 844, 360 x 640, 321 x 700 and 321 x 481, on the three pages that
+  end: its box, its lines, whether its words spill out of its box, whether it stands out of the
+  band (over the bar or the Bubble), and whether it meets the button.
+- **The runs.** `measure.mjs` ran five times on each system on 2026-10-04: the first without the
   column `the rule` and at nineteen viewports; the second with that column and the four
   viewports either side of 640 wide; the third and fourth after two corrections to its last
   section, the face of the drawn button, which the first three printed empty for most rows (the
-  probe was laid out off the page's grid, then not yet laid out when it was asked). Every table
-  row the four printed was the same in each run that printed it but for the first step's id, a
-  fresh one per run; sections 3 and 4 are the fourth. `floor.mjs`, `right.mjs` and `check-lang.ts`
-  ran after them, on the same build, on Windows.
+  probe was laid out off the page's grid, then not yet laid out when it was asked); the fifth
+  after a doubled word in its output ("to the the window's right edge") was corrected. Every
+  table row the five printed was the same in each run that printed it but for that word and the
+  first step's id, a fresh one per run; sections 3 and 4 are the fifth. `floor.mjs`, `right.mjs`
+  and `check-lang.ts` ran on Windows and `between.mjs` on both systems, on the same build.
+- **`dev` moved on** while this was measured: #197 merged at `0a43073`, adding the mention of a
+  Tree's Authors to the public bar and two rules for the account page's cards; none of its rules
+  reaches the band above the Bubble, the step's buttons, the floating controls or the tree view,
+  so the band's rows stand. The public bar's room was measured before the mention, which takes
+  that room and gives way by it (39.4).
 
 ## 2. What it shows
 
@@ -100,7 +112,9 @@ Each pair of numbers is Windows' first, then the CI image's.
 - In the editor of a hidden Tree, a button at the top left meets nothing, in words or as an icon,
   at any viewport measured, in either language, on either system: on the full Node with its
   eight Options and the cross, and on the first Tree's `annex-i-legislation`. Its room is 128.5
-  pixels or more (at 321 pixels wide, to the up arrow); "Voorbeeld" in words is 109 / 108.6.
+  pixels or more (at 321 pixels wide, to the up arrow). In words the button is 94.2 / 96.3 pixels
+  wide with "Preview" and 109 / 108.6 with "Voorbeeld"; as an icon 32 by 32, and 26 by 24 below
+  640 pixels tall from 480 wide.
 - The highest Option button shown stands under it: its top at 100.1 at 1280 x 640, where the
   button ends at 86, and lower at every other viewport where the fan shows.
 - On the public page, the button as an icon meets nothing anywhere; in words, "Back to the
@@ -118,10 +132,12 @@ Each pair of numbers is Windows' first, then the CI image's.
   321 pixels wide (8 to 128.5).
 - So from 1000 pixels wide a button in words stands clear of it, 90.4 / 92.7 pixels or more
   apart, at 1000 x 700 (the first Tree's English: on Windows the button to 110.2, the ending's
-  button from 200.6). Below 1000, in words or as an icon, the button meets it on every one of the
-  three pages wherever both stand on the band's line. As an icon: at 360 x 640, 480 x 640,
+  button from 200.6); in words at 999 x 700 and 999 x 639 too, 224.1 pixels or more apart. Below
+  that the button meets it on every one of the three pages where it reaches the button's column.
+  As an icon: at 360 x 640, 480 x 640,
   321 x 481 and 321 x 700 in both languages, and at 480 x 639 and 479 x 639 in English (at
-  480 x 639 in Dutch too on the first Tree on Windows). In words: at all of those, at 480 x 639
+  480 x 639 in Dutch too on the first Tree on Windows); not at 639 or 640 pixels wide, where its
+  words keep one line. In words: at all of those, at 480 x 639
   and 479 x 639 in both languages, at 640 x 700 and 639 x 700 in both languages, and at 639 x 639
   and 640 x 639 -- in the CI image on every page in both languages; on Windows at 639 x 639 in
   English on every page, and at 640 x 639 and in Dutch on the first Tree only (on the full Node's
@@ -143,6 +159,18 @@ Each pair of numbers is Windows' first, then the CI image's.
 it has more room than with it, on both seeded Trees and the full Node's fixture: 57.1 to 92.2
 pixels more on Windows and 57.2 to 91 in the CI image (the share button and the bar's gap, the
 least below 480 pixels wide, where the bar's pills are smaller), and no row of it overflows.
+
+**The room alone** (section 7). With the first half of the rule and no icon, from 481 to 640 pixels
+wide: at 700 pixels tall the ending's button keeps clear of the button at every width, in two lines
+where needed, on every page, in both languages, on both systems; at 639 pixels tall, where #178
+holds its words on one line of 11 pixels (`white-space: nowrap`), the English words spill out of
+their box at 481 pixels wide on every page, and at 500 on the first Tree on Windows and on every page
+in the CI image; at 520 they reach to 2 pixels of its border (the first Tree, Windows: the words to
+226 in a box to 228), and at 540 the room is 190 for a line of 189. At a phone's sizes the words
+keep clear at 479 x 639, 390 x 844 and 360 x 640, on two lines or three; at 321 x 700 and
+321 x 481 they take three or four lines and stand out of the band, over the bar and the Bubble:
+in English on every page, on both systems; in Dutch at 321 x 481 on every page, and at 321 x 700
+on the first Tree on Windows and on every page in the CI image.
 
 **At and below the floor** (section 6, on Windows), where the notice stands in for the tree view
 (10.4): a button at the top left, as an icon, stands clear of the notice's text at 320 x 480,
@@ -167,7 +195,7 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 
 ### The editor of a hidden Tree: the full Node under a first step: both Answers, eight Options, the cross
 
-`/admin/trees/hidden-draft/n-yjvw7m/full`
+`/admin/trees/hidden-draft/n-c5t6pu/full`
 
 | lang | viewport | the band | in words | as an icon | the rule |
 |---|---|---|---|---|---|
@@ -220,7 +248,7 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 
 ### The editor of a hidden Tree: its No, a step that ends: the cross and "Tree does not end here after all"
 
-`/admin/trees/hidden-draft/n-yjvw7m/full/does-not-apply`
+`/admin/trees/hidden-draft/n-c5t6pu/full/does-not-apply`
 
 | lang | viewport | the band | in words | as an icon | the rule |
 |---|---|---|---|---|---|
@@ -438,12 +466,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; highest Option button's top 100.1; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; highest Option button's top 119.5; bar 0..1366 x 0..44 | 16..168 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..168 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..168 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..168 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..168 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..168 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; highest Option button's top 135.5; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 46..94; bar 0..1024 x 0..44 | 16..168 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..168 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..160 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..168 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..168 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..168 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -461,12 +489,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; highest Option button's top 100.1; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; highest Option button's top 119.5; bar 0..1366 x 0..44 | 16..182.3 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.3 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; highest Option button's top 135.5; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 46..94; bar 0..1024 x 0..44 | 16..182.3 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.3 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.3 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.3 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.3 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.3 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -491,12 +519,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..168 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..168 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..168 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..168 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..168 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..168 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..168 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..168 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..160 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..168 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..168 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..168 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -514,12 +542,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..182.3 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.3 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..182.3 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.3 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.3 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.3 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.3 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.3 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -544,12 +572,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..168 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..168 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..168 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..168 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..168 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..168 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..168 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..168 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..160 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..168 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..168 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..168 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -567,12 +595,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..182.3 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.3 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..182.3 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.3 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.3 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.3 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.3 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.3 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -597,12 +625,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; highest Option button's top 100.1; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; highest Option button's top 119.5; bar 0..1366 x 0..44 | 16..168 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..168 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..168 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..168 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..168 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..168 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; highest Option button's top 135.5; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 46..94; bar 0..1024 x 0..44 | 16..168 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..168 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..160 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..168 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..168 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..168 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -620,12 +648,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; highest Option button's top 100.1; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; highest Option button's top 119.5; bar 0..1366 x 0..44 | 16..182.3 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.3 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; highest Option button's top 135.5; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 46..94; bar 0..1024 x 0..44 | 16..182.3 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.3 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.3 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.3 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.3 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.3 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -650,12 +678,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..168 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..168 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..168 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..168 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..168 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..168 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..168 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..168 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..168 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..168 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..168 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..168 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..168 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..160 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..160 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..168 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..168 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..168 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -673,12 +701,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..182.3 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.3 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.3 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.3 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.3 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.3 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..182.3 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.3 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..182.3 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.3 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.3 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.3 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.3 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.3 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.3 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.3 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -756,8 +784,8 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 
 ### The faces drawn
 
-- /admin/trees/hidden-draft/n-yjvw7m/full/does-not-apply en: #measure-face: Segoe UI; .tree-frame .step-end > button: Segoe UI Semibold
-- /admin/trees/hidden-draft/n-yjvw7m/full/does-not-apply nl: #measure-face: Segoe UI; .tree-frame .step-end > button: Segoe UI Semibold
+- /admin/trees/hidden-draft/n-c5t6pu/full/does-not-apply en: #measure-face: Segoe UI; .tree-frame .step-end > button: Segoe UI Semibold
+- /admin/trees/hidden-draft/n-c5t6pu/full/does-not-apply nl: #measure-face: Segoe UI; .tree-frame .step-end > button: Segoe UI Semibold
 - /admin/trees/agrifood-hidden/start/article-2-exclusions/ai-act-does-not-apply en: #measure-face: Segoe UI; .tree-frame .step-end > button: Open Sans SemiBold
 - /admin/trees/agrifood-hidden/start/article-2-exclusions/ai-act-does-not-apply nl: #measure-face: Segoe UI; .tree-frame .step-end > button: Open Sans SemiBold
 - /admin/trees/example-hidden/start/outside-scope en: #measure-face: Segoe UI; .tree-frame .step-end > button: Segoe UI Semibold
@@ -769,7 +797,7 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 
 ### The editor of a hidden Tree: the full Node under a first step: both Answers, eight Options, the cross
 
-`/admin/trees/hidden-draft/n-yjvw7m/full`
+`/admin/trees/hidden-draft/n-c5t6pu/full`
 
 | lang | viewport | the band | in words | as an icon | the rule |
 |---|---|---|---|---|---|
@@ -822,7 +850,7 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 
 ### The editor of a hidden Tree: its No, a step that ends: the cross and "Tree does not end here after all"
 
-`/admin/trees/hidden-draft/n-yjvw7m/full/does-not-apply`
+`/admin/trees/hidden-draft/n-c5t6pu/full/does-not-apply`
 
 | lang | viewport | the band | in words | as an icon | the rule |
 |---|---|---|---|---|---|
@@ -1040,12 +1068,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; highest Option button's top 100.1; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; highest Option button's top 119.5; bar 0..1366 x 0..44 | 16..167.2 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..167.2 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; highest Option button's top 135.5; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 46..94; bar 0..1024 x 0..44 | 16..167.2 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..167.2 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..159.2 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..167.2 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..167.2 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..167.2 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1063,12 +1091,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; highest Option button's top 100.1; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; highest Option button's top 119.5; bar 0..1366 x 0..44 | 16..182.4 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.4 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; highest Option button's top 135.5; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 46..94; bar 0..1024 x 0..44 | 16..182.4 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.4 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.4 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.4 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.4 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.4 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1093,12 +1121,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..167.2 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..167.2 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..167.2 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..167.2 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..159.2 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..167.2 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..167.2 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..167.2 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1116,12 +1144,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..182.4 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.4 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..182.4 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.4 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.4 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.4 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.4 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.4 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1146,12 +1174,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..167.2 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..167.2 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..167.2 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..167.2 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..159.2 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..167.2 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..167.2 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..167.2 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1169,12 +1197,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..182.4 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.4 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..182.4 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.4 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.4 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.4 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.4 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.4 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1199,12 +1227,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; highest Option button's top 100.1; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; highest Option button's top 119.5; bar 0..1366 x 0..44 | 16..167.2 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..167.2 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; highest Option button's top 135.5; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 46..94; bar 0..1024 x 0..44 | 16..167.2 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..167.2 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..159.2 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..167.2 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..167.2 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..167.2 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1222,12 +1250,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; highest Option button's top 100.1; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; highest Option button's top 119.5; bar 0..1366 x 0..44 | 16..182.4 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.4 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; highest Option button's top 275.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; highest Option button's top 455.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; highest Option button's top 135.5; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 46..94; bar 0..1024 x 0..44 | 16..182.4 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.4 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 152.5..200.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 84.5..132.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.4 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.4 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.4 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.4 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1252,12 +1280,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 |---|---|---|---|---|---|
 | en | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..167.2 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..167.2 x 54..86; room 643 to the up arrow; clear |
-| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the the window's right edge; clear |
-| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the the window's right edge; clear |
+| en | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..167.2 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..167.2 x 54..86; room 1904 to the window's right edge; clear |
+| en | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..167.2 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..167.2 x 54..86; room 2544 to the window's right edge; clear |
 | en | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..167.2 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..167.2 x 54..86; room 600 to the up arrow; clear |
 | en | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..167.2 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..167.2 x 54..86; room 472 to the up arrow; clear |
-| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| en | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..167.2 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| en | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..159.2 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | en | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..159.2 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | en | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..167.2 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..167.2 x 54..86; room 460 to the up arrow; clear |
 | en | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..167.2 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1275,12 +1303,12 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 | en | 320 x 480 |  | the notice stands in for the tree view | the notice stands in for the tree view | the notice stands in for the tree view |
 | nl | 1280 x 640 | arrow 616..664 x 46..94; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1366 x 768 | arrow 659..707 x 50.5..98.5; bar 0..1366 x 0..44 | 16..182.4 x 54..86; room 643 to the up arrow; clear | 16..48 x 54..86; room 643 to the up arrow; clear | 16..182.4 x 54..86; room 643 to the up arrow; clear |
-| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear | 16..48 x 54..86; room 1904 to the the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the the window's right edge; clear |
-| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear | 16..48 x 54..86; room 2544 to the the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the the window's right edge; clear |
+| nl | 1920 x 1080 | arrow 936..984 x 206.5..254.5; bar 0..1920 x 0..44 | 16..182.4 x 54..86; room 1904 to the window's right edge; clear | 16..48 x 54..86; room 1904 to the window's right edge; clear | 16..182.4 x 54..86; room 1904 to the window's right edge; clear |
+| nl | 2560 x 1440 | arrow 1256..1304 x 386.5..434.5; bar 0..2560 x 0..44 | 16..182.4 x 54..86; room 2544 to the window's right edge; clear | 16..48 x 54..86; room 2544 to the window's right edge; clear | 16..182.4 x 54..86; room 2544 to the window's right edge; clear |
 | nl | 1280 x 800 | arrow 616..664 x 66.5..114.5; bar 0..1280 x 0..44 | 16..182.4 x 54..86; room 600 to the up arrow; clear | 16..48 x 54..86; room 600 to the up arrow; clear | 16..182.4 x 54..86; room 600 to the up arrow; clear |
 | nl | 1024 x 768 | arrow 488..536 x 50.5..98.5; bar 0..1024 x 0..44 | 16..182.4 x 54..86; room 472 to the up arrow; clear | 16..48 x 54..86; room 472 to the up arrow; clear | 16..182.4 x 54..86; room 472 to the up arrow; clear |
-| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear | 16..48 x 54..86; room 752 to the the window's right edge; clear |
-| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear | 8..40 x 46..78; room 382 to the the window's right edge; clear |
+| nl | 768 x 1024 | arrow 360..408 x 178.5..226.5; bar 0..768 x 0..44 | 16..182.4 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear | 16..48 x 54..86; room 752 to the window's right edge; clear |
+| nl | 390 x 844 | arrow 171..219 x 96.5..144.5; bar 0..390 x 0..36 | 8..174.4 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear | 8..40 x 46..78; room 382 to the window's right edge; clear |
 | nl | 360 x 640 | arrow 156..204 x 38..86; bar 0..360 x 0..36 | 8..174.4 x 46..78; room 148 to the up arrow; MEETS up arrow | 8..40 x 46..78; room 148 to the up arrow; clear | 8..40 x 46..78; room 148 to the up arrow; clear |
 | nl | 1000 x 700 | arrow 476..524 x 46..94; bar 0..1000 x 0..44 | 16..182.4 x 54..86; room 460 to the up arrow; clear | 16..48 x 54..86; room 460 to the up arrow; clear | 16..182.4 x 54..86; room 460 to the up arrow; clear |
 | nl | 999 x 700 | arrow 475.5..523.5 x 46..94; bar 0..999 x 0..44 | 16..182.4 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear | 16..48 x 54..86; room 459.5 to the up arrow; clear |
@@ -1358,8 +1386,8 @@ The editor's floating controls: {"family":"-apple-system, BlinkMacSystemFont, \"
 
 ### The faces drawn
 
-- /admin/trees/hidden-draft/n-yjvw7m/full/does-not-apply en: #measure-face: Liberation Sans; .tree-frame .step-end > button: Liberation Sans
-- /admin/trees/hidden-draft/n-yjvw7m/full/does-not-apply nl: #measure-face: Liberation Sans; .tree-frame .step-end > button: Liberation Sans
+- /admin/trees/hidden-draft/n-c5t6pu/full/does-not-apply en: #measure-face: Liberation Sans; .tree-frame .step-end > button: Liberation Sans
+- /admin/trees/hidden-draft/n-c5t6pu/full/does-not-apply nl: #measure-face: Liberation Sans; .tree-frame .step-end > button: Liberation Sans
 - /admin/trees/agrifood-hidden/start/article-2-exclusions/ai-act-does-not-apply en: #measure-face: Liberation Sans; .tree-frame .step-end > button: Open Sans SemiBold
 - /admin/trees/agrifood-hidden/start/article-2-exclusions/ai-act-does-not-apply nl: #measure-face: Liberation Sans; .tree-frame .step-end > button: Open Sans SemiBold
 - /admin/trees/example-hidden/start/outside-scope en: #measure-face: Liberation Sans; .tree-frame .step-end > button: Liberation Sans
@@ -1546,7 +1574,7 @@ place of `floor.mjs`, on the same build, on Windows.
 
 ```ts
 // Issue #205: runs right.mjs as run.ts runs measure.mjs, on Windows only. Usage, from the repository's root:
-//   node .elsa-data/issue-205/run-floor.ts <port>
+//   node .elsa-data/issue-205/run-right.ts <port>
 import { spawnSync } from 'node:child_process'
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
@@ -1616,7 +1644,516 @@ await browser.close()
 console.log(out.join('\n'))
 ```
 
-## 7. The scripts
+## 7. The room alone, from 481 to 640 pixels wide and at a phone's sizes
+
+Run on 2026-10-04 as `node .elsa-data/issue-205/run-between.ts 13950`: `run.ts` with `between.mjs` in
+place of `measure.mjs`, on the same build, on Windows and in the CI image. ***ITS WORDS SPILL***:
+the words reach past the button's box; ***OUT OF THE BAND***: the button's box reaches above the
+bar's bottom or below the Bubble's top.
+
+### On Windows
+
+| page | lang | viewport | the ending's button, with the room alone | the button, as an icon | verdict |
+|---|---|---|---|---|---|
+| the full Node's No | en | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 580 x 700 | 56..258 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 600 x 700 | 56..268 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 620 x 700 | 64..278 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | en | 630 x 700 | 69..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | en | 639 x 700 | 73.5..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | en | 640 x 700 | 74..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | en | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the full Node's No | en | 500 x 639 | 48..218 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 520 x 639 | 50.3..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 538 x 639 | 59.3..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 540 x 639 | 60.3..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 560 x 639 | 70.3..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 580 x 639 | 80.3..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 600 x 639 | 90.3..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 620 x 639 | 100.3..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 630 x 639 | 105.3..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 639 x 639 | 109.8..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 640 x 639 | 110.3..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the full Node's No | en | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the full Node's No | en | 360 x 640 | 48..148 x 38..86, 3 lines | 8..40 x 46..78 | clear |
+| the full Node's No | en | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the full Node's No | en | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the full Node's No | nl | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 580 x 700 | 65.8..258 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 600 x 700 | 75.8..268 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 620 x 700 | 85.8..278 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 630 x 700 | 90.8..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 639 x 700 | 95.3..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 640 x 700 | 95.8..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 481 x 639 | 49.3..208.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 500 x 639 | 58.8..218 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 520 x 639 | 68.8..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 538 x 639 | 77.8..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 540 x 639 | 78.8..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 560 x 639 | 88.8..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 580 x 639 | 98.8..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 600 x 639 | 108.8..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 620 x 639 | 118.8..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 630 x 639 | 123.8..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 639 x 639 | 128.3..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 640 x 639 | 128.8..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 479 x 639 | 48.3..207.5 x 40..72, 1 line | 8..40 x 40..72 | clear |
+| the full Node's No | nl | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the full Node's No | nl | 360 x 640 | 48..148 x 45..79, 2 lines | 8..40 x 46..78 | clear |
+| the full Node's No | nl | 321 x 700 | 48..128.5 x 38..86, 3 lines | 8..40 x 46..78 | clear |
+| the full Node's No | nl | 321 x 481 | 48..128.5 x 32..80, 3 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the first Tree (Open Sans) | en | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 580 x 700 | 56..258 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 600 x 700 | 56..268 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 620 x 700 | 56..278 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 630 x 700 | 56..283 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 639 x 700 | 60.1..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 640 x 700 | 60.6..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the first Tree (Open Sans) | en | 500 x 639 | 48..218 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the first Tree (Open Sans) | en | 520 x 639 | 48..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 538 x 639 | 48..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 540 x 639 | 49..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 560 x 639 | 59..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 580 x 639 | 69..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 600 x 639 | 79..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 620 x 639 | 89..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 630 x 639 | 94..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 639 x 639 | 98.5..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 640 x 639 | 99..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the first Tree (Open Sans) | en | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the first Tree (Open Sans) | en | 360 x 640 | 48..148 x 38..86, 3 lines | 8..40 x 46..78 | clear |
+| the first Tree (Open Sans) | en | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the first Tree (Open Sans) | en | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the first Tree (Open Sans) | nl | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 580 x 700 | 56.9..258 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 600 x 700 | 66.9..268 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 620 x 700 | 76.9..278 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 630 x 700 | 81.9..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 639 x 700 | 86.4..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 640 x 700 | 86.9..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 500 x 639 | 51.2..218 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 520 x 639 | 61.2..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 538 x 639 | 70.2..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 540 x 639 | 71.2..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 560 x 639 | 81.2..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 580 x 639 | 91.2..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 600 x 639 | 101.2..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 620 x 639 | 111.2..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 630 x 639 | 116.2..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 639 x 639 | 120.7..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 640 x 639 | 121.2..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the first Tree (Open Sans) | nl | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the first Tree (Open Sans) | nl | 360 x 640 | 48..148 x 45..79, 2 lines | 8..40 x 46..78 | clear |
+| the first Tree (Open Sans) | nl | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the first Tree (Open Sans) | nl | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the example Tree | en | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 580 x 700 | 56..258 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 600 x 700 | 56..268 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 620 x 700 | 64..278 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | en | 630 x 700 | 69..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | en | 639 x 700 | 73.5..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | en | 640 x 700 | 74..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | en | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the example Tree | en | 500 x 639 | 48..218 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 520 x 639 | 50.3..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 538 x 639 | 59.3..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 540 x 639 | 60.3..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 560 x 639 | 70.3..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 580 x 639 | 80.3..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 600 x 639 | 90.3..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 620 x 639 | 100.3..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 630 x 639 | 105.3..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 639 x 639 | 109.8..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 640 x 639 | 110.3..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the example Tree | en | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the example Tree | en | 360 x 640 | 48..148 x 38..86, 3 lines | 8..40 x 46..78 | clear |
+| the example Tree | en | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the example Tree | en | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the example Tree | nl | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 580 x 700 | 65.8..258 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 600 x 700 | 75.8..268 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 620 x 700 | 85.8..278 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 630 x 700 | 90.8..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 639 x 700 | 95.3..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 640 x 700 | 95.8..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 481 x 639 | 49.3..208.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 500 x 639 | 58.8..218 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 520 x 639 | 68.8..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 538 x 639 | 77.8..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 540 x 639 | 78.8..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 560 x 639 | 88.8..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 580 x 639 | 98.8..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 600 x 639 | 108.8..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 620 x 639 | 118.8..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 630 x 639 | 123.8..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 639 x 639 | 128.3..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 640 x 639 | 128.8..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 479 x 639 | 48.3..207.5 x 40..72, 1 line | 8..40 x 40..72 | clear |
+| the example Tree | nl | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the example Tree | nl | 360 x 640 | 48..148 x 45..79, 2 lines | 8..40 x 46..78 | clear |
+| the example Tree | nl | 321 x 700 | 48..128.5 x 38..86, 3 lines | 8..40 x 46..78 | clear |
+| the example Tree | nl | 321 x 481 | 48..128.5 x 32..80, 3 lines | 8..40 x 40..72 | OUT OF THE BAND |
+
+### In the CI runner's faces
+
+| page | lang | viewport | the ending's button, with the room alone | the button, as an icon | verdict |
+|---|---|---|---|---|---|
+| the full Node's No | en | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 580 x 700 | 56..258 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 600 x 700 | 56..268 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 620 x 700 | 56..278 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | en | 630 x 700 | 60.8..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | en | 639 x 700 | 65.3..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | en | 640 x 700 | 65.8..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | en | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the full Node's No | en | 500 x 639 | 48..218 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the full Node's No | en | 520 x 639 | 48..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 538 x 639 | 52.4..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 540 x 639 | 53.4..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 560 x 639 | 63.4..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 580 x 639 | 73.4..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 600 x 639 | 83.4..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 620 x 639 | 93.4..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 630 x 639 | 98.4..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 639 x 639 | 102.9..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 640 x 639 | 103.4..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | en | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the full Node's No | en | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the full Node's No | en | 360 x 640 | 48..148 x 38..86, 3 lines | 8..40 x 46..78 | clear |
+| the full Node's No | en | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the full Node's No | en | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the full Node's No | nl | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 580 x 700 | 59.7..258 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 600 x 700 | 69.7..268 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 620 x 700 | 79.7..278 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 630 x 700 | 84.7..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 639 x 700 | 89.2..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 640 x 700 | 89.7..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the full Node's No | nl | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 500 x 639 | 53.6..218 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 520 x 639 | 63.6..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 538 x 639 | 72.6..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 540 x 639 | 73.6..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 560 x 639 | 83.6..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 580 x 639 | 93.6..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 600 x 639 | 103.6..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 620 x 639 | 113.6..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 630 x 639 | 118.6..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 639 x 639 | 123.1..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 640 x 639 | 123.6..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the full Node's No | nl | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the full Node's No | nl | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the full Node's No | nl | 360 x 640 | 48..148 x 45..79, 2 lines | 8..40 x 46..78 | clear |
+| the full Node's No | nl | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the full Node's No | nl | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the first Tree (Open Sans) | en | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 580 x 700 | 56..258 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 600 x 700 | 56..268 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 620 x 700 | 56..278 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 630 x 700 | 60..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 639 x 700 | 64.5..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 640 x 700 | 65..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | en | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the first Tree (Open Sans) | en | 500 x 639 | 48..218 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the first Tree (Open Sans) | en | 520 x 639 | 48..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 538 x 639 | 50..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 540 x 639 | 51..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 560 x 639 | 61..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 580 x 639 | 71..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 600 x 639 | 81..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 620 x 639 | 91..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 630 x 639 | 96..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 639 x 639 | 100.5..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 640 x 639 | 101..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | en | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the first Tree (Open Sans) | en | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the first Tree (Open Sans) | en | 360 x 640 | 48..148 x 38..86, 3 lines | 8..40 x 46..78 | clear |
+| the first Tree (Open Sans) | en | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the first Tree (Open Sans) | en | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the first Tree (Open Sans) | nl | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 580 x 700 | 60..258 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 600 x 700 | 70..268 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 620 x 700 | 80..278 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 630 x 700 | 85..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 639 x 700 | 89.5..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 640 x 700 | 90..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the first Tree (Open Sans) | nl | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 500 x 639 | 52..218 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 520 x 639 | 62..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 538 x 639 | 71..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 540 x 639 | 72..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 560 x 639 | 82..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 580 x 639 | 92..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 600 x 639 | 102..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 620 x 639 | 112..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 630 x 639 | 117..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 639 x 639 | 121.5..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 640 x 639 | 122..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the first Tree (Open Sans) | nl | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the first Tree (Open Sans) | nl | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the first Tree (Open Sans) | nl | 360 x 640 | 48..148 x 45..79, 2 lines | 8..40 x 46..78 | clear |
+| the first Tree (Open Sans) | nl | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the first Tree (Open Sans) | nl | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the example Tree | en | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 580 x 700 | 56..258 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 600 x 700 | 56..268 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 620 x 700 | 56..278 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | en | 630 x 700 | 60.8..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | en | 639 x 700 | 65.3..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | en | 640 x 700 | 65.8..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | en | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the example Tree | en | 500 x 639 | 48..218 x 45..69, 1 line | 16..42 x 45..69 | ITS WORDS SPILL |
+| the example Tree | en | 520 x 639 | 48..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 538 x 639 | 52.4..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 540 x 639 | 53.4..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 560 x 639 | 63.4..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 580 x 639 | 73.4..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 600 x 639 | 83.4..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 620 x 639 | 93.4..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 630 x 639 | 98.4..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 639 x 639 | 102.9..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 640 x 639 | 103.4..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | en | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the example Tree | en | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the example Tree | en | 360 x 640 | 48..148 x 38..86, 3 lines | 8..40 x 46..78 | clear |
+| the example Tree | en | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the example Tree | en | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+| the example Tree | nl | 481 x 700 | 56..208.5 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 500 x 700 | 56..218 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 520 x 700 | 56..228 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 538 x 700 | 56..237 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 540 x 700 | 56..238 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 560 x 700 | 56..248 x 46..94, 2 lines | 16..48 x 54..86 | clear |
+| the example Tree | nl | 580 x 700 | 59.7..258 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 600 x 700 | 69.7..268 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 620 x 700 | 79.7..278 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 630 x 700 | 84.7..283 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 639 x 700 | 89.2..287.5 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 640 x 700 | 89.7..288 x 54..86, 1 line | 16..48 x 54..86 | clear |
+| the example Tree | nl | 481 x 639 | 48..208.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 500 x 639 | 53.6..218 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 520 x 639 | 63.6..228 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 538 x 639 | 72.6..237 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 540 x 639 | 73.6..238 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 560 x 639 | 83.6..248 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 580 x 639 | 93.6..258 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 600 x 639 | 103.6..268 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 620 x 639 | 113.6..278 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 630 x 639 | 118.6..283 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 639 x 639 | 123.1..287.5 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 640 x 639 | 123.6..288 x 45..69, 1 line | 16..42 x 45..69 | clear |
+| the example Tree | nl | 479 x 639 | 48..207.5 x 39..73, 2 lines | 8..40 x 40..72 | clear |
+| the example Tree | nl | 390 x 844 | 48..163 x 103.5..137.5, 2 lines | 8..40 x 46..78 | clear |
+| the example Tree | nl | 360 x 640 | 48..148 x 45..79, 2 lines | 8..40 x 46..78 | clear |
+| the example Tree | nl | 321 x 700 | 48..128.5 x 31..93, 4 lines | 8..40 x 46..78 | OUT OF THE BAND |
+| the example Tree | nl | 321 x 481 | 48..128.5 x 25..87, 4 lines | 8..40 x 40..72 | OUT OF THE BAND |
+
+```ts
+// Issue #205: runs between.mjs against the production build of dev, on Windows and in the CI
+// runner's faces. A scratch script of the architect's run, copied whole into
+// docs/research/issue-205-top-left-room.md. Run from the repository's root after `npm run build`:
+//   node .elsa-data/issue-205/run.ts <port>
+// It builds a data directory with tests/browser/admin.ts's own `buildDataDir` -- the full Node
+// and the two seeded Trees, each once hidden and once published, Anna their creator -- serves it
+// with tests/browser/serve.ts's `serveStore`, listening on every interface so that the
+// container reaches it, puts a first step above the full Node as step-buttons.spec.ts does (so
+// that the full Node carries the cross), runs between.mjs on Windows and in the
+// mcr.microsoft.com/playwright:v1.62.1-noble image, writes both outputs beside this file, and
+// stops the server.
+import { spawnSync } from 'node:child_process'
+import { writeFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { ADMIN_ENV, buildDataDir } from '../../tests/browser/admin.ts'
+import { serveStore, stopServers } from '../../tests/browser/serve.ts'
+
+const here = path.dirname(fileURLToPath(import.meta.url))
+const repo = path.resolve(here, '..', '..')
+const port = Number(process.argv[2] ?? 13950)
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+
+const full = path.join(repo, 'tests', 'fixtures', 'full-node')
+const agrifood = path.join(repo, 'trees', 'ai-act-applicability-agrifood')
+const example = path.join(repo, 'trees', 'ai-act-example')
+const dir = await buildDataDir({
+  trees: [
+    { folder: full, id: 'hidden-draft', hidden: true, creator: ANNA.email },
+    { folder: full, id: 'full-public', creator: ANNA.email },
+    { folder: agrifood, id: 'agrifood-hidden', hidden: true, creator: ANNA.email },
+    { folder: agrifood, creator: ANNA.email },
+    { folder: example, id: 'example-hidden', hidden: true, creator: ANNA.email },
+    { folder: example, creator: ANNA.email },
+  ],
+  accounts: [ANNA],
+})
+
+try {
+  const origin = await serveStore(dir, port, { ...ADMIN_ENV, HOSTNAME: '0.0.0.0' })
+  const login = await fetch(`${origin}/admin/api/login`, {
+    method: 'POST',
+    headers: { Origin: origin, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: ANNA.email, password: ANNA.password }),
+  })
+  if (login.status !== 204) throw new Error(`login answered ${login.status}`)
+  const cookie = (login.headers.get('set-cookie') ?? '').split(';')[0]!
+  const api = async (method: string, route: string, data?: unknown) => {
+    const response = await fetch(`${origin}/admin/api${route}`, {
+      method,
+      headers: { Origin: origin, Cookie: cookie, ...(data === undefined ? {} : { 'Content-Type': 'application/json' }) },
+      body: data === undefined ? undefined : JSON.stringify(data),
+    })
+    if (response.status >= 300) throw new Error(`${method} ${route} answered ${response.status}: ${await response.text()}`)
+    return response.json() as Promise<{ node?: { id: string } }>
+  }
+  // A Node is made from a parent's Link (22.4): made under an aside, pointed at the full Node,
+  // unhung from the aside, and made the root, it stands above the full Node (step-buttons.spec.ts).
+  const made = await api('POST', '/trees/hidden-draft/nodes', { from: { node: 'opt-two', link: 'yes' } })
+  const top = made.node!.id
+  await api('PATCH', `/trees/hidden-draft/nodes/${top}`, { op: 'set-answer', answer: 'yes', target: 'full' })
+  await api('PATCH', '/trees/hidden-draft/nodes/opt-two', { op: 'remove-answer', answer: 'yes' })
+  await api('PATCH', `/trees/hidden-draft/nodes/${top}`, { path: 'title.en', value: 'The first step' })
+  await api('PATCH', `/trees/hidden-draft/nodes/${top}`, { path: 'title.nl', value: 'De eerste stap' })
+  await api('PATCH', '/trees/hidden-draft', { path: 'root', value: top })
+
+  const windows = spawnSync(process.execPath, [path.join(here, 'between.mjs'), origin, ANNA.email, ANNA.password, top], { cwd: repo, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+  writeFileSync(path.join(here, 'between-windows.md'), windows.stdout + windows.stderr)
+  console.log(`Windows: exit ${windows.status}, ${windows.stdout.split('\n').length} lines`)
+
+  const linux = spawnSync('docker', ['exec', '-w', '/work', 'elsa205', 'node', '/work/between.mjs', `http://host.docker.internal:${port}`, ANNA.email, ANNA.password, top], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+  writeFileSync(path.join(here, 'between-linux.md'), linux.stdout + linux.stderr)
+  console.log(`Linux: exit ${linux.status}, ${linux.stdout.split('\n').length} lines`)
+} finally {
+  await stopServers()
+}
+```
+
+```js
+// Issue #205: from 481 to 640 pixels wide, and at a phone's sizes, in the editor of a hidden Tree on a step that ends, the
+// ending's button with the room of application.md 40.5's first rule alone (its max-width less the
+// preview button's column) and no icon, beside the preview button drawn as an icon at the top left:
+// where the words stand, on how many lines, whether they overflow their box, and whether the two
+// meet. A scratch script of the architect's run, copied whole into
+// docs/research/issue-205-top-left-room.md. Usage, as measure.mjs:
+//   node between.mjs <origin> <anna's address> <anna's password> <the first step's id>
+import { createRequire } from 'node:module'
+import path from 'node:path'
+
+const require = createRequire(path.join(process.cwd(), 'package.json'))
+const { chromium } = require('playwright-core')
+const [origin, email, password, top] = process.argv.slice(2)
+const browser = await chromium.launch()
+const context = await browser.newContext()
+const answer = await context.request.post(`${origin}/admin/api/login`, { headers: { Origin: origin, 'Content-Type': 'application/json' }, data: { email, password } })
+if (answer.status() !== 204) throw new Error(`login answered ${answer.status()}`)
+const page = await context.newPage()
+const PAGES = [
+  ['the full Node\'s No', `/admin/trees/hidden-draft/${top}/full/does-not-apply`],
+  ['the first Tree (Open Sans)', '/admin/trees/agrifood-hidden/start/article-2-exclusions/ai-act-does-not-apply'],
+  ['the example Tree', '/admin/trees/example-hidden/start/outside-scope'],
+]
+const out = ['| page | lang | viewport | the ending\'s button, with the room alone | the button, as an icon | verdict |', '|---|---|---|---|---|---|']
+for (const [what, address] of PAGES) {
+  for (const lang of ['en', 'nl']) {
+    for (const [w, h] of [...[700, 639].flatMap((h) => [481, 500, 520, 538, 540, 560, 580, 600, 620, 630, 639, 640].map((w) => [w, h])), [479, 639], [390, 844], [360, 640], [321, 700], [321, 481]]) {
+      {
+        await page.setViewportSize({ width: w, height: h })
+        await page.goto(`${origin}${address}${lang === 'nl' ? '?lang=nl' : ''}`, { waitUntil: 'load' })
+        await page.evaluate(() => document.fonts.ready)
+        out.push(`| ${what} | ${lang} | ${w} x ${h} | ${await page.evaluate(() => {
+          const r = (x) => Math.round(x * 10) / 10
+          const show = (b) => `${r(b.left)}..${r(b.right)} x ${r(b.top)}..${r(b.bottom)}`
+          const end = document.querySelector('.tree-frame .step-end')
+          end.style.maxWidth = 'calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap) - var(--float-right) - var(--float-size))'
+          const button = end.querySelector('button')
+          const box = button.getBoundingClientRect()
+          const range = document.createRange()
+          range.selectNodeContents(button)
+          const rects = [...range.getClientRects()].filter((b) => b.width > 0)
+          const lines = new Set(rects.map((b) => Math.round(b.top))).size
+          const spills = button.scrollWidth > button.clientWidth + 1 || rects.some((b) => b.left < box.left - 0.5 || b.right > box.right + 0.5)
+          const header = document.querySelector('header').getBoundingClientRect()
+          const bubble = document.querySelector('.tree-frame .bubble').getBoundingClientRect()
+          const out = box.top < header.bottom - 0.5 || box.bottom > bubble.top + 0.5
+          const a = document.createElement('a')
+          Object.assign(a.style, { position: 'fixed', top: 'var(--float-top)', left: 'var(--float-right)', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'var(--float-size)', minWidth: 'var(--float-size)', padding: '0 4px', border: '1px solid #dfe0e2' })
+          a.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16"></svg>'
+          document.body.append(a)
+          const b = a.getBoundingClientRect()
+          a.remove()
+          const meets = b.left < box.right && box.left < b.right && b.top < box.bottom && box.top < b.bottom
+          const verdict = [meets && 'MEETS the button', spills && 'ITS WORDS SPILL', out && 'OUT OF THE BAND'].filter(Boolean).join(', ') || 'clear'
+          return `${show(box)}, ${lines} line${lines === 1 ? '' : 's'} | ${show(b)} | ${verdict}`
+        })} |`)
+      }
+    }
+  }
+}
+await browser.close()
+console.log(out.join('\n'))
+```
+
+## 8. The scripts
 
 Run as `node .elsa-data/issue-205/run.ts 13950` from the repository's root after `npm run build`,
 with the container `elsa205` running: `docker run -d --name elsa205 -w /work
@@ -1624,7 +2161,7 @@ mcr.microsoft.com/playwright:v1.62.1-noble sleep infinity`, `apt-get install fon
 it, and in its `/work` a copy of the repository's `node_modules/playwright-core`, a `package.json` of
 `{"type":"module"}` and `measure.mjs`. `run.ts` builds the data directory, serves it, runs
 `measure.mjs` on Windows and in the container, and writes the two outputs of sections 3 and 4.
-Both scripts are as they ran the fourth time.
+Both scripts are as they ran the fifth time.
 
 ### `run.ts`
 
@@ -1829,7 +2366,7 @@ function measure({ form, text, face, rule }) {
   a.remove()
 
   const level = obstacles.filter((o) => o.y < b.bottom && b.y < o.bottom && o.right > b.x)
-  const first = level.reduce((m, o) => (o.x < m.x ? o : m), { x: window.innerWidth, name: 'the window\'s right edge' })
+  const first = level.reduce((m, o) => (o.x < m.x ? o : m), { x: window.innerWidth, name: 'window\'s right edge' })
   const room = first.x - b.x
   const met = obstacles.filter((o) => b.x < o.right && o.x < b.right && b.y < o.bottom && o.y < b.bottom).map((o) => o.name)
   const under = b.y >= header.bottom - 0.5
