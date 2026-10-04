@@ -12,8 +12,8 @@
 > where Windows draws it in Segoe UI, and both draw the first Tree's own Open Sans (section 2's
 > last list names the face each drew). Every number that `docs/adrs/ADR-205-*.md` and
 > `docs/specs/application.md` 40 cite is here, with the scripts that produced it, copied whole in
-> section 6, and their output as it ran on each system, in sections 3 and 4. Section 5 is the
-> check of `<html lang>` that 40.3 cites.
+> section 7, and their output as it ran on each system, in sections 3 and 4. Section 5 is the
+> check of `<html lang>` that 40.3 cites, and section 6 the floor's notice, on Windows.
 > This is a record, not a contract: #206 builds the preview and its two buttons and measures them
 > again on its own build, in `tests/browser/preview.spec.ts` (40.9).
 
@@ -74,13 +74,18 @@
   the share button (as on `dev`) and without it (as the preview's bar draws it, 40.4).
 - **The faces drawn**, through `CSS.getPlatformFontsForNode`: the button's words, and the
   ending's button on the three pages that end, at 1280 x 640.
+- **The floor**, by a second script on Windows (`floor.mjs`, section 6): at 320 x 480, 320 x 700,
+  800 x 480 and 300 x 400, on the full Node's No in the editor and on the public page, in both
+  languages, the boxes of the notice's text lines, of the floating controls, and of the button
+  drawn as an icon at the top left as above.
 - **The runs.** The script ran four times on each system on 2026-10-04: the first without the
   column `the rule` and at nineteen viewports; the second with that column and the four
   viewports either side of 640 wide; the third and fourth after two corrections to its last
   section, the face of the drawn button, which the first three printed empty for most rows (the
   probe was laid out off the page's grid, then not yet laid out when it was asked). Every table
   row the four printed was the same in each run that printed it but for the first step's id, a
-  fresh one per run; sections 3 and 4 are the fourth.
+  fresh one per run; sections 3 and 4 are the fourth. `floor.mjs` and `check-lang.ts` ran after
+  them, on the same build, on Windows.
 
 ## 2. What it shows
 
@@ -134,6 +139,14 @@ Each pair of numbers is Windows' first, then the CI image's.
 it has more room than with it, on both seeded Trees and the full Node's fixture: 57.1 to 92.2
 pixels more on Windows and 57.2 to 91 in the CI image (the share button and the bar's gap, the
 least below 480 pixels wide, where the bar's pills are smaller), and no row of it overflows.
+
+**At and below the floor** (section 6, on Windows), where the notice stands in for the tree view
+(10.4): a button at the top left, as an icon, stands clear of the notice's text at 320 x 480,
+320 x 700 and 800 x 480 in both languages, in the editor and on the public page; at 300 x 400,
+below the floor both ways, the notice's first line begins at 34.5 (36.4 in Dutch) under the
+button's 8 to 40. On `dev` the floating controls at the top right already stand over the end of
+the notice's first line at 320 x 480 and 320 x 700 (238 to 272 over a line from 232.8 to 275.5,
+61 to 78 tall, in English) and at 300 x 400.
 
 **The faces.** The button's words were drawn in Segoe UI on Windows and in Liberation Sans in the
 CI image, the default stack's faces; the ending's button in Segoe UI Semibold and Liberation Sans
@@ -1391,7 +1404,117 @@ try {
 }
 ```
 
-## 6. The scripts
+## 6. The floor's notice
+
+Run on 2026-10-04 as `node .elsa-data/issue-205/run-floor.ts 13950` from the repository's root, on
+the same build, on Windows. ***OVER THE NOTICE***: the box overlaps one of the notice's text lines.
+
+| page | lang | viewport | the notice's lines | the floating controls | a button at the top left, as an icon |
+|---|---|---|---|---|---|
+| the editor | en | 320 x 480 | 44.5..229.3 x 61..78, 229.3..232.8 x 61..78, 232.8..275.5 x 61..78, 44.1..168.1 x 80.5..97.5, 232.8..275.5 x 61..78, 44.1..168.1 x 80.5..97.5, 168.1..171.7 x 80.5..97.5, 171.7..275.9 x 80.5..97.5, 130.2..189.8 x 100..117, 171.7..275.9 x 80.5..97.5, 130.2..189.8 x 100..117 | 238..272 x 40..72, 280..312 x 40..72 -- OVER THE NOTICE | 8..40 x 40..72 -- clear of it |
+| the editor | en | 320 x 700 | 44.5..229.3 x 61..78, 229.3..232.8 x 61..78, 232.8..275.5 x 61..78, 98..222 x 80.5..97.5, 232.8..275.5 x 61..78, 98..222 x 80.5..97.5 | 238..272 x 46..78, 280..312 x 46..78 -- OVER THE NOTICE | 8..40 x 46..78 -- clear of it |
+| the editor | en | 800 x 480 | 222.1..407 x 69..86, 407..410.5 x 69..86, 410.5..577.9 x 69..86, 410.5..577.9 x 69..86 | 721.1..750 x 45..69, 758..784 x 45..69 | 16..42 x 45..69 -- clear of it |
+| the editor | en | 300 x 400 | 34.5..219.3 x 61..78, 219.3..222.8 x 61..78, 222.8..265.5 x 61..78, 34.1..158.1 x 80.5..97.5, 222.8..265.5 x 61..78, 34.1..158.1 x 80.5..97.5, 158.1..161.7 x 80.5..97.5, 161.7..265.9 x 80.5..97.5, 120.2..179.8 x 100..117, 161.7..265.9 x 80.5..97.5, 120.2..179.8 x 100..117 | 218..252 x 40..72, 260..292 x 40..72 -- OVER THE NOTICE | 8..40 x 40..72 -- OVER THE NOTICE |
+| the editor | nl | 320 x 480 | 46.4..273.5 x 61..78, 48.4..84.7 x 80.5..97.5, 84.7..88.2 x 80.5..97.5, 88.2..271.6 x 80.5..97.5, 88.2..271.6 x 80.5..97.5, 70.3..249.7 x 100..117, 70.3..249.7 x 100..117 | 238..272 x 40..72, 280..312 x 40..72 -- OVER THE NOTICE | 8..40 x 40..72 -- clear of it |
+| the editor | nl | 320 x 700 | 46.4..273.5 x 61..78, 48.4..84.7 x 80.5..97.5, 84.7..88.2 x 80.5..97.5, 88.2..271.6 x 80.5..97.5, 88.2..271.6 x 80.5..97.5 | 238..272 x 46..78, 280..312 x 46..78 -- OVER THE NOTICE | 8..40 x 46..78 -- clear of it |
+| the editor | nl | 800 x 480 | 175.1..442 x 69..86, 442..445.5 x 69..86, 445.5..624.9 x 69..86, 445.5..624.9 x 69..86 | 721.1..750 x 45..69, 758..784 x 45..69 | 16..42 x 45..69 -- clear of it |
+| the editor | nl | 300 x 400 | 36.4..263.5 x 61..78, 38.4..74.7 x 80.5..97.5, 74.7..78.2 x 80.5..97.5, 78.2..261.6 x 80.5..97.5, 78.2..261.6 x 80.5..97.5, 60.3..239.7 x 100..117, 60.3..239.7 x 100..117 | 218..252 x 40..72, 260..292 x 40..72 -- OVER THE NOTICE | 8..40 x 40..72 -- OVER THE NOTICE |
+| the public page | en | 320 x 480 | 44.5..229.3 x 61..78, 229.3..232.8 x 61..78, 232.8..275.5 x 61..78, 44.1..168.1 x 80.5..97.5, 232.8..275.5 x 61..78, 44.1..168.1 x 80.5..97.5, 168.1..171.7 x 80.5..97.5, 171.7..275.9 x 80.5..97.5, 130.2..189.8 x 100..117, 171.7..275.9 x 80.5..97.5, 130.2..189.8 x 100..117 | none | 8..40 x 40..72 -- clear of it |
+| the public page | en | 320 x 700 | 44.5..229.3 x 61..78, 229.3..232.8 x 61..78, 232.8..275.5 x 61..78, 98..222 x 80.5..97.5, 232.8..275.5 x 61..78, 98..222 x 80.5..97.5 | none | 8..40 x 46..78 -- clear of it |
+| the public page | en | 800 x 480 | 222.1..407 x 69..86, 407..410.5 x 69..86, 410.5..577.9 x 69..86, 410.5..577.9 x 69..86 | none | 16..42 x 45..69 -- clear of it |
+| the public page | en | 300 x 400 | 34.5..219.3 x 61..78, 219.3..222.8 x 61..78, 222.8..265.5 x 61..78, 34.1..158.1 x 80.5..97.5, 222.8..265.5 x 61..78, 34.1..158.1 x 80.5..97.5, 158.1..161.7 x 80.5..97.5, 161.7..265.9 x 80.5..97.5, 120.2..179.8 x 100..117, 161.7..265.9 x 80.5..97.5, 120.2..179.8 x 100..117 | none | 8..40 x 40..72 -- OVER THE NOTICE |
+| the public page | nl | 320 x 480 | 46.4..273.5 x 61..78, 48.4..84.7 x 80.5..97.5, 84.7..88.2 x 80.5..97.5, 88.2..271.6 x 80.5..97.5, 88.2..271.6 x 80.5..97.5, 70.3..249.7 x 100..117, 70.3..249.7 x 100..117 | none | 8..40 x 40..72 -- clear of it |
+| the public page | nl | 320 x 700 | 46.4..273.5 x 61..78, 48.4..84.7 x 80.5..97.5, 84.7..88.2 x 80.5..97.5, 88.2..271.6 x 80.5..97.5, 88.2..271.6 x 80.5..97.5 | none | 8..40 x 46..78 -- clear of it |
+| the public page | nl | 800 x 480 | 175.1..442 x 69..86, 442..445.5 x 69..86, 445.5..624.9 x 69..86, 445.5..624.9 x 69..86 | none | 16..42 x 45..69 -- clear of it |
+| the public page | nl | 300 x 400 | 36.4..263.5 x 61..78, 38.4..74.7 x 80.5..97.5, 74.7..78.2 x 80.5..97.5, 78.2..261.6 x 80.5..97.5, 78.2..261.6 x 80.5..97.5, 60.3..239.7 x 100..117, 60.3..239.7 x 100..117 | none | 8..40 x 40..72 -- OVER THE NOTICE |
+
+```ts
+// Issue #205: runs floor.mjs as run.ts runs measure.mjs, on Windows only. Usage, from the repository's root:
+//   node .elsa-data/issue-205/run-floor.ts <port>
+import { spawnSync } from 'node:child_process'
+import { writeFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { ADMIN_ENV, buildDataDir } from '../../tests/browser/admin.ts'
+import { serveStore, stopServers } from '../../tests/browser/serve.ts'
+
+const here = path.dirname(fileURLToPath(import.meta.url))
+const repo = path.resolve(here, '..', '..')
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+const full = path.join(repo, 'tests', 'fixtures', 'full-node')
+const dir = await buildDataDir({ trees: [{ folder: full, id: 'hidden-draft', hidden: true, creator: ANNA.email }, { folder: full, id: 'full-public', creator: ANNA.email }], accounts: [ANNA] })
+try {
+  const origin = await serveStore(dir, Number(process.argv[2] ?? 13950), ADMIN_ENV)
+  const login = await fetch(`${origin}/admin/api/login`, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: ANNA.email, password: ANNA.password }) })
+  const cookie = (login.headers.get('set-cookie') ?? '').split(';')[0]!
+  const api = async (method: string, route: string, data: unknown) => {
+    const response = await fetch(`${origin}/admin/api${route}`, { method, headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    if (response.status >= 300) throw new Error(`${method} ${route} answered ${response.status}`)
+    return response.json() as Promise<{ node?: { id: string } }>
+  }
+  const top = (await api('POST', '/trees/hidden-draft/nodes', { from: { node: 'opt-two', link: 'yes' } })).node!.id
+  await api('PATCH', `/trees/hidden-draft/nodes/${top}`, { op: 'set-answer', answer: 'yes', target: 'full' })
+  await api('PATCH', '/trees/hidden-draft/nodes/opt-two', { op: 'remove-answer', answer: 'yes' })
+  await api('PATCH', '/trees/hidden-draft', { path: 'root', value: top })
+  const run = spawnSync(process.execPath, [path.join(here, 'floor.mjs'), origin, ANNA.email, ANNA.password, top], { cwd: repo, encoding: 'utf8' })
+  writeFileSync(path.join(here, 'floor.md'), run.stdout + run.stderr)
+  console.log(run.stdout + run.stderr)
+} finally {
+  await stopServers()
+}
+```
+
+```js
+// Issue #205: at and below the floor (10.4), where the notice stands in for the tree view, where
+// the notice's text lines stand, against the floating controls at the top right and a button at the
+// top left drawn as measure.mjs draws its icon. A scratch script of the architect's run, copied
+// whole into docs/research/issue-205-top-left-room.md. Usage, as measure.mjs:
+//   node floor.mjs <origin> <anna's address> <anna's password> <the first step's id>
+import { createRequire } from 'node:module'
+import path from 'node:path'
+
+const require = createRequire(path.join(process.cwd(), 'package.json'))
+const { chromium } = require('playwright-core')
+const [origin, email, password, top] = process.argv.slice(2)
+
+const browser = await chromium.launch()
+const context = await browser.newContext()
+const answer = await context.request.post(`${origin}/admin/api/login`, { headers: { Origin: origin, 'Content-Type': 'application/json' }, data: { email, password } })
+if (answer.status() !== 204) throw new Error(`login answered ${answer.status()}`)
+const page = await context.newPage()
+const out = ['| page | lang | viewport | the notice\'s lines | the floating controls | a button at the top left, as an icon |', '|---|---|---|---|---|---|']
+for (const [what, address] of [['the editor', `/admin/trees/hidden-draft/${top}/full/does-not-apply`], ['the public page', '/full-public/full/does-not-apply']]) {
+  for (const lang of ['en', 'nl']) {
+    for (const [w, h] of [[320, 480], [320, 700], [800, 480], [300, 400]]) {
+      await page.setViewportSize({ width: w, height: h })
+      await page.goto(`${origin}${address}${lang === 'nl' ? '?lang=nl' : ''}`, { waitUntil: 'load' })
+      await page.evaluate(() => document.fonts.ready)
+      out.push(`| ${what} | ${lang} | ${w} x ${h} | ${await page.evaluate(() => {
+        const r = (x) => Math.round(x * 10) / 10
+        const show = (b) => `${r(b.left)}..${r(b.right)} x ${r(b.top)}..${r(b.bottom)}`
+        const notice = document.querySelector('.minimum-size')
+        const range = document.createRange()
+        range.selectNodeContents(notice)
+        const lines = [...range.getClientRects()].filter((b) => b.width > 0)
+        const floating = [...document.querySelectorAll('.editor-float > .sheet > .sheet-open')].map((e) => e.getBoundingClientRect())
+        const a = document.createElement('a')
+        Object.assign(a.style, { position: 'fixed', top: 'var(--float-top)', left: 'var(--float-right)', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'var(--float-size)', minWidth: 'var(--float-size)', padding: '0 4px', border: '1px solid #dfe0e2' })
+        a.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16"></svg>'
+        document.body.append(a)
+        const b = a.getBoundingClientRect()
+        a.remove()
+        const meets = (x) => b.left < x.right && x.left < b.right && b.top < x.bottom && x.top < b.bottom
+        const fmeets = floating.flatMap((f) => lines.filter((l) => f.left < l.right && l.left < f.right && f.top < l.bottom && l.top < f.bottom)).length
+        return `${lines.map(show).join(', ')} | ${floating.map(show).join(', ') || 'none'}${fmeets ? ' -- OVER THE NOTICE' : ''} | ${show(b)}${lines.some(meets) ? ' -- OVER THE NOTICE' : ' -- clear of it'}`
+      })} |`)
+    }
+  }
+}
+await browser.close()
+console.log(out.join('\n'))
+```
+
+## 7. The scripts
 
 Run as `node .elsa-data/issue-205/run.ts 13950` from the repository's root after `npm run build`,
 with the container `elsa205` running: `docker run -d --name elsa205 -w /work
