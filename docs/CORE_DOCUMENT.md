@@ -852,14 +852,15 @@ owner's words leave a choice:
   > tree I just clicked on. This is not the functionality we want, when I open this tree,
   > I want the full editor mode, I want to be able to change stuff and be able to
   > unpublish it if I want."
-  - **Why it happened.** On the live demo server the owner logs in with the ordinary account
-    #198 made, which then had no role on that Tree, the administrator's since the first
-    start seeded it. A tile on `/admin` opens the editor only for a Tree its caller has a
-    role on, and otherwise the public page (`docs/specs/application.md` 26.4). The account
-    was made a collaborator 46 seconds after #224 was filed. A collaborator edits but does
-    not publish or unpublish (21.2), so #225 hands the Tree over to the owner's account,
-    which makes it the creator (21.4).
-  - PROPOSED (the owner can overrule it on #225): the owner means their own access to the
+  - **Why it happened.** PROPOSED (from the live demo server's log; the owner did not say
+    where they clicked): the owner was logged in there with the ordinary account #198 made.
+    That account then had no role on the Tree, whose creator is the administrator. A tile
+    on `/admin` opens the editor only for a Tree its caller has a role on, and otherwise the
+    public page (`docs/specs/application.md` 26.4). The account was made a collaborator 46
+    seconds after #224 was filed. A collaborator edits but does not publish or unpublish
+    (21.2), so #225 handed the Tree over to the owner's account, which made it the creator
+    (21.4), on 2026-10-09.
+  - PROPOSED (the owner can overrule it in a new issue): the owner means their own access to the
     Tree they named, not that every tile on `/admin` opens the editor for every account,
     which would let an account edit a Tree it has no role on (section 9's last bullet).
     Nothing above changes under this reading.

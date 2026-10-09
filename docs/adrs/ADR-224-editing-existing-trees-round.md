@@ -22,10 +22,14 @@ that is not needed for this one)."
 
 What stood where the owner clicked:
 
+PROPOSED (a reading of the log below, which the owner did not state): the owner clicked
+on the live demo server, logged in with their own account.
+
 - **The server.** "The editing view on /admin" is the live demo server, http://petercelie:3000:
   the clone `C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\live`, which ran `e190507`
   (`git -C ...\live log --oneline -1`), with its data directory `live-data` beside it.
-- **The account.** The owner logs in there with the ordinary account #198 made on
+- **The account.** The log shows that account logging in and creating a Tree at
+  20:19:49Z, four minutes before #224 was filed. It is the ordinary account #198 made on
   2026-10-09: Idse Val, `idse.val@wur.nl`, id `0ae8c252375288bd8c3f35bab324b61e`, not an
   administrator. `live-data\accounts.json` holds two accounts: that one and the
   administrator, `d2c24a151ca0a46d0c6a71ff5209e16e`. #198's OUT OF SCOPE said: "Handing
@@ -36,9 +40,10 @@ What stood where the owner clicked:
   `live-data\trees`, it is the only one whose title names both the AI Act and agrifood.
   `ai-act-example` is "Does the EU AI Act apply to my AI system? (example)", and the other
   three are titled for the ethics of AI in agrifood. It is one of the two Trees the first
-  start seeded from
-  `trees/`, and so the administrator's (`load` in `src/store/drafts.ts`: a folder without a
-  `meta.json` is the administrator's).
+  start seeded from `trees/`. Both were seeded on 2026-09-26 at 12:03Z, before the
+  administrator account existed (its `createdAt` is 14:51Z). A later start named the
+  administrator their creator (`nameCreator` in `src/store/index.ts`: "the Trees a store
+  seeded before accounts existed").
 - **The rule the owner met.** On `/admin`, "a tile the caller has a role on (21.1) goes to
   `/admin/trees/<id>/<root>` in the page's language; a tile with no role goes to the public
   page as on `/`" (`docs/specs/application.md` 26.4; `src/app/[lang]/admin/page.tsx`).
@@ -82,8 +87,8 @@ neither on this Tree.
    owner and never reads the owner's password file. `ready`, not `proposed`, because the
    owner said so on #224 ("set them to ready"), although `.orca/dispatch.yml` has
    `autonomy: propose`.
-2. **The reading taken, PROPOSED** (core document 3.4 `[#224]`; the owner can overrule it on
-   #225): "when I open this tree, I want the full editor mode" is about the owner's own
+2. **The reading taken, PROPOSED** (core document 3.4 `[#224]`; the owner can overrule it in a
+   new issue): "when I open this tree, I want the full editor mode" is about the owner's own
    access to this Tree, the one named. It is not a change to the rule that every tile on
    `/admin` opens the editor for every account. That rule would let an account edit a Tree
    it has no role on, against 21.2's table and core document 9's last bullet ("No write
@@ -92,19 +97,19 @@ neither on this Tree.
 3. **The agrifood Tree alone.** The owner named one Tree. The owner's account is also a
    collaborator on `ai-act-example` since 20:24:14Z; #225's OUT OF SCOPE says so and that
    the owner can ask for it there.
-4. **No `Depends on:`.** #225 needs nothing this pull request adds: the hand-over route has
-   been built since #132 and is on the live server's build.
+4. **No `Depends on:`.** #225 needs nothing this pull request adds: #132 specified the
+   hand-over route, #136 built it (`cb6e4a8`, PR #151), and that commit is an ancestor of
+   the live server's build.
 
 ## Alternatives rejected
 
 - **Change 26.4 so that every tile on `/admin` opens the editor.** For a Tree the caller
-  has no role on, the editor's every read and write is 403 (21.3). A read-only editor, or
-  a role for every account, is a change to roles that the owner did not ask for, against
-  section 9 (decision 2). If the owner meant this, #225 is where to say so, and it becomes
-  an architecture issue.
-- **Mark on `/admin` which tiles lead to the public page.** It might have kept the owner
-  from mistaking the public page for a broken editor, but the owner asked to edit this Tree,
-  not for a mark. It is not filed.
+  has no role on, the editor's every read and write is 403 (21.3). Letting every account
+  edit every Tree would go against 21.2 and section 9's last bullet (decision 2). A
+  read-only editor would be a new screen. The owner asked for neither. If the owner meant
+  this, a new issue says so, and it is an architecture issue.
+- **Mark on `/admin` which tiles lead to the public page.** The owner asked to edit this
+  Tree, not for a mark. It is not filed.
 - **Leave the owner a collaborator.** It gives "change stuff" but not "unpublish it if I
   want".
 - **Do the hand-over in this run.** #224's task is to put issues on the board. A run that
@@ -114,9 +119,11 @@ neither on this Tree.
 
 ## Consequences
 
-- After #225, the owner's account is the agrifood Tree's creator. The administrator becomes
-  a collaborator on it (`handOver` adds the old creator, 21.4), whom 39.3 never names, so
-  the public page still says "By Idse Val".
+- #225 was dispatched while this record was being written, and closed on 2026-10-09. Its
+  run handed the Tree over at 20:29:23Z (`live\live-server.log`). The owner's account is
+  now the agrifood Tree's creator. The administrator is a collaborator on it (`handOver`
+  adds the old creator, 21.4), and 39.3 never names the administrator, so the public page
+  still says "By Idse Val". The proof is in the run's comments on #225.
 - A fresh data directory, such as the one `docs/hosting-shared-box.md` plans, seeds the
   Trees as the administrator's again (`ELSA_SEED_DIR`, README). The hand-over is then done
   again there by the same request. #225 names this and does not do it.
