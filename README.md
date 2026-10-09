@@ -14,6 +14,7 @@ tracking.
   so run that too before you call a Tree finished.
 - The application contracts: [`docs/specs/application.md`](docs/specs/application.md)
 - How to run it on a server: [`docs/deployment.md`](docs/deployment.md)
+- Hosting it on the shared Hetzner box, beside another project, from `main`: [`docs/hosting-shared-box.md`](docs/hosting-shared-box.md)
 - Licence: the code is MIT ([`LICENSE`](LICENSE)); the Tree content is CC BY 4.0 ([`CONTENT-LICENSE`](CONTENT-LICENSE)).
 
 Version 0.1 -- the state described by those two specs -- is preserved on the branch
