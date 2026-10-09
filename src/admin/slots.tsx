@@ -55,7 +55,7 @@ export interface Structure {
 }
 
 /** The chrome strings the editor's client components read through `words`, as strings. */
-function editorWords(ui: Chrome): EditorWords {
+export function editorWords(ui: Chrome): EditorWords {
   return {
     characters: ui.characters,
     lines: ui.lines,
