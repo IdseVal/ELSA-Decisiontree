@@ -48,18 +48,28 @@ const props = (element: ReactElement | null | undefined): Record<string, unknown
 describe('the Answer row (30.1)', () => {
   test('a Node without Links gets + Yes, the end Sheet and + No, in that order', () => {
     const [yes, end, no] = children(structure!(node('start')) as ReactElement)
-    expect(props(yes)).toMatchObject({ link: 'yes', nodeId: 'start', here: '/admin/trees/t/start' })
+    // **[#221]** Each sends `link: 'answer'` with the chrome word in every language of the Tree (41.7 item 1).
+    expect(props(yes)).toMatchObject({ which: 'yes', label: { en: 'Yes', nl: 'Ja' }, nodeId: 'start', here: '/admin/trees/t/start' })
     expect(props(end)).toMatchObject({ className: 'structure-end' })
-    expect(props(no)).toMatchObject({ link: 'no' })
+    expect(props(no)).toMatchObject({ which: 'no', label: { en: 'No', nl: 'Nee' } })
   })
 
-  test('one Answer: the lone + for the other, at the Answer’s width', () => {
-    expect(props(structure!(node('start', { kind: 'question', answers: { yes: 'n-2' } })) as ReactElement)).toMatchObject({ link: 'no', lone: true })
-    expect(props(structure!(node('start', { kind: 'question', answers: { no: 'n-2' } })) as ReactElement)).toMatchObject({ link: 'yes', lone: true })
+  test('one Answer: the lone + for the word its label does not say in the language edited, at the Answer’s width (41.7 item 2)', () => {
+    const one = (label: Record<string, string>) => structure!(node('start', { kind: 'question', answers: [{ label, target: 'n-2' }] })) as unknown as ReactElement[]
+    expect(one({ en: 'Yes', nl: 'Ja' }).map(props)).toMatchObject([{ which: 'no', lone: true }])
+    expect(one({ en: 'no', nl: '' }).map(props)).toMatchObject([{ which: 'yes', lone: true }])
+    // **[#221]** Words that are neither: both stay, one click each, and neither is lone.
+    expect(one({ en: 'Not sure', nl: 'Weet niet' }).map(props)).toMatchObject([
+      { which: 'yes', lone: false },
+      { which: 'no', lone: false },
+    ])
   })
 
   test('both Answers, or an end: the public row, nothing added', () => {
-    expect(structure!(node('start', { kind: 'question', answers: { yes: 'n-2', no: 'a-1' } }))).toBeNull()
+    const step = (target: string) => ({ label: { en: 'A step', nl: 'Een stap' }, target })
+    expect(structure!(node('start', { kind: 'question', answers: [step('n-2'), step('a-1')] }))).toBeNull()
+    // **[#221]** Three or four: the public row too, until #222 adds its `+` (41.7 item 2).
+    expect(structure!(node('start', { kind: 'question', answers: [step('n-2'), step('a-1'), step('n-2'), step('a-1')] }))).toBeNull()
     expect(structure!(node('start', { kind: 'terminal', label: { en: 'Look elsewhere' } }))).toBeNull()
   })
 
