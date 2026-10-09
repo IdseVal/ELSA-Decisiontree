@@ -2368,7 +2368,7 @@ fieldset:disabled .admin-submit {
  * its controls stand at its right end at every width, where the public pages' "Editor" stands --
  * below 480 too, where the title they stood beside is not drawn. Below 600 the creators' overview
  * makes `website`'s room as every Tree-less admin page does below 480: it gives up the site's
- * title and the current language's pill. At 600 `website` keeps 34.7 pixels beside the title.
+ * title and the current language's pill.
  */
 .admin-home .page-controls {
   margin-left: auto;
@@ -2378,6 +2378,13 @@ fieldset:disabled .admin-submit {
   .admin-home:has(.admin-nav) .tree-title,
   .admin-home:has(.admin-nav) .language--current {
     display: none;
+  }
+}
+
+/* Below 480 the controls stand 4 apart and the account links 8: `website` keeps the links' 8 from `logout`. */
+@media (max-width: 479px) {
+  .admin-home .admin-nav + .admin-link {
+    margin-left: 4px;
   }
 }
 

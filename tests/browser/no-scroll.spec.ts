@@ -28,13 +28,19 @@
  * (section 11): halfway out of the page, and halfway back into it on the history step. A
  * slide follows an Answer or the up arrow; nothing slides to an Option (11.1).
  *
+ * **[#204]** And the chrome bar alone, with "Editor" at its right end (`bar.ts`): the overview's, and
+ * a Node page's beside each seeded Tree's logo, an 80-character title and three Authors, at every
+ * viewport of 10.6 and at five sizes either side of 480, 600 and 768 wide; and beside a logo at its
+ * cap, either side of 768.
+ *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
  * pull request can paste the numbers rather than describe them (10.6, last paragraph).
  *
  * The fixtures and the first Tree are served by servers this file starts (`serve.ts`):
  * Playwright's own server serves the example Tree.
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
@@ -43,6 +49,7 @@ import { openTree } from '../../src/tree/loader.ts'
 import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
 import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
 import { arrived, escapeUrlOpened } from './arrived.ts'
+import { BAR_SIZES, barRow, expectBarFits, measureBar } from './bar.ts'
 import { BASE_PORT, dataDir, serve, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -71,6 +78,8 @@ const LONG_TITLE_PORT = FULL_NODE_PORT + 14
 const LIBRARY_PORT = FULL_NODE_PORT + 15
 /** **[#197]** The example Tree with three Authors whose names are 80 characters each. */
 const AUTHORS_PORT = FULL_NODE_PORT + 10
+/** **[#204]** A copy of the first Tree whose logo is drawn at its cap. */
+const WIDE_FIRST_PORT = FULL_NODE_PORT + 11
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -165,6 +174,8 @@ interface Row {
 }
 
 const rows: Row[] = []
+/** **[#204]** The rows of the bar alone (`bar.ts`), a table of their own after the page's. */
+const barRows: string[] = []
 
 const servers = new Map<number, { treeId: string; origin: Promise<string | null> }>()
 
@@ -185,7 +196,16 @@ async function served(treesDir: string, treeId: string, port: number): Promise<s
 test.afterAll(async () => {
   await stopServers()
   await mkdir(RESULTS, { recursive: true })
-  await writeFile(path.join(RESULTS, 'no-scroll.md'), table(rows))
+  await writeFile(
+    path.join(RESULTS, 'no-scroll.md'),
+    [
+      table(rows),
+      "| page | lang | viewport | what | room beside the controls | the bar's right edge/inner w | overflowing elements, lines too many |",
+      '|---|---|---|---|---|---|---|',
+      ...barRows,
+      '',
+    ].join('\n'),
+  )
 })
 
 /** The page as laid out, once its fonts have settled: the numbers of 10.6. */
@@ -621,6 +641,92 @@ test.describe('three Authors of 80 characters', () => {
       await expect(line).toBeVisible()
       await expect(line).toHaveAttribute('title', new RegExp(NAMES[2]!))
       expect(await line.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true)
+    })
+
+    test(`the bar with "Editor" beside three Authors of 80 characters, ${lang}, fits at every viewport of 10.6 and at five more`, async ({ page }) => {
+      await barEverywhere(page, `${origin}${inLang(EXAMPLE_PAGES[1].url, lang)}`, 'root Node, three Authors of 80 characters', lang)
+    })
+  }
+})
+
+/**
+ * **[#204]** The chrome bar alone, with "Editor" at its right end, at every viewport of 10.6 and at
+ * the five sizes of `BAR_SIZES` (24.3): inside the window, nothing in it overflowing, no text in it
+ * on more lines than it is given. 10.6's whole-page rows of the same pages are measured above.
+ */
+async function barEverywhere(page: Page, url: string, what: string, lang: string): Promise<void> {
+  for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES]) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
+    await expect(page.locator('header.page-chrome').getByRole('link', { name: 'Editor', exact: true })).toBeVisible()
+    const m = await measureBar(page)
+    barRows.push(barRow(what, lang, viewport, m))
+    expectBarFits(m, `${what} (${lang}) at ${viewport}`)
+  }
+}
+
+/** **[#204]** The bars TASK 3 of #204 names: the overview's, and a Node page's beside each seeded logo and a title as text. */
+const BARS = [
+  { what: 'the overview', url: async () => '/' },
+  { what: 'the example Tree, its logo', url: async () => EXAMPLE_PAGES[1].url },
+  { what: "the first Tree, its logo", url: async () => `${await firstTreeOrigin()}/ai-act-applicability-agrifood/start` },
+  { what: 'a Tree with no logo and an 80-character title', url: async () => `${await served(fixtures, 'long-title', LONG_TITLE_PORT)}${LONG_TITLE_URL}` },
+] as const
+
+for (const { what, url } of BARS) {
+  for (const lang of LANGUAGES) {
+    test(`${what}: the bar with "Editor", ${lang}, fits at every viewport of 10.6 and at five more`, async ({ page }) => {
+      test.slow()
+      const address = await url()
+      await barEverywhere(page, address === '/' ? (lang === 'en' ? '/' : '/?lang=nl') : inLang(address, lang), what, lang)
+    })
+  }
+}
+
+/**
+ * **[#204]** A Node page's bar beside a logo at its cap, either side of the width where the current
+ * language comes back: a copy of the first Tree, whose Open Sans pills leave the least room, with a
+ * logo of 300 x 30 -- ten times as wide as it is tall, so the bar draws it at its cap of 18rem, 288
+ * pixels, at both sizes.
+ */
+test.describe('a logo at its cap', () => {
+  let folder: string
+  let origin: string
+
+  test.beforeAll(async () => {
+    folder = await mkdtemp(path.join(tmpdir(), 'elsa-wide-first-'))
+    const tree = path.join(folder, 'wide-first')
+    await cp(path.join(trees, 'ai-act-applicability-agrifood'), tree, { recursive: true })
+    await writeFile(
+      path.join(tree, 'theme', 'wide.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 30" width="300" height="30"><rect width="300" height="30" fill="#5aa9c9"/></svg>',
+    )
+    const file = JSON.parse(await readFile(path.join(tree, 'tree.json'), 'utf8')) as { theme: { logo: { light: string } } }
+    file.theme.logo.light = 'wide.svg'
+    await writeFile(path.join(tree, 'tree.json'), JSON.stringify(file))
+    origin = await served(folder, 'wide-first', WIDE_FIRST_PORT)
+  })
+
+  test.afterAll(async () => {
+    await rm(folder, { recursive: true, force: true })
+  })
+
+  for (const lang of LANGUAGES) {
+    test(`the first Tree with a logo at its cap: the bar with "Editor", ${lang}, fits at 767 x 800 and 768 x 1024`, async ({ page }) => {
+      for (const [width, height] of [
+        [767, 800],
+        [768, 1024],
+      ] as const) {
+        const viewport = `${width}x${height}`
+        await page.setViewportSize({ width, height })
+        expect((await page.goto(`${origin}${inLang('/wide-first/start', lang)}`))?.status()).toBe(200)
+        await page.evaluate(() => document.fonts.ready)
+        expect((await page.locator('header.page-chrome img.logo').boundingBox())!.width, `${viewport}: the logo at its cap`).toBeCloseTo(288, 0)
+        const m = await measureBar(page)
+        barRows.push(barRow('the first Tree, a logo at its cap', lang, viewport, m))
+        expectBarFits(m, `the first Tree with a logo at its cap (${lang}) at ${viewport}`)
+      }
     })
   }
 })
