@@ -89,7 +89,11 @@ describe('a Tree in two languages', () => {
     expect(node!.kind).toBe('question')
     // The narrowing the discriminated union of section 5.1 exists for.
     if (node!.kind !== 'question') throw new Error('unreachable')
-    expect(node!.answers).toEqual({ yes: 'prohibited-practices', no: 'outside-scope' })
+    // **[#221]** In the order the buttons stand, each with its words (tree-format.md 5.3).
+    expect(node!.answers).toEqual([
+      { label: { en: 'Yes', nl: 'Ja' }, target: 'prohibited-practices' },
+      { label: { en: 'No', nl: 'Nee' }, target: 'outside-scope' },
+    ])
     expect(node!.sources).toEqual([
       {
         id: 'art-2',
@@ -475,14 +479,14 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
       // The Link to a missing Node the issue asks for by name.
       'answer-to-missing-node',
       [
-        { file: 'start', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"no-such-node" is not a Node of this Tree' },
+        { file: 'start', keyPath: 'answers[0].target', rule: 'V-ANSWERS', message: '"no-such-node" is not a Node of this Tree' },
         { file: 'yes-end', keyPath: '', rule: 'V-REACH', message: 'not reachable from root "start" by following Answers and Options' },
       ],
     ],
     [
       'answer-to-explanation',
       [
-        { file: 'start', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"detail" is an explanation Node; an Answer must lead to a question Node or a Terminal' },
+        { file: 'start', keyPath: 'answers[0].target', rule: 'V-ANSWERS', message: '"detail" is an explanation Node; an Answer must lead to a question Node or a Terminal' },
       ],
     ],
     [

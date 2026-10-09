@@ -145,6 +145,16 @@ describe('the draft schema (19.2)', () => {
     expect(check(validTree(), 'published')).toEqual([])
     expect(check(validTree(), 'draft')).toEqual([])
   })
+
+  test('**[#221]** two, three and four next steps are valid in both modes, labels of 19 characters included, and two may share a target (41.1)', () => {
+    for (const count of [2, 3, 4]) {
+      const tree = validTree()
+      const words = { en: 'Not in this purpose'.slice(0, 19), nl: 'Niet van toepassing' }
+      steps(tree, 'start').splice(0, 2, ...Array.from({ length: count }, (_, i) => ({ label: words, target: i % 2 === 0 ? 'yes-end' : 'no-end' })))
+      expect(check(tree, 'published'), String(count)).toEqual([])
+      expect(check(tree, 'draft'), String(count)).toEqual([])
+    }
+  })
 })
 
 describe('advisory in a draft, refused in full (tree-format.md 7)', () => {
