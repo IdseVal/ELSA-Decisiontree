@@ -90,7 +90,7 @@
 > `docs/specs/tree-format.md` 5.3 and 12.8 (`elsa-tree/6`), measured in
 > `docs/research/issue-220-answer-row-room.md`; their work is #221 and #222. Every PROPOSED reading
 > of 3.4 `[#219]` and of the row **Answer** of section 5 says, where it stands, that #220 confirmed
-> it; 10.43 is decided; 10.21 and 10.22 carry a dated **[#220]** note, and so do the sentences of
+> it; 10.43 is decided; 10.21, 10.22, 10.27 and 10.41 carry a dated **[#220]** note, and so do the sentences of
 > 3.2 that a button's words change.
 >
 > **Revision of 2026-10-09 (issue #224).** The owner wrote, in issue #224, that a Tree they
