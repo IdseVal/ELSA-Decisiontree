@@ -117,10 +117,10 @@ function pageUrl(visited: string[], lang: Lang): string {
 }
 
 async function clickAnswer(page: Page, lang: Lang, which: 'yes' | 'no'): Promise<void> {
-  // An Answer Branch is named by its chrome word and its target's title (application.md
-  // 10.3), so the word is checked and the class is what is clicked.
-  const answer = page.locator(`.answer--${which}`)
-  await expect(answer.locator('.branch-word')).toHaveText(CHROME[lang][which])
+  // **[#221]** A next step shows its words, which 12.8 wrote as the chrome word, yes first
+  // (application.md 41.2), so the words are checked and the place is what is clicked.
+  const answer = page.locator(`.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(${which === 'yes' ? 1 : 2})`)
+  await expect(answer.locator('.branch-title')).toHaveText(CHROME[lang][which])
   await answer.click()
 }
 
