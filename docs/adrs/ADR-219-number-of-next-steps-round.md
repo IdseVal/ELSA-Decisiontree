@@ -154,10 +154,11 @@ $ grep -rln -E "answers(\?)?\.(yes|no)|'yes' \| 'no'|link: 'yes'" tests | wc -l
    store's writes (`src/store/edits.ts`) and the editor's row (`src/editor/Structure.tsx`)
    and their tests, which #222 then extends; built side by side, one of the two would merge
    into a `dev` on which its tests no longer hold. The three issues were created in that
-   order, each with its `Depends on:` line from the start (the bodies of #220 and #221 were
-   corrected within three minutes, in their counts of the code and the data, and their
-   lines did not change), and the lines were read back with the dispatcher's own expression (`_DEPENDS_RE` in
-   `dispatch.py`), which finds exactly `#219`, `#220` and `#220, #221`: in the round of
+   order, each with its `Depends on:` line from the start, and the lines were read back with
+   the dispatcher's own expression (`_DEPENDS_RE` in `dispatch.py`), which finds exactly
+   `#219`, `#220` and `#220, #221`. The bodies were corrected after they were filed -- the
+   counts of the code and the data in #220 and #221, then #220's `Read:` line and the OUT OF
+   SCOPE sections of all three -- and no `Depends on:` line changed. In the round of
    #194 a placeholder body let #195 and #196 be dispatched before their lines landed
    (reported on #196).
 
