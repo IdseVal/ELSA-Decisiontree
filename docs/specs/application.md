@@ -261,7 +261,7 @@ A Next.js application, rendered on the server, runs as one Node.js process on a 
 Linux server and serves exactly one Tree, named by the environment variable
 `ELSA_TREE`. The whole application state is the URL: the path is the Trail ending in
 the current Node, the query carries the language. A request takes the current Node and
-a bounded neighbourhood around it -- at most seventeen Nodes, never the Tree -- from
+a bounded neighbourhood around it -- at most seventeen Nodes (**[#220]** 31 from #221, 41.5), never the Tree -- from
 the loader's in-memory index and returns complete HTML: the current Node as a round
 **Bubble** in the centre of a screen-sized tree -- its main image above its title, its
 description with its explainers, its Sources under a heading -- one **up arrow** on its
@@ -828,6 +828,10 @@ guaranteed viewport shows (11.3). The full Node at a 49-entry Trail is 269 kB of
 (14 kB gzipped), and its payload 176 kB (24 kB gzipped); most of what is left is the
 centre frame's own Trail. `ADR-38-neighbourhood.md` (Consequences) has the table.
 
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
+
 ### 5.3 The image route
 
 `GET /images/<file>` asks `imagePath(file)`. `null` answers 404. **[#132]** From #134 the
@@ -1202,6 +1206,10 @@ recorded in the six `ADR-118-*` decisions that add the files they test, each of
 which carries an `Amends:` line to `ADR-5-testing-approach.md`, which carries one
 back.
 
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
+
 ## 8. What the contracts guarantee to the core document
 
 | Core document | Where it is met |
@@ -1211,7 +1219,7 @@ back.
 | 8 **[#118]** the Tree data is public under CC BY 4.0, served with no cookie and no account | 15.2: the licence in a `Link` header on the bytes themselves, and the no-cookie sweep -- `tests/browser/deployment.spec.ts` (section 7) -- extended to every route of 15 and 16 |
 | 10.21 **[#118]** superseded: hand-editability is no longer the criterion | `tree-format.md` 3.7, 3.9; `docs/adrs/ADR-118-json-serialisation.md` |
 | 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`; **[#171]** `elsa-tree/5`); 5.1, 5.2 |
-| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
+| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16; **[#220]** 29 and 31 from #221, 41.5), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
 | 3.1 / 9 images only for the Node on screen | 11.4, 12.4; **[#75]** 11.5 names the one exception per Option (core document 10.29) |
 | 3.1 text has a maximum length | `tree-format.md` 5.7, confirmed against this layout in 10.7 (**[#75]** again, with two pixels to spare: core document 10.28) |
 | 3.2 the screen is a tree: a Bubble, the way back above, Answers below, side children beside | 10.1 to 10.3; **[#75]** the up arrow (10.2), the fan-out (10.3) |
@@ -1887,6 +1895,10 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 The build issues paste the measured numbers in their pull requests; the test is what
 keeps them true afterwards.
 
+**[#220]** (2026-10-09) The pages of the table above gain #221's fixtures of a step of three and of four next steps,
+`full-node`'s question Node among them with four, and the viewports 999 x 640, 1000 x 640,
+and at 389 wide either side of 41.4's height (41.9).
+
 ### 10.7 The format's length limits, confirmed
 
 `tree-format.md` 5.7 fixed the limits from an assumed layout; 0.2 confirmed them
@@ -2183,6 +2195,10 @@ decides core document 10.27.
   11.3), the `back` Branch and the `explanationOnly` hint (10.3), and the chrome keys
   `back` and `explanationOnly`.
 
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
+
 ## 11. Transitions and the neighbourhood
 
 **[v0.2], new; [#75] amended 2026-09-17 (issue #78).** The owner, in issue #35: "I want
@@ -2359,6 +2375,9 @@ Back and forward are the browser's, and reverse the slide when the payload is in
 framework's cache. `prefers-reduced-motion: reduce` removes the motion and keeps the
 navigation. **Framework prefetching of the controls' links is off** (`prefetch={false}`).
 
+**[#220]** (2026-10-09) A slide goes to the target's `x` and `y` (41.5); `transition.spec.ts` asserts the third and
+fourth of four as it asserts a `yes` and a `no` target (41.9).
+
 ### 11.4 Images during a transition
 
 A neighbour frame's markup contains **no image URL at all** -- not for its main image,
@@ -2389,6 +2408,10 @@ it by recording every network request.
 
 Walking the whole Tree still downloads it one Node at a time, seventeen at a time at
 the very most, and the server's memory holds the Tree the browser never gets.
+
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
 
 ## 12. The Carousel
 
@@ -2750,6 +2773,8 @@ where the schema is a constant of the build.
 | `Content-Security-Policy` | `default-src 'none'; sandbox` | the same | The set 5.3 already applies to third-party bytes, kept identical so there is one header set in `src/assets.ts` and not two. |
 | `Content-Disposition` | `inline` | the same | Data to look at, not a file to save: a crawler that follows the link should get a document it can read. |
 | `Set-Cookie` | never | never | Core document 8. The no-cookie browser sweep -- `tests/browser/deployment.spec.ts`, which section 7 gives a row of its own for this -- covers both routes of 15 and every route of 16, so this row is asserted and not merely stated. |
+
+**[#220]** (2026-10-09) The `Link: rel="describedby"` header names `/schemas/elsa-tree-6.json` from #221 (41.6).
 
 ### 15.3 Byte-identity: the download IS the dataset
 
@@ -3140,7 +3165,7 @@ the dataset.
 
 **[#171]** So a Terminal's `label` is not in it either, as its `outcome` never was; the
 `## The dataset` entry names the schema through `SCHEMA_HREF`, which is
-`/schemas/elsa-tree-5.json` from #179 on. Its chrome paragraph -- a walk that "arrives at an
+`/schemas/elsa-tree-5.json` from #179 on (**[#220]** `/schemas/elsa-tree-6.json` from #221, 41.6). Its chrome paragraph -- a walk that "arrives at an
 outcome" -- uses the word in its ordinary sense and stays.
 
 **[#195]** Nor an Author's name (2026-10-03): the pages it points to hold the mention (39.7).
@@ -3242,6 +3267,8 @@ transaction across two files and nothing needs one.
   account (38.4), and the start fills in `joined` from the roles before any Tree is opened
   (39.2). Back the directory up before the first start of the release that carries #196: the
   user names are not kept.
+
+**[#220]** (2026-10-09) The store converts an `elsa-tree/5` file by `tree-format.md` 12.8 after 12.7 (12.8.4).
 
 ### 17.5 The seam: `src/store/`
 
@@ -3365,6 +3392,9 @@ draft needs. The draft schema is derived from `schemas/elsa-tree-5.json` by the 
 dropped keywords and two relaxed `required` lists, so a Terminal's `label` may hold an empty
 language in a draft (a to-do) and `terminal` still requires it.
 
+**[#220]** (2026-10-09) The draft schema is derived from `schemas/elsa-tree-6.json` from #221, relaxing `answers`'
+`minItems` to 1 (41.1).
+
 ### 19.2 The draft rules
 
 Every rule of `tree-format.md` section 7 is checked on a draft; **a named set is
@@ -3485,6 +3515,9 @@ export interface Drafts {
   importTree(folder: string, creator: Account): Promise<TreeEntry>            // 17.4; the seed and the CLI
 }
 ```
+
+**[#220]** (2026-10-09) `createNode`'s `from.link` is `'answer' | 'option' | 'end'`, with `label` for `'answer'` and
+`'end'` (41.7 item 6).
 
 ## 20. Accounts, sessions and the administrator
 
@@ -3809,6 +3842,8 @@ conflict (published, root, uneditable, id taken); **413** too large; **415** wro
 The screens -- `/admin`, `/admin/trees/<t>/...` -- are #133's and render inside the
 `[lang]` layout like every page. **[#133]** They are sections 24 to 33: the addresses in
 24.1, the login page in 25.1, the editor's route in 34.7.
+
+**[#220]** (2026-10-09) The route's `from.link` is `'answer' | 'option' | 'end'`, `'answer'` with its `label` (41.7).
 
 ### 22.2 The unit of a write
 
@@ -5504,6 +5539,10 @@ renders the neighbour frames and the slide, within seventeen Nodes, and the ment
 like the editor it renders no JSON-LD, `hreflang`, canonical or dataset link and no share button
 (40.2 to 40.4).
 
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
+
 ### 34.6 The types
 
 `src/tree/types.ts` gains `NodeContent` (`id`, `title`, `description`, `sources`, `images`,
@@ -5512,6 +5551,9 @@ take it. `TreeView` and `Bubble` take `Node | DraftNode` and read Links through
 `linksOf(node): { yes?, no?, terminal? }`. `parseUrl`, `centreOf` and `contentLanguage` take
 `Readable = Pick<Tree, 'manifest' | 'getNode'>`, so a `Draft` passes; nothing else changes
 and their tests run unchanged.
+
+**[#220]** (2026-10-09) `linksOf(node)` returns the next steps as `{ answers: { label, target }[] ; terminal? }` in
+their order, in place of `{ yes?, no? }` (41.6).
 
 ### 34.7 The editor page's bound
 
@@ -5523,6 +5565,10 @@ called. The picker (30.6) carries ids and titles, never Nodes. **[#205]** (2026-
 that makes a fresh step a yes or a no made the centre -- inline in this page since #139 -- moves to
 `src/neighbourhood.ts` as `draftCentre`, which this page and the preview's call (40.2). This page's
 bound stays twelve; the preview's is a public page's seventeen.
+
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
 
 ### 34.8 The rule's tests
 
@@ -6830,8 +6876,8 @@ before); a fifth is refused. Five and six were measured and do not fit (41.4).
 - **Every button is the same**: the fill `accent-secondary`, the letters
   `--elsa-on-accent-secondary`, the same type, **60 pixels tall** (a minimum, as before: a label
   of more lines makes it taller), and the same width as every other button of its row -- an
-  equal share of the row, at most 620. A lone button on a second row is as wide as the two above
-  it. No button is set apart by colour, size or place (core document 3.2, `[#75]` and `[#219]`).
+  equal share of the row, at most 620. A lone button on a second row is as wide as each of the
+  two above it, centred. No button is set apart by colour, size or place (core document 3.2, `[#75]` and `[#219]`).
 - **Rows**: in one row the buttons stand 20 apart (8 below 480 pixels wide), as the two did; two
   a row, the rows stand 8 apart.
 - **Order**: the file's order, left to right and row by row; it is the DOM order and the Tab
@@ -6851,9 +6897,10 @@ before); a fifth is refused. Five and six were measured and do not fit (41.4).
   pixels of height below 390 wide in Segoe UI and 536 in Verdana, the Windows stand-in for DejaVu
   Sans; 24 more are the margin for the Linux faces, which were not measured
   (`docs/research/issue-220-answer-row-room.md` sections 2 and 5). #221 measures the full Node
-  with four next steps in the CI runner's faces at 389 x 559 and 389 x 560, and records the
-  height it needs here; it may lower the 560 to what it measures, never below it without that
-  record.
+  with four next steps below 390 wide in the CI runner's faces (DejaVu Sans, Liberation Sans) as
+  well as on Windows, and the trigger is then **the highest height any of them needs, rounded up
+  to the next ten pixels** -- 560 if none needs more than 550 -- recorded here with its output. The
+  rule is fixed; only that one number waits for the measurement.
 - Nothing else in 10.5's order moves: the Answer buttons are never given up, at any count.
 - The notice's two sentences are 10.4's; a step of two next steps never shows it above the floor.
 
@@ -6882,8 +6929,8 @@ before); a fifth is refused. Five and six were measured and do not fit (41.4).
 | The validator, the byte form, the loader, the schema route (5, 15.1) | `/6` read, `/5` converted (12.8), `schemas/elsa-tree-6.json` served beside `/5` and `/4`. |
 | The store (17.4, 17.5, 18.3) | Runs 12.8 after 12.7 on every file it opens (`tree-format.md` 12.8.4); `importTree` likewise. |
 | The JSON-LD `Question` (16.4) | One `suggestedAnswer` per next step, in order: `text` the label, a colon and the target's title in the page's language -- the button's accessible name -- and `url` the target's canonical URL. A migrated yes-and-no step's is what dev's is. |
-| `llms.txt` (16.5) | Unchanged: it names no step and no Answer. |
-| The dataset endpoint (15) | Unchanged: the file as it is. |
+| `llms.txt` (16.5) | It names no step and no Answer; its `## The dataset` entry names `/schemas/elsa-tree-6.json` (`SCHEMA_HREF`). |
+| The dataset endpoint (15) | The file as it is; its `Link: rel="describedby"` header names `elsa-tree-6.json` (15.2). |
 | Chrome (3.2) | `yes` and `no` stay, read by the editor alone (41.7); `addNextStep` and `nextStepWords` are #222's. |
 | The editor's row and writes (30, 22) | #221 makes them read and write the array, `+ Yes` and `+ No` writing `link: 'answer'` with the chrome words as the label (41.7 item 1), so that `dev` stays whole; #222 builds the rest of 41.7. |
 
@@ -6900,8 +6947,10 @@ starts, not the list.
    `confirm` creates the next step with those words, every other language `""` (a to-do).
 2. **A step with next steps** shows them as 41.3 does, each label a **field in place** in the
    language being edited (28.1, 28.2), counted against 19 live (28.4); and, while it has fewer
-   than four, one outlined `+` after the last, which opens the same Sheet. `treeEndsHere` stands
-   only on a step without Links, as today.
+   than four, one outlined `+` after the last, which opens the same Sheet. **While a step has one
+   next step**, the one-click `+ Yes` and `+ No` stand before that `+`, but for the one whose word
+   its label already says in the language edited, so that the owner's yes and no still cost one
+   click each. `treeEndsHere` stands only on a step without Links, as today.
 3. **Creating**: `POST .../nodes { from: { node, link: 'answer', label } }` writes the Node and the
    next step, appended last, in one write (22.1, 22.4), and the editor navigates to the new Node
    (30.2). A fifth is 422 with V-ANSWERS and stores nothing.
@@ -6918,8 +6967,11 @@ starts, not the list.
 7. **The preview** (40.7) draws a draft step with one next step as its one button, centred, and
    an empty label in the language shown as its bracketed placeholder.
 8. **The editor's no-scroll rule (28.6)** holds with the row as 41.3 stands it, the empty step's
-   four outlined buttons and a `+` beside three next steps counted as buttons;
-   `admin-no-scroll.spec.ts` measures it at the editor's viewports, both languages.
+   four outlined buttons and the `+` buttons counted as buttons. Where the row has three or more
+   buttons, the editor shows the notice below 390 pixels wide by 41.4's rule, its height measured
+   by #222 on the editor's page with its bar and floating controls (the highest need, rounded up
+   to ten, never below 41.4's); `admin-no-scroll.spec.ts` measures it at the editor's viewports,
+   both languages.
 
 ### 41.8 What does not change
 
@@ -6934,7 +6986,8 @@ share link; the Theme roles; the cross-links reserved in `tree-format.md` 10.
   only) and five entries, and on a label of 20 characters; fixtures of a step of three and of
   four next steps, one of them `full-node`'s own question Node with four, labelled at 19
   characters in both languages; `no-scroll.spec.ts` on them at the ten viewports of 10.6 and at
-  999 x 640, 1000 x 640, 389 x 559 and 389 x 560, in both languages; the notice of 41.4;
+  999 x 640, 1000 x 640, and at 389 wide one pixel either side of 41.4's height, in both
+  languages; the notice of 41.4;
   `transition.spec.ts` sliding to the third and fourth of four and back up; `neighbourhood.test.ts`
   on the positions of 41.5 and on 31; the JSON-LD's `suggestedAnswer` for three; the CI runner's
   faces measured as 41.4 says.

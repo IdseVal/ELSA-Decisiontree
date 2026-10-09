@@ -1,4 +1,4 @@
-# ADR-220-other-readers: the JSON-LD suggests one answer per next step in its words, `llms.txt` and the dataset endpoint change by nothing, and the chrome keep `yes` and `no` for the editor alone
+# ADR-220-other-readers: the JSON-LD suggests one answer per next step in its words, `llms.txt` and the dataset endpoint change only the schema they name, and the chrome keep `yes` and `no` for the editor alone
 
 - Status: ACCEPTED (frozen) -- 2026-10-09
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
@@ -22,10 +22,11 @@ Answer. The dataset endpoint (15) serves the Tree file byte for byte. The chrome
    page's language, a colon and its target's title -- the button's accessible name, which is
    what "the exact label" now means -- and `url` the target's canonical URL in that language. A
    migrated yes-and-no step's answers say what dev's say: "Yes: <title>", "No: <title>".
-2. **`llms.txt`** does not change: it names no step and no Answer. Its line on the URL grammar
-   stands.
-3. **The dataset endpoint** does not change: it serves the `/6` file as it is, and the schema
-   route serves `elsa-tree-6.json` beside `/5` and `/4` (15.1).
+2. **`llms.txt`** names no step and no Answer, so nothing in it changes for the next steps; its
+   `## The dataset` entry names the schema through `SCHEMA_HREF`, which becomes
+   `/schemas/elsa-tree-6.json` with the format (16.5).
+3. **The dataset endpoint** serves the `/6` file as it is; its `Link: rel="describedby"` header
+   names `elsa-tree-6.json` (15.2), and the schema route serves it beside `/5` and `/4` (15.1).
 4. **The chrome keys `yes` and `no` stay**, for the editor's `+ Yes` and `+ No` and the words they
    write (`ADR-220-editing-next-steps.md`); the public page reads neither. Two keys are added for
    #222: `addNextStep` and `nextStepWords`.

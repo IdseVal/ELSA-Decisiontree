@@ -5,6 +5,7 @@
   neighbour frames and the slide the editor never renders, the Theme, and the page's head) and
   keeps true 3.4's sentence "The editor reuses the end-user components through one optional
   setting": the preview reuses them through the same setting
+- **[#220] Amended (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md`: the preview's seventeen Nodes are the public page's 31 from #221 (`docs/specs/application.md` 41.5).
 - Issue: #205 -- Architecture: the preview of a hidden Tree as its readers will see it -- its
   address, what it shows of an unfinished draft, and its two buttons at the top left
 - Spec: `docs/specs/application.md` 40.2 and 40.3 (new); 6, 11.2, 13.1, 24.1, 24.3, 34.1, 34.3,

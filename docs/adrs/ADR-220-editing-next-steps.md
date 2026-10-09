@@ -29,8 +29,10 @@ Terminal's words are asked for in a Sheet before the step ends (36.3).
 2. **A step with next steps** shows them as the public row does (`ADR-220-answer-row.md`), each
    button's label a **field** in place, in the language being edited, counted against 19 as
    every field is (28.4); and, while it has fewer than four, one outlined `+` after the last,
-   which opens the same Sheet. It never shows `Tree ends here`: a step that leads on does not
-   end, as today.
+   which opens the same Sheet. **While the step has one next step**, the one-click `+ Yes` and
+   `+ No` stand before that `+`, but for the one whose word its label already says in the language
+   edited: a yes and a no still cost one click each. It never shows `Tree ends here`: a step that
+   leads on does not end, as today.
 3. **Creating navigates**: the new step is created with its Link in one write, `POST .../nodes
    { from: { node, link: 'answer', label } }`, appended last, and the editor goes to it, as 30.2
    does. A fifth is refused (422, V-ANSWERS) and stores nothing.
@@ -50,7 +52,10 @@ Terminal's words are asked for in a Sheet before the step ends (36.3).
    bracketed placeholder (40.7).
 8. **The editor's no-scroll rule (28.6)** holds for four buttons, and for `+` beside three: the
    row stands as the public row does for its number of buttons, the `+` and the empty step's four
-   counted as buttons. #222 measures it in `admin-no-scroll.spec.ts` at the editor's viewports.
+   counted as buttons; with three or more, the editor shows the notice below 390 pixels wide by
+   `ADR-220-answer-row.md` decision 6, at the height #222 measures on the editor's page (the
+   highest need, rounded up to ten, never below the public page's). #222 measures it in
+   `admin-no-scroll.spec.ts` at the editor's viewports.
 
 ## Alternatives rejected
 

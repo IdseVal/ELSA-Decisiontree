@@ -1,6 +1,7 @@
 # ADR-78-overlay: an Option opens its side child in an Overlay that is the existing Sheet with the Option button as its control, the address does not change, and an explanation Node's URL renders its parent's page with that Overlay open
 
 - Status: ACCEPTED (frozen) -- 2026-09-17
+- **[#220] Amended (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md`: the seventeen Nodes a page reads are 31 from #221 (`docs/specs/application.md` 41.5).
 - Issue: #78 -- Architecture: freeze the contracts for the display changes of #75
 - Spec: `docs/specs/application.md` 10.3, 10.9, 11.1 to 11.5, 14; 4.1 unchanged
 - Core document: 3.1 (traversal rule, `[#75]`), 3.2 ("Side children open in an Overlay"), open item **10.27** (decided here), 10.23 (unchanged)

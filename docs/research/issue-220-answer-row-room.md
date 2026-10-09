@@ -69,7 +69,7 @@
    three lines in a button of 406 (three buttons) and three or four in one of 300 (four), and
    the page overflows. A button cannot show the title once a step has more than two next steps.
 3. **Five or six buttons**: at 1280 x 640 one row holds 19 characters in two lines at five and
-   six too, but 30 already takes three lines at six in Verdana and Nova Square. Below 1000 pixels
+   six too, but 30 already takes three lines at six in every face measured. Below 1000 pixels
    wide, where they stand two a row, five or six need a **third row**, and on the full Node it
    overflows the page in every window measured 481 pixels tall -- 360, 479, 768 and 1024 x 481
    -- and at 1000 x 640 and 800 x 640, at every label length, 12 characters included (the cells
@@ -78,7 +78,7 @@
    takes two lines in Verdana (197 pixels a button), at 800 three, at 700 three in Segoe UI too;
    one row of three keeps two lines in Verdana down to 700. Two a row keeps a 19-character label
    on two lines at every width from 390 up, in Segoe UI and in Verdana (part 2).
-5. **Below 390 pixels wide** a half-row button is 140 to 175 pixels, and a 19-character label
+5. **Below 390 pixels wide** a half-row button is 140 to 160 pixels (175 at 390), and a 19-character label
    takes two lines in Segoe UI and Nova Square, two in Open Sans at 360 and three at 321, and
    **three** in Verdana; a 25-character one three in Segoe UI and four in Verdana at 321.
 6. **The lowest window (part 2)**: two buttons fit in every window above the floor, with either

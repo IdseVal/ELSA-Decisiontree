@@ -1,6 +1,7 @@
 # ADR-118-dataset-endpoint: the Tree file is served byte-identical at `/<tree-id>/tree.json`, under CC BY 4.0, cross-origin and without a cookie
 
 - Status: ACCEPTED (frozen) -- 2026-09-21
+- **[#220] Amended (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md`: the seventeen Nodes a page reads are 31 from #221; the `Link` header names `elsa-tree-6.json` (`docs/specs/application.md` 41.5).
 - Issue: #118 -- Architecture: freeze the JSON-only Tree format (`elsa-tree/4`)
 - Spec: `docs/specs/application.md` section 15; 4.1, 4.3 and 5.2 amended
 - Depends on: `docs/adrs/ADR-118-json-serialisation.md`, `ADR-118-json-schema.md`

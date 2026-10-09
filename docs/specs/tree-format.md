@@ -594,6 +594,8 @@ are why it is an array (`docs/adrs/ADR-118-json-serialisation.md`):
 Link and no URL depends on it. A Tree with no Nodes is rejected (V-NODE, at least one
 Node; V-ROOT, the root must exist).
 
+**[#220]** (2026-10-09) `format` is `elsa-tree/6` and `$schema` names `elsa-tree-6.json` from #221 (12.8).
+
 ### 4.2 The Tree's id
 
 The folder name is the Tree's id, as in `elsa-tree/1`. The manifest has no `id` key

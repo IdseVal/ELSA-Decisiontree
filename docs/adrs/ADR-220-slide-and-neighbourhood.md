@@ -7,6 +7,8 @@
   (a bounded set), 10.43
 - Supersedes in part: `ADR-38-neighbourhood.md` and `ADR-78-answer-buttons-and-up-arrow.md`
   decision 4 as amended by #102 (the `up` slot 0, 1, 2), and the seventeen of 11.2
+- Amends: the bound of seventeen as `ADR-100-bounded-centre.md`, `ADR-205-preview-drawing.md`,
+  `ADR-133-reuse-rule.md`, `ADR-78-overlay.md` and `ADR-118-dataset-endpoint.md` state it: 31
 - Built by: #221
 
 ## Context
@@ -26,8 +28,9 @@ the layer's width across, and their four targets in one line two layers down, on
    their order (*i* = 0 .. *n* - 1): -0.5 and 0.5 for two, as today; -1, 0, 1 for three; -1.5,
    -0.5, 0.5, 1.5 for four. The frames stand side by side, a width apart, as two did.
 3. **Down, two levels**: every next step of every first-level target, in order, *K* of them
-   counted before deduplication, at `y` 2 and `x` = *k* - (*K* - 1) / 2: for two times two
-   exactly today's four places.
+   counted before deduplication, at `y` 2 and `x` = *k* - (*K* - 1) / 2: for two next steps that
+   each have two, exactly today's four places; where one has fewer, the others close up (today
+   they keep fixed places).
 4. **Up**: the parent at `y` -1 and `x` = -(*i* - (*m* - 1) / 2), where *i* is the first of the
    parent's *m* next steps that leads to the centre: the slide back is the step down reversed,
    up and to the right after the first of two, straight up after the middle one of three. After
@@ -35,7 +38,8 @@ the layer's width across, and their four targets in one line two layers down, on
 5. **The bound**: up 1, down 4 + 16, asides 8: **29 neighbours**, and **a page reads at most 31
    Nodes** -- the centre, the 29 and the one Overlay a URL may name beyond the asides. 31 is a
    contract as 17 was: no variable or prop raises it. It is still a bounded set, a fixed number
-   of Nodes, never the Tree (core document section 9). A step of two places what it placed.
+   of Nodes, never the Tree (core document section 9). A step of two places the same Nodes it
+   placed.
 6. **The slide** (11.3) translates the layer by the target's `x` and `y`, so a button slides to
    its own frame; deduplication, `data-slide` only where a control's `href` is a placement's, and
    a slide never beginning with a Sheet open are unchanged.
