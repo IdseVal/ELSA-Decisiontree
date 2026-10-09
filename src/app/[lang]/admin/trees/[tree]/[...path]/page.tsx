@@ -3,6 +3,7 @@ import { pageSession } from '../../../../../../admin/authenticated.ts'
 import { editMode } from '../../../../../../admin/slots.tsx'
 import { loginWords } from '../../../../../../admin/words.ts'
 import { chrome, chromeLang, chromeLanguage, type Chrome } from '../../../../../../chrome.ts'
+import { AdminChrome } from '../../../../../../components/AdminChrome.tsx'
 import { sheetWords } from '../../../../../../components/Bubble.tsx'
 import { Disclaimer } from '../../../../../../components/Disclaimer.tsx'
 import { LanguageSwitch } from '../../../../../../components/LanguageSwitch.tsx'
@@ -372,13 +373,22 @@ function themeWords(ui: Chrome): ThemeWords {
   }
 }
 
-/** An uneditable Tree (19.5): the blocking violations of its hand-edited draft, and the way out. */
+/**
+ * An uneditable Tree (19.5): the blocking violations of its hand-edited draft, and the way out.
+ * **[#213]** Under the 403 page's bar, which the body's first grid row is sized for: without a
+ * bar the card was laid out in that row and cut off (10.1).
+ */
 function Uneditable({ lang, messages }: { lang: 'en' | 'nl'; messages: string[] }) {
   const ui = chrome(lang)
   return (
     <>
       <ThemeStyle tree={null} />
+      <AdminChrome lang={lang} account={null} />
       <main className="admin-page admin-page--centred" lang={lang}>
+        {/* **[#213]** Every admin page says so (24.2), and this one stands at the editor's address. */}
+        <noscript>
+          <p className="admin-note">{ui.needsJavaScript}</p>
+        </noscript>
         <section className="admin-card" aria-labelledby="uneditable">
           <h1 id="uneditable">{ui.notEditable}</h1>
           <ul className="admin-note">
