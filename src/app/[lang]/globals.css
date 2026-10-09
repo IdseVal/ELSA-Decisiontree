@@ -3029,11 +3029,12 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * **[#221]** A step of three or four next steps needs more height below 390 pixels wide, where
- * its buttons take two rows on the narrowest Bubble: below 560 there the notice stands in for
- * the tree view and names that height (41.4). Every other step keeps the floor above.
+ * **[#221]** A step of three or four next steps needs more height below 600 pixels wide, where
+ * its buttons take two rows: below 560 there the notice stands in for the tree view and names
+ * that height (41.4, measured by #221: from 480 to 520 wide the full Node needs 488, and below
+ * 390 up to 536 in DejaVu Sans and Verdana). Every other step keeps the floor above.
  */
-@media (max-width: 389px) and (max-height: 559px) {
+@media (max-width: 599px) and (max-height: 559px) {
   .tree-layer:has(~ .minimum-size--steps) {
     display: none;
   }

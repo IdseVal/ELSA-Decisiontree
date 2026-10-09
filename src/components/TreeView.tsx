@@ -53,8 +53,8 @@ const OPTION_TITLE = { characters: 60 }
 
 /**
  * The heights the notice names (10.4, **[#221]** 41.4): the floor's 480, and the floor of a step
- * of three or four next steps below 390 pixels wide. The stylesheet's media queries hold the
- * same two numbers, which is where they take effect.
+ * of three or four next steps below 600 pixels wide. The stylesheet's media queries hold the
+ * same numbers, which is where they take effect.
  */
 const FLOOR_HEIGHT = 480
 const STEPS_FLOOR_HEIGHT = 560

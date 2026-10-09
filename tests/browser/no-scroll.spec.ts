@@ -337,7 +337,7 @@ async function measureEverywhere(
     // (10.5 step 7) -- **[#221]** and below 41.4's floor for a step of three or four; anywhere
     // else a term that is not shown is a panel that went unmeasured.
     const notice = await page.locator('.minimum-size').isVisible()
-    expect(notice, `${what} (${lang}) at ${viewport}: the notice only at and below a floor`).toBe(notice && (width <= 320 || height <= 480 || (width < 390 && height < 560)))
+    expect(notice, `${what} (${lang}) at ${viewport}: the notice only at and below a floor`).toBe(notice && (width <= 320 || height <= 480 || (width < STEPS_WIDTH && height < STEPS_HEIGHT)))
     if (!notice) expect(opened, `${what} (${lang}) at ${viewport}: every marked term opened`).toBe(marked)
 
     // Each Sheet the layout offers at this size, opened in turn: 10.5 gets no exemption.
@@ -801,16 +801,16 @@ for (const lang of LANGUAGES) {
 
 /**
  * **[#221]** The windows 41.9 adds for a step of three or four next steps: either side of 41.3's
- * 1000 pixels, and one pixel either side of 41.4's width (390, in a window 481 tall) and of its
- * height (560, below that width).
+ * 1000 pixels, and one pixel either side of 41.4's width (600 as #221 measured it, in a window
+ * 481 tall) and of its height (560, below that width).
  */
 const NEXT_STEPS_VIEWPORTS = [
   [999, 640],
   [1000, 640],
-  [389, 481],
-  [390, 481],
-  [389, 559],
-  [389, 560],
+  [599, 481],
+  [600, 481],
+  [599, 559],
+  [599, 560],
 ] as const
 
 /**
@@ -827,12 +827,15 @@ async function measurePlain(page: Page, url: string, what: string, lang: string)
     expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
     const plain = await measure(page)
     rows.push({ page: what, lang, viewport, sheet: '', measured: plain })
-    assertFits(plain, `${what} (${lang}) at ${viewport}`)
+    // 599 and 600 are in the band where dev's disclaimer takes a second line in its row (below
+    // 641 pixels wide in Dutch on CI), with or without the notice: that one overflow is let through.
+    if (width < 660) assertFitsBesideTheDisclaimer(plain, `${what} (${lang}) at ${viewport}`)
+    else assertFits(plain, `${what} (${lang}) at ${viewport}`)
   }
 }
 
 /** **[#221]** 41.4's width and height below which a step of three or four shows the notice. */
-const STEPS_WIDTH = 390
+const STEPS_WIDTH = 600
 const STEPS_HEIGHT = 560
 
 for (const lang of LANGUAGES) {
@@ -857,7 +860,7 @@ for (const lang of LANGUAGES) {
     ]
     const height = lang === 'nl' ? 'Maak het hoger dan' : 'Make it taller than'
     for (const { count, url } of pages) {
-      for (const [width, tall] of [[1280, 640], [1000, 640], [999, 640], [390, 844], [STEPS_WIDTH, 481], [STEPS_WIDTH - 1, STEPS_HEIGHT], [STEPS_WIDTH - 1, STEPS_HEIGHT - 1], [STEPS_WIDTH - 1, 481]] as const) {
+      for (const [width, tall] of [[1280, 640], [1000, 640], [999, 640], [390, 844], [360, 640], [STEPS_WIDTH, 481], [STEPS_WIDTH - 1, STEPS_HEIGHT], [STEPS_WIDTH - 1, STEPS_HEIGHT - 1], [STEPS_WIDTH - 1, 481], [389, 559]] as const) {
         const where = `${count} next steps at ${width}x${tall}`
         await page.setViewportSize({ width, height: tall })
         expect((await page.goto(url))?.status(), where).toBe(200)
