@@ -95,6 +95,13 @@ export interface Chrome {
    */
   editor: string
   website: string
+  /**
+   * **[#205]** The preview of a hidden Tree (40.5): `preview` on the button at the top left of its
+   * editor, `backToEditor` on the way back in the same place of the preview -- the words from 1000
+   * pixels wide, and the name and the `title` at every width.
+   */
+  preview: string
+  backToEditor: string
   /** **[#135]** The login page (25.1). */
   signIn: string
   /** **[#196]** The address field of the login page and of the new-account and `setEmail` Sheets, and the accounts page's column (38.5). */
@@ -422,6 +429,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     accounts: 'Accounts',
     editor: 'Editor',
     website: 'Website',
+    preview: 'Preview',
+    backToEditor: 'Back to the editor',
     signIn: 'Sign in',
     email: 'E-mail address',
     password: 'Password',
@@ -659,6 +668,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     accounts: 'Accounts',
     editor: 'Editor',
     website: 'Website',
+    preview: 'Voorbeeld',
+    backToEditor: 'Terug naar de editor',
     signIn: 'Inloggen',
     email: 'E-mailadres',
     password: 'Wachtwoord',
