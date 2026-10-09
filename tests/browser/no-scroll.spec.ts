@@ -721,6 +721,7 @@ test.describe('a logo at its cap', () => {
         const viewport = `${width}x${height}`
         await page.setViewportSize({ width, height })
         expect((await page.goto(`${origin}${inLang('/wide-first/start', lang)}`))?.status()).toBe(200)
+        await expect(page.locator('header.page-chrome').getByRole('link', { name: 'Editor', exact: true })).toBeVisible()
         await page.evaluate(() => document.fonts.ready)
         expect((await page.locator('header.page-chrome img.logo').boundingBox())!.width, `${viewport}: the logo at its cap`).toBeCloseTo(288, 0)
         const m = await measureBar(page)
