@@ -186,7 +186,7 @@ export async function neighbourhood<N extends Node | DraftNode>(tree: Readable<N
     wanted.push({
       address: { ...at, trail: at.trail.slice(0, index), nodeId: at.trail[index]! },
       direction: 'up',
-      x: step === -1 ? 0 : -across(step, steps.length),
+      x: step === -1 ? 0 : across(steps.length - 1 - step, steps.length),
       y: -1,
     })
   }
