@@ -15,6 +15,13 @@
   (the draft through the public components, the centre rule), `ADR-176-floating-settings-and-to-do.md`
   (the to-do list's place)
 - Built by: #206
+- **[#220] Amended (2026-10-09)** by `ADR-220-words-on-a-next-step.md` and
+  `ADR-220-editing-next-steps.md` decision 7: in decision 3, a draft step's lone next step is
+  drawn as its one button, centred, saying the creator's words for it at every width -- no chrome
+  word, no title on the button, no rule of 480 -- and an empty label in the language shown is the
+  bracketed placeholder; in the editor that button stands first in the row with the `+` buttons
+  after it (`ADR-220-editing-next-steps.md` decision 2), in place of the outlined `+` for the
+  other in the other place (`docs/specs/application.md` 40.7, 41.2, 41.7). The rest stands.
 
 ## Context
 

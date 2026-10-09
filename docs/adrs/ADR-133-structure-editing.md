@@ -11,6 +11,7 @@
   end here after all" stand beside the up arrow in place of the step menu, and no Answer or Option
   button carries a `...`, so the editor no longer re-points a button at an existing Node and no
   longer removes a Link alone. Decision 8's delete and decision 9 stand.
+- **[#220] Superseded in part (2026-10-09)** by `ADR-220-editing-next-steps.md`: the Answer row keeps `+ Yes`, `Tree ends here` and `+ No` and adds `+` for another next step, asked for with its words; `link: 'yes' | 'no'` becomes `link: 'answer'` with a `label`; the yes and the no are the first two of up to four next steps.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 30 (new)
 - Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`, `ADR-171-elsa-tree-5.md`):

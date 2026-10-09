@@ -14,6 +14,12 @@
   /admin/api/accounts` answers `{ id, name }`; `POST /admin/api/accounts` takes `email`, and
   `PATCH /admin/api/accounts/<id>` takes `email` from the administrator (`application.md` 22.1,
   38.2).
+- **[#220] Amended (2026-10-09)** by `ADR-220-editing-next-steps.md`: in decision 2, `POST
+  .../nodes` takes `from: { node, link: 'answer' | 'option' | 'end' }`, `'answer'` with a `label`,
+  the next step's words, appended last, in place of `link: 'yes' | 'no'`; in decision 3,
+  `set-answer { index, target }`, `remove-answer { index }` and a new `move-answer { index, to }`
+  name an entry of the `answers` array in place of `yes` or `no`, and the field paths gain
+  `answers[i].label.<lang>` (`application.md` 22.2, 22.4, 41.7). The rest stands.
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the `/admin` prefix joins the grammar as one
   reserved word), `ADR-5-repository-layout.md` (`src/app/[lang]/admin/` and `src/store/`),
   `ADR-4-image-reference.md` (the file-name grammar of 3.5 is now applied server-side to an

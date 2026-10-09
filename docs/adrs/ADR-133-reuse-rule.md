@@ -11,6 +11,12 @@
   and the preview's page renders the neighbour frames and the slide; decision 7's bound of twelve
   is the editor's, and the preview's page reads at most seventeen Nodes, as a public page. The
   one optional prop stays one. The rest stands.
+- **[#220] Amended (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md`: the preview's page
+  reads at most 31 Nodes from #221, as a public page, in place of seventeen (`docs/specs/application.md`
+  41.5), while decision 7's editor page stays at twelve; and by `ADR-220-other-readers.md`
+  decision 5: decision 6's `linksOf(node)` answers `{ answers: { label, target }[]; terminal? }`,
+  the next steps in their order, in place of `{ yes?, no?, terminal? }` (`application.md` 34.6,
+  41.6). The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 34 (new); 1, 6, 10.9 and 11.2 amended
 - Amends: `docs/adrs/ADR-38-modules-and-tests.md` (the module table and the dependency

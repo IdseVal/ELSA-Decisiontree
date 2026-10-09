@@ -1,6 +1,7 @@
 # ADR-132-draft-and-publish: the draft is the same `elsa-tree/4` file under a named set of advisory rules; Publish copies it when it validates in full; while published, every valid save is public at once
 
 - Status: ACCEPTED (frozen) -- 2026-09-23; decides core document 10.33
+- **[#220] Amended (2026-10-09)** by `ADR-220-elsa-tree-6.md`: the draft schema relaxes `answers`' `minItems` from 2 to 1, in place of removing `yes` and `no` from its `required`.
 - Issue: #132 -- Architecture: freeze the store for the editor round
 - Spec: `docs/specs/application.md` section 19 (new); 5.1 amended; `docs/specs/tree-format.md`
   7 and 10 amended

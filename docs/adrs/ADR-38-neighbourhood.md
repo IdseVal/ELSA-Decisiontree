@@ -6,6 +6,7 @@
   `neighbourhood` takes a `Readable<N>` and reads Links through `linksOf`, so that the preview of
   a hidden Tree draws a draft's neighbourhood; the bound of seventeen Nodes a page may carry is
   unchanged, for the preview as for every page. The rest stands.
+- **[#220] Superseded in part (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md`: with up to four next steps a step, down is at most 4 + 16, a page carries at most 29 neighbours and reads at most 31 Nodes, in place of sixteen and 17. The rest stands.
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 5 and 11
 - **Supersedes `docs/adrs/ADR-5-lazy-loading.md`** (2026-09-03), whose "never reading a
