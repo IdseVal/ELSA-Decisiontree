@@ -20,14 +20,16 @@
 > | Section | #220 |
 > |---|---|
 > | 3.2 | `yes` and `no` are read by the editor alone; #222 adds `addNextStep` and `nextStepWords`. |
+> | 0, 5.2, 7, 8, 10.9, 11.5, 34.5, 34.7, 40.2 | A page reads at most 31 Nodes where seventeen stood. |
 > | 5.1 | `answers` is an array of `{ label, target }`; the format `elsa-tree/6`. |
 > | 9 | Seven `ADR-220-*` rows. |
 > | 10.1, 10.3, 10.5, 10.7 | The Answer row holds two to four alike buttons, each its label alone, in one row from 1000 pixels wide and two a row below; the rule of 480 pixels goes. |
 > | 10.4, 10.5 | A step of three or four shows the notice below 390 x 560 at least (41.4). |
+> | 10.6 | #221's fixtures of a step of three and of four next steps, and 41.9's viewports. |
 > | 11.1 to 11.3 | A placement carries `x` and `y`; the next steps stand a layer width apart; a page reads at most 31 Nodes. |
-> | 15.1, 16.4, 16.5 | The schema route serves `elsa-tree-6.json` too; one `suggestedAnswer` per next step; `llms.txt` unchanged. |
+> | 15.1, 15.2, 16.4, 16.5 | The schema route serves `elsa-tree-6.json` too, and the dataset's `Link` header names it; one `suggestedAnswer` per next step; `llms.txt` changes its schema path alone. |
 > | 17.4, 18.3, 19.1, 19.2 | The store converts `/5` (12.8); a draft step may hold one next step, as a to-do. |
-> | 22.2, 22.4, 28.6, 30.1 to 30.3, 30.7, 30.8, 33.3, 40.7 | The editor's row, writes and field paths, its to-do and its preview (41.7). |
+> | 19.7, 22.1, 22.2, 22.4, 28.6, 30.1, 30.2, 30.7, 30.8, 33.3, 34.6, 40.7 | The editor's row, writes and field paths, `linksOf`, its to-do and its preview (41.7). |
 > | 41 | New. |
 >
 > **Amended 2026-10-04 by issue #205** (`docs/adrs/ADR-205-*.md`), for the owner's words on #202
@@ -3360,6 +3362,9 @@ variable (20.3), and never a password, a token or a name typed into a form.
 logs one line per file converted (36.4). A `/4` file the conversion cannot carry is refused
 like any other that fails, with its violations.
 
+**[#220]** (2026-10-09) From #221 it converts the `elsa-tree/5` files it finds too, by
+`tree-format.md` 12.8 after 12.7, the same way (41.6).
+
 ### 18.4 What #134 changes in the earlier sections
 
 | Section | Change |
@@ -4927,6 +4932,9 @@ the draft (30.9). Where `removeLink` took the Link alone and left its target, th
 target too -- but for an aside another step leads to, which only loses this step's Option
 (above) -- so where two Answers lead to one step, its cross takes both with it; the editor
 removes neither alone any more.
+
+**[#220]** (2026-10-09) So does each of a step's two to four next steps: it goes with the step it
+leads to, and the step it was taken from keeps the others in their order (41.7 item 5).
 
 ### 30.8 The step menu: deleting a Node
 
