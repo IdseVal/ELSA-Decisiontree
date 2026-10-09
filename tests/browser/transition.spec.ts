@@ -36,6 +36,7 @@ import { loadPage } from '../../src/neighbourhood.ts'
 import { openTree, type Tree } from '../../src/tree/loader.ts'
 import { parseUrl } from '../../src/url.ts'
 import { arrived } from './arrived.ts'
+import { BASE_PORT, serve, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
@@ -45,14 +46,16 @@ const ROOT = '/ai-act-example/start'
 const QUESTION = `${ROOT}/prohibited-practices`
 const OPTION = `${QUESTION}/social-scoring`
 
-/** The bound of 11.2: the Node a page shows, at most fifteen neighbours and the one Overlay its URL may name. */
-const MAX_NODES = 17
+/** **[#221]** The bound of 41.5: the Node a page shows, at most 29 neighbours and the one Overlay its URL may name (17 until #221). */
+const MAX_NODES = 31
 
 let tree: Tree
 
 test.beforeAll(async () => {
   tree = await openTree(path.join(repo, 'trees', 'ai-act-example'))
 })
+
+test.afterAll(stopServers)
 
 /** A page's path and query, the form a Branch's `href` is written in; another origin's URL whole. */
 function local(url: string, origin?: string): string {
@@ -275,7 +278,8 @@ async function slideOf(page: Page, control: string): Promise<{ x: number; y: num
     if (route.request().headers()['rsc'] === '1') await held
     await route.continue()
   })
-  const href = (await page.locator(control).getAttribute('href'))!
+  // Against the page's own origin: **[#221]** a fixture's server is not the configured one.
+  const href = new URL((await page.locator(control).getAttribute('href'))!, page.url()).href
   await page.locator(control).click()
   const away = await page.waitForFunction(() => {
     const frames = document.querySelector('.tree-layer')?.getAnimations()[0]?.effect
@@ -302,6 +306,24 @@ test.describe('the way back retraces the way down (#102)', () => {
       expect(down.y, `${answer} goes down`).toBeLessThan(0)
       expect(up, `the up arrow undoes ${answer}`).toEqual({ x: -down.x, y: -down.y })
     }
+  })
+
+  test('**[#221]** to the third and the fourth of four next steps and back up: each to its own frame, the way back the step down reversed (41.5)', async ({ page }) => {
+    const origin = await serve(path.join(repo, 'tests', 'fixtures'), 'full-node', BASE_PORT + 45)
+    await page.setViewportSize({ width: 1280, height: 640 })
+    const slides: Array<{ x: number; y: number }> = []
+    for (const index of [3, 4]) {
+      await page.goto(`${origin}/full-node/full`)
+      const down = await slideOf(page, `.answer--next:nth-child(${index})`)
+      const up = await slideOf(page, '.up-arrow')
+      expect(down.y, `the ${index}th goes down`).toBeLessThan(0)
+      // Right of the centre, so the layer moves left: the third at 0.5 layer widths, the fourth at 1.5.
+      expect(down.x, `the ${index}th goes down to its right`).toBeLessThan(0)
+      expect(up, `the up arrow undoes the ${index}th`).toEqual({ x: -down.x, y: -down.y })
+      slides.push(down)
+    }
+    expect(slides[1]!.x / slides[0]!.x, 'the fourth stands three times as far across as the third').toBeCloseTo(3, 5)
+    expect(slides[1]!.y).toBe(slides[0]!.y)
   })
 
   test('after a step that was no Answer, the up arrow goes straight up', async ({ page }) => {
