@@ -345,10 +345,12 @@ a.language:hover,
  * switch's gap of 4 goes too: the pill alone, as #135 hides it at `/admin`, leaves both. A Tree in
  * one language gives up its whole switch, which holds that pill alone, so that no empty navigation
  * landmark stays. From 768 up "Editor" fits beside the pill and a logo at its cap (24.3, 10.5).
+ * **[#205]** Keyed to the bar that holds "Editor": the preview's, drawn by the same component
+ * without it, keeps the current language's pill at every width (40.4).
  */
 @media (max-width: 767px) {
-  .node-chrome .language-switch li:has(> .language--current),
-  .node-chrome .language-switch:not(:has(li + li)) {
+  .node-chrome:has(.to-editor) .language-switch li:has(> .language--current),
+  .node-chrome:has(.to-editor) .language-switch:not(:has(li + li)) {
     display: none;
   }
 }
