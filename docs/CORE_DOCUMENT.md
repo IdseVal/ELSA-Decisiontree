@@ -1,7 +1,7 @@
 # Core document
 
 > Populated by deep interview with the project owner. Nothing here is inferred.
-> Status: AGREED -- 2026-10-03 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23 and 2026-10-02)
+> Status: AGREED -- 2026-10-09 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02 and 2026-10-03)
 > The owner noted the document may change in future; changes go through a revision round and a PR.
 >
 > **Revision of 2026-09-09 (issue #35).** After seeing version 0.1 of the tool the owner
@@ -78,8 +78,16 @@
 > 10.41 is decided. Three decided sentences the preview departs from carry a dated **[#205]**
 > note where they stand: 10.37's "the admin area needs JavaScript", and "the names go nowhere
 > else", said of the Authors' names in 3.4's `[#194]` bullet (#195's confirmation) and in 10.40.
+>
+> **Revision of 2026-10-09 (issue #219).** The owner wrote, in issue #219, that a step need
+> not lead on by a yes and a no: "some trees might also have three or four options", and
+> the creator of a Tree is to "choose themselves to how many next steps there are in the
+> tree". Every passage that changed is marked **[#219]** and quotes or cites #219; nothing
+> else in this document was touched. The owner's words are held whole in section 3.4. How
+> they became issues is `docs/adrs/ADR-219-number-of-next-steps-round.md`; the work is
+> issues #220 to #222, and what the words leave open is 10.43, for the Architect on #220.
 
-Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02 and 2026-10-03.
+Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03 and 2026-10-09.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
 Items marked **PROPOSED** are the Planner's wording, waiting for the owner to confirm or correct.
 
@@ -250,6 +258,10 @@ required was named.
   are the Node's **children** and the Option targets its **side children** (the owner's
   words in #35; confirmed by the owner, 10.23):
   - **Answers**: a **yes** and a **no**, each leading to exactly one target Node.
+    **[#219]** No longer always two (owner, 2026-10-09): "some trees might also have three
+    or four options", and the creator chooses "how many next steps there are in the tree"
+    (3.4). How many a step may have, what each says and how the format holds them are
+    10.43, the Architect's on #220.
   - **Options** (PROPOSED name; the owner said "conditions"): a list of clickable
     entries, each with its own title and optional Images, each leading to a **child
     Node** that explains that entry in more depth (e.g. the "prohibited practices" Node
@@ -261,6 +273,8 @@ required was named.
   Answers of its own. The user reads it, goes back through the Trail to the parent, and
   answers the parent's yes/no there (e.g. having found that none of the prohibited
   practices applies, they answer "no" on the "prohibited practices" Node and move on).
+  **[#219]** Or the parent's next step that applies, where it has more than a yes and a
+  no (3.4).
   **[#75]** On screen the side child no longer replaces the parent: it opens in an
   **Overlay** over the parent's page (3.2), and "going back" is closing it.
 - **Terminal Nodes** (Planner's decision, delegated by the owner): a Node that ends the
@@ -303,7 +317,8 @@ required was named.
   branches out of it, each showing its target's title and leading to it. **[#75]**
   Revised by the owner after seeing it: the branches above are no longer drawn (the up
   arrow, below), the side children open in an Overlay instead of replacing the Bubble,
-  and both Answer buttons look the same. The bullets marked [#75] below say what
+  and both Answer buttons look the same (**[#219]** every Answer button of a step, however
+  many, PROPOSED, 3.4). The bullets marked [#75] below say what
   changed; the Bubble, the no-scroll rule, the slide and the Theme stand.
 - **[#75] Side children open in an Overlay (owner, #75).** "What are now side-steps on
   a main-path node, for example on the node 'Does a full exclusion in Article 2 cover
@@ -360,6 +375,9 @@ required was named.
   that section 7 of the same document names `accentSecondary`. It
   reaches the buttons through the first Tree's Theme, never through the frontend's code
   (section 9); by which Theme role is the Architect's (issue #78).
+  **[#219]** A step may now have more Answer buttons than two (owner, 2026-10-09; 3.4).
+  PROPOSED: the owner's rule holds for every button of the row, however many -- one
+  layout, one green, none of them steering the user (10.43).
 - **[#75] The Trail is no longer drawn; an up arrow goes one step back (owner, #75).**
   "The pathing we show above the node, that shows what questions have been answered do
   not look that nice, we would rather want to not display that there, but we want to
@@ -396,7 +414,8 @@ required was named.
   **image carousel below the Bubble**. This reverses 10.6 (thumbnails without chrome).
   Clicking an image still shows it larger, with its description and credit. **[#75]**
   Revised: pictures only, no buttons, no caption, at the Bubble's lower edge (above).
-- The Node offers its Answers (yes / no) and, if it has them, its Options; clicking any
+- The Node offers its Answers (yes / no; **[#219]** or as many next steps as its
+  creator gave it, 3.4) and, if it has them, its Options; clicking any
   of these navigates to the linked Node. **[v0.2]** They are the branches out of the
   Bubble. **[#75]** An Option opens its target in an Overlay (above).
 - Navigation through the tree must be intuitive and click-based.
@@ -417,7 +436,8 @@ required was named.
   provides. UI chrome (yes/no labels, disclaimer, share button) -- which languages, and
   what to show when the Tree's language has no chrome translation -- decided by the
   Architect, 10.20: English and Dutch, falling back to English,
-  `docs/adrs/ADR-5-chrome-languages.md`.
+  `docs/adrs/ADR-5-chrome-languages.md`. **[#219]** Whether a step's buttons still carry
+  the words "yes" and "no" is 10.43 (3.4).
 - A permanently visible **"not legal advice" disclaimer** (footer).
 - Interoperable: the same frontend loads any Tree in the agreed shape with no code
   change. Whether one deployment serves exactly one Tree or offers a choice of Trees
@@ -544,13 +564,16 @@ owner's words leave a choice:
   labelled to carry an explainer (3.1); a side-bubble with a + that creates an Option and
   its side child; on a new Node, "yes", "no" and "tree ends here" buttons that create the
   next Node and move the editor to it. PROPOSED: "tree ends here" is the Terminal of 3.1
-  with its outcome; "yes" and "no" are the Answers; the side-bubble is an Option; nothing
+  with its outcome; "yes" and "no" are the Answers (**[#219]** a step may have more, owner
+  2026-10-09, below); the side-bubble is an Option; nothing
   new enters the format, which stays `elsa-tree/4` (10.21; **[#169]** no longer: the
   Terminal carries the ending's words in place of an outcome, owner 2026-10-02, and the
   file that holds them is `elsa-tree/5`, decided by the Architect on #171; 3.1,
   `docs/specs/tree-format.md` 5.5, 12.7). **[#133] Confirmed as
   proposed by the Architect (2026-09-26):** a Node without Links offers `+ Yes`, `Tree ends
-  here` and `+ No` in the Answer row; a fresh yes or no creates its target and the editor
+  here` and `+ No` in the Answer row (**[#219]** no longer a yes and a no at most: the
+  creator chooses how many next steps a step has, below, and the row's controls are
+  10.43); a fresh yes or no creates its target and the editor
   navigates to it; "tree ends here" asks for one of the four outcomes (**[#169]** asks for
   the ending's words instead -- one field, at most 19 characters, in the language being
   edited -- and the four outcomes are offered nowhere, owner 2026-10-02; 3.1,
@@ -780,6 +803,40 @@ owner's words leave a choice:
     draft has no text yet; its two buttons stand under the bar at the top left, the mirror of
     the editor's floating controls at the top right, and on a hidden Tree "Tree does not end
     here after all" keeps clear of the preview button, as a round icon below 640 pixels wide.
+- **[#219] The creator chooses how many next steps a step has (owner, #219, 2026-10-09).**
+  Where this bullet and a sentence above or below it, or in 3.1, 3.2 and section 5,
+  disagree, this bullet holds. How the instruction became issues is
+  `docs/adrs/ADR-219-number-of-next-steps-round.md`. The owner's words, whole:
+  > "Some trees might consist of yes or no, some trees might end there, but some trees
+  > might also have three or four options. Let's change the design to let the creator of
+  > a decision-tree choose themselves to how many next steps there are in the tree."
+  - **How many next steps a step has is its creator's choice.** A step that leads on is
+    no longer always a yes and a no (3.1). PROPOSED (the owner's words leave these open):
+    "options" here are the next steps -- the Answers of 3.1 and section 5, the children
+    below the Bubble (10.23) -- and not the Options beside it, of which a step has
+    as many as its author gives it, none to eight (`docs/specs/tree-format.md`
+    5.4, 5.7), chosen in the editor with the side-bubble `+` since #133
+    (`docs/specs/application.md` 30.4); the number is chosen per step, so a Tree can be
+    all yes and no, as the owner's first case reads, or have a yes and a no on one step
+    and three next steps on another; "three or four" names numbers the creator must be
+    able to choose, not the most, so two, three and four are allowed, and whether one is,
+    or more than four, is 10.43; a step that is a yes and a no stays one, as every step
+    that leads on in the Trees and the valid fixtures on `dev` is; and every button of a step's
+    Answer row looks the same, as both have since #75 (3.2).
+  - **"Some trees might end there."** PROPOSED: the Terminal of 3.1, which the creator
+    has chosen with "Tree ends here" since #133 and whose words they have typed since
+    #179; unchanged by #219, but for where its control stands in the editor's Answer row
+    beside the next steps (10.43).
+  - **Open for the Architect on #220 (10.43):** the lowest and the highest number of next
+    steps a step may have, the highest no lower than four, from the room the page has
+    under the no-scroll rule of section 9 (10.22); what each button says, since no chrome
+    word names a third next step -- the creator's own words per language with a limit,
+    as for the ending (3.1), the next step's title alone, or "yes" and "no" kept for a
+    step that is a yes and a no; the format and its migration; the Answer row on the
+    public page and in the editor, where the creator adds, removes and words a next step;
+    and every other reader of the yes and the no -- the slide, the neighbouring Nodes
+    fetched ahead (3.1), the JSON-LD of section 1's findability contracts. #221 builds
+    the format and the public page, #222 the editor.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
@@ -810,7 +867,12 @@ owner, #202: a button that says "Editor" at the top right of the regular window,
 to `/admin` -- PROPOSED: the overview and every Node page, a Node page's bar giving up
 the current language's pill for it below 768 pixels wide, a bar that can grow past the
 window where it did not in a Tree with a third language or whose current language's pill
-frees less room than "Editor" takes (10.42); the `[#202]` bullet above).
+frees less room than "Editor" takes (10.42); the `[#202]` bullet above; **[#219]** and, of
+the pages and the format both, another since 2026-10-09, owner, #219: a step's Answer row
+holds as many buttons as its creator gave it, and the Tree format holds how many next steps
+a step has, and the slide from each button and the findability contracts of section 1 --
+the JSON-LD's suggested answers, `llms.txt`, the dataset -- follow them wherever 10.43
+changes them; the `[#219]` bullet above).
 The overview page is a new page in front of them; where the
 round must touch existing code (the loader opening several Trees, the sitemap listing
 several) the change is additive. The issue's own OUT OF SCOPE is "changes to the existing
@@ -858,7 +920,7 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 | **Tree** | One loadable dataset (e.g. "AI Act applicability, agrifood"; a future "ethics" tree). Graph-shaped internally, presented as a decision tree. Declares which languages it provides. **[v0.2]** Stored as one file plus its asset files; carries its Theme. | decision-tree, datastructure, graph |
 | **Node** | One step in a Tree. Has title, description, Sources, metadata (incl. version), Images, and outgoing Links (Answers and/or Options), or a terminal marker. All user-facing text is per language. **[v0.2]** Every text field has a maximum length. | item, step, object, bubble, data item, reasoning step |
 | **Link** | Any clickable connection from one Node to another. Two kinds: Answer and Option. | -- |
-| **Answer** | The yes or no Link on a Node; each leads to exactly one target Node. **[v0.2]** Its target is a **child** of the Node on screen. | yes/no, children |
+| **Answer** | The yes or no Link on a Node; each leads to exactly one target Node. **[v0.2]** Its target is a **child** of the Node on screen. **[#219]** (owner, 2026-10-09: "let the creator of a decision-tree choose themselves to how many next steps there are in the tree") Not only a yes and a no: a step has as many Answers as its creator gives it -- PROPOSED, two, three or four at least -- each leading to a next step below the Bubble (3.4, 10.43). | yes/no, children, **[#219]** options, next steps (PROPOSED, 3.4) |
 | **Option** (PROPOSED) | A named entry in a Node's list, with its own title and optional Images, leading to an explanation-only child Node. **[v0.2]** Its target is a **side child** of the Node on screen. **[#75]** Its button beside the Bubble shows the side child's main image and opens the side child in an Overlay; in `elsa-tree/3` an Option has no Images of its own (#78). | condition, area, listed item, side children, side-steps, side-nodes |
 | **Terminal** | A Node explicitly marked as ending the walk, with an outcome (e.g. "AI Act does not apply"). **[#169]** (owner, 2026-10-02: "just let the user enter a text to display on the button (with a wordcap obviously)") With the ending's own words in place of an outcome: a short text per language, written by its creator and shown on the Terminal's badge (3.1). | message, tree ends here |
 | **Image** | A picture attached to a Node or an Option; has a description, a credit, and an optional pointer to a Source. Stored server-side in a dedicated images folder. **[v0.2]** Shown in the Carousel. | image, picture |
@@ -866,7 +928,7 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 | **Trail** | The ordered list of Nodes the user visited to reach the current Node; clickable to jump back. Carried in a shared link. **[v0.2]** Drawn as the Branches above the Bubble (was: a line upward). **[#75]** No longer drawn: the way back is the **up arrow**, one round button above the Bubble that goes to the entry directly above; the Trail itself stays in the URL. | the way back, line to previous items, path, the branches above, the pathing |
 | **Cross-link** | A Link from a Node to a Node in another Tree, or to a non-child Node in the same Tree. Future capability. | link different graphs, cross-link between graph items |
 | **Bubble** | **[v0.2]** The round view of the Node that is open: its title, description, Sources, outcome (**[#169]**, 2026-10-02: a Terminal's ending words). Everything in it fits on screen without scrolling. | bubble, opened node |
-| **Branch** | **[v0.2]** A Link as drawn on screen: a line from the Bubble to a Trail entry above it, or out to a child or side child, labelled with the target's title, clickable. **[#75]** No Branches above any more: a Branch is an Answer button below the Bubble (both the same, in the logo's green) or a side child's button beside it (its main image and title, fanned out like a mind map). | branches above, branches going out, buttons |
+| **Branch** | **[v0.2]** A Link as drawn on screen: a line from the Bubble to a Trail entry above it, or out to a child or side child, labelled with the target's title, clickable. **[#75]** No Branches above any more: a Branch is an Answer button below the Bubble (both the same, in the logo's green; **[#219]** every Answer button of a step the same, however many, PROPOSED, 3.4) or a side child's button beside it (its main image and title, fanned out like a mind map). | branches above, branches going out, buttons |
 | **Carousel** | **[v0.2]** The strip of the open Node's Images below the Bubble, with controls to move between them. **[#75]** The Node's Images after the main image, at the lower edge of the Bubble: pictures only, no buttons, no caption. | image carrousell |
 | **Theme** | **[v0.2]** The logo, colours and fonts a Tree carries so the frontend shows that Tree's lab's identity. Files in the Tree's folder; nothing external. | styles and logo, their logo is displayed |
 | **Main image** | **[#75]** The Image a Node leads with: its first Image (PROPOSED, 3.1). Shown above the Node's title in its Bubble or Overlay, and small on the button that opens the Node as a side child (10.29). | main-image |
@@ -1046,3 +1108,4 @@ Confirmed by the owner on 2026-09-03:
 | 10.40 | **[#194]** The mention of who authored a Tree (3.4, owner 2026-10-03). Who is named where the owner's words leave it open: a collaborator removed, a deactivated account, the administrator (the creator of every seeded Tree, `docs/specs/application.md` 17.1), a Tree handed over; whether the mention names the accounts of the PROPOSED row **Author** (section 5) or, as sections 1, 2 and 3.1 use *author*, whoever writes a Tree's content; how the order of joining is kept, since `meta.json` lists collaborators in the order they were invited and a hand-over adds the old creator as a collaborator (21.4) at the end of that list (`handOver` in `src/store/drafts.ts`); what the mention shows when the names do not fit; where it stands -- a Tree's pages, its overview tile, the editor -- under the no-scroll rule of section 9; whether the names also go into `tree.json`, the JSON-LD or `llms.txt`, which carry none today (section 8, `application.md` 17.2). | Architect; Idse may overrule | ~~**OPEN** -- decided on #195~~ **[#195] Decided by the Architect (2026-10-03):** **who** -- the Tree's creator and its collaborators who hold that role now, **never the administrator**, in the order in which each **first** joined the Tree, each by the name of the account alone: 3.4's PROPOSED reading, confirmed. A collaborator removed is no longer named and, invited again, keeps its first place; a deactivated account is still named; after a hand-over the account that made the Tree keeps its place. The row **Author** of section 5 is that account: for a Tree made in the editor, its authors in the sense of sections 1, 2 and 3.1; a seeded Tree, whose authors have no account here, names nobody until it is handed to the account of one -- on the live demo server, each of its three. **The order** is kept in `meta.json`'s new `joined`, appended to and never reordered, filled in from the roles at the first start. **The mention** says "By A, B and C" / "Door A, B en C" on one small line in the chrome bar of every Node page of the Tree, between its mark and the controls, and on its tile on both overviews; when the names do not fit it is cut where its room ends, the last to join first, and where under 80 pixels are left it is not drawn -- so on a phone a reader meets it on the tile, whose line is cut where its own room ends; nothing in the Bubble or its rows moves. **Not** in the editor, and the names go **nowhere else** (**[#205]** but, since 2026-10-04, the bar of a hidden Tree's preview, which is the Node page's bar on an admin page shown only to the accounts with a role on the Tree; 10.41, `docs/specs/application.md` 40.4): not `tree.json`, the JSON-LD or `llms.txt`; a hidden Tree's names on no public route; the account sweep of `tests/browser/deployment.spec.ts` proves that no address, no account id and no name but a published Tree's Authors' reaches a public route. `docs/adrs/ADR-195-authors.md`, `ADR-195-order-of-joining.md`, `ADR-195-the-mention.md`, `ADR-195-names-on-public-routes.md`; `docs/specs/application.md` 39; built by #197 |
 | 10.41 | **[#202]** The **Preview** of a hidden Tree (3.4, owner 2026-10-03). Its address, which the admin area's addresses do not include (`docs/specs/application.md` 24.1); who may open it, and what it answers without a session or a role, for an unknown id, for an uneditable Tree and for a Tree published since it was opened; how the public components draw a draft through it -- the addresses and the pictures the reuse rule gives them (34), the neighbour frames and the slide the editor never renders, the Theme, the chrome bar (the arrow of #163, the language switch, the share button, the mention of the Authors, #204's "Editor") and the page's head -- and what a reader sees of a draft that is not valid yet: a missing title or text in a language, a step without Answers or an end, an ending without words, a picture without a credit; where its button and the way back stand under the no-scroll rule of section 9, beside the up arrow, the step's buttons and the editor's floating controls; what pressing its button does while the editor holds an edit the store does not have yet -- a write waiting or retrying in the autosave queue, during which leaving the page asks the browser's `beforeunload` confirmation (`docs/specs/application.md` 29.2, 29.5), or a value refused and left on screen (29.4) -- since a preview opened then may not show it; what "where he came from" returns to; and whether the PROPOSED readings of 3.4 `[#202]` and of the row **Preview** (section 5) stand. | Architect; Idse may overrule | ~~**OPEN** -- for the Architect on #205; built by #206~~ **[#205] Decided by the Architect (2026-10-04):** **the address** `/admin/preview/<tree-id>/<path>`, the public grammar behind a sixth word of the admin area, so that the up arrow, the Answer buttons and the language switch keep the reader in the preview; for an account with a role on the Tree; without a session the login page, without a role the 403 page, for an unknown id 403 or 404 as in the editor, for an uneditable Tree the editor's page for it, and for a Tree published since a redirect to its editor at the same step; never a public route, so section 9 stands as written. **What it draws**: the draft through the end-user components by the reuse rule's one setting with no slot, so 3.4's "one optional setting" stays true; the neighbour frames and the slide, within the seventeen Nodes of a public page; its pictures and theme files from the admin routes; the draft's Theme on the whole page; a head for no crawler (`noindex`, no JSON-LD, canonical link, `hreflang` or dataset link) and the content language on `<html>`. **The chrome bar**: the public Node page's, by the same component -- #163's arrow leading to `/admin`, the Tree's mark, the mention of its Authors, the language switch -- without the share button and #204's "Editor", the current language's pill kept. **A draft not valid yet**: what a reader would see, with "[Text missing in this language]" where it has no text yet -- "Text of the ending" in the badge, "[Maker and licence]" for a credit -- a step with one Answer or none drawn as it stands, and no to-do count. **The buttons**: "Preview" / "Voorbeeld" and "Back to the editor" / "Terug naar de editor", under the bar at the top left in one box -- the mirror of the editor's floating controls at the top right -- in words from 1000 pixels wide and as icons below, first after the bar in the tab order; on a hidden Tree "Tree does not end here after all" keeps out of their column below 1000 pixels wide and is a round icon below 640; measured clear of the up arrow, the step's buttons, the Bubble, the Option buttons and the floating controls at every viewport of `docs/specs/application.md` 10.6 where the tree view shows, in both languages (`docs/research/issue-205-top-left-room.md`). **The way there and back**: the same tab, once the autosave holds nothing waiting to be saved, so that the browser's `beforeunload` question never comes from the button; the way back to the editor of the step and the language the preview shows. Of the PROPOSED readings of 3.4 `[#202]` and of the row **Preview**, "where he came from" is replaced and the rest confirmed (3.4). `docs/specs/application.md` 40, `docs/adrs/ADR-205-*.md`; built by #206 |
 | 10.42 | **[#202]** The Trees for which the PROPOSED reading of a Node page's bar (3.4 `[#202]`, 10.22) does not hold section 9's first bullet: "The frontend must never break when loaded with a third-party Tree that follows the agreed shape -- including a Tree that provides only one language, or languages other than English and Dutch." Below 768 pixels wide that bar gives up the current language's pill, with its list item and one of the switch's 4-pixel gaps, for "Editor", and from 768 up it holds "Editor" beside every pill. In the Trees and faces measured, in English and Dutch, it is then no wider than `dev`'s bar below 768, whatever their logo, and from 768 up it keeps 59.8 pixels or more (`docs/research/issue-202-bar-room.md` section 2). A bar wider than the window has its right end, with its last controls, cut off, since the page never scrolls (10.22). The bar can grow past the window where `dev`'s does not in **a Tree with a third language**: from 768 up its bar holds three pills and "Editor", and at 768 x 1024, one of the ten viewports `docs/specs/application.md` 10.6 names, "Editor" leaves 59.8 pixels beside a logo as wide as its cap, in Dutch beside the first Tree's controls (61 in the CI runner's faces), where `dev`'s bar keeps about 69 more, while no pill measured from 480 pixels wide up is narrower than 63.6, with a gap of 4 -- so a third pill no narrower than the narrowest measured takes the bar past the window there; and in **a Tree whose current language's pill frees less room than "Editor" takes**, below 768: from 480 pixels wide up, in the share button's look, "English" frees only 0.2 to 0.3 pixels more than "Editor" takes on Windows and 1 to 2 in the CI runner's faces, so a language whose own name is drawn narrower than "English" may, and so may "English" in a face the record did not measure, such as a Theme's own or the default stack as Apple's systems or Android draw it. Neither was measured. `dev`'s own bar already fails the bullet in two more: **a third pill** no narrower than the narrowest measured, beside the seeded logos, at 320 x 480 and at 360 x 640 in Dutch (in the CI runner's faces in English beside the first Tree's logo too), two of those ten viewports, and from 480 to 500 or 520 pixels wide, where it keeps less room than that pill takes with its gap (`docs/research/issue-202-bar-room.md` section 2); and **a logo as wide as its cap**, beside which it grows past the window from 480 pixels wide until 599 to 640. Below 768 #204's bar is no wider than `dev`'s beside either, in the Trees and faces measured. These are not only third-party files: the new-Tree form and the top panel take any number of languages (`docs/specs/application.md` 27.1, 33.5), and the Theme panel a logo whose shape it does not check (`docs/specs/application.md` 33.8). How wide a pill is depends on its language's own name, so no one width holds every set of languages (`docs/adrs/ADR-202-navigation-round.md`, Consequences). Must a Node page's bar hold section 9's first bullet for all four -- by a rule the answer names, which #204 builds, or on an issue of its own -- or may it fail to for now, as `dev`'s bar already does for the last two? | Idse | **OPEN** -- asked on #202 (2026-10-04). #204 builds the PROPOSED reading and leaves these Trees out of its scope. An answer on #204 before it is built reaches its run: a rule the answer names is a requirement there; an answer that the bar must hold for these Trees, naming no rule, that run files as an issue of its own, labelled `proposed` and quoting the answer, and names it in its pull request |
+| 10.43 | **[#219]** How many next steps a step has, now its creator's choice (3.4, owner 2026-10-09). The lowest and the highest number a step may have -- the highest no lower than four ("three or four options"), and whether a step may have one -- measured against the room of the Answer row under the no-scroll rule (section 9) at the guaranteed size and below it, down to the floor (10.22), with the longest words the format allows; what each button says, since today it says the chrome word "Yes" or "No", a colon and the next step's title (`docs/specs/application.md` 10.3) and no chrome word names a third next step, and what it says below 480 pixels wide, where it says the chrome word alone; whether "yes" and "no" stay for a step that is a yes and a no; the shape of `answers` in the Tree file, which holds exactly a `yes` and a `no` (`docs/specs/tree-format.md` 5.3), the new format number and the migration of every Tree on `dev`, of the fixtures and of a deployment's data directory; the painting of every button alike (3.2), the keyboard order, the slide from each button and the bound on the neighbouring Nodes fetched ahead (3.1, section 9); the editor's Answer row, which offers `+ Yes`, `Tree ends here` and `+ No` (3.4), and how a creator adds, removes, words and orders a next step there; what a draft step with fewer next steps than the lowest number is (`application.md` 19.2) and what the preview shows of it (40.7); the JSON-LD's `Question` and its suggested answers, `llms.txt` and the dataset endpoint (section 1); and whether the PROPOSED readings of 3.4 `[#219]` and of the row **Answer** (section 5) stand. | Architect; Idse may overrule | **OPEN** -- for #220 |
