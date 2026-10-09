@@ -20,7 +20,10 @@
  * step menu and the link menus, plain and with the red cross's question asked. **[#203]** And the
  * editor's bar with the arrow at its left, beside the example Tree's logo, a wide logo in a Tree of
  * three languages and an 80-character title; and the bar alone at four widths 10.6 does not list;
- * and beside no logo in a Tree of four languages, before and after a first save.
+ * and beside no logo in a Tree of four languages, before and after a first save. **[#204]** And
+ * the bar at `/admin` alone, with "Website" at its right end (`bar.ts`), on the login page and on
+ * the administrator's creators' overview, at every viewport of 10.6 and at five sizes either side of
+ * 480, 600 and 768 wide.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -31,6 +34,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Locator, type Page } from '@playwright/test'
 import { ADMIN_EMAIL, ADMIN_ENV, ADMIN_PASSWORD, buildDataDir, login } from './admin.ts'
+import { BAR_SIZES, barRow, expectBarFits, measureBar } from './bar.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -205,6 +209,23 @@ for (const lang of LANGUAGES) {
     await everywhere(page, '/admin', "creators' overview", lang, 200)
     await expect(page.locator('.tile')).toHaveCount(TREES.length + 1)
   })
+
+  // **[#204]** The administrator's overview carries the most controls: `account`, `accounts`, `logout`, `website`.
+  for (const session of [false, true]) {
+    const what = session ? "creators' overview, the administrator" : 'login page'
+    test(`the bar at /admin with "Website", the ${what}, ${lang}, fits at every viewport of 10.6 and at five more`, async ({ browser, page: anonymous }) => {
+      const page = session ? await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD) : anonymous
+      for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES]) {
+        const viewport = `${width}x${height}`
+        await page.setViewportSize({ width, height })
+        expect((await page.goto(`${origin}/admin${lang === 'en' ? '' : `?lang=${lang}`}`))?.status()).toBe(200)
+        await expect(page.locator('header.page-chrome').getByRole('link', { name: 'Website', exact: true })).toBeVisible()
+        const m = await measureBar(page)
+        rows.push(barRow(`bar at /admin, ${what}`, lang, viewport, m))
+        expectBarFits(m, `the bar of the ${what} (${lang}) at ${viewport}`)
+      }
+    })
+  }
 
   test(`the new-Tree form with three languages, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
     test.slow()

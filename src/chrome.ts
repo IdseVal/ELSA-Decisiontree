@@ -88,6 +88,13 @@ export interface Chrome {
   logout: string
   account: string
   accounts: string
+  /**
+   * **[#204]** The two links between the public pages and the admin area (24.3): `editor` at the
+   * right of the public bars, to `/admin`; `website` at the right of the bar at `/admin`, back to
+   * the public overview. The same word in English and Dutch, as `account` is.
+   */
+  editor: string
+  website: string
   /** **[#135]** The login page (25.1). */
   signIn: string
   /** **[#196]** The address field of the login page and of the new-account and `setEmail` Sheets, and the accounts page's column (38.5). */
@@ -413,6 +420,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     logout: 'Log out',
     account: 'Account',
     accounts: 'Accounts',
+    editor: 'Editor',
+    website: 'Website',
     signIn: 'Sign in',
     email: 'E-mail address',
     password: 'Password',
@@ -648,6 +657,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     logout: 'Uitloggen',
     account: 'Account',
     accounts: 'Accounts',
+    editor: 'Editor',
+    website: 'Website',
     signIn: 'Inloggen',
     email: 'E-mailadres',
     password: 'Wachtwoord',

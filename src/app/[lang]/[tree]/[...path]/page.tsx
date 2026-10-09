@@ -10,6 +10,7 @@ import { Logo } from '../../../../components/Logo.tsx'
 import { ShareButton, type ShareWords } from '../../../../components/ShareButton.tsx'
 import { TreeView } from '../../../../components/TreeView.tsx'
 import { ThemeStyle } from '../../../../components/ThemeStyle.tsx'
+import { ToEditor } from '../../../../components/ToEditor.tsx'
 import { baseUrl, store } from '../../../../config.ts'
 import { graphScript, pageGraph } from '../../../../findability/jsonld.ts'
 import { plainDescription } from '../../../../markdown.ts'
@@ -55,7 +56,8 @@ export default async function NodePage(props: Props) {
         the layout is given its own `[lang]` segment and nothing else, and a link to this
         page in another language is built from the whole address -- this Trail, this Node.
       */}
-      <header className="page-chrome">
+      {/* **[#204]** `node-chrome`: below 768 pixels wide this bar alone gives up the current language for "Editor" (24.3). */}
+      <header className="page-chrome node-chrome">
         <div className="page-brand">
           <BackToOverview href={overviewHref(chromeLanguage(found.address.lang))} lang={found.address.lang} />
           <Logo
@@ -69,6 +71,7 @@ export default async function NodePage(props: Props) {
         <div className="page-controls">
           <LanguageSwitch address={found.address} languages={found.tree.manifest.languages} />
           <ShareButton ui={shareWords(found.address.lang)} uiLang={chromeLang(found.address.lang)} />
+          <ToEditor lang={found.address.lang} />
         </div>
       </header>
       <main>

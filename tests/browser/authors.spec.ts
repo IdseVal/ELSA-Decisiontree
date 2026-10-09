@@ -346,14 +346,17 @@ for (const lang of LANGUAGES) {
           const middle = (of: Box): number => of.top + of.height / 2
           expect(Math.abs(middle(box) - middle(m.controls)), `${where}: on the controls' middle`).toBeLessThanOrEqual(0.5)
         }
-        // What 39.4 says this gives: beside a 120-pixel logo drawn from 768 x 1024 up and not on a
-        // phone; beside an 80-character title drawn from 1024 x 768 up and not below.
-        if (id.startsWith('example-') && (width >= 768 || viewport === '390x844' || viewport === '360x640')) {
+        // What 39.4 says this gives: beside a 120-pixel logo drawn from 768 x 1024 up and not at
+        // 360 x 640; beside an 80-character title drawn from 1024 x 768 up and not below. **[#204]**
+        // "Editor" in the bar leaves three names whole at 768 x 1024 no more, one still; at 390 x 844,
+        // where the current language gives up its pill, the room is 80.7 pixels in English on Windows,
+        // a pixel from the rule's 80, so that row is left to the rule `expectRule` holds everywhere.
+        if (id.startsWith('example-') && (width >= 768 || viewport === '360x640')) {
           expect(m.line!.drawn, `${where}: beside the logo`).toBe(width >= 768)
         }
         if (id.startsWith('long-')) expect(m.line!.drawn, `${where}: beside the 80-character title`).toBe(width >= 1024)
         if (viewport === '1280x640' && id === 'example-three') expect(shown, `${where}: three names whole at the guarantee`).toBe('whole')
-        if (viewport === '768x1024' && id === 'example-three' && lang === 'en') expect(shown, `${where}: three names whole beside the logo`).toBe('whole')
+        if (viewport === '768x1024' && id === 'example-one') expect(shown, `${where}: one name whole beside the logo`).toBe('whole')
         if (viewport === '1280x640' && id === 'example-eight') expect(shown, `${where}: eight names do not fit`).toBe('cut')
       }
     }

@@ -367,6 +367,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | **[#195]** (2026-10-03) #196 | `email` ("E-mail address" / "E-mailadres": the login page's field, the field of the new-account and `setEmail` Sheets, the accounts page's column), `emailInvalid` ("Enter an e-mail address, such as name@example.org." / "Vul een e-mailadres in, zoals naam@example.org."), `emailTaken` ("Another account has this e-mail address." / "Een ander account heeft dit e-mailadres."), `nameTaken` ("Another account has this name." / "Een ander account heeft deze naam."), `setEmail` ("Set e-mail address" / "E-mailadres instellen", in the words of `setPassword`), `noEmail` ("No e-mail address yet" / "Nog geen e-mailadres"), `signedInWith(email)` ("You sign in with <address>." / "U logt in met <adres>."), `emailHelp` ("Ask your administrator to change it." / "Vraag uw beheerder om het te wijzigen.": under the address on every account's page but the administrator's), 38.5 and 38.6; **gone**: `login`, `loginInvalid`, `loginTaken`; **reworded**: `loginFailed`, "Wrong e-mail address or password." / "Verkeerd e-mailadres of wachtwoord.", and `sessionNotKept`, which opens "Your e-mail address and password are right" / "Uw e-mailadres en wachtwoord kloppen" (25.1) |
 | **[#195]** (2026-10-03) #197 | `byAuthors(names)` ("By A, B and C" / "Door A, B en C": the mention, 39.4), `nameShownPublicly` (the account page's notice, 39.8) |
 | **[#205]** (2026-10-04) #206 | `preview` ("Preview" / "Voorbeeld": the preview button in the editor of a hidden Tree, its words from 1000 pixels wide, its name and its `title`, 40.5), `backToEditor` ("Back to the editor" / "Terug naar de editor": the way back in the preview, likewise) |
+| **[#204]** (2026-10-09) #204 | `editor` ("Editor" in English and in Dutch: the link at the right end of the bar of the public overview and of every public Node page, to `/admin`, 24.3), `website` ("Website" in both: the link at the right end of the bar at `/admin`, to the public overview, 24.3) |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -1756,6 +1757,15 @@ It is **behind no control** -- a Sheet of the Authors behind one was rejected
 (`ADR-195-the-mention.md`) -- so where the line is cut, its whole text is its `title`, and
 where it is not drawn, the page names no Author: the reader meets them on the Tree's tile on
 the overview (39.5), whose line is cut where its own room ends.
+
+**Amended 2026-10-09 (#204, the owner's #202):** one more thing is given up outside the numbered
+order, by width alone: **below 768 pixels wide a public Node page's chrome bar gives up the
+current language's pill**, with its list item and so the switch's gap of 4 pixels beside it, to
+make room for "Editor" (24.3). It is not a link, and it names the language already on screen; the
+links to the other languages stay. A Tree in one language, whose switch holds that pill alone,
+gives up its whole switch, so that no empty navigation landmark stays. Like #82's shortening it
+needs no control: nothing it showed is reachable only through it. Nothing in the table moves for
+it. The overview's bar keeps the pill at every width, and so does the preview's (24.3).
 
 ### 10.6 The no-scroll rule, and the exact test
 
@@ -3987,10 +3997,11 @@ published Tree's preview is a 307 to its editor at the same path and `?lang`; an
 
 | Page | Left | Right | Theme |
 |---|---|---|---|
-| Public Node page | The Tree's logo or title; **[#195]** (2026-10-03) then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button | The published Tree's |
-| Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
-| Login page | `siteTitle` | language switch | The default |
-| Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
+| Public Node page | **[#204]** (2026-10-09) #163's arrow, `toOverview`, a link to the public overview in the chrome language, which #164 added and this row did not name; then the Tree's logo or title; **[#195]** (2026-10-03) then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button; **[#204]** (2026-10-09) then `editor` ("Editor"), a link to `/admin` in the chrome language, in the share button's look, last. Below 768 pixels wide the switch gives up the current language's pill with its list item, and in a Tree of one language the whole switch (10.5) | The published Tree's |
+| Public overview `/` | `siteTitle` as text | language switch; **[#204]** (2026-10-09) then `editor`, as on a Node page, last. The current language's pill at every width | The default (13.4) |
+| Login page | `siteTitle` | language switch; **[#204]** (2026-10-09) at the address `/admin` only, then `website` ("Website"), a link to the public overview in the chrome language (`/`, `/?lang=nl`), in the `account` link's look, last. Not on the login page shown at any other admin address | The default |
+| **[#204]** (2026-10-09) Creators' overview, `/admin` with a session | `siteTitle`, not drawn below 600 pixels wide | language switch, its current language's pill not drawn below 600; `account`, `accounts` (administrator only) and `logout`, as in the row below; then `website`, as on the login page, last | The default |
+| ~~Creators' overview,~~ **[#204]** (2026-10-09) `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
 | The editor | **[#203]** (2026-10-04) The arrow of #163, `toOverview`, a link to the creators' overview `/admin` in the chrome language; then the draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). **[#205]** (2026-10-04) On a hidden Tree the preview button floats under the bar at the top left, not in it (40.5). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4); **[#205]** the preview button too |
 | **[#205]** (2026-10-04) The preview of a hidden Tree (40.4) | #163's arrow, leading to `/admin`; the draft's logo or title, as the public page; then the mention of its Authors (39.4) | language switch, the current language's pill at every width. **No share button, no "Editor".** The way back floats under the bar at the top left, not in it (40.5). | **The draft's**, on the whole page as on a public page; the way back the default (13.4) |
 | The 404 and 403 pages; **[#213]** (2026-10-04) and an uneditable Tree's (19.5), which had no bar and was laid out in the bar's row | `siteTitle` | language switch | The default |
@@ -4000,6 +4011,13 @@ current language's pill (not a link, and the language on screen) so that the swi
 name, `accounts` and `logout` fit 320 pixels; the name is cut with an ellipsis where it does
 not fit and carries `data-clamp`, which `admin-no-scroll.spec.ts` reads as the overview's
 walk reads a tile's title (26.1).
+**[#204]** (2026-10-09) The bar at `/admin` -- the login page there and the creators' overview --
+keeps its controls at its right end at every width, below 480 too, where the title they stood
+beside is not drawn: `website` ends that bar as "Editor" ends the public pages' bars. The
+creators' overview gives up the title and the current language's pill below 600 pixels wide
+instead of 480, for `website`'s room; below 480 `website` stands 8 pixels from `logout`, as the
+account links stand from each other. `/admin/new`, `/admin/account` and `/admin/accounts` keep this
+note's rule as it is.
 
 **[#176], changed by the owner -- 2026-10-02** (#169: "next to it it says adminstrator, make it
 say 'Account' or at least make it say what it is"). On every admin page with a session -- the
@@ -4074,6 +4092,40 @@ wider than the window below 480 in every Tree measured, as it was before #203, a
 the indicator's line counts in the least width the bar needs.
 `admin-no-scroll.spec.ts` keeps this in a Tree of four languages with no logo
 (`tests/fixtures/four-languages/`) at every viewport of 10.6, before and after a first save.
+
+**[#204], the owner's #202 -- 2026-10-09** ("From the regular window, I want top right a button
+that says Editor and that directs to the login, or if user is logged in, moves to the editor
+interface on /admin. From the /Admin page I want a button that routes back to the regular page,
+in the same place."). The public overview's bar and every public Node page's end with `editor`,
+"Editor" in English and in Dutch, in the share button's look (`src/components/ToEditor.tsx`): one
+plain link to `/admin` in the chrome language, the same for every visitor, since `/admin` shows
+the login page without a session and the creators' overview with one (24.1, 24.2), and a public
+page reads no cookie (20.5). It carries the chrome language's `lang` where the page's content
+language is another, as #163's arrow does; a Tree in a language the chrome does not speak gets
+"Editor" and `/admin` in English (3.1). The bar at `/admin`, on the login page and on the
+creators' overview, ends with `website`, "Website" in both languages, in the `account` link's
+look: a link to the public overview, `/` or `/?lang=nl`, the top of the public pages, rather than
+to the page the visitor came from, since `/admin` is also opened from a bookmark or a typed
+address. No other admin page carries it, nor the login page shown at another admin address. That
+these are the pages the owner meant, and these the words, places and looks, is the PROPOSED
+reading of core document 3.4 `[#202]` (`ADR-202-navigation-round.md` decision 5). `/admin` stays
+`noindex` (20.9) and outside the sitemap (23.4), and `robots.txt` is unchanged (23.3).
+Measured on the build of #204, on Windows, in English and Dutch, at every viewport of 10.6 and at
+479, 480, 599, 600 and 767 x 800 (`tests/browser/bar.ts`): nothing in the bar overflows and no
+text in it takes more lines than it is given, one for every control and for the site's title and
+two for a Tree's title as text -- in the overview's bar; in a Node page's beside the example
+Tree's logo, the first Tree's, an 80-character title and three Authors of 80 characters; and in
+the bar at `/admin`, on the login page and on the administrator's creators' overview. The least
+room left between a logo and the controls is 24.9 pixels on a Node page (the first Tree, in
+English, at 480 x 800) and 14.2 on the creators' overview (in English, at 320 x 480); at 600 x 800
+the creators' overview keeps 54.1 pixels beside its title in English and 46.7 in Dutch. Beside a
+copy of the first Tree whose logo is drawn at its cap of 288 pixels, the bar holds at 767 x 800,
+without the current language's pill (143.7 pixels of room in English, 153.7 in Dutch), and at
+768 x 1024, with it (75.0 and 59.8). A Tree of three languages or more, and one whose current
+language's name is drawn narrower than "English", were not measured: whether its bar must hold is
+core document 10.42's question to the owner. `no-scroll.spec.ts` and `admin-no-scroll.spec.ts`
+keep these bars; `editor-and-website.spec.ts` the links, their addresses and what each bar gives
+up.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
@@ -6219,14 +6271,24 @@ hidden Tree's included, and `store.authors(id)` for the other published Trees, a
 
 (The first Tree in English at 1280 x 640: the three names take 289 of the 809.)
 
-- **What that gives at the viewports of 10.6**, measured on `dev` (the research record, section
+- ~~**What that gives at the viewports of 10.6**, measured on `dev` (the research record, section
   2): beside a 120-pixel logo the mention is drawn at every viewport from 768 x 1024 up --
   three names whole at 1280 x 640 in both languages and at 768 x 1024 in English; in Dutch at
   768 x 1024 cut beside the first Tree's logo (297 pixels in 282) and whole beside the example
   Tree's (280 in 291) -- and not drawn at 390 x 844 and 360 x 640, where 30 to 75 pixels are
   left. Beside an 80-character title it is drawn at 1024 x 768 and above and not below. At and
   below the floor the notice stands in for the page (10.4). On a phone a reader meets the
-  Authors on the Tree's tile (39.5), whose line is cut where its own room ends.
+  Authors on the Tree's tile (39.5), whose line is cut where its own room ends.~~
+  **[#204]** (2026-10-09) **What that gives at the viewports of 10.6**, measured again beside
+  "Editor" on the build of #204 (`authors.spec.ts`, on Windows): beside the example Tree's
+  120-pixel logo the mention is drawn at every viewport from 768 x 1024 up -- three names whole
+  at 1280 x 640 and 1024 x 768 in both languages; at 768 x 1024, where 237.1 pixels of room are
+  left in English and 224.1 in Dutch, one name whole and three cut -- and at 390 x 844, where the
+  bar has given up the current language's pill (10.5) and 80.7 pixels are left in English and
+  89.9 in Dutch: one name whole in English, cut in Dutch. At 360 x 640, with 57.3 and 66.5, it is
+  not drawn. Beside an 80-character title it is drawn at 1024 x 768 and above and not below. At
+  and below the floor the notice stands in for the page (10.4). Where it is not drawn a reader
+  meets the Authors on the Tree's tile (39.5), whose line is cut where its own room ends.
 - **Without JavaScript** the mention is the server's markup and its rules are the
   stylesheet's: there is nothing to run (14).
 - **A Tree without an Author** -- one whose only role holder is the administrator -- has no
