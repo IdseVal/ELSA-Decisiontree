@@ -9,7 +9,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import schemaDocument from '../schemas/elsa-tree-5.json' with { type: 'json' }
+import schemaDocument from '../schemas/elsa-tree-6.json' with { type: 'json' }
 import { openTree, TreeInvalid } from '../src/tree/loader.ts'
 import { treeBytes } from '../src/tree/serialise.ts'
 import { draftSchema, validateTree, type Mapping } from '../src/tree/validate.ts'
@@ -18,8 +18,8 @@ import { draftSchema, validateTree, type Mapping } from '../src/tree/validate.ts
 function validTree(): Mapping {
   const text = (en: string): Record<string, string> => ({ en, nl: `${en} (nl)` })
   return {
-    $schema: '/schemas/elsa-tree-5.json',
-    format: 'elsa-tree/5',
+    $schema: '/schemas/elsa-tree-6.json',
+    format: 'elsa-tree/6',
     languages: ['en', 'nl'],
     root: 'start',
     title: text('A Tree'),

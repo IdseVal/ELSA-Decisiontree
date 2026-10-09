@@ -102,7 +102,7 @@ test.beforeAll(async ({ browser }) => {
     accounts: [ANNA, BRAM, CEES, DORA],
   })
   // One key twice: a blocking rule broken (V-JSON), as by an edit outside the editor (19.5).
-  await writeFile(path.join(dir, 'trees', 'hand-edited', 'draft.json'), '{ "format": "elsa-tree/5", "format": "twice" }\n')
+  await writeFile(path.join(dir, 'trees', 'hand-edited', 'draft.json'), '{ "format": "elsa-tree/6", "format": "twice" }\n')
   origin = await serveStore(dir, PORT, ADMIN_ENV, LOG)
 
   const { page, cookie } = await loggedIn(browser, ANNA)

@@ -255,7 +255,7 @@ describe('the bound', () => {
         // One `getNode` per neighbour at most, so the page's total stays at seventeen (11.2).
         expect(counted.reads(), pathname).toBeLessThanOrEqual(MAX_PLACED + MAX_ASIDES)
 
-        const links = [...(node.kind === 'question' ? [node.answers.yes, node.answers.no] : []), ...node.options.map((o) => o.target)]
+        const links = [...(node.kind === 'question' ? node.answers.map((answer) => answer.target) : []), ...node.options.map((o) => o.target)]
         for (const id of links) queue.push(`${pathname}/${id}`)
       }
       expect(visited.size).toBeGreaterThan(1)

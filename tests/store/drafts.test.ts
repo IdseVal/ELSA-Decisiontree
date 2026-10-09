@@ -103,8 +103,8 @@ describe('creating a Tree (22.1, 27.2)', () => {
     expect(entry).toMatchObject({ id: 'my-tree', published: false, servable: false, blocking: [] })
     expect(entry.meta).toMatchObject({ creator: cees.id, collaborators: [], publishCount: 0, revision: 0 })
     expect(JSON.parse(await text('my-tree', 'draft.json'))).toEqual({
-      $schema: '/schemas/elsa-tree-5.json',
-      format: 'elsa-tree/5',
+      $schema: '/schemas/elsa-tree-6.json',
+      format: 'elsa-tree/6',
       languages: ['nl', 'en'],
       root: 'start',
       title: { nl: 'Mijn boom', en: '' },
@@ -619,7 +619,7 @@ describe('pictures (22.6)', () => {
 describe('an uneditable Tree (19.5)', () => {
   test('a hand-edited draft that breaks a blocking rule is held, reported, and refuses every write with 409', async () => {
     await drafts.create(cees, 't', ['en'], { en: 'T' })
-    await writeFile(file('t', 'draft.json'), '{ "format": "elsa-tree/5", "format": "twice" }\n')
+    await writeFile(file('t', 'draft.json'), '{ "format": "elsa-tree/6", "format": "twice" }\n')
     store = await openStore(data, ADMIN)
     drafts = store.drafts
     const entry = drafts.entry(cees, 't')

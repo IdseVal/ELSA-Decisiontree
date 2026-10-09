@@ -59,7 +59,7 @@ test.beforeAll(async () => {
   const trees = [{ folder: path.join(repo, 'trees', 'ai-act-example') }, { folder: path.join(repo, 'tests', 'fixtures', 'single-language'), id: HAND_EDITED, hidden: true }]
   const dir = await buildDataDir({ trees, accounts: [ANNA, CEES, LOCKED, HENK] })
   // **[#213]** One key twice: a blocking rule broken (V-JSON), as by an edit outside the editor.
-  await writeFile(path.join(dir, 'trees', HAND_EDITED, 'draft.json'), '{ "format": "elsa-tree/5", "format": "twice" }\n')
+  await writeFile(path.join(dir, 'trees', HAND_EDITED, 'draft.json'), '{ "format": "elsa-tree/6", "format": "twice" }\n')
   // sessions.json as the release before #196 wrote it for a login of Henk's: the token's hash and his account's id (20.4).
   const henk = (JSON.parse(await readFile(path.join(dir, 'accounts.json'), 'utf8')) as { id: string; name: string }[]).find(({ name }) => name === HENK.name)!
   const now = Date.now()

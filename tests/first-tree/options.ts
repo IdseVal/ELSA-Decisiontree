@@ -33,7 +33,7 @@ export async function nodesWithOptions(): Promise<string[]> {
     const node = await tree.getNode(id)
     if (!node) throw new Error(`the loader cannot read ${id}`)
     if (node.options.length > 0) ids.push(id)
-    if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+    if (node.kind === 'question') queue.push(...node.answers.map((answer) => answer.target))
     queue.push(...node.options.map((o) => o.target))
   }
   return ids

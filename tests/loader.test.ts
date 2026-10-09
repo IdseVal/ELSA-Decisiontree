@@ -52,7 +52,7 @@ describe('a Tree in two languages', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/5')
+    expect(tree.manifest.format).toBe('elsa-tree/6')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
@@ -193,7 +193,7 @@ describe('a Tree in two languages', () => {
       const node = (await tree.getNode(id))!
       expect(node.images.length, `${id} carries no Image`).toBeGreaterThan(0)
       expect(node.images[0]!.credit, `${id}: first credit names no licence`).toMatch(/CC0 1\.0|CC BY(-SA)? [0-9.]+|public domain/)
-      if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+      if (node.kind === 'question') queue.push(...node.answers.map((answer) => answer.target))
       queue.push(...node.options.map((option) => option.target))
     }
     expect(seen.size, 'Nodes walked from the root').toBe(7)
@@ -753,7 +753,7 @@ describe('the Node index the sitemap reads (#118)', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.filePath).toBe(path.join(exampleTree, 'tree.json'))
-    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/5')
+    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/6')
   })
 })
 

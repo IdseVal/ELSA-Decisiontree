@@ -148,7 +148,7 @@ async function reachableNodes(): Promise<Map<string, Node>> {
     const node = await tree.getNode(id)
     if (!node) throw new Error(`the loader cannot read ${id}`)
     nodes.set(id, node)
-    if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+    if (node.kind === 'question') queue.push(...node.answers.map((answer) => answer.target))
     queue.push(...node.options.map((o) => o.target))
   }
   return nodes
