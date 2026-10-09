@@ -437,7 +437,9 @@ test.describe('40.4: the chrome bar', () => {
     ] as const) {
       await page.setViewportSize({ width, height })
       await page.goto(`${origin}${preview('hidden-draft', [top, 'full'])}`)
-      await expect(page.locator('header .language--current'), `${width}x${height}`).toBeVisible()
+      await expect(page.locator('.preview-back'), `${width}x${height}`).toBeVisible()
+      // The public page's bar, by the same component, where #204 gives the pill up below 768 for "Editor".
+      await expect(page.locator('header.node-chrome .language--current'), `${width}x${height}`).toBeVisible()
     }
   })
 })
