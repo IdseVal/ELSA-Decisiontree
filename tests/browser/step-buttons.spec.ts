@@ -73,7 +73,7 @@ test.beforeAll(async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   // A Node is made from a parent's Link (22.4): made under an aside, pointed at the full Node,
   // unhung from the aside, and made the root, it stands above the full Node.
-  const made = await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'opt-two', link: 'yes' } })
+  const made = await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'opt-two', link: 'answer', label: {} } })
   expect(made.status()).toBe(201)
   top = ((await made.json()) as { node: DraftNode }).node.id
   for (const [route, change] of [

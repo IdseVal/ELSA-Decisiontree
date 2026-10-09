@@ -516,7 +516,7 @@ test('**[#179]** an ending typed to its limit in English and in Dutch is the bad
   const { page, cookie } = await loggedIn(browser)
   const call = (method: string, route: string, data?: unknown) => api(page, cookie, method, `/trees/${ENDING}${route}`, data)
   expect((await api(page, cookie, 'POST', '/trees', { id: ENDING, languages: ['en', 'nl'], title: { en: 'An ending', nl: 'Een einde' } })).status()).toBe(201)
-  const create = async (link: 'yes' | 'no'): Promise<string> => ((await (await call('POST', '/nodes', { from: { node: 'start', link } })).json()) as { node: { id: string } }).node.id
+  const create = async (link: 'yes' | 'no'): Promise<string> => ((await (await call('POST', '/nodes', { from: { node: 'start', link: 'answer', label: {} } })).json()) as { node: { id: string } }).node.id
   const step = await create('yes')
   const other = await create('no')
   for (const [id, en, nl] of [

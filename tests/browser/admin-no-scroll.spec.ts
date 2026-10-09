@@ -707,7 +707,7 @@ async function unfinishedDraft(page: Page, cookie: string): Promise<string> {
       headers: { Origin: overlayOrigin, Cookie: cookie, 'Content-Type': 'application/json' },
       data: JSON.stringify(data),
     })
-  const made = await api('POST', '/nodes', { from: { node: 'opt-two', link: 'yes' } })
+  const made = await api('POST', '/nodes', { from: { node: 'opt-two', link: 'answer', label: {} } })
   expect(made.status()).toBe(201)
   for (const [route, change] of [
     ['/nodes/full', { op: 'remove-answer', answer: 'yes' }],

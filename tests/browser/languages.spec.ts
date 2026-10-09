@@ -127,7 +127,7 @@ test('a complete Dutch Tree: English added in the panel, one to-do per localised
   }
   await fill('start', 'Is het zo')
   for (const [link, words] of [['yes', 'Van toepassing'], ['no', 'Niet van toepassing']] as const) {
-    const created = (await (await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link } })).json()) as { node: { id: string } }
+    const created = (await (await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link: 'answer', label: {} } })).json()) as { node: { id: string } }
     ends.push(created.node.id)
     await fill(created.node.id, link === 'yes' ? 'Ja dus' : 'Nee dus')
     expect((await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: created.node.id, link: 'end', label: { nl: words } } })).status()).toBe(201)

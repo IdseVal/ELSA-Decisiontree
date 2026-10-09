@@ -108,7 +108,7 @@ test.beforeAll(async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser, ANNA)
   // A Node is made from a parent's Link (22.4): made under an aside, pointed at the full Node,
   // unhung from the aside, and made the root, it stands above the full Node (step-buttons.spec.ts).
-  const made = await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'opt-two', link: 'yes' } })
+  const made = await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'opt-two', link: 'answer', label: {} } })
   expect(made.status()).toBe(201)
   top = ((await made.json()) as { node: DraftNode }).node.id
   for (const [route, change] of [
@@ -123,7 +123,7 @@ test.beforeAll(async ({ browser }) => {
 
   // 40.7's draft: no Dutch title or text, a step with one Answer, a fresh step, an ending without
   // Dutch words, a picture without a credit or a Dutch description, and no Dutch Tree title.
-  const fresher = await api(page, cookie, 'POST', '/trees/unfinished/nodes', { from: { node: 'opt-two', link: 'yes' } })
+  const fresher = await api(page, cookie, 'POST', '/trees/unfinished/nodes', { from: { node: 'opt-two', link: 'answer', label: {} } })
   expect(fresher.status()).toBe(201)
   fresh = ((await fresher.json()) as { node: DraftNode }).node.id
   for (const [route, change] of [

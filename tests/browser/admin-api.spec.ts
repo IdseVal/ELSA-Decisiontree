@@ -65,7 +65,7 @@ test('a creator builds, publishes and unpublishes a Tree through the API; the pu
 
   const ends: string[] = []
   for (const [link, words] of [['yes', 'Applies'], ['no', 'Look elsewhere']] as const) {
-    const node = await api(page, anna, 'POST', '/trees/api-tree/nodes', { from: { node: 'start', link } })
+    const node = await api(page, anna, 'POST', '/trees/api-tree/nodes', { from: { node: 'start', link: 'answer', label: {} } })
     expect(node.status()).toBe(201)
     const id = ((await node.json()) as { node: { id: string } }).node.id
     ends.push(id)
