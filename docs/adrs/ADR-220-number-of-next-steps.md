@@ -20,24 +20,37 @@ record (`ADR-219-number-of-next-steps-round.md` decision 5) proposed reading the
 per step, with two, three and four allowed, and left the lowest and the highest to a measurement
 of the room under the no-scroll rule (core document section 9, 10.22).
 
-The measurement (`docs/research/issue-220-answer-row-room.md` section 2): at 1280 x 640 one row
-holds four buttons of 300 pixels, a label of up to 19 characters on one line, in every face
-measured. Below 1000 pixels wide four do not fit one row and stand two a row. Five or six then
-need a third row, which on the Node at every maximum overflows the page in every window measured
-481 pixels tall -- at 360, 479, 768 and 1024 wide -- and at 1000 x 640 and 800 x 640, whatever
-the label's length. Four keep two rows, which fit every window above the floor from 390 pixels
-wide.
+The measurement (`docs/research/issue-220-answer-row-room.md` sections 2 and 5): at 1280 x 640
+one row holds four buttons of 300 pixels, a label of up to 19 characters on one line, in every
+face measured. One row of four keeps a 19-character label on two lines down to 900 x 640 in
+Verdana (197 pixels a button) and takes three at 800; `ADR-220-answer-row.md` stands four two a
+row below 1000, a margin of 100 pixels for the faces not measured. Two a row keeps the label on
+two lines at every width from 390 up, and four in two rows fit every window above the floor from
+390 pixels wide.
+
+Five and six were measured in both arrangements. **In one row**, five keep a 19-character label
+on two lines at 1280 and 1100 x 640, and in Verdana take three lines at 1000 x 640, four at 900
+and 800 x 640 and five at 479 x 481 -- the page still fitting there -- and the page overflows at
+360 x 481 and 321 x 640. **Two a row**, five or six need a third row, which on the Node at every
+maximum overflows the page in every window measured 481 pixels tall -- at 360, 479, 768 and 1024
+wide -- and at 1000 x 640 and 800 x 640, at every label length, 12 characters included. Rows of
+three, two rows for five or six, were not measured.
 
 ## Decision
 
 1. **The number is the creator's, per step**: each question Node has its own number of next
    steps. A Tree may be all yes and no, or mix a yes-and-no step with a step of three or four.
    PROPOSED reading confirmed.
-2. **The highest is four.** It is the owner's "three or four", and it is what the Answer row
-   holds in two rows below 1000 pixels wide. Five and six were measured and refused: a third
-   row of buttons does not fit the full Node in a window 481 tall at any width measured, or
-   640 tall at 800 and 1000 wide, and the neighbourhood that is placed ahead of a click grows as
-   *n* + *n*², 30 and 42 Nodes for five and six (`ADR-220-slide-and-neighbourhood.md`).
+2. **The highest is four.** It is the owner's "three or four", and it is the most the room holds
+   the way it holds two: a 19-character label on at most two lines from 390 pixels wide up, and
+   the full Node in every window above the floor from 390 wide. Five and six were measured and
+   refused, and the narrow widths decide it: from 1000 pixels wide down, one row of five breaks a
+   19-character label into three lines and more in Verdana and overflows the page at 360 x 481
+   and 321 x 640, and
+   two a row needs a third row, which does not fit the full Node in a window 481 tall at any
+   width measured, or 640 tall at 800 and 1000 wide. The neighbourhood that is
+   placed ahead of a click also grows as *n* + *n*², 30 and 42 Nodes for five and six
+   (`ADR-220-slide-and-neighbourhood.md`).
 3. **The lowest is two.** A published question Node has at least two next steps. A step with
    one is a **draft's to-do**, as a question step with one Answer has been since #132
    (`application.md` 19.2): V-ANSWERS, advisory in a draft, blocking at Publish.
@@ -51,8 +64,15 @@ wide.
   made -- a valid published step, and the to-do that catches it today (19.2, 33) would go. A
   step that only leads on is written today as the next step's own content or as an Option's
   explanation.
-- **Five or six.** Measured not to fit (Context, decision 2). The owner can ask for more; the
-  room would then have to come from somewhere the degradation order does not take today.
+- **Five or six, in one row or two a row.** Measured: one row breaks a 19-character label into
+  three lines and more from 1000 pixels wide down and overflows at 360 x 481 and 321 x 640; two a
+  row needs a third row
+  that overflows windows 481 tall (Context, decision 2). The owner can ask for more; the room would
+  then have to come from somewhere the degradation order does not take today.
+- **Five or six in rows of three**, two rows below 1000 pixels wide. Not measured. At 390 wide a
+  third of the row is about 114 pixels, by arithmetic from the 175 a button two a row has there,
+  where a 19-character label already takes two lines; it would need its own measurement before it
+  could hold the owner's words, and four stand without it.
 - **A number chosen once per Tree.** Forbids a Tree that mixes a yes-and-no step with a
   three-way one and allows nothing a per-step choice does not (`ADR-219-number-of-next-steps-round.md`).
 - **No upper bound in the format**, the page coping. The no-scroll rule is a property of the

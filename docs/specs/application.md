@@ -6849,7 +6849,10 @@ migration, and keeps the editor working on the new shape; **#222** builds 41.7.
 
 A question Node has **two, three or four** next steps, chosen per step by its creator; a Tree may
 mix them. A draft step may hold **one**, as a to-do (19.2); none is an explanation Node (19.2, as
-before); a fifth is refused. Five and six were measured and do not fit (41.4).
+before); a fifth is refused. Five and six were measured and refused: from 1000 pixels wide down,
+one row of five breaks a 19-character label into three lines and more in Verdana and overflows
+at 360 x 481, and two a row needs a third row, which overflows the full Node in windows 481 tall
+(`ADR-220-number-of-next-steps.md`).
 
 ### 41.2 The words on a button
 
