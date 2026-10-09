@@ -2410,6 +2410,24 @@ re-fitted the files 12.7's step 1 refused. #221 runs it over every folder, count
 section 8's block byte-identical to `trees/ai-act-example/tree.json` (with 12.7's diff), so #221
 puts the converted example in both in one commit.
 
+**[#221] As built (2026-10-10).** `npm run migrate` over the 59 folders of `trees/` and
+`tests/fixtures/` -- the two Trees, the 13 valid fixtures and the 44 broken and invalid ones, as
+on `e190507` -- converted 54 files. Counted before by parsing every file: the two Trees and the 13
+valid fixtures hold 38 question Nodes, every one with a `yes` and a `no`; the broken and invalid fixtures hold 44
+Nodes with `answers`, 43 with both keys and one, `invalid/v-answers`'s, with a `yes` alone --
+12.8.3's numbers. After: the same 82 Nodes, every `answers` an array, 81 of two and `v-answers`'s
+of one, which the schema refuses with `minItems` 2 as the file was built to fail; the 38 of the
+Trees and valid fixtures are labelled `Yes`/`Ja` and `No`/`Nee` in their languages
+(`single-language`'s `Ja`/`Nee` alone, `german-only`'s and `other-languages`' English), and every
+one of those 15 files validates. Every converted broken or invalid file still fails the rule it was
+built for (`tests/loader.test.ts`). Re-fitted by hand, their text edited in place with each defect
+kept: `broken/byte-order-mark`, `broken/duplicate-key` and `invalid/v-json` (step 1 refuses them),
+`broken/metadata-all-digits` (12.6.1 step 5 refuses it, as at #179) and `invalid/v-format`, which
+keeps its `elsa-tree/3` and gains the `/6` `$schema` and the array, so its one defect is still the
+format. No file under `trees/` or `tests/fixtures/` names `elsa-tree/5`. The example Tree's
+description names the format, so its sentence says `elsa-tree/6`, changed by hand as at #179, and
+section 8's block is the file. #221's own fixtures of three and four next steps were written after.
+
 #### 12.8.4 What it does for a deployment's data directory
 
 `openStore` (`docs/specs/application.md` 17.5) runs 12.8.1 on every `tree.json` and `draft.json`
