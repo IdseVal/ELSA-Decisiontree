@@ -350,8 +350,9 @@ for (const lang of LANGUAGES) {
  * #214 (A, 2026-10-09): the editor gives up a title written as text there, so in a Tree of four
  * languages (`tests/fixtures/four-languages/`) the controls make the room. At every viewport of
  * 10.6, on a page opened before any save and again after a first save, when the indicator says
- * `saved`: below 480 the word is not drawn and takes no room, yet stays in the status region that
- * screen readers announce (29.3); from 480 up it is drawn.
+ * `saved`: below 480 the current language, not drawn there, gives up its place in the switch, and
+ * the word is not drawn and takes no room, yet stays in the status region that screen readers
+ * announce (29.3); from 480 up it is drawn.
  */
 for (const lang of LANGUAGES) {
   test(`the editor's bar with the arrow in a Tree of four languages with no logo, ${lang}, before and after a save, never scrolls at any viewport of 10.6 (24.3, 28.6, 29.3)`, async ({ browser }) => {
@@ -366,6 +367,8 @@ for (const lang of LANGUAGES) {
       expect((await page.goto(address))?.status()).toBe(200)
       await expect(page.locator('header.editor-chrome > .page-brand > a.back-to-overview')).toBeVisible()
       record(await measure(page), 'editor, no logo, four languages', lang, viewport, '')
+      const current = await page.locator('header.editor-chrome .language-switch li:has(> .language--current)').boundingBox()
+      if (width < 480) expect(current, `${viewport}: the current language keeps its place below 480`).toBeNull()
 
       // Typed at 1280 x 800 and measured back at the viewport: at the floor the notice stands where
       // the fields would (10.4), and a window narrowed after a save keeps its indicator. A title of
