@@ -25,7 +25,9 @@
  * the administrator's creators' overview, at every viewport of 10.6 and at five sizes either side of
  * 480, 600 and 768 wide. **[#206]** And the preview of a hidden Tree on `hidden-draft`'s full
  * Node, plain and with each of its first two Overlays open, and on 40.7's unfinished draft; and the
- * editor of a hidden Tree with the preview button, on its step that ends (40.9).
+ * editor of a hidden Tree with the preview button, on its step that ends (40.9). **[#212]** And at
+ * and below the floor, on the editor of a hidden Tree and its preview, the notice's text lines clear
+ * of every control under the bar (10.4).
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
