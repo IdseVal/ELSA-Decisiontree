@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "en"
   ],
@@ -53,10 +53,20 @@
           "url": "https://example.org/article-4"
         }
       ],
-      "answers": {
-        "yes": "yes-end",
-        "no": "no-end"
-      }
+      "answers": [
+        {
+          "label": {
+            "en": "Yes"
+          },
+          "target": "yes-end"
+        },
+        {
+          "label": {
+            "en": "No"
+          },
+          "target": "no-end"
+        }
+      ]
     },
     {
       "id": "no-end",

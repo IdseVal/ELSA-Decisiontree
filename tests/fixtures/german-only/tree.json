@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "de"
   ],
@@ -23,10 +23,20 @@
       "metadata": {
         "version": "1.0"
       },
-      "answers": {
-        "yes": "anwendbar",
-        "no": "nicht-anwendbar"
-      }
+      "answers": [
+        {
+          "label": {
+            "de": "Yes"
+          },
+          "target": "anwendbar"
+        },
+        {
+          "label": {
+            "de": "No"
+          },
+          "target": "nicht-anwendbar"
+        }
+      ]
     },
     {
       "id": "anwendbar",

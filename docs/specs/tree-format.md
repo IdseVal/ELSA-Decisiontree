@@ -1249,6 +1249,66 @@ the same commit: the `elsa-tree/5` file, byte for byte, differing from the `elsa
 it replaces in exactly the lines of the diff above, and valid against
 `schemas/elsa-tree-5.json`.
 
+**[#221] Done (2026-10-10).** #221 converted `trees/ai-act-example/tree.json` by 12.8,
+changed its description's sentence about the format by hand, as #179 did, and put the result
+in the block below in the same commit: the `elsa-tree/6` file, byte for byte, 11,660 bytes against
+the `elsa-tree/5` block's 11,230, valid against `schemas/elsa-tree-6.json`, and differing from it in
+exactly these lines:
+
+```diff
+-  "$schema": "/schemas/elsa-tree-5.json",
+-  "format": "elsa-tree/5",
++  "$schema": "/schemas/elsa-tree-6.json",
++  "format": "elsa-tree/6",
+@@ "description" of the manifest
+-    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
+-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
++    "en": "A small example Tree that exercises every element of the `elsa-tree/6` format.\nIts legal content is simplified and not to be relied on.",
++    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/6`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+@@ "start"
+-      "answers": {
+-        "yes": "prohibited-practices",
+-        "no": "outside-scope"
+-      },
++      "answers": [
++        {
++          "label": {
++            "en": "Yes",
++            "nl": "Ja"
++          },
++          "target": "prohibited-practices"
++        },
++        {
++          "label": {
++            "en": "No",
++            "nl": "Nee"
++          },
++          "target": "outside-scope"
++        }
++      ],
+@@ "prohibited-practices"
+-      "answers": {
+-        "yes": "prohibited",
+-        "no": "covered"
+-      },
++      "answers": [
++        {
++          "label": {
++            "en": "Yes",
++            "nl": "Ja"
++          },
++          "target": "prohibited"
++        },
++        {
++          "label": {
++            "en": "No",
++            "nl": "Nee"
++          },
++          "target": "covered"
++        }
++      ],
+```
+
 Folder layout:
 
 ```
@@ -1298,8 +1358,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "en",
     "nl"
@@ -1310,8 +1370,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
     "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
   },
   "description": {
-    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+    "en": "A small example Tree that exercises every element of the `elsa-tree/6` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/6`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
   "metadata": {
     "version": "2.0",
@@ -1388,10 +1448,22 @@ reader of the contract finds it; what an author needs to keep beside the data go
           "source": "art-2"
         }
       ],
-      "answers": {
-        "yes": "prohibited-practices",
-        "no": "outside-scope"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "prohibited-practices"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "outside-scope"
+        }
+      ],
       "explainers": [
         {
           "id": "provider",
@@ -1470,10 +1542,22 @@ reader of the contract finds it; what an author needs to keep beside the data go
           "credit": "Placeholder drawn for this repository, CC0 1.0"
         }
       ],
-      "answers": {
-        "yes": "prohibited",
-        "no": "covered"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "prohibited"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "covered"
+        }
+      ],
       "options": [
         {
           "title": {

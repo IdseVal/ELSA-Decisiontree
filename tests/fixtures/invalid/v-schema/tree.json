@@ -1,6 +1,6 @@
 {
   "$schema": "/schemas/elsa-tree-3.json",
-  "format": "elsa-tree/5",
+  "format": "elsa-tree/6",
   "languages": [
     "en"
   ],
@@ -43,10 +43,20 @@
           "source": "art-1"
         }
       ],
-      "answers": {
-        "yes": "yes-end",
-        "no": "no-end"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes"
+          },
+          "target": "yes-end"
+        },
+        {
+          "label": {
+            "en": "No"
+          },
+          "target": "no-end"
+        }
+      ],
       "options": [
         {
           "title": {
