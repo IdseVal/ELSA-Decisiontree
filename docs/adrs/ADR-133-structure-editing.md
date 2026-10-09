@@ -1,6 +1,7 @@
 # ADR-133-structure-editing: a Node without Links offers three buttons in the Answer row; a fresh yes or no creates its target and navigates to it without a slide; the side-bubble + creates an Option and opens its aside for editing in the Overlay; an Answer or an Option may be re-pointed at an existing Node; a Node is deleted from its own page and an orphan stays until someone deletes it
 
 - Status: ACCEPTED (frozen) -- 2026-09-26; confirms the PROPOSED reading of core document 3.4
+- **[#220] Superseded in part (2026-10-09)** by `ADR-220-editing-next-steps.md`: the Answer row keeps `+ Yes`, `Tree ends here` and `+ No` and adds `+` for another next step, asked for with its words; `link: 'yes' | 'no'` becomes `link: 'answer'` with a `label`; the yes and the no are the first two of up to four next steps.
 - Superseded in part by `ADR-177-side-bubble-editing.md` (decision 5, and in decision 6 the last
   entry of the Overlay's list, `+ newSideBubble`) -- 2026-10-02 (issue #177): one click on the
   side-bubble `+` creates the side bubble and opens it, with no Sheet, so neither `createNew` nor

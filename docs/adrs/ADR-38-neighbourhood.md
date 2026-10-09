@@ -1,6 +1,7 @@
 # ADR-38-neighbourhood: a page carries the current Node and at most sixteen neighbours, rendered into its own payload, so that a slide needs no network and no response ever approaches the whole Tree
 
 - Status: ACCEPTED (frozen) -- 2026-09-10
+- **[#220] Amended (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md`: with up to four next steps a step, down is at most 4 + 16 and a page reads at most 31 Nodes, in place of 17.
 - Superseded in part by `ADR-78-overlay.md` (the `side` direction, decisions 1 and 3), `ADR-78-answer-buttons-and-up-arrow.md` (two `up` becomes one), `ADR-78-fan-out-and-option-picture.md` (decisions 7 and 8: the Option picture) -- 2026-09-17 (issue #78). The rest stands as the 0.2 record.
 - **Amended 2026-10-04 by issue #205** (`ADR-205-preview-drawing.md`): in decisions 1 and 5,
   `neighbourhood` takes a `Readable<N>` and reads Links through `linksOf`, so that the preview of
