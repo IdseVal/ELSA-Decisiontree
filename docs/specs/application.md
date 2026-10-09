@@ -4057,6 +4057,24 @@ than before #203. Whether the editor's bar must give that room back, and how, th
 on #214 (2026-10-04).
 Recorded in `docs/adrs/ADR-133-admin-routes.md`.
 
+**[#203], the answer on #214 -- 2026-10-09** ("**A**, decided by proxy on 2026-10-09 under the
+owner's standing rule to keep the flow running; the owner can overrule here."). Below 480 pixels
+wide, in the editor's bar only, the controls make the arrow's room: the language names keep 2
+pixels at their sides instead of 5; the current language, not drawn there, gives up its list item
+and the gap beside it; and the indicator's `saving` and `saved` are announced by its region and
+not drawn (29.3), so an indicator with nothing else to show gives up its place and its gap too.
+`notSaved`, and what follows a state word, are drawn as before. From 480 up nothing changes.
+Measured again at every width from 320 to 1280 in the same Trees and faces: below 480 no Tree of
+two to four languages overflows, with or without a logo, with the indicator empty or saying
+"Saved"; a Tree of five, beside a title as text, from 320 to 358 pixels wide in English and to 349
+in Dutch in either state (the CI runner's faces), the widths at which it overflowed before #203
+with the indicator empty (after a first save it then did to 395 and 420). The bands of the note
+above are gone. With a message after `saved` -- measured with `publicBehind` -- the bar is still
+wider than the window below 480 in every Tree measured, as it was before #203, and at fewer widths:
+the indicator's line counts in the least width the bar needs.
+`admin-no-scroll.spec.ts` keeps this in a Tree of four languages with no logo
+(`tests/fixtures/four-languages/`) at every viewport of 10.6, before and after a first save.
+
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
 is the content language on a Node page and in the editor, the chrome language on every other
@@ -4489,6 +4507,10 @@ of at most 320 pixels:
 | a field over its limit (28.4) | after the state word: the violation's message |
 | a published Tree whose public copy is behind (19.4) | after the state word: `publicBehind` |
 | a collaborator's value arrived (29.7) | `changedElsewhere` for 5 seconds |
+
+**[#203]** (2026-10-09) Below 480 pixels wide `saving` and `saved` are in the region, which
+announces them, and not drawn, as the answer on #214 has it (24.3); `notSaved` and what follows a
+state word are drawn.
 
 Never a token, an account id or a request body.
 
