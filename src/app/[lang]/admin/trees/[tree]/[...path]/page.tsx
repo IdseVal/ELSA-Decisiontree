@@ -15,9 +15,10 @@ import { ThemeStyle } from '../../../../../../components/ThemeStyle.tsx'
 import { TreeView } from '../../../../../../components/TreeView.tsx'
 import { store } from '../../../../../../config.ts'
 import { Editor, SaveIndicator } from '../../../../../../editor/Editor.tsx'
-import { editorLinks } from '../../../../../../editor/links.ts'
+import { editorLinks, previewLinks } from '../../../../../../editor/links.ts'
 import { LogoutButton } from '../../../../../../editor/LogoutButton.tsx'
 import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
+import { PreviewButton } from '../../../../../../editor/PreviewButton.tsx'
 import { ThemePanel, type ThemeWords } from '../../../../../../editor/ThemePanel.tsx'
 import { FONT_LIBRARY, FONT_LICENCES, libraryEntry } from '../../../../../../fonts.ts'
 import { Todo, TodoButton, type TodoWords } from '../../../../../../editor/Todo.tsx'
@@ -136,6 +137,8 @@ export default async function EditorPage({ params }: Props) {
           </nav>
         </div>
       </header>
+      {/* **[#205]** On a hidden Tree, under the bar at its top left and first after it in the tab order (40.5). */}
+      <PreviewButton href={previewLinks().node(address)} word={ui.preview} uiLang={chromeLang(address.lang)} />
       {/* **[#176]** Out of the bar, over the page under its top right corner, and next after it in the tab order (33.1). */}
       <div className="editor-float" data-editor-ui="">
         <TodoSheet entry={entry} draft={draft} address={address} role={role} ui={ui} />

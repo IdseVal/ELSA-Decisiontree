@@ -278,7 +278,7 @@ describe('flushAll, and the wait for the queue (29.2, 40.6)', () => {
 
     sent[0]!.answer(ok)
     await settled()
-    expect(sent.map((s) => s.write.change.path)).toEqual(['title.en', 'description.en'])
+    expect(sent.map((s) => s.write.change)).toEqual([{ path: 'title.en', value: 'A title' }, { path: 'description.en', value: 'A text' }])
     expect(await resolved(waiting)).toBe(false)
     sent[1]!.answer(ok)
     expect(await resolved(waiting)).toBe(true)
