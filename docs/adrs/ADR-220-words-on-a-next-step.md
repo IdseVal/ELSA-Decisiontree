@@ -10,6 +10,8 @@
 - Supersedes in part: `ADR-78-answer-buttons-and-up-arrow.md` decision 1 (the label "is the
   chrome word, a colon and the target's title"); the amendment of 2026-09-18 by #82 (below 480
   pixels the chrome word alone) in `application.md` 10.3 and 10.5
+- Amends: `ADR-205-unfinished-draft.md` decision 3 (a draft's lone button says "Yes" or "No" with
+  the title, and the word alone below 480: it says the creator's words)
 - Built by: #221; #222 for the field in the editor
 
 ## Context

@@ -7,6 +7,10 @@
 - Core document: 3.4 (`[#133]` the Answer row, `[#219]`), 10.43
 - Supersedes in part: `ADR-133-structure-editing.md` (the Answer row's `+ Yes` / `+ No` as the
   only way to a next step, and `link: 'yes' | 'no'`); `ADR-178-step-buttons.md` is unchanged
+- Amends: `ADR-132-editor-api.md` decisions 2 and 3 (`from.link: 'yes' | 'no' | 'option'` and
+  `set-answer` naming `yes` or `no`: `link: 'answer'` with a `label`, and `set-answer`,
+  `remove-answer` and `move-answer` by index); `ADR-205-unfinished-draft.md` decision 3 (the lone
+  button in the editor, decisions 2 and 7 here)
 - Built by: #222
 
 ## Context

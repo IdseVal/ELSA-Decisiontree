@@ -6609,7 +6609,8 @@ the row **Preview** of its section 5. Recorded in `docs/adrs/ADR-205-preview-add
     `previewLinks().node(address)`, as the editor's page gives the chain and the asides theirs
     (34.7), so `Slider` finds the placement a control names (11.3).
 - **The neighbour frames and the slide run**, as on the public page (11): the readers walk the Tree
-  with them. The page reads **at most seventeen Nodes** (11.2), the bound of a public page; a frame
+  with them. The page reads **at most seventeen Nodes** (11.2), the bound of a public page
+  (**[#220]** (2026-10-09) 31 from #221, the public page's new bound, 41.5); a frame
   names no picture (11.4); the centre's pictures and an open Overlay's are asked of the admin image
   route, file for file as 11.5 lists them for a public page.
 

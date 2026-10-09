@@ -7,9 +7,9 @@
 - Core document: 3.2 (`[#75]` "both should have the same layout, both the same green", read for
   every button; PROPOSED reading of `[#219]` confirmed), 10.22
 - Measurements: `docs/research/issue-220-answer-row-room.md`
-- Supersedes in part: `ADR-78-answer-buttons-and-up-arrow.md` decision 1 (two buttons of 620 x 60);
-  `ADR-38-no-scroll.md` as amended by 10.22 (one floor for every Node: a step of three or four
-  has a higher one at phone widths)
+- Supersedes in part: `ADR-78-answer-buttons-and-up-arrow.md` decision 1 (two buttons of 620 x 60)
+- Amends: `ADR-38-no-scroll.md` as amended by 10.22 (one floor for every Node: a step of three or
+  four has a higher one at phone widths, an exception beside the floor, which stands)
 - Built by: #221
 
 ## Context

@@ -5,8 +5,10 @@
 - Spec: `docs/specs/application.md` 11.1, 11.2, 11.3, 41.5 (new), amended `[#220]`
 - Core document: 3.1 (the neighbouring Nodes, "the next two nodes in each direction"), section 9
   (a bounded set), 10.43
-- Supersedes in part: `ADR-38-neighbourhood.md` and `ADR-78-answer-buttons-and-up-arrow.md`
-  decision 4 as amended by #102 (the `up` slot 0, 1, 2), and the seventeen of 11.2
+- Supersedes in part: `ADR-38-neighbourhood.md` (at most sixteen neighbours, seventeen Nodes),
+  `ADR-78-answer-buttons-and-up-arrow.md` decision 4 and `ADR-38-transitions.md` decision 2, each
+  as amended by #102 (the `up` slot 0, 1, 2 and the yes/no diagonal of the slide back), and the
+  seventeen of 11.2
 - Amends: the bound of seventeen as `ADR-100-bounded-centre.md`, `ADR-205-preview-drawing.md`,
   `ADR-133-reuse-rule.md`, `ADR-78-overlay.md` and `ADR-118-dataset-endpoint.md` state it: 31
 - Built by: #221

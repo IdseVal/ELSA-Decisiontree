@@ -4,6 +4,10 @@
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
 - Spec: `docs/specs/application.md` 3.2, 15, 16.4, 16.5, 41.6 (new), amended `[#220]`
 - Core document: section 1's findability contracts, 3.4 (what the round does not change), 10.43
+- Amends: `ADR-118-json-ld.md` decision 6 (`suggestedAnswer`: two entries, yes then no, each the
+  chrome word, a colon and the title, become one per next step in its words, decision 1);
+  `ADR-118-dataset-endpoint.md` (the `Link` header names `elsa-tree-6.json`, decision 3);
+  `ADR-133-reuse-rule.md` decision 6 (`linksOf` answers the array, decision 5)
 - Built by: #221
 
 ## Context
