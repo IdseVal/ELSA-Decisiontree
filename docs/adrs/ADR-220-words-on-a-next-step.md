@@ -23,8 +23,8 @@ step. The measurement (`docs/research/issue-220-answer-row-room.md` section 2):
   pixels, more than the 60 the row has at 1280 x 640;
 - a label of up to 19 characters takes one line in a button of 300 at 1280 x 640, two lines in
   every arrangement of `ADR-220-answer-row.md` from 390 pixels wide, and up to three in the
-  widest face below 390; 25 characters already take three lines at 390 to 480 wide in Verdana
-  and need windows up to 584 tall below 390.
+  widest face below 390; 25 characters already take three lines at 390, 420 and 480 pixels wide
+  in Verdana and need windows up to 584 tall below 390.
 
 The format already holds one text of this kind: the ending's words on a Terminal's badge, a plain
 localised text of at most 19 characters, since #171 (`tree-format.md` 5.5).
@@ -61,7 +61,7 @@ localised text of at most 19 characters, since #171 (`tree-format.md` 5.5).
   "Deployer") impossible, and a third rule for which words a button shows. One kind, with the
   owner's yes and no written by the migration, holds every case.
 - **A longer cap, 25 or 30.** "Gebruiksverantwoordelijke" (25) would fit, but 25 takes three
-  lines at 390 to 480 pixels wide and four below 390 in the widest face, where the page then needs
-  windows up to 584 tall (measured). 19 is the ending's cap already, and the room's.
+  lines at 390, 420 and 480 pixels wide and four below 390 in the widest face, where the page then
+  needs windows up to 584 tall (measured). 19 is the ending's cap already, and the room's.
 - **Numbers or letters on the buttons** (A, B, C). They say nothing of the choice; the reader
   would have to read it elsewhere, and the Bubble has no room for a legend.
