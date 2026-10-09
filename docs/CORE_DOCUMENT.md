@@ -823,10 +823,10 @@ owner's words leave a choice:
     or more than four, is 10.43; a step that is a yes and a no stays one, as every step
     that leads on in the Trees and the valid fixtures on `dev` is; and every button of a step's
     Answer row looks the same, as both have since #75 (3.2).
-  - **"Some trees might end there"** is the Terminal of 3.1, which the creator has chosen
-    with "Tree ends here" since #133 and whose words they have typed since #179.
-    PROPOSED: unchanged by #219, but for where its control stands in the editor's Answer
-    row beside the next steps (10.43).
+  - **"Some trees might end there."** PROPOSED: the Terminal of 3.1, which the creator
+    has chosen with "Tree ends here" since #133 and whose words they have typed since
+    #179; unchanged by #219, but for where its control stands in the editor's Answer row
+    beside the next steps (10.43).
   - **Open for the Architect on #220 (10.43):** the lowest and the highest number of next
     steps a step may have, the highest no lower than four, from the room the page has
     under the no-scroll rule of section 9 (10.22); what each button says, since no chrome
@@ -870,7 +870,9 @@ window where it did not in a Tree with a third language or whose current languag
 frees less room than "Editor" takes (10.42); the `[#202]` bullet above; **[#219]** and, of
 the pages and the format both, another since 2026-10-09, owner, #219: a step's Answer row
 holds as many buttons as its creator gave it, and the Tree format holds how many next steps
-a step has, as 10.43 decides; the `[#219]` bullet above).
+a step has, and the slide from each button and the findability contracts of section 1 --
+the JSON-LD's suggested answers, `llms.txt`, the dataset -- follow them wherever 10.43
+changes them; the `[#219]` bullet above).
 The overview page is a new page in front of them; where the
 round must touch existing code (the loader opening several Trees, the sitemap listing
 several) the change is additive. The issue's own OUT OF SCOPE is "changes to the existing
@@ -918,7 +920,7 @@ are canonical once confirmed. PROPOSED items were accepted by the owner's silenc
 | **Tree** | One loadable dataset (e.g. "AI Act applicability, agrifood"; a future "ethics" tree). Graph-shaped internally, presented as a decision tree. Declares which languages it provides. **[v0.2]** Stored as one file plus its asset files; carries its Theme. | decision-tree, datastructure, graph |
 | **Node** | One step in a Tree. Has title, description, Sources, metadata (incl. version), Images, and outgoing Links (Answers and/or Options), or a terminal marker. All user-facing text is per language. **[v0.2]** Every text field has a maximum length. | item, step, object, bubble, data item, reasoning step |
 | **Link** | Any clickable connection from one Node to another. Two kinds: Answer and Option. | -- |
-| **Answer** | The yes or no Link on a Node; each leads to exactly one target Node. **[v0.2]** Its target is a **child** of the Node on screen. **[#219]** (owner, 2026-10-09: "let the creator of a decision-tree choose themselves to how many next steps there are in the tree") Not only a yes and a no: a step has as many Answers as its creator gives it -- PROPOSED, two, three or four at least -- each leading to a next step below the Bubble (3.4, 10.43). | yes/no, children, **[#219]** options, next steps |
+| **Answer** | The yes or no Link on a Node; each leads to exactly one target Node. **[v0.2]** Its target is a **child** of the Node on screen. **[#219]** (owner, 2026-10-09: "let the creator of a decision-tree choose themselves to how many next steps there are in the tree") Not only a yes and a no: a step has as many Answers as its creator gives it -- PROPOSED, two, three or four at least -- each leading to a next step below the Bubble (3.4, 10.43). | yes/no, children, **[#219]** options, next steps (PROPOSED, 3.4) |
 | **Option** (PROPOSED) | A named entry in a Node's list, with its own title and optional Images, leading to an explanation-only child Node. **[v0.2]** Its target is a **side child** of the Node on screen. **[#75]** Its button beside the Bubble shows the side child's main image and opens the side child in an Overlay; in `elsa-tree/3` an Option has no Images of its own (#78). | condition, area, listed item, side children, side-steps, side-nodes |
 | **Terminal** | A Node explicitly marked as ending the walk, with an outcome (e.g. "AI Act does not apply"). **[#169]** (owner, 2026-10-02: "just let the user enter a text to display on the button (with a wordcap obviously)") With the ending's own words in place of an outcome: a short text per language, written by its creator and shown on the Terminal's badge (3.1). | message, tree ends here |
 | **Image** | A picture attached to a Node or an Option; has a description, a credit, and an optional pointer to a Source. Stored server-side in a dedicated images folder. **[v0.2]** Shown in the Carousel. | image, picture |

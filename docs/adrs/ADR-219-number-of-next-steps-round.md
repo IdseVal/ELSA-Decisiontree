@@ -44,11 +44,12 @@ What stands on `dev` (`e190507`), where the instruction lands:
   `docs/adrs/ADR-78-answer-buttons-and-up-arrow.md`).
 - **The editor** offers `+ Yes`, `Tree ends here` and `+ No` on a step without Links, and
   the structural write names the Link `'yes' | 'no' | 'option' | 'end'` (`application.md`
-  22.4, 30.1, 30.2; `docs/adrs/ADR-133-structure-editing.md`).
+  19.7, 30.1, 30.2; `src/editor/writes.ts`; `docs/adrs/ADR-133-structure-editing.md`).
 - **Findability.** Each question Node's JSON-LD `Question` carries a suggested answer for the
   yes and one for the no (`application.md` 16.4).
-- **The code.** Fourteen files under `src/` read `answers.yes` / `answers.no` or the
-  `'yes' | 'no'` key, and 17 test files read one of the first two (grep below).
+- **The code.** Fourteen files under `src/` name `yes`; seven of them read `answers.yes` /
+  `answers.no` or the `'yes' | 'no'` key, and 17 test files read one of those or write
+  `link: 'yes'` (grep below).
 - **The Options beside the Bubble** -- the other kind of Link (core document 3.1, section
   5) -- number none to eight on any step, as its author chooses (`tree-format.md` 5.4, 5.7),
   and the editor's side-bubble `+` adds one (`application.md` 30.4).
@@ -110,11 +111,20 @@ src/tree/serialise.ts
 src/tree/types.ts
 src/tree/validate.ts
 
+$ grep -rln -E "answers(\?)?\.(yes|no)|'yes' \| 'no'" src | sort
+src/components/TreeView.tsx
+src/editor/Structure.tsx
+src/editor/writes.ts
+src/findability/jsonld.ts
+src/store/edits.ts
+src/tree/types.ts
+src/tree/validate.ts
+
 $ grep -rln -E "answers(\?)?\.(yes|no)|'yes' \| 'no'|link: 'yes'" tests | wc -l
 17
 ```
 
-#220's TASK lists the fourteen and tells its run to grep rather than rely on the list.
+#220's CONTEXT lists the fourteen and tells its run to grep rather than rely on the list.
 
 ## Decision
 
@@ -144,8 +154,9 @@ $ grep -rln -E "answers(\?)?\.(yes|no)|'yes' \| 'no'|link: 'yes'" tests | wc -l
    store's writes (`src/store/edits.ts`) and the editor's row (`src/editor/Structure.tsx`)
    and their tests, which #222 then extends; built side by side, one of the two would merge
    into a `dev` on which its tests no longer hold. The three issues were created in that
-   order with their final bodies, each with its `Depends on:` line from the start, and the
-   lines were read back with the dispatcher's own expression (`_DEPENDS_RE` in
+   order, each with its `Depends on:` line from the start (the bodies of #220 and #221 were
+   corrected within three minutes, in their counts of the code and the data, and their
+   lines did not change), and the lines were read back with the dispatcher's own expression (`_DEPENDS_RE` in
    `dispatch.py`), which finds exactly `#219`, `#220` and `#220, #221`: in the round of
    #194 a placeholder body let #195 and #196 be dispatched before their lines landed
    (reported on #196).
