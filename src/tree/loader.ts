@@ -9,7 +9,7 @@
  */
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
-import type { DraftNode, Explainer, Image, LocalisedText, Manifest, Node, Option, Source, Theme, Violation } from './types.ts'
+import type { Answer, DraftNode, Explainer, Image, LocalisedText, Manifest, Node, Option, Source, Theme, Violation } from './types.ts'
 import { isId, isImageFile, isMapping, isThemeFile, nodeKind, validateTree, type Mapping, type Mode, type RawTree } from './validate.ts'
 
 /**
@@ -194,8 +194,7 @@ export function draftOf(raw: RawTree, root: string, advisory: Violation[]): Draf
   for (const node of raw.tree.nodes as Mapping[]) {
     const drafted = toDraftNode(node)
     nodes.set(drafted.id, drafted)
-    for (const target of [...Object.values(drafted.answers ?? {}), ...drafted.options.map((option) => option.target)]) {
-      if (target === undefined) continue
+    for (const target of [...(drafted.answers ?? []), ...drafted.options].map((link) => link.target)) {
       if (!referrers.has(target)) referrers.set(target, new Set())
       referrers.get(target)!.add(drafted.id)
     }
@@ -405,7 +404,7 @@ function referencedThemeFiles(theme: Theme | undefined): Set<string> {
 function toManifest(raw: Mapping): Manifest {
   const languages = raw.languages as string[]
   return {
-    format: 'elsa-tree/5',
+    format: 'elsa-tree/6',
     languages,
     defaultLanguage: languages[0]!,
     root: raw.root as string,
@@ -451,7 +450,7 @@ function toNode(raw: Mapping): Node {
   }
   switch (nodeKind(raw)) {
     case 'question':
-      return { ...common, kind: 'question', answers: raw.answers as { yes: string; no: string } }
+      return { ...common, kind: 'question', answers: raw.answers as Answer[] }
     case 'terminal':
       return { ...common, kind: 'terminal', label: (raw.terminal as { label: LocalisedText }).label }
     case 'explanation':
