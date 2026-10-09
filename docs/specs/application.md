@@ -23,7 +23,7 @@
 > | 5.1 | `answers` is an array of `{ label, target }`; the format `elsa-tree/6`. |
 > | 9 | Seven `ADR-220-*` rows. |
 > | 10.1, 10.3, 10.5, 10.7 | The Answer row holds two to four alike buttons, each its label alone, in one row from 1000 pixels wide and two a row below; the rule of 480 pixels goes. |
-> | 10.4, 10.5 | A step of three or four shows the notice below 390 x 560. |
+> | 10.4, 10.5 | A step of three or four shows the notice below 390 x 560 at least (41.4). |
 > | 11.1 to 11.3 | A placement carries `x` and `y`; the next steps stand a layer width apart; a page reads at most 31 Nodes. |
 > | 15.1, 16.4, 16.5 | The schema route serves `elsa-tree-6.json` too; one `suggestedAnswer` per next step; `llms.txt` unchanged. |
 > | 17.4, 18.3, 19.1, 19.2 | The store converts `/5` (12.8); a draft step may hold one next step, as a to-do. |
@@ -1740,7 +1740,7 @@ languages. The public page has none, and its notice keeps its padding of 24.
 `admin-no-scroll.spec.ts` measures every line box of the notice against every control's box.
 
 **[#220]** (2026-10-09) A step of three or four next steps has a higher floor below 390 pixels wide: it shows the
-notice below 560 pixels tall (41.4, measured).
+notice below 560 pixels tall, the least 41.4's rule allows (41.4, measured).
 
 ### 10.5 Below the guarantee: the degradation order
 
@@ -1831,7 +1831,7 @@ it. The overview's bar keeps the pill at every width, and so does the preview's 
 
 **[#220]** (2026-10-09) #82's shortening above goes: a button shows its next step's label, at most 19 characters,
 at every width (41.2). A step of three or four next steps stands its buttons two a row below 1000
-pixels wide and shows the notice below 390 x 560 (41.3, 41.4); nothing in the table moves for it.
+pixels wide and shows the notice below 390 x 560 at least (41.3, 41.4); nothing in the table moves for it.
 
 ### 10.6 The no-scroll rule, and the exact test
 
@@ -1897,7 +1897,7 @@ keeps them true afterwards.
 
 **[#220]** (2026-10-09) The pages of the table above gain #221's fixtures of a step of three and of four next steps,
 `full-node`'s question Node among them with four, and the viewports 999 x 640, 1000 x 640,
-and at 389 wide either side of 41.4's height (41.9).
+and one pixel either side of 41.4's width and height (41.9).
 
 ### 10.7 The format's length limits, confirmed
 
@@ -6893,14 +6893,31 @@ before); a fifth is refused. Five and six were measured and do not fit (41.4).
 
 - **A step of three or four next steps shows the `minimumSize` notice below 390 pixels wide and
   below 560 pixels tall**, naming the height (`minimumHeight`), where every other step keeps the
-  floor of 10.4 (320 wide or 480 tall). Two rows of buttons on the full Node of 10.6 need 488
-  pixels of height below 390 wide in Segoe UI and 536 in Verdana, the Windows stand-in for DejaVu
-  Sans; 24 more are the margin for the Linux faces, which were not measured
-  (`docs/research/issue-220-answer-row-room.md` sections 2 and 5). #221 measures the full Node
-  with four next steps below 390 wide in the CI runner's faces (DejaVu Sans, Liberation Sans) as
-  well as on Windows, and the trigger is then **the highest height any of them needs, rounded up
-  to the next ten pixels** -- 560 if none needs more than 550 -- recorded here with its output. The
-  rule is fixed; only that one number waits for the measurement.
+  floor of 10.4 (320 wide or 480 tall). **390 and 560 are the least** the notice's width and
+  height may be: #221's measurement of the Linux faces can raise either, and lowers neither, by
+  the three rules below, which need no further decision whatever it finds.
+  - **The height** is the larger of 560 and the highest height any face measured needs below the
+    notice's width, rounded up to the next ten pixels. On this run's numbers it is 560: two rows
+    of buttons on the full Node of 10.6 need 488 pixels of height below 390 wide in Segoe UI and
+    536 in Verdana, the Windows stand-in for DejaVu Sans, and the 24 above 536 are the margin for
+    the Linux faces, which were not measured (`docs/research/issue-220-answer-row-room.md`
+    sections 2 and 5). A face that needs 550 leaves it 560; one that needs 563 makes it 570.
+  - **The width** is the larger of 390 and the lowest of part 2's widths (the research record,
+    section 1) from which the full Node with three and with four next steps fits a window 481
+    tall at that width and at every one of part 2's widths above it up to 999, in every face
+    measured, rounded up to the next ten pixels. On this run's numbers it is 390: from 390 up
+    both faces fit at 481, Verdana with no margin, so a Linux face may need more between 390
+    and 999. If one needs more than 480 at 420 and fits at 479 and above, the width becomes 480;
+    the height is then measured below 480.
+  - **From 1000 up** a step of three or four stands in one row (41.3). If a face measured does not
+    fit one row of four in a window 481 tall at 1000, 1100 or 1279 wide, 41.3's 1000 becomes the lowest
+    of part 2's widths from which it does, rounded up to the next ten pixels, and the buttons stand
+    two a row below it -- two a row of four with 19 characters fit at 1000, 1100 and 1279 x 640
+    and at 1024 x 481 in every face measured (section 5).
+  - #221 measures the full Node with three and with four next steps, 19-character labels, in both
+    languages, at part 2's sixteen widths, in the CI runner's faces (DejaVu Sans, Liberation Sans)
+    and on Windows (Segoe UI, Verdana), and records the three numbers here with its output. The
+    rules are fixed; only the numbers wait for the measurement.
 - Nothing else in 10.5's order moves: the Answer buttons are never given up, at any count.
 - The notice's two sentences are 10.4's; a step of two next steps never shows it above the floor.
 
@@ -6986,7 +7003,7 @@ share link; the Theme roles; the cross-links reserved in `tree-format.md` 10.
   only) and five entries, and on a label of 20 characters; fixtures of a step of three and of
   four next steps, one of them `full-node`'s own question Node with four, labelled at 19
   characters in both languages; `no-scroll.spec.ts` on them at the ten viewports of 10.6 and at
-  999 x 640, 1000 x 640, and at 389 wide one pixel either side of 41.4's height, in both
+  999 x 640, 1000 x 640, and one pixel either side of 41.4's width and of its height, in both
   languages; the notice of 41.4;
   `transition.spec.ts` sliding to the third and fourth of four and back up; `neighbourhood.test.ts`
   on the positions of 41.5 and on 31; the JSON-LD's `suggestedAnswer` for three; the CI runner's

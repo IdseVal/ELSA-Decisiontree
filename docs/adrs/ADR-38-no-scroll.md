@@ -1,7 +1,7 @@
 # ADR-38-no-scroll: the layout is guaranteed at 1280 x 640, below that it gives things up in a fixed order rather than handing out a scrollbar, and a browser test measures scrollHeight at ten viewports on every kind of Node
 
 - Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 and 2026-09-13 by issue #41 (below)
-- **[#220] Amended (2026-10-09)** by `ADR-220-answer-row.md`: a step of three or four next steps shows the notice below 390 pixels wide and below 560 tall, above the floor every other step keeps.
+- **[#220] Amended (2026-10-09)** by `ADR-220-answer-row.md`: a step of three or four next steps shows the notice below 390 pixels wide and below 560 tall at least (`application.md` 41.4's rule raises either where #221 measures a face that needs more), above the floor every other step keeps.
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 10.4, 10.5, 10.6, 10.7
 - Core document: 3.2, section 9 ("the page must never scroll"), open item **10.22**

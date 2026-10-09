@@ -1,4 +1,4 @@
-# ADR-220-answer-row: the Answer row holds two to four alike buttons, in one row from 1000 pixels wide and two a row below; a step of three or four shows the notice below 390 x 560
+# ADR-220-answer-row: the Answer row holds two to four alike buttons, in one row from 1000 pixels wide and two a row below; a step of three or four shows the notice below 390 x 560 at least
 
 - Status: ACCEPTED (frozen) -- 2026-10-09; the owner may overrule (core document 10.43)
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
@@ -41,10 +41,15 @@ same layout, both the same green". The measurement is `docs/research/issue-220-a
 6. **A step of three or four next steps shows the `minimumSize` notice below 390 pixels wide
    and below 560 pixels tall**, naming the height (`minimumHeight`). Two rows of buttons on the
    full Node need 488 pixels of height in Segoe UI and 536 in Verdana below 390 wide (measured);
-   the 24 above 536 are the margin for the Linux faces this run did not measure. #221 measures
-   them, and the trigger becomes the highest height any face needs, rounded up to ten
-   (`application.md` 41.4). Every other step keeps the floor of 320 x 480. A
-   phone held upright is taller than 560; this takes from resized desktop windows only.
+   the 24 above 536 are the margin for the Linux faces this run did not measure. 390 and 560 are
+   the least: #221 measures the Linux faces, and `application.md` 41.4 fixes how each number
+   follows from what it finds -- the height is the larger of 560 and the highest need below the
+   notice's width, rounded up to the next ten; the width is the larger of 390 and the lowest
+   width from which three and four fit a window 481 tall at every width measured above it, up to
+   999, rounded up to the next ten, since Verdana fits at 481 from 390 up with no margin; and
+   decision 3's 1000 rises by the same rule if one row of four does not fit at 481 from 1000 up.
+   Every other step keeps the floor of 320 x 480. A phone held upright is taller than 560; this
+   takes from resized desktop windows only.
 7. **The rows of an explanation Node and a Terminal do not change**: `startAgain` alone.
 
 ## Alternatives rejected
