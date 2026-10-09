@@ -86,6 +86,13 @@
 > else in this document was touched. The owner's words are held whole in section 3.4. How
 > they became issues is `docs/adrs/ADR-219-number-of-next-steps-round.md`; the work is
 > issues #220 to #222, and what the words leave open is 10.43, for the Architect on #220.
+>
+> **Revision of 2026-10-09 (issue #224).** The owner wrote, in issue #224, that a Tree they
+> clicked on `/admin` opened its public page, and that they want to edit it there and be
+> able to unpublish it. The one passage added is marked **[#224]**; nothing else in this
+> document was touched. The owner's words are held whole in section 3.4. How they became an
+> issue is `docs/adrs/ADR-224-editing-existing-trees-round.md`; the work is issue #225, on
+> the live demo server.
 
 Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03 and 2026-10-09.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
@@ -837,6 +844,25 @@ owner's words leave a choice:
     and every other reader of the yes and the no -- the slide, the neighbouring Nodes
     fetched ahead (3.1), the JSON-LD of section 1's findability contracts. #221 builds
     the format and the public page, #222 the editor.
+- **[#224] The owner edits and can unpublish the agrifood Tree (owner, #224, 2026-10-09).**
+  How the instruction became an issue is
+  `docs/adrs/ADR-224-editing-existing-trees-round.md`. The owner's words, whole:
+  > "In the editing view on /admin, if I click on Does the AI Act apply to my agrifood AI
+  > system? I am routed to the regular front facing user page and not an editor of the
+  > tree I just clicked on. This is not the functionality we want, when I open this tree,
+  > I want the full editor mode, I want to be able to change stuff and be able to
+  > unpublish it if I want."
+  - **Why it happened.** On the live demo server the owner logs in with the ordinary account
+    #198 made, which then had no role on that Tree, the administrator's since the first
+    start seeded it. A tile on `/admin` opens the editor only for a Tree its caller has a
+    role on, and otherwise the public page (`docs/specs/application.md` 26.4). The account
+    was made a collaborator 46 seconds after #224 was filed. A collaborator edits but does
+    not publish or unpublish (21.2), so #225 hands the Tree over to the owner's account,
+    which makes it the creator (21.4).
+  - PROPOSED (the owner can overrule it on #225): the owner means their own access to the
+    Tree they named, not that every tile on `/admin` opens the editor for every account,
+    which would let an account edit a Tree it has no role on (section 9's last bullet).
+    Nothing above changes under this reading.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
