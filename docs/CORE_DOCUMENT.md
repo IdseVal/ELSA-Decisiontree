@@ -92,6 +92,13 @@
 > of 3.4 `[#219]` and of the row **Answer** of section 5 says, where it stands, that #220 confirmed
 > it; 10.43 is decided; 10.21 and 10.22 carry a dated **[#220]** note, and so do the sentences of
 > 3.2 that a button's words change.
+>
+> **Revision of 2026-10-09 (issue #224).** The owner wrote, in issue #224, that a Tree they
+> clicked on `/admin` opened its public page, and that they want to edit it there and be
+> able to unpublish it. The one passage added is marked **[#224]**; nothing else in this
+> document was touched. The owner's words are held whole in section 3.4. How they became an
+> issue is `docs/adrs/ADR-224-editing-existing-trees-round.md`; the work is issue #225, on
+> the live demo server.
 
 Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03 and 2026-10-09.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
@@ -861,6 +868,26 @@ owner's words leave a choice:
     the format and the public page, #222 the editor.
   - **[#220]** Decided (2026-10-09, the Architect on #220; the owner may overrule), 10.43: the answers are in 10.43's row; `docs/adrs/ADR-220-*.md`,
     `docs/specs/application.md` 41.
+- **[#224] The owner edits and can unpublish the agrifood Tree (owner, #224, 2026-10-09).**
+  How the instruction became an issue is
+  `docs/adrs/ADR-224-editing-existing-trees-round.md`. The owner's words, whole:
+  > "In the editing view on /admin, if I click on Does the AI Act apply to my agrifood AI
+  > system? I am routed to the regular front facing user page and not an editor of the
+  > tree I just clicked on. This is not the functionality we want, when I open this tree,
+  > I want the full editor mode, I want to be able to change stuff and be able to
+  > unpublish it if I want."
+  - **Why it happened.** PROPOSED (from the live demo server's log; the owner did not say
+    where they clicked): the owner was logged in there with the ordinary account #198 made.
+    That account then had no role on the Tree, whose creator is the administrator. A tile
+    on `/admin` opens the editor only for a Tree its caller has a role on, and otherwise the
+    public page (`docs/specs/application.md` 26.4). The account was made a collaborator 46
+    seconds after #224 was filed. A collaborator edits but does not publish or unpublish
+    (21.2), so #225 handed the Tree over to the owner's account, which made it the creator
+    (21.4), on 2026-10-09.
+  - PROPOSED (the owner can overrule it in a new issue): the owner means their own access to the
+    Tree they named, not that every tile on `/admin` opens the editor for every account,
+    which would let an account edit a Tree it has no role on (section 9's last bullet).
+    Nothing above changes under this reading.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
