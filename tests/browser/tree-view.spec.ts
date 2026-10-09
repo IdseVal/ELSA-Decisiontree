@@ -89,10 +89,12 @@ test.describe('following a Branch', () => {
     await expect(page.locator(UP)).toHaveCount(0)
   })
 
-  test('every Branch shows the title of the Node it leads to', async ({ page }) => {
+  test('**[#221]** every next step shows its words, and is named by them and the title of the Node it leads to (41.2)', async ({ page }) => {
     await page.goto(QUESTION)
-    await expect(page.locator('.answer--next:nth-child(1) .branch-title')).toHaveText('This is a prohibited practice')
-    await expect(page.locator('.answer--next:nth-child(2) .branch-title')).toHaveText('The AI Act applies to your system')
+    await expect(page.locator('.answer--next:nth-child(1) .branch-title')).toHaveText('Yes')
+    await expect(page.locator('.answer--next:nth-child(1)')).toHaveAccessibleName('Yes: This is a prohibited practice')
+    await expect(page.locator('.answer--next:nth-child(2) .branch-title')).toHaveText('No')
+    await expect(page.locator('.answer--next:nth-child(2)')).toHaveAccessibleName('No: The AI Act applies to your system')
     await expect(page.locator('.options .option-title')).toHaveText([
       'Social scoring',
       'Emotion recognition at work or in education',
@@ -100,15 +102,14 @@ test.describe('following a Branch', () => {
     await expect(page.locator(UP)).toHaveAccessibleName('Back to: Is your AI system within the reach of the AI Act?')
   })
 
-  test('at a phone width an Answer button shows its word alone, and its name still says where it leads (10.3)', async ({ page }) => {
+  test('at a phone width a next step shows its words as at every width, and startAgain its word alone; each name still says where it leads (10.3, 41.2)', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 640 })
     await page.goto(QUESTION)
-    for (const [answer, name] of [
-      ['.answer--next:nth-child(1)', 'Yes: This is a prohibited practice'],
-      ['.answer--next:nth-child(2)', 'No: The AI Act applies to your system'],
+    for (const [answer, words, name] of [
+      ['.answer--next:nth-child(1)', 'Yes', 'Yes: This is a prohibited practice'],
+      ['.answer--next:nth-child(2)', 'No', 'No: The AI Act applies to your system'],
     ] as const) {
-      await expect(page.locator(`${answer} .branch-title`)).toBeHidden()
-      await expect(page.locator(`${answer} .branch-label`)).toHaveText(answer === '.answer--next:nth-child(1)' ? 'Yes' : 'No', { useInnerText: true })
+      await expect(page.locator(`${answer} .branch-label`)).toHaveText(words, { useInnerText: true })
       await expect(page.locator(answer)).toHaveAccessibleName(name)
     }
 

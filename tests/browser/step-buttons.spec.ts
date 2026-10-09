@@ -234,8 +234,13 @@ test('the two buttons stand beside the up arrow, under the bar, inside the windo
       ] as const) {
         await page.goto(address)
         await page.evaluate(() => document.fonts.ready)
-        const at = await layout(page)
         const where = `${width}x${height} ${lang}, ${what}`
+        // **[#221]** The full Node's four next steps take the notice below 600 x 560 (41.4, 41.7 item 8).
+        if (what === 'a question step' && width < 600 && height < 560) {
+          await expect(page.locator('.minimum-size'), where).toBeVisible()
+          continue
+        }
+        const at = await layout(page)
         const step = [...at.cross, ...at.words]
         console.log(
           `${where}: cross ${at.cross.map(show).join(' ')}${at.words.length ? `, ending's button ${at.words.map(show).join(' ')}` : ''} | up ${at.up.map(show).join(' ')}, ` +
@@ -325,15 +330,13 @@ test('"Tree does not end here after all" gives the three structure buttons back 
   expect(node.label).toBeUndefined()
 })
 
-test('the cross deletes after one confirmation and lands on the parent, whose yes is free again', async ({ browser }) => {
+test('the cross deletes after one confirmation and lands on the parent, **[#221]** which keeps its other next steps in their order (41.7 item 5)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor([top, 'full', 'applies']))
   await cross(page).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
   await page.waitForURL(fullNode())
-  await expect(page.locator('.answer--next:nth-child(1)')).toHaveCount(0)
-  await expect(page.locator('.structure--yes')).toHaveClass(/structure--lone/)
-  await expect(page.locator('.structure--yes')).toHaveText('+ Yes')
+  await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next')).toHaveCount(3)
   expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/applies`)).status()).toBe(404)
-  expect((await nodeOf(page, cookie, 'full')).answers).toEqual({ no: 'does-not-apply' })
+  expect((await nodeOf(page, cookie, 'full')).answers!.map((answer) => answer.target)).toEqual(['does-not-apply', 'deployer-only', 'not-applicable'])
 })

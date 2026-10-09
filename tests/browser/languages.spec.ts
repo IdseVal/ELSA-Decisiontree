@@ -190,6 +190,10 @@ test('one English title written is one to-do fewer; Publish is refused until eve
   // Every other English text written, the same switch publishes.
   expect((await api(page, cookie, 'PATCH', `/trees/${TREE}`, { path: 'title.en', value: 'A tree' })).status()).toBe(200)
   expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/start`, { path: 'description.en', value: 'About it.' })).status()).toBe(200)
+  // **[#221]** And the words of its two next steps (22.2).
+  for (const [index, words] of ['Yes', 'No'].entries()) {
+    expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/start`, { path: `answers[${index}].label.en`, value: words })).status()).toBe(200)
+  }
   for (const end of ends) {
     for (const key of ['title.en', 'description.en']) {
       expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${end}`, { path: key, value: `${key} of ${end}` })).status()).toBe(200)

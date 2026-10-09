@@ -308,7 +308,7 @@ test.describe('40.2: what it draws', () => {
     for (const file of files) expect(file).toMatch(/^\/admin\/api\/trees\/(hidden-draft\/images|example-hidden\/(images|theme))\//)
   })
 
-  test('an Answer slides to the target’s preview, one payload per navigation, and the up arrow slides back; a response carries at most seventeen Nodes', async ({ browser }) => {
+  test('an Answer slides to the target’s preview, one payload per navigation, and the up arrow slides back; a response carries at most **[#221]** thirty-one Nodes (41.5)', async ({ browser }) => {
     const { page, cookie } = await loggedIn(browser, ANNA)
     const payloads: string[] = []
     page.on('request', (request) => isPagePayload(request) && payloads.push(request.resourceType()))
@@ -336,11 +336,13 @@ test.describe('40.2: what it draws', () => {
       const body = await (await page.request.get(`${origin}${preview('hidden-draft', ids)}`, { headers: { Cookie: cookie } })).text()
       const nodes = nodesIn(body)
       console.log(`${ids.join('/')}: ${nodes.length} Nodes: ${nodes.join(' ')}`)
-      expect(nodes.length, ids.join('/')).toBeLessThanOrEqual(17)
+      expect(nodes.length, ids.join('/')).toBeLessThanOrEqual(31)
     }
-    // The full Node's page carries its frames: the step above, both Answers and the eight asides.
+    // The full Node's page carries its frames: the step above, **[#221]** its four next steps and the eight asides.
     const body = await (await page.request.get(`${origin}${preview('hidden-draft', [top, 'full'])}`, { headers: { Cookie: cookie } })).text()
-    expect(nodesIn(body)).toEqual([top, 'applies', 'does-not-apply', 'full', 'opt-eight', 'opt-five', 'opt-four', 'opt-one', 'opt-seven', 'opt-six', 'opt-three', 'opt-two'].sort())
+    expect(nodesIn(body)).toEqual(
+      [top, 'applies', 'deployer-only', 'does-not-apply', 'full', 'not-applicable', 'opt-eight', 'opt-five', 'opt-four', 'opt-one', 'opt-seven', 'opt-six', 'opt-three', 'opt-two'].sort(),
+    )
   })
 
   test('a fresh step reached by its yes is the centre, with startAgain below it', async ({ browser }) => {
@@ -745,9 +747,10 @@ test.describe('40.7: a draft that is not valid yet', () => {
     await expect(page.locator('#main-image-credit')).toHaveText(`[${ui.placeholderCredit}]`)
     await expect(page.locator('.todo-count, .editor-float, .preview-button')).toHaveCount(0)
 
-    await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(1)')).toHaveCount(0)
-    const no = page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(2)')
-    await expect(no.locator('.branch-word')).toHaveText(ui.no)
+    // **[#221]** The one next step left, does-not-apply's, shows its own words (41.2, 41.7 item 7).
+    await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next')).toHaveCount(1)
+    const no = page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next')
+    await expect(no.locator('.branch-title')).toHaveText('Nee, buiten de EU..')
     const [lone, row] = [(await no.boundingBox())!, (await page.locator('.tree-frame:not([aria-hidden]) .answers').boundingBox())!]
     console.log(`the one Answer ${lone.x}..${lone.x + lone.width}, its row ${row.x}..${row.x + row.width}`)
     expect(Math.abs(lone.x + lone.width / 2 - (row.x + row.width / 2))).toBeLessThanOrEqual(1)
