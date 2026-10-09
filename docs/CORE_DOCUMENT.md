@@ -821,7 +821,7 @@ owner's words leave a choice:
     and three next steps on another; "three or four" names numbers the creator must be
     able to choose, not the most, so two, three and four are allowed, and whether one is,
     or more than four, is 10.43; a step that is a yes and a no stays one, as every step
-    that leads on in the Trees and fixtures on `dev` is; and every button of a step's
+    that leads on in the Trees and the valid fixtures on `dev` is; and every button of a step's
     Answer row looks the same, as both have since #75 (3.2).
   - **"Some trees might end there"** is the Terminal of 3.1, which the creator has chosen
     with "Tree ends here" since #133 and whose words they have typed since #179.
