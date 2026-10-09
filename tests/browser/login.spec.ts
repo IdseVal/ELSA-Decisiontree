@@ -12,6 +12,10 @@
  * old user names -- `admin` included -- refused with the one line, the lock per address typed,
  * also on an address no account holds; the account page's address line, the accounts page's
  * address column, `noEmail` and `setEmail`; and no address in the server's log (38.8).
+ *
+ * **[#213]** And the `<noscript>` sentence once on every admin page a reader without script
+ * opens, in `en` and `nl`, where that reader sees it: the creators' overview and an uneditable
+ * Tree's editor address too, whose screenshots the pull request shows.
  */
 import { createHash, randomBytes } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -29,12 +33,16 @@ const OTHER_PORT = BASE_PORT + 81
 const LOG = path.join(RESULTS, 'login-server.log')
 /** The screenshots **[#196]**'s pull request asks for: the tracked set under `ELSA_SHOTS=1`, the results folder otherwise. */
 const SHOTS = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-196') : path.join(RESULTS, 'shots')
+/** **[#213]**'s, the same way. */
+const SHOTS_213 = process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-213') : path.join(RESULTS, 'shots')
 
 const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
 const CEES = { email: 'cees@example.org', name: 'Cees', password: 'cees first password' }
 const LOCKED = { email: 'lotte@example.org', name: 'Lotte', password: 'lottes first password' }
 /** **[#196]** An account a converted store left without an address (38.4), holding a session from before. */
 const HENK = { email: null, name: 'Henk', password: 'henks first password' }
+/** **[#213]** A hidden Tree whose draft a hand edit broke: uneditable (19.5). */
+const HAND_EDITED = 'hand-edited'
 
 let origin: string
 let otherOrigin: string
@@ -48,7 +56,10 @@ const addresses = new Set<string>([ADMIN_EMAIL, ANNA.email, CEES.email, LOCKED.e
 test.beforeAll(async () => {
   const { mkdir } = await import('node:fs/promises')
   await mkdir(RESULTS, { recursive: true })
-  const dir = await buildDataDir({ trees: [{ folder: path.join(repo, 'trees', 'ai-act-example') }], accounts: [ANNA, CEES, LOCKED, HENK] })
+  const trees = [{ folder: path.join(repo, 'trees', 'ai-act-example') }, { folder: path.join(repo, 'tests', 'fixtures', 'single-language'), id: HAND_EDITED, hidden: true }]
+  const dir = await buildDataDir({ trees, accounts: [ANNA, CEES, LOCKED, HENK] })
+  // **[#213]** One key twice: a blocking rule broken (V-JSON), as by an edit outside the editor.
+  await writeFile(path.join(dir, 'trees', HAND_EDITED, 'draft.json'), '{ "format": "elsa-tree/5", "format": "twice" }\n')
   // sessions.json as the release before #196 wrote it for a login of Henk's: the token's hash and his account's id (20.4).
   const henk = (JSON.parse(await readFile(path.join(dir, 'accounts.json'), 'utf8')) as { id: string; name: string }[]).find(({ name }) => name === HENK.name)!
   const now = Date.now()
@@ -537,6 +548,97 @@ test.describe('with a session', () => {
     const adminRow = page.locator(`.admin-row[data-email="${ADMIN_EMAIL}"]`)
     await adminRow.locator('summary', { hasText: 'Set e-mail address' }).click()
     await expect(adminRow.getByLabel('E-mail address (Administrator)')).toHaveValue(ADMIN_EMAIL)
+  })
+})
+
+test.describe('**[#213]** without JavaScript every admin page says once that the editor needs it (24.2)', () => {
+  /** `needsJavaScript` in the two chrome languages (3.2). */
+  const NEEDS_JAVASCRIPT = {
+    en: 'The editor needs JavaScript. Switch it on to sign in and edit.',
+    nl: 'De editor heeft JavaScript nodig. Zet het aan om in te loggen en te bewerken.',
+  }
+  /** Each page with a session, and what only that page holds: the login page shown in its place is not taken for it. */
+  const PAGES = [
+    ['/admin', '.tile--new', "the creators' overview"],
+    ['/admin/new', '#new-tree', 'the new-Tree form'],
+    ['/admin/account', '#your-name', 'the account page'],
+    ['/admin/accounts', 'h1.admin-heading', 'the accounts page'],
+    ['/admin/trees/ai-act-example/start', '.editor-chrome', 'the editor'],
+    [`/admin/trees/${HAND_EDITED}/start`, '#uneditable', "an uneditable Tree's editor address"],
+  ] as const
+
+  for (const lang of ['en', 'nl'] as const) {
+    test(`in ${lang}: the login page, the creators' overview, the form, the account and accounts pages, the editor and an uneditable Tree`, async ({ browser }) => {
+      const context = await browser.newContext({ javaScriptEnabled: false })
+      const page = await context.newPage()
+      const query = lang === 'en' ? '' : '?lang=nl'
+      /**
+       * Opens `address` at the guarantee and at the floor of 10.6 and asserts, softly so that one
+       * run names every page that fails: the sentence once, in a note of `main` before its every
+       * control, where a reader sees it; and every scroll box of `main` still ending inside it.
+       */
+      const saysItOnce = async (address: string, only: string, what: string): Promise<void> => {
+        for (const [width, height] of [[1280, 640], [320, 480]] as const) {
+          await page.setViewportSize({ width, height })
+          expect((await page.goto(`${origin}${address}${query}`))?.status(), what).toBe(200)
+          await expect(page.locator(only), what).toHaveCount(1)
+          const said = await page.evaluate((sentences) => {
+            // What a reader without script reads: `innerText` holds a `noscript`'s laid-out content, which Playwright's text matching skips.
+            const text = document.body.innerText
+            const main = document.querySelector('main')!.getBoundingClientRect()
+            const inMain = (box: DOMRect): boolean => box.top >= main.top - 1 && box.bottom <= main.bottom + 1
+            const notes = [...document.querySelectorAll('main noscript > p.admin-note')]
+            const controls = [...document.querySelectorAll('main :is(a[href], button, input, select, textarea, summary)')]
+            const note = notes[0]?.getBoundingClientRect()
+            const tile = document.querySelector('main .tile')?.getBoundingClientRect()
+            return {
+              en: text.split(sentences.en).length - 1,
+              nl: text.split(sentences.nl).length - 1,
+              notes: notes.map((element) => element.textContent),
+              // 24.2's "in place of its first control": the controls of `main` the note follows.
+              controlsBefore: notes[0] ? controls.filter((control) => control.compareDocumentPosition(notes[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).length : null,
+              // Not cut off by `main` or the window.
+              seen: note ? inMain(note) && note.top >= 0 && note.bottom <= innerHeight && note.left >= 0 && note.right <= innerWidth : null,
+              // The note's line comes out of a scroll box, never out of the disclaimer's row.
+              boxesInMain: [...document.querySelectorAll('main [data-scroll-box]')].every((box) => inMain(box.getBoundingClientRect())),
+              // On the creators' overview its words start where the tiles do.
+              inLineWithTiles: note && tile ? Math.abs(note.left + parseFloat(getComputedStyle(notes[0]!).paddingLeft) - tile.left) <= 1 : null,
+            }
+          }, NEEDS_JAVASCRIPT)
+          expect.soft(said, `${what} at ${width} x ${height}`).toEqual({
+            en: lang === 'en' ? 1 : 0,
+            nl: lang === 'nl' ? 1 : 0,
+            notes: [NEEDS_JAVASCRIPT[lang]],
+            controlsBefore: 0,
+            seen: true,
+            boxesInMain: true,
+            inLineWithTiles: only === '.tile--new' ? true : null,
+          })
+        }
+      }
+
+      await saysItOnce('/admin', '#sign-in', 'the login page')
+      expect((await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+      for (const [address, only, what] of PAGES) await saysItOnce(address, only, what)
+      await context.close()
+    })
+  }
+
+  test("the creators' overview and an uneditable Tree without JavaScript, for the pull request (#213)", async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false })
+    const page = await context.newPage()
+    await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)
+    for (const lang of ['en', 'nl']) {
+      for (const [width, height] of [[1280, 640], [320, 480]] as const) {
+        await page.setViewportSize({ width, height })
+        for (const [name, address] of [['overview', '/admin'], ['uneditable', `/admin/trees/${HAND_EDITED}/start`]]) {
+          await page.goto(`${origin}${address}${lang === 'en' ? '' : '?lang=nl'}`)
+          await page.evaluate(() => document.fonts.ready)
+          await page.screenshot({ path: path.join(SHOTS_213, `${name}-${lang}-${width}x${height}.png`) })
+        }
+      }
+    }
+    await context.close()
   })
 })
 
