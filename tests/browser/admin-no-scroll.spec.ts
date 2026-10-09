@@ -25,7 +25,9 @@
  * the administrator's creators' overview, at every viewport of 10.6 and at five sizes either side of
  * 480, 600 and 768 wide. **[#206]** And the preview of a hidden Tree on `hidden-draft`'s full
  * Node, plain and with each of its first two Overlays open, and on 40.7's unfinished draft; and the
- * editor of a hidden Tree with the preview button, on its step that ends (40.9).
+ * editor of a hidden Tree with the preview button, on its step that ends (40.9). **[#212]** And at
+ * and below the floor, on the editor of a hidden Tree and its preview, the notice's text lines clear
+ * of every control under the bar (10.4).
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -761,6 +763,63 @@ test(`**[#206]** the preview of a hidden Tree and the editor with the preview bu
       expect((await editorPage.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`))?.status()).toBe(200)
       await expect(editorPage.locator('.preview-button')).toBeVisible()
       record(await measure(editorPage), 'the editor of a hidden Tree with the preview button, a step that ends', lang, viewport, '')
+    }
+  }
+})
+
+/** **[#212]** The sizes at and below the floor #205 measured the notice at (its record, section 6), and one above it in height only. */
+const FLOOR_SIZES = [
+  [320, 480],
+  [320, 700],
+  [300, 400],
+  [800, 480],
+] as const
+
+test('**[#212]** at and below the floor the notice\'s text lines stand clear of every control under the bar, in the editor of a hidden Tree and in its preview, in both languages (10.4, 33.1, 40.5)', async ({ browser }) => {
+  const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
+  for (const lang of LANGUAGES) {
+    const query = lang === 'en' ? '' : '?lang=nl'
+    for (const [width, height] of FLOOR_SIZES) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      for (const [what, address, controls] of [
+        ['the editor of a hidden Tree', `/admin/trees/hidden-draft/full${query}`, 3],
+        ['the preview of a hidden Tree', `/admin/preview/hidden-draft/full${query}`, 1],
+      ] as const) {
+        const where = `${what} (${lang}) at ${viewport}`
+        expect((await page.goto(`${origin}${address}`))?.status(), where).toBe(200)
+        await expect(page.locator('.minimum-size'), where).toBeVisible()
+        record(await measure(page), `${what}, the floor's notice`, lang, viewport, '')
+        const at = await page.evaluate(() => {
+          // Every line box of the notice's text, as the record's section 6 takes them: a Range over it.
+          const range = document.createRange()
+          range.selectNodeContents(document.querySelector('.minimum-size')!)
+          const lines = [...range.getClientRects()].filter((line) => line.width > 0).map((line) => line.toJSON() as DOMRect)
+          const controls = [...document.querySelectorAll<HTMLElement>('.editor-float > .sheet > .sheet-open, .preview-button, .preview-back')].map((control) => {
+            const box = control.getBoundingClientRect()
+            // On top where it stands: the element at its middle is the control or inside it, so the notice does not cover it either.
+            const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+            return { name: control.getAttribute('aria-label') ?? control.parentElement!.className, box: box.toJSON() as DOMRect, reachable: !!top && control.contains(top) }
+          })
+          return { lines, controls }
+        })
+        const show = (b: DOMRect) => `${b.left}..${b.right} x ${b.top}..${b.bottom}`
+        console.log(`${where}: lines ${at.lines.map(show).join(', ')}; controls ${at.controls.map((c) => show(c.box)).join(', ')}`)
+        expect(at.lines.length, where).toBeGreaterThan(0)
+        expect(at.controls, where).toHaveLength(controls)
+        for (const control of at.controls) {
+          const b = control.box
+          expect(b.left >= 0 && b.right <= width && b.top >= 0 && b.bottom <= height, `${where}: ${control.name} inside the window`).toBe(true)
+          expect(control.reachable, `${where}: ${control.name} on top where it stands`).toBe(true)
+          const over = at.lines.filter((l) => b.left < l.right && l.left < b.right && b.top < l.bottom && l.top < b.bottom)
+          // Soft, so that one run names every size and control that covers the text.
+          expect.soft(over.map(show), `${where}: ${control.name} at ${show(b)} over the notice's text`).toEqual([])
+        }
+      }
+      // The public page has no control under the bar, and its notice stays where it stood (35.6).
+      expect((await page.goto(`${origin}/ai-act-example/start${query}`))?.status()).toBe(200)
+      await expect(page.locator('.minimum-size')).toBeVisible()
+      expect(await page.locator('.minimum-size').evaluate((notice) => getComputedStyle(notice).paddingTop), `the public page (${lang}) at ${viewport}`).toBe('24px')
     }
   }
 })

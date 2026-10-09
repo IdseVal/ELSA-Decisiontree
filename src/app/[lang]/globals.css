@@ -4494,6 +4494,16 @@ fieldset:disabled .admin-submit {
   }
 }
 
+/*
+ * **[#212]** At and below the floor the controls under the bar stay (33.1, 40.5), and the notice that
+ * stands in for the tree view (10.4) would run its first line under them: wherever one is on the
+ * page, the notice starts 8 pixels below their boxes. Its box starts under the bar, so the padding
+ * is their bottom less the bar's row. The public page has none, and its notice keeps its 24.
+ */
+:root:has(.editor-float, .preview-button, .preview-back) .minimum-size {
+  padding-top: calc(var(--float-top) + var(--float-size) + 8px - var(--chrome-row));
+}
+
 /* --- the preview of a hidden Tree: its button and the way back (40.5) ---------------- */
 
 /*
