@@ -67,3 +67,18 @@ and fixtures have a yes and a no that lead to the same Node -- three in
 - **Freezing `schemas/elsa-tree-6.json` here.** The schema is derived from 3.9 and 5.3 by the
   run that also writes the loader against it and runs the migration; the issue allows it here,
   but a schema committed without the loader that reads it would be untested on `dev`.
+
+## Consequences
+
+- #221 writes `schemas/elsa-tree-6.json` from `tree-format.md` 3.9 and 5.3, the loader that reads
+  `/6` alone, and 12.8's conversion, run by `npm run migrate` and by the store on every file it
+  opens; it converts `trees/` and `tests/fixtures/` with it and records the result in section 8's
+  block and `tests/migrate-tree.test.ts`.
+- The readers of the format number move with it: `Manifest['format']`, `newDraft`'s `$schema` and
+  `format`, `SCHEMA_HREF`, the schema route's set, and the tests that assert `elsa-tree/5` or
+  `/schemas/elsa-tree-5.json`.
+- A deployment upgraded to #221's release converts its own data directory at its first start,
+  as it converted `/4` by 12.7.
+- What becomes untrue: `tree-format.md` 5.3's "Exactly the two keys", `ADR-171-elsa-tree-5.md`'s
+  next number, which is now taken, and `ADR-132-draft-and-publish.md`'s relaxation of `answers`;
+  each carries a dated line naming this ADR.

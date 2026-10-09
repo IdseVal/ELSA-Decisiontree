@@ -46,3 +46,16 @@ Answer. The dataset endpoint (15) serves the Tree file byte for byte. The chrome
   carried, and makes a migrated Tree's JSON-LD change for no reader's gain.
 - **Removing the chrome keys `yes` and `no`.** The editor's one-click yes and no need words in
   the chrome language; the migration's table has its own copy (`tree-format.md` 12.8).
+
+## Consequences
+
+- #221 changes `src/findability/jsonld.ts` to emit one `suggestedAnswer` per next step, and
+  `jsonld.test.ts` asserts it for a step of three; `SCHEMA_HREF`, the dataset endpoint's `Link`
+  header and the schema route's set move to `/6`; every reader of `answers.yes` /
+  `answers.no` reads the array (`application.md` 41.6).
+- A search engine or an assistant reading a migrated yes-and-no step finds the same two
+  `Answer` texts it found; `llms.txt` differs in its schema path alone.
+- What becomes untrue: `ADR-118-json-ld.md` decision 6's two entries, yes then no, each the chrome
+  word; `ADR-118-dataset-endpoint.md`'s schema in the `Link` header; and `ADR-133-reuse-rule.md`
+  decision 6's `linksOf` answering `{ yes?, no?, terminal? }`; each carries a dated line naming
+  this ADR.

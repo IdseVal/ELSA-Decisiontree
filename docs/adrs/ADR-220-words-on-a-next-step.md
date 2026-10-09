@@ -67,3 +67,19 @@ localised text of at most 19 characters, since #171 (`tree-format.md` 5.5).
   needs windows up to 584 tall (measured). 19 is the ending's cap already, and the room's.
 - **Numbers or letters on the buttons** (A, B, C). They say nothing of the choice; the reader
   would have to read it elsewhere, and the Bubble has no room for a legend.
+
+## Consequences
+
+- #221 draws each Answer button's `answers[i].label` in the page's language and nothing else, at
+  every width; its `aria-label` is the label, a colon and the target's title from `getTitle`; the
+  markup and the rules that shortened a button to its chrome word below 480 pixels go
+  (`application.md` 10.3, 41.2). V-LENGTH counts the label against 19 and V-L10N asks for every
+  language of the Tree.
+- #222 makes the label a field in place, counted live against 19, and asks for it in the Sheet
+  that `+` opens (`application.md` 41.7).
+- What the owner sees change: a button says its creator's words, "Yes" where it said
+  "Yes: Annex III areas". Core document 3.2, which the owner wrote, carries the `[#220]` mark, and
+  the owner may overrule (10.43). A screen reader still hears the words, a colon and the title.
+- What becomes untrue: `ADR-78-answer-buttons-and-up-arrow.md` decision 1's label, #82's word
+  alone below 480 pixels, and `ADR-205-unfinished-draft.md` decision 3's "Yes" or "No" with the
+  title; each carries a dated line naming this ADR.

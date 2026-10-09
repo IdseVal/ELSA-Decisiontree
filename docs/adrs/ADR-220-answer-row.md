@@ -67,3 +67,19 @@ same layout, both the same green". The measurement is `docs/research/issue-220-a
   thing 10.5 offers when the step's title, description, arrow and buttons do not fit.
 - **The bottom row's last button stretched to the full row.** One button would look different
   from the others, which decision 1 forbids.
+
+## Consequences
+
+- #221 builds the row: every button an equal share, at most 620 wide, in one row from 1000 pixels
+  wide and two a row below, a lone third centred and as wide as each of the two above, in the
+  file's order; and the notice of decision 6 for a step of three or four. It measures the Linux
+  faces and records the notice's width and height, and 41.3's 1000 if it moves, in
+  `application.md` 41.4 by the rules there, and runs `no-scroll.spec.ts` at the viewports of
+  41.9.
+- #222's Answer row stands as this one does for its number of buttons, with the editor's own
+  notice height (`ADR-220-editing-next-steps.md` decision 8).
+- A desktop window resized below 390 pixels wide and 560 tall shows the notice on a step of three
+  or four, where it showed the page for a step of two.
+- What becomes untrue: `ADR-78-answer-buttons-and-up-arrow.md` decision 1's two buttons of 620 x
+  60 as the only row, and `ADR-38-no-scroll.md`'s one floor for every Node; each carries a dated
+  line naming this ADR, and core document 10.22 records the exception.

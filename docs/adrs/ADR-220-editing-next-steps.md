@@ -74,3 +74,18 @@ Terminal's words are asked for in a Sheet before the step ends (36.3).
 - **A "remove next step" control that keeps the step it led to.** #178 took the link menu out on
   the owner's words, "if a user wants to delete a tree step he has to do it inside that tree step";
   a next step goes with its step, as a yes or a no does today.
+
+## Consequences
+
+- #221 keeps the editor working on the array, so that `dev` stays whole: `+ Yes` and `+ No`
+  write `link: 'answer'` with the chrome word as the label, and the operations name an index
+  (`application.md` 41.6).
+- #222 builds the rest of 41.7: the empty step's fourth outlined button `+`, the Sheet with
+  `nextStepWords`, each label a field in place, the `moveEarlier` / `moveLater` controls and
+  `move-answer`, the one-click `+ Yes` and `+ No` beside a lone next step, the chrome keys
+  `addNextStep` and `nextStepWords`, and the editor's notice, measured in
+  `admin-no-scroll.spec.ts`.
+- What becomes untrue: `ADR-133-structure-editing.md`'s `+ Yes` and `+ No` as the only way to a
+  next step and its `link: 'yes' | 'no'`, `ADR-132-editor-api.md`'s `from.link` and `set-answer`
+  by `yes` or `no`, and the editor's lone Answer kept to its side in
+  `ADR-205-unfinished-draft.md` decision 3; each carries a dated line naming this ADR.

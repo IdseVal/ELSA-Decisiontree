@@ -55,3 +55,17 @@ the layer's width across, and their four targets in one line two layers down, on
   would overlap during the slide; a width apart is what two have always been.
 - **Keeping `slot` and teaching the layer every count's geometry.** The geometry would live in two
   modules; `neighbourhood` already knows the counts and the order.
+
+## Consequences
+
+- #221 replaces `Placed`'s `slot` with `x` and `y`, computed in `src/neighbourhood.ts`; the layer
+  in `src/components/TreeView.tsx` reads them where its `position` turns a `slot` into a place;
+  the slide translates by them. `neighbourhood.test.ts` asserts the positions and the bound of 31, and
+  `transition.spec.ts` slides to the third and fourth of four and back up (`application.md` 41.9).
+- A step of two places the same Nodes it placed, its two first-level targets where they stood;
+  at the second level, where one of them has fewer than two next steps, the others close up.
+- What becomes untrue: the seventeen of `application.md` 11.2 and of every ADR that states it,
+  `ADR-38-neighbourhood.md`'s sixteen neighbours, and the `up` slot of
+  `ADR-78-answer-buttons-and-up-arrow.md` decision 4 and `ADR-38-transitions.md` decision 2; each
+  carries a dated line naming this ADR. The editor page's bound of twelve
+  (`ADR-133-reuse-rule.md` decision 7) does not change.

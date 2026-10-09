@@ -78,3 +78,17 @@ three, two rows for five or six, were not measured.
 - **No upper bound in the format**, the page coping. The no-scroll rule is a property of the
   data first (core document 3.1, "we have to have max length on content"); every list the page
   draws has its maximum in 5.7.
+
+## Consequences
+
+- #221 builds the count into the file's shape: the schema's `minItems` 2 and `maxItems` 4 on
+  `answers` (V-ANSWERS), the draft schema's `minItems` 1, and a store that answers a fifth with
+  422 and stores nothing; it adds fixtures of a step of three and of four next steps
+  (`application.md` 41.9).
+- #222 offers no `+` beside a fourth next step and lists "fewer than two next steps" among a
+  draft step's to-dos (`application.md` 41.7, 19.2, 33.3).
+- What becomes untrue: "exactly two Answers, a yes and a no" wherever the specs said it; each
+  such passage of `application.md`, `tree-format.md` and the core document carries a dated
+  `[#220]` mark, and each older ADR that decided it a dated line naming this round's ADR.
+- A fifth next step later takes a new `architecture` issue and a measurement of what this one
+  left out: a third row, or rows of three.
