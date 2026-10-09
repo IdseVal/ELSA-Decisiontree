@@ -7,12 +7,14 @@
  *
  * Every Tree comes through `openTree` and every address through `parseUrl` (section 7).
  */
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { beforeAll, describe, expect, test } from 'vitest'
-import { centreOf, loadPage, MAX_ASIDES, MAX_PLACED, neighbourhood, type Placed } from '../src/neighbourhood.ts'
-import { openTree, type Tree } from '../src/tree/loader.ts'
-import type { Node } from '../src/tree/types.ts'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { centreOf, draftCentre, loadPage, MAX_ASIDES, MAX_PLACED, neighbourhood, type Placed } from '../src/neighbourhood.ts'
+import { openTree, type Draft, type Tree } from '../src/tree/loader.ts'
+import type { DraftNode, Node } from '../src/tree/types.ts'
 import { followHref, nodeHref, parseUrl, trailHref, type PageAddress } from '../src/url.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -34,7 +36,7 @@ async function at(tree: Tree, pathname: string, lang = 'en'): Promise<{ address:
 }
 
 /** `direction slot id` for each placement, in the order returned. */
-function summary(placed: Placed[]): string[] {
+function summary(placed: Placed<Node | DraftNode>[]): string[] {
   return placed.map((p) => `${p.direction} ${p.slot} ${p.node.id}`)
 }
 
@@ -307,5 +309,72 @@ describe('the bound', () => {
     const page = (await loadPage(example, address))!
     expect(nodeHref(page.address)).toBe('/ai-act-example/start/prohibited-practices/social-scoring?lang=nl')
     expect(nodeHref(page.centre.address)).toBe('/ai-act-example/start/prohibited-practices?lang=nl')
+  })
+})
+
+/**
+ * **[#206]** A draft of the full Node's Tree (application.md 19.2), as the store keeps one: its
+ * `draft.json` in a folder of its own, read by `openTree` in draft mode. `change` edits the
+ * Nodes by id first, a new one added by its id; the pictures are left out, so the folder needs no files.
+ */
+const drafts: string[] = []
+async function fullNodeDraft(change: (nodes: Record<string, Record<string, unknown>>) => void): Promise<Draft> {
+  const raw = JSON.parse(await readFile(path.join(here, 'fixtures', 'full-node', 'tree.json'), 'utf8')) as { nodes: Record<string, unknown>[] }
+  for (const node of raw.nodes) delete node.images
+  const nodes = Object.fromEntries(raw.nodes.map((node) => [node.id as string, node]))
+  change(nodes)
+  raw.nodes = Object.values(nodes)
+  const dir = path.join(await mkdtemp(path.join(tmpdir(), 'elsa-neighbourhood-')), 'full-node')
+  drafts.push(path.dirname(dir))
+  await mkdir(dir)
+  await writeFile(path.join(dir, 'draft.json'), JSON.stringify(raw))
+  return openTree(dir, { draft: true })
+}
+
+afterAll(async () => {
+  for (const dir of drafts) await rm(dir, { recursive: true, force: true })
+})
+
+describe('**[#206]** over a draft, for the preview of a hidden Tree (40.2)', () => {
+  test('a question step with one Answer places that one, in its own slot, and nothing in the other', async () => {
+    for (const [answers, expected] of [
+      [{ no: 'does-not-apply' }, ['down 1 does-not-apply']],
+      [{ yes: 'applies' }, ['down 0 applies']],
+    ] as const) {
+      const draft = await fullNodeDraft((nodes) => {
+        nodes.full!.answers = answers
+      })
+      const address = parseUrl('/full-node/full', 'en', draft)!
+      const node = (await draft.getNode('full'))!
+
+      const { placed, asides } = await neighbourhood(draft, address, node)
+      expect(summary(placed), JSON.stringify(answers)).toEqual(expected)
+      expect(asides).toHaveLength(8)
+    }
+  })
+
+  test("a lone Answer's target is placed above, in its Answer's slot, when the reader goes up from it", async () => {
+    const draft = await fullNodeDraft((nodes) => {
+      nodes.full!.answers = { no: 'does-not-apply' }
+    })
+    const address = parseUrl('/full-node/full/does-not-apply', 'en', draft)!
+    const { placed } = await neighbourhood(draft, address, (await draft.getNode('does-not-apply'))!)
+    expect(summary(placed)).toEqual(['up 1 full'])
+  })
+
+  test('draftCentre: a fresh step a yes made is the centre, under its Trail; an Option target stays the open aside', async () => {
+    const draft = await fullNodeDraft((nodes) => {
+      nodes.fresh = { id: 'fresh', metadata: { version: '1' }, title: { en: 'Fresh' } }
+      nodes.full!.answers = { yes: 'fresh', no: 'does-not-apply' }
+    })
+    const fresh = draftCentre((await centreOf(draft, parseUrl('/full-node/full/fresh', 'en', draft)!))!)
+    expect(fresh.node.id).toBe('fresh')
+    expect(fresh.address.trail).toEqual(['full'])
+    expect(fresh.chain).toEqual([])
+
+    // What the editor's page applied it to before #205 moved it: an Overlay its parent names stays one.
+    const aside = draftCentre((await centreOf(draft, parseUrl('/full-node/full/opt-one', 'en', draft)!))!)
+    expect(aside.node.id).toBe('full')
+    expect(aside.chain.map((entry) => entry.node.id)).toEqual(['opt-one'])
   })
 })

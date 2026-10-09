@@ -21,7 +21,7 @@ import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../..
 import { ThemePanel, type ThemeWords } from '../../../../../../editor/ThemePanel.tsx'
 import { FONT_LIBRARY, FONT_LICENCES, libraryEntry } from '../../../../../../fonts.ts'
 import { Todo, TodoButton, type TodoWords } from '../../../../../../editor/Todo.tsx'
-import { centreOf, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
+import { centreOf, draftCentre, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
 import type { Account } from '../../../../../../store/accounts.ts'
 import type { TreeEntry } from '../../../../../../store/drafts.ts'
 import { isStoreError } from '../../../../../../store/errors.ts'
@@ -64,15 +64,10 @@ export default async function EditorPage({ params }: Props) {
   }
   const address = parseUrl(`/${[treeId, ...path].join('/')}`, segment, draft)
   if (!address) notFound()
-  let centre = await centreOf(draft, address)
-  if (!centre) notFound()
-  // **[#139]** A fresh Answer target is an explanation Node by its draft kind until it gets
-  // Answers or an end (19.2), and `centreOf` would show it as an Overlay over its parent. In
-  // the editor an entry is an aside only where the entry before names it as an Option; any
-  // other explanation Node at the end of the path is the centre, with its up arrow (30.2).
-  for (let first = centre.chain[0]; first && !centre.node.options.some((option) => option.target === first!.node.id); first = centre.chain[0]) {
-    centre = { address: first.address, node: first.node, chain: centre.chain.slice(1), known: centre.known }
-  }
+  const read = await centreOf(draft, address)
+  if (!read) notFound()
+  // **[#139]** A fresh step a yes or a no made is the centre, with its up arrow (30.2); **[#205]** the rule is `draftCentre`'s, which the preview applies too (40.2).
+  let centre = draftCentre(read)
   // The chain's addresses are the editor's, as the asides' below are: the tree view tells the
   // Overlay a URL opened by its href (10.9), and the two must agree.
   centre = { ...centre, chain: centre.chain.map((aside) => ({ ...aside, href: editorLinks().node(aside.address) })) }
