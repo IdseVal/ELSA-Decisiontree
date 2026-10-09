@@ -21,7 +21,7 @@ Answer. The dataset endpoint (15) serves the Tree file byte for byte. The chrome
 1. **JSON-LD**: one `Answer` per next step, in their order, `text` the next step's label in the
    page's language, a colon and its target's title -- the button's accessible name, which is
    what "the exact label" now means -- and `url` the target's canonical URL in that language. A
-   migrated yes-and-no step's JSON-LD is byte-identical to dev's: "Yes: <title>", "No: <title>".
+   migrated yes-and-no step's answers say what dev's say: "Yes: <title>", "No: <title>".
 2. **`llms.txt`** does not change: it names no step and no Answer. Its line on the URL grammar
    stands.
 3. **The dataset endpoint** does not change: it serves the `/6` file as it is, and the schema
