@@ -1,16 +1,11 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { chrome, chromeLang, chromeLanguage, text } from '../../../../chrome.ts'
-import { Authors } from '../../../../components/Authors.tsx'
-import { BackToOverview } from '../../../../components/BackToOverview.tsx'
+import { chromeLanguage, text } from '../../../../chrome.ts'
 import { Disclaimer } from '../../../../components/Disclaimer.tsx'
-import { LanguageSwitch } from '../../../../components/LanguageSwitch.tsx'
-import { Logo } from '../../../../components/Logo.tsx'
-import { ShareButton, type ShareWords } from '../../../../components/ShareButton.tsx'
+import { NodeChrome } from '../../../../components/NodeChrome.tsx'
 import { TreeView } from '../../../../components/TreeView.tsx'
 import { ThemeStyle } from '../../../../components/ThemeStyle.tsx'
-import { ToEditor } from '../../../../components/ToEditor.tsx'
 import { baseUrl, store } from '../../../../config.ts'
 import { graphScript, pageGraph } from '../../../../findability/jsonld.ts'
 import { plainDescription } from '../../../../markdown.ts'
@@ -50,30 +45,14 @@ export default async function NodePage(props: Props) {
       {script !== null && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: script }} />}
       {/* **[#134]** The published Tree's Theme, which the root layout cannot know (13.1). */}
       <ThemeStyle tree={found.tree} />
-      {/*
-        The page chrome. It sits in the page rather than in the root layout, where
-        docs/specs/application.md section 6 sketches it, for the reason the Disclaimer does:
-        the layout is given its own `[lang]` segment and nothing else, and a link to this
-        page in another language is built from the whole address -- this Trail, this Node.
-      */}
-      {/* **[#204]** `node-chrome`: below 768 pixels wide this bar alone gives up the current language for "Editor" (24.3). */}
-      <header className="page-chrome node-chrome">
-        <div className="page-brand">
-          <BackToOverview href={overviewHref(chromeLanguage(found.address.lang))} lang={found.address.lang} />
-          <Logo
-            treeId={found.tree.id}
-            theme={found.tree.manifest.theme}
-            title={found.tree.manifest.title}
-            lang={found.address.lang}
-          />
-        </div>
-        <Authors names={authors} lang={found.address.lang} />
-        <div className="page-controls">
-          <LanguageSwitch address={found.address} languages={found.tree.manifest.languages} />
-          <ShareButton ui={shareWords(found.address.lang)} uiLang={chromeLang(found.address.lang)} />
-          <ToEditor lang={found.address.lang} />
-        </div>
-      </header>
+      {/* **[#205]** The bar, by the component the preview of a hidden Tree draws too (40.4). */}
+      <NodeChrome
+        tree={found.tree}
+        address={found.address}
+        authors={authors}
+        overview={overviewHref(chromeLanguage(found.address.lang))}
+        shareAndEditor
+      />
       <main>
         <TreeView page={page} tree={found.tree} />
       </main>
@@ -91,12 +70,6 @@ async function jsonLd(tree: Tree, address: PageAddress): Promise<string | null> 
   const node = await tree.getNode(address.nodeId)
   if (!node) return null
   return graphScript(await pageGraph(tree, node, address.lang, baseUrl(await headers())))
-}
-
-/** What the share button says, in the chrome language of the page. */
-function shareWords(lang: string): ShareWords {
-  const { share, copied, copyFailed } = chrome(lang)
-  return { share, copied, copyFailed }
 }
 
 /**

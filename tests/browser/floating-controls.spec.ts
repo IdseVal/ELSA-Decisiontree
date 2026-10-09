@@ -291,6 +291,9 @@ test('both follow the Sheet rules -- Escape, the cross, a click outside, focus i
   const { page } = await loggedIn(browser, ANNA)
   await page.goto(`${origin}${FULL_AT_TRAIL}`)
   await page.locator('header').getByRole('button', { name: 'Log out' }).focus()
+  // **[#206]** On a hidden Tree the preview button comes first after the bar, the band's left end (40.5).
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('link', { name: 'Preview', exact: true })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(todoControl(page)).toBeFocused()
   await page.keyboard.press('Tab')

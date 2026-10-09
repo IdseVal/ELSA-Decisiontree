@@ -351,6 +351,90 @@ test.describe('the logged-in half of the sweep (20.5)', () => {
 })
 
 /**
+ * **[#206]** The preview's half of the sweep (application.md 35.5, 40.8): on a server of its own
+ * holding a hidden Tree beside the published example, the preview's two addresses answer no
+ * `Set-Cookie` and carry 20.9's headers, with and without the session; and after a preview of the
+ * hidden Tree is drawn in the browser, every public route -- the hidden Tree's own addresses, the
+ * 404 of 4.3, among them -- is sent no `Cookie` and answers no `Set-Cookie`, the login's aside.
+ */
+test.describe("the preview's half of the sweep (35.5, 40.8)", () => {
+  const PORT = BASE_PORT + 206
+  const HIDDEN = 'hidden-tree'
+  const PREVIEWS = [`/admin/preview/${HIDDEN}`, `/admin/preview/${HIDDEN}/full`, `/admin/preview/${HIDDEN}/full?lang=nl`]
+  const repo = fileURLToPath(new URL('../..', import.meta.url))
+  let origin: string
+
+  test.beforeAll(async () => {
+    const dir = await buildDataDir({
+      trees: [{ folder: path.join(repo, 'trees', 'ai-act-example') }, { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: HIDDEN, hidden: true }],
+      accounts: [],
+    })
+    origin = await serveStore(dir, PORT, ADMIN_ENV)
+  })
+
+  test.afterAll(async () => {
+    await stopServers()
+  })
+
+  test("without a session the preview's addresses answer the login page, no cookie and 20.9's headers", async ({ page, context }) => {
+    const seen = watch(page)
+    for (const route of PREVIEWS) {
+      const answer = await page.goto(`${origin}${route}`)
+      const headers = await answer!.allHeaders()
+      expect(answer?.status(), route).toBe(200)
+      expect(headers['x-robots-tag'], route).toBe('noindex, nofollow')
+      expect(headers['cache-control'], route).toBe('no-store')
+      await expect(page.getByRole('heading', { name: /^(Sign in|Inloggen)$/ }), route).toBeVisible()
+    }
+    await seen.settled()
+    expect(seen.setCookie).toEqual([])
+    expect(await context.cookies()).toEqual([])
+  })
+
+  test('after a preview of the hidden Tree is drawn, no public route is sent the cookie or answers one', async ({ page, context }) => {
+    const seen = watch(page)
+    const cookieSentTo: string[] = []
+    const reads: Promise<void>[] = []
+    page.on('request', (request: Request) => {
+      reads.push(
+        request.allHeaders().then((headers) => {
+          if (headers['cookie'] !== undefined) cookieSentTo.push(new URL(request.url()).pathname)
+        }),
+      )
+    })
+    await page.goto(`${origin}/admin`)
+    await page.getByLabel('E-mail address').fill(ADMIN_EMAIL)
+    await page.getByLabel('Password').fill(ADMIN_PASSWORD)
+    await page.getByRole('button', { name: 'Sign in' }).click()
+    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible()
+
+    for (const route of PREVIEWS) {
+      const answer = await page.goto(`${origin}${route}`)
+      const headers = await answer!.allHeaders()
+      expect(answer?.status(), route).toBe(200)
+      expect(headers['x-robots-tag'], route).toBe('noindex, nofollow')
+      expect(headers['cache-control'], route).toBe('no-store')
+      // The preview drawn: the hidden Tree's full Node, its pictures from the admin route.
+      await expect(page.locator('.tree-frame .bubble[data-node="full"]'), route).toBeVisible()
+      await expect(page.locator('.preview-back'), route).toBeVisible()
+    }
+
+    const hidden = [`/${HIDDEN}`, `/${HIDDEN}/full`, `/${HIDDEN}/full?lang=nl`, `/${HIDDEN}/tree.json`, `/${HIDDEN}/images/one.png`]
+    for (const route of [...PUBLIC_ROUTES, ...hidden]) {
+      const answer = await page.goto(`${origin}${route}`)
+      expect(answer?.status(), route).toBe(hidden.includes(route) ? 404 : 200)
+    }
+
+    await seen.settled()
+    while (reads.length > 0) await Promise.all(reads.splice(0))
+    expect(cookieSentTo.filter((pathname) => pathname !== '/admin' && !pathname.startsWith('/admin/'))).toEqual([])
+    expect(cookieSentTo).toEqual(expect.arrayContaining(['/admin/preview/hidden-tree/full']))
+    expect(seen.setCookie).toEqual([expect.stringMatching(new RegExp(`^${origin}/admin/api/login: elsa-admin-session=`))])
+    expect(await context.cookies()).toHaveLength(1)
+  })
+})
+
+/**
  * **[#197]** The account sweep (application.md 20.5, 35.5, 39.8, 39.9;
  * ADR-195-names-on-public-routes decision 6). A data directory of its own, whose accounts have
  * known addresses, ids and names, each name one that no Tree, chrome string or page holds: the

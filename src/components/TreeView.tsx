@@ -178,7 +178,7 @@ function Frame({ node, view }: { node: AnyNode; view: View }) {
  * above, where the step down from it started, so the way back retraces that step: above and
  * right of a `yes` target, above and left of a `no` target, straight above anything else.
  */
-function position({ direction, slot }: Placed): { x: number; y: number } {
+function position({ direction, slot }: Placed<AnyNode>): { x: number; y: number } {
   if (direction === 'up') return { x: slot < 2 ? 0.5 - slot : 0, y: -1 }
   return slot < 2 ? { x: slot - 0.5, y: 1 } : { x: slot - 3.5, y: 2 }
 }

@@ -13,15 +13,18 @@
  * architecture decision, because it is what stands between a page and the whole Tree.
  */
 import type { Readable, Tree } from './tree/loader.ts'
-import type { DraftNode, Node } from './tree/types.ts'
+import { linksOf, type DraftNode, type Node } from './tree/types.ts'
 import { MAX_PATH_IDS, nodeHref, type PageAddress } from './url.ts'
 
 /** Where a placed neighbour is drawn: above (the parent), below (the Answers). An Option's target is not placed: it is an aside. */
 export type Direction = 'up' | 'down'
 
-/** One neighbour, placed in the tree layer. */
-export interface Placed {
-  node: Node
+/**
+ * One neighbour, placed in the tree layer. **[#205]** `N` is the Node type of the Tree read, as
+ * `Aside`'s: a draft's in the preview of a hidden Tree (application.md 11.2, 40.2).
+ */
+export interface Placed<N extends Node | DraftNode = Node> {
+  node: N
   /** The neighbour's own page: the URL a plain link to it reaches (4.1). */
   href: string
   /** The address `href` names, from which the neighbour's own Branches are built. */
@@ -50,7 +53,7 @@ export interface Aside<N extends Node | DraftNode = Node> {
 
 export interface Neighbourhood<N extends Node | DraftNode = Node> {
   /** At most 7: the parent `up`, the Answer targets and theirs `down`. */
-  placed: Placed[]
+  placed: Placed<N>[]
   /** At most 8: the centre's Option targets, in Option order. */
   asides: Aside<N>[]
 }
@@ -128,6 +131,22 @@ export async function centreOf<N extends Node | DraftNode>(tree: Readable<N>, at
 }
 
 /**
+ * **[#205]** The centre of a draft's page (application.md 34.7, 40.2), the editor's rule since
+ * #139, which the editor's page and the preview's both apply to what `centreOf` read. A fresh
+ * Answer target is an explanation Node by its draft kind until it gets Answers or an end (19.2),
+ * and `centreOf` would show it as an Overlay over its parent: in a draft an entry is an aside only
+ * where the entry before names it as an Option, and any other explanation Node at the end of the
+ * path is the centre, with its up arrow (30.2).
+ */
+export function draftCentre<N extends Node | DraftNode>(centre: Centre<N>): Centre<N> {
+  let at = centre
+  for (let first = at.chain[0]; first && !at.node.options.some((option) => option.target === first!.node.id); first = at.chain[0]) {
+    at = { address: first.address, node: first.node, chain: at.chain.slice(1), known: at.known }
+  }
+  return at
+}
+
+/**
  * The Nodes around `node`, which is the Node `at` names: the last Trail entry up, the Answer
  * targets and theirs down, the Option targets as asides. The placements are deduplicated by
  * Node id -- the first wins, in that order, and the Node on screen is never its own
@@ -139,9 +158,13 @@ export async function centreOf<N extends Node | DraftNode>(tree: Readable<N>, at
  * `node` and `known` are passed in rather than read again so that a page reads each Node
  * once: one `getNode` for the centre, one per entry of its chain (`centreOf`), and here one
  * per neighbour it has not seen (11.2, last bullet).
+ *
+ * **[#205]** It reads a Tree or a draft (`Readable`, 34.6), and a Node's Links through `linksOf`:
+ * a draft's question step with one Answer places that one in its own slot, and nothing in the
+ * other (40.2). A published Node's pair is read as before.
  */
-export async function neighbourhood(tree: Tree, at: PageAddress, node: Node, known: Node[] = []): Promise<Neighbourhood> {
-  const read = new Map<string, Promise<Node | null>>(known.map((n) => [n.id, Promise.resolve(n)]))
+export async function neighbourhood<N extends Node | DraftNode>(tree: Readable<N>, at: PageAddress, node: N, known: N[] = []): Promise<Neighbourhood<N>> {
+  const read = new Map<string, Promise<N | null>>(known.map((n) => [n.id, Promise.resolve(n)]))
   const get = (id: string) => {
     if (!read.has(id)) read.set(id, tree.getNode(id))
     return read.get(id)!
@@ -154,7 +177,8 @@ export async function neighbourhood(tree: Tree, at: PageAddress, node: Node, kno
   if (at.trail.length > 0) {
     const index = at.trail.length - 1
     const parent = await get(at.trail[index]!)
-    const answer = parent?.kind === 'question' ? [parent.answers.yes, parent.answers.no].indexOf(node.id) : -1
+    const links = parent && linksOf(parent)
+    const answer = links ? [links.yes, links.no].indexOf(node.id) : -1
     wanted.push({
       address: { ...at, trail: at.trail.slice(0, index), nodeId: at.trail[index]! },
       direction: 'up',
@@ -162,19 +186,19 @@ export async function neighbourhood(tree: Tree, at: PageAddress, node: Node, kno
     })
   }
 
-  if (node.kind === 'question') {
-    const children = [node.answers.yes, node.answers.no].map((id) => followed(at, id))
-    children.forEach((address, slot) => wanted.push({ address, direction: 'down', slot }))
-    for (const [index, child] of children.entries()) {
-      const answers = await get(child.nodeId)
-      if (answers?.kind !== 'question') continue
-      ;[answers.answers.yes, answers.answers.no].forEach((id, which) =>
-        wanted.push({ address: followed(child, id), direction: 'down', slot: 2 + index * 2 + which }),
-      )
-    }
+  // A slot is the Answer's, so a draft's lone `no` is drawn where a `no` is.
+  const { yes, no } = linksOf(node)
+  const children = [yes, no].map((id) => (id === undefined ? null : followed(at, id)))
+  children.forEach((address, slot) => address && wanted.push({ address, direction: 'down', slot }))
+  for (const [index, child] of children.entries()) {
+    if (!child) continue
+    const answers = await get(child.nodeId)
+    if (!answers) continue
+    const below = linksOf(answers)
+    ;[below.yes, below.no].forEach((id, which) => id !== undefined && wanted.push({ address: followed(child, id), direction: 'down', slot: 2 + index * 2 + which }))
   }
 
-  const placed: Placed[] = []
+  const placed: Placed<N>[] = []
   const seen = new Set([node.id])
   for (const { address, direction, slot } of wanted) {
     if (seen.has(address.nodeId)) continue
@@ -184,7 +208,7 @@ export async function neighbourhood(tree: Tree, at: PageAddress, node: Node, kno
     placed.push({ node: neighbour, href: nodeHref(address), address, direction, slot })
   }
 
-  const asides: Aside[] = []
+  const asides: Aside<N>[] = []
   for (const option of node.options) {
     const target = await get(option.target)
     if (!target) continue

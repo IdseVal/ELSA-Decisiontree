@@ -10,6 +10,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeAll, describe, expect, test } from 'vitest'
+import { previewDraft, previewMode, previewPage } from '../src/admin/preview.ts'
 import { chrome } from '../src/chrome.ts'
 import { Bubble } from '../src/components/Bubble.tsx'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
@@ -841,6 +842,29 @@ describe('the reuse rule (application.md 34.8, ADR-133-reuse-rule decision 8)', 
       const edit: EditMode = { treeId, links: PUBLIC_LINKS, languages: trees.get(treeId)!.manifest.languages, words, slots: {} }
 
       expect(await view(url, edit), url).toBe(await view(url))
+    }
+  })
+
+  // **[#206]** The preview of a hidden Tree passes the same setting with its own links and no
+  // slot (40.2): the public markup, every address behind /admin/preview, every picture on the
+  // admin image route -- the page read as the preview's page reads it.
+  test("the preview's edit -- no slot, previewLinks() -- gives the public markup but for the addresses (40.2)", async () => {
+    for (const url of pages) {
+      const target = new URL(url, 'https://example.org')
+      const tree = trees.get(target.pathname.split('/')[1]!)!
+      const address = parseUrl(target.pathname, langSegment(target), tree)!
+      const shown = previewDraft(tree, address.lang)
+      const page = (await previewPage(shown, address))!
+      const html = renderToStaticMarkup(<TreeView page={page} tree={shown} edit={previewMode(address, tree.manifest.languages)} />)
+      const expected = (await view(url))
+        .replaceAll(`"/${tree.id}/images/`, `"/admin/api/trees/${tree.id}/images/`)
+        .replaceAll(`href="/${tree.id}/`, `href="/admin/preview/${tree.id}/`)
+
+      expect(html, url).toBe(expected)
+      expect(html, url).not.toMatch(new RegExp(`(href|src)="/${tree.id}/`))
+      expect(html, url).not.toContain('data-field')
+      expect(html, url).not.toContain('contenteditable')
+      expect(html, url).not.toMatch(/class="[^"]*editor-/)
     }
   })
 })

@@ -62,6 +62,11 @@ export interface EditorApi {
    */
   operate(nodeId: string, change: Change, focusKey?: string, then?: (answer: Answer) => void): void
   hasWrite(nodeId: string, keyPath: string): boolean
+  /**
+   * **[#205]** Writes every field value waiting out its 600 ms at once and resolves when the queue
+   * next holds nothing not yet accepted: what the preview button waits on before it leaves (40.6).
+   */
+  settle(): Promise<void>
   /** The field being edited, whose message the indicator shows (28.4); null clears the focus, not the last edited. */
   setCurrent(field: { nodeId: string; keyPath: string } | null): void
   /** A blocking rule caught before sending -- V-HTML -- shown as a refusal at the field (28.5). */
@@ -287,6 +292,7 @@ export function Editor({
         queue.current!.operation(nodeId, change, then)
       },
       hasWrite: (nodeId, keyPath) => queue.current!.hasWrite(nodeId, keyPath),
+      settle: () => queue.current!.flushAll(),
       setCurrent: setFocused,
       refuseLocally: (nodeId, keyPath, violation) => {
         setLastEdited({ nodeId, keyPath })

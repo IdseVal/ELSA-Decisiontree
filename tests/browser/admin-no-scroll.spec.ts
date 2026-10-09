@@ -23,7 +23,9 @@
  * and beside no logo in a Tree of four languages, before and after a first save. **[#204]** And
  * the bar at `/admin` alone, with "Website" at its right end (`bar.ts`), on the login page and on
  * the administrator's creators' overview, at every viewport of 10.6 and at five sizes either side of
- * 480, 600 and 768 wide.
+ * 480, 600 and 768 wide. **[#206]** And the preview of a hidden Tree on `hidden-draft`'s full
+ * Node, plain and with each of its first two Overlays open, and on 40.7's unfinished draft; and the
+ * editor of a hidden Tree with the preview button, on its step that ends (40.9).
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -109,6 +111,8 @@ test.beforeAll(async () => {
     { folder: path.join(repo, 'tests', 'fixtures', 'wide-logo'), hidden: true },
     { folder: path.join(repo, 'tests', 'fixtures', 'long-title'), hidden: true },
     { folder: path.join(repo, 'tests', 'fixtures', 'four-languages'), hidden: true },
+    // **[#206]** 40.7's unfinished draft, made in its own test from the full Node.
+    { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'unfinished', hidden: true },
   ]
   overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [] }), PORT + 1, ADMIN_ENV)
 })
@@ -688,3 +692,75 @@ for (const lang of LANGUAGES) {
     }
   })
 }
+
+/**
+ * **[#206]** 40.7's draft on the second store: no Dutch title or text on the full Node, its Yes
+ * removed, a fresh step under `opt-two`, an ending without Dutch words, a picture without a credit
+ * or a Dutch description, and no Dutch Tree title. Answers the fresh step's id.
+ */
+async function unfinishedDraft(page: Page, cookie: string): Promise<string> {
+  const api = (method: string, route: string, data: unknown) =>
+    page.request.fetch(`${overlayOrigin}/admin/api/trees/unfinished${route}`, {
+      method,
+      headers: { Origin: overlayOrigin, Cookie: cookie, 'Content-Type': 'application/json' },
+      data: JSON.stringify(data),
+    })
+  const made = await api('POST', '/nodes', { from: { node: 'opt-two', link: 'yes' } })
+  expect(made.status()).toBe(201)
+  for (const [route, change] of [
+    ['/nodes/full', { op: 'remove-answer', answer: 'yes' }],
+    ['/nodes/full', { path: 'title.nl', value: '' }],
+    ['/nodes/full', { path: 'description.nl', value: '' }],
+    ['/nodes/full', { path: 'images[0].credit', value: '' }],
+    ['/nodes/full', { path: 'images[0].description.nl', value: '' }],
+    ['/nodes/does-not-apply', { path: 'terminal.label.nl', value: '' }],
+    ['', { path: 'title.nl', value: '' }],
+  ] as const) {
+    expect((await api('PATCH', route, change)).status(), `${route} ${JSON.stringify(change)}`).toBe(200)
+  }
+  return ((await made.json()) as { node: { id: string } }).node.id
+}
+
+test(`**[#206]** the preview of a hidden Tree and the editor with the preview button never scroll at any viewport of 10.6, in both languages (40.9)`, async ({ browser }) => {
+  test.setTimeout(900_000)
+  const page = await (await browser.newContext()).newPage()
+  const { status, cookie } = await login(page, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)
+  expect(status).toBe(204)
+  const fresh = await unfinishedDraft(page, cookie)
+  const editorPage = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
+  for (const lang of LANGUAGES) {
+    const query = lang === 'en' ? '' : '?lang=nl'
+    for (const [width, height] of VIEWPORTS) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      for (const [what, address] of [
+        ["the preview of hidden-draft's full Node", `${origin}/admin/preview/hidden-draft/full${query}`],
+        ['the preview of the unfinished draft', `${overlayOrigin}/admin/preview/unfinished/full${query}`],
+        ["the preview of the unfinished draft's fresh step", `${overlayOrigin}/admin/preview/unfinished/full/opt-two/${fresh}${query}`],
+        ["the preview of the unfinished draft's ending", `${overlayOrigin}/admin/preview/unfinished/full/does-not-apply${query}`],
+      ] as const) {
+        const shown = address.startsWith(origin) ? editorPage : page
+        await shown.setViewportSize({ width, height })
+        expect((await shown.goto(address))?.status(), address).toBe(200)
+        await expect(shown.locator('.preview-back')).toBeVisible()
+        record(await measure(shown), what, lang, viewport, '')
+        if (!what.endsWith('full Node')) continue
+        const sheets = shown.locator('details.overlay')
+        for (let i = 0; i < Math.min(await sheets.count(), 2); i += 1) {
+          const control = sheets.nth(i).locator(':scope > .sheet-open')
+          if (!(await control.isVisible())) continue
+          await control.click()
+          await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeVisible()
+          record(await measure(shown), what, lang, viewport, `Overlay ${i + 1}`)
+          await shown.keyboard.press('Escape')
+          await expect(sheets.nth(i).locator(':scope > .sheet-panel')).toBeHidden()
+        }
+      }
+      // The editor of the hidden Tree with the preview button, on its step that ends: the ending's button as 40.5 draws it.
+      await editorPage.setViewportSize({ width, height })
+      expect((await editorPage.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`))?.status()).toBe(200)
+      await expect(editorPage.locator('.preview-button')).toBeVisible()
+      record(await measure(editorPage), 'the editor of a hidden Tree with the preview button, a step that ends', lang, viewport, '')
+    }
+  }
+})

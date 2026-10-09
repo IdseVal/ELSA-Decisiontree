@@ -345,10 +345,12 @@ a.language:hover,
  * switch's gap of 4 goes too: the pill alone, as #135 hides it at `/admin`, leaves both. A Tree in
  * one language gives up its whole switch, which holds that pill alone, so that no empty navigation
  * landmark stays. From 768 up "Editor" fits beside the pill and a logo at its cap (24.3, 10.5).
+ * **[#205]** Keyed to the bar that holds "Editor": the preview's, drawn by the same component
+ * without it, keeps the current language's pill at every width (40.4).
  */
 @media (max-width: 767px) {
-  .node-chrome .language-switch li:has(> .language--current),
-  .node-chrome .language-switch:not(:has(li + li)) {
+  .node-chrome:has(.to-editor) .language-switch li:has(> .language--current),
+  .node-chrome:has(.to-editor) .language-switch:not(:has(li + li)) {
     display: none;
   }
 }
@@ -4489,6 +4491,109 @@ fieldset:disabled .admin-submit {
 @media (max-width: 479px) {
   :root {
     --float-right: 8px;
+  }
+}
+
+/* --- the preview of a hidden Tree: its button and the way back (40.5) ---------------- */
+
+/*
+ * **[#205]** "Preview" in the editor of a hidden Tree and "Back to the editor" in the preview, in
+ * the same place: under the bar at its top left, the floating controls' mirror -- their top, their
+ * distance from the edge, their size and look, in the default face (`data-editor-ui`). Fixed, they
+ * move no row and are no element's overflow (10.6); under every Sheet's scrim, over the page.
+ */
+.preview-button,
+.preview-back {
+  position: fixed;
+  top: var(--float-top);
+  left: var(--float-right);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--float-size);
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--elsa-text);
+  background: var(--elsa-surface);
+  text-decoration: none;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 8%, transparent),
+    0 8px 20px -10px color-mix(in srgb, var(--elsa-scrim) 45%, transparent);
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease), transform 160ms var(--ease), opacity 160ms var(--ease);
+}
+
+.preview-button:hover,
+.preview-back:hover {
+  border-color: var(--accent-secondary-read);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--elsa-scrim) 8%, transparent),
+    0 12px 24px -10px color-mix(in srgb, var(--elsa-scrim) 55%, transparent);
+}
+
+.preview-button:active,
+.preview-back:active {
+  transform: translateY(1px);
+}
+
+/* Waiting for the autosave (40.6): as the band's disabled buttons are (30.8). */
+.preview-button[aria-busy="true"] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* Below 1000 pixels the icon alone, as the floating controls are; its name is the words still. */
+@media (max-width: 999px) {
+  .preview-button,
+  .preview-back {
+    min-width: var(--float-size);
+    padding: 0 4px;
+    justify-content: center;
+  }
+}
+
+/*
+ * On a hidden Tree "Tree does not end here after all" keeps out of the preview button's column:
+ * below 1000 pixels wide the band left of the arrow less the button and a gap of 8 to each (6
+ * where the button's icon box is 26 and `--float-size` 24); below 640 a round button of the
+ * cross's size, holding the glyph of the Tree going on, its words its name (40.5).
+ */
+.step-end-glyph {
+  display: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 999px) {
+  :root:has(.preview-button) .step-end {
+    max-width: calc(50vw - var(--up-size) / 2 - 2 * var(--step-gap) - var(--float-right) - var(--float-size));
+  }
+}
+
+@media (max-width: 639px) {
+  :root:has(.preview-button) .step-end > button {
+    display: grid;
+    place-items: center;
+    width: var(--step-size);
+    height: var(--step-size);
+    min-height: 0;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  :root:has(.preview-button) .step-end-glyph {
+    display: block;
+  }
+
+  :root:has(.preview-button) .step-end-words {
+    display: none;
   }
 }
 

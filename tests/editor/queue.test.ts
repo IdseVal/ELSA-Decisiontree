@@ -245,3 +245,89 @@ describe('a session that expires (29.6)', () => {
     expect(sent[2]!.write.change).toEqual({ path: 'description.en', value: 'also kept' })
   })
 })
+
+/**
+ * **[#206]** The wait the preview button makes before it leaves the page (40.6): `flushAll`
+ * writes every field still waiting out its 600 ms and resolves once the queue holds nothing not
+ * yet accepted.
+ */
+describe('flushAll, and the wait for the queue (29.2, 40.6)', () => {
+  /** Whether `promise` has resolved by now, the promise chain run. */
+  async function resolved(promise: Promise<void>): Promise<boolean> {
+    let done = false
+    void promise.then(() => (done = true))
+    await settled()
+    return done
+  }
+
+  test('resolves at once when nothing waits', async () => {
+    const { send } = fakeSend()
+    const { queue } = queueWith(send)
+    expect(await resolved(queue.flushAll())).toBe(true)
+  })
+
+  test("cuts every field's 600 ms short, sends them in order, and resolves when the last is accepted", async () => {
+    const { sent, send } = fakeSend()
+    const { queue, last } = queueWith(send)
+
+    queue.field('start', 'title.en', 'A title')
+    queue.field('start', 'description.en', 'A text')
+    const waiting = queue.flushAll()
+    expect(sent.map((s) => s.write.change)).toEqual([{ path: 'title.en', value: 'A title' }])
+    expect(await resolved(waiting)).toBe(false)
+
+    sent[0]!.answer(ok)
+    await settled()
+    expect(sent.map((s) => s.write.change)).toEqual([{ path: 'title.en', value: 'A title' }, { path: 'description.en', value: 'A text' }])
+    expect(await resolved(waiting)).toBe(false)
+    sent[1]!.answer(ok)
+    expect(await resolved(waiting)).toBe(true)
+    expect(last().saving).toBe(false)
+    // Nothing is written twice when the 600 ms would have run out.
+    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS)
+    expect(sent).toHaveLength(2)
+  })
+
+  test('waits for the write in flight to be answered', async () => {
+    const { sent, send } = fakeSend()
+    const { queue } = queueWith(send)
+
+    queue.operation('start', { op: 'add-source' })
+    const waiting = queue.flushAll()
+    expect(await resolved(waiting)).toBe(false)
+    sent[0]!.answer(ok)
+    expect(await resolved(waiting)).toBe(true)
+  })
+
+  test('does not resolve while a write waits for its retry, nor while a 401 holds it, until it is accepted', async () => {
+    const { sent, send } = fakeSend()
+    const { queue } = queueWith(send)
+
+    queue.field('start', 'title.en', 'kept')
+    const waiting = queue.flushAll()
+    sent[0]!.answer({ status: 503, body: null })
+    await settled()
+    expect(await resolved(waiting)).toBe(false)
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect(sent).toHaveLength(2)
+    sent[1]!.answer({ status: 401, body: null })
+    await settled()
+    await vi.advanceTimersByTimeAsync(120_000)
+    expect(await resolved(waiting)).toBe(false)
+
+    queue.resume()
+    sent[2]!.answer(ok)
+    expect(await resolved(waiting)).toBe(true)
+  })
+
+  test('a refused value leaves the queue, and is not waited for', async () => {
+    const { sent, send } = fakeSend()
+    const { queue } = queueWith(send)
+
+    queue.field('start', 'description.en', '<script')
+    const waiting = queue.flushAll()
+    sent[0]!.answer({ status: 422, body: { error: 'blocking', violations: [] } })
+    expect(await resolved(waiting)).toBe(true)
+    expect(queue.busy()).toBe(false)
+  })
+})
