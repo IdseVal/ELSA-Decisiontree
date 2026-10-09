@@ -3991,7 +3991,7 @@ published Tree's preview is a 307 to its editor at the same path and `?lang`; an
 | Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
 | Login page | `siteTitle` | language switch | The default |
 | Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
-| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). **[#205]** (2026-10-04) On a hidden Tree the preview button floats under the bar at the top left, not in it (40.5). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4); **[#205]** the preview button too |
+| The editor | **[#203]** (2026-10-04) The arrow of #163, `toOverview`, a link to the creators' overview `/admin` in the chrome language; then the draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). **[#205]** (2026-10-04) On a hidden Tree the preview button floats under the bar at the top left, not in it (40.5). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4); **[#205]** the preview button too |
 | **[#205]** (2026-10-04) The preview of a hidden Tree (40.4) | #163's arrow, leading to `/admin`; the draft's logo or title, as the public page; then the mention of its Authors (39.4) | language switch, the current language's pill at every width. **No share button, no "Editor".** The way back floats under the bar at the top left, not in it (40.5). | **The draft's**, on the whole page as on a public page; the way back the default (13.4) |
 | The 404 and 403 pages; **[#213]** (2026-10-04) and an uneditable Tree's (19.5), which had no bar and was laid out in the bar's row | `siteTitle` | language switch | The default |
 
@@ -4026,6 +4026,54 @@ Overlay, with the confirmation it asks there in place (30.7); and #178's red cro
 not end here after all" beside the up arrow (30.8). The question the cross asks is a panel hung
 over the Sheets' veil, as the step menu's Sheet was, and keeps the default look: the editor's
 own, like the panel of every editor Sheet. Recorded in decision 1 of the same ADR.
+
+**[#203], the owner's #202 -- 2026-10-04** ("I am still missing a back to the top level interface
+button in the tree editor interface /admin/trees/..."). The editor's bar opens with the round
+arrow the public Node page has carried at the left of its bar since #163
+(`src/components/BackToOverview.tsx`), held with the draft's logo or title in one `.page-brand`
+group: a link to the creators' overview, `/admin` in the chrome language -- where `logout` goes --
+named `toOverview` ("All decision trees", "Alle beslisbomen"), 30 pixels across and 24 below 480
+pixels wide. That this is the top level the owner meant, and this its place and look, is the
+PROPOSED reading of core document 3.4 `[#202]`. Two rules of the editor's bar alone make its room:
+the group takes the room the controls leave, so a title as text is cut to its two lines (#200)
+rather than squeezing `account` and `logout` past their words, as an 80-character title did at
+768 x 1024 before the arrow too; and a logo is at most as wide as the room the group has beside the
+arrow, below its caps -- the room #164 made for the arrow on the Node page by the logo's maximum
+width -- so it is drawn smaller rather than hold the bar open. Measured at every width from 320 to
+1280 pixels, in English and Dutch, on Windows and in the CI runner's faces, with the autosave
+indicator empty, as on a page opened before any save, and saying "Saved" ("Opgeslagen"), as it does
+for the rest of the session after a first save (29.3). With the indicator empty nothing in the bar
+overflows in a Tree of two languages beside a short title, an 80-character title, the example
+Tree's logo or a logo at its cap, nor in a Tree of three beside either logo or a title as text; with
+"Saved", in none of those of two languages. From 480 pixels wide up the bar is wider than the window
+at no width at which it was not before #203, and at far fewer. Below 480 the editor gives up a title
+written as text, so in a Tree with no logo nothing gives the arrow's 24 pixels and the bar's gap of 8
+back: there the bar is wider than the window in a band of up to 32 pixels' width at which it was not
+before #203. With the indicator empty that is so in a Tree of four or five languages, from 320 to
+336 pixels wide in English and to 327 in Dutch in one of four; after a first save in a Tree of three
+to five, from 320 to 342 in Dutch in one of three, and from 341 to 372 in English and from 366 to 397
+in Dutch in one of four (the CI runner's faces). Below 480 every other Tree measured is nowhere wider
+than before #203. Whether the editor's bar must give that room back, and how, the owner is asked
+on #214 (2026-10-04).
+Recorded in `docs/adrs/ADR-133-admin-routes.md`.
+
+**[#203], the answer on #214 -- 2026-10-09** ("**A**, decided by proxy on 2026-10-09 under the
+owner's standing rule to keep the flow running; the owner can overrule here."). Below 480 pixels
+wide, in the editor's bar only, the controls make the arrow's room: the language names keep 2
+pixels at their sides instead of 5; the current language, not drawn there, gives up its list item
+and the gap beside it; and the indicator's `saving` and `saved` are announced by its region and
+not drawn (29.3), so an indicator with nothing else to show gives up its place and its gap too.
+`notSaved`, and what follows a state word, are drawn as before. From 480 up nothing changes.
+Measured again at every width from 320 to 1280 in the same Trees and faces: below 480 no Tree of
+two to four languages overflows, with or without a logo, with the indicator empty or saying
+"Saved"; a Tree of five, beside a title as text, from 320 to 358 pixels wide in English and to 349
+in Dutch in either state (the CI runner's faces), the widths at which it overflowed before #203
+with the indicator empty (after a first save it then did to 395 and 420). The bands of the note
+above are gone. With a message after `saved` -- measured with `publicBehind` -- the bar is still
+wider than the window below 480 in every Tree measured, as it was before #203, and at fewer widths:
+the indicator's line counts in the least width the bar needs.
+`admin-no-scroll.spec.ts` keeps this in a Tree of four languages with no logo
+(`tests/fixtures/four-languages/`) at every viewport of 10.6, before and after a first save.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
@@ -4459,6 +4507,10 @@ of at most 320 pixels:
 | a field over its limit (28.4) | after the state word: the violation's message |
 | a published Tree whose public copy is behind (19.4) | after the state word: `publicBehind` |
 | a collaborator's value arrived (29.7) | `changedElsewhere` for 5 seconds |
+
+**[#203]** (2026-10-09) Below 480 pixels wide `saving` and `saved` are in the region, which
+announces them, and not drawn, as the answer on #214 has it (24.3); `notSaved` and what follows a
+state word are drawn.
 
 Never a token, an account id or a request body.
 

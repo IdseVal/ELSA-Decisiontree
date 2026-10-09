@@ -1,0 +1,102 @@
+{
+  "$schema": "/schemas/elsa-tree-5.json",
+  "format": "elsa-tree/5",
+  "languages": [
+    "en",
+    "nl",
+    "de",
+    "fr"
+  ],
+  "root": "start",
+  "title": {
+    "en": "A Tree in four languages without a logo",
+    "nl": "Een boom in vier talen zonder logo",
+    "de": "Ein Baum in vier Sprachen ohne Logo",
+    "fr": "Un arbre en quatre langues sans logo"
+  },
+  "description": {
+    "en": "No logo, so below 480 pixels wide the editor's bar holds the arrow beside the controls alone, with the pills of four languages.",
+    "nl": "Geen logo, dus onder 480 pixels breed houdt de balk van de editor de pijl naast alleen de bediening, met de knoppen van vier talen.",
+    "de": "Kein Logo, also hält die Leiste des Editors unter 480 Pixel Breite den Pfeil neben den Bedienelementen allein, mit den Knöpfen von vier Sprachen.",
+    "fr": "Pas de logo : sous 480 pixels de large, la barre de l'éditeur tient la flèche à côté des seules commandes, avec les boutons de quatre langues."
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does the Act apply?",
+        "nl": "Is de verordening van toepassing?",
+        "de": "Gilt die Verordnung?",
+        "fr": "Le règlement s'applique-t-il ?"
+      },
+      "description": {
+        "en": "The root of a Tree whose title is written as text.",
+        "nl": "Het begin van een boom waarvan de titel als tekst is geschreven.",
+        "de": "Der Anfang eines Baums, dessen Titel als Text geschrieben ist.",
+        "fr": "La racine d'un arbre dont le titre est écrit en texte."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": {
+        "yes": "applies",
+        "no": "does-not-apply"
+      }
+    },
+    {
+      "id": "applies",
+      "title": {
+        "en": "The Act applies",
+        "nl": "De verordening is van toepassing",
+        "de": "Die Verordnung gilt",
+        "fr": "Le règlement s'applique"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier.",
+        "de": "Der Weg endet hier.",
+        "fr": "Le parcours s'arrête ici."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "label": {
+          "en": "Applies",
+          "nl": "Van toepassing",
+          "de": "Gilt",
+          "fr": "S'applique"
+        }
+      }
+    },
+    {
+      "id": "does-not-apply",
+      "title": {
+        "en": "The Act does not apply",
+        "nl": "De verordening is niet van toepassing",
+        "de": "Die Verordnung gilt nicht",
+        "fr": "Le règlement ne s'applique pas"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier.",
+        "de": "Der Weg endet hier.",
+        "fr": "Le parcours s'arrête ici."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "label": {
+          "en": "Does not apply",
+          "nl": "Niet van toepassing",
+          "de": "Gilt nicht",
+          "fr": "Ne s'applique pas"
+        }
+      }
+    }
+  ]
+}

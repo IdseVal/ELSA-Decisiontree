@@ -26,6 +26,12 @@
   decision 7, the preview's bar is the public Node page's, drawn by the same component, with the
   arrow leading to `/admin` and without the share button and "Editor" (`ADR-205-preview-bar.md`).
   The rest stands.
+- **Amended 2026-10-04 by issue #203** (the owner's #202: "I am still missing a back to the top
+  level interface button in the tree editor interface /admin/trees/..."): in decision 7, the
+  editor's bar opens with the round arrow of the public Node page (#163), before the draft's logo
+  or title, a link named `toOverview` to the creators' overview at `/admin` in the chrome
+  language -- the reading of core document 3.4 `[#202]` and `ADR-202-navigation-round.md`
+  decision 5, PROPOSED (`application.md` 24.3). The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 24 (new); 4.1, 4.3, 6, 13.1 and 14 amended
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the admin addresses join the grammar behind the

@@ -3385,6 +3385,75 @@ fieldset:disabled .admin-submit {
   min-width: 0;
 }
 
+/*
+ * **[#203]** The way out and the Tree's mark take the room the controls leave. Shrunk in proportion
+ * with the controls, an 80-character title squeezed `account` and `logout` past their words before
+ * #203, without the arrow, from 480 pixels wide up to 793 to 845, 768 x 1024 among them; now it is
+ * cut to its two lines (#200) instead.
+ */
+.editor-chrome .page-brand {
+  flex: 1 1 0;
+}
+
+/*
+ * **[#203]** And the logo takes at most the room the group has beside the arrow, below its caps: the
+ * way #164 made the arrow's room on the Node page, by the logo's maximum width. As a percentage it
+ * adds nothing to the least width the bar needs, so a logo never holds the bar past the window; it
+ * is drawn whole and smaller, and the controls keep their room. Before #203, without the arrow, a
+ * logo at its cap held the editor's bar open from 480 pixels wide up to 588 to 609 in a Tree of two
+ * languages, and up to 685 to 697 in a Tree of three.
+ */
+.editor-chrome .page-brand > .logo,
+.editor-chrome .page-brand > .logo-link {
+  min-width: 0;
+}
+
+.editor-chrome .logo {
+  max-width: min(18rem, 45vw, 100%);
+}
+
+@media (max-width: 479px) {
+  .editor-chrome .logo {
+    max-width: min(22vw - 12px, 100%);
+  }
+}
+
+/*
+ * **[#203]** Below 480 pixels wide the editor gives up a title written as text (#135), so in a Tree
+ * with no logo nothing gives the arrow's 24 pixels and the bar's gap of 8 back: the controls make
+ * that room, as the owner chose on #214 (A, 2026-10-09). The language names keep 2 pixels at their
+ * sides instead of 5; the current language, not drawn there, gives up its list item and the gap
+ * beside it; and the indicator's `saving` and `saved` are heard and not drawn -- the region still
+ * announces them (29.3) -- while `notSaved` and what follows a state word still show. Drawn out of
+ * the flow, the word is cut by the indicator's own box, so it holds no room in the bar; and an
+ * indicator with nothing else to show gives up its place and its gap too.
+ */
+@media (max-width: 479px) {
+  .editor-chrome .language-switch li:has(> .language--current) {
+    display: none;
+  }
+
+  .editor-chrome .language {
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+
+  .editor-chrome .editor-status {
+    position: relative;
+  }
+
+  .editor-chrome .editor-status:not(.editor-status--danger) > .editor-status-word {
+    position: absolute;
+    clip-path: inset(50%);
+  }
+
+  .editor-chrome .editor-status:not(.editor-status--danger):not(:has(> .editor-status-part)) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+  }
+}
+
 /* The indicator (29.3): one line of at most 320 pixels in the chrome bar, cut with an ellipsis. */
 .editor-status {
   flex: 0 1 auto;

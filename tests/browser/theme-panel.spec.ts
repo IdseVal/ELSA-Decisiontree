@@ -86,8 +86,11 @@ const panel = (page: Page) => page.locator('.panel-sheet > .sheet-panel')
 /** **[#176]** The to-do control, which counts what the logo's alternative texts leave to do (33.3). */
 const todo = (page: Page) => page.locator('.todo-sheet > .sheet-open')
 const themePanel = (page: Page) => panel(page).locator('[data-theme-panel]')
-/** The chrome bar's own logo, not a copy in a neighbour frame (the bar is the page's first header). */
-const barLogo = (page: Page) => page.locator('.editor-chrome > img.logo, .editor-chrome > a > img.logo')
+/**
+ * The chrome bar's own logo, not a copy in a neighbour frame (the bar is the page's first header):
+ * **[#203]** beside the arrow, in the bar's brand group.
+ */
+const barLogo = (page: Page) => page.locator('.editor-chrome > .page-brand > img.logo, .editor-chrome > .page-brand > a > img.logo')
 
 async function openPanel(page: Page): Promise<void> {
   const reread = page.waitForResponse((response) => response.url().endsWith('/admin/api/accounts'))

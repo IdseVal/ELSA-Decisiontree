@@ -17,7 +17,10 @@
  * list longer than the window. **[#177]** And a side bubble at every maximum opened by its
  * address at every viewport: plain, with its delete asking, and below the guarantee with its
  * Sources' Sheet open. **[#178]** And the step's buttons beside the up arrow, in place of the
- * step menu and the link menus, plain and with the red cross's question asked.
+ * step menu and the link menus, plain and with the red cross's question asked. **[#203]** And the
+ * editor's bar with the arrow at its left, beside the example Tree's logo, a wide logo in a Tree of
+ * three languages and an 80-character title; and the bar alone at four widths 10.6 does not list;
+ * and beside no logo in a Tree of four languages, before and after a first save.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -88,12 +91,21 @@ interface Measured {
 
 const rows: string[] = []
 let origin: string
-/** **[#177]** A store of its own for the side bubble at every maximum, so the overview's tiles above stay what they are. */
+/**
+ * **[#177]** A store of its own for the side bubble at every maximum, so the overview's tiles above
+ * stay what they are; **[#203]** and for the Trees with a wide logo, with an 80-character title and
+ * in four languages with no logo, for the same reason.
+ */
 let overlayOrigin: string
 
 test.beforeAll(async () => {
   origin = await serveStore(await buildDataDir({ trees: TREES, accounts: ACCOUNTS }), PORT, ADMIN_ENV)
-  const overlay = [{ folder: path.join(repo, 'tests', 'fixtures', 'overlay'), hidden: true }]
+  const overlay = [
+    { folder: path.join(repo, 'tests', 'fixtures', 'overlay'), hidden: true },
+    { folder: path.join(repo, 'tests', 'fixtures', 'wide-logo'), hidden: true },
+    { folder: path.join(repo, 'tests', 'fixtures', 'long-title'), hidden: true },
+    { folder: path.join(repo, 'tests', 'fixtures', 'four-languages'), hidden: true },
+  ]
   overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [] }), PORT + 1, ADMIN_ENV)
 })
 
@@ -106,13 +118,13 @@ test.afterAll(async () => {
   )
 })
 
-/** 10.6's numbers on the laid-out page, once its fonts have settled. */
-async function measure(page: Page): Promise<Measured> {
+/** 10.6's numbers on the laid-out page, once its fonts have settled; **[#203]** the walk over the elements `scope` selects. */
+async function measure(page: Page, scope = '*'): Promise<Measured> {
   await page.evaluate(() => document.fonts.ready)
-  return page.evaluate(() => {
+  return page.evaluate((scope) => {
     const name = (el: Element): string => `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`
     const overflowing: string[] = []
-    for (const el of document.querySelectorAll('*')) {
+    for (const el of document.querySelectorAll(scope)) {
       // The exemption of 10.6, and a clamp: the caller's name cut with an ellipsis in the
       // chrome bar, which `data-clamp` marks as the overview's tile titles are marked (26.1).
       // **[#138]** And the Carousel strip, 10.6's first exemption, which the editor's Bubble carries.
@@ -128,7 +140,7 @@ async function measure(page: Page): Promise<Measured> {
       inner: { h: window.innerHeight, w: window.innerWidth },
       overflowing,
     }
-  })
+  }, scope)
 }
 
 function record(m: Measured, what: string, lang: string, viewport: string, sheet: string): void {
@@ -288,6 +300,88 @@ for (const lang of LANGUAGES) {
   test(`the editor on the full Node, ${lang}, never scrolls at any viewport of 10.6, in every state (28.6)`, async ({ browser }) => {
     test.slow()
     await editorEverywhere(await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), lang)
+  })
+}
+
+/**
+ * **[#203]** The editor's bar with the arrow at its left (24.3), beside the marks `hidden-draft`'s
+ * short title does not try: the example Tree's logo; a logo at its cap in a Tree of three
+ * languages, whose third pill leaves it the least room (`tests/fixtures/wide-logo/`); and an
+ * 80-character title as text, cut to the bar's two lines (#200). Plain, at every viewport of 10.6.
+ * Then at four widths 10.6 does not list, from 480 up, the bar alone: below 578 (en) and 641 (nl)
+ * the disclaimer's second line fails the whole page on the CI runner, as it did before #203
+ * (`NARROW` below). Each page is measured with the arrow in the bar, which before #203 it was not.
+ */
+const BAR_WIDTHS = [480, 560, 640, 767] as const
+for (const lang of LANGUAGES) {
+  test(`the editor's bar with the arrow, beside a logo, a wide logo in three languages and an 80-character title, ${lang}, never scrolls at any viewport of 10.6 (24.3, 28.6)`, async ({ browser }) => {
+    const query = lang === 'en' ? '' : '?lang=nl'
+    const other = await (await browser.newContext()).newPage()
+    expect((await login(other, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+    const editors = [
+      [await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), `${origin}/admin/trees/ai-act-example/start${query}`, 'editor, a logo'],
+      [other, `${overlayOrigin}/admin/trees/wide-logo/start${query}`, 'editor, a wide logo, three languages'],
+      [other, `${overlayOrigin}/admin/trees/long-title/start${query}`, 'editor, an 80-character title'],
+    ] as const
+    for (const [page, address, what] of editors) {
+      const arrow = page.locator('header.editor-chrome > .page-brand > a.back-to-overview')
+      for (const [width, height] of VIEWPORTS) {
+        await page.setViewportSize({ width, height })
+        expect((await page.goto(address))?.status()).toBe(200)
+        await expect(arrow).toBeVisible()
+        record(await measure(page), what, lang, `${width}x${height}`, '')
+      }
+      for (const width of BAR_WIDTHS) {
+        const viewport = `${width}x800`
+        await page.setViewportSize({ width, height: 800 })
+        expect((await page.goto(address))?.status()).toBe(200)
+        await expect(arrow).toBeVisible()
+        const bar = await measure(page, 'header.editor-chrome, header.editor-chrome *')
+        rows.push(`| ${what} | ${lang} | ${viewport} | the bar alone | - | ${bar.doc.sw}/${bar.inner.w} | ${bar.overflowing.join('; ') || 'none'} |`)
+        expect(bar.doc.sw, `${what} (${lang}) at ${viewport}: wider than the window`).toBeLessThanOrEqual(bar.inner.w + 1)
+        expect(bar.overflowing, `${what} (${lang}) at ${viewport}: elements of the bar whose content is larger than themselves`).toEqual([])
+      }
+    }
+  })
+}
+
+/**
+ * **[#203]** The arrow's room below 480 pixels wide in a Tree with no logo, as the owner chose on
+ * #214 (A, 2026-10-09): the editor gives up a title written as text there, so in a Tree of four
+ * languages (`tests/fixtures/four-languages/`) the controls make the room. At every viewport of
+ * 10.6, on a page opened before any save and again after a first save, when the indicator says
+ * `saved`: below 480 the current language, not drawn there, gives up its place in the switch, and
+ * the word is not drawn and takes no room, yet stays in the status region that screen readers
+ * announce (29.3); from 480 up it is drawn.
+ */
+for (const lang of LANGUAGES) {
+  test(`the editor's bar with the arrow in a Tree of four languages with no logo, ${lang}, before and after a save, never scrolls at any viewport of 10.6 (24.3, 28.6, 29.3)`, async ({ browser }) => {
+    const page = await (await browser.newContext()).newPage()
+    expect((await login(page, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+    const address = `${overlayOrigin}/admin/trees/four-languages/start${lang === 'en' ? '' : '?lang=nl'}`
+    const status = page.locator('header.editor-chrome').getByRole('status')
+    const saved = lang === 'en' ? 'Saved' : 'Opgeslagen'
+    for (const [width, height] of VIEWPORTS) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(address))?.status()).toBe(200)
+      await expect(page.locator('header.editor-chrome > .page-brand > a.back-to-overview')).toBeVisible()
+      record(await measure(page), 'editor, no logo, four languages', lang, viewport, '')
+      const current = await page.locator('header.editor-chrome .language-switch li:has(> .language--current)').boundingBox()
+      if (width < 480) expect(current, `${viewport}: the current language keeps its place below 480`).toBeNull()
+
+      // Typed at 1280 x 800 and measured back at the viewport: at the floor the notice stands where
+      // the fields would (10.4), and a window narrowed after a save keeps its indicator. A title of
+      // its own at each viewport, so that each one is a change the queue saves.
+      await page.setViewportSize({ width: 1280, height: 800 })
+      await page.locator(`[data-field="start title.${lang}"] textarea`).filter({ visible: true }).fill(`${saved} at ${viewport}?`)
+      await expect(status).toContainText(saved)
+      await page.setViewportSize({ width, height })
+      record(await measure(page), 'editor, no logo, four languages, after a save', lang, viewport, '')
+      const drawn = (await status.boundingBox())!.width
+      if (width < 480) expect(drawn, `${viewport}: "${saved}" drawn below 480`).toBeLessThanOrEqual(1)
+      else expect(drawn, `${viewport}: "${saved}" not drawn from 480 up`).toBeGreaterThan(1)
+    }
   })
 }
 
