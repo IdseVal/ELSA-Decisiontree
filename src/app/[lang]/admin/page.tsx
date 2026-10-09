@@ -20,12 +20,12 @@ export const dynamic = 'force-dynamic'
  * editor; then every other published Tree, leading to its public page. Each group in `id`
  * order, each tile with its state mark. **[#197]** And with its Tree's Authors (39.5): from the
  * roles of a Tree the caller has one on, a hidden one's included, and otherwise as `/` has them
- * (39.3).
+ * (39.3). **[#204]** In both states the bar carries `website`, back to the public overview (24.3).
  */
 export default async function AdminHome({ params }: { params: Promise<{ lang: string }> }) {
   const lang = chromeLanguage((await params).lang)
   const session = await pageSession()
-  if (!session) return <LoginPage lang={lang} />
+  if (!session) return <LoginPage lang={lang} website />
   const served = await store()
   const own = served.drafts.list(session.account).sort((a, b) => (a.id < b.id ? -1 : 1))
   const ownIds = new Set(own.map((entry) => entry.id))
@@ -43,7 +43,7 @@ export default async function AdminHome({ params }: { params: Promise<{ lang: st
   return (
     <>
       <ThemeStyle tree={null} />
-      <AdminChrome lang={lang} account={session.account} />
+      <AdminChrome lang={lang} account={session.account} website />
       <main className="overview-page">
         {/* **[#213]** The logout button above is a request the script makes (24.2). */}
         <noscript>

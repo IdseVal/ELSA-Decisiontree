@@ -5,6 +5,7 @@ import { Disclaimer } from '../../components/Disclaimer.tsx'
 import { ChromeLanguageSwitch } from '../../components/LanguageSwitch.tsx'
 import { Overview } from '../../components/Overview.tsx'
 import { ThemeStyle } from '../../components/ThemeStyle.tsx'
+import { ToEditor } from '../../components/ToEditor.tsx'
 import { baseUrl, store } from '../../config.ts'
 import { overviewAddressSet, overviewHref } from '../../url.ts'
 
@@ -18,6 +19,7 @@ export const dynamic = 'force-dynamic'
  * **[#134]** The overview, `/` (docs/specs/application.md 23.2, 26.1 to 26.3): one tile per
  * served Tree in id order, in the chrome language the page asks for, in the default Theme.
  * It no longer redirects to a Tree (18.1). **[#197]** Each tile names its Tree's Authors (39.5).
+ * **[#204]** "Editor" at the right end of the bar leads to `/admin` (24.3).
  */
 export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
   const lang = chromeLanguage((await params).lang)
@@ -32,6 +34,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         </h1>
         <div className="page-controls">
           <ChromeLanguageSwitch lang={lang} href={overviewHref} />
+          <ToEditor lang={lang} />
         </div>
       </header>
       <main className="overview-page">

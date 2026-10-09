@@ -301,8 +301,10 @@ a {
   list-style: none;
 }
 
+/* **[#204]** "Editor", the way into the admin area, takes the share button's look (24.3). */
 .language,
-.share {
+.share,
+.to-editor {
   display: inline-block;
   padding: 3px 12px;
   white-space: nowrap;
@@ -319,7 +321,8 @@ a {
 }
 
 a.language:hover,
-.share:hover {
+.share:hover,
+.to-editor:hover {
   color: var(--elsa-text);
   border-color: var(--accent-secondary-read);
 }
@@ -331,8 +334,23 @@ a.language:hover,
   cursor: default;
 }
 
-.share {
+.share,
+.to-editor {
   border-color: var(--rule);
+}
+
+/*
+ * **[#204]** Below 768 pixels wide a Node page's bar makes "Editor"'s room by giving up the
+ * current language's pill -- not a link, and the language on screen -- with its list item, so the
+ * switch's gap of 4 goes too: the pill alone, as #135 hides it at `/admin`, leaves both. A Tree in
+ * one language gives up its whole switch, which holds that pill alone, so that no empty navigation
+ * landmark stays. From 768 up "Editor" fits beside the pill and a logo at its cap (24.3, 10.5).
+ */
+@media (max-width: 767px) {
+  .node-chrome .language-switch li:has(> .language--current),
+  .node-chrome .language-switch:not(:has(li + li)) {
+    display: none;
+  }
 }
 
 /*
@@ -2346,6 +2364,24 @@ fieldset:disabled .admin-submit {
 }
 
 /*
+ * **[#204]** The bar at `/admin`, the login page and the creators' overview: `website` ends it, so
+ * its controls stand at its right end at every width, where the public pages' "Editor" stands --
+ * below 480 too, where the title they stood beside is not drawn. Below 600 the creators' overview
+ * makes `website`'s room as every Tree-less admin page does below 480: it gives up the site's
+ * title and the current language's pill. At 600 `website` keeps 34.7 pixels beside the title.
+ */
+.admin-home .page-controls {
+  margin-left: auto;
+}
+
+@media (max-width: 599px) {
+  .admin-home:has(.admin-nav) .tree-title,
+  .admin-home:has(.admin-nav) .language--current {
+    display: none;
+  }
+}
+
+/*
  * A phone: the bar holds the language switch, `account`, `accounts` and `logout` in
  * 320 pixels only by giving up the site's title and the switch's current language, which is
  * not a link and is the language on screen anyway; the cards give up padding and gaps, so
@@ -2909,7 +2945,8 @@ fieldset:disabled .admin-submit {
    * back 12: the first Tree's Dutch bar was 4 pixels too wide without that.
    */
   .language,
-  .share {
+  .share,
+  .to-editor {
     padding: 3px 5px;
     font-size: 11px;
   }
