@@ -814,6 +814,10 @@ test('**[#212]** at and below the floor the notice\'s text lines stand clear of 
           expect.soft(over.map(show), `${where}: ${control.name} at ${show(b)} over the notice's text`).toEqual([])
         }
       }
+      // The public page has no control under the bar, and its notice stays where it stood (35.6).
+      expect((await page.goto(`${origin}/ai-act-example/start${query}`))?.status()).toBe(200)
+      await expect(page.locator('.minimum-size')).toBeVisible()
+      expect(await page.locator('.minimum-size').evaluate((notice) => getComputedStyle(notice).paddingTop), `the public page (${lang}) at ${viewport}`).toBe('24px')
     }
   }
 })
