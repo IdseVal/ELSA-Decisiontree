@@ -65,7 +65,8 @@ export interface Chrome {
    */
   minimumSize: string
   minimumWidth: string
-  minimumHeight: string
+  /** **[#221]** The height to grow past: the floor's 480, or 41.4's for a step of three or four next steps. */
+  minimumHeight: (pixels: number) => string
   /** **[#134]** The deployment's name: the overview's chrome bar and title, the H1 of `llms.txt` (23.2, 23.5, 24.3). */
   siteTitle: string
   /** **[#134]** What this site is, in one sentence: the overview's description meta tag and the blockquote of `llms.txt`. */
@@ -414,7 +415,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     imageCount: (index, total) => `Image ${index} of ${total}`,
     minimumSize: 'This tool needs a larger window.',
     minimumWidth: 'Make it wider than 320 pixels.',
-    minimumHeight: 'Make it taller than 480 pixels.',
+    minimumHeight: (pixels) => `Make it taller than ${pixels} pixels.`,
     siteTitle: 'ELSA decision trees',
     siteDescription:
       'Interactive legal decision trees: answer one question at a time and arrive at an outcome, with the legal sources of every step.',
@@ -653,7 +654,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     imageCount: (index, total) => `Afbeelding ${index} van ${total}`,
     minimumSize: 'Dit hulpmiddel heeft een groter venster nodig.',
     minimumWidth: 'Maak het breder dan 320 pixels.',
-    minimumHeight: 'Maak het hoger dan 480 pixels.',
+    minimumHeight: (pixels) => `Maak het hoger dan ${pixels} pixels.`,
     siteTitle: 'ELSA-beslisbomen',
     siteDescription:
       'Interactieve juridische beslisbomen: beantwoord één vraag tegelijk en kom tot een uitkomst, met de juridische bronnen van elke stap.',

@@ -261,7 +261,7 @@ function webPage(tree: Tree, node: Node, lang: string, base: URL): WebPage {
   }
 }
 
-/** The `Question`, with its two Answers in the order the buttons stand: yes, then no. */
+/** The `Question`, with **[#221]** one Answer per next step, in the order the buttons stand (41.6). */
 function question(
   tree: Tree,
   node: Extract<Node, { kind: 'question' }>,
@@ -269,27 +269,24 @@ function question(
   base: URL,
   pageUrl: string,
 ): Question {
-  const words = chrome(lang)
   return {
     '@type': 'Question',
     '@id': `${pageUrl}#question`,
     name: text(node.title, lang, `${node.id}.title`),
     text: plainDescription(text(node.description, lang, `${node.id}.description`)).reduced,
     inLanguage: lang,
-    suggestedAnswer: [
-      answer(tree, words.yes, node.answers.yes, lang, base),
-      answer(tree, words.no, node.answers.no, lang, base),
-    ],
+    suggestedAnswer: node.answers.map((step, index) => answer(tree, text(step.label, lang, `${node.id}.answers[${index}].label`), step.target, lang, base)),
   }
 }
 
 /**
- * One Answer: the exact label its button carries (10.3) and where it leads. The title comes
- * from the in-memory title index, as the button's does, so the two cannot differ.
+ * One Answer: **[#221]** its button's accessible name -- the creator's words, a colon and the
+ * target's title (41.2) -- and where it leads. The title comes from the in-memory title index,
+ * as the button's does, so the two cannot differ.
  */
-function answer(tree: Tree, word: string, targetId: string, lang: string, base: URL): Answer {
+function answer(tree: Tree, label: string, targetId: string, lang: string, base: URL): Answer {
   const title = text(tree.getTitle(targetId) ?? {}, lang, `${targetId}.title`)
-  return { '@type': 'Answer', text: `${word}: ${title}`, url: addressOf(tree, targetId, lang, base) }
+  return { '@type': 'Answer', text: `${label}: ${title}`, url: addressOf(tree, targetId, lang, base) }
 }
 
 /** The canonical URL of `nodeId` in `lang`, from the one address set of 16.3. */

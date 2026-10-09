@@ -1386,13 +1386,15 @@ a.language:hover,
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  --answers-gap: 20px;
+  gap: 8px var(--answers-gap);
   padding: 0 10px;
 }
 
 /*
- * Both Answers alike, and `startAgain` the same: the owner does not want the colour to steer
- * the reader (core document 3.2). The fill is the walk's controls' Theme role and the label
+ * Every Answer alike, and `startAgain` the same: the owner does not want the colour to steer
+ * the reader (core document 3.2). **[#221]** Two to four in one row, each an equal share of it
+ * and at most 620, as the two were: at 1280 four are 300 each (41.3). The fill is the walk's controls' Theme role and the label
  * its derived letter colour (13.1); the label is 19-pixel bold, large text, which is what
  * lets a mid-tone fill such as the logo green read under white at 3 : 1. Two lines of 24
  * and 6 pixels above and below are the button's 60.
@@ -2471,6 +2473,23 @@ fieldset:disabled .admin-submit {
   }
 }
 
+/*
+ * **[#221]** Three or four next steps stand two a row below 1000 pixels wide (41.3): each as
+ * wide as half the row less the gap, so a lone third is as wide as each of the two above it,
+ * and centred. One row of four would break a 19-character label into three lines and more.
+ */
+@media (max-width: 999px) {
+  .answers--3,
+  .answers--4 {
+    flex-wrap: wrap;
+  }
+
+  .answers--3 > .answer,
+  .answers--4 > .answer {
+    flex: 0 0 calc((100% - var(--answers-gap)) / 2);
+  }
+}
+
 /* --- below the floor: the notice (10.4, 10.5 step 7) ------------------------------- */
 
 .minimum-size {
@@ -2889,7 +2908,7 @@ fieldset:disabled .admin-submit {
   }
 
   .answers {
-    gap: 8px;
+    --answers-gap: 8px;
     padding: 0;
   }
 
@@ -2901,13 +2920,14 @@ fieldset:disabled .admin-submit {
   /*
    * A 170-pixel button holds eleven characters a line of the 19-pixel label, which must stay
    * large text to be readable on a mid-tone fill (13.1): an 86-character label is eight lines,
-   * more than the whole Bubble gives up at this width. So the button keeps its word -- yes,
-   * no, start again -- and gives up the target's title, which the page it leads to shows and
-   * the button's name keeps (10.3, amended 2026-09-18). A title with no word before it --
-   * the 404 page's way back to the start -- is the whole label, and stays.
+   * more than the whole Bubble gives up at this width. So `startAgain` keeps its word and gives
+   * up the root's title, which the page it leads to shows and the button's name keeps (10.3,
+   * amended 2026-09-18). **[#221]** A next step's words are its whole label, at most 19
+   * characters, and stay at every width (41.2); so does a title with no word before it -- the
+   * 404 page's way back to the start.
    */
-  .answer .branch-colon,
-  .answer .branch-word ~ .branch-title {
+  .answer--start-again .branch-colon,
+  .answer--start-again .branch-word ~ .branch-title {
     display: none;
   }
 
@@ -3004,6 +3024,25 @@ fieldset:disabled .admin-submit {
 
 @media (max-height: 480px) {
   .minimum-height {
+    display: inline;
+  }
+}
+
+/*
+ * **[#221]** A step of three or four next steps needs more height below 390 pixels wide, where
+ * its buttons take two rows on the narrowest Bubble: below 560 there the notice stands in for
+ * the tree view and names that height (41.4). Every other step keeps the floor above.
+ */
+@media (max-width: 389px) and (max-height: 559px) {
+  .tree-layer:has(~ .minimum-size--steps) {
+    display: none;
+  }
+
+  .minimum-size--steps {
+    display: block;
+  }
+
+  .minimum-size--steps .minimum-height {
     display: inline;
   }
 }
@@ -3888,14 +3927,13 @@ fieldset:disabled .admin-submit {
   cursor: default;
 }
 
-/* The `+` for the missing Answer stands where that Answer would: `+ Yes` left of `No: ...`. */
+/*
+ * The `+` for the missing word stands after the one next step, where the step it makes is
+ * appended (**[#221]** 41.7 items 2 and 3): `+ No` right of `Yes`, and `+ Yes` right of `No`.
+ */
 .structure--lone {
   flex-basis: 620px;
   width: 620px;
-}
-
-.structure--yes {
-  order: -1;
 }
 
 /* The `treeEndsHere` Sheet's control is the middle button of the three. */

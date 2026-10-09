@@ -86,13 +86,13 @@ export function useResetOnClose(root: RefObject<HTMLElement | null>, reset: () =
  * (30.2, 30.4): `create` sends it once, and `busy` holds the button down until the page leaves
  * or the write is refused.
  */
-function useCreation(nodeId: string, here: string, link: 'yes' | 'no' | 'option'): { busy: boolean; create: () => void } {
+function useCreation(nodeId: string, here: string, from: { link: 'answer'; label: Record<string, string> } | { link: 'option' }): { busy: boolean; create: () => void } {
   const api = useEditor()
   const [busy, setBusy] = useState(false)
   const create = (): void => {
     if (busy) return
     setBusy(true)
-    api.operate(nodeId, { create: { from: { node: nodeId, link } } }, undefined, (answer) => {
+    api.operate(nodeId, { create: { from: { node: nodeId, ...from } } }, undefined, (answer) => {
       if (accepted(answer) && answer.body.node) goTo(under(here, answer.body.node.id))
       else setBusy(false)
     })
@@ -101,14 +101,15 @@ function useCreation(nodeId: string, here: string, link: 'yes' | 'no' | 'option'
 }
 
 /**
- * `+ Yes` or `+ No` (30.1): creates the Answer's target and navigates to it (30.2). `lone`
- * when the other Answer exists, so the button takes that Answer's 620 pixels.
+ * `+ Yes` or `+ No` (30.1): creates the Answer's target and navigates to it (30.2). **[#221]**
+ * The next step is appended last with `label`, the chrome word in every language of the Tree
+ * (41.7 item 1). `lone` when it is the one button beside a next step, so it takes 620 pixels.
  */
-export function AnswerAdd({ nodeId, link, here, word, lone = false }: { nodeId: string; link: 'yes' | 'no'; here: string; word: string; lone?: boolean }) {
+export function AnswerAdd({ nodeId, which, here, word, label, lone = false }: { nodeId: string; which: 'yes' | 'no'; here: string; word: string; label: Record<string, string>; lone?: boolean }) {
   const api = useEditor()
-  const { busy, create } = useCreation(nodeId, here, link)
+  const { busy, create } = useCreation(nodeId, here, { link: 'answer', label })
   return (
-    <button type="button" className={`structure structure--${link}${lone ? ' structure--lone' : ''}`} disabled={api.readOnly || busy} onClick={create}>
+    <button type="button" className={`structure structure--${which}${lone ? ' structure--lone' : ''}`} disabled={api.readOnly || busy} onClick={create}>
       + {word}
     </button>
   )
@@ -123,7 +124,7 @@ export function AnswerAdd({ nodeId, link, here, word, lone = false }: { nodeId: 
  */
 export function SideAdd({ nodeId, here, word, wordLang }: { nodeId: string; here: string; word: string; wordLang?: string }) {
   const api = useEditor()
-  const { busy, create } = useCreation(nodeId, here, 'option')
+  const { busy, create } = useCreation(nodeId, here, { link: 'option' })
   return (
     <button type="button" className="side-add" disabled={api.readOnly || busy} onClick={create}>
       <span className="option-image option-image--empty side-add-plus" aria-hidden="true">
