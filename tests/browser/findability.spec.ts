@@ -13,7 +13,7 @@
  * nowhere in the documents, every route of 23.1 answering it as an unknown id, `lastmod`
  * per Tree (23.7).
  */
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 import { utimes } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -22,6 +22,7 @@ import type { Graph, Dataset, WebPage } from '../../src/findability/jsonld.ts'
 import { plainDescription } from '../../src/markdown.ts'
 import { openTree, type Tree } from '../../src/tree/loader.ts'
 import { addressSet, overviewAddressSet } from '../../src/url.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD, login } from './admin.ts'
 import { BASE_PORT, dataDir, serve, serveStore, stopServers } from './serve.ts'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -470,7 +471,11 @@ test.describe('a store of several Trees, one of them hidden (23.7)', () => {
     expect(await page.content()).not.toContain(HIDDEN)
   })
 
-  test('every public route answers the hidden Tree exactly as an id that was never a Tree', async ({ request }) => {
+  /**
+   * Every public route answers the hidden Tree exactly as an id that was never a Tree.
+   * **[#206]** Asked twice: as the store stands, and after a preview of the hidden Tree is drawn.
+   */
+  async function answeredAsUnknown(request: APIRequestContext): Promise<void> {
     // The hidden Tree is a copy of the example Tree less its published file: its draft, its
     // pictures and its fonts are on disk under the hidden id, and only the store says no.
     const routes = (id: string): string[] => [
@@ -499,5 +504,26 @@ test.describe('a store of several Trees, one of them hidden (23.7)', () => {
       const body = (text: string, id: string): string => text.replaceAll(id, '<id>')
       expect(body(await hidden.text(), HIDDEN), route).toBe(body(await unknown.text(), never))
     }
+  }
+
+  test('every public route answers the hidden Tree exactly as an id that was never a Tree', async ({ request }) => {
+    await answeredAsUnknown(request)
+  })
+
+  // **[#206]** The preview of a hidden Tree is under /admin, and no public route reads a draft (40.8).
+  test('after a preview of the hidden Tree is drawn, its id is still in no sitemap, llms.txt or overview, and every route answers it as an unknown id', async ({ page, request }) => {
+    expect((await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+    const pictures: string[] = []
+    page.on('response', (response) => response.request().resourceType() === 'image' && pictures.push(`${new URL(response.url()).pathname} ${response.status()}`))
+    await page.goto(`${origin}/admin/preview/${HIDDEN}/start/prohibited-practices`)
+    await expect(page.locator('.tree-frame .bubble[data-node="prohibited-practices"]')).toBeVisible()
+    await expect(page.locator('.preview-back')).toBeVisible()
+    await page.waitForLoadState('networkidle')
+    expect(pictures).toContain(`/admin/api/trees/${HIDDEN}/theme/example-lab-logo-white.svg 200`)
+
+    for (const document of ['/sitemap.xml', '/llms.txt', '/', '/?lang=nl']) {
+      expect(await (await request.get(`${origin}${document}`)).text(), document).not.toContain(HIDDEN)
+    }
+    await answeredAsUnknown(request)
   })
 })
