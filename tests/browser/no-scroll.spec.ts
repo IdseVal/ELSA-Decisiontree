@@ -386,7 +386,7 @@ async function measureEverywhere(
 }
 
 /** A control that slides on every kind of Node: an Answer, or the up arrow where there are none (a Terminal, 10.3). */
-const DOWN = { selector: '.answer--yes, .tree-frame:not(:has(.answer--yes)) .up-arrow', label: '' }
+const DOWN = { selector: '.answer--next:nth-child(1), .tree-frame:not(:has(.answer--next:nth-child(1))) .up-arrow', label: '' }
 
 /**
  * Measures `url` at every viewport above the floor in the middle of a slide, both halves of

@@ -249,8 +249,9 @@ describe('the unit of a write (22.2)', () => {
       ['start', { path: 'title.en', value: 'two\nlines' }, 'V-PLAIN'],
       ['start', { path: 'description.en', value: '<script>x</script>' }, 'V-HTML'],
       [null, { path: 'root', value: 'nowhere' }, 'V-ROOT'],
-      // **[#221]** A next step is named by its place: the fresh step has none to re-point.
-      ['start', { op: 'set-answer', index: 0, target: 'nowhere' }, 'V-KEYS'],
+      // **[#221]** A next step is named by its place: the first of a fresh step is appended.
+      ['start', { op: 'set-answer', index: 0, target: 'nowhere' }, 'V-ANSWERS'],
+      ['start', { op: 'set-answer', index: 1, target: 'start' }, 'V-KEYS'],
       ['start', { op: 'add-option', target: 'nowhere', title: { en: 'o' } }, 'V-OPTIONS'],
       ['start', { op: 'add-image', file: 'not-uploaded.png', credit: 'c' }, 'V-IMAGE'],
       ['start', { op: 'add-source', kind: 'rumour', label: { en: 'l' }, url: 'https://example.org' }, 'schema'],
@@ -357,7 +358,15 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
     const before = await text('t', 'draft.json')
     const refused = await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: { en: 'Fifth' } }))
     expect(refused).toMatchObject({ status: 422, rules: ['V-ANSWERS'] })
+    expect((await refusal(drafts.write(cees, 't', 'start', { op: 'set-answer', index: 4, target: made[0]! }))).rules).toEqual(['V-ANSWERS'])
     expect(await text('t', 'draft.json')).toBe(before)
+    // The place after the last appends a next step to an existing Node, its words "" unless given.
+    await drafts.write(cees, 't', made[0]!, { op: 'set-answer', index: 0, target: made[1]! })
+    await drafts.write(cees, 't', made[0]!, { op: 'set-answer', index: 1, target: made[2]!, label: { nl: 'Nee' } })
+    expect(JSON.parse(await text('t', 'draft.json')).nodes[1].answers).toEqual([
+      { label: { en: '', nl: '' }, target: made[1] },
+      { label: { nl: 'Nee', en: '' }, target: made[2] },
+    ])
     // An answer without words is no next step: there is nothing to write on its button.
     expect((await refusal(drafts.createNode(cees, 't', { node: made[0]!, link: 'answer' }))).status).toBe(422)
     expect((await refusal(drafts.createNode(cees, 't', { node: made[0]!, link: 'yes' }))).rules).toEqual(['V-KEYS'])

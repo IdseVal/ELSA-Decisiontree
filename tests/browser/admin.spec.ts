@@ -456,7 +456,7 @@ test('4. a visitor without a session walks the published Tree and finds it every
   await expect(page.locator('details.sheet[open]')).toHaveCount(0)
 
   // From the root to the Terminal.
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   await arrived(page, `${origin}/${tree}/start/${yesId}`)
   await expect(page.locator('.bubble--terminal .outcome')).toBeVisible()
   await step(page, '30-visitor-terminal')

@@ -148,8 +148,8 @@ for (const [target, steps] of Object.entries(WALKS)) {
     // Answers, or the walk would be stuck at a Node that is not marked as an ending.
     const isTerminal = TERMINALS.includes(target)
     await expect(page.locator('.outcome')).toHaveCount(isTerminal ? 1 : 0)
-    await expect(page.locator('.answer--yes')).toHaveCount(isTerminal ? 0 : 1)
-    await expect(page.locator('.answer--no')).toHaveCount(isTerminal ? 0 : 1)
+    await expect(page.locator('.answer--next:nth-child(1)')).toHaveCount(isTerminal ? 0 : 1)
+    await expect(page.locator('.answer--next:nth-child(2)')).toHaveCount(isTerminal ? 0 : 1)
   })
 }
 

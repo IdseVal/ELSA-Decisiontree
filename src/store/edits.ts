@@ -241,10 +241,17 @@ export function applyOperation(tree: Mapping, nodeId: string, operation: Operati
       removeAt(node, 'options', at)
       return []
     }
-    // **[#221]** A next step by its place in `answers` (41.7 item 6), its words kept.
-    case 'set-answer':
-      ;(node.answers as Mapping[])[index(node, 'answers', operation.index, fail)]!.target = operation.target
+    // **[#221]** A next step by its place in `answers` (41.7 item 6), its words kept. The place
+    // after the last appends one, as `set-answer` gave a step its missing yes or no in /5: with
+    // `label`, or "" in every language, a to-do; a fifth is refused.
+    case 'set-answer': {
+      const answers = (node.answers as Mapping[] | undefined) ?? []
+      if (operation.index === answers.length) {
+        roomForAnswer(node, nodeId)
+        append(node, 'answers', { label: localisedInput(operation.label ?? {}, languages, nodeId, 'answers.label'), target: operation.target })
+      } else answers[index(node, 'answers', operation.index, fail)]!.target = operation.target
       return []
+    }
     case 'remove-answer':
       removeAt(node, 'answers', index(node, 'answers', operation.index, fail))
       return []

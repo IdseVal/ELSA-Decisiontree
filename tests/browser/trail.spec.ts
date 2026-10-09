@@ -17,9 +17,9 @@ const CHILD = '/ai-act-example/start/prohibited-practices/prohibited'
 /** Walks root -> yes -> yes, the way a reader reaches a Terminal two entries deep. */
 async function walkToChild(page: Page): Promise<void> {
   await page.goto(START)
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   await arrived(page, '/ai-act-example/start/prohibited-practices')
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   await arrived(page, CHILD)
 }
 

@@ -73,7 +73,7 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   await page.goto('/')
   await page.locator('a.tile').click()
   await arrived(page, START)
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   // The Option opens its Overlay in place; its heading is the link to the aside's own address,
   // whose page arrives with the Overlay open, and Escape uncovers the page (10.9).
   await page.locator('.options .sheet-open', { hasText: 'Social scoring' }).click()
@@ -82,7 +82,7 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   await page.locator('.tree-frame:not([inert]) .up-arrow').click()
   // The slide up brings a second frame into the document until it lands (11.3).
   await arrived(page, START)
-  await page.locator('.answer--no').click()
+  await page.locator('.answer--next:nth-child(2)').click()
   await page.goto(`${START}?lang=nl`)
   await page.setViewportSize({ width: 1280, height: 540 })
   await page.locator('.sources-sheet summary').click()

@@ -159,8 +159,8 @@ test('open the root Node, follow yes, open one Option: one payload per navigatio
 
   await page.goto(ROOT)
   await expect(page.locator('.bubble')).toBeVisible()
-  const yes = await page.locator('.answer--yes').getAttribute('href')
-  await page.locator('.answer--yes').click()
+  const yes = await page.locator('.answer--next:nth-child(1)').getAttribute('href')
+  await page.locator('.answer--next:nth-child(1)').click()
   await arrived(page, yes!)
   expect(yes).toBe(QUESTION)
   // An Option opens its Overlay in place: no navigation, no payload, the address unchanged (10.9).
@@ -228,7 +228,7 @@ test.describe('the address bar', () => {
   test('after each kind of slide it is the URL of the plain link, and back returns to the page before', async ({ page }) => {
     // The Option slide is gone (10.9, 11.1): an Option opens an Overlay and nothing moves.
     const steps: Array<[from: string, branch: string]> = [
-      [ROOT, '.answer--yes'],
+      [ROOT, '.answer--next:nth-child(1)'],
       [QUESTION, '.up-arrow'],
       // A Terminal's way up is the up arrow too: the `back` Branch is gone (10.9).
       [`${QUESTION}/prohibited`, '.up-arrow'],
@@ -293,12 +293,12 @@ test.describe('the way back retraces the way down (#102)', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    for (const answer of ['.answer--yes', '.answer--no']) {
+    for (const answer of ['.answer--next:nth-child(1)', '.answer--next:nth-child(2)']) {
       await page.goto(QUESTION)
       const down = await slideOf(page, answer)
       const up = await slideOf(page, '.up-arrow')
       // The layer moves opposite the reader: down-left for `yes` moves it right and up.
-      expect(Math.sign(down.x), `${answer} goes down to its side`).toBe(answer === '.answer--yes' ? 1 : -1)
+      expect(Math.sign(down.x), `${answer} goes down to its side`).toBe(answer === '.answer--next:nth-child(1)' ? 1 : -1)
       expect(down.y, `${answer} goes down`).toBeLessThan(0)
       expect(up, `the up arrow undoes ${answer}`).toEqual({ x: -down.x, y: -down.y })
     }
@@ -319,7 +319,7 @@ test.describe('the motion', () => {
   test('the tree layer moves while a slide runs, and is at rest when it ends', async ({ page }) => {
     await page.goto(ROOT)
     await recordTransforms(page)
-    await page.locator('.answer--yes').click()
+    await page.locator('.answer--next:nth-child(1)').click()
     await arrived(page, QUESTION)
 
     const seen = await transforms(page)
@@ -333,7 +333,7 @@ test.describe('the motion', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto(ROOT)
     await recordTransforms(page)
-    await page.locator('.answer--yes').click()
+    await page.locator('.answer--next:nth-child(1)').click()
     await arrived(page, QUESTION)
     await page.goBack()
     await arrived(page, ROOT)
@@ -357,7 +357,7 @@ test('three moments of one slide, screenshot', async ({ page }) => {
     if (route.request().headers()['rsc'] === '1') await held
     await route.continue()
   })
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   await page.waitForFunction(() => {
     const animation = document.querySelector('.tree-layer')?.getAnimations()[0]
     if (!animation) return false
@@ -391,7 +391,7 @@ test('the moment just after the payload lands, screenshot: the page left behind 
     if (route.request().headers()['rsc'] === '1') await new Promise((wake) => setTimeout(wake, 100))
     await route.continue()
   })
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   const caught = await page.waitForFunction((target) => {
     if (location.pathname !== target) return false
     const animation = document.querySelector('.tree-layer[data-sliding]')?.getAnimations()[0]
@@ -436,7 +436,7 @@ test('a slide started with a Sheet open closes it first, so no panel travels wit
     await route.continue()
   })
   // The backdrop stops the pointer, not the keyboard: a Branch behind the veil is still reached.
-  await page.locator('.answer--yes').focus()
+  await page.locator('.answer--next:nth-child(1)').focus()
   await page.keyboard.press('Enter')
   await expect(page.locator('.tree-layer[data-sliding]')).toHaveCount(1)
   // A fixed panel inside the transformed layer would be laid out in the layer's box, not the viewport's.
@@ -454,8 +454,8 @@ test.describe('with JavaScript switched off', () => {
     const payloads: string[] = []
     page.on('request', (request) => isPagePayload(request) && payloads.push(request.resourceType()))
 
-    const href = await page.locator('.answer--yes').getAttribute('href')
-    await page.locator('.answer--yes').click()
+    const href = await page.locator('.answer--next:nth-child(1)').getAttribute('href')
+    await page.locator('.answer--next:nth-child(1)').click()
     await expect(page).toHaveURL(href!)
     // The Option opens its Overlay in place (14); its heading is the plain link to the aside's address.
     await page.locator('.overlay').first().locator('.sheet-open').click()

@@ -108,12 +108,12 @@ test.beforeAll(async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser, ANNA)
   // A Node is made from a parent's Link (22.4): made under an aside, pointed at the full Node,
   // unhung from the aside, and made the root, it stands above the full Node (step-buttons.spec.ts).
-  const made = await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'opt-two', link: 'answer', label: {} } })
+  const made = await api(page, cookie, 'POST', '/trees/hidden-draft/nodes', { from: { node: 'opt-two', link: 'answer', label: { en: 'Yes', nl: 'Ja' } } })
   expect(made.status()).toBe(201)
   top = ((await made.json()) as { node: DraftNode }).node.id
   for (const [route, change] of [
-    [`/nodes/${top}`, { op: 'set-answer', answer: 'yes', target: 'full' }],
-    ['/nodes/opt-two', { op: 'remove-answer', answer: 'yes' }],
+    [`/nodes/${top}`, { op: 'set-answer', index: 0, target: 'full', label: { en: 'Yes', nl: 'Ja' } }],
+    ['/nodes/opt-two', { op: 'remove-answer', index: 0 }],
     [`/nodes/${top}`, { path: 'title.en', value: 'The first step' }],
     [`/nodes/${top}`, { path: 'title.nl', value: 'De eerste stap' }],
     ['', { path: 'root', value: top }],
@@ -123,11 +123,14 @@ test.beforeAll(async ({ browser }) => {
 
   // 40.7's draft: no Dutch title or text, a step with one Answer, a fresh step, an ending without
   // Dutch words, a picture without a credit or a Dutch description, and no Dutch Tree title.
-  const fresher = await api(page, cookie, 'POST', '/trees/unfinished/nodes', { from: { node: 'opt-two', link: 'answer', label: {} } })
+  const fresher = await api(page, cookie, 'POST', '/trees/unfinished/nodes', { from: { node: 'opt-two', link: 'answer', label: { en: 'Yes', nl: 'Ja' } } })
   expect(fresher.status()).toBe(201)
   fresh = ((await fresher.json()) as { node: DraftNode }).node.id
   for (const [route, change] of [
-    ['/nodes/full', { op: 'remove-answer', answer: 'yes' }],
+    // **[#221]** Its four next steps down to one, does-not-apply, the second.
+    ['/nodes/full', { op: 'remove-answer', index: 0 }],
+    ['/nodes/full', { op: 'remove-answer', index: 1 }],
+    ['/nodes/full', { op: 'remove-answer', index: 1 }],
     ['/nodes/full', { path: 'title.nl', value: '' }],
     ['/nodes/full', { path: 'description.nl', value: '' }],
     ['/nodes/full', { path: 'images[0].credit', value: '' }],
@@ -246,10 +249,10 @@ test.describe('40.1: the address, and what it answers', () => {
 
     await page.goto(`${origin}${preview('hidden-draft', [top, 'full'])}`)
     await expect(page.locator('.tree-frame:not([aria-hidden]) .bubble h1')).toHaveText(/^The full Node/)
-    await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--yes')).toBeVisible()
-    await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--no')).toBeVisible()
+    await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(1)')).toBeVisible()
+    await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(2)')).toBeVisible()
     await check(preview('hidden-draft', [top, 'full']))
-    await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--yes').click()
+    await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(1)').click()
     await check(preview('hidden-draft', [top, 'full', 'applies']))
     await page.locator('.tree-frame:not([aria-hidden]) .up-arrow').click()
     await check(preview('hidden-draft', [top, 'full']))
@@ -310,7 +313,7 @@ test.describe('40.2: what it draws', () => {
     const payloads: string[] = []
     page.on('request', (request) => isPagePayload(request) && payloads.push(request.resourceType()))
     await page.goto(`${origin}${preview('hidden-draft', [top, 'full'])}`)
-    const yes = page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--yes')
+    const yes = page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(1)')
     await expect(yes).toHaveAttribute('data-slide', '')
     await expect(yes).toHaveAttribute('href', preview('hidden-draft', [top, 'full', 'applies']))
     await page.waitForLoadState('networkidle')
@@ -688,9 +691,9 @@ test.describe('40.6: the way there and back', () => {
     await page.goto(`${origin}${editor('hidden-draft', [top])}`)
     await page.locator('.preview-button').click()
     await expect(page).toHaveURL(`${origin}${preview('hidden-draft', [top])}`)
-    await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--yes').click()
+    await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(1)').click()
     await expect(page).toHaveURL(`${origin}${preview('hidden-draft', [top, 'full'])}`)
-    await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--no').click()
+    await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(2)').click()
     await expect(page).toHaveURL(`${origin}${preview('hidden-draft', [top, 'full', 'does-not-apply'])}`)
     await page.locator('header .language-switch').getByRole('link', { name: 'Nederlands' }).click()
     await expect(page).toHaveURL(`${origin}${preview('hidden-draft', [top, 'full', 'does-not-apply'], 'nl')}`)
@@ -742,8 +745,8 @@ test.describe('40.7: a draft that is not valid yet', () => {
     await expect(page.locator('#main-image-credit')).toHaveText(`[${ui.placeholderCredit}]`)
     await expect(page.locator('.todo-count, .editor-float, .preview-button')).toHaveCount(0)
 
-    await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--yes')).toHaveCount(0)
-    const no = page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--no')
+    await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(1)')).toHaveCount(0)
+    const no = page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(2)')
     await expect(no.locator('.branch-word')).toHaveText(ui.no)
     const [lone, row] = [(await no.boundingBox())!, (await page.locator('.tree-frame:not([aria-hidden]) .answers').boundingBox())!]
     console.log(`the one Answer ${lone.x}..${lone.x + lone.width}, its row ${row.x}..${row.x + row.width}`)

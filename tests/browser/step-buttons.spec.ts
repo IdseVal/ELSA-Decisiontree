@@ -73,12 +73,12 @@ test.beforeAll(async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   // A Node is made from a parent's Link (22.4): made under an aside, pointed at the full Node,
   // unhung from the aside, and made the root, it stands above the full Node.
-  const made = await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'opt-two', link: 'answer', label: {} } })
+  const made = await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'opt-two', link: 'answer', label: { en: 'Yes', nl: 'Ja' } } })
   expect(made.status()).toBe(201)
   top = ((await made.json()) as { node: DraftNode }).node.id
   for (const [route, change] of [
-    [`/nodes/${top}`, { op: 'set-answer', answer: 'yes', target: 'full' }],
-    ['/nodes/opt-two', { op: 'remove-answer', answer: 'yes' }],
+    [`/nodes/${top}`, { op: 'set-answer', index: 0, target: 'full', label: { en: 'Yes', nl: 'Ja' } }],
+    ['/nodes/opt-two', { op: 'remove-answer', index: 0 }],
     [`/nodes/${top}`, { path: 'title.en', value: 'The first step' }],
     [`/nodes/${top}`, { path: 'title.nl', value: 'De eerste stap' }],
     ['', { path: 'root', value: top }],
@@ -141,7 +141,7 @@ test('on a step with both Answers and Options no element of a link menu or of th
       // Every control of the page that says `...`, the Sources' own Sheets aside (out of #178's scope).
       dots: [...document.querySelectorAll('summary, button')].filter((control) => control.textContent?.trim() === '…' && !control.closest('.source-sheet')).length,
       sourceDots: document.querySelectorAll('.source-sheet:not(.source-sheet--add) > .sheet-open').length,
-      answers: document.querySelectorAll('.tree-frame .answers > .answer--yes, .tree-frame .answers > .answer--no').length,
+      answers: document.querySelectorAll('.tree-frame .answers > .answer--next:nth-child(1), .tree-frame .answers > .answer--next:nth-child(2)').length,
       options: document.querySelectorAll('.tree-frame .options > li').length,
     }))
     console.log(`${lang}, the full Node under a Trail: ${JSON.stringify(counts)}`)
@@ -331,7 +331,7 @@ test('the cross deletes after one confirmation and lands on the parent, whose ye
   await cross(page).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
   await page.waitForURL(fullNode())
-  await expect(page.locator('.answer--yes')).toHaveCount(0)
+  await expect(page.locator('.answer--next:nth-child(1)')).toHaveCount(0)
   await expect(page.locator('.structure--yes')).toHaveClass(/structure--lone/)
   await expect(page.locator('.structure--yes')).toHaveText('+ Yes')
   expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/applies`)).status()).toBe(404)

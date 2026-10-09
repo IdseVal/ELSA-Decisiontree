@@ -37,10 +37,10 @@ const UP = '.up-arrow'
 test.describe('following a Branch', () => {
   test('an Answer opens its target with the current Node appended to the Trail', async ({ page }) => {
     await page.goto(ROOT)
-    await page.locator('.answer--yes').click()
+    await page.locator('.answer--next:nth-child(1)').click()
     await arrived(page, QUESTION)
 
-    await page.locator('.answer--no').click()
+    await page.locator('.answer--next:nth-child(2)').click()
     await arrived(page, `${QUESTION}/covered`)
   })
 
@@ -70,7 +70,7 @@ test.describe('following a Branch', () => {
     // A second-level address: the Overlay has no button of its own in the fan (10.9).
     await expect(page.locator('.overlay--unbuttoned .sheet-panel')).toBeVisible()
     await page.locator('.overlay--unbuttoned .sheet-close').click()
-    await page.locator('.answer--yes').click()
+    await page.locator('.answer--next:nth-child(1)').click()
     await arrived(page, `${QUESTION}/prohibited`)
   })
 
@@ -91,8 +91,8 @@ test.describe('following a Branch', () => {
 
   test('every Branch shows the title of the Node it leads to', async ({ page }) => {
     await page.goto(QUESTION)
-    await expect(page.locator('.answer--yes .branch-title')).toHaveText('This is a prohibited practice')
-    await expect(page.locator('.answer--no .branch-title')).toHaveText('The AI Act applies to your system')
+    await expect(page.locator('.answer--next:nth-child(1) .branch-title')).toHaveText('This is a prohibited practice')
+    await expect(page.locator('.answer--next:nth-child(2) .branch-title')).toHaveText('The AI Act applies to your system')
     await expect(page.locator('.options .option-title')).toHaveText([
       'Social scoring',
       'Emotion recognition at work or in education',
@@ -104,11 +104,11 @@ test.describe('following a Branch', () => {
     await page.setViewportSize({ width: 360, height: 640 })
     await page.goto(QUESTION)
     for (const [answer, name] of [
-      ['.answer--yes', 'Yes: This is a prohibited practice'],
-      ['.answer--no', 'No: The AI Act applies to your system'],
+      ['.answer--next:nth-child(1)', 'Yes: This is a prohibited practice'],
+      ['.answer--next:nth-child(2)', 'No: The AI Act applies to your system'],
     ] as const) {
       await expect(page.locator(`${answer} .branch-title`)).toBeHidden()
-      await expect(page.locator(`${answer} .branch-label`)).toHaveText(answer === '.answer--yes' ? 'Yes' : 'No', { useInnerText: true })
+      await expect(page.locator(`${answer} .branch-label`)).toHaveText(answer === '.answer--next:nth-child(1)' ? 'Yes' : 'No', { useInnerText: true })
       await expect(page.locator(answer)).toHaveAccessibleName(name)
     }
 
@@ -126,7 +126,7 @@ test.describe('following a Branch', () => {
     ] as const) {
       await page.setViewportSize({ width, height })
       await page.goto(QUESTION)
-      for (const answer of ['.answer--yes', '.answer--no']) {
+      for (const answer of ['.answer--next:nth-child(1)', '.answer--next:nth-child(2)']) {
         expect((await page.locator(answer).boundingBox())?.height, `${answer} at ${width}x${height}`).toBe(60)
       }
     }
@@ -200,7 +200,7 @@ test.describe('the keyboard', () => {
     await page.keyboard.press('Escape')
     await expect(page.locator('.overlay .sheet-panel').first()).toBeHidden()
 
-    await page.locator('.answer--yes').focus()
+    await page.locator('.answer--next:nth-child(1)').focus()
     await page.keyboard.press('Enter')
     await arrived(page, TERMINAL)
 

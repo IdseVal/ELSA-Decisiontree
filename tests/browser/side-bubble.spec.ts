@@ -409,7 +409,7 @@ test('published, the side bubble walks on the public page: its button with its t
     ['yes', 'Applies'],
     ['no', 'Does not apply'],
   ] as const) {
-    const made = (await (await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link: 'answer', label: {} }, title: { en: `It ends: ${words}` } })).json()) as { node: { id: string } }
+    const made = (await (await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link: 'answer', label: { en: link === 'yes' ? 'Yes' : 'No' } }, title: { en: `It ends: ${words}` } })).json()) as { node: { id: string } }
     expect((await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: made.node.id, link: 'end', label: { en: words } } })).status()).toBe(201)
     await write(made.node.id, { path: 'description.en', value: `The Act: ${words}.` })
   }

@@ -460,7 +460,7 @@ describe('the conversion from elsa-tree/4 to elsa-tree/5 (tree-format.md 12.7)',
   })
 
   test('a file in another format is not converted, and the report says what it found', async () => {
-    const target = await writeTree({ ...treeOf4(['en']), format: 'elsa-tree/3', nodes: treeOf4(['en']).nodes.filter((node) => !('answers' in node)) })
+    const target = await writeTree({ ...treeOf4(['en']), format: 'elsa-tree/3', nodes: (treeOf4(['en']).nodes as Array<Record<string, unknown>>).filter((node) => !('answers' in node)) })
 
     const migration = await migrateTree(target)
 

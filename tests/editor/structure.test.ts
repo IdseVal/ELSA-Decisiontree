@@ -116,7 +116,7 @@ describe('the side-bubble + (30.4, 30.5)', () => {
 })
 
 describe('**[#177]** deleteSideBubble in the centre’s Overlays (30.7)', () => {
-  const centre = node('start', { kind: 'question', answers: { yes: 'n-2' }, options: [{ title: { en: 'An aside' }, target: 'a-1' }] })
+  const centre = node('start', { kind: 'question', answers: [{ label: { en: 'Yes', nl: 'Ja' }, target: 'n-2' }], options: [{ title: { en: 'An aside' }, target: 'a-1' }] })
 
   test('the Overlay of each Option holds it: the aside goes with this step’s Option, and the page goes back to the step', () => {
     const remove = sideDelete!(centre, 0) as ReactElement
@@ -188,7 +188,7 @@ describe('**[#178]** the step’s buttons beside the up arrow (30.8, amended)', 
 
   test('the first step has no cross: nothing at all when it does not end, the ending’s button alone when it does', () => {
     expect(stepButtons!(node('start'))).toBeNull()
-    expect(stepButtons!(node('start', { kind: 'question', answers: { yes: 'n-2', no: 'a-1' } }))).toBeNull()
+    expect(stepButtons!(node('start', { kind: 'question', answers: [{ label: { en: 'Yes' }, target: 'n-2' }, { label: { en: 'No' }, target: 'a-1' }] }))).toBeNull()
     const [end, ...rest] = buttons(stepButtons!(node('start', { kind: 'terminal', label: { en: 'Look elsewhere' } })))
     expect(rest).toEqual([])
     expect(end!.type).toBe(RemoveEnd)
