@@ -3,7 +3,6 @@ import { pageSession } from '../../../../../../admin/authenticated.ts'
 import { editMode } from '../../../../../../admin/slots.tsx'
 import { loginWords } from '../../../../../../admin/words.ts'
 import { chrome, chromeLang, chromeLanguage, type Chrome } from '../../../../../../chrome.ts'
-import { AdminChrome } from '../../../../../../components/AdminChrome.tsx'
 import { BackToOverview } from '../../../../../../components/BackToOverview.tsx'
 import { sheetWords } from '../../../../../../components/Bubble.tsx'
 import { Disclaimer } from '../../../../../../components/Disclaimer.tsx'
@@ -13,6 +12,7 @@ import { Logo } from '../../../../../../components/Logo.tsx'
 import { Sheet } from '../../../../../../components/Sheet.tsx'
 import { ThemeStyle } from '../../../../../../components/ThemeStyle.tsx'
 import { TreeView } from '../../../../../../components/TreeView.tsx'
+import { Uneditable } from '../../../../../../components/Uneditable.tsx'
 import { store } from '../../../../../../config.ts'
 import { Editor, SaveIndicator } from '../../../../../../editor/Editor.tsx'
 import { editorLinks, previewLinks } from '../../../../../../editor/links.ts'
@@ -374,37 +374,4 @@ function themeWords(ui: Chrome): ThemeWords {
     licenceOtherHint: ui.licenceOtherHint,
     fontFileHint: ui.fontFileHint,
   }
-}
-
-/**
- * An uneditable Tree (19.5): the blocking violations of its hand-edited draft, and the way out.
- * **[#213]** Under the 403 page's bar, which the body's first grid row is sized for: without a
- * bar the card was laid out in that row and cut off (10.1).
- */
-function Uneditable({ lang, messages }: { lang: 'en' | 'nl'; messages: string[] }) {
-  const ui = chrome(lang)
-  return (
-    <>
-      <ThemeStyle tree={null} />
-      <AdminChrome lang={lang} account={null} />
-      <main className="admin-page admin-page--centred" lang={lang}>
-        {/* **[#213]** Every admin page says so (24.2), and this one stands at the editor's address. */}
-        <noscript>
-          <p className="admin-note">{ui.needsJavaScript}</p>
-        </noscript>
-        <section className="admin-card" aria-labelledby="uneditable">
-          <h1 id="uneditable">{ui.notEditable}</h1>
-          <ul className="admin-note">
-            {messages.map((message) => (
-              <li key={message}>{message}</li>
-            ))}
-          </ul>
-          <a className="admin-submit admin-submit--link" href={adminHref('/admin', lang)}>
-            {ui.toOverview}
-          </a>
-        </section>
-      </main>
-      <Disclaimer lang={lang} />
-    </>
-  )
 }
