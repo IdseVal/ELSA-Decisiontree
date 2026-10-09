@@ -7,8 +7,8 @@
   ],
   "root": "full",
   "title": {
-    "en": "The full Node fixture",
-    "nl": "De volle-stap-fixture"
+    "en": "The full Node with three next steps",
+    "nl": "De volle stap met drie vervolgstappen"
   },
   "metadata": {
     "version": "1.0"
@@ -169,13 +169,6 @@
             "nl": "Alleen als inzetter"
           },
           "target": "deployer-only"
-        },
-        {
-          "label": {
-            "en": "Notwithstandingness",
-            "nl": "Niet van toepassing"
-          },
-          "target": "not-applicable"
         }
       ],
       "options": [
@@ -508,26 +501,6 @@
         "label": {
           "en": "Deployer duties",
           "nl": "Plichten gebruiker"
-        }
-      }
-    },
-    {
-      "id": "not-applicable",
-      "title": {
-        "en": "Nothing applies here: a Terminal whose title is also eighty characters long, too",
-        "nl": "Hier geldt niets: een eindstap waarvan de titel ook tachtig tekens lang is, ook "
-      },
-      "description": {
-        "en": "The walk ends here.",
-        "nl": "De doorloop eindigt hier."
-      },
-      "metadata": {
-        "version": "1.0"
-      },
-      "terminal": {
-        "label": {
-          "en": "Nothing applies",
-          "nl": "Niets van toepassin"
         }
       }
     }
