@@ -161,13 +161,13 @@ What stands on `dev` (`b9e7c03`), where the instruction lands:
      in the preview, which draw the same row and slide by one rule (34, 40.2). This is the
      widest reading the words allow, and the one reading here that adds an issue (#234): the
      owner's "we already solved that" fits the public page, which slides, while the request
-     opens with "the tree creation view", which does not. It is taken because the owner names
-     the editor, and a slide on the public page alone would leave the view the owner named as
+     opens with "the tree creation view", which does not. It is taken because the request opens
+     with "the tree creation view", and a slide on the public page alone would leave the view the owner named as
      it is. #231 decides whether the editor slides, and if it replaces this reading, #234 has
      nothing to build: #231 says so on #234 and on #230 and removes `ready` from #234.
    - "When the user presses back, it goes in the same path backwards, but we already solved
      that I think": it is solved on the public page and in the preview, where the up arrow
-     retraces the step down (#102) and the browser's back reverses the slide when the page is
+     retraces the step down (#102) and the browser's back reverses the slide when the payload is
      in the framework's cache (11.3); in the editor, where nothing slides, the way back slides as part of the slide asked for, and it
      retraces whatever path #231's rule gives the step down.
 
