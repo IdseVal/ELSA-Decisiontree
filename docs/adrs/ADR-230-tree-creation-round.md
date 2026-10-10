@@ -8,11 +8,12 @@
 - Measured: `docs/research/issue-230-slide-direction.md`, where each next step's button stands
   against where its slide goes, on the production build of `dev`
 - Core document: amended here, marked `[#230]`: the preamble, its status line and the owner
-  line; 3.1's Answers; 3.2's bullet on the slide; in 3.4 the `[#133]` sentence on the editor's
-  Answer row, the `[#219]` bullet's `[#220]` confirmation of "more than four is not" and of
+  line; 3.1's Answers; 3.2's bullet on the slide; in 3.4 the sentence holding the owner's #131
+  "yes", "no" and "tree ends here" buttons, the `[#133]` sentence on the editor's Answer row and
+  its fresh yes or no, the `[#219]` bullet's `[#220]` confirmation of "more than four is not" and of
   where `Tree ends here` stands, a new bullet holding the owner's words whole, and the passage
-  on what the round does not change; the row **Answer** in 5; the `[#220]` notes of 10.22,
-  10.27 and 10.41 and the decision of 10.43; a new open item 10.44, OPEN for #231
+  on what the round does not change; the row **Answer** in 5; the `[#220]` notes of 10.21,
+  10.22, 10.23, 10.27 and 10.41 and the decision of 10.43; a new open item 10.44, OPEN for #231
 
 ## Context
 
@@ -40,12 +41,13 @@ What stands on `dev` (`b9e7c03`), where the instruction lands:
   creates a next step with those words; `Tree ends here` opens a Sheet of its own with one field
   for the ending's words (36.3) and makes the step a Terminal. A step with next steps shows each
   label as a field in place and, while it has fewer than four, a `+` after the last; while it
-  has one, the one-click `+ Yes` and `+ No` stand before that `+` (41.7 item 2).
+  has one, the one-click `+ Yes` and `+ No` stand before that `+`, "but for the one whose word
+  its label already says in the language edited" (41.7 item 2).
 - **How many** (41.1, core document 10.43, decided on #220): two, three or four next steps a
   step, one a draft's to-do; "a fifth is refused. Five and six were measured and refused: from
   1000 pixels wide down, one row of five breaks a 19-character label into three lines and more
   in Verdana and overflows at 360 x 481, and two a row needs a third row, which overflows the
-  full Node in windows 481 tall" (`ADR-220-number-of-next-steps.md`). The Tree format is
+  full Node in windows 481 tall" (41.1; the decision is `ADR-220-number-of-next-steps.md`). The Tree format is
   `elsa-tree/6`, whose `answers` holds "two to four" (`docs/specs/tree-format.md` 5.3), and
   "any change to the keys, the kinds, the outcome set, the Theme roles, the limits or the
   validity rules" is a new format number: "The next change will be `elsa-tree/7`"
@@ -85,13 +87,13 @@ What stands on `dev` (`b9e7c03`), where the instruction lands:
 
 2. **Architecture first.** Each of the owner's points meets a frozen contract. Five next steps
    is the number #220 measured and refused under the no-scroll rule (41.1, core document 10.43),
-   which section 9 makes a must-never ("The page must never scroll"), and the format's "two to
+   which core document section 9 makes a must-never ("The page must never scroll"), and the format's "two to
    four" with its rule that the next change is `elsa-tree/7` (`tree-format.md` 5.3, 10). The row
    stands two a row below 1000 pixels wide (41.3), and the slide goes to the places of one row
    (41.5), which the measurement above shows do not agree there. The editor's row is 41.7's,
    whose `+ Yes`, `+ No` and `Tree ends here` #220 confirmed (core document 3.4 `[#219]`). The
    editor's page renders no neighbour and slides nowhere by 34.5, within a bound of twelve Nodes
-   (34.7), and section 9 bounds the Nodes fetched ahead. A build run that met them would have to
+   (34.7), and core document section 9 bounds the Nodes fetched ahead. A build run that met them would have to
    supersede them on its own, and the implementer's role tells it to report a contradiction with
    a spec and to ask rather than build its best guess (`.orca/roles/implementer.md`). What the
    owner's words leave open is listed in #231's TASK and in core document 10.44, as 10.43 was for
@@ -124,7 +126,8 @@ What stands on `dev` (`b9e7c03`), where the instruction lands:
    (#171, #195, #205, #220); the owner may add it to #231.
 
 5. **Where the owner's words leave a choice, the record says which reading was taken and does
-   not widen the request.** Each is in core document 3.4's `[#230]` bullet, marked PROPOSED, and
+   not widen the request, but for the slide in the editor, the widest reading the words allow
+   (below).** Each is in core document 3.4's `[#230]` bullet, marked PROPOSED, and
    in #231, so that the Architect can confirm or replace it and the owner overrule it:
    - "The tree creation view" is the editor (`/admin/trees/...`, 3.4), and its "three buttons
      (yes, tree ends here, no, +)" are 41.7's four on a step without Links.
@@ -155,11 +158,17 @@ What stands on `dev` (`b9e7c03`), where the instruction lands:
      straight down from one in the middle -- at every width and for every number. Today that
      fails below 1000 pixels wide (Context). It holds wherever the row is drawn: in the editor,
      the owner's "tree creation view", where nothing slides today, and on the public page and
-     in the preview, which draw the same row and slide by one rule (34, 40.2).
+     in the preview, which draw the same row and slide by one rule (34, 40.2). This is the
+     widest reading the words allow, and the one reading here that adds an issue (#234): the
+     owner's "we already solved that" fits the public page, which slides, while the request
+     opens with "the tree creation view", which does not. It is taken because the owner names
+     the editor, and a slide on the public page alone would leave the view the owner named as
+     it is. #231 decides whether the editor slides, and if it replaces this reading, #234 has
+     nothing to build: #231 says so on #234 and on #230 and removes `ready` from #234.
    - "When the user presses back, it goes in the same path backwards, but we already solved
      that I think": it is solved on the public page and in the preview, where the up arrow
-     retraces the step down (#102) and the browser's back reverses the slide (11.3); in the
-     editor, where nothing slides, the way back slides as part of the slide asked for, and it
+     retraces the step down (#102) and the browser's back reverses the slide when the page is
+     in the framework's cache (11.3); in the editor, where nothing slides, the way back slides as part of the slide asked for, and it
      retraces whatever path #231's rule gives the step down.
 
 6. **The core document is amended here for every passage the owner's words make untrue**, each
@@ -168,8 +177,9 @@ What stands on `dev` (`b9e7c03`), where the instruction lands:
    3.2's "both Answer buttons look the same" with its `[#219]` and `[#220]` notes, which the
    evenly spread row keeps; 3.2's "The Node offers its Answers ... or as many next steps as its
    creator gave it"; the row **Terminal** of 5, whose "tree ends here" is still the name of
-   the Terminal's control, in the Sheet; 10.23's "children are the Answer targets"; and section
-   9, whose rules hold for five as for four and which 10.44 names as what #231 decides against.
+   the Terminal's control, in the Sheet; 10.23's "children are the Answer targets", though not
+   its `[#220]` note's "two to four"; and core document section 9, whose rules hold for five as for four and
+   which 10.44 names as what #231 decides against.
 
 ## Alternatives rejected
 
@@ -177,7 +187,7 @@ What stands on `dev` (`b9e7c03`), where the instruction lands:
   measurement of the page under the no-scroll rule, as #220's refusal of five was, and the
   layout, the slide's rule and the editor's Sheet are contracts: the Architect's to decide and
   the owner's to overrule, as 10.43 was on #220. A reading that #231 finds against a must-never
-  of section 9 goes to an OPEN item for Idse, as 10.42 did on #202.
+  of core document section 9 goes to an OPEN item for Idse, as 10.42 did on #202.
 - **Deciding the layout of five, or the slide's rule, in this record.** Both are measurements
   across the viewports of `application.md` 10.6 and below them, in several faces, and #220 and
   #221 measured four that way (`docs/research/issue-220-answer-row-room.md`,
@@ -198,7 +208,7 @@ What stands on `dev` (`b9e7c03`), where the instruction lands:
   around the autosave under one run's ceiling (`max_run_minutes`, 150), where #222 built the
   editor's row alone. The format and the public page stay one issue: a format that accepts five
   on a `dev` whose page draws four would break the frontend on a Tree that follows the agreed
-  shape, which section 9 forbids (`ADR-219-number-of-next-steps-round.md`, Alternatives).
+  shape, which core document section 9 forbids (`ADR-219-number-of-next-steps-round.md`, Alternatives).
 - **Labelling the issues `proposed`.** The owner said `ready`, in the issue (decision 4).
 
 ## Consequences
