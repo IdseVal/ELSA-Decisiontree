@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "en",
     "nl"
@@ -148,10 +148,36 @@
           "source": "s1"
         }
       ],
-      "answers": {
-        "yes": "applies",
-        "no": "does-not-apply"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes, for my company",
+            "nl": "Ja, voor mijn zaak."
+          },
+          "target": "applies"
+        },
+        {
+          "label": {
+            "en": "No, outside the EU.",
+            "nl": "Nee, buiten de EU.."
+          },
+          "target": "does-not-apply"
+        },
+        {
+          "label": {
+            "en": "Only as a deployer.",
+            "nl": "Alleen als inzetter"
+          },
+          "target": "deployer-only"
+        },
+        {
+          "label": {
+            "en": "Notwithstandingness",
+            "nl": "Niet van toepassing"
+          },
+          "target": "not-applicable"
+        }
+      ],
       "options": [
         {
           "title": {
@@ -462,6 +488,46 @@
         "label": {
           "en": "Does not apply",
           "nl": "Niet van toepassing"
+        }
+      }
+    },
+    {
+      "id": "deployer-only",
+      "title": {
+        "en": "Only the deployer has duties: a Terminal whose title is eighty characters long..",
+        "nl": "Alleen de gebruiker heeft plichten: een eindstap met een titel van tachtig teken"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De doorloop eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "label": {
+          "en": "Deployer duties",
+          "nl": "Plichten gebruiker"
+        }
+      }
+    },
+    {
+      "id": "not-applicable",
+      "title": {
+        "en": "Nothing applies here: a Terminal whose title is also eighty characters long, too",
+        "nl": "Hier geldt niets: een eindstap waarvan de titel ook tachtig tekens lang is, ook "
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De doorloop eindigt hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "label": {
+          "en": "Nothing applies",
+          "nl": "Niets van toepassin"
         }
       }
     }

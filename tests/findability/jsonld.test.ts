@@ -308,7 +308,7 @@ describe('the Question, on a question Node and nowhere else', () => {
     const node = (await tree.getNode('start'))!
     if (node.kind !== 'question') throw new Error('start is the question Node this test needs')
     const page = webPageOf(await graphOf(tree, 'start', 'en'))
-    const words = chrome('en')
+    const [yes, no] = node.answers.map((answer) => answer.target) as [string, string]
 
     expect(page.mainEntity).toEqual({
       '@type': 'Question',
@@ -317,15 +317,16 @@ describe('the Question, on a question Node and nowhere else', () => {
       text: plainDescription(node.description.en!).reduced,
       inLanguage: 'en',
       suggestedAnswer: [
+        // **[#221]** A converted step's words are what the chrome said: what dev's JSON-LD was (41.6).
         {
           '@type': 'Answer',
-          text: `${words.yes}: ${tree.getTitle(node.answers.yes)!.en}`,
-          url: canonical(tree, node.answers.yes, 'en'),
+          text: `${chrome('en').yes}: ${tree.getTitle(yes)!.en}`,
+          url: canonical(tree, yes, 'en'),
         },
         {
           '@type': 'Answer',
-          text: `${words.no}: ${tree.getTitle(node.answers.no)!.en}`,
-          url: canonical(tree, node.answers.no, 'en'),
+          text: `${chrome('en').no}: ${tree.getTitle(no)!.en}`,
+          url: canonical(tree, no, 'en'),
         },
       ],
     })
@@ -335,14 +336,37 @@ describe('the Question, on a question Node and nowhere else', () => {
     const node = (await tree.getNode('start'))!
     if (node.kind !== 'question') throw new Error('start is the question Node this test needs')
     const answers = webPageOf(await graphOf(tree, 'start', 'nl')).mainEntity!.suggestedAnswer
+    const [yes, no] = node.answers.map((answer) => answer.target) as [string, string]
 
     expect(answers.map((answer) => answer.text)).toEqual([
-      `${chrome('nl').yes}: ${tree.getTitle(node.answers.yes)!.nl}`,
-      `${chrome('nl').no}: ${tree.getTitle(node.answers.no)!.nl}`,
+      `${chrome('nl').yes}: ${tree.getTitle(yes)!.nl}`,
+      `${chrome('nl').no}: ${tree.getTitle(no)!.nl}`,
     ])
-    expect(answers.map((answer) => answer.url)).toEqual([
-      canonical(tree, node.answers.yes, 'nl'),
-      canonical(tree, node.answers.no, 'nl'),
+    expect(answers.map((answer) => answer.url)).toEqual([canonical(tree, yes, 'nl'), canonical(tree, no, 'nl')])
+  })
+
+  test('**[#221]** a step of three or four next steps has one Answer per next step, in their order, each its words, a colon and its target title (41.6)', async () => {
+    const steps = await openTree(path.join(here, '..', 'fixtures', 'three-next-steps'))
+    for (const lang of ['en', 'nl']) {
+      const node = (await steps.getNode('full'))!
+      if (node.kind !== 'question') throw new Error('full is the question Node this test needs')
+      const answers = webPageOf(await graphOf(steps, 'full', lang)).mainEntity!.suggestedAnswer
+
+      expect(answers).toHaveLength(3)
+      expect(answers).toEqual(
+        node.answers.map((answer) => ({
+          '@type': 'Answer',
+          text: `${answer.label[lang]}: ${steps.getTitle(answer.target)![lang]}`,
+          url: canonical(steps, answer.target, lang),
+        })),
+      )
+    }
+    const fourSteps = await openTree(path.join(here, '..', 'fixtures', 'full-node'))
+    expect(webPageOf(await graphOf(fourSteps, 'full', 'en')).mainEntity!.suggestedAnswer.map((answer) => answer.text.split(':')[0])).toEqual([
+      'Yes, for my company',
+      'No, outside the EU.',
+      'Only as a deployer.',
+      'Notwithstandingness',
     ])
   })
 

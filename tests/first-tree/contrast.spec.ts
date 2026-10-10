@@ -199,7 +199,7 @@ test('the Answer label is large text on the logo green, at least 3 : 1, measured
   expect(arrow[0]!.background).toBe('#159a2f')
   expect(arrow[0]!.ratio).toBeGreaterThanOrEqual(LARGE_MINIMUM)
 
-  const fill = await page.locator('.answer--yes').evaluate((el) => getComputedStyle(el).backgroundColor)
+  const fill = await page.locator('.answer--next:nth-child(1)').evaluate((el) => getComputedStyle(el).backgroundColor)
   testInfo.annotations.push({
     type: 'measured',
     description: `computed fill ${fill}; ${[...labels, ...arrow].map((m) => `"${m.text}" ${m.colour} on ${m.background} = ${m.ratio} : 1 at ${m.size}px/${m.weight}`).join('; ')}`,

@@ -36,6 +36,7 @@ import { loadPage } from '../../src/neighbourhood.ts'
 import { openTree, type Tree } from '../../src/tree/loader.ts'
 import { parseUrl } from '../../src/url.ts'
 import { arrived } from './arrived.ts'
+import { BASE_PORT, serve, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const RESULTS = path.join(repo, 'tests', 'browser', '.results')
@@ -45,14 +46,16 @@ const ROOT = '/ai-act-example/start'
 const QUESTION = `${ROOT}/prohibited-practices`
 const OPTION = `${QUESTION}/social-scoring`
 
-/** The bound of 11.2: the Node a page shows, at most fifteen neighbours and the one Overlay its URL may name. */
-const MAX_NODES = 17
+/** **[#221]** The bound of 41.5: the Node a page shows, at most 29 neighbours and the one Overlay its URL may name (17 until #221). */
+const MAX_NODES = 31
 
 let tree: Tree
 
 test.beforeAll(async () => {
   tree = await openTree(path.join(repo, 'trees', 'ai-act-example'))
 })
+
+test.afterAll(stopServers)
 
 /** A page's path and query, the form a Branch's `href` is written in; another origin's URL whole. */
 function local(url: string, origin?: string): string {
@@ -159,8 +162,8 @@ test('open the root Node, follow yes, open one Option: one payload per navigatio
 
   await page.goto(ROOT)
   await expect(page.locator('.bubble')).toBeVisible()
-  const yes = await page.locator('.answer--yes').getAttribute('href')
-  await page.locator('.answer--yes').click()
+  const yes = await page.locator('.answer--next:nth-child(1)').getAttribute('href')
+  await page.locator('.answer--next:nth-child(1)').click()
   await arrived(page, yes!)
   expect(yes).toBe(QUESTION)
   // An Option opens its Overlay in place: no navigation, no payload, the address unchanged (10.9).
@@ -228,7 +231,7 @@ test.describe('the address bar', () => {
   test('after each kind of slide it is the URL of the plain link, and back returns to the page before', async ({ page }) => {
     // The Option slide is gone (10.9, 11.1): an Option opens an Overlay and nothing moves.
     const steps: Array<[from: string, branch: string]> = [
-      [ROOT, '.answer--yes'],
+      [ROOT, '.answer--next:nth-child(1)'],
       [QUESTION, '.up-arrow'],
       // A Terminal's way up is the up arrow too: the `back` Branch is gone (10.9).
       [`${QUESTION}/prohibited`, '.up-arrow'],
@@ -275,7 +278,8 @@ async function slideOf(page: Page, control: string): Promise<{ x: number; y: num
     if (route.request().headers()['rsc'] === '1') await held
     await route.continue()
   })
-  const href = (await page.locator(control).getAttribute('href'))!
+  // Against the page's own origin: **[#221]** a fixture's server is not the configured one.
+  const href = new URL((await page.locator(control).getAttribute('href'))!, page.url()).href
   await page.locator(control).click()
   const away = await page.waitForFunction(() => {
     const frames = document.querySelector('.tree-layer')?.getAnimations()[0]?.effect
@@ -293,15 +297,33 @@ test.describe('the way back retraces the way down (#102)', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
-    for (const answer of ['.answer--yes', '.answer--no']) {
+    for (const answer of ['.answer--next:nth-child(1)', '.answer--next:nth-child(2)']) {
       await page.goto(QUESTION)
       const down = await slideOf(page, answer)
       const up = await slideOf(page, '.up-arrow')
       // The layer moves opposite the reader: down-left for `yes` moves it right and up.
-      expect(Math.sign(down.x), `${answer} goes down to its side`).toBe(answer === '.answer--yes' ? 1 : -1)
+      expect(Math.sign(down.x), `${answer} goes down to its side`).toBe(answer === '.answer--next:nth-child(1)' ? 1 : -1)
       expect(down.y, `${answer} goes down`).toBeLessThan(0)
       expect(up, `the up arrow undoes ${answer}`).toEqual({ x: -down.x, y: -down.y })
     }
+  })
+
+  test('**[#221]** to the third and the fourth of four next steps and back up: each to its own frame, the way back the step down reversed (41.5)', async ({ page }) => {
+    const origin = await serve(path.join(repo, 'tests', 'fixtures'), 'full-node', BASE_PORT + 45)
+    await page.setViewportSize({ width: 1280, height: 640 })
+    const slides: Array<{ x: number; y: number }> = []
+    for (const index of [3, 4]) {
+      await page.goto(`${origin}/full-node/full`)
+      const down = await slideOf(page, `.answer--next:nth-child(${index})`)
+      const up = await slideOf(page, '.up-arrow')
+      expect(down.y, `the ${index}th goes down`).toBeLessThan(0)
+      // Right of the centre, so the layer moves left: the third at 0.5 layer widths, the fourth at 1.5.
+      expect(down.x, `the ${index}th goes down to its right`).toBeLessThan(0)
+      expect(up, `the up arrow undoes the ${index}th`).toEqual({ x: -down.x, y: -down.y })
+      slides.push(down)
+    }
+    expect(slides[1]!.x / slides[0]!.x, 'the fourth stands three times as far across as the third').toBeCloseTo(3, 5)
+    expect(slides[1]!.y).toBe(slides[0]!.y)
   })
 
   test('after a step that was no Answer, the up arrow goes straight up', async ({ page }) => {
@@ -319,7 +341,7 @@ test.describe('the motion', () => {
   test('the tree layer moves while a slide runs, and is at rest when it ends', async ({ page }) => {
     await page.goto(ROOT)
     await recordTransforms(page)
-    await page.locator('.answer--yes').click()
+    await page.locator('.answer--next:nth-child(1)').click()
     await arrived(page, QUESTION)
 
     const seen = await transforms(page)
@@ -333,7 +355,7 @@ test.describe('the motion', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto(ROOT)
     await recordTransforms(page)
-    await page.locator('.answer--yes').click()
+    await page.locator('.answer--next:nth-child(1)').click()
     await arrived(page, QUESTION)
     await page.goBack()
     await arrived(page, ROOT)
@@ -357,7 +379,7 @@ test('three moments of one slide, screenshot', async ({ page }) => {
     if (route.request().headers()['rsc'] === '1') await held
     await route.continue()
   })
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   await page.waitForFunction(() => {
     const animation = document.querySelector('.tree-layer')?.getAnimations()[0]
     if (!animation) return false
@@ -391,7 +413,7 @@ test('the moment just after the payload lands, screenshot: the page left behind 
     if (route.request().headers()['rsc'] === '1') await new Promise((wake) => setTimeout(wake, 100))
     await route.continue()
   })
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   const caught = await page.waitForFunction((target) => {
     if (location.pathname !== target) return false
     const animation = document.querySelector('.tree-layer[data-sliding]')?.getAnimations()[0]
@@ -436,7 +458,7 @@ test('a slide started with a Sheet open closes it first, so no panel travels wit
     await route.continue()
   })
   // The backdrop stops the pointer, not the keyboard: a Branch behind the veil is still reached.
-  await page.locator('.answer--yes').focus()
+  await page.locator('.answer--next:nth-child(1)').focus()
   await page.keyboard.press('Enter')
   await expect(page.locator('.tree-layer[data-sliding]')).toHaveCount(1)
   // A fixed panel inside the transformed layer would be laid out in the layer's box, not the viewport's.
@@ -454,8 +476,8 @@ test.describe('with JavaScript switched off', () => {
     const payloads: string[] = []
     page.on('request', (request) => isPagePayload(request) && payloads.push(request.resourceType()))
 
-    const href = await page.locator('.answer--yes').getAttribute('href')
-    await page.locator('.answer--yes').click()
+    const href = await page.locator('.answer--next:nth-child(1)').getAttribute('href')
+    await page.locator('.answer--next:nth-child(1)').click()
     await expect(page).toHaveURL(href!)
     // The Option opens its Overlay in place (14); its heading is the plain link to the aside's address.
     await page.locator('.overlay').first().locator('.sheet-open').click()

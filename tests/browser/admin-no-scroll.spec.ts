@@ -707,10 +707,13 @@ async function unfinishedDraft(page: Page, cookie: string): Promise<string> {
       headers: { Origin: overlayOrigin, Cookie: cookie, 'Content-Type': 'application/json' },
       data: JSON.stringify(data),
     })
-  const made = await api('POST', '/nodes', { from: { node: 'opt-two', link: 'yes' } })
+  const made = await api('POST', '/nodes', { from: { node: 'opt-two', link: 'answer', label: { en: 'Yes', nl: 'Ja' } } })
   expect(made.status()).toBe(201)
   for (const [route, change] of [
-    ['/nodes/full', { op: 'remove-answer', answer: 'yes' }],
+    // **[#221]** Its four next steps down to one, does-not-apply, the second.
+    ['/nodes/full', { op: 'remove-answer', index: 0 }],
+    ['/nodes/full', { op: 'remove-answer', index: 1 }],
+    ['/nodes/full', { op: 'remove-answer', index: 1 }],
     ['/nodes/full', { path: 'title.nl', value: '' }],
     ['/nodes/full', { path: 'description.nl', value: '' }],
     ['/nodes/full', { path: 'images[0].credit', value: '' }],

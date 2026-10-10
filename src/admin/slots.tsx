@@ -140,6 +140,8 @@ export function editMode(address: PageAddress, languages: string[], structure: S
   }
   const fieldWords: FieldWords = { characters: words.characters, lines: words.lines }
   const others: OtherLanguage[] = languages.filter((other) => other !== lang).map((other) => ({ lang: other, href: links.withLang(address, other) }))
+  // **[#221]** `+ Yes` and `+ No` label their next step with the chrome word in every language of the Tree, by 3.1's rule (41.7 item 1).
+  const wordOf = (key: 'yes' | 'no'): Record<string, string> => Object.fromEntries(languages.map((tag) => [tag, chrome(tag)[key]]))
   // The badge leaves `legal` unlabelled under its heading (ADR-78); a select must name every kind.
   const kinds = KINDS.map((kind) => ({ value: kind, label: ui[SOURCE_LABEL[kind] ?? 'sourceLegal'] }))
   const pickerWords: PickerWords = {
@@ -230,17 +232,22 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     },
     onTermClick: TERM_EVENT,
 
-    // The three situations of 30.1: a Terminal or a Node with both Answers takes the public
-    // row; one Answer, the `+` for the other at 620; none, `+ Yes`, `treeEndsHere`, `+ No`.
+    // The three situations of 30.1: a Terminal or a Node with two next steps or more takes the
+    // public row; **[#221]** one next step, the one-click `+ Yes` or `+ No` for the word its label
+    // does not already say in the language edited (41.7 item 2) -- one of them at 620; none,
+    // `+ Yes`, `treeEndsHere`, `+ No`. #222 builds the rest of 41.7.
     structure(node) {
       const has = linksOf(node)
       const here = hereOf(node.id)
-      if (here === null || has.terminal !== undefined || (has.yes !== undefined && has.no !== undefined)) return null
-      if (has.yes !== undefined) return <AnswerAdd nodeId={node.id} link="no" here={here} word={ui.no} lone />
-      if (has.no !== undefined) return <AnswerAdd nodeId={node.id} link="yes" here={here} word={ui.yes} lone />
+      if (here === null || has.terminal !== undefined || has.answers.length > 1) return null
+      if (has.answers.length === 1) {
+        const said = (has.answers[0]!.label[lang] ?? '').trim().toLocaleLowerCase(lang)
+        const lacking = (['yes', 'no'] as const).filter((key) => ui[key].toLocaleLowerCase(lang) !== said)
+        return lacking.map((key) => <AnswerAdd key={key} nodeId={node.id} which={key} word={ui[key]} label={wordOf(key)} here={here} lone={lacking.length === 1} />)
+      }
       return (
         <>
-          <AnswerAdd nodeId={node.id} link="yes" here={here} word={ui.yes} />
+          <AnswerAdd nodeId={node.id} which="yes" word={ui.yes} label={wordOf('yes')} here={here} />
           <Sheet
             className="structure-end"
             editorUi
@@ -258,7 +265,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
             uiLang={uiLang}
             idPrefix={`${node.id}-end-`}
           />
-          <AnswerAdd nodeId={node.id} link="no" here={here} word={ui.no} />
+          <AnswerAdd nodeId={node.id} which="no" word={ui.no} label={wordOf('no')} here={here} />
         </>
       )
     },

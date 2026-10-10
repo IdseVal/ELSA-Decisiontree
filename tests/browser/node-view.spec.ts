@@ -39,7 +39,7 @@ test('the walk works by clicking: yes, an Option, and back', async ({ page }) =>
     'Is your AI system within the reach of the AI Act?',
   )
 
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   await arrived(page, '/ai-act-example/start/prohibited-practices')
 
   // An Option opens its Overlay in place (10.9); the address stays the question's.
@@ -71,7 +71,7 @@ test('the arrow at the top left leads out of the Tree to the overview, in the la
 
 test('no answers a different Node than yes', async ({ page }) => {
   await page.goto(START)
-  await page.locator('.answer--no').click()
+  await page.locator('.answer--next:nth-child(2)').click()
 
   await arrived(page, '/ai-act-example/start/outside-scope')
 })
@@ -80,8 +80,8 @@ test('a Terminal Node shows its outcome and offers no yes or no', async ({ page 
   await page.goto('/ai-act-example/start/outside-scope')
 
   await expect(page.locator('.outcome')).toHaveText('Does not apply')
-  await expect(page.locator('.answer--yes')).toHaveCount(0)
-  await expect(page.locator('.answer--no')).toHaveCount(0)
+  await expect(page.locator('.answer--next:nth-child(1)')).toHaveCount(0)
+  await expect(page.locator('.answer--next:nth-child(2)')).toHaveCount(0)
 })
 
 test('the document declares the language of the content it shows', async ({ page }) => {
@@ -263,10 +263,10 @@ test('a keyboard reaches the Answers and follows one', async ({ page }) => {
     )
   }
 
-  expect(stops).toContain('a.branch answer answer--yes')
-  expect(stops).toContain('a.branch answer answer--no')
+  // **[#221]** Both next steps, in the file's order (41.3).
+  expect(stops.filter((stop) => stop === 'a.branch answer answer--next')).toHaveLength(2)
 
-  await page.locator('.answer--yes').focus()
+  await page.locator('.answer--next:nth-child(1)').focus()
   await page.keyboard.press('Enter')
   await arrived(page, '/ai-act-example/start/prohibited-practices')
 })
@@ -364,12 +364,12 @@ test.describe('with JavaScript switched off', () => {
       'Is your AI system within the reach of the AI Act?',
     )
     await expect(page.locator('.disclaimer')).toContainText('This is not legal advice.')
-    await expect(page.locator('.answer--yes')).toHaveAttribute('href', '/ai-act-example/start/prohibited-practices')
-    await expect(page.locator('.answer--no')).toHaveAttribute('href', '/ai-act-example/start/outside-scope')
+    await expect(page.locator('.answer--next:nth-child(1)')).toHaveAttribute('href', '/ai-act-example/start/prohibited-practices')
+    await expect(page.locator('.answer--next:nth-child(2)')).toHaveAttribute('href', '/ai-act-example/start/outside-scope')
     // The enlarge is a client component; without it the main image is still a link to the file.
     await expect(page.locator('.main-image')).toHaveAttribute('href', '/ai-act-example/images/eu-map.png')
 
-    await page.locator('.answer--yes').click()
+    await page.locator('.answer--next:nth-child(1)').click()
     await arrived(page, '/ai-act-example/start/prohibited-practices')
 
     // With the enlarge unavailable the click is not intercepted, so it opens the file (14).
@@ -381,7 +381,7 @@ test.describe('with JavaScript switched off', () => {
 
 test('nothing about the reader is stored', async ({ page, context }) => {
   await page.goto(START)
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   await arrived(page, '/ai-act-example/start/prohibited-practices')
 
   expect(await context.cookies()).toEqual([])

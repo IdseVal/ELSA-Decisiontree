@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "en",
     "nl",
@@ -41,10 +41,26 @@
       "metadata": {
         "version": "1.0"
       },
-      "answers": {
-        "yes": "applies",
-        "no": "does-not-apply"
-      }
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja",
+            "de": "Yes",
+            "fr": "Yes"
+          },
+          "target": "applies"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee",
+            "de": "No",
+            "fr": "No"
+          },
+          "target": "does-not-apply"
+        }
+      ]
     },
     {
       "id": "applies",

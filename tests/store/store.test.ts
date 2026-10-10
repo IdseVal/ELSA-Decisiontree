@@ -48,10 +48,26 @@ async function folder(): Promise<string> {
  * #179: its two names of itself, and each Terminal's marker an `outcome`, from `outcomes` in order.
  */
 async function writeAs4(file: string, outcomes: string[]): Promise<void> {
+  await writeAs5(file)
   const tree = JSON.parse(await readFile(file, 'utf8')) as { $schema: string; format: string; nodes: Array<{ terminal?: unknown }> }
   tree.$schema = '/schemas/elsa-tree-4.json'
   tree.format = 'elsa-tree/4'
   for (const node of tree.nodes) if (node.terminal) node.terminal = { outcome: outcomes.shift() }
+  await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
+}
+
+/**
+ * **[#221]** Writes the Tree file `file` back as `elsa-tree/5` wrote it: every next step's
+ * target under `yes` and `no`, the first two in order, and the labels gone (12.8 in reverse).
+ */
+async function writeAs5(file: string): Promise<void> {
+  const tree = JSON.parse(await readFile(file, 'utf8')) as { $schema: string; format: string; nodes: Array<{ answers?: unknown }> }
+  tree.$schema = '/schemas/elsa-tree-5.json'
+  tree.format = 'elsa-tree/5'
+  for (const node of tree.nodes) {
+    const answers = node.answers as Array<{ target: string }> | undefined
+    if (answers) node.answers = { yes: answers[0]!.target, no: answers[1]!.target }
+  }
   await writeFile(file, `${JSON.stringify(tree, null, 2)}\n`)
 }
 
@@ -161,7 +177,7 @@ describe('which Trees are served (18.3, 23.1)', () => {
     const seed = await seedOf([path.join(fixtures, 'cycle'), 'cycle'], [path.join(fixtures, 'carousel'), 'carousel'])
     const data = await folder()
     await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
-    await writeFile(path.join(data, 'trees', 'cycle', 'tree.json'), '{ "format": "elsa-tree/5" ')
+    await writeFile(path.join(data, 'trees', 'cycle', 'tree.json'), '{ "format": "elsa-tree/6" ')
 
     const store = await openStore(data, ADMIN)
 
@@ -280,10 +296,13 @@ describe('importTree (17.4)', () => {
     const tree = await importTree(source, treesDir, null)
 
     expect(await tree.getNode('done')).toMatchObject({ kind: 'terminal', label: { en: 'Look elsewhere', nl: 'Elders geregeld' } })
-    expect(conversions(log)).toEqual(['Converted Tree "carousel" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings'])
+    expect(conversions(log)).toEqual([
+      'Converted Tree "carousel" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings',
+      'Converted Tree "carousel" tree.json from elsa-tree/5 to elsa-tree/6: 3 steps',
+    ])
     expect(await readFile(path.join(source, 'tree.json'))).toEqual(before)
     const stored = await readFile(path.join(treesDir, 'carousel', 'tree.json'), 'utf8')
-    expect(JSON.parse(stored)).toMatchObject({ $schema: '/schemas/elsa-tree-5.json', format: 'elsa-tree/5' })
+    expect(JSON.parse(stored)).toMatchObject({ $schema: '/schemas/elsa-tree-6.json', format: 'elsa-tree/6' })
     expect(await readFile(path.join(treesDir, 'carousel', 'draft.json'), 'utf8')).toBe(stored)
     expect(await readdir(treesDir)).toEqual(['carousel'])
   })
@@ -372,16 +391,21 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
 
     const store = await openStore(data, ADMIN)
 
+    // **[#221]** A /4 file takes 12.7 and then 12.8, checked and written once, a line for each.
     expect(conversions(log)).toEqual([
       'Converted Tree "carousel" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings',
+      'Converted Tree "carousel" tree.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "carousel" draft.json from elsa-tree/4 to elsa-tree/5: 1 endings',
+      'Converted Tree "carousel" draft.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "cycle" tree.json from elsa-tree/4 to elsa-tree/5: 1 endings',
+      'Converted Tree "cycle" tree.json from elsa-tree/5 to elsa-tree/6: 3 steps',
       'Converted Tree "cycle" draft.json from elsa-tree/4 to elsa-tree/5: 1 endings',
+      'Converted Tree "cycle" draft.json from elsa-tree/5 to elsa-tree/6: 3 steps',
     ])
     expect(store.publishedIds()).toEqual(['carousel', 'cycle'])
     expect(await store.published('carousel')!.getNode('done')).toMatchObject({ kind: 'terminal', label: { en: 'Prohibited', nl: 'Verboden' } })
     const converted = await readFile(path.join(data, 'trees', 'carousel', 'tree.json'), 'utf8')
-    expect(JSON.parse(converted)).toMatchObject({ $schema: '/schemas/elsa-tree-5.json', format: 'elsa-tree/5' })
+    expect(JSON.parse(converted)).toMatchObject({ $schema: '/schemas/elsa-tree-6.json', format: 'elsa-tree/6' })
     // The two copies converted alike, so the public copy is still the draft's (19.4).
     expect(await readFile(path.join(data, 'trees', 'carousel', 'draft.json'), 'utf8')).toBe(converted)
     // No creator wrote.
@@ -392,6 +416,34 @@ describe('**[#179]** a data directory written by a release before elsa-tree/5 (3
     expect(written.node!.label).toEqual({ en: 'Not allowed', nl: 'Verboden' })
 
     // Converted once: the next start finds nothing to do.
+    log.mockClear()
+    await openStore(data, ADMIN)
+    expect(conversions(log)).toEqual([])
+  })
+
+  test('**[#221]** its elsa-tree/5 files are converted by 12.8, one line each, and every step keeps its targets and says its words (12.8.4)', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: await seedOf([path.join(fixtures, 'cycle'), 'cycle']) })
+    const before = await readFile(path.join(data, 'trees', 'cycle', 'tree.json'), 'utf8')
+    await writeAs5(path.join(data, 'trees', 'cycle', 'tree.json'))
+    await writeAs5(path.join(data, 'trees', 'cycle', 'draft.json'))
+    log.mockClear()
+
+    const store = await openStore(data, ADMIN)
+
+    expect(conversions(log)).toEqual([
+      'Converted Tree "cycle" tree.json from elsa-tree/5 to elsa-tree/6: 3 steps',
+      'Converted Tree "cycle" draft.json from elsa-tree/5 to elsa-tree/6: 3 steps',
+    ])
+    // The fixture is 12.8's own output, so converting its /5 form gives it back byte for byte.
+    expect(await readFile(path.join(data, 'trees', 'cycle', 'tree.json'), 'utf8')).toBe(before)
+    expect(await store.published('cycle')!.getNode('first')).toMatchObject({
+      answers: [
+        { label: { en: 'Yes' }, target: 'second' },
+        { label: { en: 'No' }, target: 'done' },
+      ],
+    })
     log.mockClear()
     await openStore(data, ADMIN)
     expect(conversions(log)).toEqual([])
@@ -632,7 +684,7 @@ describe('**[#197]** the order of joining at the start (39.2), and the one publi
       await editMeta(data, id, (meta) => Object.assign(meta, { creator: anna, collaborators: [bram], joined: [anna, bram] }))
     }
     await rm(path.join(data, 'trees', 'hidden', 'tree.json'))
-    await writeFile(path.join(data, 'trees', 'unservable', 'tree.json'), '{ "format": "elsa-tree/5" ')
+    await writeFile(path.join(data, 'trees', 'unservable', 'tree.json'), '{ "format": "elsa-tree/6" ')
     // A published Tree placed by hand under a reserved id, with roles: held by the drafts, refused by the start.
     await cp(path.join(data, 'trees', 'published'), path.join(data, 'trees', 'theme'), { recursive: true })
 

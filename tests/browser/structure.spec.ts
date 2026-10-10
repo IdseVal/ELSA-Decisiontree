@@ -140,7 +140,7 @@ async function expectChoice(page: Page): Promise<void> {
   await expect(page.locator('.structure-end > .sheet-open')).toHaveText('Tree ends here')
   await expect(page.locator('.structure--no')).toHaveText('+ No')
   await expect(page.locator('.answer--start-again')).toBeHidden()
-  await expect(page.locator('.answer--yes, .answer--no')).toHaveCount(0)
+  await expect(page.locator('.answer--next:nth-child(1), .answer--next:nth-child(2)')).toHaveCount(0)
 }
 
 /** Gives a Node the texts Publish wants (19.3: every rule blocking), through the API; the structure is the browser's. */
@@ -179,13 +179,15 @@ test('the empty root offers + Yes, treeEndsHere and + No; + Yes lands on a new e
   await expectChoice(page)
   await expect(page.locator('.up-arrow')).toHaveAttribute('href', `/admin/trees/${TREE}/start`)
   await shoot(page, 'new-question-node')
-  expect((await nodeOf(page, cookie, 'start')).answers).toEqual({ yes: q1 })
+  // **[#221]** A next step labelled with the chrome word (41.7 item 1).
+  expect((await nodeOf(page, cookie, 'start')).answers).toEqual([{ label: { en: 'Yes' }, target: q1 }])
 
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start']))
   // One Answer: the real button for it, the placeholder for its empty title, and the `+` for the other at 620 (30.1).
-  await expect(page.locator('.answer--yes')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${q1}`)
-  await expect(page.locator('.answer--yes .branch-title')).toHaveText('[Text missing in this language]')
+  await expect(page.locator('.answer--next:nth-child(1)')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${q1}`)
+  await expect(page.locator('.answer--next:nth-child(1) .branch-title')).toHaveText('Yes')
+  await expect(page.locator('.answer--next:nth-child(1)')).toHaveAccessibleName('Yes: [Text missing in this language]')
   await expect(page.locator('.structure--no')).toHaveClass(/structure--lone/)
   await expect(page.locator('.structure--yes')).toHaveCount(0)
   await expect(page.locator('.structure-end')).toHaveCount(0)
@@ -277,11 +279,14 @@ test('+ No makes the second Answer; the new Node gets its own two Answers, each 
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start', n2]))
   // Both Answers: the public row (30.1), **[#178]** with no link menu on either (30.6, amended).
-  await expect(page.locator('.answer--yes')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${n2a}`)
-  await expect(page.locator('.answer--no')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${n2b}`)
+  await expect(page.locator('.answer--next:nth-child(1)')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${n2a}`)
+  await expect(page.locator('.answer--next:nth-child(2)')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${n2b}`)
   await expect(page.locator('.structure, .structure-end')).toHaveCount(0)
   await expect(page.locator('.link-menu')).toHaveCount(0)
-  expect((await nodeOf(page, cookie, n2)).answers).toEqual({ yes: n2a, no: n2b })
+  expect((await nodeOf(page, cookie, n2)).answers).toEqual([
+    { label: { en: 'Yes' }, target: n2a },
+    { label: { en: 'No' }, target: n2b },
+  ])
 })
 
 /**
@@ -338,12 +343,12 @@ test('the side-bubble + creates an Option and its aside at one click and lands o
 test('**[#178]** two Answers reaching one Node, made through the API now that the editor offers no re-pointing, keep working in the editor; the Node it left is an orphan the draft reports (30.6, 30.9)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   // `set-answer` stays in the editor's server interface (22.1); the editor no longer sends it.
-  expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${n2}`, { op: 'set-answer', answer: 'no', target: q1 })).status()).toBe(200)
+  expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${n2}`, { op: 'set-answer', index: 1, target: q1 })).status()).toBe(200)
   await page.goto(editor(['start', n2]))
-  await expect(page.locator('.answer--no')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${q1}`)
+  await expect(page.locator('.answer--next:nth-child(2)')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${q1}`)
   await expect(page.locator('.link-menu')).toHaveCount(0)
-  expect((await nodeOf(page, cookie, n2)).answers).toEqual({ yes: n2a, no: q1 })
-  expect((await nodeOf(page, cookie, 'start')).answers!.yes).toBe(q1)
+  expect((await nodeOf(page, cookie, n2)).answers!.map((answer) => answer.target)).toEqual([n2a, q1])
+  expect((await nodeOf(page, cookie, 'start')).answers![0]!.target).toBe(q1)
 
   // n2b is reached by nothing now: V-REACH, advisory, at the Node (30.9); it is not deleted.
   const orphan = (await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH').map((v) => v.file)
@@ -361,17 +366,22 @@ test('**[#178]** the red cross on the step a yes leads to: one confirmation name
   await question.getByRole('button', { name: 'Confirm' }).click()
   await page.waitForURL(editor(['start', n2]))
   deleted.push(n2a)
-  await expect(page.locator('.answer--yes')).toHaveCount(0)
+  // **[#221]** The No that stays is the one next step; the + for the word it lacks is Yes (41.7 item 2).
+  await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next')).toHaveCount(1)
   await expect(page.locator('.structure--yes')).toHaveClass(/structure--lone/)
   expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/${n2a}`)).status()).toBe(404)
-  expect((await nodeOf(page, cookie, n2)).answers).toEqual({ no: q1 })
+  expect((await nodeOf(page, cookie, n2)).answers).toEqual([{ label: { en: 'No' }, target: q1 }])
 
   await page.locator('.structure--yes').click()
   n2c = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
   await expectChoice(page)
   await endHere(page, 'Does not apply')
   await expect(badge(page, n2c).locator('textarea')).toHaveValue('Does not apply')
-  expect((await nodeOf(page, cookie, n2)).answers).toEqual({ yes: n2c, no: q1 })
+  // Appended last, where its + stood (41.7 item 3).
+  expect((await nodeOf(page, cookie, n2)).answers).toEqual([
+    { label: { en: 'No' }, target: q1 },
+    { label: { en: 'Yes' }, target: n2c },
+  ])
   // n2a is gone, so it is no orphan; n2b still is.
   expect((await advisory(page, cookie)).filter((v) => v.rule === 'V-REACH').map((v) => v.file)).toEqual([n2b])
 })
@@ -516,9 +526,9 @@ test('**[#179]** an ending typed to its limit in English and in Dutch is the bad
   const { page, cookie } = await loggedIn(browser)
   const call = (method: string, route: string, data?: unknown) => api(page, cookie, method, `/trees/${ENDING}${route}`, data)
   expect((await api(page, cookie, 'POST', '/trees', { id: ENDING, languages: ['en', 'nl'], title: { en: 'An ending', nl: 'Een einde' } })).status()).toBe(201)
-  const create = async (link: 'yes' | 'no'): Promise<string> => ((await (await call('POST', '/nodes', { from: { node: 'start', link } })).json()) as { node: { id: string } }).node.id
-  const step = await create('yes')
-  const other = await create('no')
+  const create = async (label: Record<string, string>): Promise<string> => ((await (await call('POST', '/nodes', { from: { node: 'start', link: 'answer', label } })).json()) as { node: { id: string } }).node.id
+  const step = await create({ en: 'Yes', nl: 'Ja' })
+  const other = await create({ en: 'No', nl: 'Nee' })
   for (const [id, en, nl] of [
     ['start', 'Is a safeguard needed?', 'Is een maatregel nodig?'],
     [step, 'A safeguard is needed', 'Een maatregel is nodig'],

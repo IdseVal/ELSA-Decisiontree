@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "en",
     "nl"
@@ -11,8 +11,8 @@
     "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
   },
   "description": {
-    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+    "en": "A small example Tree that exercises every element of the `elsa-tree/6` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/6`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
   "metadata": {
     "version": "2.0",
@@ -89,10 +89,22 @@
           "source": "art-2"
         }
       ],
-      "answers": {
-        "yes": "prohibited-practices",
-        "no": "outside-scope"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "prohibited-practices"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "outside-scope"
+        }
+      ],
       "explainers": [
         {
           "id": "provider",
@@ -171,10 +183,22 @@
           "credit": "Placeholder drawn for this repository, CC0 1.0"
         }
       ],
-      "answers": {
-        "yes": "prohibited",
-        "no": "covered"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "prohibited"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "covered"
+        }
+      ],
       "options": [
         {
           "title": {

@@ -11,6 +11,8 @@
  * the one Overlay a URL may name that is not an aside of the centre -- the seventeen a
  * response may carry (11.5). Seventeen is a contract, not a setting: widening it is an
  * architecture decision, because it is what stands between a page and the whole Tree.
+ * **[#221]** #220 took that decision (application.md 41.5): a step has up to four next steps,
+ * so the placed neighbours are at most 1 + 4 + 16 and a page reads at most **31** Nodes.
  */
 import type { Readable, Tree } from './tree/loader.ts'
 import { linksOf, type DraftNode, type Node } from './tree/types.ts'
@@ -31,11 +33,12 @@ export interface Placed<N extends Node | DraftNode = Node> {
   address: PageAddress
   direction: Direction
   /**
-   * Its place in its direction. `up`: the parent, by the step down it undoes -- 0 when the
-   * Node on screen is the parent's `yes` target, 1 its `no` target, 2 any other step. `down`:
-   * 0 and 1 the `yes` and `no` targets, 2 to 5 their `yes` and `no` targets in that order.
+   * **[#221]** Where its frame stands, in place of #102's `slot` (application.md 41.5): `x`
+   * across in layer widths, `y` down in layer heights -- -1 the parent, 1 the centre's next
+   * steps, 2 theirs. The layer and the slide read these and nothing else.
    */
-  slot: number
+  x: number
+  y: number
 }
 
 /**
@@ -52,7 +55,7 @@ export interface Aside<N extends Node | DraftNode = Node> {
 }
 
 export interface Neighbourhood<N extends Node | DraftNode = Node> {
-  /** At most 7: the parent `up`, the Answer targets and theirs `down`. */
+  /** At most 21: the parent `up`, the Answer targets and theirs `down`. */
   placed: Placed<N>[]
   /** At most 8: the centre's Option targets, in Option order. */
   asides: Aside<N>[]
@@ -72,8 +75,8 @@ export interface Centre<N extends Node | DraftNode = Node> {
   known: N[]
 }
 
-/** The bound of 11.2 on placed neighbours: the parent, two Answer targets and their four. */
-export const MAX_PLACED = 7
+/** **[#221]** The bound of 41.5 on placed neighbours: the parent, four next steps and their sixteen. */
+export const MAX_PLACED = 21
 /** The bound of 11.2 on asides: the format's eight Options. */
 export const MAX_ASIDES = 8
 /** The bound of 11.2 on the aside chain: an aside of the centre, and the one Overlay a URL may name that is not. */
@@ -88,7 +91,7 @@ export const MAX_CHAIN = 2
  * `parseUrl` has already ruled out for every id it accepts.
  *
  * Reads the last `MAX_CHAIN + 1` entries at most, because a path may be 50 entries of
- * anything (4.3 checks no adjacency) and the seventeen of 11.2 are a contract: the walk back
+ * anything (4.3 checks no adjacency) and the thirty-one of 41.5 are a contract: the walk back
  * stops after `MAX_CHAIN` explanation Nodes, and the entry before them is the centre
  * whatever its kind. And the first of a chain of two is an aside of that centre or it is
  * the centre itself, under the entry before it: either way the open Overlay is the only
@@ -159,9 +162,9 @@ export function draftCentre<N extends Node | DraftNode>(centre: Centre<N>): Cent
  * once: one `getNode` for the centre, one per entry of its chain (`centreOf`), and here one
  * per neighbour it has not seen (11.2, last bullet).
  *
- * **[#205]** It reads a Tree or a draft (`Readable`, 34.6), and a Node's Links through `linksOf`:
- * a draft's question step with one Answer places that one in its own slot, and nothing in the
- * other (40.2). A published Node's pair is read as before.
+ * **[#205]** It reads a Tree or a draft (`Readable`, 34.6), and a Node's Links through `linksOf`.
+ * **[#221]** A step's *n* next steps stand a layer width apart, centred under it: the *i*-th at
+ * `x` = *i* - (*n* - 1) / 2 (41.5), so a draft's lone next step stands straight below.
  */
 export async function neighbourhood<N extends Node | DraftNode>(tree: Readable<N>, at: PageAddress, node: N, known: N[] = []): Promise<Neighbourhood<N>> {
   const read = new Map<string, Promise<N | null>>(known.map((n) => [n.id, Promise.resolve(n)]))
@@ -170,42 +173,43 @@ export async function neighbourhood<N extends Node | DraftNode>(tree: Readable<N
     return read.get(id)!
   }
 
-  const wanted: { address: PageAddress; direction: Direction; slot: number }[] = []
+  const wanted: { address: PageAddress; direction: Direction; x: number; y: number }[] = []
 
   // The parent only: the up arrow goes one step back, so the grandparent is never one click away (10.2).
-  // Its slot is the Answer that led down from it, so that going back retraces that step (11.3).
+  // It stands where the step down from it came from, so that going back retraces that step (11.3):
+  // above the first of its next steps that names the centre, mirrored; straight above otherwise.
   if (at.trail.length > 0) {
     const index = at.trail.length - 1
     const parent = await get(at.trail[index]!)
-    const links = parent && linksOf(parent)
-    const answer = links ? [links.yes, links.no].indexOf(node.id) : -1
+    const steps = parent ? linksOf(parent).answers : []
+    const step = steps.findIndex((answer) => answer.target === node.id)
     wanted.push({
       address: { ...at, trail: at.trail.slice(0, index), nodeId: at.trail[index]! },
       direction: 'up',
-      slot: answer === -1 ? 2 : answer,
+      x: step === -1 ? 0 : across(steps.length - 1 - step, steps.length),
+      y: -1,
     })
   }
 
-  // A slot is the Answer's, so a draft's lone `no` is drawn where a `no` is.
-  const { yes, no } = linksOf(node)
-  const children = [yes, no].map((id) => (id === undefined ? null : followed(at, id)))
-  children.forEach((address, slot) => address && wanted.push({ address, direction: 'down', slot }))
-  for (const [index, child] of children.entries()) {
-    if (!child) continue
-    const answers = await get(child.nodeId)
-    if (!answers) continue
-    const below = linksOf(answers)
-    ;[below.yes, below.no].forEach((id, which) => id !== undefined && wanted.push({ address: followed(child, id), direction: 'down', slot: 2 + index * 2 + which }))
+  // The second level is counted before deduplication, so a step's frames keep their places
+  // whichever of them another placement already took (41.5).
+  const children = linksOf(node).answers.map((answer) => followed(at, answer.target))
+  children.forEach((address, i) => wanted.push({ address, direction: 'down', x: across(i, children.length), y: 1 }))
+  const grandchildren: PageAddress[] = []
+  for (const child of children) {
+    const below = await get(child.nodeId)
+    if (below) grandchildren.push(...linksOf(below).answers.map((answer) => followed(child, answer.target)))
   }
+  grandchildren.forEach((address, k) => wanted.push({ address, direction: 'down', x: across(k, grandchildren.length), y: 2 }))
 
   const placed: Placed<N>[] = []
   const seen = new Set([node.id])
-  for (const { address, direction, slot } of wanted) {
+  for (const { address, direction, x, y } of wanted) {
     if (seen.has(address.nodeId)) continue
     const neighbour = await get(address.nodeId)
     if (!neighbour) continue
     seen.add(neighbour.id)
-    placed.push({ node: neighbour, href: nodeHref(address), address, direction, slot })
+    placed.push({ node: neighbour, href: nodeHref(address), address, direction, x, y })
   }
 
   const asides: Aside<N>[] = []
@@ -216,7 +220,7 @@ export async function neighbourhood<N extends Node | DraftNode>(tree: Readable<N
     asides.push({ node: target, href: nodeHref(address), address })
   }
 
-  // The directions already add up to at most 1 + 6, and the format to 8 Options; the slices
+  // The directions already add up to at most 1 + 20, and the format to 8 Options; the slices
   // state the contract where a later change to them would otherwise break it silently.
   return { placed: placed.slice(0, MAX_PLACED), asides: asides.slice(0, MAX_ASIDES) }
 }
@@ -240,6 +244,11 @@ export async function loadPage(tree: Tree, address: PageAddress): Promise<NodePa
   if (!centre) return null
   const neighbours = await neighbourhood(tree, centre.address, centre.node, centre.known)
   return { address, centre, neighbours }
+}
+
+/** **[#221]** The place across of the `i`-th of `n` frames standing a layer width apart, centred (41.5). */
+function across(i: number, n: number): number {
+  return i - (n - 1) / 2
 }
 
 /** The address a Link from `at` to `id` reaches: `at` joins the Trail, as `followHref` builds it. */

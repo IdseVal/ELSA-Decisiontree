@@ -88,8 +88,8 @@ async function smallTree(id: string): Promise<{ yes: string; no: string }> {
     }
   }
   await fill('start', 'Start')
-  const yes = (await drafts.createNode(cees, id, { node: 'start', link: 'yes' })).node!.id
-  const no = (await drafts.createNode(cees, id, { node: 'start', link: 'no' })).node!.id
+  const yes = (await drafts.createNode(cees, id, { node: 'start', link: 'answer', label: { en: 'Yes', nl: 'Ja' } })).node!.id
+  const no = (await drafts.createNode(cees, id, { node: 'start', link: 'answer', label: { en: 'No', nl: 'Nee' } })).node!.id
   await fill(yes, 'Yes')
   await fill(no, 'No')
   await drafts.createNode(cees, id, { node: yes, link: 'end', label: { en: 'Applies', nl: 'Van toepassing' } })
@@ -103,8 +103,8 @@ describe('creating a Tree (22.1, 27.2)', () => {
     expect(entry).toMatchObject({ id: 'my-tree', published: false, servable: false, blocking: [] })
     expect(entry.meta).toMatchObject({ creator: cees.id, collaborators: [], publishCount: 0, revision: 0 })
     expect(JSON.parse(await text('my-tree', 'draft.json'))).toEqual({
-      $schema: '/schemas/elsa-tree-5.json',
-      format: 'elsa-tree/5',
+      $schema: '/schemas/elsa-tree-6.json',
+      format: 'elsa-tree/6',
       languages: ['nl', 'en'],
       root: 'start',
       title: { nl: 'Mijn boom', en: '' },
@@ -202,6 +202,8 @@ describe('the unit of a write (22.2)', () => {
       ['start', 'id'],
       ['start', 'metadata.version'],
       ['start', 'answers.yes'],
+      // **[#221]** A next step's words are the one field of `answers` (41.7 item 6).
+      ['start', 'answers[0].target'],
       ['start', 'sources[0].label.en'],
       ['start', 'title'],
       ['start', 'constructor.prototype'],
@@ -247,7 +249,9 @@ describe('the unit of a write (22.2)', () => {
       ['start', { path: 'title.en', value: 'two\nlines' }, 'V-PLAIN'],
       ['start', { path: 'description.en', value: '<script>x</script>' }, 'V-HTML'],
       [null, { path: 'root', value: 'nowhere' }, 'V-ROOT'],
-      ['start', { op: 'set-answer', answer: 'yes', target: 'nowhere' }, 'V-ANSWERS'],
+      // **[#221]** A next step is named by its place: the first of a fresh step is appended.
+      ['start', { op: 'set-answer', index: 0, target: 'nowhere' }, 'V-ANSWERS'],
+      ['start', { op: 'set-answer', index: 1, target: 'start' }, 'V-KEYS'],
       ['start', { op: 'add-option', target: 'nowhere', title: { en: 'o' } }, 'V-OPTIONS'],
       ['start', { op: 'add-image', file: 'not-uploaded.png', credit: 'c' }, 'V-IMAGE'],
       ['start', { op: 'add-source', kind: 'rumour', label: { en: 'l' }, url: 'https://example.org' }, 'schema'],
@@ -301,12 +305,22 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
     expect((await start()).options).toEqual([{ title: { en: 'Again' }, target: aside }])
     await op({ op: 'remove-option', target: aside })
 
-    const end = (await drafts.createNode(cees, 't', { node: 'start', link: 'yes' })).node!.id
+    // **[#221]** The next steps by their place (41.7 item 6): set, move, their words, remove.
+    const end = (await drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: { en: 'Yes' } })).node!.id
     await drafts.createNode(cees, 't', { node: end, link: 'end', label: { en: 'Applies' } })
-    await op({ op: 'set-answer', answer: 'no', target: end })
-    expect((await start()).answers).toEqual({ yes: end, no: end })
-    await op({ op: 'remove-answer', answer: 'yes' })
-    await op({ op: 'remove-answer', answer: 'no' })
+    await drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: { en: 'No' } })
+    await op({ op: 'set-answer', index: 1, target: end })
+    expect((await start()).answers).toEqual([
+      { label: { en: 'Yes' }, target: end },
+      { label: { en: 'No' }, target: end },
+    ])
+    expect((await refusal(op({ op: 'set-answer', index: 0, target: 'nowhere' }))).rules).toEqual(['V-ANSWERS'])
+    await op({ op: 'move-answer', index: 1, to: 0 })
+    await drafts.write(cees, 't', 'start', { path: 'answers[1].label.en', value: 'Yes, indeed' })
+    expect((await start()).answers.map((answer: { label: { en: string } }) => answer.label.en)).toEqual(['No', 'Yes, indeed'])
+    expect((await refusal(op({ op: 'move-answer', index: 0, to: 2 }))).status).toBe(422)
+    await op({ op: 'remove-answer', index: 0 })
+    await op({ op: 'remove-answer', index: 0 })
     expect(await start()).not.toHaveProperty('answers')
 
     await op({ op: 'set-terminal', label: { en: 'Look elsewhere' } })
@@ -320,16 +334,42 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
 
   test('creating a Node writes the Node and its Link in one write; the id is the server’s', async () => {
     await drafts.create(cees, 't', ['en'], { en: 'T' })
-    const response = await drafts.createNode(cees, 't', { node: 'start', link: 'yes' }, { en: 'Next' })
+    const response = await drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: { en: 'Yes' } }, { en: 'Next' })
     expect(response.revision).toBe(1)
     expect(response.node!.id).toMatch(/^n-[a-z2-7]{6}$/)
     expect(response.node!.title).toEqual({ en: 'Next' })
-    expect(response.also!.map((also) => also.node!.answers)).toEqual([{ yes: response.node!.id }])
+    expect(response.also!.map((also) => also.node!.answers)).toEqual([[{ label: { en: 'Yes' }, target: response.node!.id }]])
     // A free, valid id may be named; a taken one is 409.
-    expect((await drafts.createNode(cees, 't', { node: 'start', link: 'no' }, undefined, 'my-step')).node!.id).toBe('my-step')
+    expect((await drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: {} }, undefined, 'my-step')).node!.id).toBe('my-step')
     expect((await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'option' }, undefined, 'my-step'))).status).toBe(409)
     // An end on a Node with Answers is refused: a question Node is not a Terminal (V-KIND).
     expect((await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'end', label: { en: 'Ends' } }))).status).toBe(422)
+  })
+
+  test('**[#221]** a next step is appended last with its words, "" for every other language; a fifth is 422 with V-ANSWERS and nothing is stored', async () => {
+    await drafts.create(cees, 't', ['en', 'nl'], { en: 'T', nl: 'T' })
+    const words = ['Yes', 'No', 'Not sure', 'Partly']
+    const made: string[] = []
+    for (const en of words) made.push((await drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: { en } })).node!.id)
+    const start = async () => JSON.parse(await text('t', 'draft.json')).nodes[0]
+    expect((await start()).answers).toEqual(words.map((en, i) => ({ label: { en, nl: '' }, target: made[i] })))
+    expect(drafts.entry(cees, 't').advisory.map((violation) => `${violation.file} ${violation.keyPath} ${violation.rule}`)).toContain('start answers[3].label.nl V-L10N')
+
+    const before = await text('t', 'draft.json')
+    const refused = await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: { en: 'Fifth' } }))
+    expect(refused).toMatchObject({ status: 422, rules: ['V-ANSWERS'] })
+    expect((await refusal(drafts.write(cees, 't', 'start', { op: 'set-answer', index: 4, target: made[0]! }))).rules).toEqual(['V-ANSWERS'])
+    expect(await text('t', 'draft.json')).toBe(before)
+    // The place after the last appends a next step to an existing Node, its words "" unless given.
+    await drafts.write(cees, 't', made[0]!, { op: 'set-answer', index: 0, target: made[1]! })
+    await drafts.write(cees, 't', made[0]!, { op: 'set-answer', index: 1, target: made[2]!, label: { nl: 'Nee' } })
+    expect(JSON.parse(await text('t', 'draft.json')).nodes[1].answers).toEqual([
+      { label: { en: '', nl: '' }, target: made[1] },
+      { label: { nl: 'Nee', en: '' }, target: made[2] },
+    ])
+    // An answer without words is no next step: there is nothing to write on its button.
+    expect((await refusal(drafts.createNode(cees, 't', { node: made[0]!, link: 'answer' }))).status).toBe(422)
+    expect((await refusal(drafts.createNode(cees, 't', { node: made[0]!, link: 'yes' }))).rules).toEqual(['V-KEYS'])
   })
 
   test('**[#179]** an end holds the words it was given and "" for every other language, each a to-do; the outcome is gone from the interface', async () => {
@@ -390,8 +430,10 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
 
   test('deleting a Node removes every Link to it in the same write; the root cannot be deleted', async () => {
     await drafts.create(cees, 't', ['en'], { en: 'T' })
-    const target = (await drafts.createNode(cees, 't', { node: 'start', link: 'yes' })).node!.id
-    await drafts.write(cees, 't', 'start', { op: 'set-answer', answer: 'no', target })
+    const target = (await drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: {} })).node!.id
+    // **[#221]** A second next step, re-pointed at the first one's target: two Links to one Node.
+    await drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: {} })
+    await drafts.write(cees, 't', 'start', { op: 'set-answer', index: 1, target })
     const aside = (await drafts.createNode(cees, 't', { node: target, link: 'option' }, { en: 'Aside' })).node!.id
     const second = (await drafts.createNode(cees, 't', { node: 'start', link: 'option' }, { en: 'Second' })).node!.id
     await drafts.write(cees, 't', second, { op: 'add-option', target: aside, title: { en: 'Aside too' } })
@@ -400,7 +442,7 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
     expect(response.node).toBeNull()
     expect(response.also!.map((also) => also.node!.id)).toEqual(['start'])
     const draft = JSON.parse(await text('t', 'draft.json'))
-    expect(draft.nodes.map((node: { id: string }) => node.id)).toEqual(['start', aside, second])
+    expect(draft.nodes.map((node: { id: string }) => node.id)).toEqual(['start', expect.any(String), aside, second])
     expect(draft.nodes[0]).not.toHaveProperty('answers')
     // What the deleted Node led to stays.
     await drafts.deleteNode(cees, 't', second)
@@ -619,7 +661,7 @@ describe('pictures (22.6)', () => {
 describe('an uneditable Tree (19.5)', () => {
   test('a hand-edited draft that breaks a blocking rule is held, reported, and refuses every write with 409', async () => {
     await drafts.create(cees, 't', ['en'], { en: 'T' })
-    await writeFile(file('t', 'draft.json'), '{ "format": "elsa-tree/5", "format": "twice" }\n')
+    await writeFile(file('t', 'draft.json'), '{ "format": "elsa-tree/6", "format": "twice" }\n')
     store = await openStore(data, ADMIN)
     drafts = store.drafts
     const entry = drafts.entry(cees, 't')
@@ -920,13 +962,16 @@ describe('**[#147]** the languages of an existing Tree (22.2, 33.5)', () => {
 
   test('**[#179]** a Terminal\'s words are one localised text more: add-language writes "" into them, remove-language takes its text out (22.2)', async () => {
     await drafts.create(cees, 'end-tree', ['nl'], { nl: 'Boom' })
-    const end = (await drafts.createNode(cees, 'end-tree', { node: 'start', link: 'yes' })).node!.id
+    const end = (await drafts.createNode(cees, 'end-tree', { node: 'start', link: 'answer', label: { nl: 'Ja' } })).node!.id
     await drafts.createNode(cees, 'end-tree', { node: end, link: 'end', label: { nl: 'Verboden' } })
 
     const added = await drafts.write(cees, 'end-tree', null, { op: 'add-language', tag: 'en' })
 
     expect(added.also!.find((also) => also.node!.id === end)!.node!.label).toEqual({ nl: 'Verboden', en: '' })
     expect(l10n('end-tree')).toContain(`${end} terminal.label.en`)
+    // **[#221]** And a next step's words are one more (22.2).
+    expect(added.also!.find((also) => also.node!.id === 'start')!.node!.answers).toEqual([{ label: { nl: 'Ja', en: '' }, target: end }])
+    expect(l10n('end-tree')).toContain('start answers[0].label.en')
 
     await drafts.write(cees, 'end-tree', end, { path: 'terminal.label.en', value: 'Prohibited' })
     await drafts.write(cees, 'end-tree', null, { op: 'set-default-language', tag: 'en' })

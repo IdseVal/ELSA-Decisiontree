@@ -1743,6 +1743,7 @@ languages. The public page has none, and its notice keeps its padding of 24.
 
 **[#220]** (2026-10-09) A step of three or four next steps has a higher floor below 390 pixels wide: it shows the
 notice below 560 pixels tall, the least 41.4's rule allows (41.4, measured).
+**[#221]** (2026-10-10) Measured by 41.4's rule, the width is **600**: below 600 pixels wide and 560 tall (41.4).
 
 ### 10.5 Below the guarantee: the degradation order
 
@@ -1834,6 +1835,7 @@ it. The overview's bar keeps the pill at every width, and so does the preview's 
 **[#220]** (2026-10-09) #82's shortening above goes: a button shows its next step's label, at most 19 characters,
 at every width (41.2). A step of three or four next steps stands its buttons two a row below 1000
 pixels wide and shows the notice below 390 x 560 at least (41.3, 41.4); nothing in the table moves for it.
+**[#221]** (2026-10-10) Below 600 x 560, as #221 measured it (41.4).
 
 ### 10.6 The no-scroll rule, and the exact test
 
@@ -6930,6 +6932,20 @@ at 360 x 481, and two a row needs a third row, which overflows the full Node in 
     languages, at part 2's sixteen widths, in the CI runner's faces (DejaVu Sans, Liberation Sans)
     and on Windows (Segoe UI, Verdana), and records the three numbers here with its output. The
     rules are fixed; only the numbers wait for the measurement.
+  - **[#221] Measured (2026-10-10): the width is 600, the height 560, and 41.3's 1000 stands.** On
+    the built row, the full Node with three and with four next steps of 19 characters, both
+    languages, at part 2's sixteen widths, in Segoe UI and Verdana on Windows and in Liberation
+    Sans and DejaVu Sans in Linux (Ubuntu 24.04, the CI runner's release), each face proved by
+    Chromium's own report of the font it drew: every face fits a window 481 tall from 600 up to
+    999, and at 480 and 520 wide needs **488** -- two rows of buttons with the row's padding of 4
+    above and below, which stops below 480, leave the full Node's text 4 pixels short -- so the
+    width is 600; below 600 the highest need is **536** (DejaVu Sans and Verdana at 321 wide, three
+    next steps, English), 540 rounded, so the height stays 560; and one row of four fits at 481 at
+    1000, 1100 and 1279 in every face. Liberation Sans gives Segoe UI's windows and DejaVu Sans
+    Verdana's, cell for cell. A step of three or four next steps shows the notice **below 600
+    pixels wide and 560 tall**, naming 560. The script and its whole output are
+    `docs/research/issue-221-answer-row-faces.md`; `no-scroll.spec.ts` holds the page at 599 and
+    600 x 481 and at 599 x 559 and 560 (41.9).
 - Nothing else in 10.5's order moves: the Answer buttons are never given up, at any count.
 - The notice's two sentences are 10.4's; a step of two next steps never shows it above the floor.
 

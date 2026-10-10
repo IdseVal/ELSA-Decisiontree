@@ -35,9 +35,9 @@ async function at(tree: Tree, pathname: string, lang = 'en'): Promise<{ address:
   return { address, node: (await tree.getNode(address.nodeId))! }
 }
 
-/** `direction slot id` for each placement, in the order returned. */
+/** **[#221]** `direction x,y id` for each placement, in the order returned (41.5). */
 function summary(placed: Placed<Node | DraftNode>[]): string[] {
-  return placed.map((p) => `${p.direction} ${p.slot} ${p.node.id}`)
+  return placed.map((p) => `${p.direction} ${p.x},${p.y} ${p.node.id}`)
 }
 
 /** A copy of `tree` that counts its `getNode` calls. */
@@ -148,11 +148,13 @@ describe('which Nodes surround the centre', () => {
     const { placed, asides } = await neighbourhood(example, address, node)
 
     // start -> yes prohibited-practices (a question: prohibited, covered), no outside-scope (a Terminal).
+    // **[#221]** The second level is every next step of the first, K of them: here two, which
+    // stand where two stand under one step (41.5), not where #102's slots kept them.
     expect(summary(placed)).toEqual([
-      'down 0 prohibited-practices',
-      'down 1 outside-scope',
-      'down 2 prohibited',
-      'down 3 covered',
+      'down -0.5,1 prohibited-practices',
+      'down 0.5,1 outside-scope',
+      'down -0.5,2 prohibited',
+      'down 0.5,2 covered',
     ])
     expect(placed[0]!.href).toBe(followHref(address, 'prohibited-practices'))
     expect(placed[2]!.href).toBe('/ai-act-example/start/prohibited-practices/prohibited')
@@ -163,7 +165,7 @@ describe('which Nodes surround the centre', () => {
     const { address, node } = await at(example, '/ai-act-example/start/prohibited-practices')
     const { placed, asides } = await neighbourhood(example, address, node)
 
-    expect(summary(placed)).toEqual(['up 0 start', 'down 0 prohibited', 'down 1 covered'])
+    expect(summary(placed)).toEqual(['up 0.5,-1 start', 'down -0.5,1 prohibited', 'down 0.5,1 covered'])
     expect(placed[0]!.href).toBe(trailHref(address, 0))
     expect(asides.map((aside) => aside.node.id)).toEqual(['social-scoring', 'emotion-recognition-at-work'])
     // An aside's address is the explanation Node's own, under this centre (10.9).
@@ -173,20 +175,20 @@ describe('which Nodes surround the centre', () => {
 
   test('only the parent is `up`: the grandparent is no longer one click away (11.2)', async () => {
     const { address, node } = await at(example, '/ai-act-example/start/prohibited-practices/prohibited')
-    expect(summary((await neighbourhood(example, address, node)).placed)).toEqual(['up 0 prohibited-practices'])
+    expect(summary((await neighbourhood(example, address, node)).placed)).toEqual(['up 0.5,-1 prohibited-practices'])
   })
 
-  test("`up` knows the step it undoes: slot 0 under the parent's `yes`, 1 under its `no`, 2 for any other step (11.3)", async () => {
+  test("`up` knows the step it undoes: above and right of the first of two, above and left of the second, straight above any other step (11.3, 41.5)", async () => {
     const up = async (pathname: string) => {
       const { address, node } = await at(example, pathname)
       return summary((await neighbourhood(example, address, node)).placed).filter((s) => s.startsWith('up'))
     }
     // start -> yes prohibited-practices -> no covered.
-    expect(await up('/ai-act-example/start/prohibited-practices')).toEqual(['up 0 start'])
-    expect(await up('/ai-act-example/start/prohibited-practices/covered')).toEqual(['up 1 prohibited-practices'])
-    expect(await up('/ai-act-example/start/outside-scope')).toEqual(['up 1 start'])
+    expect(await up('/ai-act-example/start/prohibited-practices')).toEqual(['up 0.5,-1 start'])
+    expect(await up('/ai-act-example/start/prohibited-practices/covered')).toEqual(['up -0.5,-1 prohibited-practices'])
+    expect(await up('/ai-act-example/start/outside-scope')).toEqual(['up -0.5,-1 start'])
     // Adjacency is not checked (4.3): `covered` is neither Answer of `start`, so the step was straight down.
-    expect(await up('/ai-act-example/start/covered')).toEqual(['up 2 start'])
+    expect(await up('/ai-act-example/start/covered')).toEqual(['up 0,-1 start'])
   })
 
   test('nothing is placed `side`: an Option target is an aside, and an aside that is also placed stays an aside', async () => {
@@ -233,7 +235,7 @@ describe('which Nodes surround the centre', () => {
 })
 
 describe('the bound', () => {
-  test('every reachable Node of both Trees, reached by its path: at most 7 placed, 8 asides, no id placed twice, one read each', async () => {
+  test('every reachable Node of both Trees, reached by its path: at most 21 placed, 8 asides, no id placed twice, one read each', async () => {
     for (const tree of [example, fullNode]) {
       // Walk the Tree by its Links from the root, each Node reached with the Trail that got there.
       const queue: string[] = [`/${tree.id}/${tree.manifest.root}`]
@@ -252,17 +254,17 @@ describe('the bound', () => {
         const ids = placed.map((p) => p.node.id)
         expect(new Set(ids).size, pathname).toBe(ids.length)
         expect(ids, pathname).not.toContain(node.id)
-        // One `getNode` per neighbour at most, so the page's total stays at seventeen (11.2).
+        // One `getNode` per neighbour at most, so the page's total stays at thirty-one (41.5).
         expect(counted.reads(), pathname).toBeLessThanOrEqual(MAX_PLACED + MAX_ASIDES)
 
-        const links = [...(node.kind === 'question' ? [node.answers.yes, node.answers.no] : []), ...node.options.map((o) => o.target)]
+        const links = [...(node.kind === 'question' ? node.answers.map((answer) => answer.target) : []), ...node.options.map((o) => o.target)]
         for (const id of links) queue.push(`${pathname}/${id}`)
       }
       expect(visited.size).toBeGreaterThan(1)
     }
   })
 
-  test('a whole page -- centre, chain and neighbourhood -- reads at most 17 Nodes, and an aside the chain named is read once', async () => {
+  test('a whole page -- centre, chain and neighbourhood -- reads at most 31 Nodes, and an aside the chain named is read once', async () => {
     for (const pathname of [
       '/ai-act-example/start/prohibited-practices/social-scoring',
       '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
@@ -286,7 +288,7 @@ describe('the bound', () => {
         ...page.neighbours.asides.map((a) => a.node.id),
       ])
       expect(counted.reads(), pathname).toBe(carried.size)
-      expect(counted.reads(), pathname).toBeLessThanOrEqual(17)
+      expect(counted.reads(), pathname).toBeLessThanOrEqual(31)
     }
   })
 
@@ -296,7 +298,7 @@ describe('the bound', () => {
     const missing: Tree = { ...example, getNode: async (id) => (id === 'covered' ? null : example.getNode(id)) }
 
     const { placed, asides } = await neighbourhood(missing, address, node)
-    expect(summary(placed)).toEqual(['up 0 start', 'down 0 prohibited'])
+    expect(summary(placed)).toEqual(['up 0.5,-1 start', 'down -0.5,1 prohibited'])
     expect(asides.map((aside) => aside.node.id)).toEqual(['social-scoring', 'emotion-recognition-at-work'])
 
     const gone: Tree = { ...example, getNode: async (id) => (id === 'social-scoring' ? null : example.getNode(id)) }
@@ -336,10 +338,10 @@ afterAll(async () => {
 })
 
 describe('**[#206]** over a draft, for the preview of a hidden Tree (40.2)', () => {
-  test('a question step with one Answer places that one, in its own slot, and nothing in the other', async () => {
+  test('a question step with one Answer places that one, **[#221]** straight below it (41.5)', async () => {
     for (const [answers, expected] of [
-      [{ no: 'does-not-apply' }, ['down 1 does-not-apply']],
-      [{ yes: 'applies' }, ['down 0 applies']],
+      [[{ label: { en: 'No', nl: 'Nee' }, target: 'does-not-apply' }], ['down 0,1 does-not-apply']],
+      [[{ label: { en: 'Yes', nl: 'Ja' }, target: 'applies' }], ['down 0,1 applies']],
     ] as const) {
       const draft = await fullNodeDraft((nodes) => {
         nodes.full!.answers = answers
@@ -353,19 +355,22 @@ describe('**[#206]** over a draft, for the preview of a hidden Tree (40.2)', () 
     }
   })
 
-  test("a lone Answer's target is placed above, in its Answer's slot, when the reader goes up from it", async () => {
+  test("a lone Answer's target is placed **[#221]** straight above, when the reader goes up from it", async () => {
     const draft = await fullNodeDraft((nodes) => {
-      nodes.full!.answers = { no: 'does-not-apply' }
+      nodes.full!.answers = [{ label: { en: 'No', nl: 'Nee' }, target: 'does-not-apply' }]
     })
     const address = parseUrl('/full-node/full/does-not-apply', 'en', draft)!
     const { placed } = await neighbourhood(draft, address, (await draft.getNode('does-not-apply'))!)
-    expect(summary(placed)).toEqual(['up 1 full'])
+    expect(summary(placed)).toEqual(['up 0,-1 full'])
   })
 
   test('draftCentre: a fresh step a yes made is the centre, under its Trail; an Option target stays the open aside', async () => {
     const draft = await fullNodeDraft((nodes) => {
       nodes.fresh = { id: 'fresh', metadata: { version: '1' }, title: { en: 'Fresh' } }
-      nodes.full!.answers = { yes: 'fresh', no: 'does-not-apply' }
+      nodes.full!.answers = [
+        { label: { en: 'Yes', nl: 'Ja' }, target: 'fresh' },
+        { label: { en: 'No', nl: 'Nee' }, target: 'does-not-apply' },
+      ]
     })
     const fresh = draftCentre((await centreOf(draft, parseUrl('/full-node/full/fresh', 'en', draft)!))!)
     expect(fresh.node.id).toBe('fresh')
@@ -376,5 +381,99 @@ describe('**[#206]** over a draft, for the preview of a hidden Tree (40.2)', () 
     const aside = draftCentre((await centreOf(draft, parseUrl('/full-node/full/opt-one', 'en', draft)!))!)
     expect(aside.node.id).toBe('full')
     expect(aside.chain.map((entry) => entry.node.id)).toEqual(['opt-one'])
+  })
+})
+
+/**
+ * **[#221]** A step of two to four next steps (application.md 41.5): a frame a layer width
+ * apart, centred under the step, a second level counted before deduplication, the parent over
+ * the step it came down from, mirrored, and a page of at most 31 Nodes.
+ */
+describe('**[#221]** the places of two to four next steps, and the bound of 31 (41.5)', () => {
+  const label = { en: 'A step', nl: 'Een stap' }
+  /** `count` Terminals `<prefix>-<i>`, with the full Node's titles and words, for a step to lead to. */
+  const ends = (nodes: Record<string, Record<string, unknown>>, prefix: string, count: number): string[] =>
+    Array.from({ length: count }, (_, i) => {
+      const id = `${prefix}-${i}`
+      nodes[id] = { ...structuredClone(nodes.applies!), id }
+      return id
+    })
+
+  test('one level down, the n next steps stand at x = i - (n - 1) / 2: three at -1, 0, 1 and four at -1.5 to 1.5', async () => {
+    const three = await openTree(path.join(here, 'fixtures', 'three-next-steps'))
+    const centre = await at(three, '/three-next-steps/full')
+    expect(summary((await neighbourhood(three, centre.address, centre.node)).placed)).toEqual([
+      'down -1,1 applies',
+      'down 0,1 does-not-apply',
+      'down 1,1 deployer-only',
+    ])
+    const four = await at(fullNode, '/full-node/full')
+    expect(summary((await neighbourhood(fullNode, four.address, four.node)).placed)).toEqual([
+      'down -1.5,1 applies',
+      'down -0.5,1 does-not-apply',
+      'down 0.5,1 deployer-only',
+      'down 1.5,1 not-applicable',
+    ])
+  })
+
+  test('the parent stands over the first of its next steps that names the centre, mirrored: up and left from the fourth of four', async () => {
+    for (const [target, x] of [['applies', 1.5], ['does-not-apply', 0.5], ['deployer-only', -0.5], ['not-applicable', -1.5]] as const) {
+      const { address, node } = await at(fullNode, `/full-node/full/${target}`)
+      expect(summary((await neighbourhood(fullNode, address, node)).placed), target).toEqual([`up ${x},-1 full`])
+    }
+  })
+
+  test('two levels down, every next step of every first-level target in order, K of them counted before deduplication', async () => {
+    const draft = await fullNodeDraft((nodes) => {
+      // full -> a (three next steps), b (a Terminal), c (two, one of them a's): K = 5.
+      const [a, b, c] = ends(nodes, 'level', 3) as [string, string, string]
+      const below = ends(nodes, 'below', 4)
+      nodes[a] = { ...nodes[a]!, terminal: undefined, answers: below.slice(0, 3).map((target) => ({ label, target })) }
+      delete nodes[a]!.terminal
+      nodes[c] = { ...nodes[c]!, answers: [below[0], below[3]].map((target) => ({ label, target })) }
+      delete nodes[c]!.terminal
+      nodes.full!.answers = [a, b, c].map((target) => ({ label, target }))
+    })
+    const node = (await draft.getNode('full'))!
+    const { placed } = await neighbourhood(draft, parseUrl('/full-node/full', 'en', draft)!, node)
+    // below-0 is K's first and its fourth: placed once, at the first; below-3 keeps the fifth place.
+    expect(summary(placed)).toEqual([
+      'down -1,1 level-0',
+      'down 0,1 level-1',
+      'down 1,1 level-2',
+      'down -2,2 below-0',
+      'down -1,2 below-1',
+      'down 0,2 below-2',
+      'down 2,2 below-3',
+    ])
+  })
+
+  test('a step of four whose next steps have four each, under a parent, with eight asides and an Overlay the URL names: 29 neighbours and a page of 31 Nodes', async () => {
+    const draft = await fullNodeDraft((nodes) => {
+      const first = ends(nodes, 'one', 4)
+      for (const [index, id] of first.entries()) {
+        const second = ends(nodes, `two-${index}`, 4)
+        nodes[id] = { ...nodes[id]!, answers: second.map((target) => ({ label, target })) }
+        delete nodes[id]!.terminal
+      }
+      nodes.full!.answers = first.map((target) => ({ label, target }))
+      // A parent above `full`, and an explanation Node no Option of `full` names, for the URL's Overlay.
+      nodes.top = { ...structuredClone(nodes['opt-one']!), id: 'top', options: undefined, answers: [{ label, target: 'full' }, { label, target: 'applies' }] }
+      delete nodes.top!.options
+      nodes.lone = { ...structuredClone(nodes['opt-two']!), id: 'lone' }
+      nodes['opt-one']!.options = [{ title: label, target: 'lone' }]
+    })
+    const counted = counting(draft as unknown as Tree)
+    const address = parseUrl('/full-node/top/full/opt-one/lone', 'en', draft)!
+    const page = (await loadPage(counted.tree, address))!
+
+    expect(page.centre.node.id).toBe('full')
+    expect(page.neighbours.placed).toHaveLength(MAX_PLACED)
+    expect(page.neighbours.asides).toHaveLength(MAX_ASIDES)
+    expect(MAX_PLACED + MAX_ASIDES).toBe(29)
+    expect(page.centre.chain.map((aside) => aside.node.id)).toEqual(['opt-one', 'lone'])
+    expect(counted.reads()).toBe(31)
+    expect(summary(page.neighbours.placed).slice(0, 2)).toEqual(['up 0.5,-1 top', 'down -1.5,1 one-0'])
+    expect(summary(page.neighbours.placed).slice(-1)).toEqual(['down 7.5,2 two-3-3'])
   })
 })

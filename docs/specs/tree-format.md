@@ -1249,6 +1249,66 @@ the same commit: the `elsa-tree/5` file, byte for byte, differing from the `elsa
 it replaces in exactly the lines of the diff above, and valid against
 `schemas/elsa-tree-5.json`.
 
+**[#221] Done (2026-10-10).** #221 converted `trees/ai-act-example/tree.json` by 12.8,
+changed its description's sentence about the format by hand, as #179 did, and put the result
+in the block below in the same commit: the `elsa-tree/6` file, byte for byte, 11,660 bytes against
+the `elsa-tree/5` block's 11,230, valid against `schemas/elsa-tree-6.json`, and differing from it in
+exactly these lines:
+
+```diff
+-  "$schema": "/schemas/elsa-tree-5.json",
+-  "format": "elsa-tree/5",
++  "$schema": "/schemas/elsa-tree-6.json",
++  "format": "elsa-tree/6",
+@@ "description" of the manifest
+-    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
+-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
++    "en": "A small example Tree that exercises every element of the `elsa-tree/6` format.\nIts legal content is simplified and not to be relied on.",
++    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/6`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+@@ "start"
+-      "answers": {
+-        "yes": "prohibited-practices",
+-        "no": "outside-scope"
+-      },
++      "answers": [
++        {
++          "label": {
++            "en": "Yes",
++            "nl": "Ja"
++          },
++          "target": "prohibited-practices"
++        },
++        {
++          "label": {
++            "en": "No",
++            "nl": "Nee"
++          },
++          "target": "outside-scope"
++        }
++      ],
+@@ "prohibited-practices"
+-      "answers": {
+-        "yes": "prohibited",
+-        "no": "covered"
+-      },
++      "answers": [
++        {
++          "label": {
++            "en": "Yes",
++            "nl": "Ja"
++          },
++          "target": "prohibited"
++        },
++        {
++          "label": {
++            "en": "No",
++            "nl": "Nee"
++          },
++          "target": "covered"
++        }
++      ],
+```
+
 Folder layout:
 
 ```
@@ -1298,8 +1358,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "en",
     "nl"
@@ -1310,8 +1370,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
     "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
   },
   "description": {
-    "en": "A small example Tree that exercises every element of the `elsa-tree/5` format.\nIts legal content is simplified and not to be relied on.",
-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/5`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+    "en": "A small example Tree that exercises every element of the `elsa-tree/6` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/6`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
   "metadata": {
     "version": "2.0",
@@ -1388,10 +1448,22 @@ reader of the contract finds it; what an author needs to keep beside the data go
           "source": "art-2"
         }
       ],
-      "answers": {
-        "yes": "prohibited-practices",
-        "no": "outside-scope"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "prohibited-practices"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "outside-scope"
+        }
+      ],
       "explainers": [
         {
           "id": "provider",
@@ -1470,10 +1542,22 @@ reader of the contract finds it; what an author needs to keep beside the data go
           "credit": "Placeholder drawn for this repository, CC0 1.0"
         }
       ],
-      "answers": {
-        "yes": "prohibited",
-        "no": "covered"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "prohibited"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "covered"
+        }
+      ],
       "options": [
         {
           "title": {
@@ -2325,6 +2409,24 @@ re-fitted the files 12.7's step 1 refused. #221 runs it over every folder, count
 `dev`, and records the result here, as #179 recorded 12.7.3's. `tests/migrate-tree.test.ts` holds
 section 8's block byte-identical to `trees/ai-act-example/tree.json` (with 12.7's diff), so #221
 puts the converted example in both in one commit.
+
+**[#221] As built (2026-10-10).** `npm run migrate` over the 59 folders of `trees/` and
+`tests/fixtures/` -- the two Trees, the 13 valid fixtures and the 44 broken and invalid ones, as
+on `e190507` -- converted 54 files. Counted before by parsing every file: the two Trees and the 13
+valid fixtures hold 38 question Nodes, every one with a `yes` and a `no`; the broken and invalid fixtures hold 44
+Nodes with `answers`, 43 with both keys and one, `invalid/v-answers`'s, with a `yes` alone --
+12.8.3's numbers. After: the same 82 Nodes, every `answers` an array, 81 of two and `v-answers`'s
+of one, which the schema refuses with `minItems` 2 as the file was built to fail; the 38 of the
+Trees and valid fixtures are labelled `Yes`/`Ja` and `No`/`Nee` in their languages
+(`single-language`'s `Ja`/`Nee` alone, `german-only`'s and `other-languages`' English), and every
+one of those 15 files validates. Every converted broken or invalid file still fails the rule it was
+built for (`tests/loader.test.ts`). Re-fitted by hand, their text edited in place with each defect
+kept: `broken/byte-order-mark`, `broken/duplicate-key` and `invalid/v-json` (step 1 refuses them),
+`broken/metadata-all-digits` (12.6.1 step 5 refuses it, as at #179) and `invalid/v-format`, which
+keeps its `elsa-tree/3` and gains the `/6` `$schema` and the array, so its one defect is still the
+format. No file under `trees/` or `tests/fixtures/` names `elsa-tree/5`. The example Tree's
+description names the format, so its sentence says `elsa-tree/6`, changed by hand as at #179, and
+section 8's block is the file. #221's own fixtures of three and four next steps were written after.
 
 #### 12.8.4 What it does for a deployment's data directory
 

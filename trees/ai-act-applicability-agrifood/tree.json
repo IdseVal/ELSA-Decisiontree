@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "en",
     "nl"
@@ -118,10 +118,22 @@
           "source": "art-2-1"
         }
       ],
-      "answers": {
-        "yes": "article-2-exclusions",
-        "no": "jurisdiction-deployer"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "article-2-exclusions"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "jurisdiction-deployer"
+        }
+      ],
       "explainers": [
         {
           "id": "provider",
@@ -220,10 +232,22 @@
           "source": "art-3-1"
         }
       ],
-      "answers": {
-        "yes": "prohibited-practices",
-        "no": "not-an-ai-system"
-      }
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "prohibited-practices"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "not-an-ai-system"
+        }
+      ]
     },
     {
       "id": "annex-i-agricultural-vehicles",
@@ -591,10 +615,22 @@
           "source": "art-6-1"
         }
       ],
-      "answers": {
-        "yes": "high-risk",
-        "no": "annex-i-legislation-2"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "high-risk"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "annex-i-legislation-2"
+        }
+      ],
       "options": [
         {
           "title": {
@@ -710,10 +746,22 @@
           "credit": "Cjp24, via Wikimedia Commons, CC BY-SA 3.0"
         }
       ],
-      "answers": {
-        "yes": "high-risk",
-        "no": "annex-i-legislation-3"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "high-risk"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "annex-i-legislation-3"
+        }
+      ],
       "options": [
         {
           "title": {
@@ -823,10 +871,22 @@
           "credit": "Raimond Spekking, via Wikimedia Commons, CC BY-SA 4.0"
         }
       ],
-      "answers": {
-        "yes": "high-risk",
-        "no": "annex-iii-areas"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "high-risk"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "annex-iii-areas"
+        }
+      ],
       "options": [
         {
           "title": {
@@ -1640,10 +1700,22 @@
           "source": "art-6-2"
         }
       ],
-      "answers": {
-        "yes": "high-risk",
-        "no": "general-purpose-ai"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "high-risk"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "general-purpose-ai"
+        }
+      ],
       "options": [
         {
           "title": {
@@ -2057,10 +2129,22 @@
           "credit": "Jeffrey Beall, via Wikimedia Commons, CC BY 4.0"
         }
       ],
-      "answers": {
-        "yes": "ai-act-does-not-apply",
-        "no": "ai-system-definition"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "ai-act-does-not-apply"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "ai-system-definition"
+        }
+      ],
       "options": [
         {
           "title": {
@@ -2778,10 +2862,22 @@
           "source": "art-3-63"
         }
       ],
-      "answers": {
-        "yes": "transparency-obligations",
-        "no": "transparency-obligations"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "transparency-obligations"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "transparency-obligations"
+        }
+      ],
       "explainers": [
         {
           "id": "provider",
@@ -2859,10 +2955,22 @@
           "credit": "Pittigrilli, via Wikimedia Commons, CC BY 4.0"
         }
       ],
-      "answers": {
-        "yes": "general-purpose-ai",
-        "no": "general-purpose-ai"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "general-purpose-ai"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "general-purpose-ai"
+        }
+      ],
       "explainers": [
         {
           "id": "ai-system",
@@ -2911,10 +3019,22 @@
           "credit": "Miles Continental, via Wikimedia Commons, CC BY 2.0"
         }
       ],
-      "answers": {
-        "yes": "article-2-exclusions",
-        "no": "ai-act-does-not-apply"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "article-2-exclusions"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "ai-act-does-not-apply"
+        }
+      ],
       "explainers": [
         {
           "id": "affected-person",
@@ -2963,10 +3083,22 @@
           "credit": "Blogtrepreneur, via Wikimedia Commons, CC BY 2.0"
         }
       ],
-      "answers": {
-        "yes": "article-2-exclusions",
-        "no": "jurisdiction-affected-person"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "article-2-exclusions"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "jurisdiction-affected-person"
+        }
+      ],
       "explainers": [
         {
           "id": "authorised-representative",
@@ -3034,10 +3166,22 @@
           "credit": "USDAgov, via Wikimedia Commons, public domain"
         }
       ],
-      "answers": {
-        "yes": "article-2-exclusions",
-        "no": "jurisdiction-third-country-output"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "article-2-exclusions"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "jurisdiction-third-country-output"
+        }
+      ],
       "explainers": [
         {
           "id": "deployer",
@@ -3097,10 +3241,22 @@
           "credit": "VileGecko, via Wikimedia Commons, CC BY-SA 3.0"
         }
       ],
-      "answers": {
-        "yes": "article-2-exclusions",
-        "no": "jurisdiction-product-manufacturer"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "article-2-exclusions"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "jurisdiction-product-manufacturer"
+        }
+      ],
       "explainers": [
         {
           "id": "importer",
@@ -3171,10 +3327,22 @@
           "credit": "Marek Ślusarczyk (Tupungato), via Wikimedia Commons, CC BY 3.0"
         }
       ],
-      "answers": {
-        "yes": "article-2-exclusions",
-        "no": "jurisdiction-authorised-representative"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "article-2-exclusions"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "jurisdiction-authorised-representative"
+        }
+      ],
       "explainers": [
         {
           "id": "product-manufacturer",
@@ -3256,10 +3424,22 @@
           "credit": "Biswarup Ganguly, via Wikimedia Commons, CC BY-SA 4.0"
         }
       ],
-      "answers": {
-        "yes": "article-2-exclusions",
-        "no": "jurisdiction-importer-distributor"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "article-2-exclusions"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "jurisdiction-importer-distributor"
+        }
+      ],
       "explainers": [
         {
           "id": "provider",
@@ -3515,10 +3695,22 @@
           "source": "art-5"
         }
       ],
-      "answers": {
-        "yes": "prohibited",
-        "no": "prohibited-practices-2"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "prohibited"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "prohibited-practices-2"
+        }
+      ],
       "options": [
         {
           "title": {
@@ -3616,10 +3808,22 @@
           "credit": "Pittigrilli, via Wikimedia Commons, CC BY-SA 4.0"
         }
       ],
-      "answers": {
-        "yes": "prohibited",
-        "no": "annex-i-legislation"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "prohibited"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "annex-i-legislation"
+        }
+      ],
       "options": [
         {
           "title": {
@@ -3837,10 +4041,22 @@
           "source": "art-50"
         }
       ],
-      "answers": {
-        "yes": "end-of-walk",
-        "no": "end-of-walk"
-      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "end-of-walk"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "end-of-walk"
+        }
+      ],
       "options": [
         {
           "title": {

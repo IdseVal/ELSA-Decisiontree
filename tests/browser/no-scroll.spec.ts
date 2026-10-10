@@ -80,6 +80,8 @@ const LIBRARY_PORT = FULL_NODE_PORT + 15
 const AUTHORS_PORT = FULL_NODE_PORT + 10
 /** **[#204]** A copy of the first Tree whose logo is drawn at its cap. */
 const WIDE_FIRST_PORT = FULL_NODE_PORT + 11
+/** **[#221]** The full Node with three next steps (application.md 41.9). */
+const THREE_STEPS_PORT = FULL_NODE_PORT + 12
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -332,8 +334,11 @@ async function measureEverywhere(
       await expect(page.locator(`[id="${panel}"]`)).toBeHidden()
     }
     // Only at and below the floor does the notice stand in for the Bubble and its terms
-    // (10.5 step 7); anywhere else a term that is not shown is a panel that went unmeasured.
-    if (width > 320 && height > 480) expect(opened, `${what} (${lang}) at ${viewport}: every marked term opened`).toBe(marked)
+    // (10.5 step 7) -- **[#221]** and below 41.4's floor for a step of three or four; anywhere
+    // else a term that is not shown is a panel that went unmeasured.
+    const notice = await page.locator('.minimum-size').isVisible()
+    expect(notice, `${what} (${lang}) at ${viewport}: the notice only at and below a floor`).toBe(notice && (width <= 320 || height <= 480 || (width < STEPS_WIDTH && height < STEPS_HEIGHT)))
+    if (!notice) expect(opened, `${what} (${lang}) at ${viewport}: every marked term opened`).toBe(marked)
 
     // Each Sheet the layout offers at this size, opened in turn: 10.5 gets no exemption.
     const sheets = page.locator('details.sheet')
@@ -386,7 +391,7 @@ async function measureEverywhere(
 }
 
 /** A control that slides on every kind of Node: an Answer, or the up arrow where there are none (a Terminal, 10.3). */
-const DOWN = { selector: '.answer--yes, .tree-frame:not(:has(.answer--yes)) .up-arrow', label: '' }
+const DOWN = { selector: '.answer--next:nth-child(1), .tree-frame:not(:has(.answer--next:nth-child(1))) .up-arrow', label: '' }
 
 /**
  * Measures `url` at every viewport above the floor in the middle of a slide, both halves of
@@ -791,6 +796,109 @@ for (const lang of LANGUAGES) {
     test.slow()
     const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+}
+
+/**
+ * **[#221]** The windows 41.9 adds for a step of three or four next steps: either side of 41.3's
+ * 1000 pixels, and one pixel either side of 41.4's width (600 as #221 measured it, in a window
+ * 481 tall) and of its height (560, below that width).
+ */
+const NEXT_STEPS_VIEWPORTS = [
+  [999, 640],
+  [1000, 640],
+  [599, 481],
+  [600, 481],
+  [599, 559],
+  [599, 560],
+] as const
+
+/**
+ * **[#221]** `url` at each of `NEXT_STEPS_VIEWPORTS`, the page as it loads, with no Sheet open:
+ * 41.4's question is whether the full Node fits a window there. Its Sheets are not opened at
+ * these windows, none of them a viewport of 10.6: in a window 481 tall below 500 wide the
+ * Options Sheet's list holds 388 pixels in 375 whatever the count of next steps -- the full
+ * Node with two holds the same (measured on #221's pull request), a defect reported there.
+ */
+async function measurePlain(page: Page, url: string, what: string, lang: string): Promise<void> {
+  for (const [width, height] of NEXT_STEPS_VIEWPORTS) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
+    const plain = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: '', measured: plain })
+    // 599 and 600 are in the band where dev's disclaimer takes a second line in its row (below
+    // 641 pixels wide in Dutch on CI), with or without the notice: that one overflow is let through.
+    if (width < 660) assertFitsBesideTheDisclaimer(plain, `${what} (${lang}) at ${viewport}`)
+    else assertFits(plain, `${what} (${lang}) at ${viewport}`)
+  }
+}
+
+/** **[#221]** 41.4's width and height below which a step of three or four shows the notice. */
+const STEPS_WIDTH = 600
+const STEPS_HEIGHT = 560
+
+for (const lang of LANGUAGES) {
+  test(`**[#221]** the full Node with three next steps of 19 characters, ${lang}, never scrolls at any viewport of 10.6 or either side of 41.3's and 41.4's triggers`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'three-next-steps', THREE_STEPS_PORT)
+    const url = `${origin}${inLang('/three-next-steps/full/full', lang)}`
+    await measureEverywhere(page, url, 'full Node, three next steps', lang)
+    await measurePlain(page, url, 'full Node, three next steps', lang)
+  })
+
+  test(`**[#221]** the full Node with four next steps of 19 characters, ${lang}, never scrolls either side of 41.3's and 41.4's triggers`, async ({ page }) => {
+    const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
+    await measurePlain(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+
+  test(`**[#221]** the Answer row of 41.3 and the notice of 41.4, ${lang}: one row from 1000 wide, two a row below, the notice below ${STEPS_WIDTH} x ${STEPS_HEIGHT} for three and four only`, async ({ page }) => {
+    const pages = [
+      { count: 4, url: `${await served(fixtures, 'full-node', FULL_NODE_PORT)}${inLang('/full-node/full', lang)}` },
+      { count: 3, url: `${await served(fixtures, 'three-next-steps', THREE_STEPS_PORT)}${inLang('/three-next-steps/full', lang)}` },
+      { count: 2, url: inLang('/ai-act-example/start', lang) },
+    ]
+    const height = lang === 'nl' ? 'Maak het hoger dan' : 'Make it taller than'
+    for (const { count, url } of pages) {
+      for (const [width, tall] of [[1280, 640], [1000, 640], [999, 640], [390, 844], [360, 640], [STEPS_WIDTH, 481], [STEPS_WIDTH - 1, STEPS_HEIGHT], [STEPS_WIDTH - 1, STEPS_HEIGHT - 1], [STEPS_WIDTH - 1, 481], [389, 559]] as const) {
+        const where = `${count} next steps at ${width}x${tall}`
+        await page.setViewportSize({ width, height: tall })
+        expect((await page.goto(url))?.status(), where).toBe(200)
+        const notice = width < STEPS_WIDTH && tall < STEPS_HEIGHT && count > 2
+        await expect(page.locator('.minimum-size'), where).toBeVisible({ visible: notice })
+        await expect(page.locator('.tree-layer'), where).toBeVisible({ visible: !notice })
+        if (notice) {
+          await expect(page.locator('.minimum-height'), where).toHaveText(`${height} ${STEPS_HEIGHT} pixels.`)
+          continue
+        }
+        // The row's buttons, each its own box: their tops say how many rows, their widths that they are alike.
+        const boxes = await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer').evaluateAll((buttons) =>
+          buttons.map((button) => {
+            const box = button.getBoundingClientRect()
+            return { top: Math.round(box.top), left: box.left, width: box.width, height: box.height }
+          }),
+        )
+        expect(boxes, where).toHaveLength(count)
+        const rows = new Set(boxes.map((box) => box.top)).size
+        expect(rows, `${where}: rows`).toBe(count > 2 && width < 1000 ? 2 : 1)
+        const widths = boxes.map((box) => box.width)
+        expect(Math.max(...widths) - Math.min(...widths), `${where}: every button as wide as the others`).toBeLessThan(1)
+        for (const box of boxes) expect(box.height, `${where}: at least 60 tall`).toBeGreaterThanOrEqual(60)
+        // In the file's order, left to right and row by row: the DOM order is the reading order.
+        const order = boxes.map((box, index) => ({ index, key: box.top * 10_000 + box.left }))
+        expect([...order].sort((a, b) => a.key - b.key).map((entry) => entry.index), `${where}: order`).toEqual(order.map((entry) => entry.index))
+        if (count === 3 && rows === 2) {
+          // The lone third, centred under the two above it.
+          const middle = (box: (typeof boxes)[number]) => box.left + box.width / 2
+          expect(Math.abs(middle(boxes[2]!) - (middle(boxes[0]!) + middle(boxes[1]!)) / 2), `${where}: the third centred`).toBeLessThan(1)
+        }
+        if (width === 1280 && tall === 640) {
+          // At the guarantee the row stays 68 and four buttons are 300 each (41.3).
+          expect(await page.locator('.tree-frame:not([aria-hidden]) .answers').evaluate((row) => row.getBoundingClientRect().height), where).toBe(68)
+          if (count === 4) expect(Math.round(widths[0]!), where).toBe(300)
+        }
+      }
+    }
   })
 }
 

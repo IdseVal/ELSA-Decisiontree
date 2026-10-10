@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "nl"
   ],
@@ -46,10 +46,20 @@
           "source": "art-2"
         }
       ],
-      "answers": {
-        "yes": "van-toepassing",
-        "no": "niet-van-toepassing"
-      },
+      "answers": [
+        {
+          "label": {
+            "nl": "Ja"
+          },
+          "target": "van-toepassing"
+        },
+        {
+          "label": {
+            "nl": "Nee"
+          },
+          "target": "niet-van-toepassing"
+        }
+      ],
       "options": [
         {
           "title": {

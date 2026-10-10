@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "en"
   ],
@@ -23,10 +23,20 @@
       "metadata": {
         "version": "1.0"
       },
-      "answers": {
-        "yes": "second",
-        "no": "done"
-      }
+      "answers": [
+        {
+          "label": {
+            "en": "Yes"
+          },
+          "target": "second"
+        },
+        {
+          "label": {
+            "en": "No"
+          },
+          "target": "done"
+        }
+      ]
     },
     {
       "id": "second",
@@ -39,10 +49,20 @@
       "metadata": {
         "version": "1.0"
       },
-      "answers": {
-        "yes": "third",
-        "no": "third"
-      }
+      "answers": [
+        {
+          "label": {
+            "en": "Yes"
+          },
+          "target": "third"
+        },
+        {
+          "label": {
+            "en": "No"
+          },
+          "target": "third"
+        }
+      ]
     },
     {
       "id": "third",
@@ -55,10 +75,20 @@
       "metadata": {
         "version": "1.0"
       },
-      "answers": {
-        "yes": "second",
-        "no": "done"
-      }
+      "answers": [
+        {
+          "label": {
+            "en": "Yes"
+          },
+          "target": "second"
+        },
+        {
+          "label": {
+            "en": "No"
+          },
+          "target": "done"
+        }
+      ]
     },
     {
       "id": "done",

@@ -236,7 +236,7 @@ test.describe('the address rule (10.9, core document 10.27)', () => {
     await expect(overlays.nth(0).locator('h2 a')).toHaveAttribute('href', FIRST_OPTION)
     await expect(overlays.nth(0).locator('h2 a')).toHaveText('Social scoring')
     // The parent's Answers are built from the path up to the parent: the aside never joins the Trail.
-    await expect(page.locator('.answer--yes')).toHaveAttribute('href', `${QUESTION}/prohibited`)
+    await expect(page.locator('.answer--next:nth-child(1)')).toHaveAttribute('href', `${QUESTION}/prohibited`)
     // So the way back is the parent's too: the up arrow leads above the question (10.2).
     await expect(page.locator('.up-arrow')).toHaveAttribute('href', '/ai-act-example/start')
   })

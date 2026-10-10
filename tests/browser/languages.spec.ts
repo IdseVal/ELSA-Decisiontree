@@ -127,7 +127,7 @@ test('a complete Dutch Tree: English added in the panel, one to-do per localised
   }
   await fill('start', 'Is het zo')
   for (const [link, words] of [['yes', 'Van toepassing'], ['no', 'Niet van toepassing']] as const) {
-    const created = (await (await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link } })).json()) as { node: { id: string } }
+    const created = (await (await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link: 'answer', label: { nl: link === 'yes' ? 'Ja' : 'Nee' } } })).json()) as { node: { id: string } }
     ends.push(created.node.id)
     await fill(created.node.id, link === 'yes' ? 'Ja dus' : 'Nee dus')
     expect((await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: created.node.id, link: 'end', label: { nl: words } } })).status()).toBe(201)
@@ -190,6 +190,10 @@ test('one English title written is one to-do fewer; Publish is refused until eve
   // Every other English text written, the same switch publishes.
   expect((await api(page, cookie, 'PATCH', `/trees/${TREE}`, { path: 'title.en', value: 'A tree' })).status()).toBe(200)
   expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/start`, { path: 'description.en', value: 'About it.' })).status()).toBe(200)
+  // **[#221]** And the words of its two next steps (22.2).
+  for (const [index, words] of ['Yes', 'No'].entries()) {
+    expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/start`, { path: `answers[${index}].label.en`, value: words })).status()).toBe(200)
+  }
   for (const end of ends) {
     for (const key of ['title.en', 'description.en']) {
       expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/${end}`, { path: key, value: `${key} of ${end}` })).status()).toBe(200)
