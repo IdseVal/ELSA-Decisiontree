@@ -20,7 +20,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type APIResponse, type Browser, type Page } from '@playwright/test'
 import type { DraftNode } from '../../src/tree/types.ts'
-import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
+import { ADMIN_ENV, buildDataDir, login, plusOf } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -235,8 +235,9 @@ test('the two buttons stand beside the up arrow, under the bar, inside the windo
         await page.goto(address)
         await page.evaluate(() => document.fonts.ready)
         const where = `${width}x${height} ${lang}, ${what}`
-        // **[#221]** The full Node's four next steps take the notice below 600 x 560 (41.4, 41.7 item 8).
-        if (what === 'a question step' && width < 600 && height < 560) {
+        // **[#221]** The full Node's four next steps take the notice (41.4, 41.7 item 8): **[#233]** with
+        // the editor's `+` a row of five, below 770 x 690 and below 390 x 1080 (42.4).
+        if (what === 'a question step' && ((width < 770 && height < 690) || (width < 390 && height < 1080))) {
           await expect(page.locator('.minimum-size'), where).toBeVisible()
           continue
         }
@@ -313,14 +314,12 @@ test('the question names the title as it stands: one typed a moment before, or n
   expect((await api(page, cookie, 'PATCH', `/trees/${TREE}/nodes/does-not-apply`, { path: 'title.en', value: was })).status()).toBe(200)
 })
 
-test('"Tree does not end here after all" gives the three structure buttons back at once; the cross stays', async ({ browser }) => {
+test('"Tree does not end here after all" gives **[#233]** the row\'s one + back at once; the cross stays', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(ending())
   await expect(page.locator('.answer--start-again')).toBeVisible()
   await page.getByRole('button', { name: 'Tree does not end here after all' }).click()
-  await expect(page.locator('.structure--yes')).toHaveText('+ Yes')
-  await expect(page.locator('.structure-end > .sheet-open')).toHaveText('Tree ends here')
-  await expect(page.locator('.structure--no')).toHaveText('+ No')
+  await expect(plusOf(page)).toHaveText('+')
   await expect(page.locator('.answer--start-again')).toBeHidden()
   await expect(endButton(page)).toHaveCount(0)
   await expect(page.locator('[data-field="does-not-apply terminal.label.en"]')).toHaveCount(0)

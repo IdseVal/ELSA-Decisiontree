@@ -129,7 +129,7 @@ interface Action {
   status: number
   run(role: string | null, tree: { id: string; yes: string; picture: string }): Promise<Response>
   /** A step before the request, with the administrator's rights: a Tree in the state the action needs. */
-  prepare?(tree: { id: string }): Promise<unknown>
+  prepare?(tree: { id: string; yes: string }): Promise<unknown>
 }
 
 const EVERYONE: Action['allowed'] = ['creator', 'collaborator', 'another account', 'administrator']
@@ -150,6 +150,20 @@ const ACTIONS: Action[] = [
   },
   { name: 'create a Node', allowed: WITH_A_ROLE, status: 201, run: (role, t) => call('nodes', 'POST', { tree: t.id }, { role, body: { from: { node: 'start', link: 'option' }, title: { en: 'Aside' } } }) },
   { name: 'delete a Node', allowed: WITH_A_ROLE, status: 200, run: (role, t) => call('node', 'DELETE', { tree: t.id, node: t.yes }, { role }) },
+  // **[#233]** The `+` Sheet's two writes (42.7 item 3): a next step with its words, and, the switch on, an end with them.
+  {
+    name: 'add a next step',
+    allowed: WITH_A_ROLE,
+    status: 201,
+    run: (role, t) => call('nodes', 'POST', { tree: t.id }, { role, body: { from: { node: 'start', link: 'answer', label: { en: 'Not sure' } } } }),
+  },
+  {
+    name: 'end a step without Links',
+    allowed: WITH_A_ROLE,
+    status: 201,
+    prepare: (t) => opened.drafts.write(accounts.administrator!, t.id, t.yes, { op: 'remove-terminal' }),
+    run: (role, t) => call('nodes', 'POST', { tree: t.id }, { role, body: { from: { node: t.yes, link: 'end', label: { en: 'Ends here' } } } }),
+  },
   { name: 'upload a picture', allowed: WITH_A_ROLE, status: 201, run: (role, t) => call('images', 'POST', { tree: t.id }, { role, body: upload(PNG, 'photo.png') }) },
   { name: 'read a draft picture', allowed: WITH_A_ROLE, status: 200, run: (role, t) => call('image', 'GET', { tree: t.id, file: t.picture }, { role }) },
   { name: 'remove an unreferenced picture', allowed: WITH_A_ROLE, status: 204, run: (role, t) => call('image', 'DELETE', { tree: t.id, file: t.picture }, { role }) },
@@ -198,7 +212,7 @@ describe('the permission matrix (21.2), through the routes', () => {
 
   test('every cell is covered', () => {
     expect(cells).toBe(ACTIONS.length * ROLES.length)
-    expect(cells).toBe(85)
+    expect(cells).toBe(95)
   })
 })
 

@@ -197,7 +197,11 @@ test('the two controls float under the bar, outside the header, inside the windo
   for (const lang of ['en', 'nl']) {
     for (const [width, height] of VIEWPORTS) {
       await page.setViewportSize({ width, height })
-      await page.goto(`${origin}${FULL_AT_TRAIL}${lang === 'en' ? '' : '?lang=nl'}`)
+      // **[#233]** The full Node's four next steps and the editor's `+` are a row of five, which takes
+      // 42.4's notice below 770 x 690 and below 390 x 1080: there its next step that ends stands in,
+      // at the same depth (a path holds at most `MAX_PATH_IDS`, 50).
+      const five = (width < 770 && height < 690) || (width < 390 && height < 1080)
+      await page.goto(`${origin}${five ? FULL_AT_TRAIL.replace(/full$/, 'does-not-apply') : FULL_AT_TRAIL}${lang === 'en' ? '' : '?lang=nl'}`)
       await page.evaluate(() => document.fonts.ready)
       const at = await layout(page)
       const where = `${width}x${height} ${lang}`

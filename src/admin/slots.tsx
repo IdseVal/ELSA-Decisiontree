@@ -27,7 +27,7 @@ import { ImageControls } from '../editor/ImageControls.tsx'
 import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
 import { DeleteStep, RemoveEnd } from '../editor/StepButtons.tsx'
-import { AnswerAdd, AnswerMoves, SideAdd, SideDelete, WordsForm } from '../editor/Structure.tsx'
+import { AnswerMoves, SideAdd, SideDelete, WordsForm } from '../editor/Structure.tsx'
 import { MAX_ASIDES } from '../neighbourhood.ts'
 import { linksOf, type Explainer, type NodeContent, type Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
@@ -109,8 +109,8 @@ function placeholderOf(path: string, ui: Chrome): string {
 /** Which paths hold a localised text: the page's language is appended to their key path (22.2). */
 const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title|answers\[\d+\]\.label|terminal\.label)$/
 
-/** **[#222]** The most next steps a step may have (41.1): the row's `+` is absent at that many. */
-const MAX_ANSWERS = 4
+/** **[#222]** The most next steps a step may have (**[#233]** 42.1): the row's `+` is absent at that many. */
+const MAX_ANSWERS = 5
 
 /** The most Images a Node may hold (V-COUNT, 5.7): the strip's `+` is absent at that many (31.1). */
 const MAX_IMAGES = 10
@@ -144,8 +144,6 @@ export function editMode(address: PageAddress, languages: string[], structure: S
   }
   const fieldWords: FieldWords = { characters: words.characters, lines: words.lines }
   const others: OtherLanguage[] = languages.filter((other) => other !== lang).map((other) => ({ lang: other, href: links.withLang(address, other) }))
-  // **[#221]** `+ Yes` and `+ No` label their next step with the chrome word in every language of the Tree, by 3.1's rule (41.7 item 1).
-  const wordOf = (key: 'yes' | 'no'): Record<string, string> => Object.fromEntries(languages.map((tag) => [tag, chrome(tag)[key]]))
   // The badge leaves `legal` unlabelled under its heading (ADR-78); a select must name every kind.
   const kinds = KINDS.map((kind) => ({ value: kind, label: ui[SOURCE_LABEL[kind] ?? 'sourceLegal'] }))
   const pickerWords: PickerWords = {
@@ -236,16 +234,23 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     },
     onTermClick: TERM_EVENT,
 
-    // The situations of 30.1, **[#222]** as 41.7 items 1 and 2 have them: a Terminal takes the
-    // public row; a step without Links offers `+ Yes`, `treeEndsHere`, `+ No` and `+`; one next
-    // step, the one-click `+ Yes` or `+ No` for the word its label does not already say in the
-    // language edited, then `+`; two or three, `+`; four, nothing more.
+    // The situations of 30.1, **[#233]** as 42.7 item 1 has them: a Terminal takes the public row;
+    // a step without Links, and a step of one to four next steps, the one `+`, whose Sheet holds
+    // the switch `treeEndsHere` on a step without Links only; five, nothing more.
     structure(node) {
       const has = linksOf(node)
       const here = hereOf(node.id)
       if (here === null || has.terminal !== undefined || has.answers.length >= MAX_ANSWERS) return []
-      const formWords = { characters: ui.characters, confirm: ui.confirm, cancel: ui.cancel }
-      const add = (
+      const formWords = {
+        addNextStep: ui.addNextStep,
+        treeEndsHere: ui.treeEndsHere,
+        nextStepWords: ui.nextStepWords,
+        endingText: ui.endingText,
+        characters: ui.characters,
+        confirm: ui.confirm,
+        cancel: ui.cancel,
+      }
+      return [
         <Sheet
           key="add"
           className="structure-add"
@@ -255,32 +260,11 @@ export function editMode(address: PageAddress, languages: string[], structure: S
               +
             </span>
           }
-          pages={[<WordsForm key="add" nodeId={node.id} lang={lang} link="answer" here={here} heading={ui.addNextStep} words={{ ...formWords, name: ui.nextStepWords }} />]}
+          pages={[<WordsForm key="add" nodeId={node.id} lang={lang} here={here} canEnd={has.answers.length === 0} words={formWords} />]}
           words={sheet}
           uiLang={uiLang}
           idPrefix={`${node.id}-add-`}
-        />
-      )
-      if (has.answers.length > 1) return [add]
-      if (has.answers.length === 1) {
-        const said = (has.answers[0]!.label[lang] ?? '').trim().toLocaleLowerCase(lang)
-        const lacking = (['yes', 'no'] as const).filter((key) => ui[key].toLocaleLowerCase(lang) !== said)
-        return [...lacking.map((key) => <AnswerAdd key={key} nodeId={node.id} which={key} word={ui[key]} label={wordOf(key)} here={here} />), add]
-      }
-      return [
-        <AnswerAdd key="yes" nodeId={node.id} which="yes" word={ui.yes} label={wordOf('yes')} here={here} />,
-        <Sheet
-          key="end"
-          className="structure-end"
-          editorUi
-          summary={<span lang={uiLang}>{ui.treeEndsHere}</span>}
-          pages={[<WordsForm key="end" nodeId={node.id} lang={lang} link="end" heading={ui.treeEndsHere} words={{ ...formWords, name: ui.endingText }} />]}
-          words={sheet}
-          uiLang={uiLang}
-          idPrefix={`${node.id}-end-`}
         />,
-        <AnswerAdd key="no" nodeId={node.id} which="no" word={ui.no} label={wordOf('no')} here={here} />,
-        add,
       ]
     },
 

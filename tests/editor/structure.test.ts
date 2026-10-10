@@ -9,14 +9,15 @@
  * only; `deleteSideBubble` in each of the centre's Overlays, which takes the aside's Node
  * unless another Node leads to it; and the aside's title, which the Option button's follows.
  * And the two pure helpers of `Structure.tsx`: the address under a page, and a refusal's text.
- * **[#222]** And the row of 41.7: the empty step's four, the `+` and its Sheet, each next step's
- * words a field of 19 and its move arrows.
+ * **[#222]** And the row of 41.7: the `+` and its Sheet, each next step's words a field of 19
+ * and its move arrows; **[#233]** the one `+` wherever a step can take another next step, and its
+ * Sheet's switch on a step without Links only (42.7).
  */
 import type { ReactElement } from 'react'
 import { describe, expect, test } from 'vitest'
 import { editMode } from '../../src/admin/slots.tsx'
 import { DeleteStep, RemoveEnd } from '../../src/editor/StepButtons.tsx'
-import { AnswerAdd, AnswerMoves, refusalText, under, WordsForm } from '../../src/editor/Structure.tsx'
+import { AnswerMoves, refusalText, under, WordsForm } from '../../src/editor/Structure.tsx'
 import type { DraftNode } from '../../src/tree/types.ts'
 import type { PageAddress } from '../../src/url.ts'
 
@@ -51,68 +52,46 @@ describe('the Answer row (30.1; **[#222]** 41.7)', () => {
   const step = (target: string, en = 'A step') => ({ label: { en, nl: 'Een stap' }, target })
   const row = (extra: Partial<DraftNode> = {}, slot = structure!) => slot(node('start', extra)) as ReactElement[]
 
-  test('**[#222]** a Node without Links gets + Yes, the end Sheet, + No and +, in that order (41.7 item 1)', () => {
-    const [yes, end, no, add, ...rest] = row()
+  const steps = (count: number) => Array.from({ length: count }, (_, i) => step(i % 2 === 0 ? 'n-2' : 'a-1', `Step ${i + 1}`))
+  const english = { addNextStep: 'Add a next step', treeEndsHere: 'Tree ends here', nextStepWords: 'Words on the button', endingText: 'Text of the ending', characters: 'characters', confirm: 'Confirm', cancel: 'Cancel' }
+
+  test('**[#233]** a Node without Links gets the one +, alone: no + Yes, + No or Tree ends here (42.7 item 1)', () => {
+    const [add, ...rest] = row()
     expect(rest).toEqual([])
-    // **[#221]** Each one-click button sends `link: 'answer'` with the chrome word in every language of the Tree (41.7 item 1).
-    expect(yes!.type).toBe(AnswerAdd)
-    expect(props(yes)).toMatchObject({ which: 'yes', label: { en: 'Yes', nl: 'Ja' }, nodeId: 'start', here: '/admin/trees/t/start' })
-    expect(props(end)).toMatchObject({ className: 'structure-end' })
-    expect(props(no)).toMatchObject({ which: 'no', label: { en: 'No', nl: 'Nee' } })
     expect(props(add)).toMatchObject({ className: 'structure-add' })
     // Keyed, as a list of the row's buttons is.
-    expect([yes, end, no, add].map((button) => button!.key)).toEqual(['yes', 'end', 'no', 'add'])
+    expect(add!.key).toBe('add')
   })
 
-  test('**[#222]** the + is named addNextStep and opens a Sheet asking for the words on the button, in the page\'s language, which then goes to the step it made (41.7 items 1 and 3)', () => {
+  test('**[#233]** one to four next steps: the + after them; five: nothing more; an end: nothing (42.7 item 1)', () => {
+    for (const count of [1, 2, 3, 4]) {
+      expect(row({ kind: 'question', answers: steps(count) }).map((button) => props(button).className), `${count}`).toEqual(['structure-add'])
+    }
+    expect(row({ kind: 'question', answers: steps(5) })).toEqual([])
+    expect(row({ kind: 'terminal', label: { en: 'Look elsewhere' } })).toEqual([])
+  })
+
+  test("**[#233]** the + is named addNextStep and opens a Sheet titled addNextStep, in the page's language, that goes to the step it made; on a step without Links it can end the step (42.7 item 2)", () => {
     const add = row().at(-1)
     const summary = props(add).summary as ReactElement
     expect(props(summary)).toMatchObject({ role: 'img', 'aria-label': 'Add a next step', children: '+' })
     const [page] = props(add).pages as ReactElement[]
     expect(page!.type).toBe(WordsForm)
-    expect(props(page)).toEqual({
-      nodeId: 'start',
-      lang: 'en',
-      link: 'answer',
-      here: '/admin/trees/t/start',
-      heading: 'Add a next step',
-      words: { name: 'Words on the button', characters: 'characters', confirm: 'Confirm', cancel: 'Cancel' },
-    })
+    expect(props(page)).toEqual({ nodeId: 'start', lang: 'en', here: '/admin/trees/t/start', canEnd: true, words: english })
     const nl = editMode({ ...start, lang: 'nl' }, ['en', 'nl'], structureOf([])).slots.structure!
     const [nlPage] = props(row({}, nl).at(-1)).pages as ReactElement[]
-    expect(props(nlPage)).toMatchObject({ lang: 'nl', heading: 'Volgende stap toevoegen', words: { name: 'Woorden op de knop' } })
+    expect(props(nlPage)).toMatchObject({
+      lang: 'nl',
+      canEnd: true,
+      words: { addNextStep: 'Volgende stap toevoegen', treeEndsHere: 'Boom eindigt hier', nextStepWords: 'Woorden op de knop', endingText: 'Tekst van het einde', confirm: 'Bevestigen' },
+    })
     expect(props(props(row({}, nl).at(-1)).summary as ReactElement)['aria-label']).toBe('Volgende stap toevoegen')
   })
 
-  test('one Answer: the one-click + for the word its label does not say in the language edited, then + (41.7 item 2)', () => {
-    const one = (label: Record<string, string>) => row({ kind: 'question', answers: [{ label, target: 'n-2' }] })
-    const shape = (buttons: ReactElement[]) => buttons.map((button) => (props(button).which as string | undefined) ?? (props(button).className as string))
-    expect(shape(one({ en: 'Yes', nl: 'Ja' }))).toEqual(['no', 'structure-add'])
-    expect(shape(one({ en: 'no', nl: '' }))).toEqual(['yes', 'structure-add'])
-    // **[#221]** Words that are neither: both stay, one click each.
-    expect(shape(one({ en: 'Not sure', nl: 'Weet niet' }))).toEqual(['yes', 'no', 'structure-add'])
-    // No `lone` any more: every button of the row is an equal share of it (41.3).
-    for (const button of one({ en: 'Yes' })) expect(props(button)).not.toHaveProperty('lone')
-  })
-
-  test('**[#222]** two or three next steps: the + alone; four, or an end: nothing more (41.7 item 2)', () => {
-    expect(row({ kind: 'question', answers: [step('n-2'), step('a-1')] }).map((button) => props(button).className)).toEqual(['structure-add'])
-    expect(row({ kind: 'question', answers: [step('n-2'), step('a-1'), step('n-3')] }).map((button) => props(button).className)).toEqual(['structure-add'])
-    expect(row({ kind: 'question', answers: [step('n-2'), step('a-1'), step('n-2'), step('a-1')] })).toEqual([])
-    expect(row({ kind: 'terminal', label: { en: 'Look elsewhere' } })).toEqual([])
-  })
-
-  test('**[#179]** the end Sheet asks for the words, in the page\'s language, and offers no outcome (36.3)', () => {
-    const [, end] = row()
-    const [page] = props(end).pages as ReactElement[]
-    expect(page!.type).toBe(WordsForm)
-    expect(props(page)).toEqual({
-      nodeId: 'start',
-      lang: 'en',
-      link: 'end',
-      heading: 'Tree ends here',
-      words: { name: 'Text of the ending', characters: 'characters', confirm: 'Confirm', cancel: 'Cancel' },
-    })
+  test('**[#233]** the switch is offered on a step without Links only -- whatever its Options -- and not beside a next step (42.7 items 2 and 4)', () => {
+    const canEnd = (extra: Partial<DraftNode>) => props((props(row(extra)[0]).pages as ReactElement[])[0]).canEnd
+    expect(canEnd({ options: [{ title: { en: 'An aside' }, target: 'a-1' }] })).toBe(true)
+    for (const count of [1, 2, 3, 4]) expect(canEnd({ kind: 'question', answers: steps(count) }), `${count}`).toBe(false)
   })
 
   test('a Node the page does not carry gets nothing: there is no address to go to', () => {

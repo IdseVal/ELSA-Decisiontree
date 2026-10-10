@@ -1,7 +1,8 @@
 /**
  * **[#139]** The structure editing, in a browser (docs/specs/application.md 30, 35.4;
- * ADR-133-structure-editing): from an empty root, `+ Yes` lands on a new empty Node whose up
- * arrow returns; `treeEndsHere` asks for the ending's words, **[#179]** one field stopping at
+ * ADR-133-structure-editing): from an empty root, **[#233]** the one `+` with the words "Yes"
+ * lands on a new empty Node whose up arrow returns; **[#233]** the `+` Sheet's switch
+ * `treeEndsHere` asks for the ending's words, **[#179]** one field stopping at
  * 19 characters, and the badge is then their field (36.3); the side `+` opens the new
  * Overlay editable and the Option's title edits on the button, and **[#177]** a second-level
  * aside is made from the aside's own page, the Overlay offering no `+` (30.4, 30.5, amended;
@@ -11,7 +12,7 @@
  * reports, and its `add-option` hangs it back (**[#177]** the editor no longer offers
  * `linkExisting`); **[#178]** the step's red cross deletes after one confirmation and goes to
  * the parent, whose `+` is back, or, from an orphan the to-do list leads to, to the root with no
- * Trail, and "Tree does not end here after all" gives the three buttons back; no button carries a
+ * Trail, and "Tree does not end here after all" gives the `+` back; no button carries a
  * link menu; a Node with Options is refused an end and the Sheet says so; the ninth Option's `+`
  * is absent; and the count of Nodes created equals the count in the published `tree.json`.
  * `step-buttons.spec.ts` has the rest of #178. **[#179]** Last, on a Tree of two languages, an
@@ -28,7 +29,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type APIResponse, type Browser, type Locator, type Page } from '@playwright/test'
 import type { DraftNode, Violation } from '../../src/tree/types.ts'
-import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
+import { ADMIN_ENV, buildDataDir, login, plusOf, typeInPlus } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -114,17 +115,21 @@ async function landed(page: Page, from: string): Promise<string> {
 }
 
 /**
- * Opens `treeEndsHere` on the centre, types the ending's `words` into its one field, key by
- * key, and confirms (30.3; **[#179]** 36.3).
+ * Opens **[#233]** the `+` on the centre, turns its switch `treeEndsHere` on, types the ending's
+ * `words` into its one field, key by key, and confirms (30.3; **[#179]** 36.3; 42.7 item 3).
  */
 async function endHere(page: Page, words: string): Promise<void> {
-  await page.locator('.structure-end > .sheet-open').click()
-  const form = page.locator('.structure-form--end')
-  await expect(form).toBeVisible()
-  await expect(form.getByRole('textbox')).toBeFocused()
-  await page.keyboard.type(words, { delay: 5 })
+  const form = await typeInPlus(page, words, true)
   await form.getByRole('button', { name: 'Confirm' }).click()
 }
+
+/** **[#233]** A next step of the centre with `words` on its button, through the `+` and Enter; `landed` follows it (42.7 item 3). */
+async function addNextStep(page: Page, words: string): Promise<void> {
+  await (await typeInPlus(page, words)).getByRole('textbox').press('Enter')
+}
+
+/** **[#233]** The `+` Sheet's page while it is open (42.7 item 2). */
+const plusForm = (page: Page) => page.locator('.structure-form').filter({ visible: true })
 
 /** **[#179]** The ending's words on the rim, in `lang`: the field drawn as the badge (36.3). */
 const badge = (page: Page, nodeId: string, lang = 'en') => page.locator(`[data-field="${nodeId} terminal.label.${lang}"]`)
@@ -134,11 +139,10 @@ async function shoot(page: Page, name: string, folder = SHOTS): Promise<void> {
   await page.screenshot({ path: path.join(folder, `${name}.png`) })
 }
 
-/** The three outlined buttons of a Node without Links (30.1). */
+/** **[#233]** What a Node without Links offers: the one `+`, alone in its row (30.1, 42.7 item 1). */
 async function expectChoice(page: Page): Promise<void> {
-  await expect(page.locator('.structure--yes')).toHaveText('+ Yes')
-  await expect(page.locator('.structure-end > .sheet-open')).toHaveText('Tree ends here')
-  await expect(page.locator('.structure--no')).toHaveText('+ No')
+  await expect(plusOf(page)).toHaveText('+')
+  await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > :not(.answer--start-again)')).toHaveCount(1)
   await expect(page.locator('.answer--start-again')).toBeHidden()
   await expect(page.locator('.answer--next:nth-child(1), .answer--next:nth-child(2)')).toHaveCount(0)
 }
@@ -161,7 +165,7 @@ let n2c = ''
 let a1 = ''
 let a2 = ''
 
-test('the empty root offers + Yes, treeEndsHere and + No; + Yes lands on a new empty Node; the up arrow returns; the row then shows Yes: and a lone + No (30.1, 30.2)', async ({ browser }) => {
+test('the empty root offers **[#233]** the one +; a next step "Yes" lands on a new empty Node; the up arrow returns; the row then shows Yes: and the + (30.1, 30.2, 42.7)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   expect((await api(page, cookie, 'POST', '/trees', { id: TREE, languages: ['en'], title: { en: 'Built in the browser' } })).status()).toBe(201)
   await page.goto(editor(['start']))
@@ -170,45 +174,44 @@ test('the empty root offers + Yes, treeEndsHere and + No; + Yes lands on a new e
   await expect(page.locator('[data-slide]')).toHaveCount(0)
   await shoot(page, 'empty-node-choice')
 
-  await page.locator('.structure--yes').click()
+  await addNextStep(page, 'Yes')
   q1 = await landed(page, `/admin/trees/${TREE}/start`)
-  // The new Node arrives empty: no title, no description, the three buttons, the up arrow back (30.2).
+  // The new Node arrives empty: no title, no description, the `+`, the up arrow back (30.2).
   await expect(page.locator('h1 textarea')).toHaveValue('')
   // **[#172]** The empty description names what belongs in it (28.2, amended).
   await expect(field(page, q1, 'description.en')).toContainText('Text')
   await expectChoice(page)
   await expect(page.locator('.up-arrow')).toHaveAttribute('href', `/admin/trees/${TREE}/start`)
   await shoot(page, 'new-question-node')
-  // **[#221]** A next step labelled with the chrome word (41.7 item 1).
+  // **[#233]** A next step labelled with the words typed (42.7 item 3).
   expect((await nodeOf(page, cookie, 'start')).answers).toEqual([{ label: { en: 'Yes' }, target: q1 }])
 
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start']))
-  // One Answer: the real button for it, the placeholder for its empty title, and the `+` for the other
-  // (30.1); **[#222]** then `+`, the three an equal share of the row (41.7 items 2 and 8).
+  // One Answer: the real button for it, the placeholder for its empty title, and **[#233]** the `+`
+  // after it, the two an equal share of the row (30.1, 42.7 item 1).
   await expect(page.locator('.answer--next:nth-child(1)')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${q1}`)
   await expect(page.locator('.answer--next:nth-child(1) .branch-title')).toHaveText('Yes')
   await expect(page.locator('.answer--next:nth-child(1)')).toHaveAccessibleName('Yes: [Text missing in this language]')
-  await expect(page.locator('.structure--no')).toBeVisible()
   await expect(page.locator('.structure-add')).toHaveCount(1)
-  await expect(page.locator('.tree-frame:not([aria-hidden]) .answers')).toHaveClass(/answers--3/)
-  await expect(page.locator('.structure--yes')).toHaveCount(0)
-  await expect(page.locator('.structure-end')).toHaveCount(0)
+  await expect(page.locator('.tree-frame:not([aria-hidden]) .answers')).toHaveClass(/answers--2/)
   // **[#178]** No `...` at the Answer that exists, nor where the `+` is (30.6, amended).
   await expect(page.locator('.link-menu')).toHaveCount(0)
 })
 
-test('**[#179]** treeEndsHere asks for the ending\'s words and makes the Node a Terminal: the badge is their field, startAgain is the row, the buttons are gone; "Tree does not end here after all" gives them back (30.3, 30.8, 36.3)', async ({ browser }) => {
+test('**[#179]** treeEndsHere asks for the ending\'s words and makes the Node a Terminal: the badge is their field, startAgain is the row, the + is gone; "Tree does not end here after all" gives it back (30.3, 30.8, 36.3; **[#233]** 42.7)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor(['start', q1]))
-  await page.locator('.structure-end > .sheet-open').click()
-  const form = page.locator('.structure-form--end')
-  // One field, named and focused, its placeholder saying what belongs in it, its counter at
-  // the limit's 19; no outcome is offered (36.3).
+  await plusOf(page).click()
+  const form = plusForm(page)
+  await expect(form.getByRole('textbox')).toBeFocused()
+  // **[#233]** The switch on: one field, named, its placeholder saying what belongs in it, its
+  // counter at the limit's 19; no outcome is offered (36.3, 42.7 item 2).
+  await form.getByRole('switch', { name: 'Tree ends here' }).click()
   const input = form.getByRole('textbox', { name: 'Text of the ending' })
-  await expect(input).toBeFocused()
+  await input.focus()
   await expect(input).toHaveAttribute('placeholder', 'Text of the ending')
-  await expect(form.locator('input')).toHaveCount(1)
+  await expect(form.getByRole('textbox')).toHaveCount(1)
   await expect(form.locator('.structure-ending-count')).toHaveText('0 / 19')
   // `confirm` waits for a character that is not white space, and so does Enter.
   const confirm = form.getByRole('button', { name: 'Confirm' })
@@ -222,13 +225,15 @@ test('**[#179]** treeEndsHere asks for the ending\'s words and makes the Node a 
   await page.keyboard.type('Mandatory safeguards', { delay: 5 })
   await expect(input).toHaveValue('Mandatory safeguard')
   await expect(form.locator('.structure-ending-count')).toHaveText('19 / 19')
-  // `cancel` closes the Sheet, writes nothing, and the Sheet opens empty again.
+  // `cancel` closes the Sheet, writes nothing, and the Sheet opens empty again, **[#233]** the switch off.
   await form.getByRole('button', { name: 'Cancel' }).click()
   await expect(form).toBeHidden()
   expect((await nodeOf(page, cookie, q1)).label).toBeUndefined()
-  await page.locator('.structure-end > .sheet-open').click()
-  await expect(input).toBeFocused()
-  await expect(input).toHaveValue('')
+  await plusOf(page).click()
+  await expect(form.getByRole('textbox', { name: 'Words on the button' })).toBeFocused()
+  await expect(form.getByRole('textbox')).toHaveValue('')
+  await form.getByRole('switch', { name: 'Tree ends here' }).click()
+  await input.focus()
   await page.keyboard.type('Applies', { delay: 5 })
   await page.keyboard.press('Enter')
 
@@ -236,14 +241,14 @@ test('**[#179]** treeEndsHere asks for the ending\'s words and makes the Node a 
   await expect(words.locator('textarea')).toHaveValue('Applies')
   await expect(words).toHaveClass(/outcome/)
   await expect(page.locator('.answer--start-again')).toBeVisible()
-  await expect(page.locator('.structure, .structure-end')).toHaveCount(0)
+  await expect(page.locator('.structure-add')).toHaveCount(0)
   // A Terminal carries no `+` in the fan (5.6).
   await expect(page.locator('.side-add')).toHaveCount(0)
   await shoot(page, 'terminal-with-words')
   expect((await nodeOf(page, cookie, q1)).label).toEqual({ en: 'Applies' })
 
   // **[#178]** Beside the up arrow, in place of the step menu: the red cross, and on a Terminal
-  // `removeEnd`, which gives the three buttons back at once; ended again, the story goes on (30.8, amended).
+  // `removeEnd`, which gives **[#233]** the `+` back at once; ended again, the story goes on (30.8, amended).
   await expect(page.locator('.step-menu')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Delete this step' })).toBeVisible()
   await page.getByRole('button', { name: 'Tree does not end here after all' }).click()
@@ -261,30 +266,30 @@ test('**[#179]** treeEndsHere asks for the ending\'s words and makes the Node a 
   await expect(page.locator('.step-delete')).toHaveCount(0)
 })
 
-test('+ No makes the second Answer; the new Node gets its own two Answers, each ended; the parent row is then the public one (30.1, 30.2)', async ({ browser }) => {
+test('**[#233]** the + with the words "No" makes the second Answer; the new Node gets its own two Answers, each ended; the parent row then holds the two and the + (30.1, 30.2, 42.7)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor(['start']))
-  await page.locator('.structure--no').click()
+  await addNextStep(page, 'No')
   n2 = await landed(page, `/admin/trees/${TREE}/start`)
   await expectChoice(page)
 
-  await page.locator('.structure--yes').click()
+  await addNextStep(page, 'Yes')
   n2a = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
   await endHere(page, 'Prohibited')
   await expect(badge(page, n2a).locator('textarea')).toHaveValue('Prohibited')
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start', n2]))
 
-  await page.locator('.structure--no').click()
+  await addNextStep(page, 'No')
   n2b = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
   await endHere(page, 'Look elsewhere')
   await expect(badge(page, n2b).locator('textarea')).toHaveValue('Look elsewhere')
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start', n2]))
-  // Both Answers: the public row (30.1), **[#178]** with no link menu on either (30.6, amended).
+  // Both Answers and **[#233]** the `+` (42.7 item 1), **[#178]** with no link menu on either (30.6, amended).
   await expect(page.locator('.answer--next:nth-child(1)')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${n2a}`)
   await expect(page.locator('.answer--next:nth-child(2)')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${n2}/${n2b}`)
-  await expect(page.locator('.structure, .structure-end')).toHaveCount(0)
+  await expect(page.locator('.tree-frame:not([aria-hidden]) .answers')).toHaveClass(/answers--3/)
   await expect(page.locator('.link-menu')).toHaveCount(0)
   expect((await nodeOf(page, cookie, n2)).answers).toEqual([
     { label: { en: 'Yes' }, target: n2a },
@@ -369,14 +374,13 @@ test('**[#178]** the red cross on the step a yes leads to: one confirmation name
   await question.getByRole('button', { name: 'Confirm' }).click()
   await page.waitForURL(editor(['start', n2]))
   deleted.push(n2a)
-  // **[#221]** The No that stays is the one next step; the + for the word it lacks is Yes (41.7 item 2).
+  // **[#233]** The No that stays is the one next step, and the `+` after it (42.7 item 1).
   await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next')).toHaveCount(1)
-  await expect(page.locator('.structure--yes')).toBeVisible()
-  await expect(page.locator('.structure--no')).toHaveCount(0)
+  await expect(plusOf(page)).toBeVisible()
   expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/${n2a}`)).status()).toBe(404)
   expect((await nodeOf(page, cookie, n2)).answers).toEqual([{ label: { en: 'No' }, target: q1 }])
 
-  await page.locator('.structure--yes').click()
+  await addNextStep(page, 'Yes')
   n2c = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
   await expectChoice(page)
   await endHere(page, 'Does not apply')
@@ -469,7 +473,7 @@ test('the ninth Option’s + is absent: the full Node with eight Options has no 
   expect(((await full.json()) as { node: DraftNode }).node.options).toHaveLength(8)
   await page.goto(`${origin}/admin/trees/hidden-draft/full/opt-one`)
   await expect(page.locator('details.overlay[open] .side-add')).toHaveCount(0)
-  // An explanation Node that is the centre gets the fan's `+` and the three buttons (30.1, 30.4).
+  // An explanation Node that is the centre gets the fan's `+` and **[#233]** the row's (30.1, 30.4, 42.7 item 1).
   await page.goto(`${origin}/admin/trees/hidden-draft/opt-three`)
   await expect(page.locator('.options > li.options-add > .side-add')).toHaveCount(1)
   await expectChoice(page)
@@ -547,10 +551,12 @@ test('**[#179]** an ending typed to its limit in English and in Dutch is the bad
 
   // English: the Sheet, typed past the limit, which the twentieth character does not pass.
   await page.goto(`${origin}/admin/trees/${ENDING}/start/${step}`)
-  await page.locator('.structure-end > .sheet-open').click()
-  const form = page.locator('.structure-form--end')
+  await plusOf(page).click()
+  const form = plusForm(page)
+  await expect(form.getByRole('textbox')).toBeFocused()
+  await form.getByRole('switch', { name: 'Tree ends here' }).click()
   const input = form.getByRole('textbox', { name: 'Text of the ending' })
-  await expect(input).toBeFocused()
+  await input.focus()
   await page.keyboard.type('Mandatory safeguards', { delay: 5 })
   await expect(input).toHaveValue('Mandatory safeguard')
   await expect(form.locator('.structure-ending-count')).toHaveText('19 / 19')

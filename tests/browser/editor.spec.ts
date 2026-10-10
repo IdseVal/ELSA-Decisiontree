@@ -210,7 +210,7 @@ test.describe('autosave (29)', () => {
     const area = field(page, 'full', 'title.en').locator('textarea')
     await expect(area).toHaveValue(over)
     await area.click()
-    const pill = page.locator('.editor-pill')
+    const pill = page.locator('.editor-pill').filter({ visible: true })
     await expect(pill).toHaveText('93 / 80')
     await expect(pill).toHaveClass(/editor-pill--over/)
     await expect(field(page, 'full', 'title.en')).toHaveClass(/editor-field--over/)
@@ -246,7 +246,7 @@ test.describe('autosave (29)', () => {
     await field(page, 'full', 'description.en').click()
     const area = field(page, 'full', 'description.en').locator('textarea')
     await expect(area).toHaveValue(three)
-    await expect(page.locator('.editor-pill')).toHaveText(`${three.length} / 1503 / 2`)
+    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${three.length} / 1503 / 2`)
     await expect(field(page, 'full', 'description.en')).toHaveClass(/editor-field--over/)
     await expect(status(page).locator('.editor-violation')).toHaveText('V-LINES description.en: 3 estimated lines; at most 2')
     expect((await nodeOf(page, cookie, 'hidden-draft', 'full')).description.en).toBe(three)
@@ -257,7 +257,7 @@ test.describe('autosave (29)', () => {
     await area.press('Control+End')
     await page.keyboard.type(' and more words', { delay: 5 })
     await expect(area).toHaveValue(three)
-    await expect(page.locator('.editor-pill')).toHaveText(`${three.length} / 1503 / 2`)
+    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${three.length} / 1503 / 2`)
 
     // Blurred, the rendered form: a list of one item.
     await page.keyboard.press('Tab')
@@ -413,7 +413,7 @@ test.describe('an empty root Node, and the rim\u2019s tags (28.2, 28.3)', () => 
     const { page, cookie } = await loggedIn(browser, ANNA)
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)
     await field(page, 'full', 'title.en').locator('textarea').click()
-    await expect(page.locator('.editor-pill')).toBeVisible()
+    await expect(page.locator('.editor-pill').filter({ visible: true })).toBeVisible()
     await expect(page.locator('.editor-tag')).toHaveCount(0)
     // Three Sources already: no add control (5.7).
     await expect(page.locator('.source-sheet--add').filter({ visible: true })).toHaveCount(0)

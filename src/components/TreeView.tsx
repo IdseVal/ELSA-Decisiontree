@@ -60,14 +60,18 @@ const ANSWER_LABEL = { characters: 19 }
  * or four buttons, whose next steps carry their move arrows (41.7 item 8, measured in
  * `docs/research/issue-222-editor-notice-height.md`). **[#232]** And on the public page and in the
  * preview, the two boxes of a step of five next steps: 590 below 640 pixels wide, 650 below 360
- * (42.4, measured in `docs/research/issue-231-five-next-steps.md`). The stylesheet's media queries
- * hold the same numbers, which is where they take effect.
+ * (42.4, measured in `docs/research/issue-231-five-next-steps.md`). **[#233]** And in the editor,
+ * the two boxes of a row of five buttons -- five next steps, or four and the `+`: 690 below 770
+ * pixels wide, 1080 below 390 (42.4). The stylesheet's media queries hold the same numbers, which
+ * is where they take effect.
  */
 const FLOOR_HEIGHT = 480
 const STEPS_FLOOR_HEIGHT = 560
 const EDITOR_STEPS_FLOOR_HEIGHT = 590
 const FIVE_FLOOR_HEIGHT = 590
 const FIVE_NARROW_FLOOR_HEIGHT = 650
+const EDITOR_FIVE_FLOOR_HEIGHT = 690
+const EDITOR_FIVE_NARROW_FLOOR_HEIGHT = 1080
 
 /** What every part of the view needs: the page's address, its chrome, and the title index. */
 interface View {
@@ -130,16 +134,20 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
   const buttons = buttonsOf(centre.node, edit)
   // The editor's row, its next steps between their move arrows; the preview's setting has no slot (40.2).
   const arrows = edit?.slots.answerMoves !== undefined
-  // **[#232]** Five on the public page and in the preview have boxes of their own (42.4); the editor's row of five is #233's.
-  const five = buttons > 4 && !arrows
-  const [floorClass, floorHeight] =
+  // **[#232]** A row of five has two boxes of its own (42.4): the public page's and the preview's,
+  // and **[#233]** the editor's, which counts its `+` (42.7 item 7). A row of five names a second
+  // height, the narrow box's; every other row names one.
+  const five = buttons > 4
+  const [floorClass, floorHeight, narrowHeight] =
     buttons <= 2
-      ? ['minimum-size', FLOOR_HEIGHT]
-      : arrows
-        ? ['minimum-size minimum-size--editor-steps', EDITOR_STEPS_FLOOR_HEIGHT]
-        : five
-          ? ['minimum-size minimum-size--five', FIVE_FLOOR_HEIGHT]
-          : ['minimum-size minimum-size--steps', STEPS_FLOOR_HEIGHT]
+      ? ['minimum-size', FLOOR_HEIGHT, null]
+      : five && arrows
+        ? ['minimum-size minimum-size--editor-five', EDITOR_FIVE_FLOOR_HEIGHT, EDITOR_FIVE_NARROW_FLOOR_HEIGHT]
+        : arrows
+          ? ['minimum-size minimum-size--editor-steps', EDITOR_STEPS_FLOOR_HEIGHT, null]
+          : five
+            ? ['minimum-size minimum-size--five', FIVE_FLOOR_HEIGHT, FIVE_NARROW_FLOOR_HEIGHT]
+            : ['minimum-size minimum-size--steps', STEPS_FLOOR_HEIGHT, null]
   // The page's own URL, aside chain included: what a slide arrives at, and what a history step leaves.
   const here = links.node(address)
 
@@ -163,11 +171,11 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
           four next steps has the higher floor of 41.4 below its width, and names its height;
           **[#222]** in the editor, a row of three or four buttons, its own counted (41.7 item 8).
           **[#232]** A step of five has two boxes, so it names the height each needs: below 360
-          pixels wide the second (42.4). */}
+          pixels wide the second (42.4); **[#233]** in the editor, below 390. */}
       <p className={floorClass} lang={view.uiLang}>
         {view.ui.minimumSize} <span className="minimum-width">{view.ui.minimumWidth}</span>{' '}
         <span className="minimum-height">{view.ui.minimumHeight(floorHeight)}</span>
-        {five && <span className="minimum-height minimum-height--narrow">{view.ui.minimumHeight(FIVE_NARROW_FLOOR_HEIGHT)}</span>}
+        {narrowHeight !== null && <span className="minimum-height minimum-height--narrow">{view.ui.minimumHeight(narrowHeight)}</span>}
       </p>
     </>
   )
@@ -454,7 +462,7 @@ function Overlay({
 /**
  * **[#222]** How many buttons the Answer row of `node` draws: its next steps, and in the editor
  * the buttons the `structure` slot offers beside them, which the row counts as buttons (41.7
- * item 8). `startAgain` is not counted: it stands alone, or hidden behind the editor's four.
+ * item 8). `startAgain` is not counted: it stands alone, or hidden behind **[#233]** the editor's `+`.
  */
 function buttonsOf(node: AnyNode, edit: EditMode | undefined): number {
   return linksOf(node).answers.length + (edit?.slots.structure?.(node).length ?? 0)
