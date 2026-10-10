@@ -11,8 +11,8 @@
   line; 3.1's Answers; 3.2's bullet on the slide; in 3.4 the `[#133]` sentence on the editor's
   Answer row, the `[#219]` bullet's `[#220]` confirmation of "more than four is not" and of
   where `Tree ends here` stands, a new bullet holding the owner's words whole, and the passage
-  on what the round does not change; the row **Answer** in 5; the `[#220]` notes of 10.22 and
-  10.41 and the decision of 10.43; a new open item 10.44, OPEN for #231
+  on what the round does not change; the row **Answer** in 5; the `[#220]` notes of 10.22,
+  10.27 and 10.41 and the decision of 10.43; a new open item 10.44, OPEN for #231
 
 ## Context
 
