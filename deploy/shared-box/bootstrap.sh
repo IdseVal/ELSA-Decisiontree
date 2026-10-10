@@ -40,10 +40,34 @@ if [ ! -d "$ELSA_HOME/app/.git" ]; then
 fi
 
 echo "== node"
-if command -v node >/dev/null 2>&1; then
-  echo "node $(node --version) on PATH (this application needs 22.18 or later)"
+# package.json "engines": node >=22.18. The box's own Node stays as the other project needs it;
+# when it is older, Node 22 goes under $ELSA_HOME/node for this service alone, from the official
+# tarball, checked against its SHASUMS256.txt. deploy.sh and the unit's drop-in put it first on
+# their PATH.
+need=22.18.0
+have="$(node --version 2>/dev/null | sed 's/^v//' || true)"
+if [ -n "$have" ] && [ "$(printf '%s\n%s\n' "$need" "$have" | sort -V | head -1)" = "$need" ]; then
+  echo "node v$have on PATH meets $need"
+elif [ -x "$ELSA_HOME/node/bin/node" ]; then
+  echo "node $("$ELSA_HOME/node/bin/node" --version) already under $ELSA_HOME/node"
 else
-  echo "no node on PATH: install Node.js 22 (docs/deployment.md, step 1), or under $ELSA_HOME/node for this service alone" >&2
+  echo "node ${have:-missing} is older than $need: installing Node.js 22 under $ELSA_HOME/node"
+  tmp="$(mktemp -d)"
+  base=https://nodejs.org/dist/latest-v22.x
+  curl -fsSL "$base/SHASUMS256.txt" -o "$tmp/SHASUMS256.txt"
+  tarball="$(grep -o 'node-v22\.[0-9.]*-linux-x64\.tar\.xz' "$tmp/SHASUMS256.txt" | head -1)"
+  curl -fsSL "$base/$tarball" -o "$tmp/$tarball"
+  (cd "$tmp" && grep " $tarball\$" SHASUMS256.txt | sha256sum -c -)
+  rm -rf "$ELSA_HOME/node"
+  mkdir -p "$ELSA_HOME/node"
+  tar -xJf "$tmp/$tarball" -C "$ELSA_HOME/node" --strip-components=1
+  # Root owns it and everyone may read and run it: the tarball carries another uid, and a
+  # root shell with umask 077 made the folder unreadable to elsa on 2026-10-10 (node then fell
+  # back to the box's Node 20 and the build failed in postbuild).
+  chown -R root:root "$ELSA_HOME/node"
+  chmod -R a+rX "$ELSA_HOME/node"
+  rm -rf "$tmp"
+  echo "installed $("$ELSA_HOME/node/bin/node" --version)"
 fi
 
 echo "== env file"

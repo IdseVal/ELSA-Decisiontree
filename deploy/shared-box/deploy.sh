@@ -29,6 +29,11 @@ if [ "$(id -un)" != "elsa" ]; then
   exit 2
 fi
 
+# Node.js 22 for this service alone, when bootstrap.sh installed it because the box's own Node
+# is older than package.json's "engines" (the drop-in gives the unit the same PATH).
+if [ -d "$ELSA_HOME/node/bin" ]; then PATH="$ELSA_HOME/node/bin:$PATH"; fi
+echo "node $(node --version)"
+
 echo "== fetch $commit"
 cd "$APP"
 git fetch --quiet origin "$commit"

@@ -91,22 +91,19 @@ the box is closed to the internet on purpose.
 
 ## Order of work
 
-1. **Survey the box** (read-only): confirm the facts below, which come from the other
-   project's runbook and not yet from the machine: the proxy, the Node.js version against
-   this application's `>=22.18`, the ports in use, the firewall, where the backups go.
-2. **`bootstrap.sh`**, then the Caddy block and the first `deploy.sh` of `dev`, to the
-   placeholder domain; verify the login over HTTPS and one Tree end to end; remove the two
-   `ELSA_ADMIN_` lines from the env file and restart.
-3. **Add the workflow's secrets, variable and tailnet rule**; run the workflow by hand from
-   `dev` and see it deploy the same commit.
+1. ~~Survey the box~~ (2026-10-10, below).
+2. ~~`bootstrap.sh`, the Caddy block, the first `deploy.sh` of `dev`~~ (2026-10-10: the site answers
+   at the placeholder domain over HTTPS, the administrator logs in with a `Secure` cookie, the
+   two `ELSA_ADMIN_` lines are removed again).
+3. **Add the workflow's secrets and tailnet rule** (the owner; the variable `ELSA_BOX_HOST` is
+   set); run the workflow by hand from `dev` and see it deploy the same commit.
 4. **Merge `dev` into `main`** (the owner), and watch the push deploy.
-5. **Add `/srv/elsa/data` to the box's backup**, and note here where the backups go.
+5. ~~Add `/srv/elsa/data` to the box's backup~~ (2026-10-10: nightly on the box, below); copying
+   the backups off the machine is still to do, for both projects.
 
-What the owner provides: a login on the box over the tailnet for the one who does steps 1
-to 3 (or runs them from the printed commands), the placeholder domain with its A record
-pointing at the box, the e-mail address the administrator of that deployment logs in with (a
-value only the owner chooses; see `deployment.md`, `ELSA_ADMIN_EMAIL`), and the Tailscale
-OAuth client of step 3.
+What the owner provides for step 3: the Tailscale OAuth client (secrets `TS_OAUTH_CLIENT_ID`
+and `TS_OAUTH_SECRET`) and, in the tailnet policy, `tag:ci` under `tagOwners` and an `ssh`
+rule letting `tag:ci` reach the box as `elsa` with `action: accept`.
 
 ## Facts learned
 
@@ -114,6 +111,10 @@ _Recorded while deploying. Dates, no secrets._
 
 | Date | Fact |
 |---|---|
-| 2026-10-10 | From the other project's runbook, to confirm on the box: Ubuntu 24.04; Caddy is the only thing on 80 and 443 and terminates TLS; the other project's API listens on 127.0.0.1:8000 and its PostgreSQL on a local socket; systemd units and timers run it; the firewall denies incoming except 80, 443 and the tailnet interface; SSH is Tailscale SSH with no public port, password login and root login off; Node.js came from the distribution or NodeSource at 20 or later, so 22.18 is not guaranteed; backups are nightly database dumps under `/var/backups/`, copied off the machine. |
-| 2026-10-10 | The other project deploys by hand (pull, install, build, restart); it has no deploy workflow, so this application's is the first thing on the box that GitHub drives. |
-| 2026-10-10 | The box is on the owner's tailnet and answers Tailscale pings from the workstation, but the workstation refuses every outbound TCP connection to tailnet and LAN addresses at the socket level (`WSAEACCES`), from any process, while public addresses connect. Windows Firewall has no such rule; the third-party security suite's firewall is the suspect. Until that is lifted, steps 1 to 3 run from another machine or from the commands `bootstrap.sh` prints. |
+| 2026-10-10 | The box: Ubuntu 24.04.4, 2 vCPU, 3.7 GiB, 38 GB disk with 32 GB free, up since early September. Caddy 2.11 is the only thing on 80 and 443 and terminates TLS, with an admin socket on loopback 2019 and a tailnet-only listener on 8080 for the other project. The other project: gunicorn on 127.0.0.1:8000, PostgreSQL 16 on a local socket, one service (`plt-api`), a checkout under `/srv/plt` with a `deploy.sh` of the same shape as ours, run by hand. No Docker. The firewall denies incoming except 80, 443 and everything on the tailnet interface. |
+| 2026-10-10 | There is no OpenSSH on the box at all: SSH is Tailscale SSH (Tailscale 1.102), and the tailnet policy allows `root` after a browser check that holds 12 hours, and refuses other user names until a rule names them. So the deploy workflow's route over the tailnet is the only route, and the `elsa` user needs its own `ssh` rule before the workflow can log in. The `sudo` group is empty: the operator is root. |
+| 2026-10-10 | Node.js on the box is 20.20 from NodeSource, which the other project needs (`>=20`). This application needs `>=22.18`, so `bootstrap.sh` installed Node 22.23.3 under `/srv/elsa/node` for this service alone, from the official tarball checked against its SHASUMS256.txt; the box's Node is untouched. A root shell there has umask 077: the first install left that folder unreadable to `elsa`, `node` fell back to Node 20 and the build failed in `postbuild`; `bootstrap.sh` now sets the ownership and mode itself. |
+| 2026-10-10 | The box had no swap. A 2 GiB swap file was added (`/swapfile`, in `/etc/fstab`) before the first build: a Next.js build beside PostgreSQL and gunicorn on 3.7 GiB has little headroom. The build then took under a minute. |
+| 2026-10-10 | First deploy of `dev` done by hand: `bootstrap.sh`, the Caddy block appended (the previous Caddyfile kept beside it as `Caddyfile.before-elsa-2026-10-10`), `deploy.sh dev`. The first start seeded the two Trees and created the administrator from the two env lines, which were then removed and the service restarted. Certificates for the bare domain and `www` came at once. Checked from outside: 200 on the bare domain, 301 from `www`, 308 from plain HTTP, `robots.txt` names the HTTPS sitemap; a login over HTTPS answers 204 with a `Secure` session cookie, and the logout 204. |
+| 2026-10-10 | The other project's runbook promises nightly database dumps under `/var/backups/`; nothing there does it yet (only `dpkg` backups). For this application `/etc/cron.d/elsa-backup` writes `/var/backups/elsa/elsa-data-<date>.tar.gz` at 03:15 every night and keeps 30; a first copy was taken right after the deploy. Nothing copies them off the machine yet. |
+| 2026-10-10 | The owner's workstation could not reach the box for a morning because a VPN that starts with Windows refused every connection to tailnet and LAN addresses (`WSAEACCES`); turned off, everything connected. Noted so the next person does not look at the box's firewall first. |

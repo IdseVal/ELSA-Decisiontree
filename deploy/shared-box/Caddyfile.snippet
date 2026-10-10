@@ -1,12 +1,13 @@
 # The virtual host for this application on the shared box's Caddy (docs/hosting-shared-box.md).
 # Append to /etc/caddy/Caddyfile, beside the other project's block, with the domain filled
-# in; then `sudo systemctl reload caddy`. Caddy obtains and renews the certificate itself once
-# the domain's A record points at the box, passes the Host header through, and sends
+# in; then `sudo systemctl reload caddy`. Caddy obtains and renews the certificates itself once
+# the two names' A records point at the box, passes the Host header through, and sends
 # X-Forwarded-Proto: https, which makes the login cookie Secure (docs/deployment.md, step 6).
 #
 # The access log is off: the application keeps nothing about its readers
 # (docs/CORE_DOCUMENT.md section 8), and the proxy's log would be the one place their
-# addresses were kept.
+# addresses were kept. The www name only redirects, so that every address readers share and
+# every canonical link (ELSA_BASE_URL) carries the one bare domain.
 
 ELSA_DOMAIN {
     log {
@@ -14,4 +15,11 @@ ELSA_DOMAIN {
     }
     encode gzip zstd
     reverse_proxy 127.0.0.1:3001
+}
+
+www.ELSA_DOMAIN {
+    log {
+        output discard
+    }
+    redir https://ELSA_DOMAIN{uri} permanent
 }
