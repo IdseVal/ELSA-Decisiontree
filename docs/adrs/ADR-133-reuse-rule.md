@@ -17,8 +17,9 @@
   decision 5: decision 6's `linksOf(node)` answers `{ answers: { label, target }[]; terminal? }`,
   the next steps in their order, in place of `{ yes?, no?, terminal? }` (`application.md` 34.6,
   41.6). The rest stands.
-- **[#231] Amended (2026-10-10)** by `ADR-231-slide-in-the-editor.md`: decision 5's editor page
-  renders the neighbour frames of its parent and its next steps and slides, and decision 7's page
+- **[#231] Amended (2026-10-10)** by `ADR-231-slide-in-the-editor.md`: decision 4's components import a
+  sixth module of `src/`, `src/components/slide-gate.ts`; decision 5's editor page renders the
+  neighbour frames of its parent and its next steps and slides, and decision 7's page
   reads at most eighteen Nodes, not twelve (`docs/specs/application.md` 34.5, 34.7, 42.8); and by
   `ADR-231-slide-toward-the-button.md`: the preview's 31 Nodes are 41 (42.5).
 - Issue: #133 -- Architecture: freeze the editor contracts

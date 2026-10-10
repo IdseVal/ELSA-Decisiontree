@@ -32,11 +32,11 @@ both languages:
 - at 1280 x 640 every label takes two lines in buttons of 236, on the public page and in the editor:
   the row stays 68;
 - one row of five fits a window 481 tall at 1000, 1100 and 1279;
-- on the public page every face fits 481 tall from 700 to 999, needs up to 515 at 600 and 584 from
-  360 to 599, and 648 at 321; 360 x 640 and 390 x 844 fit;
-- in the editor, where the words stand between the move arrows, every face fits 481 tall from 767,
-  needs up to 685 from 390 to 766, 792 at 360 and 1080 at 321; 360 x 640 does not fit, 390 x 844
-  does;
+- on the public page every face fits every window from 481 tall up from 640 to 999, and needs up to
+  515 at 600, 584 from 360 to 599, and 648 at 321; 360 x 640 and 390 x 844 fit;
+- in the editor, where the words stand between the move arrows, every face fits every window from
+  481 tall up from 764, and needs up to 685 from 390 to 763, 792 at 360 and 1080 at 321; 360 x 640
+  does not fit, 390 x 844 does;
 - a step of four and the editor's `+` needs what five need, cell for cell.
 
 ## Decision
@@ -50,26 +50,28 @@ both languages:
    the Answer buttons are never given up, no label is shortened, and the limit of 19 characters
    stands. A row of five buttons shows the `minimumSize` notice, naming the height, **in two boxes**:
    below W1 wide and H1 tall, and below W2 wide and H2 tall (`application.md` 42.4's rule):
-   - W1 is 41.4's width: the lowest width measured from which the page fits a window 481 tall at it
-     and at every width measured above it up to 999, rounded up to ten;
+   - W1 is 41.4's width: the narrowest width from which the page fits every window from 481 tall
+     up, rounded up to ten;
    - W2 is the width of the narrowest viewport of 10.6 narrower than W1 at which the page fits;
-   - H1 the highest need from W2 up to below W1, rounded up to ten, never below the same page's
-     notice for three or four; H2 the highest need below W2, rounded up to ten.
+   - H1 the highest need from W2 up to below W1 -- a width's need the lowest height from which
+     every taller window fits -- rounded up to ten, never below the same page's notice for three or
+     four; H2 the highest need below W2, rounded up to ten.
 3. **The numbers, measured**:
-   - **the public page and the preview**, a step of five: **below 700 x 590, and below 360 x 650**;
+   - **the public page and the preview**, a step of five: **below 640 x 590, and below 360 x 650**;
    - **the editor**, a row of five buttons (five next steps, or four and its `+`): **below 770 x 690,
      and below 390 x 1080**.
-4. **The second box exists for the viewports of 10.6.** One box of 41.4's shape, below 700 x 650,
+4. **The second box exists for the viewports of 10.6.** One box of 41.4's shape, below 640 x 650,
    would show the notice at 360 x 640 on the public page, where five fit with 56 pixels to spare,
    because 321 wide needs 648; in the editor one box below 770 x 1080 would take 390 x 844, which
    fits. The second box gives the narrowest widths what they need without taking those viewports.
-   Between the widths measured a narrower window is never given more room -- the buttons and the
-   Bubble's text area only narrow -- so the need at a width measured bounds the widths above it up
-   to the next one measured, but at 480, where the row's padding of 4 and its gap of 20 return,
-   which is itself measured.
+   The needs are measured where the stylesheet changes the page: at the narrowest width of each
+   interval between its width breakpoints, and at every interval between its height breakpoints, since
+   a taller window can give the page less room where the type steps up or the Sources and the main
+   image come back (`docs/research/issue-231-five-next-steps.md` section 1).
 5. **The editor at 360 x 640 shows the notice for a row of five buttons**: there a label between the
-   move arrows takes eight lines in a button of 104 pixels and the page needs 744 to 792. It keeps
-   the editor at 390 x 844 and from 770 pixels wide up at 690 tall.
+   move arrows takes seven or eight lines in a button of 104 pixels and the page needs 744 to 792. It
+   keeps the editor at 390 x 844, from 390 to 769 pixels wide in every window from 690 tall, and
+   from 770 up in every window above the floor.
 
 ## Alternatives rejected
 
@@ -77,13 +79,13 @@ both languages:
   takes eight lines; at 321, ten (`docs/research/issue-220-answer-row-room.md` section 5.1, "one row,
   5"): a column of letters, not a label.
 - **Two a row, the fifth on a third row.** A third row overflows the full Node in every window 481
-  tall measured and at 800 x 640 (the same record, "two a row, 5"), where three then two fit at 481
-  from 600 up.
+  tall measured and at 800 x 640 (the same record, "two a row, 5"), where three then two fit every
+  window from 481 tall up from 640 pixels wide, in every face.
 - **A shorter limit for the words of a step of five.** The limit of a label would depend on how many
   labels its step has: a creator adding a fifth next step would find the four words already written
   over the limit, and the format would hold two limits for one field, where 19 is the ending's cap and
   the room's for every count (`ADR-220-words-on-a-next-step.md`). It would buy little: on the public
-  page the fifth button costs height below 700 pixels wide only.
+  page the fifth button costs height below 640 pixels wide only.
 - **The move arrows given up in the editor below some width**, so that a label has the whole button.
   Reordering is only possible through them (41.7 item 4); 10.5 gives nothing up that it does not
   keep behind a control, and the arrows have none.
@@ -102,7 +104,7 @@ both languages:
 - A step of four next steps in the editor shows its `+` (`ADR-231-one-plus.md`), so it is a row of
   five buttons and shows the editor's notice for five; it showed 41.7 item 8's below 600 x 590.
   At 360 x 640 the editor of such a step shows the notice where #222's row was drawn.
-- A desktop window below 700 x 590 shows the notice on a step of five on the public page, where it
+- A desktop window below 640 x 590 shows the notice on a step of five on the public page, where it
   showed the page for a step of two; phones held upright keep it.
 - What becomes untrue: 41.1's "a fifth is refused" and the refusal in
   `ADR-220-number-of-next-steps.md`; `ADR-38-no-scroll.md`'s floor gains a third exception; core

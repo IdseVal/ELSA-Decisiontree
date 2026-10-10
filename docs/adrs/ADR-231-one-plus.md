@@ -9,7 +9,7 @@
   confirmed), 10.44
 - Supersedes in part: `ADR-220-editing-next-steps.md` (decisions 1 and 2: `+ Yes`, `Tree ends here`
   and `+ No` in the row of a step without Links, `+ Yes` and `+ No` beside one next step, a `+`
-  while fewer than four); `ADR-133-structure-editing.md` as superseded in part by #220 (the row's
+  while fewer than four; and decision 8's notice, which holds for a row of three or four buttons); `ADR-133-structure-editing.md` as superseded in part by #220 (the row's
   buttons)
 - Amends: `ADR-171-ending-text.md` decision 7 (the `treeEndsHere` Sheet: its field stands in the
   `+`'s Sheet behind a switch); `ADR-220-words-on-a-next-step.md` decision 3 and

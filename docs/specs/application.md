@@ -28,7 +28,7 @@
 > | 9 | Seven `ADR-231-*` rows. |
 > | 10.1, 10.3, 10.4, 10.5, 10.6, 10.7 | Five in one row from 1000 pixels wide, three then two below; a step of five's notice (42.4); the tests' fixture and viewports. |
 > | 11.1 to 11.3 | A placement's `x` is a pair; each next step stands where its button stands; up 1, down 5 + 25. |
-> | 28.6, 29.2, 29.5, 30.1, 30.2, 30.3, 30.7, 34.5, 34.7, 36.3 | The editor's one `+` and its Sheet; the slide in the editor and the autosave. |
+> | 28.1, 28.6, 29.2, 29.5, 30.1, 30.2, 30.3, 30.7, 30.8, 34.4, 34.5, 34.7, 36.3, 40.8 | The editor's one `+` and its Sheet; the slide in the editor, the autosave and the seam between them. |
 > | 41 | Amended by 42. |
 > | 42 | New. |
 >
@@ -1793,7 +1793,7 @@ notice below 560 pixels tall, the least 41.4's rule allows (41.4, measured).
 **[#221]** (2026-10-10) Measured by 41.4's rule, the width is **600**: below 600 pixels wide and 560 tall (41.4).
 
 **[#231]** (2026-10-10) A step of five next steps has a floor of its own, in two boxes: on the public page
-and in the preview it shows the notice below 700 pixels wide and 590 tall, and below 360 wide and 650
+and in the preview it shows the notice below 640 pixels wide and 590 tall, and below 360 wide and 650
 tall; in the editor a row of five buttons -- five next steps, or four and the `+` -- shows it below
 770 x 690 and below 390 x 1080 (42.4, measured).
 
@@ -4629,6 +4629,10 @@ right of the arrow (30.8, amended):
 |                     .----'  ( DOES NOT APPLY )   '----.                        |      the badge in the rim (10.1)
 ```
 
+**[#231]** (2026-10-10) From #233 the first drawing's Answer row holds one outlined `+`, centred, in place of `[ + Yes ]
+[ Tree ends here ] [ + No ]`: a step without Links offers nothing else there (42.7). The second
+drawing stands.
+
 ### 28.2 One language at a time
 
 The chrome bar's `LanguageSwitch` (unchanged) lists the draft's declared languages; the
@@ -5126,6 +5130,10 @@ decision 2.
 
 **[#220]** (2026-10-09) A next step goes with the step it leads to, as a yes or a no does above; the step it came
 from keeps the others in their order (41.7 item 5).
+
+**[#231]** (2026-10-10) From #233 "Tree does not end here after all" gives the row its one `+` back, where it gave
+the three buttons, and it is outlined in `accent-secondary` as the `+` is: the row has no
+`treeEndsHere` button (42.7). Nothing else here changes.
 
 ### 30.9 Orphans
 
@@ -5660,6 +5668,12 @@ it rather than a copy. `tests/editor/imports.test.ts` asserts the four and that
 **[#144]** A fifth, after #141's four, so **five** modules in all: `src/contrast.ts`, the WCAG maths and the contrast rule of 33.8, pure
 and dependency-free, which `theme.ts` derives its readable-on colours from and the Theme panel
 warns with, so the rule has one definition. `imports.test.ts` asserts it with the others.
+
+**[#231]** (2026-10-10) A sixth, from #234: `src/components/slide-gate.ts`, the seam through which `Slider` asks the
+editor's queue before a slide navigates (42.8). It imports only `react`, as `Explainer.tsx` does;
+`Editor.tsx` provides it, and `Slider` reads it, so that `src/components/` still imports of
+`src/editor/` only the `EditMode` type. `imports.test.ts` asserts the six and that `slide-gate.ts`
+imports nothing but `react`.
 
 ### 34.5 What edit mode does not render
 
@@ -6969,6 +6983,8 @@ language shown is the bracketed placeholder (41.7 item 7).
   `flushAll()` (40.6), the centre
   rule moved to `draftCentre` with nothing it does changed (40.2), and `<html lang>` (40.3). Its
   address, its writes, its slots and its bound of twelve Nodes (34.7) are unchanged.
+  **[#231]** (2026-10-10) From #234 the editor's bound is eighteen, and it renders the neighbour frames of its
+  parent and its next steps (34.7, 42.8).
 
 ### 40.9 Tests (#206)
 
@@ -7302,28 +7318,30 @@ its next steps and its `+` (42.7). They stand by *k* and the width alone:
 the `minimumSize` notice, naming the height (`minimumHeight`), in two boxes of width and height --
 **below W1 wide and H1 tall, and below W2 wide and H2 tall** -- where:
 
-- **W1** is 41.4's width: the lowest of the widths measured from which the page fits a window 481
-  tall at it and at every width measured above it up to 999, in every face and both languages,
-  rounded up to the next ten;
+- **W1** is the narrowest width from which the page fits every window from 481 tall up, in every
+  face and both languages, rounded up to the next ten -- 41.4's width, measured at every height the
+  stylesheet draws differently (`docs/research/issue-231-five-next-steps.md` section 1);
 - **W2** is the width of the narrowest viewport of 10.6 narrower than W1 at which the page fits in
   every face, so that a need at the narrowest widths does not take that viewport from the reader;
-- **H1** is the highest need measured at the widths from W2 up to below W1, rounded up to the next
-  ten, and never below the same page's notice for three or four (41.4's 560; 41.7 item 8's 590);
-- **H2** is the highest need measured below W2, rounded up to the next ten.
+- **H1** is the highest need at the widths from W2 up to below W1 -- a width's need the lowest
+  height from which every taller window fits -- rounded up to the next ten, and never below the same
+  page's notice for three or four (41.4's 560; 41.7 item 8's 590);
+- **H2** is the highest need below W2, rounded up to the next ten.
 
 Measured on the redrawn row of 42.3, the full Node of 10.6 with five 19-character labels, both
-languages, at part 2's widths and 999, in Segoe UI and Verdana on Windows and in Liberation Sans and
-DejaVu Sans in Linux (`docs/research/issue-231-five-next-steps.md` section 3):
+languages, at the narrowest width of each interval between the stylesheet's width breakpoints and at
+every interval of heights from 481 to 1440, in Segoe UI and Verdana on Windows and in Liberation Sans
+and DejaVu Sans in Linux (`docs/research/issue-231-five-next-steps.md` section 3):
 
 | Page | Row | W1 | W2 | H1 | H2 | The notice stands |
 |---|---|---|---|---|---|---|
-| The public page and the preview | a step of five next steps | 700 | 360 | 590 | 650 | **below 700 x 590, and below 360 x 650** |
+| The public page and the preview | a step of five next steps | 640 | 360 | 590 | 650 | **below 640 x 590, and below 360 x 650** |
 | The editor | five buttons: five next steps, or four and `+` | 770 | 390 | 690 | 1080 | **below 770 x 690, and below 390 x 1080** |
 
 - Every viewport of 10.6 keeps the tree view for five on the public page and in the preview: 360 x
   640 needs 584 and 390 x 844 565. In the editor 360 x 640 shows the notice for a row of five
-  buttons -- there a label between the move arrows takes eight lines in a button of 104 pixels, and
-  the page needs 744 to 792 -- and 390 x 844, which needs 677, keeps the editor.
+  buttons -- there a label between the move arrows takes seven or eight lines in a button of 104
+  pixels, and the page needs 744 to 792 -- and 390 x 844, which needs 677, keeps the editor.
 - **A step of four next steps in the editor is a row of five buttons**, with its `+`, and shows the
   editor's notice for five; it showed 41.7 item 8's below 600 x 590.
 - One row of five fits a window 481 tall at 1000, 1100 and 1279 pixels wide in every face, on both
@@ -7390,8 +7408,9 @@ number (core document 3.4 `[#230]`'s reading, confirmed; the table is
 
 ### 42.7 The editor's one `+`
 
-1. **One `+` wherever a step can take another next step**: on a step without Links, alone in its
-   row (*k* = 1, centred); on a step of one to four next steps, after the last. A step of five has
+1. **One `+` wherever a step can take another next step**: on a step without Links -- as 30.1's
+   first row and 41.7 have it, no next steps and no end, whatever its Options -- alone in its row
+   (*k* = 1, centred); on a step of one to four next steps, after the last. A step of five has
    none. `+ Yes`, `+ No` and the row's `treeEndsHere` go, from a step without Links and from beside
    a step's one next step (core document 3.4 `[#230]`'s reading, confirmed). The `+` is 41.7's
    outlined button, named `addNextStep`, counted in the row's *k* (42.3, 42.4).
@@ -7450,14 +7469,23 @@ rule, and the way back retraces it.
   on either is theirs, as it is today, and `Slider` ignores a click whose default is prevented.
 - **An open Sheet** is closed before the layer moves (11.3); what it held unconfirmed goes with it,
   as when it is closed by hand.
-- **The autosave queue**: a slide starts at once, and the navigation waits for `settle()` (29.2):
+- **The autosave queue**: a slide starts at once, and the navigation waits for the queue (29.2):
   every field value waiting out its 600 ms is written at once, and the client navigation starts when
   the queue holds nothing not yet accepted, the layer holding at the target as it holds for a slow
   payload. A focused field is blurred by the click, so what it holds is in the queue. **While the
   queue retries a failed write** (29.5: the indicator at `notSaved` and `retrying`) the control does
-  not slide: it is followed as the plain link it
-  is, and the browser's `beforeunload` question asks, as today. A refused value (29.4) is in no queue
-  and goes with the page, as on a reload (40.6).
+  not slide: it is followed as the plain link it is, and the browser's `beforeunload` question asks,
+  as today. **If a write fails, or the session expires (29.6), while the slide waits**, the slide is
+  undone: the layer returns to the centre without motion, nothing navigates, and the page shows what
+  29.5 or 29.6 shows. A refused value (29.4) is in no queue and goes with the page, as on a reload
+  (40.6).
+- **The seam** (34.4): `src/components/slide-gate.ts` exports a context, `SlideGate`, null by
+  default, of `{ ready(): boolean; settle(): Promise<boolean> }`. `ready()` is false while the queue
+  retries a failed write; `settle()` writes every waiting field value at once and resolves `true` once
+  the queue holds nothing not yet accepted, or `false` if a write fails or the session expires first.
+  The `Editor` provider gives it from its queue (`flushAll`, 29.2); `Slider` reads it: with none --
+  the public page, the preview -- it slides as 11.3 has it; with one, it intercepts a click only while
+  `ready()`, and navigates when `settle()` resolves `true`.
 - **A history step** (back, forward) slides as on the public page when the payload is in the
   framework's cache (11.3), and the page it arrives at then reads the draft again (`router.refresh()`)
   once the slide has ended, so that the editor never stands on a draft older than the store's.
@@ -7483,7 +7511,7 @@ and in the preview, and 41.7 item 8's for three or four buttons in the editor.
   only) and six, and the store's write of a sixth (422, V-ANSWERS); a fixture with a step of five next
   steps, labelled at 19 characters in both languages; `no-scroll.spec.ts` on it at the ten viewports
   of 10.6, at 999 and 1000 x 640, and one pixel either side of each width and height of 42.4's public
-  boxes (699 and 700 x 589 and 590, 359 and 360 x 649 and 650), both languages, with the notice where
+  boxes (639 and 640 x 589 and 590, 359 and 360 x 649 and 650), both languages, with the notice where
   42.4 puts it; `transition.spec.ts`
   asserting, for each button of two, three, four and five at 1280 x 640, 999 x 640 and a width below
   600, that its slide goes to the side where it stands, as `docs/research/issue-230-slide-direction.md`
@@ -7501,5 +7529,6 @@ and in the preview, and 41.7 item 8's for three or four buttons in the editor.
   toward where it stands at 1280 x 640 and at a width below 1000, and the up arrow retraces it; the
   browser's back as 42.8 has it, the page showing the draft's latest accepted write after it; a title
   typed and a next step's button clicked within 600 ms, the title saved and shown after the slide; a
-  click on a next step's words or arrows does not slide; no slide while `retrying`; the page's bound
-  of eighteen; `prefers-reduced-motion`; `admin-no-scroll.spec.ts` mid-slide, every Sheet closed.
+  click on a next step's words or arrows does not slide; no slide while `retrying`; a write failing
+  while a slide waits undoes it, nothing navigating; `imports.test.ts` with `slide-gate.ts`; the
+  page's bound of eighteen; `prefers-reduced-motion`; `admin-no-scroll.spec.ts` mid-slide, every Sheet closed.

@@ -9,8 +9,8 @@
   `node .next/standalone/server.js` from a scratch data directory made by `node
   tests/browser/data-dir.ts <dir> tests/fixtures/full-node tests/fixtures/three-next-steps`, with
   `tests/store/admin.ts`'s administrator
-- Follows: `docs/research/issue-220-answer-row-room.md` (its redrawn row and its sixteen widths),
-  `docs/research/issue-221-answer-row-faces.md` (its faces, its lowest window) and
+- Follows: `docs/research/issue-220-answer-row-room.md` (its redrawn row),
+  `docs/research/issue-221-answer-row-faces.md` (its faces) and
   `docs/research/issue-222-editor-notice-height.md` (the editor's page, its walk)
 
 This is a record, not a contract: #232 and #233 build the row and the notices, and measure them
@@ -35,20 +35,28 @@ again on their builds, as #221 and #222 did.
   changed.
 - **The labels**: #220's four of 19 characters ("Mandatory safeguard", "Niet van toepassing",
   "ONLY AS AN IMPORTER", "Ethisch aanvaardbaa") and #221's one word of 19 ("Notwithstandingness").
-  A cell gives the worst of them: the most lines a label took and, in brackets, the tallest button.
+  A window fits when it fits with every one of them; a cell's lines are the worst label's.
 - **What fits**: the page walked as `tests/browser/admin-no-scroll.spec.ts` walks it, with its
-  exemptions, overflows nothing, and no label is wider than its button, with every label; the
-  notices of 41.4 and 41.7 item 8 taken off (their classes `minimum-size--steps` and
-  `minimum-size--editor-steps` removed) so the row is measured where a notice would stand in for it.
-  Between about 480 and 640 pixels wide dev's disclaimer takes two lines and overflows its band, a
-  known defect that is not the row's: its band is not counted, and the page may be taller than the
-  window by what the disclaimer overflows its band by, as #222's script counted it.
+  exemptions, overflows nothing, and no label is wider than its button; the notices of 41.4 and 41.7
+  item 8 taken off (their classes `minimum-size--steps` and `minimum-size--editor-steps` removed) so
+  the row is measured where a notice would stand in for it. Between about 480 and 640 pixels wide
+  dev's disclaimer takes two lines and overflows its band, a known defect that is not the row's: its
+  band is not counted, and the page may be taller than the window by what the disclaimer overflows
+  its band by, as #222's script counted it.
 - **At the viewports**: the ten of 10.6 but the floor, and 1000 x 640 and 999 x 640, the two sides of
   the width where the row changes.
-- **The lowest window**: at part 2's sixteen widths of #220's record and 999, the lowest height from
-  481 up at which the page fits, found by halving between 481 and 1440, each height the same page
-  resized. A cell gives the height, the most lines a label took there (the tallest button), and what
-  overflowed one pixel lower.
+- **The heights at which a width does not fit.** The stylesheet (`src/app/[lang]/globals.css`)
+  changes the page as a window grows taller, at 484, 488, 506, 550, 564, 632, 640 and 744 pixels
+  (the type steps up, the Sources and the main image come back), and as it grows wider, at 360, 480,
+  520, 600, 640, 764, 768, 770, 792, 1000, 1200 and 1280. Between two such heights, and between two
+  such widths, the page draws one layout, which a taller or a wider window only gives more room. So
+  the script tries, at the narrowest width of each interval of widths (and at 390 too, a width of
+  10.6), the lowest height of each interval of heights from 481 to 1440; where that height does not
+  fit, it tries the interval's highest, and between them it finds the lowest height that fits by
+  halving. A cell lists the heights that do not fit and **what the width needs**: the lowest height
+  from which every height up to 1440 fits. A window taller than one that fits need not fit: the
+  public page at 321 wide with the row in Verdana fits from 632 to 639 and not from 640 to 647, where
+  the main image comes back.
 - **Faces**, each proved by Chromium's own report of the font it drew a label in
   (`CSS.getPlatformFontsForNode`), printed under each table:
   - **Windows 11**, Node 22.18.0, Chromium of Playwright 1.62.1: the default stack, drawn in
@@ -57,49 +65,51 @@ again on their builds, as #221 and #222 did.
     and `fonts-dejavu-core` and the Chromium headless shell of Playwright 1.62.1, the server run in
     the same Linux from the same build: the default stack, drawn in **Liberation Sans**; and the row
     set to **DejaVu Sans**.
-- **Earlier runs, not recorded**: two on Windows that loaded each width 1080 tall and searched up to
-  1080. The first had no "four and +" page; the second gave the cells below but one: the public page
-  at 321 wide with the row in Verdana needed 632 there, where the run below, which loads each width
-  1440 tall, needs 648. The rules of section 3 take the higher.
+- **Earlier runs, not recorded**: three that searched, at part 2's sixteen widths of #220's record,
+  for the lowest window by halving from 481 up -- which takes a window that fits to prove every taller
+  one, and the steps above show it does not. They gave the same needs at the widths both measured,
+  but did not measure 640, so they put the public page's first width at 700. A fourth, the run below
+  without 390, gave the same cells. A Segoe UI run of the script below gave the same cells as the one
+  recorded, with one face report empty; it was run again.
 
 ## 2. What it shows
 
 1. **At the guarantee, 1280 x 640, one row of five holds every label on two lines**, buttons of 236
    pixels, 60 tall, on the public page and in the editor, in every face: the row stays the 68 of
    `application.md` 10.1 and 41.3.
-2. **One row of five from 1000 pixels wide** fits a window 481 tall at 1000, 1100 and 1279, in every
-   face, on both pages: a label takes two lines on the public page in Segoe UI and Liberation Sans
-   and three in Verdana and DejaVu Sans at 1000 (a button of 173.6, 84 tall), and three or four in
-   the editor between its arrows. 41.3's 1000 holds for five.
-3. **The public page, three and then two below 1000**: every face fits a window 481 tall from 700 to
-   999; at 600 Verdana and DejaVu Sans need **515**. Below 600 the highest need is **584** from 360
-   up (480 and 360 wide in every face, 520 in Verdana and DejaVu Sans), and **648** at 321 (Verdana
-   and DejaVu Sans; 584 in Segoe UI and Liberation Sans). At **360 x
-   640** and **390 x 844**, two of 10.6's viewports, five fit in every face, a label on four lines in
-   a button of 104 and 114.
+2. **One row of five from 1000 pixels wide** fits every window from 481 tall up at 1000 and 1200, in
+   every face, on both pages. At 1000 x 640 a label takes two lines on the public page in Segoe UI and
+   Liberation Sans and three in Verdana and DejaVu Sans, and three or four in the editor between its
+   arrows. 41.3's 1000 holds for five.
+3. **The public page, three and then two below 1000**: from **640** wide up every face fits every
+   window from 481 tall. At 600 Verdana and DejaVu Sans need **515**; from 360 to 599 the highest need
+   is **584** (360 and 480 in every face, 520 in Verdana and DejaVu Sans); at 321, **648** in Verdana
+   and DejaVu Sans and 584 in Segoe UI and Liberation Sans. At **360 x 640** and **390 x 844**, two of
+   10.6's viewports, five fit in every face, a label on four lines in a button of 104 and 114.
 4. **The editor, three and then two below 1000**: the words stand between the move arrows (the
-   label's padding of 32 each side, #222), so a third of the row leaves them little room. Every face
-   fits a window 481 tall from 767 up; at 700 DejaVu Sans needs **522**, at 600 Verdana and DejaVu
-   Sans **563**; from 390 to 599 the highest need is **685** (480 wide, Verdana and DejaVu Sans);
-   below 390, **792** at 360 (Verdana and DejaVu Sans; 744 in Segoe UI and Liberation Sans) and
-   **1080** at 321 (Verdana; DejaVu Sans 1032), where a label takes 14 lines. At **360 x 640** it does not fit in any face (744 to 792 needed); at **390 x 844** it
-   fits in every face (677).
+   label's padding of 32 each side, #222), so a third of the row leaves them little room. From **764**
+   wide up every face fits every window from 481 tall; at 640 Verdana and DejaVu Sans need **522**, at
+   600 **563**; from 390 to 639 the highest need is **685** (480 wide, Verdana and DejaVu Sans; 677 at
+   390 in every face); below 390, **792** at 360 (Verdana and DejaVu Sans; 744 in Segoe UI and
+   Liberation Sans) and **1080** at 321 (Verdana; DejaVu Sans 1032, Liberation Sans 936, Segoe UI
+   888). At **360 x 640** it does not fit in any face, a label on seven lines (Segoe UI, Liberation
+   Sans) or eight (Verdana, DejaVu Sans) in a button of 104; at **390 x 844** it fits in every face.
 5. **"Four and +" needs what five need**, cell for cell, in every face and both languages: the
    tallest button of the row sets its height, and the four next steps carry their arrows at the
    same width.
-6. **English and Dutch** differ only at 420 wide on the public page (Dutch hyphenates "Niet van
-   toepassing" later); no number of section 3 depends on it.
-7. **Liberation Sans gives Segoe UI's windows** but at 321 wide in the editor (936 against 888) and
-   at 420 on the public page (541 against 493 in English), **and DejaVu Sans Verdana's** but at 700 and 321 in
-   the editor (522 against 481, 1032 against 1080).
+6. **English and Dutch** need the same at every width, in every face.
+7. **Liberation Sans needs what Segoe UI needs** but at 321 wide in the editor (936 against 888),
+   **and DejaVu Sans what Verdana needs** but at 321 in the editor (1032 against 1080).
 
 ## 3. The numbers, by #231's rules (`application.md` 42.4)
 
 The rule is 41.4's, with a second box below the narrowest of 10.6's viewports that fits, so that a
-need at the narrowest widths does not take that viewport from the reader:
+need at the narrowest widths does not take that viewport from the reader. A width's need, below, is
+section 1's: the lowest height from which every height up to 1440 fits; an interval of widths needs
+what its narrowest width needs.
 
-- **W1**, the width: the lowest of the widths above from which the page fits a window 481 tall at it
-  and at every one above it up to 999, in every face and both languages, rounded up to the next ten.
+- **W1**, the width: the narrowest width from which the page fits every window from 481 tall up, in
+  every face and both languages, rounded up to the next ten.
 - **W2**: the width of the narrowest viewport of 10.6 narrower than W1 at which the page fits in every
   face.
 - **H1**: the highest need at the widths from W2 up to below W1, rounded up to the next ten, never
@@ -109,10 +119,10 @@ need at the narrowest widths does not take that viewport from the reader:
 
 | | W1 | W2 | H1 | H2 |
 |---|---|---|---|---|
-| **The public page and the preview**, a step of five | 600 needs 515 (Verdana, DejaVu Sans); 700 and up fit at 481: **700** | 360 x 640 fits (584): **360** | from 360 to 699 the highest is 584: **590** | 321 needs 648: **650** |
-| **The editor**, a row of five buttons (five next steps, or four and `+`) | 700 needs 522 (DejaVu Sans); 767 and up fit at 481: 767, **770** | 360 x 640 does not fit (792); 390 x 844 does (677): **390** | from 390 to 769 the highest is 685 (480, Verdana and DejaVu Sans): **690** | 321 needs 1080 (Verdana): **1080** |
+| **The public page and the preview**, a step of five | 600 to 639 needs 515 (Verdana, DejaVu Sans); from 640 every window fits: **640** | 360 x 640 fits (584): **360** | from 360 to 639 the highest is 584: **590** | 321 to 359 needs 648: **650** |
+| **The editor**, a row of five buttons (five next steps, or four and `+`) | 640 to 763 needs 522 (Verdana, DejaVu Sans); from 764 every window fits: 764, **770** | 360 x 640 does not fit (792); 390 x 844 does (677): **390** | from 390 to 769 the highest is 685 (480, Verdana and DejaVu Sans): **690** | 321 to 389 needs up to 1080 (321, Verdana): **1080** |
 
-So a step of five next steps shows the notice on the public page and in the preview **below 700 x
+So a step of five next steps shows the notice on the public page and in the preview **below 640 x
 590 and below 360 x 650**, and the editor's row of five buttons **below 770 x 690 and below 390 x
 1080**. Every viewport of 10.6 keeps the tree view on the public page; in the editor 360 x 640 shows
 the notice for a row of five, and 390 x 844 keeps the tree view.
@@ -155,6 +165,8 @@ Its code is as it ran.
 // redrawn with five copies of one of its buttons, every one labelled with one 19-character label,
 // standing as #231 decides: one row from 1000 pixels wide, each an equal share, at most 620; below
 // 1000 three and then two, each a third of the row less its gaps, the two centred.
+// At each width it tries every interval of heights the stylesheet draws differently, from just above
+// the floor to 1440.
 import { createRequire } from 'node:module'
 import path from 'node:path'
 
@@ -163,8 +175,17 @@ const { chromium } = require('playwright-core')
 
 const [origin, face] = process.argv.slice(2)
 
-/** Part 2's sixteen widths (docs/research/issue-220-answer-row-room.md section 1), and 999. */
-const WIDTHS = [321, 360, 390, 420, 479, 480, 520, 600, 700, 767, 768, 800, 900, 999, 1000, 1100, 1279]
+/**
+ * The narrowest width of each interval between the stylesheet's width breakpoints
+ * (src/app/[lang]/globals.css), from just above the floor to the guarantee: within an interval the
+ * page draws one layout, which a wider window only gives more room, so its narrowest width is its
+ * worst.
+ */
+const WIDTH_STEPS = [321, 360, 390, 480, 520, 600, 640, 764, 768, 770, 792, 1000, 1200]
+/** The lowest height of each interval between the stylesheet's height breakpoints, from just above the floor. */
+const HEIGHT_STEPS = [481, 484, 488, 506, 550, 564, 632, 640, 744]
+/** The tallest window tried: 2560 x 1440's, the tallest of 10.6. */
+const TOP = 1440
 /** The ten viewports of application.md 10.6 but the floor, and the two sides of 1000. */
 const VIEWPORTS = [[1280, 640], [1366, 768], [1920, 1080], [2560, 1440], [1280, 800], [1024, 768], [768, 1024], [390, 844], [360, 640], [1000, 640], [999, 640]]
 /** #220's 19-character labels and #221's one word of 19. */
@@ -326,12 +347,12 @@ try {
         console.log(`| ${width} x ${height} | ${width >= 1000 ? 'one row of 5' : '3, then 2'} | ${w.width} | ${w.lines} (${w.tallest}) | ${w.fits ? 'yes' : `NO: ${w.overflowing.join(', ')}`} |`)
       }
 
-      console.log(`\n### Five next steps, ${name}, ${lang}${face ? `, the row in ${face}` : ''}: the lowest window that holds the page\n`)
-      console.log('| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |')
+      console.log(`\n### Five next steps, ${name}, ${lang}${face ? `, the row in ${face}` : ''}: the heights at which the page does not fit\n`)
+      console.log('| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |')
       console.log('|---|---|---|---|---|---|')
       let family = ''
-      for (const width of WIDTHS) {
-        await page.setViewportSize({ width, height: 1440 })
+      for (const width of WIDTH_STEPS) {
+        await page.setViewportSize({ width, height: TOP })
         await page.goto(origin + url + query, { waitUntil: 'load' })
         await page.evaluate(() => document.fonts.ready)
         let last = null
@@ -340,24 +361,32 @@ try {
           last = await fitsAll(page, name.endsWith('+'))
           return last.fits
         }
-        let low = 481
-        let high = 1440
-        let cell
-        if (await fits(low)) cell = `481 | ${last.lines} (${last.tallest}) | --`
-        else if (!(await fits(high))) cell = `over 1440 | ${last.lines} (${last.tallest}) | ${last.overflowing.join(', ')}`
-        else {
-          while (high - low > 1) {
-            const mid = Math.floor((low + high) / 2)
-            if (await fits(mid)) high = mid
-            else low = mid
+        // Each interval of heights between two of the stylesheet's steps draws one layout, which a
+        // taller window only gives more room: its lowest height fitting proves the interval. Where it
+        // does not, its highest is tried, and between them the lowest that fits is found by halving.
+        const failing = []
+        for (let k = 0; k < HEIGHT_STEPS.length; k++) {
+          const low = HEIGHT_STEPS[k]
+          const high = (HEIGHT_STEPS[k + 1] ?? TOP + 1) - 1
+          if (await fits(low)) continue
+          if (!(await fits(high))) {
+            failing.push([low, high])
+            continue
           }
-          await fits(low)
-          const below = last.overflowing.join(', ')
-          await fits(high)
-          cell = `${high} | ${last.lines} (${last.tallest}) | ${below}`
+          let bad = low
+          let good = high
+          while (good - bad > 1) {
+            const mid = Math.floor((bad + good) / 2)
+            if (await fits(mid)) good = mid
+            else bad = mid
+          }
+          failing.push([low, bad])
         }
+        const needs = failing.length ? failing[failing.length - 1][1] + 1 : HEIGHT_STEPS[0]
+        await fits(Math.min(needs, TOP))
+        const at = failing.map(([a, b]) => (a === b ? `${a}` : `${a} to ${b}`)).join(', ') || '--'
         family = await drawnIn(page)
-        console.log(`| ${width} | ${width >= 1000 ? 'one row of 5' : '3, then 2'} | ${last.width} | ${cell} |`)
+        console.log(`| ${width} | ${width >= 1000 ? 'one row of 5' : '3, then 2'} | ${last.width} | ${at} | ${needs > TOP ? `over ${TOP}` : needs} | ${last.lines} (${last.tallest}) |`)
       }
       console.log(`\nA label drawn in (Chromium's report): ${family}`)
       await page.close()
@@ -388,27 +417,23 @@ try {
 | 1000 x 640 | one row of 5 | 173.6 | 2 (60) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the public page, en: the lowest window that holds the page
+#### Five next steps, the public page, en: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 584 | 4 (108) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 584 | 4 (108) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 565 | 4 (108) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 493 | 3 (84) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 481 | 2 (60) | -- |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 536 | 3 (84) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 481 | 2 (60) | -- |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 1 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 2 (60) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 | 565 | 4 (108) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 535 | 536 | 3 (84) |
+| 600 | 3, then 2 | 169.3 | -- | 481 | 2 (60) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 2 (60) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -428,27 +453,23 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 2 (60) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the public page, nl: the lowest window that holds the page
+#### Five next steps, the public page, nl: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 584 | 4 (108) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 584 | 4 (108) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 565 | 4 (108) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 517 | 3 (84) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 481 | 2 (60) | -- |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 536 | 3 (84) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 481 | 2 (60) | -- |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 1 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 2 (60) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 | 565 | 4 (108) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 535 | 536 | 3 (84) |
+| 600 | 3, then 2 | 169.3 | -- | 481 | 2 (60) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 2 (60) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -468,27 +489,23 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the editor, en: the lowest window that holds the page
+#### Five next steps, the editor, en: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 888 | 10 (252) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 744 | 7 (180) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 887 | 888 | 10 (252) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743 | 744 | 7 (180) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -508,27 +525,23 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the editor, nl: the lowest window that holds the page
+#### Five next steps, the editor, nl: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 888 | 10 (252) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 744 | 7 (180) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 887 | 888 | 10 (252) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743 | 744 | 7 (180) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -548,27 +561,23 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the editor, four and +, en: the lowest window that holds the page
+#### Five next steps, the editor, four and +, en: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 888 | 10 (252) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 744 | 7 (180) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 887 | 888 | 10 (252) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743 | 744 | 7 (180) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -588,27 +597,23 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the editor, four and +, nl: the lowest window that holds the page
+#### Five next steps, the editor, four and +, nl: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 888 | 10 (252) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 744 | 7 (180) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 887 | 888 | 10 (252) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743 | 744 | 7 (180) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -630,27 +635,23 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the public page, en, the row in Verdana: the lowest window that holds the page
+#### Five next steps, the public page, en, the row in Verdana: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 648 | 5 (132) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 584 | 4 (108) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 565 | 4 (108) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 541 | 4 (108) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 493 | 3 (84) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 647 | 648 | 5 (132) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 | 565 | 4 (108) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -670,27 +671,23 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the public page, nl, the row in Verdana: the lowest window that holds the page
+#### Five next steps, the public page, nl, the row in Verdana: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 648 | 5 (132) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 584 | 4 (108) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 565 | 4 (108) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 565 | 4 (108) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 493 | 3 (84) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 647 | 648 | 5 (132) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 | 565 | 4 (108) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -710,27 +707,23 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 4 (108) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 2 (60) | yes |
 
-#### Five next steps, the editor, en, the row in Verdana: the lowest window that holds the page
+#### Five next steps, the editor, en, the row in Verdana: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 1080 | 14 (348) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 792 | 8 (204) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 685 | 5 (132) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 563 | 4 (108) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 2 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 4 (108) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 3 (84) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 1079 | 1080 | 14 (348) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 791 | 792 | 8 (204) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 684 | 685 | 5 (132) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 562 | 563 | 4 (108) |
+| 640 | 3, then 2 | 182.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 521 | 522 | 3 (84) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -750,27 +743,23 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 4 (108) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 2 (60) | yes |
 
-#### Five next steps, the editor, nl, the row in Verdana: the lowest window that holds the page
+#### Five next steps, the editor, nl, the row in Verdana: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 1080 | 14 (348) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 792 | 8 (204) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 685 | 5 (132) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 563 | 4 (108) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 2 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 4 (108) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 3 (84) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 1079 | 1080 | 14 (348) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 791 | 792 | 8 (204) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 684 | 685 | 5 (132) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 562 | 563 | 4 (108) |
+| 640 | 3, then 2 | 182.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 521 | 522 | 3 (84) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -790,27 +779,23 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 4 (108) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 2 (60) | yes |
 
-#### Five next steps, the editor, four and +, en, the row in Verdana: the lowest window that holds the page
+#### Five next steps, the editor, four and +, en, the row in Verdana: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 1080 | 14 (348) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 792 | 8 (204) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 685 | 5 (132) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 563 | 4 (108) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 2 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 4 (108) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 3 (84) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 1079 | 1080 | 14 (348) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 791 | 792 | 8 (204) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 684 | 685 | 5 (132) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 562 | 563 | 4 (108) |
+| 640 | 3, then 2 | 182.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 521 | 522 | 3 (84) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -830,27 +815,23 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 4 (108) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 2 (60) | yes |
 
-#### Five next steps, the editor, four and +, nl, the row in Verdana: the lowest window that holds the page
+#### Five next steps, the editor, four and +, nl, the row in Verdana: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 1080 | 14 (348) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 792 | 8 (204) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 685 | 5 (132) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 563 | 4 (108) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 2 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 4 (108) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 3 (84) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 1079 | 1080 | 14 (348) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 791 | 792 | 8 (204) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 684 | 685 | 5 (132) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 562 | 563 | 4 (108) |
+| 640 | 3, then 2 | 182.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 521 | 522 | 3 (84) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -872,27 +853,23 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 2 (60) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the public page, en: the lowest window that holds the page
+#### Five next steps, the public page, en: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 584 | 4 (108) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 584 | 4 (108) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 565 | 4 (108) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 541 | 4 (108) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 481 | 2 (60) | -- |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 536 | 3 (84) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 481 | 2 (60) | -- |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 1 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 2 (60) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 | 565 | 4 (108) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 535 | 536 | 3 (84) |
+| 600 | 3, then 2 | 169.3 | -- | 481 | 2 (60) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 2 (60) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -912,27 +889,23 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 2 (60) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the public page, nl: the lowest window that holds the page
+#### Five next steps, the public page, nl: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 584 | 4 (108) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 584 | 4 (108) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 565 | 4 (108) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 565 | 4 (108) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 481 | 2 (60) | -- |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 536 | 3 (84) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 481 | 2 (60) | -- |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 1 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 2 (60) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 | 565 | 4 (108) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 535 | 536 | 3 (84) |
+| 600 | 3, then 2 | 169.3 | -- | 481 | 2 (60) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 2 (60) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -952,27 +925,23 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the editor, en: the lowest window that holds the page
+#### Five next steps, the editor, en: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 936 | 11 (276) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 744 | 7 (180) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 935 | 936 | 11 (276) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743 | 744 | 7 (180) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -992,27 +961,23 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the editor, nl: the lowest window that holds the page
+#### Five next steps, the editor, nl: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 936 | 11 (276) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 744 | 7 (180) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 935 | 936 | 11 (276) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743 | 744 | 7 (180) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -1032,27 +997,23 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the editor, four and +, en: the lowest window that holds the page
+#### Five next steps, the editor, four and +, en: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 936 | 11 (276) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 744 | 7 (180) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 935 | 936 | 11 (276) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743 | 744 | 7 (180) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -1072,27 +1033,23 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the editor, four and +, nl: the lowest window that holds the page
+#### Five next steps, the editor, four and +, nl: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 936 | 11 (276) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 744 | 7 (180) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 935 | 936 | 11 (276) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743 | 744 | 7 (180) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -1114,27 +1071,23 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the public page, en, the row in DejaVu Sans: the lowest window that holds the page
+#### Five next steps, the public page, en, the row in DejaVu Sans: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 648 | 5 (132) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 584 | 4 (108) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 565 | 4 (108) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 541 | 4 (108) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 493 | 3 (84) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 647 | 648 | 5 (132) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 | 565 | 4 (108) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1154,27 +1107,23 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 3 (84) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 1 (60) | yes |
 
-#### Five next steps, the public page, nl, the row in DejaVu Sans: the lowest window that holds the page
+#### Five next steps, the public page, nl, the row in DejaVu Sans: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 648 | 5 (132) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 584 | 4 (108) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 565 | 4 (108) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 565 | 4 (108) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 493 | 3 (84) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 584 | 4 (108) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 515 | 3 (84) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 481 | 2 (60) | -- |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 1 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 3 (84) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 2 (60) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 647 | 648 | 5 (132) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 | 565 | 4 (108) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 514 | 515 | 3 (84) |
+| 640 | 3, then 2 | 182.7 | -- | 481 | 2 (60) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1194,27 +1143,23 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 4 (108) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 2 (60) | yes |
 
-#### Five next steps, the editor, en, the row in DejaVu Sans: the lowest window that holds the page
+#### Five next steps, the editor, en, the row in DejaVu Sans: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 1032 | 13 (324) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 792 | 8 (204) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 685 | 5 (132) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 563 | 4 (108) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 522 | 3 (84) | div.bubble-text |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 2 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 4 (108) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 3 (84) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 1031 | 1032 | 13 (324) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 791 | 792 | 8 (204) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 684 | 685 | 5 (132) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 562 | 563 | 4 (108) |
+| 640 | 3, then 2 | 182.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 521 | 522 | 3 (84) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1234,27 +1179,23 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 4 (108) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 2 (60) | yes |
 
-#### Five next steps, the editor, nl, the row in DejaVu Sans: the lowest window that holds the page
+#### Five next steps, the editor, nl, the row in DejaVu Sans: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 1032 | 13 (324) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 792 | 8 (204) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 685 | 5 (132) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 563 | 4 (108) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 522 | 3 (84) | div.bubble-text |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 2 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 4 (108) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 3 (84) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 1031 | 1032 | 13 (324) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 791 | 792 | 8 (204) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 684 | 685 | 5 (132) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 562 | 563 | 4 (108) |
+| 640 | 3, then 2 | 182.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 521 | 522 | 3 (84) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1274,27 +1215,23 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 4 (108) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 2 (60) | yes |
 
-#### Five next steps, the editor, four and +, en, the row in DejaVu Sans: the lowest window that holds the page
+#### Five next steps, the editor, four and +, en, the row in DejaVu Sans: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 1032 | 13 (324) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 792 | 8 (204) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 685 | 5 (132) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 563 | 4 (108) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 522 | 3 (84) | div.bubble-text |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 2 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 4 (108) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 3 (84) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 1031 | 1032 | 13 (324) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 791 | 792 | 8 (204) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 684 | 685 | 5 (132) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 562 | 563 | 4 (108) |
+| 640 | 3, then 2 | 182.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 521 | 522 | 3 (84) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1314,26 +1251,22 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 1000 x 640 | one row of 5 | 173.6 | 4 (108) | yes |
 | 999 x 640 | 3, then 2 | 302.3 | 2 (60) | yes |
 
-#### Five next steps, the editor, four and +, nl, the row in DejaVu Sans: the lowest window that holds the page
+#### Five next steps, the editor, four and +, nl, the row in DejaVu Sans: the heights at which the page does not fit
 
-| width | arrangement | button width | lowest window | most lines there (tallest button) | one pixel lower |
+| width | arrangement | button width | does not fit at | needs (every height from it up to 1440 fits) | most lines there (tallest button) |
 |---|---|---|---|---|---|
-| 321 | 3, then 2 | 91 | 1032 | 13 (324) | div.bubble-text |
-| 360 | 3, then 2 | 104 | 792 | 8 (204) | div.bubble-text |
-| 390 | 3, then 2 | 114 | 677 | 6 (156) | div.bubble-text |
-| 420 | 3, then 2 | 124 | 613 | 5 (132) | div.bubble-text |
-| 479 | 3, then 2 | 143.7 | 565 | 4 (108) | div.bubble-text |
-| 480 | 3, then 2 | 129.3 | 685 | 5 (132) | div.bubble-text |
-| 520 | 3, then 2 | 142.7 | 584 | 4 (108) | div.bubble-text |
-| 600 | 3, then 2 | 169.3 | 563 | 4 (108) | div.bubble-text |
-| 700 | 3, then 2 | 202.7 | 522 | 3 (84) | div.bubble-text |
-| 767 | 3, then 2 | 225 | 481 | 2 (60) | -- |
-| 768 | 3, then 2 | 225.3 | 481 | 2 (60) | -- |
-| 800 | 3, then 2 | 236 | 481 | 2 (60) | -- |
-| 900 | 3, then 2 | 269.3 | 481 | 2 (60) | -- |
-| 999 | 3, then 2 | 302.3 | 481 | 2 (60) | -- |
-| 1000 | one row of 5 | 173.6 | 481 | 4 (108) | -- |
-| 1100 | one row of 5 | 193.6 | 481 | 3 (84) | -- |
-| 1279 | one row of 5 | 235.8 | 481 | 2 (60) | -- |
+| 321 | 3, then 2 | 91 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 1031 | 1032 | 13 (324) |
+| 360 | 3, then 2 | 104 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 743, 744 to 791 | 792 | 8 (204) |
+| 390 | 3, then 2 | 114 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 632 to 639, 640 to 676 | 677 | 6 (156) |
+| 480 | 3, then 2 | 129.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 631, 640 to 684 | 685 | 5 (132) |
+| 520 | 3, then 2 | 142.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 563, 564 to 583 | 584 | 4 (108) |
+| 600 | 3, then 2 | 169.3 | 481 to 483, 484 to 487, 488 to 505, 506 to 549, 550 to 562 | 563 | 4 (108) |
+| 640 | 3, then 2 | 182.7 | 481 to 483, 484 to 487, 488 to 505, 506 to 521 | 522 | 3 (84) |
+| 764 | 3, then 2 | 224 | -- | 481 | 2 (60) |
+| 768 | 3, then 2 | 225.3 | -- | 481 | 2 (60) |
+| 770 | 3, then 2 | 226 | -- | 481 | 2 (60) |
+| 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
+| 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
+| 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)

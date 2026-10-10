@@ -2,13 +2,15 @@
 
 - Status: ACCEPTED (frozen) -- 2026-10-10; the owner may overrule (core document 10.44)
 - Issue: #231 -- Architecture: the round of #230
-- Spec: `docs/specs/application.md` 11.3, 29.2, 29.5, 30.2, 34.5, 34.7, 42.8 (new), amended `[#231]`
+- Spec: `docs/specs/application.md` 11.3, 29.2, 29.5, 30.2, 34.4, 34.5, 34.7, 40.8, 42.8 (new), amended
+  `[#231]`
 - Core document: 3.2 `[#230]` and 3.4 `[#230]` (the reading "in the editor too", confirmed; the
   reading "the editor slides to" a new next step, replaced), 3.4 (`[#131]` "the editor looks exactly
   like the final Tree"), section 9, 10.44
 - Depends on: `ADR-231-slide-toward-the-button.md`, `ADR-231-one-plus.md`
-- Amends: `ADR-133-reuse-rule.md` (decision 7's editor page renders no neighbour frame, no `data-slide`,
-  and reads at most twelve Nodes); `ADR-133-structure-editing.md` (30.2's "a plain navigation, no
+- Amends: `ADR-133-reuse-rule.md` (decision 5's editor page renders no neighbour frame and no
+  `data-slide`; decision 7's twelve Nodes; decision 4's modules of `src/` the editor imports: a sixth,
+  `src/components/slide-gate.ts`); `ADR-133-structure-editing.md` (30.2's "a plain navigation, no
   slide"); `ADR-205-preview-drawing.md` ("nothing slides there", of the editor's page);
   `ADR-230-tree-creation-round.md` decision 5 (the readings of the slide in the editor)
 - Built by: #234
@@ -44,20 +46,27 @@ while it holds a write not yet accepted, leaving the page asks the browser's `be
    placement's; a click that its field or a move arrow takes does not slide, as it does not navigate
    today. The `+`, `startAgain`, the Options and every Sheet's entries do not slide.
 5. **The autosave decides when the navigation starts, not whether the slide does**: the layer moves at
-   once and the client navigation waits for `settle()` -- every field value waiting out its 600 ms
+   once and the client navigation waits for the queue -- every field value waiting out its 600 ms
    written at once, then nothing not yet accepted -- the layer holding at the target as for a slow
    payload. While the queue retries a failed write, the control does not slide: it is followed as the
-   plain link it is, and `beforeunload` asks, as today. A refused value goes with the page, as on a
-   reload.
-6. **An open Sheet is closed first** (11.3); what it held unconfirmed goes with it.
-7. **A history step slides back** when the payload is in the framework's cache (11.3), and the page it
+   plain link it is, and `beforeunload` asks, as today. If a write fails or the session expires while
+   the slide waits, the slide is undone without motion and nothing navigates, the page showing what
+   29.5 or 29.6 shows. A refused value goes with the page, as on a reload.
+6. **The seam: a context in `src/components/`, filled by the editor.** `src/components/slide-gate.ts`
+   exports `SlideGate`, `{ ready(): boolean; settle(): Promise<boolean> }`, null by default and
+   importing only `react`. The `Editor` provider fills it from its queue; `Slider` reads it, and
+   intercepts a click only while `ready()`, navigating when `settle()` resolves `true`. Without one --
+   the public page, the preview -- nothing changes. `src/components/` still imports of `src/editor/`
+   only the `EditMode` type (34.4), and the editor's modules of `src/` are six.
+7. **An open Sheet is closed first** (11.3); what it held unconfirmed goes with it.
+8. **A history step slides back** when the payload is in the framework's cache (11.3), and the page it
    arrives at reads the draft again once the slide ends (`router.refresh()`), so that the editor never
    stands on a draft older than the store's.
-8. **Creating a next step does not slide**: the new step did not exist when the page was drawn, so no
+9. **Creating a next step does not slide**: the new step did not exist when the page was drawn, so no
    frame of it stands ready; the editor goes to it by a plain navigation, as today. The round record's
    reading that "the editor slides to it" is replaced; the owner's words are about "buttons to navigate
    down the tree", and the `+` creates.
-9. `prefers-reduced-motion: reduce` removes the motion and keeps the navigation, after `settle()`.
+10. `prefers-reduced-motion: reduce` removes the motion and keeps the navigation, after `settle()`.
 
 ## Alternatives rejected
 
@@ -69,6 +78,11 @@ while it holds a write not yet accepted, leaving the page asks the browser's `be
   left of the middle beside the `+`, and would slide straight down.
 - **Two levels down in the editor, as on the public page.** No button of the editor's page leads there,
   and the editor's page is the heavier one: its centre carries its fields and its Sheets.
+- **`Slider` importing the editor's queue**, or the queue passed down as a prop. 34.4 keeps the
+  public components free of the editor's modules, so that the public page ships none of them; a prop
+  would have to cross from the server's `TreeView` to a client component as a function, which it
+  cannot. A context the editor fills, in a module of the components that imports only React, keeps
+  both rules.
 - **Waiting for the autosave before the slide starts.** A write takes a round trip; the slide would
   start late after every edit. The layer already holds at the target while a payload is slow.
 - **Sliding while the queue retries, the writes carried to the next page.** The queue is the page's,
@@ -78,11 +92,12 @@ while it holds a write not yet accepted, leaving the page asks the browser's `be
 
 ## Consequences
 
-- #234 adds `editorNeighbours`, passes its placements to `TreeView` on the editor's page, lets `Slider`
-  wait for `EditorApi.settle()` before `router.push` in the editor and fall back to the link while the
-  queue retries, refreshes a page reached by a history step once its slide ends, and tests each
-  button of two to five, the up arrow, the history step, an edit made just before a click, the bound,
-  and reduced motion (42.10).
+- #234 adds `editorNeighbours`, passes its placements to `TreeView` on the editor's page, adds
+  `src/components/slide-gate.ts` and fills it in `Editor.tsx`, lets `Slider` wait on it before
+  `router.push` and fall back to the link while the queue retries, undoes a slide whose wait fails,
+  refreshes a page reached by a history step once its slide ends, and tests each button of two to
+  five, the up arrow, the history step, an edit made just before a click, a failure while waiting, the
+  imports, the bound, and reduced motion (42.10).
 - The editor's page reads up to six Nodes more than it did, and carries their frames in its payload.
 - What becomes untrue: 34.5's "no neighbour frames, no `data-slide`" for the editor's page, 34.7's
   twelve, 30.2's "no slide" for following a next step, and core document 3.4's `[#230]` "the editor

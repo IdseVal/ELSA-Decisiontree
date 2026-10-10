@@ -8,7 +8,7 @@
   slide toward the side where the button stands at every width
   (`ADR-231-slide-toward-the-button.md`), in the editor too (`ADR-231-slide-in-the-editor.md`).
   Replaced: the editor goes to a step just created by a plain navigation, without a slide
-  (`ADR-231-slide-in-the-editor.md` decision 8).
+  (`ADR-231-slide-in-the-editor.md` decision 9).
 - Issue: #230 -- Tree creation (the owner's instruction)
 - Issues filed: #231 to #234
 - Specs affected: none amended here; #231 amends the sections it decides, #232 to #234 what
