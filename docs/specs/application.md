@@ -7017,6 +7017,15 @@ starts, not the list.
    by #222 on the editor's page with its bar and floating controls (the highest need, rounded up
    to ten, never below 41.4's); `admin-no-scroll.spec.ts` measures it at the editor's viewports,
    both languages.
+   - **[#222] Measured (2026-10-10): the height is 560**, below 41.4's width of 600 (#221's, in
+     place of the 390 above). On the editor's page of the full Node with four next steps, with three
+     and `+`, and of a step without Links, both languages, at part 2's widths below 600 and at 599,
+     in Segoe UI and with the row in Verdana on Windows: the highest need is **536** (four next
+     steps, English, the row in Verdana, 321 wide), 540 rounded, which 41.4's 560 is above. The
+     editor shows the notice for a row of three or four buttons below 600 pixels wide and 560 tall,
+     naming 560, as the public page does for a step of three or four. The script and its whole
+     output are `docs/research/issue-222-editor-notice-height.md`; `admin-no-scroll.spec.ts` holds
+     the editor at 599 and 600 x 481 and at 599 x 559 and 560.
 
 ### 41.8 What does not change
 
