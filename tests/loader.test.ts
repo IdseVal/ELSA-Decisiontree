@@ -52,7 +52,7 @@ describe('a Tree in two languages', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/5')
+    expect(tree.manifest.format).toBe('elsa-tree/6')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
@@ -89,7 +89,11 @@ describe('a Tree in two languages', () => {
     expect(node!.kind).toBe('question')
     // The narrowing the discriminated union of section 5.1 exists for.
     if (node!.kind !== 'question') throw new Error('unreachable')
-    expect(node!.answers).toEqual({ yes: 'prohibited-practices', no: 'outside-scope' })
+    // **[#221]** In the order the buttons stand, each with its words (tree-format.md 5.3).
+    expect(node!.answers).toEqual([
+      { label: { en: 'Yes', nl: 'Ja' }, target: 'prohibited-practices' },
+      { label: { en: 'No', nl: 'Nee' }, target: 'outside-scope' },
+    ])
     expect(node!.sources).toEqual([
       {
         id: 'art-2',
@@ -193,7 +197,7 @@ describe('a Tree in two languages', () => {
       const node = (await tree.getNode(id))!
       expect(node.images.length, `${id} carries no Image`).toBeGreaterThan(0)
       expect(node.images[0]!.credit, `${id}: first credit names no licence`).toMatch(/CC0 1\.0|CC BY(-SA)? [0-9.]+|public domain/)
-      if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+      if (node.kind === 'question') queue.push(...node.answers.map((answer) => answer.target))
       queue.push(...node.options.map((option) => option.target))
     }
     expect(seen.size, 'Nodes walked from the root').toBe(7)
@@ -475,14 +479,14 @@ describe('a Tree whose Links, Sources or Images are broken is rejected', () => {
       // The Link to a missing Node the issue asks for by name.
       'answer-to-missing-node',
       [
-        { file: 'start', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"no-such-node" is not a Node of this Tree' },
+        { file: 'start', keyPath: 'answers[0].target', rule: 'V-ANSWERS', message: '"no-such-node" is not a Node of this Tree' },
         { file: 'yes-end', keyPath: '', rule: 'V-REACH', message: 'not reachable from root "start" by following Answers and Options' },
       ],
     ],
     [
       'answer-to-explanation',
       [
-        { file: 'start', keyPath: 'answers.yes', rule: 'V-ANSWERS', message: '"detail" is an explanation Node; an Answer must lead to a question Node or a Terminal' },
+        { file: 'start', keyPath: 'answers[0].target', rule: 'V-ANSWERS', message: '"detail" is an explanation Node; an Answer must lead to a question Node or a Terminal' },
       ],
     ],
     [
@@ -753,7 +757,7 @@ describe('the Node index the sitemap reads (#118)', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.filePath).toBe(path.join(exampleTree, 'tree.json'))
-    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/5')
+    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/6')
   })
 })
 

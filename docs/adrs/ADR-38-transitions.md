@@ -3,6 +3,13 @@
 - Status: ACCEPTED (frozen) -- 2026-09-10
 - Superseded in part by `ADR-78-overlay.md` (decision 2 as far as it concerns the side slide: an Option opens an Overlay and nothing slides sideways) -- 2026-09-17 (issue #78). The slide down and up, and decisions 1 and 3 to 7, stand.
 - Superseded in part by `ADR-78-answer-buttons-and-up-arrow.md` as amended by issue #102 (PR #110), 2026-09-19 (decision 2 as far as it fixes the up slide as straight up: the up arrow's slide retraces the step it undoes). The slide down, and decisions 1 and 3 to 7, stand.
+- **[#220] Superseded in part (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md` (decision 2
+  as amended by #102, as far as it names the `up` placement's `slot` (0, 1, 2) and the yes/no
+  diagonal): a placement carries `x` and `y`, and the up arrow's slide is the step down reversed
+  for any of a parent's two to four next steps -- up and to the right after the first of two,
+  straight up after the middle one of three -- and straight up after any other step
+  (`docs/specs/application.md` 11.2, 41.5). The translation is still exactly the offset to where
+  the target is drawn; decisions 1 and 3 to 7 stand.
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 11.1, 11.3, 11.4
 - Core document: 3.2 ("I want the transitions to slide over the tree to the next node")

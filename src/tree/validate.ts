@@ -20,7 +20,7 @@
  * by the same two passes in `draft` mode: the schema is a draft schema derived from the
  * published one in code, and every violation is tagged blocking or advisory by the Draft
  * column of section 7. In that mode the content pass meets what the draft schema lets
- * through -- a Node without `title` or `description`, an Answer pair with one key, an empty
+ * through -- a Node without `title` or `description`, **[#221]** a step of one next step, an empty
  * string in a localised text or a credit -- and reports each as an advisory.
  */
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js'
@@ -28,7 +28,7 @@ import { explainerMarks } from '../markdown.ts'
 import { countedLength, isId } from './grammar.ts'
 import { estimatedLines } from './measure.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
-import schemaDocument from '../../schemas/elsa-tree-5.json' with { type: 'json' }
+import schemaDocument from '../../schemas/elsa-tree-6.json' with { type: 'json' }
 
 /**
  * **[#137]** The grammars and the counted length of 3.8 moved to `grammar.ts`, which a client
@@ -65,8 +65,9 @@ const validateShape = new Ajv2020({ allErrors: true }).compile(schemaDocument)
 /**
  * **[#136]** The draft schema (application.md 19.2): the published schema with exactly two
  * `minLength` keywords dropped -- a language whose text is not written yet, a picture whose
- * credit is not written yet -- and `title`, `description` out of a Node's `required` and
- * `yes`, `no` out of `answers`'. Every other keyword stays, because each is the only place
+ * credit is not written yet -- and `title`, `description` out of a Node's `required`, and
+ * **[#221]** `answers`' `minItems` lowered from 2 to 1 (ADR-220-elsa-tree-6 decision 3), so an
+ * empty `answers` stays the schema's to refuse. Every other keyword stays, because each is the only place
  * a rule the Draft column keeps blocking is enforced. Derived, never a second file, so it
  * cannot drift from the first.
  */
@@ -76,7 +77,7 @@ export function draftSchema(published: Mapping): Mapping {
   delete (defs.localisedText!.additionalProperties as Mapping).minLength
   delete ((defs.image!.properties as Mapping).credit as Mapping).minLength
   defs.node!.required = defs.node!.required!.filter((key) => key !== 'title' && key !== 'description')
-  defs.answers!.required = defs.answers!.required!.filter((key) => key !== 'yes' && key !== 'no')
+  defs.answers!.minItems = 1
   return schema
 }
 
@@ -105,6 +106,8 @@ export const MAX = {
   optionTitle: 60,
   /* The badge's words: one line in its narrowest room, 198 pixels at 480 wide (application.md 36.1, #171). */
   terminalLabel: 19,
+  /* A next step's words, alone on its button: one line in 300 pixels at 1280 x 640 (application.md 41.2, 41.3, #220). */
+  answerLabel: 19,
   sourceLabel: 60,
   imageDescription: 120,
   credit: 120,
@@ -113,6 +116,8 @@ export const MAX = {
   fontLicence: 200,
   sources: 3,
   options: 8,
+  /* Four buttons in one row of 1000 pixels and more, two a row below (application.md 41.1, #220). */
+  answers: 4,
   nodeImages: 10,
   explainers: 8,
   explainerTerm: 40,
@@ -356,7 +361,7 @@ function checkNode(c: DocumentChecker, node: Mapping): NodeShape {
   const sourceIds = checkSources(c, node.sources as Mapping[] | undefined)
   checkImages(c, node.images as Mapping[] | undefined, sourceIds)
   checkMarks(c, node.description ?? {}, 'explainers' in node ? checkExplainers(c, node.explainers as Mapping[]) : [])
-  const answers = 'answers' in node ? answerLinks(c, node.answers as Mapping) : []
+  const answers = 'answers' in node ? answerLinks(c, node.answers as Mapping[]) : []
   const options = 'options' in node ? checkOptions(c, node.options as Mapping[]) : []
   // **[#179]** The ending's words are a plain localised text like any other (V-TERMINAL): the
   // schema has said `label` is there, and the rules say its languages, its line and its length.
@@ -399,22 +404,17 @@ function checkImages(c: DocumentChecker, images: Mapping[] | undefined, sourceId
 }
 
 /**
- * The Answers as Links; whether each target exists and is of the right kind is checkGraph's.
- * Only the draft schema lets one of the pair be missing (19.2), or both: `answers: {}` is
- * V-EMPTY, which the draft schema no longer sees once `required` is relaxed, so it is said here.
+ * The Answers as Links, and each label's languages, line and length; whether each target
+ * exists and is of the right kind is checkGraph's. **[#221]** The schema has said there are
+ * two to four (V-ANSWERS); only the draft schema lets one through (19.2), which is the to-do
+ * said here.
  */
-function answerLinks(c: DocumentChecker, answers: Mapping): Link[] {
-  const links: Link[] = []
-  for (const key of ['yes', 'no'] as const) {
-    const target = answers[key]
-    if (typeof target === 'string') links.push({ keyPath: `answers.${key}`, target })
-  }
-  if (links.length === 0) c.fail('answers', 'V-EMPTY', 'answers holds no Answer; remove the key', false)
-  else if (links.length === 1) {
-    const missing = links[0]!.keyPath === 'answers.yes' ? 'no' : 'yes'
-    c.fail(`answers.${missing}`, 'V-ANSWERS', `no "${missing}" Answer yet`, true)
-  }
-  return links
+function answerLinks(c: DocumentChecker, answers: Mapping[]): Link[] {
+  if (answers.length === 1) c.fail('answers', 'V-ANSWERS', 'fewer than two next steps', true)
+  return answers.map((answer, index) => {
+    c.localised(answer.label, `answers[${index}].label`, false, MAX.answerLabel)
+    return { keyPath: `answers[${index}].target`, target: answer.target as string }
+  })
 }
 
 /** V-OPTIONS, the half that needs only this list: distinct targets, and 5.7's limits. */

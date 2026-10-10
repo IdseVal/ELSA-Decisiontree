@@ -148,7 +148,7 @@ async function reachableNodes(): Promise<Map<string, Node>> {
     const node = await tree.getNode(id)
     if (!node) throw new Error(`the loader cannot read ${id}`)
     nodes.set(id, node)
-    if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+    if (node.kind === 'question') queue.push(...node.answers.map((answer) => answer.target))
     queue.push(...node.options.map((o) => o.target))
   }
   return nodes
@@ -325,8 +325,10 @@ class Walker {
     const node = this.nodes.get(ids[ids.length - 1]!)!
     const links: { how: string; target: string; selector: string }[] = []
     if (node.kind === 'question') {
-      links.push({ how: 'yes', target: node.answers.yes, selector: `${CENTRE} .answer--yes` })
-      links.push({ how: 'no', target: node.answers.no, selector: `${CENTRE} .answer--no` })
+      // **[#221]** Every next step, by its place in the row (41.3), named by its words.
+      node.answers.forEach((answer, index) =>
+        links.push({ how: answer.label[this.run.lang] ?? `${index + 1}`, target: answer.target, selector: `${CENTRE} .answer--next:nth-child(${index + 1})` }),
+      )
     }
     for (const option of node.options) {
       const href = pageUrl([...ids, option.target], this.run.lang)

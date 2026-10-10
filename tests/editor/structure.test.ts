@@ -9,12 +9,14 @@
  * only; `deleteSideBubble` in each of the centre's Overlays, which takes the aside's Node
  * unless another Node leads to it; and the aside's title, which the Option button's follows.
  * And the two pure helpers of `Structure.tsx`: the address under a page, and a refusal's text.
+ * **[#222]** And the row of 41.7: the empty step's four, the `+` and its Sheet, each next step's
+ * words a field of 19 and its move arrows.
  */
 import type { ReactElement } from 'react'
 import { describe, expect, test } from 'vitest'
 import { editMode } from '../../src/admin/slots.tsx'
 import { DeleteStep, RemoveEnd } from '../../src/editor/StepButtons.tsx'
-import { refusalText, under } from '../../src/editor/Structure.tsx'
+import { AnswerAdd, AnswerMoves, refusalText, under, WordsForm } from '../../src/editor/Structure.tsx'
 import type { DraftNode } from '../../src/tree/types.ts'
 import type { PageAddress } from '../../src/url.ts'
 
@@ -35,7 +37,7 @@ const structureOf = (shared: string[]) => ({
   titles: { 'a-1': 'An aside' },
 })
 const mode = editMode(start, ['en', 'nl'], structureOf([]))
-const { structure, sideAdd, sideDelete, stepButtons, field } = mode.slots
+const { structure, answerMoves, sideAdd, sideDelete, stepButtons, field } = mode.slots
 
 /** The elements a slot's fragment or element holds, flat. */
 function children(element: ReactElement | null | undefined): ReactElement[] {
@@ -45,37 +47,95 @@ function children(element: ReactElement | null | undefined): ReactElement[] {
 
 const props = (element: ReactElement | null | undefined): Record<string, unknown> => (element?.props ?? {}) as Record<string, unknown>
 
-describe('the Answer row (30.1)', () => {
-  test('a Node without Links gets + Yes, the end Sheet and + No, in that order', () => {
-    const [yes, end, no] = children(structure!(node('start')) as ReactElement)
-    expect(props(yes)).toMatchObject({ link: 'yes', nodeId: 'start', here: '/admin/trees/t/start' })
+describe('the Answer row (30.1; **[#222]** 41.7)', () => {
+  const step = (target: string, en = 'A step') => ({ label: { en, nl: 'Een stap' }, target })
+  const row = (extra: Partial<DraftNode> = {}, slot = structure!) => slot(node('start', extra)) as ReactElement[]
+
+  test('**[#222]** a Node without Links gets + Yes, the end Sheet, + No and +, in that order (41.7 item 1)', () => {
+    const [yes, end, no, add, ...rest] = row()
+    expect(rest).toEqual([])
+    // **[#221]** Each one-click button sends `link: 'answer'` with the chrome word in every language of the Tree (41.7 item 1).
+    expect(yes!.type).toBe(AnswerAdd)
+    expect(props(yes)).toMatchObject({ which: 'yes', label: { en: 'Yes', nl: 'Ja' }, nodeId: 'start', here: '/admin/trees/t/start' })
     expect(props(end)).toMatchObject({ className: 'structure-end' })
-    expect(props(no)).toMatchObject({ link: 'no' })
+    expect(props(no)).toMatchObject({ which: 'no', label: { en: 'No', nl: 'Nee' } })
+    expect(props(add)).toMatchObject({ className: 'structure-add' })
+    // Keyed, as a list of the row's buttons is.
+    expect([yes, end, no, add].map((button) => button!.key)).toEqual(['yes', 'end', 'no', 'add'])
   })
 
-  test('one Answer: the lone + for the other, at the Answer’s width', () => {
-    expect(props(structure!(node('start', { kind: 'question', answers: { yes: 'n-2' } })) as ReactElement)).toMatchObject({ link: 'no', lone: true })
-    expect(props(structure!(node('start', { kind: 'question', answers: { no: 'n-2' } })) as ReactElement)).toMatchObject({ link: 'yes', lone: true })
-  })
-
-  test('both Answers, or an end: the public row, nothing added', () => {
-    expect(structure!(node('start', { kind: 'question', answers: { yes: 'n-2', no: 'a-1' } }))).toBeNull()
-    expect(structure!(node('start', { kind: 'terminal', label: { en: 'Look elsewhere' } }))).toBeNull()
-  })
-
-  test('**[#179]** the end Sheet asks for the words, in the page\'s language, and offers no outcome (36.3)', () => {
-    const [, end] = children(structure!(node('start')) as ReactElement)
-    const [page] = props(end).pages as ReactElement[]
+  test('**[#222]** the + is named addNextStep and opens a Sheet asking for the words on the button, in the page\'s language, which then goes to the step it made (41.7 items 1 and 3)', () => {
+    const add = row().at(-1)
+    const summary = props(add).summary as ReactElement
+    expect(props(summary)).toMatchObject({ role: 'img', 'aria-label': 'Add a next step', children: '+' })
+    const [page] = props(add).pages as ReactElement[]
+    expect(page!.type).toBe(WordsForm)
     expect(props(page)).toEqual({
       nodeId: 'start',
       lang: 'en',
+      link: 'answer',
+      here: '/admin/trees/t/start',
+      heading: 'Add a next step',
+      words: { name: 'Words on the button', characters: 'characters', confirm: 'Confirm', cancel: 'Cancel' },
+    })
+    const nl = editMode({ ...start, lang: 'nl' }, ['en', 'nl'], structureOf([])).slots.structure!
+    const [nlPage] = props(row({}, nl).at(-1)).pages as ReactElement[]
+    expect(props(nlPage)).toMatchObject({ lang: 'nl', heading: 'Volgende stap toevoegen', words: { name: 'Woorden op de knop' } })
+    expect(props(props(row({}, nl).at(-1)).summary as ReactElement)['aria-label']).toBe('Volgende stap toevoegen')
+  })
+
+  test('one Answer: the one-click + for the word its label does not say in the language edited, then + (41.7 item 2)', () => {
+    const one = (label: Record<string, string>) => row({ kind: 'question', answers: [{ label, target: 'n-2' }] })
+    const shape = (buttons: ReactElement[]) => buttons.map((button) => (props(button).which as string | undefined) ?? (props(button).className as string))
+    expect(shape(one({ en: 'Yes', nl: 'Ja' }))).toEqual(['no', 'structure-add'])
+    expect(shape(one({ en: 'no', nl: '' }))).toEqual(['yes', 'structure-add'])
+    // **[#221]** Words that are neither: both stay, one click each.
+    expect(shape(one({ en: 'Not sure', nl: 'Weet niet' }))).toEqual(['yes', 'no', 'structure-add'])
+    // No `lone` any more: every button of the row is an equal share of it (41.3).
+    for (const button of one({ en: 'Yes' })) expect(props(button)).not.toHaveProperty('lone')
+  })
+
+  test('**[#222]** two or three next steps: the + alone; four, or an end: nothing more (41.7 item 2)', () => {
+    expect(row({ kind: 'question', answers: [step('n-2'), step('a-1')] }).map((button) => props(button).className)).toEqual(['structure-add'])
+    expect(row({ kind: 'question', answers: [step('n-2'), step('a-1'), step('n-3')] }).map((button) => props(button).className)).toEqual(['structure-add'])
+    expect(row({ kind: 'question', answers: [step('n-2'), step('a-1'), step('n-2'), step('a-1')] })).toEqual([])
+    expect(row({ kind: 'terminal', label: { en: 'Look elsewhere' } })).toEqual([])
+  })
+
+  test('**[#179]** the end Sheet asks for the words, in the page\'s language, and offers no outcome (36.3)', () => {
+    const [, end] = row()
+    const [page] = props(end).pages as ReactElement[]
+    expect(page!.type).toBe(WordsForm)
+    expect(props(page)).toEqual({
+      nodeId: 'start',
+      lang: 'en',
+      link: 'end',
       heading: 'Tree ends here',
-      words: { endingText: 'Text of the ending', characters: 'characters', confirm: 'Confirm', cancel: 'Cancel' },
+      words: { name: 'Text of the ending', characters: 'characters', confirm: 'Confirm', cancel: 'Cancel' },
     })
   })
 
   test('a Node the page does not carry gets nothing: there is no address to go to', () => {
-    expect(structure!(node('elsewhere'))).toBeNull()
+    expect(structure!(node('elsewhere'))).toEqual([])
+    expect(answerMoves!(node('elsewhere', { kind: 'question', answers: [step('n-2'), step('a-1')] }), 0)).toBeNull()
+  })
+
+  test('**[#222]** each next step\'s words are a plain field of 19 in the page\'s language, its placeholder nextStepWords (41.7 item 2)', () => {
+    const words = field!(node('start', { kind: 'question', answers: [step('n-2'), step('a-1', 'Maybe')] }), 'answers[1].label', 'Maybe', { characters: 19 }) as ReactElement
+    expect(props(words)).toMatchObject({ nodeId: 'start', path: 'answers[1].label', lang: 'en', value: 'Maybe', limit: { characters: 19 }, placeholder: 'Words on the button' })
+    expect(props(words)).not.toHaveProperty('select')
+    // The target is no field: a next step is re-pointed through the API alone (30.6, amended).
+    expect(field!(node('start'), 'answers[0].target', 'n-2', null)).toBeNull()
+  })
+
+  test('**[#222]** every next step of two or more carries its move arrows, told its place and the count; one alone has none (41.7 item 4)', () => {
+    const three = node('start', { kind: 'question', answers: [step('n-2'), step('a-1'), step('n-3')] })
+    for (const index of [0, 1, 2]) {
+      const moves = answerMoves!(three, index) as ReactElement
+      expect(moves.type).toBe(AnswerMoves)
+      expect(props(moves)).toEqual({ nodeId: 'start', index, count: 3, words: { moveEarlier: 'Move earlier', moveLater: 'Move later' } })
+    }
+    expect(answerMoves!(node('start', { kind: 'question', answers: [step('n-2')] }), 0)).toBeNull()
   })
 })
 
@@ -106,7 +166,7 @@ describe('the side-bubble + (30.4, 30.5)', () => {
 })
 
 describe('**[#177]** deleteSideBubble in the centre’s Overlays (30.7)', () => {
-  const centre = node('start', { kind: 'question', answers: { yes: 'n-2' }, options: [{ title: { en: 'An aside' }, target: 'a-1' }] })
+  const centre = node('start', { kind: 'question', answers: [{ label: { en: 'Yes', nl: 'Ja' }, target: 'n-2' }], options: [{ title: { en: 'An aside' }, target: 'a-1' }] })
 
   test('the Overlay of each Option holds it: the aside goes with this step’s Option, and the page goes back to the step', () => {
     const remove = sideDelete!(centre, 0) as ReactElement
@@ -178,7 +238,7 @@ describe('**[#178]** the step’s buttons beside the up arrow (30.8, amended)', 
 
   test('the first step has no cross: nothing at all when it does not end, the ending’s button alone when it does', () => {
     expect(stepButtons!(node('start'))).toBeNull()
-    expect(stepButtons!(node('start', { kind: 'question', answers: { yes: 'n-2', no: 'a-1' } }))).toBeNull()
+    expect(stepButtons!(node('start', { kind: 'question', answers: [{ label: { en: 'Yes' }, target: 'n-2' }, { label: { en: 'No' }, target: 'a-1' }] }))).toBeNull()
     const [end, ...rest] = buttons(stepButtons!(node('start', { kind: 'terminal', label: { en: 'Look elsewhere' } })))
     expect(rest).toEqual([])
     expect(end!.type).toBe(RemoveEnd)

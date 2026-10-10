@@ -2,7 +2,8 @@
  * One Link drawn as a Branch (docs/specs/application.md 10.3): an ordinary `<a href>` that
  * shows its target's title -- from the title index, never from a second Node read -- with,
  * where the kind of Branch asks for it, a chrome word and a colon before the title in one
- * run (`yes`, `no`, `startAgain`: "Yes: Annex III areas"). An Option is not a Branch since
+ * run (`startAgain`: "Start again: ..."). **[#221]** A next step's button passes its
+ * creator's words as `title` and no word: it shows them alone (application.md 41.2). An Option is not a Branch since
  * 10.9: it is the control of its Overlay (`TreeView`), and nothing slides to it.
  *
  * Every Branch is a plain link so that following one works without JavaScript (section 14);
@@ -22,6 +23,7 @@ export function Branch({
   className,
   slides = false,
   name,
+  children,
 }: {
   href: string
   /** The target's title, in the content language. */
@@ -34,12 +36,14 @@ export function Branch({
   /** Its target has a placement in the neighbourhood, so following it slides there (11.1). */
   slides?: boolean
   /**
-   * The link's name, where the stylesheet may shorten the visible label: an Answer button
-   * below 480 pixels shows its word alone, and its name must still say where it leads (10.3,
-   * WCAG 2.2 SC 2.4.4). An attribute, not a hidden copy of the label, so the label's parts
-   * stay one of each on the page.
+   * The link's name, where the label drawn does not say where it leads: **[#221]** a next
+   * step's words alone (41.2), and `startAgain` below 480 pixels, which shows its word alone
+   * (10.3, WCAG 2.2 SC 2.4.4). An attribute, not a hidden copy of the label, so the label's
+   * parts stay one of each on the page.
    */
   name?: string
+  /** **[#222]** The editor's controls on the button's outline: a next step's move arrows (41.7 item 4). */
+  children?: ReactNode
 }) {
   return (
     <a className={`branch ${className}`} href={href} data-slide={slides ? '' : undefined} aria-label={name}>
@@ -55,6 +59,7 @@ export function Branch({
         )}
         <span className="branch-title">{title}</span>
       </span>
+      {children}
     </a>
   )
 }

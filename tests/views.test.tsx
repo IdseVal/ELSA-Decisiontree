@@ -10,6 +10,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeAll, describe, expect, test } from 'vitest'
+import { previewDraft, previewMode, previewPage } from '../src/admin/preview.ts'
 import { chrome } from '../src/chrome.ts'
 import { Bubble } from '../src/components/Bubble.tsx'
 import { Disclaimer } from '../src/components/Disclaimer.tsx'
@@ -29,6 +30,7 @@ beforeAll(async () => {
     ['single-language', path.join(here, 'fixtures', 'single-language')],
     ['other-languages', path.join(here, 'fixtures', 'other-languages')],
     ['full-node', path.join(here, 'fixtures', 'full-node')],
+    ['three-next-steps', path.join(here, 'fixtures', 'three-next-steps')],
     ['carousel', path.join(here, 'fixtures', 'carousel')],
     ['cycle', path.join(here, 'fixtures', 'cycle')],
     ['overlay', path.join(here, 'fixtures', 'overlay')],
@@ -113,7 +115,7 @@ describe('the tree layer', () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
     const layer = part(html, 'div', 'tree-layer')
 
-    const order = ['class="bubble', 'class="up-arrow"', 'class="options"', 'class="answers"', 'class="carousel"'].map((marker) =>
+    const order = ['class="bubble', 'class="up-arrow"', 'class="options"', 'class="answers', 'class="carousel"'].map((marker) =>
       layer.indexOf(marker),
     )
     expect(order.every((at) => at >= 0), layer.slice(0, 200)).toBe(true)
@@ -149,13 +151,15 @@ describe('the tree layer', () => {
     expect(full.match(/<a class="up-arrow"[^>]*data-slide/g), "the full Node's up arrow").toBeNull()
     // An Option is not a Branch and nothing slides to it: it opens an Overlay (10.9, 11.1).
     expect(full.match(/<a class="branch option/g), "the full Node's Options").toBeNull()
-    expect(full.match(/data-slide/g), "the full Node's slides").toHaveLength(2)
+    // **[#221]** Four next steps, each placed (41.5).
+    expect(full.match(/data-slide/g), "the full Node's slides").toHaveLength(4)
   })
 
   test('an Answer back to the parent does not slide, and two Answers to one target both do (11.3)', async () => {
+    // **[#221]** A next step's button is named by its words, a colon and its target's title.
     const answers = async (url: string) =>
-      [...(await view(url)).matchAll(/<a class="branch answer (answer--(?:yes|no))" href="([^"]*)"([^>]*)>/g)].map(
-        ([, kind, href, rest]) => [kind, href, rest!.includes('data-slide')],
+      [...(await view(url)).matchAll(/<a class="branch answer answer--next" href="([^"]*)"([^>]*) aria-label="(\w+):[^"]*">/g)].map(
+        ([, href, rest, word]) => [word, href, rest!.includes('data-slide')],
       )
 
     // `third`'s `yes` is `second`, which the parent placed `up` at its own shorter address:
@@ -163,12 +167,12 @@ describe('the tree layer', () => {
     // one target, which 5.3 allows, so both its Branches lead to `third`. The `cycle`
     // fixture carried both sentences as a comment until #119; the JSON of elsa-tree/4 and /5 has no comments.
     expect(await answers('/cycle/first/second/third')).toEqual([
-      ['answer--yes', '/cycle/first/second/third/second', false],
-      ['answer--no', '/cycle/first/second/third/done', true],
+      ['Yes', '/cycle/first/second/third/second', false],
+      ['No', '/cycle/first/second/third/done', true],
     ])
     expect(await answers('/cycle/first/second')).toEqual([
-      ['answer--yes', '/cycle/first/second/third', true],
-      ['answer--no', '/cycle/first/second/third', true],
+      ['Yes', '/cycle/first/second/third', true],
+      ['No', '/cycle/first/second/third', true],
     ])
   })
 
@@ -446,23 +450,36 @@ describe('Sources', () => {
 })
 
 describe('a question Node with Options', () => {
-  test('offers yes and no as two buttons below, each labelled and named with its chrome word, a colon and its target title in one run', async () => {
+  test('**[#221]** offers its next steps as buttons below, each showing its words alone and named by them, a colon and its target title (41.2)', async () => {
     const html = await view('/ai-act-example/start/prohibited-practices')
 
-    expect(branches(html, 'answer answer--yes')).toEqual([
-      ['/ai-act-example/start/prohibited-practices/prohibited', 'This is a prohibited practice'],
-    ])
-    expect(branches(html, 'answer answer--no')).toEqual([
-      ['/ai-act-example/start/prohibited-practices/covered', 'The AI Act applies to your system'],
+    expect(branches(html, 'answer answer--next')).toEqual([
+      ['/ai-act-example/start/prohibited-practices/prohibited', 'Yes'],
+      ['/ai-act-example/start/prohibited-practices/covered', 'No'],
     ])
     expect(part(html, 'div', 'answers')).toBe(
-      '<div class="answers" role="group" aria-labelledby="node-title">' +
-        '<a class="branch answer answer--yes" href="/ai-act-example/start/prohibited-practices/prohibited" data-slide="" aria-label="Yes: This is a prohibited practice">' +
-        '<span class="branch-label"><span class="branch-word">Yes</span><span class="branch-colon">: </span><span class="branch-title">This is a prohibited practice</span></span></a>' +
-        '<a class="branch answer answer--no" href="/ai-act-example/start/prohibited-practices/covered" data-slide="" aria-label="No: The AI Act applies to your system">' +
-        '<span class="branch-label"><span class="branch-word">No</span><span class="branch-colon">: </span><span class="branch-title">The AI Act applies to your system</span></span></a>' +
+      '<div class="answers answers--2" role="group" aria-labelledby="node-title">' +
+        '<a class="branch answer answer--next" href="/ai-act-example/start/prohibited-practices/prohibited" data-slide="" aria-label="Yes: This is a prohibited practice">' +
+        '<span class="branch-label"><span class="branch-title">Yes</span></span></a>' +
+        '<a class="branch answer answer--next" href="/ai-act-example/start/prohibited-practices/covered" data-slide="" aria-label="No: The AI Act applies to your system">' +
+        '<span class="branch-label"><span class="branch-title">No</span></span></a>' +
         '</div>',
     )
+    // The Dutch page's words are the Tree's Dutch words, Tree content with no lang of their own.
+    expect(branches(await view('/ai-act-example/start/prohibited-practices?lang=nl'), 'answer answer--next').map(([, words]) => words)).toEqual(['Ja', 'Nee'])
+  })
+
+  test('**[#221]** a step of three and of four draws a button per next step, in the file\'s order, the row\'s class counting them (41.3)', async () => {
+    for (const [url, count] of [['/three-next-steps/full', 3], ['/full-node/full', 4]] as const) {
+      const html = await view(url)
+      expect(part(html, 'div', 'answers'), url).toMatch(new RegExp(`^<div class="answers answers--${count}" role="group"`))
+      expect(branches(html, 'answer answer--next').map(([, words]) => words), url).toEqual(
+        ['Yes, for my company', 'No, outside the EU.', 'Only as a deployer.', 'Notwithstandingness'].slice(0, count),
+      )
+    }
+    expect(all(await view('/full-node/full'), /aria-label="(Notwithstandingness: [^"]*)"/g)).toEqual([
+      'Notwithstandingness: Nothing applies here: a Terminal whose title is also eighty characters long, too',
+    ])
   })
 
   test('draws its Options beside the Bubble as the buttons of their Overlays, in Option order, alternating right and left (10.3, 10.9)', async () => {
@@ -581,9 +598,7 @@ describe('the Overlay (10.9)', () => {
 
     // The centre is the parent: its title is the page heading, its Answers are below.
     expect(html).toContain('<h1 id="node-title">Does your system do any of the prohibited practices?</h1>')
-    expect(branches(html, 'answer answer--yes')).toEqual([
-      ['/ai-act-example/start/prohibited-practices/prohibited', 'This is a prohibited practice'],
-    ])
+    expect(branches(html, 'answer answer--next')[0]).toEqual(['/ai-act-example/start/prohibited-practices/prohibited', 'Yes'])
     // The way back is the parent's too: the up arrow leads above the centre, not to the centre (10.2).
     expect(html).toContain('<a class="up-arrow" href="/ai-act-example/start" rel="prev"')
     // The aside the path names is the one Overlay open; the other stays closed.
@@ -602,9 +617,7 @@ describe('the Overlay (10.9)', () => {
     expect(extra).toContain('<h2 id="ax-node-title"><a href="/full-node/full/opt-one/opt-two">Option two: a title of sixty characters, the most it may be.</a></h2>')
     expect(extra).toContain('data-node="opt-two"')
     // The centre's Branches are built from the path up to the centre: the asides never join the Trail.
-    expect(branches(html, 'answer answer--yes')).toEqual([
-      ['/full-node/full/applies', 'The rules apply: a Terminal whose title is also eighty characters long The rule.'],
-    ])
+    expect(branches(html, 'answer answer--next')[0]).toEqual(['/full-node/full/applies', 'Yes, for my company'])
   })
 
   test("a neighbour frame draws the Option buttons with empty slots and no Overlay interior behind them (11.3, 11.4)", async () => {
@@ -627,10 +640,10 @@ describe('a question Node without Options', () => {
   test('has the same two Answer Branches and no Option columns at all', async () => {
     const html = await view('/ai-act-example/start')
 
-    expect(branches(html, 'answer answer--yes')).toEqual([
-      ['/ai-act-example/start/prohibited-practices', 'Does your system do any of the prohibited practices?'],
+    expect(branches(html, 'answer answer--next')).toEqual([
+      ['/ai-act-example/start/prohibited-practices', 'Yes'],
+      ['/ai-act-example/start/outside-scope', 'No'],
     ])
-    expect(branches(html, 'answer answer--no')).toEqual([['/ai-act-example/start/outside-scope', 'The AI Act does not apply']])
     expect(html).not.toContain('class="options')
     expect(html).not.toContain('options-collapsed')
   })
@@ -642,8 +655,7 @@ describe('an explanation Node as the centre (only a path with no parent in it, 1
 
     expect(html).toContain('<h1 id="node-title">Social scoring</h1>')
     expect(html).not.toContain('class="hint"')
-    expect(html).not.toContain('answer--yes')
-    expect(html).not.toContain('answer--no')
+    expect(html).not.toContain('answer--next')
     expect(branches(html, 'answer')).toEqual([['/ai-act-example/start', 'Is your AI system within the reach of the AI Act?']])
     expect(html).toContain(
       '<a class="branch answer answer--start-again" href="/ai-act-example/start" aria-label="Start again: Is your AI system within the reach of the AI Act?">',
@@ -668,8 +680,7 @@ describe('a Terminal', () => {
 
     expect(part(html, 'article', 'bubble')).toContain('<p class="outcome">Does not apply</p>')
     expect(part(html, 'div', 'bubble-text')).not.toContain('class="outcome')
-    expect(html).not.toContain('answer--yes')
-    expect(html).not.toContain('answer--no')
+    expect(html).not.toContain('answer--next')
   })
 
   test('**[#179]** every ending is drawn alike: one class, holding the Terminal\'s words in the page\'s language (36.1)', async () => {
@@ -716,7 +727,8 @@ describe('the chrome speaks its own language beside content it does not speak', 
   test('the Branch words and the group names carry lang="en" on a German page', async () => {
     const html = await view('/other-languages/inverkehrbringen/start?lang=de')
 
-    expect(html).toContain('<span class="branch-word" lang="en">Yes</span>')
+    // **[#221]** Not a next step's words, which are Tree content in the page's language: startAgain's.
+    expect(await view('/other-languages/inverkehrbringen/start/anwendbar?lang=de')).toContain('<span class="branch-word" lang="en">Start again</span>')
     expect(html).toMatch(/<span hidden="" id="up-label" lang="en">Back to: [^<]+<\/span>/)
     expect(html).toContain('id="options-label" lang="en">')
     expect(html).toContain('<p class="minimum-size" lang="en">')
@@ -841,6 +853,29 @@ describe('the reuse rule (application.md 34.8, ADR-133-reuse-rule decision 8)', 
       const edit: EditMode = { treeId, links: PUBLIC_LINKS, languages: trees.get(treeId)!.manifest.languages, words, slots: {} }
 
       expect(await view(url, edit), url).toBe(await view(url))
+    }
+  })
+
+  // **[#206]** The preview of a hidden Tree passes the same setting with its own links and no
+  // slot (40.2): the public markup, every address behind /admin/preview, every picture on the
+  // admin image route -- the page read as the preview's page reads it.
+  test("the preview's edit -- no slot, previewLinks() -- gives the public markup but for the addresses (40.2)", async () => {
+    for (const url of pages) {
+      const target = new URL(url, 'https://example.org')
+      const tree = trees.get(target.pathname.split('/')[1]!)!
+      const address = parseUrl(target.pathname, langSegment(target), tree)!
+      const shown = previewDraft(tree, address.lang)
+      const page = (await previewPage(shown, address))!
+      const html = renderToStaticMarkup(<TreeView page={page} tree={shown} edit={previewMode(address, tree.manifest.languages)} />)
+      const expected = (await view(url))
+        .replaceAll(`"/${tree.id}/images/`, `"/admin/api/trees/${tree.id}/images/`)
+        .replaceAll(`href="/${tree.id}/`, `href="/admin/preview/${tree.id}/`)
+
+      expect(html, url).toBe(expected)
+      expect(html, url).not.toMatch(new RegExp(`(href|src)="/${tree.id}/`))
+      expect(html, url).not.toContain('data-field')
+      expect(html, url).not.toContain('contenteditable')
+      expect(html, url).not.toMatch(/class="[^"]*editor-/)
     }
   })
 })

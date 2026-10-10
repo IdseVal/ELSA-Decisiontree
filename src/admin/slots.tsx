@@ -27,7 +27,7 @@ import { ImageControls } from '../editor/ImageControls.tsx'
 import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
 import { DeleteStep, RemoveEnd } from '../editor/StepButtons.tsx'
-import { AnswerAdd, EndForm, SideAdd, SideDelete } from '../editor/Structure.tsx'
+import { AnswerAdd, AnswerMoves, SideAdd, SideDelete, WordsForm } from '../editor/Structure.tsx'
 import { MAX_ASIDES } from '../neighbourhood.ts'
 import { linksOf, type Explainer, type NodeContent, type Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
@@ -55,7 +55,7 @@ export interface Structure {
 }
 
 /** The chrome strings the editor's client components read through `words`, as strings. */
-function editorWords(ui: Chrome): EditorWords {
+export function editorWords(ui: Chrome): EditorWords {
   return {
     characters: ui.characters,
     lines: ui.lines,
@@ -85,9 +85,9 @@ function editorWords(ui: Chrome): EditorWords {
 
 /**
  * The paths edited in place: #138's, **[#140]** an Image's two texts in the enlarged view (31.3),
- * and **[#179]** a Terminal's words on its badge (36.3).
+ * **[#179]** a Terminal's words on its badge (36.3), and **[#222]** a next step's on its button (41.7 item 2).
  */
-const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|images\[\d+\]\.(description|credit)|options\[\d+\]\.title|terminal\.label)$/
+const EDITED = /^(title|description|sources\[\d+\]\.(label|kind|url)|images\[\d+\]\.(description|credit)|options\[\d+\]\.title|answers\[\d+\]\.label|terminal\.label)$/
 
 /**
  * **[#172]** What belongs in the field at a path, its placeholder while it is empty (28.2,
@@ -102,11 +102,15 @@ function placeholderOf(path: string, ui: Chrome): string {
   if (/^images\[\d+\]\.description$/.test(path)) return ui.placeholderImageDescription
   if (/^images\[\d+\]\.credit$/.test(path)) return ui.placeholderCredit
   if (path === 'terminal.label') return ui.endingText
+  if (/^answers\[\d+\]\.label$/.test(path)) return ui.nextStepWords
   return ''
 }
 
 /** Which paths hold a localised text: the page's language is appended to their key path (22.2). */
-const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title|terminal\.label)$/
+const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title|answers\[\d+\]\.label|terminal\.label)$/
+
+/** **[#222]** The most next steps a step may have (41.1): the row's `+` is absent at that many. */
+const MAX_ANSWERS = 4
 
 /** The most Images a Node may hold (V-COUNT, 5.7): the strip's `+` is absent at that many (31.1). */
 const MAX_IMAGES = 10
@@ -140,6 +144,8 @@ export function editMode(address: PageAddress, languages: string[], structure: S
   }
   const fieldWords: FieldWords = { characters: words.characters, lines: words.lines }
   const others: OtherLanguage[] = languages.filter((other) => other !== lang).map((other) => ({ lang: other, href: links.withLang(address, other) }))
+  // **[#221]** `+ Yes` and `+ No` label their next step with the chrome word in every language of the Tree, by 3.1's rule (41.7 item 1).
+  const wordOf = (key: 'yes' | 'no'): Record<string, string> => Object.fromEntries(languages.map((tag) => [tag, chrome(tag)[key]]))
   // The badge leaves `legal` unlabelled under its heading (ADR-78); a select must name every kind.
   const kinds = KINDS.map((kind) => ({ value: kind, label: ui[SOURCE_LABEL[kind] ?? 'sourceLegal'] }))
   const pickerWords: PickerWords = {
@@ -230,37 +236,60 @@ export function editMode(address: PageAddress, languages: string[], structure: S
     },
     onTermClick: TERM_EVENT,
 
-    // The three situations of 30.1: a Terminal or a Node with both Answers takes the public
-    // row; one Answer, the `+` for the other at 620; none, `+ Yes`, `treeEndsHere`, `+ No`.
+    // The situations of 30.1, **[#222]** as 41.7 items 1 and 2 have them: a Terminal takes the
+    // public row; a step without Links offers `+ Yes`, `treeEndsHere`, `+ No` and `+`; one next
+    // step, the one-click `+ Yes` or `+ No` for the word its label does not already say in the
+    // language edited, then `+`; two or three, `+`; four, nothing more.
     structure(node) {
       const has = linksOf(node)
       const here = hereOf(node.id)
-      if (here === null || has.terminal !== undefined || (has.yes !== undefined && has.no !== undefined)) return null
-      if (has.yes !== undefined) return <AnswerAdd nodeId={node.id} link="no" here={here} word={ui.no} lone />
-      if (has.no !== undefined) return <AnswerAdd nodeId={node.id} link="yes" here={here} word={ui.yes} lone />
-      return (
-        <>
-          <AnswerAdd nodeId={node.id} link="yes" here={here} word={ui.yes} />
-          <Sheet
-            className="structure-end"
-            editorUi
-            summary={<span lang={uiLang}>{ui.treeEndsHere}</span>}
-            pages={[
-              <EndForm
-                key="end"
-                nodeId={node.id}
-                lang={lang}
-                heading={ui.treeEndsHere}
-                words={{ endingText: ui.endingText, characters: ui.characters, confirm: ui.confirm, cancel: ui.cancel }}
-              />,
-            ]}
-            words={sheet}
-            uiLang={uiLang}
-            idPrefix={`${node.id}-end-`}
-          />
-          <AnswerAdd nodeId={node.id} link="no" here={here} word={ui.no} />
-        </>
+      if (here === null || has.terminal !== undefined || has.answers.length >= MAX_ANSWERS) return []
+      const formWords = { characters: ui.characters, confirm: ui.confirm, cancel: ui.cancel }
+      const add = (
+        <Sheet
+          key="add"
+          className="structure-add"
+          editorUi
+          summary={
+            <span lang={uiLang} role="img" aria-label={ui.addNextStep} title={ui.addNextStep}>
+              +
+            </span>
+          }
+          pages={[<WordsForm key="add" nodeId={node.id} lang={lang} link="answer" here={here} heading={ui.addNextStep} words={{ ...formWords, name: ui.nextStepWords }} />]}
+          words={sheet}
+          uiLang={uiLang}
+          idPrefix={`${node.id}-add-`}
+        />
       )
+      if (has.answers.length > 1) return [add]
+      if (has.answers.length === 1) {
+        const said = (has.answers[0]!.label[lang] ?? '').trim().toLocaleLowerCase(lang)
+        const lacking = (['yes', 'no'] as const).filter((key) => ui[key].toLocaleLowerCase(lang) !== said)
+        return [...lacking.map((key) => <AnswerAdd key={key} nodeId={node.id} which={key} word={ui[key]} label={wordOf(key)} here={here} />), add]
+      }
+      return [
+        <AnswerAdd key="yes" nodeId={node.id} which="yes" word={ui.yes} label={wordOf('yes')} here={here} />,
+        <Sheet
+          key="end"
+          className="structure-end"
+          editorUi
+          summary={<span lang={uiLang}>{ui.treeEndsHere}</span>}
+          pages={[<WordsForm key="end" nodeId={node.id} lang={lang} link="end" heading={ui.treeEndsHere} words={{ ...formWords, name: ui.endingText }} />]}
+          words={sheet}
+          uiLang={uiLang}
+          idPrefix={`${node.id}-end-`}
+        />,
+        <AnswerAdd key="no" nodeId={node.id} which="no" word={ui.no} label={wordOf('no')} here={here} />,
+        add,
+      ]
+    },
+
+    // **[#222]** The order of a step's next steps (41.7 item 4): each button but the first can go
+    // one place earlier, each but the last one place later.
+    answerMoves(node, index) {
+      const count = linksOf(node).answers.length
+      if (hereOf(node.id) === null || count < 2) return null
+      return <AnswerMoves nodeId={node.id} index={index} count={count} words={{ moveEarlier: ui.moveEarlier, moveLater: ui.moveLater }} />
     },
 
     // The side-bubble `+` (30.4): the fan's next free slot, on the centre; absent at eight

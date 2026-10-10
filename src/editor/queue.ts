@@ -75,6 +75,8 @@ export class WriteQueue {
   private retryTimer: ReturnType<typeof setTimeout> | null = null
   private retryAt: number | null = null
   private savedAt: number | null = null
+  /** **[#205]** Who waits for the queue to hold nothing not yet accepted (`flushAll`). */
+  private readonly idle: Array<() => void> = []
 
   constructor(send: (write: Write) => Promise<Answer>, events: QueueEvents) {
     this.send = send
@@ -141,6 +143,22 @@ export class WriteQueue {
     const kept = this.queue.filter((write, index) => write.key !== key || (index === 0 && this.inFlight))
     this.queue.splice(0, this.queue.length, ...kept)
     this.changed()
+  }
+
+  /**
+   * **[#205]** Every field value waiting out its 600 ms goes now, as on a blur, and the promise
+   * resolves when the queue next holds nothing not yet accepted -- at once when it holds nothing
+   * (29.2, 40.6). A write waiting for its retry, or held by a 401, is waited for until it is
+   * accepted; a refused one leaves the queue, so it is not.
+   */
+  flushAll(): Promise<void> {
+    for (const [key, waiting] of [...this.pending]) {
+      clearTimeout(waiting.timer)
+      this.pending.delete(key)
+      this.enqueue(waiting.write)
+    }
+    if (!this.busy()) return Promise.resolve()
+    return new Promise((resolve) => this.idle.push(resolve))
   }
 
   /** Whether anything is not yet accepted: what `beforeunload` asks about (29.5). */
@@ -221,6 +239,8 @@ export class WriteQueue {
   }
 
   private changed(): void {
-    this.events.onState(this.state())
+    const state = this.state()
+    this.events.onState(state)
+    if (!state.saving) for (const resolve of this.idle.splice(0)) resolve()
   }
 }

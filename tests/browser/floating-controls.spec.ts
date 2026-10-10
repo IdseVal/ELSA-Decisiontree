@@ -16,7 +16,7 @@
  *
  * **[#181]** And the focus never stops under the heading of the to-do bubble or the panel (33.2,
  * amended): walked up each with Shift+Tab, under each heading the bubble shows -- `todo-before`,
- * `behind` and `unservable` are the full Node with all eleven Dutch titles emptied, hidden, behind
+ * `behind` and `unservable` are the full Node with all thirteen Dutch titles (**[#221]** eleven until its step had four next steps) emptied, hidden, behind
  * its public copy (19.4), and refused at start (18.3) -- in both languages, at the sizes of #181's
  * walk and at 360 x 640.
  */
@@ -56,7 +56,7 @@ const VIEWPORTS = [
   [360, 640],
 ] as const
 
-/** **[#181]** A Tree per heading of the to-do bubble (33.3), each with eleven things to do. */
+/** **[#181]** A Tree per heading of the to-do bubble (33.3), each with thirteen things to do (**[#221]** eleven before the full Node's two new Terminals). */
 const HEADED = [
   ['todo-before', 'todoBefore'],
   ['behind', 'publicBehindBecause'],
@@ -291,6 +291,9 @@ test('both follow the Sheet rules -- Escape, the cross, a click outside, focus i
   const { page } = await loggedIn(browser, ANNA)
   await page.goto(`${origin}${FULL_AT_TRAIL}`)
   await page.locator('header').getByRole('button', { name: 'Log out' }).focus()
+  // **[#206]** On a hidden Tree the preview button comes first after the bar, the band's left end (40.5).
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('link', { name: 'Preview', exact: true })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(todoControl(page)).toBeFocused()
   await page.keyboard.press('Tab')
@@ -477,7 +480,7 @@ test('[#181] the focus never stops under the heading of the to-do bubble or the 
         await page.goto(`${origin}/admin/trees/${id}/full${lang === 'en' ? '' : '?lang=nl'}`)
         await openTodo(page)
         await expect(todoBubble(page).getByRole('heading', { level: 2 })).toHaveText(ui[heading])
-        await expect(todoBubble(page).locator('.todo-list li')).toHaveCount(11)
+        await expect(todoBubble(page).locator('.todo-list li')).toHaveCount(13)
         walked.push(await walkFocusUp(page, todoBubble(page), `${lang} ${width}x${height}, the to-do bubble under ${heading}`))
         await page.keyboard.press('Escape')
       }

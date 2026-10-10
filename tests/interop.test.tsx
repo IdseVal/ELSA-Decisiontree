@@ -44,7 +44,7 @@ async function nodeIds(tree: Tree): Promise<string[]> {
     const node = await tree.getNode(id)
     if (!node) throw new Error(`${tree.id} links to "${id}", which it does not contain`)
     found.push(id)
-    if (node.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+    if (node.kind === 'question') queue.push(...node.answers.map((answer) => answer.target))
     queue.push(...node.options.map((option) => option.target))
   }
   return found

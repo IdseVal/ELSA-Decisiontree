@@ -134,7 +134,7 @@ test('changing a colour in tree.json and restarting changes the page, with no co
 
   expect(await property(page, '--elsa-accent-secondary')).toBe('#00c2a8')
   // The walk's controls are painted whole in it: both Answer buttons alike (globals.css, #82).
-  for (const answer of ['.answer--yes', '.answer--no']) {
+  for (const answer of ['.answer--next:nth-child(1)', '.answer--next:nth-child(2)']) {
     const painted = await page.locator(answer).evaluate((element) => getComputedStyle(element).backgroundColor)
     expect(painted, answer).toBe('rgb(0, 194, 168)')
   }

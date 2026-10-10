@@ -65,7 +65,7 @@ test('the chosen language survives Answers, Options and the way back', async ({ 
   await page.getByRole('link', { name: 'Nederlands' }).click()
   await arrived(page, `${START}?lang=nl`)
 
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   await arrived(page, `${STEP}?lang=nl`)
 
   // An Option opens its Overlay in place (10.9): the address, language included, stays, and
@@ -111,7 +111,7 @@ test('the language is kept in the URL and nowhere else on the reader machine', a
 }) => {
   await page.goto(START)
   await page.getByRole('link', { name: 'Nederlands' }).click()
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   await arrived(page, `${STEP}?lang=nl`)
 
   expect(await context.cookies()).toEqual([])

@@ -1,6 +1,11 @@
 # ADR-118-json-ld: one `@graph` per page -- a `Dataset` on the root Node, a `WebPage` on every Node, a `Question` as the question Node's `mainEntity`
 
 - Status: ACCEPTED (frozen) -- 2026-09-21
+- **[#220] Amended (2026-10-09)** by `ADR-220-other-readers.md` decision 1: decision 6's
+  `suggestedAnswer` holds one `Answer` per next step, two to four, in their order, each `text`
+  the next step's label, a colon and the target's title -- the button's accessible name, no
+  longer a chrome word -- and `url` the target's canonical URL as before; a migrated yes-and-no
+  step's entries say what they said (`docs/specs/application.md` 16.4, 41.6). The rest stands.
 - Issue: #118 -- Architecture: freeze the JSON-only Tree format (`elsa-tree/4`)
 - Spec: `docs/specs/application.md` 16.4
 - Amends: `docs/adrs/ADR-5-repository-layout.md` (`src/findability/jsonld.ts`; the

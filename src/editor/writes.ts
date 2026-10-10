@@ -13,7 +13,7 @@ import type { DraftNode, Manifest, Theme, Violation } from '../tree/types.ts'
  * in the page's language (36.3).
  */
 export interface Creation {
-  from: { node: string; link: 'yes' | 'no' | 'option' | 'end'; label?: Record<string, string> }
+  from: { node: string; link: 'answer' | 'option' | 'end'; label?: Record<string, string> }
   title?: Record<string, string>
 }
 

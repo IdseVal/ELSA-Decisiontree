@@ -26,6 +26,25 @@
   decision 7, the preview's bar is the public Node page's, drawn by the same component, with the
   arrow leading to `/admin` and without the share button and "Editor" (`ADR-205-preview-bar.md`).
   The rest stands.
+- **Amended 2026-10-04 by issue #203** (the owner's #202: "I am still missing a back to the top
+  level interface button in the tree editor interface /admin/trees/..."): in decision 7, the
+  editor's bar opens with the round arrow of the public Node page (#163), before the draft's logo
+  or title, a link named `toOverview` to the creators' overview at `/admin` in the chrome
+  language -- the reading of core document 3.4 `[#202]` and `ADR-202-navigation-round.md`
+  decision 5, PROPOSED (`application.md` 24.3). The rest stands.
+- **Amended 2026-10-09 by issue #204** (the owner's #202: "From the regular window, I want top
+  right a button that says Editor and that directs to the login, or if user is logged in, moves
+  to the editor interface on /admin. From the /Admin page I want a button that routes back to
+  the regular page, in the same place."): in decision 7, the public overview's and every public
+  Node page's bar end with "Editor", a link to `/admin` in the chrome language, the same for every
+  visitor; the bar at `/admin`, on the login page and on the creators' overview, ends with
+  "Website", a link to the public overview in the chrome language, and keeps its controls at its
+  right end at every width. Below 768 pixels wide a Node page's bar gives up the current
+  language's pill with its list item (a Tree in one language its whole switch); below 600 the
+  creators' overview's bar gives up `siteTitle` and the current language's pill -- the reading of
+  core document 3.4 `[#202]` and `ADR-202-navigation-round.md` decision 5, PROPOSED
+  (`application.md` 24.3). `/admin/new`, `/admin/account`, `/admin/accounts` and the editor keep
+  their bars. The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 24 (new); 4.1, 4.3, 6, 13.1 and 14 amended
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the admin addresses join the grammar behind the

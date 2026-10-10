@@ -7,8 +7,8 @@
  *
  * What is refused here is what the format's key set refuses before anything is applied: a
  * path the format does not define (V-KEYS), a language the manifest does not declare
- * (V-L10N), an index or a Node that is not there -- and **[#175]** a ninth Option, the one
- * count the store closes at the write. Everything else -- a wrong type, a bad URL, an Answer
+ * (V-L10N), an index or a Node that is not there -- and **[#175]** a ninth Option and
+ * **[#221]** a fifth next step, the two counts the store closes at the write. Everything else -- a wrong type, a bad URL, an Answer
  * on a Terminal -- is left to the validator, which answers it with the rule the format names.
  */
 import { randomBytes } from 'node:crypto'
@@ -51,6 +51,7 @@ const NODE_FIELDS: RegExp[] = [
   /^(images)\[(\d+)\]\.(credit|source)$/,
   /^(explainers)\[(\d+)\]\.(term|text)\.([^.[\]]+)$/,
   /^(options)\[(\d+)\]\.(title)\.([^.[\]]+)$/,
+  /^(answers)\[(\d+)\]\.(label)\.([^.[\]]+)$/,
   /^(terminal)\.(label)\.([^.[\]]+)$/,
 ]
 
@@ -64,8 +65,8 @@ const LOCALISED = new Set(['title', 'description', 'label', 'term', 'text'])
  */
 export function newDraft(languages: string[], title: Mapping): Mapping {
   return {
-    $schema: '/schemas/elsa-tree-5.json',
-    format: 'elsa-tree/5',
+    $schema: '/schemas/elsa-tree-6.json',
+    format: 'elsa-tree/6',
     languages,
     root: 'start',
     title: localisedInput(title, languages, 'manifest', 'title'),
@@ -240,17 +241,25 @@ export function applyOperation(tree: Mapping, nodeId: string, operation: Operati
       removeAt(node, 'options', at)
       return []
     }
+    // **[#221]** A next step by its place in `answers` (41.7 item 6), its words kept. The place
+    // after the last appends one, as `set-answer` gave a step its missing yes or no in /5: with
+    // `label`, or "" in every language, a to-do; a fifth is refused.
     case 'set-answer': {
-      const answer = answerKey(operation.answer, fail)
-      node.answers = { ...((node.answers as Mapping | undefined) ?? {}), [answer]: operation.target }
+      const answers = (node.answers as Mapping[] | undefined) ?? []
+      if (operation.index === answers.length) {
+        roomForAnswer(node, nodeId)
+        append(node, 'answers', { label: localisedInput(operation.label ?? {}, languages, nodeId, 'answers.label'), target: operation.target })
+      } else answers[index(node, 'answers', operation.index, fail)]!.target = operation.target
       return []
     }
-    case 'remove-answer': {
-      const answer = answerKey(operation.answer, fail)
-      const answers = node.answers as Mapping | undefined
-      if (!answers || !(answer in answers)) throw fail(`answers.${answer}`, `this Node has no "${answer}" Answer`)
-      delete answers[answer]
-      if (Object.keys(answers).length === 0) delete node.answers
+    case 'remove-answer':
+      removeAt(node, 'answers', index(node, 'answers', operation.index, fail))
+      return []
+    case 'move-answer': {
+      const answers = node.answers as Mapping[]
+      const from = index(node, 'answers', operation.index, fail)
+      const to = index(node, 'answers', operation.to, fail)
+      answers.splice(to, 0, answers.splice(from, 1)[0]!)
       return []
     }
     case 'set-terminal':
@@ -315,7 +324,8 @@ export function applyLanguageOperation(tree: Mapping, operation: Operation): str
 /**
  * **[#147]** Calls `visit` on every localised text of the draft (3.3, 3.4): the manifest's
  * title, description and logo text, and each Node's title, description, Source labels, Image
- * descriptions, Option titles and explainers, and **[#179]** a Terminal's words (22.2). Answers
+ * descriptions, Option titles and explainers, **[#179]** a Terminal's words and **[#221]** each
+ * next step's (22.2). Answers
  * the ids of the Nodes for which `visit` said it changed something.
  */
 export function eachText(tree: Mapping, visit: (text: Mapping) => boolean): string[] {
@@ -330,6 +340,7 @@ export function eachText(tree: Mapping, visit: (text: Mapping) => boolean): stri
       ...list('sources').map((source) => source.label),
       ...list('images').map((image) => image.description),
       ...list('options').map((option) => option.title),
+      ...list('answers').map((answer) => answer.label),
       ...list('explainers').flatMap((explainer) => [explainer.term, explainer.text]),
       (node.terminal as Mapping | undefined)?.label,
     ]
@@ -341,8 +352,9 @@ export function eachText(tree: Mapping, visit: (text: Mapping) => boolean): stri
 }
 
 /**
- * Creates a Node and the Link to it from `from.node` in one write (22.4): an Answer (`yes`,
- * `no`) or an Option, the new Node empty but for `title`. `end` creates no Node: it gives
+ * Creates a Node and the Link to it from `from.node` in one write (22.4): an Answer --
+ * **[#221]** a next step appended last, with `from.label`, its words, `""` for every declared
+ * language it lacks (41.7 items 1 and 3) -- or an Option, the new Node empty but for `title`. `end` creates no Node: it gives
  * `from.node` a terminal holding **[#179]** the ending's words, `from.label`, with `""` for
  * every declared language it lacks (30.3, 36.3). Answers the id of the Node the response is
  * about -- the new one, or `from.node` for an end.
@@ -360,10 +372,11 @@ export function createNode(
     case 'end':
       parent.terminal = { label: localisedInput(from.label, languages, from.node, 'terminal.label') }
       return from.node
-    case 'yes':
-    case 'no': {
-      const node = createEmptyNode(tree, id, title === undefined ? undefined : localisedInput(title, languages, id, 'title'))
-      parent.answers = { ...((parent.answers as Mapping | undefined) ?? {}), [from.link]: node.id }
+    case 'answer': {
+      roomForAnswer(parent, from.node)
+      const label = localisedInput(from.label, languages, from.node, 'answers.label')
+      createEmptyNode(tree, id, title === undefined ? undefined : localisedInput(title, languages, id, 'title'))
+      append(parent, 'answers', { label, target: id })
       return id
     }
     case 'option': {
@@ -374,7 +387,7 @@ export function createNode(
       return id
     }
     default:
-      throw malformed(from.node, 'from.link', 'V-KEYS', "link is 'yes', 'no', 'option' or 'end'")
+      throw malformed(from.node, 'from.link', 'V-KEYS', "link is 'answer', 'option' or 'end'")
   }
 }
 
@@ -390,19 +403,13 @@ export function deleteNode(tree: Mapping, id: string): string[] {
   const referrers: string[] = []
   for (const node of tree.nodes as Mapping[]) {
     let lost = false
-    const answers = node.answers as Mapping | undefined
-    for (const key of ['yes', 'no']) {
-      if (answers?.[key] === id) {
-        delete answers[key]
-        lost = true
-      }
-    }
-    if (answers && Object.keys(answers).length === 0) delete node.answers
-    const options = node.options as Mapping[] | undefined
-    if (options?.some((option) => option.target === id)) {
-      const kept = options.filter((option) => option.target !== id)
-      if (kept.length > 0) node.options = kept
-      else delete node.options
+    // **[#221]** Every next step to it goes, the others keep their order (41.7 item 5).
+    for (const key of ['answers', 'options']) {
+      const links = node[key] as Mapping[] | undefined
+      if (!links?.some((link) => link.target === id)) continue
+      const kept = links.filter((link) => link.target !== id)
+      if (kept.length > 0) node[key] = kept
+      else delete node[key]
       lost = true
     }
     if (lost) referrers.push(node.id as string)
@@ -439,6 +446,19 @@ function roomForOption(node: Mapping, nodeId: string): void {
   if (count < MAX.options) return
   throw new StoreError(422, 'blocking', [
     { file: nodeId, keyPath: 'options', rule: 'V-COUNT', message: `${count + 1} entries; at most ${MAX.options}`, advisory: false },
+  ])
+}
+
+/**
+ * **[#221]** Refuses a fifth next step on `node` (application.md 41.1, 41.7 item 3) with
+ * V-ANSWERS, as `roomForOption` refuses a ninth Option: 422, nothing stored. The schema's
+ * `maxItems` would refuse it too, but in its own words, as a JSON Pointer; this names the rule.
+ */
+function roomForAnswer(node: Mapping, nodeId: string): void {
+  const count = ((node.answers as Mapping[] | undefined) ?? []).length
+  if (count < MAX.answers) return
+  throw new StoreError(422, 'blocking', [
+    { file: nodeId, keyPath: 'answers', rule: 'V-ANSWERS', message: `${count + 1} next steps; at most ${MAX.answers}`, advisory: false },
   ])
 }
 
@@ -481,10 +501,5 @@ function index(node: Mapping, key: string, value: unknown, fail: (keyPath: strin
   if (typeof value !== 'number' || !Number.isInteger(value) || !list || value < 0 || value >= list.length) {
     throw fail(key, `there is no ${key}[${String(value)}]`)
   }
-  return value
-}
-
-function answerKey(value: unknown, fail: (keyPath: string, message: string) => StoreError): 'yes' | 'no' {
-  if (value !== 'yes' && value !== 'no') throw fail('answers', "answer is 'yes' or 'no'")
   return value
 }

@@ -191,7 +191,7 @@ test.describe('with a pointer and a keyboard', () => {
   test('Escape still closes a panel on a page reached by a slide', async ({ page }) => {
     await open(page)
     // A slide mounts a neighbour frame, with its own text, and unmounts it when it ends.
-    await page.locator('.answer--yes').click()
+    await page.locator('.answer--next:nth-child(1)').click()
     await expect(page).toHaveURL(/\/explainers\/start\/yes-end$/)
     await expect(page.locator('.bubble')).toHaveCount(1)
     await page.goBack()

@@ -1,6 +1,7 @@
 # ADR-78-answer-buttons-and-up-arrow: both Answer buttons are 620 x 60, filled with the Theme's `accent-secondary` under a 19-pixel bold label that counts as large text; the Trail is no longer drawn and one round up arrow on the Bubble's top outline goes one step back
 
 - Status: ACCEPTED (frozen) -- 2026-09-17
+- **[#220] Superseded in part (2026-10-09)** by `ADR-220-words-on-a-next-step.md` and `ADR-220-answer-row.md`: decision 1's two buttons of 620 x 60 labelled with the chrome word, a colon and the target's title become two to four alike buttons, each showing its next step's own words (the title stays in its accessible name); and by `ADR-220-slide-and-neighbourhood.md`: decision 4's `up` slot (0, 1, 2) becomes a position computed from the parent's next steps.
 - Issue: #78 -- Architecture: freeze the contracts for the display changes of #75
 - Spec: `docs/specs/application.md` 3.2 (chrome keys), 10.1 to 10.3, 10.5, 11.1, 11.2, 13.1, 14; `docs/specs/tree-format.md` 4.3.3 (the role's meaning)
 - Core document: 3.2 ("Both Answer buttons the same ...", "The Trail is no longer drawn ..."), 9 (no lab colour in code), 10.17 (a Trail click discards the later Trail)

@@ -76,7 +76,8 @@ async function stored(page: Page, cookie: string): Promise<DraftNode> {
 
 /**
  * Every field on screen whose box is not inside its parent's: the Bubble's text area, an Option
- * button, the Overlay's Interior or a Sheet's panel -- the nearest of them around it -- and, in
+ * button, **[#222]** an Answer button (a next step's words, 41.7 item 2), the Overlay's Interior or
+ * a Sheet's panel -- the nearest of them around it -- and, in
  * the Bubble, inside the outline's curve as well (10.1: the Bubble's own border radius, less
  * its 2-pixel outline). A field in a closed page or language section is not on screen. 10.6's
  * tolerance of a pixel.
@@ -88,7 +89,7 @@ async function outside(page: Page, where: string): Promise<string[]> {
     for (const element of document.querySelectorAll<HTMLElement>('[data-field]')) {
       const box = element.getBoundingClientRect()
       if (box.width === 0 || box.height === 0 || !element.checkVisibility()) continue
-      const parent = element.closest('.sheet-panel, .overlay-interior, .sheet-open, .bubble-text')
+      const parent = element.closest('.sheet-panel, .overlay-interior, .sheet-open, .bubble-text, .answer')
       if (!parent) {
         out.push(`${element.dataset.field}: no parent`)
         continue

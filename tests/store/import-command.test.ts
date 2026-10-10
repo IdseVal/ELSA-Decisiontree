@@ -53,6 +53,6 @@ test('a valid Tree is imported, published, the administrator its creator; twice 
 test('a Tree that fails validation is refused with its violations, and nothing is written', async () => {
   const refused = run('tests/fixtures/invalid/v-answers')
   expect(refused.status).toBe(1)
-  expect(refused.output).toContain("v-answers  tree.json  /nodes/0/answers  schema  must have required property 'no'")
+  expect(refused.output).toContain("v-answers  tree.json  /nodes/0/answers  schema  must NOT have fewer than 2 items")
   expect(await readdir(path.join(data, 'trees'))).toEqual(['cycle'])
 })

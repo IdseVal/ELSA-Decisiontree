@@ -302,7 +302,7 @@ test.describe('the keyboard', () => {
     // Once the script has run, Tab from the last Answer lands on the first thumbnail, not
     // on the strip, and the next Tab leaves the strip.
     await expect(page.locator('[data-carousel-strip]')).toHaveAttribute('tabindex', '-1')
-    await page.locator('.answer--no').focus()
+    await page.locator('.answer--next:nth-child(2)').focus()
     await page.keyboard.press('Tab')
     await expect(thumbnails.nth(0)).toBeFocused()
     await page.keyboard.press('Tab')
@@ -478,7 +478,7 @@ test.describe('with JavaScript switched off', () => {
     await page.goto(`${origin}${FIVE}`)
     const strip = page.locator('[data-carousel-strip]')
 
-    await page.locator('.answer--no').focus()
+    await page.locator('.answer--next:nth-child(2)').focus()
     await page.keyboard.press('Tab')
     await expect(strip).toBeFocused()
     await expect(strip).toHaveAccessibleName('Images')

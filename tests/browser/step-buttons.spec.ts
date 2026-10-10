@@ -73,12 +73,12 @@ test.beforeAll(async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   // A Node is made from a parent's Link (22.4): made under an aside, pointed at the full Node,
   // unhung from the aside, and made the root, it stands above the full Node.
-  const made = await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'opt-two', link: 'yes' } })
+  const made = await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'opt-two', link: 'answer', label: { en: 'Yes', nl: 'Ja' } } })
   expect(made.status()).toBe(201)
   top = ((await made.json()) as { node: DraftNode }).node.id
   for (const [route, change] of [
-    [`/nodes/${top}`, { op: 'set-answer', answer: 'yes', target: 'full' }],
-    ['/nodes/opt-two', { op: 'remove-answer', answer: 'yes' }],
+    [`/nodes/${top}`, { op: 'set-answer', index: 0, target: 'full', label: { en: 'Yes', nl: 'Ja' } }],
+    ['/nodes/opt-two', { op: 'remove-answer', index: 0 }],
     [`/nodes/${top}`, { path: 'title.en', value: 'The first step' }],
     [`/nodes/${top}`, { path: 'title.nl', value: 'De eerste stap' }],
     ['', { path: 'root', value: top }],
@@ -141,7 +141,7 @@ test('on a step with both Answers and Options no element of a link menu or of th
       // Every control of the page that says `...`, the Sources' own Sheets aside (out of #178's scope).
       dots: [...document.querySelectorAll('summary, button')].filter((control) => control.textContent?.trim() === '…' && !control.closest('.source-sheet')).length,
       sourceDots: document.querySelectorAll('.source-sheet:not(.source-sheet--add) > .sheet-open').length,
-      answers: document.querySelectorAll('.tree-frame .answers > .answer--yes, .tree-frame .answers > .answer--no').length,
+      answers: document.querySelectorAll('.tree-frame .answers > .answer--next:nth-child(1), .tree-frame .answers > .answer--next:nth-child(2)').length,
       options: document.querySelectorAll('.tree-frame .options > li').length,
     }))
     console.log(`${lang}, the full Node under a Trail: ${JSON.stringify(counts)}`)
@@ -234,8 +234,13 @@ test('the two buttons stand beside the up arrow, under the bar, inside the windo
       ] as const) {
         await page.goto(address)
         await page.evaluate(() => document.fonts.ready)
-        const at = await layout(page)
         const where = `${width}x${height} ${lang}, ${what}`
+        // **[#221]** The full Node's four next steps take the notice below 600 x 560 (41.4, 41.7 item 8).
+        if (what === 'a question step' && width < 600 && height < 560) {
+          await expect(page.locator('.minimum-size'), where).toBeVisible()
+          continue
+        }
+        const at = await layout(page)
         const step = [...at.cross, ...at.words]
         console.log(
           `${where}: cross ${at.cross.map(show).join(' ')}${at.words.length ? `, ending's button ${at.words.map(show).join(' ')}` : ''} | up ${at.up.map(show).join(' ')}, ` +
@@ -325,15 +330,13 @@ test('"Tree does not end here after all" gives the three structure buttons back 
   expect(node.label).toBeUndefined()
 })
 
-test('the cross deletes after one confirmation and lands on the parent, whose yes is free again', async ({ browser }) => {
+test('the cross deletes after one confirmation and lands on the parent, **[#221]** which keeps its other next steps in their order (41.7 item 5)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor([top, 'full', 'applies']))
   await cross(page).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
   await page.waitForURL(fullNode())
-  await expect(page.locator('.answer--yes')).toHaveCount(0)
-  await expect(page.locator('.structure--yes')).toHaveClass(/structure--lone/)
-  await expect(page.locator('.structure--yes')).toHaveText('+ Yes')
+  await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next')).toHaveCount(3)
   expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/applies`)).status()).toBe(404)
-  expect((await nodeOf(page, cookie, 'full')).answers).toEqual({ no: 'does-not-apply' })
+  expect((await nodeOf(page, cookie, 'full')).answers!.map((answer) => answer.target)).toEqual(['does-not-apply', 'deployer-only', 'not-applicable'])
 })

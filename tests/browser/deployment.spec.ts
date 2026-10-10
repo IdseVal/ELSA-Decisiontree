@@ -30,7 +30,7 @@ import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 const here = path.dirname(fileURLToPath(import.meta.url))
 const START = '/ai-act-example/start'
 const DATASET = '/ai-act-example/tree.json'
-const SCHEMA = '/schemas/elsa-tree-5.json'
+const SCHEMA = '/schemas/elsa-tree-6.json'
 
 /**
  * Every host the page asked for something from, and every Set-Cookie it was answered.
@@ -73,7 +73,7 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   await page.goto('/')
   await page.locator('a.tile').click()
   await arrived(page, START)
-  await page.locator('.answer--yes').click()
+  await page.locator('.answer--next:nth-child(1)').click()
   // The Option opens its Overlay in place; its heading is the link to the aside's own address,
   // whose page arrives with the Overlay open, and Escape uncovers the page (10.9).
   await page.locator('.options .sheet-open', { hasText: 'Social scoring' }).click()
@@ -82,7 +82,7 @@ test('a walk sets no cookie and asks no host but the one serving the app', async
   await page.locator('.tree-frame:not([inert]) .up-arrow').click()
   // The slide up brings a second frame into the document until it lands (11.3).
   await arrived(page, START)
-  await page.locator('.answer--no').click()
+  await page.locator('.answer--next:nth-child(2)').click()
   await page.goto(`${START}?lang=nl`)
   await page.setViewportSize({ width: 1280, height: 540 })
   await page.locator('.sources-sheet summary').click()
@@ -134,10 +134,11 @@ test("without a public base URL the canonical link is the request's own origin",
  * **[#118]** Every route of sections 15 and 16, swept for a cookie. The list is one array
  * so that a route added without a line here is visibly absent: **#120** adds `/robots.txt`
  * and `/sitemap.xml`, **#121** `/<tree-id>/tree.json`, `/schemas/elsa-tree-4.json` and
- * `/llms.txt`, **[#179]** and `/schemas/elsa-tree-5.json`, the schema every served Tree names
- * now, beside the `/4` one, which stays served (15.1).
+ * `/llms.txt`, **[#179]** and `/schemas/elsa-tree-5.json`, the schema every served Tree named
+ * then, beside the `/4` one, which stays served (15.1); **[#221]** `/schemas/elsa-tree-6.json`,
+ * the one every Tree names now, beside both.
  */
-const DOCUMENT_ROUTES = ['/robots.txt', '/sitemap.xml', '/llms.txt', DATASET, SCHEMA, '/schemas/elsa-tree-4.json']
+const DOCUMENT_ROUTES = ['/robots.txt', '/sitemap.xml', '/llms.txt', DATASET, SCHEMA, '/schemas/elsa-tree-5.json', '/schemas/elsa-tree-4.json']
 
 test('the documents of sections 15 and 16 set no cookie and leave the jar empty', async ({ page, context }) => {
   const seen = watch(page)
@@ -192,7 +193,7 @@ test.describe('the dataset endpoint (15)', () => {
     // The licence travels with the bytes. The Tree is content and the schema is a file of
     // the repository, so they carry different ones (core document 8).
     expect(dataset.headers()['link']).toBe(
-      '<https://creativecommons.org/licenses/by/4.0/>; rel="license", </schemas/elsa-tree-5.json>; rel="describedby"',
+      '<https://creativecommons.org/licenses/by/4.0/>; rel="license", </schemas/elsa-tree-6.json>; rel="describedby"',
     )
     expect(schema.headers()['link']).toBe('<https://opensource.org/license/mit>; rel="license"')
   })
@@ -209,7 +210,7 @@ test.describe('the dataset endpoint (15)', () => {
 
     expect(downloaded.equals(inStore)).toBe(true)
     expect(downloaded.equals(inRepository)).toBe(true)
-    expect(JSON.parse(downloaded.toString('utf8')).format).toBe('elsa-tree/5')
+    expect(JSON.parse(downloaded.toString('utf8')).format).toBe('elsa-tree/6')
   })
 
   test('the ETag answers 304, so a crawler that re-fetches downloads nothing', async ({ request }) => {
@@ -255,8 +256,8 @@ test.describe('the dataset endpoint (15)', () => {
     expect((await request.get('/schemas/../package.json')).status()).not.toBe(200)
   })
 
-  test('**[#179]** the published set is the two schemas, each its file byte for byte: /5, which every Tree names, and /4, kept (15.1)', async ({ request }) => {
-    for (const name of ['elsa-tree-5.json', 'elsa-tree-4.json']) {
+  test('**[#179]** the published set is the schemas, each its file byte for byte: **[#221]** /6, which every Tree names, and /5 and /4, kept (15.1)', async ({ request }) => {
+    for (const name of ['elsa-tree-6.json', 'elsa-tree-5.json', 'elsa-tree-4.json']) {
       const served = await request.get(`/schemas/${name}`)
       expect(served.status(), name).toBe(200)
       expect((await served.body()).equals(await readFile(path.join(here, '..', '..', 'schemas', name))), name).toBe(true)
@@ -347,6 +348,90 @@ test.describe('the logged-in half of the sweep (20.5)', () => {
     await seen.settled()
     expect(seen.setCookie).toEqual([])
     expect(await context.cookies()).toEqual([])
+  })
+})
+
+/**
+ * **[#206]** The preview's half of the sweep (application.md 35.5, 40.8): on a server of its own
+ * holding a hidden Tree beside the published example, the preview's two addresses answer no
+ * `Set-Cookie` and carry 20.9's headers, with and without the session; and after a preview of the
+ * hidden Tree is drawn in the browser, every public route -- the hidden Tree's own addresses, the
+ * 404 of 4.3, among them -- is sent no `Cookie` and answers no `Set-Cookie`, the login's aside.
+ */
+test.describe("the preview's half of the sweep (35.5, 40.8)", () => {
+  const PORT = BASE_PORT + 206
+  const HIDDEN = 'hidden-tree'
+  const PREVIEWS = [`/admin/preview/${HIDDEN}`, `/admin/preview/${HIDDEN}/full`, `/admin/preview/${HIDDEN}/full?lang=nl`]
+  const repo = fileURLToPath(new URL('../..', import.meta.url))
+  let origin: string
+
+  test.beforeAll(async () => {
+    const dir = await buildDataDir({
+      trees: [{ folder: path.join(repo, 'trees', 'ai-act-example') }, { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: HIDDEN, hidden: true }],
+      accounts: [],
+    })
+    origin = await serveStore(dir, PORT, ADMIN_ENV)
+  })
+
+  test.afterAll(async () => {
+    await stopServers()
+  })
+
+  test("without a session the preview's addresses answer the login page, no cookie and 20.9's headers", async ({ page, context }) => {
+    const seen = watch(page)
+    for (const route of PREVIEWS) {
+      const answer = await page.goto(`${origin}${route}`)
+      const headers = await answer!.allHeaders()
+      expect(answer?.status(), route).toBe(200)
+      expect(headers['x-robots-tag'], route).toBe('noindex, nofollow')
+      expect(headers['cache-control'], route).toBe('no-store')
+      await expect(page.getByRole('heading', { name: /^(Sign in|Inloggen)$/ }), route).toBeVisible()
+    }
+    await seen.settled()
+    expect(seen.setCookie).toEqual([])
+    expect(await context.cookies()).toEqual([])
+  })
+
+  test('after a preview of the hidden Tree is drawn, no public route is sent the cookie or answers one', async ({ page, context }) => {
+    const seen = watch(page)
+    const cookieSentTo: string[] = []
+    const reads: Promise<void>[] = []
+    page.on('request', (request: Request) => {
+      reads.push(
+        request.allHeaders().then((headers) => {
+          if (headers['cookie'] !== undefined) cookieSentTo.push(new URL(request.url()).pathname)
+        }),
+      )
+    })
+    await page.goto(`${origin}/admin`)
+    await page.getByLabel('E-mail address').fill(ADMIN_EMAIL)
+    await page.getByLabel('Password').fill(ADMIN_PASSWORD)
+    await page.getByRole('button', { name: 'Sign in' }).click()
+    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible()
+
+    for (const route of PREVIEWS) {
+      const answer = await page.goto(`${origin}${route}`)
+      const headers = await answer!.allHeaders()
+      expect(answer?.status(), route).toBe(200)
+      expect(headers['x-robots-tag'], route).toBe('noindex, nofollow')
+      expect(headers['cache-control'], route).toBe('no-store')
+      // The preview drawn: the hidden Tree's full Node, its pictures from the admin route.
+      await expect(page.locator('.tree-frame .bubble[data-node="full"]'), route).toBeVisible()
+      await expect(page.locator('.preview-back'), route).toBeVisible()
+    }
+
+    const hidden = [`/${HIDDEN}`, `/${HIDDEN}/full`, `/${HIDDEN}/full?lang=nl`, `/${HIDDEN}/tree.json`, `/${HIDDEN}/images/one.png`]
+    for (const route of [...PUBLIC_ROUTES, ...hidden]) {
+      const answer = await page.goto(`${origin}${route}`)
+      expect(answer?.status(), route).toBe(hidden.includes(route) ? 404 : 200)
+    }
+
+    await seen.settled()
+    while (reads.length > 0) await Promise.all(reads.splice(0))
+    expect(cookieSentTo.filter((pathname) => pathname !== '/admin' && !pathname.startsWith('/admin/'))).toEqual([])
+    expect(cookieSentTo).toEqual(expect.arrayContaining(['/admin/preview/hidden-tree/full']))
+    expect(seen.setCookie).toEqual([expect.stringMatching(new RegExp(`^${origin}/admin/api/login: elsa-admin-session=`))])
+    expect(await context.cookies()).toHaveLength(1)
   })
 })
 

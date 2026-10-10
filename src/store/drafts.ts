@@ -314,11 +314,11 @@ export async function openDrafts(
       const draft = draftFor(by, id)
       const node = await draft.getNode(nodeId)
       if (!node) throw new StoreError(404, 'no-node')
-      const targets = [...Object.values(node.answers ?? {}), ...node.options.map((option) => option.target)]
+      const targets = [...(node.answers ?? []), ...node.options].map((link) => link.target)
       const titles: Record<string, LocalisedText> = {}
       for (const target of targets) {
-        const title = target === undefined ? null : draft.getTitle(target)
-        if (title) titles[target!] = title
+        const title = draft.getTitle(target)
+        if (title) titles[target] = title
       }
       return { node, violations: draft.advisory.filter((violation) => violation.file === nodeId), titles }
     },

@@ -3,6 +3,7 @@ import { pageSession } from '../../../../../../admin/authenticated.ts'
 import { editMode } from '../../../../../../admin/slots.tsx'
 import { loginWords } from '../../../../../../admin/words.ts'
 import { chrome, chromeLang, chromeLanguage, type Chrome } from '../../../../../../chrome.ts'
+import { BackToOverview } from '../../../../../../components/BackToOverview.tsx'
 import { sheetWords } from '../../../../../../components/Bubble.tsx'
 import { Disclaimer } from '../../../../../../components/Disclaimer.tsx'
 import { LanguageSwitch } from '../../../../../../components/LanguageSwitch.tsx'
@@ -11,15 +12,17 @@ import { Logo } from '../../../../../../components/Logo.tsx'
 import { Sheet } from '../../../../../../components/Sheet.tsx'
 import { ThemeStyle } from '../../../../../../components/ThemeStyle.tsx'
 import { TreeView } from '../../../../../../components/TreeView.tsx'
+import { Uneditable } from '../../../../../../components/Uneditable.tsx'
 import { store } from '../../../../../../config.ts'
 import { Editor, SaveIndicator } from '../../../../../../editor/Editor.tsx'
-import { editorLinks } from '../../../../../../editor/links.ts'
+import { editorLinks, previewLinks } from '../../../../../../editor/links.ts'
 import { LogoutButton } from '../../../../../../editor/LogoutButton.tsx'
 import { Panel, PanelButton, type PanelRole, type PanelWords } from '../../../../../../editor/Panel.tsx'
+import { PreviewButton } from '../../../../../../editor/PreviewButton.tsx'
 import { ThemePanel, type ThemeWords } from '../../../../../../editor/ThemePanel.tsx'
 import { FONT_LIBRARY, FONT_LICENCES, libraryEntry } from '../../../../../../fonts.ts'
 import { Todo, TodoButton, type TodoWords } from '../../../../../../editor/Todo.tsx'
-import { centreOf, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
+import { centreOf, draftCentre, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
 import type { Account } from '../../../../../../store/accounts.ts'
 import type { TreeEntry } from '../../../../../../store/drafts.ts'
 import { isStoreError } from '../../../../../../store/errors.ts'
@@ -62,15 +65,10 @@ export default async function EditorPage({ params }: Props) {
   }
   const address = parseUrl(`/${[treeId, ...path].join('/')}`, segment, draft)
   if (!address) notFound()
-  let centre = await centreOf(draft, address)
-  if (!centre) notFound()
-  // **[#139]** A fresh Answer target is an explanation Node by its draft kind until it gets
-  // Answers or an end (19.2), and `centreOf` would show it as an Overlay over its parent. In
-  // the editor an entry is an aside only where the entry before names it as an Option; any
-  // other explanation Node at the end of the path is the centre, with its up arrow (30.2).
-  for (let first = centre.chain[0]; first && !centre.node.options.some((option) => option.target === first!.node.id); first = centre.chain[0]) {
-    centre = { address: first.address, node: first.node, chain: centre.chain.slice(1), known: centre.known }
-  }
+  const read = await centreOf(draft, address)
+  if (!read) notFound()
+  // **[#139]** A fresh step a yes or a no made is the centre, with its up arrow (30.2); **[#205]** the rule is `draftCentre`'s, which the preview applies too (40.2).
+  let centre = draftCentre(read)
   // The chain's addresses are the editor's, as the asides' below are: the tree view tells the
   // Overlay a URL opened by its href (10.9), and the two must agree.
   centre = { ...centre, chain: centre.chain.map((aside) => ({ ...aside, href: editorLinks().node(aside.address) })) }
@@ -121,8 +119,12 @@ export default async function EditorPage({ params }: Props) {
       <ThemeStyle tree={draft} href={adminThemeHref} revision={entry.meta.revision} editor />
       {/* An admin bar too: below 480 pixels it gives up the title and the current language, as #135 decided (10.6). */}
       <header className="page-chrome admin-chrome editor-chrome" data-editor-ui="">
-        {/* **[#180]** The Tree's logo on the default's bar: the variant for that bar's background, not the draft's (13.1). */}
-        <Logo treeId={draft.id} theme={draft.manifest.theme && { ...draft.manifest.theme, colours: undefined }} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
+        {/* **[#203]** The way out, as on the Node page: here to the creators' overview, where the Trees a creator edits are. */}
+        <div className="page-brand">
+          <BackToOverview href={adminHref('/admin', uiLang)} lang={address.lang} />
+          {/* **[#180]** The Tree's logo on the default's bar: the variant for that bar's background, not the draft's (13.1). */}
+          <Logo treeId={draft.id} theme={draft.manifest.theme && { ...draft.manifest.theme, colours: undefined }} title={draft.manifest.title} lang={address.lang} href={adminThemeHref} />
+        </div>
         <div className="page-controls">
           <LanguageSwitch address={address} languages={draft.manifest.languages} edit={edit} />
           <SaveIndicator words={edit.words} />
@@ -135,6 +137,8 @@ export default async function EditorPage({ params }: Props) {
           </nav>
         </div>
       </header>
+      {/* **[#205]** On a hidden Tree, under the bar at its top left and first after it in the tab order (40.5). */}
+      <PreviewButton href={previewLinks().node(address)} word={ui.preview} uiLang={chromeLang(address.lang)} />
       {/* **[#176]** Out of the bar, over the page under its top right corner, and next after it in the tab order (33.1). */}
       <div className="editor-float" data-editor-ui="">
         <TodoSheet entry={entry} draft={draft} address={address} role={role} ui={ui} />
@@ -370,28 +374,4 @@ function themeWords(ui: Chrome): ThemeWords {
     licenceOtherHint: ui.licenceOtherHint,
     fontFileHint: ui.fontFileHint,
   }
-}
-
-/** An uneditable Tree (19.5): the blocking violations of its hand-edited draft, and the way out. */
-function Uneditable({ lang, messages }: { lang: 'en' | 'nl'; messages: string[] }) {
-  const ui = chrome(lang)
-  return (
-    <>
-      <ThemeStyle tree={null} />
-      <main className="admin-page admin-page--centred" lang={lang}>
-        <section className="admin-card" aria-labelledby="uneditable">
-          <h1 id="uneditable">{ui.notEditable}</h1>
-          <ul className="admin-note">
-            {messages.map((message) => (
-              <li key={message}>{message}</li>
-            ))}
-          </ul>
-          <a className="admin-submit admin-submit--link" href={adminHref('/admin', lang)}>
-            {ui.toOverview}
-          </a>
-        </section>
-      </main>
-      <Disclaimer lang={lang} />
-    </>
-  )
 }

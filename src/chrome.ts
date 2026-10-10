@@ -65,7 +65,8 @@ export interface Chrome {
    */
   minimumSize: string
   minimumWidth: string
-  minimumHeight: string
+  /** **[#221]** The height to grow past: the floor's 480, or 41.4's for a step of three or four next steps. */
+  minimumHeight: (pixels: number) => string
   /** **[#134]** The deployment's name: the overview's chrome bar and title, the H1 of `llms.txt` (23.2, 23.5, 24.3). */
   siteTitle: string
   /** **[#134]** What this site is, in one sentence: the overview's description meta tag and the blockquote of `llms.txt`. */
@@ -88,6 +89,20 @@ export interface Chrome {
   logout: string
   account: string
   accounts: string
+  /**
+   * **[#204]** The two links between the public pages and the admin area (24.3): `editor` at the
+   * right of the public bars, to `/admin`; `website` at the right of the bar at `/admin`, back to
+   * the public overview. The same word in English and Dutch, as `account` is.
+   */
+  editor: string
+  website: string
+  /**
+   * **[#205]** The preview of a hidden Tree (40.5): `preview` on the button at the top left of its
+   * editor, `backToEditor` on the way back in the same place of the preview -- the words from 1000
+   * pixels wide, and the name and the `title` at every width.
+   */
+  preview: string
+  backToEditor: string
   /** **[#135]** The login page (25.1). */
   signIn: string
   /** **[#196]** The address field of the login page and of the new-account and `setEmail` Sheets, and the accounts page's column (38.5). */
@@ -221,6 +236,13 @@ export interface Chrome {
   /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button and the side-bubble `+`. */
   treeEndsHere: string
   newSideBubble: string
+  /**
+   * **[#222]** The `+` for another next step and its Sheet's title (41.7 items 1 and 2), and the
+   * words on the button: the Sheet's one field and an empty label's placeholder, at most 19
+   * characters in each language, so the placeholder fits the label's field as the words do.
+   */
+  addNextStep: string
+  nextStepWords: string
   /**
    * **[#178]** The step's two buttons beside the up arrow (30.8, amended 2026-10-02): the red
    * cross's name and hover text, the words of the button that removes the ending, and the
@@ -400,7 +422,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     imageCount: (index, total) => `Image ${index} of ${total}`,
     minimumSize: 'This tool needs a larger window.',
     minimumWidth: 'Make it wider than 320 pixels.',
-    minimumHeight: 'Make it taller than 480 pixels.',
+    minimumHeight: (pixels) => `Make it taller than ${pixels} pixels.`,
     siteTitle: 'ELSA decision trees',
     siteDescription:
       'Interactive legal decision trees: answer one question at a time and arrive at an outcome, with the legal sources of every step.',
@@ -413,6 +435,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     logout: 'Log out',
     account: 'Account',
     accounts: 'Accounts',
+    editor: 'Editor',
+    website: 'Website',
+    preview: 'Preview',
+    backToEditor: 'Back to the editor',
     signIn: 'Sign in',
     email: 'E-mail address',
     password: 'Password',
@@ -520,6 +546,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteTree: 'Delete this tree and its pictures for good? This cannot be undone.',
     treeEndsHere: 'Tree ends here',
     newSideBubble: 'New side bubble',
+    addNextStep: 'Add a next step',
+    nextStepWords: 'Words on the button',
     deleteStep: 'Delete this step',
     removeEnd: 'Tree does not end here after all',
     confirmDelete: (title) => `Delete "${title}"? What it led to stays.`,
@@ -635,7 +663,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     imageCount: (index, total) => `Afbeelding ${index} van ${total}`,
     minimumSize: 'Dit hulpmiddel heeft een groter venster nodig.',
     minimumWidth: 'Maak het breder dan 320 pixels.',
-    minimumHeight: 'Maak het hoger dan 480 pixels.',
+    minimumHeight: (pixels) => `Maak het hoger dan ${pixels} pixels.`,
     siteTitle: 'ELSA-beslisbomen',
     siteDescription:
       'Interactieve juridische beslisbomen: beantwoord één vraag tegelijk en kom tot een uitkomst, met de juridische bronnen van elke stap.',
@@ -648,6 +676,10 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     logout: 'Uitloggen',
     account: 'Account',
     accounts: 'Accounts',
+    editor: 'Editor',
+    website: 'Website',
+    preview: 'Voorbeeld',
+    backToEditor: 'Terug naar de editor',
     signIn: 'Inloggen',
     email: 'E-mailadres',
     password: 'Wachtwoord',
@@ -755,6 +787,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteTree: 'Deze boom en zijn afbeeldingen voorgoed verwijderen? Dit kan niet ongedaan worden.',
     treeEndsHere: 'Boom eindigt hier',
     newSideBubble: 'Nieuwe zijbubbel',
+    addNextStep: 'Volgende stap toevoegen',
+    nextStepWords: 'Woorden op de knop',
     deleteStep: 'Deze stap verwijderen',
     removeEnd: 'Boom eindigt hier toch niet',
     confirmDelete: (title) => `"${title}" verwijderen? Waar die heen leidde blijft.`,

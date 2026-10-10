@@ -2,12 +2,13 @@ import path from 'node:path'
 import { CODE_LICENCE_URL, datasetResponse } from '../../../../assets.ts'
 
 /**
- * `GET /schemas/elsa-tree-5.json` (docs/specs/application.md 15.1): the format's JSON
+ * `GET /schemas/elsa-tree-6.json` (docs/specs/application.md 15.1): the format's JSON
  * Schema, the contract `tree.json` names in its `rel="describedby"` header and in its own
  * `$schema` key. The schema is a file of the repository and is code, so it carries the
  * MIT licence where the Tree carries CC BY 4.0 (15.2). **[#179]** And
  * `GET /schemas/elsa-tree-4.json`, the contract of the format before it, which stays served
- * so that a `/4` Tree a third party keeps has its contract to point at (ADR-171-elsa-tree-5).
+ * so that a `/4` Tree a third party keeps has its contract to point at (ADR-171-elsa-tree-5);
+ * **[#221]** `GET /schemas/elsa-tree-5.json` likewise, for a `/5` Tree (ADR-220-elsa-tree-6).
  *
  * **The route serves the published set, not the folder**, exactly as the theme route
  * serves what the Theme names and not what sits beside it (5.5): a draft or a note left in
@@ -29,10 +30,12 @@ export async function GET(
   // out rather than joined from `file`, as in the loader: a `path.join` whose last segment is
   // a variable makes Turbopack trace the whole project into the build.
   const published =
-    file === 'elsa-tree-5.json'
-      ? path.join(process.cwd(), 'schemas', 'elsa-tree-5.json')
-      : file === 'elsa-tree-4.json'
-        ? path.join(process.cwd(), 'schemas', 'elsa-tree-4.json')
-        : null
+    file === 'elsa-tree-6.json'
+      ? path.join(process.cwd(), 'schemas', 'elsa-tree-6.json')
+      : file === 'elsa-tree-5.json'
+        ? path.join(process.cwd(), 'schemas', 'elsa-tree-5.json')
+        : file === 'elsa-tree-4.json'
+          ? path.join(process.cwd(), 'schemas', 'elsa-tree-4.json')
+          : null
   return datasetResponse({ path: published, licence: CODE_LICENCE_URL }, request)
 }

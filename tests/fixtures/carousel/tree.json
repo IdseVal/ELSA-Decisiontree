@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-5.json",
-  "format": "elsa-tree/5",
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
   "languages": [
     "en",
     "nl"
@@ -69,10 +69,22 @@
           "credit": "Drawing: Example Cartography, public domain"
         }
       ],
-      "answers": {
-        "yes": "two",
-        "no": "done"
-      }
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "two"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "done"
+        }
+      ]
     },
     {
       "id": "two",
@@ -105,10 +117,22 @@
           "credit": "Drawing: Example Studio, CC0 1.0"
         }
       ],
-      "answers": {
-        "yes": "done",
-        "no": "long"
-      }
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "done"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "long"
+        }
+      ]
     },
     {
       "id": "long",
@@ -141,10 +165,22 @@
           "credit": "Drawing: Example Studio, CC BY 4.0"
         }
       ],
-      "answers": {
-        "yes": "done",
-        "no": "done"
-      }
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja"
+          },
+          "target": "done"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee"
+          },
+          "target": "done"
+        }
+      ]
     },
     {
       "id": "done",

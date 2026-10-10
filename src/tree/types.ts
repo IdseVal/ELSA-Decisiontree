@@ -1,5 +1,5 @@
 /**
- * The types of the `elsa-tree/5` format (docs/specs/tree-format.md) as the loader hands
+ * The types of the `elsa-tree/6` format (docs/specs/tree-format.md) as the loader hands
  * them out (docs/specs/application.md section 5.1). Two normalisations against the
  * file: `id` and `kind` are added, and absent lists become empty arrays.
  */
@@ -54,7 +54,7 @@ export interface Theme {
 }
 
 export interface Manifest {
-  format: 'elsa-tree/5'
+  format: 'elsa-tree/6'
   languages: string[]
   /** The first declared language: what the frontend shows before the user chooses. */
   defaultLanguage: string
@@ -92,6 +92,15 @@ export interface Explainer {
   text: LocalisedText
 }
 
+/**
+ * **[#221]** One next step of a question Node (tree-format.md 5.3): the creator's words for the
+ * choice, shown alone on its button, and the Node it leads to.
+ */
+export interface Answer {
+  label: LocalisedText
+  target: string
+}
+
 export type NodeKind = 'question' | 'terminal' | 'explanation'
 
 export type Node = {
@@ -104,7 +113,8 @@ export type Node = {
   options: Option[]
   explainers: Explainer[]
 } & (
-  | { kind: 'question'; answers: { yes: string; no: string } }
+  /** **[#221]** Two to four next steps, in the order their buttons stand (application.md 41.1, 41.3). */
+  | { kind: 'question'; answers: Answer[] }
   /** **[#179]** The ending's own words, shown on the badge (tree-format.md 5.5): `terminal.label`. */
   | { kind: 'terminal'; label: LocalisedText }
   | { kind: 'explanation' }
@@ -112,12 +122,12 @@ export type Node = {
 
 /**
  * **[#136]** A Node of a draft (docs/specs/application.md 19.2): a `Node` whose `answers` may
- * lack a key and whose localised texts may lack a language or hold an empty string for one
+ * hold one next step (**[#221]** one to four) and whose localised texts may lack a language or hold an empty string for one
  * -- a `title` or `description` not written yet is `{}` -- and nothing else different.
  */
 export type DraftNode = Omit<Node, 'kind'> & {
   kind: NodeKind
-  answers?: { yes?: string; no?: string }
+  answers?: Answer[]
   label?: LocalisedText
 }
 
@@ -135,24 +145,19 @@ export interface NodeContent {
   explainers: Explainer[]
 }
 
-/** **[#138]** A Node's Links as the tree view reads them (34.6): the Answers that exist, and the end -- **[#179]** its words. */
+/** **[#138]** A Node's Links as the tree view reads them (34.6): the Answers that exist -- **[#221]** in order -- and the end -- **[#179]** its words. */
 export interface NodeLinks {
-  yes?: string
-  no?: string
+  answers: Answer[]
   terminal?: LocalisedText
 }
 
 /**
  * **[#138]** The one helper through which `TreeView` and `Bubble` read a Node's Links, so that
- * a draft's half-question -- one Answer, or none yet -- and a published Node's pair are read
- * by one rule (34.6). Where a public `Node` is passed nothing differs.
+ * a draft's half-question -- one Answer, or none yet -- and a published Node's two to four are
+ * read by one rule (34.6). Where a public `Node` is passed nothing differs.
  */
 export function linksOf(node: Node | DraftNode): NodeLinks {
-  const links: NodeLinks = {}
-  if ('answers' in node && node.answers) {
-    if (node.answers.yes !== undefined) links.yes = node.answers.yes
-    if (node.answers.no !== undefined) links.no = node.answers.no
-  }
+  const links: NodeLinks = { answers: 'answers' in node && node.answers ? node.answers : [] }
   if ('label' in node && node.label !== undefined) links.terminal = node.label
   return links
 }

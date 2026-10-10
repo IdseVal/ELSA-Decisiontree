@@ -3,8 +3,11 @@
 /**
  * The structure editing (docs/specs/application.md 30; ADR-133-structure-editing), as the
  * client leaves of the structure slots: `AnswerAdd` is the `+ Yes` / `+ No` button of the
- * Answer row (30.1, 30.2); `EndForm` the page of the `treeEndsHere` Sheet, **[#179]** one field
- * for the ending's words, `confirm` and `cancel` (30.3, 36.3). **[#177]** `SideAdd` is the side-bubble `+` of the fan, which creates
+ * Answer row (30.1, 30.2); `WordsForm` the page of the `treeEndsHere` Sheet, **[#179]** one field
+ * for the ending's words, `confirm` and `cancel` (30.3, 36.3), and **[#222]** of the `+` Sheet,
+ * one field for the words on a new next step's button (41.7 items 1 and 2); **[#222]**
+ * `AnswerMoves` the `moveEarlier` / `moveLater` controls on a next step's outline (41.7 item 4).
+ * **[#177]** `SideAdd` is the side-bubble `+` of the fan, which creates
  * at one click (30.4), and `SideDelete` the `deleteSideBubble` button at the bottom of an
  * opened side bubble (30.7; ADR-177-side-bubble-editing). **[#178]** The link menu of an Answer
  * or an Option button and its picker are gone: the editor no longer re-points a button at an
@@ -19,7 +22,7 @@
  *
  * Imports of `src/`: types and **[#179]** `tree/measure.ts`, for the ending's counter (34.4).
  */
-import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent, type RefObject } from 'react'
 import { countedLength } from '../tree/measure.ts'
 import { useEditor } from './Editor.tsx'
 import { heldToLimit } from './Field.tsx'
@@ -27,8 +30,8 @@ import { plainLine } from './fields.ts'
 import type { FieldLimit } from './mode.ts'
 import type { Answer, Change, Refusal, WriteResponse } from './writes.ts'
 
-/** **[#179]** The ending's words are at most 19 characters (tree-format.md 5.7). */
-const ENDING_LIMIT: FieldLimit = { characters: 19 }
+/** **[#179]** The ending's words, and **[#222]** a next step's, are at most 19 characters (tree-format.md 5.7). */
+const WORDS_LIMIT: FieldLimit = { characters: 19 }
 
 /**
  * The address of a Node under the page `here` (4.1): `/<here's path>/<id>`, the query
@@ -86,13 +89,13 @@ export function useResetOnClose(root: RefObject<HTMLElement | null>, reset: () =
  * (30.2, 30.4): `create` sends it once, and `busy` holds the button down until the page leaves
  * or the write is refused.
  */
-function useCreation(nodeId: string, here: string, link: 'yes' | 'no' | 'option'): { busy: boolean; create: () => void } {
+function useCreation(nodeId: string, here: string, from: { link: 'answer'; label: Record<string, string> } | { link: 'option' }): { busy: boolean; create: () => void } {
   const api = useEditor()
   const [busy, setBusy] = useState(false)
   const create = (): void => {
     if (busy) return
     setBusy(true)
-    api.operate(nodeId, { create: { from: { node: nodeId, link } } }, undefined, (answer) => {
+    api.operate(nodeId, { create: { from: { node: nodeId, ...from } } }, undefined, (answer) => {
       if (accepted(answer) && answer.body.node) goTo(under(here, answer.body.node.id))
       else setBusy(false)
     })
@@ -101,14 +104,15 @@ function useCreation(nodeId: string, here: string, link: 'yes' | 'no' | 'option'
 }
 
 /**
- * `+ Yes` or `+ No` (30.1): creates the Answer's target and navigates to it (30.2). `lone`
- * when the other Answer exists, so the button takes that Answer's 620 pixels.
+ * `+ Yes` or `+ No` (30.1): creates the Answer's target and navigates to it (30.2). **[#221]**
+ * The next step is appended last with `label`, the chrome word in every language of the Tree
+ * (41.7 item 1).
  */
-export function AnswerAdd({ nodeId, link, here, word, lone = false }: { nodeId: string; link: 'yes' | 'no'; here: string; word: string; lone?: boolean }) {
+export function AnswerAdd({ nodeId, which, here, word, label }: { nodeId: string; which: 'yes' | 'no'; here: string; word: string; label: Record<string, string> }) {
   const api = useEditor()
-  const { busy, create } = useCreation(nodeId, here, link)
+  const { busy, create } = useCreation(nodeId, here, { link: 'answer', label })
   return (
-    <button type="button" className={`structure structure--${link}${lone ? ' structure--lone' : ''}`} disabled={api.readOnly || busy} onClick={create}>
+    <button type="button" className={`structure structure--${which}`} disabled={api.readOnly || busy} onClick={create}>
       + {word}
     </button>
   )
@@ -123,7 +127,7 @@ export function AnswerAdd({ nodeId, link, here, word, lone = false }: { nodeId: 
  */
 export function SideAdd({ nodeId, here, word, wordLang }: { nodeId: string; here: string; word: string; wordLang?: string }) {
   const api = useEditor()
-  const { busy, create } = useCreation(nodeId, here, 'option')
+  const { busy, create } = useCreation(nodeId, here, { link: 'option' })
   return (
     <button type="button" className="side-add" disabled={api.readOnly || busy} onClick={create}>
       <span className="option-image option-image--empty side-add-plus" aria-hidden="true">
@@ -136,24 +140,32 @@ export function SideAdd({ nodeId, here, word, wordLang }: { nodeId: string; here
   )
 }
 
-/** **[#179]** The chrome words the `treeEndsHere` Sheet says (36.3); strings, because a client component takes no module. */
-export interface EndWords {
-  endingText: string
+/**
+ * **[#179]** The chrome words a `WordsForm` says (36.3): **[#222]** `name` names its field, the
+ * ending's `endingText` or a next step's `nextStepWords`; strings, because a client component
+ * takes no module.
+ */
+export interface FormWords {
+  name: string
   characters: string
   confirm: string
   cancel: string
 }
 
 /**
- * The page of the `treeEndsHere` Sheet (30.3): **[#179]** one plain field for the ending's
- * words in the page's language `lang`, focused when the Sheet opens, its typing stopped at 19
- * characters with the counter on it as every field's (28.3, 28.4), and `confirm`, enabled once
- * it holds a character that is not white space -- Enter is the same -- which makes the Node a
- * Terminal with those words (36.3). `cancel` closes the Sheet, and a Sheet closed opens empty
- * again. A refusal -- a Node with Options cannot end -- is shown on the Sheet; on success the
- * page repaints and this Sheet is gone with the row.
+ * The page of the `treeEndsHere` Sheet (30.3) and **[#222]** of the `+` Sheet (41.7 items 1 and
+ * 2): **[#179]** one plain field for the words in the page's language `lang`, focused when the
+ * Sheet opens, its typing stopped at 19 characters with the counter on it as every field's (28.3,
+ * 28.4), and `confirm`, enabled once it holds a character that is not white space -- Enter is the
+ * same. `cancel` closes the Sheet, and a Sheet closed opens empty again.
+ *
+ * `link` says what `confirm` makes. `'end'`: the Node a Terminal with those words (36.3); a
+ * refusal -- a Node with Options cannot end -- is shown on the Sheet, and on success the page
+ * repaints and this Sheet is gone with the row. **[#222]** `'answer'`: a next step with those
+ * words, every other language `""`, appended last, and the editor goes to the step it made under
+ * the page `here` (41.7 item 3); a refusal -- a fifth -- is shown on the Sheet.
  */
-export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang: string; heading: string; words: EndWords }) {
+export function WordsForm({ nodeId, lang, link, here = '', heading, words }: { nodeId: string; lang: string; link: 'end' | 'answer'; here?: string; heading: string; words: FormWords }) {
   const api = useEditor()
   const root = useRef<HTMLFormElement>(null)
   const input = useRef<HTMLInputElement>(null)
@@ -166,7 +178,7 @@ export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang
     setError(null)
   })
 
-  // The field takes the focus when the Sheet opens: the words are the one thing an end needs.
+  // The field takes the focus when the Sheet opens: the words are the one thing it asks for.
   useEffect(() => {
     const details = input.current?.closest('details')
     if (!details) return
@@ -183,20 +195,25 @@ export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang
     setBusy(true)
     setError(null)
     const form = event.currentTarget
-    api.operate(nodeId, { create: { from: { node: nodeId, link: 'end', label: { [lang]: text.trim() } } } }, undefined, (answer) => {
+    api.operate(nodeId, { create: { from: { node: nodeId, link, label: { [lang]: text.trim() } } } }, undefined, (answer) => {
+      // A new next step is edited on its own page: `confirm` stays down until the page goes (30.2).
+      if (link === 'answer' && accepted(answer) && answer.body.node) {
+        goTo(under(here, answer.body.node.id))
+        return
+      }
       setBusy(false)
       if (accepted(answer)) closeSheetAround(form)
       else setError(refusalText(answer))
     })
   }
 
-  const id = `${nodeId}-ending-text`
+  const id = link === 'end' ? `${nodeId}-ending-text` : `${nodeId}-next-step-words`
   return (
-    <form ref={root} className="structure-form structure-form--end" noValidate onSubmit={onSubmit}>
+    <form ref={root} className={`structure-form structure-form--${link === 'end' ? 'end' : 'next'}`} noValidate onSubmit={onSubmit}>
       <h2>{heading}</h2>
       {/* A row, not a label: the counter is no part of the field's name. */}
       <div className="editor-row">
-        <label htmlFor={id}>{words.endingText}</label>
+        <label htmlFor={id}>{words.name}</label>
         <span className="structure-ending-field">
           <input
             ref={input}
@@ -204,13 +221,13 @@ export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang
             className="editor-url"
             lang={lang}
             value={text}
-            placeholder={words.endingText}
+            placeholder={words.name}
             disabled={api.readOnly}
-            onChange={(event) => setText(heldToLimit(event.target, text, plainLine(event.target.value), ENDING_LIMIT))}
+            onChange={(event) => setText(heldToLimit(event.target, text, plainLine(event.target.value), WORDS_LIMIT))}
           />
           <span className="editor-pill structure-ending-count">
             <span aria-label={words.characters}>
-              {countedLength(text)} / {ENDING_LIMIT.characters}
+              {countedLength(text)} / {WORDS_LIMIT.characters}
             </span>
           </span>
         </span>
@@ -229,6 +246,39 @@ export function EndForm({ nodeId, lang, heading, words }: { nodeId: string; lang
         </button>
       </div>
     </form>
+  )
+}
+
+/**
+ * **[#222]** `moveEarlier` and `moveLater` on the outline of the next step at `index` of `count`
+ * (41.7 item 4): 24-pixel round controls, the first absent on the first button and the second on
+ * the last, each sending `move-answer { index, to }` at once; the page repaints the row in its new
+ * order. They stand inside the button's link, whose click Chromium follows from a button inside it
+ * too: each click is kept from it, as a field's is (`Field`).
+ */
+export function AnswerMoves({ nodeId, index, count, words }: { nodeId: string; index: number; count: number; words: { moveEarlier: string; moveLater: string } }) {
+  const api = useEditor()
+  const move = (event: MouseEvent, to: number): void => {
+    event.preventDefault()
+    api.operate(nodeId, { op: 'move-answer', index, to })
+  }
+  return (
+    <>
+      {index > 0 && (
+        <button type="button" className="answer-move answer-move--earlier" aria-label={words.moveEarlier} title={words.moveEarlier} disabled={api.readOnly} onClick={(event) => move(event, index - 1)}>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path d="M15 5 8 12l7 7" />
+          </svg>
+        </button>
+      )}
+      {index < count - 1 && (
+        <button type="button" className="answer-move answer-move--later" aria-label={words.moveLater} title={words.moveLater} disabled={api.readOnly} onClick={(event) => move(event, index + 1)}>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path d="m9 5 7 7-7 7" />
+          </svg>
+        </button>
+      )}
+    </>
   )
 }
 

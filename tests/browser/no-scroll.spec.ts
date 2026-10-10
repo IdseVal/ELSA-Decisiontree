@@ -28,13 +28,19 @@
  * (section 11): halfway out of the page, and halfway back into it on the history step. A
  * slide follows an Answer or the up arrow; nothing slides to an Option (11.1).
  *
+ * **[#204]** And the chrome bar alone, with "Editor" at its right end (`bar.ts`): the overview's, and
+ * a Node page's beside each seeded Tree's logo, an 80-character title and three Authors, at every
+ * viewport of 10.6 and at five sizes either side of 480, 600 and 768 wide; and beside a logo at its
+ * cap, either side of 768.
+ *
  * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
  * pull request can paste the numbers rather than describe them (10.6, last paragraph).
  *
  * The fixtures and the first Tree are served by servers this file starts (`serve.ts`):
  * Playwright's own server serves the example Tree.
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Locator, type Page } from '@playwright/test'
@@ -43,6 +49,7 @@ import { openTree } from '../../src/tree/loader.ts'
 import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
 import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
 import { arrived, escapeUrlOpened } from './arrived.ts'
+import { BAR_SIZES, barRow, expectBarFits, measureBar } from './bar.ts'
 import { BASE_PORT, dataDir, serve, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -71,6 +78,10 @@ const LONG_TITLE_PORT = FULL_NODE_PORT + 14
 const LIBRARY_PORT = FULL_NODE_PORT + 15
 /** **[#197]** The example Tree with three Authors whose names are 80 characters each. */
 const AUTHORS_PORT = FULL_NODE_PORT + 10
+/** **[#204]** A copy of the first Tree whose logo is drawn at its cap. */
+const WIDE_FIRST_PORT = FULL_NODE_PORT + 11
+/** **[#221]** The full Node with three next steps (application.md 41.9). */
+const THREE_STEPS_PORT = FULL_NODE_PORT + 12
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -165,6 +176,8 @@ interface Row {
 }
 
 const rows: Row[] = []
+/** **[#204]** The rows of the bar alone (`bar.ts`), a table of their own after the page's. */
+const barRows: string[] = []
 
 const servers = new Map<number, { treeId: string; origin: Promise<string | null> }>()
 
@@ -185,7 +198,16 @@ async function served(treesDir: string, treeId: string, port: number): Promise<s
 test.afterAll(async () => {
   await stopServers()
   await mkdir(RESULTS, { recursive: true })
-  await writeFile(path.join(RESULTS, 'no-scroll.md'), table(rows))
+  await writeFile(
+    path.join(RESULTS, 'no-scroll.md'),
+    [
+      table(rows),
+      "| page | lang | viewport | what | room beside the controls | the bar's right edge/inner w | overflowing elements, lines too many |",
+      '|---|---|---|---|---|---|---|',
+      ...barRows,
+      '',
+    ].join('\n'),
+  )
 })
 
 /** The page as laid out, once its fonts have settled: the numbers of 10.6. */
@@ -312,8 +334,11 @@ async function measureEverywhere(
       await expect(page.locator(`[id="${panel}"]`)).toBeHidden()
     }
     // Only at and below the floor does the notice stand in for the Bubble and its terms
-    // (10.5 step 7); anywhere else a term that is not shown is a panel that went unmeasured.
-    if (width > 320 && height > 480) expect(opened, `${what} (${lang}) at ${viewport}: every marked term opened`).toBe(marked)
+    // (10.5 step 7) -- **[#221]** and below 41.4's floor for a step of three or four; anywhere
+    // else a term that is not shown is a panel that went unmeasured.
+    const notice = await page.locator('.minimum-size').isVisible()
+    expect(notice, `${what} (${lang}) at ${viewport}: the notice only at and below a floor`).toBe(notice && (width <= 320 || height <= 480 || (width < STEPS_WIDTH && height < STEPS_HEIGHT)))
+    if (!notice) expect(opened, `${what} (${lang}) at ${viewport}: every marked term opened`).toBe(marked)
 
     // Each Sheet the layout offers at this size, opened in turn: 10.5 gets no exemption.
     const sheets = page.locator('details.sheet')
@@ -366,7 +391,7 @@ async function measureEverywhere(
 }
 
 /** A control that slides on every kind of Node: an Answer, or the up arrow where there are none (a Terminal, 10.3). */
-const DOWN = { selector: '.answer--yes, .tree-frame:not(:has(.answer--yes)) .up-arrow', label: '' }
+const DOWN = { selector: '.answer--next:nth-child(1), .tree-frame:not(:has(.answer--next:nth-child(1))) .up-arrow', label: '' }
 
 /**
  * Measures `url` at every viewport above the floor in the middle of a slide, both halves of
@@ -622,6 +647,93 @@ test.describe('three Authors of 80 characters', () => {
       await expect(line).toHaveAttribute('title', new RegExp(NAMES[2]!))
       expect(await line.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true)
     })
+
+    test(`the bar with "Editor" beside three Authors of 80 characters, ${lang}, fits at every viewport of 10.6 and at five more`, async ({ page }) => {
+      await barEverywhere(page, `${origin}${inLang(EXAMPLE_PAGES[1].url, lang)}`, 'root Node, three Authors of 80 characters', lang)
+    })
+  }
+})
+
+/**
+ * **[#204]** The chrome bar alone, with "Editor" at its right end, at every viewport of 10.6 and at
+ * the five sizes of `BAR_SIZES` (24.3): inside the window, nothing in it overflowing, no text in it
+ * on more lines than it is given. 10.6's whole-page rows of the same pages are measured above.
+ */
+async function barEverywhere(page: Page, url: string, what: string, lang: string): Promise<void> {
+  for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES]) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
+    await expect(page.locator('header.page-chrome').getByRole('link', { name: 'Editor', exact: true })).toBeVisible()
+    const m = await measureBar(page)
+    barRows.push(barRow(what, lang, viewport, m))
+    expectBarFits(m, `${what} (${lang}) at ${viewport}`)
+  }
+}
+
+/** **[#204]** The bars TASK 3 of #204 names: the overview's, and a Node page's beside each seeded logo and a title as text. */
+const BARS = [
+  { what: 'the overview', url: async () => '/' },
+  { what: 'the example Tree, its logo', url: async () => EXAMPLE_PAGES[1].url },
+  { what: "the first Tree, its logo", url: async () => `${await firstTreeOrigin()}/ai-act-applicability-agrifood/start` },
+  { what: 'a Tree with no logo and an 80-character title', url: async () => `${await served(fixtures, 'long-title', LONG_TITLE_PORT)}${LONG_TITLE_URL}` },
+] as const
+
+for (const { what, url } of BARS) {
+  for (const lang of LANGUAGES) {
+    test(`${what}: the bar with "Editor", ${lang}, fits at every viewport of 10.6 and at five more`, async ({ page }) => {
+      test.slow()
+      const address = await url()
+      await barEverywhere(page, address === '/' ? (lang === 'en' ? '/' : '/?lang=nl') : inLang(address, lang), what, lang)
+    })
+  }
+}
+
+/**
+ * **[#204]** A Node page's bar beside a logo at its cap, either side of the width where the current
+ * language comes back: a copy of the first Tree, whose Open Sans pills leave the least room, with a
+ * logo of 300 x 30 -- ten times as wide as it is tall, so the bar draws it at its cap of 18rem, 288
+ * pixels, at both sizes.
+ */
+test.describe('a logo at its cap', () => {
+  let folder: string
+  let origin: string
+
+  test.beforeAll(async () => {
+    folder = await mkdtemp(path.join(tmpdir(), 'elsa-wide-first-'))
+    const tree = path.join(folder, 'wide-first')
+    await cp(path.join(trees, 'ai-act-applicability-agrifood'), tree, { recursive: true })
+    await writeFile(
+      path.join(tree, 'theme', 'wide.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 30" width="300" height="30"><rect width="300" height="30" fill="#5aa9c9"/></svg>',
+    )
+    const file = JSON.parse(await readFile(path.join(tree, 'tree.json'), 'utf8')) as { theme: { logo: { light: string } } }
+    file.theme.logo.light = 'wide.svg'
+    await writeFile(path.join(tree, 'tree.json'), JSON.stringify(file))
+    origin = await served(folder, 'wide-first', WIDE_FIRST_PORT)
+  })
+
+  test.afterAll(async () => {
+    await rm(folder, { recursive: true, force: true })
+  })
+
+  for (const lang of LANGUAGES) {
+    test(`the first Tree with a logo at its cap: the bar with "Editor", ${lang}, fits at 767 x 800 and 768 x 1024`, async ({ page }) => {
+      for (const [width, height] of [
+        [767, 800],
+        [768, 1024],
+      ] as const) {
+        const viewport = `${width}x${height}`
+        await page.setViewportSize({ width, height })
+        expect((await page.goto(`${origin}${inLang('/wide-first/start', lang)}`))?.status()).toBe(200)
+        await expect(page.locator('header.page-chrome').getByRole('link', { name: 'Editor', exact: true })).toBeVisible()
+        await page.evaluate(() => document.fonts.ready)
+        expect((await page.locator('header.page-chrome img.logo').boundingBox())!.width, `${viewport}: the logo at its cap`).toBeCloseTo(288, 0)
+        const m = await measureBar(page)
+        barRows.push(barRow('the first Tree, a logo at its cap', lang, viewport, m))
+        expectBarFits(m, `the first Tree with a logo at its cap (${lang}) at ${viewport}`)
+      }
+    })
   }
 })
 
@@ -684,6 +796,109 @@ for (const lang of LANGUAGES) {
     test.slow()
     const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+}
+
+/**
+ * **[#221]** The windows 41.9 adds for a step of three or four next steps: either side of 41.3's
+ * 1000 pixels, and one pixel either side of 41.4's width (600 as #221 measured it, in a window
+ * 481 tall) and of its height (560, below that width).
+ */
+const NEXT_STEPS_VIEWPORTS = [
+  [999, 640],
+  [1000, 640],
+  [599, 481],
+  [600, 481],
+  [599, 559],
+  [599, 560],
+] as const
+
+/**
+ * **[#221]** `url` at each of `NEXT_STEPS_VIEWPORTS`, the page as it loads, with no Sheet open:
+ * 41.4's question is whether the full Node fits a window there. Its Sheets are not opened at
+ * these windows, none of them a viewport of 10.6: in a window 481 tall below 500 wide the
+ * Options Sheet's list holds 388 pixels in 375 whatever the count of next steps -- the full
+ * Node with two holds the same (measured on #221's pull request), a defect reported there.
+ */
+async function measurePlain(page: Page, url: string, what: string, lang: string): Promise<void> {
+  for (const [width, height] of NEXT_STEPS_VIEWPORTS) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
+    const plain = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: '', measured: plain })
+    // 599 and 600 are in the band where dev's disclaimer takes a second line in its row (below
+    // 641 pixels wide in Dutch on CI), with or without the notice: that one overflow is let through.
+    if (width < 660) assertFitsBesideTheDisclaimer(plain, `${what} (${lang}) at ${viewport}`)
+    else assertFits(plain, `${what} (${lang}) at ${viewport}`)
+  }
+}
+
+/** **[#221]** 41.4's width and height below which a step of three or four shows the notice. */
+const STEPS_WIDTH = 600
+const STEPS_HEIGHT = 560
+
+for (const lang of LANGUAGES) {
+  test(`**[#221]** the full Node with three next steps of 19 characters, ${lang}, never scrolls at any viewport of 10.6 or either side of 41.3's and 41.4's triggers`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'three-next-steps', THREE_STEPS_PORT)
+    const url = `${origin}${inLang('/three-next-steps/full/full', lang)}`
+    await measureEverywhere(page, url, 'full Node, three next steps', lang)
+    await measurePlain(page, url, 'full Node, three next steps', lang)
+  })
+
+  test(`**[#221]** the full Node with four next steps of 19 characters, ${lang}, never scrolls either side of 41.3's and 41.4's triggers`, async ({ page }) => {
+    const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
+    await measurePlain(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+
+  test(`**[#221]** the Answer row of 41.3 and the notice of 41.4, ${lang}: one row from 1000 wide, two a row below, the notice below ${STEPS_WIDTH} x ${STEPS_HEIGHT} for three and four only`, async ({ page }) => {
+    const pages = [
+      { count: 4, url: `${await served(fixtures, 'full-node', FULL_NODE_PORT)}${inLang('/full-node/full', lang)}` },
+      { count: 3, url: `${await served(fixtures, 'three-next-steps', THREE_STEPS_PORT)}${inLang('/three-next-steps/full', lang)}` },
+      { count: 2, url: inLang('/ai-act-example/start', lang) },
+    ]
+    const height = lang === 'nl' ? 'Maak het hoger dan' : 'Make it taller than'
+    for (const { count, url } of pages) {
+      for (const [width, tall] of [[1280, 640], [1000, 640], [999, 640], [390, 844], [360, 640], [STEPS_WIDTH, 481], [STEPS_WIDTH - 1, STEPS_HEIGHT], [STEPS_WIDTH - 1, STEPS_HEIGHT - 1], [STEPS_WIDTH - 1, 481], [389, 559]] as const) {
+        const where = `${count} next steps at ${width}x${tall}`
+        await page.setViewportSize({ width, height: tall })
+        expect((await page.goto(url))?.status(), where).toBe(200)
+        const notice = width < STEPS_WIDTH && tall < STEPS_HEIGHT && count > 2
+        await expect(page.locator('.minimum-size'), where).toBeVisible({ visible: notice })
+        await expect(page.locator('.tree-layer'), where).toBeVisible({ visible: !notice })
+        if (notice) {
+          await expect(page.locator('.minimum-height'), where).toHaveText(`${height} ${STEPS_HEIGHT} pixels.`)
+          continue
+        }
+        // The row's buttons, each its own box: their tops say how many rows, their widths that they are alike.
+        const boxes = await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer').evaluateAll((buttons) =>
+          buttons.map((button) => {
+            const box = button.getBoundingClientRect()
+            return { top: Math.round(box.top), left: box.left, width: box.width, height: box.height }
+          }),
+        )
+        expect(boxes, where).toHaveLength(count)
+        const rows = new Set(boxes.map((box) => box.top)).size
+        expect(rows, `${where}: rows`).toBe(count > 2 && width < 1000 ? 2 : 1)
+        const widths = boxes.map((box) => box.width)
+        expect(Math.max(...widths) - Math.min(...widths), `${where}: every button as wide as the others`).toBeLessThan(1)
+        for (const box of boxes) expect(box.height, `${where}: at least 60 tall`).toBeGreaterThanOrEqual(60)
+        // In the file's order, left to right and row by row: the DOM order is the reading order.
+        const order = boxes.map((box, index) => ({ index, key: box.top * 10_000 + box.left }))
+        expect([...order].sort((a, b) => a.key - b.key).map((entry) => entry.index), `${where}: order`).toEqual(order.map((entry) => entry.index))
+        if (count === 3 && rows === 2) {
+          // The lone third, centred under the two above it.
+          const middle = (box: (typeof boxes)[number]) => box.left + box.width / 2
+          expect(Math.abs(middle(boxes[2]!) - (middle(boxes[0]!) + middle(boxes[1]!)) / 2), `${where}: the third centred`).toBeLessThan(1)
+        }
+        if (width === 1280 && tall === 640) {
+          // At the guarantee the row stays 68 and four buttons are 300 each (41.3).
+          expect(await page.locator('.tree-frame:not([aria-hidden]) .answers').evaluate((row) => row.getBoundingClientRect().height), where).toBe(68)
+          if (count === 4) expect(Math.round(widths[0]!), where).toBe(300)
+        }
+      }
+    }
   })
 }
 

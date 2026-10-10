@@ -6,6 +6,32 @@
 > they consume is frozen separately in `docs/specs/tree-format.md` (`elsa-tree/3`, issue
 > #78; `elsa-tree/2` was issue #37).
 >
+> **Amended 2026-10-09 by issue #220** (`docs/adrs/ADR-220-*.md`), for the owner's words on #219
+> (core document 3.4 `[#219]`): "Some trees might consist of yes or no, some trees might end there,
+> but some trees might also have three or four options. Let's change the design to let the creator
+> of a decision-tree choose themselves to how many next steps there are in the tree." A question
+> Node has two, three or four next steps, each with its creator's words of at most 19 characters,
+> shown alone on its button; the Tree format becomes `elsa-tree/6` (`tree-format.md` 5.3, 12.8).
+> **Section 41 is new** and holds the contract; the sections below carry a dated **[#220]** mark
+> where they described two Answers, a yes and a no, or seventeen Nodes. The room is measured in
+> `docs/research/issue-220-answer-row-room.md`. Built by #221 (the format, its migration, the page,
+> every reader) and #222 (the editor), after it.
+>
+> | Section | #220 |
+> |---|---|
+> | 3.2 | `yes` and `no` are read by the editor alone; #222 adds `addNextStep` and `nextStepWords`. |
+> | 0, 5.2, 7, 8, 10.9, 11.5, 34.5, 34.7, 40.2 | A page reads at most 31 Nodes where seventeen stood. |
+> | 5.1 | `answers` is an array of `{ label, target }`; the format `elsa-tree/6`. |
+> | 9 | Seven `ADR-220-*` rows. |
+> | 10.1, 10.3, 10.5, 10.7 | The Answer row holds two to four alike buttons, each its label alone, in one row from 1000 pixels wide and two a row below; the rule of 480 pixels goes. |
+> | 10.4, 10.5 | A step of three or four shows the notice below 390 x 560 at least (41.4). |
+> | 10.6 | #221's fixtures of a step of three and of four next steps, and 41.9's viewports. |
+> | 11.1 to 11.3 | A placement carries `x` and `y`; the next steps stand a layer width apart; a page reads at most 31 Nodes. |
+> | 15.1, 15.2, 16.4, 16.5 | The schema route serves `elsa-tree-6.json` too, and the dataset's `Link` header names it; one `suggestedAnswer` per next step; `llms.txt` changes its schema path alone. |
+> | 17.4, 18.3, 19.1, 19.2 | The store converts `/5` (12.8); a draft step may hold one next step, as a to-do. |
+> | 19.7, 22.1, 22.2, 22.4, 28.6, 30.1, 30.2, 30.7, 30.8, 33.3, 34.6, 40.7 | The editor's row, writes and field paths, `linksOf`, its to-do and its preview (41.7). |
+> | 41 | New. |
+>
 > **Amended 2026-10-04 by issue #205** (`docs/adrs/ADR-205-*.md`), for the owner's words on #202
 > (core document 3.4 `[#202]`): "In an unpublished tree, I want a button that routes to a window
 > with a preview of the tree, how the end users will see it. Place the button top left (not in the
@@ -237,7 +263,7 @@ A Next.js application, rendered on the server, runs as one Node.js process on a 
 Linux server and serves exactly one Tree, named by the environment variable
 `ELSA_TREE`. The whole application state is the URL: the path is the Trail ending in
 the current Node, the query carries the language. A request takes the current Node and
-a bounded neighbourhood around it -- at most seventeen Nodes, never the Tree -- from
+a bounded neighbourhood around it -- at most seventeen Nodes (**[#220]** 31 from #221, 41.5), never the Tree -- from
 the loader's in-memory index and returns complete HTML: the current Node as a round
 **Bubble** in the centre of a screen-sized tree -- its main image above its title, its
 description with its explainers, its Sources under a heading -- one **up arrow** on its
@@ -319,6 +345,8 @@ add keys; every key exists in both languages or the build fails.
 | Key | Used for |
 |---|---|
 | `yes`, `no` | The two Answer Branches below the Bubble (10.3). |
+| **[#220]** `yes`, `no` | (2026-10-09) From #221 the public page reads neither: a next step's words are Tree content (41.2). They stay for the editor's `+ Yes` and `+ No` (41.7). |
+| **[#220]** `addNextStep`, `nextStepWords` | (2026-10-09) #222: the editor's `+` for another next step and its Sheet's title, "Add a next step" / "Volgende stap toevoegen"; the Sheet's field and an empty label's placeholder, "Words on the button" / "Woorden op de knop" (41.7). |
 | `options` | The accessible name of the group of Option Branches beside the Bubble. |
 | `sources`, `sourceCaseLaw`, `sourceLiterature` | The heading over the Sources -- **[#75]** "Legal sources" / "Juridische bronnen" -- and the two kind labels still shown beside an entry (10.3). `sourceLegal` is gone: under that heading it repeated it. **[#169] Amended 2026-10-02 (#173, by the owner):** the heading says **"Sources" / "Bronnen"**; the two kind labels are unchanged (`ADR-173-sources-heading.md`). |
 | `images`, `enlarge`, `close` | The Carousel strip's accessible name, the name of every picture's link, and the close cross of every Sheet, the Overlay included (sections 10.9, 12). |
@@ -367,6 +395,7 @@ sentences the sections quote. A key that takes a value is a function, as `up` is
 | **[#195]** (2026-10-03) #196 | `email` ("E-mail address" / "E-mailadres": the login page's field, the field of the new-account and `setEmail` Sheets, the accounts page's column), `emailInvalid` ("Enter an e-mail address, such as name@example.org." / "Vul een e-mailadres in, zoals naam@example.org."), `emailTaken` ("Another account has this e-mail address." / "Een ander account heeft dit e-mailadres."), `nameTaken` ("Another account has this name." / "Een ander account heeft deze naam."), `setEmail` ("Set e-mail address" / "E-mailadres instellen", in the words of `setPassword`), `noEmail` ("No e-mail address yet" / "Nog geen e-mailadres"), `signedInWith(email)` ("You sign in with <address>." / "U logt in met <adres>."), `emailHelp` ("Ask your administrator to change it." / "Vraag uw beheerder om het te wijzigen.": under the address on every account's page but the administrator's), 38.5 and 38.6; **gone**: `login`, `loginInvalid`, `loginTaken`; **reworded**: `loginFailed`, "Wrong e-mail address or password." / "Verkeerd e-mailadres of wachtwoord.", and `sessionNotKept`, which opens "Your e-mail address and password are right" / "Uw e-mailadres en wachtwoord kloppen" (25.1) |
 | **[#195]** (2026-10-03) #197 | `byAuthors(names)` ("By A, B and C" / "Door A, B en C": the mention, 39.4), `nameShownPublicly` (the account page's notice, 39.8) |
 | **[#205]** (2026-10-04) #206 | `preview` ("Preview" / "Voorbeeld": the preview button in the editor of a hidden Tree, its words from 1000 pixels wide, its name and its `title`, 40.5), `backToEditor` ("Back to the editor" / "Terug naar de editor": the way back in the preview, likewise) |
+| **[#204]** (2026-10-09) #204 | `editor` ("Editor" in English and in Dutch: the link at the right end of the bar of the public overview and of every public Node page, to `/admin`, 24.3), `website` ("Website" in both: the link at the right end of the bar at `/admin`, to the public overview, 24.3) |
 
 The editor's client components take these as **strings** (`EditorWords`, 34.1), as the Sheet
 takes `SheetWords`; `chrome(lang)` is read on the server and never imported by a client
@@ -752,6 +781,9 @@ rules, as before: `file` is `manifest` or the Node's id, `keyPath` a key path su
 it passed, so one defect is answered once, by one of the two; neither translates the
 other's message (`tree-format.md` 3.9, `ADR-118-json-schema.md`).
 
+**[#220]** (2026-10-09) From #221 `Node['answers']` is `{ label: LocalisedText; target: string }[]`, two to four
+entries, and `Manifest['format']` is `elsa-tree/6` (41.6, `tree-format.md` 5.3).
+
 ### 5.2 When what is read and sent
 
 | Moment | Server reads | Browser receives |
@@ -797,6 +829,10 @@ the lever.
 guaranteed viewport shows (11.3). The full Node at a 49-entry Trail is 269 kB of HTML
 (14 kB gzipped), and its payload 176 kB (24 kB gzipped); most of what is left is the
 centre frame's own Trail. `ADR-38-neighbourhood.md` (Consequences) has the table.
+
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
 
 ### 5.3 The image route
 
@@ -1172,6 +1208,10 @@ recorded in the six `ADR-118-*` decisions that add the files they test, each of
 which carries an `Amends:` line to `ADR-5-testing-approach.md`, which carries one
 back.
 
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
+
 ## 8. What the contracts guarantee to the core document
 
 | Core document | Where it is met |
@@ -1181,7 +1221,7 @@ back.
 | 8 **[#118]** the Tree data is public under CC BY 4.0, served with no cookie and no account | 15.2: the licence in a `Link` header on the bytes themselves, and the no-cookie sweep -- `tests/browser/deployment.spec.ts` (section 7) -- extended to every route of 15 and 16 |
 | 10.21 **[#118]** superseded: hand-editability is no longer the criterion | `tree-format.md` 3.7, 3.9; `docs/adrs/ADR-118-json-serialisation.md` |
 | 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`; **[#171]** `elsa-tree/5`); 5.1, 5.2 |
-| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
+| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16; **[#220]** 29 and 31 from #221, 41.5), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
 | 3.1 / 9 images only for the Node on screen | 11.4, 12.4; **[#75]** 11.5 names the one exception per Option (core document 10.29) |
 | 3.1 text has a maximum length | `tree-format.md` 5.7, confirmed against this layout in 10.7 (**[#75]** again, with two pixels to spare: core document 10.28) |
 | 3.2 the screen is a tree: a Bubble, the way back above, Answers below, side children beside | 10.1 to 10.3; **[#75]** the up arrow (10.2), the fan-out (10.3) |
@@ -1313,6 +1353,11 @@ back.
 | **[#205]** (2026-10-04) "Preview" and "Back to the editor" under the bar at the top left, the floating controls' mirror, in words from 1000 pixels wide, first after the bar in the tab order | `docs/adrs/ADR-205-preview-buttons.md` |
 | **[#205]** (2026-10-04) On a hidden Tree the ending's button keeps out of the preview button's column below 1000 pixels wide and is a round icon below 640 | `docs/adrs/ADR-205-ending-button-on-a-hidden-tree.md` |
 | **[#205]** (2026-10-04) The same tab once the autosave holds nothing unaccepted; the way back to the step and language on screen; the button while the Tree is hidden | `docs/adrs/ADR-205-way-there-and-back.md` |
+
+**[#220]** (2026-10-09) Seven rows more, one per decision of #220: `ADR-220-number-of-next-steps.md`,
+`ADR-220-words-on-a-next-step.md`, `ADR-220-elsa-tree-6.md`, `ADR-220-answer-row.md`,
+`ADR-220-slide-and-neighbourhood.md`, `ADR-220-editing-next-steps.md`, `ADR-220-other-readers.md`
+(section 41).
 
 ## 10. The tree view
 
@@ -1450,6 +1495,10 @@ connector, the button's **236** and the 4 its focus ring needs (2 pixels wide, 2
 outline), so its inner edge is 400 from the centre line and the ring ends at 640, the window's
 edge at 1280 (10.3, amended the same day). The rows and the columns do not move.
 
+**[#220]** (2026-10-09) The Answers row holds two to four buttons, each its next step's label alone, in one
+row from 1000 pixels wide and two a row below; at the guarantee it stays 68, four buttons of 300
+(41.3).
+
 ### 10.2 The up arrow: the way back
 
 The Trail is the ordered list of Nodes visited to get here, and it is the path in the
@@ -1532,6 +1581,11 @@ outline (section 12), the chrome bar and disclaimer unchanged.
 | **explanation Node, in an Overlay** (the ordinary case: an Option opened it, or its URL did, 10.9) | The parent's page is underneath, unchanged | -- | The Overlay holds the explanation Node's Interior and, under it, its own Options as a list of plain links (10.9) |
 | **explanation Node, as the centre** (a path with no question Node or Terminal before it, or **[#100]** one where 10.9's bounded centre rule stops on an explanation Node) | The Interior; the up arrow (10.2) when the path has an entry before it, none when it has not | **One button**, `startAgain`, in the Answer buttons' style, to the root Node with an empty Trail | Its Options, fanned out like a question Node's |
 | **Terminal** | The Interior, and on the rim the **outcome badge**: `outcomeNotApplicable`, `outcomeApplicable`, `outcomeProhibited` or `outcomeRefer`, coloured `danger` for `prohibited` and `accent` otherwise. **[#171]** The **ending badge**: the Terminal's `label` in the page's language, in the accent's reading shade for every ending, with the Bubble's outline in the same shade (36.1) | **One button**, `startAgain`, in the Answer buttons' style. The way back is the up arrow (10.2); a Terminal that is the root shows `startAgain` alone | Nothing: a Terminal may not carry Options (`tree-format.md` 5.6) |
+
+**[#220]** (2026-10-09) From #221 a question Node shows **two to four** Answer buttons, each labelled with its next
+step's `label` alone and named by the label, a colon and the target's title; the buttons are
+alike and stand as 41.3 says. The first bullet below holds for the accessible name, not for the
+text drawn, and #82's rule of 480 pixels goes (41.2).
 
 - **Every button shows its target's title**, taken from the title index (`getTitle`),
   never from a second Node read -- except an Option button, whose target the page has in
@@ -1679,6 +1733,18 @@ of 80 characters at 1280 x 640, or eight Authors, as 39.9's tests have it -- wit
 text as its `title`, read whole by a screen reader. It takes no pixel from anything else, and
 every other text and label keeps its designed size, whole.
 
+**[#212]** (2026-10-09) In the editor and the preview the controls under the bar stay at and below
+the floor (33.1, 40.5), and the notice's first line ran under them at 320 x 480, 320 x 700 and
+300 x 400 (#205's record, section 6). Wherever one of them is on the page the notice starts 8
+pixels below their boxes -- its top padding is `--float-top` plus `--float-size` plus 8, less the
+bar's row -- so its first line stands 9 under them at each of those sizes and at 800 x 480, in both
+languages. The public page has none, and its notice keeps its padding of 24.
+`admin-no-scroll.spec.ts` measures every line box of the notice against every control's box.
+
+**[#220]** (2026-10-09) A step of three or four next steps has a higher floor below 390 pixels wide: it shows the
+notice below 560 pixels tall, the least 41.4's rule allows (41.4, measured).
+**[#221]** (2026-10-10) Measured by 41.4's rule, the width is **600**: below 600 pixels wide and 560 tall (41.4).
+
 ### 10.5 Below the guarantee: the degradation order
 
 The owner's rule is absolute: no scrolling, ever. So the layout does not shrink text
@@ -1757,6 +1823,20 @@ It is **behind no control** -- a Sheet of the Authors behind one was rejected
 where it is not drawn, the page names no Author: the reader meets them on the Tree's tile on
 the overview (39.5), whose line is cut where its own room ends.
 
+**Amended 2026-10-09 (#204, the owner's #202):** one more thing is given up outside the numbered
+order, by width alone: **below 768 pixels wide a public Node page's chrome bar gives up the
+current language's pill**, with its list item and so the switch's gap of 4 pixels beside it, to
+make room for "Editor" (24.3). It is not a link, and it names the language already on screen; the
+links to the other languages stay. A Tree in one language, whose switch holds that pill alone,
+gives up its whole switch, so that no empty navigation landmark stays. Like #82's shortening it
+needs no control: nothing it showed is reachable only through it. Nothing in the table moves for
+it. The overview's bar keeps the pill at every width, and so does the preview's (24.3).
+
+**[#220]** (2026-10-09) #82's shortening above goes: a button shows its next step's label, at most 19 characters,
+at every width (41.2). A step of three or four next steps stands its buttons two a row below 1000
+pixels wide and shows the notice below 390 x 560 at least (41.3, 41.4); nothing in the table moves for it.
+**[#221]** (2026-10-10) Below 600 x 560, as #221 measured it (41.4).
+
 ### 10.6 The no-scroll rule, and the exact test
 
 **The rule.** `html` and `body` are exactly the size of the viewport and have
@@ -1818,6 +1898,10 @@ The one-pixel tolerance is for sub-pixel rounding and nothing else.
 
 The build issues paste the measured numbers in their pull requests; the test is what
 keeps them true afterwards.
+
+**[#220]** (2026-10-09) The pages of the table above gain #221's fixtures of a step of three and of four next steps,
+`full-node`'s question Node among them with four, and the viewports 999 x 640, 1000 x 640,
+and one pixel either side of 41.4's width and height (41.9).
 
 ### 10.7 The format's length limits, confirmed
 
@@ -1953,6 +2037,10 @@ pages, measured the same way at 1280 x 640 and 1920 x 1080, the one button that 
 its face, Open Sans, is 108 tall and the last of its side; in Verdana's metrics the other
 two are the top of a side of two, 100 clear of the next at 1280 x 640. Effect on the
 limits: none; whether the 60 characters should come down stays the owner's, as #105 left it.
+
+**[#220]** (2026-10-09) The Answer row of this table's third row is `/6`'s from #221: a label of at most 19
+characters alone, one line in a button of 300 at 1280 x 640, where four stand; the row stays 68
+and no limit of the Bubble moves (41.3, `tree-format.md` 5.7).
 
 ### 10.8 The explainer panel
 
@@ -2111,6 +2199,10 @@ decides core document 10.27.
   11.3), the `back` Branch and the `explanationOnly` hint (10.3), and the chrome keys
   `back` and `explanationOnly`.
 
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
+
 ## 11. Transitions and the neighbourhood
 
 **[v0.2], new; [#75] amended 2026-09-17 (issue #78).** The owner, in issue #35: "I want
@@ -2162,6 +2254,10 @@ translates the layer by exactly that offset, so the target Bubble arrives in the
 - **No item of any Sheet slides**, and a slide never begins with a Sheet open (11.3): a
   second-level Option inside an Overlay, an Option in the collapsed `options` Sheet, a
   Source in the collapsed Sources Sheet are plain links or open in a new tab.
+
+**[#220]** (2026-10-09) A placement carries its position, `x` and `y`, in place of `slot`; the next steps of a
+step stand one layer width apart in a line below it, and the way back retraces the step taken
+(41.5).
 
 ### 11.2 The neighbourhood: which Nodes are pre-rendered
 
@@ -2224,6 +2320,9 @@ page is the only page that calls it, and the preview's page calls `centreOf`, `d
 `neighbourhood` itself. Seventeen stands, for the preview as for every page; no public caller
 changes.
 
+**[#220]** (2026-10-09) With up to four next steps the table is up 1, down 4 + 16, asides 8: **29 neighbours**, and
+**a page reads at most 31 Nodes**, a contract as 17 was (41.5).
+
 ### 11.3 How they arrive, and the slide
 
 **The neighbours are already in the page.** The server renders the placed neighbours
@@ -2280,6 +2379,9 @@ Back and forward are the browser's, and reverse the slide when the payload is in
 framework's cache. `prefers-reduced-motion: reduce` removes the motion and keeps the
 navigation. **Framework prefetching of the controls' links is off** (`prefetch={false}`).
 
+**[#220]** (2026-10-09) A slide goes to the target's `x` and `y` (41.5); `transition.spec.ts` asserts the third and
+fourth of four as it asserts a `yes` and a `no` target (41.9).
+
 ### 11.4 Images during a transition
 
 A neighbour frame's markup contains **no image URL at all** -- not for its main image,
@@ -2310,6 +2412,10 @@ it by recording every network request.
 
 Walking the whole Tree still downloads it one Node at a time, seventeen at a time at
 the very most, and the server's memory holds the Tree the browser never gets.
+
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
 
 ## 12. The Carousel
 
@@ -2654,6 +2760,8 @@ and a deployment does not have to remember a second path. The Tree folders are a
 case and stay as they are: they are chosen at run time by `ELSA_TREES_DIR` (section 2),
 where the schema is a constant of the build.
 
+**[#220]** (2026-10-09) From #221 the schema route serves `elsa-tree-6.json` too, beside `/5` and `/4` (41.6).
+
 ### 15.2 The headers
 
 | Header | `tree.json` | `elsa-tree-4.json` (**[#171]** and `elsa-tree-5.json`, 15.1) | Why |
@@ -2669,6 +2777,8 @@ where the schema is a constant of the build.
 | `Content-Security-Policy` | `default-src 'none'; sandbox` | the same | The set 5.3 already applies to third-party bytes, kept identical so there is one header set in `src/assets.ts` and not two. |
 | `Content-Disposition` | `inline` | the same | Data to look at, not a file to save: a crawler that follows the link should get a document it can read. |
 | `Set-Cookie` | never | never | Core document 8. The no-cookie browser sweep -- `tests/browser/deployment.spec.ts`, which section 7 gives a row of its own for this -- covers both routes of 15 and every route of 16, so this row is asserted and not merely stated. |
+
+**[#220]** (2026-10-09) The `Link: rel="describedby"` header names `/schemas/elsa-tree-6.json` from #221 (41.6).
 
 ### 15.3 Byte-identity: the download IS the dataset
 
@@ -2938,6 +3048,10 @@ type:
 `suggestedAnswer` and not `acceptedAnswer`: which answer is right depends on the reader's
 system, which is the whole point of the Tree.
 
+**[#220]** (2026-10-09) From #221: one `Answer` per next step, in their order, `text` its label, a colon and its
+target's title in the page's language -- the button's accessible name -- and `url` the target's
+canonical URL (41.6). A migrated yes-and-no step's is what it was.
+
 **A Terminal and an explanation Node carry the `WebPage` and nothing more.** A Terminal
 is an outcome, not a question; an explanation Node has no answers of its own
 (`tree-format.md` 5.6), and its address renders its parent's page with an Overlay open
@@ -3055,10 +3169,12 @@ the dataset.
 
 **[#171]** So a Terminal's `label` is not in it either, as its `outcome` never was; the
 `## The dataset` entry names the schema through `SCHEMA_HREF`, which is
-`/schemas/elsa-tree-5.json` from #179 on. Its chrome paragraph -- a walk that "arrives at an
+`/schemas/elsa-tree-5.json` from #179 on (**[#220]** `/schemas/elsa-tree-6.json` from #221, 41.6). Its chrome paragraph -- a walk that "arrives at an
 outcome" -- uses the word in its ordinary sense and stays.
 
 **[#195]** Nor an Author's name (2026-10-03): the pages it points to hold the mention (39.7).
+
+**[#220]** (2026-10-09) `llms.txt` names no step and no Answer, and does not change for #220 (41.6).
 
 ## 17. The store
 
@@ -3156,6 +3272,8 @@ transaction across two files and nothing needs one.
   (39.2). Back the directory up before the first start of the release that carries #196: the
   user names are not kept.
 
+**[#220]** (2026-10-09) The store converts an `elsa-tree/5` file by `tree-format.md` 12.8 after 12.7 (12.8.4).
+
 ### 17.5 The seam: `src/store/`
 
 The one module that opens a file under `ELSA_DATA_DIR`. Routes call it; components never
@@ -3246,6 +3364,9 @@ variable (20.3), and never a password, a token or a name typed into a form.
 logs one line per file converted (36.4). A `/4` file the conversion cannot carry is refused
 like any other that fails, with its violations.
 
+**[#220]** (2026-10-09) From #221 it converts the `elsa-tree/5` files it finds too, by
+`tree-format.md` 12.8 after 12.7, the same way (41.6).
+
 ### 18.4 What #134 changes in the earlier sections
 
 | Section | Change |
@@ -3277,6 +3398,9 @@ format's number moved for the ending's words (`tree-format.md` 5.5), not for any
 draft needs. The draft schema is derived from `schemas/elsa-tree-5.json` by the same two
 dropped keywords and two relaxed `required` lists, so a Terminal's `label` may hold an empty
 language in a draft (a to-do) and `terminal` still requires it.
+
+**[#220]** (2026-10-09) The draft schema is derived from `schemas/elsa-tree-6.json` from #221, relaxing `answers`'
+`minItems` to 1 (41.1).
 
 ### 19.2 The draft rules
 
@@ -3329,6 +3453,10 @@ refuses (22.3) it never writes, so a draft can always be opened, indexed and sho
 a Node a **ninth Option** answers 422 with `V-COUNT` and stores nothing (22.3 and 30.4,
 amended the same day). `tree-format.md` 7's V-COUNT row records the exception in its Draft
 cell.
+
+**[#220]** (2026-10-09) From #221 a draft step's `answers` is an array of one to four entries, any label lacking a
+language or holding `""`; the draft schema relaxes `answers`' `minItems` to 1, and a single
+entry is V-ANSWERS' advisory, "fewer than two next steps" (`tree-format.md` 7, 41.1).
 
 ### 19.3 Publish
 
@@ -3394,6 +3522,9 @@ export interface Drafts {
   importTree(folder: string, creator: Account): Promise<TreeEntry>            // 17.4; the seed and the CLI
 }
 ```
+
+**[#220]** (2026-10-09) `createNode`'s `from.link` is `'answer' | 'option' | 'end'`, with `label` for `'answer'` and
+`'end'` (41.7 item 6).
 
 ## 20. Accounts, sessions and the administrator
 
@@ -3719,6 +3850,8 @@ The screens -- `/admin`, `/admin/trees/<t>/...` -- are #133's and render inside 
 `[lang]` layout like every page. **[#133]** They are sections 24 to 33: the addresses in
 24.1, the login page in 25.1, the editor's route in 34.7.
 
+**[#220]** (2026-10-09) The route's `from.link` is `'answer' | 'option' | 'end'`, `'answer'` with its `label` (41.7).
+
 ### 22.2 The unit of a write
 
 **One field or one operation on one Node**; the manifest takes fields only. **[#147]** The owner promoted #147
@@ -3751,6 +3884,9 @@ family or role is 422 with V-THEME. The three language operations also reach a T
   **[#171]** `set-terminal` takes `label`, a localised text, in place of `outcome`.
 - **Limits on the request**: a body of at most **64 kB**; any string of at most **2,000
   code points** (the largest limit of 5.7 is 600). Above either, 413 or 422, nothing stored.
+
+**[#220]** (2026-10-09) The field `answers[i].label.<lang>`; the operations `set-answer { index, target }`,
+`remove-answer { index }` and `move-answer { index, to }` in place of the yes-or-no forms (41.7).
 
 ### 22.3 The write response
 
@@ -3792,6 +3928,9 @@ life because they are in every URL. **No empty array or object is ever written**
 the last Source, Image, Option or explainer removes the key, and `remove-answer` on the
 last Answer removes `answers` (the Node is an explanation Node again), so V-EMPTY holds on
 every draft the store writes.
+
+**[#220]** (2026-10-09) `link: 'answer'` with its `label` appends a next step, in place of `'yes' | 'no'`; a fifth is
+422 with V-ANSWERS (41.7).
 
 ### 22.5 Concurrency between collaborators
 
@@ -3987,19 +4126,27 @@ published Tree's preview is a 307 to its editor at the same path and `?lang`; an
 
 | Page | Left | Right | Theme |
 |---|---|---|---|
-| Public Node page | The Tree's logo or title; **[#195]** (2026-10-03) then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button | The published Tree's |
-| Public overview `/` | `siteTitle` as text | language switch | The default (13.4) |
-| Login page | `siteTitle` | language switch | The default |
-| Creators' overview, `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
-| The editor | The draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). **[#205]** (2026-10-04) On a hidden Tree the preview button floats under the bar at the top left, not in it (40.5). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4); **[#205]** the preview button too |
+| Public Node page | **[#204]** (2026-10-09) #163's arrow, `toOverview`, a link to the public overview in the chrome language, which #164 added and this row did not name; then the Tree's logo or title; **[#195]** (2026-10-03) then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button; **[#204]** (2026-10-09) then `editor` ("Editor"), a link to `/admin` in the chrome language, in the share button's look, last. Below 768 pixels wide the switch gives up the current language's pill with its list item, and in a Tree of one language the whole switch (10.5) | The published Tree's |
+| Public overview `/` | `siteTitle` as text | language switch; **[#204]** (2026-10-09) then `editor`, as on a Node page, last. The current language's pill at every width | The default (13.4) |
+| Login page | `siteTitle` | language switch; **[#204]** (2026-10-09) at the address `/admin` only, then `website` ("Website"), a link to the public overview in the chrome language (`/`, `/?lang=nl`), in the `account` link's look, last. Not on the login page shown at any other admin address | The default |
+| **[#204]** (2026-10-09) Creators' overview, `/admin` with a session | `siteTitle`, not drawn below 600 pixels wide | language switch, its current language's pill not drawn below 600; `account`, `accounts` (administrator only) and `logout`, as in the row below; then `website`, as on the login page, last | The default |
+| ~~Creators' overview,~~ **[#204]** (2026-10-09) `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
+| The editor | **[#203]** (2026-10-04) The arrow of #163, `toOverview`, a link to the creators' overview `/admin` in the chrome language; then the draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). **[#205]** (2026-10-04) On a hidden Tree the preview button floats under the bar at the top left, not in it (40.5). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4); **[#205]** the preview button too |
 | **[#205]** (2026-10-04) The preview of a hidden Tree (40.4) | #163's arrow, leading to `/admin`; the draft's logo or title, as the public page; then the mention of its Authors (39.4) | language switch, the current language's pill at every width. **No share button, no "Editor".** The way back floats under the bar at the top left, not in it (40.5). | **The draft's**, on the whole page as on a public page; the way back the default (13.4) |
-| The 404 and 403 pages | `siteTitle` | language switch | The default |
+| The 404 and 403 pages; **[#213]** (2026-10-04) and an uneditable Tree's (19.5), which had no bar and was laid out in the bar's row | `siteTitle` | language switch | The default |
 
 **[#135]** Below 480 pixels wide the Tree-less admin pages' bar gives up `siteTitle` and the
 current language's pill (not a link, and the language on screen) so that the switch, the
 name, `accounts` and `logout` fit 320 pixels; the name is cut with an ellipsis where it does
 not fit and carries `data-clamp`, which `admin-no-scroll.spec.ts` reads as the overview's
 walk reads a tile's title (26.1).
+**[#204]** (2026-10-09) The bar at `/admin` -- the login page there and the creators' overview --
+keeps its controls at its right end at every width, below 480 too, where the title they stood
+beside is not drawn: `website` ends that bar as "Editor" ends the public pages' bars. The
+creators' overview gives up the title and the current language's pill below 600 pixels wide
+instead of 480, for `website`'s room; below 480 `website` stands 8 pixels from `logout`, as the
+account links stand from each other. `/admin/new`, `/admin/account` and `/admin/accounts` keep this
+note's rule as it is.
 
 **[#176], changed by the owner -- 2026-10-02** (#169: "next to it it says adminstrator, make it
 say 'Account' or at least make it say what it is"). On every admin page with a session -- the
@@ -4026,6 +4173,88 @@ Overlay, with the confirmation it asks there in place (30.7); and #178's red cro
 not end here after all" beside the up arrow (30.8). The question the cross asks is a panel hung
 over the Sheets' veil, as the step menu's Sheet was, and keeps the default look: the editor's
 own, like the panel of every editor Sheet. Recorded in decision 1 of the same ADR.
+
+**[#203], the owner's #202 -- 2026-10-04** ("I am still missing a back to the top level interface
+button in the tree editor interface /admin/trees/..."). The editor's bar opens with the round
+arrow the public Node page has carried at the left of its bar since #163
+(`src/components/BackToOverview.tsx`), held with the draft's logo or title in one `.page-brand`
+group: a link to the creators' overview, `/admin` in the chrome language -- where `logout` goes --
+named `toOverview` ("All decision trees", "Alle beslisbomen"), 30 pixels across and 24 below 480
+pixels wide. That this is the top level the owner meant, and this its place and look, is the
+PROPOSED reading of core document 3.4 `[#202]`. Two rules of the editor's bar alone make its room:
+the group takes the room the controls leave, so a title as text is cut to its two lines (#200)
+rather than squeezing `account` and `logout` past their words, as an 80-character title did at
+768 x 1024 before the arrow too; and a logo is at most as wide as the room the group has beside the
+arrow, below its caps -- the room #164 made for the arrow on the Node page by the logo's maximum
+width -- so it is drawn smaller rather than hold the bar open. Measured at every width from 320 to
+1280 pixels, in English and Dutch, on Windows and in the CI runner's faces, with the autosave
+indicator empty, as on a page opened before any save, and saying "Saved" ("Opgeslagen"), as it does
+for the rest of the session after a first save (29.3). With the indicator empty nothing in the bar
+overflows in a Tree of two languages beside a short title, an 80-character title, the example
+Tree's logo or a logo at its cap, nor in a Tree of three beside either logo or a title as text; with
+"Saved", in none of those of two languages. From 480 pixels wide up the bar is wider than the window
+at no width at which it was not before #203, and at far fewer. Below 480 the editor gives up a title
+written as text, so in a Tree with no logo nothing gives the arrow's 24 pixels and the bar's gap of 8
+back: there the bar is wider than the window in a band of up to 32 pixels' width at which it was not
+before #203. With the indicator empty that is so in a Tree of four or five languages, from 320 to
+336 pixels wide in English and to 327 in Dutch in one of four; after a first save in a Tree of three
+to five, from 320 to 342 in Dutch in one of three, and from 341 to 372 in English and from 366 to 397
+in Dutch in one of four (the CI runner's faces). Below 480 every other Tree measured is nowhere wider
+than before #203. Whether the editor's bar must give that room back, and how, the owner is asked
+on #214 (2026-10-04).
+Recorded in `docs/adrs/ADR-133-admin-routes.md`.
+
+**[#203], the answer on #214 -- 2026-10-09** ("**A**, decided by proxy on 2026-10-09 under the
+owner's standing rule to keep the flow running; the owner can overrule here."). Below 480 pixels
+wide, in the editor's bar only, the controls make the arrow's room: the language names keep 2
+pixels at their sides instead of 5; the current language, not drawn there, gives up its list item
+and the gap beside it; and the indicator's `saving` and `saved` are announced by its region and
+not drawn (29.3), so an indicator with nothing else to show gives up its place and its gap too.
+`notSaved`, and what follows a state word, are drawn as before. From 480 up nothing changes.
+Measured again at every width from 320 to 1280 in the same Trees and faces: below 480 no Tree of
+two to four languages overflows, with or without a logo, with the indicator empty or saying
+"Saved"; a Tree of five, beside a title as text, from 320 to 358 pixels wide in English and to 349
+in Dutch in either state (the CI runner's faces), the widths at which it overflowed before #203
+with the indicator empty (after a first save it then did to 395 and 420). The bands of the note
+above are gone. With a message after `saved` -- measured with `publicBehind` -- the bar is still
+wider than the window below 480 in every Tree measured, as it was before #203, and at fewer widths:
+the indicator's line counts in the least width the bar needs.
+`admin-no-scroll.spec.ts` keeps this in a Tree of four languages with no logo
+(`tests/fixtures/four-languages/`) at every viewport of 10.6, before and after a first save.
+
+**[#204], the owner's #202 -- 2026-10-09** ("From the regular window, I want top right a button
+that says Editor and that directs to the login, or if user is logged in, moves to the editor
+interface on /admin. From the /Admin page I want a button that routes back to the regular page,
+in the same place."). The public overview's bar and every public Node page's end with `editor`,
+"Editor" in English and in Dutch, in the share button's look (`src/components/ToEditor.tsx`): one
+plain link to `/admin` in the chrome language, the same for every visitor, since `/admin` shows
+the login page without a session and the creators' overview with one (24.1, 24.2), and a public
+page reads no cookie (20.5). It carries the chrome language's `lang` where the page's content
+language is another, as #163's arrow does; a Tree in a language the chrome does not speak gets
+"Editor" and `/admin` in English (3.1). The bar at `/admin`, on the login page and on the
+creators' overview, ends with `website`, "Website" in both languages, in the `account` link's
+look: a link to the public overview, `/` or `/?lang=nl`, the top of the public pages, rather than
+to the page the visitor came from, since `/admin` is also opened from a bookmark or a typed
+address. No other admin page carries it, nor the login page shown at another admin address. That
+these are the pages the owner meant, and these the words, places and looks, is the PROPOSED
+reading of core document 3.4 `[#202]` (`ADR-202-navigation-round.md` decision 5). `/admin` stays
+`noindex` (20.9) and outside the sitemap (23.4), and `robots.txt` is unchanged (23.3).
+Measured on the build of #204, on Windows, in English and Dutch, at every viewport of 10.6 and at
+479, 480, 599, 600 and 767 x 800 (`tests/browser/bar.ts`): nothing in the bar overflows and no
+text in it takes more lines than it is given, one for every control and for the site's title and
+two for a Tree's title as text -- in the overview's bar; in a Node page's beside the example
+Tree's logo, the first Tree's, an 80-character title and three Authors of 80 characters; and in
+the bar at `/admin`, on the login page and on the administrator's creators' overview. The least
+room left between a logo and the controls is 24.9 pixels on a Node page (the first Tree, in
+English, at 480 x 800) and 14.2 on the creators' overview (in English, at 320 x 480); at 600 x 800
+the creators' overview keeps 54.1 pixels beside its title in English and 46.7 in Dutch. Beside a
+copy of the first Tree whose logo is drawn at its cap of 288 pixels, the bar holds at 767 x 800,
+without the current language's pill (143.7 pixels of room in English, 153.7 in Dutch), and at
+768 x 1024, with it (75.0 and 59.8). A Tree of three languages or more, and one whose current
+language's name is drawn narrower than "English", were not measured: whether its bar must hold is
+core document 10.42's question to the owner. `no-scroll.spec.ts` and `admin-no-scroll.spec.ts`
+keep these bars; `editor-and-website.spec.ts` the links, their addresses and what each bar gives
+up.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
@@ -4420,6 +4649,9 @@ as on the public page; `admin-no-scroll.spec.ts` measures it with every Sheet op
 Below the guarantee the editor gives things up in 10.5's order; a collapsed Sources block is
 edited in its Sheet.
 
+**[#220]** (2026-10-09) The Answer row of four next steps, or of an empty step's four outlined buttons, holds the
+rule as 41.3 stands it (41.7 item 8).
+
 ### 28.7 Not offered
 
 A Node's `metadata` (19.6); a Source's `id` and an Image's `source`; the manifest's `root`;
@@ -4459,6 +4691,10 @@ of at most 320 pixels:
 | a field over its limit (28.4) | after the state word: the violation's message |
 | a published Tree whose public copy is behind (19.4) | after the state word: `publicBehind` |
 | a collaborator's value arrived (29.7) | `changedElsewhere` for 5 seconds |
+
+**[#203]** (2026-10-09) Below 480 pixels wide `saving` and `saved` are in the region, which
+announces them, and not drawn, as the answer on #214 has it (24.3); `notSaved` and what follows a
+state word are drawn.
 
 Never a token, an account id or a request body.
 
@@ -4519,12 +4755,19 @@ filled button of one Answer and the two of the public row have no link menu (30.
 `terminal`, "Tree does not end here after all" (`removeEnd`) stands in the band above the Bubble,
 left of the up arrow (30.8), and gives the row the three outlined buttons back at once.
 
+**[#220]** (2026-10-09) From #222 the row is 41.7's: an empty step's four outlined buttons (`+ Yes`,
+`treeEndsHere`, `+ No`, `+`), a step's next steps with their labels as fields and a `+` while
+fewer than four, the move arrows. The table's "one Answer" row is a draft step with one next step.
+
 ### 30.2 Creating an Answer target
 
 `+ Yes` / `+ No` → `POST .../nodes { from: { node, link: 'yes' | 'no' } }` (22.1: the Node and
 the Link in one write) → the editor **navigates** to `followHref` of the new Node: a plain
 navigation, no slide (34.5). The new Node is empty (no title, no description, the three
 buttons); its id is the server's (22.4), never proposed by the editor.
+
+**[#220]** (2026-10-09) `link: 'answer'` with a `label` (41.7 item 3): `+ Yes` and `+ No` send the chrome words,
+`+` the Sheet's.
 
 ### 30.3 Ending
 
@@ -4692,6 +4935,9 @@ target too -- but for an aside another step leads to, which only loses this step
 (above) -- so where two Answers lead to one step, its cross takes both with it; the editor
 removes neither alone any more.
 
+**[#220]** (2026-10-09) So does each of a step's two to four next steps: it goes with the step it
+leads to, and the step it was taken from keeps the others in their order (41.7 item 5).
+
 ### 30.8 The step menu: deleting a Node
 
 In edit mode the rim above holds, in the half of the band **right** of the up arrow (the
@@ -4753,6 +4999,9 @@ measured (the research record of #205, sections 2 and 7). From 1000 pixels wide,
 and on a published Tree at every width, the button is as above. Recorded in
 `docs/adrs/ADR-205-ending-button-on-a-hidden-tree.md`, which amends `ADR-178-step-buttons.md`
 decision 2.
+
+**[#220]** (2026-10-09) A next step goes with the step it leads to, as a yes or a no does above; the step it came
+from keeps the others in their order (41.7 item 5).
 
 ### 30.9 Orphans
 
@@ -5060,6 +5309,8 @@ header bar)"). Recorded in `docs/adrs/ADR-176-floating-settings-and-to-do.md`.
   while it has any lines, because the full validation's lines name `tree.json` and a JSON Pointer
   rather than a Node, and the response's otherwise.
 
+**[#220]** (2026-10-09) "Fewer than two next steps" is a to-do of a step with one (41.1, 41.7 item 5).
+
 ### 33.4 Collaborators
 
 The creator first (`creator`), then each collaborator by name (ids resolved through `GET
@@ -5298,6 +5549,10 @@ renders the neighbour frames and the slide, within seventeen Nodes, and the ment
 like the editor it renders no JSON-LD, `hreflang`, canonical or dataset link and no share button
 (40.2 to 40.4).
 
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
+
 ### 34.6 The types
 
 `src/tree/types.ts` gains `NodeContent` (`id`, `title`, `description`, `sources`, `images`,
@@ -5306,6 +5561,9 @@ take it. `TreeView` and `Bubble` take `Node | DraftNode` and read Links through
 `linksOf(node): { yes?, no?, terminal? }`. `parseUrl`, `centreOf` and `contentLanguage` take
 `Readable = Pick<Tree, 'manifest' | 'getNode'>`, so a `Draft` passes; nothing else changes
 and their tests run unchanged.
+
+**[#220]** (2026-10-09) `linksOf(node)` returns the next steps as `{ answers: { label, target }[] ; terminal? }` in
+their order, in place of `{ yes?, no? }` (41.6).
 
 ### 34.7 The editor page's bound
 
@@ -5317,6 +5575,10 @@ called. The picker (30.6) carries ids and titles, never Nodes. **[#205]** (2026-
 that makes a fresh step a yes or a no made the centre -- inline in this page since #139 -- moves to
 `src/neighbourhood.ts` as `draftCentre`, which this page and the preview's call (40.2). This page's
 bound stays twelve; the preview's is a public page's seventeen.
+
+**[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
+preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
+bound as it stood for two.
 
 ### 34.8 The rule's tests
 
@@ -6167,14 +6429,24 @@ hidden Tree's included, and `store.authors(id)` for the other published Trees, a
 
 (The first Tree in English at 1280 x 640: the three names take 289 of the 809.)
 
-- **What that gives at the viewports of 10.6**, measured on `dev` (the research record, section
+- ~~**What that gives at the viewports of 10.6**, measured on `dev` (the research record, section
   2): beside a 120-pixel logo the mention is drawn at every viewport from 768 x 1024 up --
   three names whole at 1280 x 640 in both languages and at 768 x 1024 in English; in Dutch at
   768 x 1024 cut beside the first Tree's logo (297 pixels in 282) and whole beside the example
   Tree's (280 in 291) -- and not drawn at 390 x 844 and 360 x 640, where 30 to 75 pixels are
   left. Beside an 80-character title it is drawn at 1024 x 768 and above and not below. At and
   below the floor the notice stands in for the page (10.4). On a phone a reader meets the
-  Authors on the Tree's tile (39.5), whose line is cut where its own room ends.
+  Authors on the Tree's tile (39.5), whose line is cut where its own room ends.~~
+  **[#204]** (2026-10-09) **What that gives at the viewports of 10.6**, measured again beside
+  "Editor" on the build of #204 (`authors.spec.ts`, on Windows): beside the example Tree's
+  120-pixel logo the mention is drawn at every viewport from 768 x 1024 up -- three names whole
+  at 1280 x 640 and 1024 x 768 in both languages; at 768 x 1024, where 237.1 pixels of room are
+  left in English and 224.1 in Dutch, one name whole and three cut -- and at 390 x 844, where the
+  bar has given up the current language's pill (10.5) and 80.7 pixels are left in English and
+  89.9 in Dutch: one name whole in English, cut in Dutch. At 360 x 640, with 57.3 and 66.5, it is
+  not drawn. Beside an 80-character title it is drawn at 1024 x 768 and above and not below. At
+  and below the floor the notice stands in for the page (10.4). Where it is not drawn a reader
+  meets the Authors on the Tree's tile (39.5), whose line is cut where its own room ends.
 - **Without JavaScript** the mention is the server's markup and its rules are the
   stylesheet's: there is nothing to run (14).
 - **A Tree without an Author** -- one whose only role holder is the administrator -- has no
@@ -6347,7 +6619,8 @@ the row **Preview** of its section 5. Recorded in `docs/adrs/ADR-205-preview-add
     `previewLinks().node(address)`, as the editor's page gives the chain and the asides theirs
     (34.7), so `Slider` finds the placement a control names (11.3).
 - **The neighbour frames and the slide run**, as on the public page (11): the readers walk the Tree
-  with them. The page reads **at most seventeen Nodes** (11.2), the bound of a public page; a frame
+  with them. The page reads **at most seventeen Nodes** (11.2), the bound of a public page
+  (**[#220]** (2026-10-09) 31 from #221, the public page's new bound, 41.5); a frame
   names no picture (11.4); the centre's pictures and an open Overlay's are asked of the admin image
   route, file for file as 11.5 lists them for a public page.
 
@@ -6532,6 +6805,9 @@ section 2), so the preview's bar holds wherever `dev`'s public bar does.
   the public components draw it, nothing added. The no-scroll guarantee covers the drafts within the
   format's limits, as it covers valid Trees (10.6) and drafts in the editor (28.6).
 
+**[#220]** (2026-10-09) A draft step with one next step is drawn as its one button, centred; an empty label in the
+language shown is the bracketed placeholder (41.7 item 7).
+
 ### 40.8 What does not change
 
 - **Hidden means hidden.** The preview is under `/admin` -- behind `Path=/admin` (20.4), `noindex`
@@ -6552,7 +6828,7 @@ section 2), so the preview's bar holds wherever `dev`'s public bar does.
 | File | Asserts |
 |---|---|
 | `tests/browser/preview.spec.ts` (new) | 40.1: every row of the table -- the login page at the preview's address and its reload, the 403 page, 403 and 404 for an unknown and a reserved id by role, the 404 of a path not in the draft, the uneditable page, the 307 of `/admin/preview/<tree-id>` with `?lang` kept, the 307 of a published Tree's preview to its editor -- each with 20.9's headers and no `Set-Cookie`; and "It needs no script": in a browser context with JavaScript disabled (`javaScriptEnabled: false`, the session set through `POST /admin/api/login`, since the login page needs script), the preview of the full Node draws its Bubble with its title and its Answer buttons, an Answer link and then the up arrow walk to the target's preview and back, and the language switch to the Dutch preview, each a page load at an address under `/admin/preview/`, and no page of the walk holds `needsJavaScript`'s sentence in either language, in a `<noscript>` or anywhere else. 40.2: no `[data-field]`, `contenteditable` or `editor-` class in the tree view; every link of the walk under `/admin/preview/`, every picture from `/admin/api/trees/<t>/images/`, every theme file from `/admin/api/trees/<t>/theme/`; an Answer slides (`data-slide`, its frame in the payload, one payload per navigation) to the target's preview, and the up arrow back; at most seventeen `data-node` in a response; a fresh step reached by its yes is the centre. 40.3: the draft's colours on the bar and the page and the default's on the way back; `noindex`; no JSON-LD, canonical, `hreflang`, dataset link or description; the `<title>`; `<html lang>` the content language on the preview and the editor of `tests/fixtures/german-only` (`de`) and of a Dutch-first draft without `?lang` (`nl`), for an account with a role on the Tree, and the chrome language of the segment (`en`) for that account at both addresses of a path that is not a Node of the draft, the 404 page; and the chrome language of the `[lang]` segment for a caller without a session and for an account logged in with no role on the Tree -- `en` at the preview's and the editor's address of `german-only`'s root, with and without `?lang=de`, and at both addresses of a path that is not a Node of its draft, all alike, so that such an account learns neither the languages a hidden Tree declares nor, through `parseUrl`, which paths are its Nodes; and `en`, not `nl`, at the Dutch-first draft's root without `?lang`. 40.4: the arrow to `/admin` and `/admin?lang=nl` named `toOverview`; the logo; the mention of three Authors; the switch's links; no share button, no "Editor"; the current pill at 480 x 800 and 767 x 800. 40.5: the two links' names, `title`s and addresses in both languages; words at 1000 x 700 and an icon at 999 x 700; the tab order `logout`, preview, to-do, settings in the editor, and in the preview the switch's last link, the way back, the tree view; the boxes of both buttons at every viewport of the research record's column "the rule", in both languages, on the full Node under a first step, on its No and on the root, clear of the up arrow, the cross, the ending's button, the Bubble, every Option button, the Options' control and the floating controls; the ending's button an icon named `removeEnd` at 639 x 700 and 360 x 640 on a hidden Tree, its words at 640 x 700, and its words and 30.8's `max-width` at 360 x 640 and 999 x 700 on a published Tree; at 320 x 480 both buttons icons inside the window. 40.6: a title typed and the preview pressed at once shows the title in the preview, with no dialog; with the write route failing the button stays busy and does not leave; a refused value is not waited for; the way back after two steps and a switch to Dutch leads to the editor of that step in Dutch; the button goes on a publish from the panel and comes back on an unpublish, without a reload; none on a published Tree's editor. 40.7: on a draft with an empty Dutch title and description, a question step with one Answer, a fresh step, a Terminal without Dutch words and a picture without a credit or a description: each placeholder of 40.7 in its place, the one Answer's button alone and centred in the Answer row (the middle of its box on the row's, within a pixel) with its word, `startAgain` below the fresh step, no to-do count, and no "Tree text missing" line in the server's log. The screenshots of 35.7, and those #206's DONE WHEN names |
-| `tests/browser/admin-no-scroll.spec.ts` | 10.6's walk at its ten viewports in both languages on the preview of `hidden-draft`'s full Node -- plain, with each of its first two Overlays open, and on 40.7's unfinished draft -- and on the editor of a hidden Tree with the preview button, its step that ends included |
+| `tests/browser/admin-no-scroll.spec.ts` | 10.6's walk at its ten viewports in both languages on the preview of `hidden-draft`'s full Node -- plain, with each of its first two Overlays open, and on 40.7's unfinished draft -- and on the editor of a hidden Tree with the preview button, its step that ends included; **[#212]** at 320 x 480, 320 x 700, 300 x 400 and 800 x 480, on the editor of a hidden Tree and its preview, every line box of the floor's notice clear of every control under the bar, and the public page's notice at its padding of 24 |
 | `tests/browser/floating-controls.spec.ts` | Its tab test: from `logout`, Tab reaches the preview button, then the to-do control, then the settings button (amended row) |
 | `tests/browser/step-buttons.spec.ts` | Unchanged and green: on `hidden-draft`, a hidden Tree, its boxes hold with the ending's button as 40.5 draws it |
 | The public suites (35.6) | Unchanged and green: the public Node page's bar, drawn by `NodeChrome`, holds what it held |
@@ -6563,3 +6839,215 @@ section 2), so the preview's bar holds wherever `dev`'s public bar does.
 | `tests/admin/preview.test.ts` (new) | `previewLinks`: the four addresses behind `/admin/preview`, `?lang` kept, the 50-id cap, `adminImageHref`; `previewDraft`: every placeholder of 40.7 for the language on screen, the other languages and the present texts untouched, nothing of the draft itself changed |
 | `tests/editor/queue.test.ts` | `flushAll` and the wait of 40.6: at once when nothing waits; after a field's 600 ms are cut short; after the write in flight is answered; not while a write waits for its retry, until it is accepted |
 | `tests/chrome.test.ts` | `preview` and `backToEditor` in both languages |
+
+## 41. The next steps of a step
+
+**[#220], new -- 2026-10-09.** The owner, on #219 (core document 3.4 `[#219]`): "Some trees
+might consist of yes or no, some trees might end there, but some trees might also have three or
+four options. Let's change the design to let the creator of a decision-tree choose themselves to
+how many next steps there are in the tree." This section is the contract for a question Node of
+two, three or four next steps -- its Answers (core document section 5) -- on the public page, in
+the slide and the neighbourhood, for every other reader of them, and in the editor. The Tree
+format is `elsa-tree/6` (`tree-format.md` 5.3, 12.8). The decisions are
+`docs/adrs/ADR-220-number-of-next-steps.md`, `ADR-220-words-on-a-next-step.md`,
+`ADR-220-elsa-tree-6.md`, `ADR-220-answer-row.md`, `ADR-220-slide-and-neighbourhood.md`,
+`ADR-220-editing-next-steps.md` and `ADR-220-other-readers.md`; the room is measured in
+`docs/research/issue-220-answer-row-room.md`. **#221** builds 41.1 to 41.6 with the format and its
+migration, and keeps the editor working on the new shape; **#222** builds 41.7.
+
+### 41.1 How many
+
+A question Node has **two, three or four** next steps, chosen per step by its creator; a Tree may
+mix them. A draft step may hold **one**, as a to-do (19.2); none is an explanation Node (19.2, as
+before); a fifth is refused. Five and six were measured and refused: from 1000 pixels wide down,
+one row of five breaks a 19-character label into three lines and more in Verdana and overflows
+at 360 x 481, and two a row needs a third row, which overflows the full Node in windows 481 tall
+(`ADR-220-number-of-next-steps.md`).
+
+### 41.2 The words on a button
+
+- Each next step carries its creator's words, `answers[i].label`, a plain localised text of at
+  most **19 characters** (`tree-format.md` 5.3, 5.7).
+- **A button shows its label alone**, in the page's language, at every width and for every
+  number of next steps: one run of 19-pixel bold on 24-pixel lines (18.66 at step 7 of 10.5), as
+  before, breaking inside a word where a word is wider than the button (`overflow-wrap:
+  anywhere`) and hyphenated in the page's language. The next step's title is not drawn on it.
+- **Its accessible name** (`aria-label`) is the label, a colon and the next step's title, from the
+  title index (`getTitle`) -- "Yes: Annex III areas" -- as dev names an Answer button today.
+- **Yes and no are Tree content**: 12.8 writes `Yes` / `No` (`Ja` / `Nee` in Dutch) into every
+  existing step's labels; the public page reads neither chrome key `yes` nor `no` (3.2).
+- **10.3's rule of 480 pixels goes** (#82: "below 480 pixels wide an Answer button shows its
+  chrome word alone"): a label is drawn whole at every width. `startAgain` keeps its own word.
+
+### 41.3 The Answer row
+
+| Next steps | At 1000 pixels wide and wider | Below 1000 pixels wide |
+|---|---|---|
+| 2 | one row | one row |
+| 3 | one row | two a row: two, then one centred |
+| 4 | one row | two a row: two and two |
+
+- **Every button is the same**: the fill `accent-secondary`, the letters
+  `--elsa-on-accent-secondary`, the same type, **60 pixels tall** (a minimum, as before: a label
+  of more lines makes it taller), and the same width as every other button of its row -- an
+  equal share of the row, at most 620. A lone button on a second row is as wide as each of the
+  two above it, centred. No button is set apart by colour, size or place (core document 3.2, `[#75]` and `[#219]`).
+- **Rows**: in one row the buttons stand 20 apart (8 below 480 pixels wide), as the two did; two
+  a row, the rows stand 8 apart.
+- **Order**: the file's order, left to right and row by row; it is the DOM order and the Tab
+  order.
+- **At and above 1280 x 640** the row is **68** tall, as 10.1 has it, and a label takes at most
+  two lines: at 1280 x 640 four buttons are 300 pixels each and a 19-character label takes one
+  line in every face measured (`docs/research/issue-220-answer-row-room.md` section 2). Below
+  1280 the row grows with its rows and its lines, as it already grows with its lines.
+- The rows of an **explanation Node as the centre** and of a **Terminal** do not change:
+  `startAgain` alone.
+
+### 41.4 Below the guarantee
+
+- **A step of three or four next steps shows the `minimumSize` notice below 390 pixels wide and
+  below 560 pixels tall**, naming the height (`minimumHeight`), where every other step keeps the
+  floor of 10.4 (320 wide or 480 tall). **390 and 560 are the least** the notice's width and
+  height may be: #221's measurement of the Linux faces can raise either, and lowers neither, by
+  the three rules below, which need no further decision whatever it finds.
+  - **The height** is the larger of 560 and the highest height any face measured needs below the
+    notice's width, rounded up to the next ten pixels. On this run's numbers it is 560: two rows
+    of buttons on the full Node of 10.6 need 488 pixels of height below 390 wide in Segoe UI and
+    536 in Verdana, the Windows stand-in for DejaVu Sans, and the 24 above 536 are the margin for
+    the Linux faces, which were not measured (`docs/research/issue-220-answer-row-room.md`
+    sections 2 and 5). A face that needs 550 leaves it 560; one that needs 563 makes it 570.
+  - **The width** is the larger of 390 and the lowest of part 2's widths (the research record,
+    section 1) from which the full Node with three and with four next steps fits a window 481
+    tall at that width and at every one of part 2's widths above it up to 999, in every face
+    measured, rounded up to the next ten pixels. On this run's numbers it is 390: from 390 up
+    both faces fit at 481, Verdana with no margin, so a Linux face may need more between 390
+    and 999. If one needs more than 480 at 420 and fits at 479 and above, the width becomes 480;
+    the height is then measured below 480.
+  - **From 1000 up** a step of three or four stands in one row (41.3). If a face measured does not
+    fit one row of four in a window 481 tall at 1000, 1100 or 1279 wide, 41.3's 1000 becomes the lowest
+    of part 2's widths from which it does, rounded up to the next ten pixels, and the buttons stand
+    two a row below it -- two a row of four with 19 characters fit at 1000, 1100 and 1279 x 640
+    and at 1024 x 481 in every face measured (section 5).
+  - #221 measures the full Node with three and with four next steps, 19-character labels, in both
+    languages, at part 2's sixteen widths, in the CI runner's faces (DejaVu Sans, Liberation Sans)
+    and on Windows (Segoe UI, Verdana), and records the three numbers here with its output. The
+    rules are fixed; only the numbers wait for the measurement.
+  - **[#221] Measured (2026-10-10): the width is 600, the height 560, and 41.3's 1000 stands.** On
+    the built row, the full Node with three and with four next steps of 19 characters, both
+    languages, at part 2's sixteen widths, in Segoe UI and Verdana on Windows and in Liberation
+    Sans and DejaVu Sans in Linux (Ubuntu 24.04, the CI runner's release), each face proved by
+    Chromium's own report of the font it drew: every face fits a window 481 tall from 600 up to
+    999, and at 480 and 520 wide needs **488** -- two rows of buttons with the row's padding of 4
+    above and below, which stops below 480, leave the full Node's text 4 pixels short -- so the
+    width is 600; below 600 the highest need is **536** (DejaVu Sans and Verdana at 321 wide, three
+    next steps, English), 540 rounded, so the height stays 560; and one row of four fits at 481 at
+    1000, 1100 and 1279 in every face. Liberation Sans gives Segoe UI's windows and DejaVu Sans
+    Verdana's, cell for cell. A step of three or four next steps shows the notice **below 600
+    pixels wide and 560 tall**, naming 560. The script and its whole output are
+    `docs/research/issue-221-answer-row-faces.md`; `no-scroll.spec.ts` holds the page at 599 and
+    600 x 481 and at 599 x 559 and 560 (41.9).
+- Nothing else in 10.5's order moves: the Answer buttons are never given up, at any count.
+- The notice's two sentences are 10.4's; a step of two next steps never shows it above the floor.
+
+### 41.5 The slide and the neighbourhood
+
+- `Placed` carries its position, `x` across in layer widths and `y` down in layer heights, in
+  place of `slot`; the layer (`TreeView.tsx`, 11.1) reads it and nothing else.
+- **Down, one level**: the centre's *n* next steps at `y` = 1, `x` = *i* - (*n* - 1) / 2 in their
+  order: two at -0.5 and 0.5, as today; three at -1, 0, 1; four at -1.5, -0.5, 0.5, 1.5.
+- **Down, two levels**: the next steps of every first-level target, in order, *K* of them counted
+  before deduplication, at `y` = 2, `x` = *k* - (*K* - 1) / 2 -- for two times two, today's four
+  places.
+- **Up**: the parent at `y` = -1, `x` = -(*i* - (*m* - 1) / 2), *i* the first of the parent's *m*
+  next steps that names the centre; `x` = 0 after any other step. The up arrow's slide is the step
+  down reversed (11.1, #102).
+- **The bound**: up 1, down at most 4 + 16, asides 8: **29 neighbours**, and **a page reads at most
+  31 Nodes** (the centre, the 29, and the one Overlay a URL may name beyond the asides). 31 is a
+  contract as 17 was (11.2); a step of two still reads what it read.
+- A slide translates the layer by the target's `x` and `y`; everything else in 11.3 stands.
+
+### 41.6 Every other reader
+
+| Reader | From #221 |
+|---|---|
+| The types (5.1) | `Node['answers']` is `{ label: LocalisedText; target: string }[]`, two to four; `DraftNode['answers']` the same, one to four, any label lacking a language (19.2). `Manifest['format']` is `elsa-tree/6`. |
+| The validator, the byte form, the loader, the schema route (5, 15.1) | `/6` read, `/5` converted (12.8), `schemas/elsa-tree-6.json` served beside `/5` and `/4`. |
+| The store (17.4, 17.5, 18.3) | Runs 12.8 after 12.7 on every file it opens (`tree-format.md` 12.8.4); `importTree` likewise. |
+| The JSON-LD `Question` (16.4) | One `suggestedAnswer` per next step, in order: `text` the label, a colon and the target's title in the page's language -- the button's accessible name -- and `url` the target's canonical URL. A migrated yes-and-no step's is what dev's is. |
+| `llms.txt` (16.5) | It names no step and no Answer; its `## The dataset` entry names `/schemas/elsa-tree-6.json` (`SCHEMA_HREF`). |
+| The dataset endpoint (15) | The file as it is; its `Link: rel="describedby"` header names `elsa-tree-6.json` (15.2). |
+| Chrome (3.2) | `yes` and `no` stay, read by the editor alone (41.7); `addNextStep` and `nextStepWords` are #222's. |
+| The editor's row and writes (30, 22) | #221 makes them read and write the array, `+ Yes` and `+ No` writing `link: 'answer'` with the chrome words as the label (41.7 item 1), so that `dev` stays whole; #222 builds the rest of 41.7. |
+
+`grep -rn "\byes\b" src --include=*.ts*` names fourteen files on `46ee621`; it is where #221
+starts, not the list.
+
+### 41.7 The editor
+
+1. **A step without Links** offers four outlined buttons in its Answer row, in the Answer
+   buttons' style (30.1): `+ Yes`, `treeEndsHere`, `+ No` and `+` (`addNextStep`). `+ Yes` and
+   `+ No` create a next step labelled with the chrome word `yes` or `no` in every language of the
+   Tree by 3.1's rule, in one click, as today. `+` opens a Sheet with one field, `nextStepWords`
+   ("Words on the button" / "Woorden op de knop"), at most 19, in the language being edited;
+   `confirm` creates the next step with those words, every other language `""` (a to-do).
+2. **A step with next steps** shows them as 41.3 does, each label a **field in place** in the
+   language being edited (28.1, 28.2), counted against 19 live (28.4); and, while it has fewer
+   than four, one outlined `+` after the last, which opens the same Sheet. **While a step has one
+   next step**, the one-click `+ Yes` and `+ No` stand before that `+`, but for the one whose word
+   its label already says in the language edited, so that the owner's yes and no still cost one
+   click each. `treeEndsHere` stands only on a step without Links, as today.
+3. **Creating**: `POST .../nodes { from: { node, link: 'answer', label } }` writes the Node and the
+   next step, appended last, in one write (22.1, 22.4), and the editor navigates to the new Node
+   (30.2). A fifth is 422 with V-ANSWERS and stores nothing.
+4. **Order**: each button but the first carries `moveEarlier`, each but the last `moveLater`, 24-
+   pixel round controls on its outline, sending `move-answer { index, to }`; the page repaints.
+5. **Removing**: a next step goes with the step it leads to, through that step's red cross
+   (30.7, 30.8): the delete removes every Answer naming it in the same write (22.4). The others
+   keep their order; `+` shows again; a step left with one lists "fewer than two next steps"
+   among its to-dos (19.2, 33.3).
+6. **Writes**: the field `answers[i].label.<lang>`; the operations `set-answer { index, target }`,
+   `remove-answer { index }`, `move-answer { index, to }`; `link: 'answer' | 'option' | 'end'` in
+   the structural write, `label` with `'answer'` and `'end'`. `remove-answer` on the last entry
+   removes `answers` (22.4, as today).
+7. **The preview** (40.7) draws a draft step with one next step as its one button, centred, and
+   an empty label in the language shown as its bracketed placeholder.
+8. **The editor's no-scroll rule (28.6)** holds with the row as 41.3 stands it, the empty step's
+   four outlined buttons and the `+` buttons counted as buttons. Where the row has three or more
+   buttons, the editor shows the notice below 390 pixels wide by 41.4's rule, its height measured
+   by #222 on the editor's page with its bar and floating controls (the highest need, rounded up
+   to ten, never below 41.4's); `admin-no-scroll.spec.ts` measures it at the editor's viewports,
+   both languages.
+   - **[#222] Measured (2026-10-10): the height is 590**, below 41.4's width of 600 (#221's, in
+     place of the 390 above). Item 4's arrows stand inside each button at its ends, the label's
+     padding widened to 32 to keep clear of them: across the outline, a control would cross its
+     button's box, and two a row, 8 pixels apart, lie over the button above or beside it (the owner's
+     standard of #181, held by `creation-walk.spec.ts`). On the editor's page of the full Node with
+     four next steps, with three and `+`, and of a step without Links, both languages, at part 2's
+     widths below 600 and at 599, in Segoe UI and with the row in Verdana on Windows, the highest
+     need is **584** (four next steps, and three and `+`, 321 wide), 590 rounded. The editor shows
+     the notice for a row of three or four buttons below 600 pixels wide and 590 tall, naming 590
+     (`minimum-size--editor-steps`); the public page and the preview keep 41.4's 560. The script and
+     its whole output are `docs/research/issue-222-editor-notice-height.md`;
+     `admin-no-scroll.spec.ts` holds the editor at 599 and 600 x 481 and at 599 and 321 x 589 and 590.
+
+### 41.8 What does not change
+
+The Options beside the Bubble, their count of eight, their fan and their Overlay; the Terminal,
+its words and its badge; `startAgain`; the up arrow; the URL scheme and the Trail in it; the
+share link; the Theme roles; the cross-links reserved in `tree-format.md` 10.
+
+### 41.9 Tests
+
+- **#221**: the migration over every Tree and fixture, idempotent, and section 8's block
+  (`tests/migrate-tree.test.ts`); the schema and the validator on two, three, four, one (draft
+  only) and five entries, and on a label of 20 characters; fixtures of a step of three and of
+  four next steps, one of them `full-node`'s own question Node with four, labelled at 19
+  characters in both languages; `no-scroll.spec.ts` on them at the ten viewports of 10.6 and at
+  999 x 640, 1000 x 640, and one pixel either side of 41.4's width and of its height, in both
+  languages; the notice of 41.4;
+  `transition.spec.ts` sliding to the third and fourth of four and back up; `neighbourhood.test.ts`
+  on the positions of 41.5 and on 31; the JSON-LD's `suggestedAnswer` for three; the CI runner's
+  faces measured as 41.4 says.
+- **#222**: the four outlined buttons and `+`; the Sheet; a label field and its count; the move
+  arrows; a fifth refused; a delete leaving one, and its to-do; `admin-no-scroll.spec.ts` as 41.7
+  item 8 says; screenshots of a step of four at 1280 x 640 and 360 x 640, in both languages.

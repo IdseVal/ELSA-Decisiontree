@@ -1,0 +1,115 @@
+{
+  "$schema": "/schemas/elsa-tree-6.json",
+  "format": "elsa-tree/6",
+  "languages": [
+    "en",
+    "nl",
+    "de"
+  ],
+  "root": "start",
+  "title": {
+    "en": "A Tree in three languages with a wide logo",
+    "nl": "Een boom in drie talen met een breed logo",
+    "de": "Ein Baum in drei Sprachen mit breitem Logo"
+  },
+  "description": {
+    "en": "A logo twenty times as wide as it is tall, so it reaches its cap in the chrome bar, beside the pills of three languages.",
+    "nl": "Een logo twintig keer zo breed als hoog, zodat het in de balk bovenaan zijn grens haalt, naast de knoppen van drie talen.",
+    "de": "Ein Logo, zwanzigmal so breit wie hoch, das in der oberen Leiste seine Grenze erreicht, neben den Knöpfen dreier Sprachen."
+  },
+  "metadata": {
+    "version": "1.0"
+  },
+  "theme": {
+    "logo": {
+      "light": "wide-logo.svg",
+      "alt": {
+        "en": "Wide Lab",
+        "nl": "Breed lab",
+        "de": "Breites Labor"
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "title": {
+        "en": "Does the Act apply?",
+        "nl": "Is de verordening van toepassing?",
+        "de": "Gilt die Verordnung?"
+      },
+      "description": {
+        "en": "The root of a Tree whose logo is as wide as the bar lets it be.",
+        "nl": "Het begin van een boom waarvan het logo zo breed is als de balk toelaat.",
+        "de": "Der Anfang eines Baums, dessen Logo so breit ist, wie die Leiste es zulässt."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "answers": [
+        {
+          "label": {
+            "en": "Yes",
+            "nl": "Ja",
+            "de": "Yes"
+          },
+          "target": "applies"
+        },
+        {
+          "label": {
+            "en": "No",
+            "nl": "Nee",
+            "de": "No"
+          },
+          "target": "does-not-apply"
+        }
+      ]
+    },
+    {
+      "id": "applies",
+      "title": {
+        "en": "The Act applies",
+        "nl": "De verordening is van toepassing",
+        "de": "Die Verordnung gilt"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier.",
+        "de": "Der Weg endet hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "label": {
+          "en": "Applies",
+          "nl": "Van toepassing",
+          "de": "Gilt"
+        }
+      }
+    },
+    {
+      "id": "does-not-apply",
+      "title": {
+        "en": "The Act does not apply",
+        "nl": "De verordening is niet van toepassing",
+        "de": "Die Verordnung gilt nicht"
+      },
+      "description": {
+        "en": "The walk ends here.",
+        "nl": "De wandeling eindigt hier.",
+        "de": "Der Weg endet hier."
+      },
+      "metadata": {
+        "version": "1.0"
+      },
+      "terminal": {
+        "label": {
+          "en": "Does not apply",
+          "nl": "Niet van toepassing",
+          "de": "Gilt nicht"
+        }
+      }
+    }
+  ]
+}

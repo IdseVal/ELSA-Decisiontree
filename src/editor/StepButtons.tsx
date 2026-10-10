@@ -147,11 +147,16 @@ export function DeleteStep({
  * once, as the step menu's `removeEnd` did. The response repaints the page (29.7): the badge
  * goes, the row offers the three buttons, and this button goes with the ending. A refusal --
  * a collaborator removed the ending first -- is said under the button, as the menu said it.
+ *
+ * **[#205]** On a hidden Tree it also holds the glyph of the Tree going on, and its words as its
+ * name and `title`: below 640 pixels wide, where the preview button takes the band's left end,
+ * the stylesheet draws it as that round icon (40.5).
  */
 export function RemoveEnd({ nodeId, word, uiLang }: { nodeId: string; word: string; uiLang: string | undefined }) {
   const api = useEditor()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const hidden = !api.tree.published
   const remove = (): void => {
     if (busy || api.readOnly) return
     setBusy(true)
@@ -163,8 +168,14 @@ export function RemoveEnd({ nodeId, word, uiLang }: { nodeId: string; word: stri
   }
   return (
     <span className="step-end" lang={uiLang}>
-      <button type="button" disabled={api.readOnly || busy} onClick={remove}>
-        {word}
+      <button type="button" disabled={api.readOnly || busy} onClick={remove} aria-label={hidden ? word : undefined} title={hidden ? word : undefined}>
+        {hidden && (
+          // The Tree going on: one stroke down from the top, splitting at the middle to the lower corners.
+          <svg className="step-end-glyph" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 2v6M8 8l-5 6M8 8l5 6" />
+          </svg>
+        )}
+        <span className="step-end-words">{word}</span>
       </button>
       {error !== null && (
         <span className="admin-error step-end-error" role="alert">

@@ -1,6 +1,7 @@
 # ADR-171-elsa-tree-5: the ending text is a new format number, `elsa-tree/5`, with its own schema beside the old one; every `elsa-tree/4` file is converted by one procedure -- the repository's by #179, a deployment's by the store when it opens
 
 - Status: ACCEPTED (frozen) -- 2026-10-02
+- **[#220] Amended (2026-10-09)** by `ADR-220-elsa-tree-6.md`: the next format number is taken, `elsa-tree/6`, for `answers` as an ordered array of two to four next steps; `/5` is converted by `tree-format.md` 12.8 as `/4` is by 12.7.
 - Issue: #171 -- Architecture: freeze the free-text ending of a tree (in place of the four
   fixed outcomes) and the font and licence dropdowns of the Theme panel
 - Spec: `docs/specs/tree-format.md` (title, 2, 3.7, 3.9, 4, 7, 8, 9, 10, 11, 12.7 new);

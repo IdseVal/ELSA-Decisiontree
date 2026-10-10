@@ -88,4 +88,10 @@ describe('the chrome strings', () => {
     expect(chrome('en').nameShownPublicly).toBe('Shown on the public pages of the trees you create or collaborate on.')
     expect(chrome('nl').nameShownPublicly).toBe("Wordt getoond op de openbare pagina's van de bomen die u maakt of waaraan u meewerkt.")
   })
+
+  // **[#206]** The preview of a hidden Tree's two buttons (40.5).
+  test('preview and backToEditor say the two buttons of the preview in both languages (40.5)', () => {
+    expect([chrome('en').preview, chrome('en').backToEditor]).toEqual(['Preview', 'Back to the editor'])
+    expect([chrome('nl').preview, chrome('nl').backToEditor]).toEqual(['Voorbeeld', 'Terug naar de editor'])
+  })
 })

@@ -43,7 +43,7 @@ async function walkFromRoot(from: Tree): Promise<Map<string, Node>> {
     const node = await from.getNode(id)
     expect(node, `"${id}" is linked to but cannot be read`).not.toBeNull()
     found.set(id, node!)
-    if (node!.kind === 'question') queue.push(node!.answers.yes, node!.answers.no)
+    if (node!.kind === 'question') queue.push(...node!.answers.map((answer) => answer.target))
     queue.push(...node!.options.map((option) => option.target))
   }
   return found
@@ -57,7 +57,7 @@ function answerOnlyReach(from: Map<string, Node>, root: string): Set<string> {
     if (seen.has(id)) continue
     seen.add(id)
     const node = from.get(id)
-    if (node?.kind === 'question') queue.push(node.answers.yes, node.answers.no)
+    if (node?.kind === 'question') queue.push(...node.answers.map((answer) => answer.target))
   }
   return seen
 }
@@ -144,6 +144,8 @@ describe('the content of the first Tree', () => {
         expect(node!.kind, `${id} is not a question Node`).toBe('question')
         return node as Node & { kind: 'question' }
       }
+      // **[#221]** The yes first, then the no: the order 12.8 converted them in.
+      const targets = (id: string): string[] => step(id).answers.map((answer) => answer.target)
 
       // Issue #44 cut three of the six steps into several Nodes, because their Options or
       // their text did not fit the limits of elsa-tree/2. The six steps and their order are
@@ -151,24 +153,24 @@ describe('the content of the first Tree', () => {
       // and an exclusions Node (the test below), step 3 is two Nodes and step 4a is three,
       // and the last Node of each reaches what the single Node it replaced reached. Since PR
       // #53 a yes on step 1 passes the exclusions Node on its way to step 2.
-      expect(step('start').answers).toEqual({ yes: 'article-2-exclusions', no: 'jurisdiction-deployer' })
-      expect(step('article-2-exclusions').answers).toEqual({ yes: 'ai-act-does-not-apply', no: 'ai-system-definition' })
-      expect(step('ai-system-definition').answers).toEqual({ yes: 'prohibited-practices', no: 'not-an-ai-system' })
-      expect(step('prohibited-practices').answers).toEqual({ yes: 'prohibited', no: 'prohibited-practices-2' })
-      expect(step('prohibited-practices-2').answers).toEqual({ yes: 'prohibited', no: 'annex-i-legislation' })
-      expect(step('annex-i-legislation').answers).toEqual({ yes: 'high-risk', no: 'annex-i-legislation-2' })
-      expect(step('annex-i-legislation-2').answers).toEqual({ yes: 'high-risk', no: 'annex-i-legislation-3' })
-      expect(step('annex-i-legislation-3').answers).toEqual({ yes: 'high-risk', no: 'annex-iii-areas' })
-      expect(step('annex-iii-areas').answers).toEqual({ yes: 'high-risk', no: 'general-purpose-ai' })
+      expect(targets('start')).toEqual(['article-2-exclusions', 'jurisdiction-deployer'])
+      expect(targets('article-2-exclusions')).toEqual(['ai-act-does-not-apply', 'ai-system-definition'])
+      expect(targets('ai-system-definition')).toEqual(['prohibited-practices', 'not-an-ai-system'])
+      expect(targets('prohibited-practices')).toEqual(['prohibited', 'prohibited-practices-2'])
+      expect(targets('prohibited-practices-2')).toEqual(['prohibited', 'annex-i-legislation'])
+      expect(targets('annex-i-legislation')).toEqual(['high-risk', 'annex-i-legislation-2'])
+      expect(targets('annex-i-legislation-2')).toEqual(['high-risk', 'annex-i-legislation-3'])
+      expect(targets('annex-i-legislation-3')).toEqual(['high-risk', 'annex-iii-areas'])
+      expect(targets('annex-iii-areas')).toEqual(['high-risk', 'general-purpose-ai'])
       // Issue #24: the high-risk finding does not end the walk. A high-risk system can carry
       // Article 50 obligations at the same time (Article 50(6)), and the core document's
       // OPEN 10.7 answers that the general-purpose AI and transparency steps come after the
       // high-risk step -- so both Answers carry the finding on into step 5.
-      expect(step('high-risk').answers).toEqual({ yes: 'general-purpose-ai', no: 'general-purpose-ai' })
+      expect(targets('high-risk')).toEqual(['general-purpose-ai', 'general-purpose-ai'])
       // Steps 5 and 6 do not branch either: general-purpose AI never ends the walk, and the
       // Tree goes no further than Article 50 (core document 3.3, item 7).
-      expect(step('general-purpose-ai').answers).toEqual({ yes: 'transparency-obligations', no: 'transparency-obligations' })
-      expect(step('transparency-obligations').answers).toEqual({ yes: 'end-of-walk', no: 'end-of-walk' })
+      expect(targets('general-purpose-ai')).toEqual(['transparency-obligations', 'transparency-obligations'])
+      expect(targets('transparency-obligations')).toEqual(['end-of-walk', 'end-of-walk'])
     })
 
     test('the jurisdiction step spans seven question Nodes, each numbered in its title', () => {
@@ -183,10 +185,10 @@ describe('the content of the first Tree', () => {
         }
         // A yes on any one of the seven means the Act reaches the reader, so it goes to the
         // exclusions; a no goes on to the next category, and a no on the seventh ends the walk.
-        expect((node as Node & { kind: 'question' }).answers).toEqual({
-          yes: 'article-2-exclusions',
-          no: JURISDICTION_STEPS[index + 1] ?? 'ai-act-does-not-apply',
-        })
+        expect((node as Node & { kind: 'question' }).answers.map((answer) => answer.target)).toEqual([
+          'article-2-exclusions',
+          JURISDICTION_STEPS[index + 1] ?? 'ai-act-does-not-apply',
+        ])
       })
       // The owner's answer on PR #53: the exclusions are asked of every reader the Act reaches,
       // because a defence or sole-research provider must not be walked on to a high-risk or
@@ -194,7 +196,7 @@ describe('the content of the first Tree', () => {
       // with no jurisdictional link never meets them: for that reader they are moot.
       expect(nodes.get('article-2-exclusions')).toMatchObject({
         kind: 'question',
-        answers: { yes: 'ai-act-does-not-apply', no: 'ai-system-definition' },
+        answers: [{ target: 'ai-act-does-not-apply' }, { target: 'ai-system-definition' }],
       })
     })
 

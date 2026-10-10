@@ -1,6 +1,7 @@
 /**
  * `POST /admin/api/trees/<t>/nodes { from: { node, link }, title? }` (docs/specs/application.md
- * 22.1, 22.4): creates a Node and the Link to it in one write -- an Answer or an Option -- or,
+ * 22.1, 22.4): creates a Node and the Link to it in one write -- an Answer, **[#221]** `link: 'answer'`
+ * with its `label`, or an Option -- or,
  * with `link: 'end'` and a `label`, **[#179]** the ending's words, makes `from.node` a Terminal.
  */
 import { json, refuse } from '../../../../../../../admin/authenticated.ts'
