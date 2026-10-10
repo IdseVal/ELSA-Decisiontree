@@ -5,6 +5,8 @@
  * **[#221]** And 12.8's, from `elsa-tree/5` to `elsa-tree/6` (ADR-220-elsa-tree-6): the two
  * names again, and every `answers`, whose `yes` and `no` become an array of next steps
  * labelled with the words their buttons showed. A `/4` file takes both, in that order.
+ * **[#232]** And 12.9's, from `elsa-tree/6` to `elsa-tree/7` (ADR-231-elsa-tree-7): the two
+ * names alone, since `/7` only widens `answers` to five. A `/4` file takes all three.
  * Pure: one parsed file in, the converted file and what was done out. The migration
  * (`npm run migrate`) and the store, which converts the files it opens (application.md
  * 36.4), both run it; each then validates the result and writes it in the byte form of 3.7
@@ -40,6 +42,9 @@ const SCHEMA_4 = /^(?:\/|https?:\/\/[^\s/?#]+(?:\/[^\s?#]*)?\/)schemas\/elsa-tre
 
 /** **[#221]** The same grammar for `elsa-tree/5` (schemas/elsa-tree-5.json). */
 const SCHEMA_5 = /^(?:\/|https?:\/\/[^\s/?#]+(?:\/[^\s?#]*)?\/)schemas\/elsa-tree-5\.json$/
+
+/** **[#232]** The same grammar for `elsa-tree/6` (schemas/elsa-tree-6.json). */
+const SCHEMA_6 = /^(?:\/|https?:\/\/[^\s/?#]+(?:\/[^\s?#]*)?\/)schemas\/elsa-tree-6\.json$/
 
 /** What `convertTree` did to one file. */
 export interface Conversion {
@@ -135,6 +140,21 @@ export function convertAnswers(tree: Mapping): AnswersConversion {
     steps += 1
   }
   return { tree: out, format: tree.format, steps, left }
+}
+
+/**
+ * **[#232]** Steps 2 to 5 of 12.9.1 on `tree`, a parsed file the loader's reader accepted
+ * (step 1) or `convertAnswers`'s answer. A file that is not `elsa-tree/6` -- `elsa-tree/7`
+ * included, which makes the procedure idempotent -- is answered with null. Otherwise the
+ * answer is a copy with `format` and `$schema` naming `/7` and nothing else changed: every
+ * `/6` file is a `/7` file in shape, so `answers` is not looked at.
+ */
+export function convertFormat(tree: Mapping): Mapping | null {
+  if (tree.format !== 'elsa-tree/6') return null
+  const out = structuredClone(tree)
+  out.format = 'elsa-tree/7'
+  if (typeof out.$schema === 'string' && SCHEMA_6.test(out.$schema)) out.$schema = out.$schema.replace(/elsa-tree-6\.json$/, 'elsa-tree-7.json')
+  return out
 }
 
 /** The file's `languages` when it is a list of strings, which both conversions need to write a label; null otherwise. */

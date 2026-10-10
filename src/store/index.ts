@@ -9,14 +9,15 @@
  * the login rate limit are members of `Store`. **[#136]** The drafts and every write to a Tree
  * are `drafts.ts`'s, the member `drafts`. **[#179]** Every `elsa-tree/4` file it finds or imports
  * is converted to `elsa-tree/5` before it is opened (application.md 36.4), **[#221]** and every
- * `/5` file to `elsa-tree/6` (tree-format.md 12.8.4). **[#197]** Every
+ * `/5` file to `elsa-tree/6` (tree-format.md 12.8.4), **[#232]** and every `/6` file to
+ * `elsa-tree/7` (12.9.4). **[#197]** Every
  * `meta.json` records the order in which its Tree's accounts joined it (39.2), and `authors`
  * names a published Tree's Authors to the public routes (39.8).
  */
 import { cp, mkdir, readdir, readFile, rename, rm, stat, access, constants } from 'node:fs/promises'
 import path from 'node:path'
 import type { Environment } from '../config.ts'
-import { convertAnswers, convertTree } from '../tree/convert.ts'
+import { convertAnswers, convertFormat, convertTree } from '../tree/convert.ts'
 import { formatViolation, openTree, readTreeText, TreeInvalid, violationsOf, type Tree } from '../tree/loader.ts'
 import { treeBytes } from '../tree/serialise.ts'
 import { isMapping, type Mode } from '../tree/validate.ts'
@@ -106,7 +107,7 @@ export async function openStore(dataDir: string, env: Environment): Promise<Stor
   // #197 records each Tree's order of joining from its roles (39.2).
   await recordJoining(treesDir)
   // **[#179]** Before any Tree is opened: a release that reads elsa-tree/5 converts what an
-  // earlier one wrote (36.4); **[#221]** elsa-tree/6, the same way (tree-format.md 12.8.4). Each file on its own, so a draft that converts is not held back
+  // earlier one wrote (36.4); **[#221]** elsa-tree/6, **[#232]** and elsa-tree/7, the same way (tree-format.md 12.8.4, 12.9.4). Each file on its own, so a draft that converts is not held back
   // by a published copy that cannot, or the other way round.
   for (const id of await listFolders(treesDir)) {
     const dir = path.join(/* turbopackIgnore: true */ treesDir, id)
@@ -231,10 +232,11 @@ export async function importTree(folder: string, treesDir: string, creator: stri
 /**
  * **[#179]** Converts `file`, the `tree.json` or `draft.json` of the Tree folder `dir`, from
  * `elsa-tree/4` to `elsa-tree/5` by tree-format.md 12.7.1 -- **[#221]** and from `elsa-tree/5`
- * to `elsa-tree/6` by 12.8.1 after it, in memory, so a `/4` file takes both and is checked and
- * written once, with a line for each (12.8.4) -- and replaces it atomically when the
+ * to `elsa-tree/6` by 12.8.1 after it, **[#232]** and from `elsa-tree/6` to `elsa-tree/7` by
+ * 12.9.1 last, in memory, so a `/4` file takes all three and is checked and written once, with
+ * a line for each (12.8.4, 12.9.4) -- and replaces it atomically when the
  * result passes `mode`'s rules -- a draft its blocking ones (19.2), the published copy every
- * one (19.3) -- logging one line (36.4). A file that is neither `/4` nor `/5`, or that the loader would not
+ * one (19.3) -- logging one line (36.4). A file that is not `/4`, `/5` or `/6`, or that the loader would not
  * read, is left as it is, for opening it to answer. A result that would not pass is not
  * written: it rejects with a `TreeInvalid` holding the violations that stopped it (step 8), as
  * a write the disk refuses rejects with the disk's error. `meta.json` is not touched: no
@@ -252,14 +254,16 @@ async function convertFile(id: string, dir: string, file: string, mode: Mode): P
   const value = text === null ? null : readTreeText(text).value
   if (!isMapping(value)) return
   const { tree: ended, endings } = convertTree(value)
-  const { tree, steps } = convertAnswers(ended ?? value)
+  const { tree: stepped, steps } = convertAnswers(ended ?? value)
+  const tree = convertFormat(stepped ?? ended ?? value)
   if (tree === null) return
   // In published mode no violation carries `advisory`, so every one of them stops the write.
   const blocking = (await violationsOf(dir, JSON.stringify(tree), mode)).filter((violation) => !violation.advisory)
   if (blocking.length > 0) throw new TreeInvalid(id, blocking)
   await writeAtomic(file, treeBytes(tree))
   if (ended !== null) console.log(`Converted Tree "${id}" ${path.basename(file)} from elsa-tree/4 to elsa-tree/5: ${endings} endings`)
-  console.log(`Converted Tree "${id}" ${path.basename(file)} from elsa-tree/5 to elsa-tree/6: ${steps} steps`)
+  if (stepped !== null) console.log(`Converted Tree "${id}" ${path.basename(file)} from elsa-tree/5 to elsa-tree/6: ${steps} steps`)
+  console.log(`Converted Tree "${id}" ${path.basename(file)} from elsa-tree/6 to elsa-tree/7`)
 }
 
 /**

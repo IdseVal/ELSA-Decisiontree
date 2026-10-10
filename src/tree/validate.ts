@@ -28,7 +28,7 @@ import { explainerMarks } from '../markdown.ts'
 import { countedLength, isId } from './grammar.ts'
 import { estimatedLines } from './measure.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
-import schemaDocument from '../../schemas/elsa-tree-6.json' with { type: 'json' }
+import schemaDocument from '../../schemas/elsa-tree-7.json' with { type: 'json' }
 
 /**
  * **[#137]** The grammars and the counted length of 3.8 moved to `grammar.ts`, which a client
@@ -116,8 +116,8 @@ export const MAX = {
   fontLicence: 200,
   sources: 3,
   options: 8,
-  /* Four buttons in one row of 1000 pixels and more, two a row below (application.md 41.1, #220). */
-  answers: 4,
+  /* Five buttons in one row of 1000 pixels and more, three then two below (application.md 42.1, 42.3, #231). */
+  answers: 5,
   nodeImages: 10,
   explainers: 8,
   explainerTerm: 40,
@@ -406,7 +406,7 @@ function checkImages(c: DocumentChecker, images: Mapping[] | undefined, sourceId
 /**
  * The Answers as Links, and each label's languages, line and length; whether each target
  * exists and is of the right kind is checkGraph's. **[#221]** The schema has said there are
- * two to four (V-ANSWERS); only the draft schema lets one through (19.2), which is the to-do
+ * two to four (V-ANSWERS), **[#232]** two to five; only the draft schema lets one through (19.2), which is the to-do
  * said here.
  */
 function answerLinks(c: DocumentChecker, answers: Mapping[]): Link[] {
