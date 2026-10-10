@@ -14,6 +14,10 @@
  *   reduce` it never does while the navigation still happens.
  * - The up arrow retraces the step it undoes (#102): back up-right from a `yes` target,
  *   up-left from a `no` target, straight up after any other step.
+ * - **[#232]** Each button of two, three, four and five next steps slides toward where it stands,
+ *   in one row and in two (42.5), and the up arrow retraces it: the table of
+ *   `docs/research/issue-230-slide-direction.md`, measured on this build, is written to
+ *   `tests/browser/.results/transition-slides.md`.
  * - While the page left behind and the target are both mounted, no id is in the document twice,
  *   and the frame of the page left behind is `inert`.
  * - A slide that starts with a Sheet open closes the Sheet before the layer moves.
@@ -28,7 +32,7 @@
  *
  * The server serves `trees/ai-act-example` (see playwright.config.ts).
  */
-import { mkdir, writeFile } from 'node:fs/promises'
+import { appendFile, mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page, type Request } from '@playwright/test'
@@ -46,8 +50,19 @@ const ROOT = '/ai-act-example/start'
 const QUESTION = `${ROOT}/prohibited-practices`
 const OPTION = `${QUESTION}/social-scoring`
 
-/** **[#221]** The bound of 41.5: the Node a page shows, at most 29 neighbours and the one Overlay its URL may name (17 until #221). */
-const MAX_NODES = 31
+/** **[#221]** The bound of 41.5, **[#232]** of 42.5: the Node a page shows, at most 39 neighbours and the one Overlay its URL may name (17 until #221, 31 until #232). */
+const MAX_NODES = 41
+
+/** **[#232]** The servers of the fixtures this file slides on, one each, started once. */
+const fixtureOrigins = new Map<string, Promise<string | null>>()
+
+/** `fixture` out of `tests/fixtures/`, served on `BASE_PORT + offset` for every test of this file that asks. */
+async function fixtureOrigin(fixture: string, offset: number): Promise<string> {
+  if (!fixtureOrigins.has(fixture)) fixtureOrigins.set(fixture, serve(path.join(repo, 'tests', 'fixtures'), fixture, BASE_PORT + offset))
+  const origin = await fixtureOrigins.get(fixture)!
+  expect(origin, `${fixture} is a valid Tree`).not.toBeNull()
+  return origin!
+}
 
 let tree: Tree
 
@@ -309,7 +324,7 @@ test.describe('the way back retraces the way down (#102)', () => {
   })
 
   test('**[#221]** to the third and the fourth of four next steps and back up: each to its own frame, the way back the step down reversed (41.5)', async ({ page }) => {
-    const origin = await serve(path.join(repo, 'tests', 'fixtures'), 'full-node', BASE_PORT + 45)
+    const origin = await fixtureOrigin('full-node', 45)
     await page.setViewportSize({ width: 1280, height: 640 })
     const slides: Array<{ x: number; y: number }> = []
     for (const index of [3, 4]) {
@@ -335,6 +350,80 @@ test.describe('the way back retraces the way down (#102)', () => {
     expect(Math.abs(up.x)).toBe(0)
     expect(up.y).toBeGreaterThan(0)
   })
+})
+
+/**
+ * **[#232]** The pages whose every button is slid from (application.md 42.10): a step of two (the
+ * example Tree's, on the configured server), three, four and five, and the windows: the guarantee,
+ * the first width at which three to five stand in two rows, and a phone's width below 600.
+ */
+const SLIDE_STEPS = [
+  { count: 2, fixture: null, url: QUESTION },
+  { count: 3, fixture: { id: 'three-next-steps', offset: 46 }, url: '/three-next-steps/full' },
+  { count: 4, fixture: { id: 'full-node', offset: 45 }, url: '/full-node/full' },
+  { count: 5, fixture: { id: 'five-next-steps', offset: 47 }, url: '/five-next-steps/full' },
+] as const
+const SLIDE_WINDOWS = [
+  [1280, 640],
+  [999, 640],
+  [360, 640],
+] as const
+
+test.describe('**[#232]** each button slides toward where it stands, and the up arrow retraces it (42.5)', () => {
+  test.beforeAll(async () => {
+    await mkdir(RESULTS, { recursive: true })
+    await writeFile(
+      path.join(RESULTS, 'transition-slides.md'),
+      '| Next steps | Viewport | Button | Across (px) | Down (px) | In buttons | The reader goes (across, down) | Layer widths | Side | Up arrow (across, down) |\n|---|---|---|---|---|---|---|---|---|---|\n',
+    )
+  })
+
+  for (const { count, fixture, url } of SLIDE_STEPS) {
+    test(`a step of ${count}: at ${SLIDE_WINDOWS.map(([w, h]) => `${w} x ${h}`).join(', ')}`, async ({ page }) => {
+      test.slow()
+      const origin = fixture ? await fixtureOrigin(fixture.id, fixture.offset) : ''
+      const lines: string[] = []
+      for (const [width, height] of SLIDE_WINDOWS) {
+        await page.setViewportSize({ width, height })
+        await page.goto(`${origin}${url}`)
+        const buttons = page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next')
+        await expect(buttons).toHaveCount(count)
+        for (let i = 1; i <= count; i += 1) {
+          const where = `button ${i} of ${count} at ${width} x ${height}`
+          await page.goto(`${origin}${url}`)
+          const control = `.tree-frame:not([aria-hidden]) .answers > .answer--next:nth-child(${i})`
+          // Where it stands: its middle against its own row's, counted in buttons -- a button's
+          // width and the gap across -- from the boxes the page drew.
+          const boxes = await buttons.evaluateAll((all) => all.map((button) => button.getBoundingClientRect().toJSON() as DOMRect))
+          const row = (await page.locator('.tree-frame:not([aria-hidden]) .answers').boundingBox())!
+          const box = boxes[i - 1]!
+          const mates = boxes.filter((other) => Math.abs(other.top - box.top) < 1)
+          const pitch = boxes[1]!.left - boxes[0]!.left
+          const middleOfRow = (mates[0]!.left + mates.at(-1)!.right) / 2
+          const across = box.left + box.width / 2 - middleOfRow
+          const inButtons = Math.round((across / pitch) * 2) / 2
+          const layer = (await page.locator('.tree-layer').boundingBox())!.width
+
+          const down = await slideOf(page, control)
+          const up = await slideOf(page, '.up-arrow')
+          // The layer moves opposite the reader, so the reader goes to the slide negated.
+          const goes = { x: -down.x, y: -down.y }
+          expect(Math.abs(across - inButtons * pitch), `${where}: stands a whole or half button from its row's middle`).toBeLessThan(1)
+          // `+ 0`: a button in the middle and its straight slide are signs of 0, never -0.
+          expect(Math.sign(Math.round(goes.x)) + 0, `${where}: slides to the side it stands on`).toBe(Math.sign(inButtons) + 0)
+          expect(goes.x, `${where}: as far across as it stands, in layer widths`).toBeCloseTo(inButtons * layer, 0)
+          expect(goes.y, `${where}: down`).toBeGreaterThan(0)
+          expect(up.x, `${where}: the up arrow retraces it across`).toBeCloseTo(-down.x, 0)
+          expect(up.y, `${where}: and up`).toBeCloseTo(-down.y, 0)
+          const side = inButtons === 0 ? 'middle, straight down' : inButtons < 0 ? 'left, to the left' : 'right, to the right'
+          lines.push(
+            `| ${count} | ${width} x ${height} | ${i} of ${count} | ${Math.round(across)} | ${Math.round(box.top - row.y)} | ${inButtons} | ${Math.round(goes.x)}, ${Math.round(goes.y)} | ${+(goes.x / layer).toFixed(2)} | ${side} | ${Math.round(-up.x)}, ${Math.round(-up.y)} |`,
+          )
+        }
+      }
+      await appendFile(path.join(RESULTS, 'transition-slides.md'), `${lines.join('\n')}\n`)
+    })
+  }
 })
 
 test.describe('the motion', () => {

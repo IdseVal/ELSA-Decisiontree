@@ -2592,6 +2592,15 @@ fieldset:disabled .admin-submit {
     padding-block: 4px;
   }
 
+  /*
+   * **[#232]** Every button of a row as tall as the tallest, its words centred in it (42.3): a
+   * label of fewer lines would otherwise stand shorter and lower than its neighbours. At and above
+   * the guarantee every label takes two lines at most, 60 pixels, in the row's fixed 68.
+   */
+  .answers > .answer {
+    align-self: stretch;
+  }
+
   .options > li {
     --x: 400;
     --connector: 0px;
