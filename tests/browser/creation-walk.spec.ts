@@ -26,7 +26,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Locator, type Page, type Response } from '@playwright/test'
 import { chrome, type Chrome } from '../../src/chrome.ts'
-import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
+import { ADMIN_ENV, buildDataDir, login, plusOf, typeInPlus } from './admin.ts'
 import { arrived } from './arrived.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
@@ -478,17 +478,22 @@ async function addSource(walk: Walk, scope: Locator, nodeId: string, shoot?: () 
   if (shoot) await shoot()
 }
 
-/** `treeEndsHere` with `words` typed into its one field (30.3; **[#179]** 36.3); `shoot` runs with the words typed. */
+/**
+ * `treeEndsHere` with `words` typed into its one field (30.3; **[#179]** 36.3), **[#233]** the `+`
+ * Sheet's switch on (42.7); `shoot` runs with the words typed.
+ */
 async function endHere(walk: Walk, nodeId: string, words: string, shoot?: () => Promise<void>): Promise<void> {
   const { page, ui, lang } = walk
-  await page.locator('.structure-end > .sheet-open').click()
-  const form = page.locator('.structure-form--end')
-  await expect(form).toBeVisible()
-  await expect(form.getByRole('textbox')).toBeFocused()
-  await page.keyboard.type(words, { delay: 5 })
+  const form = await typeInPlus(page, words, true)
   if (shoot) await shoot()
   await form.getByRole('button', { name: ui.confirm, exact: true }).click()
   await expect(page.locator(`[data-field="${nodeId} terminal.label.${lang}"] textarea`)).toHaveValue(words)
+}
+
+/** **[#233]** A next step of the centre with the walk's word for yes or no on its button, through the `+` and Enter (42.7 item 3). */
+async function addAnswer(walk: Walk, which: 'yes' | 'no'): Promise<void> {
+  const words = { en: { yes: 'Yes', no: 'No' }, nl: { yes: 'Ja', no: 'Nee' } }[walk.lang === 'nl' ? 'nl' : 'en'][which]
+  await (await typeInPlus(walk.page, words)).getByRole('textbox').press('Enter')
 }
 
 /** The fan's `+` (30.4), where it is on screen. */
@@ -640,13 +645,13 @@ async function walkThrough(walk: Walk): Promise<void> {
   expect(separators.length).toBeGreaterThan(0)
   for (const content of separators) expect(content).toBe('none')
 
-  // Yes and no (30.2): each a new step, landed on; back with the up arrow.
-  await page.locator('.structure--yes').click()
+  // Yes and no (30.2): each a new step, landed on; back with the up arrow. **[#233]** Each through the `+` (42.7).
+  await addAnswer(walk, 'yes')
   const yesId = await landed(page, `/admin/trees/${walk.tree}/start`)
   await page.locator('.up-arrow').click()
   await page.waitForURL((url) => url.pathname === `/admin/trees/${walk.tree}/start`, { timeout: 20_000 })
   await hydrated(page)
-  await page.locator('.structure--no').click()
+  await addAnswer(walk, 'no')
   const noId = await landed(page, `/admin/trees/${walk.tree}/start`)
   await open(walk, 'start')
   await step(walk, '08-yes-and-no')
@@ -694,7 +699,7 @@ async function walkThrough(walk: Walk): Promise<void> {
   await page.getByRole('alertdialog').getByRole('button', { name: ui.confirm, exact: true }).click()
   await page.waitForURL((url) => url.pathname === `/admin/trees/${walk.tree}/start`, { timeout: 20_000 })
   await hydrated(page)
-  await expect(page.locator('.structure--no')).toBeVisible()
+  await expect(plusOf(page)).toBeVisible()
 
   // The to-do bubble (33.3), with what is left to do.
   const reread = page.waitForResponse((response) => new URL(response.url()).pathname === `/admin/api/trees/${walk.tree}`, { timeout: 20_000 })
@@ -706,7 +711,7 @@ async function walkThrough(walk: Walk): Promise<void> {
   await page.keyboard.press('Escape')
 
   // What is left, done: the No step again, ended; the other side bubbles named and written.
-  await page.locator('.structure--no').click()
+  await addAnswer(walk, 'no')
   const noAgain = await landed(page, `/admin/trees/${walk.tree}/start`)
   await write(walk, noAgain, `title.${lang}`, words.noTitle)
   await write(walk, noAgain, `description.${lang}`, words.noText)

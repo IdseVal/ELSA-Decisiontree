@@ -30,6 +30,9 @@
  * of every control under the bar (10.4). **[#222]** And the editor's Answer row of 41.7: three next
  * steps and `+` at every viewport, with the `+` Sheet open, the empty step's `+` Sheet among the
  * structure's, and the editor's notice either side of 41.4's width and of its height (41.7 item 8).
+ * **[#233]** And a row of five buttons both ways -- five next steps, and four and the `+` -- at every
+ * viewport of 10.6, with the `+` Sheet open, and the editor's notice for it one pixel either side of
+ * each width and height of 42.4's two boxes; the empty step's `+` Sheet with its switch on too.
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -119,6 +122,8 @@ test.beforeAll(async () => {
     { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'unfinished', hidden: true },
     // **[#222]** The full Node with three next steps, which the editor gives a `+` beside them (41.7 item 2).
     { folder: path.join(repo, 'tests', 'fixtures', 'three-next-steps'), hidden: true },
+    // **[#233]** The full Node with five next steps, labelled at 19 characters: a row of five with no `+` (42.4).
+    { folder: path.join(repo, 'tests', 'fixtures', 'five-next-steps'), hidden: true },
   ]
   overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [] }), PORT + 1, ADMIN_ENV)
 })
@@ -418,7 +423,8 @@ for (const lang of LANGUAGES) {
 
 /**
  * **[#139]** The structure's Sheets (30) at every viewport (28.6): on an explanation Node that
- * is the centre, the end Sheet. Each is opened, measured and closed with Escape. **[#177]** The
+ * is the centre, **[#233]** the `+` Sheet, with its switch `treeEndsHere` off and on (42.7 item 2).
+ * Each is opened, measured and closed with Escape. **[#177]** The
  * fan's `+` opens no Sheet any more: one click creates (30.4, amended), and the side bubble it
  * opens is measured with the Overlays. **[#178]** The step menu and the link menus are gone
  * (30.6, 30.8, amended): in their place the step's buttons beside the up arrow are measured --
@@ -441,9 +447,10 @@ async function structureEverywhere(page: Page, lang: string): Promise<void> {
     expect((await page.goto(`${origin}/admin/trees/hidden-draft/opt-three${query}`))?.status()).toBe(200)
     await expect(page.locator('main')).toBeVisible()
     record(await measure(page), 'editor, structure', lang, viewport, '')
-    await open(page.locator('.structure-end > .sheet-open'), 'end Sheet', viewport)
-    // **[#222]** The `+` of the empty step's four, its Sheet asking for the words on the button (41.7 item 1).
+    // **[#233]** The empty step's one `+`, its Sheet asking for the words on the button, and with the
+    // switch on for the ending's (42.7 items 1 and 2).
     await open(page.locator('.structure-add > .sheet-open'), '+ Sheet', viewport)
+    await open(page.locator('.structure-add > .sheet-open'), '+ Sheet, switch on', viewport, () => page.locator('.structure-form').filter({ visible: true }).getByRole('switch').click())
     await open(page.locator('.step-delete'), 'the cross, asking', viewport, asked)
 
     expect((await page.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`))?.status()).toBe(200)
@@ -872,7 +879,7 @@ function recordBesideTheDisclaimer(m: Measured, what: string, lang: string, view
 }
 
 for (const lang of LANGUAGES) {
-  test(`**[#222]** the editor's Answer row of 41.7, ${lang}: three next steps and + at every viewport of 10.6, with the + Sheet open; and the notice below ${STEPS_WIDTH} x ${EDITOR_STEPS_HEIGHT} for every row of three or four buttons, never for a step that ends (41.7 item 8)`, async ({ browser }) => {
+  test(`**[#222]** the editor's Answer row of 41.7, ${lang}: three next steps and + at every viewport of 10.6, with the + Sheet open; and the notice below ${STEPS_WIDTH} x ${EDITOR_STEPS_HEIGHT} for every row of three or four buttons, never for **[#233]** the empty step's lone + or a step that ends (41.7 item 8)`, async ({ browser }) => {
     test.slow()
     const query = lang === 'en' ? '' : '?lang=nl'
     const page = await (await browser.newContext()).newPage()
@@ -896,10 +903,10 @@ for (const lang of LANGUAGES) {
 
     const editorPage = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
     const height = lang === 'nl' ? 'Maak het hoger dan' : 'Make it taller than'
+    // **[#233]** Four next steps are a row of five with their `+`: the test below has them (42.4).
     for (const [what, shown, address, buttons] of [
-      ['editor, four next steps', editorPage, `${origin}/admin/trees/hidden-draft/full${query}`, 4],
       ['editor, three next steps and +', page, three, 4],
-      ["editor, the empty step's four", editorPage, `${origin}/admin/trees/hidden-draft/opt-three${query}`, 4],
+      ["editor, the empty step's +", editorPage, `${origin}/admin/trees/hidden-draft/opt-three${query}`, 1],
       ['editor, a step that ends', editorPage, `${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`, 1],
     ] as const) {
       for (const [width, tall] of EDITOR_STEPS_VIEWPORTS) {
@@ -912,6 +919,77 @@ for (const lang of LANGUAGES) {
         await expect(shown.locator('.minimum-size'), where).toBeVisible({ visible: notice })
         await expect(shown.locator('.tree-layer'), where).toBeVisible({ visible: !notice })
         if (notice) await expect(shown.locator('.minimum-height'), where).toHaveText(`${height} ${EDITOR_STEPS_HEIGHT} pixels.`)
+        recordBesideTheDisclaimer(await measure(shown), what, lang, viewport)
+      }
+    }
+  })
+}
+
+/**
+ * **[#233]** The editor's notice for a row of five buttons (42.4): below 770 x 690, and below 390 x
+ * 1080, measured by #231 on the editor's page (`docs/research/issue-231-five-next-steps.md`). The
+ * windows one pixel either side of each width and height of the two boxes.
+ */
+const EDITOR_FIVE_VIEWPORTS = [
+  [769, 689],
+  [769, 690],
+  [770, 689],
+  [770, 690],
+  [389, 1079],
+  [389, 1080],
+  [390, 1079],
+  [390, 1080],
+] as const
+
+/** **[#233]** Whether 42.4's editor notice for a row of five stands at `width` x `height`, and the height it names. */
+function editorFiveNotice(width: number, height: number): number | null {
+  if (width < 390 && height < 1080) return 1080
+  if (width < 770 && height < 690) return 690
+  return null
+}
+
+for (const lang of LANGUAGES) {
+  test(`**[#233]** the editor's row of five buttons, ${lang}: five next steps, and four and +, at every viewport of 10.6, with the + Sheet open; and the notice below 770 x 690 and below 390 x 1080 (42.4, 42.7 item 7)`, async ({ browser }) => {
+    test.slow()
+    const query = lang === 'en' ? '' : '?lang=nl'
+    const page = await (await browser.newContext()).newPage()
+    expect((await login(page, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+    const editorPage = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
+    const taller = lang === 'nl' ? 'Maak het hoger dan' : 'Make it taller than'
+    for (const [what, shown, address, plusShown] of [
+      ['editor, five next steps', page, `${overlayOrigin}/admin/trees/five-next-steps/full${query}`, false],
+      ['editor, four next steps and +', editorPage, `${origin}/admin/trees/hidden-draft/full${query}`, true],
+    ] as const) {
+      const plus = shown.locator('.tree-frame:not([aria-hidden]) .answers > .structure-add > .sheet-open')
+      const notice = shown.locator('.minimum-size--editor-five')
+      for (const [width, height] of VIEWPORTS) {
+        const viewport = `${width}x${height}`
+        const where = `${what} (${lang}) at ${viewport}`
+        await shown.setViewportSize({ width, height })
+        expect((await shown.goto(address))?.status(), where).toBe(200)
+        await expect(shown.locator('main')).toBeVisible()
+        await expect(shown.locator('.tree-frame:not([aria-hidden]) .answers'), where).toHaveClass(/\banswers--5\b/)
+        // At the floor the notice stands in as 10.4 has it, and 42.4's below its boxes.
+        const standsIn = width <= 320 || height <= 480 || editorFiveNotice(width, height) !== null
+        await expect(notice, where).toBeVisible({ visible: standsIn })
+        record(await measure(shown), what, lang, viewport, '')
+        await expect(plus, where).toHaveCount(plusShown ? 1 : 0)
+        if (!plusShown || standsIn) continue
+        await plus.click()
+        await expect(shown.locator('.structure-form').filter({ visible: true }), where).toBeVisible()
+        record(await measure(shown), what, lang, viewport, '+ Sheet')
+        await shown.keyboard.press('Escape')
+      }
+      for (const [width, height] of EDITOR_FIVE_VIEWPORTS) {
+        const viewport = `${width}x${height}`
+        const where = `${what} (${lang}) at ${viewport}`
+        await shown.setViewportSize({ width, height })
+        expect((await shown.goto(address))?.status(), where).toBe(200)
+        await expect(shown.locator('main')).toBeVisible()
+        const needs = editorFiveNotice(width, height)
+        await expect(notice, where).toBeVisible({ visible: needs !== null })
+        await expect(shown.locator('.tree-layer'), where).toBeVisible({ visible: needs === null })
+        if (needs !== null) await expect(notice.locator('.minimum-height').filter({ visible: true }), where).toHaveText(`${taller} ${needs} pixels.`)
         recordBesideTheDisclaimer(await measure(shown), what, lang, viewport)
       }
     }

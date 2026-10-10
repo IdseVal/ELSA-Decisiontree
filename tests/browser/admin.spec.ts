@@ -22,7 +22,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Page, type Response } from '@playwright/test'
-import { ADMIN_EMAIL, ADMIN_PASSWORD } from './admin.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD, addNextStep, typeInPlus } from './admin.ts'
 import { arrived } from './arrived.ts'
 import { BASE_PORT, dataDir, serveStore, stopServers } from './serve.ts'
 
@@ -189,13 +189,9 @@ async function landedOn(page: Page, from: string): Promise<string> {
   return id
 }
 
-/** `treeEndsHere` with the ending's `words`, typed into its one field (30.3; **[#179]** 36.3). */
+/** `treeEndsHere` with the ending's `words`, typed into its one field (30.3; **[#179]** 36.3), **[#233]** the `+` Sheet's switch on (42.7). */
 async function endHere(page: Page, words: string): Promise<void> {
-  await page.locator('.structure-end > .sheet-open').click()
-  const form = page.locator('.structure-form--end')
-  await expect(form).toBeVisible()
-  await expect(form.getByRole('textbox')).toBeFocused()
-  await page.keyboard.type(words, { delay: 5 })
+  const form = await typeInPlus(page, words, true)
   await form.getByRole('button', { name: /^(Confirm|Bevestigen)$/ }).click()
   await expect(page.locator(`[data-field="${new URL(page.url()).pathname.split('/').pop()} terminal.label.en"] textarea`)).toHaveValue(words)
 }
@@ -304,9 +300,9 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   await expect(field(page, 'start', 'description.en').locator('.term')).toHaveText('provider')
   await step(page, '13-creator-explainer-marked')
 
-  // Yes: a new Node, landed on, that ends the Tree with its words (30.2, 30.3).
-  await page.locator('.structure--yes').click()
-  yesId = await landedOn(page, `/admin/trees/${tree}/start`)
+  // Yes: a new Node, landed on, that ends the Tree with its words (30.2, 30.3), **[#233]** made through the `+` (42.7).
+  yesId = await addNextStep(page, 'Yes')
+  expect(yesId).toMatch(/^n-[a-z2-7]{6}$/)
   await expect(page.locator('h1 textarea')).toHaveValue('')
   await step(page, '14-creator-landed-on-yes-node')
   await write(page, yesId, 'title.en', 'The AI Act applies to you')
@@ -317,8 +313,8 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   // No, from the root: the same, with other words.
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor('start'))
-  await page.locator('.structure--no').click()
-  noId = await landedOn(page, `/admin/trees/${tree}/start`)
+  noId = await addNextStep(page, 'No')
+  expect(noId).toMatch(/^n-[a-z2-7]{6}$/)
   await write(page, noId, 'title.en', 'The AI Act does not apply to you')
   await write(page, noId, 'description.en', 'Without placing a system on the market you are not its provider.')
   await endHere(page, 'Does not apply')
