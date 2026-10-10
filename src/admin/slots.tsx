@@ -28,7 +28,7 @@ import { ImageSlot, type PickerWords } from '../editor/ImageSlot.tsx'
 import type { EditMode, EditorSlots, EditorWords } from '../editor/mode.ts'
 import { DeleteStep, RemoveEnd } from '../editor/StepButtons.tsx'
 import { AnswerMoves, SideAdd, SideDelete, WordsForm } from '../editor/Structure.tsx'
-import { MAX_ASIDES } from '../neighbourhood.ts'
+import { MAX_ASIDES, MAX_NEXT_STEPS } from '../neighbourhood.ts'
 import { linksOf, type Explainer, type NodeContent, type Source } from '../tree/types.ts'
 import type { PageAddress } from '../url.ts'
 
@@ -108,9 +108,6 @@ function placeholderOf(path: string, ui: Chrome): string {
 
 /** Which paths hold a localised text: the page's language is appended to their key path (22.2). */
 const LOCALISED = /^(title|description|sources\[\d+\]\.label|images\[\d+\]\.description|options\[\d+\]\.title|answers\[\d+\]\.label|terminal\.label)$/
-
-/** **[#222]** The most next steps a step may have (**[#233]** 42.1): the row's `+` is absent at that many. */
-const MAX_ANSWERS = 5
 
 /** The most Images a Node may hold (V-COUNT, 5.7): the strip's `+` is absent at that many (31.1). */
 const MAX_IMAGES = 10
@@ -236,11 +233,12 @@ export function editMode(address: PageAddress, languages: string[], structure: S
 
     // The situations of 30.1, **[#233]** as 42.7 item 1 has them: a Terminal takes the public row;
     // a step without Links, and a step of one to four next steps, the one `+`, whose Sheet holds
-    // the switch `treeEndsHere` on a step without Links only; five, nothing more.
+    // the switch `treeEndsHere` on a step without Links only; five, nothing more. **[#234]** The
+    // editor's frames count the row as this draws it (`editorRow`, 42.8).
     structure(node) {
       const has = linksOf(node)
       const here = hereOf(node.id)
-      if (here === null || has.terminal !== undefined || has.answers.length >= MAX_ANSWERS) return []
+      if (here === null || has.terminal !== undefined || has.answers.length >= MAX_NEXT_STEPS) return []
       const formWords = {
         addNextStep: ui.addNextStep,
         treeEndsHere: ui.treeEndsHere,
