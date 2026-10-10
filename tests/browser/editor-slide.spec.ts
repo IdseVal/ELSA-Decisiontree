@@ -212,10 +212,17 @@ test.describe('the autosave and the slide (29.2, 29.5, 42.8)', () => {
   test("a title typed and a next step's button clicked within 600 ms: the title is written before the navigation, and the page after the slide shows it", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 })
     await page.goto(`${origin}${EDITED('typed')}`)
+    // A slow write: the navigation must wait for its answer, not merely start after it.
+    await page.route('**/admin/api/trees/**', async (route) => {
+      if (route.request().method() === 'PATCH') await new Promise((resolve) => setTimeout(resolve, 800))
+      await route.continue()
+    })
     const order: string[] = []
+    page.on('response', (response) => {
+      if (response.request().method() === 'PATCH') order.push('write answered')
+    })
     page.on('request', (request) => {
-      if (request.method() === 'PATCH') order.push('write')
-      else if (request.headers()['rsc'] === '1') order.push('navigation')
+      if (request.headers()['rsc'] === '1') order.push('navigation')
     })
     const typed = 'Typed just before the click'
     await titleField(page).fill('')
@@ -227,8 +234,7 @@ test.describe('the autosave and the slide (29.2, 29.5, 42.8)', () => {
     expect(Date.now() - typedAt).toBeLessThan(600)
     await arrived(page, href)
 
-    expect(order[0], 'the write goes before the navigation fetches anything').toBe('write')
-    expect(order).toContain('navigation')
+    expect(order.slice(0, 2), 'the write is answered before the navigation fetches anything').toEqual(['write answered', 'navigation'])
     const saved = await page.request.get(`${origin}/admin/api/trees/typed/nodes/full`, { headers: { Origin: origin, Cookie: cookie } })
     expect(((await saved.json()) as { node: { title: { en: string } } }).node.title.en).toBe(typed)
     // The page after the slide was drawn from the draft with the title in it: its up arrow names it (10.2).
@@ -345,6 +351,9 @@ test.describe('the autosave and the slide (29.2, 29.5, 42.8)', () => {
     await titleField(page).fill('Typed, then two clicks')
     await clickButton(page, 0)
     await expect(page.locator('.tree-layer[data-sliding]')).toHaveCount(1)
+    // The frame it slides to is the preview's drawing of the step: no field, no `+` (42.8, 40.2).
+    await expect(page.locator('.tree-frame[aria-hidden] .answers')).toHaveCount(1)
+    await expect(page.locator('.tree-frame[aria-hidden] [data-field], .tree-frame[aria-hidden] .structure-add, .tree-frame[aria-hidden] .answer-move')).toHaveCount(0)
     // The layer is moving, so the second button is clicked where it is in the document.
     await nextStep(page, 1).evaluate((link: HTMLElement) => link.click())
     answer()
