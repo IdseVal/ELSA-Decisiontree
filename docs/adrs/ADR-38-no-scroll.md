@@ -2,6 +2,10 @@
 
 - Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 and 2026-09-13 by issue #41 (below)
 - **[#220] Amended (2026-10-09)** by `ADR-220-answer-row.md`: a step of three or four next steps shows the notice below 390 pixels wide and below 560 tall at least (`application.md` 41.4's rule raises either where #221 measures a face that needs more), above the floor every other step keeps.
+- **[#231] Amended (2026-10-10)** by `ADR-231-five-next-steps.md`: a step of five next steps shows
+  the notice in boxes of its own -- below 700 x 590 and below 360 x 650 on the public page and in
+  the preview, and for a row of five buttons in the editor below 770 x 690 and below 390 x 1080
+  (`docs/specs/application.md` 42.4).
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 10.4, 10.5, 10.6, 10.7
 - Core document: 3.2, section 9 ("the page must never scroll"), open item **10.22**

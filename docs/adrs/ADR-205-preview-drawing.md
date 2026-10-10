@@ -6,6 +6,10 @@
   keeps true 3.4's sentence "The editor reuses the end-user components through one optional
   setting": the preview reuses them through the same setting
 - **[#220] Amended (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md`: the preview's seventeen Nodes are the public page's 31 from #221 (`docs/specs/application.md` 41.5).
+- **[#231] Amended (2026-10-10)** by `ADR-231-slide-toward-the-button.md`: the preview's 31 Nodes
+  are the public page's 41 (`docs/specs/application.md` 42.5); and by
+  `ADR-231-slide-in-the-editor.md`: the editor's page places its parent and its next steps and
+  slides, so "nothing slides there" no longer holds (42.8).
 - Issue: #205 -- Architecture: the preview of a hidden Tree as its readers will see it -- its
   address, what it shows of an unfinished draft, and its two buttons at the top left
 - Spec: `docs/specs/application.md` 40.2 and 40.3 (new); 6, 11.2, 13.1, 24.1, 24.3, 34.1, 34.3,

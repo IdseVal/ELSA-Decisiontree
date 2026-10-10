@@ -1,6 +1,10 @@
 # ADR-220-other-readers: the JSON-LD suggests one answer per next step in its words, `llms.txt` and the dataset endpoint change only the schema they name, and the chrome keep `yes` and `no` for the editor alone
 
 - Status: ACCEPTED (frozen) -- 2026-10-09
+- **[#231] Amended (2026-10-10)** by `ADR-231-other-readers.md`: decision 1's suggested answers are
+  up to five, and decisions 2 and 3 name `elsa-tree-7.json` from #232 (`docs/specs/application.md`
+  42.6); and by `ADR-231-one-plus.md`: decision 4's chrome keys `yes` and `no` go with `+ Yes` and
+  `+ No` (42.7).
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
 - Spec: `docs/specs/application.md` 3.2, 15, 16.4, 16.5, 41.6 (new), amended `[#220]`
 - Core document: section 1's findability contracts, 3.4 (what the round does not change), 10.43

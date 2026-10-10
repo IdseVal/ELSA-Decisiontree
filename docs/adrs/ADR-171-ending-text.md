@@ -1,6 +1,9 @@
 # ADR-171-ending-text: a Terminal carries the creator's own text, `terminal.label`, at most 19 characters in every language, shown on the badge in one colour; the four fixed outcomes go
 
 - Status: ACCEPTED (frozen) -- 2026-10-02
+- **[#231] Amended (2026-10-10)** by `ADR-231-one-plus.md`: decision 7's `treeEndsHere` Sheet is the
+  `+`'s Sheet with its switch `treeEndsHere` on, its field `endingText` as before; the Answer row
+  has no `treeEndsHere` button (`docs/specs/application.md` 42.7).
 - Issue: #171 -- Architecture: freeze the free-text ending of a tree (in place of the four
   fixed outcomes) and the font and licence dropdowns of the Theme panel
 - Owner's request: #169 (2026-10-02)

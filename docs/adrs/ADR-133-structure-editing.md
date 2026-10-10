@@ -12,6 +12,13 @@
   button carries a `...`, so the editor no longer re-points a button at an existing Node and no
   longer removes a Link alone. Decision 8's delete and decision 9 stand.
 - **[#220] Superseded in part (2026-10-09)** by `ADR-220-editing-next-steps.md`: the Answer row keeps `+ Yes`, `Tree ends here` and `+ No` and adds `+` for another next step, asked for with its words; `link: 'yes' | 'no'` becomes `link: 'answer'` with a `label`; the yes and the no are the first two of up to four next steps.
+- **[#231] Superseded in part (2026-10-10)** by `ADR-231-one-plus.md`: the Answer row offers one `+`
+  wherever a step can take another next step, up to five, in place of `+ Yes`, `Tree ends here`, `+
+  No` and `+`, and ending a step is the switch in the `+`'s Sheet (`docs/specs/application.md`
+  42.7).
+- **[#231] Amended (2026-10-10)** by `ADR-231-slide-in-the-editor.md`: following a next step's
+  button or the up arrow slides, where decision 3 navigated plainly; creating a step still navigates
+  without a slide (`docs/specs/application.md` 42.8).
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 30 (new)
 - Amended 2026-10-02 by issue #171 (`ADR-171-ending-text.md`, `ADR-171-elsa-tree-5.md`):

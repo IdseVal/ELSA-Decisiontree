@@ -1,6 +1,9 @@
 # ADR-220-elsa-tree-6: `answers` becomes an ordered array of two to four `{ label, target }`, the format becomes `elsa-tree/6`, and every `/5` file is converted by one procedure
 
 - Status: ACCEPTED (frozen) -- 2026-10-09
+- **[#231] Amended (2026-10-10)** by `ADR-231-elsa-tree-7.md`: the next format number is taken,
+  `elsa-tree/7`, for up to five next steps; a `/6` file is converted by `tree-format.md` 12.9, by
+  its `format` and `$schema` alone.
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
 - Spec: `docs/specs/tree-format.md` (title, 3.7, 3.9, 5 table, 5.3, 5.6, 5.7, 7, 10, 12.8 new),
   amended `[#220]`; `docs/specs/application.md` 5.1, 15.1, 17.4, 19.1, 19.2, 41.6 (new)

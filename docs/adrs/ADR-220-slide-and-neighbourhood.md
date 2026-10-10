@@ -1,6 +1,10 @@
 # ADR-220-slide-and-neighbourhood: each next step is placed one layer width from its neighbours in one line below the centre, the way back retraces it, and a page reads at most 31 Nodes
 
 - Status: ACCEPTED (frozen) -- 2026-10-09
+- **[#231] Superseded in part (2026-10-10)** by `ADR-231-slide-toward-the-button.md`: a next step
+  stands where its button stands in the row the width gives, `x` a pair, in place of the places of
+  one row at every width; up 1, down 5 + 25, asides 8: 39 neighbours and 41 Nodes, in place of 29
+  and 31 (`docs/specs/application.md` 42.5).
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
 - Spec: `docs/specs/application.md` 11.1, 11.2, 11.3, 41.5 (new), amended `[#220]`
 - Core document: 3.1 (the neighbouring Nodes, "the next two nodes in each direction"), section 9

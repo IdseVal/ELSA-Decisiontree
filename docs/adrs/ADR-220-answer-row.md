@@ -1,6 +1,10 @@
 # ADR-220-answer-row: the Answer row holds two to four alike buttons, in one row from 1000 pixels wide and two a row below; a step of three or four shows the notice below 390 x 560 at least
 
 - Status: ACCEPTED (frozen) -- 2026-10-09; the owner may overrule (core document 10.43)
+- **[#231] Amended (2026-10-10)** by `ADR-231-answer-row.md`: decisions 2 and 3 hold for two to
+  four; five stand in one row from 1000 pixels wide and three then two below, and the editor's row
+  counts its `+` (`docs/specs/application.md` 42.3); and by `ADR-231-five-next-steps.md`: decision
+  6's notice holds for three and four, and a row of five has its own (42.4).
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
 - Spec: `docs/specs/application.md` 10.1, 10.3, 10.4, 10.5, 10.6, 10.7, 41.3, 41.4 (new), amended
   `[#220]`

@@ -1,6 +1,9 @@
 # ADR-220-number-of-next-steps: a step that leads on has two, three or four next steps, chosen per step by its creator; one is a draft's to-do, five or more is refused
 
 - Status: ACCEPTED (frozen) -- 2026-10-09; the owner may overrule (core document 10.43)
+- **[#231] Superseded in part (2026-10-10)** by `ADR-231-five-next-steps.md`: a step has two to five
+  next steps, where it had two to four, and a sixth is refused; five are no longer refused, and a
+  row of five shows a notice of its own (`docs/specs/application.md` 42.1, 42.4). The rest stands.
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
 - Spec: `docs/specs/application.md` 41.1 (new); `docs/specs/tree-format.md` 5.3, 5.7, 7
   (V-ANSWERS), amended `[#220]`
