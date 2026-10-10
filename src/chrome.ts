@@ -237,6 +237,13 @@ export interface Chrome {
   treeEndsHere: string
   newSideBubble: string
   /**
+   * **[#222]** The `+` for another next step and its Sheet's title (41.7 items 1 and 2), and the
+   * words on the button: the Sheet's one field and an empty label's placeholder, at most 19
+   * characters in each language, so the placeholder fits the label's field as the words do.
+   */
+  addNextStep: string
+  nextStepWords: string
+  /**
    * **[#178]** The step's two buttons beside the up arrow (30.8, amended 2026-10-02): the red
    * cross's name and hover text, the words of the button that removes the ending, and the
    * confirmation of a delete.
@@ -539,6 +546,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteTree: 'Delete this tree and its pictures for good? This cannot be undone.',
     treeEndsHere: 'Tree ends here',
     newSideBubble: 'New side bubble',
+    addNextStep: 'Add a next step',
+    nextStepWords: 'Words on the button',
     deleteStep: 'Delete this step',
     removeEnd: 'Tree does not end here after all',
     confirmDelete: (title) => `Delete "${title}"? What it led to stays.`,
@@ -778,6 +787,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     confirmDeleteTree: 'Deze boom en zijn afbeeldingen voorgoed verwijderen? Dit kan niet ongedaan worden.',
     treeEndsHere: 'Boom eindigt hier',
     newSideBubble: 'Nieuwe zijbubbel',
+    addNextStep: 'Volgende stap toevoegen',
+    nextStepWords: 'Woorden op de knop',
     deleteStep: 'Deze stap verwijderen',
     removeEnd: 'Boom eindigt hier toch niet',
     confirmDelete: (title) => `"${title}" verwijderen? Waar die heen leidde blijft.`,

@@ -51,6 +51,9 @@ type AnyNode = Node | DraftNode
 /** The maximum length of an Option's title (tree-format.md 5.7). */
 const OPTION_TITLE = { characters: 60 }
 
+/** **[#222]** The maximum length of a next step's words (tree-format.md 5.7), its field's count in the editor (41.7 item 2). */
+const ANSWER_LABEL = { characters: 19 }
+
 /**
  * The heights the notice names (10.4, **[#221]** 41.4): the floor's 480, and the floor of a step
  * of three or four next steps below 600 pixels wide. The stylesheet's media queries hold the
@@ -117,7 +120,7 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
     edit,
   })
   const view = viewAt(centre.address, '', true)
-  const many = linksOf(centre.node).answers.length > 2
+  const many = buttonsOf(centre.node, edit) > 2
   // The page's own URL, aside chain included: what a slide arrives at, and what a history step leaves.
   const here = links.node(address)
 
@@ -138,7 +141,8 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
       {/* Shown instead of the tree view at and below the floor of 10.4; the stylesheet decides,
           and shows the sentence for the dimension that is short, so a 1280 x 480 window is
           told to grow taller and not that it needs 320 by 480. **[#221]** A step of three or
-          four next steps has the higher floor of 41.4 below its width, and names its height. */}
+          four next steps has the higher floor of 41.4 below its width, and names its height;
+          **[#222]** in the editor, a row of three or four buttons, its own counted (41.7 item 8). */}
       <p className={many ? 'minimum-size minimum-size--steps' : 'minimum-size'} lang={view.uiLang}>
         {view.ui.minimumSize} <span className="minimum-width">{view.ui.minimumWidth}</span>{' '}
         <span className="minimum-height">{view.ui.minimumHeight(many ? STEPS_FLOOR_HEIGHT : FLOOR_HEIGHT)}</span>
@@ -425,6 +429,15 @@ function Overlay({
 }
 
 /**
+ * **[#222]** How many buttons the Answer row of `node` draws: its next steps, and in the editor
+ * the buttons the `structure` slot offers beside them, which the row counts as buttons (41.7
+ * item 8). `startAgain` is not counted: it stands alone, or hidden behind the editor's four.
+ */
+function buttonsOf(node: AnyNode, edit: EditMode | undefined): number {
+  return linksOf(node).answers.length + (edit?.slots.structure?.(node).length ?? 0)
+}
+
+/**
  * The buttons below the Bubble (10.3): **[#221]** the two to four next steps of a question
  * Node, in the file's order (41.3), and `startAgain` below a Node that has none -- a Terminal,
  * or an explanation Node that is the centre, which only a path with no parent in it makes it
@@ -435,19 +448,28 @@ function Overlay({
  * A next step's button shows its creator's words alone and is named by them, a colon and the
  * target's title (41.2), the name a screen reader says. Its class carries how many stand in
  * the row, which the stylesheet stands two a row below 1000 pixels for three and four.
+ * **[#222]** In the editor the words are a field in place and the button carries the move
+ * controls; the buttons the `structure` slot offers count in the row (41.7 items 2, 4 and 8).
  */
 function Answers({ node, view }: { node: AnyNode; view: View }) {
   const { address, ui, uiLang, titleOf, root, idPrefix, placed, links, edit } = view
   const { answers } = linksOf(node)
   const lang = address.lang
+  const offered = edit?.slots.structure?.(node) ?? []
+  const counted = node.kind === 'question' || offered.length > 0
 
   return (
-    <div className={node.kind === 'question' ? `answers answers--${answers.length}` : 'answers'} role="group" aria-labelledby={`${idPrefix}node-title`}>
+    <div className={counted ? `answers answers--${answers.length + offered.length}` : 'answers'} role="group" aria-labelledby={`${idPrefix}node-title`}>
       {node.kind === 'question' ? (
         answers.map((answer, index) => {
           const href = links.follow(address, answer.target)
           const label = text(answer.label, lang, `${node.id}.answers[${index}].label`)
-          return <Branch key={index} className="answer answer--next" href={href} slides={placed(href)} title={label} name={`${label}: ${titleOf(answer.target)}`} />
+          const shown = edit?.slots.field?.(node, `answers[${index}].label`, answer.label[lang] ?? '', ANSWER_LABEL) ?? label
+          return (
+            <Branch key={index} className="answer answer--next" href={href} slides={placed(href)} title={shown} name={`${label}: ${titleOf(answer.target)}`}>
+              {edit?.slots.answerMoves?.(node, index)}
+            </Branch>
+          )
         })
       ) : (
         <Branch
@@ -459,7 +481,7 @@ function Answers({ node, view }: { node: AnyNode; view: View }) {
           name={`${ui.startAgain}: ${titleOf(root)}`}
         />
       )}
-      {edit?.slots.structure?.(node)}
+      {offered}
     </div>
   )
 }
