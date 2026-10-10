@@ -65,8 +65,8 @@ const LOCALISED = new Set(['title', 'description', 'label', 'term', 'text'])
  */
 export function newDraft(languages: string[], title: Mapping): Mapping {
   return {
-    $schema: '/schemas/elsa-tree-6.json',
-    format: 'elsa-tree/6',
+    $schema: '/schemas/elsa-tree-7.json',
+    format: 'elsa-tree/7',
     languages,
     root: 'start',
     title: localisedInput(title, languages, 'manifest', 'title'),
@@ -450,7 +450,7 @@ function roomForOption(node: Mapping, nodeId: string): void {
 }
 
 /**
- * **[#221]** Refuses a fifth next step on `node` (application.md 41.1, 41.7 item 3) with
+ * **[#221]** Refuses a fifth next step, **[#232]** a sixth, on `node` (application.md 42.1, 41.7 item 3) with
  * V-ANSWERS, as `roomForOption` refuses a ninth Option: 422, nothing stored. The schema's
  * `maxItems` would refuse it too, but in its own words, as a JSON Pointer; this names the rule.
  */

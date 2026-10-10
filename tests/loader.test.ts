@@ -52,7 +52,7 @@ describe('a Tree in two languages', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.id).toBe('ai-act-example')
-    expect(tree.manifest.format).toBe('elsa-tree/6')
+    expect(tree.manifest.format).toBe('elsa-tree/7')
     expect(tree.manifest.languages).toEqual(['en', 'nl'])
     expect(tree.manifest.defaultLanguage).toBe('en')
     expect(tree.manifest.root).toBe('start')
@@ -757,7 +757,7 @@ describe('the Node index the sitemap reads (#118)', () => {
     const tree = await openTree(exampleTree)
 
     expect(tree.filePath).toBe(path.join(exampleTree, 'tree.json'))
-    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/6')
+    expect(JSON.parse(await readFile(tree.filePath, 'utf8')).format).toBe('elsa-tree/7')
   })
 })
 

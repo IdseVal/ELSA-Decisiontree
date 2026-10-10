@@ -3,7 +3,7 @@
  * and its aside chain; the placed set for each kind of Node, never more than seven, no id
  * twice, a Link to an unknown id dropped rather than thrown; the Option targets as asides,
  * at most eight; the Trail supplies `up`, the Answers `down`; an empty Trail has no `up`;
- * and a page reads at most seventeen Nodes in all.
+ * and a page reads at most seventeen Nodes in all -- **[#221]** thirty-one, **[#232]** forty-one (42.5).
  *
  * Every Tree comes through `openTree` and every address through `parseUrl` (section 7).
  */
@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
-import { centreOf, draftCentre, loadPage, MAX_ASIDES, MAX_PLACED, neighbourhood, type Placed } from '../src/neighbourhood.ts'
+import { across, centreOf, draftCentre, loadPage, MAX_ASIDES, MAX_PLACED, neighbourhood, ROWS_QUERY, type Placed } from '../src/neighbourhood.ts'
 import { openTree, type Draft, type Tree } from '../src/tree/loader.ts'
 import type { DraftNode, Node } from '../src/tree/types.ts'
 import { followHref, nodeHref, parseUrl, trailHref, type PageAddress } from '../src/url.ts'
@@ -35,9 +35,12 @@ async function at(tree: Tree, pathname: string, lang = 'en'): Promise<{ address:
   return { address, node: (await tree.getNode(address.nodeId))! }
 }
 
-/** **[#221]** `direction x,y id` for each placement, in the order returned (41.5). */
+/**
+ * **[#221]** `direction x,y id` for each placement, in the order returned (41.5). **[#232]** `x` is
+ * `row/rows` where the two arrangements of the row place it apart, and one number where they agree (42.5).
+ */
 function summary(placed: Placed<Node | DraftNode>[]): string[] {
-  return placed.map((p) => `${p.direction} ${p.x},${p.y} ${p.node.id}`)
+  return placed.map((p) => `${p.direction} ${p.x.row === p.x.rows ? p.x.row : `${p.x.row}/${p.x.rows}`},${p.y} ${p.node.id}`)
 }
 
 /** A copy of `tree` that counts its `getNode` calls. */
@@ -235,7 +238,7 @@ describe('which Nodes surround the centre', () => {
 })
 
 describe('the bound', () => {
-  test('every reachable Node of both Trees, reached by its path: at most 21 placed, 8 asides, no id placed twice, one read each', async () => {
+  test('every reachable Node of both Trees, reached by its path: at most **[#232]** 31 placed, 8 asides, no id placed twice, one read each', async () => {
     for (const tree of [example, fullNode]) {
       // Walk the Tree by its Links from the root, each Node reached with the Trail that got there.
       const queue: string[] = [`/${tree.id}/${tree.manifest.root}`]
@@ -254,7 +257,7 @@ describe('the bound', () => {
         const ids = placed.map((p) => p.node.id)
         expect(new Set(ids).size, pathname).toBe(ids.length)
         expect(ids, pathname).not.toContain(node.id)
-        // One `getNode` per neighbour at most, so the page's total stays at thirty-one (41.5).
+        // One `getNode` per neighbour at most, so the page's total stays at **[#232]** forty-one (42.5).
         expect(counted.reads(), pathname).toBeLessThanOrEqual(MAX_PLACED + MAX_ASIDES)
 
         const links = [...(node.kind === 'question' ? node.answers.map((answer) => answer.target) : []), ...node.options.map((o) => o.target)]
@@ -264,7 +267,7 @@ describe('the bound', () => {
     }
   })
 
-  test('a whole page -- centre, chain and neighbourhood -- reads at most 31 Nodes, and an aside the chain named is read once', async () => {
+  test('a whole page -- centre, chain and neighbourhood -- reads at most **[#232]** 41 Nodes, and an aside the chain named is read once', async () => {
     for (const pathname of [
       '/ai-act-example/start/prohibited-practices/social-scoring',
       '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
@@ -288,7 +291,7 @@ describe('the bound', () => {
         ...page.neighbours.asides.map((a) => a.node.id),
       ])
       expect(counted.reads(), pathname).toBe(carried.size)
-      expect(counted.reads(), pathname).toBeLessThanOrEqual(31)
+      expect(counted.reads(), pathname).toBeLessThanOrEqual(41)
     }
   })
 
@@ -385,11 +388,12 @@ describe('**[#206]** over a draft, for the preview of a hidden Tree (40.2)', () 
 })
 
 /**
- * **[#221]** A step of two to four next steps (application.md 41.5): a frame a layer width
- * apart, centred under the step, a second level counted before deduplication, the parent over
- * the step it came down from, mirrored, and a page of at most 31 Nodes.
+ * **[#221]** A step of two to four next steps (application.md 41.5), **[#232]** and five (42.5):
+ * each frame where its button stands, `row` in one row and `rows` in the two rows below 1000
+ * pixels wide, a second level counted before deduplication on one line, the parent over the
+ * step it came down from, negated, and a page of at most 41 Nodes.
  */
-describe('**[#221]** the places of two to four next steps, and the bound of 31 (41.5)', () => {
+describe('**[#221]** the places of two to four next steps, **[#232]** and five, and the bound of 41 (41.5, 42.5)', () => {
   const label = { en: 'A step', nl: 'Een stap' }
   /** `count` Terminals `<prefix>-<i>`, with the full Node's titles and words, for a step to lead to. */
   const ends = (nodes: Record<string, Record<string, unknown>>, prefix: string, count: number): string[] =>
@@ -399,27 +403,55 @@ describe('**[#221]** the places of two to four next steps, and the bound of 31 (
       return id
     })
 
-  test('one level down, the n next steps stand at x = i - (n - 1) / 2: three at -1, 0, 1 and four at -1.5 to 1.5', async () => {
+  test('**[#232]** across(i, k): row = i - (k - 1) / 2; rows the place in its own row of the two, the first holding half of k rounded up (42.5)', () => {
+    const places = (k: number) => Array.from({ length: k }, (_, i) => across(i, k))
+    expect(places(1)).toEqual([{ row: 0, rows: 0 }])
+    expect(places(2)).toEqual([{ row: -0.5, rows: -0.5 }, { row: 0.5, rows: 0.5 }])
+    // Two, then one centred.
+    expect(places(3)).toEqual([{ row: -1, rows: -0.5 }, { row: 0, rows: 0.5 }, { row: 1, rows: 0 }])
+    // Two and two: the first and third stand left, the second and fourth right.
+    expect(places(4)).toEqual([{ row: -1.5, rows: -0.5 }, { row: -0.5, rows: 0.5 }, { row: 0.5, rows: -0.5 }, { row: 1.5, rows: 0.5 }])
+    // Three, then two.
+    expect(places(5)).toEqual([{ row: -2, rows: -1 }, { row: -1, rows: 0 }, { row: 0, rows: 1 }, { row: 1, rows: -0.5 }, { row: 2, rows: 0.5 }])
+    // The stylesheet's own media query for the two rows (42.3).
+    expect(ROWS_QUERY).toBe('(max-width: 999px)')
+  })
+
+  test('one level down, each next step stands where its button stands: three, four and **[#232]** five', async () => {
     const three = await openTree(path.join(here, 'fixtures', 'three-next-steps'))
     const centre = await at(three, '/three-next-steps/full')
     expect(summary((await neighbourhood(three, centre.address, centre.node)).placed)).toEqual([
-      'down -1,1 applies',
-      'down 0,1 does-not-apply',
-      'down 1,1 deployer-only',
+      'down -1/-0.5,1 applies',
+      'down 0/0.5,1 does-not-apply',
+      'down 1/0,1 deployer-only',
     ])
     const four = await at(fullNode, '/full-node/full')
     expect(summary((await neighbourhood(fullNode, four.address, four.node)).placed)).toEqual([
-      'down -1.5,1 applies',
-      'down -0.5,1 does-not-apply',
-      'down 0.5,1 deployer-only',
-      'down 1.5,1 not-applicable',
+      'down -1.5/-0.5,1 applies',
+      'down -0.5/0.5,1 does-not-apply',
+      'down 0.5/-0.5,1 deployer-only',
+      'down 1.5/0.5,1 not-applicable',
+    ])
+    const fiveTree = await openTree(path.join(here, 'fixtures', 'five-next-steps'))
+    const five = await at(fiveTree, '/five-next-steps/full')
+    expect(summary((await neighbourhood(fiveTree, five.address, five.node)).placed)).toEqual([
+      'down -2/-1,1 applies',
+      'down -1/0,1 does-not-apply',
+      'down 0/1,1 deployer-only',
+      'down 1/-0.5,1 not-applicable',
+      'down 2/0.5,1 importer-only',
     ])
   })
 
-  test('the parent stands over the first of its next steps that names the centre, mirrored: up and left from the fourth of four', async () => {
-    for (const [target, x] of [['applies', 1.5], ['does-not-apply', 0.5], ['deployer-only', -0.5], ['not-applicable', -1.5]] as const) {
+  test('the parent stands over the first of its next steps that names the centre, negated in both arrangements (42.5)', async () => {
+    for (const [target, x] of [['applies', '1.5/0.5'], ['does-not-apply', '0.5/-0.5'], ['deployer-only', '-0.5/0.5'], ['not-applicable', '-1.5/-0.5']] as const) {
       const { address, node } = await at(fullNode, `/full-node/full/${target}`)
       expect(summary((await neighbourhood(fullNode, address, node)).placed), target).toEqual([`up ${x},-1 full`])
+    }
+    const fiveTree = await openTree(path.join(here, 'fixtures', 'five-next-steps'))
+    for (const [target, x] of [['applies', '2/1'], ['does-not-apply', '1/0'], ['deployer-only', '0/-1'], ['not-applicable', '-1/0.5'], ['importer-only', '-2/-0.5']] as const) {
+      const { address, node } = await at(fiveTree, `/five-next-steps/full/${target}`)
+      expect(summary((await neighbourhood(fiveTree, address, node)).placed), target).toEqual([`up ${x},-1 full`])
     }
   })
 
@@ -438,9 +470,9 @@ describe('**[#221]** the places of two to four next steps, and the bound of 31 (
     const { placed } = await neighbourhood(draft, parseUrl('/full-node/full', 'en', draft)!, node)
     // below-0 is K's first and its fourth: placed once, at the first; below-3 keeps the fifth place.
     expect(summary(placed)).toEqual([
-      'down -1,1 level-0',
-      'down 0,1 level-1',
-      'down 1,1 level-2',
+      'down -1/-0.5,1 level-0',
+      'down 0/0.5,1 level-1',
+      'down 1/0,1 level-2',
       'down -2,2 below-0',
       'down -1,2 below-1',
       'down 0,2 below-2',
@@ -448,11 +480,11 @@ describe('**[#221]** the places of two to four next steps, and the bound of 31 (
     ])
   })
 
-  test('a step of four whose next steps have four each, under a parent, with eight asides and an Overlay the URL names: 29 neighbours and a page of 31 Nodes', async () => {
+  test('a step of **[#232]** five whose next steps have five each, under a parent, with eight asides and an Overlay the URL names: 39 neighbours and a page of 41 Nodes', async () => {
     const draft = await fullNodeDraft((nodes) => {
-      const first = ends(nodes, 'one', 4)
+      const first = ends(nodes, 'one', 5)
       for (const [index, id] of first.entries()) {
-        const second = ends(nodes, `two-${index}`, 4)
+        const second = ends(nodes, `two-${index}`, 5)
         nodes[id] = { ...nodes[id]!, answers: second.map((target) => ({ label, target })) }
         delete nodes[id]!.terminal
       }
@@ -470,10 +502,10 @@ describe('**[#221]** the places of two to four next steps, and the bound of 31 (
     expect(page.centre.node.id).toBe('full')
     expect(page.neighbours.placed).toHaveLength(MAX_PLACED)
     expect(page.neighbours.asides).toHaveLength(MAX_ASIDES)
-    expect(MAX_PLACED + MAX_ASIDES).toBe(29)
+    expect(MAX_PLACED + MAX_ASIDES).toBe(39)
     expect(page.centre.chain.map((aside) => aside.node.id)).toEqual(['opt-one', 'lone'])
-    expect(counted.reads()).toBe(31)
-    expect(summary(page.neighbours.placed).slice(0, 2)).toEqual(['up 0.5,-1 top', 'down -1.5,1 one-0'])
-    expect(summary(page.neighbours.placed).slice(-1)).toEqual(['down 7.5,2 two-3-3'])
+    expect(counted.reads()).toBe(41)
+    expect(summary(page.neighbours.placed).slice(0, 2)).toEqual(['up 0.5,-1 top', 'down -2/-1,1 one-0'])
+    expect(summary(page.neighbours.placed).slice(-1)).toEqual(['down 12,2 two-4-4'])
   })
 })

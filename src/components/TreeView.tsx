@@ -35,7 +35,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
 import type { EditMode } from '../editor/mode.ts'
-import type { Aside, NodePage, Placed } from '../neighbourhood.ts'
+import type { Across, Aside, NodePage, Placed } from '../neighbourhood.ts'
 import type { Readable } from '../tree/loader.ts'
 import { linksOf, type DraftNode, type Node } from '../tree/types.ts'
 import { PUBLIC_LINKS, type Links, type PageAddress } from '../url.ts'
@@ -58,12 +58,16 @@ const ANSWER_LABEL = { characters: 19 }
  * The heights the notice names (10.4, **[#221]** 41.4): the floor's 480, and the floor of a step
  * of three or four next steps below 600 pixels wide -- **[#222]** in the editor, of a row of three
  * or four buttons, whose next steps carry their move arrows (41.7 item 8, measured in
- * `docs/research/issue-222-editor-notice-height.md`). The stylesheet's media queries hold the same
- * numbers, which is where they take effect.
+ * `docs/research/issue-222-editor-notice-height.md`). **[#232]** And on the public page and in the
+ * preview, the two boxes of a step of five next steps: 590 below 640 pixels wide, 650 below 360
+ * (42.4, measured in `docs/research/issue-231-five-next-steps.md`). The stylesheet's media queries
+ * hold the same numbers, which is where they take effect.
  */
 const FLOOR_HEIGHT = 480
 const STEPS_FLOOR_HEIGHT = 560
 const EDITOR_STEPS_FLOOR_HEIGHT = 590
+const FIVE_FLOOR_HEIGHT = 590
+const FIVE_NARROW_FLOOR_HEIGHT = 650
 
 /** What every part of the view needs: the page's address, its chrome, and the title index. */
 interface View {
@@ -123,10 +127,19 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
     edit,
   })
   const view = viewAt(centre.address, '', true)
-  const many = buttonsOf(centre.node, edit) > 2
+  const buttons = buttonsOf(centre.node, edit)
   // The editor's row, its next steps between their move arrows; the preview's setting has no slot (40.2).
   const arrows = edit?.slots.answerMoves !== undefined
-  const [floorClass, floorHeight] = !many ? ['minimum-size', FLOOR_HEIGHT] : arrows ? ['minimum-size minimum-size--editor-steps', EDITOR_STEPS_FLOOR_HEIGHT] : ['minimum-size minimum-size--steps', STEPS_FLOOR_HEIGHT]
+  // **[#232]** Five on the public page and in the preview have boxes of their own (42.4); the editor's row of five is #233's.
+  const five = buttons > 4 && !arrows
+  const [floorClass, floorHeight] =
+    buttons <= 2
+      ? ['minimum-size', FLOOR_HEIGHT]
+      : arrows
+        ? ['minimum-size minimum-size--editor-steps', EDITOR_STEPS_FLOOR_HEIGHT]
+        : five
+          ? ['minimum-size minimum-size--five', FIVE_FLOOR_HEIGHT]
+          : ['minimum-size minimum-size--steps', STEPS_FLOOR_HEIGHT]
   // The page's own URL, aside chain included: what a slide arrives at, and what a history step leaves.
   const here = links.node(address)
 
@@ -148,10 +161,13 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
           and shows the sentence for the dimension that is short, so a 1280 x 480 window is
           told to grow taller and not that it needs 320 by 480. **[#221]** A step of three or
           four next steps has the higher floor of 41.4 below its width, and names its height;
-          **[#222]** in the editor, a row of three or four buttons, its own counted (41.7 item 8). */}
+          **[#222]** in the editor, a row of three or four buttons, its own counted (41.7 item 8).
+          **[#232]** A step of five has two boxes, so it names the height each needs: below 360
+          pixels wide the second (42.4). */}
       <p className={floorClass} lang={view.uiLang}>
         {view.ui.minimumSize} <span className="minimum-width">{view.ui.minimumWidth}</span>{' '}
         <span className="minimum-height">{view.ui.minimumHeight(floorHeight)}</span>
+        {five && <span className="minimum-height minimum-height--narrow">{view.ui.minimumHeight(FIVE_NARROW_FLOOR_HEIGHT)}</span>}
       </p>
     </>
   )
@@ -195,9 +211,10 @@ function Frame({ node, view }: { node: AnyNode; view: View }) {
  * Where a neighbour's frame is drawn, in widths and heights of the layer, from the Node on
  * screen (11.1): **[#221]** the place `neighbourhood` gave it (41.5) -- a next step below and
  * towards its own button, theirs a layer further, the parent above where the step down from
- * it started -- so the layer holds no geometry of its own.
+ * it started -- so the layer holds no geometry of its own. **[#232]** Across, one place for
+ * each arrangement of the row, which the slide chooses between (42.5).
  */
-function position({ x, y }: Placed<AnyNode>): { x: number; y: number } {
+function position({ x, y }: Placed<AnyNode>): { x: Across; y: number } {
   return { x, y }
 }
 
@@ -444,7 +461,7 @@ function buttonsOf(node: AnyNode, edit: EditMode | undefined): number {
 }
 
 /**
- * The buttons below the Bubble (10.3): **[#221]** the two to four next steps of a question
+ * The buttons below the Bubble (10.3): **[#221]** the two to four, **[#232]** five, next steps of a question
  * Node, in the file's order (41.3), and `startAgain` below a Node that has none -- a Terminal,
  * or an explanation Node that is the centre, which only a path with no parent in it makes it
  * (10.9) -- to the root Node with an empty Trail. The way back is the up arrow, not a button
@@ -453,7 +470,8 @@ function buttonsOf(node: AnyNode, edit: EditMode | undefined): number {
  *
  * A next step's button shows its creator's words alone and is named by them, a colon and the
  * target's title (41.2), the name a screen reader says. Its class carries how many stand in
- * the row, which the stylesheet stands two a row below 1000 pixels for three and four.
+ * the row, which the stylesheet stands two a row below 1000 pixels for three and four,
+ * **[#232]** and three then two for five (42.3).
  * **[#222]** In the editor the words are a field in place and the button carries the move
  * controls; the buttons the `structure` slot offers count in the row (41.7 items 2, 4 and 8).
  */

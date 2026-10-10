@@ -28,7 +28,7 @@ export function previewMode(address: PageAddress, languages: string[]): EditMode
 /**
  * The page the preview's address names (40.2): `centreOf`, the editor's centre rule
  * (`draftCentre`), then the centre's neighbourhood, as a public page reads one -- at most
- * seventeen Nodes (11.2) -- with every address it carries, the chain's, the placements' and the
+ * seventeen Nodes (11.2), **[#232]** forty-one (42.5) -- with every address it carries, the chain's, the placements' and the
  * asides', the preview's own, so that a Branch finds the placement it slides to (11.3). Null where
  * `parseUrl` accepted a path the draft has since lost a Node of. `loadPage` is the public page's
  * and stays so.

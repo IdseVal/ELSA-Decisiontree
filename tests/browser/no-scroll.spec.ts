@@ -82,6 +82,8 @@ const AUTHORS_PORT = FULL_NODE_PORT + 10
 const WIDE_FIRST_PORT = FULL_NODE_PORT + 11
 /** **[#221]** The full Node with three next steps (application.md 41.9). */
 const THREE_STEPS_PORT = FULL_NODE_PORT + 12
+/** **[#232]** The full Node with five next steps (application.md 42.10). */
+const FIVE_STEPS_PORT = FULL_NODE_PORT + 13
 
 /** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
 const VIEWPORTS = [
@@ -897,6 +899,114 @@ for (const lang of LANGUAGES) {
           expect(await page.locator('.tree-frame:not([aria-hidden]) .answers').evaluate((row) => row.getBoundingClientRect().height), where).toBe(68)
           if (count === 4) expect(Math.round(widths[0]!), where).toBe(300)
         }
+      }
+    }
+  })
+}
+
+/**
+ * **[#232]** 42.4's two boxes for a step of five next steps on the public page and in the preview:
+ * the notice below 640 x 590 and below 360 x 650, and the tree view everywhere else above the floor.
+ */
+const FIVE_WIDTH = 640
+const FIVE_HEIGHT = 590
+const FIVE_NARROW_WIDTH = 360
+const FIVE_NARROW_HEIGHT = 650
+
+/** **[#232]** Whether 42.4 puts the notice over a step of five at `width` x `height`, above the floor. */
+function fiveNotice(width: number, height: number): boolean {
+  return (width < FIVE_WIDTH && height < FIVE_HEIGHT) || (width < FIVE_NARROW_WIDTH && height < FIVE_NARROW_HEIGHT)
+}
+
+/**
+ * **[#232]** The windows 42.10 adds for a step of five: either side of 42.3's 1000 pixels, and one
+ * pixel either side of each width and height of 42.4's two boxes.
+ */
+const FIVE_STEPS_VIEWPORTS = [
+  [999, 640],
+  [1000, 640],
+  [FIVE_WIDTH - 1, FIVE_HEIGHT - 1],
+  [FIVE_WIDTH - 1, FIVE_HEIGHT],
+  [FIVE_WIDTH, FIVE_HEIGHT - 1],
+  [FIVE_WIDTH, FIVE_HEIGHT],
+  [FIVE_NARROW_WIDTH - 1, FIVE_NARROW_HEIGHT - 1],
+  [FIVE_NARROW_WIDTH - 1, FIVE_NARROW_HEIGHT],
+  [FIVE_NARROW_WIDTH, FIVE_NARROW_HEIGHT - 1],
+  [FIVE_NARROW_WIDTH, FIVE_NARROW_HEIGHT],
+] as const
+
+for (const lang of LANGUAGES) {
+  test(`**[#232]** the full Node with five next steps of 19 characters, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'five-next-steps', FIVE_STEPS_PORT)
+    await measureEverywhere(page, `${origin}${inLang('/five-next-steps/full/full', lang)}`, 'full Node, five next steps', lang)
+  })
+
+  test(`**[#232]** the full Node with five next steps of 19 characters, ${lang}, never scrolls either side of 42.3's 1000 and of each edge of 42.4's two boxes`, async ({ page }) => {
+    const origin = await served(fixtures, 'five-next-steps', FIVE_STEPS_PORT)
+    const url = `${origin}${inLang('/five-next-steps/full/full', lang)}`
+    for (const [width, height] of FIVE_STEPS_VIEWPORTS) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(url))?.status(), url).toBe(200)
+      const plain = await measure(page)
+      rows.push({ page: 'full Node, five next steps', lang, viewport, sheet: '', measured: plain })
+      // Below 660 dev's disclaimer may take a second line in its row, with or without the notice.
+      if (width < 660) assertFitsBesideTheDisclaimer(plain, `five next steps (${lang}) at ${viewport}`)
+      else assertFits(plain, `five next steps (${lang}) at ${viewport}`)
+    }
+  })
+
+  test(`**[#232]** the row of five and its notice, ${lang}: one row from 1000 wide, three then two below, the notice below ${FIVE_WIDTH} x ${FIVE_HEIGHT} and ${FIVE_NARROW_WIDTH} x ${FIVE_NARROW_HEIGHT}, naming the height of its box`, async ({ page }) => {
+    const url = `${await served(fixtures, 'five-next-steps', FIVE_STEPS_PORT)}${inLang('/five-next-steps/full', lang)}`
+    const height = lang === 'nl' ? 'Maak het hoger dan' : 'Make it taller than'
+    const windows = [...VIEWPORTS.filter(([w, h]) => w > 320 && h > 480), ...FIVE_STEPS_VIEWPORTS, [321, 640], [600, 481], [359, 481]] as const
+    for (const [width, tall] of windows) {
+      const where = `five next steps at ${width}x${tall}`
+      await page.setViewportSize({ width, height: tall })
+      expect((await page.goto(url))?.status(), where).toBe(200)
+      const notice = fiveNotice(width, tall)
+      await expect(page.locator('.minimum-size'), where).toBeVisible({ visible: notice })
+      await expect(page.locator('.tree-layer'), where).toBeVisible({ visible: !notice })
+      if (notice) {
+        // One sentence of the two, the height of the box the window is in.
+        const named = width < FIVE_NARROW_WIDTH ? FIVE_NARROW_HEIGHT : FIVE_HEIGHT
+        await expect(page.locator('.minimum-height').filter({ visible: true }), where).toHaveText(`${height} ${named} pixels.`)
+        continue
+      }
+      const boxes = await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer').evaluateAll((buttons) =>
+        buttons.map((button) => {
+          const box = button.getBoundingClientRect()
+          return { top: Math.round(box.top), left: box.left, width: box.width, height: box.height }
+        }),
+      )
+      expect(boxes, where).toHaveLength(5)
+      const tops = [...new Set(boxes.map((box) => box.top))]
+      expect(tops.length, `${where}: rows`).toBe(width < 1000 ? 2 : 1)
+      if (tops.length === 2) expect(boxes.map((box) => box.top), `${where}: three, then two`).toEqual([tops[0], tops[0], tops[0], tops[1], tops[1]])
+      const widths = boxes.map((box) => box.width)
+      expect(Math.max(...widths) - Math.min(...widths), `${where}: every button as wide as the others`).toBeLessThan(1)
+      for (const box of boxes) expect(box.height, `${where}: at least 60 tall`).toBeGreaterThanOrEqual(60)
+      const order = boxes.map((box, index) => ({ index, key: box.top * 10_000 + box.left }))
+      expect([...order].sort((a, b) => a.key - b.key).map((entry) => entry.index), `${where}: order`).toEqual(order.map((entry) => entry.index))
+      // Equally far apart: 20 across (8 below 480 wide), 8 between the two rows (42.3).
+      const gap = width < 480 ? 8 : 20
+      const rowsOf = tops.map((top) => boxes.filter((box) => box.top === top))
+      for (const row of rowsOf) {
+        for (let i = 1; i < row.length; i += 1) expect(row[i]!.left - (row[i - 1]!.left + row[i - 1]!.width), `${where}: the gap across`).toBeCloseTo(gap, 0)
+        const heights = row.map((box) => box.height)
+        expect(Math.max(...heights) - Math.min(...heights), `${where}: every button of a row as tall as the others`).toBeLessThan(1)
+      }
+      if (rowsOf.length === 2) {
+        expect(Math.abs(tops[1]! - (tops[0]! + rowsOf[0]![0]!.height) - 8), `${where}: the gap between the rows`).toBeLessThan(1)
+        // The two of the second row, centred under the three above.
+        const middle = (row: typeof boxes) => (row[0]!.left + row.at(-1)!.left + row.at(-1)!.width) / 2
+        expect(Math.abs(middle(rowsOf[1]!) - middle(rowsOf[0]!)), `${where}: the second row centred`).toBeLessThan(1)
+      }
+      if (width === 1280 && tall === 640) {
+        // At the guarantee the row stays 68 and five buttons are 236 each (42.3).
+        expect(await page.locator('.tree-frame:not([aria-hidden]) .answers').evaluate((row) => row.getBoundingClientRect().height), where).toBe(68)
+        expect(Math.round(widths[0]!), where).toBe(236)
       }
     }
   })

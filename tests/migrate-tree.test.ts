@@ -4,7 +4,8 @@
  * one contract that is worth stating only if it is tested -- **writing a Tree that was
  * just read changes no byte** (12.6.1, Idempotence). **[#179]** And the conversion of 12.7,
  * from `elsa-tree/4` to `elsa-tree/5`, which it runs before it writes; **[#221]** and 12.8's,
- * from `elsa-tree/5` to `elsa-tree/6`, after it.
+ * from `elsa-tree/5` to `elsa-tree/6`, after it; **[#232]** and 12.9's, from `elsa-tree/6` to
+ * `elsa-tree/7`, last.
  *
  * Every Tree it writes is read back through `openTree`, as section 7 requires; no test
  * builds a `Node` by hand.
@@ -224,7 +225,7 @@ describe('the writer reports what the loader would', () => {
       'nodes[0].metadata: the format has an object here, and the file has a list',
     ],
     [
-      '**[#221]** a list the format names is refused when an elsa-tree/6 file holds an object',
+      '**[#221]** a list the format names is refused when an elsa-tree/6 file, **[#232]** or /7, holds an object',
       fixture('single-language'),
       (tree: Record<string, unknown>) => {
         ;(tree.nodes as Array<Record<string, unknown>>)[0]!.answers = { yes: 'x', no: 'y' }
@@ -241,7 +242,7 @@ describe('the writer reports what the loader would', () => {
 
     const migration = await migrateTree(target)
 
-    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, notes: [note], violations: [] })
+    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, notes: [note], violations: [] })
     expect(await readFile(file, 'utf8')).toBe(before)
   })
 
@@ -272,7 +273,7 @@ describe('the writer reports what the loader would', () => {
 
     const migration = await migrateTree(target)
 
-    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, notes: [note], violations: [] })
+    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, notes: [note], violations: [] })
     expect(await readFile(file, 'utf8')).toBe(before)
     // The file is the evidence, so it must still be the file the loader refuses, with the
     // same message: the writer and the loader answer "may this be read" the same way.
@@ -297,7 +298,7 @@ describe('the writer reports what the loader would', () => {
   test('a folder that holds no tree.json is reported, not crashed on', async () => {
     const migration = await migrateTree(work)
 
-    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, notes: ['tree.json is missing'], violations: [] })
+    expect(migration).toEqual({ rewritten: false, ids: [], conversion: null, answers: null, renamed: null, notes: ['tree.json is missing'], violations: [] })
   })
 })
 
@@ -358,10 +359,11 @@ describe('the conversion from elsa-tree/4 to elsa-tree/5 (tree-format.md 12.7)',
       prohibited: { label: { en: 'Prohibited', nl: 'Verboden' } },
       refer: { label: { en: 'Look elsewhere', nl: 'Elders geregeld' } },
     })
-    // **[#221]** And 12.8 after it: a /4 file ends /6.
+    // **[#221]** And 12.8 after it, **[#232]** and 12.9 last: a /4 file ends /7.
     expect(migration.answers).toEqual({ format: 'elsa-tree/5', steps: 3, left: [] })
+    expect(migration.renamed).toBe(true)
     const written = JSON.parse(await readFile(path.join(target, 'tree.json'), 'utf8')) as Record<string, unknown>
-    expect([written.$schema, written.format]).toEqual(['/schemas/elsa-tree-6.json', 'elsa-tree/6'])
+    expect([written.$schema, written.format]).toEqual(['/schemas/elsa-tree-7.json', 'elsa-tree/7'])
   })
 
   test('a tag whose primary subtag is nl gets the Dutch words, and every other the English (3.1)', async () => {
@@ -391,8 +393,8 @@ describe('the conversion from elsa-tree/4 to elsa-tree/5 (tree-format.md 12.7)',
       prohibited: { nl: 'Verboden', en: 'Prohibited' },
       refer: { nl: 'Elders geregeld', en: 'Look elsewhere' },
     }
-    // **[#221]** And 12.8's: every `answers` the array of next steps, yes then no.
-    const expected: Record<string, unknown> = { ...tree, $schema: '/schemas/elsa-tree-6.json', format: 'elsa-tree/6' }
+    // **[#221]** And 12.8's: every `answers` the array of next steps, yes then no; **[#232]** and 12.9's names.
+    const expected: Record<string, unknown> = { ...tree, $schema: '/schemas/elsa-tree-7.json', format: 'elsa-tree/7' }
     expected.nodes = (tree.nodes as Array<Record<string, unknown>>).map((node) => {
       if ('terminal' in node) return { ...node, terminal: { label: words[node.id as string] } }
       const { yes, no } = node.answers as { yes: string; no: string }
@@ -401,7 +403,7 @@ describe('the conversion from elsa-tree/4 to elsa-tree/5 (tree-format.md 12.7)',
     expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(bytes(expected as Parameters<typeof bytes>[0]))
   })
 
-  test('a second run changes no byte, and says the file is **[#221]** elsa-tree/6 already (12.7.1 step 2)', async () => {
+  test('a second run changes no byte, and says the file is **[#221]** elsa-tree/6, **[#232]** /7, already (12.7.1 step 2)', async () => {
     const target = await writeTree(treeOf4(['en', 'nl']))
     await migrateTree(target)
     const converted = await readFile(path.join(target, 'tree.json'), 'utf8')
@@ -409,14 +411,15 @@ describe('the conversion from elsa-tree/4 to elsa-tree/5 (tree-format.md 12.7)',
     const again = await migrateTree(target)
 
     expect(again.rewritten).toBe(false)
-    expect(again.conversion).toEqual({ format: 'elsa-tree/6', endings: 0, left: [] })
-    expect(again.answers).toEqual({ format: 'elsa-tree/6', steps: 0, left: [] })
+    expect(again.conversion).toEqual({ format: 'elsa-tree/7', endings: 0, left: [] })
+    expect(again.answers).toEqual({ format: 'elsa-tree/7', steps: 0, left: [] })
+    expect(again.renamed).toBe(false)
     expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(converted)
   })
 
   test.each([
-    ['the origin-relative path', '/schemas/elsa-tree-4.json', '/schemas/elsa-tree-6.json'],
-    ['an absolute URL, in place', 'https://lab.example.org/elsa/schemas/elsa-tree-4.json', 'https://lab.example.org/elsa/schemas/elsa-tree-6.json'],
+    ['the origin-relative path', '/schemas/elsa-tree-4.json', '/schemas/elsa-tree-7.json'],
+    ['an absolute URL, in place', 'https://lab.example.org/elsa/schemas/elsa-tree-4.json', 'https://lab.example.org/elsa/schemas/elsa-tree-7.json'],
     ['a value that is not /4\'s, which is left as it is', 'https://lab.example.org/schemas/elsa-tree-4.json?v=4', 'https://lab.example.org/schemas/elsa-tree-4.json?v=4'],
   ])('$schema as %s (12.7.1 step 4)', async (_name, before, after) => {
     const target = await writeTree({ ...treeOf4(['en']), $schema: before })
@@ -529,8 +532,10 @@ describe('**[#221]** the conversion from elsa-tree/5 to elsa-tree/6 (tree-format
       second: [step(yes, 'third'), step(no, 'end-b')],
       third: [step(yes, 'end-a'), step(no, 'end-a')],
     })
+    // **[#232]** And 12.9 after it: a /5 file ends /7.
+    expect(migration.renamed).toBe(true)
     const written = JSON.parse(await readFile(path.join(target, 'tree.json'), 'utf8')) as Record<string, unknown>
-    expect([written.$schema, written.format]).toEqual(['/schemas/elsa-tree-6.json', 'elsa-tree/6'])
+    expect([written.$schema, written.format]).toEqual(['/schemas/elsa-tree-7.json', 'elsa-tree/7'])
   })
 
   test('a tag whose primary subtag is nl gets the Dutch words, and every other the English (3.1)', async () => {
@@ -547,7 +552,7 @@ describe('**[#221]** the conversion from elsa-tree/5 to elsa-tree/6 (tree-format
 
     await migrateTree(target)
 
-    const expected: Record<string, unknown> = { ...tree, $schema: '/schemas/elsa-tree-6.json', format: 'elsa-tree/6' }
+    const expected: Record<string, unknown> = { ...tree, $schema: '/schemas/elsa-tree-7.json', format: 'elsa-tree/7' }
     expected.nodes = (tree.nodes as Array<Record<string, unknown>>).map((node) => {
       if (!('answers' in node)) return node
       const { yes, no } = node.answers as { yes: string; no: string }
@@ -558,7 +563,7 @@ describe('**[#221]** the conversion from elsa-tree/5 to elsa-tree/6 (tree-format
 
     const again = await migrateTree(target)
     expect(again.rewritten).toBe(false)
-    expect(again.answers).toEqual({ format: 'elsa-tree/6', steps: 0, left: [] })
+    expect(again.answers).toEqual({ format: 'elsa-tree/7', steps: 0, left: [] })
     expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(converted)
   })
 
@@ -574,8 +579,8 @@ describe('**[#221]** the conversion from elsa-tree/5 to elsa-tree/6 (tree-format
   })
 
   test.each([
-    ['$schema as the origin-relative path', '/schemas/elsa-tree-5.json', '/schemas/elsa-tree-6.json'],
-    ['$schema as an absolute URL, in place', 'https://lab.example.org/elsa/schemas/elsa-tree-5.json', 'https://lab.example.org/elsa/schemas/elsa-tree-6.json'],
+    ['$schema as the origin-relative path', '/schemas/elsa-tree-5.json', '/schemas/elsa-tree-7.json'],
+    ['$schema as an absolute URL, in place', 'https://lab.example.org/elsa/schemas/elsa-tree-5.json', 'https://lab.example.org/elsa/schemas/elsa-tree-7.json'],
     ['a $schema that is not /5\'s, which is left as it is', 'https://lab.example.org/schemas/elsa-tree-5.json?v=5', 'https://lab.example.org/schemas/elsa-tree-5.json?v=5'],
   ])('%s (12.8.1 step 4)', async (_name, before, after) => {
     const target = await writeTree({ ...treeOf5(['en']), $schema: before })
@@ -596,6 +601,61 @@ describe('**[#221]** the conversion from elsa-tree/5 to elsa-tree/6 (tree-format
 
     expect(migration.notes).toEqual(['nodes[2].answers: the format has a list here, and the file has an object'])
     expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(before)
+  })
+})
+
+/** **[#232]** `source`'s `tree.json` as `elsa-tree/6` wrote it, in a temporary copy: the two names alone (12.9 in reverse). */
+async function copyAs6(source: string, edit: (tree: Record<string, unknown>) => void = () => {}): Promise<string> {
+  const target = await copyTree(source)
+  const file = path.join(target, 'tree.json')
+  const tree = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>
+  tree.$schema = (tree.$schema as string).replace(/elsa-tree-7\.json$/, 'elsa-tree-6.json')
+  tree.format = 'elsa-tree/6'
+  edit(tree)
+  await writeFile(file, bytes(tree as Parameters<typeof bytes>[0]), 'utf8')
+  return target
+}
+
+describe('**[#232]** the conversion from elsa-tree/6 to elsa-tree/7 (tree-format.md 12.9)', () => {
+  test('a /6 file gets the /7 format and $schema and no other byte, and a second run changes nothing (12.9.1 steps 2 to 6)', async () => {
+    const original = await readFile(fixture('three-next-steps', 'tree.json'), 'utf8')
+    const target = await copyAs6(fixture('three-next-steps'))
+
+    const migration = await migrateTree(target)
+
+    expect(migration.renamed).toBe(true)
+    expect(migration.conversion).toEqual({ format: 'elsa-tree/6', endings: 0, left: [] })
+    expect(migration.answers).toEqual({ format: 'elsa-tree/6', steps: 0, left: [] })
+    expect(migration.violations).toEqual([])
+    expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(original)
+
+    const again = await migrateTree(target)
+    expect(again.renamed).toBe(false)
+    expect(again.rewritten).toBe(false)
+    expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(original)
+  })
+
+  test.each([
+    ['$schema as the origin-relative path', '/schemas/elsa-tree-6.json', '/schemas/elsa-tree-7.json'],
+    ['$schema as an absolute URL, in place', 'https://lab.example.org/elsa/schemas/elsa-tree-6.json', 'https://lab.example.org/elsa/schemas/elsa-tree-7.json'],
+    ['a $schema that is not /6\'s, which is left as it is', 'https://lab.example.org/schemas/elsa-tree-6.json?v=6', 'https://lab.example.org/schemas/elsa-tree-6.json?v=6'],
+  ])('%s (12.9.1 step 4)', async (_name, before, after) => {
+    const target = await copyAs6(fixture('single-language'), (tree) => (tree.$schema = before))
+
+    const migration = await migrateTree(target)
+
+    expect((JSON.parse(await readFile(path.join(target, 'tree.json'), 'utf8')) as Record<string, unknown>).$schema).toBe(after)
+    expect(migration.violations.map((violation) => violation.keyPath)).toEqual(before === after ? ['/$schema'] : [])
+  })
+
+  test('answers is not looked at: a /6 file with five next steps, which /6 refused, converts and validates (12.9.2)', async () => {
+    const target = await copyAs6(fixture('five-next-steps'))
+
+    const migration = await migrateTree(target)
+
+    expect(migration.renamed).toBe(true)
+    expect(migration.violations).toEqual([])
+    expect(await readFile(path.join(target, 'tree.json'), 'utf8')).toBe(await readFile(fixture('five-next-steps', 'tree.json'), 'utf8'))
   })
 })
 

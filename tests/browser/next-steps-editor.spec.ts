@@ -221,11 +221,29 @@ test('beside one next step whose words are neither yes nor no, + Yes and + No st
   ])
 })
 
-test('a fifth next step is refused with V-ANSWERS and stores nothing (41.7 item 3)', async ({ browser }) => {
+test('**[#232]** a fifth next step is stored and stands in the row as 42.3 stands five, with no +; a sixth is refused with V-ANSWERS and stores nothing (42.1, 42.6)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
-  const response = await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link: 'answer', label: { en: 'A fifth' } } })
-  expect(response.status()).toBe(422)
-  expect(((await response.json()) as { violations: Violation[] }).violations.map((violation) => violation.rule)).toEqual(['V-ANSWERS'])
+  const fifth = await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link: 'answer', label: { en: 'A fifth' } } })
+  expect(fifth.status()).toBe(201)
+  const id = ((await fifth.json()) as { node: { id: string } }).node.id
+  expect((await nodeOf(page, cookie, 'start')).answers!.map((answer) => answer.target)).toEqual([...made, id])
+  // Until #233 the editor offers no + at four, and a step of five stands as 42.3 stands it.
+  await page.goto(editor(['start']))
+  await expect.poll(() => said(page)).toEqual(['Not sure', 'Yes', 'Maybe', 'Notwithstandingness', 'A fifth'])
+  await expect(row(page)).toHaveClass(/\banswers--5\b/)
+  expect(await equalShares(page, 5)).toHaveLength(1)
+  await page.setViewportSize({ width: 999, height: 640 })
+  await page.reload()
+  await expect(row(page)).toHaveClass(/\banswers--5\b/)
+  expect(await equalShares(page, 5)).toHaveLength(2)
+
+  const sixth = await api(page, cookie, 'POST', `/trees/${TREE}/nodes`, { from: { node: 'start', link: 'answer', label: { en: 'A sixth' } } })
+  expect(sixth.status()).toBe(422)
+  expect(((await sixth.json()) as { violations: Violation[] }).violations.map((violation) => violation.rule)).toEqual(['V-ANSWERS'])
+  expect((await nodeOf(page, cookie, 'start')).answers!.map((answer) => answer.target)).toEqual([...made, id])
+
+  // The fifth goes with its step, so the tests after this one find the four they made.
+  expect((await api(page, cookie, 'DELETE', `/trees/${TREE}/nodes/${id}`)).status()).toBe(200)
   expect((await nodeOf(page, cookie, 'start')).answers!.map((answer) => answer.target)).toEqual(made)
 })
 

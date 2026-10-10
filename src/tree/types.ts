@@ -1,5 +1,5 @@
 /**
- * The types of the `elsa-tree/6` format (docs/specs/tree-format.md) as the loader hands
+ * The types of the `elsa-tree/7` format (docs/specs/tree-format.md) as the loader hands
  * them out (docs/specs/application.md section 5.1). Two normalisations against the
  * file: `id` and `kind` are added, and absent lists become empty arrays.
  */
@@ -54,7 +54,7 @@ export interface Theme {
 }
 
 export interface Manifest {
-  format: 'elsa-tree/6'
+  format: 'elsa-tree/7'
   languages: string[]
   /** The first declared language: what the frontend shows before the user chooses. */
   defaultLanguage: string
@@ -113,7 +113,7 @@ export type Node = {
   options: Option[]
   explainers: Explainer[]
 } & (
-  /** **[#221]** Two to four next steps, in the order their buttons stand (application.md 41.1, 41.3). */
+  /** **[#221]** Two to four next steps, **[#232]** two to five, in the order their buttons stand (application.md 42.1, 42.3). */
   | { kind: 'question'; answers: Answer[] }
   /** **[#179]** The ending's own words, shown on the badge (tree-format.md 5.5): `terminal.label`. */
   | { kind: 'terminal'; label: LocalisedText }
@@ -122,7 +122,7 @@ export type Node = {
 
 /**
  * **[#136]** A Node of a draft (docs/specs/application.md 19.2): a `Node` whose `answers` may
- * hold one next step (**[#221]** one to four) and whose localised texts may lack a language or hold an empty string for one
+ * hold one next step (**[#221]** one to four, **[#232]** one to five) and whose localised texts may lack a language or hold an empty string for one
  * -- a `title` or `description` not written yet is `{}` -- and nothing else different.
  */
 export type DraftNode = Omit<Node, 'kind'> & {
@@ -153,7 +153,7 @@ export interface NodeLinks {
 
 /**
  * **[#138]** The one helper through which `TreeView` and `Bubble` read a Node's Links, so that
- * a draft's half-question -- one Answer, or none yet -- and a published Node's two to four are
+ * a draft's half-question -- one Answer, or none yet -- and a published Node's two to five are
  * read by one rule (34.6). Where a public `Node` is passed nothing differs.
  */
 export function linksOf(node: Node | DraftNode): NodeLinks {

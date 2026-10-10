@@ -404,7 +404,7 @@ function referencedThemeFiles(theme: Theme | undefined): Set<string> {
 function toManifest(raw: Mapping): Manifest {
   const languages = raw.languages as string[]
   return {
-    format: 'elsa-tree/6',
+    format: 'elsa-tree/7',
     languages,
     defaultLanguage: languages[0]!,
     root: raw.root as string,

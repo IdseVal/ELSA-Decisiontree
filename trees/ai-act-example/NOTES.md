@@ -2,7 +2,7 @@
 
 `tree.json` is section 8 of `docs/specs/tree-format.md` verbatim -- byte for byte, which
 `tests/migrate-tree.test.ts` and the section's own words hold it to: the complete example
-Tree of the `elsa-tree/6` contract, in English and Dutch. It is the development default
+Tree of the `elsa-tree/7` contract, in English and Dutch. It is the development default
 and the Tree the loader tests load, so it is kept identical to the spec -- change the
 spec first, then this file. Its legal content is simplified and not to be relied on.
 
@@ -19,6 +19,9 @@ by hand as before.
 Issue #221 converted it from `elsa-tree/5` to `elsa-tree/6` by the procedure of 12.8: its two
 question Nodes carry their next steps as arrays, labelled "Yes" / "Ja" and "No" / "Nee", the
 words their buttons showed, and the same sentence now says `elsa-tree/6`, changed by hand again.
+
+Issue #232 converted it from `elsa-tree/6` to `elsa-tree/7` by the procedure of 12.9: its
+`format` and `$schema` alone, and the same sentence now says `elsa-tree/7`, changed by hand again.
 
 It was written rather than converted from its `elsa-tree/1` folder, as
 `docs/specs/tree-format.md` 12.3 asks (#39): its old Nodes exceeded the new length
