@@ -370,6 +370,27 @@ describe('the Question, on a question Node and nowhere else', () => {
     ])
   })
 
+  test('**[#232]** a step of five next steps has five Answers, in their order, each its words, a colon and its target title, in both languages (42.6)', async () => {
+    const steps = await openTree(path.join(here, '..', 'fixtures', 'five-next-steps'))
+    for (const lang of ['en', 'nl']) {
+      const node = (await steps.getNode('full'))!
+      if (node.kind !== 'question') throw new Error('full is the question Node this test needs')
+      const answers = webPageOf(await graphOf(steps, 'full', lang)).mainEntity!.suggestedAnswer
+
+      expect(answers).toHaveLength(5)
+      expect(answers).toEqual(
+        node.answers.map((answer) => ({
+          '@type': 'Answer',
+          text: `${answer.label[lang]}: ${steps.getTitle(answer.target)![lang]}`,
+          url: canonical(steps, answer.target, lang),
+        })),
+      )
+    }
+    expect(webPageOf(await graphOf(steps, 'full', 'nl')).mainEntity!.suggestedAnswer.at(-1)!.text).toBe(
+      'Deels als importeur: Alleen de importeur heeft plichten: een vijfde eindstap met een titel van tachti',
+    )
+  })
+
   test('the Question\u2019s text is the reduced string and never the cut one', async () => {
     // A description is at most 150 counted characters, so the two are the same string for
     // a conforming Tree. What is asserted here is which function the field reads, because

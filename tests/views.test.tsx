@@ -31,6 +31,7 @@ beforeAll(async () => {
     ['other-languages', path.join(here, 'fixtures', 'other-languages')],
     ['full-node', path.join(here, 'fixtures', 'full-node')],
     ['three-next-steps', path.join(here, 'fixtures', 'three-next-steps')],
+    ['five-next-steps', path.join(here, 'fixtures', 'five-next-steps')],
     ['carousel', path.join(here, 'fixtures', 'carousel')],
     ['cycle', path.join(here, 'fixtures', 'cycle')],
     ['overlay', path.join(here, 'fixtures', 'overlay')],
@@ -480,6 +481,28 @@ describe('a question Node with Options', () => {
     expect(all(await view('/full-node/full'), /aria-label="(Notwithstandingness: [^"]*)"/g)).toEqual([
       'Notwithstandingness: Nothing applies here: a Terminal whose title is also eighty characters long, too',
     ])
+  })
+
+  test('**[#232]** a step of five draws five buttons in the file\'s order, the row\'s class counting them, and the notice of its two boxes naming 590 and 650 (42.3, 42.4)', async () => {
+    const html = await view('/five-next-steps/full')
+    expect(part(html, 'div', 'answers')).toMatch(/^<div class="answers answers--5" role="group"/)
+    expect(branches(html, 'answer answer--next').map(([, words]) => words)).toEqual([
+      'Yes, for my company',
+      'No, outside the EU.',
+      'Only as a deployer.',
+      'Notwithstandingness',
+      'Partly, as importer',
+    ])
+    expect(html).toMatch(
+      /<p class="minimum-size minimum-size--five"[^>]*>This tool needs a larger window\. <span class="minimum-width">Make it wider than 320 pixels\.<\/span> <span class="minimum-height">Make it taller than 590 pixels\.<\/span><span class="minimum-height minimum-height--narrow">Make it taller than 650 pixels\.<\/span><\/p>/,
+    )
+    const nl = await view('/five-next-steps/full?lang=nl')
+    expect(branches(nl, 'answer answer--next').map(([, words]) => words).at(-1)).toBe('Deels als importeur')
+    expect(nl).toContain('<span class="minimum-height">Maak het hoger dan 590 pixels.</span><span class="minimum-height minimum-height--narrow">Maak het hoger dan 650 pixels.</span>')
+    // Three and four keep 41.4's notice, and its one height.
+    const four = await view('/full-node/full')
+    expect(four).toMatch(/<p class="minimum-size minimum-size--steps"/)
+    expect(four).not.toContain('minimum-height--narrow')
   })
 
   test('draws its Options beside the Bubble as the buttons of their Overlays, in Option order, alternating right and left (10.3, 10.9)', async () => {

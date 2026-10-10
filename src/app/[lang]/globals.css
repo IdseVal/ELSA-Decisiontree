@@ -1394,7 +1394,7 @@ a.language:hover,
 /*
  * Every Answer alike, and `startAgain` the same: the owner does not want the colour to steer
  * the reader (core document 3.2). **[#221]** Two to four in one row, each an equal share of it
- * and at most 620, as the two were: at 1280 four are 300 each (41.3). The fill is the walk's controls' Theme role and the label
+ * and at most 620, as the two were: at 1280 four are 300 each (41.3), **[#232]** five 236 (42.3). The fill is the walk's controls' Theme role and the label
  * its derived letter colour (13.1); the label is 19-pixel bold, large text, which is what
  * lets a mid-tone fill such as the logo green read under white at 3 : 1. Two lines of 24
  * and 6 pixels above and below are the button's 60.
@@ -2490,6 +2490,21 @@ fieldset:disabled .admin-submit {
   }
 }
 
+/*
+ * **[#232]** Five stand three then two below 1000 pixels wide (42.3): each a third of the row less
+ * its gaps, so the two of the second row are as wide as each above them, and centred. The order is
+ * the file's, row by row, which `across` in `src/neighbourhood.ts` places each slide by (42.5).
+ */
+@media (max-width: 999px) {
+  .answers--5 {
+    flex-wrap: wrap;
+  }
+
+  .answers--5 > .answer {
+    flex: 0 0 calc((100% - 2 * var(--answers-gap)) / 3);
+  }
+}
+
 /* --- below the floor: the notice (10.4, 10.5 step 7) ------------------------------- */
 
 .minimum-size {
@@ -3045,6 +3060,40 @@ fieldset:disabled .admin-submit {
 
   .minimum-size--steps .minimum-height {
     display: inline;
+  }
+}
+
+/*
+ * **[#232]** A step of five next steps, on the public page and in the preview, in two boxes (42.4,
+ * measured by #231): below 640 pixels wide it needs up to 584 (from 360 to 599), so below 590 the
+ * notice stands in; below 360 it needs 648 (321 wide, Verdana and DejaVu Sans), so below 650. Two
+ * boxes, not one below 640 x 650, so that 360 x 640, where five fit, keeps the tree view. Each box
+ * names its own height: the notice holds both sentences, one shown below 360 pixels wide and the
+ * other above.
+ */
+@media (max-width: 639px) and (max-height: 589px), (max-width: 359px) and (max-height: 649px) {
+  .tree-layer:has(~ .minimum-size--five) {
+    display: none;
+  }
+
+  .minimum-size--five {
+    display: block;
+  }
+
+  .minimum-size--five .minimum-height {
+    display: inline;
+  }
+}
+
+@media not all and (max-width: 359px) {
+  .minimum-size--five .minimum-height.minimum-height--narrow {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .minimum-size--five .minimum-height:not(.minimum-height--narrow) {
+    display: none;
   }
 }
 
@@ -3968,7 +4017,7 @@ fieldset:disabled .admin-submit {
  * steps (41.7 item 8), and each is an equal share of it, at most 620 (41.3): one row from 1000
  * pixels wide, two a row below. Set as a share, not left to shrink from 620: a flex item shrinks
  * by its content box, so a Sheet with no padding of its own and a padded button would part
- * unequally.
+ * unequally. **[#232]** Five, three a row below 1000 (42.3): what #233's `+` after four stands in.
  */
 .answers--3 {
   --row-buttons: 3;
@@ -3978,10 +4027,18 @@ fieldset:disabled .admin-submit {
   --row-buttons: 4;
 }
 
+.answers--5 {
+  --row-buttons: 5;
+}
+
 @media (max-width: 999px) {
   .answers--3,
   .answers--4 {
     --row-buttons: 2;
+  }
+
+  .answers--5 {
+    --row-buttons: 3;
   }
 }
 
