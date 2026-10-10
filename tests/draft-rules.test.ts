@@ -9,7 +9,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import schemaDocument from '../schemas/elsa-tree-6.json' with { type: 'json' }
+import schemaDocument from '../schemas/elsa-tree-7.json' with { type: 'json' }
 import { openTree, TreeInvalid } from '../src/tree/loader.ts'
 import { treeBytes } from '../src/tree/serialise.ts'
 import { draftSchema, validateTree, type Mapping } from '../src/tree/validate.ts'
@@ -18,8 +18,8 @@ import { draftSchema, validateTree, type Mapping } from '../src/tree/validate.ts
 function validTree(): Mapping {
   const text = (en: string): Record<string, string> => ({ en, nl: `${en} (nl)` })
   return {
-    $schema: '/schemas/elsa-tree-6.json',
-    format: 'elsa-tree/6',
+    $schema: '/schemas/elsa-tree-7.json',
+    format: 'elsa-tree/7',
     languages: ['en', 'nl'],
     root: 'start',
     title: text('A Tree'),
@@ -100,7 +100,8 @@ const BLOCKING: Array<[string, string, (tree: Mapping) => void]> = [
   // **[#221]** The draft schema's `minItems` 1 refuses an empty list, as V-EMPTY refused `{}` in /5.
   ['an empty answers list', 'schema', (t) => (node(t, 'start').answers = [])],
   ['answers in the /5 shape', 'schema', (t) => (node(t, 'start').answers = { yes: 'yes-end', no: 'no-end' })],
-  ['a fifth next step', 'schema', (t) => steps(t, 'start').push(...[1, 2, 3].map(() => ({ label: { en: 'a', nl: 'b' }, target: 'yes-end' })))],
+  // **[#232]** A sixth, since elsa-tree/7 holds five (42.1).
+  ['a sixth next step', 'schema', (t) => steps(t, 'start').push(...[1, 2, 3, 4].map(() => ({ label: { en: 'a', nl: 'b' }, target: 'yes-end' })))],
   ['a next step without words', 'schema', (t) => delete (steps(t, 'start')[0] as Partial<{ label: unknown }>).label],
   ['a next step\'s words on two lines', 'V-PLAIN', (t) => (steps(t, 'start')[0]!.label.en = 'Yes\nindeed')],
   ['an id used twice', 'V-NODE', (t) => (node(t, 'no-end').id = 'yes-end')],
@@ -146,8 +147,8 @@ describe('the draft schema (19.2)', () => {
     expect(check(validTree(), 'draft')).toEqual([])
   })
 
-  test('**[#221]** two, three and four next steps are valid in both modes, labels of 19 characters included, and two may share a target (41.1)', () => {
-    for (const count of [2, 3, 4]) {
+  test('**[#221]** two, three and four next steps, **[#232]** and five, are valid in both modes, labels of 19 characters included, and two may share a target (42.1)', () => {
+    for (const count of [2, 3, 4, 5]) {
       const tree = validTree()
       const words = { en: 'Not in this purpose'.slice(0, 19), nl: 'Niet van toepassing' }
       steps(tree, 'start').splice(0, 2, ...Array.from({ length: count }, (_, i) => ({ label: words, target: i % 2 === 0 ? 'yes-end' : 'no-end' })))

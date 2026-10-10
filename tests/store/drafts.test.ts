@@ -103,8 +103,8 @@ describe('creating a Tree (22.1, 27.2)', () => {
     expect(entry).toMatchObject({ id: 'my-tree', published: false, servable: false, blocking: [] })
     expect(entry.meta).toMatchObject({ creator: cees.id, collaborators: [], publishCount: 0, revision: 0 })
     expect(JSON.parse(await text('my-tree', 'draft.json'))).toEqual({
-      $schema: '/schemas/elsa-tree-6.json',
-      format: 'elsa-tree/6',
+      $schema: '/schemas/elsa-tree-7.json',
+      format: 'elsa-tree/7',
       languages: ['nl', 'en'],
       root: 'start',
       title: { nl: 'Mijn boom', en: '' },
@@ -346,19 +346,19 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
     expect((await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'end', label: { en: 'Ends' } }))).status).toBe(422)
   })
 
-  test('**[#221]** a next step is appended last with its words, "" for every other language; a fifth is 422 with V-ANSWERS and nothing is stored', async () => {
+  test('**[#221]** a next step is appended last with its words, "" for every other language; **[#232]** a sixth is 422 with V-ANSWERS and nothing is stored', async () => {
     await drafts.create(cees, 't', ['en', 'nl'], { en: 'T', nl: 'T' })
-    const words = ['Yes', 'No', 'Not sure', 'Partly']
+    const words = ['Yes', 'No', 'Not sure', 'Partly', 'Unknown']
     const made: string[] = []
     for (const en of words) made.push((await drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: { en } })).node!.id)
     const start = async () => JSON.parse(await text('t', 'draft.json')).nodes[0]
     expect((await start()).answers).toEqual(words.map((en, i) => ({ label: { en, nl: '' }, target: made[i] })))
-    expect(drafts.entry(cees, 't').advisory.map((violation) => `${violation.file} ${violation.keyPath} ${violation.rule}`)).toContain('start answers[3].label.nl V-L10N')
+    expect(drafts.entry(cees, 't').advisory.map((violation) => `${violation.file} ${violation.keyPath} ${violation.rule}`)).toContain('start answers[4].label.nl V-L10N')
 
     const before = await text('t', 'draft.json')
-    const refused = await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: { en: 'Fifth' } }))
+    const refused = await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'answer', label: { en: 'Sixth' } }))
     expect(refused).toMatchObject({ status: 422, rules: ['V-ANSWERS'] })
-    expect((await refusal(drafts.write(cees, 't', 'start', { op: 'set-answer', index: 4, target: made[0]! }))).rules).toEqual(['V-ANSWERS'])
+    expect((await refusal(drafts.write(cees, 't', 'start', { op: 'set-answer', index: 5, target: made[0]! }))).rules).toEqual(['V-ANSWERS'])
     expect(await text('t', 'draft.json')).toBe(before)
     // The place after the last appends a next step to an existing Node, its words "" unless given.
     await drafts.write(cees, 't', made[0]!, { op: 'set-answer', index: 0, target: made[1]! })
@@ -661,7 +661,7 @@ describe('pictures (22.6)', () => {
 describe('an uneditable Tree (19.5)', () => {
   test('a hand-edited draft that breaks a blocking rule is held, reported, and refuses every write with 409', async () => {
     await drafts.create(cees, 't', ['en'], { en: 'T' })
-    await writeFile(file('t', 'draft.json'), '{ "format": "elsa-tree/6", "format": "twice" }\n')
+    await writeFile(file('t', 'draft.json'), '{ "format": "elsa-tree/7", "format": "twice" }\n')
     store = await openStore(data, ADMIN)
     drafts = store.drafts
     const entry = drafts.entry(cees, 't')

@@ -214,7 +214,7 @@ describe('building an address', () => {
 
   test('**[#121]** the dataset carries the Tree id, and the schema the format number (15.1)', () => {
     expect(datasetHref('ai-act-example')).toBe('/ai-act-example/tree.json')
-    expect(SCHEMA_HREF).toBe('/schemas/elsa-tree-6.json')
+    expect(SCHEMA_HREF).toBe('/schemas/elsa-tree-7.json')
   })
 
   test('**[#121]** the dataset URL is not a page, in any language', () => {
@@ -343,7 +343,7 @@ describe('the address set of a Node (16.3)', () => {
 
   test('`schemas` is not a Tree of this deployment, so its addresses answer 404', () => {
     // 4.3 reserves it for the schema route of 15.1; nothing under it is a page.
-    expect(parse('/schemas/elsa-tree-6.json')).toBeNull()
+    expect(parse('/schemas/elsa-tree-7.json')).toBeNull()
     expect(parse('/schemas/elsa-tree-4.json')).toBeNull()
     expect(parse('/schemas/start')).toBeNull()
   })
