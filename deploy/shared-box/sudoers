@@ -1,0 +1,5 @@
+# The one thing the elsa user may do as root: restart its own service, so that deploy.sh
+# (run over SSH by the deploy workflow) needs no password and no wider right.
+# Install as /etc/sudoers.d/elsa-decisiontree, mode 0440, and check it with
+# `visudo -cf /etc/sudoers.d/elsa-decisiontree` before leaving the shell.
+elsa ALL=(root) NOPASSWD: /usr/bin/systemctl restart elsa-decisiontree
