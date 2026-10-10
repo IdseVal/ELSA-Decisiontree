@@ -77,6 +77,8 @@ export class WriteQueue {
   private savedAt: number | null = null
   /** **[#205]** Who waits for the queue to hold nothing not yet accepted (`flushAll`). */
   private readonly idle: Array<() => void> = []
+  /** **[#234]** Who waits for the same, or for the first failure or 401 before it (`settleOrFail`). */
+  private readonly slides: Array<(settled: boolean) => void> = []
 
   constructor(send: (write: Write) => Promise<Answer>, events: QueueEvents) {
     this.send = send
@@ -152,13 +154,22 @@ export class WriteQueue {
    * accepted; a refused one leaves the queue, so it is not.
    */
   flushAll(): Promise<void> {
-    for (const [key, waiting] of [...this.pending]) {
-      clearTimeout(waiting.timer)
-      this.pending.delete(key)
-      this.enqueue(waiting.write)
-    }
+    this.flushPending()
     if (!this.busy()) return Promise.resolve()
     return new Promise((resolve) => this.idle.push(resolve))
+  }
+
+  /**
+   * **[#234]** What a slide in the editor waits on before it navigates (42.8): every field value
+   * waiting out its 600 ms goes now, as in `flushAll`, and the promise resolves `true` when the
+   * queue next holds nothing not yet accepted -- or `false` as soon as a request fails (29.5) or a
+   * 401 pauses the queue (29.6), so that the slide is undone. The queue goes on retrying, or
+   * waiting for the sign-in, as before; a refused value leaves the queue and is not waited for.
+   */
+  settleOrFail(): Promise<boolean> {
+    this.flushPending()
+    if (!this.busy()) return Promise.resolve(true)
+    return new Promise((resolve) => this.slides.push(resolve))
   }
 
   /** Whether anything is not yet accepted: what `beforeunload` asks about (29.5). */
@@ -182,6 +193,15 @@ export class WriteQueue {
     this.paused = false
     this.changed()
     this.pump()
+  }
+
+  /** Every field value waiting out its 600 ms goes into the order now, as on a blur. */
+  private flushPending(): void {
+    for (const [key, waiting] of [...this.pending]) {
+      clearTimeout(waiting.timer)
+      this.pending.delete(key)
+      this.enqueue(waiting.write)
+    }
   }
 
   /**
@@ -221,6 +241,7 @@ export class WriteQueue {
         this.pump()
       }, wait)
       this.changed()
+      this.failed()
       return
     }
     this.attempt = 0
@@ -229,6 +250,7 @@ export class WriteQueue {
       this.paused = true
       this.changed()
       this.events.onAnswer(write, answer)
+      this.failed()
       return
     }
     this.queue.shift()
@@ -241,6 +263,13 @@ export class WriteQueue {
   private changed(): void {
     const state = this.state()
     this.events.onState(state)
-    if (!state.saving) for (const resolve of this.idle.splice(0)) resolve()
+    if (state.saving) return
+    for (const resolve of this.idle.splice(0)) resolve()
+    for (const resolve of this.slides.splice(0)) resolve(true)
+  }
+
+  /** **[#234]** A request failed or a 401 paused the queue: every slide waiting is undone (42.8). */
+  private failed(): void {
+    for (const resolve of this.slides.splice(0)) resolve(false)
   }
 }
