@@ -135,7 +135,8 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
   // The editor's row, its next steps between their move arrows; the preview's setting has no slot (40.2).
   const arrows = edit?.slots.answerMoves !== undefined
   // **[#232]** A row of five has two boxes of its own (42.4): the public page's and the preview's,
-  // and **[#233]** the editor's, which counts its `+` (42.7 item 7). Each names a second height.
+  // and **[#233]** the editor's, which counts its `+` (42.7 item 7). A row of five names a second
+  // height, the narrow box's; every other row names one.
   const five = buttons > 4
   const [floorClass, floorHeight, narrowHeight] =
     buttons <= 2

@@ -155,8 +155,9 @@ export interface FormWords {
  * `""`, appended last, and the editor goes to the step it made under the page `here` (41.7 item
  * 3); a refusal -- a sixth -- is shown on the Sheet. On: the Node a Terminal with those words
  * (36.3), the page repainting from the response with this Sheet gone with the row; a refusal -- a
- * Node with Options cannot end (V-TERMINAL, 30.3) -- is shown on the Sheet, the switch and the
- * words kept, so the creator can turn it off and add a next step instead.
+ * Node with Options cannot end (30.3; the store names the schema's rule, which refuses `options` on
+ * a Terminal) -- is shown on the Sheet, the switch and the words kept, so the creator can turn it
+ * off and add a next step instead. Turning the switch clears a refusal: it was the other write's.
  */
 export function WordsForm({ nodeId, lang, here, canEnd, words }: { nodeId: string; lang: string; here: string; canEnd: boolean; words: FormWords }) {
   const api = useEditor()
@@ -210,7 +211,16 @@ export function WordsForm({ nodeId, lang, here, canEnd, words }: { nodeId: strin
       <h2>{words.addNextStep}</h2>
       {canEnd && (
         <label className="structure-switch">
-          <input type="checkbox" role="switch" checked={ends} disabled={api.readOnly} onChange={(event) => setEnds(event.target.checked)} />
+          <input
+            type="checkbox"
+            role="switch"
+            checked={ends}
+            disabled={api.readOnly || busy}
+            onChange={(event) => {
+              setEnds(event.target.checked)
+              setError(null)
+            }}
+          />
           {words.treeEndsHere}
         </label>
       )}

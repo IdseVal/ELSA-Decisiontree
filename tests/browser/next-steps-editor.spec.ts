@@ -312,7 +312,10 @@ test('**[#233]** a step with an Option cannot end: the refusal is shown in the S
   await expect(form(page).getByRole('textbox', { name: 'Text of the ending' })).toHaveValue('Look elsewhere')
   expect((await nodeOf(page, cookie, withOption)).label).toBeUndefined()
 
+  // Turned off, the refusal goes with the write it was of; the words stay.
   await switchOf(page).click()
+  await expect(error).toHaveCount(0)
+  await expect(form(page).getByRole('textbox', { name: 'Words on the button' })).toHaveValue('Look elsewhere')
   await form(page).getByRole('button', { name: 'Confirm' }).click()
   const added = await landed(page, `/admin/trees/${TREE}/start/${withOption}`)
   expect((await nodeOf(page, cookie, withOption)).answers).toEqual([{ label: { en: 'Look elsewhere', nl: '' }, target: added }])

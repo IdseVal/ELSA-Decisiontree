@@ -258,13 +258,16 @@ for (const lang of LANGUAGES) {
   })
 }
 
-/** The editor's page at every viewport, in every state 28.6 names for this issue (35.4). */
-async function editorEverywhere(page: Page, lang: string): Promise<void> {
-  const address = `/admin/trees/hidden-draft/full${lang === 'en' ? '' : '?lang=nl'}`
-  for (const [width, height] of VIEWPORTS) {
+/**
+ * The editor's page at every viewport, in every state 28.6 names for this issue (35.4); **[#233]**
+ * the full Node of `hidden-draft` unless `at` names another Tree's on another store, at `viewports`.
+ */
+async function editorEverywhere(page: Page, lang: string, at = { base: origin, tree: 'hidden-draft' }, viewports: readonly (readonly [number, number])[] = VIEWPORTS): Promise<void> {
+  const address = `/admin/trees/${at.tree}/full${lang === 'en' ? '' : '?lang=nl'}`
+  for (const [width, height] of viewports) {
     const viewport = `${width}x${height}`
     await page.setViewportSize({ width, height })
-    expect((await page.goto(`${origin}${address}`))?.status()).toBe(200)
+    expect((await page.goto(`${at.base}${address}`))?.status()).toBe(200)
     await expect(page.locator('main')).toBeVisible()
     record(await measure(page), 'editor', lang, viewport, '')
 
@@ -336,6 +339,16 @@ for (const lang of LANGUAGES) {
   test(`the editor on the full Node, ${lang}, never scrolls at any viewport of 10.6, in every state (28.6)`, async ({ browser }) => {
     test.slow()
     await editorEverywhere(await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD), lang)
+  })
+
+  // **[#233]** Where the full Node's four next steps and the `+` take 42.4's notice -- of 10.6's
+  // viewports, 360 x 640 -- the same Node with three next steps, a row of four, has every state measured.
+  test(`**[#233]** the editor on the full Node with three next steps, ${lang}, never scrolls in every state where the full Node of four shows the notice for five (28.6, 42.4)`, async ({ browser }) => {
+    const page = await (await browser.newContext()).newPage()
+    expect((await login(page, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+    const notice = VIEWPORTS.filter(([width, height]) => width > 320 && height > 480 && editorFiveNotice(width, height) !== null)
+    expect(notice).toEqual([[360, 640]])
+    await editorEverywhere(page, lang, { base: overlayOrigin, tree: 'three-next-steps' }, notice)
   })
 }
 

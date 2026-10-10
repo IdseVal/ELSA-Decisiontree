@@ -241,7 +241,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
       const has = linksOf(node)
       const here = hereOf(node.id)
       if (here === null || has.terminal !== undefined || has.answers.length >= MAX_ANSWERS) return []
-      const words = {
+      const formWords = {
         addNextStep: ui.addNextStep,
         treeEndsHere: ui.treeEndsHere,
         nextStepWords: ui.nextStepWords,
@@ -260,7 +260,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
               +
             </span>
           }
-          pages={[<WordsForm key="add" nodeId={node.id} lang={lang} here={here} canEnd={has.answers.length === 0} words={words} />]}
+          pages={[<WordsForm key="add" nodeId={node.id} lang={lang} here={here} canEnd={has.answers.length === 0} words={formWords} />]}
           words={sheet}
           uiLang={uiLang}
           idPrefix={`${node.id}-add-`}
