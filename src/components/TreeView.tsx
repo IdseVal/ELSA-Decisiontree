@@ -124,7 +124,9 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
   })
   const view = viewAt(centre.address, '', true)
   const many = buttonsOf(centre.node, edit) > 2
-  const [floorClass, floorHeight] = !many ? ['minimum-size', FLOOR_HEIGHT] : edit ? ['minimum-size minimum-size--editor-steps', EDITOR_STEPS_FLOOR_HEIGHT] : ['minimum-size minimum-size--steps', STEPS_FLOOR_HEIGHT]
+  // The editor's row, its next steps between their move arrows; the preview's setting has no slot (40.2).
+  const arrows = edit?.slots.answerMoves !== undefined
+  const [floorClass, floorHeight] = !many ? ['minimum-size', FLOOR_HEIGHT] : arrows ? ['minimum-size minimum-size--editor-steps', EDITOR_STEPS_FLOOR_HEIGHT] : ['minimum-size minimum-size--steps', STEPS_FLOOR_HEIGHT]
   // The page's own URL, aside chain included: what a slide arrives at, and what a history step leaves.
   const here = links.node(address)
 
