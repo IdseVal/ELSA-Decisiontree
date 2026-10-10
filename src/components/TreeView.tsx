@@ -128,7 +128,9 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
     asides: isCentre ? neighbours.asides : [],
     open: isCentre ? open : null,
     links,
-    edit,
+    // **[#234]** A neighbour frame is drawn as the preview draws a draft's, with no slot (42.8): the
+    // editor's fields and controls are the centre's alone.
+    edit: isCentre || !edit ? edit : { ...edit, slots: {} },
   })
   const view = viewAt(centre.address, '', true)
   const buttons = buttonsOf(centre.node, edit)

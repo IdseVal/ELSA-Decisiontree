@@ -188,31 +188,11 @@ export function draftCentre<N extends Node | DraftNode>(centre: Centre<N>): Cent
  * (42.5); the parent at the negated place of the centre's button in the parent's row.
  */
 export async function neighbourhood<N extends Node | DraftNode>(tree: Readable<N>, at: PageAddress, node: N, known: N[] = []): Promise<Neighbourhood<N>> {
-  const read = new Map<string, Promise<N | null>>(known.map((n) => [n.id, Promise.resolve(n)]))
-  const get = (id: string) => {
-    if (!read.has(id)) read.set(id, tree.getNode(id))
-    return read.get(id)!
-  }
+  const get = reader(tree, known)
 
-  const wanted: { address: PageAddress; direction: Direction; x: Across; y: number }[] = []
-
-  // The parent only: the up arrow goes one step back, so the grandparent is never one click away (10.2).
-  // It stands where the step down from it came from, so that going back retraces that step (11.3):
-  // above the first of its next steps that names the centre, mirrored; straight above otherwise.
-  if (at.trail.length > 0) {
-    const index = at.trail.length - 1
-    const parent = await get(at.trail[index]!)
-    const steps = parent ? linksOf(parent).answers : []
-    const step = steps.findIndex((answer) => answer.target === node.id)
-    const down = step === -1 ? { row: 0, rows: 0 } : across(step, steps.length)
-    // `0 -`, not `-`: a button in the middle mirrors to 0, not -0.
-    wanted.push({
-      address: { ...at, trail: at.trail.slice(0, index), nodeId: at.trail[index]! },
-      direction: 'up',
-      x: { row: 0 - down.row, rows: 0 - down.rows },
-      y: -1,
-    })
-  }
+  const wanted: Wanted[] = []
+  const up = await upFrom(get, at, node, (steps) => steps)
+  if (up) wanted.push(up)
 
   // The second level is counted before deduplication, so a step's frames keep their places
   // whichever of them another placement already took (41.5).
@@ -229,15 +209,7 @@ export async function neighbourhood<N extends Node | DraftNode>(tree: Readable<N
     wanted.push({ address, direction: 'down', x: { row: place, rows: place }, y: 2 })
   })
 
-  const placed: Placed<N>[] = []
-  const seen = new Set([node.id])
-  for (const { address, direction, x, y } of wanted) {
-    if (seen.has(address.nodeId)) continue
-    const neighbour = await get(address.nodeId)
-    if (!neighbour) continue
-    seen.add(neighbour.id)
-    placed.push({ node: neighbour, href: nodeHref(address), address, direction, x, y })
-  }
+  const placed = await place(get, node, wanted)
 
   const asides: Aside<N>[] = []
   for (const option of node.options) {
@@ -286,6 +258,104 @@ export function across(i: number, k: number): Across {
   const first = Math.ceil(k / 2)
   const [c, m] = i < first ? [i, first] : [i - first, k - first]
   return { row, rows: c - (m - 1) / 2 }
+}
+
+/** **[#234]** The most next steps a step has (application.md 42.1): the editor's row offers its `+` below it (42.7 item 1). */
+export const MAX_NEXT_STEPS = 5
+
+/** **[#234]** The bound of 42.8 on the editor page's placed neighbours: the parent and five next steps. */
+export const MAX_EDITOR_PLACED = 1 + MAX_NEXT_STEPS
+
+/**
+ * **[#234]** How many buttons the editor's Answer row of a step of `steps` next steps holds
+ * (application.md 42.7 item 1, 42.8): its next steps and the `+` after them, while there are fewer
+ * than five. A step of none has its `+` alone, which leads nowhere a frame stands.
+ */
+export function editorRow(steps: number): number {
+  return steps < MAX_NEXT_STEPS ? steps + 1 : steps
+}
+
+/**
+ * **[#234]** The Nodes the editor's page places around `node`, which is the Node `at` names
+ * (application.md 42.8; ADR-231-slide-in-the-editor): the parent up and the centre's next steps
+ * down, at most `MAX_EDITOR_PLACED`, for the slide of a next step's button and the up arrow. Each
+ * stands where its button stands in the editor's row, the `+` counted (`editorRow`): the *i*-th of
+ * *n* at `across(i, editorRow(n))`, and the parent at the negated place of the centre's button in
+ * the parent's row as the editor draws it. Nothing two levels down: no button of the page leads
+ * there. Deduplicated by Node id as `neighbourhood` is, which it does not call; `known` as there.
+ */
+export async function editorNeighbours<N extends Node | DraftNode>(draft: Readable<N>, at: PageAddress, node: N, known: N[] = []): Promise<Placed<N>[]> {
+  const get = reader(draft, known)
+  const wanted: Wanted[] = []
+  const up = await upFrom(get, at, node, editorRow)
+  if (up) wanted.push(up)
+  const steps = linksOf(node).answers
+  steps.forEach((answer, i) => wanted.push({ address: followed(at, answer.target), direction: 'down', x: across(i, editorRow(steps.length)), y: 1 }))
+  // The format holds five next steps at most; the slice states the contract of 42.8.
+  return (await place(get, node, wanted)).slice(0, MAX_EDITOR_PLACED)
+}
+
+/** A placement before its Node is read: where `address` is to stand. */
+interface Wanted {
+  address: PageAddress
+  direction: Direction
+  x: Across
+  y: number
+}
+
+/** Reads a Node of `tree` once however often it is asked for, the `known` ones not at all (11.2, last bullet). */
+function reader<N extends Node | DraftNode>(tree: Readable<N>, known: N[]): (id: string) => Promise<N | null> {
+  const read = new Map<string, Promise<N | null>>(known.map((n) => [n.id, Promise.resolve(n)]))
+  return (id) => {
+    if (!read.has(id)) read.set(id, tree.getNode(id))
+    return read.get(id)!
+  }
+}
+
+/**
+ * The parent only: the up arrow goes one step back, so the grandparent is never one click away
+ * (10.2). It stands where the step down from it came from, so that going back retraces that step
+ * (11.3): above the first of its next steps that names the centre, mirrored; straight above
+ * otherwise. **[#234]** `buttons` is how many buttons the parent's row holds for its next steps:
+ * the next steps alone on a public page, with the editor's `+` on the editor's (42.8). Null at the
+ * root.
+ */
+async function upFrom<N extends Node | DraftNode>(
+  get: (id: string) => Promise<N | null>,
+  at: PageAddress,
+  node: N,
+  buttons: (steps: number) => number,
+): Promise<Wanted | null> {
+  if (at.trail.length === 0) return null
+  const index = at.trail.length - 1
+  const parent = await get(at.trail[index]!)
+  const steps = parent ? linksOf(parent).answers : []
+  const step = steps.findIndex((answer) => answer.target === node.id)
+  const down = step === -1 ? { row: 0, rows: 0 } : across(step, buttons(steps.length))
+  // `0 -`, not `-`: a button in the middle mirrors to 0, not -0.
+  return {
+    address: { ...at, trail: at.trail.slice(0, index), nodeId: at.trail[index]! },
+    direction: 'up',
+    x: { row: 0 - down.row, rows: 0 - down.rows },
+    y: -1,
+  }
+}
+
+/**
+ * The placements of `wanted` whose Nodes exist, deduplicated by Node id -- the first wins, in
+ * that order, and the Node on screen is never its own neighbour.
+ */
+async function place<N extends Node | DraftNode>(get: (id: string) => Promise<N | null>, node: N, wanted: Wanted[]): Promise<Placed<N>[]> {
+  const placed: Placed<N>[] = []
+  const seen = new Set([node.id])
+  for (const { address, direction, x, y } of wanted) {
+    if (seen.has(address.nodeId)) continue
+    const neighbour = await get(address.nodeId)
+    if (!neighbour) continue
+    seen.add(neighbour.id)
+    placed.push({ node: neighbour, href: nodeHref(address), address, direction, x, y })
+  }
+  return placed
 }
 
 /** The address a Link from `at` to `id` reaches: `at` joins the Trail, as `followHref` builds it. */

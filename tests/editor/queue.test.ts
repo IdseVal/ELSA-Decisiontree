@@ -331,3 +331,76 @@ describe('flushAll, and the wait for the queue (29.2, 40.6)', () => {
     expect(queue.busy()).toBe(false)
   })
 })
+
+/**
+ * **[#234]** The wait a slide in the editor makes before it navigates (42.8): `settleOrFail` writes
+ * every field still waiting out its 600 ms, as `flushAll` does, and resolves `true` once the queue
+ * holds nothing not yet accepted -- or `false` as soon as a write fails or the session expires, so
+ * that the slide is undone.
+ */
+describe('settleOrFail, the wait of a slide (29.2, 42.8)', () => {
+  /** What `promise` has resolved to by now, the promise chain run; undefined while it waits. */
+  async function outcome(promise: Promise<boolean>): Promise<boolean | undefined> {
+    let value: boolean | undefined
+    void promise.then((v) => (value = v))
+    await settled()
+    return value
+  }
+
+  test('resolves true at once when nothing waits', async () => {
+    const { send } = fakeSend()
+    const { queue } = queueWith(send)
+    expect(await outcome(queue.settleOrFail())).toBe(true)
+  })
+
+  test("cuts a field's 600 ms short and resolves true once it is accepted", async () => {
+    const { sent, send } = fakeSend()
+    const { queue } = queueWith(send)
+
+    queue.field('start', 'title.en', 'Typed just before the click')
+    const waiting = queue.settleOrFail()
+    expect(sent.map((s) => s.write.change)).toEqual([{ path: 'title.en', value: 'Typed just before the click' }])
+    expect(await outcome(waiting)).toBeUndefined()
+    sent[0]!.answer(ok)
+    expect(await outcome(waiting)).toBe(true)
+  })
+
+  test('resolves false when a write fails, and the queue retries it as before', async () => {
+    const { sent, send } = fakeSend()
+    const { queue } = queueWith(send)
+
+    queue.field('start', 'title.en', 'kept')
+    const waiting = queue.settleOrFail()
+    sent[0]!.answer({ status: 503, body: null })
+    expect(await outcome(waiting)).toBe(false)
+    expect(queue.state().failure).not.toBeNull()
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect(sent).toHaveLength(2)
+    sent[1]!.answer(ok)
+    await settled()
+    expect(queue.state().failure).toBeNull()
+    expect(queue.busy()).toBe(false)
+  })
+
+  test('resolves false when the session expires, and the write waits for the sign-in as before', async () => {
+    const { sent, send } = fakeSend()
+    const { queue } = queueWith(send)
+
+    queue.field('start', 'title.en', 'kept')
+    const waiting = queue.settleOrFail()
+    sent[0]!.answer({ status: 401, body: null })
+    expect(await outcome(waiting)).toBe(false)
+    queue.resume()
+    expect(sent).toHaveLength(2)
+  })
+
+  test('a refused value leaves the queue, and is not waited for', async () => {
+    const { sent, send } = fakeSend()
+    const { queue } = queueWith(send)
+
+    queue.field('start', 'description.en', '<script')
+    const waiting = queue.settleOrFail()
+    sent[0]!.answer({ status: 422, body: { error: 'blocking', violations: [] } })
+    expect(await outcome(waiting)).toBe(true)
+  })
+})

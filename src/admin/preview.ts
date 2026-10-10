@@ -56,12 +56,37 @@ export async function previewPage(tree: Readable<DraftNode>, address: PageAddres
  * `[placeholderCredit]`. Copies only: the draft and its Nodes are not changed.
  */
 export function previewDraft(draft: Readable<DraftNode>, lang: string): Readable<DraftNode> {
-  const ui = chrome(lang)
-  const missing = `[${ui.missingText}]`
-  const filled = (localised: LocalisedText | undefined, placeholder = missing): LocalisedText =>
-    (localised?.[lang] ?? '') === '' ? { ...localised, [lang]: placeholder } : localised!
+  const filled = filler(lang)
+  const { theme } = draft.manifest
+  const manifest: Manifest = {
+    ...draft.manifest,
+    title: filled(draft.manifest.title),
+    ...(theme?.logo ? { theme: { ...theme, logo: { ...theme.logo, alt: filled(theme.logo.alt) } } } : {}),
+  }
 
-  const node = (n: DraftNode): DraftNode => ({
+  return {
+    id: draft.id,
+    manifest,
+    getNode: async (id) => {
+      const found = await draft.getNode(id)
+      return found && previewNode(found, lang)
+    },
+    getTitle: (id) => {
+      const title = draft.getTitle(id)
+      return title && filled(title)
+    },
+  }
+}
+
+/**
+ * **[#234]** One Node of a draft as the preview draws it in `lang` (40.7), `previewDraft`'s: a copy
+ * with the bracketed placeholder wherever it has no text yet. The editor's page draws its
+ * neighbour frames from these (42.8).
+ */
+export function previewNode(n: DraftNode, lang: string): DraftNode {
+  const ui = chrome(lang)
+  const filled = filler(lang)
+  return {
     ...n,
     title: filled(n.title),
     description: filled(n.description),
@@ -76,25 +101,11 @@ export function previewDraft(draft: Readable<DraftNode>, lang: string): Readable
     ...(n.answers === undefined ? {} : { answers: n.answers.map((answer) => ({ ...answer, label: filled(answer.label) })) }),
     explainers: n.explainers.map((explainer) => ({ ...explainer, term: filled(explainer.term), text: filled(explainer.text) })),
     ...(n.label === undefined ? {} : { label: filled(n.label, ui.endingText) }),
-  })
-
-  const { theme } = draft.manifest
-  const manifest: Manifest = {
-    ...draft.manifest,
-    title: filled(draft.manifest.title),
-    ...(theme?.logo ? { theme: { ...theme, logo: { ...theme.logo, alt: filled(theme.logo.alt) } } } : {}),
   }
+}
 
-  return {
-    id: draft.id,
-    manifest,
-    getNode: async (id) => {
-      const found = await draft.getNode(id)
-      return found && node(found)
-    },
-    getTitle: (id) => {
-      const title = draft.getTitle(id)
-      return title && filled(title)
-    },
-  }
+/** A text as the preview reads it in `lang`: `placeholder`, the bracketed `missingText` unless named, where it has none. */
+function filler(lang: string): (localised: LocalisedText | undefined, placeholder?: string) => LocalisedText {
+  const missing = `[${chrome(lang).missingText}]`
+  return (localised, placeholder = missing) => ((localised?.[lang] ?? '') === '' ? { ...localised, [lang]: placeholder } : localised!)
 }

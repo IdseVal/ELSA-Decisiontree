@@ -19,10 +19,16 @@
  * **[#176]** And the request to open the to-do bubble, which the panel's refused publish makes
  * (33.3): the two are Sheets of their own at the top right, and only this provider holds both.
  *
- * Imports of `src/`: types, and nothing else (34.4).
+ * **[#234]** It fills the `SlideGate` from its queue, so that a slide's navigation waits for the
+ * autosave and a slide never starts while the queue retries a failed write (42.8); and a render
+ * of the page newer than every revision it has seen -- the draft read again after a history step
+ * -- replaces its Nodes, and the fields repaint by 29.7's rule.
+ *
+ * Imports of `src/`: types, and **[#234]** `components/slide-gate.ts` (34.4).
  */
 import { useRouter } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { SlideGate } from '../components/slide-gate.ts'
 import type { DraftNode, Violation } from '../tree/types.ts'
 import { fieldValues, keyOf } from './fields.ts'
 import { ExplainerSheet } from './ExplainerSheet.tsx'
@@ -118,6 +124,7 @@ export function Editor({
   loginWords,
   adminHref,
   nodes: initialNodes,
+  revision = 0,
   violations: initialViolations,
   tree: initialTree,
   children,
@@ -133,6 +140,11 @@ export function Editor({
   adminHref: string
   /** The Nodes the page carries, by id: the centre, its chain and its asides. */
   nodes: Record<string, DraftNode>
+  /**
+   * **[#234]** The draft's revision the page was drawn at (22.3): a render after a refresh is taken
+   * when it is newer than every one seen. Absent, no render replaces the Nodes the page was given.
+   */
+  revision?: number
   /** The draft's advisory violations for those Nodes (19.2). */
   violations: Violation[]
   /** The Tree's state at load (22.1). */
@@ -161,12 +173,15 @@ export function Editor({
   // The latest Nodes, for the diff of 29.7 inside the queue's callback.
   const known = useRef(initialNodes)
   known.current = nodes
+  // **[#234]** The highest revision the page has seen, drawn or answered: no render older than it replaces a Node.
+  const seen = useRef(revision)
 
   const apply = useCallback(
     (write: Write, answer: Answer): void => {
       const { status, body } = answer
       if (status >= 200 && status < 300 && body && 'node' in body) {
         const response = body as WriteResponse
+        seen.current = Math.max(seen.current, response.revision)
         const arrived = [response, ...(response.also ?? [])].filter((r) => r.node !== null)
         const next = { ...known.current }
         const marks: Record<string, number> = {}
@@ -232,6 +247,16 @@ export function Editor({
       onAnswer: (write, answer) => apply(write, answer),
     })
   }
+
+  // **[#234]** The page drawn again -- `router.refresh()` after a history step (42.8) -- from a draft
+  // newer than any response: its Nodes replace the page's, and every field not being edited, with
+  // no write waiting, shows the store's value (29.7). An operation's own refresh is no newer.
+  useEffect(() => {
+    if (revision <= seen.current) return
+    seen.current = revision
+    setNodes((held) => ({ ...held, ...initialNodes }))
+    setVersion((v) => v + 1)
+  }, [initialNodes, revision])
 
   // The saved time and the accent marks go after five seconds: one re-render when they do.
   useEffect(() => {
@@ -310,6 +335,15 @@ export function Editor({
     [treeId, lang, words, notEditable, nodes, version, focusKey, advisory, refusals, changed, openExplainer, tree, todoAsked],
   )
 
+  // **[#234]** What a slide asks before it navigates (42.8): the queue is the page's, made once.
+  const gate = useMemo<SlideGate>(
+    () => ({
+      ready: () => queue.current!.state().failure === null,
+      settle: () => queue.current!.settleOrFail(),
+    }),
+    [],
+  )
+
   const current = focused ?? lastEdited
   const indicator: IndicatorState = {
     queue: queueState,
@@ -325,7 +359,7 @@ export function Editor({
   return (
     <EditorContext.Provider value={api}>
       <IndicatorContext.Provider value={indicator}>
-        {children}
+        <SlideGate.Provider value={gate}>{children}</SlideGate.Provider>
         {explainer !== null && (
           <ExplainerSheet nodeId={explainer.nodeId} id={explainer.id} languages={languages} onClose={() => setExplainer(null)} />
         )}

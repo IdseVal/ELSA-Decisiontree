@@ -1,5 +1,6 @@
 import { forbidden, notFound } from 'next/navigation'
 import { pageSession } from '../../../../../../admin/authenticated.ts'
+import { editorPage } from '../../../../../../admin/editor-page.ts'
 import { editMode } from '../../../../../../admin/slots.tsx'
 import { loginWords } from '../../../../../../admin/words.ts'
 import { chrome, chromeLang, chromeLanguage, type Chrome } from '../../../../../../chrome.ts'
@@ -22,13 +23,11 @@ import { PreviewButton } from '../../../../../../editor/PreviewButton.tsx'
 import { ThemePanel, type ThemeWords } from '../../../../../../editor/ThemePanel.tsx'
 import { FONT_LIBRARY, FONT_LICENCES, libraryEntry } from '../../../../../../fonts.ts'
 import { Todo, TodoButton, type TodoWords } from '../../../../../../editor/Todo.tsx'
-import { centreOf, draftCentre, MAX_ASIDES, type Aside, type NodePage } from '../../../../../../neighbourhood.ts'
 import type { Account } from '../../../../../../store/accounts.ts'
 import type { TreeEntry } from '../../../../../../store/drafts.ts'
 import { isStoreError } from '../../../../../../store/errors.ts'
 import { DEFAULT_COLOURS } from '../../../../../../theme.ts'
 import type { Draft } from '../../../../../../tree/loader.ts'
-import type { DraftNode } from '../../../../../../tree/types.ts'
 import { adminHref, adminThemeHref, parseUrl, rootHref, type PageAddress } from '../../../../../../url.ts'
 
 export const dynamic = 'force-dynamic'
@@ -40,6 +39,8 @@ export const dynamic = 'force-dynamic'
  * store.drafts.draft → parseUrl → centreOf → the asides by id → TreeView`, at most twelve
  * Nodes: the centre and its chain, its Option targets, the titles of its Answer targets from
  * the index. `neighbourhood()` is not called: nothing is placed and nothing slides (34.5).
+ * **[#234]** It places the parent and the centre's next steps through `editorNeighbours`, and a
+ * next step's button and the up arrow slide, within eighteen Nodes (`editorPage`, 42.8).
  *
  * Without a session the login page, at this address (24.2); without a role on the Tree the
  * 403 page; an uneditable Tree (19.5) shows its blocking violations where the Bubble would be.
@@ -65,24 +66,11 @@ export default async function EditorPage({ params }: Props) {
   }
   const address = parseUrl(`/${[treeId, ...path].join('/')}`, segment, draft)
   if (!address) notFound()
-  const read = await centreOf(draft, address)
-  if (!read) notFound()
-  // **[#139]** A fresh step a yes or a no made is the centre, with its up arrow (30.2); **[#205]** the rule is `draftCentre`'s, which the preview applies too (40.2).
-  let centre = draftCentre(read)
-  // The chain's addresses are the editor's, as the asides' below are: the tree view tells the
-  // Overlay a URL opened by its href (10.9), and the two must agree.
-  centre = { ...centre, chain: centre.chain.map((aside) => ({ ...aside, href: editorLinks().node(aside.address) })) }
-
-  // The centre's Option targets, for their Overlays (10.9): at most eight, read by id.
-  const asides: Aside<DraftNode>[] = []
-  for (const option of centre.node.options.slice(0, MAX_ASIDES)) {
-    const target = await draft.getNode(option.target)
-    if (!target) continue
-    const ids = [...centre.address.trail, centre.address.nodeId, option.target]
-    const at = { ...centre.address, trail: ids.slice(0, -1), nodeId: option.target }
-    asides.push({ node: target, href: editorLinks().node(at), address: at })
-  }
-  const page: NodePage<DraftNode> = { address, centre, neighbours: { placed: [], asides } }
+  // **[#234]** The centre, its chain, its asides and the frames of its parent and next steps (42.8).
+  const page = await editorPage(draft, address)
+  if (!page) notFound()
+  const { centre } = page
+  const { asides } = page.neighbours
   // **[#139]** The structure slots' needs (30): the address of every Node the page carries.
   const addresses = Object.fromEntries([centre, ...centre.chain, ...asides].map((entry) => [entry.node.id, entry.address]))
   // **[#177]** Which asides another Node leads to as well, from the index's ids, never a Node read (30.7, 34.7).
@@ -108,6 +96,7 @@ export default async function EditorPage({ params }: Props) {
       loginWords={loginWords(address.lang)}
       adminHref={adminHref('/admin', uiLang)}
       nodes={nodes}
+      revision={entry.meta.revision}
       violations={draft.advisory.filter((violation) => violation.file in nodes)}
       tree={{ advisory: entry.advisory.length, published: entry.published, publicCopyCurrent: entry.publicCopyCurrent, servable: entry.servable }}
     >

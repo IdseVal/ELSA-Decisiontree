@@ -29,10 +29,18 @@
  * row (application.md 42.5): the slide takes the one the width gives when it starts -- a click,
  * the arrival a click hands over, a history step's arrival -- so a button's slide goes toward
  * where it stands, and the way back retraces it.
+ *
+ * **[#234]** In the editor a `SlideGate` is around it (application.md 42.8): the slide starts at
+ * once and its navigation waits for the autosave to settle; a write failing or the session
+ * expiring while it waits undoes it, nothing navigating; while the queue retries a failed write
+ * the control is the plain link it is; a second click while a slide waits does nothing; and the
+ * page a history step reaches reads the draft again once its slide has ended. Without a gate --
+ * the public page, the preview -- nothing of this applies.
  */
 import { useRouter } from 'next/navigation'
-import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { useContext, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { ROWS_QUERY, type Across } from '../neighbourhood.ts'
+import { SlideGate } from './slide-gate.ts'
 
 /** One neighbour frame, and where it is drawn, in widths and heights of the layer. */
 export interface Neighbour {
@@ -55,6 +63,21 @@ const EASING = 'cubic-bezier(0.2, 0.7, 0.2, 1)'
 let started: { from: string; to: string; x: number; y: number; at: number } | null = null
 /** The page shown last in this document, so a history step can slide back from it. */
 let shownLast: string | null = null
+/**
+ * **[#234]** Set by a history step (back, forward) until the page it reaches mounts. Listened for
+ * from this module's first evaluation, before the framework's own listener exists, and capturing:
+ * the framework renders the page a history step reaches inside its listener, synchronously.
+ */
+let popped = false
+if (typeof window !== 'undefined') {
+  window.addEventListener(
+    'popstate',
+    () => {
+      popped = true
+    },
+    { capture: true },
+  )
+}
 
 /** A slide in progress: the one frame it shows besides the centre, and where. */
 interface Slide {
@@ -71,17 +94,29 @@ interface Slide {
 
 export function Slider({ href, neighbours, children }: { href: string; neighbours: Neighbour[]; children: ReactNode }) {
   const router = useRouter()
+  const gate = useContext(SlideGate)
   const layer = useRef<HTMLDivElement>(null)
   const [slide, setSlide] = useState<Slide | null>(null)
+  /** **[#234]** A slide waits for the gate to settle: a second click does nothing (42.8). */
+  const waiting = useRef(false)
+  /** **[#234]** Read the draft again once the arriving slide has ended (42.8). */
+  const refreshAfter = useRef(false)
 
   // Arrival: take over a slide a click started towards this page, or slide in from the
   // page shown before when a history step came from a neighbour.
   useLayoutEffect(() => {
     const previous = shownLast
     const handed = started?.to === href ? started : null
+    // **[#234]** The framework's cache may hold the draft as it was before this page was left:
+    // in the editor, the page a history step reaches reads it again (42.8).
+    const refresh = gate !== null && popped
     shownLast = href
     started = null
-    if (!layer.current || reducedMotion()) return
+    popped = false
+    if (!layer.current || reducedMotion()) {
+      if (refresh) router.refresh()
+      return
+    }
 
     const rect = layer.current.getBoundingClientRect()
     if (handed) {
@@ -93,7 +128,10 @@ export function Slider({ href, neighbours, children }: { href: string; neighbour
       return
     }
     const from = neighbours.find((n) => n.href === previous)
-    if (from) setSlide({ frame: from.frame, x: across(from.x), y: from.y, rect, arriving: true, elapsed: 0 })
+    if (from) {
+      refreshAfter.current = refresh
+      setSlide({ frame: from.frame, x: across(from.x), y: from.y, rect, arriving: true, elapsed: 0 })
+    } else if (refresh) router.refresh()
     // Once per page: `TreeView` keys this component by its page, so a new page is a new mount.
   }, [])
 
@@ -106,9 +144,18 @@ export function Slider({ href, neighbours, children }: { href: string; neighbour
       { duration: DURATION, easing: EASING, fill: slide.arriving ? 'none' : 'forwards' },
     )
     animation.currentTime = slide.elapsed
-    if (slide.arriving) animation.finished.then(() => setSlide(null), () => {})
+    if (slide.arriving) {
+      animation.finished.then(
+        () => {
+          setSlide(null)
+          if (refreshAfter.current) router.refresh()
+          refreshAfter.current = false
+        },
+        () => {},
+      )
+    }
     return () => animation.cancel()
-  }, [slide])
+  }, [slide, router])
 
   /** A click on a Branch whose target is drawn in this layer: slide to it and navigate. */
   function follow(event: MouseEvent<HTMLDivElement>) {
@@ -120,7 +167,12 @@ export function Slider({ href, neighbours, children }: { href: string; neighbour
     // Any other link -- a Trail entry older than the grandparent, `startAgain`, a Sheet's
     // list -- is the ordinary link it looks like (11.3).
     if (!target || !layer.current) return
+    // **[#234]** While the editor's queue retries a failed write, too: the browser's question asks
+    // before the page goes, and the writes are not left behind unsent (29.5, 42.8).
+    if (gate && !gate.ready()) return
     event.preventDefault()
+    // **[#234]** The first slide's navigation is the one that follows, so no click passes the gate (42.8).
+    if (waiting.current) return
     // A Sheet's panel is `position: fixed`, and a transformed layer is the box a fixed
     // descendant is laid out in: left open, the panel would travel with the tree. The keyboard
     // reaches a Branch behind the backdrop, so a slide can start with one open; the page it
@@ -128,13 +180,30 @@ export function Slider({ href, neighbours, children }: { href: string; neighbour
     for (const sheet of layer.current.querySelectorAll<HTMLDetailsElement>('details.sheet[open]')) sheet.open = false
 
     // A click during a slide navigates at once; the page it reaches slides in from this one.
-    if (!slide && !reducedMotion()) {
+    const moves = !slide && !reducedMotion()
+    if (moves) {
       const x = across(target.x)
       started = { from: href, to: target.href, x, y: target.y, at: performance.now() }
       const rect = layer.current.getBoundingClientRect()
       setSlide({ frame: target.frame, x, y: target.y, rect, arriving: false, elapsed: 0 })
     }
-    router.push(target.href, { scroll: false })
+    if (!gate) {
+      router.push(target.href, { scroll: false })
+      return
+    }
+    // **[#234]** The layer moves at once and holds at the target while the autosave settles, as
+    // for a slow payload; a write failing or the session expiring first undoes the slide, without
+    // motion, and the page shows what the indicator or the session Sheet says (42.8).
+    waiting.current = true
+    void gate.settle().then((settled) => {
+      waiting.current = false
+      if (settled) {
+        router.push(target.href, { scroll: false })
+        return
+      }
+      started = null
+      if (moves) setSlide(null)
+    })
   }
 
   const boxes = slide && box(slide)

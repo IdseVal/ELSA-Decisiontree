@@ -7,7 +7,9 @@
  * `components/Explainer.tsx`, so a marked term behaves in the editor as on the public page
  * (32.3); it imports nothing but React. `writes.ts` is the one
  * module under `src/editor/` that calls `fetch`. And `src/components/` imports of
- * `src/editor/` only the `EditMode` types.
+ * `src/editor/` only the `EditMode` types. **[#234]** A sixth, `components/slide-gate.ts`: the
+ * context through which `Slider` asks the editor's queue before a slide navigates (42.8), which
+ * `Editor.tsx` fills; it imports nothing but React.
  */
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -32,8 +34,8 @@ async function files(dir: string): Promise<string[]> {
 }
 
 describe('the editor’s client components (34.4)', () => {
-  test('import of src/ only tree/measure.ts, tree/grammar.ts, markdown.ts, contrast.ts and components/Explainer.tsx at run time, and of their own folder', async () => {
-    const allowed = new Set(['tree/measure.ts', 'tree/grammar.ts', 'markdown.ts', 'contrast.ts', 'components/Explainer.tsx'])
+  test('import of src/ only tree/measure.ts, tree/grammar.ts, markdown.ts, contrast.ts, components/Explainer.tsx and **[#234]** components/slide-gate.ts at run time, and of their own folder', async () => {
+    const allowed = new Set(['tree/measure.ts', 'tree/grammar.ts', 'markdown.ts', 'contrast.ts', 'components/Explainer.tsx', 'components/slide-gate.ts'])
     for (const file of await files(path.join(src, 'editor'))) {
       const text = await readFile(file, 'utf8')
       if (!text.startsWith("'use client'")) continue
@@ -50,6 +52,11 @@ describe('the editor’s client components (34.4)', () => {
 
   test('Explainer.tsx imports nothing but React', async () => {
     expect(runtimeImports(await readFile(path.join(src, 'components', 'Explainer.tsx'), 'utf8'))).toEqual(['react'])
+  })
+
+  test('**[#234]** slide-gate.ts imports nothing but React, and Editor.tsx fills it (42.8)', async () => {
+    expect(runtimeImports(await readFile(path.join(src, 'components', 'slide-gate.ts'), 'utf8'))).toEqual(['react'])
+    expect(runtimeImports(await readFile(path.join(src, 'editor', 'Editor.tsx'), 'utf8'))).toContain('../components/slide-gate.ts')
   })
 
   test('the four modules they import are pure: no node: module, no ajv, no schema', async () => {

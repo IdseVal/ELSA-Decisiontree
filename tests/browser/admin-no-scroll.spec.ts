@@ -33,6 +33,8 @@
  * **[#233]** And a row of five buttons both ways -- five next steps, and four and the `+` -- at every
  * viewport of 10.6, with the `+` Sheet open, and the editor's notice for it one pixel either side of
  * each width and height of 42.4's two boxes; the empty step's `+` Sheet with its switch on too.
+ * **[#234]** And the editor mid-slide, its `+` Sheet closed by the slide, halfway and held at the
+ * target, at every viewport of 10.6 where the tree view stands (42.8).
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -1006,6 +1008,57 @@ for (const lang of LANGUAGES) {
         if (needs !== null) await expect(notice.locator('.minimum-height').filter({ visible: true }), where).toHaveText(`${taller} ${needs} pixels.`)
         recordBesideTheDisclaimer(await measure(shown), what, lang, viewport)
       }
+    }
+  })
+}
+
+/**
+ * **[#234]** The editor mid-slide (42.8, 42.10): the full Node of four next steps with its `+` Sheet
+ * open, a next step's button followed -- every Sheet closed before the layer moves (11.3) -- and the
+ * page measured halfway through the slide and while the layer holds at the target for the payload,
+ * at every viewport of 10.6 at which the editor shows its tree view.
+ */
+for (const lang of LANGUAGES) {
+  test(`**[#234]** the editor mid-slide, ${lang}, every Sheet closed, never scrolls at any viewport of 10.6 where the tree view stands (28.6, 42.8)`, async ({ browser }) => {
+    test.slow()
+    const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
+    const address = `${origin}/admin/trees/hidden-draft/full${lang === 'en' ? '' : '?lang=nl'}`
+    const row = page.locator('.tree-frame:not([aria-hidden]) .answers')
+    for (const [width, height] of VIEWPORTS) {
+      // The notice stands in for the tree view there (10.4, 42.4): nothing to slide.
+      if (width <= 320 || height <= 480 || editorFiveNotice(width, height) !== null) continue
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(address))?.status()).toBe(200)
+      await row.locator(':scope > .structure-add > .sheet-open').click()
+      await expect(page.locator('.structure-form').filter({ visible: true })).toBeVisible()
+
+      let release = () => {}
+      const held = new Promise<void>((resolve) => (release = resolve))
+      await page.route('**/*', async (route) => {
+        if (route.request().headers()['rsc'] === '1') await held
+        await route.continue()
+      })
+      // The keyboard reaches a button behind the Sheet's backdrop (11.3); the click is the link's own.
+      const step = row.locator(':scope > .answer--next').nth(1)
+      const href = new URL((await step.getAttribute('href'))!, page.url()).href
+      await step.evaluate((link: HTMLElement) => link.click())
+      await page.waitForFunction(() => {
+        const animation = document.querySelector('.tree-layer[data-sliding]')?.getAnimations()[0]
+        if (!animation) return false
+        animation.pause()
+        animation.currentTime = 260
+        return true
+      })
+      await expect(page.locator('details.sheet[open]')).toHaveCount(0)
+      record(await measure(page), 'editor, mid-slide', lang, viewport, '')
+      await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.finish())
+      record(await measure(page), 'editor, held at the target', lang, viewport, '')
+
+      release()
+      await expect(page).toHaveURL(href)
+      await expect(page.locator('.tree-layer[data-sliding]')).toHaveCount(0)
+      await page.unroute('**/*')
     }
   })
 }

@@ -107,8 +107,11 @@ test.describe('the regions in place (28.1, 34.7)', () => {
     await expect(page.locator('.main-image img').first()).toHaveAttribute('src', /^\/admin\/api\/trees\/hidden-draft\/images\//)
     expect(await page.locator('.carousel-strip .thumbnail').count()).toBe(9)
     await expect(page.locator('.bubble [data-field^="full images"]')).toHaveCount(0)
-    // Nothing slides in the editor (34.5).
-    await expect(page.locator('[data-slide]')).toHaveCount(0)
+    // ~~Nothing slides in the editor (34.5).~~ **[#234]** A next step's button slides (42.8); the up
+    // arrow here leads to the centre itself, which is never its own neighbour, so it is a plain link.
+    await expect(page.locator('[data-slide]')).toHaveCount(4)
+    await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next[data-slide]')).toHaveCount(4)
+    await expect(page.locator('.up-arrow')).not.toHaveAttribute('data-slide')
 
     await page.locator('.up-arrow').click()
     await expect(page).toHaveURL(`${origin}/admin/trees/hidden-draft/full`)
