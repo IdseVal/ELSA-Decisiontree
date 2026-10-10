@@ -170,7 +170,8 @@ test('the empty root offers **[#233]** the one +; a next step "Yes" lands on a n
   expect((await api(page, cookie, 'POST', '/trees', { id: TREE, languages: ['en'], title: { en: 'Built in the browser' } })).status()).toBe(201)
   await page.goto(editor(['start']))
   await expectChoice(page)
-  // No neighbour frames and nothing slides in the editor (34.5).
+  // ~~No neighbour frames and nothing slides in the editor (34.5).~~ **[#234]** A root without next
+  // steps has nothing that slides: the `+` creates, and its new step has no frame (42.8).
   await expect(page.locator('[data-slide]')).toHaveCount(0)
   await shoot(page, 'empty-node-choice')
 
