@@ -1,0 +1,17 @@
+# The virtual host for this application on the shared box's Caddy (docs/hosting-shared-box.md).
+# Append to /etc/caddy/Caddyfile, beside the other project's block, with the domain filled
+# in; then `sudo systemctl reload caddy`. Caddy obtains and renews the certificate itself once
+# the domain's A record points at the box, passes the Host header through, and sends
+# X-Forwarded-Proto: https, which makes the login cookie Secure (docs/deployment.md, step 6).
+#
+# The access log is off: the application keeps nothing about its readers
+# (docs/CORE_DOCUMENT.md section 8), and the proxy's log would be the one place their
+# addresses were kept.
+
+ELSA_DOMAIN {
+    log {
+        output discard
+    }
+    encode gzip zstd
+    reverse_proxy 127.0.0.1:3001
+}
