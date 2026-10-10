@@ -611,7 +611,8 @@ for (const lang of LANGUAGES) {
 
 test('the editor with the session Sheet open never scrolls at the guarantee and on a phone (29.6)', async ({ browser }) => {
   // Not the floor: there the notice stands in for the view and no field can be typed in (10.4).
-  for (const [width, height] of [VIEWPORTS[0], VIEWPORTS[8]] as const) {
+  // **[#233]** Nor 360 x 640: the full Node's four next steps and the `+` take 42.4's notice there.
+  for (const [width, height] of [VIEWPORTS[0], VIEWPORTS[7]] as const) {
     const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
     await page.setViewportSize({ width, height })
     await page.goto(`${origin}/admin/trees/hidden-draft/full`)

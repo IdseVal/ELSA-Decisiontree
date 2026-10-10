@@ -204,7 +204,7 @@ test('typing past the limit of a title, a description, an Option title and an Im
     await page.keyboard.type(WORDS.slice(0, limit + 15), { delay: 5 })
     await expect(area).toHaveValue(WORDS.slice(0, limit))
     // The pill counts as the validator counts (3.8): a space the cut ends on is not counted.
-    await expect(page.locator('.editor-pill').first()).toContainText(`${[...WORDS.slice(0, limit).trim()].length} / ${limit}`)
+    await expect(page.locator('.editor-pill').filter({ visible: true }).first()).toContainText(`${[...WORDS.slice(0, limit).trim()].length} / ${limit}`)
     const after = (await region.boundingBox())!.height
     await page.keyboard.press('Tab')
     await expect(page.getByRole('status')).toContainText(/^Saved \d/)

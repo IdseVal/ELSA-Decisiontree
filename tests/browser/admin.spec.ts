@@ -343,6 +343,9 @@ test('2. the creator makes a Tree in English and Dutch, fills it, invites the co
   await write(page, 'start', 'title.nl', 'Brengt een aanbieder het systeem op de markt?')
   await write(page, 'start', 'description.nl', 'Een [aanbieder](#provider) ontwikkelt een AI-systeem en brengt het onder eigen naam op de markt.')
   await write(page, 'start', 'options[0].title.nl', 'Wat is in de handel brengen?')
+  // **[#233]** The words on the two next steps, which the `+` wrote in English alone (42.7 item 3).
+  await write(page, 'start', 'answers[0].label.nl', 'Ja')
+  await write(page, 'start', 'answers[1].label.nl', 'Nee')
   await page.locator('.bubble .main-image').click()
   await write(page, 'start', 'images[0].description.nl', 'Een krat groente op een lopende band')
   await page.keyboard.press('Escape')

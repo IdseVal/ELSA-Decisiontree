@@ -235,8 +235,9 @@ test('the two buttons stand beside the up arrow, under the bar, inside the windo
         await page.goto(address)
         await page.evaluate(() => document.fonts.ready)
         const where = `${width}x${height} ${lang}, ${what}`
-        // **[#221]** The full Node's four next steps take the notice below 600 x 560 (41.4, 41.7 item 8).
-        if (what === 'a question step' && width < 600 && height < 560) {
+        // **[#221]** The full Node's four next steps take the notice (41.4, 41.7 item 8): **[#233]** with
+        // the editor's `+` a row of five, below 770 x 690 and below 390 x 1080 (42.4).
+        if (what === 'a question step' && ((width < 770 && height < 690) || (width < 390 && height < 1080))) {
           await expect(page.locator('.minimum-size'), where).toBeVisible()
           continue
         }
