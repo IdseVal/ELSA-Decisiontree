@@ -24,14 +24,21 @@
  * it shows. Fixed, it is part of no element's scrollable area; that large, nothing in it is
  * larger than itself -- so the no-scroll rule holds mid-slide too (10.6). A slide never
  * begins with a Sheet open: following a Branch closes any Sheet in the layer first.
+ *
+ * **[#232]** A neighbour stands in two places across, one for each arrangement of the Answer
+ * row (application.md 42.5): the slide takes the one the width gives when it starts -- a click,
+ * the arrival a click hands over, a history step's arrival -- so a button's slide goes toward
+ * where it stands, and the way back retraces it.
  */
 import { useRouter } from 'next/navigation'
 import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { ROWS_QUERY, type Across } from '../neighbourhood.ts'
 
 /** One neighbour frame, and where it is drawn, in widths and heights of the layer. */
 export interface Neighbour {
   href: string
-  x: number
+  /** **[#232]** Across, in each arrangement of the Answer row; `across` reads the one of this width. */
+  x: Across
   y: number
   frame: ReactNode
 }
@@ -86,7 +93,7 @@ export function Slider({ href, neighbours, children }: { href: string; neighbour
       return
     }
     const from = neighbours.find((n) => n.href === previous)
-    if (from) setSlide({ frame: from.frame, x: from.x, y: from.y, rect, arriving: true, elapsed: 0 })
+    if (from) setSlide({ frame: from.frame, x: across(from.x), y: from.y, rect, arriving: true, elapsed: 0 })
     // Once per page: `TreeView` keys this component by its page, so a new page is a new mount.
   }, [])
 
@@ -122,9 +129,10 @@ export function Slider({ href, neighbours, children }: { href: string; neighbour
 
     // A click during a slide navigates at once; the page it reaches slides in from this one.
     if (!slide && !reducedMotion()) {
-      started = { from: href, to: target.href, x: target.x, y: target.y, at: performance.now() }
+      const x = across(target.x)
+      started = { from: href, to: target.href, x, y: target.y, at: performance.now() }
       const rect = layer.current.getBoundingClientRect()
-      setSlide({ frame: target.frame, x: target.x, y: target.y, rect, arriving: false, elapsed: 0 })
+      setSlide({ frame: target.frame, x, y: target.y, rect, arriving: false, elapsed: 0 })
     }
     router.push(target.href, { scroll: false })
   }
@@ -162,6 +170,15 @@ function box({ x, y, rect }: Slide): { layer: CSSProperties; centre: CSSProperti
     centre: { left: -left * width, top: -top * height, width, height },
     neighbour: { left: (x - left) * width, top: (y - top) * height, width, height },
   }
+}
+
+/**
+ * **[#232]** The place across that the width gives when a slide starts (application.md 42.5):
+ * `rows` while the Answer row stands in two rows, `row` otherwise. The arrival a click hands over
+ * keeps the click's, so both halves of one slide go one way.
+ */
+function across(x: Across): number {
+  return window.matchMedia(ROWS_QUERY).matches ? x.rows : x.row
 }
 
 /** The reader's setting removes the motion, never the navigation (11.3). */

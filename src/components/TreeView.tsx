@@ -35,7 +35,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { chrome, chromeLang, text, type Chrome } from '../chrome.ts'
 import type { EditMode } from '../editor/mode.ts'
-import type { Aside, NodePage, Placed } from '../neighbourhood.ts'
+import type { Across, Aside, NodePage, Placed } from '../neighbourhood.ts'
 import type { Readable } from '../tree/loader.ts'
 import { linksOf, type DraftNode, type Node } from '../tree/types.ts'
 import { PUBLIC_LINKS, type Links, type PageAddress } from '../url.ts'
@@ -195,9 +195,10 @@ function Frame({ node, view }: { node: AnyNode; view: View }) {
  * Where a neighbour's frame is drawn, in widths and heights of the layer, from the Node on
  * screen (11.1): **[#221]** the place `neighbourhood` gave it (41.5) -- a next step below and
  * towards its own button, theirs a layer further, the parent above where the step down from
- * it started -- so the layer holds no geometry of its own.
+ * it started -- so the layer holds no geometry of its own. **[#232]** Across, one place for
+ * each arrangement of the row, which the slide chooses between (42.5).
  */
-function position({ x, y }: Placed<AnyNode>): { x: number; y: number } {
+function position({ x, y }: Placed<AnyNode>): { x: Across; y: number } {
   return { x, y }
 }
 
