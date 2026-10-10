@@ -4006,16 +4006,22 @@ fieldset:disabled .admin-submit {
 
 /*
  * **[#222]** `moveEarlier` and `moveLater` (41.7 item 4): 24-pixel round controls on the button's
- * top outline, at its two ends where the outline is straight, outlined in the fill's colour on
- * `surface` as the row's creating buttons are, filled under the pointer.
+ * outline, inside it at its two ends, in the middle of its height, outlined in the fill's colour on
+ * `surface` as the row's creating buttons are, filled under the pointer. Inside, not across the
+ * outline: a control across its button's edge would cross its box, and two a row, 8 pixels apart,
+ * would lie over the button above or beside it (the owner's standard of #181). Centred 18 pixels
+ * from the end, a round lies within the pill's curve at every height; the label keeps 2 pixels
+ * clear of it, so its words and its field stand between the two.
  */
 .answer:has(> .answer-move) {
   position: relative;
+  padding-inline: 32px;
 }
 
 .answer-move {
   position: absolute;
-  top: -12px;
+  top: 50%;
+  translate: 0 -50%;
   display: grid;
   place-items: center;
   width: 24px;
@@ -4030,11 +4036,11 @@ fieldset:disabled .admin-submit {
 }
 
 .answer-move--earlier {
-  left: 18px;
+  left: 6px;
 }
 
 .answer-move--later {
-  right: 18px;
+  right: 6px;
 }
 
 .answer-move svg {

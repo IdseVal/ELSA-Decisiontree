@@ -105,14 +105,17 @@ async function addNextStep(page: Page, text: string): Promise<string> {
   return landed(page, `/admin/trees/${TREE}/start`)
 }
 
-/** Every button of the row is the same width, an equal share of it (41.3, 41.7 item 8); answers their tops. */
+/**
+ * Every button of the row is the same width, an equal share of it (41.3, 41.7 item 8); answers
+ * their middles, one per row: the row centres buttons whose words take more lines than another's.
+ */
 async function equalShares(page: Page, buttons: number): Promise<number[]> {
   const boxes = await row(page)
     .locator(':scope > .answer--next, :scope > .structure, :scope > .structure-end, :scope > .structure-add')
-    .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect()).map((box) => ({ width: box.width, top: box.top })))
+    .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect()).map((box) => ({ width: box.width, middle: box.top + box.height / 2 })))
   expect(boxes).toHaveLength(buttons)
   for (const box of boxes) expect(Math.abs(box.width - boxes[0]!.width), `widths ${boxes.map((b) => b.width).join(', ')}`).toBeLessThanOrEqual(1)
-  return [...new Set(boxes.map((box) => Math.round(box.top)))]
+  return [...new Set(boxes.map((box) => Math.round(box.middle)))]
 }
 
 async function shoot(page: Page, name: string): Promise<void> {
@@ -271,10 +274,20 @@ test('the move arrows: none earlier on the first, none later on the last; each s
   await expect(later(3)).toHaveCount(0)
   for (const index of [1, 2, 3]) await expect(earlier(index)).toHaveAccessibleName('Move earlier')
   for (const index of [0, 1, 2]) await expect(later(index)).toHaveAccessibleName('Move later')
-  // 24-pixel rounds on the button's top outline (41.7 item 4).
-  const [round, button] = [(await later(0).boundingBox())!, (await steps(page).nth(0).boundingBox())!]
-  expect([round.width, round.height]).toEqual([24, 24])
-  expect(round.y + round.height / 2).toBeCloseTo(button.y, 0)
+  // 24-pixel rounds inside the button's outline at its ends, clear of its words' field (41.7 item 4;
+  // the owner's standard of #181: no control over another, none across its box).
+  for (const index of [0, 1, 2, 3]) {
+    const button = (await steps(page).nth(index).boundingBox())!
+    const field = (await words(page, index).boundingBox())!
+    for (const arrow of [earlier(index), later(index)]) {
+      if ((await arrow.count()) === 0) continue
+      const round = (await arrow.boundingBox())!
+      expect([round.width, round.height]).toEqual([24, 24])
+      expect(round.x >= button.x && round.x + round.width <= button.x + button.width && round.y >= button.y && round.y + round.height <= button.y + button.height, `arrow inside button ${index}`).toBe(true)
+      expect(Math.abs(round.y + round.height / 2 - (button.y + button.height / 2))).toBeLessThanOrEqual(1)
+      expect(round.x + round.width <= field.x || field.x + field.width <= round.x, `arrow clear of the field of button ${index}`).toBe(true)
+    }
+  }
 
   await later(0).click()
   await expect(steps(page).nth(0)).toHaveAttribute('href', `/admin/trees/${TREE}/start/${made[1]}`)
