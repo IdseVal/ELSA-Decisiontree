@@ -1,6 +1,8 @@
 # ADR-220-words-on-a-next-step: every next step carries its creator's words, at most 19 characters per language, and its button shows those words alone; a yes and a no say "Yes" and "No" as Tree content
 
 - Status: ACCEPTED (frozen) -- 2026-10-09; the owner may overrule (core document 10.43)
+- **[#231] Amended (2026-10-10)** by `ADR-231-one-plus.md`: decision 3's chrome keys `yes` and `no`
+  no longer stay: `+ Yes` and `+ No` leave the editor (`docs/specs/application.md` 42.7).
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
 - Spec: `docs/specs/application.md` 3.2, 10.3, 41.2 (new); `docs/specs/tree-format.md` 5.3, 5.7,
   amended `[#220]`

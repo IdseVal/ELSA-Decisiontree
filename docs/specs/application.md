@@ -6,6 +6,32 @@
 > they consume is frozen separately in `docs/specs/tree-format.md` (`elsa-tree/3`, issue
 > #78; `elsa-tree/2` was issue #37).
 >
+> **Amended 2026-10-10 by issue #231** (`docs/adrs/ADR-231-*.md`), for the owner's words on #230
+> (core document 3.4 `[#230]`): "just one + button ... which opens the overlay in which the user can
+> toggle (tree ends here) or put the title of the button", "there can be up to 5", "displayed in a
+> evenly spread out manner", and "when click, the view slides in the direction of the button". A
+> question Node has two to five next steps; the Tree format becomes `elsa-tree/7` (`tree-format.md`
+> 5.3, 12.9); five stand in one row from 1000 pixels wide and three then two below, and a step of five
+> has a notice of its own; each next step is placed where its button stands, so that its slide goes
+> toward it at every width; the editor's row offers one `+`, whose Sheet holds a switch, `Tree ends
+> here`, and the editor slides. **Section 42 is new** and holds the contract; the sections below
+> carry a dated **[#231]** mark where they described up to four next steps, 31 Nodes, the editor's
+> row of 41.7 or an editor that does not slide. The room is measured in
+> `docs/research/issue-231-five-next-steps.md`. Built by #232 (the format, the pages, the slide,
+> every reader), #233 (the editor's one `+`) and #234 (the slide in the editor), in that order.
+>
+> | Section | #231 |
+> |---|---|
+> | 0, 5.2, 7, 10.9, 11.5, 34.5, 34.7, 40.2 | A page reads at most 41 Nodes where 31 stood; the editor's page eighteen. |
+> | 3.2 | `yes` and `no` go with #233. |
+> | 5.1, 15.1, 15.2, 16.4, 16.5, 17.4, 18.3, 19.1, 19.2, 22.4 | `elsa-tree/7`: two to five next steps, one to five in a draft; the schema it names; a sixth refused. |
+> | 9 | Seven `ADR-231-*` rows. |
+> | 10.1, 10.3, 10.4, 10.5, 10.6, 10.7 | Five in one row from 1000 pixels wide, three then two below; a step of five's notice (42.4); the tests' fixture and viewports. |
+> | 11.1 to 11.3 | A placement's `x` is a pair; each next step stands where its button stands; up 1, down 5 + 25. |
+> | 28.1, 28.6, 29.2, 29.5, 30.1, 30.2, 30.3, 30.7, 30.8, 34.4, 34.5, 34.7, 36.3, 40.8 | The editor's one `+` and its Sheet; the slide in the editor, the autosave and the seam between them. |
+> | 41 | Amended by 42. |
+> | 42 | New. |
+>
 > **Amended 2026-10-09 by issue #220** (`docs/adrs/ADR-220-*.md`), for the owner's words on #219
 > (core document 3.4 `[#219]`): "Some trees might consist of yes or no, some trees might end there,
 > but some trees might also have three or four options. Let's change the design to let the creator
@@ -263,7 +289,7 @@ A Next.js application, rendered on the server, runs as one Node.js process on a 
 Linux server and serves exactly one Tree, named by the environment variable
 `ELSA_TREE`. The whole application state is the URL: the path is the Trail ending in
 the current Node, the query carries the language. A request takes the current Node and
-a bounded neighbourhood around it -- at most seventeen Nodes (**[#220]** 31 from #221, 41.5), never the Tree -- from
+a bounded neighbourhood around it -- at most seventeen Nodes (**[#220]** 31 from #221, 41.5; **[#231]** 41 from #232, 42.5), never the Tree -- from
 the loader's in-memory index and returns complete HTML: the current Node as a round
 **Bubble** in the centre of a screen-sized tree -- its main image above its title, its
 description with its explainers, its Sources under a heading -- one **up arrow** on its
@@ -346,6 +372,7 @@ add keys; every key exists in both languages or the build fails.
 |---|---|
 | `yes`, `no` | The two Answer Branches below the Bubble (10.3). |
 | **[#220]** `yes`, `no` | (2026-10-09) From #221 the public page reads neither: a next step's words are Tree content (41.2). They stay for the editor's `+ Yes` and `+ No` (41.7). |
+| **[#231]** `yes`, `no` | (2026-10-10) Removed by #233 in both languages: `+ Yes` and `+ No`, their last readers, leave the editor's row (42.7). `treeEndsHere` stays, the label of the switch in the `+`'s Sheet. |
 | **[#220]** `addNextStep`, `nextStepWords` | (2026-10-09) #222: the editor's `+` for another next step and its Sheet's title, "Add a next step" / "Volgende stap toevoegen"; the Sheet's field and an empty label's placeholder, "Words on the button" / "Woorden op de knop" (41.7). |
 | `options` | The accessible name of the group of Option Branches beside the Bubble. |
 | `sources`, `sourceCaseLaw`, `sourceLiterature` | The heading over the Sources -- **[#75]** "Legal sources" / "Juridische bronnen" -- and the two kind labels still shown beside an entry (10.3). `sourceLegal` is gone: under that heading it repeated it. **[#169] Amended 2026-10-02 (#173, by the owner):** the heading says **"Sources" / "Bronnen"**; the two kind labels are unchanged (`ADR-173-sources-heading.md`). |
@@ -784,6 +811,9 @@ other's message (`tree-format.md` 3.9, `ADR-118-json-schema.md`).
 **[#220]** (2026-10-09) From #221 `Node['answers']` is `{ label: LocalisedText; target: string }[]`, two to four
 entries, and `Manifest['format']` is `elsa-tree/6` (41.6, `tree-format.md` 5.3).
 
+**[#231]** (2026-10-10) From #232 two to five entries, one to five in a draft, and
+`Manifest['format']` is `elsa-tree/7` (42.2, 42.6, `tree-format.md` 5.3).
+
 ### 5.2 When what is read and sent
 
 | Moment | Server reads | Browser receives |
@@ -833,6 +863,10 @@ centre frame's own Trail. `ADR-38-neighbourhood.md` (Consequences) has the table
 **[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
 preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
 bound as it stood for two.
+
+**[#231]** (2026-10-10) With up to five next steps a step, a page reads at most **41** Nodes, not 31, and the
+preview's bound is the public page's 41 (42.5); from #234 the editor's page reads at most eighteen
+(42.8).
 
 ### 5.3 The image route
 
@@ -1212,6 +1246,10 @@ back.
 preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
 bound as it stood for two.
 
+**[#231]** (2026-10-10) With up to five next steps a step, a page reads at most **41** Nodes, not 31, and the
+preview's bound is the public page's 41 (42.5); from #234 the editor's page reads at most eighteen
+(42.8).
+
 ## 8. What the contracts guarantee to the core document
 
 | Core document | Where it is met |
@@ -1221,7 +1259,7 @@ bound as it stood for two.
 | 8 **[#118]** the Tree data is public under CC BY 4.0, served with no cookie and no account | 15.2: the licence in a `Link` header on the bytes themselves, and the no-cookie sweep -- `tests/browser/deployment.spec.ts` (section 7) -- extended to every route of 15 and 16 |
 | 10.21 **[#118]** superseded: hand-editability is no longer the criterion | `tree-format.md` 3.7, 3.9; `docs/adrs/ADR-118-json-serialisation.md` |
 | 3.1 one file per Tree | `tree-format.md` (`elsa-tree/4`; **[#171]** `elsa-tree/5`); 5.1, 5.2 |
-| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16; **[#220]** 29 and 31 from #221, 41.5), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
+| 3.1 / 9 never the whole Tree, a bounded set of neighbours | 11.2 (at most 15 neighbours, 17 Nodes in a page; **[#75]** was 16; **[#220]** 29 and 31 from #221, 41.5; **[#231]** 39 and 41 from #232, 42.5), 11.5 (the accounting), 5.2 (**[#118]** never, in any **page** response; of the two routes of 15.1, the dataset route is the one that serves a whole Tree file, and it is a dataset, not a page) |
 | 3.1 / 9 images only for the Node on screen | 11.4, 12.4; **[#75]** 11.5 names the one exception per Option (core document 10.29) |
 | 3.1 text has a maximum length | `tree-format.md` 5.7, confirmed against this layout in 10.7 (**[#75]** again, with two pixels to spare: core document 10.28) |
 | 3.2 the screen is a tree: a Bubble, the way back above, Answers below, side children beside | 10.1 to 10.3; **[#75]** the up arrow (10.2), the fan-out (10.3) |
@@ -1358,6 +1396,10 @@ bound as it stood for two.
 `ADR-220-words-on-a-next-step.md`, `ADR-220-elsa-tree-6.md`, `ADR-220-answer-row.md`,
 `ADR-220-slide-and-neighbourhood.md`, `ADR-220-editing-next-steps.md`, `ADR-220-other-readers.md`
 (section 41).
+
+**[#231]** (2026-10-10) Seven rows more, one per decision of #231: `ADR-231-five-next-steps.md`,
+`ADR-231-elsa-tree-7.md`, `ADR-231-answer-row.md`, `ADR-231-slide-toward-the-button.md`,
+`ADR-231-one-plus.md`, `ADR-231-slide-in-the-editor.md`, `ADR-231-other-readers.md` (section 42).
 
 ## 10. The tree view
 
@@ -1499,6 +1541,9 @@ edge at 1280 (10.3, amended the same day). The rows and the columns do not move.
 row from 1000 pixels wide and two a row below; at the guarantee it stays 68, four buttons of 300
 (41.3).
 
+**[#231]** (2026-10-10) Two to five buttons: five stand in one row from 1000 pixels wide, 236 pixels each at the
+guarantee, where the row stays 68, and three then two below (42.3).
+
 ### 10.2 The up arrow: the way back
 
 The Trail is the ordered list of Nodes visited to get here, and it is the path in the
@@ -1586,6 +1631,8 @@ outline (section 12), the chrome bar and disclaimer unchanged.
 step's `label` alone and named by the label, a colon and the target's title; the buttons are
 alike and stand as 41.3 says. The first bullet below holds for the accessible name, not for the
 text drawn, and #82's rule of 480 pixels goes (41.2).
+
+**[#231]** (2026-10-10) From #232 **two to five**, standing as 42.3 says.
 
 - **Every button shows its target's title**, taken from the title index (`getTitle`),
   never from a second Node read -- except an Option button, whose target the page has in
@@ -1745,6 +1792,11 @@ languages. The public page has none, and its notice keeps its padding of 24.
 notice below 560 pixels tall, the least 41.4's rule allows (41.4, measured).
 **[#221]** (2026-10-10) Measured by 41.4's rule, the width is **600**: below 600 pixels wide and 560 tall (41.4).
 
+**[#231]** (2026-10-10) A step of five next steps has a floor of its own, in two boxes: on the public page
+and in the preview it shows the notice below 640 pixels wide and 590 tall, and below 360 wide and 650
+tall; in the editor a row of five buttons -- five next steps, or four and the `+` -- shows it below
+770 x 690 and below 390 x 1080 (42.4, measured).
+
 ### 10.5 Below the guarantee: the degradation order
 
 The owner's rule is absolute: no scrolling, ever. So the layout does not shrink text
@@ -1837,6 +1889,9 @@ at every width (41.2). A step of three or four next steps stands its buttons two
 pixels wide and shows the notice below 390 x 560 at least (41.3, 41.4); nothing in the table moves for it.
 **[#221]** (2026-10-10) Below 600 x 560, as #221 measured it (41.4).
 
+**[#231]** (2026-10-10) A step of five stands its buttons three then two below 1000 pixels wide and shows the
+notice in 42.4's boxes; nothing in the table moves for it (42.3, 42.4).
+
 ### 10.6 The no-scroll rule, and the exact test
 
 **The rule.** `html` and `body` are exactly the size of the viewport and have
@@ -1902,6 +1957,9 @@ keeps them true afterwards.
 **[#220]** (2026-10-09) The pages of the table above gain #221's fixtures of a step of three and of four next steps,
 `full-node`'s question Node among them with four, and the viewports 999 x 640, 1000 x 640,
 and one pixel either side of 41.4's width and height (41.9).
+
+**[#231]** (2026-10-10) And #232's fixture of a step of five next steps, at 999 x 640, 1000 x 640 and one pixel
+either side of each width and height of 42.4's boxes (42.10).
 
 ### 10.7 The format's length limits, confirmed
 
@@ -2041,6 +2099,9 @@ limits: none; whether the 60 characters should come down stays the owner's, as #
 **[#220]** (2026-10-09) The Answer row of this table's third row is `/6`'s from #221: a label of at most 19
 characters alone, one line in a button of 300 at 1280 x 640, where four stand; the row stays 68
 and no limit of the Bubble moves (41.3, `tree-format.md` 5.7).
+
+**[#231]** (2026-10-10) At 1280 x 640 five buttons are 236 pixels each and a 19-character label takes two lines in
+every face measured: the row stays 68, and no limit of the Bubble moves (42.3).
 
 ### 10.8 The explainer panel
 
@@ -2203,6 +2264,10 @@ decides core document 10.27.
 preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
 bound as it stood for two.
 
+**[#231]** (2026-10-10) With up to five next steps a step, a page reads at most **41** Nodes, not 31, and the
+preview's bound is the public page's 41 (42.5); from #234 the editor's page reads at most eighteen
+(42.8).
+
 ## 11. Transitions and the neighbourhood
 
 **[v0.2], new; [#75] amended 2026-09-17 (issue #78).** The owner, in issue #35: "I want
@@ -2258,6 +2323,10 @@ translates the layer by exactly that offset, so the target Bubble arrives in the
 **[#220]** (2026-10-09) A placement carries its position, `x` and `y`, in place of `slot`; the next steps of a
 step stand one layer width apart in a line below it, and the way back retraces the step taken
 (41.5).
+
+**[#231]** (2026-10-10) A placement's `x` is a pair: its place across in one row, and in 42.3's two rows below
+1000 pixels wide. Each next step stands where its button stands in the row the width gives, so that
+its slide goes toward the button at every width, and the way back retraces it (42.5).
 
 ### 11.2 The neighbourhood: which Nodes are pre-rendered
 
@@ -2323,6 +2392,9 @@ changes.
 **[#220]** (2026-10-09) With up to four next steps the table is up 1, down 4 + 16, asides 8: **29 neighbours**, and
 **a page reads at most 31 Nodes**, a contract as 17 was (41.5).
 
+**[#231]** (2026-10-10) With up to five next steps the table is up 1, down 5 + 25, asides 8: **39
+neighbours**, and **a page reads at most 41 Nodes**, a contract as 31 was (42.5).
+
 ### 11.3 How they arrive, and the slide
 
 **The neighbours are already in the page.** The server renders the placed neighbours
@@ -2382,6 +2454,11 @@ navigation. **Framework prefetching of the controls' links is off** (`prefetch={
 **[#220]** (2026-10-09) A slide goes to the target's `x` and `y` (41.5); `transition.spec.ts` asserts the third and
 fourth of four as it asserts a `yes` and a `no` target (41.9).
 
+**[#231]** (2026-10-10) A slide reads the half of the target's `x` the width gives -- `rows` below 1000 pixels
+wide, `row` from 1000 -- when it starts (42.5); `transition.spec.ts` asserts each button of two to five
+at 1280 x 640, 999 x 640 and below 600 (42.10). From #234 the editor's page slides too, its navigation
+waiting for the autosave to settle (42.8).
+
 ### 11.4 Images during a transition
 
 A neighbour frame's markup contains **no image URL at all** -- not for its main image,
@@ -2416,6 +2493,10 @@ the very most, and the server's memory holds the Tree the browser never gets.
 **[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
 preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
 bound as it stood for two.
+
+**[#231]** (2026-10-10) With up to five next steps a step, a page reads at most **41** Nodes, not 31, and the
+preview's bound is the public page's 41 (42.5); from #234 the editor's page reads at most eighteen
+(42.8).
 
 ## 12. The Carousel
 
@@ -2762,6 +2843,8 @@ where the schema is a constant of the build.
 
 **[#220]** (2026-10-09) From #221 the schema route serves `elsa-tree-6.json` too, beside `/5` and `/4` (41.6).
 
+**[#231]** (2026-10-10) From #232 `elsa-tree-7.json` too, beside `/6`, `/5` and `/4` (42.6).
+
 ### 15.2 The headers
 
 | Header | `tree.json` | `elsa-tree-4.json` (**[#171]** and `elsa-tree-5.json`, 15.1) | Why |
@@ -2779,6 +2862,8 @@ where the schema is a constant of the build.
 | `Set-Cookie` | never | never | Core document 8. The no-cookie browser sweep -- `tests/browser/deployment.spec.ts`, which section 7 gives a row of its own for this -- covers both routes of 15 and every route of 16, so this row is asserted and not merely stated. |
 
 **[#220]** (2026-10-09) The `Link: rel="describedby"` header names `/schemas/elsa-tree-6.json` from #221 (41.6).
+
+**[#231]** (2026-10-10) `/schemas/elsa-tree-7.json` from #232 (42.6).
 
 ### 15.3 Byte-identity: the download IS the dataset
 
@@ -3052,6 +3137,8 @@ system, which is the whole point of the Tree.
 target's title in the page's language -- the button's accessible name -- and `url` the target's
 canonical URL (41.6). A migrated yes-and-no step's is what it was.
 
+**[#231]** (2026-10-10) Up to five, one per next step, each as above (42.6).
+
 **A Terminal and an explanation Node carry the `WebPage` and nothing more.** A Terminal
 is an outcome, not a question; an explanation Node has no answers of its own
 (`tree-format.md` 5.6), and its address renders its parent's page with an Overlay open
@@ -3169,12 +3256,14 @@ the dataset.
 
 **[#171]** So a Terminal's `label` is not in it either, as its `outcome` never was; the
 `## The dataset` entry names the schema through `SCHEMA_HREF`, which is
-`/schemas/elsa-tree-5.json` from #179 on (**[#220]** `/schemas/elsa-tree-6.json` from #221, 41.6). Its chrome paragraph -- a walk that "arrives at an
+`/schemas/elsa-tree-5.json` from #179 on (**[#220]** `/schemas/elsa-tree-6.json` from #221, 41.6; **[#231]** `/schemas/elsa-tree-7.json` from #232, 42.6). Its chrome paragraph -- a walk that "arrives at an
 outcome" -- uses the word in its ordinary sense and stays.
 
 **[#195]** Nor an Author's name (2026-10-03): the pages it points to hold the mention (39.7).
 
 **[#220]** (2026-10-09) `llms.txt` names no step and no Answer, and does not change for #220 (41.6).
+
+**[#231]** (2026-10-10) It names no step and no Answer; for #231 it changes its schema path alone (42.6).
 
 ## 17. The store
 
@@ -3274,6 +3363,8 @@ transaction across two files and nothing needs one.
 
 **[#220]** (2026-10-09) The store converts an `elsa-tree/5` file by `tree-format.md` 12.8 after 12.7 (12.8.4).
 
+**[#231]** (2026-10-10) And an `elsa-tree/6` file by `tree-format.md` 12.9 after 12.8 (12.9.4).
+
 ### 17.5 The seam: `src/store/`
 
 The one module that opens a file under `ELSA_DATA_DIR`. Routes call it; components never
@@ -3367,6 +3458,8 @@ like any other that fails, with its violations.
 **[#220]** (2026-10-09) From #221 it converts the `elsa-tree/5` files it finds too, by
 `tree-format.md` 12.8 after 12.7, the same way (41.6).
 
+**[#231]** (2026-10-10) From #232 the `elsa-tree/6` files too, by `tree-format.md` 12.9 after 12.8 (42.2).
+
 ### 18.4 What #134 changes in the earlier sections
 
 | Section | Change |
@@ -3401,6 +3494,8 @@ language in a draft (a to-do) and `terminal` still requires it.
 
 **[#220]** (2026-10-09) The draft schema is derived from `schemas/elsa-tree-6.json` from #221, relaxing `answers`'
 `minItems` to 1 (41.1).
+
+**[#231]** (2026-10-10) From `schemas/elsa-tree-7.json` from #232, `answers` holding one to five (42.1).
 
 ### 19.2 The draft rules
 
@@ -3457,6 +3552,9 @@ cell.
 **[#220]** (2026-10-09) From #221 a draft step's `answers` is an array of one to four entries, any label lacking a
 language or holding `""`; the draft schema relaxes `answers`' `minItems` to 1, and a single
 entry is V-ANSWERS' advisory, "fewer than two next steps" (`tree-format.md` 7, 41.1).
+
+**[#231]** (2026-10-10) From #232 one to five entries; a sixth is refused at the write, 422 with V-ANSWERS
+(42.1, `tree-format.md` 7).
 
 ### 19.3 Publish
 
@@ -3931,6 +4029,8 @@ every draft the store writes.
 
 **[#220]** (2026-10-09) `link: 'answer'` with its `label` appends a next step, in place of `'yes' | 'no'`; a fifth is
 422 with V-ANSWERS (41.7).
+
+**[#231]** (2026-10-10) A sixth next step is 422 with V-ANSWERS and stores nothing, where a fifth was (42.1).
 
 ### 22.5 Concurrency between collaborators
 
@@ -4529,6 +4629,10 @@ right of the arrow (30.8, amended):
 |                     .----'  ( DOES NOT APPLY )   '----.                        |      the badge in the rim (10.1)
 ```
 
+**[#231]** (2026-10-10) From #233 the first drawing's Answer row holds one outlined `+`, centred, in place of `[ + Yes ]
+[ Tree ends here ] [ + No ]`: a step without Links offers nothing else there (42.7). The second
+drawing stands.
+
 ### 28.2 One language at a time
 
 The chrome bar's `LanguageSwitch` (unchanged) lists the draft's declared languages; the
@@ -4652,6 +4756,10 @@ edited in its Sheet.
 **[#220]** (2026-10-09) The Answer row of four next steps, or of an empty step's four outlined buttons, holds the
 rule as 41.3 stands it (41.7 item 8).
 
+**[#231]** (2026-10-10) A row of five buttons -- five next steps, or four and the one `+` -- holds the rule with
+42.4's editor notice, below 770 x 690 and below 390 x 1080; a row of three or four with 41.7 item
+8's (42.7 item 7).
+
 ### 28.7 Not offered
 
 A Node's `metadata` (19.6); a Source's `id` and an Image's `source`; the manifest's `root`;
@@ -4677,6 +4785,11 @@ monotonically as seen from the page. The queue is the `Editor` provider's (34.4)
 **[#205]** (2026-10-04) The queue can be waited for: `EditorApi.settle()` writes at once every field
 value waiting out its 600 ms (`WriteQueue.flushAll()`) and resolves when the queue next holds nothing
 not yet accepted. The preview button waits on it before it leaves the page (40.6).
+
+**[#231]** (2026-10-10) From #234 a slide in the editor waits on the queue too, through `SlideGate.settle()`
+(42.8), which flushes as `settle()` does and resolves `true` once the queue holds nothing not yet
+accepted, or `false` if a write fails or the session expires first, so that the slide is undone;
+`EditorApi.settle()`, which waits through both, stays the preview button's (40.6).
 
 ### 29.3 The indicator
 
@@ -4716,6 +4829,9 @@ queue is memory only; the indicator is what says so.
 **[#205]** (2026-10-04) The preview button never asks it: it leaves only when the queue holds
 nothing not yet accepted, and waits until then (40.6). A refused value (29.4) is in no queue: the
 button does not wait for it, and it goes with the page, as on a reload.
+
+**[#231]** (2026-10-10) While the queue retries a failed write, a next step's button and the up arrow do not
+slide: they are followed as the plain links they are, and this question asks (42.8).
 
 ### 29.6 A session that expires
 
@@ -4759,6 +4875,10 @@ left of the up arrow (30.8), and gives the row the three outlined buttons back a
 `treeEndsHere`, `+ No`, `+`), a step's next steps with their labels as fields and a `+` while
 fewer than four, the move arrows. The table's "one Answer" row is a draft step with one next step.
 
+**[#231]** (2026-10-10) From #233 the row is 42.7's: one `+`, alone on a step without Links and after the last of
+one to four next steps, none at five; `+ Yes`, `+ No` and the row's `treeEndsHere` go, and the `+`'s
+Sheet holds a switch, `treeEndsHere`, on a step without Links.
+
 ### 30.2 Creating an Answer target
 
 `+ Yes` / `+ No` → `POST .../nodes { from: { node, link: 'yes' | 'no' } }` (22.1: the Node and
@@ -4768,6 +4888,10 @@ buttons); its id is the server's (22.4), never proposed by the editor.
 
 **[#220]** (2026-10-09) `link: 'answer'` with a `label` (41.7 item 3): `+ Yes` and `+ No` send the chrome words,
 `+` the Sheet's.
+
+**[#231]** (2026-10-10) From #233 only the `+`'s Sheet sends the words: `+ Yes` and `+ No` are gone (42.7 item
+3). From #234 following a next step's button slides (42.8); creating one still navigates without a
+slide, since the new step has no frame in the page.
 
 ### 30.3 Ending
 
@@ -4781,6 +4905,10 @@ let the user enter a text to display on the button (with a wordcap obviously)"):
 field, `endingText`, in the page's language, its limit of 19 shown live; `confirm` →
 `POST .../nodes { from: { node, link: 'end', label: { <lang>: <text> } } }`. 36.3 is the
 contract; the rest of this section stands, and #178 replaces the step menu's `removeEnd`.
+
+**[#231]** (2026-10-10) From #233 the Sheet that ends a step is the `+`'s, with its switch `treeEndsHere` on
+(42.7 items 2 to 4); on a step with Options the 422 is shown in it as above, the switch and the words
+kept.
 
 ### 30.4 The side-bubble +
 
@@ -4938,6 +5066,8 @@ removes neither alone any more.
 **[#220]** (2026-10-09) So does each of a step's two to four next steps: it goes with the step it
 leads to, and the step it was taken from keeps the others in their order (41.7 item 5).
 
+**[#231]** (2026-10-10) Two to five (42.1).
+
 ### 30.8 The step menu: deleting a Node
 
 In edit mode the rim above holds, in the half of the band **right** of the up arrow (the
@@ -5002,6 +5132,10 @@ decision 2.
 
 **[#220]** (2026-10-09) A next step goes with the step it leads to, as a yes or a no does above; the step it came
 from keeps the others in their order (41.7 item 5).
+
+**[#231]** (2026-10-10) From #233 "Tree does not end here after all" gives the row its one `+` back, where it gave
+the three buttons, and it is outlined in `accent-secondary` as the `+` is: the row has no
+`treeEndsHere` button (42.7). Nothing else here changes.
 
 ### 30.9 Orphans
 
@@ -5537,6 +5671,12 @@ it rather than a copy. `tests/editor/imports.test.ts` asserts the four and that
 and dependency-free, which `theme.ts` derives its readable-on colours from and the Theme panel
 warns with, so the rule has one definition. `imports.test.ts` asserts it with the others.
 
+**[#231]** (2026-10-10) A sixth, from #234: `src/components/slide-gate.ts`, the seam through which `Slider` asks the
+editor's queue before a slide navigates (42.8). It imports only `react`, as `Explainer.tsx` does;
+`Editor.tsx` provides it, and `Slider` reads it, so that `src/components/` still imports of
+`src/editor/` only the `EditMode` type. `imports.test.ts` asserts the six and that `slide-gate.ts`
+imports nothing but `react`.
+
 ### 34.5 What edit mode does not render
 
 No neighbour frames, no `data-slide` (every control a plain link; no slide); no JSON-LD, no
@@ -5553,6 +5693,14 @@ like the editor it renders no JSON-LD, `hreflang`, canonical or dataset link and
 preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
 bound as it stood for two.
 
+**[#231]** (2026-10-10) With up to five next steps a step, a page reads at most **41** Nodes, not 31, and the
+preview's bound is the public page's 41 (42.5); from #234 the editor's page reads at most eighteen
+(42.8).
+
+**[#231]** (2026-10-10) From #234 the editor's page renders the neighbour frames of its parent and its next steps,
+marks `data-slide` on a next step's button and the up arrow, and slides (42.8); the rest of the first
+sentence stands.
+
 ### 34.6 The types
 
 `src/tree/types.ts` gains `NodeContent` (`id`, `title`, `description`, `sources`, `images`,
@@ -5564,6 +5712,8 @@ and their tests run unchanged.
 
 **[#220]** (2026-10-09) `linksOf(node)` returns the next steps as `{ answers: { label, target }[] ; terminal? }` in
 their order, in place of `{ yes?, no? }` (41.6).
+
+**[#231]** (2026-10-10) Unchanged; a step's `answers` hold up to five (42.6).
 
 ### 34.7 The editor page's bound
 
@@ -5579,6 +5729,14 @@ bound stays twelve; the preview's is a public page's seventeen.
 **[#220]** (2026-10-09) With up to four next steps a step, a page reads at most **31** Nodes, not 17, and the
 preview's bound is the public page's 31 (41.5); every "seventeen" or "17 Nodes" above is that
 bound as it stood for two.
+
+**[#231]** (2026-10-10) With up to five next steps a step, a page reads at most **41** Nodes, not 31, and the
+preview's bound is the public page's 41 (42.5); from #234 the editor's page reads at most eighteen
+(42.8).
+
+**[#231]** (2026-10-10) From #234 this page also places the parent and the centre's next steps, through
+`editorNeighbours` and not `neighbourhood()`: at most **eighteen** Nodes, the twelve above and the
+six placed, a contract as twelve was (42.8). The preview's bound is the public page's 41 (42.5).
 
 ### 34.8 The rule's tests
 
@@ -5776,6 +5934,10 @@ outcome afterwards, and nothing but `tree-format.md` 12.7's conversion knows its
   the marker, and ending the Node again asks for them again.
 - **Words**: `endingText` is "Text of the ending" / "Tekst van het einde" (3.2), 18 and 19
   characters, so the placeholder also fits the badge.
+
+**[#231]** (2026-10-10) From #233 this Sheet is the `+`'s with its switch `treeEndsHere` turned on (42.7): its
+field is labelled `endingText`, and everything else above stands; the Answer row has no button of
+its own for it.
 
 ### 36.4 A deployment's data directory
 
@@ -6620,7 +6782,8 @@ the row **Preview** of its section 5. Recorded in `docs/adrs/ADR-205-preview-add
     (34.7), so `Slider` finds the placement a control names (11.3).
 - **The neighbour frames and the slide run**, as on the public page (11): the readers walk the Tree
   with them. The page reads **at most seventeen Nodes** (11.2), the bound of a public page
-  (**[#220]** (2026-10-09) 31 from #221, the public page's new bound, 41.5); a frame
+  (**[#220]** (2026-10-09) 31 from #221, the public page's new bound, 41.5; **[#231]** (2026-10-10) 41 from
+  #232, 42.5); a frame
   names no picture (11.4); the centre's pictures and an open Overlay's are asked of the admin image
   route, file for file as 11.5 lists them for a public page.
 
@@ -6822,6 +6985,8 @@ language shown is the bracketed placeholder (41.7 item 7).
   `flushAll()` (40.6), the centre
   rule moved to `draftCentre` with nothing it does changed (40.2), and `<html lang>` (40.3). Its
   address, its writes, its slots and its bound of twelve Nodes (34.7) are unchanged.
+  **[#231]** (2026-10-10) From #234 the editor's bound is eighteen, and it renders the neighbour frames of its
+  parent and its next steps (34.7, 42.8).
 
 ### 40.9 Tests (#206)
 
@@ -6855,6 +7020,11 @@ format is `elsa-tree/6` (`tree-format.md` 5.3, 12.8). The decisions are
 `docs/research/issue-220-answer-row-room.md`. **#221** builds 41.1 to 41.6 with the format and its
 migration, and keeps the editor working on the new shape; **#222** builds 41.7.
 
+**[#231]** (2026-10-10) Amended by section 42, for the owner's words on #230: up to five next steps,
+`elsa-tree/7`, the rows of 42.3, a notice of its own for a step of five, each next step placed where
+its button stands, the editor's one `+`, and the slide in the editor. Where 41 and 42 disagree, 42
+holds.
+
 ### 41.1 How many
 
 A question Node has **two, three or four** next steps, chosen per step by its creator; a Tree may
@@ -6863,6 +7033,10 @@ before); a fifth is refused. Five and six were measured and refused: from 1000 p
 one row of five breaks a 19-character label into three lines and more in Verdana and overflows
 at 360 x 481, and two a row needs a third row, which overflows the full Node in windows 481 tall
 (`ADR-220-number-of-next-steps.md`).
+
+**[#231]** (2026-10-10) No longer: **two to five**, and a sixth is refused (42.1). The owner set the most at
+five on #230; three then two below 1000 pixels wide, a row that the measurement above did not try,
+holds five with the notice of 42.4 (`ADR-231-five-next-steps.md`).
 
 ### 41.2 The words on a button
 
@@ -6902,6 +7076,9 @@ at 360 x 481, and two a row needs a third row, which overflows the full Node in 
   1280 the row grows with its rows and its lines, as it already grows with its lines.
 - The rows of an **explanation Node as the centre** and of a **Terminal** do not change:
   `startAgain` alone.
+
+**[#231]** (2026-10-10) Five stand in one row from 1000 pixels wide and three then two below, and the
+editor's row counts its `+` (42.3).
 
 ### 41.4 Below the guarantee
 
@@ -6949,6 +7126,9 @@ at 360 x 481, and two a row needs a third row, which overflows the full Node in 
 - Nothing else in 10.5's order moves: the Answer buttons are never given up, at any count.
 - The notice's two sentences are 10.4's; a step of two next steps never shows it above the floor.
 
+**[#231]** (2026-10-10) A step of five next steps has its own, in two boxes (42.4); this section's numbers
+hold for three and four.
+
 ### 41.5 The slide and the neighbourhood
 
 - `Placed` carries its position, `x` across in layer widths and `y` down in layer heights, in
@@ -6966,6 +7146,9 @@ at 360 x 481, and two a row needs a third row, which overflows the full Node in 
   contract as 17 was (11.2); a step of two still reads what it read.
 - A slide translates the layer by the target's `x` and `y`; everything else in 11.3 stands.
 
+**[#231]** (2026-10-10) `x` is a pair, and each next step stands where its button stands in the row the width
+gives, at every width; up 1, down 5 + 25, asides 8: a page reads at most 41 Nodes (42.5).
+
 ### 41.6 Every other reader
 
 | Reader | From #221 |
@@ -6981,6 +7164,9 @@ at 360 x 481, and two a row needs a third row, which overflows the full Node in 
 
 `grep -rn "\byes\b" src --include=*.ts*` names fourteen files on `46ee621`; it is where #221
 starts, not the list.
+
+**[#231]** (2026-10-10) From #232 the readers are 42.6's: `elsa-tree/7`, up to five; `yes` and `no` go with
+#233.
 
 ### 41.7 The editor
 
@@ -7030,11 +7216,17 @@ starts, not the list.
      its whole output are `docs/research/issue-222-editor-notice-height.md`;
      `admin-no-scroll.spec.ts` holds the editor at 599 and 600 x 481 and at 599 and 321 x 589 and 590.
 
+**[#231]** (2026-10-10) Items 1, 2 and 3 are 42.7's from #233: one `+`, while fewer than five, and no `+
+Yes`, `+ No` or row `treeEndsHere`; the `+`'s Sheet holds the switch. Item 8's notice holds for a row
+of three or four buttons and 42.4's for five. Items 4 to 7 stand.
+
 ### 41.8 What does not change
 
 The Options beside the Bubble, their count of eight, their fan and their Overlay; the Terminal,
 its words and its badge; `startAgain`; the up arrow; the URL scheme and the Trail in it; the
 share link; the Theme roles; the cross-links reserved in `tree-format.md` 10.
+
+**[#231]** (2026-10-10) And 42.9.
 
 ### 41.9 Tests
 
@@ -7051,3 +7243,298 @@ share link; the Theme roles; the cross-links reserved in `tree-format.md` 10.
 - **#222**: the four outlined buttons and `+`; the Sheet; a label field and its count; the move
   arrows; a fifth refused; a delete leaving one, and its to-do; `admin-no-scroll.spec.ts` as 41.7
   item 8 says; screenshots of a step of four at 1280 x 640 and 360 x 640, in both languages.
+
+**[#231]** (2026-10-10) And 42.10.
+
+## 42. Five next steps, one `+`, and the slide toward each button
+
+**[#231], new -- 2026-10-10.** The owner, on #230 (core document 3.4 `[#230]`): "In the tree
+creation view, currently there are three buttons (yes, tree ends here, no, +). I want there to just
+be one + button that the user can click, which opens the overlay in which the user can toggle (tree
+ends here) or put the title of the button. Then the user can decide how many he wants, there can be
+up to 5. Also, make sure that these amount of buttons to navigate down the tree (up to 5 buttons)
+are displayed in a evenly spread out manner and that when click, the view slides in the direction of
+the button, so it feels as if you are moving in its direction (and when the user presses back, it
+goes in the same path backwards, but we already solved that I think)." This section amends 41 for
+it: where the two disagree, this section holds, and 41 carries a dated **[#231]** mark where it
+does. The decisions are `docs/adrs/ADR-231-five-next-steps.md`, `ADR-231-elsa-tree-7.md`,
+`ADR-231-answer-row.md`, `ADR-231-slide-toward-the-button.md`, `ADR-231-one-plus.md`,
+`ADR-231-slide-in-the-editor.md` and `ADR-231-other-readers.md`; the room is measured in
+`docs/research/issue-231-five-next-steps.md`. **#232** builds 42.1 to 42.6 -- the format and its
+migration, the row on every page, the notice of the public page and the preview, the slide there,
+every other reader -- and keeps the editor working on the new format; **#233** builds 42.7, the
+editor's one `+` and its Sheet, and the editor's notice of 42.4; **#234** builds 42.8, the slide in
+the editor.
+
+### 42.1 How many
+
+A question Node has **two, three, four or five** next steps, chosen per step by its creator; a Tree
+may mix them. A draft step may hold **one**, as a to-do (19.2), and none is an explanation Node, as
+before; **a sixth is refused**: the schema refuses it in a file (V-ANSWERS), and the store's write
+answers 422 with V-ANSWERS and stores nothing (22.4). Five is the owner's number, the most; two
+stays the least, as #220 decided it, since the owner named the most only.
+
+### 42.2 The format
+
+Five next steps is a change of the format's limits, so the format is **`elsa-tree/7`**
+(`tree-format.md` 5.3, 10, 12.9): `answers` is an ordered array of **two to five** `{ label,
+target }`, unchanged in every other way; `schemas/elsa-tree-7.json` stands beside the `/6`, `/5` and
+`/4` files, each still served; the loader accepts `/7` alone; a `/6` file is converted by
+`tree-format.md` 12.9 -- its `format` and its `$schema`, nothing else -- by `npm run migrate` over
+the repository and by the store over a deployment's data directory, after 12.7 and 12.8. #232 writes
+the schema file from `tree-format.md` 3.9 and 5.3 as amended.
+
+### 42.3 The Answer row
+
+A row holds *k* buttons: on the public page and in the preview a step's next steps; in the editor
+its next steps and its `+` (42.7). They stand by *k* and the width alone:
+
+| *k* | From 1000 pixels wide | Below 1000 pixels wide |
+|---|---|---|
+| 1 | one, centred | one, centred |
+| 2 | one row | one row |
+| 3 | one row | two rows: 2, then 1 |
+| 4 | one row | two rows: 2 and 2 |
+| 5 | one row | two rows: **3, then 2** |
+
+- **Evenly spread** (core document 3.4 `[#230]`, confirmed): every button of a row is the same
+  width -- an equal share of the row in one row, at most 620; below 1000 a half of the row less half
+  its gap for *k* of 3 and 4, and **a third of the row less its gaps for *k* of 5** -- the same
+  height, and equally far apart: 20 in one row (8 below 480 pixels wide), 8 between two rows. In two
+  rows the first holds half of *k* rounded up -- two of three, two of four, three of five -- and the
+  second the rest, and a row that holds fewer than
+  the first is centred, each of its buttons as wide as each above. Every button is otherwise 41.3's:
+  the same fill, letters and type, none set apart by colour, size or place (core document 3.2).
+- **Order**: the file's, left to right and row by row; the DOM order and the Tab order. In the
+  editor the `+` is last.
+- **At and above 1280 x 640** the row stays **68** tall: five buttons of 236 pixels each keep a
+  19-character label on two lines in every face measured, on the public page and in the editor
+  between its arrows (`docs/research/issue-231-five-next-steps.md` section 2). Below 1280 the row
+  grows with its rows and its lines, as 41.3 has it.
+- The rows of an explanation Node as the centre and of a Terminal do not change: `startAgain` alone.
+- 41.3's arrangements of two, three and four are this table's; only *k* of 5 is new.
+
+### 42.4 Below the guarantee: what gives way for five
+
+**The notice gives way for five**, as 41.4 gives it for three and four: a row of five buttons shows
+the `minimumSize` notice, naming the height (`minimumHeight`), in two boxes of width and height --
+**below W1 wide and H1 tall, and below W2 wide and H2 tall** -- where:
+
+- **W1** is the narrowest width from which the page fits every window from 481 tall up, in every
+  face and both languages, rounded up to the next ten -- 41.4's width, measured at every height the
+  stylesheet draws differently (`docs/research/issue-231-five-next-steps.md` section 1);
+- **W2** is the width of the narrowest viewport of 10.6 narrower than W1 at which the page fits in
+  every face, so that a need at the narrowest widths does not take that viewport from the reader;
+- **H1** is the highest need at the widths from W2 up to below W1 -- a width's need the lowest
+  height from which every taller window fits -- rounded up to the next ten, and never below the same
+  page's notice for three or four (41.4's 560; 41.7 item 8's 590);
+- **H2** is the highest need below W2, rounded up to the next ten.
+
+Measured on the redrawn row of 42.3, the full Node of 10.6 with five 19-character labels, both
+languages, at the narrowest width of each interval between the stylesheet's width breakpoints and at
+every interval of heights from 481 to 1440, in Segoe UI and Verdana on Windows and in Liberation Sans
+and DejaVu Sans in Linux (`docs/research/issue-231-five-next-steps.md` section 3):
+
+| Page | Row | W1 | W2 | H1 | H2 | The notice stands |
+|---|---|---|---|---|---|---|
+| The public page and the preview | a step of five next steps | 640 | 360 | 590 | 650 | **below 640 x 590, and below 360 x 650** |
+| The editor | five buttons: five next steps, or four and `+` | 770 | 390 | 690 | 1080 | **below 770 x 690, and below 390 x 1080** |
+
+- Every viewport of 10.6 keeps the tree view for five on the public page and in the preview: 360 x
+  640 needs 584 and 390 x 844 565. In the editor 360 x 640 shows the notice for a row of five
+  buttons -- there a label between the move arrows takes seven or eight lines in a button of 104
+  pixels, and the page needs 744 to 792 -- and 390 x 844, which needs 677, keeps the editor.
+- **A step of four next steps in the editor is a row of five buttons**, with its `+`, and shows the
+  editor's notice for five; it showed 41.7 item 8's below 600 x 590.
+- One row of five fits every window from 481 tall up at 1000, 1200 and 1280 pixels wide in every
+  face, on both pages: 41.3's 1000 holds for five.
+- The notice takes nothing else: the Answer buttons are still never given up (10.5), and nothing
+  else in 10.5's order moves. Every other row keeps its floor: 10.4's for one or two buttons, 41.4's
+  for three or four on the public page and in the preview, 41.7 item 8's for three or four in the
+  editor.
+- The editor counts its own buttons, as it does for 41.7 item 8 (`buttonsOf` in
+  `src/components/TreeView.tsx`), and its notice has a class of its own; the public page's and the
+  preview's count their next steps. The media queries hold the numbers.
+
+### 42.5 The slide and the neighbourhood
+
+**One rule: a button's target stands where the button stands.** Each next step's target is placed
+one layer height below the centre and, across, as far from the middle as its button stands from the
+middle of its own row, counted in buttons: the *c*-th button (from 0) of a row of *m* stands at
+*c* - (*m* - 1) / 2. So a button left of its row's middle slides down and to the left, a button right
+of it down and to the right, a button in the middle straight down -- at every width and for every
+number (core document 3.4 `[#230]`'s reading, confirmed; the table is
+`docs/research/issue-231-five-next-steps.md` section 4).
+
+- **`Placed`'s `x` becomes a pair**, `x: { row: number; rows: number }`: `row` is the place across
+  in one row, used from 1000 pixels wide, and `rows` the place in the two rows of 42.3, used below
+  1000. `y` is unchanged. One function in `src/neighbourhood.ts`, `across(i, k): { row, rows }`,
+  gives both for the *i*-th of *k* buttons: `row` = *i* - (*k* - 1) / 2; `rows` the same for *k* of
+  1 or 2, and otherwise the place in its own row of 42.3's two.
+- **The slide reads the pair when it starts**: `Slider` takes `rows` while `(max-width: 999px)`
+  matches -- the stylesheet's own media query for 42.3's rows, written once as a constant beside
+  `across` -- and `row` otherwise, for a click, for the arrival a click hands over, and for a
+  history step's arrival. Nothing else in 11.3 changes.
+- **Down, one level**: the centre's *n* next steps at `y` = 1, `x` = `across(i, n)`.
+- **Down, two levels**: the next steps of every first-level target, in order, *K* of them counted
+  before deduplication, at `y` = 2 and `row` = `rows` = *k* - (*K* - 1) / 2, as 41.5. No button of
+  the page leads there.
+- **Up**: the parent at `y` = -1 and `x` = the negated `across(i, m)`, *i* the first of the parent's
+  *m* next steps that names the centre, both halves of the pair; `{ row: 0, rows: 0 }` after any
+  other step. The up arrow's slide is the step down reversed at the width it is taken, and so is the
+  browser's back, when the payload is in the framework's cache (11.3).
+- **Two places may be one.** Below 1000 a step of four stands its first and third buttons on the
+  left, its second and fourth on the right, each pair at one place; a slide draws one neighbour
+  frame (11.3), so two frames never meet on the screen. Deduplication by Node id, the first wins, is
+  unchanged.
+- **The bound**: up 1, down at most 5 + 25, asides 8: **39 neighbours**, and **a page reads at most
+  41 Nodes** (the centre, the 39, and the one Overlay a URL may name beyond the asides). 41 is a
+  contract as 31 was (11.2, 41.5): no variable or prop raises it; `MAX_PLACED` is 31. It holds for
+  the public page and the preview of a hidden Tree; the editor's page has its own (42.8).
+- From 1000 pixels wide every place is 41.5's: a step of two to four slides where it slid.
+
+### 42.6 Every other reader
+
+| Reader | From #232 |
+|---|---|
+| The types (5.1) | `Node['answers']` holds two to five; `DraftNode['answers']` one to five; `Manifest['format']` is `elsa-tree/7`. |
+| The validator, the byte form, the loader, the schema route (5, 15.1) | `/7` read, `/6` converted (`tree-format.md` 12.9), `schemas/elsa-tree-7.json` served beside `/6`, `/5` and `/4`. |
+| The store (17.4, 17.5, 18.3) | Runs 12.9 after 12.8 on every file it opens; `importTree` likewise; a sixth next step is 422 with V-ANSWERS (22.4). |
+| The JSON-LD `Question` (16.4) | One `suggestedAnswer` per next step, in order, up to five; each as 41.6 has it. |
+| `llms.txt` (16.5) | It names no step and no Answer; its `## The dataset` entry names `/schemas/elsa-tree-7.json` (`SCHEMA_HREF`). |
+| The dataset endpoint (15) | The file as it is; its `Link: rel="describedby"` header names `elsa-tree-7.json` (15.2). |
+| The preview of a hidden Tree (40) | The public row, notice and slide of 42.3 to 42.5, within 41 Nodes; a draft's lone next step is a row of one, centred (40.7). |
+| Chrome (3.2) | `yes` and `no` go with #233, whose `+ Yes` and `+ No` were their last readers (42.7). |
+| The editor (30, 41.7) | #232 keeps it working on `/7`: its row of 41.7 as it stands, the `+` while fewer than four, and a draft step of five -- which the store's writes allow -- standing as 42.3 stands it. #233 builds 42.7 and the editor's notice of 42.4. |
+| `transition.spec.ts`, `no-scroll.spec.ts`, `neighbourhood.test.ts` | 42.10. |
+
+### 42.7 The editor's one `+`
+
+1. **One `+` wherever a step can take another next step**: on a step without Links -- as 30.1's
+   first row and 41.7 have it, no next steps and no end, whatever its Options -- alone in its row
+   (*k* = 1, centred); on a step of one to four next steps, after the last. A step of five has
+   none. `+ Yes`, `+ No` and the row's `treeEndsHere` go, from a step without Links and from beside
+   a step's one next step (core document 3.4 `[#230]`'s reading, confirmed). The `+` is 41.7's
+   outlined button, named `addNextStep`, counted in the row's *k* (42.3, 42.4).
+2. **Its Sheet** (the editor's dialog, 10.5; "the overlay" of the owner's words) is titled
+   `addNextStep` and holds, in this order:
+   - **a switch, `treeEndsHere`** -- a checkbox with `role="switch"`, off when the Sheet opens -- on
+     a step without Links only, where `Tree ends here` stood; a step with next steps cannot end, and
+     its Sheet has no switch;
+   - **one plain field**, in the language edited, focused when the Sheet opens, its limit of 19
+     shown live as `n / 19` and typing stopping at it (36.3, core document 3.4 `[#169]`): with the
+     switch off labelled `nextStepWords`, the words on the new button; on, labelled `endingText`, the
+     ending's words. Its placeholder is its label. Turning the switch keeps what the field holds, and
+     moves focus nowhere;
+   - `confirm` and `cancel`. `confirm` is enabled once the field holds a character that is not white
+     space; Enter in the field confirms.
+3. **Confirm, the switch off**: `POST .../nodes { from: { node, link: 'answer', label: { <lang>:
+   <text> } } }` appends the next step, every other language `""` (a to-do), and the editor goes to
+   the new step by a plain navigation, as 41.7 item 3 has it (42.8). **The switch on**: `POST
+   .../nodes { from: { node, link: 'end', label: { <lang>: <text> } } }`, as 36.3; the page repaints
+   with the badge as the field and `startAgain`. Both are the structural writes of 22.4 as they stand;
+   no write changes but the count: a sixth next step is 422 with V-ANSWERS.
+4. **A step with Options** keeps the switch: confirmed on, the store's 422 (V-TERMINAL) is shown in
+   the Sheet as 30.3 and 36.3 show it today, and the switch and the words stay, so that the creator
+   can turn the switch off and add a next step instead.
+5. **The chrome**: `yes` and `no` leave `src/chrome.ts` in both languages, read by nothing after `+
+   Yes` and `+ No`; `treeEndsHere` stays, as the switch's label, and so do `addNextStep`,
+   `nextStepWords` and `endingText`. No key is added.
+6. **What stays**: a next step's words as a field in place, the move arrows, removing a next step
+   through its step's red cross (41.7 items 2, 4 and 5), and "Tree does not end here after all"
+   (`removeEnd`, 30.8) on a Terminal, which gives the row its `+` back.
+7. **The editor's no-scroll rule** (28.6) holds with the row as 42.3 stands it and the notices of 42.4
+   and 41.7 item 8: a row of three or four buttons -- two or three next steps and the `+` -- keeps
+   41.7 item 8's below 600 x 590; a row of five, 42.4's editor notice.
+
+### 42.8 The slide in the editor
+
+**The editor slides as the public page does** (core document 3.4 `[#230]`'s reading, confirmed):
+following a next step's button or the up arrow on the editor's page slides the tree layer by 42.5's
+rule, and the way back retraces it.
+
+- **The neighbour frames**: the editor's page places **the parent and the centre's next steps**, at
+  most 1 + 5, through `editorNeighbours(draft, at, node, known)` in `src/neighbourhood.ts`, beside
+  `neighbourhood`, which it does not call. It places them by **the editor's row**: the *i*-th of the
+  centre's *n* next steps at `across(i, k)` with *k* = *n* + 1 while *n* is under five (the `+` is
+  the last button) and *k* = 5 at five; the parent at the negated place of the centre's button in the
+  parent's row as the editor draws it. Nothing is placed two levels down: no button of the page leads
+  there. The frames are drawn as the preview draws a draft's (40.2): the public components with no
+  slot, and the bracketed placeholder where the draft has no text yet (40.7).
+- **The bound**: the editor's page reads **at most eighteen Nodes**, 34.7's twelve and the six
+  placed; a contract as twelve was.
+- **Which controls slide**: a next step's button and the up arrow, marked `data-slide` where their
+  `href` is a placement's, as 11.3 has it. The `+`, `startAgain`, the Options, every Sheet's
+  entries and every other control do not.
+- **A click that a field or a control on the button takes does not slide**: a next step's words are a
+  field on its button and its move arrows are controls on its outline (41.7 items 2 and 4); a click
+  on either is theirs, as it is today, and `Slider` ignores a click whose default is prevented.
+- **An open Sheet** is closed before the layer moves (11.3); what it held unconfirmed goes with it,
+  as when it is closed by hand.
+- **The autosave queue**: a slide starts at once, and the navigation waits for the queue (29.2):
+  every field value waiting out its 600 ms is written at once, and the client navigation starts when
+  the queue holds nothing not yet accepted, the layer holding at the target as it holds for a slow
+  payload. A focused field is blurred by the click, so what it holds is in the queue. **While the
+  queue retries a failed write** (29.5: the indicator at `notSaved` and `retrying`) the control does
+  not slide: it is followed as the plain link it is, and the browser's `beforeunload` question asks,
+  as today. **If a write fails, or the session expires (29.6), while the slide waits**, the slide is
+  undone: the layer returns to the centre without motion, nothing navigates, and the page shows what
+  29.5 or 29.6 shows. A refused value (29.4) is in no queue and goes with the page, as on a reload
+  (40.6).
+- **The seam** (34.4): `src/components/slide-gate.ts` exports a context, `SlideGate`, null by
+  default, of `{ ready(): boolean; settle(): Promise<boolean> }`. `ready()` is false while the queue
+  retries a failed write; `settle()` writes every waiting field value at once and resolves `true` once
+  the queue holds nothing not yet accepted, or `false` if a write fails or the session expires first.
+  The `Editor` provider gives it from its queue (`flushAll`, 29.2); `Slider` reads it: with none --
+  the public page, the preview -- it slides as 11.3 has it; with one, it intercepts a click only while
+  `ready()`, and navigates when `settle()` resolves `true`.
+- **A history step** (back, forward) slides as on the public page when the payload is in the
+  framework's cache (11.3), and the page it arrives at then reads the draft again (`router.refresh()`)
+  once the slide has ended, so that the editor never stands on a draft older than the store's.
+- **`prefers-reduced-motion: reduce`** removes the motion and keeps the navigation, after
+  `SlideGate.settle()` resolves `true`.
+- **A second click while a slide waits** on the queue does nothing: the first slide's navigation is the
+  one that follows, so that no click passes the gate. On the public page and in the preview a click
+  during a slide navigates at once, as 11.3 has it.
+- **Creating a next step does not slide**: the new step did not exist when the page was drawn, so no
+  frame of it stands ready; the editor goes to it by a plain navigation, as today (42.7 item 3).
+- 34.5's "no neighbour frames, no `data-slide`" no longer holds for the editor's page; the rest of
+  34.5 stands: no JSON-LD, `hreflang`, canonical or dataset link, no share button, no mention of the
+  Authors.
+
+### 42.9 What does not change
+
+The Options beside the Bubble, their count of eight, their fan and their Overlay; the side-bubble
+`+`; the Terminal, its words and its badge; `startAgain`; the up arrow's place; the words on a button
+(41.2) and their limit of 19; the URL scheme and the Trail in it; the share link; the Theme roles;
+the cross-links reserved in `tree-format.md` 10; 41.4's notice for three and four on the public page
+and in the preview, and 41.7 item 8's for three or four buttons in the editor.
+
+### 42.10 Tests
+
+- **#232**: the migration over every Tree and fixture, idempotent, and section 8's block
+  (`tests/migrate-tree.test.ts`); the schema and the validator on two to five entries, one (draft
+  only) and six, and the store's write of a sixth (422, V-ANSWERS); a fixture with a step of five next
+  steps, labelled at 19 characters in both languages; `no-scroll.spec.ts` on it at the ten viewports
+  of 10.6, at 999 and 1000 x 640, and one pixel either side of each width and height of 42.4's public
+  boxes (639 and 640 x 589 and 590, 359 and 360 x 649 and 650), both languages, with the notice where
+  42.4 puts it; `transition.spec.ts`
+  asserting, for each button of two, three, four and five at 1280 x 640, 999 x 640 and a width below
+  600, that its slide goes to the side where it stands, as `docs/research/issue-230-slide-direction.md`
+  measured it, and that the up arrow retraces each; `neighbourhood.test.ts` on `across` for *k* of 1
+  to 5, the places of 42.5 and the bound of 41; the JSON-LD's `suggestedAnswer` for five.
+- **#233**: the one `+` on a fresh step and after one to four next steps, none at five; the Sheet's
+  switch on a step without Links only; the field's label, limit and count in both states; a creator
+  giving a fresh step one to five next steps through it, each worded, and ending a fresh step through
+  the switch; the refusal of a step with Options shown in the Sheet with the switch and the words kept;
+  no `+ Yes`, `+ No` or row `treeEndsHere` anywhere; `admin-no-scroll.spec.ts` with a row of five both
+  ways (five next steps, four and `+`), both languages, at the ten viewports of 10.6 and one pixel
+  either side of each width and height of 42.4's editor boxes (769 and 770 x 689 and 690, 389 and 390
+  x 1079 and 1080), the notice where 42.4 puts it; screenshots as #233 asks.
+- **#234**: in the editor, each next step's button of two, three, four and five (with the `+`) slides
+  toward where it stands at 1280 x 640 and at a width below 1000, and the up arrow retraces it; the
+  browser's back as 42.8 has it, the page showing the draft's latest accepted write after it; a title
+  typed and a next step's button clicked within 600 ms, the title saved and shown after the slide; a
+  click on a next step's words or arrows does not slide; no slide while `retrying`; a write failing
+  while a slide waits undoes it, nothing navigating; `imports.test.ts` with `slide-gate.ts`; the
+  page's bound of eighteen; `prefers-reduced-motion`; `admin-no-scroll.spec.ts` mid-slide, every Sheet closed.

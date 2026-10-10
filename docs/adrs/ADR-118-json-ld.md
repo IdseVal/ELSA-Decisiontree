@@ -6,6 +6,8 @@
   the next step's label, a colon and the target's title -- the button's accessible name, no
   longer a chrome word -- and `url` the target's canonical URL as before; a migrated yes-and-no
   step's entries say what they said (`docs/specs/application.md` 16.4, 41.6). The rest stands.
+- **[#231] Amended (2026-10-10)** by `ADR-231-other-readers.md`: up to five `suggestedAnswer`
+  entries, one per next step (`docs/specs/application.md` 42.6).
 - Issue: #118 -- Architecture: freeze the JSON-only Tree format (`elsa-tree/4`)
 - Spec: `docs/specs/application.md` 16.4
 - Amends: `docs/adrs/ADR-5-repository-layout.md` (`src/findability/jsonld.ts`; the

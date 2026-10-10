@@ -2,6 +2,8 @@
 
 - Status: ACCEPTED (frozen) -- 2026-09-17
 - **[#220] Amended (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md`: the seventeen Nodes a page reads are 31 from #221 (`docs/specs/application.md` 41.5).
+- **[#231] Amended (2026-10-10)** by `ADR-231-slide-toward-the-button.md`: the 31 Nodes a page reads
+  are 41 from #232 (`docs/specs/application.md` 42.5).
 - Issue: #78 -- Architecture: freeze the contracts for the display changes of #75
 - Spec: `docs/specs/application.md` 10.3, 10.9, 11.1 to 11.5, 14; 4.1 unchanged
 - Core document: 3.1 (traversal rule, `[#75]`), 3.2 ("Side children open in an Overlay"), open item **10.27** (decided here), 10.23 (unchanged)

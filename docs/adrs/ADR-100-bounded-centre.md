@@ -2,6 +2,8 @@
 
 - Status: ACCEPTED (frozen) -- 2026-09-19
 - **[#220] Amended (2026-10-09)** by `ADR-220-slide-and-neighbourhood.md`: its bound of 17 Nodes a page is 31 from #221 (`docs/specs/application.md` 41.5).
+- **[#231] Amended (2026-10-10)** by `ADR-231-slide-toward-the-button.md`: its bound of 31 Nodes a
+  page is 41 from #232 (`docs/specs/application.md` 42.5).
 - Issue: #100 -- Architecture: amend 10.9 where the build of #80 departs from it
 - Spec: `docs/specs/application.md` 10.9 (the centre of a path), 10.3 (the row "explanation Node, as the centre"); 11.2 and 4.3 unchanged
 - Core document: open item **10.27** (its decision is amended here, not reopened)

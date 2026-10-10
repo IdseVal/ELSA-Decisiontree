@@ -1,6 +1,14 @@
 # ADR-230-tree-creation-round: the owner's one `+`, five next steps, an evenly spread row and a slide toward each button are one architecture freeze and three build issues after it, filed `ready` on the owner's words
 
 - Status: ACCEPTED -- 2026-10-10
+- **[#231] Amended (2026-10-10)** by #231: decision 5's readings are settled. Confirmed: "the tree
+  creation view" is the editor, one `+` in place of `+ Yes`, `Tree ends here` and `+ No`, and "the
+  overlay" its Sheet with the switch and one field, the button's words (`ADR-231-one-plus.md`); the
+  lowest stays two (`ADR-231-five-next-steps.md`); "evenly spread" (`ADR-231-answer-row.md`); the
+  slide toward the side where the button stands at every width
+  (`ADR-231-slide-toward-the-button.md`), in the editor too (`ADR-231-slide-in-the-editor.md`).
+  Replaced: the editor goes to a step just created by a plain navigation, without a slide
+  (`ADR-231-slide-in-the-editor.md` decision 9).
 - Issue: #230 -- Tree creation (the owner's instruction)
 - Issues filed: #231 to #234
 - Specs affected: none amended here; #231 amends the sections it decides, #232 to #234 what

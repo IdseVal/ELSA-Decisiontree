@@ -1,6 +1,11 @@
 # ADR-220-editing-next-steps: the editor's Answer row keeps `+ Yes`, `Tree ends here` and `+ No`, adds one `+` that asks for the words, and edits each next step's words in place
 
 - Status: ACCEPTED (frozen) -- 2026-10-09; the owner may overrule (core document 10.43)
+- **[#231] Superseded in part (2026-10-10)** by `ADR-231-one-plus.md`: decisions 1 and 2's `+ Yes`,
+  `Tree ends here` and `+ No` leave the row, and one `+` stands wherever a step can take another
+  next step, up to five, its Sheet holding the switch `treeEndsHere` on a step without Links;
+  decision 8's notice holds for a row of three or four buttons, and a row of five shows its own
+  (`docs/specs/application.md` 42.7). The rest stands.
 - Issue: #220 -- Architecture: freeze how many next steps a step may have
 - Spec: `docs/specs/application.md` 3.2, 19.2, 19.7, 22.1, 22.2, 22.4, 28.6, 30.1 to 30.3,
   30.7, 30.8, 33.3, 40.7, 41.7 (new), amended `[#220]`

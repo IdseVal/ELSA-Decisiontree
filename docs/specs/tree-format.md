@@ -1,4 +1,4 @@
-# Tree file format -- `elsa-tree/5` (**[#220]** `elsa-tree/6` from #221)
+# Tree file format -- `elsa-tree/5` (**[#220]** `elsa-tree/6` from #221; **[#231]** `elsa-tree/7` from #232)
 
 > Status: FROZEN -- 2026-10-02 (issue #171); `elsa-tree/5` replaces `elsa-tree/4` (frozen
 > 2026-09-21, issue #118). This document is the interoperability contract: any Tree that
@@ -6,6 +6,17 @@
 > half is published as a JSON Schema at `schemas/elsa-tree-5.json` (3.9), which the app
 > serves at `/schemas/elsa-tree-5.json`. Changing this contract requires a new
 > `architecture` issue and a new format number.
+>
+> **[#231] Amended 2026-10-10: `elsa-tree/7`, frozen here, built by #232.** The owner, on #230:
+> "Then the user can decide how many he wants, there can be up to 5." `elsa-tree/7` is `elsa-tree/6`
+> with **one change**: a question Node's `answers` holds **two to five** next steps, where it held two
+> to four (5.3, 5.7, rule V-ANSWERS); a draft step one to five. Every other key, kind, limit and
+> rule, and the byte form of 3.7, are `/6`'s. A `/6` file is converted by 12.9, which changes its
+> `format` and its `$schema` and nothing else. `schemas/elsa-tree-7.json` is written by #232 from 3.9
+> and 5.3 as amended, beside `elsa-tree-6.json`, which stays served, as `/5`'s and `/4`'s do. Until
+> #232 merges, the loader reads `/6` and the passages marked **[#231]** describe what it builds. The
+> decisions are `docs/adrs/ADR-231-elsa-tree-7.md` and `ADR-231-five-next-steps.md`; the room is
+> measured in `docs/research/issue-231-five-next-steps.md`.
 >
 > **[#220] Amended 2026-10-09: `elsa-tree/6`, frozen here, built by #221.** The owner, on #219:
 > "Some trees might consist of yes or no, some trees might end there, but some trees might also
@@ -596,6 +607,8 @@ Node; V-ROOT, the root must exist).
 
 **[#220]** (2026-10-09) `format` is `elsa-tree/6` and `$schema` names `elsa-tree-6.json` from #221 (12.8).
 
+**[#231]** (2026-10-10) `elsa-tree/7` and `elsa-tree-7.json` from #232 (12.9).
+
 ### 4.2 The Tree's id
 
 The folder name is the Tree's id, as in `elsa-tree/1`. The manifest has no `id` key
@@ -740,7 +753,7 @@ A Node is an object with these keys, written in this order (3.7):
 | `metadata` | yes | object | `version` (non-empty string) required; no key made only of digits (3.7); the rest free-form, kept but not interpreted. A note that would have been a comment goes here. |
 | `sources` | no | array of Source (5.1), at most 3 | References this Node cites. Absent means none. |
 | `images` | no | array of Image (5.2), at most 10 | The Node's pictures: the **first is its main image**, shown above the title in the Bubble and, small, on the Option button that leads to this Node; the rest are the Carousel's. Absent means none. |
-| `answers` | see 5.6 | Answers (5.3) | The yes/no Links. Present exactly on question Nodes. **[#220]** From `elsa-tree/6`: the next steps, an array of two to four `{ label, target }` in the order their buttons stand (5.3). |
+| `answers` | see 5.6 | Answers (5.3) | The yes/no Links. Present exactly on question Nodes. **[#220]** From `elsa-tree/6`: the next steps, an array of two to four `{ label, target }` in the order their buttons stand (5.3). **[#231]** Two to five from `elsa-tree/7`. |
 | `options` | no | array of Option (5.4), at most 8 | The clickable list of entries, each opening an explanation Node in an Overlay. Allowed on question Nodes and explanation Nodes; never on a Terminal. |
 | `explainers` | no | array of Explainer (5.9), at most 8 | The terms of this Node's description that carry a short explanation shown on hover. Absent means none. |
 | `terminal` | see 5.6 | Terminal marker (5.5) | Present exactly on Terminals. |
@@ -854,6 +867,13 @@ the two keys; the draft schema relaxes `minItems` to 1 (section 7, V-ANSWERS). I
 (3.7) `label` is written before `target`, its languages in the manifest's order.
 `docs/adrs/ADR-220-elsa-tree-6.md` has the reasoning.
 
+**[#231] Amended for `elsa-tree/7` (2026-10-10; built by #232).** The owner, on #230: "there can be
+up to 5". `answers` is an array of **two to five** next steps; nothing else in this section changes.
+The schema says `maxItems` 5; the draft schema keeps `minItems` 1. Five stand in one row from 1000
+pixels wide and three then two below it (`docs/specs/application.md` 42.3), and each next step's
+place in the layer follows where its button stands (42.5). `docs/adrs/ADR-231-elsa-tree-7.md` and
+`ADR-231-five-next-steps.md` have the reasoning.
+
 ### 5.4 Option
 
 ```json
@@ -960,6 +980,7 @@ language**.
 | **[#171]** Terminal `label` (any language) | 19 characters | V-LENGTH |
 | **[#220]** Answer `label` (any language), from `elsa-tree/6` | 19 characters | V-LENGTH |
 | **[#220]** `answers` on a question Node, from `elsa-tree/6` | 2 to 4 entries | V-ANSWERS (schema) |
+| **[#231]** `answers` on a question Node, from `elsa-tree/7` | 2 to 5 entries | V-ANSWERS (schema) |
 | Source `label` (any language) | 60 characters | V-LENGTH |
 | Image `description` (any language) | 120 characters | V-LENGTH |
 | Image `credit` | 120 characters | V-LENGTH |
@@ -1020,7 +1041,7 @@ to cut, by how much (`application.md` 10.7).
 | Description | what remains: 394 - 60 - 8 - 56 - 8 - 60 - 8 = 194 px, of which **8 lines** of 24 px = 192 are used, at 75 characters = 600 characters; 2 px spare. **Now** (#102): 364 - 166.4 - 8 - 56 - 8 - 60 - 8 = 57.6 px, of which **2 lines** of 24 px = 48 are used, at 75 characters = **150 characters**; 9.6 px spare. **Now** (#174): 349 - 160.4 - 8 - 56 - 8 - 60 - 8 = 48.6 px, the same 2 lines and 150 characters; 0.6 px spare |
 | Explainer panel | 320 px wide, 14 px text on 20 px lines, about 45 characters per line: a 200-character `text` is at most 5 lines, and the panel with its `term` heading and padding at most 148 px, which fits above or below any line of the 394 px text area (5.9). **Now** (#102): any line of the 364 px text area; 148 fits still, and in the 349 px one of #174 |
 | Option button labels | an Option button of 232 x 96 px beside the Bubble, with 152 px of label at 16 px on 20 px lines, up to four lines: an Option title of 60 characters is at most **3 lines** in a humanist face and 4 in DejaVu Sans, the widest fallback (80 px, inside the 96 px button). **Amended 2026-09-19 (#105, PR #109):** not for every title: in Open Sans the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" (54 characters) takes 4 lines only hyphenated in the page's language and 5 without, and its button then grows to 102 px; the limit stays 60 for the owner to judge (`application.md` 10.3 and 10.7, both amended). The Options fan out at most 4 a side at a pitch of 111.5 px: four buttons are 384 px of the Bubble's 446, so 8 Options fit without narrowing or wrapping (**Now**, #102: of the Bubble's 416, which still holds the 384; #174: of 401, which still does). **Now** (#175, amended 2026-10-02): an Option button of **236 x 100 px** whose picture fills its inner end, 100 px across, with **120 px of label at 15 px on 18 px lines, up to five lines** (90 px, inside the 100 px button): a 60-character title takes at most 5 lines in Open Sans and Verdana and 4 in Arial and Segoe UI, measured on both Trees' and the fixtures' Option titles, hyphenated in the page's language; where the browser has no hyphenation dictionary, 6 for one title in Open Sans and three in DejaVu Sans, and the button grows to 108 px; four buttons on a side at the pitch of 104 px are 400 px of the Bubble's 416, and at #174's 401 the pitch is 100.25 px and the four stand 0.25 px apart; the limit stays 60 (`application.md` 10.3 and 10.7, amended). A question Node that carries both `answers` and `options` (section 5.6) puts its 2 Answer buttons below the Bubble and its Options beside it, so the two never share a row (`application.md` 10.3, 10.7; `docs/adrs/ADR-78-fan-out-and-option-picture.md`) |
-| Answer button labels, and the Trail | **[#220] Now** (`elsa-tree/6`, 2026-10-09): a button shows its next step's `label` alone, at most 19 characters, in an equal share of the row: one row of up to four buttons from 1000 pixels wide, 300 pixels each at 1280 x 640, where 19 characters take one line in every face measured and 40 two; two a row below 1000. Measured in `docs/research/issue-220-answer-row-room.md`; `application.md` 41.3, 41.4. What follows is `/5`'s: the label is the chrome word, a colon and a Node `title` of up to 80 characters (5.3, section 6): at most 86 characters in one run of 19 px bold on 24 px lines, in a 620 x 60 px button with 580 px of label, at least 43 characters per line in DejaVu Sans Bold: **2 lines** (48 px, inside the 60 px button). The 2 Answer buttons sit side by side in the 68 px Answer row. No Trail is drawn: the up arrow carries the parent's title as its accessible name only, so no Trail label has a width to fit; the format still does not bound a Trail's length, and a long one costs the screen nothing (`application.md` 10.2, 10.3, 10.7; `docs/adrs/ADR-78-answer-buttons-and-up-arrow.md`) |
+| Answer button labels, and the Trail | **[#231] Now** (`elsa-tree/7`, 2026-10-10): up to five buttons, one row of five from 1000 pixels wide, 236 pixels each at 1280 x 640, where 19 characters take two lines in every face measured and the row stays 68; three then two below 1000, and a step of five shows the notice in `application.md` 42.4's boxes. Measured in `docs/research/issue-231-five-next-steps.md`. **[#220] Now** (`elsa-tree/6`, 2026-10-09): a button shows its next step's `label` alone, at most 19 characters, in an equal share of the row: one row of up to four buttons from 1000 pixels wide, 300 pixels each at 1280 x 640, where 19 characters take one line in every face measured and 40 two; two a row below 1000. Measured in `docs/research/issue-220-answer-row-room.md`; `application.md` 41.3, 41.4. What follows is `/5`'s: the label is the chrome word, a colon and a Node `title` of up to 80 characters (5.3, section 6): at most 86 characters in one run of 19 px bold on 24 px lines, in a 620 x 60 px button with 580 px of label, at least 43 characters per line in DejaVu Sans Bold: **2 lines** (48 px, inside the 60 px button). The 2 Answer buttons sit side by side in the 68 px Answer row. No Trail is drawn: the up arrow carries the parent's title as its accessible name only, so no Trail label has a width to fit; the format still does not bound a Trail's length, and a long one costs the screen nothing (`application.md` 10.2, 10.3, 10.7; `docs/adrs/ADR-78-answer-buttons-and-up-arrow.md`) |
 | Carousel | a strip of 48 px round thumbnails on the Bubble's lower outline, the Images after the main one, seven visible, no caption; the description is alternative text and the credit is shown in the enlarged view, where it fits one line at 13 px (`application.md` 12). **Now** (#174, 2026-10-02, by the owner in #169): 67 px thumbnails, 1.4 times as big, five visible in a box of 383 px, their upper 24 px in the Bubble's rim and their lower 43 in a strip band of 43 px (`application.md` 10.1, 12.2) |
 | **[#171]** Ending badge | the Terminal's `label` in a 24-pixel pill on the rim above the text area, in the half of the band left of the up arrow: 11 px bold capitals, 0.12 em tracking (0.04 em below 792 px wide), 14 px padding and a 1 px border each side. Its room is narrowest at 480 px wide: 198 px, 168 of text. Measured in Chromium on 2026-10-02 with the badge in place, on Windows and in Linux, every ending of up to 19 characters tried (of fifteen of 18 to 20 characters) holds one line there in every face measured: Arial Bold and Liberation Sans, Segoe UI Bold, Open Sans, the library's families (`application.md` 37.1) and DejaVu Sans Bold, the widest fallback, where the widest ("Mandatory safeguard") is 195.5 px, 197.4 as a web font in Linux; and `Niet van toepassing` (19), the longest word 12.7 writes, is 178 px in Open Sans at the full tracking: **19 characters, one line** at every width above the floor. At 20, three of the seven 20-character endings tried take a second line in DejaVu Sans Bold between 480 and 491 px wide, a badge 46 px tall over the title. Like every limit of this section it counts characters, not pixels: an ending of capitals wider than any tried can still take a second line (`application.md` 10.1, 36.1; `docs/adrs/ADR-171-ending-text.md`) |
 
@@ -1141,8 +1162,8 @@ The **Where** column below says which of the two a rule belongs to.
 |---|---|---|---|
 | V-DIR | rules | a folder name that is an id (3.1), containing `tree.json`. `images/` and `theme/`, when present, are folders. | blocking |
 | V-JSON | rules | a `tree.json` that parses as one JSON object (RFC 8259) in UTF-8 without a byte-order mark, with no duplicate key in any object. A file that does not parse is reported with the parser's position and nothing else is checked: unlike the YAML stream of `elsa-tree/3`, one JSON file is one document, so a syntax error anywhere is a syntax error everywhere. **The duplicate-key half is checked by a scan of the raw text, not by the parser**, which cannot see it (3.7 gives the mechanism and the measurement); it reports the first repeated key with its position. | blocking |
-| V-SCHEMA | schema | `$schema`, as the path `/schemas/elsa-tree-5.json` or an absolute http(s) URL whose path ends the same way (3.7). **[#171]** `elsa-tree-4.json` until 2026-10-02. **[#220]** `elsa-tree-6.json` from #221. | blocking |
-| V-FORMAT | schema | `format` exactly `elsa-tree/5`. **[#171]** `elsa-tree/4` until 2026-10-02; such a file is converted (12.7), never read as `/4`. **[#220]** `elsa-tree/6` from #221; a `/5` file is converted (12.8), never read as `/5`. | blocking |
+| V-SCHEMA | schema | `$schema`, as the path `/schemas/elsa-tree-5.json` or an absolute http(s) URL whose path ends the same way (3.7). **[#171]** `elsa-tree-4.json` until 2026-10-02. **[#220]** `elsa-tree-6.json` from #221. **[#231]** `elsa-tree-7.json` from #232. | blocking |
+| V-FORMAT | schema | `format` exactly `elsa-tree/5`. **[#171]** `elsa-tree/4` until 2026-10-02; such a file is converted (12.7), never read as `/4`. **[#220]** `elsa-tree/6` from #221; a `/5` file is converted (12.8), never read as `/5`. **[#231]** `elsa-tree/7` from #232; a `/6` file is converted (12.9), never read as `/6`. | blocking |
 | V-NULL | schema | no `null` as the value of any key this format defines. An absent optional field is omitted. | blocking |
 | V-EMPTY | schema | no empty array and no empty object as the value of any key this format defines. Inside `metadata` the schema accepts both, as it accepts `null` there (V-NULL, 3.7). | blocking |
 | V-LANG | schema | `languages`: a non-empty array of valid language tags (3.3), distinct from each other. Distinctness is the schema's `uniqueItems`, not a content rule: a repeated tag is a shape failure, and one tool says it. | blocking |
@@ -1170,7 +1191,7 @@ The **Where** column below says which of the two a rule belongs to.
 |---|---|---|---|
 | V-NODE | schema, rules | a non-empty `nodes` array; every element with an `id` that is a valid id (schema) and is distinct from every other Node's (rules), and `title`, `description`, `metadata` present. | blocking for an `id` that is not an id or is another Node's; advisory for a Node without `title` or `description` yet |
 | V-KIND | schema | at most one of `answers` and `terminal` on a Node. | blocking |
-| V-ANSWERS | schema, rules | `answers` with exactly the keys `yes` and `no` (schema), each a Node reference to an existing question Node or Terminal (rules). **[#220]** From `elsa-tree/6`: `answers` an array of 2 to 4 entries, each with exactly `label` (a plain localised text) and `target` (schema); each target an existing question Node or Terminal (rules); targets may repeat. The label's languages, line and 19 characters are V-L10N, V-PLAIN and V-LENGTH on `answers[i].label.<lang>`. | blocking for a target that does not exist; advisory for one Answer missing, or a target that is not yet a question Node or Terminal. **[#220]** Blocking for a fifth entry (the schema's `maxItems`; a write that would add one is refused); advisory for a single entry (the draft schema's `minItems` 1), "fewer than two next steps"; an empty label is V-L10N's advisory |
+| V-ANSWERS | schema, rules | `answers` with exactly the keys `yes` and `no` (schema), each a Node reference to an existing question Node or Terminal (rules). **[#220]** From `elsa-tree/6`: `answers` an array of 2 to 4 entries, each with exactly `label` (a plain localised text) and `target` (schema); each target an existing question Node or Terminal (rules); targets may repeat. The label's languages, line and 19 characters are V-L10N, V-PLAIN and V-LENGTH on `answers[i].label.<lang>`. | blocking for a target that does not exist; advisory for one Answer missing, or a target that is not yet a question Node or Terminal. **[#220]** Blocking for a fifth entry (the schema's `maxItems`; a write that would add one is refused); advisory for a single entry (the draft schema's `minItems` 1), "fewer than two next steps"; an empty label is V-L10N's advisory. **[#231]** From `elsa-tree/7` 2 to 5 entries: blocking for a sixth (`maxItems` 5; a write that would add one is refused, 422), the rest as above |
 | V-OPTIONS | schema, rules | `options`, when present, a non-empty array; each entry with `title` and `target` and nothing else (schema; an `images` key on an Option fails V-KEYS); targets existing explanation Nodes, distinct within the array (rules). | blocking for a target that does not exist or is listed twice; advisory for a target that is not yet an explanation Node |
 | V-ORPHAN | rules | every explanation Node targeted by at least one Option (this is also implied by V-REACH, but gets its own message). | advisory |
 | V-TERMINAL | schema | **[#171]** `terminal` as an object whose one key is `label`, a localised text (schema); a Terminal has no `options`. The label's languages, its single line and its 19 characters are V-L10N, V-PLAIN and V-LENGTH on the key path `terminal.label.<lang>`, as for every text. Until 2026-10-02: `terminal` as an object whose `outcome` is one of `not-applicable`, `applicable`, `prohibited`, `refer`. | blocking (the shape); the label's empty languages and length are V-L10N's and V-LENGTH's advisories |
@@ -1804,6 +1825,12 @@ one, is shown in the frontend's plain default look.
   so the format is `elsa-tree/6`, `schemas/elsa-tree-6.json` stands beside the `/5` and `/4`
   files, the loader accepts `/6` alone and the store converts a `/5` file it finds (12.8). The
   next change will be `elsa-tree/7`.
+  **[#231] And on 2026-10-10 (built by #232):** `answers` holds up to five next steps (5.3). That
+  is a change of the limits, so by the rule above it is `elsa-tree/7`, not an exception: #102's cut
+  was taken by the owner, and the owner's words on #230 name the number, not the format
+  (`docs/adrs/ADR-231-elsa-tree-7.md`). `schemas/elsa-tree-7.json` stands beside the `/6`, `/5`
+  and `/4` files, the loader accepts `/7` alone and the store converts a `/6` file it finds (12.9).
+  The next change will be `elsa-tree/8`.
 - **Where an edited Tree is stored.** ~~The round after this one edits Trees through the
   frontend. Whether the edited `tree.json` is written back into the repository through
   git, or into a store of some other kind, is the owner's to define (core document open
@@ -1884,6 +1911,8 @@ Decisions carried over unchanged from `elsa-tree/1` (issue #4):
 | **[#220]** `answers` as an ordered array of two to four `{ label, target }`, `elsa-tree/6`, and 12.8 | `docs/adrs/ADR-220-elsa-tree-6.md` |
 | **[#220]** Two to four next steps a step, chosen per step | `docs/adrs/ADR-220-number-of-next-steps.md` |
 | **[#220]** The creator's words on each next step, 19 characters | `docs/adrs/ADR-220-words-on-a-next-step.md` |
+| **[#231]** Two to five next steps a step, and the notice that gives way for five | `docs/adrs/ADR-231-five-next-steps.md` |
+| **[#231]** `answers` holds up to five, `elsa-tree/7`, and 12.9 | `docs/adrs/ADR-231-elsa-tree-7.md` |
 
 ## 12. Migrations
 
@@ -1898,6 +1927,10 @@ repository is in that state.
 `elsa-tree/5`, the ending's words in place of its outcome. It runs over the repository once
 (#179) and in every deployment, by the store, whenever it opens a `/4` file (12.7.4). A Tree
 in `elsa-tree/3` is converted by 12.6 and then by 12.7.
+
+**[#231] And 12.9, since 2026-10-10, runs after 12.7 and 12.8**: `elsa-tree/6` to `elsa-tree/7`,
+up to five next steps. It runs over the repository once (#232) and in every deployment, by the
+store, whenever it opens a `/6` file (12.9.4); a `/4` file takes 12.7, 12.8 and 12.9 in that order.
 
 **12.1 to 12.4: from `elsa-tree/1` to `elsa-tree/2`.**
 A Tree folder written against `elsa-tree/1` -- `tree.yaml` plus `nodes/<id>.yaml` files
@@ -2438,3 +2471,66 @@ under `trees/` whose `format` is `elsa-tree/5` -- after 12.7.4, so a `/4` file t
 when it passes in full, each replaced atomically; `meta.json` is not touched; a file that would
 not pass is left, and its Tree is refused or uneditable with the violations. `importTree`
 converts a `/5` folder's `tree.json` in its staging copy, never in the source folder.
+
+### 12.9 From `elsa-tree/6` to `elsa-tree/7`
+
+**[#231], new -- 2026-10-10.** `elsa-tree/7` widens one limit, `answers` from two to four entries to
+two to five (5.3); no key, kind or value of a `/6` file changes meaning, so the conversion renames
+the format and nothing else. `docs/adrs/ADR-231-elsa-tree-7.md` has the reasoning; issue #232 builds
+it in the module that writes the byte form (`src/tree/`), beside 12.7 and 12.8, so that the migration
+command and the store run one function.
+
+#### 12.9.1 The procedure
+
+Input: one `tree.json`, or a store's `draft.json`, as bytes. Output: the same file converted, or a
+report and no write.
+
+1. **Read the bytes with the loader's own reader** (3.7, V-JSON), as 12.8.1 step 1.
+2. **Only an `elsa-tree/6` file is converted.** Any other `format` -- `elsa-tree/7` included -- does
+   nothing and reports what it found. A `/5` file is converted by 12.8 first, and a `/4` file by 12.7
+   and 12.8 first: the store and `npm run migrate` run the three in that order.
+3. **`format`** becomes `elsa-tree/7`.
+4. **`$schema`**: `/schemas/elsa-tree-6.json`, or an http(s) URL whose path ends so, gets
+   `elsa-tree-7.json` in its place and no other change. Any other value is left, to fail V-SCHEMA.
+5. **Nothing else changes.** Every other key and value, every `answers` included, and the order of
+   `nodes`, is carried across as it is.
+6. **Write** the result in the byte form of 3.7.
+7. **Validate** the result against `schemas/elsa-tree-7.json` and the rules of section 7, and
+   **report every violation**. Shorten nothing, drop nothing, silence nothing.
+
+`scripts/migrate-tree.ts` runs it (`npm run migrate <tree-folder>`) after 12.8; a third party
+converts its own `/6` Tree the same way.
+
+#### 12.9.2 What the procedure guarantees, and what it does not
+
+**Guaranteed.** Every Node, id, Node reference, text, label and file name is what it was, so every
+URL, every shared link, every picture and every button keeps working and says what it said. A valid
+`elsa-tree/6` Tree converts to a valid `elsa-tree/7` Tree, since two to four entries are two to five.
+
+**Not guaranteed, on purpose.** A `/6` file that was not in the byte form of 3.7 is written in it. A
+`/6` file with five entries somewhere, which `/6` refused, converts and then validates: the procedure
+does not look at `answers`.
+
+#### 12.9.3 What it does for the Trees and fixtures on `dev`
+
+Every file under `trees/` and `tests/fixtures/` that names `elsa-tree/6` -- the two Trees, the valid
+fixtures, and the broken and invalid ones that 12.8.3 converted or re-fitted -- gets `elsa-tree/7`
+and the `/7` `$schema`, and nothing else; a broken or invalid fixture keeps failing the rule it was
+built for (`tests/loader.test.ts`), and `invalid/v-format` keeps its wrong `format` and gains the
+`/7` `$schema`, as 12.8.3 re-fitted it. #232 counts the files before and after on its own `dev` and
+records the result here, as #221 recorded 12.8.3's. The example Tree's description names the format,
+so its sentence says `elsa-tree/7`, changed by hand as at #179 and #221; `tests/migrate-tree.test.ts`
+holds section 8's block byte-identical to `trees/ai-act-example/tree.json`, so #232 puts the
+converted example in both in one commit. No Tree on `dev` is given a fifth next step: that is the
+owner's content.
+
+#### 12.9.4 What it does for a deployment's data directory
+
+`openStore` (`docs/specs/application.md` 17.5) runs 12.9.1 on every `tree.json` and `draft.json`
+under `trees/` whose `format` is `elsa-tree/6` -- after 12.7.4 and 12.8.4, so a `/4` or `/5` file
+takes each in turn -- **before it opens any Tree**, and logs one line per file it converted:
+`Converted Tree "<id>" <file> from elsa-tree/6 to elsa-tree/7`. The write rules are 12.7.4's: a
+converted `draft.json` is written when it passes the draft schema and every blocking rule, a
+`tree.json` when it passes in full, each replaced atomically; `meta.json` is not touched; a file that
+would not pass is left, and its Tree is refused or uneditable with the violations. `importTree`
+converts a `/6` folder's `tree.json` in its staging copy, never in the source folder.

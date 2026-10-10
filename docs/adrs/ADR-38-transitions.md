@@ -10,6 +10,9 @@
   straight up after the middle one of three -- and straight up after any other step
   (`docs/specs/application.md` 11.2, 41.5). The translation is still exactly the offset to where
   the target is drawn; decisions 1 and 3 to 7 stand.
+- **[#231] Amended (2026-10-10)** by `ADR-231-slide-toward-the-button.md`: a next step stands where
+  its button stands in the row the width gives, so a slide goes toward its button at every width,
+  and the way back retraces it at the width it is taken (`docs/specs/application.md` 42.5).
 - Issue: #38 -- Architecture: freeze the version 0.2 application contracts
 - Spec: `docs/specs/application.md`, sections 11.1, 11.3, 11.4
 - Core document: 3.2 ("I want the transitions to slide over the tree to the next node")
