@@ -96,6 +96,7 @@ export default async function EditorPage({ params }: Props) {
       loginWords={loginWords(address.lang)}
       adminHref={adminHref('/admin', uiLang)}
       nodes={nodes}
+      revision={entry.meta.revision}
       violations={draft.advisory.filter((violation) => violation.file in nodes)}
       tree={{ advisory: entry.advisory.length, published: entry.published, publicCopyCurrent: entry.publicCopyCurrent, servable: entry.servable }}
     >
