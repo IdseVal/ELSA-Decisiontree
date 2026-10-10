@@ -11,8 +11,8 @@
 - Amends: `ADR-38-no-scroll.md` as amended by 10.22 (another exception beside the floor, keyed to a
   count); `ADR-220-answer-row.md` decision 6 (its notice holds for three and four; five have their
   own); `ADR-230-tree-creation-round.md` decision 5 (the reading of "up to 5")
-- Built by: #232 (the format, the pages, both notices), #233 (the editor's `+`, which makes a step of
-  four a row of five)
+- Built by: #232 (the format, the pages, the notice of the public page and the preview), #233 (the
+  editor's `+`, which makes a step of four a row of five, and the editor's notice)
 
 ## Context
 
@@ -96,8 +96,9 @@ both languages:
 ## Consequences
 
 - #232 builds 42.1 (the format through `ADR-231-elsa-tree-7.md`, the schema, the validator, the
-  store's 422 on a sixth) and both notices of 42.4, with `no-scroll.spec.ts` and
-  `admin-no-scroll.spec.ts` one pixel either side of each width and height (42.10).
+  store's 422 on a sixth) and the notice of the public page and the preview, with `no-scroll.spec.ts`
+  one pixel either side of each width and height (42.10); #233 builds the editor's, with
+  `admin-no-scroll.spec.ts` the same way.
 - A step of four next steps in the editor shows its `+` (`ADR-231-one-plus.md`), so it is a row of
   five buttons and shows the editor's notice for five; it showed 41.7 item 8's below 600 x 590.
   At 360 x 640 the editor of such a step shows the notice where #222's row was drawn.

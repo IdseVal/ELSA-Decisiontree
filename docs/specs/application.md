@@ -7243,9 +7243,10 @@ does. The decisions are `docs/adrs/ADR-231-five-next-steps.md`, `ADR-231-elsa-tr
 `ADR-231-answer-row.md`, `ADR-231-slide-toward-the-button.md`, `ADR-231-one-plus.md`,
 `ADR-231-slide-in-the-editor.md` and `ADR-231-other-readers.md`; the room is measured in
 `docs/research/issue-231-five-next-steps.md`. **#232** builds 42.1 to 42.6 -- the format and its
-migration, the row and its notices on every page, the slide on the public page and in the preview,
+migration, the row on every page, the notice of the public page and the preview, the slide there,
 every other reader -- and keeps the editor working on the new format; **#233** builds 42.7, the
-editor's one `+` and its Sheet; **#234** builds 42.8, the slide in the editor.
+editor's one `+` and its Sheet, and the editor's notice of 42.4; **#234** builds 42.8, the slide in
+the editor.
 
 ### 42.1 How many
 
@@ -7384,7 +7385,7 @@ number (core document 3.4 `[#230]`'s reading, confirmed; the table is
 | The dataset endpoint (15) | The file as it is; its `Link: rel="describedby"` header names `elsa-tree-7.json` (15.2). |
 | The preview of a hidden Tree (40) | The public row, notice and slide of 42.3 to 42.5, within 41 Nodes; a draft's lone next step is a row of one, centred (40.7). |
 | Chrome (3.2) | `yes` and `no` go with #233, whose `+ Yes` and `+ No` were their last readers (42.7). |
-| The editor (30, 41.7) | #232 keeps it working on `/7`: its row of 41.7 as it stands, the `+` while fewer than four, and the editor's notice for five buttons of 42.4, since a draft may hold five through the store's writes. #233 builds 42.7. |
+| The editor (30, 41.7) | #232 keeps it working on `/7`: its row of 41.7 as it stands, the `+` while fewer than four, and a draft step of five -- which the store's writes allow -- standing as 42.3 stands it. #233 builds 42.7 and the editor's notice of 42.4. |
 | `transition.spec.ts`, `no-scroll.spec.ts`, `neighbourhood.test.ts` | 42.10. |
 
 ### 42.7 The editor's one `+`
@@ -7483,8 +7484,7 @@ and in the preview, and 41.7 item 8's for three or four buttons in the editor.
   steps, labelled at 19 characters in both languages; `no-scroll.spec.ts` on it at the ten viewports
   of 10.6, at 999 and 1000 x 640, and one pixel either side of each width and height of 42.4's public
   boxes (699 and 700 x 589 and 590, 359 and 360 x 649 and 650), both languages, with the notice where
-  42.4 puts it; `admin-no-scroll.spec.ts` on the editor's row of five at one pixel either side of
-  42.4's editor boxes (769 and 770 x 689 and 690, 389 and 390 x 1079 and 1080); `transition.spec.ts`
+  42.4 puts it; `transition.spec.ts`
   asserting, for each button of two, three, four and five at 1280 x 640, 999 x 640 and a width below
   600, that its slide goes to the side where it stands, as `docs/research/issue-230-slide-direction.md`
   measured it, and that the up arrow retraces each; `neighbourhood.test.ts` on `across` for *k* of 1
@@ -7494,7 +7494,9 @@ and in the preview, and 41.7 item 8's for three or four buttons in the editor.
   giving a fresh step one to five next steps through it, each worded, and ending a fresh step through
   the switch; the refusal of a step with Options shown in the Sheet with the switch and the words kept;
   no `+ Yes`, `+ No` or row `treeEndsHere` anywhere; `admin-no-scroll.spec.ts` with a row of five both
-  ways (five next steps, four and `+`), both languages; screenshots as #233 asks.
+  ways (five next steps, four and `+`), both languages, at the ten viewports of 10.6 and one pixel
+  either side of each width and height of 42.4's editor boxes (769 and 770 x 689 and 690, 389 and 390
+  x 1079 and 1080), the notice where 42.4 puts it; screenshots as #233 asks.
 - **#234**: in the editor, each next step's button of two, three, four and five (with the `+`) slides
   toward where it stands at 1280 x 640 and at a width below 1000, and the up arrow retraces it; the
   browser's back as 42.8 has it, the page showing the draft's latest accepted write after it; a title
