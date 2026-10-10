@@ -7282,7 +7282,8 @@ its next steps and its `+` (42.7). They stand by *k* and the width alone:
   width -- an equal share of the row in one row, at most 620; below 1000 a half of the row less half
   its gap for *k* of 3 and 4, and **a third of the row less its gaps for *k* of 5** -- the same
   height, and equally far apart: 20 in one row (8 below 480 pixels wide), 8 between two rows. In two
-  rows the first holds ⌈*k* / 2⌉ buttons and the second ⌊*k* / 2⌋, and a row that holds fewer than
+  rows the first holds half of *k* rounded up -- two of three, two of four, three of five -- and the
+  second the rest, and a row that holds fewer than
   the first is centred, each of its buttons as wide as each above. Every button is otherwise 41.3's:
   the same fill, letters and type, none set apart by colour, size or place (core document 3.2).
 - **Order**: the file's, left to right and row by row; the DOM order and the Tab order. In the

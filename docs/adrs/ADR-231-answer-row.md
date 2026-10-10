@@ -31,7 +31,7 @@ button steering the reader (core document 3.2).
    holds for every number from one to five and at every width, in one row and in two.
 2. **The arrangement is keyed to the number of buttons *k* and the width alone**: from 1000 pixels
    wide, one row; below 1000, one row for *k* of 1 and 2, and for *k* of 3 to 5 two rows, the first
-   holding ⌈*k* / 2⌉ and the second ⌊*k* / 2⌋ -- **five stand three then two**. A row holding fewer
+   holding half of *k* rounded up and the second the rest -- **five stand three then two**. A row holding fewer
    buttons than the first is centred, and each of its buttons is as wide as each above: a third of
    the row less its gaps for five, half the row less half its gap for three and four.
 3. **Three and four stand as they do**, so 41.3, 41.4 and the measurements of #221 and #222 hold for
