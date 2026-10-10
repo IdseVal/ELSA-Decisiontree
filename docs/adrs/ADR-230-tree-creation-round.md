@@ -119,8 +119,9 @@ What stands on `dev` (`b9e7c03`), where the instruction lands:
    `ADR-202-navigation-round.md` decision 4 did on #202's "set them to ready", and not on a
    reading of them (`ADR-219-number-of-next-steps-round.md` decision 4). The timeline of #230
    shows the owner's account, `IdseVal`, applying `ready` to #230 at 07:36:04Z on 2026-10-10;
-   that label released this filing run. `DeKnecht`, which files the four and applies their
-   label, is a trusted promoter in `.orca/dispatch.yml`, so the dispatcher keeps it, and the
+   that label released this filing run. The four issues' timelines show `DeKnecht`, the account
+   that filed them, applying `ready` to each at its creation, 07:56:39Z to 07:56:45Z on
+   2026-10-10. `DeKnecht` is a trusted promoter in `.orca/dispatch.yml`, so the dispatcher keeps the label, and the
    `Depends on:` lines hold #231 until this pull request merges and closes #230. None is
    labelled `complex`, as no architecture issue of the rounds of #169, #194, #202 and #219 was
    (#171, #195, #205, #220); the owner may add it to #231.
