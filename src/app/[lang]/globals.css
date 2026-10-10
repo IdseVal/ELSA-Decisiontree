@@ -4043,6 +4043,27 @@ fieldset:disabled .admin-submit {
   right: 6px;
 }
 
+/*
+ * **[#222]** In the editor a row of three or four buttons needs more height below 600 pixels wide
+ * than the public row of 41.4: its next steps' words stand between the move arrows, and at 321 wide
+ * a 19-character label takes a line more. The highest need measured there is 584, so below 590 the
+ * notice stands in for the tree view and names that height (41.7 item 8,
+ * `docs/research/issue-222-editor-notice-height.md`).
+ */
+@media (max-width: 599px) and (max-height: 589px) {
+  .tree-layer:has(~ .minimum-size--editor-steps) {
+    display: none;
+  }
+
+  .minimum-size--editor-steps {
+    display: block;
+  }
+
+  .minimum-size--editor-steps .minimum-height {
+    display: inline;
+  }
+}
+
 .answer-move svg {
   fill: none;
   stroke: currentColor;

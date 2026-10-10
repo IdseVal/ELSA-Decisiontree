@@ -836,18 +836,21 @@ test('**[#212]** at and below the floor the notice\'s text lines stand clear of 
 /**
  * **[#222]** The windows where the editor's notice of 41.7 item 8 turns on and off: one pixel either
  * side of 41.4's width (600) in a window 481 tall, and of the height the editor's need gives it
- * (560: below 600 wide the highest is 536, `docs/research/issue-222-editor-notice-height.md`).
+ * (590: below 600 wide the highest is 584, `docs/research/issue-222-editor-notice-height.md`), at
+ * 599 and at 321 wide, where that need was measured.
  */
 const EDITOR_STEPS_VIEWPORTS = [
   [599, 481],
   [600, 481],
-  [599, 559],
-  [599, 560],
+  [599, 589],
+  [599, 590],
+  [321, 589],
+  [321, 590],
 ] as const
 
 /** **[#222]** 41.4's width, and the editor's notice height measured for 41.7 item 8. */
 const STEPS_WIDTH = 600
-const EDITOR_STEPS_HEIGHT = 560
+const EDITOR_STEPS_HEIGHT = 590
 
 /**
  * **[#222]** 10.6's assertions where dev's disclaimer takes a second line in its row, 599 and 600

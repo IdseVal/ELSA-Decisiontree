@@ -56,11 +56,14 @@ const ANSWER_LABEL = { characters: 19 }
 
 /**
  * The heights the notice names (10.4, **[#221]** 41.4): the floor's 480, and the floor of a step
- * of three or four next steps below 600 pixels wide. The stylesheet's media queries hold the
- * same numbers, which is where they take effect.
+ * of three or four next steps below 600 pixels wide -- **[#222]** in the editor, of a row of three
+ * or four buttons, whose next steps carry their move arrows (41.7 item 8, measured in
+ * `docs/research/issue-222-editor-notice-height.md`). The stylesheet's media queries hold the same
+ * numbers, which is where they take effect.
  */
 const FLOOR_HEIGHT = 480
 const STEPS_FLOOR_HEIGHT = 560
+const EDITOR_STEPS_FLOOR_HEIGHT = 590
 
 /** What every part of the view needs: the page's address, its chrome, and the title index. */
 interface View {
@@ -121,6 +124,7 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
   })
   const view = viewAt(centre.address, '', true)
   const many = buttonsOf(centre.node, edit) > 2
+  const [floorClass, floorHeight] = !many ? ['minimum-size', FLOOR_HEIGHT] : edit ? ['minimum-size minimum-size--editor-steps', EDITOR_STEPS_FLOOR_HEIGHT] : ['minimum-size minimum-size--steps', STEPS_FLOOR_HEIGHT]
   // The page's own URL, aside chain included: what a slide arrives at, and what a history step leaves.
   const here = links.node(address)
 
@@ -143,9 +147,9 @@ export function TreeView<N extends AnyNode>({ page, tree, edit }: { page: NodePa
           told to grow taller and not that it needs 320 by 480. **[#221]** A step of three or
           four next steps has the higher floor of 41.4 below its width, and names its height;
           **[#222]** in the editor, a row of three or four buttons, its own counted (41.7 item 8). */}
-      <p className={many ? 'minimum-size minimum-size--steps' : 'minimum-size'} lang={view.uiLang}>
+      <p className={floorClass} lang={view.uiLang}>
         {view.ui.minimumSize} <span className="minimum-width">{view.ui.minimumWidth}</span>{' '}
-        <span className="minimum-height">{view.ui.minimumHeight(many ? STEPS_FLOOR_HEIGHT : FLOOR_HEIGHT)}</span>
+        <span className="minimum-height">{view.ui.minimumHeight(floorHeight)}</span>
       </p>
     </>
   )
