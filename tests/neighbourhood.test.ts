@@ -4,6 +4,8 @@
  * twice, a Link to an unknown id dropped rather than thrown; the Option targets as asides,
  * at most eight; the Trail supplies `up`, the Answers `down`; an empty Trail has no `up`;
  * and a page reads at most seventeen Nodes in all -- **[#221]** thirty-one, **[#232]** forty-one (42.5).
+ * **[#234]** And the editor's frames, `editorNeighbours` by the editor's row with its `+` counted,
+ * within the editor page's eighteen Nodes (42.8).
  *
  * Every Tree comes through `openTree` and every address through `parseUrl` (section 7).
  */
@@ -12,7 +14,8 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
-import { across, centreOf, draftCentre, loadPage, MAX_ASIDES, MAX_PLACED, neighbourhood, ROWS_QUERY, type Placed } from '../src/neighbourhood.ts'
+import { editorPage } from '../src/admin/editor-page.ts'
+import { across, centreOf, draftCentre, editorNeighbours, editorRow, loadPage, MAX_ASIDES, MAX_EDITOR_PLACED, MAX_PLACED, neighbourhood, ROWS_QUERY, type Placed } from '../src/neighbourhood.ts'
 import { openTree, type Draft, type Tree } from '../src/tree/loader.ts'
 import type { DraftNode, Node } from '../src/tree/types.ts'
 import { followHref, nodeHref, parseUrl, trailHref, type PageAddress } from '../src/url.ts'
@@ -507,5 +510,95 @@ describe('**[#221]** the places of two to four next steps, **[#232]** and five, 
     expect(counted.reads()).toBe(41)
     expect(summary(page.neighbours.placed).slice(0, 2)).toEqual(['up 0.5,-1 top', 'down -2/-1,1 one-0'])
     expect(summary(page.neighbours.placed).slice(-1)).toEqual(['down 12,2 two-4-4'])
+  })
+})
+
+describe("**[#234]** the editor's frames: the parent and the next steps, by the editor's row (42.8)", () => {
+  const label = { en: 'A step', nl: 'Een stap' }
+
+  test("editorRow: a step's next steps and the `+` after them while fewer than five (42.7 item 1)", () => {
+    expect([0, 1, 2, 3, 4, 5].map(editorRow)).toEqual([1, 2, 3, 4, 5, 5])
+    expect(MAX_EDITOR_PLACED).toBe(6)
+  })
+
+  test("each next step stands where its button stands in the editor's row, the `+` counted: two, three, four and five", async () => {
+    const two = await at(example, '/ai-act-example/start/prohibited-practices')
+    expect(summary(await editorNeighbours(example, two.address, two.node))).toEqual([
+      // The first of start's two, in a row of three with its `+`: one place left of the middle.
+      'up 1/0.5,-1 start',
+      'down -1/-0.5,1 prohibited',
+      'down 0/0.5,1 covered',
+    ])
+    const threeTree = await openTree(path.join(here, 'fixtures', 'three-next-steps'))
+    const three = await at(threeTree, '/three-next-steps/full')
+    expect(summary(await editorNeighbours(threeTree, three.address, three.node))).toEqual([
+      'down -1.5/-0.5,1 applies',
+      'down -0.5/0.5,1 does-not-apply',
+      'down 0.5/-0.5,1 deployer-only',
+    ])
+    const four = await at(fullNode, '/full-node/full')
+    expect(summary(await editorNeighbours(fullNode, four.address, four.node))).toEqual([
+      'down -2/-1,1 applies',
+      'down -1/0,1 does-not-apply',
+      'down 0/1,1 deployer-only',
+      'down 1/-0.5,1 not-applicable',
+    ])
+    // Five have no `+`: the public row's places.
+    const fiveTree = await openTree(path.join(here, 'fixtures', 'five-next-steps'))
+    const five = await at(fiveTree, '/five-next-steps/full')
+    expect(summary(await editorNeighbours(fiveTree, five.address, five.node))).toEqual(summary((await neighbourhood(fiveTree, five.address, five.node)).placed).slice(0, 5))
+  })
+
+  test("a lone next step stands left of the middle, beside the `+`; nothing is placed two levels down, and a step without next steps places only its parent", async () => {
+    const draft = await fullNodeDraft((nodes) => {
+      nodes.full!.answers = [{ label, target: 'applies' }]
+    })
+    const node = (await draft.getNode('full'))!
+    expect(summary(await editorNeighbours(draft, parseUrl('/full-node/full', 'en', draft)!, node))).toEqual(['down -0.5,1 applies'])
+    const end = (await draft.getNode('applies'))!
+    expect(summary(await editorNeighbours(draft, parseUrl('/full-node/full/applies', 'en', draft)!, end))).toEqual(['up 0.5,-1 full'])
+  })
+
+  test("the parent stands at the negated place of the centre's button in the parent's editor row (42.8)", async () => {
+    for (const [target, x] of [['applies', '2/1'], ['does-not-apply', '1/0'], ['deployer-only', '0/-1'], ['not-applicable', '-1/0.5']] as const) {
+      const { address, node } = await at(fullNode, `/full-node/full/${target}`)
+      expect(summary(await editorNeighbours(fullNode, address, node)), target).toEqual([`up ${x},-1 full`])
+    }
+  })
+
+  test('the editor page reads at most eighteen Nodes: a step of five under a parent, with eight asides and an Overlay the URL names', async () => {
+    const draft = await fullNodeDraft((nodes) => {
+      const first = Array.from({ length: 5 }, (_, i) => {
+        const id = `one-${i}`
+        nodes[id] = { ...structuredClone(nodes.applies!), id, title: { en: '', nl: '' } }
+        return id
+      })
+      nodes.full!.answers = first.map((target) => ({ label, target }))
+      nodes.top = { ...structuredClone(nodes['opt-one']!), id: 'top', answers: [{ label, target: 'full' }, { label, target: 'applies' }] }
+      delete nodes.top!.options
+      nodes.lone = { ...structuredClone(nodes['opt-two']!), id: 'lone' }
+      nodes['opt-one']!.options = [{ title: label, target: 'lone' }]
+    })
+    const counted = counting(draft as unknown as Tree)
+    const page = (await editorPage(counted.tree as unknown as Draft, parseUrl('/full-node/top/full/opt-one/lone', 'en', draft)!))!
+
+    expect(page.centre.node.id).toBe('full')
+    expect(page.centre.chain.map((aside) => aside.node.id)).toEqual(['opt-one', 'lone'])
+    expect(page.neighbours.asides).toHaveLength(MAX_ASIDES)
+    expect(summary(page.neighbours.placed)).toEqual([
+      'up 1/0.5,-1 top',
+      'down -2/-1,1 one-0',
+      'down -1/0,1 one-1',
+      'down 0/1,1 one-2',
+      'down 1/-0.5,1 one-3',
+      'down 2/0.5,1 one-4',
+    ])
+    expect(counted.reads()).toBeLessThanOrEqual(18)
+    // Every address is the editor's, so a button finds the placement it slides to (11.3).
+    expect(page.neighbours.placed.map((p) => p.href)).toEqual(page.neighbours.placed.map((p) => `/admin/trees${nodeHref(p.address)}`))
+    expect(page.neighbours.asides.every((a) => a.href.startsWith('/admin/trees/'))).toBe(true)
+    // A frame is the preview's drawing: the placeholder where the draft has no text yet (40.7); the centre is the draft's.
+    expect(page.neighbours.placed[1]!.node.title.en).toMatch(/^\[.+\]$/)
+    expect(page.centre.node).toEqual(await draft.getNode('full'))
   })
 })
