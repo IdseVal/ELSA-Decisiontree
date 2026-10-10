@@ -38,7 +38,7 @@
  * the public page, the preview -- nothing of this applies.
  */
 import { useRouter } from 'next/navigation'
-import { useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { useContext, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { ROWS_QUERY, type Across } from '../neighbourhood.ts'
 import { SlideGate } from './slide-gate.ts'
 
@@ -63,8 +63,21 @@ const EASING = 'cubic-bezier(0.2, 0.7, 0.2, 1)'
 let started: { from: string; to: string; x: number; y: number; at: number } | null = null
 /** The page shown last in this document, so a history step can slide back from it. */
 let shownLast: string | null = null
-/** **[#234]** Set by a history step (back, forward) until the page it reaches mounts. */
+/**
+ * **[#234]** Set by a history step (back, forward) until the page it reaches mounts. Listened for
+ * from this module's first evaluation, before the framework's own listener exists, and capturing:
+ * the framework renders the page a history step reaches inside its listener, synchronously.
+ */
 let popped = false
+if (typeof window !== 'undefined') {
+  window.addEventListener(
+    'popstate',
+    () => {
+      popped = true
+    },
+    { capture: true },
+  )
+}
 
 /** A slide in progress: the one frame it shows besides the centre, and where. */
 interface Slide {
@@ -88,15 +101,6 @@ export function Slider({ href, neighbours, children }: { href: string; neighbour
   const waiting = useRef(false)
   /** **[#234]** Read the draft again once the arriving slide has ended (42.8). */
   const refreshAfter = useRef(false)
-
-  // **[#234]** The page left by a history step is still mounted when the browser announces it.
-  useEffect(() => {
-    const step = (): void => {
-      popped = true
-    }
-    window.addEventListener('popstate', step)
-    return () => window.removeEventListener('popstate', step)
-  }, [])
 
   // Arrival: take over a slide a click started towards this page, or slide in from the
   // page shown before when a history step came from a neighbour.
