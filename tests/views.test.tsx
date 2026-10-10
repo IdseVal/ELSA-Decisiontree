@@ -847,6 +847,8 @@ describe('the reuse rule (application.md 34.8, ADR-133-reuse-rule decision 8)', 
     '/ai-act-example/social-scoring',
     '/full-node/full/full/full/full/full/full/full',
     '/full-node/full/opt-one/opt-two',
+    // **[#232]** A step of five: the preview draws the public row and notice (42.6).
+    '/five-next-steps/full/full',
     '/carousel/five',
     '/overlay/five/big',
     '/single-language/start',
