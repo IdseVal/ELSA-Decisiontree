@@ -22,7 +22,7 @@
  *
  * Imports of `src/`: types and **[#179]** `tree/measure.ts`, for the ending's counter (34.4).
  */
-import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent, type RefObject } from 'react'
 import { countedLength } from '../tree/measure.ts'
 import { useEditor } from './Editor.tsx'
 import { heldToLimit } from './Field.tsx'
@@ -253,23 +253,26 @@ export function WordsForm({ nodeId, lang, link, here = '', heading, words }: { n
  * **[#222]** `moveEarlier` and `moveLater` on the outline of the next step at `index` of `count`
  * (41.7 item 4): 24-pixel round controls, the first absent on the first button and the second on
  * the last, each sending `move-answer { index, to }` at once; the page repaints the row in its new
- * order. They stand inside the button's link: a button is the target of a click on it, so the link
- * is not followed.
+ * order. They stand inside the button's link, whose click Chromium follows from a button inside it
+ * too: each click is kept from it, as a field's is (`Field`).
  */
 export function AnswerMoves({ nodeId, index, count, words }: { nodeId: string; index: number; count: number; words: { moveEarlier: string; moveLater: string } }) {
   const api = useEditor()
-  const move = (to: number): void => api.operate(nodeId, { op: 'move-answer', index, to })
+  const move = (event: MouseEvent, to: number): void => {
+    event.preventDefault()
+    api.operate(nodeId, { op: 'move-answer', index, to })
+  }
   return (
     <>
       {index > 0 && (
-        <button type="button" className="answer-move answer-move--earlier" aria-label={words.moveEarlier} title={words.moveEarlier} disabled={api.readOnly} onClick={() => move(index - 1)}>
+        <button type="button" className="answer-move answer-move--earlier" aria-label={words.moveEarlier} title={words.moveEarlier} disabled={api.readOnly} onClick={(event) => move(event, index - 1)}>
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
             <path d="M15 5 8 12l7 7" />
           </svg>
         </button>
       )}
       {index < count - 1 && (
-        <button type="button" className="answer-move answer-move--later" aria-label={words.moveLater} title={words.moveLater} disabled={api.readOnly} onClick={() => move(index + 1)}>
+        <button type="button" className="answer-move answer-move--later" aria-label={words.moveLater} title={words.moveLater} disabled={api.readOnly} onClick={(event) => move(event, index + 1)}>
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
             <path d="m9 5 7 7-7 7" />
           </svg>
