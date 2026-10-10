@@ -19,8 +19,6 @@ export type ChromeString = { [K in keyof Chrome]: Chrome[K] extends string ? K :
 
 /** Every string the interface says. Tree content never comes from here. */
 export interface Chrome {
-  yes: string
-  no: string
   options: string
   sources: string
   sourceCaseLaw: string
@@ -233,7 +231,7 @@ export interface Chrome {
   deleteTree: string
   unpublishFirst: string
   confirmDeleteTree: string
-  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): the end button and the side-bubble `+`. */
+  /** **[#139]** The structure buttons (30.1, 30.3, 30.4): **[#233]** the `+` Sheet's switch that ends a step (42.7 item 2) and the side-bubble `+`. */
   treeEndsHere: string
   newSideBubble: string
   /**
@@ -367,8 +365,8 @@ export interface Chrome {
   licenceOtherHint: string
   fontFileHint: string
   /**
-   * **[#179]** What the ending's words are called (36.3): the label of the `treeEndsHere` Sheet's
-   * one field, and the placeholder of an ending without words in the page's language. At most
+   * **[#179]** What the ending's words are called (36.3): the label of **[#233]** the `+` Sheet's
+   * one field with its switch `treeEndsHere` on (42.7 item 2), and the placeholder of an ending without words in the page's language. At most
    * 19 characters in each language, so the placeholder fits the badge as the words do.
    */
   endingText: string
@@ -394,8 +392,6 @@ function listed(names: string[], and: string): string {
 
 const CHROME: Record<ChromeLanguage, Chrome> = {
   en: {
-    yes: 'Yes',
-    no: 'No',
     options: 'What this covers',
     sources: 'Sources',
     sourceCaseLaw: 'Case law',
@@ -635,8 +631,6 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     nameShownPublicly: 'Shown on the public pages of the trees you create or collaborate on.',
   },
   nl: {
-    yes: 'Ja',
-    no: 'Nee',
     options: 'Wat hieronder valt',
     sources: 'Bronnen',
     sourceCaseLaw: 'Rechtspraak',

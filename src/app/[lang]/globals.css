@@ -3722,43 +3722,18 @@ fieldset:disabled .admin-submit {
 /* --- the structure (30): the row's buttons, the side-bubble +, the step's buttons ------- */
 
 /*
- * The buttons of 30.1 that create: the Answer button's shape, outlined in `accent-secondary`
- * on `surface` instead of filled, so a button that creates is told from one that leads.
- * **[#222]** Counted as buttons of the row (41.7 item 8): each the Answer button's 620 at most
- * and an equal share of the row with the next steps beside it, two a row below 1000 pixels where
- * the row holds three or four (41.3) -- the empty step's four, or `+` beside two or three.
+ * The button of 30.1 that creates, **[#233]** the row's one `+` (42.7 item 1): the Answer button's
+ * shape, outlined in `accent-secondary` on `surface` instead of filled, so a button that creates is
+ * told from one that leads. **[#222]** Counted as a button of the row (41.7 item 8): the Answer
+ * button's 620 at most and an equal share of the row with the next steps beside it (42.3).
  */
-.structure,
-.structure-end,
 .structure-add {
   width: 620px;
   max-width: 100%;
 }
 
-.structure {
-  min-height: 60px;
-  padding: 6px 20px;
-  border: 2px solid var(--elsa-accent-secondary);
-  border-radius: 999px;
-  background: var(--elsa-surface);
-  color: var(--accent-secondary-read);
-  font-family: var(--elsa-font-heading);
-  font-size: 19px;
-  line-height: 24px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: box-shadow 160ms var(--ease);
-}
-
-.structure:hover,
-.structure-end > .sheet-open:hover,
 .structure-add > .sheet-open:hover {
   box-shadow: 0 0 0 2px var(--elsa-background), 0 0 0 4px var(--elsa-accent-secondary);
-}
-
-.structure:disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 
 /*
@@ -3992,11 +3967,7 @@ fieldset:disabled .admin-submit {
   cursor: default;
 }
 
-/*
- * The `treeEndsHere` Sheet's control, between `+ Yes` and `+ No`, and **[#222]** the `+` Sheet's,
- * last in the row (41.7 items 1 and 2).
- */
-.structure-end > .sheet-open,
+/* **[#222]** The `+` Sheet's control, last in the row (41.7 item 2; **[#233]** 42.7 item 1). */
 .structure-add > .sheet-open {
   display: flex;
   align-items: center;
@@ -4016,18 +3987,26 @@ fieldset:disabled .admin-submit {
   transition: box-shadow 160ms var(--ease);
 }
 
-/* A Node without Links offers **[#222]** the four buttons, not the public `startAgain` (30.1). */
-.answers:has(> .structure-end) > .answer--start-again {
+/* A Node without Links offers **[#233]** the `+`, not the public `startAgain` (30.1, 42.7 item 1). */
+.answers:has(> .structure-add) > .answer--start-again {
   display: none;
 }
 
 /*
- * **[#222]** A row that holds the editor's buttons holds three or four, counted with the next
- * steps (41.7 item 8), and each is an equal share of it, at most 620 (41.3): one row from 1000
- * pixels wide, two a row below. Set as a share, not left to shrink from 620: a flex item shrinks
- * by its content box, so a Sheet with no padding of its own and a padded button would part
- * unequally. **[#232]** Five, three a row below 1000 (42.3): what #233's `+` after four stands in.
+ * **[#222]** A row that holds the editor's `+` counts it with the next steps (41.7 item 8), and each
+ * is an equal share of it, at most 620 (41.3): one row from 1000 pixels wide, two a row below for
+ * three and four. Set as a share, not left to shrink from 620: a flex item shrinks by its content
+ * box, so a Sheet with no padding of its own and a padded button would part unequally. **[#232]**
+ * Five, three a row below 1000 (42.3); **[#233]** and the `+` alone, or beside one next step (42.7).
  */
+.answers--1 {
+  --row-buttons: 1;
+}
+
+.answers--2 {
+  --row-buttons: 2;
+}
+
 .answers--3 {
   --row-buttons: 3;
 }
@@ -4051,7 +4030,7 @@ fieldset:disabled .admin-submit {
   }
 }
 
-.answers:has(> :is(.structure, .structure-end, .structure-add)) > * {
+.answers:has(> .structure-add) > * {
   flex: 0 0 calc((100% - (var(--row-buttons) - 1) * var(--answers-gap)) / var(--row-buttons));
   max-width: 620px;
 }
@@ -4127,6 +4106,39 @@ fieldset:disabled .admin-submit {
 
   .minimum-size--editor-steps .minimum-height {
     display: inline;
+  }
+}
+
+/*
+ * **[#233]** In the editor a row of five buttons -- five next steps, or four and the `+` -- in two
+ * boxes (42.4, measured by #231): from 390 to 769 pixels wide it needs up to 685, so below 690 the
+ * notice stands in; below 390 it needs up to 1080 (792 at 360, 1080 at 321), where a label between
+ * the move arrows takes seven lines and more. Two boxes, not one below 770 x 1080, so that 390 x 844,
+ * where the row fits, keeps the editor. Each box names its own height, as the public page's five do.
+ */
+@media (max-width: 769px) and (max-height: 689px), (max-width: 389px) and (max-height: 1079px) {
+  .tree-layer:has(~ .minimum-size--editor-five) {
+    display: none;
+  }
+
+  .minimum-size--editor-five {
+    display: block;
+  }
+
+  .minimum-size--editor-five .minimum-height {
+    display: inline;
+  }
+}
+
+@media not all and (max-width: 389px) {
+  .minimum-size--editor-five .minimum-height.minimum-height--narrow {
+    display: none;
+  }
+}
+
+@media (max-width: 389px) {
+  .minimum-size--editor-five .minimum-height:not(.minimum-height--narrow) {
+    display: none;
   }
 }
 
@@ -4433,6 +4445,39 @@ fieldset:disabled .admin-submit {
   margin: 0;
 }
 
+/*
+ * **[#233]** The `+` Sheet's switch `treeEndsHere` (42.7 item 2): a checkbox drawn as the Panel's
+ * switch (33.3), a 40 x 22 track whose knob stands right when it is on, its words beside it.
+ */
+.structure-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.structure-switch > input {
+  flex: none;
+  width: 40px;
+  height: 22px;
+  margin: 0;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: radial-gradient(circle closest-side, var(--elsa-text-muted) 7.5px, transparent 8px) no-repeat 2px center / 16px 16px, var(--elsa-background);
+  appearance: none;
+  cursor: pointer;
+}
+
+.structure-switch > input:checked {
+  border-color: var(--elsa-accent-secondary);
+  background: radial-gradient(circle closest-side, var(--elsa-on-accent-secondary) 7.5px, transparent 8px) no-repeat 20px center / 16px 16px, var(--elsa-accent-secondary);
+}
+
+.structure-switch > input:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* **[#179]** The ending's field, and its counter on it as on every field's rim (36.3). */
 .structure-ending-field {
   display: flex;
@@ -4463,8 +4508,6 @@ fieldset:disabled .admin-submit {
 
 /* Below 480 pixels the row's buttons show their words alone, as the Answer buttons do (10.3). */
 @media (max-width: 479px) {
-  .structure,
-  .structure-end > .sheet-open,
   .structure-add > .sheet-open {
     padding: 6px 8px;
     font-size: 16px;

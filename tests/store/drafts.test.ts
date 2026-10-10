@@ -372,6 +372,16 @@ describe('the operations and structural writes (22.2, 22.4)', () => {
     expect((await refusal(drafts.createNode(cees, 't', { node: made[0]!, link: 'yes' }))).rules).toEqual(['V-KEYS'])
   })
 
+  // The rule the store names is the schema's, which refuses `options` on a Terminal before the
+  // validator's V-TERMINAL would (30.3 and 42.7 item 4 call the refusal V-TERMINAL).
+  test('**[#233]** a step without Links but with an Option cannot end: 422, and nothing is stored (30.3, 42.7 item 4)', async () => {
+    await drafts.create(cees, 't', ['en'], { en: 'T' })
+    await drafts.createNode(cees, 't', { node: 'start', link: 'option' }, { en: 'An aside' })
+    const before = await text('t', 'draft.json')
+    expect(await refusal(drafts.createNode(cees, 't', { node: 'start', link: 'end', label: { en: 'Ends here' } }))).toMatchObject({ status: 422, rules: ['schema'] })
+    expect(await text('t', 'draft.json')).toBe(before)
+  })
+
   test('**[#179]** an end holds the words it was given and "" for every other language, each a to-do; the outcome is gone from the interface', async () => {
     await drafts.create(cees, 't', ['en', 'nl'], { en: 'T', nl: 'T' })
     // An end without words is no end: an outcome alone is refused, and nothing is written.

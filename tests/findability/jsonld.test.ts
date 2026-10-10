@@ -17,7 +17,6 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, test } from 'vitest'
 import { CONTENT_LICENCE_URL } from '../../src/assets.ts'
-import { chrome } from '../../src/chrome.ts'
 import { CONTENT_HOLDER } from '../../src/findability/llms.ts'
 import {
   closesTheElement,
@@ -318,14 +317,15 @@ describe('the Question, on a question Node and nowhere else', () => {
       inLanguage: 'en',
       suggestedAnswer: [
         // **[#221]** A converted step's words are what the chrome said: what dev's JSON-LD was (41.6).
+        // **[#233]** The chrome no longer has them (42.7 item 5): the words are the file's.
         {
           '@type': 'Answer',
-          text: `${chrome('en').yes}: ${tree.getTitle(yes)!.en}`,
+          text: `Yes: ${tree.getTitle(yes)!.en}`,
           url: canonical(tree, yes, 'en'),
         },
         {
           '@type': 'Answer',
-          text: `${chrome('en').no}: ${tree.getTitle(no)!.en}`,
+          text: `No: ${tree.getTitle(no)!.en}`,
           url: canonical(tree, no, 'en'),
         },
       ],
@@ -339,8 +339,8 @@ describe('the Question, on a question Node and nowhere else', () => {
     const [yes, no] = node.answers.map((answer) => answer.target) as [string, string]
 
     expect(answers.map((answer) => answer.text)).toEqual([
-      `${chrome('nl').yes}: ${tree.getTitle(yes)!.nl}`,
-      `${chrome('nl').no}: ${tree.getTitle(no)!.nl}`,
+      `Ja: ${tree.getTitle(yes)!.nl}`,
+      `Nee: ${tree.getTitle(no)!.nl}`,
     ])
     expect(answers.map((answer) => answer.url)).toEqual([canonical(tree, yes, 'nl'), canonical(tree, no, 'nl')])
   })

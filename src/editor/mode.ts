@@ -55,9 +55,8 @@ export interface EditorSlots {
   enlargedControls?(node: NodeContent, index: number): ReactNode
   /**
    * The buttons the Answer row offers after the next steps that exist, one entry each (#139):
-   * **[#222]** on a step without Links `+ Yes`, `treeEndsHere`, `+ No` and `+`; beside one next
-   * step the one-click `+ Yes` or `+ No` it lacks and `+`; beside two or three, `+` (41.7 items 1
-   * and 2). The row counts them as buttons (41.7 item 8).
+   * **[#233]** the one `+` on a step without Links and beside one to four next steps, none beside
+   * five (42.7 item 1). The row counts them as buttons (41.7 item 8, 42.4).
    */
   structure?(node: Node | DraftNode): ReactNode[]
   /** **[#222]** `moveEarlier` and `moveLater` on the outline of the next step at `index` (41.7 item 4). */

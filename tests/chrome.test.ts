@@ -30,9 +30,9 @@ describe('the chrome language follows the content language', () => {
   })
 
   test('the strings come from the language the rule picked', () => {
-    expect(chrome('nl').yes).toBe('Ja')
-    expect(chrome('nl-be').yes).toBe('Ja')
-    expect(chrome('de').yes).toBe('Yes')
+    expect(chrome('nl').treeEndsHere).toBe('Boom eindigt hier')
+    expect(chrome('nl-be').treeEndsHere).toBe('Boom eindigt hier')
+    expect(chrome('de').treeEndsHere).toBe('Tree ends here')
   })
 })
 
@@ -63,6 +63,14 @@ describe('the chrome strings', () => {
   // (application.md 36.1), so the row that held the four chrome words to the rim is gone.
   test('the ending\'s placeholder fits the badge as its words do: at most 19 characters (36.3)', () => {
     for (const language of CHROME_LANGUAGES) expect([...chrome(language).endingText].length, language).toBeLessThanOrEqual(19)
+  })
+
+  // **[#233]** `yes` and `no` were read by `+ Yes` and `+ No` alone, which the one `+` replaced (42.7 item 5).
+  test("the chrome has no yes or no: the words on a next step are its creator's (42.7 item 5)", () => {
+    for (const language of CHROME_LANGUAGES) {
+      expect(chrome(language), language).not.toHaveProperty('yes')
+      expect(chrome(language), language).not.toHaveProperty('no')
+    }
   })
 
   test('the two languages hold exactly the same keys', () => {

@@ -2,10 +2,10 @@
 
 /**
  * The structure editing (docs/specs/application.md 30; ADR-133-structure-editing), as the
- * client leaves of the structure slots: `AnswerAdd` is the `+ Yes` / `+ No` button of the
- * Answer row (30.1, 30.2); `WordsForm` the page of the `treeEndsHere` Sheet, **[#179]** one field
- * for the ending's words, `confirm` and `cancel` (30.3, 36.3), and **[#222]** of the `+` Sheet,
- * one field for the words on a new next step's button (41.7 items 1 and 2); **[#222]**
+ * client leaves of the structure slots: **[#233]** `WordsForm` is the page of the row's one `+`
+ * Sheet, a switch `treeEndsHere` on a step without Links and one field, the words on the new
+ * button or the ending's, with `confirm` and `cancel` (42.7; ADR-231-one-plus) -- `+ Yes`, `+ No`
+ * and the row's own `treeEndsHere` Sheet are gone; **[#222]**
  * `AnswerMoves` the `moveEarlier` / `moveLater` controls on a next step's outline (41.7 item 4).
  * **[#177]** `SideAdd` is the side-bubble `+` of the fan, which creates
  * at one click (30.4), and `SideDelete` the `deleteSideBubble` button at the bottom of an
@@ -89,7 +89,7 @@ export function useResetOnClose(root: RefObject<HTMLElement | null>, reset: () =
  * (30.2, 30.4): `create` sends it once, and `busy` holds the button down until the page leaves
  * or the write is refused.
  */
-function useCreation(nodeId: string, here: string, from: { link: 'answer'; label: Record<string, string> } | { link: 'option' }): { busy: boolean; create: () => void } {
+function useCreation(nodeId: string, here: string, from: { link: 'option' }): { busy: boolean; create: () => void } {
   const api = useEditor()
   const [busy, setBusy] = useState(false)
   const create = (): void => {
@@ -101,21 +101,6 @@ function useCreation(nodeId: string, here: string, from: { link: 'answer'; label
     })
   }
   return { busy, create }
-}
-
-/**
- * `+ Yes` or `+ No` (30.1): creates the Answer's target and navigates to it (30.2). **[#221]**
- * The next step is appended last with `label`, the chrome word in every language of the Tree
- * (41.7 item 1).
- */
-export function AnswerAdd({ nodeId, which, here, word, label }: { nodeId: string; which: 'yes' | 'no'; here: string; word: string; label: Record<string, string> }) {
-  const api = useEditor()
-  const { busy, create } = useCreation(nodeId, here, { link: 'answer', label })
-  return (
-    <button type="button" className={`structure structure--${which}`} disabled={api.readOnly || busy} onClick={create}>
-      + {word}
-    </button>
-  )
 }
 
 /**
@@ -141,40 +126,50 @@ export function SideAdd({ nodeId, here, word, wordLang }: { nodeId: string; here
 }
 
 /**
- * **[#179]** The chrome words a `WordsForm` says (36.3): **[#222]** `name` names its field, the
- * ending's `endingText` or a next step's `nextStepWords`; strings, because a client component
- * takes no module.
+ * **[#179]** The chrome words a `WordsForm` says (36.3), **[#233]** in both states of its switch
+ * (42.7 item 2): its heading `addNextStep`, the switch's `treeEndsHere`, and the field's label,
+ * `nextStepWords` with the switch off and `endingText` with it on; strings, because a client
+ * component takes no module.
  */
 export interface FormWords {
-  name: string
+  addNextStep: string
+  treeEndsHere: string
+  nextStepWords: string
+  endingText: string
   characters: string
   confirm: string
   cancel: string
 }
 
 /**
- * The page of the `treeEndsHere` Sheet (30.3) and **[#222]** of the `+` Sheet (41.7 items 1 and
- * 2): **[#179]** one plain field for the words in the page's language `lang`, focused when the
- * Sheet opens, its typing stopped at 19 characters with the counter on it as every field's (28.3,
- * 28.4), and `confirm`, enabled once it holds a character that is not white space -- Enter is the
- * same. `cancel` closes the Sheet, and a Sheet closed opens empty again.
+ * **[#233]** The page of the row's one `+` Sheet (42.7 items 2 to 4; ADR-231-one-plus), titled
+ * `addNextStep`. On a step without Links (`canEnd`) it holds a switch, `treeEndsHere`, off when
+ * the Sheet opens; a step with next steps cannot end, and its Sheet has none. **[#179]** One plain
+ * field for the words in the page's language `lang`, focused when the Sheet opens, its typing
+ * stopped at 19 characters with the counter on it as every field's (28.3, 28.4), labelled by the
+ * switch's state; turning the switch keeps what it holds. `confirm` is enabled once it holds a
+ * character that is not white space -- Enter is the same. `cancel` closes the Sheet, and a Sheet
+ * closed opens empty again, the switch off.
  *
- * `link` says what `confirm` makes. `'end'`: the Node a Terminal with those words (36.3); a
- * refusal -- a Node with Options cannot end -- is shown on the Sheet, and on success the page
- * repaints and this Sheet is gone with the row. **[#222]** `'answer'`: a next step with those
- * words, every other language `""`, appended last, and the editor goes to the step it made under
- * the page `here` (41.7 item 3); a refusal -- a fifth -- is shown on the Sheet.
+ * The switch says what `confirm` makes. Off: a next step with those words, every other language
+ * `""`, appended last, and the editor goes to the step it made under the page `here` (41.7 item
+ * 3); a refusal -- a sixth -- is shown on the Sheet. On: the Node a Terminal with those words
+ * (36.3), the page repainting from the response with this Sheet gone with the row; a refusal -- a
+ * Node with Options cannot end (V-TERMINAL, 30.3) -- is shown on the Sheet, the switch and the
+ * words kept, so the creator can turn it off and add a next step instead.
  */
-export function WordsForm({ nodeId, lang, link, here = '', heading, words }: { nodeId: string; lang: string; link: 'end' | 'answer'; here?: string; heading: string; words: FormWords }) {
+export function WordsForm({ nodeId, lang, here, canEnd, words }: { nodeId: string; lang: string; here: string; canEnd: boolean; words: FormWords }) {
   const api = useEditor()
   const root = useRef<HTMLFormElement>(null)
   const input = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
+  const [ends, setEnds] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const confirmable = text.trim() !== '' && !busy && !api.readOnly
   useResetOnClose(root, () => {
     setText('')
+    setEnds(false)
     setError(null)
   })
 
@@ -195,6 +190,7 @@ export function WordsForm({ nodeId, lang, link, here = '', heading, words }: { n
     setBusy(true)
     setError(null)
     const form = event.currentTarget
+    const link = ends ? 'end' : 'answer'
     api.operate(nodeId, { create: { from: { node: nodeId, link, label: { [lang]: text.trim() } } } }, undefined, (answer) => {
       // A new next step is edited on its own page: `confirm` stays down until the page goes (30.2).
       if (link === 'answer' && accepted(answer) && answer.body.node) {
@@ -207,13 +203,20 @@ export function WordsForm({ nodeId, lang, link, here = '', heading, words }: { n
     })
   }
 
-  const id = link === 'end' ? `${nodeId}-ending-text` : `${nodeId}-next-step-words`
+  const id = `${nodeId}-add-words`
+  const name = ends ? words.endingText : words.nextStepWords
   return (
-    <form ref={root} className={`structure-form structure-form--${link === 'end' ? 'end' : 'next'}`} noValidate onSubmit={onSubmit}>
-      <h2>{heading}</h2>
+    <form ref={root} className={`structure-form structure-form--${ends ? 'end' : 'next'}`} noValidate onSubmit={onSubmit}>
+      <h2>{words.addNextStep}</h2>
+      {canEnd && (
+        <label className="structure-switch">
+          <input type="checkbox" role="switch" checked={ends} disabled={api.readOnly} onChange={(event) => setEnds(event.target.checked)} />
+          {words.treeEndsHere}
+        </label>
+      )}
       {/* A row, not a label: the counter is no part of the field's name. */}
       <div className="editor-row">
-        <label htmlFor={id}>{words.name}</label>
+        <label htmlFor={id}>{name}</label>
         <span className="structure-ending-field">
           <input
             ref={input}
@@ -221,7 +224,7 @@ export function WordsForm({ nodeId, lang, link, here = '', heading, words }: { n
             className="editor-url"
             lang={lang}
             value={text}
-            placeholder={words.name}
+            placeholder={name}
             disabled={api.readOnly}
             onChange={(event) => setText(heldToLimit(event.target, text, plainLine(event.target.value), WORDS_LIMIT))}
           />
