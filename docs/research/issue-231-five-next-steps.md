@@ -48,7 +48,8 @@ again on their builds, as #221 and #222 did.
 - **The heights at which a width does not fit.** The stylesheet (`src/app/[lang]/globals.css`)
   changes the page as a window grows taller, at 484, 488, 506, 550, 564, 632, 640 and 744 pixels
   (the type steps up, the Sources and the main image come back), and as it grows wider, at 360, 480,
-  520, 600, 640, 764, 768, 770, 792, 1000, 1200 and 1280. Between two such heights, and between two
+  520, 600, 640, 764, 768, 770, 792, 1000, 1200 and 1280, the last interval running to every width
+  above the guarantee. Between two such heights, and between two
   such widths, the page draws one layout, which a taller or a wider window only gives more room. So
   the script tries, at the narrowest width of each interval of widths (and at 390 too, a width of
   10.6), the lowest height of each interval of heights from 481 to 1440; where that height does not
@@ -68,8 +69,8 @@ again on their builds, as #221 and #222 did.
 - **Earlier runs, not recorded**: three that searched, at part 2's sixteen widths of #220's record,
   for the lowest window by halving from 481 up -- which takes a window that fits to prove every taller
   one, and the steps above show it does not. They gave the same needs at the widths both measured,
-  but did not measure 640, so they put the public page's first width at 700. A fourth, the run below
-  without 390, gave the same cells. A Segoe UI run of the script below gave the same cells as the one
+  but did not measure 640, so they put the public page's first width at 700. A fourth and a fifth,
+  the run below without 390 and without 1280, gave the same cells. A Segoe UI run of the script below gave the same cells as the one
   recorded, with one face report empty; it was run again.
 
 ## 2. What it shows
@@ -77,7 +78,7 @@ again on their builds, as #221 and #222 did.
 1. **At the guarantee, 1280 x 640, one row of five holds every label on two lines**, buttons of 236
    pixels, 60 tall, on the public page and in the editor, in every face: the row stays the 68 of
    `application.md` 10.1 and 41.3.
-2. **One row of five from 1000 pixels wide** fits every window from 481 tall up at 1000 and 1200, in
+2. **One row of five from 1000 pixels wide** fits every window from 481 tall up at 1000, 1200 and 1280, in
    every face, on both pages. At 1000 x 640 a label takes two lines on the public page in Segoe UI and
    Liberation Sans and three in Verdana and DejaVu Sans, and three or four in the editor between its
    arrows. 41.3's 1000 holds for five.
@@ -177,11 +178,11 @@ const [origin, face] = process.argv.slice(2)
 
 /**
  * The narrowest width of each interval between the stylesheet's width breakpoints
- * (src/app/[lang]/globals.css), from just above the floor to the guarantee: within an interval the
+ * (src/app/[lang]/globals.css), from just above the floor to the guarantee and above it: within an interval the
  * page draws one layout, which a wider window only gives more room, so its narrowest width is its
  * worst.
  */
-const WIDTH_STEPS = [321, 360, 390, 480, 520, 600, 640, 764, 768, 770, 792, 1000, 1200]
+const WIDTH_STEPS = [321, 360, 390, 480, 520, 600, 640, 764, 768, 770, 792, 1000, 1200, 1280]
 /** The lowest height of each interval between the stylesheet's height breakpoints, from just above the floor. */
 const HEIGHT_STEPS = [481, 484, 488, 506, 550, 564, 632, 640, 744]
 /** The tallest window tried: 2560 x 1440's, the tallest of 10.6. */
@@ -434,6 +435,7 @@ try {
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 2 (60) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -470,6 +472,7 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 2 (60) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -506,6 +509,7 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -542,6 +546,7 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -578,6 +583,7 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -614,6 +620,7 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 
@@ -652,6 +659,7 @@ A label drawn in (Chromium's report): Segoe UI (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -688,6 +696,7 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -724,6 +733,7 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -760,6 +770,7 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -796,6 +807,7 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -832,6 +844,7 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Verdana (19 glyphs)
 
@@ -870,6 +883,7 @@ A label drawn in (Chromium's report): Verdana (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 2 (60) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -906,6 +920,7 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 2 (60) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -942,6 +957,7 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -978,6 +994,7 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -1014,6 +1031,7 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -1050,6 +1068,7 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 
@@ -1088,6 +1107,7 @@ A label drawn in (Chromium's report): Liberation Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1124,6 +1144,7 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 3 (84) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1160,6 +1181,7 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1196,6 +1218,7 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1232,6 +1255,7 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 
@@ -1268,5 +1292,6 @@ A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)
 | 792 | 3, then 2 | 233.3 | -- | 481 | 2 (60) |
 | 1000 | one row of 5 | 173.6 | -- | 481 | 4 (108) |
 | 1200 | one row of 5 | 220 | -- | 481 | 2 (60) |
+| 1280 | one row of 5 | 236 | -- | 481 | 2 (60) |
 
 A label drawn in (Chromium's report): DejaVu Sans (19 glyphs)

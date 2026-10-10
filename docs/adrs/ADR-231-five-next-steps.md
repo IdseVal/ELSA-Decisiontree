@@ -31,7 +31,7 @@ both languages:
 
 - at 1280 x 640 every label takes two lines in buttons of 236, on the public page and in the editor:
   the row stays 68;
-- one row of five fits a window 481 tall at 1000, 1100 and 1279;
+- one row of five fits every window from 481 tall up at 1000, 1200 and 1280;
 - on the public page every face fits every window from 481 tall up from 640 to 999, and needs up to
   515 at 600, 584 from 360 to 599, and 648 at 321; 360 x 640 and 390 x 844 fit;
 - in the editor, where the words stand between the move arrows, every face fits every window from

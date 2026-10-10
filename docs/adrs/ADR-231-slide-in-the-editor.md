@@ -66,7 +66,9 @@ while it holds a write not yet accepted, leaving the page asks the browser's `be
    frame of it stands ready; the editor goes to it by a plain navigation, as today. The round record's
    reading that "the editor slides to it" is replaced; the owner's words are about "buttons to navigate
    down the tree", and the `+` creates.
-10. `prefers-reduced-motion: reduce` removes the motion and keeps the navigation, after `settle()`.
+10. `prefers-reduced-motion: reduce` removes the motion and keeps the navigation, after
+    `SlideGate.settle()` resolves `true`. A second click while a slide waits does nothing, so that no
+    click passes the gate.
 
 ## Alternatives rejected
 

@@ -4786,8 +4786,10 @@ monotonically as seen from the page. The queue is the `Editor` provider's (34.4)
 value waiting out its 600 ms (`WriteQueue.flushAll()`) and resolves when the queue next holds nothing
 not yet accepted. The preview button waits on it before it leaves the page (40.6).
 
-**[#231]** (2026-10-10) From #234 a slide in the editor waits on it too: its navigation starts once the queue
-holds nothing not yet accepted (42.8).
+**[#231]** (2026-10-10) From #234 a slide in the editor waits on the queue too, through `SlideGate.settle()`
+(42.8), which flushes as `settle()` does and resolves `true` once the queue holds nothing not yet
+accepted, or `false` if a write fails or the session expires first, so that the slide is undone;
+`EditorApi.settle()`, which waits through both, stays the preview button's (40.6).
 
 ### 29.3 The indicator
 
@@ -7344,8 +7346,8 @@ and DejaVu Sans in Linux (`docs/research/issue-231-five-next-steps.md` section 3
   pixels, and the page needs 744 to 792 -- and 390 x 844, which needs 677, keeps the editor.
 - **A step of four next steps in the editor is a row of five buttons**, with its `+`, and shows the
   editor's notice for five; it showed 41.7 item 8's below 600 x 590.
-- One row of five fits a window 481 tall at 1000, 1100 and 1279 pixels wide in every face, on both
-  pages: 41.3's 1000 holds for five.
+- One row of five fits every window from 481 tall up at 1000, 1200 and 1280 pixels wide in every
+  face, on both pages: 41.3's 1000 holds for five.
 - The notice takes nothing else: the Answer buttons are still never given up (10.5), and nothing
   else in 10.5's order moves. Every other row keeps its floor: 10.4's for one or two buttons, 41.4's
   for three or four on the public page and in the preview, 41.7 item 8's for three or four in the
@@ -7489,7 +7491,11 @@ rule, and the way back retraces it.
 - **A history step** (back, forward) slides as on the public page when the payload is in the
   framework's cache (11.3), and the page it arrives at then reads the draft again (`router.refresh()`)
   once the slide has ended, so that the editor never stands on a draft older than the store's.
-- **`prefers-reduced-motion: reduce`** removes the motion and keeps the navigation, after `settle()`.
+- **`prefers-reduced-motion: reduce`** removes the motion and keeps the navigation, after
+  `SlideGate.settle()` resolves `true`.
+- **A second click while a slide waits** on the queue does nothing: the first slide's navigation is the
+  one that follows, so that no click passes the gate. On the public page and in the preview a click
+  during a slide navigates at once, as 11.3 has it.
 - **Creating a next step does not slide**: the new step did not exist when the page was drawn, so no
   frame of it stands ready; the editor goes to it by a plain navigation, as today (42.7 item 3).
 - 34.5's "no neighbour frames, no `data-slide`" no longer holds for the editor's page; the rest of
