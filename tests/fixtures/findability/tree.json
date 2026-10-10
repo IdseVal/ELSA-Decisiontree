@@ -1,6 +1,6 @@
 {
-  "$schema": "/schemas/elsa-tree-6.json",
-  "format": "elsa-tree/6",
+  "$schema": "/schemas/elsa-tree-7.json",
+  "format": "elsa-tree/7",
   "languages": [
     "en",
     "nl"

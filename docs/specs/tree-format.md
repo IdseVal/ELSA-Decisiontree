@@ -1330,6 +1330,24 @@ exactly these lines:
 +      ],
 ```
 
+**[#232] Done (2026-10-10).** #232 converted `trees/ai-act-example/tree.json` by 12.9,
+changed its description's sentence about the format by hand, as #179 and #221 did, and put the
+result in the block above in the same commit: the `elsa-tree/7` file, byte for byte, 11,660 bytes
+as the `elsa-tree/6` block's were, valid against `schemas/elsa-tree-7.json`, and differing from it in
+exactly these lines:
+
+```diff
+-  "$schema": "/schemas/elsa-tree-6.json",
+-  "format": "elsa-tree/6",
++  "$schema": "/schemas/elsa-tree-7.json",
++  "format": "elsa-tree/7",
+@@ "description" of the manifest
+-    "en": "A small example Tree that exercises every element of the `elsa-tree/6` format.\nIts legal content is simplified and not to be relied on.",
+-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/6`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
++    "en": "A small example Tree that exercises every element of the `elsa-tree/7` format.\nIts legal content is simplified and not to be relied on.",
++    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/7`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+```
+
 Folder layout:
 
 ```
@@ -1379,8 +1397,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-6.json",
-  "format": "elsa-tree/6",
+  "$schema": "/schemas/elsa-tree-7.json",
+  "format": "elsa-tree/7",
   "languages": [
     "en",
     "nl"
@@ -1391,8 +1409,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
     "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
   },
   "description": {
-    "en": "A small example Tree that exercises every element of the `elsa-tree/6` format.\nIts legal content is simplified and not to be relied on.",
-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/6`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+    "en": "A small example Tree that exercises every element of the `elsa-tree/7` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/7`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
   "metadata": {
     "version": "2.0",
@@ -2523,6 +2541,22 @@ so its sentence says `elsa-tree/7`, changed by hand as at #179 and #221; `tests/
 holds section 8's block byte-identical to `trees/ai-act-example/tree.json`, so #232 puts the
 converted example in both in one commit. No Tree on `dev` is given a fifth next step: that is the
 owner's content.
+
+**[#232] As built (2026-10-10).** Counted before by searching every file on `3159317`: the 60
+folders of `trees/` and `tests/fixtures/` -- the two Trees, the 14 valid fixtures and the 44 broken
+and invalid ones -- hold 60 `tree.json` files; 59 say `"format": "elsa-tree/6"`, all but
+`invalid/v-format` (`elsa-tree/3`), and 59 name `/schemas/elsa-tree-6.json`, all but
+`invalid/v-schema` (`elsa-tree-3.json`). `npm run migrate` over the 60 folders converted 55 files
+("converted from elsa-tree/6 to elsa-tree/7"); the two Trees and the 14 valid fixtures validate.
+Re-fitted by hand, the two strings edited in place with each defect kept, as at #221:
+`broken/byte-order-mark`, `broken/duplicate-key` and `invalid/v-json` (step 1 refuses them),
+`broken/metadata-all-digits` (12.6.1 step 5 refuses it) and `invalid/v-format`, which keeps its
+`elsa-tree/3` and gains the `/7` `$schema`. After: 59 files say `elsa-tree/7`, 59 name
+`elsa-tree-7.json`, none names `elsa-tree/6` or `elsa-tree-6.json`, and `git diff` changes 118
+lines, 59 `format` and 59 `$schema`, and nothing else in any file but the example Tree's
+description. Every broken or invalid file still fails the rule it was built for
+(`tests/loader.test.ts`). No `answers` changed. The fixture of a step of five next steps
+(`tests/fixtures/five-next-steps`) was written after.
 
 #### 12.9.4 What it does for a deployment's data directory
 
