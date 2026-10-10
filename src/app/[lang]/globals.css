@@ -3665,14 +3665,19 @@ fieldset:disabled .admin-submit {
 
 /*
  * The buttons of 30.1 that create: the Answer button's shape, outlined in `accent-secondary`
- * on `surface` instead of filled, so a button that creates is told from one that leads. Three
- * of 400 with the row's 20-pixel gaps are 1240 of its 1260; the `+` for the one Answer a
- * half-question lacks takes that Answer's 620.
+ * on `surface` instead of filled, so a button that creates is told from one that leads.
+ * **[#222]** Counted as buttons of the row (41.7 item 8): each the Answer button's 620 at most
+ * and an equal share of the row with the next steps beside it, two a row below 1000 pixels where
+ * the row holds three or four (41.3) -- the empty step's four, or `+` beside two or three.
  */
-.structure {
-  flex: 0 1 400px;
-  width: 400px;
+.structure,
+.structure-end,
+.structure-add {
+  width: 620px;
   max-width: 100%;
+}
+
+.structure {
   min-height: 60px;
   padding: 6px 20px;
   border: 2px solid var(--elsa-accent-secondary);
@@ -3688,7 +3693,8 @@ fieldset:disabled .admin-submit {
 }
 
 .structure:hover,
-.structure-end > .sheet-open:hover {
+.structure-end > .sheet-open:hover,
+.structure-add > .sheet-open:hover {
   box-shadow: 0 0 0 2px var(--elsa-background), 0 0 0 4px var(--elsa-accent-secondary);
 }
 
@@ -3929,22 +3935,11 @@ fieldset:disabled .admin-submit {
 }
 
 /*
- * The `+` for the missing word stands after the one next step, where the step it makes is
- * appended (**[#221]** 41.7 items 2 and 3): `+ No` right of `Yes`, and `+ Yes` right of `No`.
+ * The `treeEndsHere` Sheet's control, between `+ Yes` and `+ No`, and **[#222]** the `+` Sheet's,
+ * last in the row (41.7 items 1 and 2).
  */
-.structure--lone {
-  flex-basis: 620px;
-  width: 620px;
-}
-
-/* The `treeEndsHere` Sheet's control is the middle button of the three. */
-.structure-end {
-  flex: 0 1 400px;
-  width: 400px;
-  max-width: 100%;
-}
-
-.structure-end > .sheet-open {
+.structure-end > .sheet-open,
+.structure-add > .sheet-open {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3963,9 +3958,128 @@ fieldset:disabled .admin-submit {
   transition: box-shadow 160ms var(--ease);
 }
 
-/* A Node without Links offers the three buttons, not the public `startAgain` (30.1). */
+/* A Node without Links offers **[#222]** the four buttons, not the public `startAgain` (30.1). */
 .answers:has(> .structure-end) > .answer--start-again {
   display: none;
+}
+
+/*
+ * **[#222]** A row that holds the editor's buttons holds three or four, counted with the next
+ * steps (41.7 item 8), and each is an equal share of it, at most 620 (41.3): one row from 1000
+ * pixels wide, two a row below. Set as a share, not left to shrink from 620: a flex item shrinks
+ * by its content box, so a Sheet with no padding of its own and a padded button would part
+ * unequally.
+ */
+.answers--3 {
+  --row-buttons: 3;
+}
+
+.answers--4 {
+  --row-buttons: 4;
+}
+
+@media (max-width: 999px) {
+  .answers--3,
+  .answers--4 {
+    --row-buttons: 2;
+  }
+}
+
+.answers:has(> :is(.structure, .structure-end, .structure-add)) > * {
+  flex: 0 0 calc((100% - (var(--row-buttons) - 1) * var(--answers-gap)) / var(--row-buttons));
+  max-width: 620px;
+}
+
+/*
+ * **[#222]** A next step's words, edited on its button (41.7 item 2): the region is the label's
+ * whole width, one line of it, and its placeholder is told from words by its slant, in the
+ * button's own letter colour, which is what reads on its fill (13.1).
+ */
+.answer .branch-title:has(> .editor-field) {
+  align-self: stretch;
+}
+
+.answer .editor-input::placeholder {
+  color: inherit;
+  font-style: italic;
+}
+
+/*
+ * **[#222]** `moveEarlier` and `moveLater` (41.7 item 4): 24-pixel round controls on the button's
+ * outline, inside it at its two ends, in the middle of its height, outlined in the fill's colour on
+ * `surface` as the row's creating buttons are, filled under the pointer. Inside, not across the
+ * outline: a control across its button's edge would cross its box, and two a row, 8 pixels apart,
+ * would lie over the button above or beside it (the owner's standard of #181). Centred 18 pixels
+ * from the end, a round lies within the pill's curve at every height; the label keeps 2 pixels
+ * clear of it, so its words and its field stand between the two.
+ */
+.answer:has(> .answer-move) {
+  position: relative;
+  padding-inline: 32px;
+}
+
+.answer-move {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--elsa-accent-secondary);
+  border-radius: 50%;
+  color: var(--accent-secondary-read);
+  background: var(--elsa-surface);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease);
+}
+
+.answer-move--earlier {
+  left: 6px;
+}
+
+.answer-move--later {
+  right: 6px;
+}
+
+/*
+ * **[#222]** In the editor a row of three or four buttons needs more height below 600 pixels wide
+ * than the public row of 41.4: its next steps' words stand between the move arrows, and at 321 wide
+ * a 19-character label takes a line more. The highest need measured there is 584, so below 590 the
+ * notice stands in for the tree view and names that height (41.7 item 8,
+ * `docs/research/issue-222-editor-notice-height.md`).
+ */
+@media (max-width: 599px) and (max-height: 589px) {
+  .tree-layer:has(~ .minimum-size--editor-steps) {
+    display: none;
+  }
+
+  .minimum-size--editor-steps {
+    display: block;
+  }
+
+  .minimum-size--editor-steps .minimum-height {
+    display: inline;
+  }
+}
+
+.answer-move svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.answer-move:hover:enabled {
+  color: var(--elsa-on-accent-secondary);
+  background: var(--elsa-accent-secondary);
+}
+
+.answer-move:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 /*
@@ -4284,7 +4398,8 @@ fieldset:disabled .admin-submit {
 /* Below 480 pixels the row's buttons show their words alone, as the Answer buttons do (10.3). */
 @media (max-width: 479px) {
   .structure,
-  .structure-end > .sheet-open {
+  .structure-end > .sheet-open,
+  .structure-add > .sheet-open {
     padding: 6px 8px;
     font-size: 16px;
   }

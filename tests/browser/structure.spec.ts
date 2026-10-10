@@ -184,11 +184,14 @@ test('the empty root offers + Yes, treeEndsHere and + No; + Yes lands on a new e
 
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start']))
-  // One Answer: the real button for it, the placeholder for its empty title, and the `+` for the other at 620 (30.1).
+  // One Answer: the real button for it, the placeholder for its empty title, and the `+` for the other
+  // (30.1); **[#222]** then `+`, the three an equal share of the row (41.7 items 2 and 8).
   await expect(page.locator('.answer--next:nth-child(1)')).toHaveAttribute('href', `/admin/trees/${TREE}/start/${q1}`)
   await expect(page.locator('.answer--next:nth-child(1) .branch-title')).toHaveText('Yes')
   await expect(page.locator('.answer--next:nth-child(1)')).toHaveAccessibleName('Yes: [Text missing in this language]')
-  await expect(page.locator('.structure--no')).toHaveClass(/structure--lone/)
+  await expect(page.locator('.structure--no')).toBeVisible()
+  await expect(page.locator('.structure-add')).toHaveCount(1)
+  await expect(page.locator('.tree-frame:not([aria-hidden]) .answers')).toHaveClass(/answers--3/)
   await expect(page.locator('.structure--yes')).toHaveCount(0)
   await expect(page.locator('.structure-end')).toHaveCount(0)
   // **[#178]** No `...` at the Answer that exists, nor where the `+` is (30.6, amended).
@@ -368,7 +371,8 @@ test('**[#178]** the red cross on the step a yes leads to: one confirmation name
   deleted.push(n2a)
   // **[#221]** The No that stays is the one next step; the + for the word it lacks is Yes (41.7 item 2).
   await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .answer--next')).toHaveCount(1)
-  await expect(page.locator('.structure--yes')).toHaveClass(/structure--lone/)
+  await expect(page.locator('.structure--yes')).toBeVisible()
+  await expect(page.locator('.structure--no')).toHaveCount(0)
   expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/${n2a}`)).status()).toBe(404)
   expect((await nodeOf(page, cookie, n2)).answers).toEqual([{ label: { en: 'No' }, target: q1 }])
 

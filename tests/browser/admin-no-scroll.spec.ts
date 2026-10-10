@@ -27,7 +27,9 @@
  * Node, plain and with each of its first two Overlays open, and on 40.7's unfinished draft; and the
  * editor of a hidden Tree with the preview button, on its step that ends (40.9). **[#212]** And at
  * and below the floor, on the editor of a hidden Tree and its preview, the notice's text lines clear
- * of every control under the bar (10.4).
+ * of every control under the bar (10.4). **[#222]** And the editor's Answer row of 41.7: three next
+ * steps and `+` at every viewport, with the `+` Sheet open, the empty step's `+` Sheet among the
+ * structure's, and the editor's notice either side of 41.4's width and of its height (41.7 item 8).
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -115,6 +117,8 @@ test.beforeAll(async () => {
     { folder: path.join(repo, 'tests', 'fixtures', 'four-languages'), hidden: true },
     // **[#206]** 40.7's unfinished draft, made in its own test from the full Node.
     { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'unfinished', hidden: true },
+    // **[#222]** The full Node with three next steps, which the editor gives a `+` beside them (41.7 item 2).
+    { folder: path.join(repo, 'tests', 'fixtures', 'three-next-steps'), hidden: true },
   ]
   overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [] }), PORT + 1, ADMIN_ENV)
 })
@@ -438,6 +442,8 @@ async function structureEverywhere(page: Page, lang: string): Promise<void> {
     await expect(page.locator('main')).toBeVisible()
     record(await measure(page), 'editor, structure', lang, viewport, '')
     await open(page.locator('.structure-end > .sheet-open'), 'end Sheet', viewport)
+    // **[#222]** The `+` of the empty step's four, its Sheet asking for the words on the button (41.7 item 1).
+    await open(page.locator('.structure-add > .sheet-open'), '+ Sheet', viewport)
     await open(page.locator('.step-delete'), 'the cross, asking', viewport, asked)
 
     expect((await page.goto(`${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`))?.status()).toBe(200)
@@ -826,3 +832,88 @@ test('**[#212]** at and below the floor the notice\'s text lines stand clear of 
     }
   }
 })
+
+/**
+ * **[#222]** The windows where the editor's notice of 41.7 item 8 turns on and off: one pixel either
+ * side of 41.4's width (600) in a window 481 tall, and of the height the editor's need gives it
+ * (590: below 600 wide the highest is 584, `docs/research/issue-222-editor-notice-height.md`), at
+ * 599 and at 321 wide, where that need was measured.
+ */
+const EDITOR_STEPS_VIEWPORTS = [
+  [599, 481],
+  [600, 481],
+  [599, 589],
+  [599, 590],
+  [321, 589],
+  [321, 590],
+] as const
+
+/** **[#222]** 41.4's width, and the editor's notice height measured for 41.7 item 8. */
+const STEPS_WIDTH = 600
+const EDITOR_STEPS_HEIGHT = 590
+
+/**
+ * **[#222]** 10.6's assertions where dev's disclaimer takes a second line in its row, 599 and 600
+ * pixels wide among them (below 641 in Dutch on CI): nothing but the disclaimer and the body it
+ * runs out of holds more than itself -- `no-scroll.spec.ts`'s rule for the same windows (#221) --
+ * and the document is taller than the window by no more than the disclaimer overflows its band:
+ * with the notice in the editor, at 599 x 481 in Dutch, the body held 500 in 481 and the
+ * disclaimer 46 in 27: the whole excess is the 19 pixels of its second line.
+ */
+function recordBesideTheDisclaimer(m: Measured, what: string, lang: string, viewport: string): void {
+  rows.push(`| ${what} | ${lang} | ${viewport} | - | ${m.doc.sh}/${m.inner.h} | ${m.doc.sw}/${m.inner.w} | ${m.overflowing.join('; ') || 'none'} |`)
+  const where = `${what} (${lang}) at ${viewport}`
+  const band = m.overflowing.map((element) => /^footer\.disclaimer holds \d+x(\d+) in \d+x(\d+)$/.exec(element)).find(Boolean)
+  const second = band ? Number(band[1]) - Number(band[2]) : 0
+  expect(m.doc.sh, `${where}: taller than the window by more than the disclaimer's second line`).toBeLessThanOrEqual(m.inner.h + 1 + second)
+  expect(m.doc.sw, `${where}: wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
+  const others = m.overflowing.filter((element) => !/^(body|footer\.disclaimer) holds /.test(element))
+  expect(others, `${where}: elements other than the disclaimer whose content is larger than themselves`).toEqual([])
+}
+
+for (const lang of LANGUAGES) {
+  test(`**[#222]** the editor's Answer row of 41.7, ${lang}: three next steps and + at every viewport of 10.6, with the + Sheet open; and the notice below ${STEPS_WIDTH} x ${EDITOR_STEPS_HEIGHT} for every row of three or four buttons, never for a step that ends (41.7 item 8)`, async ({ browser }) => {
+    test.slow()
+    const query = lang === 'en' ? '' : '?lang=nl'
+    const page = await (await browser.newContext()).newPage()
+    expect((await login(page, overlayOrigin, ADMIN_EMAIL, ADMIN_PASSWORD)).status).toBe(204)
+    const three = `${overlayOrigin}/admin/trees/three-next-steps/full${query}`
+    for (const [width, height] of VIEWPORTS) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(three))?.status()).toBe(200)
+      await expect(page.locator('main')).toBeVisible()
+      record(await measure(page), 'editor, three next steps and +', lang, viewport, '')
+      const plus = page.locator('.tree-frame:not([aria-hidden]) .answers > .structure-add > .sheet-open')
+      // At the floor the notice stands in for the view (10.4): no row to open a Sheet from.
+      if (!(await plus.isVisible())) continue
+      await plus.click()
+      await expect(page.locator('.structure-form--next')).toBeVisible()
+      record(await measure(page), 'editor, three next steps and +', lang, viewport, '+ Sheet')
+      await page.keyboard.press('Escape')
+      await expect(page.locator('.structure-form--next')).toBeHidden()
+    }
+
+    const editorPage = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
+    const height = lang === 'nl' ? 'Maak het hoger dan' : 'Make it taller than'
+    for (const [what, shown, address, buttons] of [
+      ['editor, four next steps', editorPage, `${origin}/admin/trees/hidden-draft/full${query}`, 4],
+      ['editor, three next steps and +', page, three, 4],
+      ["editor, the empty step's four", editorPage, `${origin}/admin/trees/hidden-draft/opt-three${query}`, 4],
+      ['editor, a step that ends', editorPage, `${origin}/admin/trees/hidden-draft/full/does-not-apply${query}`, 1],
+    ] as const) {
+      for (const [width, tall] of EDITOR_STEPS_VIEWPORTS) {
+        const viewport = `${width}x${tall}`
+        const where = `${what} (${lang}) at ${viewport}`
+        await shown.setViewportSize({ width, height: tall })
+        expect((await shown.goto(address))?.status(), where).toBe(200)
+        await expect(shown.locator('main')).toBeVisible()
+        const notice = width < STEPS_WIDTH && tall < EDITOR_STEPS_HEIGHT && buttons > 2
+        await expect(shown.locator('.minimum-size'), where).toBeVisible({ visible: notice })
+        await expect(shown.locator('.tree-layer'), where).toBeVisible({ visible: !notice })
+        if (notice) await expect(shown.locator('.minimum-height'), where).toHaveText(`${height} ${EDITOR_STEPS_HEIGHT} pixels.`)
+        recordBesideTheDisclaimer(await measure(shown), what, lang, viewport)
+      }
+    }
+  })
+}

@@ -132,6 +132,8 @@ export function fieldValues(node: DraftNode): Record<string, string> {
     out[`images[${i}].credit`] = image.credit
   })
   node.options.forEach((option, i) => localised(`options[${i}].title`, option.title))
+  // **[#222]** A next step's words, by its place: a move repaints each label field from here (41.7 item 4).
+  node.answers?.forEach((answer, i) => localised(`answers[${i}].label`, answer.label))
   node.explainers.forEach((explainer, i) => {
     localised(`explainers[${i}].term`, explainer.term)
     localised(`explainers[${i}].text`, explainer.text)

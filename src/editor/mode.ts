@@ -53,8 +53,15 @@ export interface EditorSlots {
   stripAdd?(node: NodeContent): ReactNode
   /** The controls under a picture in the enlarged view (#140). */
   enlargedControls?(node: NodeContent, index: number): ReactNode
-  /** The three buttons of the Answer row, or the `+` for the missing Answer (#139). */
-  structure?(node: Node | DraftNode): ReactNode
+  /**
+   * The buttons the Answer row offers after the next steps that exist, one entry each (#139):
+   * **[#222]** on a step without Links `+ Yes`, `treeEndsHere`, `+ No` and `+`; beside one next
+   * step the one-click `+ Yes` or `+ No` it lacks and `+`; beside two or three, `+` (41.7 items 1
+   * and 2). The row counts them as buttons (41.7 item 8).
+   */
+  structure?(node: Node | DraftNode): ReactNode[]
+  /** **[#222]** `moveEarlier` and `moveLater` on the outline of the next step at `index` (41.7 item 4). */
+  answerMoves?(node: Node | DraftNode, index: number): ReactNode
   /** The side-bubble `+` in the fan's next free slot (#139); **[#177]** on the centre only, no longer after an Overlay's list. */
   sideAdd?(node: Node | DraftNode): ReactNode
   /** **[#177]** `deleteSideBubble` at the bottom of the Overlay the Node's Option `index` opens (30.7). */

@@ -23,6 +23,7 @@ export function Branch({
   className,
   slides = false,
   name,
+  children,
 }: {
   href: string
   /** The target's title, in the content language. */
@@ -41,6 +42,8 @@ export function Branch({
    * parts stay one of each on the page.
    */
   name?: string
+  /** **[#222]** The editor's controls on the button's outline: a next step's move arrows (41.7 item 4). */
+  children?: ReactNode
 }) {
   return (
     <a className={`branch ${className}`} href={href} data-slide={slides ? '' : undefined} aria-label={name}>
@@ -56,6 +59,7 @@ export function Branch({
         )}
         <span className="branch-title">{title}</span>
       </span>
+      {children}
     </a>
   )
 }
