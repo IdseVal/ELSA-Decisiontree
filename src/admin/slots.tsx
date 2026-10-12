@@ -258,7 +258,17 @@ export function editMode(address: PageAddress, languages: string[], structure: S
               +
             </span>
           }
-          pages={[<WordsForm key="add" nodeId={node.id} lang={lang} here={here} canEnd={has.answers.length === 0} words={formWords} />]}
+          pages={[
+            <WordsForm
+              key="add"
+              nodeId={node.id}
+              lang={lang}
+              count={has.answers.length}
+              fills={has.answers.length + 1 === MAX_NEXT_STEPS}
+              canEnd={has.answers.length === 0}
+              words={formWords}
+            />,
+          ]}
           words={sheet}
           uiLang={uiLang}
           idPrefix={`${node.id}-add-`}
