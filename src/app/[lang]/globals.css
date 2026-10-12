@@ -3524,6 +3524,14 @@ fieldset:disabled .admin-submit {
   border-color: var(--danger-read);
 }
 
+/*
+ * **[#242]** The line under the add Sheet's Link row starts where its label does, not centred as
+ * the Bubble's text: held to the field's column, the example address broke at its hyphen (28.1, amended).
+ */
+.source-url-hint {
+  text-align: start;
+}
+
 /* The editor's controls shrink before the bar grows: nothing in it may wrap to a second line (28.6). */
 .editor-chrome .page-controls {
   min-width: 0;
@@ -3962,7 +3970,9 @@ fieldset:disabled .admin-submit {
   justify-content: center;
 }
 
-.editor-attach-form .admin-submit:disabled {
+/* **[#242]** The add-Source Sheet's button too: it looked enabled while it could not send (28.1, amended). */
+.editor-attach-form .admin-submit:disabled,
+.source-editor--add .admin-submit:disabled {
   opacity: 0.6;
   cursor: default;
 }

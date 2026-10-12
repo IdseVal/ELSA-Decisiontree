@@ -151,6 +151,8 @@ export interface Chrome {
   removeSource: string
   sourceKind: string
   sourceUrl: string
+  /** **[#242]** The line under the add Sheet's Link field while what it holds is not a link (28.1, amended). */
+  sourceUrlHint: string
   /** **[#138]** The `legal` kind in the kind select; the public page labels no `legal` Source (ADR-78-sources-heading, decision 2). */
   sourceLegal: string
   /** **[#138]** The counter pill on the rim (28.3): the accessible names of its two numbers. */
@@ -475,6 +477,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeSource: 'Remove this source',
     sourceKind: 'Kind',
     sourceUrl: 'Link',
+    sourceUrlHint: 'Type a web address, such as https://eur-lex.europa.eu',
     sourceLegal: 'Legal',
     characters: 'characters',
     lines: 'lines',
@@ -714,6 +717,7 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     removeSource: 'Deze bron verwijderen',
     sourceKind: 'Soort',
     sourceUrl: 'Link',
+    sourceUrlHint: 'Typ een webadres, zoals https://eur-lex.europa.eu',
     sourceLegal: 'Juridisch',
     characters: 'tekens',
     lines: 'regels',
