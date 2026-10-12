@@ -6,8 +6,9 @@
 - Specs affected: none here; #242 amends `docs/specs/application.md` 28.1, and #243 amends 30.2,
   41.7, 42.7 and 42.8
 - Core document: amended here, marked `[#241]`: the preamble, the status and owner lines, the
-  sentence of 3.4 on what a creation does, and a new bullet in 3.4 holding the owner's words
-  whole and the readings taken of them
+  sentence of 3.4 on what a creation does, a new bullet in 3.4 holding the owner's words
+  whole and the readings taken of them, and a dated note on row 10.44, whose decision that a
+  step just created is reached without a slide the owner overruled
 
 ## Context
 
@@ -19,8 +20,12 @@ The owner wrote in issue #241, on 2026-10-12 at 08:14:23Z:
 > make it so on pressing the button to create a next step, the view stays on the panel where
 > the user was editing."
 
-and under "Task": "Put issues on the board for these things and set them to ready so they can
-be picked up".
+In the issue the two points are two list items, each starting with "- ". They are quoted here
+as one paragraph, wrapped so that no line starts with "- ", because a quoted line that does is
+drawn as a list item of the quote and splits the second point.
+
+Under "Task", the owner wrote: "Put issues on the board for these things and set them to ready
+so they can be picked up".
 
 **The Source Sheet.** "The add source overlay" is the Sheet that `+ Add a source` opens after a
 step's last Source, on the main Bubble and in an open side bubble's Overlay
@@ -69,11 +74,12 @@ kept it, without a slide. With the switch on, the editor already stays on the pa
    up"), although `.orca/dispatch.yml` has `autonomy: propose`.
    - **#242** (`bug`, `ui`) reproduces the Source Sheet's fault first, on both Bubbles and in
      both languages, and fixes what it finds. The reproduction above is its starting point.
-     It also accepts a link typed without a scheme, by putting `https://` in front where that
-     makes a URL of the grammar, and it makes the Sheet say what it needs.
-   - **#243** (`ui`) keeps the editor on the step when a next step is created. The Sheet closes,
-     the new button stands in the row, and following it afterwards slides as its siblings'
-     buttons do.
+     PROPOSED (decision 2): it also accepts a link typed without a scheme, by putting
+     `https://` in front where that makes a URL of the grammar, and it makes the Sheet say
+     what it needs.
+   - **#243** (`ui`) keeps the editor on the step when a next step is created. The Sheet closes
+     and the new button stands in the row. PROPOSED (decision 2): following it afterwards slides as
+     its siblings' buttons do.
 2. **The readings taken, PROPOSED** (core document 3.4 `[#241]`; the owner can overrule them in
    a new issue):
    - the owner typed or pasted a link without `https://`, and met a button that looked
@@ -82,7 +88,16 @@ kept it, without a slide. With the switch on, the editor already stays on the pa
    - "the button to create a next step" is the `+` Sheet's `confirm` with the switch off, and
      "the panel where the user was editing" is the step whose `+` was pressed;
    - the side bubble's `+` makes an Option, not a next step, and still opens the new side
-     bubble (30.4).
+     bubble (30.4);
+   - #242 accepts a link typed without a scheme, by putting `https://` in front where that
+     makes a URL of the grammar (#242 point 2; the owner asked that adding a Source work, not
+     for this rule);
+   - #242 makes the Sheet say what it needs: a placeholder, a disabled look and a hint line
+     (#242 point 3);
+   - after #243, following the new step's button slides as its siblings' buttons do (#243
+     point 2; the owner did not say how the new step is reached afterwards), and when the
+     Sheet closes the focus goes where it goes when the Sheet is closed by hand, or at five next
+     steps to the new button's words (#243 point 3).
 3. **Each issue amends its own spec sections and records its own ADR**, as #177 did for the
    side bubble. This record changes no spec. #242's amendment of 28.1 and #243's of 30.2, 41.7,
    42.7 and 42.8 do not share a section, so the two issues do not wait on each other.
