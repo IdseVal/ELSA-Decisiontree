@@ -71,13 +71,13 @@ describe('the Answer row (30.1; **[#222]** 41.7)', () => {
     expect(row({ kind: 'terminal', label: { en: 'Look elsewhere' } })).toEqual([])
   })
 
-  test("**[#233]** the + is named addNextStep and opens a Sheet titled addNextStep, in the page's language, that goes to the step it made; on a step without Links it can end the step (42.7 item 2)", () => {
+  test("**[#233]** the + is named addNextStep and opens a Sheet titled addNextStep, in the page's language, **[#243]** that stays on the step it is on; on a step without Links it can end the step (42.7 item 2)", () => {
     const add = row().at(-1)
     const summary = props(add).summary as ReactElement
     expect(props(summary)).toMatchObject({ role: 'img', 'aria-label': 'Add a next step', children: '+' })
     const [page] = props(add).pages as ReactElement[]
     expect(page!.type).toBe(WordsForm)
-    expect(props(page)).toEqual({ nodeId: 'start', lang: 'en', here: '/admin/trees/t/start', canEnd: true, words: english })
+    expect(props(page)).toEqual({ nodeId: 'start', lang: 'en', count: 0, fills: false, canEnd: true, words: english })
     const nl = editMode({ ...start, lang: 'nl' }, ['en', 'nl'], structureOf([])).slots.structure!
     const [nlPage] = props(row({}, nl).at(-1)).pages as ReactElement[]
     expect(props(nlPage)).toMatchObject({
@@ -86,6 +86,12 @@ describe('the Answer row (30.1; **[#222]** 41.7)', () => {
       words: { addNextStep: 'Volgende stap toevoegen', treeEndsHere: 'Boom eindigt hier', nextStepWords: 'Woorden op de knop', endingText: 'Tekst van het einde', confirm: 'Bevestigen' },
     })
     expect(props(props(row({}, nl).at(-1)).summary as ReactElement)['aria-label']).toBe('Volgende stap toevoegen')
+  })
+
+  test('**[#243]** the Sheet knows where the new next step goes and whether it is the fifth, whose words then take the focus (42.7 item 3)', () => {
+    const form = (count: number) => props((props(row(count === 0 ? {} : { kind: 'question', answers: steps(count) })[0]).pages as ReactElement[])[0])
+    for (const count of [0, 1, 2, 3]) expect(form(count), `${count}`).toMatchObject({ count, fills: false })
+    expect(form(4)).toMatchObject({ count: 4, fills: true })
   })
 
   test('**[#233]** the switch is offered on a step without Links only -- whatever its Options -- and not beside a next step (42.7 items 2 and 4)', () => {
