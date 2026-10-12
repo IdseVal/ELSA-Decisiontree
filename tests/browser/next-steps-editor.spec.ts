@@ -3,7 +3,7 @@
  * application.md 41.7, 41.9; ADR-220-editing-next-steps), **[#233]** through the row's one `+`
  * (42.7, 42.10; ADR-231-one-plus): on a new step the row offers the `+` alone, centred, and no
  * `+ Yes`, `+ No` or `Tree ends here`; the `+` asks in a Sheet for the words on the button, typing
- * stopping at 19, and goes to the step it made; on a step without Links the Sheet holds the switch
+ * stopping at 19, and **[#243]** stays on the step, whose new button goes to the step it made; on a step without Links the Sheet holds the switch
  * `Tree ends here`, which relabels the one field `Text of the ending` and keeps what it holds, and
  * ends the step with those words; on a step with an Option that end is refused in the Sheet, the
  * switch and the words kept, and the switch turned off adds a next step instead; the step is given
@@ -24,7 +24,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type APIResponse, type Browser, type Page } from '@playwright/test'
 import type { DraftNode, Violation } from '../../src/tree/types.ts'
-import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
+import { ADMIN_ENV, buildDataDir, confirmNextStep, followNextStep, login } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -98,10 +98,12 @@ const said = (page: Page): Promise<string[]> =>
     .locator(':scope > :not(.answer--start-again)')
     .evaluateAll((buttons) => buttons.map((button) => button.querySelector('textarea')?.value ?? (button.querySelector(':scope > .sheet-open') ?? button).textContent!.trim()))
 
-/** Waits for the plain navigation a creation makes: to an address one id longer than `from` (30.2). */
-async function landed(page: Page, from: string): Promise<string> {
-  await page.waitForURL((url) => url.pathname.startsWith(`${from}/`) && url.pathname.split('/').length === from.split('/').length + 1)
-  const id = new URL(page.url()).pathname.split('/').pop() ?? ''
+/**
+ * **[#243]** Confirms the open `+` Sheet by `confirm` and answers the new step's id, the editor
+ * staying on the step (`confirmNextStep`, 42.7 item 3).
+ */
+async function stayed(page: Page, confirm: () => Promise<void>): Promise<string> {
+  const id = await confirmNextStep(page, confirm)
   expect(id).toMatch(NEW_ID)
   return id
 }
@@ -111,8 +113,7 @@ async function addNextStep(page: Page, text: string): Promise<string> {
   await plus(page).click()
   await expect(form(page).getByRole('textbox')).toBeFocused()
   await page.keyboard.type(text, { delay: 5 })
-  await page.keyboard.press('Enter')
-  return landed(page, `/admin/trees/${TREE}/start`)
+  return stayed(page, () => page.keyboard.press('Enter'))
 }
 
 /**
@@ -158,7 +159,7 @@ test('**[#233]** a new step offers the one +, alone and centred: no + Yes, + No 
   }
 })
 
-test('**[#233]** the + Sheet: the switch Tree ends here, off; one field of 19 labelled by the switch and kept across it; cancel; confirm makes the next step with the words, every other language empty, going to it (42.7 items 2 and 3)', async ({ browser }) => {
+test('**[#233]** the + Sheet: the switch Tree ends here, off; one field of 19 labelled by the switch and kept across it; cancel; confirm makes the next step with the words, every other language empty, **[#243]** staying on the step, and the new button goes to it (42.7 items 2 and 3)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor(['start']))
   await plus(page).click()
@@ -206,8 +207,8 @@ test('**[#233]** the + Sheet: the switch Tree ends here, off; one field of 19 la
   await expect(switchOf(page)).not.toBeChecked()
 
   await page.keyboard.type('Not sure', { delay: 5 })
-  await page.keyboard.press('Enter')
-  made.push(await landed(page, `/admin/trees/${TREE}/start`))
+  made.push(await stayed(page, () => page.keyboard.press('Enter')))
+  await followNextStep(page, made[0]!)
   // The new step is empty and offers the `+` alone (30.2).
   await expect(page.locator('h1 textarea')).toHaveValue('')
   await expect.poll(() => said(page)).toEqual(['+'])
@@ -231,7 +232,6 @@ test('**[#233]** one to five next steps through the one +, each worded: the + af
   for (const [index, text] of wordsOf.entries()) {
     if (index === 0) continue
     made.push(await addNextStep(page, text))
-    await page.goto(editor(['start']))
     const count = index + 1
     const plusShown = count < 5 ? ['+'] : []
     await expect.poll(() => said(page)).toEqual([...wordsOf.slice(0, count), ...plusShown])
@@ -316,8 +316,7 @@ test('**[#233]** a step with an Option cannot end: the refusal is shown in the S
   await switchOf(page).click()
   await expect(error).toHaveCount(0)
   await expect(form(page).getByRole('textbox', { name: 'Words on the button' })).toHaveValue('Look elsewhere')
-  await form(page).getByRole('button', { name: 'Confirm' }).click()
-  const added = await landed(page, `/admin/trees/${TREE}/start/${withOption}`)
+  const added = await stayed(page, () => form(page).getByRole('button', { name: 'Confirm' }).click())
   expect((await nodeOf(page, cookie, withOption)).answers).toEqual([{ label: { en: 'Look elsewhere', nl: '' }, target: added }])
 })
 

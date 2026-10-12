@@ -4893,6 +4893,11 @@ buttons); its id is the server's (22.4), never proposed by the editor.
 3). From #234 following a next step's button slides (42.8); creating one still navigates without a
 slide, since the new step has no frame in the page.
 
+**[#243]** (2026-10-12) For a next step, the editor no longer navigates: it stays on the step whose `+` was
+pressed, and the page repaints with the new button in the row (42.7 item 3; the owner, core document 3.4
+`[#241]`; `docs/adrs/ADR-243-stay-on-the-step.md`). The new step is reached by following its button,
+which slides (42.8). The side-bubble `+` still navigates to the aside it made (30.4).
+
 ### 30.3 Ending
 
 `treeEndsHere` opens a Sheet: the four outcomes as radio choices labelled with their badge
@@ -7220,6 +7225,10 @@ starts, not the list.
 Yes`, `+ No` or row `treeEndsHere`; the `+`'s Sheet holds the switch. Item 8's notice holds for a row
 of three or four buttons and 42.4's for five. Items 4 to 7 stand.
 
+**[#243]** (2026-10-12) Item 3's "the editor navigates to the new Node" no longer holds: the editor stays on
+the step and the page repaints with the new next step in the row (42.7 item 3,
+`docs/adrs/ADR-243-stay-on-the-step.md`).
+
 ### 41.8 What does not change
 
 The Options beside the Bubble, their count of eight, their fan and their Overlay; the Terminal,
@@ -7434,6 +7443,15 @@ number (core document 3.4 `[#230]`'s reading, confirmed; the table is
    .../nodes { from: { node, link: 'end', label: { <lang>: <text> } } }`, as 36.3; the page repaints
    with the badge as the field and `startAgain`. Both are the structural writes of 22.4 as they stand;
    no write changes but the count: a sixth next step is 422 with V-ANSWERS.
+   - **[#243]** (2026-10-12) **The switch off no longer navigates** (the owner, core document 3.4
+     `[#241]`: "the view stays on the panel where the user was editing"; PROPOSED, the step whose `+`
+     was pressed; `docs/adrs/ADR-243-stay-on-the-step.md`). Once the write is accepted the Sheet
+     closes, the address stays the same, and the page repaints from the response as with the switch
+     on (`router.refresh()`, 29.7): the row shows the new next step's button, its words a field in
+     place, after the others, and the `+` after it while the step has fewer than five (item 1). The
+     focus goes to the `+`, where Escape puts it when the Sheet is closed by hand; at five, where no
+     `+` stands, to the new next step's words on its button. A refusal is shown in the Sheet, which
+     stays open with the words.
 4. **A step with Options** keeps the switch: confirmed on, the store's 422 (V-TERMINAL) is shown in
    the Sheet as 30.3 and 36.3 show it today, and the switch and the words stay, so that the creator
    can turn the switch off and add a next step instead.
@@ -7498,6 +7516,11 @@ rule, and the way back retraces it.
   during a slide navigates at once, as 11.3 has it.
 - **Creating a next step does not slide**: the new step did not exist when the page was drawn, so no
   frame of it stands ready; the editor goes to it by a plain navigation, as today (42.7 item 3).
+  **[#243]** (2026-10-12) No longer: creating a next step goes nowhere, and the editor stays on the
+  step (42.7 item 3). The page drawn again after the write reads the draft with the new Answer, so
+  `editorNeighbours` places the new step's frame and its button slides, as its siblings' buttons do
+  (PROPOSED, `docs/adrs/ADR-243-stay-on-the-step.md`; measured at 1280 x 640 and 999 x 640 by
+  `tests/browser/stay-on-step.spec.ts`).
 - 34.5's "no neighbour frames, no `data-slide`" no longer holds for the editor's page; the rest of
   34.5 stands: no JSON-LD, `hreflang`, canonical or dataset link, no share button, no mention of the
   Authors.
@@ -7538,3 +7561,9 @@ and in the preview, and 41.7 item 8's for three or four buttons in the editor.
   click on a next step's words or arrows does not slide; no slide while `retrying`; a write failing
   while a slide waits undoes it, nothing navigating; `imports.test.ts` with `slide-gate.ts`; the
   page's bound of eighteen; `prefers-reduced-motion`; `admin-no-scroll.spec.ts` mid-slide, every Sheet closed.
+- **[#243]** (2026-10-12): `stay-on-step.spec.ts`, at 1280 x 640 and 999 x 640, on a step without Links,
+  a step of three and a step of four: after `confirm` with words typed the address is unchanged, the
+  Sheet closed, the row shows the new button with its words, the store holds the new Answer last, a
+  title typed just before is stored, the focus is on the `+` (at five, with no `+`, on the new words),
+  and following the new button slides to the new step; a refusal stays in the open Sheet; the switch
+  on still ends the step on the same page.
