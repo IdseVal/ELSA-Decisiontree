@@ -26,7 +26,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Browser, type Locator, type Page, type Response } from '@playwright/test'
 import { chrome, type Chrome } from '../../src/chrome.ts'
-import { ADMIN_ENV, buildDataDir, login, plusOf, typeInPlus } from './admin.ts'
+import { ADMIN_ENV, addNextStep, buildDataDir, followNextStep, login, plusOf, typeInPlus } from './admin.ts'
 import { arrived } from './arrived.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
@@ -490,10 +490,13 @@ async function endHere(walk: Walk, nodeId: string, words: string, shoot?: () => 
   await expect(page.locator(`[data-field="${nodeId} terminal.label.${lang}"] textarea`)).toHaveValue(words)
 }
 
-/** **[#233]** A next step of the centre with the walk's word for yes or no on its button, through the `+` and Enter (42.7 item 3). */
-async function addAnswer(walk: Walk, which: 'yes' | 'no'): Promise<void> {
+/**
+ * **[#233]** A next step of the centre with the walk's word for yes or no on its button, through the
+ * `+` and Enter (42.7 item 3); **[#243]** answers its id, the editor staying on the step.
+ */
+async function addAnswer(walk: Walk, which: 'yes' | 'no'): Promise<string> {
   const words = { en: { yes: 'Yes', no: 'No' }, nl: { yes: 'Ja', no: 'Nee' } }[walk.lang === 'nl' ? 'nl' : 'en'][which]
-  await (await typeInPlus(walk.page, words)).getByRole('textbox').press('Enter')
+  return addNextStep(walk.page, words)
 }
 
 /** The fan's `+` (30.4), where it is on screen. */
@@ -645,14 +648,10 @@ async function walkThrough(walk: Walk): Promise<void> {
   expect(separators.length).toBeGreaterThan(0)
   for (const content of separators) expect(content).toBe('none')
 
-  // Yes and no (30.2): each a new step, landed on; back with the up arrow. **[#233]** Each through the `+` (42.7).
-  await addAnswer(walk, 'yes')
-  const yesId = await landed(page, `/admin/trees/${walk.tree}/start`)
-  await page.locator('.up-arrow').click()
-  await page.waitForURL((url) => url.pathname === `/admin/trees/${walk.tree}/start`, { timeout: 20_000 })
-  await hydrated(page)
-  await addAnswer(walk, 'no')
-  const noId = await landed(page, `/admin/trees/${walk.tree}/start`)
+  // Yes and no (30.2): each a new step, ~~landed on; back with the up arrow~~ **[#243]** its button in
+  // the row, the editor staying on the root (42.7 item 3). **[#233]** Each through the `+` (42.7).
+  const yesId = await addAnswer(walk, 'yes')
+  const noId = await addAnswer(walk, 'no')
   await open(walk, 'start')
   await step(walk, '08-yes-and-no')
 
@@ -711,8 +710,10 @@ async function walkThrough(walk: Walk): Promise<void> {
   await page.keyboard.press('Escape')
 
   // What is left, done: the No step again, ended; the other side bubbles named and written.
-  await addAnswer(walk, 'no')
-  const noAgain = await landed(page, `/admin/trees/${walk.tree}/start`)
+  const noAgain = await addAnswer(walk, 'no')
+  // **[#243]** Edited on its own page, reached by its button.
+  await followNextStep(page, noAgain)
+  await hydrated(page)
   await write(walk, noAgain, `title.${lang}`, words.noTitle)
   await write(walk, noAgain, `description.${lang}`, words.noText)
   await endHere(walk, noAgain, words.noEnding)
