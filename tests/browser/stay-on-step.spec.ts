@@ -174,6 +174,29 @@ for (const [width, height] of WINDOWS) {
   }
 }
 
+test('a refused next step is shown in the Sheet, which stays open, on the same page (42.7 item 3)', async ({ page }) => {
+  const tree = 'refused'
+  expect((await api(page, 'POST', '/trees', { id: tree, languages: ['en', 'nl'], title: { en: 'Refused', nl: 'Geweigerd' } })).status()).toBe(201)
+  await page.goto(`${origin}/admin/trees/${tree}/start`)
+  const address = page.url()
+  // The store's answer to a sixth (22.4), here to the first: the Sheet shows whatever it refuses.
+  await page.route(`**/trees/${tree}/nodes`, (route) =>
+    route.request().method() === 'POST'
+      ? route.fulfill({ status: 422, contentType: 'application/json', body: JSON.stringify({ error: 'invalid', violations: [{ rule: 'V-ANSWERS', keyPath: 'answers', message: 'at most five next steps' }] }) })
+      : route.continue(),
+  )
+  await plus(page).click()
+  const form = page.locator('.structure-form').filter({ visible: true })
+  await expect(form.getByRole('textbox')).toBeFocused()
+  await page.keyboard.type('One too many', { delay: 5 })
+  await page.keyboard.press('Enter')
+  await expect(form.getByRole('alert')).toContainText('V-ANSWERS')
+  await expect(sheet(page).locator(':scope[open]')).toHaveCount(1)
+  await expect(form.getByRole('textbox')).toHaveValue('One too many')
+  expect(page.url()).toBe(address)
+  expect((await stored(page, tree, 'start')).answers).toBeUndefined()
+})
+
 test('confirm with the switch on still ends the step on the same page (42.7 item 3, unchanged)', async ({ page }) => {
   const tree = 'ending'
   expect((await api(page, 'POST', '/trees', { id: tree, languages: ['en', 'nl'], title: { en: 'Ends', nl: 'Eindigt' } })).status()).toBe(201)
