@@ -206,7 +206,7 @@ export function editMode(address: PageAddress, languages: string[], structure: S
                 nodeId={node.id}
                 focusPath={`sources[${node.sources.length}].label.${lang}`}
                 kinds={kinds}
-                words={{ addSource: ui.addSource, sourceKind: ui.sourceKind, sourceUrl: ui.sourceUrl }}
+                words={{ addSource: ui.addSource, sourceKind: ui.sourceKind, sourceUrl: ui.sourceUrl, placeholderUrl: ui.placeholderUrl, sourceUrlHint: ui.sourceUrlHint }}
               />,
             ]}
             words={sheetWords(ui)}

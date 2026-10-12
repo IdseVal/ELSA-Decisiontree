@@ -8,7 +8,9 @@
  * the source while it is; `<` before a letter is refused at the field before anything is
  * sent; a response's value repaints a field that is not being edited, and never one holding a
  * refused value, which stays with its `danger` state. The add-Source
- * form sends `add-source` only once a URL is typed, with no placeholder, and closes its Sheet.
+ * form sends `add-source` only once a URL is typed and closes its Sheet; **[#242]** its Link field
+ * shows `placeholderUrl`, a link typed without a scheme goes with `https://` in front, and text
+ * that is not a link gets a hint line the field names.
  * **[#141]** The description's `mark` button sends `add-explainer` and then the marked
  * description, is refused where 32.1 says, and a click on a marked term opens the explainer
  * Sheet, whose `unmark` takes the mark out and removes the explainer.
@@ -397,7 +399,7 @@ describe('the add-Source form (28.1)', () => {
         <Editor treeId="t" lang="en" languages={["en"]} words={words} loginWords={loginWords} adminHref="/admin" nodes={{ start: node('T', 'D') }} violations={[]} tree={HIDDEN}>
           <details className="sheet" open>
             <summary>+ addSource</summary>
-            <AddSourceForm nodeId="start" focusPath="sources[0].label.en" kinds={kinds} words={{ addSource: 'addSource', sourceKind: 'sourceKind', sourceUrl: 'sourceUrl' }} />
+            <AddSourceForm nodeId="start" focusPath="sources[0].label.en" kinds={kinds} words={{ addSource: 'addSource', sourceKind: 'sourceKind', sourceUrl: 'sourceUrl', placeholderUrl: 'https://…', sourceUrlHint: 'sourceUrlHint' }} />
           </details>
         </Editor>,
       )
@@ -414,10 +416,11 @@ describe('the add-Source form (28.1)', () => {
     })
   }
 
-  test('nothing is sent and the button stays disabled until a URL of the schema\u2019s grammar is typed; no placeholder', () => {
+  test('nothing is sent and the button stays disabled until a URL of the schema\u2019s grammar is typed; **[#242]** the field shows placeholderUrl', () => {
     mountForm()
     expect(button().disabled).toBe(true)
     expect(input().getAttribute('aria-invalid')).toBeNull()
+    expect(input().placeholder).toBe('https://…')
 
     typeUrl('not a url')
     expect(input().getAttribute('aria-invalid')).toBe('true')
@@ -448,6 +451,29 @@ describe('the add-Source form (28.1)', () => {
     expect(sent.map((s) => s.body)).toEqual([{ op: 'add-source', kind: 'case-law', label: {}, url: 'https://example.com/ruling' }])
     expect(container.querySelector('details')!.open).toBe(false)
     expect(input().value).toBe('')
+  })
+
+  test('**[#242]** a link typed without a scheme is sent with https:// in front; text that is not a link gets the hint, named by the field', async () => {
+    mountForm()
+    const hint = (): HTMLElement | null => container.querySelector('.source-url-hint')
+    expect(hint()).toBeNull()
+    expect(input().getAttribute('aria-describedby')).toBeNull()
+
+    typeUrl('not a link')
+    expect(hint()!.textContent).toBe('sourceUrlHint')
+    expect(hint()!.id).not.toBe('')
+    expect(input().getAttribute('aria-describedby')).toBe(hint()!.id)
+
+    typeUrl('www.example.org')
+    expect(hint()).toBeNull()
+    expect(input().getAttribute('aria-describedby')).toBeNull()
+    expect(input().getAttribute('aria-invalid')).toBeNull()
+    expect(button().disabled).toBe(false)
+    act(() => {
+      container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    })
+    await act(() => vi.advanceTimersByTimeAsync(0))
+    expect(sent.map((s) => s.body)).toEqual([{ op: 'add-source', kind: 'legal', label: {}, url: 'https://www.example.org' }])
   })
 })
 

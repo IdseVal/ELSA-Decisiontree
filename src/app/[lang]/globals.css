@@ -3962,7 +3962,9 @@ fieldset:disabled .admin-submit {
   justify-content: center;
 }
 
-.editor-attach-form .admin-submit:disabled {
+/* **[#242]** The add-Source Sheet's button too: it looked enabled while it could not send (28.1, amended). */
+.editor-attach-form .admin-submit:disabled,
+.source-editor--add .admin-submit:disabled {
   opacity: 0.6;
   cursor: default;
 }
