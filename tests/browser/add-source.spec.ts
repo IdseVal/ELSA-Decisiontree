@@ -4,8 +4,9 @@
  * Link field shows `placeholderUrl`, the button looks disabled while it cannot send, and text
  * that is not a link gets a hint line the field names by `aria-describedby`.
  *
- * On the main Bubble and in a side bubble's Overlay, in English and in Dutch, at 1280 x 640 and
- * at 720 x 800, below the guarantee, where the Sources stand in their collapsed Sheet (28.6).
+ * On the main Bubble and in a side bubble's Overlay, in English and in Dutch, at 1280 x 640, and
+ * below the guarantee, where the Sources stand in their collapsed Sheet (28.6), at 720 x 800 and
+ * at a phone's 400 x 700, where the Sheet's labels stand above their fields.
  * Each test on a Tree of its own; the stored URL read back through `GET /admin/api/trees/<t>/
  * nodes/<id>`. The screenshots the issue asks for go to `docs/screenshots/issue-242/` under
  * `ELSA_SHOTS=1`, the results folder otherwise (35.7).
@@ -75,6 +76,7 @@ for (const where of ['main', 'side'] as const) {
     for (const [width, height] of [
       [1280, 640],
       [720, 800],
+      [400, 700],
     ] as const) {
       // Below 792 pixels of width the Sources collapse to their Sheet (10.5, step 6; 28.6).
       const collapsed = width < 792
@@ -130,6 +132,10 @@ for (const where of ['main', 'side'] as const) {
         expect(hintId).toBeTruthy()
         await expect(url).toHaveAttribute('aria-describedby', hintId!)
         await expect(url).toHaveAccessibleDescription(WORDS[lang].hint)
+        // Under the field it names: its text starts where the field does, beside the label or under it.
+        const hintStart = await hint.evaluate((element) => element.getBoundingClientRect().left + parseFloat(getComputedStyle(element).paddingInlineStart))
+        expect(Math.abs(hintStart - (await url.boundingBox())!.x), `hint ${hintStart}`).toBeLessThan(1)
+        await expect(hint).toHaveCSS('text-align', 'start')
         if (where === 'main' && lang === 'en' && width === 1280) await shoot(page, 'add-source-not-a-link')
 
         // A link without its scheme: sent with `https://` in front, and the Sheet closes.
