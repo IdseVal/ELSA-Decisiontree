@@ -1,7 +1,7 @@
 # Core document
 
 > Populated by deep interview with the project owner. Nothing here is inferred.
-> Status: AGREED -- 2026-10-10 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03 and 2026-10-09)
+> Status: AGREED -- 2026-10-12 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03, 2026-10-09 and 2026-10-10)
 > The owner noted the document may change in future; changes go through a revision round and a PR.
 >
 > **Revision of 2026-09-09 (issue #35).** After seeing version 0.1 of the tool the owner
@@ -117,8 +117,15 @@
 > created without a slide; 10.44 is decided; 10.21, 10.22, 10.23, 10.27, 10.41 and 10.43 carry a
 > dated **[#231]** note, and so do 3.1's Answers, 3.2's chrome words, the row **Answer** of section 5
 > and the passages of 3.4 the decisions settle.
+>
+> **Revision of 2026-10-12 (issue #241).** The owner wrote, in issue #241, that the editor's
+> "add source" overlay "doesn't work" on the main bubble and on side bubbles, and that creating
+> a next step should leave "the view" on "the panel where the user was editing" rather than move
+> to the new step. Every passage that changed is marked **[#241]**; nothing else in this document
+> was touched. The owner's words are held whole in section 3.4. How they became issues is
+> `docs/adrs/ADR-241-small-final-tasks-round.md`; the work is issues #242 and #243.
 
-Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03, 2026-10-09 and 2026-10-10.
+Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03, 2026-10-09, 2026-10-10 and 2026-10-12.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
 Items marked **PROPOSED** are the Planner's wording, waiting for the owner to confirm or correct.
 
@@ -643,7 +650,8 @@ owner's words leave a choice:
   target and the editor navigates to it (**[#230]** PROPOSED: a new next step, from the one
   `+`, and the editor slides to it, below; 10.44; **[#231]** replaced, 2026-10-10: the editor goes
   to the new step by a plain navigation, without a slide, since no frame of a step just created
-  stands ready; following a next step's button slides, 10.44); "tree ends here" asks for one of the four outcomes (**[#169]** asks for
+  stands ready; following a next step's button slides, 10.44; **[#241]** no longer, owner
+  2026-10-12: creating a next step keeps the editor on the step being edited, below; #243); "tree ends here" asks for one of the four outcomes (**[#169]** asks for
   the ending's words instead -- one field, at most 19 characters, in the language being
   edited -- and the four outcomes are offered nowhere, owner 2026-10-02; 3.1,
   `docs/specs/application.md` 36.3); the side-bubble `+`
@@ -1001,6 +1009,24 @@ owner's words leave a choice:
     builds the format and the public page, #233 the editor's `+`, #234 the slide in the editor.
   - **[#231]** Decided (2026-10-10, the Architect on #231; the owner may overrule), 10.44:
     `docs/adrs/ADR-231-*.md`, `docs/specs/application.md` 42.
+- **[#241] Two faults in the editor (owner, #241, 2026-10-12).** How the instruction became issues
+  is `docs/adrs/ADR-241-small-final-tasks-round.md`. The owner's words, whole:
+  > "- The "add source" overlay on both the main bubble and on side bubbles doesn't work, does
+  > not allow for sources to be added, window doesnt close, disfunctional button/overlay - The "Add a next step"
+  > overlay, when clicked moves the user to that new node, let's just
+  > make it so on pressing the button to create a next step, the view stays on the panel where
+  > the user was editing."
+  - **The Source Sheet.** On `dev`, the Sheet of `+ Add a source` adds a Source and closes when
+    its link starts with `https://`. It refuses a link typed without one and says nothing, and
+    its disabled button looks the same as its enabled one
+    (`docs/adrs/ADR-241-small-final-tasks-round.md`). PROPOSED (the owner did not say what they
+    typed): this is the fault the owner met. #242 reproduces first, fixes what it finds, and
+    accepts a link typed without its scheme.
+  - **Creating a next step.** PROPOSED (the owner's words leave these open): "the button to
+    create a next step" is the `confirm` of the Sheet of the row's one `+`, with `Tree ends
+    here` off (`docs/specs/application.md` 42.7); "the panel where the user was editing" is the
+    step whose `+` was pressed. The editor stays on that step, and the new next step's button
+    stands in its row. The side bubble's `+` still opens the new side bubble. #243 builds it.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).

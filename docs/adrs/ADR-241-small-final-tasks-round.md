@@ -14,8 +14,8 @@
 The owner wrote in issue #241, on 2026-10-12 at 08:14:23Z:
 
 > "- The "add source" overlay on both the main bubble and on side bubbles doesn't work, does
-> not allow for sources to be added, window doesnt close, disfunctional button/overlay
-> - The "Add a next step" overlay, when clicked moves the user to that new node, let's just
+> not allow for sources to be added, window doesnt close, disfunctional button/overlay - The "Add a next step"
+> overlay, when clicked moves the user to that new node, let's just
 > make it so on pressing the button to create a next step, the view stays on the panel where
 > the user was editing."
 
