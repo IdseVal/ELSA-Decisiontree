@@ -1,0 +1,129 @@
+import type { Metadata } from 'next'
+import { headers } from 'next/headers'
+import { notFound } from 'next/navigation'
+import { chromeLanguage, text } from '../../../../chrome.ts'
+import { Disclaimer } from '../../../../components/Disclaimer.tsx'
+import { NodeChrome } from '../../../../components/NodeChrome.tsx'
+import { TreeView } from '../../../../components/TreeView.tsx'
+import { ThemeStyle } from '../../../../components/ThemeStyle.tsx'
+import { baseUrl, store } from '../../../../config.ts'
+import { graphScript, pageGraph } from '../../../../findability/jsonld.ts'
+import { plainDescription } from '../../../../markdown.ts'
+import { loadPage } from '../../../../neighbourhood.ts'
+import type { Tree } from '../../../../tree/loader.ts'
+import { absolute, addressSet, datasetHref, overviewHref, parseUrl, type PageAddress } from '../../../../url.ts'
+
+/**
+ * The Node page, `/<tree-id>/<...trail>/<node-id>` (docs/specs/application.md 4.1). The
+ * route parses the address, reads the centre the path names with its aside chain and its
+ * neighbourhood -- at most seventeen Nodes (10.9, 11.2) -- and hands them to the tree view
+ * with the Tree's index; everything else about how a Node looks is in `src/components/`.
+ */
+interface Props {
+  params: Promise<{ lang: string; tree: string; path: string[] }>
+}
+
+export default async function NodePage(props: Props) {
+  const found = await addressOf(props)
+  if (!found) notFound()
+  const page = await loadPage(found.tree, found.address)
+  if (!page) notFound()
+  const script = await jsonLd(found.tree, found.address)
+  // **[#197]** Who authored the Tree, in the order they joined it: the one thing about an account a public page shows (39.8).
+  const authors = (await store()).authors(found.tree.id)
+
+  return (
+    <>
+      {/*
+        The JSON-LD of 16.4: one script, emitted by the server, holding one `@graph` --
+        the `Dataset` on the root Node's page, a `WebPage` here, a `Question` where this
+        Node asks one. Raw rather than React's text, like the Theme's `<style>` (13.1),
+        because a `<script>` element's content is not entity-decoded; `jsonld.ts` has
+        already escaped every `<` of it and checked its own output at the sink, and hands
+        back null rather than a payload that could close this element.
+      */}
+      {script !== null && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: script }} />}
+      {/* **[#134]** The published Tree's Theme, which the root layout cannot know (13.1). */}
+      <ThemeStyle tree={found.tree} />
+      {/* **[#205]** The bar, by the component the preview of a hidden Tree draws too (40.4). */}
+      <NodeChrome
+        tree={found.tree}
+        address={found.address}
+        authors={authors}
+        overview={overviewHref(chromeLanguage(found.address.lang))}
+        shareAndEditor
+      />
+      <main>
+        <TreeView page={page} tree={found.tree} />
+      </main>
+      <Disclaimer lang={found.address.lang} />
+    </>
+  )
+}
+
+/**
+ * The page's JSON-LD (**[#122]** 16.4), or null when it must not be emitted. The Node is
+ * the one the **address** names -- the same Node `generateMetadata` describes -- so the
+ * graph's `@id`, the canonical link and the meta description cannot describe two pages.
+ */
+async function jsonLd(tree: Tree, address: PageAddress): Promise<string | null> {
+  const node = await tree.getNode(address.nodeId)
+  if (!node) return null
+  return graphScript(await pageGraph(tree, node, address.lang, baseUrl(await headers())))
+}
+
+/**
+ * The head of a Node page: the title, the canonical link (4.1), the `hreflang` links, the
+ * description meta tag (**[#118]** 16.3) and -- **[#121]** -- the one link to the dataset
+ * the walk is drawn from (15.3), so that a crawler which landed anywhere in the walk finds
+ * the data. The Node's title comes from the loader's in-memory index and its description
+ * from the Node itself, so describing the page reads no file.
+ *
+ * All four addresses come from one call to `addressSet`, which is the decision of 16.3:
+ * the sitemap renders the same call, and a page's `hreflang` set and the sitemap's entries
+ * are read as one graph that a search engine drops entirely when the two disagree.
+ *
+ * The base is read here, per request, rather than baked into the build, because where the
+ * app is reached is a run-time setting like the Tree it serves: `ELSA_BASE_URL` when the
+ * deployment names one, and otherwise this request's own origin (16).
+ */
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const found = await addressOf(props)
+  if (!found) return {}
+  const { tree, address } = found
+  const base = baseUrl(await headers())
+  const { addresses, alternates } = addressSet(tree, address.nodeId, base)
+  const title = tree.getTitle(address.nodeId)
+  const node = await tree.getNode(address.nodeId)
+  const description = node?.description[address.lang]
+  return {
+    metadataBase: base,
+    title: title
+      ? `${text(title, address.lang, `${address.nodeId}.title`)} - ${text(tree.manifest.title, address.lang, 'tree.title')}`
+      : undefined,
+    description: description ? plainDescription(description).cut : undefined,
+    alternates: {
+      canonical: addresses.find((entry) => entry.lang === address.lang)?.url,
+      languages: Object.fromEntries(alternates.map(({ hreflang, url }) => [hreflang, url])),
+      // `<link rel="alternate" type="application/json">`, the same on every page and in
+      // every language: there is one dataset. The head link and the route it resolves to
+      // are one deliverable of one issue (ADR-118-dataset-endpoint decision 6) -- a page
+      // that advertises data the deployment does not serve is worse than one that is
+      // silent -- and `findability.spec.ts` fetches this href to hold the two together.
+      types: { 'application/json': absolute(datasetHref(tree.id), base) },
+    },
+  }
+}
+
+/**
+ * The served Tree and the address the request names, or null for every 404 case of 4.3 --
+ * **[#134]** a hidden, unservable or unknown Tree id among them, one case (23.1). The
+ * language is the `[lang]` segment, the one place it is read from (4.4, section 6).
+ */
+async function addressOf(props: Props): Promise<{ tree: Tree; address: PageAddress } | null> {
+  const { lang, tree: treeId, path } = await props.params
+  const tree = (await store()).published(treeId)
+  if (!tree) return null
+  const address = parseUrl(`/${[treeId, ...path].join('/')}`, lang, tree)
+  return address && { tree, address }
+}

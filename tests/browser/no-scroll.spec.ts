@@ -1,0 +1,1434 @@
+/**
+ * The no-scroll rule, measured: the exact test of docs/specs/application.md 10.6
+ * (ADR-38-no-scroll, decision 5). "No scrolling" is a statement about a laid-out
+ * document, so it is asserted here, in a browser, and nowhere else.
+ *
+ * For every viewport of 10.6 and every page of 10.6, after the fonts have settled:
+ * `document.documentElement` and `document.body` are no taller or wider than the window,
+ * and no element in the document -- the Carousel strip and **[#134]** the overview's box
+ * excepted, the two exemptions of 10.6 -- has content taller or wider than itself, with one pixel for sub-pixel rounding. That last clause is what
+ * catches a nested element quietly overflowing behind `overflow: hidden`, which the first
+ * two would let through.
+ *
+ * The pages: the five situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
+ * at a 49-entry Trail (every maximum the format allows at once), `tests/fixtures/overlay/`
+ * (the Overlay of an explanation Node at every maximum with eight Options of its own, 10.9),
+ * the two Nodes with Images of `tests/fixtures/carousel/` (issue #43), the eight explainers
+ * at every maximum of `tests/fixtures/explainers/` (issue #83), and the longest Node of the
+ * first Tree once it validates and its heaviest, `annex-i-legislation` (issue #55),
+ * **[#179]** the full Node's Terminal whose words are at their 19 characters,
+ * **[#200]** the page of a Tree with no logo and a title of 80 characters, which the chrome bar
+ * shows as text, at three windows below 600 pixels wide too,
+ * **[#197]** the example Tree's root Node with three Authors whose names are 80 characters each,
+ * **[#134]** the overview with fifteen tiles (26.3), **[#180]** and the full Node again in each
+ * family of the font library, set in both roles (application.md 37.6) -- each in
+ * both languages, and each again with every Sheet it offers open -- the Overlay of each
+ * Option among them -- every Image it carries enlarged and every explainer panel it marks
+ * opened by focus, with and without JavaScript -- and each in the middle of a slide
+ * (section 11): halfway out of the page, and halfway back into it on the history step. A
+ * slide follows an Answer or the up arrow; nothing slides to an Option (11.1).
+ *
+ * **[#204]** And the chrome bar alone, with "Editor" at its right end (`bar.ts`): the overview's, and
+ * a Node page's beside each seeded Tree's logo, an 80-character title and three Authors, at every
+ * viewport of 10.6 and at five sizes either side of 480, 600 and 768 wide; and beside a logo at its
+ * cap, either side of 768.
+ *
+ * Every measurement is written to `tests/browser/.results/no-scroll.md` as a table, so a
+ * pull request can paste the numbers rather than describe them (10.6, last paragraph).
+ *
+ * The fixtures and the first Tree are served by servers this file starts (`serve.ts`):
+ * Playwright's own server serves the example Tree.
+ */
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { expect, test, type Locator, type Page } from '@playwright/test'
+import { FONT_LIBRARY } from '../../src/fonts.ts'
+import { openTree } from '../../src/tree/loader.ts'
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
+import { ADMIN_ENV, buildDataDir, login } from './admin.ts'
+import { arrived, escapeUrlOpened } from './arrived.ts'
+import { BAR_SIZES, barRow, expectBarFits, measureBar } from './bar.ts'
+import { BASE_PORT, dataDir, serve, serveStore, stopServers } from './serve.ts'
+
+const repo = fileURLToPath(new URL('../..', import.meta.url))
+const trees = path.join(repo, 'trees')
+const fixtures = path.join(repo, 'tests', 'fixtures')
+const RESULTS = path.join(repo, 'tests', 'browser', '.results')
+
+/**
+ * Ports for the servers this file starts, one server each, every one of them named here;
+ * clear of playwright.config.ts's, theme.spec.ts's and carousel.spec.ts's.
+ */
+const FULL_NODE_PORT = BASE_PORT + 20
+const FIRST_TREE_PORT = FULL_NODE_PORT + 1
+const FULL_NODE_NO_SCRIPT_PORT = FULL_NODE_PORT + 2
+const CAROUSEL_PORT = FULL_NODE_PORT + 3
+const FULL_NODE_SLIDING_PORT = FULL_NODE_PORT + 4
+const FULL_NODE_TRIGGERS_PORT = FULL_NODE_PORT + 5
+const EXPLAINERS_NO_SCRIPT_PORT = FULL_NODE_PORT + 6
+const EXPLAINERS_PORT = FULL_NODE_PORT + 7
+// Its own port: on the trigger test's, that test measured this fixture's 404 page and passed (PR #99).
+const OVERLAY_PORT = FULL_NODE_PORT + 8
+const OVERLAY_NO_SCRIPT_PORT = FULL_NODE_PORT + 9
+/** **[#200]** The long-title fixture: a Tree with no logo and a title of 80 characters. */
+const LONG_TITLE_PORT = FULL_NODE_PORT + 14
+/** **[#180]** The first of four: the full-node fixture in each family of the font library. */
+const LIBRARY_PORT = FULL_NODE_PORT + 15
+/** **[#197]** The example Tree with three Authors whose names are 80 characters each. */
+const AUTHORS_PORT = FULL_NODE_PORT + 10
+/** **[#204]** A copy of the first Tree whose logo is drawn at its cap. */
+const WIDE_FIRST_PORT = FULL_NODE_PORT + 11
+/** **[#221]** The full Node with three next steps (application.md 41.9). */
+const THREE_STEPS_PORT = FULL_NODE_PORT + 12
+/** **[#232]** The full Node with five next steps (application.md 42.10). */
+const FIVE_STEPS_PORT = FULL_NODE_PORT + 13
+
+/** The viewports of 10.6, in its order: the guarantee, above it, laptops, tablet and phone, the floor. */
+const VIEWPORTS = [
+  [1280, 640],
+  [1366, 768],
+  [1920, 1080],
+  [2560, 1440],
+  [1280, 800],
+  [1024, 768],
+  [768, 1024],
+  [390, 844],
+  [360, 640],
+  [320, 480],
+] as const
+
+/**
+ * Either side of each trigger of 10.5 as #78 re-froze it, none of them a viewport of 10.6: by
+ * height at the guaranteed width, the strip (640), the main image (632), the Sources (564) and
+ * the type (506: 10.5 says 496, but the Sources' control keeps 36 of the 68 it counts, #81);
+ * by width at a height where no height-keyed step fires, the guaranteed width (1280) and the
+ * Bubble narrowing (792).
+ */
+const STEP_VIEWPORTS = [
+  [1280, 639],
+  [1280, 632],
+  [1280, 631],
+  [1280, 564],
+  [1280, 563],
+  [1280, 506],
+  [1280, 505],
+  [1279, 800],
+  [792, 800],
+  [791, 800],
+] as const
+
+/** The five situations of 10.3, as pages of the example Tree (playwright.config.ts serves it). */
+const EXAMPLE_PAGES = [
+  { what: 'question Node with Options', url: '/ai-act-example/start/prohibited-practices' },
+  { what: 'question Node without Options (the root)', url: '/ai-act-example/start' },
+  {
+    what: "explanation Node's URL, three-entry Trail (the parent's page, the Overlay open)",
+    url: '/ai-act-example/start/prohibited-practices/emotion-recognition-at-work/social-scoring',
+  },
+  { what: 'explanation Node as the centre (no parent in the path)', url: '/ai-act-example/social-scoring' },
+  { what: 'Terminal', url: '/ai-act-example/start/prohibited-practices/prohibited' },
+] as const
+
+/**
+ * The rows issue #59 recorded, English and without the script: the page and viewport where the
+ * open Sources panel lay under its own control, so that one Source link took no click.
+ */
+const ISSUE_59 = [
+  { url: EXAMPLE_PAGES[0].url, viewport: '768x1024' },
+  { url: EXAMPLE_PAGES[3].url, viewport: '768x1024' },
+  { url: EXAMPLE_PAGES[3].url, viewport: '390x844' },
+  { url: EXAMPLE_PAGES[3].url, viewport: '360x640' },
+] as const
+
+/** The full Node reached by visiting itself 49 times: adjacency is not checked (4.3). */
+const FULL_NODE_URL = `/full-node/${Array.from({ length: 50 }, () => 'full').join('/')}`
+
+const LANGUAGES = ['en', 'nl'] as const
+
+/** One element's two sizes: what it holds against what it is. */
+interface Box {
+  sh: number
+  ch: number
+  sw: number
+  cw: number
+}
+
+/** Everything 10.6 measures on one laid-out page. */
+interface Measured {
+  inner: { w: number; h: number }
+  doc: Box
+  body: Box
+  /** Absent below the floor, where the notice replaces the tree view (10.4). */
+  bubble: Box | null
+  /** The open Overlay's panel, when one is open (10.9). */
+  overlay: Box | null
+  /** Every element whose content is wider or taller than itself, with its numbers. */
+  overflowing: string[]
+}
+
+/** One row of the table the pull request pastes. */
+interface Row {
+  page: string
+  lang: string
+  viewport: string
+  sheet: string
+  measured: Measured
+}
+
+const rows: Row[] = []
+/** **[#204]** The rows of the bar alone (`bar.ts`), a table of their own after the page's. */
+const barRows: string[] = []
+
+const servers = new Map<number, { treeId: string; origin: Promise<string | null> }>()
+
+/**
+ * `treeId` out of `treesDir` on `port`, started once for every test of this file that asks
+ * for it there. A port asked for a second Tree fails the test that asks: that Tree would be
+ * measured on the first one's pages.
+ */
+async function served(treesDir: string, treeId: string, port: number): Promise<string> {
+  const server = servers.get(port) ?? { treeId, origin: serve(treesDir, treeId, port) }
+  servers.set(port, server)
+  expect(server.treeId, `port ${port}: the Tree it serves`).toBe(treeId)
+  const origin = await server.origin
+  expect(origin, `${treeId} is a valid Tree`).not.toBeNull()
+  return origin!
+}
+
+test.afterAll(async () => {
+  await stopServers()
+  await mkdir(RESULTS, { recursive: true })
+  await writeFile(
+    path.join(RESULTS, 'no-scroll.md'),
+    [
+      table(rows),
+      "| page | lang | viewport | what | room beside the controls | the bar's right edge/inner w | overflowing elements, lines too many |",
+      '|---|---|---|---|---|---|---|',
+      ...barRows,
+      '',
+    ].join('\n'),
+  )
+})
+
+/** The page as laid out, once its fonts have settled: the numbers of 10.6. */
+async function measure(page: Page): Promise<Measured> {
+  await page.evaluate(() => document.fonts.ready)
+  return page.evaluate(() => {
+    const box = (el: Element): Box => ({
+      sh: el.scrollHeight,
+      ch: el.clientHeight,
+      sw: el.scrollWidth,
+      cw: el.clientWidth,
+    })
+    const name = (el: Element): string =>
+      `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}${[...el.classList].map((c) => `.${c}`).join('')}`
+
+    const overflowing: string[] = []
+    for (const el of document.querySelectorAll('*')) {
+      // The two exemptions: the Carousel strip scrolls sideways inside its own row (12.2),
+      // and **[#134]** the overview's box scrolls down inside its own bounds (26.3). A tile's
+      // title and description inside that box are clamped to their lines by 26.1: a cut
+      // with an ellipsis is the design, and `data-clamp` names exactly those two. **[#200]** So
+      // is a cut in the chrome bar: a Tree's title as text, cut to the two lines the bar holds,
+      // and from #197 the line naming its Authors (39.6). The bar itself is still measured.
+      if (el.matches('[data-carousel-strip], [data-scroll-box], [data-scroll-box] [data-clamp], .page-chrome [data-clamp]')) continue
+      const b = box(el)
+      if (b.sh > b.ch + 1 || b.sw > b.cw + 1) {
+        overflowing.push(`${name(el)} holds ${b.sw}x${b.sh} in ${b.cw}x${b.ch}`)
+      }
+    }
+    const bubble = document.querySelector('.bubble')
+    const overlay = document.querySelector('.overlay[open] > .sheet-panel')
+    return {
+      inner: { w: window.innerWidth, h: window.innerHeight },
+      doc: box(document.documentElement),
+      body: box(document.body),
+      bubble: bubble && box(bubble),
+      overlay: overlay && box(overlay),
+      overflowing,
+    }
+  })
+}
+
+/** The assertions of 10.6, each named for the page and viewport that would fail it. */
+function assertFits(m: Measured, where: string): void {
+  expect(m.doc.sh, `${where}: the document is taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
+  expect(m.doc.sw, `${where}: the document is wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
+  expect(m.body.sh, `${where}: the body is taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
+  expect(m.body.sw, `${where}: the body is wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
+  expect(m.overflowing, `${where}: elements whose content is wider or taller than themselves`).toEqual([])
+}
+
+/**
+ * The assertions of 10.6 at a window that is none of its viewports and where the disclaimer
+ * takes a second line in its row on every page -- 480 x 640, 520 x 800 and 560 x 800 among
+ * them, in both languages -- a defect reported on #179's pull request: the document still
+ * fits the window, and nothing but the disclaimer and the body it runs out of holds more
+ * than itself.
+ */
+function assertFitsBesideTheDisclaimer(m: Measured, where: string): void {
+  expect(m.doc.sh, `${where}: the document is taller than the window`).toBeLessThanOrEqual(m.inner.h + 1)
+  expect(m.doc.sw, `${where}: the document is wider than the window`).toBeLessThanOrEqual(m.inner.w + 1)
+  const others = m.overflowing.filter((element) => !/^(body|footer\.disclaimer) holds /.test(element))
+  expect(others, `${where}: elements other than the disclaimer whose content is wider or taller than themselves`).toEqual([])
+}
+
+/**
+ * Measures `url` at every viewport, plain and then with each Sheet the page offers there
+ * open -- and, where the Node has Images and the script runs, with the enlarged view open --
+ * and records every measurement. `what` and `lang` name the rows. `script` is false in the
+ * no-JavaScript runs, where a thumbnail is a link to the file and opens nothing in place.
+ * `viewports` are 10.6's unless a test measures a band of its own.
+ */
+async function measureEverywhere(
+  page: Page,
+  url: string,
+  what: string,
+  lang: string,
+  script = true,
+  viewports: readonly (readonly [number, number])[] = VIEWPORTS,
+): Promise<void> {
+  for (const [width, height] of viewports) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    // The page asked for, not a 404, which never scrolls: the full Node's trigger test once
+    // passed on the overlay fixture's server, which had been given the same port (PR #99).
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
+    await expect(page.locator('main')).toBeVisible()
+
+    // A URL that names an explanation Node arrives with its Overlay open (10.9): the plain
+    // row is that, the `overlay` column filled.
+    const urlOpened = page.locator('details.sheet[open]')
+    const plain = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: (await urlOpened.count()) > 0 ? 'open by URL' : '', measured: plain })
+    assertFits(plain, `${what} (${lang}) at ${viewport}`)
+
+    // Closed before each Sheet is opened in turn, as a reader closes it: Escape with the
+    // script, the button's second click without it. Where the fan has collapsed the button
+    // is gone with it and a reader without the script has only the browser's back; the
+    // disclosure is shut directly, so this viewport's other Sheets are still measured.
+    if ((await urlOpened.count()) > 0) {
+      if (script) await escapeUrlOpened(page)
+      else if (await urlOpened.locator('.sheet-open').isVisible()) await urlOpened.locator('.sheet-open').click()
+      else await urlOpened.evaluate((details: HTMLDetailsElement) => details.removeAttribute('open'))
+      await expect(urlOpened).toHaveCount(0)
+    }
+
+    // Each explainer panel the Bubble marks, opened by focus in turn (10.8): placed beside its
+    // term by the script, or at the foot of the text area by CSS alone without it.
+    const terms = page.locator('.bubble .term')
+    const marked = await terms.count()
+    if (script && marked > 0) await expect(page.locator('.bubble .prose[data-enhanced]').first()).toBeAttached()
+    let opened = 0
+    for (let i = 0; i < marked; i += 1) {
+      const term = terms.nth(i)
+      if (!(await term.isVisible())) continue
+      opened += 1
+      const panel = (await term.getAttribute('aria-describedby'))!
+      await term.focus()
+      await expect(page.locator(`[id="${panel}"]`)).toBeVisible()
+      const open = await measure(page)
+      rows.push({ page: what, lang, viewport, sheet: `explainer ${panel}`, measured: open })
+      assertFits(open, `${what} (${lang}) at ${viewport} with the explainer ${panel} open`)
+      await term.blur()
+      await expect(page.locator(`[id="${panel}"]`)).toBeHidden()
+    }
+    // Only at and below the floor does the notice stand in for the Bubble and its terms
+    // (10.5 step 7) -- **[#221]** and below 41.4's floor for a step of three or four; anywhere
+    // else a term that is not shown is a panel that went unmeasured.
+    const notice = await page.locator('.minimum-size').isVisible()
+    expect(notice, `${what} (${lang}) at ${viewport}: the notice only at and below a floor`).toBe(notice && (width <= 320 || height <= 480 || (width < STEPS_WIDTH && height < STEPS_HEIGHT)))
+    if (!notice) expect(opened, `${what} (${lang}) at ${viewport}: every marked term opened`).toBe(marked)
+
+    // Each Sheet the layout offers at this size, opened in turn: 10.5 gets no exemption.
+    const sheets = page.locator('details.sheet')
+    for (let i = 0; i < (await sheets.count()); i += 1) {
+      const sheet = sheets.nth(i)
+      const control = sheet.locator('.sheet-open')
+      if (!(await control.isVisible())) continue
+      const kind = (await sheet.getAttribute('class'))!.replace('sheet ', '')
+      const outside = script ? [] : await pointsOutside(sheet)
+
+      await control.click()
+      await expect(sheet.locator('.sheet-panel')).toBeVisible()
+      const open = await measure(page)
+      rows.push({ page: what, lang, viewport, sheet: kind, measured: open })
+      assertFits(open, `${what} (${lang}) at ${viewport} with the ${kind} open`)
+      await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open`)
+      await assertClear(sheet, outside, `${what} (${lang}) at ${viewport} with the ${kind} open`)
+
+      // Without the script a long list is pages of native disclosures (section 14): each
+      // page turned in its turn, and measured.
+      const more = sheet.locator('.sheet-more:not([open]) > summary')
+      for (let turned = 1; (await more.count()) > 0; turned += 1) {
+        await more.first().click()
+        const turned_ = await measure(page)
+        rows.push({ page: what, lang, viewport, sheet: `${kind}, page ${turned + 1}`, measured: turned_ })
+        assertFits(turned_, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
+        await assertReachable(sheet, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
+        await assertClear(sheet, outside, `${what} (${lang}) at ${viewport} with the ${kind} open at page ${turned + 1}`)
+      }
+      await closeSheet(sheet)
+    }
+
+    // The enlarged view of each of the Node's Images, opened from the main image or its
+    // thumbnail (12.3), where they are on the page. Below steps 1 and 5 the loop above opened
+    // it from its own control.
+    const thumbnails = page.locator('.tree-frame a[data-enlarge]')
+    const enlarged = page.locator('.carousel-sheet .sheet-panel')
+    for (let i = 0; script && i < (await thumbnails.count()); i += 1) {
+      if (!(await thumbnails.nth(i).isVisible())) continue
+      await thumbnails.nth(i).click()
+      await expect(enlarged).toBeVisible()
+      const open = await measure(page)
+      rows.push({ page: what, lang, viewport, sheet: `enlarged Image ${i + 1}`, measured: open })
+      assertFits(open, `${what} (${lang}) at ${viewport} with Image ${i + 1} enlarged`)
+      await assertReachable(page.locator('details.carousel-sheet'), `${what} (${lang}) at ${viewport} with Image ${i + 1} enlarged`)
+      await page.keyboard.press('Escape')
+      await expect(enlarged).toBeHidden()
+    }
+  }
+}
+
+/** A control that slides on every kind of Node: an Answer, or the up arrow where there are none (a Terminal, 10.3). */
+const DOWN = { selector: '.answer--next:nth-child(1), .tree-frame:not(:has(.answer--next:nth-child(1))) .up-arrow', label: '' }
+
+/**
+ * Measures `url` at every viewport above the floor in the middle of a slide, both halves of
+ * it (application.md 10.6, section 11): following a Branch, with the target's payload held
+ * back so the page that leaves is caught halfway; at rest on the target; and halfway back on
+ * the history step, where the page that arrives slides in from the target.
+ *
+ * `follow` names the Branch followed, and the label its rows carry. A viewport where it is
+ * not on screen -- an Option collapsed into its Sheet (10.5) -- is left out, and returned, so
+ * a test can say where the slide it asked for could not be taken.
+ */
+async function measureSliding(page: Page, url: string, what: string, lang: string, follow = DOWN): Promise<string[]> {
+  const skipped: string[] = []
+  for (const [width, height] of VIEWPORTS.filter(([w, h]) => w > 320 && h > 480)) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
+    await expect(page.locator('main')).toBeVisible()
+
+    // A slide never begins with a Sheet open (11.3): the Overlay a URL opened is closed first.
+    if ((await page.locator('.sheet[open]').count()) > 0) await escapeUrlOpened(page)
+    const branch = page.locator(follow.selector).first()
+    if (!(await branch.isVisible())) {
+      skipped.push(viewport)
+      continue
+    }
+    // Resolved against the page, not the config's base URL: the fixture has its own origin.
+    const href = new URL((await branch.getAttribute('href'))!, page.url()).href
+
+    let release = () => {}
+    const held = new Promise<void>((resolve) => (release = resolve))
+    await page.route('**/*', async (route) => {
+      if (route.request().headers()['rsc'] === '1') await held
+      await route.continue()
+    })
+    await branch.click()
+    await halfway(page)
+    const leaving = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: `mid-slide, leaving${follow.label}, ${await layerBox(page)}`, measured: leaving })
+    assertFits(leaving, `${what} (${lang}) at ${viewport} halfway through a slide out${follow.label}`)
+
+    release()
+    await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.play())
+    await arrived(page, href)
+    await page.unroute('**/*')
+    const after = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: `after a slide${follow.label}`, measured: after })
+    assertFits(after, `${what} (${lang}) at ${viewport} after a slide${follow.label}`)
+
+    await page.goBack()
+    await halfway(page)
+    const arriving = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: `mid-slide, arriving (back)${follow.label}, ${await layerBox(page)}`, measured: arriving })
+    assertFits(arriving, `${what} (${lang}) at ${viewport} halfway through a slide back${follow.label}`)
+    await page.evaluate(() => document.querySelector('.tree-layer')?.getAnimations()[0]?.play())
+    await arrived(page, url)
+  }
+  return skipped
+}
+
+/**
+ * The sliding layer's box against one frame's, in pixels: two frames side by side for an
+ * Option, and a fraction of a frame taller for the row it sits in (11.1). Written into the
+ * row so the table shows which geometry each measurement caught.
+ */
+async function layerBox(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const size = (selector: string) => {
+      const { width, height } = document.querySelector(selector)!.getBoundingClientRect()
+      return `${Math.round(width)}x${Math.round(height)}`
+    }
+    return `layer ${size('.tree-layer[data-sliding]')} over ${size('.tree-frame')}`
+  })
+}
+
+/** Stops the slide that is running at about half its distance, and holds it there. */
+async function halfway(page: Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const animation = document.querySelector('.tree-layer[data-sliding]')?.getAnimations()[0]
+    if (!animation) return false
+    animation.pause()
+    animation.currentTime = 90
+    return true
+  })
+}
+
+/**
+ * Closes an open Sheet the way a reader would: a click beside the panel. With the script
+ * the backdrop covers the page, the control included, and that click is what closes it;
+ * without the script there is no backdrop and the control is a plain disclosure again.
+ */
+async function closeSheet(sheet: Locator): Promise<void> {
+  const backdrop = sheet.locator('.sheet-backdrop')
+  if (await backdrop.isVisible()) await backdrop.click({ position: { x: 4, y: 4 } })
+  else await sheet.locator('.sheet-open').click()
+  await expect(sheet.locator('.sheet-panel')).toBeHidden()
+}
+
+/**
+ * Every control on an open Sheet's panel is the element a click at its centre lands on. The
+ * control that opened the Sheet stays above the panel (14), so a panel laid over it --
+ * the collapsed Carousel's, at the bottom of the page -- would swallow the click meant for
+ * `next` or `close` and shut the Sheet instead.
+ */
+async function assertReachable(sheet: Locator, where: string): Promise<void> {
+  const covered = await sheet.locator('.sheet-panel').evaluate((panel) =>
+    [...panel.querySelectorAll('summary, button, a')].flatMap((control) => {
+      // The first line box: the middle of a link wrapped over lines may be beside its text.
+      const box = control.getClientRects()[0]
+      if (!box || box.width === 0 || box.height === 0) return []
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+      return hit && control.contains(hit)
+        ? []
+        : [`${control.textContent?.trim()} at ${Math.round(box.left)},${Math.round(box.top)} under ${hit?.closest('[class]')?.className ?? 'nothing'}`]
+    }),
+  )
+  expect(covered, `${where}: a control on the panel is covered`).toEqual([])
+}
+
+/** What a click outside a Sheet lands on: the `at`-th element of `OUTSIDE`, at (x, y). */
+interface Point {
+  what: string
+  at: number
+  x: number
+  y: number
+}
+
+/** Every control a reader can click, and the disclaimer's line, which is always on the page (core document 8). */
+const OUTSIDE = 'summary, button, a, .disclaimer p'
+
+/**
+ * Without the script nothing veils the page while a Sheet is open, so what is outside its
+ * panel is still the reader's: every control of `OUTSIDE` beyond the Sheet that a click
+ * reaches while the Sheet is closed, and three points along each line of the disclaimer.
+ * Taken before the Sheet opens, for `assertClear` to take again once it is.
+ */
+async function pointsOutside(sheet: Locator): Promise<Point[]> {
+  return sheet.evaluate((details, selector) => {
+    const lands = (el: Element, x: number, y: number): boolean => {
+      const hit = document.elementFromPoint(x, y)
+      return hit !== null && el.contains(hit)
+    }
+    return [...document.querySelectorAll(selector)].flatMap((el, at) => {
+      if (details.contains(el)) return []
+      const what = el.textContent?.trim().slice(0, 40) ?? ''
+      let points: { x: number; y: number }[]
+      if (el.matches('.disclaimer p')) {
+        const range = document.createRange()
+        range.selectNodeContents(el)
+        points = [...range.getClientRects()].flatMap((line) =>
+          [line.left + 2, line.left + line.width / 2, line.right - 2].map((x) => ({ x, y: line.top + line.height / 2 })),
+        )
+      } else {
+        const box = el.getClientRects()[0]
+        points = box && box.width > 0 && box.height > 0 ? [{ x: box.left + box.width / 2, y: box.top + box.height / 2 }] : []
+      }
+      return points.filter(({ x, y }) => lands(el, x, y)).map(({ x, y }) => ({ what, at, x, y }))
+    })
+  }, OUTSIDE)
+}
+
+/**
+ * Every point of `pointsOutside` that the open panel does not lie over still lands where it
+ * did. The panel covers what is under it, as any overlay does; what it must not do is leave
+ * the control that opened it, or anything else of its own, over the rest of the page (#59).
+ */
+async function assertClear(sheet: Locator, points: Point[], where: string): Promise<void> {
+  if (points.length === 0) return
+  const covered = await sheet.evaluate(
+    (details, [selector, points]) => {
+      const panel = details.querySelector('.sheet-panel')!.getBoundingClientRect()
+      const all = document.querySelectorAll(selector)
+      return points.flatMap(({ what, at, x, y }) => {
+        if (x >= panel.left && x <= panel.right && y >= panel.top && y <= panel.bottom) return []
+        const hit = document.elementFromPoint(x, y)
+        return hit && all[at]!.contains(hit)
+          ? []
+          : [`${what} at ${Math.round(x)},${Math.round(y)} under ${hit?.closest('[class]')?.className ?? 'nothing'}`]
+      })
+    },
+    [OUTSIDE, points] as const,
+  )
+  expect(covered, `${where}: something outside the panel is covered`).toEqual([])
+}
+
+
+/**
+ * **[#134]** The overview with the named Trees of 35.3 less the hidden one: fifteen tiles, so
+ * that at every viewport the box has more than it shows and scrolls (26.3), while the
+ * document around it may not. Its own server, clear of every other port of this file.
+ */
+test.describe('the overview', () => {
+  const OVERVIEW_PORT = BASE_PORT + 73
+  let origin: string
+
+  test.beforeAll(async () => {
+    const numbered = Array.from({ length: 14 }, (_ignored, index) => ({
+      folder: path.join(repo, 'tests', 'fixtures', 'single-language'),
+      id: `tree-${String(index + 1).padStart(2, '0')}`,
+    }))
+    origin = await serveStore(
+      await dataDir([{ folder: path.join(repo, 'trees', 'ai-act-example') }, ...numbered]),
+      OVERVIEW_PORT,
+    )
+  })
+
+  for (const lang of LANGUAGES) {
+    test(`the overview with fifteen tiles, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, `${origin}/${lang === 'en' ? '' : `?lang=${lang}`}`, 'the overview, fifteen Trees', lang)
+    })
+  }
+})
+
+/** `url` said in `lang`: the query of 4.1, left out for the Tree's default. */
+function inLang(url: string, lang: string): string {
+  return lang === 'en' ? url : `${url}?lang=${lang}`
+}
+
+/**
+ * **[#197]** The mention of a Tree's Authors at its longest (application.md 39.6, 39.9): the
+ * example Tree's root Node with three Authors whose names are 80 characters each, the most 20.1
+ * allows -- the last one word, which no space breaks -- on a server of a data directory of its
+ * own (35.1). The line is cut where its room ends at every viewport it is drawn at, and at the
+ * guarantee too (10.4): the walk skips it, and measures the bar and everything else in it.
+ */
+test.describe('three Authors of 80 characters', () => {
+  const NAMES = [
+    'Anna Maria Theodora Wilhelmina van den Bosch tot Oud-Wassenaar en de Vries-Janse',
+    'Bartholomeus Johannes Hendrikus Cornelis van der Heijden-Oldenbarnevelt de Smits',
+    'Wolfeschlegelsteinhausenbergerdorffwelchevoralternwarengewissenhaftschaferswesen',
+  ]
+  const accounts = NAMES.map((name, at) => ({ email: `author-${at + 1}@example.org`, name, password: `author ${at + 1} password` }))
+  let origin: string
+
+  test.beforeAll(async () => {
+    const [creator, ...collaborators] = accounts.map(({ email }) => email)
+    const dir = await buildDataDir({ trees: [{ folder: path.join(trees, 'ai-act-example'), creator, collaborators }], accounts })
+    origin = await serveStore(dir, AUTHORS_PORT, ADMIN_ENV)
+  })
+
+  for (const lang of LANGUAGES) {
+    test(`the root Node with three Authors of 80 characters, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+      test.slow()
+      for (const name of NAMES) expect([...name], name).toHaveLength(80)
+      const url = `${origin}${inLang(EXAMPLE_PAGES[1].url, lang)}`
+      await measureEverywhere(page, url, 'root Node, three Authors of 80 characters', lang)
+      // Not a row measured without its mention: drawn and cut at the guarantee.
+      await page.setViewportSize({ width: 1280, height: 640 })
+      await page.goto(url)
+      const line = page.locator('header.page-chrome .authors')
+      await expect(line).toBeVisible()
+      await expect(line).toHaveAttribute('title', new RegExp(NAMES[2]!))
+      expect(await line.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true)
+    })
+
+    test(`the bar with "Editor" beside three Authors of 80 characters, ${lang}, fits at every viewport of 10.6 and at five more`, async ({ page }) => {
+      await barEverywhere(page, `${origin}${inLang(EXAMPLE_PAGES[1].url, lang)}`, 'root Node, three Authors of 80 characters', lang)
+    })
+  }
+})
+
+/**
+ * **[#204]** The chrome bar alone, with "Editor" at its right end, at every viewport of 10.6 and at
+ * the five sizes of `BAR_SIZES` (24.3): inside the window, nothing in it overflowing, no text in it
+ * on more lines than it is given. 10.6's whole-page rows of the same pages are measured above.
+ */
+async function barEverywhere(page: Page, url: string, what: string, lang: string): Promise<void> {
+  for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES]) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
+    await expect(page.locator('header.page-chrome').getByRole('link', { name: 'Editor', exact: true })).toBeVisible()
+    const m = await measureBar(page)
+    barRows.push(barRow(what, lang, viewport, m))
+    expectBarFits(m, `${what} (${lang}) at ${viewport}`)
+  }
+}
+
+/** **[#204]** The bars TASK 3 of #204 names: the overview's, and a Node page's beside each seeded logo and a title as text. */
+const BARS = [
+  { what: 'the overview', url: async () => '/' },
+  { what: 'the example Tree, its logo', url: async () => EXAMPLE_PAGES[1].url },
+  { what: "the first Tree, its logo", url: async () => `${await firstTreeOrigin()}/ai-act-applicability-agrifood/start` },
+  { what: 'a Tree with no logo and an 80-character title', url: async () => `${await served(fixtures, 'long-title', LONG_TITLE_PORT)}${LONG_TITLE_URL}` },
+] as const
+
+for (const { what, url } of BARS) {
+  for (const lang of LANGUAGES) {
+    test(`${what}: the bar with "Editor", ${lang}, fits at every viewport of 10.6 and at five more`, async ({ page }) => {
+      test.slow()
+      const address = await url()
+      await barEverywhere(page, address === '/' ? (lang === 'en' ? '/' : '/?lang=nl') : inLang(address, lang), what, lang)
+    })
+  }
+}
+
+/**
+ * **[#204]** A Node page's bar beside a logo at its cap, either side of the width where the current
+ * language comes back: a copy of the first Tree, whose Open Sans pills leave the least room, with a
+ * logo of 300 x 30 -- ten times as wide as it is tall, so the bar draws it at its cap of 18rem, 288
+ * pixels, at both sizes.
+ */
+test.describe('a logo at its cap', () => {
+  let folder: string
+  let origin: string
+
+  test.beforeAll(async () => {
+    folder = await mkdtemp(path.join(tmpdir(), 'elsa-wide-first-'))
+    const tree = path.join(folder, 'wide-first')
+    await cp(path.join(trees, 'ai-act-applicability-agrifood'), tree, { recursive: true })
+    await writeFile(
+      path.join(tree, 'theme', 'wide.svg'),
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 30" width="300" height="30"><rect width="300" height="30" fill="#5aa9c9"/></svg>',
+    )
+    const file = JSON.parse(await readFile(path.join(tree, 'tree.json'), 'utf8')) as { theme: { logo: { light: string } } }
+    file.theme.logo.light = 'wide.svg'
+    await writeFile(path.join(tree, 'tree.json'), JSON.stringify(file))
+    origin = await served(folder, 'wide-first', WIDE_FIRST_PORT)
+  })
+
+  test.afterAll(async () => {
+    await rm(folder, { recursive: true, force: true })
+  })
+
+  for (const lang of LANGUAGES) {
+    test(`the first Tree with a logo at its cap: the bar with "Editor", ${lang}, fits at 767 x 800 and 768 x 1024`, async ({ page }) => {
+      for (const [width, height] of [
+        [767, 800],
+        [768, 1024],
+      ] as const) {
+        const viewport = `${width}x${height}`
+        await page.setViewportSize({ width, height })
+        expect((await page.goto(`${origin}${inLang('/wide-first/start', lang)}`))?.status()).toBe(200)
+        await expect(page.locator('header.page-chrome').getByRole('link', { name: 'Editor', exact: true })).toBeVisible()
+        await page.evaluate(() => document.fonts.ready)
+        expect((await page.locator('header.page-chrome img.logo').boundingBox())!.width, `${viewport}: the logo at its cap`).toBeCloseTo(288, 0)
+        const m = await measureBar(page)
+        barRows.push(barRow('the first Tree, a logo at its cap', lang, viewport, m))
+        expectBarFits(m, `the first Tree with a logo at its cap (${lang}) at ${viewport}`)
+      }
+    })
+  }
+})
+
+for (const { what, url } of EXAMPLE_PAGES) {
+  for (const lang of LANGUAGES) {
+    test(`${what}, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, inLang(url, lang), what, lang)
+    })
+  }
+}
+
+// Nothing slides from an explanation Node that is the centre: no parent above, `startAgain` below (11.1).
+for (const { what, url } of EXAMPLE_PAGES.filter((page) => page !== EXAMPLE_PAGES[3])) {
+  for (const lang of LANGUAGES) {
+    test(`${what}, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
+      test.slow()
+      await measureSliding(page, inLang(url, lang), what, lang)
+    })
+  }
+}
+
+/**
+ * What the share button says after a click lands under the chrome bar (issue #86): the short
+ * confirmation, or -- when no way of copying worked -- the whole link to copy by hand, the
+ * longest thing it can say. Neither may make the page scroll. The deepest example page has
+ * the longest link.
+ */
+for (const lang of LANGUAGES) {
+  for (const said of ['copied', 'by hand'] as const) {
+    test(`the share button's ${said} message, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+      test.slow()
+      if (said === 'by hand') {
+        await page.addInitScript(() => {
+          Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
+          document.execCommand = () => false
+        })
+      }
+      const { what, url } = EXAMPLE_PAGES[2]
+      for (const [width, height] of VIEWPORTS) {
+        const viewport = `${width}x${height}`
+        await page.setViewportSize({ width, height })
+        await page.goto(inLang(url, lang))
+        // The page arrives with its Overlay open (10.9), whose backdrop veils the chrome bar.
+        await escapeUrlOpened(page)
+        const share = page.locator('button.share')
+        if (!(await share.isVisible())) continue
+        await share.click()
+        await expect(page.locator(said === 'copied' ? '.share-said' : '.share-by-hand')).not.toBeEmpty()
+        const m = await measure(page)
+        rows.push({ page: what, lang, viewport, sheet: `share button, ${said}`, measured: m })
+        assertFits(m, `${what} (${lang}) at ${viewport} after the share button said ${said}`)
+      }
+    })
+  }
+}
+
+for (const lang of LANGUAGES) {
+  test(`the full Node at a 49-entry Trail, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
+    await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+}
+
+/**
+ * **[#221]** The windows 41.9 adds for a step of three or four next steps: either side of 41.3's
+ * 1000 pixels, and one pixel either side of 41.4's width (600 as #221 measured it, in a window
+ * 481 tall) and of its height (560, below that width).
+ */
+const NEXT_STEPS_VIEWPORTS = [
+  [999, 640],
+  [1000, 640],
+  [599, 481],
+  [600, 481],
+  [599, 559],
+  [599, 560],
+] as const
+
+/**
+ * **[#221]** `url` at each of `NEXT_STEPS_VIEWPORTS`, the page as it loads, with no Sheet open:
+ * 41.4's question is whether the full Node fits a window there. Its Sheets are not opened at
+ * these windows, none of them a viewport of 10.6: in a window 481 tall below 500 wide the
+ * Options Sheet's list holds 388 pixels in 375 whatever the count of next steps -- the full
+ * Node with two holds the same (measured on #221's pull request), a defect reported there.
+ */
+async function measurePlain(page: Page, url: string, what: string, lang: string): Promise<void> {
+  for (const [width, height] of NEXT_STEPS_VIEWPORTS) {
+    const viewport = `${width}x${height}`
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(url))?.status(), `${what}: ${url}`).toBe(200)
+    const plain = await measure(page)
+    rows.push({ page: what, lang, viewport, sheet: '', measured: plain })
+    // 599 and 600 are in the band where dev's disclaimer takes a second line in its row (below
+    // 641 pixels wide in Dutch on CI), with or without the notice: that one overflow is let through.
+    if (width < 660) assertFitsBesideTheDisclaimer(plain, `${what} (${lang}) at ${viewport}`)
+    else assertFits(plain, `${what} (${lang}) at ${viewport}`)
+  }
+}
+
+/** **[#221]** 41.4's width and height below which a step of three or four shows the notice. */
+const STEPS_WIDTH = 600
+const STEPS_HEIGHT = 560
+
+for (const lang of LANGUAGES) {
+  test(`**[#221]** the full Node with three next steps of 19 characters, ${lang}, never scrolls at any viewport of 10.6 or either side of 41.3's and 41.4's triggers`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'three-next-steps', THREE_STEPS_PORT)
+    const url = `${origin}${inLang('/three-next-steps/full/full', lang)}`
+    await measureEverywhere(page, url, 'full Node, three next steps', lang)
+    await measurePlain(page, url, 'full Node, three next steps', lang)
+  })
+
+  test(`**[#221]** the full Node with four next steps of 19 characters, ${lang}, never scrolls either side of 41.3's and 41.4's triggers`, async ({ page }) => {
+    const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
+    await measurePlain(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+
+  test(`**[#221]** the Answer row of 41.3 and the notice of 41.4, ${lang}: one row from 1000 wide, two a row below, the notice below ${STEPS_WIDTH} x ${STEPS_HEIGHT} for three and four only`, async ({ page }) => {
+    const pages = [
+      { count: 4, url: `${await served(fixtures, 'full-node', FULL_NODE_PORT)}${inLang('/full-node/full', lang)}` },
+      { count: 3, url: `${await served(fixtures, 'three-next-steps', THREE_STEPS_PORT)}${inLang('/three-next-steps/full', lang)}` },
+      { count: 2, url: inLang('/ai-act-example/start', lang) },
+    ]
+    const height = lang === 'nl' ? 'Maak het hoger dan' : 'Make it taller than'
+    for (const { count, url } of pages) {
+      for (const [width, tall] of [[1280, 640], [1000, 640], [999, 640], [390, 844], [360, 640], [STEPS_WIDTH, 481], [STEPS_WIDTH - 1, STEPS_HEIGHT], [STEPS_WIDTH - 1, STEPS_HEIGHT - 1], [STEPS_WIDTH - 1, 481], [389, 559]] as const) {
+        const where = `${count} next steps at ${width}x${tall}`
+        await page.setViewportSize({ width, height: tall })
+        expect((await page.goto(url))?.status(), where).toBe(200)
+        const notice = width < STEPS_WIDTH && tall < STEPS_HEIGHT && count > 2
+        await expect(page.locator('.minimum-size'), where).toBeVisible({ visible: notice })
+        await expect(page.locator('.tree-layer'), where).toBeVisible({ visible: !notice })
+        if (notice) {
+          await expect(page.locator('.minimum-height'), where).toHaveText(`${height} ${STEPS_HEIGHT} pixels.`)
+          continue
+        }
+        // The row's buttons, each its own box: their tops say how many rows, their widths that they are alike.
+        const boxes = await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer').evaluateAll((buttons) =>
+          buttons.map((button) => {
+            const box = button.getBoundingClientRect()
+            return { top: Math.round(box.top), left: box.left, width: box.width, height: box.height }
+          }),
+        )
+        expect(boxes, where).toHaveLength(count)
+        const rows = new Set(boxes.map((box) => box.top)).size
+        expect(rows, `${where}: rows`).toBe(count > 2 && width < 1000 ? 2 : 1)
+        const widths = boxes.map((box) => box.width)
+        expect(Math.max(...widths) - Math.min(...widths), `${where}: every button as wide as the others`).toBeLessThan(1)
+        for (const box of boxes) expect(box.height, `${where}: at least 60 tall`).toBeGreaterThanOrEqual(60)
+        // In the file's order, left to right and row by row: the DOM order is the reading order.
+        const order = boxes.map((box, index) => ({ index, key: box.top * 10_000 + box.left }))
+        expect([...order].sort((a, b) => a.key - b.key).map((entry) => entry.index), `${where}: order`).toEqual(order.map((entry) => entry.index))
+        if (count === 3 && rows === 2) {
+          // The lone third, centred under the two above it.
+          const middle = (box: (typeof boxes)[number]) => box.left + box.width / 2
+          expect(Math.abs(middle(boxes[2]!) - (middle(boxes[0]!) + middle(boxes[1]!)) / 2), `${where}: the third centred`).toBeLessThan(1)
+        }
+        if (width === 1280 && tall === 640) {
+          // At the guarantee the row stays 68 and four buttons are 300 each (41.3).
+          expect(await page.locator('.tree-frame:not([aria-hidden]) .answers').evaluate((row) => row.getBoundingClientRect().height), where).toBe(68)
+          if (count === 4) expect(Math.round(widths[0]!), where).toBe(300)
+        }
+      }
+    }
+  })
+}
+
+/**
+ * **[#232]** 42.4's two boxes for a step of five next steps on the public page and in the preview:
+ * the notice below 640 x 590 and below 360 x 650, and the tree view everywhere else above the floor.
+ */
+const FIVE_WIDTH = 640
+const FIVE_HEIGHT = 590
+const FIVE_NARROW_WIDTH = 360
+const FIVE_NARROW_HEIGHT = 650
+
+/** **[#232]** Whether 42.4 puts the notice over a step of five at `width` x `height`, above the floor. */
+function fiveNotice(width: number, height: number): boolean {
+  return (width < FIVE_WIDTH && height < FIVE_HEIGHT) || (width < FIVE_NARROW_WIDTH && height < FIVE_NARROW_HEIGHT)
+}
+
+/**
+ * **[#232]** The windows 42.10 adds for a step of five: either side of 42.3's 1000 pixels, and one
+ * pixel either side of each width and height of 42.4's two boxes.
+ */
+const FIVE_STEPS_VIEWPORTS = [
+  [999, 640],
+  [1000, 640],
+  [FIVE_WIDTH - 1, FIVE_HEIGHT - 1],
+  [FIVE_WIDTH - 1, FIVE_HEIGHT],
+  [FIVE_WIDTH, FIVE_HEIGHT - 1],
+  [FIVE_WIDTH, FIVE_HEIGHT],
+  [FIVE_NARROW_WIDTH - 1, FIVE_NARROW_HEIGHT - 1],
+  [FIVE_NARROW_WIDTH - 1, FIVE_NARROW_HEIGHT],
+  [FIVE_NARROW_WIDTH, FIVE_NARROW_HEIGHT - 1],
+  [FIVE_NARROW_WIDTH, FIVE_NARROW_HEIGHT],
+] as const
+
+for (const lang of LANGUAGES) {
+  test(`**[#232]** the full Node with five next steps of 19 characters, ${lang}, never scrolls at any viewport of 10.6`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'five-next-steps', FIVE_STEPS_PORT)
+    await measureEverywhere(page, `${origin}${inLang('/five-next-steps/full/full', lang)}`, 'full Node, five next steps', lang)
+  })
+
+  test(`**[#232]** the full Node with five next steps of 19 characters, ${lang}, never scrolls either side of 42.3's 1000 and of each edge of 42.4's two boxes`, async ({ page }) => {
+    const origin = await served(fixtures, 'five-next-steps', FIVE_STEPS_PORT)
+    const url = `${origin}${inLang('/five-next-steps/full/full', lang)}`
+    for (const [width, height] of FIVE_STEPS_VIEWPORTS) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(url))?.status(), url).toBe(200)
+      const plain = await measure(page)
+      rows.push({ page: 'full Node, five next steps', lang, viewport, sheet: '', measured: plain })
+      // Below 660 dev's disclaimer may take a second line in its row, with or without the notice.
+      if (width < 660) assertFitsBesideTheDisclaimer(plain, `five next steps (${lang}) at ${viewport}`)
+      else assertFits(plain, `five next steps (${lang}) at ${viewport}`)
+    }
+  })
+
+  test(`**[#232]** the row of five and its notice, ${lang}: one row from 1000 wide, three then two below, the notice below ${FIVE_WIDTH} x ${FIVE_HEIGHT} and ${FIVE_NARROW_WIDTH} x ${FIVE_NARROW_HEIGHT}, naming the height of its box`, async ({ page }) => {
+    const url = `${await served(fixtures, 'five-next-steps', FIVE_STEPS_PORT)}${inLang('/five-next-steps/full', lang)}`
+    const height = lang === 'nl' ? 'Maak het hoger dan' : 'Make it taller than'
+    const windows = [...VIEWPORTS.filter(([w, h]) => w > 320 && h > 480), ...FIVE_STEPS_VIEWPORTS, [321, 640], [600, 481], [359, 481]] as const
+    for (const [width, tall] of windows) {
+      const where = `five next steps at ${width}x${tall}`
+      await page.setViewportSize({ width, height: tall })
+      expect((await page.goto(url))?.status(), where).toBe(200)
+      const notice = fiveNotice(width, tall)
+      await expect(page.locator('.minimum-size'), where).toBeVisible({ visible: notice })
+      await expect(page.locator('.tree-layer'), where).toBeVisible({ visible: !notice })
+      if (notice) {
+        // One sentence of the two, the height of the box the window is in.
+        const named = width < FIVE_NARROW_WIDTH ? FIVE_NARROW_HEIGHT : FIVE_HEIGHT
+        await expect(page.locator('.minimum-height').filter({ visible: true }), where).toHaveText(`${height} ${named} pixels.`)
+        continue
+      }
+      const boxes = await page.locator('.tree-frame:not([aria-hidden]) .answers > .answer').evaluateAll((buttons) =>
+        buttons.map((button) => {
+          const box = button.getBoundingClientRect()
+          return { top: Math.round(box.top), left: box.left, width: box.width, height: box.height }
+        }),
+      )
+      expect(boxes, where).toHaveLength(5)
+      const tops = [...new Set(boxes.map((box) => box.top))]
+      expect(tops.length, `${where}: rows`).toBe(width < 1000 ? 2 : 1)
+      if (tops.length === 2) expect(boxes.map((box) => box.top), `${where}: three, then two`).toEqual([tops[0], tops[0], tops[0], tops[1], tops[1]])
+      const widths = boxes.map((box) => box.width)
+      expect(Math.max(...widths) - Math.min(...widths), `${where}: every button as wide as the others`).toBeLessThan(1)
+      for (const box of boxes) expect(box.height, `${where}: at least 60 tall`).toBeGreaterThanOrEqual(60)
+      const order = boxes.map((box, index) => ({ index, key: box.top * 10_000 + box.left }))
+      expect([...order].sort((a, b) => a.key - b.key).map((entry) => entry.index), `${where}: order`).toEqual(order.map((entry) => entry.index))
+      // Equally far apart: 20 across (8 below 480 wide), 8 between the two rows (42.3).
+      const gap = width < 480 ? 8 : 20
+      const rowsOf = tops.map((top) => boxes.filter((box) => box.top === top))
+      for (const row of rowsOf) {
+        for (let i = 1; i < row.length; i += 1) expect(row[i]!.left - (row[i - 1]!.left + row[i - 1]!.width), `${where}: the gap across`).toBeCloseTo(gap, 0)
+        const heights = row.map((box) => box.height)
+        expect(Math.max(...heights) - Math.min(...heights), `${where}: every button of a row as tall as the others`).toBeLessThan(1)
+      }
+      if (rowsOf.length === 2) {
+        expect(Math.abs(tops[1]! - (tops[0]! + rowsOf[0]![0]!.height) - 8), `${where}: the gap between the rows`).toBeLessThan(1)
+        // The two of the second row, centred under the three above.
+        const middle = (row: typeof boxes) => (row[0]!.left + row.at(-1)!.left + row.at(-1)!.width) / 2
+        expect(Math.abs(middle(rowsOf[1]!) - middle(rowsOf[0]!)), `${where}: the second row centred`).toBeLessThan(1)
+      }
+      if (width === 1280 && tall === 640) {
+        // At the guarantee the row stays 68 and five buttons are 236 each (42.3).
+        expect(await page.locator('.tree-frame:not([aria-hidden]) .answers').evaluate((row) => row.getBoundingClientRect().height), where).toBe(68)
+        expect(Math.round(widths[0]!), where).toBe(236)
+      }
+    }
+  })
+}
+
+/**
+ * **[#179]** The ending at its limit (application.md 36.1, 36.5): the full Node's `applies`
+ * Terminal says "Mandatory safeguard" / "Maatregelen vereist", 19 characters of wide capitals,
+ * in the default stack (the fixture has no Theme). At the viewports of 10.6 the page never
+ * scrolls; there and at 480 x 640, where the badge's room is narrowest (198 pixels), the badge
+ * is one line, its pill 24 pixels tall.
+ *
+ * 480 x 640 is no viewport of 10.6, and there the disclaimer takes a second line in its row on
+ * every page, with a badge or without -- the example Tree's root has the same 659 pixels of
+ * body in the 640 of the window, as on `dev` before #179 -- a defect reported on #179's pull request.
+ * That one overflow is let through at that size, and nothing else is.
+ */
+const ENDING_URL = '/full-node/full/applies'
+const NARROWEST = [480, 640] as const
+
+for (const lang of LANGUAGES) {
+  test(`the ending at its 19 characters, ${lang}, never scrolls at any viewport of 10.6, and its badge is one line there and at 480 x 640`, async ({ page }) => {
+    const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
+    const url = `${origin}${inLang(ENDING_URL, lang)}`
+    await measureEverywhere(page, url, 'the ending at its 19 characters', lang)
+
+    const [width, height] = NARROWEST
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(url))?.status()).toBe(200)
+    const narrow = await measure(page)
+    rows.push({ page: 'the ending at its 19 characters', lang, viewport: `${width}x${height}`, sheet: '', measured: narrow })
+    assertFitsBesideTheDisclaimer(narrow, `the ending at its 19 characters (${lang}) at ${width}x${height}`)
+
+    for (const [w, h] of [...VIEWPORTS, NARROWEST]) {
+      // At and below the floor the notice stands in for the tree view, badge and all (10.4).
+      if (w <= 320 || h <= 480) continue
+      await page.setViewportSize({ width: w, height: h })
+      await page.goto(url)
+      await page.evaluate(() => document.fonts.ready)
+      const badge = page.locator('.bubble--terminal .outcome').filter({ visible: true })
+      await expect(badge).toHaveText(lang === 'en' ? 'Mandatory safeguard' : 'Maatregelen vereist')
+      const box = (await badge.boundingBox())!
+      rows.push({ page: `the ending's badge, ${box.width.toFixed(1)} x ${box.height.toFixed(1)} px`, lang, viewport: `${w}x${h}`, sheet: '', measured: await measure(page) })
+      expect(box.height, `the badge at ${w}x${h} (${lang}) takes one line`).toBe(24)
+    }
+  })
+}
+
+/**
+ * **[#200]** The chrome bar of a Tree whose Theme names no logo, so that the bar shows its title
+ * as text (13.2, 13.4), and whose title is as long as the format allows, 80 characters
+ * (`tree-format.md` 5.7): `tests/fixtures/long-title/`, at the viewports of 10.6 and at the
+ * three windows below 600 pixels wide where #195 measured that title running out of the bar
+ * (`docs/research/issue-195-measurements.md` 2). At every one the bar is its row's 44 pixels,
+ * 36 below 480 wide, and holds nothing taller or wider than itself; the title lies inside it in
+ * at most the two lines it holds -- 20 pixels each, 14 below 480 -- cut with an ellipsis and
+ * never sideways, and its whole text is its `title`, its accessible name and what the bar reads
+ * to a screen reader.
+ */
+const LONG_TITLE_URL = '/long-title/start'
+const BELOW_600 = [[560, 800], [520, 800], [480, 640]] as const
+
+for (const lang of LANGUAGES) {
+  test(`a Tree with no logo and an 80-character title, ${lang}, never scrolls at any viewport of 10.6 or at three below 600 wide, its title cut to the bar's two lines`, async ({ page }) => {
+    test.slow()
+    const what = 'a Tree with no logo and an 80-character title'
+    const whole = (await openTree(path.join(fixtures, 'long-title'))).manifest.title[lang]!
+    expect([...whole], `the fixture's title in ${lang}`).toHaveLength(80)
+    const url = `${await served(fixtures, 'long-title', LONG_TITLE_PORT)}${inLang(LONG_TITLE_URL, lang)}`
+    await measureEverywhere(page, url, what, lang)
+
+    for (const [width, height] of BELOW_600) {
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(url))?.status()).toBe(200)
+      const m = await measure(page)
+      rows.push({ page: what, lang, viewport: `${width}x${height}`, sheet: '', measured: m })
+      assertFitsBesideTheDisclaimer(m, `${what} (${lang}) at ${width}x${height}`)
+    }
+
+    for (const [width, height] of [...VIEWPORTS, ...BELOW_600]) {
+      const where = `${what} (${lang}) at ${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(url))?.status()).toBe(200)
+      await page.evaluate(() => document.fonts.ready)
+      const bar = (await page.locator('header.page-chrome').boundingBox())!
+      expect(bar.height, `${where}: the bar`).toBe(width < 480 ? 36 : 44)
+      const title = page.locator('.page-chrome .tree-title')
+      const box = (await title.boundingBox())!
+      expect(box.y, `${where}: the title's top, inside the bar`).toBeGreaterThanOrEqual(bar.y)
+      expect(box.y + box.height, `${where}: the title's bottom, inside the bar`).toBeLessThanOrEqual(bar.y + bar.height)
+      expect(box.height, `${where}: the title in at most two lines`).toBeLessThanOrEqual(2 * (width < 480 ? 14 : 20))
+      // The walk skips the title, so its one way out is checked here: by lines, under the ellipsis.
+      expect(await title.evaluate((el) => el.scrollWidth - el.clientWidth), `${where}: the title wider than itself`).toBeLessThanOrEqual(1)
+      await expect(title, where).toHaveAttribute('data-clamp', '')
+      await expect(title, where).toHaveAttribute('title', whole)
+      await expect(title, where).toHaveAccessibleName(whole)
+      // The cut is the layout's alone: what a screen reader reads in the bar is the whole title.
+      expect(await page.locator('header.page-chrome').ariaSnapshot(), where).toContain(`- text: ${whole}`)
+    }
+
+    // A title may be one word of 80 letters: a word longer than the room breaks onto the next
+    // line, under the ellipsis, instead of holding the bar and the page open to its width.
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(url)
+    const sideways = await page.locator('.page-chrome .tree-title').evaluate((el) => {
+      el.textContent = 'x'.repeat(80)
+      return el.scrollWidth - el.clientWidth
+    })
+    const where = `${what} (${lang}) at 390x844, its title one word of 80 letters`
+    expect(sideways, `${where}: the title wider than itself`).toBeLessThanOrEqual(1)
+    const oneWord = await measure(page)
+    rows.push({ page: `${what}, its title one word of 80 letters`, lang, viewport: '390x844', sheet: '', measured: oneWord })
+    assertFits(oneWord, where)
+  })
+}
+
+/** The full-node fixture's server for the slides. */
+const fullNodeSlidingOrigin = () => served(fixtures, 'full-node', FULL_NODE_SLIDING_PORT)
+
+// The page the rule exists for, mid-slide: the layer is fixed at a pixel box and holds two
+// frames, one of them the collapsed 49-entry Trail with eight Options (10.6).
+for (const lang of LANGUAGES) {
+  test(`the full Node at a 49-entry Trail, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
+    test.slow()
+    await measureSliding(page, `${await fullNodeSlidingOrigin()}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+}
+
+/**
+ * **[#180]** The full-node fixture with the library family `family` in both roles (37.6): served,
+ * then set as the administrator through the editor's own write, `use-library-font` (37.3),
+ * which the published copy follows (19.4).
+ */
+async function inLibraryFamily(page: Page, family: string, port: number): Promise<string> {
+  const origin = await served(fixtures, 'full-node', port)
+  const { cookie } = await login(page, origin, ADMIN_EMAIL, ADMIN_PASSWORD)
+  for (const role of ['body', 'heading']) {
+    const response = await page.request.patch(`${origin}/admin/api/trees/full-node`, { headers: { Origin: origin, Cookie: cookie }, data: { op: 'use-library-font', role, family } })
+    expect(response.status(), `use-library-font ${role} ${family}`).toBe(200)
+  }
+  return origin
+}
+
+// 37.1's width rule in the browser (ADR-171-font-library decision 2): every family the application
+// ships is no wider than Open Sans, so the Node at every maximum of the format still fits in it.
+for (const [index, family] of FONT_LIBRARY.entries()) {
+  test(`the full Node at a 49-entry Trail in ${family.family}, both roles, never scrolls at 1280x640 or 360x640`, async ({ page }) => {
+    test.slow()
+    const origin = await inLibraryFamily(page, family.id, LIBRARY_PORT + index)
+    await page.goto(`${origin}${FULL_NODE_URL}`)
+    for (const role of ['body', 'heading']) expect(await page.evaluate((name) => getComputedStyle(document.documentElement).getPropertyValue(name), `--elsa-font-${role}`)).toContain(`'${family.family}'`)
+    for (const lang of LANGUAGES) {
+      await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, `full Node in ${family.family}`, lang, true, [[1280, 640], [360, 640]])
+      // Measured in the family, not in a fallback: its upright face was loaded for the text.
+      const loaded = await page.evaluate((name) => [...document.fonts].filter((face) => face.family.replace(/["']/g, '') === name && face.style === 'normal' && face.status === 'loaded').length, family.family)
+      expect(loaded, `${family.family}'s upright face loaded`).toBeGreaterThan(0)
+    }
+  })
+}
+
+/**
+ * The Overlay's fixture (10.9): a question Node with five Options, the first of which is an
+ * explanation Node at every maximum with eight Options of its own -- the Overlay at its
+ * largest -- measured at rest, with every Overlay open in turn, and on the URL that opens it.
+ */
+const OVERLAY_PAGES = [
+  { what: 'overlay fixture: five Options', url: '/overlay/five' },
+  { what: 'overlay fixture: the largest Overlay, open by URL', url: '/overlay/five/big' },
+  { what: 'overlay fixture: a second-level Overlay, open by URL', url: '/overlay/five/big/o1' },
+] as const
+
+/** The Overlay fixture's server, started once for every test of this file that needs it. */
+const overlayOrigin = () => served(fixtures, 'overlay', OVERLAY_PORT)
+
+for (const { what, url } of OVERLAY_PAGES) {
+  for (const lang of LANGUAGES) {
+    test(`${what}, ${lang}, never scrolls at any viewport of 10.6, each Overlay open in turn`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, `${await overlayOrigin()}${inLang(url, lang)}`, what, lang)
+    })
+  }
+}
+
+/**
+ * The panels the explainers fixture must have been measured with, in one language: its eight
+ * terms at each viewport of 10.6 but the floor, where the notice replaces the Bubble.
+ */
+function expectEveryPanelMeasured(what: string, lang: string): void {
+  const measured = rows.filter((row) => row.page === what && row.lang === lang && row.sheet.startsWith('explainer '))
+  expect(measured.length, `${what} (${lang}): panels measured`).toBe(8 * (VIEWPORTS.length - 1))
+}
+
+/** The explainers fixture's server on `port`: one with the script, one without. */
+const explainersOrigin = (port: number) => served(fixtures, 'explainers', port)
+
+// Eight explainers at every maximum the format allows (tree-format.md 5.9), each panel opened
+// in turn at every viewport: the tallest panel the format can ask for, beside every line of a
+// paragraph that runs the text area's width (10.8).
+for (const lang of LANGUAGES) {
+  test(`the explainers fixture, ${lang}, never scrolls at any viewport of 10.6, each panel open in turn`, async ({ page }) => {
+    test.slow()
+    await measureEverywhere(page, `${await explainersOrigin(EXPLAINERS_PORT)}${inLang('/explainers/start', lang)}`, 'explainers fixture', lang)
+    expectEveryPanelMeasured('explainers fixture', lang)
+  })
+}
+
+/**
+ * The Carousel's fixture (section 12): a main image and four in the strip, a main image and
+ * one, and a credit of the format's maximum 120 characters, each enlarged in turn.
+ */
+const CAROUSEL_PAGES = [
+  { what: 'Node with five Images', url: '/carousel/five' },
+  { what: 'Node with two Images', url: '/carousel/five/two' },
+  { what: 'Node with a 120-character credit', url: '/carousel/five/two/long' },
+] as const
+
+/** The Carousel fixture's server. */
+const carouselOrigin = () => served(fixtures, 'carousel', CAROUSEL_PORT)
+
+/** The first Tree's server. */
+const firstTreeOrigin = () => served(trees, 'ai-act-applicability-agrifood', FIRST_TREE_PORT)
+
+for (const { what, url } of CAROUSEL_PAGES) {
+  for (const lang of LANGUAGES) {
+    test(`${what}, ${lang}, never scrolls at any viewport of 10.6, each Image enlarged in turn`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, `${await carouselOrigin()}${inLang(url, lang)}`, what, lang)
+    })
+  }
+}
+
+// The order of 10.5 laid out either side of each trigger, on the Node that has every step to
+// take: ten Images, a strip, a main image and three Sources to collapse.
+for (const lang of LANGUAGES) {
+  test(`the full Node, ${lang}, never scrolls either side of each trigger of 10.5`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'full-node', FULL_NODE_TRIGGERS_PORT)
+    await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail, at the triggers', lang, true, STEP_VIEWPORTS)
+  })
+}
+
+// What a face cannot hide: the rows of 10.1 and 10.5 in pixels. A text area two pixels short
+// passed on Windows and failed on the runner (PR #99); the budget is the same in every face.
+// Since #102 the main image is two fifths of the Bubble on this Node too, the one at every
+// maximum: if its picture keeps that share, every valid Node's does (10.7).
+test('the full Node keeps the text area 10.5 budgets, a 760 Bubble down to 1200 wide and a main image of two fifths of it: the collapsed Options stand beside it, not in a row of their own', async ({ page }) => {
+  const origin = await served(fixtures, 'full-node', FULL_NODE_TRIGGERS_PORT)
+  for (const [width, height] of [[1280, 640], [1280, 632], [1279, 640], [1200, 640], [1200, 632]] as const) {
+    await page.setViewportSize({ width, height })
+    expect((await page.goto(`${origin}${FULL_NODE_URL}`))?.status()).toBe(200)
+    // At 640 the up arrow stands 30 pixels above the Bubble and the text area is 364 (#102),
+    // 349 since the strip band holds 67-pixel thumbnails (#174); below it the arrow is back on
+    // the outline and the strip is its pill, so 632 has 394, as before.
+    expect((await page.locator('.bubble').boundingBox())!.width, `${width}x${height}: the Bubble`).toBe(760)
+    expect((await page.locator('.bubble-text').boundingBox())!.height, `${width}x${height}: the text area`).toBe(
+      height >= 640 ? 349 : 394,
+    )
+    const bubble = (await page.locator('.bubble').boundingBox())!
+    const image = (await page.locator('.bubble .main-image').boundingBox())!
+    expect(image.height, `${width}x${height}: the main image`).toBeCloseTo(0.4 * bubble.height, 0)
+  }
+})
+
+// A page with a Carousel mid-slide: the strip rides in the layer, and the neighbour it slides
+// towards has an empty row where its Carousel will be (11.4).
+for (const { what, url } of CAROUSEL_PAGES) {
+  for (const lang of LANGUAGES) {
+    test(`${what}, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
+      test.slow()
+      await measureSliding(page, `${await carouselOrigin()}${inLang(url, lang)}`, what, lang)
+    })
+  }
+}
+
+test('the longest Node of the first Tree, once it validates, never scrolls at any viewport of 10.6', async ({ page }) => {
+  // Every language at rest, each picture enlarged -- its Options' pictures too since #55 --
+  // and mid-slide: four passes over every viewport, more than `test.slow()`'s 90 seconds
+  // (4.3 minutes on a laptop).
+  test.setTimeout(10 * 60_000)
+  const first = 'ai-act-applicability-agrifood'
+  const tree = await openTree(path.join(trees, first)).catch(() => null)
+  test.skip(
+    tree === null,
+    `${first} is over the format's length limits until issue #44 cuts it (tests/ai-act-tree.test.ts); nothing can be served`,
+  )
+
+  // The longest Node: the longest description in any language. The ids are read off the
+  // file only to enumerate; every Node itself comes through the loader (section 7).
+  const file = JSON.parse(await readFile(path.join(trees, first, 'tree.json'), 'utf8')) as { nodes: Array<{ id: string }> }
+  const ids = file.nodes.map((node) => node.id)
+  let longest = { id: tree!.manifest.root, length: -1 }
+  for (const id of ids) {
+    const node = await tree!.getNode(id)
+    if (!node) continue
+    const length = Math.max(...Object.values(node.description).map((d) => d.length))
+    if (length > longest.length) longest = { id, length }
+  }
+
+  const origin = await firstTreeOrigin()
+  const url = longest.id === tree!.manifest.root ? `/${first}/${longest.id}` : `/${first}/${tree!.manifest.root}/${longest.id}`
+  for (const lang of tree!.manifest.languages) {
+    await measureEverywhere(page, `${origin}${inLang(url, lang)}`, `first Tree, longest Node (${longest.id})`, lang)
+    await measureSliding(page, `${origin}${inLang(url, lang)}`, `first Tree, longest Node (${longest.id})`, lang)
+  }
+})
+
+// The heaviest Node a reader meets (issue #55): its own picture as the main image and eight
+// Options, whose pictures elsa-tree/3 moved to their targets (#79) -- at rest, the main image
+// enlarged, and mid-slide beside neighbours whose main images are withheld (11.4).
+for (const lang of LANGUAGES) {
+  test(`the first Tree's annex-i-legislation, ${lang}, never scrolls at any viewport of 10.6, each picture enlarged in turn, or mid-slide`, async ({ page }) => {
+    test.slow()
+    const url = `${await firstTreeOrigin()}${inLang('/ai-act-applicability-agrifood/annex-i-legislation', lang)}`
+    await measureEverywhere(page, url, 'first Tree, annex-i-legislation (its main image, 8 Options)', lang)
+    await measureSliding(page, url, 'first Tree, annex-i-legislation (its main image, 8 Options)', lang)
+  })
+}
+
+test.describe('with JavaScript switched off', () => {
+  test.use({ javaScriptEnabled: false })
+
+  // Section 14: the rule is CSS and the format's limits, so it holds before any script runs.
+  for (const { what, url } of EXAMPLE_PAGES) {
+    test(`${what} never scrolls without JavaScript`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, url, `${what}, no JavaScript`, 'en', false)
+    })
+  }
+
+  // The Overlay at its largest, without the script: a native disclosure over the page (14).
+  for (const { what, url } of OVERLAY_PAGES) {
+    test(`${what} never scrolls without JavaScript`, async ({ page }) => {
+      test.slow()
+      const origin = await served(fixtures, 'overlay', OVERLAY_NO_SCRIPT_PORT)
+      await measureEverywhere(page, `${origin}${url}`, `${what}, no JavaScript`, 'en', false)
+    })
+  }
+
+  // Issue #59: the Sources control is in the Bubble, in the middle of the page, where the
+  // panel is laid. At these rows it lay over one of the panel's own links. Each link now
+  // takes its click, a second click on the control still closes the panel (14), and the
+  // Bubble behind the panel does not move when the control leaves it.
+  test('the Sources Sheet keeps every link clear of its own control without JavaScript (#59)', async ({ page }) => {
+    for (const { url, viewport } of ISSUE_59) {
+      const [width, height] = viewport.split('x').map(Number) as [number, number]
+      await page.setViewportSize({ width, height })
+      await page.goto(url)
+      const sheet = page.locator('details.sources-sheet')
+      const title = page.locator('.bubble h1').first()
+      const closed = await title.boundingBox()
+      await sheet.locator('.sheet-open').click()
+      await expect(sheet.locator('.sheet-panel')).toBeVisible()
+      await assertReachable(sheet, `${url} at ${viewport} with the Sources open`)
+      expect(await title.boundingBox(), `${url} at ${viewport}: the Bubble moved as the Sources opened`).toEqual(closed)
+      await sheet.locator('.sheet-open').click()
+      await expect(sheet.locator('.sheet-panel')).toBeHidden()
+    }
+  })
+
+  // Issue #59, PR #61's first fix: a Node with a Source and an Image, where without the script
+  // the enlarged view's control is on the Bubble's lower outline. With the Sources open, a
+  // click on that control opens the enlarged view, and the Sources close: one Sheet at a time.
+  test('the open Sources Sheet leaves the collapsed Carousel its control without JavaScript (#59)', async ({ page }) => {
+    for (const [width, height] of [[768, 1024], [390, 844], [360, 640]] as const) {
+      await page.setViewportSize({ width, height })
+      await page.goto(EXAMPLE_PAGES[1].url)
+      const sources = page.locator('details.sources-sheet')
+      const carousel = page.locator('details.carousel-sheet')
+      await sources.locator('.sheet-open').click()
+      await expect(sources.locator('.sheet-panel')).toBeVisible()
+      await carousel.locator('.sheet-open').click()
+      await expect(carousel.locator('.sheet-panel'), `${width}x${height}: the Carousel did not open`).toBeVisible()
+      await expect(sources.locator('.sheet-panel'), `${width}x${height}: the Sources stayed open`).toBeHidden()
+    }
+  })
+
+  // The explainer panels without the script: CSS alone opens each at the foot of the text
+  // area, full width (10.8, 14).
+  for (const lang of LANGUAGES) {
+    test(`the explainers fixture, ${lang}, never scrolls without JavaScript, each panel open in turn`, async ({ page }) => {
+      test.slow()
+      await measureEverywhere(page, `${await explainersOrigin(EXPLAINERS_NO_SCRIPT_PORT)}${inLang('/explainers/start', lang)}`, 'explainers fixture, no JavaScript', lang, false)
+      expectEveryPanelMeasured('explainers fixture, no JavaScript', lang)
+    })
+  }
+
+  // The Carousel without the script: the strip and, beside it at every size, the enlarged
+  // view's control, whose Sheet is a page of disclosures per Image (12.2, 14).
+  test('a Node with five Images never scrolls without JavaScript', async ({ page }) => {
+    test.slow()
+    await measureEverywhere(page, `${await carouselOrigin()}/carousel/five`, 'Node with five Images, no JavaScript', 'en', false)
+  })
+
+  // The one Sheet the script pages: without it the 49 entries are pages of disclosures,
+  // and each page has to fit the narrowest viewport above the floor (10.2, 10.6, 14).
+  for (const lang of LANGUAGES) {
+    test(`the full Node at a 49-entry Trail, ${lang}, never scrolls without JavaScript`, async ({ page }) => {
+      test.slow()
+      const origin = await served(fixtures, 'full-node', FULL_NODE_NO_SCRIPT_PORT)
+      await measureEverywhere(
+        page,
+        `${origin}${inLang(FULL_NODE_URL, lang)}`,
+        'full Node, 49-entry Trail, no JavaScript',
+        lang,
+        false,
+      )
+    })
+  }
+})
+
+/** The measurements as a Markdown table: one row per page, language, viewport and Sheet. */
+function table(all: Row[]): string {
+  const fraction = (a: number, b: number): string => `${a}/${b}`
+  const lines = [
+    '| page | lang | viewport | Sheet open | document h/inner h | document w/inner w | body h | body w | bubble h/client h | bubble w/client w | overlay h/client h | overlay w/client w | overflowing elements |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ]
+  for (const row of all) {
+    const m = row.measured
+    lines.push(
+      `| ${row.page} | ${row.lang} | ${row.viewport} | ${row.sheet || '-'} | ${fraction(m.doc.sh, m.inner.h)} | ${fraction(m.doc.sw, m.inner.w)} | ${m.body.sh} | ${m.body.sw} | ${m.bubble ? fraction(m.bubble.sh, m.bubble.ch) : '- (notice)'} | ${m.bubble ? fraction(m.bubble.sw, m.bubble.cw) : '-'} | ${m.overlay ? fraction(m.overlay.sh, m.overlay.ch) : '-'} | ${m.overlay ? fraction(m.overlay.sw, m.overlay.cw) : '-'} | ${m.overflowing.length === 0 ? 'none' : m.overflowing.join('; ')} |`,
+    )
+  }
+  return `${lines.join('\n')}\n`
+}

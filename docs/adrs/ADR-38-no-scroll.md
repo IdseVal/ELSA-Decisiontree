@@ -1,0 +1,189 @@
+# ADR-38-no-scroll: the layout is guaranteed at 1280 x 640, below that it gives things up in a fixed order rather than handing out a scrollbar, and a browser test measures scrollHeight at ten viewports on every kind of Node
+
+- Status: ACCEPTED (frozen) -- 2026-09-10; amended 2026-09-12 and 2026-09-13 by issue #41 (below)
+- **[#220] Amended (2026-10-09)** by `ADR-220-answer-row.md`: a step of three or four next steps shows the notice below 390 pixels wide and below 560 tall at least (`application.md` 41.4's rule raises either where #221 measures a face that needs more), above the floor every other step keeps.
+- **[#231] Amended (2026-10-10)** by `ADR-231-five-next-steps.md`: a step of five next steps shows
+  the notice in boxes of its own -- below 640 x 590 and below 360 x 650 on the public page and in
+  the preview, and for a row of five buttons in the editor below 770 x 690 and below 390 x 1080
+  (`docs/specs/application.md` 42.4).
+- Issue: #38 -- Architecture: freeze the version 0.2 application contracts
+- Spec: `docs/specs/application.md`, sections 10.4, 10.5, 10.6, 10.7
+- Core document: 3.2, section 9 ("the page must never scroll"), open item **10.22**
+- **Amended 2026-10-03 by issue #195** (the owner's #194: "graphs should have a small mention
+  by who it was authored"): decision 1's "no label truncated" and decision 3's fixed order,
+  each thing given up "reachable behind one control", have one exception, the line that names
+  a Tree's Authors in the chrome bar of its Node pages. It is cut with an ellipsis where its
+  room ends, at 1280 x 640 too, and not drawn where under 80 pixels are left -- by its room,
+  not by a step of the order -- and it is behind no control; where a page does not draw it, the
+  Tree's tile on the overview names the Authors, on a line cut where its own room ends. The
+  walk skips it, `.page-chrome [data-clamp]`, as it skips a cut tile title, and still checks
+  the bar (`ADR-195-the-mention.md`; `application.md` 10.4 to 10.6, 39.4 to 39.6; core
+  document 10.22). The rest stands.
+
+## Context
+
+The owner (#35): "Everything that is on an opened node should fit on the screen, inside
+the bubble. We absolutely cannot have any scrolling on the page." The core document
+makes it one of the things that must never happen (section 9). It is met on the data
+side by `tree-format.md` 5.7's length limits, which were derived from an assumed
+1280 x 640 viewport and which asked this issue to confirm or correct them. Core document
+open item 10.22 asks this issue for three things: the viewport the layout guarantees,
+what happens on a smaller screen, and how "never scrolls" is tested.
+
+"No scrolling" is a statement about a laid-out document. No unit test can make it; only
+a browser can.
+
+## Decision
+
+1. **The guaranteed viewport is 1280 x 640 CSS pixels** -- `tree-format.md` 5.7's
+   assumption, confirmed. At or above it the full arrangement of `application.md` 10.1
+   is shown, no label truncated, nothing collapsed, and the document does not scroll.
+2. **The floor is 320 x 480.** Below it the application shows the `minimumSize` notice,
+   which itself fits and does not scroll. 320 x 480 is smaller than any display in
+   current use (an iPhone SE is 375 x 667), so the notice is a backstop for a resized
+   desktop window, not an answer to mobile.
+3. **Between the floor and the guarantee the layout gives things up in a fixed order of
+   seven steps** (`application.md` 10.5): the Trail collapses, then the Carousel, then
+   the Option columns move below, then the Options collapse, then the Sources collapse,
+   then the type scale steps down to a floor of 13 pixels, and only then the notice.
+   Each collapsed thing stays reachable behind one control, which opens the same `Sheet`.
+   **The Node's title, description and Answer Branches are never given up**: they are the
+   step the reader is on.
+4. **The rule is absolute and has exactly one exemption.** `html` and `body` are the size
+   of the viewport with `overflow: hidden`; no element's content is taller or wider than
+   the element, except the Carousel strip, which scrolls horizontally inside its own
+   80-pixel row (`ADR-38-carousel.md`). The document never scrolls at any size, with a
+   Sheet open, or during a transition.
+5. **The test** is `tests/browser/no-scroll.spec.ts` (Playwright, now in the contract):
+   `document.documentElement` and `document.body` have `scrollHeight <= innerHeight` and
+   `scrollWidth <= innerWidth`, and **every element** in the document except
+   `[data-carousel-strip]` has `scrollHeight <= clientHeight` and
+   `scrollWidth <= clientWidth`, with a one-pixel tolerance for sub-pixel rounding. It
+   runs at ten viewports (1280 x 640, 1366 x 768, 1920 x 1080, 2560 x 1440,
+   1280 x 800, 1024 x 768, 768 x 1024, 390 x 844, 360 x 640, 320 x 480) over every kind
+   of Node, in both languages, including a fixture Node at every maximum the format
+   allows with a 49-entry Trail, and including a Sheet open and mid-transition.
+6. **`tree-format.md`'s limits are confirmed unchanged**, so `elsa-tree/2` needs no new
+   format number. Six of its assumptions are re-derived by this layout and none of them
+   moves a number (`application.md` 10.7); that is recorded as a comment on issue #37, as
+   that spec asks.
+
+## Alternatives rejected
+
+- **Scale the whole tree layer uniformly by `min(1, vw/1280, vh/640)`.** One line of CSS
+  and the rule would hold at every size. Rejected: on a 390-pixel phone the factor is
+  0.30, which turns 16-pixel body text into 4.8-pixel body text. A rule that is honoured
+  by making the content unreadable has not been honoured.
+- **A minimum-size notice for everything below 1280 x 640.** Simple and defensible, and
+  it was the first reading of "the owner's rule is absolute". Rejected because it turns
+  a tool for "a broad audience" of AI developers (core document 2) into a desktop-only
+  tool, and because the degradation order costs #41 seven CSS steps rather than a second
+  layout.
+- **A second, independently designed layout below a breakpoint.** The usual answer, and
+  the most work: two arrangements to design, to test at ten viewports and to keep in
+  step as #42 and #43 build on them, and `tree-format.md`'s limits derived for only one
+  of them. The degradation order is one arrangement that sheds parts, so there is one
+  thing to reason about and every limit keeps holding.
+- **Letting the Bubble scroll internally when its text is long.** The obvious escape
+  hatch, and precisely what the owner ruled out: the sentence is that everything on an
+  opened Node fits *inside the bubble*. It would also make `tree-format.md`'s length
+  limits pointless, since any overflow would silently become a scrollbar instead of a
+  validator error an author must fix.
+- **Asserting only `documentElement.scrollHeight`.** Cheap, and it would pass while a
+  nested element quietly scrolled. Walking every element is a handful of lines and is
+  the difference between testing the rule and testing a symptom of it.
+- **Leaving browser tests out of the contract, as 0.1 did.** 0.1 could: nothing it
+  promised needed a laid-out document. This does, so `npm run test:browser` joins the CI
+  command (`ADR-38-modules-and-tests.md`).
+
+## Consequences
+
+- Core document 10.22 is answered and recorded there.
+- CI gets slower: `npm run test:browser` is now required, and `no-scroll.spec.ts` alone
+  is ten viewports times six pages times two languages. It is the price of the
+  owner's one absolute rule being checkable rather than asserted.
+- A Tree that validates fits. If one ever does not, the failing test names the viewport,
+  the Node and the language, and the answer is either a layout fix or a corrected limit
+  on issue #37 with a new format number -- not a scrollbar.
+- Issue #41 implements seven named degradation steps in order, not media queries of its
+  own choosing.
+
+## Amendment, 2026-09-12 (issue #41, the build)
+
+Four things the build had to decide in a stylesheet are recorded here so that they are
+the contract and not an implementation detail (`application.md` 10.4, 10.5, 10.7, 14).
+
+- **Decision 2, the floor.** The floor itself shows the notice: a viewport **320 pixels
+  wide or 480 pixels tall shows `minimumSize` whatever its other dimension** -- a
+  1280 x 480 window as much as a 320 x 900 one -- because the order of decision 3 has
+  nothing left to give up at that height or width. 10.4 read "down to 320 x 480" for the
+  tree view and 10.6 "the floor: the notice"; 10.6's reading is the one built and
+  measured, and 10.4 now says so.
+- **Decision 3, step 1 at phone width.** Below 480 pixels of width the Trail row is 30
+  pixels and gives up the parent's title as well: the row is `trailMore(n)` alone, `n`
+  the whole Trail, the parent the first entry of the Trail Sheet and, below an
+  explanation Node or a Terminal, the `back` Branch. A parent Branch holding an
+  80-character title needs three lines of 20, which the row cannot hold and 10.2 does
+  not let it truncate; on a question Node at that width the parent's title is one
+  control away. At the same width the rim narrows to 22 by 10 pixels with the badge's
+  and the hint's band kept per kind of Node. It is the one addition to the seven steps.
+- **Decision 4, the Sheet without JavaScript.** A Sheet's list longer than one page of
+  eight -- the 49-entry Trail -- is pages of nested native disclosures when no script
+  runs: `next` opens the next page and the stylesheet hides the page before it, so no
+  panel is ever asked to hold 49 links in a 360-pixel window. With the script the pages
+  are the `previous` and `next` buttons of 10.2. Decision 5's test measures the
+  no-script Trail Sheet page by page at every viewport, and the enlarged view of the
+  interim thumbnails (`ADR-38-tree-view.md`, amendment) wherever a Node has an Image.
+- **Decision 6, the face.** The widths of `application.md` 10.7 are re-derived in DejaVu
+  Sans, the widest fallback body face, and hold there for every row but the Bubble's text
+  area, which is 20 pixels short of the format's maximum in that face -- `tree-format.md`
+  5.7's own caveat for a wide body font. So the default type stack (13.4, `src/theme.ts`)
+  names Arial-metric faces before `sans-serif`, and a machine with no desktop face gets
+  Liberation Sans, in which the maximum fits with 4 pixels to spare in Dutch.
+
+## Amendment, 2026-09-13 (issue #41, the review of PR #56)
+
+- **Decision 2, the floor, confirmed by the owner.** The owner's answer on PR #56
+  (<https://github.com/IdseVal/ELSA-Decisiontree/pull/56#issuecomment-5652953012>) is
+  the reading of the amendment above: a window short in either dimension gets the
+  notice, because the rows need 568 pixels of height and the rule that the view never
+  scrolls is absolute. Core document 10.22 now carries the owner's sentence. The notice
+  **names the dimension that is short**: three chrome keys, `minimumSize` and then
+  `minimumWidth` or `minimumHeight` (both at the corner), shown by the stylesheet on each
+  dimension's own query, so a 1280 x 480 window is told to grow taller and not that it
+  needs 320 by 480 (`application.md` 3.2, 10.4).
+- **Decision 3, the width triggers.** The height-keyed steps 1, 2, 5 and 6 also fire by
+  width -- step 1 below 1200 pixels, where the collapsed Trail row no longer fits; 2, 5
+  and 6 together below 792, where the Bubble narrows and its text takes more lines --
+  because a narrower page costs the same height the step frees. They are recorded in
+  `application.md` 10.5 with the order they fire in. Step 5's width trigger was 640 until
+  this amendment, one step behind 6's 792; it is 792 now, so the citation gives way
+  before the type steps down, by width as by height.
+- **Decision 3, step 2 deferred.** The Carousel control of step 2, showing `imageCount`,
+  is #43's, with the Carousel; the interim thumbnail row of `application.md` 12.1 shrinks
+  to 24-pixel thumbnails where step 2 fires, and `imageCount` is in `src/chrome.ts` with
+  no caller until #43.
+
+## Amendment, 2026-09-14 (issue #43, the owner on PR #58)
+
+- **Decision 3, step 2's width trigger is 960.** The owner's answer on PR #58
+  (<https://github.com/IdseVal/ELSA-Decisiontree/pull/58#issuecomment-5667939977>,
+  option A). Step 2 no longer fires by width with steps 5 and 6 at 792 but below 960
+  pixels, for every Node. The reason is the caption line of `application.md` 12.2: a
+  `credit` may be 120 characters (`tree-format.md` 5.2), it is never cut and never wraps,
+  and with its separator it needs 123 characters, about 891 pixels, which the line has
+  only from about 955 pixels of width up (896 at 960, measured). With the trigger at 792
+  no build could hold the credit rule, the no-scroll rule and the fixed order at once. #43's first build kept the strip to
+  792 and collapsed the row below 1280 on a Node with a credit over 97 characters instead,
+  which fired step 2 before step 1 and keyed a trigger to content; the Reviewer of PR #58
+  caught it. The order by width is now step 1 (1200), step 2 (960), steps 5 and 6 (792),
+  the same for every Node, and no trigger depends on what a Node holds.
+- **What the caption line gives up.** Below 1280 pixels of width it is 123 characters, so
+  every credit is whole; the description takes what is left and may be empty below the
+  guaranteed width. It stays whole in the thumbnail's alternative text and in the
+  enlarged view. Cost: between 792 and 959 pixels a Node with a short credit also shows
+  step 2's control instead of the strip.
+- **Tested.** `no-scroll.spec.ts` measures a Node whose credit is 120 characters at the
+  viewports of 10.6 and at 1240, 960, 959 and 800 pixels of width; `carousel.spec.ts`
+  asserts that the Trail collapses at 1200 and the Carousel at 960, with the credit whole
+  on the line until then.

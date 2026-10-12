@@ -1,0 +1,147 @@
+version: 3
+
+branches:
+  base: dev
+  protected: [main]          # no agent may merge into these; the human opens dev -> main
+
+# THE AUTONOMY DIAL (section 14). Uncomment to preset; leave commented and
+# `dispatch.py onboard` will ask the owner in plain language and write it here.
+#   manual  - you write the issues; the Planner only files `proposed` issues when you
+#             explicitly run onboarding/revision; no backlog audits.
+#   propose - when the pipeline drains, the Planner audits and files `proposed` issues;
+#             you promote the ones you want to `ready`.
+#   auto    - the Planner files `ready` issues; the loop closes itself (v0.1.1 behaviour).
+autonomy: propose
+
+dispatcher:
+  poll_interval_seconds: 60
+  max_active_issues: 3               # concurrent headless Implementer runs. These are real
+                                     # local processes doing real work; 3 keeps a laptop
+                                     # usable. Raise it on a workstation if you like --
+                                     # idle hoarding is gone, this only bounds LIVE work.
+  max_run_minutes: 150               # hard wall-clock ceiling per run; then kill + breaker (30 until 2026-09-14, 45 until 09-15:
+                                     # 90 until 2026-10-02: with Opus at effort max (v0.2.20) the first runs of the
+                                     # tree-creation round (#171, #172, #173) were still working at 60 min;
+                                     # 120 for two hours that day: #175 then took 95 min and #174 was at 107 and working;
+                                     # 150 until 2026-10-03: #179 (the ending as free text, a format conversion) was committing
+                                     # its screenshots at 133 min with the final suites still to run;
+                                     # 180 for half an hour: the same run was still on its last unit-test pass at 163 min)
+                                     # 210 while Opus ran at max; back to 150 with effort high on 2026-10-09
+                                    # 60 until 2026-09-26: the editor round's Implementer runs (#134, #135, #136) each
+                                    # hit 60 min mid-work and needed a second cycle just to finish and open the PR)
+                                     # fix runs that merge dev and re-run 130+ browser tests were killed at 30 and 45 with work done)
+  max_run_minutes_complex: 150       # v0.2.10: the ceiling for runs of a `complex` issue (90 until 2026-10-02, 60 until 2026-09-19:
+                                     # #80's Overlay runs on the most capable model were killed at 60 three times)
+  retry_empty_run: true              # one fresh retry when a run exits without a PR
+  tick_deadline_minutes: 10          # v0.2.13: a tick longer than this exits the process; the task restarts it
+  cleanup_worktrees_on_merge: true
+  claude_cmd: C:\Users\idse_\.npm-global\claude.cmd   # absolute path: bare `claude` is a
+                                     # .cmd shim Python subprocess cannot resolve, and the
+                                     # scheduled task runs with a minimal PATH anyway
+  permission_args: ["--dangerously-skip-permissions"]   # see "How a headless run works"
+  extra_args: []                     # appended to EVERY headless run, after the policy's
+  bash_timeout_minutes: 40          # v0.2.17: foreground Bash ceiling of a headless run (the no-scroll
+                                    # spec takes ~20); background tasks are refused by the CLI
+                                     # --model flag (v0.2.5: the model comes from `models:`
+                                     # below; a --model here would override it -- don't)
+  interactive_agent: claude          # Orca agent id for interviews launched WITHOUT a
+                                     # chosen model (models.interview empty)
+  notify:
+    # Ships EMPTY on purpose (v0.2.1): no instant pings; everything that needs you
+    # reaches you in the daily digest (section 11). Put "@YourHandle" here only if you
+    # WANT to be @-mentioned (and therefore e-mailed by GitHub) the moment something
+    # needs a human.
+    github_mention: ""
+
+gates:
+  core_document:                     # nothing is dispatched until the Planner's core document is on `dev`
+    path: docs/CORE_DOCUMENT.md
+    empty_marker: "Status: EMPTY"
+    achieved_marker: "Status: ACHIEVED"
+
+# A label is a claim about the work. It earns the skills that work needs; the dispatcher
+# writes the matching names into the run's brief. All skills are available to every run
+# (they are committed in .claude/skills/); this map is the explicit pointer.
+labels:
+  ui:
+    skills: [frontend-design, web-design-guidelines, high-end-visual-design, webapp-testing]
+  seo:
+    skills: [seo-audit]
+  scraper:
+    skills: [just-scrape]
+  bug:
+    skills: [diagnosing-bugs]
+  data:
+    skills: [codebase-design]
+  research:
+    skills: [just-scrape]
+  architecture:
+    skills: [improve-codebase-architecture, codebase-design]
+
+# Baseline skills named in every brief, per role; labels add to these.
+roles:
+  planner:
+    skills: [handoff, grill-with-docs, domain-modeling]
+  architect:
+    skills: [handoff, improve-codebase-architecture, codebase-design]
+  implementer:
+    skills: [handoff, tdd]
+
+circuit_breaker:
+  max_cycles: 3                      # runs + send-backs per issue before `escalated`
+  max_ci_reruns: 2                   # CI re-runs per finished run that decided nothing (v0.2.8)
+
+# THE DIAL, ENFORCED (v0.2.4). In `manual`/`propose` mode the `ready` label is the
+# human's signature, so before dispatching the dispatcher asks GitHub's timeline WHO
+# last applied it; applied by an account not listed here -> demoted back to `proposed`
+# with a comment. Empty list = enforcement off (prompt-only, the pre-v0.2.4 behaviour).
+# List the HUMANS who may release work. Only meaningful when the agents' gh account
+# (here: DeKnecht) is a DIFFERENT account than the humans'.
+promotion:
+  trusted_promoters: ["IdseVal", "DeKnecht"]   # DeKnecht added 2026-09-15 01:5x on the owner's "finished tomorrow,
+                                                  # no waiting" instruction, to promote the bugs the #46 walk filed; owner may remove
+
+# THE MODEL POLICY (v0.2.5). Before this block every headless run inherited whatever
+# model the Claude app happened to default to -- i.e. whatever the human last picked in
+# their own session -- so a day on the most expensive model silently ran the whole
+# fleet on it. Now every run is started with an explicit `--model`:
+#   default   every headless run (dispatch, retry, fix, backlog audit)
+#   complex   every run of an issue carrying `complex_label` -- the highly complex jobs
+#   interview the interactive Planner sessions (onboarding / revision). CHOSEN BY THE
+#             OWNER together with the setup agent before the first onboarding; if the
+#             line is missing, `dispatch.py onboard` asks in a terminal.
+# Values are Claude CLI model names. The ALIASES `opus` / `fable` / `sonnet` mean "the
+# newest model of that family at launch time" (today: claude-opus-5, claude-fable-5-1),
+# so this block does not go stale when a generation ships; a full id (claude-opus-5)
+# pins one. Empty = no --model flag = the app's floating default (the old behaviour).
+models:
+  default: opus
+  complex: fable
+  complex_label: complex
+  interview: opus
+  effort:                            # v0.2.20: `--effort` per model, named as above. Opus 5.5 runs at
+    opus: high                       # `medium` by default; `max` 2026-10-02 to 10-09 (owner: not necessary --
+                                     # runs of 1-3 h, $5-40 each, the usage window gone in hours). Session-only levels go on every
+                                     # launch. No entry = the model's own default (fable, sonnet).
+                                     # CI (agent-pipeline.yml) carries the same flag on its Opus steps.
+  capped_hold_minutes: 360           # v0.2.9: a model that is out of usage credits is re-tried this often
+  # CI (agent-pipeline.yml, not read from here): the Verifier runs on `sonnet` since v0.2.11 --
+  # its work is mechanical (run, compare, count); the Reviewer, the last gate, stays on `opus`.
+
+# Enforced by the CI Reviewer (section 8 embeds the same rules in its prompt); kept here
+# as the single written source both the Implementer and the Reviewer are pointed at.
+evidence_gates:
+  - id: counts-reconciled
+    applies_to: [data, pipeline]
+    requires: >-
+      A count from the run reconciled against a count from an independent source, both quoted
+      in the pull request. "It completed" is not a count.
+  - id: output-sampled
+    applies_to: [data, ui]
+    requires: >-
+      A sample of the actual output pasted into the pull request. Enough rows that a wrong
+      one would be visible.
+  - id: cost-measured
+    applies_to: [pipeline]
+    requires: >-
+      The measured cost of the change against its budget, where one is documented.

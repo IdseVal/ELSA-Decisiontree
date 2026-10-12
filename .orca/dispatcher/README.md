@@ -1,0 +1,193 @@
+# The Dispatcher (v3)
+
+A deterministic reconciler that runs the agent workflow. Not an agent. The full
+behavioural contract is the docstring at the top of `dispatch.py`; this file is the
+operations crib sheet and the policy record (v0.1.1 kept the policy in a separate
+`~/.orca/roles/dispatcher.md`; it lives here now).
+
+**Two ideas:** (1) it never trusts an agent to report back -- every tick it observes
+GitHub, the OS process table, and Orca, computes what should be true, and does the
+difference, idempotently. (2) GitHub is the memory; a run is disposable -- agents are
+headless `claude -p` processes that start, do one job, and exit. Nothing waits.
+
+## Files
+
+| File | What |
+| --- | --- |
+| `dispatch.py` | the reconciler; `run` / `once` / `status` / `doctor` / `onboard` / `pause` / `resume` |
+| `install-task.ps1` | installs it as a Windows scheduled task (at logon, auto-restart) |
+| `state.json` | de-dup memory only (cycles, pages and the branch tip at page time, run PIDs and the tip a fix run started from, the CI run last re-run per PR and how often, the session-limit hold, the per-model usage-cap holds, and the turns/tokens/cost of every finished run and CI job since v0.2.11). Gitignored. Safe to delete (the usage record goes with it). |
+| `prompts/` | the brief files runs are pointed at. Gitignored. Read them to triage. |
+| `runs/` | one log per headless run: your window into what an agent did. Gitignored. |
+| `dispatcher.log` | rotating log. Gitignored. |
+| `dispatcher.lock` | one dispatcher per repo. |
+| `paused.json` | the soft-pause marker for THIS project. Gitignored. Present = paused. |
+| `interview-done.json` | written by `finish-interview` inside an interview worktree; the dispatcher sees it and archives that worktree. Gitignored. |
+| `dispatcher-pause.cmd` / `-resume.cmd` | the button: double-click, or pin to the taskbar. |
+
+## Commands
+
+```powershell
+python .orca\dispatcher\dispatch.py doctor --fix   # prerequisites; creates missing labels
+python .orca\dispatcher\dispatch.py onboard        # Planner interview (asks autonomy + interview model first, if unset)
+python .orca\dispatcher\dispatch.py finish-interview # run BY THE PLANNER inside an interview worktree, on the human's go-ahead
+python .orca\dispatcher\dispatch.py status         # the board: issues, runs, PRs
+python .orca\dispatcher\dispatch.py once --dry-run # what one tick would do
+python .orca\dispatcher\dispatch.py run            # foreground loop (Ctrl+C to stop)
+python .orca\dispatcher\dispatch.py pause -m "why" # soft pause: start nothing new
+python .orca\dispatcher\dispatch.py resume         # lift it
+powershell -ExecutionPolicy Bypass -File .orca\dispatcher\install-task.ps1   # run forever
+```
+
+## What it does each tick
+
+Gate on the core document being on `dev`. Dispatch `ready` issues whose `Depends on:`
+are closed, up to `max_active_issues` LIVE runs -- but first, in manual/propose mode,
+verify WHO applied `ready` (GitHub timeline): not in `promotion.trusted_promoters` ->
+demote back to `proposed` with a comment (v0.2.4; empty list = enforcement off).
+Dispatch means: worktree (no terminal), brief file,
+headless `claude -p` in that directory logging to `runs/`. The issue's labels pick the
+role the run loads (`research` -> Planner, `architecture` -> Architect, else the
+Implementer) and the MODEL (v0.2.5, `models:` in `dispatch.yml`): `models.default`
+(`opus`, the newest Opus) for everything, `models.complex` (`fable`, the most capable)
+for every run of an issue labelled `complex`; always an explicit `--model`, never the
+app's floating default. Kill any run past
+`max_run_minutes` (whole tree; `max_run_minutes_complex` for a `complex` issue, v0.2.10);
+one fresh retry for a run that exits without a PR, then
+`needs-human` -- unless the run's log is the "hit your session limit ... resets HH:MM"
+line (v0.2.5): then the cycle is refunded and NOTHING new starts (dispatch, retry, fix,
+audit) until the stated reset time; the hold lives in `state.json` under `limit` and
+lifts by itself. A run whose log is "You're out of usage credits" (v0.2.9) hit the
+MODEL's cap (Fable's weekly allowance, typically), not the session limit: the cycle is
+refunded and only runs that would use that model are held (`state.json` under
+`model_holds`, re-tried every `models.capped_hold_minutes`); the rest keep flowing.
+PRs are verified, reviewed and merged by the CI pipeline
+(`.github/workflows/agent-pipeline.yml`); the dispatcher only reacts: `state:blocked` ->
+a fresh headless fix run whose brief embeds the blocker's comments (breaker at 3 total
+starts per issue -> `escalated`) -- started only once the CI run for that head has
+completed, because since v0.2.11 the Reviewer posts its list even when the Verifier
+failed, so one fix run answers both; CONFLICTING with `dev` (v0.2.6) -> `state:blocked` with
+a comment, because GitHub starts no CI run for a PR it cannot merge, and the fix run's
+first step is merging `dev` into the branch; `needs-human` -> page once and touch nothing
+until the label is gone -- and when it goes, the breaker is reset (the attempts before the
+answer do not count) and a PR with nothing pushed since the page gets `state:blocked`
+back, so a fix run reads the answer (v0.2.6; CI re-runs on a push, never on a comment);
+removing `escalated` resets the breaker the same way; CI run FINISHED for the PR's
+current head with nothing decided (v0.2.7: no label from the Verifier, no merge and no
+`state:blocked` from the Reviewer, or a job that died on the session limit) -> re-run
+the job that owes the verdict with `gh run rerun` (`review` when `state:tested` is on,
+else `verify`), up to `max_ci_reruns` (2) times per finished run -- a re-run after a
+limit death is not counted, and no re-run spends the issue's breaker (v0.2.8) -- then
+`escalated`; a fix run that ends with `state:blocked` back on AFTER IT PUSHED is CI's
+fresh verdict on the push, so the next fix run starts on it instead of a page (v0.2.8);
+merged -> close the issue, remove the worktree (never an interview
+worktree: the Planner keeps working there until `finish-interview` hands it back), kill
+any lingering run. The dispatcher only counts and removes worktrees IT created
+(`issue-*`, `backlog-audit-*`, `onboarding`, `revision-*`); any other worktree -- a
+meta-oversight session, a scratch checkout -- is invisible to it.
+Pipeline fully drained (an open interview counts as not drained) -> per the autonomy
+dial, a headless Planner audit files
+`proposed`/`ready` issues or opens the ACHIEVED PR; an audit that produces nothing while
+nothing has merged since pages the human instead of looping.
+
+## Pause
+
+`pause` writes `paused.json`; `resume` deletes it; the running dispatcher reads it every
+tick, so neither needs a restart. A pause is **soft and per-project**: it blocks the two
+places the dispatcher creates NEW work (dispatching a `ready` issue, spawning an audit).
+Fix runs, merges, issue closing and cleanup continue, so the fleet **drains**. It cannot
+un-start a headless run that is already going -- but every run has a hard
+`max_run_minutes` ceiling, so "already going" is now a bounded promise, not an open one.
+A corrupt marker counts as paused: a bad file must never quietly restart the spend.
+
+## Failure modes
+
+| What breaks | What happens |
+| --- | --- |
+| Orca not open | worktree calls fail; the tick logs it and retries. Nothing is lost. |
+| `gh` unauthenticated | the tick sees no issues/PRs and does nothing. `doctor` says so. |
+| State file deleted | at most a duplicate comment; PIDs are re-checked against the OS, so nothing orphans. |
+| Run exceeds `max_run_minutes` | killed (whole tree); breaker counts it. A `complex` issue's runs get `max_run_minutes_complex` (60) instead (v0.2.10). |
+| Run exits without a PR | one fresh retry, then `needs-human` with a pointer at its log. If the log ends with "the background run will re-invoke me": the agent backgrounded its tests and ended the turn to wait, which in a `-p` run ends the process. Every brief now forbids background waits (v0.2.10).  Since v0.2.17 the CLI itself refuses background tasks (`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, deny `Bash(run_in_background:true)`) and a foreground command may run `bash_timeout_minutes` (40): the Verifier on PR #149 had backgrounded a 20-minute suite because the tool's 10-minute ceiling left it no other way. Since v0.2.18 a run that ended because the issue's `Depends on:` line now names an open issue (the run may have added it after reading the ADRs, as #144's did) is refunded and the issue waits; before, the retry ignored the line and paged. |
+| Run dies on the Claude session limit | not counted; a comment says so; every new start holds until the reset time in the message (+2 min), then resumes by itself. Runs already going are unaffected (they die the same way and get the same treatment). A run that prints the line and then idles instead of exiting (some CLI versions do) is killed on the next tick and treated the same. |
+| Run dies on a model's usage cap ("You're out of usage credits") | that model's own allowance is spent (Fable's weekly cap, typically). Not counted; a comment says so once per episode; only runs that would use that model are held and re-tried every `models.capped_hold_minutes` (360) until one gets through; issues on the default model continue (v0.2.9 -- before, it looked like an empty run: a retry into the same wall, then `needs-human` with nothing to answer, as on issue #41). To run a held issue on the default model now, remove its `complex` label. |
+| CI blocks a PR | fresh fix run with the comments in its brief; breaker at 3. |
+| PR conflicts with `dev` | GitHub cannot compute the merge, so it starts NO workflow run -- the PR would sit "in CI" forever. The dispatcher labels it `state:blocked` with a comment; the fix run merges `dev` into the branch, resolves, pushes (v0.2.6). A run that hands the label back without fixing it is relabelled; the breaker bounds the loop. Since v0.2.19 the merge run spends no breaker cycle: parallel PRs make each other conflict on every merge, and that is nobody's failed attempt. |
+| Agent sets `needs-human` | the item is flagged and appears in the daily digest's "Waiting on you"; nothing moves on it until you remove the label. |
+| You answer and remove `needs-human` | the breaker is reset and a fresh run starts. On a PR, remove ONLY `needs-human`: if `state:blocked` went too and nothing was pushed since, the dispatcher puts it back (v0.2.6) -- before, that PR was stuck, and one paged by its own fix run was paged again the moment you answered. |
+| You remove `escalated` | the breaker is reset and the issue (or its blocked PR) is retried with a fresh count (v0.2.6; before, it re-escalated on the same tick because the count was still over the limit). |
+| CI ends without a verdict | a green `review` job with 30-40 turns and nothing on the PR was seen in 3 of 5 runs: the Reviewer reasons to a decision and never runs the `gh` command that IS the decision. CI re-runs only on a push, so the PR sat at `state:tested` for a day. Now (v0.2.7) the pipeline retries a silent Reviewer once inside the same run and FAILS the run if it is still silent (a Verifier that leaves no label fails it too), and the dispatcher re-runs the job that owes the verdict (`gh run rerun`), 3 minutes after the run finished, up to `max_ci_reruns` (2) times per finished run, then `escalated`. A re-run does not spend the issue's breaker (v0.2.8; in v0.2.7 it did, and a PR that had needed one fix run and one re-run escalated on its next send-back with the re-run's own verdict unworked). If `gh run rerun` is refused -> `needs-human`; re-run from the Actions tab or push an empty commit, then remove the label: the count restarts, no fix run starts.  Since v0.2.17 the CLI itself refuses background tasks (`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, deny `Bash(run_in_background:true)`) and a foreground command may run `bash_timeout_minutes` (40): the Verifier on PR #149 had backgrounded a 20-minute suite because the tool's 10-minute ceiling left it no other way. |
+| CI job dies on the session limit | the CI agents run on the same subscription as the local ones. Since v0.2.12 the job's own log is read (the same parse that records its usage): a `result`/`error` line naming the limit sets the hold -- when the death is less than 30 minutes old, since the message names a clock time -- and the re-run is not counted. Before, only a local run dying at the same minute set the hold, and a CI-only death was counted: PR #56's Reviewer died on the limit three times in a row and the PR escalated. |
+| Fix run pushed, and CI blocked the PR again before the run exited | not a failed run: CI clears `state:blocked` on the push and its Verifier put it back, a fresh verdict on the new tip. The next fix run starts on it (a cycle, like any send-back) instead of a `needs-human` page (v0.2.8; before, PR #33 was paged 20 seconds after the Verifier sent its own push back). The brief now tells a fix run to edit the PR body BEFORE the push, since the Verifier reads the body as it is at the push. |
+| The log says `escalated` and "circuit breaker reset" six seconds apart | fixed in v0.2.8: the escalation marks the tick's own observation, so the issue loop (which runs after the PR loop on the same observation) no longer reads the pre-escalation labels as "the human removed `escalated`". |
+| CI pipeline never ran on a PR | check the repo's Actions tab; usually OWNER STEP 1 or 2 was skipped -- or the PR is CONFLICTING (see above). |
+| Two dispatchers | the lock file refuses the second. |
+| A tick stalls | every subprocess call has a timeout and still one tick stalled for an hour with nothing logged (a killed child's grandchild holding a pipe is the likely class). Since v0.2.13 a watchdog thread exits the process when a tick has run longer than `dispatcher.tick_deadline_minutes` (10); the scheduled task restarts it within a minute; the lock is by pid, so the restart is clean. A page answered during a stall used to leave the PR `blocked` with no fix record and nothing to re-dispatch it; that state is now handled again. |
+| Human pauses the project | no new dispatches or audits; in-flight work still lands. |
+
+## Re-running an issue by hand
+
+Remove `escalated`/`needs-human` as appropriate; the dispatcher re-dispatches on the next
+tick with a fresh cycle count (v0.2.6 -- your action IS the reset; there is nothing to
+edit in `state.json`). On a PR, remove `needs-human` only and leave `state:blocked` on;
+if you removed both, the dispatcher re-applies `state:blocked` by itself as long as
+nothing was pushed since. A PR whose CI ended without a verdict is re-run by the
+dispatcher by itself (v0.2.7); to re-run CI by hand, use the Actions tab or push an
+empty commit -- a comment does not trigger it. To lift a session-limit hold early, delete the `limit` key in `state.json`
+(pointless before the limit actually resets). To watch a live run:
+`tail -f .orca/dispatcher/runs/<name>.log` (or just open the file; PowerShell:
+`Get-Content -Wait`).
+
+## Token use (v0.2.11)
+
+Every headless run prints a JSON result (`--output-format json`) whose turns, tokens and
+cost the dispatcher records under `usage` in `state.json` (one line per run in
+`dispatcher.log`, prefixed `usage:`); once a CI run completes, its job log is read once
+and the Verifier's and Reviewer's figures are recorded the same way. `status` ends with a
+USAGE block: totals by kind (issue, fix, audit, `ci:verify`, `ci:review`) and the five
+costliest items. The cost is at API list prices, whatever the subscription charges;
+it is the number to compare between weeks and between levers.
+
+The levers in place, all measurable by that block:
+
+- **Reading lists.** An issue's `Read:` line names the spec sections and ADRs a run
+  needs; every brief says read those by heading and grep the rest. Before, every run
+  read the core document and every spec end to end (~50k tokens a run, nine runs a PR).
+- **Delta rounds in CI.** The Verifier and the Reviewer begin each comment with
+  `Verified head <sha>` / `Reviewed head <sha>`. On a push that changed nothing under
+  `src/` since that sha, they run in DELTA mode: check their own list, run the suites
+  once, decide. A push that touches code gets a full round.
+- **One send-back round.** When the Verifier fails a PR, the Reviewer still reads it and
+  posts its list (advisory, no labels, no merge), and the dispatcher waits for that CI
+  run to complete before starting the fix run -- so one fix run answers both.
+- **Sonnet for the Verifier.** Its work is mechanical; a full Opus Verifier round
+  measured 65 turns and $4.57. The Reviewer, the last gate, stays on Opus.
+- **The pre-PR self-check.** The implement brief ends with the Verifier's checklist
+  (claims with output pasted, counts reconciled, screenshots embedded, tests that fail
+  without the change, the not-done list). Most send-backs were exactly those.
+- **Commit as you go.** Every brief says so, and every fresh run first reads `git log`
+  of its worktree and continues: a run killed at minute 29 leaves work, not nothing.
+
+To turn a lever off, edit the brief or the pipeline step; to see whether it paid, compare
+the USAGE block before and after.
+
+## Which model runs
+
+`dispatch.py status` prints the policy on its second line. Per run, the dispatch comment
+on the issue and `dispatcher.log` name the model. To send one issue to the most capable
+model, add the `complex` label BEFORE `ready`. To change the fleet, edit `models:` in
+`dispatch.yml`; it takes effect on the next start (the config is re-read every tick).
+
+A model that is out of usage credits (v0.2.9) shows in `status` as a hold on that model
+alone; the others run. Remove `complex` from an issue to run it on the default model
+meanwhile; to lift the hold early, delete `model_holds.<model>` in `state.json`.
+
+## Effort (v0.2.20)
+
+`models.effort` in `.orca/dispatch.yml` maps a model, named as `models:` names it, to the CLI's
+`--effort` level; the dispatcher passes it on every headless run and on the interactive interview.
+It ships as `opus: high` (it was `max` from 2026-10-02 to 2026-10-09: runs of one to three hours at
+$5-40 each, and the subscription's usage window spent in hours; the owner judged max not necessary).
+Opus 5.5 runs at `medium` by default; levels above it are per session only. The three Opus steps of
+`agent-pipeline.yml` carry `--effort high` in their `claude_args`. Fable and Sonnet runs have no entry and keep their defaults.
+Expect longer and costlier Opus runs; `status` shows the measured cost per run.

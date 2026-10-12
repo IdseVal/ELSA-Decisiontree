@@ -1,0 +1,14 @@
+# What the image build does not need. `trees/` is NOT here: it is the data the image serves.
+.git
+.github
+.orca
+.claude
+.devcontainer
+node_modules
+.next
+tests/browser/.results
+playwright-report
+docs
+mail
+agent-workflow-setup-*.md
+*.tsbuildinfo

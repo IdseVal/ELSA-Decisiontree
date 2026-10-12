@@ -1,0 +1,39 @@
+# The application as a long-lived service on a plain Linux server (docs/deployment.md).
+# Install as /etc/systemd/system/elsa-decisiontree.service.
+#
+# It runs the standalone build directly: `node server.js` with the environment file below,
+# nothing else. There is no shell wrapper, no process manager and nothing a hosting vendor
+# supplies (docs/CORE_DOCUMENT.md section 7).
+
+[Unit]
+Description=ELSA decision tree
+Documentation=https://github.com/IdseVal/ELSA-Decisiontree/blob/main/docs/deployment.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=elsa
+Group=elsa
+WorkingDirectory=/opt/elsa-decisiontree/app
+# PORT, HOSTNAME, ELSA_DATA_DIR and ELSA_BASE_URL: see
+# deploy/elsa-decisiontree.env.example.
+EnvironmentFile=/etc/elsa-decisiontree.env
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+ExecStart=/usr/local/bin/node server.js
+
+# The server refuses to start on a data directory it cannot use (docs/specs/application.md
+# 18.3), so a restart loop is how a bad configuration announces itself. `always` is still
+# right: the alternative is a machine that reboots and does not come back.
+Restart=always
+RestartSec=5
+
+# The app writes to ELSA_DATA_DIR under /opt, answers requests and needs nothing else.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

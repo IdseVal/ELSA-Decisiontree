@@ -1,0 +1,27 @@
+mail/__pycache__/
+.orca/dispatcher/__pycache__/
+.orca/dispatcher/state.json
+.orca/dispatcher/state.tmp
+.orca/dispatcher/paused.json
+.orca/dispatcher/paused.tmp
+.orca/dispatcher/interview-done.json
+.orca/dispatcher/prompts/
+.orca/dispatcher/runs/
+.orca/dispatcher/dispatcher.lock
+.orca/dispatcher/dispatcher.log*
+
+# The development store (ELSA_DATA_DIR in .env.development)
+.elsa-data/
+
+# Next.js application
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+
+# Playwright
+tests/browser/.results/
+tests/browser/.data/
+tests/first-tree/.data/
+tests/first-tree/.results/
+playwright-report/

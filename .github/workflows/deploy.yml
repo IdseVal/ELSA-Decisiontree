@@ -1,0 +1,55 @@
+# Deploy to the shared box (docs/hosting-shared-box.md).
+#
+# Every push to `main` puts that commit live: the runner joins the tailnet as an ephemeral
+# node, logs in to the box over Tailscale SSH as the `elsa` user and runs /srv/elsa/deploy.sh
+# with the commit. The box keeps no SSH port open to the internet (the other project set it
+# up that way), so the route in is the tailnet, not a key in this repository.
+#
+# What the workflow needs, none of it in this file:
+#   - repository secrets TS_OAUTH_CLIENT_ID and TS_OAUTH_SECRET: a Tailscale OAuth client with
+#     the `auth_keys` write scope, allowed to mint keys for the tag below;
+#   - in the tailnet's policy: `tag:ci` under tagOwners, and an SSH rule that lets `tag:ci`
+#     reach the box as user `elsa` (action accept, no check);
+#   - repository variable ELSA_BOX_HOST: the box's name on the tailnet.
+#
+# Run by hand ("Run workflow") on any branch, it deploys the commit of that branch: this is
+# how the first deploy and a rollback are done, and how the workflow was tested before `main`
+# carried anything.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-shared-box
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Join the tailnet
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          use-cache: 'true'
+
+      - name: Deploy ${{ github.sha }}
+        env:
+          BOX: ${{ vars.ELSA_BOX_HOST }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test -n "$BOX" || { echo "repository variable ELSA_BOX_HOST is not set" >&2; exit 1; }
+          # Tailscale SSH authenticates the connection by the runner's tailnet identity; the
+          # host key is Tailscale's, new on each ephemeral runner, so accept it on first contact.
+          ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30 "elsa@$BOX" \
+            /srv/elsa/deploy.sh "$COMMIT"

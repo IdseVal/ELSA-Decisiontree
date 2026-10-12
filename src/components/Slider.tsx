@@ -1,0 +1,256 @@
+'use client'
+
+/**
+ * The slide (docs/specs/application.md 11.1, 11.3; ADR-38-transitions): following a Branch
+ * moves the tree layer -- one element, one transform -- until the target's Bubble is in the
+ * centre, while the client navigation to the Branch's own `href` fetches the target's page.
+ * The address bar ends where a plain link would have left it, because it is the router
+ * pushing that same link.
+ *
+ * The server renders each neighbour (`src/neighbourhood.ts`) into this page's payload as a
+ * frame, and hands them over as props with the position `TreeView` drew them in, one layer
+ * away in the Branch's direction. A frame is mounted only for the slide that shows it,
+ * hidden from assistive technology and out of the tab order: at rest the layer holds the
+ * page as it is without JavaScript, and nothing else (section 14).
+ *
+ * A slide has two halves, on two pages. The page the reader leaves moves its layer towards
+ * the target; when the target's payload arrives, the target's page takes over the same
+ * motion at the same moment, with the page it replaced drawn where it was -- so nothing on
+ * screen jumps whenever the payload lands. A history step (back, forward) has only the
+ * second half: a page that finds the page shown before it among its neighbours slides in
+ * from there, which is what makes back reverse the slide.
+ *
+ * While a slide runs the layer is `position: fixed` and exactly as large as the two frames
+ * it shows. Fixed, it is part of no element's scrollable area; that large, nothing in it is
+ * larger than itself -- so the no-scroll rule holds mid-slide too (10.6). A slide never
+ * begins with a Sheet open: following a Branch closes any Sheet in the layer first.
+ *
+ * **[#232]** A neighbour stands in two places across, one for each arrangement of the Answer
+ * row (application.md 42.5): the slide takes the one the width gives when it starts -- a click,
+ * the arrival a click hands over, a history step's arrival -- so a button's slide goes toward
+ * where it stands, and the way back retraces it.
+ *
+ * **[#234]** In the editor a `SlideGate` is around it (application.md 42.8): the slide starts at
+ * once and its navigation waits for the autosave to settle; a write failing or the session
+ * expiring while it waits undoes it, nothing navigating; while the queue retries a failed write
+ * the control is the plain link it is; a second click while a slide waits does nothing; and the
+ * page a history step reaches reads the draft again once its slide has ended. Without a gate --
+ * the public page, the preview -- nothing of this applies.
+ */
+import { useRouter } from 'next/navigation'
+import { useContext, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { ROWS_QUERY, type Across } from '../neighbourhood.ts'
+import { SlideGate } from './slide-gate.ts'
+
+/** One neighbour frame, and where it is drawn, in widths and heights of the layer. */
+export interface Neighbour {
+  href: string
+  /** **[#232]** Across, in each arrangement of the Answer row; `across` reads the one of this width. */
+  x: Across
+  y: number
+  frame: ReactNode
+}
+
+/** Long enough to be read as a movement through the tree, short enough not to be waited for. */
+const DURATION = 520
+/** The stylesheet's `--ease`: quick to leave, gentle to arrive. */
+const EASING = 'cubic-bezier(0.2, 0.7, 0.2, 1)'
+
+/**
+ * The slide a click started, for the target's page to take over. Module state, because the
+ * page that started it is unmounted by the time the page that finishes it mounts.
+ */
+let started: { from: string; to: string; x: number; y: number; at: number } | null = null
+/** The page shown last in this document, so a history step can slide back from it. */
+let shownLast: string | null = null
+/**
+ * **[#234]** Set by a history step (back, forward) until the page it reaches mounts. Listened for
+ * from this module's first evaluation, before the framework's own listener exists, and capturing:
+ * the framework renders the page a history step reaches inside its listener, synchronously.
+ */
+let popped = false
+if (typeof window !== 'undefined') {
+  window.addEventListener(
+    'popstate',
+    () => {
+      popped = true
+    },
+    { capture: true },
+  )
+}
+
+/** A slide in progress: the one frame it shows besides the centre, and where. */
+interface Slide {
+  frame: ReactNode
+  x: number
+  y: number
+  /** The layer's box at rest, which the fixed layer reproduces. */
+  rect: DOMRect
+  /** True on the page that arrives: it moves from the frame to its own centre. */
+  arriving: boolean
+  /** Milliseconds of the slide already run, by the page that started it. */
+  elapsed: number
+}
+
+export function Slider({ href, neighbours, children }: { href: string; neighbours: Neighbour[]; children: ReactNode }) {
+  const router = useRouter()
+  const gate = useContext(SlideGate)
+  const layer = useRef<HTMLDivElement>(null)
+  const [slide, setSlide] = useState<Slide | null>(null)
+  /** **[#234]** A slide waits for the gate to settle: a second click does nothing (42.8). */
+  const waiting = useRef(false)
+  /** **[#234]** Read the draft again once the arriving slide has ended (42.8). */
+  const refreshAfter = useRef(false)
+
+  // Arrival: take over a slide a click started towards this page, or slide in from the
+  // page shown before when a history step came from a neighbour.
+  useLayoutEffect(() => {
+    const previous = shownLast
+    const handed = started?.to === href ? started : null
+    // **[#234]** The framework's cache may hold the draft as it was before this page was left:
+    // in the editor, the page a history step reaches reads it again (42.8).
+    const refresh = gate !== null && popped
+    shownLast = href
+    started = null
+    popped = false
+    if (!layer.current || reducedMotion()) {
+      if (refresh) router.refresh()
+      return
+    }
+
+    const rect = layer.current.getBoundingClientRect()
+    if (handed) {
+      const elapsed = performance.now() - handed.at
+      if (elapsed >= DURATION) return
+      // The page left behind lies opposite the way the slide went.
+      const from = neighbours.find((n) => n.href === handed.from)
+      setSlide({ frame: from?.frame, x: -handed.x, y: -handed.y, rect, arriving: true, elapsed })
+      return
+    }
+    const from = neighbours.find((n) => n.href === previous)
+    if (from) {
+      refreshAfter.current = refresh
+      setSlide({ frame: from.frame, x: across(from.x), y: from.y, rect, arriving: true, elapsed: 0 })
+    } else if (refresh) router.refresh()
+    // Once per page: `TreeView` keys this component by its page, so a new page is a new mount.
+  }, [])
+
+  useLayoutEffect(() => {
+    if (!slide || !layer.current) return
+    const away = `translate(${-slide.x * slide.rect.width}px, ${-slide.y * slide.rect.height}px)`
+    const animation = layer.current.animate(
+      slide.arriving ? [{ transform: away }, { transform: 'none' }] : [{ transform: 'none' }, { transform: away }],
+      // The page that leaves holds its last frame until the target's page replaces it.
+      { duration: DURATION, easing: EASING, fill: slide.arriving ? 'none' : 'forwards' },
+    )
+    animation.currentTime = slide.elapsed
+    if (slide.arriving) {
+      animation.finished.then(
+        () => {
+          setSlide(null)
+          if (refreshAfter.current) router.refresh()
+          refreshAfter.current = false
+        },
+        () => {},
+      )
+    }
+    return () => animation.cancel()
+  }, [slide, router])
+
+  /** A click on a Branch whose target is drawn in this layer: slide to it and navigate. */
+  function follow(event: MouseEvent<HTMLDivElement>) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return
+    }
+    const link = (event.target as Element).closest('a[data-slide]')
+    const target = link && neighbours.find((n) => n.href === link.getAttribute('href'))
+    // Any other link -- a Trail entry older than the grandparent, `startAgain`, a Sheet's
+    // list -- is the ordinary link it looks like (11.3).
+    if (!target || !layer.current) return
+    // **[#234]** While the editor's queue retries a failed write, too: the browser's question asks
+    // before the page goes, and the writes are not left behind unsent (29.5, 42.8).
+    if (gate && !gate.ready()) return
+    event.preventDefault()
+    // **[#234]** The first slide's navigation is the one that follows, so no click passes the gate (42.8).
+    if (waiting.current) return
+    // A Sheet's panel is `position: fixed`, and a transformed layer is the box a fixed
+    // descendant is laid out in: left open, the panel would travel with the tree. The keyboard
+    // reaches a Branch behind the backdrop, so a slide can start with one open; the page it
+    // reaches opens with every Sheet closed anyway.
+    for (const sheet of layer.current.querySelectorAll<HTMLDetailsElement>('details.sheet[open]')) sheet.open = false
+
+    // A click during a slide navigates at once; the page it reaches slides in from this one.
+    const moves = !slide && !reducedMotion()
+    if (moves) {
+      const x = across(target.x)
+      started = { from: href, to: target.href, x, y: target.y, at: performance.now() }
+      const rect = layer.current.getBoundingClientRect()
+      setSlide({ frame: target.frame, x, y: target.y, rect, arriving: false, elapsed: 0 })
+    }
+    if (!gate) {
+      router.push(target.href, { scroll: false })
+      return
+    }
+    // **[#234]** The layer moves at once and holds at the target while the autosave settles, as
+    // for a slow payload; a write failing or the session expiring first undoes the slide, without
+    // motion, and the page shows what the indicator or the session Sheet says (42.8).
+    waiting.current = true
+    void gate.settle().then((settled) => {
+      waiting.current = false
+      if (settled) {
+        router.push(target.href, { scroll: false })
+        return
+      }
+      started = null
+      if (moves) setSlide(null)
+    })
+  }
+
+  const boxes = slide && box(slide)
+  return (
+    <div className="tree-layer" ref={layer} onClick={follow} data-sliding={slide ? '' : undefined} style={boxes?.layer}>
+      <div className="tree-frame" style={boxes?.centre}>
+        {children}
+      </div>
+      {slide?.frame && (
+        <div className="tree-frame" aria-hidden inert style={boxes?.neighbour}>
+          {slide.frame}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * The fixed layer and its two frames while a slide runs, in pixels: the layer covers the
+ * centre frame, at the layer's box at rest, and the neighbour frame beside it.
+ */
+function box({ x, y, rect }: Slide): { layer: CSSProperties; centre: CSSProperties; neighbour: CSSProperties } {
+  const { width, height } = rect
+  const left = Math.min(0, x)
+  const top = Math.min(0, y)
+  return {
+    layer: {
+      left: rect.left + left * width,
+      top: rect.top + top * height,
+      width: (1 + Math.abs(x)) * width,
+      height: (1 + Math.abs(y)) * height,
+    },
+    centre: { left: -left * width, top: -top * height, width, height },
+    neighbour: { left: (x - left) * width, top: (y - top) * height, width, height },
+  }
+}
+
+/**
+ * **[#232]** The place across that the width gives when a slide starts (application.md 42.5):
+ * `rows` while the Answer row stands in two rows, `row` otherwise. The arrival a click hands over
+ * keeps the click's, so both halves of one slide go one way.
+ */
+function across(x: Across): number {
+  return window.matchMedia(ROWS_QUERY).matches ? x.rows : x.row
+}
+
+/** The reader's setting removes the motion, never the navigation (11.3). */
+function reducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}

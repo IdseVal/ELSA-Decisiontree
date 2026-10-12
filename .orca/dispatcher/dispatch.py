@@ -1,0 +1,3048 @@
+#!/usr/bin/env python3
+"""Dispatcher v3 -- the reconciler that runs the ORCA ADE agent workflow.
+
+THE TWO IDEAS
+    1. The dispatcher never trusts an agent to report back. Every tick it OBSERVES
+       reality (GitHub issues, PRs, labels; the liveness of the processes it spawned;
+       Orca worktrees), COMPUTES what the workflow rules say should be true, and DOES the
+       difference. Every action is idempotent: crashes, restarts and double runs are
+       harmless.
+    2. GitHub is the memory; a run is disposable. An agent run is a headless
+       `claude -p` process that starts, does one job, and exits. Nothing waits. A blocked
+       PR gets a FRESH run whose brief contains the blocker's comments. A run that needs
+       the human says so on the issue/PR, labels it `needs-human`, and ends; the human
+       answers in the comments and removes the label, and a fresh run reads them.
+
+A TICK THAT OVERRUNS (v0.2.13)
+    A tick is a few dozen `gh` calls, each with a timeout -- and still one tick stalled
+    for an hour (a killed child's grandchild holding a pipe is the likely class; nothing
+    was logged). A watchdog thread exits the process when a tick has run longer than
+    `dispatcher.tick_deadline_minutes` (10); the scheduled task restarts it within a
+    minute, and the lock is by pid, so the restart is clean. The hour cost a page that
+    was answered while the dispatcher was not looking, which left the PR `blocked` with
+    its fix record gone and nothing to re-dispatch it: that state is now repaired.
+
+WHERE IT RUNS
+    On the HOST, because it drives the `orca` CLI (worktrees) and spawns local `claude`
+    processes. Orca is a desktop app: GitHub webhooks have nowhere to land, so the
+    dispatcher POLLS `gh` (60s tick). Install it as a scheduled task (install-task.ps1)
+    so it survives reboots and is independent of any chat session.
+
+WHAT IT DOES EACH TICK
+    Issues
+      - Gate: no issue is dispatched while `docs/CORE_DOCUMENT.md` on `dev` carries the
+        EMPTY marker (the Planner's onboarding PR opens the gate) or the ACHIEVED marker
+        (project complete; a revision interview reopens it).
+      - An open issue labelled `ready`, with none of `escalated`/`needs-human`, whose
+        `Depends on: #a, #b` issues are all closed, with no PR yet and no live run, is
+        dispatched (up to `max_active_issues` live runs at a time): an Orca worktree off
+        `dev` with NO terminal, a brief file, and a headless `claude -p` process in that
+        directory whose stdout goes to `.orca/dispatcher/runs/`. The issue's labels pick
+        the role the run loads: `architecture` -> the Architect, `research` -> the
+        Planner, otherwise the Implementer -- and the MODEL (v0.2.5, `models:` in
+        dispatch.yml): `models.default` (alias `opus` = the newest Opus) for every run,
+        `models.complex` (alias `fable` = the most capable model) for every run of an
+        issue labelled `complex`. Passed as `--model`; never the CLI's floating default.
+      - A run past `max_run_minutes` is killed (process tree; `max_run_minutes_complex`
+        for an issue labelled `complex`, v0.2.10). A run that exits without a
+        PR gets one fresh retry, then the issue is labelled `needs-human`. Every start
+        spends a breaker cycle -- EXCEPT a run whose log is the subscription's "hit your
+        session limit ... resets HH:MM" line (v0.2.5): that cycle is refunded, and no new
+        run of any kind starts until the stated reset (+2 min; 60 min if unreadable).
+        Fix runs and backlog audits get the same treatment. The hold lives in
+        `state.json` under `limit` and lifts by itself.
+      - Every run is measured (v0.2.11): headless runs print a JSON result
+        (`--output-format json`) whose turns, tokens and cost are recorded per run in
+        `state.json` under `usage`; CI job logs are parsed the same way once a run
+        completes. `status` prints the totals by kind and the most expensive items.
+      - A run that dies with "You're out of usage credits" (v0.2.9) hit the MODEL's
+        usage cap -- Fable's weekly allowance, typically -- not the session limit. The
+        cycle is refunded and only the runs that would use that model are held
+        (`state.json` under `model_holds`, re-tried every `models.capped_hold_minutes`);
+        issues on the default model keep flowing. To run a held issue on the default
+        model now, remove its `complex` label.
+      - `proposed` issues are invisible to dispatch: promoting them to `ready` is the
+        human's move (or the Planner's, in `auto` mode). Since v0.2.4 that rule is
+        ENFORCED: in manual/propose mode the dispatcher asks GitHub's timeline who last
+        applied `ready`, and demotes the issue back to `proposed` when the promoter is
+        not in `promotion.trusted_promoters` (empty list = enforcement off).
+    PRs (base `dev`; the CI pipeline owns testing and review)
+      - `state:blocked` -> spend a cycle; under the breaker, spawn a fresh headless fix
+        run in the PR's worktree whose brief embeds the blocker's comments -- but not
+        while the CI run for the PR's head is still going (v0.2.11): the Reviewer now
+        posts its list even when the Verifier failed, so one fix run answers both; over it,
+        label the issue `escalated` and page the human. The fix run pushes and removes
+        the label; the push re-triggers CI. A fix run that ends with the label back on
+        AFTER IT PUSHED is not a failed run (v0.2.8): CI cleared the label on the push
+        and its Verifier put it back -- a fresh verdict on the new tip -- so the next
+        fix run starts on that verdict instead of a page.
+      - CONFLICTING with `dev` (v0.2.6) -> GitHub starts no CI run for such a PR and
+        nothing would ever merge it, so an unblocked conflicting PR gets `state:blocked`
+        with a comment saying why; the fix run's first step is merging `dev` into the
+        branch and resolving the conflicts. The breaker bounds it like any send-back.
+      - CI finished without a verdict (v0.2.7) -> an open, unblocked PR whose pipeline
+        run for its current head has COMPLETED was dropped by CI: a Reviewer that ended
+        its turn without merging or sending back (observed repeatedly: a green job, 30-40
+        turns, nothing posted), a Verifier that ended without a label, or a job that died
+        on the session limit -- CI agents share the subscription, and since v0.2.12 a CI job's own
+        log is read for the limit line, so the hold is set even when no local run
+        died at the same minute, and the re-run is not counted. CI re-runs only on a
+        push, so the dispatcher re-runs the job that owes the verdict (`gh run rerun`),
+        up to `circuit_breaker.max_ci_reruns` times per finished run (v0.2.8; a re-run
+        after a limit death is not counted), then escalates. A re-run does not spend the
+        issue's breaker cycle: in v0.2.7 it did, and a PR that had needed one fix run
+        and one re-run escalated on its next `state:blocked`, with the verdict the
+        re-run had just produced left unworked. The pipeline itself retries a
+        verdict-less Reviewer once and FAILS the job when the verdict is still missing,
+        so the failure is visible.
+      - `needs-human` on an issue or PR -> flag it once with a GitHub comment (an
+        @mention only if configured; the dispatcher itself NEVER e-mails -- the daily
+        digest is the mail channel) and touch nothing until the label is gone.
+      - The human's answer restarts the work (v0.2.6). When `needs-human` disappears,
+        the breaker is reset -- attempts made without the answer are not held against
+        the item -- and on a PR where nothing was pushed since the page, `state:blocked`
+        is re-applied so a fix run reads the answer (CI re-runs only on a push, never on
+        a comment). Removing `escalated` from an issue resets the breaker the same way
+        (and the dispatcher's own escalation earlier in the same tick is not mistaken
+        for that removal, v0.2.8).
+      - Merged -> close the linked issue (merges into `dev` do NOT auto-close; only the
+        default branch does), remove the worktree (never an INTERVIEW worktree: the
+        Planner keeps working there until `finish-interview`), kill any lingering run.
+    Backlog (closing the loop; honours the autonomy dial)
+      - Drained (no open issues, no open PRs into `dev`, no live runs, no worktrees the
+        dispatcher OWNS -- unmanaged worktrees are invisible; an open interview counts),
+        gate open, autonomy != manual -> spawn a headless Planner backlog audit. Its
+        outcome is read from GitHub: new issues (`proposed` or `ready` per the dial), or
+        a PR flipping the core document to ACHIEVED. An audit that produces neither while
+        nothing has merged since the last one pages the human instead of looping.
+      - ACHIEVED on `dev` -> dispatching stops, the human is paged once;
+        `dispatch.py onboard` starts a revision interview that reopens the gate.
+    Pause (the human's brake, per-project)
+      - `.orca/dispatcher/paused.json` (written by `pause`, removed by `resume`) is read
+        every tick. While present, no issue is dispatched and no audit is spawned; fix
+        runs, merges, issue closing and cleanup continue, so the fleet DRAINS.
+
+STATE
+    `state.json` holds only de-duplication memory (which run/comment/page already
+    happened, cycle counts). Truth lives in GitHub and in process liveness; deleting the
+    state file costs at most a duplicate comment -- and orphans nothing, because every
+    tracked PID is re-checked against the OS, not against memory.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ctypes
+import json
+import logging
+import os
+import re
+import signal
+import subprocess
+import sys
+import threading
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from typing import Any, Callable, Optional
+
+import yaml
+
+# --------------------------------------------------------------------------- constants
+
+HERE = Path(__file__).resolve().parent
+REPO_ROOT = HERE.parent.parent
+CONFIG_FILE = REPO_ROOT / ".orca" / "dispatch.yml"
+STATE_FILE = HERE / "state.json"
+LOCK_FILE = HERE / "dispatcher.lock"
+PAUSE_FILE = HERE / "paused.json"
+LOG_FILE = HERE / "dispatcher.log"
+PROMPTS_DIR = HERE / "prompts"
+RUNS_DIR = HERE / "runs"
+
+# Roles and skills travel WITH the repository in v0.2 (CI needs them too).
+ROLES_DIR = REPO_ROOT / ".orca" / "roles"
+ROLE_FILES = ["planner", "architect", "implementer"]
+SKILLS_DIR = REPO_ROOT / ".claude" / "skills"
+PIPELINE_FILE = REPO_ROOT / ".github" / "workflows" / "agent-pipeline.yml"
+
+LABEL_READY = "ready"
+LABEL_PROPOSED = "proposed"
+LABEL_ESCALATED = "escalated"
+LABEL_NEEDS_HUMAN = "needs-human"
+LABEL_TESTED = "state:tested"
+LABEL_BLOCKED = "state:blocked"
+LABEL_TRIVIAL = "trivial"
+LABEL_COMPLEX = "complex"     # default name; `models.complex_label` may rename it
+
+# Every label the workflow uses. `doctor --fix` creates the missing ones.
+REQUIRED_LABELS: dict[str, tuple[str, str]] = {
+    LABEL_READY: ("Approved for dispatch; the dispatcher picks it up", "0E8A16"),
+    LABEL_PROPOSED: ("Filed by the Planner, awaiting the owner's promotion to ready", "FBCA04"),
+    LABEL_ESCALATED: ("Circuit breaker tripped; a human must resolve", "B60205"),
+    LABEL_NEEDS_HUMAN: ("An agent needs the human: answer in the comments, then remove this label", "D93F0B"),
+    LABEL_TESTED: ("Verifier passed (or docs-only/trivial); informational", "0E8A16"),
+    LABEL_BLOCKED: ("Verifier or Reviewer sent the PR back; a fix run is dispatched", "D93F0B"),
+    LABEL_TRIVIAL: ("Skips the Verifier, never the Reviewer", "C5DEF5"),
+    "research": ("Issue type: routed to the Planner; facts + evidence as the deliverable", "5319E7"),
+    "architecture": ("Issue type: routed to the Architect; contracts and ADRs", "5319E7"),
+    "ui": ("Interface work; brief points at the design skills", "0052CC"),
+    "seo": ("Search work; brief points at seo-audit", "C5DEF5"),
+    "scraper": ("External data acquisition; brief points at just-scrape", "E99695"),
+    "bug": ("Defect; brief points at diagnosing-bugs", "D73A4A"),
+    "data": ("Data or pipeline; evidence gate applies", "C5DEF5"),
+    LABEL_COMPLEX: ("Highly complex: every run for this issue uses models.complex (the most capable model)", "8B0000"),
+}
+
+# v0.2.5 session-limit awareness. A headless run that dies on the subscription's usage
+# limit prints exactly one line and exits within a second; that is not the issue's
+# fault, so it must not spend a breaker cycle, and starting another run before the
+# limit resets would only produce the same line again.
+_LIMIT_RE = re.compile(r"(?i)hit your (?:session|usage|weekly|rate)? ?limit")
+_LIMIT_RESET_RE = re.compile(
+    r"(?i)resets?\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap]m)?(?:\s*\(([^)]+)\))?")
+LIMIT_FALLBACK_MINUTES = 60   # hold this long when the reset time cannot be read
+LIMIT_MARGIN_MINUTES = 2      # start a little after the stated reset, not on it
+_CREDITS_RE = re.compile(r"(?i)out of usage credits")   # v0.2.9: a MODEL's cap, not the session limit
+USAGE_TAIL_BYTES = 65536      # v0.2.11: a run's JSON result is its last line; this much tail finds it
+_CI_RESULT_RE = re.compile(r'^([^\t]+)\t[^\t]*\t\S+\s+"(?:result|error|summary)":\s*"(.*)",?$', re.M)
+_CI_USAGE_RE = re.compile(r'^([^\t]+)\t[^\t]*\t\S+\s+"(num_turns|total_cost_usd|input_tokens|output_tokens|'
+                          r'cache_read_input_tokens|cache_creation_input_tokens)":\s*([\d.]+)', re.M)
+MODEL_HOLD_MINUTES = 360      # ... re-try a capped model this often (models.capped_hold_minutes)
+
+SUBPROCESS_TIMEOUT = 180
+TICK_DEADLINE_MINUTES = 10    # v0.2.13: a tick longer than this exits the process (the task restarts it)
+STILL_ACTIVE = 259
+PR_GRACE_MINUTES = 5          # a run whose PR already exists gets this long to finish talking
+CI_VERDICT_GRACE_MINUTES = 3  # v0.2.7: a finished CI run gets this long before "no verdict" counts
+CI_RERUN_SETTLE_MINUTES = 10  # ... and a re-run this long to show up as in progress
+
+_ISSUE_RE = re.compile(r"issue-(\d+)")
+# v0.2.16: only a line that STARTS with the phrase is a dependency list. A mention in
+# prose ("the `Depends on:` lines of #137 to #144") once made an issue wait on the issues
+# that waited on it, and the whole round sat for three days (#133, 2026-09-23).
+_DEPENDS_RE = re.compile(r"(?im)^[ \t>*-]*\**(?:depends\s+on|blocked\s+by)\**\s*:?[^\n]*")
+_HASH_RE = re.compile(r"#(\d+)")
+_CLOSES_RE = re.compile(r"(?i)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|refs?)\s+#(\d+)")
+
+# v0.2.3 ownership rule: the dispatcher reasons ONLY about worktrees it created,
+# recognised by its own naming scheme (matched on the worktree name or branch -- Orca
+# may prefix branches with the git user). Anything else -- a meta-oversight session, a
+# human's scratch worktree -- is invisible to it: never counted, never removed.
+_OWNED_WT_RE = re.compile(r"(?i)(?:^|/)(?:issue-\d+|backlog-audit-\d+|onboarding|revision-\d{8}-\d{4})$")
+_INTERVIEW_WT_RE = re.compile(r"(?i)(?:^|/)(?:onboarding|revision-\d{8}-\d{4})$")
+INTERVIEW_DONE_FILE = "interview-done.json"  # written by `finish-interview` inside the worktree
+
+log = logging.getLogger("dispatcher")
+_stop = False
+DRY_RUN = False
+_pause_logged: Optional[str] = None
+
+# Popen objects for runs started by THIS dispatcher process; polled to reap children.
+# After a dispatcher restart the registry is empty and liveness falls back to the OS.
+PROCS: dict[int, subprocess.Popen] = {}
+
+
+def _on_signal(signum: int, frame: Any) -> None:  # noqa: ARG001
+    global _stop
+    _stop = True
+
+
+# --------------------------------------------------------------------------- utilities
+
+
+def now_ms() -> int:
+    return int(time.time() * 1000)
+
+
+def minutes_since(ms: Optional[int]) -> float:
+    if not ms:
+        return float("inf")
+    return (now_ms() - ms) / 60_000.0
+
+
+def run(argv: list[str], timeout: int = SUBPROCESS_TIMEOUT) -> tuple[bool, str, str]:
+    """Run a command to completion; never raise. Returns (ok, stdout, stderr)."""
+    flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+    try:
+        proc = subprocess.run(
+            argv, check=False, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=timeout,
+            creationflags=flags,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as exc:
+        log.warning("%s unavailable: %s", argv[0], exc)
+        return False, "", str(exc)
+    if proc.returncode != 0:
+        log.debug("%s failed (%s): %s", " ".join(argv[:4]), proc.returncode, proc.stderr.strip()[:400])
+        return False, proc.stdout, proc.stderr
+    return True, proc.stdout, proc.stderr
+
+
+def gh_json(args: list[str]) -> Any:
+    ok, out, _ = run(["gh", *args])
+    if not ok or not out.strip():
+        return None
+    try:
+        return json.loads(out)
+    except json.JSONDecodeError as exc:
+        log.warning("gh returned bad JSON: %s", exc)
+        return None
+
+
+def orca_json(args: list[str]) -> Optional[dict[str, Any]]:
+    """Run an orca command with --json; return the `result` dict or None."""
+    ok, out, err = run(["orca", *args, "--json"])
+    if not out.strip():
+        if not ok:
+            log.debug("orca %s: %s", " ".join(args[:3]), err.strip()[:200])
+        return None
+    try:
+        payload = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    if not payload.get("ok", False):
+        log.debug("orca %s -> %s", " ".join(args[:3]), payload.get("error"))
+        return None
+    return payload.get("result") or {}
+
+
+def act(description: str, fn: Callable[[], Any]) -> Any:
+    """Perform a side effect unless --dry-run. Always logs what it did / would do."""
+    if DRY_RUN:
+        log.info("[dry-run] %s", description)
+        return None
+    log.info(description)
+    return fn()
+
+
+def pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    if os.name == "nt":
+        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        handle = kernel32.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+        if not handle:
+            return False
+        code = ctypes.c_ulong()
+        ok = kernel32.GetExitCodeProcess(handle, ctypes.byref(code))
+        kernel32.CloseHandle(handle)
+        return bool(ok) and code.value == STILL_ACTIVE
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def reap() -> None:
+    """Poll every child this process started, so exited runs never linger as zombies."""
+    for pid, proc in list(PROCS.items()):
+        if proc.poll() is not None:
+            PROCS.pop(pid, None)
+
+
+def run_alive(pid: int) -> bool:
+    proc = PROCS.get(pid)
+    if proc is not None:
+        return proc.poll() is None
+    return pid_alive(pid)
+
+
+def kill_tree(pid: int) -> None:
+    """Kill a run and everything it spawned. Runs are started as their own group/tree."""
+    if os.name == "nt":
+        run(["taskkill", "/PID", str(pid), "/T", "/F"], timeout=30)
+    else:
+        try:
+            os.killpg(pid, signal.SIGTERM)
+            time.sleep(2)
+            if pid_alive(pid):
+                os.killpg(pid, signal.SIGKILL)
+        except OSError as exc:
+            log.debug("killpg %s: %s", pid, exc)
+    PROCS.pop(pid, None)
+
+
+def acquire_lock() -> bool:
+    """One dispatcher per repository. state.json is not safe for concurrent writers."""
+    try:
+        if LOCK_FILE.exists():
+            try:
+                old = int(LOCK_FILE.read_text().strip() or 0)
+            except ValueError:
+                old = 0
+            if old and old != os.getpid() and pid_alive(old):
+                return False
+        LOCK_FILE.write_text(str(os.getpid()))
+        return True
+    except OSError as exc:
+        log.warning("lock: %s", exc)
+        return True  # never refuse to run because the lock file is odd
+
+
+def release_lock() -> None:
+    try:
+        if LOCK_FILE.exists() and LOCK_FILE.read_text().strip() == str(os.getpid()):
+            LOCK_FILE.unlink()
+    except OSError:
+        pass
+
+
+# --------------------------------------------------------------------------- pause
+
+
+@dataclass
+class Pause:
+    """A soft pause on this project: start no new work, finish the work in flight.
+
+    Blocked while it exists: dispatching a `ready` issue, spawning a backlog audit --
+    the only two places the dispatcher creates NEW work. Untouched: fix runs for blocked
+    PRs, merge bookkeeping, issue closing, worktree cleanup and every notification, so
+    the fleet drains to empty and stays there.
+    """
+
+    mode: str
+    reason: str
+    since: int
+
+    def describe(self) -> str:
+        mins = minutes_since(self.since)
+        ago = f"{mins:.0f}m" if mins < 90 else f"{mins / 60:.1f}h"
+        return f"PAUSED ({self.mode}) for {ago}" + (f" -- {self.reason}" if self.reason else "")
+
+
+def read_pause() -> Optional[Pause]:
+    """The pause marker, or None. An unreadable marker counts as paused: a corrupt file
+    must never be the reason a fleet quietly starts spending quota again."""
+    if not PAUSE_FILE.exists():
+        return None
+    try:
+        raw = json.loads(PAUSE_FILE.read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError) as exc:
+        log.warning("pause marker unreadable (%s); treating this project as paused", exc)
+        return Pause("soft", "unreadable pause marker", now_ms())
+    return Pause(str(raw.get("mode") or "soft"), str(raw.get("reason") or ""),
+                 int(raw.get("since") or now_ms()))
+
+
+def write_pause(reason: str) -> Pause:
+    pause = Pause("soft", reason.strip(), now_ms())
+    PAUSE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = PAUSE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"mode": pause.mode, "reason": pause.reason, "since": pause.since},
+                              indent=2), encoding="utf-8")
+    tmp.replace(PAUSE_FILE)
+    return pause
+
+
+def clear_pause() -> Optional[Pause]:
+    was = read_pause()
+    try:
+        PAUSE_FILE.unlink(missing_ok=True)
+    except OSError as exc:
+        log.error("could not remove %s: %s -- the project is still paused", PAUSE_FILE, exc)
+        raise
+    return was
+
+
+# --------------------------------------------------------------------------- config & state
+
+
+AUTONOMY_MODES = ("manual", "propose", "auto")
+
+
+def load_config() -> dict[str, Any]:
+    with CONFIG_FILE.open("r", encoding="utf-8") as fh:
+        cfg = yaml.safe_load(fh) or {}
+    d = cfg.setdefault("dispatcher", {})
+    d.setdefault("poll_interval_seconds", 60)
+    d.setdefault("max_active_issues", 3)
+    d.setdefault("max_run_minutes", 30)
+    d.setdefault("max_run_minutes_complex", 60)   # v0.2.10
+    d.setdefault("tick_deadline_minutes", TICK_DEADLINE_MINUTES)   # v0.2.13
+    d.setdefault("retry_empty_run", True)
+    d.setdefault("cleanup_worktrees_on_merge", True)
+    d.setdefault("claude_cmd", "claude")
+    d.setdefault("permission_args", ["--dangerously-skip-permissions"])
+    d.setdefault("extra_args", [])
+    d.setdefault("interactive_agent", "claude")
+    d.setdefault("notify", {})
+    g = cfg.setdefault("gates", {}).setdefault("core_document", {})
+    g.setdefault("path", "docs/CORE_DOCUMENT.md")
+    g.setdefault("empty_marker", "Status: EMPTY")
+    g.setdefault("achieved_marker", "Status: ACHIEVED")
+    cfg.setdefault("branches", {}).setdefault("base", "dev")
+    cfg.setdefault("circuit_breaker", {}).setdefault("max_cycles", 3)
+    cfg["circuit_breaker"].setdefault("max_ci_reruns", 2)   # v0.2.8
+    cfg.setdefault("promotion", {}).setdefault("trusted_promoters", [])
+    m = cfg.setdefault("models", {}) or {}
+    cfg["models"] = m
+    m.setdefault("default", "opus")
+    m.setdefault("complex", "fable")
+    m.setdefault("effort", {})   # v0.2.20: model name -> CLI effort level; absent = the model's default
+    m.setdefault("complex_label", LABEL_COMPLEX)
+    m.setdefault("capped_hold_minutes", MODEL_HOLD_MINUTES)   # v0.2.9
+    # `models.interview` deliberately has NO default: absence means "ask the owner at onboard".
+    cfg.setdefault("labels", {})
+    r = cfg.setdefault("roles", {})
+    for role, base in (("planner", ["handoff", "grill-with-docs", "domain-modeling"]),
+                       ("architect", ["handoff", "improve-codebase-architecture", "codebase-design"]),
+                       ("implementer", ["handoff", "tdd"])):
+        r.setdefault(role, {}).setdefault("skills", list(base))
+    # `autonomy` deliberately has NO default: absence means "ask the owner at onboard".
+    return cfg
+
+
+def autonomy_of(cfg: dict[str, Any]) -> Optional[str]:
+    mode = cfg.get("autonomy")
+    return mode if mode in AUTONOMY_MODES else None
+
+
+def complex_label(cfg: dict[str, Any]) -> str:
+    return str(cfg["models"].get("complex_label") or LABEL_COMPLEX)
+
+
+def model_for(labels: set[str], cfg: dict[str, Any]) -> str:
+    """THE MODEL POLICY (v0.2.5). Every headless run gets `models.default` -- meant to be
+    the alias `opus`, i.e. the newest Opus at launch time -- unless the issue carries the
+    complex label, which routes ALL of its runs (dispatch, retry, fix) to `models.complex`
+    (alias `fable`, the most capable model at its price). An empty value means "no --model
+    flag": whatever the CLI defaults to on this machine, which is the pre-v0.2.5 behaviour
+    and the thing this policy exists to stop, since that default follows whatever the
+    human last picked in their own interactive session."""
+    m = cfg["models"]
+    if complex_label(cfg) in labels:
+        return str(m.get("complex") or "")
+    return str(m.get("default") or "")
+
+
+def effort_for(model: str, cfg: dict[str, Any]) -> str:
+    """THE EFFORT POLICY (v0.2.20). `models.effort` maps a model, named as `models:` names
+    it (`opus`, `fable`, a full id), to the CLI's `--effort` level. Opus 5.5 runs at
+    `medium` unless told otherwise, and `max` cannot be a saved default -- the CLI takes it
+    only per session -- so the flag goes on every launch. A model with no entry gets no
+    flag: its own default."""
+    e = cfg["models"].get("effort")
+    return str(e.get(model) or "") if isinstance(e, dict) and model else ""
+
+
+def run_ceiling_minutes(labels: set[str], cfg: dict[str, Any]) -> float:
+    """v0.2.10: `dispatcher.max_run_minutes`, or `max_run_minutes_complex` for an issue
+    carrying the complex label -- the most capable model on the largest work gets longer
+    before the kill (issue #41's first run was killed at 30 min with nothing to show)."""
+    d = cfg["dispatcher"]
+    if complex_label(cfg) in labels:
+        return float(d.get("max_run_minutes_complex") or d["max_run_minutes"])
+    return float(d["max_run_minutes"])
+
+
+def run_log_path(log_name: str) -> Path:
+    return RUNS_DIR / f"{log_name}.log"
+
+
+def stamped(log_name: str) -> str:
+    """A log name unique to ONE spawn. Cycle numbers repeat (a refunded or reset cycle
+    comes round again) and the log is opened for append, so without the stamp a new run
+    would start on top of a dead run's output -- and its last line, if it was the
+    session-limit message, would get a working run killed as a limit death."""
+    return f"{log_name}-{datetime.now().strftime('%Y%m%dT%H%M%S')}"
+
+
+def run_hit_limit(log_name: Optional[str]) -> Optional[str]:
+    """If the run's log is the subscription-limit message, return the human-readable
+    reset phrase (possibly empty); None when the run ended for any other reason. Only
+    the tail is read: a run that worked for twenty minutes and THEN hit the limit still
+    counts as a limit death, but the file may be large. The message must be the run's
+    LAST output (the final non-empty lines): an agent that merely mentions the phrase
+    while working -- say, editing this file -- prints more afterwards."""
+    last_lines = _death_text(log_name)
+    if not last_lines or not _LIMIT_RE.search(last_lines):
+        return None
+    m = _LIMIT_RESET_RE.search(last_lines)
+    return m.group(0) if m else ""
+
+
+def _log_last_lines(log_name: Optional[str], n: int = 3) -> str:
+    """The last `n` non-empty lines of a run log (from its 4 KB tail); "" if unreadable."""
+    if not log_name:
+        return ""
+    path = run_log_path(log_name)
+    try:
+        with path.open("rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            size = fh.tell()
+            fh.seek(max(0, size - 4096))
+            tail = fh.read().decode("utf-8", errors="replace")
+    except OSError:
+        return ""
+    return "\n".join([ln for ln in tail.splitlines() if ln.strip()][-n:])
+
+
+def run_out_of_credits(log_name: Optional[str]) -> bool:
+    """True when the run's last output is the CLI's "You're out of usage credits. Switch
+    to another model ..." message (v0.2.9): the MODEL's usage cap -- Fable's weekly
+    allowance, typically -- not the subscription's session limit. It exits at once with
+    that one line, so before v0.2.9 it looked like an empty run: retry into the same
+    wall, then `needs-human` with nothing to answer."""
+    return bool(_CREDITS_RE.search(_death_text(log_name)))
+
+
+def run_result(log_name: Optional[str]) -> Optional[dict[str, Any]]:
+    """The JSON result a v0.2.11 run prints as its last line (`--output-format json`):
+    {"type": "result", "is_error", "num_turns", "duration_ms", "total_cost_usd",
+    "usage": {...}, "result": <final text>}. None for a run still going (empty log), a
+    pre-v0.2.11 plain-text log, or anything unparseable."""
+    if not log_name:
+        return None
+    path = run_log_path(log_name)
+    try:
+        with path.open("rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            size = fh.tell()
+            fh.seek(max(0, size - USAGE_TAIL_BYTES))
+            tail = fh.read().decode("utf-8", errors="replace")
+    except OSError:
+        return None
+    for line in reversed(tail.splitlines()):
+        line = line.strip()
+        if not line:
+            continue
+        if not line.startswith("{"):
+            return None
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError:
+            return None
+        return data if isinstance(data, dict) and data.get("type") == "result" else None
+    return None
+
+
+def _death_text(log_name: Optional[str]) -> str:
+    """What the limit / credits detectors look at. For a JSON result (v0.2.11), the
+    `result` text -- and only when the run errored or made at most one turn: a healthy
+    thirty-turn run whose final message merely mentions the limit (an agent editing this
+    file, say) is not a death. For a plain log, the last three non-empty lines."""
+    res = run_result(log_name)
+    if res is not None:
+        if res.get("is_error") or int(res.get("num_turns") or 0) <= 1:
+            return str(res.get("result") or "")
+        return ""
+    return _log_last_lines(log_name)
+
+
+def limit_until_ms(reset_phrase: str) -> int:
+    """Turn "resets 7:10pm (Europe/Amsterdam)" into an epoch-ms hold deadline, in that
+    zone if it can be resolved, else the machine's local zone; anything unreadable
+    holds LIMIT_FALLBACK_MINUTES. The reset is assumed to be within the next 24 h."""
+    now = datetime.now().astimezone()
+    m = _LIMIT_RESET_RE.search(reset_phrase or "")
+    if not m:
+        return now_ms() + LIMIT_FALLBACK_MINUTES * 60_000
+    hour, minute, ampm, zone = int(m.group(1)), int(m.group(2) or 0), m.group(3), m.group(4)
+    if ampm:
+        hour = hour % 12 + (12 if ampm.lower() == "pm" else 0)
+    tz = now.tzinfo
+    if zone:
+        try:
+            from zoneinfo import ZoneInfo
+            tz = ZoneInfo(zone.strip())
+        except Exception:  # noqa: BLE001 -- unknown zone name or no tzdata: local zone is close enough
+            pass
+    local_now = now.astimezone(tz)
+    target = local_now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if target <= local_now:
+        target += timedelta(days=1)
+    target += timedelta(minutes=LIMIT_MARGIN_MINUTES)
+    return int(target.timestamp() * 1000)
+
+
+def limit_hold(state: "State") -> Optional[str]:
+    """Describe the active session-limit hold, or None when runs may start."""
+    lim = state.limit or {}
+    until = int(lim.get("until", 0) or 0)
+    if until <= now_ms():
+        return None
+    when = datetime.fromtimestamp(until / 1000).astimezone().strftime("%H:%M")
+    return f"session limit hit ({lim.get('reason') or 'no reset time given'}); holding new runs until {when}"
+
+
+def set_limit_hold(state: "State", reset_phrase: str, seen_in: str) -> str:
+    until = limit_until_ms(reset_phrase)
+    lim = state.limit or {}
+    if int(lim.get("until", 0) or 0) < until:
+        state.limit = {"until": until, "reason": reset_phrase or "no reset time given",
+                       "seen": now_ms(), "run": seen_in}
+        state.save()
+        log.warning("%s", limit_hold(state))
+    return limit_hold(state) or ""
+
+
+def model_hold(state: "State", model: str) -> Optional[str]:
+    """Describe the active usage-cap hold on `model` (v0.2.9), or None when its runs may
+    start. Only runs that would use this model are held; the others flow."""
+    h = (state.model_holds or {}).get(model or "(CLI default)") or {}
+    until = int(h.get("until", 0) or 0)
+    if until <= now_ms():
+        return None
+    when = datetime.fromtimestamp(until / 1000).astimezone().strftime("%H:%M")
+    return f"`{model or 'CLI default'}` is out of usage credits; holding its runs until {when}"
+
+
+def set_model_hold(state: "State", model: str, cfg: dict[str, Any], seen_in: str) -> tuple[str, bool]:
+    """Hold `model` for `models.capped_hold_minutes` (the message names no reset time; a
+    re-try after the hold costs nothing, the run exits at once). Returns the description
+    and whether this is the FIRST hold of a cap episode: a re-hold right after a hold
+    expired is the same episode, and gets a log line instead of another comment."""
+    key = model or "(CLI default)"
+    minutes = int(cfg["models"].get("capped_hold_minutes") or MODEL_HOLD_MINUTES)
+    prev = (state.model_holds or {}).get(key) or {}
+    prev_until = int(prev.get("until", 0) or 0)
+    same_episode = bool(prev_until) and now_ms() - prev_until < 2 * minutes * 60_000
+    state.model_holds[key] = {"until": now_ms() + minutes * 60_000, "seen": now_ms(), "run": seen_in,
+                              "episode": prev.get("episode") if same_episode else now_ms()}
+    state.save()
+    desc = model_hold(state, model) or ""
+    log.warning("%s (re-try every %s min)", desc, minutes)
+    return desc, not same_episode
+
+
+def capped_comment(model: str, hold: str, cfg: dict[str, Any]) -> str:
+    m = cfg["models"]
+    default = str(m.get("default") or "the CLI default")
+    return (f"The headless run died because the `{model or 'CLI default'}` model is out of usage "
+            f"credits (the subscription's cap for that model, which resets on its own schedule), "
+            f"not on this issue. Not counted against the circuit breaker. The dispatcher holds "
+            f"every run that would use `{model}` and re-tries every "
+            f"{int(m.get('capped_hold_minutes') or MODEL_HOLD_MINUTES)} minutes until it is back "
+            f"({hold}); runs on `{default}` continue. To run this on `{default}` now, remove the "
+            f"`{complex_label(cfg)}` label.")
+
+
+# --------------------------------------------------------------------------- usage (v0.2.11)
+
+_RUN_KIND_RE = re.compile(r"^(?:(issue)-(\d+)-(?:cycle|retry-c)\d+|(pr)-(\d+)-fix-c\d+|(backlog)-audit)")
+
+
+def _usage_fields(res: dict[str, Any]) -> dict[str, Any]:
+    u = res.get("usage") or {}
+    return {"turns": int(res.get("num_turns") or 0), "cost": float(res.get("total_cost_usd") or 0.0),
+            "in": int(u.get("input_tokens") or 0), "out": int(u.get("output_tokens") or 0),
+            "cache_read": int(u.get("cache_read_input_tokens") or 0),
+            "cache_create": int(u.get("cache_creation_input_tokens") or 0),
+            "minutes": round(float(res.get("duration_ms") or 0) / 60_000, 1),
+            "error": bool(res.get("is_error"))}
+
+
+def collect_run_usage(state: "State") -> None:
+    """Record every finished headless run's turns, tokens and cost (v0.2.11), from the
+    JSON result at the end of its log. Idempotent: a log is read once; a run still going
+    (empty log) or a pre-v0.2.11 plain log is skipped. `usage.since` bounds the scan."""
+    u = state.usage
+    runs = u.setdefault("runs", {})
+    since = int(u.setdefault("since", now_ms()))
+    try:
+        paths = list(RUNS_DIR.glob("*.log"))
+    except OSError:
+        return
+    changed = False
+    for path in paths:
+        name = path.stem
+        if name in runs:
+            continue
+        try:
+            if int(path.stat().st_mtime * 1000) < since:
+                continue
+        except OSError:
+            continue
+        res = run_result(name)
+        if res is None:
+            continue
+        m = _RUN_KIND_RE.match(name)
+        kind = "audit" if m and m.group(5) else "fix" if m and m.group(3) else "issue" if m else "other"
+        ref = (m.group(2) or m.group(4)) if m else None
+        rec = {"kind": kind, "ref": int(ref) if ref else None, "at": now_ms(), **_usage_fields(res)}
+        runs[name] = rec
+        changed = True
+        log.info("usage: %s -> %s turns, %s in / %s out (+%s cached), $%.2f, %s min%s", name, rec["turns"],
+                 rec["in"], rec["out"], rec["cache_read"], rec["cost"], rec["minutes"],
+                 " (error)" if rec["error"] else "")
+    if changed:
+        state.save()
+
+
+def parse_ci_log(text: str) -> dict[str, dict[str, Any]]:
+    """Per-job usage from a `gh run view --log` dump: the action prints the agent's JSON
+    result into the job log, one field per line. The last value per job wins."""
+    jobs: dict[str, dict[str, Any]] = {}
+    key = {"num_turns": "turns", "total_cost_usd": "cost", "input_tokens": "in", "output_tokens": "out",
+           "cache_read_input_tokens": "cache_read", "cache_creation_input_tokens": "cache_create"}
+    for m in _CI_USAGE_RE.finditer(text):
+        job, field_, val = m.group(1).strip(), m.group(2), m.group(3)
+        rec = jobs.setdefault(job, {})
+        rec[key[field_]] = float(val) if field_ == "total_cost_usd" else int(float(val))
+    # v0.2.12: the agent's result/error text names a limit death -- the same lines the
+    # local detectors read, in the action's JSON dump ("result": "You've hit your ...").
+    for m in _CI_RESULT_RE.finditer(text):
+        job, msg = m.group(1).strip(), m.group(2)
+        rec = jobs.setdefault(job, {})
+        if _LIMIT_RE.search(msg):
+            r = _LIMIT_RESET_RE.search(msg)
+            rec["limit"] = r.group(0) if r else ""
+        elif _CREDITS_RE.search(msg):
+            rec["credits"] = True
+    return jobs
+
+
+def collect_ci_usage(state: "State") -> None:
+    """Record the Verifier's and Reviewer's usage per completed CI run (v0.2.11), read
+    once from the run's log. Bounded to runs created after `usage.since`."""
+    u = state.usage
+    ci = u.setdefault("ci", {})
+    since = int(u.setdefault("since", now_ms()))
+    runs = gh_json(["run", "list", "--workflow", PIPELINE_FILE.name, "--limit", "10",
+                    "--json", "databaseId,status,conclusion,createdAt,updatedAt,headBranch"]) or []
+    changed = False
+    for raw in runs:
+        rid = str(raw.get("databaseId"))
+        if raw.get("status") != "completed" or iso_ms(raw.get("createdAt")) < since:
+            continue
+        # a re-run attempt updates the run in place: read the log again when it did
+        updated = iso_ms(raw.get("updatedAt"))
+        prev = ci.get(rid) or {}
+        if prev and int(prev.get("updated", 0)) >= updated:
+            continue
+        ok, out, _ = run(["gh", "run", "view", rid, "--log"], timeout=SUBPROCESS_TIMEOUT)
+        if not ok:
+            continue
+        jobs = parse_ci_log(out)
+        ci[rid] = {"branch": raw.get("headBranch"), "conclusion": raw.get("conclusion"), "at": now_ms(),
+                   "updated": updated, "jobs": jobs}
+        changed = True
+        for job, rec in jobs.items():
+            log.info("usage: CI run %s job %s -> %s turns, $%.2f%s", rid, job, rec.get("turns", 0),
+                     rec.get("cost", 0.0),
+                     " -- died on the session limit" if "limit" in rec else
+                     " -- out of usage credits" if rec.get("credits") else "")
+            # v0.2.12: a CI job that died on the limit sets the hold like a local run --
+            # but only a RECENT death, since the message names a clock time and an old
+            # log would hold the fleet until tomorrow's 2:50pm.
+            if "limit" in rec and minutes_since(updated) <= 30:
+                set_limit_hold(state, rec["limit"], f"ci-run-{rid}-{job}")
+    if changed:
+        state.save()
+
+
+def ci_died_on_limit(state: "State", run_id: int) -> bool:
+    """v0.2.12: did any job of this CI run end on the session limit or a model's
+    credits, per its own log (recorded by collect_ci_usage)?"""
+    rec = ((state.usage or {}).get("ci") or {}).get(str(run_id)) or {}
+    return any("limit" in j or j.get("credits") for j in (rec.get("jobs") or {}).values())
+
+
+def usage_summary(state: "State") -> str:
+    """The board's usage block: totals by kind, then the costliest items."""
+    u = state.usage or {}
+    runs = u.get("runs") or {}
+    ci = u.get("ci") or {}
+    if not runs and not ci:
+        return "USAGE: nothing measured yet (runs started before v0.2.11 are not counted)"
+    by_kind: dict[str, dict[str, float]] = {}
+    by_ref: dict[str, dict[str, float]] = {}
+
+    def add(bucket: dict[str, dict[str, float]], k: str, rec: dict[str, Any]) -> None:
+        b = bucket.setdefault(k, {"runs": 0, "turns": 0, "cost": 0.0, "tokens": 0})
+        b["runs"] += 1
+        b["turns"] += int(rec.get("turns") or 0)
+        b["cost"] += float(rec.get("cost") or 0.0)
+        b["tokens"] += int(rec.get("in") or 0) + int(rec.get("out") or 0) + int(rec.get("cache_read") or 0)
+
+    for name, rec in runs.items():
+        add(by_kind, rec.get("kind", "other"), rec)
+        if rec.get("ref"):
+            add(by_ref, f"{'PR' if rec.get('kind') == 'fix' else 'issue'} #{rec['ref']}", rec)
+    for rid, rec in ci.items():
+        for job, jr in (rec.get("jobs") or {}).items():
+            add(by_kind, f"ci:{job}", jr)
+            add(by_ref, f"CI {rec.get('branch') or rid}", jr)
+    since = datetime.fromtimestamp(int(u.get("since", 0)) / 1000).strftime("%Y-%m-%d %H:%M")
+    lines = [f"USAGE since {since} (turns, tokens incl. cache reads, cost at API prices)"]
+    for k, b in sorted(by_kind.items(), key=lambda kv: -kv[1]["cost"]):
+        lines.append(f"  {k:<12} runs={int(b['runs']):<3} turns={int(b['turns']):<5} tokens={int(b['tokens']):>10,}  ${b['cost']:.2f}")
+    top = sorted(by_ref.items(), key=lambda kv: -kv[1]["cost"])[:5]
+    if top:
+        lines.append("  costliest:")
+        for k, b in top:
+            lines.append(f"    {k:<28} runs={int(b['runs']):<3} turns={int(b['turns']):<5} ${b['cost']:.2f}")
+    return "\n".join(lines)
+
+
+def write_autonomy(mode: str) -> None:
+    """Persist the chosen mode into dispatch.yml with a targeted text edit, so the
+    file's comments and layout survive."""
+    text = CONFIG_FILE.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    out: list[str] = []
+    replaced = False
+    for line in lines:
+        if line.strip().startswith("autonomy:") and not line.lstrip().startswith("#"):
+            out.append(f"autonomy: {mode}")
+            replaced = True
+        else:
+            out.append(line)
+    if not replaced:
+        inserted = False
+        for i, line in enumerate(out):
+            if line.startswith("version:"):
+                out.insert(i + 1, f"autonomy: {mode}")
+                inserted = True
+                break
+        if not inserted:
+            out.insert(0, f"autonomy: {mode}")
+    CONFIG_FILE.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+
+def write_interview_model(model: str) -> None:
+    """Persist `models.interview` into dispatch.yml with a targeted text edit (same
+    approach as write_autonomy: comments and layout survive). Replaces an existing
+    `interview:` line under `models:`, uncommenting it if need be; otherwise inserts one
+    right after the `models:` line; otherwise appends a minimal block."""
+    text = CONFIG_FILE.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    out: list[str] = []
+    in_models = False
+    models_at: Optional[int] = None
+    replaced = False
+    for line in lines:
+        bare = line.strip()
+        if not line.startswith((" ", "\t", "#")) and bare:
+            in_models = bare.startswith("models:")
+            if in_models:
+                models_at = len(out)
+        elif in_models and not replaced and re.match(r"^\s*#?\s*interview:", line):
+            out.append(f"  interview: {model}")
+            replaced = True
+            continue
+        out.append(line)
+    if not replaced:
+        if models_at is not None:
+            out.insert(models_at + 1, f"  interview: {model}")
+        else:
+            out += ["", "models:", f"  interview: {model}"]
+    CONFIG_FILE.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+
+@dataclass
+class State:
+    issues: dict[str, dict[str, Any]] = field(default_factory=dict)
+    prs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    notified: dict[str, int] = field(default_factory=dict)
+    closed_issues: list[int] = field(default_factory=list)
+    backlog: dict[str, Any] = field(default_factory=dict)
+    limit: dict[str, Any] = field(default_factory=dict)   # session-limit hold (v0.2.5)
+    model_holds: dict[str, Any] = field(default_factory=dict)   # per-model usage-cap holds (v0.2.9)
+    usage: dict[str, Any] = field(default_factory=dict)   # tokens/turns/cost per run and CI job (v0.2.11)
+
+    @classmethod
+    def load(cls) -> "State":
+        if not STATE_FILE.exists():
+            return cls()
+        try:
+            # utf-8-sig: a hand edit from PowerShell 5 or Notepad adds a BOM, and losing
+            # the whole state over it costs a duplicate page and a lost audit epoch
+            raw = json.loads(STATE_FILE.read_text(encoding="utf-8-sig"))
+        except (OSError, json.JSONDecodeError) as exc:
+            log.warning("state unreadable (%s); starting fresh", exc)
+            return cls()
+        return cls(
+            issues=raw.get("issues", {}), prs=raw.get("prs", {}),
+            notified=raw.get("notified", {}), closed_issues=raw.get("closed_issues", []),
+            backlog=raw.get("backlog", {}), limit=raw.get("limit", {}) or {},
+            model_holds=raw.get("model_holds", {}) or {},
+            usage=raw.get("usage", {}) or {},
+        )
+
+    def save(self) -> None:
+        if DRY_RUN:
+            return
+        STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = STATE_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps({
+            "issues": self.issues, "prs": self.prs,
+            "notified": self.notified, "closed_issues": self.closed_issues,
+            "backlog": self.backlog, "limit": self.limit, "model_holds": self.model_holds,
+            "usage": self.usage,
+        }, indent=2), encoding="utf-8")
+        tmp.replace(STATE_FILE)
+
+    def issue(self, n: int) -> dict[str, Any]:
+        return self.issues.setdefault(str(n), {})
+
+    def pr(self, n: int) -> dict[str, Any]:
+        return self.prs.setdefault(str(n), {})
+
+
+# --------------------------------------------------------------------------- observation
+
+
+@dataclass
+class Issue:
+    number: int
+    title: str
+    body: str
+    labels: set[str]
+    url: str
+    state: str  # OPEN / CLOSED
+
+    @property
+    def depends_on(self) -> list[int]:
+        found: list[int] = []
+        for m in _DEPENDS_RE.finditer(self.body or ""):
+            found.extend(int(x) for x in _HASH_RE.findall(m.group(0)))
+        return sorted(set(found) - {self.number})
+
+
+@dataclass
+class PR:
+    number: int
+    title: str
+    body: str
+    labels: set[str]
+    url: str
+    head: str
+    is_draft: bool
+    state: str
+    merged_at: Optional[str] = None
+    mergeable: str = ""       # GitHub's verdict: MERGEABLE / CONFLICTING / UNKNOWN (v0.2.6)
+    head_oid: str = ""        # the branch tip, to tell "answered" from "pushed" (v0.2.6)
+
+    @property
+    def conflicting(self) -> bool:
+        """True only on GitHub's definite verdict; UNKNOWN (still computing) is not."""
+        return self.mergeable.upper() == "CONFLICTING"
+
+    @property
+    def issue_number(self) -> Optional[int]:
+        m = _ISSUE_RE.search(self.head)
+        if m:
+            return int(m.group(1))
+        m = _CLOSES_RE.search(self.body or "")
+        return int(m.group(1)) if m else None
+
+
+@dataclass
+class Worktree:
+    id: str
+    path: str
+    branch: str
+    name: str
+    linked_issue: Optional[int]
+    status: str
+
+    @property
+    def issue_number(self) -> Optional[int]:
+        if self.linked_issue:
+            return self.linked_issue
+        m = _ISSUE_RE.search(self.name) or _ISSUE_RE.search(self.branch)
+        return int(m.group(1)) if m else None
+
+
+def wt_owned(wt: "Worktree") -> bool:
+    """True for worktrees this dispatcher created (issue runs, audits, interviews)."""
+    return bool(_OWNED_WT_RE.search(wt.name or "") or _OWNED_WT_RE.search(wt.branch or ""))
+
+
+def wt_interview(wt: "Worktree") -> bool:
+    """True for the interactive Planner worktrees (onboarding / revision rounds)."""
+    return bool(_INTERVIEW_WT_RE.search(wt.name or "") or _INTERVIEW_WT_RE.search(wt.branch or ""))
+
+
+@dataclass
+class Observed:
+    issues: dict[int, Issue]
+    prs: list[PR]              # open, base dev
+    merged: list[PR]           # merged, base dev (recent)
+    worktrees: list[Worktree]  # this repo
+    gate_open: bool
+    gate_reason: str
+    achieved: bool
+    repo_id: Optional[str]
+    pause: Optional[Pause]
+
+
+def observe(cfg: dict[str, Any]) -> Observed:
+    base = cfg["branches"]["base"]
+
+    issues: dict[int, Issue] = {}
+    for raw in gh_json(["issue", "list", "--state", "all", "--limit", "500",
+                        "--json", "number,title,body,labels,url,state"]) or []:
+        issues[int(raw["number"])] = Issue(
+            number=int(raw["number"]), title=raw.get("title", ""), body=raw.get("body") or "",
+            labels={l["name"] for l in raw.get("labels", [])}, url=raw.get("url", ""),
+            state=raw.get("state", "OPEN"),
+        )
+
+    def _prs(state: str, limit: int) -> list[PR]:
+        out: list[PR] = []
+        for raw in gh_json(["pr", "list", "--base", base, "--state", state, "--limit", str(limit),
+                            "--json", "number,title,body,labels,url,headRefName,isDraft,state,mergedAt,"
+                                      "mergeable,headRefOid"]) or []:
+            out.append(PR(
+                number=int(raw["number"]), title=raw.get("title", ""), body=raw.get("body") or "",
+                labels={l["name"] for l in raw.get("labels", [])}, url=raw.get("url", ""),
+                head=raw.get("headRefName", ""), is_draft=bool(raw.get("isDraft")),
+                state=raw.get("state", state.upper()), merged_at=raw.get("mergedAt"),
+                mergeable=raw.get("mergeable") or "", head_oid=raw.get("headRefOid") or "",
+            ))
+        return out
+
+    prs = _prs("open", 200)
+    merged = _prs("merged", 100)
+
+    repo_id: Optional[str] = None
+    res = orca_json(["repo", "show", "--repo", f"path:{REPO_ROOT}"])
+    if res:
+        repo_id = (res.get("repo") or {}).get("id")
+
+    worktrees: list[Worktree] = []
+    res = orca_json(["worktree", "list", "--limit", "500"])
+    for raw in (res or {}).get("worktrees", []) or []:
+        if repo_id and raw.get("repoId") != repo_id:
+            continue
+        if raw.get("isMainWorktree") or raw.get("isArchived"):
+            continue
+        worktrees.append(Worktree(
+            id=raw.get("id", ""), path=raw.get("path", ""),
+            branch=(raw.get("branch") or "").removeprefix("refs/heads/"),
+            name=raw.get("displayName") or "", linked_issue=raw.get("linkedIssue"),
+            status=raw.get("workspaceStatus") or "",
+        ))
+
+    gate_open, gate_reason, achieved = core_document_gate(cfg)
+    return Observed(issues, prs, merged, worktrees, gate_open, gate_reason, achieved, repo_id,
+                    read_pause())
+
+
+def core_document_gate(cfg: dict[str, Any]) -> tuple[bool, str, bool]:
+    """(gate_open, reason, achieved). Achieved closes the gate: the project is complete
+    until a revision interview sets the status back to AGREED."""
+    g = cfg["gates"]["core_document"]
+    base = cfg["branches"]["base"]
+    run(["git", "-C", str(REPO_ROOT), "fetch", "-q", "origin", base], timeout=60)
+    ok, out, _ = run(["git", "-C", str(REPO_ROOT), "show", f"origin/{base}:{g['path']}"])
+    if not ok:
+        return False, f"{g['path']} not found on origin/{base}", False
+    if g["empty_marker"] in out:
+        return False, f"{g['path']} on {base} still says '{g['empty_marker']}' -- run the onboarding interview", False
+    if g["achieved_marker"] in out:
+        return False, (f"{g['path']} on {base} says '{g['achieved_marker']}' -- project complete; "
+                       "run `dispatch.py onboard` for a revision interview to start a new round"), True
+    return True, "core document present on " + base, False
+
+# --------------------------------------------------------------------------- briefs
+
+
+def write_brief(name: str, text: str) -> Path:
+    PROMPTS_DIR.mkdir(parents=True, exist_ok=True)
+    path = PROMPTS_DIR / f"{name}.md"
+    if not DRY_RUN:
+        path.write_text(text, encoding="utf-8")
+    return path
+
+
+def one_liner(brief: Path) -> str:
+    """What the agent actually receives: one line pointing at a file. Long prompts get
+    truncated on the CLI path; this never does, and the file stays on disk for triage."""
+    return f"Read the file {brief.as_posix()} and follow its instructions exactly."
+
+
+def role_for(issue: Issue) -> str:
+    """The issue's labels choose which role prompt a headless run loads."""
+    if "architecture" in issue.labels:
+        return "architect"
+    if "research" in issue.labels:
+        return "planner"
+    return "implementer"
+
+
+def skills_for(role: str, labels: set[str], cfg: dict[str, Any]) -> list[str]:
+    out: list[str] = []
+    for s in ((cfg.get("roles", {}).get(role) or {}).get("skills", []) or []):
+        if s not in out:
+            out.append(s)
+    label_map = cfg.get("labels", {}) or {}
+    for label in sorted(labels):
+        for s in (label_map.get(label) or {}).get("skills", []) or []:
+            if s not in out:
+                out.append(s)
+    return out
+
+
+COMMON_RULES = """
+Rules that apply to every run:
+- You are STRICTLY FORBIDDEN from merging anything into `main`. Only the CI Reviewer merges, and only into `dev`.
+- You run headless. Nothing you print reaches anyone. Anything a human or a later run must know goes on GitHub (`gh issue comment` / `gh pr comment`).
+- If you need the human (a decision, a credential, a missing skill): comment on the issue or PR with exactly what you need and what you will do with the answer, add the label `needs-human`, push any work worth keeping, and END YOUR RUN. A fresh run will later read those comments -- write for that reader.
+- Skills live in `.claude/skills/` of this repository. If one your brief names is missing, say so in a comment and continue with plain tools if you can; otherwise use `needs-human`.
+- Never leave work uncommitted when you end. Never force-push. Never wait for anything.
+- Commit after every logical step, not at the end: a run can be killed at any minute (a time ceiling, a usage limit), and only committed work survives to the next run, which is told to continue from `git log`.
+- Read what you need, not everything: the issue's `Read:` line names the spec sections and ADRs the work depends on -- read those by heading, `grep` the rest of `docs/` for the terms you meet, and do not read the specs end to end.
+- Never start a command in the background, and never end your turn to wait for one: this is a headless `-p` run, and ending the turn ENDS THE RUN -- nothing re-invokes you, and the work is lost. Run tests and builds in the foreground with a timeout, read the result, then go on.
+"""
+
+
+def issue_brief(issue: Issue, role: str, cycle: int, max_cycles: int, skills: list[str], base: str) -> str:
+    types = sorted(issue.labels & {"research", "architecture", "bug"})
+    return f"""# Dispatch brief -- issue #{issue.number} -- {role} -- cycle {cycle}/{max_cycles}
+
+You are the **{role}** for issue #{issue.number}: {issue.title}
+Worktree: this directory, on its own branch off `{base}`. Issue type labels: {', '.join(types) or '(build)'}
+
+Do these in order:
+1. Read your role: `cat .orca/roles/{role}.md`. Follow it exactly.
+2. Read the task: `gh issue view {issue.number} --comments`. If the issue does not give
+   you enough context to know what is wanted and WHY -- without guessing -- do not build
+   your best guess: comment on the issue naming exactly what is missing, add the label
+   `needs-human`, and END YOUR RUN.
+3. Read the sections of `docs/CORE_DOCUMENT.md` that concern this task and what the
+   issue's `Read:` line names in `docs/specs/*.md` and `docs/adrs/*.md` (by heading).
+   No `Read:` line: grep the specs for the issue's terms and read those sections only.
+4. `git log origin/{base}..HEAD --oneline` and `git status`: a previous run for this
+   issue may have left committed work in this worktree. Continue from it; do not redo it.
+5. Do ONLY what the issue asks, in this worktree. If your role builds code, its tests
+   ship in the same PR and you run everything that exists before publishing; if your
+   role produces documents, they land under `docs/` per your role file. Commit in
+   small, clear commits, as you go.
+6. Before you publish, check your own work the way the Verifier will (it runs on every
+   push, and a send-back costs a full fix run plus a full CI round):
+   - every claim in the PR body is something you ran, with its output pasted;
+   - for `data`/`ui`/`pipeline` work, the evidence the issue's labels demand
+     (`evidence_gates` in `.orca/dispatch.yml`): a count reconciled against an
+     independent source, real output sampled in;
+   - screenshots the issue asks for are embedded (`![...](raw.githubusercontent.com/...)`,
+     pinned to a commit on this branch), not named;
+   - every behaviour you added has a test that fails without it; the full suites,
+     type checks and builds ran green in this worktree after your last commit;
+   - the body names what you did NOT do and every defect you found but did not fix;
+   - the body is written in the past tense, about what IS, not what you planned.
+7. Publish a pull request into `{base}`:
+       git push -u origin HEAD
+       gh pr create --base {base} --title "<what you did> (#{issue.number})" --body "<summary, evidence, decisions>. Refs #{issue.number}"
+   The CI pipeline verifies and reviews it; the dispatcher closes the issue on merge.
+8. Say DONE in one line and END YOUR RUN. Do not wait. Do not merge.
+
+Skills earned by this issue's labels: {', '.join(skills) if skills else '(baseline only)'}
+Labels: {', '.join(sorted(issue.labels)) or '(none)'}
+Issue URL: {issue.url}
+{COMMON_RULES}
+"""
+
+
+def retry_brief(issue: Issue, role: str, base: str) -> str:
+    return f"""# Retry -- issue #{issue.number} -- {role}
+
+A previous run for issue #{issue.number} ended WITHOUT publishing a pull request. You are
+a fresh run with no memory of it. The branch in this worktree may already contain partial
+committed work -- inspect `git log` and `git status` first.
+
+- If the work is essentially done: finish it, `git push -u origin HEAD`,
+  `gh pr create --base {base} --title "... (#{issue.number})" --body "... Refs #{issue.number}"`, END YOUR RUN.
+- Otherwise: do the task from the top. `cat .orca/roles/{role}.md`,
+  `gh issue view {issue.number} --comments`, the core document's relevant sections and
+  what the issue's `Read:` line names; do the work per your role, committing as you go;
+  push; open the PR into `{base}`; END YOUR RUN.
+- If you can see WHY the previous run failed (a missing credential, an impossible
+  instruction), do not repeat it: comment on the issue, add `needs-human`, END YOUR RUN.
+{COMMON_RULES}
+"""
+
+
+def fix_brief(pr: PR, issue: Optional[Issue], role: str, cycle: int, max_cycles: int,
+              comments: str, base: str) -> str:
+    n = pr.number
+    conflict_note = (f"\nGitHub reports this PR as CONFLICTING with `{base}`: no CI run can start for it "
+                     f"and nothing would ever merge it. Step 0 below is NOT optional here.\n"
+                     if pr.conflicting else "")
+    return f"""# Fix run -- PR #{n} was sent back -- cycle {cycle}/{max_cycles}
+
+PR #{n} ({pr.title}) carries `state:blocked` -- from the CI pipeline, or from the
+dispatcher because the PR cannot be merged. You are a FRESH {role} run; your memory is
+the pull request. The comments that sent it back:
+
+{comments}
+{conflict_note}
+Do this, in this worktree (the PR's branch is checked out here):
+0. `git fetch origin` and `gh pr view {n} --json mergeable`. If it says CONFLICTING (or
+   `git merge-tree` shows conflicts), first `git merge origin/{base}` and resolve every
+   conflict keeping BOTH sides' intent -- `{base}` moved under this branch; the other
+   PRs' decisions stand, this PR's work must fit them. Run the tests. Commit the merge.
+1. `gh pr view {n} --comments` and `git diff origin/{base}...HEAD` for full context, plus
+   `cat .orca/roles/{role}.md`. Then `git log origin/{base}..HEAD --oneline` and
+   `git status`: a previous fix run may have left committed work here -- continue from
+   it. The Verifier's AND the Reviewer's lists are both on the PR (the Reviewer posts
+   its list even when the Verifier failed): address both in this one run.
+2. Address EVERY point. A point about the PR BODY is fixed BEFORE the push
+   (`gh pr edit {n} --body-file <file>`): the push starts CI, and the Verifier reads the
+   body as it is at that moment. Then commit and `git push` on this branch. If the human
+   answered an FMEA table or a `needs-human` question in the comments, their answers are
+   requirements now. If the human's answer means nothing is left to change, say so in
+   step 3 and still do step 4.
+3. Reply on the PR with what you changed: `gh pr comment {n} --body "..."`.
+4. Hand it back: `gh pr edit {n} --remove-label state:blocked`. The push re-triggers the
+   CI pipeline automatically (a label change or a comment never does -- if you changed
+   nothing, an empty commit `git commit --allow-empty -m "Re-run CI"` and a push is the
+   way to make CI look again).
+5. If a point is wrong or impossible, say so on the PR, add `needs-human`, and END YOUR
+   RUN -- do not argue in circles. Leave `state:blocked` on; the human's answer
+   dispatches the next fix run. After cycle {max_cycles} the circuit breaker escalates
+   to the human.
+6. END YOUR RUN.
+{COMMON_RULES}
+"""
+
+
+AUDIT_WT_PREFIX = "backlog-audit"
+
+
+def audit_brief(base: str, achieved_marker: str, autonomy: str) -> str:
+    label_rule = ("label every issue you file `ready`"
+                  if autonomy == "auto" else
+                  "label every issue you file `proposed` -- NEVER `ready`; the human promotes them")
+    return f"""# Backlog audit -- Planner (headless)
+
+The pipeline is DRAINED: no open issues, no open PRs into `{base}`, no live runs.
+Decide what happens next. Exactly ONE of two outcomes, and it must be visible on GitHub
+-- a run that ends with neither stalls the whole project. Autonomy mode: `{autonomy}`.
+
+1. `cat .orca/roles/planner.md` -- you are the Planner.
+2. Re-read `docs/CORE_DOCUMENT.md`; skim `docs/specs/*.md` and `docs/adrs/*.md` by
+   heading and read in full only the sections the gaps you find depend on; list the
+   closed issues (`gh issue list --state closed --limit 200`). Compare what the core
+   document promises against what is actually merged on `{base}`.
+3. OUTCOME A -- gaps remain: file the missing GitHub issues, written to the standard in
+   your role: self-contained plain-language CONTEXT (what the problem is and why it
+   exists), TASK, DONE WHEN (testable), OUT OF SCOPE -- no jargon the core document does
+   not define. Type labels (`research`, `architecture`) and skill labels where they
+   apply; `trivial` where honest; ordering ONLY via a body line `Depends on: #a, #b`;
+   and a body line `Read: <file> § <heading>, ...` naming the spec sections and ADRs
+   the run needs -- the minimum, since a run reads what this line names and greps the
+   rest. Per the autonomy mode: {label_rule}.
+4. OUTCOME B -- everything the core document promises is merged AND the document contains
+   no OPEN item: edit its status line to `{achieved_marker} -- <date>`, commit on this
+   branch, `git push -u origin HEAD`, and open a PR into `{base}` titled
+   "Core document achieved". You may NOT choose B while any OPEN item exists: file one
+   issue per OPEN item, label it `needs-human`, and that is OUTCOME A.
+5. State in one line which outcome you chose, then END YOUR RUN.
+{COMMON_RULES}
+"""
+
+
+def onboarding_brief(base: str, autonomy: str) -> str:
+    label_rule = ("label them `ready`" if autonomy == "auto"
+                  else "label them `proposed`; the human promotes the ones they want to `ready`")
+    return f"""# Onboarding -- Planner (interactive; the human is in this session)
+
+You are the **Planner**. Read `cat .orca/roles/planner.md` and follow it exactly. This is
+one of the few INTERACTIVE sessions in this workflow: the human is here, talk to them.
+Autonomy mode for this project: `{autonomy}`.
+
+Phase 1 -- the core document:
+- `docs/CORE_DOCUMENT.md` is an empty template. Fill it by deep interview, in rounds,
+  with the human in this session. Record, read back, ask what is wrong or missing.
+  Unknowns are OPEN, never guessed.
+- When the human says it is AGREED: replace the `Status: EMPTY` line with
+  `Status: AGREED -- <date>`, commit, `git push -u origin HEAD`, and open a PR into `{base}`:
+      gh pr create --base {base} --title "Populate core document from owner interview" --body "Agreed with the owner in this session."
+  The CI pipeline reviews and merges it; nothing can be dispatched before it is on `{base}`.
+
+Phase 2 -- specs, ADRs, issues (after that PR is merged):
+- This worktree SURVIVES the core-document PR's merge; continue Phase 2 right here.
+  While this interview is open the dispatcher holds all backlog audits -- an open
+  interview means planning is in progress.
+- Derive `docs/specs/*.md` and ADRs as `docs/adrs/ADR-<issue#>-<slug>.md`, freeze the
+  contracts feature work will depend on.
+- Write the GitHub issues per your role's writing standard: self-contained plain-language
+  context (what and why), testable acceptance criteria, type and skill labels,
+  `Depends on:` lines for ordering. Per the autonomy mode: {label_rule}.
+
+Phase 3 -- conclude, on the human's word:
+- When the specs/ADR PRs are open and the issues are filed: read the plan back to the
+  human and ASK whether to conclude the planning session. If they want changes, keep
+  working. Only on their explicit yes, run:
+      python .orca/dispatcher/dispatch.py finish-interview
+  then tell them the dispatcher will archive this worktree within a minute or two and
+  the pipeline takes over.
+{COMMON_RULES}
+"""
+
+
+def revision_brief(base: str, achieved_marker: str, autonomy: str) -> str:
+    label_rule = ("label them `ready`" if autonomy == "auto"
+                  else "label them `proposed`; the human promotes the ones they want to `ready`")
+    return f"""# Revision round -- Planner (interactive; the human is in this session)
+
+The project already has an agreed core document on `{base}`. The human wants a NEW ROUND:
+new features, changes, fixes, feedback from using the result. Autonomy mode: `{autonomy}`.
+
+1. `cat .orca/roles/planner.md` -- you are the Planner.
+2. Read `docs/CORE_DOCUMENT.md` (the `{base}` version), the specs and ADRs, and skim the
+   closed issues so you know what already exists.
+3. Interview the human IN THIS SESSION, in rounds: what should change, what is new, what
+   should go. Record every answer in the core document, read it back, ask what is wrong
+   or missing. Unknowns are OPEN items, never guesses.
+4. When the human says AGREED: set the status line to `Status: AGREED -- <date>` (replacing
+   `{achieved_marker} -- ...` if present), commit, `git push -u origin HEAD`, and open a PR
+   into `{base}`. Merging that PR reopens the dispatch gate by itself.
+5. After that PR merges: update specs and ADRs and file the new issues per your role's
+   writing standard (self-contained plain-language context, testable done-when).
+   Per the autonomy mode: {label_rule}. This worktree survives the PR's merge; while it
+   is open the dispatcher holds all backlog audits.
+6. Conclude on the human's word: when the new issues are filed, read the plan back and
+   ASK whether to conclude. Only on their explicit yes, run
+   `python .orca/dispatcher/dispatch.py finish-interview` and tell them the dispatcher
+   will archive this worktree within a minute or two.
+{COMMON_RULES}
+"""
+
+
+# --------------------------------------------------------------------------- github actions (the CLI kind)
+
+
+def gh_comment(kind: str, number: int, body: str) -> None:
+    run(["gh", kind, "comment", str(number), "--body", body])
+
+
+def gh_label(kind: str, number: int, add: list[str] = (), remove: list[str] = ()) -> None:
+    args = ["gh", kind, "edit", str(number)]
+    for l in add:
+        args += ["--add-label", l]
+    for l in remove:
+        args += ["--remove-label", l]
+    if add or remove:
+        run(args)
+
+
+def gh_recent_comments(pr_number: int, limit: int = 6) -> str:
+    data = gh_json(["pr", "view", str(pr_number), "--json", "comments,reviews"]) or {}
+    items = []
+    for c in data.get("comments", []) or []:
+        items.append((c.get("createdAt", ""), c.get("author", {}).get("login", "?"), c.get("body", "")))
+    for r in data.get("reviews", []) or []:
+        if r.get("body"):
+            items.append((r.get("submittedAt", ""), r.get("author", {}).get("login", "?"), r.get("body", "")))
+    items.sort()
+    out = []
+    for _, who, body in items[-limit:]:
+        out.append(f"--- {who} ---\n{body.strip()[:3000]}")
+    return "\n\n".join(out) or "(no comments found; read the PR conversation)"
+
+
+def iso_ms(text: Optional[str]) -> int:
+    """GitHub's ISO-8601 timestamp -> epoch ms; 0 when absent or unreadable."""
+    if not text:
+        return 0
+    try:
+        return int(datetime.fromisoformat(text.replace("Z", "+00:00")).timestamp() * 1000)
+    except ValueError:
+        return 0
+
+
+def ci_run_for(pr: PR) -> Optional[dict[str, Any]]:
+    """The latest agent-pipeline run for the PR's CURRENT head commit (v0.2.7), as
+    {"id", "status", "conclusion", "updated"} -- or None when GitHub has started none
+    (a fresh push, or a CONFLICTING PR). Runs for earlier commits are ignored: the
+    concurrency group cancels them and a cancelled run for an old tip says nothing."""
+    if not pr.head_oid:
+        return None
+    runs = gh_json(["run", "list", "--workflow", PIPELINE_FILE.name, "--branch", pr.head,
+                    "--limit", "10", "--json", "databaseId,headSha,status,conclusion,createdAt,updatedAt"]) or []
+    for raw in sorted(runs, key=lambda r: r.get("createdAt") or "", reverse=True):
+        if raw.get("headSha") == pr.head_oid:
+            return {"id": int(raw["databaseId"]), "status": raw.get("status") or "",
+                    "conclusion": raw.get("conclusion") or "", "updated": iso_ms(raw.get("updatedAt"))}
+    return None
+
+
+def gh_rerun(run_id: int, job_name: str) -> bool:
+    """Re-run one named job of a workflow run; GitHub re-runs the jobs that depend on it
+    too. False when `gh` refused (the run is still going, or is too old to re-run)."""
+    jobs = (gh_json(["run", "view", str(run_id), "--json", "jobs"]) or {}).get("jobs") or []
+    job = next((j for j in jobs if j.get("name") == job_name), None)
+    if job is None:
+        log.warning("run %s has no job named %s", run_id, job_name)
+        return False
+    ok, _, err = run(["gh", "run", "rerun", str(run_id), "--job", str(job["databaseId"])])
+    if not ok:
+        log.warning("gh run rerun %s failed: %s", run_id, err.strip()[:200])
+    return ok
+
+
+def ready_label_actor(issue_number: int) -> Optional[str]:
+    """The login that LAST added the `ready` label to the issue, from GitHub's timeline;
+    None when it cannot be established (API failure, or no such event)."""
+    pages = gh_json(["api", f"repos/{{owner}}/{{repo}}/issues/{issue_number}/timeline",
+                     "--paginate", "--slurp"]) or []
+    actor: Optional[str] = None
+    for page in pages:
+        for e in page or []:
+            if e.get("event") == "labeled" and (e.get("label") or {}).get("name") == LABEL_READY:
+                actor = (e.get("actor") or {}).get("login") or actor
+    return actor
+
+
+def notify_human(cfg: dict[str, Any], state: State, key: str, subject: str, body: str,
+                 kind: str, number: Optional[int]) -> None:
+    """Flag the item on GitHub, once per key. The dispatcher itself NEVER e-mails: the
+    daily digest (section 11) is the mail channel, and an @mention is included only when
+    notify.github_mention is set."""
+    if key in state.notified:
+        return
+    mention = (cfg["dispatcher"].get("notify") or {}).get("github_mention", "") or ""
+    text = ((mention + " ") if mention else "") + f"{subject}\n\n{body}"
+    if number is not None:
+        act(f"notify human: {subject}", lambda: gh_comment(kind, number, text))
+    else:
+        log.info("notify human (no GitHub target): %s", subject)
+    state.notified[key] = now_ms()
+    state.save()
+
+
+def reset_breaker(state: State, issue_number: int, why: str) -> None:
+    """Give an issue a fresh circuit breaker (v0.2.6). Called when the human has acted:
+    answered a `needs-human` page, or removed `escalated`. The attempts made before that
+    were made without the human's information, so they are not held against the item."""
+    s = state.issue(issue_number)
+    before = int(s.get("cycle", 0))
+    s["cycle"] = 0
+    s.pop("retried", None)
+    log.info("%s -> circuit breaker reset (was at cycle %s)", why, before)
+
+
+def escalate_issue(state: State, issue_number: int, reason: str,
+                   issue: Optional[Issue] = None) -> None:
+    """Label the issue `escalated`, say why, and remember that WE did it, so that the
+    human removing the label is recognised as a decision (v0.2.6) and not re-escalated.
+    `issue` is this tick's observation: the label is added there too, because the issue
+    loop runs after the PR loop on the SAME observation and would otherwise read the
+    pre-escalation labels as "the human removed it" and reset the breaker (v0.2.8)."""
+    gh_label("issue", issue_number, add=[LABEL_ESCALATED])
+    gh_comment("issue", issue_number, reason)
+    state.issue(issue_number)["escalated"] = True
+    if issue is not None:
+        issue.labels.add(LABEL_ESCALATED)
+
+
+# --------------------------------------------------------------------------- orca + spawning
+
+
+def orca_create_worktree(name: str, base: str, issue_number: Optional[int],
+                         agent: Optional[str] = None, prompt: Optional[str] = None,
+                         activate: bool = False) -> Optional[dict[str, Any]]:
+    """Create a worktree. WITHOUT `agent`, no terminal is started -- the v0.2 default:
+    headless runs are plain subprocesses, Orca only provides the isolated checkout."""
+    args = ["worktree", "create", "--repo", f"path:{REPO_ROOT}", "--name", name,
+            "--base-branch", base]
+    if agent:
+        args += ["--agent", agent]
+        if prompt:
+            args += ["--prompt", prompt]
+    if issue_number:
+        args += ["--issue", str(issue_number)]
+    if activate:
+        args += ["--activate"]
+    return orca_json(args)
+
+
+def worktree_path(name: str, res: Optional[dict[str, Any]]) -> Optional[str]:
+    """Resolve a worktree's path from the create result, else by listing."""
+    if res:
+        p = (res.get("worktree") or {}).get("path")
+        if p:
+            return p
+    listing = orca_json(["worktree", "list", "--limit", "500"])
+    for raw in (listing or {}).get("worktrees", []) or []:
+        if (raw.get("displayName") or "") == name and raw.get("path"):
+            return raw["path"]
+    return None
+
+
+def headless_env(d: dict[str, Any]) -> dict[str, str]:
+    """The environment of a headless run (v0.2.17).
+
+    A run that backgrounds a command and ends its turn to wait for it is a failed run at
+    full cost (the CI Verifier on PR #149 did exactly that): the CLI is told to refuse
+    background tasks altogether, and the foreground Bash ceiling is raised so a 20-minute
+    suite fits without one. `bash_timeout_minutes` (config, default 40) sets the ceiling."""
+    env = dict(os.environ)
+    ms = str(int(float(d.get("bash_timeout_minutes", 40)) * 60_000))
+    env.setdefault("CLAUDE_CODE_DISABLE_BACKGROUND_TASKS", "1")
+    env.setdefault("BASH_DEFAULT_TIMEOUT_MS", ms)
+    env.setdefault("BASH_MAX_TIMEOUT_MS", ms)
+    return env
+
+
+def spawn_headless(workdir: str, brief: Path, log_name: str, cfg: dict[str, Any],
+                   model: str = "") -> Optional[int]:
+    """Start a run-to-completion `claude -p` process in the worktree. Returns the PID.
+
+    The process is its own group/tree so kill_tree() can take everything with it, and its
+    output goes to a per-run log -- the human's window into a headless run. `model` comes
+    from model_for() (v0.2.5): the policy's flag goes BEFORE `extra_args`, so a deliberate
+    `--model` in extra_args still wins (the CLI takes the last one)."""
+    d = cfg["dispatcher"]
+    cmd = [d["claude_cmd"], "-p", one_liner(brief), "--output-format", "json", *d["permission_args"]]
+    if model:
+        cmd += ["--model", model]
+    effort = effort_for(model, cfg)
+    if effort:
+        cmd += ["--effort", effort]   # v0.2.20, before extra_args like --model: the last one wins
+    cmd += list(d["extra_args"])
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    log_path = run_log_path(log_name)
+    try:
+        logf = open(log_path, "ab")
+    except OSError as exc:
+        log.error("cannot open run log %s: %s", log_path, exc)
+        return None
+    kwargs: dict[str, Any] = {}
+    if os.name == "nt":
+        kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+    else:
+        kwargs["start_new_session"] = True
+    try:
+        proc = subprocess.Popen(
+            cmd, cwd=workdir, stdin=subprocess.DEVNULL,
+            stdout=logf, stderr=subprocess.STDOUT, env=headless_env(d), **kwargs,
+        )
+    except (FileNotFoundError, OSError) as exc:
+        log.error("cannot start %s: %s (set dispatcher.claude_cmd to an absolute path?)", cmd[0], exc)
+        logf.close()
+        return None
+    finally:
+        # The child holds its own handle; the parent's copy can close either way.
+        try:
+            logf.close()
+        except OSError:
+            pass
+    PROCS[proc.pid] = proc
+    return proc.pid
+
+
+# --------------------------------------------------------------------------- reconcile: issues
+
+
+def reconcile_issues(obs: Observed, cfg: dict[str, Any], state: State) -> None:
+    d = cfg["dispatcher"]
+    base = cfg["branches"]["base"]
+    max_cycles = int(cfg["circuit_breaker"]["max_cycles"])
+    max_minutes = float(d["max_run_minutes"])
+
+    wt_by_issue: dict[int, Worktree] = {}
+    for wt in obs.worktrees:
+        n = wt.issue_number
+        if n and n not in wt_by_issue:
+            wt_by_issue[n] = wt
+    pr_by_issue: dict[int, PR] = {}
+    for pr in obs.prs:
+        n = pr.issue_number
+        if n and n not in pr_by_issue:
+            pr_by_issue[n] = pr
+
+    merged_issues = {pr.issue_number for pr in obs.merged if pr.issue_number}
+    open_issues = sorted((i for i in obs.issues.values()
+                          if i.state == "OPEN" and i.number not in merged_issues),
+                         key=lambda i: i.number)
+
+    def live_runs() -> int:
+        n = 0
+        for s in state.issues.values():
+            r = s.get("run")
+            if r and run_alive(int(r.get("pid", 0))):
+                n += 1
+        return n
+
+    slots = max(0, int(d["max_active_issues"]) - live_runs())
+
+    for issue in open_issues:
+        s = state.issue(issue.number)
+        r = s.get("run")
+        pr = pr_by_issue.get(issue.number)
+        wt = wt_by_issue.get(issue.number)
+
+        # needs-human: page once, then leave the item alone until the label is gone.
+        if LABEL_NEEDS_HUMAN in issue.labels:
+            notify_human(cfg, state, f"issue:{issue.number}:needs-human",
+                         f"issue #{issue.number} needs you",
+                         f"{issue.title}\nAnswer in the issue comments, then remove the "
+                         f"`needs-human` label.\n{issue.url}", "issue", issue.number)
+            if not s.get("paged"):
+                s["paged"] = True
+                state.save()
+            continue
+        state.notified.pop(f"issue:{issue.number}:needs-human", None)
+        # The human answered (v0.2.6): the attempts made without the answer are not
+        # held against the issue -- fresh breaker, fresh run.
+        if s.get("paged"):
+            reset_breaker(state, issue.number, f"issue #{issue.number}: `needs-human` removed")
+            s.pop("paged", None)
+            state.save()
+
+        # `escalated` removed by the human (v0.2.6): same rule. Without this the cycle
+        # count is still over the breaker and the issue re-escalates on the same tick.
+        if s.get("escalated") and LABEL_ESCALATED not in issue.labels:
+            reset_breaker(state, issue.number, f"issue #{issue.number}: `escalated` removed")
+            s.pop("escalated", None)
+            state.notified.pop(f"issue:{issue.number}:escalated", None)
+            state.save()
+
+        # --- a PR exists: the CI pipeline owns it; let the run finish talking, then reap.
+        if pr is not None:
+            if r:
+                pid = int(r.get("pid", 0))
+                if run_alive(pid):
+                    seen = s.setdefault("pr_seen", now_ms())
+                    if minutes_since(seen) >= PR_GRACE_MINUTES:
+                        act(f"issue #{issue.number}: PR #{pr.number} exists; reaping lingering run {pid}",
+                            lambda p=pid: kill_tree(p))
+                        s.pop("run", None)
+                else:
+                    s.pop("run", None)
+                s.pop("retried", None)
+                state.save()
+            continue
+        s.pop("pr_seen", None)
+
+        if LABEL_ESCALATED in issue.labels or LABEL_READY not in issue.labels:
+            continue
+
+        # --- a run is in flight -----------------------------------------------------------
+        if r:
+            pid = int(r.get("pid", 0))
+            alive = run_alive(pid)
+            reset = run_hit_limit(r.get("log"))
+            # Some CLI versions print the limit line and then idle instead of exiting;
+            # waiting for max_run_minutes would count that idle as a failed attempt.
+            if alive and reset is not None:
+                act(f"issue #{issue.number}: live run {pid} printed the session-limit line -> kill",
+                    lambda p=pid: kill_tree(p))
+                alive = False
+            if alive:
+                ceiling = run_ceiling_minutes(issue.labels, cfg)
+                if minutes_since(int(r.get("started", 0))) >= ceiling:
+                    act(f"issue #{issue.number}: run {pid} exceeded {ceiling:.0f} min -> kill",
+                        lambda p=pid: kill_tree(p))
+                    s.pop("run", None)
+                    if int(s.get("cycle", 0)) >= max_cycles:
+                        act(f"issue #{issue.number}: breaker after timeout -> escalate",
+                            lambda i=issue: escalate_issue(state, i.number,
+                                f"Circuit breaker tripped: {max_cycles} failed attempts (last run timed out).", i))
+                        notify_human(cfg, state, f"issue:{issue.number}:escalated",
+                                     f"issue #{issue.number} escalated", issue.url, "issue", issue.number)
+                    state.save()
+                continue
+            # run exited without a PR. First: did it die on the subscription's session
+            # limit? Then the ISSUE did nothing wrong -- refund the cycle, hold every new
+            # run until the limit resets, and let the issue come back as a plain candidate.
+            if reset is not None:
+                s.pop("run", None)
+                s["cycle"] = max(0, int(s.get("cycle", 0)) - 1)
+                s.pop("retried", None)
+                state.save()
+                hold = set_limit_hold(state, reset, str(r.get("log") or ""))
+                act(f"issue #{issue.number}: run died on the session limit -> cycle refunded; {hold}",
+                    lambda n=issue.number, h=hold: gh_comment("issue", n,
+                        f"The headless run died on the Claude session limit, not on this issue: "
+                        f"{h}. The attempt is not counted against the circuit breaker; the "
+                        f"dispatcher restarts it by itself when the limit lifts."))
+                continue
+            if run_out_of_credits(r.get("log")):
+                # v0.2.9: the MODEL's usage cap, not the session limit. Refund, hold only
+                # the runs that would use this model, and keep the rest of the fleet going.
+                model = model_for(issue.labels, cfg)
+                s.pop("run", None)
+                s["cycle"] = max(0, int(s.get("cycle", 0)) - 1)
+                s.pop("retried", None)
+                state.save()
+                hold, first = set_model_hold(state, model, cfg, str(r.get("log") or ""))
+                if first:
+                    act(f"issue #{issue.number}: run died on the `{model}` usage cap -> cycle refunded; {hold}",
+                        lambda n=issue.number, h=hold, m=model: gh_comment("issue", n, capped_comment(m, h, cfg)))
+                else:
+                    log.info("issue #%s: run died on the `%s` usage cap again -> cycle refunded; %s",
+                             issue.number, model, hold)
+                continue
+            s.pop("run", None)
+            # v0.2.18: the run may have ended without a PR because the issue's `Depends on:`
+            # line now names an open issue -- often the run itself added it after reading
+            # the ADRs (#144 gained #142 that way on 2026-09-26). The issue did nothing
+            # wrong: refund the cycle and let it wait as a plain candidate. Before this the
+            # retry ignored the line, spent a cycle on the same finding and paged the owner.
+            unmet_now = [n for n in issue.depends_on
+                         if n not in obs.issues or obs.issues[n].state != "CLOSED"]
+            if unmet_now:
+                s["cycle"] = max(0, int(s.get("cycle", 0)) - 1)
+                s.pop("retried", None)
+                state.save()
+                log.info("issue #%s: run ended without a PR and the issue now waits on %s "
+                         "-> cycle refunded, no retry", issue.number, unmet_now)
+                continue
+            if bool(d["retry_empty_run"]) and not s.get("retried"):
+                cycle = int(s.get("cycle", 0)) + 1
+                if cycle > max_cycles:
+                    act(f"issue #{issue.number}: breaker -> escalate",
+                        lambda i=issue: escalate_issue(state, i.number,
+                            f"Circuit breaker tripped: {max_cycles} failed attempts.", i))
+                    notify_human(cfg, state, f"issue:{issue.number}:escalated",
+                                 f"issue #{issue.number} escalated", issue.url, "issue", issue.number)
+                    state.save()
+                    continue
+                if wt is None or not wt.path:
+                    log.warning("issue #%s: retry wanted but no worktree; will re-dispatch fresh", issue.number)
+                    s["retried"] = True
+                    state.save()
+                    continue
+                if limit_hold(state):
+                    log.debug("issue #%s: retry held: %s", issue.number, limit_hold(state))
+                    continue
+                mh = model_hold(state, model_for(issue.labels, cfg))
+                if mh:
+                    log.debug("issue #%s: retry held: %s", issue.number, mh)
+                    continue
+                brief = write_brief(f"issue-{issue.number}-retry-c{cycle}",
+                                    retry_brief(issue, s.get("role", "implementer"), base))
+                model = model_for(issue.labels, cfg)
+                log_name = stamped(f"issue-{issue.number}-retry-c{cycle}")
+                def _retry(wt=wt, brief=brief, log_name=log_name, model=model):
+                    return spawn_headless(wt.path, brief, log_name, cfg, model)
+                pid2 = act(f"issue #{issue.number}: run ended without a PR -> one retry "
+                           f"(cycle {cycle}/{max_cycles}, model {model or 'CLI default'})", _retry)
+                if DRY_RUN or pid2:
+                    s["cycle"] = cycle
+                    s["retried"] = True
+                    if pid2:
+                        s["run"] = {"pid": pid2, "started": now_ms(), "kind": "retry",
+                                    "log": log_name, "model": model}
+                    state.save()
+                continue
+            act(f"issue #{issue.number}: run ended without a PR (after retry) -> needs-human",
+                lambda n=issue.number: (gh_label("issue", n, add=[LABEL_NEEDS_HUMAN]),
+                                        gh_comment("issue", n,
+                                                   "Two headless runs ended without publishing a PR. See "
+                                                   ".orca/dispatcher/runs/ for their logs; answer here and "
+                                                   "remove `needs-human` to retry.")))
+            state.save()
+            continue
+
+        # --- candidate for dispatch -------------------------------------------------------
+        if obs.pause:
+            log.debug("issue #%s held: %s", issue.number, obs.pause.describe())
+            continue
+        if limit_hold(state):
+            log.debug("issue #%s held: %s", issue.number, limit_hold(state))
+            continue
+        mh = model_hold(state, model_for(issue.labels, cfg))
+        if mh:
+            log.debug("issue #%s held: %s", issue.number, mh)   # v0.2.9: this model only
+            continue
+        if not obs.gate_open:
+            log.debug("issue #%s held: %s", issue.number, obs.gate_reason)
+            continue
+        # THE DIAL, ENFORCED (v0.2.4): in manual/propose mode `ready` is the human's
+        # signature. Verify WHO last applied it before acting on it; an untrusted
+        # promoter (an agent overstepping its brief, typically) is demoted back to
+        # `proposed` with an explanation. Empty trusted_promoters = enforcement off
+        # (prompt-only, the pre-v0.2.4 behaviour). An API failure defers to the next
+        # tick rather than demoting: a transient error must never undo a human's
+        # promotion. Only meaningful when the agents' gh account differs from the
+        # humans' accounts.
+        promoters = {p.lower() for p in (cfg.get("promotion", {}).get("trusted_promoters") or [])}
+        mode_now = autonomy_of(cfg) or "propose"
+        if mode_now != "auto" and promoters and not s.get("promoter_ok"):
+            actor = ready_label_actor(issue.number)
+            if actor is None:
+                log.warning("issue #%s: cannot establish who applied `ready`; retrying next tick",
+                            issue.number)
+                continue
+            if actor.lower() in promoters:
+                s["promoter_ok"] = True
+                state.save()
+            else:
+                act(f"issue #{issue.number}: `ready` applied by untrusted `{actor}` -> demote to proposed",
+                    lambda n=issue.number, a=actor, m=mode_now: (
+                        gh_label("issue", n, add=[LABEL_PROPOSED], remove=[LABEL_READY]),
+                        gh_comment("issue", n,
+                                   f"Autonomy mode is `{m}`: only a trusted promoter may apply `ready`, "
+                                   f"and this label was added by `{a}`. Demoted back to `proposed`. If "
+                                   "that account is actually the owner, add its login to "
+                                   "`promotion.trusted_promoters` in `.orca/dispatch.yml` and re-apply "
+                                   "the label.")))
+                continue
+        unmet = [n for n in issue.depends_on if n not in obs.issues or obs.issues[n].state != "CLOSED"]
+        if unmet:
+            log.debug("issue #%s waits on %s", issue.number, unmet)
+            continue
+        cycle = int(s.get("cycle", 0)) + 1
+        if cycle > max_cycles:
+            act(f"issue #{issue.number}: cycle {cycle} > {max_cycles} -> escalate",
+                lambda i=issue: escalate_issue(state, i.number,
+                    f"Circuit breaker tripped: {max_cycles} failed attempts.", i))
+            notify_human(cfg, state, f"issue:{issue.number}:escalated",
+                         f"issue #{issue.number} escalated", issue.url, "issue", issue.number)
+            state.save()
+            continue
+        if slots <= 0:
+            log.debug("issue #%s waits for a slot", issue.number)
+            continue
+
+        if wt is None:
+            res = act(f"issue #{issue.number}: create worktree issue-{issue.number}",
+                      lambda i=issue: orca_create_worktree(f"issue-{i.number}", base, i.number))
+            if DRY_RUN:
+                slots -= 1
+                continue
+            path = worktree_path(f"issue-{issue.number}", res)
+        else:
+            path = wt.path
+        if not path:
+            log.warning("issue #%s: no worktree path yet; retrying next tick", issue.number)
+            continue
+
+        role = role_for(issue)
+        skills = skills_for(role, issue.labels, cfg)
+        model = model_for(issue.labels, cfg)
+        log_name = stamped(f"issue-{issue.number}-cycle{cycle}")
+        brief = write_brief(log_name, issue_brief(issue, role, cycle, max_cycles, skills, base))
+        def _dispatch(path=path, brief=brief, log_name=log_name, model=model):
+            return spawn_headless(path, brief, log_name, cfg, model)
+        pid = act(f"issue #{issue.number}: dispatch {role} (cycle {cycle}/{max_cycles}, "
+                  f"model {model or 'CLI default'})", _dispatch)
+        if DRY_RUN or pid:
+            s["cycle"] = cycle
+            s["role"] = role
+            s.pop("retried", None)
+            if pid:
+                s["run"] = {"pid": pid, "started": now_ms(), "kind": "implement",
+                            "log": log_name, "model": model}
+            state.save()
+            act(f"issue #{issue.number}: comment dispatched",
+                lambda n=issue.number, c=cycle, r=role, m=model, l=log_name: gh_comment("issue", n,
+                    f"Dispatched a headless {r} run (cycle {c}/{max_cycles}, model "
+                    f"`{m or 'CLI default'}`). Log: .orca/dispatcher/runs/{l}.log"))
+            slots -= 1
+
+
+# --------------------------------------------------------------------------- reconcile: PRs
+
+
+def ci_without_verdict(pr: PR, s: dict[str, Any], issue: Optional[Issue], cfg: dict[str, Any],
+                       state: State, max_cycles: int) -> bool:
+    """v0.2.7. An open, unblocked PR whose CI run for its current head has FINISHED is a
+    PR the pipeline dropped: a Verifier that ended without a label, a Reviewer that
+    ended without merging or sending back (observed: green job, 30-40 turns, nothing
+    posted), or a job that died on the session limit. Nothing else would ever touch it
+    -- CI re-runs only on a push. Re-run the job that owes the verdict (the Reviewer
+    when `state:tested` is on, else the Verifier; `review` follows `verify` either way),
+    up to `circuit_breaker.max_ci_reruns` times per finished run, then escalate. The
+    issue's breaker is NOT spent (v0.2.8): v0.2.7 charged a cycle per re-run, and a PR
+    that had needed one fix run and one re-run escalated on its next `state:blocked`
+    with the re-run's own verdict left unworked. Returns True when it acted."""
+    if s.get("escalated"):
+        return False  # the human's move; removing `escalated` from the issue restarts this
+    ci = ci_run_for(pr)
+    if ci is None or ci["status"] != "completed":
+        return False
+    rerun = s.get("ci_rerun") or {}
+    if rerun.get("run") == ci["id"] and ci["updated"] <= int(rerun.get("at", 0)):
+        # our re-run has not shown up yet (GitHub re-queues within a minute or two)
+        if minutes_since(int(rerun.get("at", 0))) < CI_RERUN_SETTLE_MINUTES:
+            return False
+    if minutes_since(ci["updated"]) < CI_VERDICT_GRACE_MINUTES:
+        return False  # the merge/label the run posted may still be propagating
+    hold = limit_hold(state)
+    if hold:
+        log.debug("PR #%s: CI ended without a verdict; re-run held: %s", pr.number, hold)
+        return False
+
+    lim = state.limit or {}
+    # CI agents run on the same subscription as the local ones: a job that FAILED while
+    # a local run was reporting the session limit died of the limit, not of the PR.
+    on_limit = bool(ci["conclusion"] == "failure" and lim
+                    and int(lim.get("seen", 0)) - 10 * 60_000 <= ci["updated"] <= int(lim.get("until", 0)))
+    on_limit = on_limit or (ci["conclusion"] == "failure" and ci_died_on_limit(state, ci["id"]))   # v0.2.12
+    # `state:tested` on means the Verifier decided and the Reviewer did not; off means
+    # the Verifier owes the verdict (the `review` job follows it either way).
+    job = "review" if LABEL_TESTED in pr.labels else "verify"
+    what = f"CI run {ci['id']} ended ({ci['conclusion'] or 'no conclusion'}) without a verdict"
+
+    # Bounded PER FINISHED RUN: a push makes a new run and a fresh count (the fix run
+    # that pushed spent a breaker cycle already). A limit death is not counted.
+    max_reruns = int(cfg["circuit_breaker"].get("max_ci_reruns", 2))
+    spent = int(rerun.get("count", 0)) if rerun.get("run") == ci["id"] else 0
+    attempt = spent + 1
+    if attempt > max_reruns and not on_limit:
+        how = f"remove `escalated` from issue #{issue.number}" if issue else "remove `needs-human`"
+
+        def _esc(pr=pr, issue=issue, how=how):
+            gh_comment("pr", pr.number,
+                       f"{what}, after {max_reruns} re-runs. Re-run the workflow by hand from the "
+                       f"Actions tab, or push an empty commit; then {how} for a fresh count.")
+            if issue:
+                escalate_issue(state, issue.number,
+                               f"CI keeps ending without a verdict on PR #{pr.number} "
+                               f"({max_reruns} re-runs).", issue)
+            else:
+                gh_label("pr", pr.number, add=[LABEL_NEEDS_HUMAN])
+        act(f"PR #{pr.number}: {what}; {max_reruns} re-runs spent -> "
+            f"{'escalate' if issue else 'needs-human'}", _esc)
+        if issue:
+            s["escalated"] = True   # `ci_rerun` stays as it is: nothing was re-run
+            state.save()
+            notify_human(cfg, state, f"pr:{pr.number}:escalated", f"PR #{pr.number} escalated", pr.url,
+                         "pr", pr.number)
+        return True
+
+    def _rerun(run_id=ci["id"], job=job):
+        if not gh_rerun(run_id, job):
+            return False
+        counted = "not counted: it died on the session limit" if on_limit else f"attempt {attempt} of {max_reruns}"
+        gh_comment("pr", pr.number, f"{what}. Re-running the `{job}` job ({counted}).")
+        return True
+    if act(f"PR #{pr.number}: {what} -> re-run `{job}` (attempt {attempt} of {max_reruns})", _rerun) is False:
+        # gh refused (the run is not finished after all, or it is too old to re-run):
+        # hand the PR to the human rather than loop on a refusal
+        act(f"PR #{pr.number}: re-run refused -> needs-human",
+            lambda n=pr.number: (gh_label("pr", n, add=[LABEL_NEEDS_HUMAN]),
+                                 gh_comment("pr", n, f"{what}, and `gh run rerun` was refused. Re-run "
+                                                     f"the workflow from the Actions tab (or push an empty "
+                                                     f"commit), then remove `needs-human`.")))
+        s["rerun_refused"] = True   # this page asks for a re-run, not for an answer (v0.2.8)
+    s["ci_rerun"] = {"run": ci["id"], "at": now_ms(), "count": spent if on_limit else attempt}
+    state.save()
+    return True
+
+
+def reconcile_prs(obs: Observed, cfg: dict[str, Any], state: State) -> None:
+    d = cfg["dispatcher"]
+    max_cycles = int(cfg["circuit_breaker"]["max_cycles"])
+    max_minutes = float(d["max_run_minutes"])
+    wt_by_branch = {wt.branch: wt for wt in obs.worktrees}
+
+    for pr in obs.prs:
+        if pr.is_draft:
+            continue
+        s = state.pr(pr.number)
+        issue = obs.issues.get(pr.issue_number) if pr.issue_number else None
+
+        if LABEL_NEEDS_HUMAN in pr.labels:
+            notify_human(cfg, state, f"pr:{pr.number}:needs-human", f"PR #{pr.number} needs you",
+                         f"{pr.title}\nAnswer in the PR comments, then remove the "
+                         f"`needs-human` label -- only that one; a fresh fix run then reads "
+                         f"your answer.\n{pr.url}", "pr", pr.number)
+            # Remember the branch tip at page time: when the label goes and the tip is
+            # unchanged, the human ANSWERED rather than pushed a fix themselves.
+            if "paged_oid" not in s:
+                s["paged_oid"] = pr.head_oid or "?"
+                state.save()
+            continue  # a fix run is NOT dispatched while the human is being waited on
+        state.notified.pop(f"pr:{pr.number}:needs-human", None)
+
+        # --- the human answered a page on this PR (v0.2.6) -------------------------------
+        # Before: if the page came from a fix run, its dead record made the next tick say
+        # "fix run ended, still blocked" and page AGAIN; and a human who removed both
+        # labels left a PR nothing could pick up (CI re-runs on a push, never on a comment
+        # or a label). Now the answer restarts the work with a fresh breaker.
+        if "paged_oid" in s:
+            fix = s.get("fix")
+            if fix and run_alive(int(fix.get("pid", 0))):
+                log.debug("PR #%s: answered, waiting for the run that paged to exit", pr.number)
+                continue
+            paged_oid = s.pop("paged_oid")
+            for k in ("fix", "fix_done_seen", "blocked_handled", "escalated", "ci_rerun"):
+                s.pop(k, None)
+            if issue:
+                reset_breaker(state, issue.number, f"PR #{pr.number}: `needs-human` removed")
+            state.save()
+            # A page for a refused CI re-run asked the human to re-run CI, not to answer a
+            # question: there is nothing for a fix run to read, so `state:blocked` is not
+            # re-applied; the re-run count restarts instead (v0.2.8).
+            refused = bool(s.pop("rerun_refused", None))
+            if LABEL_BLOCKED not in pr.labels and pr.head_oid == paged_oid and not refused:
+                act(f"PR #{pr.number}: answered with nothing pushed and no `state:blocked` -> re-apply it",
+                    lambda n=pr.number: (gh_label("pr", n, add=[LABEL_BLOCKED]),
+                                         gh_comment("pr", n,
+                                                    "Answer received. Nothing was pushed since the question, and "
+                                                    "CI only re-runs on a push, so `state:blocked` is re-applied: "
+                                                    "a fresh fix run reads your answer and hands the PR back.")))
+                continue  # the blocked branch dispatches on the next tick
+
+        # --- `escalated` removed from the issue by the human (v0.2.6) -------------------
+        if issue and s.get("escalated") and LABEL_ESCALATED not in issue.labels:
+            s.pop("escalated", None)
+            s.pop("blocked_handled", None)
+            s.pop("fix", None)
+            s.pop("ci_rerun", None)   # a fresh count of re-runs, too (v0.2.8)
+            state.notified.pop(f"pr:{pr.number}:escalated", None)
+            reset_breaker(state, issue.number, f"PR #{pr.number}: `escalated` removed from issue #{issue.number}")
+            state.save()
+
+        # --- conflicting with the base branch (v0.2.6) ------------------------------------
+        # GitHub creates NO workflow run for a PR whose merge commit it cannot compute, so
+        # a conflicting PR without `state:blocked` would sit "in CI" forever. Label it, so
+        # the ordinary fix path runs a merge of the base branch; the breaker bounds it.
+        if pr.conflicting and LABEL_BLOCKED not in pr.labels:
+            fix = s.get("fix")
+            if fix and run_alive(int(fix.get("pid", 0))):
+                # a lingering fix run may be pushing the merge right now; the tidy branch
+                # below reaps it after the grace period if it never finishes
+                log.debug("PR #%s: conflicting, but a fix run is still going", pr.number)
+            else:
+                base = cfg["branches"]["base"]
+                act(f"PR #{pr.number}: CONFLICTING with {base} and unblocked -> state:blocked",
+                    lambda n=pr.number, b=base: (gh_label("pr", n, add=[LABEL_BLOCKED]),
+                                                 gh_comment("pr", n,
+                                                            f"This PR conflicts with `{b}` (GitHub: CONFLICTING). No CI "
+                                                            f"run can start for it and nothing would ever merge it, so "
+                                                            f"`state:blocked` is applied: a fix run merges `{b}` into the "
+                                                            f"branch, resolves the conflicts, and pushes.")))
+                for k in ("fix", "fix_done_seen", "blocked_handled"):
+                    s.pop(k, None)
+                s["conflict_block"] = True   # v0.2.19: the merge run below spends no cycle
+                state.save()
+                continue  # the blocked branch dispatches on the next tick
+
+        # --- CI finished without a verdict (v0.2.7) ---------------------------------------
+        if LABEL_BLOCKED not in pr.labels and not pr.conflicting:
+            if ci_without_verdict(pr, s, issue, cfg, state, max_cycles):
+                continue
+
+        if LABEL_BLOCKED in pr.labels:
+            fix = s.get("fix")
+            if s.get("blocked_handled") and not fix and not s.get("escalated"):
+                # v0.2.13: "handled" with no run record and no page is a dead end (a fix
+                # run killed on the ceiling while the page was answered during a stalled
+                # tick left exactly this). Whatever handled it is gone: handle it again.
+                # NOT when escalated (v0.2.15): an escalation leaves exactly this state on
+                # purpose, and re-handling it re-escalated every tick (PR #127, 2026-09-21).
+                log.info("PR #%s: blocked, marked handled, but no fix run record -> dispatch again", pr.number)
+                s.pop("blocked_handled", None)
+            if not s.get("blocked_handled"):
+                if limit_hold(state):
+                    log.debug("PR #%s: fix run held: %s", pr.number, limit_hold(state))
+                    continue
+                mh = model_hold(state, model_for(issue.labels if issue else set(), cfg))
+                if mh:
+                    log.debug("PR #%s: fix run held: %s", pr.number, mh)
+                    continue
+                # v0.2.11: the Reviewer posts its list even when the Verifier failed, so
+                # one fix run answers both -- wait for the run on this head to finish.
+                ci = ci_run_for(pr) if not pr.conflicting else None
+                if ci and ci["status"] != "completed":
+                    log.debug("PR #%s: blocked; CI run %s still going -> fix run waits for the Reviewer's list",
+                              pr.number, ci["id"])
+                    continue
+                # v0.2.19: a block the dispatcher applied itself because the PR CONFLICTS with
+                # the base branch is not a failed attempt: the merge run spends no cycle. Three
+                # parallel PRs (#154-#156) each made the others conflict on every merge, and
+                # #155 reached cycle 3/3 with one Reviewer remark to spare.
+                conflict_merge = bool(s.pop("conflict_block", None)) and pr.conflicting
+                cycle = 1
+                if issue:
+                    si = state.issue(issue.number)
+                    cycle = (max(1, int(si.get("cycle", 1))) if conflict_merge
+                             else int(si.get("cycle", 1)) + 1)
+                    si["cycle"] = cycle
+                if cycle > max_cycles:
+                    def _esc(pr=pr, issue=issue):
+                        gh_comment("pr", pr.number,
+                                   f"Circuit breaker tripped: {max_cycles} failed attempts. To retry with a "
+                                   f"fresh breaker, answer here and remove `escalated` from the issue.")
+                        if issue:
+                            escalate_issue(state, issue.number,
+                                           f"Circuit breaker tripped on PR #{pr.number}: {max_cycles} failed attempts.",
+                                           issue)
+                    act(f"PR #{pr.number}: blocked beyond breaker -> escalate", _esc)
+                    s["escalated"] = True
+                    notify_human(cfg, state, f"pr:{pr.number}:escalated", f"PR #{pr.number} escalated",
+                                 pr.url, "pr", pr.number)
+                else:
+                    wt = wt_by_branch.get(pr.head)
+                    if wt is None or not wt.path:
+                        act(f"PR #{pr.number}: blocked but no worktree for {pr.head} -> needs-human",
+                            lambda n=pr.number: (gh_label("pr", n, add=[LABEL_NEEDS_HUMAN]),
+                                                 gh_comment("pr", n,
+                                                            "Blocked, but the local worktree for this branch is gone. "
+                                                            "Recreate it in Orca (or fix by hand), then remove `needs-human`.")))
+                    else:
+                        role = role_for(issue) if issue else "implementer"
+                        model = model_for(issue.labels if issue else set(), cfg)
+                        comments = gh_recent_comments(pr.number)
+                        log_name = stamped(f"pr-{pr.number}-fix-c{cycle}")
+                        brief = write_brief(log_name,
+                                            fix_brief(pr, issue, role, cycle, max_cycles, comments,
+                                                      cfg["branches"]["base"]))
+                        def _fix(wt=wt, brief=brief, log_name=log_name, model=model):
+                            return spawn_headless(wt.path, brief, log_name, cfg, model)
+                        kind = "conflict merge" if conflict_merge else "fix"
+                        pid = act(f"PR #{pr.number}: blocked -> dispatch {kind} run (cycle {cycle}/{max_cycles}"
+                                  f"{', not counted' if conflict_merge else ''}, model {model or 'CLI default'})", _fix)
+                        if pid:
+                            s["fix"] = {"pid": pid, "started": now_ms(), "log": log_name, "model": model,
+                                        "head_oid": pr.head_oid}
+                        act(f"PR #{pr.number}: comment fix dispatched",
+                            lambda n=pr.number, c=cycle: gh_comment("pr", n,
+                                f"Sent back; a fresh fix run is on it (cycle {c}/{max_cycles})."))
+                s["blocked_handled"] = True
+                state.save()
+                continue
+            # blocked_handled: watch the fix run.
+            if fix:
+                pid = int(fix.get("pid", 0))
+                alive = run_alive(pid)
+                reset = run_hit_limit(fix.get("log"))
+                if alive and reset is not None:
+                    act(f"PR #{pr.number}: live fix run {pid} printed the session-limit line -> kill",
+                        lambda p=pid: kill_tree(p))
+                    alive = False
+                if alive:
+                    ceiling = run_ceiling_minutes(issue.labels if issue else set(), cfg)
+                    if minutes_since(int(fix.get("started", 0))) >= ceiling:
+                        act(f"PR #{pr.number}: fix run {pid} exceeded {ceiling:.0f} min -> kill + needs-human",
+                            lambda p=pid, n=pr.number: (kill_tree(p),
+                                                        gh_label("pr", n, add=[LABEL_NEEDS_HUMAN]),
+                                                        gh_comment("pr", n, "Fix run timed out. See .orca/dispatcher/runs/. "
+                                                                            "Its committed work is in the worktree; the next fix "
+                                                                            "run continues from it. Remove `needs-human` to retry.")))
+                        s.pop("fix", None)
+                        s.pop("blocked_handled", None)   # v0.2.13: nothing handles it now
+                        state.save()
+                else:
+                    if reset is not None:
+                        # Died on the session limit: refund the cycle and forget that the
+                        # block was handled, so a fresh fix run starts once the hold lifts.
+                        s.pop("fix", None)
+                        s.pop("blocked_handled", None)
+                        if issue:
+                            si = state.issue(issue.number)
+                            si["cycle"] = max(0, int(si.get("cycle", 0)) - 1)
+                        state.save()
+                        hold = set_limit_hold(state, reset, str(fix.get("log") or ""))
+                        act(f"PR #{pr.number}: fix run died on the session limit -> cycle refunded; {hold}",
+                            lambda n=pr.number, h=hold: gh_comment("pr", n,
+                                f"The fix run died on the Claude session limit, not on this PR: {h}. "
+                                f"Not counted against the circuit breaker; a fresh fix run starts "
+                                f"by itself when the limit lifts."))
+                        continue
+                    if run_out_of_credits(fix.get("log")):
+                        # v0.2.9: the model's usage cap. Refund; hold this model's runs only.
+                        model = model_for(issue.labels if issue else set(), cfg)
+                        s.pop("fix", None)
+                        s.pop("blocked_handled", None)
+                        if issue:
+                            si = state.issue(issue.number)
+                            si["cycle"] = max(0, int(si.get("cycle", 0)) - 1)
+                        state.save()
+                        hold, first = set_model_hold(state, model, cfg, str(fix.get("log") or ""))
+                        if first:
+                            act(f"PR #{pr.number}: fix run died on the `{model}` usage cap -> cycle refunded; {hold}",
+                                lambda n=pr.number, h=hold, m=model: gh_comment("pr", n, capped_comment(m, h, cfg)))
+                        else:
+                            log.info("PR #%s: fix run died on the `%s` usage cap again -> cycle refunded; %s",
+                                     pr.number, model, hold)
+                        continue
+                    if pr.head_oid and fix.get("head_oid") and pr.head_oid != fix.get("head_oid"):
+                        # v0.2.8: the run DID push. CI clears `state:blocked` on a push and its
+                        # Verifier put it back -- a fresh verdict on the new tip, not this run's
+                        # failure (seen on PR #33: pushed at :46, re-blocked at :49, paged at :49).
+                        # Forget the run; the next tick starts the next fix run on the new
+                        # comments (a cycle, as any send-back), or finds the PR unblocked.
+                        log.info("PR #%s: fix run ended after pushing %s and CI re-blocked it -> "
+                                 "fresh fix run next tick", pr.number, pr.head_oid[:7])
+                        s.pop("fix", None)
+                        s.pop("blocked_handled", None)
+                        state.save()
+                        continue
+                    act(f"PR #{pr.number}: fix run ended but the PR is still blocked -> needs-human",
+                        lambda n=pr.number: (gh_label("pr", n, add=[LABEL_NEEDS_HUMAN]),
+                                             gh_comment("pr", n,
+                                                        "A fix run ended without clearing `state:blocked`. See "
+                                                        ".orca/dispatcher/runs/ for its log; answer here and remove "
+                                                        "`needs-human` to retry.")))
+                    s.pop("fix", None)
+                    state.save()
+            continue
+
+        # not blocked (any more): tidy the bookkeeping; reap a lingering fix run.
+        if s.get("blocked_handled") or s.get("fix"):
+            fix = s.get("fix")
+            if fix and run_alive(int(fix.get("pid", 0))):
+                seen = s.setdefault("fix_done_seen", now_ms())
+                if minutes_since(seen) >= PR_GRACE_MINUTES:
+                    act(f"PR #{pr.number}: unblocked; reaping lingering fix run",
+                        lambda p=int(fix.get("pid", 0)): kill_tree(p))
+                    s.pop("fix", None)
+                    s.pop("fix_done_seen", None)
+                    s.pop("blocked_handled", None)
+            else:
+                s.pop("fix", None)
+                s.pop("fix_done_seen", None)
+                s.pop("blocked_handled", None)
+            state.save()
+
+
+# --------------------------------------------------------------------------- reconcile: merged
+
+
+def reconcile_merged(obs: Observed, cfg: dict[str, Any], state: State) -> None:
+    d = cfg["dispatcher"]
+    wt_by_branch = {wt.branch: wt for wt in obs.worktrees}
+    for pr in obs.merged:
+        n = pr.issue_number
+        issue = obs.issues.get(n) if n else None
+        if n:
+            si = state.issues.get(str(n)) or {}
+            r = si.get("run")
+            if r and run_alive(int(r.get("pid", 0))):
+                act(f"PR #{pr.number} merged -> kill lingering run for issue #{n}",
+                    lambda p=int(r.get("pid", 0)): kill_tree(p))
+        if issue and issue.state == "OPEN" and n not in state.closed_issues:
+            act(f"PR #{pr.number} merged -> close issue #{n}",
+                lambda n=n, p=pr: run(["gh", "issue", "close", str(n), "--reason", "completed",
+                                       "--comment", f"Merged into {cfg['branches']['base']} via PR #{p.number}."]))
+            state.closed_issues.append(n)
+            state.save()
+        wt = wt_by_branch.get(pr.head)
+        # Interview worktrees survive their PR's merge (v0.2.3): the Planner continues
+        # into Phase 2 there, and `finish-interview` hands the worktree back later.
+        if wt and d.get("cleanup_worktrees_on_merge", True) and not wt_interview(wt):
+            act(f"PR #{pr.number} merged -> remove worktree {wt.name}",
+                lambda wt=wt: orca_json(["worktree", "rm", "--worktree", f"id:{wt.id}", "--force"]))
+        if n and str(n) in state.issues:
+            state.issues.pop(str(n), None)
+            state.save()
+        if str(pr.number) in state.prs:
+            state.prs.pop(str(pr.number), None)
+            state.save()
+
+
+# --------------------------------------------------------------------------- reconcile: interviews
+
+
+def reconcile_interviews(obs: Observed, cfg: dict[str, Any]) -> None:
+    """Archive interview worktrees the Planner has handed back (v0.2.3).
+
+    An interactive interview (onboarding / revision) is concluded by the HUMAN saying so
+    in the session: the Planner then runs `dispatch.py finish-interview`, which drops a
+    marker file inside the worktree's own dispatcher directory. The dispatcher observes
+    the marker and removes the worktree; until then an open interview counts as planning
+    in progress and holds every backlog audit (see reconcile_backlog)."""
+    for wt in obs.worktrees:
+        if not wt_interview(wt) or not wt.path:
+            continue
+        marker = Path(wt.path) / ".orca" / "dispatcher" / INTERVIEW_DONE_FILE
+        try:
+            done = marker.exists()
+        except OSError:
+            done = False
+        if done:
+            act(f"interview {wt.name} finished -> remove worktree",
+                lambda wt=wt: orca_json(["worktree", "rm", "--worktree", f"id:{wt.id}", "--force"]))
+
+
+# --------------------------------------------------------------------------- reconcile: backlog
+
+
+_autonomy_warned = False
+
+
+def reconcile_backlog(obs: Observed, cfg: dict[str, Any], state: State) -> None:
+    """Close the loop: drained pipeline -> headless Planner audit -> new issues or
+    ACHIEVED. Honours the autonomy dial; every transition is triggered by observed
+    state, never by what an agent said."""
+    global _autonomy_warned
+    d = cfg["dispatcher"]
+    base = cfg["branches"]["base"]
+    g = cfg["gates"]["core_document"]
+    b = state.backlog
+
+    # Project complete: page the human once, then hold until a revision reopens the gate.
+    if obs.achieved:
+        if "achieved_notified" not in b:
+            body = (f"Every issue is closed and `{g['path']}` on `{base}` is marked ACHIEVED.\n"
+                    f"Review the result. When satisfied, open the {base} -> main PR yourself.\n"
+                    f"For a new round: run `python .orca/dispatcher/dispatch.py onboard` -- a "
+                    f"revision interview that reopens the gate.")
+            target = next((p for p in obs.merged if g["path"] in (p.title + p.body)), None)
+            notify_human(cfg, state, "project:achieved", "project complete -- core document ACHIEVED",
+                         body, "pr", target.number if target else None)
+            b["achieved_notified"] = now_ms()
+            state.save()
+        return
+    if b.pop("achieved_notified", None) is not None:
+        state.notified.pop("project:achieved", None)
+        state.save()
+
+    if not obs.gate_open:
+        return
+
+    mode = autonomy_of(cfg)
+    if mode is None:
+        if not _autonomy_warned:
+            log.warning("autonomy not set in dispatch.yml; treating as 'propose'. "
+                        "Run `dispatch.py onboard` or set the line to silence this.")
+            _autonomy_warned = True
+        mode = "propose"
+    if mode == "manual":
+        return
+
+    open_issues = any(i.state == "OPEN" for i in obs.issues.values())
+    audit = b.get("audit")  # {pid, started, epoch, name}
+
+    if audit:
+        name = audit.get("name", "")
+        wt = next((w for w in obs.worktrees if w.name == name), None)
+        audit_pr = next((p for p in obs.prs if wt and p.head == wt.branch), None)
+        pid = int(audit.get("pid", 0))
+        if open_issues or audit_pr:
+            # An outcome is visible on GitHub. Let the run finish talking, then clean up.
+            if run_alive(pid):
+                seen = b.setdefault("audit_done_seen", now_ms())
+                if minutes_since(seen) >= PR_GRACE_MINUTES:
+                    act("backlog audit produced an outcome; reaping lingering run",
+                        lambda p=pid: kill_tree(p))
+                else:
+                    return
+            if wt and not audit_pr:
+                act(f"backlog audit filed issues -> remove worktree {wt.name}",
+                    lambda wt=wt: orca_json(["worktree", "rm", "--worktree", f"id:{wt.id}", "--force"]))
+            b.pop("audit", None)
+            b.pop("audit_done_seen", None)
+            state.save()
+            return
+        reset = run_hit_limit(audit.get("name"))
+        alive = run_alive(pid)
+        if alive and reset is not None:
+            act("live backlog audit printed the session-limit line -> kill", lambda p=pid: kill_tree(p))
+            alive = False
+        if alive:
+            if minutes_since(int(audit.get("started", 0))) >= float(d["max_run_minutes"]):
+                act("backlog audit exceeded max_run_minutes -> kill", lambda p=pid: kill_tree(p))
+                b.pop("audit", None)
+                state.save()
+                notify_human(cfg, state, f"backlog:audit-stalled:{audit.get('epoch')}",
+                             "backlog audit timed out",
+                             "The Planner audit ran out of time without filing issues or declaring "
+                             "completion. See .orca/dispatcher/runs/. File issues yourself, or wait: "
+                             "a merge will allow a fresh audit.", "issue", None)
+            return
+        # run ended with no visible outcome
+        b.pop("audit", None)
+        if reset is not None:
+            # Session limit, not an empty audit: forget this epoch so the audit is
+            # re-spawned once the hold lifts, and do not page anyone.
+            b.pop("audit_epoch", None)
+            state.save()
+            hold = set_limit_hold(state, reset, str(audit.get("name") or ""))
+            log.info("backlog audit died on the session limit; %s", hold)
+            return
+        if run_out_of_credits(audit.get("name")):
+            b.pop("audit_epoch", None)
+            state.save()
+            hold, _ = set_model_hold(state, str(cfg["models"].get("default") or ""), cfg,
+                                     str(audit.get("name") or ""))
+            log.info("backlog audit died on the model's usage cap; %s", hold)
+            return
+        state.save()
+        notify_human(cfg, state, f"backlog:empty-audit:{audit.get('epoch')}",
+                     "backlog audit produced nothing",
+                     "A Planner audit ended without filing issues or declaring the core document "
+                     "achieved, and nothing has merged since. See .orca/dispatcher/runs/. File "
+                     "issues yourself or run `dispatch.py onboard` for a revision interview.",
+                     "issue", None)
+        return
+
+    # No audit running: spawn one when the pipeline is fully drained. Only worktrees the
+    # dispatcher itself created count (v0.2.3): an unmanaged worktree -- a meta-oversight
+    # session, a human's scratch checkout -- must never hold the loop. An open INTERVIEW
+    # worktree does count: an interview still open means planning is in progress, and an
+    # audit spawned alongside it would file duplicate issues.
+    if open_issues or obs.prs or any(wt_owned(w) for w in obs.worktrees):
+        return
+    if any(r.get("run") and run_alive(int(r["run"].get("pid", 0))) for r in state.issues.values()):
+        return
+    if obs.pause:
+        log.debug("backlog audit held: %s", obs.pause.describe())
+        return
+    if limit_hold(state):
+        log.debug("backlog audit held: %s", limit_hold(state))
+        return
+    mh = model_hold(state, str(cfg["models"].get("default") or ""))
+    if mh:
+        log.debug("backlog audit held: %s", mh)
+        return
+    epoch = max((p.number for p in obs.merged), default=0)  # merged-PR high-water mark
+    if b.get("audit_epoch") == epoch:
+        notify_human(cfg, state, f"backlog:empty-audit:{epoch}", "backlog audit produced nothing",
+                     "The previous backlog audit ended without filing issues or declaring the core "
+                     "document achieved, and nothing has merged since. File issues yourself or run "
+                     "`dispatch.py onboard` for a revision interview.", "issue", None)
+        return
+    name = f"{AUDIT_WT_PREFIX}-{epoch}"
+    res = act(f"pipeline drained -> create audit worktree {name}",
+              lambda: orca_create_worktree(name, base, None))
+    if DRY_RUN:
+        b["audit_epoch"] = epoch
+        return
+    path = worktree_path(name, res)
+    if not path:
+        log.warning("backlog audit: no worktree path; will retry next tick")
+        return
+    brief = write_brief(name, audit_brief(base, g["achieved_marker"], mode))
+    model = model_for(set(), cfg)
+    pid = act(f"spawn headless Planner backlog audit (epoch {epoch}, autonomy {mode}, "
+              f"model {model or 'CLI default'})",
+              lambda: spawn_headless(path, brief, name, cfg, model))
+    if pid:
+        b["audit"] = {"pid": pid, "started": now_ms(), "epoch": epoch, "name": name}
+        b["audit_epoch"] = epoch
+        b.pop("audit_done_seen", None)
+        state.save()
+
+
+# --------------------------------------------------------------------------- tick & commands
+
+
+def tick(cfg: dict[str, Any], state: State) -> None:
+    global _pause_logged
+    reap()
+    obs = observe(cfg)
+    log.debug("observed: %s issues, %s open PRs, %s merged PRs, %s worktrees; gate: %s",
+              len(obs.issues), len(obs.prs), len(obs.merged), len(obs.worktrees), obs.gate_reason)
+    pause_key = str(obs.pause.since) if obs.pause else None
+    if pause_key != _pause_logged:
+        if obs.pause:
+            log.info("%s: no dispatch, no audits; fixes and merges still reconcile", obs.pause.describe())
+        else:
+            log.info("resumed: dispatching again")
+        _pause_logged = pause_key
+    reconcile_merged(obs, cfg, state)
+    try:
+        collect_run_usage(state)
+        collect_ci_usage(state)
+    except Exception as exc:  # noqa: BLE001 -- measuring must never stop the reconcile
+        log.warning("usage collection failed: %s", exc)
+    reconcile_interviews(obs, cfg)
+    reconcile_prs(obs, cfg, state)
+    reconcile_issues(obs, cfg, state)
+    reconcile_backlog(obs, cfg, state)
+
+
+def cmd_run(cfg: dict[str, Any], state: State, interval: int) -> int:
+    if not acquire_lock():
+        log.error("another dispatcher holds %s; refusing to start", LOCK_FILE)
+        return 2
+    log.info("dispatcher running (interval %ss, dry-run=%s)", interval, DRY_RUN)
+    tick_started = {"at": 0.0}
+    threading.Thread(target=tick_watchdog, args=(tick_started, cfg), name="tick-watchdog", daemon=True).start()
+    try:
+        while not _stop:
+            started = time.time()
+            tick_started["at"] = started
+            try:
+                cfg = load_config()  # re-read every tick (v0.2.3): the autonomy dial and
+                                     # dispatcher knobs take effect without a restart
+                tick(cfg, state)
+            except Exception:  # noqa: BLE001 -- the loop must never die
+                log.exception("tick failed")
+            tick_started["at"] = 0.0
+            remaining = max(1.0, interval - (time.time() - started))
+            while remaining > 0 and not _stop:
+                time.sleep(min(1.0, remaining))
+                remaining -= 1
+    finally:
+        release_lock()
+    log.info("dispatcher stopped")
+    return 0
+
+
+def tick_overrun(started_at: float, deadline_minutes: float, now: Optional[float] = None) -> bool:
+    """True when a tick that started at `started_at` (0 = no tick running) has run longer
+    than the deadline (v0.2.13)."""
+    if not started_at:
+        return False
+    return ((now if now is not None else time.time()) - started_at) > deadline_minutes * 60
+
+
+def tick_watchdog(tick_started: dict[str, float], cfg: dict[str, Any]) -> None:
+    """Exit the process when a tick overruns, so the scheduled task restarts it (v0.2.13).
+    Every subprocess call has a timeout and still a tick once stalled for an hour with
+    nothing logged; a restart a minute later is cheaper than any diagnosis at 2 am. The
+    deadline is re-read each check so `dispatch.yml` edits apply. The lock is by pid,
+    so the restarted dispatcher takes over cleanly."""
+    while not _stop:
+        time.sleep(15)
+        try:
+            deadline = float((load_config().get("dispatcher") or {}).get("tick_deadline_minutes") or TICK_DEADLINE_MINUTES)
+        except Exception:  # noqa: BLE001 -- a broken config must not stop the watchdog
+            deadline = TICK_DEADLINE_MINUTES
+        at = tick_started.get("at", 0.0)
+        if tick_overrun(at, deadline):
+            log.critical("tick started %.0f min ago and has not finished; exiting so the scheduled task "
+                         "restarts the dispatcher (v0.2.13)", (time.time() - at) / 60)
+            release_lock()
+            logging.shutdown()
+            os._exit(3)
+
+
+def cmd_once(cfg: dict[str, Any], state: State) -> int:
+    if not acquire_lock():
+        log.error("another dispatcher is running; skipping this tick")
+        return 2
+    try:
+        tick(cfg, state)
+    finally:
+        release_lock()
+    return 0
+
+
+def cmd_pause(reason: str) -> int:
+    already = read_pause()
+    if DRY_RUN:
+        print(f"[dry-run] would pause this project ({PAUSE_FILE.name})")
+        return 0
+    pause = write_pause(reason)
+    log.info("paused by hand: %s", pause.reason or "(no reason given)")
+    if already:
+        print(f"already paused for {minutes_since(already.since):.0f}m; reason and clock reset")
+    print(pause.describe())
+    print("  stopped:  dispatching ready issues, spawning backlog audits")
+    print("  running:  fix runs, merge bookkeeping, issue closing, worktree cleanup, pages")
+    print("  headless runs already started keep going; their PRs still land in CI.")
+    print("  resume with: dispatch.py resume")
+    return 0
+
+
+def cmd_resume() -> int:
+    if DRY_RUN:
+        print(f"[dry-run] would resume this project ({PAUSE_FILE.name})")
+        return 0
+    was = clear_pause()
+    if not was:
+        print("not paused -- nothing to do")
+        return 0
+    log.info("resumed by hand after %.0f min", minutes_since(was.since))
+    print(f"resumed after {minutes_since(was.since):.0f}m -- issues dispatch again on the next tick")
+    return 0
+
+
+def cmd_status(cfg: dict[str, Any], state: State) -> int:
+    obs = observe(cfg)
+    mode = autonomy_of(cfg) or "(unset -> propose)"
+    print(f"autonomy: {mode}")
+    m = cfg["models"]
+    print(f"models: default {m.get('default') or 'CLI default'} | `{complex_label(cfg)}` label -> "
+          f"{m.get('complex') or 'CLI default'} | interview {m.get('interview') or '(unset -> asked at onboard)'}")
+    if obs.pause:
+        print(obs.pause.describe())
+        print("  nothing new starts; fixes and merges still land.  resume with: dispatch.py resume")
+    hold = limit_hold(state)
+    if hold:
+        print(hold)
+        print("  lifts by itself; to lift early delete the `limit` key in state.json")
+    for key in sorted(state.model_holds or {}):
+        mh = model_hold(state, "" if key == "(CLI default)" else key)
+        if mh:
+            print(mh)
+            print(f"  runs on other models continue; to lift early delete `model_holds.{key}` in state.json")
+    print(f"gate: {'OPEN' if obs.gate_open else 'CLOSED'} -- {obs.gate_reason}")
+    pr_by_issue = {pr.issue_number: pr for pr in obs.prs if pr.issue_number}
+    print("\nISSUES")
+    for issue in sorted(obs.issues.values(), key=lambda i: i.number):
+        if issue.state != "OPEN":
+            continue
+        s = state.issues.get(str(issue.number), {})
+        flags = []
+        if LABEL_PROPOSED in issue.labels: flags.append("proposed")
+        if LABEL_READY in issue.labels: flags.append("ready")
+        if LABEL_NEEDS_HUMAN in issue.labels: flags.append("NEEDS-HUMAN")
+        if LABEL_ESCALATED in issue.labels: flags.append("ESCALATED")
+        deps = issue.depends_on
+        unmet = [n for n in deps if n not in obs.issues or obs.issues[n].state != "CLOSED"]
+        r = s.get("run")
+        if issue.number in pr_by_issue:
+            where = "in PR #%s" % pr_by_issue[issue.number].number
+        elif r and run_alive(int(r.get("pid", 0))):
+            where = f"RUNNING pid={r['pid']} {minutes_since(int(r.get('started', 0))):.0f}m"
+        else:
+            where = "queued"
+        print(f"  #{issue.number:<4} {where:<28} cycle={s.get('cycle', 0)} "
+              f"{'waits on ' + str(unmet) if unmet else ''} {' '.join(flags)}  {issue.title[:50]}")
+    print("\nPULL REQUESTS (base %s; verified and reviewed by CI)" % cfg["branches"]["base"])
+    for pr in sorted(obs.prs, key=lambda p: p.number):
+        s = state.prs.get(str(pr.number), {})
+        if LABEL_NEEDS_HUMAN in pr.labels:
+            stage = "NEEDS-HUMAN"
+        elif LABEL_BLOCKED in pr.labels:
+            fix = s.get("fix")
+            stage = "blocked (fix run live)" if fix and run_alive(int(fix.get("pid", 0))) else "blocked"
+        elif pr.conflicting:
+            stage = "CONFLICTING -> blocked"   # labelled on the next tick; no CI can run
+        else:
+            ci = ci_run_for(pr)
+            if ci and ci["status"] == "completed":
+                stage = "CI done, NO VERDICT -> re-run"   # v0.2.7: the next tick re-runs the job
+            elif LABEL_TESTED in pr.labels:
+                stage = "tested -> review"
+            else:
+                stage = "in CI"
+        print(f"  #{pr.number:<4} {stage:<24} {pr.head:<32} {pr.title[:45]}")
+    print("\nWORKTREES")
+    for wt in obs.worktrees:
+        tag = "" if wt_owned(wt) else "  (unmanaged -- ignored by the dispatcher)"
+        print(f"  {wt.name:<24} {wt.branch:<40} {wt.path}{tag}")
+    print()
+    print(usage_summary(state))
+    return 0
+
+
+def cmd_doctor(cfg: dict[str, Any], fix: bool) -> int:
+    problems = 0
+
+    def ok(msg: str) -> None:
+        print(f"  OK   {msg}")
+
+    def bad(msg: str) -> None:
+        nonlocal problems
+        problems += 1
+        print(f"  FAIL {msg}")
+
+    print("python / yaml");  ok(f"python {sys.version.split()[0]}, pyyaml {yaml.__version__}")
+    print("claude CLI")
+    okk, out, err = run([cfg["dispatcher"]["claude_cmd"], "--version"], timeout=60)
+    ok(f"{cfg['dispatcher']['claude_cmd']} -> {out.strip()[:60]}") if okk else \
+        bad(f"cannot run `{cfg['dispatcher']['claude_cmd']} --version`: set dispatcher.claude_cmd "
+            f"to an ABSOLUTE path (scheduled tasks often have a minimal PATH)")
+    print("gh")
+    okk, out, err = run(["gh", "auth", "status"])
+    ok("gh authenticated") if okk else bad("gh not authenticated: " + err.strip()[:200])
+    repo = gh_json(["repo", "view", "--json", "nameWithOwner,defaultBranchRef"])
+    if repo:
+        ok(f"repo {repo['nameWithOwner']} (default branch {repo['defaultBranchRef']['name']})")
+    else:
+        bad("gh cannot resolve this repository (run inside the clone, with a GitHub remote)")
+    base = cfg["branches"]["base"]
+    okk, _, _ = run(["git", "-C", str(REPO_ROOT), "ls-remote", "--exit-code", "--heads", "origin", base])
+    ok(f"branch {base} exists on origin") if okk else bad(f"branch {base} missing on origin: git push -u origin {base}")
+    print("labels")
+    have = {l["name"] for l in gh_json(["label", "list", "--limit", "200", "--json", "name"]) or []}
+    required = dict(REQUIRED_LABELS)
+    if complex_label(cfg) != LABEL_COMPLEX:   # renamed in dispatch.yml: that name is the real one
+        required[complex_label(cfg)] = required.pop(LABEL_COMPLEX)
+    for name, (desc, color) in required.items():
+        if name in have:
+            continue
+        if fix:
+            okk, _, err = run(["gh", "label", "create", name, "--description", desc, "--color", color])
+            ok(f"created label {name}") if okk else bad(f"could not create label {name}: {err.strip()[:120]}")
+        else:
+            bad(f"label missing: {name}  (run: doctor --fix)")
+    if all(n in have for n in required):
+        ok("all workflow labels present")
+    print("orca")
+    st = orca_json(["status"])
+    if st and (st.get("runtime") or {}).get("reachable"):
+        ok("orca runtime reachable")
+    else:
+        bad("orca runtime not reachable: open Orca (or `orca open`)")
+    rep = orca_json(["repo", "show", "--repo", f"path:{REPO_ROOT}"])
+    if rep:
+        ref = (rep.get("repo") or {}).get("worktreeBaseRef")
+        ok(f"repo registered in Orca (base ref {ref})") if ref == base else \
+            bad(f"Orca base ref is {ref!r}; run: orca repo set-base-ref --repo path:{REPO_ROOT} --ref {base}")
+    else:
+        bad(f"repo not registered in Orca: orca repo add --path {REPO_ROOT}")
+    print("roles (in-repo, .orca/roles)")
+    for r in ROLE_FILES:
+        p = ROLES_DIR / f"{r}.md"
+        ok(p.as_posix()) if p.exists() else bad(f"missing {p.as_posix()} -- seed from section 7 of agent-workflow-setup.md")
+    print("skills (in-repo, .claude/skills -- must be COMMITTED for CI)")
+    if SKILLS_DIR.exists() and any(SKILLS_DIR.iterdir()):
+        ok(f"{sum(1 for _ in SKILLS_DIR.iterdir())} entries in {SKILLS_DIR.as_posix()}")
+        okk, out, _ = run(["git", "-C", str(REPO_ROOT), "ls-files", str(SKILLS_DIR)])
+        if okk and out.strip():
+            ok("skills are tracked by git")
+        else:
+            bad("skills exist but are NOT committed -- CI agents will lack them: git add .claude/skills")
+    else:
+        bad(f"no skills at {SKILLS_DIR.as_posix()} -- run: bash .orca/setup_skills.sh, then commit")
+    print("pipeline")
+    ok(PIPELINE_FILE.as_posix()) if PIPELINE_FILE.exists() else \
+        bad(f"missing {PIPELINE_FILE.as_posix()} -- seed from section 8 (and do OWNER STEPS 1-2)")
+    print("autonomy")
+    mode = autonomy_of(cfg)
+    ok(f"autonomy: {mode}") if mode else \
+        ok("autonomy unset -- `dispatch.py onboard` will ask the owner (defaults to propose meanwhile)")
+    print("promotion (the dial, enforced -- v0.2.4)")
+    promoters = (cfg.get("promotion", {}) or {}).get("trusted_promoters") or []
+    if (mode or "propose") == "auto":
+        ok("autonomy auto -- promoter enforcement not applicable")
+    elif promoters:
+        ok(f"trusted promoters: {', '.join(promoters)} (a `ready` applied by anyone else is demoted)")
+    else:
+        ok("trusted_promoters EMPTY -- the dial is enforced by prompt only; set the owner's "
+           "GitHub login in promotion.trusted_promoters to enforce it mechanically")
+    print("models (the model policy -- v0.2.5)")
+    m = cfg["models"]
+    for key, what in (("default", "every headless run"),
+                      ("complex", f"runs of issues labelled `{complex_label(cfg)}`")):
+        val = m.get(key)
+        ok(f"{key}: {val} -- {what}") if val else \
+            ok(f"{key}: EMPTY -- {what} use the CLI's default model (whatever /model last set!)")
+    for name, level in sorted((m.get("effort") or {}).items()):
+        ok(f"effort: {name} runs at `{level}` (--effort on every launch)")
+    if m.get("interview"):
+        ok(f"interview: {m['interview']} -- the interactive Planner sessions")
+    else:
+        ok("interview unset -- `dispatch.py onboard` will ask the owner (chosen WITH the setup agent)")
+    print("gate")
+    g_ok, g_why, g_achieved = core_document_gate(cfg)
+    if g_achieved:
+        ok(g_why)
+    else:
+        (ok if g_ok else bad)(g_why)
+    paused = read_pause()
+    if paused:
+        print("pause")
+        ok(paused.describe() + "  (deliberate -- lift it with: dispatch.py resume)")
+    print("state")
+    try:
+        HERE.mkdir(parents=True, exist_ok=True); (HERE / ".write-test").write_text("x"); (HERE / ".write-test").unlink()
+        ok(f"{HERE.as_posix()} writable")
+    except OSError as exc:
+        bad(f"{HERE} not writable: {exc}")
+    print(f"\n{problems} problem(s)")
+    return 1 if problems else 0
+
+
+AUTONOMY_QUESTION = """
+How autonomous should this project be? (You can change this at any time by editing the
+`autonomy:` line in .orca/dispatch.yml -- it is a project setting, not a GitHub setting.)
+
+  1) manual  - YOU write the GitHub issues. The AI Planner only files suggestions
+               (labelled `proposed`) when you explicitly start an interview, and never
+               invents work on its own.
+  2) propose - When all work is done, the AI Planner compares the result against the
+               core document and files SUGGESTED issues (labelled `proposed`). Nothing
+               runs until you promote a suggestion by giving it the `ready` label.
+  3) auto    - The AI Planner files issues marked `ready` itself; the loop runs until
+               the core document is achieved. You are only contacted for questions,
+               escalations, and completion.
+"""
+
+
+def ensure_autonomy(cfg: dict[str, Any]) -> str:
+    mode = autonomy_of(cfg)
+    if mode:
+        return mode
+    if sys.stdin is not None and sys.stdin.isatty():
+        print(AUTONOMY_QUESTION)
+        choices = {"1": "manual", "2": "propose", "3": "auto",
+                   "manual": "manual", "propose": "propose", "auto": "auto"}
+        while True:
+            answer = input("Choose 1, 2 or 3 [2]: ").strip().lower() or "2"
+            if answer in choices:
+                mode = choices[answer]
+                break
+            print("Please answer 1, 2 or 3.")
+        if not DRY_RUN:
+            write_autonomy(mode)
+            print(f"written to {CONFIG_FILE.as_posix()}: autonomy: {mode}")
+        cfg["autonomy"] = mode
+        return mode
+    print("autonomy not set and no terminal to ask in; using 'propose' for this session. "
+          "Set the `autonomy:` line in .orca/dispatch.yml to make it permanent.")
+    cfg["autonomy"] = "propose"
+    return "propose"
+
+
+INTERVIEW_MODEL_QUESTION = """
+Which Claude model should the interview session run on? (`models.interview` in
+.orca/dispatch.yml; change it any time. The headless workers are NOT affected by this --
+they follow `models.default` / `models.complex`.)
+
+  1) opus   - the newest Opus. The regular choice: strong, and the cheapest way to spend
+              an hour talking.
+  2) fable  - the newest Fable, the most capable model. For interviews where the plan
+              itself is the hard part; it draws down the subscription's limit fastest.
+  3) sonnet - the newest Sonnet. Fast and frugal; fine for a short revision round.
+  4) (empty) - no --model flag: whatever the Claude app currently defaults to.
+"""
+
+
+def ensure_interview_model(cfg: dict[str, Any]) -> str:
+    """The interview model is CHOSEN BY THE OWNER, with the setup agent, before the first
+    onboarding (v0.2.5). Set -> use it. Unset with a terminal -> ask and persist. Unset
+    without a terminal (a setup agent running this from a tool) -> fall back to
+    `models.default` for this session and say so: the agent should have asked first."""
+    m = cfg["models"]
+    if "interview" in m:
+        return str(m.get("interview") or "")
+    if sys.stdin is not None and sys.stdin.isatty():
+        print(INTERVIEW_MODEL_QUESTION)
+        choices = {"1": "opus", "2": "fable", "3": "sonnet", "4": "",
+                   "opus": "opus", "fable": "fable", "sonnet": "sonnet", "": ""}
+        while True:
+            answer = input("Choose 1-4, or type a full model id [1]: ").strip()
+            if answer == "":
+                model = "opus"
+                break
+            if answer.lower() in choices:
+                model = choices[answer.lower()]
+                break
+            if re.fullmatch(r"[A-Za-z0-9._-]+", answer):
+                model = answer   # a full id such as claude-opus-5: taken verbatim
+                break
+            print("Please answer 1-4 or a model id.")
+        if not DRY_RUN:
+            write_interview_model(model)
+            print(f"written to {CONFIG_FILE.as_posix()}: models.interview: {model or '(empty)'}")
+        m["interview"] = model
+        return model
+    fallback = str(m.get("default") or "")
+    print(f"models.interview not set and no terminal to ask in; using models.default "
+          f"({fallback or 'CLI default'}) for this session. The owner chooses this value: "
+          f"ask them and set `interview:` under `models:` in .orca/dispatch.yml.")
+    m["interview"] = fallback
+    return fallback
+
+
+def cmd_onboard(cfg: dict[str, Any]) -> int:
+    mode = ensure_autonomy(cfg)
+    interview_model = ensure_interview_model(cfg)
+    base = cfg["branches"]["base"]
+    g = cfg["gates"]["core_document"]
+    run(["git", "-C", str(REPO_ROOT), "fetch", "-q", "origin", base], timeout=60)
+    ok, doc, _ = run(["git", "-C", str(REPO_ROOT), "show", f"origin/{base}:{g['path']}"])
+    populated = ok and g["empty_marker"] not in doc
+    if populated:
+        name = "revision-" + datetime.now().strftime("%Y%m%d-%H%M")
+        brief = write_brief(name, revision_brief(base, g["achieved_marker"], mode))
+        what = "revision"
+    else:
+        name = "onboarding"
+        brief = write_brief("onboarding", onboarding_brief(base, mode))
+        what = "onboarding"
+    agent = cfg["dispatcher"]["interactive_agent"]
+    if not interview_model:
+        # No model chosen: Orca's own agent launch, on the Claude app's default model.
+        res = act(f"create {what} worktree with the Planner (interactive, {agent}, CLI default model)",
+                  lambda: orca_create_worktree(name, base, None, agent=agent,
+                                               prompt=one_liner(brief), activate=True))
+        if DRY_RUN:
+            return 0
+        if not res:
+            print("failed: is Orca open and the repo registered? run: dispatch.py doctor")
+            return 1
+        print(f"{what} worktree created; switch to Orca and talk to the Planner.")
+        return 0
+    # A chosen model: Orca's `--agent` launch takes no flags, so create the worktree bare
+    # and start the agent ourselves in a terminal there (`orca terminal create --command`,
+    # the route Orca documents for "a fresh agent in an existing worktree"). The command
+    # runs in the user's shell, where the bare `claude` shim resolves.
+    interview_effort = f" --effort {effort_for(interview_model, cfg)}" if effort_for(interview_model, cfg) else ""
+    res = act(f"create {what} worktree (interactive Planner on model {interview_model})",
+              lambda: orca_create_worktree(name, base, None, activate=True))
+    if DRY_RUN:
+        return 0
+    if not res:
+        print("failed: is Orca open and the repo registered? run: dispatch.py doctor")
+        return 1
+    path = worktree_path(name, res)
+    if not path:
+        print(f"worktree {name} created but its path is unknown; start the Planner by hand there:\n"
+              f"  claude --model {interview_model}{interview_effort} \"{one_liner(brief)}\"")
+        return 1
+    command = f'claude --model {interview_model}{interview_effort} "{one_liner(brief)}"'
+    term = orca_json(["terminal", "create", "--worktree", f"path:{path}",
+                      "--title", f"Planner ({what})", "--command", command, "--focus"])
+    if not term:
+        print(f"worktree {name} created but the terminal did not start; run this inside it:\n  {command}")
+        return 1
+    print(f"{what} worktree created; the Planner is starting on `{interview_model}` -- "
+          f"switch to Orca and talk to it.")
+    return 0
+
+
+def cmd_finish_interview() -> int:
+    """Mark THIS worktree's interview as concluded. The Planner runs it from inside the
+    interview worktree, only on the human's explicit go-ahead; the dispatcher observes
+    the marker on a following tick, archives the worktree, and the loop (backlog audits
+    included) resumes."""
+    if DRY_RUN:
+        print(f"[dry-run] would write {(HERE / INTERVIEW_DONE_FILE).as_posix()}")
+        return 0
+    HERE.mkdir(parents=True, exist_ok=True)
+    (HERE / INTERVIEW_DONE_FILE).write_text(
+        json.dumps({"finished": now_ms()}, indent=2), encoding="utf-8")
+    print("interview marked finished -- the dispatcher will archive this worktree on its "
+          "next tick and the pipeline takes over (backlog audits included).")
+    return 0
+
+
+def setup_logging(verbose: bool) -> None:
+    log.setLevel(logging.DEBUG if verbose else logging.INFO)
+    fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+    HERE.mkdir(parents=True, exist_ok=True)
+    fh = RotatingFileHandler(LOG_FILE, maxBytes=2_000_000, backupCount=3, encoding="utf-8")
+    fh.setFormatter(fmt)
+    log.addHandler(fh)
+    if sys.stderr is not None:  # pythonw has no console
+        sh = logging.StreamHandler(sys.stderr)
+        sh.setFormatter(fmt)
+        log.addHandler(sh)
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    global DRY_RUN
+    p = argparse.ArgumentParser(description="ORCA ADE dispatcher v3 (reconciler, headless workers).")
+    p.add_argument("command", nargs="?", default="run",
+                   choices=["run", "once", "status", "doctor", "onboard", "finish-interview",
+                            "pause", "resume"])
+    p.add_argument("--once", action="store_true", help="alias for the `once` command")
+    p.add_argument("--interval", type=int, default=None)
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--fix", action="store_true", help="doctor: create missing labels")
+    p.add_argument("-m", "--reason", default="", help="pause: why, shown in status and the log")
+    p.add_argument("--verbose", "-v", action="store_true")
+    a = p.parse_args(argv)
+    DRY_RUN = a.dry_run
+    setup_logging(a.verbose)
+    signal.signal(signal.SIGINT, _on_signal)
+    if hasattr(signal, "SIGTERM"):
+        signal.signal(signal.SIGTERM, _on_signal)
+    cfg = load_config()
+    cmd = "once" if a.once else a.command
+    if cmd == "doctor":
+        return cmd_doctor(cfg, a.fix)
+    if cmd == "onboard":
+        return cmd_onboard(cfg)
+    if cmd == "finish-interview":
+        return cmd_finish_interview()
+    if cmd == "pause":
+        return cmd_pause(a.reason)
+    if cmd == "resume":
+        return cmd_resume()
+    state = State.load()
+    if cmd == "status":
+        return cmd_status(cfg, state)
+    if cmd == "once":
+        return cmd_once(cfg, state)
+    return cmd_run(cfg, state, a.interval or int(cfg["dispatcher"]["poll_interval_seconds"]))
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(0)

@@ -1,0 +1,470 @@
+name: Agent pipeline
+
+# The mechanical half of the workflow: Verifier + Reviewer, on ephemeral runners.
+# Chained with `needs:` inside ONE workflow on purpose -- labels set with the built-in
+# Actions token do NOT trigger other workflows, so label-chained designs die silently.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [dev]
+
+permissions:
+  contents: write        # merge into dev
+  pull-requests: write   # labels, comments, merge
+  issues: write          # read/label linked issues
+  id-token: write        # claude-code-action@v1 exchanges an OIDC token; without this it
+                         # fails with "Could not fetch an OIDC token" before the agent starts
+
+# A new push makes the previous run obsolete: cancel it. This is the cost brake.
+concurrency:
+  group: agent-pipeline-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      skip_verify: ${{ steps.decide.outputs.skip_verify }}
+      verify_mode: ${{ steps.modes.outputs.verify_mode }}     # full | delta   (v0.2.11)
+      review_mode: ${{ steps.modes.outputs.review_mode }}     # full | delta
+      verified_head: ${{ steps.modes.outputs.verified_head }} # sha the last Verifier report was written against
+      reviewed_head: ${{ steps.modes.outputs.reviewed_head }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clear stale pipeline labels from the previous round
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr edit "$PR" --remove-label state:tested  || true
+          gh pr edit "$PR" --remove-label state:blocked || true
+
+      - name: Decide docs-only / trivial
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -uo pipefail
+          git fetch -q origin dev
+          files=$(git diff --name-only "origin/dev...HEAD")
+          docs_only=true
+          if [ -z "$files" ]; then docs_only=false; fi
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            case "$f" in
+              docs/*|*.md|*.txt) ;;
+              *) docs_only=false ;;
+            esac
+          done <<< "$files"
+
+          trivial=false
+          issue=$(printf '%s' "$HEAD_REF" | grep -oE 'issue-[0-9]+' | grep -oE '[0-9]+' | head -n1 || true)
+          if [ -n "$issue" ]; then
+            if gh issue view "$issue" --json labels --jq '.labels[].name' | grep -qx 'trivial'; then
+              trivial=true
+            fi
+          fi
+
+          skip=false
+          if [ "$docs_only" = true ]; then
+            skip=true
+            gh pr edit "$PR" --add-label state:tested || true
+            gh pr comment "$PR" --body "Verifier skipped (docs-only change); the Reviewer still reads every line." || true
+          elif [ "$trivial" = true ]; then
+            skip=true
+            gh pr edit "$PR" --add-label state:tested || true
+            gh pr comment "$PR" --body "Verifier skipped (issue labelled trivial); the Reviewer still reads every line -- trivial is a request, not a permission." || true
+          fi
+          echo "skip_verify=$skip" >> "$GITHUB_OUTPUT"
+
+      # v0.2.11: a push that answers a send-back does not need a full round. Each agent
+      # begins its comment with `Verified head <sha>` / `Reviewed head <sha>`; when such a
+      # report exists and nothing under src/ changed since that sha, the agent runs in
+      # DELTA mode: check its own list, run the suites once, decide. Anything else is full.
+      - name: Decide full or delta modes
+        id: modes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -uo pipefail
+          comments=$(gh pr view "$PR" --json comments --jq '.comments[] | select(.author.login == "github-actions") | .body' || true)
+          vh=$(grep -oE 'Verified head [0-9a-f]{7,40}' <<< "$comments" | tail -n1 | awk '{print $3}' || true)
+          rh=$(grep -oE 'Reviewed head [0-9a-f]{7,40}' <<< "$comments" | tail -n1 | awk '{print $3}' || true)
+          mode_for() {   # $1 = sha of the previous report; prints full|delta
+            local sha="$1"
+            if [ -z "$sha" ] || ! git cat-file -e "$sha^{commit}" 2>/dev/null; then echo full; return; fi
+            if git diff --name-only "$sha..HEAD" | grep -qvE '^(docs/|tests/|.*\.md$|.*\.txt$|trees/)'; then echo full; else echo delta; fi
+          }
+          vm=$(mode_for "$vh"); rm=$(mode_for "$rh")
+          echo "verify_mode=$vm" >> "$GITHUB_OUTPUT"
+          echo "review_mode=$rm" >> "$GITHUB_OUTPUT"
+          echo "verified_head=$vh" >> "$GITHUB_OUTPUT"
+          echo "reviewed_head=$rh" >> "$GITHUB_OUTPUT"
+          echo "verify: $vm (last report at ${vh:-none}); review: $rm (last report at ${rh:-none})"
+
+  verify:
+    needs: classify
+    if: needs.classify.outputs.skip_verify != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60   # 30 until 2026-09-18, 45 until 09-19: a full no-scroll re-measure plus both suites needs the hour
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # --- Project toolchain -----------------------------------------------------------
+      # The Verifier runs the project's own tests, so the runner needs Node 22 and the
+      # dependencies: `npm ci && npm test && npm run build` (docs/specs/application.md 7).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # The browser suite (`npm run test:browser`) drives a real Chromium: the package is a
+      # devDependency, the browser binary is not, so the runner fetches it here.
+      - run: npx playwright install --with-deps chromium
+      # ---------------------------------------------------------------------------------
+
+      # v0.2.11: one brief, composed here (a quoted heredoc keeps the backticks literal),
+      # with the mode text appended: DELTA when the classify job found a previous
+      # Verifier report and no src/ change since, FULL otherwise.
+      - name: Compose the Verifier's brief
+        id: vbrief
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          MODE: ${{ needs.classify.outputs.verify_mode }}
+          PREV: ${{ needs.classify.outputs.verified_head }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          {
+            echo 'prompt<<__END_OF_BRIEF__'
+            sed -e "s/__PR__/$PR/g" -e "s/__HEAD__/${HEAD_SHA:0:7}/g" -e "s/__PREV__/$PREV/g" <<'BRIEF'
+          FIRST RULE, before anything else: you run headless, and your run ENDS when your turn
+          ends. Never run a command in the background (no `run_in_background`, no Monitor, no
+          "I'll wait for the notification"): nothing re-invokes you, and a turn that ends
+          waiting is a failed run at full cost. Run every suite in the FOREGROUND with an
+          explicit `timeout` (the ceiling is 40 minutes; the no-scroll spec needs about 20, so
+          pass 1500000 or more), read its result, and only then decide. Backgrounding is
+          refused by the CLI in this job.
+
+          You are the VERIFIER for pull request #__PR__
+          into `dev`. You are a fresh, independent, adversarial check on an
+          Implementer's work. You run headless in CI; everything you want a human or
+          the next agent to know goes on the pull request via `gh`. The first line of
+          every comment you post is `Verified head __HEAD__` (the commit you checked).
+
+          Do these in order:
+          1. `gh pr view __PR__ --comments` and
+             `git diff origin/dev...HEAD`. Read the linked issue
+             (`gh issue view <n> --comments` -- the branch is named issue-<n>) and what
+             its `Read:` line names in `docs/specs/*.md` and `docs/CORE_DOCUMENT.md`
+             (by heading; grep the rest -- do not read the specs end to end).
+          2. Run everything that exists: test suite, linters, type checks, builds.
+             Use the `tdd` and `webapp-testing` skills in `.claude/skills/` to judge
+             test quality. Then probe the change yourself against the issue's
+             acceptance criteria -- execute it, poke its edges, try to break it.
+          3. Check that new behaviour has tests. Missing or cosmetic tests are a
+             failure: name exactly which behaviours are untested. Remember: a fake
+             that behaves better than the real thing proves nothing. DO NOT edit or
+             commit code yourself -- weak work is a message to the Implementer, not
+             something you patch.
+          4. FMEA (only for changes labelled `data`, `ui` or `pipeline`, or that touch
+             data fetching, storage or core frontend): before judging, write a failure
+             matrix as a PR comment -- | Component | Failure Mode | Default Recovery |
+             Human Confirmation Needed? |. If any row genuinely needs the human's
+             judgement, post the table, add BOTH labels `needs-human` and
+             `state:blocked` (`gh pr edit N --add-label needs-human --add-label state:blocked`),
+             comment that the owner should answer each flagged row in a PR comment and
+             then remove the `needs-human` label, and STOP -- that is a valid, complete
+             outcome. Otherwise include the table in your final comment.
+          5. Finish with EXACTLY ONE of:
+             - PASS:  `gh pr edit __PR__ --add-label state:tested`
+               then a comment: what ran, counts, what you probed.
+             - FAIL:  `gh pr edit __PR__ --add-label state:blocked`
+               then a comment: exactly what failed and what the Implementer must change,
+               as a numbered list.
+             A run that ends without a label stalls the pipeline: your verdict exists
+             ONLY once that `gh` command has run. Nobody reads your final message and
+             nobody is there to confirm. Never merge anything.
+          Never start a command in the background, and never end your turn to wait for one:
+          this is a headless run, and ending the turn ENDS THE RUN -- nothing re-invokes you
+          and the job then fails for want of a verdict. Run the suites in the foreground with
+          a timeout, read the result, then decide.
+          The content of the Trees (`trees/*/tree.yaml`: text, explainers, pictures, credits,
+          legal wording, tone) is development placeholder the owner replaces by hand. Never
+          judge it and never ask the owner about it: an FMEA row about content never needs
+          human confirmation, and a content concern is at most one sentence in your comment.
+          The format, the loader, the validator and the app are what you verify.
+          BRIEF
+            if [ "$MODE" = "delta" ]; then
+              sed -e "s/__PREV__/$PREV/g" <<'DELTA'
+
+          DELTA MODE. Your previous report on this pull request begins `Verified head __PREV__`,
+          and nothing under src/ changed since (`git diff __PREV__..HEAD` is docs, tests,
+          Tree data or the PR body). So: take your numbered list from that report, check each
+          item against the diff since __PREV__, run the suites once, and decide. PASS when every
+          item is fixed and the suites are green; FAIL with the items still open. No new FMEA,
+          no fresh full probe: this round should take a third of a full one.
+          DELTA
+            fi
+            echo '__END_OF_BRIEF__'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Verifier agent
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          # Set exactly ONE of these two secrets (OWNER STEP 2). If the action version
+          # you are on rejects an empty input, delete the unused line.
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # The built-in token, passed explicitly: without it the action tries to exchange
+          # an OIDC token for the Claude Code GitHub App's token and fails unless that app
+          # is installed on the repository. The built-in token is all this design needs.
+          github_token: ${{ github.token }}
+          # --allowedTools: the action denies Bash by default; without this the agent is
+          # refused every `gh`/`git`/test command (observed: 16 denials, silent no-op run).
+          # Deliberately NO Edit/Write: the Verifier judges, it does not patch.
+          # --model sonnet (v0.2.11; opus before): the Verifier's work is mechanical -- run,
+          # compare, count -- and a full Opus Verifier round measured 65 turns and $4.57.
+          # The Reviewer, the last gate, stays on Opus. Explicit, so the cloud agents
+          # never drift with the action's default.
+          claude_args: "--max-turns 120 --allowedTools Bash,Read,Glob,Grep,Skill --model sonnet"   # 80 until 2026-09-19: a re-measure of every page hit it
+          show_full_output: true
+          # v0.2.17: the CLI itself refuses background tasks (the Verifier on PR #149 backgrounded
+          # both suites and ended its turn waiting), and a foreground command may run 40 minutes:
+          # the no-scroll spec alone takes about 20, and the tool's default ceiling is 10.
+          settings: '{"env": {"CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1", "BASH_DEFAULT_TIMEOUT_MS": "2400000", "BASH_MAX_TIMEOUT_MS": "2400000"}, "permissions": {"deny": ["Bash(run_in_background:true)", "Monitor"]}}'
+          prompt: ${{ steps.vbrief.outputs.prompt }}
+
+  review:
+    needs: [classify, verify]
+    if: >-
+      !cancelled() &&
+      needs.classify.result == 'success' &&
+      (needs.verify.result == 'success' || needs.verify.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90   # 30 until 2026-09-19: a Reviewer round on a 30-file PR was cancelled at 30;
+                          # 60 until 2026-10-03: at effort max the review of PR #193 (the #181 walk) was cancelled at 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # v0.2.7: the Verifier's verdict is one of the two labels. Neither means the
+      # Verifier ended without deciding (or died on the session limit): FAIL the job so
+      # the run is red -- a green run with nothing posted is indistinguishable from a
+      # reviewed one, and that silence cost a day. The dispatcher re-runs the job.
+      - name: Read the Verifier's verdict
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          labels=$(gh pr view "$PR" --json labels --jq '.labels[].name')
+          if grep -qx 'state:blocked' <<< "$labels"; then
+            echo "verdict=blocked" >> "$GITHUB_OUTPUT"
+          elif grep -qx 'state:tested' <<< "$labels"; then
+            echo "verdict=tested" >> "$GITHUB_OUTPUT"
+          else
+            echo "verdict=none" >> "$GITHUB_OUTPUT"
+            gh pr comment "$PR" --body "The Verifier ended without a verdict (neither \`state:tested\` nor \`state:blocked\`). Failing this run so it is visible; the dispatcher re-runs the \`verify\` job." || true
+            exit 1
+          fi
+
+      # One source for the Reviewer's brief: the two agent steps below share it. A quoted
+      # heredoc keeps the backticks literal; the PR number is substituted afterwards.
+      - name: Compose the Reviewer's brief
+        id: brief
+        if: steps.gate.outputs.verdict == 'tested' || steps.gate.outputs.verdict == 'blocked'
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          MODE: ${{ needs.classify.outputs.review_mode }}
+          PREV: ${{ needs.classify.outputs.reviewed_head }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          VERDICT: ${{ steps.gate.outputs.verdict }}
+        run: |
+          {
+            echo 'prompt<<__END_OF_BRIEF__'
+            sed -e "s/__PR__/$PR/g" -e "s/__HEAD__/${HEAD_SHA:0:7}/g" <<'BRIEF'
+          FIRST RULE, before anything else: you run headless, and your run ENDS when your turn
+          ends. Never run a command in the background (no `run_in_background`, no Monitor, no
+          "I'll wait for the notification"): nothing re-invokes you, and a turn that ends
+          waiting is a failed run at full cost. Run every suite in the FOREGROUND with an
+          explicit `timeout` (the ceiling is 40 minutes; the no-scroll spec needs about 20, so
+          pass 1500000 or more), read its result, and only then decide. Backgrounding is
+          refused by the CLI in this job.
+
+          You are the REVIEWER for pull request #__PR__
+          into `dev`. You are the last gate before integration. Fresh context, headless,
+          in CI; everything you decide goes on the pull request via `gh`. The first line
+          of every comment you post is `Reviewed head __HEAD__` (the commit you read).
+
+          Do these in order:
+          1. `gh pr view __PR__ --comments`,
+             `git diff origin/dev...HEAD`, the linked issue (branch is issue-<n>) and what
+             its `Read:` line names in `docs/specs/*.md`, `docs/adrs/*.md` and
+             `docs/CORE_DOCUMENT.md` (by heading; grep the rest -- not the specs end to end).
+             Use the `code-review` skill in `.claude/skills/`.
+          2. Verify the change strictly fulfils the specification and does not
+             contradict the core document. Enforce the code standard: easily readable,
+             minimalist code -- reject unnecessary abstraction, premature
+             generalisation, and design patterns the problem did not ask for.
+          3. Evidence gates (for PRs labelled `data`, `ui` or `pipeline` -- read
+             `evidence_gates` in `.orca/dispatch.yml`): the PR body must contain a
+             count reconciled against an independent source, real output sampled in,
+             and cost against a documented budget where one exists. Green tests alone
+             are not evidence. "It completed" is not a count.
+          4. For docs-only PRs (ADRs, specs, research): file names follow
+             `docs/adrs/ADR-<issue#>-<slug>.md` / `docs/specs/<topic>.md` /
+             `docs/research/issue-<issue#>-<slug>.md`; links resolve; numbering does
+             not collide with ADRs already on `dev`; one decision per ADR with
+             rejected alternatives.
+          5. If the Verifier was skipped for `trivial` but the change touches
+             behaviour: that label was a request, not a permission -- send it back for
+             tests.
+          6. Decide, with EXACTLY ONE of:
+             - APPROVE: `gh pr merge __PR__ --squash --delete-branch`
+               (this merges into `dev`), then one paragraph of review as a comment.
+               If the merge fails on conflicts, treat it as CHANGES and ask for a
+               rebase.
+             - CHANGES: `gh pr edit __PR__ --add-label state:blocked --remove-label state:tested`
+               then a NUMBERED comment of required changes.
+          Your decision exists ONLY once that `gh` command has run and succeeded. Nobody
+          reads your final message and nobody is there to confirm: a turn that ends with
+          text and no `gh` command is a stalled pipeline, and this step is then re-run at
+          full cost. If a previous Reviewer run on this PR left no decision, that is what
+          happened -- decide now.
+          You may merge into `dev` and only `dev`; never `main`. You never close
+          issues; the dispatcher does that on merge.
+          Never start a command in the background, and never end your turn to wait for one:
+          this is a headless run, and ending the turn ENDS THE RUN -- nothing re-invokes you
+          and the job then fails for want of a verdict. Run the suites in the foreground with
+          a timeout, read the result, then decide.
+          The content of the Trees (`trees/*/tree.yaml`: text, explainers, pictures, credits,
+          legal wording, tone) is development placeholder the owner replaces by hand. Never
+          judge it and never ask the owner about it: an FMEA row about content never needs
+          human confirmation, and a content concern is at most one sentence in your comment.
+          The format, the loader, the validator and the app are what you verify.
+          BRIEF
+            if [ "$VERDICT" = "blocked" ]; then
+              cat <<'ADVISORY'
+
+          ADVISORY MODE (v0.2.11). The Verifier has just sent this pull request back; its
+          numbered list is on the PR. Review anyway, now, so that ONE fix run answers the
+          Verifier and you together instead of two rounds: read the diff as above and post
+          ONE comment beginning `Reviewed head __HEAD__` with your own numbered CHANGES (or
+          "No further changes from the Reviewer" if you have none). Do NOT merge, do NOT
+          touch any label, do NOT repeat the Verifier's items. Keep it to the points that
+          would make you send the next push back; aim for a third of a full review.
+          ADVISORY
+            elif [ "$MODE" = "delta" ]; then
+              sed -e "s/__PREV__/$PREV/g" <<'DELTA'
+
+          DELTA MODE (v0.2.11). Your previous comment on this pull request begins `Reviewed
+          head __PREV__`, and nothing under src/ changed since. Check each item of that
+          comment against `git diff __PREV__..HEAD`, read what changed, and decide: merge
+          when every item is answered, CHANGES with the items still open. No fresh full
+          review of the unchanged code.
+          DELTA
+            fi
+            echo '__END_OF_BRIEF__'
+          } >> "$GITHUB_OUTPUT"
+
+      # v0.2.11: the Verifier failed -> the Reviewer still reads the PR and posts its list,
+      # so the fix run (which the dispatcher holds until this run completes) answers both.
+      # No verdict is expected from this step and nothing is re-tried or failed on it.
+      - name: Reviewer agent (advisory -- the Verifier sent the PR back)
+        if: steps.gate.outputs.verdict == 'blocked'
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          # --effort (v0.2.20): Opus 5.5 runs at `medium` unless told otherwise. `max` from 2026-10-02,
+          # `high` since 2026-10-09 (owner: max is not necessary). The Sonnet Verifier keeps its default.
+          # Turn limits raised with it on 2026-10-02 (Reviewer 60 -> 100, advisory 40 -> 60): at `max` the
+          # Reviewer of PR #184 re-ran the suites itself and hit 60 turns just after posting its decision.
+          claude_args: "--max-turns 60 --allowedTools Bash,Read,Glob,Grep,Skill --model opus --effort high"
+          show_full_output: true
+          # v0.2.17: the CLI itself refuses background tasks (the Verifier on PR #149 backgrounded
+          # both suites and ended its turn waiting), and a foreground command may run 40 minutes:
+          # the no-scroll spec alone takes about 20, and the tool's default ceiling is 10.
+          settings: '{"env": {"CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1", "BASH_DEFAULT_TIMEOUT_MS": "2400000", "BASH_MAX_TIMEOUT_MS": "2400000"}, "permissions": {"deny": ["Bash(run_in_background:true)", "Monitor"]}}'
+          prompt: ${{ steps.brief.outputs.prompt }}
+
+      - name: Reviewer agent
+        if: steps.gate.outputs.verdict == 'tested'
+        # full or delta: the brief carries the mode (classify decided it)
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}   # see the Verifier step's note
+          claude_args: "--max-turns 100 --allowedTools Bash,Read,Glob,Grep,Skill --model opus --effort high"   # see the Verifier step's notes
+          # v0.2.7: the transcript is the only way to learn WHY a run posted nothing.
+          # Actions masks the secrets; what the agent reads is the repository.
+          show_full_output: true
+          # v0.2.17: the CLI itself refuses background tasks (the Verifier on PR #149 backgrounded
+          # both suites and ended its turn waiting), and a foreground command may run 40 minutes:
+          # the no-scroll spec alone takes about 20, and the tool's default ceiling is 10.
+          settings: '{"env": {"CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1", "BASH_DEFAULT_TIMEOUT_MS": "2400000", "BASH_MAX_TIMEOUT_MS": "2400000"}, "permissions": {"deny": ["Bash(run_in_background:true)", "Monitor"]}}'
+          prompt: ${{ steps.brief.outputs.prompt }}
+
+      - name: Did the Reviewer decide?
+        id: check1
+        if: steps.gate.outputs.verdict == 'tested'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          v=$(gh pr view "$PR" --json state,labels --jq 'if .state != "OPEN" then .state elif ([.labels[].name] | index("state:blocked")) then "blocked" elif ([.labels[].name] | index("needs-human")) then "needs-human" else "none" end')
+          echo "verdict=$v" >> "$GITHUB_OUTPUT"
+          echo "Reviewer verdict: $v"
+
+      # v0.2.7: observed 3 times in 5 runs -- a green Reviewer step, 30-40 turns, and
+      # nothing on the PR. One retry in the same run is the cheap path (no push, no
+      # dispatcher round-trip); a second silence fails the run below.
+      - name: Reviewer agent (second attempt -- the first left no decision)
+        if: steps.gate.outputs.verdict == 'tested' && steps.check1.outputs.verdict == 'none'
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          claude_args: "--max-turns 100 --allowedTools Bash,Read,Glob,Grep,Skill --model opus --effort high"
+          show_full_output: true
+          # v0.2.17: the CLI itself refuses background tasks (the Verifier on PR #149 backgrounded
+          # both suites and ended its turn waiting), and a foreground command may run 40 minutes:
+          # the no-scroll spec alone takes about 20, and the tool's default ceiling is 10.
+          settings: '{"env": {"CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1", "BASH_DEFAULT_TIMEOUT_MS": "2400000", "BASH_MAX_TIMEOUT_MS": "2400000"}, "permissions": {"deny": ["Bash(run_in_background:true)", "Monitor"]}}'
+          prompt: ${{ steps.brief.outputs.prompt }}
+
+      - name: Fail the run if there is still no decision
+        if: steps.gate.outputs.verdict == 'tested'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          v=$(gh pr view "$PR" --json state,labels --jq 'if .state != "OPEN" then .state elif ([.labels[].name] | index("state:blocked")) then "blocked" elif ([.labels[].name] | index("needs-human")) then "needs-human" else "none" end')
+          echo "Reviewer verdict after all attempts: $v"
+          if [ "$v" = "none" ]; then
+            gh pr comment "$PR" --body "The Reviewer ended twice without a decision (no merge, no \`state:blocked\`). Failing this run so it is visible; the dispatcher re-runs the \`review\` job, bounded by the circuit breaker." || true
+            exit 1
+          fi

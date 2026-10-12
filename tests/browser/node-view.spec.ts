@@ -1,0 +1,394 @@
+/**
+ * The Node view in a real browser: what markup alone cannot show -- what a click does,
+ * which files the browser asks for, and whether a keyboard reaches everything.
+ *
+ * Issue #41 turned the Node view into the tree view of docs/specs/application.md section
+ * 10: the Answers are Branches whose accessible name is the chrome word and the target's
+ * title, so they are found by class here. The picture and the enlarged view checks are the
+ * 0.1 ones, on the main image #81 put above the title (`carousel.spec.ts` is the strip); the
+ * tree view's own clicks, keyboard and Sheets are `tree-view.spec.ts`.
+ *
+ * The server serves `trees/ai-act-example` (see playwright.config.ts).
+ */
+import { expect, test, type Page } from '@playwright/test'
+import { arrived } from './arrived.ts'
+
+const START = '/ai-act-example/start'
+
+/** Every image file the browser asked the server for while `act` ran. */
+async function imageRequests(page: Page, act: () => Promise<unknown>): Promise<string[]> {
+  const asked: string[] = []
+  const listen = (request: { url: () => string }): void => {
+    const match = /\/images\/([^?]+)/.exec(request.url())
+    if (match?.[1]) asked.push(match[1])
+  }
+  page.on('request', listen)
+  try {
+    await act()
+    // Give a lazy image that scrolled into view its chance to be requested.
+    await page.waitForLoadState('networkidle')
+  } finally {
+    page.off('request', listen)
+  }
+  return asked
+}
+
+test('the walk works by clicking: yes, an Option, and back', async ({ page }) => {
+  await page.goto(START)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Is your AI system within the reach of the AI Act?',
+  )
+
+  await page.locator('.answer--next:nth-child(1)').click()
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
+
+  // An Option opens its Overlay in place (10.9); the address stays the question's.
+  await page.locator('.options .sheet-open', { hasText: 'Social scoring' }).click()
+  await expect(page.locator('.overlay').first().locator('.sheet-panel')).toBeVisible()
+  await expect(page).toHaveURL('/ai-act-example/start/prohibited-practices')
+  await page.keyboard.press('Escape')
+
+  // Issue #8 replaced the interim "back" control this test used with the Trail, and #82 the
+  // drawn Trail with the up arrow; the walk it checks is unchanged. What the arrow itself
+  // does is `tests/browser/trail.spec.ts`.
+  await page.locator('.up-arrow').click()
+  await arrived(page, '/ai-act-example/start')
+})
+
+test('the arrow at the top left leads out of the Tree to the overview, in the language on screen (#163)', async ({ page }) => {
+  await page.goto('/ai-act-example/start/prohibited-practices')
+  const back = page.getByRole('link', { name: 'All decision trees' })
+  // At the top left: before the Tree's mark, the first thing in the chrome bar.
+  await expect(page.locator('.page-chrome a').first()).toHaveClass('back-to-overview')
+  await back.click()
+  await expect(page).toHaveURL('/')
+  await expect(page.locator('.tile')).toHaveCount(1)
+
+  await page.goto('/ai-act-example/start/prohibited-practices?lang=nl')
+  await page.getByRole('link', { name: 'Alle beslisbomen' }).click()
+  await expect(page).toHaveURL('/?lang=nl')
+})
+
+test('no answers a different Node than yes', async ({ page }) => {
+  await page.goto(START)
+  await page.locator('.answer--next:nth-child(2)').click()
+
+  await arrived(page, '/ai-act-example/start/outside-scope')
+})
+
+test('a Terminal Node shows its outcome and offers no yes or no', async ({ page }) => {
+  await page.goto('/ai-act-example/start/outside-scope')
+
+  await expect(page.locator('.outcome')).toHaveText('Does not apply')
+  await expect(page.locator('.answer--next:nth-child(1)')).toHaveCount(0)
+  await expect(page.locator('.answer--next:nth-child(2)')).toHaveCount(0)
+})
+
+test('the document declares the language of the content it shows', async ({ page }) => {
+  // What the `[lang]` route segment is for: `<html lang>` is the content language, not the
+  // Tree's default (docs/specs/application.md 3.1, 4.4). Read out of the response body as
+  // well as the DOM, so it is the document the server sent and not a client repair.
+  expect(await (await page.request.get(`${START}?lang=nl`)).text()).toContain('<html lang="nl">')
+  expect(await (await page.request.get(START)).text()).toContain('<html lang="en">')
+
+  await page.goto(`${START}?lang=nl`)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'nl')
+  // The public URL is untouched by the rewrite: the language is still a query parameter.
+  await arrived(page, `${START}?lang=nl`)
+
+  await page.goto(START)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+})
+
+test('the disclaimer is in the HTML the server sends for every Node page', async ({ page }) => {
+  // The response body, not the rendered DOM: the promise is that the disclaimer is in the
+  // document, so a reader without JavaScript and a reader of the source both see it.
+  for (const url of [
+    START,
+    '/ai-act-example/start/prohibited-practices',
+    '/ai-act-example/start/prohibited-practices/social-scoring',
+    '/ai-act-example/start/outside-scope',
+  ]) {
+    const response = await page.request.get(url)
+    const html = await response.text()
+
+    expect(response.status(), url).toBe(200)
+    expect(html, url).toContain('<footer class="disclaimer"')
+    expect(html, url).toContain('This is not legal advice.')
+  }
+})
+
+test('the 404 sends its status in the response and its body in the client payload', async ({ page }) => {
+  // The one exception to "complete HTML", amended into docs/specs/application.md 4.3 by the
+  // owner on PR #17: Next.js answers a notFound() from a dynamically rendered route with its
+  // own error shell plus an RSC payload. This pins both halves of what is actually served, so
+  // the day a Next.js release renders the boundary into the document, this fails loudly and
+  // the exception can be taken back out of the spec.
+  const response = await page.request.get('/ai-act-example/no-such-node')
+  const html = await response.text()
+
+  expect(response.status()).toBe(404)
+  expect(html).toContain('<html id="__next_error__">')
+  expect(html).not.toContain('<h1')
+  expect(html).not.toContain('<footer class="disclaimer"')
+  // The page did render on the server -- it travels as data next to the shell, not as markup.
+  expect(html).toContain('This step does not exist')
+
+  // With JavaScript, the client bundle paints the page the spec describes.
+  await page.goto('/ai-act-example/no-such-node')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('This step does not exist')
+  await expect(page.locator('.disclaimer')).toContainText('This is not legal advice.')
+})
+
+test('clicking the main image shows the image larger with its description and credit', async ({ page }) => {
+  await page.goto(START)
+  const enlarged = page.locator('.carousel-sheet .sheet-panel')
+  await expect(enlarged).toBeHidden()
+
+  await page.locator('.main-image').click()
+
+  await expect(enlarged).toBeVisible()
+  await expect(enlarged).toContainText('Map of the European Union member states')
+  await expect(enlarged.locator('.credit')).toContainText('Map: Example Cartography, CC BY 4.0')
+  const enlargedImage = enlarged.locator('img')
+  await expect(enlargedImage).toHaveAttribute('src', '/ai-act-example/images/eu-map.png')
+
+  // Larger than the main image above the title, and bounded to the viewport (10.6).
+  const mainImage = await page.locator('.main-image img').first().boundingBox()
+  const shown = await enlargedImage.boundingBox()
+  expect(shown!.height).toBeGreaterThan(mainImage!.height)
+  expect(shown!.height).toBeLessThan(page.viewportSize()!.height)
+})
+
+test('the main image is two fifths of the Bubble at every guaranteed viewport, and of the Overlay\'s panel too (#102)', async ({
+  page,
+}) => {
+  for (const [width, height] of [[1280, 640], [1920, 1080]] as const) {
+    await page.setViewportSize({ width, height })
+    await page.goto(`${START}/prohibited-practices`)
+    const bubble = (await page.locator('.bubble').boundingBox())!
+    const image = (await page.locator('.bubble .main-image').boundingBox())!
+    expect(image.height, `${width}x${height}`).toBeCloseTo(0.4 * bubble.height, 0)
+    expect(image.width, `${width}x${height}`).toBeCloseTo(1.5 * image.height, 0)
+
+    // The side arm: the Overlay's panel stands where the Bubble does, and its picture takes the same share of it.
+    await page.goto(`${START}/prohibited-practices/social-scoring`)
+    const inOverlay = (await page.locator('.overlay[open] .main-image').boundingBox())!
+    const panel = (await page.locator('.overlay[open] > .sheet-panel').boundingBox())!
+    expect(inOverlay.height, `${width}x${height}: the Overlay`).toBeCloseTo(0.4 * panel.height, 0)
+  }
+})
+
+test('Escape closes the enlarged image, and so does a click outside it', async ({ page }) => {
+  await page.goto(START)
+  const enlarged = page.locator('.carousel-sheet .sheet-panel')
+
+  await page.locator('.main-image').click()
+  await expect(enlarged).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(enlarged).toBeHidden()
+
+  await page.locator('.main-image').click()
+  await expect(enlarged).toBeVisible()
+  // The Sheet's backdrop covers the page around the panel.
+  await page.mouse.click(4, 4)
+  await expect(enlarged).toBeHidden()
+})
+
+test('the browser asks for the images of the Node on screen and no others', async ({ page }) => {
+  // A Node's own Image is its main image (10.3). An Option has no Image of its own in
+  // elsa-tree/3: the Node with Options asks for its own picture (#84) and one file per Option,
+  // its target's first Image, which its button shows (11.5), and the target's Overlay for that
+  // same file.
+  const onStart = await imageRequests(page, () => page.goto(START))
+  expect(new Set(onStart)).toEqual(new Set(['eu-map.png']))
+
+  const ofOptions = new Set(['prohibited-practices.png', 'scoreboard.png', 'emotion-recognition.png'])
+  const onOptions = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices'))
+  expect(new Set(onOptions)).toEqual(ofOptions)
+
+  // The target's address is its parent's page with the Overlay open (10.9): the same files.
+  const onTarget = await imageRequests(page, () => page.goto('/ai-act-example/prohibited-practices/social-scoring'))
+  expect(new Set(onTarget)).toEqual(ofOptions)
+})
+
+test('enlarging the main image fetches nothing new', async ({ page }) => {
+  await page.goto(START)
+  await page.waitForLoadState('networkidle')
+
+  const whileEnlarging = await imageRequests(page, async () => {
+    await page.locator('.main-image').click()
+    await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
+  })
+
+  expect(whileEnlarging).toEqual([])
+})
+
+test('a keyboard reaches the main image, opens the enlarged view and closes it, and the focus comes back', async ({ page }) => {
+  await page.goto(START)
+
+  const stops: string[] = []
+  for (let step = 0; step < 12; step += 1) {
+    await page.keyboard.press('Tab')
+    stops.push(
+      await page.evaluate(() => {
+        const active = document.activeElement
+        return active ? `${active.tagName.toLowerCase()}.${active.className}`.trim() : ''
+      }),
+    )
+  }
+  expect(stops).toContain('a.main-image')
+
+  await page.locator('.main-image').focus()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.carousel-sheet .sheet-panel')).toBeVisible()
+  await expect(page.locator('.carousel-sheet .sheet-close')).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.carousel-sheet .sheet-panel')).toBeHidden()
+  await expect(page.locator('.main-image')).toBeFocused()
+})
+
+test('a keyboard reaches the Answers and follows one', async ({ page }) => {
+  await page.goto(START)
+
+  // Tab through the page and collect what the browser stops at.
+  const stops: string[] = []
+  for (let step = 0; step < 12; step += 1) {
+    await page.keyboard.press('Tab')
+    stops.push(
+      await page.evaluate(() => {
+        const active = document.activeElement
+        return active ? `${active.tagName.toLowerCase()}.${active.className}`.trim() : ''
+      }),
+    )
+  }
+
+  // **[#221]** Both next steps, in the file's order (41.3).
+  expect(stops.filter((stop) => stop === 'a.branch answer answer--next')).toHaveLength(2)
+
+  await page.locator('.answer--next:nth-child(1)').focus()
+  await page.keyboard.press('Enter')
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
+})
+
+test('the Options of a Node are reachable by keyboard', async ({ page }) => {
+  await page.goto('/ai-act-example/prohibited-practices')
+
+  await page.locator('.overlay .sheet-open').first().focus()
+  await page.keyboard.press('Enter')
+
+  await expect(page.locator('.overlay .sheet-panel').first()).toBeVisible()
+  await expect(page).toHaveURL('/ai-act-example/prohibited-practices')
+})
+
+test('an unknown Node answers 404 with a way back to the overview', async ({ page }) => {
+  // **[#134]** One 404 for every Tree and none (23.1, 24.3): it names no Tree, so its way
+  // back is the overview, where 1.0's led to the one Tree's start.
+  const response = await page.goto('/ai-act-example/no-such-node')
+
+  expect(response?.status()).toBe(404)
+  await page.getByRole('link', { name: 'All decision trees' }).click()
+  await expect(page).toHaveURL('/')
+  await expect(page.locator('a.tile')).toHaveCount(1)
+})
+
+test('at a phone width the 404 page still shows and names its way back to the overview (10.3)', async ({ page }) => {
+  // The phone-width rule that shortens an Answer button to its word must not empty this one,
+  // whose label is a title with no word before it.
+  await page.setViewportSize({ width: 360, height: 640 })
+  await page.goto('/ai-act-example/no-such-node')
+
+  const back = page.locator('.answer--start-again')
+  await expect(back).toHaveAccessibleName('All decision trees')
+  await expect(back.locator('.branch-label')).toHaveText('All decision trees', { useInnerText: true })
+})
+
+test('the address of the Tree redirects to its root Node', async ({ page }) => {
+  await page.goto('/ai-act-example')
+  await arrived(page, START)
+})
+
+test('**[#134]** / is the overview, and its tile leads to the root Node (18.1, 23.2)', async ({ page }) => {
+  const response = await page.goto('/')
+
+  // No longer a redirect: the page itself, listing the one Tree this server serves.
+  expect(response?.status()).toBe(200)
+  expect(page.url()).toBe(new URL('/', page.url()).href)
+  await page.locator('a.tile').click()
+  await arrived(page, START)
+})
+
+test('the image route serves a Tree image with the headers that make it safe', async ({ page }) => {
+  const response = await page.request.get('/ai-act-example/images/eu-map.png')
+  const headers = response.headers()
+  const body = await response.body()
+
+  expect(response.status()).toBe(200)
+  expect(headers['content-type']).toBe('image/png')
+  expect(headers['cache-control']).toBe('public, max-age=3600')
+  // A Tree's images come from third-party authors: an SVG opened on its own must be able to
+  // run nothing on this origin, and no browser may guess a different type than the route says.
+  expect(headers['content-security-policy']).toBe("default-src 'none'; sandbox")
+  expect(headers['x-content-type-options']).toBe('nosniff')
+  // The bytes are the file, not an error page: the PNG signature.
+  expect([...body.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+})
+
+test('the image route answers 404 for a name the Tree does not have', async ({ page }) => {
+  for (const name of [
+    'nope.png',
+    'eu-map.PNG',
+    '..%2F..%2Fpackage.json',
+    '%2e%2e%2f%2e%2e%2fpackage.json',
+    'eu-map.png%00.txt',
+  ]) {
+    const response = await page.request.get(`/ai-act-example/images/${name}`)
+
+    expect(response.status(), name).toBe(404)
+    expect(response.headers()['content-type'] ?? '', name).not.toContain('image')
+  }
+})
+
+test('**[#134]** the 1.0 image address answers 404: a picture is under its Tree id (18.1)', async ({ page }) => {
+  expect((await page.request.get('/images/eu-map.png')).status()).toBe(404)
+  expect((await page.request.get('/theme/nova-square-400.woff2')).status()).toBe(404)
+})
+
+test.describe('with JavaScript switched off', () => {
+  test.use({ javaScriptEnabled: false })
+
+  test('a Node page is whole: its Answers, its main image and its disclaimer all work', async ({ page }) => {
+    await page.goto(START)
+
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Is your AI system within the reach of the AI Act?',
+    )
+    await expect(page.locator('.disclaimer')).toContainText('This is not legal advice.')
+    await expect(page.locator('.answer--next:nth-child(1)')).toHaveAttribute('href', '/ai-act-example/start/prohibited-practices')
+    await expect(page.locator('.answer--next:nth-child(2)')).toHaveAttribute('href', '/ai-act-example/start/outside-scope')
+    // The enlarge is a client component; without it the main image is still a link to the file.
+    await expect(page.locator('.main-image')).toHaveAttribute('href', '/ai-act-example/images/eu-map.png')
+
+    await page.locator('.answer--next:nth-child(1)').click()
+    await arrived(page, '/ai-act-example/start/prohibited-practices')
+
+    // With the enlarge unavailable the click is not intercepted, so it opens the file (14).
+    await page.goto(START)
+    await page.locator('.main-image').click()
+    await arrived(page, '/ai-act-example/images/eu-map.png')
+  })
+})
+
+test('nothing about the reader is stored', async ({ page, context }) => {
+  await page.goto(START)
+  await page.locator('.answer--next:nth-child(1)').click()
+  await arrived(page, '/ai-act-example/start/prohibited-practices')
+
+  expect(await context.cookies()).toEqual([])
+  expect(
+    await page.evaluate(() => ({
+      local: window.localStorage.length,
+      session: window.sessionStorage.length,
+    })),
+  ).toEqual({ local: 0, session: 0 })
+})

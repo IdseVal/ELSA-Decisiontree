@@ -1,0 +1,158 @@
+'use client'
+
+/**
+ * The attach Sheet (docs/specs/application.md 31.2; ADR-133-images-in-the-editor decision
+ * 2): what opens once the upload route has stored a picture. It shows the picture through the
+ * admin image route and the file name the server gave, asks for the credit -- **required**:
+ * `attach` is disabled while it is empty, because the moment a creator has the source in
+ * front of them is when they upload it (core document 10.12, 10.26) -- and for a description
+ * in the page's language, which may wait. `attach` sends `add-image` through the queue and the
+ * page repaints from its response; `cancel`, Escape and the backdrop delete the file again,
+ * so the folder holds no picture nobody named (a 409 -- the same bytes named elsewhere -- is
+ * somebody's file, and ignored). **[#172]** Each field says what belongs in it while it is
+ * empty, and its typing stops at its 120 characters, as a field's does (28.4, amended).
+ * **[#181]** And each is a box of the three lines those 120 characters take across the Sheet,
+ * its label above it, as the enlarged view's credit and description are boxes of their lines
+ * (28.4 and 31.2, amended by #181): a one-line input scrolled a longer credit out of its own
+ * box. Enter still attaches, as it did in the input: the text is one plain line.
+ *
+ * Laid over the page from the document's body, so a Sheet it was opened from -- an Overlay --
+ * neither clips it nor closes under it.
+ *
+ * Imports of `src/`: nothing but its own folder (34.4).
+ */
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { createPortal } from 'react-dom'
+import { useEditor } from './Editor.tsx'
+import { heldToLimit } from './Field.tsx'
+import { plainLine } from './fields.ts'
+import { Hint } from './Hint.tsx'
+import type { FieldLimit } from './mode.ts'
+import { deleteImage, type Uploaded } from './writes.ts'
+
+/** The credit and the description are 120 characters each (tree-format.md 5.7). */
+const LIMIT: FieldLimit = { characters: 120 }
+
+/** The chrome words the Sheet says; strings, because a client component takes no module. */
+export interface AttachWords {
+  credit: string
+  imageDescription: string
+  attach: string
+  cancel: string
+  placeholderCredit: string
+  placeholderImageDescription: string
+  /** **[#174]** The hint behind each field's label: its name, and why each is asked. */
+  hint: string
+  creditHint: string
+  imageDescriptionHint: string
+}
+
+export function AttachSheet({
+  nodeId,
+  uploaded,
+  src,
+  words,
+  onClose,
+}: {
+  nodeId: string
+  /** The upload route's answer: the server's file name and the picture's size (22.6). */
+  uploaded: Uploaded
+  /** The picture through the admin image route (31.5). */
+  src: string
+  words: AttachWords
+  /** The Sheet is done, attached or cancelled; the picker takes the focus back. */
+  onClose: () => void
+}) {
+  const api = useEditor()
+  const credit = useRef<HTMLTextAreaElement>(null)
+  const [creditText, setCreditText] = useState('')
+  const [description, setDescription] = useState('')
+  const attachable = creditText.trim() !== '' && !api.readOnly
+
+  useEffect(() => credit.current?.focus(), [])
+
+  const cancel = (): void => {
+    void deleteImage(api.treeId, uploaded.file)
+    onClose()
+  }
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault()
+    if (!attachable) return
+    const text = description.trim()
+    api.operate(nodeId, { op: 'add-image', file: uploaded.file, credit: creditText.trim(), description: text === '' ? {} : { [api.lang]: text } })
+    onClose()
+  }
+
+  // A plain line: Enter submits, as it did in a one-line input, and never breaks the line.
+  const onEnter = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
+    if (event.key !== 'Enter') return
+    event.preventDefault()
+    event.currentTarget.form?.requestSubmit()
+  }
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (event.key !== 'Escape') return
+    // Consumed here: React's tree runs through the Overlay this Sheet may have been opened from.
+    event.stopPropagation()
+    event.preventDefault()
+    cancel()
+  }
+
+  return createPortal(
+    <div className="editor-attach" onKeyDown={onKeyDown}>
+      <div className="sheet-backdrop" onClick={cancel} />
+      <div className="sheet-panel editor-attach-panel" data-editor-ui="" role="dialog" aria-modal="true" aria-labelledby="attach-file">
+        <figure className="editor-attach-figure">
+          <img src={src} alt="" width={uploaded.width} height={uploaded.height} />
+          <figcaption id="attach-file">{uploaded.file}</figcaption>
+        </figure>
+        <form className="source-editor editor-attach-form" noValidate onSubmit={onSubmit}>
+          {/* A row, not a label: the hint is a control of its own, and a label's text would name the field with it (#174). */}
+          <div className="editor-row">
+            <span>
+              <label htmlFor="attach-credit">{words.credit}</label>
+              <Hint id="attach-credit-hint" text={words.creditHint} name={words.hint} />
+            </span>
+            <textarea
+              ref={credit}
+              id="attach-credit"
+              className="editor-url"
+              rows={3}
+              value={creditText}
+              placeholder={words.placeholderCredit}
+              required
+              onKeyDown={onEnter}
+              onChange={(event) => setCreditText(heldToLimit(event.target, creditText, plainLine(event.target.value), LIMIT))}
+            />
+          </div>
+          <div className="editor-row">
+            <span>
+              <label htmlFor="attach-description">{words.imageDescription}</label>
+              <Hint id="attach-description-hint" text={words.imageDescriptionHint} name={words.hint} />
+            </span>
+            <textarea
+              id="attach-description"
+              className="editor-url"
+              rows={3}
+              lang={api.lang}
+              value={description}
+              placeholder={words.placeholderImageDescription}
+              onKeyDown={onEnter}
+              onChange={(event) => setDescription(heldToLimit(event.target, description, plainLine(event.target.value), LIMIT))}
+            />
+          </div>
+          <div className="sheet-controls">
+            <button type="submit" className="admin-submit" disabled={!attachable}>
+              {words.attach}
+            </button>
+            <button type="button" onClick={cancel}>
+              {words.cancel}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body,
+  )
+}
