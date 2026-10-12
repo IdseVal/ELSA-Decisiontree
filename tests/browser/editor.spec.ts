@@ -425,7 +425,8 @@ test.describe('an empty root Node, and the rim\u2019s tags (28.2, 28.3)', () => 
     expect((await api(page, cookie, 'POST', '/trees', { id: 'fresh-sources', languages: ['en'], title: { en: 'Sources' } })).status()).toBe(201)
     await page.goto(`${origin}/admin/trees/fresh-sources/start`)
     // The control opens a Sheet with the URL focused; nothing is sent, and the button stays
-    // disabled, until a URL of the schema's grammar is typed (28.1). No placeholder address.
+    // disabled, until a URL of the schema's grammar is typed (28.1). **[#242]** add-source.spec.ts
+    // tests the placeholder, the link typed without a scheme and the hint.
     await page.locator('.source-sheet--add > .sheet-open').filter({ visible: true }).click()
     // The visible form: below the guarantee the Sources block is a Sheet holding a second copy.
     const form = page.locator('.source-editor--add').filter({ visible: true })
