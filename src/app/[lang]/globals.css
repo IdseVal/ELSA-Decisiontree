@@ -3524,16 +3524,12 @@ fieldset:disabled .admin-submit {
   border-color: var(--danger-read);
 }
 
-/* **[#242]** The line under the add Sheet's Link field starts where the field does: past `.editor-row`'s label column and gap (28.1, amended). */
+/*
+ * **[#242]** The line under the add Sheet's Link row starts where its label does, not centred as
+ * the Bubble's text: held to the field's column, the example address broke at its hyphen (28.1, amended).
+ */
 .source-url-hint {
-  padding-inline-start: calc(7.5rem + 8px);
   text-align: start;
-}
-
-@media (max-width: 479px) {
-  .source-url-hint {
-    padding-inline-start: 0;
-  }
 }
 
 /* The editor's controls shrink before the bar grows: nothing in it may wrap to a second line (28.6). */

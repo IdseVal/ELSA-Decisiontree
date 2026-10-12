@@ -132,10 +132,16 @@ for (const where of ['main', 'side'] as const) {
         expect(hintId).toBeTruthy()
         await expect(url).toHaveAttribute('aria-describedby', hintId!)
         await expect(url).toHaveAccessibleDescription(WORDS[lang].hint)
-        // Under the field it names: its text starts where the field does, beside the label or under it.
-        const hintStart = await hint.evaluate((element) => element.getBoundingClientRect().left + parseFloat(getComputedStyle(element).paddingInlineStart))
-        expect(Math.abs(hintStart - (await url.boundingBox())!.x), `hint ${hintStart}`).toBeLessThan(1)
+        // Under the Link row, starting where its label does, and the example address whole on one line.
         await expect(hint).toHaveCSS('text-align', 'start')
+        const [hintBox, labelBox] = [(await hint.boundingBox())!, (await form.locator('.editor-row').last().boundingBox())!]
+        expect(Math.abs(hintBox.x - labelBox.x), `hint ${hintBox.x}, row ${labelBox.x}`).toBeLessThan(1)
+        const lines = await hint.evaluate((element) => {
+          const range = document.createRange()
+          range.selectNodeContents(element)
+          return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size
+        })
+        if (width >= 480) expect(lines, 'the hint on one line').toBe(1)
         if (where === 'main' && lang === 'en' && width === 1280) await shoot(page, 'add-source-not-a-link')
 
         // A link without its scheme: sent with `https://` in front, and the Sheet closes.
