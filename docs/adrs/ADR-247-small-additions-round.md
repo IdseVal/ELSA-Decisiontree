@@ -6,8 +6,8 @@
 - Specs affected: none here. #251 amends `docs/specs/application.md` 33.2, 33.5 and 33.6; #252
   amends 17.4, `docs/deployment.md` and `docs/hosting-shared-box.md`; #253 amends 24.3; #254
   amends 6 and 38, and trims `docs/hosting-shared-box.md`
-- Core document: amended here, marked `[#247]`: the preamble, the status and owner lines, a
-  new bullet in 3.4 holding the owner's words whole and the readings taken of them, the row
+- Core document: amended here, marked `[#247]`: the preamble (its status and owner lines were
+  already dated 2026-10-13 by #248's round, merged first), a new bullet in 3.4 holding the owner's words whole and the readings taken of them, the row
   **Creator** of section 5, a new line of section 9, and a new **OPEN** row 10.45 for the
   owner
 
@@ -114,7 +114,7 @@ above. The measurements above are of `dev` before #249.
 - `.devcontainer/` is the setup's generic template, which nothing uses.
 
 Private details stand in the documents:
-- the owner's personal e-mail address (10 lines, in the core document, three ADRs and
+- the owner's personal e-mail address (10 lines, in the core document, four ADRs and
   `docs/specs/application.md` 38);
 - the owner's workstation's network name (5 lines);
 - a local Windows path and two account ids of the demo server, in
@@ -160,7 +160,9 @@ pages show only fixture accounts at `example.org`.
      deleted by a release. A format conversion keeps every one of them and changes the
      file's shape only, so it is not an overwrite, and it stays because the app cannot read
      an older format without it. A copy taken before each release starts makes it
-     reversible (#252). Because this reading concerns a line of section 9, it is also an
+     reversible (#252). (17.4 `[#195]`'s conversion of `accounts.json`, which did not keep the
+     user names, never ran on the box: its data was first written on 2026-10-10, by a release
+     that already stored addresses.) Because this reading concerns a line of section 9, it is also an
      **OPEN** item for the owner, core document 10.45, which says what changes if the answer
      is no; nothing waits on it, since #252 changes no conversion;
    - "our code should only push code, not data items and json": the release the deploy puts
@@ -186,8 +188,9 @@ pages show only fixture accounts at `example.org`.
    up the site's title. #254 also waits on #252, because both edit
    `docs/hosting-shared-box.md`, and #254 should trim what #252 leaves.
 4. **All four depend on #247**, so that none is dispatched before this record is on `dev`.
-   Their `Read:` lines name this record and its 3.4 bullet. Each body was final, with its
-   `Depends on:` line, when it was filed.
+   Their `Read:` lines name this record and its 3.4 bullet. Each was filed with its
+   `Depends on: #247` line, so none could be dispatched before this record; #253 gained
+   `#249` and #252 its mentions of #254 and 10.45 a few minutes later, as this run found #249.
 
 ## Alternatives rejected
 
@@ -202,10 +205,11 @@ pages show only fixture accounts at `example.org`.
 - **Keeping the seed in the box's release.** It is read only when `data/trees/` is missing,
   and then it would put the repository's Trees on the live site, as the administrator's,
   published: the opposite of "the hetzner box contains the truth".
-- **A button with words ("Back to the app") on the account pages.** The admin area already has
-  one way back to `/admin`, #163's arrow with its name, on the editor, the preview, the 403
-  page, the uneditable page and the session Sheet. A second look for the same link would be a
-  second thing to learn.
+- **A button with words ("Back to the app") in the account pages' bar.** The admin area leads
+  back to `/admin` under one name, `toOverview` ("All decision trees"): in a bar as #163's
+  arrow, at the start of the editor's and the preview's, and in a page's body as a worded
+  button or link, on the 403 page, the uneditable Tree's page and the session Sheet. A worded
+  control at the start of a bar would be a second look for the same link in the same place.
 - **The arrow on `/admin/new` too.** The owner named the account pages.
 - **A width rule of #253's own.** This run's first draft of #253 moved the cut to 600 itself;
   #249 does that for wider controls, so #253 waits on it rather than set a second rule for the
