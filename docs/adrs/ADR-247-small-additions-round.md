@@ -98,9 +98,14 @@ with the stand-in arrow, and siteTitle and the current language's pill not drawn
   admin   /admin/accounts  en: fails at none           nl: fails at none
 ```
 
-Every failure is the site's title on two lines. So `dev` already wraps the administrator's
-title from 480 to 489 pixels wide (497 in Dutch), a width that 10.6 does not list and no suite
-measures.
+Every failure is the site's title on two lines. So `dev` wrapped the administrator's title from
+480 to 489 pixels wide (497 in Dutch), a width that 10.6 does not list and no suite measures.
+
+While this run worked, the owner's #248 was filed as #249 and its record merged into `dev`
+(`1387673`). #249 gives the controls of this same bar the look of "Editor", and on
+`/admin/new`, `/admin/account` and `/admin/accounts` it moves the width below which the bar gives
+up the site's title from 480 to 600, measured with its wider controls. That also fixes the wrap
+above. The measurements above are of `dev` before #249.
 
 **The repository's files.** The repository is public. Of its 1351 tracked files:
 - `agent-workflow-setup-v0.2.2.md` to `v0.2.12.md` are referenced only by a comment in
@@ -135,10 +140,9 @@ pages show only fixture accounts at `example.org`.
      - the deploy takes a copy of the data directory before every release starts, through a
        new `deploy/shared-box/snapshot.sh`;
      - the rule is written into `docs/deployment.md`, `docs/hosting-shared-box.md` and 17.4.
-   - **#253** (`ui`):
-     - `/admin/account` and `/admin/accounts` begin with #163's arrow back to `/admin`;
-     - those two pages and `/admin/new` give up the site's title below 600 pixels wide
-       instead of 480, which also fixes the wrapped title `dev` shows at 480.
+   - **#253** (`ui`): `/admin/account` and `/admin/accounts` begin with #163's arrow back to
+     `/admin`, on #249's bar. It re-runs #249's sweep with the arrow, and moves these pages'
+     cut up by #249's own rule if a width fails.
    - **#254** (no type label):
      - deletes `agent-workflow-setup-v0.2.2.md` to `v0.2.12.md`, `docs/pipeline-smoke.md` and
        `.devcontainer/`;
@@ -164,9 +168,7 @@ pages show only fixture accounts at `example.org`.
      instead of the repository's (#252);
    - "the app" is the creators' overview at `/admin`, the "top level interface" of `[#202]`.
      "A back to app button" is the arrow the editor's bar begins with, the same look and
-     name (`toOverview`, "All decision trees"). The width at which these pages give up their
-     title, 600, is measured above on Windows' faces, and #253 raises it if CI's faces need
-     more;
+     name (`toOverview`, "All decision trees");
    - "files that are not relevant and should not be in a public repo" are the unused files,
      the private details and the box's security set-up listed above. The rest is kept:
      - `.orca/`, `.claude/`, `.github/` and `mail/`, which the pipeline runs from;
@@ -179,9 +181,10 @@ pages show only fixture accounts at `example.org`.
        read;
      - the owner's name, which the repository's account carries anyway.
 3. **Each issue amends its own spec sections and records its own ADR.** This record changes no
-   spec. #251, #252 and #253 touch different sections and different code, and wait only on
-   #247. #254 also waits on #252, because both edit `docs/hosting-shared-box.md`, and #254 should
-   trim what #252 leaves.
+   spec. #251 and #252 touch different sections and different code, and wait only on #247.
+   #253 also waits on #249, which restyles the same bar and sets the widths at which it gives
+   up the site's title. #254 also waits on #252, because both edit
+   `docs/hosting-shared-box.md`, and #254 should trim what #252 leaves.
 4. **All four depend on #247**, so that none is dispatched before this record is on `dev`.
    Their `Read:` lines name this record and its 3.4 bullet. Each body was final, with its
    `Depends on:` line, when it was filed.
@@ -203,8 +206,10 @@ pages show only fixture accounts at `example.org`.
   one way back to `/admin`, #163's arrow with its name, on the editor, the preview, the 403
   page, the uneditable page and the session Sheet. A second look for the same link would be a
   second thing to learn.
-- **The arrow on `/admin/new` too.** The owner named the account pages. `/admin/new` takes only
-  the 600-pixel width, because its administrator's bar is the one that wraps on `dev`.
+- **The arrow on `/admin/new` too.** The owner named the account pages.
+- **A width rule of #253's own.** This run's first draft of #253 moved the cut to 600 itself;
+  #249 does that for wider controls, so #253 waits on it rather than set a second rule for the
+  same bar.
 - **Deleting `docs/screenshots/` (42 MB) and `docs/research/`.** They are old, but specs and
   ADRs cite them by folder as the evidence of what was measured. Pull requests embed their
   pictures pinned to commits, so those would survive a deletion; the citations would not.
@@ -215,15 +220,14 @@ pages show only fixture accounts at `example.org`.
 
 ## Consequences
 
-- #251, #252 and #253 are dispatched once this pull request merges and closes #247; #254 once
-  #252 is closed too.
+- #251 and #252 are dispatched once this pull request merges and closes #247; #253 once #249
+  is closed too, and #254 once #252 is.
 - After #251, a creator can delete their own hidden Tree; nothing else about roles changes.
 - After #252, the box keeps up to ten copies of its data directory under `/srv/elsa/backups`,
   one per deploy. It does so only once the owner has installed the new `deploy.sh` and
   `snapshot.sh` there as root: no run can reach the box without the owner's browser check.
   The release the box serves then carries no seed.
-- After #253, the account pages lead back to `/admin`. Below 600 pixels, the three Tree-less
-  pages of their row show no site title.
+- After #253, the account pages lead back to `/admin`.
 - After #254, the repository holds one setup document, v0.2.13, and the documents name no
   private address, machine or account. Older commits and GitHub's issues still do, until the
   owner decides otherwise.
