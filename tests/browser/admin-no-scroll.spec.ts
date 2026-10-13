@@ -25,10 +25,11 @@
  * the administrator's creators' overview, at every viewport of 10.6 and at five sizes either side of
  * 480, 600 and 768 wide. **[#249]** And at 659 and 660 wide, either side of the creators' overview's
  * cut; and the bar of `/admin/accounts` alone, with the account controls as pills, at the same
- * viewports and at 489 and 497 wide, where `dev`'s wrapped its title before #249. **[#253]** And the
- * bars of `/admin/account`, a creator's and the administrator's, and of `/admin/accounts`, with the
- * arrow back to the creators' overview first, at the same sizes and at 619 and 620 wide, either side
- * of their cut. **[#206]** And the preview of a hidden Tree on `hidden-draft`'s full
+ * viewports and at 489 and 497 wide, where `dev`'s wrapped its title before #249. **[#253]** That bar
+ * is measured on `/admin/new`, the administrator's, whose cut at 600 `BAR_SIZES` already straddles;
+ * and the bars of `/admin/account`, a creator's and the administrator's, and of `/admin/accounts`,
+ * with the arrow back to the creators' overview first, at the same sizes and at 619 and 620 wide,
+ * either side of their cut. **[#206]** And the preview of a hidden Tree on `hidden-draft`'s full
  * Node, plain and with each of its first two Overlays open, and on 40.7's unfinished draft; and the
  * editor of a hidden Tree with the preview button, on its step that ends (40.9). **[#212]** And at
  * and below the floor, on the editor of a hidden Tree and its preview, the notice's text lines clear
@@ -257,21 +258,27 @@ for (const lang of LANGUAGES) {
     })
   }
 
-  // **[#249]** The bar of `/admin/new`, `/admin/account` and `/admin/accounts`, with the pills: on `dev` before #249
-  // its title took two lines from 480 to 489 wide in English and to 497 in Dutch. **[#253]** On the account pages,
-  // with the arrow first: the creator's, without `accounts`, and the administrator's, and either side of their cut at 620.
-  for (const [address, who, email, password] of [
-    ['/admin/account', 'a creator', CEES.email, CEES.password],
-    ['/admin/account', 'the administrator', ADMIN_EMAIL, ADMIN_PASSWORD],
-    ['/admin/accounts', 'the administrator', ADMIN_EMAIL, ADMIN_PASSWORD],
+  // **[#249]** The bar with the pills and no arrow, `/admin/new` as the administrator (`account`, `accounts`, `logout`):
+  // on `dev` before #249 its title took two lines from 480 to 489 wide in English and to 497 in Dutch; its cut at 600
+  // is `BAR_SIZES`' 599 and 600. **[#253]** The account pages, with the arrow first: `/admin/account`, the creator's,
+  // without `accounts`, and the administrator's, and `/admin/accounts`, at the same sizes and either side of their cut at 620.
+  const cut620 = [[619, 800], [620, 800]] as const
+  for (const [address, who, email, password, arrow, more] of [
+    ['/admin/new', 'the administrator', ADMIN_EMAIL, ADMIN_PASSWORD, false, []],
+    ['/admin/account', 'a creator', CEES.email, CEES.password, true, cut620],
+    ['/admin/account', 'the administrator', ADMIN_EMAIL, ADMIN_PASSWORD, true, cut620],
+    ['/admin/accounts', 'the administrator', ADMIN_EMAIL, ADMIN_PASSWORD, true, cut620],
   ] as const) {
-    test(`the bar of ${address}, ${who}, ${lang}, fits at every viewport of 10.6 and at nine more`, async ({ browser }) => {
+    const sizes = [...BAR_SIZES, [489, 800], [497, 800], ...more] as const
+    test(`the bar of ${address}, ${who}, ${lang}, fits at every viewport of 10.6 and at ${sizes.length} more`, async ({ browser }) => {
       const page = await loggedIn(browser, email, password)
-      for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES, [489, 800], [497, 800], [619, 800], [620, 800]] as const) {
+      for (const [width, height] of [...VIEWPORTS, ...sizes]) {
         const viewport = `${width}x${height}`
         await page.setViewportSize({ width, height })
         expect((await page.goto(`${origin}${address}${lang === 'en' ? '' : `?lang=${lang}`}`))?.status()).toBe(200)
-        await expect(page.locator('header.page-chrome .back-to-overview')).toBeVisible()
+        await expect(page.locator('header.page-chrome .admin-nav')).toBeVisible()
+        const back = page.locator('header.page-chrome .back-to-overview')
+        await (arrow ? expect(back).toBeVisible() : expect(back).toHaveCount(0))
         const m = await measureBar(page)
         rows.push(barRow(`bar of ${address}, ${who}`, lang, viewport, m))
         expectBarFits(m, `the bar of ${address}, ${who} (${lang}) at ${viewport}`)
