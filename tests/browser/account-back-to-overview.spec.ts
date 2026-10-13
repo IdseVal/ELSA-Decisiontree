@@ -96,6 +96,28 @@ for (const { lang, query, name, newTree } of LANGUAGES) {
   })
 }
 
+test("below 620 pixels wide the account pages' bars give up the site's title and the current language; /admin/new's keeps both from 600", async ({ browser }) => {
+  const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
+  const title = page.locator('header.page-chrome .tree-title')
+  const current = page.locator('header.page-chrome .language--current')
+  for (const [address, width, shown] of [
+    ['/admin/account', 619, false],
+    ['/admin/account', 620, true],
+    ['/admin/accounts', 619, false],
+    ['/admin/accounts', 620, true],
+    ['/admin/new', 600, true],
+    ['/admin/new', 619, true],
+  ] as const) {
+    await page.setViewportSize({ width, height: 800 })
+    await page.goto(`${origin}${address}`)
+    await expect(page.locator('header.page-chrome .admin-nav')).toBeVisible()
+    for (const element of [title, current]) {
+      if (shown) await expect(element, `${address} at ${width}x800`).toBeVisible()
+      else await expect(element, `${address} at ${width}x800`).toBeHidden()
+    }
+  }
+})
+
 test('the accounts page with the arrow in its bar, for the pull request (#253)', async ({ browser }) => {
   for (const [width, height] of [
     [1280, 640],
