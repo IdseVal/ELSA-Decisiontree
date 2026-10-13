@@ -18,6 +18,8 @@
   option text" and the alternative rejected "Showing collaborators' logins in the list", whose
   reason was two people of one name, no longer hold. The list's order and controls stand; the
   public mention reads `meta.json`'s `joined`, not this list (`ADR-195-order-of-joining.md`).
+- **Amended 2026-10-13 by issue #251**: decision 7's `deleteTree` is the administrator's in
+  its section and the creator's in "This Tree" (`ADR-251-creator-deletes.md`).
 - Depends on: `docs/adrs/ADR-132-draft-and-publish.md` (Publish, unpublish, 19.4),
   `ADR-132-roles-and-permissions.md` (who may do what; invitations from a list),
   `ADR-132-editor-api.md` (the routes), `ADR-133-admin-routes.md` (the chrome bar),
@@ -134,6 +136,10 @@ never scrolls.
    asking once in place and then sending `DELETE .../trees/<t>` and going to `/admin`. The
    creator has `handOver` too (21.2) but not in this section: for the creator it is the
    last control of the Collaborators section, because that is where the names are.
+
+   **Amended 2026-10-13 by issue #251:** the creator has `deleteTree` too, in "This Tree",
+   before the Theme panel; this section keeps the administrator's, and a page shows one of the
+   two, never both (`ADR-251-creator-deletes.md`; `docs/specs/application.md` 33.2, 33.5, 33.6).
 
 8. **The overview has no panel.** On `/admin` the chrome bar holds the name and the logout
    button and nothing else of this; the state of each Tree is on its tile
