@@ -1,7 +1,7 @@
 # Core document
 
 > Populated by deep interview with the project owner. Nothing here is inferred.
-> Status: AGREED -- 2026-10-12 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03, 2026-10-09 and 2026-10-10)
+> Status: AGREED -- 2026-10-13 (revised; first agreed 2026-09-03, revised 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03, 2026-10-09, 2026-10-10 and 2026-10-12)
 > The owner noted the document may change in future; changes go through a revision round and a PR.
 >
 > **Revision of 2026-09-09 (issue #35).** After seeing version 0.1 of the tool the owner
@@ -124,8 +124,15 @@
 > to the new step. Every passage that changed is marked **[#241]**; nothing else in this document
 > was touched. The owner's words are held whole in section 3.4. How they became issues is
 > `docs/adrs/ADR-241-small-final-tasks-round.md`; the work is issues #242 and #243.
+>
+> **Revision of 2026-10-13 (issue #248).** The owner wrote, in issue #248, that `account`,
+> `accounts`, `logout` and `website` "in the header bar on /admin" should "look the same as the
+> editor button looks in the regular view". Every passage that changed is marked **[#248]**;
+> nothing else in this document was touched. The owner's words are held whole in section 3.4.
+> How they became an issue is `docs/adrs/ADR-248-admin-bar-buttons-round.md`; the work is issue
+> #249.
 
-Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03, 2026-10-09, 2026-10-10 and 2026-10-12.
+Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03, 2026-10-09, 2026-10-10, 2026-10-12 and 2026-10-13.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
 Items marked **PROPOSED** are the Planner's wording, waiting for the owner to confirm or correct.
 
@@ -837,8 +844,10 @@ owner's words leave a choice:
     the visitor came from, since `/admin` is also opened from a bookmark or a typed
     address; each button is the last control at the right end of its bar at every width --
     below 480 pixels wide, where the bar at `/admin` hides the site's title, too -- in the
-    look of that bar's own controls; below 768 pixels wide a Node page's bar gives up the
-    current language's pill for "Editor", with the pill's list item and one of the switch's
+    look of that bar's own controls (**[#248]** at `/admin`, owner 2026-10-13, that look
+    changes: `account`, `accounts`, `logout` and `website` "look the same as the editor button
+    looks in the regular view", the share button's look, below; #249); below 768 pixels
+    wide a Node page's bar gives up the current language's pill for "Editor", with the pill's list item and one of the switch's
     4-pixel gaps -- in a Tree of one language, whose switch holds that pill alone, the whole
     switch -- and "Editor" then takes no more room than they did in the Trees and faces
     measured, in English and Dutch, whatever their logo; that reading does not hold section
@@ -849,7 +858,9 @@ owner's words leave a choice:
     overview's bar at `/admin` gives up the site's title and that pill for "Website", as the
     Tree-less admin pages' bar has given both up below 480 since #135
     (`docs/research/issue-202-bar-room.md`; `docs/adrs/ADR-202-navigation-round.md`
-    decision 5; #204).
+    decision 5; #204) (**[#248]** PROPOSED, 2026-10-13, for the room the owner's pills
+    take: below 660 on the creators' overview, and below 600 on `/admin/new`,
+    `/admin/account` and `/admin/accounts` with a session, below; #249).
   - **A Preview of a hidden Tree.** In the editor of a Tree that is not published, a button
     at the top left, under the chrome bar and not in it, opens a preview of the Tree as its
     readers will see it once it is published; in the preview, in the same place, a button
@@ -1030,6 +1041,23 @@ owner's words leave a choice:
     step whose `+` was pressed. The editor stays on that step, and the new next step's button
     stands in its row; following it afterwards slides as its siblings' buttons do (10.44
     `[#241]`). The side bubble's `+` still opens the new side bubble. #243 builds it.
+- **[#248] The controls of the bar at `/admin` (owner, #248, 2026-10-13).** How the instruction
+  became an issue is `docs/adrs/ADR-248-admin-bar-buttons-round.md`. The owner's words, whole:
+  > "Make the buttons for account accounts log out, and website in the header bar on /admin
+  > look the same as the editor button looks in the regular view (with the line around it,
+  > more like a real button)"
+  - **The readings.** PROPOSED (the owner's words leave these open): the buttons are `account`,
+    `accounts`, `logout` and `website`, and the bar is the one the Tree-less admin pages
+    share -- at `/admin`, on the login page and the creators' overview, and on `/admin/new`,
+    `/admin/account` and `/admin/accounts` (`docs/specs/application.md` 24.3); the editor's
+    bar, which holds `account` and `logout` but neither `accounts` nor `website`, keeps its
+    look; "the editor button in the regular view" is "Editor" at the right end of the public
+    pages' bar, in the share button's look, and "the same" is that look at every width, its
+    hover included. The pills take more room than the links did, so the bar gives up the
+    site's title and the current language's pill at wider widths than before, as measured in
+    the ADR: below 600 pixels on `/admin/new`, `/admin/account` and `/admin/accounts` with a
+    session, where it was 480, and below 660 on the creators' overview, where it was 600, or
+    wider where the CI runner's faces need it. #249 builds it.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
