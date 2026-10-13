@@ -5409,6 +5409,38 @@ clear of the cross. `creation-walk.spec.ts` audits both boxes at every scroll po
 `floating-controls.spec.ts` walks the focus up both with Shift+Tab under every heading the
 bubble shows, in both languages, at 1280 x 640, 1920 x 1080, 390 x 844 and 360 x 640.
 
+**[#251] Amended 2026-10-13:** the creator deletes their own hidden Tree from "This Tree" (33.5);
+the administrator's `deleteTree` stays in the Administrator section (33.6). The owner asked for
+the ability (core document 3.4 `[#247]`); the place is PROPOSED there and recorded in
+`docs/adrs/ADR-251-creator-deletes.md`. The two lower sections, as the creator sees them:
+
+```
+|  THIS TREE                           |
+|  Languages  EN NL                    |
+|  Tree id  hidden-draft               |
+|  [Delete this tree]  (hidden only)   |  <- the creator only
+|  THEME                               |
+|--------------------------------------|
+```
+
+and as the administrator sees them, on every Tree, whoever created it:
+
+```
+|  THIS TREE                           |
+|  Languages  EN NL                    |
+|  Tree id  hidden-draft               |
+|  THEME                               |
+|--------------------------------------|
+|  ADMINISTRATOR                       |  <- the administrator only
+|  Hand over to [ account v ] [Go]     |
+|  [Delete this tree]  (hidden only)   |
++--------------------------------------+
+```
+
+A collaborator sees neither button. A page's role is one of the three (21.1), and the
+administrator's wins over any other it has, so the administrator sees one `deleteTree`, also on a
+Tree it created.
+
 ### 33.3 Publish
 
 A `role="switch"` labelled `publish`. **On** → `PUT .../published { published: true }`: 200 →
@@ -5479,11 +5511,25 @@ when that is now the default, or at the default's when it was removed; the rim's
 follow the declared languages; the id; the public link when published. **[#144]** The Theme panel of 33.8 closes the
 section.
 
+**[#251]** (2026-10-13) For the creator, `deleteTree` stands after the id and the public link and
+before the Theme panel, whose `<h4>` and `<h5>` headings would otherwise take it into the Theme's
+outline. It is 33.6's control, the same words and the same behaviour: enabled while the Tree is
+hidden, disabled while published with `unpublishFirst` beside it as its description (21.2's two
+steps); asking once in place (`confirmDeleteTree`, `confirm`, `cancel`); `DELETE .../trees/<t>`; a
+204 goes to `/admin` in the chrome language, and anything else shows `requestFailed` under the
+button. The administrator and a collaborator have no `deleteTree` here. After the creator's own
+hand-over the panel turns them into a collaborator (33.4), and the button goes with the role; the
+new creator finds it on their next visit. `docs/adrs/ADR-251-creator-deletes.md`.
+
 ### 33.6 Administrator
 
 The administrator only: `handOver` (every active account) and `deleteTree`, enabled while
 hidden and disabled with `unpublishFirst` while published (21.2), asking once
 (`confirmDeleteTree`) → `DELETE .../trees/<t>` → `/admin`.
+
+**[#251]** (2026-10-13) "The administrator only" holds of this section. The creator's own
+`deleteTree` is in "This Tree" (33.5), the same control. A failed `DELETE` shows `requestFailed`
+under the button that sent it, in either section.
 
 ### 33.7 Not here
 
