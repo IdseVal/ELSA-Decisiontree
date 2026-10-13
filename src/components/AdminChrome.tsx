@@ -6,31 +6,45 @@
  * says `account`, "Account"; the caller's name is its description and tooltip
  * (ADR-176-floating-settings-and-to-do). **[#204]** At `/admin` itself, the login page and the
  * creators' overview, `website` ends the bar: a link back to the public overview, which the public
- * pages' "Editor" answers from the same place.
+ * pages' "Editor" answers from the same place. **[#253]** On the account pages the bar begins with
+ * #163's arrow back to the creators' overview, held with the title as the editor's holds it with
+ * the Tree's mark.
  */
 import { headers } from 'next/headers'
 import { chrome, type ChromeLanguage } from '../chrome.ts'
 import { LogoutButton } from '../editor/LogoutButton.tsx'
 import type { Account } from '../store/accounts.ts'
 import { adminHref, overviewHref, REQUEST_PATH_HEADER, requested } from '../url.ts'
+import { BackToOverview } from './BackToOverview.tsx'
 import { ChromeLanguageSwitch } from './LanguageSwitch.tsx'
 
 export async function AdminChrome({
   lang,
   account,
   website = false,
+  back = false,
 }: {
   lang: ChromeLanguage
   account: Account | null
   /** **[#204]** The page at `/admin`: `website` at the right end, and the bar's own widths (24.3). */
   website?: boolean
+  /** **[#253]** `/admin/account` and `/admin/accounts`: the arrow to `/admin` first, as in the editor's bar (24.3). */
+  back?: boolean
 }) {
   const ui = chrome(lang)
   // The page the reader is on, in the other language: the address they asked for, whichever it is.
   const here = requested((await headers()).get(REQUEST_PATH_HEADER)).path
   return (
     <header className={website ? 'page-chrome admin-chrome admin-home' : 'page-chrome admin-chrome'}>
-      <span className="tree-title">{ui.siteTitle}</span>
+      {back ? (
+        // In one group, so that `.page-chrome`'s space-between does not stand the title in the middle.
+        <div className="page-brand">
+          <BackToOverview href={adminHref('/admin', lang)} lang={lang} />
+          <span className="tree-title">{ui.siteTitle}</span>
+        </div>
+      ) : (
+        <span className="tree-title">{ui.siteTitle}</span>
+      )}
       <div className="page-controls">
         <ChromeLanguageSwitch lang={lang} href={(language) => adminHref(here, language)} />
         {account && (
