@@ -223,6 +223,19 @@ describe('**[#252]** a later start of the current format keeps the data director
     expect(await Promise.all(stored.map((file) => readFile(file)))).toEqual(before)
     expect(store.published('cycle')!.filePath).toBe(stored[0])
   })
+
+  test("a data directory whose trees/ is gone, under a release without trees/, starts empty and says so", async () => {
+    // The shared box's release: deploy.sh takes trees/ out of it, so the default seed folder is missing.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const data = await folder()
+    const missing = path.join(await folder(), 'current', 'trees')
+
+    const store = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: missing })
+
+    expect(store.publishedIds()).toEqual([])
+    expect(await readdir(path.join(data, 'trees'))).toEqual([])
+    expect(warn).toHaveBeenCalledWith(`No Tree to seed in ${missing}; the store starts empty`)
+  })
 })
 
 describe('which Trees are served (18.3, 23.1)', () => {
