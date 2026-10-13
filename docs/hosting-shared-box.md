@@ -52,7 +52,7 @@ per piece:
 ```
 
 Port 3001 rather than 3000 so that nothing collides with the other project if it uses the
-Node default (its own API listens on 8000). The reverse proxy is Caddy, because that is what
+Node default. The reverse proxy is Caddy, because that is what
 the other project installed; the block in `Caddyfile.snippet` is the Caddy example of
 [`deployment.md`](deployment.md) with the port changed. The other project runs from a
 checkout under systemd, not in Docker, so this one does the same and the repository's
@@ -129,12 +129,16 @@ rule letting `tag:ci` reach the box as `elsa` with `action: accept`.
 
 _Recorded while deploying. Dates, no secrets._
 
+**[#254]** (2026-10-13) Trimmed to what running this application needs. Who may log in over SSH
+and after what check, the reverse proxy's admin ports, and the other project's service, user,
+folder, ports and database are no longer recorded in this public repository, here or in "The
+shape on the box"; they live on the box and with the owner.
+
 | Date | Fact |
 |---|---|
-| 2026-10-10 | The box: Ubuntu 24.04.4, 2 vCPU, 3.7 GiB, 38 GB disk with 32 GB free, up since early September. Caddy 2.11 is the only thing on 80 and 443 and terminates TLS, with an admin socket on loopback 2019 and a tailnet-only listener on 8080 for the other project. The other project: gunicorn on 127.0.0.1:8000, PostgreSQL 16 on a local socket, one service (`plt-api`), a checkout under `/srv/plt` with a `deploy.sh` of the same shape as ours, run by hand. No Docker. The firewall denies incoming except 80, 443 and everything on the tailnet interface. |
-| 2026-10-10 | There is no OpenSSH on the box at all: SSH is Tailscale SSH (Tailscale 1.102), and the tailnet policy allows `root` after a browser check that holds 12 hours, and refuses other user names until a rule names them. So the deploy workflow's route over the tailnet is the only route, and the `elsa` user needs its own `ssh` rule before the workflow can log in. The `sudo` group is empty: the operator is root. |
+| 2026-10-10 | The box: Ubuntu 24.04.4, 2 vCPU, 3.7 GiB, 38 GB disk with 32 GB free. |
 | 2026-10-10 | Node.js on the box is 20.20 from NodeSource, which the other project needs (`>=20`). This application needs `>=22.18`, so `bootstrap.sh` installed Node 22.23.3 under `/srv/elsa/node` for this service alone, from the official tarball checked against its SHASUMS256.txt; the box's Node is untouched. A root shell there has umask 077: the first install left that folder unreadable to `elsa`, `node` fell back to Node 20 and the build failed in `postbuild`; `bootstrap.sh` now sets the ownership and mode itself. |
-| 2026-10-10 | The box had no swap. A 2 GiB swap file was added (`/swapfile`, in `/etc/fstab`) before the first build: a Next.js build beside PostgreSQL and gunicorn on 3.7 GiB has little headroom. The build then took under a minute. |
+| 2026-10-10 | The box had no swap. A 2 GiB swap file was added (`/swapfile`, in `/etc/fstab`) before the first build: a Next.js build beside the other project on 3.7 GiB has little headroom. The build then took under a minute. |
 | 2026-10-10 | First deploy of `dev` done by hand: `bootstrap.sh`, the Caddy block appended (the previous Caddyfile kept beside it as `Caddyfile.before-elsa-2026-10-10`), `deploy.sh dev`. The first start seeded the two Trees and created the administrator from the two env lines, which were then removed and the service restarted. Certificates for the bare domain and `www` came at once. Checked from outside: 200 on the bare domain, 301 from `www`, 308 from plain HTTP, `robots.txt` names the HTTPS sitemap; a login over HTTPS answers 204 with a `Secure` session cookie, and the logout 204. |
-| 2026-10-10 | The other project's runbook promises nightly database dumps under `/var/backups/`; nothing there does it yet (only `dpkg` backups). For this application `/etc/cron.d/elsa-backup` writes `/var/backups/elsa/elsa-data-<date>.tar.gz` at 03:15 every night and keeps 30; a first copy was taken right after the deploy. Nothing copies them off the machine yet. |
+| 2026-10-10 | For this application `/etc/cron.d/elsa-backup` writes `/var/backups/elsa/elsa-data-<date>.tar.gz` at 03:15 every night and keeps 30; a first copy was taken right after the deploy. Nothing copies them off the machine yet. |
 | 2026-10-10 | The owner's workstation could not reach the box for a morning because a VPN that starts with Windows refused every connection to tailnet and LAN addresses (`WSAEACCES`); turned off, everything connected. Noted so the next person does not look at the box's firewall first. |
