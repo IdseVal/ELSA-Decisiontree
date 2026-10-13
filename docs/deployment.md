@@ -591,6 +591,55 @@ sudo systemctl restart elsa-decisiontree
 writes the data folder, which is why they are two folders. The new release's `trees/` is
 not read again; it only seeds a data directory that is still empty.
 
+**[#252] A release carries code only; the deployment's data directory is the truth**
+(2026-10-13; core document section 9, `[#247]`). The Trees, drafts, pictures, accounts and
+roles in it are what the deployment's creators and administrator made, and no release writes,
+restores or deletes them. A Tree changed, added or deleted in the repository never reaches a
+deployment that has started once: the release's `trees/` is read only when
+`$ELSA_DATA_DIR/trees/` does not exist (`docs/specs/application.md` 17.1). What a start may still
+write in the data directory, each by design:
+
+1. **A Tree format conversion.** The first start of a release that carries a new Tree format
+   converts every `tree.json` and `draft.json` of an older one, in place (17.4, 36.4). Every
+   text, picture and step is kept and only the file's shape changes; without it the release
+   cannot read the older files. (Whether the live server allows it is core document 10.45,
+   **OPEN** for the owner.)
+2. **A conversion of `accounts.json` or a `meta.json`** (17.4 `[#195]`): user names to e-mail
+   addresses, below, and the order of joining filled in from the roles.
+3. **`ELSA_ADMIN_PASSWORD` or `ELSA_ADMIN_EMAIL` left in the environment file** replaces the
+   administrator's password or address at every start where it differs from what is stored
+   (20.3, 38.3): remove both after the first start.
+
+None of them keeps the old bytes, so a copy of the data directory taken just before the new
+release starts is the way back ([what to back up](#what-to-back-up)).
+
+**On the shared box** ([`hosting-shared-box.md`](hosting-shared-box.md)) `deploy.sh` does both
+itself. After the build and before the swap, `snapshot.sh` copies `/srv/elsa/data` into
+`/srv/elsa/backups/pre-deploy-<UTC time>-<commit>.tar.gz`, and keeps the ten newest; if the
+copy fails, the deploy stops before the swap and the restart, and the running release keeps
+serving. The release it swaps in carries no `trees/`, so a box whose `data/trees/` is gone
+starts with no Tree (`No Tree to seed in /srv/elsa/current/trees; the store starts empty`)
+rather than with the repository's, published, as the administrator's. The copy is taken while
+the service runs: every file in it is whole, and an edit saved between the copy and the restart
+is in the data directory but not in the copy. To go back to one:
+
+```sh
+sudo systemctl stop elsa-decisiontree
+sudo mv /srv/elsa/data /srv/elsa/data.before-restore
+sudo install -d -o elsa -g elsa -m 0750 /srv/elsa/data
+sudo tar -C /srv/elsa/data -xzf /srv/elsa/backups/pre-deploy-20261013T093000Z-0123456789ab.tar.gz
+# The archive's lock names the process that served when it was taken. Stopped, nothing holds
+# the folder; a pid the system has since given to another process would refuse the start.
+sudo rm -f /srv/elsa/data/lock
+sudo chown -R elsa:elsa /srv/elsa/data
+sudo systemctl start elsa-decisiontree
+```
+
+To undo a format conversion, the release that ran before it has to come back too: a start of
+the new release converts the restored files again. Then, instead of the last command, run
+`sudo -u elsa -H /srv/elsa/deploy.sh <the commit before>`: it builds that commit, copies the
+restored folder, swaps, and its restart starts the stopped service.
+
 **[#196] The first start of the release that logs in by e-mail address** converts the accounts
 of a data directory an earlier release wrote, once, before it reads any of them
 (`docs/specs/application.md` 38.4). Every account's user name goes, and no address is invented:
