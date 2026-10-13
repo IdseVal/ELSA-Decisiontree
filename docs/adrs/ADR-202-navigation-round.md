@@ -293,7 +293,10 @@ What stands on `dev` (`6d0ea4b`) where the three points land:
 - **Giving up the site's title below 600 on every Tree-less admin page**, as #135's rule
   does below 480, and not on the creators' overview alone. Only the page at `/admin` gains a
   control: the login page holds "Website" beside its title from 480 up, and `/admin/new`,
-  `/admin/account` and `/admin/accounts` gain nothing. On `dev` the creators' overview's
+  `/admin/account` and `/admin/accounts` gain nothing. **[#253]** (2026-10-13) `/admin/account`
+  and `/admin/accounts` have since gained #163's arrow back to `/admin` at the left of their bar,
+  on the owner's #247, and give up the title below 620:
+  `docs/adrs/ADR-253-way-back-from-the-account-pages.md`. On `dev` the creators' overview's
   bar already takes two lines for its title at 480 pixels wide as the administrator, and the
   other three pages' bar holds the same controls; that is reported in the pull request of
   #202, not changed by this round.
