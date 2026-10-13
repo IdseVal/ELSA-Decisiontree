@@ -1058,8 +1058,12 @@ deploy; an hour of a stale font is the same trade the images make.
 ├── package.json  package-lock.json  next.config.ts  tsconfig.json  vitest.config.ts
 ├── playwright.config.ts     [v0.2] in the contract now (7)
 ├── .nvmrc  .env.development
-└── .orca/ .claude/ .github/ .devcontainer/   agent workflow (unchanged)
+└── .orca/ .claude/ .github/   agent workflow (unchanged)
 ```
+
+**[#254]** (2026-10-13) `.devcontainer/` is deleted: the setup's generic template, which no script, workflow or
+test used. So are the setup documents v0.2.2 to v0.2.12 at the root; v0.2.13 stays
+(`docs/adrs/ADR-247-small-additions-round.md`).
 
 **[#75] Gone with #78:** `CarouselButtons.tsx` (the strip has no buttons, 12.2) and the
 `Trail` function of `TreeView.tsx` (the up arrow replaces it, 10.2). **New:** `Explainer.tsx`,
@@ -6175,8 +6179,9 @@ document 10.39. Recorded in `docs/adrs/ADR-195-login-by-email-address.md`,
   before the `@`. The pattern is ASCII, so every address is.
 - **Lower-cased on entry, then compared byte for byte.** Every upper-case ASCII letter is
   lowered wherever an address is given -- a creation, a change, `ELSA_ADMIN_EMAIL` (38.3), a
-  login -- so `Idse.Val@WUR.nl` and `idse.val@wur.nl` are one address, stored once, in the
-  second form.
+  login -- so `Anna.Smit@EXAMPLE.org` and `anna.smit@example.org` are one address, stored
+  once, in the second form. **[#254]** (2026-10-13) An `example.org` address in place of the owner's, here
+  and in the table below.
 - **One account per address**, deactivated accounts included: an address names one account,
   and a deactivated account may be reactivated with it (20.1). An address another account
   holds is refused, 422 `email-taken` at the field.
@@ -6190,8 +6195,8 @@ document 10.39. Recorded in `docs/adrs/ADR-195-login-by-email-address.md`,
 
 | Given | `normaliseEmail` answers |
 |---|---|
-| `idse.val@wur.nl` | `idse.val@wur.nl` |
-| ` Idse.Val@WUR.nl ` (white space around it), or with a line break inside it | `idse.val@wur.nl` |
+| `anna.smit@example.org` | `anna.smit@example.org` |
+| ` Anna.Smit@EXAMPLE.org ` (white space around it), or with a line break inside it | `anna.smit@example.org` |
 | `anna+trees@example.org`, `o'brien@example.org` | the same |
 | `bram@localhost` (no dot in the domain) | the same |
 | an address of 254 characters | the same, lower-cased |
@@ -6283,7 +6288,8 @@ and a creation 422 `email-invalid`.
   test starts sets `ELSA_ADMIN_EMAIL=admin@example.org`, a domain RFC 2606 reserves for
   examples (38.10).
 - **The live demo server's address is the owner's to choose.** That server, the production
-  build of `dev` at http://petercelie:3000, holds one account, the administrator, with the
+  build of `dev` on the owner's workstation (**[#254]** (2026-10-13): its network name stood
+  here), holds one account, the administrator, with the
   user name `admin` (measured on #194). The first start of a release that carries #196 refuses
   there until the variable is set. #198 asks the owner for the address on #198, with
   `needs-human`, before it brings the server to that release, and never chooses one itself.

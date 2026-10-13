@@ -2,6 +2,8 @@
 
 - Status: ACCEPTED (frozen) -- 2026-10-03; decides core document 10.39 (what an address must
   be, the routes, the rate limit and the log)
+- **[#254] Redacted (2026-10-13)**: decision 3's example is an `example.org` address of the same
+  shape, in place of the owner's.
 - Issue: #195 -- Architecture: freeze the login by e-mail address and password, and the
   mention of who authored a Tree, the collaborators in the order they joined it
 - Spec: `docs/specs/application.md` 38.1, 38.2, 38.7, 38.8 (new); 20.1, 20.4, 20.7, 20.8,
@@ -65,7 +67,7 @@ one minute, and a success, `account <id> logged in`.
 
 3. **Lower-cased on entry, compared byte for byte.** Every upper-case ASCII letter is lowered
    when an address is given -- at creation, at a change, in `ELSA_ADMIN_EMAIL`, at a login --
-   so `Idse.Val@WUR.nl` and `idse.val@wur.nl` are one address, stored once in one form.
+   so `Anna.Smit@EXAMPLE.org` and `anna.smit@example.org` are one address, stored once in one form.
 
 4. **One account per address**, deactivated accounts included: an address names one account,
    and a deactivated account may be reactivated with it (20.1). A second account with an

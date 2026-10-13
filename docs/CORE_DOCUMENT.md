@@ -756,7 +756,7 @@ owner's words leave a choice:
   > "To login should be based on an email and a password, and graphs should have a small
   > mention by who it was authored, if multiple collaborators in the order in which they
   > joined a decision-tree. You can make a placeholder account next to the admin account
-  > for me: idse.val@wur.nl is email, you can create a temporary password for me, I will
+  > for me: [the owner's address] is email, you can create a temporary password for me, I will
   > change it when we get there."
   - **An e-mail address and a password log in.** An account logs in with its e-mail
     address and its password, in place of the user name the Architect chose on #132
@@ -804,8 +804,8 @@ owner's words leave a choice:
   - **The owner's own account.** An account for the owner beside the administrator's,
     with the address the owner gave and a temporary password the owner will change.
     PROPOSED: an ordinary account, not a second administrator (there is one, 10.32), named
-    "Idse Val" as this document names the owner; made on the demo server that serves `dev`
-    at http://petercelie:3000, whose administrator account is the one the owner's #162
+    "Idse Val" as this document names the owner; made on the demo server on the owner's
+    workstation, which serves `dev`, whose administrator account is the one the owner's #162
     was about; its temporary password handed over out of band, as every first password is
     (10.31), and written into no file of the repository, no issue, no pull request and no
     log (#198). **[#195]** Not decided on #195 (2026-10-03), which confirms and replaces none of these
@@ -1089,6 +1089,9 @@ owner's words leave a choice:
     account ids are taken out of the documents, a tailnet address out of a test, and the box's
     security set-up out of `docs/hosting-shared-box.md`; the screenshots and research notes the
     specs cite stay. A deletion does not take a file out of the history. #254 does it.
+    **[#254]** (2026-10-13) Done. In this document: the owner's address in `[#194]`'s quotation reads
+    `[the owner's address]`, and the demo server there is "the demo server on the owner's
+    workstation", where its network name stood.
 - **[#248] The controls of the bar at `/admin` (owner, #248, 2026-10-13).** How the instruction
   became an issue is `docs/adrs/ADR-248-admin-bar-buttons-round.md`. The owner's words, whole:
   > "Make the buttons for account accounts log out, and website in the header bar on /admin
