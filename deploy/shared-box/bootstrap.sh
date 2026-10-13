@@ -8,7 +8,8 @@
 #
 # Idempotent: every step checks before it changes, so it can be re-run after a failure. It
 # creates the `elsa` user and the folders under /srv/elsa, clones the repository there,
-# writes the env file and installs the unit, its drop-in, the sudoers line and deploy.sh.
+# writes the env file and installs the unit, its drop-in, the sudoers line, deploy.sh and the
+# snapshot.sh it runs.
 # It does NOT edit the Caddyfile, start the service or deploy a commit: those are the two
 # commands it prints at the end, so that the operator sees each before it runs.
 set -euo pipefail
@@ -92,13 +93,14 @@ else
   echo "$ENV_FILE exists, left as it is"
 fi
 
-echo "== unit, drop-in, sudoers, deploy.sh"
+echo "== unit, drop-in, sudoers, deploy.sh, snapshot.sh"
 install -m 0644 "$here/../elsa-decisiontree.service" "$UNIT"
 install -d -m 0755 "$UNIT.d"
 install -m 0644 "$here/shared-box.conf" "$UNIT.d/shared-box.conf"
 install -m 0440 "$here/sudoers" /etc/sudoers.d/elsa-decisiontree
 visudo -cf /etc/sudoers.d/elsa-decisiontree
 install -m 0755 "$here/deploy.sh" "$ELSA_HOME/deploy.sh"
+install -m 0755 "$here/snapshot.sh" "$ELSA_HOME/snapshot.sh"
 systemctl daemon-reload
 systemctl enable --quiet elsa-decisiontree
 
