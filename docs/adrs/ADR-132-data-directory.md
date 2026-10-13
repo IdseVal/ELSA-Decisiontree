@@ -16,6 +16,9 @@
   every start, and decision 7's import command, which opens the store as a start does, reads
   it too (`ADR-195-administrator-address.md`; `application.md` 17.1, 17.2, 38.3, 38.4, 38.9,
   39.2).
+- Amended 2026-10-13 by issue #252 (`ADR-252-a-release-keeps-the-data.md`): on the shared box
+  the release carries no `trees/`, so decision 6's default seed folder is absent there, and the
+  deploy takes decision 8's copy itself, before every swap (`application.md` 17.4).
 - Amends: `docs/adrs/ADR-37-single-file-layout.md` (the Tree folder gains `draft.json` and
   `meta.json`, both ignored by the loader of the published file),
   `ADR-5-repository-layout.md` (`src/store/` joins `src/`), `ADR-5-testing-approach.md`

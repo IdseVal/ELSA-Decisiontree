@@ -3365,6 +3365,17 @@ transaction across two files and nothing needs one.
 
 **[#231]** (2026-10-10) And an `elsa-tree/6` file by `tree-format.md` 12.9 after 12.8 (12.9.4).
 
+**[#252]** (2026-10-13) On the shared box (`docs/hosting-shared-box.md`), the deploy takes the
+copy this section's "Back the directory up before the first start" asks for, before every
+release, not only one that carries a conversion: `deploy/shared-box/deploy.sh` runs
+`snapshot.sh` after the build and before the swap, writing
+`/srv/elsa/backups/pre-deploy-<UTC time>-<commit>.tar.gz` (the ten newest kept), and stops before
+the swap if the copy fails. The release there carries no seed: `deploy.sh` takes `trees/` out of
+it, so 17.1's default `ELSA_SEED_DIR` does not exist on the box, and a data directory without
+`trees/` starts empty rather than with the repository's Trees. A plain server and a container still
+seed from the release (`docs/deployment.md`). The rule is core document section 9 `[#247]`;
+`docs/adrs/ADR-252-a-release-keeps-the-data.md`.
+
 ### 17.5 The seam: `src/store/`
 
 The one module that opens a file under `ELSA_DATA_DIR`. Routes call it; components never
