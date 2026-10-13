@@ -4245,7 +4245,7 @@ published Tree's preview is a 307 to its editor at the same path and `?lang`; an
 | Public overview `/` | `siteTitle` as text | language switch; **[#204]** (2026-10-09) then `editor`, as on a Node page, last. The current language's pill at every width | The default (13.4) |
 | Login page | `siteTitle` | language switch; **[#204]** (2026-10-09) at the address `/admin` only, then `website` ("Website"), a link to the public overview in the chrome language (`/`, `/?lang=nl`), in ~~the `account` link's look~~ **[#249]** (2026-10-13) `editor`'s look (the share button's), last. Not on the login page shown at any other admin address | The default |
 | **[#204]** (2026-10-09) Creators' overview, `/admin` with a session | `siteTitle`, not drawn below ~~600~~ **[#249]** (2026-10-13) 660 pixels wide | language switch, its current language's pill not drawn below ~~600~~ **[#249]** 660; `account`, `accounts` (administrator only) and `logout`, as in the row below; then `website`, as on the login page, last. **[#249]** All four in `editor`'s look (the share button's) | The default |
-| ~~Creators' overview,~~ **[#204]** (2026-10-09) `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout`. **[#249]** (2026-10-13) `account`, `accounts` and `logout` in `editor`'s look (the share button's), not as links | The default |
+| ~~Creators' overview,~~ **[#204]** (2026-10-09) `/admin/new`, `/admin/account`, `/admin/accounts` | **[#253]** (2026-10-13) On `/admin/account` and `/admin/accounts`, #163's arrow first, `toOverview`, a link to the creators' overview `/admin` in the chrome language, as the editor's bar begins; held with `siteTitle` in one `.page-brand` group. Not on `/admin/new`. Then `siteTitle`, not drawn below 620 pixels wide on those two pages (the note below) | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout`. **[#249]** (2026-10-13) `account`, `accounts` and `logout` in `editor`'s look (the share button's), not as links | The default |
 | The editor | **[#203]** (2026-10-04) The arrow of #163, `toOverview`, a link to the creators' overview `/admin` in the chrome language; then the draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`; **[#249]** (2026-10-13) both in the link look (`.admin-link`), not in `editor`'s. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). **[#205]** (2026-10-04) On a hidden Tree the preview button floats under the bar at the top left, not in it (40.5). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4); **[#205]** the preview button too |
 | **[#205]** (2026-10-04) The preview of a hidden Tree (40.4) | #163's arrow, leading to `/admin`; the draft's logo or title, as the public page; then the mention of its Authors (39.4) | language switch, the current language's pill at every width. **No share button, no "Editor".** The way back floats under the bar at the top left, not in it (40.5). | **The draft's**, on the whole page as on a public page; the way back the default (13.4) |
 | The 404 and 403 pages; **[#213]** (2026-10-04) and an uneditable Tree's (19.5), which had no bar and was laid out in the bar's row | `siteTitle` | language switch | The default |
@@ -4259,6 +4259,14 @@ walk reads a tile's title (26.1).
 the current language's pill below 600 pixels wide, not 480, for the room of `account`, `accounts`
 and `logout` in `editor`'s look; the login page and the 403 page, which hold no account controls,
 keep 480.
+**[#253]** (2026-10-13) `/admin/account` and `/admin/accounts`, whose bar begins with #163's arrow,
+give up both below 620 pixels wide, not 600, for the arrow's room; the rule is keyed to the arrow
+(`:has(.back-to-overview)`), so `/admin/new` keeps 600. Swept at every width from 320 to 1000 at
+800 high, in English and Dutch, on `/admin/account` as a creator and as the administrator and on
+`/admin/accounts` as the administrator: with the cut at 600 the administrator's bar, which holds
+`accounts`, drew the title on two lines from 600 to 603 pixels wide in Dutch on Windows, and from
+600 to 610 in English and to 614 in Dutch in the CI runner's faces (Liberation Sans); with the cut
+at 620 no width fails in either. Recorded in `docs/adrs/ADR-253-way-back-from-the-account-pages.md`.
 **[#204]** (2026-10-09) The bar at `/admin` -- the login page there and the creators' overview --
 keeps its controls at its right end at every width, below 480 too, where the title they stood
 beside is not drawn: `website` ends that bar as "Editor" ends the public pages' bars. The
@@ -4267,7 +4275,7 @@ pixels wide instead of 480, for `website`'s room; below 480 `website` stands ~~8
 as the account links stand from each other~~ **[#249]** (2026-10-13) 4 pixels from `logout`, and the account controls 4
 from each other. ~~`/admin/new`, `/admin/account` and `/admin/accounts` keep this note's rule as it
 is.~~ **[#249]** (2026-10-13) `/admin/new`, `/admin/account` and `/admin/accounts` give up both below 600 (the `[#135]`
-note).
+note); **[#253]** (2026-10-13) `/admin/account` and `/admin/accounts` below 620 (the same note).
 
 **[#176], changed by the owner -- 2026-10-02** (#169: "next to it it says adminstrator, make it
 say 'Account' or at least make it say what it is"). On every admin page with a session -- the
@@ -4402,8 +4410,11 @@ overview in English at 320 (18.2 in Dutch), and in the CI runner's faces 6.5 in 
 and 6.2 in Dutch at 660; the login page keeps 85.8 at 480 (90.8 in Dutch). This also ends the site's title taking two lines on
 `/admin/new`, `/admin/account` and `/admin/accounts` from 480 to 489 pixels wide in English and to
 497 in Dutch, as it did before #249. `admin-no-scroll.spec.ts` keeps the bar at `/admin` at 659
-and 660 wide too, and the bar of `/admin/accounts` at 10.6's viewports, at `BAR_SIZES`, and at 489
-and 497; `editor-and-website.spec.ts` the look, at rest and hovered, against `editor`'s.
+and 660 wide too, and ~~the bar of `/admin/accounts`~~ **[#253]** (2026-10-13) the bars of
+`/admin/new` as the administrator, without the arrow, and of `/admin/account` (a creator's and the
+administrator's) and `/admin/accounts`, with it, at 10.6's viewports, at `BAR_SIZES`, ~~and~~ at 489
+and 497, **[#253]** and either side of their cut, 599 and 600 or 619 and 620;
+`editor-and-website.spec.ts` the look, at rest and hovered, against `editor`'s.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`

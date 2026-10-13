@@ -27,7 +27,7 @@ export default async function AccountsPage({ params }: { params: Promise<{ lang:
   return (
     <>
       <ThemeStyle tree={null} />
-      <AdminChrome lang={lang} account={session.account} />
+      <AdminChrome lang={lang} account={session.account} back />
       <main className="admin-page">
         <h1 className="admin-heading">{ui.accounts}</h1>
         <noscript>

@@ -45,6 +45,13 @@
   core document 3.4 `[#202]` and `ADR-202-navigation-round.md` decision 5, PROPOSED
   (`application.md` 24.3). `/admin/new`, `/admin/account`, `/admin/accounts` and the editor keep
   their bars. The rest stands.
+- **Amended 2026-10-13 by issue #253** (the owner's #247: "We need a back to app button from the
+  account or accounts pages."): in decision 7, the bar of `/admin/account` and `/admin/accounts`
+  opens with the editor's arrow (#163, #203), before `siteTitle`, a link named `toOverview` to the
+  creators' overview at `/admin` in the chrome language -- the reading of core document 3.4
+  `[#247]`, PROPOSED -- and gives up `siteTitle` and the current language's pill below 620 pixels
+  wide (`ADR-253-way-back-from-the-account-pages.md`; `application.md` 24.3). `/admin/new` and the
+  login page are unchanged. The rest stands.
 - Issue: #133 -- Architecture: freeze the editor contracts
 - Spec: `docs/specs/application.md` section 24 (new); 4.1, 4.3, 6, 13.1 and 14 amended
 - Amends: `docs/adrs/ADR-5-url-scheme.md` (the admin addresses join the grammar behind the

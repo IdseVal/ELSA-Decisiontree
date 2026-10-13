@@ -22,7 +22,7 @@ export default async function AccountPage({ params }: { params: Promise<{ lang: 
   return (
     <>
       <ThemeStyle tree={null} />
-      <AdminChrome lang={lang} account={session.account} />
+      <AdminChrome lang={lang} account={session.account} back />
       <main className="admin-page admin-page--centred">
         <noscript>
           <p className="admin-note">{ui.needsJavaScript}</p>

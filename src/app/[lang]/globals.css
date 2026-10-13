@@ -2405,6 +2405,19 @@ fieldset:disabled .admin-submit {
   }
 }
 
+/*
+ * **[#253]** The arrow back to the creators' overview, which begins the bar of `/admin/account` and
+ * `/admin/accounts`, takes the title's room: the administrator's bar, with `accounts`, wrapped the
+ * title from 600 up to 603 pixels wide on Windows and to 614 in the CI runner's faces, so those two
+ * pages give up the title and the current language's pill below 620. `/admin/new` keeps 600.
+ */
+@media (max-width: 619px) {
+  .admin-chrome:not(.editor-chrome):has(.back-to-overview) .tree-title,
+  .admin-chrome:not(.editor-chrome):has(.back-to-overview) .language--current {
+    display: none;
+  }
+}
+
 /* **[#249]** Below 480 the pills stand 4 apart, as the bar's controls do: `website` from `logout` too. */
 @media (max-width: 479px) {
   .admin-chrome:not(.editor-chrome) .admin-nav {
