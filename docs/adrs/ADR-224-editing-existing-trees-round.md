@@ -1,6 +1,11 @@
 # ADR-224-editing-existing-trees-round: the owner's "I want the full editor mode" on the agrifood Tree is one live-server issue, a hand-over, filed `ready`
 
 - Status: ACCEPTED -- 2026-10-09
+- **[#254] Redacted (2026-10-13)**: the demo server is "the live demo server on the owner's
+  workstation", its clone "a clone outside the worktrees", without the network name and the
+  local path; the owner's address and the two account ids are gone from the text, and the log
+  lines and the `meta.json` excerpt read `<the owner's account>` and `<the administrator>` in
+  place of each id.
 - Issue: #224 -- Editing existing trees from the /admin view (the owner's instruction)
 - Issues filed: #225
 - Specs affected: none
@@ -25,15 +30,14 @@ What stood where the owner clicked:
 PROPOSED (a reading of the log below, which the owner did not state): the owner clicked
 on the live demo server, logged in with their own account.
 
-- **The server.** "The editing view on /admin" is the live demo server, http://petercelie:3000:
-  the clone `C:\Users\idse_\orca\workspaces\ELSA-Decisiontree\live`, which ran `e190507`
+- **The server.** "The editing view on /admin" is the live demo server on the owner's
+  workstation: a clone outside the worktrees, `live`, which ran `e190507`
   (`git -C ...\live log --oneline -1`), with its data directory `live-data` beside it.
 - **The account.** The log shows that account logging in and creating a Tree at
   20:19:49Z, four minutes before #224 was filed. It is the ordinary account #198 made on
-  2026-10-09: Idse Val, `idse.val@wur.nl`, id `0ae8c252375288bd8c3f35bab324b61e`, not an
-  administrator. `live-data\accounts.json` holds two accounts: that one and the
-  administrator, `d2c24a151ca0a46d0c6a71ff5209e16e`. #198's OUT OF SCOPE said: "Handing
-  the existing Trees over to the owner's account: not asked".
+  2026-10-09: Idse Val, the owner's account, not an administrator.
+  `live-data\accounts.json` holds two accounts: that one and the administrator. #198's OUT
+  OF SCOPE said: "Handing the existing Trees over to the owner's account: not asked".
 - **The Tree.** "Does the AI Act apply to my agrifood AI system?" is
   `ai-act-applicability-agrifood`, whose English title is "Does the EU AI Act apply to my
   agrifood AI system?" in `trees/` and in the live draft. Of the five Trees in
@@ -54,17 +58,17 @@ What changed 46 seconds after the issue was filed. The live server's log
 (`live\live-server.log`, its last lines on 2026-10-09):
 
 ```
-account 0ae8c252375288bd8c3f35bab324b61e logged in
-2026-10-09T20:19:49.492Z account 0ae8c252375288bd8c3f35bab324b61e created Tree "ethics-of-ai-in-agrifood"
-account d2c24a151ca0a46d0c6a71ff5209e16e logged in
-2026-10-09T20:24:14.164Z account d2c24a151ca0a46d0c6a71ff5209e16e invited account 0ae8c252375288bd8c3f35bab324b61e to Tree "ai-act-applicability-agrifood"
-2026-10-09T20:24:14.501Z account d2c24a151ca0a46d0c6a71ff5209e16e invited account 0ae8c252375288bd8c3f35bab324b61e to Tree "ai-act-example"
-account d2c24a151ca0a46d0c6a71ff5209e16e logged out
+account <the owner's account> logged in
+2026-10-09T20:19:49.492Z account <the owner's account> created Tree "ethics-of-ai-in-agrifood"
+account <the administrator> logged in
+2026-10-09T20:24:14.164Z account <the administrator> invited account <the owner's account> to Tree "ai-act-applicability-agrifood"
+2026-10-09T20:24:14.501Z account <the administrator> invited account <the owner's account> to Tree "ai-act-example"
+account <the administrator> logged out
 ```
 
 `live-data\trees\ai-act-applicability-agrifood\meta.json` then held
-`"creator": "d2c24a151ca0a46d0c6a71ff5209e16e"` and
-`"collaborators": ["0ae8c252375288bd8c3f35bab324b61e"]`, written at 22:24:14 local time,
+`"creator": "<the administrator>"` and
+`"collaborators": ["<the owner's account>"]`, written at 22:24:14 local time,
 and the live public page `/ai-act-applicability-agrifood/start` said `By Idse Val`. The
 server holds the role, so the tile now leads to the editor. No comment on #224 says who
 made the invitations; this record names only what the log shows.

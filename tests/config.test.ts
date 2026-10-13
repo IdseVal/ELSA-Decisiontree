@@ -140,7 +140,7 @@ describe('[#162] whether the session cookie is Secure (20.4)', () => {
   })
 
   test('plain HTTP: none of the three', () => {
-    expect(secure('http://100.85.247.121:3000/admin/api/login')).toBe(false)
-    expect(secure('http://100.85.247.121:3000/admin/api/login', { 'x-forwarded-proto': 'http' }, { ELSA_BASE_URL: 'http://100.85.247.121:3000' })).toBe(false)
+    expect(secure('http://192.0.2.10:3000/admin/api/login')).toBe(false)
+    expect(secure('http://192.0.2.10:3000/admin/api/login', { 'x-forwarded-proto': 'http' }, { ELSA_BASE_URL: 'http://192.0.2.10:3000' })).toBe(false)
   })
 })

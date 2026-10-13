@@ -3,7 +3,6 @@
 .github
 .orca
 .claude
-.devcontainer
 node_modules
 .next
 tests/browser/.results

@@ -1,6 +1,9 @@
 # ADR-194-login-and-authors-round: the owner's login by e-mail address, the authors on every Tree and the owner's own account are one architecture freeze, two build issues and one step on the demo server, which the owner promoted to `ready`
 
 - Status: ACCEPTED -- 2026-10-03
+- **[#254] Redacted (2026-10-13)**: the owner's address in the quotation of #194 and in
+  decision 1's table reads `[the owner's address]`, and the demo server is "the demo server on
+  the owner's workstation", where its network name stood.
 - Issue: #194 -- login credential should be email and password (the owner's instruction)
 - Issues filed: #195 to #198
 - Specs affected: none amended here; #195 amends the sections it decides, #196 and #197 what they build
@@ -18,7 +21,7 @@ in issue #194, under "Context":
 > "To login should be based on an email and a password, and graphs should have a small
 > mention by who it was authored, if multiple collaborators in the order in which they
 > joined a decision-tree. You can make a placeholder account next to the admin account for
-> me: idse.val@wur.nl is email, you can create a temporary password for me, I will change
+> me: [the owner's address] is email, you can create a temporary password for me, I will change
 > it when we get there."
 
 and under "Task": "Put issue(s) on the board for this so that the they can be picked up".
@@ -44,8 +47,8 @@ The third point is an action on a deployment, not a change of the application: a
 account made by the administrator, with a first password handed over out of band, which
 10.31 already provides for.
 
-Measured on 2026-10-03, for the decisions on existing stores: the demo server -- the
-production build of `dev` that serves http://petercelie:3000 from a clone outside the
+Measured on 2026-10-03, for the decisions on existing stores: the demo server on the
+owner's workstation -- the production build of `dev`, served from a clone outside the
 dispatcher's worktrees, with its data directory beside the clone -- holds **one account**,
 the administrator (login `admin`, display name `Administrator`), and **three Trees**, two
 published and one hidden, each created by the administrator and with no collaborators.
@@ -58,7 +61,7 @@ published and one hidden, each created by the administrator and with no collabor
    |---|---|
    | 1. "To login should be based on an email and a password" | #195 (contract), #196 (build) |
    | 2. "graphs should have a small mention by who it was authored, if multiple collaborators in the order in which they joined a decision-tree" | #195 (contract), #197 (build) |
-   | 3. "You can make a placeholder account next to the admin account for me: idse.val@wur.nl is email, you can create a temporary password for me, I will change it when we get there." | #198 |
+   | 3. "You can make a placeholder account next to the admin account for me: [the owner's address] is email, you can create a temporary password for me, I will change it when we get there." | #198 |
 
 2. **One architecture issue, #195, for the two points that touch a contract.** Point 1
    changes the `Account` record, the `Accounts` interface, the login and account routes
