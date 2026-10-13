@@ -1,6 +1,7 @@
 # ADR-253-way-back-from-the-account-pages: `/admin/account` and `/admin/accounts` begin their bar with #163's arrow back to the creators' overview, and give up the site's title below 620
 
-- Status: ACCEPTED -- 2026-10-13
+- Status: ACCEPTED -- 2026-10-13; the reading of the owner's words PROPOSED (core document 3.4
+  `[#247]`)
 - Issue: #253 -- The account and accounts pages begin with the arrow back to the creators' overview
 - Spec: `docs/specs/application.md` 24.3 amended, marked `[#253]`: the row for `/admin/new`,
   `/admin/account` and `/admin/accounts`, the `[#249]` note under the table and the end of the
@@ -100,4 +101,6 @@ cut, which CI passed.
   A longer `siteTitle` or a wider control in this bar needs the sweep again.
 - `tests/browser/account-back-to-overview.spec.ts` pins the arrow, its target, the pages without
   it and the cut; `admin-no-scroll.spec.ts` measures the three bars at 10.6's viewports,
-  `BAR_SIZES`, 489, 497, 619 and 620.
+  `BAR_SIZES`, 489, 497, 619 and 620, and the bar without the arrow, `/admin/new` as the
+  administrator, at the same sizes but 619 and 620: `BAR_SIZES` holds 599 and 600, either side
+  of its cut.

@@ -4406,8 +4406,11 @@ overview in English at 320 (18.2 in Dutch), and in the CI runner's faces 6.5 in 
 and 6.2 in Dutch at 660; the login page keeps 85.8 at 480 (90.8 in Dutch). This also ends the site's title taking two lines on
 `/admin/new`, `/admin/account` and `/admin/accounts` from 480 to 489 pixels wide in English and to
 497 in Dutch, as it did before #249. `admin-no-scroll.spec.ts` keeps the bar at `/admin` at 659
-and 660 wide too, and the bar of `/admin/accounts` at 10.6's viewports, at `BAR_SIZES`, and at 489
-and 497; `editor-and-website.spec.ts` the look, at rest and hovered, against `editor`'s.
+and 660 wide too, and ~~the bar of `/admin/accounts`~~ **[#253]** (2026-10-13) the bars of
+`/admin/new` as the administrator, without the arrow, and of `/admin/account` (a creator's and the
+administrator's) and `/admin/accounts`, with it, at 10.6's viewports, at `BAR_SIZES`, ~~and~~ at 489
+and 497, **[#253]** and either side of their cut, 599 and 600 or 619 and 620;
+`editor-and-website.spec.ts` the look, at rest and hovered, against `editor`'s.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
