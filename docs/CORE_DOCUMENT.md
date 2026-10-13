@@ -131,8 +131,15 @@
 > pages; and the deletion of old files and of what should not be in a public repository. Every
 > passage that changed is marked **[#247]**; nothing else in this document was touched. The
 > owner's words are held whole in section 3.4, and the rule on releases is a new line of
-> section 9, with one reading of it **OPEN** for the owner (10.45). How they became issues is `docs/adrs/ADR-247-small-additions-round.md`; the work is
-> issues #251 to #254.
+> section 9, with one reading of it **OPEN** for the owner (10.45). How they became issues is
+> `docs/adrs/ADR-247-small-additions-round.md`; the work is issues #251 to #254.
+>
+> **Revision of 2026-10-13 (issue #248).** The owner wrote, in issue #248, that `account`,
+> `accounts`, `logout` and `website` "in the header bar on /admin" should "look the same as the
+> editor button looks in the regular view". Every passage that changed is marked **[#248]**;
+> nothing else in this document was touched. The owner's words are held whole in section 3.4.
+> How they became an issue is `docs/adrs/ADR-248-admin-bar-buttons-round.md`; the work is issue
+> #249.
 
 Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03, 2026-10-09, 2026-10-10, 2026-10-12 and 2026-10-13.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
@@ -846,8 +853,10 @@ owner's words leave a choice:
     the visitor came from, since `/admin` is also opened from a bookmark or a typed
     address; each button is the last control at the right end of its bar at every width --
     below 480 pixels wide, where the bar at `/admin` hides the site's title, too -- in the
-    look of that bar's own controls; below 768 pixels wide a Node page's bar gives up the
-    current language's pill for "Editor", with the pill's list item and one of the switch's
+    look of that bar's own controls (**[#248]** at `/admin`, owner 2026-10-13, that look
+    changes: `account`, `accounts`, `logout` and `website` "look the same as the editor button
+    looks in the regular view", the share button's look, below; #249); below 768 pixels
+    wide a Node page's bar gives up the current language's pill for "Editor", with the pill's list item and one of the switch's
     4-pixel gaps -- in a Tree of one language, whose switch holds that pill alone, the whole
     switch -- and "Editor" then takes no more room than they did in the Trees and faces
     measured, in English and Dutch, whatever their logo; that reading does not hold section
@@ -858,7 +867,9 @@ owner's words leave a choice:
     overview's bar at `/admin` gives up the site's title and that pill for "Website", as the
     Tree-less admin pages' bar has given both up below 480 since #135
     (`docs/research/issue-202-bar-room.md`; `docs/adrs/ADR-202-navigation-round.md`
-    decision 5; #204).
+    decision 5; #204) (**[#248]** PROPOSED, 2026-10-13, for the room the owner's pills
+    take: below 660 on the creators' overview, and below 600 on `/admin/new`,
+    `/admin/account` and `/admin/accounts` with a session, below; #249).
   - **A Preview of a hidden Tree.** In the editor of a Tree that is not published, a button
     at the top left, under the chrome bar and not in it, opens a preview of the Tree as its
     readers will see it once it is published; in the preview, in the same place, a button
@@ -1067,13 +1078,31 @@ owner's words leave a choice:
     (10.45). #252 builds it.
   - **The way back.** PROPOSED: "the app" is the creators' overview at `/admin` (the "top level
     interface" of `[#202]`), and the button is the arrow the editor's bar begins with, on
-    `/admin/account` and `/admin/accounts`. #253 builds it.
+    `/admin/account` and `/admin/accounts`. #253 builds it, after #249, which restyles the same
+    bar (`[#248]`, below).
   - **Old and private files.** The setup documents v0.2.2 to v0.2.12 go, and v0.2.13 stays, in
     the owner's words. PROPOSED: also `docs/pipeline-smoke.md` and `.devcontainer/`, which
     nothing uses; the owner's personal address, the workstation's name, a local path and two
     account ids are taken out of the documents, a tailnet address out of a test, and the box's
     security set-up out of `docs/hosting-shared-box.md`; the screenshots and research notes the
     specs cite stay. A deletion does not take a file out of the history. #254 does it.
+- **[#248] The controls of the bar at `/admin` (owner, #248, 2026-10-13).** How the instruction
+  became an issue is `docs/adrs/ADR-248-admin-bar-buttons-round.md`. The owner's words, whole:
+  > "Make the buttons for account accounts log out, and website in the header bar on /admin
+  > look the same as the editor button looks in the regular view (with the line around it,
+  > more like a real button)"
+  - **The readings.** PROPOSED (the owner's words leave these open): the buttons are `account`,
+    `accounts`, `logout` and `website`, and the bar is the one the Tree-less admin pages
+    share -- at `/admin`, on the login page and the creators' overview, and on `/admin/new`,
+    `/admin/account` and `/admin/accounts` (`docs/specs/application.md` 24.3); the editor's
+    bar, which holds `account` and `logout` but neither `accounts` nor `website`, keeps its
+    look; "the editor button in the regular view" is "Editor" at the right end of the public
+    pages' bar, in the share button's look, and "the same" is that look at every width, its
+    hover included. The pills take more room than the links did, so the bar gives up the
+    site's title and the current language's pill at wider widths than before, as measured in
+    the ADR: below 600 pixels on `/admin/new`, `/admin/account` and `/admin/accounts` with a
+    session, where it was 480, and below 660 on the creators' overview, where it was 600, or
+    wider where the CI runner's faces need it. #249 builds it.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
