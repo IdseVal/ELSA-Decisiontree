@@ -77,6 +77,19 @@ async function expectLastAtTheRight(link: Locator, where: string): Promise<void>
   for (const right of others) expect(right, `${where}: a control after the link`).toBeLessThanOrEqual(at.left)
 }
 
+/** **[#249]** The computed properties that make "Editor"'s look, and those its hover changes (24.3). */
+const LOOK = ['padding', 'border-top-style', 'border-top-width', 'border-top-color', 'border-radius', 'font-size', 'line-height', 'color', 'text-decoration-line']
+const HOVER = ['color', 'border-top-color']
+
+/** `properties` of `control`'s computed style, read once its transitions have ended: a hover's colours take 160 ms. */
+async function look(control: Locator, properties: string[]): Promise<Record<string, string>> {
+  return control.evaluate(async (element, properties) => {
+    await Promise.all(element.getAnimations().map((animation) => animation.finished))
+    const style = getComputedStyle(element)
+    return Object.fromEntries(properties.map((property) => [property, style.getPropertyValue(property)]))
+  }, properties)
+}
+
 for (const { lang, query, signIn } of LANGUAGES) {
   test(`"Editor" ends the bar of the overview and of a Node page, leading to /admin${query}`, async ({ browser }) => {
     const page = await opened(browser, false)
@@ -130,7 +143,45 @@ for (const { lang, query, signIn } of LANGUAGES) {
       await expect(page.locator('a.tile[data-tree="ai-act-example"]')).toBeVisible()
     })
   }
+
+  test(`**[#249]** account, accounts, logout and "Website" in the bar at /admin take "Editor"'s look at rest and hovered, at 1280 and 400 wide, in ${lang}`, async ({ browser }) => {
+    for (const width of [1280, 400]) {
+      const visitor = await opened(browser, false, width, 800)
+      await visitor.goto(`${origin}/${query}`)
+      const editor = visitor.locator('header.page-chrome').getByRole('link', { name: 'Editor', exact: true })
+      const rest = await look(editor, LOOK)
+      await editor.hover()
+      const hovered = await look(editor, HOVER)
+      await visitor.context().close()
+
+      const page = await opened(browser, true, width, 800)
+      await page.goto(`${origin}/admin${query}`)
+      const controls = page.locator('header.page-chrome .admin-link')
+      await expect(controls).toHaveCount(4)
+      for (let at = 0; at < 4; at += 1) {
+        const control = controls.nth(at)
+        const where = `"${await control.textContent()}" at ${width}x800`
+        expect(await look(control, LOOK), where).toEqual(rest)
+        await control.hover()
+        expect(await look(control, HOVER), `${where}, hovered`).toEqual(hovered)
+      }
+      await page.context().close()
+    }
+  })
 }
+
+test("**[#249]** the editor's bar keeps its account controls as links: underlined, with no border", async ({ browser }) => {
+  const page = await opened(browser, true)
+  await page.goto(`${origin}/admin/trees/hidden-draft/full`)
+  const bar = page.locator('header.editor-chrome')
+  for (const control of [bar.getByRole('link', { name: 'Account', exact: true }), bar.getByRole('button', { name: 'Log out', exact: true })]) {
+    expect(await look(control, ['text-decoration-line', 'border-top-style', 'border-top-width'])).toEqual({
+      'text-decoration-line': 'underline',
+      'border-top-style': 'none',
+      'border-top-width': '0px',
+    })
+  }
+})
 
 test('"Editor" on a Tree in a language the chrome does not speak says it in English, and leads to /admin', async ({ page }) => {
   await page.goto(`${origin}/german-only/start`)
