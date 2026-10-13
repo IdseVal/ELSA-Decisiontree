@@ -8,7 +8,8 @@
   amends 6 and 38, and trims `docs/hosting-shared-box.md`
 - Core document: amended here, marked `[#247]`: the preamble, the status and owner lines, a
   new bullet in 3.4 holding the owner's words whole and the readings taken of them, the row
-  **Creator** of section 5, and a new line of section 9
+  **Creator** of section 5, a new line of section 9, and a new **OPEN** row 10.45 for the
+  owner
 
 ## Context
 
@@ -155,7 +156,9 @@ pages show only fixture accounts at `example.org`.
      deleted by a release. A format conversion keeps every one of them and changes the
      file's shape only, so it is not an overwrite, and it stays because the app cannot read
      an older format without it. A copy taken before each release starts makes it
-     reversible (#252);
+     reversible (#252). Because this reading concerns a line of section 9, it is also an
+     **OPEN** item for the owner, core document 10.45, which says what changes if the answer
+     is no; nothing waits on it, since #252 changes no conversion;
    - "our code should only push code, not data items and json": the release the deploy puts
      on the box carries no Tree. A box whose `data/trees/` is gone then starts with no Tree
      instead of the repository's (#252);
