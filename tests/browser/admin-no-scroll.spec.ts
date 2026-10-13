@@ -23,7 +23,9 @@
  * and beside no logo in a Tree of four languages, before and after a first save. **[#204]** And
  * the bar at `/admin` alone, with "Website" at its right end (`bar.ts`), on the login page and on
  * the administrator's creators' overview, at every viewport of 10.6 and at five sizes either side of
- * 480, 600 and 768 wide. **[#206]** And the preview of a hidden Tree on `hidden-draft`'s full
+ * 480, 600 and 768 wide. **[#249]** And at 659 and 660 wide, either side of the creators' overview's
+ * cut; and the bar of `/admin/accounts` alone, with the account controls as pills, at the same
+ * viewports and at 489 and 497 wide, where `dev`'s wrapped its title before #249. **[#206]** And the preview of a hidden Tree on `hidden-draft`'s full
  * Node, plain and with each of its first two Overlays open, and on 40.7's unfinished draft; and the
  * editor of a hidden Tree with the preview button, on its step that ends (40.9). **[#212]** And at
  * and below the floor, on the editor of a hidden Tree and its preview, the notice's text lines clear
@@ -230,9 +232,10 @@ for (const lang of LANGUAGES) {
   // **[#204]** The administrator's overview carries the most controls: `account`, `accounts`, `logout`, `website`.
   for (const session of [false, true]) {
     const what = session ? "creators' overview, the administrator" : 'login page'
-    test(`the bar at /admin with "Website", the ${what}, ${lang}, fits at every viewport of 10.6 and at five more`, async ({ browser, page: anonymous }) => {
+    // **[#249]** And either side of 660, where the creators' overview gives up its title for the pills' room.
+    test(`the bar at /admin with "Website", the ${what}, ${lang}, fits at every viewport of 10.6 and at seven more`, async ({ browser, page: anonymous }) => {
       const page = session ? await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD) : anonymous
-      for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES]) {
+      for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES, [659, 800], [660, 800]] as const) {
         const viewport = `${width}x${height}`
         await page.setViewportSize({ width, height })
         expect((await page.goto(`${origin}/admin${lang === 'en' ? '' : `?lang=${lang}`}`))?.status()).toBe(200)
@@ -243,6 +246,21 @@ for (const lang of LANGUAGES) {
       }
     })
   }
+
+  // **[#249]** The bar of `/admin/new`, `/admin/account` and `/admin/accounts`, with the pills: on `dev` before #249
+  // its title took two lines from 480 to 489 wide in English and to 497 in Dutch.
+  test(`the bar of /admin/accounts, the administrator, ${lang}, fits at every viewport of 10.6 and at seven more`, async ({ browser }) => {
+    const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
+    for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES, [489, 800], [497, 800]] as const) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(`${origin}/admin/accounts${lang === 'en' ? '' : `?lang=${lang}`}`))?.status()).toBe(200)
+      await expect(page.locator('header.page-chrome .admin-nav')).toBeVisible()
+      const m = await measureBar(page)
+      rows.push(barRow('bar of /admin/accounts, the administrator', lang, viewport, m))
+      expectBarFits(m, `the bar of /admin/accounts (${lang}) at ${viewport}`)
+    }
+  })
 
   test(`the new-Tree form with three languages, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
     test.slow()
