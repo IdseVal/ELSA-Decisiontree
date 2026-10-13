@@ -130,7 +130,7 @@
 > editor button looks in the regular view". Every passage that changed is marked **[#248]**;
 > nothing else in this document was touched. The owner's words are held whole in section 3.4.
 > How they became an issue is `docs/adrs/ADR-248-admin-bar-buttons-round.md`; the work is issue
-> #ISSUE.
+> #249.
 
 Owner: Idse Val (`IdseVal`). Interview 2026-09-02 -- 2026-09-03; written revisions 2026-09-09, 2026-09-17, 2026-09-21, 2026-09-23, 2026-10-02, 2026-10-03, 2026-10-09, 2026-10-10, 2026-10-12 and 2026-10-13.
 Items marked **OPEN** are unanswered; they are decisions waiting, not gaps to fill.
@@ -846,7 +846,7 @@ owner's words leave a choice:
     below 480 pixels wide, where the bar at `/admin` hides the site's title, too -- in the
     look of that bar's own controls (**[#248]** at `/admin`, owner 2026-10-13, that look
     changes: `account`, `accounts`, `logout` and `website` "look the same as the editor button
-    looks in the regular view", the share button's look, below; #ISSUE); below 768 pixels
+    looks in the regular view", the share button's look, below; #249); below 768 pixels
     wide a Node page's bar gives up the current language's pill for "Editor", with the pill's list item and one of the switch's
     4-pixel gaps -- in a Tree of one language, whose switch holds that pill alone, the whole
     switch -- and "Editor" then takes no more room than they did in the Trees and faces
@@ -858,7 +858,9 @@ owner's words leave a choice:
     overview's bar at `/admin` gives up the site's title and that pill for "Website", as the
     Tree-less admin pages' bar has given both up below 480 since #135
     (`docs/research/issue-202-bar-room.md`; `docs/adrs/ADR-202-navigation-round.md`
-    decision 5; #204).
+    decision 5; #204) (**[#248]** PROPOSED, 2026-10-13, for the room the owner's pills
+    take: below 660 on the creators' overview, and below 600 on `/admin/new`,
+    `/admin/account` and `/admin/accounts` with a session, below; #249).
   - **A Preview of a hidden Tree.** In the editor of a Tree that is not published, a button
     at the top left, under the chrome bar and not in it, opens a preview of the Tree as its
     readers will see it once it is published; in the preview, in the same place, a button
@@ -1055,7 +1057,7 @@ owner's words leave a choice:
     site's title and the current language's pill at wider widths than before, as measured in
     the ADR: below 600 pixels on `/admin/new`, `/admin/account` and `/admin/accounts` with a
     session, where it was 480, and below 660 on the creators' overview, where it was 600, or
-    wider where the CI runner's faces need it. #ISSUE builds it.
+    wider where the CI runner's faces need it. #249 builds it.
 - **The branch**: `version-1.0` holds the app as it was on 2026-09-23 (the convention of
   `version-0.1`, #35); the round is developed on `dev`
   (`docs/adrs/ADR-131-version-1-0-and-the-editor-round.md`).
