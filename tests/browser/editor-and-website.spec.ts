@@ -6,7 +6,8 @@
  * "Website" at the right end of the bar at `/admin`, in both its states, leading back to the
  * public overview in the chrome language. And what the bars give up to make their room: a Node
  * page's current language below 768 pixels wide, the creators' overview's title and current
- * language below 600; the controls of the bar at `/admin` at its right end at every width.
+ * language below 660 (**[#249]**, 600 before); the controls of the bar at `/admin` at its right end
+ * at every width.
  *
  * Against a data directory of its own (35.1): the example Tree, a Tree in Dutch alone
  * (`single-language`), a Tree in German, which the chrome does not speak (`german-only`, 3.1),
@@ -256,14 +257,14 @@ test("the overview's bar keeps its current language beside \"Editor\" at the flo
   await expectLastAtTheRight(page.locator('header.page-chrome').getByRole('link', { name: 'Editor', exact: true }), 'the overview at 320x480')
 })
 
-test("below 600 pixels wide the creators' overview's bar gives up the site's title and the current language; the login page's keeps its title", async ({ browser }) => {
+test("below 660 pixels wide the creators' overview's bar gives up the site's title and the current language; the login page's keeps its title", async ({ browser }) => {
   const page = await opened(browser, true)
   const title = page.locator('header.page-chrome .tree-title')
   const current = page.locator('header.page-chrome .language--current')
   for (const [width, shown] of [
     [480, false],
-    [599, false],
-    [600, true],
+    [659, false],
+    [660, true],
   ] as const) {
     await page.setViewportSize({ width, height: 800 })
     await page.goto(`${origin}/admin`)
