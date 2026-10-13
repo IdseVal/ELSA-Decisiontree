@@ -19,6 +19,9 @@
  * draft, so the page is drawn again after it -- at a new address when the language it was
  * shown in has gone or become the default.
  *
+ * **[#251]** The creator's `deleteTree` stands in "This Tree", the administrator's in its own
+ * section: one button and question, `DeleteTree`, drawn in either place (ADR-251-creator-deletes).
+ *
  * The panel hides what a role may not do (21.2); the server decides (21.3), and a refusal
  * is shown, not routed around. Imports of `src/`: types, and nothing else (34.4).
  */
@@ -156,7 +159,7 @@ export function Panel({
   const [written, setWritten] = useState(initialWritten)
   const [removing, setRemoving] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<{ where: 'publish' | 'invite' | 'handOver' | 'languages' | 'admin'; text: string } | null>(null)
+  const [error, setError] = useState<{ where: 'publish' | 'invite' | 'handOver' | 'languages' | 'admin' | 'delete'; text: string } | null>(null)
   const body = useRef<HTMLDivElement>(null)
   const manages = role !== 'collaborator'
 
@@ -273,7 +276,7 @@ export function Panel({
     run(async () => {
       const answer = await panelCalls.deleteTree(treeId)
       if (answer.status === 204) window.location.assign(overviewHref)
-      else setError({ where: 'admin', text: words.requestFailed })
+      else setError({ where: 'delete', text: words.requestFailed })
     })
 
   const submitted = (event: FormEvent<HTMLFormElement>, act: (accountId: string) => Promise<void>): void => {
@@ -290,6 +293,20 @@ export function Panel({
         {error.text}
       </p>
     ) : null
+
+  // **[#251]** The creator's in "This Tree", the administrator's in its section; a page has one role, so never both.
+  const deleteControl = (
+    <DeleteTree
+      words={words}
+      asking={asking === 'delete'}
+      published={tree.published}
+      busy={busy}
+      onAsk={() => setAsking('delete')}
+      onCancel={() => setAsking(null)}
+      onConfirm={deleteTree}
+      error={errorAt('delete')}
+    />
+  )
 
   // **[#181]** The heading above the scroll box, not in it: nothing the body scrolls, or the focus
   // scrolls to, passes under the heading or the cross in it (33.2, amended).
@@ -441,6 +458,8 @@ export function Panel({
               </>
             )}
           </dl>
+          {/* **[#251]** Before the Theme panel, whose headings would take the button into its outline (33.5). */}
+          {role === 'creator' && deleteControl}
           {theme}
         </section>
 
@@ -448,37 +467,8 @@ export function Panel({
           <section className="panel-section" aria-labelledby="panel-administrator">
             <h3 id="panel-administrator">{words.administrator}</h3>
             <HandOver words={words} accounts={heirs} disabled={busy} onSubmit={(event) => submitted(event, (id) => changeMeta('admin', () => panelCalls.handOver(treeId, id), words.cannotInvite))} />
-            {asking === 'delete' ? (
-              <div className="panel-ask">
-                <p>{words.confirmDeleteTree}</p>
-                <div className="panel-actions">
-                  <button type="button" className="admin-submit admin-submit--danger" disabled={busy} onClick={deleteTree}>
-                    {words.confirm}
-                  </button>
-                  <button type="button" className="admin-link" onClick={() => setAsking(null)}>
-                    {words.cancel}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="panel-actions">
-                <button
-                  type="button"
-                  className="admin-submit admin-submit--danger"
-                  disabled={busy || tree.published}
-                  aria-describedby={tree.published ? 'panel-unpublish-first' : undefined}
-                  onClick={() => setAsking('delete')}
-                >
-                  {words.deleteTree}
-                </button>
-                {tree.published && (
-                  <span id="panel-unpublish-first" className="admin-row-login">
-                    {words.unpublishFirst}
-                  </span>
-                )}
-              </div>
-            )}
             {errorAt('admin')}
+            {deleteControl}
           </section>
         )}
       </div>
@@ -524,5 +514,67 @@ function HandOver({
         {words.handOver}
       </button>
     </form>
+  )
+}
+
+/**
+ * **[#251]** `deleteTree` (33.5, 33.6): disabled with `unpublishFirst` while the Tree is published
+ * (21.2's two steps), asking once in place (`confirmDeleteTree`), and a failure under it. The
+ * creator's in "This Tree" and the administrator's in its section are this one control.
+ */
+function DeleteTree({
+  words,
+  asking,
+  published,
+  busy,
+  onAsk,
+  onCancel,
+  onConfirm,
+  error,
+}: {
+  words: Pick<PanelWords, 'deleteTree' | 'unpublishFirst' | 'confirmDeleteTree' | 'confirm' | 'cancel'>
+  asking: boolean
+  published: boolean
+  busy: boolean
+  onAsk: () => void
+  onCancel: () => void
+  onConfirm: () => void
+  /** `requestFailed` after a refused or lost `DELETE`, drawn where the button stands. */
+  error: ReactNode
+}) {
+  return (
+    <>
+      {asking ? (
+        <div className="panel-ask">
+          <p>{words.confirmDeleteTree}</p>
+          <div className="panel-actions">
+            <button type="button" className="admin-submit admin-submit--danger" disabled={busy} onClick={onConfirm}>
+              {words.confirm}
+            </button>
+            <button type="button" className="admin-link" onClick={onCancel}>
+              {words.cancel}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="panel-actions">
+          <button
+            type="button"
+            className="admin-submit admin-submit--danger"
+            disabled={busy || published}
+            aria-describedby={published ? 'panel-unpublish-first' : undefined}
+            onClick={onAsk}
+          >
+            {words.deleteTree}
+          </button>
+          {published && (
+            <span id="panel-unpublish-first" className="admin-row-login">
+              {words.unpublishFirst}
+            </span>
+          )}
+        </div>
+      )}
+      {error}
+    </>
   )
 }

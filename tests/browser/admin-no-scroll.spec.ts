@@ -23,7 +23,9 @@
  * and beside no logo in a Tree of four languages, before and after a first save. **[#204]** And
  * the bar at `/admin` alone, with "Website" at its right end (`bar.ts`), on the login page and on
  * the administrator's creators' overview, at every viewport of 10.6 and at five sizes either side of
- * 480, 600 and 768 wide. **[#206]** And the preview of a hidden Tree on `hidden-draft`'s full
+ * 480, 600 and 768 wide. **[#249]** And at 659 and 660 wide, either side of the creators' overview's
+ * cut; and the bar of `/admin/accounts` alone, with the account controls as pills, at the same
+ * viewports and at 489 and 497 wide, where `dev`'s wrapped its title before #249. **[#206]** And the preview of a hidden Tree on `hidden-draft`'s full
  * Node, plain and with each of its first two Overlays open, and on 40.7's unfinished draft; and the
  * editor of a hidden Tree with the preview button, on its step that ends (40.9). **[#212]** And at
  * and below the floor, on the editor of a hidden Tree and its preview, the notice's text lines clear
@@ -34,7 +36,9 @@
  * viewport of 10.6, with the `+` Sheet open, and the editor's notice for it one pixel either side of
  * each width and height of 42.4's two boxes; the empty step's `+` Sheet with its switch on too.
  * **[#234]** And the editor mid-slide, its `+` Sheet closed by the slide, halfway and held at the
- * target, at every viewport of 10.6 where the tree view stands (42.8).
+ * target, at every viewport of 10.6 where the tree view stands (42.8). **[#251]** And the settings
+ * panel opened as `anna`, the creator of `hidden-draft` (35.3), plain and with the creator's
+ * `deleteTree` asking, at every viewport of 10.6 (33.5).
  *
  * The measurement is 10.6's, written out here rather than imported: `no-scroll.spec.ts` is
  * a public spec this round does not edit (35.6), and a spec file cannot be imported without
@@ -88,6 +92,9 @@ const TREES = [
  */
 const CEES = { email: `${'c'.repeat(242)}@example.org`, name: 'Cees', password: 'cees first password' }
 
+/** **[#251]** The creator of 35.3, on the second store's `hidden-draft`: the first's Trees are the administrator's. */
+const ANNA = { email: 'anna@example.org', name: 'Anna', password: 'annas first password' }
+
 /** Twenty accounts with the longest name 20.1 allows among them: more rows than the box holds. */
 const ACCOUNTS = [
   CEES,
@@ -126,8 +133,10 @@ test.beforeAll(async () => {
     { folder: path.join(repo, 'tests', 'fixtures', 'three-next-steps'), hidden: true },
     // **[#233]** The full Node with five next steps, labelled at 19 characters: a row of five with no `+` (42.4).
     { folder: path.join(repo, 'tests', 'fixtures', 'five-next-steps'), hidden: true },
+    // **[#251]** 35.3's `hidden-draft` with its creator, whose settings panel holds `deleteTree` (33.5).
+    { folder: path.join(repo, 'tests', 'fixtures', 'full-node'), id: 'hidden-draft', hidden: true, creator: ANNA.email },
   ]
-  overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [] }), PORT + 1, ADMIN_ENV)
+  overlayOrigin = await serveStore(await buildDataDir({ trees: overlay, accounts: [ANNA] }), PORT + 1, ADMIN_ENV)
 })
 
 test.afterAll(async () => {
@@ -230,9 +239,10 @@ for (const lang of LANGUAGES) {
   // **[#204]** The administrator's overview carries the most controls: `account`, `accounts`, `logout`, `website`.
   for (const session of [false, true]) {
     const what = session ? "creators' overview, the administrator" : 'login page'
-    test(`the bar at /admin with "Website", the ${what}, ${lang}, fits at every viewport of 10.6 and at five more`, async ({ browser, page: anonymous }) => {
+    // **[#249]** And either side of 660, where the creators' overview gives up its title for the pills' room.
+    test(`the bar at /admin with "Website", the ${what}, ${lang}, fits at every viewport of 10.6 and at seven more`, async ({ browser, page: anonymous }) => {
       const page = session ? await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD) : anonymous
-      for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES]) {
+      for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES, [659, 800], [660, 800]] as const) {
         const viewport = `${width}x${height}`
         await page.setViewportSize({ width, height })
         expect((await page.goto(`${origin}/admin${lang === 'en' ? '' : `?lang=${lang}`}`))?.status()).toBe(200)
@@ -243,6 +253,21 @@ for (const lang of LANGUAGES) {
       }
     })
   }
+
+  // **[#249]** The bar of `/admin/new`, `/admin/account` and `/admin/accounts`, with the pills: on `dev` before #249
+  // its title took two lines from 480 to 489 wide in English and to 497 in Dutch.
+  test(`the bar of /admin/accounts, the administrator, ${lang}, fits at every viewport of 10.6 and at seven more`, async ({ browser }) => {
+    const page = await loggedIn(browser, ADMIN_EMAIL, ADMIN_PASSWORD)
+    for (const [width, height] of [...VIEWPORTS, ...BAR_SIZES, [489, 800], [497, 800]] as const) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(`${origin}/admin/accounts${lang === 'en' ? '' : `?lang=${lang}`}`))?.status()).toBe(200)
+      await expect(page.locator('header.page-chrome .admin-nav')).toBeVisible()
+      const m = await measureBar(page)
+      rows.push(barRow('bar of /admin/accounts, the administrator', lang, viewport, m))
+      expectBarFits(m, `the bar of /admin/accounts (${lang}) at ${viewport}`)
+    }
+  })
 
   test(`the new-Tree form with three languages, ${lang}, never scrolls at any viewport of 10.6`, async ({ browser }) => {
     test.slow()
@@ -351,6 +376,31 @@ for (const lang of LANGUAGES) {
     const notice = VIEWPORTS.filter(([width, height]) => width > 320 && height > 480 && editorFiveNotice(width, height) !== null)
     expect(notice).toEqual([[360, 640]])
     await editorEverywhere(page, lang, { base: overlayOrigin, tree: 'three-next-steps' }, notice)
+  })
+
+  // **[#251]** The creator's panel holds `deleteTree` in "This Tree", and its question takes more of
+  // the panel than the button (33.5). The answer is never given.
+  test(`**[#251]** the settings panel as the creator of a hidden Tree, plain and with deleteTree asking, ${lang}, never scrolls at any viewport of 10.6 (33.5)`, async ({ browser }) => {
+    test.slow()
+    const page = await (await browser.newContext()).newPage()
+    expect((await login(page, overlayOrigin, ANNA.email, ANNA.password)).status).toBe(204)
+    for (const [width, height] of VIEWPORTS) {
+      const viewport = `${width}x${height}`
+      await page.setViewportSize({ width, height })
+      expect((await page.goto(`${overlayOrigin}/admin/trees/hidden-draft/full${lang === 'en' ? '' : '?lang=nl'}`))?.status()).toBe(200)
+      const sheet = page.locator('.panel-sheet')
+      const answered = page.waitForResponse((response) => new URL(response.url()).pathname === '/admin/api/accounts')
+      await sheet.locator(':scope > .sheet-open').click()
+      await expect(sheet.locator(':scope > .sheet-panel')).toBeVisible()
+      await answered
+      record(await measure(page), 'editor, as the creator', lang, viewport, 'top panel')
+      const section = sheet.locator('.panel-section[aria-labelledby="panel-tree"]')
+      await section.locator('.admin-submit--danger').click()
+      await expect(section.locator('.panel-ask')).toBeVisible()
+      record(await measure(page), 'editor, as the creator', lang, viewport, 'top panel, deleteTree asked')
+      await page.keyboard.press('Escape')
+      await expect(sheet.locator(':scope > .sheet-panel')).toBeHidden()
+    }
   })
 }
 
