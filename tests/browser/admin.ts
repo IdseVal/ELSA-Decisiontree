@@ -11,6 +11,7 @@ import path from 'node:path'
 import { expect, type Locator, type Page } from '@playwright/test'
 import { hashPassword, type Account } from '../../src/store/accounts.ts'
 import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../store/admin.ts'
+import { arrived } from './arrived.ts'
 import { dataDir, type StoreTree } from './serve.ts'
 
 export { ADMIN_EMAIL, ADMIN_PASSWORD }
@@ -127,11 +128,48 @@ export async function typeInPlus(page: Page, words: string, ending = false): Pro
 
 /**
  * **[#233]** A next step of the centre with `words` on its button, through the `+` and Enter (42.7
- * item 3): answers once the editor has gone to the new step, with its id.
+ * item 3): **[#243]** answers the new step's id once its button stands in the row (`confirmNextStep`).
  */
 export async function addNextStep(page: Page, words: string): Promise<string> {
-  const from = new URL(page.url()).pathname
-  await (await typeInPlus(page, words)).getByRole('textbox').press('Enter')
-  await page.waitForURL((url) => url.pathname.startsWith(`${from}/`) && url.pathname.split('/').length === from.split('/').length + 1)
-  return new URL(page.url()).pathname.split('/').pop() ?? ''
+  const form = await typeInPlus(page, words)
+  return confirmNextStep(page, () => form.getByRole('textbox').press('Enter'))
+}
+
+/**
+ * **[#243]** Confirms the open `+` Sheet's next step by `confirm`, a key or a click (42.7 item 3),
+ * and answers the new step's id, read from the write's response, once the Sheet has closed and the
+ * new button stands in the row, the editor still on the step (ADR-243-stay-on-the-step).
+ */
+export async function confirmNextStep(page: Page, confirm: () => Promise<void>): Promise<string> {
+  const from = page.url()
+  const created = page.waitForResponse((response) => response.request().method() === 'POST' && /\/admin\/api\/trees\/[^/]+\/nodes$/.test(new URL(response.url()).pathname))
+  await confirm()
+  const response = await created
+  expect(response.status(), 'the next step is created').toBe(201)
+  const id = ((await response.json()) as { node: { id: string } }).node.id
+  await expect(nextStepTo(page, id)).toHaveCount(1)
+  await expect(page.locator('.tree-frame:not([aria-hidden]) .answers > .structure-add[open]')).toHaveCount(0)
+  expect(page.url()).toBe(from)
+  return id
+}
+
+/** **[#243]** The centre's next step button that leads to the step `id`. */
+export const nextStepTo = (page: Page, id: string): Locator => page.locator(`.tree-frame:not([aria-hidden]) .answers > .answer--next[href*="/${id}"]`)
+
+/**
+ * **[#243]** Goes to the centre's next step `id` by its button, clicked on its outline, 4 pixels
+ * inside its top edge -- the middle is its words' field (42.8) -- and waits for the step, at rest.
+ */
+export async function followNextStep(page: Page, id: string): Promise<void> {
+  const button = nextStepTo(page, id)
+  const box = (await button.boundingBox())!
+  await button.click({ position: { x: box.width / 2, y: 4 } })
+  await arrived(page, new RegExp(`/${id}(\\?|$)`))
+}
+
+/** **[#243]** A next step of the centre with `words` (`addNextStep`), then the editor on it (`followNextStep`); answers its id. */
+export async function addAndFollow(page: Page, words: string): Promise<string> {
+  const id = await addNextStep(page, words)
+  await followNextStep(page, id)
+  return id
 }

@@ -5,7 +5,7 @@
  * **[#179]** And the conversion of `elsa-tree/4` files, at the start and at an import (36.4).
  */
 import { spawn } from 'node:child_process'
-import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -15,6 +15,7 @@ import { importTree, openStore, RESERVED_TREE_IDS } from '../../src/store/index.
 import { writeAtomic } from '../../src/store/write.ts'
 import { TreeInvalid } from '../../src/tree/loader.ts'
 import { ADMIN } from './admin.ts'
+import { PNG } from './pictures.ts'
 
 // **[#179]** One file the disk refuses while the store converts it: the real writer for every
 // other file, and for every test that names none.
@@ -163,6 +164,77 @@ describe('the first start seeds the store, and no later start does', () => {
     const store = await openStore(await folder(), ADMIN)
 
     expect(store.publishedIds()).toEqual(['ai-act-applicability-agrifood', 'ai-act-example'])
+  })
+})
+
+describe('**[#252]** a later start of the current format keeps the data directory as it is (17.4)', () => {
+  /** Every file under `dir` but the lock, by its path inside `dir`, with its bytes. */
+  async function filesOf(dir: string): Promise<Record<string, Buffer>> {
+    const files: Record<string, Buffer> = {}
+    for (const name of await readdir(dir, { recursive: true })) {
+      const file = path.join(dir, name)
+      if (name !== 'lock' && (await stat(file)).isFile()) files[name.split(path.sep).join('/')] = await readFile(file)
+    }
+    return files
+  }
+
+  test('a published Tree with a draft newer than its public copy, a hidden one, pictures, a theme, a collaborator and three accounts: every file keeps its bytes', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const seed = await seedOf([path.join(trees, 'ai-act-example'), 'ai-act-example'], [path.join(fixtures, 'cycle'), 'cycle'])
+    const data = await folder()
+    const first = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
+    const admin = first.accounts.all().find((account) => account.administrator)!
+    const anna = await first.accounts.create(admin, 'Anna de Vries', 'anna@example.org', 'annas first password')
+    await first.accounts.create(admin, 'Bram Jansen', 'bram@example.org', 'brams first password')
+    await first.drafts.addCollaborator(admin, 'ai-act-example', anna.id)
+    await first.drafts.uploadImage(admin, 'ai-act-example', PNG, 'new.png')
+    // An unfinished draft does not reach the public copy (19.4): the two files differ.
+    await first.drafts.write(admin, 'ai-act-example', 'start', { path: 'title.en', value: '' })
+    await first.drafts.publish(admin, 'cycle', false)
+    await first.drafts.write(admin, 'cycle', 'first', { path: 'title.en', value: 'A draft title, after hiding' })
+    const before = await filesOf(data)
+    // The directory holds what the test says it does.
+    expect(first.accounts.all()).toHaveLength(3)
+    expect(Object.keys(before)).toEqual(expect.arrayContaining(['accounts.json', 'trees/ai-act-example/theme/example-lab-logo.svg', 'trees/cycle/draft.json']))
+    expect(Object.keys(before).filter((name) => name.startsWith('trees/ai-act-example/images/')).length).toBeGreaterThan(1)
+    expect(before['trees/cycle/tree.json']).toBeUndefined()
+    expect(before['trees/ai-act-example/draft.json']).not.toEqual(before['trees/ai-act-example/tree.json'])
+
+    // Started again with the administrator's two variables equal to what is stored, then without them (20.3, 38.3).
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
+    expect(await filesOf(data)).toEqual(before)
+    await openStore(data, { ELSA_SEED_DIR: seed })
+    expect(await filesOf(data)).toEqual(before)
+  })
+
+  test('a seed Tree changed in the seed folder after the first start does not reach the store', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const seed = await seedOf([path.join(fixtures, 'cycle'), 'cycle'])
+    const data = await folder()
+    await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
+    const stored = ['tree.json', 'draft.json', 'meta.json'].map((name) => path.join(data, 'trees', 'cycle', name))
+    const before = await Promise.all(stored.map((file) => readFile(file)))
+    await rewrite(path.join(seed, 'cycle', 'tree.json'), (tree) => {
+      tree.nodes[0]!.title = { en: 'Changed in the repository' }
+    })
+
+    const store = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: seed })
+
+    expect(await Promise.all(stored.map((file) => readFile(file)))).toEqual(before)
+    expect(store.published('cycle')!.filePath).toBe(stored[0])
+  })
+
+  test("a data directory whose trees/ is gone, under a release without trees/, starts empty and says so", async () => {
+    // The shared box's release: deploy.sh takes trees/ out of it, so the default seed folder is missing.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const data = await folder()
+    const missing = path.join(await folder(), 'current', 'trees')
+
+    const store = await openStore(data, { ...ADMIN, ELSA_SEED_DIR: missing })
+
+    expect(store.publishedIds()).toEqual([])
+    expect(await readdir(path.join(data, 'trees'))).toEqual([])
+    expect(warn).toHaveBeenCalledWith(`No Tree to seed in ${missing}; the store starts empty`)
   })
 })
 

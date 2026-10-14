@@ -301,10 +301,15 @@ a {
   list-style: none;
 }
 
-/* **[#204]** "Editor", the way into the admin area, takes the share button's look (24.3). */
+/*
+ * **[#204]** "Editor", the way into the admin area, takes the share button's look (24.3).
+ * **[#249]** And so do `account`, `accounts`, `logout` and `website` in the bar of the admin
+ * area's Tree-less pages: the editor's bar keeps them as links.
+ */
 .language,
 .share,
-.to-editor {
+.to-editor,
+.admin-chrome:not(.editor-chrome) .admin-link {
   display: inline-block;
   padding: 3px 12px;
   white-space: nowrap;
@@ -322,7 +327,8 @@ a {
 
 a.language:hover,
 .share:hover,
-.to-editor:hover {
+.to-editor:hover,
+.admin-chrome:not(.editor-chrome) .admin-link:hover {
   color: var(--elsa-text);
   border-color: var(--accent-secondary-read);
 }
@@ -335,7 +341,8 @@ a.language:hover,
 }
 
 .share,
-.to-editor {
+.to-editor,
+.admin-chrome:not(.editor-chrome) .admin-link {
   border-color: var(--rule);
 }
 
@@ -2043,7 +2050,10 @@ fieldset:disabled .admin-submit {
   white-space: nowrap;
 }
 
-/* The chrome bar's account controls (24.3): links, and the logout button dressed as one. */
+/*
+ * The chrome bar's account controls (24.3): links, and the logout button dressed as one.
+ * **[#249]** In the editor's bar only: the Tree-less admin pages' bar draws them as pills.
+ */
 .admin-nav {
   display: flex;
   align-items: center;
@@ -2370,25 +2380,48 @@ fieldset:disabled .admin-submit {
 /*
  * **[#204]** The bar at `/admin`, the login page and the creators' overview: `website` ends it, so
  * its controls stand at its right end at every width, where the public pages' "Editor" stands --
- * below 480 too, where the title they stood beside is not drawn. Below 600 the creators' overview
- * makes `website`'s room as every Tree-less admin page does below 480: it gives up the site's
- * title and the current language's pill.
+ * below 480 too, where the title they stood beside is not drawn.
+ * **[#249]** The pills of the account controls and `website` are wider than the links they were, so
+ * the bar with a session makes their room by giving up the site's title and the current language's
+ * pill wider than a phone: `/admin/new`, `/admin/account` and `/admin/accounts` below 600, the
+ * creators' overview, which `website` widens, below 660. The login page and the 403 page, with no
+ * account controls, keep the phone's rule below.
  */
 .admin-home .page-controls {
   margin-left: auto;
 }
 
 @media (max-width: 599px) {
+  .admin-chrome:not(.editor-chrome):has(.admin-nav) .tree-title,
+  .admin-chrome:not(.editor-chrome):has(.admin-nav) .language--current {
+    display: none;
+  }
+}
+
+@media (max-width: 659px) {
   .admin-home:has(.admin-nav) .tree-title,
   .admin-home:has(.admin-nav) .language--current {
     display: none;
   }
 }
 
-/* Below 480 the controls stand 4 apart and the account links 8: `website` keeps the links' 8 from `logout`. */
+/*
+ * **[#253]** The arrow back to the creators' overview, which begins the bar of `/admin/account` and
+ * `/admin/accounts`, takes the title's room: the administrator's bar, with `accounts`, wrapped the
+ * title from 600 up to 603 pixels wide on Windows and to 614 in the CI runner's faces, so those two
+ * pages give up the title and the current language's pill below 620. `/admin/new` keeps 600.
+ */
+@media (max-width: 619px) {
+  .admin-chrome:not(.editor-chrome):has(.back-to-overview) .tree-title,
+  .admin-chrome:not(.editor-chrome):has(.back-to-overview) .language--current {
+    display: none;
+  }
+}
+
+/* **[#249]** Below 480 the pills stand 4 apart, as the bar's controls do: `website` from `logout` too. */
 @media (max-width: 479px) {
-  .admin-home .admin-nav + .admin-link {
-    margin-left: 4px;
+  .admin-chrome:not(.editor-chrome) .admin-nav {
+    gap: 4px;
   }
 }
 
@@ -2396,7 +2429,8 @@ fieldset:disabled .admin-submit {
  * A phone: the bar holds the language switch, `account`, `accounts` and `logout` in
  * 320 pixels only by giving up the site's title and the switch's current language, which is
  * not a link and is the language on screen anyway; the cards give up padding and gaps, so
- * the account page's two fit the floor's 408 pixels.
+ * the account page's two fit the floor's 408 pixels. **[#249]** The account controls' gap of 8
+ * holds in the editor's bar; the Tree-less admin pages' pills stand 4 apart (above).
  */
 @media (max-width: 479px) {
   .admin-chrome .tree-title,
@@ -2999,7 +3033,8 @@ fieldset:disabled .admin-submit {
    */
   .language,
   .share,
-  .to-editor {
+  .to-editor,
+  .admin-chrome:not(.editor-chrome) .admin-link {
     padding: 3px 5px;
     font-size: 11px;
   }
@@ -3524,6 +3559,14 @@ fieldset:disabled .admin-submit {
   border-color: var(--danger-read);
 }
 
+/*
+ * **[#242]** The line under the add Sheet's Link row starts where its label does, not centred as
+ * the Bubble's text: held to the field's column, the example address broke at its hyphen (28.1, amended).
+ */
+.source-url-hint {
+  text-align: start;
+}
+
 /* The editor's controls shrink before the bar grows: nothing in it may wrap to a second line (28.6). */
 .editor-chrome .page-controls {
   min-width: 0;
@@ -3962,7 +4005,9 @@ fieldset:disabled .admin-submit {
   justify-content: center;
 }
 
-.editor-attach-form .admin-submit:disabled {
+/* **[#242]** The add-Source Sheet's button too: it looked enabled while it could not send (28.1, amended). */
+.editor-attach-form .admin-submit:disabled,
+.source-editor--add .admin-submit:disabled {
   opacity: 0.6;
   cursor: default;
 }

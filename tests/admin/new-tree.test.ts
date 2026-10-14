@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest'
 import { createTree, editorHref, refusalOf, type NewTreeWords } from '../../src/editor/NewTreeForm.tsx'
 import type { Answer } from '../../src/editor/request.ts'
-import { isUrl } from '../../src/tree/grammar.ts'
+import { isUrl, linkOf } from '../../src/tree/grammar.ts'
 
 const WORDS = {
   languageHint: 'tag',
@@ -105,5 +105,20 @@ describe('the URL grammar the add-Source Sheet checks before it sends (28.1, the
   it('an absolute http(s) URL with a host passes; a bare scheme, a space, another scheme or no scheme does not', () => {
     for (const url of ['https://example.org', 'http://a.b/c?d=e#f', 'https://eur-lex.europa.eu/eli/reg/2024/1689/oj']) expect(isUrl(url), url).toBe(true)
     for (const url of ['https://', 'https://a b', 'ftp://example.org', 'example.org', '', 42, null]) expect(isUrl(url), String(url)).toBe(false)
+  })
+
+  it('**[#242]** a link typed without a scheme is sent with https:// in front; every other text not a URL is refused', () => {
+    expect(linkOf('https://example.org/a')).toBe('https://example.org/a')
+    expect(linkOf('http://a.b/c?d=e#f')).toBe('http://a.b/c?d=e#f')
+    expect(linkOf('  https://example.org  ')).toBe('https://example.org')
+    expect(linkOf('www.example.org')).toBe('https://www.example.org')
+    expect(linkOf('eur-lex.europa.eu/eli/reg/2024/1689/oj')).toBe('https://eur-lex.europa.eu/eli/reg/2024/1689/oj')
+    expect(linkOf('a.b?q=1')).toBe('https://a.b?q=1')
+    expect(linkOf('a.b#x')).toBe('https://a.b#x')
+    // The dot is in the part before the first `/`, `?` or `#`, with a character on each side.
+    for (const text of ['', 'abc', 'not a link', 'ftp://x', 'HTTPS://example.org', 'x://a.b', 'a.b/c://d', '.org', 'org.', 'abc/d.e', 'abc?d.e', 'a.b c', 'https://']) {
+      expect(linkOf(text), text).toBeNull()
+    }
+    for (const text of ['www.example.org', 'eur-lex.europa.eu/eli/reg/2024/1689/oj', 'a.b?q=1']) expect(isUrl(linkOf(text)), text).toBe(true)
   })
 })

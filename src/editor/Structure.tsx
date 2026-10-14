@@ -15,10 +15,10 @@
  * side by the slots, so a client component takes strings and ids and reaches the queue through
  * the editor's context (34.4).
  *
- * A creation goes through the queue as every write does and, once applied, navigates to the
- * Node it made: `followHref` of a new Answer target, the aside's address under this page for
- * a new Option -- a plain navigation, never the slide (30.2, 34.5). An end repaints the page
- * from the response (29.7).
+ * A creation goes through the queue as every write does and, once applied, **[#243]** a new next
+ * step and an end repaint the page from the response (29.7; ADR-243-stay-on-the-step): the editor
+ * stays on the step. A new Option navigates to the aside's address under this page, a plain
+ * navigation, never the slide (30.4).
  *
  * Imports of `src/`: types and **[#179]** `tree/measure.ts`, for the ending's counter (34.4).
  */
@@ -26,7 +26,7 @@ import { useEffect, useRef, useState, type FormEvent, type MouseEvent, type RefO
 import { countedLength } from '../tree/measure.ts'
 import { useEditor } from './Editor.tsx'
 import { heldToLimit } from './Field.tsx'
-import { plainLine } from './fields.ts'
+import { keyOf, plainLine } from './fields.ts'
 import type { FieldLimit } from './mode.ts'
 import type { Answer, Change, Refusal, WriteResponse } from './writes.ts'
 
@@ -86,8 +86,8 @@ export function useResetOnClose(root: RefObject<HTMLElement | null>, reset: () =
 
 /**
  * A creation from the Node `nodeId` that navigates to the Node it made, under the page `here`
- * (30.2, 30.4): `create` sends it once, and `busy` holds the button down until the page leaves
- * or the write is refused.
+ * (30.4): `create` sends it once, and `busy` holds the button down until the page leaves or the
+ * write is refused. **[#243]** Only the side-bubble `+` uses it: a new next step stays on the step.
  */
 function useCreation(nodeId: string, here: string, from: { link: 'option' }): { busy: boolean; create: () => void } {
   const api = useEditor()
@@ -152,14 +152,17 @@ export interface FormWords {
  * closed opens empty again, the switch off.
  *
  * The switch says what `confirm` makes. Off: a next step with those words, every other language
- * `""`, appended last, and the editor goes to the step it made under the page `here` (41.7 item
- * 3); a refusal -- a sixth -- is shown on the Sheet. On: the Node a Terminal with those words
+ * `""`, appended last; **[#243]** the Sheet closes and the page repaints from the response with the
+ * new button in the row, the editor staying on the step (42.7 item 3; ADR-243-stay-on-the-step).
+ * The focus goes back to the `+`, as Escape puts it; where the new next step is the fifth, so that no
+ * `+` stands (`fills`), to its words on its button. A refusal -- a sixth -- is shown on the Sheet,
+ * which stays open. On: the Node a Terminal with those words
  * (36.3), the page repainting from the response with this Sheet gone with the row; a refusal -- a
  * Node with Options cannot end (30.3; the store names the schema's rule, which refuses `options` on
  * a Terminal) -- is shown on the Sheet, the switch and the words kept, so the creator can turn it
  * off and add a next step instead. Turning the switch clears a refusal: it was the other write's.
  */
-export function WordsForm({ nodeId, lang, here, canEnd, words }: { nodeId: string; lang: string; here: string; canEnd: boolean; words: FormWords }) {
+export function WordsForm({ nodeId, lang, count, fills, canEnd, words }: { nodeId: string; lang: string; count: number; fills: boolean; canEnd: boolean; words: FormWords }) {
   const api = useEditor()
   const root = useRef<HTMLFormElement>(null)
   const input = useRef<HTMLInputElement>(null)
@@ -192,15 +195,16 @@ export function WordsForm({ nodeId, lang, here, canEnd, words }: { nodeId: strin
     setError(null)
     const form = event.currentTarget
     const link = ends ? 'end' : 'answer'
-    api.operate(nodeId, { create: { from: { node: nodeId, link, label: { [lang]: text.trim() } } } }, undefined, (answer) => {
-      // A new next step is edited on its own page: `confirm` stays down until the page goes (30.2).
-      if (link === 'answer' && accepted(answer) && answer.body.node) {
-        goTo(under(here, answer.body.node.id))
+    // At five the `+` goes with the Sheet, so the new words take the focus once the page has them.
+    const focus = link === 'answer' && fills ? keyOf(nodeId, `answers[${count}].label.${lang}`) : undefined
+    api.operate(nodeId, { create: { from: { node: nodeId, link, label: { [lang]: text.trim() } } } }, focus, (answer) => {
+      setBusy(false)
+      if (!accepted(answer)) {
+        setError(refusalText(answer))
         return
       }
-      setBusy(false)
-      if (accepted(answer)) closeSheetAround(form)
-      else setError(refusalText(answer))
+      closeSheetAround(form)
+      if (link === 'answer') form.closest('details')?.querySelector('summary')?.focus()
     })
   }
 

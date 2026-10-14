@@ -37,11 +37,11 @@
  * Imports of `src/`: `tree/measure.ts`, `tree/grammar.ts`, `markdown.ts` and
  * `components/Explainer.tsx`, and types (34.4).
  */
-import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Explainer as ExplainerText } from '../components/Explainer.tsx'
 import { richTextToHtml } from '../markdown.ts'
-import { isUrl } from '../tree/grammar.ts'
+import { linkOf } from '../tree/grammar.ts'
 import { countedLength, estimatedLines } from '../tree/measure.ts'
 import type { Explainer, Source, Violation } from '../tree/types.ts'
 import { useEditor } from './Editor.tsx'
@@ -420,6 +420,8 @@ export interface AddSourceWords {
   addSource: string
   sourceKind: string
   sourceUrl: string
+  placeholderUrl: string
+  sourceUrlHint: string
 }
 
 /**
@@ -429,6 +431,9 @@ export interface AddSourceWords {
  * with an empty label and the kind chosen, the Sheet closes, and the new label takes the
  * focus once the page has re-rendered (`focusPath`, on this Node). Enter in the URL sends
  * it; the button stays disabled, and the input is marked invalid, while the URL is not one.
+ * **[#242]** A link typed without a scheme goes with `https://` in front (`linkOf`), and the
+ * Sheet says what it needs: the field's placeholder, a button drawn disabled, and, once
+ * something that is not a link is typed, a line under the field that the field names.
  */
 export function AddSourceForm({
   nodeId,
@@ -447,7 +452,9 @@ export function AddSourceForm({
   const urlInput = useRef<HTMLInputElement>(null)
   const [kind, setKind] = useState<Source['kind']>(kinds[0]?.value ?? 'legal')
   const [url, setUrl] = useState('')
-  const valid = isUrl(url.trim())
+  const link = linkOf(url)
+  const refused = url !== '' && link === null
+  const hintId = useId()
 
   // The URL takes the focus when the Sheet opens: it is the one thing the Source needs.
   useEffect(() => {
@@ -462,8 +469,8 @@ export function AddSourceForm({
 
   const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
-    if (!valid || api.readOnly) return
-    api.operate(nodeId, { op: 'add-source', kind, label: {}, url: url.trim() }, keyOf(nodeId, focusPath))
+    if (link === null || api.readOnly) return
+    api.operate(nodeId, { op: 'add-source', kind, label: {}, url: link }, keyOf(nodeId, focusPath))
     const details = event.currentTarget.closest('details')
     if (details) details.open = false
     setUrl('')
@@ -495,12 +502,19 @@ export function AddSourceForm({
           type="url"
           inputMode="url"
           value={url}
+          placeholder={words.placeholderUrl}
           disabled={api.readOnly}
-          aria-invalid={url !== '' && !valid ? true : undefined}
+          aria-invalid={refused ? true : undefined}
+          aria-describedby={refused ? hintId : undefined}
           onChange={(event: ChangeEvent<HTMLInputElement>) => setUrl(event.target.value)}
         />
       </label>
-      <button type="submit" className="admin-submit" disabled={!valid || api.readOnly}>
+      {refused && (
+        <p id={hintId} className="admin-error source-url-hint">
+          {words.sourceUrlHint}
+        </p>
+      )}
+      <button type="submit" className="admin-submit" disabled={link === null || api.readOnly}>
         {words.addSource}
       </button>
     </form>

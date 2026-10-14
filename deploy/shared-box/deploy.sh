@@ -6,16 +6,21 @@
 #
 # It fetches that commit into /srv/elsa/app, builds it there, copies the standalone server
 # into /srv/elsa/current, restarts the service and checks that the new server answers. The
-# data directory (/srv/elsa/data) is never touched: a release replaces the application
-# folder only (docs/deployment.md, "Putting a new version").
+# data directory (/srv/elsa/data) is never written: a release replaces the application
+# folder only, and carries no Tree (docs/deployment.md, "Putting a new version"). Before the
+# swap, snapshot.sh (installed beside this script) copies the data directory into
+# /srv/elsa/backups, since the new release's first start may convert its files in place.
 #
 # A rollback is this script with the previous commit. The deploy workflow
 # (.github/workflows/deploy.yml) runs it over SSH; it runs the same by hand.
 set -euo pipefail
 
+here="$(cd "$(dirname "$0")" && pwd)"   # resolved before the cd below; snapshot.sh is here
 ELSA_HOME=/srv/elsa
 APP="$ELSA_HOME/app"           # the checkout, built in place
 CURRENT="$ELSA_HOME/current"   # the standalone server the unit runs (deploy/shared-box/shared-box.conf)
+DATA="$ELSA_HOME/data"         # ELSA_DATA_DIR in /etc/elsa-decisiontree.env
+BACKUPS="$ELSA_HOME/backups"   # snapshot.sh's archives, the ten newest
 SERVICE=elsa-decisiontree
 PORT="${ELSA_PORT:-3001}"      # must match PORT in /etc/elsa-decisiontree.env
 
@@ -53,6 +58,21 @@ echo "== copy into place"
 # but a half-copied folder must never be what a restart finds: copy next to it, then swap.
 rm -rf "$CURRENT.next"
 cp -r .next/standalone "$CURRENT.next"
+# The build traces the repository's Trees into the standalone folder as the seed. On this box
+# the data directory is the truth, and a release carries code only (core document 9, [#247]):
+# a store whose trees/ is gone starts empty, and the copy below is the way back.
+rm -rf "$CURRENT.next/trees"
+
+echo "== copy the data directory"
+# Named by the time and the commit checked out above, so a branch name given to this script
+# still names its commit. A failed copy stops the deploy: the running release keeps serving.
+label="pre-deploy-$(date -u +%Y%m%dT%H%M%SZ)-$(git rev-parse --short=12 HEAD)"
+if ! "$here/snapshot.sh" "$DATA" "$BACKUPS" "$label"; then
+  echo "the copy of $DATA failed: nothing swapped, nothing restarted, $SERVICE keeps serving" >&2
+  exit 1
+fi
+
+echo "== swap"
 if [ -d "$CURRENT" ]; then
   rm -rf "$CURRENT.prev"
   mv "$CURRENT" "$CURRENT.prev"

@@ -2,6 +2,9 @@
 
 - Status: ACCEPTED (frozen) -- 2026-10-03; decides core document 10.39 (which address the
   administrator logs in with, and how a deployment supplies it) and amends 10.32
+- **[#254] Redacted (2026-10-13)**: the owner's address is no longer spelled out in Context or
+  in the rejected alternative, and the demo server is "on the owner's workstation", where its
+  network name stood.
 - Issue: #195 -- Architecture: freeze the login by e-mail address and password, and the
   mention of who authored a Tree, the collaborators in the order they joined it
 - Spec: `docs/specs/application.md` 38.3, 38.9 (new); 17.1, 20.3, 35.2 amended, marked
@@ -28,7 +31,7 @@ remove (`ADR-132-accounts-and-sessions.md` decision 5).
 
 The owner's words make no exception (core document 3.4 `[#194]`): the administrator logs in
 with an e-mail address and a password, like every account. The owner gave no address for it:
-the one the owner gave, idse.val@wur.nl, is for an account of the owner's own, "next to the
+the one the owner gave is for an account of the owner's own, "next to the
 admin account" (#194; #198 makes it). Which address the administrator logs in with is a value
 of each deployment, and nothing the repository can know.
 
@@ -75,7 +78,7 @@ of each deployment, and nothing the repository can know.
    finds them all. `example.org` is reserved for examples (RFC 2606).
 
 6. **The live demo server's address is a value only the owner can choose.** That server -- the
-   production build of `dev` behind http://petercelie:3000 -- holds one account, the
+   production build of `dev` on the owner's workstation -- holds one account, the
    administrator, with a user name (measured on #194). The first start of a release that
    carries #196 refuses there until the variable is set (decision 1, third and fourth rows).
    #198 asks the owner for the address on #198, with `needs-human`, before it brings that
@@ -107,7 +110,7 @@ of each deployment, and nothing the repository can know.
   variable anyway. An upgrade is a start a deployer is present for: a refusal that names the
   variable is read at once, where an admin area nobody can enter is found when someone next
   needs it.
-- **The owner's address, idse.val@wur.nl, for the administrator.** The owner gave it for an
+- **The owner's address for the administrator.** The owner gave it for an
   account of the owner's own, beside the administrator's (#194, #198).
 
 ## Consequences

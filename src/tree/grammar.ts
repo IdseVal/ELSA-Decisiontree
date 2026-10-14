@@ -23,9 +23,29 @@ export function isId(value: unknown): value is string {
   return typeof value === 'string' && value.length <= 64 && ID.test(value)
 }
 
+/**
+ * **[#242]** A link typed without its scheme: no white space, and a dot with a character on
+ * each side before the first `/`, `?` or `#` (28.1, amended). `://` is refused apart.
+ */
+const SCHEMELESS = /^[^\s/?#]+\.[^\s/?#]+(?:[/?#]\S*)?$/
+
 /** An absolute http(s) URL as the schema's `url` reads it (V-SOURCE, blocking): what a Source needs before it exists. */
 export function isUrl(value: unknown): value is string {
   return typeof value === 'string' && URL_PATTERN.test(value)
+}
+
+/**
+ * **[#242]** The URL the add-Source Sheet sends for `text` (28.1, amended), or null when it
+ * sends nothing: a URL of the grammar as typed, or a link typed without a scheme with
+ * `https://` in front, where before such a link was refused without a word (#241). What it
+ * answers passes `isUrl`; the grammar itself does not change.
+ */
+export function linkOf(text: string): string | null {
+  const typed = text.trim()
+  if (URL_PATTERN.test(typed)) return typed
+  if (typed.includes('://') || !SCHEMELESS.test(typed)) return null
+  const link = `https://${typed}`
+  return URL_PATTERN.test(link) ? link : null
 }
 
 /**

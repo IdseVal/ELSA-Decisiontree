@@ -1,7 +1,8 @@
 /**
  * **[#139]** The structure editing, in a browser (docs/specs/application.md 30, 35.4;
  * ADR-133-structure-editing): from an empty root, **[#233]** the one `+` with the words "Yes"
- * lands on a new empty Node whose up arrow returns; **[#233]** the `+` Sheet's switch
+ * makes a new empty Node -- **[#243]** the editor staying on the root, the new button followed to
+ * reach it -- whose up arrow returns; **[#233]** the `+` Sheet's switch
  * `treeEndsHere` asks for the ending's words, **[#179]** one field stopping at
  * 19 characters, and the badge is then their field (36.3); the side `+` opens the new
  * Overlay editable and the Option's title edits on the button, and **[#177]** a second-level
@@ -29,7 +30,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type APIResponse, type Browser, type Locator, type Page } from '@playwright/test'
 import type { DraftNode, Violation } from '../../src/tree/types.ts'
-import { ADMIN_ENV, buildDataDir, login, plusOf, typeInPlus } from './admin.ts'
+import { ADMIN_ENV, addAndFollow, buildDataDir, login, plusOf, typeInPlus } from './admin.ts'
 import { BASE_PORT, serveStore, stopServers } from './serve.ts'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
@@ -123,9 +124,14 @@ async function endHere(page: Page, words: string): Promise<void> {
   await form.getByRole('button', { name: 'Confirm' }).click()
 }
 
-/** **[#233]** A next step of the centre with `words` on its button, through the `+` and Enter; `landed` follows it (42.7 item 3). */
-async function addNextStep(page: Page, words: string): Promise<void> {
-  await (await typeInPlus(page, words)).getByRole('textbox').press('Enter')
+/**
+ * **[#233]** A next step of the centre with `words` on its button, through the `+` and Enter (42.7
+ * item 3); **[#243]** the editor stays on the step, so the story follows the new button to edit it.
+ */
+async function stepTo(page: Page, words: string): Promise<string> {
+  const id = await addAndFollow(page, words)
+  made.push(id)
+  return id
 }
 
 /** **[#233]** The `+` Sheet's page while it is open (42.7 item 2). */
@@ -171,12 +177,11 @@ test('the empty root offers **[#233]** the one +; a next step "Yes" lands on a n
   await page.goto(editor(['start']))
   await expectChoice(page)
   // ~~No neighbour frames and nothing slides in the editor (34.5).~~ **[#234]** A root without next
-  // steps has nothing that slides: the `+` creates, and its new step has no frame (42.8).
+  // steps has nothing that slides: the `+` creates (42.8).
   await expect(page.locator('[data-slide]')).toHaveCount(0)
   await shoot(page, 'empty-node-choice')
 
-  await addNextStep(page, 'Yes')
-  q1 = await landed(page, `/admin/trees/${TREE}/start`)
+  q1 = await stepTo(page, 'Yes')
   // The new Node arrives empty: no title, no description, the `+`, the up arrow back (30.2).
   await expect(page.locator('h1 textarea')).toHaveValue('')
   // **[#172]** The empty description names what belongs in it (28.2, amended).
@@ -270,19 +275,16 @@ test('**[#179]** treeEndsHere asks for the ending\'s words and makes the Node a 
 test('**[#233]** the + with the words "No" makes the second Answer; the new Node gets its own two Answers, each ended; the parent row then holds the two and the + (30.1, 30.2, 42.7)', async ({ browser }) => {
   const { page, cookie } = await loggedIn(browser)
   await page.goto(editor(['start']))
-  await addNextStep(page, 'No')
-  n2 = await landed(page, `/admin/trees/${TREE}/start`)
+  n2 = await stepTo(page, 'No')
   await expectChoice(page)
 
-  await addNextStep(page, 'Yes')
-  n2a = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
+  n2a = await stepTo(page, 'Yes')
   await endHere(page, 'Prohibited')
   await expect(badge(page, n2a).locator('textarea')).toHaveValue('Prohibited')
   await page.locator('.up-arrow').click()
   await expect(page).toHaveURL(editor(['start', n2]))
 
-  await addNextStep(page, 'No')
-  n2b = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
+  n2b = await stepTo(page, 'No')
   await endHere(page, 'Look elsewhere')
   await expect(badge(page, n2b).locator('textarea')).toHaveValue('Look elsewhere')
   await page.locator('.up-arrow').click()
@@ -381,8 +383,7 @@ test('**[#178]** the red cross on the step a yes leads to: one confirmation name
   expect((await api(page, cookie, 'GET', `/trees/${TREE}/nodes/${n2a}`)).status()).toBe(404)
   expect((await nodeOf(page, cookie, n2)).answers).toEqual([{ label: { en: 'No' }, target: q1 }])
 
-  await addNextStep(page, 'Yes')
-  n2c = await landed(page, `/admin/trees/${TREE}/start/${n2}`)
+  n2c = await stepTo(page, 'Yes')
   await expectChoice(page)
   await endHere(page, 'Does not apply')
   await expect(badge(page, n2c).locator('textarea')).toHaveValue('Does not apply')

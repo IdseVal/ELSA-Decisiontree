@@ -1058,8 +1058,12 @@ deploy; an hour of a stale font is the same trade the images make.
 ├── package.json  package-lock.json  next.config.ts  tsconfig.json  vitest.config.ts
 ├── playwright.config.ts     [v0.2] in the contract now (7)
 ├── .nvmrc  .env.development
-└── .orca/ .claude/ .github/ .devcontainer/   agent workflow (unchanged)
+└── .orca/ .claude/ .github/   agent workflow (unchanged)
 ```
+
+**[#254]** (2026-10-13) `.devcontainer/` is deleted: the setup's generic template, which no script, workflow or
+test used. So are the setup documents v0.2.2 to v0.2.12 at the root; v0.2.13 stays
+(`docs/adrs/ADR-247-small-additions-round.md`).
 
 **[#75] Gone with #78:** `CarouselButtons.tsx` (the strip has no buttons, 12.2) and the
 `Trail` function of `TreeView.tsx` (the up arrow replaces it, 10.2). **New:** `Explainer.tsx`,
@@ -3365,6 +3369,17 @@ transaction across two files and nothing needs one.
 
 **[#231]** (2026-10-10) And an `elsa-tree/6` file by `tree-format.md` 12.9 after 12.8 (12.9.4).
 
+**[#252]** (2026-10-13) On the shared box (`docs/hosting-shared-box.md`), the deploy takes the
+copy this section's "Back the directory up before the first start" asks for, before every
+release, not only one that carries a conversion: `deploy/shared-box/deploy.sh` runs
+`snapshot.sh` after the build and before the swap, writing
+`/srv/elsa/backups/pre-deploy-<UTC time>-<commit>.tar.gz` (the ten newest kept), and stops before
+the swap if the copy fails. The release there carries no seed: `deploy.sh` takes `trees/` out of
+it, so 17.1's default `ELSA_SEED_DIR` does not exist on the box, and a data directory without
+`trees/` starts empty rather than with the repository's Trees. A plain server and a container still
+seed from the release (`docs/deployment.md`). The rule is core document section 9 `[#247]`;
+`docs/adrs/ADR-252-a-release-keeps-the-data.md`.
+
 ### 17.5 The seam: `src/store/`
 
 The one module that opens a file under `ELSA_DATA_DIR`. Routes call it; components never
@@ -4228,10 +4243,10 @@ published Tree's preview is a 307 to its editor at the same path and `?lang`; an
 |---|---|---|---|
 | Public Node page | **[#204]** (2026-10-09) #163's arrow, `toOverview`, a link to the public overview in the chrome language, which #164 added and this row did not name; then the Tree's logo or title; **[#195]** (2026-10-03) then the mention of its Authors, between the mark and the controls (39.4) | language switch, share button; **[#204]** (2026-10-09) then `editor` ("Editor"), a link to `/admin` in the chrome language, in the share button's look, last. Below 768 pixels wide the switch gives up the current language's pill with its list item, and in a Tree of one language the whole switch (10.5) | The published Tree's |
 | Public overview `/` | `siteTitle` as text | language switch; **[#204]** (2026-10-09) then `editor`, as on a Node page, last. The current language's pill at every width | The default (13.4) |
-| Login page | `siteTitle` | language switch; **[#204]** (2026-10-09) at the address `/admin` only, then `website` ("Website"), a link to the public overview in the chrome language (`/`, `/?lang=nl`), in the `account` link's look, last. Not on the login page shown at any other admin address | The default |
-| **[#204]** (2026-10-09) Creators' overview, `/admin` with a session | `siteTitle`, not drawn below 600 pixels wide | language switch, its current language's pill not drawn below 600; `account`, `accounts` (administrator only) and `logout`, as in the row below; then `website`, as on the login page, last | The default |
-| ~~Creators' overview,~~ **[#204]** (2026-10-09) `/admin/new`, `/admin/account`, `/admin/accounts` | `siteTitle` | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout` | The default |
-| The editor | **[#203]** (2026-10-04) The arrow of #163, `toOverview`, a link to the creators' overview `/admin` in the chrome language; then the draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). **[#205]** (2026-10-04) On a hidden Tree the preview button floats under the bar at the top left, not in it (40.5). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4); **[#205]** the preview button too |
+| Login page | `siteTitle` | language switch; **[#204]** (2026-10-09) at the address `/admin` only, then `website` ("Website"), a link to the public overview in the chrome language (`/`, `/?lang=nl`), in ~~the `account` link's look~~ **[#249]** (2026-10-13) `editor`'s look (the share button's), last. Not on the login page shown at any other admin address | The default |
+| **[#204]** (2026-10-09) Creators' overview, `/admin` with a session | `siteTitle`, not drawn below ~~600~~ **[#249]** (2026-10-13) 660 pixels wide | language switch, its current language's pill not drawn below ~~600~~ **[#249]** 660; `account`, `accounts` (administrator only) and `logout`, as in the row below; then `website`, as on the login page, last. **[#249]** All four in `editor`'s look (the share button's) | The default |
+| ~~Creators' overview,~~ **[#204]** (2026-10-09) `/admin/new`, `/admin/account`, `/admin/accounts` | **[#253]** (2026-10-13) On `/admin/account` and `/admin/accounts`, #163's arrow first, `toOverview`, a link to the creators' overview `/admin` in the chrome language, as the editor's bar begins; held with `siteTitle` in one `.page-brand` group. Not on `/admin/new`. Then `siteTitle`, not drawn below 620 pixels wide on those two pages (the note below) | language switch, ~~the caller's name (a link to `/admin/account`)~~ **[#176]** `account` ("Account"), a link to `/admin/account` whose description and tooltip is the caller's name, `accounts` (administrator only, a link), `logout`. **[#249]** (2026-10-13) `account`, `accounts` and `logout` in `editor`'s look (the share button's), not as links | The default |
+| The editor | **[#203]** (2026-10-04) The arrow of #163, `toOverview`, a link to the creators' overview `/admin` in the chrome language; then the draft's logo or title, as the public page | language switch (28.2), the autosave indicator (29.3), ~~the panel button (33.1), the caller's name~~ **[#176]** `account` as above, `logout`; **[#249]** (2026-10-13) both in the link look (`.admin-link`), not in `editor`'s. **No share button.** **[#176]** The to-do control and the panel's button float under the bar, not in it (33.1, 33.3). **[#205]** (2026-10-04) On a hidden Tree the preview button floats under the bar at the top left, not in it (40.5). | **The draft's**; **[#180]** on the Tree only: the bar, the floating controls and every editor Sheet the default (13.4); **[#205]** the preview button too |
 | **[#205]** (2026-10-04) The preview of a hidden Tree (40.4) | #163's arrow, leading to `/admin`; the draft's logo or title, as the public page; then the mention of its Authors (39.4) | language switch, the current language's pill at every width. **No share button, no "Editor".** The way back floats under the bar at the top left, not in it (40.5). | **The draft's**, on the whole page as on a public page; the way back the default (13.4) |
 | The 404 and 403 pages; **[#213]** (2026-10-04) and an uneditable Tree's (19.5), which had no bar and was laid out in the bar's row | `siteTitle` | language switch | The default |
 
@@ -4240,13 +4255,27 @@ current language's pill (not a link, and the language on screen) so that the swi
 name, `accounts` and `logout` fit 320 pixels; the name is cut with an ellipsis where it does
 not fit and carries `data-clamp`, which `admin-no-scroll.spec.ts` reads as the overview's
 walk reads a tile's title (26.1).
+**[#249]** (2026-10-13) With a session, `/admin/new`, `/admin/account` and `/admin/accounts` give up `siteTitle` and
+the current language's pill below 600 pixels wide, not 480, for the room of `account`, `accounts`
+and `logout` in `editor`'s look; the login page and the 403 page, which hold no account controls,
+keep 480.
+**[#253]** (2026-10-13) `/admin/account` and `/admin/accounts`, whose bar begins with #163's arrow,
+give up both below 620 pixels wide, not 600, for the arrow's room; the rule is keyed to the arrow
+(`:has(.back-to-overview)`), so `/admin/new` keeps 600. Swept at every width from 320 to 1000 at
+800 high, in English and Dutch, on `/admin/account` as a creator and as the administrator and on
+`/admin/accounts` as the administrator: with the cut at 600 the administrator's bar, which holds
+`accounts`, drew the title on two lines from 600 to 603 pixels wide in Dutch on Windows, and from
+600 to 610 in English and to 614 in Dutch in the CI runner's faces (Liberation Sans); with the cut
+at 620 no width fails in either. Recorded in `docs/adrs/ADR-253-way-back-from-the-account-pages.md`.
 **[#204]** (2026-10-09) The bar at `/admin` -- the login page there and the creators' overview --
 keeps its controls at its right end at every width, below 480 too, where the title they stood
 beside is not drawn: `website` ends that bar as "Editor" ends the public pages' bars. The
-creators' overview gives up the title and the current language's pill below 600 pixels wide
-instead of 480, for `website`'s room; below 480 `website` stands 8 pixels from `logout`, as the
-account links stand from each other. `/admin/new`, `/admin/account` and `/admin/accounts` keep this
-note's rule as it is.
+creators' overview gives up the title and the current language's pill below ~~600~~ **[#249]** 660
+pixels wide instead of 480, for `website`'s room; below 480 `website` stands ~~8 pixels from `logout`,
+as the account links stand from each other~~ **[#249]** (2026-10-13) 4 pixels from `logout`, and the account controls 4
+from each other. ~~`/admin/new`, `/admin/account` and `/admin/accounts` keep this note's rule as it
+is.~~ **[#249]** (2026-10-13) `/admin/new`, `/admin/account` and `/admin/accounts` give up both below 600 (the `[#135]`
+note); **[#253]** (2026-10-13) `/admin/account` and `/admin/accounts` below 620 (the same note).
 
 **[#176], changed by the owner -- 2026-10-02** (#169: "next to it it says adminstrator, make it
 say 'Account' or at least make it say what it is"). On every admin page with a session -- the
@@ -4332,8 +4361,8 @@ the login page without a session and the creators' overview with one (24.1, 24.2
 page reads no cookie (20.5). It carries the chrome language's `lang` where the page's content
 language is another, as #163's arrow does; a Tree in a language the chrome does not speak gets
 "Editor" and `/admin` in English (3.1). The bar at `/admin`, on the login page and on the
-creators' overview, ends with `website`, "Website" in both languages, in the `account` link's
-look: a link to the public overview, `/` or `/?lang=nl`, the top of the public pages, rather than
+creators' overview, ends with `website`, "Website" in both languages, in ~~the `account` link's
+look~~ **[#249]** (2026-10-13) `editor`'s look: a link to the public overview, `/` or `/?lang=nl`, the top of the public pages, rather than
 to the page the visitor came from, since `/admin` is also opened from a bookmark or a typed
 address. No other admin page carries it, nor the login page shown at another admin address. That
 these are the pages the owner meant, and these the words, places and looks, is the PROPOSED
@@ -4346,8 +4375,11 @@ two for a Tree's title as text -- in the overview's bar; in a Node page's beside
 Tree's logo, the first Tree's, an 80-character title and three Authors of 80 characters; and in
 the bar at `/admin`, on the login page and on the administrator's creators' overview. The least
 room left between a logo and the controls is 24.9 pixels on a Node page (the first Tree, in
-English, at 480 x 800) and 14.2 on the creators' overview (in English, at 320 x 480); at 600 x 800
-the creators' overview keeps 54.1 pixels beside its title in English and 46.7 in Dutch. Beside a
+English, at 480 x 800) and ~~14.2~~ **[#249]** (2026-10-13) 7.5 on the creators' overview (in English, at 320 x 480;
+18.2 in Dutch); ~~at 600 x 800 the creators' overview keeps 54.1 pixels beside its title in English
+and 46.7 in Dutch~~ **[#249]** at 660 x 800 the creators' overview keeps 24.7 pixels beside its
+title in English and 18.3 in Dutch, and at 600 x 800 `/admin/new`, `/admin/account` and
+`/admin/accounts` 43.1 and 36.7 (Windows' faces; the measurements of the `[#249]` note below). Beside a
 copy of the first Tree whose logo is drawn at its cap of 288 pixels, the bar holds at 767 x 800,
 without the current language's pill (143.7 pixels of room in English, 153.7 in Dutch), and at
 768 x 1024, with it (75.0 and 59.8). A Tree of three languages or more, and one whose current
@@ -4355,6 +4387,34 @@ language's name is drawn narrower than "English", were not measured: whether its
 core document 10.42's question to the owner. `no-scroll.spec.ts` and `admin-no-scroll.spec.ts`
 keep these bars; `editor-and-website.spec.ts` the links, their addresses and what each bar gives
 up.
+
+**[#249], the owner's #248 -- 2026-10-13** ("Make the buttons for account accounts log out, and
+website in the header bar on /admin look the same as the editor button looks in the regular view
+(with the line around it, more like a real button)"). In `AdminChrome`'s bar -- the login page and
+the creators' overview at `/admin`, `/admin/new`, `/admin/account` and `/admin/accounts` --
+`account`, `accounts`, `logout` and `website` take `editor`'s look at every width: a pill with a
+thin line around it, its smaller size below 480 pixels wide and its hover included. The editor's bar
+keeps `account` and `logout` as links, and every `.admin-link` inside a page keeps its look. The
+pills are wider than the links: "Account" is 69.5 pixels at 1280 where it was 47.1. Their room is
+made by the cuts in the rows and notes above: with a session the Tree-less admin pages give up
+`siteTitle` and the current language's pill below 600, the creators' overview below 660, and below
+480 the controls stand 4 apart. That these are the controls and the bar the owner meant, the look
+`editor`'s at every width, and the room made there, is the PROPOSED reading of core document 3.4
+`[#248]` (`ADR-248-admin-bar-buttons-round.md`, decisions 2 to 4). Measured on the build of #249,
+at every width from 320 to 1000 pixels at a height of 800, in English and Dutch, as the
+administrator, with `tests/browser/bar.ts`'s checks, on the login page, the creators' overview,
+`/admin/new`, `/admin/account` and `/admin/accounts`: no width fails on any of them, in Windows'
+faces (Segoe UI) and in the CI runner's (Ubuntu 24.04, its release, where the default stack draws
+Liberation Sans). The least room left before the controls is 7.5 pixels on the creators'
+overview in English at 320 (18.2 in Dutch), and in the CI runner's faces 6.5 in English at 320
+and 6.2 in Dutch at 660; the login page keeps 85.8 at 480 (90.8 in Dutch). This also ends the site's title taking two lines on
+`/admin/new`, `/admin/account` and `/admin/accounts` from 480 to 489 pixels wide in English and to
+497 in Dutch, as it did before #249. `admin-no-scroll.spec.ts` keeps the bar at `/admin` at 659
+and 660 wide too, and ~~the bar of `/admin/accounts`~~ **[#253]** (2026-10-13) the bars of
+`/admin/new` as the administrator, without the arrow, and of `/admin/account` (a creator's and the
+administrator's) and `/admin/accounts`, with it, at 10.6's viewports, at `BAR_SIZES`, ~~and~~ at 489
+and 497, **[#253]** and either side of their cut, 599 and 600 or 619 and 620;
+`editor-and-website.spec.ts` the look, at rest and hovered, against `editor`'s.
 
 The disclaimer footer stands on every page. **Every page emits its own Theme, once**, through
 one server component `ThemeStyle`; the root layout emits none (13.1, amended). `<html lang>`
@@ -4582,7 +4642,7 @@ path of 22.2 and the limit of 5.7:
 | The text | description | `description.<lang>` | 150 and 2 lines, rich (28.5) |
 | Each Source's line | label | `sources[i].label.<lang>` | 60, plain |
 | A Source's `...` Sheet | kind (a select), URL, `removeSource` | `sources[i].kind`, `sources[i].url` | -- |
-| After the last Source | `+ addSource` (absent at 3): a Sheet holding the kind and the URL, the URL focused | `add-source` with an empty label, the kind chosen and the URL typed; **[#138] as built**, nothing is sent before a URL of the schema's grammar is typed, because the schema requires one and a made-up address would be silent content | -- |
+| After the last Source | `+ addSource` (absent at 3): a Sheet holding the kind and the URL, the URL focused | `add-source` with an empty label, the kind chosen and the URL typed; **[#138] as built**, nothing is sent before a URL of the schema's grammar is typed, because the schema requires one and a made-up address would be silent content. **[#242]** (2026-10-12, PROPOSED, #242 points 2 and 3; the owner asked that adding a Source work, #241) A text with no `://` anywhere and no white space, whose part before the first `/`, `?` or `#` holds a dot with a character on each side (`www.example.org`, `eur-lex.europa.eu/eli/reg/2024/1689/oj`), is sent with `https://` in front, and the Source's own URL field then shows it so; every other text that is not of the grammar stays refused (`abc`, `ftp://x`, `HTTPS://example.org`, `not a link`). The grammar does not change: what is stored still passes it. The Link field shows `placeholderUrl`; while nothing can be sent, the button is drawn disabled, as a disabled `.admin-submit` is in the other Sheets (`opacity: 0.6; cursor: default`); once something that is not a link is typed, a line under the field, the chrome word `sourceUrlHint`, says what it needs, and the field names it by `aria-describedby` | -- |
 | The rim of a Terminal | outcome, a select drawn as the badge | `terminal.outcome` | -- |
 | **[#171]** The rim of a Terminal, in place of the row above | the ending's words, a plain field drawn as the badge (36.3) | `terminal.label.<lang>` | 19, plain |
 | An Option button | the Option's title | `options[i].title.<lang>` | 60, plain |
@@ -4892,6 +4952,11 @@ buttons); its id is the server's (22.4), never proposed by the editor.
 **[#231]** (2026-10-10) From #233 only the `+`'s Sheet sends the words: `+ Yes` and `+ No` are gone (42.7 item
 3). From #234 following a next step's button slides (42.8); creating one still navigates without a
 slide, since the new step has no frame in the page.
+
+**[#243]** (2026-10-12) For a next step, the editor no longer navigates: it stays on the step whose `+` was
+pressed, and the page repaints with the new button in the row (42.7 item 3; the owner, core document 3.4
+`[#241]`; `docs/adrs/ADR-243-stay-on-the-step.md`). The new step is reached by following its button,
+which slides (42.8). The side-bubble `+` still navigates to the aside it made (30.4).
 
 ### 30.3 Ending
 
@@ -5404,6 +5469,38 @@ clear of the cross. `creation-walk.spec.ts` audits both boxes at every scroll po
 `floating-controls.spec.ts` walks the focus up both with Shift+Tab under every heading the
 bubble shows, in both languages, at 1280 x 640, 1920 x 1080, 390 x 844 and 360 x 640.
 
+**[#251] Amended 2026-10-13:** the creator deletes their own hidden Tree from "This Tree" (33.5);
+the administrator's `deleteTree` stays in the Administrator section (33.6). The owner asked for
+the ability (core document 3.4 `[#247]`); the place is PROPOSED there and recorded in
+`docs/adrs/ADR-251-creator-deletes.md`. The two lower sections, as the creator sees them:
+
+```
+|  THIS TREE                           |
+|  Languages  EN NL                    |
+|  Tree id  hidden-draft               |
+|  [Delete this tree]  (hidden only)   |  <- the creator only
+|  THEME                               |
+|--------------------------------------|
+```
+
+and as the administrator sees them, on every Tree, whoever created it:
+
+```
+|  THIS TREE                           |
+|  Languages  EN NL                    |
+|  Tree id  hidden-draft               |
+|  THEME                               |
+|--------------------------------------|
+|  ADMINISTRATOR                       |  <- the administrator only
+|  Hand over to [ account v ] [Go]     |
+|  [Delete this tree]  (hidden only)   |
++--------------------------------------+
+```
+
+A collaborator sees neither button. A page's role is one of the three (21.1), and the
+administrator's wins over any other it has, so the administrator sees one `deleteTree`, also on a
+Tree it created.
+
 ### 33.3 Publish
 
 A `role="switch"` labelled `publish`. **On** → `PUT .../published { published: true }`: 200 →
@@ -5474,11 +5571,25 @@ when that is now the default, or at the default's when it was removed; the rim's
 follow the declared languages; the id; the public link when published. **[#144]** The Theme panel of 33.8 closes the
 section.
 
+**[#251]** (2026-10-13) For the creator, `deleteTree` stands after the id and the public link and
+before the Theme panel, whose `<h4>` and `<h5>` headings would otherwise take it into the Theme's
+outline. It is 33.6's control, the same words and the same behaviour: enabled while the Tree is
+hidden, disabled while published with `unpublishFirst` beside it as its description (21.2's two
+steps); asking once in place (`confirmDeleteTree`, `confirm`, `cancel`); `DELETE .../trees/<t>`; a
+204 goes to `/admin` in the chrome language, and anything else shows `requestFailed` under the
+button. The administrator and a collaborator have no `deleteTree` here. After the creator's own
+hand-over the panel turns them into a collaborator (33.4), and the button goes with the role; the
+new creator finds it on their next visit. `docs/adrs/ADR-251-creator-deletes.md`.
+
 ### 33.6 Administrator
 
 The administrator only: `handOver` (every active account) and `deleteTree`, enabled while
 hidden and disabled with `unpublishFirst` while published (21.2), asking once
 (`confirmDeleteTree`) → `DELETE .../trees/<t>` → `/admin`.
+
+**[#251]** (2026-10-13) "The administrator only" holds of this section. The creator's own
+`deleteTree` is in "This Tree" (33.5), the same control. A failed `DELETE` shows `requestFailed`
+under the button that sent it, in either section.
 
 ### 33.7 Not here
 
@@ -6159,8 +6270,9 @@ document 10.39. Recorded in `docs/adrs/ADR-195-login-by-email-address.md`,
   before the `@`. The pattern is ASCII, so every address is.
 - **Lower-cased on entry, then compared byte for byte.** Every upper-case ASCII letter is
   lowered wherever an address is given -- a creation, a change, `ELSA_ADMIN_EMAIL` (38.3), a
-  login -- so `Idse.Val@WUR.nl` and `idse.val@wur.nl` are one address, stored once, in the
-  second form.
+  login -- so `Anna.Smit@EXAMPLE.org` and `anna.smit@example.org` are one address, stored
+  once, in the second form. **[#254]** (2026-10-13) An `example.org` address in place of the owner's, here
+  and in the table below.
 - **One account per address**, deactivated accounts included: an address names one account,
   and a deactivated account may be reactivated with it (20.1). An address another account
   holds is refused, 422 `email-taken` at the field.
@@ -6174,8 +6286,8 @@ document 10.39. Recorded in `docs/adrs/ADR-195-login-by-email-address.md`,
 
 | Given | `normaliseEmail` answers |
 |---|---|
-| `idse.val@wur.nl` | `idse.val@wur.nl` |
-| ` Idse.Val@WUR.nl ` (white space around it), or with a line break inside it | `idse.val@wur.nl` |
+| `anna.smit@example.org` | `anna.smit@example.org` |
+| ` Anna.Smit@EXAMPLE.org ` (white space around it), or with a line break inside it | `anna.smit@example.org` |
 | `anna+trees@example.org`, `o'brien@example.org` | the same |
 | `bram@localhost` (no dot in the domain) | the same |
 | an address of 254 characters | the same, lower-cased |
@@ -6267,7 +6379,8 @@ and a creation 422 `email-invalid`.
   test starts sets `ELSA_ADMIN_EMAIL=admin@example.org`, a domain RFC 2606 reserves for
   examples (38.10).
 - **The live demo server's address is the owner's to choose.** That server, the production
-  build of `dev` at http://petercelie:3000, holds one account, the administrator, with the
+  build of `dev` on the owner's workstation (**[#254]** (2026-10-13): its network name stood
+  here), holds one account, the administrator, with the
   user name `admin` (measured on #194). The first start of a release that carries #196 refuses
   there until the variable is set. #198 asks the owner for the address on #198, with
   `needs-human`, before it brings the server to that release, and never chooses one itself.
@@ -7220,6 +7333,10 @@ starts, not the list.
 Yes`, `+ No` or row `treeEndsHere`; the `+`'s Sheet holds the switch. Item 8's notice holds for a row
 of three or four buttons and 42.4's for five. Items 4 to 7 stand.
 
+**[#243]** (2026-10-12) Item 3's "the editor navigates to the new Node" no longer holds: the editor stays on
+the step and the page repaints with the new next step in the row (42.7 item 3,
+`docs/adrs/ADR-243-stay-on-the-step.md`).
+
 ### 41.8 What does not change
 
 The Options beside the Bubble, their count of eight, their fan and their Overlay; the Terminal,
@@ -7434,6 +7551,15 @@ number (core document 3.4 `[#230]`'s reading, confirmed; the table is
    .../nodes { from: { node, link: 'end', label: { <lang>: <text> } } }`, as 36.3; the page repaints
    with the badge as the field and `startAgain`. Both are the structural writes of 22.4 as they stand;
    no write changes but the count: a sixth next step is 422 with V-ANSWERS.
+   - **[#243]** (2026-10-12) **The switch off no longer navigates** (the owner, core document 3.4
+     `[#241]`: "the view stays on the panel where the user was editing"; PROPOSED, the step whose `+`
+     was pressed; `docs/adrs/ADR-243-stay-on-the-step.md`). Once the write is accepted the Sheet
+     closes, the address stays the same, and the page repaints from the response as with the switch
+     on (`router.refresh()`, 29.7): the row shows the new next step's button, its words a field in
+     place, after the others, and the `+` after it while the step has fewer than five (item 1). The
+     focus goes to the `+`, where Escape puts it when the Sheet is closed by hand; at five, where no
+     `+` stands, to the new next step's words on its button. A refusal is shown in the Sheet, which
+     stays open with the words.
 4. **A step with Options** keeps the switch: confirmed on, the store's 422 (V-TERMINAL) is shown in
    the Sheet as 30.3 and 36.3 show it today, and the switch and the words stay, so that the creator
    can turn the switch off and add a next step instead.
@@ -7498,6 +7624,11 @@ rule, and the way back retraces it.
   during a slide navigates at once, as 11.3 has it.
 - **Creating a next step does not slide**: the new step did not exist when the page was drawn, so no
   frame of it stands ready; the editor goes to it by a plain navigation, as today (42.7 item 3).
+  **[#243]** (2026-10-12) No longer: creating a next step goes nowhere, and the editor stays on the
+  step (42.7 item 3). The page drawn again after the write reads the draft with the new Answer, so
+  `editorNeighbours` places the new step's frame and its button slides, as its siblings' buttons do
+  (PROPOSED, `docs/adrs/ADR-243-stay-on-the-step.md`; measured at 1280 x 640 and 999 x 640 by
+  `tests/browser/stay-on-step.spec.ts`).
 - 34.5's "no neighbour frames, no `data-slide`" no longer holds for the editor's page; the rest of
   34.5 stands: no JSON-LD, `hreflang`, canonical or dataset link, no share button, no mention of the
   Authors.
@@ -7538,3 +7669,9 @@ and in the preview, and 41.7 item 8's for three or four buttons in the editor.
   click on a next step's words or arrows does not slide; no slide while `retrying`; a write failing
   while a slide waits undoes it, nothing navigating; `imports.test.ts` with `slide-gate.ts`; the
   page's bound of eighteen; `prefers-reduced-motion`; `admin-no-scroll.spec.ts` mid-slide, every Sheet closed.
+- **[#243]** (2026-10-12): `stay-on-step.spec.ts`, at 1280 x 640 and 999 x 640, on a step without Links,
+  a step of three and a step of four: after `confirm` with words typed the address is unchanged, the
+  Sheet closed, the row shows the new button with its words, the store holds the new Answer last, a
+  title typed just before is stored, the focus is on the `+` (at five, with no `+`, on the new words),
+  and following the new button slides to the new step; a refusal stays in the open Sheet; the switch
+  on still ends the step on the same page.
