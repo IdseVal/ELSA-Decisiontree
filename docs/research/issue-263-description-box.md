@@ -101,20 +101,20 @@ platform (4 pages x 2 languages x 20 viewports x 6 states), in 1 min 52 s on Win
   Sans, the whole text, and 188.4 of 192 in Dutch; in an Overlay without Options, the whole 192.
 - **Below 632 pixels tall and 792 wide** the picture is hidden by 10.5's step 5, as on `dev`, so
   the fraction changes nothing there: the box takes what the text area leaves, from 135 (six
-  lines, 791 x 800) to 234 (twelve, 390 x 844), and 157.5 at 1280 x 505, where step 7 has set
-  the type at 15 on 22.5.
+  lines, the Overlays at 791 x 800 and 768 x 1024) to 273 (fourteen, `annex-i-legislation` in
+  Dutch at 390 x 844), and 157.5 at 1280 x 505, where step 7 has set the type at 15 on 22.5.
 - **The box never came near its two-line minimum.** Its smallest height in any one-fifth row is
   the 104.9 at 1280 x 640 on both platforms; the foot never gave way to it (where the foot is
   less than 24 below 640 pixels tall, it is `--foot`'s own value for a shorter text area, 3.75
   at 1280 x 506). In 59 of the 228 one-fifth Interiors on each platform the text was taller than
   the box and scrolled.
 - **Linux equals Windows** in every cell of the third table, to the hundredth of a pixel. In
-  the fourth, seven cells differ, all below 792 pixels wide: Linux sets the filler a line
+  the fourth, eight cells differ, all below 792 pixels wide: Linux sets the filler a line
   shorter than Windows there -- the full Node in English at 360 x 640 (Liberation Sans against
-  Segoe UI), the first Tree's Overlay in Dutch at 768 x 1024, 390 x 844, 360 x 640 and
-  791 x 800, and its `annex-i-legislation` in Dutch at 390 x 844 and 360 x 640 (Open Sans on
-  both) -- so the whole text is a line shorter; where the box scrolls,
-  its own height differs by 0.02 at most.
+  Segoe UI); the first Tree's `annex-i-legislation` in Dutch at 390 x 844 and 360 x 640; and its
+  Overlay in English at 390 x 844 and 360 x 640 and in Dutch at 768 x 1024, 360 x 640 and
+  791 x 800 (Open Sans on both) -- so the whole text is a line shorter; where the box scrolls on
+  both, its own height differs by 0.02 at most.
 
 ## 3. The tables
 

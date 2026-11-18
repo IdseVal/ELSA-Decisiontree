@@ -61,8 +61,9 @@ starts. The owner's Trees on the live server were written to 150 counted charact
    server: merging #264 into `dev` deploys nothing, and the live server takes a release when
    `main` is pushed (`docs/hosting-shared-box.md`, "Deploying from `main`").
 6. **No Tree on `dev` is given a longer description** by the conversion: the content is the
-   owner's. The two fixtures of `ADR-263-description-limit.md` decision 4 are written at the new
-   maximum after the conversion.
+   owner's. The two fixtures of `ADR-263-description-limit.md` decision 4, `long-full-node` and
+   `long-overlay`, are written after the conversion, at the new maximum; `invalid/v-lines` is
+   re-fitted to 9 estimated lines, as that decision says.
 
 ## Alternatives rejected
 

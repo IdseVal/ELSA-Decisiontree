@@ -2005,8 +2005,10 @@ either side of each width and height of 42.4's boxes (42.10).
 **[#263]** (2026-11-18) A **third** exemption, of a kind of its own: the description's box,
 `[data-description-box]`, which scrolls vertically inside its own bounds. The walk skips its height
 check, keeps its width check, and checks that its bottom lies inside its text area; every page above
-is measured again with each visible box scrolled to its end (43.3). The full Node's row is at 600
-characters and 8 lines of description from #264, and the overlay fixture's `big` too (43.11).
+is measured again with each visible box scrolled to its end (43.3). From #264 the rows above that
+measure `full-node` and `overlay` at every maximum measure `tests/fixtures/long-full-node/` and
+`long-overlay/` too, copies whose description is at 600 characters and 8 lines; the originals keep
+150, as the editor's specs load them (43.11).
 
 ### 10.7 The format's length limits, confirmed
 
@@ -2153,7 +2155,7 @@ every face measured: the row stays 68, and no limit of the Bubble moves (42.3).
 **[#263]** (2026-11-18) **The description is 600 characters and 8 estimated lines** from
 `elsa-tree/8` (43.1, `tree-format.md` 5.7), in a box that scrolls, with the main image one fifth of
 the Bubble. At 1280 x 640 the text area divides as picture 80.2, gap 8, title 56, gap 8, the
-description's box **104.9**, gap 8, Sources 60 and the foot's 24: measured, with a description at
+description's box **104.9**, gap 8, Sources 60 and the foot's 23.9: measured, with a description at
 its maximum, on `dev`'s production build with the box drawn in (43.2;
 `docs/research/issue-263-description-box.md`). The limit no longer derives from a height: a text
 taller than its box scrolls.
@@ -6004,6 +6006,10 @@ real person's address is in the repository (38.10).
 | **[#195]** (2026-10-03) the rows of 39.9 | The Authors: `joined`, `authorsOf`, `authors(id)`, the mention, the no-scroll rule with it, the account sweep | #197 |
 | **[#205]** (2026-10-04) the rows of 40.9 | The preview of a hidden Tree: its address and answers, what it draws, its bar, its two buttons and the ending's button beside them, the way there and back, an unfinished draft; the editor's tab order; the sweeps of 23.7 and 35.5 with a preview drawn | #206 |
 
+**[#263]** (2026-11-18) From #264 `admin-no-scroll.spec.ts`, `admin.spec.ts` and `creation-walk.spec.ts` exempt
+`[data-description-box]` for its height only, as `no-scroll.spec.ts` does (43.3), and from #265
+`admin-no-scroll.spec.ts` loads `long-full-node` and `long-overlay` as drafts (43.11).
+
 ### 35.5 The no-cookie sweep, extended
 
 `deployment.spec.ts` (#135; 20.5, 23.7) also asserts: a `GET` of every admin page of 24.1,
@@ -7788,7 +7794,8 @@ rule stands, one line per 75 counted characters. A text at both maxima takes 7 l
 at 640 wide in Segoe UI and Liberation Sans and 8 in Open Sans. The validator's
 `MAX.nodeDescription` and `MAX.nodeLines` (`src/tree/validate.ts`) are #264's; the editor's
 `LIMIT.description` (`src/components/Bubble.tsx`) is #265's (43.9). No Tree in `trees/` gets a
-longer description; the fixtures do (43.11).
+longer description; two fixtures at the new maximum are added beside `full-node` and `overlay`
+(43.11).
 
 ### 43.2 The box: what gives way
 
@@ -7800,13 +7807,13 @@ longer description; the fixtures do (43.11).
   1280 x 640, 1280 x 639 and 1280 x 632 (`ADR-263-description-box.md`, Context).
 - **The description's box** is as tall as its text and at most what the text area leaves it: the
   text area less the picture, the title, the Sources (in an Overlay, its Options' list too), their
-  gaps and the clear foot of 10.3. A short description draws as before, and the foot opens under the
+  gaps and, in the Bubble, the clear foot of 10.3; the Overlay's panel has none. A short description draws as before, and the foot opens under the
   Sources by the difference.
 - **What yields when the text area is short**, in order: the box, down to two lines of its type (or
   its whole text, if shorter); then the foot; then the picture, down to its floor of 30. The box
   absorbs what a wider face takes.
 - **Measured**, with a description at its maximum: in the full Node's Bubble **104.9 at 1280 x 640**
-  (4.4 lines; the picture 80.2, the title 56, the Sources 60, the foot its whole 24), where the text
+  (4.4 lines; the picture 80.2, the title 56, the Sources 60, the foot its whole 24, 23.9 measured), where the text
   is 168 and scrolls; from 1280 x 759 up, the largest Bubble, 168 to 170.3, the whole text in Segoe UI
   and Liberation Sans and 170.3 of 192 in Open Sans; 159.8 at 1024 x 768. In the Overlay at its
   largest, from 1280 x 640 up, the whole text in English (168) and 188.4 of 192 in Dutch. Every
@@ -7830,8 +7837,10 @@ longer description; the fixtures do (43.11).
 Nothing in 10.5 moves: the order, the eight steps and every trigger stand. Below 632 pixels tall and
 792 wide the picture is hidden by step 5, so the fifth changes nothing there; step 7's type steps
 down inside the box; the description stays among what is never given up and is never put in a Sheet.
-The box takes what the text area leaves: measured at 10.6's viewports, the whole text at 768 x 1024
-(157.5) and 390 x 844 (234), and 197 at 360 x 640, scrolling; the notice at 320 x 480, as before.
+The box takes what the text area leaves: measured at 10.6's viewports on the full Node with its
+description at the maximum, the whole text at 768 x 1024 (157.5) and 390 x 844 (234), and 197 at
+360 x 640, scrolling; the notice at 320 x 480, as before. Every page measured is in the record's
+fourth table.
 
 ### 43.5 Keyboard, the sign of more, the end, the explainers
 
@@ -7888,7 +7897,8 @@ and the readers name the current number (the schema route, 15.2's `Link` header,
   types (28.4). Blurred, the rendered text scrolls in it as on the public page; focused, the
   `textarea` scrolls in it, the caret kept in view, the source shown from its top. A text stored over
   its limit scrolls inside the box; the mirror no longer grows the description's box.
-- The box carries `data-description-box` in both states, and the walk treats it as on the public
+- The element that scrolls carries `data-description-box` -- the `textarea` itself while the field is
+  focused, the rendered text's element while it is blurred -- and the walk treats it as on the public
   page. The rim -- the pill, the missing-language tags and `mark` -- stands at the field's top.
 - 28.6 stands with that one exemption: everything else the editor adds is outside the text area.
 
@@ -7901,21 +7911,26 @@ Overlay keeps no strip (10.9). No Tree's content changes.
 
 ### 43.11 Tests
 
-- **#264**: `tests/fixtures/full-node/`'s description and `tests/fixtures/overlay/`'s `big` at 600
-  counted characters and 8 estimated lines in English and in Dutch, their explainer marks kept;
+- **#264**: two fixtures, `tests/fixtures/long-full-node/` and `tests/fixtures/long-overlay/`,
+  copies of `full-node` and `overlay` whose `full` and `big` descriptions are at 600 counted
+  characters and 8 estimated lines in English and in Dutch, their explainer marks kept; `full-node`
+  and `overlay` keep their 150, because 21 files of `tests/browser/` that name `full-node` log in to
+  the admin area, where the editor draws it, and the editor's field holds a longer text only from
+  #265; `invalid/v-lines` re-fitted to 9 estimated lines (`tree-format.md` 12.10.3);
   `loader.test.ts` and the validator's tests at 600 and 601 characters, 8 and 9 lines; 12.10 and the
-  store's conversion as 12.9's are tested; `no-scroll.spec.ts` with the walk of 43.3 (the box's
-  height skipped, its width and its place in the text area checked), at every viewport and page of
-  10.6, and again with each visible box scrolled to its end; `carousel.spec.ts` at 1280 x 640 the
-  full Node's picture 80.2, title 56, box 104.9, Sources 60 and foot 24 (each within 1);
-  `overlay.spec.ts` the Overlay's picture at one fifth of its panel; a browser test of 43.5 and 43.6
-  on the full Node: Tab reaches the box, named by the title; ArrowDown and End scroll it while the
+  store's conversion as 12.9's are tested; the walk of 43.3 (the box's height skipped, its width and
+  its place in the text area checked) in `no-scroll.spec.ts`, `admin-no-scroll.spec.ts`,
+  `admin.spec.ts` and `creation-walk.spec.ts`; `no-scroll.spec.ts` on the copies wherever 10.6
+  measures the originals at every maximum, at every viewport, and again with each visible box
+  scrolled to its end; `carousel.spec.ts` at 1280 x 640 on `long-full-node`'s full Node: picture
+  80.2, title 56, box 104.9, Sources 60 and foot 23.9 (each within 1); `overlay.spec.ts` the
+  Overlay's picture at one fifth of its panel; a browser test of 43.5 and 43.6 on `long-full-node`'s
+  full Node: Tab reaches the box, named by the title; ArrowDown and End scroll it while the
   document's `scrollTop` stays 0; a wheel at its end changes nothing; a term focused in a box
   scrolled to its end opens its panel inside the text area and on top, and a scroll of the box closes
   it; a neighbour frame's box and the box after a slide at their top; the meta description of a
   description over 155 characters cut, its `Question` `text` whole (16.3).
 - **#265**: `fields.spec.ts` on the description's field at 1280 x 640, empty, at its limit and over
   it, its box equal to the public box at that size, the counter's `600` and `8`, typing stopping at
-  600 and at 8 lines; `admin-no-scroll.spec.ts`, `admin.spec.ts` and `creation-walk.spec.ts` with the
-  walk of 43.3, the full Node as a draft at its maximum with every Sheet open, its field blurred and
-  focused and scrolled to its end.
+  600 and at 8 lines; `admin-no-scroll.spec.ts` with `long-full-node` and `long-overlay` as drafts,
+  every Sheet open, the description's field blurred and focused and scrolled to its end.

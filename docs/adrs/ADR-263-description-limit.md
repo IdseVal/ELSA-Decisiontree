@@ -63,11 +63,19 @@ strings, and `tests/markdown.test.ts` cuts texts of 180 characters and more.
    are one for a conforming Tree, in 16.3 and in `ADR-118-json-ld.md` and
    `ADR-118-sitemap-and-alternates.md`, which carry a dated line naming this ADR. Nothing in
    `src/markdown.ts` or `src/findability/` changes.
-4. **The fixtures are written at the new maximum.** `tests/fixtures/full-node/`'s description is
-   600 counted characters and 8 estimated lines in English and in Dutch, its explainer marks kept,
-   and so is the description of `tests/fixtures/overlay/`'s `big`, the Overlay at its largest: they
-   are "every maximum the format allows at once" (10.6), and the description is one of them. No
-   Tree in `trees/` gets a longer description: the content is the owner's.
+4. **Two fixtures at the new maximum, beside the ones that stay.** #264 adds
+   `tests/fixtures/long-full-node/`, a copy of `tests/fixtures/full-node/` whose `full` Node's
+   description is 600 counted characters and 8 estimated lines in English and in Dutch, its
+   explainer marks kept, and `tests/fixtures/long-overlay/`, a copy of `tests/fixtures/overlay/`
+   whose `big`, the Overlay at its largest, has such a description: together they are "every
+   maximum the format allows at once" (10.6), the description's among them. `full-node` and
+   `overlay` keep their 150 characters, because 24 files of `tests/browser/` name `full-node` and 21
+   of them log in to the admin area, where the editor draws it, and the editor's field holds a longer
+   text only from #265 (`admin-no-scroll.spec.ts` loads `overlay` too); #264's public specs measure the copies where 10.6 measures the originals at
+   every maximum, and #265's editor specs load the copies as drafts. `invalid/v-lines`, whose
+   description is 4 estimated lines and would be valid at 8, is re-fitted by #264 to 9 estimated
+   lines within 600 characters, its one defect kept. No Tree in `trees/` gets a longer
+   description: the content is the owner's.
 5. **The limit is enforced where it is today**: `MAX.nodeDescription` and `MAX.nodeLines` in
    `src/tree/validate.ts` (#264) and the editor's `LIMIT.description` in
    `src/components/Bubble.tsx` (#265); typing stops at it as ADR-172 decided.

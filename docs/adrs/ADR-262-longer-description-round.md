@@ -1,6 +1,10 @@
 # ADR-262-longer-description-round: the owner's longer description that scrolls is one architecture issue and two build issues after it, filed `ready`
 
 - Status: ACCEPTED -- 2026-11-18
+- **[#263] Amended (2026-11-18)** by #263: decision 5's readings are settled, each confirmed (core
+  document 3.2 `[#262]`); decision 7's "the picture's two fifths stand unless #263 decides that they
+  give way": they give way, to one fifth (`ADR-263-description-box.md` decision 1, which records
+  why); and the third Consequence's `elsa-tree/8` case is the one taken (`ADR-263-elsa-tree-8.md`).
 - Issue: #262 -- Main text body in app must be longer and allow for scroll (the owner's
   instruction)
 - Issues filed: #263 (`architecture`), #264 (`ui`), #265 (`ui`)

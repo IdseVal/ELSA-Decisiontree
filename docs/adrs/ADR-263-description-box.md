@@ -55,15 +55,16 @@ to give but the 0.6 of foot.
    a slide has nothing to reflow. **In the Overlay, one fifth of the panel**: 121.6 of 608. One
    rule for both, because the Interior is one component (10.3).
    *Why*: the owner's words ask for a longer box in the Bubble, and at the guarantee the only room
-   left to give is the picture's (the table above). The owner's own rule is written in fifths;
-   one fifth is the next step of it, and the first share measured that gives the box at the
-   guarantee more than twice its two lines. The owner may overrule with another share: the
-   record's third table gives the box for each one measured, and the share is one number in the
-   stylesheet.
+   left to give is the picture's (the table above). Of the shares measured, one fifth is the
+   largest that does two things: it gives the box at the guarantee more than twice its two lines
+   (104.9 against 48; 1/4 gives 84.9), and at the largest Bubble it shows a description at its
+   maximum whole in the default type stack (168 of 168; 1/4 shows 144.3 of it). The owner may
+   overrule with another share: the record's third table gives the box for each one measured, and
+   the share is one number in the stylesheet.
 2. **The description's box is as tall as its text and at most what the text area leaves it**:
    the text area less the picture, the title, the Sources (in an Overlay, its Options' list too),
-   their gaps and the clear foot of 10.3 (24 pixels plus a quarter of every pixel the text area
-   has over 349). A short description draws as it does today, its box no taller than its lines,
+   their gaps and, in the Bubble, the clear foot of 10.3 (24 pixels plus a quarter of every pixel
+   the text area has over 349); the Overlay's panel has no foot (10.9). A short description draws as it does today, its box no taller than its lines,
    and the foot below the Sources opens by the difference.
 3. **What yields, in order, when the text area is short**: first the box, down to two lines of its
    type (or its whole text, if that is shorter); then the clear foot, as today; then the picture,
@@ -76,7 +77,7 @@ to give but the 0.6 of foot.
    where the text is 168 and scrolls; at 1366 x 768, 1920 x 1080, 2560 x 1440 and 1280 x 800 the
    whole text, 168 (7 lines in Segoe UI and Liberation Sans), and in the first Tree's Open Sans
    170.3 of its 192; 159.8 at 1024 x 768, scrolling; the whole text at 768 x 1024 (157.5) and at
-   390 x 844 (234); 197 at 360 x 640, scrolling (273 of text on Windows, 254 on Linux); the notice
+   390 x 844 (234); 197 at 360 x 640, scrolling (273 of text, 254 in English on Linux); the notice
    at 320 x 480. In the Overlay at its largest: from 1280 x 640 up the whole text in English (168)
    and 188.4 of 192 in Dutch; at 1024 x 768 and the smaller windows the whole text, 135 to 234. A box shorter than its text
    scrolls (`ADR-263-description-scroll.md`).
@@ -97,9 +98,9 @@ to give but the 0.6 of foot.
   where the text area overflows by 13; 11 rows on Windows and 10 on Linux overflow (the record's
   second table). And the picture's size would then follow the Node's text, which #102 ruled out:
   "The title sits at one height on every Node again" (10.3).
-- **3/10 or 1/4 of the Bubble.** Measured: 64.8 and 84.9 at the guarantee, 2.7 and 3.5 lines. Both
-  are shares outside the fifths the owner's rule is written in, and neither gives the box at the
-  guarantee twice its present height.
+- **3/10 or 1/4 of the Bubble.** Measured: 64.8 and 84.9 at the guarantee, 2.7 and 3.5 lines, so
+  neither gives the box there twice its present height; and at the largest Bubble 118.4 and 144.3,
+  so neither shows a description at its maximum whole there (decision 1).
 - **The clear foot gives way before the box.** The foot is kept because "a Sources line drawn in it
   crosses the outline" (10.3); a box that scrolls can give the pixels instead.
 - **The title, the Sources or the Answer row give way.** The round keeps their limits and places

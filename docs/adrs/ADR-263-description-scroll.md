@@ -88,7 +88,8 @@ the 1,280 rows of the box states, on either platform.
    `creation-walk.spec.ts` skip `[data-description-box]`'s height and walk its width; each asserts
    that every box's bottom is inside its text area, and measures every page of 10.6 again with
    each visible box scrolled to its end. The fixtures of `ADR-263-description-limit.md` decision 4
-   make the box scroll at 1280 x 640. A browser test proves decisions 3 to 7 on the full Node:
+   (`long-full-node`, `long-overlay`) make the box scroll at 1280 x 640. A browser test proves
+   decisions 3 to 7 on `long-full-node`'s full Node:
    Tab reaches the box, named by the title; ArrowDown and End scroll it and the document stays at
    0; a wheel at its end changes nothing; a term focused from a box scrolled to its end opens its
    panel inside the text area and on top; a scroll of the box closes it; a neighbour frame and a

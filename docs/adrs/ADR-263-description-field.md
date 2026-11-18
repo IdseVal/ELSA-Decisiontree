@@ -6,9 +6,11 @@
 - Spec: `docs/specs/application.md` 28.1, 28.3, 28.4, 28.6 (amended `[#263]`) and 43.9 (new)
 - Core document: 3.2 `[#262]` (the reading "the editor's description field takes the same limit
   and the same box", confirmed), 10.46
-- Amends: `ADR-172-typing-stops-at-the-limit.md` (decision 1's `lines / 2` is `lines / 8`; the
-  description's box of two lines, three below 480, is the box of decision 2 below),
-  `ADR-133-bubble-edited-in-place.md` (its context's "at most 150 characters and 2 lines")
+- Amends: `ADR-172-typing-stops-at-the-limit.md` (decision 1's `lines / 2` is `lines / 8`),
+  `ADR-133-bubble-edited-in-place.md` (its context's "at most 150 characters and 2 lines", decision
+  1's row "150 and 2 lines", decision 4's `lines / 2`, decision 6's reason against a toolbar,
+  decision 7's "unchanged"); the description's box of two lines, three below 480, which #172 wrote
+  into 28.4, is the box of decision 2 below
 - Depends on: `ADR-263-description-box.md`, `ADR-263-description-scroll.md`
 - Built by: #265
 
@@ -48,17 +50,24 @@ in every face measured (168 to 192 pixels against 104.9).
    the source from its top. The hidden mirror no longer grows the description's box: a text stored
    over its limit scrolls inside it, where #172's box grew to hold it, because a box taller than
    the room would leave the text area (10.6).
-4. **The box carries `data-description-box`** in both states, and the walk treats it as on the
-   public page: its height skipped, its width and its place inside the text area checked
+4. **The element that scrolls carries `data-description-box`** -- the `textarea` itself while the
+   field is focused, the rendered text's element while it is blurred, since each walk matches the
+   attribute on the element it measures -- and the walk treats it as on the public page: its height skipped, its width and its place inside the text area checked
    (`ADR-263-description-scroll.md` decision 2). Its keyboard is the field's own: the rendered text
    is already a tab stop that opens the source (28.5), and the `textarea` scrolls as it is typed in.
 5. **The rim is unchanged**: the counter pill, the missing-language tags (28.3) and the `mark`
    button (32.1) stand at the field's top, on the rim, and take no pixel from the text area.
 6. **28.6 stands with one exemption more**: everything the editor adds is still outside the text
-   area; the description's field is the one box in the Bubble or an Overlay that scrolls, as on the
-   public page. `tests/fixtures/full-node/` as a draft, at its new maximum, fits in the editor with
-   every Sheet open (`admin-no-scroll.spec.ts`), with the field blurred and focused, and scrolled
-   to its end.
+   area; the description's field is the one box in the Bubble or an Overlay, besides the Carousel
+   strip, that scrolls, as on the public page. `tests/fixtures/long-full-node/` and `long-overlay/`
+   (`ADR-263-description-limit.md` decision 4) as drafts, at the new maximum, fit in the editor with
+   every Sheet open (`admin-no-scroll.spec.ts`), with the field blurred and focused, and scrolled to
+   its end.
+7. **Still no toolbar** (28.5). ADR-133 decision 6 gave a reason that no longer holds -- "At 150
+   characters and two lines there is no room for formatting a toolbar would help with" -- and one
+   that does: "a paragraph and a list are the two shapes the first Tree uses". The subset of
+   `tree-format.md` 3.4 is unchanged, and the owner's words on #262 ask for a longer text, not for
+   other ways to format it; the field stays the source text it is.
 
 ## Alternatives rejected
 
