@@ -1309,9 +1309,9 @@ for (const lang of LANGUAGES) {
 
 // What a face cannot hide: the rows of 10.1 and 10.5 in pixels. A text area two pixels short
 // passed on Windows and failed on the runner (PR #99); the budget is the same in every face.
-// Since #102 the main image is two fifths of the Bubble on this Node too, the one at every
-// maximum: if its picture keeps that share, every valid Node's does (10.7).
-test('the full Node keeps the text area 10.5 budgets, a 760 Bubble down to 1200 wide and a main image of two fifths of it: the collapsed Options stand beside it, not in a row of their own', async ({ page }) => {
+// Since #102 the main image is two fifths of the Bubble on this Node too, **[#264]** one fifth
+// since #263 (43.2), the one at every maximum: if its picture keeps that share, every valid Node's does (10.7).
+test('the full Node keeps the text area 10.5 budgets, a 760 Bubble down to 1200 wide and a main image of one fifth of it: the collapsed Options stand beside it, not in a row of their own', async ({ page }) => {
   const origin = await served(fixtures, 'full-node', FULL_NODE_TRIGGERS_PORT)
   for (const [width, height] of [[1280, 640], [1280, 632], [1279, 640], [1200, 640], [1200, 632]] as const) {
     await page.setViewportSize({ width, height })
@@ -1325,7 +1325,7 @@ test('the full Node keeps the text area 10.5 budgets, a 760 Bubble down to 1200 
     )
     const bubble = (await page.locator('.bubble').boundingBox())!
     const image = (await page.locator('.bubble .main-image').boundingBox())!
-    expect(image.height, `${width}x${height}: the main image`).toBeCloseTo(0.4 * bubble.height, 0)
+    expect(image.height, `${width}x${height}: the main image`).toBeCloseTo(0.2 * bubble.height, 0)
   }
 })
 

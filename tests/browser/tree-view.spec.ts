@@ -146,7 +146,8 @@ async function focused(page: Page): Promise<string> {
 /** Every control on the page that is shown and enabled, as `tag.class`, in document order. */
 async function controls(page: Page): Promise<string[]> {
   // A disabled button is no tab stop: the Carousel's previous and next are, on a strip that fits its row.
-  return page.locator('a[href], button:not(:disabled), summary').evaluateAll((elements) =>
+  // **[#264]** The description's box is one, a region the keyboard scrolls (43.5).
+  return page.locator('a[href], button:not(:disabled), summary, [data-description-box]').evaluateAll((elements) =>
     elements
       .filter((el) => el.getClientRects().length > 0)
       .map((el) => `${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`),
