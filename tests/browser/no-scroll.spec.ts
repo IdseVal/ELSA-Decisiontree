@@ -8,7 +8,12 @@
  * and no element in the document -- the Carousel strip and **[#134]** the overview's box
  * excepted, the two exemptions of 10.6 -- has content taller or wider than itself, with one pixel for sub-pixel rounding. That last clause is what
  * catches a nested element quietly overflowing behind `overflow: hidden`, which the first
- * two would let through.
+ * two would let through. **[#264]** The third exemption, the description's box
+ * (`[data-description-box]`, 43.3), is exempt for its height alone: its width is walked, and its
+ * bottom must lie inside its text area. Every page is measured again with each box that holds
+ * more than it shows scrolled to its end; `tests/fixtures/long-full-node/` and
+ * `tests/fixtures/long-overlay/`, the full Node and the largest Overlay with descriptions at
+ * 600 characters and 8 lines, are measured where the originals are at every maximum.
  *
  * The pages: the five situations of 10.3 on the example Tree, `tests/fixtures/full-node/`
  * at a 49-entry Trail (every maximum the format allows at once), `tests/fixtures/overlay/`
@@ -72,6 +77,10 @@ const EXPLAINERS_PORT = FULL_NODE_PORT + 7
 // Its own port: on the trigger test's, that test measured this fixture's 404 page and passed (PR #99).
 const OVERLAY_PORT = FULL_NODE_PORT + 8
 const OVERLAY_NO_SCRIPT_PORT = FULL_NODE_PORT + 9
+/** **[#264]** The copies of full-node and overlay with descriptions at 600 characters and 8 lines (43.11). */
+const LONG_FULL_NODE_PORT = BASE_PORT + 270
+const LONG_OVERLAY_PORT = BASE_PORT + 271
+const LONG_FULL_NODE_SLIDING_PORT = BASE_PORT + 272
 /** **[#200]** The long-title fixture: a Tree with no logo and a title of 80 characters. */
 const LONG_TITLE_PORT = FULL_NODE_PORT + 14
 /** **[#180]** The first of four: the full-node fixture in each family of the font library. */
@@ -235,6 +244,16 @@ async function measure(page: Page): Promise<Measured> {
       // and from #197 the line naming its Authors (39.6). The bar itself is still measured.
       if (el.matches('[data-carousel-strip], [data-scroll-box], [data-scroll-box] [data-clamp], .page-chrome [data-clamp]')) continue
       const b = box(el)
+      // **[#264]** The description's box scrolls down inside itself (43.3): its height is not
+      // walked, its width is, and it must end inside the text area that holds it.
+      if (el.matches('[data-description-box]')) {
+        if (b.sw > b.cw + 1) overflowing.push(`${name(el)} holds ${b.sw}x${b.sh} in ${b.cw}x${b.ch}`)
+        const area = el.closest('.bubble-text, .overlay-interior')
+        const bottom = el.getBoundingClientRect().bottom
+        const areaBottom = area?.getBoundingClientRect().bottom ?? -Infinity
+        if (el.getClientRects().length > 0 && bottom > areaBottom + 1) overflowing.push(`${name(el)} ends at ${bottom}, below its text area's ${areaBottom}`)
+        continue
+      }
       if (b.sh > b.ch + 1 || b.sw > b.cw + 1) {
         overflowing.push(`${name(el)} holds ${b.sw}x${b.sh} in ${b.cw}x${b.ch}`)
       }
@@ -304,6 +323,21 @@ async function measureEverywhere(
     const plain = await measure(page)
     rows.push({ page: what, lang, viewport, sheet: (await urlOpened.count()) > 0 ? 'open by URL' : '', measured: plain })
     assertFits(plain, `${what} (${lang}) at ${viewport}`)
+
+    // **[#264]** Again with every description's box that holds more than it shows at its end
+    // (43.3, ADR-263-description-scroll decision 9), then back at its top for what follows.
+    const scrolled = await page.evaluate(() => {
+      const boxes = [...document.querySelectorAll<HTMLElement>('[data-description-box]')].filter((box) => box.getClientRects().length > 0 && box.scrollHeight > box.clientHeight + 1)
+      for (const box of boxes) box.scrollTop = box.scrollHeight
+      return boxes.length
+    })
+    if (scrolled > 0) {
+      const atEnd = await measure(page)
+      rows.push({ page: what, lang, viewport, sheet: `${scrolled} description box${scrolled > 1 ? 'es' : ''} at its end`, measured: atEnd })
+      assertFits(atEnd, `${what} (${lang}) at ${viewport} with every description's box at its end`)
+      expect(await page.evaluate(() => [document.documentElement.scrollTop, document.body.scrollTop]), `${what} (${lang}) at ${viewport}: the document scrolled`).toEqual([0, 0])
+      await page.evaluate(() => document.querySelectorAll<HTMLElement>('[data-description-box]').forEach((box) => (box.scrollTop = 0)))
+    }
 
     // Closed before each Sheet is opened in turn, as a reader closes it: Escape with the
     // script, the button's second click without it. Where the fan has collapsed the button
@@ -798,6 +832,31 @@ for (const lang of LANGUAGES) {
     test.slow()
     const origin = await served(fixtures, 'full-node', FULL_NODE_PORT)
     await measureEverywhere(page, `${origin}${inLang(FULL_NODE_URL, lang)}`, 'full Node, 49-entry Trail', lang)
+  })
+}
+
+/** **[#264]** The full Node with its description at 600 characters and 8 lines: the box scrolls at 1280 x 640 (43.2). */
+const LONG_FULL_NODE_URL = `/long-full-node/${Array.from({ length: 50 }, () => 'full').join('/')}`
+
+for (const lang of LANGUAGES) {
+  test(`**[#264]** the full Node at a 49-entry Trail with a description of 600 characters, ${lang}, never scrolls at any viewport of 10.6, its box at its top and at its end`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'long-full-node', LONG_FULL_NODE_PORT)
+    await measureEverywhere(page, `${origin}${inLang(LONG_FULL_NODE_URL, lang)}`, 'long full Node, 49-entry Trail', lang)
+    // The rows this test exists for: at the guarantee the box holds more than it shows (43.2).
+    expect(rows.some((row) => row.page === 'long full Node, 49-entry Trail' && row.lang === lang && row.viewport === '1280x640' && row.sheet.includes('at its end')), 'the box scrolled at 1280x640').toBe(true)
+  })
+
+  test(`**[#264]** the full Node at a 49-entry Trail with a description of 600 characters, ${lang}, never scrolls in the middle of a slide, at any viewport above the floor`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'long-full-node', LONG_FULL_NODE_SLIDING_PORT)
+    await measureSliding(page, `${origin}${inLang(LONG_FULL_NODE_URL, lang)}`, 'long full Node, 49-entry Trail', lang)
+  })
+
+  test(`**[#264]** the largest Overlay with a description of 600 characters, open by URL, ${lang}, never scrolls at any viewport of 10.6, each Overlay open in turn`, async ({ page }) => {
+    test.slow()
+    const origin = await served(fixtures, 'long-overlay', LONG_OVERLAY_PORT)
+    await measureEverywhere(page, `${origin}${inLang('/long-overlay/five/big', lang)}`, 'long overlay fixture: the largest Overlay, open by URL', lang)
   })
 }
 

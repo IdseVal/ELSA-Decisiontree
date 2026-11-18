@@ -20,11 +20,52 @@
  *
  * **[#174]** The mechanism is `usePanelTriggers`, which the editor's information hint
  * (`src/editor/Hint.tsx`) sets on a trigger of its own: one kind of panel, not two.
+ *
+ * **[#264]** With `labelledBy` the element is the description's box (application.md 43.3,
+ * 43.5): a scroll container the stylesheet sizes, a focusable region named by the Node's
+ * title, marked `data-description-box`. A panel stays in the text area outside the box's clip,
+ * so it would point at a term that has scrolled away: a scroll of the box closes it, as a
+ * resize of the window does; and focus on a term scrolls it into the box before its panel is
+ * placed, so that scroll is not one.
  */
 import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, type PointerEvent, type RefObject } from 'react'
 
 /** The panel open in the document, of whichever text: opening another closes it. */
 let openPanel: HTMLElement | null = null
+
+/** **[#264]** The description's box the open panel's term is in, and where it stood when the panel opened. */
+let openBox: HTMLElement | null = null
+let openBoxTop = 0
+
+/** The description's box `term` is in, if it is in one (43.3). */
+function boxOf(term: Element): HTMLElement | null {
+  const box = term.closest('[data-description-box]')
+  return box instanceof HTMLElement ? box : null
+}
+
+/**
+ * **[#264]** Scrolls the box `term` is in until the term's lines are inside it, as the browser's
+ * own focus would -- but before the panel is placed against them, where the browser scrolls
+ * after the focus event (HTML's focusing steps), which would leave the panel where the term
+ * was. Afterwards the browser finds the term in view and scrolls nothing.
+ */
+function reveal(term: Element): void {
+  const box = boxOf(term)
+  if (!box) return
+  const area = box.getBoundingClientRect()
+  const lines = term.getBoundingClientRect()
+  if (lines.top < area.top) box.scrollTop -= area.top - lines.top
+  else if (lines.bottom > area.bottom) box.scrollTop += Math.min(lines.bottom - area.bottom, lines.top - area.top)
+}
+
+/**
+ * **[#264]** A scroll of the open panel's box closes the panel (43.5). The scroll event of
+ * `reveal`, which arrives after the panel opened, left the box where the panel was placed
+ * against it, and so closes nothing.
+ */
+function onBoxScroll(): void {
+  if (openBox !== null && openBox.scrollTop !== openBoxTop) close()
+}
 
 /** The panel that belongs to `term`, its next sibling: an explainer's, or **[#174]** a hint's. */
 function panelOf(term: Element): HTMLElement | null {
@@ -45,6 +86,8 @@ function close(): void {
   openPanel = null
   document.removeEventListener('keydown', onEscape, true)
   window.removeEventListener('resize', close)
+  openBox?.removeEventListener('scroll', onBoxScroll)
+  openBox = null
 }
 
 /**
@@ -63,6 +106,9 @@ function open(term: Element): void {
   // The panel's place is in pixels of the text area as it is now; a resized window would
   // leave it where the area no longer is, and outside the page (10.6).
   window.addEventListener('resize', close)
+  openBox = boxOf(term)
+  openBoxTop = openBox?.scrollTop ?? 0
+  openBox?.addEventListener('scroll', onBoxScroll)
 
   const area = paddingBox(panel.offsetParent)
   const lines = term.getClientRects()
@@ -162,7 +208,9 @@ export function usePanelTriggers(selector: string, element: RefObject<HTMLElemen
 
     onFocus(event: FocusEvent<HTMLElement>): void {
       const trigger = triggerAt(event.target)
-      if (trigger) open(trigger)
+      if (!trigger) return
+      reveal(trigger)
+      open(trigger)
     },
 
     onBlur(event: FocusEvent<HTMLElement>): void {
@@ -172,7 +220,17 @@ export function usePanelTriggers(selector: string, element: RefObject<HTMLElemen
   }
 }
 
-export function Explainer({ html, termEvent }: { html: string; /** The event a click on a term dispatches instead of the tap toggle (34.2). */ termEvent?: string }) {
+export function Explainer({
+  html,
+  termEvent,
+  labelledBy,
+}: {
+  html: string
+  /** The event a click on a term dispatches instead of the tap toggle (34.2). */
+  termEvent?: string
+  /** **[#264]** The id of the title that names the description's box; absent where the text is no box (43.3). */
+  labelledBy?: string
+}) {
   // Until the script runs the stylesheet opens the panels (section 14); once it does, the
   // attribute hands them to the handlers below and the CSS-only rules stand down.
   const [enhanced, setEnhanced] = useState(false)
@@ -208,6 +266,10 @@ export function Explainer({ html, termEvent }: { html: string; /** The event a c
       ref={element}
       className="prose"
       data-enhanced={enhanced ? '' : undefined}
+      data-description-box={labelledBy === undefined ? undefined : ''}
+      role={labelledBy === undefined ? undefined : 'region'}
+      aria-labelledby={labelledBy}
+      tabIndex={labelledBy === undefined ? undefined : 0}
       onPointerOver={panels.onPointerOver}
       onPointerOut={panels.onPointerOut}
       onPointerDown={panels.onPointerDown}

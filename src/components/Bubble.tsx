@@ -15,7 +15,7 @@
  * link on the page that names the aside.
  *
  * The main image is the Node's first Image, a link to its file that opens the enlarged view
- * (12.3). It is two fifths of the Bubble's height (10.3, amended by #102). A Node without
+ * (12.3). It is **[#264]** one fifth of the Bubble's height (43.2; two fifths from #102). A Node without
  * Images keeps the same box as an empty slot, and a neighbour frame as a withheld one, so a
  * slide has nothing to reflow.
  *
@@ -158,6 +158,9 @@ export function Interior({
         idPrefix,
       })}
       termEvent={edit?.slots.onTermClick}
+      // **[#264]** On every page a reader sees the description is its own scroll box, named by the
+      // title (43.3, 43.5); the editor's field is #265's (43.9).
+      labelledBy={field ? undefined : `${idPrefix}node-title`}
     />
   )
   return (
