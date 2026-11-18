@@ -168,6 +168,16 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
     const overflowing: string[] = []
     for (const el of document.querySelectorAll('*')) {
       if (el.matches('[data-scroll-box], [data-clamp], [data-carousel-strip]')) continue
+      // **[#264]** The description's box scrolls down inside itself (43.3): its width is walked,
+      // its height is not, and it must end inside the text area that holds it.
+      if (el.matches('[data-description-box]')) {
+        if (el.scrollWidth > el.clientWidth + 1) overflowing.push(`${name(el)} holds ${el.scrollWidth}x${el.scrollHeight} in ${el.clientWidth}x${el.clientHeight}`)
+        const area = el.closest('.bubble-text, .overlay-interior')
+        const bottom = el.getBoundingClientRect().bottom
+        const areaBottom = area?.getBoundingClientRect().bottom ?? -Infinity
+        if (el.getClientRects().length > 0 && bottom > areaBottom + 1) overflowing.push(`${name(el)} ends at ${bottom}, below its text area's ${areaBottom}`)
+        continue
+      }
       if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1) {
         overflowing.push(`${name(el)} holds ${el.scrollWidth}x${el.scrollHeight} in ${el.clientWidth}x${el.clientHeight}`)
       }
@@ -228,7 +238,7 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
       if (!shown(el) || el.closest('.step-delete, .step-end')) continue
       const box = boxOf(el.parentElement)
       if (!box || !shown(box)) continue
-      const by = crossing(el.getBoundingClientRect(), box.getBoundingClientRect(), box.matches('[data-scroll-box]'))
+      const by = crossing(el.getBoundingClientRect(), box.getBoundingClientRect(), box.matches('[data-scroll-box], [data-description-box]'))
       if (by) outside.push(`${name(el)} out of ${name(box)}: ${by}`)
     }
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
@@ -243,7 +253,8 @@ async function audit(page: Page, lang: Lang): Promise<Audit> {
       range.selectNodeContents(node)
       const q = box.getBoundingClientRect()
       for (const r of range.getClientRects()) {
-        const by = crossing(r, q)
+        // **[#264]** A description's lines pass its box's top and bottom as it scrolls (43.3).
+        const by = crossing(r, q, box.matches('[data-description-box]'))
         const line = `"${node.textContent.trim().slice(0, 30)}" out of ${name(box)}: ${by}`
         if (by && !seen.has(line)) {
           seen.add(line)
