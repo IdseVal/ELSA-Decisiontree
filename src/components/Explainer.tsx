@@ -25,8 +25,8 @@
  * 43.5): a scroll container the stylesheet sizes, a focusable region named by the Node's
  * title, marked `data-description-box`. A panel stays in the text area outside the box's clip,
  * so it would point at a term that has scrolled away: a scroll of the box closes it, as a
- * resize of the window does; and focus on a term scrolls it into the box before its panel is
- * placed, so that scroll is not one.
+ * resize of the window does. The scroll that brings a focused term into view is not one
+ * (`onBoxScroll`).
  */
 import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, type PointerEvent, type RefObject } from 'react'
 
@@ -44,24 +44,10 @@ function boxOf(term: Element): HTMLElement | null {
 }
 
 /**
- * **[#264]** Scrolls the box `term` is in until the term's lines are inside it, as the browser's
- * own focus would -- but before the panel is placed against them, where the browser scrolls
- * after the focus event (HTML's focusing steps), which would leave the panel where the term
- * was. Afterwards the browser finds the term in view and scrolls nothing.
- */
-function reveal(term: Element): void {
-  const box = boxOf(term)
-  if (!box) return
-  const area = box.getBoundingClientRect()
-  const lines = term.getBoundingClientRect()
-  if (lines.top < area.top) box.scrollTop -= area.top - lines.top
-  else if (lines.bottom > area.bottom) box.scrollTop += Math.min(lines.bottom - area.bottom, lines.top - area.top)
-}
-
-/**
- * **[#264]** A scroll of the open panel's box closes the panel (43.5). The scroll event of
- * `reveal`, which arrives after the panel opened, left the box where the panel was placed
- * against it, and so closes nothing.
+ * **[#264]** A scroll of the open panel's box closes the panel (43.5). Not the one that brought
+ * a focused term into view: the browser moved the box before the focus event opened the panel
+ * (measured in Chromium, description-box.spec.ts), and its scroll event, which arrives after,
+ * finds the box where the panel was placed against it.
  */
 function onBoxScroll(): void {
   if (openBox !== null && openBox.scrollTop !== openBoxTop) close()
@@ -208,9 +194,7 @@ export function usePanelTriggers(selector: string, element: RefObject<HTMLElemen
 
     onFocus(event: FocusEvent<HTMLElement>): void {
       const trigger = triggerAt(event.target)
-      if (!trigger) return
-      reveal(trigger)
-      open(trigger)
+      if (trigger) open(trigger)
     },
 
     onBlur(event: FocusEvent<HTMLElement>): void {
