@@ -56,7 +56,7 @@ to give but the 0.6 of foot.
    rule for both, because the Interior is one component (10.3).
    *Why*: the owner's words ask for a longer box in the Bubble, and at the guarantee the only room
    left to give is the picture's (the table above). Of the shares measured, one fifth is the
-   largest that does two things: it gives the box at the guarantee more than twice its two lines
+   only one that does two things: it gives the box at the guarantee more than twice its two lines
    (104.9 against 48; 1/4 gives 84.9), and at the largest Bubble it shows a description at its
    maximum whole in the default type stack (168 of 168; 1/4 shows 144.3 of it). The owner may
    overrule with another share: the record's third table gives the box for each one measured, and

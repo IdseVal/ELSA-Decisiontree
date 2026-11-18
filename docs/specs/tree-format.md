@@ -2658,7 +2658,7 @@ it is within 600 and 8: the procedure does not look at descriptions.
 
 Every file under `trees/` and `tests/fixtures/` that names `elsa-tree/7` -- the two Trees, the valid
 fixtures, and the broken and invalid ones that 12.9.3 converted or re-fitted -- gets `elsa-tree/8` and
-the `/8` `$schema`, and nothing else; a broken or invalid fixture keeps failing the rule it was built
+the `/8` `$schema`, and nothing else; a broken or invalid fixture but `invalid/v-lines` (below) keeps failing the rule it was built
 for (`tests/loader.test.ts`), and `invalid/v-format` keeps its wrong `format` and gains the `/8`
 `$schema`, as 12.9.3 re-fitted it. #264 counts the files before and after on its own `dev` and
 records the result here, as #232 recorded 12.9.3's. The example Tree's description names the format,

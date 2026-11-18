@@ -15,7 +15,7 @@
   when the box it is in scrolls), `ADR-133-editor-testing.md` (`admin-no-scroll.spec.ts`'s walk
   exempts `[data-description-box]`'s height too)
 - Measured in: `docs/research/issue-263-description-box.md` (sections 2 and 4)
-- Built by: #264 (the public pages and the preview), #265 (the editor's field, through
+- Built by: #264 (the public pages, the preview and decision 9's walk in all four specs), #265 (the editor's field, through
   `ADR-263-description-field.md`)
 
 ## Context
@@ -84,7 +84,7 @@ the 1,280 rows of the box states, on either platform.
 8. **Below the guarantee the box is the same.** Its height is what 10.5's order leaves the text
    area (`ADR-263-description-box.md` decision 5); step 7's type steps down inside it. At the
    floor the notice replaces the tree view, as before. The description is never put in a Sheet.
-9. **The tests.** `no-scroll.spec.ts`, `admin-no-scroll.spec.ts`, `admin.spec.ts` and
+9. **The tests.** From #264, `no-scroll.spec.ts`, `admin-no-scroll.spec.ts`, `admin.spec.ts` and
    `creation-walk.spec.ts` skip `[data-description-box]`'s height and walk its width; each asserts
    that every box's bottom is inside its text area, and measures every page of 10.6 again with
    each visible box scrolled to its end. The fixtures of `ADR-263-description-limit.md` decision 4
