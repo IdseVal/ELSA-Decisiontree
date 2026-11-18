@@ -16,6 +16,10 @@
   escaping half of `findability.spec.ts`). Also `ADR-11-public-base-url.md`: the
   `Dataset`'s `@id`, the `WebPage`'s `url` and the `DataDownload`'s `contentUrl`
   are absolute URLs built from the base
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-limit.md` decision 3: decision 6's "For
+  a conforming Tree the two strings are identical" held until `elsa-tree/8`; a Node description of
+  up to 600 counted characters makes them differ, and decision 6's choice of which takes the cut
+  stands (`docs/specs/application.md` 43.7).
 
 ## Context
 

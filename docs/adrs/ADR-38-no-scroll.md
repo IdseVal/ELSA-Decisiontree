@@ -19,6 +19,10 @@
   walk skips it, `.page-chrome [data-clamp]`, as it skips a cut tile title, and still checks
   the bar (`ADR-195-the-mention.md`; `application.md` 10.4 to 10.6, 39.4 to 39.6; core
   document 10.22). The rest stands.
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-scroll.md` decision 2: a third exemption
+  from the element walk, the description's box (`[data-description-box]`), which scrolls
+  vertically inside its own bounds; the walk skips its height and checks its width and its place in
+  the text area. The document still never scrolls (`docs/specs/application.md` 43.3).
 
 ## Context
 

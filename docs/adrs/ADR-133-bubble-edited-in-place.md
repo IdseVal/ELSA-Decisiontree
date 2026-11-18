@@ -16,6 +16,9 @@
 - Depends on: `docs/adrs/ADR-133-reuse-rule.md` (the `edit` seam the fields hang off),
   `ADR-133-autosave.md` (what a field does with its value), `ADR-132-draft-and-publish.md`
   (an over-limit write is stored and reported), `ADR-132-editor-api.md` (the field paths)
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-field.md` decision 1: the description
+  of its Context is at most 600 characters and 8 lines from `elsa-tree/8`, and its field scrolls
+  in a box of its own (`docs/specs/application.md` 43.9).
 
 ## Context
 
