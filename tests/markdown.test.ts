@@ -277,8 +277,9 @@ describe('the plain-text reduction (16.3)', () => {
 
         expect(reduced, `${id}.${language}`).not.toMatch(/[*]|\]\(/)
         expect([...cut].length, `${id}.${language}`).toBeLessThanOrEqual(155)
-        // A conforming Tree's Node description is at most 150 counted characters, so the
-        // two outputs are the same string and the distinction of 16.3 never shows.
+        // The example Tree's Node descriptions are within 155 counted characters, so the two
+        // outputs are the same string here. **[#264]** Since elsa-tree/8 a conforming Tree's
+        // may be 600, where they differ (application.md 43.7; jsonld.test.ts).
         expect(cut, `${id}.${language}`).toBe(reduced)
       }
     }

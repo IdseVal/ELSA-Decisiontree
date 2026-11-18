@@ -251,9 +251,11 @@ export function plainDescription(text: string): PlainDescription {
  * splits a combining sequence either -- a mark that follows a space belongs to the word
  * after it.
  *
- * They do not fire for a conforming Tree, whose Node description is at most 150 counted
- * characters (tree-format.md 5.7). They are here because a reduction that is not total is
- * a reduction with a crash in it, and because that limit has already moved twice.
+ * They did not fire for a conforming Tree while its Node description was at most 150 counted
+ * characters. They were here because a reduction that is not total is a reduction with a
+ * crash in it, and because that limit had already moved twice. **[#264]** It moved a third
+ * time: from `elsa-tree/8` a description is at most 600 (tree-format.md 5.7), and they fire
+ * (application.md 43.7). Nothing here changed with it.
  */
 function cutToLimit(reduced: string): string {
   const points = [...reduced]

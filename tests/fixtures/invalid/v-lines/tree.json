@@ -18,7 +18,7 @@
         "en": "Does it apply?"
       },
       "description": {
-        "en": "The first question. It applies to any of these:\n\n- the first case\n- the second case"
+        "en": "The first question. It applies to any of these:\n\n- the first case\n- the second case\n- the third case\n- the fourth case\n- the fifth case\n- the sixth case\n- the seventh case"
       },
       "metadata": {
         "version": "1.0"
