@@ -1,4 +1,4 @@
-# Tree file format -- `elsa-tree/5` (**[#220]** `elsa-tree/6` from #221; **[#231]** `elsa-tree/7` from #232)
+# Tree file format -- `elsa-tree/5` (**[#220]** `elsa-tree/6` from #221; **[#231]** `elsa-tree/7` from #232; **[#263]** `elsa-tree/8` from #264)
 
 > Status: FROZEN -- 2026-10-02 (issue #171); `elsa-tree/5` replaces `elsa-tree/4` (frozen
 > 2026-09-21, issue #118). This document is the interoperability contract: any Tree that
@@ -6,6 +6,17 @@
 > half is published as a JSON Schema at `schemas/elsa-tree-5.json` (3.9), which the app
 > serves at `/schemas/elsa-tree-5.json`. Changing this contract requires a new
 > `architecture` issue and a new format number.
+>
+> **[#263] Amended 2026-11-18: `elsa-tree/8`, frozen here, built by #264.** The owner, on #262:
+> "The 150 character limit that we picked is waaaaay too short sadly." `elsa-tree/8` is `elsa-tree/7`
+> with **one change**: a Node's `description` is at most **600 counted characters and 8 estimated
+> lines** (5.7, rules V-LENGTH and V-LINES), where it was 150 and 2. Every other key, kind, limit and
+> rule, and the byte form of 3.7, are `/7`'s. A `/7` file is converted by 12.10, which changes its
+> `format` and its `$schema` and nothing else. `schemas/elsa-tree-8.json` is written by #264 beside
+> `elsa-tree-7.json`, which stays served. Until #264 merges, the loader reads `/7` and the passages
+> marked **[#263]** describe what it builds. The decisions are `docs/adrs/ADR-263-elsa-tree-8.md`
+> and `ADR-263-description-limit.md`; the box the description scrolls in is
+> `docs/specs/application.md` 43, measured in `docs/research/issue-263-description-box.md`.
 >
 > **[#231] Amended 2026-10-10: `elsa-tree/7`, frozen here, built by #232.** The owner, on #230:
 > "Then the user can decide how many he wants, there can be up to 5." `elsa-tree/7` is `elsa-tree/6`
@@ -464,6 +475,11 @@ counts as the 8 characters of `provider` -- so it takes `ceil(117 / 75) = 2` est
 lines, which is exactly the maximum. A paragraph and a one-line list item under it would be
 `1 + 1` block lines `+ 1` break `= 3`: over it, however short the text. The validator
 reports the estimate next to the maximum so that the author knows how much to cut.
+
+**[#263]** (2026-11-18) The maximum of this example is 2 lines in `elsa-tree/3` to `/7`. From
+`elsa-tree/8` a Node description may take **8** estimated lines (5.7), so the root Node's 2 lines
+are well within it, and so is the paragraph with a list item under it (3 lines); the rule of
+counting is unchanged.
 
 ### 3.9 The JSON Schema
 
@@ -966,7 +982,10 @@ frontend can carry in a shareable link.
 ### 5.7 Maximum lengths and counts
 
 Nothing on the page may scroll (core document 3.2, 9): everything a Node shows fits
-inside its Bubble. These maxima are what makes that a property of the data. They apply
+inside its Bubble. These maxima are what makes that a property of the data. **[#263]** (2026-11-18)
+But for a Node's description, which from `elsa-tree/8` scrolls inside a box of its own (core
+document 3.2 `[#262]`; `application.md` 43): its maximum bounds how far that box scrolls, and no
+longer a height on the page. They apply
 to the counted text of section 3.8, **per language, the same number for every
 language**.
 
@@ -975,7 +994,7 @@ language**.
 | Tree `title` (any language) | 80 characters | V-LENGTH |
 | Tree `description` (any language) | 600 characters and 8 estimated lines | V-LENGTH, V-LINES |
 | Node `title` (any language) | 80 characters | V-LENGTH |
-| Node `description` (any language) | 150 characters and 2 estimated lines (600 and 8 until #102) | V-LENGTH, V-LINES |
+| Node `description` (any language) | 150 characters and 2 estimated lines (600 and 8 until #102). **[#263]** From `elsa-tree/8`: **600 characters and 8 estimated lines** | V-LENGTH, V-LINES |
 | Option `title` (any language) | 60 characters | V-LENGTH |
 | **[#171]** Terminal `label` (any language) | 19 characters | V-LENGTH |
 | **[#220]** Answer `label` (any language), from `elsa-tree/6` | 19 characters | V-LENGTH |
@@ -1029,16 +1048,29 @@ answer scoped the change to the limit and the validator, the shape of a Tree fil
 unchanged, and a Tree written to the old limit is told by V-LENGTH and V-LINES which field
 to cut, by how much (`application.md` 10.7).
 
+**Amended 2026-11-18 (#263, for the owner's words on #262): the Node description is 600 characters
+and 8 estimated lines from `elsa-tree/8`.** The owner: "The 150 character limit that we picked is
+waaaaay too short sadly." The description is drawn in a box of its own that scrolls vertically
+(`application.md` 43.3), and the main image is one fifth of the Bubble where it was two fifths, so
+at 1280 x 640 the box is 104.9 pixels: the text area's 349 less the picture 80.2, the title 56, the
+Sources 60, three gaps of 8 and the foot's 24 (`application.md` 43.2, measured in
+`docs/research/issue-263-description-box.md`). A text taller than its box scrolls, so the limit no
+longer derives from the box's height: 600 characters and 8 lines are the pair this field had until
+#102 and the Tree's `description` has, and the estimate's rule, 75 characters a line, is unchanged
+(`docs/adrs/ADR-263-description-limit.md`). It is published under a new number, `elsa-tree/8`, by the
+rule above and section 10, not as #102's exception (`docs/adrs/ADR-263-elsa-tree-8.md`). The rows
+below carry the new values after the word **Now (#263)**.
+
 | Assumption | Value |
 |---|---|
 | Viewport the layout guarantees | 1280 x 640 CSS pixels: a 1366 x 768 laptop display, or a 1920 x 1080 one at 150 % scaling, minus browser tabs, address bar and taskbar |
 | Vertical budget at that height | chrome bar 44 + up-arrow band 26 + Bubble 446 + Carousel strip band 28 + Answer buttons 68 + disclaimer 28 = 640 (was: chrome 44 + Trail 64 + Bubble 360 + Branches 64 + Carousel 80 + disclaimer 28). **Now** (#102): chrome bar 44 + up-arrow band 56 + Bubble 416 + strip band 28 + Answer buttons 68 + disclaimer 28 = 640. **Now** (#174, 2026-10-02): chrome bar 44 + up-arrow band 56 + Bubble 401 + strip band 43 + Answer buttons 68 + disclaimer 28 = 640 |
 | Text area inside the Bubble | 640 x 394 CSS pixels, inside the curve and the padding of a 760 x 446 rounded Bubble (was 640 x 304 in 760 x 360). **Now** (#102): 640 x 364 in 760 x 416. **Now** (#174): 640 x 349 in 760 x 401 |
-| Main image | 60 px tall, at most 90 wide, above the title; an empty slot of the same height on a Node without Images (`application.md` 10.3). **Now** (#102): two fifths of the Bubble's height, 166.4 px, in a 3 : 2 box; 160.4 px of a Bubble of 401 since #174 |
+| Main image | 60 px tall, at most 90 wide, above the title; an empty slot of the same height on a Node without Images (`application.md` 10.3). **Now** (#102): two fifths of the Bubble's height, 166.4 px, in a 3 : 2 box; 160.4 px of a Bubble of 401 since #174. **Now (#263)**, 2026-11-18: one fifth, 80.2 px of 401, 104 of the largest Bubble's 520 (`application.md` 43.2) |
 | Body text | 16 px, line height 24 px, average advance 8.5 px per character (Open Sans and similar humanist sans-serifs): **75 characters per line** |
 | Node title | 22 px, line height 28 px, about 55 characters per line: 80 characters is at most **2 lines** (56 px) |
 | Sources | a 20 px heading line ("Legal sources"), then 13 px on 20 px lines, about 90 characters per line: 3 labels of 60 characters with two kind prefixes and separators is at most **2 lines**: 60 px in all. **[#169] Amended 2026-10-02 (#173, by the owner):** the heading line says "Sources" ("Bronnen" in Dutch, `application.md` 3.2); it is shorter on the same 20 px line, and the 60 px are unchanged |
-| Description | what remains: 394 - 60 - 8 - 56 - 8 - 60 - 8 = 194 px, of which **8 lines** of 24 px = 192 are used, at 75 characters = 600 characters; 2 px spare. **Now** (#102): 364 - 166.4 - 8 - 56 - 8 - 60 - 8 = 57.6 px, of which **2 lines** of 24 px = 48 are used, at 75 characters = **150 characters**; 9.6 px spare. **Now** (#174): 349 - 160.4 - 8 - 56 - 8 - 60 - 8 = 48.6 px, the same 2 lines and 150 characters; 0.6 px spare |
+| Description | what remains: 394 - 60 - 8 - 56 - 8 - 60 - 8 = 194 px, of which **8 lines** of 24 px = 192 are used, at 75 characters = 600 characters; 2 px spare. **Now** (#102): 364 - 166.4 - 8 - 56 - 8 - 60 - 8 = 57.6 px, of which **2 lines** of 24 px = 48 are used, at 75 characters = **150 characters**; 9.6 px spare. **Now** (#174): 349 - 160.4 - 8 - 56 - 8 - 60 - 8 = 48.6 px, the same 2 lines and 150 characters; 0.6 px spare. **Now (#263)**, 2026-11-18: a box that scrolls, 349 - 80.2 - 8 - 56 - 8 - 60 - 8 - 24 (the foot) = 104.9 px at 1280 x 640, 4.4 lines, as measured; **600 characters and 8 estimated lines**, a text taller than the box scrolling in it (`application.md` 43.2, 43.3) |
 | Explainer panel | 320 px wide, 14 px text on 20 px lines, about 45 characters per line: a 200-character `text` is at most 5 lines, and the panel with its `term` heading and padding at most 148 px, which fits above or below any line of the 394 px text area (5.9). **Now** (#102): any line of the 364 px text area; 148 fits still, and in the 349 px one of #174 |
 | Option button labels | an Option button of 232 x 96 px beside the Bubble, with 152 px of label at 16 px on 20 px lines, up to four lines: an Option title of 60 characters is at most **3 lines** in a humanist face and 4 in DejaVu Sans, the widest fallback (80 px, inside the 96 px button). **Amended 2026-09-19 (#105, PR #109):** not for every title: in Open Sans the Dutch "Seksueel beeldmateriaal zonder toestemming (2-12-2026)" (54 characters) takes 4 lines only hyphenated in the page's language and 5 without, and its button then grows to 102 px; the limit stays 60 for the owner to judge (`application.md` 10.3 and 10.7, both amended). The Options fan out at most 4 a side at a pitch of 111.5 px: four buttons are 384 px of the Bubble's 446, so 8 Options fit without narrowing or wrapping (**Now**, #102: of the Bubble's 416, which still holds the 384; #174: of 401, which still does). **Now** (#175, amended 2026-10-02): an Option button of **236 x 100 px** whose picture fills its inner end, 100 px across, with **120 px of label at 15 px on 18 px lines, up to five lines** (90 px, inside the 100 px button): a 60-character title takes at most 5 lines in Open Sans and Verdana and 4 in Arial and Segoe UI, measured on both Trees' and the fixtures' Option titles, hyphenated in the page's language; where the browser has no hyphenation dictionary, 6 for one title in Open Sans and three in DejaVu Sans, and the button grows to 108 px; four buttons on a side at the pitch of 104 px are 400 px of the Bubble's 416, and at #174's 401 the pitch is 100.25 px and the four stand 0.25 px apart; the limit stays 60 (`application.md` 10.3 and 10.7, amended). A question Node that carries both `answers` and `options` (section 5.6) puts its 2 Answer buttons below the Bubble and its Options beside it, so the two never share a row (`application.md` 10.3, 10.7; `docs/adrs/ADR-78-fan-out-and-option-picture.md`) |
 | Answer button labels, and the Trail | **[#231] Now** (`elsa-tree/7`, 2026-10-10): up to five buttons, one row of five from 1000 pixels wide, 236 pixels each at 1280 x 640, where 19 characters take two lines in every face measured and the row stays 68; three then two below 1000, and a step of five shows the notice in `application.md` 42.4's boxes. Measured in `docs/research/issue-231-five-next-steps.md`. **[#220] Now** (`elsa-tree/6`, 2026-10-09): a button shows its next step's `label` alone, at most 19 characters, in an equal share of the row: one row of up to four buttons from 1000 pixels wide, 300 pixels each at 1280 x 640, where 19 characters take one line in every face measured and 40 two; two a row below 1000. Measured in `docs/research/issue-220-answer-row-room.md`; `application.md` 41.3, 41.4. What follows is `/5`'s: the label is the chrome word, a colon and a Node `title` of up to 80 characters (5.3, section 6): at most 86 characters in one run of 19 px bold on 24 px lines, in a 620 x 60 px button with 580 px of label, at least 43 characters per line in DejaVu Sans Bold: **2 lines** (48 px, inside the 60 px button). The 2 Answer buttons sit side by side in the 68 px Answer row. No Trail is drawn: the up arrow carries the parent's title as its accessible name only, so no Trail label has a width to fit; the format still does not bound a Trail's length, and a long one costs the screen nothing (`application.md` 10.2, 10.3, 10.7; `docs/adrs/ADR-78-answer-buttons-and-up-arrow.md`) |
@@ -1849,6 +1881,12 @@ one, is shown in the frontend's plain default look.
   (`docs/adrs/ADR-231-elsa-tree-7.md`). `schemas/elsa-tree-7.json` stands beside the `/6`, `/5`
   and `/4` files, the loader accepts `/7` alone and the store converts a `/6` file it finds (12.9).
   The next change will be `elsa-tree/8`.
+  **[#263] And on 2026-11-18 (built by #264):** a Node's `description` is at most 600 counted
+  characters and 8 estimated lines (5.7). A change of the limits, so by the rule above it is
+  `elsa-tree/8`, not an exception: #102's was the owner's own answer, and the owner's words on #262
+  name the limit, not the format (`docs/adrs/ADR-263-elsa-tree-8.md`). `schemas/elsa-tree-8.json`
+  stands beside the `/7`, `/6`, `/5` and `/4` files, the loader accepts `/8` alone and the store
+  converts a `/7` file it finds (12.10). The next change will be `elsa-tree/9`.
 - **Where an edited Tree is stored.** ~~The round after this one edits Trees through the
   frontend. Whether the edited `tree.json` is written back into the repository through
   git, or into a store of some other kind, is the owner's to define (core document open
@@ -1931,6 +1969,8 @@ Decisions carried over unchanged from `elsa-tree/1` (issue #4):
 | **[#220]** The creator's words on each next step, 19 characters | `docs/adrs/ADR-220-words-on-a-next-step.md` |
 | **[#231]** Two to five next steps a step, and the notice that gives way for five | `docs/adrs/ADR-231-five-next-steps.md` |
 | **[#231]** `answers` holds up to five, `elsa-tree/7`, and 12.9 | `docs/adrs/ADR-231-elsa-tree-7.md` |
+| **[#263]** A Node description of 600 characters and 8 estimated lines | `docs/adrs/ADR-263-description-limit.md` |
+| **[#263]** `elsa-tree/8`, and 12.10 | `docs/adrs/ADR-263-elsa-tree-8.md` |
 
 ## 12. Migrations
 
@@ -1949,6 +1989,10 @@ in `elsa-tree/3` is converted by 12.6 and then by 12.7.
 **[#231] And 12.9, since 2026-10-10, runs after 12.7 and 12.8**: `elsa-tree/6` to `elsa-tree/7`,
 up to five next steps. It runs over the repository once (#232) and in every deployment, by the
 store, whenever it opens a `/6` file (12.9.4); a `/4` file takes 12.7, 12.8 and 12.9 in that order.
+
+**[#263] And 12.10, since 2026-11-18, runs after 12.9**: `elsa-tree/7` to `elsa-tree/8`, the longer
+description. It runs over the repository once (#264) and in every deployment, by the store, whenever
+it opens a `/7` file (12.10.4); a `/4` file takes 12.7 to 12.10 in that order.
 
 **12.1 to 12.4: from `elsa-tree/1` to `elsa-tree/2`.**
 A Tree folder written against `elsa-tree/1` -- `tree.yaml` plus `nodes/<id>.yaml` files
@@ -2568,3 +2612,72 @@ converted `draft.json` is written when it passes the draft schema and every bloc
 `tree.json` when it passes in full, each replaced atomically; `meta.json` is not touched; a file that
 would not pass is left, and its Tree is refused or uneditable with the violations. `importTree`
 converts a `/6` folder's `tree.json` in its staging copy, never in the source folder.
+
+### 12.10 From `elsa-tree/7` to `elsa-tree/8`
+
+**[#263], new -- 2026-11-18.** `elsa-tree/8` widens one limit, a Node's `description` from 150
+counted characters and 2 estimated lines to 600 and 8 (5.7); no key, kind or value of a `/7` file
+changes meaning, so the conversion renames the format and nothing else.
+`docs/adrs/ADR-263-elsa-tree-8.md` has the reasoning; issue #264 builds it in the module that writes
+the byte form (`src/tree/`), beside 12.7 to 12.9, so that the migration command and the store run
+one function.
+
+#### 12.10.1 The procedure
+
+Input: one `tree.json`, or a store's `draft.json`, as bytes. Output: the same file converted, or a
+report and no write.
+
+1. **Read the bytes with the loader's own reader** (3.7, V-JSON), as 12.9.1 step 1.
+2. **Only an `elsa-tree/7` file is converted.** Any other `format` -- `elsa-tree/8` included -- does
+   nothing and reports what it found. A `/6` file is converted by 12.9 first, and a `/4` or `/5` file
+   by 12.7 to 12.9 first: the store and `npm run migrate` run the four in that order.
+3. **`format`** becomes `elsa-tree/8`.
+4. **`$schema`**: `/schemas/elsa-tree-7.json`, or an http(s) URL whose path ends so, gets
+   `elsa-tree-8.json` in its place and no other change. Any other value is left, to fail V-SCHEMA.
+5. **Nothing else changes.** Every other key and value, every `description` included, and the order
+   of `nodes`, is carried across as it is.
+6. **Write** the result in the byte form of 3.7.
+7. **Validate** the result against `schemas/elsa-tree-8.json` and the rules of section 7, and
+   **report every violation**. Shorten nothing, drop nothing, silence nothing.
+
+`scripts/migrate-tree.ts` runs it (`npm run migrate <tree-folder>`) after 12.9; a third party
+converts its own `/7` Tree the same way.
+
+#### 12.10.2 What the procedure guarantees, and what it does not
+
+**Guaranteed.** Every Node, id, Node reference, text, label and file name is what it was, so every
+URL, every shared link, every picture and every button keeps working and says what it said. A valid
+`elsa-tree/7` Tree converts to a valid `elsa-tree/8` Tree, since 150 characters and 2 lines are
+within 600 and 8.
+
+**Not guaranteed, on purpose.** A `/7` file that was not in the byte form of 3.7 is written in it. A
+`/7` file with a description over 150 characters, which `/7` refused, converts and then validates if
+it is within 600 and 8: the procedure does not look at descriptions.
+
+#### 12.10.3 What it does for the Trees and fixtures on `dev`
+
+Every file under `trees/` and `tests/fixtures/` that names `elsa-tree/7` -- the two Trees, the valid
+fixtures, and the broken and invalid ones that 12.9.3 converted or re-fitted -- gets `elsa-tree/8` and
+the `/8` `$schema`, and nothing else; a broken or invalid fixture keeps failing the rule it was built
+for (`tests/loader.test.ts`), and `invalid/v-format` keeps its wrong `format` and gains the `/8`
+`$schema`, as 12.9.3 re-fitted it. #264 counts the files before and after on its own `dev` and
+records the result here, as #232 recorded 12.9.3's. The example Tree's description names the format,
+so its sentence says `elsa-tree/8`, changed by hand as at #179, #221 and #232;
+`tests/migrate-tree.test.ts` holds section 8's block byte-identical to
+`trees/ai-act-example/tree.json`, so #264 puts the converted example in both in one commit. No Tree's
+description is lengthened: that is the owner's content. `tests/fixtures/full-node/` and
+`tests/fixtures/overlay/` are given descriptions at the new maximum after the conversion, in a commit
+of their own (`application.md` 43.11).
+
+#### 12.10.4 What it does for a deployment's data directory
+
+`openStore` (`docs/specs/application.md` 17.5) runs 12.10.1 on every `tree.json` and `draft.json`
+under `trees/` whose `format` is `elsa-tree/7` -- after 12.7.4 to 12.9.4, so an older file takes each
+in turn -- **before it opens any Tree**, and logs one line per file it converted:
+`Converted Tree "<id>" <file> from elsa-tree/7 to elsa-tree/8`. The write rules are 12.7.4's: a
+converted `draft.json` is written when it passes the draft schema and every blocking rule, a
+`tree.json` when it passes in full, each replaced atomically; `meta.json` is not touched; a file that
+would not pass is left, and its Tree is refused or uneditable with the violations. `importTree`
+converts a `/7` folder's `tree.json` in its staging copy, never in the source folder. On the live
+server this is the write of core document 10.45, OPEN for the owner (`ADR-263-elsa-tree-8.md`
+decision 5).
