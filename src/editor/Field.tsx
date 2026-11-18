@@ -71,17 +71,13 @@ export interface FieldWords {
  * (28.4, amended): `proposed` -- the element's value, a plain field's line breaks already
  * spaces -- where it fits, else cut by `capped`, and the element's value and caret set to the
  * cut text so that a refused key leaves the caret where it was. No limit, no cut.
- * **[#265]** And the text where it was: setting the value scrolls a `textarea` back to its top,
- * and the description's scrolls inside its box (43.9), its caret kept in view.
  */
 export function heldToLimit(element: HTMLInputElement | HTMLTextAreaElement, previous: string, proposed: string, limit: FieldLimit | null): string {
   const caret = element.selectionEnd ?? proposed.length
   const held = limit === null ? { text: proposed, caret } : capped(previous, proposed, caret, limit)
   if (held.text !== element.value) {
-    const scrolled = element.scrollTop
     element.value = held.text
     element.setSelectionRange(held.caret, held.caret)
-    element.scrollTop = scrolled
   }
   return held.text
 }
