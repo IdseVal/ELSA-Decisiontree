@@ -838,6 +838,9 @@ entries, and `Manifest['format']` is `elsa-tree/6` (41.6, `tree-format.md` 5.3).
 **[#231]** (2026-10-10) From #232 two to five entries, one to five in a draft, and
 `Manifest['format']` is `elsa-tree/7` (42.2, 42.6, `tree-format.md` 5.3).
 
+**[#264]** (2026-11-18) From #264 `Manifest['format']` is `elsa-tree/8` (43.8); a `description`
+holds up to 600 counted characters (43.1).
+
 ### 5.2 When what is read and sent
 
 | Moment | Server reads | Browser receives |
@@ -2914,6 +2917,8 @@ where the schema is a constant of the build.
 
 **[#231]** (2026-10-10) From #232 `elsa-tree-7.json` too, beside `/6`, `/5` and `/4` (42.6).
 
+**[#264]** (2026-11-18) From #264 `elsa-tree-8.json` too, beside `/7`, `/6`, `/5` and `/4` (43.8).
+
 ### 15.2 The headers
 
 | Header | `tree.json` | `elsa-tree-4.json` (**[#171]** and `elsa-tree-5.json`, 15.1) | Why |
@@ -2933,6 +2938,8 @@ where the schema is a constant of the build.
 **[#220]** (2026-10-09) The `Link: rel="describedby"` header names `/schemas/elsa-tree-6.json` from #221 (41.6).
 
 **[#231]** (2026-10-10) `/schemas/elsa-tree-7.json` from #232 (42.6).
+
+**[#264]** (2026-11-18) `/schemas/elsa-tree-8.json` from #264 (43.8).
 
 ### 15.3 Byte-identity: the download IS the dataset
 
@@ -3335,7 +3342,7 @@ the dataset.
 
 **[#171]** So a Terminal's `label` is not in it either, as its `outcome` never was; the
 `## The dataset` entry names the schema through `SCHEMA_HREF`, which is
-`/schemas/elsa-tree-5.json` from #179 on (**[#220]** `/schemas/elsa-tree-6.json` from #221, 41.6; **[#231]** `/schemas/elsa-tree-7.json` from #232, 42.6). Its chrome paragraph -- a walk that "arrives at an
+`/schemas/elsa-tree-5.json` from #179 on (**[#220]** `/schemas/elsa-tree-6.json` from #221, 41.6; **[#231]** `/schemas/elsa-tree-7.json` from #232, 42.6; **[#264]** `/schemas/elsa-tree-8.json` from #264, 43.8). Its chrome paragraph -- a walk that "arrives at an
 outcome" -- uses the word in its ordinary sense and stays.
 
 **[#195]** Nor an Author's name (2026-10-03): the pages it points to hold the mention (39.7).
@@ -3586,6 +3593,9 @@ language in a draft (a to-do) and `terminal` still requires it.
 `minItems` to 1 (41.1).
 
 **[#231]** (2026-10-10) From `schemas/elsa-tree-7.json` from #232, `answers` holding one to five (42.1).
+
+**[#264]** (2026-11-18) From `schemas/elsa-tree-8.json` from #264, which differs from `/7` in its
+names alone (43.8).
 
 ### 19.2 The draft rules
 

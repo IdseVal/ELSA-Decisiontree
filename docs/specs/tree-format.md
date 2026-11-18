@@ -14,7 +14,8 @@
 > rule, and the byte form of 3.7, are `/7`'s. A `/7` file is converted by 12.10, which changes its
 > `format` and its `$schema` and nothing else. `schemas/elsa-tree-8.json` is written by #264 beside
 > `elsa-tree-7.json`, which stays served. Until #264 merges, the loader reads `/7` and the passages
-> marked **[#263]** describe what it builds. The decisions are `docs/adrs/ADR-263-elsa-tree-8.md`
+> marked **[#263]** describe what it builds. **[#264] Built (2026-11-18):** the loader reads `/8`
+> alone and converts a `/7` file by 12.10; 12.10.3 records the count. The decisions are `docs/adrs/ADR-263-elsa-tree-8.md`
 > and `ADR-263-description-limit.md`; the box the description scrolls in is
 > `docs/specs/application.md` 43, measured in `docs/research/issue-263-description-box.md`.
 >
