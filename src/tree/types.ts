@@ -1,5 +1,5 @@
 /**
- * The types of the `elsa-tree/7` format (docs/specs/tree-format.md) as the loader hands
+ * The types of the `elsa-tree/8` format (docs/specs/tree-format.md) as the loader hands
  * them out (docs/specs/application.md section 5.1). Two normalisations against the
  * file: `id` and `kind` are added, and absent lists become empty arrays.
  */
@@ -54,7 +54,7 @@ export interface Theme {
 }
 
 export interface Manifest {
-  format: 'elsa-tree/7'
+  format: 'elsa-tree/8'
   languages: string[]
   /** The first declared language: what the frontend shows before the user chooses. */
   defaultLanguage: string

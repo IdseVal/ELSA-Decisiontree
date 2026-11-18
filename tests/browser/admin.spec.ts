@@ -88,6 +88,16 @@ async function measure(page: Page): Promise<Measured> {
     const overflowing: string[] = []
     for (const el of document.querySelectorAll('*')) {
       if (el.matches('[data-scroll-box], [data-clamp], [data-carousel-strip]')) continue
+      // **[#264]** The description's box scrolls down inside itself (43.3): its width is walked,
+      // its height is not, and it must end inside the text area that holds it.
+      if (el.matches('[data-description-box]')) {
+        if (el.scrollWidth > el.clientWidth + 1) overflowing.push(`${name(el)} holds ${el.scrollWidth}x${el.scrollHeight} in ${el.clientWidth}x${el.clientHeight}`)
+        const area = el.closest('.bubble-text, .overlay-interior')
+        const bottom = el.getBoundingClientRect().bottom
+        const areaBottom = area?.getBoundingClientRect().bottom ?? -Infinity
+        if (el.getClientRects().length > 0 && bottom > areaBottom + 1) overflowing.push(`${name(el)} ends at ${bottom}, below its text area's ${areaBottom}`)
+        continue
+      }
       if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1) {
         overflowing.push(`${name(el)} holds ${el.scrollWidth}x${el.scrollHeight} in ${el.clientWidth}x${el.clientHeight}`)
       }

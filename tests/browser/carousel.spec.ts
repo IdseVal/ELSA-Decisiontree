@@ -45,6 +45,8 @@ const FIRST_TREE = 'ai-act-applicability-agrifood'
 
 let origin: string
 let fullNode: string
+/** **[#264]** full-node with the full Node's description at 600 characters and 8 lines (43.11). */
+let longFullNode: string
 let firstTree: string
 let cycle: string
 const requests: string[] = []
@@ -57,6 +59,9 @@ test.beforeAll(async () => {
   const full = await serve(fixtures, 'full-node', PORT + 1)
   expect(full, 'the full-node fixture is a valid Tree').not.toBeNull()
   fullNode = full!
+  const long = await serve(fixtures, 'long-full-node', PORT + 4)
+  expect(long, 'the long-full-node fixture is a valid Tree').not.toBeNull()
+  longFullNode = long!
   const first = await serve(path.join(repo, 'trees'), FIRST_TREE, PORT + 2)
   expect(first, 'the first Tree starts').not.toBeNull()
   firstTree = first!
@@ -135,6 +140,7 @@ test.describe('the rows of 10.1 at 1280 x 640', () => {
   for (const [what, at] of [
     ['five Images', () => `${origin}${FIVE}`],
     ['the full Node', () => `${fullNode}/full-node/full`],
+    ['**[#264]** the full Node with a description of 600 characters', () => `${longFullNode}/long-full-node/full`],
   ] as const) {
     test(`measure the heights the spec gives, on ${what}`, async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 640 })
@@ -159,15 +165,25 @@ test.describe('the rows of 10.1 at 1280 x 640', () => {
       expect([m.text.width, m.text.height]).toEqual([640, 349])
       rowTable.push(`| ${what} | text area | 640 x 349 | ${m.text.width} x ${m.text.height} |`)
 
-      // The Interior from the top of the text area: the main image, 3 : 2, two fifths of the
-      // Bubble's 401 (#102, #174), gap 8, title, and the Sources ending inside it (10.7).
+      // The Interior from the top of the text area: the main image, 3 : 2, **[#264]** one fifth
+      // of the Bubble's 401 (43.2; two fifths from #102 to #263), gap 8, title, and the Sources
+      // ending inside it (10.7).
       expect(m.mainImage!.top).toBe(m.text.top)
-      expect(m.mainImage!.height).toBeCloseTo(0.4 * 401, 1)
+      expect(m.mainImage!.height).toBeCloseTo(0.2 * 401, 1)
       expect(m.mainImage!.width).toBeCloseTo(1.5 * m.mainImage!.height, 0)
       expect(m.title.top - m.mainImage!.bottom).toBe(8)
-      rowTable.push(`| ${what} | main image | 160.4 tall, 3 : 2 | ${m.mainImage!.width} x ${m.mainImage!.height} |`)
+      rowTable.push(`| ${what} | main image | 80.2 tall, 3 : 2 | ${m.mainImage!.width} x ${m.mainImage!.height} |`)
       rowTable.push(`| ${what} | title | at most 56 | ${m.title.height} |`)
-      rowTable.push(`| ${what} | description | at most 48 | ${m.prose.height} |`)
+      rowTable.push(`| ${what} | description | as tall as its text, at most 104.9 | ${m.prose.height} |`)
+      // **[#264]** At 600 characters the box holds more than it shows (43.2, 43.11): the picture
+      // 80.2, the title 56, the box 104.9, the Sources 60 and the foot 23.9, each within 1.
+      if (what.includes('600 characters')) {
+        expect(m.title.height).toBeCloseTo(56, 0)
+        expect(Math.abs(m.prose.height - 104.9), `the box: ${m.prose.height}`).toBeLessThanOrEqual(1)
+        expect(Math.abs(m.sources!.height - 60), `the Sources: ${m.sources!.height}`).toBeLessThanOrEqual(1)
+        expect(Math.abs(m.text.bottom - m.sources!.bottom - 23.9), `the foot: ${m.text.bottom - m.sources!.bottom}`).toBeLessThanOrEqual(1)
+        expect(await page.locator('.bubble [data-description-box]').evaluate((box) => box.scrollHeight - box.clientHeight)).toBeGreaterThan(0)
+      }
       if (m.sources) {
         rowTable.push(`| ${what} | Sources | at most 60 | ${m.sources.height} |`)
         rowTable.push(`| ${what} | text area left under the Sources | at least 0 | ${m.text.bottom - m.sources.bottom} |`)
@@ -381,11 +397,12 @@ test.describe('names for assistive technology', () => {
     await page.goto(`${cycle}/cycle/first`)
     await expect(page.locator('.bubble .main-image--empty')).toBeVisible()
     await expect(page.locator('.bubble .main-image--empty')).toHaveAttribute('aria-hidden', 'true')
-    // A circle as tall as a picture would be there: two fifths of the Bubble (#102), which is
-    // 401 since the strip band holds 67-pixel thumbnails on every Node, pictures or none (#174).
+    // A circle as tall as a picture would be there: **[#264]** one fifth of the Bubble (43.2; two
+    // fifths from #102), which is 401 since the strip band holds 67-pixel thumbnails on every
+    // Node, pictures or none (#174).
     const box = (await page.locator('.bubble .main-image--empty').boundingBox())!
     expect(box.width).toBeCloseTo(box.height, 0)
-    expect(box.height).toBeCloseTo(0.4 * 401, 1)
+    expect(box.height).toBeCloseTo(0.2 * 401, 1)
   })
 
   for (const [lang, name] of [

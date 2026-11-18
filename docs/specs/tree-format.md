@@ -14,7 +14,8 @@
 > rule, and the byte form of 3.7, are `/7`'s. A `/7` file is converted by 12.10, which changes its
 > `format` and its `$schema` and nothing else. `schemas/elsa-tree-8.json` is written by #264 beside
 > `elsa-tree-7.json`, which stays served. Until #264 merges, the loader reads `/7` and the passages
-> marked **[#263]** describe what it builds. The decisions are `docs/adrs/ADR-263-elsa-tree-8.md`
+> marked **[#263]** describe what it builds. **[#264] Built (2026-11-18):** the loader reads `/8`
+> alone and converts a `/7` file by 12.10; 12.10.3 records the count. The decisions are `docs/adrs/ADR-263-elsa-tree-8.md`
 > and `ADR-263-description-limit.md`; the box the description scrolls in is
 > `docs/specs/application.md` 43, measured in `docs/research/issue-263-description-box.md`.
 >
@@ -1380,6 +1381,24 @@ exactly these lines:
 +    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/7`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
 ```
 
+**[#264] Done (2026-11-18).** #264 converted `trees/ai-act-example/tree.json` by 12.10,
+changed its description's sentence about the format by hand, as #179, #221 and #232 did, and put
+the result in the block above in the same commit: the `elsa-tree/8` file, byte for byte, 11,660 bytes
+as the `elsa-tree/7` block's were, valid against `schemas/elsa-tree-8.json`, and differing from it in
+exactly these lines:
+
+```diff
+-  "$schema": "/schemas/elsa-tree-7.json",
+-  "format": "elsa-tree/7",
++  "$schema": "/schemas/elsa-tree-8.json",
++  "format": "elsa-tree/8",
+@@ "description" of the manifest
+-    "en": "A small example Tree that exercises every element of the `elsa-tree/7` format.\nIts legal content is simplified and not to be relied on.",
+-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/7`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
++    "en": "A small example Tree that exercises every element of the `elsa-tree/8` format.\nIts legal content is simplified and not to be relied on.",
++    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/8`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+```
+
 Folder layout:
 
 ```
@@ -1429,8 +1448,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
 
 ```json
 {
-  "$schema": "/schemas/elsa-tree-7.json",
-  "format": "elsa-tree/7",
+  "$schema": "/schemas/elsa-tree-8.json",
+  "format": "elsa-tree/8",
   "languages": [
     "en",
     "nl"
@@ -1441,8 +1460,8 @@ reader of the contract finds it; what an author needs to keep beside the data go
     "nl": "Is de EU AI-verordening van toepassing op mijn AI-systeem? (voorbeeld)"
   },
   "description": {
-    "en": "A small example Tree that exercises every element of the `elsa-tree/7` format.\nIts legal content is simplified and not to be relied on.",
-    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/7`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
+    "en": "A small example Tree that exercises every element of the `elsa-tree/8` format.\nIts legal content is simplified and not to be relied on.",
+    "nl": "Een kleine voorbeeldboom die elk onderdeel van het `elsa-tree/8`-formaat gebruikt.\nDe juridische inhoud is vereenvoudigd en niet bedoeld om op te vertrouwen."
   },
   "metadata": {
     "version": "2.0",
@@ -2672,6 +2691,19 @@ characters and 8 estimated lines in both languages (`application.md` 43.11); `fu
 `overlay` keep theirs. And it re-fits `invalid/v-lines`, whose description takes 4 estimated lines
 and so passes 8, to **9** estimated lines within 600 characters, by hand, its one defect kept, so
 that it still fails V-LINES alone (`tests/loader.test.ts`).
+
+**[#264] Done (2026-11-18), counted on `dev` at `12c696e`.** Before: 61 files under `trees/` and
+`tests/fixtures/` name a format, 60 of them `elsa-tree/7`, all but `invalid/v-format`
+(`elsa-tree/3`), and 60 name `/schemas/elsa-tree-7.json`, all but `invalid/v-schema`
+(`elsa-tree-3.json`). `npm run migrate` over the 60 `/7` folders converted 56 files ("converted
+from elsa-tree/7 to elsa-tree/8"); the two Trees and the 15 valid fixtures validate. Re-fitted by
+hand, the two strings edited in place with each defect kept, as at #221 and #232:
+`broken/byte-order-mark`, `broken/duplicate-key` and `invalid/v-json` (step 1 refuses them),
+`broken/metadata-all-digits` (12.6.1 step 5 refuses it) and `invalid/v-format`, which keeps its
+`elsa-tree/3` and gains the `/8` `$schema`. After: 60 files say `elsa-tree/8`, 60 name
+`elsa-tree-8.json`, none names `elsa-tree/7` or `elsa-tree-7.json`, and `git diff` changes 120
+lines, 60 `format` and 60 `$schema`, and nothing else in any file but the example Tree's
+description. No `description` of a Node changed.
 
 #### 12.10.4 What it does for a deployment's data directory
 

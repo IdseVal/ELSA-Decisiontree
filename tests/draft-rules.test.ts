@@ -9,7 +9,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { describe, expect, test } from 'vitest'
-import schemaDocument from '../schemas/elsa-tree-7.json' with { type: 'json' }
+import schemaDocument from '../schemas/elsa-tree-8.json' with { type: 'json' }
 import { openTree, TreeInvalid } from '../src/tree/loader.ts'
 import { treeBytes } from '../src/tree/serialise.ts'
 import { draftSchema, validateTree, type Mapping } from '../src/tree/validate.ts'
@@ -18,8 +18,8 @@ import { draftSchema, validateTree, type Mapping } from '../src/tree/validate.ts
 function validTree(): Mapping {
   const text = (en: string): Record<string, string> => ({ en, nl: `${en} (nl)` })
   return {
-    $schema: '/schemas/elsa-tree-7.json',
-    format: 'elsa-tree/7',
+    $schema: '/schemas/elsa-tree-8.json',
+    format: 'elsa-tree/8',
     languages: ['en', 'nl'],
     root: 'start',
     title: text('A Tree'),
@@ -60,7 +60,7 @@ const ADVISORY: Array<[string, string, (tree: Mapping) => void]> = [
   ['a language not written yet', 'V-L10N', (t) => ((node(t, 'start').title as Record<string, string>).nl = '')],
   ['a language missing', 'V-L10N', (t) => delete (node(t, 'start').title as Record<string, string>).nl],
   ['a text over its length', 'V-LENGTH', (t) => ((node(t, 'start').title as Record<string, string>).en = 'x'.repeat(81))],
-  ['a description over its lines', 'V-LINES', (t) => ((node(t, 'start').description as Record<string, string>).en = 'a\n\nb\n\nc')],
+  ['a description over its lines', 'V-LINES', (t) => ((node(t, 'start').description as Record<string, string>).en = 'a\n\nb\n\nc\n\nd\n\ne')],
   ['eleven images', 'V-COUNT', (t) => (node(t, 'start').images = Array.from({ length: 11 }, () => ({ file: 'photo.png', description: { en: 'a', nl: 'b' }, credit: 'c' })))],
   ['a Node without a title', 'V-NODE', (t) => delete node(t, 'aside').title],
   ['a Node without a description', 'V-NODE', (t) => delete node(t, 'aside').description],

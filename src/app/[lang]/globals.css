@@ -86,14 +86,14 @@
    */
   --bubble-radius: 999px;
   /*
-   * The main image above the title (10.3, 10.7): two fifths of the Bubble's height on every
-   * Node (#102, the owner's answer (b) on PR #110). It is sized from the text area it sits
-   * in, which is the Bubble less the rim above and below: 160.4 of 401 at the guaranteed
-   * viewport, 208 of 520 at the largest Bubble. tree-format.md 5.7 cuts the description to
-   * what fits beside it. 30 pixels is the floor it can give way to where the text does not
-   * fit after all -- a font wider than 5.7 assumes -- and never at the guarantee.
+   * The main image above the title (10.3, 10.7): **[#264]** one fifth of the Bubble's height on
+   * every Node, where it was two fifths from #102 (the owner's answer (b) on PR #110) to #263,
+   * which gave the description's box the other fifth (43.2, ADR-263-description-box). It is
+   * sized from the text area it sits in, which is the Bubble less the rim above and below:
+   * 80.2 of 401 at the guaranteed viewport, 104 of 520 at the largest Bubble. 30 pixels is the
+   * floor it gives way to last, after the description's box and the foot (below).
    */
-  --main-image: calc((100% + 2 * var(--rim-y) + 4px) * 2 / 5);
+  --main-image: calc((100% + 2 * var(--rim-y) + 4px) * 1 / 5);
   --main-image-min: 30px;
   /*
    * The foot of the text area the Interior keeps clear while it can (below): 24 pixels on
@@ -632,8 +632,8 @@ a.language:hover,
  * The foot of the text area is kept clear where the text leaves room: the curve narrows the
  * Bubble there, and a line of Sources drawn in it crosses the outline. The picture wins
  * over it (#102): its shrink weight is ten thousand times the picture's, so it yields
- * first, and all of it -- a Node at every maximum keeps 0.6 of its 24 pixels (10.7). (Not
- * 1 against 0.0001: shrink factors that sum below one absorb only that share of the overflow.)
+ * first, and all of it. (Not 1 against 0.0001: shrink factors that sum below one absorb only
+ * that share of the overflow.) **[#264]** The description's box yields before it (43.2).
  */
 .bubble-text::after {
   content: "";
@@ -694,6 +694,39 @@ a.language:hover,
 .prose {
   font-size: var(--body);
   line-height: var(--body-line);
+}
+
+/*
+ * **[#264]** The description's box (application.md 43.2, 43.3, 43.5; ADR-263-description-box,
+ * ADR-263-description-scroll): as tall as its text and at most what the text area leaves it,
+ * scrolling natively inside itself while the page never does.
+ *
+ * - It yields first when the text area is short: its shrink weight is ten thousand times the
+ *   foot's, as the foot's is the picture's, down to two lines of its type or its whole text
+ *   if that is shorter (`calc-size`; a browser without it lets the box go to nothing, which
+ *   no viewport of 10.6 reaches: the box was never under 104.9).
+ * - Its text wraps anywhere, so it is never wider than itself (10.6 walks its width).
+ * - It is not positioned: an explainer's panel keeps the text area as its containing block,
+ *   so the box never clips it (10.8).
+ * - The sign of more is CSS alone: a surface-coloured cover attached to the text (`local`)
+ *   hides a shadow attached to the box (`scroll`) at whichever end the text reaches, so a
+ *   shadow shows only on a side where text lies beyond the edge.
+ * - A scroll that reaches an end goes nowhere: not to the page, not to a pull-to-refresh.
+ */
+.prose[data-description-box] {
+  flex: 0 100000000 auto;
+  min-height: 0;
+  min-height: calc-size(max-content, min(size, 2 * var(--body-line)));
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  background:
+    linear-gradient(var(--elsa-surface) 30%, transparent) top / 100% 16px no-repeat local,
+    linear-gradient(transparent, var(--elsa-surface) 70%) bottom / 100% 16px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, var(--rule), transparent) top / 100% 8px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, var(--rule), transparent) bottom / 100% 8px no-repeat scroll;
+  background-color: var(--elsa-surface);
 }
 
 /* A paragraph break is one line of the estimate (tree-format.md 3.8); list items have none. */
@@ -1314,11 +1347,12 @@ a.language:hover,
 
 /*
  * Laid out from the top, as the Bubble's text area is (10.3): the title at the same height in
- * both. The main image is two fifths of the panel, as it is of the Bubble (#102): the panel
- * is this area and its padding and outline, 24 and 1 above and below.
+ * both. The main image is **[#264]** one fifth of the panel, as it is of the Bubble (43.2;
+ * two fifths from #102 to #263): the panel is this area and its padding and outline, 24 and 1
+ * above and below, so 121.6 of 608.
  */
 .overlay-interior {
-  --main-image: calc((100% + 2 * 24px + 2px) * 2 / 5);
+  --main-image: calc((100% + 2 * 24px + 2px) * 1 / 5);
   /* The containing block of an explainer panel, as the Bubble's text area is (10.8). */
   position: relative;
   display: flex;

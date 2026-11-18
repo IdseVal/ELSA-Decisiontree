@@ -392,15 +392,34 @@ describe('the Question, on a question Node and nowhere else', () => {
   })
 
   test('the Question\u2019s text is the reduced string and never the cut one', async () => {
-    // A description is at most 150 counted characters, so the two are the same string for
-    // a conforming Tree. What is asserted here is which function the field reads, because
-    // that decides which consumer takes the loss the day that limit moves (16.3).
+    // The example Tree's descriptions are within 155 counted characters, so the two are the
+    // same string here. What is asserted is which function the field reads, because that
+    // decides which consumer takes the loss now that the limit has moved (16.3; **[#264]** the
+    // test below shows it on a description of 600).
     for (const id of ['start', 'prohibited-practices']) {
       const node = (await tree.getNode(id))!
       const question = webPageOf(await graphOf(tree, id, 'en')).mainEntity!
 
       expect(question.text, id).toBe(plainDescription(node.description.en!).reduced)
       expect(question.text, id).not.toContain('\u2026')
+    }
+  })
+
+  test('**[#264]** a description of 600 characters: the Question\u2019s text whole, the WebPage\u2019s description cut (application.md 43.7, 16.3)', async () => {
+    // Since elsa-tree/8 a conforming Tree's description may be 600 counted characters, so
+    // 16.3's steps 3 and 4 fire: the cut string at most 155 with an ellipsis, the reduced one whole.
+    const long = await openTree(path.join(here, '..', 'fixtures', 'long-full-node'))
+    for (const lang of long.manifest.languages) {
+      const node = (await long.getNode('full'))!
+      const { reduced, cut } = plainDescription(node.description[lang]!)
+      const graph = await graphOf(long, 'full', lang)
+
+      expect([...reduced].length, lang).toBe(600)
+      expect(webPageOf(graph).mainEntity!.text, lang).toBe(reduced)
+      expect(webPageOf(graph).description, lang).toBe(cut)
+      expect([...cut].length, lang).toBeLessThanOrEqual(155)
+      expect(cut, lang).toMatch(/\u2026$/)
+      expect(reduced.startsWith(cut.slice(0, -1).trimEnd()), lang).toBe(true)
     }
   })
 

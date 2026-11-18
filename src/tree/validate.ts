@@ -28,7 +28,7 @@ import { explainerMarks } from '../markdown.ts'
 import { countedLength, isId } from './grammar.ts'
 import { estimatedLines } from './measure.ts'
 import type { LocalisedText, NodeKind, Violation } from './types.ts'
-import schemaDocument from '../../schemas/elsa-tree-7.json' with { type: 'json' }
+import schemaDocument from '../../schemas/elsa-tree-8.json' with { type: 'json' }
 
 /**
  * **[#137]** The grammars and the counted length of 3.8 moved to `grammar.ts`, which a client
@@ -100,9 +100,9 @@ export const MAX = {
   title: 80,
   treeDescription: 600,
   treeLines: 8,
-  /* What fits beside a main image of two fifths of the Bubble (application.md 10.7, #102). */
-  nodeDescription: 150,
-  nodeLines: 2,
+  /* **[#264]** The box scrolls, so the limit no longer fits a height: the pair it had before #102 (application.md 43.1, ADR-263-description-limit). */
+  nodeDescription: 600,
+  nodeLines: 8,
   optionTitle: 60,
   /* The badge's words: one line in its narrowest room, 198 pixels at 480 wide (application.md 36.1, #171). */
   terminalLabel: 19,
