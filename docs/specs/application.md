@@ -6,6 +6,30 @@
 > they consume is frozen separately in `docs/specs/tree-format.md` (`elsa-tree/3`, issue
 > #78; `elsa-tree/2` was issue #37).
 >
+> **Amended 2026-11-18 by issue #263** (`docs/adrs/ADR-263-*.md`), for the owner's words on #262
+> (core document 3.2 `[#262]`): "makes the main text box of bubbles and sidebubbles longer, and it
+> should allow for scroll. The 150 character limit that we picked is waaaaay too short sadly." A
+> Node's description is at most 600 counted characters and 8 estimated lines, in a box of its own
+> that scrolls vertically inside the Bubble and the Overlay while the page never does; the main image
+> gives way from two fifths of the Bubble, and of the Overlay's panel, to one fifth; the Tree format
+> becomes `elsa-tree/8` (`tree-format.md` 5.7, 12.10). **Section 43 is new** and holds the contract;
+> the sections below carry a dated **[#263]** mark where they described the two-line description,
+> the picture's two fifths, a no-scroll walk with two exemptions or the editor's two-line field. The
+> box is measured in `docs/research/issue-263-description-box.md`. Built by #264 (the format and
+> every page a reader sees) and #265 (the editor's field), in that order.
+>
+> | Section | #263 |
+> |---|---|
+> | 9 | Five `ADR-263-*` rows; the Fixtures row names `long-full-node` and `long-overlay`. |
+> | 10.3, 10.7, 10.9 | The picture one fifth of the Bubble and of the Overlay's panel; the description a box that takes what the text area leaves (43.2). |
+> | 10.5 | Nothing in the table moves (43.4). |
+> | 10.6, 26.3 | A third exemption, `data-description-box`, for its height only; two fixtures with the description at 600 and 8 beside `full-node` and `overlay` (43.3, 43.11). |
+> | 10.8 | A scroll of the box closes the open panel (43.5). |
+> | 11.3 | Every box starts at its top (43.6). |
+> | 16.3, 16.4 | Steps 3 and 4 of 16.3 fire for a conforming Tree; the readers stand (43.7). |
+> | 28.1, 28.3, 28.4, 28.6, 35.4 | The editor's field at 600 and 8, the public box at its tallest; the admin walks (43.9, 43.11). |
+> | 43 | New. |
+>
 > **Amended 2026-10-10 by issue #231** (`docs/adrs/ADR-231-*.md`), for the owner's words on #230
 > (core document 3.4 `[#230]`): "just one + button ... which opens the overlay in which the user can
 > toggle (tree ends here) or put the title of the button", "there can be up to 5", "displayed in a
@@ -1184,7 +1208,7 @@ detail, not a second place to look.
 | Browser runner **[v0.2]** | Playwright, `npm run test:browser`, `tests/browser/*.spec.ts`, against `next build` + `node .next/standalone/server.js`. **In the contract now**, because the no-scroll rule (10.6) is a statement about a laid-out document and cannot be asserted any other way. A spec that needs a Tree other than the example starts its own server with `tests/browser/serve.ts`, a helper and not a spec file (amended 2026-09-14, #43). `tests/browser/credits.ts` is a helper too: it lists every picture a Tree shows, Node by Node in strip order, and reads each one's credit off the caption line by the keyboard alone, for `carousel.spec.ts` and `tests/first-tree/walk.spec.ts` (amended 2026-09-14, #55). |
 | Also in CI | `tsc --noEmit`, `next build`, `npm run validate trees/<each Tree>`, `npm run test:browser`. Command: `npm ci && npm test && npm run build && npm run test:browser`. |
 | Loading a fixture | `const tree = await openTree(path.join(__dirname, 'fixtures', '<name>'))`. **[#132]** A browser spec that needs its own server starts it with `ELSA_DATA_DIR` a fresh temporary directory and `ELSA_SEED_DIR` the fixture's parent folder (17.1), not with `ELSA_TREE`; `tests/browser/serve.ts` does it. The rows the round adds are in 23.7. Never hand-built `Node` objects; **[#118]** and never a Tree file parsed by the test itself -- a test that wants a Tree opens it through the loader, whatever the serialisation is. (This row read "never YAML read by a test" until #118; the fixtures become `tree.json` with #119, and the rule was never about YAML.) |
-| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). **[#118]** `tests/fixtures/findability/` (**#120** creates it, **#122** extends it): a two-language Tree whose manifest has **no `description`**, so the `Dataset` and `llms.txt` fall back to the root Node's; whose `title` and one Node `title` carry `&`, `<`, `>`, `"` and a literal `</script>`, so the XML escaping of 16.2 and the JSON escaping of 16.4 are exercised rather than assumed; with one Node holding two `kind: legal` Sources at one URL and one at another, so `isBasedOn`'s most-frequent rule has something to choose; one Node with **no** Source at all; a Terminal and an explanation Node, so the "no `Question`" half of 16.4 has a subject; and a description over 155 counted characters whose 155th character falls inside a word, for the cut. The single-language half of 16.2 and 16.5 uses `tests/fixtures/single-language/`, which already exists. **[#122]** Two corrections to this row, made in building it. The Node title also carries `<!--`, the second sequence 16.4's sink refuses, which this row named for the test but not for the fixture. And **the over-155 description is not in this fixture, because the format forbids it**: a Node `description` is at most 150 counted characters and a Tree `description` is rich text whose reduction is shorter still (`tree-format.md` 5.7), so no valid Tree can exercise steps 3 and 4 of 16.3 -- which is 16.3's own point, that the cut does not fire for a conforming Tree. The cut is asserted on strings in `markdown.test.ts`, where it can be. **[#122]** `tests/fixtures/tied-sources/` is new: one language, two `kind: legal` Sources at two URLs with one citation each, and a `literature` and a `case-law` Source that no count of legal Sources may see -- the tie 16.4 breaks by first occurrence in Node order, which no other fixture can produce. |
+| Fixtures | `trees/ai-act-example/` (complete, `en` + `nl`, **with a Theme**, one explainer on `start`); `tests/fixtures/single-language/` (`nl`, **no Theme**); `tests/fixtures/other-languages/` (`de`, `fr`, **with a Theme**); `tests/fixtures/invalid/<rule>/` (one Tree per validity rule, **[#75]** V-EXPLAINER and V-MARK included); **[v0.2]** `tests/fixtures/full-node/` (one Node at every maximum the format allows: an 80-character title, a 600-character 8-line description (**[#102]** 150 characters and 2 lines since the limit was cut; **[#263]** it keeps 150 from `elsa-tree/8`, and the description's new maximum, 600 and 8, is in its copy `tests/fixtures/long-full-node/` and in `tests/fixtures/long-overlay/`, 43.11), 3 Sources, 8 Options whose targets each lead with an Image, 10 Images, **[#75]** 8 explainers of 40 and 200 characters each marked once, and a 49-entry Trail to reach it); **[v0.2]** `tests/fixtures/carousel/` (the Carousel's, #43: a Node with nine Images after its main one, more than the strip's seven, a Node with two, a Node whose first credit is the format's maximum of 120 characters, and a Terminal with one that no other page may request); **[#75]** `tests/fixtures/overlay/` (an explanation Node at every maximum with eight Options of its own, reached by an Option, for the Overlay at its largest, 10.9); **[#75]** `tests/fixtures/explainers/` (amended 2026-09-18, #83: eight explainers of 40 and 200 characters, `en` and `nl`, marked in one paragraph of a question Node, for the explainer panel at its largest, 10.8). **[#118]** `tests/fixtures/findability/` (**#120** creates it, **#122** extends it): a two-language Tree whose manifest has **no `description`**, so the `Dataset` and `llms.txt` fall back to the root Node's; whose `title` and one Node `title` carry `&`, `<`, `>`, `"` and a literal `</script>`, so the XML escaping of 16.2 and the JSON escaping of 16.4 are exercised rather than assumed; with one Node holding two `kind: legal` Sources at one URL and one at another, so `isBasedOn`'s most-frequent rule has something to choose; one Node with **no** Source at all; a Terminal and an explanation Node, so the "no `Question`" half of 16.4 has a subject; and a description over 155 counted characters whose 155th character falls inside a word, for the cut. The single-language half of 16.2 and 16.5 uses `tests/fixtures/single-language/`, which already exists. **[#122]** Two corrections to this row, made in building it. The Node title also carries `<!--`, the second sequence 16.4's sink refuses, which this row named for the test but not for the fixture. And **the over-155 description is not in this fixture, because the format forbids it**: a Node `description` is at most 150 counted characters and a Tree `description` is rich text whose reduction is shorter still (`tree-format.md` 5.7), so no valid Tree can exercise steps 3 and 4 of 16.3 -- which is 16.3's own point, that the cut does not fire for a conforming Tree. The cut is asserted on strings in `markdown.test.ts`, where it can be. **[#122]** `tests/fixtures/tied-sources/` is new: one language, two `kind: legal` Sources at two URLs with one citation each, and a `literature` and a `case-law` Source that no count of legal Sources may see -- the tie 16.4 breaks by first occurrence in Node order, which no other fixture can produce. |
 | Rendering views | `renderToStaticMarkup` from `react-dom/server` on the synchronous components, with data from the loader. |
 | **[#133]** The editor round's tests | Section 35: a data directory built by `tests/browser/admin.ts` from fixtures and a table of accounts, never committed; one server per spec through `serveStore`; one login helper; the admin pages under the no-scroll test with `[data-scroll-box]` exempted (26.3); one spec per build issue (35.4); the sweep's admin half (35.5); the public suites run unchanged (35.6). **[#195]** And, from 2026-10-03, 38.10 and 39.9: the login by e-mail address and the Authors. **[#205]** And, from 2026-10-04, 40.9: the preview of a hidden Tree. |
 
@@ -1404,6 +1428,10 @@ preview's bound is the public page's 41 (42.5); from #234 the editor's page read
 **[#231]** (2026-10-10) Seven rows more, one per decision of #231: `ADR-231-five-next-steps.md`,
 `ADR-231-elsa-tree-7.md`, `ADR-231-answer-row.md`, `ADR-231-slide-toward-the-button.md`,
 `ADR-231-one-plus.md`, `ADR-231-slide-in-the-editor.md`, `ADR-231-other-readers.md` (section 42).
+
+**[#263]** (2026-11-18) Five rows more, one per decision of #263: `ADR-263-description-limit.md`,
+`ADR-263-description-box.md`, `ADR-263-description-scroll.md`, `ADR-263-elsa-tree-8.md`,
+`ADR-263-description-field.md` (section 43).
 
 ## 10. The tree view
 
@@ -1760,6 +1788,12 @@ text drawn, and #82's rule of 480 pixels goes (41.2).
   consistent with the reading; should the owner correct it, what changes is which
   direction a Link is drawn in, in `src/neighbourhood.ts` (11.2).
 
+**[#263]** (2026-11-18) The main image is **one fifth** of the Bubble's height on every Node, where
+#102 made it two fifths: 80.2 of 401 at 1280 x 640, 104 of 520; the Overlay's, one fifth of its
+panel, 121.6 of 608; the empty and the withheld slot are the same box. The description is a box of
+its own that is as tall as its text and at most what the text area leaves it, and scrolls; it yields
+first when the area is short, down to two lines, then the clear foot, then the picture, to 30 (43.2).
+
 ### 10.4 The viewport the layout guarantees
 
 | | Width x height, CSS pixels | What holds |
@@ -1896,6 +1930,9 @@ pixels wide and shows the notice below 390 x 560 at least (41.3, 41.4); nothing 
 **[#231]** (2026-10-10) A step of five stands its buttons three then two below 1000 pixels wide and shows the
 notice in 42.4's boxes; nothing in the table moves for it (42.3, 42.4).
 
+**[#263]** (2026-11-18) Nothing in the table moves for the description's box: the picture is
+hidden below 632 and 792 as before, and the box takes what the text area leaves (43.4).
+
 ### 10.6 The no-scroll rule, and the exact test
 
 **The rule.** `html` and `body` are exactly the size of the viewport and have
@@ -1964,6 +2001,14 @@ and one pixel either side of 41.4's width and height (41.9).
 
 **[#231]** (2026-10-10) And #232's fixture of a step of five next steps, at 999 x 640, 1000 x 640 and one pixel
 either side of each width and height of 42.4's boxes (42.10).
+
+**[#263]** (2026-11-18) A **third** exemption, of a kind of its own: the description's box,
+`[data-description-box]`, which scrolls vertically inside its own bounds. The walk skips its height
+check, keeps its width check, and checks that its bottom lies inside its text area; every page above
+is measured again with each visible box scrolled to its end (43.3). From #264 the rows above that
+measure `full-node` and `overlay` at every maximum measure `tests/fixtures/long-full-node/` and
+`long-overlay/` too, copies whose description is at 600 characters and 8 lines; the originals keep
+150, as the editor's specs load them (43.11).
 
 ### 10.7 The format's length limits, confirmed
 
@@ -2107,6 +2152,14 @@ and no limit of the Bubble moves (41.3, `tree-format.md` 5.7).
 **[#231]** (2026-10-10) At 1280 x 640 five buttons are 236 pixels each and a 19-character label takes two lines in
 every face measured: the row stays 68, and no limit of the Bubble moves (42.3).
 
+**[#263]** (2026-11-18) **The description is 600 characters and 8 estimated lines** from
+`elsa-tree/8` (43.1, `tree-format.md` 5.7), in a box that scrolls, with the main image one fifth of
+the Bubble. At 1280 x 640 the text area divides as picture 80.2, gap 8, title 56, gap 8, the
+description's box **104.9**, gap 8, Sources 60 and the foot's 23.9: measured, with a description at
+its maximum, on `dev`'s production build with the box drawn in (43.2;
+`docs/research/issue-263-description-box.md`). The limit no longer derives from a height: a text
+taller than its box scrolls.
+
 ### 10.8 The explainer panel
 
 **[#75], new.** A word of a Node's description may carry an explainer (`tree-format.md`
@@ -2165,6 +2218,10 @@ and marks each occurrence in the description as `[providers](#provider)`. Record
   at the foot of the text area, full width, where it can never leave the Bubble; Escape
   and tap need the script. Inside an Overlay the same rules apply to the Overlay's text
   area.
+
+**[#263]** (2026-11-18) The description's box is not positioned, so the panel keeps the text area as
+its containing block wherever the box has scrolled and is never clipped by it; focus on a term
+scrolls it into view; **a scroll of the box closes the open panel**, as a resize does (43.5).
 
 ### 10.9 The Overlay
 
@@ -2271,6 +2328,10 @@ bound as it stood for two.
 **[#231]** (2026-10-10) With up to five next steps a step, a page reads at most **41** Nodes, not 31, and the
 preview's bound is the public page's 41 (42.5); from #234 the editor's page reads at most eighteen
 (42.8).
+
+**[#263]** (2026-11-18) The Overlay's picture is **one fifth** of the panel, 121.6 of 608, and its
+description a box that takes what the panel's content leaves it and scrolls: at its largest, at
+1280 x 640, 168 to 188.4 for a description at its maximum (43.2).
 
 ## 11. Transitions and the neighbourhood
 
@@ -2462,6 +2523,10 @@ fourth of four as it asserts a `yes` and a `no` target (41.9).
 wide, `row` from 1000 -- when it starts (42.5); `transition.spec.ts` asserts each button of two to five
 at 1280 x 640, 999 x 640 and below 600 (42.10). From #234 the editor's page slides too, its navigation
 waiting for the autosave to settle (42.8).
+
+**[#263]** (2026-11-18) Every description's box starts at its top -- in a neighbour frame, on the
+page a slide arrives at, after back and forward; no position is kept or restored, and the address
+carries none (43.6).
 
 ### 11.4 Images during a transition
 
@@ -3082,6 +3147,12 @@ they are the same string**: a Node description is at most 150 counted characters
 #102, so steps 3 and 4 do not fire. The distinction is what happens the day that limit
 moves again, and it decides in advance which consumer takes the loss.
 
+**[#263]** (2026-11-18) The limit has moved: a Node description is at most 600 counted characters
+from `elsa-tree/8` (43.1), so for a conforming Tree **steps 3 and 4 fire** where the reduced string
+is over 155 characters, and the cut and the reduced strings then differ. "Steps 3 and 4 do not fire
+for a conforming Tree" and "For a conforming Tree they are the same string" above held until #264.
+The table of the two outputs stands as written (43.7).
+
 ### 16.4 JSON-LD
 
 **One `<script type="application/ld+json">` per page**, emitted by the server, holding one
@@ -3221,6 +3292,10 @@ this section left open were settled in building it.
   ELI address at all. The decision's *reason* -- name the thing a reader following the
   page's own links arrives at -- is what this implementation follows, and it is what makes
   the stripped key the wrong value to emit.
+
+**[#263]** (2026-11-18) Confirmed as written: the `WebPage`'s `description` takes the cut string and
+the `Question`'s `text`, and the `Dataset`'s `description` where the root Node's stands in, the
+reduced one, whole, now up to 600 characters (43.7).
 
 ### 16.5 `llms.txt`
 
@@ -4561,6 +4636,10 @@ body of the top panel (33.2); **[#176] amended 2026-10-02**, and the body of the
 (33.3), which holds the to-do list that left the panel's body. Nothing else may carry it: the Bubble, an Overlay, every other
 Sheet holds what the format bounds and fits or is a defect.
 
+**[#263]** (2026-11-18) The description's box in the Bubble and in an Overlay scrolls, but carries
+`data-description-box`, not this attribute: the walk skips its height only (43.3). No Node page and
+no Overlay carries `data-scroll-box`.
+
 ### 26.4 The creators' overview, `/admin`
 
 The same page with three additions:
@@ -4639,7 +4718,7 @@ path of 22.2 and the limit of 5.7:
 | Where | Field | Path | Limit |
 |---|---|---|---|
 | The heading | title | `title.<lang>` | 80, plain |
-| The text | description | `description.<lang>` | 150 and 2 lines, rich (28.5) |
+| The text | description | `description.<lang>` | 150 and 2 lines, rich (28.5); **[#263]** 600 and 8 lines, in a box that scrolls (43.9) |
 | Each Source's line | label | `sources[i].label.<lang>` | 60, plain |
 | A Source's `...` Sheet | kind (a select), URL, `removeSource` | `sources[i].kind`, `sources[i].url` | -- |
 | After the last Source | `+ addSource` (absent at 3): a Sheet holding the kind and the URL, the URL focused | `add-source` with an empty label, the kind chosen and the URL typed; **[#138] as built**, nothing is sent before a URL of the schema's grammar is typed, because the schema requires one and a made-up address would be silent content. **[#242]** (2026-10-12, PROPOSED, #242 points 2 and 3; the owner asked that adding a Source work, #241) A text with no `://` anywhere and no white space, whose part before the first `/`, `?` or `#` holds a dot with a character on each side (`www.example.org`, `eur-lex.europa.eu/eli/reg/2024/1689/oj`), is sent with `https://` in front, and the Source's own URL field then shows it so; every other text that is not of the grammar stays refused (`abc`, `ftp://x`, `HTTPS://example.org`, `not a link`). The grammar does not change: what is stored still passes it. The Link field shows `placeholderUrl`; while nothing can be sent, the button is drawn disabled, as a disabled `.admin-submit` is in the other Sheets (`opacity: 0.6; cursor: default`); once something that is not a link is typed, a line under the field, the chrome word `sourceUrlHint`, says what it needs, and the field names it by `aria-describedby` | -- |
@@ -4717,6 +4796,8 @@ other declared language that has no text for this field**, each a `withLang` lin
 same page in that language. Nothing on the rim takes a pixel from the text area (10.1). The
 Overlay's Interior has the same rim (its 60-pixel sides, 10.9).
 
+**[#263]** (2026-11-18) For the description the pill shows `lines / 8` (43.9).
+
 ### 28.4 The limits, live
 
 `n` is `countedLength` and `lines` is `estimatedLines` of `tree-format.md` 3.8, computed in
@@ -4788,6 +4869,12 @@ description of 120 characters in their boxes at all three sizes in both language
 still one plain line: Enter attaches, as it did in the one-line field, and breaks no line. The
 picture gives up the height (31.2, amended the same day).
 
+**[#263]** (2026-11-18) The description's limit is 600 characters and 8 lines, and typing stops at
+it as above. Its box is not two lines (three below 480) but **the public box at its tallest**, empty
+and filled: as tall as the text area leaves the description (43.2). Its rendered text and its source
+each scroll inside it, and a text stored over its limit scrolls there, where the box grew to hold it
+(43.9).
+
 ### 28.5 The description: source text
 
 Blurred, the region shows the **rendered** text (`richTextToHtml` with the Node's explainers,
@@ -4819,6 +4906,9 @@ rule as 41.3 stands it (41.7 item 8).
 **[#231]** (2026-10-10) A row of five buttons -- five next steps, or four and the one `+` -- holds the rule with
 42.4's editor notice, below 770 x 690 and below 390 x 1080; a row of three or four with 41.7 item
 8's (42.7 item 7).
+
+**[#263]** (2026-11-18) The description's field scrolls inside its box, `data-description-box` as on
+the public page; everything else the editor adds stays outside the text area (43.9).
 
 ### 28.7 Not offered
 
@@ -5915,6 +6005,10 @@ real person's address is in the repository (38.10).
 | **[#195]** (2026-10-03) the rows of 38.10 | The login by e-mail address: the check, the start's table, the conversion, the routes, the pages, every test that logs in | #196 |
 | **[#195]** (2026-10-03) the rows of 39.9 | The Authors: `joined`, `authorsOf`, `authors(id)`, the mention, the no-scroll rule with it, the account sweep | #197 |
 | **[#205]** (2026-10-04) the rows of 40.9 | The preview of a hidden Tree: its address and answers, what it draws, its bar, its two buttons and the ending's button beside them, the way there and back, an unfinished draft; the editor's tab order; the sweeps of 23.7 and 35.5 with a preview drawn | #206 |
+
+**[#263]** (2026-11-18) From #264 `admin-no-scroll.spec.ts`, `admin.spec.ts` and `creation-walk.spec.ts` exempt
+`[data-description-box]` for its height only, as `no-scroll.spec.ts` does (43.3), and from #265
+`admin-no-scroll.spec.ts` loads `long-full-node` and `long-overlay` as drafts (43.11).
 
 ### 35.5 The no-cookie sweep, extended
 
@@ -7675,3 +7769,168 @@ and in the preview, and 41.7 item 8's for three or four buttons in the editor.
   title typed just before is stored, the focus is on the `+` (at five, with no `+`, on the new words),
   and following the new button slides to the new step; a refusal stays in the open Sheet; the switch
   on still ends the step on the same page.
+
+## 43. The longer description that scrolls
+
+**[#263], new -- 2026-11-18.** The owner, on #262 (core document 3.2 `[#262]`): "I want you to put
+an issue on the board that makes the main text box of bubbles and sidebubbles longer, and it should
+allow for scroll. The 150 character limit that we picked is waaaaay too short sadly." This section
+is the contract for it; the sections it changes carry a dated **[#263]** mark, and where they and
+this section disagree, this section holds. The decisions are `docs/adrs/ADR-263-description-limit.md`,
+`ADR-263-description-box.md`, `ADR-263-description-scroll.md`, `ADR-263-elsa-tree-8.md` and
+`ADR-263-description-field.md`; the box is measured in `docs/research/issue-263-description-box.md`,
+on `dev`'s production build (`8e7ad6c`), in both languages, in Segoe UI and Liberation Sans (the
+default stack of 13.4 on Windows and on Linux) and Open Sans (the first Tree's). **#264** builds
+43.1 to 43.8 and their tests -- the format and its conversion, the box on every page, the preview
+of a hidden Tree included, which draws the same components (40.2); **#265** builds 43.9, the
+editor's field.
+
+### 43.1 The limit
+
+A Node's `description` is at most **600 counted characters and 8 estimated lines** (`tree-format.md`
+3.8), the same for every language, under V-LENGTH and V-LINES, from `elsa-tree/8` (43.8): the pair
+this field had from #37 until #102, and the pair the Tree's own `description` has. The estimate's
+rule stands, one line per 75 counted characters. A text at both maxima takes 7 lines of 24 pixels
+at 640 wide in Segoe UI and Liberation Sans and 8 in Open Sans. The validator's
+`MAX.nodeDescription` and `MAX.nodeLines` (`src/tree/validate.ts`) are #264's; the editor's
+`LIMIT.description` (`src/components/Bubble.tsx`) is #265's (43.9). No Tree in `trees/` gets a
+longer description; two fixtures at the new maximum are added beside `full-node` and `overlay`
+(43.11).
+
+### 43.2 The box: what gives way
+
+- **The main image is one fifth** of the Bubble's height on every Node, where it was two fifths (10.3,
+  amended by #102): 80.2 of 401 at 1280 x 640, 104 of the largest Bubble's 520; in the Overlay, one
+  fifth of the panel, 121.6 of 608 (10.9). The same 3 : 2 box, cropped and cornered as before; the
+  empty slot and a neighbour frame's withheld slot are that box, so the title sits at one height on
+  every Node and a slide has nothing to reflow. At two fifths the box would be the 48 of today at
+  1280 x 640, 1280 x 639 and 1280 x 632 (`ADR-263-description-box.md`, Context).
+- **The description's box** is as tall as its text and at most what the text area leaves it: the
+  text area less the picture, the title, the Sources (in an Overlay, its Options' list too), their
+  gaps and, in the Bubble, the clear foot of 10.3; the Overlay's panel has none. A short description draws as before, and the foot opens under the
+  Sources by the difference.
+- **What yields when the text area is short**, in order: the box, down to two lines of its type (or
+  its whole text, if shorter); then the foot; then the picture, down to its floor of 30. The box
+  absorbs what a wider face takes.
+- **Measured**, with a description at its maximum: in the full Node's Bubble **104.9 at 1280 x 640**
+  (4.4 lines; the picture 80.2, the title 56, the Sources 60, the foot its whole 24, 23.9 measured), where the text
+  is 168 and scrolls; from 1280 x 759 up, the largest Bubble, 168 to 170.3, the whole text in Segoe UI
+  and Liberation Sans and 170.3 of 192 in Open Sans; 159.8 at 1024 x 768. In the Overlay at its
+  largest, from 1280 x 640 up, the whole text in English (168) and 188.4 of 192 in Dutch. Every
+  viewport is in the record's fourth table. The box was never shorter than 104.9, and the foot never
+  yielded to it.
+
+### 43.3 The scroll container and the no-scroll walk
+
+- The description's element, `.prose`, is a **native vertical scroll container**
+  (`overflow-y: auto`), whose text wraps (`overflow-wrap: anywhere`) so that it is never wider than
+  itself; `scrollbar-width: thin`. It works without JavaScript.
+- It carries **`data-description-box`**, an attribute of its own, not `data-scroll-box`: 10.6's walk
+  skips its **height** check and keeps its **width** check, and checks that its bottom lies inside
+  its text area. 26.3's "Nothing else may carry it" stands for `data-scroll-box`. The document never
+  scrolls, at any size, including while a box is scrolled to its end.
+- It is **not positioned**, so an explainer's panel keeps the text area as its containing block and
+  is never clipped by the box (43.5).
+
+### 43.4 Below the guarantee
+
+Nothing in 10.5 moves: the order, the eight steps and every trigger stand. Below 632 pixels tall and
+792 wide the picture is hidden by step 5, so the fifth changes nothing there; step 7's type steps
+down inside the box; the description stays among what is never given up and is never put in a Sheet.
+The box takes what the text area leaves: measured at 10.6's viewports on the full Node with its
+description at the maximum, the whole text at 768 x 1024 (157.5) and 390 x 844 (234), and 197 at
+360 x 640, scrolling; the notice at 320 x 480, as before. Every page measured is in the record's
+fourth table.
+
+### 43.5 Keyboard, the sign of more, the end, the explainers
+
+- **Keyboard.** The box has `tabindex="0"`, `role="region"` and `aria-labelledby` its Interior's
+  title (`node-title`, prefixed as every id in an Overlay or a neighbour frame is), on every Node.
+  Focused, the arrow keys, Page Up and Page Down, Home, End and the space bar scroll it. Tab reaches it
+  after the title, before the links and terms inside it.
+- **The sign of more.** A shadow at the box's lower edge while text lies below, and at its upper edge
+  while text lies above, in the Theme's `rule` shade over `surface`, by CSS alone (backgrounds
+  attached `local` and `scroll`); and the box is not a whole number of lines, so the next line's top
+  shows. The platform's scroll bar where it draws one.
+- **The end.** `overscroll-behavior: contain`: a wheel or a touch at the box's top or bottom goes
+  nowhere -- not to the page, and not to a pull-to-refresh.
+- **Explainers.** The marks and panels of 10.8 stand. Focus on a term scrolls it into view; its panel
+  is placed in the text area as before, over the box. **A scroll of the box closes the open panel**,
+  as a resize of the window does (`Explainer.tsx`). Without JavaScript the panel opens at the foot of
+  the text area, as before.
+
+### 43.6 Neighbour frames and the slide
+
+Every box starts at its top: in a neighbour frame, on the page a slide arrives at, after the
+browser's back or forward, and after a reload. Nothing keeps or restores a box's scroll position, and
+the address carries none. During a slide the centre frame moves as it is, its box where the reader
+left it, until the target's page replaces it (11.3, step 4). A neighbour frame's box is inert and
+`aria-hidden` with its frame.
+
+### 43.7 Findability
+
+16.3, 16.4 and 16.5 stand as written. A description over 155 reduced characters now makes 16.3's
+steps 3 and 4 fire for a conforming Tree: `<meta name="description">` and the `WebPage`'s
+`description` take the cut string; the `Question`'s `text`, the `Dataset`'s `description` where the
+root Node's stands in, and `llms.txt`'s blockquote take the reduced string, whole. Nothing in
+`src/markdown.ts` or `src/findability/` changes. What becomes untrue are 16.3's sentences that the
+steps do not fire and that the two strings are one for a conforming Tree; they carry the mark.
+
+### 43.8 The format
+
+The format is **`elsa-tree/8`**: `/7` with one change, the limit of 43.1. `schemas/elsa-tree-8.json`
+stands beside the `/7`, `/6`, `/5` and `/4` files, each still served; the loader accepts `/8` alone;
+`Manifest['format']` is `elsa-tree/8`; the store converts a `/7` file it opens by `tree-format.md`
+12.10, which changes its `format` and its `$schema` and nothing else. The first release that carries
+`/8` converts the live data directory at its first start: that is the write of core document 10.45,
+**OPEN** for the owner, built as its PROPOSED reading by #252. #264 writes `/8` wherever the specs
+and the readers name the current number (the schema route, 15.2's `Link` header, `llms.txt`), as
+#232 did for `/7`, each with a dated note.
+
+### 43.9 The editor
+
+- The description's field stops at **600 counted characters and 8 estimated lines**, as
+  `ADR-172-typing-stops-at-the-limit.md` stops every field; the counter pill shows `n / 600` and
+  `lines / 8` (28.3).
+- Its box is **the public box at its tallest, empty and filled** (43.2): as tall as the text area
+  leaves the description, whatever the field holds, so it neither grows nor shrinks while the creator
+  types (28.4). Blurred, the rendered text scrolls in it as on the public page; focused, the
+  `textarea` scrolls in it, the caret kept in view, the source shown from its top. A text stored over
+  its limit scrolls inside the box; the mirror no longer grows the description's box.
+- The element that scrolls carries `data-description-box` -- the `textarea` itself while the field is
+  focused, the rendered text's element while it is blurred -- and the walk treats it as on the public
+  page. The rim -- the pill, the missing-language tags and `mark` -- stands at the field's top.
+- 28.6 stands with that one exemption: everything else the editor adds is outside the text area.
+
+### 43.10 What does not change
+
+The page never scrolls (core document section 9). The Tree's `description` (600 and 8), the titles,
+the Sources, the Options, the Answers and the Carousel keep their limits and places; 10.5's order and
+triggers stand; the rows of 10.1 stand; the up arrow, the strip and the fan are where they were. The
+Overlay keeps no strip (10.9). No Tree's content changes.
+
+### 43.11 Tests
+
+- **#264**: two fixtures, `tests/fixtures/long-full-node/` and `tests/fixtures/long-overlay/`,
+  copies of `full-node` and `overlay` whose `full` and `big` descriptions are at 600 counted
+  characters and 8 estimated lines in English and in Dutch, their explainer marks kept; `full-node`
+  and `overlay` keep their 150, because 21 files of `tests/browser/` that name `full-node` log in to
+  the admin area, where the editor draws it, and the editor's field holds a longer text only from
+  #265; `invalid/v-lines` re-fitted to 9 estimated lines (`tree-format.md` 12.10.3);
+  `loader.test.ts` and the validator's tests at 600 and 601 characters, 8 and 9 lines; 12.10 and the
+  store's conversion as 12.9's are tested; the walk of 43.3 (the box's height skipped, its width and
+  its place in the text area checked) in `no-scroll.spec.ts`, `admin-no-scroll.spec.ts`,
+  `admin.spec.ts` and `creation-walk.spec.ts`; `no-scroll.spec.ts` on the copies wherever 10.6
+  measures the originals at every maximum, at every viewport, and again with each visible box
+  scrolled to its end; `carousel.spec.ts` at 1280 x 640 on `long-full-node`'s full Node: picture
+  80.2, title 56, box 104.9, Sources 60 and foot 23.9 (each within 1); `overlay.spec.ts` the
+  Overlay's picture at one fifth of its panel; a browser test of 43.5 and 43.6 on `long-full-node`'s
+  full Node: Tab reaches the box, named by the title; ArrowDown and End scroll it while the
+  document's `scrollTop` stays 0; a wheel at its end changes nothing; a term focused in a box
+  scrolled to its end opens its panel inside the text area and on top, and a scroll of the box closes
+  it; a neighbour frame's box and the box after a slide at their top; the meta description of a
+  description over 155 characters cut, its `Question` `text` whole (16.3).
+- **#265**: `fields.spec.ts` on the description's field at 1280 x 640, empty, at its limit and over
+  it, its box equal to the public box at that size, the counter's `600` and `8`, typing stopping at
+  600 and at 8 lines; `admin-no-scroll.spec.ts` with `long-full-node` and `long-overlay` as drafts,
+  every Sheet open, the description's field blurred and focused and scrolled to its end.

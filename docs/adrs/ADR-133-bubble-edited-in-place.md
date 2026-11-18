@@ -16,6 +16,12 @@
 - Depends on: `docs/adrs/ADR-133-reuse-rule.md` (the `edit` seam the fields hang off),
   `ADR-133-autosave.md` (what a field does with its value), `ADR-132-draft-and-publish.md`
   (an over-limit write is stored and reported), `ADR-132-editor-api.md` (the field paths)
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-field.md`: by decision 1, the
+  description of the Context and of decision 1's table is at most 600 characters and 8 lines from
+  `elsa-tree/8`, and decision 4's pill shows `lines / 8`; by decisions 2 to 4 and 6, the
+  description's region is the public box at its tallest and scrolls, and decision 7's rule holds with one exemption
+  more; by decision 7, decision 6's "At 150 characters and two lines there is no room for
+  formatting" no longer holds and its "no toolbar" stands (`docs/specs/application.md` 43.9).
 
 ## Context
 

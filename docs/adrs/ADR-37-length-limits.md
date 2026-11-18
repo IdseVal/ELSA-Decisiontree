@@ -4,6 +4,9 @@
 - Superseded in part by `ADR-78-main-image-and-row-budget.md` (decision 4: the vertical budget and the text area the limits derive from), `ADR-78-sources-heading.md` (the Sources block), `ADR-78-fan-out-and-option-picture.md` ("3 Images per Option"), `ADR-78-explainers.md` (the explainer limits) -- 2026-09-17 (issue #78). The limits of decision 1 stand unchanged in `elsa-tree/3`.
 - Issue: #37 -- Architecture: freeze elsa-tree/2
 - Spec: `docs/specs/tree-format.md`, sections 3.8, 5.7; rules V-LENGTH, V-LINES, V-COUNT
+- **[#263] Amended (2026-11-18)** by `ADR-263-description-limit.md` decision 1: the Node
+  description's row of `tree-format.md` 5.7 is 600 characters and 8 estimated lines from
+  `elsa-tree/8`, in a box that scrolls (`docs/specs/application.md` 43.1).
 
 ## Context
 

@@ -10,6 +10,9 @@
 - Schema: `schemas/elsa-tree-7.json` is **not** written here; #232 writes it from `tree-format.md`
   3.9 and 5.3 as amended, beside `elsa-tree-6.json`, which stays served
 - Built by: #232
+- **[#263] Amended (2026-11-18)** by `ADR-263-elsa-tree-8.md`: the next format number is taken,
+  `elsa-tree/8`, for a Node description of 600 characters and 8 estimated lines; `/7` is converted
+  by `tree-format.md` 12.10 as `/6` is by 12.9.
 
 ## Context
 
