@@ -12,7 +12,8 @@
 - Amends: `ADR-38-no-scroll.md` (decision 4: a third element the walk exempts, for its height
   only), `ADR-133-overview-tiles.md` (decision 5: "the second and last element the no-scroll
   rule exempts" is no longer the last), `ADR-78-explainers.md` (decision 6: the panel also closes
-  when the box it is in scrolls)
+  when the box it is in scrolls), `ADR-133-editor-testing.md` (`admin-no-scroll.spec.ts`'s walk
+  exempts `[data-description-box]`'s height too)
 - Measured in: `docs/research/issue-263-description-box.md` (sections 2 and 4)
 - Built by: #264 (the public pages and the preview), #265 (the editor's field, through
   `ADR-263-description-field.md`)
