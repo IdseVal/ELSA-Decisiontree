@@ -23,11 +23,11 @@
 > | 9 | Five `ADR-263-*` rows. |
 > | 10.3, 10.7, 10.9 | The picture one fifth of the Bubble and of the Overlay's panel; the description a box that takes what the text area leaves (43.2). |
 > | 10.5 | Nothing in the table moves (43.4). |
-> | 10.6, 26.3 | A third exemption, `data-description-box`, for its height only; the full Node's description at 600 and 8 (43.3, 43.11). |
+> | 10.6, 26.3 | A third exemption, `data-description-box`, for its height only; two fixtures with the description at 600 and 8 beside `full-node` and `overlay` (43.3, 43.11). |
 > | 10.8 | A scroll of the box closes the open panel (43.5). |
 > | 11.3 | Every box starts at its top (43.6). |
 > | 16.3, 16.4 | Steps 3 and 4 of 16.3 fire for a conforming Tree; the readers stand (43.7). |
-> | 28.1, 28.3, 28.4, 28.6 | The editor's field at 600 and 8, the public box at its tallest (43.9). |
+> | 28.1, 28.3, 28.4, 28.6, 35.4 | The editor's field at 600 and 8, the public box at its tallest; the admin walks (43.9, 43.11). |
 > | 43 | New. |
 >
 > **Amended 2026-10-10 by issue #231** (`docs/adrs/ADR-231-*.md`), for the owner's words on #230
