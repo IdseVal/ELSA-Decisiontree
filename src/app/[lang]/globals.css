@@ -712,11 +712,19 @@ a.language:hover,
  *   hides a shadow attached to the box (`scroll`) at whichever end the text reaches, so a
  *   shadow shows only on a side where text lies beyond the edge.
  * - A scroll that reaches an end goes nowhere: not to the page, not to a pull-to-refresh.
+ *
+ * **[#265]** The editor's description field scrolls as this box does, in both its states (43.9):
+ * its rendered text's element and its `textarea` take the rules below but the sizing, which is
+ * the field's own (the editor's section).
  */
 .prose[data-description-box] {
   flex: 0 100000000 auto;
   min-height: 0;
   min-height: calc-size(max-content, min(size, 2 * var(--body-line)));
+}
+
+.prose[data-description-box],
+.editor-field--rich [data-description-box] {
   overflow-y: auto;
   overflow-wrap: anywhere;
   overscroll-behavior: contain;
@@ -3211,6 +3219,31 @@ fieldset:disabled .admin-submit {
   box-shadow: inset 0 0 0 1px var(--elsa-accent);
 }
 
+/*
+ * **[#265]** The description's box paints the public box's surface and its shadows over the
+ * field (43.5, 43.9), and so hid an inset line; an outline is painted over what the field holds.
+ */
+.editor-field.editor-field--rich {
+  box-shadow: none;
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  transition: outline-color 160ms var(--ease);
+}
+
+.editor-field--rich:hover,
+.editor-field--rich.editor-field--focused {
+  outline-color: var(--rule);
+}
+
+.editor-field--rich.editor-field--over,
+.editor-field--rich.editor-field--refused {
+  outline-color: var(--elsa-danger);
+}
+
+.editor-field--rich.editor-field--changed {
+  outline-color: var(--elsa-accent);
+}
+
 /* Inside a Source's line, an Option button, a Sheet's row: a region among other text. */
 .sources .editor-field,
 .option-title .editor-field,
@@ -3258,7 +3291,6 @@ fieldset:disabled .admin-submit {
 
 .bubble h1 .editor-field,
 .overlay-interior > h2 .editor-field,
-.editor-field--rich,
 .sheet-figure figcaption .editor-field {
   --field-lines: 2;
 }
@@ -3274,14 +3306,47 @@ fieldset:disabled .admin-submit {
   }
 }
 
-/* Below 480 pixels the text area is about 310 wide at the smallest type of 10.5: a title of 80, a description of 150 and an Image's 120 take three lines there. */
+/* Below 480 pixels the text area is about 310 wide at the smallest type of 10.5: a title of 80 and an Image's 120 take three lines there. */
 @media (max-width: 479px) {
   .bubble h1 .editor-field,
   .overlay-interior > h2 .editor-field,
-  .editor-field--rich,
   .sheet-figure figcaption .editor-field {
     --field-lines: 3;
   }
+}
+
+/*
+ * **[#265]** The description's field is the public box at its tallest, empty and filled (43.9,
+ * ADR-263-description-field): it takes all the room the text area leaves the description at the
+ * picture's, the title's, the Sources' and the foot's own sizes, which is where the public box
+ * stops for a text at its limit at the guarantee (43.2), so it neither grows nor shrinks while
+ * the creator types. Its basis is nothing and its floor two lines, so it is the first to yield
+ * and the foot and then the picture yield after it, in 43.2's order. Its rendered text and its
+ * `textarea` fill it and scroll inside it; it has no mirror, and a text stored over its limit
+ * scrolls there too.
+ */
+.bubble-text > .editor-field--rich,
+.overlay-interior > .editor-field--rich {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: calc(2 * var(--body-line));
+}
+
+.editor-field--rich > .editor-text,
+.editor-field--rich > .editor-rendered,
+.editor-field--rich .editor-input {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.editor-field--rich > .editor-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-field--rich > .editor-text::after {
+  content: none;
 }
 
 .sources .editor-field {

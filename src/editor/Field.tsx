@@ -17,7 +17,7 @@
  * words as typed (36.3).
  *
  * While the field has the focus the right rim shows the counter pill -- `n / max`, counted
- * by the validator's own functions, and `lines / 2` for the description -- and under it one
+ * by the validator's own functions, and `lines / 8` for the description -- and under it one
  * tag per other declared language that has no text for this field, a link to the page in
  * that language (28.3). The rim is drawn from the page's body, fixed, beside the Bubble or
  * the Overlay the field is in, so it takes no pixel from the text area and nothing on the
@@ -33,6 +33,12 @@
  * explainer Sheet. Its rendered state is the public `Explainer` on the same markup, so a
  * marked term opens its panel on hover and focus, and a click or Enter on it opens the Sheet
  * (32.3).
+ *
+ * **[#265]** The description's box is the public box at its tallest, empty and filled: as tall
+ * as the text area leaves it, so it neither grows nor shrinks while the creator types (43.9,
+ * ADR-263-description-field). Its rendered text and its source each scroll inside it, and the
+ * element that scrolls carries `data-description-box`, as the public box does (43.3): the
+ * rendered text's element while the field is blurred, the `textarea` while it is focused.
  *
  * Imports of `src/`: `tree/measure.ts`, `tree/grammar.ts`, `markdown.ts` and
  * `components/Explainer.tsx`, and types (34.4).
@@ -65,13 +71,17 @@ export interface FieldWords {
  * (28.4, amended): `proposed` -- the element's value, a plain field's line breaks already
  * spaces -- where it fits, else cut by `capped`, and the element's value and caret set to the
  * cut text so that a refused key leaves the caret where it was. No limit, no cut.
+ * **[#265]** And the text where it was: setting the value scrolls a `textarea` back to its top,
+ * and the description's scrolls inside its box (43.9), its caret kept in view.
  */
 export function heldToLimit(element: HTMLInputElement | HTMLTextAreaElement, previous: string, proposed: string, limit: FieldLimit | null): string {
   const caret = element.selectionEnd ?? proposed.length
   const held = limit === null ? { text: proposed, caret } : capped(previous, proposed, caret, limit)
   if (held.text !== element.value) {
+    const scrolled = element.scrollTop
     element.value = held.text
     element.setSelectionRange(held.caret, held.caret)
+    element.scrollTop = scrolled
   }
   return held.text
 }
@@ -322,13 +332,13 @@ export function Field({
           // The grid and the mirror in `data-value` make the box taller than its lines (28.4) for a
           // text that needs more, as one stored over its limit; both take the same font, so they
           // break lines alike. **[#179]** An empty field's mirror holds its placeholder, so a box
-          // sized by its text -- the badge's (36.3) -- is as wide as what it shows; and only a rich
-          // text's mirror ends in a space, which a last line break needs to take a line: a plain
-          // text has no line break, and the space would widen the badge by its width.
-          <span className="editor-text" data-value={`${text === '' ? placeholder : text}${rich ? ' ' : ''}`}>
+          // sized by its text -- the badge's (36.3) -- is as wide as what it shows. **[#265]** The
+          // description has no mirror: its box is the room, and a longer text scrolls (43.9).
+          <span className="editor-text" data-value={rich ? undefined : text === '' ? placeholder : text}>
             <textarea
               ref={area}
               className="editor-input"
+              data-description-box={rich ? '' : undefined}
               value={text}
               rows={1}
               placeholder={placeholder}
@@ -350,6 +360,7 @@ export function Field({
         ) : (
           <span
             className="editor-rendered"
+            data-description-box=""
             tabIndex={api.readOnly ? -1 : 0}
             // A term inside takes the focus for its panel (10.8); only the region itself opens the source.
             onFocus={(event) => {
