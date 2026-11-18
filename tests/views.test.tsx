@@ -592,7 +592,8 @@ describe('the Overlay (10.9)', () => {
     const interior = part(overlay, 'div', 'overlay-interior')
     expect(interior).toMatch(/^<div class="overlay-interior" lang="en" data-node="social-scoring">/)
     expect(interior).toContain('<h2 id="a0-node-title"><a href="/ai-act-example/start/prohibited-practices/social-scoring">Social scoring</a></h2>')
-    expect(interior).toContain('<div class="prose"><p>')
+    // **[#264]** The description's box, a region named by the Overlay's own heading (43.3, 43.5).
+    expect(interior).toContain('<div class="prose" data-description-box="" role="region" aria-labelledby="a0-node-title" tabindex="0"><p>')
     // The Sources through the same component as the Bubble's, inline; not a second Sheet inside this one.
     expect(interior).toContain('<section class="sources" aria-labelledby="a0-sources-label"><h2 id="a0-sources-label">Sources</h2>')
     expect(interior).toContain('aria-describedby="a0-sources-new-tab"')
