@@ -239,8 +239,8 @@ test.describe('autosave (29)', () => {
   })
 
   // **[#172]** As the title's above: a description past two lines now comes from another route.
-  // **[#264]** The validator holds 8 lines since elsa-tree/8, the editor's field 2 until #265 (43.9):
-  // the text is 9 lines, over both, so the rule id the two give is still one.
+  // **[#264]** The validator holds 8 lines since elsa-tree/8, and **[#265]** the editor's field 8 too
+  // (43.9): the text is 9 lines, over both, so the rule id the two give is one.
   test('a description stored past its estimated lines is shown whole and marked at the field with V-LINES, the same rule id as the validator\u2019s', async ({ browser }) => {
     const { page, cookie } = await loggedIn(browser, ANNA)
     const original = (await nodeOf(page, cookie, 'hidden-draft', 'full')).description.en!
@@ -251,7 +251,7 @@ test.describe('autosave (29)', () => {
     await field(page, 'full', 'description.en').click()
     const area = field(page, 'full', 'description.en').locator('textarea')
     await expect(area).toHaveValue(nine)
-    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${nine.length} / 1509 / 2`)
+    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${nine.length} / 6009 / 8`)
     await expect(field(page, 'full', 'description.en')).toHaveClass(/editor-field--over/)
     await expect(status(page).locator('.editor-violation')).toHaveText('V-LINES description.en: 9 estimated lines; at most 8')
     expect((await nodeOf(page, cookie, 'hidden-draft', 'full')).description.en).toBe(nine)
@@ -262,7 +262,7 @@ test.describe('autosave (29)', () => {
     await area.press('Control+End')
     await page.keyboard.type(' and more words', { delay: 5 })
     await expect(area).toHaveValue(nine)
-    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${nine.length} / 1509 / 2`)
+    await expect(page.locator('.editor-pill').filter({ visible: true })).toHaveText(`${nine.length} / 6009 / 8`)
 
     // Blurred, the rendered form: a list of seven items.
     await page.keyboard.press('Tab')

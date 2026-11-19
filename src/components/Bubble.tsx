@@ -41,10 +41,10 @@ import { PUBLIC_LINKS } from '../url.ts'
 import { Explainer } from './Explainer.tsx'
 import { Sheet, type SheetWords } from './Sheet.tsx'
 
-/** The maximum lengths of tree-format.md 5.7 the Interior's fields are counted against (28.1). */
+/** The maximum lengths of tree-format.md 5.7 the Interior's fields are counted against (28.1); **[#265]** the description's since elsa-tree/8 (43.9). */
 const LIMIT = {
   title: { characters: 80 },
-  description: { characters: 150, lines: 2 },
+  description: { characters: 600, lines: 8 },
   sourceLabel: { characters: 60 },
   imageDescription: { characters: 120 },
   credit: { characters: 120 },
@@ -159,7 +159,7 @@ export function Interior({
       })}
       termEvent={edit?.slots.onTermClick}
       // **[#264]** On every page a reader sees the description is its own scroll box, named by the
-      // title (43.3, 43.5); the editor's field is #265's (43.9).
+      // title (43.3, 43.5). **[#265]** In the editor the field's own elements are the box (43.9).
       labelledBy={field ? undefined : `${idPrefix}node-title`}
     />
   )
