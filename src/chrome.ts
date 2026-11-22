@@ -71,6 +71,10 @@ export interface Chrome {
   siteDescription: string
   /** **[#134]** The overview when no Tree is published (23.2). */
   noTrees: string
+  /** **[#272]** The overview's search field: its accessible name and its placeholder (26.5). */
+  searchTrees: string
+  /** **[#272]** The overview when the search field matches no tile (26.5). */
+  noMatch: string
   /** **[#134]** The + tile of the creators' overview (26.4), which #137 draws. */
   newTree: string
   /** **[#134]** The link on the 404 page: the overview, since a Tree-less page has no root to start again from. */
@@ -378,7 +382,7 @@ export interface Chrome {
    */
   languageTag: string
   /**
-   * **[#273]** A Tree's tags (application.md 26.5, 33.5): the name of the overview's filter pill
+   * **[#273]** A Tree's tags (application.md 26.6, 33.5): the name of the overview's filter pill
    * and of the field in the top panel's "This Tree".
    */
   tags: string
@@ -445,6 +449,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     siteDescription:
       'Interactive legal decision trees: answer one question at a time and arrive at an outcome, with the legal sources of every step.',
     noTrees: 'No decision tree is published here yet.',
+    searchTrees: 'Search decision trees',
+    noMatch: 'No decision tree matches your search.',
     newTree: 'New tree',
     toOverview: 'All decision trees',
     needsJavaScript: 'The editor needs JavaScript. Switch it on to sign in and edit.',
@@ -694,6 +700,8 @@ const CHROME: Record<ChromeLanguage, Chrome> = {
     siteDescription:
       'Interactieve juridische beslisbomen: beantwoord één vraag tegelijk en kom tot een uitkomst, met de juridische bronnen van elke stap.',
     noTrees: 'Hier is nog geen beslisboom gepubliceerd.',
+    searchTrees: 'Zoek in de beslisbomen',
+    noMatch: 'Geen beslisboom past bij je zoekopdracht.',
     newTree: 'Nieuwe boom',
     toOverview: 'Alle beslisbomen',
     needsJavaScript: 'De editor heeft JavaScript nodig. Zet het aan om in te loggen en te bewerken.',

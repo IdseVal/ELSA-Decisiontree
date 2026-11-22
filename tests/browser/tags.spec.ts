@@ -1,5 +1,5 @@
 /**
- * **[#273]** A Tree's tags (docs/specs/application.md 26.5, 33.5; ADR-273-tags): the public
+ * **[#273]** A Tree's tags (docs/specs/application.md 26.6, 33.5; ADR-273-tags): the public
  * overview's filter -- a pill in the bar listing every served Tree's tag once, in the page's
  * language, whose ticks narrow the tiles at once, kept in the address and drawn from it by the
  * server -- and the top panel's tags field, which adds, rewords and removes them one language at
@@ -74,7 +74,7 @@ const list = (page: Page) => page.locator('.tag-filter-panel')
 const shownTiles = (page: Page): Promise<string[]> =>
   page.locator('a.tile').evaluateAll((tiles) => tiles.filter((tile) => tile.checkVisibility()).map((tile) => tile.getAttribute('data-tree') ?? ''))
 
-test.describe('the overview filter (26.5)', () => {
+test.describe('the overview filter (26.6)', () => {
   test('the pill lists every served Tree\'s tag once, in the page\'s language, in its alphabet; a hidden Tree\'s in no list', async ({ page }) => {
     await page.goto(`${origin}/?lang=nl`)
     await expect(list(page)).toBeHidden()

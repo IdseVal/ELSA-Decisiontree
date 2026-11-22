@@ -4,7 +4,7 @@
 - Issue: #273 -- Tags on a Tree, added in the editor, and a filter dropdown on the main overview over
   every tag of the published Trees
 - Spec: `docs/specs/tree-format.md` (title, header, 4, 4.1, 5.7, 7 V-TAGS, 10, 11, 12, 12.11 new),
-  amended `[#273]`; `docs/specs/application.md` 22.1, 23.2, 24.3, 26.5 (new), 33.5, amended `[#273]`
+  amended `[#273]`; `docs/specs/application.md` 22.1, 23.2, 24.3, 26.6 (new), 33.5, amended `[#273]`
 - Core document: 10.45 (still OPEN: the conversion on the live server)
 - Amends: `ADR-263-elsa-tree-8.md` (the next format number is taken: `/9`)
 - Schema: `schemas/elsa-tree-9.json`, beside `elsa-tree-8.json`, which stays served
@@ -48,11 +48,11 @@ request, so that a reviewer or the owner who wants the architecture issue can se
    small, its order and its distinctness are properties of the whole, and one path keeps the
    interface's set of fields closed. The language operations reach the tags as every other text.
 4. **The filter is a pill in the public overview's chrome bar**, first of its controls, whose list
-   drops over the grid -- not a row above the grid's box, which would take the box's third row of
-   tiles at 1280 x 640 (26.2, `tests/browser/overview.spec.ts`). Below 480 pixels wide a funnel
+   drops over the grid. It was put there before #272's search bar merged, to keep the box's third
+   row of tiles at 1280 x 640 (26.2); #272 then gave the box a row above it whose column after the
+   search field is left for this filter (26.5). Moving the pill into that row is not done here. Below 480 pixels wide a funnel
    stands for its word, which stays its accessible name: the overview keeps its current language's
-   pill at every width (24.3), and the site title took a second line at 320 beside the word. #272's
-   search bar did not exist when this was built; "beside the search bar" is that issue's to keep.
+   pill at every width (24.3), and the site title took a second line at 320 beside the word.
 5. **A tick narrows the tiles to the Trees carrying any ticked tag**, at once, in the browser. "Any"
    rather than "all": a choice of tags the overview lists can then never leave it empty, and the
    list is one facet, where ticking a second value widens. The choice is the query's `tag`, once per

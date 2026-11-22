@@ -4,6 +4,8 @@
  * to its Tree's root Node in the page's language or the Tree's default, the grid's box that
  * scrolls while the document never does, and `noTrees` when nothing is published.
  * **[#197]** And a tile's mention of its Tree's Authors beside a tile without one (39.5).
+ * **[#272]** And the search bar above the tiles that narrows them as the visitor types, with the
+ * script and without it (26.5).
  *
  * Served from data directories of its own (`serve.ts`): the named Trees of 35.3 -- the
  * example Tree, `tree-01` to `tree-14` from `tests/fixtures/single-language`, and
@@ -16,7 +18,7 @@
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { expect, test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 import { openTree } from '../../src/tree/loader.ts'
 import { ADMIN_ENV, buildDataDir } from './admin.ts'
 import { BASE_PORT, dataDir, serveStore, stopServers } from './serve.ts'
@@ -127,7 +129,7 @@ test("**[#197]** a tile names its Tree's Authors after its tags, in the page's l
   await expect(mention).not.toHaveAttribute('lang', /./)
 })
 
-test('the box scrolls and the document does not: twelve tiles in view at 1280 x 640, the thirteenth below', async ({
+test('the box scrolls and the document does not: eight tiles in view at 1280 x 640, four cut by the box, the thirteenth below', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 640 })
@@ -136,6 +138,7 @@ test('the box scrolls and the document does not: twelve tiles in view at 1280 x 
   const tiles = page.locator('a.tile')
 
   // 26.1, 26.2: 280 x 160, four columns of 280 with gaps of 20, three rows in the box.
+  // **[#272]** Under the search bar's row of 52 the box shows two rows whole and 140 of the third's 160 (26.5).
   for (const tile of await tiles.all()) {
     const size = await tile.boundingBox()
     expect([size!.width, size!.height]).toEqual([280, 160])
@@ -144,8 +147,11 @@ test('the box scrolls and the document does not: twelve tiles in view at 1280 x 
   expect(lefts.size).toBe(4)
   for (let index = 0; index < 15; index += 1) {
     const tile = tiles.nth(index)
-    if (index < 12) await expect(tile, `tile ${index + 1}`).toBeInViewport({ ratio: 1 })
-    else await expect(tile, `tile ${index + 1}`).not.toBeInViewport({ ratio: 1 })
+    if (index < 8) await expect(tile, `tile ${index + 1}`).toBeInViewport({ ratio: 1 })
+    else if (index < 12) {
+      await expect(tile, `tile ${index + 1}`).toBeInViewport({ ratio: 0.875 })
+      await expect(tile, `tile ${index + 1}`).not.toBeInViewport({ ratio: 1 })
+    } else await expect(tile, `tile ${index + 1}`).not.toBeInViewport()
   }
   const measured = await page.evaluate(() => {
     const scroller = document.querySelector('[data-scroll-box]')!
@@ -182,6 +188,142 @@ test('a Tree title is text on its tile, never markup', async ({ page }) => {
   await expect(tile.locator('b')).toHaveCount(0)
 })
 
+/** **[#272]** The ids of the tiles in view, in their order. */
+async function tileIds(page: Page): Promise<(string | null)[]> {
+  return page.locator('a.tile').evaluateAll((tiles) => tiles.map((tile) => tile.getAttribute('data-tree')))
+}
+
+/** **[#272]** The ten fixtures' Trees whose title says "fixture", in id order: four in English, one in English alone. */
+const FIXTURES = ['carousel', 'cycle', 'explainers', 'full-node', 'overlay']
+
+test('**[#272]** the search bar narrows the tiles as the visitor types, on every title and description, without a request', async ({
+  page,
+}) => {
+  await page.goto(`${showcase}/`)
+  const field = page.getByRole('search').getByRole('searchbox', { name: 'Search decision trees' })
+  const requests: string[] = []
+  page.on('request', (request) => requests.push(request.url()))
+
+  await expect(field).toHaveAttribute('placeholder', 'Search decision trees')
+  await expect(page.locator('a.tile')).toHaveCount(12)
+  for (const [typed, found] of [
+    ['agrifood', ['ai-act-applicability-agrifood']],
+    ['fixture', FIXTURES],
+    // The Dutch title of the Carousel fixture, from the English page.
+    ['carrousel', ['carousel']],
+    // "Le règlement IA s'applique-t-il ?": the French title of a Tree whose default is German.
+    ['REGLEMENT', ['other-languages']],
+    // Words of a description, in either order: "Een kleine Nederlandstalige boom voor de tests."
+    ['boom nederlandstalige', ['single-language']],
+    ['Fixture   OVERLAY', ['overlay']],
+  ] as const) {
+    await field.fill(typed)
+    expect(await tileIds(page), typed).toEqual(found)
+  }
+
+  await field.fill('fixture zebra')
+  await expect(page.locator('a.tile')).toHaveCount(0)
+  await expect(page.getByRole('status')).toHaveText('No decision tree matches your search.')
+
+  // An emptied field shows every tile again, in id order.
+  await field.fill('')
+  await expect(page.getByRole('status')).toHaveCount(0)
+  expect(await tileIds(page)).toHaveLength(12)
+  expect((await tileIds(page))[0]).toBe('ai-act-applicability-agrifood')
+
+  // Enter sends nothing: the page already holds every tile (26.5).
+  await field.fill('cycle')
+  await field.press('Enter')
+  expect(await tileIds(page)).toEqual(['cycle'])
+  expect(page.url()).toBe(`${showcase}/`)
+  expect(requests).toEqual([])
+})
+
+test('**[#272]** the search bar speaks the chrome language', async ({ page }) => {
+  await page.goto(`${showcase}/?lang=nl`)
+  const field = page.getByRole('searchbox', { name: 'Zoek in de beslisbomen' })
+
+  await expect(field).toHaveAttribute('placeholder', 'Zoek in de beslisbomen')
+  // The English title of a Tree shown in Dutch on this page.
+  await field.fill('the carousel')
+  expect(await tileIds(page)).toEqual(['carousel'])
+  await field.fill('zebra')
+  await expect(page.getByRole('status')).toHaveText('Geen beslisboom past bij je zoekopdracht.')
+})
+
+test('**[#272]** without the script the search is a form the server answers, in the page language', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false })
+  const page = await context.newPage()
+  try {
+    await page.goto(`${showcase}/?lang=nl`)
+    await page.getByRole('searchbox', { name: 'Zoek in de beslisbomen' }).fill('Carrousel')
+    await page.keyboard.press('Enter')
+
+    await expect(page).toHaveURL(`${showcase}/?q=Carrousel&lang=nl`)
+    expect(await tileIds(page)).toEqual(['carousel'])
+    await expect(page.getByRole('searchbox', { name: 'Zoek in de beslisbomen' })).toHaveValue('Carrousel')
+
+    await page.goto(`${showcase}/?q=zebra`)
+    await expect(page.locator('a.tile')).toHaveCount(0)
+    await expect(page.locator('.overview-empty')).toHaveText('No decision tree matches your search.')
+  } finally {
+    await context.close()
+  }
+})
+
+test("**[#272]** the bar stands one column wide at the grid's inset above the box, and stays while the box scrolls", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 640 })
+  await page.goto(`${named}/`)
+  const field = page.getByRole('searchbox')
+  const box = page.locator('[data-scroll-box]')
+
+  const [input, first, scroller] = await Promise.all([field.boundingBox(), page.locator('a.tile').first().boundingBox(), box.boundingBox()])
+  expect([input!.x, input!.width, input!.height]).toEqual([first!.x, 280, 36])
+  expect(input!.y + input!.height).toBeLessThanOrEqual(scroller!.y)
+  // 16 under the chrome bar's 44, and the first row of tiles 16 under the field.
+  expect([input!.y, first!.y]).toEqual([44 + 16, 44 + 16 + 36 + 16])
+
+  await box.evaluate((element) => element.scrollTo(0, element.scrollHeight))
+  await expect(field).toBeInViewport({ ratio: 1 })
+  await expect(page.locator('a.tile').last()).toBeInViewport({ ratio: 1 })
+  expect(await page.evaluate(() => document.scrollingElement!.scrollTop)).toBe(0)
+
+  // Below 360 wide the box's inset is 16, and the field's with it, still 16 under the chrome bar,
+  // which is 36 tall below 480 (10.5).
+  await page.setViewportSize({ width: 320, height: 640 })
+  const [narrow, narrowFirst, bar] = await Promise.all([
+    field.boundingBox(),
+    page.locator('a.tile').first().boundingBox(),
+    page.locator('header.page-chrome').boundingBox(),
+  ])
+  expect([narrow!.x, narrow!.y, narrowFirst!.x]).toEqual([16, bar!.y + bar!.height + 16, 16])
+})
+
+test('**[#272]** the page hydrates the bar with nothing logged, with `q` given or not', async ({ page }) => {
+  const logged: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error' || message.type() === 'warning') logged.push(message.text())
+  })
+  page.on('pageerror', (error) => logged.push(error.message))
+
+  await page.goto(`${showcase}/?q=fixture`)
+  await page.waitForLoadState('networkidle')
+  expect(await tileIds(page)).toEqual(FIXTURES)
+  // Hydrated: the field now narrows in the page.
+  await page.getByRole('searchbox').fill('overlay')
+  expect(await tileIds(page)).toEqual(['overlay'])
+  await page.goto(`${showcase}/?lang=nl`)
+  await page.waitForLoadState('networkidle')
+  await page.getByRole('searchbox').fill('cycle')
+  expect(await tileIds(page)).toEqual(['cycle'])
+  expect(logged).toEqual([])
+})
+
+test('**[#272]** no bar where nothing is published', async ({ page }) => {
+  await page.goto(`${empty}/`)
+  await expect(page.getByRole('search')).toHaveCount(0)
+})
+
 test('the overview in English and Dutch at 1280 x 640', async ({ page }) => {
   await mkdir(SHOTS, { recursive: true })
   await page.setViewportSize({ width: 1280, height: 640 })
@@ -190,5 +332,25 @@ test('the overview in English and Dutch at 1280 x 640', async ({ page }) => {
     await page.evaluate(() => document.fonts.ready)
     await expect(page.locator('a.tile')).toHaveCount(12)
     await page.screenshot({ path: path.join(SHOTS, `overview-${lang}-1280x640.png`) })
+  }
+})
+
+/** **[#272]** The search bar's screenshots: in `docs/screenshots/issue-272/` under `ELSA_SHOTS=1` only. */
+const SHOTS_272 =
+  process.env.ELSA_SHOTS === '1' ? path.join(repo, 'docs', 'screenshots', 'issue-272') : path.join(here, '.results', 'shots')
+
+test('**[#272]** the search bar empty, narrowing and matching nothing, at 1280 x 640 and 360 x 640, screenshots', async ({ page }) => {
+  await mkdir(SHOTS_272, { recursive: true })
+  for (const [width, lang, typed] of [
+    [1280, 'en', ''],
+    [1280, 'en', 'fixture'],
+    [1280, 'nl', 'zebra'],
+    [360, 'nl', 'carrousel'],
+  ] as const) {
+    await page.setViewportSize({ width, height: 640 })
+    await page.goto(`${showcase}/${lang === 'en' ? '' : `?lang=${lang}`}`)
+    await page.evaluate(() => document.fonts.ready)
+    await page.getByRole('searchbox').fill(typed)
+    await page.screenshot({ path: path.join(SHOTS_272, `overview-${lang}-${typed || 'empty'}-${width}x640.png`) })
   }
 })

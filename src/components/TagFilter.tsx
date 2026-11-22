@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * **[#273]** The public overview's tag filter (docs/specs/application.md 26.5; ADR-273-tags): a
+ * **[#273]** The public overview's tag filter (docs/specs/application.md 26.6; ADR-273-tags): a
  * pill in the chrome bar that opens a list of every tag the served Trees carry, each a check box;
  * a tick narrows the tiles to the Trees carrying any ticked tag, at once and without a request.
  *

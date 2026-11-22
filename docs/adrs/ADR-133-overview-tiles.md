@@ -15,6 +15,10 @@
   is no longer "the second and last element the no-scroll rule exempts": the description's box is a
   third, under an attribute of its own; `data-scroll-box` and its rule are unchanged
   (`docs/specs/application.md` 43.3).
+- **[#272] Amended (2026-11-22)** by `ADR-272-overview-search.md` decision 1: on the public
+  overview a search bar's row stands above the box, which at 1280 x 640 then shows two rows of
+  tiles whole and 140 of the third's 160 pixels, not three (`application.md` 26.2, 26.5). The
+  creators' overview, with no bar, keeps three.
 
 ## Context
 

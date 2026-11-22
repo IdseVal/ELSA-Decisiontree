@@ -1,5 +1,5 @@
 /**
- * **[#273]** The public overview's tag filter (docs/specs/application.md 26.5, `src/tags.ts`):
+ * **[#273]** The public overview's tag filter (docs/specs/application.md 26.6, `src/tags.ts`):
  * which tags it lists and in what words, which a query chose, and which tiles they leave.
  */
 import { describe, expect, test } from 'vitest'
@@ -8,7 +8,7 @@ import { chosenTags, shows, tagOptions, treeTagKeys, withTags } from '../src/tag
 const food = { en: 'Food', nl: 'Voedsel' }
 const law = { en: 'AI Act', nl: 'AI-verordening' }
 
-describe('the list (26.5)', () => {
+describe('the list (26.6)', () => {
   test('every tag once, in the language each tile speaks, in the page language\'s alphabet, letter case aside', () => {
     const options = tagOptions(
       [
@@ -33,7 +33,7 @@ describe('the list (26.5)', () => {
   })
 })
 
-describe('the choice and the tiles (26.5)', () => {
+describe('the choice and the tiles (26.6)', () => {
   const options = tagOptions([{ tags: [food, law], shown: 'en' }, { tags: [{ en: 'Safety' }], shown: 'en' }], 'en')
 
   test('the query\'s words are matched by their key; a tag no served Tree carries is no choice', () => {

@@ -76,7 +76,7 @@ export function countedLength(text: string): number {
 }
 
 /**
- * **[#273]** What makes two tags one (tree-format.md 7, V-TAGS; application.md 26.5): the text
+ * **[#273]** What makes two tags one (tree-format.md 7, V-TAGS; application.md 26.6): the text
  * without the spaces around it, in lower case, its characters composed. The validator refuses a
  * Tree that names one tag twice by it, and the overview's filter lists and matches tags by it.
  */

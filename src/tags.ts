@@ -1,5 +1,5 @@
 /**
- * **[#273]** The public overview's tag filter (docs/specs/application.md 26.5; ADR-273-tags):
+ * **[#273]** The public overview's tag filter (docs/specs/application.md 26.6; ADR-273-tags):
  * which tags it lists, which a request chose, and which tiles those leave. Pure, and free of
  * the store and of `validate.ts`, so the server page and the filter's client component share it.
  *

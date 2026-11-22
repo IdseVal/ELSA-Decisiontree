@@ -34,7 +34,7 @@ export function Tile({
   state,
   /** **[#197]** The names of the Tree's Authors, in the order they joined it; none, no mention (39.5). */
   authors = [],
-  /** **[#273]** The keys of the Tree's tags, which the public overview's filter hides the tile by (26.5). Drawn nowhere. */
+  /** **[#273]** The keys of the Tree's tags, which the public overview's filter hides the tile by (26.6). Drawn nowhere. */
   tags = [],
 }: {
   tree: { id: string; manifest: Manifest | null }

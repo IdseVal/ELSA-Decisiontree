@@ -1781,6 +1781,67 @@ a.language:hover,
   overflow-y: auto;
 }
 
+/*
+ * **[#272]** The search bar (26.5): a row of its own above the box and out of its scroll, so the
+ * field stays in view while the tiles scroll, and the box -- a scroll container in a column --
+ * shrinks by the row. The field is one column wide at the grid's inset, so the tag filter (#273)
+ * can take the next column beside it. The chrome bar's pill (24.3), at the body's 16 pixels: below
+ * 16 a phone's browser zooms the page into a field it focuses.
+ */
+.overview-search {
+  flex: none;
+  display: flex;
+  gap: 20px;
+  padding: 16px 24px 0;
+}
+
+.overview-search-field {
+  position: relative;
+  display: block;
+  width: min(280px, 100%);
+}
+
+.overview-search-field svg {
+  position: absolute;
+  top: 10px;
+  left: 13px;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--elsa-text-muted);
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.overview-search-field input {
+  display: block;
+  width: 100%;
+  height: 36px;
+  padding: 0 14px 0 37px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
+  font: inherit;
+  font-size: var(--body);
+  transition: border-color 160ms var(--ease);
+}
+
+.overview-search-field input::placeholder {
+  color: var(--elsa-text-muted);
+  opacity: 1;
+}
+
+.overview-search-field input:hover {
+  border-color: var(--accent-secondary-read);
+}
+
+/* The field 16 from the tiles, as it is from the chrome bar. */
+.overview-search + .overview {
+  padding-top: 16px;
+}
+
 /* **[#213]** The sentence at the box's inset, in line with the tiles. */
 .overview-page .admin-note {
   padding: 24px 24px 0;
@@ -1921,7 +1982,7 @@ a.language:hover,
 }
 
 /*
- * **[#273]** The overview's tag filter (26.5): a pill of the bar, in the share button's look, whose
+ * **[#273]** The overview's tag filter (26.6): a pill of the bar, in the share button's look, whose
  * list drops under the bar's right end over the grid -- placed in the bar, which is positioned,
  * not in the pill, which the language switch and "Editor" follow, so that it never leaves a
  * 320-pixel window on the left -- -- not a row above the box, which would take
@@ -2051,7 +2112,8 @@ a.language:hover,
     padding: 16px;
   }
 
-  .overview-page .admin-note {
+  .overview-page .admin-note,
+  .overview-search {
     padding: 16px 16px 0;
   }
 }

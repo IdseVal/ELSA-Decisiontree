@@ -29,7 +29,7 @@
     "title": { "$ref": "#/$defs/localisedText" },
     "description": { "$ref": "#/$defs/localisedText" },
     "tags": {
-      "description": "The Tree's tags, what the public overview's filter lists and narrows its tiles by (docs/specs/application.md 26.5): each a plain localised text of at most 30 counted characters (V-LENGTH), at most 8 of them (V-COUNT), no two the same in one language, letter case aside (V-TAGS). Optional; an empty list is not written (V-EMPTY).",
+      "description": "The Tree's tags, what the public overview's filter lists and narrows its tiles by (docs/specs/application.md 26.6): each a plain localised text of at most 30 counted characters (V-LENGTH), at most 8 of them (V-COUNT), no two the same in one language, letter case aside (V-TAGS). Optional; an empty list is not written (V-EMPTY).",
       "type": "array",
       "minItems": 1,
       "items": { "$ref": "#/$defs/localisedText" }
