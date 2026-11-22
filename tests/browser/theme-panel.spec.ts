@@ -327,6 +327,8 @@ const HINTS = [
   'colourAccentSecondaryHint',
   'colourDangerHint',
   'contrastHint',
+  // **[#274]** The background picture's part stands between the colours and the fonts.
+  'backgroundImageHint',
   'fontBodyHint',
   'fontHeadingHint',
   'fontLicenceHint',
