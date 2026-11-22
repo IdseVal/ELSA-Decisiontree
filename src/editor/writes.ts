@@ -145,19 +145,19 @@ export async function deleteImage(treeId: string, file: string): Promise<Answer>
 }
 
 /**
+ * **[#273]** The tags' one call (33.5): `PATCH /admin/api/trees/<t>` with the whole list in
+ * its place, an empty one taking the key away, answered with the write response. Never rejects.
+ */
+export async function writeTags(treeId: string, tags: LocalisedText[]): Promise<Typed<WriteResponse>> {
+  return request('PATCH', treeUrl(treeId), { path: 'tags', value: tags }) as Promise<Typed<WriteResponse>>
+}
+
+/**
  * **[#144]** The Theme panel's calls (33.8): `PATCH /admin/api/trees/<t>` with one part of the
  * Theme, whole, or null to remove it -- answered with the write response, the manifest in it
  * -- and `POST /admin/api/trees/<t>/theme` with one logo or font file, answered with the
  * server's name. Neither rejects.
  */
-/**
- * **[#273]** The tags' one call (33.5): the whole list in its place, an empty one taking the key
- * away, answered with the write response.
- */
-export const tagCalls = {
-  write: (treeId: string, tags: LocalisedText[]) => request('PATCH', treeUrl(treeId), { path: 'tags', value: tags }) as Promise<Typed<WriteResponse>>,
-}
-
 export const themeCalls = {
   write: <Part extends keyof Theme>(treeId: string, part: Part, value: Theme[Part] | null) =>
     request('PATCH', treeUrl(treeId), { path: `theme.${part}`, value }) as Promise<Typed<WriteResponse>>,

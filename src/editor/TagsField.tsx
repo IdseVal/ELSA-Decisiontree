@@ -22,7 +22,7 @@ import { useEditor } from './Editor.tsx'
 import { heldToLimit } from './Field.tsx'
 import { Hint } from './Hint.tsx'
 import type { FieldLimit } from './mode.ts'
-import { tagCalls, type Refusal } from './writes.ts'
+import { writeTags, type Refusal } from './writes.ts'
 
 /** The chrome words the field says. */
 export interface TagsWords {
@@ -71,7 +71,7 @@ export function TagsField({
     setBusy(true)
     setError(null)
     try {
-      const answer = await tagCalls.write(treeId, next)
+      const answer = await writeTags(treeId, next)
       if (answer.status !== 200 || !answer.body || !('manifest' in answer.body)) {
         const rules = ((answer.body as Refusal | null)?.violations ?? []).map((violation) => violation.rule)
         setError(rules.includes('V-TAGS') ? words.tagTaken : words.requestFailed)
