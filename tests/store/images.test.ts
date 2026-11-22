@@ -54,12 +54,13 @@ describe('imageName: the server names the file', () => {
 })
 
 describe('**[#144]** sniffTheme and themeName: a theme file (33.8)', () => {
-  test('a logo is PNG or WebP, a font WOFF2; SVG, GIF, JPEG and text are not theme files', async () => {
+  test('a logo is PNG or WebP, a font WOFF2, **[#274]** a background picture PNG, JPEG or WebP; SVG, GIF and text are not theme files', async () => {
     const font = await readFile(path.join('trees', 'ai-act-example', 'theme', 'nova-square-400.woff2'))
     expect(sniffTheme(PNG)).toBe('png')
     expect(sniffTheme(WEBP)).toBe('webp')
     expect(sniffTheme(font)).toBe('woff2')
-    for (const bytes of [SVG, GIF, JPEG, TEXT, font.subarray(0, 20)]) expect(sniffTheme(bytes)).toBeNull()
+    expect(sniffTheme(JPEG)).toBe('jpg')
+    for (const bytes of [SVG, GIF, TEXT, font.subarray(0, 20)]) expect(sniffTheme(bytes)).toBeNull()
   })
 
   test('the name follows imageName’s rule and matches tree-format.md 3.6', () => {
