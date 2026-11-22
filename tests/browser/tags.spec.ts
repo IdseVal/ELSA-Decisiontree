@@ -1,9 +1,9 @@
 /**
  * **[#273]** A Tree's tags (docs/specs/application.md 26.6, 33.5; ADR-273-tags): the public
- * overview's filter -- a pill in the bar listing every served Tree's tag once, in the page's
- * language, whose ticks narrow the tiles at once, kept in the address and drawn from it by the
- * server -- and the top panel's tags field, which adds, rewords and removes them one language at
- * a time.
+ * overview's filter -- a pill beside the search field listing every served Tree's tag once, in the
+ * page's language, whose ticks narrow the tiles at once with the search, kept in the address and
+ * drawn from it by the server, one form with the field without script -- and the top panel's tags
+ * field, which adds, rewords and removes them one language at a time.
  *
  * Served from a data directory of its own (`serve.ts`): the example Tree (`AI Act`/`AI-verordening`
  * and `Agrifood`), three copies of the Dutch-only `single-language` fixture tagged here
@@ -66,7 +66,7 @@ test.afterAll(async () => {
   await stopServers()
 })
 
-const pill = (page: Page) => page.locator('.page-chrome .tag-filter > summary')
+const pill = (page: Page) => page.getByRole('search').locator('.tag-filter > summary')
 /** The texts of the chips of the panel's tags field, in order. */
 const chipTexts = (page: Page): Promise<string[]> => page.locator('.panel-tags .panel-tag-text').evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value))
 const list = (page: Page) => page.locator('.tag-filter-panel')
@@ -76,6 +76,7 @@ const shownTiles = (page: Page): Promise<string[]> =>
 
 test.describe('the overview filter (26.6)', () => {
   test('the pill lists every served Tree\'s tag once, in the page\'s language, in its alphabet; a hidden Tree\'s in no list', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
     await page.goto(`${origin}/?lang=nl`)
     await expect(list(page)).toBeHidden()
     await pill(page).click()
@@ -92,6 +93,7 @@ test.describe('the overview filter (26.6)', () => {
   })
 
   test('a tick narrows the tiles to the Trees carrying any ticked tag, at once, in the address, with no request', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 })
     await page.goto(`${origin}/?lang=nl`)
     expect(await shownTiles(page)).toEqual(['ai-act-example', 'food-tree', 'law-tree', 'plain'])
     const requests: string[] = []
@@ -133,6 +135,63 @@ test.describe('the overview filter (26.6)', () => {
     await page.context().close()
   })
 
+  test('the search and the ticks narrow the tiles together, and "no match" speaks for both', async ({ page }) => {
+    // "voorbeeld" is in the example's Dutch title alone; `Wetgeving` is law-tree's alone.
+    await page.goto(`${origin}/?lang=nl`)
+    const field = page.getByRole('searchbox', { name: 'Zoek in de beslisbomen' })
+    await field.fill('voorbeeld')
+    expect(await shownTiles(page)).toEqual(['ai-act-example'])
+    await pill(page).click()
+    await list(page).getByLabel('Wetgeving').check()
+    await expect(page.locator('a.tile')).toHaveCount(0)
+    await expect(page.getByRole('status')).toHaveText('Geen beslisboom past bij je zoekopdracht.')
+
+    await list(page).getByLabel('Agrifood').check()
+    expect(await shownTiles(page)).toEqual(['ai-act-example'])
+    await expect(page.getByRole('status')).toHaveCount(0)
+    await field.fill('')
+    expect(await shownTiles(page)).toEqual(['ai-act-example', 'food-tree', 'law-tree'])
+
+    // The server draws a shared address the same way.
+    await page.goto(`${origin}/?lang=nl&q=voorbeeld&tag=Wetgeving`)
+    await expect(page.locator('a.tile')).toHaveCount(0)
+    await expect(page.getByRole('status')).toHaveText('Geen beslisboom past bij je zoekopdracht.')
+  })
+
+  test('without script the field and the list are one form: each sends the other\'s state with its own', async ({ browser }) => {
+    const page = await (await browser.newContext({ javaScriptEnabled: false })).newPage()
+    const field = page.getByRole('searchbox', { name: 'Zoek in de beslisbomen' })
+    const query = (): Record<string, string[]> => {
+      const params = new URL(page.url()).searchParams
+      return { lang: params.getAll('lang'), q: params.getAll('q'), tag: params.getAll('tag') }
+    }
+
+    // Enter in the field keeps the ticks.
+    await page.goto(`${origin}/?lang=nl&q=kleine&tag=Wetgeving`)
+    expect(await shownTiles(page)).toEqual(['law-tree'])
+    await field.fill('verordening')
+    await field.press('Enter')
+    await page.waitForURL(/q=verordening/)
+    expect(query()).toEqual({ lang: ['nl'], q: ['verordening'], tag: ['Wetgeving'] })
+    expect(await shownTiles(page)).toEqual(['law-tree'])
+
+    // The list's button keeps the field's text.
+    await pill(page).click()
+    await list(page).getByLabel('Agrifood').check()
+    await list(page).getByRole('button', { name: 'Toon' }).click()
+    await page.waitForURL(/tag=Agrifood/)
+    expect(query()).toEqual({ lang: ['nl'], q: ['verordening'], tag: ['Agrifood', 'Wetgeving'] })
+    expect(await shownTiles(page)).toEqual(['ai-act-example', 'food-tree', 'law-tree'])
+    await expect(field).toHaveValue('verordening')
+
+    // "Show all trees" drops the ticks and keeps the search.
+    await pill(page).click()
+    await list(page).getByRole('link', { name: 'Toon alle bomen' }).click()
+    await page.waitForURL((url) => !url.searchParams.has('tag'))
+    expect(query()).toEqual({ lang: ['nl'], q: ['verordening'], tag: [] })
+    await page.context().close()
+  })
+
   test('Escape closes the list and gives the focus back to the pill; so does a click outside, without the focus', async ({ page }) => {
     await page.goto(`${origin}/`)
     await pill(page).click()
@@ -153,21 +212,38 @@ test.describe('the overview filter (26.6)', () => {
     await expect(page.locator('.tag-filter')).toHaveCount(0)
   })
 
-  test('the bar holds the pill without overflowing from 320 pixels up, closed and open', async ({ page }) => {
-    for (const width of [320, 360, 480, 768, 1280]) {
-      for (const query of ['', '?lang=nl&tag=Agrifood']) {
-        await page.setViewportSize({ width, height: 640 })
+  test('the pill stands beside the field without overflowing the row from 320 pixels up, closed and open', async ({ page }) => {
+    for (const [width, height] of [[320, 480], [320, 640], [360, 640], [479, 640], [480, 640], [768, 640], [1280, 640]] as const) {
+      for (const query of ['', '?tag=Agrifood', '?lang=nl', '?lang=nl&tag=Agrifood']) {
+        await page.setViewportSize({ width, height })
         await page.goto(`${origin}/${query}`)
         await pill(page).click()
-        const overflow = await page.evaluate(() => {
-          const bar = document.querySelector('.page-chrome')!
+        const at = `${width} x ${height} ${query}`
+        const measured = await page.evaluate(() => {
+          const row = document.querySelector('.overview-search')!
+          const field = document.querySelector('.overview-search-field input')!.getBoundingClientRect()
+          const button = document.querySelector('.tag-filter-button')!.getBoundingClientRect()
           const panel = document.querySelector('.tag-filter-panel')!.getBoundingClientRect()
-          return { bar: bar.scrollWidth - bar.clientWidth, page: document.documentElement.scrollWidth - window.innerWidth, left: panel.left, right: window.innerWidth - panel.right }
+          const disclaimer = document.querySelector('.disclaimer')!.getBoundingClientRect()
+          return {
+            row: row.scrollWidth - row.clientWidth,
+            page: document.documentElement.scrollWidth - window.innerWidth,
+            tall: document.documentElement.scrollHeight - window.innerHeight,
+            beside: button.left - field.right,
+            sameRow: button.top === field.top && button.height === field.height,
+            left: panel.left,
+            right: window.innerWidth - panel.right,
+            under: disclaimer.top - panel.bottom,
+          }
         })
-        expect(overflow.bar, `${width} ${query}`).toBe(0)
-        expect(overflow.page, `${width} ${query}`).toBe(0)
-        expect(overflow.left, `${width} ${query}`).toBeGreaterThanOrEqual(0)
-        expect(overflow.right, `${width} ${query}`).toBeGreaterThanOrEqual(0)
+        expect(measured.row, at).toBe(0)
+        expect(measured.page, at).toBe(0)
+        expect(measured.tall, at).toBe(0)
+        expect(measured.beside, at).toBe(width < 480 ? 8 : 20)
+        expect(measured.sameRow, at).toBe(true)
+        expect(measured.left, at).toBeGreaterThanOrEqual(0)
+        expect(measured.right, at).toBeGreaterThanOrEqual(0)
+        expect(measured.under, at).toBeGreaterThanOrEqual(0)
       }
     }
     // Below 480 a funnel stands for the word, which stays the pill's name; the current language's pill stays (24.3).
@@ -177,6 +253,15 @@ test.describe('the overview filter (26.6)', () => {
     await expect(pill(page).locator('.tag-filter-word')).toBeHidden()
     await expect(pill(page)).toHaveAccessibleName('Labels 1')
     await expect(page.locator('header.page-chrome .language--current')).toBeVisible()
+    // The field keeps its whole placeholder beside the funnel and its count.
+    const room = await page.evaluate(() => {
+      const input = document.querySelector<HTMLInputElement>('.overview-search-field input')!
+      const style = getComputedStyle(input)
+      const context = document.createElement('canvas').getContext('2d')!
+      context.font = `${style.fontSize} ${style.fontFamily}`
+      return input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - context.measureText(input.placeholder).width
+    })
+    expect(room).toBeGreaterThanOrEqual(0)
     await page.setViewportSize({ width: 480, height: 640 })
     await expect(pill(page).locator('.tag-filter-icon')).toBeHidden()
     await expect(pill(page).locator('.tag-filter-word')).toBeVisible()

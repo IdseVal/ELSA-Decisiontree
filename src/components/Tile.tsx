@@ -19,7 +19,6 @@ import { plainDescription } from '../markdown.ts'
 import type { Manifest } from '../tree/types.ts'
 import { contentLanguage, rootHref, themeHref } from '../url.ts'
 import { TileAuthors } from './Authors.tsx'
-import { TagItem } from './TagFilter.tsx'
 
 /** The state mark of 26.4: `notServable` is a published Tree the public routes refused (18.3). */
 export type TileState = 'published' | 'hidden' | 'notServable'
@@ -34,15 +33,12 @@ export function Tile({
   state,
   /** **[#197]** The names of the Tree's Authors, in the order they joined it; none, no mention (39.5). */
   authors = [],
-  /** **[#273]** The keys of the Tree's tags, which the public overview's filter hides the tile by (26.6). Drawn nowhere. */
-  tags = [],
 }: {
   tree: { id: string; manifest: Manifest | null }
   lang: string
   href?: string
   state?: TileState
   authors?: string[]
-  tags?: string[]
 }) {
   const { manifest } = tree
   // The Tree's own language when it does not declare the page's, marked on the tile (23.2).
@@ -53,7 +49,7 @@ export function Tile({
   const logo = state === undefined || state === 'published' ? manifest?.theme?.logo : undefined
 
   return (
-    <TagItem tags={tags}>
+    <li>
       <a
         className="tile"
         href={href ?? (manifest ? rootHref({ id: tree.id, manifest }, lang) : undefined)}
@@ -80,7 +76,7 @@ export function Tile({
           {state && <StateMark state={state} lang={lang} marked={shown !== lang} />}
         </span>
       </a>
-    </TagItem>
+    </li>
   )
 }
 

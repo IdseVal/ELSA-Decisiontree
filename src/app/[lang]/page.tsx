@@ -4,7 +4,6 @@ import { chrome, chromeLanguage } from '../../chrome.ts'
 import { Disclaimer } from '../../components/Disclaimer.tsx'
 import { ChromeLanguageSwitch } from '../../components/LanguageSwitch.tsx'
 import { Overview } from '../../components/Overview.tsx'
-import { TagFilter, TagScope } from '../../components/TagFilter.tsx'
 import { ThemeStyle } from '../../components/ThemeStyle.tsx'
 import { ToEditor } from '../../components/ToEditor.tsx'
 import { baseUrl, store } from '../../config.ts'
@@ -24,8 +23,8 @@ export const dynamic = 'force-dynamic'
  * **[#204]** "Editor" at the right end of the bar leads to `/admin` (24.3).
  * **[#272]** A search bar above the tiles narrows them; `?q` is its text, sent by the field's form
  * when the page runs without its script (26.5).
- * **[#273]** The bar's `tags` pill lists every tag of the served Trees -- a hidden Tree's are in no
- * list, since it serves nothing -- and a choice in the query's `tag` narrows the tiles too (26.6).
+ * **[#273]** The search bar's `tags` pill lists every tag of the served Trees -- a hidden Tree's are
+ * in no list, since it serves nothing -- and a choice in the query's `tag` narrows the tiles too (26.6).
  */
 export default async function Home({
   params,
@@ -40,23 +39,14 @@ export default async function Home({
   const trees = served.publishedIds().map((id) => served.published(id)!)
   const tagged = trees.map((tree) => ({ tree, tags: tree.manifest.tags, shown: contentLanguage(tree, lang) }))
   const options = tagOptions(tagged, lang)
-  const ui = chrome(lang)
   return (
-    <TagScope initial={chosenTags(typeof requested === 'string' ? [requested] : requested, options)}>
+    <>
       <ThemeStyle tree={null} />
       <header className="page-chrome">
         <h1 className="tree-title site-title" id="site-title">
-          {ui.siteTitle}
+          {chrome(lang).siteTitle}
         </h1>
         <div className="page-controls">
-          {options.length > 0 && (
-            <TagFilter
-              options={options}
-              words={{ tags: ui.tags, filterByTag: ui.filterByTag, applyTags: ui.applyTags, showAllTrees: ui.showAllTrees }}
-              lang={overviewHref(lang) === '/' ? null : lang}
-              allHref={overviewHref(lang)}
-            />
-          )}
           <ChromeLanguageSwitch lang={lang} href={overviewHref} />
           <ToEditor lang={lang} />
         </div>
@@ -66,10 +56,11 @@ export default async function Home({
           tiles={tagged.map(({ tree, tags, shown }) => ({ tree, authors: served.authors(tree.id), tags: treeTagKeys(tags, shown) }))}
           lang={lang}
           query={typeof q === 'string' ? q : ''}
+          tags={{ options, chosen: chosenTags(typeof requested === 'string' ? [requested] : requested, options) }}
         />
       </main>
       <Disclaimer lang={lang} />
-    </TagScope>
+    </>
   )
 }
 

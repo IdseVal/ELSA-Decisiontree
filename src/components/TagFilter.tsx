@@ -2,55 +2,41 @@
 
 /**
  * **[#273]** The public overview's tag filter (docs/specs/application.md 26.6; ADR-273-tags): a
- * pill in the chrome bar that opens a list of every tag the served Trees carry, each a check box;
- * a tick narrows the tiles to the Trees carrying any ticked tag, at once and without a request.
+ * pill beside the search field that opens a list of every tag the served Trees carry, each a check
+ * box; a tick narrows the tiles to the Trees carrying any ticked tag, at once and without a request.
  *
- * The choice lives in the address's query, `?tag=...` once per tag, so the page can be shared or
- * reloaded as it stands; the server draws a shared address filtered already (`TagScope`'s
- * `initial`), so a reader without script sees the choice too, and changes it with the list's
- * `applyTags` button, a plain form. Nothing is stored and no cookie is set (23.2).
- *
- * `TagScope` holds the choice for the bar's filter and the grid's tiles, which stand in two
- * landmarks; a `TagItem` outside a scope -- the creators' overview -- is never hidden.
+ * It stands inside the search bar's form (`OverviewSearch`), which holds the choice and narrows the
+ * tiles by both. The choice lives in the address's query, `?tag=...` once per tag, so the page can
+ * be shared or reloaded as it stands; the server draws a shared address filtered already, so a
+ * reader without script sees the choice too, and changes it with the list's `applyTags` button,
+ * which sends the whole form -- the search field's `q` with the ticks. Nothing is stored and no
+ * cookie is set (23.2).
  */
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef } from 'react'
 import type { Chrome } from '../chrome.ts'
-import { shows, TAG_PARAMETER, withTags, type TagOption } from '../tags.ts'
+import { TAG_PARAMETER, withTags, type TagOption } from '../tags.ts'
 
 /** The chrome strings the filter says. */
 export type TagFilterWords = Pick<Chrome, 'tags' | 'filterByTag' | 'applyTags' | 'showAllTrees'>
 
-const Scope = createContext<{ chosen: readonly string[]; choose: (chosen: string[]) => void } | null>(null)
-
-/** The choice, from the request's query at first and from the filter's ticks after. */
-export function TagScope({ initial, children }: { initial: string[]; children: ReactNode }) {
-  const [chosen, choose] = useState(initial)
-  return <Scope.Provider value={{ chosen, choose }}>{children}</Scope.Provider>
-}
-
-/** A tile's list item: hidden while a choice stands that none of its Tree's tags is in. */
-export function TagItem({ tags, children }: { tags: readonly string[]; children: ReactNode }) {
-  const scope = useContext(Scope)
-  return <li hidden={scope !== null && !shows(tags, scope.chosen)}>{children}</li>
-}
-
 export function TagFilter({
   options,
+  chosen,
+  onChoose,
   words,
-  lang,
   allHref,
 }: {
   /** Every tag the served Trees carry, in the list's order (`tagOptions`). */
-  options: TagOption[]
+  options: readonly TagOption[]
+  /** The keys of the ticked tags. */
+  chosen: readonly string[]
+  /** Told the new choice, which the address is given here. */
+  onChoose: (chosen: string[]) => void
   words: TagFilterWords
-  /** The page's `lang` parameter, kept by the plain form; null for the first chrome language, which has none. */
-  lang: string | null
-  /** The overview with no choice, in the page's language. */
+  /** The overview with no choice, in the page's language and with the search field's text. */
   allHref: string
 }) {
-  const scope = useContext(Scope)
   const sheet = useRef<HTMLDetailsElement>(null)
-  const chosen = scope?.chosen ?? []
 
   // A dropdown closes on Escape, giving the focus back to its pill, and on a click outside it (10.5).
   useEffect(() => {
@@ -72,7 +58,7 @@ export function TagFilter({
 
   /** The new choice on the page and in the address, which is replaced rather than added to the history. */
   const choose = (next: string[]): void => {
-    scope?.choose(next)
+    onChoose(next)
     window.history.replaceState(window.history.state, '', withTags(window.location.href, next, options))
   }
 
@@ -86,7 +72,7 @@ export function TagFilter({
         <span className="tag-filter-word">{words.tags}</span>
         {chosen.length > 0 && <span className="tag-filter-count">{chosen.length}</span>}
       </summary>
-      <form className="tag-filter-panel" method="get" action="/">
+      <div className="tag-filter-panel">
         <fieldset>
           <legend>{words.filterByTag}</legend>
           <ul>
@@ -108,7 +94,6 @@ export function TagFilter({
             ))}
           </ul>
         </fieldset>
-        {lang && <input type="hidden" name="lang" value={lang} />}
         <div className="tag-filter-actions">
           <noscript>
             <button type="submit" className="tag-filter-apply">
@@ -128,7 +113,7 @@ export function TagFilter({
             </a>
           )}
         </div>
-      </form>
+      </div>
     </details>
   )
 }

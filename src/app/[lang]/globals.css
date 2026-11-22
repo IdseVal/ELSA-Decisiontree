@@ -309,7 +309,6 @@ a {
 .language,
 .share,
 .to-editor,
-.tag-filter-button,
 .admin-chrome:not(.editor-chrome) .admin-link {
   display: inline-block;
   padding: 3px 12px;
@@ -329,8 +328,6 @@ a {
 a.language:hover,
 .share:hover,
 .to-editor:hover,
-.tag-filter-button:hover,
-.tag-filter[open] > .tag-filter-button,
 .admin-chrome:not(.editor-chrome) .admin-link:hover {
   color: var(--elsa-text);
   border-color: var(--accent-secondary-read);
@@ -345,7 +342,6 @@ a.language:hover,
 
 .share,
 .to-editor,
-.tag-filter-button,
 .admin-chrome:not(.editor-chrome) .admin-link {
   border-color: var(--rule);
 }
@@ -1799,6 +1795,7 @@ a.language:hover,
   position: relative;
   display: block;
   width: min(280px, 100%);
+  min-width: 0;
 }
 
 .overview-search-field svg {
@@ -1982,15 +1979,35 @@ a.language:hover,
 }
 
 /*
- * **[#273]** The overview's tag filter (26.6): a pill of the bar, in the share button's look, whose
- * list drops under the bar's right end over the grid -- placed in the bar, which is positioned,
- * not in the pill, which the language switch and "Editor" follow, so that it never leaves a
- * 320-pixel window on the left -- -- not a row above the box, which would take
- * the box's third row of tiles at 1280 x 640 (26.2). The list scrolls inside its own bounds when
- * the tags outnumber the window, between the bar and the disclaimer; it is shut until asked for.
+ * **[#273]** The overview's tag filter (26.6): a pill in the search bar's row, in the column after
+ * the field (26.5), as tall and as round as the field. Its list drops from the pill's right end
+ * over the grid -- from the right, since the pill stands right of a 280-pixel field and a list
+ * hung from its left end would leave a narrow window -- and scrolls inside its own bounds when the
+ * tags outnumber the window. It is shut until asked for.
  */
+.tag-filter {
+  position: relative;
+  flex: none;
+}
+
 .tag-filter-button {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--elsa-surface);
+  color: var(--elsa-text);
+  font-size: var(--body);
   list-style: none;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease);
+}
+
+.tag-filter-button:hover,
+.tag-filter[open] > .tag-filter-button {
+  border-color: var(--accent-secondary-read);
 }
 
 .tag-filter-button::-webkit-details-marker {
@@ -2002,7 +2019,6 @@ a.language:hover,
   display: none;
   width: 12px;
   height: 18px;
-  vertical-align: top;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.5;
@@ -2025,21 +2041,27 @@ a.language:hover,
 
 /*
  * Shut, out of layout: Chromium lays a closed <details>' content out in a contained slot, which
- * would be the list's containing block and put it left of a narrow window, where the bar's own
- * measures (10.6) find it.
+ * would be the list's containing block and put it beside the pill, where the page's measures
+ * (10.6) find it.
  */
 .tag-filter:not([open]) > .tag-filter-panel {
   display: none;
 }
 
+/*
+ * At most the window less the 16-pixel inset on each side, so that from the pill's right end it
+ * never passes the left edge; at most as tall as the window under the field less 140 pixels, the
+ * row above the pill and a three-line disclaimer under the grid at 320 pixels wide.
+ */
 .tag-filter-panel {
   position: absolute;
   top: calc(100% + 8px);
-  right: 16px;
+  right: 0;
+  z-index: 3;
   width: max-content;
   min-width: 200px;
-  max-width: min(320px, calc(100vw - 16px));
-  max-height: calc(100dvh - var(--chrome-row) - var(--disclaimer-row) - 16px);
+  max-width: min(320px, calc(100vw - 32px));
+  max-height: calc(100dvh - var(--chrome-row) - 140px);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 12px 16px;
@@ -3232,15 +3254,19 @@ fieldset:disabled .admin-submit {
     gap: 8px;
   }
 
-  .tag-filter-panel {
-    right: 8px;
+  /*
+   * **[#273]** Below 480 the tag pill draws a funnel for its word, which stays its name for a
+   * screen reader (its `aria-label`), and stands 8 pixels from the field: the field keeps the room
+   * for its placeholder (26.5).
+   */
+  .overview-search {
+    gap: 8px;
   }
 
-  /*
-   * **[#273]** The overview keeps its current language's pill at every width (24.3), so below 480
-   * the tag pill draws a funnel for its word, which stays its name for a screen reader (its
-   * `aria-label`): at 320 the site title took a second line beside the word.
-   */
+  .tag-filter-button {
+    padding: 0 12px;
+  }
+
   .tag-filter-icon {
     display: inline-block;
   }
@@ -3284,7 +3310,6 @@ fieldset:disabled .admin-submit {
   .language,
   .share,
   .to-editor,
-  .tag-filter-button,
   .admin-chrome:not(.editor-chrome) .admin-link {
     padding: 3px 5px;
     font-size: 11px;
